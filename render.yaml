@@ -54,6 +54,6 @@ services:
 
 databases:
   - name: openplane-db
-    plan: starter
+    plan: free
     databaseName: openplane
     user: openplane
