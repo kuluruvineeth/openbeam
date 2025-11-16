@@ -23,7 +23,7 @@ jobs:
               run: bun install --frozen-lockfile
 
             - name: Check formatting
-              run: bun x ultracite fix --check
+              run: bun x ultracite check
 
             - name: Type check
               run: bun run check-types
