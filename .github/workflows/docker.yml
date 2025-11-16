@@ -9,7 +9,6 @@ on:
 
 env:
     REGISTRY: ghcr.io
-    # BuildKit for faster builds
     DOCKER_BUILDKIT: 1
     COMPOSE_DOCKER_CLI_BUILD: 1
 
@@ -18,9 +17,6 @@ jobs:
         name: Build and Push Images
         runs-on: ubuntu-latest
         timeout-minutes: 30
-        # Only run if:
-        # - Manually triggered (workflow_dispatch), OR
-        # - CI workflow succeeded (workflow_run with success)
         if: |
             github.event_name == 'workflow_dispatch' || 
             (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
@@ -39,145 +35,69 @@ jobs:
             - name: Checkout code
               uses: actions/checkout@v4
               with:
-                  fetch-depth: 0 # Fetch full history for git diff
+                  fetch-depth: 0
 
             - name: Detect changes
               id: changes
               run: |
                   set -euo pipefail
 
-                  # For manual dispatch, always build all services
                   if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
                       echo "server_changed=true" >> $GITHUB_OUTPUT
                       echo "web_changed=true" >> $GITHUB_OUTPUT
                       echo "fumadocs_changed=true" >> $GITHUB_OUTPUT
-                      echo "📋 Manual dispatch - building all services"
                       exit 0
                   fi
 
-                  # Get the base and head commits for workflow_run
                   if [ "${{ github.event_name }}" == "workflow_run" ]; then
-                      # Get the commit SHA from the workflow run
                       HEAD_SHA="${{ github.event.workflow_run.head_sha }}"
-                      # Get the branch/ref from the workflow run
                       BRANCH="${{ github.event.workflow_run.head_branch }}"
-                      
-                      # Fetch the branch to ensure we have the ref
                       git fetch origin "$BRANCH" 2>/dev/null || git fetch origin main 2>/dev/null || true
-                      
-                      # Checkout the specific commit
                       git checkout "$HEAD_SHA" 2>/dev/null || true
-                      
-                      # Get the previous commit on the same branch
-                      BASE_SHA=$(git rev-parse "$HEAD_SHA~1" 2>/dev/null || echo "")
-                      
-                      # If no previous commit, compare with origin
-                      if [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "$HEAD_SHA" ]; then
-                          BASE_SHA=$(git merge-base "$HEAD_SHA" "origin/$BRANCH" 2>/dev/null || git merge-base "$HEAD_SHA" origin/main 2>/dev/null || echo "$HEAD_SHA")
-                      fi
+                      BASE_SHA=$(git merge-base "$HEAD_SHA" "origin/$BRANCH" 2>/dev/null || echo "")
+                      [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "$HEAD_SHA" ] && \
+                          BASE_SHA=$(git merge-base "$HEAD_SHA" origin/main 2>/dev/null || echo "")
+                      [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "$HEAD_SHA" ] && \
+                          BASE_SHA=$(git rev-parse "$HEAD_SHA~1" 2>/dev/null || echo "")
                   else
-                      # For other events, use current HEAD
                       HEAD_SHA=$(git rev-parse HEAD)
-                      BASE_SHA=$(git rev-parse HEAD~1 2>/dev/null || echo "")
+                      BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")
+                      BASE_SHA=$(git merge-base HEAD "origin/$BRANCH" 2>/dev/null || git rev-parse HEAD~1 2>/dev/null || echo "$HEAD_SHA")
                   fi
 
-                  # If we still don't have a valid base, use the first commit
-                  if [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "$HEAD_SHA" ]; then
+                  [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "$HEAD_SHA" ] && \
                       BASE_SHA=$(git rev-list --max-parents=0 HEAD 2>/dev/null | head -1 || echo "$HEAD_SHA")
-                  fi
 
-                  # Get changed files
                   CHANGED_FILES=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" 2>/dev/null || echo "")
-
-                  # Debug: show changed files
-                  echo "Changed files:"
-                  echo "$CHANGED_FILES" | head -20
-                  [ $(echo "$CHANGED_FILES" | wc -l) -gt 20 ] && echo "... (and more)"
-
-                  # Determine which services need to be built
                   SERVER_CHANGED=false
                   WEB_CHANGED=false
                   FUMADOCS_CHANGED=false
 
-                  # Check each changed file against service-specific patterns
                   while IFS= read -r file; do
                       [ -z "$file" ] && continue
-                      
-                      # Server: only if file is in server-specific paths
-                      if [[ "$file" =~ ^apps/server/ ]] || \
-                         [[ "$file" =~ ^packages/(api|auth|db)/ ]] || \
-                         [[ "$file" == "Dockerfile.server" ]]; then
-                          SERVER_CHANGED=true
-                      fi
-                      
-                      # Web: only if file is in web-specific paths
-                      if [[ "$file" =~ ^apps/web/ ]] || \
-                         [[ "$file" =~ ^packages/(api|auth|db)/ ]] || \
-                         [[ "$file" == "Dockerfile.web" ]]; then
-                          WEB_CHANGED=true
-                      fi
-                      
-                      # Fumadocs: only if file is in fumadocs-specific paths
-                      if [[ "$file" =~ ^apps/fumadocs/ ]] || \
-                         [[ "$file" == "Dockerfile.fumadocs" ]]; then
-                          FUMADOCS_CHANGED=true
-                      fi
-                      
-                      # Root config files affect all services
-                      if [[ "$file" == "package.json" ]] || \
-                         [[ "$file" == "bun.lock" ]] || \
-                         [[ "$file" == "turbo.json" ]]; then
-                          SERVER_CHANGED=true
-                          WEB_CHANGED=true
-                          FUMADOCS_CHANGED=true
-                      fi
+                      ([[ "$file" =~ ^apps/server/ ]] || [[ "$file" =~ ^packages/(api|auth|db)/ ]] || [[ "$file" == "Dockerfile.server" ]]) && SERVER_CHANGED=true
+                      ([[ "$file" =~ ^apps/web/ ]] || [[ "$file" =~ ^packages/(api|auth|db)/ ]] || [[ "$file" == "Dockerfile.web" ]]) && WEB_CHANGED=true
+                      ([[ "$file" =~ ^apps/fumadocs/ ]] || [[ "$file" == "Dockerfile.fumadocs" ]]) && FUMADOCS_CHANGED=true
+                      ([[ "$file" == "package.json" ]] || [[ "$file" == "bun.lock" ]] || [[ "$file" == "turbo.json" ]]) && \
+                          SERVER_CHANGED=true && WEB_CHANGED=true && FUMADOCS_CHANGED=true
                   done <<< "$CHANGED_FILES"
 
                   echo "server_changed=$SERVER_CHANGED" >> $GITHUB_OUTPUT
                   echo "web_changed=$WEB_CHANGED" >> $GITHUB_OUTPUT
                   echo "fumadocs_changed=$FUMADOCS_CHANGED" >> $GITHUB_OUTPUT
 
-                  echo ""
-                  echo "📋 Change Detection Summary"
-                  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-                  echo "Event: ${{ github.event_name }}"
-                  echo "Base SHA: $BASE_SHA"
-                  echo "Head SHA: $HEAD_SHA"
-                  echo "Changed files: $(echo "$CHANGED_FILES" | grep -v '^$' | wc -l)"
-                  echo ""
-                  echo "🔍 Services to build:"
-                  [ "$SERVER_CHANGED" = "true" ] && echo "  ✅ server" || echo "  ⏭️  server (skipped)"
-                  [ "$WEB_CHANGED" = "true" ] && echo "  ✅ web" || echo "  ⏭️  web (skipped)"
-                  [ "$FUMADOCS_CHANGED" = "true" ] && echo "  ✅ fumadocs" || echo "  ⏭️  fumadocs (skipped)"
-                  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
-            - name: Check if service should be built
-              id: should_build
-              run: |
-                  case "${{ matrix.service }}" in
-                      server)
-                          SHOULD_BUILD="${{ steps.changes.outputs.server_changed }}"
-                          ;;
-                      web)
-                          SHOULD_BUILD="${{ steps.changes.outputs.web_changed }}"
-                          ;;
-                      fumadocs)
-                          SHOULD_BUILD="${{ steps.changes.outputs.fumadocs_changed }}"
-                          ;;
-                  esac
-                  echo "should_build=$SHOULD_BUILD" >> $GITHUB_OUTPUT
-                  if [ "$SHOULD_BUILD" == "true" ]; then
-                      echo "✅ Building ${{ matrix.service }} - changes detected"
-                  else
-                      echo "⏭️  Skipping ${{ matrix.service }} - no relevant changes"
-                  fi
-
             - name: Set up Docker Buildx
-              if: steps.should_build.outputs.should_build == 'true'
+              if: |
+                  (matrix.service == 'server' && steps.changes.outputs.server_changed == 'true') ||
+                  (matrix.service == 'web' && steps.changes.outputs.web_changed == 'true') ||
+                  (matrix.service == 'fumadocs' && steps.changes.outputs.fumadocs_changed == 'true')
               uses: docker/setup-buildx-action@v3
 
             - name: Log in to GitHub Container Registry
-              if: steps.should_build.outputs.should_build == 'true'
+              if: |
+                  (matrix.service == 'server' && steps.changes.outputs.server_changed == 'true') ||
+                  (matrix.service == 'web' && steps.changes.outputs.web_changed == 'true') ||
+                  (matrix.service == 'fumadocs' && steps.changes.outputs.fumadocs_changed == 'true')
               uses: docker/login-action@v3
               with:
                   registry: ${{ env.REGISTRY }}
@@ -185,7 +105,10 @@ jobs:
                   password: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Extract metadata
-              if: steps.should_build.outputs.should_build == 'true'
+              if: |
+                  (matrix.service == 'server' && steps.changes.outputs.server_changed == 'true') ||
+                  (matrix.service == 'web' && steps.changes.outputs.web_changed == 'true') ||
+                  (matrix.service == 'fumadocs' && steps.changes.outputs.fumadocs_changed == 'true')
               id: meta
               uses: docker/metadata-action@v5
               with:
@@ -199,7 +122,10 @@ jobs:
                       type=raw,value=latest,enable={{is_default_branch}}
 
             - name: Build and push Docker image
-              if: steps.should_build.outputs.should_build == 'true'
+              if: |
+                  (matrix.service == 'server' && steps.changes.outputs.server_changed == 'true') ||
+                  (matrix.service == 'web' && steps.changes.outputs.web_changed == 'true') ||
+                  (matrix.service == 'fumadocs' && steps.changes.outputs.fumadocs_changed == 'true')
               uses: docker/build-push-action@v5
               with:
                   context: .
