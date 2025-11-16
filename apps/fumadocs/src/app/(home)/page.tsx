@@ -9,7 +9,7 @@ export default function HomePage() {
         <Link className="font-medium underline" href="/docs">
           /docs
         </Link>{" "}
-        and see the documentation.
+        and see the openplane documentation.
       </p>
     </div>
   );
