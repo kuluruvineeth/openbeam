@@ -18,7 +18,7 @@ services:
       - key: NODE_ENV
         value: production
     healthCheckPath: /
-    autoDeploy: true
+    autoDeploy: false
 
   - type: web
     name: openplane-web
@@ -35,7 +35,7 @@ services:
       - key: NODE_ENV
         value: production
     healthCheckPath: /
-    autoDeploy: true
+    autoDeploy: false
 
   - type: web
     name: openplane-docs
@@ -50,7 +50,7 @@ services:
       - key: NODE_ENV
         value: production
     healthCheckPath: /
-    autoDeploy: true
+    autoDeploy: false
 
 databases:
   - name: openplane-db

@@ -136,3 +136,29 @@ jobs:
                   platforms: linux/amd64
                   cache-from: type=gha
                   cache-to: type=gha,mode=max
+
+            - name: Trigger Render deployment
+              if: |
+                  (matrix.service == 'server' && steps.changes.outputs.server_changed == 'true') ||
+                  (matrix.service == 'web' && steps.changes.outputs.web_changed == 'true') ||
+                  (matrix.service == 'fumadocs' && steps.changes.outputs.fumadocs_changed == 'true')
+              run: |
+                  case "${{ matrix.service }}" in
+                      server)
+                          WEBHOOK_URL="${{ secrets.RENDER_WEBHOOK_SERVER }}"
+                          ;;
+                      web)
+                          WEBHOOK_URL="${{ secrets.RENDER_WEBHOOK_WEB }}"
+                          ;;
+                      fumadocs)
+                          WEBHOOK_URL="${{ secrets.RENDER_WEBHOOK_DOCS }}"
+                          ;;
+                  esac
+
+                  if [ -n "$WEBHOOK_URL" ]; then
+                      echo "Triggering Render deployment for ${{ matrix.service }}..."
+                      curl -X POST "$WEBHOOK_URL" || echo "Webhook call failed (service may not be configured yet)"
+                  else
+                      echo "⚠️  Render webhook not configured for ${{ matrix.service }}. Skipping deployment trigger."
+                      echo "   Add RENDER_WEBHOOK_${{ matrix.service }} secret in GitHub repository settings."
+                  fi
