@@ -32,13 +32,14 @@
     "@openplane/auth": "workspace:*"
   },
   "devDependencies": {
+    "@openplane/config": "workspace:*",
     "@tailwindcss/postcss": "catalog:",
+    "@tanstack/react-query-devtools": "^5.85.5",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "tailwind-scrollbar": "^4.0.2",
     "tailwindcss": "catalog:",
-    "typescript": "catalog:",
-    "@tanstack/react-query-devtools": "^5.85.5",
-    "@openplane/config": "workspace:*"
+    "typescript": "catalog:"
   }
 }

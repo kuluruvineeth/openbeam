@@ -9,7 +9,9 @@ export default function Home() {
 
   return (
     <div className="container mx-auto max-w-3xl px-4 py-2">
-      <pre className="overflow-x-auto font-mono text-sm">{TITLE_TEXT}</pre>
+      <pre className="max-w-3xl text-balance text-left font-f37-stout text-[36px] leading-tight md:text-3xl xl:text-5xl">
+        {TITLE_TEXT}
+      </pre>
       <div className="grid gap-6">
         <section className="rounded-lg border p-4">
           <h2 className="mb-2 font-medium">API Status</h2>
