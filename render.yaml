@@ -7,7 +7,7 @@ services:
     registryCredential:
       fromRegistryCreds:
         name: ghcr-credentials
-    plan: starter
+    plan: free
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -28,7 +28,7 @@ services:
     registryCredential:
       fromRegistryCreds:
         name: ghcr-credentials
-    plan: starter
+    plan: free
     envVars:
       - key: NEXT_PUBLIC_SERVER_URL
         sync: false
@@ -45,7 +45,7 @@ services:
     registryCredential:
       fromRegistryCreds:
         name: ghcr-credentials
-    plan: starter
+    plan: free
     envVars:
       - key: NODE_ENV
         value: production
