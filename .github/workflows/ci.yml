@@ -25,6 +25,9 @@ jobs:
             - name: Check formatting
               run: bun x ultracite check
 
+            - name: Generate Prisma client
+              run: bun run db:generate
+
             - name: Type check
               run: bun run check-types
 
