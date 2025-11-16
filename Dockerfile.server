@@ -1,0 +1,100 @@
+# Multi-stage build for server (Bun/Hono)
+FROM oven/bun:1.3.2 AS base
+
+# Install dependencies only when needed
+FROM base AS deps
+WORKDIR /app
+
+# Copy workspace configuration
+COPY package.json bun.lock turbo.json ./
+
+# Copy all package.json files (needed for workspace resolution)
+COPY packages/config/package.json ./packages/config/
+COPY packages/db/package.json ./packages/db/
+COPY packages/auth/package.json ./packages/auth/
+COPY packages/api/package.json ./packages/api/
+COPY apps/server/package.json ./apps/server/
+COPY apps/web/package.json ./apps/web/
+COPY apps/fumadocs/package.json ./apps/fumadocs/
+
+# Copy fumadocs config files needed for postinstall script (required during workspace install)
+COPY apps/fumadocs/source.config.ts ./apps/fumadocs/
+COPY apps/fumadocs/content ./apps/fumadocs/content
+
+# Install dependencies
+RUN bun install --frozen-lockfile
+
+# Build stage
+FROM base AS builder
+WORKDIR /app
+
+# Copy dependencies
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/packages ./packages
+COPY --from=deps /app/apps ./apps
+
+# Copy source code
+COPY package.json turbo.json bun.lock ./
+COPY packages ./packages
+COPY apps/server ./apps/server
+
+# Generate Prisma client
+WORKDIR /app/packages/db
+RUN bun run db:generate
+
+# Build the server
+WORKDIR /app
+RUN bun run --filter=server build
+
+# Copy migration script
+COPY scripts/migrate.sh /app/scripts/migrate.sh
+RUN chmod +x /app/scripts/migrate.sh
+
+# Production stage
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+# Copy workspace configuration
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/bun.lock ./bun.lock
+COPY --from=builder /app/turbo.json ./turbo.json
+
+# Copy all package.json files (needed for workspace resolution)
+COPY --from=builder /app/packages/config/package.json ./packages/config/
+COPY --from=builder /app/packages/db/package.json ./packages/db/
+COPY --from=builder /app/packages/auth/package.json ./packages/auth/
+COPY --from=builder /app/packages/api/package.json ./packages/api/
+COPY --from=builder /app/apps/server/package.json ./apps/server/
+COPY --from=builder /app/apps/web/package.json ./apps/web/
+COPY --from=builder /app/apps/fumadocs/package.json ./apps/fumadocs/
+
+# Copy fumadocs config files (needed if postinstall runs during workspace validation)
+COPY --from=builder /app/apps/fumadocs/source.config.ts ./apps/fumadocs/
+COPY --from=builder /app/apps/fumadocs/content ./apps/fumadocs/content
+
+# Copy built packages (workspace dependencies)
+COPY --from=builder /app/packages ./packages
+
+# Copy built server
+COPY --from=builder /app/apps/server/dist ./apps/server/dist
+
+# Copy scripts
+COPY --from=builder /app/scripts ./scripts
+
+# Install production dependencies only (skip scripts to avoid husky)
+RUN HUSKY=0 bun install --frozen-lockfile --production --ignore-scripts
+
+WORKDIR /app/apps/server
+
+# Expose port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD bun run -e "fetch('http://localhost:3000/').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"
+
+# Start the server
+CMD ["bun", "run", "dist/index.js"]
+
