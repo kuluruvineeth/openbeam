@@ -1,0 +1,33 @@
+{
+  "name": "@openplane/api",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./src/*.ts"
+    }
+  },
+  "type": "module",
+  "scripts": {
+    "build": "tsdown"
+  },
+  "devDependencies": {
+    "tsdown": "catalog:",
+    "@openplane/config": "workspace:*"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@trpc/server": "catalog:",
+    "@trpc/client": "catalog:",
+    "hono": "catalog:",
+    "dotenv": "catalog:",
+    "zod": "catalog:",
+    "@openplane/auth": "workspace:*",
+    "@openplane/db": "workspace:*"
+  }
+}
