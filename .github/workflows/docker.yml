@@ -46,67 +46,104 @@ jobs:
               run: |
                   set -euo pipefail
 
-                  # Get the base and head commits
-                  if [ "${{ github.event_name }}" == "workflow_run" ]; then
-                      # For workflow_run, checkout the specific commit and compare with previous
-                      HEAD_SHA="${{ github.event.workflow_run.head_sha }}"
-                      git checkout "$HEAD_SHA" 2>/dev/null || true
-                      # Get the merge base or previous commit
-                      BASE_SHA=$(git merge-base "$HEAD_SHA" origin/main 2>/dev/null || git rev-parse "$HEAD_SHA~1" 2>/dev/null || echo "$HEAD_SHA")
-                  elif [ "${{ github.event_name }}" == "push" ]; then
-                      # For tag pushes, compare with previous commit
-                      HEAD_SHA="${{ github.sha }}"
-                      BASE_SHA=$(git rev-parse "$HEAD_SHA~1" 2>/dev/null || echo "$HEAD_SHA")
-                  else
-                      # For manual dispatch, compare with previous commit
-                      HEAD_SHA=$(git rev-parse HEAD)
-                      BASE_SHA=$(git rev-parse HEAD~1 2>/dev/null || echo "$HEAD_SHA")
+                  # For manual dispatch, always build all services
+                  if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+                      echo "server_changed=true" >> $GITHUB_OUTPUT
+                      echo "web_changed=true" >> $GITHUB_OUTPUT
+                      echo "fumadocs_changed=true" >> $GITHUB_OUTPUT
+                      echo "📋 Manual dispatch - building all services"
+                      exit 0
                   fi
 
-                  # Check which services have changes
-                  if [ "$BASE_SHA" = "$HEAD_SHA" ]; then
-                      # If base equals head (first commit or no history), check all files
-                      CHANGED_FILES=$(git ls-tree -r --name-only HEAD)
+                  # Get the base and head commits for workflow_run
+                  if [ "${{ github.event_name }}" == "workflow_run" ]; then
+                      # Get the commit SHA from the workflow run
+                      HEAD_SHA="${{ github.event.workflow_run.head_sha }}"
+                      # Get the branch/ref from the workflow run
+                      BRANCH="${{ github.event.workflow_run.head_branch }}"
+                      
+                      # Fetch the branch to ensure we have the ref
+                      git fetch origin "$BRANCH" 2>/dev/null || git fetch origin main 2>/dev/null || true
+                      
+                      # Checkout the specific commit
+                      git checkout "$HEAD_SHA" 2>/dev/null || true
+                      
+                      # Get the previous commit on the same branch
+                      BASE_SHA=$(git rev-parse "$HEAD_SHA~1" 2>/dev/null || echo "")
+                      
+                      # If no previous commit, compare with origin
+                      if [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "$HEAD_SHA" ]; then
+                          BASE_SHA=$(git merge-base "$HEAD_SHA" "origin/$BRANCH" 2>/dev/null || git merge-base "$HEAD_SHA" origin/main 2>/dev/null || echo "$HEAD_SHA")
+                      fi
                   else
-                      CHANGED_FILES=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" 2>/dev/null || echo "")
+                      # For other events, use current HEAD
+                      HEAD_SHA=$(git rev-parse HEAD)
+                      BASE_SHA=$(git rev-parse HEAD~1 2>/dev/null || echo "")
                   fi
+
+                  # If we still don't have a valid base, use the first commit
+                  if [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "$HEAD_SHA" ]; then
+                      BASE_SHA=$(git rev-list --max-parents=0 HEAD 2>/dev/null | head -1 || echo "$HEAD_SHA")
+                  fi
+
+                  # Get changed files
+                  CHANGED_FILES=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" 2>/dev/null || echo "")
+
+                  # Debug: show changed files
+                  echo "Changed files:"
+                  echo "$CHANGED_FILES" | head -20
+                  [ $(echo "$CHANGED_FILES" | wc -l) -gt 20 ] && echo "... (and more)"
 
                   # Determine which services need to be built
                   SERVER_CHANGED=false
                   WEB_CHANGED=false
                   FUMADOCS_CHANGED=false
 
-                  # Server changes: apps/server, packages/api, packages/auth, packages/db, Dockerfile.server
-                  if echo "$CHANGED_FILES" | grep -qE "(apps/server/|packages/(api|auth|db)/|Dockerfile\.server|^package\.json$|^bun\.lock$|^turbo\.json$)"; then
-                      SERVER_CHANGED=true
-                  fi
-
-                  # Web changes: apps/web, packages/api, packages/auth, packages/db, Dockerfile.web
-                  if echo "$CHANGED_FILES" | grep -qE "(apps/web/|packages/(api|auth|db)/|Dockerfile\.web|^package\.json$|^bun\.lock$|^turbo\.json$)"; then
-                      WEB_CHANGED=true
-                  fi
-
-                  # Fumadocs changes: apps/fumadocs, Dockerfile.fumadocs
-                  if echo "$CHANGED_FILES" | grep -qE "(apps/fumadocs/|Dockerfile\.fumadocs|^package\.json$|^bun\.lock$)"; then
-                      FUMADOCS_CHANGED=true
-                  fi
-
-                  # For manual dispatch, always build
-                  if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-                      SERVER_CHANGED=true
-                      WEB_CHANGED=true
-                      FUMADOCS_CHANGED=true
-                  fi
+                  # Check each changed file against service-specific patterns
+                  while IFS= read -r file; do
+                      [ -z "$file" ] && continue
+                      
+                      # Server: only if file is in server-specific paths
+                      if [[ "$file" =~ ^apps/server/ ]] || \
+                         [[ "$file" =~ ^packages/(api|auth|db)/ ]] || \
+                         [[ "$file" == "Dockerfile.server" ]]; then
+                          SERVER_CHANGED=true
+                      fi
+                      
+                      # Web: only if file is in web-specific paths
+                      if [[ "$file" =~ ^apps/web/ ]] || \
+                         [[ "$file" =~ ^packages/(api|auth|db)/ ]] || \
+                         [[ "$file" == "Dockerfile.web" ]]; then
+                          WEB_CHANGED=true
+                      fi
+                      
+                      # Fumadocs: only if file is in fumadocs-specific paths
+                      if [[ "$file" =~ ^apps/fumadocs/ ]] || \
+                         [[ "$file" == "Dockerfile.fumadocs" ]]; then
+                          FUMADOCS_CHANGED=true
+                      fi
+                      
+                      # Root config files affect all services
+                      if [[ "$file" == "package.json" ]] || \
+                         [[ "$file" == "bun.lock" ]] || \
+                         [[ "$file" == "turbo.json" ]]; then
+                          SERVER_CHANGED=true
+                          WEB_CHANGED=true
+                          FUMADOCS_CHANGED=true
+                      fi
+                  done <<< "$CHANGED_FILES"
 
                   echo "server_changed=$SERVER_CHANGED" >> $GITHUB_OUTPUT
                   echo "web_changed=$WEB_CHANGED" >> $GITHUB_OUTPUT
                   echo "fumadocs_changed=$FUMADOCS_CHANGED" >> $GITHUB_OUTPUT
 
+                  echo ""
                   echo "📋 Change Detection Summary"
                   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                  echo "Event: ${{ github.event_name }}"
                   echo "Base SHA: $BASE_SHA"
                   echo "Head SHA: $HEAD_SHA"
-                  echo "Changed files count: $(echo "$CHANGED_FILES" | wc -l)"
+                  echo "Changed files: $(echo "$CHANGED_FILES" | grep -v '^$' | wc -l)"
                   echo ""
                   echo "🔍 Services to build:"
                   [ "$SERVER_CHANGED" = "true" ] && echo "  ✅ server" || echo "  ⏭️  server (skipped)"
