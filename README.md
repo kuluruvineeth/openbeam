@@ -1,78 +1,122 @@
-# openplane
+<div align="center">
 
-This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines Next.js, Hono, TRPC, and more.
+![OpenPlane Logo](apps/web/public/assets/logo.png)
 
-## Features
+# OpenPlane
 
-- **TypeScript** - For type safety and improved developer experience
-- **Next.js** - Full-stack React framework
-- **TailwindCSS** - Utility-first CSS for rapid UI development
-- **shadcn/ui** - Reusable UI components
-- **Hono** - Lightweight, performant server framework
-- **tRPC** - End-to-end type-safe APIs
-- **Bun** - Runtime environment
-- **Prisma** - TypeScript-first ORM
-- **PostgreSQL** - Database engine
-- **Authentication** - Better-Auth
-- **Biome** - Linting and formatting
-- **Husky** - Git hooks for code quality
-- **Turborepo** - Optimized monorepo build system
+**Enterprise AI that finds, builds, and creates**
 
-## Getting Started
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-000000?style=flat&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![Hono](https://img.shields.io/badge/Hono-000000?style=flat&logo=hono&logoColor=white)](https://hono.dev/)
+[![Bun](https://img.shields.io/badge/Bun-000000?style=flat&logo=bun&logoColor=white)](https://bun.sh/)
 
-First, install the dependencies:
+</div>
+
+## Overview
+
+OpenPlane is a production platform for workplace search, reinforcement learning agents, and video editing. Built for reliability and scale.
+
+## Tech Stack
+
+| Category     | Technology         |
+| ------------ | ------------------ |
+| **Language** | TypeScript         |
+| **Frontend** | Next.js, React     |
+| **Backend**  | Hono, tRPC         |
+| **Runtime**  | Bun                |
+| **Database** | PostgreSQL, Prisma |
+| **Auth**     | Better-Auth        |
+| **Monorepo** | Turborepo          |
+
+## Quick Start
 
 ```bash
+# Install dependencies
 bun install
-```
-## Database Setup
 
-This project uses PostgreSQL with Prisma.
-
-1. Make sure you have a PostgreSQL database set up.
-2. Update your `apps/server/.env` file with your PostgreSQL connection details.
-
-3. Generate the Prisma client and push the schema:
-```bash
+# Set up database
 bun run db:push
-```
 
-
-Then, run the development server:
-
-```bash
+# Start development servers
 bun run dev
 ```
 
-Open [http://localhost:3001](http://localhost:3001) in your browser to see the web application.
-The API is running at [http://localhost:3000](http://localhost:3000).
+**Access:**
 
-
-
-
-
-
+- Web App: <http://localhost:3001>
+- API Server: <http://localhost:3000>
+- Documentation: <http://localhost:4000>
 
 ## Project Structure
 
 ```
 openplane/
 ├── apps/
-│   ├── web/         # Frontend application (Next.js)
-│   └── server/      # Backend API (Hono, TRPC)
-├── packages/
-│   ├── api/         # API layer / business logic
-│   ├── auth/        # Authentication configuration & logic
-│   └── db/          # Database schema & queries
+│   ├── web/         # Next.js frontend
+│   ├── server/      # Hono API server
+│   └── fumadocs/    # Documentation site
+└── packages/
+    ├── api/         # Shared API logic
+    ├── auth/        # Authentication
+    └── db/          # Database schema
 ```
 
-## Available Scripts
+## Development
 
-- `bun run dev`: Start all applications in development mode
-- `bun run build`: Build all applications
-- `bun run dev:web`: Start only the web application
-- `bun run dev:server`: Start only the server
-- `bun run check-types`: Check TypeScript types across all apps
-- `bun run db:push`: Push schema changes to database
-- `bun run db:studio`: Open database studio UI
-- `bun run check`: Run Biome formatting and linting
+### Available Scripts
+
+| Command               | Description                       |
+| --------------------- | --------------------------------- |
+| `bun run dev`         | Start all services in development |
+| `bun run build`       | Build all packages                |
+| `bun run check-types` | Run TypeScript type checking      |
+| `bun run db:push`     | Push Prisma schema to database    |
+| `bun run db:studio`   | Open Prisma Studio                |
+
+### Docker
+
+**Using Docker Compose:**
+
+```bash
+docker-compose up -d
+```
+
+**Pre-built Images:**
+
+```bash
+docker pull ghcr.io/kuluruvineeth/openplane-server:latest
+docker pull ghcr.io/kuluruvineeth/openplane-web:latest
+docker pull ghcr.io/kuluruvineeth/openplane-fumadocs:latest
+```
+
+## CI/CD Pipeline
+
+Our automated pipeline ensures quality and efficiency:
+
+1. **CI** - Linting, type checking, and builds on every push
+2. **Docker** - Builds and pushes images to GHCR after CI succeeds
+3. **Deploy** - Automatically deploys to Render via webhooks
+
+The pipeline intelligently builds only services with changes, optimizing build times.
+
+## Deployment
+
+Deploy to Render using the included Blueprint:
+
+1. Connect your GitHub repository to Render
+2. Apply the `render.yaml` Blueprint
+3. Configure environment variables
+4. Set up GitHub Container Registry credentials
+
+## Contributing
+
+We welcome contributions! See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+
+---
+
+<div align="center">
+
+Built with ❤️ by the OpenPlane team
+
+</div>
