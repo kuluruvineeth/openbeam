@@ -21,6 +21,13 @@ COPY apps/fumadocs/package.json ./apps/fumadocs/
 COPY apps/fumadocs/source.config.ts ./apps/fumadocs/
 COPY apps/fumadocs/content ./apps/fumadocs/content
 
+# Configure npm registry for HugeIcons Pro (if token provided)
+ARG HUGEICONS_PRO_AUTH_TOKEN
+RUN if [ -n "$HUGEICONS_PRO_AUTH_TOKEN" ]; then \
+        echo "@hugeicons-pro:registry=https://npm.hugeicons.com/" > .npmrc && \
+        echo "//npm.hugeicons.com/:_authToken=$HUGEICONS_PRO_AUTH_TOKEN" >> .npmrc; \
+    fi
+
 # Install dependencies
 RUN bun install --frozen-lockfile
 

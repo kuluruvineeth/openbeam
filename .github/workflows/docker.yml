@@ -146,6 +146,7 @@ jobs:
                   cache-to: type=gha,mode=max
                   build-args: |
                       NEXT_PUBLIC_SERVER_URL=${{ env.NEXT_PUBLIC_SERVER_URL }}
+                      HUGEICONS_PRO_AUTH_TOKEN=${{ secrets.HUGEICONS_PRO_AUTH_TOKEN }}
 
             - name: Trigger Render deployment
               if: |
