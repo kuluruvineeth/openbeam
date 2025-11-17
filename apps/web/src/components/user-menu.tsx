@@ -1,59 +1,70 @@
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+"use client";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { authClient } from "@/lib/auth-client";
-import { Button } from "./ui/button";
-import { Skeleton } from "./ui/skeleton";
+import { useUserQuery } from "@/hooks/use-user";
+import { SignOut } from "./sign-out";
+import { ThemeSwitch } from "./theme-switch";
+import { Avatar, AvatarFallback, AvatarImageNext } from "./ui/avatar";
 
-export default function UserMenu() {
-  const router = useRouter();
-  const { data: session, isPending } = authClient.useSession();
+type Props = {
+  onlySignOut?: boolean;
+};
 
-  if (isPending) {
-    return <Skeleton className="h-9 w-24" />;
-  }
-
-  if (!session) {
-    return (
-      <Button asChild variant="outline">
-        <Link href="/login">Sign In</Link>
-      </Button>
-    );
-  }
+export function UserMenu({ onlySignOut }: Props) {
+  const { data: user } = useUserQuery();
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline">{session.user.name}</Button>
+        <Avatar className="h-8 w-8 cursor-pointer rounded-full">
+          {user?.image && (
+            <AvatarImageNext
+              alt={user?.name ?? ""}
+              height={32}
+              quality={100}
+              src={user?.image}
+              width={32}
+            />
+          )}
+          <AvatarFallback>
+            <span className="text-xs">
+              {user?.name?.charAt(0)?.toUpperCase()}
+            </span>
+          </AvatarFallback>
+        </Avatar>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="bg-card">
-        <DropdownMenuLabel>My Account</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem>{session.user.email}</DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Button
-            className="w-full"
-            onClick={() => {
-              authClient.signOut({
-                fetchOptions: {
-                  onSuccess: () => {
-                    router.push("/");
-                  },
-                },
-              });
-            }}
-            variant="destructive"
-          >
-            Sign Out
-          </Button>
-        </DropdownMenuItem>
+      <DropdownMenuContent align="end" className="w-[240px]" sideOffset={10}>
+        {!onlySignOut && (
+          <>
+            <DropdownMenuLabel>
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col">
+                  <span className="line-clamp-1 block max-w-[155px] truncate">
+                    {user?.name}
+                  </span>
+                  <span className="truncate font-normal text-[#606060] text-xs">
+                    {user?.email}
+                  </span>
+                </div>
+              </div>
+            </DropdownMenuLabel>
+
+            <DropdownMenuSeparator />
+            <div className="flex flex-row items-center justify-between p-2">
+              <p className="text-sm">Theme</p>
+              <ThemeSwitch />
+            </div>
+            <DropdownMenuSeparator />
+          </>
+        )}
+
+        <SignOut />
       </DropdownMenuContent>
     </DropdownMenu>
   );
