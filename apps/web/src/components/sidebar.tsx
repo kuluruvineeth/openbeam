@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Icons } from "./icons";
+import { MainMenu } from "./main-menu";
 
 export function Sidebar() {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -28,6 +29,10 @@ export function Sidebar() {
         <Link className="absolute left-[22px] transition-none" href="/">
           <Icons.LogoSmall />
         </Link>
+      </div>
+
+      <div className="flex w-full flex-1 flex-col pt-[70px]">
+        <MainMenu isExpanded={isExpanded} />
       </div>
     </aside>
   );
