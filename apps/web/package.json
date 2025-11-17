@@ -8,6 +8,8 @@
     "start": "next start"
   },
   "dependencies": {
+    "@hugeicons-pro/core-stroke-rounded": "^2.0.0",
+    "@hugeicons/react": "^1.1.1",
     "@openplane/api": "workspace:*",
     "@openplane/auth": "workspace:*",
     "@prisma/client": "catalog:",
