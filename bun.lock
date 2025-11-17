@@ -69,6 +69,7 @@
         "@openplane/api": "workspace:*",
         "@openplane/auth": "workspace:*",
         "@prisma/client": "catalog:",
+        "@radix-ui/react-slot": "^1.2.4",
         "@tanstack/react-form": "^1.12.3",
         "@tanstack/react-query": "^5.85.5",
         "@trpc/client": "catalog:",

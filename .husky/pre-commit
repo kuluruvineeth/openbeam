@@ -1,2 +1,11 @@
 #!/bin/sh
-STAGED_FILES=$(git diff --cached --name-only) && [ -n "$STAGED_FILES" ] && bun x ultracite fix && echo "$STAGED_FILES" | xargs git add
+
+# Re-run ultracite on the repo when there are staged changes,
+# then restage any modified/deleted tracked files.
+STAGED_FILES=$(git diff --cached --name-only)
+
+if [ -n "$STAGED_FILES" ]; then
+  bun x ultracite fix
+  # Use -u to restage modifications and deletions without failing on removed files
+  git add -u
+fi

@@ -16,8 +16,8 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
-    networks:
-      - openplane-network
+    # networks:
+    #   - openplane-network
 
   server:
     build:
@@ -33,8 +33,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    networks:
-      - openplane-network
+    # networks:
+    #   - openplane-network
     restart: unless-stopped
     healthcheck:
       test:
@@ -68,8 +68,8 @@ services:
       - "${WEB_PORT:-3001}:3001"
     depends_on:
       - server
-    networks:
-      - openplane-network
+    # networks:
+    #   - openplane-network
     restart: unless-stopped
     healthcheck:
       test:
@@ -94,8 +94,8 @@ services:
       NODE_ENV: ${NODE_ENV:-production}
     ports:
       - "${FUMADOCS_PORT:-4000}:4000"
-    networks:
-      - openplane-network
+    # networks:
+    #   - openplane-network
     restart: unless-stopped
     healthcheck:
       test:
@@ -114,7 +114,6 @@ services:
 volumes:
   postgres_data:
     driver: local
-
-networks:
-  openplane-network:
-    driver: bridge
+# networks:
+#   openplane-network:
+#     driver: bridge
