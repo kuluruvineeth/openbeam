@@ -22,12 +22,13 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@trpc/server": "catalog:",
-    "@trpc/client": "catalog:",
-    "hono": "catalog:",
-    "dotenv": "catalog:",
-    "zod": "catalog:",
     "@openplane/auth": "workspace:*",
-    "@openplane/db": "workspace:*"
+    "@openplane/db": "workspace:*",
+    "@trpc/client": "catalog:",
+    "@trpc/server": "catalog:",
+    "dotenv": "catalog:",
+    "hono": "catalog:",
+    "superjson": "^2.2.5",
+    "zod": "catalog:"
   }
 }

@@ -1,13 +1,26 @@
 import { initTRPC, TRPCError } from "@trpc/server";
-import type { Context } from "./context";
+import superjson from "superjson";
+import type { TRPCContext } from "./context";
 
-export const t = initTRPC.context<Context>().create();
+// Initialize tRPC with our shared Context (session + prisma) and SuperJSON transformer
+export const t = initTRPC.context<TRPCContext>().create({
+  transformer: superjson,
+});
 
-export const router = t.router;
+// Base router and caller factory (useful for server-side callers later)
+export const createTRPCRouter = t.router;
+export const createCallerFactory = t.createCallerFactory;
 
+// Public procedures: no auth required
 export const publicProcedure = t.procedure;
 
-export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
+// For protected procedures we want `ctx.session` to be non-null.
+// We model this with a refined context type.
+type AuthedContext = TRPCContext & {
+  session: NonNullable<TRPCContext["session"]>;
+};
+
+const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
   if (!ctx.session) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
@@ -15,10 +28,12 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
       cause: "No session",
     });
   }
+
   return next({
-    ctx: {
-      ...ctx,
-      session: ctx.session,
-    },
+    ctx: ctx as AuthedContext,
   });
 });
+// Protected procedures: require an authenticated session and expose non-null session in ctx.
+const _protectedProcedure = t.procedure.use(enforceUserIsAuthed);
+export const protectedProcedure: typeof _protectedProcedure =
+  _protectedProcedure;

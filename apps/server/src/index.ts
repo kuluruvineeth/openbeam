@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { trpcServer } from "@hono/trpc-server";
-import { createContext } from "@openplane/api/context";
+import { createTRPCContext } from "@openplane/api/context";
 import { appRouter } from "@openplane/api/routers/index";
 import { auth } from "@openplane/auth";
 import { Hono } from "hono";
@@ -26,7 +26,7 @@ app.use(
   "/trpc/*",
   trpcServer({
     router: appRouter,
-    createContext: (_opts, context) => createContext({ context }),
+    createContext: (_opts, context) => createTRPCContext({ context }),
   })
 );
 
