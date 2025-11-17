@@ -13,7 +13,12 @@ export function GoogleSignIn() {
     await signIn.social(
       {
         provider: "google",
-        callbackURL: process.env.CORS_ORIGIN,
+        // After auth, send the user back to this site (root),
+        // letting our proxy / app routing decide where to land.
+        callbackURL:
+          typeof window !== "undefined"
+            ? `${window.location.origin}/`
+            : undefined,
       },
       { credentials: "include" }
     );
