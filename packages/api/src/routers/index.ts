@@ -1,10 +1,12 @@
-import { protectedProcedure, publicProcedure, router } from "../index";
+import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
+import { createTRPCRouter } from "../index";
 
-export const appRouter = router({
-  healthCheck: publicProcedure.query(() => "OK"),
-  privateData: protectedProcedure.query(({ ctx }) => ({
-    message: "This is private",
-    user: ctx.session.user,
-  })),
+import { userRouter } from "./user";
+
+export const appRouter = createTRPCRouter({
+  user: userRouter,
 });
+
 export type AppRouter = typeof appRouter;
+export type RouterOutputs = inferRouterOutputs<AppRouter>;
+export type RouterInputs = inferRouterInputs<AppRouter>;
