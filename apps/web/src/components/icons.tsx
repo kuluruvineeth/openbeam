@@ -1,6 +1,8 @@
 import Image from "next/image";
 import type { SVGProps } from "react";
 
+import { MdExpandMore } from "react-icons/md";
+
 type LogoProps = {
   size?: number;
   className?: string;
@@ -87,4 +89,5 @@ export const Icons = {
       </defs>
     </svg>
   ),
+  ChevronDown: MdExpandMore,
 };
