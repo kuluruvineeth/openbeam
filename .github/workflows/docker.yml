@@ -126,6 +126,9 @@ jobs:
                   (matrix.service == 'server' && steps.changes.outputs.server_changed == 'true') ||
                   (matrix.service == 'web' && steps.changes.outputs.web_changed == 'true') ||
                   (matrix.service == 'fumadocs' && steps.changes.outputs.fumadocs_changed == 'true')
+              env:
+                  # Only required / used for the web image; Dockerfiles for other services ignore it.
+                  NEXT_PUBLIC_SERVER_URL: ${{ secrets.NEXT_PUBLIC_SERVER_URL_WEB }}
               uses: docker/build-push-action@v5
               with:
                   context: .
@@ -136,6 +139,8 @@ jobs:
                   platforms: linux/amd64
                   cache-from: type=gha
                   cache-to: type=gha,mode=max
+                  build-args: |
+                      NEXT_PUBLIC_SERVER_URL=${{ env.NEXT_PUBLIC_SERVER_URL }}
 
             - name: Trigger Render deployment
               if: |
