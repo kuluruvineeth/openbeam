@@ -37,6 +37,11 @@ jobs:
               with:
                   fetch-depth: 0
 
+            - name: Configure npm registry for HugeIcons Pro
+              run: |
+                  echo "@hugeicons-pro:registry=https://npm.hugeicons.com/" > .npmrc
+                  echo "//npm.hugeicons.com/:_authToken=${{ secrets.HUGEICONS_PRO_AUTH_TOKEN }}" >> .npmrc
+
             - name: Detect changes
               id: changes
               run: |
