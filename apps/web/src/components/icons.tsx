@@ -1,12 +1,45 @@
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  AddIcon,
+  ArrowDownIcon,
+  BookIcon,
+  ClockIcon,
+  FlowIcon,
+  MessageIcon,
+  PlugIcon,
+  RobotIcon,
+  SettingsIcon,
+} from "@hugeicons-pro/core-stroke-rounded";
 import Image from "next/image";
-import type { SVGProps } from "react";
-
-import { MdExpandMore } from "react-icons/md";
+import type React from "react";
+import type { ComponentProps, SVGProps } from "react";
 
 type LogoProps = {
   size?: number;
   className?: string;
 };
+
+type HugeiconsIconProps = ComponentProps<typeof HugeiconsIcon>;
+type IconType = HugeiconsIconProps["icon"];
+
+type IconWrapperProps = SVGProps<SVGSVGElement> & {
+  size?: number;
+};
+
+const createIcon =
+  (Icon: IconType): ((props: IconWrapperProps) => React.ReactElement) =>
+  ({ size = 20, strokeWidth, ...restProps }: IconWrapperProps) => {
+    const iconSize = typeof size === "number" ? size : 20;
+    return (
+      <HugeiconsIcon
+        color="currentColor"
+        icon={Icon}
+        size={iconSize}
+        strokeWidth={1.5}
+        {...restProps}
+      />
+    );
+  };
 
 export const Icons = {
   LogoSmall: ({ size = 20, className }: LogoProps) => (
@@ -89,5 +122,13 @@ export const Icons = {
       </defs>
     </svg>
   ),
-  ChevronDown: MdExpandMore,
+  Plus: createIcon(AddIcon),
+  History: createIcon(ClockIcon),
+  Workflow: createIcon(FlowIcon),
+  Messages: createIcon(MessageIcon),
+  Agents: createIcon(RobotIcon),
+  Integrations: createIcon(PlugIcon),
+  KnowledgeManagement: createIcon(BookIcon),
+  Settings: createIcon(SettingsIcon),
+  ChevronDown: createIcon(ArrowDownIcon),
 };
