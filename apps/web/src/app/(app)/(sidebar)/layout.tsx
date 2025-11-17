@@ -1,7 +1,29 @@
+import { redirect } from "next/navigation";
+import { Header } from "@/components/header";
+import { Sidebar } from "@/components/sidebar";
+import { getQueryClient, HydrateClient, trpc } from "@/trpc/server";
 export default async function Layout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <div className="flex min-h-screen flex-col">{children}</div>;
+  const queryClient = getQueryClient();
+
+  const user = await queryClient.fetchQuery(trpc.user.me.queryOptions());
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  return (
+    <HydrateClient>
+      <div className="relative">
+        <Sidebar />
+        <div className="pb-8 md:ml-[70px]">
+          <Header />
+          <div className="px-6">{children}</div>
+        </div>
+      </div>
+    </HydrateClient>
+  );
 }
