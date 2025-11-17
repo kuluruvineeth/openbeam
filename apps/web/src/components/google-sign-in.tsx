@@ -13,7 +13,7 @@ export function GoogleSignIn() {
     await signIn.social(
       {
         provider: "google",
-        callbackURL: "http://localhost:3001",
+        callbackURL: process.env.CORS_ORIGIN,
       },
       { credentials: "include" }
     );
