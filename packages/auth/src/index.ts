@@ -25,11 +25,11 @@ export const auth = betterAuth<BetterAuthOptions>({
     cookiePrefix: "openplane-auth",
   },
   session: {
-    // Cache the session in the cookie for 60 seconds
+    // Cache the session in the cookie for 1 hour
     // This is to avoid hitting the database for each request
     cookieCache: {
       enabled: true,
-      maxAge: 60,
+      maxAge: 60 * 60,
     },
   },
   socialProviders: {
