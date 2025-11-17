@@ -6,10 +6,13 @@ export async function proxy(request: NextRequest) {
   const { user } = await getAuth();
   const url = request.nextUrl.clone();
 
-  const publicPaths = ["/login"];
+  const publicPrefixes = ["/login", "/assets", "/fonts"] as const;
+  const isPublicPath = publicPrefixes.some(
+    (prefix) => url.pathname === prefix || url.pathname.startsWith(`${prefix}/`)
+  );
 
   // Not logged in and trying to access a non-public page → go to login
-  if (!(user || publicPaths.includes(url.pathname))) {
+  if (!(user || isPublicPath)) {
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
