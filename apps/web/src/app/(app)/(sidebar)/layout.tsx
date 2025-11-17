@@ -2,6 +2,10 @@ import { redirect } from "next/navigation";
 import { Header } from "@/components/header";
 import { Sidebar } from "@/components/sidebar";
 import { getQueryClient, HydrateClient, trpc } from "@/trpc/server";
+
+// Force dynamic rendering since we use headers() for authentication
+export const dynamic = "force-dynamic";
+
 export default async function Layout({
   children,
 }: {
