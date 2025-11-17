@@ -1,11 +1,19 @@
 #!/bin/sh
 
 # Re-run ultracite on the repo when there are staged changes,
-# then restage any modified/deleted tracked files.
+# then restage only the files that were originally staged.
 STAGED_FILES=$(git diff --cached --name-only)
 
 if [ -n "$STAGED_FILES" ]; then
+  # Capture the list of originally staged files before ultracite modifies them
+  ORIGINALLY_STAGED="$STAGED_FILES"
   bun x ultracite fix
-  # Use -u to restage modifications and deletions without failing on removed files
-  git add -u
+  # Only restage the files that were originally staged
+  # Handle each file individually to properly handle deletions and special characters
+  echo "$ORIGINALLY_STAGED" | while IFS= read -r file; do
+    if [ -n "$file" ]; then
+      # git add handles additions, modifications, and deletions for tracked files
+      git add -- "$file" 2>/dev/null || true
+    fi
+  done
 fi
