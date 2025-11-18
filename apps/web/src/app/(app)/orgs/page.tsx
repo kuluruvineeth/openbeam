@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { UserMenu } from "@/components/user-menu";
 import { getQueryClient, HydrateClient, trpc } from "@/trpc/server";
 
+// Force dynamic rendering since we use headers() for authentication
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Organizations | OpenPlane",
   description: "Manage your organizations",

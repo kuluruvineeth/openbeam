@@ -28,7 +28,7 @@ export function OrgDropdown({ isExpanded = false }: Props) {
   const queryClient = useQueryClient();
 
   const [selectedId, setSelectedId] = useState<string | undefined>(
-    user?.organizationId
+    user?.organizationId ?? undefined
   );
   const [isActive, setActive] = useState(false);
   const [isChangingOrganization, setIsChangingOrganization] = useState(false);
@@ -40,6 +40,8 @@ export function OrgDropdown({ isExpanded = false }: Props) {
   useEffect(() => {
     if (user?.organizationId) {
       setSelectedId(user.organizationId);
+    } else {
+      setSelectedId(undefined);
     }
   }, [user?.organizationId]);
 
