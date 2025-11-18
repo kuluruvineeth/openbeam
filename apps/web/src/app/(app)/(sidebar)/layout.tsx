@@ -19,6 +19,11 @@ export default async function Layout({
     redirect("/login");
   }
 
+  if (!user.organizationId) {
+    // @ts-expect-error - Next.js route type inference doesn't recognize /orgs/create
+    redirect("/orgs/create");
+  }
+
   return (
     <HydrateClient>
       <div className="relative flex h-screen overflow-hidden">
