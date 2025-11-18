@@ -81,17 +81,19 @@ COPY --from=builder /app/apps/fumadocs/package.json ./apps/fumadocs/
 COPY --from=builder /app/apps/fumadocs/source.config.ts ./apps/fumadocs/
 COPY --from=builder /app/apps/fumadocs/content ./apps/fumadocs/content
 
+# Copy node_modules from builder (already has all dependencies installed)
+# This avoids hanging issues with workspace resolution during production install
+COPY --from=builder /app/node_modules ./node_modules
+
 # Copy built packages (workspace dependencies)
 COPY --from=builder /app/packages ./packages
 
-# Copy built server
-COPY --from=builder /app/apps/server/dist ./apps/server/dist
+# Copy server app directory (includes dist and package.json for workspace resolution)
+# This preserves workspace links and ensures package.json is in the right location
+COPY --from=builder /app/apps/server ./apps/server
 
 # Copy scripts
 COPY --from=builder /app/scripts ./scripts
-
-# Install production dependencies only (skip scripts to avoid husky)
-RUN HUSKY=0 bun install --frozen-lockfile --production --ignore-scripts
 
 
 WORKDIR /app/apps/server
