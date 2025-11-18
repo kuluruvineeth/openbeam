@@ -22,5 +22,12 @@
       "!**/.source"
     ]
   },
+  "linter": {
+    "rules": {
+      "performance": {
+        "noNamespaceImport": "off"
+      }
+    }
+  },
   "extends": ["ultracite/core", "ultracite/next"]
 }
