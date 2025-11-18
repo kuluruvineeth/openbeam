@@ -1,10 +1,6 @@
 <div align="center">
 
-![OpenPlane Logo](apps/web/public/assets/logo.png)
-
-# OpenPlane
-
-**Enterprise AI that finds, builds, and creates**
+[![GitHub Banner](apps/web/public/assets/github-banner.png)](https://github.com/kuluruvineeth/openplane)
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-000000?style=flat&logo=next.js&logoColor=white)](https://nextjs.org/)
