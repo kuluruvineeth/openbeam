@@ -21,11 +21,13 @@ export default async function Layout({
 
   return (
     <HydrateClient>
-      <div className="relative">
+      <div className="relative flex h-screen overflow-hidden">
         <Sidebar />
-        <div className="pb-8 md:ml-[70px]">
+        <div className="flex flex-1 flex-col md:ml-[70px]">
           <Header />
-          <div className="px-6">{children}</div>
+          <div className="no-scrollbar flex-1 overflow-y-auto px-6">
+            {children}
+          </div>
         </div>
       </div>
     </HydrateClient>
