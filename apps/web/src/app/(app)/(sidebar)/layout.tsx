@@ -20,7 +20,6 @@ export default async function Layout({
   }
 
   if (!user.organizationId) {
-    // @ts-expect-error - Next.js route type inference doesn't recognize /orgs/create
     redirect("/orgs/create");
   }
 
