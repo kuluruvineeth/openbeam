@@ -1,6 +1,7 @@
 import prisma from "@openplane/db";
 import { type BetterAuthOptions, betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
+import { organization } from "better-auth/plugins";
 
 const isDevelopment = process.env.NODE_ENV !== "production";
 
@@ -39,6 +40,7 @@ export const auth = betterAuth<BetterAuthOptions>({
       scope: ["openid", "profile", "email"],
     },
   },
+  plugins: [organization()],
 });
 
 export type OrigamiUser = typeof auth.$Infer.Session.user;
