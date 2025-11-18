@@ -1,9 +1,8 @@
 "use client";
 
-// biome-ignore lint/performance/noNamespaceImport: This is a third-party component
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
 import Image from "next/image";
-import React from "react";
+import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const Avatar = React.forwardRef<
