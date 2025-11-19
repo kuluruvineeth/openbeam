@@ -1,175 +1,170 @@
 name: Build and Push Docker Images
 
 on:
-    workflow_run:
-        workflows: ["CI"]
-        types:
-            - completed
-    workflow_dispatch:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+  workflow_dispatch:
 
 env:
-    REGISTRY: ghcr.io
-    DOCKER_BUILDKIT: 1
-    COMPOSE_DOCKER_CLI_BUILD: 1
+  REGISTRY: ghcr.io
+  DOCKER_BUILDKIT: 1
+  COMPOSE_DOCKER_CLI_BUILD: 1
 
 jobs:
-    build-and-push:
-        name: Build and Push Images
-        runs-on: ubuntu-latest
-        timeout-minutes: 30
-        if: |
-            github.event_name == 'workflow_dispatch' || 
-            (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
-        permissions:
-            contents: read
-            packages: write
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' || 
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      has_changes: ${{ steps.set-matrix.outputs.has_changes }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-        strategy:
-            matrix:
-                service:
-                    - server
-                    - web
-                    - fumadocs
+      - name: Check for changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            server:
+              - 'apps/server/**'
+              - 'packages/api/**'
+              - 'packages/auth/**'
+              - 'packages/db/**'
+              - 'Dockerfile.server'
+              - 'package.json'
+              - 'bun.lock'
+              - 'turbo.json'
+            web:
+              - 'apps/web/**'
+              - 'packages/api/**'
+              - 'packages/auth/**'
+              - 'packages/db/**'
+              - 'Dockerfile.web'
+              - 'package.json'
+              - 'bun.lock'
+              - 'turbo.json'
+            fumadocs:
+              - 'apps/fumadocs/**'
+              - 'Dockerfile.fumadocs'
+              - 'package.json'
+              - 'bun.lock'
+              - 'turbo.json'
 
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
+      - name: Set Matrix
+        id: set-matrix
+        run: |
+          # Initialize empty array
+          MATRIX="[]"
+          HAS_CHANGES="false"
 
-            - name: Configure npm registry for HugeIcons Pro
-              run: |
-                  echo "@hugeicons-pro:registry=https://npm.hugeicons.com/" > .npmrc
-                  echo "//npm.hugeicons.com/:_authToken=${{ secrets.HUGEICONS_PRO_AUTH_TOKEN }}" >> .npmrc
+          # Check triggers and append to matrix
+          if [ "${{ steps.filter.outputs.server }}" == "true" ] || [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            MATRIX=$(echo $MATRIX | jq '. + ["server"]')
+            HAS_CHANGES="true"
+          fi
 
-            - name: Detect changes
-              id: changes
-              run: |
-                  set -euo pipefail
+          if [ "${{ steps.filter.outputs.web }}" == "true" ] || [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            MATRIX=$(echo $MATRIX | jq '. + ["web"]')
+            HAS_CHANGES="true"
+          fi
 
-                  if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-                      echo "server_changed=true" >> $GITHUB_OUTPUT
-                      echo "web_changed=true" >> $GITHUB_OUTPUT
-                      echo "fumadocs_changed=true" >> $GITHUB_OUTPUT
-                      exit 0
-                  fi
+          if [ "${{ steps.filter.outputs.fumadocs }}" == "true" ] || [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            MATRIX=$(echo $MATRIX | jq '. + ["fumadocs"]')
+            HAS_CHANGES="true"
+          fi
 
-                  if [ "${{ github.event_name }}" == "workflow_run" ]; then
-                      HEAD_SHA="${{ github.event.workflow_run.head_sha }}"
-                      BRANCH="${{ github.event.workflow_run.head_branch }}"
-                      git fetch origin "$BRANCH" 2>/dev/null || git fetch origin main 2>/dev/null || true
-                      git checkout "$HEAD_SHA" 2>/dev/null || true
-                      BASE_SHA=$(git merge-base "$HEAD_SHA" "origin/$BRANCH" 2>/dev/null || echo "")
-                      [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "$HEAD_SHA" ] && \
-                          BASE_SHA=$(git merge-base "$HEAD_SHA" origin/main 2>/dev/null || echo "")
-                      [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "$HEAD_SHA" ] && \
-                          BASE_SHA=$(git rev-parse "$HEAD_SHA~1" 2>/dev/null || echo "")
-                  else
-                      HEAD_SHA=$(git rev-parse HEAD)
-                      BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")
-                      BASE_SHA=$(git merge-base HEAD "origin/$BRANCH" 2>/dev/null || git rev-parse HEAD~1 2>/dev/null || echo "$HEAD_SHA")
-                  fi
+          # Output compact JSON
+          echo "matrix={\"service\":$(echo $MATRIX | jq -c .)}" >> $GITHUB_OUTPUT
+          echo "has_changes=$HAS_CHANGES" >> $GITHUB_OUTPUT
 
-                  [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "$HEAD_SHA" ] && \
-                      BASE_SHA=$(git rev-list --max-parents=0 HEAD 2>/dev/null | head -1 || echo "$HEAD_SHA")
+  build-and-push:
+    name: Build ${{ matrix.service }}
+    needs: changes
+    if: needs.changes.outputs.has_changes == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.changes.outputs.matrix) }}
 
-                  CHANGED_FILES=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" 2>/dev/null || echo "")
-                  SERVER_CHANGED=false
-                  WEB_CHANGED=false
-                  FUMADOCS_CHANGED=false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-                  while IFS= read -r file; do
-                      [ -z "$file" ] && continue
-                      ([[ "$file" =~ ^apps/server/ ]] || [[ "$file" =~ ^packages/(api|auth|db)/ ]] || [[ "$file" == "Dockerfile.server" ]]) && SERVER_CHANGED=true
-                      ([[ "$file" =~ ^apps/web/ ]] || [[ "$file" =~ ^packages/(api|auth|db)/ ]] || [[ "$file" == "Dockerfile.web" ]]) && WEB_CHANGED=true
-                      ([[ "$file" =~ ^apps/fumadocs/ ]] || [[ "$file" == "Dockerfile.fumadocs" ]]) && FUMADOCS_CHANGED=true
-                      ([[ "$file" == "package.json" ]] || [[ "$file" == "bun.lock" ]] || [[ "$file" == "turbo.json" ]]) && \
-                          SERVER_CHANGED=true && WEB_CHANGED=true && FUMADOCS_CHANGED=true
-                  done <<< "$CHANGED_FILES"
+      - name: Configure npm registry for HugeIcons Pro
+        run: |
+          echo "@hugeicons-pro:registry=https://npm.hugeicons.com/" > .npmrc
+          echo "//npm.hugeicons.com/:_authToken=${{ secrets.HUGEICONS_PRO_AUTH_TOKEN }}" >> .npmrc
 
-                  echo "server_changed=$SERVER_CHANGED" >> $GITHUB_OUTPUT
-                  echo "web_changed=$WEB_CHANGED" >> $GITHUB_OUTPUT
-                  echo "fumadocs_changed=$FUMADOCS_CHANGED" >> $GITHUB_OUTPUT
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-            - name: Set up Docker Buildx
-              if: |
-                  (matrix.service == 'server' && steps.changes.outputs.server_changed == 'true') ||
-                  (matrix.service == 'web' && steps.changes.outputs.web_changed == 'true') ||
-                  (matrix.service == 'fumadocs' && steps.changes.outputs.fumadocs_changed == 'true')
-              uses: docker/setup-buildx-action@v3
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Log in to GitHub Container Registry
-              if: |
-                  (matrix.service == 'server' && steps.changes.outputs.server_changed == 'true') ||
-                  (matrix.service == 'web' && steps.changes.outputs.web_changed == 'true') ||
-                  (matrix.service == 'fumadocs' && steps.changes.outputs.fumadocs_changed == 'true')
-              uses: docker/login-action@v3
-              with:
-                  registry: ${{ env.REGISTRY }}
-                  username: ${{ github.actor }}
-                  password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/openplane-${{ matrix.service }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
 
-            - name: Extract metadata
-              if: |
-                  (matrix.service == 'server' && steps.changes.outputs.server_changed == 'true') ||
-                  (matrix.service == 'web' && steps.changes.outputs.web_changed == 'true') ||
-                  (matrix.service == 'fumadocs' && steps.changes.outputs.fumadocs_changed == 'true')
-              id: meta
-              uses: docker/metadata-action@v5
-              with:
-                  images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/openplane-${{ matrix.service }}
-                  tags: |
-                      type=ref,event=branch
-                      type=ref,event=pr
-                      type=semver,pattern={{version}}
-                      type=semver,pattern={{major}}.{{minor}}
-                      type=sha,prefix={{branch}}-
-                      type=raw,value=latest,enable={{is_default_branch}}
+      - name: Build and push Docker image
+        env:
+          NEXT_PUBLIC_SERVER_URL: ${{ secrets.NEXT_PUBLIC_SERVER_URL_WEB }}
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.${{ matrix.service }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            NEXT_PUBLIC_SERVER_URL=${{ env.NEXT_PUBLIC_SERVER_URL }}
+            HUGEICONS_PRO_AUTH_TOKEN=${{ secrets.HUGEICONS_PRO_AUTH_TOKEN }}
 
-            - name: Build and push Docker image
-              if: |
-                  (matrix.service == 'server' && steps.changes.outputs.server_changed == 'true') ||
-                  (matrix.service == 'web' && steps.changes.outputs.web_changed == 'true') ||
-                  (matrix.service == 'fumadocs' && steps.changes.outputs.fumadocs_changed == 'true')
-              env:
-                  # Only required / used for the web image; Dockerfiles for other services ignore it.
-                  NEXT_PUBLIC_SERVER_URL: ${{ secrets.NEXT_PUBLIC_SERVER_URL_WEB }}
-              uses: docker/build-push-action@v5
-              with:
-                  context: .
-                  file: ./Dockerfile.${{ matrix.service }}
-                  push: true
-                  tags: ${{ steps.meta.outputs.tags }}
-                  labels: ${{ steps.meta.outputs.labels }}
-                  platforms: linux/amd64
-                  cache-from: type=gha
-                  cache-to: type=gha,mode=max
-                  build-args: |
-                      NEXT_PUBLIC_SERVER_URL=${{ env.NEXT_PUBLIC_SERVER_URL }}
-                      HUGEICONS_PRO_AUTH_TOKEN=${{ secrets.HUGEICONS_PRO_AUTH_TOKEN }}
+      - name: Trigger Render deployment
+        run: |
+          case "${{ matrix.service }}" in
+            server)
+              WEBHOOK_URL="${{ secrets.RENDER_WEBHOOK_SERVER }}"
+              ;;
+            web)
+              WEBHOOK_URL="${{ secrets.RENDER_WEBHOOK_WEB }}"
+              ;;
+            fumadocs)
+              WEBHOOK_URL="${{ secrets.RENDER_WEBHOOK_DOCS }}"
+              ;;
+          esac
 
-            - name: Trigger Render deployment
-              if: |
-                  (matrix.service == 'server' && steps.changes.outputs.server_changed == 'true') ||
-                  (matrix.service == 'web' && steps.changes.outputs.web_changed == 'true') ||
-                  (matrix.service == 'fumadocs' && steps.changes.outputs.fumadocs_changed == 'true')
-              run: |
-                  case "${{ matrix.service }}" in
-                      server)
-                          WEBHOOK_URL="${{ secrets.RENDER_WEBHOOK_SERVER }}"
-                          ;;
-                      web)
-                          WEBHOOK_URL="${{ secrets.RENDER_WEBHOOK_WEB }}"
-                          ;;
-                      fumadocs)
-                          WEBHOOK_URL="${{ secrets.RENDER_WEBHOOK_DOCS }}"
-                          ;;
-                  esac
-
-                  if [ -n "$WEBHOOK_URL" ]; then
-                      echo "Triggering Render deployment for ${{ matrix.service }}..."
-                      curl -X POST "$WEBHOOK_URL" || echo "Webhook call failed (service may not be configured yet)"
-                  else
-                      echo "⚠️  Render webhook not configured for ${{ matrix.service }}. Skipping deployment trigger."
-                      echo "   Add RENDER_WEBHOOK_${{ matrix.service }} secret in GitHub repository settings."
-                  fi
+          if [ -n "$WEBHOOK_URL" ]; then
+            echo "Triggering Render deployment for ${{ matrix.service }}..."
+            curl -X POST "$WEBHOOK_URL" || echo "Webhook call failed (service may not be configured yet)"
+          else
+            echo "Render webhook not configured for ${{ matrix.service }}. Skipping deployment trigger."
+            echo "   Add RENDER_WEBHOOK_${{ matrix.service }} secret in GitHub repository settings."
+          fi
