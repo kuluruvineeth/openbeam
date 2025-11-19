@@ -24,6 +24,7 @@
   "dependencies": {
     "@openplane/auth": "workspace:*",
     "@openplane/db": "workspace:*",
+    "@openplane/integrations": "workspace:*",
     "@sindresorhus/slugify": "^3.0.0",
     "@trpc/client": "catalog:",
     "@trpc/server": "catalog:",

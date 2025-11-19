@@ -25,7 +25,12 @@
   "linter": {
     "rules": {
       "performance": {
-        "noNamespaceImport": "off"
+        "noNamespaceImport": "off",
+        "noBarrelFile": "off"
+      },
+      "style": {
+        "noExportedImports": "off",
+        "noEnum": "off"
       }
     }
   },

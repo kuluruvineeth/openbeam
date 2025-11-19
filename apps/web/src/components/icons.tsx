@@ -2,6 +2,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   AddIcon,
   ArrowDownIcon,
+  ArrowLeftIcon,
   ArrowRightIcon,
   AtomIcon,
   BookIcon,
@@ -155,6 +156,7 @@ export const Icons = {
   Sparkle: createIcon(SparklesIcon),
   Search: createIcon(SearchIcon),
   ArrowRight: createIcon(ArrowRightIcon),
+  ArrowLeft: createIcon(ArrowLeftIcon),
   Close: createIcon(Cancel01Icon),
   // Chat box icons
   ArrowRightIcon: createIcon(ArrowRightIcon),

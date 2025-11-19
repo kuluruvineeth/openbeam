@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useCreateOrganization } from "@/hooks/use-organization";
+import { authClient } from "@/lib/auth/client";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -70,6 +71,13 @@ export function CreateOrgForm() {
 
     try {
       const organization = await createOrganization({ name: values.name });
+
+      if (organization?.data?.id) {
+        // Set the newly created organization as active
+        await authClient.organization.setActive({
+          organizationId: organization.data.id,
+        });
+      }
 
       console.log(
         `[${submissionId}] Organization creation form submission succeeded`,
