@@ -2,24 +2,39 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { useUserQuery } from "@/hooks/use-user";
+import { authClient } from "@/lib/auth/client";
 
 /**
- * Client-side guard that redirects to /orgs/create if user has no organizationId.
- * This allows the layout to be statically rendered while still protecting routes.
+ * Client-side guard that redirects to /login if unauthenticated,
+ * or /orgs/create if user has no organizations.
  */
 export function OrgGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const { data: user } = useUserQuery();
+  const { data: session, isPending: isSessionPending } =
+    authClient.useSession();
+  const { data: organizations, isPending: isOrgPending } =
+    authClient.useListOrganizations();
 
   useEffect(() => {
-    if (user && !user.organizationId) {
+    if (isSessionPending) {
+      return;
+    }
+
+    if (!session) {
+      router.replace("/login");
+      return;
+    }
+
+    if (!isOrgPending && organizations && organizations.length === 0) {
       router.replace("/orgs/create");
     }
-  }, [user, router]);
+  }, [session, isSessionPending, organizations, isOrgPending, router]);
 
-  // Don't render children until we've checked (or if redirecting)
-  if (user && !user.organizationId) {
+  if (isSessionPending || isOrgPending) {
+    return null; // Or a loading spinner
+  }
+
+  if (!session || (organizations && organizations.length === 0)) {
     return null;
   }
 
