@@ -70,10 +70,6 @@ const items: MenuItems = [
   {
     path: "/integrations",
     name: "Integrations",
-    children: [
-      { path: "/integrations/all", name: "All" },
-      { path: "/integrations/connected", name: "Connected" },
-    ],
   },
   {
     path: "/knowledge-management",
