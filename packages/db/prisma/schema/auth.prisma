@@ -1,13 +1,14 @@
 model User {
-  id            String    @id @default(cuid()) @map("_id")
-  name          String
-  email         String
-  emailVerified Boolean
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  sessions      Session[]
-  accounts      Account[]
+  id                    String    @id @default(cuid()) @map("_id")
+  name                  String
+  email                 String
+  emailVerified         Boolean
+  image                 String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  lastActiveOrganizationId String?
+  sessions              Session[]
+  accounts              Account[]
   members               Member[]
   sentInvitations       Invitation[]         @relation("SentInvitations")
   connectors            Connector[]
