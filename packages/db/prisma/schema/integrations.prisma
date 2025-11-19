@@ -1,0 +1,229 @@
+enum ConnectorType {
+  SOURCE
+  DESTINATION
+}
+
+enum AuthType {
+  OAUTH2
+  API_KEY
+  BASIC
+  SESSION
+}
+
+enum AppType {
+  SLACK
+  GOOGLE_DRIVE
+  NOTION
+  GITHUB
+  HUBSPOT
+  SALESFORCE
+  ZENDESK
+  INTERCOM
+  JIRA
+  ASANA
+  TRELLO
+  AIRTABLE
+  CLICKUP
+  LINEAR
+  SHOPIFY
+  STRIPE
+  XERO
+  QUICKBOOKS
+  SAGE
+  NETSUITE
+  ZOHO
+  MICROSOFT_TEAMS
+  DISCORD
+  WHATSAPP
+  TWILIO
+  SENDGRID
+  MAILCHIMP
+  HUBSPOT_MARKETING
+  SALESFORCE_MARKETING
+  MARKETO
+  PARDOT
+  ELASTICSEARCH
+  MONGODB
+  POSTGRESQL
+  MYSQL
+  SQLSERVER
+  ORACLE
+  SNOWFLAKE
+  BIGQUERY
+  REDSHIFT
+  DATABRICKS
+  S3
+  GCS
+  AZURE_BLOB
+  BOX
+  DROPBOX
+  ONEDRIVE
+  SHAREPOINT
+  SERVICENOW
+  ZENDESK_SUPPORT
+  JIRA_SERVICE_MANAGEMENT
+  FRESHDESK
+  INTERCOM_SUPPORT
+  SALESFORCE_SERVICE_CLOUD
+}
+
+enum ConnectorStatus {
+  ACTIVE
+  INACTIVE
+  ERROR
+  SYNCING
+  CONNECTING
+}
+
+model Workspace {
+  id             String       @id @default(cuid()) @map("_id")
+  externalId     String       @unique
+  organizationId String
+  name           String
+  settings       Json         @default("{}")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@map("workspace")
+}
+
+model Connector {
+  id                  String          @id @default(cuid()) @map("_id")
+  organizationId      String
+  userId              String
+  workspaceExternalId String
+  name                String
+  type                ConnectorType
+  authType            AuthType
+  app                 AppType
+  config              Json
+  
+  // Credentials (Consolidated & Encrypted)
+  encryptedCredentials String?
+  credentialsIv        String?
+
+  // Operational Fields
+  status              ConnectorStatus @default(CONNECTING)
+  state               Json            @default("{}")
+  lastSyncedAt        DateTime?
+  lastSyncStatus      String?
+  lastError           String?
+  lastErrorAt         DateTime?
+  syncConfig          Json            @default("{}")
+  webhookConfig       Json?
+  rateLimits          Json?
+  retryCount          Int             @default(0)
+  maxRetries          Int             @default(3)
+  dataResidency       String?
+
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tools         Tool[]
+  oauthProvider OAuthProvider?
+  syncJobs      SyncJob[]
+  syncHistory   SyncHistory[]
+  syncCursors   SyncCursor[]
+  auditLogs     ConnectorAuditLog[]
+  externalIdentities ExternalIdentity[]
+  externalGroups     ExternalGroup[]
+  
+
+  @@unique([organizationId, workspaceExternalId, app, name])
+  @@index([organizationId, status])
+  @@index([userId])
+  @@index([app])
+  @@index([status])
+  @@map("connector")
+}
+
+model OAuthProvider {
+  id                  String   @id @default(cuid()) @map("_id")
+  connectorId         String   @unique
+  clientId            String?
+  clientSecret        String?  // Encrypted
+  oauthScopes         String[] @default([])
+  app                 AppType
+  isGlobal            Boolean  @default(false)
+  
+  // Token Management
+  accessToken         String?  // Encrypted
+  refreshToken        String?  // Encrypted
+  tokenExpiresAt      DateTime?
+  tokenRefreshedAt    DateTime?
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  connector    Connector    @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+
+  @@map("oauth_provider")
+}
+
+model Tool {
+  id             String   @id @default(cuid()) @map("_id")
+  organizationId String
+  connectorId    String
+  externalId     String?  @unique
+  toolName       String
+  toolSchema     Json
+  schemaVersion  String   @default("1.0.0")
+  description    String?
+  enabled        Boolean  @default(false)
+  
+  // Usage
+  usageCount     Int      @default(0)
+  lastUsedAt     DateTime?
+  rateLimitPerHour Int?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  connector    Connector    @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, connectorId, toolName])
+  @@index([connectorId])
+  @@map("tool")
+}
+
+model ExternalIdentity {
+  id          String   @id @default(cuid()) @map("_id")
+  userId      String?
+  connectorId String
+  externalId  String
+  email       String?
+  username    String?
+  displayName String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user      User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  connector Connector  @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+
+  @@unique([connectorId, externalId])
+  @@index([userId])
+  @@index([email])
+  @@map("external_identity")
+}
+
+model ExternalGroup {
+  id          String   @id @default(cuid()) @map("_id")
+  connectorId String
+  externalId  String
+  name        String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  connector   Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+
+  @@unique([connectorId, externalId])
+  @@map("external_group")
+}

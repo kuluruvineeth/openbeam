@@ -1,43 +1,71 @@
 model Organization {
-  id              String             @id @map("_id")
-  name            String
-  slug            String             @unique
-  logo            String?
-  metadata        String?
-  createdAt       DateTime
-  updatedAt       DateTime           @updatedAt
-  waitlisted      Boolean            @default(false)
-  members         Member[]
-  invitations     Invitation[]
+  id                 String           @id @default(cuid()) @map("_id")
+  name               String
+  slug               String           @unique
+  logo               String?
+  metadata           Json?
+  settings           Json             @default("{}")
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  waitlisted         Boolean          @default(false)
+  
+  // Limits & Billing
+  maxConnectors      Int              @default(10)
+  maxTools           Int              @default(100)
+  subscriptionTier   String           @default("free")
+  subscriptionStatus String           @default("active")
+
+  members            Member[]
+  invitations        Invitation[]
+  connectors         Connector[]
+  tools              Tool[]
+  workspaces         Workspace[]
 
   @@map("organization")
 }
 
 model Member {
-  id             String       @id @map("_id")
+  id             String       @id @default(cuid()) @map("_id")
   userId         String
   organizationId String
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  role           String
-  createdAt      DateTime
+  role           MemberRole
+  createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
   @@unique([userId, organizationId])
+  @@index([userId])
+  @@index([organizationId])
   @@map("member")
 }
 
 model Invitation {
-  id             String        @id @map("_id")
+  id             String           @id @default(cuid()) @map("_id")
   email          String
   inviterId      String
-  inviter        User          @relation("SentInvitations", fields: [inviterId], references: [id])
+  inviter        User             @relation("SentInvitations", fields: [inviterId], references: [id], onDelete: Cascade)
   organizationId String
-  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  role           String
-  status         String
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  role           MemberRole
+  status         InvitationStatus
   expiresAt      DateTime
-  createdAt      DateTime      @default(now())
+  createdAt      DateTime         @default(now())
 
+  @@index([email])
+  @@index([organizationId])
   @@map("invitation")
+}
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
 }
