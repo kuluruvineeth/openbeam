@@ -48,22 +48,35 @@ export function UnifiedAppSheetHeader({
     </Button>
   );
 
+  const updateButton = (
+    <Button
+      disabled={isLoading || isNextDisabled}
+      onClick={handleOnInitialize}
+      variant="default"
+    >
+      {isLoading ? "Saving..." : "Save Settings"}
+    </Button>
+  );
+
   const renderActionButton = () => {
     if (app.installed) {
       return (
-        <Button
-          disabled={
-            disconnectOfficialAppMutation.isPending ||
+        <div className="flex gap-2">
+          {updateButton}
+          <Button
+            disabled={
+              disconnectOfficialAppMutation.isPending ||
+              revokeExternalAppMutation.isPending
+            }
+            onClick={handleDisconnect}
+            variant="outline"
+          >
+            {disconnectOfficialAppMutation.isPending ||
             revokeExternalAppMutation.isPending
-          }
-          onClick={handleDisconnect}
-          variant="outline"
-        >
-          {disconnectOfficialAppMutation.isPending ||
-          revokeExternalAppMutation.isPending
-            ? "Disconnecting..."
-            : "Disconnect"}
-        </Button>
+              ? "Disconnecting..."
+              : "Disconnect"}
+          </Button>
+        </div>
       );
     }
 
