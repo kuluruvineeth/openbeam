@@ -1,8 +1,11 @@
 import {
+  type CreateConnectorInput,
   createConnector,
   deleteConnector,
+  findConnectorByOrg,
+  listConnectorsByOrg,
   updateConnectorConfig,
-} from "@openplane/db/mutations/connectors";
+} from "@openplane/db";
 // @ts-expect-error - generated types might not be found in check
 import type { InputJsonValue } from "@openplane/db/prisma/generated/client/runtime/library";
 import {
@@ -16,60 +19,61 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../index";
 import { createZodEnum } from "../utils/zod";
 
-// Schemas for validation
 const createConnectorSchema = z.object({
   appId: createZodEnum(AppType),
-  workspaceExternalId: z.string(),
-  name: z.string(),
+  workspaceExternalId: z.string().min(1),
+  name: z.string().min(1),
   type: createZodEnum(ConnectorType),
   authType: createZodEnum(AuthType),
   config: z.record(z.string(), z.unknown()).optional(),
 });
 
 const updateSettingsSchema = z.object({
-  appId: z.string(), // Connector ID
+  appId: z.string().min(1),
   config: z.record(z.string(), z.unknown()),
 });
 
 const disconnectSchema = z.object({
-  appId: z.string(), // Connector ID
+  appId: z.string().min(1),
 });
 
 export const appsRouter = createTRPCRouter({
   list: protectedProcedure.query(async ({ ctx }) => {
-    const availableApps = appStore;
     const orgId = ctx.session?.session.activeOrganizationId;
 
     if (!orgId) {
-      return availableApps.map((app) => ({ ...app, installed: false }));
+      return appStore.map((app) => ({ ...app, installed: false }));
     }
 
-    const installedConnectors = await ctx.prisma.connector.findMany({
-      where: { organizationId: orgId },
-      select: { id: true, app: true, config: true },
-    });
+    const installedConnectors = await listConnectorsByOrg(ctx.prisma, orgId);
 
-    return availableApps.map((app) => {
+    return appStore.map((app) => {
       const connector = installedConnectors.find(
         (c) => c.app === (app.id as unknown as AppType)
       );
 
+      // Only show as "installed" if connector is ACTIVE
+      // CONNECTING status means OAuth is pending
+      const isInstalled = connector?.status === "ACTIVE";
+
       return {
         ...app,
         id: app.id,
-        installed: !!connector,
+        installed: isInstalled,
         connectorId: connector?.id,
+        status: connector?.status,
         settings: app.settings,
         userSettings:
-          (connector?.config as Record<string, unknown>) || undefined,
+          (connector?.config as Record<string, unknown>) ?? undefined,
       };
     });
   }),
 
   get: protectedProcedure
-    .input(z.object({ appId: z.string() }))
+    .input(z.object({ appId: z.string().min(1) }))
     .query(async ({ ctx, input }) => {
       const orgId = ctx.session?.session.activeOrganizationId;
+
       if (!orgId) {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -88,19 +92,18 @@ export const appsRouter = createTRPCRouter({
         if (!connector || connector.organizationId !== orgId) {
           throw new TRPCError({
             code: "NOT_FOUND",
-            message: "App not found",
+            message: "Connector not found or unauthorized",
           });
         }
+
         return { ...connector };
       }
 
-      const connector = await ctx.prisma.connector.findFirst({
-        where: {
-          organizationId: orgId,
-          app: appDefinition.id as unknown as AppType,
-        },
-        include: { oauthProvider: true },
-      });
+      const connector = await findConnectorByOrg(
+        ctx.prisma,
+        orgId,
+        appDefinition.id as unknown as AppType
+      );
 
       return {
         definition: appDefinition,
@@ -112,6 +115,7 @@ export const appsRouter = createTRPCRouter({
     .input(createConnectorSchema)
     .mutation(async ({ ctx, input }) => {
       const orgId = ctx.session?.session.activeOrganizationId;
+
       if (!orgId) {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -119,11 +123,7 @@ export const appsRouter = createTRPCRouter({
         });
       }
 
-      // Check if already connected?
-      // For now, allow multiple or check uniqueness.
-      // The DB schema has a unique constraint on [orgId, workspaceExternalId, app, name].
-
-      const connector = await createConnector(ctx.prisma, {
+      const connectorInput: CreateConnectorInput = {
         organizationId: orgId,
         userId: ctx.session.user.id,
         app: input.appId,
@@ -132,36 +132,34 @@ export const appsRouter = createTRPCRouter({
         type: input.type,
         authType: input.authType,
         config: input.config as InputJsonValue | undefined,
-      });
+      };
 
-      // TODO: When OAuth flow is implemented, if authType === AuthType.OAUTH2 and OAuth tokens
-      // are available (from OAuth callback), call upsertOAuthProvider from @openplane/db/mutations/oauth
-      // to store accessToken, refreshToken, expiresAt, scopes, etc.
-
-      return connector;
+      return await createConnector(ctx.prisma, connectorInput);
     }),
 
   disconnect: protectedProcedure
     .input(disconnectSchema)
     .mutation(async ({ ctx, input }) => {
+      const orgId = ctx.session?.session.activeOrganizationId;
+
+      if (!orgId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "No active organization",
+        });
+      }
+
       const connector = await ctx.prisma.connector.findUnique({
         where: { id: input.appId },
         select: { organizationId: true },
       });
 
-      if (
-        !connector ||
-        connector.organizationId !== ctx.session?.session.activeOrganizationId
-      ) {
+      if (!connector || connector.organizationId !== orgId) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Connector not found or unauthorized",
         });
       }
-
-      // TODO: When OAuth flow is implemented, if connector has OAuth provider, consider revoking
-      // OAuth tokens with the provider (e.g., Slack token revocation) before deletion.
-      // The OAuth provider will be automatically deleted via cascade, but revoking tokens is a best practice.
 
       return await deleteConnector(ctx.prisma, input.appId);
     }),
@@ -169,15 +167,21 @@ export const appsRouter = createTRPCRouter({
   updateSettings: protectedProcedure
     .input(updateSettingsSchema)
     .mutation(async ({ ctx, input }) => {
+      const orgId = ctx.session?.session.activeOrganizationId;
+
+      if (!orgId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "No active organization",
+        });
+      }
+
       const connector = await ctx.prisma.connector.findUnique({
         where: { id: input.appId },
         select: { organizationId: true },
       });
 
-      if (
-        !connector ||
-        connector.organizationId !== ctx.session?.session.activeOrganizationId
-      ) {
+      if (!connector || connector.organizationId !== orgId) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Connector not found or unauthorized",
