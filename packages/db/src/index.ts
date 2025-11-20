@@ -9,3 +9,9 @@ export const connectDb = async () => prisma;
 export type Database = PrismaClient;
 
 export default prisma;
+
+// Mutation layer
+export * from "./mutations/connectors";
+export * from "./mutations/oauth";
+// Query layer
+export * from "./queries/connectors";
