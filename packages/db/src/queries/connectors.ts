@@ -1,41 +1,48 @@
-import type { AppType, Prisma } from "../../prisma/generated/client";
+import type { AppType, Connector } from "../../prisma/generated/client";
 import type { Database } from "../index";
 
-export const getConnector = async (
+export interface FindConnectorOptions {
+  id?: string;
+  organizationId?: string;
+  app?: AppType;
+  includeOAuthProvider?: boolean;
+}
+
+export const findConnectorById = async (
   db: Database,
-  where: Prisma.ConnectorWhereUniqueInput
-) =>
+  id: string,
+  includeOAuth = false
+): Promise<Connector | null> =>
   db.connector.findUnique({
-    where,
-    include: {
-      oauthProvider: true,
-    },
+    where: { id },
+    include: { oauthProvider: includeOAuth },
   });
 
-export const getConnectorByApp = async (
+export const findConnectorByOrg = async (
   db: Database,
   organizationId: string,
   app: AppType
-) =>
+): Promise<Connector | null> =>
   db.connector.findFirst({
-    where: {
-      organizationId,
-      app,
-    },
-    include: {
-      oauthProvider: true,
-    },
+    where: { organizationId, app },
+    include: { oauthProvider: true },
   });
 
-export const listConnectors = async (db: Database, organizationId: string) =>
+export const listConnectorsByOrg = async (
+  db: Database,
+  organizationId: string
+): Promise<Connector[]> =>
   db.connector.findMany({
-    where: {
-      organizationId,
-    },
-    include: {
-      oauthProvider: true,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
+    where: { organizationId },
+    include: { oauthProvider: true },
+    orderBy: { createdAt: "desc" },
+  });
+
+export const getConnectorWithCredentials = async (
+  db: Database,
+  connectorId: string
+): Promise<Pick<Connector, "id" | "config"> | null> =>
+  db.connector.findUnique({
+    where: { id: connectorId },
+    select: { id: true, config: true },
   });
