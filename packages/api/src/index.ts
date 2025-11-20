@@ -37,3 +37,7 @@ const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
 const _protectedProcedure = t.procedure.use(enforceUserIsAuthed);
 export const protectedProcedure: typeof _protectedProcedure =
   _protectedProcedure;
+
+// Exports
+export * from "./integrations/types";
+export * from "./slack/use-cases/oauth";

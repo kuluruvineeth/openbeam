@@ -80,7 +80,7 @@ export const exchangeSlackCode = async (
 
   return {
     accessToken: result.access_token,
-    refreshToken: undefined,
+    refreshToken: result.refresh_token,
     scopes: result.scope?.split(",") ?? [],
     teamId: result.team.id,
     teamName: result.team.name,

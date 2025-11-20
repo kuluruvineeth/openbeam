@@ -3,6 +3,7 @@ import { z } from "zod";
 export const SlackOAuthResponseSchema = z.object({
   ok: z.boolean(),
   access_token: z.string().optional(),
+  refresh_token: z.string().optional(),
   token_type: z.string().optional(),
   scope: z.string().optional(),
   bot_user_id: z.string().optional(),
