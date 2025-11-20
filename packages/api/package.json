@@ -15,8 +15,9 @@
     "build": "tsdown"
   },
   "devDependencies": {
-    "tsdown": "catalog:",
-    "@openplane/config": "workspace:*"
+    "@openplane/config": "workspace:*",
+    "@types/jsonwebtoken": "^9.0.10",
+    "tsdown": "catalog:"
   },
   "peerDependencies": {
     "typescript": "^5"
@@ -30,6 +31,7 @@
     "@trpc/server": "catalog:",
     "dotenv": "catalog:",
     "hono": "catalog:",
+    "jsonwebtoken": "^9.0.2",
     "superjson": "^2.2.5",
     "zod": "catalog:"
   }

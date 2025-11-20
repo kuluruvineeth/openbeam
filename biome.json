@@ -30,7 +30,8 @@
       },
       "style": {
         "noExportedImports": "off",
-        "noEnum": "off"
+        "noEnum": "off",
+        "useConsistentTypeDefinitions": "off"
       }
     }
   },
