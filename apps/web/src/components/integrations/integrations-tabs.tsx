@@ -10,8 +10,8 @@ const tabs = [
     value: "all",
   },
   {
-    name: "Installed",
-    value: "installed",
+    name: "Connected",
+    value: "connected",
   },
 ];
 
