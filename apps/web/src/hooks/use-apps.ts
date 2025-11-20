@@ -63,3 +63,25 @@ export function useDisconnectApp(options?: {
     },
   });
 }
+
+export function useUpdateAppSettings(options?: {
+  onSuccess?: () => void;
+  onError?: () => void;
+}) {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    ...trpc.apps.updateSettings.mutationOptions(),
+    ...options,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: trpc.apps.list.queryOptions().queryKey,
+      });
+      options?.onSuccess?.();
+    },
+    onError: () => {
+      options?.onError?.();
+    },
+  });
+}
