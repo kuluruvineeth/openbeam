@@ -24,7 +24,7 @@ export function Integrations() {
   const authorizedExternalApps: { data: AuthorizedApp[] } = { data: [] };
 
   const searchParams = useSearchParams();
-  const isInstalledPage = searchParams.get("tab") === "installed";
+  const isInstalledPage = searchParams.get("tab") === "connected";
   const search = searchParams.get("q");
 
   // Combine and filter apps
