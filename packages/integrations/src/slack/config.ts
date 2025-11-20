@@ -14,7 +14,7 @@ export const slackApp: UnifiedApp = {
   logo: AppType.SLACK,
   short_description: "Search across messages, channels, and users.",
   description:
-    "Connect your Slack workspace to OpenPlane to make your team's conversations searchable. We index public channels, user profiles, and shared files. OpenPlane respects Slack's privacy policies and only accesses data you explicitly authorize.",
+    "Connect your Slack workspace to enable AI-powered search across all your team's conversations, files, and knowledge. OpenPlane indexes your data securely and respects all privacy controls you configure.",
   images: [],
   installed: false,
   type: "official",
@@ -23,12 +23,12 @@ export const slackApp: UnifiedApp = {
   website: "https://slack.com",
 
   features: [
-    "Full-text search for public messages",
-    "Private channel search (requires bot invitation)",
-    "Direct message indexing (opt-in)",
-    "User identity mapping",
-    "Channel directory syncing",
-    "AI-powered answers in Slack (OpenPlane Bot)",
+    "Semantic search across all messages and threads",
+    "AI-powered answers directly in Slack",
+    "Real-time indexing with instant search results",
+    "Automatic identity mapping for @mentions",
+    "File and attachment search",
+    "Configurable privacy controls per channel type",
   ],
 
   auth: {
@@ -36,6 +36,7 @@ export const slackApp: UnifiedApp = {
     config: {
       authUrl: "https://slack.com/oauth/v2/authorize",
       tokenUrl: "https://slack.com/api/oauth.v2.access",
+      redirectPath: "/integrations/slack/oauth/callback",
       // Default scopes - can be overridden by user configuration if needed
       scopes: [
         "channels:read", // Public channels
@@ -47,7 +48,8 @@ export const slackApp: UnifiedApp = {
         "team:read", // Workspace info
         "chat:write", // Bot responses
         "files:read", // Files
-        "search:read", // Search (if federated)
+        // Note: search:read is not a valid Slack OAuth scope
+        // Search functionality uses the bot token from OAuth flow
       ],
       scopeDetails: [
         {
@@ -96,46 +98,40 @@ export const slackApp: UnifiedApp = {
   streams: [
     {
       name: "users",
-      label: "Users",
-      description: "Workspace members and their profiles",
+      label: "Team Members",
+      description: "User profiles for identity mapping and @mention resolution",
       entityType: "identity",
-      dataPoints: ["Name", "Email", "Avatar", "Timezone", "Job Title"],
+      dataPoints: ["Display Name", "Email", "Profile Photo", "Status"],
       isPii: true,
       syncMode: SyncMode.PERIODIC,
-      defaultInterval: 60, // Sync users every hour
+      defaultInterval: 60,
       supportsBackfill: true,
     },
     {
       name: "channels",
-      label: "Public Channels",
-      description: "Public channels in the workspace",
+      label: "Channels",
+      description: "Channel metadata and directory structure",
       entityType: "resource",
-      dataPoints: ["Channel Name", "Topic", "Description", "Member Count"],
+      dataPoints: ["Name", "Topic", "Description", "Members"],
       syncMode: SyncMode.PERIODIC,
-      defaultInterval: 30, // Sync channel list every 30 mins
+      defaultInterval: 30,
       supportsBackfill: true,
     },
     {
       name: "messages",
-      label: "Messages",
-      description: "History of messages in public channels",
+      label: "Messages & Threads",
+      description: "Conversation history from authorized channels",
       entityType: "activity",
-      dataPoints: [
-        "Message Content",
-        "Author",
-        "Timestamp",
-        "Thread Replies",
-        "Reactions",
-      ],
-      syncMode: SyncMode.REALTIME, // Slack Events API
-      supportsBackfill: true, // History API
+      dataPoints: ["Content", "Author", "Timestamp", "Replies", "Reactions"],
+      syncMode: SyncMode.REALTIME,
+      supportsBackfill: true,
     },
     {
       name: "files",
-      label: "Files",
-      description: "Shared files and documents",
+      label: "Files & Attachments",
+      description: "Shared documents and media from conversations",
       entityType: "resource",
-      dataPoints: ["File Name", "File Type", "Download URL", "Author"],
+      dataPoints: ["Name", "Type", "URL", "Uploaded By"],
       syncMode: SyncMode.REALTIME,
       supportsBackfill: true,
     },

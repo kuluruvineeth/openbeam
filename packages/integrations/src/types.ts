@@ -100,6 +100,7 @@ export type OAuthConfig = {
   tokenUrl: string;
   scopes: string[];
   scopeDetails?: ScopeDetail[];
+  redirectPath?: string;
 };
 
 export type ApiKeyConfig = {
@@ -138,7 +139,8 @@ export type UnifiedApp = {
   connectorType: ConnectorType;
 
   connectorId?: string;
-  clientId?: string; // Added clientId
+  clientId?: string;
+  status?: "ACTIVE" | "CONNECTING" | "ERROR" | "INACTIVE" | "SYNCING";
 
   features: string[];
 
@@ -159,6 +161,6 @@ export type UnifiedApp = {
   screenshots?: string[];
   overview?: string;
   createdAt?: string;
-  status?: "draft" | "pending" | "approved" | "rejected";
+  approvalStatus?: "draft" | "pending" | "approved" | "rejected";
   lastUsedAt?: string;
 };
