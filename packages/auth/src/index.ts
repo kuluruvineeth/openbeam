@@ -7,16 +7,35 @@ import { ADMIN, ac, MEMBER, OWNER } from "./permissions";
 const isDevelopment = process.env.NODE_ENV !== "production";
 
 export const auth = betterAuth<BetterAuthOptions>({
+  baseURL:
+    process.env.BETTER_AUTH_URL ||
+    process.env.CORS_ORIGIN ||
+    "http://localhost:3001",
+  basePath: "/api/auth",
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
-  trustedOrigins: [process.env.CORS_ORIGIN || ""],
+  trustedOrigins: [
+    process.env.CORS_ORIGIN || "",
+    "https://new-sculpin-illegally.ngrok-free.app",
+    "http://localhost:3001",
+  ],
   advanced: {
-    useSecureCookies: !isDevelopment,
+    // For ngrok, we need secure cookies even in development
+    useSecureCookies:
+      !isDevelopment || Boolean(process.env.CORS_ORIGIN?.includes("ngrok")),
     defaultCookieAttributes: {
-      secure: !isDevelopment,
+      // Use secure cookies for ngrok (HTTPS), regular for localhost (HTTP)
+      secure:
+        !isDevelopment || Boolean(process.env.CORS_ORIGIN?.includes("ngrok")),
       httpOnly: true,
-      sameSite: isDevelopment ? "lax" : "none",
+      // Use "none" for ngrok to allow cross-site cookies, "lax" for localhost
+      sameSite: (() => {
+        if (process.env.CORS_ORIGIN?.includes("ngrok")) {
+          return "none";
+        }
+        return isDevelopment ? "lax" : "none";
+      })(),
       path: "/",
     },
     crossSubDomainCookies: {
