@@ -16,3 +16,5 @@ export * from "./queues";
 // Rate limiter
 export { DEFAULT_RATE_LIMITS, RateLimiter, rateLimiter } from "./rate-limiter";
 export type { RateLimitConfig } from "./rate-limiter";
+// Deduplication
+export { EventDeduplicator, eventDeduplicator } from "./deduplication";
