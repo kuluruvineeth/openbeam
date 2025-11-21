@@ -3,6 +3,8 @@ import { IndexProcessor } from "./processors/index-processor";
 import { SyncProcessor } from "./processors/sync-processor";
 import { WebhookProcessor } from "./processors/webhook-processor";
 import { SyncScheduler } from "./schedulers/sync-scheduler";
+import { startHealthServer, stopHealthServer } from "./health";
+import { startMetricsServer, stopMetricsServer } from "./metrics";
 import logger from "./utils/logger";
 
 /**
@@ -15,6 +17,8 @@ import logger from "./utils/logger";
  * - IndexProcessor: Processes indexing jobs (pushes data to Vespa)
  * - WebhookProcessor: Processes real-time webhook events
  * - CleanupProcessor: Maintains index health (daily cleanup)
+ * - MetricsServer: Prometheus metrics (port 9091)
+ * - HealthServer: Kubernetes health checks (port 9092)
  */
 class WorkerService {
   private readonly syncScheduler: SyncScheduler;
@@ -43,6 +47,15 @@ class WorkerService {
       logger.error({ error }, "Failed to start cleanup processor");
     });
 
+    // Start metrics and health servers
+    startMetricsServer().catch((error) => {
+      logger.error({ error }, "Failed to start metrics server");
+    });
+
+    startHealthServer().catch((error) => {
+      logger.error({ error }, "Failed to start health server");
+    });
+
     logger.info("OpenPlane Worker started successfully");
     logger.info({
       components: {
@@ -51,6 +64,8 @@ class WorkerService {
         indexProcessor: "running",
         webhookProcessor: "running",
         cleanupProcessor: "running",
+        metricsServer: "running",
+        healthServer: "running",
       },
     }, "All worker components initialized");
   }
@@ -67,6 +82,8 @@ class WorkerService {
       this.indexProcessor.close(),
       this.webhookProcessor.close(),
       this.cleanupProcessor.stop(),
+      stopMetricsServer(),
+      stopHealthServer(),
     ]);
 
     logger.info("OpenPlane Worker shut down successfully");
