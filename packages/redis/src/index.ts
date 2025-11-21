@@ -14,4 +14,5 @@ export { Fence, fence } from "./locks/fence";
 // Queues
 export * from "./queues";
 // Rate limiter
-export { RateLimiter, rateLimiter } from "./rate-limiter";
+export { DEFAULT_RATE_LIMITS, RateLimiter, rateLimiter } from "./rate-limiter";
+export type { RateLimitConfig } from "./rate-limiter";
