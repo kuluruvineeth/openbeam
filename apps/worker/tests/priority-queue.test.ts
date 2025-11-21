@@ -179,7 +179,7 @@ describe("Priority Queue", () => {
     }
   });
 
-  test("job retry options (attempts=3, exponential backoff)", async () => {
+  test("job retry options (attempts=3, custom backoff strategy)", async () => {
     const job = await addSyncJob({
       connectorId: "test-options",
       syncJobId: `sync-${Date.now()}`,
@@ -190,7 +190,7 @@ describe("Priority Queue", () => {
     expect(job).toBeDefined();
     expect(job.opts.attempts).toBe(3);
     expect(job.opts.backoff).toBeDefined();
-    expect(job.opts.backoff?.type).toBe("exponential");
+    expect(job.opts.backoff?.type).toBe("custom");
 
     // Cleanup (ignore errors)
     try {
