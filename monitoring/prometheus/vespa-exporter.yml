@@ -1,0 +1,22 @@
+modules:
+  vespa_metrics:
+    prober: http
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      valid_status_codes: [200]
+      method: GET
+      headers:
+        Accept: application/json
+    json_prober:
+      endpoint: "/state/v1/metrics"
+      keys:
+        - name: vespa_content_proton_resource_usage_disk_usage_ratio
+          path: '{.metrics.values[?(@.name=="content.proton.resource_usage.disk_usage_ratio")].values.last}'
+        - name: vespa_content_proton_resource_usage_memory_usage_ratio
+          path: '{.metrics.values[?(@.name=="content.proton.resource_usage.memory_usage_ratio")].values.last}'
+        - name: vespa_content_proton_documentdb_indexed_docs
+          path: '{.metrics.values[?(@.name=="content.proton.documentdb.indexed_docs")].values.last}'
+        - name: vespa_container_http_request_uri_query_total
+          path: '{.metrics.values[?(@.name=="jdisc.http.requests")].values.count}'
+        - name: vespa_container_http_request_uri_query_duration_seconds
+          path: '{.metrics.values[?(@.name=="jdisc.http.request.duration")].values.average}'

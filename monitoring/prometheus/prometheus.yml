@@ -1,0 +1,49 @@
+# Prometheus configuration for OpenPlane monitoring
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: "openplane"
+    environment: "development"
+
+# Alertmanager configuration (optional)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: []
+
+# Load rules once and periodically evaluate them
+# rule_files:
+#   - "alerts.yml"
+
+scrape_configs:
+  # Vespa metrics - native Prometheus endpoint
+  - job_name: "vespa"
+    scrape_interval: 15s
+    metrics_path: "/prometheus/v1/values"
+    static_configs:
+      - targets: ["vespa:19071"]
+        labels:
+          service: "vespa"
+          component: "search-engine"
+
+  # Vespa JSON exporter (prometheus-community/json-exporter)
+  - job_name: "vespa-json-exporter"
+    scrape_interval: 15s
+    static_configs:
+      - targets: ["vespa-exporter:9116"]
+        labels:
+          service: "vespa"
+          component: "json-exporter"
+
+  # Prometheus self-monitoring
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # API server metrics
+  - job_name: "server"
+    scrape_interval: 5s
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["server:3000"]
