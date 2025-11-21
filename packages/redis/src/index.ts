@@ -10,6 +10,7 @@ export {
 } from "./client";
 // Distributed locks
 export { DistributedLock, distributedLock } from "./locks";
+export { Fence, fence } from "./locks/fence";
 // Queues
 export * from "./queues";
 // Rate limiter

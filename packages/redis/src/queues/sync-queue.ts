@@ -35,11 +35,24 @@ export const syncQueue = new Queue<SyncJobData>("sync", {
 });
 
 /**
- * Add a sync job to the queue
+ * Add a sync job to the queue with priority support
+ * 
+ * Priority levels:
+ * - 10: Webhook-triggered (highest priority)
+ * - 7: Manual syncs
+ * - 5: Scheduled incremental (default)
+ * - 3: Scheduled full syncs
+ * - 1: Background/cleanup jobs (lowest)
+ * 
+ * @param data - Sync job data
+ * @param priority - Job priority (1-10, higher = more urgent)
+ * @returns Promise resolving to the created job
  */
-export async function addSyncJob(data: SyncJobData) {
+export async function addSyncJob(data: SyncJobData, priority?: number) {
+  const jobPriority = priority ?? data.priority ?? 5;
+
   return await syncQueue.add("sync", data, {
-    priority: data.priority,
+    priority: jobPriority,
     jobId: `sync-${data.connectorId}-${Date.now()}`,
   });
 }
