@@ -8,6 +8,7 @@ import {
   type SyncJobData,
 } from "@openplane/redis";
 import { type Job, Worker } from "bullmq";
+import { batchSizeTracker, calculateBatchSize } from "../utils/batch-sizer";
 import { createConnector } from "../connectors/factory";
 import logger from "../utils/logger";
 
@@ -164,14 +165,27 @@ export class SyncProcessor {
         "Documents fetched"
       );
 
-      // 7. Push documents to index queue in batches
-      const batchSize = 100;
+      // 7. Push documents to index queue with adaptive batch sizing
+      const metrics = batchSizeTracker.getMetrics(connectorId);
+      const avgDocSize = documents.length > 0
+        ? documents.reduce((sum, doc) => sum + JSON.stringify(doc).length, 0) / documents.length / 1024
+        : undefined;
+
+      const batchSize = calculateBatchSize(connector.type, metrics, avgDocSize);
+
+      logger.info(
+        { connectorId, batchSize, avgDocSizeKb: avgDocSize?.toFixed(2) },
+        "Using adaptive batch size"
+      );
+
       let batchCount = 0;
+      const batchStartTime = Date.now();
 
       for (let i = 0; i < documents.length; i += batchSize) {
         const batch = documents.slice(i, i + batchSize);
         const batchId = `${connectorId}-${Date.now()}-${i}`;
 
+        const jobStartTime = Date.now();
         await indexQueue.add(
           "index-batch",
           {
@@ -183,6 +197,14 @@ export class SyncProcessor {
             attempts: 2,
             backoff: { type: "exponential", delay: 2000 },
           }
+        );
+
+        const jobEndTime = Date.now();
+        batchSizeTracker.recordBatch(
+          connectorId,
+          batch.length,
+          jobEndTime - jobStartTime,
+          0 // No errors at enqueue time
         );
 
         batchCount += 1;
