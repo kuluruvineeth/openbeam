@@ -40,9 +40,13 @@ export const slackApp: UnifiedApp = {
       // Default scopes - can be overridden by user configuration if needed
       scopes: [
         "channels:read", // Public channels
+        "channels:history", // Read public channel messages
         "groups:read", // Private channels
+        "groups:history", // Read private channel messages
         "im:read", // DMs
+        "im:history", // Read DM messages
         "mpim:read", // Group DMs
+        "mpim:history", // Read group DM messages
         "users:read", // Users
         "users:read.email", // User emails
         "team:read", // Workspace info
@@ -58,9 +62,19 @@ export const slackApp: UnifiedApp = {
             "View basic information about public channels in a workspace",
         },
         {
+          name: "channels:history",
+          description:
+            "View messages and other content in public channels that OpenPlane has been added to",
+        },
+        {
           name: "groups:read",
           description:
             "View basic information about private channels that OpenPlane has been added to",
+        },
+        {
+          name: "groups:history",
+          description:
+            "View messages and other content in private channels that OpenPlane has been added to",
         },
         {
           name: "im:read",
@@ -68,9 +82,19 @@ export const slackApp: UnifiedApp = {
             "View basic information about direct messages that OpenPlane has been added to",
         },
         {
+          name: "im:history",
+          description:
+            "View messages and other content in direct messages that OpenPlane has been added to",
+        },
+        {
           name: "mpim:read",
           description:
             "View basic information about group direct messages that OpenPlane has been added to",
+        },
+        {
+          name: "mpim:history",
+          description:
+            "View messages and other content in group direct messages that OpenPlane has been added to",
         },
         { name: "users:read", description: "View people in a workspace" },
         {
@@ -188,6 +212,16 @@ export const slackApp: UnifiedApp = {
       type: "switch",
       required: false,
       value: true,
+    },
+    {
+      id: "auto_join_public_channels",
+      label: "Auto-Join Public Channels",
+      description:
+        "Automatically join public channels to index them. If disabled, only channels where the bot is already a member will be indexed. Recommended: Disable this and manually add the bot to channels you want indexed.",
+      type: "switch",
+      required: false,
+      value: false,
+      enabled: false,
     },
     {
       id: "sync_mode",

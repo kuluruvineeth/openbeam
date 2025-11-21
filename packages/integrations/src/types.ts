@@ -123,6 +123,7 @@ export type AppSettingsItem = {
   value: any;
   options?: Array<{ label: string; value: string }>;
   placeholder?: string;
+  enabled?: boolean; // If false, the setting will be hidden/disabled
 };
 
 export type UnifiedApp = {
