@@ -52,6 +52,7 @@
         "@openplane/redis": "workspace:*",
         "@openplane/vespa": "workspace:*",
         "@trpc/server": "catalog:",
+        "argon2": "^0.44.0",
         "better-auth": "catalog:",
         "dotenv": "catalog:",
         "hono": "catalog:",
