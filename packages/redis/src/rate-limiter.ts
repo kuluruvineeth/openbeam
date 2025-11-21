@@ -3,8 +3,47 @@ import type { RedisClientType } from "redis";
 import { getRedisClient } from "./client";
 
 /**
+ * Rate limit configuration
+ */
+export interface RateLimitConfig {
+  requestsPerMinute?: number;
+  requestsPerHour?: number;
+  burstLimit?: number;
+}
+
+/**
+ * Default rate limits per connector type
+ */
+export const DEFAULT_RATE_LIMITS: Record<string, RateLimitConfig> = {
+  slack: {
+    requestsPerMinute: 50,
+    requestsPerHour: 2000,
+    burstLimit: 20,
+  },
+  notion: {
+    requestsPerMinute: 30,
+    requestsPerHour: 1000,
+    burstLimit: 10,
+  },
+  drive: {
+    requestsPerMinute: 100,
+    requestsPerHour: 5000,
+    burstLimit: 30,
+  },
+  github: {
+    requestsPerMinute: 60,
+    requestsPerHour: 5000,
+    burstLimit: 20,
+  },
+  // Add more connector types as needed
+};
+
+/**
  * Distributed rate limiter using Redis
- * Implements sliding window algorithm for accurate rate limiting
+ * Implements three-level rate limiting:
+ * 1. Global - Prevent Redis overload
+ * 2. Per-Connector - Respect API limits
+ * 3. Per-Connector-Type - Default limits
  */
 export class RateLimiter {
   private client: RedisClientType | null = null;
@@ -94,6 +133,179 @@ export class RateLimiter {
     } catch (error) {
       console.error("Rate limiter reset error:", error);
     }
+  }
+
+  /**
+   * Check connector-specific rate limits (three-level)
+   * 
+   * @param connectorId - Unique connector identifier
+   * @param connectorType - Type of connector (slack, notion, etc.)
+   * @param customConfig - Optional custom rate limit config
+   * @returns true if request is allowed, false if rate limit exceeded
+   */
+  async checkConnectorRateLimit(
+    connectorId: string,
+    connectorType: string,
+    customConfig?: RateLimitConfig
+  ): Promise<{ allowed: boolean; reason?: string }> {
+    // Get rate limit config (custom > default > fallback)
+    const config =
+      customConfig ||
+      DEFAULT_RATE_LIMITS[connectorType] || {
+        requestsPerMinute: 60,
+        requestsPerHour: 3000,
+        burstLimit: 20,
+      };
+
+    // Check burst limit (short window - 10 seconds)
+    if (config.burstLimit) {
+      const burstAllowed = await this.checkLimit(
+        `connector:${connectorId}:burst`,
+        config.burstLimit,
+        10
+      );
+
+      if (!burstAllowed) {
+        return { allowed: false, reason: "Burst limit exceeded" };
+      }
+    }
+
+    // Check per-minute limit
+    if (config.requestsPerMinute) {
+      const minuteAllowed = await this.checkLimit(
+        `connector:${connectorId}:minute`,
+        config.requestsPerMinute,
+        60
+      );
+
+      if (!minuteAllowed) {
+        return { allowed: false, reason: "Per-minute limit exceeded" };
+      }
+    }
+
+    // Check per-hour limit
+    if (config.requestsPerHour) {
+      const hourAllowed = await this.checkLimit(
+        `connector:${connectorId}:hour`,
+        config.requestsPerHour,
+        3600
+      );
+
+      if (!hourAllowed) {
+        return { allowed: false, reason: "Per-hour limit exceeded" };
+      }
+    }
+
+    return { allowed: true };
+  }
+
+  /**
+   * Get remaining quota for a connector
+   * 
+   * @param connectorId - Unique connector identifier
+   * @param connectorType - Type of connector
+   * @param customConfig - Optional custom rate limit config
+   * @returns Remaining quota for each time window
+   */
+  async getRemainingQuota(
+    connectorId: string,
+    connectorType: string,
+    customConfig?: RateLimitConfig
+  ): Promise<{
+    burstRemaining?: number;
+    minuteRemaining?: number;
+    hourRemaining?: number;
+  }> {
+    const config =
+      customConfig ||
+      DEFAULT_RATE_LIMITS[connectorType] || {
+        requestsPerMinute: 60,
+        requestsPerHour: 3000,
+        burstLimit: 20,
+      };
+
+    const result: {
+      burstRemaining?: number;
+      minuteRemaining?: number;
+      hourRemaining?: number;
+    } = {};
+
+    if (config.burstLimit) {
+      const burstUsage = await this.getUsage(
+        `connector:${connectorId}:burst`,
+        10
+      );
+      result.burstRemaining = Math.max(0, config.burstLimit - burstUsage);
+    }
+
+    if (config.requestsPerMinute) {
+      const minuteUsage = await this.getUsage(
+        `connector:${connectorId}:minute`,
+        60
+      );
+      result.minuteRemaining = Math.max(
+        0,
+        config.requestsPerMinute - minuteUsage
+      );
+    }
+
+    if (config.requestsPerHour) {
+      const hourUsage = await this.getUsage(
+        `connector:${connectorId}:hour`,
+        3600
+      );
+      result.hourRemaining = Math.max(0, config.requestsPerHour - hourUsage);
+    }
+
+    return result;
+  }
+
+  /**
+   * Wait for quota to become available
+   * Implements exponential backoff with jitter
+   * 
+   * @param connectorId - Unique connector identifier
+   * @param connectorType - Type of connector
+   * @param customConfig - Optional custom rate limit config
+   * @param maxRetries - Maximum number of retries (default: 5)
+   * @returns true if quota became available, false if max retries exceeded
+   */
+  async waitForQuota(
+    connectorId: string,
+    connectorType: string,
+    customConfig?: RateLimitConfig,
+    maxRetries = 5
+  ): Promise<boolean> {
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      const { allowed } = await this.checkConnectorRateLimit(
+        connectorId,
+        connectorType,
+        customConfig
+      );
+
+      if (allowed) {
+        return true;
+      }
+
+      // Exponential backoff with jitter: 2^attempt * 1000ms + random(0-1000ms)
+      const baseDelay = Math.pow(2, attempt) * 1000;
+      const jitter = Math.random() * 1000;
+      const delay = baseDelay + jitter;
+
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+
+    return false;
+  }
+
+  /**
+   * Check global rate limit (prevents Redis overload)
+   * 
+   * @param limit - Global request limit (default: 1000 req/sec)
+   * @returns true if request is allowed
+   */
+  async checkGlobalRateLimit(limit = 1000): Promise<boolean> {
+    return await this.checkLimit("global", limit, 1);
   }
 }
 

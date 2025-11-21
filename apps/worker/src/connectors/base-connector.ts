@@ -1,5 +1,6 @@
 import type { Connector, OAuthProvider } from "@openplane/db";
 import type { GenericDocument } from "@openplane/vespa";
+import { connectionPoolManager, type ConnectionPool } from "../connection-pool";
 
 /**
  * Result of a sync operation
@@ -22,10 +23,13 @@ export interface FetchResult {
 /**
  * Abstract base class for all connectors
  * Each connector (Slack, Notion, Drive, etc.) extends this
+ * 
+ * Supports connection pooling for reusable API clients
  */
 export abstract class BaseConnector {
   protected connector: Connector & { oauthProvider?: OAuthProvider | null };
   protected organizationId: string;
+  private connectionPool?: ConnectionPool<any>;
 
   constructor(connector: Connector & { oauthProvider?: OAuthProvider | null }) {
     this.connector = connector;
@@ -94,5 +98,43 @@ export abstract class BaseConnector {
     // Then merge with config (for additional settings or API key auth)
     const config = this.connector.config as Record<string, unknown>;
     return { ...config, ...credentials };
+  }
+
+  /**
+   * Get connection from pool (optional, override in child class)
+   * Subclasses can override this to provide pooled connections
+   */
+  protected async getPooledConnection<T>(
+    createFn: () => Promise<T>,
+    validateFn: (conn: T) => Promise<boolean>,
+    destroyFn: (conn: T) => Promise<void>
+  ): Promise<T> {
+    if (!this.connectionPool) {
+      this.connectionPool = connectionPoolManager.getPool(
+        this.connector.type,
+        createFn,
+        validateFn,
+        destroyFn
+      );
+    }
+    return await this.connectionPool.acquire(this.connector.id);
+  }
+
+  /**
+   * Release connection back to pool
+   */
+  protected async releasePooledConnection<T>(connection: T): Promise<void> {
+    if (this.connectionPool) {
+      await this.connectionPool.release(this.connector.id, connection);
+    }
+  }
+
+  /**
+   * Remove connection from pool (on error)
+   */
+  protected async removePooledConnection<T>(connection: T): Promise<void> {
+    if (this.connectionPool) {
+      await this.connectionPool.remove(this.connector.id, connection);
+    }
   }
 }

@@ -2,6 +2,7 @@ import prisma from "@openplane/db";
 import { getRedisConnection, type IndexJobData } from "@openplane/redis";
 import { type GenericDocument, vespaClient } from "@openplane/vespa";
 import { type Job, Worker } from "bullmq";
+import { calculateDocumentChecksum, checksumsMatch } from "../utils/checksum";
 import logger from "../utils/logger";
 
 /**
@@ -50,13 +51,60 @@ export class IndexProcessor {
     );
 
     try {
-      // 1. Index documents to Vespa
-      const successfullyIndexed: GenericDocument[] = [];
+      // 1. Check for existing documents and calculate checksums
+      const existingDocs = await prisma.indexedDocument.findMany({
+        where: {
+          connectorId,
+          externalId: { in: documents.map((d) => d.external_id) },
+        },
+        select: {
+          externalId: true,
+          checksum: true,
+          lastChecksum: true,
+        },
+      });
+
+      const existingDocsMap = new Map(
+        existingDocs.map((d) => [d.externalId, d])
+      );
+
+      // 2. Filter documents needing indexing (new or changed)
+      const docsToIndex: GenericDocument[] = [];
+      const docsToSkip: string[] = [];
+
       for (const doc of documents) {
         const normalizedDoc = this.normalizeDocument(doc);
+        const newChecksum = calculateDocumentChecksum({
+          title: normalizedDoc.title,
+          content: normalizedDoc.content,
+        });
+
+        const existing = existingDocsMap.get(doc.external_id);
+
+        if (existing && checksumsMatch(existing.checksum, newChecksum)) {
+          // Document unchanged - skip indexing
+          docsToSkip.push(doc.external_id);
+          logger.debug(
+            { docId: doc.external_id, connectorId },
+            "Document unchanged, skipping"
+          );
+        } else {
+          // New or changed document - index it
+          docsToIndex.push({ ...normalizedDoc, checksum: newChecksum } as GenericDocument & { checksum: string });
+        }
+      }
+
+      logger.info(
+        { connectorId, batchId, toIndex: docsToIndex.length, skipped: docsToSkip.length },
+        "Checksum deduplication complete"
+      );
+
+      // 3. Index documents to Vespa
+      const successfullyIndexed: (GenericDocument & { checksum: string })[] = [];
+      for (const doc of docsToIndex) {
         try {
-          await vespaClient.feedDocument(normalizedDoc);
-          successfullyIndexed.push(normalizedDoc);
+          await vespaClient.feedDocument(doc);
+          successfullyIndexed.push(doc);
         } catch (docError) {
           logger.error(
             { error: docError, docId: doc.id, connectorId },
@@ -74,22 +122,36 @@ export class IndexProcessor {
         "Documents indexed to Vespa"
       );
 
-      // 2. Record indexed documents in database
+      // 4. Upsert indexed documents in database with checksums
       const indexedDocuments = successfullyIndexed.map((doc) => ({
         connectorId,
         externalId: doc.external_id,
         vespaId: doc.id,
         documentType: doc.document_type,
         sourceId: doc.source_id,
-        checksum: undefined, // TODO: Add content hashing
+        checksum: doc.checksum,
+        lastChecksum: existingDocsMap.get(doc.external_id)?.checksum || null,
       }));
 
       if (indexedDocuments.length > 0) {
         try {
-          await prisma.indexedDocument.createMany({
-            data: indexedDocuments,
-            skipDuplicates: true, // Skip if already indexed
-          });
+          // Upsert documents (update if exists, create if new)
+          for (const doc of indexedDocuments) {
+            await prisma.indexedDocument.upsert({
+              where: {
+                connectorId_externalId: {
+                  connectorId: doc.connectorId,
+                  externalId: doc.externalId,
+                },
+              },
+              update: {
+                checksum: doc.checksum,
+                lastChecksum: doc.lastChecksum,
+                lastSyncedAt: new Date(),
+              },
+              create: doc,
+            });
+          }
         } catch (dbError) {
           logger.error(
             { error: dbError, connectorId, batchId },
