@@ -1,0 +1,200 @@
+schema openplane_document {
+  document openplane_document {
+    # Primary identifier
+    field id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    # === Metadata (all connectors) ===
+    field connector_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field connector_type type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field organization_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field workspace_id type string {
+      indexing: summary | attribute
+    }
+    
+    # === Document identifiers ===
+    field external_id type string {
+      indexing: summary | attribute
+    }
+    
+    field document_type type string {
+      indexing: summary | attribute
+      attribute: fast-search
+      # Values: "message", "file", "page", "issue", "ticket", "email", "note", etc.
+    }
+    
+    # === Content (universal fields) ===
+    field title type string {
+      indexing: summary | index
+      index: enable-bm25
+    }
+    
+    field content type string {
+      indexing: summary | index
+      index: enable-bm25
+    }
+    
+    field content_embedding type tensor<float>(x[768]) {
+      indexing: attribute | index
+      attribute {
+        distance-metric: angular
+      }
+    }
+    
+    # === Authorship & timestamps ===
+    field author_id type string {
+      indexing: summary | attribute
+    }
+    
+    field author_name type string {
+      indexing: summary
+    }
+    
+    field created_at type long {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field updated_at type long {
+      indexing: summary | attribute
+    }
+    
+    # === Source/container info ===
+    # For Slack: channel_id, Drive: folder_id, Notion: database_id, etc.
+    field source_id type string {
+      indexing: summary | attribute
+    }
+    
+    field source_name type string {
+      indexing: summary
+    }
+    
+    field source_type type string {
+      indexing: summary | attribute
+      # "channel", "folder", "database", "repository", "project", etc.
+    }
+    
+    # === Thread/parent relationships ===
+    field parent_id type string {
+      indexing: summary | attribute
+    }
+    
+    field thread_id type string {
+      indexing: summary | attribute
+    }
+    
+    # === Engagement metrics ===
+    field view_count type int {
+      indexing: summary | attribute
+    }
+    
+    field reaction_count type int {
+      indexing: summary | attribute
+    }
+    
+    field reply_count type int {
+      indexing: summary | attribute
+    }
+    
+    # === Rich content ===
+    field attachments type array<string> {
+      indexing: summary
+      # JSON array of attachment metadata
+    }
+    
+    field metadata type json {
+      indexing: summary | attribute
+    }
+    
+    # === Access control ===
+    field access_control type array<string> {
+      indexing: summary | attribute
+      # User/group IDs with access
+    }
+    
+    field is_public type bool {
+      indexing: summary | attribute
+    }
+    
+    # === URL ===
+    field url type string {
+      indexing: summary
+    }
+  }
+  
+  # Field sets for searching
+  fieldset default {
+    fields: title, content
+  }
+  
+  # === Ranking profiles ===
+  
+  # Base rank profile
+  rank-profile default {
+    first-phase {
+      expression: bm25(title) + bm25(content)
+    }
+  }
+  
+  # BM25 text relevance
+  rank-profile bm25 inherits default {
+    first-phase {
+      expression: bm25(title) + bm25(content)
+    }
+  }
+  
+  # Semantic vector search
+  rank-profile semantic {
+    first-phase {
+      expression: closeness(field, content_embedding)
+    }
+  }
+  
+  # Hybrid search (BM25 + vectors)
+  rank-profile hybrid {
+    first-phase {
+      expression {
+        0.7 * (bm25(title) + bm25(content)) + 
+        0.3 * closeness(field, content_embedding)
+      }
+    }
+  }
+  
+  # Recency-boosted search
+  rank-profile recency {
+    first-phase {
+      expression {
+        if(attribute(created_at) > now() - 86400000,
+          1.5 * (bm25(title) + bm25(content)),
+          bm25(title) + bm25(content)
+        )
+      }
+    }
+  }
+  
+  # Engagement-boosted search
+  rank-profile engagement {
+    first-phase {
+      expression {
+        (bm25(title) + bm25(content)) *
+        (1 + log(attribute(reaction_count) + 1) * 0.1) *
+        (1 + log(attribute(reply_count) + 1) * 0.05)
+      }
+    }
+  }
+}
+

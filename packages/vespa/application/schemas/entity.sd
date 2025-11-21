@@ -1,0 +1,68 @@
+schema entity {
+  document entity {
+    field id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field entity_type type string {
+      indexing: summary | attribute
+      attribute: fast-search
+      # "user", "channel", "workspace", "group", "team", etc.
+    }
+    
+    field connector_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field organization_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field external_id type string {
+      indexing: summary | attribute
+    }
+    
+    field name type string {
+      indexing: summary | index
+      index: enable-bm25
+    }
+    
+    field email type string {
+      indexing: summary | attribute
+    }
+    
+    field avatar_url type string {
+      indexing: summary
+    }
+    
+    field metadata type json {
+      indexing: summary | attribute
+    }
+    
+    field created_at type long {
+      indexing: summary | attribute
+    }
+    
+    field updated_at type long {
+      indexing: summary | attribute
+    }
+    
+    field is_active type bool {
+      indexing: summary | attribute
+    }
+  }
+  
+  fieldset default {
+    fields: name, email
+  }
+  
+  rank-profile default {
+    first-phase {
+      expression: bm25(name)
+    }
+  }
+}
+
