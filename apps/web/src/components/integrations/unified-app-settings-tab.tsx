@@ -33,13 +33,15 @@ export function UnifiedAppSettingsTab({
             <form className="space-y-6">
               <AppSettings
                 disabled={isPending}
-                settings={app.settings.map((s) => ({
-                  ...s,
-                  type:
-                    s.id.includes("secret") || s.id.includes("password")
-                      ? "password"
-                      : (s.type as "switch" | "text" | "select"),
-                }))}
+                settings={app.settings
+                  .filter((s) => s.enabled !== false)
+                  .map((s) => ({
+                    ...s,
+                    type:
+                      s.id.includes("secret") || s.id.includes("password")
+                        ? "password"
+                        : (s.type as "switch" | "text" | "select"),
+                  }))}
               />
             </form>
           </Form>
