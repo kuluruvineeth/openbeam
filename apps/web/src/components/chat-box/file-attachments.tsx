@@ -164,7 +164,7 @@ export function FileAttachments({
                       className="text-destructive text-xs"
                       title={file.uploadError}
                     >
-                      ⚠️
+                      Warning
                     </span>
                   )}
                   {!(file.uploading || file.uploadError) && (
@@ -194,7 +194,7 @@ export function FileAttachments({
       )}
       {files.length >= maxAttachments && (
         <div className="mt-2 flex items-center gap-1 text-muted-foreground text-xs">
-          <span>⚠️</span>
+          <span>Warning</span>
           Maximum attachments reached ({maxAttachments})
         </div>
       )}
