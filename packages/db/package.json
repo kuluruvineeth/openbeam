@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "@prisma/client": "catalog:",
+    "argon2": "^0.44.0",
     "dotenv": "catalog:",
     "zod": "catalog:"
   }

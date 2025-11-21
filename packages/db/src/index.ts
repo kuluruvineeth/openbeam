@@ -11,6 +11,7 @@ export type Database = PrismaClient;
 export default prisma;
 
 // Mutation layer
+export * from "./mutations/api-keys";
 export * from "./mutations/connectors";
 export * from "./mutations/oauth";
 // Query layer

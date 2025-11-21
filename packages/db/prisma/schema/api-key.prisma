@@ -1,0 +1,22 @@
+model ApiKey {
+  id             String   @id @default(cuid()) @map("_id")
+  organizationId String
+  name           String   // Human-readable name for the key
+  keyHash        String   @unique // Hashed API key (never store plaintext)
+  prefix         String   // First 8 chars of key for identification (e.g., "op_abc123")
+  scopes         String[] @default(["read", "write"]) // Permissions: read, write, admin
+  lastUsedAt     DateTime?
+  expiresAt      DateTime?
+  revoked        Boolean  @default(false)
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([keyHash])
+  @@index([prefix])
+  @@map("api_key")
+}
+

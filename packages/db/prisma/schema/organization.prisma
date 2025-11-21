@@ -20,6 +20,7 @@ model Organization {
   connectors         Connector[]
   tools              Tool[]
   workspaces         Workspace[]
+  apiKeys            ApiKey[]
 
   @@map("organization")
 }
