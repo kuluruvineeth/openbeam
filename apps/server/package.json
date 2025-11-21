@@ -18,7 +18,10 @@
     "zod": "catalog:",
     "@openplane/api": "workspace:*",
     "@openplane/auth": "workspace:*",
-    "@openplane/db": "workspace:*"
+    "@openplane/db": "workspace:*",
+    "@openplane/redis": "workspace:*",
+    "@openplane/vespa": "workspace:*",
+    "prom-client": "^15.1.1"
   },
   "devDependencies": {
     "typescript": "catalog:",
