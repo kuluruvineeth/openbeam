@@ -19,6 +19,71 @@ services:
     # networks:
     #   - openplane-network
 
+  redis:
+    image: redis:8.4.0-alpine
+    container_name: openplane-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    # networks:
+    #   - openplane-network
+
+  vespa:
+    image: vespaengine/vespa:8
+    container_name: openplane-vespa
+    hostname: vespa
+    ports:
+      - "${VESPA_PORT:-8080}:8080"
+      - "${VESPA_METRICS_PORT:-19071}:19071"
+    volumes:
+      - vespa_data:/opt/vespa/var
+      - vespa_logs:/opt/vespa/logs
+    environment:
+      VESPA_CONFIGSERVERS: vespa
+      # Increase disk limit to 90% for development (default is 75%)
+      VESPA_DISK_FULL_PERCENT: 90
+    mem_limit: 4g
+    memswap_limit: 4g
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:19071/state/v1/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 120s
+      retries: 5
+    restart: unless-stopped
+    # networks:
+    #   - openplane-network
+
+  worker:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    container_name: openplane-worker
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/openplane}
+      REDIS_URL: redis://redis:6379
+      VESPA_URL: http://vespa:8080
+      NODE_ENV: ${NODE_ENV:-production}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      vespa:
+        condition: service_healthy
+    restart: unless-stopped
+    # networks:
+    #   - openplane-network
+
   server:
     build:
       context: .
@@ -27,6 +92,8 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/openplane}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3001}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      VESPA_URL: ${VESPA_URL:-http://vespa:8080}
       NODE_ENV: ${NODE_ENV:-production}
     ports:
       - "${SERVER_PORT:-3000}:3000"
@@ -53,7 +120,7 @@ services:
       [
         "/bin/sh",
         "-c",
-        "cd /app/packages/db && bun run db:generate && cd /app/apps/server && bun run dist/index.js",
+        "/app/scripts/migrate.sh && cd /app/apps/server && bun run dist/index.js",
       ]
 
   web:
@@ -111,8 +178,106 @@ services:
       start_period: 10s
       retries: 3
 
+  vespa-exporter:
+    image: quay.io/prometheuscommunity/json-exporter:latest
+    container_name: openplane-vespa-exporter
+    command:
+      - "--config.file=/etc/json-exporter/config.yml"
+    ports:
+      - "9116:9116"
+    volumes:
+      - ./monitoring/prometheus/vespa-exporter.yml:/etc/json-exporter/config.yml:ro
+    restart: unless-stopped
+    depends_on:
+      - vespa
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:9116/-/healthy",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: openplane-prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+      - "--web.console.libraries=/etc/prometheus/console_libraries"
+      - "--web.console.templates=/etc/prometheus/consoles"
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    restart: unless-stopped
+    depends_on:
+      - vespa-exporter
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:9090/-/healthy",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: openplane-grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:${GRAFANA_PORT:-3002}
+    ports:
+      - "${GRAFANA_PORT:-3002}:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/etc/grafana/dashboards:ro
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3000/api/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
 volumes:
   postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  vespa_data:
+    driver: local
+  vespa_logs:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
     driver: local
 # networks:
 #   openplane-network:
