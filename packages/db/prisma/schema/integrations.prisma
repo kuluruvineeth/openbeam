@@ -132,6 +132,7 @@ model Connector {
   auditLogs     ConnectorAuditLog[]
   externalIdentities ExternalIdentity[]
   externalGroups     ExternalGroup[]
+  indexedDocuments   IndexedDocument[]
   
 
   @@unique([organizationId, workspaceExternalId, app, name])

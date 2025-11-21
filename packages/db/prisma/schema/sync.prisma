@@ -92,3 +92,23 @@ model ConnectorAuditLog {
   @@map("connector_audit_log")
 }
 
+model IndexedDocument {
+  id              String   @id @default(cuid()) @map("_id")
+  connectorId     String
+  externalId      String   // Connector's document ID (Slack message ts, Notion page ID, Drive file ID, etc.)
+  vespaId         String   @unique // Vespa document ID (our generated ID)
+  documentType    String   // "message", "file", "page", "issue", "ticket", etc.
+  sourceId        String?  // Channel, folder, database, repository ID
+  indexedAt       DateTime @default(now())
+  lastSyncedAt    DateTime @updatedAt
+  checksum        String?  // Content hash for change detection (optional)
+  
+  connector Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+  
+  @@unique([connectorId, externalId])
+  @@index([connectorId, documentType])
+  @@index([vespaId])
+  @@index([sourceId])
+  @@map("indexed_document")
+}
+
