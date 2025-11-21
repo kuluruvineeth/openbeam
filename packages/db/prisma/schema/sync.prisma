@@ -19,6 +19,16 @@ model SyncJob {
   trigger             SyncTrigger     @default(SCHEDULED)
   config              Json            @default("{}")
   
+  // Scheduling (NEW)
+  schedule            String?       // Cron expression (e.g., "0 */6 * * *")
+  priority            Int           @default(5) // Job priority (1-10, higher = more urgent)
+  
+  // Exactly-Once Execution (NEW)
+  fenceToken          Int?          // Monotonic token for fencing protocol
+  
+  // Rate Limiting (NEW)
+  rateLimitConfig     Json?         // Per-connector rate limit configuration
+  
   // Timing
   lastRanAt           DateTime?
   nextRunAt           DateTime?
@@ -32,6 +42,8 @@ model SyncJob {
 
   @@index([connectorId])
   @@index([status])
+  @@index([nextRunAt]) // For scheduler queries
+  @@index([priority])  // For priority queue
   @@map("sync_job")
 }
 
@@ -101,14 +113,17 @@ model IndexedDocument {
   sourceId        String?  // Channel, folder, database, repository ID
   indexedAt       DateTime @default(now())
   lastSyncedAt    DateTime @updatedAt
-  checksum        String?  // Content hash for change detection (optional)
+  checksum        String?  // Content hash for change detection (SHA-256)
+  lastChecksum    String?  // Previous hash for change detection (NEW)
   
   connector Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
   
   @@unique([connectorId, externalId])
   @@index([connectorId, documentType])
+  @@index([connectorId, checksum]) // For deduplication queries
   @@index([vespaId])
   @@index([sourceId])
+  @@index([lastSyncedAt]) // For cleanup queries
   @@map("indexed_document")
 }
 
