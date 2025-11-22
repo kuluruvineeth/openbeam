@@ -1,6 +1,6 @@
 /**
  * Adaptive Batch Sizing
- * 
+ *
  * Dynamically adjusts batch sizes based on:
  * - Document size
  * - Vespa response time
@@ -8,7 +8,7 @@
  * - Connector type
  */
 
-import type { ConnectorType } from "@openplane/db";
+import type { AppType } from "@openplane/db";
 
 interface BatchMetrics {
   avgResponseTimeMs: number;
@@ -17,17 +17,16 @@ interface BatchMetrics {
 }
 
 /**
- * Default batch sizes per connector type
+ * Default batch sizes per app type
+ * Only includes commonly used apps - others default to 100
  */
-const DEFAULT_BATCH_SIZES: Record<ConnectorType, number> = {
+const DEFAULT_BATCH_SIZES: Partial<Record<AppType, number>> = {
   SLACK: 200,
   NOTION: 100,
-  DRIVE: 50,
+  GOOGLE_DRIVE: 50,
   JIRA: 100,
-  CONFLUENCE: 100,
   GITHUB: 150,
   LINEAR: 100,
-  GMAIL: 100,
 };
 
 const MIN_BATCH_SIZE = 10;
@@ -37,11 +36,11 @@ const MAX_BATCH_SIZE = 500;
  * Calculate optimal batch size based on metrics
  */
 export function calculateBatchSize(
-  connectorType: ConnectorType,
+  appType: AppType,
   metrics?: Partial<BatchMetrics>,
   avgDocSizeKb?: number
 ): number {
-  let batchSize = DEFAULT_BATCH_SIZES[connectorType] || 100;
+  let batchSize = DEFAULT_BATCH_SIZES[appType] || 100;
 
   // Adjust based on document size
   if (avgDocSizeKb) {
@@ -66,11 +65,9 @@ export function calculateBatchSize(
   }
 
   // Adjust based on error rate
-  if (metrics?.errorRate) {
-    if (metrics.errorRate > 0.1) {
-      // High error rate (>10%) - reduce batch size
-      batchSize = Math.floor(batchSize * 0.5);
-    }
+  if (metrics?.errorRate && metrics.errorRate > 0.1) {
+    // High error rate (>10%) - reduce batch size
+    batchSize = Math.floor(batchSize * 0.5);
   }
 
   // Clamp to min/max
@@ -81,7 +78,7 @@ export function calculateBatchSize(
  * Batch size tracker for adaptive sizing
  */
 export class BatchSizeTracker {
-  private metrics = new Map<string, BatchMetrics>();
+  private readonly metrics = new Map<string, BatchMetrics>();
 
   recordBatch(
     connectorId: string,
@@ -105,7 +102,8 @@ export class BatchSizeTracker {
     this.metrics.set(connectorId, {
       avgResponseTimeMs:
         alpha * responseTimeMs + (1 - alpha) * existing.avgResponseTimeMs,
-      errorRate: alpha * (errorCount / batchSize) + (1 - alpha) * existing.errorRate,
+      errorRate:
+        alpha * (errorCount / batchSize) + (1 - alpha) * existing.errorRate,
       lastBatchSize: batchSize,
     });
   }
@@ -120,4 +118,3 @@ export class BatchSizeTracker {
 }
 
 export const batchSizeTracker = new BatchSizeTracker();
-

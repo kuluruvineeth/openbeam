@@ -1,12 +1,23 @@
 /**
  * Prometheus Metrics
- * 
+ *
  * Comprehensive metrics for worker performance monitoring.
  */
 
+import { Hono } from "hono";
 import { Counter, Gauge, Histogram, Registry } from "prom-client";
 import { workerConfig } from "./config";
 import logger from "./utils/logger";
+
+// Bun global type
+declare const Bun: {
+  serve(options: {
+    port: number;
+    fetch: (req: Request) => Response | Promise<Response>;
+  }): {
+    stop(): void;
+  };
+};
 
 // Create a registry
 export const register = new Registry();
@@ -169,36 +180,35 @@ export const queueProcessingLag = new Gauge({
 });
 
 // Metrics server
-let metricsServer: any = null;
+let metricsServer: ReturnType<typeof Bun.serve> | null = null;
 
-export async function startMetricsServer(): Promise<void> {
+export function startMetricsServer(): Promise<void> {
   if (!workerConfig.metrics.enabled) {
     logger.info("Metrics server disabled");
-    return;
+    return Promise.resolve();
   }
 
-  const { default: express } = await import("express");
-  const app = express();
+  const app = new Hono();
 
-  app.get("/metrics", async (req, res) => {
-    res.set("Content-Type", register.contentType);
-    res.end(await register.metrics());
+  app.get("/metrics", async (c) => {
+    c.header("Content-Type", register.contentType);
+    return c.body(await register.metrics());
   });
 
-  metricsServer = app.listen(workerConfig.metrics.port, () => {
-    logger.info({ port: workerConfig.metrics.port }, "Metrics server started");
+  metricsServer = Bun.serve({
+    port: workerConfig.metrics.port,
+    fetch: app.fetch,
   });
+
+  logger.info({ port: workerConfig.metrics.port }, "Metrics server started");
+  return Promise.resolve();
 }
 
-export async function stopMetricsServer(): Promise<void> {
+export function stopMetricsServer(): Promise<void> {
   if (metricsServer) {
-    await new Promise<void>((resolve) => {
-      metricsServer.close(() => {
-        logger.info("Metrics server stopped");
-        resolve();
-      });
-    });
+    metricsServer.stop();
+    logger.info("Metrics server stopped");
     metricsServer = null;
   }
+  return Promise.resolve();
 }
-

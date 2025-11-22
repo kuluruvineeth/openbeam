@@ -1,6 +1,6 @@
 /**
  * Checksum Utilities
- * 
+ *
  * Calculate content hashes for document deduplication.
  * Uses SHA-256 for reliable change detection.
  */
@@ -41,7 +41,8 @@ export function checksumsMatch(
   checksum1: string | null | undefined,
   checksum2: string | null | undefined
 ): boolean {
-  if (!checksum1 || !checksum2) return false;
+  if (!(checksum1 && checksum2)) {
+    return false;
+  }
   return checksum1 === checksum2;
 }
-
