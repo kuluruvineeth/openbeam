@@ -9,7 +9,7 @@ import { fence, rateLimiter } from "@openplane/redis";
 /**
  * Sleep utility for tests
  */
-export async function sleep(ms: number): Promise<void> {
+export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
@@ -28,9 +28,11 @@ export async function cleanupTestData() {
       "test-connector-extend",
       "test-connector-force",
     ];
-    
+
     for (const connectorId of testFences) {
-      await fence.forceRelease(connectorId).catch(() => {});
+      await fence.forceRelease(connectorId).catch(() => {
+        // Ignore cleanup errors
+      });
     }
 
     // Clean up test rate limit keys
@@ -43,26 +45,35 @@ export async function cleanupTestData() {
       "test-slack",
       "test-notion",
     ];
-    
+
     for (const connectorId of testRateLimits) {
-      await rateLimiter.reset(`connector:${connectorId}:burst`).catch(() => {});
-      await rateLimiter.reset(`connector:${connectorId}:minute`).catch(() => {});
-      await rateLimiter.reset(`connector:${connectorId}:hour`).catch(() => {});
+      await rateLimiter.reset(`connector:${connectorId}:burst`).catch(() => {
+        // Ignore cleanup errors
+      });
+      await rateLimiter.reset(`connector:${connectorId}:minute`).catch(() => {
+        // Ignore cleanup errors
+      });
+      await rateLimiter.reset(`connector:${connectorId}:hour`).catch(() => {
+        // Ignore cleanup errors
+      });
     }
 
     // Clean up test sync jobs (if any exist with test- prefix)
-    await prisma.syncJob.deleteMany({
-      where: {
-        connector: {
-          name: {
-            startsWith: "test-",
+    await prisma.syncJob
+      .deleteMany({
+        where: {
+          connector: {
+            name: {
+              startsWith: "test-",
+            },
           },
         },
-      },
-    }).catch(() => {});
+      })
+      .catch(() => {
+        // Ignore cleanup errors
+      });
   } catch (error) {
     // Ignore cleanup errors
     console.warn("Cleanup warning:", error);
   }
 }
-

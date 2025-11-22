@@ -1,6 +1,6 @@
 /**
  * Webhook Processor
- * 
+ *
  * Processes incoming webhooks and triggers immediate syncs.
  * Enables real-time document updates.
  */
@@ -8,6 +8,7 @@
 import prisma from "@openplane/db";
 import {
   addSyncJob,
+  addWebhookJob,
   eventDeduplicator,
   getRedisConnection,
   type WebhookJobData,
@@ -165,8 +166,13 @@ export class WebhookProcessor {
         return { success: false, error: "Webhook event not found" };
       }
 
-      const metadata = auditLog.metadata as any;
-      
+      const metadata = auditLog.metadata as {
+        eventId: string;
+        eventType: string;
+        source: string;
+        payload: Record<string, unknown>;
+      };
+
       // Unmark the event in deduplication to allow replay
       await eventDeduplicator.unmark(eventId, metadata.source);
 
@@ -224,16 +230,21 @@ export class WebhookProcessor {
       );
 
       for (const log of auditLogs) {
-        const metadata = log.metadata as any;
+        const metadata = log.metadata as {
+          eventId: string;
+          eventType: string;
+          source: string;
+          payload: Record<string, unknown>;
+        };
         const replayResult = await this.replayWebhookEvent(
           connectorId,
           metadata.eventId
         );
 
         if (replayResult.success) {
-          result.replayed++;
+          result.replayed += 1;
         } else {
-          result.failed++;
+          result.failed += 1;
         }
       }
 
@@ -283,4 +294,3 @@ export class WebhookProcessor {
     return this.worker;
   }
 }
-

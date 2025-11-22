@@ -1,6 +1,6 @@
 /**
  * Cleanup Processor
- * 
+ *
  * Maintains index health by:
  * - Detecting and removing stale documents
  * - Cleaning up orphaned documents
@@ -25,7 +25,7 @@ export class CleanupProcessor {
   /**
    * Start cleanup processor (runs daily at 2 AM by default)
    */
-  async start(intervalMs: number = 86400000): Promise<void> {
+  async start(intervalMs = 86_400_000): Promise<void> {
     if (this.isRunning) {
       logger.warn("Cleanup processor already running");
       return;
@@ -43,12 +43,12 @@ export class CleanupProcessor {
     }, intervalMs);
 
     logger.info(
-      { intervalHours: intervalMs / 3600000 },
+      { intervalHours: intervalMs / 3_600_000 },
       "Cleanup processor started"
     );
   }
 
-  async stop(): Promise<void> {
+  stop(): void {
     if (!this.isRunning) {
       logger.warn("Cleanup processor not running");
       return;
@@ -99,7 +99,10 @@ export class CleanupProcessor {
 
       return result;
     } catch (error) {
-      logger.error({ error, durationMs: Date.now() - startTime }, "Cleanup run failed");
+      logger.error(
+        { error, durationMs: Date.now() - startTime },
+        "Cleanup run failed"
+      );
       throw error;
     }
   }
@@ -171,10 +174,10 @@ export class CleanupProcessor {
     const orphanedDocuments = await prisma.$queryRaw<
       Array<{ id: string; vespaId: string; connectorId: string }>
     >`
-      SELECT id.id, id."vespaId", id."connectorId"
+      SELECT id._id as id, id."vespaId", id."connectorId"
       FROM "indexed_document" id
-      LEFT JOIN "connector" c ON id."connectorId" = c.id
-      WHERE c.id IS NULL
+      LEFT JOIN "connector" c ON id."connectorId" = c._id
+      WHERE c._id IS NULL
       LIMIT 1000
     `;
 
@@ -222,7 +225,7 @@ export class CleanupProcessor {
     const disabledConnectors = await prisma.connector.findMany({
       where: {
         status: {
-          in: ["PAUSED", "ERROR", "DISABLED"],
+          in: ["INACTIVE", "ERROR"],
         },
       },
       select: {
@@ -250,7 +253,9 @@ export class CleanupProcessor {
         take: 1000,
       });
 
-      if (documents.length === 0) continue;
+      if (documents.length === 0) {
+        continue;
+      }
 
       // Remove from Vespa
       for (const doc of documents) {
@@ -290,4 +295,3 @@ export class CleanupProcessor {
     return await this.runCleanup();
   }
 }
-

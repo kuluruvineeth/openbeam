@@ -1,12 +1,13 @@
 /**
  * Adaptive Batch Sizing Tests
- * 
+ *
  * Tests dynamic batch size calculation based on performance metrics.
- * 
+ *
  * Run: bun test tests/batch-sizer.test.ts
  */
 
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import type { AppType } from "@openplane/db";
 import {
   BatchSizeTracker,
   batchSizeTracker,
@@ -24,32 +25,44 @@ afterAll(async () => {
 
 describe("Adaptive Batch Sizing", () => {
   test("calculate batch size for different connector types", () => {
-    const slackBatchSize = calculateBatchSize("SLACK");
-    const notionBatchSize = calculateBatchSize("NOTION");
-    const driveBatchSize = calculateBatchSize("DRIVE");
+    const slackBatchSize = calculateBatchSize("SLACK" as AppType);
+    const notionBatchSize = calculateBatchSize("NOTION" as AppType);
+    const driveBatchSize = calculateBatchSize("GOOGLE_DRIVE" as AppType);
 
     expect(slackBatchSize).toBe(200); // Slack default
     expect(notionBatchSize).toBe(100); // Notion default
-    expect(driveBatchSize).toBe(50); // Drive default
+    expect(driveBatchSize).toBe(50); // Google Drive default
   });
 
   test("adjust batch size for large documents", () => {
-    const normalBatchSize = calculateBatchSize("SLACK", undefined, 10); // 10KB avg
-    const largeBatchSize = calculateBatchSize("SLACK", undefined, 150); // 150KB avg
+    const normalBatchSize = calculateBatchSize(
+      "SLACK" as AppType,
+      undefined,
+      10
+    ); // 10KB avg
+    const largeBatchSize = calculateBatchSize(
+      "SLACK" as AppType,
+      undefined,
+      150
+    ); // 150KB avg
 
     expect(largeBatchSize).toBeLessThan(normalBatchSize);
   });
 
   test("adjust batch size for small documents", () => {
-    const normalBatchSize = calculateBatchSize("SLACK", undefined, 10); // 10KB avg
-    const smallBatchSize = calculateBatchSize("SLACK", undefined, 5); // 5KB avg
+    const normalBatchSize = calculateBatchSize(
+      "SLACK" as AppType,
+      undefined,
+      10
+    ); // 10KB avg
+    const smallBatchSize = calculateBatchSize("SLACK" as AppType, undefined, 5); // 5KB avg
 
     expect(smallBatchSize).toBeGreaterThan(normalBatchSize);
   });
 
   test("adjust batch size for slow response times", () => {
-    const normalBatchSize = calculateBatchSize("SLACK");
-    const slowBatchSize = calculateBatchSize("SLACK", {
+    const normalBatchSize = calculateBatchSize("SLACK" as AppType);
+    const slowBatchSize = calculateBatchSize("SLACK" as AppType, {
       avgResponseTimeMs: 6000, // 6 seconds (slow)
       errorRate: 0,
       lastBatchSize: 200,
@@ -59,8 +72,8 @@ describe("Adaptive Batch Sizing", () => {
   });
 
   test("adjust batch size for fast response times", () => {
-    const normalBatchSize = calculateBatchSize("SLACK");
-    const fastBatchSize = calculateBatchSize("SLACK", {
+    const normalBatchSize = calculateBatchSize("SLACK" as AppType);
+    const fastBatchSize = calculateBatchSize("SLACK" as AppType, {
       avgResponseTimeMs: 500, // 0.5 seconds (fast)
       errorRate: 0,
       lastBatchSize: 200,
@@ -70,8 +83,8 @@ describe("Adaptive Batch Sizing", () => {
   });
 
   test("adjust batch size for high error rate", () => {
-    const normalBatchSize = calculateBatchSize("SLACK");
-    const highErrorBatchSize = calculateBatchSize("SLACK", {
+    const normalBatchSize = calculateBatchSize("SLACK" as AppType);
+    const highErrorBatchSize = calculateBatchSize("SLACK" as AppType, {
       avgResponseTimeMs: 1000,
       errorRate: 0.15, // 15% error rate
       lastBatchSize: 200,
@@ -81,9 +94,13 @@ describe("Adaptive Batch Sizing", () => {
   });
 
   test("batch size stays within min/max bounds", () => {
-    const veryLargeDocs = calculateBatchSize("SLACK", undefined, 500); // 500KB avg
-    const veryHighErrors = calculateBatchSize("SLACK", {
-      avgResponseTimeMs: 10000,
+    const veryLargeDocs = calculateBatchSize(
+      "SLACK" as AppType,
+      undefined,
+      500
+    ); // 500KB avg
+    const veryHighErrors = calculateBatchSize("SLACK" as AppType, {
+      avgResponseTimeMs: 10_000,
       errorRate: 0.5,
       lastBatchSize: 200,
     });
@@ -91,7 +108,7 @@ describe("Adaptive Batch Sizing", () => {
     expect(veryLargeDocs).toBeGreaterThanOrEqual(10); // MIN_BATCH_SIZE
     expect(veryHighErrors).toBeGreaterThanOrEqual(10);
 
-    const verySmallDocs = calculateBatchSize("SLACK", undefined, 1); // 1KB avg
+    const verySmallDocs = calculateBatchSize("SLACK" as AppType, undefined, 1); // 1KB avg
     expect(verySmallDocs).toBeLessThanOrEqual(500); // MAX_BATCH_SIZE
   });
 
@@ -141,4 +158,3 @@ describe("Adaptive Batch Sizing", () => {
     batchSizeTracker.reset(connectorId);
   });
 });
-
