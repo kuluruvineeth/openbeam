@@ -1,12 +1,12 @@
 /**
  * Event Deduplication
- * 
+ *
  * Prevents duplicate webhook processing using Redis sets.
  * Events are stored with TTL for automatic cleanup.
  */
 
-import { getRedisClient } from "./client";
 import type { RedisClientType } from "redis";
+import { getRedisClient } from "./client";
 
 export class EventDeduplicator {
   private client: RedisClientType | null = null;
@@ -34,7 +34,7 @@ export class EventDeduplicator {
   async markProcessed(
     eventId: string,
     source: string,
-    ttlSeconds: number = 86400
+    ttlSeconds = 86_400
   ): Promise<boolean> {
     const client = await this.getClient();
     const key = `webhook:processed:${source}:${eventId}`;
@@ -51,7 +51,7 @@ export class EventDeduplicator {
   async checkAndMark(
     eventId: string,
     source: string,
-    ttlSeconds: number = 86400
+    ttlSeconds = 86_400
   ): Promise<{ isDuplicate: boolean; marked: boolean }> {
     const client = await this.getClient();
     const key = `webhook:processed:${source}:${eventId}`;
@@ -90,4 +90,3 @@ export class EventDeduplicator {
 }
 
 export const eventDeduplicator = new EventDeduplicator();
-
