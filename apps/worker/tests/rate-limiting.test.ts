@@ -1,17 +1,17 @@
 /**
  * Rate Limiting Tests
- * 
+ *
  * Tests the three-level rate limiting system:
  * 1. Global (prevent Redis overload)
  * 2. Per-Connector (respect API limits)
  * 3. Per-Connector-Type (default limits)
- * 
+ *
  * Run: bun test tests/rate-limiting.test.ts
  */
 
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { DEFAULT_RATE_LIMITS, rateLimiter } from "@openplane/redis";
-import { cleanupTestData, sleep } from "./setup";
+import { cleanupTestData } from "./setup";
 
 beforeAll(async () => {
   await cleanupTestData();
@@ -86,7 +86,13 @@ describe("Rate Limiting", () => {
       "slack"
     );
 
-    expect(afterQuota.burstRemaining!).toBeLessThan(initialQuota.burstRemaining!);
+    expect(afterQuota.burstRemaining).toBeDefined();
+    expect(initialQuota.burstRemaining).toBeDefined();
+    if (afterQuota.burstRemaining && initialQuota.burstRemaining) {
+      expect(afterQuota.burstRemaining).toBeLessThan(
+        initialQuota.burstRemaining
+      );
+    }
   });
 
   test("different connector types have different limits", () => {
@@ -123,7 +129,7 @@ describe("Rate Limiting", () => {
         customConfig
       );
       if (result.allowed) {
-        allowed++;
+        allowed += 1;
       } else {
         break;
       }
@@ -175,6 +181,5 @@ describe("Rate Limiting", () => {
     expect(duration).toBeGreaterThan(2000);
 
     await rateLimiter.reset(`connector:${connectorId}:burst`);
-  }, 10000); // Test timeout: 10 seconds
+  }, 10_000); // Test timeout: 10 seconds
 });
-

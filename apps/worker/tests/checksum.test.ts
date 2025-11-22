@@ -1,8 +1,8 @@
 /**
  * Checksum Deduplication Tests
- * 
+ *
  * Tests document content hashing for change detection and deduplication.
- * 
+ *
  * Run: bun test tests/checksum.test.ts
  */
 
@@ -22,6 +22,9 @@ afterAll(async () => {
   await cleanupTestData();
 });
 
+// Regex pattern for SHA-256 hex string (64 hex characters)
+const SHA256_HEX_PATTERN = /^[a-f0-9]{64}$/;
+
 describe("Checksum Utilities", () => {
   test("calculate SHA-256 checksum from string", () => {
     const content = "Hello, World!";
@@ -29,7 +32,7 @@ describe("Checksum Utilities", () => {
 
     expect(checksum).toBeTypeOf("string");
     expect(checksum.length).toBe(64); // SHA-256 = 32 bytes = 64 hex chars
-    expect(checksum).toMatch(/^[a-f0-9]{64}$/);
+    expect(checksum).toMatch(SHA256_HEX_PATTERN);
   });
 
   test("same content produces same checksum", () => {
@@ -112,7 +115,6 @@ describe("Checksum Utilities", () => {
     const checksum2 = calculateChecksum(content);
 
     expect(checksum1).toBe(checksum2);
-    expect(checksum1).toMatch(/^[a-f0-9]{64}$/);
+    expect(checksum1).toMatch(SHA256_HEX_PATTERN);
   });
 });
-
