@@ -1,12 +1,12 @@
 /**
  * Bulk Indexing for Vespa
- * 
+ *
  * High-performance bulk document feeding for full syncs.
  * Uses Vespa's feed API with parallel requests.
  */
 
-import type { GenericDocument } from "./types";
 import { vespaClient } from "./client";
+import type { GenericDocument } from "./types";
 
 interface BulkIndexOptions {
   concurrency?: number; // Parallel requests (default: 5)
@@ -29,11 +29,7 @@ export async function bulkIndexDocuments(
   documents: GenericDocument[],
   options: BulkIndexOptions = {}
 ): Promise<BulkIndexResult> {
-  const {
-    concurrency = 5,
-    batchSize = 100,
-    onProgress,
-  } = options;
+  const { concurrency = 5, batchSize = 100, onProgress } = options;
 
   const startTime = Date.now();
   const result: BulkIndexResult = {
@@ -55,9 +51,9 @@ export async function bulkIndexDocuments(
     for (const doc of batch) {
       try {
         await vespaClient.feedDocument(doc);
-        result.indexed++;
+        result.indexed += 1;
       } catch (error) {
-        result.failed++;
+        result.failed += 1;
         result.errors.push({
           docId: doc.id,
           error: error instanceof Error ? error.message : "Unknown error",
@@ -88,7 +84,7 @@ export class BulkIndexer {
   private failed = 0;
   private total = 0;
 
-  async indexDocuments(
+  indexDocuments(
     documents: GenericDocument[],
     options?: BulkIndexOptions
   ): Promise<BulkIndexResult> {
@@ -106,7 +102,12 @@ export class BulkIndexer {
     });
   }
 
-  getProgress(): { indexed: number; failed: number; total: number; percentage: number } {
+  getProgress(): {
+    indexed: number;
+    failed: number;
+    total: number;
+    percentage: number;
+  } {
     return {
       indexed: this.indexed,
       failed: this.failed,
@@ -117,4 +118,3 @@ export class BulkIndexer {
 }
 
 export const bulkIndexer = new BulkIndexer();
-
