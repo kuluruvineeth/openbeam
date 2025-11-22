@@ -58,12 +58,19 @@ export class VespaClient {
   async feedDocument(doc: GenericDocument, retries = 3): Promise<FeedResponse> {
     const documentPath = `${this.documentApiUrl}/default/openplane_document/docid/${doc.id}`;
 
+    // Prepare document for Vespa - stringify metadata if it's an object
+    // Vespa's json type field expects a JSON string, not an object
+    const docForVespa: Record<string, unknown> = { ...doc };
+    if (docForVespa.metadata && typeof docForVespa.metadata === "object") {
+      docForVespa.metadata = JSON.stringify(docForVespa.metadata);
+    }
+
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
         const response = await fetch(documentPath, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ fields: doc }),
+          body: JSON.stringify({ fields: docForVespa }),
           signal: AbortSignal.timeout(30_000),
         });
 
