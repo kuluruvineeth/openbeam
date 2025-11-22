@@ -1,15 +1,14 @@
-import prisma from "@openplane/db";
+import prisma, { type AppType } from "@openplane/db";
 import {
+  addIndexJob,
   fence,
   getRedisConnection,
-  type IndexJobData,
-  indexQueue,
   rateLimiter,
   type SyncJobData,
 } from "@openplane/redis";
 import { type Job, Worker } from "bullmq";
-import { batchSizeTracker, calculateBatchSize } from "../utils/batch-sizer";
 import { createConnector } from "../connectors/factory";
+import { batchSizeTracker, calculateBatchSize } from "../utils/batch-sizer";
 import logger from "../utils/logger";
 
 /**
@@ -56,7 +55,6 @@ export class SyncProcessor {
       "Processing sync job"
     );
 
-    // STEP 0: Acquire fence token for exactly-once execution
     const fenceToken = await fence.acquireFence(connectorId);
     logger.info(
       { jobId: job.id, connectorId, fenceToken },
@@ -64,260 +62,309 @@ export class SyncProcessor {
     );
 
     try {
-      // Validate fence is still current (prevents race conditions)
+      await this.validateAndPrepare(connectorId, syncJobId, fenceToken);
+      const connector = await this.loadConnectorWithRateLimit(connectorId);
+      const cursor = await this.getSyncCursor(connectorId, type);
+
       if (!(await fence.validateFence(connectorId, fenceToken))) {
-        throw new Error(
-          "Fence token invalid - another worker is processing this connector"
-        );
+        throw new Error("Fence became invalid");
       }
 
-      // 1. Load connector from database
-      const connector = await prisma.connector.findUnique({
-        where: { id: connectorId },
-        include: { oauthProvider: true },
-      });
-
-      if (!connector) {
-        throw new Error(`Connector ${connectorId} not found`);
-      }
-
-      // Check rate limit before proceeding
-      const rateLimitCheck = await rateLimiter.checkConnectorRateLimit(
-        connectorId,
-        connector.type
-      );
-
-      if (!rateLimitCheck.allowed) {
-        logger.warn(
-          {
-            connectorId,
-            reason: rateLimitCheck.reason,
-          },
-          "Rate limit exceeded, waiting for quota"
-        );
-
-        // Wait for quota with exponential backoff
-        const quotaAvailable = await rateLimiter.waitForQuota(
-          connectorId,
-          connector.type
-        );
-
-        if (!quotaAvailable) {
-          throw new Error(
-            `Rate limit exceeded: ${rateLimitCheck.reason}. Max retries exhausted.`
-          );
-        }
-      }
-
-      // 2. Update sync job status to SYNCING and store fence token
-      await prisma.$transaction(async (tx) => {
-        await tx.syncHistory.update({
-          where: { id: syncJobId },
-          data: { status: "SYNCING" },
-        });
-
-        // Store fence token in sync job for audit
-        await tx.syncJob.update({
-          where: {
-            connectorId_resource: {
-              connectorId,
-              resource: "messages",
-            },
-          },
-          data: { fenceToken },
-        });
-      });
-
-      // 3. Get sync cursor for incremental sync
-      let cursor: string | undefined;
-      if (type === "INCREMENTAL") {
-        const syncCursor = await prisma.syncCursor.findUnique({
-          where: {
-            connectorId_resource: {
-              connectorId,
-              resource: "messages", // Generic resource name
-            },
-          },
-        });
-        cursor = syncCursor?.cursor || undefined;
-      }
-
-      // 4. Instantiate connector using factory
       const connectorInstance = createConnector(connector);
-
-      // 5. Validate connection
       const isValid = await connectorInstance.validateConnection();
       if (!isValid) {
         throw new Error("Connector validation failed");
       }
 
-      // Validate fence again before expensive operation
       if (!(await fence.validateFence(connectorId, fenceToken))) {
-        throw new Error("Fence token became invalid during processing");
+        throw new Error("Fence became invalid");
       }
 
-      // 6. Fetch documents
       const syncResult = await connectorInstance.sync(cursor);
-      const { documents } = syncResult;
-
       logger.info(
-        { connectorId, documentsCount: documents.length },
+        { connectorId, documentsCount: syncResult.documents.length },
         "Documents fetched"
       );
 
-      // 7. Push documents to index queue with adaptive batch sizing
-      const metrics = batchSizeTracker.getMetrics(connectorId);
-      const avgDocSize = documents.length > 0
-        ? documents.reduce((sum, doc) => sum + JSON.stringify(doc).length, 0) / documents.length / 1024
-        : undefined;
+      const batchCount = await this.enqueueBatches({
+        connectorId,
+        syncJobId,
+        documents: syncResult.documents,
+        appType: connector.app,
+      });
 
-      const batchSize = calculateBatchSize(connector.type, metrics, avgDocSize);
-
-      logger.info(
-        { connectorId, batchSize, avgDocSizeKb: avgDocSize?.toFixed(2) },
-        "Using adaptive batch size"
-      );
-
-      let batchCount = 0;
-      const batchStartTime = Date.now();
-
-      for (let i = 0; i < documents.length; i += batchSize) {
-        const batch = documents.slice(i, i + batchSize);
-        const batchId = `${connectorId}-${Date.now()}-${i}`;
-
-        const jobStartTime = Date.now();
-        await indexQueue.add(
-          "index-batch",
-          {
-            connectorId,
-            documents: batch,
-            batchId,
-          } as IndexJobData,
-          {
-            attempts: 2,
-            backoff: { type: "exponential", delay: 2000 },
-          }
-        );
-
-        const jobEndTime = Date.now();
-        batchSizeTracker.recordBatch(
-          connectorId,
-          batch.length,
-          jobEndTime - jobStartTime,
-          0 // No errors at enqueue time
-        );
-
-        batchCount += 1;
-      }
-
-      logger.info(
-        { connectorId, batchCount, totalDocs: documents.length },
-        "Pushed batches to index queue"
-      );
-
-      // 8-10. Update cursor, sync history, and connector in a single transaction
-      const startTime = job.processedOn || Date.now();
-      await prisma.$transaction(async (tx) => {
-        // Update sync cursor if there's a next cursor
-        if (syncResult.nextCursor) {
-          await tx.syncCursor.upsert({
-            where: {
-              connectorId_resource: {
-                connectorId,
-                resource: "messages",
-              },
-            },
-            update: {
-              cursor: syncResult.nextCursor,
-              lastSyncedAt: new Date(),
-            },
-            create: {
-              connectorId,
-              resource: "messages",
-              cursor: syncResult.nextCursor,
-              lastSyncedAt: new Date(),
-            },
-          });
-        }
-
-        // Update sync history with results
-        await tx.syncHistory.update({
-          where: { id: syncJobId },
-          data: {
-            status: "ACTIVE",
-            dataAdded: documents.length,
-            summary: {
-              totalDocuments: documents.length,
-              batches: batchCount,
-            },
-            finishedAt: new Date(),
-            durationMs: Date.now() - startTime,
-          },
-        });
-
-        // Update connector last sync status
-        await tx.connector.update({
-          where: { id: connectorId },
-          data: {
-            lastSyncedAt: new Date(),
-            lastSyncStatus: "SUCCESS",
-            status: "ACTIVE",
-            lastError: null,
-            lastErrorAt: null,
-            retryCount: 0,
-          },
-        });
+      await this.updateSyncCompletion({
+        connectorId,
+        syncJobId,
+        syncResult,
+        batchCount,
+        startTime: job.processedOn || Date.now(),
       });
 
       logger.info(
-        { jobId: job.id, connectorId, documentsCount: documents.length, fenceToken },
+        {
+          jobId: job.id,
+          connectorId,
+          documentsCount: syncResult.documents.length,
+          fenceToken,
+        },
         "Sync job completed successfully"
       );
 
-      return { synced: documents.length };
+      return { synced: syncResult.documents.length };
     } catch (error) {
-      logger.error({ error, jobId: job.id, connectorId, fenceToken }, "Sync job failed");
-
-      // Update sync history and connector error state in a single transaction
-      await prisma.$transaction(async (tx) => {
-        // Update sync history with error
-        await tx.syncHistory.update({
-          where: { id: syncJobId },
-          data: {
-            status: "ERROR",
-            errorMessage:
-              error instanceof Error ? error.message : "Unknown error",
-            finishedAt: new Date(),
-          },
-        });
-
-        // Update connector error state
-        await tx.connector.update({
-          where: { id: connectorId },
-          data: {
-            lastSyncStatus: "FAILED",
-            lastError: error instanceof Error ? error.message : "Unknown error",
-            lastErrorAt: new Date(),
-            retryCount: { increment: 1 },
-          },
-        });
-      });
-
+      logger.error(
+        { error, jobId: job.id, connectorId, fenceToken },
+        "Sync job failed"
+      );
+      await this.handleSyncError(connectorId, syncJobId, error);
       throw error;
     } finally {
-      // CRITICAL: Always release fence, even on error
-      const released = await fence.releaseFence(connectorId, fenceToken);
-      if (released) {
-        logger.info(
-          { jobId: job.id, connectorId, fenceToken },
-          "Released fence token"
-        );
-      } else {
-        logger.warn(
-          { jobId: job.id, connectorId, fenceToken },
-          "Failed to release fence token (may have been superseded)"
+      await this.releaseFence(job.id, connectorId, fenceToken);
+    }
+  }
+
+  private async validateAndPrepare(
+    connectorId: string,
+    syncJobId: string,
+    fenceToken: number
+  ) {
+    if (!(await fence.validateFence(connectorId, fenceToken))) {
+      throw new Error(
+        "Fence token invalid - another worker is processing this connector"
+      );
+    }
+
+    await prisma.$transaction(async (tx) => {
+      const syncHistory = await tx.syncHistory.findUnique({
+        where: { id: syncJobId },
+        select: { syncJobId: true },
+      });
+
+      if (!syncHistory) {
+        throw new Error(`SyncHistory ${syncJobId} not found`);
+      }
+
+      await tx.syncHistory.update({
+        where: { id: syncJobId },
+        data: { status: "SYNCING" },
+      });
+
+      await tx.$executeRawUnsafe(
+        'UPDATE sync_job SET "fenceToken" = $1 WHERE _id = $2',
+        fenceToken,
+        syncHistory.syncJobId
+      );
+    });
+  }
+
+  private async loadConnectorWithRateLimit(connectorId: string) {
+    const connector = await prisma.connector.findUnique({
+      where: { id: connectorId },
+      include: { oauthProvider: true },
+    });
+
+    if (!connector) {
+      throw new Error(`Connector ${connectorId} not found`);
+    }
+
+    const rateLimitCheck = await rateLimiter.checkConnectorRateLimit(
+      connectorId,
+      connector.type
+    );
+
+    if (!rateLimitCheck.allowed) {
+      logger.warn(
+        { connectorId, reason: rateLimitCheck.reason },
+        "Rate limit exceeded, waiting for quota"
+      );
+
+      const quotaAvailable = await rateLimiter.waitForQuota(
+        connectorId,
+        connector.type
+      );
+
+      if (!quotaAvailable) {
+        throw new Error(
+          `Rate limit exceeded: ${rateLimitCheck.reason}. Max retries exhausted.`
         );
       }
+    }
+
+    return connector;
+  }
+
+  private async getSyncCursor(
+    connectorId: string,
+    type: "FULL" | "INCREMENTAL"
+  ) {
+    if (type !== "INCREMENTAL") {
+      return;
+    }
+
+    const syncCursor = await prisma.syncCursor.findUnique({
+      where: {
+        connectorId_resource: { connectorId, resource: "messages" },
+      },
+    });
+
+    return syncCursor?.cursor || undefined;
+  }
+
+  private async enqueueBatches(params: {
+    connectorId: string;
+    syncJobId: string;
+    documents: unknown[];
+    appType: string;
+  }) {
+    const { connectorId, syncJobId, documents, appType } = params;
+    const metrics = batchSizeTracker.getMetrics(connectorId);
+    const avgDocSize =
+      documents.length > 0
+        ? documents.reduce(
+            (sum: number, doc) => sum + JSON.stringify(doc).length,
+            0
+          ) /
+          documents.length /
+          1024
+        : undefined;
+
+    const batchSize = calculateBatchSize(
+      appType as AppType,
+      metrics,
+      avgDocSize
+    );
+
+    logger.info(
+      { connectorId, batchSize, avgDocSizeKb: avgDocSize?.toFixed(2) },
+      "Using adaptive batch size"
+    );
+
+    let batchCount = 0;
+
+    for (let i = 0; i < documents.length; i += batchSize) {
+      const batch = documents.slice(i, i + batchSize);
+      const batchId = `${connectorId}-${Date.now()}-${i}`;
+      const jobStartTime = Date.now();
+
+      await addIndexJob({
+        connectorId,
+        documents: batch as never[],
+        batchId,
+        syncHistoryId: syncJobId,
+      });
+
+      batchSizeTracker.recordBatch(
+        connectorId,
+        batch.length,
+        Date.now() - jobStartTime,
+        0
+      );
+      batchCount += 1;
+    }
+
+    logger.info(
+      { connectorId, batchCount, totalDocs: documents.length },
+      "Pushed batches to index queue"
+    );
+
+    return batchCount;
+  }
+
+  private async updateSyncCompletion(params: {
+    connectorId: string;
+    syncJobId: string;
+    syncResult: { nextCursor?: string; documents: unknown[] };
+    batchCount: number;
+    startTime: number;
+  }) {
+    const { connectorId, syncJobId, syncResult, batchCount, startTime } =
+      params;
+    await prisma.$transaction(async (tx) => {
+      if (syncResult.nextCursor) {
+        await tx.syncCursor.upsert({
+          where: {
+            connectorId_resource: { connectorId, resource: "messages" },
+          },
+          update: { cursor: syncResult.nextCursor, lastSyncedAt: new Date() },
+          create: {
+            connectorId,
+            resource: "messages",
+            cursor: syncResult.nextCursor,
+            lastSyncedAt: new Date(),
+          },
+        });
+      }
+
+      await tx.syncHistory.update({
+        where: { id: syncJobId },
+        data: {
+          status: "ACTIVE",
+          summary: {
+            totalDocuments: syncResult.documents.length,
+            batches: batchCount,
+            documentsFetched: syncResult.documents.length,
+          },
+          finishedAt: new Date(),
+          durationMs: Date.now() - startTime,
+        },
+      });
+
+      await tx.connector.update({
+        where: { id: connectorId },
+        data: {
+          lastSyncedAt: new Date(),
+          lastSyncStatus: "SUCCESS",
+          status: "ACTIVE",
+          lastError: null,
+          lastErrorAt: null,
+          retryCount: 0,
+        },
+      });
+    });
+  }
+
+  private async handleSyncError(
+    connectorId: string,
+    syncJobId: string,
+    error: unknown
+  ) {
+    await prisma.$transaction(async (tx) => {
+      await tx.syncHistory.update({
+        where: { id: syncJobId },
+        data: {
+          status: "ERROR",
+          errorMessage:
+            error instanceof Error ? error.message : "Unknown error",
+          finishedAt: new Date(),
+        },
+      });
+
+      await tx.connector.update({
+        where: { id: connectorId },
+        data: {
+          lastSyncStatus: "FAILED",
+          lastError: error instanceof Error ? error.message : "Unknown error",
+          lastErrorAt: new Date(),
+          retryCount: { increment: 1 },
+        },
+      });
+    });
+  }
+
+  private async releaseFence(
+    jobId: string | undefined,
+    connectorId: string,
+    fenceToken: number
+  ) {
+    const released = await fence.releaseFence(connectorId, fenceToken);
+    if (released) {
+      logger.info({ jobId, connectorId, fenceToken }, "Released fence token");
+    } else {
+      logger.warn(
+        { jobId, connectorId, fenceToken },
+        "Failed to release fence token (may have been superseded)"
+      );
     }
   }
 

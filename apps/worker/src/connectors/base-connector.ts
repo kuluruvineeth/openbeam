@@ -1,6 +1,6 @@
 import type { Connector, OAuthProvider } from "@openplane/db";
 import type { GenericDocument } from "@openplane/vespa";
-import { connectionPoolManager, type ConnectionPool } from "../connection-pool";
+import { type ConnectionPool, connectionPoolManager } from "../connection-pool";
 
 /**
  * Result of a sync operation
@@ -23,13 +23,13 @@ export interface FetchResult {
 /**
  * Abstract base class for all connectors
  * Each connector (Slack, Notion, Drive, etc.) extends this
- * 
+ *
  * Supports connection pooling for reusable API clients
  */
 export abstract class BaseConnector {
   protected connector: Connector & { oauthProvider?: OAuthProvider | null };
   protected organizationId: string;
-  private connectionPool?: ConnectionPool<any>;
+  private connectionPool?: ConnectionPool<unknown>;
 
   constructor(connector: Connector & { oauthProvider?: OAuthProvider | null }) {
     this.connector = connector;

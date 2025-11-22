@@ -39,7 +39,7 @@ export function createJobLogger(context: {
 export function logWithDuration(
   level: "info" | "error" | "warn" | "debug",
   message: string,
-  context: Record<string, any>,
+  context: Record<string, unknown>,
   startTime: number
 ) {
   const duration = Date.now() - startTime;
@@ -52,16 +52,19 @@ export function logWithDuration(
 export function logError(
   message: string,
   error: Error | unknown,
-  context?: Record<string, any>
+  context?: Record<string, unknown>
 ) {
   logger.error(
     {
       ...context,
-      error: error instanceof Error ? {
-        message: error.message,
-        stack: error.stack,
-        name: error.name,
-      } : error,
+      error:
+        error instanceof Error
+          ? {
+              message: error.message,
+              stack: error.stack,
+              name: error.name,
+            }
+          : error,
     },
     message
   );

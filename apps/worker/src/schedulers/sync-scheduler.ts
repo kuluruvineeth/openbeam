@@ -4,11 +4,11 @@ import logger from "../utils/logger";
 
 /**
  * Sync Scheduler
- * 
+ *
  * Manages multi-strategy job scheduling:
  * - Time-based scheduling (nextRunAt polling)
  * - Priority-based enqueueing
- * 
+ *
  * Future enhancements:
  * - Cron-based scheduling (BullMQ repeatable jobs)
  * - Adaptive scheduling (ML-based frequency adjustment)
@@ -18,7 +18,7 @@ export class SyncScheduler {
   private readonly checkIntervalMs: number;
   private isRunning = false;
 
-  constructor(checkIntervalMs = 3600000) {
+  constructor(checkIntervalMs = 3_600_000) {
     // Default: check every hour
     this.checkIntervalMs = checkIntervalMs;
   }
@@ -56,7 +56,7 @@ export class SyncScheduler {
   /**
    * Stop the scheduler
    */
-  async stop(): Promise<void> {
+  stop(): void {
     if (!this.isRunning) {
       logger.warn("Sync scheduler not running");
       return;
@@ -87,7 +87,7 @@ export class SyncScheduler {
             lte: now,
           },
           status: {
-            in: ["ACTIVE", "IDLE"], // Only active or idle connectors
+            in: ["ACTIVE"], // Only active sync jobs (not SYNCING, ERROR, or INACTIVE)
           },
           deletedAt: null,
         },
@@ -127,16 +127,14 @@ export class SyncScheduler {
   /**
    * Enqueue a sync job to the queue
    */
-  private async enqueueSyncJob(
-    syncJob: {
-      id: string;
-      connectorId: string;
-      type: "FULL" | "INCREMENTAL";
-      priority: number;
-      config: unknown;
-      connector: { status: string };
-    }
-  ): Promise<void> {
+  private async enqueueSyncJob(syncJob: {
+    id: string;
+    connectorId: string;
+    type: "FULL" | "INCREMENTAL";
+    priority: number;
+    config: unknown;
+    connector: { status: string };
+  }): Promise<void> {
     // Create sync history entry
     const syncHistory = await prisma.syncHistory.create({
       data: {
@@ -183,11 +181,11 @@ export class SyncScheduler {
 
   /**
    * Calculate next run time for a sync job
-   * 
+   *
    * Current implementation: Simple fixed intervals
    * - FULL sync: Every 7 days
    * - INCREMENTAL sync: Every 6 hours
-   * 
+   *
    * Future: Parse cron expressions from syncJob.schedule
    */
   private calculateNextRunAt(syncJob: {
@@ -214,7 +212,7 @@ export class SyncScheduler {
 
   /**
    * Schedule a specific connector for immediate sync
-   * 
+   *
    * @param connectorId - Connector ID
    * @param priority - Job priority (default: 7 for manual syncs)
    */
@@ -270,4 +268,3 @@ export class SyncScheduler {
     };
   }
 }
-

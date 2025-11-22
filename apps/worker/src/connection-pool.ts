@@ -1,6 +1,6 @@
 /**
  * Connection Pool Manager
- * 
+ *
  * Manages reusable connections for connectors to improve performance.
  * Implements per-connector-type pooling with health checks.
  */
@@ -25,7 +25,7 @@ interface PooledConnection<T> {
  * Generic connection pool
  */
 export class ConnectionPool<T> {
-  private pool: Map<string, PooledConnection<T>[]> = new Map();
+  private readonly pool: Map<string, PooledConnection<T>[]> = new Map();
   private readonly config: PoolConfig;
   private readonly createConnection: () => Promise<T>;
   private readonly validateConnection: (conn: T) => Promise<boolean>;
@@ -60,12 +60,11 @@ export class ConnectionPool<T> {
         available.lastUsed = new Date();
         logger.debug({ key }, "Reusing pooled connection");
         return available.connection;
-      } else {
-        // Remove invalid connection
-        await this.destroyConnection(available.connection);
-        connections = connections.filter((c) => c !== available);
-        this.pool.set(key, connections);
       }
+      // Remove invalid connection
+      await this.destroyConnection(available.connection);
+      connections = connections.filter((c) => c !== available);
+      this.pool.set(key, connections);
     }
 
     // Create new connection if pool not full
@@ -79,7 +78,10 @@ export class ConnectionPool<T> {
       };
       connections.push(pooled);
       this.pool.set(key, connections);
-      logger.debug({ key, poolSize: connections.length }, "Created new pooled connection");
+      logger.debug(
+        { key, poolSize: connections.length },
+        "Created new pooled connection"
+      );
       return connection;
     }
 
@@ -92,7 +94,7 @@ export class ConnectionPool<T> {
   /**
    * Release a connection back to the pool
    */
-  async release(key: string, connection: T): Promise<void> {
+  release(key: string, connection: T): void {
     const connections = this.pool.get(key) || [];
     const pooled = connections.find((c) => c.connection === connection);
 
@@ -114,7 +116,10 @@ export class ConnectionPool<T> {
       await this.destroyConnection(pooled.connection);
       connections = connections.filter((c) => c !== pooled);
       this.pool.set(key, connections);
-      logger.debug({ key, poolSize: connections.length }, "Removed connection from pool");
+      logger.debug(
+        { key, poolSize: connections.length },
+        "Removed connection from pool"
+      );
     }
   }
 
@@ -138,7 +143,10 @@ export class ConnectionPool<T> {
       for (const pooled of connections) {
         await this.destroyConnection(pooled.connection);
       }
-      logger.info({ key, count: connections.length }, "Closed all pooled connections");
+      logger.info(
+        { key, count: connections.length },
+        "Closed all pooled connections"
+      );
     }
     this.pool.clear();
   }
@@ -148,7 +156,7 @@ export class ConnectionPool<T> {
  * Connection pool manager for different connector types
  */
 class ConnectionPoolManager {
-  private pools = new Map<ConnectorType, ConnectionPool<any>>();
+  private readonly pools = new Map<ConnectorType, ConnectionPool<unknown>>();
 
   /**
    * Get or create pool for connector type
@@ -165,7 +173,11 @@ class ConnectionPoolManager {
       this.pools.set(type, pool);
       logger.info({ type, config }, "Created connection pool");
     }
-    return this.pools.get(type)!;
+    const pool = this.pools.get(type);
+    if (!pool) {
+      throw new Error(`Pool not found for type: ${type}`);
+    }
+    return pool as ConnectionPool<T>;
   }
 
   /**
@@ -197,4 +209,3 @@ class ConnectionPoolManager {
 }
 
 export const connectionPoolManager = new ConnectionPoolManager();
-
