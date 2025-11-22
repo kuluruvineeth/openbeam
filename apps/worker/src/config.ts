@@ -1,85 +1,93 @@
 /**
  * Worker Configuration
- * 
+ *
  * Centralized configuration for all worker components.
  */
 
 export const workerConfig = {
   // Sync processor configuration
   sync: {
-    concurrency: parseInt(process.env.SYNC_CONCURRENCY || "5"),
+    concurrency: Number.parseInt(process.env.SYNC_CONCURRENCY || "5", 10),
     rateLimit: {
-      max: parseInt(process.env.SYNC_RATE_LIMIT_MAX || "10"),
+      max: Number.parseInt(process.env.SYNC_RATE_LIMIT_MAX || "10", 10),
       duration: 1000, // 10 jobs/sec
     },
   },
 
   // Index processor configuration
   index: {
-    concurrency: parseInt(process.env.INDEX_CONCURRENCY || "10"),
+    concurrency: Number.parseInt(process.env.INDEX_CONCURRENCY || "10", 10),
     rateLimit: {
-      max: parseInt(process.env.INDEX_RATE_LIMIT_MAX || "50"),
+      max: Number.parseInt(process.env.INDEX_RATE_LIMIT_MAX || "50", 10),
       duration: 1000, // 50 jobs/sec
     },
   },
 
   // Webhook processor configuration
   webhook: {
-    concurrency: parseInt(process.env.WEBHOOK_CONCURRENCY || "20"),
+    concurrency: Number.parseInt(process.env.WEBHOOK_CONCURRENCY || "20", 10),
     rateLimit: {
-      max: parseInt(process.env.WEBHOOK_RATE_LIMIT_MAX || "100"),
+      max: Number.parseInt(process.env.WEBHOOK_RATE_LIMIT_MAX || "100", 10),
       duration: 1000, // 100 webhooks/sec
     },
   },
 
   // Cleanup processor configuration
   cleanup: {
-    concurrency: parseInt(process.env.CLEANUP_CONCURRENCY || "2"),
+    concurrency: Number.parseInt(process.env.CLEANUP_CONCURRENCY || "2", 10),
     schedule: process.env.CLEANUP_SCHEDULE || "0 2 * * *", // Daily at 2 AM
-    intervalMs: parseInt(process.env.CLEANUP_INTERVAL_MS || "86400000"), // 24 hours
-    staleDocumentDays: parseInt(process.env.CLEANUP_STALE_DAYS || "30"),
+    intervalMs: Number.parseInt(
+      process.env.CLEANUP_INTERVAL_MS || "86400000",
+      10
+    ), // 24 hours
+    staleDocumentDays: Number.parseInt(
+      process.env.CLEANUP_STALE_DAYS || "30",
+      10
+    ),
   },
 
   // Sync scheduler configuration
   scheduler: {
-    checkIntervalMs: parseInt(process.env.SCHEDULER_CHECK_INTERVAL_MS || "3600000"), // 1 hour
+    checkIntervalMs: Number.parseInt(
+      process.env.SCHEDULER_CHECK_INTERVAL_MS || "3600000",
+      10
+    ), // 1 hour
   },
 
   // Batch size configuration
   batchSize: {
-    min: parseInt(process.env.BATCH_SIZE_MIN || "10"),
-    max: parseInt(process.env.BATCH_SIZE_MAX || "500"),
-    default: parseInt(process.env.BATCH_SIZE_DEFAULT || "100"),
+    min: Number.parseInt(process.env.BATCH_SIZE_MIN || "10", 10),
+    max: Number.parseInt(process.env.BATCH_SIZE_MAX || "500", 10),
+    default: Number.parseInt(process.env.BATCH_SIZE_DEFAULT || "100", 10),
   },
 
   // Connection pool configuration
   connectionPool: {
     slack: {
-      max: parseInt(process.env.SLACK_POOL_MAX || "5"),
-      min: parseInt(process.env.SLACK_POOL_MIN || "1"),
+      max: Number.parseInt(process.env.SLACK_POOL_MAX || "5", 10),
+      min: Number.parseInt(process.env.SLACK_POOL_MIN || "1", 10),
     },
     notion: {
-      max: parseInt(process.env.NOTION_POOL_MAX || "3"),
-      min: parseInt(process.env.NOTION_POOL_MIN || "1"),
+      max: Number.parseInt(process.env.NOTION_POOL_MAX || "3", 10),
+      min: Number.parseInt(process.env.NOTION_POOL_MIN || "1", 10),
     },
     drive: {
-      max: parseInt(process.env.DRIVE_POOL_MAX || "10"),
-      min: parseInt(process.env.DRIVE_POOL_MIN || "2"),
+      max: Number.parseInt(process.env.DRIVE_POOL_MAX || "10", 10),
+      min: Number.parseInt(process.env.DRIVE_POOL_MIN || "2", 10),
     },
   },
 
   // Health check configuration
   health: {
-    port: parseInt(process.env.HEALTH_PORT || "9092"),
+    port: Number.parseInt(process.env.HEALTH_PORT || "9092", 10),
     enabled: process.env.HEALTH_ENABLED !== "false",
   },
 
   // Metrics configuration
   metrics: {
-    port: parseInt(process.env.METRICS_PORT || "9091"),
+    port: Number.parseInt(process.env.METRICS_PORT || "9091", 10),
     enabled: process.env.METRICS_ENABLED !== "false",
   },
 } as const;
 
 export type WorkerConfig = typeof workerConfig;
-

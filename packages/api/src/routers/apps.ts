@@ -2,9 +2,16 @@ import {
   type CreateConnectorInput,
   createConnector,
   deleteConnector,
+  findConnectorById,
   findConnectorByOrg,
+  getSyncHistory,
+  getSyncStatus,
   listConnectorsByOrg,
+  pauseConnector as pauseConnectorDb,
+  resumeConnector as resumeConnectorDb,
+  triggerSync as triggerSyncDb,
   updateConnectorConfig,
+  verifyConnectorOwnership,
 } from "@openplane/db";
 // @ts-expect-error - generated types might not be found in check
 import type { InputJsonValue } from "@openplane/db/prisma/generated/client/runtime/library";
@@ -14,6 +21,7 @@ import {
   appStore,
   ConnectorType,
 } from "@openplane/integrations";
+import { addSyncJob, type SyncJobData } from "@openplane/redis";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../index";
@@ -35,6 +43,25 @@ const updateSettingsSchema = z.object({
 
 const disconnectSchema = z.object({
   appId: z.string().min(1),
+});
+
+const getSyncStatusSchema = z.object({
+  connectorId: z.string().min(1),
+});
+
+const getSyncHistorySchema = z.object({
+  connectorId: z.string().min(1),
+  limit: z.number().int().min(1).max(100).default(20),
+  offset: z.number().int().min(0).default(0),
+});
+
+const triggerSyncSchema = z.object({
+  connectorId: z.string().min(1),
+  type: z.enum(["FULL", "INCREMENTAL"]).default("FULL"),
+});
+
+const connectorActionSchema = z.object({
+  connectorId: z.string().min(1),
 });
 
 export const appsRouter = createTRPCRouter({
@@ -84,10 +111,11 @@ export const appsRouter = createTRPCRouter({
       const appDefinition = appStore.find((a) => a.id === input.appId);
 
       if (!appDefinition) {
-        const connector = await ctx.prisma.connector.findUnique({
-          where: { id: input.appId },
-          include: { oauthProvider: true },
-        });
+        const connector = await findConnectorById(
+          ctx.prisma,
+          input.appId,
+          true
+        );
 
         if (!connector || connector.organizationId !== orgId) {
           throw new TRPCError({
@@ -149,12 +177,13 @@ export const appsRouter = createTRPCRouter({
         });
       }
 
-      const connector = await ctx.prisma.connector.findUnique({
-        where: { id: input.appId },
-        select: { organizationId: true },
-      });
+      const connector = await verifyConnectorOwnership(
+        ctx.prisma,
+        input.appId,
+        orgId
+      );
 
-      if (!connector || connector.organizationId !== orgId) {
+      if (!connector) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Connector not found or unauthorized",
@@ -176,12 +205,13 @@ export const appsRouter = createTRPCRouter({
         });
       }
 
-      const connector = await ctx.prisma.connector.findUnique({
-        where: { id: input.appId },
-        select: { organizationId: true },
-      });
+      const connector = await verifyConnectorOwnership(
+        ctx.prisma,
+        input.appId,
+        orgId
+      );
 
-      if (!connector || connector.organizationId !== orgId) {
+      if (!connector) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Connector not found or unauthorized",
@@ -193,5 +223,196 @@ export const appsRouter = createTRPCRouter({
         input.appId,
         input.config as InputJsonValue
       );
+    }),
+
+  // Sync Operations
+  getSyncStatus: protectedProcedure
+    .input(getSyncStatusSchema)
+    .query(async ({ ctx, input }) => {
+      const orgId = ctx.session?.session.activeOrganizationId;
+
+      if (!orgId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "No active organization",
+        });
+      }
+
+      // Verify connector ownership
+      const connector = await verifyConnectorOwnership(
+        ctx.prisma,
+        input.connectorId,
+        orgId
+      );
+
+      if (!connector) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Connector not found or unauthorized",
+        });
+      }
+
+      // Get sync status
+      const syncStatus = await getSyncStatus(ctx.prisma, input.connectorId);
+
+      if (!syncStatus) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Sync status not found",
+        });
+      }
+
+      return syncStatus;
+    }),
+
+  getSyncHistory: protectedProcedure
+    .input(getSyncHistorySchema)
+    .query(async ({ ctx, input }) => {
+      const orgId = ctx.session?.session.activeOrganizationId;
+
+      if (!orgId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "No active organization",
+        });
+      }
+
+      // Verify connector ownership
+      const connector = await verifyConnectorOwnership(
+        ctx.prisma,
+        input.connectorId,
+        orgId
+      );
+
+      if (!connector) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Connector not found or unauthorized",
+        });
+      }
+
+      // Get sync history
+      return getSyncHistory(ctx.prisma, input.connectorId, {
+        limit: input.limit,
+        offset: input.offset,
+      });
+    }),
+
+  triggerSync: protectedProcedure
+    .input(triggerSyncSchema)
+    .mutation(async ({ ctx, input }) => {
+      const orgId = ctx.session?.session.activeOrganizationId;
+
+      if (!orgId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "No active organization",
+        });
+      }
+
+      // Verify connector ownership
+      const connector = await verifyConnectorOwnership(
+        ctx.prisma,
+        input.connectorId,
+        orgId
+      );
+
+      if (!connector) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Connector not found or unauthorized",
+        });
+      }
+
+      // Check if connector is active
+      if (connector.status === "INACTIVE" || connector.status === "ERROR") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Connector is not active. Check connector status.",
+        });
+      }
+
+      // Create sync job and history
+      const syncResult = await triggerSyncDb(ctx.prisma, {
+        connectorId: input.connectorId,
+        type: input.type,
+      });
+
+      // Enqueue sync job to Redis
+      const jobData: SyncJobData = {
+        connectorId: input.connectorId,
+        syncJobId: syncResult.syncHistoryId,
+        type: input.type,
+      };
+
+      const job = await addSyncJob(jobData, 7);
+
+      return {
+        success: true,
+        syncJobId: syncResult.syncHistoryId,
+        queueJobId: job.id,
+        type: input.type,
+        message: "Sync job queued successfully",
+      };
+    }),
+
+  pauseConnector: protectedProcedure
+    .input(connectorActionSchema)
+    .mutation(async ({ ctx, input }) => {
+      const orgId = ctx.session?.session.activeOrganizationId;
+
+      if (!orgId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "No active organization",
+        });
+      }
+
+      // Verify connector ownership
+      const connector = await verifyConnectorOwnership(
+        ctx.prisma,
+        input.connectorId,
+        orgId
+      );
+
+      if (!connector) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Connector not found or unauthorized",
+        });
+      }
+
+      // Pause connector
+      return pauseConnectorDb(ctx.prisma, input.connectorId);
+    }),
+
+  resumeConnector: protectedProcedure
+    .input(connectorActionSchema)
+    .mutation(async ({ ctx, input }) => {
+      const orgId = ctx.session?.session.activeOrganizationId;
+
+      if (!orgId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "No active organization",
+        });
+      }
+
+      // Verify connector ownership
+      const connector = await verifyConnectorOwnership(
+        ctx.prisma,
+        input.connectorId,
+        orgId
+      );
+
+      if (!connector) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Connector not found or unauthorized",
+        });
+      }
+
+      // Resume connector
+      return resumeConnectorDb(ctx.prisma, input.connectorId);
     }),
 });

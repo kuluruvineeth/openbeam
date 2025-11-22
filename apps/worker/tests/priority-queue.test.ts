@@ -1,9 +1,9 @@
 /**
  * Priority Queue Tests
- * 
+ *
  * Tests the priority-based job queue system.
  * Ensures high-priority jobs (webhooks) are processed before low-priority (full syncs).
- * 
+ *
  * Run: bun test tests/priority-queue.test.ts
  */
 
@@ -200,4 +200,3 @@ describe("Priority Queue", () => {
     }
   });
 });
-
