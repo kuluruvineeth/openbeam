@@ -2,9 +2,16 @@ import {
   type CreateConnectorInput,
   createConnector,
   deleteConnector,
+  findConnectorById,
   findConnectorByOrg,
+  getSyncHistory,
+  getSyncStatus,
   listConnectorsByOrg,
+  pauseConnector as pauseConnectorDb,
+  resumeConnector as resumeConnectorDb,
+  triggerSync as triggerSyncDb,
   updateConnectorConfig,
+  verifyConnectorOwnership,
 } from "@openplane/db";
 // @ts-expect-error - generated types might not be found in check
 import type { InputJsonValue } from "@openplane/db/prisma/generated/client/runtime/library";
@@ -104,10 +111,11 @@ export const appsRouter = createTRPCRouter({
       const appDefinition = appStore.find((a) => a.id === input.appId);
 
       if (!appDefinition) {
-        const connector = await ctx.prisma.connector.findUnique({
-          where: { id: input.appId },
-          include: { oauthProvider: true },
-        });
+        const connector = await findConnectorById(
+          ctx.prisma,
+          input.appId,
+          true
+        );
 
         if (!connector || connector.organizationId !== orgId) {
           throw new TRPCError({
@@ -169,12 +177,13 @@ export const appsRouter = createTRPCRouter({
         });
       }
 
-      const connector = await ctx.prisma.connector.findUnique({
-        where: { id: input.appId },
-        select: { organizationId: true },
-      });
+      const connector = await verifyConnectorOwnership(
+        ctx.prisma,
+        input.appId,
+        orgId
+      );
 
-      if (!connector || connector.organizationId !== orgId) {
+      if (!connector) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Connector not found or unauthorized",
@@ -196,12 +205,13 @@ export const appsRouter = createTRPCRouter({
         });
       }
 
-      const connector = await ctx.prisma.connector.findUnique({
-        where: { id: input.appId },
-        select: { organizationId: true },
-      });
+      const connector = await verifyConnectorOwnership(
+        ctx.prisma,
+        input.appId,
+        orgId
+      );
 
-      if (!connector || connector.organizationId !== orgId) {
+      if (!connector) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Connector not found or unauthorized",
@@ -228,70 +238,31 @@ export const appsRouter = createTRPCRouter({
         });
       }
 
-      // Get connector with latest sync info
-      const connector = await ctx.prisma.connector.findUnique({
-        where: { id: input.connectorId },
-        select: {
-          id: true,
-          status: true,
-          lastSyncedAt: true,
-          lastSyncStatus: true,
-          lastError: true,
-          lastErrorAt: true,
-          organizationId: true,
-        },
-      });
+      // Verify connector ownership
+      const connector = await verifyConnectorOwnership(
+        ctx.prisma,
+        input.connectorId,
+        orgId
+      );
 
       if (!connector) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Connector not found",
+          message: "Connector not found or unauthorized",
         });
       }
 
-      if (connector.organizationId !== orgId) {
+      // Get sync status
+      const syncStatus = await getSyncStatus(ctx.prisma, input.connectorId);
+
+      if (!syncStatus) {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Unauthorized",
+          code: "NOT_FOUND",
+          message: "Sync status not found",
         });
       }
 
-      // Get latest sync history
-      const latestSync = await ctx.prisma.syncHistory.findFirst({
-        where: { connectorId: input.connectorId },
-        orderBy: { startedAt: "desc" },
-        select: {
-          id: true,
-          status: true,
-          dataAdded: true,
-          dataUpdated: true,
-          dataDeleted: true,
-          startedAt: true,
-          finishedAt: true,
-          errorMessage: true,
-          durationMs: true,
-        },
-      });
-
-      // Get indexed document count
-      const totalIndexed = await ctx.prisma.indexedDocument.count({
-        where: { connectorId: input.connectorId },
-      });
-
-      return {
-        connector: {
-          id: connector.id,
-          status: connector.status,
-          lastSyncedAt: connector.lastSyncedAt,
-          lastSyncStatus: connector.lastSyncStatus,
-          lastError: connector.lastError,
-          lastErrorAt: connector.lastErrorAt,
-        },
-        latestSync,
-        stats: {
-          totalIndexed,
-        },
-      };
+      return syncStatus;
     }),
 
   getSyncHistory: protectedProcedure
@@ -306,99 +277,50 @@ export const appsRouter = createTRPCRouter({
         });
       }
 
-      // Verify connector belongs to org
-      const connector = await ctx.prisma.connector.findUnique({
-        where: { id: input.connectorId },
-        select: { id: true, organizationId: true },
-      });
+      // Verify connector ownership
+      const connector = await verifyConnectorOwnership(
+        ctx.prisma,
+        input.connectorId,
+        orgId
+      );
 
       if (!connector) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Connector not found",
+          message: "Connector not found or unauthorized",
         });
       }
 
-      if (connector.organizationId !== orgId) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Unauthorized",
-        });
-      }
-
-      // Fetch sync history with pagination
-      const [history, total] = await Promise.all([
-        ctx.prisma.syncHistory.findMany({
-          where: { connectorId: input.connectorId },
-          orderBy: { startedAt: "desc" },
-          take: input.limit,
-          skip: input.offset,
-          select: {
-            id: true,
-            status: true,
-            dataAdded: true,
-            dataUpdated: true,
-            dataDeleted: true,
-            errorMessage: true,
-            summary: true,
-            startedAt: true,
-            finishedAt: true,
-            durationMs: true,
-            syncJob: {
-              select: {
-                type: true,
-                trigger: true,
-              },
-            },
-          },
-        }),
-        ctx.prisma.syncHistory.count({
-          where: { connectorId: input.connectorId },
-        }),
-      ]);
-
-      return {
-        connectorId: input.connectorId,
-        history,
-        pagination: {
-          total,
-          limit: input.limit,
-          offset: input.offset,
-          hasMore: input.offset + input.limit < total,
-        },
-      };
+      // Get sync history
+      return getSyncHistory(ctx.prisma, input.connectorId, {
+        limit: input.limit,
+        offset: input.offset,
+      });
     }),
 
   triggerSync: protectedProcedure
     .input(triggerSyncSchema)
     .mutation(async ({ ctx, input }) => {
       const orgId = ctx.session?.session.activeOrganizationId;
-      const userId = ctx.session?.user.id;
 
-      if (!(orgId && userId)) {
+      if (!orgId) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "No active organization or user",
+          message: "No active organization",
         });
       }
 
-      // Validate connector exists and is active
-      const connector = await ctx.prisma.connector.findUnique({
-        where: { id: input.connectorId },
-        select: { id: true, status: true, organizationId: true },
-      });
+      // Verify connector ownership
+      const connector = await verifyConnectorOwnership(
+        ctx.prisma,
+        input.connectorId,
+        orgId
+      );
 
       if (!connector) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Connector not found",
-        });
-      }
-
-      if (connector.organizationId !== orgId) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Unauthorized",
+          message: "Connector not found or unauthorized",
         });
       }
 
@@ -410,44 +332,24 @@ export const appsRouter = createTRPCRouter({
         });
       }
 
-      // Create sync job
-      const syncJob = await ctx.prisma.syncJob.create({
-        data: {
-          connectorId: input.connectorId,
-          type: input.type,
-          trigger: "MANUAL",
-          status: "SYNCING",
-        },
-      });
-
-      // Create sync history record
-      const syncHistory = await ctx.prisma.syncHistory.create({
-        data: {
-          syncJobId: syncJob.id,
-          connectorId: input.connectorId,
-          status: "SYNCING",
-          startedAt: new Date(),
-        },
+      // Create sync job and history
+      const syncResult = await triggerSyncDb(ctx.prisma, {
+        connectorId: input.connectorId,
+        type: input.type,
       });
 
       // Enqueue sync job to Redis
       const jobData: SyncJobData = {
         connectorId: input.connectorId,
-        syncJobId: syncHistory.id,
+        syncJobId: syncResult.syncHistoryId,
         type: input.type,
       };
 
       const job = await addSyncJob(jobData, 7);
 
-      // Update connector status to syncing
-      await ctx.prisma.connector.update({
-        where: { id: input.connectorId },
-        data: { status: "SYNCING" },
-      });
-
       return {
         success: true,
-        syncJobId: syncHistory.id,
+        syncJobId: syncResult.syncHistoryId,
         queueJobId: job.id,
         type: input.type,
         message: "Sync job queued successfully",
@@ -466,41 +368,22 @@ export const appsRouter = createTRPCRouter({
         });
       }
 
-      const connector = await ctx.prisma.connector.findUnique({
-        where: { id: input.connectorId },
-        select: { id: true, status: true, organizationId: true },
-      });
+      // Verify connector ownership
+      const connector = await verifyConnectorOwnership(
+        ctx.prisma,
+        input.connectorId,
+        orgId
+      );
 
       if (!connector) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Connector not found",
+          message: "Connector not found or unauthorized",
         });
       }
 
-      if (connector.organizationId !== orgId) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Unauthorized",
-        });
-      }
-
-      if (connector.status === "INACTIVE") {
-        return {
-          success: true,
-          message: "Connector is already inactive",
-        };
-      }
-
-      await ctx.prisma.connector.update({
-        where: { id: input.connectorId },
-        data: { status: "INACTIVE" },
-      });
-
-      return {
-        success: true,
-        message: "Connector paused successfully",
-      };
+      // Pause connector
+      return pauseConnectorDb(ctx.prisma, input.connectorId);
     }),
 
   resumeConnector: protectedProcedure
@@ -515,40 +398,21 @@ export const appsRouter = createTRPCRouter({
         });
       }
 
-      const connector = await ctx.prisma.connector.findUnique({
-        where: { id: input.connectorId },
-        select: { id: true, status: true, organizationId: true },
-      });
+      // Verify connector ownership
+      const connector = await verifyConnectorOwnership(
+        ctx.prisma,
+        input.connectorId,
+        orgId
+      );
 
       if (!connector) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Connector not found",
+          message: "Connector not found or unauthorized",
         });
       }
 
-      if (connector.organizationId !== orgId) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Unauthorized",
-        });
-      }
-
-      if (connector.status === "ACTIVE") {
-        return {
-          success: true,
-          message: "Connector is already active",
-        };
-      }
-
-      await ctx.prisma.connector.update({
-        where: { id: input.connectorId },
-        data: { status: "ACTIVE" },
-      });
-
-      return {
-        success: true,
-        message: "Connector resumed successfully",
-      };
+      // Resume connector
+      return resumeConnectorDb(ctx.prisma, input.connectorId);
     }),
 });
