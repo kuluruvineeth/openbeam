@@ -1,9 +1,9 @@
 /**
  * Fencing Protocol Tests
- * 
+ *
  * Tests the exactly-once execution guarantee using Redis-based fencing.
  * Critical for preventing duplicate job execution in distributed systems.
- * 
+ *
  * Run: bun test tests/fencing.test.ts
  */
 
@@ -126,13 +126,13 @@ describe("Fencing Protocol", () => {
 
     // Cleanup
     await fence.releaseFence(connectorId, token);
-  }, 10000); // Test timeout: 10 seconds
+  }, 10_000); // Test timeout: 10 seconds
 
   test("force release for debugging/cleanup", async () => {
     const connectorId = "test-connector-force";
 
     // Acquire fence
-    const token = await fence.acquireFence(connectorId);
+    // const token = await fence.acquireFence(connectorId);
     expect(await fence.isFenced(connectorId)).toBe(true);
 
     // Force release (admin override)
@@ -144,4 +144,3 @@ describe("Fencing Protocol", () => {
     expect(isFencedAfter).toBe(false);
   });
 });
-

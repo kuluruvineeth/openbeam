@@ -1,10 +1,10 @@
 /**
  * Database Schema Tests
- * 
+ *
  * Tests Phase 1 database schema enhancements:
  * - SyncJob: schedule, priority, fenceToken, rateLimitConfig
  * - IndexedDocument: lastChecksum
- * 
+ *
  * Run: bun test tests/database-schema.test.ts
  */
 
@@ -46,7 +46,7 @@ describe("Database Schema", () => {
           requestsPerHour: 2000,
           burstLimit: 20,
         },
-        nextRunAt: new Date(Date.now() + 3600000), // 1 hour from now
+        nextRunAt: new Date(Date.now() + 3_600_000), // 1 hour from now
       },
     });
 
@@ -199,7 +199,7 @@ describe("Database Schema", () => {
 
   test("migration applied successfully", async () => {
     // Try to query with new fields (will fail if migration not applied)
-    const syncJob = await prisma.syncJob.findFirst({
+    const _syncJob = await prisma.syncJob.findFirst({
       select: {
         id: true,
         schedule: true,
@@ -212,7 +212,7 @@ describe("Database Schema", () => {
     // Should not throw error - migration applied
 
     // Check IndexedDocument fields
-    const indexedDoc = await prisma.indexedDocument.findFirst({
+    const _indexedDoc = await prisma.indexedDocument.findFirst({
       select: {
         id: true,
         checksum: true,
@@ -224,4 +224,3 @@ describe("Database Schema", () => {
     expect(true).toBe(true);
   });
 });
-
