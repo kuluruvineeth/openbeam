@@ -3,21 +3,21 @@ import { getRedisClient } from "../client";
 
 /**
  * Fencing Protocol for Exactly-Once Execution
- * 
+ *
  * Ensures that only one worker processes a sync job at a time, even in distributed environments.
  * Uses monotonically increasing tokens to detect and reject stale executions.
- * 
+ *
  * @example
  * ```typescript
  * const fence = new Fence();
  * const token = await fence.acquireFence('connector-123');
- * 
+ *
  * try {
  *   // Check fence is still valid before critical operations
  *   if (!await fence.validateFence('connector-123', token)) {
  *     throw new Error('Fence token invalid - another worker processing');
  *   }
- *   
+ *
  *   // Process sync...
  * } finally {
  *   await fence.releaseFence('connector-123', token);
@@ -36,7 +36,7 @@ export class Fence {
 
   /**
    * Acquire a fence token for a connector
-   * 
+   *
    * @param connectorId - Unique connector identifier
    * @param ttl - Time-to-live in seconds (default: 3600 = 1 hour)
    * @returns Monotonically increasing fence token
@@ -56,7 +56,7 @@ export class Fence {
 
   /**
    * Validate that a fence token is still current
-   * 
+   *
    * @param connectorId - Unique connector identifier
    * @param token - Token to validate
    * @returns true if token is current, false if stale or fence doesn't exist
@@ -84,7 +84,7 @@ export class Fence {
   /**
    * Release a fence token
    * Only releases if the provided token matches the current token
-   * 
+   *
    * @param connectorId - Unique connector identifier
    * @param token - Token to release
    * @returns true if released successfully, false otherwise
@@ -118,7 +118,7 @@ export class Fence {
 
   /**
    * Check if a fence exists for a connector
-   * 
+   *
    * @param connectorId - Unique connector identifier
    * @returns true if fence exists, false otherwise
    */
@@ -137,7 +137,7 @@ export class Fence {
 
   /**
    * Get the current fence token for a connector
-   * 
+   *
    * @param connectorId - Unique connector identifier
    * @returns Current token or null if no fence exists
    */
@@ -157,7 +157,7 @@ export class Fence {
   /**
    * Force release a fence (use with caution)
    * Should only be used for cleanup or debugging
-   * 
+   *
    * @param connectorId - Unique connector identifier
    * @returns true if deleted, false otherwise
    */
@@ -177,7 +177,7 @@ export class Fence {
   /**
    * Extend the TTL of an existing fence
    * Useful for long-running operations
-   * 
+   *
    * @param connectorId - Unique connector identifier
    * @param token - Current token
    * @param ttl - New TTL in seconds
@@ -217,4 +217,3 @@ export class Fence {
 
 // Export singleton instance
 export const fence = new Fence();
-

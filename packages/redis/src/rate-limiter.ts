@@ -137,7 +137,7 @@ export class RateLimiter {
 
   /**
    * Check connector-specific rate limits (three-level)
-   * 
+   *
    * @param connectorId - Unique connector identifier
    * @param connectorType - Type of connector (slack, notion, etc.)
    * @param customConfig - Optional custom rate limit config
@@ -149,8 +149,7 @@ export class RateLimiter {
     customConfig?: RateLimitConfig
   ): Promise<{ allowed: boolean; reason?: string }> {
     // Get rate limit config (custom > default > fallback)
-    const config =
-      customConfig ||
+    const config = customConfig ||
       DEFAULT_RATE_LIMITS[connectorType] || {
         requestsPerMinute: 60,
         requestsPerHour: 3000,
@@ -201,7 +200,7 @@ export class RateLimiter {
 
   /**
    * Get remaining quota for a connector
-   * 
+   *
    * @param connectorId - Unique connector identifier
    * @param connectorType - Type of connector
    * @param customConfig - Optional custom rate limit config
@@ -216,8 +215,7 @@ export class RateLimiter {
     minuteRemaining?: number;
     hourRemaining?: number;
   }> {
-    const config =
-      customConfig ||
+    const config = customConfig ||
       DEFAULT_RATE_LIMITS[connectorType] || {
         requestsPerMinute: 60,
         requestsPerHour: 3000,
@@ -263,7 +261,7 @@ export class RateLimiter {
   /**
    * Wait for quota to become available
    * Implements exponential backoff with jitter
-   * 
+   *
    * @param connectorId - Unique connector identifier
    * @param connectorType - Type of connector
    * @param customConfig - Optional custom rate limit config
@@ -288,7 +286,7 @@ export class RateLimiter {
       }
 
       // Exponential backoff with jitter: 2^attempt * 1000ms + random(0-1000ms)
-      const baseDelay = Math.pow(2, attempt) * 1000;
+      const baseDelay = 2 ** attempt * 1000;
       const jitter = Math.random() * 1000;
       const delay = baseDelay + jitter;
 
@@ -300,7 +298,7 @@ export class RateLimiter {
 
   /**
    * Check global rate limit (prevents Redis overload)
-   * 
+   *
    * @param limit - Global request limit (default: 1000 req/sec)
    * @returns true if request is allowed
    */

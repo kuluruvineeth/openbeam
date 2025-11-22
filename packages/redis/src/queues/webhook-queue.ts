@@ -1,6 +1,6 @@
 /**
  * Webhook Queue
- * 
+ *
  * High-priority queue for processing incoming webhooks.
  * Enables real-time document updates from connectors.
  */
@@ -12,7 +12,7 @@ export interface WebhookJobData {
   connectorId: string;
   eventId: string;
   eventType: string;
-  payload: Record<string, any>;
+  payload: Record<string, unknown>;
   source: string; // "slack", "notion", etc.
   receivedAt: Date;
 }
@@ -37,10 +37,7 @@ export const webhookQueue = new Queue<WebhookJobData>("webhook", {
   },
 });
 
-export async function addWebhookJob(
-  data: WebhookJobData,
-  priority: number = 10
-) {
+export async function addWebhookJob(data: WebhookJobData, priority = 10) {
   return await webhookQueue.add("process-webhook", data, {
     priority,
     jobId: `webhook-${data.connectorId}-${data.eventId}`, // Prevent duplicates
@@ -65,4 +62,3 @@ export async function getWebhookQueueMetrics() {
       (counts.failed || 0),
   };
 }
-
