@@ -6,7 +6,7 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import prisma from "@openplane/db";
 import argon2 from "argon2";
-import type { AuthContext } from "../types/auth";
+import type { AuthContext } from "@/types/auth";
 
 const API_KEY_PREFIX = process.env.API_KEY_PREFIX ?? "op_live_";
 const LOOKUP_PREFIX_LENGTH = API_KEY_PREFIX.length + 8;

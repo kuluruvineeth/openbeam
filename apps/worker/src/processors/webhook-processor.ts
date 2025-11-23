@@ -1,50 +1,32 @@
+import prisma, { type Prisma } from "@openplane/db";
+import {
+  addSyncJob,
+  addWebhookJob,
+  eventDeduplicator,
+  type WebhookJobData,
+} from "@openplane/redis";
+import type { Job } from "bullmq";
+import logger from "../utils/logger";
+import { BaseProcessor } from "./base-processor";
+
 /**
  * Webhook Processor
  *
  * Processes incoming webhooks and triggers immediate syncs.
  * Enables real-time document updates.
  */
-
-import prisma from "@openplane/db";
-import {
-  addSyncJob,
-  addWebhookJob,
-  eventDeduplicator,
-  getRedisConnection,
-  type WebhookJobData,
-} from "@openplane/redis";
-import { type Job, Worker } from "bullmq";
-import logger from "../utils/logger";
-
-export class WebhookProcessor {
-  private worker: Worker | null = null;
-  private readonly initialization: Promise<void>;
-
+export class WebhookProcessor extends BaseProcessor<WebhookJobData> {
   constructor() {
-    this.initialization = this.initialize();
+    super("webhook", {
+      concurrency: 20, // High concurrency for real-time processing
+      limiter: {
+        max: 100,
+        duration: 1000, // Max 100 webhooks per second
+      },
+    });
   }
 
-  private async initialize(): Promise<void> {
-    const connection = await getRedisConnection();
-
-    const worker = new Worker(
-      "webhook",
-      async (job: Job<WebhookJobData>) => this.processJob(job),
-      {
-        connection,
-        concurrency: 20, // High concurrency for real-time processing
-        limiter: {
-          max: 100,
-          duration: 1000, // Max 100 webhooks per second
-        },
-      }
-    );
-
-    this.setupEventHandlers(worker);
-    this.worker = worker;
-  }
-
-  private async processJob(
+  protected async processJob(
     job: Job<WebhookJobData>
   ): Promise<{ triggered: boolean; reason?: string }> {
     const { connectorId, eventId, eventType, source, payload } = job.data;
@@ -77,7 +59,7 @@ export class WebhookProcessor {
       // 2. Verify connector exists and is active
       const connector = await prisma.connector.findUnique({
         where: { id: connectorId },
-        select: { id: true, status: true, type: true },
+        select: { id: true, status: true, type: true, userId: true },
       });
 
       if (!connector) {
@@ -119,13 +101,14 @@ export class WebhookProcessor {
       await prisma.connectorAuditLog.create({
         data: {
           connectorId,
+          userId: connector.userId,
           action: "WEBHOOK_RECEIVED",
-          metadata: {
+          changes: {
             eventId,
             eventType,
             source,
             syncJobId: syncJob.id,
-            payload,
+            payload: payload as Prisma.InputJsonValue,
             receivedAt: new Date().toISOString(),
           },
         },
@@ -154,7 +137,7 @@ export class WebhookProcessor {
         where: {
           connectorId,
           action: "WEBHOOK_RECEIVED",
-          metadata: {
+          changes: {
             path: ["eventId"],
             equals: eventId,
           },
@@ -166,7 +149,7 @@ export class WebhookProcessor {
         return { success: false, error: "Webhook event not found" };
       }
 
-      const metadata = auditLog.metadata as {
+      const metadata = auditLog.changes as {
         eventId: string;
         eventType: string;
         source: string;
@@ -230,7 +213,7 @@ export class WebhookProcessor {
       );
 
       for (const log of auditLogs) {
-        const metadata = log.metadata as {
+        const metadata = log.changes as {
           eventId: string;
           eventType: string;
           source: string;
@@ -256,41 +239,5 @@ export class WebhookProcessor {
       );
       throw error;
     }
-  }
-
-  private setupEventHandlers(worker: Worker) {
-    worker.on("completed", (job) => {
-      logger.info({ jobId: job.id }, "Webhook job completed");
-    });
-
-    worker.on("failed", (job, error) => {
-      logger.error(
-        { jobId: job?.id, error: error.message },
-        "Webhook job failed"
-      );
-    });
-
-    worker.on("error", (error) => {
-      logger.error({ error }, "Webhook worker error");
-    });
-
-    worker.on("stalled", (jobId) => {
-      logger.warn({ jobId }, "Webhook job stalled");
-    });
-  }
-
-  async close(): Promise<void> {
-    await this.initialization;
-    if (this.worker) {
-      await this.worker.close();
-      logger.info("Webhook processor closed");
-    }
-  }
-
-  getWorker(): Worker {
-    if (!this.worker) {
-      throw new Error("Webhook worker not initialized");
-    }
-    return this.worker;
   }
 }

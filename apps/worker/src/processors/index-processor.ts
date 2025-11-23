@@ -1,54 +1,34 @@
 import prisma from "@openplane/db";
-import {
-  getIndexRetryStrategy,
-  getRedisConnection,
-  type IndexJobData,
-} from "@openplane/redis";
+import { getIndexRetryStrategy, type IndexJobData } from "@openplane/redis";
 import { type GenericDocument, vespaClient } from "@openplane/vespa";
-import { type Job, Worker } from "bullmq";
+import type { Job } from "bullmq";
 import { calculateDocumentChecksum, checksumsMatch } from "../utils/checksum";
 import logger from "../utils/logger";
+import { BaseProcessor } from "./base-processor";
 
 /**
  * Index Worker - Processes indexing jobs from the queue
  * Pushes documents to Vespa and tracks in database
  */
-export class IndexProcessor {
-  private worker: Worker | null = null;
-  private readonly initialization: Promise<void>;
-
+export class IndexProcessor extends BaseProcessor<IndexJobData> {
   constructor() {
-    this.initialization = this.initialize();
-  }
-
-  private async initialize(): Promise<void> {
-    const connection = await getRedisConnection();
-
-    const worker = new Worker(
-      "index",
-      async (job: Job<IndexJobData>) => this.processJob(job),
-      {
-        connection,
-        concurrency: 10,
-        limiter: {
-          max: 50,
-          duration: 1000,
-        },
-        settings: {
-          backoffStrategy: (attemptsMade: number) =>
-            getIndexRetryStrategy(attemptsMade, new Error("Retry attempt")),
-        },
-      }
-    );
-
-    this.setupEventHandlers(worker);
-    this.worker = worker;
+    super("index", {
+      concurrency: 10,
+      limiter: {
+        max: 50,
+        duration: 1000,
+      },
+      settings: {
+        backoffStrategy: (attemptsMade: number) =>
+          getIndexRetryStrategy(attemptsMade, new Error("Retry attempt")),
+      },
+    });
   }
 
   /**
    * Process a single index job
    */
-  private async processJob(
+  protected async processJob(
     job: Job<IndexJobData>
   ): Promise<{ indexed: number }> {
     const { connectorId, documents, batchId, syncHistoryId } = job.data;
@@ -382,61 +362,5 @@ export class IndexProcessor {
       ...doc,
       metadata,
     };
-  }
-
-  /**
-   * Setup event handlers for the worker
-   */
-  private setupEventHandlers(worker: Worker) {
-    worker.on("completed", (job) => {
-      logger.info({ jobId: job.id }, "Index job completed");
-    });
-
-    worker.on("failed", (job, error) => {
-      logger.error(
-        { jobId: job?.id, error: error.message },
-        "Index job failed"
-      );
-    });
-
-    worker.on("error", (error) => {
-      const errorInfo =
-        error instanceof Error
-          ? {
-              name: error.name,
-              message: error.message,
-              stack: error.stack,
-            }
-          : {
-              error: String(error),
-              type: typeof error,
-            };
-      logger.error(errorInfo, "Index worker error");
-    });
-
-    worker.on("stalled", (jobId) => {
-      logger.warn({ jobId }, "Index job stalled");
-    });
-  }
-
-  /**
-   * Gracefully close the worker
-   */
-  async close(): Promise<void> {
-    await this.initialization;
-    if (this.worker) {
-      await this.worker.close();
-      logger.info("Index processor closed");
-    }
-  }
-
-  /**
-   * Get worker instance for testing
-   */
-  getWorker(): Worker {
-    if (!this.worker) {
-      throw new Error("Index worker not initialized");
-    }
-    return this.worker;
   }
 }

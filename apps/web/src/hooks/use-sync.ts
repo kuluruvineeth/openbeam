@@ -2,6 +2,7 @@
 
 import {
   keepPreviousData,
+  useInfiniteQuery,
   useMutation,
   useQueries,
   useQuery,
@@ -19,8 +20,8 @@ type QueryOptions = {
 };
 
 /**
- * Query hook for sync status with auto-polling when syncing.
- * Polls every 3 seconds when syncing, otherwise every 30 seconds.
+ * Query hook for sync status with auto-polling.
+ * Polls every 2 seconds when syncing, otherwise every 10 seconds.
  */
 export function useSyncStatus(
   connectorId: string | undefined,
@@ -41,9 +42,37 @@ export function useSyncStatus(
       const isSyncing =
         data.connector.status === "SYNCING" ||
         data.latestSync?.status === "SYNCING";
-      return isSyncing ? 3000 : 30_000;
+      // Poll every 2s when syncing, every 10s otherwise for real-time updates
+      return isSyncing ? 2000 : 10_000;
     },
     staleTime: 1000,
+  });
+}
+
+/**
+ * Infinite Query hook for sync history.
+ */
+export function useSyncHistoryInfinite(
+  connectorId: string | undefined,
+  options?: {
+    limit?: number;
+    enabled?: boolean;
+  }
+) {
+  const trpc = useTRPC();
+
+  return useInfiniteQuery({
+    ...trpc.apps.getSyncHistory.infiniteQueryOptions(
+      {
+        connectorId: connectorId ?? "",
+        limit: options?.limit ?? 20,
+      },
+      {
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+      }
+    ),
+    enabled: !!connectorId && options?.enabled !== false,
+    staleTime: 10_000,
   });
 }
 
@@ -233,4 +262,46 @@ export function useBulkSyncStatus(
       });
     },
   };
+}
+
+/**
+ * Mutation hook for updating sync settings.
+ * Invalidates sync status on success.
+ */
+export function useUpdateSyncSettings(callbacks?: MutationCallbacks) {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    ...trpc.apps.updateSyncSettings.mutationOptions(),
+    onSuccess: async (_data, variables) => {
+      await queryClient.invalidateQueries({
+        queryKey: trpc.apps.getSyncStatus.queryOptions({
+          connectorId: variables.connectorId,
+        }).queryKey,
+      });
+      callbacks?.onSuccess?.();
+    },
+    onError: (error) => {
+      callbacks?.onError?.(error);
+    },
+  });
+}
+
+/**
+ * Query hook for webhook status.
+ */
+export function useWebhookStatus(
+  connectorId: string | undefined,
+  options?: QueryOptions
+) {
+  const trpc = useTRPC();
+
+  return useQuery({
+    ...trpc.apps.getWebhookStatus.queryOptions({
+      connectorId: connectorId ?? "",
+    }),
+    enabled: !!connectorId && options?.enabled !== false,
+    staleTime: 30_000, // Cache for 30 seconds
+  });
 }

@@ -1,6 +1,17 @@
 import type { Prisma } from "../../prisma/generated/client";
 import type { Database } from "../index";
 
+export interface SyncJobInfo {
+  id: string;
+  type: string;
+  schedule: string | null;
+  nextRunAt: Date | null;
+  lastRanAt: Date | null;
+  config: Record<string, unknown>;
+  priority: number;
+  status: string;
+}
+
 export interface GetSyncStatusResult {
   connector: {
     id: string;
@@ -24,6 +35,15 @@ export interface GetSyncStatusResult {
   stats: {
     totalIndexed: number;
   };
+  syncJobs: {
+    full: SyncJobInfo | null;
+    incremental: SyncJobInfo | null;
+  };
+  webhookStatus: {
+    enabled: boolean;
+    lastReceivedAt: Date | null;
+    configured: boolean;
+  };
 }
 
 /**
@@ -33,7 +53,7 @@ export const getSyncStatus = async (
   db: Database,
   connectorId: string
 ): Promise<GetSyncStatusResult | null> => {
-  // Get connector with latest sync info
+  // Get connector with latest sync info and webhook config
   const connector = await db.connector.findUnique({
     where: { id: connectorId },
     select: {
@@ -43,6 +63,7 @@ export const getSyncStatus = async (
       lastSyncStatus: true,
       lastError: true,
       lastErrorAt: true,
+      webhookConfig: true,
     },
   });
 
@@ -72,6 +93,39 @@ export const getSyncStatus = async (
     where: { connectorId },
   });
 
+  // Get sync jobs for this connector
+  const syncJobs = await db.syncJob.findMany({
+    where: {
+      connectorId,
+      deletedAt: null,
+      trigger: "SCHEDULED",
+    },
+    select: {
+      id: true,
+      type: true,
+      schedule: true,
+      nextRunAt: true,
+      lastRanAt: true,
+      config: true,
+      priority: true,
+      status: true,
+    },
+  });
+
+  // Separate full and incremental sync jobs
+  const fullSyncJob = syncJobs.find((job) => job.type === "FULL");
+  const incrementalSyncJob = syncJobs.find((job) => job.type === "INCREMENTAL");
+
+  // Parse webhook config
+  const webhookConfig = connector.webhookConfig as
+    | {
+        enabled?: boolean;
+        lastReceivedAt?: string;
+        url?: string;
+      }
+    | null
+    | undefined;
+
   return {
     connector: {
       id: connector.id,
@@ -84,6 +138,27 @@ export const getSyncStatus = async (
     latestSync,
     stats: {
       totalIndexed,
+    },
+    syncJobs: {
+      full: fullSyncJob
+        ? {
+            ...fullSyncJob,
+            config: fullSyncJob.config as Record<string, unknown>,
+          }
+        : null,
+      incremental: incrementalSyncJob
+        ? {
+            ...incrementalSyncJob,
+            config: incrementalSyncJob.config as Record<string, unknown>,
+          }
+        : null,
+    },
+    webhookStatus: {
+      enabled: webhookConfig?.enabled ?? false,
+      lastReceivedAt: webhookConfig?.lastReceivedAt
+        ? new Date(webhookConfig.lastReceivedAt)
+        : null,
+      configured: !!webhookConfig,
     },
   };
 };

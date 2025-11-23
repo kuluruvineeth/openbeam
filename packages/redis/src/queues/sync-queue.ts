@@ -13,60 +13,6 @@ export interface SyncJobData {
 }
 
 /**
- * Advanced retry strategy based on error type
- *
- * Error-specific backoff strategies:
- * - Rate Limit (429): Exponential backoff (2s, 4s, 8s, 16s)
- * - Auth Errors (401, 403): Fail fast (1 attempt)
- * - Network Errors (ECONNRESET, ETIMEDOUT): Linear backoff (5s, 10s, 15s)
- * - Server Errors (500-599): Exponential with jitter
- * - Unknown Errors: Exponential backoff
- */
-function getRetryStrategy(attemptsMade: number, err: Error): number {
-  const errorMessage = err.message.toLowerCase();
-
-  // Rate limit errors - exponential backoff
-  if (errorMessage.includes("rate limit") || errorMessage.includes("429")) {
-    return Math.min(2000 * 2 ** (attemptsMade - 1), 16_000);
-  }
-
-  // Auth errors - fail fast (return -1 to stop retrying)
-  if (
-    errorMessage.includes("401") ||
-    errorMessage.includes("403") ||
-    errorMessage.includes("unauthorized") ||
-    errorMessage.includes("forbidden")
-  ) {
-    return -1; // Stop retrying
-  }
-
-  // Network errors - linear backoff
-  if (
-    errorMessage.includes("econnreset") ||
-    errorMessage.includes("etimedout") ||
-    errorMessage.includes("network") ||
-    errorMessage.includes("enotfound")
-  ) {
-    return Math.min(5000 + (attemptsMade - 1) * 5000, 15_000);
-  }
-
-  // Server errors - exponential with jitter
-  if (
-    errorMessage.includes("500") ||
-    errorMessage.includes("502") ||
-    errorMessage.includes("503") ||
-    errorMessage.includes("504")
-  ) {
-    const baseDelay = 2000 * 2 ** (attemptsMade - 1);
-    const jitter = Math.random() * 1000;
-    return Math.min(baseDelay + jitter, 30_000);
-  }
-
-  // Unknown errors - exponential backoff
-  return Math.min(2000 * 2 ** (attemptsMade - 1), 30_000);
-}
-
-/**
  * Sync queue for connector synchronization jobs
  * Handles fetching data from external sources (Slack, Notion, etc.)
  */
@@ -75,8 +21,8 @@ export const syncQueue = new Queue<SyncJobData>("sync", {
   defaultJobOptions: {
     attempts: 3,
     backoff: {
-      type: "custom",
-      delay: getRetryStrategy as unknown as number,
+      type: "exponential",
+      delay: 2000,
     },
     removeOnComplete: {
       count: 100, // Keep last 100 completed jobs
@@ -92,15 +38,11 @@ export const syncQueue = new Queue<SyncJobData>("sync", {
  * Add a sync job to the queue with priority support
  *
  * Priority levels:
- * - 10: Webhook-triggered (highest priority)
+ * - 10: Webhook-triggered (highest)
  * - 7: Manual syncs
  * - 5: Scheduled incremental (default)
  * - 3: Scheduled full syncs
  * - 1: Background/cleanup jobs (lowest)
- *
- * @param data - Sync job data
- * @param priority - Job priority (1-10, higher = more urgent)
- * @returns Promise resolving to the created job
  */
 export async function addSyncJob(data: SyncJobData, priority?: number) {
   const jobPriority = priority ?? data.priority ?? 5;
@@ -142,4 +84,149 @@ export async function getSyncQueueMetrics() {
 
 export async function closeSyncQueue(): Promise<void> {
   await syncQueue.close();
+}
+
+/**
+ * Convert interval in milliseconds to cron expression
+ */
+export function intervalMsToCron(intervalMs: number): string {
+  // Validate minimum interval (1 minute)
+  if (intervalMs < 60_000) {
+    console.warn(
+      `Interval ${intervalMs}ms is less than 1 minute. Using 1 minute interval.`
+    );
+    return "* * * * *"; // Every minute
+  }
+
+  // Validate maximum interval (365 days)
+  const maxIntervalMs = 365 * 24 * 60 * 60 * 1000;
+  if (intervalMs > maxIntervalMs) {
+    throw new Error(
+      `Interval ${intervalMs}ms exceeds maximum of 365 days. Please use a shorter interval.`
+    );
+  }
+
+  const minutes = Math.floor(intervalMs / 60_000);
+  const hours = Math.floor(intervalMs / 3_600_000);
+  const days = Math.floor(intervalMs / 86_400_000);
+
+  // Less than 1 hour: run every N minutes
+  if (minutes < 60) {
+    return `*/${minutes} * * * *`;
+  }
+
+  // Less than 1 day: run every N hours
+  if (hours < 24) {
+    return `0 */${hours} * * *`;
+  }
+
+  // Less than 1 week: run daily at midnight
+  if (days < 7) {
+    if (days === 1) {
+      return "0 0 * * *"; // Daily
+    }
+    return `0 0 */${days} * *`; // Every N days
+  }
+
+  // Weekly or more: run weekly on Sunday at midnight
+  if (days === 7) {
+    return "0 0 * * 0"; // Weekly (Sunday)
+  }
+
+  // Bi-weekly
+  if (days === 14) {
+    return "0 0 */14 * *"; // Every 14 days
+  }
+
+  // Monthly (approximate as 30 days)
+  if (days >= 28 && days <= 31) {
+    return "0 0 1 * *"; // 1st of each month
+  }
+
+  // For longer intervals (up to 365 days), use monthly
+  // This is an approximation - exact intervals > 31 days are not perfectly supported
+  if (days <= 365) {
+    return "0 0 1 * *"; // 1st of each month (best approximation)
+  }
+
+  // Default: daily (shouldn't reach here due to validation above)
+  return "0 0 * * *";
+}
+
+/**
+ * Create a repeatable sync job in BullMQ
+ *
+ * @param connectorId - Connector ID
+ * @param type - Sync type (FULL or INCREMENTAL)
+ * @param cronExpression - Cron expression for scheduling
+ * @param priority - Job priority
+ * @returns Job scheduler ID for later removal
+ */
+export async function createRepeatableSyncJob(
+  connectorId: string,
+  type: "FULL" | "INCREMENTAL",
+  cronExpression: string,
+  priority = 5
+): Promise<string> {
+  const jobName = `sync-${type.toLowerCase()}-${connectorId}`;
+
+  await syncQueue.upsertJobScheduler(
+    jobName,
+    {
+      pattern: cronExpression,
+    },
+    {
+      name: "sync-repeatable",
+      data: {
+        connectorId,
+        syncJobId: "", // Will be filled by processor when job runs
+        type,
+        priority,
+      },
+      opts: {
+        priority,
+      },
+    }
+  );
+
+  return jobName;
+}
+
+/**
+ * Remove a repeatable sync job from BullMQ
+ *
+ * @param schedulerId - Job scheduler ID returned from createRepeatableSyncJob
+ */
+export async function removeRepeatableSyncJob(
+  schedulerId: string
+): Promise<void> {
+  try {
+    await syncQueue.removeJobScheduler(schedulerId);
+  } catch (error) {
+    // Job scheduler might not exist, that's okay
+    console.warn(`Failed to remove job scheduler ${schedulerId}:`, error);
+  }
+}
+
+/**
+ * Get all job schedulers for a connector
+ *
+ * @param connectorId - Connector ID
+ * @returns Array of job scheduler info
+ */
+export async function getRepeatableJobsForConnector(
+  connectorId: string
+): Promise<Array<{ id: string; pattern: string; next: number }>> {
+  const jobSchedulers = await syncQueue.getJobSchedulers();
+
+  return jobSchedulers
+    .filter(
+      (scheduler): scheduler is typeof scheduler & { id: string } =>
+        typeof scheduler.id === "string" && scheduler.id.includes(connectorId)
+    )
+    .map((scheduler) => ({
+      id: scheduler.id,
+      pattern: scheduler.pattern || "",
+      next: scheduler.next || 0,
+    }));
 }

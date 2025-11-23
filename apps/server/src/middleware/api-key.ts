@@ -1,5 +1,5 @@
 import { createMiddleware } from "hono/factory";
-import { extractApiKey, verifyApiKey } from "../services/auth-service";
+import { extractApiKey, verifyApiKey } from "@/modules/auth/auth.service";
 import type { AuthEnv } from "./auth";
 
 /**
