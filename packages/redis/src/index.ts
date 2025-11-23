@@ -10,6 +10,8 @@ export {
 } from "./client";
 // Deduplication
 export { EventDeduplicator, eventDeduplicator } from "./deduplication";
+// Job scheduler keys (Redis-based storage)
+export { jobSchedulerKeys } from "./job-scheduler-keys";
 // Distributed locks
 export { DistributedLock, distributedLock } from "./locks";
 export { Fence, fence } from "./locks/fence";

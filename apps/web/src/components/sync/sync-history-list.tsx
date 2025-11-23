@@ -1,5 +1,8 @@
 "use client";
 
+import type { InfiniteData } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useInView } from "react-intersection-observer";
 import { Icons } from "@/components/icons";
 import {
   Card,
@@ -11,12 +14,36 @@ import {
 import type { SyncHistoryEntry } from "@/lib/sync-types";
 import { SyncHistoryItem } from "./sync-history-item";
 
-type SyncHistoryListProps = {
+type SyncHistoryPage = {
   history: SyncHistoryEntry[];
-  isLoading: boolean;
+  nextCursor?: number | null;
 };
 
-export function SyncHistoryList({ history, isLoading }: SyncHistoryListProps) {
+type SyncHistoryListProps = {
+  data?: InfiniteData<SyncHistoryPage>;
+  isLoading: boolean;
+  fetchNextPage: () => void;
+  hasNextPage: boolean;
+  isFetchingNextPage: boolean;
+};
+
+export function SyncHistoryList({
+  data,
+  isLoading,
+  fetchNextPage,
+  hasNextPage,
+  isFetchingNextPage,
+}: SyncHistoryListProps) {
+  const { ref, inView } = useInView();
+
+  useEffect(() => {
+    if (inView && hasNextPage) {
+      fetchNextPage();
+    }
+  }, [inView, hasNextPage, fetchNextPage]);
+
+  const history = data?.pages.flatMap((page) => page.history) ?? [];
+
   if (isLoading) {
     return (
       <Card className="border bg-background">
@@ -35,7 +62,7 @@ export function SyncHistoryList({ history, isLoading }: SyncHistoryListProps) {
     );
   }
 
-  if (!history || history.length === 0) {
+  if (history.length === 0) {
     return (
       <Card className="border bg-background">
         <CardHeader>
@@ -67,6 +94,17 @@ export function SyncHistoryList({ history, isLoading }: SyncHistoryListProps) {
           {history.map((entry) => (
             <SyncHistoryItem entry={entry} key={entry.id} />
           ))}
+
+          {(hasNextPage || isFetchingNextPage) && (
+            <div className="flex justify-center py-4" ref={ref}>
+              {isFetchingNextPage && (
+                <Icons.Loader2Icon
+                  className="animate-spin text-muted-foreground"
+                  size={16}
+                />
+              )}
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

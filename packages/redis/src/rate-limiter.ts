@@ -1,5 +1,4 @@
 import { randomUUID } from "node:crypto";
-import type { RedisClientType } from "redis";
 import { getRedisClient } from "./client";
 
 /**
@@ -46,15 +45,6 @@ export const DEFAULT_RATE_LIMITS: Record<string, RateLimitConfig> = {
  * 3. Per-Connector-Type - Default limits
  */
 export class RateLimiter {
-  private client: RedisClientType | null = null;
-
-  private async getClient(): Promise<RedisClientType> {
-    if (!this.client) {
-      this.client = await getRedisClient();
-    }
-    return this.client;
-  }
-
   /**
    * Check if a request is allowed based on rate limit
    * @param key - Unique identifier for the rate limit (e.g., "slack:api:workspace_id")
@@ -67,7 +57,7 @@ export class RateLimiter {
     limit: number,
     window: number
   ): Promise<boolean> {
-    const client = await this.getClient();
+    const client = await getRedisClient();
     const now = Date.now();
     const windowStart = now - window * 1000;
     const redisKey = `ratelimit:${key}`;
@@ -108,7 +98,7 @@ export class RateLimiter {
    * Get current usage for a rate limit key
    */
   async getUsage(key: string, window: number): Promise<number> {
-    const client = await this.getClient();
+    const client = await getRedisClient();
     const now = Date.now();
     const windowStart = now - window * 1000;
     const redisKey = `ratelimit:${key}`;
@@ -125,7 +115,7 @@ export class RateLimiter {
    * Reset rate limit for a key
    */
   async reset(key: string): Promise<void> {
-    const client = await this.getClient();
+    const client = await getRedisClient();
     const redisKey = `ratelimit:${key}`;
 
     try {

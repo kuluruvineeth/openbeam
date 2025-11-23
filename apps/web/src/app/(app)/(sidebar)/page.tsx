@@ -1,16 +1,22 @@
 import type { Metadata } from "next";
+import { ErrorBoundary } from "next/dist/client/components/error-boundary";
+import { ErrorFallback } from "@/components/error-fallback";
 import { NewChatView } from "@/components/new-chat-view";
-import { HydrateClient } from "@/trpc/server";
+import { batchPrefetch, HydrateClient, trpc } from "@/trpc/server";
 
 export const metadata: Metadata = {
   title: "New Chat | OpenPlane",
   description: "Start a new chat conversation",
 };
 
-export default function NewChatPage() {
+export default async function NewChatPage() {
+  batchPrefetch([trpc.user.me.queryOptions()]);
+
   return (
     <HydrateClient>
-      <NewChatView />
+      <ErrorBoundary errorComponent={ErrorFallback}>
+        <NewChatView />
+      </ErrorBoundary>
     </HydrateClient>
   );
 }

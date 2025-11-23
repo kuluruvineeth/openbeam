@@ -32,6 +32,9 @@
         "noExportedImports": "off",
         "noEnum": "off",
         "useConsistentTypeDefinitions": "off"
+      },
+      "suspicious": {
+        "noImplicitAnyLet": "off"
       }
     }
   },

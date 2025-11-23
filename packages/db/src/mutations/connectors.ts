@@ -55,6 +55,48 @@ export const deleteConnector = async (
   db: Database,
   id: string
 ): Promise<Connector> =>
+  // Note: BullMQ repeatable jobs should be cleaned up by the caller
+  // before calling this function, as we don't have access to Redis here.
+  // The API router should handle BullMQ cleanup before calling this.
   db.connector.delete({
     where: { id },
   });
+
+/**
+ * Create default sync jobs for a connector
+ * - FULL sync: Every 7 days (604800000ms)
+ * - INCREMENTAL sync: Every 6 hours (21600000ms)
+ */
+export const createDefaultSyncJobs = async (
+  db: Pick<Database, "syncJob">,
+  connectorId: string
+): Promise<void> => {
+  const now = new Date();
+  const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+  const sixHoursMs = 6 * 60 * 60 * 1000;
+
+  await db.syncJob.createMany({
+    data: [
+      {
+        connectorId,
+        type: "FULL",
+        trigger: "SCHEDULED",
+        status: "ACTIVE",
+        priority: 3,
+        schedule: "0 0 * * 0", // Weekly on Sunday at midnight
+        config: { intervalMs: sevenDaysMs },
+        nextRunAt: new Date(now.getTime() + sevenDaysMs),
+      },
+      {
+        connectorId,
+        type: "INCREMENTAL",
+        trigger: "SCHEDULED",
+        status: "ACTIVE",
+        priority: 5,
+        schedule: "0 */6 * * *", // Every 6 hours
+        config: { intervalMs: sixHoursMs },
+        nextRunAt: new Date(now.getTime() + sixHoursMs),
+      },
+    ],
+  });
+};
