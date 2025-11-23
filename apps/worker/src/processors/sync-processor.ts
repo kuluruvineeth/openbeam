@@ -2,58 +2,62 @@ import prisma, { type AppType } from "@openplane/db";
 import {
   addIndexJob,
   fence,
-  getRedisConnection,
   rateLimiter,
   type SyncJobData,
 } from "@openplane/redis";
-import { type Job, Worker } from "bullmq";
+import type { Job } from "bullmq";
 import { createConnector } from "../connectors/factory";
+import { syncJobService } from "../services/sync-job-service";
 import { batchSizeTracker, calculateBatchSize } from "../utils/batch-sizer";
 import logger from "../utils/logger";
+import { BaseProcessor } from "./base-processor";
 
 /**
  * Sync Worker - Processes sync jobs from the queue
  * Fetches data from external APIs (Slack, Notion, etc.)
  * Pushes batches to index queue
  */
-export class SyncProcessor {
-  private worker: Worker | null = null;
-  private readonly initialization: Promise<void>;
-
+export class SyncProcessor extends BaseProcessor<SyncJobData> {
   constructor() {
-    this.initialization = this.initialize();
-  }
-
-  private async initialize(): Promise<void> {
-    const connection = await getRedisConnection();
-
-    const worker = new Worker(
-      "sync",
-      async (job: Job<SyncJobData>) => this.processJob(job),
-      {
-        connection,
-        concurrency: 5, // Process 5 sync jobs concurrently
-        limiter: {
-          max: 10,
-          duration: 1000, // Max 10 jobs per second
-        },
-      }
-    );
-
-    this.setupEventHandlers(worker);
-    this.worker = worker;
+    super("sync", {
+      concurrency: 5, // Process 5 sync jobs concurrently
+      limiter: {
+        max: 10,
+        duration: 1000, // Max 10 jobs per second
+      },
+    });
   }
 
   /**
    * Process a single sync job with fencing protocol and rate limiting
    */
-  private async processJob(job: Job<SyncJobData>): Promise<{ synced: number }> {
-    const { connectorId, syncJobId, type } = job.data;
+  protected async processJob(
+    job: Job<SyncJobData>
+  ): Promise<{ synced: number }> {
+    let { connectorId, syncJobId, type } = job.data;
 
     logger.info(
       { jobId: job.id, connectorId, syncJobId, type },
       "Processing sync job"
     );
+
+    // Check if another sync is already running for this connector
+    const isAlreadyFenced = await fence.isFenced(connectorId);
+    if (isAlreadyFenced) {
+      const currentFenceToken = await fence.getCurrentToken(connectorId);
+      logger.warn(
+        {
+          jobId: job.id,
+          connectorId,
+          type,
+          currentFenceToken,
+        },
+        "Connector is already being synced by another worker, skipping this execution. Next scheduled run will retry."
+      );
+      // Don't throw - just skip this execution gracefully
+      // The repeatable job will trigger again on the next schedule
+      return { synced: 0 };
+    }
 
     const fenceToken = await fence.acquireFence(connectorId);
     logger.info(
@@ -62,6 +66,18 @@ export class SyncProcessor {
     );
 
     try {
+      // For repeatable jobs, syncJobId is empty - create SyncHistory dynamically
+      if (!syncJobId) {
+        syncJobId = await syncJobService.createSyncHistoryForRepeatableJob(
+          connectorId,
+          type
+        );
+        logger.info(
+          { jobId: job.id, connectorId, syncJobId, type },
+          "Created SyncHistory for repeatable job"
+        );
+      }
+
       await this.validateAndPrepare(connectorId, syncJobId, fenceToken);
       const connector = await this.loadConnectorWithRateLimit(connectorId);
       const cursor = await this.getSyncCursor(connectorId, type);
@@ -113,11 +129,26 @@ export class SyncProcessor {
 
       return { synced: syncResult.documents.length };
     } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+
       logger.error(
-        { error, jobId: job.id, connectorId, fenceToken },
+        {
+          error: errorMessage,
+          errorStack,
+          jobId: job.id,
+          connectorId,
+          fenceToken,
+        },
         "Sync job failed"
       );
-      await this.handleSyncError(connectorId, syncJobId, error);
+
+      // Only update sync history if we have a valid syncJobId
+      if (syncJobId) {
+        await syncJobService.handleSyncError(connectorId, syncJobId, error);
+      }
+
       throw error;
     } finally {
       await this.releaseFence(job.id, connectorId, fenceToken);
@@ -129,9 +160,12 @@ export class SyncProcessor {
     syncJobId: string,
     fenceToken: number
   ) {
-    if (!(await fence.validateFence(connectorId, fenceToken))) {
+    // Double-check fence is still valid (prevents race conditions)
+    const isValid = await fence.validateFence(connectorId, fenceToken);
+    if (!isValid) {
+      const currentToken = await fence.getCurrentToken(connectorId);
       throw new Error(
-        "Fence token invalid - another worker is processing this connector"
+        `Fence token mismatch: expected=${fenceToken}, current=${currentToken}. Another worker may have superseded this sync.`
       );
     }
 
@@ -296,6 +330,9 @@ export class SyncProcessor {
         });
       }
 
+      // Get the sync job to update nextRunAt
+      await syncJobService.updateSyncJobNextRun(tx, syncJobId, connectorId);
+
       await tx.syncHistory.update({
         where: { id: syncJobId },
         data: {
@@ -324,34 +361,6 @@ export class SyncProcessor {
     });
   }
 
-  private async handleSyncError(
-    connectorId: string,
-    syncJobId: string,
-    error: unknown
-  ) {
-    await prisma.$transaction(async (tx) => {
-      await tx.syncHistory.update({
-        where: { id: syncJobId },
-        data: {
-          status: "ERROR",
-          errorMessage:
-            error instanceof Error ? error.message : "Unknown error",
-          finishedAt: new Date(),
-        },
-      });
-
-      await tx.connector.update({
-        where: { id: connectorId },
-        data: {
-          lastSyncStatus: "FAILED",
-          lastError: error instanceof Error ? error.message : "Unknown error",
-          lastErrorAt: new Date(),
-          retryCount: { increment: 1 },
-        },
-      });
-    });
-  }
-
   private async releaseFence(
     jobId: string | undefined,
     connectorId: string,
@@ -366,47 +375,5 @@ export class SyncProcessor {
         "Failed to release fence token (may have been superseded)"
       );
     }
-  }
-
-  /**
-   * Setup event handlers for the worker
-   */
-  private setupEventHandlers(worker: Worker) {
-    worker.on("completed", (job) => {
-      logger.info({ jobId: job.id }, "Sync job completed");
-    });
-
-    worker.on("failed", (job, error) => {
-      logger.error({ jobId: job?.id, error: error.message }, "Sync job failed");
-    });
-
-    worker.on("error", (error) => {
-      logger.error({ error }, "Sync worker error");
-    });
-
-    worker.on("stalled", (jobId) => {
-      logger.warn({ jobId }, "Sync job stalled");
-    });
-  }
-
-  /**
-   * Gracefully close the worker
-   */
-  async close(): Promise<void> {
-    await this.initialization;
-    if (this.worker) {
-      await this.worker.close();
-      logger.info("Sync processor closed");
-    }
-  }
-
-  /**
-   * Get worker instance for testing
-   */
-  getWorker(): Worker {
-    if (!this.worker) {
-      throw new Error("Sync worker not initialized");
-    }
-    return this.worker;
   }
 }

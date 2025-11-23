@@ -110,3 +110,151 @@ export const resumeConnector = async (
     message: "Connector resumed successfully",
   };
 };
+
+export interface UpdateSyncSettingsInput {
+  connectorId: string;
+  fullSyncIntervalMs?: number;
+  incrementalSyncIntervalMs?: number;
+}
+
+export interface UpdateSyncSettingsResult {
+  fullSyncJob: {
+    id: string;
+    intervalMs: number;
+    schedule: string;
+    nextRunAt: Date;
+  } | null;
+  incrementalSyncJob: {
+    id: string;
+    intervalMs: number;
+    schedule: string;
+    nextRunAt: Date;
+  } | null;
+}
+
+/**
+ * Update sync settings for a connector
+ * Updates or creates sync jobs with new intervals
+ */
+export const updateSyncSettings = async (
+  db: Database,
+  input: UpdateSyncSettingsInput,
+  intervalMsToCron: (intervalMs: number) => string
+): Promise<UpdateSyncSettingsResult> => {
+  const result: UpdateSyncSettingsResult = {
+    fullSyncJob: null,
+    incrementalSyncJob: null,
+  };
+
+  // Update full sync job if interval provided
+  if (input.fullSyncIntervalMs) {
+    const cronExpression = intervalMsToCron(input.fullSyncIntervalMs);
+    const nextRunAt = new Date(Date.now() + input.fullSyncIntervalMs);
+
+    const existingJob = await db.syncJob.findFirst({
+      where: {
+        connectorId: input.connectorId,
+        type: "FULL",
+        trigger: "SCHEDULED",
+        deletedAt: null,
+      },
+    });
+
+    if (existingJob) {
+      // Update existing job
+      const updated = await db.syncJob.update({
+        where: { id: existingJob.id },
+        data: {
+          schedule: cronExpression,
+          nextRunAt,
+          config: { intervalMs: input.fullSyncIntervalMs },
+        },
+      });
+
+      result.fullSyncJob = {
+        id: updated.id,
+        intervalMs: input.fullSyncIntervalMs,
+        schedule: cronExpression,
+        nextRunAt,
+      };
+    } else {
+      // Create new job
+      const created = await db.syncJob.create({
+        data: {
+          connectorId: input.connectorId,
+          type: "FULL",
+          trigger: "SCHEDULED",
+          status: "ACTIVE",
+          priority: 3,
+          schedule: cronExpression,
+          nextRunAt,
+          config: { intervalMs: input.fullSyncIntervalMs },
+        },
+      });
+
+      result.fullSyncJob = {
+        id: created.id,
+        intervalMs: input.fullSyncIntervalMs,
+        schedule: cronExpression,
+        nextRunAt,
+      };
+    }
+  }
+
+  // Update incremental sync job if interval provided
+  if (input.incrementalSyncIntervalMs) {
+    const cronExpression = intervalMsToCron(input.incrementalSyncIntervalMs);
+    const nextRunAt = new Date(Date.now() + input.incrementalSyncIntervalMs);
+
+    const existingJob = await db.syncJob.findFirst({
+      where: {
+        connectorId: input.connectorId,
+        type: "INCREMENTAL",
+        trigger: "SCHEDULED",
+        deletedAt: null,
+      },
+    });
+
+    if (existingJob) {
+      // Update existing job
+      const updated = await db.syncJob.update({
+        where: { id: existingJob.id },
+        data: {
+          schedule: cronExpression,
+          nextRunAt,
+          config: { intervalMs: input.incrementalSyncIntervalMs },
+        },
+      });
+
+      result.incrementalSyncJob = {
+        id: updated.id,
+        intervalMs: input.incrementalSyncIntervalMs,
+        schedule: cronExpression,
+        nextRunAt,
+      };
+    } else {
+      // Create new job
+      const created = await db.syncJob.create({
+        data: {
+          connectorId: input.connectorId,
+          type: "INCREMENTAL",
+          trigger: "SCHEDULED",
+          status: "ACTIVE",
+          priority: 5,
+          schedule: cronExpression,
+          nextRunAt,
+          config: { intervalMs: input.incrementalSyncIntervalMs },
+        },
+      });
+
+      result.incrementalSyncJob = {
+        id: created.id,
+        intervalMs: input.incrementalSyncIntervalMs,
+        schedule: cronExpression,
+        nextRunAt,
+      };
+    }
+  }
+
+  return result;
+};

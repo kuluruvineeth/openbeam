@@ -4,6 +4,7 @@ import { CleanupProcessor } from "./processors/cleanup-processor";
 import { IndexProcessor } from "./processors/index-processor";
 import { SyncProcessor } from "./processors/sync-processor";
 import { WebhookProcessor } from "./processors/webhook-processor";
+import { CleanupScheduler } from "./schedulers/cleanup-scheduler";
 import { SyncScheduler } from "./schedulers/sync-scheduler";
 import logger from "./utils/logger";
 
@@ -22,6 +23,7 @@ import logger from "./utils/logger";
  */
 class WorkerService {
   private readonly syncScheduler: SyncScheduler;
+  private readonly cleanupScheduler: CleanupScheduler;
   private readonly syncProcessor: SyncProcessor;
   private readonly indexProcessor: IndexProcessor;
   private readonly webhookProcessor: WebhookProcessor;
@@ -36,15 +38,16 @@ class WorkerService {
     this.webhookProcessor = new WebhookProcessor();
     this.cleanupProcessor = new CleanupProcessor();
 
-    // Initialize and start scheduler
+    // Initialize and start schedulers
     this.syncScheduler = new SyncScheduler(3_600_000); // Check every 1 hour
+    this.cleanupScheduler = new CleanupScheduler("0 2 * * *"); // Daily at 2 AM
+
     this.syncScheduler.start().catch((error) => {
       logger.error({ error }, "Failed to start sync scheduler");
     });
 
-    // Start cleanup processor (runs daily)
-    this.cleanupProcessor.start(86_400_000).catch((error) => {
-      logger.error({ error }, "Failed to start cleanup processor");
+    this.cleanupScheduler.start().catch((error) => {
+      logger.error({ error }, "Failed to start cleanup scheduler");
     });
 
     // Start metrics and health servers
@@ -81,10 +84,11 @@ class WorkerService {
 
     await Promise.all([
       this.syncScheduler.stop(),
+      this.cleanupScheduler.stop(),
       this.syncProcessor.close(),
       this.indexProcessor.close(),
       this.webhookProcessor.close(),
-      this.cleanupProcessor.stop(),
+      this.cleanupProcessor.close(),
       stopMetricsServer(),
       stopHealthServer(),
     ]);
