@@ -1,6 +1,10 @@
 "use client";
 
-import { formatDistanceToNow } from "date-fns";
+import {
+  formatDistanceToNow,
+  formatDistanceToNowStrict,
+  isPast,
+} from "date-fns";
 import { Icons } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSyncStatusConfig } from "@/lib/sync-status";
@@ -93,6 +97,66 @@ export function SyncStatusCard({
                 )}
               </p>
             </div>
+          </div>
+        )}
+
+        {/* Next Sync Info */}
+        {syncStatus?.syncJobs && (
+          <div className="space-y-2 border-border border-t pt-4">
+            {syncStatus.syncJobs.incremental?.nextRunAt && (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Icons.RefreshCw
+                    className="text-muted-foreground"
+                    size={14}
+                  />
+                  <p className="text-[#878787] text-xs">
+                    Next incremental sync
+                  </p>
+                </div>
+                <p className="font-medium text-xs">
+                  {(() => {
+                    const nextRun = new Date(
+                      syncStatus.syncJobs.incremental.nextRunAt
+                    );
+                    if (isPast(nextRun)) {
+                      return "Pending...";
+                    }
+                    return `in ${formatDistanceToNowStrict(nextRun)}`;
+                  })()}
+                </p>
+              </div>
+            )}
+            {syncStatus.syncJobs.full?.nextRunAt && (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Icons.Database className="text-muted-foreground" size={14} />
+                  <p className="text-[#878787] text-xs">Next full sync</p>
+                </div>
+                <p className="font-medium text-xs">
+                  {(() => {
+                    const nextRun = new Date(
+                      syncStatus.syncJobs.full.nextRunAt
+                    );
+                    if (isPast(nextRun)) {
+                      return "Pending...";
+                    }
+                    return `in ${formatDistanceToNowStrict(nextRun)}`;
+                  })()}
+                </p>
+              </div>
+            )}
+            {syncStatus.webhookStatus?.enabled && (
+              <div className="flex items-center gap-2">
+                <Icons.Webhook
+                  className="text-green-600 dark:text-green-400"
+                  size={14}
+                />
+                <p className="text-green-600 text-xs dark:text-green-400">
+                  Real-time updates active
+                </p>
+              </div>
+            )}
           </div>
         )}
 

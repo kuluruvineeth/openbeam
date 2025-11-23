@@ -1,6 +1,7 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   AddIcon,
+  Alert01Icon,
   ArrowDownIcon,
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -9,22 +10,27 @@ import {
   BrainIcon,
   Cancel01Icon,
   ChatGptIcon,
+  CheckmarkCircle01Icon,
   ClaudeIcon,
   ClockIcon,
+  DatabaseIcon,
   DocumentCodeIcon,
   FileIcon,
   FlowIcon,
+  FlowSquareIcon,
   GlobeIcon,
   GoogleGeminiIcon,
   ImageIcon,
   InfinityIcon,
   InformationCircleIcon,
   LinkIcon,
+  Loading01Icon,
   LoadingIcon,
   LockIcon,
   MessageIcon,
   PlugIcon,
   PresentationIcon,
+  RefreshIcon,
   RobotIcon,
   SearchIcon,
   SettingsIcon,
@@ -34,6 +40,7 @@ import {
   TableIcon,
   TickIcon,
   ToolsIcon,
+  WebhookIcon,
 } from "@hugeicons-pro/core-stroke-rounded";
 import Image from "next/image";
 import type React from "react";
@@ -184,8 +191,17 @@ export const Icons = {
   LockIcon: createIcon(LockIcon),
   ShieldIcon: createIcon(ShieldIcon),
   InfoIcon: createIcon(InformationCircleIcon),
+  ConnectorIcon: createIcon(FlowSquareIcon),
   // Provider icons
   ChatGptIcon: createIcon(ChatGptIcon),
   GoogleGeminiIcon: createIcon(GoogleGeminiIcon),
   ClaudeIcon: createIcon(ClaudeIcon),
+  // Sync icons
+  RefreshCw: createIcon(RefreshIcon),
+  Database: createIcon(DatabaseIcon),
+  Webhook: createIcon(WebhookIcon),
+  AlertCircle: createIcon(Alert01Icon),
+  CheckCircle2: createIcon(CheckmarkCircle01Icon),
+  Info: createIcon(InformationCircleIcon),
+  Spinner: createIcon(Loading01Icon),
 };

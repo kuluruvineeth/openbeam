@@ -23,6 +23,7 @@ const icons: Record<string, () => React.ReactElement> = {
   "/workflow": () => <Icons.Workflow size={20} />,
   "/messages": () => <Icons.Messages size={20} />,
   "/agents": () => <Icons.Agents size={20} />,
+  "/data-sources": () => <Icons.ConnectorIcon size={20} />,
   "/integrations": () => <Icons.Integrations size={20} />,
   "/knowledge-management": () => <Icons.KnowledgeManagement size={20} />,
   "/settings": () => <Icons.Settings size={20} />,
@@ -66,6 +67,10 @@ const items: MenuItems = [
       { path: "/agents/shared", name: "Shared With Me" },
       { path: "/agents/mine", name: "Made By Me" },
     ],
+  },
+  {
+    path: "/data-sources",
+    name: "Data Sources",
   },
   {
     path: "/integrations",

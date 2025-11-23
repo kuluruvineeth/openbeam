@@ -40,6 +40,8 @@ export function DataSourcesTableRow({
   onSelect,
   onRowClick,
 }: DataSourcesTableRowProps) {
+  const app = appStore.find((a) => a.id === source.app);
+
   return (
     <TableRow
       className="cursor-pointer transition-colors hover:bg-background-50"
@@ -65,16 +67,7 @@ export function DataSourcesTableRow({
       </TableCell>
       <TableCell>
         <div className="flex items-center gap-3">
-          <AppLogo
-            app={
-              appStore.find((a) => a.id === source.app) ?? {
-                id: source.app,
-                name: source.name,
-                logo: undefined,
-              }
-            }
-            size={32}
-          />
+          {app ? <AppLogo app={app} size={32} /> : <div className="h-8 w-8" />}
           <div>
             <p className="font-medium text-sm">{source.name}</p>
             <p className="text-[#878787] text-xs">{source.app}</p>

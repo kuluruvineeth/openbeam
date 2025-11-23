@@ -1,3 +1,20 @@
+export type SyncJobInfo = {
+  id: string;
+  type: string;
+  schedule: string | null;
+  nextRunAt: Date | string | null;
+  lastRanAt: Date | string | null;
+  config: Record<string, unknown>;
+  priority: number;
+  status: string;
+};
+
+export type WebhookStatusInfo = {
+  enabled: boolean;
+  lastReceivedAt: Date | string | null;
+  configured: boolean;
+};
+
 export type SyncStatusType = {
   connector: {
     status: string;
@@ -12,6 +29,11 @@ export type SyncStatusType = {
     dataAdded: number;
     dataUpdated: number;
   } | null;
+  syncJobs?: {
+    full: SyncJobInfo | null;
+    incremental: SyncJobInfo | null;
+  };
+  webhookStatus?: WebhookStatusInfo;
 };
 
 export type SyncHistoryEntry = {

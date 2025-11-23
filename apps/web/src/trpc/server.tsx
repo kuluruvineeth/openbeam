@@ -85,8 +85,7 @@ export function batchPrefetch<T extends ReturnType<TRPCQueryOptions<any>>>(
       // biome-ignore lint/suspicious/noExplicitAny: Helper should work with any TRPC query options shape.
       queryClient.prefetchInfiniteQuery(queryOptions as any);
     } else {
-      // biome-ignore lint/suspicious/noExplicitAny: Helper should work with any TRPC query options shape.
-      queryClient.prefetchQuery(queryOptions as any);
+      queryClient.prefetchQuery(queryOptions);
     }
   }
 }
