@@ -1,15 +1,9 @@
-/**
- * Cleanup Processor
- *
- * Maintains index health by:
- * - Detecting and removing stale documents
- * - Cleaning up orphaned documents
- * - Pruning documents from disabled connectors
- */
-
 import prisma from "@openplane/db";
+import type { CleanupJobData } from "@openplane/redis";
 import { vespaClient } from "@openplane/vespa";
+import type { Job } from "bullmq";
 import logger from "../utils/logger";
+import { BaseProcessor } from "./base-processor";
 
 interface CleanupResult {
   staleDocuments: number;
@@ -18,49 +12,23 @@ interface CleanupResult {
   durationMs: number;
 }
 
-export class CleanupProcessor {
-  private isRunning = false;
-  private intervalId: NodeJS.Timeout | null = null;
-
-  /**
-   * Start cleanup processor (runs daily at 2 AM by default)
-   */
-  async start(intervalMs = 86_400_000): Promise<void> {
-    if (this.isRunning) {
-      logger.warn("Cleanup processor already running");
-      return;
-    }
-
-    this.isRunning = true;
-    logger.info("Starting cleanup processor");
-
-    // Run immediately on start
-    await this.runCleanup();
-
-    // Schedule recurring cleanup
-    this.intervalId = setInterval(async () => {
-      await this.runCleanup();
-    }, intervalMs);
-
-    logger.info(
-      { intervalHours: intervalMs / 3_600_000 },
-      "Cleanup processor started"
-    );
+export class CleanupProcessor extends BaseProcessor<CleanupJobData> {
+  constructor() {
+    super("cleanup", {
+      concurrency: 1, // Run sequentially
+      limiter: {
+        max: 1,
+        duration: 1000,
+      },
+    });
   }
 
-  stop(): void {
-    if (!this.isRunning) {
-      logger.warn("Cleanup processor not running");
-      return;
-    }
-
-    this.isRunning = false;
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-      this.intervalId = null;
-    }
-
-    logger.info("Cleanup processor stopped");
+  protected async processJob(job: Job<CleanupJobData>): Promise<CleanupResult> {
+    logger.info(
+      { jobId: job.id, triggeredAt: job.data.triggeredAt },
+      "Processing cleanup job"
+    );
+    return await this.runCleanup();
   }
 
   /**
