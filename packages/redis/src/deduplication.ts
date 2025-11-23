@@ -5,24 +5,14 @@
  * Events are stored with TTL for automatic cleanup.
  */
 
-import type { RedisClientType } from "redis";
 import { getRedisClient } from "./client";
 
 export class EventDeduplicator {
-  private client: RedisClientType | null = null;
-
-  private async getClient(): Promise<RedisClientType> {
-    if (!this.client) {
-      this.client = await getRedisClient();
-    }
-    return this.client;
-  }
-
   /**
    * Check if event was already processed
    */
   async isProcessed(eventId: string, source: string): Promise<boolean> {
-    const client = await this.getClient();
+    const client = await getRedisClient();
     const key = `webhook:processed:${source}:${eventId}`;
     const exists = await client.exists(key);
     return exists === 1;
@@ -36,7 +26,7 @@ export class EventDeduplicator {
     source: string,
     ttlSeconds = 86_400
   ): Promise<boolean> {
-    const client = await this.getClient();
+    const client = await getRedisClient();
     const key = `webhook:processed:${source}:${eventId}`;
     const result = await client.set(key, Date.now().toString(), {
       EX: ttlSeconds,
@@ -53,7 +43,7 @@ export class EventDeduplicator {
     source: string,
     ttlSeconds = 86_400
   ): Promise<{ isDuplicate: boolean; marked: boolean }> {
-    const client = await this.getClient();
+    const client = await getRedisClient();
     const key = `webhook:processed:${source}:${eventId}`;
 
     // Try to set with NX (only if not exists)
@@ -72,7 +62,7 @@ export class EventDeduplicator {
    * Remove event from processed set (for replay)
    */
   async unmark(eventId: string, source: string): Promise<boolean> {
-    const client = await this.getClient();
+    const client = await getRedisClient();
     const key = `webhook:processed:${source}:${eventId}`;
     const deleted = await client.del(key);
     return deleted > 0;
@@ -82,7 +72,7 @@ export class EventDeduplicator {
    * Get count of processed events for a source
    */
   async getProcessedCount(source: string): Promise<number> {
-    const client = await this.getClient();
+    const client = await getRedisClient();
     const pattern = `webhook:processed:${source}:*`;
     const keys = await client.keys(pattern);
     return keys.length;

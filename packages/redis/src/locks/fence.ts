@@ -1,4 +1,3 @@
-import type { RedisClientType } from "redis";
 import { getRedisClient } from "../client";
 
 /**
@@ -25,33 +24,39 @@ import { getRedisClient } from "../client";
  * ```
  */
 export class Fence {
-  private client: RedisClientType | null = null;
-
-  private async getClient(): Promise<RedisClientType> {
-    if (!this.client) {
-      this.client = await getRedisClient();
-    }
-    return this.client;
-  }
-
   /**
    * Acquire a fence token for a connector
+   *
+   * Uses Lua script to atomically INCR and EXPIRE in a single operation
    *
    * @param connectorId - Unique connector identifier
    * @param ttl - Time-to-live in seconds (default: 3600 = 1 hour)
    * @returns Monotonically increasing fence token
    */
   async acquireFence(connectorId: string, ttl = 3600): Promise<number> {
-    const client = await this.getClient();
+    const client = await getRedisClient();
     const fenceKey = `fence:${connectorId}`;
 
-    // Use Redis INCR for atomic monotonic token generation
-    const token = await client.incr(fenceKey);
+    try {
+      // Atomic INCR + EXPIRE using Lua script
+      const script = `
+        local token = redis.call("incr", KEYS[1])
+        redis.call("expire", KEYS[1], ARGV[1])
+        return token
+      `;
 
-    // Set expiry to prevent stuck fences
-    await client.expire(fenceKey, ttl);
+      const token = await client.eval(script, {
+        keys: [fenceKey],
+        arguments: [ttl.toString()],
+      });
 
-    return token;
+      return Number(token);
+    } catch (error) {
+      console.error("Fence acquisition error:", error);
+      throw new Error(
+        `Failed to acquire fence for connector ${connectorId}: ${error}`
+      );
+    }
   }
 
   /**
@@ -62,7 +67,7 @@ export class Fence {
    * @returns true if token is current, false if stale or fence doesn't exist
    */
   async validateFence(connectorId: string, token: number): Promise<boolean> {
-    const client = await this.getClient();
+    const client = await getRedisClient();
     const fenceKey = `fence:${connectorId}`;
 
     try {
@@ -90,7 +95,7 @@ export class Fence {
    * @returns true if released successfully, false otherwise
    */
   async releaseFence(connectorId: string, token: number): Promise<boolean> {
-    const client = await this.getClient();
+    const client = await getRedisClient();
     const fenceKey = `fence:${connectorId}`;
 
     try {
@@ -123,7 +128,7 @@ export class Fence {
    * @returns true if fence exists, false otherwise
    */
   async isFenced(connectorId: string): Promise<boolean> {
-    const client = await this.getClient();
+    const client = await getRedisClient();
     const fenceKey = `fence:${connectorId}`;
 
     try {
@@ -142,7 +147,7 @@ export class Fence {
    * @returns Current token or null if no fence exists
    */
   async getCurrentToken(connectorId: string): Promise<number | null> {
-    const client = await this.getClient();
+    const client = await getRedisClient();
     const fenceKey = `fence:${connectorId}`;
 
     try {
@@ -162,7 +167,7 @@ export class Fence {
    * @returns true if deleted, false otherwise
    */
   async forceRelease(connectorId: string): Promise<boolean> {
-    const client = await this.getClient();
+    const client = await getRedisClient();
     const fenceKey = `fence:${connectorId}`;
 
     try {
@@ -188,7 +193,7 @@ export class Fence {
     token: number,
     ttl: number
   ): Promise<boolean> {
-    const client = await this.getClient();
+    const client = await getRedisClient();
     const fenceKey = `fence:${connectorId}`;
 
     try {
