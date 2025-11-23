@@ -1,6 +1,7 @@
 import prisma, {
   AppType,
   ConnectorStatus,
+  createDefaultSyncJobs,
   getConnectorWithCredentials,
 } from "@openplane/db";
 import {
@@ -191,6 +192,9 @@ export class SlackAuth implements IntegrationAuth {
             app: AppType.SLACK,
           },
         });
+
+        // Create default sync jobs (full + incremental)
+        await createDefaultSyncJobs(tx, connector.id);
 
         return connector;
       });
