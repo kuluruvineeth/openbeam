@@ -1,5 +1,5 @@
 import { Queue } from "bullmq";
-import { getRedisConnection } from "../client";
+import { getSharedBullMqConnection } from "../client";
 
 export const CLEANUP_QUEUE_NAME = "cleanup";
 
@@ -13,7 +13,7 @@ export interface CleanupJobData {
  * Handles daily cleanup operations like removing old jobs, expired data, etc.
  */
 export const cleanupQueue = new Queue<CleanupJobData>(CLEANUP_QUEUE_NAME, {
-  connection: getRedisConnection(),
+  connection: getSharedBullMqConnection(),
   defaultJobOptions: {
     attempts: 3,
     backoff: {
@@ -25,29 +25,41 @@ export const cleanupQueue = new Queue<CleanupJobData>(CLEANUP_QUEUE_NAME, {
   },
 });
 
-export const createRepeatableCleanupJob = async (cron: string) => {
-  await cleanupQueue.add(
-    "daily-cleanup",
-    { type: "DAILY_CLEANUP", triggeredAt: Date.now() },
+export const createRepeatableCleanupJob = async (
+  cron: string
+): Promise<string> => {
+  const schedulerId = "daily-cleanup";
+
+  await cleanupQueue.upsertJobScheduler(
+    schedulerId,
     {
-      repeat: {
-        pattern: cron,
+      pattern: cron,
+    },
+    {
+      name: "daily-cleanup",
+      data: {
+        type: "DAILY_CLEANUP",
+        triggeredAt: Date.now(),
       },
-      jobId: "daily-cleanup", // Singleton job ID
     }
   );
+
+  return schedulerId;
 };
 
-export const removeRepeatableCleanupJob = async () => {
-  // BullMQ repeatable jobs are identified by key.
-  // Simplest way is to get repeatable jobs and remove them.
-  const repeatableJobs = await cleanupQueue.getRepeatableJobs();
-  for (const job of repeatableJobs) {
-    if (job.id === "daily-cleanup") {
-      // Check ID match if possible, or key
-      // Actually, removeRepeatableByKey is better if we know the key,
-      // but for now let's iterate.
-      await cleanupQueue.removeRepeatableByKey(job.key);
-    }
+export const removeRepeatableCleanupJob = async (): Promise<void> => {
+  const schedulerId = "daily-cleanup";
+  try {
+    await cleanupQueue.removeJobScheduler(schedulerId);
+  } catch (error) {
+    // Job scheduler might not exist, that's okay
+    console.warn(
+      `Failed to remove cleanup job scheduler ${schedulerId}:`,
+      error
+    );
   }
 };
+
+export async function closeCleanupQueue(): Promise<void> {
+  await cleanupQueue.close();
+}

@@ -6,7 +6,7 @@
  */
 
 import { Queue } from "bullmq";
-import { getRedisConnection } from "../client";
+import { getSharedBullMqConnection } from "../client";
 
 export interface WebhookJobData {
   connectorId: string;
@@ -18,7 +18,7 @@ export interface WebhookJobData {
 }
 
 export const webhookQueue = new Queue<WebhookJobData>("webhook", {
-  connection: getRedisConnection(),
+  connection: getSharedBullMqConnection(),
   defaultJobOptions: {
     attempts: 3,
     backoff: {
@@ -61,4 +61,8 @@ export async function getWebhookQueueMetrics() {
       (counts.completed || 0) +
       (counts.failed || 0),
   };
+}
+
+export async function closeWebhookQueue(): Promise<void> {
+  await webhookQueue.close();
 }
