@@ -116,7 +116,7 @@ schema openplane_document {
       # JSON array of attachment metadata
     }
     
-    field metadata type json {
+    field metadata type string {
       indexing: summary | attribute
     }
     
