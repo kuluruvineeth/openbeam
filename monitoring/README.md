@@ -6,6 +6,10 @@ Professional monitoring setup for OpenPlane using Prometheus and Grafana.
 
 - **Prometheus**: Metrics collection and storage (Port 9090)
 - **Grafana**: Visualization and dashboards (Port 3002)
+- **Jaeger**: Distributed tracing UI (Port 16686)
+- **Worker Metrics**: Prometheus metrics endpoint (Port 9091)
+- **Redis Exporter**: Redis metrics for Prometheus (Port 9121)
+- **BullBoard**: Queue management UI (Port 3000/admin/queues)
 
 ## Quick Start
 

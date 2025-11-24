@@ -1,6 +1,6 @@
 model ApiKey {
   id             String   @id @default(cuid()) @map("_id")
-  organizationId String
+  teamId         String
   name           String   // Human-readable name for the key
   keyHash        String   @unique // Hashed API key (never store plaintext)
   prefix         String   // First 8 chars of key for identification (e.g., "op_abc123")
@@ -12,9 +12,9 @@ model ApiKey {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
-  @@index([organizationId])
+  @@index([teamId])
   @@index([keyHash])
   @@index([prefix])
   @@map("api_key")

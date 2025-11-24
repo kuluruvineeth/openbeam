@@ -6,15 +6,17 @@ model User {
   image                 String?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
-  lastActiveOrganizationId String?
+  teamId                String?
   sessions              Session[]
   accounts              Account[]
-  members               Member[]
-  sentInvitations       Invitation[]         @relation("SentInvitations")
+  usersOnTeam           UsersOnTeam[]
+  sentInvites           UserInvite[]         @relation("SentInvites")
+  team                  Team?                @relation(fields: [teamId], references: [id], onDelete: SetNull)
   connectors            Connector[]
   externalIdentities    ExternalIdentity[]
   
   @@unique([email])
+  @@index([teamId])
   @@map("user")
 }
 
@@ -28,7 +30,6 @@ model Session {
   userAgent String?
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  activeOrganizationId   String?
 
   @@unique([token])
   @@index([userId])

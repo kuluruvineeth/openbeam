@@ -97,11 +97,81 @@ else
 fi
 
 echo ""
+echo "Worker Metrics"
+echo "--------------"
+echo -n "Checking worker /metrics endpoint... "
+if curl -sf "http://localhost:9091/metrics" > /dev/null 2>&1; then
+    echo -e "${GREEN}✓ Worker metrics endpoint reachable${NC}"
+else
+    echo -e "${RED}✗ Unable to reach worker metrics endpoint${NC}"
+fi
+
+echo -n "Validating worker metrics... "
+WORKER_METRICS=$(curl -s "http://localhost:9091/metrics" 2>/dev/null || echo "")
+if echo "$WORKER_METRICS" | grep -q "sync_jobs_total"; then
+    echo -e "${GREEN}✓ sync_jobs_total exposed${NC}"
+else
+    echo -e "${YELLOW}⚠ sync_jobs_total missing${NC}"
+fi
+
+if echo "$WORKER_METRICS" | grep -q "sync_queue_depth"; then
+    echo -e "${GREEN}✓ sync_queue_depth exposed${NC}"
+else
+    echo -e "${YELLOW}⚠ sync_queue_depth missing${NC}"
+fi
+
+if echo "$WORKER_METRICS" | grep -q "scheduled_jobs_total"; then
+    echo -e "${GREEN}✓ scheduled_jobs_total exposed${NC}"
+else
+    echo -e "${YELLOW}⚠ scheduled_jobs_total missing${NC}"
+fi
+
+echo ""
+echo "Redis Exporter"
+echo "--------------"
+echo -n "Checking redis-exporter /metrics endpoint... "
+if curl -sf "http://localhost:9121/metrics" > /dev/null 2>&1; then
+    echo -e "${GREEN}✓ Redis exporter reachable${NC}"
+else
+    echo -e "${RED}✗ Unable to reach redis-exporter${NC}"
+fi
+
+echo -n "Validating redis metrics... "
+REDIS_METRICS=$(curl -s "http://localhost:9121/metrics" 2>/dev/null || echo "")
+if echo "$REDIS_METRICS" | grep -q "redis_memory_used_bytes"; then
+    echo -e "${GREEN}✓ redis_memory_used_bytes exposed${NC}"
+else
+    echo -e "${YELLOW}⚠ redis_memory_used_bytes missing${NC}"
+fi
+
+echo ""
+echo "Queue Management"
+echo "----------------"
+echo -n "Checking BullBoard UI... "
+if curl -sf "http://localhost:3000/admin/queues" > /dev/null 2>&1; then
+    echo -e "${GREEN}✓ BullBoard accessible${NC}"
+else
+    echo -e "${YELLOW}⚠ BullBoard not accessible (requires authentication)${NC}"
+fi
+
+echo ""
+echo "Distributed Tracing"
+echo "-------------------"
+echo -n "Checking Jaeger UI... "
+if curl -sf "http://localhost:16686" > /dev/null 2>&1; then
+    echo -e "${GREEN}✓ Jaeger UI accessible${NC}"
+else
+    echo -e "${YELLOW}⚠ Jaeger not accessible${NC}"
+fi
+
+echo ""
 echo "Monitoring test complete."
 echo "Next steps:"
 echo "  1. Grafana: http://localhost:3002 (admin/admin)"
 echo "  2. Prometheus: http://localhost:9090"
 echo "  3. Targets: http://localhost:9090/targets"
-echo "  4. Dashboard: OpenPlane Command Center"
+echo "  4. BullBoard: http://localhost:3000/admin/queues"
+echo "  5. Jaeger: http://localhost:16686"
+echo "  6. Dashboard: OpenPlane Command Center"
 echo ""
 

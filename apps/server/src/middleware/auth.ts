@@ -2,7 +2,7 @@ import { auth } from "@openplane/auth";
 import { createMiddleware } from "hono/factory";
 import type { AuthContext } from "../types/auth";
 import {
-  getOrganizationId as getOrgId,
+  getTeamId as getTeamIdFromContext,
   hasRequiredScopes,
 } from "../types/auth";
 
@@ -10,10 +10,7 @@ type SessionResponse = Awaited<ReturnType<typeof auth.api.getSession>>;
 type User = NonNullable<SessionResponse>["user"];
 type BaseSession = NonNullable<SessionResponse>["session"];
 
-// Extend the session type to include organization plugin fields
-type ExtendedSession = BaseSession & {
-  activeOrganizationId?: string | null;
-};
+type ExtendedSession = BaseSession;
 
 export type AuthEnv = {
   Variables: {
@@ -38,17 +35,28 @@ export const sessionMiddleware = createMiddleware<AuthEnv>(async (c, next) => {
     c.set("user", sessionData.user);
     c.set("session", sessionData.session as ExtendedSession);
 
+    // Get user's teamId from database
+    const prisma = await import("@openplane/db").then((m) => m.default);
+    const user = await prisma.user.findUnique({
+      where: { id: sessionData.user.id },
+      select: { teamId: true },
+    });
+
     // Set session auth context
-    const session = sessionData.session as ExtendedSession;
-    if (session.activeOrganizationId) {
+    if (user?.teamId) {
       c.set("authContext", {
         type: "session",
         userId: sessionData.user.id,
-        organizationId: session.activeOrganizationId,
+        teamId: user.teamId,
         email: sessionData.user.email,
       });
     } else {
-      c.set("authContext", { type: "none" });
+      c.set("authContext", {
+        type: "session",
+        userId: sessionData.user.id,
+        teamId: null,
+        email: sessionData.user.email,
+      });
     }
   } else {
     c.set("user", null);
@@ -118,13 +126,24 @@ export function requireScopes(scopes: string[]) {
 }
 
 /**
- * Get organization ID from auth context
+ * Get team ID from auth context
+ */
+export function getTeamId(c: {
+  get: <K extends keyof AuthEnv["Variables"]>(
+    key: K
+  ) => AuthEnv["Variables"][K];
+}): string | null {
+  const authContext = c.get("authContext");
+  return getTeamIdFromContext(authContext);
+}
+
+/**
+ * @deprecated Use getTeamId instead
  */
 export function getOrganizationId(c: {
   get: <K extends keyof AuthEnv["Variables"]>(
     key: K
   ) => AuthEnv["Variables"][K];
 }): string | null {
-  const authContext = c.get("authContext");
-  return getOrgId(authContext);
+  return getTeamId(c);
 }

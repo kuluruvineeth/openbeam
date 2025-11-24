@@ -5,7 +5,7 @@ import { type GenericDocument, vespaClient } from "@openplane/vespa";
  */
 export interface SearchParams {
   query: string;
-  organizationId: string;
+  teamId: string;
   connectorType?: string;
   connectorId?: string;
   documentType?: string;
@@ -85,13 +85,13 @@ export class SearchService {
    */
   async searchThread(
     threadId: string,
-    organizationId: string,
+    teamId: string,
     accessControlIds?: string[]
   ): Promise<GenericDocument[]> {
     const yql = `select * from openplane_document where thread_id contains "${escapeYqlString(
       threadId
-    )}" and organization_id contains "${escapeYqlString(
-      organizationId
+    )}" and team_id contains "${escapeYqlString(
+      teamId
     )}" and ${this.buildAccessControlClause(
       accessControlIds
     )} order by created_at asc`;
@@ -110,7 +110,7 @@ export class SearchService {
    */
   async findSimilar(
     documentId: string,
-    organizationId: string,
+    teamId: string,
     limit = 10,
     accessControlIds?: string[]
   ): Promise<GenericDocument[]> {
@@ -125,8 +125,8 @@ export class SearchService {
     }
 
     // Use vector similarity search
-    const yql = `select * from openplane_document where {targetHits:${limit}}nearestNeighbor(content_embedding, query_embedding) and organization_id contains "${escapeYqlString(
-      organizationId
+    const yql = `select * from openplane_document where {targetHits:${limit}}nearestNeighbor(content_embedding, query_embedding) and team_id contains "${escapeYqlString(
+      teamId
     )}" and ${this.buildAccessControlClause(accessControlIds)}`;
 
     const result = await vespaClient.query({
@@ -142,15 +142,15 @@ export class SearchService {
    * Get recent documents
    */
   async getRecentDocuments(
-    organizationId: string,
+    teamId: string,
     hours = 24,
     limit = 20,
     accessControlIds?: string[]
   ): Promise<GenericDocument[]> {
     const fromDate = Date.now() - hours * 60 * 60 * 1000;
 
-    const yql = `select * from openplane_document where organization_id contains "${escapeYqlString(
-      organizationId
+    const yql = `select * from openplane_document where team_id contains "${escapeYqlString(
+      teamId
     )}" and created_at >= ${fromDate} and ${this.buildAccessControlClause(
       accessControlIds
     )} order by created_at desc limit ${limit}`;
@@ -169,14 +169,14 @@ export class SearchService {
    */
   async searchByAuthor(
     authorId: string,
-    organizationId: string,
+    teamId: string,
     limit = 50,
     accessControlIds?: string[]
   ): Promise<GenericDocument[]> {
     const yql = `select * from openplane_document where author_id contains "${escapeYqlString(
       authorId
-    )}" and organization_id contains "${escapeYqlString(
-      organizationId
+    )}" and team_id contains "${escapeYqlString(
+      teamId
     )}" and ${this.buildAccessControlClause(
       accessControlIds
     )} order by created_at desc limit ${limit}`;
@@ -195,14 +195,14 @@ export class SearchService {
    */
   async autocomplete(
     prefix: string,
-    organizationId: string,
+    teamId: string,
     limit = 10,
     accessControlIds?: string[]
   ): Promise<Array<{ id: string; title: string; documentType: string }>> {
     const yql = `select id, title, document_type from openplane_document where title contains "${escapeYqlString(
       prefix
-    )}" and organization_id contains "${escapeYqlString(
-      organizationId
+    )}" and team_id contains "${escapeYqlString(
+      teamId
     )}" and ${this.buildAccessControlClause(accessControlIds)} limit ${limit}`;
 
     const result = await vespaClient.query({
@@ -231,8 +231,8 @@ export class SearchService {
       conditions.push(`${field} contains "${escapeYqlString(value)}"`);
     };
 
-    // Organization filter (always required)
-    pushContains("organization_id", params.organizationId);
+    // Team filter (always required)
+    pushContains("team_id", params.teamId);
 
     // Full-text search
     if (params.query) {

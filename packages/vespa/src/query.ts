@@ -5,7 +5,7 @@
 
 export interface QueryBuilderOptions {
   query?: string;
-  organizationId: string;
+  teamId: string;
   connectorType?: string;
   documentType?: string;
   sourceId?: string;
@@ -24,10 +24,8 @@ export interface QueryBuilderOptions {
 export function buildQuery(options: QueryBuilderOptions): string {
   const conditions: string[] = [];
 
-  // Organization filter (required)
-  conditions.push(
-    `organization_id contains "${escapeQuery(options.organizationId)}"`
-  );
+  // Team filter (required)
+  conditions.push(`team_id contains "${escapeQuery(options.teamId)}"`);
 
   // Full-text search
   if (options.query) {
@@ -108,28 +106,23 @@ function escapeQuery(query: string): string {
 /**
  * Build a query for searching within a specific thread
  */
-export function buildThreadQuery(
-  threadId: string,
-  organizationId: string
-): string {
+export function buildThreadQuery(threadId: string, teamId: string): string {
   return `select * from openplane_document where thread_id contains "${escapeQuery(
     threadId
-  )}" and organization_id contains "${escapeQuery(
-    organizationId
-  )}" order by created_at asc`;
+  )}" and team_id contains "${escapeQuery(teamId)}" order by created_at asc`;
 }
 
 /**
  * Build a query for recent documents
  */
 export function buildRecentQuery(
-  organizationId: string,
+  teamId: string,
   limit = 20,
   hours = 24
 ): string {
   const fromDate = Date.now() - hours * 60 * 60 * 1000;
-  return `select * from openplane_document where organization_id contains "${escapeQuery(
-    organizationId
+  return `select * from openplane_document where team_id contains "${escapeQuery(
+    teamId
   )}" and created_at >= ${fromDate} order by created_at desc limit ${limit}`;
 }
 
@@ -138,13 +131,13 @@ export function buildRecentQuery(
  */
 export function buildAuthorQuery(
   authorId: string,
-  organizationId: string,
+  teamId: string,
   limit = 50
 ): string {
   return `select * from openplane_document where author_id contains "${escapeQuery(
     authorId
-  )}" and organization_id contains "${escapeQuery(
-    organizationId
+  )}" and team_id contains "${escapeQuery(
+    teamId
   )}" order by created_at desc limit ${limit}`;
 }
 
@@ -153,7 +146,7 @@ export function buildAuthorQuery(
  */
 export function buildSimilarQuery(
   embedding: number[],
-  organizationId: string,
+  teamId: string,
   limit = 10
 ): {
   yql: string;
@@ -164,8 +157,8 @@ export function buildSimilarQuery(
     throw new Error("Embedding is required for similarity search");
   }
 
-  const yql = `select * from openplane_document where {targetHits:${limit}}nearestNeighbor(content_embedding, query_embedding) and organization_id contains "${escapeQuery(
-    organizationId
+  const yql = `select * from openplane_document where {targetHits:${limit}}nearestNeighbor(content_embedding, query_embedding) and team_id contains "${escapeQuery(
+    teamId
   )}"`;
 
   return {

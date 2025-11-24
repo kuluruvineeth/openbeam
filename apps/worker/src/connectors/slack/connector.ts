@@ -261,7 +261,7 @@ export class SlackConnector extends BaseConnector {
       id: `${metadata.connectorId}_${channel.id}_${message.ts}`,
       connector_id: metadata.connectorId,
       connector_type: metadata.connectorType,
-      organization_id: metadata.organizationId,
+      team_id: metadata.teamId,
       workspace_id: metadata.workspaceId,
       external_id: message.ts,
       document_type: "message",

@@ -92,18 +92,21 @@ Our automated pipeline ensures quality and efficiency:
 
 1. **CI** - Linting, type checking, and builds on every push
 2. **Docker** - Builds and pushes images to GHCR after CI succeeds
-3. **Deploy** - Automatically deploys to Render via webhooks
+3. **Security** - Trivy vulnerability scanning and SBOM generation
+4. **Deploy** - Images are ready for deployment to any platform
 
-The pipeline intelligently builds only services with changes, optimizing build times.
+The pipeline intelligently builds only services with changes (server, web, fumadocs, worker), optimizing build times. Multi-platform builds (linux/amd64, linux/arm64) ensure broad compatibility.
 
 ## Deployment
 
-Deploy to Render using the included Blueprint:
+OpenPlane can be deployed using:
 
-1. Connect your GitHub repository to Render
-2. Apply the `render.yaml` Blueprint
-3. Configure environment variables
-4. Set up GitHub Container Registry credentials
+- **Docker Compose** (local/single-node): `docker-compose up -d`
+- **Kubernetes** (production): Helm charts in `infra/k8s/`
+- **GCP** (cloud): Terraform modules in `infra/terraform/`
+- **Self-Hosted**: See comprehensive guides in `docs/self-hosting/`
+
+All images are published to GitHub Container Registry and include security scanning results.
 
 ## Contributing
 

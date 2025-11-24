@@ -4,8 +4,8 @@ import {
   createConnector,
   deleteConnector,
   findConnectorById,
-  findConnectorByOrg,
-  listConnectorsByOrg,
+  findConnectorByTeam,
+  listConnectorsByTeam,
   pauseConnector as pauseConnectorDb,
   resumeConnector as resumeConnectorDb,
   updateConnectorConfig,
@@ -15,7 +15,7 @@ import { appStore } from "@openplane/integrations";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter } from "../../index";
-import { verifyConnectorAccess, withActiveOrg } from "./middleware";
+import { verifyConnectorAccess, withActiveTeam } from "./middleware";
 import {
   appIdSchema,
   createConnectorSchema,
@@ -24,10 +24,10 @@ import {
 import { cleanupRepeatableJobs, recreateRepeatableJobs } from "./utils";
 
 export const connectorsRouter = createTRPCRouter({
-  list: withActiveOrg.query(async ({ ctx }) => {
-    const installedConnectors = await listConnectorsByOrg(
+  list: withActiveTeam.query(async ({ ctx }) => {
+    const installedConnectors = await listConnectorsByTeam(
       ctx.prisma,
-      ctx.orgId
+      ctx.teamId
     );
 
     return appStore.map((app) => {
@@ -50,7 +50,7 @@ export const connectorsRouter = createTRPCRouter({
     });
   }),
 
-  get: withActiveOrg
+  get: withActiveTeam
     .input(z.object({ appId: z.string().min(1) }))
     .query(async ({ ctx, input }) => {
       const appDefinition = appStore.find((a) => a.id === input.appId);
@@ -62,7 +62,7 @@ export const connectorsRouter = createTRPCRouter({
           true
         );
 
-        if (!connector || connector.organizationId !== ctx.orgId) {
+        if (!connector || connector.teamId !== ctx.teamId) {
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Connector not found or unauthorized",
@@ -72,9 +72,9 @@ export const connectorsRouter = createTRPCRouter({
         return { ...connector };
       }
 
-      const connector = await findConnectorByOrg(
+      const connector = await findConnectorByTeam(
         ctx.prisma,
-        ctx.orgId,
+        ctx.teamId,
         appDefinition.id as unknown as AppType
       );
 
@@ -84,11 +84,11 @@ export const connectorsRouter = createTRPCRouter({
       };
     }),
 
-  connect: withActiveOrg
+  connect: withActiveTeam
     .input(createConnectorSchema)
     .mutation(async ({ ctx, input }) => {
       const connectorInput: CreateConnectorInput = {
-        organizationId: ctx.orgId,
+        teamId: ctx.teamId,
         userId: ctx.session.user.id,
         app: input.appId,
         workspaceExternalId: input.workspaceExternalId,
@@ -101,18 +101,18 @@ export const connectorsRouter = createTRPCRouter({
       return await createConnector(ctx.prisma, connectorInput);
     }),
 
-  disconnect: withActiveOrg
+  disconnect: withActiveTeam
     .input(appIdSchema)
     .mutation(async ({ ctx, input }) => {
-      await verifyConnectorAccess(ctx.prisma, input.appId, ctx.orgId);
+      await verifyConnectorAccess(ctx.prisma, input.appId, ctx.teamId);
       await cleanupRepeatableJobs(input.appId);
       return await deleteConnector(ctx.prisma, input.appId);
     }),
 
-  updateSettings: withActiveOrg
+  updateSettings: withActiveTeam
     .input(updateSettingsSchema)
     .mutation(async ({ ctx, input }) => {
-      await verifyConnectorAccess(ctx.prisma, input.appId, ctx.orgId);
+      await verifyConnectorAccess(ctx.prisma, input.appId, ctx.teamId);
       return await updateConnectorConfig(
         ctx.prisma,
         input.appId,
@@ -120,18 +120,18 @@ export const connectorsRouter = createTRPCRouter({
       );
     }),
 
-  pause: withActiveOrg
+  pause: withActiveTeam
     .input(z.object({ connectorId: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
-      await verifyConnectorAccess(ctx.prisma, input.connectorId, ctx.orgId);
+      await verifyConnectorAccess(ctx.prisma, input.connectorId, ctx.teamId);
       await cleanupRepeatableJobs(input.connectorId);
       return pauseConnectorDb(ctx.prisma, input.connectorId);
     }),
 
-  resume: withActiveOrg
+  resume: withActiveTeam
     .input(z.object({ connectorId: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
-      await verifyConnectorAccess(ctx.prisma, input.connectorId, ctx.orgId);
+      await verifyConnectorAccess(ctx.prisma, input.connectorId, ctx.teamId);
       const result = await resumeConnectorDb(ctx.prisma, input.connectorId);
       await recreateRepeatableJobs(ctx.prisma, input.connectorId);
       return result;

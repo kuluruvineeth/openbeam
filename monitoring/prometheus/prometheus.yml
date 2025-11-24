@@ -47,3 +47,25 @@ scrape_configs:
     metrics_path: /metrics
     static_configs:
       - targets: ["server:3000"]
+        labels:
+          service: "server"
+          component: "api"
+
+  # Worker metrics
+  - job_name: "worker"
+    scrape_interval: 15s
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["worker:9091"]
+        labels:
+          service: "worker"
+          component: "background-processor"
+
+  # Redis exporter metrics
+  - job_name: "redis-exporter"
+    scrape_interval: 15s
+    static_configs:
+      - targets: ["redis-exporter:9121"]
+        labels:
+          service: "redis"
+          component: "cache-queue"

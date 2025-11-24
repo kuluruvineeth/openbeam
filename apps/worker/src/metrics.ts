@@ -179,6 +179,37 @@ export const queueProcessingLag = new Gauge({
   registers: [register],
 });
 
+// Scheduled Jobs Metrics
+export const scheduledJobsTotal = new Gauge({
+  name: "scheduled_jobs_total",
+  help: "Number of repeatable scheduled jobs",
+  labelNames: ["queue"],
+  registers: [register],
+});
+
+// Rate Limit Usage Metrics
+export const rateLimitUsage = new Gauge({
+  name: "rate_limit_usage_ratio",
+  help: "Rate limit usage ratio (0-1)",
+  labelNames: ["connector_id", "window"],
+  registers: [register],
+});
+
+// Redis Connection Metrics
+export const redisConnectionsTotal = new Gauge({
+  name: "redis_connections_total",
+  help: "Total number of Redis connections",
+  labelNames: ["type"],
+  registers: [register],
+});
+
+export const redisConnectionStatus = new Gauge({
+  name: "redis_connection_status",
+  help: "Redis connection status (1 = connected, 0 = disconnected)",
+  labelNames: ["type"],
+  registers: [register],
+});
+
 // Metrics server
 let metricsServer: ReturnType<typeof Bun.serve> | null = null;
 

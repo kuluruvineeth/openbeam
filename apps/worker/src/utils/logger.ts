@@ -27,7 +27,7 @@ export const logger = pino({
 export function createJobLogger(context: {
   jobId?: string;
   connectorId?: string;
-  organizationId?: string;
+  teamId?: string;
   syncType?: string;
 }) {
   return logger.child(context);

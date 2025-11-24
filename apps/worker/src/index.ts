@@ -1,3 +1,12 @@
+// IMPORTANT: instrumentation must be imported FIRST to properly instrument modules
+import "./instrumentation";
+import {
+  closeCleanupQueue,
+  closeIndexQueue,
+  closeSharedBullMqConnection,
+  closeSyncQueue,
+  closeWebhookQueue,
+} from "@openplane/redis";
 import { startHealthServer, stopHealthServer } from "./health";
 import { startMetricsServer, stopMetricsServer } from "./metrics";
 import { CleanupProcessor } from "./processors/cleanup-processor";
@@ -7,6 +16,7 @@ import { WebhookProcessor } from "./processors/webhook-processor";
 import { CleanupScheduler } from "./schedulers/cleanup-scheduler";
 import { SyncScheduler } from "./schedulers/sync-scheduler";
 import logger from "./utils/logger";
+import { metricsPoller } from "./utils/metrics-poller";
 
 /**
  * OpenPlane Worker
@@ -39,7 +49,7 @@ class WorkerService {
     this.cleanupProcessor = new CleanupProcessor();
 
     // Initialize and start schedulers
-    this.syncScheduler = new SyncScheduler(3_600_000); // Check every 1 hour
+    this.syncScheduler = new SyncScheduler();
     this.cleanupScheduler = new CleanupScheduler("0 2 * * *"); // Daily at 2 AM
 
     this.syncScheduler.start().catch((error) => {
@@ -59,6 +69,9 @@ class WorkerService {
       logger.error({ error }, "Failed to start health server");
     });
 
+    // Start metrics poller
+    metricsPoller.start();
+
     logger.info("OpenPlane Worker started successfully");
     logger.info(
       {
@@ -70,6 +83,7 @@ class WorkerService {
           cleanupProcessor: "running",
           metricsServer: "running",
           healthServer: "running",
+          metricsPoller: "running",
         },
       },
       "All worker components initialized"
@@ -82,6 +96,9 @@ class WorkerService {
   async shutdown(): Promise<void> {
     logger.info("Shutting down OpenPlane Worker...");
 
+    // Stop metrics poller
+    metricsPoller.stop();
+
     await Promise.all([
       this.syncScheduler.stop(),
       this.cleanupScheduler.stop(),
@@ -91,6 +108,14 @@ class WorkerService {
       this.cleanupProcessor.close(),
       stopMetricsServer(),
       stopHealthServer(),
+    ]);
+
+    await Promise.allSettled([
+      closeSyncQueue(),
+      closeIndexQueue(),
+      closeWebhookQueue(),
+      closeCleanupQueue(),
+      closeSharedBullMqConnection(),
     ]);
 
     logger.info("OpenPlane Worker shut down successfully");

@@ -16,8 +16,6 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
-    # networks:
-    #   - openplane-network
 
   redis:
     image: redis:8.4.0-alpine
@@ -33,8 +31,30 @@ services:
       timeout: 3s
       retries: 5
     restart: unless-stopped
-    # networks:
-    #   - openplane-network
+
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.58.0-alpine
+    container_name: openplane-redis-exporter
+    environment:
+      REDIS_ADDR: redis:6379
+      REDIS_EXPORTER_CHECK_KEYS: "ratelimit:*,jobSchedulerKeys:*"
+    ports:
+      - "9121:9121"
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.54
+    container_name: openplane-jaeger
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "16686:16686" # Jaeger UI
+      - "4318:4318" # OTLP HTTP receiver
+      - "4317:4317" # OTLP gRPC receiver
+    restart: unless-stopped
 
   vespa:
     image: vespaengine/vespa:8
@@ -59,124 +79,123 @@ services:
       start_period: 120s
       retries: 5
     restart: unless-stopped
-    # networks:
-    #   - openplane-network
 
-  worker:
-    build:
-      context: .
-      dockerfile: apps/worker/Dockerfile
-    container_name: openplane-worker
-    environment:
-      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/openplane}
-      REDIS_URL: redis://redis:6379
-      VESPA_URL: http://vespa:8080
-      NODE_ENV: ${NODE_ENV:-production}
-      LOG_LEVEL: ${LOG_LEVEL:-info}
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      vespa:
-        condition: service_healthy
-    restart: unless-stopped
-    # networks:
-    #   - openplane-network
+  # worker:
+  #   build:
+  #     context: .
+  #     dockerfile: apps/worker/Dockerfile
+  #   container_name: openplane-worker
+  #   environment:
+  #     DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/openplane}
+  #     REDIS_URL: redis://redis:6379
+  #     VESPA_URL: http://vespa:8080
+  #     NODE_ENV: ${NODE_ENV:-production}
+  #     LOG_LEVEL: ${LOG_LEVEL:-info}
+  #     OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318/v1/traces
+  #     APP_VERSION: ${APP_VERSION:-0.1.0}
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #     vespa:
+  #       condition: service_healthy
+  #     jaeger:
+  #       condition: service_started
+  #   restart: unless-stopped
 
-  server:
-    build:
-      context: .
-      dockerfile: Dockerfile.server
-    container_name: openplane-server
-    environment:
-      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/openplane}
-      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3001}
-      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
-      VESPA_URL: ${VESPA_URL:-http://vespa:8080}
-      NODE_ENV: ${NODE_ENV:-production}
-    ports:
-      - "${SERVER_PORT:-3000}:3000"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    # networks:
-    #   - openplane-network
-    restart: unless-stopped
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "bun",
-          "run",
-          "-e",
-          "fetch('http://localhost:3000/').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))",
-        ]
-      interval: 30s
-      timeout: 3s
-      start_period: 10s
-      retries: 3
-    entrypoint:
-      [
-        "/bin/sh",
-        "-c",
-        "/app/scripts/migrate.sh && cd /app/apps/server && bun run dist/index.js",
-      ]
+  # server:
+  #   build:
+  #     context: .
+  #     dockerfile: apps/server/Dockerfile
+  #   container_name: openplane-server
+  #   environment:
+  #     DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/openplane}
+  #     CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3001}
+  #     REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+  #     VESPA_URL: ${VESPA_URL:-http://vespa:8080}
+  #     NODE_ENV: ${NODE_ENV:-production}
+  #     OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318/v1/traces
+  #     APP_VERSION: ${APP_VERSION:-0.1.0}
+  #     ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+  #   ports:
+  #     - "${SERVER_PORT:-3000}:3000"
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     jaeger:
+  #       condition: service_started
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test:
+  #       [
+  #         "CMD",
+  #         "bun",
+  #         "run",
+  #         "-e",
+  #         "fetch('http://localhost:3000/').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))",
+  #       ]
+  #     interval: 30s
+  #     timeout: 3s
+  #     start_period: 10s
+  #     retries: 3
+  #   entrypoint:
+  #     [
+  #       "/bin/sh",
+  #       "-c",
+  #       "/app/scripts/migrate.sh && cd /app/apps/server && bun run dist/index.js",
+  #     ]
 
-  web:
-    build:
-      context: .
-      dockerfile: Dockerfile.web
-    container_name: openplane-web
-    environment:
-      NEXT_PUBLIC_SERVER_URL: ${NEXT_PUBLIC_SERVER_URL:-http://localhost:3000}
-      NODE_ENV: ${NODE_ENV:-production}
-    ports:
-      - "${WEB_PORT:-3001}:3001"
-    depends_on:
-      - server
-    # networks:
-    #   - openplane-network
-    restart: unless-stopped
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "bun",
-          "run",
-          "-e",
-          "fetch('http://localhost:3001/').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))",
-        ]
-      interval: 30s
-      timeout: 3s
-      start_period: 10s
-      retries: 3
+  # web:
+  #   build:
+  #     context: .
+  #     dockerfile: apps/web/Dockerfile
+  #   container_name: openplane-web
+  #   environment:
+  #     NEXT_PUBLIC_SERVER_URL: ${NEXT_PUBLIC_SERVER_URL:-http://localhost:3000}
+  #     NODE_ENV: ${NODE_ENV:-production}
+  #   ports:
+  #     - "${WEB_PORT:-3001}:3001"
+  #   depends_on:
+  #     - server
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test:
+  #       [
+  #         "CMD",
+  #         "bun",
+  #         "run",
+  #         "-e",
+  #         "fetch('http://localhost:3001/').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))",
+  #       ]
+  #     interval: 30s
+  #     timeout: 3s
+  #     start_period: 10s
+  #     retries: 3
 
-  fumadocs:
-    build:
-      context: .
-      dockerfile: Dockerfile.fumadocs
-    container_name: openplane-fumadocs
-    environment:
-      NODE_ENV: ${NODE_ENV:-production}
-    ports:
-      - "${FUMADOCS_PORT:-4000}:4000"
-    # networks:
-    #   - openplane-network
-    restart: unless-stopped
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "bun",
-          "run",
-          "-e",
-          "fetch('http://localhost:4000/').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))",
-        ]
-      interval: 30s
-      timeout: 3s
-      start_period: 10s
-      retries: 3
+  # fumadocs:
+  #   build:
+  #     context: .
+  #     dockerfile: apps/fumadocs/Dockerfile
+  #   container_name: openplane-fumadocs
+  #   environment:
+  #     NODE_ENV: ${NODE_ENV:-production}
+  #   ports:
+  #     - "${FUMADOCS_PORT:-4000}:4000"
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test:
+  #       [
+  #         "CMD",
+  #         "bun",
+  #         "run",
+  #         "-e",
+  #         "fetch('http://localhost:4000/').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))",
+  #       ]
+  #     interval: 30s
+  #     timeout: 3s
+  #     start_period: 10s
+  #     retries: 3
 
   vespa-exporter:
     image: quay.io/prometheuscommunity/json-exporter:latest
@@ -279,6 +298,3 @@ volumes:
     driver: local
   grafana_data:
     driver: local
-# networks:
-#   openplane-network:
-#     driver: bridge

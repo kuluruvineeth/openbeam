@@ -241,19 +241,19 @@ export const getSyncHistory = async (
 };
 
 /**
- * Verify connector belongs to organization
+ * Verify connector belongs to team
  */
 export const verifyConnectorOwnership = async (
   db: Database,
   connectorId: string,
-  organizationId: string
-): Promise<{ id: string; status: string; organizationId: string } | null> => {
+  teamId: string
+): Promise<{ id: string; status: string; teamId: string } | null> => {
   const connector = await db.connector.findUnique({
     where: { id: connectorId },
-    select: { id: true, status: true, organizationId: true },
+    select: { id: true, status: true, teamId: true },
   });
 
-  if (!connector || connector.organizationId !== organizationId) {
+  if (!connector || connector.teamId !== teamId) {
     return null;
   }
 

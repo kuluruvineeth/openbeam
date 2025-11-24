@@ -11,7 +11,7 @@ import {
 } from "@openplane/redis";
 import { TRPCError } from "@trpc/server";
 import { createTRPCRouter } from "../../index";
-import { verifyConnectorAccess, withActiveOrg } from "./middleware";
+import { verifyConnectorAccess, withActiveTeam } from "./middleware";
 import {
   getSyncHistorySchema,
   getSyncStatusSchema,
@@ -25,10 +25,10 @@ import {
 } from "./utils";
 
 export const syncRouter = createTRPCRouter({
-  getStatus: withActiveOrg
+  getStatus: withActiveTeam
     .input(getSyncStatusSchema)
     .query(async ({ ctx, input }) => {
-      await verifyConnectorAccess(ctx.prisma, input.connectorId, ctx.orgId);
+      await verifyConnectorAccess(ctx.prisma, input.connectorId, ctx.teamId);
       const syncStatus = await getSyncStatus(ctx.prisma, input.connectorId);
 
       if (!syncStatus) {
@@ -41,10 +41,10 @@ export const syncRouter = createTRPCRouter({
       return syncStatus;
     }),
 
-  getHistory: withActiveOrg
+  getHistory: withActiveTeam
     .input(getSyncHistorySchema)
     .query(async ({ ctx, input }) => {
-      await verifyConnectorAccess(ctx.prisma, input.connectorId, ctx.orgId);
+      await verifyConnectorAccess(ctx.prisma, input.connectorId, ctx.teamId);
       const limit = input.limit;
       const offset = input.cursor ?? input.offset; // Use cursor if available, fallback to offset
 
@@ -59,13 +59,13 @@ export const syncRouter = createTRPCRouter({
       };
     }),
 
-  trigger: withActiveOrg
+  trigger: withActiveTeam
     .input(triggerSyncSchema)
     .mutation(async ({ ctx, input }) => {
       const connector = await verifyConnectorAccess(
         ctx.prisma,
         input.connectorId,
-        ctx.orgId
+        ctx.teamId
       );
 
       // Check if connector is active
@@ -100,10 +100,10 @@ export const syncRouter = createTRPCRouter({
       };
     }),
 
-  updateSettings: withActiveOrg
+  updateSettings: withActiveTeam
     .input(updateSyncSettingsSchema)
     .mutation(async ({ ctx, input }) => {
-      await verifyConnectorAccess(ctx.prisma, input.connectorId, ctx.orgId);
+      await verifyConnectorAccess(ctx.prisma, input.connectorId, ctx.teamId);
       validateSyncIntervals(input);
 
       // Update sync settings in database

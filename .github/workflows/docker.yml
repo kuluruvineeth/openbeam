@@ -38,7 +38,9 @@ jobs:
               - 'packages/api/**'
               - 'packages/auth/**'
               - 'packages/db/**'
+              - 'packages/redis/**'
               - 'Dockerfile.server'
+              - 'apps/server/Dockerfile'
               - 'package.json'
               - 'bun.lock'
               - 'turbo.json'
@@ -48,12 +50,23 @@ jobs:
               - 'packages/auth/**'
               - 'packages/db/**'
               - 'Dockerfile.web'
+              - 'apps/web/Dockerfile'
               - 'package.json'
               - 'bun.lock'
               - 'turbo.json'
             fumadocs:
               - 'apps/fumadocs/**'
               - 'Dockerfile.fumadocs'
+              - 'apps/fumadocs/Dockerfile'
+              - 'package.json'
+              - 'bun.lock'
+              - 'turbo.json'
+            worker:
+              - 'apps/worker/**'
+              - 'packages/redis/**'
+              - 'packages/db/**'
+              - 'packages/vespa/**'
+              - 'apps/worker/Dockerfile'
               - 'package.json'
               - 'bun.lock'
               - 'turbo.json'
@@ -78,6 +91,11 @@ jobs:
 
           if [ "${{ steps.filter.outputs.fumadocs }}" == "true" ] || [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             MATRIX=$(echo $MATRIX | jq '. + ["fumadocs"]')
+            HAS_CHANGES="true"
+          fi
+
+          if [ "${{ steps.filter.outputs.worker }}" == "true" ] || [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            MATRIX=$(echo $MATRIX | jq '. + ["worker"]')
             HAS_CHANGES="true"
           fi
 
@@ -130,41 +148,51 @@ jobs:
             type=sha,prefix={{branch}}-
             type=raw,value=latest,enable={{is_default_branch}}
 
+      - name: Determine Dockerfile path
+        id: dockerfile
+        run: |
+          # Check if Dockerfile exists in app directory (new location)
+          if [ -f "./apps/${{ matrix.service }}/Dockerfile" ]; then
+            echo "path=./apps/${{ matrix.service }}/Dockerfile" >> $GITHUB_OUTPUT
+          else
+            # Fallback to root Dockerfile (old location)
+            echo "path=./Dockerfile.${{ matrix.service }}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Build and push Docker image
+        id: build
         env:
           NEXT_PUBLIC_SERVER_URL: ${{ secrets.NEXT_PUBLIC_SERVER_URL_WEB }}
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./Dockerfile.${{ matrix.service }}
+          file: ${{ steps.dockerfile.outputs.path }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          provenance: true
+          sbom: true
           build-args: |
             NEXT_PUBLIC_SERVER_URL=${{ env.NEXT_PUBLIC_SERVER_URL }}
             HUGEICONS_PRO_AUTH_TOKEN=${{ secrets.HUGEICONS_PRO_AUTH_TOKEN }}
 
-      - name: Trigger Render deployment
-        run: |
-          case "${{ matrix.service }}" in
-            server)
-              WEBHOOK_URL="${{ secrets.RENDER_WEBHOOK_SERVER }}"
-              ;;
-            web)
-              WEBHOOK_URL="${{ secrets.RENDER_WEBHOOK_WEB }}"
-              ;;
-            fumadocs)
-              WEBHOOK_URL="${{ secrets.RENDER_WEBHOOK_DOCS }}"
-              ;;
-          esac
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: "${{ env.REGISTRY }}/${{ github.repository_owner }}/openplane-${{ matrix.service }}:${{ github.sha }}"
+          format: "sarif"
+          output: "trivy-results.sarif"
+          exit-code: "0"
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH"
+          scanners: "vuln,secret,misconfig"
 
-          if [ -n "$WEBHOOK_URL" ]; then
-            echo "Triggering Render deployment for ${{ matrix.service }}..."
-            curl -X POST "$WEBHOOK_URL" || echo "Webhook call failed (service may not be configured yet)"
-          else
-            echo "Render webhook not configured for ${{ matrix.service }}. Skipping deployment trigger."
-            echo "   Add RENDER_WEBHOOK_${{ matrix.service }} secret in GitHub repository settings."
-          fi
+      - name: Upload Trivy results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: "trivy-results.sarif"
