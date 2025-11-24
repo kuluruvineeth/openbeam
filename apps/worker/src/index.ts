@@ -1,5 +1,12 @@
 // IMPORTANT: instrumentation must be imported FIRST to properly instrument modules
 import "./instrumentation";
+import {
+  closeCleanupQueue,
+  closeIndexQueue,
+  closeSharedBullMqConnection,
+  closeSyncQueue,
+  closeWebhookQueue,
+} from "@openplane/redis";
 import { startHealthServer, stopHealthServer } from "./health";
 import { startMetricsServer, stopMetricsServer } from "./metrics";
 import { CleanupProcessor } from "./processors/cleanup-processor";
@@ -101,6 +108,14 @@ class WorkerService {
       this.cleanupProcessor.close(),
       stopMetricsServer(),
       stopHealthServer(),
+    ]);
+
+    await Promise.allSettled([
+      closeSyncQueue(),
+      closeIndexQueue(),
+      closeWebhookQueue(),
+      closeCleanupQueue(),
+      closeSharedBullMqConnection(),
     ]);
 
     logger.info("OpenPlane Worker shut down successfully");

@@ -7,6 +7,7 @@ import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto";
 import { HttpInstrumentation } from "@opentelemetry/instrumentation-http";
 import { IORedisInstrumentation } from "@opentelemetry/instrumentation-ioredis";
 import { NodeSDK } from "@opentelemetry/sdk-node";
+import logger from "./utils/logger";
 
 const serviceName = "openplane-worker";
 
@@ -42,9 +43,9 @@ sdk.start();
 process.on("SIGTERM", () => {
   sdk
     .shutdown()
-    .then(() => console.log("OpenTelemetry SDK shut down successfully"))
+    .then(() => logger.info({}, "OpenTelemetry SDK shut down successfully"))
     .catch((error) =>
-      console.error("Error shutting down OpenTelemetry SDK", error)
+      logger.error({ error }, "Error shutting down OpenTelemetry SDK")
     );
 });
 

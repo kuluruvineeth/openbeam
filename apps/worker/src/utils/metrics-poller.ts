@@ -7,10 +7,13 @@ import {
   getIndexQueueMetrics,
   getSyncQueueMetrics,
   indexQueue,
+  sharedBullMqConnection,
   syncQueue,
 } from "@openplane/redis";
 import {
   indexQueueDepth,
+  redisConnectionStatus,
+  redisConnectionsTotal,
   scheduledJobsTotal,
   syncQueueDepth,
 } from "../metrics";
@@ -66,6 +69,7 @@ export class MetricsPoller {
     await Promise.allSettled([
       this.pollQueueDepths(),
       this.pollScheduledJobs(),
+      this.pollRedisConnections(),
     ]);
   }
 
@@ -126,6 +130,53 @@ export class MetricsPoller {
     } catch (error) {
       logger.error({ error }, "Failed to poll scheduled jobs");
     }
+  }
+
+  /**
+   * Poll Redis connection metrics
+   */
+  private async pollRedisConnections(): Promise<void> {
+    try {
+      if (sharedBullMqConnection) {
+        const status = sharedBullMqConnection.status;
+        const isConnected = status === "ready" || status === "connect";
+        redisConnectionStatus.set({ type: "bullmq" }, isConnected ? 1 : 0);
+
+        try {
+          const info = await sharedBullMqConnection.info("clients");
+          const clientInfo = this.parseRedisInfo(info);
+          const connectedClients = clientInfo.connected_clients || 0;
+          redisConnectionsTotal.set({ type: "bullmq" }, connectedClients);
+        } catch (infoError) {
+          logger.debug({ error: infoError }, "Failed to get Redis client info");
+        }
+      }
+    } catch (error) {
+      logger.error({ error }, "Failed to poll Redis connection metrics");
+    }
+  }
+
+  private parseRedisInfo(info: string | undefined): Record<string, number> {
+    if (!info) {
+      return {};
+    }
+
+    const result: Record<string, number> = {};
+    const lines = info.split("\r\n");
+    for (const line of lines) {
+      if (line.includes(":")) {
+        const parts = line.split(":");
+        const key = parts[0];
+        const value = parts.slice(1).join(":");
+        if (key && value) {
+          const numValue = Number.parseInt(value, 10);
+          if (!Number.isNaN(numValue)) {
+            result[key] = numValue;
+          }
+        }
+      }
+    }
+    return result;
   }
 }
 
