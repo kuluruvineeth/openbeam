@@ -1,92 +1,111 @@
-# OpenPlane Monitoring
+# Monitoring
 
-Professional monitoring setup for OpenPlane using Prometheus and Grafana.
-
-## Services
-
-- **Prometheus**: Metrics collection and storage (Port 9090)
-- **Grafana**: Visualization and dashboards (Port 3002)
-- **Jaeger**: Distributed tracing UI (Port 16686)
-- **Worker Metrics**: Prometheus metrics endpoint (Port 9091)
-- **Redis Exporter**: Redis metrics for Prometheus (Port 9121)
-- **BullBoard**: Queue management UI (Port 3000/admin/queues)
+Prometheus, Grafana, and Jaeger setup for OpenPlane.
 
 ## Quick Start
 
-1. Start all services:
+```bash
+docker compose up -d
+./monitoring/test-monitoring.sh
+```
 
-   ```bash
-   docker-compose up -d
-   ```
+## Services
 
-2. Access Grafana:
+- Prometheus: http://localhost:9090
+- Grafana: http://localhost:3002 (admin/admin)
+- Jaeger: http://localhost:16686
+- Worker metrics: http://localhost:9091/metrics
+- Redis exporter: http://localhost:9121/metrics
 
-   - URL: http://localhost:3002
-   - Default credentials: `admin` / `admin`
-   - Change password on first login
+## Testing
 
-3. Access Prometheus:
-   - URL: http://localhost:9090
+```bash
+./monitoring/test-monitoring.sh
+```
+
+**Manual checks:**
+
+```bash
+# Prometheus
+curl http://localhost:9090/-/healthy
+curl http://localhost:9090/api/v1/targets | jq
+
+# Metrics
+curl http://localhost:3000/metrics | grep search_queries_total
+curl http://localhost:9091/metrics | grep sync_jobs_total
+
+# Jaeger
+curl http://localhost:16686/api/services | jq
+```
+
+**Generate traces:**
+
+```bash
+for i in {1..5}; do
+  curl "http://localhost:3000/api/v1/search?q=test$i" &
+done
+wait
+```
 
 ## Dashboards
 
-### OpenPlane Command Center
+- **OpenPlane Command Center** - Business metrics and API health
+- **Vespa Overview** - Resource usage, query performance, indexing stats
+- **Worker Performance** - Sync/index jobs, queue depths, rate limits
 
-- Business overview (search traffic, conversion, indexed docs)
-- API health (request latency histogram, error budget burn, worker backlog)
-- Brand-aligned palette (pink `#ff7ccd`, blue `#6ea8fe`, yellow `#fef08a`)
+## Adding Metrics/Dashboards
 
-### Vespa Overview
+**Add a metric:**
 
-- Split gauges for disk + memory saturation plus an aggregated saturation gauge
-- Query performance: segmented rate (2xx/4xx/5xx) and Vespa-reported latency streams
-- Indexing instrumentation: per-minute feed rate, 5xx feed failures, total searchable docs
-- Error visibility: 4xx/5xx percentages derived from request mix
-- All panels pin to the Prometheus data source UID `prometheus`
+1. Expose metric via Prometheus client (e.g., `prom-client`)
+2. Make it available at `/metrics` endpoint
+3. Prometheus will auto-scrape it
 
-## Configuration
+**Add a dashboard:**
 
-### Environment Variables
+1. Create dashboard JSON in Grafana UI
+2. Export and save to `monitoring/grafana/dashboards/`
+3. Restart Grafana to load it
 
-Add to your `.env` file:
+Example minimal dashboard JSON (`monitoring/grafana/dashboards/my-dashboard.json`):
 
-```bash
-# Grafana
-GRAFANA_USER=admin
-GRAFANA_PASSWORD=your-secure-password
-GRAFANA_PORT=3002
-
-# Prometheus
-PROMETHEUS_PORT=9090
+```json
+{
+  "title": "My Dashboard",
+  "panels": [
+    {
+      "id": 1,
+      "title": "My Metric",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "my_metric_total",
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ],
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 }
+    }
+  ],
+  "schemaVersion": 38,
+  "version": 0
+}
 ```
-
-### Custom Dashboards
-
-Add dashboard JSON to `monitoring/grafana/dashboards/`. Provisioning auto-loads each file. Keep only the canonical JSON so Grafana’s provisioning stays deterministic.
-
-## Metrics Collected
-
-### Vespa Metrics
-
-- Resource usage (disk, memory)
-- Query rate and latency
-- Document indexing statistics
-- Error rates by status code
-- System health indicators
 
 ## Troubleshooting
 
-### Check Prometheus Targets
+**Metrics not showing?**
 
-Visit http://localhost:9090/targets to verify all targets are up.
+- Check targets: `curl http://localhost:9090/api/v1/targets`
+- Check logs: `docker compose logs server worker`
 
-### Check Grafana Data Source
+**Traces not appearing?**
 
-1. Go to Configuration > Data Sources
-2. Verify Prometheus is connected and healthy
+- Check OTLP endpoint: `echo $OTEL_EXPORTER_OTLP_ENDPOINT`
+- Verify instrumentation loaded first in index.ts
 
-### View Logs
+**Dashboards empty?**
 
-```bash
-docker-compose logs -f prometheus grafana
-```
+- Test query in Prometheus directly
+- Check time range has data
+- Verify data source configured
