@@ -1,7 +1,16 @@
+import {
+  closeCleanupQueue,
+  closeIndexQueue,
+  closeRedisClient,
+  closeSharedBullMqConnection,
+  closeSyncQueue,
+  closeWebhookQueue,
+} from "@openplane/redis";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto";
 import { HttpInstrumentation } from "@opentelemetry/instrumentation-http";
 import { IORedisInstrumentation } from "@opentelemetry/instrumentation-ioredis";
 import { NodeSDK } from "@opentelemetry/sdk-node";
+import logger from "./utils/logger";
 
 const serviceName = "openplane-server";
 
@@ -11,35 +20,60 @@ const otlpExporter = new OTLPTraceExporter({
     "http://localhost:4318/v1/traces",
 });
 
-// Initialize OpenTelemetry SDK
 const sdk = new NodeSDK({
   serviceName,
   traceExporter: otlpExporter,
   instrumentations: [
-    // HTTP instrumentation for incoming/outgoing requests
     new HttpInstrumentation({
       ignoreIncomingRequestHook: (request) => {
-        // Don't trace health checks and metrics endpoints
         const url = request.url || "";
         return url.includes("/health") || url.includes("/metrics");
       },
     }),
-    // Redis instrumentation for BullMQ and cache operations
     new IORedisInstrumentation(),
   ],
 });
 
-// Start the SDK
 sdk.start();
 
-// Graceful shutdown
+async function gracefulShutdown(): Promise<void> {
+  logger.info("Starting graceful shutdown...");
+
+  await Promise.allSettled([
+    sdk.shutdown(),
+    closeSyncQueue(),
+    closeIndexQueue(),
+    closeWebhookQueue(),
+    closeCleanupQueue(),
+    closeSharedBullMqConnection(),
+    closeRedisClient(),
+  ]);
+
+  logger.info("Graceful shutdown complete");
+}
+
 process.on("SIGTERM", () => {
-  sdk
-    .shutdown()
-    .then(() => console.log("OpenTelemetry SDK shut down successfully"))
-    .catch((error) =>
-      console.error("Error shutting down OpenTelemetry SDK", error)
-    );
+  gracefulShutdown()
+    .then(() => {
+      logger.info("Server shut down successfully");
+      process.exit(0);
+    })
+    .catch((error) => {
+      logger.error({ error }, "Error during shutdown");
+      process.exit(1);
+    });
+});
+
+process.on("SIGINT", () => {
+  gracefulShutdown()
+    .then(() => {
+      logger.info("Server shut down successfully");
+      process.exit(0);
+    })
+    .catch((error) => {
+      logger.error({ error }, "Error during shutdown");
+      process.exit(1);
+    });
 });
 
 export default sdk;
