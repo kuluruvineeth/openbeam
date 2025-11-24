@@ -103,10 +103,7 @@ export function TeamDropdown({ isExpanded = false }: Props) {
                   mass: 1.2,
                 }}
               >
-                <Link
-                  href={"/teams/create" as any}
-                  onClick={() => setActive(false)}
-                >
+                <Link href={"/teams/create"} onClick={() => setActive(false)}>
                   <Button
                     className="h-[32px] w-[32px]"
                     size="icon"
