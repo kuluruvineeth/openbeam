@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ClientOnly } from "@/components/client-only";
 import { Icons } from "@/components/icons";
-import { UserGreeting } from "@/components/orgs/user-greeting";
 import { Button } from "@/components/ui/button";
+import { UserGreeting } from "@/components/user-greeting";
 import { UserMenu } from "@/components/user-menu";
 import { HydrateClient } from "@/trpc/server";
 
