@@ -35,9 +35,6 @@ export abstract class BaseProcessor<T> {
 
   protected abstract processJob(job: Job<T>): Promise<unknown>;
 
-  /**
-   * Extract connector ID from job data (override in subclasses if needed)
-   */
   protected getConnectorId(job: Job<T>): string | undefined {
     // biome-ignore lint/suspicious/noExplicitAny: job.data is typed as any
     const data = job.data as any;
@@ -48,7 +45,6 @@ export abstract class BaseProcessor<T> {
     worker.on("completed", (job) => {
       logger.info({ jobId: job.id }, `${this.queueName} job completed`);
 
-      // Increment metrics based on queue type
       const connectorId = this.getConnectorId(job);
       if (connectorId || this.queueName === "webhook") {
         this.incrementMetrics(connectorId || "", "completed", job);
@@ -61,7 +57,6 @@ export abstract class BaseProcessor<T> {
         `${this.queueName} job failed`
       );
 
-      // Increment failure metrics
       if (job) {
         const connectorId = this.getConnectorId(job);
         if (connectorId || this.queueName === "webhook") {
@@ -79,9 +74,6 @@ export abstract class BaseProcessor<T> {
     });
   }
 
-  /**
-   * Increment metrics based on queue type
-   */
   protected incrementMetrics(
     connectorId: string,
     status: "completed" | "failed",
@@ -104,7 +96,6 @@ export abstract class BaseProcessor<T> {
             webhookEventsTotal.inc({ source, event_type: eventType, status });
           }
           break;
-        // cleanup queue doesn't need per-connector metrics
         default:
           logger.debug(
             { queue: this.queueName },
