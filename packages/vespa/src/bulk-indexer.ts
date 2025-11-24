@@ -6,7 +6,7 @@
  */
 
 import { vespaClient } from "./client";
-import type { GenericDocument } from "./types";
+import type { GenericDocument } from "./schemas";
 
 interface BulkIndexOptions {
   concurrency?: number; // Parallel requests (default: 5)
