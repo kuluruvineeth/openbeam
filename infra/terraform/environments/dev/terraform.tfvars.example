@@ -1,0 +1,13 @@
+# ==============================================================================
+# Development Environment - Example Configuration
+# ==============================================================================
+
+# GCP Project Configuration
+project_id = "openplane-dev"
+region     = "us-central1"
+zone       = "us-central1-a"
+
+# Container Images
+github_org = "kuluruvineeth"
+image_tag  = "latest"
+
