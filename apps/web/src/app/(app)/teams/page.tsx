@@ -2,17 +2,17 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ClientOnly } from "@/components/client-only";
 import { Icons } from "@/components/icons";
-import { UserGreeting } from "@/components/orgs/user-greeting";
 import { Button } from "@/components/ui/button";
+import { UserGreeting } from "@/components/user-greeting";
 import { UserMenu } from "@/components/user-menu";
 import { HydrateClient } from "@/trpc/server";
 
 export const metadata: Metadata = {
-  title: "Organizations | OpenPlane",
-  description: "Manage your organizations",
+  title: "Teams | OpenPlane",
+  description: "Manage your teams",
 };
 
-export default function Organizations() {
+export default function Teams() {
   return (
     <HydrateClient>
       <ClientOnly>
@@ -41,9 +41,9 @@ export default function Organizations() {
             <span className="-translate-x-1/2 -top-3 absolute left-1/2 bg-background px-4 text-[#878787] text-sm">
               Or
             </span>
-            <Link className="w-full" href="/orgs/create">
+            <Link className="w-full" href="/teams/create">
               <Button className="mt-2 w-full" variant="outline">
-                Create organization
+                Create team
               </Button>
             </Link>
           </div>

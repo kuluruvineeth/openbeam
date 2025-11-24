@@ -5,7 +5,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Icons } from "./icons";
 import { MainMenu } from "./main-menu";
-import { OrgDropdown } from "./org-dropdown";
+import { TeamDropdown } from "./team-dropdown";
 
 export function Sidebar() {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -36,7 +36,7 @@ export function Sidebar() {
         <MainMenu isExpanded={isExpanded} />
       </div>
 
-      <OrgDropdown isExpanded={isExpanded} />
+      <TeamDropdown isExpanded={isExpanded} />
     </aside>
   );
 }

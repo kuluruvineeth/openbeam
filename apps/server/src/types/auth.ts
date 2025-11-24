@@ -25,13 +25,13 @@ export type AuthContext =
   | {
       type: "session";
       userId: string;
-      organizationId: string;
+      teamId: string | null;
       email?: string;
     }
   | {
       type: "apiKey";
       apiKeyId: string;
-      organizationId: string;
+      teamId: string;
       scopes: string[];
     }
   | {
@@ -68,19 +68,29 @@ export function hasRequiredScopes(
 }
 
 /**
- * Get organization ID from auth context
+ * Get team ID from auth context
  */
-export function getOrganizationId(context: AuthContext): string | null {
-  if (context.type === "session" || context.type === "apiKey") {
-    return context.organizationId;
+export function getTeamId(context: AuthContext): string | null {
+  if (context.type === "session") {
+    return context.teamId;
+  }
+  if (context.type === "apiKey") {
+    return context.teamId;
   }
   return null;
 }
 
 /**
+ * @deprecated Use getTeamId instead
+ */
+export function getOrganizationId(context: AuthContext): string | null {
+  return getTeamId(context);
+}
+
+/**
  * Get access control identifiers for document-level permissions
  * - Session users: their user ID and email
- * - API keys: organization-level access (empty array = org-level)
+ * - API keys: team-level access (empty array = team-level)
  */
 export function getAccessControlIds(context: AuthContext): string[] {
   if (context.type === "session") {
@@ -92,8 +102,8 @@ export function getAccessControlIds(context: AuthContext): string[] {
     return Array.from(identifiers);
   }
 
-  // API keys have organization-level access
-  // Empty array signals to search service to use org-level filtering
+  // API keys have team-level access
+  // Empty array signals to search service to use team-level filtering
   return [];
 }
 

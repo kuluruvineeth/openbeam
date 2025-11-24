@@ -1,5 +1,6 @@
 import prisma from "@openplane/db";
 import client from "prom-client";
+import logger from "./utils/logger";
 
 const register = new client.Registry();
 
@@ -34,13 +35,13 @@ const refreshDocumentsIndexedGauge = async () => {
 };
 
 refreshDocumentsIndexedGauge().catch((error) => {
-  console.error("Failed to refresh documents_indexed_total", error);
+  logger.error({ error }, "Failed to refresh documents_indexed_total");
 });
 const gaugeRefreshInterval =
   Number(process.env.DOCUMENTS_GAUGE_REFRESH_MS || "60000") || 60_000;
 const gaugeTimer = setInterval(() => {
   refreshDocumentsIndexedGauge().catch((error) => {
-    console.error("Failed to refresh documents_indexed_total", error);
+    logger.error({ error }, "Failed to refresh documents_indexed_total");
   });
 }, gaugeRefreshInterval);
 

@@ -2,7 +2,7 @@ import type { RouteHandler } from "@hono/zod-openapi";
 import prisma from "@openplane/db";
 import { type SyncJobData, syncQueue } from "@openplane/redis";
 import type { AuthEnv } from "@/middleware/auth";
-import { getOrganizationId } from "@/middleware/auth";
+import { getTeamId } from "@/middleware/auth";
 import type {
   getSyncHistory,
   getSyncStatus,
@@ -18,22 +18,21 @@ export const triggerSyncHandler: RouteHandler<
   const { id: connectorId } = c.req.valid("param");
   const { type } = c.req.valid("json");
 
-  // Validate connector exists
   const connector = await prisma.connector.findUnique({
     where: { id: connectorId },
-    select: { id: true, status: true, organizationId: true },
+    select: { id: true, status: true, teamId: true },
   });
 
   if (!connector) {
     return c.json({ error: "Connector not found" }, 404);
   }
 
-  const organizationId = getOrganizationId(c);
-  if (!organizationId) {
-    return c.json({ error: "organization_id is required" }, 400);
+  const teamId = getTeamId(c);
+  if (!teamId) {
+    return c.json({ error: "team_id is required" }, 400);
   }
 
-  if (connector.organizationId !== organizationId) {
+  if (connector.teamId !== teamId) {
     return c.json({ error: "Forbidden" }, 403);
   }
 
@@ -106,18 +105,17 @@ export const getSyncHistoryHandler: RouteHandler<
   const { id: connectorId } = c.req.valid("param");
   const { limit = 20, offset = 0 } = c.req.valid("query");
 
-  // Validate connector exists
   const connector = await prisma.connector.findUnique({
     where: { id: connectorId },
-    select: { id: true, organizationId: true },
+    select: { id: true, teamId: true },
   });
 
   if (!connector) {
     return c.json({ error: "Connector not found" }, 404);
   }
 
-  const organizationId = getOrganizationId(c);
-  if (!organizationId || connector.organizationId !== organizationId) {
+  const teamId = getTeamId(c);
+  if (!teamId || connector.teamId !== teamId) {
     return c.json({ error: "Connector not found" }, 404);
   }
 
@@ -171,7 +169,6 @@ export const getSyncStatusHandler: RouteHandler<
 > = async (c) => {
   const { id: connectorId } = c.req.valid("param");
 
-  // Get connector with latest sync info
   const connector = await prisma.connector.findUnique({
     where: { id: connectorId },
     select: {
@@ -181,7 +178,7 @@ export const getSyncStatusHandler: RouteHandler<
       lastSyncStatus: true,
       lastError: true,
       lastErrorAt: true,
-      organizationId: true,
+      teamId: true,
     },
   });
 
@@ -189,8 +186,8 @@ export const getSyncStatusHandler: RouteHandler<
     return c.json({ error: "Connector not found" }, 404);
   }
 
-  const organizationId = getOrganizationId(c);
-  if (!organizationId || connector.organizationId !== organizationId) {
+  const teamId = getTeamId(c);
+  if (!teamId || connector.teamId !== teamId) {
     return c.json({ error: "Connector not found" }, 404);
   }
 
@@ -246,15 +243,15 @@ export const pauseConnectorHandler: RouteHandler<
 
   const connector = await prisma.connector.findUnique({
     where: { id: connectorId },
-    select: { id: true, status: true, organizationId: true },
+    select: { id: true, status: true, teamId: true },
   });
 
   if (!connector) {
     return c.json({ error: "Connector not found" }, 404);
   }
 
-  const organizationId = getOrganizationId(c);
-  if (!organizationId || connector.organizationId !== organizationId) {
+  const teamId = getTeamId(c);
+  if (!teamId || connector.teamId !== teamId) {
     return c.json({ error: "Connector not found" }, 404);
   }
 
@@ -284,15 +281,15 @@ export const resumeConnectorHandler: RouteHandler<
 
   const connector = await prisma.connector.findUnique({
     where: { id: connectorId },
-    select: { id: true, status: true, organizationId: true },
+    select: { id: true, status: true, teamId: true },
   });
 
   if (!connector) {
     return c.json({ error: "Connector not found" }, 404);
   }
 
-  const organizationId = getOrganizationId(c);
-  if (!organizationId || connector.organizationId !== organizationId) {
+  const teamId = getTeamId(c);
+  if (!teamId || connector.teamId !== teamId) {
     return c.json({ error: "Connector not found" }, 404);
   }
 

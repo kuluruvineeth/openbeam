@@ -12,41 +12,38 @@ import {
   AvatarImageNext,
 } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-  useChangeOrganization,
-  useOrganizations,
-} from "@/hooks/use-organization";
+import { useChangeTeam, useTeams } from "@/hooks/use-team";
 import { useUserQuery } from "@/hooks/use-user";
 
 type Props = {
   isExpanded?: boolean;
 };
 
-export function OrgDropdown({ isExpanded = false }: Props) {
+export function TeamDropdown({ isExpanded = false }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const { data: user } = useUserQuery();
   const queryClient = useQueryClient();
 
   const [selectedId, setSelectedId] = useState<string | undefined>(
-    user?.organizationId ?? undefined
+    user?.teamId ?? undefined
   );
   const [isActive, setActive] = useState(false);
-  const [isChangingOrganization, setIsChangingOrganization] = useState(false);
+  const [isChangingTeam, setIsChangingTeam] = useState(false);
 
-  const changeOrganizationMutation = useChangeOrganization();
+  const changeTeamMutation = useChangeTeam();
 
-  const { data: organizations } = useOrganizations();
+  const { data: teams } = useTeams();
 
   useEffect(() => {
-    if (user?.organizationId) {
-      setSelectedId(user.organizationId);
+    if (user?.teamId) {
+      setSelectedId(user.teamId);
     } else {
       setSelectedId(undefined);
     }
-  }, [user?.organizationId]);
+  }, [user?.teamId]);
 
-  const sortedOrganizations =
-    organizations?.sort((a, b) => {
+  const sortedTeams =
+    teams?.sort((a, b) => {
       if (a.id === selectedId) {
         return -1;
       }
@@ -59,28 +56,28 @@ export function OrgDropdown({ isExpanded = false }: Props) {
 
   // @ts-expect-error
   useOnClickOutside(ref, () => {
-    if (!isChangingOrganization) {
+    if (!isChangingTeam) {
       setActive(false);
     }
   });
 
   const toggleActive = () => setActive((prev) => !prev);
 
-  const handleOrganizationChange = async (organizationId: string) => {
-    if (organizationId === selectedId) {
+  const handleTeamChange = async (teamId: string) => {
+    if (teamId === selectedId) {
       toggleActive();
       return;
     }
 
-    setIsChangingOrganization(true);
-    setSelectedId(organizationId);
+    setIsChangingTeam(true);
+    setSelectedId(teamId);
     setActive(false);
 
     try {
-      await changeOrganizationMutation.mutateAsync({ organizationId });
+      await changeTeamMutation.mutateAsync({ teamId });
       await queryClient.invalidateQueries();
     } finally {
-      setIsChangingOrganization(false);
+      setIsChangingTeam(false);
     }
   };
 
@@ -93,7 +90,7 @@ export function OrgDropdown({ isExpanded = false }: Props) {
             {isActive && (
               <motion.div
                 animate={{
-                  y: -(32 + 10) * sortedOrganizations.length,
+                  y: -(32 + 10) * sortedTeams.length,
                   opacity: 1,
                 }}
                 className="absolute left-0 h-[32px] w-[32px] overflow-hidden"
@@ -106,7 +103,10 @@ export function OrgDropdown({ isExpanded = false }: Props) {
                   mass: 1.2,
                 }}
               >
-                <Link href="/orgs/create" onClick={() => setActive(false)}>
+                <Link
+                  href={"/teams/create" as any}
+                  onClick={() => setActive(false)}
+                >
                   <Button
                     className="h-[32px] w-[32px]"
                     size="icon"
@@ -117,7 +117,7 @@ export function OrgDropdown({ isExpanded = false }: Props) {
                 </Link>
               </motion.div>
             )}
-            {sortedOrganizations.map((organization, index) => (
+            {sortedTeams.map((team, index) => (
               <motion.div
                 animate={
                   isActive
@@ -135,7 +135,7 @@ export function OrgDropdown({ isExpanded = false }: Props) {
                   scale: `${100 - index * 16}%`,
                   y: index * 5,
                 }}
-                key={organization.id}
+                key={team.id}
                 style={{ zIndex: -index }}
                 transition={{
                   type: "spring",
@@ -150,21 +150,21 @@ export function OrgDropdown({ isExpanded = false }: Props) {
                     if (index === 0) {
                       toggleActive();
                     } else {
-                      handleOrganizationChange(organization?.id ?? "");
+                      handleTeamChange(team?.id ?? "");
                     }
                   }}
                 >
                   <AvatarImageNext
-                    alt={organization?.name ?? ""}
+                    alt={team?.name ?? ""}
                     height={20}
                     quality={100}
-                    src={organization?.logoUrl ?? ""}
+                    src={team?.logoUrl ?? ""}
                     width={20}
                   />
                   <AvatarFallback className="h-[32px] w-[32px] rounded-none">
                     <span className="text-xs">
-                      {organization?.name?.charAt(0)?.toUpperCase()}
-                      {organization?.name?.charAt(1)?.toUpperCase()}
+                      {team?.name?.charAt(0)?.toUpperCase()}
+                      {team?.name?.charAt(1)?.toUpperCase()}
                     </span>
                   </AvatarFallback>
                 </Avatar>
@@ -175,7 +175,7 @@ export function OrgDropdown({ isExpanded = false }: Props) {
       </div>
 
       {/* Team name - appears to the right of the fixed avatar */}
-      {isExpanded && sortedOrganizations[0] && (
+      {isExpanded && sortedTeams[0] && (
         <div className="fixed bottom-4 left-[62px] flex h-[32px] items-center">
           <button
             className="cursor-pointer truncate text-primary text-sm transition-opacity duration-200 ease-in-out hover:opacity-80"
@@ -185,7 +185,7 @@ export function OrgDropdown({ isExpanded = false }: Props) {
             }}
             type="button"
           >
-            {sortedOrganizations[0].name}
+            {sortedTeams[0].name}
           </button>
         </div>
       )}

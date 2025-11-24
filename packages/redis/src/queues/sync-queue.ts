@@ -1,5 +1,5 @@
 import { Queue } from "bullmq";
-import { getRedisConnection } from "../client";
+import { getSharedBullMqConnection } from "../client";
 
 /**
  * Sync job data interface
@@ -17,7 +17,7 @@ export interface SyncJobData {
  * Handles fetching data from external sources (Slack, Notion, etc.)
  */
 export const syncQueue = new Queue<SyncJobData>("sync", {
-  connection: getRedisConnection(),
+  connection: getSharedBullMqConnection(),
   defaultJobOptions: {
     attempts: 3,
     backoff: {
@@ -90,15 +90,13 @@ export async function closeSyncQueue(): Promise<void> {
  * Convert interval in milliseconds to cron expression
  */
 export function intervalMsToCron(intervalMs: number): string {
-  // Validate minimum interval (1 minute)
   if (intervalMs < 60_000) {
     console.warn(
       `Interval ${intervalMs}ms is less than 1 minute. Using 1 minute interval.`
     );
-    return "* * * * *"; // Every minute
+    return "* * * * *";
   }
 
-  // Validate maximum interval (365 days)
   const maxIntervalMs = 365 * 24 * 60 * 60 * 1000;
   if (intervalMs > maxIntervalMs) {
     throw new Error(
@@ -110,46 +108,37 @@ export function intervalMsToCron(intervalMs: number): string {
   const hours = Math.floor(intervalMs / 3_600_000);
   const days = Math.floor(intervalMs / 86_400_000);
 
-  // Less than 1 hour: run every N minutes
   if (minutes < 60) {
     return `*/${minutes} * * * *`;
   }
 
-  // Less than 1 day: run every N hours
   if (hours < 24) {
     return `0 */${hours} * * *`;
   }
 
-  // Less than 1 week: run daily at midnight
   if (days < 7) {
     if (days === 1) {
-      return "0 0 * * *"; // Daily
+      return "0 0 * * *";
     }
-    return `0 0 */${days} * *`; // Every N days
+    return `0 0 */${days} * *`;
   }
 
-  // Weekly or more: run weekly on Sunday at midnight
   if (days === 7) {
-    return "0 0 * * 0"; // Weekly (Sunday)
+    return "0 0 * * 0";
   }
 
-  // Bi-weekly
   if (days === 14) {
-    return "0 0 */14 * *"; // Every 14 days
+    return "0 0 */14 * *";
   }
 
-  // Monthly (approximate as 30 days)
   if (days >= 28 && days <= 31) {
-    return "0 0 1 * *"; // 1st of each month
+    return "0 0 1 * *";
   }
 
-  // For longer intervals (up to 365 days), use monthly
-  // This is an approximation - exact intervals > 31 days are not perfectly supported
   if (days <= 365) {
-    return "0 0 1 * *"; // 1st of each month (best approximation)
+    return "0 0 1 * *";
   }
 
-  // Default: daily (shouldn't reach here due to validation above)
   return "0 0 * * *";
 }
 

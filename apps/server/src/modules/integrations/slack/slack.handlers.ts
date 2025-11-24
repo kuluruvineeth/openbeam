@@ -1,6 +1,7 @@
 import type { RouteHandler } from "@hono/zod-openapi";
 import { SlackAuth } from "@openplane/api";
 import type { AuthEnv } from "@/middleware/auth";
+import { getTeamId } from "@/middleware/auth";
 import type { oauthCallbackRoute, startOAuthRoute } from "./slack.routes";
 
 const slackAuth = new SlackAuth();
@@ -13,15 +14,14 @@ export const startOAuthHandler: RouteHandler<
   AuthEnv
 > = async (c) => {
   const user = c.get("user");
-  const session = c.get("session");
 
-  if (user === null || session === null) {
+  if (user === null) {
     return c.json({ success: false, message: "Unauthorized" }, 401);
   }
 
   const { workspaceId, connectorId, redirectUrl } = c.req.valid("query");
-  const activeOrgId = session.activeOrganizationId;
-  const finalWorkspaceId = workspaceId || activeOrgId;
+  const teamId = getTeamId(c);
+  const finalWorkspaceId = workspaceId || teamId;
 
   if (!finalWorkspaceId) {
     return c.json({ success: false, message: "Workspace ID required" }, 400);

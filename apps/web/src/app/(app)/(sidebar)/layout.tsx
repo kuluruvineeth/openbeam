@@ -1,26 +1,34 @@
-import { AuthLayoutSkeleton } from "@/components/auth/loading-skeleton";
-import { OrgGuard } from "@/components/auth/org-guard";
-import { ClientOnly } from "@/components/client-only";
+import { redirect } from "next/navigation";
 import { Header } from "@/components/header";
 import { Sidebar } from "@/components/sidebar";
-import { HydrateClient } from "@/trpc/server";
+import { ensureAccess } from "@/lib/auth/ensure-access";
+import { getQueryClient, HydrateClient, trpc } from "@/trpc/server";
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default async function Layout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  await ensureAccess();
+
+  const queryClient = getQueryClient();
+  const user = await queryClient.fetchQuery(trpc.user.me.queryOptions());
+
+  if (!user?.teamId) {
+    redirect("/teams/create");
+  }
+
   return (
     <HydrateClient>
-      <ClientOnly fallback={<AuthLayoutSkeleton />}>
-        <OrgGuard>
-          <div className="relative flex h-screen overflow-hidden">
-            <Sidebar />
-            <div className="flex flex-1 flex-col md:ml-[70px]">
-              <Header />
-              <div className="no-scrollbar flex-1 overflow-y-auto px-6">
-                {children}
-              </div>
-            </div>
+      <div className="relative flex h-screen overflow-hidden">
+        <Sidebar />
+        <div className="flex flex-1 flex-col md:ml-[70px]">
+          <Header />
+          <div className="no-scrollbar flex-1 overflow-y-auto px-6">
+            {children}
           </div>
-        </OrgGuard>
-      </ClientOnly>
+        </div>
+      </div>
     </HydrateClient>
   );
 }
