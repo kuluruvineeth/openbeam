@@ -4,39 +4,52 @@ import type { TRPCContext } from "../../context";
 import { protectedProcedure, t } from "../../index";
 
 /**
- * Extended context with organization ID
+ * Extended context with team ID
  */
-type ContextWithOrg = TRPCContext & {
+type ContextWithTeam = TRPCContext & {
   session: NonNullable<TRPCContext["session"]>;
-  orgId: string;
+  teamId: string;
 };
 
 /**
- * Middleware to ensure user has an active organization
+ * Middleware to ensure user has an active team
  */
-const requireActiveOrg = t.middleware(({ ctx, next }) => {
-  const orgId = ctx.session?.session.activeOrganizationId;
+const requireActiveTeam = t.middleware(async ({ ctx, next }) => {
+  if (!ctx.session?.user) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Authentication required",
+    });
+  }
 
-  if (!orgId) {
+  // Get user's teamId from database
+  const user = await ctx.prisma.user.findUnique({
+    where: { id: ctx.session.user.id },
+    select: { teamId: true },
+  });
+
+  const teamId = user?.teamId;
+
+  if (!teamId) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: "No active organization",
+      message: "No active team",
     });
   }
 
   return next({
     ctx: {
       ...ctx,
-      orgId,
+      teamId,
       session: ctx.session as NonNullable<TRPCContext["session"]>,
-    } as ContextWithOrg,
+    } as ContextWithTeam,
   });
 });
 
 /**
- * Procedure that requires an active organization
+ * Procedure that requires an active team
  */
-export const withActiveOrg = protectedProcedure.use(requireActiveOrg);
+export const withActiveTeam = protectedProcedure.use(requireActiveTeam);
 
 /**
  * Helper to verify connector ownership (used in procedures after input parsing)
@@ -44,9 +57,9 @@ export const withActiveOrg = protectedProcedure.use(requireActiveOrg);
 export async function verifyConnectorAccess(
   prisma: Database,
   connectorId: string,
-  orgId: string
+  teamId: string
 ) {
-  const connector = await verifyConnectorOwnership(prisma, connectorId, orgId);
+  const connector = await verifyConnectorOwnership(prisma, connectorId, teamId);
 
   if (!connector) {
     throw new TRPCError({

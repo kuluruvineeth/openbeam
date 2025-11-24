@@ -28,12 +28,12 @@ export interface FetchResult {
  */
 export abstract class BaseConnector {
   protected connector: Connector & { oauthProvider?: OAuthProvider | null };
-  protected organizationId: string;
+  protected teamId: string;
   private connectionPool?: ConnectionPool<unknown>;
 
   constructor(connector: Connector & { oauthProvider?: OAuthProvider | null }) {
     this.connector = connector;
-    this.organizationId = connector.organizationId;
+    this.teamId = connector.teamId;
   }
 
   /**
@@ -66,7 +66,7 @@ export abstract class BaseConnector {
     return {
       connectorId: this.connector.id,
       connectorType: this.connector.type,
-      organizationId: this.organizationId,
+      teamId: this.teamId,
       workspaceId: this.connector.workspaceExternalId,
     };
   }
@@ -115,9 +115,9 @@ export abstract class BaseConnector {
         createFn,
         validateFn,
         destroyFn
-      );
+      ) as ConnectionPool<unknown>;
     }
-    return await this.connectionPool.acquire(this.connector.id);
+    return await (this.connectionPool.acquire(this.connector.id) as Promise<T>);
   }
 
   /**

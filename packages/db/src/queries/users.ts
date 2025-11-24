@@ -4,9 +4,10 @@ export const getUserById = async (db: Database, id: string) => {
   const user = await db.user.findUnique({
     where: { id },
     include: {
-      members: {
+      team: true,
+      usersOnTeam: {
         include: {
-          organization: true,
+          team: true,
         },
         orderBy: {
           createdAt: "asc",
@@ -19,11 +20,9 @@ export const getUserById = async (db: Database, id: string) => {
     return null;
   }
 
-  const primaryMembership = user.members[0];
-
   return {
     ...user,
-    organizationId: primaryMembership?.organizationId ?? null,
-    organization: primaryMembership?.organization ?? null,
+    teamId: user.teamId,
+    team: user.team,
   };
 };

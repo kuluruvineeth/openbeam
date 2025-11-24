@@ -1,5 +1,7 @@
 import type { OpenAPIHono } from "@hono/zod-openapi";
 import type { AuthEnv } from "@/middleware/auth";
+import admin from "@/modules/admin/admin.index";
+import health from "@/modules/health/health.index";
 import integrations from "@/modules/integrations/integrations.index";
 import v1Router from "./v1";
 
@@ -9,6 +11,12 @@ export const mapRoutes = (app: OpenAPIHono<AuthEnv>) => {
 
   // System Integrations (OAuth flows)
   app.route("/integrations", integrations);
+
+  // Admin routes (queue management, monitoring)
+  app.route("/admin", admin);
+
+  // Health API (public)
+  app.route("/api/health", health);
 
   return app;
 };

@@ -1,3 +1,5 @@
+// IMPORTANT: instrumentation must be imported FIRST to properly instrument modules
+import "./instrumentation";
 import "dotenv/config";
 import { trpcServer } from "@hono/trpc-server";
 import { createTRPCContext } from "@openplane/api/context";
