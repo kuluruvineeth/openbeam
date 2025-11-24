@@ -23,6 +23,20 @@ export const searchQueriesCounter = new client.Counter({
   registers: [register],
 });
 
+export const httpErrorsTotal = new client.Counter({
+  name: "http_errors_total",
+  help: "Total number of HTTP errors",
+  labelNames: ["method", "route", "status_code", "error_type"],
+  registers: [register],
+});
+
+export const applicationErrorsTotal = new client.Counter({
+  name: "application_errors_total",
+  help: "Total number of application errors",
+  labelNames: ["error_type", "error_code", "endpoint"],
+  registers: [register],
+});
+
 const documentsIndexedGauge = new client.Gauge({
   name: "documents_indexed_total",
   help: "Total number of documents indexed in Vespa",

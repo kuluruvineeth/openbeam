@@ -1,21 +1,16 @@
+// TODO: Check back tracing after Bun supports OpenTelemetry
 import { Queue } from "bullmq";
 import { getSharedBullMqConnection } from "../client";
+import { extractTraceContext, type TraceContext } from "../utils/trace-context";
 
-/**
- * Sync job data interface
- * Used to trigger connector sync operations
- */
 export interface SyncJobData {
   connectorId: string;
   syncJobId: string;
   type: "FULL" | "INCREMENTAL";
   priority?: number;
+  traceContext?: TraceContext;
 }
 
-/**
- * Sync queue for connector synchronization jobs
- * Handles fetching data from external sources (Slack, Notion, etc.)
- */
 export const syncQueue = new Queue<SyncJobData>("sync", {
   connection: getSharedBullMqConnection(),
   defaultJobOptions: {
@@ -34,35 +29,25 @@ export const syncQueue = new Queue<SyncJobData>("sync", {
   },
 });
 
-/**
- * Add a sync job to the queue with priority support
- *
- * Priority levels:
- * - 10: Webhook-triggered (highest)
- * - 7: Manual syncs
- * - 5: Scheduled incremental (default)
- * - 3: Scheduled full syncs
- * - 1: Background/cleanup jobs (lowest)
- */
+// Priority: 10 (webhook), 7 (manual), 5 (incremental), 3 (full), 1 (background)
 export async function addSyncJob(data: SyncJobData, priority?: number) {
   const jobPriority = priority ?? data.priority ?? 5;
 
-  return await syncQueue.add("sync", data, {
+  const jobData: SyncJobData = {
+    ...data,
+    traceContext: data.traceContext ?? extractTraceContext(),
+  };
+
+  return await syncQueue.add("sync", jobData, {
     priority: jobPriority,
     jobId: `sync-${data.connectorId}-${Date.now()}`,
   });
 }
 
-/**
- * Get sync job by ID
- */
 export async function getSyncJob(jobId: string) {
   return await syncQueue.getJob(jobId);
 }
 
-/**
- * Get sync queue metrics
- */
 export async function getSyncQueueMetrics() {
   const [waiting, active, completed, failed, delayed] = await Promise.all([
     syncQueue.getWaitingCount(),
@@ -86,9 +71,6 @@ export async function closeSyncQueue(): Promise<void> {
   await syncQueue.close();
 }
 
-/**
- * Convert interval in milliseconds to cron expression
- */
 export function intervalMsToCron(intervalMs: number): string {
   if (intervalMs < 60_000) {
     console.warn(
@@ -142,15 +124,6 @@ export function intervalMsToCron(intervalMs: number): string {
   return "0 0 * * *";
 }
 
-/**
- * Create a repeatable sync job in BullMQ
- *
- * @param connectorId - Connector ID
- * @param type - Sync type (FULL or INCREMENTAL)
- * @param cronExpression - Cron expression for scheduling
- * @param priority - Job priority
- * @returns Job scheduler ID for later removal
- */
 export async function createRepeatableSyncJob(
   connectorId: string,
   type: "FULL" | "INCREMENTAL",
@@ -181,28 +154,16 @@ export async function createRepeatableSyncJob(
   return jobName;
 }
 
-/**
- * Remove a repeatable sync job from BullMQ
- *
- * @param schedulerId - Job scheduler ID returned from createRepeatableSyncJob
- */
 export async function removeRepeatableSyncJob(
   schedulerId: string
 ): Promise<void> {
   try {
     await syncQueue.removeJobScheduler(schedulerId);
   } catch (error) {
-    // Job scheduler might not exist, that's okay
     console.warn(`Failed to remove job scheduler ${schedulerId}:`, error);
   }
 }
 
-/**
- * Get all job schedulers for a connector
- *
- * @param connectorId - Connector ID
- * @returns Array of job scheduler info
- */
 export async function getRepeatableJobsForConnector(
   connectorId: string
 ): Promise<Array<{ id: string; pattern: string; next: number }>> {

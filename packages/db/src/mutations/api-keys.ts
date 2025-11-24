@@ -5,8 +5,8 @@ import prisma from "../index";
 const BASE62_ALPHABET =
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 const API_KEY_PREFIX = process.env.API_KEY_PREFIX ?? "op_live_";
-const IDENTIFIER_LENGTH = 8; // characters included in prefix lookup
-const SECRET_LENGTH = 48; // characters appended after prefix
+const IDENTIFIER_LENGTH = 8;
+const SECRET_LENGTH = 48;
 const ARGON2_OPTIONS: Argon2Options = {
   type: argon2.argon2id,
   memoryCost: 64 * 1024,
@@ -31,11 +31,6 @@ function randomBase62(length: number): string {
   return output;
 }
 
-/**
- * Generate a new API key
- * Format: op_<random-7-chars><random-32-chars>
- * Example: op_abc1234def5678ghij9012klmn3456opqr7890stuv1234wxyz5678
- */
 export async function generateApiKey(): Promise<{
   key: string;
   hash: string;
@@ -58,10 +53,6 @@ export interface CreateApiKeyInput {
   expiresAt?: Date;
 }
 
-/**
- * Create a new API key
- * Returns the plaintext key (only shown once)
- */
 export async function createApiKey(input: CreateApiKeyInput): Promise<{
   id: string;
   key: string;

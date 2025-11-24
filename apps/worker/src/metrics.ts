@@ -1,15 +1,8 @@
-/**
- * Prometheus Metrics
- *
- * Comprehensive metrics for worker performance monitoring.
- */
-
 import { Hono } from "hono";
 import { Counter, Gauge, Histogram, Registry } from "prom-client";
 import { workerConfig } from "./config";
 import logger from "./utils/logger";
 
-// Bun global type
 declare const Bun: {
   serve(options: {
     port: number;
@@ -19,10 +12,8 @@ declare const Bun: {
   };
 };
 
-// Create a registry
 export const register = new Registry();
 
-// Sync Metrics
 export const syncJobsTotal = new Counter({
   name: "sync_jobs_total",
   help: "Total number of sync jobs processed",
@@ -52,7 +43,6 @@ export const syncQueueDepth = new Gauge({
   registers: [register],
 });
 
-// Index Metrics
 export const indexJobsTotal = new Counter({
   name: "index_jobs_total",
   help: "Total number of index jobs processed",
@@ -95,7 +85,6 @@ export const indexErrorsTotal = new Counter({
   registers: [register],
 });
 
-// Rate Limiting Metrics
 export const rateLimitHitsTotal = new Counter({
   name: "rate_limit_hits_total",
   help: "Total number of rate limit hits",
@@ -111,7 +100,6 @@ export const rateLimitWaits = new Histogram({
   registers: [register],
 });
 
-// Fencing Metrics
 export const fenceConflictsTotal = new Counter({
   name: "fence_conflicts_total",
   help: "Total number of fence conflicts (duplicate execution attempts)",
@@ -126,7 +114,6 @@ export const fenceAcquisitions = new Counter({
   registers: [register],
 });
 
-// Deduplication Metrics
 export const checksumSkipRate = new Gauge({
   name: "checksum_skip_rate",
   help: "Percentage of documents skipped due to unchanged checksums",
@@ -141,7 +128,6 @@ export const checksumSkipsTotal = new Counter({
   registers: [register],
 });
 
-// Webhook Metrics
 export const webhookEventsTotal = new Counter({
   name: "webhook_events_total",
   help: "Total number of webhook events received",
@@ -156,7 +142,6 @@ export const webhookDuplicatesTotal = new Counter({
   registers: [register],
 });
 
-// Cleanup Metrics
 export const cleanupDocumentsTotal = new Counter({
   name: "cleanup_documents_total",
   help: "Total number of documents cleaned up",
@@ -171,7 +156,6 @@ export const cleanupDuration = new Histogram({
   registers: [register],
 });
 
-// System Metrics
 export const queueProcessingLag = new Gauge({
   name: "queue_processing_lag_seconds",
   help: "Time between job creation and processing",
@@ -179,7 +163,6 @@ export const queueProcessingLag = new Gauge({
   registers: [register],
 });
 
-// Scheduled Jobs Metrics
 export const scheduledJobsTotal = new Gauge({
   name: "scheduled_jobs_total",
   help: "Number of repeatable scheduled jobs",
@@ -187,7 +170,6 @@ export const scheduledJobsTotal = new Gauge({
   registers: [register],
 });
 
-// Rate Limit Usage Metrics
 export const rateLimitUsage = new Gauge({
   name: "rate_limit_usage_ratio",
   help: "Rate limit usage ratio (0-1)",
@@ -195,7 +177,6 @@ export const rateLimitUsage = new Gauge({
   registers: [register],
 });
 
-// Redis Connection Metrics
 export const redisConnectionsTotal = new Gauge({
   name: "redis_connections_total",
   help: "Total number of Redis connections",
@@ -210,7 +191,6 @@ export const redisConnectionStatus = new Gauge({
   registers: [register],
 });
 
-// Metrics server
 let metricsServer: ReturnType<typeof Bun.serve> | null = null;
 
 export function startMetricsServer(): Promise<void> {

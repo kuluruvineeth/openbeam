@@ -16,9 +16,10 @@
     "build": "tsdown"
   },
   "dependencies": {
-    "redis": "^5.10.0",
+    "@openplane/config": "workspace:*",
+    "@opentelemetry/api": "^1.9.0",
     "bullmq": "^5.13.0",
-    "@openplane/config": "workspace:*"
+    "redis": "^5.10.0"
   },
   "devDependencies": {
     "tsdown": "catalog:",
