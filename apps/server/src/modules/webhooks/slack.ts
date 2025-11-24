@@ -1,7 +1,6 @@
 import prisma from "@openplane/db";
 import { addWebhookJob } from "@openplane/redis";
 import { Hono } from "hono";
-import logger from "@/utils/logger";
 
 const slackWebhook = new Hono();
 

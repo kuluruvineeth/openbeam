@@ -1,6 +1,5 @@
 import { auth } from "@openplane/auth";
 import { createMiddleware } from "hono/factory";
-import logger from "@/utils/logger";
 import type { AuthContext } from "../types/auth";
 import {
   getTeamId as getTeamIdFromContext,

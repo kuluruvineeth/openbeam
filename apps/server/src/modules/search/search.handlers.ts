@@ -1,6 +1,5 @@
 import type { RouteHandler } from "@hono/zod-openapi";
 import { searchQueriesCounter } from "@/metrics";
-import logger from "@/utils/logger";
 import type { AuthEnv } from "@/middleware/auth";
 import { getTeamId } from "@/middleware/auth";
 import { getAccessControlIds as getACLIds } from "@/types/auth";
