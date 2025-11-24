@@ -1,4 +1,5 @@
 import { type GenericDocument, vespaClient } from "@openplane/vespa";
+import logger from "@/utils/logger";
 
 /**
  * Search parameters for querying Vespa

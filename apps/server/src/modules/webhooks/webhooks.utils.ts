@@ -1,4 +1,5 @@
 import { createHmac } from "node:crypto";
+import logger from "@/utils/logger";
 
 /**
  * Verify Slack signature (HMAC-SHA256)
