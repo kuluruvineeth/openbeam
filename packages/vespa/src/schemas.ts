@@ -64,7 +64,7 @@ export interface Entity {
   id: string;
   entity_type: string;
   connector_id: string;
-  organization_id: string;
+  team_id: string;
   external_id: string;
   name: string;
   email?: string;
