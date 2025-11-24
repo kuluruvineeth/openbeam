@@ -16,7 +16,7 @@ schema entity {
       attribute: fast-search
     }
     
-    field organization_id type string {
+    field team_id type string {
       indexing: summary | attribute
       attribute: fast-search
     }

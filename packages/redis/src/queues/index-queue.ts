@@ -8,7 +8,7 @@ export interface GenericDocument {
   id: string;
   connector_id: string;
   connector_type: string;
-  organization_id: string;
+  team_id: string;
   workspace_id: string;
   external_id: string;
   document_type: string;
