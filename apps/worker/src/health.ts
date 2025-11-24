@@ -73,9 +73,9 @@ async function checkDatabase(): Promise<{ status: string; latency?: number }> {
 async function checkVespa(): Promise<{ status: string; latency?: number }> {
   try {
     const start = Date.now();
-    await vespaClient.search({ query: "test", limit: 1 });
+    const isHealthy = await vespaClient.healthCheck();
     const latency = Date.now() - start;
-    return { status: "healthy", latency };
+    return { status: isHealthy ? "healthy" : "unhealthy", latency };
   } catch (error) {
     logger.error({ error }, "Vespa health check failed");
     return { status: "unhealthy" };
