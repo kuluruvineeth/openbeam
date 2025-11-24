@@ -20,11 +20,12 @@ COPY apps/fumadocs/content ./apps/fumadocs/content
 
 ARG HUGEICONS_PRO_AUTH_TOKEN
 RUN if [ -n "$HUGEICONS_PRO_AUTH_TOKEN" ]; then \
-      echo "@hugeicons-pro:registry=https://npm.hugeicons.com/\n//npm.hugeicons.com/:_authToken=$HUGEICONS_PRO_AUTH_TOKEN" > .npmrc; \
+      printf "@hugeicons-pro:registry=https://npm.hugeicons.com/\n//npm.hugeicons.com/:_authToken=%s\n" "$HUGEICONS_PRO_AUTH_TOKEN" > .npmrc; \
     fi
 
 ENV HUSKY=0
-RUN bun install
+RUN bun install --frozen-lockfile && \
+    rm -f .npmrc
 
 WORKDIR /app/packages/db
 RUN bun run db:generate

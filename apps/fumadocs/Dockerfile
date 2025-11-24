@@ -2,6 +2,14 @@ FROM oven/bun:1.3.2 AS base
 
 FROM base AS deps
 WORKDIR /app
+
+# Install build dependencies for native modules (argon2)
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY package.json bun.lock turbo.json ./
 COPY packages ./packages
 COPY apps/fumadocs ./apps/fumadocs
@@ -11,11 +19,12 @@ COPY apps/worker/package.json ./apps/worker/
 
 ARG HUGEICONS_PRO_AUTH_TOKEN
 RUN if [ -n "$HUGEICONS_PRO_AUTH_TOKEN" ]; then \
-      echo "@hugeicons-pro:registry=https://npm.hugeicons.com/\n//npm.hugeicons.com/:_authToken=$HUGEICONS_PRO_AUTH_TOKEN" > .npmrc; \
+      printf "@hugeicons-pro:registry=https://npm.hugeicons.com/\n//npm.hugeicons.com/:_authToken=%s\n" "$HUGEICONS_PRO_AUTH_TOKEN" > .npmrc; \
     fi
 
 ENV HUSKY=0
-RUN bun install --frozen-lockfile --ignore-scripts
+RUN bun install --frozen-lockfile && \
+    rm -f .npmrc
 
 FROM deps AS builder
 WORKDIR /app
