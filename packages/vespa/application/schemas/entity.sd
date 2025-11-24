@@ -38,7 +38,7 @@ schema entity {
       indexing: summary
     }
     
-    field metadata type json {
+    field metadata type string {
       indexing: summary | attribute
     }
     
