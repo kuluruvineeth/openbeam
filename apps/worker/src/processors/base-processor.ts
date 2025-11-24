@@ -1,4 +1,4 @@
-import { getRedisConnection } from "@openplane/redis";
+import { getSharedBullMqConnection } from "@openplane/redis";
 import { type Job, Worker, type WorkerOptions } from "bullmq";
 import { indexJobsTotal, syncJobsTotal, webhookEventsTotal } from "../metrics";
 import logger from "../utils/logger";
@@ -15,8 +15,8 @@ export abstract class BaseProcessor<T> {
     this.initialization = this.initialize();
   }
 
-  protected async initialize(): Promise<void> {
-    const connection = await getRedisConnection();
+  protected initialize(): Promise<void> {
+    const connection = getSharedBullMqConnection();
 
     const worker = new Worker(
       this.queueName,
@@ -29,6 +29,8 @@ export abstract class BaseProcessor<T> {
 
     this.setupEventHandlers(worker);
     this.worker = worker;
+
+    return Promise.resolve();
   }
 
   protected abstract processJob(job: Job<T>): Promise<unknown>;
