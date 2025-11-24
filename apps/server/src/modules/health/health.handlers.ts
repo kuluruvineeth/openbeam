@@ -4,7 +4,6 @@ import {
   getWebhookQueueMetrics,
 } from "@openplane/redis";
 import type { Context } from "hono";
-import logger from "@/utils/logger";
 import type { SystemHealthResponse } from "./health.schema";
 
 // Simple in-memory cache for health checks (5 second TTL)

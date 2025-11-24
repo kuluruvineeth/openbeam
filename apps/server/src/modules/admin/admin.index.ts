@@ -1,5 +1,4 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
-import logger from "@/utils/logger";
 import type { AuthEnv } from "@/middleware/auth";
 import { setupBullBoard } from "./admin.handlers";
 
