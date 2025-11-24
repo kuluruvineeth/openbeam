@@ -16,16 +16,16 @@ COPY apps/server ./apps/server
 COPY apps/web/package.json ./apps/web/
 COPY apps/worker/package.json ./apps/worker/
 COPY apps/fumadocs/package.json apps/fumadocs/source.config.ts ./apps/fumadocs/
-COPY apps/fumadocs/content ./apps/fumadocs/content
 
 ARG HUGEICONS_PRO_AUTH_TOKEN
 RUN if [ -n "$HUGEICONS_PRO_AUTH_TOKEN" ]; then \
-      echo "@hugeicons-pro:registry=https://npm.hugeicons.com/\n//npm.hugeicons.com/:_authToken=$HUGEICONS_PRO_AUTH_TOKEN" > .npmrc; \
+      printf "@hugeicons-pro:registry=https://npm.hugeicons.com/\n//npm.hugeicons.com/:_authToken=%s\n" "$HUGEICONS_PRO_AUTH_TOKEN" > .npmrc; \
     fi
 
 ENV HUSKY=0
 # Install dependencies (scripts are needed to build native modules like argon2)
-RUN bun install --frozen-lockfile
+RUN bun install --frozen-lockfile && \
+    rm -f .npmrc
 
 WORKDIR /app/packages/db
 RUN bun run db:generate
@@ -38,12 +38,18 @@ FROM base AS runner
 WORKDIR /app/apps/server
 ENV NODE_ENV=production
 
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nodejs
+
 COPY --from=builder /app/package.json /app/bun.lock /app/turbo.json /app/
 COPY --from=builder /app/node_modules /app/node_modules
 COPY --from=builder /app/packages /app/packages
 COPY --from=builder /app/apps/server ./
 COPY scripts/migrate.sh /app/scripts/migrate.sh
-RUN chmod +x /app/scripts/migrate.sh
+RUN chmod +x /app/scripts/migrate.sh && \
+    chown -R nodejs:nodejs /app
+
+USER nodejs
 
 EXPOSE 3000
 
