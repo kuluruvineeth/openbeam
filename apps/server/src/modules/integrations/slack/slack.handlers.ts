@@ -1,5 +1,6 @@
 import type { RouteHandler } from "@hono/zod-openapi";
 import { SlackAuth } from "@openplane/api";
+import logger from "@/utils/logger";
 import type { AuthEnv } from "@/middleware/auth";
 import { getTeamId } from "@/middleware/auth";
 import type { oauthCallbackRoute, startOAuthRoute } from "./slack.routes";

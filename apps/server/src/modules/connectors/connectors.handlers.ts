@@ -1,6 +1,7 @@
 import type { RouteHandler } from "@hono/zod-openapi";
 import prisma from "@openplane/db";
 import { type SyncJobData, syncQueue } from "@openplane/redis";
+import logger from "@/utils/logger";
 import type { AuthEnv } from "@/middleware/auth";
 import { getTeamId } from "@/middleware/auth";
 import type {
