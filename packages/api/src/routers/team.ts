@@ -1,3 +1,4 @@
+import { createTeam } from "@openplane/db/mutations/teams";
 import {
   listUserTeams,
   updateActiveTeamForUser,
@@ -18,6 +19,25 @@ export const teamRouter = createTRPCRouter({
       const slug = await generateUniqueSlug(ctx.prisma, input.name);
 
       return { slug };
+    }),
+
+  create: protectedProcedure
+    .input(
+      z.object({
+        name: z.string().min(1, "Team name is required"),
+        slug: z.string().min(1, "Slug is required"),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      const team = await createTeam(ctx.prisma, {
+        name: input.name,
+        slug: input.slug,
+        userId,
+      });
+
+      return team;
     }),
 
   list: protectedProcedure.query(({ ctx }) => {
