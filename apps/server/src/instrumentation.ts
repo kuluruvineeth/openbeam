@@ -1,3 +1,5 @@
+// TODO: Check back tracing after Bun supports OpenTelemetry
+// Currently using Node.js SDK which may not work fully with Bun runtime
 import {
   closeCleanupQueue,
   closeIndexQueue,
@@ -15,9 +17,7 @@ import logger from "./utils/logger";
 const serviceName = "openplane-server";
 
 const otlpExporter = new OTLPTraceExporter({
-  url:
-    process.env.OTEL_EXPORTER_OTLP_ENDPOINT ||
-    "http://localhost:4318/v1/traces",
+  url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || "http://localhost:4318",
 });
 
 const sdk = new NodeSDK({

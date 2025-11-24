@@ -7,10 +7,6 @@ import type {
   VespaError,
 } from "./schemas";
 
-/**
- * Vespa HTTP client
- * Provides methods for feeding documents and querying
- */
 export class VespaClient {
   private readonly baseUrl: string;
   private readonly documentApiUrl: string;
@@ -22,9 +18,6 @@ export class VespaClient {
     this.searchApiUrl = `${this.baseUrl}/search/`;
   }
 
-  /**
-   * Check if an error is a retryable connection error
-   */
   private isRetryableError(error: unknown): boolean {
     const errorMessage = error instanceof Error ? error.message : String(error);
     const errorCode = (error as { code?: string })?.code;
@@ -40,9 +33,6 @@ export class VespaClient {
     );
   }
 
-  /**
-   * Extract error message from a failed response
-   */
   private async getResponseError(response: Response): Promise<string> {
     try {
       const error = (await response.json()) as VespaError;
@@ -52,14 +42,9 @@ export class VespaClient {
     }
   }
 
-  /**
-   * Feed a single document to Vespa with retry logic
-   */
   async feedDocument(doc: GenericDocument, retries = 3): Promise<FeedResponse> {
     const documentPath = `${this.documentApiUrl}/default/openplane_document/docid/${doc.id}`;
 
-    // Prepare document for Vespa - stringify metadata if it's an object
-    // Vespa's json type field expects a JSON string, not an object
     const docForVespa: Record<string, unknown> = { ...doc };
     if (docForVespa.metadata && typeof docForVespa.metadata === "object") {
       docForVespa.metadata = JSON.stringify(docForVespa.metadata);
@@ -96,13 +81,9 @@ export class VespaClient {
     throw new Error("Failed to feed document after retries");
   }
 
-  /**
-   * Feed multiple documents in batch
-   */
   async feedBatch(docs: GenericDocument[]): Promise<FeedResponse[]> {
     const results: FeedResponse[] = [];
 
-    // Process in manageable chunks, but isolate failures per document
     const batchSize = 10;
     for (let i = 0; i < docs.length; i += batchSize) {
       const batch = docs.slice(i, i + batchSize);
@@ -132,9 +113,6 @@ export class VespaClient {
     return results;
   }
 
-  /**
-   * Feed an entity (user, channel, group, etc.)
-   */
   async feedEntity(entity: Entity): Promise<FeedResponse> {
     const documentPath = `${this.documentApiUrl}/default/entity/docid/${entity.id}`;
 
@@ -156,9 +134,6 @@ export class VespaClient {
     return (await response.json()) as FeedResponse;
   }
 
-  /**
-   * Query Vespa
-   */
   async query<T = GenericDocument>(
     params: QueryParams
   ): Promise<SearchResult<T>> {
@@ -195,9 +170,6 @@ export class VespaClient {
     return (await response.json()) as SearchResult<T>;
   }
 
-  /**
-   * Delete a document
-   */
   async deleteDocument(id: string): Promise<void> {
     const documentPath = `${this.documentApiUrl}/default/openplane_document/docid/${id}`;
 
@@ -213,9 +185,6 @@ export class VespaClient {
     }
   }
 
-  /**
-   * Update a document (partial update)
-   */
   async updateDocument(
     id: string,
     fields: Partial<GenericDocument>
@@ -240,9 +209,6 @@ export class VespaClient {
     return (await response.json()) as FeedResponse;
   }
 
-  /**
-   * Get a document by ID
-   */
   async getDocument(id: string): Promise<GenericDocument | null> {
     const documentPath = `${this.documentApiUrl}/default/openplane_document/docid/${id}`;
 
@@ -265,9 +231,6 @@ export class VespaClient {
     return result.fields;
   }
 
-  /**
-   * Health check
-   */
   async healthCheck(): Promise<boolean> {
     try {
       const response = await fetch(`${this.baseUrl}/ApplicationStatus`);
@@ -278,5 +241,4 @@ export class VespaClient {
   }
 }
 
-// Export singleton instance
 export const vespaClient = new VespaClient();

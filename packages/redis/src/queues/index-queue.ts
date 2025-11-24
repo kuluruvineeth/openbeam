@@ -1,9 +1,8 @@
+// TODO: Check back tracing after Bun supports OpenTelemetry
 import { Queue } from "bullmq";
 import { getSharedBullMqConnection } from "../client";
+import { extractTraceContext, type TraceContext } from "../utils/trace-context";
 
-/**
- * Generic document interface matching Vespa schema
- */
 export interface GenericDocument {
   id: string;
   connector_id: string;
@@ -29,26 +28,14 @@ export interface GenericDocument {
   is_public: boolean;
 }
 
-/**
- * Index job data interface
- * Used to index documents to Vespa
- */
 export interface IndexJobData {
   connectorId: string;
   documents: GenericDocument[];
   batchId: string;
-  syncHistoryId?: string; // Optional: link to sync history for tracking actual indexed counts
+  syncHistoryId?: string;
+  traceContext?: TraceContext;
 }
 
-/**
- * Index queue retry strategy
- *
- * Error-specific strategies:
- * - Vespa unavailable (503): Exponential backoff with jitter
- * - Document size errors: Fail fast (don't retry)
- * - Timeout errors: Linear backoff
- * - Unknown errors: Exponential backoff
- */
 export function getIndexRetryStrategy(
   attemptsMade: number,
   err: Error
@@ -72,10 +59,6 @@ export function getIndexRetryStrategy(
   return Math.min(2000 * 2 ** (attemptsMade - 1), 15_000);
 }
 
-/**
- * Index queue for document indexing jobs
- * Handles batch indexing to Vespa search engine
- */
 export const indexQueue = new Queue<IndexJobData>("index", {
   connection: getSharedBullMqConnection(),
   defaultJobOptions: {
@@ -93,25 +76,21 @@ export const indexQueue = new Queue<IndexJobData>("index", {
   },
 });
 
-/**
- * Add an index job to the queue
- */
 export async function addIndexJob(data: IndexJobData) {
-  return await indexQueue.add("index", data, {
+  const jobData: IndexJobData = {
+    ...data,
+    traceContext: data.traceContext ?? extractTraceContext(),
+  };
+
+  return await indexQueue.add("index", jobData, {
     jobId: data.batchId,
   });
 }
 
-/**
- * Get index job by ID
- */
 export async function getIndexJob(jobId: string) {
   return await indexQueue.getJob(jobId);
 }
 
-/**
- * Get index queue metrics
- */
 export async function getIndexQueueMetrics() {
   const [waiting, active, completed, failed, delayed] = await Promise.all([
     indexQueue.getWaitingCount(),

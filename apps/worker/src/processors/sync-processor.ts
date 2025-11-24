@@ -1,10 +1,13 @@
+// TODO: Check back tracing after Bun supports OpenTelemetry
 import prisma, { type AppType } from "@openplane/db";
 import {
   addIndexJob,
+  createLinkedSpan,
   fence,
   rateLimiter,
   type SyncJobData,
 } from "@openplane/redis";
+import { SpanStatusCode, trace } from "@opentelemetry/api";
 import type { Job } from "bullmq";
 import { createConnector } from "../connectors/factory";
 import { syncJobService } from "../services/sync-job-service";
@@ -12,11 +15,8 @@ import { batchSizeTracker, calculateBatchSize } from "../utils/batch-sizer";
 import logger from "../utils/logger";
 import { BaseProcessor } from "./base-processor";
 
-/**
- * Sync Worker - Processes sync jobs from the queue
- * Fetches data from external APIs (Slack, Notion, etc.)
- * Pushes batches to index queue
- */
+const tracer = trace.getTracer("openplane-worker");
+
 export class SyncProcessor extends BaseProcessor<SyncJobData> {
   constructor() {
     super("sync", {
@@ -28,130 +28,341 @@ export class SyncProcessor extends BaseProcessor<SyncJobData> {
     });
   }
 
-  /**
-   * Process a single sync job with fencing protocol and rate limiting
-   */
   protected async processJob(
     job: Job<SyncJobData>
   ): Promise<{ synced: number }> {
-    let { connectorId, syncJobId, type } = job.data;
+    let { connectorId, syncJobId, type, traceContext } = job.data;
+    let fenceToken: number | undefined;
 
-    logger.info(
-      { jobId: job.id, connectorId, syncJobId, type },
-      "Processing sync job"
+    // Create span linked to parent trace context from job data
+    const span = createLinkedSpan(
+      "openplane-worker",
+      "sync-processor.process",
+      traceContext,
+      {
+        "job.id": job.id || "",
+        "connector.id": connectorId,
+        "sync.type": type,
+        "sync.job_id": syncJobId || "",
+      }
     );
 
-    // Check if another sync is already running for this connector
+    try {
+      logger.info(
+        { jobId: job.id, connectorId, syncJobId, type },
+        "Processing sync job"
+      );
+
+      const isAlreadyFenced = await this.checkFenceStatus(
+        span,
+        connectorId,
+        job.id
+      );
+      if (isAlreadyFenced) {
+        return { synced: 0 };
+      }
+
+      fenceToken = await this.acquireFenceWithSpan(span, connectorId, job.id);
+
+      try {
+        syncJobId = await this.ensureSyncJobId(
+          syncJobId,
+          connectorId,
+          type,
+          job.id
+        );
+
+        const { connector, cursor } = await this.prepareSync(
+          connectorId,
+          syncJobId,
+          type,
+          fenceToken
+        );
+
+        const syncResult = await this.fetchDocumentsWithSpan(
+          connector,
+          cursor,
+          connectorId,
+          type
+        );
+
+        const batchCount = await this.enqueueBatchesWithSpan(
+          connectorId,
+          syncJobId,
+          syncResult.documents,
+          connector.app
+        );
+
+        await this.updateCompletionWithSpan({
+          connectorId,
+          syncJobId,
+          syncResult,
+          batchCount,
+          startTime: job.processedOn || Date.now(),
+        });
+
+        span.setAttributes({
+          "sync.documents_synced": syncResult.documents.length,
+          "sync.batch_count": batchCount,
+        });
+        span.setStatus({ code: SpanStatusCode.OK });
+
+        logger.info(
+          {
+            jobId: job.id,
+            connectorId,
+            documentsCount: syncResult.documents.length,
+            fenceToken,
+          },
+          "Sync job completed successfully"
+        );
+
+        return { synced: syncResult.documents.length };
+      } catch (error) {
+        await this.handleSyncError({
+          span,
+          error,
+          jobId: job.id,
+          connectorId,
+          syncJobId,
+          fenceToken,
+        });
+        throw error;
+      } finally {
+        if (fenceToken !== undefined) {
+          await this.releaseFence(job.id, connectorId, fenceToken);
+        }
+      }
+    } catch (error) {
+      span.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: error instanceof Error ? error.message : String(error),
+      });
+      span.recordException(error as Error);
+      throw error;
+    } finally {
+      span.end();
+    }
+  }
+
+  private async checkFenceStatus(
+    span: ReturnType<typeof tracer.startSpan>,
+    connectorId: string,
+    jobId: string | undefined
+  ): Promise<boolean> {
     const isAlreadyFenced = await fence.isFenced(connectorId);
     if (isAlreadyFenced) {
       const currentFenceToken = await fence.getCurrentToken(connectorId);
+      span.setAttributes({
+        "fence.already_fenced": true,
+        "fence.current_token": String(currentFenceToken),
+      });
+      span.setStatus({ code: SpanStatusCode.OK });
       logger.warn(
         {
-          jobId: job.id,
+          jobId,
           connectorId,
-          type,
           currentFenceToken,
         },
         "Connector is already being synced by another worker, skipping this execution. Next scheduled run will retry."
       );
-      // Don't throw - just skip this execution gracefully
-      // The repeatable job will trigger again on the next schedule
-      return { synced: 0 };
+      return true;
     }
+    return false;
+  }
 
+  private async acquireFenceWithSpan(
+    span: ReturnType<typeof tracer.startSpan>,
+    connectorId: string,
+    jobId: string | undefined
+  ): Promise<number> {
     const fenceToken = await fence.acquireFence(connectorId);
-    logger.info(
-      { jobId: job.id, connectorId, fenceToken },
-      "Acquired fence token"
-    );
+    span.setAttribute("fence.token", String(fenceToken));
+    logger.info({ jobId, connectorId, fenceToken }, "Acquired fence token");
+    return fenceToken;
+  }
 
-    try {
-      // For repeatable jobs, syncJobId is empty - create SyncHistory dynamically
-      if (!syncJobId) {
-        syncJobId = await syncJobService.createSyncHistoryForRepeatableJob(
+  private async ensureSyncJobId(
+    syncJobId: string | undefined,
+    connectorId: string,
+    type: "FULL" | "INCREMENTAL",
+    jobId: string | undefined
+  ): Promise<string> {
+    if (!syncJobId) {
+      const newSyncJobId =
+        await syncJobService.createSyncHistoryForRepeatableJob(
           connectorId,
           type
         );
-        logger.info(
-          { jobId: job.id, connectorId, syncJobId, type },
-          "Created SyncHistory for repeatable job"
-        );
-      }
+      logger.info(
+        { jobId, connectorId, syncJobId: newSyncJobId, type },
+        "Created SyncHistory for repeatable job"
+      );
+      return newSyncJobId;
+    }
+    return syncJobId;
+  }
 
-      await this.validateAndPrepare(connectorId, syncJobId, fenceToken);
-      const connector = await this.loadConnectorWithRateLimit(connectorId);
-      const cursor = await this.getSyncCursor(connectorId, type);
+  private async prepareSync(
+    connectorId: string,
+    syncJobId: string,
+    type: "FULL" | "INCREMENTAL",
+    fenceToken: number
+  ): Promise<{
+    connector: Awaited<ReturnType<SyncProcessor["loadConnectorWithRateLimit"]>>;
+    cursor: string | undefined;
+  }> {
+    await this.validateAndPrepare(connectorId, syncJobId, fenceToken);
+    const connector = await this.loadConnectorWithRateLimit(connectorId);
+    const cursor = await this.getSyncCursor(connectorId, type);
 
-      if (!(await fence.validateFence(connectorId, fenceToken))) {
-        throw new Error("Fence became invalid");
-      }
+    if (!(await fence.validateFence(connectorId, fenceToken))) {
+      throw new Error("Fence became invalid");
+    }
 
+    const connectorInstance = createConnector(connector);
+    const isValid = await connectorInstance.validateConnection();
+    if (!isValid) {
+      throw new Error("Connector validation failed");
+    }
+
+    if (!(await fence.validateFence(connectorId, fenceToken))) {
+      throw new Error("Fence became invalid");
+    }
+
+    return { connector, cursor };
+  }
+
+  async fetchDocumentsWithSpan(
+    connector: Awaited<ReturnType<SyncProcessor["loadConnectorWithRateLimit"]>>,
+    cursor: string | undefined,
+    connectorId: string,
+    type: "FULL" | "INCREMENTAL"
+  ): Promise<{ documents: unknown[]; nextCursor?: string }> {
+    const span = tracer.startSpan("sync-processor.fetch-documents", {
+      attributes: {
+        "connector.id": connectorId,
+        "sync.type": type,
+      },
+    });
+    try {
       const connectorInstance = createConnector(connector);
-      const isValid = await connectorInstance.validateConnection();
-      if (!isValid) {
-        throw new Error("Connector validation failed");
-      }
-
-      if (!(await fence.validateFence(connectorId, fenceToken))) {
-        throw new Error("Fence became invalid");
-      }
-
       const syncResult = await connectorInstance.sync(cursor);
+      span.setAttributes({
+        "sync.documents_count": syncResult.documents.length,
+        "sync.has_next_cursor": !!syncResult.nextCursor,
+      });
+      span.setStatus({ code: SpanStatusCode.OK });
       logger.info(
         { connectorId, documentsCount: syncResult.documents.length },
         "Documents fetched"
       );
+      return syncResult;
+    } catch (error) {
+      span.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: error instanceof Error ? error.message : String(error),
+      });
+      span.recordException(error as Error);
+      throw error;
+    } finally {
+      span.end();
+    }
+  }
 
+  private async enqueueBatchesWithSpan(
+    connectorId: string,
+    syncJobId: string,
+    documents: unknown[],
+    appType: string
+  ): Promise<number> {
+    const span = tracer.startSpan("sync-processor.enqueue-batches", {
+      attributes: {
+        "connector.id": connectorId,
+        "sync.documents_count": documents.length,
+      },
+    });
+    try {
       const batchCount = await this.enqueueBatches({
         connectorId,
         syncJobId,
-        documents: syncResult.documents,
-        appType: connector.app,
+        documents,
+        appType,
       });
-
-      await this.updateSyncCompletion({
-        connectorId,
-        syncJobId,
-        syncResult,
-        batchCount,
-        startTime: job.processedOn || Date.now(),
+      span.setAttributes({
+        "sync.batch_count": batchCount,
       });
-
-      logger.info(
-        {
-          jobId: job.id,
-          connectorId,
-          documentsCount: syncResult.documents.length,
-          fenceToken,
-        },
-        "Sync job completed successfully"
-      );
-
-      return { synced: syncResult.documents.length };
+      span.setStatus({ code: SpanStatusCode.OK });
+      return batchCount;
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      const errorStack = error instanceof Error ? error.stack : undefined;
-
-      logger.error(
-        {
-          error: errorMessage,
-          errorStack,
-          jobId: job.id,
-          connectorId,
-          fenceToken,
-        },
-        "Sync job failed"
-      );
-
-      // Only update sync history if we have a valid syncJobId
-      if (syncJobId) {
-        await syncJobService.handleSyncError(connectorId, syncJobId, error);
-      }
-
+      span.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: error instanceof Error ? error.message : String(error),
+      });
+      span.recordException(error as Error);
       throw error;
     } finally {
-      await this.releaseFence(job.id, connectorId, fenceToken);
+      span.end();
+    }
+  }
+
+  private async updateCompletionWithSpan(params: {
+    connectorId: string;
+    syncJobId: string;
+    syncResult: { nextCursor?: string; documents: unknown[] };
+    batchCount: number;
+    startTime: number;
+  }): Promise<void> {
+    const span = tracer.startSpan("sync-processor.update-completion");
+    try {
+      await this.updateSyncCompletion(params);
+      span.setStatus({ code: SpanStatusCode.OK });
+    } catch (error) {
+      span.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: error instanceof Error ? error.message : String(error),
+      });
+      span.recordException(error as Error);
+      throw error;
+    } finally {
+      span.end();
+    }
+  }
+
+  private async handleSyncError(params: {
+    span: ReturnType<typeof tracer.startSpan>;
+    error: unknown;
+    jobId: string | undefined;
+    connectorId: string;
+    syncJobId: string | undefined;
+    fenceToken: number | undefined;
+  }): Promise<void> {
+    const { span, error, jobId, connectorId, syncJobId, fenceToken } = params;
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+
+    span.setStatus({
+      code: SpanStatusCode.ERROR,
+      message: errorMessage,
+    });
+    span.recordException(error as Error);
+    span.setAttributes({
+      "error.type": error instanceof Error ? error.constructor.name : "Unknown",
+    });
+
+    logger.error(
+      {
+        error: errorMessage,
+        errorStack,
+        jobId,
+        connectorId,
+        fenceToken: fenceToken ?? null,
+      },
+      "Sync job failed"
+    );
+
+    if (syncJobId) {
+      await syncJobService.handleSyncError(connectorId, syncJobId, error);
     }
   }
 

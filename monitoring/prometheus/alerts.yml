@@ -1,0 +1,127 @@
+groups:
+  - name: openplane_alerts
+    interval: 30s
+    rules:
+      # Critical Alerts
+      - alert: HighErrorRate
+        expr: rate(http_request_duration_seconds_count{status_code=~"5.."}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+          component: server
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | humanize }} errors/sec for 5 minutes"
+
+      - alert: VespaDiskSaturation
+        expr: vespa_content_proton_resource_usage_disk_usage_ratio > 0.9
+        for: 5m
+        labels:
+          severity: critical
+          component: vespa
+        annotations:
+          summary: "Vespa disk usage critical"
+          description: "Vespa disk usage is {{ $value | humanizePercentage }}"
+
+      - alert: WorkerQueueBacklog
+        expr: sync_queue_depth{status="waiting"} > 1000
+        for: 10m
+        labels:
+          severity: critical
+          component: worker
+        annotations:
+          summary: "Worker queue backlog high"
+          description: "Sync queue has {{ $value }} waiting jobs"
+
+      - alert: VespaMemorySaturation
+        expr: vespa_content_proton_resource_usage_memory_usage_ratio > 0.9
+        for: 5m
+        labels:
+          severity: critical
+          component: vespa
+        annotations:
+          summary: "Vespa memory usage critical"
+          description: "Vespa memory usage is {{ $value | humanizePercentage }}"
+
+      # Warning Alerts
+      - alert: HighAPILatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+          component: server
+        annotations:
+          summary: "High API latency"
+          description: "P95 latency is {{ $value | humanize }}s"
+
+      - alert: LowIndexThroughput
+        expr: rate(index_documents_total[5m]) < 10
+        for: 15m
+        labels:
+          severity: warning
+          component: worker
+        annotations:
+          summary: "Low index throughput"
+          description: "Index throughput is {{ $value | humanize }} docs/sec"
+
+      - alert: HighRateLimitUsage
+        expr: rate_limit_usage_ratio > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          component: worker
+        annotations:
+          summary: "High rate limit usage"
+          description: "Rate limit usage is {{ $value | humanizePercentage }}"
+
+      - alert: RedisMemoryUsage
+        expr: redis_memory_used_bytes / (redis_memory_max_bytes > 0) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          component: redis
+        annotations:
+          summary: "Redis memory usage high"
+          description: "Redis memory usage is {{ $value | humanizePercentage }}"
+
+      - alert: HighSyncFailureRate
+        expr: |
+          (
+            rate(sync_jobs_total{status="failed"}[5m]) /
+            rate(sync_jobs_total[5m])
+          ) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          component: worker
+        annotations:
+          summary: "High sync failure rate"
+          description: "Sync failure rate is {{ $value | humanizePercentage }}"
+
+      - alert: HighIndexFailureRate
+        expr: |
+          (
+            rate(index_jobs_total{status="failed"}[5m]) /
+            rate(index_jobs_total[5m])
+          ) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          component: worker
+        annotations:
+          summary: "High index failure rate"
+          description: "Index failure rate is {{ $value | humanizePercentage }}"
+
+      - alert: VespaQueryErrorRate
+        expr: |
+          (
+            rate(vespa_container_http_request_uri_query_total{status=~"5.."}[5m]) /
+            rate(vespa_container_http_request_uri_query_total[5m])
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          component: vespa
+        annotations:
+          summary: "High Vespa query error rate"
+          description: "Vespa query error rate is {{ $value | humanizePercentage }}"

@@ -41,10 +41,6 @@ interface SlackChannel {
   members?: string[];
 }
 
-/**
- * Slack Connector Implementation
- * Fetches messages, channels, and user data from Slack
- */
 export class SlackConnector extends BaseConnector {
   private readonly client: WebClient;
   private readonly rateLimitKey: string;
@@ -65,9 +61,6 @@ export class SlackConnector extends BaseConnector {
     this.rateLimitKey = `slack:${this.connector.id}`;
   }
 
-  /**
-   * Main sync method
-   */
   async sync(cursor?: string): Promise<SyncResult> {
     try {
       logger.info({ connectorId: this.connector.id }, "Starting Slack sync");
@@ -97,9 +90,6 @@ export class SlackConnector extends BaseConnector {
     }
   }
 
-  /**
-   * Fetch documents (messages) from Slack
-   */
   async fetchDocuments(cursor?: string): Promise<FetchResult> {
     const documents: GenericDocument[] = [];
     const sinceTimestamp = cursor ? Number(cursor) : undefined;
@@ -140,9 +130,6 @@ export class SlackConnector extends BaseConnector {
     };
   }
 
-  /**
-   * Get channels that the bot can access (only channels where bot is already a member)
-   */
   private getAccessibleChannels(channels: SlackChannel[]): SlackChannel[] {
     const accessibleChannels = channels.filter((channel) => {
       if (channel.is_member) {
@@ -242,9 +229,6 @@ export class SlackConnector extends BaseConnector {
     return { documents, latestSlackTimestamp };
   }
 
-  /**
-   * Transform Slack message to GenericDocument
-   */
   transformToGenericDocument(rawDoc: {
     message: SlackMessage;
     channel: SlackChannel;
@@ -292,9 +276,6 @@ export class SlackConnector extends BaseConnector {
     };
   }
 
-  /**
-   * Validate Slack connection
-   */
   async validateConnection(): Promise<boolean> {
     try {
       const authTest = await this.client.auth.test();
@@ -305,9 +286,6 @@ export class SlackConnector extends BaseConnector {
     }
   }
 
-  /**
-   * Get all accessible channels
-   */
   private async getChannels(): Promise<SlackChannel[]> {
     const channels: SlackChannel[] = [];
     let cursor: string | undefined;
@@ -411,9 +389,6 @@ export class SlackConnector extends BaseConnector {
     return false;
   }
 
-  /**
-   * Fetch messages from a specific channel
-   */
   private async fetchChannelMessages(
     channelId: string,
     options: { sinceTimestamp?: number } = {}
@@ -460,9 +435,6 @@ export class SlackConnector extends BaseConnector {
     return messages;
   }
 
-  /**
-   * Fetch thread replies
-   */
   private async fetchThreadReplies(
     channelId: string,
     threadTs: string,
@@ -507,9 +479,6 @@ export class SlackConnector extends BaseConnector {
     return replies;
   }
 
-  /**
-   * Check rate limit before making API call
-   */
   private async checkRateLimit(method: string): Promise<void> {
     const key = `${this.rateLimitKey}:${method}`;
     const allowed = await rateLimiter.checkLimit(key, 50, 60); // 50 requests per 60 seconds

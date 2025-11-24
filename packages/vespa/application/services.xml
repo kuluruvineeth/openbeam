@@ -19,13 +19,6 @@
   <content id="content" version="1.0">
     <redundancy>1</redundancy>
     
-    <!-- Resource limits - Disable disk limit check for development (set to 100%) -->
-    <resource-limits>
-      <disk>
-        <limit>1.0</limit>
-      </disk>
-    </resource-limits>
-    
     <!-- Generic document type for all connectors -->
     <documents>
       <document type="openplane_document" mode="index"/>
