@@ -1,3 +1,4 @@
+import IORedis, { type RedisOptions } from "ioredis";
 import { createClient, type RedisClientType } from "redis";
 
 type ParsedRedisConfig = {
@@ -62,6 +63,7 @@ function parseRedisConfig(): ParsedRedisConfig {
 const redisConfig = parseRedisConfig();
 
 let redisClient: RedisClientType | null = null;
+let sharedBullMqConnection: IORedis | null = null;
 
 /**
  * Get or create a singleton Redis client instance
@@ -131,8 +133,64 @@ export async function closeRedisClient(): Promise<void> {
 }
 
 /**
- * Get Redis connection configuration for BullMQ
- * BullMQ expects ioredis connection options
+ * Close the shared BullMQ Redis connection gracefully
+ */
+export async function closeSharedBullMqConnection(): Promise<void> {
+  if (sharedBullMqConnection) {
+    await sharedBullMqConnection.quit();
+    sharedBullMqConnection = null;
+    console.log("BullMQ Redis: Connection closed");
+  }
+}
+
+/**
+ * Get shared ioredis connection for BullMQ
+ * Reuses a single connection instance across all BullMQ queues/workers
+ * to minimize Redis connection count
+ */
+export function getSharedBullMqConnection(): IORedis {
+  if (!sharedBullMqConnection) {
+    const enableReadyCheck = process.env.REDIS_ENABLE_READY_CHECK !== "false";
+
+    const connectionOptions: RedisOptions = {
+      host: redisConfig.host,
+      port: redisConfig.port,
+      username: redisConfig.username,
+      password: redisConfig.password,
+      db: redisConfig.db,
+      connectionName: process.env.REDIS_CONNECTION_NAME,
+      enableReadyCheck,
+      maxRetriesPerRequest: null,
+      lazyConnect: true,
+    };
+
+    if (redisConfig.isTls) {
+      const rejectUnauthorized =
+        process.env.REDIS_TLS_REJECT_UNAUTHORIZED !== "false";
+      connectionOptions.tls = { rejectUnauthorized };
+    }
+
+    sharedBullMqConnection = new IORedis(connectionOptions);
+
+    sharedBullMqConnection.on("error", (err: Error) => {
+      console.error("BullMQ Redis Connection Error:", err);
+    });
+
+    sharedBullMqConnection.on("connect", () => {
+      console.log("BullMQ Redis: Connected");
+    });
+
+    sharedBullMqConnection.on("ready", () => {
+      console.log("BullMQ Redis: Ready");
+    });
+  }
+
+  return sharedBullMqConnection;
+}
+
+/**
+ * Get Redis connection configuration for BullMQ (legacy)
+ * @deprecated Use getSharedBullMqConnection() instead for better connection reuse
  */
 export function getRedisConnection(): BullMqRedisOptions {
   const enableReadyCheck = process.env.REDIS_ENABLE_READY_CHECK !== "false";
@@ -168,4 +226,4 @@ export function getRedisConnection(): BullMqRedisOptions {
   return options;
 }
 
-export { redisClient };
+export { redisClient, sharedBullMqConnection };
