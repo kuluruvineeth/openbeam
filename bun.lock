@@ -65,6 +65,8 @@
         "better-auth": "catalog:",
         "dotenv": "catalog:",
         "hono": "catalog:",
+        "pino": "^10.1.0",
+        "pino-pretty": "^13.1.2",
         "prom-client": "^15.1.1",
         "zod": "catalog:",
       },
@@ -256,6 +258,7 @@
       "dependencies": {
         "@openplane/config": "workspace:*",
         "bullmq": "^5.13.0",
+        "ioredis": "^5.8.2",
         "redis": "^5.10.0",
       },
       "devDependencies": {
