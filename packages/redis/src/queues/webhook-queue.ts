@@ -1,20 +1,16 @@
-/**
- * Webhook Queue
- *
- * High-priority queue for processing incoming webhooks.
- * Enables real-time document updates from connectors.
- */
-
+// TODO: Check back tracing after Bun supports OpenTelemetry
 import { Queue } from "bullmq";
 import { getSharedBullMqConnection } from "../client";
+import { extractTraceContext, type TraceContext } from "../utils/trace-context";
 
 export interface WebhookJobData {
   connectorId: string;
   eventId: string;
   eventType: string;
   payload: Record<string, unknown>;
-  source: string; // "slack", "notion", etc.
+  source: string;
   receivedAt: Date;
+  traceContext?: TraceContext;
 }
 
 export const webhookQueue = new Queue<WebhookJobData>("webhook", {
@@ -38,9 +34,14 @@ export const webhookQueue = new Queue<WebhookJobData>("webhook", {
 });
 
 export async function addWebhookJob(data: WebhookJobData, priority = 10) {
-  return await webhookQueue.add("process-webhook", data, {
+  const jobData: WebhookJobData = {
+    ...data,
+    traceContext: data.traceContext ?? extractTraceContext(),
+  };
+
+  return await webhookQueue.add("process-webhook", jobData, {
     priority,
-    jobId: `webhook-${data.connectorId}-${data.eventId}`, // Prevent duplicates
+    jobId: `webhook-${data.connectorId}-${data.eventId}`,
   });
 }
 
