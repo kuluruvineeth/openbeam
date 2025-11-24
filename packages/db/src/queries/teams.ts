@@ -25,7 +25,6 @@ export const updateActiveTeamForUser = async (
   userId: string,
   teamId: string
 ) => {
-  // Verify user is a member of the team
   const membership = await db.usersOnTeam.findFirst({
     where: {
       userId,
@@ -37,7 +36,6 @@ export const updateActiveTeamForUser = async (
     throw new Error("User is not a member of this team");
   }
 
-  // Update user's active team
   await db.user.update({
     where: { id: userId },
     data: { teamId },

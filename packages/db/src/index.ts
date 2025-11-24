@@ -16,6 +16,8 @@ export default prisma;
 export * from "./mutations/connectors";
 export * from "./mutations/oauth";
 export * from "./mutations/sync";
+export * from "./mutations/teams";
 // Query layer
 export * from "./queries/connectors";
 export * from "./queries/sync";
+export * from "./queries/teams";
