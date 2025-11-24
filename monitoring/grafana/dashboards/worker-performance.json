@@ -1,181 +1,306 @@
 {
-  "dashboard": {
-    "title": "OpenPlane Worker Performance",
-    "tags": ["openplane", "worker", "sync", "index"],
-    "timezone": "browser",
-    "schemaVersion": 16,
-    "version": 1,
-    "refresh": "10s",
-    "panels": [
+  "annotations": {
+    "list": [
       {
-        "id": 1,
-        "title": "Sync Jobs - Success Rate",
-        "type": "stat",
-        "targets": [
-          {
-            "expr": "sum(rate(sync_jobs_total{status=\"completed\"}[5m])) / sum(rate(sync_jobs_total[5m])) * 100",
-            "legendFormat": "Success Rate"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "unit": "percent",
-            "thresholds": {
-              "steps": [
-                { "value": 0, "color": "red" },
-                { "value": 90, "color": "yellow" },
-                { "value": 99, "color": "green" }
-              ]
-            }
-          }
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
         },
-        "gridPos": { "h": 8, "w": 6, "x": 0, "y": 0 }
-      },
-      {
-        "id": 2,
-        "title": "Index Throughput (docs/sec)",
-        "type": "graph",
-        "targets": [
-          {
-            "expr": "rate(index_documents_total[5m])",
-            "legendFormat": "{{connector_id}}"
-          }
-        ],
-        "gridPos": { "h": 8, "w": 18, "x": 6, "y": 0 }
-      },
-      {
-        "id": 3,
-        "title": "Queue Depths",
-        "type": "graph",
-        "targets": [
-          {
-            "expr": "sync_queue_depth",
-            "legendFormat": "Sync - {{status}}"
-          },
-          {
-            "expr": "index_queue_depth",
-            "legendFormat": "Index - {{status}}"
-          }
-        ],
-        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 }
-      },
-      {
-        "id": 4,
-        "title": "Rate Limit Hits",
-        "type": "graph",
-        "targets": [
-          {
-            "expr": "rate(rate_limit_hits_total[5m])",
-            "legendFormat": "{{connector_id}} - {{limit_type}}"
-          }
-        ],
-        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 }
-      },
-      {
-        "id": 5,
-        "title": "Sync Duration (p95)",
-        "type": "graph",
-        "targets": [
-          {
-            "expr": "histogram_quantile(0.95, rate(sync_duration_seconds_bucket[5m]))",
-            "legendFormat": "{{connector_id}}"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "unit": "s"
-          }
-        },
-        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 }
-      },
-      {
-        "id": 6,
-        "title": "Index Duration (p95)",
-        "type": "graph",
-        "targets": [
-          {
-            "expr": "histogram_quantile(0.95, rate(index_duration_seconds_bucket[5m]))",
-            "legendFormat": "{{connector_id}}"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "unit": "s"
-          }
-        },
-        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 }
-      },
-      {
-        "id": 7,
-        "title": "Checksum Skip Rate",
-        "type": "stat",
-        "targets": [
-          {
-            "expr": "avg(checksum_skip_rate) * 100",
-            "legendFormat": "Skip Rate"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "unit": "percent",
-            "thresholds": {
-              "steps": [
-                { "value": 0, "color": "red" },
-                { "value": 30, "color": "yellow" },
-                { "value": 60, "color": "green" }
-              ]
-            }
-          }
-        },
-        "gridPos": { "h": 8, "w": 6, "x": 0, "y": 24 }
-      },
-      {
-        "id": 8,
-        "title": "Fence Conflicts",
-        "type": "stat",
-        "targets": [
-          {
-            "expr": "sum(increase(fence_conflicts_total[1h]))",
-            "legendFormat": "Conflicts (1h)"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "thresholds": {
-              "steps": [
-                { "value": 0, "color": "green" },
-                { "value": 1, "color": "yellow" },
-                { "value": 10, "color": "red" }
-              ]
-            }
-          }
-        },
-        "gridPos": { "h": 8, "w": 6, "x": 6, "y": 24 }
-      },
-      {
-        "id": 9,
-        "title": "Webhook Events",
-        "type": "graph",
-        "targets": [
-          {
-            "expr": "rate(webhook_events_total[5m])",
-            "legendFormat": "{{source}} - {{status}}"
-          }
-        ],
-        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 }
-      },
-      {
-        "id": 10,
-        "title": "Cleanup Operations",
-        "type": "graph",
-        "targets": [
-          {
-            "expr": "rate(cleanup_documents_total[5m])",
-            "legendFormat": "{{type}}"
-          }
-        ],
-        "gridPos": { "h": 8, "w": 24, "x": 0, "y": 32 }
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
       }
     ]
-  }
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 1,
+      "title": "Sync Jobs - Success Rate",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(rate(sync_jobs_total{status=\"completed\"}[5m])) / sum(rate(sync_jobs_total[5m])) * 100",
+          "legendFormat": "Success Rate",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "steps": [
+              { "value": 0, "color": "red" },
+              { "value": 90, "color": "yellow" },
+              { "value": 99, "color": "green" }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 0 }
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 2,
+      "title": "Index Throughput (docs/sec)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(index_documents_total[5m])",
+          "legendFormat": "{{connector_id}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "gridPos": { "h": 8, "w": 18, "x": 6, "y": 0 }
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 3,
+      "title": "Queue Depths",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sync_queue_depth",
+          "legendFormat": "Sync - {{status}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        },
+        {
+          "expr": "index_queue_depth",
+          "legendFormat": "Index - {{status}}",
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 }
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 4,
+      "title": "Rate Limit Hits",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(rate_limit_hits_total[5m])",
+          "legendFormat": "{{connector_id}} - {{limit_type}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 }
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 5,
+      "title": "Sync Duration (p95)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, rate(sync_duration_seconds_bucket[5m]))",
+          "legendFormat": "{{connector_id}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 }
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 6,
+      "title": "Index Duration (p95)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, rate(index_duration_seconds_bucket[5m]))",
+          "legendFormat": "{{connector_id}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 }
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 7,
+      "title": "Checksum Skip Rate",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "avg(checksum_skip_rate) * 100",
+          "legendFormat": "Skip Rate",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "steps": [
+              { "value": 0, "color": "red" },
+              { "value": 30, "color": "yellow" },
+              { "value": 60, "color": "green" }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 24 }
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 8,
+      "title": "Fence Conflicts",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(increase(fence_conflicts_total[1h]))",
+          "legendFormat": "Conflicts (1h)",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "steps": [
+              { "value": 0, "color": "green" },
+              { "value": 1, "color": "yellow" },
+              { "value": 10, "color": "red" }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 24 }
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 9,
+      "title": "Webhook Events",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(webhook_events_total[5m])",
+          "legendFormat": "{{source}} - {{status}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 }
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 10,
+      "title": "Cleanup Operations",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(cleanup_documents_total[5m])",
+          "legendFormat": "{{type}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 32 }
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 16,
+  "style": "dark",
+  "tags": ["openplane", "worker", "sync", "index"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "OpenPlane Worker Performance",
+  "uid": "worker-performance",
+  "version": 1
 }
