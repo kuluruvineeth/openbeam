@@ -1,0 +1,45 @@
+# ==============================================================================
+# Production Environment - Example Configuration
+# ==============================================================================
+# Copy this file to terraform.tfvars and customize for your environment
+# ==============================================================================
+
+# GCP Project Configuration
+project_id = "openplane-prod"
+region     = "us-central1"
+zone       = "us-central1-a"
+
+# Container Images
+github_org = "kuluruvineeth"
+image_tag  = "latest" # Use commit SHA in production (e.g., "abc123def")
+
+# Networking (defaults are fine for most cases)
+# cloud_run_subnet_cidr = "10.0.0.0/24"
+# compute_subnet_cidr   = "10.0.1.0/24"
+
+# Cloud SQL (Production Configuration)
+cloud_sql_tier               = "db-custom-2-8192" # 2 vCPU, 8GB RAM (~$120/month)
+cloud_sql_high_availability  = true
+cloud_sql_disk_size          = 100
+cloud_sql_disk_autoresize_limit = 500
+
+# Redis (Production Configuration)
+redis_tier           = "STANDARD_HA" # High availability (~$200/month)
+redis_memory_size_gb = 5
+redis_replica_count  = 1
+
+# Vespa (Production Configuration)
+vespa_machine_type    = "n2-standard-4" # 4 vCPU, 16GB RAM (~$120/month)
+vespa_data_disk_size  = 200
+vespa_version         = "8.269.17"
+
+# Cloud Run Scaling (Production Configuration)
+server_min_instances = 1  # Always-on for API
+server_max_instances = 10
+
+worker_min_instances = 1  # Always-on for queues
+worker_max_instances = 5
+
+web_min_instances = 0  # Scale to zero when idle
+web_max_instances = 10
+
