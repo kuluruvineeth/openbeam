@@ -5,7 +5,7 @@
  * Implements per-connector-type pooling with health checks.
  */
 
-import type { ConnectorType } from "@openplane/db";
+import type { AppType } from "@openplane/db";
 import { workerConfig } from "./config";
 import logger from "./utils/logger";
 
@@ -46,7 +46,13 @@ export class ConnectionPool<T> {
   /**
    * Acquire a connection from the pool
    */
-  async acquire(key: string): Promise<T> {
+  async acquire(key: string, maxRetries = 50): Promise<T> {
+    if (maxRetries <= 0) {
+      throw new Error(
+        `Failed to acquire connection from pool after maximum retries: ${key}`
+      );
+    }
+
     let connections = this.pool.get(key) || [];
 
     // Find available connection
@@ -86,9 +92,12 @@ export class ConnectionPool<T> {
     }
 
     // Wait for connection to become available
-    logger.warn({ key }, "Connection pool exhausted, waiting...");
+    logger.warn(
+      { key, retriesRemaining: maxRetries },
+      "Connection pool exhausted, waiting..."
+    );
     await new Promise((resolve) => setTimeout(resolve, 100));
-    return this.acquire(key);
+    return this.acquire(key, maxRetries - 1);
   }
 
   /**
@@ -156,13 +165,13 @@ export class ConnectionPool<T> {
  * Connection pool manager for different connector types
  */
 class ConnectionPoolManager {
-  private readonly pools = new Map<ConnectorType, ConnectionPool<unknown>>();
+  private readonly pools = new Map<AppType, ConnectionPool<unknown>>();
 
   /**
    * Get or create pool for connector type
    */
   getPool<T>(
-    type: ConnectorType,
+    type: AppType,
     createFn: () => Promise<T>,
     validateFn: (conn: T) => Promise<boolean>,
     destroyFn: (conn: T) => Promise<void>
@@ -170,7 +179,7 @@ class ConnectionPoolManager {
     if (!this.pools.has(type)) {
       const config = this.getPoolConfig(type);
       const pool = new ConnectionPool(config, createFn, validateFn, destroyFn);
-      this.pools.set(type, pool);
+      this.pools.set(type, pool as ConnectionPool<unknown>);
       logger.info({ type, config }, "Created connection pool");
     }
     const pool = this.pools.get(type);
@@ -183,13 +192,13 @@ class ConnectionPoolManager {
   /**
    * Get pool configuration for connector type
    */
-  private getPoolConfig(type: ConnectorType): PoolConfig {
+  private getPoolConfig(type: AppType): PoolConfig {
     switch (type) {
       case "SLACK":
         return workerConfig.connectionPool.slack;
       case "NOTION":
         return workerConfig.connectionPool.notion;
-      case "DRIVE":
+      case "GOOGLE_DRIVE":
         return workerConfig.connectionPool.drive;
       default:
         return { max: 5, min: 1 };
