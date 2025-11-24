@@ -5,8 +5,8 @@ import { z } from "@hono/zod-openapi";
  */
 export const OAuthStartQuerySchema = z.object({
   workspaceId: z.string().optional().openapi({
-    description: "Workspace ID (defaults to active organization)",
-    example: "org_123",
+    description: "Workspace ID (defaults to active team)",
+    example: "team_123",
   }),
   connectorId: z.string().openapi({
     description: "Connector ID to associate with OAuth flow",
