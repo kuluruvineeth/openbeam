@@ -1,6 +1,9 @@
 /**
  * OpenTelemetry Instrumentation for Worker
  * MUST be imported before any other modules to ensure proper instrumentation
+ *
+ * TODO: Check back tracing after Bun supports OpenTelemetry
+ * Currently using Node.js SDK which may not work fully with Bun runtime
  */
 
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto";
@@ -13,9 +16,7 @@ const serviceName = "openplane-worker";
 
 // Configure OTLP exporter (Jaeger)
 const otlpExporter = new OTLPTraceExporter({
-  url:
-    process.env.OTEL_EXPORTER_OTLP_ENDPOINT ||
-    "http://localhost:4318/v1/traces",
+  url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || "http://localhost:4318",
 });
 
 // Initialize OpenTelemetry SDK

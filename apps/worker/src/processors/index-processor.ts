@@ -1,15 +1,19 @@
+// TODO: Check back tracing after Bun supports OpenTelemetry
 import prisma from "@openplane/db";
-import { getIndexRetryStrategy, type IndexJobData } from "@openplane/redis";
+import {
+  createLinkedSpan,
+  getIndexRetryStrategy,
+  type IndexJobData,
+} from "@openplane/redis";
 import { type GenericDocument, vespaClient } from "@openplane/vespa";
+import { SpanStatusCode, trace } from "@opentelemetry/api";
 import type { Job } from "bullmq";
 import { calculateDocumentChecksum, checksumsMatch } from "../utils/checksum";
 import logger from "../utils/logger";
 import { BaseProcessor } from "./base-processor";
 
-/**
- * Index Worker - Processes indexing jobs from the queue
- * Pushes documents to Vespa and tracks in database
- */
+const tracer = trace.getTracer("openplane-worker");
+
 export class IndexProcessor extends BaseProcessor<IndexJobData> {
   constructor() {
     super("index", {
@@ -25,25 +29,43 @@ export class IndexProcessor extends BaseProcessor<IndexJobData> {
     });
   }
 
-  /**
-   * Process a single index job
-   */
   protected async processJob(
     job: Job<IndexJobData>
   ): Promise<{ indexed: number }> {
-    const { connectorId, documents, batchId, syncHistoryId } = job.data;
+    const { connectorId, documents, batchId, syncHistoryId, traceContext } =
+      job.data;
 
-    logger.info(
-      { jobId: job.id, connectorId, batchId, documentCount: documents.length },
-      "Processing index job"
+    // Create span linked to parent trace context from job data
+    const span = createLinkedSpan(
+      "openplane-worker",
+      "index-processor.process",
+      traceContext,
+      {
+        "job.id": job.id || "",
+        "connector.id": connectorId,
+        "batch.id": batchId,
+        "sync.history_id": syncHistoryId || "",
+        "index.document_count": documents.length,
+      }
     );
 
     try {
-      const existingDocsMap = await this.fetchExistingDocuments(
+      logger.info(
+        {
+          jobId: job.id,
+          connectorId,
+          batchId,
+          documentCount: documents.length,
+        },
+        "Processing index job"
+      );
+
+      const existingDocsMap = await this.fetchExistingDocumentsWithSpan(
         connectorId,
         documents
       );
-      const { docsToIndex, docsToSkip } = this.deduplicateDocuments(
+
+      const { docsToIndex, docsToSkip } = this.deduplicateDocumentsWithSpan(
         documents,
         existingDocsMap,
         connectorId
@@ -59,13 +81,13 @@ export class IndexProcessor extends BaseProcessor<IndexJobData> {
         "Checksum deduplication complete"
       );
 
-      const successfullyIndexed = await this.indexToVespa(
+      const successfullyIndexed = await this.indexToVespaWithSpan(
         docsToIndex,
         connectorId,
         batchId
       );
 
-      const recordedCount = await this.recordInDatabase(
+      const recordedCount = await this.recordInDatabaseWithSpan(
         successfullyIndexed,
         existingDocsMap,
         connectorId,
@@ -84,7 +106,7 @@ export class IndexProcessor extends BaseProcessor<IndexJobData> {
         "Indexed documents recorded in database"
       );
 
-      await this.updateSyncHistory({
+      await this.updateSyncHistoryWithSpan({
         syncHistoryId,
         successfullyIndexed,
         existingDocsMap,
@@ -94,10 +116,187 @@ export class IndexProcessor extends BaseProcessor<IndexJobData> {
         batchId,
       });
 
+      span.setAttributes({
+        "index.indexed": successfullyIndexed.length,
+        "index.skipped": docsToSkip.length,
+        "index.recorded": recordedCount,
+      });
+      span.setStatus({ code: SpanStatusCode.OK });
+
       return { indexed: successfullyIndexed.length };
     } catch (error) {
-      this.logError(error, job.id, connectorId, batchId);
+      span.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: error instanceof Error ? error.message : String(error),
+      });
+      span.recordException(error as Error);
+      span.setAttributes({
+        "error.type":
+          error instanceof Error ? error.constructor.name : "Unknown",
+      });
+      this.logError(error, job.id, connectorId, job.data.batchId);
       throw error;
+    } finally {
+      span.end();
+    }
+  }
+
+  private async fetchExistingDocumentsWithSpan(
+    connectorId: string,
+    documents: IndexJobData["documents"]
+  ): Promise<Map<string, { checksum: string; lastChecksum: string | null }>> {
+    const span = tracer.startSpan("index-processor.fetch-existing");
+    try {
+      const existingDocsMap = await this.fetchExistingDocuments(
+        connectorId,
+        documents
+      );
+      span.setAttributes({
+        "index.existing_count": existingDocsMap.size,
+      });
+      span.setStatus({ code: SpanStatusCode.OK });
+      return existingDocsMap;
+    } catch (error) {
+      span.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: error instanceof Error ? error.message : String(error),
+      });
+      span.recordException(error as Error);
+      throw error;
+    } finally {
+      span.end();
+    }
+  }
+
+  private deduplicateDocumentsWithSpan(
+    documents: IndexJobData["documents"],
+    existingDocsMap: Map<
+      string,
+      { checksum: string; lastChecksum: string | null }
+    >,
+    connectorId: string
+  ): {
+    docsToIndex: Array<GenericDocument & { checksum: string }>;
+    docsToSkip: string[];
+  } {
+    const span = tracer.startSpan("index-processor.deduplicate");
+    try {
+      const result = this.deduplicateDocuments(
+        documents,
+        existingDocsMap,
+        connectorId
+      );
+      span.setAttributes({
+        "index.to_index": result.docsToIndex.length,
+        "index.skipped": result.docsToSkip.length,
+      });
+      span.setStatus({ code: SpanStatusCode.OK });
+      return result;
+    } catch (error) {
+      span.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: error instanceof Error ? error.message : String(error),
+      });
+      span.recordException(error as Error);
+      throw error;
+    } finally {
+      span.end();
+    }
+  }
+
+  private async indexToVespaWithSpan(
+    docsToIndex: Array<GenericDocument & { checksum: string }>,
+    connectorId: string,
+    batchId: string
+  ): Promise<Array<GenericDocument & { checksum: string }>> {
+    const span = tracer.startSpan("index-processor.index-to-vespa", {
+      attributes: {
+        "connector.id": connectorId,
+        "index.document_count": docsToIndex.length,
+      },
+    });
+    try {
+      const successfullyIndexed = await this.indexToVespa(
+        docsToIndex,
+        connectorId,
+        batchId
+      );
+      span.setAttributes({
+        "index.indexed_count": successfullyIndexed.length,
+      });
+      span.setStatus({ code: SpanStatusCode.OK });
+      return successfullyIndexed;
+    } catch (error) {
+      span.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: error instanceof Error ? error.message : String(error),
+      });
+      span.recordException(error as Error);
+      throw error;
+    } finally {
+      span.end();
+    }
+  }
+
+  private async recordInDatabaseWithSpan(
+    successfullyIndexed: Array<GenericDocument & { checksum: string }>,
+    existingDocsMap: Map<
+      string,
+      { checksum: string; lastChecksum: string | null }
+    >,
+    connectorId: string,
+    batchId: string
+  ): Promise<number> {
+    const span = tracer.startSpan("index-processor.record-database");
+    try {
+      const recordedCount = await this.recordInDatabase(
+        successfullyIndexed,
+        existingDocsMap,
+        connectorId,
+        batchId
+      );
+      span.setAttributes({
+        "index.recorded_count": recordedCount,
+      });
+      span.setStatus({ code: SpanStatusCode.OK });
+      return recordedCount;
+    } catch (error) {
+      span.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: error instanceof Error ? error.message : String(error),
+      });
+      span.recordException(error as Error);
+      throw error;
+    } finally {
+      span.end();
+    }
+  }
+
+  private async updateSyncHistoryWithSpan(params: {
+    syncHistoryId: string | undefined;
+    successfullyIndexed: Array<GenericDocument & { checksum: string }>;
+    existingDocsMap: Map<
+      string,
+      { checksum: string; lastChecksum: string | null }
+    >;
+    skippedCount: number;
+    totalInBatch: number;
+    connectorId: string;
+    batchId: string;
+  }): Promise<void> {
+    const span = tracer.startSpan("index-processor.update-sync-history");
+    try {
+      await this.updateSyncHistory(params);
+      span.setStatus({ code: SpanStatusCode.OK });
+    } catch (error) {
+      span.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: error instanceof Error ? error.message : String(error),
+      });
+      span.recordException(error as Error);
+      throw error;
+    } finally {
+      span.end();
     }
   }
 

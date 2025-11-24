@@ -1,20 +1,17 @@
+// TODO: Check back tracing after Bun supports OpenTelemetry
 import prisma, { type Prisma } from "@openplane/db";
 import {
   addSyncJob,
   addWebhookJob,
+  createLinkedSpan,
   eventDeduplicator,
   type WebhookJobData,
 } from "@openplane/redis";
+import { SpanStatusCode } from "@opentelemetry/api";
 import type { Job } from "bullmq";
 import logger from "../utils/logger";
 import { BaseProcessor } from "./base-processor";
 
-/**
- * Webhook Processor
- *
- * Processes incoming webhooks and triggers immediate syncs.
- * Enables real-time document updates.
- */
 export class WebhookProcessor extends BaseProcessor<WebhookJobData> {
   constructor() {
     super("webhook", {
@@ -29,21 +26,39 @@ export class WebhookProcessor extends BaseProcessor<WebhookJobData> {
   protected async processJob(
     job: Job<WebhookJobData>
   ): Promise<{ triggered: boolean; reason?: string }> {
-    const { connectorId, eventId, eventType, source, payload } = job.data;
+    const { connectorId, eventId, eventType, source, payload, traceContext } =
+      job.data;
 
-    logger.info(
-      { jobId: job.id, connectorId, eventId, eventType, source },
-      "Processing webhook"
+    // Create span linked to parent trace context from job data
+    const span = createLinkedSpan(
+      "openplane-worker",
+      "webhook-processor.process",
+      traceContext,
+      {
+        "job.id": job.id || "",
+        "connector.id": connectorId,
+        "webhook.event_id": eventId,
+        "webhook.event_type": eventType,
+        "webhook.source": source,
+      }
     );
 
     try {
-      // 1. Check for duplicate events
+      logger.info(
+        { jobId: job.id, connectorId, eventId, eventType, source },
+        "Processing webhook"
+      );
+
       const { isDuplicate, marked } = await eventDeduplicator.checkAndMark(
         eventId,
         source
       );
 
       if (isDuplicate) {
+        span.setAttributes({
+          "webhook.duplicate": true,
+        });
+        span.setStatus({ code: SpanStatusCode.OK });
         logger.info(
           { connectorId, eventId, source },
           "Duplicate webhook event, skipping"
@@ -51,23 +66,34 @@ export class WebhookProcessor extends BaseProcessor<WebhookJobData> {
         return { triggered: false, reason: "duplicate" };
       }
 
+      span.setAttribute("webhook.duplicate", false);
       logger.info(
         { connectorId, eventId, source, marked },
         "Webhook event marked as processed"
       );
 
-      // 2. Verify connector exists and is active
       const connector = await prisma.connector.findUnique({
         where: { id: connectorId },
         select: { id: true, status: true, type: true, userId: true },
       });
 
       if (!connector) {
+        span.setAttributes({
+          "webhook.triggered": false,
+          "webhook.reason": "connector_not_found",
+        });
+        span.setStatus({ code: SpanStatusCode.OK });
         logger.warn({ connectorId, eventId }, "Connector not found");
         return { triggered: false, reason: "connector_not_found" };
       }
 
       if (connector.status !== "ACTIVE") {
+        span.setAttributes({
+          "webhook.triggered": false,
+          "webhook.reason": "connector_inactive",
+          "connector.status": connector.status,
+        });
+        span.setStatus({ code: SpanStatusCode.OK });
         logger.warn(
           { connectorId, eventId, status: connector.status },
           "Connector not active"
@@ -75,7 +101,6 @@ export class WebhookProcessor extends BaseProcessor<WebhookJobData> {
         return { triggered: false, reason: "connector_inactive" };
       }
 
-      // 3. Trigger immediate incremental sync with high priority
       const syncJob = await addSyncJob(
         {
           connectorId,
@@ -85,6 +110,11 @@ export class WebhookProcessor extends BaseProcessor<WebhookJobData> {
         },
         10
       );
+
+      span.setAttributes({
+        "webhook.triggered": true,
+        "sync.job_id": syncJob.id,
+      });
 
       logger.info(
         {
@@ -97,7 +127,6 @@ export class WebhookProcessor extends BaseProcessor<WebhookJobData> {
         "Webhook triggered sync job"
       );
 
-      // 4. Store webhook event for audit/replay (keep for 7 days)
       await prisma.connectorAuditLog.create({
         data: {
           connectorId,
@@ -114,19 +143,28 @@ export class WebhookProcessor extends BaseProcessor<WebhookJobData> {
         },
       });
 
+      span.setStatus({ code: SpanStatusCode.OK });
       return { triggered: true };
     } catch (error) {
+      span.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: error instanceof Error ? error.message : String(error),
+      });
+      span.recordException(error as Error);
+      span.setAttributes({
+        "error.type":
+          error instanceof Error ? error.constructor.name : "Unknown",
+      });
       logger.error(
         { error, jobId: job.id, connectorId, eventId },
         "Webhook processing failed"
       );
       throw error;
+    } finally {
+      span.end();
     }
   }
 
-  /**
-   * Replay a webhook event by event ID
-   */
   async replayWebhookEvent(
     connectorId: string,
     eventId: string
@@ -184,9 +222,6 @@ export class WebhookProcessor extends BaseProcessor<WebhookJobData> {
     }
   }
 
-  /**
-   * Replay webhooks within a time range
-   */
   async replayWebhooksInRange(
     connectorId: string,
     startTime: Date,

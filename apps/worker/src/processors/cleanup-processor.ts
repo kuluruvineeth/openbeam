@@ -1,9 +1,13 @@
+// TODO: Check back tracing after Bun supports OpenTelemetry
 import prisma from "@openplane/db";
 import type { CleanupJobData } from "@openplane/redis";
 import { vespaClient } from "@openplane/vespa";
+import { SpanStatusCode, trace } from "@opentelemetry/api";
 import type { Job } from "bullmq";
 import logger from "../utils/logger";
 import { BaseProcessor } from "./base-processor";
+
+const tracer = trace.getTracer("openplane-worker");
 
 interface CleanupResult {
   staleDocuments: number;
@@ -24,16 +28,48 @@ export class CleanupProcessor extends BaseProcessor<CleanupJobData> {
   }
 
   protected async processJob(job: Job<CleanupJobData>): Promise<CleanupResult> {
-    logger.info(
-      { jobId: job.id, triggeredAt: job.data.triggeredAt },
-      "Processing cleanup job"
-    );
-    return await this.runCleanup();
+    const span = tracer.startSpan("cleanup-processor.process", {
+      attributes: {
+        "job.id": job.id || "",
+        "cleanup.triggered_at": job.data.triggeredAt
+          ? new Date(job.data.triggeredAt).toISOString()
+          : "",
+      },
+    });
+
+    try {
+      logger.info(
+        { jobId: job.id, triggeredAt: job.data.triggeredAt },
+        "Processing cleanup job"
+      );
+
+      const result = await this.runCleanup();
+
+      span.setAttributes({
+        "cleanup.stale_documents": result.staleDocuments,
+        "cleanup.orphaned_documents": result.orphanedDocuments,
+        "cleanup.pruned_connectors": result.prunedConnectors,
+        "cleanup.duration_ms": result.durationMs,
+      });
+      span.setStatus({ code: SpanStatusCode.OK });
+
+      return result;
+    } catch (error) {
+      span.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: error instanceof Error ? error.message : String(error),
+      });
+      span.recordException(error as Error);
+      span.setAttributes({
+        "error.type":
+          error instanceof Error ? error.constructor.name : "Unknown",
+      });
+      throw error;
+    } finally {
+      span.end();
+    }
   }
 
-  /**
-   * Run cleanup tasks
-   */
   private async runCleanup(): Promise<CleanupResult> {
     const startTime = Date.now();
     logger.info("Starting cleanup run");
@@ -46,13 +82,8 @@ export class CleanupProcessor extends BaseProcessor<CleanupJobData> {
     };
 
     try {
-      // 1. Clean up stale documents (not synced in 30 days)
       result.staleDocuments = await this.cleanupStaleDocuments();
-
-      // 2. Clean up orphaned documents (connector deleted)
       result.orphanedDocuments = await this.cleanupOrphanedDocuments();
-
-      // 3. Prune documents from disabled connectors
       result.prunedConnectors = await this.pruneDisabledConnectors();
 
       result.durationMs = Date.now() - startTime;
@@ -75,9 +106,6 @@ export class CleanupProcessor extends BaseProcessor<CleanupJobData> {
     }
   }
 
-  /**
-   * Remove documents not synced in 30 days
-   */
   private async cleanupStaleDocuments(): Promise<number> {
     logger.debug("Cleaning up stale documents");
 
@@ -132,9 +160,6 @@ export class CleanupProcessor extends BaseProcessor<CleanupJobData> {
     return deleted.count;
   }
 
-  /**
-   * Remove documents whose connectors were deleted
-   */
   private async cleanupOrphanedDocuments(): Promise<number> {
     logger.debug("Cleaning up orphaned documents");
 
@@ -184,9 +209,6 @@ export class CleanupProcessor extends BaseProcessor<CleanupJobData> {
     return deleted.count;
   }
 
-  /**
-   * Remove documents from connectors that are no longer active
-   */
   private async pruneDisabledConnectors(): Promise<number> {
     logger.debug("Pruning documents from disabled connectors");
 
@@ -256,9 +278,6 @@ export class CleanupProcessor extends BaseProcessor<CleanupJobData> {
     return totalPruned;
   }
 
-  /**
-   * Manual cleanup trigger (for testing/admin)
-   */
   async triggerCleanup(): Promise<CleanupResult> {
     return await this.runCleanup();
   }
