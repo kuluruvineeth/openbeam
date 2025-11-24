@@ -10,6 +10,8 @@
     "start": "bun run dist/index.js"
   },
   "dependencies": {
+    "@bull-board/api": "^6.14.2",
+    "@bull-board/hono": "^6.14.2",
     "@hono/trpc-server": "^0.4.0",
     "@hono/zod-openapi": "^1.1.5",
     "@openplane/api": "workspace:*",
@@ -17,6 +19,12 @@
     "@openplane/db": "workspace:*",
     "@openplane/redis": "workspace:*",
     "@openplane/vespa": "workspace:*",
+    "@opentelemetry/exporter-trace-otlp-proto": "^0.208.0",
+    "@opentelemetry/instrumentation-http": "^0.208.0",
+    "@opentelemetry/instrumentation-ioredis": "^0.56.0",
+    "@opentelemetry/resources": "^2.2.0",
+    "@opentelemetry/sdk-node": "^0.208.0",
+    "@opentelemetry/semantic-conventions": "^1.38.0",
     "@scalar/hono-api-reference": "^0.9.25",
     "@trpc/server": "catalog:",
     "argon2": "^0.44.0",

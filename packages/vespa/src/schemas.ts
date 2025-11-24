@@ -13,7 +13,7 @@ export interface GenericDocument {
   // Metadata
   connector_id: string;
   connector_type: string;
-  organization_id: string;
+  team_id: string;
   workspace_id: string;
 
   // Document identifiers

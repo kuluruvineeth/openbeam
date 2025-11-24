@@ -9,7 +9,7 @@ import {
 import type { Database } from "../index";
 
 export interface CreateConnectorInput {
-  organizationId: string;
+  teamId: string;
   userId: string;
   app: AppType;
   workspaceExternalId: string;

@@ -92,7 +92,7 @@ export async function verifyApiKey(
       select: {
         id: true,
         keyHash: true,
-        organizationId: true,
+        teamId: true,
         scopes: true,
       },
     });
@@ -121,7 +121,7 @@ export async function verifyApiKey(
     return {
       type: "apiKey",
       apiKeyId: apiKeyRecord.id,
-      organizationId: apiKeyRecord.organizationId,
+      teamId: apiKeyRecord.teamId,
       scopes: apiKeyRecord.scopes,
     };
   } catch (error) {

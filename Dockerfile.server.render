@@ -1,3 +1,0 @@
-# Minimal Dockerfile for Render - uses pre-built image from GHCR
-FROM ghcr.io/kuluruvineeth/openplane-server:latest
-

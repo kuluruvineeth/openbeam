@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
-import prisma from "@openplane/db";
 import argon2, { type Options as Argon2Options } from "argon2";
+import prisma from "../index";
 
 const BASE62_ALPHABET =
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -52,7 +52,7 @@ export async function generateApiKey(): Promise<{
 }
 
 export interface CreateApiKeyInput {
-  organizationId: string;
+  teamId: string;
   name: string;
   scopes?: string[];
   expiresAt?: Date;
@@ -72,7 +72,7 @@ export async function createApiKey(input: CreateApiKeyInput): Promise<{
 
   const apiKey = await prisma.apiKey.create({
     data: {
-      organizationId: input.organizationId,
+      teamId: input.teamId,
       name: input.name,
       keyHash: hash,
       prefix,
@@ -98,13 +98,13 @@ export async function createApiKey(input: CreateApiKeyInput): Promise<{
 }
 
 export interface ListApiKeysInput {
-  organizationId: string;
+  teamId: string;
 }
 
 export function listApiKeys(input: ListApiKeysInput) {
   return prisma.apiKey.findMany({
     where: {
-      organizationId: input.organizationId,
+      teamId: input.teamId,
     },
     select: {
       id: true,
@@ -124,14 +124,14 @@ export function listApiKeys(input: ListApiKeysInput) {
 
 export interface RevokeApiKeyInput {
   id: string;
-  organizationId: string;
+  teamId: string;
 }
 
 export function revokeApiKey(input: RevokeApiKeyInput) {
   return prisma.apiKey.update({
     where: {
       id: input.id,
-      organizationId: input.organizationId,
+      teamId: input.teamId,
     },
     data: {
       revoked: true,

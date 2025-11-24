@@ -7,11 +7,12 @@ export async function generateUniqueSlug(
 ): Promise<string> {
   const baseSlug = slugify(baseName);
 
-  const existingOrg = await prisma.organization.findUnique({
+  const model = prisma.team;
+  const existing = await model.findUnique({
     where: { slug: baseSlug },
   });
 
-  if (!existingOrg) {
+  if (!existing) {
     return baseSlug;
   }
 
@@ -21,11 +22,11 @@ export async function generateUniqueSlug(
 
   // Keep incrementing until we find a unique slug
   while (true) {
-    const existing = await prisma.organization.findUnique({
+    const existingItem = await model.findUnique({
       where: { slug: candidateSlug },
     });
 
-    if (!existing) {
+    if (!existingItem) {
       return candidateSlug;
     }
 

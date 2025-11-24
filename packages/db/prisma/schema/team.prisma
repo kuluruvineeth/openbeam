@@ -1,4 +1,4 @@
-model Organization {
+model Team {
   id                 String           @id @default(cuid()) @map("_id")
   name               String
   slug               String           @unique
@@ -7,7 +7,6 @@ model Organization {
   settings           Json             @default("{}")
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
-  waitlisted         Boolean          @default(false)
   
   // Limits & Billing
   maxConnectors      Int              @default(10)
@@ -15,58 +14,53 @@ model Organization {
   subscriptionTier   String           @default("free")
   subscriptionStatus String           @default("active")
 
-  members            Member[]
-  invitations        Invitation[]
+  usersOnTeam        UsersOnTeam[]
+  userInvites        UserInvite[]
   connectors         Connector[]
   tools              Tool[]
   workspaces         Workspace[]
   apiKeys            ApiKey[]
+  users              User[]
 
-  @@map("organization")
+  @@map("team")
 }
 
-model Member {
+model UsersOnTeam {
   id             String       @id @default(cuid()) @map("_id")
   userId         String
-  organizationId String
+  teamId         String
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  role           MemberRole
+  team           Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  role           TeamRole
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
-  @@unique([userId, organizationId])
+  @@unique([userId, teamId])
   @@index([userId])
-  @@index([organizationId])
-  @@map("member")
+  @@index([teamId])
+  @@map("users_on_team")
 }
 
-model Invitation {
+model UserInvite {
   id             String           @id @default(cuid()) @map("_id")
-  email          String
-  inviterId      String
-  inviter        User             @relation("SentInvitations", fields: [inviterId], references: [id], onDelete: Cascade)
-  organizationId String
-  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  role           MemberRole
-  status         InvitationStatus
-  expiresAt      DateTime
-  createdAt      DateTime         @default(now())
+  createdAt       DateTime         @default(now())
+  teamId          String
+  email           String
+  role            TeamRole
+  code            String           @unique
+  invitedBy       String
+  inviter         User             @relation("SentInvites", fields: [invitedBy], references: [id], onDelete: Cascade)
+  team            Team             @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
+  @@unique([teamId, email])
+  @@index([teamId])
   @@index([email])
-  @@index([organizationId])
-  @@map("invitation")
+  @@map("user_invite")
 }
 
-enum MemberRole {
+enum TeamRole {
   OWNER
   ADMIN
   MEMBER
 }
 
-enum InvitationStatus {
-  PENDING
-  ACCEPTED
-  DECLINED
-  EXPIRED
-}

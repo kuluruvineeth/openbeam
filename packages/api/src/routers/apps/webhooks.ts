@@ -1,12 +1,12 @@
 import { createTRPCRouter } from "../../index";
-import { verifyConnectorAccess, withActiveOrg } from "./middleware";
+import { verifyConnectorAccess, withActiveTeam } from "./middleware";
 import { getWebhookStatusSchema } from "./schemas";
 
 export const webhooksRouter = createTRPCRouter({
-  getStatus: withActiveOrg
+  getStatus: withActiveTeam
     .input(getWebhookStatusSchema)
     .query(async ({ ctx, input }) => {
-      await verifyConnectorAccess(ctx.prisma, input.connectorId, ctx.orgId);
+      await verifyConnectorAccess(ctx.prisma, input.connectorId, ctx.teamId);
       const connectorDetails = await ctx.prisma.connector.findUnique({
         where: { id: input.connectorId },
         select: {

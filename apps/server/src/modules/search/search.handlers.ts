@@ -1,7 +1,7 @@
 import type { RouteHandler } from "@hono/zod-openapi";
 import { searchQueriesCounter } from "@/metrics";
 import type { AuthEnv } from "@/middleware/auth";
-import { getOrganizationId } from "@/middleware/auth";
+import { getTeamId } from "@/middleware/auth";
 import { getAccessControlIds as getACLIds } from "@/types/auth";
 import type {
   authorSearch,
@@ -18,10 +18,10 @@ export const mainSearchHandler: RouteHandler<
   AuthEnv
 > = async (c) => {
   const queryParams = c.req.valid("query");
-  const organizationId = getOrganizationId(c);
+  const teamId = getTeamId(c);
 
-  if (!organizationId) {
-    return c.json({ error: "organization_id is required" }, 400);
+  if (!teamId) {
+    return c.json({ error: "team_id is required" }, 400);
   }
 
   const authContext = c.get("authContext");
@@ -29,7 +29,7 @@ export const mainSearchHandler: RouteHandler<
 
   const searchParams: SearchParams = {
     query: queryParams.q,
-    organizationId,
+    teamId,
     connectorType: queryParams.connector_type,
     connectorId: queryParams.connector_id,
     documentType: queryParams.document_type,
@@ -64,10 +64,10 @@ export const autocompleteHandler: RouteHandler<
   AuthEnv
 > = async (c) => {
   const { q: prefix, limit = 10 } = c.req.valid("query");
-  const organizationId = getOrganizationId(c);
+  const teamId = getTeamId(c);
 
-  if (!organizationId) {
-    return c.json({ error: "organization_id is required" }, 400);
+  if (!teamId) {
+    return c.json({ error: "team_id is required" }, 400);
   }
 
   if (!prefix || prefix.length < 2) {
@@ -79,7 +79,7 @@ export const autocompleteHandler: RouteHandler<
 
   const suggestions = await searchService.autocomplete(
     prefix,
-    organizationId,
+    teamId,
     limit,
     accessControlIds
   );
@@ -94,17 +94,17 @@ export const recentDocumentsHandler: RouteHandler<
   AuthEnv
 > = async (c) => {
   const { hours = 24, limit = 20 } = c.req.valid("query");
-  const organizationId = getOrganizationId(c);
+  const teamId = getTeamId(c);
 
-  if (!organizationId) {
-    return c.json({ error: "organization_id is required" }, 400);
+  if (!teamId) {
+    return c.json({ error: "team_id is required" }, 400);
   }
 
   const authContext = c.get("authContext");
   const accessControlIds = getACLIds(authContext);
 
   const documents = await searchService.getRecentDocuments(
-    organizationId,
+    teamId,
     hours,
     limit,
     accessControlIds
@@ -119,10 +119,10 @@ export const threadSearchHandler: RouteHandler<
   AuthEnv
 > = async (c) => {
   const { threadId } = c.req.valid("param");
-  const organizationId = getOrganizationId(c);
+  const teamId = getTeamId(c);
 
-  if (!organizationId) {
-    return c.json({ error: "organization_id is required" }, 400);
+  if (!teamId) {
+    return c.json({ error: "team_id is required" }, 400);
   }
 
   const authContext = c.get("authContext");
@@ -130,7 +130,7 @@ export const threadSearchHandler: RouteHandler<
 
   const documents = await searchService.searchThread(
     threadId,
-    organizationId,
+    teamId,
     accessControlIds
   );
   searchQueriesCounter.inc({ endpoint: "thread" });
@@ -151,10 +151,10 @@ export const similarDocumentsHandler: RouteHandler<
 > = async (c) => {
   const { documentId } = c.req.valid("param");
   const { limit = 10 } = c.req.valid("query");
-  const organizationId = getOrganizationId(c);
+  const teamId = getTeamId(c);
 
-  if (!organizationId) {
-    return c.json({ error: "organization_id is required" }, 400);
+  if (!teamId) {
+    return c.json({ error: "team_id is required" }, 400);
   }
 
   const authContext = c.get("authContext");
@@ -162,7 +162,7 @@ export const similarDocumentsHandler: RouteHandler<
 
   const documents = await searchService.findSimilar(
     documentId,
-    organizationId,
+    teamId,
     limit,
     accessControlIds
   );
@@ -184,10 +184,10 @@ export const authorSearchHandler: RouteHandler<
 > = async (c) => {
   const { authorId } = c.req.valid("param");
   const { limit = 50 } = c.req.valid("query");
-  const organizationId = getOrganizationId(c);
+  const teamId = getTeamId(c);
 
-  if (!organizationId) {
-    return c.json({ error: "organization_id is required" }, 400);
+  if (!teamId) {
+    return c.json({ error: "team_id is required" }, 400);
   }
 
   const authContext = c.get("authContext");
@@ -195,7 +195,7 @@ export const authorSearchHandler: RouteHandler<
 
   const documents = await searchService.searchByAuthor(
     authorId,
-    organizationId,
+    teamId,
     limit,
     accessControlIds
   );

@@ -3,7 +3,7 @@ import type { Database } from "../index";
 
 export interface FindConnectorOptions {
   id?: string;
-  organizationId?: string;
+  teamId?: string;
   app?: AppType;
   includeOAuthProvider?: boolean;
 }
@@ -18,25 +18,29 @@ export const findConnectorById = async (
     include: { oauthProvider: includeOAuth },
   });
 
-export const findConnectorByOrg = async (
+export const findConnectorByTeam = async (
   db: Database,
-  organizationId: string,
+  teamId: string,
   app: AppType
 ): Promise<Connector | null> =>
   db.connector.findFirst({
-    where: { organizationId, app },
+    where: { teamId, app },
     include: { oauthProvider: true },
   });
 
-export const listConnectorsByOrg = async (
+export const listConnectorsByTeam = async (
   db: Database,
-  organizationId: string
+  teamId: string
 ): Promise<Connector[]> =>
   db.connector.findMany({
-    where: { organizationId },
+    where: { teamId },
     include: { oauthProvider: true },
     orderBy: { createdAt: "desc" },
   });
+
+// Legacy alias for backward compatibility
+export const findConnectorByOrg = findConnectorByTeam;
+export const listConnectorsByOrg = listConnectorsByTeam;
 
 export const getConnectorWithCredentials = async (
   db: Database,
