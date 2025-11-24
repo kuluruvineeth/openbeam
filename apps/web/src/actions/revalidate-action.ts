@@ -13,8 +13,3 @@ export async function revalidateAfterTeamChange() {
   // Redirect to home after revalidating
   redirect("/");
 }
-
-// Legacy alias for backward compatibility
-export async function revalidateAfterOrganizationChange() {
-  return revalidateAfterTeamChange();
-}

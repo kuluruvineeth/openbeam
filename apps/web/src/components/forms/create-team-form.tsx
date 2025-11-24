@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useCreateTeam } from "@/hooks/use-team";
-import { useTRPC } from "@/trpc/client";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -29,7 +28,6 @@ type FormValues = z.infer<typeof formSchema>;
 
 export function CreateTeamForm() {
   const queryClient = useQueryClient();
-  const trpc = useTRPC();
   const [isLoading, setIsLoading] = useState(false);
   const isSubmittedRef = useRef(false);
   const { mutateAsync: createTeam } = useCreateTeam();
@@ -65,32 +63,21 @@ export function CreateTeamForm() {
     setIsLoading(true);
 
     try {
-      // TODO: Implement team creation via tRPC
-      // For now, this is a placeholder
-      const { slug } = await trpc.team.generateSlug.mutate({
+      const team = await createTeam({
         name: values.name,
       });
 
-      // TODO: Create team and set as active
-      // await trpc.team.create.mutate({ name: values.name, slug });
-      // await trpc.team.switch.mutate({ teamId: team.id });
-
       console.log(`[${submissionId}] Team creation form submission succeeded`, {
         teamName: values.name,
-        slug,
+        teamId: team.id,
+        slug: team.slug,
         timestamp: new Date().toISOString(),
       });
 
-      // Lock the form permanently on success
       isSubmittedRef.current = true;
-
-      // Invalidate queries so team-aware UI refreshes
       await queryClient.invalidateQueries();
-
-      // Revalidate server paths and redirect (may throw NEXT_REDIRECT)
       await revalidateAfterTeamChange();
     } catch (error) {
-      // NEXT_REDIRECT is the expected behavior when redirecting in Next.js
       if (error instanceof Error && error.message === "NEXT_REDIRECT") {
         console.log(
           `[${submissionId}] Team creation completed successfully - redirecting to home`

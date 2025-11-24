@@ -14,11 +14,7 @@ export default async function Layout({
   const queryClient = getQueryClient();
   const user = await queryClient.fetchQuery(trpc.user.me.queryOptions());
 
-  if (!user) {
-    redirect("/login");
-  }
-
-  if (!user.teamId) {
+  if (!user?.teamId) {
     redirect("/teams/create");
   }
 

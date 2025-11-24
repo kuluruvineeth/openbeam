@@ -24,6 +24,7 @@ export function useCreateTeam(
 ) {
   const trpc = useTRPC();
   const slugMutation = useMutation(trpc.team.generateSlug.mutationOptions());
+  const createMutation = useMutation(trpc.team.create.mutationOptions());
 
   return useMutation<
     { id: string; name: string; slug: string },
@@ -32,13 +33,16 @@ export function useCreateTeam(
   >({
     mutationKey: ["team", "create"],
     mutationFn: async ({ name }) => {
-      await slugMutation.mutateAsync({
+      const { slug } = await slugMutation.mutateAsync({
         name,
       });
 
-      // TODO: Implement team creation via tRPC or API
-      // For now, this is a placeholder
-      throw new Error("Team creation not yet implemented");
+      const team = await createMutation.mutateAsync({
+        name,
+        slug,
+      });
+
+      return team;
     },
     ...(options ?? {}),
   });
