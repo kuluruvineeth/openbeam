@@ -79,7 +79,9 @@ export class SessionCache {
 
     try {
       const data = await client.get(key);
-      if (!data) return null;
+      if (!data) {
+        return null;
+      }
 
       const session = JSON.parse(data) as SessionData;
 
@@ -133,7 +135,9 @@ export class SessionCache {
 
     try {
       const data = await client.get(key);
-      if (!data) return false;
+      if (!data) {
+        return false;
+      }
 
       const session = JSON.parse(data) as SessionData;
       session.lastActiveAt = Date.now();
@@ -187,7 +191,9 @@ export class SessionCache {
 
     try {
       const tokens = await client.sMembers(key);
-      if (tokens.length === 0) return [];
+      if (tokens.length === 0) {
+        return [];
+      }
 
       const sessions: SessionData[] = [];
       const invalidTokens: string[] = [];
@@ -229,10 +235,12 @@ export class SessionCache {
 
       for (const token of tokens) {
         const tokenStr = String(token);
-        if (exceptToken && tokenStr === exceptToken) continue;
+        if (exceptToken && tokenStr === exceptToken) {
+          continue;
+        }
 
         await this.deleteSession(tokenStr);
-        count++;
+        count += 1;
       }
 
       return count;
@@ -269,7 +277,9 @@ export class SessionCache {
 
     try {
       const data = await client.get(key);
-      if (!data) return null;
+      if (!data) {
+        return null;
+      }
 
       return JSON.parse(data) as PresenceData;
     } catch (error) {
@@ -294,7 +304,8 @@ export class SessionCache {
       for (let i = 0; i < userIds.length; i++) {
         const value = values[i];
         if (value) {
-          result.set(userIds[i]!, JSON.parse(value) as PresenceData);
+          //TODO: Fix this
+          result.set(userIds[i] ?? "", JSON.parse(value) as PresenceData);
         }
       }
     } catch (error) {
