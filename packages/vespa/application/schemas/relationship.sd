@@ -1,0 +1,225 @@
+schema relationship {
+  document relationship {
+    # === Primary Identifiers ===
+    field id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field team_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    # === Relationship Type (Critical for Knowledge Graph) ===
+    field relationship_type type string {
+      indexing: summary | attribute
+      attribute: fast-search
+      # === Document Relationships ===
+      # "references"       - Document A references Document B (citations, links)
+      # "replies_to"       - Message A is a reply to Message B
+      # "parent_of"        - Folder A contains File B
+      # "derived_from"     - Document A is derived/copied from Document B
+      # "similar_to"       - Semantic similarity relationship
+      # "supersedes"       - Document A replaces Document B
+      # "version_of"       - Document A is a version of Document B
+      # "attached_to"      - File A is attached to Message/Issue B
+      # "blocks"           - Issue A blocks Issue B
+      # "blocked_by"       - Issue A is blocked by Issue B
+      # "depends_on"       - Task A depends on Task B
+      # "duplicate_of"     - Issue A is duplicate of Issue B
+      #
+      # === People Relationships ===
+      # "authored"         - Person A authored Document B
+      # "edited"           - Person A edited Document B
+      # "mentioned"        - Document A mentions Person B
+      # "assigned_to"      - Task A is assigned to Person B
+      # "reviewed_by"      - PR A was reviewed by Person B
+      # "reports_to"       - Person A reports to Person B
+      # "collaborates_with"- Person A frequently works with Person B
+      # "expert_in"        - Person A is expert in Topic B
+      #
+      # === Project Relationships ===
+      # "belongs_to"       - Document A belongs to Project B
+      # "contributes_to"   - Person A contributes to Project B
+      # "related_to"       - Project A is related to Project B
+      # "part_of"          - Project A is part of Portfolio B
+      # "tagged_with"      - Document A is tagged with Topic B
+      #
+      # === Code Relationships ===
+      # "imports"          - File A imports from File B
+      # "calls"            - Function A calls Function B
+      # "implements"       - Class A implements Interface B
+      # "extends"          - Class A extends Class B
+      # "tests"            - Test A tests Module B
+    }
+    
+    # === Source Entity (From) ===
+    field source_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field source_type type string {
+      indexing: summary | attribute
+      attribute: fast-search
+      # "document", "person", "project", "code", "topic", "entity"
+    }
+    
+    field source_connector_id type string {
+      indexing: summary | attribute
+    }
+    
+    # === Target Entity (To) ===
+    field target_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field target_type type string {
+      indexing: summary | attribute
+      attribute: fast-search
+      # "document", "person", "project", "code", "topic", "entity"
+    }
+    
+    field target_connector_id type string {
+      indexing: summary | attribute
+    }
+    
+    # === Relationship Properties ===
+    field strength type float {
+      indexing: summary | attribute
+      # 0.0 - 1.0 confidence/strength of relationship
+      # e.g., semantic similarity score, interaction frequency
+    }
+    
+    field weight type float {
+      indexing: summary | attribute
+      # Importance weight for graph traversal
+    }
+    
+    field direction type string {
+      indexing: summary | attribute
+      # "unidirectional", "bidirectional"
+    }
+    
+    field is_inferred type bool {
+      indexing: summary | attribute
+      # true if AI-inferred, false if explicit
+    }
+    
+    field inference_model type string {
+      indexing: summary | attribute
+      # Model used for inference (if inferred)
+    }
+    
+    field confidence type float {
+      indexing: summary | attribute
+      # AI confidence score for inferred relationships
+    }
+    
+    # === Context ===
+    field context type string {
+      indexing: summary
+      # JSON: Additional context about the relationship
+      # e.g., { "mention_count": 5, "last_mention": "...", "snippet": "..." }
+    }
+    
+    field snippet type string {
+      indexing: summary | index
+      index: enable-bm25
+      # Text snippet where relationship was found
+    }
+    
+    # === Temporal Attributes ===
+    field created_at type long {
+      indexing: summary | attribute
+    }
+    
+    field updated_at type long {
+      indexing: summary | attribute
+    }
+    
+    field first_seen_at type long {
+      indexing: summary | attribute
+      # When relationship was first detected
+    }
+    
+    field last_seen_at type long {
+      indexing: summary | attribute
+      # Most recent observation
+    }
+    
+    field occurrence_count type int {
+      indexing: summary | attribute
+      # How many times this relationship was observed
+    }
+    
+    # === Access Control (Inherited from entities) ===
+    field access_control type array<string> {
+      indexing: summary | attribute
+    }
+    
+    # === Metadata ===
+    field metadata type string {
+      indexing: summary | attribute
+    }
+  }
+  
+  # === Field Sets ===
+  fieldset default {
+    fields: snippet
+  }
+  
+  # === Ranking Profiles ===
+  
+  # Default: By strength
+  rank-profile default {
+    first-phase {
+      expression: attribute(strength) * attribute(weight)
+    }
+  }
+  
+  # Recency-weighted
+  rank-profile recent {
+    first-phase {
+      expression {
+        attribute(strength) * attribute(weight) *
+        freshness(last_seen_at)
+      }
+    }
+    function freshness(t) {
+      expression: if(t > now() - 86400000, 2.0, if(t > now() - 604800000, 1.5, 1.0))
+    }
+  }
+  
+  # Frequency-weighted (prefer frequently observed relationships)
+  rank-profile frequent {
+    first-phase {
+      expression {
+        attribute(strength) * 
+        (1 + log(attribute(occurrence_count) + 1) * 0.2)
+      }
+    }
+  }
+  
+  # High confidence (prefer explicit or high-confidence inferred)
+  rank-profile high_confidence {
+    first-phase {
+      expression {
+        attribute(strength) *
+        if(attribute(is_inferred), attribute(confidence), 1.0)
+      }
+    }
+  }
+  
+  # Snippet search (find relationships by context)
+  rank-profile by_context {
+    first-phase {
+      expression {
+        bm25(snippet) * attribute(strength)
+      }
+    }
+  }
+}
+

@@ -1,0 +1,357 @@
+schema code {
+  document code {
+    # === Primary Identifiers ===
+    field id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field team_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field connector_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    # === Repository Context ===
+    field repo_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field repo_name type string {
+      indexing: summary | attribute | index
+      index: enable-bm25
+    }
+    
+    field repo_owner type string {
+      indexing: summary | attribute | index
+      index: enable-bm25
+    }
+    
+    field repo_url type string {
+      indexing: summary
+    }
+    
+    field default_branch type string {
+      indexing: summary | attribute
+    }
+    
+    # === File Location ===
+    field file_path type string {
+      indexing: summary | attribute | index
+      index: enable-bm25
+    }
+    
+    field file_name type string {
+      indexing: summary | index
+      index: enable-bm25
+    }
+    
+    field directory type string {
+      indexing: summary | attribute | index
+      index: enable-bm25
+    }
+    
+    field branch type string {
+      indexing: summary | attribute
+    }
+    
+    field commit_sha type string {
+      indexing: summary | attribute
+    }
+    
+    # === Code Content ===
+    field language type string {
+      indexing: summary | attribute
+      attribute: fast-search
+      # "typescript", "python", "go", "rust", "java", etc.
+    }
+    
+    field content type string {
+      indexing: summary | index
+      index: enable-bm25
+    }
+    
+    # N-gram indexing for partial code matching (e.g., "connectDB", "handleError")
+    field content_ngram type string {
+      indexing: index
+      match {
+        gram
+        gram-size: 3
+      }
+    }
+    
+    field content_embedding type tensor<float>(x[768]) {
+      indexing: attribute | index
+      attribute {
+        distance-metric: angular
+      }
+    }
+    
+    # === Code Structure (AST-derived) ===
+    field symbols type array<string> {
+      indexing: summary | attribute | index
+      index: enable-bm25
+      # Function names, class names, variable names
+    }
+    
+    field imports type array<string> {
+      indexing: summary | attribute | index
+      index: enable-bm25
+      # Import statements for dependency analysis
+    }
+    
+    field exports type array<string> {
+      indexing: summary | attribute | index
+      index: enable-bm25
+      # Exported symbols
+    }
+    
+    field definitions type array<string> {
+      indexing: summary | attribute | index
+      index: enable-bm25
+      # Type/interface/class definitions
+    }
+    
+    field references type array<string> {
+      indexing: summary | attribute
+      # Symbol references (for "find usages")
+    }
+    
+    # === Documentation ===
+    field docstring type string {
+      indexing: summary | index
+      index: enable-bm25
+      # Extracted documentation/comments
+    }
+    
+    field comments type string {
+      indexing: summary | index
+      index: enable-bm25
+      # All comments in file
+    }
+    
+    # === Code Quality Signals ===
+    field line_count type int {
+      indexing: summary | attribute
+    }
+    
+    field complexity_score type float {
+      indexing: summary | attribute
+      # Cyclomatic complexity or similar
+    }
+    
+    field test_coverage type float {
+      indexing: summary | attribute
+    }
+    
+    field has_tests type bool {
+      indexing: summary | attribute
+    }
+    
+    # === Authorship & History ===
+    field author_id type string {
+      indexing: summary | attribute
+    }
+    
+    field author_name type string {
+      indexing: summary
+    }
+    
+    field author_email type string {
+      indexing: summary | attribute
+    }
+    
+    field contributors type array<string> {
+      indexing: summary | attribute
+      # All contributors to this file
+    }
+    
+    field last_modified_by type string {
+      indexing: summary | attribute
+    }
+    
+    field commit_count type int {
+      indexing: summary | attribute
+      # Number of commits touching this file
+    }
+    
+    # === Timestamps ===
+    field created_at type long {
+      indexing: summary | attribute
+    }
+    
+    field updated_at type long {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field last_commit_at type long {
+      indexing: summary | attribute
+    }
+    
+    # === File Metadata ===
+    field file_size type int {
+      indexing: summary | attribute
+    }
+    
+    field mime_type type string {
+      indexing: summary | attribute
+    }
+    
+    field encoding type string {
+      indexing: summary | attribute
+    }
+    
+    # === Access Control ===
+    field access_control type array<string> {
+      indexing: summary | attribute
+      # User/group IDs with access
+    }
+    
+    field is_public type bool {
+      indexing: summary | attribute
+    }
+    
+    field visibility type string {
+      indexing: summary | attribute
+      # "public", "internal", "private"
+    }
+    
+    # === URL ===
+    field url type string {
+      indexing: summary
+    }
+    
+    field permalink type string {
+      indexing: summary
+      # Permalink with commit SHA
+    }
+    
+    # === Metadata ===
+    field metadata type string {
+      indexing: summary | attribute
+    }
+  }
+  
+  # === Field Sets ===
+  fieldset default {
+    fields: content, symbols, file_name, docstring
+  }
+  
+  fieldset symbols_only {
+    fields: symbols, definitions, exports, imports
+  }
+  
+  fieldset documentation {
+    fields: docstring, comments
+  }
+  
+  # === Ranking Profiles ===
+  
+  # Default: Content and symbols
+  rank-profile default {
+    first-phase {
+      expression {
+        bm25(content) + 
+        bm25(symbols) * 2 + 
+        bm25(file_name) * 1.5 +
+        bm25(docstring) * 0.8
+      }
+    }
+  }
+  
+  # N-gram matching for partial code search
+  rank-profile ngram {
+    first-phase {
+      expression {
+        bm25(content_ngram) * 2 +
+        bm25(symbols) +
+        bm25(file_name)
+      }
+    }
+  }
+  
+  # Symbol-focused search (function/class lookup)
+  rank-profile symbols {
+    first-phase {
+      expression {
+        bm25(symbols) * 3 +
+        bm25(definitions) * 2 +
+        bm25(exports) * 1.5 +
+        bm25(imports) +
+        bm25(file_name)
+      }
+    }
+  }
+  
+  # Documentation search
+  rank-profile documentation {
+    first-phase {
+      expression {
+        bm25(docstring) * 2 +
+        bm25(comments) * 1.5 +
+        bm25(content) * 0.5 +
+        bm25(symbols)
+      }
+    }
+  }
+  
+  # Semantic code search
+  rank-profile semantic {
+    first-phase {
+      expression: closeness(field, content_embedding)
+    }
+  }
+  
+  # Hybrid search
+  rank-profile hybrid {
+    first-phase {
+      expression {
+        0.5 * (bm25(content) + bm25(symbols) * 2 + bm25(docstring)) +
+        0.5 * closeness(field, content_embedding)
+      }
+    }
+  }
+  
+  # Recently modified (for debugging/reviewing recent changes)
+  rank-profile recent {
+    first-phase {
+      expression {
+        (bm25(content) + bm25(symbols)) *
+        freshness(updated_at)
+      }
+    }
+    function freshness(t) {
+      expression: if(t > now() - 86400000, 2.0, if(t > now() - 604800000, 1.5, 1.0))
+    }
+  }
+  
+  # Quality-boosted (prefer well-tested, documented code)
+  rank-profile quality {
+    first-phase {
+      expression {
+        (bm25(content) + bm25(symbols) + bm25(docstring)) *
+        (1 + if(attribute(has_tests), 0.3, 0)) *
+        (1 + attribute(test_coverage) * 0.2) *
+        (1 + log(attribute(commit_count) + 1) * 0.1)
+      }
+    }
+  }
+  
+  # Language-specific (filter by language and rank)
+  rank-profile language_specific {
+    first-phase {
+      expression {
+        bm25(content) * 2 +
+        bm25(symbols) * 1.5 +
+        bm25(file_path) * 0.5
+      }
+    }
+  }
+}
+

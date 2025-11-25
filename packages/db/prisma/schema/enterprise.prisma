@@ -1,0 +1,524 @@
+// ============================================================================
+// ENTERPRISE SCHEMA
+// SSO, compliance, feature flags, and enterprise-grade features
+// Critical for: Enterprise Sales, Compliance, Self-Hosted Deployments
+// ============================================================================
+
+// --- SSO Configuration ---
+// SAML, OAuth, OIDC configurations for enterprise SSO
+
+enum SSOProtocol {
+  SAML
+  OIDC
+  OAUTH2
+}
+
+enum SSOStatus {
+  ACTIVE
+  INACTIVE
+  TESTING
+  ERROR
+}
+
+model SSOConfig {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String          @unique
+  
+  // SSO identity
+  name            String          // Display name (e.g., "Okta SSO")
+  protocol        SSOProtocol
+  
+  // Identity provider details
+  issuer          String?         // IdP issuer URL
+  entityId        String?         // SP entity ID
+  
+  // SAML-specific
+  ssoUrl          String?         // SSO login URL
+  sloUrl          String?         // Single logout URL
+  certificate     String?         // IdP certificate (encrypted)
+  certificateIv   String?
+  
+  // OIDC/OAuth-specific
+  clientId        String?
+  clientSecretEncrypted String?
+  clientSecretIv  String?
+  authorizationUrl String?
+  tokenUrl        String?
+  userInfoUrl     String?
+  jwksUrl         String?
+  scopes          String[]        @default(["openid", "profile", "email"])
+  
+  // Attribute mapping
+  attributeMapping Json           @default("{}")
+  // { email: "email", name: "displayName", department: "department" }
+  
+  // User provisioning
+  autoProvision   Boolean         @default(true)    // Auto-create users on first login
+  autoDeprovision Boolean         @default(false)   // Deactivate when removed from IdP
+  defaultRole     String          @default("MEMBER")
+  
+  // Domain restrictions
+  allowedDomains  String[]        @default([])      // Email domains allowed
+  
+  // Status
+  status          SSOStatus       @default(INACTIVE)
+  lastError       String?
+  lastErrorAt     DateTime?
+  
+  // Testing
+  testMode        Boolean         @default(false)
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@index([status])
+  @@map("sso_config")
+}
+
+// --- Directory Sync (SCIM) ---
+// SCIM-based directory synchronization
+
+enum DirectorySyncStatus {
+  ACTIVE
+  PAUSED
+  ERROR
+  DISABLED
+}
+
+model DirectorySync {
+  id              String                  @id @default(cuid()) @map("_id")
+  teamId          String                  @unique
+  
+  // SCIM configuration
+  scimEndpoint    String?
+  scimToken       String?                 // Encrypted
+  scimTokenIv     String?
+  
+  // Provider
+  provider        String?                 // "okta", "azure_ad", "google", "onelogin"
+  
+  // Sync settings
+  syncUsers       Boolean                 @default(true)
+  syncGroups      Boolean                 @default(true)
+  
+  // Mapping
+  groupMapping    Json                    @default("{}")
+  // { "Engineering": "engineering-team", "Sales": "sales-team" }
+  
+  // Status
+  status          DirectorySyncStatus     @default(DISABLED)
+  lastSyncAt      DateTime?
+  lastSyncStatus  String?
+  lastError       String?
+  
+  // Stats
+  usersTotal      Int                     @default(0)
+  groupsTotal     Int                     @default(0)
+  
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  
+  @@map("directory_sync")
+}
+
+// --- Compliance Settings ---
+// Data retention, DLP, and compliance configurations
+
+model ComplianceSettings {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String          @unique
+  
+  // Data retention
+  dataRetentionEnabled Boolean    @default(false)
+  dataRetentionDays    Int?       // Delete data older than X days
+  retentionExceptions  Json       @default("[]")   // Connector IDs exempt from retention
+  
+  // Audit logging
+  auditLogRetentionDays Int       @default(365)
+  auditAllSearches      Boolean   @default(false)
+  auditAllViews         Boolean   @default(false)
+  
+  // Data Loss Prevention (DLP)
+  dlpEnabled            Boolean   @default(false)
+  dlpRules              Json      @default("[]")
+  // [{ name: "PII Detection", patterns: [...], action: "block" }]
+  
+  // Content moderation
+  contentModerationEnabled Boolean @default(false)
+  blockedKeywords        String[] @default([])
+  
+  // Encryption
+  atRestEncryption       Boolean  @default(true)
+  bringYourOwnKey        Boolean  @default(false)
+  encryptionKeyId        String?
+  
+  // IP restrictions
+  ipAllowlistEnabled     Boolean  @default(false)
+  ipAllowlist            String[] @default([])
+  
+  // Export controls
+  allowDataExport        Boolean  @default(true)
+  exportApprovalRequired Boolean  @default(false)
+  
+  // AI controls
+  allowExternalAI        Boolean  @default(true)     // Allow data to be sent to external AI
+  aiDataRetention        Boolean  @default(false)    // Allow AI providers to retain data
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@map("compliance_settings")
+}
+
+// --- Data Retention Jobs ---
+// Track data retention/deletion jobs
+
+model DataRetentionJob {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  
+  // Job type
+  jobType         String          // "scheduled", "manual", "compliance_request"
+  
+  // Scope
+  scope           Json            @default("{}")
+  // { connectorIds: [...], olderThan: "2023-01-01", documentTypes: [...] }
+  
+  // Execution
+  status          String          @default("pending")  // "pending", "running", "completed", "failed"
+  
+  // Results
+  documentsScanned Int            @default(0)
+  documentsDeleted Int            @default(0)
+  bytesReclaimed   BigInt         @default(0)
+  
+  // Error handling
+  errorMessage    String?
+  
+  // Timing
+  startedAt       DateTime?
+  completedAt     DateTime?
+  
+  // Audit
+  initiatedBy     String?
+  approvedBy      String?
+  
+  createdAt       DateTime        @default(now())
+  
+  @@index([teamId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("data_retention_job")
+}
+
+// --- Feature Flags ---
+// Team-level feature flag management
+
+model FeatureFlag {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  
+  // Flag identity
+  key             String          // "enable_deep_research", "beta_code_execution"
+  name            String
+  description     String?
+  
+  // Value
+  enabled         Boolean         @default(false)
+  value           Json?           // For non-boolean flags
+  
+  // Targeting
+  targetType      String          @default("all")    // "all", "percentage", "users", "groups"
+  targetPercentage Int?           // For percentage rollouts
+  targetUserIds   String[]        @default([])
+  targetGroupIds  String[]        @default([])
+  
+  // Override from global
+  isOverride      Boolean         @default(false)
+  globalDefault   Boolean         @default(false)
+  
+  // Lifecycle
+  expiresAt       DateTime?
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@unique([teamId, key])
+  @@index([teamId])
+  @@index([key])
+  @@map("feature_flag")
+}
+
+// --- Deployment Configuration ---
+// For self-hosted deployments
+
+model DeploymentConfig {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String          @unique
+  
+  // Deployment type
+  deploymentType  String          @default("cloud")   // "cloud", "vpc", "on_prem", "air_gapped"
+  
+  // Infrastructure
+  region          String?
+  availabilityZones String[]      @default([])
+  
+  // Scaling
+  autoScaling     Boolean         @default(true)
+  minInstances    Int             @default(1)
+  maxInstances    Int             @default(10)
+  
+  // Custom domain
+  customDomain    String?
+  sslCertificateId String?
+  
+  // Network
+  vpcId           String?
+  subnetIds       String[]        @default([])
+  securityGroupIds String[]       @default([])
+  
+  // Storage
+  storageType     String          @default("managed")  // "managed", "s3", "gcs", "azure_blob"
+  storageConfig   Json            @default("{}")
+  
+  // Database
+  databaseType    String          @default("managed")  // "managed", "self_hosted"
+  databaseConfig  Json            @default("{}")
+  
+  // Vespa
+  vespaType       String          @default("managed")  // "managed", "self_hosted"
+  vespaConfig     Json            @default("{}")
+  
+  // LLM
+  llmDeployment   String          @default("cloud")   // "cloud", "local", "hybrid"
+  llmConfig       Json            @default("{}")
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@map("deployment_config")
+}
+
+// --- License Management ---
+// For tracking licenses in self-hosted deployments
+
+model License {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String          @unique
+  
+  // License details
+  licenseKey      String          @unique
+  licenseType     String          // "trial", "starter", "professional", "enterprise"
+  
+  // Limits
+  maxUsers        Int?
+  maxConnectors   Int?
+  maxDocuments    Int?
+  maxStorageGb    Int?
+  
+  // Features
+  features        String[]        @default([])
+  // ["sso", "audit_logs", "custom_branding", "api_access", "priority_support"]
+  
+  // Validity
+  issuedAt        DateTime
+  expiresAt       DateTime?
+  isActive        Boolean         @default(true)
+  
+  // Usage tracking
+  currentUsers    Int             @default(0)
+  currentDocuments Int            @default(0)
+  currentStorageGb Float          @default(0)
+  
+  // Activation
+  activatedAt     DateTime?
+  activatedBy     String?
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@index([licenseKey])
+  @@index([expiresAt])
+  @@map("license")
+}
+
+// --- Custom Branding ---
+// White-labeling and custom branding
+
+model CustomBranding {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String          @unique
+  
+  // Brand identity
+  companyName     String?
+  logoUrl         String?
+  logoIconUrl     String?         // Square icon version
+  faviconUrl      String?
+  
+  // Colors
+  primaryColor    String?
+  secondaryColor  String?
+  accentColor     String?
+  
+  // Theme
+  theme           Json            @default("{}")
+  // { backgroundColor: "#fff", textColor: "#000", ... }
+  
+  // Custom CSS
+  customCss       String?
+  
+  // Login page
+  loginBackground String?
+  loginMessage    String?
+  
+  // Footer
+  footerText      String?
+  footerLinks     Json            @default("[]")
+  // [{ text: "Privacy Policy", url: "..." }]
+  
+  // Support
+  supportEmail    String?
+  supportUrl      String?
+  docsUrl         String?
+  
+  // Email templates
+  emailFromName   String?
+  emailFromAddress String?
+  emailFooter     String?
+  
+  isActive        Boolean         @default(true)
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@map("custom_branding")
+}
+
+// --- IP Access Logs ---
+// For security monitoring
+
+model IPAccessLog {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  
+  ipAddress       String
+  userId          String?
+  
+  // Request info
+  requestPath     String?
+  requestMethod   String?
+  userAgent       String?
+  
+  // Geo
+  country         String?
+  region          String?
+  city            String?
+  isp             String?
+  
+  // Risk assessment
+  isVpn           Boolean         @default(false)
+  isTor           Boolean         @default(false)
+  isProxy         Boolean         @default(false)
+  isDatacenter    Boolean         @default(false)
+  riskScore       Float           @default(0)
+  
+  // Result
+  allowed         Boolean
+  blockedReason   String?
+  
+  createdAt       DateTime        @default(now())
+  
+  @@index([teamId])
+  @@index([ipAddress])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([riskScore])
+  @@map("ip_access_log")
+}
+
+// --- Security Alerts ---
+// Security-related alerts and incidents
+
+enum SecurityAlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum SecurityAlertStatus {
+  OPEN
+  INVESTIGATING
+  RESOLVED
+  FALSE_POSITIVE
+}
+
+model SecurityAlert {
+  id              String                  @id @default(cuid()) @map("_id")
+  teamId          String
+  
+  // Alert details
+  alertType       String                  // "suspicious_login", "data_exfiltration", "brute_force"
+  title           String
+  description     String?
+  
+  severity        SecurityAlertSeverity   @default(MEDIUM)
+  status          SecurityAlertStatus     @default(OPEN)
+  
+  // Context
+  userId          String?
+  ipAddress       String?
+  resourceType    String?
+  resourceId      String?
+  
+  // Evidence
+  evidence        Json                    @default("{}")
+  
+  // Response
+  assignedTo      String?
+  resolution      String?
+  resolvedAt      DateTime?
+  resolvedBy      String?
+  
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  
+  @@index([teamId])
+  @@index([severity])
+  @@index([status])
+  @@index([createdAt])
+  @@map("security_alert")
+}
+
+// --- Integrations Marketplace ---
+// For managing approved integrations
+
+model ApprovedIntegration {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  
+  // Integration
+  integrationType String          // AppType value
+  
+  // Approval
+  isApproved      Boolean         @default(false)
+  approvedBy      String?
+  approvedAt      DateTime?
+  
+  // Restrictions
+  maxInstances    Int?            // Max connectors of this type
+  allowedScopes   String[]        @default([])       // Limit OAuth scopes
+  allowedUsers    String[]        @default([])       // Users who can create
+  requireApproval Boolean         @default(false)    // Require admin approval per instance
+  
+  // Notes
+  notes           String?
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@unique([teamId, integrationType])
+  @@index([teamId])
+  @@map("approved_integration")
+}
+

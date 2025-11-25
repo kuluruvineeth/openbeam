@@ -1,0 +1,350 @@
+schema project {
+  document project {
+    # === Primary Identifiers ===
+    field id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field team_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field connector_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field external_id type string {
+      indexing: summary | attribute
+    }
+    
+    # === Project Type (Critical for Semantic Graph) ===
+    field project_type type string {
+      indexing: summary | attribute
+      attribute: fast-search
+      # "product", "initiative", "campaign", "research", "repository", 
+      # "workspace", "space", "board", "topic", "theme"
+    }
+    
+    field source_type type string {
+      indexing: summary | attribute
+      attribute: fast-search
+      # "jira", "linear", "asana", "notion", "confluence", "github", etc.
+    }
+    
+    # === Core Information ===
+    field name type string {
+      indexing: summary | index
+      index: enable-bm25
+    }
+    
+    field key type string {
+      indexing: summary | attribute | index
+      index: enable-bm25
+      # Short identifier (e.g., "PROJ-123", "OPS", "Q3-MARKETING")
+    }
+    
+    field description type string {
+      indexing: summary | index
+      index: enable-bm25
+    }
+    
+    field summary type string {
+      indexing: summary | index
+      index: enable-bm25
+      # AI-generated summary of the project
+    }
+    
+    # === Hierarchy ===
+    field parent_id type string {
+      indexing: summary | attribute
+      # Parent project/portfolio
+    }
+    
+    field child_ids type array<string> {
+      indexing: summary | attribute
+      # Child projects
+    }
+    
+    field related_project_ids type array<string> {
+      indexing: summary | attribute
+      # Semantically related projects
+    }
+    
+    # === Semantic Embedding (For Project Discovery) ===
+    field project_embedding type tensor<float>(x[768]) {
+      indexing: attribute | index
+      attribute {
+        distance-metric: angular
+      }
+      # Embedding of name + description + key documents
+    }
+    
+    # === Topics & Tags (For Knowledge Graph) ===
+    field topics type array<string> {
+      indexing: summary | attribute | index
+      index: enable-bm25
+      # Extracted topics: "machine-learning", "customer-acquisition", "compliance"
+    }
+    
+    field tags type array<string> {
+      indexing: summary | attribute | index
+      index: enable-bm25
+      # User-defined tags
+    }
+    
+    field categories type array<string> {
+      indexing: summary | attribute
+      # High-level categories
+    }
+    
+    # === People Graph ===
+    field owner_id type string {
+      indexing: summary | attribute
+    }
+    
+    field owner_name type string {
+      indexing: summary
+    }
+    
+    field lead_ids type array<string> {
+      indexing: summary | attribute
+      # Project leads/managers
+    }
+    
+    field member_ids type array<string> {
+      indexing: summary | attribute
+      # All team members
+    }
+    
+    field contributor_ids type array<string> {
+      indexing: summary | attribute
+      # People who contributed (derived from documents)
+    }
+    
+    field stakeholder_ids type array<string> {
+      indexing: summary | attribute
+      # Stakeholders/watchers
+    }
+    
+    # === Status & Timeline ===
+    field status type string {
+      indexing: summary | attribute
+      attribute: fast-search
+      # "planning", "active", "on_hold", "completed", "cancelled", "archived"
+    }
+    
+    field priority type string {
+      indexing: summary | attribute
+      # "critical", "high", "medium", "low"
+    }
+    
+    field start_date type long {
+      indexing: summary | attribute
+    }
+    
+    field end_date type long {
+      indexing: summary | attribute
+    }
+    
+    field due_date type long {
+      indexing: summary | attribute
+    }
+    
+    field completed_at type long {
+      indexing: summary | attribute
+    }
+    
+    # === Progress & Health ===
+    field progress_percent type int {
+      indexing: summary | attribute
+    }
+    
+    field health_status type string {
+      indexing: summary | attribute
+      # "on_track", "at_risk", "off_track"
+    }
+    
+    field task_count type int {
+      indexing: summary | attribute
+    }
+    
+    field completed_task_count type int {
+      indexing: summary | attribute
+    }
+    
+    # === Content Statistics ===
+    field document_count type int {
+      indexing: summary | attribute
+    }
+    
+    field message_count type int {
+      indexing: summary | attribute
+    }
+    
+    field code_file_count type int {
+      indexing: summary | attribute
+    }
+    
+    field last_activity_at type long {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    # === Connected Resources ===
+    field channel_ids type array<string> {
+      indexing: summary | attribute
+      # Associated Slack/Teams channels
+    }
+    
+    field repository_ids type array<string> {
+      indexing: summary | attribute
+      # Associated code repositories
+    }
+    
+    field document_ids type array<string> {
+      indexing: summary | attribute
+      # Key documents
+    }
+    
+    field external_links type array<string> {
+      indexing: summary
+      # Related external URLs
+    }
+    
+    # === Access Control ===
+    field access_control type array<string> {
+      indexing: summary | attribute
+    }
+    
+    field is_public type bool {
+      indexing: summary | attribute
+    }
+    
+    field visibility type string {
+      indexing: summary | attribute
+      # "public", "internal", "team", "private"
+    }
+    
+    # === Timestamps ===
+    field created_at type long {
+      indexing: summary | attribute
+    }
+    
+    field updated_at type long {
+      indexing: summary | attribute
+    }
+    
+    # === URL ===
+    field url type string {
+      indexing: summary
+    }
+    
+    field icon type string {
+      indexing: summary
+    }
+    
+    field color type string {
+      indexing: summary | attribute
+    }
+    
+    # === Metadata ===
+    field metadata type string {
+      indexing: summary | attribute
+    }
+  }
+  
+  # === Field Sets ===
+  fieldset default {
+    fields: name, key, description, topics, tags
+  }
+  
+  fieldset discovery {
+    fields: name, description, summary, topics, tags
+  }
+  
+  # === Ranking Profiles ===
+  
+  # Default: Name and key matching
+  rank-profile default {
+    first-phase {
+      expression {
+        bm25(name) * 2 + 
+        bm25(key) * 3 +
+        bm25(description) +
+        bm25(topics) +
+        bm25(tags)
+      }
+    }
+  }
+  
+  # Topic-based discovery
+  rank-profile topic_discovery {
+    first-phase {
+      expression {
+        bm25(topics) * 3 +
+        bm25(tags) * 2 +
+        bm25(description) +
+        bm25(name)
+      }
+    }
+  }
+  
+  # Semantic similarity (Find similar projects)
+  rank-profile semantic {
+    first-phase {
+      expression: closeness(field, project_embedding)
+    }
+  }
+  
+  # Hybrid search
+  rank-profile hybrid {
+    first-phase {
+      expression {
+        0.6 * (bm25(name) * 2 + bm25(description) + bm25(topics)) +
+        0.4 * closeness(field, project_embedding)
+      }
+    }
+  }
+  
+  # Active projects first
+  rank-profile active_first {
+    first-phase {
+      expression {
+        (bm25(name) + bm25(description) + bm25(topics)) *
+        if(attribute(status) == "active", 2.0, if(attribute(status) == "planning", 1.5, 1.0)) *
+        freshness(last_activity_at)
+      }
+    }
+    function freshness(t) {
+      expression: if(t > now() - 86400000, 1.5, if(t > now() - 604800000, 1.2, 1.0))
+    }
+  }
+  
+  # High-activity projects
+  rank-profile high_activity {
+    first-phase {
+      expression {
+        (bm25(name) + bm25(description) + bm25(topics)) *
+        (1 + log(attribute(document_count) + 1) * 0.1) *
+        (1 + log(attribute(message_count) + 1) * 0.05) *
+        freshness(last_activity_at)
+      }
+    }
+    function freshness(t) {
+      expression: if(t > now() - 604800000, 1.3, 1.0)
+    }
+  }
+  
+  # Team member projects (boost projects with specific users)
+  rank-profile team_member {
+    first-phase {
+      expression {
+        bm25(name) + bm25(description) + bm25(topics)
+      }
+    }
+  }
+}
+

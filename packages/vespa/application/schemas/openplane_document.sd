@@ -1,12 +1,17 @@
 schema openplane_document {
   document openplane_document {
-    # Primary identifier
+    # === Primary Identifiers ===
     field id type string {
       indexing: summary | attribute
       attribute: fast-search
     }
     
-    # === Metadata (all connectors) ===
+    # === Multi-Tenant Context ===
+    field team_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
     field connector_id type string {
       indexing: summary | attribute
       attribute: fast-search
@@ -15,18 +20,14 @@ schema openplane_document {
     field connector_type type string {
       indexing: summary | attribute
       attribute: fast-search
-    }
-    
-    field team_id type string {
-      indexing: summary | attribute
-      attribute: fast-search
+      # "slack", "google_drive", "notion", "github", "jira", etc.
     }
     
     field workspace_id type string {
       indexing: summary | attribute
     }
     
-    # === Document identifiers ===
+    # === Document Identity ===
     field external_id type string {
       indexing: summary | attribute
     }
@@ -34,10 +35,22 @@ schema openplane_document {
     field document_type type string {
       indexing: summary | attribute
       attribute: fast-search
-      # Values: "message", "file", "page", "issue", "ticket", "email", "note", etc.
+      # Primary types: "message", "file", "page", "issue", "ticket", 
+      # "email", "note", "pr", "review", "comment", "wiki", "task",
+      # "meeting", "recording", "transcript", "spreadsheet", "presentation"
     }
     
-    # === Content (universal fields) ===
+    field document_subtype type string {
+      indexing: summary | attribute
+      # More specific: "slack_message", "notion_page", "jira_epic", 
+      # "github_issue", "confluence_page", "google_doc", etc.
+    }
+    
+    field mime_type type string {
+      indexing: summary | attribute
+    }
+    
+    # === Content (Universal Fields) ===
     field title type string {
       indexing: summary | index
       index: enable-bm25
@@ -48,6 +61,19 @@ schema openplane_document {
       index: enable-bm25
     }
     
+    # Rich content for better search
+    field content_plain type string {
+      indexing: index
+      index: enable-bm25
+      # Plain text version (no markdown/HTML)
+    }
+    
+    field content_html type string {
+      indexing: summary
+      # Original HTML/rich text for display
+    }
+    
+    # === Semantic Embeddings ===
     field content_embedding type tensor<float>(x[768]) {
       indexing: attribute | index
       attribute {
@@ -55,15 +81,140 @@ schema openplane_document {
       }
     }
     
-    # === Authorship & timestamps ===
+    field title_embedding type tensor<float>(x[768]) {
+      indexing: attribute | index
+      attribute {
+        distance-metric: angular
+      }
+      # Separate title embedding for better title matching
+    }
+    
+    # === AI-Generated Content ===
+    field ai_summary type string {
+      indexing: summary | index
+      index: enable-bm25
+      # AI-generated summary of the document
+    }
+    
+    field ai_topics type array<string> {
+      indexing: summary | attribute | index
+      index: enable-bm25
+      # AI-extracted topics/themes
+    }
+    
+    field ai_entities type array<string> {
+      indexing: summary | attribute | index
+      index: enable-bm25
+      # AI-extracted named entities (people, companies, products)
+    }
+    
+    field ai_sentiment type string {
+      indexing: summary | attribute
+      # "positive", "negative", "neutral", "mixed"
+    }
+    
+    field ai_language type string {
+      indexing: summary | attribute
+      # Detected language
+    }
+    
+    # === Hierarchy & Relationships ===
+    field parent_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+      # Parent document (folder, thread root, etc.)
+    }
+    
+    field thread_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+      # Thread root for messages
+    }
+    
+    field project_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+      # Associated project (Jira project, Linear team, etc.)
+    }
+    
+    field project_ids type array<string> {
+      indexing: summary | attribute
+      # Can belong to multiple projects
+    }
+    
+    field related_doc_ids type array<string> {
+      indexing: summary | attribute
+      # Explicitly related documents
+    }
+    
+    field referenced_doc_ids type array<string> {
+      indexing: summary | attribute
+      # Documents this doc references (links, citations)
+    }
+    
+    # === Source/Container Info ===
+    field source_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+      # Channel, folder, database, repository ID
+    }
+    
+    field source_name type string {
+      indexing: summary | index
+      index: enable-bm25
+    }
+    
+    field source_type type string {
+      indexing: summary | attribute
+      # "channel", "folder", "database", "repository", "board", "space"
+    }
+    
+    field source_path type string {
+      indexing: summary | attribute
+      # Full path: "Engineering/Projects/Q3 Launch"
+    }
+    
+    # === Authorship ===
     field author_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field author_external_id type string {
       indexing: summary | attribute
     }
     
     field author_name type string {
-      indexing: summary
+      indexing: summary | index
+      index: enable-bm25
     }
     
+    field author_email type string {
+      indexing: summary | attribute
+    }
+    
+    # === Contributors & Mentions ===
+    field contributor_ids type array<string> {
+      indexing: summary | attribute
+      # All contributors (editors, commenters)
+    }
+    
+    field mentioned_user_ids type array<string> {
+      indexing: summary | attribute
+      # Users mentioned in the document
+    }
+    
+    field assignee_ids type array<string> {
+      indexing: summary | attribute
+      # For tasks/issues
+    }
+    
+    field reviewer_ids type array<string> {
+      indexing: summary | attribute
+      # For PRs, documents requiring review
+    }
+    
+    # === Timestamps ===
     field created_at type long {
       indexing: summary | attribute
       attribute: fast-search
@@ -71,34 +222,75 @@ schema openplane_document {
     
     field updated_at type long {
       indexing: summary | attribute
+      attribute: fast-search
     }
     
-    # === Source/container info ===
-    # For Slack: channel_id, Drive: folder_id, Notion: database_id, etc.
-    field source_id type string {
+    field indexed_at type long {
+      indexing: summary | attribute
+      # When we indexed this document
+    }
+    
+    field last_accessed_at type long {
+      indexing: summary | attribute
+      # Last time anyone accessed/viewed
+    }
+    
+    field due_date type long {
+      indexing: summary | attribute
+      # For tasks/issues
+    }
+    
+    field resolved_at type long {
+      indexing: summary | attribute
+      # When issue/task was resolved
+    }
+    
+    # === Status & Workflow (Critical for Issue Tracking) ===
+    field status type string {
+      indexing: summary | attribute
+      attribute: fast-search
+      # "open", "in_progress", "done", "closed", "archived", etc.
+    }
+    
+    field priority type string {
+      indexing: summary | attribute
+      # "critical", "high", "medium", "low", "none"
+    }
+    
+    field state type string {
+      indexing: summary | attribute
+      # Workflow state (more granular than status)
+    }
+    
+    field labels type array<string> {
+      indexing: summary | attribute | index
+      index: enable-bm25
+      # Tags, labels, categories
+    }
+    
+    field sprint type string {
+      indexing: summary | attribute
+      # Sprint/iteration name
+    }
+    
+    field milestone type string {
       indexing: summary | attribute
     }
     
-    field source_name type string {
-      indexing: summary
-    }
-    
-    field source_type type string {
-      indexing: summary | attribute
-      # "channel", "folder", "database", "repository", "project", etc.
-    }
-    
-    # === Thread/parent relationships ===
-    field parent_id type string {
+    field version type string {
       indexing: summary | attribute
     }
     
-    field thread_id type string {
-      indexing: summary | attribute
-    }
-    
-    # === Engagement metrics ===
+    # === Engagement Metrics ===
     field view_count type int {
+      indexing: summary | attribute
+    }
+    
+    field unique_view_count type int {
+      indexing: summary | attribute
+    }
+    
+    field click_count type int {
       indexing: summary | attribute
     }
     
@@ -106,54 +298,214 @@ schema openplane_document {
       indexing: summary | attribute
     }
     
+    field comment_count type int {
+      indexing: summary | attribute
+    }
+    
     field reply_count type int {
       indexing: summary | attribute
     }
     
-    # === Rich content ===
+    field share_count type int {
+      indexing: summary | attribute
+    }
+    
+    field bookmark_count type int {
+      indexing: summary | attribute
+    }
+    
+    field edit_count type int {
+      indexing: summary | attribute
+    }
+    
+    # === Rich Content ===
     field attachments type array<string> {
       indexing: summary
       # JSON array of attachment metadata
     }
     
-    field metadata type string {
+    field attachment_count type int {
       indexing: summary | attribute
     }
     
-    # === Access control ===
+    field has_attachments type bool {
+      indexing: summary | attribute
+    }
+    
+    field has_images type bool {
+      indexing: summary | attribute
+    }
+    
+    field has_code type bool {
+      indexing: summary | attribute
+    }
+    
+    field has_links type bool {
+      indexing: summary | attribute
+    }
+    
+    field link_count type int {
+      indexing: summary | attribute
+    }
+    
+    field word_count type int {
+      indexing: summary | attribute
+    }
+    
+    field char_count type int {
+      indexing: summary | attribute
+    }
+    
+    # === Reactions (For Slack/Teams) ===
+    field reactions type string {
+      indexing: summary
+      # JSON: { "👍": 5, "❤️": 3, ... }
+    }
+    
+    # === Access Control ===
     field access_control type array<string> {
       indexing: summary | attribute
-      # User/group IDs with access
+      attribute: fast-search
+      # User/group IDs with access (for filtering)
+    }
+    
+    field access_groups type array<string> {
+      indexing: summary | attribute
+      # Group-level permissions
     }
     
     field is_public type bool {
       indexing: summary | attribute
     }
     
-    # === URL ===
+    field visibility type string {
+      indexing: summary | attribute
+      # "public", "internal", "team", "private", "restricted"
+    }
+    
+    field is_archived type bool {
+      indexing: summary | attribute
+    }
+    
+    field is_deleted type bool {
+      indexing: summary | attribute
+    }
+    
+    # === Quality Signals ===
+    field is_verified type bool {
+      indexing: summary | attribute
+      # Admin/expert verified content
+    }
+    
+    field is_pinned type bool {
+      indexing: summary | attribute
+    }
+    
+    field is_featured type bool {
+      indexing: summary | attribute
+    }
+    
+    field quality_score type float {
+      indexing: summary | attribute
+      # AI-assessed content quality (0-1)
+    }
+    
+    field freshness_score type float {
+      indexing: summary | attribute
+      # How current/relevant the content is
+    }
+    
+    # === Personalization Support ===
+    field popularity_score type float {
+      indexing: summary | attribute
+      # Global popularity score
+    }
+    
+    field trending_score type float {
+      indexing: summary | attribute
+      # Recent popularity trend
+    }
+    
+    # === URL & Preview ===
     field url type string {
       indexing: summary
     }
+    
+    field permalink type string {
+      indexing: summary
+    }
+    
+    field thumbnail_url type string {
+      indexing: summary
+    }
+    
+    field preview type string {
+      indexing: summary
+      # Snippet for search results
+    }
+    
+    # === File-Specific Fields ===
+    field file_name type string {
+      indexing: summary | index
+      index: enable-bm25
+    }
+    
+    field file_extension type string {
+      indexing: summary | attribute
+    }
+    
+    field file_size type long {
+      indexing: summary | attribute
+    }
+    
+    # === Connector-Specific Metadata ===
+    field metadata type string {
+      indexing: summary | attribute
+      # JSON for connector-specific fields
+    }
+    
+    field custom_fields type string {
+      indexing: summary
+      # JSON for user-defined custom fields
+    }
+    
+    # === Sync Tracking ===
+    field checksum type string {
+      indexing: summary | attribute
+      # For change detection
+    }
+    
+    field sync_version type int {
+      indexing: summary | attribute
+    }
   }
   
-  # Field sets for searching
+  # === Field Sets ===
   fieldset default {
     fields: title, content
   }
   
-  # === Ranking profiles ===
+  fieldset full_text {
+    fields: title, content, content_plain, ai_summary
+  }
+  
+  fieldset discovery {
+    fields: title, ai_summary, ai_topics, labels, author_name
+  }
+  
+  # === Ranking Profiles ===
   
   # Base rank profile
   rank-profile default {
     first-phase {
-      expression: bm25(title) + bm25(content)
+      expression: bm25(title) * 2 + bm25(content)
     }
   }
   
   # BM25 text relevance
   rank-profile bm25 inherits default {
     first-phase {
-      expression: bm25(title) + bm25(content)
+      expression: bm25(title) * 2 + bm25(content) + bm25(ai_summary) * 0.5
     }
   }
   
@@ -164,13 +516,38 @@ schema openplane_document {
     }
   }
   
-  # Hybrid search (BM25 + vectors)
+  # Title-focused semantic
+  rank-profile semantic_title {
+    first-phase {
+      expression: closeness(field, title_embedding)
+    }
+  }
+  
+  # Hybrid search (BM25 + vectors) - The "Glean Killer"
   rank-profile hybrid {
     first-phase {
       expression {
-        0.7 * (bm25(title) + bm25(content)) + 
-        0.3 * closeness(field, content_embedding)
+        0.6 * normalize(bm25(title) * 2 + bm25(content)) + 
+        0.4 * closeness(field, content_embedding)
       }
+    }
+    function normalize(score) {
+      expression: score / (1 + score)
+    }
+  }
+  
+  # Advanced hybrid with title embedding
+  rank-profile hybrid_advanced {
+    first-phase {
+      expression {
+        0.4 * normalize(bm25(title) * 2 + bm25(content)) +
+        0.3 * closeness(field, content_embedding) +
+        0.2 * closeness(field, title_embedding) +
+        0.1 * attribute(quality_score)
+      }
+    }
+    function normalize(score) {
+      expression: score / (1 + score)
     }
   }
   
@@ -178,11 +555,29 @@ schema openplane_document {
   rank-profile recency {
     first-phase {
       expression {
-        if(attribute(created_at) > now() - 86400000,
-          1.5 * (bm25(title) + bm25(content)),
-          bm25(title) + bm25(content)
-        )
+        (bm25(title) * 2 + bm25(content)) *
+        freshness(updated_at)
       }
+    }
+    function freshness(t) {
+      expression: if(t > now() - 86400000, 2.0, if(t > now() - 604800000, 1.5, if(t > now() - 2592000000, 1.2, 1.0)))
+    }
+  }
+  
+  # Hybrid + Recency
+  rank-profile hybrid_recency {
+    first-phase {
+      expression {
+        (0.6 * normalize(bm25(title) * 2 + bm25(content)) + 
+         0.4 * closeness(field, content_embedding)) *
+        freshness(updated_at)
+      }
+    }
+    function normalize(score) {
+      expression: score / (1 + score)
+    }
+    function freshness(t) {
+      expression: if(t > now() - 86400000, 1.5, if(t > now() - 604800000, 1.2, 1.0))
     }
   }
   
@@ -190,11 +585,124 @@ schema openplane_document {
   rank-profile engagement {
     first-phase {
       expression {
-        (bm25(title) + bm25(content)) *
+        (bm25(title) * 2 + bm25(content)) *
+        (1 + log(attribute(view_count) + 1) * 0.05) *
         (1 + log(attribute(reaction_count) + 1) * 0.1) *
-        (1 + log(attribute(reply_count) + 1) * 0.05)
+        (1 + log(attribute(comment_count) + 1) * 0.08)
       }
     }
   }
+  
+  # Popularity-boosted (for discovery)
+  rank-profile popular {
+    first-phase {
+      expression {
+        (bm25(title) * 2 + bm25(content)) *
+        (1 + attribute(popularity_score) * 0.3) *
+        (1 + attribute(trending_score) * 0.2)
+      }
+    }
+  }
+  
+  # Quality-boosted (prefer verified, high-quality content)
+  rank-profile quality {
+    first-phase {
+      expression {
+        (bm25(title) * 2 + bm25(content)) *
+        (1 + attribute(quality_score) * 0.3) *
+        (1 + if(attribute(is_verified), 0.5, 0)) *
+        (1 + if(attribute(is_featured), 0.3, 0))
+      }
+    }
+  }
+  
+  # Author-focused (find content by specific person)
+  rank-profile by_author {
+    first-phase {
+      expression {
+        bm25(author_name) * 3 +
+        bm25(title) +
+        bm25(content) * 0.5
+      }
+    }
+  }
+  
+  # Topic/label search
+  rank-profile topics {
+    first-phase {
+      expression {
+        bm25(ai_topics) * 3 +
+        bm25(labels) * 2 +
+        bm25(title) +
+        bm25(content) * 0.5
+      }
+    }
+  }
+  
+  # Issue/task search (status-aware)
+  rank-profile issues {
+    first-phase {
+      expression {
+        (bm25(title) * 2 + bm25(content)) *
+        if(attribute(status) == "open", 1.5, if(attribute(status) == "in_progress", 1.3, 1.0)) *
+        priority_boost(attribute(priority))
+      }
+    }
+    function priority_boost(p) {
+      expression: if(p == "critical", 2.0, if(p == "high", 1.5, if(p == "medium", 1.2, 1.0)))
+    }
+  }
+  
+  # File search
+  rank-profile files {
+    first-phase {
+      expression {
+        bm25(file_name) * 3 +
+        bm25(title) * 2 +
+        bm25(content)
+      }
+    }
+  }
+  
+  # Personalized search (placeholder - actual personalization happens at query time)
+  rank-profile personalized {
+    first-phase {
+      expression {
+        0.5 * normalize(bm25(title) * 2 + bm25(content)) +
+        0.3 * closeness(field, content_embedding) +
+        0.1 * attribute(popularity_score) +
+        0.1 * freshness(updated_at)
+      }
+    }
+    function normalize(score) {
+      expression: score / (1 + score)
+    }
+    function freshness(t) {
+      expression: if(t > now() - 604800000, 1.3, 1.0)
+    }
+  }
+  
+  # Enterprise search (combines everything)
+  rank-profile enterprise {
+    first-phase {
+      expression {
+        # Base relevance
+        (0.5 * normalize(bm25(title) * 2 + bm25(content) + bm25(ai_summary)) +
+         0.3 * closeness(field, content_embedding)) *
+        # Quality signals
+        (1 + attribute(quality_score) * 0.2) *
+        (1 + if(attribute(is_verified), 0.3, 0)) *
+        # Engagement signals
+        (1 + log(attribute(view_count) + 1) * 0.02) *
+        # Freshness
+        freshness(updated_at)
+      }
+    }
+    function normalize(score) {
+      expression: score / (1 + score)
+    }
+    function freshness(t) {
+      expression: if(t > now() - 86400000, 1.3, if(t > now() - 604800000, 1.15, 1.0))
+    }
+  }
 }
-

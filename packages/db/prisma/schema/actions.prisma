@@ -1,0 +1,447 @@
+// ============================================================================
+// ACTIONS SCHEMA
+// MCP (Model Context Protocol) tools, workflows, and automation
+// Critical for: Glean Actions, Agentic Capabilities, Automation
+// ============================================================================
+
+// --- Action Definitions ---
+// MCP-compatible tool definitions
+
+enum ActionCategory {
+  // Communication
+  MESSAGING         // Send messages (Slack, Teams, Email)
+  NOTIFICATION      // Send notifications
+  
+  // Productivity
+  TASK_MANAGEMENT   // Create/update tasks (Jira, Linear, Asana)
+  DOCUMENT          // Create/edit documents
+  CALENDAR          // Schedule meetings, events
+  
+  // Development
+  CODE              // Code operations (PR, issues, reviews)
+  CI_CD             // Trigger deployments, builds
+  MONITORING        // Check status, alerts
+  
+  // Data
+  SEARCH            // Search operations
+  ANALYTICS         // Generate reports
+  EXPORT            // Export data
+  
+  // Integration
+  WEBHOOK           // Trigger webhooks
+  API               // Generic API calls
+  
+  // Admin
+  USER_MANAGEMENT   // Invite users, manage permissions
+  SETTINGS          // Update settings
+}
+
+enum ActionTriggerType {
+  MANUAL            // User-initiated
+  SCHEDULED         // Time-based
+  EVENT             // Event-triggered
+  AI                // AI-initiated (agentic)
+}
+
+model Action {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  connectorId     String?         // If tied to a specific connector
+  
+  // Identity
+  name            String          // Human-readable name
+  slug            String          // URL-friendly identifier
+  description     String?
+  
+  // Classification
+  category        ActionCategory
+  tags            String[]        @default([])
+  
+  // MCP-compatible schema
+  inputSchema     Json            // JSON Schema for input parameters
+  outputSchema    Json?           // JSON Schema for output
+  
+  // Execution configuration
+  executionType   String          @default("api")   // "api", "webhook", "function", "mcp"
+  executionConfig Json            @default("{}")
+  // For API: { endpoint, method, headers, bodyTemplate }
+  // For webhook: { url, method, headers }
+  // For function: { handler, module }
+  // For MCP: { server, tool }
+  
+  // Rate limiting
+  rateLimit       Json?
+  // { maxPerMinute: 10, maxPerHour: 100, maxPerDay: 1000 }
+  
+  // Permissions
+  requiredPermissions String[]    @default([])
+  allowedRoles    String[]        @default([])      // Empty = all roles
+  
+  // Safety
+  requiresConfirmation Boolean    @default(true)    // Require user confirmation
+  isDestructive   Boolean         @default(false)   // Is this a destructive action
+  isDryRunnable   Boolean         @default(false)   // Can be run in dry-run mode
+  
+  // AI assistant usage
+  isAiEnabled     Boolean         @default(true)    // Can AI assistants use this
+  aiInstructions  String?         // Special instructions for AI
+  
+  // Versioning
+  version         String          @default("1.0.0")
+  deprecatedAt    DateTime?
+  
+  // Status
+  isActive        Boolean         @default(true)
+  isPublished     Boolean         @default(false)   // Available to team
+  
+  // Usage
+  usageCount      Int             @default(0)
+  lastUsedAt      DateTime?
+  
+  createdBy       String
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  executions      ActionExecution[]
+  
+  @@unique([teamId, slug])
+  @@index([teamId])
+  @@index([connectorId])
+  @@index([category])
+  @@index([isActive, isPublished])
+  @@map("action")
+}
+
+// --- Action Executions ---
+// Track every action execution
+
+enum ActionExecutionStatus {
+  PENDING         // Waiting to start
+  RUNNING         // Currently executing
+  AWAITING_CONFIRMATION // Waiting for user confirmation
+  COMPLETED       // Successfully completed
+  FAILED          // Failed with error
+  CANCELLED       // Cancelled by user
+  TIMEOUT         // Execution timed out
+  ROLLED_BACK     // Rolled back after failure
+}
+
+model ActionExecution {
+  id              String                  @id @default(cuid()) @map("_id")
+  teamId          String
+  actionId        String
+  userId          String
+  
+  // Trigger context
+  triggerType     ActionTriggerType       @default(MANUAL)
+  triggeredFrom   String?                 // "chat", "search", "workflow", "schedule", "api"
+  conversationId  String?                 // If triggered from chat
+  agentExecutionId String?                // If triggered by agent
+  
+  // Input
+  input           Json                    @default("{}")
+  inputValidation Json?                   // Validation result
+  
+  // Execution
+  status          ActionExecutionStatus   @default(PENDING)
+  
+  // Confirmation (if required)
+  confirmationRequired Boolean            @default(false)
+  confirmedBy     String?
+  confirmedAt     DateTime?
+  
+  // Output
+  output          Json?
+  outputSummary   String?                 // Human-readable summary
+  
+  // Error handling
+  errorCode       String?
+  errorMessage    String?
+  errorDetails    Json?
+  
+  // Retry
+  retryCount      Int                     @default(0)
+  maxRetries      Int                     @default(3)
+  retryAfter      DateTime?
+  
+  // Rollback
+  isRollbackable  Boolean                 @default(false)
+  rollbackData    Json?                   // Data needed for rollback
+  rolledBackAt    DateTime?
+  
+  // Performance
+  queuedAt        DateTime                @default(now())
+  startedAt       DateTime?
+  completedAt     DateTime?
+  durationMs      Int?
+  
+  // Metadata
+  metadata        Json                    @default("{}")
+  
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  
+  action          Action                  @relation(fields: [actionId], references: [id], onDelete: Cascade)
+  
+  @@index([teamId])
+  @@index([actionId])
+  @@index([userId])
+  @@index([status])
+  @@index([conversationId])
+  @@index([createdAt])
+  @@index([teamId, status, createdAt])
+  @@map("action_execution")
+}
+
+// --- Workflows ---
+// Multi-step automated workflows
+
+enum WorkflowStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+model Workflow {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  
+  name            String
+  slug            String
+  description     String?
+  
+  // Trigger configuration
+  triggerType     String          // "manual", "schedule", "webhook", "event"
+  triggerConfig   Json            @default("{}")
+  // For schedule: { cron: "0 9 * * MON" }
+  // For webhook: { path: "/webhook/my-flow" }
+  // For event: { event: "document.created", filters: {...} }
+  
+  // Steps
+  steps           Json            @default("[]")
+  // [{ id, type, actionId, config, conditions, onSuccess, onFailure }]
+  
+  // Variables
+  variables       Json            @default("[]")
+  // [{ name, type, default, required }]
+  
+  // Status
+  status          WorkflowStatus  @default(DRAFT)
+  
+  // Versioning
+  version         Int             @default(1)
+  
+  // Execution settings
+  timeout         Int             @default(3600000)  // Max execution time (ms)
+  maxConcurrent   Int             @default(1)        // Max concurrent executions
+  
+  // Error handling
+  onError         String          @default("fail")   // "fail", "continue", "rollback"
+  notifyOnFailure String[]        @default([])       // User IDs to notify
+  
+  // Usage
+  runCount        Int             @default(0)
+  lastRunAt       DateTime?
+  
+  createdBy       String
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  runs            WorkflowRun[]
+  
+  @@unique([teamId, slug])
+  @@index([teamId])
+  @@index([status])
+  @@index([triggerType])
+  @@map("workflow")
+}
+
+// --- Workflow Runs ---
+// Individual workflow executions
+
+enum WorkflowRunStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+  TIMEOUT
+}
+
+model WorkflowRun {
+  id              String              @id @default(cuid()) @map("_id")
+  teamId          String
+  workflowId      String
+  userId          String?             // Who triggered it (null for scheduled)
+  
+  // Trigger info
+  triggerType     String
+  triggerData     Json                @default("{}")
+  
+  // Input
+  variables       Json                @default("{}")
+  
+  // Execution state
+  status          WorkflowRunStatus   @default(PENDING)
+  currentStep     Int                 @default(0)
+  
+  // Step results
+  stepResults     Json                @default("[]")
+  // [{ stepId, status, output, startedAt, completedAt, error }]
+  
+  // Output
+  output          Json?
+  
+  // Error
+  errorMessage    String?
+  errorStepId     String?
+  
+  // Timing
+  startedAt       DateTime?
+  completedAt     DateTime?
+  durationMs      Int?
+  
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  
+  workflow        Workflow            @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  
+  @@index([teamId])
+  @@index([workflowId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("workflow_run")
+}
+
+// --- Scheduled Jobs ---
+// Cron-based scheduled actions and workflows
+
+model ScheduledJob {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  
+  name            String
+  description     String?
+  
+  // What to run
+  jobType         String          // "action", "workflow"
+  targetId        String          // Action ID or Workflow ID
+  
+  // Schedule (cron expression)
+  schedule        String          // e.g., "0 9 * * MON-FRI"
+  timezone        String          @default("UTC")
+  
+  // Input
+  input           Json            @default("{}")
+  
+  // Execution tracking
+  lastRunAt       DateTime?
+  nextRunAt       DateTime?
+  runCount        Int             @default(0)
+  
+  // Status
+  isActive        Boolean         @default(true)
+  
+  // Error handling
+  consecutiveFailures Int         @default(0)
+  maxFailures     Int             @default(3)        // Pause after this many failures
+  lastError       String?
+  
+  createdBy       String
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@index([teamId])
+  @@index([isActive])
+  @@index([nextRunAt])
+  @@map("scheduled_job")
+}
+
+// --- Webhooks ---
+// Incoming webhooks for triggering actions/workflows
+
+model Webhook {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  
+  name            String
+  description     String?
+  
+  // Endpoint
+  path            String          // /webhook/{teamId}/{path}
+  secret          String          // For signature verification
+  
+  // What it triggers
+  targetType      String          // "action", "workflow", "custom"
+  targetId        String?         // Action ID or Workflow ID
+  customHandler   String?         // For custom logic
+  
+  // Input mapping
+  inputMapping    Json            @default("{}")
+  // { "title": "$.body.issue.title", "priority": "$.headers.X-Priority" }
+  
+  // Validation
+  requiredHeaders String[]        @default([])
+  ipAllowlist     String[]        @default([])
+  
+  // Rate limiting
+  rateLimit       Json?
+  
+  // Status
+  isActive        Boolean         @default(true)
+  
+  // Usage
+  callCount       Int             @default(0)
+  lastCalledAt    DateTime?
+  lastError       String?
+  
+  createdBy       String
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@unique([teamId, path])
+  @@index([teamId])
+  @@index([isActive])
+  @@map("webhook")
+}
+
+// --- Event Subscriptions ---
+// Subscribe to internal events
+
+model EventSubscription {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  
+  // Event to subscribe to
+  eventType       String          // "document.created", "search.performed", "user.joined"
+  filters         Json            @default("{}")
+  // { "connector_type": "slack", "document_type": "message" }
+  
+  // What to trigger
+  targetType      String          // "action", "workflow", "webhook"
+  targetId        String
+  
+  // Input mapping
+  inputMapping    Json            @default("{}")
+  
+  // Conditions
+  conditions      Json            @default("{}")     // Additional conditions
+  
+  // Status
+  isActive        Boolean         @default(true)
+  
+  // Usage
+  triggerCount    Int             @default(0)
+  lastTriggeredAt DateTime?
+  
+  createdBy       String
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@index([teamId])
+  @@index([eventType])
+  @@index([isActive])
+  @@map("event_subscription")
+}
+

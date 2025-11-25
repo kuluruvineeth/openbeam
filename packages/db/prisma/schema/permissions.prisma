@@ -1,0 +1,424 @@
+// ============================================================================
+// PERMISSIONS SCHEMA
+// Advanced access control with inheritance, policies, and audit trails
+// Critical for: Document-Level Security, Enterprise Compliance
+// ============================================================================
+
+// --- Permission Policies ---
+// Define reusable permission policies
+
+enum PolicyEffect {
+  ALLOW
+  DENY
+}
+
+enum ResourceType {
+  DOCUMENT
+  CONNECTOR
+  PROJECT
+  FOLDER
+  CHANNEL
+  ASSISTANT
+  TOOL
+  TEAM
+  WORKSPACE
+}
+
+model PermissionPolicy {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  
+  name            String
+  description     String?
+  
+  // Policy definition
+  effect          PolicyEffect    @default(ALLOW)
+  
+  // What resources this policy applies to
+  resourceTypes   ResourceType[]  @default([])
+  resourceIds     String[]        @default([])      // Specific resource IDs (empty = all)
+  
+  // Conditions (JSON Logic format for flexible rules)
+  conditions      Json            @default("{}")
+  // Examples:
+  // { "department": { "eq": "engineering" } }
+  // { "connector_type": { "in": ["slack", "github"] } }
+  // { "created_after": { "gt": "2024-01-01" } }
+  
+  // Actions this policy controls
+  actions         String[]        @default([])      // "read", "write", "delete", "share", "admin"
+  
+  priority        Int             @default(100)     // Higher = evaluated first
+  isActive        Boolean         @default(true)
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  assignments     PolicyAssignment[]
+  
+  @@unique([teamId, name])
+  @@index([teamId])
+  @@index([isActive])
+  @@map("permission_policy")
+}
+
+// --- Policy Assignments ---
+// Assign policies to users, groups, or roles
+
+enum AssigneeType {
+  USER
+  GROUP
+  ROLE
+  TEAM
+}
+
+model PolicyAssignment {
+  id              String          @id @default(cuid()) @map("_id")
+  policyId        String
+  
+  // Who the policy is assigned to
+  assigneeType    AssigneeType
+  assigneeId      String          // User ID, Group ID, or Role name
+  
+  // Optional scope limitation
+  scopeType       String?         // "connector", "project", etc.
+  scopeId         String?         // Specific connector/project ID
+  
+  // Time-based access
+  expiresAt       DateTime?
+  
+  isActive        Boolean         @default(true)
+  
+  createdBy       String
+  createdAt       DateTime        @default(now())
+  
+  policy          PermissionPolicy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  
+  @@unique([policyId, assigneeType, assigneeId, scopeType, scopeId])
+  @@index([policyId])
+  @@index([assigneeType, assigneeId])
+  @@index([expiresAt])
+  @@map("policy_assignment")
+}
+
+// --- Permission Groups ---
+// Groups for organizing users and assigning permissions
+
+model PermissionGroup {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  
+  name            String
+  description     String?
+  
+  // Group type
+  groupType       String          @default("custom")  // "custom", "department", "project", "synced"
+  
+  // If synced from external source
+  connectorId     String?
+  externalId      String?
+  
+  // Hierarchy
+  parentGroupId   String?
+  
+  // Settings
+  isAutoAssign    Boolean         @default(false)    // Auto-assign based on rules
+  autoAssignRules Json            @default("{}")     // Rules for auto-assignment
+  
+  memberCount     Int             @default(0)
+  
+  isActive        Boolean         @default(true)
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  members         GroupMember[]
+  parentGroup     PermissionGroup? @relation("GroupHierarchy", fields: [parentGroupId], references: [id], onDelete: SetNull)
+  childGroups     PermissionGroup[] @relation("GroupHierarchy")
+  
+  @@unique([teamId, name])
+  @@unique([teamId, connectorId, externalId])
+  @@index([teamId])
+  @@index([parentGroupId])
+  @@map("permission_group")
+}
+
+// --- Group Members ---
+model GroupMember {
+  id              String          @id @default(cuid()) @map("_id")
+  groupId         String
+  userId          String
+  
+  // Membership details
+  role            String          @default("member")  // "member", "admin", "owner"
+  
+  // How they were added
+  addedBy         String?
+  addedVia        String          @default("manual")  // "manual", "sync", "auto_assign"
+  
+  // Time-based membership
+  expiresAt       DateTime?
+  
+  createdAt       DateTime        @default(now())
+  
+  group           PermissionGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  
+  @@unique([groupId, userId])
+  @@index([groupId])
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("group_member")
+}
+
+// --- Resource Permissions ---
+// Direct permissions on specific resources
+
+model ResourcePermission {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  
+  // The resource
+  resourceType    ResourceType
+  resourceId      String
+  
+  // Who has access
+  granteeType     AssigneeType
+  granteeId       String          // User ID, Group ID, or Role name
+  
+  // What access they have
+  permissions     String[]        @default([])       // "read", "write", "delete", "share", "admin"
+  
+  // Inheritance
+  inherited       Boolean         @default(false)    // Is this inherited from parent?
+  inheritedFrom   String?         // Parent resource ID
+  
+  // Time-based access
+  expiresAt       DateTime?
+  
+  // Audit
+  grantedBy       String
+  grantedAt       DateTime        @default(now())
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@unique([resourceType, resourceId, granteeType, granteeId])
+  @@index([teamId])
+  @@index([resourceType, resourceId])
+  @@index([granteeType, granteeId])
+  @@index([expiresAt])
+  @@map("resource_permission")
+}
+
+// --- Permission Inheritance Rules ---
+// Defines how permissions inherit through hierarchy
+
+model PermissionInheritance {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  
+  // Parent resource
+  parentType      ResourceType
+  parentId        String
+  
+  // Child resource
+  childType       ResourceType
+  childId         String
+  
+  // What permissions inherit
+  inheritedPermissions String[]   @default(["read"])
+  
+  // Is inheritance active
+  isActive        Boolean         @default(true)
+  
+  createdAt       DateTime        @default(now())
+  
+  @@unique([parentType, parentId, childType, childId])
+  @@index([teamId])
+  @@index([parentType, parentId])
+  @@index([childType, childId])
+  @@map("permission_inheritance")
+}
+
+// --- Access Audit Log ---
+// Comprehensive audit trail for access events
+
+enum AccessEventType {
+  // Authentication
+  LOGIN
+  LOGOUT
+  LOGIN_FAILED
+  MFA_CHALLENGE
+  
+  // Authorization
+  ACCESS_GRANTED
+  ACCESS_DENIED
+  PERMISSION_CHANGED
+  
+  // Data access
+  VIEW
+  SEARCH
+  DOWNLOAD
+  EXPORT
+  
+  // Modifications
+  CREATE
+  UPDATE
+  DELETE
+  SHARE
+  
+  // Admin actions
+  SETTINGS_CHANGED
+  USER_INVITED
+  USER_REMOVED
+  ROLE_CHANGED
+}
+
+model AccessAuditLog {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  
+  // Who
+  userId          String?
+  userEmail       String?
+  actorType       String          @default("user")   // "user", "api_key", "system", "service"
+  actorId         String?         // API key ID, service name, etc.
+  
+  // What
+  eventType       AccessEventType
+  action          String          // More specific action (e.g., "document.view", "user.invite")
+  
+  // On what
+  resourceType    String?
+  resourceId      String?
+  resourceName    String?         // Human-readable name
+  
+  // Context
+  ipAddress       String?
+  userAgent       String?
+  sessionId       String?
+  
+  // Request details
+  requestMethod   String?
+  requestPath     String?
+  requestParams   Json            @default("{}")
+  
+  // Result
+  success         Boolean         @default(true)
+  errorCode       String?
+  errorMessage    String?
+  
+  // Response
+  responseCode    Int?
+  responseTimeMs  Int?
+  
+  // Geo (optional, for compliance)
+  country         String?
+  region          String?
+  city            String?
+  
+  // Metadata
+  metadata        Json            @default("{}")
+  
+  createdAt       DateTime        @default(now())
+  
+  @@index([teamId])
+  @@index([userId])
+  @@index([eventType])
+  @@index([resourceType, resourceId])
+  @@index([createdAt])
+  @@index([teamId, createdAt])
+  @@index([teamId, userId, createdAt])
+  @@index([success])
+  @@map("access_audit_log")
+}
+
+// --- Effective Permissions Cache ---
+// Pre-computed effective permissions for fast authorization checks
+
+model EffectivePermissionCache {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  userId          String
+  
+  // Resource
+  resourceType    ResourceType
+  resourceId      String
+  
+  // Computed permissions
+  permissions     String[]        @default([])
+  
+  // Cache metadata
+  computedAt      DateTime        @default(now())
+  expiresAt       DateTime
+  
+  // Invalidation tracking
+  version         Int             @default(1)
+  
+  @@unique([userId, resourceType, resourceId])
+  @@index([teamId])
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("effective_permission_cache")
+}
+
+// --- Data Access Requests ---
+// For compliance: track data access requests (GDPR, etc.)
+
+enum DataRequestType {
+  ACCESS          // Subject access request
+  DELETION        // Right to be forgotten
+  PORTABILITY     // Data portability
+  CORRECTION      // Data correction
+  RESTRICTION     // Processing restriction
+}
+
+enum DataRequestStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  REJECTED
+  EXPIRED
+}
+
+model DataAccessRequest {
+  id              String              @id @default(cuid()) @map("_id")
+  teamId          String
+  
+  requestType     DataRequestType
+  status          DataRequestStatus   @default(PENDING)
+  
+  // Requester
+  requesterId     String              // User making the request
+  requesterEmail  String
+  
+  // Subject (if different from requester)
+  subjectId       String?
+  subjectEmail    String?
+  
+  // Request details
+  description     String?
+  scope           Json                @default("{}")    // What data is requested
+  
+  // Processing
+  assignedTo      String?             // Admin handling the request
+  notes           String?
+  
+  // Timeline
+  requestedAt     DateTime            @default(now())
+  dueBy           DateTime
+  completedAt     DateTime?
+  
+  // Result
+  result          Json?               // Details of what was done
+  
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  
+  @@index([teamId])
+  @@index([requesterId])
+  @@index([status])
+  @@index([dueBy])
+  @@map("data_access_request")
+}
+

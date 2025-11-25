@@ -1,0 +1,421 @@
+// ============================================================================
+// AI SCHEMA
+// Manages conversations, assistants, agents, and AI workflows
+// Critical for: Generative Q&A, Custom Assistants, Agentic Reasoning
+// ============================================================================
+
+// --- Conversations ---
+// Persistent chat history with full context
+
+enum ConversationStatus {
+  ACTIVE
+  ARCHIVED
+  DELETED
+}
+
+model Conversation {
+  id              String              @id @default(cuid()) @map("_id")
+  teamId          String
+  userId          String
+  
+  // Conversation metadata
+  title           String?             // Auto-generated or user-set title
+  summary         String?             // AI-generated summary of conversation
+  
+  // Assistant context
+  assistantId     String?             // If using a custom assistant
+  
+  // Status
+  status          ConversationStatus  @default(ACTIVE)
+  
+  // Settings
+  settings        Json                @default("{}")
+  // { model: "gpt-4", temperature: 0.7, systemPrompt: "..." }
+  
+  // Metrics
+  messageCount    Int                 @default(0)
+  tokenCount      Int                 @default(0)
+  
+  // Timestamps
+  lastMessageAt   DateTime?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  
+  // Relations
+  messages        Message[]
+  assistant       Assistant?          @relation(fields: [assistantId], references: [id], onDelete: SetNull)
+  
+  @@index([teamId])
+  @@index([userId])
+  @@index([assistantId])
+  @@index([status])
+  @@index([lastMessageAt])
+  @@index([teamId, userId, status])
+  @@map("conversation")
+}
+
+// --- Messages ---
+// Individual messages within a conversation
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+  TOOL          // Tool/function call results
+}
+
+enum MessageStatus {
+  PENDING       // Being processed
+  COMPLETED     // Successfully completed
+  ERROR         // Failed to generate
+  CANCELLED     // Cancelled by user
+}
+
+model Message {
+  id              String          @id @default(cuid()) @map("_id")
+  conversationId  String
+  
+  // Message content
+  role            MessageRole
+  content         String          // The message text (or tool result)
+  contentType     String          @default("text")  // "text", "markdown", "code", "image"
+  
+  // Status
+  status          MessageStatus   @default(COMPLETED)
+  errorMessage    String?
+  
+  // For assistant messages: source documents
+  citations       Json            @default("[]")
+  // [{ documentId, title, url, snippet, relevanceScore }]
+  
+  // For tool calls
+  toolCalls       Json            @default("[]")
+  // [{ toolId, name, arguments, result }]
+  
+  // Token usage
+  promptTokens    Int             @default(0)
+  completionTokens Int            @default(0)
+  
+  // Feedback
+  feedback        String?         // "positive", "negative", null
+  feedbackComment String?
+  
+  // Performance
+  latencyMs       Int?
+  
+  // Metadata
+  metadata        Json            @default("{}")
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  conversation    Conversation    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  
+  @@index([conversationId])
+  @@index([role])
+  @@index([createdAt])
+  @@map("message")
+}
+
+// --- Assistants (Custom AI Personas) ---
+// Custom AI assistants with specialized knowledge and behavior
+
+enum AssistantVisibility {
+  PRIVATE       // Only creator can use
+  TEAM          // All team members can use
+  PUBLIC        // Published to assistant marketplace
+}
+
+model Assistant {
+  id              String              @id @default(cuid()) @map("_id")
+  teamId          String
+  createdBy       String              // User ID
+  
+  // Identity
+  name            String
+  slug            String              // URL-friendly identifier
+  description     String?
+  avatar          String?             // URL to avatar image
+  
+  // Behavior configuration
+  systemPrompt    String              // Core system prompt
+  personality     String?             // Personality description
+  instructions    String?             // Additional instructions
+  
+  // Knowledge scope
+  connectorIds    String[]            @default([])  // Restrict to specific connectors
+  documentTypes   String[]            @default([])  // Restrict to specific doc types
+  projectIds      String[]            @default([])  // Restrict to specific projects
+  
+  // Capabilities
+  capabilities    Json                @default("[]")
+  // ["search", "code_execution", "web_browse", "actions"]
+  
+  // Model configuration
+  modelConfig     Json                @default("{}")
+  // { model: "gpt-4", temperature: 0.7, maxTokens: 4096 }
+  
+  // Tools/Actions enabled
+  toolIds         String[]            @default([])  // MCP tools this assistant can use
+  
+  // Example prompts (for UI)
+  examplePrompts  Json                @default("[]")
+  // ["What's the status of Project X?", "Summarize last week's updates"]
+  
+  // Visibility & sharing
+  visibility      AssistantVisibility @default(PRIVATE)
+  isPublished     Boolean             @default(false)
+  
+  // Usage metrics
+  usageCount      Int                 @default(0)
+  avgRating       Float?
+  
+  // Status
+  isActive        Boolean             @default(true)
+  
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  
+  conversations   Conversation[]
+  
+  @@unique([teamId, slug])
+  @@index([teamId])
+  @@index([createdBy])
+  @@index([visibility])
+  @@index([isPublished])
+  @@map("assistant")
+}
+
+// --- Agent Executions ---
+// Tracks multi-step agentic reasoning (Deep Research)
+
+enum AgentExecutionStatus {
+  PLANNING        // Creating execution plan
+  RUNNING         // Executing steps
+  WAITING         // Waiting for user input
+  COMPLETED       // Successfully completed
+  FAILED          // Failed with error
+  CANCELLED       // Cancelled by user
+  TIMEOUT         // Timed out
+}
+
+model AgentExecution {
+  id              String                  @id @default(cuid()) @map("_id")
+  teamId          String
+  userId          String
+  conversationId  String?
+  
+  // Task
+  task            String                  // The original user request
+  taskType        String                  // "research", "analysis", "action", "synthesis"
+  
+  // Execution plan
+  plan            Json                    @default("[]")
+  // [{ stepId, description, toolId, status, result }]
+  
+  currentStep     Int                     @default(0)
+  totalSteps      Int                     @default(0)
+  
+  // Status
+  status          AgentExecutionStatus    @default(PLANNING)
+  errorMessage    String?
+  
+  // Results
+  result          String?                 // Final result/answer
+  artifacts       Json                    @default("[]")
+  // [{ type: "document", title, content }]
+  
+  // Performance
+  startedAt       DateTime                @default(now())
+  completedAt     DateTime?
+  durationMs      Int?
+  
+  // Token usage
+  totalTokens     Int                     @default(0)
+  
+  // Metadata
+  metadata        Json                    @default("{}")
+  
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  
+  steps           AgentStep[]
+  
+  @@index([teamId])
+  @@index([userId])
+  @@index([conversationId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("agent_execution")
+}
+
+// --- Agent Steps ---
+// Individual steps in an agent execution
+
+enum AgentStepType {
+  SEARCH          // Search for information
+  READ            // Read/analyze document
+  REASON          // Think/reason about information
+  TOOL            // Execute a tool/action
+  SYNTHESIZE      // Combine information
+  VERIFY          // Verify/validate result
+  ASK             // Ask user for clarification
+}
+
+enum AgentStepStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  SKIPPED
+}
+
+model AgentStep {
+  id              String              @id @default(cuid()) @map("_id")
+  executionId     String
+  
+  stepNumber      Int
+  type            AgentStepType
+  description     String
+  
+  // Input
+  input           Json                @default("{}")
+  
+  // Execution
+  status          AgentStepStatus     @default(PENDING)
+  
+  // Tool execution (if applicable)
+  toolId          String?
+  toolName        String?
+  toolArguments   Json?
+  
+  // Output
+  output          Json?
+  outputSummary   String?
+  
+  // Error handling
+  errorMessage    String?
+  retryCount      Int                 @default(0)
+  
+  // Timing
+  startedAt       DateTime?
+  completedAt     DateTime?
+  durationMs      Int?
+  
+  // Tokens
+  tokensUsed      Int                 @default(0)
+  
+  createdAt       DateTime            @default(now())
+  
+  execution       AgentExecution      @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  
+  @@index([executionId])
+  @@index([status])
+  @@map("agent_step")
+}
+
+// --- Prompt Templates ---
+// Reusable prompt templates for consistency
+
+model PromptTemplate {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  createdBy       String
+  
+  name            String
+  slug            String
+  description     String?
+  category        String?         // "search", "summary", "qa", "extraction", etc.
+  
+  // Template content
+  template        String          // Template with {variable} placeholders
+  variables       Json            @default("[]")
+  // [{ name: "query", type: "string", required: true, default: null }]
+  
+  // Model configuration
+  modelConfig     Json            @default("{}")
+  
+  // Usage
+  usageCount      Int             @default(0)
+  
+  isActive        Boolean         @default(true)
+  isDefault       Boolean         @default(false)
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@unique([teamId, slug])
+  @@index([teamId])
+  @@index([category])
+  @@map("prompt_template")
+}
+
+// --- AI Model Configuration ---
+// Team-level AI model preferences
+
+model AIModelConfig {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String          @unique
+  
+  // Default models for different tasks
+  searchModel     String          @default("gpt-4")
+  chatModel       String          @default("gpt-4")
+  embeddingModel  String          @default("text-embedding-3-small")
+  
+  // Model provider
+  provider        String          @default("openai")  // "openai", "anthropic", "ollama", "azure"
+  
+  // Provider credentials (encrypted)
+  apiKeyEncrypted String?
+  apiKeyIv        String?
+  endpoint        String?         // For custom endpoints (Ollama, Azure)
+  
+  // Model parameters
+  defaultTemperature  Float       @default(0.7)
+  defaultMaxTokens    Int         @default(4096)
+  
+  // Rate limiting
+  tokensPerMinute     Int?
+  requestsPerMinute   Int?
+  
+  // Feature flags
+  enableAgents        Boolean     @default(true)
+  enableCodeExecution Boolean     @default(false)
+  enableWebBrowse     Boolean     @default(false)
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@map("ai_model_config")
+}
+
+// --- Context Cache ---
+// Caches embedded context for faster retrieval
+
+model ContextCache {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  
+  // Cache key (hash of query + filters)
+  cacheKey        String          @unique
+  
+  // Cached content
+  query           String
+  filters         Json            @default("{}")
+  results         Json            // Cached search results
+  
+  // TTL
+  expiresAt       DateTime
+  
+  // Hit tracking
+  hitCount        Int             @default(0)
+  lastHitAt       DateTime?
+  
+  createdAt       DateTime        @default(now())
+  
+  @@index([teamId])
+  @@index([cacheKey])
+  @@index([expiresAt])
+  @@map("context_cache")
+}
+

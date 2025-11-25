@@ -1,0 +1,430 @@
+// ============================================================================
+// SEARCH SCHEMA
+// Saved searches, collections, bookmarks, and personalization
+// Critical for: User Productivity, Content Organization, Personalization
+// ============================================================================
+
+// --- Saved Searches ---
+// Allow users to save and rerun searches
+
+enum SavedSearchVisibility {
+  PRIVATE         // Only creator can see
+  TEAM            // All team members can see
+  PUBLIC          // Published/featured
+}
+
+model SavedSearch {
+  id              String                  @id @default(cuid()) @map("_id")
+  teamId          String
+  userId          String
+  
+  name            String
+  description     String?
+  
+  // Search configuration
+  query           String
+  queryEmbedding  Json?                   // For similar search suggestions
+  
+  filters         Json                    @default("{}")
+  // { connectors: ["slack"], documentTypes: ["message"], dateRange: {...} }
+  
+  sortBy          String?                 // Field to sort by
+  sortOrder       String                  @default("relevance")  // "relevance", "date", "popularity"
+  rankProfile     String                  @default("hybrid")
+  
+  // Scope
+  connectorIds    String[]                @default([])
+  projectIds      String[]                @default([])
+  
+  // Display preferences
+  viewMode        String                  @default("list")       // "list", "grid", "compact"
+  pageSize        Int                     @default(20)
+  
+  // Visibility
+  visibility      SavedSearchVisibility   @default(PRIVATE)
+  
+  // Notifications
+  alertEnabled    Boolean                 @default(false)
+  alertFrequency  String?                 // "realtime", "hourly", "daily", "weekly"
+  lastAlertAt     DateTime?
+  
+  // Usage
+  runCount        Int                     @default(0)
+  lastRunAt       DateTime?
+  
+  // Pin/feature
+  isPinned        Boolean                 @default(false)
+  isFeatured      Boolean                 @default(false)
+  
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  
+  @@index([teamId])
+  @@index([userId])
+  @@index([visibility])
+  @@index([isFeatured])
+  @@map("saved_search")
+}
+
+// --- Collections ---
+// Curated collections of documents
+
+model Collection {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  userId          String
+  
+  name            String
+  slug            String
+  description     String?
+  
+  // Visual
+  icon            String?
+  color           String?
+  coverImage      String?
+  
+  // Visibility
+  visibility      SavedSearchVisibility @default(PRIVATE)
+  
+  // Hierarchy
+  parentId        String?
+  order           Int             @default(0)
+  
+  // Settings
+  isSmartCollection Boolean       @default(false)   // Auto-populate based on rules
+  smartRules        Json          @default("{}")    // Rules for smart collections
+  // { query: "...", filters: {...}, maxItems: 100 }
+  
+  // Stats
+  itemCount       Int             @default(0)
+  
+  // Collaboration
+  collaboratorIds String[]        @default([])
+  
+  isPinned        Boolean         @default(false)
+  isArchived      Boolean         @default(false)
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  items           CollectionItem[]
+  parent          Collection?     @relation("CollectionHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children        Collection[]    @relation("CollectionHierarchy")
+  
+  @@unique([teamId, userId, slug])
+  @@index([teamId])
+  @@index([userId])
+  @@index([visibility])
+  @@index([parentId])
+  @@map("collection")
+}
+
+// --- Collection Items ---
+model CollectionItem {
+  id              String          @id @default(cuid()) @map("_id")
+  collectionId    String
+  
+  // The item
+  itemType        String          // "document", "search", "link", "note"
+  itemId          String?         // Document ID, Search ID
+  
+  // For external links
+  url             String?
+  title           String?
+  description     String?
+  thumbnail       String?
+  
+  // For notes
+  content         String?
+  
+  // Ordering
+  order           Int             @default(0)
+  
+  // Metadata
+  addedBy         String
+  notes           String?         // User notes about this item
+  tags            String[]        @default([])
+  
+  addedAt         DateTime        @default(now())
+  
+  collection      Collection      @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  
+  @@unique([collectionId, itemType, itemId])
+  @@index([collectionId])
+  @@index([itemType, itemId])
+  @@map("collection_item")
+}
+
+// --- Bookmarks ---
+// Quick access to individual documents
+
+model Bookmark {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  userId          String
+  
+  // The bookmarked item
+  documentId      String          // Vespa document ID
+  documentType    String          // "document", "person", "code", "project"
+  connectorId     String?
+  
+  // Cached info (for display without fetching)
+  title           String?
+  url             String?
+  thumbnail       String?
+  
+  // Organization
+  folder          String?         // User-defined folder
+  tags            String[]        @default([])
+  notes           String?
+  
+  // Ordering
+  order           Int             @default(0)
+  
+  // Usage
+  accessCount     Int             @default(0)
+  lastAccessedAt  DateTime?
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@unique([teamId, userId, documentId])
+  @@index([teamId, userId])
+  @@index([folder])
+  @@index([createdAt])
+  @@map("bookmark")
+}
+
+// --- Recent Items ---
+// Track recently viewed/accessed items
+
+model RecentItem {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  userId          String
+  
+  // The item
+  itemType        String          // "document", "search", "collection", "assistant"
+  itemId          String
+  
+  // Cached info
+  title           String?
+  url             String?
+  
+  // Access tracking
+  accessCount     Int             @default(1)
+  lastAccessedAt  DateTime        @default(now())
+  
+  @@unique([teamId, userId, itemType, itemId])
+  @@index([teamId, userId])
+  @@index([lastAccessedAt])
+  @@map("recent_item")
+}
+
+// --- Pinned Items ---
+// Items pinned for quick access
+
+model PinnedItem {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  userId          String
+  
+  // The item
+  itemType        String          // "document", "search", "collection", "assistant", "action"
+  itemId          String
+  
+  // Cached info
+  title           String?
+  icon            String?
+  url             String?
+  
+  // Where it's pinned
+  location        String          @default("sidebar")  // "sidebar", "home", "search"
+  
+  // Ordering
+  order           Int             @default(0)
+  
+  createdAt       DateTime        @default(now())
+  
+  @@unique([teamId, userId, itemType, itemId, location])
+  @@index([teamId, userId, location])
+  @@map("pinned_item")
+}
+
+// --- Search Suggestions ---
+// Pre-computed search suggestions
+
+model SearchSuggestion {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  
+  // The suggestion
+  text            String
+  textNormalized  String
+  
+  // Type
+  suggestionType  String          // "query", "person", "document", "action"
+  
+  // For entity suggestions
+  entityId        String?
+  entityType      String?
+  
+  // Relevance scoring
+  score           Float           @default(0)
+  usageCount      Int             @default(0)
+  
+  // Freshness
+  lastUsedAt      DateTime?
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@unique([teamId, textNormalized, suggestionType])
+  @@index([teamId])
+  @@index([suggestionType])
+  @@index([score])
+  @@map("search_suggestion")
+}
+
+// --- User Preferences ---
+// User-specific search and UI preferences
+
+model UserPreferences {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  userId          String          @unique
+  
+  // Search preferences
+  defaultSearchScope  Json        @default("[]")      // Default connector IDs
+  defaultDocTypes     String[]    @default([])
+  defaultRankProfile  String      @default("hybrid")
+  searchResultSize    Int         @default(20)
+  
+  // Display preferences
+  theme               String      @default("system")  // "light", "dark", "system"
+  language            String      @default("en")
+  timezone            String      @default("UTC")
+  dateFormat          String      @default("relative")
+  
+  // Notification preferences
+  emailDigest         String      @default("daily")   // "realtime", "hourly", "daily", "weekly", "never"
+  searchAlerts        Boolean     @default(true)
+  mentionNotifications Boolean    @default(true)
+  
+  // AI preferences
+  aiEnabled           Boolean     @default(true)
+  showAiAnswers       Boolean     @default(true)
+  aiModel             String?
+  
+  // Privacy
+  trackHistory        Boolean     @default(true)
+  shareActivity       Boolean     @default(false)
+  
+  // Onboarding
+  hasCompletedOnboarding Boolean  @default(false)
+  onboardingStep      Int         @default(0)
+  
+  // Feature flags (user overrides)
+  featureFlags        Json        @default("{}")
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@index([teamId])
+  @@map("user_preferences")
+}
+
+// --- Answer Cards ---
+// Curated answer cards for common questions
+
+model AnswerCard {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  
+  // Question/trigger
+  question        String
+  questionVariants String[]       @default([])       // Alternative phrasings
+  questionEmbedding Json?
+  
+  // Answer
+  answer          String          // Markdown content
+  answerType      String          @default("static")  // "static", "dynamic"
+  
+  // For dynamic answers
+  dynamicConfig   Json?
+  // { query: "...", template: "The current status is {{result.status}}" }
+  
+  // Sources
+  sourceDocumentIds String[]      @default([])
+  
+  // Display
+  category        String?
+  tags            String[]        @default([])
+  icon            String?
+  
+  // Status
+  isPublished     Boolean         @default(false)
+  isVerified      Boolean         @default(false)
+  verifiedBy      String?
+  verifiedAt      DateTime?
+  
+  // Usage
+  viewCount       Int             @default(0)
+  helpfulCount    Int             @default(0)
+  notHelpfulCount Int             @default(0)
+  
+  // Freshness
+  expiresAt       DateTime?
+  
+  createdBy       String
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@index([teamId])
+  @@index([category])
+  @@index([isPublished])
+  @@map("answer_card")
+}
+
+// --- Knowledge Snippets ---
+// Verified knowledge snippets extracted from documents
+
+model KnowledgeSnippet {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  
+  // Source
+  sourceDocumentId String
+  connectorId     String?
+  
+  // Content
+  snippet         String
+  snippetEmbedding Json?
+  
+  // Extraction
+  extractedFrom   String?         // Position/section in document
+  extractedAt     DateTime        @default(now())
+  
+  // Classification
+  snippetType     String          // "fact", "definition", "process", "policy", "faq"
+  topics          String[]        @default([])
+  entities        String[]        @default([])
+  
+  // Quality
+  confidence      Float           @default(0)
+  isVerified      Boolean         @default(false)
+  verifiedBy      String?
+  
+  // Usage
+  citationCount   Int             @default(0)
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@index([teamId])
+  @@index([sourceDocumentId])
+  @@index([snippetType])
+  @@index([isVerified])
+  @@map("knowledge_snippet")
+}
+

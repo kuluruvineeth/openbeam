@@ -1,19 +1,78 @@
+// ============================================================================
+// TEAM SCHEMA
+// Enhanced team management with enterprise features
+// ============================================================================
+
 model Team {
   id                 String           @id @default(cuid()) @map("_id")
   name               String
   slug               String           @unique
+  
+  // Branding
   logo               String?
+  icon               String?          // Square icon
+  color              String?          // Brand color
+  
+  // Settings
   metadata           Json?
   settings           Json             @default("{}")
+  // { timezone: "UTC", language: "en", dateFormat: "relative" }
+  
+  // Timestamps
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
   
-  // Limits & Billing
+  // === Limits & Quotas ===
+  maxUsers           Int              @default(10)
   maxConnectors      Int              @default(10)
   maxTools           Int              @default(100)
+  maxDocuments       Int?             // null = unlimited
+  maxStorageGb       Int              @default(10)
+  maxApiCallsPerDay  Int              @default(10000)
+  maxAiTokensPerDay  Int              @default(100000)
+  
+  // === Subscription & Billing ===
   subscriptionTier   String           @default("free")
+  // "free", "starter", "professional", "enterprise", "custom"
   subscriptionStatus String           @default("active")
+  // "active", "past_due", "cancelled", "paused", "trialing"
+  
+  // Billing
+  stripeCustomerId   String?
+  stripeSubscriptionId String?
+  billingEmail       String?
+  billingCycle       String           @default("monthly")  // "monthly", "annual"
+  
+  // Trial
+  trialEndsAt        DateTime?
+  trialExtended      Boolean          @default(false)
+  
+  // === Current Usage (Updated periodically) ===
+  currentUsers       Int              @default(0)
+  currentConnectors  Int              @default(0)
+  currentDocuments   Int              @default(0)
+  currentStorageGb   Float            @default(0)
+  
+  // === Feature Access ===
+  features           String[]         @default([])
+  // ["sso", "audit_logs", "custom_branding", "api_access", "deep_research", "code_execution"]
+  
+  // === Security Settings ===
+  mfaRequired        Boolean          @default(false)
+  ssoOnly            Boolean          @default(false)     // Force SSO login
+  sessionTimeout     Int              @default(86400)     // Session timeout in seconds
+  
+  // === Domain Verification ===
+  verifiedDomains    String[]         @default([])
+  autoJoinDomain     Boolean          @default(false)     // Auto-add users from verified domains
+  
+  // === Status ===
+  isActive           Boolean          @default(true)
+  suspendedAt        DateTime?
+  suspendedReason    String?
+  deletedAt          DateTime?
 
+  // Relations
   usersOnTeam        UsersOnTeam[]
   userInvites        UserInvite[]
   connectors         Connector[]
@@ -29,38 +88,88 @@ model UsersOnTeam {
   id             String       @id @default(cuid()) @map("_id")
   userId         String
   teamId         String
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  team           Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
   role           TeamRole
+  
+  // Permissions
+  customPermissions String[]   @default([])
+  // Additional permissions beyond role: ["manage_connectors", "view_analytics"]
+  
+  // Status
+  status         String       @default("active")  // "active", "suspended", "pending"
+  
+  // Activity
+  lastActiveAt   DateTime?
+  lastLoginAt    DateTime?
+  
+  // Invitation tracking
+  invitedBy      String?
+  invitedAt      DateTime?
+  acceptedAt     DateTime?
+  
+  // Timestamps
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
+
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team           Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@unique([userId, teamId])
   @@index([userId])
   @@index([teamId])
+  @@index([role])
+  @@index([status])
   @@map("users_on_team")
 }
 
 model UserInvite {
-  id             String           @id @default(cuid()) @map("_id")
-  createdAt       DateTime         @default(now())
+  id              String           @id @default(cuid()) @map("_id")
   teamId          String
   email           String
   role            TeamRole
   code            String           @unique
+  
+  // Invite details
   invitedBy       String
+  personalMessage String?          // Personal message from inviter
+  
+  // Custom permissions (optional)
+  customPermissions String[]       @default([])
+  
+  // Group assignments (optional)
+  groupIds        String[]         @default([])
+  
+  // Status
+  status          String           @default("pending")  // "pending", "accepted", "expired", "revoked"
+  
+  // Expiration
+  expiresAt       DateTime         @default(dbgenerated("NOW() + interval '7 days'"))
+  
+  // Tracking
+  acceptedAt      DateTime?
+  acceptedBy      String?          // User ID who accepted
+  revokedAt       DateTime?
+  revokedBy       String?
+  
+  // Timestamps
+  createdAt       DateTime         @default(now())
+  
   inviter         User             @relation("SentInvites", fields: [invitedBy], references: [id], onDelete: Cascade)
   team            Team             @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@unique([teamId, email])
   @@index([teamId])
   @@index([email])
+  @@index([code])
+  @@index([status])
+  @@index([expiresAt])
   @@map("user_invite")
 }
 
 enum TeamRole {
-  OWNER
-  ADMIN
-  MEMBER
+  OWNER           // Full access, billing, can delete team
+  ADMIN           // Full access except billing and deletion
+  MANAGER         // Can manage connectors, users, but not settings
+  MEMBER          // Standard access
+  VIEWER          // Read-only access
+  GUEST           // Limited access to specific resources
 }
-

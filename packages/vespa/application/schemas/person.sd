@@ -1,0 +1,289 @@
+schema person {
+  document person {
+    # === Primary Identifiers ===
+    field id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field team_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field connector_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field external_id type string {
+      indexing: summary | attribute
+    }
+    
+    # === Identity ===
+    field email type string {
+      indexing: summary | attribute | index
+      index: enable-bm25
+      attribute: fast-search
+    }
+    
+    field name type string {
+      indexing: summary | index
+      index: enable-bm25
+    }
+    
+    field display_name type string {
+      indexing: summary | index
+      index: enable-bm25
+    }
+    
+    field username type string {
+      indexing: summary | attribute | index
+      index: enable-bm25
+    }
+    
+    field avatar_url type string {
+      indexing: summary
+    }
+    
+    # === Professional Profile ===
+    field job_title type string {
+      indexing: summary | index
+      index: enable-bm25
+    }
+    
+    field department type string {
+      indexing: summary | attribute | index
+      attribute: fast-search
+      index: enable-bm25
+    }
+    
+    field location type string {
+      indexing: summary | attribute | index
+      index: enable-bm25
+    }
+    
+    field timezone type string {
+      indexing: summary | attribute
+    }
+    
+    field manager_id type string {
+      indexing: summary | attribute
+      # For org chart traversal
+    }
+    
+    field reports_to type array<string> {
+      indexing: summary | attribute
+      # Direct reports chain
+    }
+    
+    # === Skills & Expertise (Critical for People Search) ===
+    field skills type array<string> {
+      indexing: summary | attribute | index
+      index: enable-bm25
+    }
+    
+    field expertise_areas type array<string> {
+      indexing: summary | attribute | index
+      index: enable-bm25
+    }
+    
+    field certifications type array<string> {
+      indexing: summary | attribute | index
+      index: enable-bm25
+    }
+    
+    field languages type array<string> {
+      indexing: summary | attribute
+    }
+    
+    # === Work Activity Graph (What They Work On) ===
+    field project_ids type array<string> {
+      indexing: summary | attribute
+      # Projects they're involved in
+    }
+    
+    field active_project_ids type array<string> {
+      indexing: summary | attribute
+      # Currently active projects
+    }
+    
+    field channel_ids type array<string> {
+      indexing: summary | attribute
+      # Slack/Teams channels they're part of
+    }
+    
+    field group_ids type array<string> {
+      indexing: summary | attribute
+      # Permission groups
+    }
+    
+    # === Engagement Metrics (For Relevance) ===
+    field document_count type int {
+      indexing: summary | attribute
+      # Documents authored
+    }
+    
+    field message_count type int {
+      indexing: summary | attribute
+      # Messages sent
+    }
+    
+    field contribution_score type float {
+      indexing: summary | attribute
+      # Overall activity score
+    }
+    
+    field last_active_at type long {
+      indexing: summary | attribute
+    }
+    
+    # === Semantic Embedding (For "Find Similar People") ===
+    field profile_embedding type tensor<float>(x[768]) {
+      indexing: attribute | index
+      attribute {
+        distance-metric: angular
+      }
+      # Embedding of bio + skills + recent work
+    }
+    
+    # === Contact & Social ===
+    field phone type string {
+      indexing: summary
+    }
+    
+    field social_links type string {
+      indexing: summary
+      # JSON: { linkedin: "", github: "", twitter: "" }
+    }
+    
+    field bio type string {
+      indexing: summary | index
+      index: enable-bm25
+    }
+    
+    # === Status ===
+    field status type string {
+      indexing: summary | attribute
+      attribute: fast-search
+      # "active", "away", "dnd", "offline", "deactivated"
+    }
+    
+    field status_message type string {
+      indexing: summary
+    }
+    
+    field is_active type bool {
+      indexing: summary | attribute
+    }
+    
+    field is_bot type bool {
+      indexing: summary | attribute
+    }
+    
+    # === Timestamps ===
+    field created_at type long {
+      indexing: summary | attribute
+    }
+    
+    field updated_at type long {
+      indexing: summary | attribute
+    }
+    
+    field joined_at type long {
+      indexing: summary | attribute
+      # When they joined the organization
+    }
+    
+    # === Metadata ===
+    field metadata type string {
+      indexing: summary | attribute
+      # JSON for connector-specific fields
+    }
+  }
+  
+  # === Field Sets ===
+  fieldset default {
+    fields: name, display_name, email, job_title, department, skills, bio
+  }
+  
+  fieldset expertise {
+    fields: skills, expertise_areas, certifications, bio
+  }
+  
+  # === Ranking Profiles ===
+  
+  # Default: Name and title matching
+  rank-profile default {
+    first-phase {
+      expression: bm25(name) * 2 + bm25(display_name) * 1.5 + bm25(job_title) + bm25(email) * 0.5
+    }
+  }
+  
+  # Skills-focused search (e.g., "Who knows Python?")
+  rank-profile skills {
+    first-phase {
+      expression {
+        bm25(skills) * 3 + 
+        bm25(expertise_areas) * 2 + 
+        bm25(certifications) + 
+        bm25(bio) * 0.5 +
+        bm25(name) * 0.3
+      }
+    }
+  }
+  
+  # Department/org search
+  rank-profile organizational {
+    first-phase {
+      expression {
+        bm25(department) * 2 + 
+        bm25(job_title) * 1.5 + 
+        bm25(name) + 
+        bm25(location) * 0.5
+      }
+    }
+  }
+  
+  # Semantic similarity (Find people like X)
+  rank-profile semantic {
+    first-phase {
+      expression: closeness(field, profile_embedding)
+    }
+  }
+  
+  # Hybrid search (text + semantic)
+  rank-profile hybrid {
+    first-phase {
+      expression {
+        0.6 * (bm25(name) * 2 + bm25(skills) + bm25(job_title)) + 
+        0.4 * closeness(field, profile_embedding)
+      }
+    }
+  }
+  
+  # Activity-boosted (prefer active contributors)
+  rank-profile active_contributors {
+    first-phase {
+      expression {
+        (bm25(name) + bm25(skills) + bm25(job_title)) *
+        (1 + log(attribute(document_count) + 1) * 0.1) *
+        (1 + attribute(contribution_score) * 0.2)
+      }
+    }
+  }
+  
+  # Recently active (prefer people who are currently active)
+  rank-profile recently_active {
+    first-phase {
+      expression {
+        (bm25(name) + bm25(skills) + bm25(job_title)) *
+        freshness(last_active_at)
+      }
+    }
+    function freshness(t) {
+      expression: if(t > now() - 86400000, 1.5, if(t > now() - 604800000, 1.2, 1.0))
+    }
+  }
+}
+

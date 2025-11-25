@@ -1,0 +1,395 @@
+// ============================================================================
+// ANALYTICS SCHEMA
+// Tracks user interactions, search analytics, and usage metrics
+// Critical for: Personalization, Relevance Tuning, User Insights
+// ============================================================================
+
+// --- User Interaction Tracking ---
+// Tracks every user action for personalization and relevance
+
+enum InteractionType {
+  // Search & Discovery
+  SEARCH              // User performed a search
+  VIEW                // User viewed a document
+  CLICK               // User clicked on a search result
+  PREVIEW             // User previewed a document
+  EXPAND              // User expanded a result
+  
+  // Engagement
+  COPY                // User copied content
+  SHARE               // User shared a document
+  BOOKMARK            // User bookmarked a document
+  UPVOTE              // User upvoted/liked content
+  DOWNVOTE            // User downvoted content
+  COMMENT             // User commented
+  
+  // AI Interactions
+  ASK                 // User asked AI a question
+  FEEDBACK_POSITIVE   // User gave positive feedback to AI answer
+  FEEDBACK_NEGATIVE   // User gave negative feedback to AI answer
+  CITATION_CLICK      // User clicked on AI citation
+  REGENERATE          // User asked AI to regenerate
+  
+  // Navigation
+  FILTER              // User applied a filter
+  SORT                // User sorted results
+  PAGE                // User navigated to next page
+  
+  // Actions
+  ACTION_TRIGGERED    // User triggered an action (MCP tool)
+  EXPORT              // User exported data
+  DOWNLOAD            // User downloaded a file
+}
+
+model UserInteraction {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  userId          String
+  
+  // What was interacted with
+  documentId      String?         // Vespa document ID (if applicable)
+  documentType    String?         // "document", "person", "code", "project"
+  connectorId     String?
+  
+  // Interaction details
+  type            InteractionType
+  
+  // Search context (if from search)
+  searchSessionId String?
+  searchQuery     String?
+  resultPosition  Int?            // Position in search results (1-indexed)
+  resultPage      Int?            // Which page of results
+  
+  // Engagement metrics
+  dwellTimeMs     Int?            // How long user engaged with content
+  scrollDepth     Float?          // 0-1, how far user scrolled
+  
+  // Context
+  source          String?         // "search", "chat", "browse", "notification", "api"
+  referrer        String?         // Where user came from
+  deviceType      String?         // "desktop", "mobile", "tablet"
+  
+  // Metadata
+  metadata        Json            @default("{}")
+  
+  createdAt       DateTime        @default(now())
+
+  @@index([teamId])
+  @@index([userId])
+  @@index([documentId])
+  @@index([type])
+  @@index([searchSessionId])
+  @@index([createdAt])
+  @@index([teamId, userId, createdAt])
+  @@index([teamId, documentId, type])
+  @@map("user_interaction")
+}
+
+// --- Search Analytics ---
+// Detailed search session tracking for improving search quality
+
+model SearchSession {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  userId          String
+  
+  // Search details
+  query           String
+  queryNormalized String          // Lowercase, trimmed query
+  queryEmbedding  Json?           // Vector embedding of query (for similar queries)
+  
+  // Search configuration
+  searchType      String          @default("hybrid")  // "bm25", "semantic", "hybrid"
+  filters         Json            @default("{}")      // Applied filters
+  rankProfile     String?         // Vespa rank profile used
+  
+  // Results
+  totalResults    Int             @default(0)
+  resultsShown    Int             @default(0)
+  resultIds       String[]        @default([])       // Top result IDs
+  resultTypes     String[]        @default([])       // Types of results
+  
+  // Performance
+  latencyMs       Int?            // Search latency
+  
+  // Outcomes
+  hasClicks       Boolean         @default(false)
+  clickCount      Int             @default(0)
+  firstClickPosition Int?         // Position of first clicked result
+  lastClickPosition  Int?         // Position of last clicked result
+  
+  // Quality signals
+  reformulated    Boolean         @default(false)    // Did user reformulate query
+  abandoned       Boolean         @default(false)    // Did user abandon without clicking
+  successful      Boolean?                           // Did user find what they wanted
+  
+  // AI-assisted search
+  aiAnswerGenerated Boolean       @default(false)
+  aiAnswerClicked   Boolean       @default(false)
+  aiAnswerFeedback  String?       // "positive", "negative", null
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([teamId])
+  @@index([userId])
+  @@index([queryNormalized])
+  @@index([createdAt])
+  @@index([teamId, createdAt])
+  @@index([successful])
+  @@map("search_session")
+}
+
+// --- Query Analytics (Aggregated) ---
+// Aggregated query statistics for trending and suggestions
+
+model QueryAnalytics {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  
+  // Query identification
+  queryHash       String          // Hash of normalized query
+  queryNormalized String
+  
+  // Aggregated metrics (updated periodically)
+  totalSearches   Int             @default(0)
+  uniqueUsers     Int             @default(0)
+  avgResults      Float           @default(0)
+  avgLatencyMs    Float           @default(0)
+  
+  // Quality metrics
+  clickThroughRate Float          @default(0)       // % of searches with clicks
+  avgClickPosition Float          @default(0)       // Average position of clicks
+  reformulationRate Float         @default(0)       // % of queries that were reformulated
+  abandonmentRate   Float         @default(0)       // % of searches abandoned
+  
+  // Trending
+  searchesLastHour  Int           @default(0)
+  searchesLastDay   Int           @default(0)
+  searchesLastWeek  Int           @default(0)
+  trendScore        Float         @default(0)       // Calculated trend score
+  
+  // Time tracking
+  firstSearchedAt   DateTime      @default(now())
+  lastSearchedAt    DateTime      @default(now())
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@unique([teamId, queryHash])
+  @@index([teamId])
+  @@index([trendScore])
+  @@index([totalSearches])
+  @@index([lastSearchedAt])
+  @@map("query_analytics")
+}
+
+// --- Document Analytics (Aggregated) ---
+// Aggregated document statistics for popularity scoring
+
+model DocumentAnalytics {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  documentId      String          // Vespa document ID
+  connectorId     String?
+  
+  // View metrics
+  totalViews      Int             @default(0)
+  uniqueViewers   Int             @default(0)
+  avgDwellTimeMs  Float           @default(0)
+  
+  // Search metrics
+  impressions     Int             @default(0)       // Times shown in search results
+  clicks          Int             @default(0)       // Clicks from search results
+  ctr             Float           @default(0)       // Click-through rate
+  avgResultPosition Float         @default(0)       // Average position when shown
+  
+  // Engagement metrics
+  shares          Int             @default(0)
+  bookmarks       Int             @default(0)
+  copies          Int             @default(0)
+  downloads       Int             @default(0)
+  
+  // AI metrics
+  citedInAnswers  Int             @default(0)       // Times cited in AI answers
+  citationClicks  Int             @default(0)       // Clicks on citations
+  
+  // Trending
+  viewsLastHour   Int             @default(0)
+  viewsLastDay    Int             @default(0)
+  viewsLastWeek   Int             @default(0)
+  
+  // Calculated scores (for Vespa sync)
+  popularityScore Float           @default(0)
+  trendingScore   Float           @default(0)
+  qualityScore    Float           @default(0)
+  
+  // Time tracking
+  firstViewedAt   DateTime?
+  lastViewedAt    DateTime?
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@unique([teamId, documentId])
+  @@index([teamId])
+  @@index([documentId])
+  @@index([connectorId])
+  @@index([popularityScore])
+  @@index([trendingScore])
+  @@index([lastViewedAt])
+  @@map("document_analytics")
+}
+
+// --- User Profile Analytics ---
+// Aggregated user behavior for personalization
+
+model UserAnalytics {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  userId          String
+  
+  // Search behavior
+  totalSearches   Int             @default(0)
+  searchesLastDay Int             @default(0)
+  searchesLastWeek Int            @default(0)
+  avgSearchesPerDay Float         @default(0)
+  
+  // Preferred content types
+  topDocumentTypes Json           @default("[]")    // [{ type: "message", count: 100 }]
+  topConnectors    Json           @default("[]")    // [{ connector: "slack", count: 50 }]
+  topTopics        Json           @default("[]")    // [{ topic: "engineering", count: 30 }]
+  
+  // Query patterns
+  topQueryTerms   Json            @default("[]")    // Most used query terms
+  avgQueryLength  Float           @default(0)
+  
+  // Engagement patterns
+  totalViews      Int             @default(0)
+  totalClicks     Int             @default(0)
+  totalBookmarks  Int             @default(0)
+  avgDwellTimeMs  Float           @default(0)
+  
+  // AI usage
+  totalAiQuestions Int            @default(0)
+  aiSatisfactionRate Float        @default(0)      // % positive feedback
+  
+  // Activity patterns
+  activeHours     Json            @default("[]")    // [{ hour: 9, count: 50 }]
+  activeDays      Json            @default("[]")    // [{ day: "monday", count: 100 }]
+  
+  // Time tracking
+  firstActiveAt   DateTime        @default(now())
+  lastActiveAt    DateTime        @default(now())
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@unique([teamId, userId])
+  @@index([teamId])
+  @@index([userId])
+  @@index([lastActiveAt])
+  @@map("user_analytics")
+}
+
+// --- Team Usage Metrics ---
+// Team-level aggregated metrics for billing and insights
+
+model TeamUsageMetrics {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  periodType      String          // "hourly", "daily", "monthly"
+  periodStart     DateTime
+  
+  // Document metrics
+  totalDocuments  Int             @default(0)
+  documentsIndexed Int            @default(0)
+  documentsDeleted Int            @default(0)
+  
+  // Search metrics
+  totalSearches   Int             @default(0)
+  uniqueSearchers Int             @default(0)
+  avgSearchLatencyMs Float        @default(0)
+  
+  // AI metrics
+  totalAiQueries  Int             @default(0)
+  aiTokensUsed    Int             @default(0)       // For billing
+  
+  // Active users
+  dailyActiveUsers Int            @default(0)
+  weeklyActiveUsers Int           @default(0)
+  monthlyActiveUsers Int          @default(0)
+  
+  // Storage
+  storageUsedBytes BigInt         @default(0)
+  
+  // Connectors
+  activeConnectors Int            @default(0)
+  syncOperations  Int             @default(0)
+  
+  // API usage
+  apiCalls        Int             @default(0)
+  apiErrors       Int             @default(0)
+  
+  createdAt       DateTime        @default(now())
+
+  @@unique([teamId, periodType, periodStart])
+  @@index([teamId])
+  @@index([periodStart])
+  @@index([teamId, periodType, periodStart])
+  @@map("team_usage_metrics")
+}
+
+// --- Feedback & Quality Signals ---
+// Explicit user feedback for quality improvement
+
+enum FeedbackType {
+  SEARCH_RESULT     // Feedback on search result relevance
+  AI_ANSWER         // Feedback on AI-generated answer
+  DOCUMENT          // Feedback on document quality
+  SUGGESTION        // Feedback on autocomplete suggestion
+  FEATURE           // General feature feedback
+}
+
+enum FeedbackSentiment {
+  POSITIVE
+  NEGATIVE
+  NEUTRAL
+}
+
+model Feedback {
+  id              String          @id @default(cuid()) @map("_id")
+  teamId          String
+  userId          String
+  
+  type            FeedbackType
+  sentiment       FeedbackSentiment
+  
+  // Context
+  documentId      String?
+  searchSessionId String?
+  conversationId  String?
+  
+  // Feedback content
+  rating          Int?            // 1-5 star rating
+  comment         String?
+  tags            String[]        @default([])
+  
+  // For AI feedback
+  query           String?         // The question asked
+  answer          String?         // The answer given
+  expectedAnswer  String?         // What user expected
+  
+  // Metadata
+  metadata        Json            @default("{}")
+  
+  createdAt       DateTime        @default(now())
+
+  @@index([teamId])
+  @@index([userId])
+  @@index([type])
+  @@index([sentiment])
+  @@index([createdAt])
+  @@map("feedback")
+}
+

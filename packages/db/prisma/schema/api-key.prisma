@@ -1,22 +1,167 @@
-model ApiKey {
-  id             String   @id @default(cuid()) @map("_id")
-  teamId         String
-  name           String   // Human-readable name for the key
-  keyHash        String   @unique // Hashed API key (never store plaintext)
-  prefix         String   // First 8 chars of key for identification (e.g., "op_abc123")
-  scopes         String[] @default(["read", "write"]) // Permissions: read, write, admin
-  lastUsedAt     DateTime?
-  expiresAt      DateTime?
-  revoked        Boolean  @default(false)
-  
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+// ============================================================================
+// API KEY SCHEMA
+// Enhanced API key management for SDKs and integrations
+// ============================================================================
 
-  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+enum ApiKeyType {
+  STANDARD        // Regular API key
+  RESTRICTED      // Limited permissions
+  ADMIN           // Full admin access
+  SERVICE         // Service-to-service
+  WEBHOOK         // For webhook verification
+  EMBED           // For embedded widgets
+}
+
+model ApiKey {
+  id             String      @id @default(cuid()) @map("_id")
+  teamId         String
+  
+  // Identity
+  name           String      // Human-readable name
+  description    String?     // Purpose/usage description
+  
+  // Key
+  keyHash        String      @unique  // SHA-256 hash of key
+  prefix         String      // First 8 chars for identification (e.g., "op_abc123")
+  
+  // Type & Permissions
+  type           ApiKeyType  @default(STANDARD)
+  scopes         String[]    @default(["read"])
+  // Granular permissions:
+  // "read", "write", "delete", "admin"
+  // "search:read", "documents:read", "documents:write"
+  // "connectors:read", "connectors:write"
+  // "chat:read", "chat:write"
+  // "analytics:read"
+  // "users:read", "users:write"
+  
+  // === Rate Limiting ===
+  rateLimit      Json        @default("{}")
+  // { requestsPerMinute: 60, requestsPerHour: 1000, requestsPerDay: 10000 }
+  
+  // === IP Restrictions ===
+  allowedIps     String[]    @default([])  // Empty = all IPs allowed
+  
+  // === Domain Restrictions (for embed keys) ===
+  allowedDomains String[]    @default([])  // Empty = all domains allowed
+  
+  // === Resource Restrictions ===
+  allowedConnectors String[] @default([])  // Empty = all connectors
+  allowedProjects   String[] @default([])  // Empty = all projects
+  
+  // === Expiration ===
+  expiresAt      DateTime?
+  
+  // === Status ===
+  isActive       Boolean     @default(true)
+  revoked        Boolean     @default(false)
+  revokedAt      DateTime?
+  revokedBy      String?
+  revokedReason  String?
+  
+  // === Usage Tracking ===
+  lastUsedAt     DateTime?
+  lastUsedIp     String?
+  usageCount     Int         @default(0)
+  
+  // === Usage Stats (updated periodically) ===
+  requestsToday  Int         @default(0)
+  requestsThisMonth Int      @default(0)
+  
+  // === Audit ===
+  createdBy      String
+  
+  // Timestamps
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  team           Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  usageLogs      ApiKeyUsageLog[]
 
   @@index([teamId])
   @@index([keyHash])
   @@index([prefix])
+  @@index([type])
+  @@index([isActive, revoked])
+  @@index([expiresAt])
   @@map("api_key")
 }
 
+// --- API Key Usage Logs ---
+// Track API key usage for analytics and auditing
+
+model ApiKeyUsageLog {
+  id              String   @id @default(cuid()) @map("_id")
+  apiKeyId        String
+  
+  // Request details
+  endpoint        String   // "/api/v1/search"
+  method          String   // "GET", "POST"
+  
+  // Response
+  statusCode      Int
+  responseTimeMs  Int
+  
+  // Context
+  ipAddress       String?
+  userAgent       String?
+  
+  // Request metadata
+  requestSize     Int      @default(0)
+  responseSize    Int      @default(0)
+  
+  // Rate limit info
+  rateLimitRemaining Int?
+  rateLimitReset     DateTime?
+  
+  // Error info (if applicable)
+  errorCode       String?
+  errorMessage    String?
+  
+  createdAt       DateTime @default(now())
+  
+  apiKey          ApiKey   @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  
+  @@index([apiKeyId])
+  @@index([createdAt])
+  @@index([endpoint])
+  @@index([statusCode])
+  @@map("api_key_usage_log")
+}
+
+// --- SDK Tokens ---
+// Short-lived tokens for client-side SDKs
+
+model SdkToken {
+  id              String   @id @default(cuid()) @map("_id")
+  teamId          String
+  
+  // Token
+  token           String   @unique
+  tokenHash       String   @unique
+  
+  // Scope
+  userId          String?  // If user-scoped
+  sessionId       String?  // If session-scoped
+  
+  // Permissions (subset of API key permissions)
+  scopes          String[] @default(["search:read"])
+  
+  // Restrictions
+  allowedDomains  String[] @default([])
+  
+  // Expiration (short-lived)
+  expiresAt       DateTime
+  
+  // Usage
+  usageCount      Int      @default(0)
+  lastUsedAt      DateTime?
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([teamId])
+  @@index([token])
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sdk_token")
+}
