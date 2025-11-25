@@ -1,58 +1,26 @@
+/**
+ * Apps Router Middleware
+ *
+ * Re-exports shared middleware and adds app-specific helpers
+ */
+
 import { type Database, verifyConnectorOwnership } from "@openplane/db";
 import { TRPCError } from "@trpc/server";
-import type { TRPCContext } from "../../context";
-import { protectedProcedure, t } from "../../index";
+
+// Re-export shared middleware
+export {
+  type ContextWithTeam,
+  type ContextWithTeamRole,
+  getAccessControlIds,
+  withActiveTeam,
+  withAdmin,
+  withManager,
+  withMember,
+  withOwner,
+} from "../../middleware";
 
 /**
- * Extended context with team ID
- */
-type ContextWithTeam = TRPCContext & {
-  session: NonNullable<TRPCContext["session"]>;
-  teamId: string;
-};
-
-/**
- * Middleware to ensure user has an active team
- */
-const requireActiveTeam = t.middleware(async ({ ctx, next }) => {
-  if (!ctx.session?.user) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "Authentication required",
-    });
-  }
-
-  // Get user's teamId from database
-  const user = await ctx.prisma.user.findUnique({
-    where: { id: ctx.session.user.id },
-    select: { teamId: true },
-  });
-
-  const teamId = user?.teamId;
-
-  if (!teamId) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "No active team",
-    });
-  }
-
-  return next({
-    ctx: {
-      ...ctx,
-      teamId,
-      session: ctx.session as NonNullable<TRPCContext["session"]>,
-    } as ContextWithTeam,
-  });
-});
-
-/**
- * Procedure that requires an active team
- */
-export const withActiveTeam = protectedProcedure.use(requireActiveTeam);
-
-/**
- * Helper to verify connector ownership (used in procedures after input parsing)
+ * Verify connector belongs to team
  */
 export async function verifyConnectorAccess(
   prisma: Database,
@@ -69,4 +37,27 @@ export async function verifyConnectorAccess(
   }
 
   return connector;
+}
+
+/**
+ * Verify tool belongs to team
+ */
+export async function verifyToolAccess(
+  prisma: Database,
+  toolId: string,
+  teamId: string
+) {
+  const tool = await prisma.tool.findFirst({
+    where: { id: toolId, teamId },
+    include: { connector: true },
+  });
+
+  if (!tool) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Tool not found or unauthorized",
+    });
+  }
+
+  return tool;
 }

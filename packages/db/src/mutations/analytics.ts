@@ -456,7 +456,7 @@ function hashQuery(query: string): string {
   for (let i = 0; i < normalized.length; i++) {
     const char = normalized.charCodeAt(i);
     hash = (hash << 5) - hash + char;
-    hash = hash & hash;
+    hash &= hash;
   }
   return Math.abs(hash).toString(36);
 }

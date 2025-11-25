@@ -59,7 +59,9 @@ export const getExportJob = async (
     where: { id: exportId },
   });
 
-  if (!exportJob) return null;
+  if (!exportJob) {
+    return null;
+  }
 
   return {
     id: exportJob.id,

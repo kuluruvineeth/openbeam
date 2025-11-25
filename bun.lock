@@ -179,6 +179,7 @@
         "@openplane/db": "workspace:*",
         "@openplane/integrations": "workspace:*",
         "@openplane/redis": "workspace:*",
+        "@openplane/services": "workspace:*",
         "@sindresorhus/slugify": "^3.0.0",
         "@trpc/client": "catalog:",
         "@trpc/server": "catalog:",
@@ -266,6 +267,21 @@
       "devDependencies": {
         "tsdown": "catalog:",
         "typescript": "catalog:",
+      },
+      "peerDependencies": {
+        "typescript": "^5",
+      },
+    },
+    "packages/services": {
+      "name": "@openplane/services",
+      "dependencies": {
+        "@openplane/db": "workspace:*",
+        "@openplane/vespa": "workspace:*",
+        "zod": "catalog:",
+      },
+      "devDependencies": {
+        "@openplane/config": "workspace:*",
+        "tsdown": "catalog:",
       },
       "peerDependencies": {
         "typescript": "^5",
@@ -562,6 +578,8 @@
     "@openplane/integrations": ["@openplane/integrations@workspace:packages/integrations"],
 
     "@openplane/redis": ["@openplane/redis@workspace:packages/redis"],
+
+    "@openplane/services": ["@openplane/services@workspace:packages/services"],
 
     "@openplane/vespa": ["@openplane/vespa@workspace:packages/vespa"],
 

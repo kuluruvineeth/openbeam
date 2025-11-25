@@ -35,7 +35,9 @@ export const getUserPreferences = async (
     where: { userId },
   });
 
-  if (!prefs) return null;
+  if (!prefs) {
+    return null;
+  }
 
   return {
     userId: prefs.userId,
@@ -134,7 +136,9 @@ export const getTeamSlackWebhook = async (
     select: { config: true },
   });
 
-  if (!connector) return null;
+  if (!connector) {
+    return null;
+  }
 
   const config = connector.config as { webhookUrl?: string } | null;
   return config?.webhookUrl || null;
@@ -147,7 +151,7 @@ export const isUserInQuietHours = async (
   db: Database,
   userId: string
 ): Promise<boolean> => {
-  const prefs = await db.userPreferences.findUnique({
+  const _prefs = await db.userPreferences.findUnique({
     where: { userId },
     select: { timezone: true },
   });
@@ -193,7 +197,9 @@ export const getUsersForNotificationType = async (
   return users
     .filter((ut) => {
       const prefs = ut.user.preferences;
-      if (!prefs) return true; // Default to enabled
+      if (!prefs) {
+        return true; // Default to enabled
+      }
       return prefs[preferenceField as keyof typeof prefs] !== false;
     })
     .map((ut) => ({

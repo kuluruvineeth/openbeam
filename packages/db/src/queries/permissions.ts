@@ -93,7 +93,9 @@ export const findExternalIdentity = async (
     },
   });
 
-  if (!identity) return null;
+  if (!identity) {
+    return null;
+  }
 
   return {
     id: identity.id,
@@ -124,7 +126,9 @@ export const getIndexedDocumentWithConnector = async (
     },
   });
 
-  if (!doc) return null;
+  if (!doc) {
+    return null;
+  }
 
   return {
     id: doc.id,
@@ -190,7 +194,9 @@ export const getExternalGroupMapping = async (
     },
   });
 
-  if (!mapping) return null;
+  if (!mapping) {
+    return null;
+  }
 
   return {
     id: mapping.id,
@@ -258,14 +264,20 @@ export const getEffectivePermission = async (
   documentId: string
 ): Promise<PermissionLevel | null> => {
   const doc = await getIndexedDocumentWithConnector(db, documentId);
-  if (!doc) return null;
+  if (!doc) {
+    return null;
+  }
 
   // Public documents are viewable by all
-  if (doc.isPublic) return "VIEW";
+  if (doc.isPublic) {
+    return "VIEW";
+  }
 
   // Check team membership
   const membership = await getTeamMembership(db, userId, doc.teamId);
-  if (!membership) return null;
+  if (!membership) {
+    return null;
+  }
 
   // Admins and owners have full access
   if (membership.role === "ADMIN" || membership.role === "OWNER") {
@@ -296,7 +308,9 @@ export const getEffectivePermission = async (
       );
       if (user?.id === userId) {
         const level = permissionLevels.indexOf(perm.permission);
-        if (level > highestLevel) highestLevel = level;
+        if (level > highestLevel) {
+          highestLevel = level;
+        }
       }
     }
 
@@ -316,7 +330,9 @@ export const getEffectivePermission = async (
         );
         if (isMember) {
           const level = permissionLevels.indexOf(perm.permission);
-          if (level > highestLevel) highestLevel = level;
+          if (level > highestLevel) {
+            highestLevel = level;
+          }
         }
       }
     }

@@ -87,7 +87,9 @@ export const getDocumentAnalytics = async (
     },
   });
 
-  if (!analytics) return null;
+  if (!analytics) {
+    return null;
+  }
 
   return {
     id: analytics.id,
@@ -121,7 +123,9 @@ export const getUserAnalytics = async (
     },
   });
 
-  if (!analytics) return null;
+  if (!analytics) {
+    return null;
+  }
 
   return {
     id: analytics.id,

@@ -147,7 +147,7 @@ export const bulkSyncPermissions = async (
     if (!byResource.has(key)) {
       byResource.set(key, []);
     }
-    byResource.get(key)!.push(perm);
+    byResource.get(key)?.push(perm);
   }
 
   // Process in transaction
@@ -376,7 +376,9 @@ export const revokeUserPermissions = async (
     },
   });
 
-  if (!user) return 0;
+  if (!user) {
+    return 0;
+  }
 
   // Find all external identities for this user
   const externalIds = user.accounts.map((a) => a.providerAccountId);
@@ -388,7 +390,9 @@ export const revokeUserPermissions = async (
     },
   });
 
-  if (identities.length === 0) return 0;
+  if (identities.length === 0) {
+    return 0;
+  }
 
   // Delete permissions
   const result = await db.documentPermission.deleteMany({

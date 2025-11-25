@@ -1,131 +1,298 @@
-import { randomBytes } from "node:crypto";
-import argon2, { type Options as Argon2Options } from "argon2";
-import prisma from "../index";
+import type { Database } from "../index";
+import type { ApiKeyType } from "../queries/api-keys";
 
-const BASE62_ALPHABET =
-  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-const API_KEY_PREFIX = process.env.API_KEY_PREFIX ?? "op_live_";
-const IDENTIFIER_LENGTH = 8;
-const SECRET_LENGTH = 48;
-const ARGON2_OPTIONS: Argon2Options = {
-  type: argon2.argon2id,
-  memoryCost: 64 * 1024,
-  timeCost: 3,
-  parallelism: 1,
-};
-
-function randomBase62(length: number): string {
-  let output = "";
-
-  while (output.length < length) {
-    const bytes = randomBytes(length);
-
-    for (const byte of bytes) {
-      if (output.length >= length) {
-        break;
-      }
-      output += BASE62_ALPHABET[byte % BASE62_ALPHABET.length];
-    }
-  }
-
-  return output;
-}
-
-export async function generateApiKey(): Promise<{
-  key: string;
-  hash: string;
-  prefix: string;
-}> {
-  const identifier = randomBase62(IDENTIFIER_LENGTH);
-  const secret = randomBase62(SECRET_LENGTH);
-
-  const lookupPrefix = `${API_KEY_PREFIX}${identifier}`;
-  const key = `${lookupPrefix}${secret}`;
-  const hash = await argon2.hash(key, ARGON2_OPTIONS);
-
-  return { key, hash, prefix: lookupPrefix };
-}
+// === API Key Mutation Types ===
 
 export interface CreateApiKeyInput {
   teamId: string;
   name: string;
-  scopes?: string[];
-  expiresAt?: Date;
+  description?: string | null;
+  keyPrefix: string;
+  keyHash: string;
+  type: ApiKeyType;
+  scopes: string[];
+  expiresAt?: Date | null;
+  allowedIps?: string[];
+  allowedDomains?: string[];
+  rateLimit?: {
+    requestsPerMinute?: number;
+    requestsPerHour?: number;
+    requestsPerDay?: number;
+  };
+  createdBy: string;
 }
 
-export async function createApiKey(input: CreateApiKeyInput): Promise<{
-  id: string;
-  key: string;
-  prefix: string;
-  createdAt: Date;
-}> {
-  const { key, hash, prefix } = await generateApiKey();
-
-  const apiKey = await prisma.apiKey.create({
-    data: {
-      teamId: input.teamId,
-      name: input.name,
-      keyHash: hash,
-      prefix,
-      scopes:
-        input.scopes && input.scopes.length > 0
-          ? input.scopes
-          : [
-              "connectors:read",
-              "connectors:write",
-              "connectors:sync",
-              "search:read",
-            ],
-      expiresAt: input.expiresAt,
-    },
-  });
-
-  return {
-    id: apiKey.id,
-    key, // Return plaintext key (only time it's available)
-    prefix: apiKey.prefix,
-    createdAt: apiKey.createdAt,
+export interface UpdateApiKeyInput {
+  name?: string;
+  description?: string | null;
+  scopes?: string[];
+  allowedIps?: string[];
+  allowedDomains?: string[];
+  rateLimit?: {
+    requestsPerMinute?: number;
+    requestsPerHour?: number;
+    requestsPerDay?: number;
   };
 }
 
-export interface ListApiKeysInput {
-  teamId: string;
-}
+// === API Key Mutations ===
 
-export function listApiKeys(input: ListApiKeysInput) {
-  return prisma.apiKey.findMany({
-    where: {
+/**
+ * Create an API key
+ */
+export const createApiKey = async (
+  db: Database,
+  input: CreateApiKeyInput
+): Promise<string> => {
+  const apiKey = await db.apiKey.create({
+    data: {
       teamId: input.teamId,
-    },
-    select: {
-      id: true,
-      name: true,
-      prefix: true,
-      scopes: true,
-      lastUsedAt: true,
-      expiresAt: true,
-      revoked: true,
-      createdAt: true,
-    },
-    orderBy: {
-      createdAt: "desc",
+      name: input.name,
+      description: input.description,
+      keyPrefix: input.keyPrefix,
+      keyHash: input.keyHash,
+      type: input.type,
+      scopes: input.scopes,
+      expiresAt: input.expiresAt,
+      allowedIps: input.allowedIps || [],
+      allowedDomains: input.allowedDomains || [],
+      rateLimit: input.rateLimit || {},
+      createdBy: input.createdBy,
     },
   });
-}
 
-export interface RevokeApiKeyInput {
-  id: string;
-  teamId: string;
-}
+  return apiKey.id;
+};
 
-export function revokeApiKey(input: RevokeApiKeyInput) {
-  return prisma.apiKey.update({
+/**
+ * Update an API key
+ */
+export const updateApiKey = async (
+  db: Database,
+  keyId: string,
+  teamId: string,
+  input: UpdateApiKeyInput
+): Promise<boolean> => {
+  const result = await db.apiKey.updateMany({
+    where: { id: keyId, teamId },
+    data: {
+      ...(input.name !== undefined && { name: input.name }),
+      ...(input.description !== undefined && {
+        description: input.description,
+      }),
+      ...(input.scopes !== undefined && { scopes: input.scopes }),
+      ...(input.allowedIps !== undefined && { allowedIps: input.allowedIps }),
+      ...(input.allowedDomains !== undefined && {
+        allowedDomains: input.allowedDomains,
+      }),
+      ...(input.rateLimit !== undefined && { rateLimit: input.rateLimit }),
+      updatedAt: new Date(),
+    },
+  });
+
+  return result.count > 0;
+};
+
+/**
+ * Revoke (deactivate) an API key
+ */
+export const revokeApiKey = async (
+  db: Database,
+  keyId: string,
+  teamId: string
+): Promise<boolean> => {
+  const result = await db.apiKey.updateMany({
+    where: { id: keyId, teamId },
+    data: {
+      isActive: false,
+      updatedAt: new Date(),
+    },
+  });
+
+  return result.count > 0;
+};
+
+/**
+ * Reactivate an API key
+ */
+export const reactivateApiKey = async (
+  db: Database,
+  keyId: string,
+  teamId: string
+): Promise<boolean> => {
+  const result = await db.apiKey.updateMany({
+    where: { id: keyId, teamId },
+    data: {
+      isActive: true,
+      updatedAt: new Date(),
+    },
+  });
+
+  return result.count > 0;
+};
+
+/**
+ * Delete an API key permanently
+ */
+export const deleteApiKey = async (
+  db: Database,
+  keyId: string,
+  teamId: string
+): Promise<boolean> => {
+  const result = await db.apiKey.deleteMany({
+    where: { id: keyId, teamId },
+  });
+
+  return result.count > 0;
+};
+
+/**
+ * Rotate an API key (create new, deactivate old)
+ */
+export const rotateApiKey = async (
+  db: Database,
+  oldKeyId: string,
+  teamId: string,
+  newKeyPrefix: string,
+  newKeyHash: string
+): Promise<string | null> => {
+  // Get the old key
+  const oldKey = await db.apiKey.findFirst({
+    where: { id: oldKeyId, teamId },
+  });
+
+  if (!oldKey) {
+    return null;
+  }
+
+  // Create new key and deactivate old in transaction
+  const [newKey] = await db.$transaction([
+    db.apiKey.create({
+      data: {
+        teamId: oldKey.teamId,
+        name: oldKey.name,
+        description: oldKey.description,
+        keyPrefix: newKeyPrefix,
+        keyHash: newKeyHash,
+        type: oldKey.type,
+        scopes: oldKey.scopes,
+        expiresAt: oldKey.expiresAt,
+        allowedIps: oldKey.allowedIps,
+        allowedDomains: oldKey.allowedDomains,
+        rateLimit: oldKey.rateLimit,
+        createdBy: oldKey.createdBy,
+      },
+    }),
+    db.apiKey.update({
+      where: { id: oldKeyId },
+      data: {
+        isActive: false,
+        updatedAt: new Date(),
+      },
+    }),
+  ]);
+
+  return newKey.id;
+};
+
+/**
+ * Update last used timestamp
+ */
+export const updateApiKeyLastUsed = async (
+  db: Database,
+  keyId: string
+): Promise<void> => {
+  await db.apiKey.update({
+    where: { id: keyId },
+    data: {
+      lastUsedAt: new Date(),
+    },
+  });
+};
+
+/**
+ * Delete expired API keys
+ */
+export const deleteExpiredApiKeys = async (
+  db: Database,
+  options: { olderThanDays?: number } = {}
+): Promise<number> => {
+  const { olderThanDays = 30 } = options;
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - olderThanDays);
+
+  const result = await db.apiKey.deleteMany({
     where: {
-      id: input.id,
-      teamId: input.teamId,
+      isActive: false,
+      expiresAt: { lt: cutoffDate },
+    },
+  });
+
+  return result.count;
+};
+
+/**
+ * Bulk revoke API keys
+ */
+export const bulkRevokeApiKeys = async (
+  db: Database,
+  keyIds: string[],
+  teamId: string
+): Promise<number> => {
+  const result = await db.apiKey.updateMany({
+    where: {
+      id: { in: keyIds },
+      teamId,
     },
     data: {
-      revoked: true,
+      isActive: false,
+      updatedAt: new Date(),
     },
   });
-}
+
+  return result.count;
+};
+
+/**
+ * Update API key scopes
+ */
+export const updateApiKeyScopes = async (
+  db: Database,
+  keyId: string,
+  teamId: string,
+  scopes: string[]
+): Promise<boolean> => {
+  const result = await db.apiKey.updateMany({
+    where: { id: keyId, teamId },
+    data: {
+      scopes,
+      updatedAt: new Date(),
+    },
+  });
+
+  return result.count > 0;
+};
+
+/**
+ * Update API key rate limits
+ */
+export const updateApiKeyRateLimit = async (
+  db: Database,
+  keyId: string,
+  teamId: string,
+  rateLimit: {
+    requestsPerMinute?: number;
+    requestsPerHour?: number;
+    requestsPerDay?: number;
+  }
+): Promise<boolean> => {
+  const result = await db.apiKey.updateMany({
+    where: { id: keyId, teamId },
+    data: {
+      rateLimit,
+      updatedAt: new Date(),
+    },
+  });
+
+  return result.count > 0;
+};

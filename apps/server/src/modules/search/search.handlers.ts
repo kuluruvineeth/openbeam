@@ -1,9 +1,15 @@
+/**
+ * Enhanced Search API Handlers
+ * Request handlers for search operations
+ */
+
 import type { RouteHandler } from "@hono/zod-openapi";
+import * as response from "@/lib/response";
 import { searchQueriesCounter } from "@/metrics";
-import type { AuthEnv } from "@/middleware/auth";
-import { getTeamId } from "@/middleware/auth";
-import { getAccessControlIds as getACLIds } from "@/types/auth";
+import { type AuthEnv, getTeamId } from "@/middleware/auth";
+import { getAccessControlIds } from "@/types/auth";
 import type {
+  answerSearch,
   authorSearch,
   autocomplete,
   mainSearch,
@@ -11,108 +17,162 @@ import type {
   similarDocuments,
   threadSearch,
 } from "./search.routes";
-import { type SearchParams, searchService } from "./search.service";
+import { searchService } from "./search.service";
+
+// ============================================================================
+// Main Search
+// ============================================================================
 
 export const mainSearchHandler: RouteHandler<
   typeof mainSearch,
   AuthEnv
 > = async (c) => {
-  const queryParams = c.req.valid("query");
+  const query = c.req.valid("query");
   const teamId = getTeamId(c);
 
   if (!teamId) {
-    return c.json({ error: "team_id is required" }, 400);
+    return response.badRequest(c, "Team ID is required");
   }
 
   const authContext = c.get("authContext");
-  const accessControlIds = getACLIds(authContext);
+  const accessControlIds = getAccessControlIds(authContext);
 
-  const searchParams: SearchParams = {
-    query: queryParams.q,
+  // Parse comma-separated values
+  const connectorTypes = query.connector_types?.split(",").map((s) => s.trim());
+  const connectorIds = query.connector_ids?.split(",").map((s) => s.trim());
+  const documentTypes = query.document_types?.split(",").map((s) => s.trim());
+  const authorIds = query.author_ids?.split(",").map((s) => s.trim());
+  const sourceIds = query.source_ids?.split(",").map((s) => s.trim());
+  const tags = query.tags?.split(",").map((s) => s.trim());
+
+  const result = await searchService.search({
+    query: query.q,
     teamId,
-    connectorType: queryParams.connector_type,
-    connectorId: queryParams.connector_id,
-    documentType: queryParams.document_type,
-    authorId: queryParams.author_id,
-    sourceId: queryParams.source_id,
-    fromDate: queryParams.from_date,
-    toDate: queryParams.to_date,
-    limit: queryParams.limit,
-    offset: queryParams.offset,
-    ranking: queryParams.ranking,
     accessControlIds,
-  };
+    connectorTypes,
+    connectorIds,
+    documentTypes,
+    authorIds,
+    sourceIds,
+    tags,
+    fromDate: query.from_date,
+    toDate: query.to_date,
+    limit: query.limit,
+    offset: query.offset,
+    ranking: query.ranking,
+    includeSnippets: query.include_snippets,
+    snippetLength: query.snippet_length,
+    includeFacets: query.include_facets,
+    includeAggregations: query.include_aggregations,
+    groupByThread: query.group_by_thread,
+  });
 
-  const result = await searchService.search(searchParams);
   searchQueriesCounter.inc({ endpoint: "search" });
+
+  const page = Math.floor(query.offset / query.limit) + 1;
+  const totalPages = Math.ceil(result.total / query.limit);
 
   return c.json(
     {
-      documents: result.documents,
-      total: result.total,
-      limit: result.limit,
-      offset: result.offset,
-      query: queryParams.q,
-      ranking: queryParams.ranking || "hybrid",
+      success: true,
+      data: {
+        documents: result.documents,
+        total: result.total,
+        query: query.q,
+        ranking: query.ranking,
+        facets: result.facets,
+        aggregations: result.aggregations,
+        suggestions: result.suggestions,
+        queryTime: result.queryTime,
+      },
+      pagination: {
+        page,
+        pageSize: query.limit,
+        total: result.total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrevious: page > 1,
+      },
     },
     200
   );
 };
 
+// ============================================================================
+// Autocomplete
+// ============================================================================
+
 export const autocompleteHandler: RouteHandler<
   typeof autocomplete,
   AuthEnv
 > = async (c) => {
-  const { q: prefix, limit = 10 } = c.req.valid("query");
+  const query = c.req.valid("query");
   const teamId = getTeamId(c);
 
   if (!teamId) {
-    return c.json({ error: "team_id is required" }, 400);
-  }
-
-  if (!prefix || prefix.length < 2) {
-    return c.json({ suggestions: [] }, 200);
+    return response.badRequest(c, "Team ID is required");
   }
 
   const authContext = c.get("authContext");
-  const accessControlIds = getACLIds(authContext);
+  const accessControlIds = getAccessControlIds(authContext);
 
-  const suggestions = await searchService.autocomplete(
-    prefix,
-    teamId,
-    limit,
-    accessControlIds
-  );
+  const types = query.types?.split(",").map((s) => s.trim()) || [];
+
+  const suggestions = await searchService.autocomplete(query.q, teamId, {
+    limit: query.limit,
+    types,
+    accessControlIds,
+  });
+
   searchQueriesCounter.inc({ endpoint: "autocomplete" });
 
-  // Map to simple string array as expected by schema
-  return c.json({ suggestions: suggestions.map((s) => s.title) }, 200);
+  return response.success(c, {
+    suggestions,
+    query: query.q,
+  });
 };
+
+// ============================================================================
+// Recent Documents
+// ============================================================================
 
 export const recentDocumentsHandler: RouteHandler<
   typeof recentDocuments,
   AuthEnv
 > = async (c) => {
-  const { hours = 24, limit = 20 } = c.req.valid("query");
+  const query = c.req.valid("query");
   const teamId = getTeamId(c);
 
   if (!teamId) {
-    return c.json({ error: "team_id is required" }, 400);
+    return response.badRequest(c, "Team ID is required");
   }
 
   const authContext = c.get("authContext");
-  const accessControlIds = getACLIds(authContext);
+  const accessControlIds = getAccessControlIds(authContext);
 
-  const documents = await searchService.getRecentDocuments(
-    teamId,
-    hours,
-    limit,
-    accessControlIds
-  );
+  const connectorTypes = query.connector_types?.split(",").map((s) => s.trim());
+  const documentTypes = query.document_types?.split(",").map((s) => s.trim());
+
+  const documents = await searchService.getRecentDocuments(teamId, {
+    hours: query.hours,
+    limit: query.limit,
+    connectorTypes,
+    documentTypes,
+    accessControlIds,
+  });
+
   searchQueriesCounter.inc({ endpoint: "recent" });
 
-  return c.json({ documents, count: documents.length }, 200);
+  return response.success(c, {
+    documents,
+    count: documents.length,
+    hours: query.hours,
+  });
 };
+
+// ============================================================================
+// Thread Search
+// ============================================================================
 
 export const threadSearchHandler: RouteHandler<
   typeof threadSearch,
@@ -122,91 +182,159 @@ export const threadSearchHandler: RouteHandler<
   const teamId = getTeamId(c);
 
   if (!teamId) {
-    return c.json({ error: "team_id is required" }, 400);
+    return response.badRequest(c, "Team ID is required");
   }
 
   const authContext = c.get("authContext");
-  const accessControlIds = getACLIds(authContext);
+  const accessControlIds = getAccessControlIds(authContext);
 
-  const documents = await searchService.searchThread(
+  const result = await searchService.searchThread(
     threadId,
     teamId,
     accessControlIds
   );
+
   searchQueriesCounter.inc({ endpoint: "thread" });
 
-  return c.json(
-    {
-      threadId,
-      documents,
-      count: documents.length,
-    },
-    200
-  );
+  if (result.documents.length === 0) {
+    return response.notFound(c, "Thread", threadId);
+  }
+
+  return response.success(c, {
+    threadId,
+    documents: result.documents,
+    count: result.documents.length,
+    participants: result.participants,
+  });
 };
+
+// ============================================================================
+// Similar Documents
+// ============================================================================
 
 export const similarDocumentsHandler: RouteHandler<
   typeof similarDocuments,
   AuthEnv
 > = async (c) => {
   const { documentId } = c.req.valid("param");
-  const { limit = 10 } = c.req.valid("query");
+  const query = c.req.valid("query");
   const teamId = getTeamId(c);
 
   if (!teamId) {
-    return c.json({ error: "team_id is required" }, 400);
+    return response.badRequest(c, "Team ID is required");
   }
 
   const authContext = c.get("authContext");
-  const accessControlIds = getACLIds(authContext);
+  const accessControlIds = getAccessControlIds(authContext);
 
-  const documents = await searchService.findSimilar(
-    documentId,
-    teamId,
-    limit,
-    accessControlIds
-  );
-  searchQueriesCounter.inc({ endpoint: "similar" });
+  try {
+    const result = await searchService.findSimilar(documentId, teamId, {
+      limit: query.limit,
+      minScore: query.min_score,
+      accessControlIds,
+    });
 
-  return c.json(
-    {
+    searchQueriesCounter.inc({ endpoint: "similar" });
+
+    return response.success(c, {
       sourceDocumentId: documentId,
-      similarDocuments: documents,
-      count: documents.length,
-    },
-    200
-  );
+      sourceDocument: result.sourceDocument,
+      similarDocuments: result.similarDocuments,
+      count: result.similarDocuments.length,
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message === "Document not found") {
+      return response.notFound(c, "Document", documentId);
+    }
+    throw error;
+  }
 };
+
+// ============================================================================
+// Author Search
+// ============================================================================
 
 export const authorSearchHandler: RouteHandler<
   typeof authorSearch,
   AuthEnv
 > = async (c) => {
   const { authorId } = c.req.valid("param");
-  const { limit = 50 } = c.req.valid("query");
+  const query = c.req.valid("query");
   const teamId = getTeamId(c);
 
   if (!teamId) {
-    return c.json({ error: "team_id is required" }, 400);
+    return response.badRequest(c, "Team ID is required");
   }
 
   const authContext = c.get("authContext");
-  const accessControlIds = getACLIds(authContext);
+  const accessControlIds = getAccessControlIds(authContext);
 
-  const documents = await searchService.searchByAuthor(
-    authorId,
-    teamId,
-    limit,
-    accessControlIds
-  );
+  const documentTypes = query.document_types?.split(",").map((s) => s.trim());
+
+  const result = await searchService.searchByAuthor(authorId, teamId, {
+    limit: query.limit,
+    documentTypes,
+    fromDate: query.from_date,
+    toDate: query.to_date,
+    accessControlIds,
+  });
+
   searchQueriesCounter.inc({ endpoint: "author" });
 
-  return c.json(
-    {
-      authorId,
-      documents,
-      count: documents.length,
-    },
-    200
-  );
+  return response.success(c, {
+    authorId,
+    documents: result.documents,
+    count: result.documents.length,
+    documentTypeBreakdown: result.documentTypeBreakdown,
+  });
+};
+
+// ============================================================================
+// AI Answer
+// ============================================================================
+
+export const answerSearchHandler: RouteHandler<
+  typeof answerSearch,
+  AuthEnv
+> = async (c) => {
+  const query = c.req.valid("query");
+  const teamId = getTeamId(c);
+
+  if (!teamId) {
+    return response.badRequest(c, "Team ID is required");
+  }
+
+  const authContext = c.get("authContext");
+  const accessControlIds = getAccessControlIds(authContext);
+
+  // First, search for relevant documents
+  const searchResult = await searchService.search({
+    query: query.q,
+    teamId,
+    accessControlIds,
+    limit: query.max_sources,
+    offset: 0,
+    ranking: "hybrid",
+  });
+
+  searchQueriesCounter.inc({ endpoint: "answer" });
+
+  // TODO: Integrate with AI service for answer generation
+  // For now, return a placeholder response
+  return response.success(c, {
+    question: query.q,
+    answer:
+      "AI-generated answers are coming soon. For now, here are the most relevant documents.",
+    confidence: 0,
+    citations: searchResult.documents
+      .slice(0, query.max_sources)
+      .map((doc) => ({
+        documentId: doc.id,
+        title: doc.title,
+        url: doc.url,
+        snippet: doc.snippet || "",
+        relevanceScore: doc.relevanceScore || 0,
+      })),
+    relatedQuestions: [],
+  });
 };

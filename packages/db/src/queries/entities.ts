@@ -70,7 +70,9 @@ export const findEntityByExternalId = async (
     },
   });
 
-  if (!entity) return null;
+  if (!entity) {
+    return null;
+  }
 
   return {
     ...entity,
@@ -287,7 +289,9 @@ export const getEntityById = async (
     where: { id: entityId },
   });
 
-  if (!entity) return null;
+  if (!entity) {
+    return null;
+  }
 
   return {
     ...entity,

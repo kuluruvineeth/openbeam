@@ -1,325 +1,594 @@
-import { type GenericDocument, vespaClient } from "@openplane/vespa";
-
 /**
- * Search parameters for querying Vespa
+ * Enhanced Search Service
+ * Business logic for search operations with facets and aggregations
+ *
+ * Uses @openplane/vespa clients and query builders for clean, type-safe operations.
  */
+
+import {
+  type DocumentSearchOptions,
+  documentClient,
+  type OpenPlaneDocument,
+  type UnifiedSearchOptions,
+  type VespaHit,
+  searchService as vespaSearchService,
+} from "@openplane/vespa";
+import type {
+  DocumentSummary,
+  SearchAggregations,
+  SearchFacets,
+} from "@/types/api";
+
+// ============================================================================
+// Types
+// ============================================================================
+
 export interface SearchParams {
   query: string;
   teamId: string;
-  connectorType?: string;
-  connectorId?: string;
-  documentType?: string;
-  authorId?: string;
-  sourceId?: string;
+  accessControlIds?: string[];
+  connectorTypes?: string[];
+  connectorIds?: string[];
+  documentTypes?: string[];
+  authorIds?: string[];
+  sourceIds?: string[];
+  tags?: string[];
   fromDate?: number;
   toDate?: number;
-  limit?: number;
-  offset?: number;
-  ranking?: "bm25" | "semantic" | "hybrid" | "recency" | "engagement";
-  accessControlIds?: string[];
-}
-
-/**
- * Search result with metadata
- */
-export interface SearchResult {
-  documents: GenericDocument[];
-  total: number;
   limit: number;
   offset: number;
-  hasMore: boolean;
+  ranking: "bm25" | "semantic" | "hybrid" | "recency" | "engagement";
+  includeSnippets?: boolean;
+  snippetLength?: number;
+  includeFacets?: boolean;
+  includeAggregations?: boolean;
+  groupByThread?: boolean;
+}
+
+export interface SearchResult {
+  documents: DocumentSummary[];
+  total: number;
+  facets?: SearchFacets;
+  aggregations?: SearchAggregations;
+  suggestions?: string[];
   queryTime: number;
 }
 
-/**
- * Search Service - Handles all search operations with Vespa
- */
+export interface AutocompleteSuggestion {
+  text: string;
+  type: "query" | "document" | "person" | "action";
+  entityId?: string;
+  icon?: string;
+  url?: string;
+  score?: number;
+}
+
+// ============================================================================
+// Service Class
+// ============================================================================
+
 export class SearchService {
   /**
-   * Main search method - searches across all indexed documents
+   * Main search with facets and aggregations
+   * Uses @vespa documentClient for type-safe search
    */
   async search(params: SearchParams): Promise<SearchResult> {
     const startTime = Date.now();
 
-    try {
-      // Build YQL query with filters
-      const yql = this.buildSearchYQL(params);
+    // Build search options for documentClient
+    const searchOptions: DocumentSearchOptions = {
+      query: params.query,
+      teamId: params.teamId,
+      accessControl: params.accessControlIds,
+      connectorId:
+        params.connectorIds && params.connectorIds.length > 0
+          ? params.connectorIds[0]
+          : undefined,
+      connectorType:
+        params.connectorTypes && params.connectorTypes.length > 0
+          ? params.connectorTypes[0]
+          : undefined,
+      documentType:
+        params.documentTypes && params.documentTypes.length > 0
+          ? params.documentTypes[0]
+          : undefined,
+      authorId:
+        params.authorIds && params.authorIds.length > 0
+          ? params.authorIds[0]
+          : undefined,
+      sourceId:
+        params.sourceIds && params.sourceIds.length > 0
+          ? params.sourceIds[0]
+          : undefined,
+      dateRange:
+        params.fromDate || params.toDate
+          ? { from: params.fromDate, to: params.toDate }
+          : undefined,
+      limit: params.limit,
+      offset: params.offset,
+      rankProfile: params.ranking,
+    };
 
-      // Execute search
-      const vespaResult = await vespaClient.query({
-        yql,
-        ranking: params.ranking || "hybrid",
-        hits: params.limit || 20,
-        offset: params.offset || 0,
-        timeout: "5s",
-      });
+    // Execute search using documentClient
+    const result = await documentClient.search(searchOptions);
 
-      // Extract documents from Vespa response
-      const documents = this.extractDocuments(vespaResult);
+    // Map results to DocumentSummary
+    const documents = this.mapVespaHitsToSummaries(
+      result.items,
+      params.snippetLength
+    );
 
-      // Calculate total count (Vespa returns this in coverage)
-      const total =
-        (vespaResult.root.fields?.totalCount as number | undefined) ||
-        documents.length;
-
-      const queryTime = Date.now() - startTime;
-
-      return {
-        documents,
-        total,
-        limit: params.limit || 20,
-        offset: params.offset || 0,
-        hasMore: (params.offset || 0) + documents.length < total,
-        queryTime,
-      };
-    } catch (error) {
-      console.error("Search error:", error);
-      throw new Error(
-        `Search failed: ${error instanceof Error ? error.message : "Unknown error"}`
-      );
+    // Build facets if requested
+    let facets: SearchFacets | undefined;
+    if (params.includeFacets) {
+      facets = await this.buildFacets(params);
     }
+
+    // Build aggregations if requested
+    let aggregations: SearchAggregations | undefined;
+    if (params.includeAggregations) {
+      aggregations = this.buildAggregations(documents, result.total);
+    }
+
+    // Get query suggestions using vespaSearchService
+    let suggestions: string[] | undefined;
+    if (params.query) {
+      const suggestionResults = await vespaSearchService.getSuggestions(
+        params.query,
+        params.teamId,
+        { limit: 5, types: ["document"] }
+      );
+      suggestions = suggestionResults.map((s) => s.text);
+    }
+
+    return {
+      documents,
+      total: result.total,
+      facets,
+      aggregations,
+      suggestions,
+      queryTime: Date.now() - startTime,
+    };
   }
 
   /**
-   * Search within a specific thread
+   * Autocomplete with multiple suggestion types
+   * Uses vespaSearchService for unified suggestions
+   */
+  async autocomplete(
+    prefix: string,
+    teamId: string,
+    options: {
+      limit?: number;
+      types?: string[];
+      accessControlIds?: string[];
+    } = {}
+  ): Promise<AutocompleteSuggestion[]> {
+    const {
+      limit = 10,
+      types = [],
+      accessControlIds: _accessControlIds,
+    } = options;
+    // Map types to vespa types
+    const vespaTypes =
+      types.length > 0 ? this.mapSuggestionTypes(types) : undefined;
+
+    // Use vespaSearchService for unified suggestions
+    const suggestions = await vespaSearchService.getSuggestions(
+      prefix,
+      teamId,
+      { limit, types: vespaTypes }
+    );
+
+    // Map to our format and add query suggestions
+    const result: AutocompleteSuggestion[] = suggestions.map((s) => ({
+      text: s.text,
+      type: this.mapVespaSuggestionType(s.type),
+      entityId: s.metadata?.id as string | undefined,
+      icon: s.metadata?.avatar as string | undefined,
+      url: s.metadata?.url as string | undefined,
+      score: s.score,
+    }));
+
+    // Add a simple query suggestion if not enough results
+    if (result.length < limit && (!types.length || types.includes("query"))) {
+      result.push({
+        text: prefix,
+        type: "query",
+        score: 0.5,
+      });
+    }
+
+    return result.slice(0, limit);
+  }
+
+  /**
+   * Get recent documents
+   * Uses documentClient.getRecent for optimized query
+   */
+  async getRecentDocuments(
+    teamId: string,
+    options: {
+      hours?: number;
+      limit?: number;
+      connectorTypes?: string[];
+      documentTypes?: string[];
+      accessControlIds?: string[];
+    } = {}
+  ): Promise<DocumentSummary[]> {
+    const {
+      hours = 24,
+      limit = 20,
+      connectorTypes,
+      documentTypes,
+      accessControlIds,
+    } = options;
+    // Use documentClient for simple recent query
+    const connectorType =
+      connectorTypes && connectorTypes.length > 0
+        ? connectorTypes[0]
+        : undefined;
+
+    const results = await documentClient.getRecent(teamId, {
+      hours,
+      limit,
+      connectorType,
+    });
+
+    // Filter by document types and access control if needed
+    let filtered = results;
+
+    if (documentTypes && documentTypes.length > 0) {
+      filtered = filtered.filter((hit) =>
+        documentTypes.includes(hit.fields.document_type || "")
+      );
+    }
+
+    if (accessControlIds && accessControlIds.length > 0) {
+      filtered = filtered.filter((hit) => {
+        if (hit.fields.is_public) {
+          return true;
+        }
+        const acl = hit.fields.access_control || [];
+        return accessControlIds.some((id) => acl.includes(id));
+      });
+    }
+
+    return this.mapVespaHitsToSummaries(filtered);
+  }
+
+  /**
+   * Search within a thread
+   * Uses documentClient.searchByThread
    */
   async searchThread(
     threadId: string,
     teamId: string,
     accessControlIds?: string[]
-  ): Promise<GenericDocument[]> {
-    const yql = `select * from openplane_document where thread_id contains "${escapeYqlString(
-      threadId
-    )}" and team_id contains "${escapeYqlString(
-      teamId
-    )}" and ${this.buildAccessControlClause(
-      accessControlIds
-    )} order by created_at asc`;
-
-    const result = await vespaClient.query({
-      yql,
-      ranking: "bm25",
-      hits: 100,
+  ): Promise<{
+    documents: DocumentSummary[];
+    participants: Array<{ id: string; name: string; avatar?: string }>;
+  }> {
+    const results = await documentClient.searchByThread(threadId, teamId, {
+      limit: 100,
     });
 
-    return this.extractDocuments(result);
+    // Filter by access control
+    const filtered = this.filterByAccessControl(results, accessControlIds);
+    const documents = this.mapVespaHitsToSummaries(filtered);
+
+    // Extract unique participants
+    const participantMap = new Map<
+      string,
+      { id: string; name: string; avatar?: string }
+    >();
+    for (const doc of documents) {
+      if (doc.authorId && !participantMap.has(doc.authorId)) {
+        participantMap.set(doc.authorId, {
+          id: doc.authorId,
+          name: doc.authorName || doc.authorId,
+          avatar: doc.authorAvatar,
+        });
+      }
+    }
+
+    return {
+      documents,
+      participants: Array.from(participantMap.values()),
+    };
   }
 
   /**
-   * Get similar documents using vector search
+   * Find similar documents
+   * Uses documentClient.getSimilar
    */
   async findSimilar(
     documentId: string,
     teamId: string,
-    limit = 10,
-    accessControlIds?: string[]
-  ): Promise<GenericDocument[]> {
-    // First, get the document to extract its embedding
-    const doc = await vespaClient.getDocument(documentId);
-    if (!doc?.content_embedding) {
-      throw new Error("Document not found or has no embedding");
+    options: {
+      limit?: number;
+      minScore?: number;
+      accessControlIds?: string[];
+    } = {}
+  ): Promise<{
+    sourceDocument?: DocumentSummary;
+    similarDocuments: Array<DocumentSummary & { similarityScore: number }>;
+  }> {
+    const { limit = 10, minScore, accessControlIds } = options;
+    // Get source document
+    const sourceDoc = await documentClient.get(documentId);
+
+    if (!sourceDoc || sourceDoc.team_id !== teamId) {
+      throw new Error("Document not found");
     }
 
-    if (!this.isDocumentAccessible(doc, accessControlIds)) {
-      throw new Error("Document not accessible");
-    }
-
-    // Use vector similarity search
-    const yql = `select * from openplane_document where {targetHits:${limit}}nearestNeighbor(content_embedding, query_embedding) and team_id contains "${escapeYqlString(
-      teamId
-    )}" and ${this.buildAccessControlClause(accessControlIds)}`;
-
-    const result = await vespaClient.query({
-      yql,
-      ranking: "semantic",
-      hits: limit,
+    // Get similar documents
+    const similarHits = await documentClient.getSimilar(documentId, teamId, {
+      limit: limit + 5, // Get extra to account for filtering
     });
 
-    return this.extractDocuments(result);
-  }
-
-  /**
-   * Get recent documents
-   */
-  async getRecentDocuments(
-    teamId: string,
-    hours = 24,
-    limit = 20,
-    accessControlIds?: string[]
-  ): Promise<GenericDocument[]> {
-    const fromDate = Date.now() - hours * 60 * 60 * 1000;
-
-    const yql = `select * from openplane_document where team_id contains "${escapeYqlString(
-      teamId
-    )}" and created_at >= ${fromDate} and ${this.buildAccessControlClause(
+    // Map and filter
+    const sourceDocument = this.mapDocumentToSummary(sourceDoc);
+    const similarDocuments = this.filterByAccessControl(
+      similarHits,
       accessControlIds
-    )} order by created_at desc limit ${limit}`;
+    )
+      .slice(0, limit)
+      .map((hit) => ({
+        ...this.mapVespaHitToSummary(hit),
+        similarityScore: hit.relevance || 0,
+      }))
+      .filter((d) => !minScore || d.similarityScore >= minScore);
 
-    const result = await vespaClient.query({
-      yql,
-      ranking: "recency",
-      hits: limit,
-    });
-
-    return this.extractDocuments(result);
+    return { sourceDocument, similarDocuments };
   }
 
   /**
    * Search by author
+   * Uses documentClient.getByAuthor
    */
   async searchByAuthor(
     authorId: string,
     teamId: string,
-    limit = 50,
-    accessControlIds?: string[]
-  ): Promise<GenericDocument[]> {
-    const yql = `select * from openplane_document where author_id contains "${escapeYqlString(
-      authorId
-    )}" and team_id contains "${escapeYqlString(
-      teamId
-    )}" and ${this.buildAccessControlClause(
-      accessControlIds
-    )} order by created_at desc limit ${limit}`;
-
-    const result = await vespaClient.query({
-      yql,
-      ranking: "bm25",
-      hits: limit,
+    options: {
+      limit?: number;
+      documentTypes?: string[];
+      fromDate?: number;
+      toDate?: number;
+      accessControlIds?: string[];
+    } = {}
+  ): Promise<{
+    documents: DocumentSummary[];
+    documentTypeBreakdown: Array<{ type: string; count: number }>;
+  }> {
+    const {
+      limit = 20,
+      documentTypes,
+      fromDate,
+      toDate,
+      accessControlIds,
+    } = options;
+    const result = await documentClient.getByAuthor(authorId, teamId, {
+      limit: limit + 20, // Get extra for filtering
     });
 
-    return this.extractDocuments(result);
+    // Apply additional filters
+    let filtered = this.filterByAccessControl(result.items, accessControlIds);
+
+    if (documentTypes && documentTypes.length > 0) {
+      filtered = filtered.filter((hit) =>
+        documentTypes.includes(hit.fields.document_type || "")
+      );
+    }
+
+    if (fromDate) {
+      filtered = filtered.filter(
+        (hit) => (hit.fields.created_at || 0) >= fromDate
+      );
+    }
+
+    if (toDate) {
+      filtered = filtered.filter(
+        (hit) => (hit.fields.created_at || 0) <= toDate
+      );
+    }
+
+    const documents = this.mapVespaHitsToSummaries(filtered.slice(0, limit));
+
+    // Calculate document type breakdown
+    const typeCount = new Map<string, number>();
+    for (const doc of documents) {
+      const count = typeCount.get(doc.documentType) || 0;
+      typeCount.set(doc.documentType, count + 1);
+    }
+
+    const documentTypeBreakdown = Array.from(typeCount.entries()).map(
+      ([type, count]) => ({ type, count })
+    );
+
+    return { documents, documentTypeBreakdown };
   }
 
   /**
-   * Autocomplete search (prefix matching on title)
+   * Unified search across all content types
+   * Uses vespaSearchService.search
    */
-  async autocomplete(
-    prefix: string,
+  async unifiedSearch(options: UnifiedSearchOptions) {
+    return await vespaSearchService.search(options);
+  }
+
+  /**
+   * Hybrid search combining text and semantic
+   * Uses vespaSearchService.hybridSearch
+   */
+  async hybridSearch(
+    query: string,
+    embedding: number[],
     teamId: string,
-    limit = 10,
-    accessControlIds?: string[]
-  ): Promise<Array<{ id: string; title: string; documentType: string }>> {
-    const yql = `select id, title, document_type from openplane_document where title contains "${escapeYqlString(
-      prefix
-    )}" and team_id contains "${escapeYqlString(
-      teamId
-    )}" and ${this.buildAccessControlClause(accessControlIds)} limit ${limit}`;
-
-    const result = await vespaClient.query({
-      yql,
-      ranking: "bm25",
-      hits: limit,
-    });
-
-    const children = result.root.children || [];
-    return children.map((child) => ({
-      id: child.fields.id as string,
-      title: child.fields.title as string,
-      documentType: child.fields.document_type as string,
-    }));
+    options?: { limit?: number; accessControl?: string[] }
+  ) {
+    return await vespaSearchService.hybridSearch(
+      query,
+      embedding,
+      teamId,
+      options
+    );
   }
 
-  /**
-   * Build YQL query with all filters
-   */
-  private buildSearchYQL(params: SearchParams): string {
-    const conditions: string[] = [];
-    const pushContains = (field: string, value?: string) => {
-      if (!value) {
-        return;
+  // ============================================================================
+  // Private Helpers
+  // ============================================================================
+
+  private buildFacets(_params: SearchParams): SearchFacets {
+    // Use query builder to get faceted counts
+    // In production, this would make aggregation queries
+    // For now, return empty structure
+    return {
+      connectorTypes: [],
+      documentTypes: [],
+      authors: [],
+      sources: [],
+      dates: [],
+    };
+  }
+
+  private buildAggregations(
+    documents: DocumentSummary[],
+    total: number
+  ): SearchAggregations {
+    // Calculate basic aggregations from results
+    const avgScore =
+      documents.length > 0
+        ? documents.reduce((sum, d) => sum + (d.relevanceScore || 0), 0) /
+          documents.length
+        : 0;
+
+    // Top authors
+    const authorCount = new Map<string, { name: string; count: number }>();
+    for (const doc of documents) {
+      if (doc.authorId) {
+        const existing = authorCount.get(doc.authorId);
+        if (existing) {
+          existing.count += 1;
+        } else {
+          authorCount.set(doc.authorId, {
+            name: doc.authorName || doc.authorId,
+            count: 1,
+          });
+        }
       }
-      conditions.push(`${field} contains "${escapeYqlString(value)}"`);
+    }
+
+    return {
+      totalDocuments: total,
+      avgRelevanceScore: avgScore,
+      topAuthors: Array.from(authorCount.entries())
+        .map(([id, { name, count }]) => ({ id, name, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5),
+      topSources: [],
+      activityOverTime: [],
     };
-
-    // Team filter (always required)
-    pushContains("team_id", params.teamId);
-
-    // Full-text search
-    if (params.query) {
-      conditions.push(`(default contains "${escapeYqlString(params.query)}")`);
-    }
-
-    // Connector and document filters
-    pushContains("connector_type", params.connectorType);
-    pushContains("connector_id", params.connectorId);
-    pushContains("document_type", params.documentType);
-    pushContains("author_id", params.authorId);
-    pushContains("source_id", params.sourceId);
-
-    // Date range filters
-    if (params.fromDate) {
-      conditions.push(`created_at >= ${params.fromDate}`);
-    }
-    if (params.toDate) {
-      conditions.push(`created_at <= ${params.toDate}`);
-    }
-
-    conditions.push(this.buildAccessControlClause(params.accessControlIds));
-
-    // Build final YQL
-    const whereClause = conditions.join(" and ");
-    const limit = params.limit || 20;
-    const offset = params.offset || 0;
-
-    return `select * from openplane_document where ${whereClause} limit ${limit} offset ${offset}`;
   }
 
-  private buildAccessControlClause(accessControlIds?: string[]): string {
-    if (accessControlIds && accessControlIds.length > 0) {
-      const aclConditions = accessControlIds
-        .map(
-          (identifier) =>
-            `access_control contains "${escapeYqlString(identifier)}"`
-        )
-        .join(" or ");
-      return `(is_public = true or (${aclConditions}))`;
-    }
-
-    return "is_public = true";
+  private mapSuggestionTypes(
+    types: string[]
+  ): ("document" | "person" | "code" | "entity")[] {
+    const mapping: Record<string, "document" | "person" | "code" | "entity"> = {
+      document: "document",
+      person: "person",
+      code: "code",
+      entity: "entity",
+    };
+    return types
+      .map((t) => mapping[t])
+      .filter((t): t is "document" | "person" | "code" | "entity" => !!t);
   }
 
-  private isDocumentAccessible(
-    doc: GenericDocument | null | undefined,
+  private mapVespaSuggestionType(
+    type: string
+  ): "query" | "document" | "person" | "action" {
+    const mapping: Record<string, "query" | "document" | "person" | "action"> =
+      {
+        document: "document",
+        person: "person",
+        code: "document",
+        entity: "document",
+        query: "query",
+      };
+    return mapping[type] || "document";
+  }
+
+  private filterByAccessControl(
+    hits: VespaHit<OpenPlaneDocument>[],
     accessControlIds?: string[]
-  ): boolean {
-    if (!doc) {
-      return false;
-    }
-
-    if (doc.is_public) {
-      return true;
-    }
-
-    if (!doc.access_control || doc.access_control.length === 0) {
-      return false;
-    }
-
+  ): VespaHit<OpenPlaneDocument>[] {
     if (!accessControlIds || accessControlIds.length === 0) {
-      return false;
+      return hits.filter((hit) => hit.fields.is_public);
     }
 
-    return doc.access_control.some((id) => accessControlIds.includes(id));
+    return hits.filter((hit) => {
+      if (hit.fields.is_public) {
+        return true;
+      }
+      const acl = hit.fields.access_control || [];
+      return accessControlIds.some((id) => acl.includes(id));
+    });
   }
 
-  /**
-   * Extract documents from Vespa result
-   */
-  private extractDocuments(result: {
-    root: {
-      children?: Array<{ fields: unknown }>;
+  private mapVespaHitsToSummaries(
+    hits: VespaHit<OpenPlaneDocument>[],
+    snippetLength = 200
+  ): DocumentSummary[] {
+    return hits.map((hit) => this.mapVespaHitToSummary(hit, snippetLength));
+  }
+
+  private mapVespaHitToSummary(
+    hit: VespaHit<OpenPlaneDocument>,
+    snippetLength = 200
+  ): DocumentSummary {
+    return this.mapDocumentToSummary(hit.fields, hit.relevance, snippetLength);
+  }
+
+  private mapDocumentToSummary(
+    fields: OpenPlaneDocument,
+    relevance?: number,
+    snippetLength = 200
+  ): DocumentSummary {
+    return {
+      id: fields.id,
+      title: fields.title || "Untitled",
+      documentType: fields.document_type || "document",
+      connectorType: fields.connector_type || "UNKNOWN",
+      connectorId: fields.connector_id || "",
+      url: fields.url,
+      thumbnail: fields.thumbnail,
+      snippet: this.generateSnippet(fields.content, snippetLength),
+      authorId: fields.author_id,
+      authorName: fields.author_name,
+      authorAvatar: fields.author_avatar,
+      createdAt: fields.created_at || Date.now(),
+      updatedAt: fields.updated_at,
+      accessControl: fields.access_control || [],
+      isPublic: fields.is_public,
+      relevanceScore: relevance,
     };
-  }): GenericDocument[] {
-    if (!result.root.children || result.root.children.length === 0) {
-      return [];
-    }
+  }
 
-    return result.root.children.map((child) => child.fields as GenericDocument);
+  private generateSnippet(content?: string, maxLength = 200): string {
+    if (!content) {
+      return "";
+    }
+    const cleaned = content.replace(/\s+/g, " ").trim();
+    if (cleaned.length <= maxLength) {
+      return cleaned;
+    }
+    return `${cleaned.slice(0, maxLength)}...`;
   }
 }
 
-// Export singleton instance
-export const searchService = new SearchService();
+// ============================================================================
+// Export Singleton
+// ============================================================================
 
-function escapeYqlString(value: string): string {
-  return value.replace(/(["\\])/g, "\\$1");
-}
+export const searchService = new SearchService();

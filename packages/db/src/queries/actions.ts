@@ -75,7 +75,9 @@ export const getAction = async (
     where: { id: actionId },
   });
 
-  if (!action) return null;
+  if (!action) {
+    return null;
+  }
 
   return {
     id: action.id,
@@ -109,7 +111,9 @@ export const getActionByName = async (
     where: { teamId, name },
   });
 
-  if (!action) return null;
+  if (!action) {
+    return null;
+  }
 
   return {
     id: action.id,
@@ -198,7 +202,9 @@ export const getActionExecution = async (
     where: { id: executionId },
   });
 
-  if (!execution) return null;
+  if (!execution) {
+    return null;
+  }
 
   return {
     id: execution.id,

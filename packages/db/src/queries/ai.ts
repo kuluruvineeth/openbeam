@@ -97,7 +97,9 @@ export const getAgentExecution = async (
     where: { id: executionId },
   });
 
-  if (!execution) return null;
+  if (!execution) {
+    return null;
+  }
 
   return {
     id: execution.id,
@@ -218,7 +220,9 @@ export const getConversation = async (
     },
   });
 
-  if (!conversation) return null;
+  if (!conversation) {
+    return null;
+  }
 
   return {
     id: conversation.id,
@@ -339,7 +343,9 @@ export const getAgent = async (
     where: { id: agentId },
   });
 
-  if (!agent) return null;
+  if (!agent) {
+    return null;
+  }
 
   return {
     id: agent.id,
@@ -426,7 +432,9 @@ export const getAssistant = async (
     where: { id: assistantId },
   });
 
-  if (!assistant) return null;
+  if (!assistant) {
+    return null;
+  }
 
   return {
     id: assistant.id,
