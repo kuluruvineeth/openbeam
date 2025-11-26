@@ -121,15 +121,15 @@ variable "database_flags" {
     },
     {
       name  = "shared_buffers"
-      value = "262144"
+      value = "32768"  # ~128MB, safe for small instances
     },
     {
       name  = "effective_cache_size"
-      value = "524288"
+      value = "65536"  # ~256MB, safe for small instances
     },
     {
       name  = "maintenance_work_mem"
-      value = "524288"
+      value = "65536"  # ~256MB
     },
     {
       name  = "checkpoint_completion_target"
@@ -137,7 +137,7 @@ variable "database_flags" {
     },
     {
       name  = "wal_buffers"
-      value = "16384"
+      value = "-1"  # Auto-tune
     },
     {
       name  = "default_statistics_target"
@@ -153,7 +153,7 @@ variable "database_flags" {
     },
     {
       name  = "work_mem"
-      value = "10485"
+      value = "4096"  # ~16MB, safe for small instances
     }
   ]
 }
