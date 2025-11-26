@@ -1,0 +1,24 @@
+# ==============================================================================
+# Development Environment - Example Configuration
+# ==============================================================================
+
+# GCP Project Configuration
+project_id = "openplane-dev"
+region     = "us-central1"
+zone       = "us-central1-a"
+
+# ==============================================================================
+# Auth & OAuth Secrets
+# ==============================================================================
+# IMPORTANT: Replace these with your actual values
+
+better_auth_secret   = "your-better-auth-secret"
+jwt_secret           = "your-jwt-secret"
+google_client_id     = "your-google-client-id"
+google_client_secret = "your-google-client-secret"
+
+
+# Container Images
+github_org = "kuluruvineeth"
+image_tag  = "latest"
+
