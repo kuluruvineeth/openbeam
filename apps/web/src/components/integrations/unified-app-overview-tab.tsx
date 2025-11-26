@@ -1,6 +1,6 @@
 "use client";
 
-import type { UnifiedApp } from "@openplane/integrations";
+import type { UnifiedApp } from "@openplane/connectors";
 import Image from "next/image";
 import { Icons } from "@/components/icons";
 import { TabsContent } from "@/components/ui/tabs";

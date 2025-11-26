@@ -1,6 +1,6 @@
 "use client";
 
-import { appStore } from "@openplane/integrations";
+import { appStore } from "@openplane/connectors";
 import { formatDistanceToNow } from "date-fns";
 import { AppLogo } from "@/components/integrations/app-logo";
 import { SyncStatusBadge } from "@/components/sync/sync-status-badge";

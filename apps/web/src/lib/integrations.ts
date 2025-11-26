@@ -3,7 +3,7 @@ import {
   AuthType,
   ConnectorType,
   type UnifiedApp,
-} from "@openplane/integrations";
+} from "@openplane/connectors";
 import { z } from "zod";
 
 // Mock data types until TRPC is ready

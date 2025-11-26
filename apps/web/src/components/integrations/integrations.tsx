@@ -1,6 +1,6 @@
 "use client";
 
-import { appStore as appStoreApps } from "@openplane/integrations";
+import { appStore as appStoreApps } from "@openplane/connectors";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useAppsQuery } from "@/hooks/use-apps";

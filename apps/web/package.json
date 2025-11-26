@@ -13,7 +13,7 @@
     "@hugeicons/react": "^1.1.1",
     "@openplane/api": "workspace:*",
     "@openplane/auth": "workspace:*",
-    "@openplane/integrations": "workspace:*",
+    "@openplane/connectors": "workspace:*",
     "@prisma/client": "catalog:",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",

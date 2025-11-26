@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AuthType, type UnifiedApp } from "@openplane/integrations";
+import { AuthType, type UnifiedApp } from "@openplane/connectors";
 import Link from "next/link";
 import { parseAsBoolean, parseAsString, useQueryStates } from "nuqs";
 import { useEffect, useMemo, useState } from "react";

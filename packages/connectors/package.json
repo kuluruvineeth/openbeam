@@ -1,0 +1,67 @@
+{
+  "name": "@openplane/connectors",
+  "version": "0.0.1",
+  "description": "Single source of truth for all connector/integration logic - OAuth, sync, types, and configs",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./src/index.ts"
+    },
+    "./oauth": {
+      "types": "./dist/oauth/index.d.ts",
+      "default": "./src/oauth/index.ts"
+    },
+    "./slack": {
+      "types": "./dist/slack/index.d.ts",
+      "default": "./src/slack/index.ts"
+    },
+    "./google": {
+      "types": "./dist/google/index.d.ts",
+      "default": "./src/google/index.ts"
+    },
+    "./notion": {
+      "types": "./dist/notion/index.d.ts",
+      "default": "./src/notion/index.ts"
+    },
+    "./microsoft": {
+      "types": "./dist/microsoft/index.d.ts",
+      "default": "./src/microsoft/index.ts"
+    },
+    "./github": {
+      "types": "./dist/github/index.d.ts",
+      "default": "./src/github/index.ts"
+    },
+    "./confluence": {
+      "types": "./dist/confluence/index.d.ts",
+      "default": "./src/confluence/index.ts"
+    },
+    "./jira": {
+      "types": "./dist/jira/index.d.ts",
+      "default": "./src/jira/index.ts"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@openplane/config": "workspace:*",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "react": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:"
+  },
+  "peerDependencies": {
+    "react": "*"
+  },
+  "dependencies": {
+    "zod": "^4.1.12"
+  }
+}

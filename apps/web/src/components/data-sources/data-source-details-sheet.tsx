@@ -1,6 +1,6 @@
 "use client";
 
-import { appStore } from "@openplane/integrations";
+import { appStore } from "@openplane/connectors";
 import { SyncSettingsForm } from "@/components/forms/sync-settings-form";
 import { Icons } from "@/components/icons";
 import { AppLogo } from "@/components/integrations/app-logo";

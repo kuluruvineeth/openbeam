@@ -4,6 +4,7 @@
  */
 
 import { randomBytes } from "node:crypto";
+import { appStore } from "@openplane/connectors";
 import type { AppType, CreateConnectorInput, Prisma } from "@openplane/db";
 import {
   countConnectorsByStatus,
@@ -24,7 +25,6 @@ import {
   updateConnectorConfig,
   updateConnectorWebhook,
 } from "@openplane/db";
-import { appStore } from "@openplane/integrations";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter } from "../../index";

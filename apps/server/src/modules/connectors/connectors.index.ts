@@ -15,11 +15,16 @@ import {
   resumeConnector,
   triggerSync,
 } from "./connectors.routes";
+import oauth from "./oauth/oauth.index";
 
 const connectors = new OpenAPIHono<AuthEnv>();
 
-// Apply Auth Middleware Global to this router
-connectors.use("/*", requireAuth);
+// OAuth routes - mounted first before auth middleware
+// OAuth callback doesn't require auth (uses state token for CSRF)
+connectors.route("/oauth", oauth);
+
+// Apply Auth Middleware to remaining routes
+connectors.use("/:id/*", requireAuth);
 
 // Trigger Sync
 connectors.use("/:id/sync", requireScopes([API_SCOPES.CONNECTORS_SYNC]));

@@ -1,7 +1,7 @@
 "use client";
 
-import type { UnifiedApp } from "@openplane/integrations";
-import { appLogos } from "@openplane/integrations/logos";
+import type { UnifiedApp } from "@openplane/connectors";
+import { appLogos } from "@openplane/connectors/logos";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 

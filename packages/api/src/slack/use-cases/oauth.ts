@@ -1,15 +1,15 @@
+import {
+  AuthType,
+  exchangeSlackCode,
+  generateSlackAuthUrl,
+  slackApp,
+} from "@openplane/connectors";
 import prisma, {
   AppType,
   ConnectorStatus,
   createDefaultSyncJobs,
   getConnectorWithCredentials,
 } from "@openplane/db";
-import {
-  AuthType,
-  exchangeSlackCode,
-  generateSlackAuthUrl,
-  slackApp,
-} from "@openplane/integrations";
 import jwt from "jsonwebtoken";
 import type {
   ConnectorResult,

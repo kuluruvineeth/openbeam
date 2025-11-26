@@ -204,4 +204,6 @@ export const Icons = {
   CheckCircle2: createIcon(CheckmarkCircle01Icon),
   Info: createIcon(InformationCircleIcon),
   Spinner: createIcon(Loading01Icon),
+  // Actions/Tools
+  ToolsIcon: createIcon(ToolsIcon),
 };

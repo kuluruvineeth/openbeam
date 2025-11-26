@@ -1,6 +1,6 @@
 "use client";
 
-import type { UnifiedApp } from "@openplane/integrations";
+import type { UnifiedApp } from "@openplane/connectors";
 import { Button } from "@/components/ui/button";
 import { SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {

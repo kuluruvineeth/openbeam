@@ -1,4 +1,4 @@
-import { AppType, AuthType, ConnectorType } from "@openplane/integrations";
+import { AppType, AuthType, ConnectorType } from "@openplane/connectors";
 import { z } from "zod";
 import { createZodEnum } from "../../utils/zod";
 

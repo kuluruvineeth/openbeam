@@ -19,77 +19,44 @@ type MenuItems = readonly MenuItem[];
 
 const icons: Record<string, () => React.ReactElement> = {
   "/": () => <Icons.Plus size={20} />,
-  "/history": () => <Icons.History size={20} />,
-  "/workflow": () => <Icons.Workflow size={20} />,
-  "/messages": () => <Icons.Messages size={20} />,
+  "/search": () => <Icons.Search size={20} />,
+  "/chat": () => <Icons.Messages size={20} />,
+  "/library": () => <Icons.KnowledgeManagement size={20} />,
   "/agents": () => <Icons.Agents size={20} />,
-  "/data-sources": () => <Icons.ConnectorIcon size={20} />,
-  "/integrations": () => <Icons.Integrations size={20} />,
-  "/knowledge-management": () => <Icons.KnowledgeManagement size={20} />,
+  "/people": () => <Icons.Agents size={20} />,
+  "/actions": () => <Icons.ToolsIcon size={20} />,
+  "/workflows": () => <Icons.Workflow size={20} />,
+  "/connectors": () => <Icons.ConnectorIcon size={20} />,
+  "/analytics": () => <Icons.History size={20} />,
   "/settings": () => <Icons.Settings size={20} />,
+  "/documents": () => <Icons.FileTextIcon size={20} />,
 } as const;
 
+// ULTIMATE CLEAN ROUTE STRUCTURE
+// - Main routes only (no sub-routes in menu)
+// - Sub-pages are accessed via tabs (query params)
+// - Deep-linked routes: /chat/[id], /agents/[id], /documents/[id], etc.
+// - Separate routes for creation flows: /agents/new, /workflows/new
 const items: MenuItems = [
-  {
-    path: "/",
-    name: "New",
-  },
-  {
-    path: "/history",
-    name: "Chat History",
-    children: [
-      { path: "/history/favourites", name: "Favourite chats" },
-      { path: "/history/all", name: "All chats" },
-    ],
-  },
-  {
-    path: "/workflow",
-    name: "Workflow Builder",
-    children: [
-      { path: "/workflow/workflow", name: "Workflow" },
-      { path: "/workflow/executions", name: "Executions" },
-    ],
-  },
-  {
-    path: "/messages",
-    name: "Messages",
-    children: [
-      { path: "/messages/direct", name: "Direct messages" },
-      { path: "/messages/channels", name: "Channels" },
-      { path: "/messages/call-history", name: "Call history" },
-    ],
-  },
-  {
-    path: "/agents",
-    name: "Agents",
-    children: [
-      { path: "/agents/all", name: "All" },
-      { path: "/agents/shared", name: "Shared With Me" },
-      { path: "/agents/mine", name: "Made By Me" },
-    ],
-  },
-  {
-    path: "/data-sources",
-    name: "Data Sources",
-  },
-  {
-    path: "/integrations",
-    name: "Integrations",
-  },
-  {
-    path: "/knowledge-management",
-    name: "Knowledge Management",
-  },
-  {
-    path: "/settings",
-    name: "Settings",
-    children: [
-      { path: "/settings", name: "General" },
-      { path: "/settings/billing", name: "Billing" },
-      { path: "/settings/analytics", name: "Analytics" },
-      { path: "/settings/members", name: "Members" },
-    ],
-  },
+  // PRIMARY - Always visible
+  { path: "/", name: "Home" },
+  { path: "/search", name: "Search" },
+  { path: "/chat", name: "Chat" },
+  { path: "/library", name: "Library" },
+
+  // DISCOVER - Core features
+  { path: "/agents", name: "Agents" },
+  { path: "/people", name: "People" },
+  { path: "/documents", name: "Documents" },
+  { path: "/actions", name: "Actions" },
+
+  // MANAGE - Power features
+  { path: "/workflows", name: "Workflows" },
+  { path: "/connectors", name: "Connectors" },
+  { path: "/analytics", name: "Analytics" },
+
+  // BOTTOM - Settings
+  { path: "/settings", name: "Settings" },
 ] as const;
 
 type ItemProps = {

@@ -26,7 +26,7 @@
     "@openplane/auth": "workspace:*",
     "@openplane/db": "workspace:*",
     "@openplane/services": "workspace:*",
-    "@openplane/integrations": "workspace:*",
+    "@openplane/connectors": "workspace:*",
     "@openplane/redis": "workspace:*",
     "@sindresorhus/slugify": "^3.0.0",
     "@trpc/client": "catalog:",

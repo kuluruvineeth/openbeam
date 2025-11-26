@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@openplane/db": "workspace:*",
-    "@openplane/integrations": "workspace:*",
+    "@openplane/connectors": "workspace:*",
     "@openplane/redis": "workspace:*",
     "@openplane/vespa": "workspace:*",
     "@opentelemetry/api": "^1.9.0",
