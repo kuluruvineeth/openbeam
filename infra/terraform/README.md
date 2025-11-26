@@ -23,6 +23,7 @@ If you prefer manual control, perform these steps in the [Google Cloud Console](
 
 1.  **Create Project:** Create a new project (e.g., `openplane-prod`) and link your billing account.
 2.  **Enable APIs:** Go to "APIs & Services" > "Library" and enable:
+    - Artifact Registry API
     - Cloud Run Admin API
     - Cloud SQL Admin API
     - Google Cloud Memorystore for Redis API
@@ -42,6 +43,8 @@ If you prefer manual control, perform these steps in the [Google Cloud Console](
 Navigate to the desired environment (`dev` or `prod`) and deploy:
 
 ```bash
+gcloud auth application-default login
+gcloud auth application-default set-quota-project <YOUR_PROJECT_ID>
 cd infra/terraform/environments/prod
 
 # Configure variables
@@ -143,3 +146,74 @@ Point your custom domains to the Cloud Run service URLs.
 | **Redis**     | 1GB Basic            | 5GB Standard (HA) |
 | **Vespa VM**  | n2-standard-2 (Spot) | n2-standard-4     |
 | **Cloud Run** | Scale-to-zero        | Always-on (min 1) |
+
+---
+
+## 🗑️ Destroying Infrastructure
+
+```bash
+cd infra/terraform/environments/dev  # or prod
+terraform destroy
+```
+
+**If destroy fails with subnet/VPC errors**: GCP creates hidden serverless connectors that block deletion.
+
+**Manual cleanup**:
+1. Navigate to: [VPC Network → Serverless VPC Access](https://console.cloud.google.com/networking/connectors)
+   - Select region: `us-central1`
+   - Delete any connectors listed
+2. Navigate to: [VPC Network → VPC Networks](https://console.cloud.google.com/networking/networks/list)
+   - Click on `openplane-vpc-dev` (or `openplane-vpc-prod`)
+   - Go to **VPC Network Peering** tab
+   - Delete the `servicenetworking-googleapis-com` peering
+3. Run `terraform destroy` again
+
+> This is a known GCP limitation with Direct VPC Egress, not a Terraform issue.
+
+---
+
+## 🔧 Adding Environment Variables
+
+### 1. Normal Variables (Non-Sensitive)
+Add to the `env_vars` block in `environments/dev/main.tf`:
+
+```hcl
+env_vars = {
+  NODE_ENV    = "development"
+  API_URL     = "https://api.example.com"
+  MY_NEW_VAR  = "some-value"
+}
+```
+
+### 2. Secrets (Sensitive)
+For API keys, passwords, etc., use Secret Manager:
+
+1. **Define the Secret** (in `main.tf`):
+   ```hcl
+   resource "google_secret_manager_secret" "my_secret" {
+     secret_id = "openplane-my-secret-dev"
+     # ... replication config ...
+   }
+   ```
+
+2. **Grant Access** (in `main.tf` IAM section):
+   ```hcl
+   resource "google_secret_manager_secret_iam_member" "server_secrets" {
+     # Add "my-secret" to the list
+     for_each = toset(["db-password", "my-secret"])
+     # ...
+   }
+   ```
+
+3. **Map to Service** (in `module "server"`):
+   ```hcl
+   secret_env_vars = {
+     MY_SECRET_ENV = {
+       secret_id = google_secret_manager_secret.my_secret.secret_id
+       version   = "latest"
+     }
+   }
+   ```
+
+
+

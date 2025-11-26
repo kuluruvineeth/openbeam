@@ -45,9 +45,15 @@ locals {
   web_sa    = google_service_account.web.email
   vespa_sa  = google_service_account.vespa.email
 
-  server_image = "ghcr.io/${var.github_org}/openplane-server:${var.image_tag}"
-  worker_image = "ghcr.io/${var.github_org}/openplane-worker:${var.image_tag}"
-  web_image    = "ghcr.io/${var.github_org}/openplane-web:${var.image_tag}"
+  # Real images from Artifact Registry (Uncomment after CI/CD build)
+  # server_image = "${module.artifact_registry.repository_url}/openplane-server:latest"
+  # worker_image = "${module.artifact_registry.repository_url}/openplane-worker:latest"
+  # web_image    = "${module.artifact_registry.repository_url}/openplane-web:latest"
+
+  # Placeholder images for initial infrastructure creation
+  server_image = "us-docker.pkg.dev/cloudrun/container/hello"
+  worker_image = "us-docker.pkg.dev/cloudrun/container/hello"
+  web_image    = "us-docker.pkg.dev/cloudrun/container/hello"
 }
 
 # ==============================================================================
@@ -65,6 +71,25 @@ module "networking" {
   pods_subnet_cidr        = "10.1.0.0/16"
   services_subnet_cidr    = "10.2.0.0/16"
   enable_metrics_scraping = true
+
+}
+
+# ==============================================================================
+# Artifact Registry
+# ==============================================================================
+
+module "artifact_registry" {
+  source = "../../modules/artifact-registry"
+
+  project_id    = var.project_id
+  location      = var.region
+  repository_id = "${local.project_name}-repo"
+  format        = "DOCKER"
+  description   = "Docker repository for OpenPlane images"
+  
+  labels = {
+    environment = local.environment
+  }
 }
 
 # ==============================================================================
@@ -95,6 +120,88 @@ resource "google_service_account" "vespa" {
   project      = var.project_id
 }
 
+# ==============================================================================
+# Secret Manager - Auth & OAuth Secrets
+# ==============================================================================
+
+resource "google_secret_manager_secret" "better_auth_secret" {
+  secret_id = "${local.project_name}-better-auth-secret-${local.environment}"
+  project   = var.project_id
+
+  replication {
+    auto {}
+  }
+
+  labels = {
+    environment = local.environment
+    service     = "auth"
+  }
+}
+
+resource "google_secret_manager_secret_version" "better_auth_secret" {
+  secret      = google_secret_manager_secret.better_auth_secret.id
+  secret_data = var.better_auth_secret
+}
+
+resource "google_secret_manager_secret" "jwt_secret" {
+  secret_id = "${local.project_name}-jwt-secret-${local.environment}"
+  project   = var.project_id
+
+  replication {
+    auto {}
+  }
+
+  labels = {
+    environment = local.environment
+    service     = "auth"
+  }
+}
+
+resource "google_secret_manager_secret_version" "jwt_secret" {
+  secret      = google_secret_manager_secret.jwt_secret.id
+  secret_data = var.jwt_secret
+}
+
+resource "google_secret_manager_secret" "google_client_id" {
+  secret_id = "${local.project_name}-google-client-id-${local.environment}"
+  project   = var.project_id
+
+  replication {
+    auto {}
+  }
+
+  labels = {
+    environment = local.environment
+    service     = "oauth"
+  }
+}
+
+resource "google_secret_manager_secret_version" "google_client_id" {
+  secret      = google_secret_manager_secret.google_client_id.id
+  secret_data = var.google_client_id
+}
+
+resource "google_secret_manager_secret" "google_client_secret" {
+  secret_id = "${local.project_name}-google-client-secret-${local.environment}"
+  project   = var.project_id
+
+  replication {
+    auto {}
+  }
+
+  labels = {
+    environment = local.environment
+    service     = "oauth"
+  }
+}
+
+resource "google_secret_manager_secret_version" "google_client_secret" {
+  secret      = google_secret_manager_secret.google_client_secret.id
+  secret_data = var.google_client_secret
+}
+
+
+
 # Secret Manager Access
 resource "google_secret_manager_secret_iam_member" "server_secrets" {
   for_each  = toset(["db-password", "db-connection-string", "redis-url"])
@@ -109,6 +216,14 @@ resource "google_secret_manager_secret_iam_member" "server_secrets" {
   ]
 }
 
+resource "google_secret_manager_secret_iam_member" "server_auth_secrets" {
+  for_each  = toset(["better-auth-secret", "jwt-secret", "google-client-id", "google-client-secret"])
+  secret_id = "${local.project_name}-${each.value}-${local.environment}"
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${local.server_sa}"
+  project   = var.project_id
+}
+
 resource "google_secret_manager_secret_iam_member" "worker_secrets" {
   for_each  = toset(["db-password", "db-connection-string", "redis-url"])
   secret_id = "${local.project_name}-${each.value}-${local.environment}"
@@ -121,6 +236,23 @@ resource "google_secret_manager_secret_iam_member" "worker_secrets" {
     module.redis
   ]
 }
+
+resource "google_secret_manager_secret_iam_member" "worker_auth_secrets" {
+  for_each  = toset([])
+  secret_id = "${local.project_name}-${each.value}-${local.environment}"
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${local.worker_sa}"
+  project   = var.project_id
+}
+
+resource "google_secret_manager_secret_iam_member" "web_secrets" {
+  for_each  = toset(["better-auth-secret", "google-client-id", "google-client-secret", "db-connection-string"])
+  secret_id = replace(each.key, "-", "_") == "db_connection_string" ? module.cloud_sql.connection_string_secret_id : "${local.project_name}-${each.value}-${local.environment}"
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${local.web_sa}"
+  project   = var.project_id
+}
+
 
 # ==============================================================================
 # Cloud SQL Module (Cost-Optimized)
@@ -162,6 +294,7 @@ module "redis" {
   environment  = local.environment
   region       = var.region
   network_id   = module.networking.network_id
+  private_vpc_connection_id = module.networking.private_vpc_connection_id
 
   # Minimal configuration for dev
   tier           = "BASIC"      # No HA (~$25/month)
@@ -233,9 +366,12 @@ module "server" {
   vpc_subnetwork_id  = module.networking.cloud_run_subnet_id
 
   env_vars = {
-    NODE_ENV  = "development"
-    PORT      = "3000"
-    VESPA_URL = module.vespa.vespa_query_url
+    NODE_ENV        = "development"
+    VESPA_URL       = module.vespa.vespa_query_url
+    # Placeholders to break circular dependency (Server -> Web, Server -> Server)
+    # Will update these with real URLs after first apply
+    BETTER_AUTH_URL = "https://placeholder-url.com" 
+    CORS_ORIGIN     = "*"
   }
 
   secret_env_vars = {
@@ -247,10 +383,32 @@ module "server" {
       secret_id = module.redis.redis_url_secret_id
       version   = "latest"
     }
+    BETTER_AUTH_SECRET = {
+      secret_id = google_secret_manager_secret.better_auth_secret.secret_id
+      version   = "latest"
+    }
+    JWT_SECRET = {
+      secret_id = google_secret_manager_secret.jwt_secret.secret_id
+      version   = "latest"
+    }
+    GOOGLE_CLIENT_ID = {
+      secret_id = google_secret_manager_secret.google_client_id.secret_id
+      version   = "latest"
+    }
+    GOOGLE_CLIENT_SECRET = {
+      secret_id = google_secret_manager_secret.google_client_secret.secret_id
+      version   = "latest"
+    }
   }
 
   allow_public_access   = true
   service_account_email = local.server_sa
+
+  depends_on = [
+    google_secret_manager_secret_iam_member.server_secrets
+  ]
+
+  deletion_protection = false
 }
 
 # ==============================================================================
@@ -281,8 +439,11 @@ module "worker" {
   vpc_subnetwork_id  = module.networking.cloud_run_subnet_id
 
   env_vars = {
-    NODE_ENV  = "development"
-    VESPA_URL = module.vespa.vespa_feed_url
+    NODE_ENV        = "development"
+    VESPA_URL       = module.vespa.vespa_feed_url
+    # Placeholders to break circular dependency
+    BETTER_AUTH_URL = "https://placeholder-url.com"
+    CORS_ORIGIN     = "*"
   }
 
   secret_env_vars = {
@@ -298,6 +459,12 @@ module "worker" {
 
   allow_public_access   = false
   service_account_email = local.worker_sa
+
+  depends_on = [
+    google_secret_manager_secret_iam_member.worker_secrets
+  ]
+
+  deletion_protection = false
 }
 
 # ==============================================================================
@@ -323,9 +490,33 @@ module "web" {
 
   env_vars = {
     NEXT_PUBLIC_API_URL = module.server.service_url
+    # Placeholders to break circular dependency
+    BETTER_AUTH_URL     = "https://placeholder-url.com"
+    CORS_ORIGIN         = "*"
+  }
+
+  secret_env_vars = {
+    BETTER_AUTH_SECRET = {
+      secret_id = google_secret_manager_secret.better_auth_secret.secret_id
+      version   = "latest"
+    }
+    GOOGLE_CLIENT_ID = {
+      secret_id = google_secret_manager_secret.google_client_id.secret_id
+      version   = "latest"
+    }
+    GOOGLE_CLIENT_SECRET = {
+      secret_id = google_secret_manager_secret.google_client_secret.secret_id
+      version   = "latest"
+    }
+    DATABASE_URL = {
+      secret_id = module.cloud_sql.connection_string_secret_id
+      version   = "latest"
+    }
   }
 
   allow_public_access   = true
   service_account_email = local.web_sa
+
+  deletion_protection = false
 }
 
