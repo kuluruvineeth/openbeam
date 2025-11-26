@@ -142,7 +142,7 @@ jobs:
           # service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
 
           # OR use Service Account Key JSON (Easier for initial setup)
-          credentials_json: "${{ secrets.GCP_CREDENTIALS }}"
+          credentials_json: "${{ secrets.GCP_SA_KEY }}"
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
