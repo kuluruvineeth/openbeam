@@ -1,0 +1,74 @@
+name: Deploy Vespa Schema
+
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - "packages/vespa/application/**"
+      - ".github/workflows/deploy-vespa.yml"
+  workflow_dispatch:
+
+env:
+  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GCP_ZONE: us-central1-a
+
+jobs:
+  deploy-schema:
+    name: Deploy Schema
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set Environment
+        id: env
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "INSTANCE_NAME=openplane-vespa-prod" >> $GITHUB_OUTPUT
+          else
+            echo "INSTANCE_NAME=openplane-vespa-dev" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Setup gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Install SSH key
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keygen -t rsa -f ~/.ssh/google_compute_engine -N ""
+          chmod 600 ~/.ssh/google_compute_engine
+
+      - name: Start IAP Tunnel
+        run: |
+          echo "Starting IAP tunnel to ${{ steps.env.outputs.INSTANCE_NAME }}..."
+          # Start tunnel in background, forwarding local 19071 to remote 19071
+          gcloud compute ssh ${{ steps.env.outputs.INSTANCE_NAME }} \
+            --project=${GCP_PROJECT_ID} \
+            --zone=${GCP_ZONE} \
+            --tunnel-through-iap \
+            --ssh-flag="-4 -N -L 19071:localhost:19071" &
+
+          # Wait for tunnel to establish
+          echo "Waiting for tunnel..."
+          for i in {1..10}; do
+            if nc -z localhost 19071; then
+              echo "Tunnel established!"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Failed to establish tunnel"
+          exit 1
+
+      - name: Deploy Schema
+        working-directory: packages/vespa
+        run: ./deploy.sh localhost 19071

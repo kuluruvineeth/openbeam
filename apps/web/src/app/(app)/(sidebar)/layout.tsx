@@ -4,6 +4,8 @@ import { Sidebar } from "@/components/sidebar";
 import { ensureAccess } from "@/lib/auth/ensure-access";
 import { getQueryClient, HydrateClient, trpc } from "@/trpc/server";
 
+export const dynamic = "force-dynamic";
+
 export default async function Layout({
   children,
 }: {
