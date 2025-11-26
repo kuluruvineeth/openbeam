@@ -5,7 +5,16 @@
  * Supports the AgentExecution and AgentStep models from ai.prisma.
  *
  * Uses @openplane/db queries and mutations for clean separation.
+ * Uses @openplane/ai for step execution and planning.
  */
+
+import {
+  type AgentContext,
+  type AgentStep,
+  type AgentTaskType,
+  agentPlanner,
+  agentStepHandlers,
+} from "@openplane/ai";
 import prisma, {
   completeAgentExecution,
   completeAgentStep,
@@ -29,80 +38,70 @@ import { workerConfig } from "../config";
 import logger from "../utils/logger";
 import { BaseProcessor } from "./base-processor";
 
-// === Agent Step Handlers ===
+// === Agent Step Handlers (from @openplane/ai) ===
+
+type JobStep = NonNullable<AgentJobData["plan"]>[number];
 
 type StepHandler = (
-  step: AgentJobData["plan"][0],
+  step: JobStep,
   context: AgentJobData["context"]
 ) => Promise<{
   output: unknown;
   summary: string;
 }>;
 
-const stepHandlers: Record<string, StepHandler> = {
-  search: async (step, _context) => {
-    // TODO: Implement search step
-    logger.info({ step }, "Executing search step");
-    return {
-      output: { results: [] },
-      summary: `Searched for: ${step.description}`,
-    };
-  },
+/**
+ * Wrap AI step handlers to match worker interface
+ */
+function createStepHandlers(): Record<string, StepHandler> {
+  const handlers: Record<string, StepHandler> = {};
 
-  read: async (step, _context) => {
-    // TODO: Implement read step
-    logger.info({ step }, "Executing read step");
-    return {
-      output: { content: "" },
-      summary: `Read document: ${step.description}`,
-    };
-  },
+  for (const [type, handler] of Object.entries(agentStepHandlers)) {
+    handlers[type] = async (step, context) => {
+      logger.info(
+        { stepType: type, step: step.stepId },
+        `Executing ${type} step`
+      );
 
-  reason: async (step, context) => {
-    // TODO: Implement reasoning step with LLM
-    logger.info({ step, context }, "Executing reason step");
-    return {
-      output: { reasoning: "" },
-      summary: `Reasoned about: ${step.description}`,
-    };
-  },
+      // Convert to AI package format
+      const aiStep: AgentStep = {
+        stepId: step.stepId,
+        type: type as AgentStep["type"],
+        description: step.description,
+        input: step.input as Record<string, unknown>,
+        toolId: step.toolId,
+        toolName: step.toolName,
+        dependencies: step.dependencies,
+      };
 
-  tool: async (step, _context) => {
-    // TODO: Implement tool execution
-    logger.info({ step }, "Executing tool step");
-    return {
-      output: { result: null },
-      summary: `Executed tool: ${step.toolName || step.description}`,
-    };
-  },
+      const aiContext: AgentContext = {
+        teamId: ((context as Record<string, unknown>)?.teamId as string) || "",
+        userId: ((context as Record<string, unknown>)?.userId as string) || "",
+        searchResults: context?.searchResults,
+        facts: context?.facts,
+        reasoning: context?.reasoning,
+        toolOutputs: context?.toolOutputs,
+        userPreferences: context?.userPreferences,
+      };
 
-  synthesize: async (step, context) => {
-    // TODO: Implement synthesis step
-    logger.info({ step, context }, "Executing synthesize step");
-    return {
-      output: { synthesis: "" },
-      summary: `Synthesized: ${step.description}`,
-    };
-  },
+      const handlerResult = await (
+        handler as (
+          step: AgentStep,
+          ctx: AgentContext
+        ) => Promise<{ output: unknown; summary: string }>
+      )(aiStep, aiContext);
 
-  verify: async (step, _context) => {
-    // TODO: Implement verification step
-    logger.info({ step }, "Executing verify step");
-    return {
-      output: { verified: true },
-      summary: `Verified: ${step.description}`,
+      return {
+        output: handlerResult.output,
+        summary: handlerResult.summary,
+      };
     };
-  },
+  }
 
-  ask: async (step, _context) => {
-    // This step requires user interaction - pause execution
-    logger.info({ step }, "Executing ask step - awaiting user input");
-    return {
-      output: { awaitingInput: true },
-      summary: `Asked user: ${step.description}`,
-    };
-  },
-};
+  return handlers;
+}
+
+const stepHandlers = createStepHandlers();
 
 // === Agent Processor ===
 
@@ -141,8 +140,8 @@ export class AgentProcessor extends BaseProcessor<AgentJobData> {
       await startAgentExecution(prisma, executionId);
 
       // Generate plan if not provided
-      let plan = job.data.plan;
-      if (!plan || plan.length === 0) {
+      let plan: JobStep[] = job.data.plan || [];
+      if (plan.length === 0) {
         plan = await this.generatePlan(task, taskType);
         await updateAgentExecution(prisma, executionId, {
           plan: plan as unknown as Record<string, unknown>[],
@@ -162,7 +161,10 @@ export class AgentProcessor extends BaseProcessor<AgentJobData> {
       }> = [];
 
       for (let i = 0; i < plan.length; i++) {
-        const step = plan[i]!;
+        const step = plan[i];
+        if (!step) {
+          continue;
+        }
 
         // Check timeout
         if (Date.now() - startTime > workerConfig.agent.timeout) {
@@ -328,48 +330,95 @@ export class AgentProcessor extends BaseProcessor<AgentJobData> {
   }
 
   /**
-   * Generate execution plan for a task
+   * Generate execution plan for a task using @openplane/ai
    */
   private async generatePlan(
     task: string,
     taskType: string
-  ): Promise<AgentJobData["plan"]> {
-    // TODO: Use LLM to generate plan based on task
-    // For now, return a simple default plan
-    logger.info({ task, taskType }, "Generating execution plan");
+  ): Promise<JobStep[]> {
+    logger.info({ task, taskType }, "Generating execution plan using AI");
 
-    const defaultPlan: AgentJobData["plan"] = [
-      {
-        stepId: "step-1",
-        type: "search",
-        description: `Search for information about: ${task}`,
-      },
-      {
-        stepId: "step-2",
-        type: "reason",
-        description: "Analyze search results",
-        dependencies: ["step-1"],
-      },
-      {
-        stepId: "step-3",
-        type: "synthesize",
-        description: "Synthesize findings into answer",
-        dependencies: ["step-2"],
-      },
-    ];
+    try {
+      // Use AI planner for intelligent plan generation
+      const plan = await agentPlanner.generatePlan(
+        task,
+        taskType as AgentTaskType,
+        {
+          teamId: "",
+          userId: "",
+        }
+      );
 
-    return defaultPlan;
+      logger.info(
+        { steps: plan.steps.length, analysis: plan.analysis },
+        "Plan generated"
+      );
+
+      // Convert to worker format
+      return plan.steps.map((step: AgentStep) => ({
+        stepId: step.stepId,
+        type: step.type,
+        description: step.description,
+        input: step.input,
+        toolId: step.toolId,
+        toolName: step.toolName,
+        dependencies: step.dependencies,
+      }));
+    } catch (error) {
+      logger.warn(
+        { error, task, taskType },
+        "AI plan generation failed, using default plan"
+      );
+
+      // Fallback to default plan
+      return agentPlanner
+        .getDefaultPlan(task, taskType as AgentTaskType)
+        .steps.map((step: AgentStep) => ({
+          stepId: step.stepId,
+          type: step.type,
+          description: step.description,
+          input: step.input,
+          toolId: step.toolId,
+          toolName: step.toolName,
+          dependencies: step.dependencies,
+        }));
+    }
   }
 
   /**
    * Synthesize final result from step outputs
    */
-  private async synthesizeResult(
+  private synthesizeResult(
     stepResults: Array<{ output: unknown; summary: string }>,
     _context: AgentJobData["context"]
-  ): Promise<string> {
-    // TODO: Use LLM to synthesize final result
-    const summaries = stepResults.map((r) => r.summary).join("\n");
-    return `Research completed:\n${summaries}`;
+  ): string {
+    // Build comprehensive summary from all steps
+    const stepSummaries = stepResults
+      .filter((r) => r.summary)
+      .map((r, i) => `${i + 1}. ${r.summary}`)
+      .join("\n");
+
+    // Extract key findings from outputs
+    const findings: string[] = [];
+    for (const result of stepResults) {
+      if (result.output) {
+        const output = result.output as Record<string, unknown>;
+        if (output.answer) {
+          findings.push(String(output.answer));
+        }
+        if (output.synthesis) {
+          findings.push(String(output.synthesis));
+        }
+        if (output.reasoning) {
+          findings.push(String(output.reasoning));
+        }
+      }
+    }
+
+    if (findings.length > 0) {
+      return findings.join("\n\n");
+    }
+
+    return `Research completed with ${stepResults.length} steps:\n\n${stepSummaries}`;
   }
 }

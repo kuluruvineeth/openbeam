@@ -29,6 +29,7 @@
     "typescript": "^5.8.2"
   },
   "dependencies": {
+    "@openplane/ai": "workspace:*",
     "@openplane/db": "workspace:*",
     "@openplane/connectors": "workspace:*",
     "@openplane/redis": "workspace:*",

@@ -1,5 +1,7 @@
 {
-  "name": "@openplane/services",
+  "name": "@openplane/ai",
+  "version": "0.2.0",
+  "description": "AI package for OpenPlane - production-ready LLM, embeddings, RAG, and agentic workflows",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -12,7 +14,8 @@
   },
   "type": "module",
   "scripts": {
-    "build": "tsdown"
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@openplane/config": "workspace:*",
@@ -22,9 +25,15 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@openplane/ai": "workspace:*",
     "@openplane/db": "workspace:*",
     "@openplane/vespa": "workspace:*",
+    "@openplane/redis": "workspace:*",
+    "ai": "^4.3.16",
+    "@ai-sdk/openai": "^1.3.22",
+    "@ai-sdk/anthropic": "^1.2.12",
+    "@ai-sdk/google": "^1.2.19",
+    "@ai-sdk/azure": "^1.3.22",
+    "tiktoken": "^1.0.21",
     "zod": "catalog:"
   }
 }

@@ -3,6 +3,7 @@
  * Business logic for AI conversations and messaging
  *
  * Uses @openplane/db for conversation/message persistence.
+ * Uses @openplane/ai for RAG-powered response generation.
  */
 
 import prisma, {
@@ -15,7 +16,6 @@ import prisma, {
   getUserConversations,
   updateConversationTitle,
 } from "@openplane/db";
-import * as searchService from "../search";
 import type {
   ChatMessage,
   Citation,
@@ -166,7 +166,7 @@ export async function createConversation(
     conversationId,
     role: "ASSISTANT",
     content: response.content,
-    citations: response.citations,
+    citations: response.citations as unknown as Record<string, unknown>[],
   });
 
   const now = new Date();
@@ -238,7 +238,7 @@ export async function sendMessage(params: SendMessageParams): Promise<{
     conversationId: params.conversationId,
     role: "ASSISTANT",
     content: response.content,
-    citations: response.citations,
+    citations: response.citations as unknown as Record<string, unknown>[],
   });
 
   const now = new Date();
@@ -332,38 +332,74 @@ async function generateResponse(
   teamId: string,
   accessControlIds?: string[]
 ): Promise<{ content: string; citations: Citation[] }> {
-  // Search for relevant documents
-  const searchResult = await searchService.search({
-    query,
-    teamId,
-    accessControlIds,
-    limit: 5,
-    offset: 0,
-    ranking: "hybrid",
-  });
+  try {
+    // Use RAG pipeline from @openplane/ai for AI-powered response
+    const { ragPipeline } = await import("@openplane/ai");
 
-  const citations: Citation[] = searchResult.documents.map((doc) => ({
-    documentId: doc.id,
-    title: doc.title,
-    url: doc.url,
-    snippet: doc.snippet || "",
-    relevanceScore: doc.relevanceScore || 0,
-  }));
+    const result = await ragPipeline.answer(query, teamId, {
+      accessControl: accessControlIds,
+      retrieval: {
+        topK: 5,
+        minScore: 0.3,
+      },
+      maxTokens: 2000,
+    });
 
-  // TODO: Integrate with LLM for actual response generation
-  // For now, return a placeholder with citations
-  const content =
-    `Based on the relevant documents I found, here's what I can tell you about "${query}":\n\n` +
-    searchResult.documents
-      .slice(0, 3)
-      .map(
-        (doc, i) =>
-          `${i + 1}. **${doc.title}**: ${doc.snippet || "No preview available"}`
-      )
-      .join("\n\n") +
-    "\n\n*Note: Full AI-generated answers coming soon.*";
+    // Map AI citations to service citations
+    const citations: Citation[] = result.citations.map(
+      (c: {
+        documentId: string;
+        title: string;
+        url?: string;
+        snippet?: string;
+        relevanceScore?: number;
+      }) => ({
+        documentId: c.documentId,
+        title: c.title,
+        url: c.url,
+        snippet: c.snippet || "",
+        relevanceScore: c.relevanceScore || 0,
+      })
+    );
 
-  return { content, citations };
+    return {
+      content: result.answer,
+      citations,
+    };
+  } catch (error) {
+    console.error("RAG pipeline error, falling back to search-only:", error);
+
+    // Fallback to basic search if RAG fails
+    const { search } = await import("../search");
+    const searchResult = await search({
+      query,
+      teamId,
+      accessControlIds,
+      limit: 5,
+      offset: 0,
+      ranking: "hybrid",
+    });
+
+    const citations: Citation[] = searchResult.documents.map((doc) => ({
+      documentId: doc.id,
+      title: doc.title,
+      url: doc.url,
+      snippet: doc.snippet || "",
+      relevanceScore: doc.relevanceScore || 0,
+    }));
+
+    const content =
+      `I found some relevant documents for "${query}":\n\n` +
+      searchResult.documents
+        .slice(0, 3)
+        .map(
+          (doc, i) =>
+            `${i + 1}. **${doc.title}**: ${doc.snippet || "No preview available"}`
+        )
+        .join("\n\n");
+
+    return { content, citations };
+  }
 }
 
 function generateTitle(message: string): string {
@@ -386,8 +422,8 @@ function mapMessage(message: {
     role: message.role.toLowerCase() as ChatMessage["role"],
     content: message.content,
     contentType: "text",
-    citations: message.citations as Citation[] | undefined,
-    toolCalls: message.toolCalls as ChatMessage["toolCalls"],
+    citations: message.citations as unknown as Citation[] | undefined,
+    toolCalls: message.toolCalls as unknown as ChatMessage["toolCalls"],
     createdAt: message.createdAt.toISOString(),
   };
 }
