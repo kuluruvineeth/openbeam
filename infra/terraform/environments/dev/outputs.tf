@@ -27,6 +27,11 @@ output "vespa_ssh_command" {
   value       = module.vespa.ssh_command
 }
 
+output "artifact_registry_repository_url" {
+  description = "The URL of the Artifact Registry repository"
+  value       = module.artifact_registry.repository_url
+}
+
 output "deployment_summary" {
   description = "Deployment summary with URLs"
   value = <<-EOT
@@ -45,6 +50,9 @@ output "deployment_summary" {
   ├─ Redis:    ${module.redis.host}:${module.redis.port}
   └─ Vespa:    ${module.vespa.private_ip}:8080
   
+  📦 Artifact Registry:
+  └─ URL:      ${module.artifact_registry.repository_url}
+  
   💡 Cost-Optimized Configuration:
   • Cloud SQL: 1 vCPU, no HA (~$50/month)
   • Redis: BASIC tier (~$25/month)
@@ -56,4 +64,3 @@ output "deployment_summary" {
   ========================================
   EOT
 }
-
