@@ -63,6 +63,8 @@ resource "google_redis_instance" "redis" {
   lifecycle {
     prevent_destroy = false
   }
+
+  depends_on = [var.private_vpc_connection_id]
 }
 
 resource "google_secret_manager_secret" "redis_host" {

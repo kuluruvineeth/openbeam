@@ -109,6 +109,8 @@ resource "google_cloud_run_v2_service" "service" {
     percent = 100
   }
 
+  deletion_protection = var.deletion_protection
+
   labels = merge(
     var.labels,
     {

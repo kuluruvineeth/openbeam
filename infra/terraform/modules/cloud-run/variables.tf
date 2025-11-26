@@ -231,3 +231,9 @@ variable "labels" {
   default     = {}
 }
 
+variable "deletion_protection" {
+  description = "Prevent accidental deletion of the service"
+  type        = bool
+  default     = true
+}
+

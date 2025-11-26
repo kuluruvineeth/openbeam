@@ -24,6 +24,12 @@ variable "network_id" {
   type        = string
 }
 
+variable "private_vpc_connection_id" {
+  description = "ID of the private VPC connection (for dependency ordering)"
+  type        = string
+  default     = ""
+}
+
 variable "tier" {
   description = "Redis service tier (BASIC or STANDARD_HA)"
   type        = string
@@ -105,4 +111,3 @@ variable "labels" {
   type        = map(string)
   default     = {}
 }
-
