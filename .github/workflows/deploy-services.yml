@@ -1,0 +1,129 @@
+name: Deploy Services
+
+on:
+  workflow_run:
+    workflows: ["Build and Push Docker Images"]
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - prod
+      services:
+        description: 'Services to deploy (comma-separated: server,worker,web or "all")'
+        required: true
+        default: 'all'
+
+env:
+  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GCP_REGION: us-central1
+
+jobs:
+  deploy:
+    name: Deploy to Cloud Run
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' || 
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    permissions:
+      contents: read
+      id-token: write
+
+    strategy:
+      matrix:
+        service: [server, worker, web]
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Set Environment
+        id: env
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "ENV=${{ inputs.environment }}" >> $GITHUB_OUTPUT
+            echo "IMAGE_TAG=${{ github.sha }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event.workflow_run.head_branch }}" == "main" ]]; then
+            echo "ENV=prod" >> $GITHUB_OUTPUT
+            echo "IMAGE_TAG=${{ github.event.workflow_run.head_sha }}" >> $GITHUB_OUTPUT
+          else
+            echo "ENV=dev" >> $GITHUB_OUTPUT
+            echo "IMAGE_TAG=${{ github.event.workflow_run.head_sha }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check if service should be deployed
+        id: should_deploy
+        run: |
+          # For workflow_dispatch, check if service is in the list
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            SERVICES="${{ inputs.services }}"
+            if [[ "$SERVICES" == "all" ]] || [[ "$SERVICES" == *"${{ matrix.service }}"* ]]; then
+              echo "deploy=true" >> $GITHUB_OUTPUT
+            else
+              echo "deploy=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            # For workflow_run, always deploy (docker.yml already filtered changes)
+            echo "deploy=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Authenticate to Google Cloud
+        if: steps.should_deploy.outputs.deploy == 'true'
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        if: steps.should_deploy.outputs.deploy == 'true'
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy ${{ matrix.service }} to Cloud Run
+        if: steps.should_deploy.outputs.deploy == 'true'
+        run: |
+          SERVICE_NAME="openplane-${{ matrix.service }}-${{ steps.env.outputs.ENV }}"
+          IMAGE_URL="${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/openplane-repo/openplane-${{ matrix.service }}:${{ steps.env.outputs.IMAGE_TAG }}"
+          
+          echo "Deploying $SERVICE_NAME with image $IMAGE_URL"
+          
+          gcloud run deploy $SERVICE_NAME \
+            --image=$IMAGE_URL \
+            --region=${{ env.GCP_REGION }} \
+            --project=${{ env.GCP_PROJECT_ID }} \
+            --platform=managed \
+            --quiet
+
+      - name: Get Service URL
+        if: steps.should_deploy.outputs.deploy == 'true'
+        id: get_url
+        run: |
+          SERVICE_NAME="openplane-${{ matrix.service }}-${{ steps.env.outputs.ENV }}"
+          URL=$(gcloud run services describe $SERVICE_NAME \
+            --region=${{ env.GCP_REGION }} \
+            --project=${{ env.GCP_PROJECT_ID }} \
+            --format='value(status.url)')
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          echo "${{ matrix.service }} deployed: $URL"
+
+  summary:
+    name: Deployment Summary
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: always()
+    steps:
+      - name: Create Summary
+        run: |
+          echo "##Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment**: ${{ needs.deploy.outputs.env || 'dev' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Image Tag**: ${{ needs.deploy.outputs.image_tag || github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Services have been deployed to Cloud Run." >> $GITHUB_STEP_SUMMARY
