@@ -25,7 +25,9 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       github.event_name == 'workflow_dispatch' || 
-      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+      (github.event_name == 'workflow_run' && 
+       github.event.workflow_run.conclusion == 'success' &&
+       (github.event.workflow_run.head_branch == 'main' || github.event.workflow_run.head_branch == 'dev'))
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
       has_changes: ${{ steps.set-matrix.outputs.has_changes }}
@@ -35,6 +37,17 @@ jobs:
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
+
+      - name: Debug workflow_run context
+        run: |
+          echo "=== Workflow Run Debug Info ==="
+          echo "Triggered by workflow: ${{ github.event.workflow_run.name }}"
+          echo "Workflow run branch: ${{ github.event.workflow_run.head_branch }}"
+          echo "Workflow run SHA: ${{ github.event.workflow_run.head_sha }}"
+          echo "Workflow run conclusion: ${{ github.event.workflow_run.conclusion }}"
+          echo "Current branch: $(git branch --show-current)"
+          echo "Current commit: $(git rev-parse HEAD)"
+          echo "=============================="
 
       - name: Check for changes
         uses: dorny/paths-filter@v3
