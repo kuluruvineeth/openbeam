@@ -50,9 +50,9 @@ locals {
   worker_image = "${module.artifact_registry.repository_url}/openplane-worker:${var.redeploy_id}"
   web_image    = "${module.artifact_registry.repository_url}/openplane-web:${var.redeploy_id}"
 
-  # Custom domain URLs (fallback to Cloud Run URLs if not set)
-  server_url = var.server_domain != "" ? "https://${var.server_domain}" : module.server.service_url
-  web_url    = var.web_domain != "" ? "https://${var.web_domain}" : module.web.service_url
+  # Custom domain URLs (use variables directly to avoid circular dependency)
+  server_url = var.server_domain != "" ? "https://${var.server_domain}" : ""
+  web_url    = var.web_domain != "" ? "https://${var.web_domain}" : ""
 
   # Placeholder images for initial infrastructure creation
   # server_image = "us-docker.pkg.dev/cloudrun/container/hello"
