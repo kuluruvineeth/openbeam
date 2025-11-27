@@ -12,65 +12,54 @@ env:
   TF_VERSION: 1.9.0
   GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   TF_VAR_project_id: ${{ secrets.GCP_PROJECT_ID }}
-  # Secrets
   TF_VAR_better_auth_secret: ${{ secrets.BETTER_AUTH_SECRET }}
   TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
   TF_VAR_google_client_id: ${{ secrets.GOOGLE_CLIENT_ID }}
   TF_VAR_google_client_secret: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-  # Dynamic Variables
   TF_VAR_redeploy_id: ${{ github.sha }}
   TF_VAR_image_tag: ${{ github.sha }}
 
 jobs:
   terraform:
-    name: Terraform
     runs-on: ubuntu-latest
     permissions:
       contents: read
       id-token: write
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set Environment
-        id: env
-        run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "ENV=prod" >> $GITHUB_OUTPUT
-          else
-            echo "ENV=dev" >> $GITHUB_OUTPUT
-          fi
+      - id: env
+        run: echo "ENV=$([[ "${{ github.ref }}" == "refs/heads/main" ]] && echo prod || echo dev)" >> $GITHUB_OUTPUT
 
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
+      - uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
-      - name: Terraform Init
-        working-directory: infra/terraform/environments/${{ steps.env.outputs.ENV }}
+      - working-directory: infra/terraform/environments/${{ steps.env.outputs.ENV }}
         run: |
-          if [ "${{ steps.env.outputs.ENV }}" == "prod" ]; then
-            terraform init \
-              -backend-config="bucket=openplane-prod-terraform-state" \
-              -backend-config="prefix=terraform/state/prod"
-          else
-            terraform init \
-              -backend-config="bucket=openplane-dev-terraform-state" \
-              -backend-config="prefix=terraform/state/dev"
-          fi
+          BUCKET=openplane-${{ steps.env.outputs.ENV }}-terraform-state
+          terraform init -backend-config="bucket=$BUCKET" -backend-config="prefix=terraform/state/${{ steps.env.outputs.ENV }}"
 
-      - name: Terraform Plan
-        working-directory: infra/terraform/environments/${{ steps.env.outputs.ENV }}
+      - working-directory: infra/terraform/environments/${{ steps.env.outputs.ENV }}
         run: terraform plan -no-color
         continue-on-error: true
 
-      - name: Terraform Apply
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+      - if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
         working-directory: infra/terraform/environments/${{ steps.env.outputs.ENV }}
         run: terraform apply -auto-approve -input=false
+
+      - if: success()
+        working-directory: infra/terraform/environments/${{ steps.env.outputs.ENV }}
+        run: |
+          if terraform show -json | grep -q "module.server\|module.worker\|module.web"; then
+            for svc in server worker web; do
+              IMG=$(terraform output -raw ${svc}_image 2>/dev/null || echo "")
+              [[ -n "$IMG" ]] && gcloud run services update openplane-${svc}-${{ steps.env.outputs.ENV }} --image=$IMG --region=us-central1 --project=${{ env.GCP_PROJECT_ID }} --quiet || true
+            done
+          fi
+        continue-on-error: true
