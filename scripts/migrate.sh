@@ -12,19 +12,14 @@ if [ ! -d "prisma/migrations" ]; then
   echo "This may cause migration failures. Ensure migrations are included in the Docker image."
 fi
 
-if [ "$NODE_ENV" = "production" ]; then
-  echo "Running migrations in production mode..."
-  echo "Using 'prisma migrate deploy' - safe for production, will not reset database"
+echo "Running migrations..."
+echo "Using 'prisma migrate deploy' - safe for all environments, will not reset database"
 
-  if bunx prisma migrate deploy; then
-    echo "Migrations applied successfully!"
-  else
-    echo "ERROR: Migration failed!"
-    exit 1
-  fi
+if bunx prisma migrate deploy; then
+  echo "Migrations applied successfully!"
 else
-  echo "Pushing schema in development mode..."
-  bunx prisma db push
+  echo "ERROR: Migration failed!"
+  exit 1
 fi
 
 echo "Migrations completed!"
