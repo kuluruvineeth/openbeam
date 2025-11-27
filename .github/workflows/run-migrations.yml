@@ -33,14 +33,20 @@ jobs:
 
       - uses: google-github-actions/setup-gcloud@v2
 
-      - name: Run database migrations
-        timeout-minutes: 10
+      - name: Update migration job image
         run: |
           BASE_IMAGE="${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/openplane-repo/openplane-server"
           IMAGE_TAG="${{ inputs.image_tag }}"
 
+          gcloud run jobs update openplane-db-migrate-${{ inputs.environment }} \
+            --region=${{ env.GCP_REGION }} \
+            --project=${{ env.GCP_PROJECT_ID }} \
+            --image=${BASE_IMAGE}:${IMAGE_TAG}
+
+      - name: Run database migrations
+        timeout-minutes: 10
+        run: |
           gcloud run jobs execute openplane-db-migrate-${{ inputs.environment }} \
             --region=${{ env.GCP_REGION }} \
             --project=${{ env.GCP_PROJECT_ID }} \
-            --wait \
-            --update-containers=image=${BASE_IMAGE}:${IMAGE_TAG}
+            --wait
