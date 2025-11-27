@@ -166,6 +166,7 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=sha,prefix={{branch}}-
             type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ github.sha }}
 
       - name: Determine Dockerfile path
         id: dockerfile

@@ -46,14 +46,14 @@ locals {
   vespa_sa  = google_service_account.vespa.email
 
   # Real images from Artifact Registry (Uncomment after CI/CD build)
-  # server_image = "${module.artifact_registry.repository_url}/openplane-server:latest"
-  # worker_image = "${module.artifact_registry.repository_url}/openplane-worker:latest"
-  # web_image    = "${module.artifact_registry.repository_url}/openplane-web:latest"
+  server_image = "${module.artifact_registry.repository_url}/openplane-server:${var.redeploy_id}"
+  worker_image = "${module.artifact_registry.repository_url}/openplane-worker:${var.redeploy_id}"
+  web_image    = "${module.artifact_registry.repository_url}/openplane-web:${var.redeploy_id}"
 
   # Placeholder images for initial infrastructure creation
-  server_image = "us-docker.pkg.dev/cloudrun/container/hello"
-  worker_image = "us-docker.pkg.dev/cloudrun/container/hello"
-  web_image    = "us-docker.pkg.dev/cloudrun/container/hello"
+  # server_image = "us-docker.pkg.dev/cloudrun/container/hello"
+  # worker_image = "us-docker.pkg.dev/cloudrun/container/hello"
+  # web_image    = "us-docker.pkg.dev/cloudrun/container/hello"
 }
 
 # ==============================================================================
@@ -370,8 +370,8 @@ module "server" {
     VESPA_URL       = module.vespa.vespa_query_url
     # Placeholders to break circular dependency (Server -> Web, Server -> Server)
     # Will update these with real URLs after first apply
-    BETTER_AUTH_URL = "https://placeholder-url.com" 
-    CORS_ORIGIN     = "*"
+    BETTER_AUTH_URL = "https://openplane-server-dev-7ol6rrbvca-uc.a.run.app" 
+    CORS_ORIGIN     = "https://openplane-web-dev-7ol6rrbvca-uc.a.run.app"
   }
 
   secret_env_vars = {
@@ -409,6 +409,8 @@ module "server" {
   ]
 
   deletion_protection = false
+
+  
 }
 
 # ==============================================================================
@@ -429,21 +431,26 @@ module "worker" {
   min_instances = 0
   max_instances = 1
 
-  cpu        = "2"
-  memory     = "2Gi"
-  cpu_idle   = false
-  timeout    = "3600s"
+  cpu            = "2"
+  memory         = "2Gi"
+  cpu_idle       = false
+  timeout        = "3600s"
+  container_port = 9091
 
   vpc_egress_enabled = true
   vpc_network_id     = module.networking.network_id
   vpc_subnetwork_id  = module.networking.cloud_run_subnet_id
 
+  # Enable startup probe for worker health check
+  startup_probe_enabled = true
+  startup_probe_path     = "/metrics"
+
   env_vars = {
     NODE_ENV        = "development"
     VESPA_URL       = module.vespa.vespa_feed_url
     # Placeholders to break circular dependency
-    BETTER_AUTH_URL = "https://placeholder-url.com"
-    CORS_ORIGIN     = "*"
+    BETTER_AUTH_URL = "https://openplane-server-dev-7ol6rrbvca-uc.a.run.app"
+    CORS_ORIGIN     = "https://openplane-web-dev-7ol6rrbvca-uc.a.run.app"
   }
 
   secret_env_vars = {
@@ -491,8 +498,8 @@ module "web" {
   env_vars = {
     NEXT_PUBLIC_API_URL = module.server.service_url
     # Placeholders to break circular dependency
-    BETTER_AUTH_URL     = "https://placeholder-url.com"
-    CORS_ORIGIN         = "*"
+    BETTER_AUTH_URL     = "https://openplane-server-dev-7ol6rrbvca-uc.a.run.app"
+    CORS_ORIGIN         = "https://openplane-web-dev-7ol6rrbvca-uc.a.run.app"
   }
 
   secret_env_vars = {

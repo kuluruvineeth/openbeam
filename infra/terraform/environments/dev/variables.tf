@@ -57,3 +57,10 @@ variable "google_client_secret" {
   type        = string
   sensitive   = true
 }
+
+
+# This is used to redeploy the services
+variable "redeploy_id" {
+  type = string
+}
+
