@@ -19,10 +19,7 @@ terraform {
     }
   }
 
-  backend "gcs" {
-    # bucket = "openplane-dev-terraform-state"
-    # prefix = "terraform/state/dev"
-  }
+  backend "gcs" {}
 }
 
 provider "google" {

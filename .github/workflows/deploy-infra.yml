@@ -12,6 +12,14 @@ env:
   TF_VERSION: 1.9.0
   GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   TF_VAR_project_id: ${{ secrets.GCP_PROJECT_ID }}
+  # Secrets
+  TF_VAR_better_auth_secret: ${{ secrets.BETTER_AUTH_SECRET }}
+  TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
+  TF_VAR_google_client_id: ${{ secrets.GOOGLE_CLIENT_ID }}
+  TF_VAR_google_client_secret: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+  # Dynamic Variables
+  TF_VAR_redeploy_id: ${{ github.sha }}
+  TF_VAR_image_tag: ${{ github.sha }}
 
 jobs:
   terraform:
@@ -46,7 +54,16 @@ jobs:
 
       - name: Terraform Init
         working-directory: infra/terraform/environments/${{ steps.env.outputs.ENV }}
-        run: terraform init
+        run: |
+          if [ "${{ steps.env.outputs.ENV }}" == "prod" ]; then
+            terraform init \
+              -backend-config="bucket=openplane-prod-terraform-state" \
+              -backend-config="prefix=terraform/state/prod"
+          else
+            terraform init \
+              -backend-config="bucket=openplane-dev-terraform-state" \
+              -backend-config="prefix=terraform/state/dev"
+          fi
 
       - name: Terraform Plan
         working-directory: infra/terraform/environments/${{ steps.env.outputs.ENV }}
