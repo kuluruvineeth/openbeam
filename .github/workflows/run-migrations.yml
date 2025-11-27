@@ -33,15 +33,29 @@ jobs:
 
       - uses: google-github-actions/setup-gcloud@v2
 
-      - name: Update migration job image
+      - name: Resolve migration image
+        id: resolve_image
         run: |
           BASE_IMAGE="${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/openplane-repo/openplane-server"
           IMAGE_TAG="${{ inputs.image_tag }}"
 
+          if gcloud artifacts docker images describe ${BASE_IMAGE}:${IMAGE_TAG} --format=json 2>/dev/null; then
+            echo "MIGRATION_IMAGE=${BASE_IMAGE}:${IMAGE_TAG}" >> $GITHUB_OUTPUT
+            echo "Using commit-specific image: ${IMAGE_TAG}"
+          elif gcloud artifacts docker images describe ${BASE_IMAGE}:latest --format=json 2>/dev/null; then
+            echo "MIGRATION_IMAGE=${BASE_IMAGE}:latest" >> $GITHUB_OUTPUT
+            echo "::warning::Commit-specific image not found, using latest. No server code changes in this commit."
+          else
+            echo "::error::No migration images found (neither ${IMAGE_TAG} nor latest)"
+            exit 1
+          fi
+
+      - name: Update migration job image
+        run: |
           gcloud run jobs update openplane-db-migrate-${{ inputs.environment }} \
             --region=${{ env.GCP_REGION }} \
             --project=${{ env.GCP_PROJECT_ID }} \
-            --image=${BASE_IMAGE}:${IMAGE_TAG}
+            --image=${{ steps.resolve_image.outputs.MIGRATION_IMAGE }}
 
       - name: Run database migrations
         timeout-minutes: 10
