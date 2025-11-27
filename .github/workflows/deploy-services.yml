@@ -23,26 +23,18 @@ env:
   GCP_REGION: us-central1
 
 jobs:
-  deploy:
+  prepare:
     runs-on: ubuntu-latest
     if: |
-      github.event_name == 'workflow_dispatch' || 
-      (github.event_name == 'workflow_run' && 
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' &&
        github.event.workflow_run.conclusion == 'success' &&
        (github.event.workflow_run.head_branch == 'main' || github.event.workflow_run.head_branch == 'dev'))
-    permissions:
-      contents: read
-      id-token: write
-    strategy:
-      matrix:
-        service: [server, worker, web]
-      fail-fast: false
+    outputs:
+      environment: ${{ steps.env.outputs.ENV }}
+      image_tag: ${{ steps.env.outputs.IMAGE_TAG }}
 
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
-
       - id: env
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
@@ -55,6 +47,32 @@ jobs:
             echo "ENV=dev" >> $GITHUB_OUTPUT
             echo "IMAGE_TAG=${{ github.event.workflow_run.head_sha }}" >> $GITHUB_OUTPUT
           fi
+
+  migrate:
+    needs: prepare
+    uses: ./.github/workflows/run-migrations.yml
+    with:
+      environment: ${{ needs.prepare.outputs.environment }}
+      image_tag: ${{ needs.prepare.outputs.image_tag }}
+    secrets:
+      GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+
+  deploy:
+    needs: [prepare, migrate]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      matrix:
+        service: [server, worker, web]
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - id: should_deploy
         run: |
@@ -77,7 +95,7 @@ jobs:
         id: resolve_image
         run: |
           BASE_IMAGE=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/openplane-repo/openplane-${{ matrix.service }}
-          IMAGE_TAG=${{ steps.env.outputs.IMAGE_TAG }}
+          IMAGE_TAG=${{ needs.prepare.outputs.image_tag }}
 
           echo "Resolving image for ${{ matrix.service }} (commit: ${IMAGE_TAG})"
 
@@ -100,9 +118,10 @@ jobs:
           fi
 
       - if: steps.should_deploy.outputs.deploy == 'true' && steps.resolve_image.outputs.exists == 'true'
+        name: Deploy service
         timeout-minutes: 10
         run: |
-          gcloud run services update openplane-${{ matrix.service }}-${{ steps.env.outputs.ENV }} \
+          gcloud run services update openplane-${{ matrix.service }}-${{ needs.prepare.outputs.environment }} \
             --image=${{ steps.resolve_image.outputs.image }} \
             --region=${{ env.GCP_REGION }} \
             --project=${{ env.GCP_PROJECT_ID }} \
@@ -111,7 +130,7 @@ jobs:
       - if: steps.should_deploy.outputs.deploy == 'true' && steps.resolve_image.outputs.exists == 'true'
         timeout-minutes: 5
         run: |
-          SVC=openplane-${{ matrix.service }}-${{ steps.env.outputs.ENV }}
+          SVC=openplane-${{ matrix.service }}-${{ needs.prepare.outputs.environment }}
           for i in {1..30}; do
             STATUS=$(gcloud run services describe $SVC --region=${{ env.GCP_REGION }} --project=${{ env.GCP_PROJECT_ID }} --format='value(status.conditions[0].status)')
             [[ "$STATUS" == "True" ]] && exit 0
@@ -121,6 +140,6 @@ jobs:
 
       - if: failure() && steps.should_deploy.outputs.deploy == 'true' && steps.resolve_image.outputs.exists == 'true'
         run: |
-          SVC=openplane-${{ matrix.service }}-${{ steps.env.outputs.ENV }}
+          SVC=openplane-${{ matrix.service }}-${{ needs.prepare.outputs.environment }}
           PREV=$(gcloud run revisions list --service=$SVC --region=${{ env.GCP_REGION }} --project=${{ env.GCP_PROJECT_ID }} --format='value(name)' --filter='status.conditions.status=True' --limit=1)
           [[ -n "$PREV" ]] && gcloud run services update-traffic $SVC --to-revisions=$PREV=100 --region=${{ env.GCP_REGION }} --project=${{ env.GCP_PROJECT_ID }}

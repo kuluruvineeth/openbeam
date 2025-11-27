@@ -340,6 +340,49 @@ module "vespa" {
 }
 
 # ==============================================================================
+# Cloud Run Job - Database Migrations
+# ==============================================================================
+
+module "db_migrate_job" {
+  source = "../../modules/cloud-run-job"
+
+  project_id   = var.project_id
+  project_name = local.project_name
+  job_name     = "db-migrate"
+  environment  = local.environment
+  region       = var.region
+  image        = local.server_image
+
+  command = ["sh", "-c"]
+  args    = ["/app/scripts/migrate.sh"]
+
+  cpu    = "1"
+  memory = "512Mi"
+  timeout = "600s"
+
+  vpc_egress_enabled = true
+  vpc_network_id     = module.networking.network_id
+  vpc_subnetwork_id  = module.networking.cloud_run_subnet_id
+
+  env_vars = {
+    NODE_ENV = "development"
+  }
+
+  secret_env_vars = {
+    DATABASE_URL = {
+      secret_id = module.cloud_sql.connection_string_secret_id
+      version   = "latest"
+    }
+  }
+
+  service_account_email = local.server_sa
+
+  depends_on = [
+    google_secret_manager_secret_iam_member.server_secrets
+  ]
+}
+
+# ==============================================================================
 # Cloud Run - Server
 # ==============================================================================
 
