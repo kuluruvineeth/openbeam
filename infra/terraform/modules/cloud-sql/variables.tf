@@ -164,3 +164,18 @@ variable "labels" {
   default     = {}
 }
 
+variable "enable_public_ip" {
+  description = "Enable public IP for the database (useful for dev environments)"
+  type        = bool
+  default     = false
+}
+
+variable "authorized_networks" {
+  description = "List of authorized networks for public IP access"
+  type = list(object({
+    name  = string
+    value = string
+  }))
+  default = []
+}
+

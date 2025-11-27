@@ -33,9 +33,17 @@ resource "google_sql_database_instance" "postgres" {
     disk_autoresize_limit = var.disk_autoresize_limit
 
     ip_configuration {
-      ipv4_enabled                                  = false
+      ipv4_enabled                                  = var.enable_public_ip
       private_network                               = var.network_id
       enable_private_path_for_google_cloud_services = true
+
+      dynamic "authorized_networks" {
+        for_each = var.authorized_networks
+        content {
+          name  = authorized_networks.value.name
+          value = authorized_networks.value.value
+        }
+      }
     }
 
     backup_configuration {
