@@ -23,6 +23,9 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    outputs:
+      environment: ${{ steps.env.outputs.ENV }}
+      image_tag: ${{ steps.resolve_image_tag.outputs.tag }}
 
     steps:
       - uses: actions/checkout@v4
@@ -78,6 +81,7 @@ jobs:
         run: terraform apply -auto-approve -input=false
 
       - if: success()
+        name: Update service images
         working-directory: infra/terraform/environments/${{ steps.env.outputs.ENV }}
         run: |
           if terraform show -json | grep -q "module.server\|module.worker\|module.web"; then
@@ -87,3 +91,14 @@ jobs:
             done
           fi
         continue-on-error: true
+
+  migrate:
+    needs: terraform
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+    uses: ./.github/workflows/run-migrations.yml
+    with:
+      environment: ${{ needs.terraform.outputs.environment }}
+      image_tag: ${{ needs.terraform.outputs.image_tag }}
+    secrets:
+      GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
