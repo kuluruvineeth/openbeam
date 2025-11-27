@@ -64,3 +64,19 @@ variable "redeploy_id" {
   type = string
 }
 
+# ==============================================================================
+# Custom Domain URLs
+# ==============================================================================
+
+variable "server_domain" {
+  description = "Custom domain for server (e.g., api.openplane.tech)"
+  type        = string
+  default     = ""
+}
+
+variable "web_domain" {
+  description = "Custom domain for web (e.g., dev.openplane.tech)"
+  type        = string
+  default     = ""
+}
+

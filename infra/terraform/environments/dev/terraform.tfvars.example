@@ -22,3 +22,12 @@ google_client_secret = "your-google-client-secret"
 github_org = "kuluruvineeth"
 image_tag  = "latest"
 
+# ==============================================================================
+# Custom Domains (Optional)
+# ==============================================================================
+# If you have custom domains mapped to your Cloud Run services, set them here
+# Otherwise, leave them empty to use the Cloud Run URLs
+
+server_domain = "api.openplane.tech"  # Custom domain for server (optional)
+web_domain    = "dev.openplane.tech"  # Custom domain for web (optional)
+

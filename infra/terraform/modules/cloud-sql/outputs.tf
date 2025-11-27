@@ -13,6 +13,11 @@ output "private_ip_address" {
   value       = google_sql_database_instance.postgres.private_ip_address
 }
 
+output "public_ip_address" {
+  description = "Public IP address of Cloud SQL instance (if enabled)"
+  value       = var.enable_public_ip ? google_sql_database_instance.postgres.public_ip_address : null
+}
+
 output "database_name" {
   description = "Database name"
   value       = google_sql_database.openplane.name

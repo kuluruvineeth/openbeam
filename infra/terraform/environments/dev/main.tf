@@ -50,6 +50,10 @@ locals {
   worker_image = "${module.artifact_registry.repository_url}/openplane-worker:${var.redeploy_id}"
   web_image    = "${module.artifact_registry.repository_url}/openplane-web:${var.redeploy_id}"
 
+  # Custom domain URLs (fallback to Cloud Run URLs if not set)
+  server_url = var.server_domain != "" ? "https://${var.server_domain}" : module.server.service_url
+  web_url    = var.web_domain != "" ? "https://${var.web_domain}" : module.web.service_url
+
   # Placeholder images for initial infrastructure creation
   # server_image = "us-docker.pkg.dev/cloudrun/container/hello"
   # worker_image = "us-docker.pkg.dev/cloudrun/container/hello"
@@ -420,10 +424,8 @@ module "server" {
   env_vars = {
     NODE_ENV        = "development"
     VESPA_URL       = module.vespa.vespa_query_url
-    # Placeholders to break circular dependency (Server -> Web, Server -> Server)
-    # Will update these with real URLs after first apply
-    BETTER_AUTH_URL = "https://openplane-server-dev-7ol6rrbvca-uc.a.run.app" 
-    CORS_ORIGIN     = "https://openplane-web-dev-7ol6rrbvca-uc.a.run.app"
+    BETTER_AUTH_URL = local.server_url
+    CORS_ORIGIN     = local.web_url
   }
 
   secret_env_vars = {
@@ -500,9 +502,8 @@ module "worker" {
   env_vars = {
     NODE_ENV        = "development"
     VESPA_URL       = module.vespa.vespa_feed_url
-    # Placeholders to break circular dependency
-    BETTER_AUTH_URL = "https://openplane-server-dev-7ol6rrbvca-uc.a.run.app"
-    CORS_ORIGIN     = "https://openplane-web-dev-7ol6rrbvca-uc.a.run.app"
+    BETTER_AUTH_URL = local.server_url
+    CORS_ORIGIN     = local.web_url
   }
 
   secret_env_vars = {
@@ -548,10 +549,9 @@ module "web" {
   memory = "512Mi"
 
   env_vars = {
-    NEXT_PUBLIC_API_URL = module.server.service_url
-    # Placeholders to break circular dependency
-    BETTER_AUTH_URL     = "https://openplane-server-dev-7ol6rrbvca-uc.a.run.app"
-    CORS_ORIGIN         = "https://openplane-web-dev-7ol6rrbvca-uc.a.run.app"
+    NEXT_PUBLIC_API_URL = local.server_url
+    BETTER_AUTH_URL     = local.server_url
+    CORS_ORIGIN         = local.web_url
   }
 
   secret_env_vars = {
