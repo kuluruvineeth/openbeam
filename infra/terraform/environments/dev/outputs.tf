@@ -32,6 +32,16 @@ output "artifact_registry_repository_url" {
   value       = module.artifact_registry.repository_url
 }
 
+output "cloud_sql_public_ip" {
+  description = "Cloud SQL public IP address (dev only)"
+  value       = module.cloud_sql.public_ip_address
+}
+
+output "cloud_sql_private_ip" {
+  description = "Cloud SQL private IP address"
+  value       = module.cloud_sql.private_ip_address
+}
+
 output "deployment_summary" {
   description = "Deployment summary with URLs"
   value = <<-EOT
@@ -46,7 +56,8 @@ output "deployment_summary" {
   
   🔍 Internal Services:
   ├─ Worker:   ${module.worker.service_url}
-  ├─ Database: ${module.cloud_sql.private_ip_address}:5432
+  ├─ Database: ${module.cloud_sql.private_ip_address}:5432 (private)
+  │            ${module.cloud_sql.public_ip_address}:5432 (public - dev only)
   ├─ Redis:    ${module.redis.host}:${module.redis.port}
   └─ Vespa:    ${module.vespa.private_ip}:8080
   

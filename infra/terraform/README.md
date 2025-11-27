@@ -103,23 +103,59 @@ Push changes to `packages/vespa/application/` on the `main` branch. The GitHub A
 
 #### 2. Run Database Migrations
 
-The database schema must be created before the app can start. Run a one-off Cloud Run Job to execute migrations:
+The database schema must be created before the app can start. Run the Cloud Run Job to execute migrations:
 
 ```bash
-# Create a migration job (adjust image tag as needed)
-gcloud run jobs create migrate-db-prod \
-    --image="ghcr.io/kuluruvineeth/openplane-server:latest" \
-    --region="us-central1" \
-    --command="bun" \
-    --args="run,db:migrate" \
-    --set-secrets="DATABASE_URL=openplane-db-connection-string-prod:latest" \
-    --vpc-egress="private-ranges-only"
-
-# Execute the migration
+# Execute the migration job (created by Terraform)
 gcloud run jobs execute openplane-db-migrate-dev \
   --region=us-central1 \
-  --project="" \
+  --project=openplane-478413 \
   --wait
+```
+
+#### 3. Connect to Database Locally
+
+**Dev environment** has public IP enabled for easier local development.
+
+**Get database credentials:**
+```bash
+# Get database password
+DB_PASSWORD=$(gcloud secrets versions access latest --secret="openplane-db-password-dev" --project=openplane-478413)
+
+# Get database public IP (from Terraform output or Cloud Console)
+DB_IP=$(cd infra/terraform/environments/dev && terraform output -raw cloud_sql_public_ip)
+```
+
+**Option A: Direct connection (dev only)**
+```bash
+# Using psql
+PGPASSWORD="$DB_PASSWORD" psql -h $DB_IP -U openplane -d openplane
+
+# Using pgAdmin
+# Host: <DB_IP>
+# Port: 5432
+# Database: openplane
+# Username: openplane
+# Password: <DB_PASSWORD>
+```
+
+**Option B: Cloud SQL Proxy (works for dev and prod)**
+```bash
+# Start proxy
+./cloud-sql-proxy openplane-478413:us-central1:openplane-db-dev-81049585 --port 5432
+
+# In another terminal, connect
+PGPASSWORD="$DB_PASSWORD" psql -h 127.0.0.1 -U openplane -d openplane
+```
+
+**Reset database (dev only):**
+```bash
+# Drop and recreate schema
+PGPASSWORD="$DB_PASSWORD" psql -h $DB_IP -U openplane -d openplane \
+  -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO openplane; GRANT ALL ON SCHEMA public TO public;"
+
+# Then run migrations
+gcloud run jobs execute openplane-db-migrate-dev --region=us-central1 --project=openplane-478413 --wait
 ```
 
 #### 3. Configure DNS

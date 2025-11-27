@@ -80,6 +80,8 @@ jobs:
         env:
           TF_VAR_redeploy_id: ${{ steps.resolve_image_tag.outputs.tag }}
           TF_VAR_image_tag: ${{ steps.resolve_image_tag.outputs.tag }}
+          TF_VAR_server_domain: ${{ secrets.SERVER_DOMAIN }}
+          TF_VAR_web_domain: ${{ secrets.WEB_DOMAIN }}
         run: terraform plan -no-color
         continue-on-error: true
 
@@ -88,5 +90,7 @@ jobs:
         env:
           TF_VAR_redeploy_id: ${{ steps.resolve_image_tag.outputs.tag }}
           TF_VAR_image_tag: ${{ steps.resolve_image_tag.outputs.tag }}
+          TF_VAR_server_domain: ${{ secrets.SERVER_DOMAIN }}
+          TF_VAR_web_domain: ${{ secrets.WEB_DOMAIN }}
         run: terraform apply -auto-approve -input=false
 
