@@ -280,6 +280,15 @@ module "cloud_sql" {
   # Reduced backup retention
   backup_retention_count = 3
   point_in_time_recovery = false
+
+  # Enable public IP for dev environment (easier local development)
+  enable_public_ip = true
+  authorized_networks = [
+    {
+      name  = "allow-all"
+      value = "0.0.0.0/0"
+    }
+  ]
 }
 
 # ==============================================================================
