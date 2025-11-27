@@ -64,6 +64,12 @@ variable "redeploy_id" {
   type = string
 }
 
+variable "vespa_version" {
+  description = "Vespa Docker image version"
+  type        = string
+  default     = "8.613.57"
+}
+
 # ==============================================================================
 # Custom Domain URLs
 # ==============================================================================

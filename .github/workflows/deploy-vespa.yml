@@ -1,11 +1,12 @@
 name: Deploy Vespa Schema
 
 on:
-  push:
-    branches: [main, dev]
-    paths:
-      - "packages/vespa/application/**"
-      - ".github/workflows/deploy-vespa.yml"
+  # Manual trigger only - uncomment below for auto-trigger on schema changes
+  # push:
+  #   branches: [main, dev]
+  #   paths:
+  #     - "packages/vespa/application/**"
+  #     - ".github/workflows/deploy-vespa.yml"
   workflow_dispatch:
 
 env:

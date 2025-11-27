@@ -24,7 +24,7 @@ module "vespa" {
   data_disk_size = 200
   data_disk_type = "pd-ssd"
 
-  vespa_version = "8.269.17"
+  vespa_version = "8.613.57"
 
   enable_snapshot_schedule = true
   allowed_source_ranges    = ["10.0.0.0/24"]  # Cloud Run subnet

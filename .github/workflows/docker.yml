@@ -1,13 +1,14 @@
 name: Build and Push Docker Images
 
 on:
-  workflow_run:
-    workflows: ["CI"]
-    types:
-      - completed
-    branches:
-      - main
-      - dev
+  # Manual trigger only - uncomment below for auto-trigger after CI
+  # workflow_run:
+  #   workflows: ["CI"]
+  #   types:
+  #     - completed
+  #   branches:
+  #     - main
+  #     - dev
   workflow_dispatch:
 
 env:

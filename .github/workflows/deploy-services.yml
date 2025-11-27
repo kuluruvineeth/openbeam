@@ -1,10 +1,11 @@
 name: Deploy Services
 
 on:
-  workflow_run:
-    workflows: ["Build and Push Docker Images"]
-    types: [completed]
-    branches: [main, dev]
+  # Manual trigger only - uncomment below for auto-trigger after Docker build
+  # workflow_run:
+  #   workflows: ["Build and Push Docker Images"]
+  #   types: [completed]
+  #   branches: [main, dev]
   workflow_call:
     inputs:
       environment:

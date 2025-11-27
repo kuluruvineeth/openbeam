@@ -31,7 +31,7 @@ redis_replica_count  = 1
 # Vespa (Production Configuration)
 vespa_machine_type    = "n2-standard-4" # 4 vCPU, 16GB RAM (~$120/month)
 vespa_data_disk_size  = 200
-vespa_version         = "8.269.17"
+vespa_version         = "8.613.57"
 
 # Cloud Run Scaling (Production Configuration)
 server_min_instances = 1  # Always-on for API

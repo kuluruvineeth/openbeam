@@ -342,7 +342,7 @@ module "vespa" {
   data_disk_size = 50
   data_disk_type = "pd-balanced" # Cheaper than SSD
 
-  vespa_version = "8.269.17"
+  vespa_version = var.vespa_version
 
   allowed_source_ranges = ["10.0.0.0/24"]
 

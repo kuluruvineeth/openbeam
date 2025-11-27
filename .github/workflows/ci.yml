@@ -1,10 +1,12 @@
 name: CI
 
 on:
-  push:
-    branches: [main, dev]
-  pull_request:
-    branches: [main, dev]
+  # Manual trigger only - uncomment below for auto-trigger
+  # push:
+  #   branches: [main, dev]
+  # pull_request:
+  #   branches: [main, dev]
+  workflow_dispatch:
 
 jobs:
   lint-and-typecheck:

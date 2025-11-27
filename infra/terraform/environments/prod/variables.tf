@@ -148,7 +148,7 @@ variable "vespa_data_disk_size" {
 variable "vespa_version" {
   description = "Vespa Docker image version"
   type        = string
-  default     = "8.269.17"
+  default     = "8.613.57"
 }
 
 # ==============================================================================

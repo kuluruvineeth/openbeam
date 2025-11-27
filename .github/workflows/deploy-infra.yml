@@ -1,11 +1,12 @@
 name: Deploy Infrastructure
 
 on:
-  push:
-    branches: [main, dev]
-    paths:
-      - "infra/terraform/**"
-      - ".github/workflows/deploy-infra.yml"
+  # Manual trigger only - uncomment below for auto-trigger on infra changes
+  # push:
+  #   branches: [main, dev]
+  #   paths:
+  #     - "infra/terraform/**"
+  #     - ".github/workflows/deploy-infra.yml"
   workflow_dispatch:
     inputs:
       skip_service_update:
