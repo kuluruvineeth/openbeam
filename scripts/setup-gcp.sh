@@ -27,6 +27,7 @@ gcloud config set project "$PROJECT_ID"
 # 2. Enable APIs
 echo "🔌 Enabling APIs..."
 gcloud services enable \
+    cloudresourcemanager.googleapis.com \
     artifactregistry.googleapis.com \
     run.googleapis.com \
     sqladmin.googleapis.com \

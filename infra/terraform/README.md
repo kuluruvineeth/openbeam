@@ -23,6 +23,7 @@ If you prefer manual control, perform these steps in the [Google Cloud Console](
 
 1.  **Create Project:** Create a new project (e.g., `openplane-prod`) and link your billing account.
 2.  **Enable APIs:** Go to "APIs & Services" > "Library" and enable:
+    - Cloud Resource Manager API
     - Artifact Registry API
     - Cloud Run Admin API
     - Cloud SQL Admin API
@@ -159,6 +160,7 @@ terraform destroy
 **If destroy fails with subnet/VPC errors**: GCP creates hidden serverless connectors that block deletion.
 
 **Manual cleanup**:
+
 1. Navigate to: [VPC Network → Serverless VPC Access](https://console.cloud.google.com/networking/connectors)
    - Select region: `us-central1`
    - Delete any connectors listed
@@ -175,6 +177,7 @@ terraform destroy
 ## 🔧 Adding Environment Variables
 
 ### 1. Normal Variables (Non-Sensitive)
+
 Add to the `env_vars` block in `environments/dev/main.tf`:
 
 ```hcl
@@ -186,9 +189,11 @@ env_vars = {
 ```
 
 ### 2. Secrets (Sensitive)
+
 For API keys, passwords, etc., use Secret Manager:
 
 1. **Define the Secret** (in `main.tf`):
+
    ```hcl
    resource "google_secret_manager_secret" "my_secret" {
      secret_id = "openplane-my-secret-dev"
@@ -197,6 +202,7 @@ For API keys, passwords, etc., use Secret Manager:
    ```
 
 2. **Grant Access** (in `main.tf` IAM section):
+
    ```hcl
    resource "google_secret_manager_secret_iam_member" "server_secrets" {
      # Add "my-secret" to the list
@@ -214,6 +220,3 @@ For API keys, passwords, etc., use Secret Manager:
      }
    }
    ```
-
-
-
