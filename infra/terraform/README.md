@@ -116,7 +116,10 @@ gcloud run jobs create migrate-db-prod \
     --vpc-egress="private-ranges-only"
 
 # Execute the migration
-gcloud run jobs execute migrate-db-prod --region="us-central1"
+gcloud run jobs execute openplane-db-migrate-dev \
+  --region=us-central1 \
+  --project="" \
+  --wait
 ```
 
 #### 3. Configure DNS
