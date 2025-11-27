@@ -60,6 +60,7 @@ jobs:
               - 'packages/auth/**'
               - 'packages/db/**'
               - 'packages/redis/**'
+              - 'scripts/migrate.sh'
               - 'Dockerfile.server'
               - 'apps/server/Dockerfile'
               - 'package.json'
