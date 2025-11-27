@@ -1,57 +1,75 @@
-# Node
-node_modules
-**/node_modules
+# Dependencies (will be installed fresh in containers)
+node_modules/
+**/node_modules/
 npm-debug.log
 yarn-error.log
 pnpm-debug.log
 
 # Build outputs
-dist
-**/dist
-.next
-**/.next
-build
-**/build
-out
-**/.out
+dist/
+**/dist/
+.next/
+**/.next/
+build/
+**/build/
+out/
+**/.out/
 
-# Turbo
-.turbo
-**/.turbo
+# Turbo cache
+.turbo/
+**/.turbo/
 
-# Cache
-.cache
-**/.cache
+# Cache directories
+.cache/
+**/.cache/
 *.log
+logs/
 
-# Git
-.git
+# Git (not needed in containers)
+.git/
 .gitignore
 .gitattributes
 
-# IDE
-.vscode
-.idea
+# IDE files
+.vscode/
+.idea/
 *.swp
 *.swo
 *~
 .DS_Store
+Thumbs.db
 
-# Env
-.env.local
-.env.*.local
+# Environment files (handled via build args)
+.env*
+!.env.example
 
-# Test
-coverage
-**/.coverage
+# Testing files (not needed in production containers)
+coverage/
+**/.coverage/
 *.test.ts
 *.spec.ts
+test-results/
+.nyc_output/
 
 # Documentation (not needed in containers)
 *.md
-!README.md
+!packages/*/README.md
 
-# Docker
+# Docker files
 Dockerfile*
 .dockerignore
 docker-compose*.yml
+
+# CI/CD (not needed in containers)
+.github/
+
+# Infrastructure and monitoring (not needed in app containers)
+infra/
+monitoring/
+
+# Development tools
+.husky/
+lint-staged.config.js
+biome.json
+bts.jsonc
+bunfig.toml
