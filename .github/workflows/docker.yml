@@ -104,24 +104,30 @@ jobs:
           HAS_CHANGES="false"
 
           # Check triggers and append to matrix
-          if [ "${{ steps.filter.outputs.server }}" == "true" ] || [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          # For manual trigger, only build services that have changes
+          if [ "${{ steps.filter.outputs.server }}" == "true" ]; then
             MATRIX=$(echo $MATRIX | jq '. + ["server"]')
             HAS_CHANGES="true"
           fi
 
-          if [ "${{ steps.filter.outputs.web }}" == "true" ] || [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          if [ "${{ steps.filter.outputs.web }}" == "true" ]; then
             MATRIX=$(echo $MATRIX | jq '. + ["web"]')
             HAS_CHANGES="true"
           fi
 
-          if [ "${{ steps.filter.outputs.fumadocs }}" == "true" ] || [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          if [ "${{ steps.filter.outputs.fumadocs }}" == "true" ]; then
             MATRIX=$(echo $MATRIX | jq '. + ["fumadocs"]')
             HAS_CHANGES="true"
           fi
 
-          if [ "${{ steps.filter.outputs.worker }}" == "true" ] || [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          if [ "${{ steps.filter.outputs.worker }}" == "true" ]; then
             MATRIX=$(echo $MATRIX | jq '. + ["worker"]')
             HAS_CHANGES="true"
+          fi
+
+          # If manual trigger with no changes, warn user
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ "$HAS_CHANGES" == "false" ]; then
+            echo "::warning::No code changes detected. Skipping build to save costs."
           fi
 
           # Output compact JSON
@@ -243,7 +249,6 @@ jobs:
         with:
           images: ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/openplane-${{ matrix.service }}
           tags: |
-            type=raw,value=${{ github.sha }}
             type=raw,value=latest
 
       - name: Determine Dockerfile path
@@ -269,8 +274,8 @@ jobs:
           platforms: linux/amd64
           cache-from: type=gha,scope=${{ matrix.service }}
           cache-to: type=gha,mode=max,scope=${{ matrix.service }}
-          provenance: true
-          sbom: true
+          provenance: false
+          sbom: false
           build-args: |
             NEXT_PUBLIC_SERVER_URL=${{ env.NEXT_PUBLIC_SERVER_URL }}
             HUGEICONS_PRO_AUTH_TOKEN=${{ secrets.HUGEICONS_PRO_AUTH_TOKEN }}
