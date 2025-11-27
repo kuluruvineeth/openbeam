@@ -5,6 +5,19 @@ on:
     workflows: ["Build and Push Docker Images"]
     types: [completed]
     branches: [main, dev]
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      image_tag:
+        required: true
+        type: string
+    secrets:
+      GCP_SA_KEY:
+        required: true
+      GCP_PROJECT_ID:
+        required: true
   workflow_dispatch:
     inputs:
       environment:
@@ -27,6 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'workflow_call' ||
       (github.event_name == 'workflow_run' &&
        github.event.workflow_run.conclusion == 'success' &&
        (github.event.workflow_run.head_branch == 'main' || github.event.workflow_run.head_branch == 'dev'))
@@ -37,7 +51,10 @@ jobs:
     steps:
       - id: env
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          if [[ "${{ github.event_name }}" == "workflow_call" ]]; then
+            echo "ENV=${{ inputs.environment }}" >> $GITHUB_OUTPUT
+            echo "IMAGE_TAG=${{ inputs.image_tag }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             echo "ENV=${{ inputs.environment }}" >> $GITHUB_OUTPUT
             echo "IMAGE_TAG=${{ github.sha }}" >> $GITHUB_OUTPUT
           elif [[ "${{ github.event.workflow_run.head_branch }}" == "main" ]]; then
