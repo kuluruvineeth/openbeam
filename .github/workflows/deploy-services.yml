@@ -74,15 +74,39 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
 
       - if: steps.should_deploy.outputs.deploy == 'true'
+        id: resolve_image
+        run: |
+          BASE_IMAGE=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/openplane-repo/openplane-${{ matrix.service }}
+          IMAGE_TAG=${{ steps.env.outputs.IMAGE_TAG }}
+
+          # Try commit SHA tag first
+          if gcloud artifacts docker images describe ${BASE_IMAGE}:${IMAGE_TAG} --format=json 2>/dev/null; then
+            IMAGE="${BASE_IMAGE}:${IMAGE_TAG}"
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "image=${IMAGE}" >> $GITHUB_OUTPUT
+            echo "Using commit-specific image: ${IMAGE}"
+          # Fall back to latest tag
+          elif gcloud artifacts docker images describe ${BASE_IMAGE}:latest --format=json 2>/dev/null; then
+            IMAGE="${BASE_IMAGE}:latest"
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "image=${IMAGE}" >> $GITHUB_OUTPUT
+            echo "Commit image not found, falling back to latest: ${IMAGE}"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "::error::No images found for ${{ matrix.service }}. Please build images first."
+            exit 1
+          fi
+
+      - if: steps.should_deploy.outputs.deploy == 'true' && steps.resolve_image.outputs.exists == 'true'
         timeout-minutes: 10
         run: |
           gcloud run services update openplane-${{ matrix.service }}-${{ steps.env.outputs.ENV }} \
-            --image=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/openplane-repo/openplane-${{ matrix.service }}:${{ steps.env.outputs.IMAGE_TAG }} \
+            --image=${{ steps.resolve_image.outputs.image }} \
             --region=${{ env.GCP_REGION }} \
             --project=${{ env.GCP_PROJECT_ID }} \
             --quiet
 
-      - if: steps.should_deploy.outputs.deploy == 'true'
+      - if: steps.should_deploy.outputs.deploy == 'true' && steps.resolve_image.outputs.exists == 'true'
         timeout-minutes: 5
         run: |
           SVC=openplane-${{ matrix.service }}-${{ steps.env.outputs.ENV }}
@@ -93,7 +117,7 @@ jobs:
           done
           exit 1
 
-      - if: failure() && steps.should_deploy.outputs.deploy == 'true'
+      - if: failure() && steps.should_deploy.outputs.deploy == 'true' && steps.resolve_image.outputs.exists == 'true'
         run: |
           SVC=openplane-${{ matrix.service }}-${{ steps.env.outputs.ENV }}
           PREV=$(gcloud run revisions list --service=$SVC --region=${{ env.GCP_REGION }} --project=${{ env.GCP_PROJECT_ID }} --format='value(name)' --filter='status.conditions.status=True' --limit=1)
