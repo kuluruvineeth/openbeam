@@ -35,7 +35,7 @@ output "connection_string_secret_id" {
 
 output "connection_string" {
   description = "Database connection string (sensitive)"
-  value       = "postgresql://${google_sql_user.openplane.name}:${var.database_password != "" ? var.database_password : random_password.db_password.result}@${google_sql_database_instance.postgres.private_ip_address}:5432/${google_sql_database.openplane.name}?sslmode=require"
+  value       = "postgresql://${google_sql_user.openplane.name}:${urlencode(var.database_password != "" ? var.database_password : random_password.db_password.result)}@${google_sql_database_instance.postgres.private_ip_address}:5432/${google_sql_database.openplane.name}?sslmode=require"
   sensitive   = true
 }
 
