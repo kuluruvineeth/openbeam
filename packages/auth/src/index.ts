@@ -2,7 +2,9 @@ import prisma from "@openplane/db";
 import { type BetterAuthOptions, betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 
-const isDevelopment = process.env.NODE_ENV !== "production";
+// Check if we're in a deployed environment (has BETTER_AUTH_URL set to a domain)
+// const isDevelopment = process.env.NODE_ENV !== "production";
+const isDeployed = Boolean(process.env.BETTER_AUTH_URL?.startsWith("https://"));
 
 export const auth = betterAuth<BetterAuthOptions>({
   baseURL:
@@ -19,26 +21,25 @@ export const auth = betterAuth<BetterAuthOptions>({
     "http://localhost:3001",
   ],
   advanced: {
-    // For ngrok, we need secure cookies even in development
+    // For deployed environments or ngrok, use secure cookies
     useSecureCookies:
-      !isDevelopment || Boolean(process.env.CORS_ORIGIN?.includes("ngrok")),
+      isDeployed || Boolean(process.env.CORS_ORIGIN?.includes("ngrok")),
     defaultCookieAttributes: {
-      // Use secure cookies for ngrok (HTTPS), regular for localhost (HTTP)
-      secure:
-        !isDevelopment || Boolean(process.env.CORS_ORIGIN?.includes("ngrok")),
+      // Use secure cookies for deployed environments or ngrok
+      secure: isDeployed || Boolean(process.env.CORS_ORIGIN?.includes("ngrok")),
       httpOnly: true,
-      // Use "none" for ngrok to allow cross-site cookies, "lax" for localhost
+      // Use "none" for cross-domain scenarios (deployed or ngrok), "lax" for localhost
       sameSite: (() => {
-        if (process.env.CORS_ORIGIN?.includes("ngrok")) {
+        if (isDeployed || process.env.CORS_ORIGIN?.includes("ngrok")) {
           return "none";
         }
-        return isDevelopment ? "lax" : "none";
+        return "lax";
       })(),
       path: "/",
     },
     crossSubDomainCookies: {
       enabled: true,
-      domain: isDevelopment ? undefined : ".openplane.tech",
+      domain: isDeployed ? ".openplane.tech" : undefined,
     },
     // Add cookie prefix for better organization
     cookiePrefix: "openplane-auth",
