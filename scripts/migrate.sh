@@ -4,10 +4,23 @@ set -e
 echo "Running database migrations..."
 
 # Wait for database to be ready
-until bun run -e "import('pg').then(pg => { const client = new pg.Client({ connectionString: process.env.DATABASE_URL }); client.connect().then(() => { console.log('Database connected'); client.end(); process.exit(0); }).catch(() => process.exit(1)); }).catch(() => process.exit(1))" 2>/dev/null; do
-  echo "Waiting for database..."
+MAX_RETRIES=30
+RETRY_COUNT=0
+
+while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+  if bun -e "import('pg').then(async (pg) => { const client = new pg.default.Client({ connectionString: process.env.DATABASE_URL }); await client.connect(); console.log('Database connected'); await client.end(); process.exit(0); }).catch((err) => { console.error('Connection failed:', err.message); process.exit(1); })"; then
+    echo "Database connection successful"
+    break
+  fi
+  RETRY_COUNT=$((RETRY_COUNT + 1))
+  echo "Waiting for database... (attempt $RETRY_COUNT/$MAX_RETRIES)"
   sleep 2
 done
+
+if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+  echo "ERROR: Failed to connect to database after $MAX_RETRIES attempts"
+  exit 1
+fi
 
 # Generate Prisma client
 cd /app/packages/db
