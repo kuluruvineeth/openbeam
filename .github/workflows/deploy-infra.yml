@@ -16,8 +16,6 @@ env:
   TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
   TF_VAR_google_client_id: ${{ secrets.GOOGLE_CLIENT_ID }}
   TF_VAR_google_client_secret: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-  TF_VAR_redeploy_id: ${{ github.sha }}
-  TF_VAR_image_tag: ${{ github.sha }}
 
 jobs:
   terraform:
@@ -36,19 +34,47 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
+      - uses: google-github-actions/setup-gcloud@v2
+
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
+
+      - id: resolve_image_tag
+        run: |
+          IMAGE_TAG="${{ github.sha }}"
+          BASE_IMAGE="us-central1-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/openplane-repo/openplane-server"
+
+          echo "Resolving image tag (commit: ${IMAGE_TAG})"
+
+          # Try commit SHA tag first
+          if gcloud artifacts docker images describe ${BASE_IMAGE}:${IMAGE_TAG} --format=json 2>/dev/null; then
+            echo "tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+            echo "Using commit-specific images: ${IMAGE_TAG}"
+          # Fall back to latest tag
+          elif gcloud artifacts docker images describe ${BASE_IMAGE}:latest --format=json 2>/dev/null; then
+            echo "tag=latest" >> $GITHUB_OUTPUT
+            echo "Commit images not found, falling back to: latest"
+          else
+            echo "tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+            echo "No images found. Using placeholder: ${IMAGE_TAG}. Services may fail to deploy."
+          fi
 
       - working-directory: infra/terraform/environments/${{ steps.env.outputs.ENV }}
         run: terraform init
 
       - working-directory: infra/terraform/environments/${{ steps.env.outputs.ENV }}
+        env:
+          TF_VAR_redeploy_id: ${{ steps.resolve_image_tag.outputs.tag }}
+          TF_VAR_image_tag: ${{ steps.resolve_image_tag.outputs.tag }}
         run: terraform plan -no-color
         continue-on-error: true
 
       - if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
         working-directory: infra/terraform/environments/${{ steps.env.outputs.ENV }}
+        env:
+          TF_VAR_redeploy_id: ${{ steps.resolve_image_tag.outputs.tag }}
+          TF_VAR_image_tag: ${{ steps.resolve_image_tag.outputs.tag }}
         run: terraform apply -auto-approve -input=false
 
       - if: success()

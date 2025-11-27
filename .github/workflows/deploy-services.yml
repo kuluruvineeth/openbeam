@@ -79,6 +79,8 @@ jobs:
           BASE_IMAGE=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/openplane-repo/openplane-${{ matrix.service }}
           IMAGE_TAG=${{ steps.env.outputs.IMAGE_TAG }}
 
+          echo "Resolving image for ${{ matrix.service }} (commit: ${IMAGE_TAG})"
+
           # Try commit SHA tag first
           if gcloud artifacts docker images describe ${BASE_IMAGE}:${IMAGE_TAG} --format=json 2>/dev/null; then
             IMAGE="${BASE_IMAGE}:${IMAGE_TAG}"
@@ -90,7 +92,7 @@ jobs:
             IMAGE="${BASE_IMAGE}:latest"
             echo "exists=true" >> $GITHUB_OUTPUT
             echo "image=${IMAGE}" >> $GITHUB_OUTPUT
-            echo "Commit image not found, falling back to latest: ${IMAGE}"
+            echo "Commit image not found, falling back to latest"
           else
             echo "exists=false" >> $GITHUB_OUTPUT
             echo "::error::No images found for ${{ matrix.service }}. Please build images first."
