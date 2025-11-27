@@ -7,6 +7,15 @@ on:
       - "infra/terraform/**"
       - ".github/workflows/deploy-infra.yml"
   workflow_dispatch:
+    inputs:
+      skip_service_update:
+        description: "Skip updating service images (for infra-only changes)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: deploy-infra-${{ github.ref }}
+  cancel-in-progress: false
 
 env:
   TF_VERSION: 1.9.0
@@ -31,7 +40,9 @@ jobs:
       - uses: actions/checkout@v4
 
       - id: env
-        run: echo "ENV=$([[ "${{ github.ref }}" == "refs/heads/main" ]] && echo prod || echo dev)" >> $GITHUB_OUTPUT
+        run: |
+          ENV=$([[ "${{ github.ref }}" == "refs/heads/main" ]] && echo prod || echo dev)
+          echo "ENV=${ENV}" >> $GITHUB_OUTPUT
 
       - uses: google-github-actions/auth@v2
         with:
@@ -50,17 +61,16 @@ jobs:
 
           echo "Resolving image tag (commit: ${IMAGE_TAG})"
 
-          # Try commit SHA tag first
+          # For infra-only changes, try commit SHA then fall back to latest
           if gcloud artifacts docker images describe ${BASE_IMAGE}:${IMAGE_TAG} --format=json 2>/dev/null; then
             echo "tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
             echo "Using commit-specific images: ${IMAGE_TAG}"
-          # Fall back to latest tag
           elif gcloud artifacts docker images describe ${BASE_IMAGE}:latest --format=json 2>/dev/null; then
             echo "tag=latest" >> $GITHUB_OUTPUT
-            echo "Commit images not found, falling back to: latest"
+            echo "::warning::Using 'latest' tag. Infrastructure-only change deploying with existing code."
           else
-            echo "tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
-            echo "No images found. Using placeholder: ${IMAGE_TAG}. Services may fail to deploy."
+            echo "::error::No Docker images found. Please run Docker build workflow first."
+            exit 1
           fi
 
       - working-directory: infra/terraform/environments/${{ steps.env.outputs.ENV }}
@@ -80,28 +90,3 @@ jobs:
           TF_VAR_image_tag: ${{ steps.resolve_image_tag.outputs.tag }}
         run: terraform apply -auto-approve -input=false
 
-      - if: success()
-        name: Update service images
-        working-directory: infra/terraform/environments/${{ steps.env.outputs.ENV }}
-        run: |
-          if terraform show -json | grep -q "module.server\|module.worker\|module.web"; then
-            for svc in server worker web; do
-              IMG=$(terraform output -raw ${svc}_image 2>/dev/null || echo "")
-              [[ -n "$IMG" ]] && gcloud run services update openplane-${svc}-${{ steps.env.outputs.ENV }} --image=$IMG --region=us-central1 --project=${{ env.GCP_PROJECT_ID }} --quiet || true
-            done
-          fi
-        continue-on-error: true
-
-  migrate:
-    needs: terraform
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
-    permissions:
-      contents: read
-      id-token: write
-    uses: ./.github/workflows/run-migrations.yml
-    with:
-      environment: ${{ needs.terraform.outputs.environment }}
-      image_tag: ${{ needs.terraform.outputs.image_tag }}
-    secrets:
-      GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
-      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
