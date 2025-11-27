@@ -14,6 +14,21 @@ on:
         required: true
       GCP_PROJECT_ID:
         required: true
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to run migrations in'
+        required: true
+        type: choice
+        options:
+          - dev
+          - prod
+        default: 'dev'
+      image_tag:
+        description: 'Docker image tag to use (default: latest)'
+        required: false
+        type: string
+        default: 'latest'
 
 env:
   GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
