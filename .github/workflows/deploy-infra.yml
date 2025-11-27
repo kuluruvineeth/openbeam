@@ -41,9 +41,7 @@ jobs:
           terraform_version: ${{ env.TF_VERSION }}
 
       - working-directory: infra/terraform/environments/${{ steps.env.outputs.ENV }}
-        run: |
-          BUCKET=openplane-${{ steps.env.outputs.ENV }}-terraform-state
-          terraform init -backend-config="bucket=$BUCKET" -backend-config="prefix=terraform/state/${{ steps.env.outputs.ENV }}"
+        run: terraform init
 
       - working-directory: infra/terraform/environments/${{ steps.env.outputs.ENV }}
         run: terraform plan -no-color
