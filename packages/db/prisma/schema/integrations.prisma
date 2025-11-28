@@ -430,6 +430,7 @@ model ExternalGroup {
 
   @@unique([connectorId, externalId])
   @@index([groupType])
+  @@index([connectorId])
   @@map("external_group")
 }
 

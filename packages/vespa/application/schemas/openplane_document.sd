@@ -15,6 +15,7 @@ schema openplane_document {
     field connector_type type string {
       indexing: summary | attribute
       attribute: fast-search
+      # "slack", "google_drive", "notion", "github", "jira", etc.
     }
     
     field team_id type string {
@@ -34,7 +35,19 @@ schema openplane_document {
     field document_type type string {
       indexing: summary | attribute
       attribute: fast-search
-      # Values: "message", "file", "page", "issue", "ticket", "email", "note", etc.
+      # Primary types: "message", "file", "page", "issue", "ticket", 
+      # "email", "note", "pr", "review", "comment", "wiki", "task",
+      # "meeting", "recording", "transcript", "spreadsheet", "presentation"
+    }
+    
+    field document_subtype type string {
+      indexing: summary | attribute
+      # More specific: "slack_message", "notion_page", "jira_epic", 
+      # "github_issue", "confluence_page", "google_doc", etc.
+    }
+    
+    field mime_type type string {
+      indexing: summary | attribute
     }
     
     # === Content (universal fields) ===
@@ -48,6 +61,19 @@ schema openplane_document {
       index: enable-bm25
     }
     
+    # Rich content for better search
+    field content_plain type string {
+      indexing: index
+      index: enable-bm25
+      # Plain text version (no markdown/HTML)
+    }
+    
+    field content_html type string {
+      indexing: summary
+      # Original HTML/rich text for display
+    }
+    
+    # === Semantic Embeddings ===
     field content_embedding type tensor<float>(x[768]) {
       indexing: attribute | index
       attribute {
@@ -55,15 +81,55 @@ schema openplane_document {
       }
     }
     
-    # === Authorship & timestamps ===
+    field title_embedding type tensor<float>(x[768]) {
+      indexing: attribute | index
+      attribute {
+        distance-metric: angular
+      }
+      # Separate title embedding for better title matching
+    }
+    
+    # === Authorship ===
     field author_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field author_external_id type string {
       indexing: summary | attribute
     }
     
     field author_name type string {
-      indexing: summary
+      indexing: summary | index
+      index: enable-bm25
     }
     
+    field author_email type string {
+      indexing: summary | attribute
+    }
+    
+    # === Contributors & Mentions ===
+    field contributor_ids type array<string> {
+      indexing: summary | attribute
+      # All contributors (editors, commenters)
+    }
+    
+    field mentioned_user_ids type array<string> {
+      indexing: summary | attribute
+      # Users mentioned in the document
+    }
+    
+    field assignee_ids type array<string> {
+      indexing: summary | attribute
+      # For tasks/issues
+    }
+    
+    field reviewer_ids type array<string> {
+      indexing: summary | attribute
+      # For PRs, documents requiring review
+    }
+    
+    # === Timestamps ===
     field created_at type long {
       indexing: summary | attribute
       attribute: fast-search
@@ -71,29 +137,113 @@ schema openplane_document {
     
     field updated_at type long {
       indexing: summary | attribute
+      attribute: fast-search
     }
     
-    # === Source/container info ===
-    # For Slack: channel_id, Drive: folder_id, Notion: database_id, etc.
+    field indexed_at type long {
+      indexing: summary | attribute
+      # When we indexed this document
+    }
+    
+    field last_accessed_at type long {
+      indexing: summary | attribute
+      # Last time anyone accessed/viewed
+    }
+    
+    field due_date type long {
+      indexing: summary | attribute
+      # For tasks/issues
+    }
+    
+    field resolved_at type long {
+      indexing: summary | attribute
+      # When issue/task was resolved
+    }
+    
+    # === Source/Container Info ===
     field source_id type string {
       indexing: summary | attribute
+      attribute: fast-search
+      # Channel, folder, database, repository ID
     }
     
     field source_name type string {
-      indexing: summary
+      indexing: summary | index
+      index: enable-bm25
     }
     
     field source_type type string {
       indexing: summary | attribute
-      # "channel", "folder", "database", "repository", "project", etc.
+      # "channel", "folder", "database", "repository", "board", "space"
     }
     
-    # === Thread/parent relationships ===
+    field source_path type string {
+      indexing: summary | attribute
+      # Full path: "Engineering/Projects/Q3 Launch"
+    }
+    
+    # === Hierarchy & Relationships ===
     field parent_id type string {
       indexing: summary | attribute
+      attribute: fast-search
+      # Parent document (folder, thread root, etc.)
     }
     
     field thread_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+      # Thread root for messages
+    }
+    
+    field project_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+      # Associated project (Jira project, Linear team, etc.)
+    }
+    
+    field related_doc_ids type array<string> {
+      indexing: summary | attribute
+      # Explicitly related documents
+    }
+    
+    field referenced_doc_ids type array<string> {
+      indexing: summary | attribute
+      # Documents this doc references (links, citations)
+    }
+    
+    # === Status & Workflow (Critical for Issue Tracking) ===
+    field status type string {
+      indexing: summary | attribute
+      attribute: fast-search
+      # "open", "in_progress", "done", "closed", "archived", etc.
+    }
+    
+    field priority type string {
+      indexing: summary | attribute
+      # "critical", "high", "medium", "low", "none"
+    }
+    
+    field state type string {
+      indexing: summary | attribute
+      # Workflow state (more granular than status)
+    }
+    
+    field labels type array<string> {
+      indexing: summary | attribute | index
+      index: enable-bm25
+      # Tags, labels, categories
+    }
+    
+    field sprint type string {
+      indexing: summary | attribute
+      # Sprint/iteration name
+    }
+    
+    field milestone type string {
+      indexing: summary | attribute
+    }
+    
+    field version type string {
       indexing: summary | attribute
     }
     
@@ -116,7 +266,38 @@ schema openplane_document {
       # JSON array of attachment metadata
     }
     
+    # === File-Specific Fields ===
+    field file_name type string {
+      indexing: summary | index
+      index: enable-bm25
+    }
+    
+    field file_extension type string {
+      indexing: summary | attribute
+    }
+    
+    field file_size type long {
+      indexing: summary | attribute
+    }
+    
+    # === Connector-Specific Metadata ===
     field metadata type string {
+      indexing: summary | attribute
+      # JSON for connector-specific fields
+    }
+    
+    field custom_fields type string {
+      indexing: summary
+      # JSON for user-defined custom fields
+    }
+    
+    # === Sync Tracking ===
+    field checksum type string {
+      indexing: summary | attribute
+      # For change detection
+    }
+    
+    field sync_version type int {
       indexing: summary | attribute
     }
     
@@ -136,24 +317,30 @@ schema openplane_document {
     }
   }
   
-  # Field sets for searching
+  # === Field Sets ===
   fieldset default {
     fields: title, content
   }
   
+  fieldset full_text {
+    fields: title, content, content_plain
+  }
+  
   # === Ranking profiles ===
+  
+  # === Ranking Profiles ===
   
   # Base rank profile
   rank-profile default {
     first-phase {
-      expression: bm25(title) + bm25(content)
+      expression: bm25(title) * 2 + bm25(content)
     }
   }
   
   # BM25 text relevance
   rank-profile bm25 inherits default {
     first-phase {
-      expression: bm25(title) + bm25(content)
+      expression: bm25(title) * 2 + bm25(content)
     }
   }
   
@@ -168,9 +355,27 @@ schema openplane_document {
   rank-profile hybrid {
     first-phase {
       expression {
-        0.7 * (bm25(title) + bm25(content)) + 
-        0.3 * closeness(field, content_embedding)
+        0.6 * normalize(bm25(title) * 2 + bm25(content)) + 
+        0.4 * closeness(field, content_embedding)
       }
+    }
+    function normalize(score) {
+      expression: score / (1 + score)
+    }
+  }
+  
+  # Advanced hybrid with title embedding
+  rank-profile hybrid_advanced {
+    first-phase {
+      expression {
+        0.4 * normalize(bm25(title) * 2 + bm25(content)) +
+        0.3 * closeness(field, content_embedding) +
+        0.2 * closeness(field, title_embedding) +
+        0.1 * if(attribute(updated_at) > now() - 604800000, 1.2, 1.0)
+      }
+    }
+    function normalize(score) {
+      expression: score / (1 + score)
     }
   }
   
@@ -178,11 +383,29 @@ schema openplane_document {
   rank-profile recency {
     first-phase {
       expression {
-        if(attribute(created_at) > now() - 86400000,
-          1.5 * (bm25(title) + bm25(content)),
-          bm25(title) + bm25(content)
-        )
+        (bm25(title) * 2 + bm25(content)) *
+        freshness(attribute(updated_at))
       }
+    }
+    function freshness(t) {
+      expression: if(t > now() - 86400000, 2.0, if(t > now() - 604800000, 1.5, if(t > now() - 2592000000, 1.2, 1.0)))
+    }
+  }
+  
+  # Hybrid + Recency
+  rank-profile hybrid_recency {
+    first-phase {
+      expression {
+        (0.6 * normalize(bm25(title) * 2 + bm25(content)) + 
+         0.4 * closeness(field, content_embedding)) *
+        freshness(attribute(updated_at))
+      }
+    }
+    function normalize(score) {
+      expression: score / (1 + score)
+    }
+    function freshness(t) {
+      expression: if(t > now() - 86400000, 1.5, if(t > now() - 604800000, 1.2, 1.0))
     }
   }
   
@@ -190,10 +413,31 @@ schema openplane_document {
   rank-profile engagement {
     first-phase {
       expression {
-        (bm25(title) + bm25(content)) *
+        (bm25(title) * 2 + bm25(content)) *
         (1 + log(attribute(reaction_count) + 1) * 0.1) *
         (1 + log(attribute(reply_count) + 1) * 0.05)
       }
+    }
+  }
+  
+  # Enterprise search (combines everything)
+  rank-profile enterprise {
+    first-phase {
+      expression {
+        # Base relevance
+        (0.5 * normalize(bm25(title) * 2 + bm25(content)) +
+         0.3 * closeness(field, content_embedding)) *
+        # Engagement signals
+        (1 + log(attribute(view_count) + 1) * 0.02) *
+        # Freshness
+        freshness(attribute(updated_at))
+      }
+    }
+    function normalize(score) {
+      expression: score / (1 + score)
+    }
+    function freshness(t) {
+      expression: if(t > now() - 86400000, 1.3, if(t > now() - 604800000, 1.15, 1.0))
     }
   }
 }
