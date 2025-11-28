@@ -273,22 +273,38 @@ model Connector {
 model OAuthProvider {
   id                  String   @id @default(cuid()) @map("_id")
   connectorId         String   @unique
+  
+  // Client credentials
   clientId            String?
   clientSecret        String?  // Encrypted
+  clientSecretIv      String?
+  
   oauthScopes         String[] @default([])
   app                 AppType
-  isGlobal            Boolean  @default(false)
+  isGlobal            Boolean  @default(false)  // Shared across team
   
   // Token Management
   accessToken         String?  // Encrypted
+  accessTokenIv       String?
   refreshToken        String?  // Encrypted
+  refreshTokenIv      String?
+  
   tokenExpiresAt      DateTime?
-  tokenRefreshedAt    DateTime?
+  tokenRefreshedAt     DateTime?
+  
+  // Token metadata
+  tokenScopes         String[] @default([])  // Actual granted scopes
+  tokenType           String?
+  
+  // Refresh tracking
+  lastRefreshAttempt  DateTime?
+  refreshFailures     Int      @default(0)
+  refreshError        String?
 
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
-  connector    Connector    @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+  connector           Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
 
   @@map("oauth_provider")
 }
@@ -298,25 +314,50 @@ model Tool {
   teamId         String
   connectorId    String
   externalId     String?  @unique
-  toolName       String
-  toolSchema     Json
-  schemaVersion  String   @default("1.0.0")
-  description    String?
-  enabled        Boolean  @default(false)
   
-  // Usage
+  // Identity
+  toolName       String
+  displayName    String?
+  description    String?
+  category       String?  // "messaging", "task_management", "data"
+  
+  // MCP-compatible schema
+  toolSchema     Json     // Input schema
+  outputSchema   Json?    // Output schema
+  schemaVersion  String   @default("1.0.0")
+  
+  // Configuration
+  config         Json     @default("{}")
+  
+  // Permissions
+  requiredPermissions String[] @default([])
+  
+  // Status
+  enabled        Boolean  @default(false)
+  deprecated     Boolean  @default(false)
+  deprecatedAt   DateTime?
+  
+  // Usage tracking
   usageCount     Int      @default(0)
   lastUsedAt     DateTime?
-  rateLimitPerHour Int?
+  avgLatencyMs   Float?
+  errorRate      Float    @default(0)
+  
+  // Rate limiting
+  rateLimitPerMinute Int?
+  rateLimitPerHour   Int?
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  connector    Connector    @relation(fields: [connectorId], references: [id], onDelete: Cascade)
-  team         Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  connector      Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+  team           Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@unique([teamId, connectorId, toolName])
   @@index([connectorId])
+  @@index([teamId])
+  @@index([category])
+  @@index([enabled])
   @@map("tool")
 }
 
@@ -324,35 +365,71 @@ model ExternalIdentity {
   id          String   @id @default(cuid()) @map("_id")
   userId      String?
   connectorId String
+  
+  // External identity
   externalId  String
   email       String?
   username    String?
   displayName String?
+  avatarUrl   String?
+  
+  // Role/status in external system
+  externalRole String?
+  isBot       Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  
+  // For permission mapping
+  groupIds    String[] @default([])
+  
+  // Metadata
   metadata    Json?
+  rawData     Json?    // Original data from connector
+  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user      User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
-  connector Connector  @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  connector   Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
 
   @@unique([connectorId, externalId])
   @@index([userId])
   @@index([email])
+  @@index([connectorId])
   @@map("external_identity")
 }
 
 model ExternalGroup {
   id          String   @id @default(cuid()) @map("_id")
   connectorId String
+  
+  // Group identity
   externalId  String
   name        String
+  description String?
+  
+  // Group type
+  groupType   String?  // "team", "channel", "department", "role"
+  
+  // Hierarchy
+  parentId    String?  // Parent group external ID
+  
+  // Members (for caching)
+  memberCount Int      @default(0)
+  memberIds   String[] @default([])  // External identity IDs
+  
+  // Status
+  isActive    Boolean  @default(true)
+  
+  // Metadata
   metadata    Json?
+  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   connector   Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
 
   @@unique([connectorId, externalId])
+  @@index([groupType])
   @@map("external_group")
 }
 
