@@ -145,7 +145,17 @@ model Workspace {
   externalId     String       @unique
   teamId         String
   name           String
+  
+  // Workspace details
+  domain         String?      // e.g., "company.slack.com"
+  iconUrl        String?
+  
+  // Settings
   settings       Json         @default("{}")
+  
+  // Status
+  isActive       Boolean      @default(true)
+  
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
@@ -160,44 +170,95 @@ model Connector {
   teamId              String
   userId              String
   workspaceExternalId String
+  
+  // Identity
   name                String
+  description         String?
+  
+  // Classification
   type                ConnectorType
   authType            AuthType
   app                 AppType
-  config              Json
   
-  // Credentials (Consolidated & Encrypted)
+  // Configuration
+  config              Json            @default("{}")
+  // { scopes: [...], channels: [...], excludePatterns: [...] }
+  
+  // === Credentials (Encrypted) ===
   encryptedCredentials String?
   credentialsIv        String?
-
-  // Operational Fields
+  
+  // === Operational State ===
   status              ConnectorStatus @default(CONNECTING)
+  statusMessage       String?         // Human-readable status
+  statusChangedAt     DateTime?
+  
+  // State machine
   state               Json            @default("{}")
+  // { phase: "initial_sync", progress: 0.45, currentResource: "messages" }
+  
+  // === Sync Configuration ===
+  syncConfig          Json            @default("{}")
+  // { schedule: "0 */6 * * *", batchSize: 100, maxConcurrency: 5 }
+  
+  syncEnabled         Boolean         @default(true)
+  syncMode            String          @default("incremental")  // "full", "incremental"
+  
+  // === Sync Status ===
   lastSyncedAt        DateTime?
   lastSyncStatus      String?
+  lastSyncDuration    Int?            // Duration in ms
   lastError           String?
   lastErrorAt         DateTime?
-  syncConfig          Json            @default("{}")
+  lastErrorCode       String?         // Error classification
+  
+  consecutiveErrors   Int             @default(0)
+  errorBackoffUntil   DateTime?
+  
+  // === Statistics ===
+  totalDocuments      Int             @default(0)
+  totalMessages       Int             @default(0)
+  totalFiles          Int             @default(0)
+  totalEntities       Int             @default(0)
+  
+  // === Webhook Configuration ===
   webhookConfig       Json?
+  webhookSecret       String?
+  webhookEnabled      Boolean         @default(false)
+  
+  // === Rate Limiting ===
   rateLimits          Json?
+  rateLimitResetAt    DateTime?
+  
+  // === Retry Configuration ===
   retryCount          Int             @default(0)
   maxRetries          Int             @default(3)
-  dataResidency       String?
-
+  
+  // === Data Residency ===
+  dataResidency       String?         // "us", "eu", "ap"
+  
+  // === Health & Monitoring ===
+  healthScore         Float           @default(100)  // 0-100
+  lastHealthCheck     DateTime?
+  
+  // Timestamps
   createdAt           DateTime        @default(now())
   updatedAt           DateTime        @updatedAt
-
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  team          Team           @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  tools         Tool[]
-  oauthProvider OAuthProvider?
-  syncJobs      SyncJob[]
-  syncHistory   SyncHistory[]
-  syncCursors   SyncCursor[]
-  auditLogs     ConnectorAuditLog[]
-  externalIdentities ExternalIdentity[]
-  externalGroups     ExternalGroup[]
-  indexedDocuments   IndexedDocument[]
+  pausedAt            DateTime?
+  
+  // Relations
+  user                User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team                Team            @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  tools               Tool[]
+  oauthProvider       OAuthProvider?
+  syncJobs            SyncJob[]
+  syncHistory         SyncHistory[]
+  syncCursors         SyncCursor[]
+  auditLogs           ConnectorAuditLog[]
+  externalIdentities  ExternalIdentity[]
+  externalGroups      ExternalGroup[]
+  indexedDocuments    IndexedDocument[]
+  connectorResources  ConnectorResource[]
   
 
   @@unique([teamId, workspaceExternalId, app, name])
@@ -205,6 +266,7 @@ model Connector {
   @@index([userId])
   @@index([app])
   @@index([status])
+  @@index([lastSyncedAt])
   @@map("connector")
 }
 
@@ -292,4 +354,42 @@ model ExternalGroup {
 
   @@unique([connectorId, externalId])
   @@map("external_group")
+}
+
+model ConnectorResource {
+  id              String   @id @default(cuid()) @map("_id")
+  connectorId     String
+  externalId      String
+  resourceType    String   // "channel", "folder", "repository", "database", etc.
+  
+  // Resource details
+  name            String?
+  path            String?
+  parentId        String?
+  
+  // Sync configuration
+  syncEnabled     Boolean  @default(true)
+  syncPriority    Int      @default(5)  // 1-10, higher = more urgent
+  
+  // Sync status
+  lastSyncedAt    DateTime?
+  documentCount   Int      @default(0)
+  
+  // Access control
+  isPublic        Boolean  @default(false)
+  accessControl   String[] @default([])  // User/group IDs with access
+  
+  // Metadata
+  metadata        Json?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  connector       Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+  
+  @@unique([connectorId, externalId])
+  @@index([connectorId])
+  @@index([resourceType])
+  @@index([syncEnabled])
+  @@map("connector_resource")
 }
