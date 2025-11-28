@@ -215,15 +215,29 @@ model ConnectorAuditLog {
   id          String   @id @default(cuid()) @map("_id")
   connectorId String
   userId      String
-  action      String   // CREATED, UPDATED, DELETED, SYNCED, PAUSED, RESUMED
-  changes     Json
+  
+  // Action
+  action      String   // "created", "updated", "deleted", "paused", "resumed", "synced", "configured"
+  
+  // What changed
+  changes     Json     @default("{}")
+  // { field: "syncConfig", old: {...}, new: {...} }
+  
+  // Context
   ipAddress   String?
   userAgent   String?
+  
+  // Result
+  success     Boolean  @default(true)
+  errorMessage String?
+  
   createdAt   DateTime @default(now())
 
   connector   Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
 
   @@index([connectorId])
+  @@index([userId])
+  @@index([action])
   @@index([createdAt])
   @@map("connector_audit_log")
 }
@@ -231,23 +245,52 @@ model ConnectorAuditLog {
 model IndexedDocument {
   id              String   @id @default(cuid()) @map("_id")
   connectorId     String
-  externalId      String   // Connector's document ID (Slack message ts, Notion page ID, Drive file ID, etc.)
-  vespaId         String   @unique // Vespa document ID (our generated ID)
-  documentType    String   // "message", "file", "page", "issue", "ticket", etc.
-  sourceId        String?  // Channel, folder, database, repository ID
+  
+  // === Document Identity ===
+  externalId      String   // Connector's document ID
+  vespaId         String   @unique  // Vespa document ID
+  
+  // === Classification ===
+  documentType    String   // "message", "file", "page", "issue", etc.
+  documentSubtype String?  // More specific type
+  
+  // === Location ===
+  sourceId        String?  // Channel, folder, database ID
+  sourcePath      String?  // Full path
+  parentId        String?  // Parent document ID (for hierarchy)
+  
+  // === Content Tracking ===
+  checksum        String?  // SHA-256 of content
+  lastChecksum    String?  // Previous checksum
+  contentLength   Int?     // Content size in chars
+  
+  // === Sync State ===
   indexedAt       DateTime @default(now())
   lastSyncedAt    DateTime @updatedAt
-  checksum        String?  // Content hash for change detection (SHA-256)
-  lastChecksum    String?  // Previous hash for change detection (NEW)
+  syncVersion     Int      @default(1)
   
-  connector Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+  // Was this deleted from source?
+  deletedFromSource Boolean @default(false)
+  deletedAt        DateTime?
+  
+  // === Metadata Cache ===
+  title           String?
+  authorId        String?
+  createdAtSource DateTime?
+  updatedAtSource DateTime?
+  
+  metadata        Json     @default("{}")
+  
+  connector       Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
   
   @@unique([connectorId, externalId])
   @@index([connectorId, documentType])
-  @@index([connectorId, checksum]) // For deduplication queries
+  @@index([connectorId, checksum])
   @@index([vespaId])
   @@index([sourceId])
-  @@index([lastSyncedAt]) // For cleanup queries
+  @@index([parentId])
+  @@index([lastSyncedAt])
+  @@index([deletedFromSource])
   @@map("indexed_document")
 }
 
