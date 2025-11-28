@@ -50,41 +50,80 @@ enum SyncEventType {
 }
 
 model SyncJob {
-  id                  String        @id @default(cuid()) @map("_id")
+  id                  String          @id @default(cuid()) @map("_id")
   connectorId         String
   
-  // Job Configuration & State
+  // === Job Identity ===
+  jobType             String          @default("sync")  // "sync", "backfill", "repair", "delete"
+  
+  // === Job Configuration ===
   type                SyncCategory
-  status              ConnectorStatus @default(SYNCING)
+  status              SyncJobStatus   @default(PENDING)
   trigger             SyncTrigger     @default(SCHEDULED)
   config              Json            @default("{}")
+  // { resources: [...], filters: {...}, options: {...} }
   
-  // Scheduling
-  schedule            String?       // Cron expression (e.g., "0 */6 * * *")
-  priority            Int           @default(5) // Job priority (1-10, higher = more urgent)
+  // === Scheduling ===
+  schedule            String?         // Cron expression
+  priority            Int             @default(5)  // 1-10, higher = more urgent
   
-  // Exactly-Once Execution
-  fenceToken          Int?          // Monotonic token for fencing protocol
+  // === Exactly-Once Execution ===
+  fenceToken          Int?            // Monotonic token for fencing protocol
+  lockId              String?         // Distributed lock ID
+  lockExpiresAt       DateTime?
   
-  // Rate Limiting
-  rateLimitConfig     Json?         // Per-connector rate limit configuration
+  // === Rate Limiting ===
+  rateLimitConfig     Json?
+  rateLimitedUntil    DateTime?
   
-  // Timing
+  // === Progress Tracking ===
+  progress            Float           @default(0)  // 0-1
+  currentPhase        String?         // "fetching", "processing", "indexing"
+  currentResource     String?         // Current resource being synced
+  
+  itemsTotal          Int             @default(0)
+  itemsProcessed      Int             @default(0)
+  itemsFailed         Int             @default(0)
+  
+  // === Timing ===
+  scheduledAt         DateTime?
+  queuedAt            DateTime?
+  startedAt           DateTime?
+  completedAt         DateTime?
+  
   lastRanAt           DateTime?
   nextRunAt           DateTime?
   
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
+  // === Timeout ===
+  timeoutMs           Int             @default(3600000)  // 1 hour default
+  
+  // === Error Handling ===
+  errorMessage        String?
+  errorCode           String?
+  errorStack          String?
+  retryCount          Int             @default(0)
+  maxRetries          Int             @default(3)
+  retryAfter          DateTime?
+  
+  // === Checkpointing ===
+  checkpoint          Json?           // For resumable syncs
+  lastCheckpointAt    DateTime?
+  
+  // Timestamps
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
   deletedAt           DateTime?
 
-  connector           Connector     @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+  connector           Connector       @relation(fields: [connectorId], references: [id], onDelete: Cascade)
   history             SyncHistory[]
   events              SyncEvent[]
 
   @@index([connectorId])
   @@index([status])
-  @@index([nextRunAt]) // For scheduler queries
-  @@index([priority])  // For priority queue
+  @@index([nextRunAt])
+  @@index([priority])
+  @@index([status, nextRunAt])
+  @@index([connectorId, status])
   @@map("sync_job")
 }
 
