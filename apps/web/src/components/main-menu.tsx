@@ -19,14 +19,8 @@ type MenuItems = readonly MenuItem[];
 
 const icons: Record<string, () => React.ReactElement> = {
   "/": () => <Icons.Plus size={20} />,
-  "/history": () => <Icons.History size={20} />,
-  "/workflow": () => <Icons.Workflow size={20} />,
-  "/messages": () => <Icons.Messages size={20} />,
-  "/agents": () => <Icons.Agents size={20} />,
   "/data-sources": () => <Icons.ConnectorIcon size={20} />,
   "/integrations": () => <Icons.Integrations size={20} />,
-  "/knowledge-management": () => <Icons.KnowledgeManagement size={20} />,
-  "/settings": () => <Icons.Settings size={20} />,
 } as const;
 
 const items: MenuItems = [
@@ -35,60 +29,12 @@ const items: MenuItems = [
     name: "New",
   },
   {
-    path: "/history",
-    name: "Chat History",
-    children: [
-      { path: "/history/favourites", name: "Favourite chats" },
-      { path: "/history/all", name: "All chats" },
-    ],
-  },
-  {
-    path: "/workflow",
-    name: "Workflow Builder",
-    children: [
-      { path: "/workflow/workflow", name: "Workflow" },
-      { path: "/workflow/executions", name: "Executions" },
-    ],
-  },
-  {
-    path: "/messages",
-    name: "Messages",
-    children: [
-      { path: "/messages/direct", name: "Direct messages" },
-      { path: "/messages/channels", name: "Channels" },
-      { path: "/messages/call-history", name: "Call history" },
-    ],
-  },
-  {
-    path: "/agents",
-    name: "Agents",
-    children: [
-      { path: "/agents/all", name: "All" },
-      { path: "/agents/shared", name: "Shared With Me" },
-      { path: "/agents/mine", name: "Made By Me" },
-    ],
-  },
-  {
     path: "/data-sources",
     name: "Data Sources",
   },
   {
     path: "/integrations",
     name: "Integrations",
-  },
-  {
-    path: "/knowledge-management",
-    name: "Knowledge Management",
-  },
-  {
-    path: "/settings",
-    name: "Settings",
-    children: [
-      { path: "/settings", name: "General" },
-      { path: "/settings/billing", name: "Billing" },
-      { path: "/settings/analytics", name: "Analytics" },
-      { path: "/settings/members", name: "Members" },
-    ],
   },
 ] as const;
 

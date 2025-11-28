@@ -52,3 +52,11 @@ temp
 .npmrc
 
 .cursor
+
+# Terraform error states
+**/*errored.tfstate
+
+out/*
+
+tfplan
+cloud-sql-proxy
