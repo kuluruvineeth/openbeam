@@ -1,6 +1,7 @@
 enum ConnectorType {
   SOURCE
   DESTINATION
+  BIDIRECTIONAL
 }
 
 enum AuthType {
@@ -8,61 +9,122 @@ enum AuthType {
   API_KEY
   BASIC
   SESSION
+  SERVICE_ACCOUNT
+  TOKEN
 }
 
 enum AppType {
+  // Communication & Collaboration
   SLACK
-  GOOGLE_DRIVE
-  NOTION
-  GITHUB
-  HUBSPOT
-  SALESFORCE
-  ZENDESK
-  INTERCOM
-  JIRA
-  ASANA
-  TRELLO
-  AIRTABLE
-  CLICKUP
-  LINEAR
-  SHOPIFY
-  STRIPE
-  XERO
-  QUICKBOOKS
-  SAGE
-  NETSUITE
-  ZOHO
   MICROSOFT_TEAMS
   DISCORD
   WHATSAPP
-  TWILIO
-  SENDGRID
+  
+  // Email
+  GMAIL
+  OUTLOOK
+  
+  // Documents & Storage
+  GOOGLE_DRIVE
+  ONEDRIVE
+  SHAREPOINT
+  DROPBOX
+  BOX
+  
+  // Knowledge & Wiki
+  NOTION
+  CONFLUENCE
+  CODA
+  
+  // Project Management
+  JIRA
+  ASANA
+  TRELLO
+  CLICKUP
+  LINEAR
+  MONDAY
+  BASECAMP
+  
+  // Code & Development
+  GITHUB
+  GITLAB
+  BITBUCKET
+  
+  // CRM & Sales
+  SALESFORCE
+  HUBSPOT
+  PIPEDRIVE
+  ZOHO
+  
+  // Customer Support
+  ZENDESK
+  INTERCOM
+  FRESHDESK
+  SERVICENOW
+  
+  // Finance
+  STRIPE
+  XERO
+  QUICKBOOKS
+  NETSUITE
+  SAGE
+  
+  // Marketing
   MAILCHIMP
-  HUBSPOT_MARKETING
-  SALESFORCE_MARKETING
   MARKETO
   PARDOT
-  ELASTICSEARCH
-  MONGODB
-  POSTGRESQL
-  MYSQL
-  SQLSERVER
-  ORACLE
+  
+  // Data & Analytics
   SNOWFLAKE
   BIGQUERY
   REDSHIFT
   DATABRICKS
+  TABLEAU
+  LOOKER
+  
+  // Databases
+  POSTGRESQL
+  MYSQL
+  MONGODB
+  ELASTICSEARCH
+  
+  // Cloud Storage
   S3
   GCS
   AZURE_BLOB
-  BOX
-  DROPBOX
-  ONEDRIVE
-  SHAREPOINT
-  SERVICENOW
+  
+  // Identity
+  OKTA
+  AZURE_AD
+  GOOGLE_WORKSPACE
+  
+  // Calendar
+  GOOGLE_CALENDAR
+  OUTLOOK_CALENDAR
+  
+  // Other
+  AIRTABLE
+  FIGMA
+  MIRO
+  LOOM
+  ZOOM
+  
+  // Generic/Custom
+  GENERIC_API
+  WEBHOOK
+  RSS
+  CUSTOM
+  
+  // Legacy/Deprecated (kept for backward compatibility)
+  TWILIO
+  SENDGRID
+  HUBSPOT_MARKETING
+  SALESFORCE_MARKETING
+  SQLSERVER
+  ORACLE
+  SHOPIFY
   ZENDESK_SUPPORT
   JIRA_SERVICE_MANAGEMENT
-  FRESHDESK
   INTERCOM_SUPPORT
   SALESFORCE_SERVICE_CLOUD
 }
@@ -73,6 +135,9 @@ enum ConnectorStatus {
   ERROR
   SYNCING
   CONNECTING
+  PAUSED
+  RATE_LIMITED
+  AUTH_EXPIRED
 }
 
 model Workspace {
