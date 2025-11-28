@@ -2,11 +2,51 @@ enum SyncTrigger {
   SCHEDULED
   MANUAL
   WEBHOOK
+  REALTIME
+  BACKFILL
+  RETRY
 }
 
 enum SyncCategory {
   FULL
   INCREMENTAL
+  DELTA
+  REPAIR
+}
+
+enum SyncJobStatus {
+  PENDING
+  QUEUED
+  RUNNING
+  PAUSED
+  COMPLETED
+  FAILED
+  CANCELLED
+  TIMEOUT
+}
+
+enum SyncEventType {
+  JOB_STARTED
+  JOB_COMPLETED
+  JOB_FAILED
+  JOB_CANCELLED
+  JOB_TIMEOUT
+  PHASE_STARTED
+  PHASE_COMPLETED
+  RESOURCE_STARTED
+  RESOURCE_COMPLETED
+  RESOURCE_FAILED
+  DOCUMENT_INDEXED
+  DOCUMENT_UPDATED
+  DOCUMENT_DELETED
+  DOCUMENT_SKIPPED
+  DOCUMENT_FAILED
+  RATE_LIMITED
+  TOKEN_REFRESHED
+  CHECKPOINT_SAVED
+  CHECKPOINT_RESTORED
+  ERROR
+  WARNING
 }
 
 model SyncJob {
@@ -15,18 +55,18 @@ model SyncJob {
   
   // Job Configuration & State
   type                SyncCategory
-  status              ConnectorStatus @default(SYNCING) // Using ConnectorStatus or separate SyncStatus? Drizzle used SyncJobStatus
+  status              ConnectorStatus @default(SYNCING)
   trigger             SyncTrigger     @default(SCHEDULED)
   config              Json            @default("{}")
   
-  // Scheduling (NEW)
+  // Scheduling
   schedule            String?       // Cron expression (e.g., "0 */6 * * *")
   priority            Int           @default(5) // Job priority (1-10, higher = more urgent)
   
-  // Exactly-Once Execution (NEW)
+  // Exactly-Once Execution
   fenceToken          Int?          // Monotonic token for fencing protocol
   
-  // Rate Limiting (NEW)
+  // Rate Limiting
   rateLimitConfig     Json?         // Per-connector rate limit configuration
   
   // Timing
@@ -39,6 +79,7 @@ model SyncJob {
 
   connector           Connector     @relation(fields: [connectorId], references: [id], onDelete: Cascade)
   history             SyncHistory[]
+  events              SyncEvent[]
 
   @@index([connectorId])
   @@index([status])
@@ -125,5 +166,33 @@ model IndexedDocument {
   @@index([sourceId])
   @@index([lastSyncedAt]) // For cleanup queries
   @@map("indexed_document")
+}
+
+model SyncEvent {
+  id              String          @id @default(cuid()) @map("_id")
+  syncJobId       String
+  
+  eventType       SyncEventType
+  message         String?
+  
+  // Context
+  resource        String?
+  documentId      String?
+  
+  // Details
+  details         Json            @default("{}")
+  
+  // Error info
+  errorCode       String?
+  errorMessage    String?
+  
+  createdAt       DateTime        @default(now())
+  
+  syncJob         SyncJob         @relation(fields: [syncJobId], references: [id], onDelete: Cascade)
+  
+  @@index([syncJobId])
+  @@index([eventType])
+  @@index([createdAt])
+  @@map("sync_event")
 }
 
