@@ -188,13 +188,26 @@ model SyncHistory {
 model SyncCursor {
   id            String   @id @default(cuid()) @map("_id")
   connectorId   String
-  resource      String
-  cursor        String?
+  
+  // Resource identification
+  resource      String   // "messages", "files", "users", "channel:C123"
+  resourceType  String?  // "channel", "folder", "repository"
+  
+  // Cursor value
+  cursor        String?  // API cursor, timestamp, or offset
+  cursorType    String   @default("timestamp")  // "timestamp", "offset", "cursor", "sync_token"
+  
+  // Sync state
   lastSyncedAt  DateTime @default(now())
+  lastDocumentId String? // Last processed document
+  
+  // Metadata
+  metadata      Json     @default("{}")
 
-  connector Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+  connector     Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
 
   @@unique([connectorId, resource])
+  @@index([connectorId])
   @@map("sync_cursor")
 }
 
@@ -264,5 +277,47 @@ model SyncEvent {
   @@index([eventType])
   @@index([createdAt])
   @@map("sync_event")
+}
+
+// --- Dead Letter Queue ---
+// Store failed sync items for retry/investigation
+
+model SyncDeadLetter {
+  id              String   @id @default(cuid()) @map("_id")
+  connectorId     String
+  syncJobId       String?
+  
+  // Document info
+  externalId      String
+  documentType    String
+  
+  // Original data
+  rawData         Json?
+  
+  // Error info
+  errorType       String   // "validation", "transform", "index", "permission"
+  errorMessage    String
+  errorStack      String?
+  
+  // Retry tracking
+  retryCount      Int      @default(0)
+  maxRetries      Int      @default(3)
+  lastRetryAt     DateTime?
+  nextRetryAt     DateTime?
+  
+  // Status
+  status          String   @default("pending")  // "pending", "retrying", "resolved", "abandoned"
+  resolvedAt      DateTime?
+  resolvedBy      String?
+  resolution      String?  // "retried", "skipped", "manual_fix"
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([connectorId])
+  @@index([status])
+  @@index([nextRetryAt])
+  @@index([errorType])
+  @@map("sync_dead_letter")
 }
 
