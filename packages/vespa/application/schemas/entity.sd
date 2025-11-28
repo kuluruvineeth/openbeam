@@ -1,17 +1,7 @@
 schema entity {
   document entity {
+    # === Primary Identifiers ===
     field id type string {
-      indexing: summary | attribute
-      attribute: fast-search
-    }
-    
-    field entity_type type string {
-      indexing: summary | attribute
-      attribute: fast-search
-      # "user", "channel", "workspace", "group", "team", etc.
-    }
-    
-    field connector_id type string {
       indexing: summary | attribute
       attribute: fast-search
     }
@@ -21,27 +11,207 @@ schema entity {
       attribute: fast-search
     }
     
+    field connector_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
     field external_id type string {
       indexing: summary | attribute
     }
     
+    # === Entity Classification ===
+    field entity_type type string {
+      indexing: summary | attribute
+      attribute: fast-search
+      # Primary types:
+      # "user"      - Individual users from connected apps
+      # "channel"   - Slack channels, Teams channels
+      # "group"     - Permission groups, user groups
+      # "workspace" - Slack workspace, Notion workspace
+      # "org"       - Organization/company
+      # "team"      - Teams within an org
+      # "folder"    - Drive folders, Notion databases
+      # "repository"- GitHub/GitLab repos
+      # "board"     - Jira/Trello boards
+      # "space"     - Confluence spaces
+      # "topic"     - Extracted topics/themes
+      # "product"   - Products mentioned in docs
+      # "company"   - Companies mentioned in docs
+      # "location"  - Locations/offices
+      # "event"     - Calendar events, meetings
+      # "custom"    - User-defined entity types
+    }
+    
+    field entity_subtype type string {
+      indexing: summary | attribute
+      # More specific: "slack_channel", "public_channel", "private_channel",
+      # "dm", "group_dm", "google_drive_folder", etc.
+    }
+    
+    # === Core Information ===
     field name type string {
       indexing: summary | index
       index: enable-bm25
     }
     
+    field display_name type string {
+      indexing: summary | index
+      index: enable-bm25
+    }
+    
+    field description type string {
+      indexing: summary | index
+      index: enable-bm25
+    }
+    
+    field short_name type string {
+      indexing: summary | attribute | index
+      index: enable-bm25
+      # Abbreviation, handle, slug
+    }
+    
+    # === Contact/Identity Fields (for user-type entities) ===
     field email type string {
+      indexing: summary | attribute | index
+      index: enable-bm25
+    }
+    
+    field emails type array<string> {
+      indexing: summary | attribute
+      # Multiple email addresses
+    }
+    
+    field username type string {
       indexing: summary | attribute
     }
     
+    field phone type string {
+      indexing: summary
+    }
+    
+    # === Visual ===
     field avatar_url type string {
       indexing: summary
     }
     
-    field metadata type string {
+    field icon type string {
+      indexing: summary
+    }
+    
+    field color type string {
       indexing: summary | attribute
     }
     
+    # === Hierarchy & Relationships ===
+    field parent_id type string {
+      indexing: summary | attribute
+      # Parent entity (org -> team -> user, folder -> subfolder)
+    }
+    
+    field parent_ids type array<string> {
+      indexing: summary | attribute
+      # Full hierarchy chain
+    }
+    
+    field child_ids type array<string> {
+      indexing: summary | attribute
+    }
+    
+    field member_ids type array<string> {
+      indexing: summary | attribute
+      # Members (for groups, channels, teams)
+    }
+    
+    field member_count type int {
+      indexing: summary | attribute
+    }
+    
+    field owner_ids type array<string> {
+      indexing: summary | attribute
+      # Owners/admins of this entity
+    }
+    
+    # === Knowledge Graph ===
+    field related_entity_ids type array<string> {
+      indexing: summary | attribute
+    }
+    
+    field related_project_ids type array<string> {
+      indexing: summary | attribute
+    }
+    
+    field related_document_ids type array<string> {
+      indexing: summary | attribute
+    }
+    
+    field tags type array<string> {
+      indexing: summary | attribute | index
+      index: enable-bm25
+    }
+    
+    field topics type array<string> {
+      indexing: summary | attribute | index
+      index: enable-bm25
+    }
+    
+    # === Semantic Embedding ===
+    field entity_embedding type tensor<float>(x[768]) {
+      indexing: attribute | index
+      attribute {
+        distance-metric: angular
+      }
+    }
+    
+    # === Activity Metrics ===
+    field document_count type int {
+      indexing: summary | attribute
+      # Documents in this entity (files in folder, messages in channel)
+    }
+    
+    field message_count type int {
+      indexing: summary | attribute
+    }
+    
+    field activity_score type float {
+      indexing: summary | attribute
+      # Overall activity level
+    }
+    
+    field last_activity_at type long {
+      indexing: summary | attribute
+    }
+    
+    # === Status ===
+    field status type string {
+      indexing: summary | attribute
+      attribute: fast-search
+      # "active", "inactive", "archived", "deleted"
+    }
+    
+    field is_active type bool {
+      indexing: summary | attribute
+    }
+    
+    field is_archived type bool {
+      indexing: summary | attribute
+    }
+    
+    field is_public type bool {
+      indexing: summary | attribute
+    }
+    
+    field visibility type string {
+      indexing: summary | attribute
+      # "public", "internal", "private"
+    }
+    
+    # === Access Control ===
+    field access_control type array<string> {
+      indexing: summary | attribute
+    }
+    
+    # === Timestamps ===
     field created_at type long {
       indexing: summary | attribute
     }
@@ -50,19 +220,104 @@ schema entity {
       indexing: summary | attribute
     }
     
-    field is_active type bool {
+    # === URL ===
+    field url type string {
+      indexing: summary
+    }
+    
+    # === Metadata ===
+    field metadata type string {
       indexing: summary | attribute
+      # JSON for connector-specific fields
+    }
+    
+    field properties type string {
+      indexing: summary
+      # JSON for additional properties
     }
   }
   
+  # === Field Sets ===
   fieldset default {
-    fields: name, email
+    fields: name, display_name, email, description
   }
+  
+  fieldset identity {
+    fields: name, display_name, email, username, short_name
+  }
+  
+  # === Ranking Profiles ===
   
   rank-profile default {
     first-phase {
-      expression: bm25(name)
+      expression {
+        bm25(name) * 2 + 
+        bm25(display_name) * 1.5 + 
+        bm25(email) +
+        bm25(description) * 0.5
+      }
+    }
+  }
+  
+  # Name-focused search
+  rank-profile by_name {
+    first-phase {
+      expression {
+        bm25(name) * 3 +
+        bm25(display_name) * 2 +
+        bm25(short_name) * 1.5 +
+        bm25(email)
+      }
+    }
+  }
+  
+  # Description/content search
+  rank-profile by_description {
+    first-phase {
+      expression {
+        bm25(description) * 2 +
+        bm25(name) +
+        bm25(tags)
+      }
+    }
+  }
+  
+  # Semantic similarity
+  rank-profile semantic {
+    first-phase {
+      expression: closeness(field, entity_embedding)
+    }
+  }
+  
+  # Hybrid search
+  rank-profile hybrid {
+    first-phase {
+      expression {
+        0.6 * (bm25(name) * 2 + bm25(description) + bm25(tags)) +
+        0.4 * closeness(field, entity_embedding)
+      }
+    }
+  }
+  
+  # Active entities first
+  rank-profile active {
+    first-phase {
+      expression {
+        (bm25(name) * 2 + bm25(description)) *
+        (1 + log(attribute(document_count) + 1) * 0.1) *
+        (1 + attribute(activity_score) * 0.2)
+      }
+    }
+  }
+  
+  # Large/popular entities
+  rank-profile popular {
+    first-phase {
+      expression {
+        (bm25(name) * 2 + bm25(description)) *
+        (1 + log(attribute(member_count) + 1) * 0.15) *
+        (1 + log(attribute(document_count) + 1) * 0.1)
+      }
     }
   }
 }
-
