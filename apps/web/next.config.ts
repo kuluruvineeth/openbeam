@@ -1,5 +1,9 @@
 import type { NextConfig } from "next";
-import { needsProxy, serverUrl } from "@/lib/urls";
+
+const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000";
+const corsOrigin = process.env.CORS_ORIGIN || "http://localhost:3001";
+const needsProxy =
+  corsOrigin.startsWith("https://") && serverUrl.startsWith("http://");
 
 const nextConfig: NextConfig = {
   typedRoutes: true,
