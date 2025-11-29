@@ -1,5 +1,5 @@
 import type { RouteHandler } from "@hono/zod-openapi";
-import prisma from "@openplane/db";
+import prisma, { SyncJobStatus, SyncTrigger } from "@openplane/db";
 import { type SyncJobData, syncQueue } from "@openplane/redis";
 import type { AuthEnv } from "@/middleware/auth";
 import { getTeamId } from "@/middleware/auth";
@@ -50,7 +50,7 @@ export const triggerSyncHandler: RouteHandler<
       connectorId,
       type: type === "INCREMENTAL" ? "INCREMENTAL" : "FULL",
       trigger: "MANUAL",
-      status: "SYNCING",
+      status: SyncJobStatus.RUNNING,
     },
   });
 
@@ -59,7 +59,8 @@ export const triggerSyncHandler: RouteHandler<
     data: {
       syncJobId: syncJob.id,
       connectorId,
-      status: "SYNCING",
+      status: SyncJobStatus.RUNNING,
+      trigger: SyncTrigger.MANUAL,
       startedAt: new Date(),
     },
   });
