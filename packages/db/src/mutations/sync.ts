@@ -1,4 +1,4 @@
-import type { Database } from "../index";
+import { type Database, SyncJobStatus, SyncTrigger } from "../index";
 
 export interface TriggerSyncInput {
   connectorId: string;
@@ -24,7 +24,7 @@ export const triggerSync = async (
       connectorId: input.connectorId,
       type: input.type,
       trigger: "MANUAL",
-      status: "SYNCING",
+      status: SyncJobStatus.RUNNING,
     },
   });
 
@@ -33,7 +33,8 @@ export const triggerSync = async (
     data: {
       syncJobId: syncJob.id,
       connectorId: input.connectorId,
-      status: "SYNCING",
+      status: SyncJobStatus.RUNNING,
+      trigger: SyncTrigger.MANUAL,
       startedAt: new Date(),
     },
   });
@@ -184,7 +185,7 @@ export const updateSyncSettings = async (
           connectorId: input.connectorId,
           type: "FULL",
           trigger: "SCHEDULED",
-          status: "ACTIVE",
+          status: SyncJobStatus.PENDING,
           priority: 3,
           schedule: cronExpression,
           nextRunAt,
@@ -239,7 +240,7 @@ export const updateSyncSettings = async (
           connectorId: input.connectorId,
           type: "INCREMENTAL",
           trigger: "SCHEDULED",
-          status: "ACTIVE",
+          status: SyncJobStatus.PENDING,
           priority: 5,
           schedule: cronExpression,
           nextRunAt,

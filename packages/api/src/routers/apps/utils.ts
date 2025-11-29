@@ -1,4 +1,8 @@
-import type { Database, UpdateSyncSettingsResult } from "@openplane/db";
+import {
+  type Database,
+  SyncJobStatus,
+  type UpdateSyncSettingsResult,
+} from "@openplane/db";
 import {
   createRepeatableSyncJob,
   jobSchedulerKeys,
@@ -126,7 +130,7 @@ export async function recreateRepeatableJobs(
         connectorId,
         trigger: "SCHEDULED",
         deletedAt: null,
-        status: "ACTIVE",
+        status: SyncJobStatus.PENDING,
       },
       select: {
         id: true,
