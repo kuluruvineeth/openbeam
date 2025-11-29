@@ -5,13 +5,10 @@ import { oauthCallbackRoute, startOAuthRoute } from "./slack.routes";
 
 const slack = new OpenAPIHono<AuthEnv>();
 
-// Apply Auth Middleware globally
 slack.use("/*", requireAuth);
 
-// Start OAuth
 slack.openapi(startOAuthRoute, startOAuthHandler);
 
-// OAuth Callback
 slack.openapi(oauthCallbackRoute, oauthCallbackHandler);
 
 export default slack;
