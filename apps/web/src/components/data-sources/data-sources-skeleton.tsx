@@ -19,7 +19,7 @@ export function DataSourcesHeaderSkeleton() {
                 <Skeleton className="h-3 w-24" />
                 <Skeleton className="mt-2 h-8 w-16" />
               </div>
-              <Skeleton className="size-10 rounded-full" />
+              <Skeleton className="size-10" />
             </div>
           </div>
         ))}

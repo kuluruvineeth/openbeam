@@ -7,7 +7,7 @@ export function AppsSkeleton() {
       {Array.from({ length: 8 }).map((_, index) => (
         <Card className="flex w-full flex-col" key={index.toString()}>
           <div className="p-6">
-            <Skeleton className="h-10 w-10 rounded-full" />
+            <Skeleton className="h-10 w-10" />
 
             <div className="mt-6">
               <Skeleton className="h-5 w-[40%]" />

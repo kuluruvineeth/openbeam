@@ -45,7 +45,7 @@ export default async function Page() {
               </div>
 
               <div className="absolute right-0 bottom-4 left-0 text-center">
-                <p className="font-mono text-[#878787] text-xs leading-relaxed">
+                <p className="font-mono text-muted-foreground text-xs leading-relaxed">
                   By signing in you agree to our{" "}
                   <Link
                     className="underline"

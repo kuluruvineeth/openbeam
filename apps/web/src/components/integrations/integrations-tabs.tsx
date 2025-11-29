@@ -26,11 +26,9 @@ export function IntegrationsTabs() {
         <Button
           className={cn(
             "px-4 text-sm transition-colors",
-            "dark:bg-[#1D1D1D] dark:text-[#878787]",
-            "bg-white text-gray-600",
-            currentTab === tab.value &&
-              "bg-gray-100 text-primary dark:bg-[#2C2C2C]",
-            "hover:bg-accent dark:hover:bg-accent"
+            "bg-background text-muted-foreground",
+            currentTab === tab.value && "bg-secondary text-foreground",
+            "hover:bg-accent"
           )}
           key={tab.value}
           onClick={() => setTab(tab.value)}

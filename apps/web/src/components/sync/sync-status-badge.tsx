@@ -32,11 +32,11 @@ function getDisplayStatus(
   return status;
 }
 
-// Extended status config with READY
+// Extended status config with READY - uses green to indicate positive/idle state
 const READY_STATUS_CONFIG = {
   label: "Ready",
   className:
-    "bg-gray-100 px-3 py-1 font-mono text-[10px] text-gray-600 dark:bg-gray-900 dark:text-gray-300",
+    "bg-[#ddf4eb] px-3 py-1 font-mono text-[10px] text-[#1d6f52] dark:bg-[#0d2922] dark:text-[#4ade80]",
   icon: Icons.CheckIcon,
   iconClass: "",
 };
@@ -100,7 +100,7 @@ export function SyncStatusBadge({
       </div>
 
       {data.lastSyncedAt && (
-        <div className="flex items-center gap-1.5 text-[#878787] text-xs">
+        <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
           <Icons.History size={12} />
           <span>
             {formatDistanceToNow(
