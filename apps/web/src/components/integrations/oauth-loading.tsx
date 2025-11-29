@@ -1,7 +1,13 @@
+"use client";
+
 import { Icons } from "@/components/icons";
+import { Spinner } from "@/components/spinner";
+import { cn } from "@/lib/utils";
+
+type OAuthLoadingState = "connecting" | "processing" | "success" | "error";
 
 interface OAuthLoadingProps {
-  state: "connecting" | "processing" | "success" | "error";
+  state: OAuthLoadingState;
   integration?: string;
   message?: string;
 }
@@ -11,66 +17,59 @@ export function OAuthLoading({
   integration = "service",
   message,
 }: OAuthLoadingProps) {
-  if (state === "success") {
-    return (
-      <div className="flex min-h-[400px] w-full flex-col items-center justify-center gap-8">
-        <div className="relative">
-          <div className="absolute inset-0 animate-pulse rounded-full bg-openplane-green/10" />
-          <div className="relative flex size-20 items-center justify-center rounded-full border border-openplane-green/20 bg-background-100">
-            <Icons.CheckIcon className="text-openplane-green" size={36} />
-          </div>
-        </div>
-        <div className="space-y-3 text-center">
-          <h3 className="font-medium text-foreground text-lg tracking-tight">
-            Connected
-          </h3>
-          <p className="max-w-xs text-muted-foreground text-sm">
-            {message || `Successfully connected to ${integration}`}
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const isLoading = state === "connecting" || state === "processing";
 
-  if (state === "error") {
-    return (
-      <div className="flex min-h-[400px] w-full flex-col items-center justify-center gap-8">
-        <div className="flex size-20 items-center justify-center rounded-full border border-destructive/20 bg-background-100">
-          <Icons.XIcon className="text-destructive" size={36} />
-        </div>
-        <div className="space-y-3 text-center">
-          <h3 className="font-medium text-foreground text-lg tracking-tight">
-            Connection Failed
-          </h3>
-          <p className="max-w-xs text-muted-foreground text-sm">
-            {message || "Unable to complete the connection"}
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const statusConfig = {
+    connecting: {
+      title: `Connecting to ${integration}`,
+      description: message || "Redirecting to authorize...",
+    },
+    processing: {
+      title: "Completing authentication",
+      description: message || "Please wait...",
+    },
+    success: {
+      title: "Connected",
+      description: message || `Successfully connected to ${integration}`,
+    },
+    error: {
+      title: "Connection failed",
+      description: message || "Unable to complete the connection",
+    },
+  };
 
-  const displayMessage =
-    state === "connecting"
-      ? `Connecting to ${integration}...`
-      : "Completing authentication...";
+  const { title, description } = statusConfig[state];
 
   return (
-    <div className="flex min-h-[400px] w-full flex-col items-center justify-center gap-8">
-      <div className="relative size-20">
-        <div className="absolute inset-0 animate-spin rounded-full border-2 border-background-300" />
-        <div className="absolute inset-0 animate-spin rounded-full border-2 border-transparent border-t-primary duration-1500" />
-        <div className="flex size-full items-center justify-center">
-          <Icons.Integrations className="text-muted-foreground" size={28} />
-        </div>
-      </div>
-      <div className="space-y-3 text-center">
-        <h3 className="font-medium text-foreground text-lg tracking-tight">
-          {displayMessage}
-        </h3>
-        {message && (
-          <p className="max-w-xs text-muted-foreground text-sm">{message}</p>
+    <div className="flex flex-col items-center justify-center py-16">
+      {/* Status indicator */}
+      <div className="relative mb-6">
+        {isLoading && <Spinner className="text-primary" size={24} />}
+        {state === "success" && (
+          <div className="flex size-6 items-center justify-center">
+            <Icons.CheckIcon className="text-openplane-green" size={20} />
+          </div>
         )}
+        {state === "error" && (
+          <div className="flex size-6 items-center justify-center">
+            <Icons.XIcon className="text-destructive" size={20} />
+          </div>
+        )}
+      </div>
+
+      {/* Text content */}
+      <div className="space-y-1.5 text-center">
+        <p
+          className={cn(
+            "font-medium text-sm tracking-tight",
+            state === "error" && "text-destructive",
+            state === "success" && "text-openplane-green",
+            isLoading && "text-foreground"
+          )}
+        >
+          {title}
+        </p>
+        <p className="text-muted-foreground text-xs">{description}</p>
       </div>
     </div>
   );

@@ -18,39 +18,33 @@ export function UnifiedAppSettingsTab({
   form,
   isPending,
 }: UnifiedAppSettingsTabProps) {
+  // If no settings, don't render the tab content
+  if (!app.settings || app.settings.length === 0) {
+    return null;
+  }
+
   return (
-    <TabsContent className="pt-4" value="settings">
-      {app.settings && app.settings.length > 0 ? (
-        <div className="space-y-6">
-          <div className="border border-border bg-card p-4">
-            <h3 className="mb-1 font-semibold text-sm">Configuration</h3>
-            <p className="text-[#878787] text-xs">
-              Manage settings for this integration. Changes are applied
-              immediately.
-            </p>
-          </div>
-          <Form {...form}>
-            <form className="space-y-6">
-              <AppSettings
-                disabled={isPending}
-                settings={app.settings
-                  .filter((s) => s.enabled !== false)
-                  .map((s) => ({
-                    ...s,
-                    type:
-                      s.id.includes("secret") || s.id.includes("password")
-                        ? "password"
-                        : (s.type as "switch" | "text" | "select"),
-                  }))}
-              />
-            </form>
-          </Form>
-        </div>
-      ) : (
-        <div className="flex h-40 flex-col items-center justify-center text-center text-[#878787]">
-          <p>No settings available for this app.</p>
-        </div>
-      )}
+    <TabsContent className="pt-5" value="settings">
+      <Form {...form}>
+        <form className="space-y-5">
+          <AppSettings
+            disabled={isPending}
+            settings={app.settings
+              .filter((s) => s.enabled !== false)
+              .map((s) => ({
+                ...s,
+                type:
+                  s.id.includes("secret") ||
+                  (s.id.includes("password") && s.type === "text")
+                    ? "password"
+                    : s.type,
+              }))}
+          />
+          <p className="text-[11px] text-foreground/40">
+            Changes apply after saving
+          </p>
+        </form>
+      </Form>
     </TabsContent>
   );
 }

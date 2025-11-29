@@ -19,10 +19,6 @@ type QueryOptions = {
   enabled?: boolean;
 };
 
-/**
- * Query hook for sync status with auto-polling.
- * Polls every 2 seconds when syncing, otherwise every 10 seconds.
- */
 export function useSyncStatus(
   connectorId: string | undefined,
   options?: QueryOptions
@@ -42,16 +38,12 @@ export function useSyncStatus(
       const isSyncing =
         data.connector.status === "SYNCING" ||
         data.latestSync?.status === "SYNCING";
-      // Poll every 2s when syncing, every 10s otherwise for real-time updates
       return isSyncing ? 2000 : 10_000;
     },
     staleTime: 1000,
   });
 }
 
-/**
- * Infinite Query hook for sync history.
- */
 export function useSyncHistoryInfinite(
   connectorId: string | undefined,
   options?: {
@@ -76,9 +68,6 @@ export function useSyncHistoryInfinite(
   });
 }
 
-/**
- * Query hook for sync history with pagination.
- */
 export function useSyncHistory(
   connectorId: string | undefined,
   options?: {
@@ -100,10 +89,6 @@ export function useSyncHistory(
   });
 }
 
-/**
- * Helper to invalidate sync-related queries for a connector.
- * Only invalidates sync status and history - not apps.list to prevent data flicker.
- */
 function invalidateSyncQueries(
   trpc: ReturnType<typeof useTRPC>,
   queryClient: ReturnType<typeof useQueryClient>,
@@ -123,10 +108,6 @@ function invalidateSyncQueries(
   ]);
 }
 
-/**
- * Mutation hook for triggering a sync.
- * Invalidates sync status, history, and apps list on success.
- */
 export function useTriggerSync(callbacks?: MutationCallbacks) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -143,10 +124,6 @@ export function useTriggerSync(callbacks?: MutationCallbacks) {
   });
 }
 
-/**
- * Mutation hook for pausing a connector.
- * Invalidates sync status and apps list on success (pause changes connector status).
- */
 export function usePauseConnector(callbacks?: MutationCallbacks) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -160,7 +137,6 @@ export function usePauseConnector(callbacks?: MutationCallbacks) {
             connectorId: variables.connectorId,
           }).queryKey,
         }),
-        // Invalidate apps.list because pause changes connector status
         queryClient.invalidateQueries({
           queryKey: trpc.apps.list.queryOptions().queryKey,
         }),
@@ -173,10 +149,6 @@ export function usePauseConnector(callbacks?: MutationCallbacks) {
   });
 }
 
-/**
- * Mutation hook for resuming a connector.
- * Invalidates sync status and apps list on success (resume changes connector status).
- */
 export function useResumeConnector(callbacks?: MutationCallbacks) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -190,7 +162,6 @@ export function useResumeConnector(callbacks?: MutationCallbacks) {
             connectorId: variables.connectorId,
           }).queryKey,
         }),
-        // Invalidate apps.list because resume changes connector status
         queryClient.invalidateQueries({
           queryKey: trpc.apps.list.queryOptions().queryKey,
         }),
@@ -203,10 +174,6 @@ export function useResumeConnector(callbacks?: MutationCallbacks) {
   });
 }
 
-/**
- * Query hook for bulk sync status across multiple connectors.
- * Uses parallel queries with auto-polling when any connector is syncing.
- */
 export function useBulkSyncStatus(
   connectorIds: string[],
   options?: QueryOptions
@@ -264,10 +231,6 @@ export function useBulkSyncStatus(
   };
 }
 
-/**
- * Mutation hook for updating sync settings.
- * Invalidates sync status on success.
- */
 export function useUpdateSyncSettings(callbacks?: MutationCallbacks) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -288,9 +251,6 @@ export function useUpdateSyncSettings(callbacks?: MutationCallbacks) {
   });
 }
 
-/**
- * Query hook for webhook status.
- */
 export function useWebhookStatus(
   connectorId: string | undefined,
   options?: QueryOptions
@@ -302,6 +262,6 @@ export function useWebhookStatus(
       connectorId: connectorId ?? "",
     }),
     enabled: !!connectorId && options?.enabled !== false,
-    staleTime: 30_000, // Cache for 30 seconds
+    staleTime: 30_000,
   });
 }

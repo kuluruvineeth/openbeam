@@ -1,14 +1,11 @@
 import type { RouteHandler } from "@hono/zod-openapi";
-import { SlackAuth } from "@openplane/api";
+import { SlackAuth } from "@openplane/services";
 import type { AuthEnv } from "@/middleware/auth";
 import { getTeamId } from "@/middleware/auth";
 import type { oauthCallbackRoute, startOAuthRoute } from "./slack.routes";
 
 const slackAuth = new SlackAuth();
 
-/**
- * Start OAuth Handler
- */
 export const startOAuthHandler: RouteHandler<
   typeof startOAuthRoute,
   AuthEnv
@@ -51,9 +48,6 @@ export const startOAuthHandler: RouteHandler<
   }
 };
 
-/**
- * OAuth Callback Handler
- */
 export const oauthCallbackHandler: RouteHandler<
   typeof oauthCallbackRoute,
   AuthEnv

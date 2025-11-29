@@ -82,7 +82,7 @@ export function ConnectorActions({
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => {
-            window.location.href = `/integrations?app=${connectorId}`;
+            window.location.href = `/connectors/${connectorId}`;
           }}
         >
           <Icons.Settings className="mr-2" size={14} />

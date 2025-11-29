@@ -6,9 +6,6 @@ import {
   OAuthStartResponseSchema,
 } from "./slack.schema";
 
-/**
- * Start Slack OAuth Flow
- */
 export const startOAuthRoute = createRoute({
   method: "get",
   path: "/oauth/start",
@@ -54,9 +51,6 @@ export const startOAuthRoute = createRoute({
   },
 });
 
-/**
- * Handle Slack OAuth Callback
- */
 export const oauthCallbackRoute = createRoute({
   method: "post",
   path: "/callback",

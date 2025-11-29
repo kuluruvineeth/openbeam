@@ -18,16 +18,18 @@ export function createApp() {
 
   // Middleware
   app.use(logger());
+  const allowedOrigins = [
+    process.env.CORS_ORIGIN,
+    "http://localhost:3000",
+    "http://localhost:3001",
+  ].filter((o): o is string => Boolean(o));
+
   app.use(
     "/*",
     cors({
-      origin: [
-        process.env.CORS_ORIGIN || "",
-        "https://new-sculpin-illegally.ngrok-free.app",
-        "http://localhost:3001",
-      ],
+      origin: allowedOrigins,
       allowMethods: ["GET", "POST", "OPTIONS", "PATCH", "DELETE", "PUT"],
-      allowHeaders: ["Content-Type", "Authorization"],
+      allowHeaders: ["Content-Type", "Authorization", "Cookie"],
       credentials: true,
     })
   );
@@ -57,12 +59,11 @@ export function createApp() {
     return c.body(await metricsRegister.metrics());
   });
 
-  // Global Auth
-  // Note: We might want to make this granular per-route in OpenAPI,
-  // but for now keeping backward compatibility.
-  // Ideally, we use securitySchemes in OpenAPI.
+  // Auth middleware
   app.use("/api/*", apiKeyAuth);
   app.use("/api/*", sessionMiddleware);
+  app.use("/integrations/*", apiKeyAuth);
+  app.use("/integrations/*", sessionMiddleware);
 
   return app;
 }

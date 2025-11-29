@@ -54,7 +54,7 @@ export function TeamDropdown({ isExpanded = false }: Props) {
       return (a.id ?? "").localeCompare(b.id ?? "");
     }) ?? [];
 
-  // @ts-expect-error
+  //@ts-expect-error
   useOnClickOutside(ref, () => {
     if (!isChangingTeam) {
       setActive(false);
@@ -142,7 +142,7 @@ export function TeamDropdown({ isExpanded = false }: Props) {
                 }}
               >
                 <Avatar
-                  className="h-[32px] w-[32px] cursor-pointer rounded-none border border-[#DCDAD2] dark:border-[#2C2C2C]"
+                  className="h-[32px] w-[32px] cursor-pointer rounded-none border border-border"
                   onClick={() => {
                     if (index === 0) {
                       toggleActive();

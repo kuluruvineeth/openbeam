@@ -1,0 +1,150 @@
+import prisma, {
+  AppType,
+  ConnectorStatus,
+  createDefaultSyncJobs,
+  getConnectorWithCredentials,
+} from "@openplane/db";
+import {
+  AuthType,
+  exchangeGmailCode,
+  generateGmailAuthUrl,
+  gmailApp,
+  parseOAuthCredentialsFile,
+} from "@openplane/integrations";
+import { createOAuthState, verifyOAuthState } from "../lib/oauth-state";
+import type {
+  AuthCompleteContext,
+  AuthStartContext,
+  ConnectorResult,
+  IntegrationAuth,
+} from "../types";
+
+type GmailConfig = {
+  client_id?: string;
+  client_secret?: string;
+  oauth_credentials_file?: string;
+  oauth_input_method?: "file" | "manual";
+  [key: string]: unknown;
+};
+
+export class GmailAuth implements IntegrationAuth {
+  private getRedirectUri(): string {
+    const baseUrl = process.env.CORS_ORIGIN || "http://localhost:3001";
+    const redirectPath =
+      gmailApp.auth.type === AuthType.OAUTH2
+        ? gmailApp.auth.config.redirectPath
+        : "/connectors/setup/gmail/oauth/callback";
+    return `${baseUrl}${redirectPath}`;
+  }
+
+  private async getCredentials(connectorId: string) {
+    const connector = await getConnectorWithCredentials(prisma, connectorId);
+    if (!connector?.config) {
+      throw new Error("Connector configuration not found");
+    }
+
+    const config = connector.config as GmailConfig;
+
+    if (config.oauth_input_method === "file" && config.oauth_credentials_file) {
+      const parsed = parseOAuthCredentialsFile(config.oauth_credentials_file);
+      return { clientId: parsed.clientId, clientSecret: parsed.clientSecret };
+    }
+
+    if (!(config.client_id && config.client_secret)) {
+      throw new Error("Gmail OAuth credentials not configured");
+    }
+
+    return { clientId: config.client_id, clientSecret: config.client_secret };
+  }
+
+  async start(ctx: AuthStartContext): Promise<string> {
+    if (!ctx.connectorId) {
+      throw new Error("Connector ID required");
+    }
+
+    const { clientId } = await this.getCredentials(ctx.connectorId);
+
+    return generateGmailAuthUrl({
+      clientId,
+      redirectUri: this.getRedirectUri(),
+      state: createOAuthState({
+        userId: ctx.user.id,
+        workspaceId: ctx.workspaceId,
+        connectorId: ctx.connectorId,
+        redirectUrl: ctx.redirectUrl,
+      }),
+    });
+  }
+
+  async complete(ctx: AuthCompleteContext): Promise<ConnectorResult> {
+    const { connectorId, redirectUrl } = verifyOAuthState(ctx.state);
+
+    if (!connectorId) {
+      throw new Error("Invalid state: missing connector ID");
+    }
+
+    try {
+      const { clientId, clientSecret } = await this.getCredentials(connectorId);
+
+      const tokens = await exchangeGmailCode({
+        clientId,
+        clientSecret,
+        code: ctx.code,
+        redirectUri: this.getRedirectUri(),
+      });
+
+      const connector = await prisma.$transaction(async (tx) => {
+        const current = await tx.connector.findUniqueOrThrow({
+          where: { id: connectorId },
+        });
+
+        const updated = await tx.connector.update({
+          where: { id: connectorId },
+          data: {
+            status: ConnectorStatus.ACTIVE,
+            lastSyncedAt: null,
+            workspaceExternalId: tokens.userId,
+            name: tokens.userEmail,
+            config: {
+              ...(current.config as object),
+              userEmail: tokens.userEmail,
+              domain: tokens.hostedDomain,
+            },
+          },
+        });
+
+        await tx.oAuthProvider.upsert({
+          where: { connectorId: updated.id },
+          update: {
+            accessToken: tokens.accessToken,
+            refreshToken: tokens.refreshToken,
+            oauthScopes: tokens.scopes,
+            updatedAt: new Date(),
+          },
+          create: {
+            connectorId: updated.id,
+            accessToken: tokens.accessToken,
+            refreshToken: tokens.refreshToken,
+            oauthScopes: tokens.scopes,
+            app: AppType.GMAIL,
+          },
+        });
+
+        await createDefaultSyncJobs(tx, updated.id);
+        return updated;
+      });
+
+      return { connector, redirectUrl };
+    } catch (error) {
+      await prisma.connector.update({
+        where: { id: connectorId },
+        data: {
+          status: ConnectorStatus.ERROR,
+          lastError: error instanceof Error ? error.message : "OAuth failed",
+          lastErrorAt: new Date(),
+        },
+      });
+      throw error;
+    }
+  }
+}

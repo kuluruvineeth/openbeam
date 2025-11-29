@@ -1,7 +1,4 @@
-// @ts-expect-error - generated types might not be found in check
-import type { CreateConnectorInput, InputJsonValue } from "@openplane/db";
 import {
-  createConnector,
   deleteConnector,
   findConnectorById,
   findConnectorByTeam,
@@ -9,8 +6,13 @@ import {
   pauseConnector as pauseConnectorDb,
   resumeConnector as resumeConnectorDb,
   updateConnectorConfig,
+  upsertConnector,
 } from "@openplane/db";
-import type { AppType } from "@openplane/integrations";
+import type {
+  AppType,
+  SettingValue,
+  UnifiedApp,
+} from "@openplane/integrations";
 import { appStore } from "@openplane/integrations";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
@@ -45,7 +47,7 @@ export const connectorsRouter = createTRPCRouter({
         status: connector?.status,
         settings: app.settings,
         userSettings:
-          (connector?.config as Record<string, unknown>) ?? undefined,
+          (connector?.config as Record<string, SettingValue>) ?? undefined,
       };
     });
   }),
@@ -55,39 +57,49 @@ export const connectorsRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const appDefinition = appStore.find((a) => a.id === input.appId);
 
-      if (!appDefinition) {
-        const connector = await findConnectorById(
+      if (appDefinition) {
+        const connector = await findConnectorByTeam(
           ctx.prisma,
-          input.appId,
-          true
+          ctx.teamId,
+          appDefinition.id as unknown as AppType
         );
 
-        if (!connector || connector.teamId !== ctx.teamId) {
+        if (!connector) {
           throw new TRPCError({
             code: "NOT_FOUND",
-            message: "Connector not found or unauthorized",
+            message: "Connector not found",
           });
         }
 
-        return { ...connector };
+        return {
+          ...connector,
+          definition: appDefinition as UnifiedApp,
+        };
       }
 
-      const connector = await findConnectorByTeam(
-        ctx.prisma,
-        ctx.teamId,
-        appDefinition.id as unknown as AppType
+      const connector = await findConnectorById(ctx.prisma, input.appId, true);
+
+      if (!connector || connector.teamId !== ctx.teamId) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Connector not found or unauthorized",
+        });
+      }
+
+      const connectorAppDefinition = appStore.find(
+        (a) => a.id.toUpperCase() === connector.app.toUpperCase()
       );
 
       return {
-        definition: appDefinition,
-        connector,
+        ...connector,
+        definition: (connectorAppDefinition as UnifiedApp) ?? null,
       };
     }),
 
   connect: withActiveTeam
     .input(createConnectorSchema)
-    .mutation(async ({ ctx, input }) => {
-      const connectorInput: CreateConnectorInput = {
+    .mutation(async ({ ctx, input }) =>
+      upsertConnector(ctx.prisma, {
         teamId: ctx.teamId,
         userId: ctx.session.user.id,
         app: input.appId,
@@ -95,11 +107,10 @@ export const connectorsRouter = createTRPCRouter({
         name: input.name,
         type: input.type,
         authType: input.authType,
-        config: input.config as InputJsonValue | undefined,
-      };
-
-      return await createConnector(ctx.prisma, connectorInput);
-    }),
+        // biome-ignore lint/suspicious/noExplicitAny: config type varies
+        config: input.config as any,
+      })
+    ),
 
   disconnect: withActiveTeam
     .input(appIdSchema)
@@ -116,7 +127,8 @@ export const connectorsRouter = createTRPCRouter({
       return await updateConnectorConfig(
         ctx.prisma,
         input.appId,
-        input.config as InputJsonValue
+        // biome-ignore lint/suspicious/noExplicitAny: config type varies
+        input.config as any
       );
     }),
 

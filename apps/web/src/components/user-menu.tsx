@@ -48,7 +48,7 @@ export function UserMenu({ onlySignOut }: Props) {
                   <span className="line-clamp-1 block max-w-[155px] truncate">
                     {user?.name}
                   </span>
-                  <span className="truncate font-normal text-[#606060] text-xs">
+                  <span className="truncate font-normal text-muted-foreground text-xs">
                     {user?.email}
                   </span>
                 </div>

@@ -56,7 +56,7 @@ export function DataSourceDetailsSheet({
             {app && <AppLogo app={app} size={40} />}
             <div className="flex-1">
               <SheetTitle className="text-lg">{connectorName}</SheetTitle>
-              <p className="text-[#878787] text-xs">{appId}</p>
+              <p className="text-muted-foreground text-xs">{appId}</p>
             </div>
           </div>
         </SheetHeader>

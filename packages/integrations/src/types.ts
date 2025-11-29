@@ -1,5 +1,12 @@
 import type React from "react";
 
+export type LogoProps = {
+  size?: number;
+  className?: string;
+};
+
+export type LogoComponent = React.ComponentType<LogoProps>;
+
 export enum ConnectorType {
   SOURCE = "SOURCE",
   DESTINATION = "DESTINATION",
@@ -7,6 +14,7 @@ export enum ConnectorType {
 
 export enum AuthType {
   OAUTH2 = "OAUTH2",
+  SERVICE_ACCOUNT = "SERVICE_ACCOUNT",
   API_KEY = "API_KEY",
   BASIC = "BASIC",
   SESSION = "SESSION",
@@ -14,59 +22,7 @@ export enum AuthType {
 
 export enum AppType {
   SLACK = "SLACK",
-  GOOGLE_DRIVE = "GOOGLE_DRIVE",
-  NOTION = "NOTION",
-  GITHUB = "GITHUB",
-  HUBSPOT = "HUBSPOT",
-  SALESFORCE = "SALESFORCE",
-  ZENDESK = "ZENDESK",
-  INTERCOM = "INTERCOM",
-  JIRA = "JIRA",
-  ASANA = "ASANA",
-  TRELLO = "TRELLO",
-  AIRTABLE = "AIRTABLE",
-  CLICKUP = "CLICKUP",
-  LINEAR = "LINEAR",
-  SHOPIFY = "SHOPIFY",
-  STRIPE = "STRIPE",
-  XERO = "XERO",
-  QUICKBOOKS = "QUICKBOOKS",
-  SAGE = "SAGE",
-  NETSUITE = "NETSUITE",
-  ZOHO = "ZOHO",
-  MICROSOFT_TEAMS = "MICROSOFT_TEAMS",
-  DISCORD = "DISCORD",
-  WHATSAPP = "WHATSAPP",
-  TWILIO = "TWILIO",
-  SENDGRID = "SENDGRID",
-  MAILCHIMP = "MAILCHIMP",
-  HUBSPOT_MARKETING = "HUBSPOT_MARKETING",
-  SALESFORCE_MARKETING = "SALESFORCE_MARKETING",
-  MARKETO = "MARKETO",
-  PARDOT = "PARDOT",
-  ELASTICSEARCH = "ELASTICSEARCH",
-  MONGODB = "MONGODB",
-  POSTGRESQL = "POSTGRESQL",
-  MYSQL = "MYSQL",
-  SQLSERVER = "SQLSERVER",
-  ORACLE = "ORACLE",
-  SNOWFLAKE = "SNOWFLAKE",
-  BIGQUERY = "BIGQUERY",
-  REDSHIFT = "REDSHIFT",
-  DATABRICKS = "DATABRICKS",
-  S3 = "S3",
-  GCS = "GCS",
-  AZURE_BLOB = "AZURE_BLOB",
-  BOX = "BOX",
-  DROPBOX = "DROPBOX",
-  ONEDRIVE = "ONEDRIVE",
-  SHAREPOINT = "SHAREPOINT",
-  SERVICENOW = "SERVICENOW",
-  ZENDESK_SUPPORT = "ZENDESK_SUPPORT",
-  JIRA_SERVICE_MANAGEMENT = "JIRA_SERVICE_MANAGEMENT",
-  FRESHDESK = "FRESHDESK",
-  INTERCOM_SUPPORT = "INTERCOM_SUPPORT",
-  SALESFORCE_SERVICE_CLOUD = "SALESFORCE_SERVICE_CLOUD",
+  GMAIL = "GMAIL",
 }
 
 export enum SyncMode {
@@ -90,16 +46,10 @@ export type StreamDefinition = {
   rateLimit?: number; // Requests per minute (approximate guide)
 };
 
-export type ScopeDetail = {
-  name: string;
-  description: string;
-};
-
 export type OAuthConfig = {
   authUrl: string;
   tokenUrl: string;
   scopes: string[];
-  scopeDetails?: ScopeDetail[];
   redirectPath?: string;
 };
 
@@ -108,22 +58,46 @@ export type ApiKeyConfig = {
   documentationUrl?: string;
 };
 
+export type ServiceAccountConfig = {
+  requiredScopes: string[];
+  documentationUrl?: string;
+  delegatedUserEmail?: boolean;
+};
+
 export type AuthConfig =
   | { type: typeof AuthType.OAUTH2; config: OAuthConfig }
+  | { type: typeof AuthType.SERVICE_ACCOUNT; config: ServiceAccountConfig }
   | { type: typeof AuthType.API_KEY; config: ApiKeyConfig }
   | { type: typeof AuthType.BASIC | typeof AuthType.SESSION; config?: never };
+
+export type SettingValue = string | number | boolean;
+
+export type SettingDependency = {
+  field: string;
+  value: SettingValue;
+};
 
 export type AppSettingsItem = {
   id: string;
   label: string;
   description: string;
-  type: "text" | "password" | "switch" | "select";
+  type:
+    | "text"
+    | "password"
+    | "switch"
+    | "select"
+    | "number"
+    | "file"
+    | "textarea";
   required: boolean;
-  // biome-ignore lint/suspicious/noExplicitAny: value type varies
-  value: any;
+  value: SettingValue;
   options?: Array<{ label: string; value: string }>;
   placeholder?: string;
-  enabled?: boolean; // If false, the setting will be hidden/disabled
+  enabled?: boolean;
+  dependsOn?: SettingDependency | SettingDependency[];
+  accept?: string;
+  fileType?: "json" | "pem" | "any";
+  rows?: number;
 };
 
 export type UnifiedApp = {
@@ -131,7 +105,7 @@ export type UnifiedApp = {
   name: string;
   category: string;
   active: boolean;
-  logo?: React.ComponentType | string;
+  logo?: LogoComponent | string;
   short_description?: string;
   description?: string;
   images: string[];
@@ -153,8 +127,7 @@ export type UnifiedApp = {
 
   settings?: AppSettingsItem[];
 
-  // biome-ignore lint/suspicious/noExplicitAny: user settings storage
-  userSettings?: Record<string, any>;
+  userSettings?: Record<string, SettingValue>;
 
   developerName?: string;
   website?: string;

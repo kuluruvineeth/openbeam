@@ -38,7 +38,6 @@ export function UnifiedAppComponent({ app }: UnifiedAppProps) {
     settings: parseAsBoolean,
   });
 
-  // Generate Zod Schema from app settings
   const formSchema = useMemo(
     () => generateFormSchema(app.settings),
     [app.settings]
@@ -52,37 +51,27 @@ export function UnifiedAppComponent({ app }: UnifiedAppProps) {
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues,
-    mode: "onChange", // Validate on change for realtime feedback
+    mode: "onChange",
   });
 
-  // Watch all fields to trigger re-renders for validation state
-  // Using form.watch() to subscribe to all changes and ensure isFormValid updates correctly
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   form.watch();
 
-  // Check validity based on form state
   const isFormValid = form.formState.isValid;
   const isDirty = form.formState.isDirty;
 
-  // For installed apps, require both valid form AND changes made
-  // For new connections, only require valid form
   const isButtonDisabled = (() => {
     if (app.installed) {
-      const hasInvalidForm = !isFormValid;
-      const hasNoChanges = !isDirty;
-      return hasInvalidForm || hasNoChanges;
+      return !(isFormValid && isDirty);
     }
     return !isFormValid;
   })();
 
-  // Reset form when defaultValues change (e.g. after initial load or switch)
   useEffect(() => {
     form.reset(defaultValues);
   }, [defaultValues, form]);
 
   const connectMutation = useConnectApp({
     onSuccess: () => {
-      // Only close/reset if NOT redirecting to OAuth
       if (app.auth.type !== AuthType.OAUTH2) {
         setLoading(false);
         setParams(null);
@@ -116,7 +105,6 @@ export function UnifiedAppComponent({ app }: UnifiedAppProps) {
     },
   });
 
-  // TODO: Implement external app revoke
   const revokeExternalAppMutation = {
     // biome-ignore lint/suspicious/noExplicitAny: data type varies
     mutate: (data: any) => console.log("Revoke external app", data),
@@ -150,7 +138,6 @@ export function UnifiedAppComponent({ app }: UnifiedAppProps) {
         throw new Error(data.message || "Failed to get OAuth URL");
       }
 
-      // Redirect to Slack OAuth URL
       window.location.href = data.oauthUrl;
     } catch (error) {
       console.error("OAuth start failed", error);
@@ -169,23 +156,20 @@ export function UnifiedAppComponent({ app }: UnifiedAppProps) {
       return;
     }
 
-    // Create the connector (saves credentials)
     const connector = await connectMutation.mutateAsync({
       appId: app.id,
-      workspaceExternalId: "pending-oauth", // Will be updated by OAuth callback
+      workspaceExternalId: "pending-oauth",
       name: app.name,
       type: app.connectorType,
       authType: app.auth.type,
       config: configValues,
     });
 
-    // If OAuth, fetch OAuth URL from backend and redirect to Slack
     if (app.auth.type === AuthType.OAUTH2) {
       await startOAuthFlow(connector.id);
-      return; // Keep loading state active during redirect
+      return;
     }
 
-    // Non-OAuth apps are done
     toast.success("App connected successfully");
     setLoading(false);
     setParams(null);
@@ -199,10 +183,9 @@ export function UnifiedAppComponent({ app }: UnifiedAppProps) {
   };
 
   const handleOnInitialize = async () => {
-    // Validate form first
     const isValid = await form.trigger();
     if (!isValid) {
-      toast.error("Please correct the errors in the settings tab.");
+      toast.error("Please configure required settings first");
       setParams({ settings: true });
       return;
     }
@@ -228,7 +211,7 @@ export function UnifiedAppComponent({ app }: UnifiedAppProps) {
   const handleUpdateSettings = async () => {
     const isValid = await form.trigger();
     if (!isValid) {
-      toast.error("Please correct the errors in the settings tab.");
+      toast.error("Please correct the errors in settings");
       return;
     }
 
@@ -247,60 +230,66 @@ export function UnifiedAppComponent({ app }: UnifiedAppProps) {
   };
 
   return (
-    <Card className="flex w-full flex-col" key={app.id}>
+    <Card
+      className="group relative flex flex-col border-border/50 transition-all duration-200 hover:border-border hover:shadow-sm"
+      key={app.id}
+    >
       <Sheet onOpenChange={() => setParams(null)} open={params.app === app.id}>
-        <div className="flex h-16 items-center justify-between px-6 pt-6">
-          <AppLogo app={app} size={32} />
-          <div className="flex items-center gap-2">
-            {app.installed && (
-              <div className="bg-green-100 px-3 py-1 font-mono text-[10px] text-green-600 dark:bg-green-900 dark:text-green-300">
-                Connected
+        <CardHeader className="flex flex-row items-start justify-between p-5 pb-3">
+          <AppLogo app={app} size={36} />
+          {app.installed && (
+            <div className="flex h-5 items-center gap-1.5 bg-emerald-500/10 px-2 font-medium text-[10px] text-emerald-600 dark:text-emerald-400">
+              <span className="h-1.5 w-1.5 bg-emerald-500" />
+              Connected
+            </div>
+          )}
+          {app.status && !app.installed && (
+            <div className="flex h-5 items-center gap-1.5 bg-blue-500/10 px-2 font-medium text-[10px] text-blue-600 dark:text-blue-400">
+              <span className="h-1.5 w-1.5 animate-pulse bg-blue-500" />
+              Connecting
+            </div>
+          )}
+          {app.status &&
+            app.status !== "ACTIVE" &&
+            app.status !== "CONNECTING" && (
+              <div className="flex h-5 items-center gap-1.5 bg-destructive/10 px-2 font-medium text-[10px] text-destructive">
+                <span className="h-1.5 w-1.5 bg-destructive" />
+                Error
               </div>
             )}
-            {app.status && !app.installed && (
-              <div className="bg-blue-100 px-3 py-1 font-mono text-[10px] text-blue-600 dark:bg-blue-900 dark:text-blue-300">
-                Connecting...
-              </div>
-            )}
-            {app.status &&
-              app.status !== "ACTIVE" &&
-              app.status !== "CONNECTING" && (
-                <div className="bg-red-100 px-3 py-1 font-mono text-[10px] text-red-600 dark:bg-red-900 dark:text-red-300">
-                  Error
-                </div>
-              )}
-          </div>
-        </div>
+        </CardHeader>
 
-        <CardHeader className="pb-0">
-          <div className="flex items-center space-x-2 pb-4">
-            <CardTitle className="m-0 p-0 font-medium text-md leading-none">
+        <CardContent className="flex-1 px-5 pt-0 pb-4">
+          <div className="flex items-center gap-2">
+            <CardTitle className="font-medium text-sm tracking-tight">
               {app.name}
             </CardTitle>
             {!app.active && (
-              <span className="bg-[#F2F1EF] px-3 py-1 font-mono text-[#878787] text-[10px] dark:bg-[#1D1D1D]">
-                Coming soon
+              <span className="bg-secondary px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+                Soon
               </span>
             )}
           </div>
-        </CardHeader>
-
-        <CardContent className="pb-4 text-[#878787] text-xs">
-          <p>{app.short_description}</p>
+          <p className="mt-1.5 line-clamp-2 text-muted-foreground text-xs leading-relaxed">
+            {app.short_description}
+          </p>
         </CardContent>
 
-        <div className="mt-auto px-6 pb-6">
+        {/* Card Footer */}
+        <div className="border-border/50 border-t p-4">
           <Button
             className="w-full"
             disabled={!app.active}
             onClick={() => setParams({ app: app.id })}
+            size="sm"
             variant="outline"
           >
-            Details
+            View Details
           </Button>
         </div>
 
-        <SheetContent className="sm:max-w-[520px]">
+        {/* Sheet */}
+        <SheetContent className="flex flex-col sm:max-w-[480px]">
           <UnifiedAppSheetHeader
             app={app}
             disconnectOfficialAppMutation={disconnectMutation}
@@ -317,11 +306,11 @@ export function UnifiedAppComponent({ app }: UnifiedAppProps) {
             revokeExternalAppMutation={revokeExternalAppMutation}
           />
 
-          <ScrollArea className="h-[calc(100vh-140px)] pr-4" hideScrollbar>
+          <ScrollArea className="-mr-4 flex-1 pr-4" hideScrollbar>
             {isOAuthRedirecting ? (
               <OAuthLoading
                 integration={app.name}
-                message="Redirecting to authorize the connection"
+                message="Redirecting to authorize"
                 state="connecting"
               />
             ) : (
@@ -333,9 +322,15 @@ export function UnifiedAppComponent({ app }: UnifiedAppProps) {
                 }
                 value={params.settings ? "settings" : undefined}
               >
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 bg-secondary/40">
                   <TabsTrigger
+                    className="data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                    value="overview"
+                  >
+                    Overview
+                  </TabsTrigger>
+                  <TabsTrigger
+                    className="data-[state=active]:bg-background data-[state=active]:shadow-sm"
                     disabled={!app.settings?.length}
                     value="settings"
                   >
@@ -352,22 +347,23 @@ export function UnifiedAppComponent({ app }: UnifiedAppProps) {
               </Tabs>
             )}
 
-            <div className="mt-8 border-border border-t pt-6 pb-2">
-              <p className="text-[#878787] text-[10px] leading-relaxed">
-                Secured and maintained by OpenPlane
+            {/* Footer */}
+            <div className="mt-10 flex items-center justify-between border-t pt-5 pb-4">
+              <p className="text-[10px] text-muted-foreground/60">
+                Secured by OpenPlane
               </p>
-              <div className="mt-2 flex gap-4">
+              <div className="flex gap-4">
                 <Link
-                  className="text-[10px] text-primary hover:underline"
+                  className="text-[10px] text-muted-foreground transition-colors hover:text-foreground"
                   href="mailto:support@openplane.tech"
                 >
                   Report issue
                 </Link>
                 <Link
-                  className="text-[10px] text-primary hover:underline"
+                  className="text-[10px] text-muted-foreground transition-colors hover:text-foreground"
                   href="#"
                 >
-                  Privacy Policy
+                  Privacy
                 </Link>
               </div>
             </div>

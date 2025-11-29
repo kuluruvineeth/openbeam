@@ -38,7 +38,7 @@ export default function Teams() {
           </div>
 
           <div className="relative mt-12 w-full border-border border-t border-dashed pt-6 text-center">
-            <span className="-translate-x-1/2 -top-3 absolute left-1/2 bg-background px-4 text-[#878787] text-sm">
+            <span className="-translate-x-1/2 -top-3 absolute left-1/2 bg-background px-4 text-muted-foreground text-sm">
               Or
             </span>
             <Link className="w-full" href="/teams/create">

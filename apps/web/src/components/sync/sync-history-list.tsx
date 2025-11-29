@@ -71,8 +71,8 @@ export function SyncHistoryList({
         <CardContent>
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <Icons.History className="mb-2 text-muted-foreground" size={32} />
-            <p className="text-[#878787] text-sm">No sync history yet</p>
-            <p className="text-[#878787] text-xs">
+            <p className="text-muted-foreground text-sm">No sync history yet</p>
+            <p className="text-muted-foreground text-xs">
               Trigger a sync to see the history here
             </p>
           </div>

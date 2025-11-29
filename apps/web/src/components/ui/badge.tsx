@@ -15,11 +15,11 @@ const badgeVariants = cva(
           "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
         outline:
           "rounded-none border border-border bg-transparent font-mono font-normal text-[10px] text-primary",
-        tag: "rounded-none border-none bg-[#F2F1EF] font-mono font-normal text-[#878787] text-[10px] dark:bg-[#1D1D1D]",
+        tag: "rounded-none border-none bg-secondary font-mono font-normal text-[10px] text-muted-foreground",
         "tag-rounded":
-          "border-none bg-[#F2F1EF] px-3 py-1 font-mono font-normal text-[#878787] text-[12px] dark:bg-[#1D1D1D]",
+          "border-none bg-secondary px-3 py-1 font-mono font-normal text-[12px] text-muted-foreground",
         "tag-outline":
-          "border-transparent bg-zinc-700 text-zinc-200 hover:bg-zinc-700/80",
+          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
       },
     },
     defaultVariants: {

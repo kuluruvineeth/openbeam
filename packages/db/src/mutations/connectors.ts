@@ -5,6 +5,9 @@ import {
   ConnectorStatus,
   type ConnectorType,
   type Prisma,
+  SyncCategory,
+  SyncJobStatus,
+  SyncTrigger,
 } from "../../prisma/generated/client";
 import type { Database } from "../index";
 
@@ -30,6 +33,44 @@ export const createConnector = async (
       status: ConnectorStatus.CONNECTING,
     },
   });
+
+export const upsertConnector = async (
+  db: Database,
+  data: CreateConnectorInput
+): Promise<Connector> => {
+  // Find existing connector for this team+app (regardless of status)
+  const existing = await db.connector.findFirst({
+    where: {
+      teamId: data.teamId,
+      app: data.app,
+    },
+  });
+
+  if (existing) {
+    // Reuse existing connector - reset it for new OAuth flow
+    return db.connector.update({
+      where: { id: existing.id },
+      data: {
+        authType: data.authType,
+        config: data.config ?? {},
+        status: ConnectorStatus.CONNECTING,
+        workspaceExternalId: data.workspaceExternalId,
+        name: data.name,
+        lastError: null,
+        lastErrorAt: null,
+      },
+    });
+  }
+
+  // Create new connector
+  return db.connector.create({
+    data: {
+      ...data,
+      config: data.config ?? {},
+      status: ConnectorStatus.CONNECTING,
+    },
+  });
+};
 
 export const updateConnector = async (
   db: Database,
@@ -79,21 +120,21 @@ export const createDefaultSyncJobs = async (
     data: [
       {
         connectorId,
-        type: "FULL",
-        trigger: "SCHEDULED",
-        status: "ACTIVE",
+        type: SyncCategory.FULL,
+        trigger: SyncTrigger.SCHEDULED,
+        status: SyncJobStatus.PENDING,
         priority: 3,
-        schedule: "0 0 * * 0", // Weekly on Sunday at midnight
+        schedule: "0 0 * * 0",
         config: { intervalMs: sevenDaysMs },
         nextRunAt: new Date(now.getTime() + sevenDaysMs),
       },
       {
         connectorId,
-        type: "INCREMENTAL",
-        trigger: "SCHEDULED",
-        status: "ACTIVE",
+        type: SyncCategory.INCREMENTAL,
+        trigger: SyncTrigger.SCHEDULED,
+        status: SyncJobStatus.PENDING,
         priority: 5,
-        schedule: "0 */6 * * *", // Every 6 hours
+        schedule: "0 */6 * * *",
         config: { intervalMs: sixHoursMs },
         nextRunAt: new Date(now.getTime() + sixHoursMs),
       },

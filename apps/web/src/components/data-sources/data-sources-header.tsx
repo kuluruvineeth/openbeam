@@ -15,11 +15,11 @@ export function DataSourcesHeader() {
           <h1 className="font-semibold text-2xl tracking-tight">
             Data Sources
           </h1>
-          <p className="text-[#878787] text-sm">
+          <p className="text-muted-foreground text-sm">
             Manage all your connected data sources and sync operations
           </p>
         </div>
-        <Link href="/integrations">
+        <Link href="/connectors?tab=available">
           <Button variant="outline">
             <Icons.Plus className="mr-2" size={16} />
             Add Data Source
@@ -78,10 +78,10 @@ function StatCard({
     <div className={`border bg-background p-4 ${variantClasses[variant]}`}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-[#878787] text-xs">{label}</p>
+          <p className="text-muted-foreground text-xs">{label}</p>
           <p className="mt-1 font-semibold text-2xl">{value}</p>
         </div>
-        <div className="flex size-10 items-center justify-center rounded-full bg-background-100">
+        <div className="flex size-10 items-center justify-center bg-secondary">
           <Icon className="text-muted-foreground" size={20} />
         </div>
       </div>

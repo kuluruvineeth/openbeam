@@ -42,11 +42,6 @@ type MutationCallbacks = {
   onError?: (error: unknown) => void;
 };
 
-/**
- * Query hook for data sources (connectors with sync status).
- * Combines apps list with bulk sync status for all installed connectors.
- * Uses placeholderData to prevent UI flicker during refetch.
- */
 export function useDataSources(): DataSourcesResult {
   const trpc = useTRPC();
 
@@ -55,7 +50,6 @@ export function useDataSources(): DataSourcesResult {
     placeholderData: keepPreviousData,
   });
 
-  // Extract installed connectors - placeholderData keeps this stable during refetch
   const connectors = useMemo(
     () =>
       appsQuery.data?.filter(
@@ -64,19 +58,15 @@ export function useDataSources(): DataSourcesResult {
     [appsQuery.data]
   );
 
-  // Keep connectorIds stable during refetch to prevent bulkStatusQuery from being disabled
   const previousConnectorIdsRef = useRef<string[]>([]);
   const connectorIds = useMemo(() => {
     const ids = connectors.map((c) => c.connectorId as string);
-    // Update ref when we have new IDs
     if (ids.length > 0) {
       previousConnectorIdsRef.current = ids;
     }
-    // Use previous IDs if current is empty (during refetch) to keep query enabled
     return ids.length > 0 ? ids : previousConnectorIdsRef.current;
   }, [connectors]);
 
-  // Keep connectors stable for dataSources memo
   const previousConnectorsRef = useRef<typeof connectors>([]);
   if (connectors.length > 0) {
     previousConnectorsRef.current = connectors;
@@ -88,8 +78,6 @@ export function useDataSources(): DataSourcesResult {
     enabled: connectorIds.length > 0 && !appsQuery.isError,
   });
 
-  // Combine connectors with their sync status
-  // Use stableConnectors to prevent data from disappearing during refetch
   const dataSources = useMemo<DataSource[] | null>(() => {
     if (!stableConnectors.length) {
       return null;
@@ -141,10 +129,6 @@ export function useDataSources(): DataSourcesResult {
   };
 }
 
-/**
- * Query hook for data sources statistics.
- * Derived from useDataSources for aggregated stats.
- */
 export function useDataSourcesStats() {
   const { data, isLoading } = useDataSources();
 
@@ -172,20 +156,15 @@ export function useDataSourcesStats() {
   return { data: stats, isLoading };
 }
 
-/**
- * Helper to invalidate data sources related queries.
- */
 async function invalidateDataSourcesQueries(
   trpc: ReturnType<typeof useTRPC>,
   queryClient: ReturnType<typeof useQueryClient>,
   connectorIds: string[]
 ) {
   await Promise.all([
-    // Invalidate apps list (which data sources depends on)
     queryClient.invalidateQueries({
       queryKey: trpc.apps.list.queryOptions().queryKey,
     }),
-    // Invalidate sync status for all affected connectors
     ...connectorIds.map((connectorId) =>
       queryClient.invalidateQueries({
         queryKey: trpc.apps.getSyncStatus.queryOptions({ connectorId })
@@ -195,10 +174,6 @@ async function invalidateDataSourcesQueries(
   ]);
 }
 
-/**
- * Mutation hook for bulk sync operation.
- * Triggers sync for multiple connectors in parallel.
- */
 export function useBulkSync(callbacks?: MutationCallbacks) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -209,8 +184,6 @@ export function useBulkSync(callbacks?: MutationCallbacks) {
       if (!mutationFn) {
         throw new Error("triggerSync mutation function not available");
       }
-      // Call mutationFn for each connector
-      // mutationFn requires (input, context) but context can be empty for client-side calls
       const mutations = connectorIds.map((connectorId) =>
         (
           mutationFn as (input: {
@@ -231,10 +204,6 @@ export function useBulkSync(callbacks?: MutationCallbacks) {
   });
 }
 
-/**
- * Mutation hook for bulk pause operation.
- * Pauses multiple connectors in parallel.
- */
 export function useBulkPause(callbacks?: MutationCallbacks) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -262,10 +231,6 @@ export function useBulkPause(callbacks?: MutationCallbacks) {
   });
 }
 
-/**
- * Mutation hook for bulk resume operation.
- * Resumes multiple connectors in parallel.
- */
 export function useBulkResume(callbacks?: MutationCallbacks) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();

@@ -23,7 +23,9 @@ export default function CreateTeam() {
         <div className="relative z-20 m-auto flex w-full max-w-[400px] flex-col">
           <div className="text-center">
             <h1 className="mb-2 font-serif text-lg">Setup your team</h1>
-            <p className="mb-8 text-[#878787] text-sm">Add your team name.</p>
+            <p className="mb-8 text-muted-foreground text-sm">
+              Add your team name.
+            </p>
           </div>
           <CreateTeamForm />
         </div>

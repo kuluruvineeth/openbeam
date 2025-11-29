@@ -1,0 +1,30 @@
+{
+  "name": "@openplane/services",
+  "version": "0.0.1",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@openplane/db": "workspace:*",
+    "@openplane/integrations": "workspace:*",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "@openplane/config": "workspace:*",
+    "@types/jsonwebtoken": "^9.0.10",
+    "tsdown": "catalog:",
+    "typescript": "catalog:"
+  }
+}

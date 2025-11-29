@@ -43,7 +43,7 @@ export function SyncStatusCard({
 
         <div className="grid grid-cols-3 gap-4">
           <div className="space-y-1">
-            <p className="text-[#878787] text-xs">Total Documents</p>
+            <p className="text-muted-foreground text-xs">Total Documents</p>
             <p className="font-medium text-lg">
               {syncStatus?.stats?.totalIndexed ?? 0}
             </p>
@@ -52,13 +52,13 @@ export function SyncStatusCard({
             syncStatus.latestSync.status !== "SYNCING" && (
               <>
                 <div className="space-y-1">
-                  <p className="text-[#878787] text-xs">Last Added</p>
+                  <p className="text-muted-foreground text-xs">Last Added</p>
                   <p className="font-medium text-green-600 text-lg dark:text-green-400">
                     +{syncStatus.latestSync.dataAdded}
                   </p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[#878787] text-xs">Last Updated</p>
+                  <p className="text-muted-foreground text-xs">Last Updated</p>
                   <p className="font-medium text-blue-600 text-lg dark:text-blue-400">
                     {syncStatus.latestSync.dataUpdated}
                   </p>
@@ -68,13 +68,13 @@ export function SyncStatusCard({
           {syncing && (
             <>
               <div className="space-y-1">
-                <p className="text-[#878787] text-xs">Added</p>
+                <p className="text-muted-foreground text-xs">Added</p>
                 <p className="font-medium text-green-600 text-lg dark:text-green-400">
                   —
                 </p>
               </div>
               <div className="space-y-1">
-                <p className="text-[#878787] text-xs">Updated</p>
+                <p className="text-muted-foreground text-xs">Updated</p>
                 <p className="font-medium text-blue-600 text-lg dark:text-blue-400">
                   —
                 </p>
@@ -87,7 +87,7 @@ export function SyncStatusCard({
           <div className="border-border border-t pt-4">
             <div className="flex items-center gap-2">
               <Icons.History className="text-muted-foreground" size={14} />
-              <p className="text-[#878787] text-xs">
+              <p className="text-muted-foreground text-xs">
                 Last synced{" "}
                 {formatDistanceToNow(
                   new Date(syncStatus.connector.lastSyncedAt),
@@ -110,7 +110,7 @@ export function SyncStatusCard({
                     className="text-muted-foreground"
                     size={14}
                   />
-                  <p className="text-[#878787] text-xs">
+                  <p className="text-muted-foreground text-xs">
                     Next incremental sync
                   </p>
                 </div>
@@ -131,7 +131,9 @@ export function SyncStatusCard({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Icons.Database className="text-muted-foreground" size={14} />
-                  <p className="text-[#878787] text-xs">Next full sync</p>
+                  <p className="text-muted-foreground text-xs">
+                    Next full sync
+                  </p>
                 </div>
                 <p className="font-medium text-xs">
                   {(() => {

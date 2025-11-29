@@ -1,8 +1,5 @@
 import { z } from "@hono/zod-openapi";
 
-/**
- * OAuth Start Query Parameters
- */
 export const OAuthStartQuerySchema = z.object({
   workspaceId: z.string().optional().openapi({
     description: "Workspace ID (defaults to active team)",
@@ -12,15 +9,12 @@ export const OAuthStartQuerySchema = z.object({
     description: "Connector ID to associate with OAuth flow",
     example: "conn_123",
   }),
-  redirectUrl: z.string().url().optional().openapi({
+  redirectUrl: z.url().optional().openapi({
     description: "URL to redirect after OAuth completion",
     example: "https://app.example.com/connectors",
   }),
 });
 
-/**
- * OAuth Callback Body
- */
 export const OAuthCallbackBodySchema = z.object({
   code: z.string().openapi({
     description: "OAuth authorization code from Slack",
@@ -32,12 +26,9 @@ export const OAuthCallbackBodySchema = z.object({
   }),
 });
 
-/**
- * OAuth Start Response
- */
 export const OAuthStartResponseSchema = z.object({
   success: z.boolean(),
-  oauthUrl: z.string().url().optional().openapi({
+  oauthUrl: z.url().optional().openapi({
     description: "Slack OAuth authorization URL",
     example: "https://slack.com/oauth/v2/authorize?...",
   }),
@@ -46,9 +37,6 @@ export const OAuthStartResponseSchema = z.object({
   }),
 });
 
-/**
- * OAuth Callback Response
- */
 export const OAuthCallbackResponseSchema = z.object({
   success: z.boolean(),
   connectorId: z.string().optional().openapi({
@@ -59,7 +47,7 @@ export const OAuthCallbackResponseSchema = z.object({
     description: "Connector name",
     example: "Slack Workspace",
   }),
-  redirectUrl: z.string().url().optional().openapi({
+  redirectUrl: z.url().optional().openapi({
     description: "URL to redirect to",
     example: "https://app.example.com/connectors",
   }),

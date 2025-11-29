@@ -7,6 +7,7 @@ import { createTRPCClient, httpBatchLink, loggerLink } from "@trpc/client";
 import { createTRPCContext } from "@trpc/tanstack-react-query";
 import { useState } from "react";
 import superjson from "superjson";
+import { trpcUrl } from "@/lib/urls";
 import { makeQueryClient } from "./query-client";
 
 export const { TRPCProvider, useTRPC } = createTRPCContext<AppRouter>();
@@ -15,15 +16,11 @@ let browserQueryClient: ReturnType<typeof makeQueryClient> | undefined;
 
 function getQueryClient() {
   if (isServer) {
-    // Server: always make a new query client
     return makeQueryClient();
   }
-
-  // Browser: reuse a single QueryClient instance
   if (!browserQueryClient) {
     browserQueryClient = makeQueryClient();
   }
-
   return browserQueryClient;
 }
 
@@ -33,20 +30,15 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
   const [trpcClient] = useState(() =>
     createTRPCClient<AppRouter>({
       links: [
-        httpBatchLink({
-          url: `${process.env.NEXT_PUBLIC_SERVER_URL}/trpc`,
-          transformer: superjson,
-          fetch(_url, options) {
-            return fetch(_url, {
-              ...options,
-              credentials: "include",
-            });
-          },
-        }),
         loggerLink({
           enabled: (opts) =>
             process.env.NODE_ENV === "development" ||
             (opts.direction === "down" && opts.result instanceof Error),
+        }),
+        httpBatchLink({
+          url: trpcUrl,
+          transformer: superjson,
+          fetch: (url, opts) => fetch(url, { ...opts, credentials: "include" }),
         }),
       ],
     })

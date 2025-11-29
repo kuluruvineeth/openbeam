@@ -1,8 +1,12 @@
 "use client";
 
-import { appStore as appStoreApps } from "@openplane/integrations";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import {
+  appStore as appStoreApps,
+  type SettingValue,
+} from "@openplane/integrations";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Icons } from "@/components/icons";
 import { useAppsQuery } from "@/hooks/use-apps";
 import { useUserQuery } from "@/hooks/use-user";
 import {
@@ -10,16 +14,14 @@ import {
   type ExternalApp,
   transformExternalApp,
 } from "@/lib/integrations";
+import { Button } from "../ui/button";
 import { UnifiedAppComponent } from "./unified-app";
 
 export function Integrations() {
   const { data: user } = useUserQuery();
-  const router = useRouter();
 
-  // Fetch apps from custom hook
   const { data: serverApps } = useAppsQuery();
 
-  // Placeholder data until TRPC routes are implemented
   const externalAppsData: { data: ExternalApp[] } = { data: [] };
   const authorizedExternalApps: { data: AuthorizedApp[] } = { data: [] };
 
@@ -27,22 +29,21 @@ export function Integrations() {
   const isInstalledPage = searchParams.get("tab") === "connected";
   const search = searchParams.get("q");
 
-  // Combine and filter apps
   const filteredApps = [
-    // Transform official apps
     ...appStoreApps.map((clientApp) => {
       const serverApp = serverApps.find((app) => app.id === clientApp.id);
       return {
         ...clientApp,
         installed: serverApp?.installed ?? false,
-        userSettings: serverApp?.userSettings,
+        userSettings: serverApp?.userSettings as
+          | Record<string, SettingValue>
+          | undefined,
         connectorId: serverApp?.connectorId,
         logo: clientApp.logo,
         onInitialize: clientApp.onInitialize,
         type: "official" as const,
       };
     }),
-    // Transform external apps (only approved ones)
     ...(
       externalAppsData?.data?.filter((app) => app.status === "approved") || []
     ).map((app) => transformExternalApp(app, authorizedExternalApps)),
@@ -53,8 +54,42 @@ export function Integrations() {
     return matchesTab && matchesSearch;
   });
 
+  if (search && !filteredApps.length) {
+    return (
+      <div className="flex h-[calc(100vh-400px)] flex-col items-center justify-center">
+        <div className="mb-4 flex h-12 w-12 items-center justify-center bg-secondary/60">
+          <Icons.SearchIcon className="h-5 w-5 text-muted-foreground" />
+        </div>
+        <h3 className="font-medium text-foreground">No results</h3>
+        <p className="mt-1 max-w-xs text-center text-muted-foreground text-sm">
+          No apps found matching "{search}"
+        </p>
+        <Link className="mt-4" href="/connectors?tab=available">
+          <Button variant="outline">Clear search</Button>
+        </Link>
+      </div>
+    );
+  }
+
+  if (!(search || filteredApps.length)) {
+    return (
+      <div className="flex h-[calc(100vh-400px)] flex-col items-center justify-center">
+        <div className="mb-4 flex h-12 w-12 items-center justify-center bg-secondary/60">
+          <Icons.ConnectorIcon className="h-5 w-5 text-muted-foreground" />
+        </div>
+        <h3 className="font-medium text-foreground">No apps connected</h3>
+        <p className="mt-1 max-w-xs text-center text-muted-foreground text-sm">
+          Browse available apps to connect your first integration
+        </p>
+        <Link className="mt-4" href="/connectors?tab=available">
+          <Button variant="outline">Browse apps</Button>
+        </Link>
+      </div>
+    );
+  }
+
   return (
-    <div className="mx-auto mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+    <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
       {filteredApps.map((app) => (
         <UnifiedAppComponent
           app={app}
@@ -62,37 +97,6 @@ export function Integrations() {
           userEmail={user?.email || undefined}
         />
       ))}
-
-      {!(search || filteredApps.length) && (
-        <div className="col-span-full flex h-[calc(100vh-400px)] flex-col items-center justify-center">
-          <h3 className="font-semibold text-[#1D1D1D] text-lg dark:text-[#F2F1EF]">
-            No apps installed
-          </h3>
-          <p className="mt-2 max-w-md text-center text-[#878787] text-sm">
-            You haven't installed any apps yet. Go to the 'All Apps' tab to
-            browse available apps.
-          </p>
-        </div>
-      )}
-
-      {search && !filteredApps.length && (
-        <div className="col-span-full flex h-[calc(100vh-400px)] flex-col items-center justify-center">
-          <h3 className="font-semibold text-[#1D1D1D] text-lg dark:text-[#F2F1EF]">
-            No apps found
-          </h3>
-          <p className="mt-2 max-w-md text-center text-[#878787] text-sm">
-            No apps found for your search, let us know if you want to see a
-            specific app in the app store.
-          </p>
-          <Button
-            className="mt-4"
-            onClick={() => router.push("/integrations")}
-            variant="outline"
-          >
-            Clear search
-          </Button>
-        </div>
-      )}
     </div>
   );
 }

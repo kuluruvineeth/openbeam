@@ -2,8 +2,12 @@ import type { auth } from "@openplane/auth";
 import { inferAdditionalFields } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 
+import { baseUrl } from "../urls";
+
 export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_SERVER_URL,
+  baseURL: baseUrl,
+  basePath: "/api/auth",
+  fetchOptions: { credentials: "include" },
   plugins: [inferAdditionalFields<typeof auth>()],
 });
 

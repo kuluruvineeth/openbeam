@@ -18,7 +18,7 @@ export const Spinner = ({
 }: SpinnerProps) => (
   // biome-ignore lint/a11y/noSvgWithoutTitle: This is a spinner
   <svg
-    className={cn("animate-spin stroke-[#878787]", className)}
+    className={cn("animate-spin stroke-muted-foreground", className)}
     fill="none"
     stroke="currentColor"
     strokeLinecap="round"

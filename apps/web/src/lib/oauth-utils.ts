@@ -8,7 +8,7 @@ export interface OAuthCallbackResponse {
   finalize_url?: string;
 }
 
-type IntegrationName = "slack";
+type IntegrationName = "slack" | "gmail";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -16,6 +16,11 @@ const INTEGRATION_HANDLERS: Record<
 > = {
   slack: async (code: string, state: string) =>
     apiClient.post<OAuthCallbackResponse>("/integrations/slack/callback", {
+      code,
+      state,
+    }),
+  gmail: async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>("/integrations/gmail/callback", {
       code,
       state,
     }),
