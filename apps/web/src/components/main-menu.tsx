@@ -19,8 +19,7 @@ type MenuItems = readonly MenuItem[];
 
 const icons: Record<string, () => React.ReactElement> = {
   "/": () => <Icons.Plus size={20} />,
-  "/data-sources": () => <Icons.ConnectorIcon size={20} />,
-  "/integrations": () => <Icons.Integrations size={20} />,
+  "/connectors": () => <Icons.ConnectorIcon size={20} />,
 } as const;
 
 const items: MenuItems = [
@@ -29,12 +28,8 @@ const items: MenuItems = [
     name: "New",
   },
   {
-    path: "/data-sources",
-    name: "Data Sources",
-  },
-  {
-    path: "/integrations",
-    name: "Integrations",
+    path: "/connectors",
+    name: "Connectors",
   },
 ] as const;
 
@@ -78,7 +73,7 @@ const ChildItem = ({
         <div
           className={cn(
             "mr-[15px] ml-[35px] flex h-[32px] items-center",
-            "border-[#DCDAD2] border-l pl-3 dark:border-[#2C2C2C]",
+            "border-border border-l pl-3",
             "transition-all duration-200 ease-out",
             showChild ? "translate-x-0 opacity-100" : "-translate-x-2 opacity-0"
           )}
@@ -137,14 +132,13 @@ const Item = ({
           <div
             className={cn(
               "mr-[15px] ml-[15px] h-[40px] border border-transparent transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)]",
-              isActive &&
-                "border-[#DCDAD2] bg-[#F2F1EF] dark:border-[#2C2C2C] dark:bg-secondary",
+              isActive && "border-border bg-secondary",
               isExpanded ? "w-[calc(100%-30px)]" : "w-[40px]"
             )}
           />
 
           {/* Icon - always in same position from sidebar edge */}
-          <div className="group-hover:!text-primary pointer-events-none absolute top-0 left-[15px] flex h-[40px] w-[40px] items-center justify-center text-black dark:text-[#666666]">
+          <div className="group-hover:!text-primary pointer-events-none absolute top-0 left-[15px] flex h-[40px] w-[40px] items-center justify-center text-foreground dark:text-muted-foreground">
             <div className={cn(isActive && "dark:!text-white")}>
               <Icon />
             </div>

@@ -10,7 +10,7 @@ import { useMemo, useRef } from "react";
 import { useTRPC } from "@/trpc/client";
 import { useBulkSyncStatus } from "./use-sync";
 
-type DataSource = {
+type Connector = {
   id: string;
   name: string;
   app: string;
@@ -29,8 +29,8 @@ type DataSource = {
   } | null;
 };
 
-type DataSourcesResult = {
-  data: DataSource[] | null;
+type ConnectorsResult = {
+  data: Connector[] | null;
   isLoading: boolean;
   isFetching: boolean;
   error: unknown;
@@ -42,7 +42,7 @@ type MutationCallbacks = {
   onError?: (error: unknown) => void;
 };
 
-export function useDataSources(): DataSourcesResult {
+export function useConnectors(): ConnectorsResult {
   const trpc = useTRPC();
 
   const appsQuery = useQuery({
@@ -78,7 +78,7 @@ export function useDataSources(): DataSourcesResult {
     enabled: connectorIds.length > 0 && !appsQuery.isError,
   });
 
-  const dataSources = useMemo<DataSource[] | null>(() => {
+  const connectorsData = useMemo<Connector[] | null>(() => {
     if (!stableConnectors.length) {
       return null;
     }
@@ -115,7 +115,7 @@ export function useDataSources(): DataSourcesResult {
   }, [stableConnectors, bulkStatusQuery.data]);
 
   return {
-    data: dataSources,
+    data: connectorsData,
     isLoading: appsQuery.isLoading || bulkStatusQuery.isLoading,
     isFetching: appsQuery.isFetching || bulkStatusQuery.isFetching,
     error: appsQuery.error ?? bulkStatusQuery.error,
@@ -129,8 +129,8 @@ export function useDataSources(): DataSourcesResult {
   };
 }
 
-export function useDataSourcesStats() {
-  const { data, isLoading } = useDataSources();
+export function useConnectorsStats() {
+  const { data, isLoading } = useConnectors();
 
   const stats = useMemo(() => {
     if (!data?.length) {
@@ -156,7 +156,7 @@ export function useDataSourcesStats() {
   return { data: stats, isLoading };
 }
 
-async function invalidateDataSourcesQueries(
+async function invalidateConnectorsQueries(
   trpc: ReturnType<typeof useTRPC>,
   queryClient: ReturnType<typeof useQueryClient>,
   connectorIds: string[]
@@ -195,7 +195,7 @@ export function useBulkSync(callbacks?: MutationCallbacks) {
       return Promise.all(mutations);
     },
     onSuccess: async (_data, connectorIds) => {
-      await invalidateDataSourcesQueries(trpc, queryClient, connectorIds);
+      await invalidateConnectorsQueries(trpc, queryClient, connectorIds);
       callbacks?.onSuccess?.();
     },
     onError: (error) => {
@@ -222,7 +222,7 @@ export function useBulkPause(callbacks?: MutationCallbacks) {
       return Promise.all(mutations);
     },
     onSuccess: async (_data, connectorIds) => {
-      await invalidateDataSourcesQueries(trpc, queryClient, connectorIds);
+      await invalidateConnectorsQueries(trpc, queryClient, connectorIds);
       callbacks?.onSuccess?.();
     },
     onError: (error) => {
@@ -249,7 +249,7 @@ export function useBulkResume(callbacks?: MutationCallbacks) {
       return Promise.all(mutations);
     },
     onSuccess: async (_data, connectorIds) => {
-      await invalidateDataSourcesQueries(trpc, queryClient, connectorIds);
+      await invalidateConnectorsQueries(trpc, queryClient, connectorIds);
       callbacks?.onSuccess?.();
     },
     onError: (error) => {

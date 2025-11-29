@@ -20,7 +20,7 @@ export function AppLogo({ app, className, size = 32 }: AppLogoProps) {
       <div
         className={cn("relative flex items-center justify-center", className)}
       >
-        <LogoComponent />
+        <LogoComponent size={size} />
       </div>
     );
   }

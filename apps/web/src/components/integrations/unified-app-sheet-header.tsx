@@ -1,6 +1,7 @@
 "use client";
 
 import type { UnifiedApp } from "@openplane/integrations";
+import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
@@ -9,7 +10,90 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 import { AppLogo } from "./app-logo";
+
+type ActionButtonProps = {
+  app: UnifiedApp;
+  isLoading: boolean;
+  isDisconnecting: boolean;
+  isNextDisabled?: boolean;
+  handleDisconnect: () => void;
+  handleOnInitialize: () => Promise<void>;
+};
+
+function InstalledActions({
+  isLoading,
+  isDisconnecting,
+  isNextDisabled,
+  handleDisconnect,
+  handleOnInitialize,
+}: Omit<ActionButtonProps, "app">) {
+  return (
+    <div className="flex items-center gap-3">
+      <Button
+        disabled={isLoading || isNextDisabled}
+        onClick={handleOnInitialize}
+        size="sm"
+      >
+        {isLoading ? "Saving..." : "Save"}
+      </Button>
+      <button
+        className={cn(
+          "text-foreground/40 text-xs transition-colors hover:text-destructive",
+          isDisconnecting && "pointer-events-none opacity-50"
+        )}
+        disabled={isDisconnecting}
+        onClick={handleDisconnect}
+        type="button"
+      >
+        {isDisconnecting ? "..." : "Disconnect"}
+      </button>
+    </div>
+  );
+}
+
+function ConnectButton({
+  app,
+  isLoading,
+  isNextDisabled,
+  handleOnInitialize,
+}: Pick<
+  ActionButtonProps,
+  "app" | "isLoading" | "isNextDisabled" | "handleOnInitialize"
+>) {
+  const needsSettings =
+    isNextDisabled && app.settings && app.settings.length > 0;
+
+  if (needsSettings) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span>
+              <Button disabled size="sm">
+                Connect
+              </Button>
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            <p className="text-xs">Configure required settings first</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+
+  return (
+    <Button
+      disabled={!app.active || isLoading || isNextDisabled}
+      onClick={handleOnInitialize}
+      size="sm"
+    >
+      {isLoading ? "Connecting..." : "Connect"}
+    </Button>
+  );
+}
 
 type UnifiedAppSheetHeaderProps = {
   app: UnifiedApp;
@@ -27,6 +111,7 @@ type UnifiedAppSheetHeaderProps = {
   handleDisconnect: () => void;
   handleOnInitialize: () => Promise<void>;
   isNextDisabled?: boolean;
+  connectedAt?: Date | string | null;
 };
 
 export function UnifiedAppSheetHeader({
@@ -37,91 +122,60 @@ export function UnifiedAppSheetHeader({
   handleDisconnect,
   handleOnInitialize,
   isNextDisabled,
+  connectedAt,
 }: UnifiedAppSheetHeaderProps) {
-  const connectButton = (
-    <Button
-      disabled={!app.active || isLoading || isNextDisabled}
-      onClick={handleOnInitialize}
-      variant="default"
-    >
-      {isLoading ? "Connecting..." : "Connect"}
-    </Button>
-  );
+  const isDisconnecting =
+    disconnectOfficialAppMutation.isPending ||
+    revokeExternalAppMutation.isPending;
 
-  const updateButton = (
-    <Button
-      disabled={isLoading || isNextDisabled}
-      onClick={handleOnInitialize}
-      variant="default"
-    >
-      {isLoading ? "Saving..." : "Save Settings"}
-    </Button>
-  );
-
-  const renderActionButton = () => {
-    if (app.installed) {
-      return (
-        <div className="flex gap-2">
-          {updateButton}
-          <Button
-            disabled={
-              disconnectOfficialAppMutation.isPending ||
-              revokeExternalAppMutation.isPending
-            }
-            onClick={handleDisconnect}
-            variant="outline"
-          >
-            {disconnectOfficialAppMutation.isPending ||
-            revokeExternalAppMutation.isPending
-              ? "Disconnecting..."
-              : "Disconnect"}
-          </Button>
-        </div>
-      );
-    }
-
-    if (isNextDisabled && app.settings && app.settings.length > 0) {
-      return (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="cursor-not-allowed opacity-50">
-                <Button disabled variant="default">
-                  Connect
-                </Button>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side="left">
-              <p>Please configure required settings first</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      );
-    }
-
-    return connectButton;
-  };
+  const categoryText =
+    app.type === "external" && app.developerName
+      ? `${app.category} · ${app.developerName}`
+      : app.category;
 
   return (
-    <SheetHeader className="mb-4">
-      <div className="flex items-center justify-between border-border border-b pb-4">
-        <div className="flex items-center space-x-3">
+    <SheetHeader className="mb-6 shrink-0">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
           <AppLogo app={app} className="h-10 w-10" size={40} />
           <div>
-            <div className="flex items-center space-x-2">
-              <SheetTitle className="text-xl">{app.name}</SheetTitle>
+            <div className="flex items-center gap-2.5">
+              <SheetTitle className="font-semibold text-base tracking-tight">
+                {app.name}
+              </SheetTitle>
               {app.installed && (
-                <div className="size-1.5 rounded-full bg-green-600 dark:bg-green-300" />
+                <span className="inline-flex items-center bg-emerald-500/10 px-2 py-0.5 font-medium text-[10px] text-emerald-600 dark:text-emerald-400">
+                  Connected
+                  {connectedAt && (
+                    <span className="ml-1 text-emerald-500/60">
+                      {formatDistanceToNow(new Date(connectedAt), {
+                        addSuffix: false,
+                      })}
+                    </span>
+                  )}
+                </span>
               )}
             </div>
-            <span className="text-[#878787] text-xs">
-              {app.category}
-              {app.type === "external" ? ` • By ${app.developerName}` : ""}
-            </span>
+            <p className="text-foreground/50 text-xs">{categoryText}</p>
           </div>
         </div>
 
-        <div>{renderActionButton()}</div>
+        {app.installed ? (
+          <InstalledActions
+            handleDisconnect={handleDisconnect}
+            handleOnInitialize={handleOnInitialize}
+            isDisconnecting={isDisconnecting}
+            isLoading={isLoading}
+            isNextDisabled={isNextDisabled}
+          />
+        ) : (
+          <ConnectButton
+            app={app}
+            handleOnInitialize={handleOnInitialize}
+            isLoading={isLoading}
+            isNextDisabled={isNextDisabled}
+          />
+        )}
       </div>
     </SheetHeader>
   );

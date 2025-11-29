@@ -35,7 +35,7 @@ export function generateFormSchema(settings: UnifiedApp["settings"]) {
     for (const setting of settings) {
       if (setting.type === "switch") {
         schemaMap[setting.id] = z.boolean().default(false);
-      } else if (setting.required) {
+      } else if (setting.required && !setting.dependsOn) {
         schemaMap[setting.id] = z.string().min(1, {
           message: `${setting.label} is required`,
         });
@@ -44,11 +44,41 @@ export function generateFormSchema(settings: UnifiedApp["settings"]) {
       }
     }
   }
-  return z.object(schemaMap);
+
+  const baseSchema = z.object(schemaMap);
+
+  if (settings) {
+    const conditionalFields = settings.filter((s) => s.required && s.dependsOn);
+
+    if (conditionalFields.length > 0) {
+      return baseSchema.superRefine((data, ctx) => {
+        for (const setting of conditionalFields) {
+          const conditions = Array.isArray(setting.dependsOn)
+            ? setting.dependsOn
+            : [setting.dependsOn];
+
+          const shouldBeRequired = conditions.every(
+            (condition) =>
+              condition && data[condition.field] === condition.value
+          );
+
+          if (shouldBeRequired && !data[setting.id]) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: `${setting.label} is required`,
+              path: [setting.id],
+            });
+          }
+        }
+      });
+    }
+  }
+
+  return baseSchema;
 }
 
 export function getAppDefaultValues(app: UnifiedApp) {
-  const defaults: Record<string, string | boolean> = {};
+  const defaults: Record<string, string | number | boolean> = {};
   if (app.settings) {
     for (const setting of app.settings) {
       const savedValue = app.userSettings?.[setting.id];

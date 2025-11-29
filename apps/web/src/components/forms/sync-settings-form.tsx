@@ -3,14 +3,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { formatDistanceToNow } from "date-fns";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 import { Icons } from "@/components/icons";
 import { SubmitButton } from "@/components/submit-button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -26,8 +25,6 @@ import {
 import { useUpdateSyncSettings, useWebhookStatus } from "@/hooks/use-sync";
 import type { SyncJobInfo } from "@/lib/sync-types";
 
-// Sync interval options (in milliseconds)
-// Note: BullMQ cron patterns require minimum 1 minute intervals
 const INCREMENTAL_INTERVALS = [
   { label: "Every minute", value: 60 * 1000 },
   { label: "5 minutes", value: 5 * 60 * 1000 },
@@ -51,24 +48,64 @@ const FULL_INTERVALS = [
 
 const formSchema = z
   .object({
-    incrementalInterval: z.number().min(60_000, {
-      message: "Incremental sync interval must be at least 1 minute",
-    }),
-    fullInterval: z.number().min(60_000, {
-      message: "Full sync interval must be at least 1 minute",
-    }),
+    incrementalInterval: z.number().min(60_000),
+    fullInterval: z.number().min(60_000),
   })
   .refine((data) => data.incrementalInterval < data.fullInterval, {
-    message: "Incremental sync interval must be less than full sync interval",
+    message: "Must be less than full sync interval",
     path: ["incrementalInterval"],
   });
 
 type FormValues = z.infer<typeof formSchema>;
 
-interface SyncSettingsFormProps {
+type SyncSettingsFormProps = {
   connectorId: string;
   fullSyncJob: SyncJobInfo | null;
   incrementalSyncJob: SyncJobInfo | null;
+};
+
+function WebhookStatusRow({
+  isLoading,
+  enabled,
+  lastReceivedAt,
+}: {
+  isLoading: boolean;
+  enabled?: boolean;
+  lastReceivedAt?: string | Date | null;
+}) {
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2 pt-2">
+        <Icons.Spinner className="size-3.5 animate-spin text-foreground/40" />
+      </div>
+    );
+  }
+
+  if (enabled) {
+    return (
+      <div className="flex items-center gap-2 pt-2">
+        <Icons.Webhook className="size-3.5 text-green-600 dark:text-green-400" />
+        <span className="text-green-600 text-xs dark:text-green-400">
+          Real-time updates active
+        </span>
+        {lastReceivedAt && (
+          <span className="text-foreground/40 text-xs">
+            ·{" "}
+            {formatDistanceToNow(new Date(lastReceivedAt), { addSuffix: true })}
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2 pt-2">
+      <Icons.Webhook className="size-3.5 text-foreground/40" />
+      <span className="text-foreground/40 text-xs">
+        Webhooks not configured
+      </span>
+    </div>
+  );
 }
 
 export function SyncSettingsForm({
@@ -90,9 +127,10 @@ export function SyncSettingsForm({
   const updateSettings = useUpdateSyncSettings({
     onSuccess: () => {
       form.reset(form.getValues());
+      toast.success("Settings saved");
     },
-    onError: (error) => {
-      console.error("Failed to update sync settings:", error);
+    onError: () => {
+      toast.error("Failed to save settings");
     },
   });
 
@@ -106,178 +144,91 @@ export function SyncSettingsForm({
     });
   }
 
-  const isFormDirty = form.formState.isDirty;
-  const isSubmitting = updateSettings.isPending;
-
   return (
-    <div className="space-y-6">
-      <Form {...form}>
-        <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
-          <div className="space-y-4">
-            {/* Incremental Sync Settings */}
-            <FormField
-              control={form.control}
-              name="incrementalInterval"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    <Icons.RefreshCw className="h-4 w-4 text-muted-foreground" />
-                    Incremental Sync Schedule
-                  </FormLabel>
-                  <FormDescription>
-                    Fetch only new and updated data since the last sync. More
-                    frequent syncs keep your data fresh.
-                  </FormDescription>
-                  <Select
-                    onValueChange={(value) => field.onChange(Number(value))}
-                    value={field.value.toString()}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select interval" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {INCREMENTAL_INTERVALS.map((interval) => (
-                        <SelectItem
-                          key={interval.value}
-                          value={interval.value.toString()}
-                        >
-                          {interval.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Full Sync Settings */}
-            <FormField
-              control={form.control}
-              name="fullInterval"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    <Icons.Database className="h-4 w-4 text-muted-foreground" />
-                    Full Sync Schedule
-                  </FormLabel>
-                  <FormDescription>
-                    Re-index all data from scratch. Ensures data consistency and
-                    catches any missed changes.
-                  </FormDescription>
-                  <Select
-                    onValueChange={(value) => field.onChange(Number(value))}
-                    value={field.value.toString()}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select interval" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {FULL_INTERVALS.map((interval) => (
-                        <SelectItem
-                          key={interval.value}
-                          value={interval.value.toString()}
-                        >
-                          {interval.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Webhook Status Section */}
-            <div className="space-y-2 border-t pt-4">
-              <FormLabel>
-                <Icons.Webhook className="h-4 w-4 text-muted-foreground" />
-                Real-time Updates (Webhooks)
+    <Form {...form}>
+      <form className="space-y-5" onSubmit={form.handleSubmit(onSubmit)}>
+        <FormField
+          control={form.control}
+          name="incrementalInterval"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="font-normal text-foreground/60 text-xs">
+                Incremental sync
               </FormLabel>
-              <FormDescription>
-                Receive instant updates when data changes in the source.
-                Webhooks trigger immediate incremental syncs.
-              </FormDescription>
+              <Select
+                onValueChange={(value) => field.onChange(Number(value))}
+                value={field.value.toString()}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {INCREMENTAL_INTERVALS.map((interval) => (
+                    <SelectItem
+                      key={interval.value}
+                      value={interval.value.toString()}
+                    >
+                      {interval.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-              {webhookStatus.isLoading && (
-                <div className="flex items-center gap-2 py-2 text-sm">
-                  <Icons.Spinner className="h-4 w-4 animate-spin" />
-                  <span className="text-muted-foreground">
-                    Loading status...
-                  </span>
-                </div>
-              )}
+        <FormField
+          control={form.control}
+          name="fullInterval"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="font-normal text-foreground/60 text-xs">
+                Full sync
+              </FormLabel>
+              <Select
+                onValueChange={(value) => field.onChange(Number(value))}
+                value={field.value.toString()}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {FULL_INTERVALS.map((interval) => (
+                    <SelectItem
+                      key={interval.value}
+                      value={interval.value.toString()}
+                    >
+                      {interval.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-              {!webhookStatus.isLoading && webhookStatus.data?.enabled && (
-                <Alert>
-                  <Icons.CheckCircle2 className="h-4 w-4 text-green-600" />
-                  <AlertDescription>
-                    <div className="space-y-1">
-                      <p className="font-medium">Webhooks Active</p>
-                      {webhookStatus.data.lastReceivedAt && (
-                        <p className="text-muted-foreground text-xs">
-                          Last received:{" "}
-                          {formatDistanceToNow(
-                            new Date(webhookStatus.data.lastReceivedAt),
-                            {
-                              addSuffix: true,
-                            }
-                          )}
-                        </p>
-                      )}
-                    </div>
-                  </AlertDescription>
-                </Alert>
-              )}
+        <WebhookStatusRow
+          enabled={webhookStatus.data?.enabled}
+          isLoading={webhookStatus.isLoading}
+          lastReceivedAt={webhookStatus.data?.lastReceivedAt}
+        />
 
-              {!(webhookStatus.isLoading || webhookStatus.data?.enabled) && (
-                <Alert>
-                  <Icons.Info className="h-4 w-4" />
-                  <AlertDescription>
-                    Webhooks are not configured. Configure webhooks in your
-                    source application to enable real-time updates.
-                  </AlertDescription>
-                </Alert>
-              )}
-            </div>
-          </div>
-
-          {/* Save Button */}
-          <div className="flex items-center justify-end border-t pt-4">
-            <SubmitButton
-              disabled={!isFormDirty}
-              isSubmitting={isSubmitting}
-              type="submit"
-            >
-              Save Settings
-            </SubmitButton>
-          </div>
-        </form>
-      </Form>
-
-      {/* Success/Error Messages */}
-      {updateSettings.isSuccess && (
-        <Alert>
-          <Icons.CheckCircle2 className="h-4 w-4 text-green-600" />
-          <AlertDescription>
-            Sync settings updated successfully! Changes will take effect on the
-            next scheduled sync.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {updateSettings.isError && (
-        <Alert variant="destructive">
-          <Icons.AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Failed to update sync settings. Please try again.
-          </AlertDescription>
-        </Alert>
-      )}
-    </div>
+        <div className="flex justify-end pt-4">
+          <SubmitButton
+            disabled={!form.formState.isDirty}
+            isSubmitting={updateSettings.isPending}
+            type="submit"
+          >
+            Save
+          </SubmitButton>
+        </div>
+      </form>
+    </Form>
   );
 }
