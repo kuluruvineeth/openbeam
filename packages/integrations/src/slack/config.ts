@@ -36,85 +36,22 @@ export const slackApp: UnifiedApp = {
     config: {
       authUrl: "https://slack.com/oauth/v2/authorize",
       tokenUrl: "https://slack.com/api/oauth.v2.access",
-      redirectPath: "/integrations/slack/oauth/callback",
+      redirectPath: "/connectors/setup/slack/oauth/callback",
       // Default scopes - can be overridden by user configuration if needed
       scopes: [
-        "channels:read", // Public channels
-        "channels:history", // Read public channel messages
-        "groups:read", // Private channels
-        "groups:history", // Read private channel messages
-        "im:read", // DMs
-        "im:history", // Read DM messages
-        "mpim:read", // Group DMs
-        "mpim:history", // Read group DM messages
-        "users:read", // Users
-        "users:read.email", // User emails
-        "team:read", // Workspace info
-        "chat:write", // Bot responses
-        "files:read", // Files
-        // Note: search:read is not a valid Slack OAuth scope
-        // Search functionality uses the bot token from OAuth flow
-      ],
-      scopeDetails: [
-        {
-          name: "channels:read",
-          description:
-            "View basic information about public channels in a workspace",
-        },
-        {
-          name: "channels:history",
-          description:
-            "View messages and other content in public channels that OpenPlane has been added to",
-        },
-        {
-          name: "groups:read",
-          description:
-            "View basic information about private channels that OpenPlane has been added to",
-        },
-        {
-          name: "groups:history",
-          description:
-            "View messages and other content in private channels that OpenPlane has been added to",
-        },
-        {
-          name: "im:read",
-          description:
-            "View basic information about direct messages that OpenPlane has been added to",
-        },
-        {
-          name: "im:history",
-          description:
-            "View messages and other content in direct messages that OpenPlane has been added to",
-        },
-        {
-          name: "mpim:read",
-          description:
-            "View basic information about group direct messages that OpenPlane has been added to",
-        },
-        {
-          name: "mpim:history",
-          description:
-            "View messages and other content in group direct messages that OpenPlane has been added to",
-        },
-        { name: "users:read", description: "View people in a workspace" },
-        {
-          name: "users:read.email",
-          description:
-            "View email addresses of people in a workspace (for identity mapping)",
-        },
-        {
-          name: "team:read",
-          description: "View the name, email domain, and icon for a workspace",
-        },
-        {
-          name: "files:read",
-          description: "View files shared in channels and conversations",
-        },
-        {
-          name: "chat:write",
-          description:
-            "Post messages to channels on your behalf (only when you explicitly send a message)",
-        },
+        "channels:read",
+        "channels:history",
+        "groups:read",
+        "groups:history",
+        "im:read",
+        "im:history",
+        "mpim:read",
+        "mpim:history",
+        "users:read",
+        "users:read.email",
+        "team:read",
+        "chat:write",
+        "files:read",
       ],
     },
   },
@@ -235,6 +172,71 @@ export const slackApp: UnifiedApp = {
         { label: "Real-time Indexing (Recommended)", value: "realtime" },
         { label: "Federated Search (No Storage)", value: "federated" },
       ],
+    },
+    // Federated Search Configuration (only shown when sync_mode is "federated")
+    {
+      id: "federated_search_all_channels",
+      label: "Search All Channels",
+      description:
+        "Enable to search all accessible channels. When enabled, the Channels field is disabled.",
+      type: "switch",
+      required: false,
+      value: true,
+      dependsOn: { field: "sync_mode", value: "federated" },
+    },
+    {
+      id: "federated_channels",
+      label: "Channels",
+      description:
+        "Specify which channels to search (only used if Search All Channels is disabled). Supports glob patterns (e.g., general, eng*, product-*).",
+      type: "text",
+      required: false,
+      value: "",
+      placeholder: "general, eng*, product-*",
+      dependsOn: { field: "sync_mode", value: "federated" },
+    },
+    {
+      id: "federated_exclude_channels",
+      label: "Exclude Channels",
+      description:
+        "Exclude specific channels from search. Supports glob patterns (e.g., secure-channel, private-*, customer*).",
+      type: "text",
+      required: false,
+      value: "",
+      placeholder: "secure-channel, private-*, customer*",
+      dependsOn: { field: "sync_mode", value: "federated" },
+    },
+    {
+      id: "federated_include_group_dms",
+      label: "Include Group Direct Messages",
+      description:
+        "Include multi-person direct messages (MPIMs) in search results.",
+      type: "switch",
+      required: false,
+      value: false,
+      dependsOn: { field: "sync_mode", value: "federated" },
+    },
+    {
+      id: "federated_default_search_days",
+      label: "Default Search Days",
+      description:
+        "Maximum number of days to search back (default: 30). Increasing this value may degrade answer quality.",
+      type: "text",
+      required: false,
+      value: "30",
+      placeholder: "30",
+      dependsOn: { field: "sync_mode", value: "federated" },
+    },
+    {
+      id: "federated_max_messages_per_query",
+      label: "Max Messages Per Query",
+      description:
+        "Maximum number of messages to retrieve per search query (default: 25). Higher values provide more context but may be slower.",
+      type: "text",
+      required: false,
+      value: "25",
+      placeholder: "25",
+      dependsOn: { field: "sync_mode", value: "federated" },
     },
   ],
 };
