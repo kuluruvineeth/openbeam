@@ -1,7 +1,4 @@
-/**
- * Generic API client wrapper for making authenticated requests to the backend
- * Handles authentication, error handling, and provides a clean interface
- */
+import { baseUrl } from "./urls";
 
 type RequestMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -29,16 +26,6 @@ class ApiClientError extends Error {
   }
 }
 
-/**
- * Get the base URL for API requests
- */
-function getBaseUrl(): string {
-  return process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000";
-}
-
-/**
- * Parse error response body
- */
 async function parseErrorResponse(response: Response): Promise<unknown> {
   const contentType = response.headers.get("content-type");
 
@@ -52,9 +39,6 @@ async function parseErrorResponse(response: Response): Promise<unknown> {
   }
 }
 
-/**
- * Extract error message from error data
- */
 function extractErrorMessage(errorData: unknown, status: number): string {
   if (
     typeof errorData === "object" &&
@@ -69,9 +53,6 @@ function extractErrorMessage(errorData: unknown, status: number): string {
   return `Request failed with status ${status}`;
 }
 
-/**
- * Parse successful response body
- */
 async function parseSuccessResponse<T>(response: Response): Promise<T> {
   const contentType = response.headers.get("content-type");
   if (contentType?.includes("application/json")) {
@@ -80,9 +61,6 @@ async function parseSuccessResponse<T>(response: Response): Promise<T> {
   return (await response.text()) as T;
 }
 
-/**
- * Generic API client for making authenticated requests
- */
 export const apiClient = {
   /**
    * Make an authenticated API request
@@ -92,7 +70,7 @@ export const apiClient = {
 
     const url = endpoint.startsWith("http")
       ? endpoint
-      : `${getBaseUrl()}${endpoint}`;
+      : `${baseUrl}${endpoint}`;
 
     const headers: HeadersInit = {
       "Content-Type": "application/json",
@@ -129,9 +107,6 @@ export const apiClient = {
     }
   },
 
-  /**
-   * GET request
-   */
   get<T>(
     endpoint: string,
     options?: Omit<RequestOptions, "method" | "body">
@@ -139,9 +114,6 @@ export const apiClient = {
     return this.request<T>(endpoint, { ...options, method: "GET" });
   },
 
-  /**
-   * POST request
-   */
   post<T>(
     endpoint: string,
     body?: unknown,
@@ -150,9 +122,6 @@ export const apiClient = {
     return this.request<T>(endpoint, { ...options, method: "POST", body });
   },
 
-  /**
-   * PUT request
-   */
   put<T>(
     endpoint: string,
     body?: unknown,
@@ -161,9 +130,6 @@ export const apiClient = {
     return this.request<T>(endpoint, { ...options, method: "PUT", body });
   },
 
-  /**
-   * PATCH request
-   */
   patch<T>(
     endpoint: string,
     body?: unknown,
@@ -172,9 +138,6 @@ export const apiClient = {
     return this.request<T>(endpoint, { ...options, method: "PATCH", body });
   },
 
-  /**
-   * DELETE request
-   */
   delete<T>(
     endpoint: string,
     options?: Omit<RequestOptions, "method" | "body">
