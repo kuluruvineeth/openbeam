@@ -4,7 +4,10 @@ import prisma, {
   decryptIfEncrypted,
   encryptIfConfigured,
 } from "@openplane/db";
-import { refreshGmailToken } from "@openplane/integrations";
+import {
+  refreshGmailToken,
+  refreshGoogleDriveToken,
+} from "@openplane/integrations";
 
 export async function refreshConnectorToken(
   connectorId: string
@@ -57,6 +60,14 @@ export async function refreshConnectorToken(
     switch (oauth.app) {
       case "GMAIL":
         newToken = await refreshGmailToken({
+          clientId,
+          clientSecret,
+          refreshToken,
+        });
+        break;
+
+      case "GOOGLE_DRIVE":
+        newToken = await refreshGoogleDriveToken({
           clientId,
           clientSecret,
           refreshToken,
