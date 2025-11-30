@@ -204,7 +204,25 @@ resource "google_secret_manager_secret_version" "google_client_secret" {
   secret_data = var.google_client_secret
 }
 
+# Encryption Key for OAuth credentials (AES-256-GCM)
+resource "google_secret_manager_secret" "encryption_key" {
+  secret_id = "${local.project_name}-encryption-key-${local.environment}"
+  project   = var.project_id
 
+  replication {
+    auto {}
+  }
+
+  labels = {
+    environment = local.environment
+    service     = "credentials"
+  }
+}
+
+resource "google_secret_manager_secret_version" "encryption_key" {
+  secret      = google_secret_manager_secret.encryption_key.id
+  secret_data = var.encryption_key
+}
 
 # Secret Manager Access
 resource "google_secret_manager_secret_iam_member" "server_secrets" {
@@ -221,7 +239,7 @@ resource "google_secret_manager_secret_iam_member" "server_secrets" {
 }
 
 resource "google_secret_manager_secret_iam_member" "server_auth_secrets" {
-  for_each  = toset(["better-auth-secret", "jwt-secret", "google-client-id", "google-client-secret"])
+  for_each  = toset(["better-auth-secret", "jwt-secret", "google-client-id", "google-client-secret", "encryption-key"])
   secret_id = "${local.project_name}-${each.value}-${local.environment}"
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${local.server_sa}"
@@ -242,7 +260,7 @@ resource "google_secret_manager_secret_iam_member" "worker_secrets" {
 }
 
 resource "google_secret_manager_secret_iam_member" "worker_auth_secrets" {
-  for_each  = toset([])
+  for_each  = toset(["encryption-key"])
   secret_id = "${local.project_name}-${each.value}-${local.environment}"
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${local.worker_sa}"
@@ -426,6 +444,7 @@ module "server" {
     VESPA_URL       = module.vespa.vespa_query_url
     BETTER_AUTH_URL = local.server_url
     CORS_ORIGIN     = local.web_url
+    COOKIE_DOMAIN   = var.cookie_domain != "" ? var.cookie_domain : (var.web_domain != "" ? ".${replace(var.web_domain, "/^[^.]+\\./", "")}" : "")
   }
 
   secret_env_vars = {
@@ -451,6 +470,10 @@ module "server" {
     }
     GOOGLE_CLIENT_SECRET = {
       secret_id = google_secret_manager_secret.google_client_secret.secret_id
+      version   = "latest"
+    }
+    ENCRYPTION_KEY = {
+      secret_id = google_secret_manager_secret.encryption_key.secret_id
       version   = "latest"
     }
   }
@@ -513,6 +536,10 @@ module "worker" {
     }
     REDIS_URL = {
       secret_id = module.redis.redis_url_secret_id
+      version   = "latest"
+    }
+    ENCRYPTION_KEY = {
+      secret_id = google_secret_manager_secret.encryption_key.secret_id
       version   = "latest"
     }
   }

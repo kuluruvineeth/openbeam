@@ -58,6 +58,11 @@ variable "google_client_secret" {
   sensitive   = true
 }
 
+variable "encryption_key" {
+  description = "AES-256-GCM encryption key for OAuth credentials (64 hex chars). Generate with: openssl rand -hex 32"
+  type        = string
+  sensitive   = true
+}
 
 # This is used to redeploy the services
 variable "redeploy_id" {
@@ -82,6 +87,12 @@ variable "server_domain" {
 
 variable "web_domain" {
   description = "Custom domain for web (e.g., dev.openplane.tech)"
+  type        = string
+  default     = ""
+}
+
+variable "cookie_domain" {
+  description = "Cookie domain for auth (e.g., .openplane.tech for all subdomains)"
   type        = string
   default     = ""
 }

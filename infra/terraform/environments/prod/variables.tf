@@ -191,3 +191,64 @@ variable "web_max_instances" {
   default     = 10
 }
 
+# ==============================================================================
+# Auth & Secrets
+# ==============================================================================
+
+variable "better_auth_secret" {
+  description = "Better Auth secret key"
+  type        = string
+  sensitive   = true
+}
+
+variable "jwt_secret" {
+  description = "JWT secret key for server"
+  type        = string
+  sensitive   = true
+}
+
+variable "google_client_id" {
+  description = "Google OAuth Client ID"
+  type        = string
+}
+
+variable "google_client_secret" {
+  description = "Google OAuth Client Secret"
+  type        = string
+  sensitive   = true
+}
+
+variable "encryption_key" {
+  description = "AES-256-GCM encryption key for OAuth credentials (64 hex chars). Generate with: openssl rand -hex 32"
+  type        = string
+  sensitive   = true
+}
+
+# ==============================================================================
+# Custom Domains
+# ==============================================================================
+
+variable "server_domain" {
+  description = "Custom domain for server (e.g., api.openplane.tech)"
+  type        = string
+  default     = ""
+}
+
+variable "web_domain" {
+  description = "Custom domain for web (e.g., app.openplane.tech)"
+  type        = string
+  default     = ""
+}
+
+variable "cookie_domain" {
+  description = "Cookie domain for auth (e.g., .openplane.tech for all subdomains)"
+  type        = string
+  default     = ""
+}
+
+variable "redeploy_id" {
+  description = "ID to trigger redeployment"
+  type        = string
+  default     = ""
+}
+

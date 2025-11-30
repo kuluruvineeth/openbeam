@@ -118,6 +118,7 @@ gcloud run jobs execute openplane-db-migrate-dev \
 **Dev environment** has public IP enabled for easier local development.
 
 **Get database credentials:**
+
 ```bash
 # Get database password
 DB_PASSWORD=$(gcloud secrets versions access latest --secret="openplane-db-password-dev" --project=openplane-478413)
@@ -127,6 +128,7 @@ DB_IP=$(cd infra/terraform/environments/dev && terraform output -raw cloud_sql_p
 ```
 
 **Option A: Direct connection (dev only)**
+
 ```bash
 # Using psql
 PGPASSWORD="$DB_PASSWORD" psql -h $DB_IP -U openplane -d openplane
@@ -140,6 +142,7 @@ PGPASSWORD="$DB_PASSWORD" psql -h $DB_IP -U openplane -d openplane
 ```
 
 **Option B: Cloud SQL Proxy (works for dev and prod)**
+
 ```bash
 # Start proxy
 ./cloud-sql-proxy openplane-478413:us-central1:openplane-db-dev-81049585 --port 5432
@@ -149,6 +152,7 @@ PGPASSWORD="$DB_PASSWORD" psql -h 127.0.0.1 -U openplane -d openplane
 ```
 
 **Reset database (dev only):**
+
 ```bash
 # Drop and recreate schema
 PGPASSWORD="$DB_PASSWORD" psql -h $DB_IP -U openplane -d openplane \
@@ -215,47 +219,116 @@ terraform destroy
 
 ## 🔧 Adding Environment Variables
 
-### 1. Normal Variables (Non-Sensitive)
+### Quick Reference
 
-Add to the `env_vars` block in `environments/dev/main.tf`:
+| Type              | Where to Add                  | Example                     |
+| ----------------- | ----------------------------- | --------------------------- |
+| **Plain env var** | `env_vars` block in `main.tf` | `NODE_ENV = "production"`   |
+| **Secret**        | 4 places (see below)          | API keys, passwords, tokens |
+
+---
+
+### Adding a Plain Environment Variable
+
+**1 step only** - Add to `env_vars` in `main.tf`:
 
 ```hcl
+# In module "server" or module "worker"
 env_vars = {
   NODE_ENV    = "development"
-  API_URL     = "https://api.example.com"
-  MY_NEW_VAR  = "some-value"
+  MY_NEW_VAR  = "some-value"  # ← Add here
 }
 ```
 
-### 2. Secrets (Sensitive)
+---
 
-For API keys, passwords, etc., use Secret Manager:
+### Adding a Secret (4 Steps)
 
-1. **Define the Secret** (in `main.tf`):
+> **Example:** Adding `ENCRYPTION_KEY` secret
 
-   ```hcl
-   resource "google_secret_manager_secret" "my_secret" {
-     secret_id = "openplane-my-secret-dev"
-     # ... replication config ...
-   }
-   ```
+#### Step 1: Add Terraform Variable
 
-2. **Grant Access** (in `main.tf` IAM section):
+**File:** `variables.tf`
 
-   ```hcl
-   resource "google_secret_manager_secret_iam_member" "server_secrets" {
-     # Add "my-secret" to the list
-     for_each = toset(["db-password", "my-secret"])
-     # ...
-   }
-   ```
+```hcl
+variable "encryption_key" {
+  description = "AES-256 encryption key for credentials"
+  type        = string
+  sensitive   = true
+}
+```
 
-3. **Map to Service** (in `module "server"`):
-   ```hcl
-   secret_env_vars = {
-     MY_SECRET_ENV = {
-       secret_id = google_secret_manager_secret.my_secret.secret_id
-       version   = "latest"
-     }
-   }
-   ```
+#### Step 2: Create Secret Manager Resource
+
+**File:** `main.tf` (in the secrets section, ~line 130)
+
+```hcl
+resource "google_secret_manager_secret" "encryption_key" {
+  secret_id = "${local.project_name}-encryption-key-${local.environment}"
+  project   = var.project_id
+  replication { auto {} }
+}
+
+resource "google_secret_manager_secret_version" "encryption_key" {
+  secret      = google_secret_manager_secret.encryption_key.id
+  secret_data = var.encryption_key
+}
+```
+
+#### Step 3: Grant IAM Access
+
+**File:** `main.tf` (in the IAM section, ~line 220)
+
+```hcl
+# Add "encryption-key" to the list
+resource "google_secret_manager_secret_iam_member" "server_auth_secrets" {
+  for_each = toset(["better-auth-secret", "jwt-secret", "encryption-key"])  # ← Add here
+  # ...
+}
+```
+
+#### Step 4: Map to Cloud Run Service
+
+**File:** `main.tf` (in `module "server"` or `module "worker"`)
+
+```hcl
+secret_env_vars = {
+  # ... existing secrets ...
+  ENCRYPTION_KEY = {
+    secret_id = google_secret_manager_secret.encryption_key.secret_id
+    version   = "latest"
+  }
+}
+```
+
+---
+
+### Adding to CI/CD (GitHub Actions)
+
+**File:** `.github/workflows/deploy-infra.yml`
+
+```yaml
+env:
+  # ... existing vars ...
+  TF_VAR_encryption_key: ${{ secrets.ENCRYPTION_KEY }} # ← Add here
+```
+
+Then add `ENCRYPTION_KEY` to GitHub Repository Secrets.
+
+---
+
+### Current Secrets Checklist
+
+| Secret                 | GitHub Secret Name     | Description                          |
+| ---------------------- | ---------------------- | ------------------------------------ |
+| `BETTER_AUTH_SECRET`   | `BETTER_AUTH_SECRET`   | Auth session signing                 |
+| `JWT_SECRET`           | `JWT_SECRET`           | JWT token signing                    |
+| `GOOGLE_CLIENT_ID`     | `GOOGLE_CLIENT_ID`     | OAuth login                          |
+| `GOOGLE_CLIENT_SECRET` | `GOOGLE_CLIENT_SECRET` | OAuth login                          |
+| `ENCRYPTION_KEY`       | `ENCRYPTION_KEY`       | Credential encryption (64 hex chars) |
+
+**Generate encryption key:**
+
+```bash
+openssl rand -hex 32
+```

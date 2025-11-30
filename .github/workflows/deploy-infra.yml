@@ -26,8 +26,10 @@ env:
   TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
   TF_VAR_google_client_id: ${{ secrets.GOOGLE_CLIENT_ID }}
   TF_VAR_google_client_secret: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+  TF_VAR_encryption_key: ${{ secrets.ENCRYPTION_KEY }}
   TF_VAR_server_domain: ${{ secrets.SERVER_DOMAIN }}
   TF_VAR_web_domain: ${{ secrets.WEB_DOMAIN }}
+  TF_VAR_cookie_domain: ${{ secrets.COOKIE_DOMAIN }}
 
 jobs:
   terraform:
@@ -96,4 +98,3 @@ jobs:
           TF_VAR_server_domain: ${{ secrets.SERVER_DOMAIN }}
           TF_VAR_web_domain: ${{ secrets.WEB_DOMAIN }}
         run: terraform apply -auto-approve -input=false
-
