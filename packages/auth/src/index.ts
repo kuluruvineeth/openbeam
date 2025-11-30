@@ -8,7 +8,8 @@ const isSecure = corsOrigin.startsWith("https://");
 const needsProxy = isSecure && serverUrl.startsWith("http://");
 
 // TODO: Later remove this hardcoded domain
-const cookieDomain = process.env.COOKIE_DOMAIN || ".openplane.tech";
+// const cookieDomain = process.env.COOKIE_DOMAIN || ".openplane.tech";
+const cookieDomain = process.env.COOKIE_DOMAIN || undefined;
 
 export const auth = betterAuth<BetterAuthOptions>({
   baseURL: needsProxy ? corsOrigin : serverUrl,
