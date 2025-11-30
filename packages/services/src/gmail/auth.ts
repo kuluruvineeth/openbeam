@@ -2,6 +2,7 @@ import prisma, {
   AppType,
   ConnectorStatus,
   createDefaultSyncJobs,
+  encryptIfConfigured,
   getConnectorWithCredentials,
 } from "@openplane/db";
 import {
@@ -93,6 +94,13 @@ export class GmailAuth implements IntegrationAuth {
         redirectUri: this.getRedirectUri(),
       });
 
+      // Encrypt sensitive credentials
+      const accessTokenEncrypted = encryptIfConfigured(tokens.accessToken);
+      const refreshTokenEncrypted = encryptIfConfigured(tokens.refreshToken);
+      const clientSecretEncrypted = encryptIfConfigured(clientSecret);
+
+      const tokenExpiresAt = new Date(Date.now() + tokens.expiresIn * 1000);
+
       const connector = await prisma.$transaction(async (tx) => {
         const current = await tx.connector.findUniqueOrThrow({
           where: { id: connectorId },
@@ -102,6 +110,7 @@ export class GmailAuth implements IntegrationAuth {
           where: { id: connectorId },
           data: {
             status: ConnectorStatus.ACTIVE,
+            statusChangedAt: new Date(),
             lastSyncedAt: null,
             workspaceExternalId: tokens.userId,
             name: tokens.userEmail,
@@ -115,18 +124,36 @@ export class GmailAuth implements IntegrationAuth {
 
         await tx.oAuthProvider.upsert({
           where: { connectorId: updated.id },
-          update: {
-            accessToken: tokens.accessToken,
-            refreshToken: tokens.refreshToken,
-            oauthScopes: tokens.scopes,
-            updatedAt: new Date(),
-          },
           create: {
             connectorId: updated.id,
-            accessToken: tokens.accessToken,
-            refreshToken: tokens.refreshToken,
-            oauthScopes: tokens.scopes,
             app: AppType.GMAIL,
+            accessToken: accessTokenEncrypted.encrypted,
+            accessTokenIv: accessTokenEncrypted.iv,
+            refreshToken: refreshTokenEncrypted.encrypted,
+            refreshTokenIv: refreshTokenEncrypted.iv,
+            tokenExpiresAt,
+            oauthScopes: tokens.scopes,
+            tokenScopes: tokens.scopes,
+            tokenType: "Bearer",
+            tokenRefreshedAt: new Date(),
+            clientId,
+            clientSecret: clientSecretEncrypted.encrypted,
+            clientSecretIv: clientSecretEncrypted.iv,
+          },
+          update: {
+            accessToken: accessTokenEncrypted.encrypted,
+            accessTokenIv: accessTokenEncrypted.iv,
+            refreshToken: refreshTokenEncrypted.encrypted,
+            refreshTokenIv: refreshTokenEncrypted.iv,
+            tokenExpiresAt,
+            oauthScopes: tokens.scopes,
+            tokenScopes: tokens.scopes,
+            tokenType: "Bearer",
+            tokenRefreshedAt: new Date(),
+            clientId,
+            clientSecret: clientSecretEncrypted.encrypted,
+            clientSecretIv: clientSecretEncrypted.iv,
+            updatedAt: new Date(),
           },
         });
 
@@ -140,6 +167,7 @@ export class GmailAuth implements IntegrationAuth {
         where: { id: connectorId },
         data: {
           status: ConnectorStatus.ERROR,
+          statusChangedAt: new Date(),
           lastError: error instanceof Error ? error.message : "OAuth failed",
           lastErrorAt: new Date(),
         },

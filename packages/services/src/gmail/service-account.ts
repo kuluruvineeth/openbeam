@@ -2,6 +2,7 @@ import prisma, {
   AppType,
   ConnectorStatus,
   createDefaultSyncJobs,
+  encryptIfConfigured,
   getConnectorWithCredentials,
 } from "@openplane/db";
 import {
@@ -65,6 +66,12 @@ export class GmailServiceAccountAuth implements IntegrationServiceAccountAuth {
         delegatedUserEmail: delegatedEmail,
       });
 
+      const encryptedCredentials = encryptIfConfigured(credentialsJson);
+      const accessTokenEncrypted = encryptIfConfigured(tokenResult.accessToken);
+      const tokenExpiresAt = new Date(
+        Date.now() + tokenResult.expiresIn * 1000
+      );
+
       const connector = await prisma.$transaction(async (tx) => {
         const currentConfig =
           (existingConnector.config as ConnectorConfig) || {};
@@ -73,32 +80,49 @@ export class GmailServiceAccountAuth implements IntegrationServiceAccountAuth {
           where: { id: connectorId },
           data: {
             status: ConnectorStatus.ACTIVE,
+            statusChangedAt: new Date(),
             lastSyncedAt: null,
             workspaceExternalId: tokenResult.projectId,
             name: `Gmail (${delegatedEmail})`,
+            encryptedCredentials: encryptedCredentials.encrypted,
+            credentialsIv: encryptedCredentials.iv,
             config: {
               ...currentConfig,
               serviceAccountEmail: tokenResult.serviceAccountEmail,
               delegatedEmail: tokenResult.delegatedUserEmail,
               projectId: tokenResult.projectId,
+              service_account_file: undefined,
+              service_account_json: undefined,
             },
           },
         });
 
         await tx.oAuthProvider.upsert({
           where: { connectorId: updated.id },
-          update: {
-            accessToken: tokenResult.accessToken,
-            refreshToken: credentialsJson, // Store SA JSON as "refresh" for re-auth
-            oauthScopes: [],
-            updatedAt: new Date(),
-          },
           create: {
             connectorId: updated.id,
-            accessToken: tokenResult.accessToken,
-            refreshToken: credentialsJson,
-            oauthScopes: [],
             app: AppType.GMAIL,
+            accessToken: accessTokenEncrypted.encrypted,
+            accessTokenIv: accessTokenEncrypted.iv,
+            refreshToken: null,
+            refreshTokenIv: null,
+            tokenExpiresAt,
+            tokenRefreshedAt: new Date(),
+            oauthScopes: ["https://www.googleapis.com/auth/gmail.readonly"],
+            tokenScopes: ["https://www.googleapis.com/auth/gmail.readonly"],
+            tokenType: "Bearer",
+          },
+          update: {
+            accessToken: accessTokenEncrypted.encrypted,
+            accessTokenIv: accessTokenEncrypted.iv,
+            refreshToken: null,
+            refreshTokenIv: null,
+            tokenExpiresAt,
+            tokenRefreshedAt: new Date(),
+            oauthScopes: ["https://www.googleapis.com/auth/gmail.readonly"],
+            tokenScopes: ["https://www.googleapis.com/auth/gmail.readonly"],
+            tokenType: "Bearer",
+            updatedAt: new Date(),
           },
         });
 
@@ -113,6 +137,7 @@ export class GmailServiceAccountAuth implements IntegrationServiceAccountAuth {
         where: { id: connectorId },
         data: {
           status: ConnectorStatus.ERROR,
+          statusChangedAt: new Date(),
           lastError:
             error instanceof Error
               ? error.message

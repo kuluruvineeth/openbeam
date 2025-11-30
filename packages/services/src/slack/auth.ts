@@ -2,6 +2,7 @@ import prisma, {
   AppType,
   ConnectorStatus,
   createDefaultSyncJobs,
+  encryptIfConfigured,
   getConnectorWithCredentials,
 } from "@openplane/db";
 import {
@@ -21,6 +22,7 @@ import type {
 type SlackConfig = {
   client_id?: string;
   client_secret?: string;
+  signing_secret?: string;
   [key: string]: unknown;
 };
 
@@ -48,6 +50,7 @@ export class SlackAuth implements IntegrationAuth {
     return {
       clientId: config.client_id,
       clientSecret: config.client_secret,
+      signingSecret: config.signing_secret,
     };
   }
 
@@ -78,7 +81,8 @@ export class SlackAuth implements IntegrationAuth {
     }
 
     try {
-      const { clientId, clientSecret } = await this.getCredentials(connectorId);
+      const { clientId, clientSecret, signingSecret } =
+        await this.getCredentials(connectorId);
 
       const tokens = await exchangeSlackCode({
         clientId,
@@ -86,6 +90,11 @@ export class SlackAuth implements IntegrationAuth {
         code: ctx.code,
         redirectUri: this.getRedirectUri(),
       });
+
+      // Encrypt sensitive credentials
+      const accessTokenEncrypted = encryptIfConfigured(tokens.accessToken);
+      const refreshTokenEncrypted = encryptIfConfigured(tokens.refreshToken);
+      const clientSecretEncrypted = encryptIfConfigured(clientSecret);
 
       const connector = await prisma.$transaction(async (tx) => {
         const current = await tx.connector.findUniqueOrThrow({
@@ -96,6 +105,7 @@ export class SlackAuth implements IntegrationAuth {
           where: { id: connectorId },
           data: {
             status: ConnectorStatus.ACTIVE,
+            statusChangedAt: new Date(),
             lastSyncedAt: null,
             workspaceExternalId: tokens.teamId,
             name: tokens.teamName,
@@ -103,24 +113,41 @@ export class SlackAuth implements IntegrationAuth {
               ...(current.config as object),
               botUserId: tokens.botUserId,
               teamId: tokens.teamId,
+              ...(signingSecret && { signing_secret: signingSecret }),
             },
           },
         });
 
         await tx.oAuthProvider.upsert({
           where: { connectorId: updated.id },
-          update: {
-            accessToken: tokens.accessToken,
-            refreshToken: tokens.refreshToken,
-            oauthScopes: tokens.scopes,
-            updatedAt: new Date(),
-          },
           create: {
             connectorId: updated.id,
-            accessToken: tokens.accessToken,
-            refreshToken: tokens.refreshToken,
-            oauthScopes: tokens.scopes,
             app: AppType.SLACK,
+            accessToken: accessTokenEncrypted.encrypted,
+            accessTokenIv: accessTokenEncrypted.iv,
+            refreshToken: refreshTokenEncrypted.encrypted,
+            refreshTokenIv: refreshTokenEncrypted.iv,
+            oauthScopes: tokens.scopes,
+            tokenScopes: tokens.scopes,
+            tokenType: "Bearer",
+            tokenRefreshedAt: new Date(),
+            clientId,
+            clientSecret: clientSecretEncrypted.encrypted,
+            clientSecretIv: clientSecretEncrypted.iv,
+          },
+          update: {
+            accessToken: accessTokenEncrypted.encrypted,
+            accessTokenIv: accessTokenEncrypted.iv,
+            refreshToken: refreshTokenEncrypted.encrypted,
+            refreshTokenIv: refreshTokenEncrypted.iv,
+            oauthScopes: tokens.scopes,
+            tokenScopes: tokens.scopes,
+            tokenType: "Bearer",
+            tokenRefreshedAt: new Date(),
+            clientId,
+            clientSecret: clientSecretEncrypted.encrypted,
+            clientSecretIv: clientSecretEncrypted.iv,
+            updatedAt: new Date(),
           },
         });
 
@@ -134,6 +161,7 @@ export class SlackAuth implements IntegrationAuth {
         where: { id: connectorId },
         data: {
           status: ConnectorStatus.ERROR,
+          statusChangedAt: new Date(),
           lastError: error instanceof Error ? error.message : "OAuth failed",
           lastErrorAt: new Date(),
         },
