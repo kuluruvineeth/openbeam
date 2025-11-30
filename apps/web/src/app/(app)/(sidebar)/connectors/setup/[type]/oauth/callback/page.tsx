@@ -75,7 +75,10 @@ export default function OAuthCallbackPage() {
         }),
       ]);
 
-      setTimeout(() => router.replace("/connectors"), 1500);
+      setTimeout(() => {
+        router.refresh();
+        router.replace("/connectors");
+      }, 1500);
     };
 
     processCallback().catch((e) => {
