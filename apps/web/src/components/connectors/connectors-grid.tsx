@@ -21,19 +21,15 @@ export function ConnectorsGrid() {
   const { data: user } = useUserQuery();
   const router = useRouter();
 
-  // Fetch apps from custom hook
   const { data: serverApps } = useAppsQuery();
 
-  // Placeholder data until TRPC routes are implemented
   const externalAppsData: { data: ExternalApp[] } = { data: [] };
   const authorizedExternalApps: { data: AuthorizedApp[] } = { data: [] };
 
   const searchParams = useSearchParams();
   const search = searchParams.get("q");
 
-  // Combine and filter apps (show all available apps)
   const filteredApps = [
-    // Transform official apps
     ...appStoreApps.map((clientApp) => {
       const serverApp = serverApps.find((app) => app.id === clientApp.id);
       return {
@@ -48,7 +44,6 @@ export function ConnectorsGrid() {
         type: "official" as const,
       };
     }),
-    // Transform external apps (only approved ones)
     ...(
       externalAppsData?.data?.filter((app) => app.status === "approved") || []
     ).map((app) => transformExternalApp(app, authorizedExternalApps)),
