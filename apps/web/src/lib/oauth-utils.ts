@@ -8,7 +8,7 @@ export interface OAuthCallbackResponse {
   finalize_url?: string;
 }
 
-type IntegrationName = "slack" | "gmail";
+type IntegrationName = "slack" | "gmail" | "google-drive";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -24,6 +24,14 @@ const INTEGRATION_HANDLERS: Record<
       code,
       state,
     }),
+  "google-drive": async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>(
+      "/integrations/google-drive/callback",
+      {
+        code,
+        state,
+      }
+    ),
 };
 
 export async function handleOAuthAuthorizationResponse(

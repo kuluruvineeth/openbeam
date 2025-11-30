@@ -127,7 +127,7 @@ export function UnifiedAppComponent({ app }: UnifiedAppProps) {
   const startOAuthFlow = async (connectorId: string) => {
     setIsOAuthRedirecting(true);
     try {
-      const appId = app.id.toLowerCase();
+      const appId = app.id.toLowerCase().replace(/_/g, "-");
       const data = await apiClient.get<{
         success: boolean;
         oauthUrl?: string;
