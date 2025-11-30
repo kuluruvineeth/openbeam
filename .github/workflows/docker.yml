@@ -283,7 +283,7 @@ jobs:
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.28.0
         with:
-          image-ref: "${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/openplane-${{ matrix.service }}:${{ github.sha }}"
+          image-ref: "${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/openplane-${{ matrix.service }}:latest"
           format: "table"
           exit-code: "0"
           ignore-unfixed: true
