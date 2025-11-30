@@ -7,12 +7,16 @@ const serverUrl = process.env.BETTER_AUTH_URL || "http://localhost:3000";
 const isSecure = corsOrigin.startsWith("https://");
 const needsProxy = isSecure && serverUrl.startsWith("http://");
 
+// TODO: Later remove this hardcoded domain
+const cookieDomain = process.env.COOKIE_DOMAIN || ".openplane.tech";
+
 export const auth = betterAuth<BetterAuthOptions>({
   baseURL: needsProxy ? corsOrigin : serverUrl,
   basePath: "/api/auth",
   database: prismaAdapter(prisma, { provider: "postgresql" }),
   trustedOrigins: [
     corsOrigin,
+    serverUrl,
     "http://localhost:3000",
     "http://localhost:3001",
   ].filter(Boolean),
@@ -23,9 +27,11 @@ export const auth = betterAuth<BetterAuthOptions>({
       httpOnly: true,
       sameSite: isSecure ? "none" : "lax",
       path: "/",
+      ...(cookieDomain && { domain: cookieDomain }),
     },
     crossSubDomainCookies: {
-      enabled: false,
+      enabled: Boolean(cookieDomain),
+      domain: cookieDomain,
     },
     cookiePrefix: "openplane-auth",
   },
