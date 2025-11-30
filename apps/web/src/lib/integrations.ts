@@ -6,7 +6,6 @@ import {
 } from "@openplane/integrations";
 import { z } from "zod";
 
-// Mock data types until TRPC is ready
 export type ExternalApp = {
   id: string;
   name: string;
@@ -29,52 +28,57 @@ export type AuthorizedApp = {
   lastUsedAt?: string;
 };
 
-export function generateFormSchema(settings: UnifiedApp["settings"]) {
-  const schemaMap: Record<string, z.ZodTypeAny> = {};
-  if (settings) {
-    for (const setting of settings) {
-      if (setting.type === "switch") {
-        schemaMap[setting.id] = z.boolean().default(false);
-      } else if (setting.required && !setting.dependsOn) {
-        schemaMap[setting.id] = z.string().min(1, {
-          message: `${setting.label} is required`,
-        });
-      } else {
-        schemaMap[setting.id] = z.string().optional();
-      }
-    }
-  }
+type Setting = NonNullable<UnifiedApp["settings"]>[number];
 
+function getFieldSchema(setting: Setting): z.ZodTypeAny {
+  if (setting.type === "switch") {
+    return z.boolean().default(false);
+  }
+  if (setting.type === "number") {
+    return z.coerce.number().optional();
+  }
+  if (setting.required && !setting.dependsOn) {
+    return z.string().min(1, { message: `${setting.label} is required` });
+  }
+  return z.string().optional();
+}
+
+function buildSchemaMap(settings: Setting[]): Record<string, z.ZodTypeAny> {
+  const schemaMap: Record<string, z.ZodTypeAny> = {};
+  for (const setting of settings) {
+    schemaMap[setting.id] = getFieldSchema(setting);
+  }
+  return schemaMap;
+}
+
+export function generateFormSchema(settings: UnifiedApp["settings"]) {
+  const schemaMap = settings ? buildSchemaMap(settings) : {};
   const baseSchema = z.object(schemaMap);
 
-  if (settings) {
-    const conditionalFields = settings.filter((s) => s.required && s.dependsOn);
-
-    if (conditionalFields.length > 0) {
-      return baseSchema.superRefine((data, ctx) => {
-        for (const setting of conditionalFields) {
-          const conditions = Array.isArray(setting.dependsOn)
-            ? setting.dependsOn
-            : [setting.dependsOn];
-
-          const shouldBeRequired = conditions.every(
-            (condition) =>
-              condition && data[condition.field] === condition.value
-          );
-
-          if (shouldBeRequired && !data[setting.id]) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              message: `${setting.label} is required`,
-              path: [setting.id],
-            });
-          }
-        }
-      });
-    }
+  const conditionalFields = settings?.filter((s) => s.required && s.dependsOn);
+  if (!conditionalFields?.length) {
+    return baseSchema;
   }
 
-  return baseSchema;
+  return baseSchema.superRefine((data, ctx) => {
+    for (const setting of conditionalFields) {
+      const conditions = Array.isArray(setting.dependsOn)
+        ? setting.dependsOn
+        : [setting.dependsOn];
+
+      const shouldBeRequired = conditions.every(
+        (c) => c && data[c.field] === c.value
+      );
+
+      if (shouldBeRequired && !data[setting.id]) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `${setting.label} is required`,
+          path: [setting.id],
+        });
+      }
+    }
+  });
 }
 
 export function getAppDefaultValues(app: UnifiedApp) {
