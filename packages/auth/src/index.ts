@@ -35,7 +35,14 @@ export const auth = betterAuth<BetterAuthOptions>({
     },
     cookiePrefix: "openplane-auth",
   },
-  session: { cookieCache: { enabled: true, maxAge: 60 } },
+  session: {
+    expiresIn: 60 * 60 * 24 * 7,
+    updateAge: 60 * 60 * 24,
+    cookieCache: {
+      enabled: true,
+      maxAge: 60 * 5,
+    },
+  },
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID || "",

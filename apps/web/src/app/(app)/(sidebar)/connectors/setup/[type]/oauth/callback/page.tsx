@@ -29,9 +29,12 @@ export default function OAuthCallbackPage() {
   const [message, setMessage] = useState("Processing authentication...");
 
   useEffect(() => {
-    // Already processed or missing params - redirect to connectors
-    if (processedRef.current || !(code && state)) {
-      if (!(processedRef.current || (code && state) || error)) {
+    if (processedRef.current) {
+      return;
+    }
+
+    if (!(code && state)) {
+      if (!error) {
         router.replace("/connectors");
       }
       return;
@@ -47,35 +50,40 @@ export default function OAuthCallbackPage() {
     }
 
     const processCallback = async () => {
-      try {
-        const result = await handleOAuthAuthorizationResponse(
-          connectorType,
-          code,
-          state
-        );
+      const result = await handleOAuthAuthorizationResponse(
+        connectorType,
+        code,
+        state
+      );
 
-        if (!result.success) {
-          throw new Error(result.message || "Unknown error");
-        }
+      if (!result.success) {
+        throw new Error(result.message || "Unknown error");
+      }
 
-        setStatus("success");
-        setMessage("Connected successfully!");
-        toast.success("Connected Successfully");
+      setStatus("success");
+      setMessage("Connected successfully!");
+      toast.success("Connected Successfully");
 
+      await Promise.all([
         queryClient.invalidateQueries({
           queryKey: trpc.apps.list.queryOptions().queryKey,
-        });
+        }),
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            Array.isArray(query.queryKey) &&
+            query.queryKey.includes("getSyncStatus"),
+        }),
+      ]);
 
-        setTimeout(() => router.replace("/connectors"), 1500);
-      } catch (e) {
-        console.error(e);
-        setStatus("error");
-        setMessage(e instanceof Error ? e.message : "Unknown error");
-        toast.error("Connection Failed");
-      }
+      setTimeout(() => router.replace("/connectors"), 1500);
     };
 
-    processCallback();
+    processCallback().catch((e) => {
+      console.error(e);
+      setStatus("error");
+      setMessage(e instanceof Error ? e.message : "Unknown error");
+      toast.error("Connection Failed");
+    });
   }, [code, state, error, connectorType, router, queryClient, trpc]);
 
   return (
