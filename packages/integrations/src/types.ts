@@ -23,6 +23,7 @@ export enum AuthType {
 export enum AppType {
   SLACK = "SLACK",
   GMAIL = "GMAIL",
+  GOOGLE_DRIVE = "GOOGLE_DRIVE",
 }
 
 export enum SyncMode {
