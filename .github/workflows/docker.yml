@@ -99,35 +99,45 @@ jobs:
       - name: Set Matrix
         id: set-matrix
         run: |
-          # Initialize empty array
-          MATRIX="[]"
-          HAS_CHANGES="false"
-
-          # Check triggers and append to matrix
-          # For manual trigger, only build services that have changes
-          if [ "${{ steps.filter.outputs.server }}" == "true" ]; then
-            MATRIX=$(echo $MATRIX | jq '. + ["server"]')
+          # TODO: UNCOMMENT LATER TO RESTORE change detection for cost savings
+          # For now, build all images on manual trigger
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            # Build all services for manual trigger
+            MATRIX='["server", "web", "fumadocs", "worker"]'
             HAS_CHANGES="true"
-          fi
+            echo "Manual trigger: building all images"
+          else
+            # Initialize empty array
+            MATRIX="[]"
+            HAS_CHANGES="false"
 
-          if [ "${{ steps.filter.outputs.web }}" == "true" ]; then
-            MATRIX=$(echo $MATRIX | jq '. + ["web"]')
-            HAS_CHANGES="true"
-          fi
+            # TODO: UNCOMMENT LATER TO RESTORE - Change detection logic
+            # Check triggers and append to matrix
+            # For workflow_run trigger, only build services that have changes
+            if [ "${{ steps.filter.outputs.server }}" == "true" ]; then
+              MATRIX=$(echo $MATRIX | jq '. + ["server"]')
+              HAS_CHANGES="true"
+            fi
 
-          if [ "${{ steps.filter.outputs.fumadocs }}" == "true" ]; then
-            MATRIX=$(echo $MATRIX | jq '. + ["fumadocs"]')
-            HAS_CHANGES="true"
-          fi
+            if [ "${{ steps.filter.outputs.web }}" == "true" ]; then
+              MATRIX=$(echo $MATRIX | jq '. + ["web"]')
+              HAS_CHANGES="true"
+            fi
 
-          if [ "${{ steps.filter.outputs.worker }}" == "true" ]; then
-            MATRIX=$(echo $MATRIX | jq '. + ["worker"]')
-            HAS_CHANGES="true"
-          fi
+            if [ "${{ steps.filter.outputs.fumadocs }}" == "true" ]; then
+              MATRIX=$(echo $MATRIX | jq '. + ["fumadocs"]')
+              HAS_CHANGES="true"
+            fi
 
-          # If manual trigger with no changes, warn user
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ "$HAS_CHANGES" == "false" ]; then
-            echo "::warning::No code changes detected. Skipping build to save costs."
+            if [ "${{ steps.filter.outputs.worker }}" == "true" ]; then
+              MATRIX=$(echo $MATRIX | jq '. + ["worker"]')
+              HAS_CHANGES="true"
+            fi
+
+            # If no changes detected, warn user
+            if [ "$HAS_CHANGES" == "false" ]; then
+              echo "::warning::No code changes detected. Skipping build."
+            fi
           fi
 
           # Output compact JSON
