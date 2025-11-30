@@ -157,7 +157,7 @@ export function SyncSettingsForm({
               </FormLabel>
               <Select
                 onValueChange={(value) => field.onChange(Number(value))}
-                value={field.value.toString()}
+                value={String(field.value ?? "")}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -190,7 +190,7 @@ export function SyncSettingsForm({
               </FormLabel>
               <Select
                 onValueChange={(value) => field.onChange(Number(value))}
-                value={field.value.toString()}
+                value={String(field.value ?? "")}
               >
                 <FormControl>
                   <SelectTrigger>
