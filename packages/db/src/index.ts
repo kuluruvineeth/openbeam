@@ -18,6 +18,7 @@ export type Database = PrismaClient;
 
 export default prisma;
 
+export * from "./lib/encryption";
 export * from "./mutations/connectors";
 export * from "./mutations/oauth";
 export * from "./mutations/sync";
