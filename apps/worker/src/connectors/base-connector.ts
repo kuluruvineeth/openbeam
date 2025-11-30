@@ -1,67 +1,49 @@
-import type { Connector, OAuthProvider } from "@openplane/db";
+import {
+  type Connector,
+  decryptIfEncrypted,
+  type OAuthProvider,
+} from "@openplane/db";
 import type { GenericDocument } from "@openplane/vespa";
 import { type ConnectionPool, connectionPoolManager } from "../connection-pool";
 
-/**
- * Result of a sync operation
- */
 export interface SyncResult {
   documents: GenericDocument[];
   nextCursor?: string;
   hasMore: boolean;
 }
 
-/**
- * Fetch result containing documents and pagination
- */
 export interface FetchResult {
   documents: GenericDocument[];
   nextCursor?: string;
   hasMore: boolean;
 }
 
-/**
- * Abstract base class for all connectors
- * Each connector (Slack, Notion, Drive, etc.) extends this
- *
- * Supports connection pooling for reusable API clients
- */
+export interface DecryptedCredentials {
+  accessToken: string | null;
+  refreshToken: string | null;
+  clientId: string | null;
+  clientSecret: string | null;
+  scopes: string[];
+  tokenExpiresAt: Date | null;
+  isExpired: boolean;
+  config: Record<string, unknown>;
+}
+
 export abstract class BaseConnector {
   protected connector: Connector & { oauthProvider?: OAuthProvider | null };
   protected teamId: string;
   private connectionPool?: ConnectionPool<unknown>;
+  private _decryptedCredentials?: DecryptedCredentials;
 
   constructor(connector: Connector & { oauthProvider?: OAuthProvider | null }) {
     this.connector = connector;
     this.teamId = connector.teamId;
   }
 
-  /**
-   * Main sync method - orchestrates fetching and transforming documents
-   * @param cursor - Optional cursor for incremental sync
-   */
   abstract sync(cursor?: string): Promise<SyncResult>;
-
-  /**
-   * Fetch documents from the external API
-   * @param cursor - Optional cursor for pagination
-   */
   abstract fetchDocuments(cursor?: string): Promise<FetchResult>;
-
-  /**
-   * Transform raw API response to GenericDocument
-   * @param rawDoc - Raw document from external API
-   */
   abstract transformToGenericDocument(rawDoc: unknown): GenericDocument;
-
-  /**
-   * Validate connector credentials and connection
-   */
   abstract validateConnection(): Promise<boolean>;
-
-  /**
-   * Get connector-specific metadata
-   */
   getMetadata() {
     return {
       connectorId: this.connector.id,
@@ -71,39 +53,89 @@ export abstract class BaseConnector {
     };
   }
 
-  /**
-   * Get decrypted credentials
-   * Checks OAuth provider first, then falls back to connector config
-   */
-  protected getCredentials(): Record<string, unknown> {
-    const credentials: Record<string, unknown> = {};
+  protected getCredentials(): DecryptedCredentials {
+    if (this._decryptedCredentials) {
+      return this._decryptedCredentials;
+    }
 
-    // First, try to get credentials from OAuth provider (for OAuth-based connectors)
+    const config = (this.connector.config as Record<string, unknown>) || {};
+    const credentials: DecryptedCredentials = {
+      accessToken: null,
+      refreshToken: null,
+      clientId: null,
+      clientSecret: null,
+      scopes: [],
+      tokenExpiresAt: null,
+      isExpired: false,
+      config,
+    };
+
     if (this.connector.oauthProvider) {
       const oauth = this.connector.oauthProvider;
-      if (oauth.accessToken) {
-        credentials.accessToken = oauth.accessToken;
-      }
-      if (oauth.refreshToken) {
-        credentials.refreshToken = oauth.refreshToken;
-      }
-      if (oauth.oauthScopes) {
-        credentials.scopes = oauth.oauthScopes;
-      }
+
+      credentials.accessToken = decryptIfEncrypted(
+        oauth.accessToken,
+        oauth.accessTokenIv
+      );
+      credentials.refreshToken = decryptIfEncrypted(
+        oauth.refreshToken,
+        oauth.refreshTokenIv
+      );
+      credentials.clientSecret = decryptIfEncrypted(
+        oauth.clientSecret,
+        oauth.clientSecretIv
+      );
+
+      credentials.clientId = oauth.clientId;
+      credentials.scopes = oauth.tokenScopes ?? oauth.oauthScopes ?? [];
+      credentials.tokenExpiresAt = oauth.tokenExpiresAt;
+
       if (oauth.tokenExpiresAt) {
-        credentials.tokenExpiresAt = oauth.tokenExpiresAt;
+        credentials.isExpired = Date.now() >= oauth.tokenExpiresAt.getTime();
       }
     }
 
-    // Then merge with config (for additional settings or API key auth)
-    const config = this.connector.config as Record<string, unknown>;
-    return { ...config, ...credentials };
+    if (this.connector.encryptedCredentials && this.connector.credentialsIv) {
+      const decrypted = decryptIfEncrypted(
+        this.connector.encryptedCredentials,
+        this.connector.credentialsIv
+      );
+
+      if (decrypted) {
+        try {
+          const parsed = JSON.parse(decrypted);
+          credentials.config = { ...credentials.config, ...parsed };
+        } catch {
+          credentials.config = {
+            ...credentials.config,
+            encryptedCredentials: decrypted,
+          };
+        }
+      }
+    }
+
+    this._decryptedCredentials = credentials;
+    return credentials;
   }
 
-  /**
-   * Get connection from pool (optional, override in child class)
-   * Subclasses can override this to provide pooled connections
-   */
+  protected getAccessToken(): string {
+    const credentials = this.getCredentials();
+
+    if (!credentials.accessToken) {
+      throw new Error("No access token available");
+    }
+
+    if (credentials.isExpired) {
+      throw new Error("Access token has expired - refresh required");
+    }
+
+    return credentials.accessToken;
+  }
+
+  protected clearCredentialsCache(): void {
+    this._decryptedCredentials = undefined;
+  }
+
   protected async getPooledConnection<T>(
     createFn: () => Promise<T>,
     validateFn: (conn: T) => Promise<boolean>,
@@ -111,7 +143,7 @@ export abstract class BaseConnector {
   ): Promise<T> {
     if (!this.connectionPool) {
       this.connectionPool = connectionPoolManager.getPool(
-        this.connector.type,
+        this.connector.app,
         createFn,
         validateFn,
         destroyFn
@@ -120,18 +152,12 @@ export abstract class BaseConnector {
     return await (this.connectionPool.acquire(this.connector.id) as Promise<T>);
   }
 
-  /**
-   * Release connection back to pool
-   */
   protected async releasePooledConnection<T>(connection: T): Promise<void> {
     if (this.connectionPool) {
       await this.connectionPool.release(this.connector.id, connection);
     }
   }
 
-  /**
-   * Remove connection from pool (on error)
-   */
   protected async removePooledConnection<T>(connection: T): Promise<void> {
     if (this.connectionPool) {
       await this.connectionPool.remove(this.connector.id, connection);
