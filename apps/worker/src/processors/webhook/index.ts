@@ -20,3 +20,9 @@ export {
   replayWebhookEvent,
   replayWebhooksInRange,
 } from "./handler";
+
+export {
+  processSlackWebhook,
+  type SlackWebhookResult,
+  shouldProcessRealtime,
+} from "./slack-handler";

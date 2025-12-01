@@ -10,10 +10,83 @@ import { SpanStatusCode } from "@opentelemetry/api";
 import type { Job } from "bullmq";
 import logger from "../../utils/logger";
 import { logJobError, logJobStart } from "../event-handlers";
+import { processSlackWebhook, shouldProcessRealtime } from "./slack-handler";
 
 export interface WebhookJobResult {
   triggered: boolean;
+  processed?: boolean;
+  operation?: string;
   reason?: string;
+}
+
+interface SyncFallbackParams {
+  connectorId: string;
+  eventId: string;
+  eventType: string;
+  source: string;
+  payload: Record<string, unknown>;
+  userId: string;
+}
+
+async function tryRealtimeProcessing(
+  source: string,
+  eventType: string,
+  jobData: WebhookJobData
+): Promise<WebhookJobResult | null> {
+  if (source !== "slack" || !shouldProcessRealtime(eventType)) {
+    return null;
+  }
+
+  const slackResult = await processSlackWebhook(jobData);
+  if (!slackResult.processed) {
+    return null;
+  }
+
+  return {
+    triggered: true,
+    processed: true,
+    operation: slackResult.operation,
+    reason: slackResult.reason,
+  };
+}
+
+async function triggerSyncFallback(
+  params: SyncFallbackParams
+): Promise<WebhookJobResult> {
+  const { connectorId, eventId, eventType, source, payload, userId } = params;
+
+  const syncJob = await addSyncJob(
+    {
+      connectorId,
+      syncJobId: `webhook-${eventId}`,
+      type: "INCREMENTAL",
+      priority: 10,
+    },
+    10
+  );
+
+  logger.info(
+    { connectorId, eventId, syncJobId: syncJob.id, eventType, source },
+    "Webhook triggered sync job"
+  );
+
+  await prisma.connectorAuditLog.create({
+    data: {
+      connectorId,
+      userId,
+      action: "WEBHOOK_RECEIVED",
+      changes: {
+        eventId,
+        eventType,
+        source,
+        syncJobId: syncJob.id,
+        payload: payload as Prisma.InputJsonValue,
+        receivedAt: new Date().toISOString(),
+      },
+    },
+  });
+
+  return { triggered: true };
 }
 
 export async function processWebhookJob(
@@ -38,26 +111,15 @@ export async function processWebhookJob(
   try {
     logJobStart("webhook", job.id, { connectorId, eventId, eventType, source });
 
-    const { isDuplicate, marked } = await eventDeduplicator.checkAndMark(
+    const { isDuplicate } = await eventDeduplicator.checkAndMark(
       eventId,
       source
     );
-
     if (isDuplicate) {
       span.setAttributes({ "webhook.duplicate": true });
       span.setStatus({ code: SpanStatusCode.OK });
-      logger.info(
-        { connectorId, eventId, source },
-        "Duplicate webhook event, skipping"
-      );
       return { triggered: false, reason: "duplicate" };
     }
-
-    span.setAttribute("webhook.duplicate", false);
-    logger.info(
-      { connectorId, eventId, source, marked },
-      "Webhook event marked as processed"
-    );
 
     const connector = await prisma.connector.findUnique({
       where: { id: connectorId },
@@ -65,82 +127,49 @@ export async function processWebhookJob(
     });
 
     if (!connector) {
-      span.setAttributes({
-        "webhook.triggered": false,
-        "webhook.reason": "connector_not_found",
-      });
+      span.setAttributes({ "webhook.reason": "connector_not_found" });
       span.setStatus({ code: SpanStatusCode.OK });
-      logger.warn({ connectorId, eventId }, "Connector not found");
       return { triggered: false, reason: "connector_not_found" };
     }
 
     if (connector.status !== "ACTIVE") {
-      span.setAttributes({
-        "webhook.triggered": false,
-        "webhook.reason": "connector_inactive",
-        "connector.status": connector.status,
-      });
+      span.setAttributes({ "webhook.reason": "connector_inactive" });
       span.setStatus({ code: SpanStatusCode.OK });
-      logger.warn(
-        { connectorId, eventId, status: connector.status },
-        "Connector not active"
-      );
       return { triggered: false, reason: "connector_inactive" };
     }
 
-    const syncJob = await addSyncJob(
-      {
-        connectorId,
-        syncJobId: `webhook-${eventId}`,
-        type: "INCREMENTAL",
-        priority: 10,
-      },
-      10
+    const realtimeResult = await tryRealtimeProcessing(
+      source,
+      eventType,
+      job.data
     );
+    if (realtimeResult) {
+      span.setAttributes({
+        "webhook.processed": true,
+        "webhook.operation": realtimeResult.operation ?? "none",
+      });
+      span.setStatus({ code: SpanStatusCode.OK });
+      return realtimeResult;
+    }
 
-    span.setAttributes({
-      "webhook.triggered": true,
-      "sync.job_id": syncJob.id,
+    const result = await triggerSyncFallback({
+      connectorId,
+      eventId,
+      eventType,
+      source,
+      payload,
+      userId: connector.userId,
     });
 
-    logger.info(
-      {
-        connectorId,
-        eventId,
-        syncJobId: syncJob.id,
-        eventType,
-        source,
-      },
-      "Webhook triggered sync job"
-    );
-
-    await prisma.connectorAuditLog.create({
-      data: {
-        connectorId,
-        userId: connector.userId,
-        action: "WEBHOOK_RECEIVED",
-        changes: {
-          eventId,
-          eventType,
-          source,
-          syncJobId: syncJob.id,
-          payload: payload as Prisma.InputJsonValue,
-          receivedAt: new Date().toISOString(),
-        },
-      },
-    });
-
+    span.setAttributes({ "webhook.triggered": true });
     span.setStatus({ code: SpanStatusCode.OK });
-    return { triggered: true };
+    return result;
   } catch (error) {
     span.setStatus({
       code: SpanStatusCode.ERROR,
       message: error instanceof Error ? error.message : String(error),
     });
     span.recordException(error as Error);
-    span.setAttributes({
-      "error.type": error instanceof Error ? error.constructor.name : "Unknown",
-    });
     logJobError("webhook", job.id, error, { connectorId, eventId });
     throw error;
   } finally {
