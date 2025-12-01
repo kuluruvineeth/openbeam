@@ -9,22 +9,38 @@ function getOAuthConfig() {
   return slackApp.auth.config;
 }
 
+export const SLACK_USER_SCOPES = [
+  "channels:history",
+  "channels:read",
+  "groups:history",
+  "groups:read",
+  "search:read",
+  "users:read",
+  "users:read.email",
+  "files:read",
+] as const;
+
 export type GenerateSlackAuthUrlParams = {
   clientId: string;
   redirectUri: string;
   state: string;
   scopes?: string[];
+  userScopes?: string[];
 };
 
 export function generateSlackAuthUrl(
   params: GenerateSlackAuthUrlParams
 ): string {
-  const { clientId, redirectUri, state, scopes } = params;
+  const { clientId, redirectUri, state, scopes, userScopes } = params;
   const config = getOAuthConfig();
 
   const url = new URL(config.authUrl);
   url.searchParams.set("client_id", clientId);
   url.searchParams.set("scope", (scopes ?? config.scopes).join(","));
+  url.searchParams.set(
+    "user_scope",
+    (userScopes ?? SLACK_USER_SCOPES).join(",")
+  );
   url.searchParams.set("redirect_uri", redirectUri);
   url.searchParams.set("state", state);
 
@@ -76,5 +92,8 @@ export async function exchangeSlackCode(
     teamId: result.team.id,
     teamName: result.team.name,
     botUserId: result.bot_user_id,
+    syncAccessToken: result.authed_user?.access_token,
+    syncScopes: result.authed_user?.scope?.split(",").filter(Boolean),
+    syncAuthedUserId: result.authed_user?.id,
   };
 }

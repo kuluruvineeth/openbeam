@@ -41,6 +41,9 @@ export const SlackAuthResultSchema = z.object({
   teamId: z.string(),
   teamName: z.string(),
   botUserId: z.string(),
+  syncAccessToken: z.string().optional(),
+  syncScopes: z.array(z.string()).optional(),
+  syncAuthedUserId: z.string().optional(),
 });
 
 export type SlackAuthResult = z.infer<typeof SlackAuthResultSchema>;
