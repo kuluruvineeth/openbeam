@@ -30,9 +30,13 @@ export const mainSearchHandler: RouteHandler<
   const searchParams: SearchParams = {
     query: queryParams.q,
     teamId,
-    connectorType: queryParams.connector_type,
+    connectorTypes: queryParams.connector_type,
     connectorId: queryParams.connector_id,
-    documentType: queryParams.document_type,
+    documentTypes: queryParams.document_type,
+    sourceTypes: queryParams.source_type,
+    statuses: queryParams.status,
+    priorities: queryParams.priority,
+    labels: queryParams.label,
     authorId: queryParams.author_id,
     sourceId: queryParams.source_id,
     fromDate: queryParams.from_date,
@@ -77,15 +81,14 @@ export const autocompleteHandler: RouteHandler<
   const authContext = c.get("authContext");
   const accessControlIds = getACLIds(authContext);
 
-  const suggestions = await searchService.autocomplete(
+  const suggestions = await searchService.autocomplete({
     prefix,
     teamId,
     limit,
-    accessControlIds
-  );
+    accessControlIds,
+  });
   searchQueriesCounter.inc({ endpoint: "autocomplete" });
 
-  // Map to simple string array as expected by schema
   return c.json({ suggestions: suggestions.map((s) => s.title) }, 200);
 };
 
@@ -103,12 +106,12 @@ export const recentDocumentsHandler: RouteHandler<
   const authContext = c.get("authContext");
   const accessControlIds = getACLIds(authContext);
 
-  const documents = await searchService.getRecentDocuments(
+  const documents = await searchService.getRecentDocuments({
     teamId,
     hours,
     limit,
-    accessControlIds
-  );
+    accessControlIds,
+  });
   searchQueriesCounter.inc({ endpoint: "recent" });
 
   return c.json({ documents, count: documents.length }, 200);
@@ -128,11 +131,11 @@ export const threadSearchHandler: RouteHandler<
   const authContext = c.get("authContext");
   const accessControlIds = getACLIds(authContext);
 
-  const documents = await searchService.searchThread(
+  const documents = await searchService.searchThread({
     threadId,
     teamId,
-    accessControlIds
-  );
+    accessControlIds,
+  });
   searchQueriesCounter.inc({ endpoint: "thread" });
 
   return c.json(
@@ -160,12 +163,12 @@ export const similarDocumentsHandler: RouteHandler<
   const authContext = c.get("authContext");
   const accessControlIds = getACLIds(authContext);
 
-  const documents = await searchService.findSimilar(
+  const documents = await searchService.findSimilar({
     documentId,
     teamId,
     limit,
-    accessControlIds
-  );
+    accessControlIds,
+  });
   searchQueriesCounter.inc({ endpoint: "similar" });
 
   return c.json(
@@ -193,12 +196,12 @@ export const authorSearchHandler: RouteHandler<
   const authContext = c.get("authContext");
   const accessControlIds = getACLIds(authContext);
 
-  const documents = await searchService.searchByAuthor(
+  const documents = await searchService.searchByAuthor({
     authorId,
     teamId,
     limit,
-    accessControlIds
-  );
+    accessControlIds,
+  });
   searchQueriesCounter.inc({ endpoint: "author" });
 
   return c.json(
