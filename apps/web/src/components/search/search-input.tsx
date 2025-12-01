@@ -267,7 +267,7 @@ export function SearchInput({
   const { data: recentData } = useRecentDocuments({ limit: 5 });
 
   const suggestions: Suggestion[] =
-    autocompleteData?.suggestions?.map((s) => ({
+    autocompleteData?.suggestions?.map((s: Suggestion) => ({
       id: s.id,
       title: s.title,
       content: s.content,
