@@ -4,13 +4,7 @@ import type { InfiniteData } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useInView } from "react-intersection-observer";
 import { Icons } from "@/components/icons";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { SyncHistoryEntry } from "@/lib/sync-types";
 import { SyncHistoryItem } from "./sync-history-item";
 
@@ -27,6 +21,45 @@ type SyncHistoryListProps = {
   isFetchingNextPage: boolean;
 };
 
+function HistorySkeleton() {
+  return (
+    <div className="space-y-1">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div className="flex items-center gap-3 px-3 py-2.5" key={i}>
+          <Skeleton className="h-5 w-14" />
+          <Skeleton className="h-3 w-12" />
+          <Skeleton className="h-3 w-16" />
+          <div className="ml-auto flex gap-3">
+            <Skeleton className="h-3 w-10" />
+            <Skeleton className="h-3 w-8" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="relative flex flex-col items-center justify-center py-16">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-[0.02]">
+        <div className="absolute top-1/3 left-1/3">
+          <Icons.History size={80} />
+        </div>
+      </div>
+      <div className="relative z-10 text-center">
+        <div className="mx-auto mb-3 flex size-10 items-center justify-center border border-border/50 bg-background">
+          <Icons.History className="text-foreground/30" size={18} />
+        </div>
+        <p className="font-medium text-foreground/70 text-sm">No syncs yet</p>
+        <p className="mt-1 text-foreground/40 text-xs">
+          History appears after the first sync
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export function SyncHistoryList({
   data,
   isLoading,
@@ -42,71 +75,35 @@ export function SyncHistoryList({
     }
   }, [inView, hasNextPage, fetchNextPage]);
 
-  const history = data?.pages.flatMap((page) => page.history) ?? [];
+  const history = data?.pages.flatMap((p) => p.history) ?? [];
 
   if (isLoading) {
     return (
-      <Card className="border bg-background">
-        <CardHeader>
-          <CardTitle className="font-medium text-sm">Sync History</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center py-8">
-            <Icons.Loader2Icon
-              className="animate-spin text-muted-foreground"
-              size={20}
-            />
-          </div>
-        </CardContent>
-      </Card>
+      <div className="border border-border/50">
+        <HistorySkeleton />
+      </div>
     );
   }
 
-  if (history.length === 0) {
-    return (
-      <Card className="border bg-background">
-        <CardHeader>
-          <CardTitle className="font-medium text-sm">Sync History</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <Icons.History className="mb-2 text-muted-foreground" size={32} />
-            <p className="text-muted-foreground text-sm">No sync history yet</p>
-            <p className="text-muted-foreground text-xs">
-              Trigger a sync to see the history here
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    );
+  if (!history.length) {
+    return <EmptyState />;
   }
 
   return (
-    <Card className="border bg-background">
-      <CardHeader>
-        <CardTitle className="font-medium text-sm">Sync History</CardTitle>
-        <CardDescription className="text-xs">
-          Recent sync operations and their results
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          {history.map((entry) => (
-            <SyncHistoryItem entry={entry} key={entry.id} />
-          ))}
-
-          {(hasNextPage || isFetchingNextPage) && (
-            <div className="flex justify-center py-4" ref={ref}>
-              {isFetchingNextPage && (
-                <Icons.Loader2Icon
-                  className="animate-spin text-muted-foreground"
-                  size={16}
-                />
-              )}
-            </div>
+    <div className="border border-border/50">
+      {history.map((entry) => (
+        <SyncHistoryItem entry={entry} key={entry.id} />
+      ))}
+      {(hasNextPage || isFetchingNextPage) && (
+        <div className="flex justify-center py-3" ref={ref}>
+          {isFetchingNextPage && (
+            <Icons.Loader2Icon
+              className="animate-spin text-foreground/30"
+              size={14}
+            />
           )}
         </div>
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 }

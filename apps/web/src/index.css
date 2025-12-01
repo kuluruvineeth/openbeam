@@ -113,11 +113,12 @@
   --sidebar-border: hsl(220 13% 91%);
   --sidebar-ring: hsl(217.2 91.2% 59.8%);
 
-  --openplane-pink: hsla(314, 100%, 75%, 1);
-  --openplane-yellow: hsla(58, 92%, 70%, 1);
-  --openplane-blue: hsla(218, 91%, 68%, 1);
-  --openplane-orange: hsla(19, 99%, 65%, 1);
-  --openplane-green: rgb(72, 208, 153);
+  /* Brand accents - refined, professional saturation */
+  --openplane-pink: oklch(75% 0.15 330);
+  --openplane-yellow: oklch(85% 0.14 85);
+  --openplane-blue: oklch(65% 0.18 250);
+  --openplane-orange: oklch(70% 0.16 45);
+  --openplane-green: oklch(72% 0.14 160);
 
   --surface-foreground: var(--foreground);
   --code: var(--surface);
@@ -170,11 +171,12 @@
   --sidebar-border: hsl(240 3.7% 15.9%);
   --sidebar-ring: hsl(217.2 91.2% 59.8%);
 
-  --openplane-pink: hsla(314, 100%, 85%, 1);
-  --openplane-yellow: hsla(58, 92%, 79%, 1);
-  --openplane-blue: hsla(218, 91%, 78%, 1);
-  --openplane-orange: hsla(19, 99%, 50%, 1);
-  --openplane-green: hsla(156, 86%, 64%, 1);
+  /* Brand accents - lighter for dark mode, still refined */
+  --openplane-pink: oklch(80% 0.12 330);
+  --openplane-yellow: oklch(88% 0.12 85);
+  --openplane-blue: oklch(75% 0.14 250);
+  --openplane-orange: oklch(75% 0.14 45);
+  --openplane-green: oklch(78% 0.12 160);
 
   --surface: oklch(0.2 0 0);
   --surface-foreground: oklch(0.708 0 0);

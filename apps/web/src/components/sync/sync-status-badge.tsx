@@ -14,63 +14,50 @@ type SyncStatusData = {
 type SyncStatusBadgeProps = {
   data: SyncStatusData;
   variant?: "compact" | "detailed";
+  showCount?: boolean;
   onClick?: () => void;
 };
 
-// Helper to determine display status
-function getDisplayStatus(
-  status: SyncStatus,
-  totalIndexed?: number
-): SyncStatus | "READY" {
-  // If ACTIVE but no documents indexed, show as "Ready" instead of "Indexed"
-  if (
-    status === "ACTIVE" &&
-    (totalIndexed === undefined || totalIndexed === 0)
-  ) {
-    return "READY";
+// Status label mapping - "ACTIVE" with docs = "Indexed", without = "Ready"
+function getStatusLabel(status: SyncStatus, totalIndexed?: number): string {
+  if (status === "ACTIVE") {
+    return totalIndexed && totalIndexed > 0 ? "Indexed" : "Ready";
   }
-  return status;
+  return getSyncStatusConfig(status).label;
 }
-
-// Extended status config with READY - uses green to indicate positive/idle state
-const READY_STATUS_CONFIG = {
-  label: "Ready",
-  className:
-    "bg-[#ddf4eb] px-3 py-1 font-mono text-[10px] text-[#1d6f52] dark:bg-[#0d2922] dark:text-[#4ade80]",
-  icon: Icons.CheckIcon,
-  iconClass: "",
-};
 
 export function SyncStatusBadge({
   data,
   variant = "compact",
+  showCount = false,
   onClick,
 }: SyncStatusBadgeProps) {
-  const displayStatus = getDisplayStatus(data.status, data.totalIndexed);
-  const config =
-    displayStatus === "READY"
-      ? READY_STATUS_CONFIG
-      : getSyncStatusConfig(displayStatus);
+  const config = getSyncStatusConfig(data.status);
   const StatusIcon = config.icon;
+  const label = getStatusLabel(data.status, data.totalIndexed);
 
   if (variant === "compact") {
     const content = (
       <div className="flex items-center gap-1.5">
         <StatusIcon className={config.iconClass} size={10} />
-        {config.label}
-        {data.totalIndexed !== undefined && data.totalIndexed > 0 && (
-          <>
-            <span>•</span>
-            <span>{data.totalIndexed.toLocaleString()}</span>
-          </>
-        )}
+        <span>{label}</span>
+        {showCount &&
+          data.totalIndexed !== undefined &&
+          data.totalIndexed > 0 && (
+            <>
+              <span className="text-current/50">·</span>
+              <span>{data.totalIndexed.toLocaleString()}</span>
+            </>
+          )}
       </div>
     );
+
+    const className = `inline-flex px-2 py-0.5 font-mono text-[10px] ${config.className}`;
 
     if (onClick) {
       return (
         <button
-          className={`${config.className} cursor-pointer transition-opacity hover:opacity-80`}
+          className={`${className} cursor-pointer transition-opacity hover:opacity-80`}
           onClick={onClick}
           type="button"
         >
@@ -79,29 +66,31 @@ export function SyncStatusBadge({
       );
     }
 
-    return <div className={config.className}>{content}</div>;
+    return <div className={className}>{content}</div>;
   }
 
   // Detailed variant
   const detailedContent = (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <div className={config.className}>
+        <div
+          className={`inline-flex px-2 py-0.5 font-mono text-[10px] ${config.className}`}
+        >
           <div className="flex items-center gap-1.5">
             <StatusIcon className={config.iconClass} size={10} />
-            {config.label}
+            {label}
           </div>
         </div>
         {data.totalIndexed !== undefined && (
-          <span className="font-medium text-sm">
-            {data.totalIndexed.toLocaleString()} docs
+          <span className="font-mono text-[13px] tabular-nums">
+            {data.totalIndexed.toLocaleString()}
           </span>
         )}
       </div>
 
       {data.lastSyncedAt && (
-        <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
-          <Icons.History size={12} />
+        <div className="flex items-center gap-1.5 text-[11px] text-foreground/40">
+          <Icons.History size={11} />
           <span>
             {formatDistanceToNow(
               typeof data.lastSyncedAt === "string"
@@ -114,7 +103,9 @@ export function SyncStatusBadge({
       )}
 
       {data.error && (
-        <p className="line-clamp-1 text-destructive text-xs">{data.error}</p>
+        <p className="line-clamp-1 text-[11px] text-destructive">
+          {data.error}
+        </p>
       )}
     </div>
   );
@@ -122,7 +113,7 @@ export function SyncStatusBadge({
   if (onClick) {
     return (
       <button
-        className="cursor-pointer border border-border bg-background p-3 transition-all hover:shadow-sm"
+        className="cursor-pointer border border-border/50 bg-background p-3 transition-colors hover:bg-foreground/2"
         onClick={onClick}
         type="button"
       >
@@ -132,7 +123,7 @@ export function SyncStatusBadge({
   }
 
   return (
-    <div className="border border-border bg-background p-3">
+    <div className="border border-border/50 bg-background p-3">
       {detailedContent}
     </div>
   );

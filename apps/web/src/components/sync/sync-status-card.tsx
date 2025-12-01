@@ -6,7 +6,6 @@ import {
   isPast,
 } from "date-fns";
 import { Icons } from "@/components/icons";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSyncStatusConfig } from "@/lib/sync-status";
 import { isSyncing, type SyncStatusType } from "@/lib/sync-types";
 import { SyncErrorAlert } from "./sync-error-alert";
@@ -17,6 +16,51 @@ type SyncStatusCardProps = {
   syncStatus: SyncStatusType | undefined;
 };
 
+function Stat({
+  label,
+  value,
+  color,
+}: {
+  label: string;
+  value: string | number;
+  color?: string;
+}) {
+  return (
+    <div>
+      <p className="text-[10px] text-foreground/40 uppercase tracking-wide">
+        {label}
+      </p>
+      <p
+        className={`font-mono text-base tabular-nums ${color ?? "text-foreground/80"}`}
+      >
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function NextSyncRow({
+  icon: Icon,
+  label,
+  nextRunAt,
+}: {
+  icon: typeof Icons.RefreshCw;
+  label: string;
+  nextRunAt: Date | string;
+}) {
+  const next = new Date(nextRunAt);
+  const timeStr = isPast(next) ? "pending" : formatDistanceToNowStrict(next);
+  return (
+    <div className="flex items-center justify-between text-[11px]">
+      <div className="flex items-center gap-2 text-foreground/40">
+        <Icon size={12} />
+        <span>{label}</span>
+      </div>
+      <span className="font-mono text-foreground/60">{timeStr}</span>
+    </div>
+  );
+}
+
 export function SyncStatusCard({
   connectorId,
   syncStatus,
@@ -24,151 +68,91 @@ export function SyncStatusCard({
   const syncing = isSyncing(syncStatus);
   const config = getSyncStatusConfig(syncStatus?.connector?.status);
   const StatusIcon = config.icon;
+  const latest = syncStatus?.latestSync;
+  const showLatestStats = latest && latest.status !== "SYNCING";
 
   return (
-    <Card className="border bg-background">
-      <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
-          <CardTitle className="font-medium text-sm">Sync Status</CardTitle>
-          <div className={config.className}>
-            <div className="flex items-center gap-1.5">
-              <StatusIcon className={config.iconClass} size={10} />
-              {config.label}
-            </div>
-          </div>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <span className="text-foreground/50 text-xs">Status</span>
+        <div
+          className={`flex items-center gap-1.5 px-2 py-0.5 font-mono text-[10px] ${config.className}`}
+        >
+          <StatusIcon className={config.iconClass} size={10} />
+          {config.label}
         </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {syncing && <SyncProgressIndicator />}
+      </div>
 
-        <div className="grid grid-cols-3 gap-4">
-          <div className="space-y-1">
-            <p className="text-muted-foreground text-xs">Total Documents</p>
-            <p className="font-medium text-lg">
-              {syncStatus?.stats?.totalIndexed ?? 0}
-            </p>
-          </div>
-          {syncStatus?.latestSync &&
-            syncStatus.latestSync.status !== "SYNCING" && (
-              <>
-                <div className="space-y-1">
-                  <p className="text-muted-foreground text-xs">Last Added</p>
-                  <p className="font-medium text-green-600 text-lg dark:text-green-400">
-                    +{syncStatus.latestSync.dataAdded}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-muted-foreground text-xs">Last Updated</p>
-                  <p className="font-medium text-blue-600 text-lg dark:text-blue-400">
-                    {syncStatus.latestSync.dataUpdated}
-                  </p>
-                </div>
-              </>
-            )}
-          {syncing && (
-            <>
-              <div className="space-y-1">
-                <p className="text-muted-foreground text-xs">Added</p>
-                <p className="font-medium text-green-600 text-lg dark:text-green-400">
-                  —
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-muted-foreground text-xs">Updated</p>
-                <p className="font-medium text-blue-600 text-lg dark:text-blue-400">
-                  —
-                </p>
-              </div>
-            </>
-          )}
-        </div>
+      {syncing && <SyncProgressIndicator />}
 
+      <div className="grid grid-cols-3 gap-4 border-border/50 border-y py-4">
+        <Stat
+          label="Indexed"
+          value={syncStatus?.stats?.totalIndexed?.toLocaleString() ?? "0"}
+        />
+        {showLatestStats && (
+          <>
+            <Stat
+              color="text-openplane-green"
+              label="Added"
+              value={`+${latest.dataAdded}`}
+            />
+            <Stat
+              color="text-openplane-blue"
+              label="Updated"
+              value={latest.dataUpdated}
+            />
+          </>
+        )}
+        {!showLatestStats && syncing && (
+          <>
+            <Stat color="text-foreground/30" label="Added" value="—" />
+            <Stat color="text-foreground/30" label="Updated" value="—" />
+          </>
+        )}
+      </div>
+
+      <div className="space-y-2">
         {syncStatus?.connector?.lastSyncedAt && (
-          <div className="border-border border-t pt-4">
-            <div className="flex items-center gap-2">
-              <Icons.History className="text-muted-foreground" size={14} />
-              <p className="text-muted-foreground text-xs">
-                Last synced{" "}
-                {formatDistanceToNow(
-                  new Date(syncStatus.connector.lastSyncedAt),
-                  {
-                    addSuffix: true,
-                  }
-                )}
-              </p>
-            </div>
+          <div className="flex items-center gap-2 text-[11px] text-foreground/40">
+            <Icons.History size={12} />
+            <span>
+              Synced{" "}
+              {formatDistanceToNow(
+                new Date(syncStatus.connector.lastSyncedAt),
+                { addSuffix: true }
+              )}
+            </span>
           </div>
         )}
-
-        {/* Next Sync Info */}
-        {syncStatus?.syncJobs && (
-          <div className="space-y-2 border-border border-t pt-4">
-            {syncStatus.syncJobs.incremental?.nextRunAt && (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Icons.RefreshCw
-                    className="text-muted-foreground"
-                    size={14}
-                  />
-                  <p className="text-muted-foreground text-xs">
-                    Next incremental sync
-                  </p>
-                </div>
-                <p className="font-medium text-xs">
-                  {(() => {
-                    const nextRun = new Date(
-                      syncStatus.syncJobs.incremental.nextRunAt
-                    );
-                    if (isPast(nextRun)) {
-                      return "Pending...";
-                    }
-                    return `in ${formatDistanceToNowStrict(nextRun)}`;
-                  })()}
-                </p>
-              </div>
-            )}
-            {syncStatus.syncJobs.full?.nextRunAt && (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Icons.Database className="text-muted-foreground" size={14} />
-                  <p className="text-muted-foreground text-xs">
-                    Next full sync
-                  </p>
-                </div>
-                <p className="font-medium text-xs">
-                  {(() => {
-                    const nextRun = new Date(
-                      syncStatus.syncJobs.full.nextRunAt
-                    );
-                    if (isPast(nextRun)) {
-                      return "Pending...";
-                    }
-                    return `in ${formatDistanceToNowStrict(nextRun)}`;
-                  })()}
-                </p>
-              </div>
-            )}
-            {syncStatus.webhookStatus?.enabled && (
-              <div className="flex items-center gap-2">
-                <Icons.Webhook
-                  className="text-green-600 dark:text-green-400"
-                  size={14}
-                />
-                <p className="text-green-600 text-xs dark:text-green-400">
-                  Real-time updates active
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {syncStatus?.connector?.lastError && (
-          <SyncErrorAlert
-            connectorId={connectorId}
-            error={syncStatus.connector.lastError}
+        {syncStatus?.syncJobs?.incremental?.nextRunAt && (
+          <NextSyncRow
+            icon={Icons.RefreshCw}
+            label="Incremental"
+            nextRunAt={syncStatus.syncJobs.incremental.nextRunAt}
           />
         )}
-      </CardContent>
-    </Card>
+        {syncStatus?.syncJobs?.full?.nextRunAt && (
+          <NextSyncRow
+            icon={Icons.Database}
+            label="Full sync"
+            nextRunAt={syncStatus.syncJobs.full.nextRunAt}
+          />
+        )}
+        {syncStatus?.webhookStatus?.enabled && (
+          <div className="flex items-center gap-2 text-[11px] text-openplane-green">
+            <Icons.Webhook size={12} />
+            <span>Real-time active</span>
+          </div>
+        )}
+      </div>
+
+      {syncStatus?.connector?.lastError && (
+        <SyncErrorAlert
+          connectorId={connectorId}
+          error={syncStatus.connector.lastError}
+        />
+      )}
+    </div>
   );
 }
