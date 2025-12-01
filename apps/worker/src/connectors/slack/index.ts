@@ -1,14 +1,3 @@
-/**
- * Slack Connector for Worker
- *
- * Thin orchestration layer that uses @openplane/services/slack
- * for all core functionality. Handles:
- * - Credential extraction from connector config
- * - Streaming batches directly to index queue
- * - Cursor checkpointing per batch
- * - Error handling and retry coordination
- */
-
 import {
   type Connector,
   decryptIfEncrypted,
@@ -98,7 +87,7 @@ function extractCredentials(
 function buildContext(connector: Connector): TransformContext {
   return {
     connectorId: connector.id,
-    connectorType: connector.type,
+    connectorType: connector.app,
     teamId: connector.teamId,
     workspaceId: connector.workspaceExternalId ?? connector.id,
   };
