@@ -2,10 +2,12 @@ import {
   deleteConnector,
   findConnectorById,
   findConnectorByTeam,
+  listConnectorResources,
   listConnectorsByTeam,
   pauseConnector as pauseConnectorDb,
   resumeConnector as resumeConnectorDb,
   updateConnectorConfig,
+  updateConnectorResourceSync,
   upsertConnector,
 } from "@openplane/db";
 import type {
@@ -147,5 +149,40 @@ export const connectorsRouter = createTRPCRouter({
       const result = await resumeConnectorDb(ctx.prisma, input.connectorId);
       await recreateRepeatableJobs(ctx.prisma, input.connectorId);
       return result;
+    }),
+
+  getResources: withActiveTeam
+    .input(z.object({ connectorId: z.string().min(1) }))
+    .query(async ({ ctx, input }) => {
+      await verifyConnectorAccess(ctx.prisma, input.connectorId, ctx.teamId);
+      return listConnectorResources(ctx.prisma, input.connectorId);
+    }),
+
+  toggleResourceSync: withActiveTeam
+    .input(
+      z.object({
+        resourceId: z.string().min(1),
+        syncEnabled: z.boolean(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Get the resource to verify access
+      const resource = await ctx.prisma.connectorResource.findUnique({
+        where: { id: input.resourceId },
+        include: { connector: { select: { teamId: true } } },
+      });
+
+      if (!resource || resource.connector.teamId !== ctx.teamId) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Resource not found or unauthorized",
+        });
+      }
+
+      return updateConnectorResourceSync(
+        ctx.prisma,
+        input.resourceId,
+        input.syncEnabled
+      );
     }),
 });
