@@ -46,35 +46,35 @@ type UnifiedConnectorsTableProps = {
 
 function TableSkeleton() {
   return (
-    <div className="border border-border bg-background">
-      <div className="border-border/50 border-b p-4">
+    <div className="border border-border/50">
+      <div className="border-border/50 border-b px-3 py-2.5">
         <div className="flex items-center gap-4">
-          <Skeleton className="h-4 w-4" />
-          <Skeleton className="h-4 w-32" />
-          <Skeleton className="ml-auto h-4 w-24" />
-          <Skeleton className="h-4 w-24" />
-          <Skeleton className="h-4 w-24" />
-          <Skeleton className="h-4 w-16" />
+          <Skeleton className="size-3.5" />
+          <Skeleton className="h-3 w-20" />
+          <Skeleton className="ml-auto h-3 w-14" />
+          <Skeleton className="h-3 w-16" />
+          <Skeleton className="h-3 w-12" />
+          <Skeleton className="size-4" />
         </div>
       </div>
       {Array.from({ length: 5 }).map((_, i) => (
         <div
-          className="border-border/50 border-b p-4 last:border-b-0"
-          key={`skeleton-row-${i}`}
+          className="border-border/40 border-b px-3 py-2.5 last:border-b-0"
+          key={i}
         >
           <div className="flex items-center gap-4">
-            <Skeleton className="h-4 w-4" />
-            <div className="flex items-center gap-3">
-              <Skeleton className="size-8 rounded" />
+            <Skeleton className="size-3.5" />
+            <div className="flex items-center gap-2.5">
+              <Skeleton className="size-7" />
               <div>
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="mt-1 h-3 w-20" />
+                <Skeleton className="h-3.5 w-24" />
+                <Skeleton className="mt-1 h-2.5 w-14" />
               </div>
             </div>
-            <Skeleton className="ml-auto h-6 w-24" />
-            <Skeleton className="h-4 w-20" />
-            <Skeleton className="h-4 w-16" />
-            <Skeleton className="h-8 w-8" />
+            <Skeleton className="ml-auto h-4 w-14" />
+            <Skeleton className="h-3 w-16" />
+            <Skeleton className="h-3.5 w-8" />
+            <Skeleton className="size-4" />
           </div>
         </div>
       ))}
@@ -121,16 +121,20 @@ export function UnifiedConnectorsTable({
   if (searchQuery && filteredConnectors.length === 0) {
     return (
       <div className="flex h-[calc(100vh-400px)] flex-col items-center justify-center">
-        <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-xl border border-border/60 bg-background">
-          <Icons.Search className="text-foreground/40" size={24} />
+        <div className="mx-auto mb-3 flex size-10 items-center justify-center border border-border/50 bg-background">
+          <Icons.Search className="text-foreground/30" size={18} />
         </div>
-        <h3 className="font-medium text-foreground text-lg">No results</h3>
-        <p className="mt-2 max-w-md text-center text-foreground/50 text-sm">
-          No connectors match "{searchQuery}"
+        <p className="font-medium text-foreground/70 text-sm">No results</p>
+        <p className="mt-1 text-foreground/40 text-xs">
+          Nothing matches "{searchQuery}"
         </p>
         {onClearSearch && (
-          <Button className="mt-4" onClick={onClearSearch} variant="outline">
-            Clear search
+          <Button
+            className="mt-4 h-8 px-3 text-xs"
+            onClick={onClearSearch}
+            variant="outline"
+          >
+            Clear
           </Button>
         )}
       </div>
@@ -165,24 +169,32 @@ export function UnifiedConnectorsTable({
         />
       )}
 
-      <div className="border border-border bg-background">
+      <div className="border border-border/50">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead className="w-12">
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="w-10">
                 <Checkbox
                   checked={selectedRows.size === filteredConnectors.length}
-                  className="cursor-pointer"
+                  className="size-3.5"
                   onCheckedChange={(checked) =>
                     handleSelectAll(checked === true)
                   }
                 />
               </TableHead>
-              <TableHead>{columnLabel}</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Last Sync</TableHead>
-              <TableHead>Documents</TableHead>
-              <TableHead className="w-24" />
+              <TableHead className="font-normal text-[11px] text-foreground/50">
+                {columnLabel}
+              </TableHead>
+              <TableHead className="font-normal text-[11px] text-foreground/50">
+                Status
+              </TableHead>
+              <TableHead className="font-normal text-[11px] text-foreground/50">
+                Last Sync
+              </TableHead>
+              <TableHead className="font-normal text-[11px] text-foreground/50">
+                Docs
+              </TableHead>
+              <TableHead className="w-10" />
             </TableRow>
           </TableHeader>
           <TableBody>

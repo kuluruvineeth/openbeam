@@ -76,20 +76,18 @@ function WebhookStatusRow({
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 pt-2">
-        <Icons.Spinner className="size-3.5 animate-spin text-foreground/40" />
+        <Icons.Spinner className="size-3 animate-spin text-foreground/30" />
       </div>
     );
   }
 
   if (enabled) {
     return (
-      <div className="flex items-center gap-2 pt-2">
-        <Icons.Webhook className="size-3.5 text-green-600 dark:text-green-400" />
-        <span className="text-green-600 text-xs dark:text-green-400">
-          Real-time updates active
-        </span>
+      <div className="flex items-center gap-2 pt-2 text-[11px]">
+        <Icons.Webhook className="size-3 text-openplane-green" />
+        <span className="text-openplane-green">Real-time active</span>
         {lastReceivedAt && (
-          <span className="text-foreground/40 text-xs">
+          <span className="text-foreground/35">
             ·{" "}
             {formatDistanceToNow(new Date(lastReceivedAt), { addSuffix: true })}
           </span>
@@ -99,11 +97,9 @@ function WebhookStatusRow({
   }
 
   return (
-    <div className="flex items-center gap-2 pt-2">
-      <Icons.Webhook className="size-3.5 text-foreground/40" />
-      <span className="text-foreground/40 text-xs">
-        Webhooks not configured
-      </span>
+    <div className="flex items-center gap-2 pt-2 text-[11px] text-foreground/35">
+      <Icons.Webhook className="size-3" />
+      <span>Webhooks not configured</span>
     </div>
   );
 }

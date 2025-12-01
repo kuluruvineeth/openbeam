@@ -1,7 +1,7 @@
 "use client";
 
 import type { UnifiedApp } from "@openplane/integrations";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
 import { useSyncHistoryInfinite, useSyncStatus } from "./use-sync";
 
@@ -62,12 +62,53 @@ export function useConnector(connectorId: string | undefined) {
   });
 }
 
-export function useConnectorResources(_connectorId: string | undefined) {
-  return {
-    data: [],
-    isLoading: false,
-    error: null,
-  };
+export type ConnectorResource = {
+  id: string;
+  connectorId: string;
+  externalId: string;
+  resourceType: string;
+  name: string | null;
+  path: string | null;
+  parentId: string | null;
+  syncEnabled: boolean;
+  syncPriority: number;
+  lastSyncedAt: Date | null;
+  documentCount: number;
+  isPublic: boolean;
+  accessControl: string[];
+  metadata: Record<string, unknown> | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export function useConnectorResources(connectorId: string | undefined) {
+  const trpc = useTRPC();
+
+  return useQuery({
+    ...trpc.apps.connectors.getResources.queryOptions({
+      connectorId: connectorId ?? "",
+    }),
+    enabled: !!connectorId,
+    select: (data) => data as ConnectorResource[],
+  });
+}
+
+export function useToggleResourceSync(connectorId: string | undefined) {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    ...trpc.apps.connectors.toggleResourceSync.mutationOptions(),
+    onSuccess: () => {
+      if (connectorId) {
+        queryClient.invalidateQueries({
+          queryKey: trpc.apps.connectors.getResources.queryOptions({
+            connectorId,
+          }).queryKey,
+        });
+      }
+    },
+  });
 }
 
 export function useConnectorSyncHistory(

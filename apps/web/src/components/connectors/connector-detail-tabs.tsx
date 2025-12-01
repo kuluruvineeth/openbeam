@@ -19,8 +19,8 @@ type SyncStatus = {
   stats?: {
     totalIndexed: number;
   };
-  syncHistory?: { total?: number };
-  resources?: { total?: number };
+  resources?: { total: number };
+  syncHistory?: { total: number };
 } | null;
 
 type ConnectorDetailTabsProps = {
@@ -42,6 +42,7 @@ export function ConnectorDetailTabs({
   const [tab, setTab] = useQueryState("tab", {
     defaultValue: "overview",
   });
+  const resourceCount = syncStatus?.resources?.total;
 
   const tabs: TabConfig[] = [
     {
@@ -50,9 +51,10 @@ export function ConnectorDetailTabs({
       icon: <Icons.Info size={14} />,
     },
     {
-      value: "settings",
-      label: "Settings",
-      icon: <Icons.Settings size={14} />,
+      value: "resources",
+      label: "Resources",
+      icon: <Icons.Folder size={14} />,
+      count: resourceCount,
     },
     {
       value: "history",
@@ -61,10 +63,9 @@ export function ConnectorDetailTabs({
       count: syncStatus?.syncHistory?.total,
     },
     {
-      value: "resources",
-      label: "Resources",
-      icon: <Icons.Folder size={14} />,
-      count: syncStatus?.resources?.total ?? syncStatus?.stats?.totalIndexed,
+      value: "settings",
+      label: "Settings",
+      icon: <Icons.Settings size={14} />,
     },
   ];
 

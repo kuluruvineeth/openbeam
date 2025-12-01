@@ -5,7 +5,6 @@ import { formatDistanceToNow } from "date-fns";
 import { useState } from "react";
 import { AppLogo } from "@/components/integrations/app-logo";
 import { SyncStatusBadge } from "@/components/sync/sync-status-badge";
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
@@ -47,13 +46,14 @@ export function SharedTableRow({
 }: SharedTableRowProps) {
   const [isHovered, setIsHovered] = useState(false);
   const app = appStore.find((a) => a.id === connector.app);
+  const docs = connector.syncStatus?.stats.totalIndexed ?? 0;
 
   return (
     <TableRow
       className={cn(
-        "cursor-pointer transition-all duration-150",
-        "hover:bg-foreground/[0.02]",
-        isSelected && "bg-primary/5"
+        "group cursor-pointer transition-colors",
+        "hover:bg-foreground/2",
+        isSelected && "bg-foreground/3"
       )}
       onClick={(e) => {
         if (
@@ -66,21 +66,25 @@ export function SharedTableRow({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <TableCell onClick={(e) => e.stopPropagation()}>
+      <TableCell className="w-10" onClick={(e) => e.stopPropagation()}>
         <Checkbox
           checked={isSelected}
-          className="cursor-pointer"
+          className="size-3.5"
           onCheckedChange={(checked) =>
             onSelect(connector.id, checked === true)
           }
         />
       </TableCell>
       <TableCell>
-        <div className="flex items-center gap-3">
-          {app ? <AppLogo app={app} size={32} /> : <div className="h-8 w-8" />}
-          <div>
-            <p className="font-medium text-sm">{connector.name}</p>
-            <p className="text-foreground/50 text-xs">{connector.app}</p>
+        <div className="flex items-center gap-2.5">
+          {app ? <AppLogo app={app} size={28} /> : <div className="size-7" />}
+          <div className="min-w-0">
+            <p className="truncate text-[13px] text-foreground/90">
+              {connector.name}
+            </p>
+            <p className="text-[10px] text-foreground/40 uppercase tracking-wide">
+              {connector.app}
+            </p>
           </div>
         </div>
       </TableCell>
@@ -94,44 +98,32 @@ export function SharedTableRow({
                 | "ERROR"
                 | "INACTIVE"
                 | "CONNECTING",
-              totalIndexed: connector.syncStatus.stats.totalIndexed,
-              lastSyncedAt: connector.syncStatus.connector.lastSyncedAt,
-              error: connector.syncStatus.connector.lastError,
+              totalIndexed: docs,
             }}
-            variant="compact"
           />
         )}
       </TableCell>
       <TableCell>
-        {connector.lastSyncedAt ? (
-          <span className="text-foreground/60 text-xs">
-            {formatDistanceToNow(new Date(connector.lastSyncedAt), {
-              addSuffix: true,
-            })}
-          </span>
-        ) : (
-          <span className="text-foreground/40 text-xs">Never</span>
-        )}
-      </TableCell>
-      <TableCell>
-        <span className="font-mono text-sm tabular-nums">
-          {connector.syncStatus?.stats.totalIndexed.toLocaleString() ?? 0}
+        <span className="text-[11px] text-foreground/50">
+          {connector.lastSyncedAt
+            ? formatDistanceToNow(new Date(connector.lastSyncedAt), {
+                addSuffix: true,
+              })
+            : "Never"}
         </span>
       </TableCell>
-      <TableCell onClick={(e) => e.stopPropagation()}>
+      <TableCell>
+        <span className="font-mono text-[13px] text-foreground/70 tabular-nums">
+          {docs.toLocaleString()}
+        </span>
+      </TableCell>
+      <TableCell className="w-10" onClick={(e) => e.stopPropagation()}>
         <div
           className={cn(
-            "flex items-center gap-1 transition-opacity duration-150",
+            "transition-opacity",
             showHoverActions && !isHovered && "opacity-0"
           )}
         >
-          <Button
-            onClick={() => onRowClick(connector)}
-            size="sm"
-            variant="ghost"
-          >
-            View
-          </Button>
           <ConnectorActions
             connectorId={connector.id}
             status={connector.status}
