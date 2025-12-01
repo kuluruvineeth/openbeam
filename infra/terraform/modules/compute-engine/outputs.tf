@@ -30,7 +30,7 @@ output "vespa_query_url" {
 
 output "vespa_feed_url" {
   description = "Vespa feed endpoint URL (internal)"
-  value       = "http://${google_compute_instance.vespa.network_interface[0].network_ip}:19100"
+  value       = "http://${google_compute_instance.vespa.network_interface[0].network_ip}:8080"
 }
 
 output "vespa_config_url" {

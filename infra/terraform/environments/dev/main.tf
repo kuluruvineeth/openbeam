@@ -505,7 +505,8 @@ module "worker" {
   image        = local.worker_image
 
   # Scale to zero when idle (testing only)
-  min_instances = 0
+  // TODO: Change to 0 when testing is done
+  min_instances = 1
   max_instances = 1
 
   cpu            = "2"
