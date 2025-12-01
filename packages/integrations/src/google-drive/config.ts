@@ -22,6 +22,54 @@ export const googleDriveApp: UnifiedApp = {
   developerName: "Google LLC",
   website: "https://drive.google.com",
 
+  searchDisplay: {
+    defaultIconKey: "FileTextIcon",
+    documentTypes: {
+      file: { label: "file", iconKey: "FileTextIcon", category: "file" },
+      folder: { label: "folder", iconKey: "Folder", category: "folder" },
+      document: { label: "doc", iconKey: "FileTextIcon", category: "document" },
+      spreadsheet: {
+        label: "sheet",
+        iconKey: "FileSpreadsheetIcon",
+        category: "spreadsheet",
+      },
+      presentation: {
+        label: "slides",
+        iconKey: "PresentationIcon",
+        category: "presentation",
+      },
+      image: { label: "image", iconKey: "FileImageIcon", category: "image" },
+    },
+    mimeTypes: {
+      "application/vnd.google-apps.folder": {
+        label: "folder",
+        iconKey: "Folder",
+        category: "folder",
+      },
+      "application/vnd.google-apps.document": {
+        label: "doc",
+        iconKey: "FileTextIcon",
+        category: "document",
+      },
+      "application/vnd.google-apps.spreadsheet": {
+        label: "sheet",
+        iconKey: "FileSpreadsheetIcon",
+        category: "spreadsheet",
+      },
+      "application/vnd.google-apps.presentation": {
+        label: "slides",
+        iconKey: "PresentationIcon",
+        category: "presentation",
+      },
+      "application/pdf": {
+        label: "pdf",
+        iconKey: "FileTextIcon",
+        category: "document",
+      },
+      "image/": { label: "image", iconKey: "FileImageIcon", category: "image" },
+    },
+  },
+
   features: [
     "Semantic search across all file types",
     "Document content extraction",

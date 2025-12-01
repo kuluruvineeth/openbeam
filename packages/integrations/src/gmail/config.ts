@@ -22,6 +22,20 @@ export const gmailApp: UnifiedApp = {
   developerName: "Google LLC",
   website: "https://mail.google.com",
 
+  searchDisplay: {
+    defaultIconKey: "Mail",
+    documentTypes: {
+      email: { label: "email", iconKey: "Mail", category: "email" },
+      message: { label: "email", iconKey: "Mail", category: "email" },
+      thread: { label: "thread", iconKey: "Mail", category: "email" },
+      attachment: {
+        label: "attachment",
+        iconKey: "Attachment",
+        category: "file",
+      },
+    },
+  },
+
   features: [
     "Semantic search across emails and threads",
     "Attachment content indexing",

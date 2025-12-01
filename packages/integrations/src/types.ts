@@ -26,10 +26,43 @@ export enum AppType {
   GOOGLE_DRIVE = "GOOGLE_DRIVE",
 }
 
+export type DocumentTypeCategory =
+  | "message"
+  | "email"
+  | "file"
+  | "folder"
+  | "document"
+  | "spreadsheet"
+  | "presentation"
+  | "image"
+  | "issue"
+  | "ticket"
+  | "pull_request"
+  | "task"
+  | "event"
+  | "page"
+  | "comment"
+  | "channel"
+  | "unknown";
+
+export type DocumentTypeDisplay = {
+  label: string;
+  iconKey: string;
+  category: DocumentTypeCategory;
+};
+
+export type SearchDisplayConfig = {
+  defaultIconKey: string;
+  documentTypes: Record<string, DocumentTypeDisplay>;
+  mimeTypes?: Record<string, DocumentTypeDisplay>;
+  formatSourceName?: (sourceName: string, sourceType?: string) => string;
+  contentPrimaryDocTypes?: string[];
+};
+
 export enum SyncMode {
-  REALTIME = "REALTIME", // Webhooks
-  PERIODIC = "PERIODIC", // Polling
-  ON_DEMAND = "ON_DEMAND", // User triggered only
+  REALTIME = "REALTIME",
+  PERIODIC = "PERIODIC",
+  ON_DEMAND = "ON_DEMAND",
 }
 
 export type StreamDefinition = {
@@ -40,11 +73,10 @@ export type StreamDefinition = {
   dataPoints: string[];
   isPii?: boolean;
 
-  // Sync Capabilities
   syncMode: SyncMode;
-  defaultInterval?: number; // In minutes, for PERIODIC sync
-  supportsBackfill?: boolean; // Can we fetch historical data?
-  rateLimit?: number; // Requests per minute (approximate guide)
+  defaultInterval?: number;
+  supportsBackfill?: boolean;
+  rateLimit?: number;
 };
 
 export type OAuthConfig = {
@@ -138,4 +170,6 @@ export type UnifiedApp = {
   createdAt?: string;
   approvalStatus?: "draft" | "pending" | "approved" | "rejected";
   lastUsedAt?: string;
+
+  searchDisplay?: SearchDisplayConfig;
 };

@@ -22,6 +22,18 @@ export const slackApp: UnifiedApp = {
   developerName: "Slack Technologies, LLC",
   website: "https://slack.com",
 
+  searchDisplay: {
+    defaultIconKey: "Message",
+    documentTypes: {
+      message: { label: "message", iconKey: "Message", category: "message" },
+      file: { label: "file", iconKey: "Attachment", category: "file" },
+      channel: { label: "channel", iconKey: "Hash", category: "channel" },
+      thread: { label: "thread", iconKey: "Comment", category: "message" },
+    },
+    formatSourceName: (name, type) => (type === "channel" ? `#${name}` : name),
+    contentPrimaryDocTypes: ["message"],
+  },
+
   features: [
     "Semantic search across all messages and threads",
     "AI-powered answers directly in Slack",
