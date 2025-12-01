@@ -148,8 +148,11 @@ function parseMessageEvent(
   payload: unknown,
   subtype: unknown
 ): SlackEvent | null {
-  if (typeof subtype === "string" && MESSAGE_SUBTYPE_SCHEMAS[subtype]) {
-    return tryParseWithSchema(MESSAGE_SUBTYPE_SCHEMAS[subtype], payload);
+  if (typeof subtype === "string") {
+    const schema = MESSAGE_SUBTYPE_SCHEMAS[subtype];
+    if (schema) {
+      return tryParseWithSchema(schema, payload);
+    }
   }
   return tryParseWithSchema(MessageEventSchema, payload);
 }
