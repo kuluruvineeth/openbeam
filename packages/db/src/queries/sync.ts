@@ -35,6 +35,12 @@ export interface GetSyncStatusResult {
   stats: {
     totalIndexed: number;
   };
+  resources: {
+    total: number;
+  };
+  syncHistory: {
+    total: number;
+  };
   syncJobs: {
     full: SyncJobInfo | null;
     incremental: SyncJobInfo | null;
@@ -88,10 +94,12 @@ export const getSyncStatus = async (
     },
   });
 
-  // Get indexed document count
-  const totalIndexed = await db.indexedDocument.count({
-    where: { connectorId },
-  });
+  // Get counts in parallel
+  const [totalIndexed, totalResources, totalSyncHistory] = await Promise.all([
+    db.indexedDocument.count({ where: { connectorId } }),
+    db.connectorResource.count({ where: { connectorId } }),
+    db.syncHistory.count({ where: { connectorId } }),
+  ]);
 
   // Get sync jobs for this connector
   const syncJobs = await db.syncJob.findMany({
@@ -138,6 +146,12 @@ export const getSyncStatus = async (
     latestSync,
     stats: {
       totalIndexed,
+    },
+    resources: {
+      total: totalResources,
+    },
+    syncHistory: {
+      total: totalSyncHistory,
     },
     syncJobs: {
       full: fullSyncJob
