@@ -176,14 +176,20 @@ export class SearchService {
     const conditions: string[] = [];
 
     const pushContains = (field: string, value?: string) => {
-      if (!value) return;
+      if (!value) {
+        return;
+      }
       conditions.push(`${field} contains "${escapeYqlString(value)}"`);
     };
 
     const pushContainsAny = (field: string, values?: string[]) => {
-      if (!values || values.length === 0) return;
+      if (!values || values.length === 0) {
+        return;
+      }
       const safeValues = values.filter(Boolean);
-      if (safeValues.length === 0) return;
+      if (safeValues.length === 0) {
+        return;
+      }
       if (safeValues.length === 1) {
         conditions.push(
           `${field} contains "${escapeYqlString(safeValues[0]?.toLowerCase() ?? "")}"`

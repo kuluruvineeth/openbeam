@@ -77,6 +77,7 @@ function createArrayFilterSetter(
 
 const LIMIT = 20;
 
+//biome-ignore lint/complexity/noExcessiveCognitiveComplexity: search is quite complex
 export function useSearch(options?: { debounceMs?: number }) {
   const debounceMs = options?.debounceMs ?? 300;
   const trpc = useTRPC();

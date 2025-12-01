@@ -32,7 +32,9 @@ export function formatFullTime(timestamp: number): string {
 }
 
 export function formatFileSize(bytes?: number): string {
-  if (!bytes) return "";
+  if (!bytes) {
+    return "";
+  }
 
   const units = ["B", "KB", "MB", "GB"];
   let size = bytes;

@@ -8,8 +8,12 @@ const arrayQueryParam = z
   .union([z.string(), z.array(z.string())])
   .optional()
   .transform((val) => {
-    if (!val) return;
-    if (Array.isArray(val)) return val.filter(Boolean);
+    if (!val) {
+      return;
+    }
+    if (Array.isArray(val)) {
+      return val.filter(Boolean);
+    }
     return val
       .split(",")
       .map((s) => s.trim())

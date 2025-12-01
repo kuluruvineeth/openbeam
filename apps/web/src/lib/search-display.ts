@@ -30,6 +30,7 @@ export function getConnectorApp(connectorType: string): UnifiedApp | undefined {
   );
 }
 
+//biome-ignore lint/complexity/noExcessiveCognitiveComplexity: document icon is fine
 export function getDocumentIcon(
   connectorType: string,
   documentType: string,
@@ -45,18 +46,24 @@ export function getDocumentIcon(
       for (const [pattern, config] of Object.entries(mimeTypes)) {
         if (mimeType.includes(pattern) || mimeType.startsWith(pattern)) {
           const icon = Icons[config.iconKey as keyof typeof Icons];
-          if (icon) return icon;
+          if (icon) {
+            return icon;
+          }
         }
       }
     }
 
     if (documentTypes[docType]) {
       const icon = Icons[documentTypes[docType].iconKey as keyof typeof Icons];
-      if (icon) return icon;
+      if (icon) {
+        return icon;
+      }
     }
 
     const defaultIcon = Icons[defaultIconKey as keyof typeof Icons];
-    if (defaultIcon) return defaultIcon;
+    if (defaultIcon) {
+      return defaultIcon;
+    }
   }
 
   const fallbackKey = FALLBACK_ICONS[docType];

@@ -88,7 +88,9 @@ function RowMetadata({ doc }: { doc: SearchResultDocument }) {
     attachmentCount > 0 ||
     doc.file_size;
 
-  if (!hasMetadata) return null;
+  if (!hasMetadata) {
+    return null;
+  }
 
   return (
     <div className="flex items-center gap-3 font-mono text-[10px] text-foreground/40">

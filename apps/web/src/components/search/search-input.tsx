@@ -51,7 +51,9 @@ function SuggestionIcon({
     (a) => a.id.toLowerCase() === (connectorType ?? documentType).toLowerCase()
   );
 
-  if (app) return <AppLogo app={app} size={14} />;
+  if (app) {
+    return <AppLogo app={app} size={14} />;
+  }
   return <Icons.FileIcon className="text-foreground/40" size={14} />;
 }
 
@@ -156,8 +158,9 @@ function AutocompleteDropdown({
   const showRecent = query.length < 2 && recentDocuments.length > 0;
   const showSuggestions = query.length >= 2;
 
-  if (!(showRecent || showSuggestions)) return null;
-
+  if (!(showRecent || showSuggestions)) {
+    return null;
+  }
   const items = showRecent ? recentDocuments : suggestions;
 
   return (
@@ -170,7 +173,7 @@ function AutocompleteDropdown({
 
       {isLoading && showSuggestions && (
         <div className="space-y-1 p-2">
-          {[...Array(3)].map((_, i) => (
+          {Array.from({ length: 3 }).map((_, i) => (
             <div className="flex items-center gap-3 px-2 py-1" key={i}>
               <Skeleton className="size-4" />
               <Skeleton className="h-4 flex-1" />

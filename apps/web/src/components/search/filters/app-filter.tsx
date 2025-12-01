@@ -31,7 +31,9 @@ export function AppFilter({ selected, onChange }: AppFilterProps) {
   const { data: connectors } = useConnectors();
 
   const connectorTypes = useMemo(() => {
-    if (!connectors) return [];
+    if (!connectors) {
+      return [];
+    }
 
     const types = new Map<
       string,
@@ -62,6 +64,39 @@ export function AppFilter({ selected, onChange }: AppFilterProps) {
 
   const selectedApps = connectorTypes.filter((t) => selected.includes(t.value));
 
+  const renderButtonContent = () => {
+    if (selectedApps.length === 1 && selectedApps[0].app) {
+      return (
+        <>
+          <AppLogo app={selectedApps[0].app} size={14} />
+          {selectedApps[0].label}
+        </>
+      );
+    }
+
+    if (selectedApps.length > 1) {
+      return (
+        <>
+          <div className="-space-x-1 flex">
+            {selectedApps
+              .slice(0, 3)
+              .map((t) =>
+                t.app ? <AppLogo app={t.app} key={t.value} size={14} /> : null
+              )}
+          </div>
+          <span>{selected.length} apps</span>
+        </>
+      );
+    }
+
+    return (
+      <>
+        <Icons.Integrations className="text-foreground/50" size={14} />
+        Apps
+      </>
+    );
+  };
+
   return (
     <Popover onOpenChange={setOpen} open={open}>
       <PopoverTrigger asChild>
@@ -73,30 +108,7 @@ export function AppFilter({ selected, onChange }: AppFilterProps) {
           size="sm"
           variant="outline"
         >
-          {selectedApps.length === 1 && selectedApps[0].app ? (
-            <>
-              <AppLogo app={selectedApps[0].app} size={14} />
-              {selectedApps[0].label}
-            </>
-          ) : selectedApps.length > 1 ? (
-            <>
-              <div className="-space-x-1 flex">
-                {selectedApps
-                  .slice(0, 3)
-                  .map((t) =>
-                    t.app ? (
-                      <AppLogo app={t.app} key={t.value} size={14} />
-                    ) : null
-                  )}
-              </div>
-              <span>{selected.length} apps</span>
-            </>
-          ) : (
-            <>
-              <Icons.Integrations className="text-foreground/50" size={14} />
-              Apps
-            </>
-          )}
+          {renderButtonContent()}
           <Icons.ChevronDown className="text-foreground/40" size={12} />
         </Button>
       </PopoverTrigger>
