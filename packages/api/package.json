@@ -28,6 +28,7 @@
     "@openplane/db": "workspace:*",
     "@openplane/integrations": "workspace:*",
     "@openplane/redis": "workspace:*",
+    "@openplane/services": "workspace:*",
     "@sindresorhus/slugify": "^3.0.0",
     "@trpc/client": "catalog:",
     "@trpc/server": "catalog:",
