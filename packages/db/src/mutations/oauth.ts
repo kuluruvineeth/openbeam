@@ -19,16 +19,19 @@ export interface UpsertOAuthProviderInput {
   tokenType?: string;
   clientId?: string | null;
   clientSecret?: string | null;
+  syncAccessToken?: string | null;
+  syncTokenScopes?: string[];
+  syncAuthedUserId?: string | null;
 }
 
 export const upsertOAuthProvider = (
   db: OAuthProviderClient,
   data: UpsertOAuthProviderInput
 ): Prisma.Prisma__OAuthProviderClient<OAuthProvider> => {
-  // Encrypt sensitive tokens
   const accessTokenEncrypted = encryptIfConfigured(data.accessToken);
   const refreshTokenEncrypted = encryptIfConfigured(data.refreshToken);
   const clientSecretEncrypted = encryptIfConfigured(data.clientSecret);
+  const syncAccessTokenEncrypted = encryptIfConfigured(data.syncAccessToken);
 
   const tokenExpiresAt =
     data.expiresAt ??
@@ -51,6 +54,10 @@ export const upsertOAuthProvider = (
       clientId: data.clientId ?? null,
       clientSecret: clientSecretEncrypted.encrypted,
       clientSecretIv: clientSecretEncrypted.iv,
+      syncAccessToken: syncAccessTokenEncrypted.encrypted,
+      syncAccessTokenIv: syncAccessTokenEncrypted.iv,
+      syncTokenScopes: data.syncTokenScopes ?? [],
+      syncAuthedUserId: data.syncAuthedUserId ?? null,
     },
     update: {
       accessToken: accessTokenEncrypted.encrypted,
@@ -67,6 +74,10 @@ export const upsertOAuthProvider = (
         clientSecret: clientSecretEncrypted.encrypted,
         clientSecretIv: clientSecretEncrypted.iv,
       }),
+      syncAccessToken: syncAccessTokenEncrypted.encrypted,
+      syncAccessTokenIv: syncAccessTokenEncrypted.iv,
+      syncTokenScopes: data.syncTokenScopes ?? [],
+      syncAuthedUserId: data.syncAuthedUserId ?? null,
       updatedAt: new Date(),
     },
   });
@@ -113,9 +124,6 @@ export const updateOAuthTokens = (
   });
 };
 
-/**
- * Record a failed token refresh attempt
- */
 export const recordRefreshFailure = (
   db: OAuthProviderClient,
   connectorId: string,
@@ -131,9 +139,6 @@ export const recordRefreshFailure = (
     },
   });
 
-/**
- * Get OAuth provider with decryption info for a connector
- */
 export const getOAuthProvider = async (
   db: OAuthProviderClient,
   connectorId: string
