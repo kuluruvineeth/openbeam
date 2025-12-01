@@ -1,22 +1,161 @@
 import type { Connector, OAuthProvider } from "@openplane/db";
-import type { BaseConnector } from "./base-connector";
-import { SlackConnector } from "./slack/connector";
+import type { SyncCursor } from "@openplane/services";
+import type { GenericDocument } from "@openplane/vespa";
+import {
+  syncSlack,
+  syncSlackStreaming,
+  validateSlackConnection,
+} from "./slack";
 
-/**
- * Factory to create connector instances based on app type
- */
-export function createConnector(
-  connector: Connector & { oauthProvider?: OAuthProvider | null }
-): BaseConnector {
+export interface SyncResult {
+  documents: GenericDocument[];
+  nextCursor?: string;
+  hasMore: boolean;
+  stats?: {
+    processed: number;
+    errors: number;
+    duration: number;
+  };
+}
+
+export interface StreamingSyncResult {
+  totalDocuments: number;
+  nextCursor?: string;
+  hasMore: boolean;
+  stats: {
+    processed: number;
+    errors: number;
+    duration: number;
+    batches: number;
+  };
+}
+
+export interface SyncOptions {
+  cursor?: string;
+  batchSize?: number;
+  forceFullSync?: boolean;
+  onBatch?: (documents: GenericDocument[], cursor: string) => Promise<void>;
+}
+
+export interface ChannelInfo {
+  id: string;
+  name: string;
+  is_private: boolean;
+  is_member?: boolean;
+}
+
+export interface StreamingSyncOptions {
+  cursor?: string;
+  batchSize?: number;
+  forceFullSync?: boolean;
+  onBatch: (batch: {
+    items: GenericDocument[];
+    cursor: string;
+    hasMore: boolean;
+    stats: { processed: number; errors: number };
+  }) => Promise<void>;
+  onResourcesDiscovered?: (resources: ChannelInfo[]) => Promise<void>;
+  disabledResourceIds?: Set<string>;
+  enabledResourceIds?: Set<string>;
+}
+
+export async function syncConnectorStreaming(
+  connector: Connector & { oauthProvider?: OAuthProvider | null },
+  options: StreamingSyncOptions
+): Promise<StreamingSyncResult> {
+  const {
+    cursor,
+    batchSize,
+    forceFullSync,
+    onBatch,
+    onResourcesDiscovered,
+    disabledResourceIds,
+    enabledResourceIds,
+  } = options;
+
   switch (connector.app) {
-    case "SLACK":
-      return new SlackConnector(connector);
+    case "SLACK": {
+      const slackCursor: SyncCursor | undefined = cursor
+        ? JSON.parse(cursor)
+        : undefined;
+
+      const result = await syncSlackStreaming(connector, {
+        cursor: slackCursor,
+        batchSize,
+        forceFullSync,
+        onBatch: async (batch) => {
+          await onBatch({
+            items: batch.items,
+            cursor: JSON.stringify(batch.cursor),
+            hasMore: batch.hasMore,
+            stats: batch.stats,
+          });
+        },
+        onChannelsDiscovered: onResourcesDiscovered,
+        disabledChannelIds: disabledResourceIds,
+        enabledChannelIds: enabledResourceIds,
+      });
+
+      return {
+        totalDocuments: result.totalDocuments,
+        nextCursor: JSON.stringify(result.cursor),
+        hasMore: result.hasMore,
+        stats: result.stats,
+      };
+    }
 
     // Add more connectors here as we build them
     // case 'NOTION':
-    //   return new NotionConnector(connector);
+    //   return syncNotionStreaming(connector, options);
     // case 'GOOGLE_DRIVE':
-    //   return new GoogleDriveConnector(connector);
+    //   return syncGoogleDriveStreaming(connector, options);
+
+    default:
+      throw new Error(`Unsupported connector app: ${connector.app}`);
+  }
+}
+
+export async function syncConnector(
+  connector: Connector & { oauthProvider?: OAuthProvider | null },
+  options: SyncOptions = {}
+): Promise<SyncResult> {
+  switch (connector.app) {
+    case "SLACK": {
+      const slackCursor = options.cursor
+        ? JSON.parse(options.cursor)
+        : undefined;
+
+      const onBatchCallback = options.onBatch;
+      const result = await syncSlack(connector, {
+        cursor: slackCursor,
+        batchSize: options.batchSize,
+        forceFullSync: options.forceFullSync,
+        onBatch: onBatchCallback
+          ? async (batch) => {
+              await onBatchCallback(batch.items, JSON.stringify(batch.cursor));
+            }
+          : undefined,
+      });
+
+      return {
+        documents: result.documents,
+        nextCursor: JSON.stringify(result.cursor),
+        hasMore: result.hasMore,
+        stats: result.stats,
+      };
+    }
+
+    default:
+      throw new Error(`Unsupported connector app: ${connector.app}`);
+  }
+}
+
+export function validateConnection(
+  connector: Connector & { oauthProvider?: OAuthProvider | null }
+): Promise<boolean> {
+  switch (connector.app) {
+    case "SLACK":
+      return validateSlackConnection(connector);
 
     default:
       throw new Error(`Unsupported connector app: ${connector.app}`);
