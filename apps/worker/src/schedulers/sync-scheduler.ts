@@ -1,4 +1,4 @@
-import prisma from "@openplane/db";
+import prisma, { SyncJobStatus } from "@openplane/db";
 import {
   createRepeatableSyncJob,
   intervalMsToCron,
@@ -27,7 +27,7 @@ export class SyncScheduler {
     try {
       const scheduledJobs = await prisma.syncJob.findMany({
         where: {
-          status: "ACTIVE",
+          status: SyncJobStatus.PENDING,
           trigger: "SCHEDULED",
           deletedAt: null,
           schedule: { not: null },
