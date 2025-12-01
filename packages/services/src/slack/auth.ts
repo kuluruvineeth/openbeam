@@ -95,6 +95,9 @@ export class SlackAuth implements IntegrationAuth {
       const accessTokenEncrypted = encryptIfConfigured(tokens.accessToken);
       const refreshTokenEncrypted = encryptIfConfigured(tokens.refreshToken);
       const clientSecretEncrypted = encryptIfConfigured(clientSecret);
+      const syncAccessTokenEncrypted = encryptIfConfigured(
+        tokens.syncAccessToken
+      );
 
       const connector = await prisma.$transaction(async (tx) => {
         const current = await tx.connector.findUniqueOrThrow({
@@ -134,6 +137,10 @@ export class SlackAuth implements IntegrationAuth {
             clientId,
             clientSecret: clientSecretEncrypted.encrypted,
             clientSecretIv: clientSecretEncrypted.iv,
+            syncAccessToken: syncAccessTokenEncrypted.encrypted,
+            syncAccessTokenIv: syncAccessTokenEncrypted.iv,
+            syncTokenScopes: tokens.syncScopes ?? [],
+            syncAuthedUserId: tokens.syncAuthedUserId ?? null,
           },
           update: {
             accessToken: accessTokenEncrypted.encrypted,
@@ -147,6 +154,10 @@ export class SlackAuth implements IntegrationAuth {
             clientId,
             clientSecret: clientSecretEncrypted.encrypted,
             clientSecretIv: clientSecretEncrypted.iv,
+            syncAccessToken: syncAccessTokenEncrypted.encrypted,
+            syncAccessTokenIv: syncAccessTokenEncrypted.iv,
+            syncTokenScopes: tokens.syncScopes ?? [],
+            syncAuthedUserId: tokens.syncAuthedUserId ?? null,
             updatedAt: new Date(),
           },
         });
