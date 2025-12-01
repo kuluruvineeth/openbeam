@@ -1,65 +1,66 @@
-/**
- * TypeScript types matching Vespa schemas
- * These provide type safety when indexing and querying documents
- */
-
-/**
- * Generic document interface
- * Works for ANY connector: Slack, Notion, Drive, GitHub, etc.
- */
 export interface GenericDocument {
   id: string;
-
-  // Metadata
   connector_id: string;
   connector_type: string;
   team_id: string;
   workspace_id: string;
-
-  // Document identifiers
   external_id: string;
   document_type: string;
-
-  // Content
+  document_subtype?: string;
+  mime_type?: string;
   title: string;
   content: string;
+  content_plain?: string;
+  content_html?: string;
   content_embedding?: number[];
-
-  // Authorship & timestamps
+  title_embedding?: number[];
   author_id?: string;
+  author_external_id?: string;
   author_name?: string;
-  created_at: number; // Unix timestamp in milliseconds
+  author_email?: string;
+  contributor_ids?: string[];
+  mentioned_user_ids?: string[];
+  assignee_ids?: string[];
+  reviewer_ids?: string[];
+  created_at: number;
   updated_at: number;
-
-  // Source/container info
+  indexed_at?: number;
+  last_accessed_at?: number;
+  due_date?: number;
+  resolved_at?: number;
   source_id?: string;
   source_name?: string;
   source_type?: string;
+  source_path?: string;
 
-  // Thread/parent relationships
   parent_id?: string;
   thread_id?: string;
-
-  // Engagement metrics
+  project_id?: string;
+  related_doc_ids?: string[];
+  referenced_doc_ids?: string[];
+  status?: string;
+  priority?: string;
+  state?: string;
+  labels?: string[];
+  sprint?: string;
+  milestone?: string;
+  version?: string;
   view_count?: number;
   reaction_count?: number;
   reply_count?: number;
-
-  // Rich content
+  file_name?: string;
+  file_extension?: string;
+  file_size?: number;
   attachments?: string[];
   metadata?: Record<string, unknown>;
-
-  // Access control
+  custom_fields?: string;
+  checksum?: string;
+  sync_version?: number;
   access_control?: string[];
   is_public: boolean;
-
-  // URL
   url?: string;
 }
 
-/**
- * Entity interface for users, channels, workspaces, groups
- */
 export interface Entity {
   id: string;
   entity_type: string;
@@ -75,9 +76,6 @@ export interface Entity {
   is_active: boolean;
 }
 
-/**
- * Vespa query parameters
- */
 export interface QueryParams {
   yql: string;
   ranking?: "bm25" | "semantic" | "hybrid" | "recency" | "engagement";
@@ -86,9 +84,6 @@ export interface QueryParams {
   timeout?: string;
 }
 
-/**
- * Vespa search result
- */
 export interface SearchResult<T = GenericDocument> {
   root: {
     id: string;
@@ -114,17 +109,11 @@ export interface SearchResult<T = GenericDocument> {
   };
 }
 
-/**
- * Vespa feed response
- */
 export interface FeedResponse {
   pathId: string;
   id: string;
 }
 
-/**
- * Vespa error response
- */
 export interface VespaError {
   message: string;
   code?: number;

@@ -5,6 +5,7 @@ export {
 } from "./google-drive";
 export * from "./lib/oauth-state";
 export * from "./lib/token-refresh";
+export * from "./search";
 export {
   createSlackClient,
   type DocumentChange,

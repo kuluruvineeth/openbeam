@@ -1,16 +1,9 @@
-/**
- * Bulk Indexing for Vespa
- *
- * High-performance bulk document feeding for full syncs.
- * Uses Vespa's feed API with parallel requests.
- */
-
 import { vespaClient } from "./client";
 import type { GenericDocument } from "./schemas";
 
 interface BulkIndexOptions {
-  concurrency?: number; // Parallel requests (default: 5)
-  batchSize?: number; // Documents per request (default: 100)
+  concurrency?: number;
+  batchSize?: number;
   onProgress?: (indexed: number, total: number) => void;
 }
 
@@ -22,9 +15,6 @@ interface BulkIndexResult {
   durationMs: number;
 }
 
-/**
- * Bulk index documents to Vespa with parallel processing
- */
 export async function bulkIndexDocuments(
   documents: GenericDocument[],
   options: BulkIndexOptions = {}
@@ -40,13 +30,11 @@ export async function bulkIndexDocuments(
     durationMs: 0,
   };
 
-  // Split documents into batches
   const batches: GenericDocument[][] = [];
   for (let i = 0; i < documents.length; i += batchSize) {
     batches.push(documents.slice(i, i + batchSize));
   }
 
-  // Process batches with limited concurrency
   const processBatch = async (batch: GenericDocument[]) => {
     for (const doc of batch) {
       try {
@@ -66,7 +54,6 @@ export async function bulkIndexDocuments(
     }
   };
 
-  // Process batches in parallel with concurrency limit
   for (let i = 0; i < batches.length; i += concurrency) {
     const batchGroup = batches.slice(i, i + concurrency);
     await Promise.all(batchGroup.map(processBatch));
@@ -76,9 +63,6 @@ export async function bulkIndexDocuments(
   return result;
 }
 
-/**
- * Bulk index with progress tracking
- */
 export class BulkIndexer {
   private indexed = 0;
   private failed = 0;
