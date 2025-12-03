@@ -17,6 +17,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@openplane/ai": "workspace:*",
     "@openplane/db": "workspace:*",
     "@openplane/integrations": "workspace:*",
     "@openplane/redis": "workspace:*",
