@@ -1,8 +1,3 @@
-/**
- * Metrics Poller
- * Periodically polls queue metrics and updates Prometheus gauges
- */
-
 import {
   getIndexQueueMetrics,
   getSyncQueueMetrics,
@@ -24,13 +19,9 @@ export class MetricsPoller {
   private readonly pollInterval: number;
 
   constructor(pollInterval = 15_000) {
-    // Default: 15 seconds
     this.pollInterval = pollInterval;
   }
 
-  /**
-   * Start polling metrics
-   */
   start(): void {
     if (this.intervalId) {
       logger.warn("MetricsPoller already running");
@@ -39,7 +30,6 @@ export class MetricsPoller {
 
     logger.info({ pollInterval: this.pollInterval }, "Starting MetricsPoller");
 
-    // Poll immediately, then at intervals
     this.pollMetrics().catch((error) => {
       logger.error({ error }, "Initial metrics poll failed");
     });
@@ -51,9 +41,6 @@ export class MetricsPoller {
     }, this.pollInterval);
   }
 
-  /**
-   * Stop polling metrics
-   */
   stop(): void {
     if (this.intervalId) {
       clearInterval(this.intervalId);
@@ -62,9 +49,6 @@ export class MetricsPoller {
     }
   }
 
-  /**
-   * Poll all metrics
-   */
   private async pollMetrics(): Promise<void> {
     await Promise.allSettled([
       this.pollQueueDepths(),
@@ -73,27 +57,19 @@ export class MetricsPoller {
     ]);
   }
 
-  /**
-   * Poll queue depths for all queues
-   */
   private async pollQueueDepths(): Promise<void> {
     try {
-      // Sync queue metrics
       const syncMetrics = await getSyncQueueMetrics();
       syncQueueDepth.set({ status: "waiting" }, syncMetrics.waiting);
       syncQueueDepth.set({ status: "active" }, syncMetrics.active);
       syncQueueDepth.set({ status: "failed" }, syncMetrics.failed);
       syncQueueDepth.set({ status: "delayed" }, syncMetrics.delayed);
 
-      // Index queue metrics
       const indexMetrics = await getIndexQueueMetrics();
       indexQueueDepth.set({ status: "waiting" }, indexMetrics.waiting);
       indexQueueDepth.set({ status: "active" }, indexMetrics.active);
       indexQueueDepth.set({ status: "failed" }, indexMetrics.failed);
       indexQueueDepth.set({ status: "delayed" }, indexMetrics.delayed);
-
-      // Webhook queue metrics (no depth metric, but we can add if needed)
-      // const webhookMetrics = await getWebhookQueueMetrics();
 
       logger.debug(
         {
@@ -107,16 +83,11 @@ export class MetricsPoller {
     }
   }
 
-  /**
-   * Poll scheduled jobs (repeatable jobs)
-   */
   private async pollScheduledJobs(): Promise<void> {
     try {
-      // Get job schedulers for sync queue
       const syncSchedulers = await syncQueue.getJobSchedulers();
       scheduledJobsTotal.set({ queue: "sync" }, syncSchedulers.length);
 
-      // Get job schedulers for index queue (if any)
       const indexSchedulers = await indexQueue.getJobSchedulers();
       scheduledJobsTotal.set({ queue: "index" }, indexSchedulers.length);
 
@@ -132,9 +103,6 @@ export class MetricsPoller {
     }
   }
 
-  /**
-   * Poll Redis connection metrics
-   */
   private async pollRedisConnections(): Promise<void> {
     try {
       if (sharedBullMqConnection) {
@@ -180,5 +148,4 @@ export class MetricsPoller {
   }
 }
 
-// Singleton instance
 export const metricsPoller = new MetricsPoller();
