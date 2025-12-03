@@ -1,10 +1,3 @@
-# ==============================================================================
-# OpenPlane Development Environment
-# ==============================================================================
-# Cost-optimized configuration for development and testing
-# Uses smaller instances, preemptible VMs, and scales to zero when idle
-# ==============================================================================
-
 terraform {
   required_version = ">= 1.9"
 
@@ -45,12 +38,10 @@ locals {
   web_sa    = google_service_account.web.email
   vespa_sa  = google_service_account.vespa.email
 
-  # Real images from Artifact Registry (Uncomment after CI/CD build)
   server_image = "${module.artifact_registry.repository_url}/openplane-server:${var.redeploy_id}"
   worker_image = "${module.artifact_registry.repository_url}/openplane-worker:${var.redeploy_id}"
   web_image    = "${module.artifact_registry.repository_url}/openplane-web:${var.redeploy_id}"
 
-  # Custom domain URLs (use variables directly to avoid circular dependency)
   server_url = var.server_domain != "" ? "https://${var.server_domain}" : ""
   web_url    = var.web_domain != "" ? "https://${var.web_domain}" : ""
 
@@ -59,10 +50,6 @@ locals {
   # worker_image = "us-docker.pkg.dev/cloudrun/container/hello"
   # web_image    = "us-docker.pkg.dev/cloudrun/container/hello"
 }
-
-# ==============================================================================
-# Networking Module
-# ==============================================================================
 
 module "networking" {
   source = "../../modules/networking"
@@ -78,10 +65,6 @@ module "networking" {
 
 }
 
-# ==============================================================================
-# Artifact Registry
-# ==============================================================================
-
 module "artifact_registry" {
   source = "../../modules/artifact-registry"
 
@@ -95,10 +78,6 @@ module "artifact_registry" {
     environment = local.environment
   }
 }
-
-# ==============================================================================
-# IAM - Service Accounts
-# ==============================================================================
 
 resource "google_service_account" "server" {
   account_id   = "${local.project_name}-server-${local.environment}"
@@ -123,10 +102,6 @@ resource "google_service_account" "vespa" {
   display_name = "OpenPlane Vespa (${local.environment})"
   project      = var.project_id
 }
-
-# ==============================================================================
-# Secret Manager - Auth & OAuth Secrets
-# ==============================================================================
 
 resource "google_secret_manager_secret" "better_auth_secret" {
   secret_id = "${local.project_name}-better-auth-secret-${local.environment}"
@@ -204,7 +179,6 @@ resource "google_secret_manager_secret_version" "google_client_secret" {
   secret_data = var.google_client_secret
 }
 
-# Encryption Key for OAuth credentials (AES-256-GCM)
 resource "google_secret_manager_secret" "encryption_key" {
   secret_id = "${local.project_name}-encryption-key-${local.environment}"
   project   = var.project_id
@@ -224,7 +198,25 @@ resource "google_secret_manager_secret_version" "encryption_key" {
   secret_data = var.encryption_key
 }
 
-# Secret Manager Access
+resource "google_secret_manager_secret" "openai_api_key" {
+  secret_id = "${local.project_name}-openai-api-key-${local.environment}"
+  project   = var.project_id
+
+  replication {
+    auto {}
+  }
+
+  labels = {
+    environment = local.environment
+    service     = "ai"
+  }
+}
+
+resource "google_secret_manager_secret_version" "openai_api_key" {
+  secret      = google_secret_manager_secret.openai_api_key.id
+  secret_data = var.openai_api_key
+}
+
 resource "google_secret_manager_secret_iam_member" "server_secrets" {
   for_each  = toset(["db-password", "db-connection-string", "redis-url"])
   secret_id = "${local.project_name}-${each.value}-${local.environment}"
@@ -239,7 +231,7 @@ resource "google_secret_manager_secret_iam_member" "server_secrets" {
 }
 
 resource "google_secret_manager_secret_iam_member" "server_auth_secrets" {
-  for_each  = toset(["better-auth-secret", "jwt-secret", "google-client-id", "google-client-secret", "encryption-key"])
+  for_each  = toset(["better-auth-secret", "jwt-secret", "google-client-id", "google-client-secret", "encryption-key", "openai-api-key"])
   secret_id = "${local.project_name}-${each.value}-${local.environment}"
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${local.server_sa}"
@@ -260,7 +252,7 @@ resource "google_secret_manager_secret_iam_member" "worker_secrets" {
 }
 
 resource "google_secret_manager_secret_iam_member" "worker_auth_secrets" {
-  for_each  = toset(["encryption-key"])
+  for_each  = toset(["encryption-key", "openai-api-key"])
   secret_id = "${local.project_name}-${each.value}-${local.environment}"
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${local.worker_sa}"
@@ -276,10 +268,6 @@ resource "google_secret_manager_secret_iam_member" "web_secrets" {
 }
 
 
-# ==============================================================================
-# Cloud SQL Module (Cost-Optimized)
-# ==============================================================================
-
 module "cloud_sql" {
   source = "../../modules/cloud-sql"
 
@@ -290,20 +278,17 @@ module "cloud_sql" {
   network_id                = module.networking.network_id
   private_vpc_connection_id = module.networking.private_vpc_connection_id
 
-  # Minimal configuration for dev
-  tier                  = "db-f1-micro"     # Shared core, 0.6GB RAM (~$10/month)
-  high_availability     = false             # No HA for dev
-  disk_size             = 10                # Smaller disk for dev
+  tier                  = "db-f1-micro"
+  high_availability     = false
+  disk_size             = 10
   disk_autoresize_limit = 50
 
   database_name = "openplane"
   database_user = "openplane"
 
-  # Reduced backup retention
   backup_retention_count = 3
   point_in_time_recovery = false
 
-  # Enable public IP for dev environment (easier local development)
   enable_public_ip = true
   authorized_networks = [
     {
@@ -312,10 +297,6 @@ module "cloud_sql" {
     }
   ]
 }
-
-# ==============================================================================
-# Redis Module (Cost-Optimized)
-# ==============================================================================
 
 module "redis" {
   source = "../../modules/redis"
@@ -327,18 +308,13 @@ module "redis" {
   network_id   = module.networking.network_id
   private_vpc_connection_id = module.networking.private_vpc_connection_id
 
-  # Minimal configuration for dev
-  tier           = "BASIC"      # No HA (~$25/month)
-  memory_size_gb = 1            # Minimal memory
-  replica_count  = 0            # No replicas
-  auth_enabled   = false        # Simplify local dev
+  tier           = "BASIC"
+  memory_size_gb = 1
+  replica_count  = 0
+  auth_enabled   = false
 
-  persistence_mode = "DISABLED" # No persistence for dev
+  persistence_mode = "DISABLED"
 }
-
-# ==============================================================================
-# Compute Engine Module (Preemptible)
-# ==============================================================================
 
 module "vespa" {
   source = "../../modules/compute-engine"
@@ -352,27 +328,21 @@ module "vespa" {
   network_name  = module.networking.network_name
   subnetwork_id = module.networking.compute_subnet_id
 
-  # Smaller instance + preemptible (80% cheaper!)
-  machine_type = "n2-standard-2" # 2 vCPU, 8GB RAM
-  preemptible  = true            # Can be stopped by Google
+  machine_type = "n2-standard-2"
+  preemptible  = true
 
   boot_disk_size = 30
   data_disk_size = 50
-  data_disk_type = "pd-balanced" # Cheaper than SSD
+  data_disk_type = "pd-balanced"
 
   vespa_version = var.vespa_version
 
   allowed_source_ranges = ["10.0.0.0/24"]
 
-  # Disable snapshots for dev
   enable_snapshot_schedule = false
 
   service_account_email = local.vespa_sa
 }
-
-# ==============================================================================
-# Cloud Run Job - Database Migrations
-# ==============================================================================
 
 module "db_migrate_job" {
   source = "../../modules/cloud-run-job"
@@ -413,10 +383,6 @@ module "db_migrate_job" {
   ]
 }
 
-# ==============================================================================
-# Cloud Run - Server
-# ==============================================================================
-
 module "server" {
   source = "../../modules/cloud-run"
 
@@ -427,11 +393,9 @@ module "server" {
   region       = var.region
   image        = local.server_image
 
-  # Scale to zero when idle
   min_instances = 0
   max_instances = 2
 
-  # Smaller resources
   cpu    = "1"
   memory = "1Gi"
 
@@ -440,11 +404,13 @@ module "server" {
   vpc_subnetwork_id  = module.networking.cloud_run_subnet_id
 
   env_vars = {
-    NODE_ENV        = "development"
-    VESPA_URL       = module.vespa.vespa_query_url
-    BETTER_AUTH_URL = local.server_url
-    CORS_ORIGIN     = local.web_url
-    COOKIE_DOMAIN   = var.cookie_domain != "" ? var.cookie_domain : (var.web_domain != "" ? ".${replace(var.web_domain, "/^[^.]+\\./", "")}" : "")
+    NODE_ENV            = "development"
+    VESPA_URL           = module.vespa.vespa_query_url
+    BETTER_AUTH_URL     = local.server_url
+    CORS_ORIGIN         = local.web_url
+    COOKIE_DOMAIN       = var.cookie_domain != "" ? var.cookie_domain : (var.web_domain != "" ? ".${replace(var.web_domain, "/^[^.]+\\./", "")}" : "")
+    OPENAI_BASE_URL     = var.openai_base_url
+    OPENAI_ORGANIZATION = var.openai_organization
   }
 
   secret_env_vars = {
@@ -476,6 +442,10 @@ module "server" {
       secret_id = google_secret_manager_secret.encryption_key.secret_id
       version   = "latest"
     }
+    OPENAI_API_KEY = {
+      secret_id = google_secret_manager_secret.openai_api_key.secret_id
+      version   = "latest"
+    }
   }
 
   allow_public_access   = true
@@ -490,10 +460,6 @@ module "server" {
   
 }
 
-# ==============================================================================
-# Cloud Run - Worker
-# ==============================================================================
-
 module "worker" {
   source = "../../modules/cloud-run"
 
@@ -503,10 +469,8 @@ module "worker" {
   environment  = local.environment
   region       = var.region
   image        = local.worker_image
-
-  # Scale to zero when idle (testing only)
-  // TODO: Change to 0 when testing is done
-  min_instances = 1
+  // TODO: Change to 1 when starting to test
+  min_instances = 0
   max_instances = 1
 
   cpu            = "2"
@@ -519,15 +483,16 @@ module "worker" {
   vpc_network_id     = module.networking.network_id
   vpc_subnetwork_id  = module.networking.cloud_run_subnet_id
 
-  # Enable startup probe for worker health check
   startup_probe_enabled = true
   startup_probe_path     = "/metrics"
 
   env_vars = {
-    NODE_ENV        = "development"
-    VESPA_URL       = module.vespa.vespa_feed_url
-    BETTER_AUTH_URL = local.server_url
-    CORS_ORIGIN     = local.web_url
+    NODE_ENV             = "development"
+    VESPA_URL            = module.vespa.vespa_feed_url
+    BETTER_AUTH_URL      = local.server_url
+    CORS_ORIGIN          = local.web_url
+    OPENAI_BASE_URL      = var.openai_base_url
+    OPENAI_ORGANIZATION  = var.openai_organization
   }
 
   secret_env_vars = {
@@ -543,21 +508,22 @@ module "worker" {
       secret_id = google_secret_manager_secret.encryption_key.secret_id
       version   = "latest"
     }
+    OPENAI_API_KEY = {
+      secret_id = google_secret_manager_secret.openai_api_key.secret_id
+      version   = "latest"
+    }
   }
 
   allow_public_access   = false
   service_account_email = local.worker_sa
 
   depends_on = [
-    google_secret_manager_secret_iam_member.worker_secrets
+    google_secret_manager_secret_iam_member.worker_secrets,
+    google_secret_manager_secret_iam_member.worker_auth_secrets
   ]
 
   deletion_protection = false
 }
-
-# ==============================================================================
-# Cloud Run - Web
-# ==============================================================================
 
 module "web" {
   source = "../../modules/cloud-run"
