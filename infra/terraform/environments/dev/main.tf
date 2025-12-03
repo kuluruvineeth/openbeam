@@ -236,6 +236,8 @@ resource "google_secret_manager_secret_iam_member" "server_auth_secrets" {
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${local.server_sa}"
   project   = var.project_id
+
+  depends_on = [google_secret_manager_secret.openai_api_key]
 }
 
 resource "google_secret_manager_secret_iam_member" "worker_secrets" {
@@ -257,6 +259,8 @@ resource "google_secret_manager_secret_iam_member" "worker_auth_secrets" {
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${local.worker_sa}"
   project   = var.project_id
+
+  depends_on = [google_secret_manager_secret.openai_api_key]
 }
 
 resource "google_secret_manager_secret_iam_member" "web_secrets" {
