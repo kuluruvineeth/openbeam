@@ -73,18 +73,30 @@ schema openplane_document {
       # Original HTML/rich text for display
     }
     
-    # === Semantic Embeddings ===
-    field content_embedding type tensor<float>(x[768]) {
+    # === Semantic Embeddings (1536 dims for text-embedding-3-small) ===
+    field content_embedding type tensor<float>(x[1536]) {
       indexing: attribute | index
       attribute {
         distance-metric: angular
       }
+      index {
+        hnsw {
+          max-links-per-node: 16
+          neighbors-to-explore-at-insert: 200
+        }
+      }
     }
     
-    field title_embedding type tensor<float>(x[768]) {
+    field title_embedding type tensor<float>(x[1536]) {
       indexing: attribute | index
       attribute {
         distance-metric: angular
+      }
+      index {
+        hnsw {
+          max-links-per-node: 16
+          neighbors-to-explore-at-insert: 200
+        }
       }
       # Separate title embedding for better title matching
     }
@@ -346,6 +358,9 @@ schema openplane_document {
   
   # Semantic vector search
   rank-profile semantic {
+    inputs {
+      query(query_embedding) tensor<float>(x[1536])
+    }
     first-phase {
       expression: closeness(field, content_embedding)
     }
@@ -353,6 +368,9 @@ schema openplane_document {
   
   # Hybrid search (BM25 + vectors)
   rank-profile hybrid {
+    inputs {
+      query(query_embedding) tensor<float>(x[1536])
+    }
     first-phase {
       expression {
         0.6 * normalize(bm25(title) * 2 + bm25(content)) + 
@@ -366,6 +384,10 @@ schema openplane_document {
   
   # Advanced hybrid with title embedding
   rank-profile hybrid_advanced {
+    inputs {
+      query(query_embedding) tensor<float>(x[1536])
+      query(title_embedding) tensor<float>(x[1536])
+    }
     first-phase {
       expression {
         0.4 * normalize(bm25(title) * 2 + bm25(content)) +
@@ -394,6 +416,9 @@ schema openplane_document {
   
   # Hybrid + Recency
   rank-profile hybrid_recency {
+    inputs {
+      query(query_embedding) tensor<float>(x[1536])
+    }
     first-phase {
       expression {
         (0.6 * normalize(bm25(title) * 2 + bm25(content)) + 
@@ -422,6 +447,9 @@ schema openplane_document {
   
   # Enterprise search (combines everything)
   rank-profile enterprise {
+    inputs {
+      query(query_embedding) tensor<float>(x[1536])
+    }
     first-phase {
       expression {
         # Base relevance

@@ -134,9 +134,48 @@ export class VespaClient {
     return (await response.json()) as FeedResponse;
   }
 
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: this is a complex query
   async query<T = GenericDocument>(
     params: QueryParams
   ): Promise<SearchResult<T>> {
+    const hasVectorFeatures = !!params.query_embedding;
+
+    if (hasVectorFeatures) {
+      const body: Record<string, unknown> = {
+        yql: params.yql,
+        hits: params.hits || 20,
+        offset: params.offset || 0,
+      };
+
+      if (params.ranking) {
+        body.ranking = params.ranking;
+      }
+      if (params.timeout) {
+        body.timeout = params.timeout;
+      }
+
+      if (params.query_embedding) {
+        body["input.query(query_embedding)"] = params.query_embedding;
+      }
+
+      const response = await fetch(this.searchApiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        const error = (await response.json()) as VespaError;
+        throw new Error(
+          `Vespa query error: ${error.message || response.statusText}`
+        );
+      }
+
+      return (await response.json()) as SearchResult<T>;
+    }
+
     const queryParams = new URLSearchParams();
     queryParams.set("yql", params.yql);
 

@@ -1,10 +1,12 @@
+import type { VectorTensor } from "./schemas";
+
 export function escapeYqlString(query: string): string {
   return query.replace(/["\\]/g, "\\$&");
 }
 
-export function buildVectorQueryFeatures(
-  embedding: number[]
-): Record<string, unknown> {
+export function buildVectorQueryFeatures(embedding: number[]): {
+  query_embedding: VectorTensor;
+} {
   if (embedding.length === 0) {
     throw new Error("Embedding is required for similarity search");
   }
