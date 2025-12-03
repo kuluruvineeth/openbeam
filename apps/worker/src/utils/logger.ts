@@ -14,16 +14,12 @@ export const logger = pino({
         },
       }
     : undefined,
-  // Base context for all logs
   base: {
     service: "openplane-worker",
     env: process.env.NODE_ENV || "development",
   },
 });
 
-/**
- * Create a child logger with job context
- */
 export function createJobLogger(context: {
   jobId?: string;
   connectorId?: string;
@@ -33,9 +29,6 @@ export function createJobLogger(context: {
   return logger.child(context);
 }
 
-/**
- * Log with duration tracking
- */
 export function logWithDuration(
   level: "info" | "error" | "warn" | "debug",
   message: string,
@@ -46,9 +39,6 @@ export function logWithDuration(
   logger[level]({ ...context, duration }, message);
 }
 
-/**
- * Log error with full stack trace
- */
 export function logError(
   message: string,
   error: Error | unknown,

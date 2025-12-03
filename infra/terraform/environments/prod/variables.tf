@@ -1,6 +1,3 @@
-# ==============================================================================
-# Production Environment Variables
-# ==============================================================================
 
 variable "project_id" {
   description = "GCP project ID for production"
@@ -19,10 +16,6 @@ variable "zone" {
   default     = "us-central1-a"
 }
 
-# ==============================================================================
-# Container Images
-# ==============================================================================
-
 variable "github_org" {
   description = "GitHub organization/user for container images"
   type        = string
@@ -35,9 +28,6 @@ variable "image_tag" {
   default     = "latest"
 }
 
-# ==============================================================================
-# Networking Configuration
-# ==============================================================================
 
 variable "cloud_run_subnet_cidr" {
   description = "CIDR range for Cloud Run subnet"
@@ -62,10 +52,6 @@ variable "services_subnet_cidr" {
   type        = string
   default     = "10.2.0.0/16"
 }
-
-# ==============================================================================
-# Cloud SQL Configuration
-# ==============================================================================
 
 variable "cloud_sql_tier" {
   description = "Cloud SQL machine type"
@@ -103,10 +89,6 @@ variable "database_user" {
   default     = "openplane"
 }
 
-# ==============================================================================
-# Redis Configuration
-# ==============================================================================
-
 variable "redis_tier" {
   description = "Redis service tier"
   type        = string
@@ -129,10 +111,6 @@ variable "redis_replica_count" {
   default     = 1
 }
 
-# ==============================================================================
-# Vespa Configuration
-# ==============================================================================
-
 variable "vespa_machine_type" {
   description = "Vespa Compute Engine machine type"
   type        = string
@@ -150,10 +128,6 @@ variable "vespa_version" {
   type        = string
   default     = "8.613.57"
 }
-
-# ==============================================================================
-# Cloud Run Scaling Configuration
-# ==============================================================================
 
 variable "server_min_instances" {
   description = "Minimum server instances (always-on for API)"
@@ -191,9 +165,6 @@ variable "web_max_instances" {
   default     = 10
 }
 
-# ==============================================================================
-# Auth & Secrets
-# ==============================================================================
 
 variable "better_auth_secret" {
   description = "Better Auth secret key"
@@ -224,9 +195,6 @@ variable "encryption_key" {
   sensitive   = true
 }
 
-# ==============================================================================
-# Custom Domains
-# ==============================================================================
 
 variable "server_domain" {
   description = "Custom domain for server (e.g., api.openplane.tech)"
@@ -248,6 +216,24 @@ variable "cookie_domain" {
 
 variable "redeploy_id" {
   description = "ID to trigger redeployment"
+  type        = string
+  default     = ""
+}
+
+variable "openai_api_key" {
+  description = "OpenAI API key for embeddings"
+  type        = string
+  sensitive   = true
+}
+
+variable "openai_base_url" {
+  description = "OpenAI API base URL"
+  type        = string
+  default     = "https://api.openai.com/v1"
+}
+
+variable "openai_organization" {
+  description = "OpenAI organization ID"
   type        = string
   default     = ""
 }

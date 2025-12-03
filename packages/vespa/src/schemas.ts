@@ -76,12 +76,19 @@ export interface Entity {
   is_active: boolean;
 }
 
+export interface VectorTensor {
+  type: string;
+  values: number[];
+}
+
 export interface QueryParams {
   yql: string;
   ranking?: "bm25" | "semantic" | "hybrid" | "recency" | "engagement";
   hits?: number;
   offset?: number;
   timeout?: string;
+  // Vector search features
+  query_embedding?: VectorTensor;
 }
 
 export interface SearchResult<T = GenericDocument> {

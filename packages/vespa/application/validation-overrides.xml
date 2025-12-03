@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <validation-overrides>
-    <!-- Allow indexing changes for author_name and source_name fields -->
-    <!-- These fields are being enhanced with index aspect for better search -->
     <allow until="2025-12-25">indexing-change</allow>
+    <allow until="2025-12-25">field-type-change</allow>
 </validation-overrides>

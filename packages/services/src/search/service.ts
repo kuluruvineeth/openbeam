@@ -1,4 +1,10 @@
-import { type GenericDocument, vespaClient } from "@openplane/vespa";
+import { embedQuery, getConfig as getAIConfig } from "@openplane/ai";
+import {
+  buildVectorQueryFeatures,
+  type GenericDocument,
+  vespaClient,
+} from "@openplane/vespa";
+import { getOrGenerateEmbedding } from "../ai/embedding-cache";
 import type {
   AuthorSearchParams,
   AutocompleteParams,
@@ -17,16 +23,32 @@ function escapeYqlString(value: string): string {
 export class SearchService {
   async search(params: SearchParams): Promise<SearchResult> {
     const startTime = Date.now();
+    let embeddingTime: number | undefined;
 
     try {
-      const yql = this.buildSearchYQL(params);
+      const ranking = params.ranking || "hybrid";
+      const useSemanticSearch = ranking === "hybrid" || ranking === "semantic";
+
+      let vectorFeatures: Record<string, unknown> = {};
+      if (useSemanticSearch && params.query) {
+        const embeddingStart = Date.now();
+        const queryEmbedding = await this.getQueryEmbedding(params.query);
+        embeddingTime = Date.now() - embeddingStart;
+
+        if (queryEmbedding) {
+          vectorFeatures = buildVectorQueryFeatures(queryEmbedding);
+        }
+      }
+
+      const yql = this.buildSearchYQL(params, useSemanticSearch);
 
       const vespaResult = await vespaClient.query({
         yql,
-        ranking: params.ranking || "hybrid",
+        ranking,
         hits: params.limit || 20,
         offset: params.offset || 0,
         timeout: "5s",
+        ...vectorFeatures,
       });
 
       const documents = this.extractDocuments(vespaResult);
@@ -44,12 +66,30 @@ export class SearchService {
         offset: params.offset || 0,
         hasMore: (params.offset || 0) + documents.length < total,
         queryTime,
+        embeddingTime,
       };
     } catch (error) {
       console.error("Search error:", error);
       throw new Error(
         `Search failed: ${error instanceof Error ? error.message : "Unknown error"}`
       );
+    }
+  }
+
+  private async getQueryEmbedding(query: string): Promise<number[] | null> {
+    try {
+      const aiConfig = getAIConfig();
+      const modelId = aiConfig.defaultEmbeddingModel;
+
+      return await getOrGenerateEmbedding(query, modelId, () =>
+        embedQuery(query)
+      );
+    } catch (error) {
+      console.warn(
+        "Failed to generate query embedding, using BM25 only:",
+        error
+      );
+      return null;
     }
   }
 
@@ -87,14 +127,17 @@ export class SearchService {
       throw new Error("Document not accessible");
     }
 
-    const yql = `select * from openplane_document where {targetHits:${limit}}nearestNeighbor(content_embedding, query_embedding) and team_id contains "${escapeYqlString(
+    const yql = `select * from openplane_document where ({targetHits:${limit * 2}}nearestNeighbor(content_embedding, query_embedding)) and team_id contains "${escapeYqlString(
       teamId
-    )}" and ${this.buildAccessControlClause(accessControlIds)}`;
+    )}" and ${this.buildAccessControlClause(accessControlIds)} and id != "${escapeYqlString(documentId)}"`;
+
+    const vectorFeatures = buildVectorQueryFeatures(doc.content_embedding);
 
     const result = await vespaClient.query({
       yql,
       ranking: "semantic",
       hits: limit,
+      ...vectorFeatures,
     });
 
     return this.extractDocuments(result);
@@ -172,8 +215,12 @@ export class SearchService {
     }));
   }
 
-  private buildSearchYQL(params: SearchParams): string {
+  private buildSearchYQL(
+    params: SearchParams,
+    includeVectorSearch = false
+  ): string {
     const conditions: string[] = [];
+    const limit = params.limit || 20;
 
     const pushContains = (field: string, value?: string) => {
       if (!value) {
@@ -204,7 +251,11 @@ export class SearchService {
 
     pushContains("team_id", params.teamId);
 
-    if (params.query) {
+    if (includeVectorSearch && params.query) {
+      const vectorClause = `({targetHits:${limit * 2}}nearestNeighbor(content_embedding, query_embedding))`;
+      const textClause = `default contains "${escapeYqlString(params.query)}"`;
+      conditions.push(`(${vectorClause} or (${textClause}))`);
+    } else if (params.query) {
       conditions.push(`(default contains "${escapeYqlString(params.query)}")`);
     }
 
@@ -235,7 +286,6 @@ export class SearchService {
     conditions.push(this.buildAccessControlClause(params.accessControlIds));
 
     const whereClause = conditions.join(" and ");
-    const limit = params.limit || 20;
     const offset = params.offset || 0;
 
     return `select * from openplane_document where ${whereClause} limit ${limit} offset ${offset}`;

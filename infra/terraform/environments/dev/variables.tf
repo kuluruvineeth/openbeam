@@ -1,6 +1,3 @@
-# ==============================================================================
-# Development Environment Variables
-# ==============================================================================
 
 variable "project_id" {
   description = "GCP project ID for development"
@@ -31,10 +28,6 @@ variable "image_tag" {
   default     = "latest"
 }
 
-# ==============================================================================
-# Auth & OAuth Secrets
-# ==============================================================================
-
 variable "better_auth_secret" {
   description = "Better Auth secret key"
   type        = string
@@ -64,7 +57,6 @@ variable "encryption_key" {
   sensitive   = true
 }
 
-# This is used to redeploy the services
 variable "redeploy_id" {
   type = string
 }
@@ -74,10 +66,6 @@ variable "vespa_version" {
   type        = string
   default     = "8.613.57"
 }
-
-# ==============================================================================
-# Custom Domain URLs
-# ==============================================================================
 
 variable "server_domain" {
   description = "Custom domain for server (e.g., api.openplane.tech)"
@@ -93,6 +81,23 @@ variable "web_domain" {
 
 variable "cookie_domain" {
   description = "Cookie domain for auth (e.g., .openplane.tech for all subdomains)"
+  type        = string
+  default     = ""
+}
+variable "openai_api_key" {
+  description = "OpenAI API key for embeddings"
+  type        = string
+  sensitive   = true
+}
+
+variable "openai_base_url" {
+  description = "OpenAI API base URL"
+  type        = string
+  default     = "https://api.openai.com/v1"
+}
+
+variable "openai_organization" {
+  description = "OpenAI organization ID"
   type        = string
   default     = ""
 }

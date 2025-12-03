@@ -1,0 +1,52 @@
+{
+  "name": "@openplane/ai",
+  "version": "0.1.0",
+  "description": "Pure AI package for OpenPlane - model-agnostic providers, embeddings, completions, and agents",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./src/index.ts"
+    },
+    "./providers": {
+      "types": "./dist/providers/index.d.ts",
+      "default": "./src/providers/index.ts"
+    },
+    "./embeddings": {
+      "types": "./dist/embeddings/index.d.ts",
+      "default": "./src/embeddings/index.ts"
+    },
+    "./completion": {
+      "types": "./dist/completion/index.d.ts",
+      "default": "./src/completion/index.ts"
+    },
+    "./agents": {
+      "types": "./dist/agents/index.d.ts",
+      "default": "./src/agents/index.ts"
+    },
+    "./tools": {
+      "types": "./dist/tools/index.d.ts",
+      "default": "./src/tools/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^2.0.53",
+    "@ai-sdk/azure": "^2.0.78",
+    "@ai-sdk/google": "^2.0.44",
+    "@ai-sdk/openai": "^2.0.76",
+    "ai": "^5.0.106",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@openplane/config": "workspace:*",
+    "tsdown": "^0.15.12",
+    "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}

@@ -1,45 +1,22 @@
-# ==============================================================================
-# Development Environment - Example Configuration
-# ==============================================================================
-
-# GCP Project Configuration
 project_id = "openplane-dev"
 region     = "us-central1"
 zone       = "us-central1-a"
-
-# ==============================================================================
-# Auth & OAuth Secrets
-# ==============================================================================
-# IMPORTANT: Replace these with your actual values
 
 better_auth_secret   = "your-better-auth-secret"
 jwt_secret           = "your-jwt-secret"
 google_client_id     = "your-google-client-id"
 google_client_secret = "your-google-client-secret"
 
-# ==============================================================================
-# Encryption Key (Required for credential storage)
-# ==============================================================================
-# 32-byte key for AES-256-GCM encryption of OAuth tokens and credentials
-# MUST be exactly 64 hex characters (32 bytes)
-#
-# Generate with: openssl rand -hex 32
-#
-# Example output: a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456
 encryption_key = ""
 
-
-# Container Images
 github_org = "kuluruvineeth"
 image_tag  = "latest"
 
-# ==============================================================================
-# Custom Domains (Optional)
-# ==============================================================================
-# If you have custom domains mapped to your Cloud Run services, set them here
-# Otherwise, leave them empty to use the Cloud Run URLs
+server_domain = "api.openplane.tech"
+web_domain    = "dev.openplane.tech"
+cookie_domain = ".openplane.tech"
 
-server_domain = "api.openplane.tech"  # Custom domain for server (optional)
-web_domain    = "dev.openplane.tech"  # Custom domain for web (optional)
-cookie_domain = ".openplane.tech"     # Cookie domain (e.g., .domain.com for all subdomains)
+openai_api_key      = "sk-proj-your-openai-api-key"
+openai_base_url     = "https://api.openai.com/v1"
+openai_organization = "org-your-organization-id"
 

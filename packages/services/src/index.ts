@@ -1,3 +1,5 @@
+export * from "./ai";
+
 export { GmailAuth, GmailServiceAccountAuth } from "./gmail";
 export {
   GoogleDriveAuth,

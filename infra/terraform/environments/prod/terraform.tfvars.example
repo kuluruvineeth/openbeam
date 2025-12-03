@@ -1,45 +1,40 @@
-# ==============================================================================
-# Production Environment - Example Configuration
-# ==============================================================================
-# Copy this file to terraform.tfvars and customize for your environment
-# ==============================================================================
-
-# GCP Project Configuration
 project_id = "openplane-prod"
 region     = "us-central1"
 zone       = "us-central1-a"
 
-# Container Images
 github_org = "kuluruvineeth"
-image_tag  = "latest" # Use commit SHA in production (e.g., "abc123def")
+image_tag  = "latest"
 
-# Networking (defaults are fine for most cases)
-# cloud_run_subnet_cidr = "10.0.0.0/24"
-# compute_subnet_cidr   = "10.0.1.0/24"
-
-# Cloud SQL (Production Configuration)
-cloud_sql_tier               = "db-custom-2-8192" # 2 vCPU, 8GB RAM (~$120/month)
+cloud_sql_tier               = "db-custom-2-8192"
 cloud_sql_high_availability  = true
 cloud_sql_disk_size          = 100
 cloud_sql_disk_autoresize_limit = 500
 
-# Redis (Production Configuration)
-redis_tier           = "STANDARD_HA" # High availability (~$200/month)
+redis_tier           = "STANDARD_HA"
 redis_memory_size_gb = 5
 redis_replica_count  = 1
 
-# Vespa (Production Configuration)
-vespa_machine_type    = "n2-standard-4" # 4 vCPU, 16GB RAM (~$120/month)
+vespa_machine_type    = "n2-standard-4"
 vespa_data_disk_size  = 200
 vespa_version         = "8.613.57"
 
-# Cloud Run Scaling (Production Configuration)
-server_min_instances = 1  # Always-on for API
+server_min_instances = 1
 server_max_instances = 10
 
-worker_min_instances = 1  # Always-on for queues
+worker_min_instances = 1
 worker_max_instances = 5
 
-web_min_instances = 0  # Scale to zero when idle
+web_min_instances = 0
 web_max_instances = 10
+
+better_auth_secret   = "your-better-auth-secret"
+jwt_secret           = "your-jwt-secret"
+google_client_id     = "your-google-client-id"
+google_client_secret = "your-google-client-secret"
+
+encryption_key = ""
+
+openai_api_key      = "sk-proj-your-openai-api-key"
+openai_base_url     = "https://api.openai.com/v1"
+openai_organization = "org-your-organization-id"
 

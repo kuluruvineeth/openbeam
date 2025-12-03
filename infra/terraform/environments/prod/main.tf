@@ -1,9 +1,3 @@
-# ==============================================================================
-# OpenPlane Production Environment
-# ==============================================================================
-# This is the root Terraform configuration for the production environment.
-# It orchestrates all infrastructure modules to deploy a complete OpenPlane stack.
-# ==============================================================================
 
 terraform {
   required_version = ">= 1.9"
@@ -19,16 +13,11 @@ terraform {
     }
   }
 
-  # Backend configuration for Terraform state
   backend "gcs" {
     bucket = "openplane-prod-terraform-state"
     prefix = "terraform/state/prod"
   }
 }
-
-# ==============================================================================
-# Provider Configuration
-# ==============================================================================
 
 provider "google" {
   project = var.project_id
@@ -41,31 +30,21 @@ provider "google" {
   }
 }
 
-# ==============================================================================
-# Local Variables
-# ==============================================================================
-
 locals {
   environment  = "prod"
   project_name = "openplane"
   
-  # Service account emails (computed after creation)
   server_sa = google_service_account.server.email
   worker_sa = google_service_account.worker.email
   web_sa    = google_service_account.web.email
   docs_sa   = google_service_account.docs.email
   vespa_sa  = google_service_account.vespa.email
 
-  # Container images from GHCR
   server_image = "ghcr.io/${var.github_org}/openplane-server:${var.image_tag}"
   worker_image = "ghcr.io/${var.github_org}/openplane-worker:${var.image_tag}"
   web_image    = "ghcr.io/${var.github_org}/openplane-web:${var.image_tag}"
   docs_image   = "ghcr.io/${var.github_org}/openplane-fumadocs:${var.image_tag}"
 }
-
-# ==============================================================================
-# Networking Module
-# ==============================================================================
 
 module "networking" {
   source = "../../modules/networking"
@@ -80,11 +59,6 @@ module "networking" {
   enable_metrics_scraping = true
 }
 
-# ==============================================================================
-# IAM - Service Accounts
-# ==============================================================================
-
-# Server Service Account
 resource "google_service_account" "server" {
   account_id   = "${local.project_name}-server-${local.environment}"
   display_name = "OpenPlane Server (${local.environment})"
@@ -92,7 +66,6 @@ resource "google_service_account" "server" {
   project      = var.project_id
 }
 
-# Worker Service Account
 resource "google_service_account" "worker" {
   account_id   = "${local.project_name}-worker-${local.environment}"
   display_name = "OpenPlane Worker (${local.environment})"
@@ -100,7 +73,6 @@ resource "google_service_account" "worker" {
   project      = var.project_id
 }
 
-# Web Service Account
 resource "google_service_account" "web" {
   account_id   = "${local.project_name}-web-${local.environment}"
   display_name = "OpenPlane Web (${local.environment})"
@@ -108,7 +80,6 @@ resource "google_service_account" "web" {
   project      = var.project_id
 }
 
-# Docs Service Account
 resource "google_service_account" "docs" {
   account_id   = "${local.project_name}-docs-${local.environment}"
   display_name = "OpenPlane Docs (${local.environment})"
@@ -116,7 +87,6 @@ resource "google_service_account" "docs" {
   project      = var.project_id
 }
 
-# Vespa Service Account
 resource "google_service_account" "vespa" {
   account_id   = "${local.project_name}-vespa-${local.environment}"
   display_name = "OpenPlane Vespa (${local.environment})"
@@ -124,11 +94,6 @@ resource "google_service_account" "vespa" {
   project      = var.project_id
 }
 
-# ==============================================================================
-# IAM - Secret Manager Access
-# ==============================================================================
-
-# Grant service accounts access to Secret Manager secrets
 resource "google_secret_manager_secret_iam_member" "server_secrets" {
   for_each  = toset(["db-password", "db-connection-string", "redis-url"])
   secret_id = "${local.project_name}-${each.value}-${local.environment}"
@@ -155,9 +120,38 @@ resource "google_secret_manager_secret_iam_member" "worker_secrets" {
   ]
 }
 
-# ==============================================================================
-# Cloud SQL Module
-# ==============================================================================
+resource "google_secret_manager_secret" "openai_api_key" {
+  secret_id = "${local.project_name}-openai-api-key-${local.environment}"
+  project   = var.project_id
+
+  replication {
+    auto {}
+  }
+
+  labels = {
+    environment = local.environment
+    service     = "ai"
+  }
+}
+
+resource "google_secret_manager_secret_version" "openai_api_key" {
+  secret      = google_secret_manager_secret.openai_api_key.id
+  secret_data = var.openai_api_key
+}
+
+resource "google_secret_manager_secret_iam_member" "worker_openai_secret" {
+  secret_id = google_secret_manager_secret.openai_api_key.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${local.worker_sa}"
+  project   = var.project_id
+}
+
+resource "google_secret_manager_secret_iam_member" "server_openai_secret" {
+  secret_id = google_secret_manager_secret.openai_api_key.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${local.server_sa}"
+  project   = var.project_id
+}
 
 module "cloud_sql" {
   source = "../../modules/cloud-sql"
@@ -169,25 +163,18 @@ module "cloud_sql" {
   network_id                = module.networking.network_id
   private_vpc_connection_id = module.networking.private_vpc_connection_id
 
-  # Instance configuration
   tier                  = var.cloud_sql_tier
   high_availability     = var.cloud_sql_high_availability
   disk_size             = var.cloud_sql_disk_size
   disk_autoresize_limit = var.cloud_sql_disk_autoresize_limit
 
-  # Database configuration
   database_name = var.database_name
   database_user = var.database_user
 
-  # Backup configuration
   backup_start_time      = "03:00"
   point_in_time_recovery = true
   backup_retention_count = 7
 }
-
-# ==============================================================================
-# Redis Module
-# ==============================================================================
 
 module "redis" {
   source = "../../modules/redis"
@@ -198,20 +185,14 @@ module "redis" {
   region       = var.region
   network_id   = module.networking.network_id
 
-  # Instance configuration
   tier           = var.redis_tier
   memory_size_gb = var.redis_memory_size_gb
   replica_count  = var.redis_replica_count
   auth_enabled   = true
 
-  # Persistence configuration
   persistence_mode    = "RDB"
   rdb_snapshot_period = "TWELVE_HOURS"
 }
-
-# ==============================================================================
-# Compute Engine Module (Vespa)
-# ==============================================================================
 
 module "vespa" {
   source = "../../modules/compute-engine"
@@ -225,32 +206,23 @@ module "vespa" {
   network_name  = module.networking.network_name
   subnetwork_id = module.networking.compute_subnet_id
 
-  # Instance configuration
   machine_type = var.vespa_machine_type
   preemptible  = false
 
-  # Storage configuration
   boot_disk_size = 50
   data_disk_size = var.vespa_data_disk_size
   data_disk_type = "pd-ssd"
 
-  # Vespa configuration
   vespa_version = var.vespa_version
 
-  # Firewall - allow Cloud Run services
   allowed_source_ranges = [var.cloud_run_subnet_cidr]
 
-  # Snapshots
   enable_snapshot_schedule = true
   snapshot_start_time      = "02:00"
   snapshot_retention_days  = 7
 
   service_account_email = local.vespa_sa
 }
-
-# ==============================================================================
-# Cloud Run - Server
-# ==============================================================================
 
 module "server" {
   source = "../../modules/cloud-run"
@@ -262,26 +234,24 @@ module "server" {
   region       = var.region
   image        = local.server_image
 
-  # Scaling
   min_instances = var.server_min_instances
   max_instances = var.server_max_instances
 
-  # Resources
   cpu    = "2"
   memory = "2Gi"
   timeout = "300s"
 
-  # VPC Access
   vpc_egress_enabled = true
   vpc_network_id     = module.networking.network_id
   vpc_subnetwork_id  = module.networking.cloud_run_subnet_id
   vpc_egress_mode    = "PRIVATE_RANGES_ONLY"
 
-  # Environment Variables
   env_vars = {
-    NODE_ENV     = "production"
-    PORT         = "3000"
-    VESPA_URL    = module.vespa.vespa_query_url
+    NODE_ENV            = "production"
+    PORT                = "3000"
+    VESPA_URL           = module.vespa.vespa_query_url
+    OPENAI_BASE_URL     = var.openai_base_url
+    OPENAI_ORGANIZATION = var.openai_organization
   }
 
   secret_env_vars = {
@@ -293,22 +263,25 @@ module "server" {
       secret_id = module.redis.redis_url_secret_id
       version   = "latest"
     }
+    OPENAI_API_KEY = {
+      secret_id = google_secret_manager_secret.openai_api_key.secret_id
+      version   = "latest"
+    }
   }
 
-  # IAM
   allow_public_access    = true
   service_account_email  = local.server_sa
 
-  # Health Checks
+  depends_on = [
+    google_secret_manager_secret_iam_member.server_secrets,
+    google_secret_manager_secret_iam_member.server_openai_secret
+  ]
+
   startup_probe_enabled  = true
   startup_probe_path     = "/"
   liveness_probe_enabled = true
   liveness_probe_path    = "/"
 }
-
-# ==============================================================================
-# Cloud Run - Worker
-# ==============================================================================
 
 module "worker" {
   source = "../../modules/cloud-run"
@@ -320,26 +293,24 @@ module "worker" {
   region       = var.region
   image        = local.worker_image
 
-  # Scaling - always run at least 1 instance
   min_instances = var.worker_min_instances
   max_instances = var.worker_max_instances
 
-  # Resources - CPU-intensive
   cpu        = "4"
   memory     = "4Gi"
-  cpu_idle   = false  # Always allocate CPU
-  timeout    = "3600s" # 1 hour for long jobs
+  cpu_idle   = false
+  timeout    = "3600s"
 
-  # VPC Access
   vpc_egress_enabled = true
   vpc_network_id     = module.networking.network_id
   vpc_subnetwork_id  = module.networking.cloud_run_subnet_id
   vpc_egress_mode    = "PRIVATE_RANGES_ONLY"
 
-  # Environment Variables
   env_vars = {
-    NODE_ENV  = "production"
-    VESPA_URL = module.vespa.vespa_feed_url
+    NODE_ENV            = "production"
+    VESPA_URL           = module.vespa.vespa_feed_url
+    OPENAI_BASE_URL     = var.openai_base_url
+    OPENAI_ORGANIZATION = var.openai_organization
   }
 
   secret_env_vars = {
@@ -351,21 +322,24 @@ module "worker" {
       secret_id = module.redis.redis_url_secret_id
       version   = "latest"
     }
+    OPENAI_API_KEY = {
+      secret_id = google_secret_manager_secret.openai_api_key.secret_id
+      version   = "latest"
+    }
   }
 
-  # IAM - private service
   allow_public_access   = false
   service_account_email = local.worker_sa
 
-  # Health Checks
+  depends_on = [
+    google_secret_manager_secret_iam_member.worker_secrets,
+    google_secret_manager_secret_iam_member.worker_openai_secret
+  ]
+
   liveness_probe_enabled = true
   liveness_probe_path    = "/metrics"
   container_port         = 9091
 }
-
-# ==============================================================================
-# Cloud Run - Web
-# ==============================================================================
 
 module "web" {
   source = "../../modules/cloud-run"
@@ -377,27 +351,19 @@ module "web" {
   region       = var.region
   image        = local.web_image
 
-  # Scaling - scale to zero when idle
   min_instances = var.web_min_instances
   max_instances = var.web_max_instances
 
-  # Resources
   cpu    = "1"
   memory = "1Gi"
 
-  # Environment Variables
   env_vars = {
     NEXT_PUBLIC_API_URL = module.server.service_url
   }
 
-  # IAM
   allow_public_access   = true
   service_account_email = local.web_sa
 }
-
-# ==============================================================================
-# Cloud Run - Docs
-# ==============================================================================
 
 module "docs" {
   source = "../../modules/cloud-run"
@@ -409,15 +375,12 @@ module "docs" {
   region       = var.region
   image        = local.docs_image
 
-  # Scaling - scale to zero when idle
   min_instances = 0
   max_instances = 3
 
-  # Resources
   cpu    = "1"
   memory = "512Mi"
 
-  # IAM
   allow_public_access   = true
   service_account_email = local.docs_sa
 }

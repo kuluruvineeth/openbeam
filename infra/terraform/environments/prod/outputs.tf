@@ -1,8 +1,4 @@
-# ==============================================================================
-# Production Environment Outputs
-# ==============================================================================
 
-# Networking
 output "vpc_network_id" {
   description = "VPC network ID"
   value       = module.networking.network_id
@@ -13,7 +9,6 @@ output "vpc_network_name" {
   value       = module.networking.network_name
 }
 
-# Cloud SQL
 output "database_instance_name" {
   description = "Cloud SQL instance name"
   value       = module.cloud_sql.instance_name
@@ -29,7 +24,6 @@ output "database_connection_name" {
   value       = module.cloud_sql.instance_connection_name
 }
 
-# Redis
 output "redis_host" {
   description = "Redis host IP address"
   value       = module.redis.host
@@ -40,7 +34,6 @@ output "redis_port" {
   value       = module.redis.port
 }
 
-# Vespa
 output "vespa_private_ip" {
   description = "Vespa private IP address"
   value       = module.vespa.private_ip
@@ -56,7 +49,6 @@ output "vespa_ssh_command" {
   value       = module.vespa.ssh_command
 }
 
-# Cloud Run Services
 output "server_url" {
   description = "Server service URL"
   value       = module.server.service_url
@@ -77,7 +69,6 @@ output "docs_url" {
   value       = module.docs.service_url
 }
 
-# Service Accounts
 output "server_service_account" {
   description = "Server service account email"
   value       = google_service_account.server.email
@@ -103,53 +94,24 @@ output "vespa_service_account" {
   value       = google_service_account.vespa.email
 }
 
-# ==============================================================================
-# Deployment Information
-# ==============================================================================
-
 output "deployment_summary" {
   description = "Deployment summary with URLs and commands"
   value = <<-EOT
   
-  ========================================
-  OpenPlane Production Deployment Summary
-  ========================================
+  Service URLs:
+   1. API Server:  ${module.server.service_url}
+   2. Web App:     ${module.web.service_url}
+   3. Docs:        ${module.docs.service_url}
   
-  🌐 Service URLs:
-  ├─ API Server:  ${module.server.service_url}
-  ├─ Web App:     ${module.web.service_url}
-  └─ Docs:        ${module.docs.service_url}
+  Internal Services:
+   1. Worker:      ${module.worker.service_url}
+   2. Database:    ${module.cloud_sql.private_ip_address}:5432
+   3. Redis:       ${module.redis.host}:${module.redis.port}
+   4. Vespa:       ${module.vespa.private_ip}:8080
   
-  🔍 Internal Services:
-  ├─ Worker:      ${module.worker.service_url}
-  ├─ Database:    ${module.cloud_sql.private_ip_address}:5432
-  ├─ Redis:       ${module.redis.host}:${module.redis.port}
-  └─ Vespa:       ${module.vespa.private_ip}:8080
-  
-  🔐 SSH Access (Vespa):
+  SSH Access (Vespa):
   ${module.vespa.ssh_command}
   
-  📊 Next Steps:
-  1. Update DNS:
-     • api.openplane.tech  → ${module.server.service_url}
-     • app.openplane.tech  → ${module.web.service_url}
-     • docs.openplane.tech → ${module.docs.service_url}
-  
-  2. Deploy Vespa Application:
-     cd packages/vespa
-     ./deploy.sh ${module.vespa.private_ip}
-  
-  3. Run Database Migrations:
-     gcloud run services update ${module.server.service_name} \
-       --region=${var.region} \
-       --command="bun run db:migrate"
-  
-  4. Verify Health:
-     • Server: curl ${module.server.service_url}/
-     • Vespa:  ${module.vespa.ssh_command}
-               curl http://localhost:8080/state/v1/health
-  
-  ========================================
   EOT
 }
 

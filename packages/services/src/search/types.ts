@@ -34,6 +34,7 @@ export interface SearchResult {
   offset: number;
   hasMore: boolean;
   queryTime: number;
+  embeddingTime?: number;
 }
 
 export interface AutocompleteSuggestion {

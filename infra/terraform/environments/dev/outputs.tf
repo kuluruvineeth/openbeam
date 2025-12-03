@@ -1,6 +1,3 @@
-# ==============================================================================
-# Development Environment Outputs
-# ==============================================================================
 
 output "server_url" {
   description = "Server service URL"
@@ -46,32 +43,18 @@ output "deployment_summary" {
   description = "Deployment summary with URLs"
   value = <<-EOT
   
-  ========================================
-  OpenPlane Development Environment
-  ========================================
+  Service URLs:
+   1. Server: ${module.server.service_url}
+   2. Web:    ${module.web.service_url}
   
-  🌐 Service URLs:
-  ├─ Server: ${module.server.service_url}
-  └─ Web:    ${module.web.service_url}
+  Internal Services:
+   1. Worker:   ${module.worker.service_url}
+   2. Database: ${module.cloud_sql.private_ip_address}:5432 (private)
+   3. Redis:    ${module.redis.host}:${module.redis.port}
+   4. Vespa:    ${module.vespa.private_ip}:8080
   
-  🔍 Internal Services:
-  ├─ Worker:   ${module.worker.service_url}
-  ├─ Database: ${module.cloud_sql.private_ip_address}:5432 (private)
-  │            ${module.cloud_sql.public_ip_address}:5432 (public - dev only)
-  ├─ Redis:    ${module.redis.host}:${module.redis.port}
-  └─ Vespa:    ${module.vespa.private_ip}:8080
-  
-  📦 Artifact Registry:
-  └─ URL:      ${module.artifact_registry.repository_url}
-  
-  💡 Cost-Optimized Configuration:
-  • Cloud SQL: 1 vCPU, no HA (~$50/month)
-  • Redis: BASIC tier (~$25/month)
-  • Vespa: Preemptible (~$12/month)
-  • Cloud Run: Scale to zero
-  
-  💵 Estimated Monthly Cost: ~$100
-  
-  ========================================
+  Artifact Registry:
+   1. URL:      ${module.artifact_registry.repository_url}
+
   EOT
 }

@@ -30,6 +30,10 @@ env:
   TF_VAR_server_domain: ${{ secrets.SERVER_DOMAIN }}
   TF_VAR_web_domain: ${{ secrets.WEB_DOMAIN }}
   TF_VAR_cookie_domain: ${{ secrets.COOKIE_DOMAIN }}
+  # OpenAI Configuration for AI embeddings
+  TF_VAR_openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+  TF_VAR_openai_base_url: ${{ vars.OPENAI_BASE_URL || 'https://api.openai.com/v1' }}
+  TF_VAR_openai_organization: ${{ vars.OPENAI_ORGANIZATION || '' }}
 
 jobs:
   terraform:

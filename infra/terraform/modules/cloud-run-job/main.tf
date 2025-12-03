@@ -1,8 +1,3 @@
-# ==============================================================================
-# Cloud Run Job Module
-# ==============================================================================
-# Creates a Cloud Run Job for one-time tasks like database migrations
-# ==============================================================================
 
 terraform {
   required_providers {
@@ -31,8 +26,7 @@ resource "google_cloud_run_v2_job" "job" {
     template {
       service_account = var.service_account_email
       timeout         = var.timeout
-
-      # VPC Access (if enabled)
+  
       dynamic "vpc_access" {
         for_each = var.vpc_egress_enabled ? [1] : []
         content {
@@ -50,7 +44,6 @@ resource "google_cloud_run_v2_job" "job" {
         command = var.command
         args    = var.args
 
-        # Environment variables
         dynamic "env" {
           for_each = var.env_vars
           content {
@@ -59,7 +52,6 @@ resource "google_cloud_run_v2_job" "job" {
           }
         }
 
-        # Secret environment variables
         dynamic "env" {
           for_each = var.secret_env_vars
           content {
