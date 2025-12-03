@@ -7,6 +7,11 @@ import {
   calculateDocumentChecksum,
   checksumsMatch,
 } from "../../utils/checksum";
+import {
+  type DocumentWithEmbeddings,
+  generateEmbeddingsForDocuments,
+  isEmbeddingEnabled,
+} from "../../utils/embeddings";
 import logger from "../../utils/logger";
 import { logJobError, logJobStart } from "../event-handlers";
 
@@ -228,14 +233,44 @@ async function indexToVespa(
   });
 
   try {
+    let docsWithEmbeddings: Array<
+      DocumentWithEmbeddings & { checksum: string }
+    >;
+    const embeddingsEnabled = isEmbeddingEnabled();
+
+    if (embeddingsEnabled) {
+      logger.info(
+        { connectorId, batchId, count: docsToIndex.length },
+        "Generating embeddings for documents"
+      );
+      const embeddedDocs = await generateEmbeddingsForDocuments(
+        docsToIndex,
+        connectorId
+      );
+      // Preserve checksum
+      docsWithEmbeddings = embeddedDocs.map((doc, i) => ({
+        ...doc,
+        checksum: docsToIndex[i]?.checksum ?? "",
+      }));
+    } else {
+      logger.debug(
+        { connectorId, batchId },
+        "Embeddings disabled, indexing without vectors"
+      );
+      docsWithEmbeddings = docsToIndex;
+    }
+
     const successfullyIndexed: Array<GenericDocument & { checksum: string }> =
       [];
 
-    for (const doc of docsToIndex) {
+    for (const doc of docsWithEmbeddings) {
       try {
         const { checksum: _checksum, ...docForVespa } = doc;
         await vespaClient.feedDocument(docForVespa);
-        successfullyIndexed.push(doc);
+        const originalDoc = docsToIndex.find((d) => d.id === doc.id);
+        if (originalDoc) {
+          successfullyIndexed.push(originalDoc);
+        }
       } catch (docError) {
         logDocumentError(docError, doc.external_id, connectorId, doc.id);
       }
@@ -246,11 +281,19 @@ async function indexToVespa(
     }
 
     logger.info(
-      { connectorId, batchId, count: successfullyIndexed.length },
+      {
+        connectorId,
+        batchId,
+        count: successfullyIndexed.length,
+        withEmbeddings: embeddingsEnabled,
+      },
       "Documents indexed to Vespa"
     );
 
-    span.setAttributes({ "index.indexed_count": successfullyIndexed.length });
+    span.setAttributes({
+      "index.indexed_count": successfullyIndexed.length,
+      "index.embeddings_enabled": embeddingsEnabled,
+    });
     span.setStatus({ code: SpanStatusCode.OK });
     return successfullyIndexed;
   } catch (error) {
