@@ -11,6 +11,10 @@ import {
 import { vespaClient } from "@openplane/vespa";
 import { createSlackClientFromConnector } from "../../connectors/slack";
 import { calculateDocumentChecksum } from "../../utils/checksum";
+import {
+  generateEmbeddingsForDocuments,
+  isEmbeddingEnabled,
+} from "../../utils/embeddings";
 import logger from "../../utils/logger";
 
 type WebhookOperation = "create" | "update" | "delete" | "skip";
@@ -154,7 +158,24 @@ async function handleCreateOrUpdate(
     content: doc.content,
   });
 
-  await vespaClient.feedDocument(doc);
+  const embeddingsEnabled = isEmbeddingEnabled();
+  let docToIndex = doc;
+
+  if (embeddingsEnabled) {
+    logger.debug(
+      { ...ctx, documentId: doc.id },
+      "Generating embeddings for webhook document"
+    );
+    const [docWithEmbeddings] = await generateEmbeddingsForDocuments(
+      [doc],
+      ctx.connectorId
+    );
+    if (docWithEmbeddings) {
+      docToIndex = docWithEmbeddings;
+    }
+  }
+
+  await vespaClient.feedDocument(docToIndex);
 
   await prisma.indexedDocument.upsert({
     where: {
@@ -175,7 +196,12 @@ async function handleCreateOrUpdate(
   });
 
   logger.debug(
-    { ...ctx, operation: change.operation, documentId: doc.id },
+    {
+      ...ctx,
+      operation: change.operation,
+      documentId: doc.id,
+      withEmbeddings: embeddingsEnabled,
+    },
     "Document indexed from webhook"
   );
   return {
