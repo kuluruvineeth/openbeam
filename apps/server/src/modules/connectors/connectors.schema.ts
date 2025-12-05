@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-// --- Shared Schemas ---
-
 export const connectorIdParamsSchema = z.object({
   id: z.string().openapi({
     param: {
@@ -18,8 +16,6 @@ export const errorSchema = z.object({
   details: z.string().optional(),
 });
 
-// --- Trigger Sync ---
-
 export const triggerSyncBodySchema = z.object({
   type: z.enum(["FULL", "INCREMENTAL"]).default("FULL").openapi({
     description: "The type of sync to trigger",
@@ -34,8 +30,6 @@ export const triggerSyncResponseSchema = z.object({
   type: z.string(),
   message: z.string(),
 });
-
-// --- Sync History ---
 
 export const getSyncHistoryQuerySchema = z.object({
   limit: z.coerce.number().min(1).max(100).default(20),
@@ -66,8 +60,6 @@ export const getSyncHistoryResponseSchema = z.object({
   }),
 });
 
-// --- Sync Status ---
-
 export const getSyncStatusResponseSchema = z.object({
   connector: z.object({
     id: z.string(),
@@ -91,8 +83,6 @@ export const getSyncStatusResponseSchema = z.object({
     totalIndexed: z.number(),
   }),
 });
-
-// --- Pause/Resume ---
 
 export const pauseResumeResponseSchema = z.object({
   success: z.boolean().optional(),

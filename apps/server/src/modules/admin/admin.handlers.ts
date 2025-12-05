@@ -9,10 +9,6 @@ import {
 } from "@openplane/redis";
 import { serveStatic } from "hono/bun";
 
-/**
- * Setup BullBoard for queue visibility
- * Provides a web UI for monitoring and managing BullMQ queues
- */
 export const setupBullBoard = () => {
   const serverAdapter = new HonoAdapter(serveStatic);
   serverAdapter.setBasePath("/admin/queues");

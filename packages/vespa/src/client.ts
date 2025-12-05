@@ -56,7 +56,7 @@ export class VespaClient {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ fields: docForVespa }),
-          signal: AbortSignal.timeout(30_000),
+          signal: AbortSignal.timeout(60_000),
         });
 
         if (!response.ok) {

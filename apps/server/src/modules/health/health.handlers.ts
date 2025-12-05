@@ -6,23 +6,19 @@ import {
 import type { Context } from "hono";
 import type { SystemHealthResponse } from "./health.schema";
 
-// Simple in-memory cache for health checks (5 second TTL)
 const healthCache = {
   data: null as SystemHealthResponse | null,
   timestamp: 0,
-  TTL: 5000, // 5 seconds
+  TTL: 5000,
 };
 
-/**
- * Check Vespa health
- */
 async function checkVespaHealth(): Promise<SystemHealthResponse["vespa"]> {
   try {
     const vespaUrl = process.env.VESPA_URL || "http://localhost:8080";
     const startTime = Date.now();
 
     const response = await fetch(`${vespaUrl}/state/v1/health`, {
-      signal: AbortSignal.timeout(5000), // 5 second timeout
+      signal: AbortSignal.timeout(5000),
     });
 
     const latency = Date.now() - startTime;
@@ -46,15 +42,12 @@ async function checkVespaHealth(): Promise<SystemHealthResponse["vespa"]> {
   }
 }
 
-/**
- * Check worker health (via metrics endpoint)
- */
 async function checkWorkerHealth(): Promise<SystemHealthResponse["worker"]> {
   try {
     const workerUrl = process.env.WORKER_METRICS_URL || "http://localhost:9091";
 
     const response = await fetch(`${workerUrl}/metrics`, {
-      signal: AbortSignal.timeout(3000), // 3 second timeout
+      signal: AbortSignal.timeout(3000),
     });
 
     if (response.ok) {
@@ -74,19 +67,13 @@ async function checkWorkerHealth(): Promise<SystemHealthResponse["worker"]> {
   }
 }
 
-/**
- * System health handler
- * Returns overall system health including queues, Vespa, and worker status
- */
 export async function systemHealthHandler(c: Context) {
   try {
-    // Check cache first
     const now = Date.now();
     if (healthCache.data && now - healthCache.timestamp < healthCache.TTL) {
       return c.json(healthCache.data, 200);
     }
 
-    // Fetch fresh health data
     const [
       syncMetrics,
       indexMetrics,
@@ -101,23 +88,19 @@ export async function systemHealthHandler(c: Context) {
       checkWorkerHealth(),
     ]);
 
-    // Determine overall status
     let overallStatus: "healthy" | "degraded" | "unhealthy" = "healthy";
 
-    // Check if any queue has too many failed jobs
     const totalFailed =
       syncMetrics.failed + indexMetrics.failed + webhookMetrics.failed;
     if (totalFailed > 10) {
       overallStatus = "degraded";
     }
 
-    // Check if any queue has too much backlog
     const totalWaiting = syncMetrics.waiting + indexMetrics.waiting;
     if (totalWaiting > 100) {
       overallStatus = "degraded";
     }
 
-    // Check if Vespa or worker is unhealthy
     if (
       vespaHealth.status === "unhealthy" ||
       workerHealth.status === "unhealthy"
@@ -151,7 +134,6 @@ export async function systemHealthHandler(c: Context) {
       worker: workerHealth,
     };
 
-    // Update cache
     healthCache.data = healthData;
     healthCache.timestamp = now;
 

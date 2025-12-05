@@ -4,7 +4,6 @@ import { systemHealthHandler } from "./health.handlers";
 
 const health = new OpenAPIHono<AuthEnv>();
 
-// System health endpoint (public, no auth required)
 health.get("/system", systemHealthHandler);
 
 export default health;

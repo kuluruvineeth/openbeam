@@ -36,7 +36,6 @@ export const triggerSyncHandler: RouteHandler<
     return c.json({ error: "Forbidden" }, 403);
   }
 
-  // Check if connector is active
   if (connector.status === "INACTIVE" || connector.status === "ERROR") {
     return c.json(
       { error: "Connector is not active. Check connector status." },
@@ -44,7 +43,6 @@ export const triggerSyncHandler: RouteHandler<
     );
   }
 
-  // Create sync job first
   const syncJob = await prisma.syncJob.create({
     data: {
       connectorId,
@@ -54,7 +52,6 @@ export const triggerSyncHandler: RouteHandler<
     },
   });
 
-  // Create sync history record
   const syncHistory = await prisma.syncHistory.create({
     data: {
       syncJobId: syncJob.id,
@@ -65,7 +62,6 @@ export const triggerSyncHandler: RouteHandler<
     },
   });
 
-  // Enqueue sync job to Redis
   const jobData: SyncJobData = {
     connectorId,
     syncJobId: syncHistory.id,
@@ -76,12 +72,11 @@ export const triggerSyncHandler: RouteHandler<
     attempts: 3,
     backoff: { type: "exponential", delay: 2000 },
     removeOnComplete: {
-      age: 3600, // Keep completed jobs for 1 hour
+      age: 3600,
       count: 100,
     },
   });
 
-  // Update connector status to syncing
   await prisma.connector.update({
     where: { id: connectorId },
     data: { status: "SYNCING" },
@@ -120,7 +115,6 @@ export const getSyncHistoryHandler: RouteHandler<
     return c.json({ error: "Connector not found" }, 404);
   }
 
-  // Fetch sync history
   const [history, total] = await Promise.all([
     prisma.syncHistory.findMany({
       where: { connectorId },
@@ -192,7 +186,6 @@ export const getSyncStatusHandler: RouteHandler<
     return c.json({ error: "Connector not found" }, 404);
   }
 
-  // Get latest sync history
   const latestSync = await prisma.syncHistory.findFirst({
     where: { connectorId },
     orderBy: { startedAt: "desc" },
@@ -206,7 +199,6 @@ export const getSyncStatusHandler: RouteHandler<
     },
   });
 
-  // Get indexed document count
   const indexedCount = await prisma.indexedDocument.count({
     where: { connectorId },
   });
