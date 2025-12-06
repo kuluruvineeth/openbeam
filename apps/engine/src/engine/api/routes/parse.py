@@ -39,7 +39,7 @@ async def parse_document(
         tmp_path = Path(tmp.name)
 
     try:
-        result = await parser_service.parse(tmp_path)
+        result = await parser_service.parse(tmp_path, mime_type=file.content_type)
 
         chunks = None
         if chunk and result.elements:
