@@ -9,6 +9,16 @@ output "worker_url" {
   value       = module.worker.service_url
 }
 
+output "engine_url" {
+  description = "Engine service URL (internal)"
+  value       = module.engine.service_url
+}
+
+output "storage_bucket" {
+  description = "GCS storage bucket name for files"
+  value       = module.storage.name
+}
+
 output "web_url" {
   description = "Web service URL"
   value       = module.web.service_url
@@ -49,9 +59,13 @@ output "deployment_summary" {
   
   Internal Services:
    1. Worker:   ${module.worker.service_url}
-   2. Database: ${module.cloud_sql.private_ip_address}:5432 (private)
-   3. Redis:    ${module.redis.host}:${module.redis.port}
-   4. Vespa:    ${module.vespa.private_ip}:8080
+   2. Engine:   ${module.engine.service_url}
+   3. Database: ${module.cloud_sql.private_ip_address}:5432 (private)
+   4. Redis:    ${module.redis.host}:${module.redis.port}
+   5. Vespa:    ${module.vespa.private_ip}:8080
+  
+  Storage:
+   1. Bucket:   ${module.storage.name}
   
   Artifact Registry:
    1. URL:      ${module.artifact_registry.repository_url}

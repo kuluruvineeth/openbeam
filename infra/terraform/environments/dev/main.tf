@@ -37,10 +37,12 @@ locals {
   worker_sa = google_service_account.worker.email
   web_sa    = google_service_account.web.email
   vespa_sa  = google_service_account.vespa.email
+  engine_sa = google_service_account.engine.email
 
   server_image = "${module.artifact_registry.repository_url}/openplane-server:${var.redeploy_id}"
   worker_image = "${module.artifact_registry.repository_url}/openplane-worker:${var.redeploy_id}"
   web_image    = "${module.artifact_registry.repository_url}/openplane-web:${var.redeploy_id}"
+  engine_image = "${module.artifact_registry.repository_url}/openplane-engine:${var.redeploy_id}"
 
   server_url = var.server_domain != "" ? "https://${var.server_domain}" : ""
   web_url    = var.web_domain != "" ? "https://${var.web_domain}" : ""
@@ -100,6 +102,12 @@ resource "google_service_account" "web" {
 resource "google_service_account" "vespa" {
   account_id   = "${local.project_name}-vespa-${local.environment}"
   display_name = "OpenPlane Vespa (${local.environment})"
+  project      = var.project_id
+}
+
+resource "google_service_account" "engine" {
+  account_id   = "${local.project_name}-engine-${local.environment}"
+  display_name = "OpenPlane Engine (${local.environment})"
   project      = var.project_id
 }
 
@@ -271,6 +279,14 @@ resource "google_secret_manager_secret_iam_member" "web_secrets" {
   project   = var.project_id
 }
 
+resource "google_secret_manager_secret_iam_member" "engine_redis_secret" {
+  secret_id = "${local.project_name}-redis-url-${local.environment}"
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${local.engine_sa}"
+  project   = var.project_id
+
+  depends_on = [module.redis]
+}
 
 module "cloud_sql" {
   source = "../../modules/cloud-sql"
@@ -318,6 +334,120 @@ module "redis" {
   auth_enabled   = false
 
   persistence_mode = "DISABLED"
+}
+
+module "storage" {
+  source = "../../modules/storage"
+
+  project_id   = var.project_id
+  project_name = local.project_name
+  environment  = local.environment
+  name         = "${local.project_name}-files-${local.environment}"
+  location     = var.region
+
+  versioning_enabled          = false
+  uniform_bucket_level_access = true
+  force_destroy               = true  # Dev only - allows bucket deletion with objects
+
+  cors = [
+    {
+      origin          = ["*"]
+      method          = ["GET", "HEAD", "PUT", "POST", "DELETE"]
+      response_header = ["*"]
+      max_age_seconds = 3600
+    }
+  ]
+
+  lifecycle_rules = [
+    {
+      action = {
+        type          = "Delete"
+        storage_class = null
+      }
+      condition = {
+        age                   = 90  # Delete files older than 90 days
+        created_before        = null
+        with_state            = null
+        matches_storage_class = null
+        num_newer_versions    = null
+      }
+    }
+  ]
+}
+
+resource "google_secret_manager_secret" "gcs_access_key" {
+  secret_id = "${local.project_name}-gcs-access-key-${local.environment}"
+  project   = var.project_id
+
+  replication {
+    auto {}
+  }
+
+  labels = {
+    environment = local.environment
+    service     = "storage"
+  }
+}
+
+resource "google_secret_manager_secret_version" "gcs_access_key" {
+  secret      = google_secret_manager_secret.gcs_access_key.id
+  secret_data = var.gcs_access_key
+}
+
+resource "google_secret_manager_secret" "gcs_secret_key" {
+  secret_id = "${local.project_name}-gcs-secret-key-${local.environment}"
+  project   = var.project_id
+
+  replication {
+    auto {}
+  }
+
+  labels = {
+    environment = local.environment
+    service     = "storage"
+  }
+}
+
+resource "google_secret_manager_secret_version" "gcs_secret_key" {
+  secret      = google_secret_manager_secret.gcs_secret_key.id
+  secret_data = var.gcs_secret_key
+}
+
+resource "google_storage_bucket_iam_member" "engine_storage_admin" {
+  bucket = module.storage.name
+  role   = "roles/storage.objectAdmin"
+  member = "serviceAccount:${local.engine_sa}"
+}
+
+resource "google_storage_bucket_iam_member" "worker_storage_admin" {
+  bucket = module.storage.name
+  role   = "roles/storage.objectAdmin"
+  member = "serviceAccount:${local.worker_sa}"
+}
+
+resource "google_secret_manager_secret_iam_member" "engine_gcs_secrets" {
+  for_each  = toset(["gcs-access-key", "gcs-secret-key"])
+  secret_id = "${local.project_name}-${each.value}-${local.environment}"
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${local.engine_sa}"
+  project   = var.project_id
+
+  depends_on = [
+    google_secret_manager_secret.gcs_access_key,
+    google_secret_manager_secret.gcs_secret_key
+  ]
+}
+resource "google_secret_manager_secret_iam_member" "worker_gcs_secrets" {
+  for_each  = toset(["gcs-access-key", "gcs-secret-key"])
+  secret_id = "${local.project_name}-${each.value}-${local.environment}"
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${local.worker_sa}"
+  project   = var.project_id
+
+  depends_on = [
+    google_secret_manager_secret.gcs_access_key,
+    google_secret_manager_secret.gcs_secret_key
+  ]
 }
 
 module "vespa" {
@@ -473,7 +603,7 @@ module "worker" {
   environment  = local.environment
   region       = var.region
   image        = local.worker_image
-  // TODO: Change to 1 when starting to test
+  // TODO: Change to 0 when stopping to test and 1 when starting to test
   min_instances = 0
   max_instances = 1
 
@@ -497,6 +627,11 @@ module "worker" {
     CORS_ORIGIN          = local.web_url
     OPENAI_BASE_URL      = var.openai_base_url
     OPENAI_ORGANIZATION  = var.openai_organization
+    # File processing config
+    ENGINE_URL           = module.engine.service_url
+    GCS_BUCKET           = module.storage.name
+    GCS_REGION           = var.region
+    GCS_ENDPOINT         = "https://storage.googleapis.com"
   }
 
   secret_env_vars = {
@@ -516,6 +651,15 @@ module "worker" {
       secret_id = google_secret_manager_secret.openai_api_key.secret_id
       version   = "latest"
     }
+    # GCS S3-compatible credentials
+    GCS_ACCESS_KEY_ID = {
+      secret_id = google_secret_manager_secret.gcs_access_key.secret_id
+      version   = "latest"
+    }
+    GCS_SECRET_ACCESS_KEY = {
+      secret_id = google_secret_manager_secret.gcs_secret_key.secret_id
+      version   = "latest"
+    }
   }
 
   allow_public_access   = false
@@ -523,7 +667,76 @@ module "worker" {
 
   depends_on = [
     google_secret_manager_secret_iam_member.worker_secrets,
-    google_secret_manager_secret_iam_member.worker_auth_secrets
+    google_secret_manager_secret_iam_member.worker_auth_secrets,
+    google_secret_manager_secret_iam_member.worker_gcs_secrets,
+    module.engine  # Worker depends on engine for ENGINE_URL
+  ]
+
+  deletion_protection = false
+}
+
+module "engine" {
+  source = "../../modules/cloud-run"
+
+  project_id   = var.project_id
+  project_name = local.project_name
+  service_name = "engine"
+  environment  = local.environment
+  region       = var.region
+  image        = local.engine_image
+
+  min_instances = 0
+  max_instances = 2
+
+  cpu              = "2"
+  memory           = "4Gi"
+  cpu_idle         = true
+  startup_cpu_boost = true
+  timeout          = "300s"
+  container_port   = 8000
+
+  vpc_egress_enabled = true
+  vpc_network_id     = module.networking.network_id
+  vpc_subnetwork_id  = module.networking.cloud_run_subnet_id
+
+  startup_probe_enabled           = true
+  startup_probe_path              = "/health"
+  startup_probe_initial_delay     = 10
+  startup_probe_timeout           = 5
+  startup_probe_period            = 15
+  startup_probe_failure_threshold = 5
+
+  env_vars = {
+    ENVIRONMENT  = local.environment
+    LOG_LEVEL    = "INFO"
+    DEBUG        = "false"
+    S3_BUCKET    = module.storage.name
+    S3_REGION    = var.region
+    S3_ENDPOINT  = "https://storage.googleapis.com"
+  }
+
+  secret_env_vars = {
+    REDIS_URL = {
+      secret_id = module.redis.redis_url_secret_id
+      version   = "latest"
+    }
+    S3_ACCESS_KEY = {
+      secret_id = google_secret_manager_secret.gcs_access_key.secret_id
+      version   = "latest"
+    }
+    S3_SECRET_KEY = {
+      secret_id = google_secret_manager_secret.gcs_secret_key.secret_id
+      version   = "latest"
+    }
+  }
+
+  allow_public_access       = false
+  invoker_service_accounts  = [local.worker_sa]
+  service_account_email     = local.engine_sa
+
+  depends_on = [
+    google_secret_manager_secret_iam_member.engine_gcs_secrets,
+    google_secret_manager_secret_iam_member.engine_redis_secret
   ]
 
   deletion_protection = false

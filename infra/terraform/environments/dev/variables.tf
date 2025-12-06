@@ -101,4 +101,15 @@ variable "openai_organization" {
   type        = string
   default     = ""
 }
+variable "gcs_access_key" {
+  description = "GCS HMAC access key for S3-compatible API"
+  type        = string
+  sensitive   = true
+}
+
+variable "gcs_secret_key" {
+  description = "GCS HMAC secret key for S3-compatible API"
+  type        = string
+  sensitive   = true
+}
 
