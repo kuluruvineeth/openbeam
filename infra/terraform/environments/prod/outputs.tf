@@ -94,6 +94,16 @@ output "vespa_service_account" {
   value       = google_service_account.vespa.email
 }
 
+output "storage_bucket_name" {
+  description = "GCS bucket name for file storage"
+  value       = module.storage.bucket_name
+}
+
+output "storage_bucket_url" {
+  description = "GCS bucket URL"
+  value       = module.storage.url
+}
+
 output "deployment_summary" {
   description = "Deployment summary with URLs and commands"
   value = <<-EOT

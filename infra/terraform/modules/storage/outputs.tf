@@ -3,6 +3,11 @@ output "name" {
   value       = google_storage_bucket.bucket.name
 }
 
+output "bucket_name" {
+  description = "Bucket name (alias)"
+  value       = google_storage_bucket.bucket.name
+}
+
 output "url" {
   description = "Bucket URL"
   value       = google_storage_bucket.bucket.url

@@ -238,3 +238,9 @@ variable "openai_organization" {
   default     = ""
 }
 
+variable "cors_origins" {
+  description = "Allowed CORS origins for file preview (your web app domains)"
+  type        = list(string)
+  default     = ["https://app.openplane.tech", "https://openplane.tech"]
+}
+

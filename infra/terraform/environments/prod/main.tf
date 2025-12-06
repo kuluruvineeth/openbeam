@@ -385,3 +385,58 @@ module "docs" {
   service_account_email = local.docs_sa
 }
 
+module "storage" {
+  source = "../../modules/storage"
+
+  project_id   = var.project_id
+  project_name = local.project_name
+  environment  = local.environment
+  name         = "${local.project_name}-files-${local.environment}"
+  location     = var.region
+
+  storage_class               = "STANDARD"
+  uniform_bucket_level_access = true
+  versioning_enabled          = false
+
+  cors = [
+    {
+      origin          = var.cors_origins
+      method          = ["GET", "HEAD", "OPTIONS"]
+      response_header = ["Content-Type", "Content-Length", "Content-Disposition", "ETag", "Cache-Control"]
+      max_age_seconds = 3600
+    }
+  ]
+
+  lifecycle_rules = [
+    {
+      action = {
+        type          = "Delete"
+        storage_class = null
+      }
+      condition = {
+        age                   = 7
+        created_before        = null
+        with_state            = null
+        matches_storage_class = null
+        num_newer_versions    = null
+      }
+    }
+  ]
+
+  labels = {
+    service = "storage"
+  }
+}
+
+resource "google_storage_bucket_iam_member" "server_storage" {
+  bucket = module.storage.bucket_name
+  role   = "roles/storage.objectUser"
+  member = "serviceAccount:${local.server_sa}"
+}
+
+resource "google_storage_bucket_iam_member" "worker_storage" {
+  bucket = module.storage.bucket_name
+  role   = "roles/storage.objectAdmin"
+  member = "serviceAccount:${local.worker_sa}"
+}
+
