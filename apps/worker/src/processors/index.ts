@@ -6,6 +6,7 @@ export {
   logJobStart,
   setupEventHandlers,
 } from "./event-handlers";
+export { createFileProcessor } from "./file";
 export { createIndexProcessor } from "./index/index";
 export { createSyncProcessor } from "./sync";
 export type { CreateWorkerOptions, JobHandler, ProcessorResult } from "./types";

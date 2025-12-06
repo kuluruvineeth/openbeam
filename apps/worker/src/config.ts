@@ -36,6 +36,14 @@ export const workerConfig = {
     ),
   },
 
+  file: {
+    concurrency: Number.parseInt(process.env.FILE_CONCURRENCY || "5", 10),
+    rateLimit: {
+      max: Number.parseInt(process.env.FILE_RATE_LIMIT_MAX || "20", 10),
+      duration: 1000,
+    },
+  },
+
   scheduler: {
     checkIntervalMs: Number.parseInt(
       process.env.SCHEDULER_CHECK_INTERVAL_MS || "3600000",

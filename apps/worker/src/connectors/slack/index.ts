@@ -3,6 +3,7 @@ import {
   decryptIfEncrypted,
   type OAuthProvider,
 } from "@openplane/db";
+import type { SlackFileInfo } from "@openplane/services";
 import {
   createSlackClient,
   incrementalSync,
@@ -12,8 +13,8 @@ import {
   type SyncCursor,
   type TransformContext,
 } from "@openplane/services";
-
 import type { GenericDocument } from "@openplane/vespa";
+import { processDiscoveredFiles } from "../../processors/file";
 import logger from "../../utils/logger";
 
 export interface SlackSyncResult {
@@ -44,11 +45,18 @@ export interface SlackSyncOptions {
   onChannelsDiscovered?: (channels: SlackChannelInfo[]) => Promise<void>;
   disabledChannelIds?: Set<string>;
   enabledChannelIds?: Set<string>;
+  syncFiles?: boolean;
 }
 
 function extractCredentials(
   connector: Connector & { oauthProvider?: OAuthProvider | null }
-): { token: string; teamId?: string; tokenType: "sync" | "bot" } {
+): {
+  token: string;
+  teamId?: string;
+  tokenType: "sync" | "bot";
+  hasSyncToken: boolean;
+  hasBotToken: boolean;
+} {
   if (!connector.oauthProvider) {
     throw new Error("Slack connector requires OAuth provider");
   }
@@ -64,10 +72,6 @@ function extractCredentials(
   const token = syncToken ?? botToken;
   const tokenType = syncToken ? "sync" : "bot";
 
-  if (!token) {
-    throw new Error("Failed to decrypt Slack access token");
-  }
-
   const config = connector.config as Record<string, unknown> | null;
   const teamId = config?.teamId as string | undefined;
 
@@ -81,7 +85,27 @@ function extractCredentials(
     "Extracted Slack credentials"
   );
 
-  return { token, teamId, tokenType };
+  if (!token) {
+    logger.error(
+      {
+        connectorId: connector.id,
+        hasSyncToken: !!syncToken,
+        hasBotToken: !!botToken,
+        tokenType,
+        reason: "missing decrypted token",
+      },
+      "Failed to decrypt Slack access token"
+    );
+    throw new Error("Failed to decrypt Slack access token");
+  }
+
+  return {
+    token,
+    teamId,
+    tokenType,
+    hasSyncToken: !!syncToken,
+    hasBotToken: !!botToken,
+  };
 }
 
 function buildContext(connector: Connector): TransformContext {
@@ -108,6 +132,7 @@ export async function syncSlackStreaming(
     onChannelsDiscovered,
     disabledChannelIds,
     enabledChannelIds,
+    syncFiles = false,
   } = options;
 
   const disabledArray = disabledChannelIds
@@ -119,6 +144,7 @@ export async function syncSlackStreaming(
       connectorId: connector.id,
       hasCursor: !!cursor,
       forceFullSync,
+      syncFiles,
       disabledChannelIdsCount: disabledChannelIds?.size ?? 0,
       disabledChannelIds: disabledArray,
       enabledChannelIdsCount: enabledChannelIds?.size ?? 0,
@@ -137,6 +163,13 @@ export async function syncSlackStreaming(
 
   const isHealthy = await client.healthCheck();
   if (!isHealthy) {
+    logger.error(
+      {
+        connectorId: connector.id,
+        teamId,
+      },
+      "Slack connection health check failed during sync"
+    );
     throw new Error("Slack connection validation failed");
   }
 
@@ -145,6 +178,23 @@ export async function syncSlackStreaming(
   let totalErrors = 0;
   let batchCount = 0;
   let latestCursor: SyncCursor = cursor ?? {};
+  let filesQueued = 0;
+
+  const handleFilesDiscovered = async (files: SlackFileInfo[]) => {
+    logger.info(
+      { connectorId: connector.id, fileCount: files.length },
+      "Files discovered during sync"
+    );
+
+    const result = await processDiscoveredFiles(files, {
+      connectorId: connector.id,
+      skipExisting: true,
+      priority: 5, // Lower priority than webhook-triggered files
+    });
+
+    filesQueued += result.queued;
+    totalErrors += result.errors;
+  };
 
   try {
     for await (const batch of incrementalSync(client, context, {
@@ -172,6 +222,8 @@ export async function syncSlackStreaming(
         : undefined,
       disabledChannelIds,
       enabledChannelIds,
+      syncFiles,
+      onFilesDiscovered: syncFiles ? handleFilesDiscovered : undefined,
     })) {
       totalDocuments += batch.items.length;
       totalProcessed += batch.stats.processed;
@@ -179,7 +231,9 @@ export async function syncSlackStreaming(
       batchCount += 1;
       latestCursor = batch.cursor;
 
-      await onBatch(batch);
+      if (batch.items.length > 0) {
+        await onBatch(batch);
+      }
 
       logger.debug(
         {
@@ -199,6 +253,7 @@ export async function syncSlackStreaming(
       {
         connectorId: connector.id,
         totalDocuments,
+        filesQueued,
         batches: batchCount,
         duration,
         errors: totalErrors,
@@ -271,7 +326,19 @@ export async function validateSlackConnection(
   connector: Connector & { oauthProvider?: OAuthProvider | null }
 ): Promise<boolean> {
   try {
-    const { token, teamId } = extractCredentials(connector);
+    const { token, teamId, tokenType, hasSyncToken, hasBotToken } =
+      extractCredentials(connector);
+
+    logger.info(
+      {
+        connectorId: connector.id,
+        teamId,
+        tokenType,
+        hasSyncToken,
+        hasBotToken,
+      },
+      "Starting Slack connection health check"
+    );
 
     const client = createSlackClient({
       token,
@@ -279,10 +346,43 @@ export async function validateSlackConnection(
       teamId,
     });
 
-    return await client.healthCheck();
+    try {
+      const healthy = await client.healthCheck();
+      if (!healthy) {
+        logger.error(
+          {
+            connectorId: connector.id,
+            teamId,
+            tokenType,
+            hasSyncToken,
+            hasBotToken,
+          },
+          "Slack connection health check failed during validation"
+        );
+      }
+      return healthy;
+    } catch (healthError) {
+      logger.error(
+        {
+          connectorId: connector.id,
+          teamId,
+          tokenType,
+          hasSyncToken,
+          hasBotToken,
+          healthError,
+        },
+        "Slack connection health check threw"
+      );
+      return false;
+    }
   } catch (error) {
     logger.error(
-      { error, connectorId: connector.id },
+      {
+        connectorId: connector.id,
+        errorMessage: error instanceof Error ? error.message : String(error),
+        errorStack: error instanceof Error ? error.stack : undefined,
+        error,
+      },
       "Slack connection validation failed"
     );
     return false;

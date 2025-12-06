@@ -193,6 +193,7 @@ async function streamDocumentsToIndexQueue(params: {
     const result = await syncConnectorStreaming(connector, {
       cursor,
       forceFullSync: type === "FULL",
+      syncFiles: true,
       onBatch: async (batch) => {
         if (!(await validateFence(connectorId, fenceToken))) {
           throw new Error("Fence became invalid during streaming");

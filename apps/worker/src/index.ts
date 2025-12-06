@@ -10,6 +10,7 @@ import { startHealthServer, stopHealthServer } from "./health";
 import { startMetricsServer, stopMetricsServer } from "./metrics";
 import {
   createCleanupProcessor,
+  createFileProcessor,
   createIndexProcessor,
   createSyncProcessor,
   createWebhookProcessor,
@@ -25,6 +26,7 @@ class WorkerService {
   private readonly cleanupScheduler: CleanupScheduler;
   private readonly syncProcessor: ProcessorResult;
   private readonly indexProcessor: ProcessorResult;
+  private readonly fileProcessor: ProcessorResult;
   private readonly webhookProcessor: ProcessorResult;
   private readonly cleanupProcessor: ProcessorResult;
 
@@ -33,6 +35,7 @@ class WorkerService {
 
     this.syncProcessor = createSyncProcessor();
     this.indexProcessor = createIndexProcessor();
+    this.fileProcessor = createFileProcessor();
     this.webhookProcessor = createWebhookProcessor();
     this.cleanupProcessor = createCleanupProcessor();
 
@@ -64,6 +67,7 @@ class WorkerService {
           syncScheduler: "running",
           syncProcessor: "running",
           indexProcessor: "running",
+          fileProcessor: "running",
           webhookProcessor: "running",
           cleanupProcessor: "running",
           metricsServer: "running",
@@ -85,6 +89,7 @@ class WorkerService {
       this.cleanupScheduler.stop(),
       this.syncProcessor.close(),
       this.indexProcessor.close(),
+      this.fileProcessor.close(),
       this.webhookProcessor.close(),
       this.cleanupProcessor.close(),
       stopMetricsServer(),

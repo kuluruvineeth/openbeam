@@ -57,6 +57,7 @@ export interface StreamingSyncOptions {
   onResourcesDiscovered?: (resources: ChannelInfo[]) => Promise<void>;
   disabledResourceIds?: Set<string>;
   enabledResourceIds?: Set<string>;
+  syncFiles?: boolean;
 }
 
 export async function syncConnectorStreaming(
@@ -71,6 +72,7 @@ export async function syncConnectorStreaming(
     onResourcesDiscovered,
     disabledResourceIds,
     enabledResourceIds,
+    syncFiles,
   } = options;
 
   switch (connector.app) {
@@ -94,6 +96,7 @@ export async function syncConnectorStreaming(
         onChannelsDiscovered: onResourcesDiscovered,
         disabledChannelIds: disabledResourceIds,
         enabledChannelIds: enabledResourceIds,
+        syncFiles,
       });
 
       return {
