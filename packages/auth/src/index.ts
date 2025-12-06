@@ -2,10 +2,20 @@ import prisma from "@openplane/db";
 import { type BetterAuthOptions, betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 
-const corsOrigin = process.env.CORS_ORIGIN || "http://localhost:3001";
-const serverUrl = process.env.BETTER_AUTH_URL || "http://localhost:3000";
-const isSecure = corsOrigin.startsWith("https://");
-const needsProxy = isSecure && serverUrl.startsWith("http://");
+const corsOrigin =
+  process.env.CORS_ORIGIN ||
+  process.env.NEXT_PUBLIC_CORS_ORIGIN ||
+  "http://localhost:3001";
+const serverUrl =
+  process.env.BETTER_AUTH_URL ||
+  process.env.NEXT_PUBLIC_SERVER_URL ||
+  "http://localhost:3000";
+const isSecure =
+  corsOrigin.startsWith("https://") || serverUrl.startsWith("https://");
+const isCrossSite =
+  new URL(corsOrigin).hostname !== new URL(serverUrl).hostname;
+const needsProxy =
+  corsOrigin.startsWith("https://") && serverUrl.startsWith("http://");
 
 // TODO: Later remove this hardcoded domain
 // const cookieDomain = process.env.COOKIE_DOMAIN || ".openplane.tech";
@@ -26,7 +36,7 @@ export const auth = betterAuth<BetterAuthOptions>({
     defaultCookieAttributes: {
       secure: isSecure,
       httpOnly: true,
-      sameSite: isSecure ? "none" : "lax",
+      sameSite: isCrossSite ? "none" : "lax",
       path: "/",
       ...(cookieDomain && { domain: cookieDomain }),
     },

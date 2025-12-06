@@ -62,16 +62,23 @@ export function getOrganizationId(context: AuthContext): string | null {
 }
 
 export function getAccessControlIds(context: AuthContext): string[] {
+  const identifiers = new Set<string>();
+
   if (context.type === "session") {
-    const identifiers = new Set<string>();
     identifiers.add(context.userId);
     if (context.email) {
       identifiers.add(context.email);
     }
-    return Array.from(identifiers);
+    if (context.teamId) {
+      identifiers.add(`team:${context.teamId}`);
+    }
   }
 
-  return [];
+  if (context.type === "apiKey") {
+    identifiers.add(`team:${context.teamId}`);
+  }
+
+  return Array.from(identifiers);
 }
 
 export const SCOPE_METHOD_MAP: Record<string, string[]> = {
