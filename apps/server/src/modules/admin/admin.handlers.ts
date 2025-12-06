@@ -3,6 +3,7 @@ import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 import { HonoAdapter } from "@bull-board/hono";
 import {
   cleanupQueue,
+  fileProcessingQueue,
   indexQueue,
   syncQueue,
   webhookQueue,
@@ -19,6 +20,7 @@ export const setupBullBoard = () => {
       new BullMQAdapter(indexQueue),
       new BullMQAdapter(webhookQueue),
       new BullMQAdapter(cleanupQueue),
+      new BullMQAdapter(fileProcessingQueue),
     ],
     serverAdapter,
   });

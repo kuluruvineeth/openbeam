@@ -11,6 +11,14 @@ import { sessionMiddleware } from "@/middleware/auth";
 import { defaultHook } from "./default-hook";
 
 export function createApp() {
+  const corsOrigin =
+    process.env.CORS_ORIGIN ||
+    process.env.NEXT_PUBLIC_CORS_ORIGIN ||
+    "http://localhost:3001";
+  const serverUrl =
+    process.env.BETTER_AUTH_URL ||
+    process.env.NEXT_PUBLIC_SERVER_URL ||
+    "http://localhost:3000";
   const app = new OpenAPIHono<AuthEnv>({
     strict: false,
     defaultHook, // Handles validation errors automatically
@@ -18,11 +26,16 @@ export function createApp() {
 
   // Middleware
   app.use(logger());
-  const allowedOrigins = [
-    process.env.CORS_ORIGIN,
-    "http://localhost:3000",
-    "http://localhost:3001",
-  ].filter((o): o is string => Boolean(o));
+  const allowedOrigins = Array.from(
+    new Set(
+      [
+        corsOrigin,
+        serverUrl,
+        "http://localhost:3000",
+        "http://localhost:3001",
+      ].filter((o): o is string => Boolean(o))
+    )
+  );
 
   app.use(
     "/*",
