@@ -76,4 +76,4 @@ def register_all_parsers() -> None:
     )
 
 
-__all__ = ["BaseParser", "ParserRegistry", "register_all_parsers"]
+__all__ = ["ParserRegistry", "register_all_parsers"]
