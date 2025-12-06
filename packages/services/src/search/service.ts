@@ -21,6 +21,7 @@ function escapeYqlString(value: string): string {
 }
 
 export class SearchService {
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: search logic is inherently complex
   async search(params: SearchParams): Promise<SearchResult> {
     const startTime = Date.now();
     let embeddingTime: number | undefined;
@@ -40,11 +41,14 @@ export class SearchService {
         }
       }
 
-      const yql = this.buildSearchYQL(params, useSemanticSearch);
+      const includeVectorSearch =
+        useSemanticSearch && Object.keys(vectorFeatures).length > 0;
+      const effectiveRanking = includeVectorSearch ? ranking : "bm25";
+      const yql = this.buildSearchYQL(params, includeVectorSearch);
 
       const vespaResult = await vespaClient.query({
         yql,
-        ranking,
+        ranking: effectiveRanking,
         hits: params.limit || 20,
         offset: params.offset || 0,
         timeout: "5s",
@@ -153,7 +157,7 @@ export class SearchService {
       teamId
     )}" and created_at >= ${fromDate} and ${this.buildAccessControlClause(
       accessControlIds
-    )} order by created_at desc limit ${limit}`;
+    )} order by created_at desc`;
 
     const result = await vespaClient.query({
       yql,
@@ -173,7 +177,7 @@ export class SearchService {
       teamId
     )}" and ${this.buildAccessControlClause(
       accessControlIds
-    )} order by created_at desc limit ${limit}`;
+    )} order by created_at desc`;
 
     const result = await vespaClient.query({
       yql,
@@ -196,7 +200,7 @@ export class SearchService {
     const escapedPrefix = escapeYqlString(prefix);
     const yql = `select id, title, content, document_type, connector_type, source_name from openplane_document where (title contains "${escapedPrefix}" or content contains "${escapedPrefix}") and team_id contains "${escapeYqlString(
       teamId
-    )}" and ${this.buildAccessControlClause(accessControlIds)} limit ${limit}`;
+    )}" and ${this.buildAccessControlClause(accessControlIds)}`;
 
     const result = await vespaClient.query({
       yql,
@@ -286,9 +290,7 @@ export class SearchService {
     conditions.push(this.buildAccessControlClause(params.accessControlIds));
 
     const whereClause = conditions.join(" and ");
-    const offset = params.offset || 0;
-
-    return `select * from openplane_document where ${whereClause} limit ${limit} offset ${offset}`;
+    return `select * from openplane_document where ${whereClause}`;
   }
 
   private buildAccessControlClause(accessControlIds?: string[]): string {
