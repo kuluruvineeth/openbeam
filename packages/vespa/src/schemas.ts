@@ -63,6 +63,8 @@ export interface GenericDocument {
   total_chunks?: number;
   parent_doc_id?: string;
   is_chunk?: boolean;
+  page_number?: number;
+  page_end?: number;
 }
 
 export interface Entity {

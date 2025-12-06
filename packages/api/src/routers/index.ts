@@ -2,6 +2,7 @@ import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import { createTRPCRouter } from "../index";
 
 import { appsRouter } from "./apps";
+import { filesRouter } from "./files";
 import { searchRouter } from "./search";
 import { teamRouter } from "./team";
 import { userRouter } from "./user";
@@ -11,6 +12,7 @@ export const appRouter = createTRPCRouter({
   user: userRouter,
   apps: appsRouter,
   search: searchRouter,
+  files: filesRouter,
 });
 
 export type AppRouter = typeof appRouter;

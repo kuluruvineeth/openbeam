@@ -17,7 +17,7 @@ class ParseResponse(BaseModel):
     filename: str
     mime_type: str | None
     elements: list[DocumentElement]
-    chunks: list[str] | None = None
+    chunks: list[DocumentChunk] | list[str] | None = None
     metadata: dict
     text_length: int
     page_count: int | None = None

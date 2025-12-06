@@ -5,6 +5,7 @@ class DocumentElement(BaseModel):
     type: str
     text: str
     metadata: dict | None = None
+    page_number: int | None = None
 
 
 class ParsedDocument(BaseModel):
@@ -18,3 +19,5 @@ class DocumentChunk(BaseModel):
     index: int
     text: str
     metadata: dict = Field(default_factory=dict)
+    page_number: int | None = None
+    page_end: int | None = None

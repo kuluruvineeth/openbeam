@@ -4,6 +4,12 @@ import { extractTraceContext, type TraceContext } from "../utils/trace-context";
 
 export type FileProcessingJobType = "download" | "parse" | "index";
 
+export interface ParsedChunk {
+  text: string;
+  page_number?: number;
+  page_end?: number;
+}
+
 export interface FileProcessingJobData {
   type: FileProcessingJobType;
   fileId: string;
@@ -14,7 +20,7 @@ export interface FileProcessingJobData {
   mimeType?: string;
   fileName?: string;
   traceContext?: TraceContext;
-  parsedChunks?: string[];
+  parsedChunks?: ParsedChunk[];
   textLength?: number;
   pageCount?: number;
 }

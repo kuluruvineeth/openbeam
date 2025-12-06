@@ -8,7 +8,7 @@ export interface ParseResponse {
   filename: string;
   mime_type: string | null;
   elements: DocumentElement[];
-  chunks: string[] | null;
+  chunks: string[] | DocumentChunk[] | null;
   metadata: Record<string, unknown>;
   text_length: number;
   page_count: number | null;
@@ -18,6 +18,8 @@ export interface DocumentChunk {
   index: number;
   text: string;
   metadata: Record<string, unknown>;
+  page_number?: number;
+  page_end?: number;
 }
 
 export interface ChunkResponse {
@@ -59,12 +61,13 @@ export interface EngineClientOptions {
 }
 
 export class EngineError extends Error {
-  constructor(
-    message: string,
-    public readonly status?: number,
-    public readonly code?: string
-  ) {
+  readonly status?: number;
+  readonly code?: string;
+
+  constructor(message: string, status?: number, code?: string) {
     super(message);
     this.name = "EngineError";
+    this.status = status;
+    this.code = code;
   }
 }

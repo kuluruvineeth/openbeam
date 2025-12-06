@@ -119,14 +119,18 @@ class DocumentParser(BaseParser):
 
     def _convert_element(self, element: Element) -> DocumentElement:
         metadata = {}
+        page_number = None
         if hasattr(element, "metadata"):
             with contextlib.suppress(Exception):
                 metadata = element.metadata.to_dict()
+            if hasattr(element.metadata, "page_number"):
+                page_number = element.metadata.page_number
 
         return DocumentElement(
             type=element.category,
             text=str(element),
             metadata=metadata,
+            page_number=page_number,
         )
 
     def _extract_metadata(self, elements: list[Element]) -> dict[str, Any]:

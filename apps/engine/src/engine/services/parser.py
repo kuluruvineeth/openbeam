@@ -1,13 +1,13 @@
 from pathlib import Path
 
-from unstructured.chunking.title import chunk_by_title
-from unstructured.documents.elements import Text
-
 from engine.core.logging import get_logger
-from engine.models.document import DocumentElement, ParsedDocument
+from engine.models.document import DocumentChunk, DocumentElement, ParsedDocument
 from engine.parsers import ParserRegistry
+from engine.services.chunker import ChunkerService
 
 logger = get_logger(__name__)
+
+chunker_service = ChunkerService()
 
 
 class ParserService:
@@ -42,14 +42,9 @@ class ParserService:
         elements: list[DocumentElement],
         max_characters: int = 1500,
         overlap: int = 150,
-    ) -> list[str]:
-        raw_elements = [Text(text=el.text) for el in elements]
-
-        chunks = chunk_by_title(
-            raw_elements,
+    ) -> list[DocumentChunk]:
+        return await chunker_service.chunk_elements(
+            elements,
             max_characters=max_characters,
             overlap=overlap,
-            combine_text_under_n_chars=200,
         )
-
-        return [str(chunk) for chunk in chunks]

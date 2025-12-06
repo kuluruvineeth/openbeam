@@ -5,6 +5,13 @@ import {
   createLinkedSpan,
   type FileProcessingJobData,
 } from "@openplane/redis";
+
+interface ParsedChunk {
+  text: string;
+  page_number?: number;
+  page_end?: number;
+}
+
 import { EngineClient } from "@openplane/services";
 import { S3StorageProvider } from "@openplane/storage";
 import { type GenericDocument, vespaClient } from "@openplane/vespa";
@@ -200,7 +207,23 @@ async function processParse(
     overlap: 150,
   });
 
-  const chunks = result.chunks ?? [];
+  const rawChunks = result.chunks ?? [];
+
+  const parsedChunks: ParsedChunk[] = rawChunks.map((chunk) => {
+    if (typeof chunk === "string") {
+      return { text: chunk };
+    }
+    const richChunk = chunk as {
+      text: string;
+      page_number?: number;
+      page_end?: number;
+    };
+    return {
+      text: richChunk.text,
+      page_number: richChunk.page_number,
+      page_end: richChunk.page_end,
+    };
+  });
 
   await prisma.indexedFile.update({
     where: { id: fileId },
@@ -209,17 +232,16 @@ async function processParse(
       extractedText: true,
       textLength: result.text_length,
       pageCount: result.page_count,
-      chunkCount: chunks.length,
+      chunkCount: parsedChunks.length,
       processedAt: new Date(),
     },
   });
 
   logger.info(
-    { fileId, textLength: result.text_length, chunks: chunks.length },
+    { fileId, textLength: result.text_length, chunks: parsedChunks.length },
     "File parsed"
   );
 
-  // Pass parsed chunks to the index job
   await addFileIndexJob({
     fileId,
     connectorId,
@@ -227,7 +249,7 @@ async function processParse(
     storageKey,
     mimeType: data.mimeType,
     fileName,
-    parsedChunks: chunks,
+    parsedChunks,
     textLength: result.text_length,
     pageCount: result.page_count ?? undefined,
   });
@@ -257,7 +279,7 @@ interface ChunkIndexContext {
 }
 
 async function indexChunkBatch(
-  batchChunks: string[],
+  batchChunks: ParsedChunk[],
   batchStart: number,
   ctx: ChunkIndexContext,
   embeddingsEnabled: boolean
@@ -273,8 +295,7 @@ async function indexChunkBatch(
     file,
   } = ctx;
 
-  // Build chunk documents
-  const chunkDocs: GenericDocument[] = batchChunks.map((chunkText, idx) => {
+  const chunkDocs: GenericDocument[] = batchChunks.map((chunk, idx) => {
     const i = batchStart + idx;
     return {
       id: `chunk-${connectorId}-${externalId}-${i}`,
@@ -286,8 +307,8 @@ async function indexChunkBatch(
       document_type: "file_chunk",
       document_subtype: mimeType,
       title: `${fileName} - Chunk ${i + 1}/${totalChunks}`,
-      content: chunkText,
-      content_plain: chunkText,
+      content: chunk.text,
+      content_plain: chunk.text,
       file_name: fileName,
       parent_id: fileVespaId,
       parent_doc_id: fileVespaId,
@@ -299,10 +320,11 @@ async function indexChunkBatch(
       chunk_index: i,
       total_chunks: totalChunks,
       access_control: accessControl,
+      page_number: chunk.page_number,
+      page_end: chunk.page_end,
     };
   });
 
-  // Generate embeddings if enabled
   let docsToIndex = chunkDocs;
   if (embeddingsEnabled) {
     try {
@@ -318,19 +340,18 @@ async function indexChunkBatch(
     }
   }
 
-  // Index to Vespa in parallel
   const indexResults = await Promise.allSettled(
     docsToIndex.map(async (doc, idx) => {
-      const chunkText = batchChunks[idx];
-      if (!(doc && chunkText)) {
+      const chunk = batchChunks[idx];
+      if (!(doc && chunk)) {
         return null;
       }
       await vespaClient.feedDocument(doc);
       return {
         chunkIndex: batchStart + idx,
         vespaId: doc.id,
-        checksum: calculateChecksum(chunkText),
-        contentLength: chunkText.length,
+        checksum: calculateChecksum(chunk.text),
+        contentLength: chunk.text.length,
       };
     })
   );
@@ -400,7 +421,10 @@ async function processIndex(
     throw new Error("File not found");
   }
 
-  const chunks = parsedChunks ?? [];
+  const rawChunks = parsedChunks ?? [];
+  const chunks: ParsedChunk[] = rawChunks.map((c) =>
+    typeof c === "string" ? { text: c } : (c as ParsedChunk)
+  );
   const totalChunks = chunks.length;
   const fileVespaId = `file-${connectorId}-${externalId}`;
   const accessControl = [`team:${file.connector.teamId}`];
@@ -408,8 +432,11 @@ async function processIndex(
   // Clean up existing chunks
   await cleanupExistingChunks(fileId);
 
-  // Index file-level document
-  const fileSummary = chunks.slice(0, 3).join("\n\n").slice(0, 2000);
+  const fileSummary = chunks
+    .slice(0, 3)
+    .map((c) => c.text)
+    .join("\n\n")
+    .slice(0, 2000);
   await vespaClient.feedDocument({
     id: fileVespaId,
     connector_id: connectorId,

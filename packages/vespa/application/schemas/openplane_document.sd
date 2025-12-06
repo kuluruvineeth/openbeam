@@ -349,6 +349,16 @@ schema openplane_document {
       indexing: summary | attribute
       # True if this is a chunk document, false for file-level docs
     }
+    
+    field page_number type int {
+      indexing: summary | attribute
+      # Page number where this chunk starts (1-based, for PDFs/documents)
+    }
+    
+    field page_end type int {
+      indexing: summary | attribute
+      # End page number if chunk spans multiple pages
+    }
   }
   
   # === Field Sets ===
