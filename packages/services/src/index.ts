@@ -1,4 +1,5 @@
 export * from "./ai";
+export * from "./engine";
 
 export { GmailAuth, GmailServiceAccountAuth } from "./gmail";
 export {
@@ -23,6 +24,7 @@ export {
   type SlackClient,
   type SlackEvent,
   type SlackEventEnvelope,
+  type SlackFileInfo,
   type SyncBatch,
   type SyncCursor,
   type TransformContext,
