@@ -34,11 +34,12 @@ async def parse_document(
         )
 
     suffix = Path(file.filename).suffix
-    with NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-        tmp.write(content)
-        tmp_path = Path(tmp.name)
-
+    tmp_path = None
     try:
+        with NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            tmp.write(content)
+            tmp_path = Path(tmp.name)
+
         result = await parser_service.parse(tmp_path, mime_type=file.content_type)
 
         chunks = None
@@ -62,7 +63,8 @@ async def parse_document(
         logger.error("parse_failed", filename=file.filename, error=str(e))
         raise HTTPException(status_code=500, detail=str(e)) from e
     finally:
-        tmp_path.unlink(missing_ok=True)
+        if tmp_path is not None:
+            tmp_path.unlink(missing_ok=True)
 
 
 @router.post("/url", response_model=ParseResponse)
@@ -85,11 +87,12 @@ async def parse_from_url(
     filename = request.filename or request.url.split("/")[-1].split("?")[0]
     suffix = Path(filename).suffix or ".bin"
 
-    with NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-        tmp.write(content)
-        tmp_path = Path(tmp.name)
-
+    tmp_path = None
     try:
+        with NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            tmp.write(content)
+            tmp_path = Path(tmp.name)
+
         result = await parser_service.parse(tmp_path)
 
         chunks = None
@@ -113,4 +116,5 @@ async def parse_from_url(
         logger.error("parse_url_failed", url=request.url, error=str(e))
         raise HTTPException(status_code=500, detail=str(e)) from e
     finally:
-        tmp_path.unlink(missing_ok=True)
+        if tmp_path is not None:
+            tmp_path.unlink(missing_ok=True)

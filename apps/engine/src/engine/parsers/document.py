@@ -1,3 +1,4 @@
+import asyncio
 import contextlib
 from pathlib import Path
 from typing import Any
@@ -83,7 +84,8 @@ class DocumentParser(BaseParser):
     async def parse(self, file_path: Path) -> ParsedDocument:
         logger.debug("parsing_document", path=str(file_path))
 
-        elements = partition(
+        elements = await asyncio.to_thread(
+            partition,
             filename=str(file_path),
             strategy=settings.parser_strategy,
             include_page_breaks=True,
