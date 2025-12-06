@@ -1,5 +1,7 @@
 export * from "./cleanup-queue";
 export { closeCleanupQueue } from "./cleanup-queue";
+export * from "./file-processing-queue";
+export { closeFileProcessingQueue } from "./file-processing-queue";
 export * from "./index-queue";
 export { closeIndexQueue } from "./index-queue";
 export * from "./sync-queue";
