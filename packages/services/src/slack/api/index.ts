@@ -13,6 +13,19 @@ export {
 } from "./channels";
 
 export {
+  filterSupportedFiles,
+  type GetFileInfoResponse,
+  getAllFiles,
+  getDownloadUrl,
+  getFileInfo,
+  getFilesSince,
+  hasDownloadUrl,
+  type ListFilesOptions,
+  type ListFilesResponse,
+  listFiles,
+} from "./files";
+
+export {
   type FetchMessagesOptions,
   type FetchRepliesOptions,
   type FetchThreadRepliesSinceOptions,

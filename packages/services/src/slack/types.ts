@@ -205,6 +205,7 @@ export interface SyncCursor {
   lastTimestamp?: string;
   channelCursors?: Record<string, string>;
   lastFullSync?: number;
+  lastFileSyncTimestamp?: string;
 }
 
 export interface SyncOptions {

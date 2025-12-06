@@ -6,6 +6,14 @@ export {
   syncChannelsBatched,
 } from "./channels";
 export {
+  type FileSyncBatch,
+  type FileSyncOptions,
+  getLatestFileTimestamp,
+  type SlackFileInfo,
+  syncFiles,
+  transformSlackFile,
+} from "./files";
+export {
   createInitialCursor,
   createStatsAccumulator,
   deltaSync,

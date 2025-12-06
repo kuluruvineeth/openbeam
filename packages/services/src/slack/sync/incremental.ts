@@ -7,6 +7,12 @@ import type {
   TransformContext,
 } from "../types";
 import { type SyncChannelsOptions, syncChannels } from "./channels";
+import {
+  type FileSyncOptions,
+  getLatestFileTimestamp,
+  type SlackFileInfo,
+  syncFiles,
+} from "./files";
 import { type SyncMessagesOptions, syncMultipleChannels } from "./messages";
 
 function filterChannelsByConfig(
@@ -38,6 +44,9 @@ export interface IncrementalSyncOptions {
   onChannelsDiscovered?: (channels: SlackChannel[]) => Promise<void>;
   disabledChannelIds?: Set<string>;
   enabledChannelIds?: Set<string>;
+  syncFiles?: boolean;
+  fileOptions?: Omit<FileSyncOptions, "lastSyncTimestamp">;
+  onFilesDiscovered?: (files: SlackFileInfo[]) => Promise<void>;
 }
 
 export interface SyncProgressCallback {
@@ -95,6 +104,9 @@ export function incrementalSync(
     onChannelsDiscovered,
     disabledChannelIds,
     enabledChannelIds,
+    syncFiles: shouldSyncFiles = false,
+    fileOptions = {},
+    onFilesDiscovered,
   } = options;
 
   if (shouldRunFullSync(cursor, forceFullSync, fullSyncInterval)) {
@@ -104,6 +116,9 @@ export function incrementalSync(
       onChannelsDiscovered,
       disabledChannelIds,
       enabledChannelIds,
+      syncFiles: shouldSyncFiles,
+      fileOptions,
+      onFilesDiscovered,
     });
   }
 
@@ -114,6 +129,9 @@ export function incrementalSync(
     onChannelsDiscovered,
     disabledChannelIds,
     enabledChannelIds,
+    syncFiles: shouldSyncFiles,
+    fileOptions,
+    onFilesDiscovered,
   });
 }
 
@@ -126,6 +144,9 @@ export async function* fullSync(
     onChannelsDiscovered?: (channels: SlackChannel[]) => Promise<void>;
     disabledChannelIds?: Set<string>;
     enabledChannelIds?: Set<string>;
+    syncFiles?: boolean;
+    fileOptions?: Omit<FileSyncOptions, "lastSyncTimestamp">;
+    onFilesDiscovered?: (files: SlackFileInfo[]) => Promise<void>;
   } = {}
 ): AsyncGenerator<SyncBatch<GenericDocument>, void, undefined> {
   const {
@@ -134,6 +155,9 @@ export async function* fullSync(
     onChannelsDiscovered,
     disabledChannelIds,
     enabledChannelIds,
+    syncFiles: shouldSyncFiles = false,
+    fileOptions = {},
+    onFilesDiscovered,
   } = options;
 
   const channelResult = await syncChannels(client, context, channelOptions);
@@ -153,6 +177,13 @@ export async function* fullSync(
     memberMap: channelResult.memberMap,
     cursor: { lastFullSync: Date.now() },
   });
+
+  if (shouldSyncFiles && onFilesDiscovered) {
+    yield* syncFilesWithCallback(client, context, {
+      ...fileOptions,
+      onFilesDiscovered,
+    });
+  }
 }
 
 export async function* deltaSync(
@@ -165,6 +196,9 @@ export async function* deltaSync(
     onChannelsDiscovered?: (channels: SlackChannel[]) => Promise<void>;
     disabledChannelIds?: Set<string>;
     enabledChannelIds?: Set<string>;
+    syncFiles?: boolean;
+    fileOptions?: Omit<FileSyncOptions, "lastSyncTimestamp">;
+    onFilesDiscovered?: (files: SlackFileInfo[]) => Promise<void>;
   }
 ): AsyncGenerator<SyncBatch<GenericDocument>, void, undefined> {
   const {
@@ -174,6 +208,9 @@ export async function* deltaSync(
     onChannelsDiscovered,
     disabledChannelIds,
     enabledChannelIds,
+    syncFiles: shouldSyncFiles = false,
+    fileOptions = {},
+    onFilesDiscovered,
   } = options;
 
   const channelResult = await syncChannels(client, context, channelOptions);
@@ -193,6 +230,53 @@ export async function* deltaSync(
     memberMap: channelResult.memberMap,
     cursor,
   });
+
+  if (shouldSyncFiles && onFilesDiscovered) {
+    yield* syncFilesWithCallback(client, context, {
+      ...fileOptions,
+      lastSyncTimestamp: cursor.lastFileSyncTimestamp,
+      onFilesDiscovered,
+    });
+  }
+}
+
+async function* syncFilesWithCallback(
+  client: SlackClient,
+  context: TransformContext,
+  options: FileSyncOptions & {
+    onFilesDiscovered: (files: SlackFileInfo[]) => Promise<void>;
+  }
+): AsyncGenerator<SyncBatch<GenericDocument>, void, undefined> {
+  const { onFilesDiscovered, ...fileOptions } = options;
+
+  let latestTimestamp: string | undefined;
+
+  for await (const batch of syncFiles(client, context, fileOptions)) {
+    if (batch.files.length > 0) {
+      await onFilesDiscovered(batch.files);
+
+      const batchLatest = getLatestFileTimestamp(batch.files);
+      if (
+        batchLatest &&
+        (!latestTimestamp || Number(batchLatest) > Number(latestTimestamp))
+      ) {
+        latestTimestamp = batchLatest;
+      }
+    }
+
+    yield {
+      items: [],
+      cursor: {
+        lastFileSyncTimestamp: latestTimestamp,
+      },
+      hasMore: batch.hasMore,
+      stats: {
+        processed: batch.stats.supported,
+        skipped: batch.stats.skipped,
+        errors: 0,
+      },
+    };
+  }
 }
 
 export function createInitialCursor(): SyncCursor {
