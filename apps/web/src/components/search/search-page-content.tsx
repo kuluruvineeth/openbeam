@@ -1,11 +1,16 @@
 "use client";
 
+import { useCallback, useMemo, useState } from "react";
+import { useDocumentPreview } from "@/hooks/use-document-preview";
 import { useSearch } from "@/hooks/use-search";
+import { useSearchNavigation } from "@/hooks/use-search-navigation";
+import type { SearchResultDocument } from "@/lib/search-types";
 import { SearchEmptyState } from "./search-empty-state";
 import { SearchFilters } from "./search-filters";
 import { SearchInput } from "./search-input";
 import { SearchResults } from "./search-results";
 import { SearchResultsSkeleton } from "./search-skeleton";
+import { SearchSplitView } from "./search-split-view";
 
 export function SearchPageContent() {
   const {
@@ -39,8 +44,52 @@ export function SearchPageContent() {
     total,
   } = useSearch();
 
-  return (
-    <div className="flex h-[calc(100vh-6rem)] flex-col">
+  const { previewId, openPreview, closePreview } = useDocumentPreview();
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+
+  const previewedDocument = useMemo(() => {
+    if (!previewId) {
+      return null;
+    }
+    return documents.find((doc) => doc.id === previewId) ?? null;
+  }, [previewId, documents]);
+
+  const handleSelect = useCallback(
+    (_doc: SearchResultDocument, index: number) => {
+      setSelectedIndex(index);
+    },
+    []
+  );
+
+  const handlePreview = useCallback(
+    (doc: SearchResultDocument) => {
+      openPreview(doc.id);
+    },
+    [openPreview]
+  );
+
+  const handleOpenExternal = useCallback((url: string) => {
+    window.open(url, "_blank", "noopener,noreferrer");
+  }, []);
+
+  useSearchNavigation({
+    documents,
+    selectedIndex,
+    setSelectedIndex,
+    previewId,
+    setPreviewId: (id) => {
+      if (id) {
+        openPreview(id);
+      } else {
+        closePreview();
+      }
+    },
+    onOpenExternal: handleOpenExternal,
+    enabled: hasResults,
+  });
+
+  const searchContent = (
+    <div className="flex h-full flex-col">
       <div className="sticky top-0 z-10 shrink-0 space-y-6 bg-background pb-4">
         <SearchInput onChange={setQuery} value={query} />
 
@@ -75,11 +124,29 @@ export function SearchPageContent() {
             fetchNextPage={fetchNextPage}
             hasNextPage={hasNextPage ?? false}
             isFetchingNextPage={isFetchingNextPage}
+            onPreview={handlePreview}
+            onSelect={handleSelect}
+            previewId={previewId}
             queryTime={queryTime}
+            selectedIndex={selectedIndex}
             total={total}
           />
         )}
       </div>
+    </div>
+  );
+
+  return (
+    <div className="h-[calc(100vh-6rem)]">
+      <SearchSplitView
+        chunkIndex={previewedDocument?.chunk_index}
+        highlightText={previewedDocument?.content}
+        onClosePreview={closePreview}
+        pageNumber={previewedDocument?.page_number}
+        previewId={previewId}
+      >
+        {searchContent}
+      </SearchSplitView>
     </div>
   );
 }

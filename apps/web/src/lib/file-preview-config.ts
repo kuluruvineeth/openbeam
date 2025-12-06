@@ -1,0 +1,169 @@
+import type { ComponentType } from "react";
+
+export type ViewerProps = {
+  url: string;
+  fileName: string;
+  mimeType: string;
+  fileSize?: number;
+  pageCount?: number | null;
+};
+
+export type ViewerComponent = ComponentType<ViewerProps>;
+
+export type FileCategory =
+  | "pdf"
+  | "image"
+  | "text"
+  | "code"
+  | "audio"
+  | "video"
+  | "document"
+  | "unsupported";
+
+export function getFileCategory(mimeType: string): FileCategory {
+  const type = mimeType.toLowerCase();
+
+  if (type === "application/pdf") {
+    return "pdf";
+  }
+
+  if (type.startsWith("image/")) {
+    return "image";
+  }
+
+  if (
+    type === "text/plain" ||
+    type === "text/markdown" ||
+    type === "text/html" ||
+    type === "text/csv"
+  ) {
+    return "text";
+  }
+
+  if (
+    type === "application/json" ||
+    type === "application/xml" ||
+    type === "text/xml" ||
+    type === "application/javascript" ||
+    type === "text/javascript" ||
+    type === "text/css"
+  ) {
+    return "code";
+  }
+
+  if (type.startsWith("audio/")) {
+    return "audio";
+  }
+
+  if (type.startsWith("video/")) {
+    return "video";
+  }
+
+  if (
+    type.includes("spreadsheet") ||
+    type.includes("document") ||
+    type.includes("presentation") ||
+    type ===
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+    type ===
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+    type ===
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation" ||
+    type === "application/msword" ||
+    type === "application/vnd.ms-excel" ||
+    type === "application/vnd.ms-powerpoint"
+  ) {
+    return "document";
+  }
+
+  return "unsupported";
+}
+
+export function isPreviewableByMimeType(mimeType: string | undefined): boolean {
+  if (!mimeType) {
+    return false;
+  }
+
+  const category = getFileCategory(mimeType);
+  return (
+    category === "pdf" ||
+    category === "image" ||
+    category === "text" ||
+    category === "code"
+  );
+}
+
+export function isPreviewable(
+  mimeType: string | undefined,
+  fileName?: string,
+  documentType?: string
+): boolean {
+  if (mimeType && isPreviewableByMimeType(mimeType)) {
+    return true;
+  }
+
+  if (fileName && isPreviewableByExtension(fileName)) {
+    return true;
+  }
+
+  if (documentType === "file" || documentType === "attachment") {
+    return true;
+  }
+
+  return false;
+}
+
+export function getFileTypeLabel(mimeType: string): string {
+  const category = getFileCategory(mimeType);
+
+  switch (category) {
+    case "pdf":
+      return "PDF Document";
+    case "image":
+      return "Image";
+    case "text":
+      return "Text File";
+    case "code":
+      return "Code File";
+    case "audio":
+      return "Audio File";
+    case "video":
+      return "Video File";
+    case "document":
+      return "Document";
+    default:
+      return "File";
+  }
+}
+
+export const PREVIEWABLE_EXTENSIONS = new Set([
+  "pdf",
+  "jpg",
+  "jpeg",
+  "png",
+  "gif",
+  "webp",
+  "svg",
+  "bmp",
+  "ico",
+  "txt",
+  "md",
+  "markdown",
+  "csv",
+  "log",
+  "json",
+  "xml",
+  "html",
+  "css",
+  "js",
+  "ts",
+  "jsx",
+  "tsx",
+  "yaml",
+  "yml",
+]);
+
+export function isPreviewableByExtension(fileName: string): boolean {
+  const ext = fileName.split(".").pop()?.toLowerCase();
+  return ext ? PREVIEWABLE_EXTENSIONS.has(ext) : false;
+}

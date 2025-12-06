@@ -43,6 +43,11 @@ export type SearchResultDocument = {
   access_control?: string[];
   is_public: boolean;
   url?: string;
+  chunk_index?: number;
+  total_chunks?: number;
+  is_chunk?: boolean;
+  page_number?: number;
+  page_end?: number;
 };
 
 export type SearchFilters = {

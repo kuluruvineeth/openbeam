@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useInView } from "react-intersection-observer";
 import { Icons } from "@/components/icons";
-import type { SearchResultDocument } from "@/hooks/use-search";
+import type { SearchResultDocument } from "@/lib/search-types";
 import { SearchResultRow } from "./search-result-row";
 
 type SearchResultsProps = {
@@ -13,6 +13,10 @@ type SearchResultsProps = {
   isFetchingNextPage: boolean;
   queryTime?: number;
   total?: number;
+  selectedIndex?: number;
+  previewId?: string | null;
+  onSelect?: (doc: SearchResultDocument, index: number) => void;
+  onPreview?: (doc: SearchResultDocument) => void;
 };
 
 export function SearchResults({
@@ -22,14 +26,26 @@ export function SearchResults({
   isFetchingNextPage,
   queryTime,
   total,
+  selectedIndex = -1,
+  previewId,
+  onSelect,
+  onPreview,
 }: SearchResultsProps) {
   const { ref, inView } = useInView();
+  const rowRefs = useRef<Map<number, HTMLButtonElement>>(new Map());
 
   useEffect(() => {
     if (inView && hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  useEffect(() => {
+    if (selectedIndex >= 0 && rowRefs.current.has(selectedIndex)) {
+      const row = rowRefs.current.get(selectedIndex);
+      row?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, [selectedIndex]);
 
   return (
     <div className="space-y-3">
@@ -53,7 +69,18 @@ export function SearchResults({
           <SearchResultRow
             document={doc}
             isLast={index === documents.length - 1}
+            isPreviewing={previewId === doc.id}
+            isSelected={selectedIndex === index}
             key={doc.id}
+            onPreview={onPreview}
+            onSelect={(d) => onSelect?.(d, index)}
+            ref={(el) => {
+              if (el) {
+                rowRefs.current.set(index, el);
+              } else {
+                rowRefs.current.delete(index);
+              }
+            }}
           />
         ))}
       </div>
