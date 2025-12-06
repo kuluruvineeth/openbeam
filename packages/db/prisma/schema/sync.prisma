@@ -364,3 +364,79 @@ model SyncDeadLetter {
   @@map("sync_dead_letter")
 }
 
+enum FileProcessingStatus {
+  PENDING
+  DOWNLOADING
+  DOWNLOADED
+  PARSING
+  PARSED
+  INDEXING
+  INDEXED
+  FAILED
+}
+
+model IndexedFile {
+  id               String               @id @default(cuid()) @map("_id")
+  connectorId      String
+  vespaId          String               @unique
+  externalId       String
+  sourceMessageId  String?
+  sourceChannelId  String?
+
+  fileName         String
+  mimeType         String
+  fileSize         Int
+  fileExtension    String?
+
+  storageKey       String               @unique
+  storageUrl       String?
+
+  processingStatus FileProcessingStatus @default(PENDING)
+  extractedText    Boolean              @default(false)
+  textLength       Int?
+  pageCount        Int?
+  chunkCount       Int?
+
+  lastError        String?
+  errorCount       Int                  @default(0)
+  checksum         String?
+
+  uploadedAt       DateTime?
+  processedAt      DateTime?
+  indexedAt        DateTime?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  connector        Connector            @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+  chunks           IndexedChunk[]
+
+  @@unique([connectorId, externalId])
+  @@index([processingStatus])
+  @@index([mimeType])
+  @@index([connectorId])
+  @@map("indexed_file")
+}
+
+model IndexedChunk {
+  id              String      @id @default(cuid()) @map("_id")
+  fileId          String
+  connectorId     String
+
+  vespaId         String      @unique
+
+  chunkIndex      Int
+
+  checksum        String?
+  contentLength   Int?
+
+  indexedAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  file            IndexedFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@unique([fileId, chunkIndex])
+  @@index([connectorId])
+  @@index([vespaId])
+  @@map("indexed_chunk")
+}
+

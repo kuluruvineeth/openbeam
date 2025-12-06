@@ -222,7 +222,7 @@ model Connector {
   externalGroups      ExternalGroup[]
   indexedDocuments    IndexedDocument[]
   connectorResources  ConnectorResource[]
-  
+  indexedFiles        IndexedFile[]
 
   @@unique([teamId, workspaceExternalId, app, name])
   @@index([teamId, status])
