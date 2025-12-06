@@ -12,16 +12,18 @@ import {
 const DEFAULT_TIMEOUT = 30_000; // 30 seconds
 
 export class EngineClient {
+  private readonly baseUrl: string;
   private readonly timeout: number;
 
-  constructor(
-    private readonly baseUrl: string,
-    options: EngineClientOptions = {}
-  ) {
+  constructor(baseUrl: string, options: EngineClientOptions = {}) {
+    this.baseUrl = baseUrl;
     this.timeout = options.timeout ?? DEFAULT_TIMEOUT;
   }
 
-  private async fetch(url: string, init?: RequestInit): Promise<Response> {
+  private async fetchWithTimeout(
+    url: string,
+    init?: RequestInit
+  ): Promise<Response> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
@@ -46,7 +48,7 @@ export class EngineClient {
   }
 
   async health(): Promise<HealthResponse> {
-    const response = await this.fetch(`${this.baseUrl}/health`);
+    const response = await this.fetchWithTimeout(`${this.baseUrl}/health`);
     if (!response.ok) {
       throw new EngineError("Health check failed", response.status);
     }
@@ -54,7 +56,9 @@ export class EngineClient {
   }
 
   async getSupportedTypes(): Promise<SupportedTypesResponse> {
-    const response = await this.fetch(`${this.baseUrl}/supported-types`);
+    const response = await this.fetchWithTimeout(
+      `${this.baseUrl}/supported-types`
+    );
     if (!response.ok) {
       throw new EngineError("Failed to get supported types", response.status);
     }
@@ -80,8 +84,8 @@ export class EngineClient {
       params.set("overlap", String(options.overlap));
     }
 
-    const url = `${this.baseUrl}/parse${params.toString() ? `?${params}` : ""}`;
-    const response = await this.fetch(url, {
+    const parseUrl = `${this.baseUrl}/parse${params.toString() ? `?${params}` : ""}`;
+    const response = await this.fetchWithTimeout(parseUrl, {
       method: "POST",
       body: formData,
     });
@@ -111,7 +115,7 @@ export class EngineClient {
     }
 
     const endpoint = `${this.baseUrl}/parse/url${params.toString() ? `?${params}` : ""}`;
-    const response = await this.fetch(endpoint, {
+    const response = await this.fetchWithTimeout(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ url, filename }),
@@ -129,7 +133,7 @@ export class EngineClient {
     text: string,
     options: ChunkOptions = {}
   ): Promise<ChunkResponse> {
-    const response = await this.fetch(`${this.baseUrl}/chunk`, {
+    const response = await this.fetchWithTimeout(`${this.baseUrl}/chunk`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
