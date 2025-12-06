@@ -3,6 +3,17 @@ import { z } from "zod";
 import { createTRPCRouter } from "../index";
 import { withActiveTeam } from "./apps/middleware";
 
+function buildAccessControlIds(ctx: {
+  teamId: string;
+  session: { user: { id: string; email?: string | null } };
+}): string[] {
+  return [
+    `team:${ctx.teamId}`,
+    ctx.session.user.id,
+    ctx.session.user.email,
+  ].filter(Boolean) as string[];
+}
+
 const searchInputSchema = z.object({
   q: z.string().default(""),
   connectorTypes: z.array(z.string()).optional(),
@@ -39,6 +50,7 @@ export const searchRouter = createTRPCRouter({
     .input(searchInputSchema)
     .query(async ({ ctx, input }) => {
       const effectiveOffset = input.cursor ?? input.offset;
+      const accessControlIds = buildAccessControlIds(ctx);
 
       const result = await searchService.search({
         query: input.q,
@@ -57,7 +69,7 @@ export const searchRouter = createTRPCRouter({
         limit: input.limit,
         offset: effectiveOffset,
         ranking: input.ranking as SearchRanking,
-        accessControlIds: undefined,
+        accessControlIds,
       });
 
       const nextCursor = result.hasMore
@@ -80,11 +92,13 @@ export const searchRouter = createTRPCRouter({
   autocomplete: withActiveTeam
     .input(autocompleteInputSchema)
     .query(async ({ ctx, input }) => {
+      const accessControlIds = buildAccessControlIds(ctx);
+
       const suggestions = await searchService.autocomplete({
         prefix: input.prefix,
         teamId: ctx.teamId,
         limit: input.limit,
-        accessControlIds: undefined,
+        accessControlIds,
       });
 
       return {
@@ -102,11 +116,13 @@ export const searchRouter = createTRPCRouter({
   recent: withActiveTeam
     .input(recentInputSchema)
     .query(async ({ ctx, input }) => {
+      const accessControlIds = buildAccessControlIds(ctx);
+
       const documents = await searchService.getRecentDocuments({
         teamId: ctx.teamId,
         hours: input.hours,
         limit: input.limit,
-        accessControlIds: undefined,
+        accessControlIds,
       });
 
       return {
