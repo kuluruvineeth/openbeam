@@ -81,6 +81,9 @@ async def parse_from_url(
             response = await client.get(request.url, follow_redirects=True)
             response.raise_for_status()
             content = response.content
+            content_type = response.headers.get("content-type")
+            if content_type:
+                content_type = content_type.split(";")[0].strip()
     except httpx.HTTPError as e:
         raise HTTPException(status_code=400, detail=f"Failed to fetch URL: {e}") from e
 
@@ -93,7 +96,7 @@ async def parse_from_url(
             tmp.write(content)
             tmp_path = Path(tmp.name)
 
-        result = await parser_service.parse(tmp_path)
+        result = await parser_service.parse(tmp_path, mime_type=content_type)
 
         chunks = None
         if chunk and result.elements:
@@ -105,7 +108,7 @@ async def parse_from_url(
 
         return ParseResponse(
             filename=filename,
-            mime_type=None,
+            mime_type=content_type,
             elements=result.elements,
             chunks=chunks,
             metadata=result.metadata,
