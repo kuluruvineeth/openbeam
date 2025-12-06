@@ -95,6 +95,11 @@ jobs:
               - 'package.json'
               - 'bun.lock'
               - 'turbo.json'
+            engine:
+              - 'apps/engine/**'
+              - 'apps/engine/Dockerfile'
+              - 'apps/engine/pyproject.toml'
+              - 'apps/engine/uv.lock'
 
       - name: Set Matrix
         id: set-matrix
@@ -103,7 +108,7 @@ jobs:
           # For now, build all images on manual trigger
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             # Build all services for manual trigger
-            MATRIX='["server", "web", "fumadocs", "worker"]'
+            MATRIX='["server", "web", "fumadocs", "worker", "engine"]'
             HAS_CHANGES="true"
             echo "Manual trigger: building all images"
           else
@@ -131,6 +136,11 @@ jobs:
 
             if [ "${{ steps.filter.outputs.worker }}" == "true" ]; then
               MATRIX=$(echo $MATRIX | jq '. + ["worker"]')
+              HAS_CHANGES="true"
+            fi
+
+            if [ "${{ steps.filter.outputs.engine }}" == "true" ]; then
+              MATRIX=$(echo $MATRIX | jq '. + ["engine"]')
               HAS_CHANGES="true"
             fi
 
@@ -261,13 +271,18 @@ jobs:
           tags: |
             type=raw,value=latest
 
-      - name: Determine Dockerfile path
+      - name: Determine Dockerfile path and context
         id: dockerfile
         run: |
-          if [ -f "./apps/${{ matrix.service }}/Dockerfile" ]; then
+          if [ "${{ matrix.service }}" == "engine" ]; then
+            echo "path=./apps/engine/Dockerfile" >> $GITHUB_OUTPUT
+            echo "context=./apps/engine" >> $GITHUB_OUTPUT
+          elif [ -f "./apps/${{ matrix.service }}/Dockerfile" ]; then
             echo "path=./apps/${{ matrix.service }}/Dockerfile" >> $GITHUB_OUTPUT
+            echo "context=." >> $GITHUB_OUTPUT
           else
             echo "path=./Dockerfile.${{ matrix.service }}" >> $GITHUB_OUTPUT
+            echo "context=." >> $GITHUB_OUTPUT
           fi
 
       - name: Build and push Docker image
@@ -276,7 +291,7 @@ jobs:
           NEXT_PUBLIC_SERVER_URL: ${{ secrets.NEXT_PUBLIC_SERVER_URL_WEB }}
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ${{ steps.dockerfile.outputs.context }}
           file: ${{ steps.dockerfile.outputs.path }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}

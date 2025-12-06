@@ -28,7 +28,7 @@ on:
         type: choice
         options: [dev, prod]
       services:
-        description: 'Services to deploy (comma-separated: server,worker,web or "all")'
+        description: 'Services to deploy (comma-separated: server,worker,web,engine or "all")'
         required: true
         default: "all"
 
@@ -114,7 +114,7 @@ jobs:
       id-token: write
     strategy:
       matrix:
-        service: [server, worker, web]
+        service: [server, worker, web, engine]
       fail-fast: false
 
     steps:
