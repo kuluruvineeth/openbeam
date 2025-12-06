@@ -148,7 +148,7 @@ export class VespaClient {
       };
 
       if (params.ranking) {
-        body.ranking = params.ranking;
+        body["ranking.profile"] = params.ranking;
       }
       if (params.timeout) {
         body.timeout = params.timeout;
@@ -180,7 +180,7 @@ export class VespaClient {
     queryParams.set("yql", params.yql);
 
     if (params.ranking) {
-      queryParams.set("ranking", params.ranking);
+      queryParams.set("ranking.profile", params.ranking);
     }
     if (params.hits) {
       queryParams.set("hits", params.hits.toString());

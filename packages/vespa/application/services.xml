@@ -28,6 +28,14 @@
     <nodes>
       <node hostalias="node1" distribution-key="0"/>
     </nodes>
+
+    <!-- Raise feed block thresholds for dev; values are fractions (0.0-1.0) -->
+    <tuning>
+      <resource-limits>
+        <disk>0.9</disk>
+        <memory>0.9</memory>
+      </resource-limits>
+    </tuning>
   </content>
 </services>
 

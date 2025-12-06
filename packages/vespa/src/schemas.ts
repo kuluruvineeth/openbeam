@@ -59,6 +59,10 @@ export interface GenericDocument {
   access_control?: string[];
   is_public: boolean;
   url?: string;
+  chunk_index?: number;
+  total_chunks?: number;
+  parent_doc_id?: string;
+  is_chunk?: boolean;
 }
 
 export interface Entity {

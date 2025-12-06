@@ -327,6 +327,28 @@ schema openplane_document {
     field url type string {
       indexing: summary
     }
+    
+    # === Chunk-Specific Fields ===
+    field chunk_index type int {
+      indexing: summary | attribute
+      # Index of this chunk within the parent document (0-based)
+    }
+    
+    field total_chunks type int {
+      indexing: summary | attribute
+      # Total number of chunks in the parent document
+    }
+    
+    field parent_doc_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+      # Reference to the parent file document for chunks
+    }
+    
+    field is_chunk type bool {
+      indexing: summary | attribute
+      # True if this is a chunk document, false for file-level docs
+    }
   }
   
   # === Field Sets ===
