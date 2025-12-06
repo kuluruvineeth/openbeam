@@ -11,13 +11,15 @@ chunker_service = ChunkerService()
 
 @router.post("", response_model=ChunkResponse)
 async def chunk_text(request: ChunkRequest) -> ChunkResponse:
-    chunks = await chunker_service.chunk_text(
+    chunk_tuples = await chunker_service.chunk_text(
         request.text,
         max_characters=request.max_characters,
         overlap=request.overlap,
     )
 
-    doc_chunks = [DocumentChunk(index=i, text=chunk) for i, chunk in enumerate(chunks)]
+    doc_chunks = [
+        DocumentChunk(index=i, text=text) for i, (text, _, _) in enumerate(chunk_tuples)
+    ]
 
     return ChunkResponse(
         chunks=doc_chunks,
