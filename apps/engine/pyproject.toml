@@ -14,8 +14,8 @@ dependencies = [
     "redis>=5.2.0",
     "httpx>=0.28.0",
     "python-multipart>=0.0.17",
-    "boto3-stubs[boto3]>=1.42.2",
-    "boto3>=1.42.2",
+    "aioboto3>=13.0.0",
+    "types-aiobotocore-s3>=2.15.0",
 ]
 
 [project.optional-dependencies]
@@ -59,11 +59,11 @@ warn_return_any = true
 warn_unused_ignores = true
 
 [[tool.mypy.overrides]]
-module = ["boto3.*", "botocore.*"]
+module = ["aioboto3.*", "aiobotocore.*"]
 ignore_missing_imports = true
 
 [tool.pyright]
-ignore = ["**/boto3/**", "**/botocore/**"]
+ignore = ["**/aioboto3/**", "**/aiobotocore/**"]
 reportMissingTypeStubs = false
 
 [tool.pytest.ini_options]
