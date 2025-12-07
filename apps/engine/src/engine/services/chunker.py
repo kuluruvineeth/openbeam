@@ -47,7 +47,7 @@ class ChunkerService:
             stripped = text.strip()
             if not stripped:
                 return []
-            start_offset = text.index(stripped[0])
+            start_offset = len(text) - len(text.lstrip())
             return [(stripped, start_offset, start_offset + len(stripped))]
 
         chunks: list[tuple[str, int, int]] = []
