@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Literal
 
 from engine.core.logging import get_logger
 from engine.models.document import DocumentChunk, DocumentElement, ParsedDocument
@@ -9,10 +10,15 @@ logger = get_logger(__name__)
 
 chunker_service = ChunkerService()
 
+ParserStrategy = Literal["fast", "hi_res", "ocr_only", "auto"]
+
 
 class ParserService:
     async def parse(
-        self, file_path: Path, mime_type: str | None = None
+        self,
+        file_path: Path,
+        mime_type: str | None = None,
+        strategy: ParserStrategy | None = None,
     ) -> ParsedDocument:
         parser = None
 
@@ -33,9 +39,10 @@ class ParserService:
             parser=parser.name,
             file=file_path.name,
             mime_type=mime_type,
+            strategy=strategy,
         )
 
-        return await parser.parse(file_path)
+        return await parser.parse(file_path, mime_type=mime_type, strategy=strategy)
 
     async def chunk_elements(
         self,

@@ -1,17 +1,45 @@
 import asyncio
 import contextlib
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from unstructured.documents.elements import Element
 from unstructured.partition.auto import partition
 
-from engine.core.config import settings
 from engine.core.logging import get_logger
 from engine.models.document import DocumentElement, ParsedDocument
 from engine.parsers.base import BaseParser
 
 logger = get_logger(__name__)
+
+ParserStrategy = Literal["fast", "hi_res", "ocr_only", "auto"]
+
+IMAGE_MIMES = frozenset(
+    [
+        "image/png",
+        "image/jpeg",
+        "image/gif",
+        "image/webp",
+        "image/tiff",
+        "image/bmp",
+    ]
+)
+
+TEXT_MIMES = frozenset(
+    [
+        "text/plain",
+        "text/markdown",
+        "text/x-markdown",
+        "text/csv",
+        "application/json",
+        "text/xml",
+        "application/xml",
+    ]
+)
+
+IMAGE_EXTENSIONS = frozenset(
+    ["png", "jpg", "jpeg", "gif", "webp", "tiff", "tif", "bmp"]
+)
 
 
 class DocumentParser(BaseParser):
@@ -81,13 +109,40 @@ class DocumentParser(BaseParser):
             "bmp",
         ]
 
-    async def parse(self, file_path: Path) -> ParsedDocument:
-        logger.debug("parsing_document", path=str(file_path))
+    def get_optimal_strategy(
+        self, mime_type: str | None, file_path: Path
+    ) -> ParserStrategy:
+        if mime_type:
+            if mime_type in IMAGE_MIMES:
+                return "hi_res"
+            if mime_type in TEXT_MIMES:
+                return "fast"
+
+        extension = file_path.suffix.lstrip(".").lower()
+        if extension in IMAGE_EXTENSIONS:
+            return "hi_res"
+
+        return "auto"
+
+    async def parse(
+        self,
+        file_path: Path,
+        mime_type: str | None = None,
+        strategy: ParserStrategy | None = None,
+    ) -> ParsedDocument:
+        effective_strategy = strategy or self.get_optimal_strategy(mime_type, file_path)
+
+        logger.debug(
+            "parsing_document",
+            path=str(file_path),
+            mime_type=mime_type,
+            strategy=effective_strategy,
+        )
 
         elements = await asyncio.to_thread(
             partition,
             filename=str(file_path),
-            strategy=settings.parser_strategy,
+            strategy=effective_strategy,
             include_page_breaks=True,
         )
 
@@ -105,6 +160,7 @@ class DocumentParser(BaseParser):
         logger.info(
             "document_parsed",
             path=str(file_path),
+            strategy=effective_strategy,
             elements=len(doc_elements),
             pages=page_count,
             text_length=text_length,

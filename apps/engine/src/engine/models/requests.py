@@ -1,9 +1,14 @@
+from typing import Literal
+
 from pydantic import BaseModel, Field
+
+ParserStrategy = Literal["fast", "hi_res", "ocr_only", "auto"]
 
 
 class ParseUrlRequest(BaseModel):
     url: str
     filename: str | None = None
+    strategy: ParserStrategy | None = None
 
 
 class ChunkRequest(BaseModel):

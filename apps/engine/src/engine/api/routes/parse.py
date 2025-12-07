@@ -1,5 +1,6 @@
 from pathlib import Path
 from tempfile import NamedTemporaryFile
+from typing import Literal
 
 from fastapi import APIRouter, HTTPException, UploadFile
 
@@ -8,6 +9,8 @@ from engine.core.logging import get_logger
 from engine.models.requests import ParseUrlRequest
 from engine.models.responses import ParseResponse
 from engine.services.parser import ParserService
+
+ParserStrategy = Literal["fast", "hi_res", "ocr_only", "auto"]
 
 router = APIRouter()
 logger = get_logger(__name__)
@@ -20,6 +23,7 @@ async def parse_document(
     chunk: bool = True,
     max_chunk_size: int = 1500,
     overlap: int = 150,
+    strategy: ParserStrategy | None = None,
 ) -> ParseResponse:
     if not file.filename:
         raise HTTPException(status_code=400, detail="Filename required")
@@ -40,7 +44,9 @@ async def parse_document(
             tmp.write(content)
             tmp_path = Path(tmp.name)
 
-        result = await parser_service.parse(tmp_path, mime_type=file.content_type)
+        result = await parser_service.parse(
+            tmp_path, mime_type=file.content_type, strategy=strategy
+        )
 
         chunks = None
         if chunk and result.elements:
@@ -73,6 +79,7 @@ async def parse_from_url(
     chunk: bool = True,
     max_chunk_size: int = 1500,
     overlap: int = 150,
+    strategy: ParserStrategy | None = None,
 ) -> ParseResponse:
     import httpx
 
@@ -90,13 +97,17 @@ async def parse_from_url(
     filename = request.filename or request.url.split("/")[-1].split("?")[0]
     suffix = Path(filename).suffix or ".bin"
 
+    effective_strategy = request.strategy or strategy
+
     tmp_path = None
     try:
         with NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
             tmp.write(content)
             tmp_path = Path(tmp.name)
 
-        result = await parser_service.parse(tmp_path, mime_type=content_type)
+        result = await parser_service.parse(
+            tmp_path, mime_type=content_type, strategy=effective_strategy
+        )
 
         chunks = None
         if chunk and result.elements:

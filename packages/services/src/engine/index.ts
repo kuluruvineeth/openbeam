@@ -16,6 +16,7 @@ export type {
   ParseOptions,
   ParseResponse,
   ParserInfo,
+  ParserStrategy,
   SupportedTypesResponse,
 } from "./types";
 export { EngineError } from "./types";

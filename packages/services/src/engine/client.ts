@@ -83,6 +83,9 @@ export class EngineClient {
     if (options.overlap !== undefined) {
       params.set("overlap", String(options.overlap));
     }
+    if (options.strategy !== undefined) {
+      params.set("strategy", options.strategy);
+    }
 
     const parseUrl = `${this.baseUrl}/parse${params.toString() ? `?${params}` : ""}`;
     const response = await this.fetchWithTimeout(parseUrl, {
@@ -113,12 +116,15 @@ export class EngineClient {
     if (options.overlap !== undefined) {
       params.set("overlap", String(options.overlap));
     }
+    if (options.strategy !== undefined) {
+      params.set("strategy", options.strategy);
+    }
 
     const endpoint = `${this.baseUrl}/parse/url${params.toString() ? `?${params}` : ""}`;
     const response = await this.fetchWithTimeout(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url, filename }),
+      body: JSON.stringify({ url, filename, strategy: options.strategy }),
     });
 
     if (!response.ok) {

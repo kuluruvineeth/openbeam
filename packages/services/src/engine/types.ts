@@ -33,10 +33,13 @@ export interface HealthResponse {
   version: string;
 }
 
+export type ParserStrategy = "fast" | "hi_res" | "ocr_only" | "auto";
+
 export interface ParseOptions {
   chunk?: boolean;
   maxChunkSize?: number;
   overlap?: number;
+  strategy?: ParserStrategy;
 }
 
 export interface ChunkOptions {
