@@ -6,10 +6,13 @@ import { getFileCategory } from "@/lib/file-preview-config";
 import { useTRPC } from "@/trpc/client";
 import { FilePreviewError } from "./file-preview-error";
 import { FilePreviewHeader } from "./file-preview-header";
-import { FilePreviewLoading, PdfPagesSkeleton } from "./file-preview-loading";
+import {
+  FilePreviewLoading,
+  ImageSkeleton,
+  PdfPagesSkeleton,
+  TextSkeleton,
+} from "./file-preview-loading";
 import { FilePreviewUnsupported } from "./file-preview-unsupported";
-import { ImageViewer } from "./viewers/image-viewer";
-import { TextViewer } from "./viewers/text-viewer";
 
 const PdfViewer = dynamic(
   () => import("./viewers/pdf-viewer").then((mod) => mod.PdfViewer),
@@ -17,6 +20,16 @@ const PdfViewer = dynamic(
     ssr: false,
     loading: () => <PdfPagesSkeleton count={2} showLines={false} />,
   }
+);
+
+const ImageViewer = dynamic(
+  () => import("./viewers/image-viewer").then((mod) => mod.ImageViewer),
+  { ssr: false, loading: () => <ImageSkeleton /> }
+);
+
+const TextViewer = dynamic(
+  () => import("./viewers/text-viewer").then((mod) => mod.TextViewer),
+  { ssr: false, loading: () => <TextSkeleton /> }
 );
 
 type FilePreviewPanelProps = {

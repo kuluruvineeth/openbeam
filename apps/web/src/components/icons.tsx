@@ -17,6 +17,7 @@ import {
   ClaudeIcon,
   ClockIcon,
   Comment01Icon,
+  Copy01Icon,
   DatabaseIcon,
   DocumentCodeIcon,
   FavouriteIcon,
@@ -245,4 +246,6 @@ export const Icons = {
   ChevronLeft: createIcon(ArrowLeftIcon),
   ChevronRight: createIcon(ArrowRightIcon),
   Eye: createIcon(ViewIcon),
+  Copy: createIcon(Copy01Icon),
+  Check: createIcon(TickIcon),
 };
