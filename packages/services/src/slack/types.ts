@@ -15,6 +15,7 @@ export const SlackFileSchema = z.object({
   thumb_360: z.string().optional(),
   created: z.number().optional(),
   user: z.string().optional(),
+  channels: z.array(z.string()).optional(),
 });
 
 export type SlackFile = z.infer<typeof SlackFileSchema>;

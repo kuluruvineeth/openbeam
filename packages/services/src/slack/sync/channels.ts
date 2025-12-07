@@ -34,11 +34,13 @@ export async function syncChannels(
   options: SyncChannelsOptions = {}
 ): Promise<ChannelSyncResult> {
   const {
-    types = ["public", "private"],
+    types: providedTypes,
     indexPrivate = false,
     indexDms = false,
     indexGroupDms = false,
   } = options;
+
+  const types = providedTypes ?? buildChannelTypes({ indexDms, indexGroupDms });
 
   const stats = {
     total: 0,
@@ -118,12 +120,13 @@ export async function getChangedChannels(
   unchanged: SlackChannel[];
 }> {
   const {
-    types = ["public", "private"],
+    types: providedTypes,
     indexPrivate = false,
     indexDms = false,
     indexGroupDms = false,
   } = options;
 
+  const types = providedTypes ?? buildChannelTypes({ indexDms, indexGroupDms });
   const apiTypes = mapChannelTypes(types);
   const currentChannels = await getAccessibleChannels(client, {
     types: apiTypes,
@@ -145,6 +148,23 @@ export async function getChangedChannels(
   const unchanged = currentIndexable.filter((c) => previousIds.has(c.id));
 
   return { added, removed, unchanged };
+}
+
+function buildChannelTypes(options: {
+  indexDms?: boolean;
+  indexGroupDms?: boolean;
+}): Array<"public" | "private" | "im" | "mpim"> {
+  const types: Array<"public" | "private" | "im" | "mpim"> = [
+    "public",
+    "private",
+  ];
+  if (options.indexDms) {
+    types.push("im");
+  }
+  if (options.indexGroupDms) {
+    types.push("mpim");
+  }
+  return types;
 }
 
 function mapChannelTypes(

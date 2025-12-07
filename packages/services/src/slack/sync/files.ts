@@ -38,6 +38,7 @@ export interface SlackFileInfo {
   permalink?: string;
   createdAt?: number;
   userId?: string;
+  channels?: string[];
 }
 
 export function transformSlackFile(file: SlackFile): SlackFileInfo {
@@ -52,6 +53,7 @@ export function transformSlackFile(file: SlackFile): SlackFileInfo {
     permalink: file.permalink,
     createdAt: file.created,
     userId: file.user,
+    channels: file.channels,
   };
 }
 

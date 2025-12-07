@@ -154,6 +154,15 @@ export const slackApp: UnifiedApp = {
       value: false,
     },
     {
+      id: "index_group_dms",
+      label: "Index Group Direct Messages",
+      description:
+        "Allow indexing of Group DMs (multi-person direct messages) where the OpenPlane bot is added.",
+      type: "switch",
+      required: false,
+      value: false,
+    },
+    {
       id: "bot_enabled",
       label: "Enable OpenPlane Bot",
       description:
