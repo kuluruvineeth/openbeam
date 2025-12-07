@@ -58,6 +58,7 @@ import {
   ToolsIcon,
   UserIcon,
   Video01Icon,
+  ViewIcon,
   WebhookIcon,
 } from "@hugeicons-pro/core-stroke-rounded";
 import Image from "next/image";
@@ -243,4 +244,5 @@ export const Icons = {
   Minus: createIcon(MinusSignIcon),
   ChevronLeft: createIcon(ArrowLeftIcon),
   ChevronRight: createIcon(ArrowRightIcon),
+  Eye: createIcon(ViewIcon),
 };

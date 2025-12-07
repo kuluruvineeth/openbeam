@@ -1,6 +1,7 @@
 "use client";
 
-import { useQueryState } from "nuqs";
+import { parseAsString, useQueryStates } from "nuqs";
+import { useCallback } from "react";
 import { Icons } from "@/components/icons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
@@ -39,9 +40,18 @@ export function ConnectorDetailTabs({
   connectorId,
   syncStatus,
 }: ConnectorDetailTabsProps) {
-  const [tab, setTab] = useQueryState("tab", {
-    defaultValue: "overview",
+  const [params, setParams] = useQueryStates({
+    tab: parseAsString.withDefault("overview"),
+    preview: parseAsString,
   });
+
+  const handleTabChange = useCallback(
+    (value: string) => {
+      setParams({ tab: value, preview: null });
+    },
+    [setParams]
+  );
+
   const resourceCount = syncStatus?.resources?.total;
 
   const tabs: TabConfig[] = [
@@ -70,7 +80,7 @@ export function ConnectorDetailTabs({
   ];
 
   return (
-    <Tabs className="w-full" onValueChange={setTab} value={tab}>
+    <Tabs className="w-full" onValueChange={handleTabChange} value={params.tab}>
       <TabsList className="h-auto w-full justify-start gap-1 rounded-none border-border border-b bg-transparent p-0">
         {tabs.map((t) => (
           <TabsTrigger
@@ -95,20 +105,20 @@ export function ConnectorDetailTabs({
         ))}
       </TabsList>
 
-      <div className="pt-6">
-        <TabsContent className="mt-0" value="overview">
+      <div className="h-[calc(100vh-280px)] pt-6">
+        <TabsContent className="mt-0 h-full overflow-auto" value="overview">
           <ConnectorOverviewTab connectorId={connectorId} />
         </TabsContent>
 
-        <TabsContent className="mt-0" value="settings">
+        <TabsContent className="mt-0 h-full overflow-auto" value="settings">
           <ConnectorSettingsTab connectorId={connectorId} />
         </TabsContent>
 
-        <TabsContent className="mt-0" value="history">
+        <TabsContent className="mt-0 h-full overflow-auto" value="history">
           <ConnectorSyncHistoryTab connectorId={connectorId} />
         </TabsContent>
 
-        <TabsContent className="mt-0" value="resources">
+        <TabsContent className="mt-0 h-full" value="resources">
           <ConnectorResourcesTab connectorId={connectorId} />
         </TabsContent>
       </div>
