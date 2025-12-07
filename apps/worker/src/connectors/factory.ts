@@ -42,12 +42,16 @@ export interface ChannelInfo {
   name: string;
   is_private: boolean;
   is_member?: boolean;
+  is_im?: boolean;
+  is_mpim?: boolean;
 }
 
 export interface StreamingSyncOptions {
   cursor?: string;
   batchSize?: number;
   forceFullSync?: boolean;
+  indexDms?: boolean;
+  indexGroupDms?: boolean;
   onBatch: (batch: {
     items: GenericDocument[];
     cursor: string;
@@ -68,6 +72,8 @@ export async function syncConnectorStreaming(
     cursor,
     batchSize,
     forceFullSync,
+    indexDms,
+    indexGroupDms,
     onBatch,
     onResourcesDiscovered,
     disabledResourceIds,
@@ -85,6 +91,8 @@ export async function syncConnectorStreaming(
         cursor: slackCursor,
         batchSize,
         forceFullSync,
+        indexDms,
+        indexGroupDms,
         onBatch: async (batch) => {
           await onBatch({
             items: batch.items,

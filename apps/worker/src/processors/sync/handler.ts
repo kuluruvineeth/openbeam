@@ -190,10 +190,21 @@ async function streamDocumentsToIndexQueue(params: {
       "channel"
     );
 
+    const config = (connector.config ?? {}) as {
+      index_dms?: boolean;
+      index_private_channels?: boolean;
+      index_group_dms?: boolean;
+      federated_include_group_dms?: boolean;
+      sync_files?: boolean;
+    };
+
     const result = await syncConnectorStreaming(connector, {
       cursor,
       forceFullSync: type === "FULL",
-      syncFiles: true,
+      syncFiles: config.sync_files ?? true,
+      indexDms: config.index_dms ?? false,
+      indexGroupDms:
+        config.index_group_dms ?? config.federated_include_group_dms ?? false,
       onBatch: async (batch) => {
         if (!(await validateFence(connectorId, fenceToken))) {
           throw new Error("Fence became invalid during streaming");
@@ -257,12 +268,14 @@ async function streamDocumentsToIndexQueue(params: {
           resources.map((r) => ({
             connectorId,
             externalId: r.id,
-            resourceType: r.is_private ? "private_channel" : "public_channel",
+            resourceType: getResourceType(r),
             name: r.name,
-            isPublic: !r.is_private,
+            isPublic: !(r.is_private || r.is_im || r.is_mpim),
             syncEnabled: true,
             metadata: {
               is_member: r.is_member ?? false,
+              is_im: r.is_im ?? false,
+              is_mpim: r.is_mpim ?? false,
             },
           }))
         );
@@ -411,4 +424,17 @@ async function handleJobError(params: {
       error,
     });
   }
+}
+
+function getResourceType(channel: ChannelInfo): string {
+  if (channel.is_im) {
+    return "dm";
+  }
+  if (channel.is_mpim) {
+    return "group_dm";
+  }
+  if (channel.is_private) {
+    return "private_channel";
+  }
+  return "public_channel";
 }

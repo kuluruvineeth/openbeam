@@ -93,6 +93,8 @@ async function processDiscoveredFile(
   const storageKey = `pending/${connectorId}/files/${file.id}/${file.name}`;
   const vespaId = `file-${connectorId}-${file.id}`;
 
+  const sourceChannelId = file.channels?.[0] ?? null;
+
   const indexedFile = await prisma.indexedFile.create({
     data: {
       connectorId,
@@ -104,6 +106,7 @@ async function processDiscoveredFile(
       fileExtension: getFileExtension(file.name),
       storageKey,
       processingStatus: "PENDING",
+      sourceChannelId,
     },
   });
 

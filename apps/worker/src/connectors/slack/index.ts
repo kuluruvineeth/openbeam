@@ -33,12 +33,16 @@ export interface SlackChannelInfo {
   id: string;
   name: string;
   is_private: boolean;
+  is_im?: boolean;
+  is_mpim?: boolean;
 }
 
 export interface SlackSyncOptions {
   cursor?: SyncCursor;
   batchSize?: number;
   indexPrivate?: boolean;
+  indexDms?: boolean;
+  indexGroupDms?: boolean;
   includeThreads?: boolean;
   forceFullSync?: boolean;
   onBatch: (batch: SyncBatch<GenericDocument>) => Promise<void>;
@@ -126,6 +130,8 @@ export async function syncSlackStreaming(
     cursor,
     batchSize = 100,
     indexPrivate = false,
+    indexDms = false,
+    indexGroupDms = false,
     includeThreads = true,
     forceFullSync = false,
     onBatch,
@@ -202,6 +208,8 @@ export async function syncSlackStreaming(
       forceFullSync,
       channelOptions: {
         indexPrivate,
+        indexDms,
+        indexGroupDms,
         batchSize,
       },
       messageOptions: {
@@ -216,6 +224,8 @@ export async function syncSlackStreaming(
                 name: ch.name,
                 is_private: ch.is_private,
                 is_member: ch.is_member,
+                is_im: ch.is_im,
+                is_mpim: ch.is_mpim,
               }))
             );
           }

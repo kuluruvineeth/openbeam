@@ -306,7 +306,9 @@ async function indexChunkBatch(
       external_id: `${externalId}-chunk-${i}`,
       document_type: "file_chunk",
       document_subtype: mimeType,
-      title: `${fileName} - Chunk ${i + 1}/${totalChunks}`,
+      title: chunk.page_number
+        ? `${fileName} · Page ${chunk.page_number}`
+        : (fileName ?? "Untitled"),
       content: chunk.text,
       content_plain: chunk.text,
       file_name: fileName,
@@ -356,7 +358,6 @@ async function indexChunkBatch(
     })
   );
 
-  // Collect successful results
   const results: ChunkResult[] = [];
   for (const r of indexResults) {
     if (r.status === "fulfilled" && r.value) {
@@ -429,7 +430,6 @@ async function processIndex(
   const fileVespaId = `file-${connectorId}-${externalId}`;
   const accessControl = [`team:${file.connector.teamId}`];
 
-  // Clean up existing chunks
   await cleanupExistingChunks(fileId);
 
   const fileSummary = chunks
@@ -467,7 +467,6 @@ async function processIndex(
     },
   });
 
-  // Index chunks in batches
   const embeddingsEnabled = isEmbeddingEnabled();
   const batchSize = Number(process.env.CHUNK_BATCH_SIZE) || 10;
   const ctx: ChunkIndexContext = {

@@ -325,8 +325,9 @@ async function recordInDatabase(
       vespaId: doc.id,
       documentType: doc.document_type,
       sourceId: doc.source_id,
+      title: doc.title,
       checksum: doc.checksum,
-      lastChecksum: existingDocsMap.get(doc.external_id)?.checksum || null,
+      lastChecksum: existingDocsMap.get(doc.external_id)?.checksum,
     }));
 
     let recordedCount = 0;
@@ -341,6 +342,7 @@ async function recordInDatabase(
               },
             },
             update: {
+              title: doc.title,
               checksum: doc.checksum,
               lastChecksum: doc.lastChecksum,
               lastSyncedAt: new Date(),
