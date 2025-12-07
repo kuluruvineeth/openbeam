@@ -4,6 +4,7 @@ import {
   findConnectorByTeam,
   listConnectorResources,
   listConnectorsByTeam,
+  listResourceDocuments,
   pauseConnector as pauseConnectorDb,
   resumeConnector as resumeConnectorDb,
   updateConnectorConfig,
@@ -152,10 +153,45 @@ export const connectorsRouter = createTRPCRouter({
     }),
 
   getResources: withActiveTeam
-    .input(z.object({ connectorId: z.string().min(1) }))
+    .input(
+      z.object({
+        connectorId: z.string().min(1),
+        search: z.string().optional(),
+        cursor: z.string().optional(),
+        limit: z.number().min(1).max(100).default(50),
+      })
+    )
     .query(async ({ ctx, input }) => {
       await verifyConnectorAccess(ctx.prisma, input.connectorId, ctx.teamId);
-      return listConnectorResources(ctx.prisma, input.connectorId);
+      return listConnectorResources(ctx.prisma, input.connectorId, {
+        search: input.search,
+        cursor: input.cursor,
+        limit: input.limit,
+      });
+    }),
+
+  getResourceDocuments: withActiveTeam
+    .input(
+      z.object({
+        connectorId: z.string().min(1),
+        resourceExternalId: z.string().min(1),
+        search: z.string().optional(),
+        cursor: z.string().optional(),
+        limit: z.number().min(1).max(50).default(10),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      await verifyConnectorAccess(ctx.prisma, input.connectorId, ctx.teamId);
+      return listResourceDocuments(
+        ctx.prisma,
+        input.connectorId,
+        input.resourceExternalId,
+        {
+          search: input.search,
+          cursor: input.cursor,
+          limit: input.limit,
+        }
+      );
     }),
 
   toggleResourceSync: withActiveTeam
@@ -166,7 +202,6 @@ export const connectorsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // Get the resource to verify access
       const resource = await ctx.prisma.connectorResource.findUnique({
         where: { id: input.resourceId },
         include: { connector: { select: { teamId: true } } },
