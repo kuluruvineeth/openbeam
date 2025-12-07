@@ -61,7 +61,78 @@ export function ImageSkeleton() {
   );
 }
 
-type Category = "pdf" | "image" | "text" | "code" | null;
+export function DocxSkeleton() {
+  return (
+    <div className="mx-auto flex max-w-2xl flex-col gap-3 p-8">
+      <Skeleton className="h-6 w-2/3" />
+      <div className="mt-2" />
+      <Skeleton className="h-3 w-full" />
+      <Skeleton className="h-3 w-11/12" />
+      <Skeleton className="h-3 w-full" />
+      <Skeleton className="h-3 w-4/5" />
+      <div className="mt-3" />
+      <Skeleton className="h-3 w-full" />
+      <Skeleton className="h-3 w-5/6" />
+      <Skeleton className="h-3 w-full" />
+      <Skeleton className="h-3 w-3/4" />
+      <Skeleton className="h-3 w-full" />
+      <div className="mt-3" />
+      <Skeleton className="h-3 w-full" />
+      <Skeleton className="h-3 w-2/3" />
+    </div>
+  );
+}
+
+export function SpreadsheetSkeleton() {
+  return (
+    <div className="flex flex-col p-4">
+      <div className="mb-3 flex gap-2">
+        <Skeleton className="h-7 w-20 rounded" />
+        <Skeleton className="h-7 w-16 rounded" />
+        <Skeleton className="h-7 w-24 rounded" />
+      </div>
+      <div className="overflow-hidden rounded border border-border/50">
+        <div className="flex border-border/50 border-b bg-muted/30">
+          {Array.from({ length: 6 }, (_, idx) => (
+            <Skeleton className="h-8 flex-1 rounded-none" key={idx} />
+          ))}
+        </div>
+        {Array.from({ length: 10 }, (_, rowIdx) => (
+          <div
+            className="flex border-border/30 border-b last:border-b-0"
+            key={rowIdx}
+          >
+            {[0, 1, 2, 3, 4, 5].map((colIdx) => (
+              <Skeleton className="h-7 flex-1 rounded-none" key={colIdx} />
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function PresentationSkeleton() {
+  return (
+    <div className="flex h-full items-center justify-center p-8">
+      <div className="flex flex-col items-center gap-4">
+        <Skeleton className="aspect-video w-80 rounded-lg" />
+        <Skeleton className="h-4 w-48" />
+        <Skeleton className="h-3 w-32" />
+      </div>
+    </div>
+  );
+}
+
+type Category =
+  | "pdf"
+  | "image"
+  | "text"
+  | "code"
+  | "docx"
+  | "spreadsheet"
+  | "presentation"
+  | null;
 
 function ContentSkeleton({ category }: { category: Category }) {
   switch (category) {
@@ -72,6 +143,12 @@ function ContentSkeleton({ category }: { category: Category }) {
     case "text":
     case "code":
       return <TextSkeleton />;
+    case "docx":
+      return <DocxSkeleton />;
+    case "spreadsheet":
+      return <SpreadsheetSkeleton />;
+    case "presentation":
+      return <PresentationSkeleton />;
     default:
       return <PdfPagesSkeleton count={2} showLines={false} />;
   }

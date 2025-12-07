@@ -1,0 +1,64 @@
+.docx-viewer-container {
+  position: relative;
+  height: 100%;
+  overflow: auto;
+  background-color: hsl(var(--muted) / 0.3);
+}
+
+.docx-viewer-content {
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.docx-viewer-content .docx-wrapper {
+  background: transparent;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.docx-viewer-content .docx-wrapper > section.docx {
+  background: #ffffff;
+  box-shadow:
+    0 1px 3px 0 rgb(0 0 0 / 0.1),
+    0 1px 2px -1px rgb(0 0 0 / 0.1);
+  border: 1px solid hsl(var(--border) / 0.3);
+  border-radius: 4px;
+  padding: 2.5rem 3rem;
+  margin: 0;
+  min-height: auto;
+}
+
+.docx-viewer-content .docx-wrapper article {
+  background: transparent;
+}
+
+.docx-viewer-content .docx-wrapper p,
+.docx-viewer-content .docx-wrapper span,
+.docx-viewer-content .docx-wrapper h1,
+.docx-viewer-content .docx-wrapper h2,
+.docx-viewer-content .docx-wrapper h3,
+.docx-viewer-content .docx-wrapper h4,
+.docx-viewer-content .docx-wrapper h5,
+.docx-viewer-content .docx-wrapper h6,
+.docx-viewer-content .docx-wrapper li,
+.docx-viewer-content .docx-wrapper td,
+.docx-viewer-content .docx-wrapper th {
+  color: #1a1a1a;
+}
+
+.docx-viewer-content .docx-wrapper a {
+  color: #2563eb;
+}
+
+.docx-viewer-content .docx-wrapper table {
+  border-color: #d1d5db;
+}
+
+.docx-viewer-content .docx-wrapper td,
+.docx-viewer-content .docx-wrapper th {
+  border-color: #d1d5db;
+  background: #ffffff;
+}

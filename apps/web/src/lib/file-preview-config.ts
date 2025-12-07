@@ -17,6 +17,9 @@ export type FileCategory =
   | "code"
   | "audio"
   | "video"
+  | "docx"
+  | "spreadsheet"
+  | "presentation"
   | "document"
   | "unsupported";
 
@@ -32,10 +35,26 @@ export function getFileCategory(mimeType: string): FileCategory {
   }
 
   if (
+    type ===
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+    type === "application/msword"
+  ) {
+    return "docx";
+  }
+
+  if (
+    type ===
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+    type === "application/vnd.ms-excel" ||
+    type === "text/csv"
+  ) {
+    return "spreadsheet";
+  }
+
+  if (
     type === "text/plain" ||
     type === "text/markdown" ||
-    type === "text/html" ||
-    type === "text/csv"
+    type === "text/html"
   ) {
     return "text";
   }
@@ -60,20 +79,11 @@ export function getFileCategory(mimeType: string): FileCategory {
   }
 
   if (
-    type.includes("spreadsheet") ||
-    type.includes("document") ||
-    type.includes("presentation") ||
-    type ===
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-    type ===
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
     type ===
       "application/vnd.openxmlformats-officedocument.presentationml.presentation" ||
-    type === "application/msword" ||
-    type === "application/vnd.ms-excel" ||
     type === "application/vnd.ms-powerpoint"
   ) {
-    return "document";
+    return "presentation";
   }
 
   return "unsupported";
@@ -89,7 +99,10 @@ export function isPreviewableByMimeType(mimeType: string | undefined): boolean {
     category === "pdf" ||
     category === "image" ||
     category === "text" ||
-    category === "code"
+    category === "code" ||
+    category === "docx" ||
+    category === "spreadsheet" ||
+    category === "presentation"
   );
 }
 
@@ -129,6 +142,12 @@ export function getFileTypeLabel(mimeType: string): string {
       return "Audio File";
     case "video":
       return "Video File";
+    case "docx":
+      return "Word Document";
+    case "spreadsheet":
+      return "Spreadsheet";
+    case "presentation":
+      return "Presentation";
     case "document":
       return "Document";
     default:
@@ -161,6 +180,12 @@ export const PREVIEWABLE_EXTENSIONS = new Set([
   "tsx",
   "yaml",
   "yml",
+  "docx",
+  "doc",
+  "xlsx",
+  "xls",
+  "pptx",
+  "ppt",
 ]);
 
 export function isPreviewableByExtension(fileName: string): boolean {

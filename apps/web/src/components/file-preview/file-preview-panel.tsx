@@ -7,9 +7,12 @@ import { useTRPC } from "@/trpc/client";
 import { FilePreviewError } from "./file-preview-error";
 import { FilePreviewHeader } from "./file-preview-header";
 import {
+  DocxSkeleton,
   FilePreviewLoading,
   ImageSkeleton,
   PdfPagesSkeleton,
+  PresentationSkeleton,
+  SpreadsheetSkeleton,
   TextSkeleton,
 } from "./file-preview-loading";
 import { FilePreviewUnsupported } from "./file-preview-unsupported";
@@ -30,6 +33,25 @@ const ImageViewer = dynamic(
 const TextViewer = dynamic(
   () => import("./viewers/text-viewer").then((mod) => mod.TextViewer),
   { ssr: false, loading: () => <TextSkeleton /> }
+);
+
+const DocxViewer = dynamic(
+  () => import("./viewers/docx-viewer").then((mod) => mod.DocxViewer),
+  { ssr: false, loading: () => <DocxSkeleton /> }
+);
+
+const SpreadsheetViewer = dynamic(
+  () =>
+    import("./viewers/spreadsheet-viewer").then((mod) => mod.SpreadsheetViewer),
+  { ssr: false, loading: () => <SpreadsheetSkeleton /> }
+);
+
+const PresentationViewer = dynamic(
+  () =>
+    import("./viewers/presentation-viewer").then(
+      (mod) => mod.PresentationViewer
+    ),
+  { ssr: false, loading: () => <PresentationSkeleton /> }
 );
 
 type FilePreviewPanelProps = {
@@ -94,6 +116,18 @@ export function FilePreviewPanel({
       case "text":
       case "code":
         return <TextViewer fileName={fileName} mimeType={mimeType} url={url} />;
+      case "docx":
+        return <DocxViewer fileName={fileName} url={url} />;
+      case "spreadsheet":
+        return <SpreadsheetViewer fileName={fileName} url={url} />;
+      case "presentation":
+        return (
+          <PresentationViewer
+            fileName={fileName}
+            fileSize={fileSize}
+            url={url}
+          />
+        );
       default:
         return (
           <FilePreviewUnsupported
@@ -109,7 +143,6 @@ export function FilePreviewPanel({
 
   if (
     category === "unsupported" ||
-    category === "document" ||
     category === "audio" ||
     category === "video"
   ) {
