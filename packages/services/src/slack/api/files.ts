@@ -1,4 +1,4 @@
-import { getSupportedFileTypes } from "../../engine/supported-types";
+import { getAllSupportedTypes } from "../../engine/supported-types";
 import type { SlackClient } from "../client";
 import type { SlackFile } from "../types";
 
@@ -102,7 +102,7 @@ export function getFilesSince(
 }
 
 export function filterSupportedFiles(files: SlackFile[]): SlackFile[] {
-  const { mimes, extensions } = getSupportedFileTypes();
+  const { mimes, extensions } = getAllSupportedTypes();
   const supportedMimeTypes = new Set(mimes);
   const supportedExtensions = new Set(extensions);
 

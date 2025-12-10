@@ -32,3 +32,4 @@ export {
 } from "./slack";
 export * from "./sync";
 export * from "./types";
+export * from "./video";

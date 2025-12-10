@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const StorageConfigSchema = z.object({
   endpoint: z.string().optional(),
+  publicEndpoint: z.string().optional(),
   region: z.string(),
   accessKeyId: z.string(),
   secretAccessKey: z.string(),
@@ -41,7 +42,6 @@ export interface ListResult {
 }
 
 export interface StorageProvider {
-  // Basic Operations
   upload(
     key: string,
     data: Buffer | Uint8Array | string | ReadableStream,
@@ -50,16 +50,13 @@ export interface StorageProvider {
   delete(key: string): Promise<void>;
   deleteMany(keys: string[]): Promise<void>;
 
-  // URL Generation
   getSignedUrl(key: string, expiresIn?: number): Promise<string>;
   getUrl(key: string): string;
 
-  // File Management
   exists(key: string): Promise<boolean>;
   copy(sourceKey: string, destinationKey: string): Promise<void>;
   list(prefix?: string, options?: ListOptions): Promise<ListResult>;
 
-  // Multipart Upload Primitives (for client-side resumable uploads)
   createMultipartUpload(key: string, options?: UploadOptions): Promise<string>;
   signPartUpload(
     key: string,

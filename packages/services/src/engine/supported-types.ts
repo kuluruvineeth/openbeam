@@ -61,10 +61,44 @@ const SUPPORTED_EXTENSIONS = [
   "bmp",
 ] as const;
 
+const VIDEO_MIMES = [
+  "video/mp4",
+  "video/quicktime",
+  "video/webm",
+  "video/x-msvideo",
+  "video/x-matroska",
+  "video/mpeg",
+  "video/ogg",
+] as const;
+
+const VIDEO_EXTENSIONS = [
+  "mp4",
+  "mov",
+  "webm",
+  "avi",
+  "mkv",
+  "mpeg",
+  "ogv",
+] as const;
+
 export function getSupportedFileTypes(): SupportedFileTypes {
   return {
     mimes: [...SUPPORTED_MIMES],
     extensions: [...SUPPORTED_EXTENSIONS],
+  };
+}
+
+export function getSupportedVideoTypes(): SupportedFileTypes {
+  return {
+    mimes: [...VIDEO_MIMES],
+    extensions: [...VIDEO_EXTENSIONS],
+  };
+}
+
+export function getAllSupportedTypes(): SupportedFileTypes {
+  return {
+    mimes: [...SUPPORTED_MIMES, ...VIDEO_MIMES],
+    extensions: [...SUPPORTED_EXTENSIONS, ...VIDEO_EXTENSIONS],
   };
 }
 
@@ -78,6 +112,29 @@ export function isSupportedExtension(extension: string): boolean {
   );
 }
 
+export function isVideoMime(mimeType: string): boolean {
+  return (VIDEO_MIMES as readonly string[]).includes(mimeType);
+}
+
+export function isVideoExtension(extension: string): boolean {
+  return (VIDEO_EXTENSIONS as readonly string[]).includes(
+    extension.toLowerCase()
+  );
+}
+
+export function isVideoFile(
+  mimeType?: string | null,
+  extension?: string | null
+): boolean {
+  if (mimeType && isVideoMime(mimeType)) {
+    return true;
+  }
+  if (extension && isVideoExtension(extension)) {
+    return true;
+  }
+  return false;
+}
+
 export function isFileSupported(
   mimeType?: string | null,
   extension?: string | null
@@ -89,4 +146,13 @@ export function isFileSupported(
     return true;
   }
   return false;
+}
+
+export function isAnyFileSupported(
+  mimeType?: string | null,
+  extension?: string | null
+): boolean {
+  return (
+    isFileSupported(mimeType, extension) || isVideoFile(mimeType, extension)
+  );
 }

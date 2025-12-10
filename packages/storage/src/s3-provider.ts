@@ -24,6 +24,7 @@ import type {
 
 export class S3StorageProvider implements StorageProvider {
   private readonly client: S3Client;
+  private readonly publicClient: S3Client | null;
   private readonly config: StorageConfig;
 
   constructor(config: StorageConfig) {
@@ -37,6 +38,21 @@ export class S3StorageProvider implements StorageProvider {
       },
       forcePathStyle: true,
     });
+
+    // Create a separate client for generating publicly accessible signed URLs
+    // This is useful when the internal endpoint (e.g., minio:9000) differs from
+    // the public endpoint (e.g., ngrok URL or actual cloud storage URL)
+    this.publicClient = config.publicEndpoint
+      ? new S3Client({
+          region: config.region,
+          endpoint: config.publicEndpoint,
+          credentials: {
+            accessKeyId: config.accessKeyId,
+            secretAccessKey: config.secretAccessKey,
+          },
+          forcePathStyle: true,
+        })
+      : null;
   }
 
   async upload(
@@ -44,7 +60,6 @@ export class S3StorageProvider implements StorageProvider {
     data: Buffer | Uint8Array | string | ReadableStream,
     options?: UploadOptions
   ): Promise<string> {
-    // Use lib-storage Upload for efficient streaming uploads
     const parallelUploads3 = new Upload({
       client: this.client,
       params: {
@@ -87,7 +102,9 @@ export class S3StorageProvider implements StorageProvider {
       Key: key,
     });
 
-    return await getSignedUrl(this.client, command, { expiresIn });
+    // Use public client for signed URLs if available (for external service access)
+    const client = this.publicClient ?? this.client;
+    return await getSignedUrl(client, command, { expiresIn });
   }
 
   getUrl(key: string): string {
@@ -160,8 +177,6 @@ export class S3StorageProvider implements StorageProvider {
       ).filter(Boolean),
     };
   }
-
-  // Multipart Upload Primitives
 
   async createMultipartUpload(
     key: string,
