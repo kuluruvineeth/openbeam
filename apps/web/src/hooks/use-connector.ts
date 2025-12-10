@@ -157,7 +157,7 @@ export type ResourceDocument = {
   title: string | null;
   documentType: string;
   indexedAt: Date;
-  source: "document" | "file";
+  source: "document" | "file" | "video";
 };
 
 export type ResourceDocumentPage = {

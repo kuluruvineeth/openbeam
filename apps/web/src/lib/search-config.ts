@@ -172,3 +172,49 @@ export const PRIORITY_CONFIG: Record<
   low: { label: "Low", color: "bg-foreground/10 text-foreground/60" },
   none: { label: "None", color: "bg-foreground/5 text-foreground/40" },
 };
+
+export const VIDEO_TYPE_OPTIONS = [
+  "meeting",
+  "presentation",
+  "tutorial",
+  "demo",
+  "interview",
+  "webinar",
+  "other",
+] as const;
+
+export type VideoTypeOption = (typeof VIDEO_TYPE_OPTIONS)[number];
+
+export const VIDEO_TYPE_CONFIG: Record<
+  VideoTypeOption,
+  { label: string; color: string }
+> = {
+  meeting: {
+    label: "Meeting",
+    color: "bg-openplane-blue/10 text-openplane-blue",
+  },
+  presentation: {
+    label: "Presentation",
+    color: "bg-openplane-orange/10 text-openplane-orange",
+  },
+  tutorial: {
+    label: "Tutorial",
+    color: "bg-openplane-green/10 text-openplane-green",
+  },
+  demo: {
+    label: "Demo",
+    color: "bg-openplane-pink/10 text-openplane-pink",
+  },
+  interview: {
+    label: "Interview",
+    color: "bg-openplane-yellow/10 text-openplane-yellow",
+  },
+  webinar: {
+    label: "Webinar",
+    color: "bg-openplane-blue/10 text-openplane-blue",
+  },
+  other: {
+    label: "Other",
+    color: "bg-foreground/5 text-foreground/60",
+  },
+};

@@ -14,6 +14,7 @@ import {
   PresentationSkeleton,
   SpreadsheetSkeleton,
   TextSkeleton,
+  VideoSkeleton,
 } from "./file-preview-loading";
 import { FilePreviewUnsupported } from "./file-preview-unsupported";
 
@@ -54,6 +55,11 @@ const PresentationViewer = dynamic(
   { ssr: false, loading: () => <PresentationSkeleton /> }
 );
 
+const VideoViewer = dynamic(
+  () => import("./viewers/video/video-viewer").then((mod) => mod.VideoViewer),
+  { ssr: false, loading: () => <VideoSkeleton /> }
+);
+
 type FilePreviewPanelProps = {
   documentId: string;
   onClose: () => void;
@@ -92,6 +98,14 @@ export function FilePreviewPanel({
   }
 
   const { url, fileName, mimeType, fileSize, pageCount } = data;
+  const videoId =
+    "videoId" in data && typeof data.videoId === "string"
+      ? data.videoId
+      : undefined;
+  const vespaId =
+    "vespaId" in data && typeof data.vespaId === "string"
+      ? data.vespaId
+      : undefined;
   const category = getFileCategory(mimeType);
 
   const initialPage =
@@ -128,6 +142,19 @@ export function FilePreviewPanel({
             url={url}
           />
         );
+      case "video":
+        if (!(videoId && vespaId)) {
+          return (
+            <FilePreviewUnsupported
+              fileName={fileName}
+              fileSize={fileSize}
+              mimeType={mimeType}
+              onClose={onClose}
+              url={url}
+            />
+          );
+        }
+        return <VideoViewer url={url} vespaId={vespaId} videoId={videoId} />;
       default:
         return (
           <FilePreviewUnsupported
@@ -141,11 +168,7 @@ export function FilePreviewPanel({
     }
   };
 
-  if (
-    category === "unsupported" ||
-    category === "audio" ||
-    category === "video"
-  ) {
+  if (category === "unsupported" || category === "audio") {
     return (
       <FilePreviewUnsupported
         fileName={fileName}

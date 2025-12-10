@@ -26,7 +26,13 @@ import {
   SOURCE_TYPE_OPTIONS,
   STATUS_OPTIONS,
 } from "@/lib/search-config";
-import type { SearchFilters } from "@/lib/search-types";
+import type {
+  ContentType,
+  SearchFilters,
+  SearchResultDocument,
+  UnifiedSearchItem,
+  VideoDocument,
+} from "@/lib/search-types";
 import { useTRPC } from "@/trpc/client";
 import { useDebounce } from "./use-debounce";
 
@@ -36,10 +42,19 @@ export {
   SOURCE_TYPE_OPTIONS,
   STATUS_OPTIONS,
 };
-export type { SearchFilters, SearchResultDocument } from "@/lib/search-types";
+export type {
+  ContentType,
+  SearchFilters,
+  SearchResultDocument,
+  UnifiedSearchItem,
+  VideoDocument,
+} from "@/lib/search-types";
+
+const CONTENT_TYPE_OPTIONS = ["all", "documents", "videos"] as const;
 
 export const searchParamsSchema = {
   q: parseAsString.withDefault(""),
+  content: parseAsStringLiteral(CONTENT_TYPE_OPTIONS).withDefault("all"),
   apps: parseAsArrayOf(parseAsString),
   types: parseAsArrayOf(parseAsString),
   sources: parseAsArrayOf(parseAsString),
@@ -50,7 +65,6 @@ export const searchParamsSchema = {
   fromDate: parseAsInteger,
   toDate: parseAsInteger,
   ranking: parseAsStringLiteral(RANKING_OPTIONS).withDefault("hybrid"),
-  offset: parseAsInteger.withDefault(0),
 };
 
 export const loadSearchParams = createLoader(searchParamsSchema);
@@ -71,7 +85,6 @@ function createArrayFilterSetter(
   return (value: string[] | null) =>
     setParams({
       [key]: value?.length ? value : null,
-      offset: 0,
     } as Partial<SearchParams>);
 }
 
@@ -97,33 +110,45 @@ export function useSearch(options?: { debounceMs?: number }) {
     [params.dateRange, params.fromDate, params.toDate]
   );
 
-  const searchQuery = useInfiniteQuery({
-    ...trpc.search.query.infiniteQueryOptions(
+  const includeDocuments = params.content !== "videos";
+  const includeVideos = params.content !== "documents";
+
+  const unifiedQuery = useInfiniteQuery({
+    ...trpc.search.unified.infiniteQueryOptions(
       {
         q: debouncedQuery,
+        includeDocuments,
+        includeVideos,
         connectorTypes: params.apps ?? undefined,
         documentTypes: params.types ?? undefined,
-        sourceTypes: params.sources ?? undefined,
-        statuses: params.statuses ?? undefined,
-        priorities: params.priorities ?? undefined,
-        labels: params.labels ?? undefined,
+        connectorId: undefined,
+        sourceId: undefined,
         fromDate: dateTimestamps.fromDate,
         toDate: dateTimestamps.toDate,
         ranking: params.ranking,
+        videoRanking: "hybrid",
         limit: LIMIT,
       },
-      { getNextPageParam: (lastPage) => lastPage.nextCursor }
+      {
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+        initialCursor: 0,
+      }
     ),
     enabled: shouldSearch,
-    placeholderData: keepPreviousData,
     refetchOnWindowFocus: false,
     staleTime: 30_000,
   });
 
   const setQuery = useCallback(
-    (value: string) => setParams({ q: value || null, offset: 0 }),
+    (value: string) => setParams({ q: value || null }),
     [setParams]
   );
+
+  const setContentType = useCallback(
+    (value: ContentType) => setParams({ content: value }),
+    [setParams]
+  );
+
   const setConnectorTypes = useCallback(
     createArrayFilterSetter("apps", setParams),
     [setParams]
@@ -150,23 +175,18 @@ export function useSearch(options?: { debounceMs?: number }) {
 
   const setDateRange = useCallback(
     (value: DateRangeType | null) =>
-      setParams({ dateRange: value, fromDate: null, toDate: null, offset: 0 }),
+      setParams({ dateRange: value, fromDate: null, toDate: null }),
     [setParams]
   );
 
   const setCustomDateRange = useCallback(
     (from: number | null, to: number | null) =>
-      setParams({ dateRange: "custom", fromDate: from, toDate: to, offset: 0 }),
+      setParams({ dateRange: "custom", fromDate: from, toDate: to }),
     [setParams]
   );
 
   const setRanking = useCallback(
-    (value: SearchRanking) => setParams({ ranking: value, offset: 0 }),
-    [setParams]
-  );
-
-  const setOffset = useCallback(
-    (value: number) => setParams({ offset: value }),
+    (value: SearchRanking) => setParams({ ranking: value }),
     [setParams]
   );
 
@@ -183,26 +203,59 @@ export function useSearch(options?: { debounceMs?: number }) {
         fromDate: null,
         toDate: null,
         ranking: "hybrid",
-        offset: 0,
       }),
     [setParams]
   );
 
   const clearSearch = useCallback(
-    () => setParams({ q: null, ...resetFilters }),
+    () => setParams({ q: null, content: "all", ...resetFilters }),
     [setParams, resetFilters]
   );
 
-  const documents = useMemo(
-    () => searchQuery.data?.pages.flatMap((p) => p.documents) ?? [],
-    [searchQuery.data?.pages]
-  );
+  const documents = useMemo(() => {
+    if (!unifiedQuery.data?.pages) {
+      return [];
+    }
+    return unifiedQuery.data.pages.flatMap(
+      (page) => page.documents as SearchResultDocument[]
+    );
+  }, [unifiedQuery.data?.pages]);
+
+  const videos = useMemo(() => {
+    if (!unifiedQuery.data?.pages) {
+      return [];
+    }
+    return unifiedQuery.data.pages.flatMap(
+      (page) => page.videos as VideoDocument[]
+    );
+  }, [unifiedQuery.data?.pages]);
+
+  const unifiedItems: UnifiedSearchItem[] = useMemo(() => {
+    if (!unifiedQuery.data?.pages) {
+      return [];
+    }
+
+    const allItems = unifiedQuery.data.pages.flatMap(
+      (page) => (page.items ?? []) as UnifiedSearchItem[]
+    );
+
+    if (params.content === "documents") {
+      return allItems.filter((item) => item.type === "document");
+    }
+    if (params.content === "videos") {
+      return allItems.filter((item) => item.type === "video");
+    }
+    return allItems;
+  }, [unifiedQuery.data?.pages, params.content]);
 
   const hasQuery = params.q.trim().length > 0;
-  const hasResults = documents.length > 0;
-  const isEmpty = shouldSearch && !searchQuery.isLoading && !hasResults;
-  const total = searchQuery.data?.pages[0]?.total ?? 0;
-  const queryTime = searchQuery.data?.pages[0]?.queryTime ?? 0;
+  const hasResults = unifiedItems.length > 0;
+  const isEmpty = shouldSearch && !unifiedQuery.isLoading && !hasResults;
+  const firstPage = unifiedQuery.data?.pages[0];
+  const documentTotal = firstPage?.documentTotal ?? 0;
+  const videoTotal = firstPage?.videoTotal ?? 0;
+  const total = firstPage?.total ?? 0;
+  const queryTime = firstPage?.queryTime ?? 0;
 
   const activeFilterCount =
     (params.apps?.length ?? 0) +
@@ -226,7 +279,6 @@ export function useSearch(options?: { debounceMs?: number }) {
       fromDate: params.fromDate,
       toDate: params.toDate,
       ranking: params.ranking,
-      offset: params.offset,
     }),
     [params]
   );
@@ -234,22 +286,27 @@ export function useSearch(options?: { debounceMs?: number }) {
   return {
     query: params.q,
     debouncedQuery,
+    contentType: params.content,
     documents,
+    videos,
+    unifiedItems,
     total,
+    documentTotal,
+    videoTotal,
     queryTime,
-    isLoading: searchQuery.isLoading,
-    isFetching: searchQuery.isFetching,
-    isFetchingNextPage: searchQuery.isFetchingNextPage,
+    isLoading: unifiedQuery.isLoading,
+    isFetching: unifiedQuery.isFetching,
+    isFetchingNextPage: unifiedQuery.isFetchingNextPage,
     isSearching:
-      shouldSearch && (searchQuery.isLoading || searchQuery.isFetching),
+      shouldSearch && (unifiedQuery.isLoading || unifiedQuery.isFetching),
     hasQuery,
     hasResults,
     isEmpty,
-    error: searchQuery.error,
-    isError: searchQuery.isError,
-    hasMore: searchQuery.hasNextPage,
-    hasNextPage: searchQuery.hasNextPage,
-    fetchNextPage: searchQuery.fetchNextPage,
+    error: unifiedQuery.error,
+    isError: unifiedQuery.isError,
+    hasMore: unifiedQuery.hasNextPage,
+    hasNextPage: unifiedQuery.hasNextPage,
+    fetchNextPage: unifiedQuery.fetchNextPage,
     filters,
     connectorTypes: params.apps ?? [],
     documentTypes: params.types ?? [],
@@ -259,10 +316,10 @@ export function useSearch(options?: { debounceMs?: number }) {
     labels: params.labels ?? [],
     dateRange: params.dateRange,
     ranking: params.ranking,
-    offset: params.offset,
     activeFilterCount,
     hasActiveFilters: activeFilterCount > 0,
     setQuery,
+    setContentType,
     setConnectorTypes,
     setDocumentTypes,
     setSourceTypes,
@@ -272,11 +329,10 @@ export function useSearch(options?: { debounceMs?: number }) {
     setDateRange,
     setCustomDateRange,
     setRanking,
-    setOffset,
     resetFilters,
     clearSearch,
-    refetch: searchQuery.refetch,
-    data: searchQuery.data,
+    refetch: unifiedQuery.refetch,
+    data: unifiedQuery.data,
   };
 }
 

@@ -124,6 +124,34 @@ export function PresentationSkeleton() {
   );
 }
 
+export function VideoSkeleton() {
+  return (
+    <div className="flex h-full">
+      <div className="flex flex-1 items-center justify-center bg-black/5 dark:bg-black/20">
+        <Skeleton className="aspect-video w-full max-w-2xl rounded-lg" />
+      </div>
+      <div className="w-80 shrink-0 border-border/50 border-l">
+        <div className="flex h-10 items-center gap-2 border-border/50 border-b px-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton className="h-6 flex-1" key={i} />
+          ))}
+        </div>
+        <div className="flex flex-col gap-2 p-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div className="flex gap-3" key={i}>
+              <Skeleton className="size-6 shrink-0 rounded-full" />
+              <div className="flex-1 space-y-1.5">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-full" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 type Category =
   | "pdf"
   | "image"
@@ -132,6 +160,7 @@ type Category =
   | "docx"
   | "spreadsheet"
   | "presentation"
+  | "video"
   | null;
 
 function ContentSkeleton({ category }: { category: Category }) {
@@ -149,6 +178,8 @@ function ContentSkeleton({ category }: { category: Category }) {
       return <SpreadsheetSkeleton />;
     case "presentation":
       return <PresentationSkeleton />;
+    case "video":
+      return <VideoSkeleton />;
     default:
       return <PdfPagesSkeleton count={2} showLines={false} />;
   }

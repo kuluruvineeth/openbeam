@@ -3,33 +3,50 @@
 import { useEffect, useRef } from "react";
 import { useInView } from "react-intersection-observer";
 import { Icons } from "@/components/icons";
-import type { SearchResultDocument } from "@/lib/search-types";
+import type {
+  SearchResultDocument,
+  UnifiedSearchItem,
+  VideoDocument,
+} from "@/lib/search-types";
 import { SearchResultRow } from "./search-result-row";
+import { SearchVideoRow } from "./search-video-row";
+
+function formatResultCount(total: number): string {
+  return total === 1 ? "1 result" : `${total.toLocaleString()} results`;
+}
 
 type SearchResultsProps = {
-  documents: SearchResultDocument[];
+  items: UnifiedSearchItem[];
   hasNextPage: boolean;
   fetchNextPage: () => void;
   isFetchingNextPage: boolean;
   queryTime?: number;
   total?: number;
+  documentTotal?: number;
+  videoTotal?: number;
   selectedIndex?: number;
   previewId?: string | null;
-  onSelect?: (doc: SearchResultDocument, index: number) => void;
-  onPreview?: (doc: SearchResultDocument) => void;
+  onSelectDocument?: (doc: SearchResultDocument, index: number) => void;
+  onPreviewDocument?: (doc: SearchResultDocument) => void;
+  onSelectVideo?: (video: VideoDocument, index: number) => void;
+  onPreviewVideo?: (video: VideoDocument) => void;
 };
 
 export function SearchResults({
-  documents,
+  items,
   hasNextPage,
   fetchNextPage,
   isFetchingNextPage,
   queryTime,
   total,
+  documentTotal,
+  videoTotal,
   selectedIndex = -1,
   previewId,
-  onSelect,
-  onPreview,
+  onSelectDocument,
+  onPreviewDocument,
+  onSelectVideo,
+  onPreviewVideo,
 }: SearchResultsProps) {
   const { ref, inView } = useInView();
   const rowRefs = useRef<Map<number, HTMLButtonElement>>(new Map());
@@ -47,13 +64,27 @@ export function SearchResults({
     }
   }, [selectedIndex]);
 
+  const showDocVideoSplit =
+    documentTotal !== undefined &&
+    videoTotal !== undefined &&
+    documentTotal > 0 &&
+    videoTotal > 0;
+
   return (
     <div className="space-y-3">
       {(total !== undefined || queryTime !== undefined) && (
         <div className="flex items-center justify-between px-0.5 font-mono text-[10px]">
           {total !== undefined && (
             <span className="text-foreground/40 tabular-nums">
-              {total === 1 ? "1 result" : `${total.toLocaleString()} results`}
+              {showDocVideoSplit ? (
+                <>
+                  <span>{documentTotal.toLocaleString()} docs</span>
+                  <span className="mx-1.5 text-foreground/20">·</span>
+                  <span>{videoTotal.toLocaleString()} videos</span>
+                </>
+              ) : (
+                formatResultCount(total)
+              )}
             </span>
           )}
           {queryTime !== undefined && (
@@ -65,24 +96,51 @@ export function SearchResults({
       )}
 
       <div className="border border-border/50">
-        {documents.map((doc, index) => (
-          <SearchResultRow
-            document={doc}
-            isLast={index === documents.length - 1}
-            isPreviewing={previewId === doc.id}
-            isSelected={selectedIndex === index}
-            key={doc.id}
-            onPreview={onPreview}
-            onSelect={(d) => onSelect?.(d, index)}
-            ref={(el) => {
-              if (el) {
-                rowRefs.current.set(index, el);
-              } else {
-                rowRefs.current.delete(index);
-              }
-            }}
-          />
-        ))}
+        {items.map((item, index) => {
+          const isLast = index === items.length - 1;
+          const isSelected = selectedIndex === index;
+          const isPreviewing = previewId === item.data.id;
+
+          if (item.type === "document") {
+            return (
+              <SearchResultRow
+                document={item.data}
+                isLast={isLast}
+                isPreviewing={isPreviewing}
+                isSelected={isSelected}
+                key={`doc-${item.data.id}`}
+                onPreview={onPreviewDocument}
+                onSelect={(d) => onSelectDocument?.(d, index)}
+                ref={(el) => {
+                  if (el) {
+                    rowRefs.current.set(index, el);
+                  } else {
+                    rowRefs.current.delete(index);
+                  }
+                }}
+              />
+            );
+          }
+
+          return (
+            <SearchVideoRow
+              isLast={isLast}
+              isPreviewing={isPreviewing}
+              isSelected={isSelected}
+              key={`video-${item.data.id}`}
+              onPreview={onPreviewVideo}
+              onSelect={(v) => onSelectVideo?.(v, index)}
+              ref={(el) => {
+                if (el) {
+                  rowRefs.current.set(index, el);
+                } else {
+                  rowRefs.current.delete(index);
+                }
+              }}
+              video={item.data}
+            />
+          );
+        })}
       </div>
 
       {(hasNextPage || isFetchingNextPage) && (

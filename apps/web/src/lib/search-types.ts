@@ -61,7 +61,6 @@ export type SearchFilters = {
   fromDate: number | null;
   toDate: number | null;
   ranking: SearchRanking;
-  offset: number;
 };
 
 export type SearchResults = {
@@ -78,5 +77,67 @@ export type SearchResults = {
 export type SearchPage = SearchResults & { nextCursor?: number };
 
 export type SearchInfiniteData = InfiniteData<SearchPage>;
+
+export type VideoType =
+  | "meeting"
+  | "presentation"
+  | "tutorial"
+  | "demo"
+  | "interview"
+  | "webinar"
+  | "other";
+
+export type VideoDocument = {
+  id: string;
+  team_id: string;
+  connector_id: string;
+  connector_type?: string;
+  external_id: string;
+  title: string;
+  description?: string;
+  video_summary: string;
+  video_keywords: string[];
+  transcript?: string;
+  duration_seconds: number;
+  segment_count: number;
+  source_id?: string;
+  source_name?: string;
+  source_type?: string;
+  url: string;
+  thumbnail_url?: string;
+  author_id?: string;
+  author_name?: string;
+  participants?: string[];
+  created_at: number;
+  updated_at: number;
+  indexed_at?: number;
+  is_public: boolean;
+  view_count?: number;
+  chapters?: string[];
+  highlights?: string[];
+  video_type?: VideoType;
+  metadata?: {
+    twelveLabsVideoId?: string;
+    twelveLabsIndexId?: string;
+    storageKey?: string;
+  };
+};
+
+export type ContentType = "all" | "documents" | "videos";
+
+export type UnifiedSearchItem =
+  | { type: "document"; data: SearchResultDocument; relevance: number }
+  | { type: "video"; data: VideoDocument; relevance: number };
+
+export type UnifiedSearchResults = {
+  items: UnifiedSearchItem[];
+  documents: SearchResultDocument[];
+  videos: VideoDocument[];
+  documentTotal: number;
+  videoTotal: number;
+  total: number;
+  queryTime: number;
+  query: string;
+};
 
 export type { DateRangeType, SearchRanking } from "./search-config";
