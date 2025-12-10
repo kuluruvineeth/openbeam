@@ -9,4 +9,11 @@ export type {
   SearchResult,
   SimilarDocumentsParams,
   ThreadSearchParams,
+  UnifiedSearchItem,
+  UnifiedSearchParams,
+  UnifiedSearchResult,
+  VideoSearchParams,
+  VideoSearchRanking,
+  VideoSearchResult,
+  VideoType,
 } from "./types";

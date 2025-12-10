@@ -1,4 +1,5 @@
 import type { RouteHandler } from "@hono/zod-openapi";
+import { videoAIService } from "@openplane/services";
 import { searchQueriesCounter } from "@/metrics";
 import type { AuthEnv } from "@/middleware/auth";
 import { getTeamId } from "@/middleware/auth";
@@ -6,12 +7,19 @@ import { getAccessControlIds as getACLIds } from "@/types/auth";
 import type {
   authorSearch,
   autocomplete,
+  imageSearch,
   mainSearch,
   recentDocuments,
   similarDocuments,
   threadSearch,
+  unifiedSearch,
+  videoSearch,
 } from "./search.routes";
-import { type SearchParams, searchService } from "./search.service";
+import {
+  type SearchParams,
+  searchService,
+  type VideoSearchParams,
+} from "./search.service";
 
 export const mainSearchHandler: RouteHandler<
   typeof mainSearch,
@@ -212,4 +220,118 @@ export const authorSearchHandler: RouteHandler<
     },
     200
   );
+};
+
+export const videoSearchHandler: RouteHandler<
+  typeof videoSearch,
+  AuthEnv
+> = async (c) => {
+  const queryParams = c.req.valid("query");
+  const teamId = getTeamId(c);
+
+  if (!teamId) {
+    return c.json({ error: "team_id is required" }, 400);
+  }
+
+  const authContext = c.get("authContext");
+  const accessControlIds = getACLIds(authContext);
+
+  const params: VideoSearchParams = {
+    query: queryParams.q,
+    teamId,
+    connectorId: queryParams.connector_id,
+    sourceId: queryParams.source_id,
+    videoType: queryParams.video_type,
+    fromDate: queryParams.from_date,
+    toDate: queryParams.to_date,
+    limit: queryParams.limit,
+    offset: queryParams.offset,
+    ranking: queryParams.ranking,
+    accessControlIds,
+  };
+
+  const result = await searchService.searchVideos(params);
+  searchQueriesCounter.inc({ endpoint: "video_search" });
+
+  return c.json(
+    {
+      videos: result.videos,
+      total: result.total,
+      query: queryParams.q,
+      ranking: queryParams.ranking || "hybrid",
+      queryTime: result.queryTime,
+    },
+    200
+  );
+};
+
+export const unifiedSearchHandler: RouteHandler<
+  typeof unifiedSearch,
+  AuthEnv
+> = async (c) => {
+  const queryParams = c.req.valid("query");
+  const teamId = getTeamId(c);
+
+  if (!teamId) {
+    return c.json({ error: "team_id is required" }, 400);
+  }
+
+  const authContext = c.get("authContext");
+  const accessControlIds = getACLIds(authContext);
+
+  const result = await searchService.searchUnified({
+    query: queryParams.q,
+    teamId,
+    includeDocuments: queryParams.include_documents,
+    includeVideos: queryParams.include_videos,
+    connectorTypes: queryParams.connector_type,
+    connectorId: queryParams.connector_id,
+    documentTypes: queryParams.document_type,
+    sourceId: queryParams.source_id,
+    fromDate: queryParams.from_date,
+    toDate: queryParams.to_date,
+    limit: queryParams.limit,
+    offset: queryParams.offset,
+    ranking: queryParams.ranking,
+    videoRanking: queryParams.video_ranking,
+    accessControlIds,
+  });
+  searchQueriesCounter.inc({ endpoint: "unified_search" });
+
+  return c.json(
+    {
+      documents: result.documents,
+      videos: result.videos,
+      documentTotal: result.documentTotal,
+      videoTotal: result.videoTotal,
+      total: result.total,
+      query: queryParams.q,
+      queryTime: result.queryTime,
+    },
+    200
+  );
+};
+
+export const imageSearchHandler: RouteHandler<
+  typeof imageSearch,
+  AuthEnv
+> = async (c) => {
+  const queryParams = c.req.valid("query");
+  const teamId = getTeamId(c);
+
+  if (!teamId) {
+    return c.json({ error: "team_id is required" }, 400);
+  }
+
+  const results = await videoAIService.searchByImage(
+    queryParams.index_id,
+    queryParams.image_url,
+    {
+      threshold: queryParams.threshold,
+      pageLimit: queryParams.limit,
+    }
+  );
+  searchQueriesCounter.inc({ endpoint: "image_search" });
+
+  return c.json({ results, count: results.length }, 200);
 };

@@ -6,6 +6,7 @@ import { filesRouter } from "./files";
 import { searchRouter } from "./search";
 import { teamRouter } from "./team";
 import { userRouter } from "./user";
+import { videoRouter } from "./video";
 
 export const appRouter = createTRPCRouter({
   team: teamRouter,
@@ -13,6 +14,7 @@ export const appRouter = createTRPCRouter({
   apps: appsRouter,
   search: searchRouter,
   files: filesRouter,
+  video: videoRouter,
 });
 
 export type AppRouter = typeof appRouter;

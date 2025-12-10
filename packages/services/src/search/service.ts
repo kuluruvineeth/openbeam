@@ -1,7 +1,13 @@
 import { embedQuery, getConfig as getAIConfig } from "@openplane/ai";
 import {
   buildVectorQueryFeatures,
+  buildVideoVectorQueryFeatures,
   type GenericDocument,
+  type JsonObject,
+  type QueryParams,
+  type SearchResult as VespaSearchResult,
+  type VideoDocument,
+  type VideoQueryParams,
   vespaClient,
 } from "@openplane/vespa";
 import { getOrGenerateEmbedding } from "../ai/embedding-cache";
@@ -10,11 +16,39 @@ import type {
   AutocompleteParams,
   AutocompleteSuggestion,
   RecentDocumentsParams,
+  ScoredDocument,
+  ScoredVideo,
   SearchParams,
   SearchResult,
   SimilarDocumentsParams,
   ThreadSearchParams,
+  UnifiedSearchItem,
+  UnifiedSearchParams,
+  UnifiedSearchResult,
+  VideoSearchParams,
+  VideoSearchResult,
 } from "./types";
+
+type ScoredSearchResult = {
+  documents: ScoredDocument[];
+  total: number;
+  embeddingTime?: number;
+};
+
+type ScoredVideoSearchResult = {
+  videos: ScoredVideo[];
+  total: number;
+  embeddingTime?: number;
+};
+
+interface AutocompleteFields {
+  id: string;
+  title: string;
+  content: string;
+  document_type: string;
+  connector_type: string;
+  source_name?: string;
+}
 
 function escapeYqlString(value: string): string {
   return value.replace(/(["\\])/g, "\\$1");
@@ -30,19 +64,20 @@ export class SearchService {
       const ranking = params.ranking || "hybrid";
       const useSemanticSearch = ranking === "hybrid" || ranking === "semantic";
 
-      let vectorFeatures: Record<string, unknown> = {};
+      let queryEmbeddingFeatures: Pick<QueryParams, "query_embedding"> | null =
+        null;
       if (useSemanticSearch && params.query) {
         const embeddingStart = Date.now();
         const queryEmbedding = await this.getQueryEmbedding(params.query);
         embeddingTime = Date.now() - embeddingStart;
 
         if (queryEmbedding) {
-          vectorFeatures = buildVectorQueryFeatures(queryEmbedding);
+          queryEmbeddingFeatures = buildVectorQueryFeatures(queryEmbedding);
         }
       }
 
       const includeVectorSearch =
-        useSemanticSearch && Object.keys(vectorFeatures).length > 0;
+        useSemanticSearch && queryEmbeddingFeatures !== null;
       const effectiveRanking = includeVectorSearch ? ranking : "bm25";
       const yql = this.buildSearchYQL(params, includeVectorSearch);
 
@@ -52,14 +87,12 @@ export class SearchService {
         hits: params.limit || 20,
         offset: params.offset || 0,
         timeout: "5s",
-        ...vectorFeatures,
+        ...(queryEmbeddingFeatures ?? {}),
       });
 
       const documents = this.extractDocuments(vespaResult);
 
-      const total =
-        (vespaResult.root.fields?.totalCount as number | undefined) ||
-        documents.length;
+      const total = vespaResult.root.fields?.totalCount ?? documents.length;
 
       const queryTime = Date.now() - startTime;
 
@@ -78,6 +111,84 @@ export class SearchService {
         `Search failed: ${error instanceof Error ? error.message : "Unknown error"}`
       );
     }
+  }
+
+  private async searchWithScores(
+    params: SearchParams
+  ): Promise<ScoredSearchResult> {
+    let embeddingTime: number | undefined;
+
+    const ranking = params.ranking || "hybrid";
+    const useSemanticSearch = ranking === "hybrid" || ranking === "semantic";
+
+    let queryEmbeddingFeatures: Pick<QueryParams, "query_embedding"> | null =
+      null;
+    if (useSemanticSearch && params.query) {
+      const embeddingStart = Date.now();
+      const queryEmbedding = await this.getQueryEmbedding(params.query);
+      embeddingTime = Date.now() - embeddingStart;
+
+      if (queryEmbedding) {
+        queryEmbeddingFeatures = buildVectorQueryFeatures(queryEmbedding);
+      }
+    }
+
+    const includeVectorSearch =
+      useSemanticSearch && queryEmbeddingFeatures !== null;
+    const effectiveRanking = includeVectorSearch ? ranking : "bm25";
+    const yql = this.buildSearchYQL(params, includeVectorSearch);
+
+    const vespaResult = await vespaClient.query({
+      yql,
+      ranking: effectiveRanking,
+      hits: params.limit || 20,
+      offset: params.offset || 0,
+      timeout: "5s",
+      ...(queryEmbeddingFeatures ?? {}),
+    });
+
+    const documents = this.extractDocumentsWithScores(vespaResult);
+    const total = vespaResult.root.fields?.totalCount ?? documents.length;
+
+    return { documents, total, embeddingTime };
+  }
+
+  private async searchVideosWithScores(
+    params: VideoSearchParams
+  ): Promise<ScoredVideoSearchResult> {
+    let embeddingTime: number | undefined;
+
+    const ranking = params.ranking || "hybrid";
+    const useSemanticSearch = ranking === "hybrid" || ranking === "semantic";
+
+    let videoEmbedding: number[] | null = null;
+    if (useSemanticSearch && params.query) {
+      const embeddingStart = Date.now();
+      videoEmbedding = await this.getVideoQueryEmbedding(params.query);
+      embeddingTime = Date.now() - embeddingStart;
+    }
+
+    const includeVectorSearch = useSemanticSearch && videoEmbedding !== null;
+    const effectiveRanking = includeVectorSearch ? ranking : "bm25";
+    const yql = this.buildVideoSearchYQL(params, includeVectorSearch);
+
+    const queryParams: VideoQueryParams = {
+      yql,
+      ranking: effectiveRanking,
+      hits: params.limit || 20,
+      offset: params.offset || 0,
+      timeout: "5s",
+      ...(includeVectorSearch && videoEmbedding
+        ? buildVideoVectorQueryFeatures(videoEmbedding)
+        : {}),
+    };
+
+    const vespaResult = await vespaClient.queryVideos(queryParams);
+
+    const videos = this.extractVideosWithScores(vespaResult);
+    const total = vespaResult.root.fields?.totalCount ?? videos.length;
+
+    return { videos, total, embeddingTime };
   }
 
   private async getQueryEmbedding(query: string): Promise<number[] | null> {
@@ -202,20 +313,20 @@ export class SearchService {
       teamId
     )}" and ${this.buildAccessControlClause(accessControlIds)}`;
 
-    const result = await vespaClient.query({
+    const result = await vespaClient.query<AutocompleteFields>({
       yql,
       ranking: "bm25",
       hits: limit,
     });
 
-    const children = result.root.children || [];
+    const children = result.root.children ?? [];
     return children.map((child) => ({
-      id: child.fields.id as string,
-      title: child.fields.title as string,
-      content: child.fields.content as string,
-      documentType: child.fields.document_type as string,
-      connectorType: child.fields.connector_type as string,
-      sourceName: child.fields.source_name as string | undefined,
+      id: child.fields.id,
+      title: child.fields.title,
+      content: child.fields.content,
+      documentType: child.fields.document_type,
+      connectorType: child.fields.connector_type,
+      sourceName: child.fields.source_name,
     }));
   }
 
@@ -330,16 +441,256 @@ export class SearchService {
     return doc.access_control.some((id) => accessControlIds.includes(id));
   }
 
-  private extractDocuments(result: {
-    root: {
-      children?: Array<{ fields: unknown }>;
-    };
-  }): GenericDocument[] {
+  private extractDocuments(
+    result: VespaSearchResult<GenericDocument>
+  ): GenericDocument[] {
     if (!result.root.children || result.root.children.length === 0) {
       return [];
     }
 
-    return result.root.children.map((child) => child.fields as GenericDocument);
+    return result.root.children.map((child) => child.fields);
+  }
+
+  private extractDocumentsWithScores(
+    result: VespaSearchResult<GenericDocument>
+  ): Array<GenericDocument & { relevance: number }> {
+    if (!result.root.children || result.root.children.length === 0) {
+      return [];
+    }
+
+    return result.root.children.map((child) => ({
+      ...child.fields,
+      relevance: child.relevance,
+    }));
+  }
+
+  private extractVideosWithScores(
+    result: VespaSearchResult<VideoDocument>
+  ): Array<VideoDocument & { relevance: number }> {
+    if (!result.root.children || result.root.children.length === 0) {
+      return [];
+    }
+
+    return result.root.children.map((child) => ({
+      ...child.fields,
+      metadata: this.parseVideoMetadata(child.fields.metadata),
+      relevance: child.relevance,
+    }));
+  }
+
+  private parseVideoMetadata(
+    metadata: VideoDocument["metadata"]
+  ): JsonObject | undefined {
+    if (!metadata) {
+      return;
+    }
+    if (typeof metadata === "string") {
+      try {
+        return JSON.parse(metadata) as JsonObject;
+      } catch {
+        return;
+      }
+    }
+    return metadata;
+  }
+
+  async searchVideos(params: VideoSearchParams): Promise<VideoSearchResult> {
+    const startTime = Date.now();
+    let embeddingTime: number | undefined;
+
+    try {
+      const ranking = params.ranking || "hybrid";
+      const useSemanticSearch = ranking === "hybrid" || ranking === "semantic";
+
+      let videoEmbedding: number[] | null = null;
+      if (useSemanticSearch && params.query) {
+        const embeddingStart = Date.now();
+        videoEmbedding = await this.getVideoQueryEmbedding(params.query);
+        embeddingTime = Date.now() - embeddingStart;
+      }
+
+      const includeVectorSearch = useSemanticSearch && videoEmbedding !== null;
+      const effectiveRanking = includeVectorSearch ? ranking : "bm25";
+      const yql = this.buildVideoSearchYQL(params, includeVectorSearch);
+
+      const queryParams: VideoQueryParams = {
+        yql,
+        ranking: effectiveRanking,
+        hits: params.limit || 20,
+        offset: params.offset || 0,
+        timeout: "5s",
+        ...(includeVectorSearch && videoEmbedding
+          ? buildVideoVectorQueryFeatures(videoEmbedding)
+          : {}),
+      };
+
+      const vespaResult = await vespaClient.queryVideos(queryParams);
+
+      const videos = this.extractVideoDocuments(vespaResult);
+      const total = vespaResult.root.fields?.totalCount ?? videos.length;
+
+      return {
+        videos,
+        total,
+        queryTime: Date.now() - startTime,
+        embeddingTime,
+      };
+    } catch (error) {
+      console.error("Video search error:", error);
+      throw new Error(
+        `Video search failed: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
+    }
+  }
+
+  async searchUnified(
+    params: UnifiedSearchParams
+  ): Promise<UnifiedSearchResult> {
+    const startTime = Date.now();
+    const includeDocuments = params.includeDocuments ?? true;
+    const includeVideos = params.includeVideos ?? true;
+
+    const [docResults, videoResults] = await Promise.all([
+      includeDocuments
+        ? this.searchWithScores({
+            query: params.query,
+            teamId: params.teamId,
+            limit: params.limit,
+            offset: params.offset,
+            accessControlIds: params.accessControlIds,
+            connectorTypes: params.connectorTypes,
+            connectorId: params.connectorId,
+            documentTypes: params.documentTypes,
+            sourceId: params.sourceId,
+            fromDate: params.fromDate,
+            toDate: params.toDate,
+            ranking: params.ranking,
+          })
+        : Promise.resolve(null),
+      includeVideos
+        ? this.searchVideosWithScores({
+            query: params.query,
+            teamId: params.teamId,
+            limit: params.limit,
+            offset: params.offset,
+            accessControlIds: params.accessControlIds,
+            connectorId: params.connectorId,
+            sourceId: params.sourceId,
+            fromDate: params.fromDate,
+            toDate: params.toDate,
+            ranking: params.videoRanking,
+          })
+        : Promise.resolve(null),
+    ]);
+
+    const scoredDocuments = docResults?.documents || [];
+    const scoredVideos = videoResults?.videos || [];
+    const documentTotal = docResults?.total || 0;
+    const videoTotal = videoResults?.total || 0;
+
+    // Merge documents and videos by relevance score
+    const items: UnifiedSearchItem[] = [
+      ...scoredDocuments.map((doc) => ({
+        type: "document" as const,
+        data: doc,
+        relevance: doc.relevance,
+      })),
+      ...scoredVideos.map((video) => ({
+        type: "video" as const,
+        data: video,
+        relevance: video.relevance,
+      })),
+    ].sort((a, b) => b.relevance - a.relevance);
+
+    return {
+      items,
+      documents: scoredDocuments,
+      videos: scoredVideos,
+      documentTotal,
+      videoTotal,
+      total: documentTotal + videoTotal,
+      queryTime: Date.now() - startTime,
+      embeddingTime:
+        (docResults?.embeddingTime || 0) + (videoResults?.embeddingTime || 0),
+    };
+  }
+
+  private async getVideoQueryEmbedding(
+    query: string
+  ): Promise<number[] | null> {
+    try {
+      if (!process.env.TWELVELABS_API_KEY) {
+        return null;
+      }
+
+      const { TwelveLabsClient } = await import("@openplane/video");
+      const client = new TwelveLabsClient();
+      return await client.embedText(query);
+    } catch (error) {
+      console.warn("Failed to generate video query embedding:", error);
+      return null;
+    }
+  }
+
+  private buildVideoSearchYQL(
+    params: VideoSearchParams,
+    includeVectorSearch: boolean
+  ): string {
+    const conditions: string[] = [];
+    const limit = params.limit || 20;
+
+    conditions.push(`team_id contains "${escapeYqlString(params.teamId)}"`);
+
+    if (includeVectorSearch && params.query) {
+      const vectorClause = `({targetHits:${limit * 2}}nearestNeighbor(segment_embeddings, video_embedding))`;
+      const textClause = `default contains "${escapeYqlString(params.query)}"`;
+      conditions.push(`(${vectorClause} or (${textClause}))`);
+    } else if (params.query) {
+      conditions.push(`(default contains "${escapeYqlString(params.query)}")`);
+    }
+
+    if (params.connectorId) {
+      conditions.push(
+        `connector_id contains "${escapeYqlString(params.connectorId)}"`
+      );
+    }
+
+    if (params.sourceId) {
+      conditions.push(
+        `source_id contains "${escapeYqlString(params.sourceId)}"`
+      );
+    }
+
+    if (params.fromDate) {
+      conditions.push(`created_at >= ${params.fromDate}`);
+    }
+
+    if (params.toDate) {
+      conditions.push(`created_at <= ${params.toDate}`);
+    }
+
+    if (params.videoType) {
+      conditions.push(
+        `video_type contains "${escapeYqlString(params.videoType)}"`
+      );
+    }
+
+    conditions.push(this.buildAccessControlClause(params.accessControlIds));
+
+    return `select * from video_document where ${conditions.join(" and ")}`;
+  }
+
+  private extractVideoDocuments(
+    result: VespaSearchResult<VideoDocument>
+  ): VideoDocument[] {
+    if (!result.root.children || result.root.children.length === 0) {
+      return [];
+    }
+
+    return result.root.children.map((child) => ({
+      ...child.fields,
+      metadata: this.parseVideoMetadata(child.fields.metadata),
+    }));
   }
 }
 

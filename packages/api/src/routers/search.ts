@@ -1,4 +1,8 @@
-import { type SearchRanking, searchService } from "@openplane/services";
+import {
+  type SearchRanking,
+  searchService,
+  type VideoSearchRanking,
+} from "@openplane/services";
 import { z } from "zod";
 import { createTRPCRouter } from "../index";
 import { withActiveTeam } from "./apps/middleware";
@@ -43,6 +47,37 @@ const autocompleteInputSchema = z.object({
 const recentInputSchema = z.object({
   hours: z.number().min(1).max(168).default(24),
   limit: z.number().min(1).max(100).default(20),
+});
+
+const videoSearchInputSchema = z.object({
+  q: z.string().default(""),
+  connectorId: z.string().optional(),
+  sourceId: z.string().optional(),
+  fromDate: z.number().optional(),
+  toDate: z.number().optional(),
+  limit: z.number().min(1).max(100).default(20),
+  offset: z.number().min(0).default(0),
+  cursor: z.number().nullish(),
+  ranking: z.enum(["bm25", "semantic", "hybrid"]).default("hybrid"),
+});
+
+const unifiedSearchInputSchema = z.object({
+  q: z.string().default(""),
+  includeDocuments: z.boolean().default(true),
+  includeVideos: z.boolean().default(true),
+  connectorTypes: z.array(z.string()).optional(),
+  connectorId: z.string().optional(),
+  documentTypes: z.array(z.string()).optional(),
+  sourceId: z.string().optional(),
+  fromDate: z.number().optional(),
+  toDate: z.number().optional(),
+  limit: z.number().min(1).max(100).default(20),
+  offset: z.number().min(0).default(0),
+  cursor: z.number().nullish(),
+  ranking: z
+    .enum(["bm25", "semantic", "hybrid", "recency", "engagement"])
+    .default("hybrid"),
+  videoRanking: z.enum(["bm25", "semantic", "hybrid"]).default("hybrid"),
 });
 
 export const searchRouter = createTRPCRouter({
@@ -128,6 +163,87 @@ export const searchRouter = createTRPCRouter({
       return {
         documents,
         count: documents.length,
+      };
+    }),
+
+  videos: withActiveTeam
+    .input(videoSearchInputSchema)
+    .query(async ({ ctx, input }) => {
+      const effectiveOffset = input.cursor ?? input.offset;
+      const accessControlIds = buildAccessControlIds(ctx);
+
+      const result = await searchService.searchVideos({
+        query: input.q,
+        teamId: ctx.teamId,
+        connectorId: input.connectorId,
+        sourceId: input.sourceId,
+        fromDate: input.fromDate,
+        toDate: input.toDate,
+        limit: input.limit,
+        offset: effectiveOffset,
+        ranking: input.ranking as VideoSearchRanking,
+        accessControlIds,
+      });
+
+      const nextCursor =
+        result.videos.length === input.limit
+          ? effectiveOffset + input.limit
+          : undefined;
+
+      return {
+        videos: result.videos,
+        total: result.total,
+        limit: input.limit,
+        offset: effectiveOffset,
+        hasMore: result.videos.length === input.limit,
+        nextCursor,
+        queryTime: result.queryTime,
+        query: input.q,
+        ranking: input.ranking,
+      };
+    }),
+
+  unified: withActiveTeam
+    .input(unifiedSearchInputSchema)
+    .query(async ({ ctx, input }) => {
+      const effectiveOffset = input.cursor ?? input.offset;
+      const accessControlIds = buildAccessControlIds(ctx);
+
+      const result = await searchService.searchUnified({
+        query: input.q,
+        teamId: ctx.teamId,
+        includeDocuments: input.includeDocuments,
+        includeVideos: input.includeVideos,
+        connectorTypes: input.connectorTypes,
+        connectorId: input.connectorId,
+        documentTypes: input.documentTypes,
+        sourceId: input.sourceId,
+        fromDate: input.fromDate,
+        toDate: input.toDate,
+        limit: input.limit,
+        offset: effectiveOffset,
+        ranking: input.ranking as SearchRanking,
+        videoRanking: input.videoRanking as VideoSearchRanking,
+        accessControlIds,
+      });
+
+      const currentCount = result.items.length;
+      const hasMore = effectiveOffset + currentCount < result.total;
+      const nextCursor = hasMore ? effectiveOffset + input.limit : undefined;
+
+      return {
+        items: result.items,
+        documents: result.documents,
+        videos: result.videos,
+        documentTotal: result.documentTotal,
+        videoTotal: result.videoTotal,
+        total: result.total,
+        limit: input.limit,
+        offset: effectiveOffset,
+        hasMore,
+        nextCursor,
+        queryTime: result.queryTime,
+        query: input.q,
       };
     }),
 });

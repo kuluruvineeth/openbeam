@@ -180,3 +180,148 @@ export const authorResponseSchema = z.object({
   documents: z.array(z.any()),
   count: z.number(),
 });
+
+export const videoSearchQuerySchema = z.object({
+  q: z.string().min(1).openapi({
+    description: "Search query string",
+    example: "product demo presentation",
+  }),
+  connector_id: z.string().optional().openapi({
+    description: "Filter by specific connector ID",
+  }),
+  source_id: z.string().optional().openapi({
+    description: "Filter by source ID",
+  }),
+  video_type: z
+    .enum([
+      "meeting",
+      "presentation",
+      "tutorial",
+      "demo",
+      "interview",
+      "webinar",
+      "other",
+    ])
+    .optional()
+    .openapi({
+      description: "Filter by video type",
+    }),
+  from_date: z.coerce.number().optional().openapi({
+    description: "Filter videos from this timestamp (Unix epoch ms)",
+  }),
+  to_date: z.coerce.number().optional().openapi({
+    description: "Filter videos until this timestamp (Unix epoch ms)",
+  }),
+  limit: z.coerce.number().min(1).max(100).default(20).openapi({
+    description: "Maximum number of results",
+  }),
+  offset: z.coerce.number().min(0).default(0).openapi({
+    description: "Pagination offset",
+  }),
+  ranking: z
+    .enum(["bm25", "semantic", "hybrid", "enterprise", "engagement"])
+    .default("hybrid")
+    .openapi({
+      description: "Ranking algorithm to use",
+    }),
+});
+
+export const videoSearchResponseSchema = z.object({
+  videos: z.array(z.any()),
+  total: z.number(),
+  query: z.string(),
+  ranking: z.string(),
+  queryTime: z.number(),
+});
+
+export const unifiedSearchQuerySchema = z.object({
+  q: z.string().min(1).openapi({
+    description: "Search query string",
+    example: "quarterly report",
+  }),
+  include_documents: z.coerce.boolean().default(true).openapi({
+    description: "Include documents in results",
+  }),
+  include_videos: z.coerce.boolean().default(true).openapi({
+    description: "Include videos in results",
+  }),
+  connector_type: arrayQueryParam.openapi({
+    description: "Filter by connector types",
+  }),
+  connector_id: z.string().optional().openapi({
+    description: "Filter by specific connector ID",
+  }),
+  document_type: arrayQueryParam.openapi({
+    description: "Filter by document types",
+  }),
+  source_id: z.string().optional().openapi({
+    description: "Filter by source ID",
+  }),
+  from_date: z.coerce.number().optional().openapi({
+    description: "Filter from this timestamp",
+  }),
+  to_date: z.coerce.number().optional().openapi({
+    description: "Filter until this timestamp",
+  }),
+  limit: z.coerce.number().min(1).max(100).default(20).openapi({
+    description: "Maximum number of results per type",
+  }),
+  offset: z.coerce.number().min(0).default(0).openapi({
+    description: "Pagination offset",
+  }),
+  ranking: z
+    .enum(["bm25", "semantic", "hybrid", "recency", "engagement"])
+    .default("hybrid")
+    .openapi({
+      description: "Ranking algorithm for documents",
+    }),
+  video_ranking: z
+    .enum(["bm25", "semantic", "hybrid", "enterprise", "engagement"])
+    .default("hybrid")
+    .openapi({
+      description: "Ranking algorithm for videos",
+    }),
+});
+
+export const unifiedSearchResponseSchema = z.object({
+  documents: z.array(z.any()),
+  videos: z.array(z.any()),
+  documentTotal: z.number(),
+  videoTotal: z.number(),
+  total: z.number(),
+  query: z.string(),
+  queryTime: z.number(),
+});
+
+export const imageSearchQuerySchema = z.object({
+  image_url: z.url().openapi({
+    description: "URL of the image to search with",
+    example: "https://example.com/image.jpg",
+  }),
+  index_id: z.string().openapi({
+    description: "TwelveLabs index ID to search in",
+  }),
+  threshold: z
+    .enum(["high", "medium", "low", "none"])
+    .default("medium")
+    .openapi({
+      description: "Confidence threshold for results",
+    }),
+  limit: z.coerce.number().min(1).max(50).default(10).openapi({
+    description: "Maximum number of results",
+  }),
+});
+
+export const imageSearchResponseSchema = z.object({
+  results: z.array(
+    z.object({
+      videoId: z.string(),
+      score: z.number(),
+      startSec: z.number(),
+      endSec: z.number(),
+      confidence: z.string(),
+      thumbnailUrl: z.string().optional(),
+    })
+  ),
+  count: z.number(),
+});

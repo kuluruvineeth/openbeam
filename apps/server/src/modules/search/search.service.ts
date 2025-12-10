@@ -10,4 +10,10 @@ export {
   type SimilarDocumentsParams,
   searchService,
   type ThreadSearchParams,
+  type UnifiedSearchParams,
+  type UnifiedSearchResult,
+  type VideoSearchParams,
+  type VideoSearchRanking,
+  type VideoSearchResult,
+  type VideoType,
 } from "@openplane/services";

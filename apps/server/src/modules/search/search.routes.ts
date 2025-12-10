@@ -7,6 +7,8 @@ import {
   autocompleteResponseSchema,
   documentIdParamsSchema,
   errorSchema,
+  imageSearchQuerySchema,
+  imageSearchResponseSchema,
   recentQuerySchema,
   recentResponseSchema,
   searchQuerySchema,
@@ -15,6 +17,10 @@ import {
   similarResponseSchema,
   threadIdParamsSchema,
   threadResponseSchema,
+  unifiedSearchQuerySchema,
+  unifiedSearchResponseSchema,
+  videoSearchQuerySchema,
+  videoSearchResponseSchema,
 } from "./search.schema";
 
 const tags = ["Search"];
@@ -165,6 +171,82 @@ export const authorSearch = createRoute({
         },
       },
       description: "Author documents retrieved successfully",
+    },
+    400: {
+      content: { "application/json": { schema: errorSchema } },
+      description: "Bad Request",
+    },
+  },
+});
+
+export const videoSearch = createRoute({
+  tags: ["Search", "Video"],
+  method: "get",
+  path: "/videos",
+  summary: "Search videos",
+  description:
+    "Search across all indexed videos using text query with TwelveLabs embeddings",
+  request: {
+    query: videoSearchQuerySchema,
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: videoSearchResponseSchema,
+        },
+      },
+      description: "Video search results retrieved successfully",
+    },
+    400: {
+      content: { "application/json": { schema: errorSchema } },
+      description: "Bad Request",
+    },
+  },
+});
+
+export const unifiedSearch = createRoute({
+  tags: ["Search"],
+  method: "get",
+  path: "/unified",
+  summary: "Unified search",
+  description: "Search across both documents and videos in a single query",
+  request: {
+    query: unifiedSearchQuerySchema,
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: unifiedSearchResponseSchema,
+        },
+      },
+      description: "Unified search results retrieved successfully",
+    },
+    400: {
+      content: { "application/json": { schema: errorSchema } },
+      description: "Bad Request",
+    },
+  },
+});
+
+export const imageSearch = createRoute({
+  tags: ["Search", "Video"],
+  method: "get",
+  path: "/videos/image",
+  summary: "Search videos by image",
+  description: "Find videos containing similar visual content to a given image",
+  request: {
+    query: imageSearchQuerySchema,
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: imageSearchResponseSchema,
+        },
+      },
+      description: "Image search results retrieved successfully",
     },
     400: {
       content: { "application/json": { schema: errorSchema } },
