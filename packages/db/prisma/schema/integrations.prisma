@@ -223,6 +223,7 @@ model Connector {
   indexedDocuments    IndexedDocument[]
   connectorResources  ConnectorResource[]
   indexedFiles        IndexedFile[]
+  indexedVideos       IndexedVideo[]
 
   @@unique([teamId, workspaceExternalId, app, name])
   @@index([teamId, status])

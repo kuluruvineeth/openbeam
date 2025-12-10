@@ -375,6 +375,18 @@ enum FileProcessingStatus {
   FAILED
 }
 
+enum VideoProcessingStatus {
+  PENDING
+  DOWNLOADING
+  DOWNLOADED
+  INDEXING_TWELVELABS
+  INDEXED_TWELVELABS
+  GENERATING_EMBEDDINGS
+  INDEXING_VESPA
+  INDEXED
+  FAILED
+}
+
 model IndexedFile {
   id               String               @id @default(cuid()) @map("_id")
   connectorId      String
@@ -438,5 +450,44 @@ model IndexedChunk {
   @@index([connectorId])
   @@index([vespaId])
   @@map("indexed_chunk")
+}
+
+model IndexedVideo {
+  id                  String                @id @default(cuid()) @map("_id")
+  connectorId         String
+  vespaId             String                @unique
+  externalId          String
+
+  sourceMessageId     String?
+  sourceChannelId     String?
+  fileName            String
+  mimeType            String
+  fileSize            Int
+  fileExtension       String?
+
+  storageKey          String                @unique
+  storageUrl          String?
+
+  twelveLabsIndexId   String?
+  twelveLabsVideoId   String?
+
+  processingStatus    VideoProcessingStatus @default(PENDING)
+  durationSeconds     Int?
+  thumbnailUrl        String?
+
+  lastError           String?
+  errorCount          Int                   @default(0)
+
+  uploadedAt          DateTime?
+  indexedAt           DateTime?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+
+  connector           Connector             @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+
+  @@unique([connectorId, externalId])
+  @@index([processingStatus])
+  @@index([connectorId])
+  @@map("indexed_video")
 }
 

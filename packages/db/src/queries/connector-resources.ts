@@ -138,7 +138,7 @@ export type ResourceDocument = {
   title: string | null;
   documentType: string;
   indexedAt: Date;
-  source: "document" | "file";
+  source: "document" | "file" | "video";
 };
 
 export type ListResourceDocumentsResult = {
@@ -166,41 +166,64 @@ export const listResourceDocuments = async (
 
   const fileWhere = {
     connectorId,
-    // TODO: Restore sourceChannelId filter after re-sync
-    // sourceChannelId: resourceExternalId,
     ...(search && {
       fileName: { contains: search, mode: "insensitive" as const },
     }),
   };
 
-  const [documents, files, docCount, fileCount] = await Promise.all([
-    db.indexedDocument.findMany({
-      where: documentWhere,
-      select: {
-        id: true,
-        title: true,
-        documentType: true,
-        indexedAt: true,
-      },
-      orderBy: { indexedAt: "desc" },
-      take: limit + 1,
-      ...(cursor && { cursor: { id: cursor }, skip: 1 }),
+  const videoWhere = {
+    connectorId,
+    sourceChannelId: resourceExternalId,
+    processingStatus: "INDEXED" as const,
+    ...(search && {
+      fileName: { contains: search, mode: "insensitive" as const },
     }),
-    db.indexedFile.findMany({
-      where: fileWhere,
-      select: {
-        id: true,
-        fileName: true,
-        mimeType: true,
-        indexedAt: true,
-      },
-      orderBy: { indexedAt: "desc" },
-      take: limit + 1,
-      ...(cursor && { cursor: { id: cursor }, skip: 1 }),
-    }),
-    db.indexedDocument.count({ where: documentWhere }),
-    db.indexedFile.count({ where: fileWhere }),
-  ]);
+  };
+
+  //TODO: right now we are returning all resources, later strictly change to return resources with matching resourceExternalId
+
+  const [documents, files, videos, docCount, fileCount, videoCount] =
+    await Promise.all([
+      db.indexedDocument.findMany({
+        where: documentWhere,
+        select: {
+          id: true,
+          title: true,
+          documentType: true,
+          indexedAt: true,
+        },
+        orderBy: { indexedAt: "desc" },
+        take: limit + 1,
+        ...(cursor && { cursor: { id: cursor }, skip: 1 }),
+      }),
+      db.indexedFile.findMany({
+        where: fileWhere,
+        select: {
+          id: true,
+          fileName: true,
+          mimeType: true,
+          indexedAt: true,
+        },
+        orderBy: { indexedAt: "desc" },
+        take: limit + 1,
+        ...(cursor && { cursor: { id: cursor }, skip: 1 }),
+      }),
+      db.indexedVideo.findMany({
+        where: videoWhere,
+        select: {
+          id: true,
+          fileName: true,
+          mimeType: true,
+          indexedAt: true,
+        },
+        orderBy: { indexedAt: "desc" },
+        take: limit + 1,
+        ...(cursor && { cursor: { id: cursor }, skip: 1 }),
+      }),
+      db.indexedDocument.count({ where: documentWhere }),
+      db.indexedFile.count({ where: fileWhere }),
+      db.indexedVideo.count({ where: videoWhere }),
+    ]);
 
   const combined: ResourceDocument[] = [
     ...documents.map((d) => ({
@@ -217,6 +240,13 @@ export const listResourceDocuments = async (
       indexedAt: f.indexedAt ?? new Date(),
       source: "file" as const,
     })),
+    ...videos.map((v) => ({
+      id: v.id,
+      title: v.fileName,
+      documentType: "video",
+      indexedAt: v.indexedAt ?? new Date(),
+      source: "video" as const,
+    })),
   ]
     .sort((a, b) => b.indexedAt.getTime() - a.indexedAt.getTime())
     .slice(0, limit + 1);
@@ -227,6 +257,6 @@ export const listResourceDocuments = async (
   return {
     items,
     nextCursor: hasMore ? (items.at(-1)?.id ?? null) : null,
-    totalCount: docCount + fileCount,
+    totalCount: docCount + fileCount + videoCount,
   };
 };

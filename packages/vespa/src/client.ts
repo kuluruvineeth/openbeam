@@ -4,7 +4,16 @@ import type {
   GenericDocument,
   QueryParams,
   SearchResult,
+  VespaEmbeddingCell,
   VespaError,
+  VespaGenericDocumentForFeed,
+  VespaQueryBody,
+  VespaTimestampCell,
+  VespaVideoDocumentForFeed,
+  VespaVideoQueryBody,
+  VespaVideoUpdatePayload,
+  VideoDocument,
+  VideoQueryParams,
 } from "./schemas";
 
 export class VespaClient {
@@ -45,10 +54,10 @@ export class VespaClient {
   async feedDocument(doc: GenericDocument, retries = 3): Promise<FeedResponse> {
     const documentPath = `${this.documentApiUrl}/default/openplane_document/docid/${doc.id}`;
 
-    const docForVespa: Record<string, unknown> = { ...doc };
-    if (docForVespa.metadata && typeof docForVespa.metadata === "object") {
-      docForVespa.metadata = JSON.stringify(docForVespa.metadata);
-    }
+    const docForVespa: VespaGenericDocumentForFeed = {
+      ...doc,
+      metadata: doc.metadata ? JSON.stringify(doc.metadata) : undefined,
+    };
 
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
@@ -134,29 +143,23 @@ export class VespaClient {
     return (await response.json()) as FeedResponse;
   }
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: this is a complex query
   async query<T = GenericDocument>(
     params: QueryParams
   ): Promise<SearchResult<T>> {
     const hasVectorFeatures = !!params.query_embedding;
 
     if (hasVectorFeatures) {
-      const body: Record<string, unknown> = {
+      const body: VespaQueryBody = {
         yql: params.yql,
-        hits: params.hits || 20,
-        offset: params.offset || 0,
+        hits: params.hits ?? 20,
+        offset: params.offset ?? 0,
+        "ranking.profile": params.ranking,
+        timeout: params.timeout,
+        "input.query(query_embedding)": params.query_embedding,
+        "input.query(title_embedding)": params.title_embedding,
+        "input.query(topic_embedding)": params.topic_embedding,
+        "input.query(user_dept_embedding)": params.user_dept_embedding,
       };
-
-      if (params.ranking) {
-        body["ranking.profile"] = params.ranking;
-      }
-      if (params.timeout) {
-        body.timeout = params.timeout;
-      }
-
-      if (params.query_embedding) {
-        body["input.query(query_embedding)"] = params.query_embedding;
-      }
 
       const response = await fetch(this.searchApiUrl, {
         method: "POST",
@@ -277,6 +280,233 @@ export class VespaClient {
     } catch {
       return false;
     }
+  }
+
+  async feedVideoDocument(
+    doc: VideoDocument,
+    retries = 3
+  ): Promise<FeedResponse> {
+    const documentPath = `${this.documentApiUrl}/default/video_document/docid/${doc.id}`;
+    const vespaDoc = this.formatVideoForVespa(doc);
+
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const response = await fetch(documentPath, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fields: vespaDoc }),
+          signal: AbortSignal.timeout(60_000),
+        });
+
+        if (!response.ok) {
+          const errorMessage = await this.getResponseError(response);
+          throw new Error(`Vespa video feed error: ${errorMessage}`);
+        }
+
+        return (await response.json()) as FeedResponse;
+      } catch (error: unknown) {
+        const shouldRetry = this.isRetryableError(error) && attempt < retries;
+
+        if (shouldRetry) {
+          const delay = 2 ** attempt * 1000;
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          continue;
+        }
+
+        throw error;
+      }
+    }
+
+    throw new Error("Failed to feed video document after retries");
+  }
+
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: tensor formatting requires multiple nested operations
+  private formatVideoForVespa(doc: VideoDocument): VespaVideoDocumentForFeed {
+    const embeddingCells: VespaEmbeddingCell[] = [];
+    for (const [segId, embedding] of Object.entries(doc.segment_embeddings)) {
+      for (let i = 0; i < embedding.length; i++) {
+        const value = embedding[i];
+        if (value !== undefined) {
+          embeddingCells.push({
+            address: { segment: segId, x: String(i) },
+            value,
+          });
+        }
+      }
+    }
+
+    const timestampCells: VespaTimestampCell[] = [];
+    for (const [segId, timestamps] of Object.entries(doc.segment_timestamps)) {
+      const [start, end] = timestamps;
+      timestampCells.push({
+        address: { segment: segId, t: "0" },
+        value: start,
+      });
+      timestampCells.push({
+        address: { segment: segId, t: "1" },
+        value: end,
+      });
+    }
+
+    const vespaDoc: VespaVideoDocumentForFeed = {
+      id: doc.id,
+      team_id: doc.team_id,
+      connector_id: doc.connector_id,
+      connector_type: doc.connector_type,
+      external_id: doc.external_id,
+      title: doc.title,
+      description: doc.description ?? "",
+      video_summary: doc.video_summary,
+      video_keywords: doc.video_keywords,
+      transcript: doc.transcript ?? "",
+      duration_seconds: doc.duration_seconds,
+      segment_count: doc.segment_count,
+      segment_embeddings:
+        embeddingCells.length > 0 ? { cells: embeddingCells } : undefined,
+      segment_timestamps:
+        timestampCells.length > 0 ? { cells: timestampCells } : undefined,
+      segment_transcripts: doc.segment_transcripts,
+      segment_descriptions: doc.segment_descriptions,
+      segment_speakers: doc.segment_speakers,
+      segment_ocr_text: doc.segment_ocr_text,
+      transcript_embedding: doc.transcript_embedding,
+      topic_embedding: doc.topic_embedding,
+      source_id: doc.source_id ?? "",
+      source_name: doc.source_name ?? "",
+      source_type: doc.source_type ?? "",
+      url: doc.url,
+      thumbnail_url: doc.thumbnail_url ?? "",
+      author_id: doc.author_id ?? "",
+      author_name: doc.author_name ?? "",
+      participants: doc.participants,
+      created_at: doc.created_at,
+      updated_at: doc.updated_at,
+      indexed_at: doc.indexed_at ?? Date.now(),
+      access_control: doc.access_control ?? [],
+      is_public: doc.is_public,
+      metadata: doc.metadata ? JSON.stringify(doc.metadata) : "",
+      view_count: doc.view_count ?? 0,
+      unique_viewers: doc.unique_viewers ?? 0,
+      avg_watch_percentage: doc.avg_watch_percentage ?? 0,
+      share_count: doc.share_count ?? 0,
+      comment_count: doc.comment_count ?? 0,
+      trending_score: doc.trending_score,
+      chapters: doc.chapters ?? [],
+      highlights: doc.highlights ?? [],
+      transcript_segments: doc.transcript_segments ?? [],
+      action_items: doc.action_items,
+      detected_topics: doc.detected_topics,
+      detected_logos: doc.detected_logos,
+      entity_ids: doc.entity_ids,
+      mentioned_entity_ids: doc.mentioned_entity_ids ?? [],
+      related_document_ids: doc.related_document_ids ?? [],
+      discussed_in_channels: doc.discussed_in_channels,
+      content_hash: doc.content_hash ?? "",
+      canonical_video_id: doc.canonical_video_id,
+      video_type: doc.video_type,
+      language: doc.language,
+    };
+
+    return vespaDoc;
+  }
+
+  async queryVideos<T = VideoDocument>(
+    params: VideoQueryParams
+  ): Promise<SearchResult<T>> {
+    const body: VespaVideoQueryBody = {
+      yql: params.yql,
+      hits: params.hits ?? 20,
+      offset: params.offset ?? 0,
+      "ranking.profile": params.ranking,
+      timeout: params.timeout,
+      "input.query(video_embedding)": params.video_embedding,
+      "input.query(query_embedding)": params.query_embedding,
+      "input.query(topic_embedding)": params.topic_embedding,
+    };
+
+    const response = await fetch(this.searchApiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const error = (await response.json()) as VespaError;
+      throw new Error(
+        `Vespa video query error: ${error.message || response.statusText}`
+      );
+    }
+
+    return (await response.json()) as SearchResult<T>;
+  }
+
+  async deleteVideoDocument(id: string): Promise<void> {
+    const documentPath = `${this.documentApiUrl}/default/video_document/docid/${id}`;
+
+    const response = await fetch(documentPath, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      const error = (await response.json()) as VespaError;
+      throw new Error(
+        `Vespa video delete error: ${error.message || response.statusText}`
+      );
+    }
+  }
+
+  async updateVideoDocument(
+    id: string,
+    fields: Partial<VideoDocument>
+  ): Promise<FeedResponse> {
+    const documentPath = `${this.documentApiUrl}/default/video_document/docid/${id}`;
+
+    const updates: VespaVideoUpdatePayload = {};
+    for (const [key, value] of Object.entries(fields)) {
+      if (value !== undefined) {
+        const typedKey = key as keyof VideoDocument;
+        (updates as Record<keyof VideoDocument, { assign: unknown }>)[
+          typedKey
+        ] = { assign: value };
+      }
+    }
+
+    const response = await fetch(documentPath, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fields: updates }),
+    });
+
+    if (!response.ok) {
+      const error = (await response.json()) as VespaError;
+      throw new Error(
+        `Vespa video update error: ${error.message || response.statusText}`
+      );
+    }
+
+    return (await response.json()) as FeedResponse;
+  }
+
+  async getVideoDocument(id: string): Promise<VideoDocument | null> {
+    const documentPath = `${this.documentApiUrl}/default/video_document/docid/${id}`;
+
+    const response = await fetch(documentPath, {
+      method: "GET",
+    });
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      const error = (await response.json()) as VespaError;
+      throw new Error(
+        `Vespa video get error: ${error.message || response.statusText}`
+      );
+    }
+
+    const result = (await response.json()) as { fields: VideoDocument };
+    return result.fields;
   }
 }
 

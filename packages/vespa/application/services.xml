@@ -5,12 +5,10 @@
     <search/>
     <document-processing/>
     
-    <!-- HTTP server for feeding and querying -->
     <http>
       <server id="default" port="8080"/>
     </http>
 
-    <!-- Nodes -->
     <nodes>
       <node hostalias="node1"/>
     </nodes>
@@ -19,17 +17,16 @@
   <content id="content" version="1.0">
     <redundancy>1</redundancy>
     
-    <!-- Generic document type for all connectors -->
     <documents>
       <document type="openplane_document" mode="index"/>
       <document type="entity" mode="index"/>
+      <document type="video_document" mode="index"/>
     </documents>
 
     <nodes>
       <node hostalias="node1" distribution-key="0"/>
     </nodes>
 
-    <!-- Raise feed block thresholds for dev; values are fractions (0.0-1.0) -->
     <tuning>
       <resource-limits>
         <disk>0.9</disk>
