@@ -1,4 +1,10 @@
-export type ProviderId = "openai" | "anthropic" | "google" | "azure" | "ollama";
+export type ProviderId =
+  | "openai"
+  | "anthropic"
+  | "google"
+  | "azure"
+  | "ollama"
+  | "twelvelabs";
 
 export interface ProviderConfig {
   openai: {
@@ -25,50 +31,32 @@ export interface ProviderConfig {
 }
 
 export interface EmbeddingConfig {
-  /** Default embedding dimensions (1536 for text-embedding-3-small) */
   dimensions: number;
-  /** Maximum tokens per embedding request */
   maxTokens: number;
-  /** Batch size for embedding multiple texts */
   batchSize: number;
 }
 
 export interface CompletionConfig {
-  /** Default temperature for completions */
   temperature: number;
-  /** Default max tokens for completions */
   maxTokens: number;
-  /** Top P sampling parameter */
   topP: number;
 }
 
 export interface AgentConfig {
-  /** Maximum steps for agentic loops */
   maxSteps: number;
-  /** Maximum tokens per step */
   maxTokensPerStep: number;
-  /** Timeout for agent execution (ms) */
   timeoutMs: number;
-  /** Maximum tool roundtrips */
   maxToolRoundtrips: number;
-  /** Enable parallel tool execution */
   enableParallelTools: boolean;
 }
 
 export interface AIConfig {
-  /** Default provider for chat completions */
   defaultProvider: ProviderId;
-  /** Default chat model */
   defaultChatModel: string;
-  /** Default embedding model */
   defaultEmbeddingModel: string;
-  /** Provider-specific configurations */
   providers: ProviderConfig;
-  /** Embedding service config */
   embedding: EmbeddingConfig;
-  /** Completion service config */
   completion: CompletionConfig;
-  /** Agent config */
   agent: AgentConfig;
 }
 

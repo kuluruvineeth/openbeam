@@ -1,5 +1,3 @@
-// Agents
-
 export type {
   Agent,
   AgentConfig,
@@ -33,7 +31,6 @@ export type {
   TokenUsage,
   ToolCall,
 } from "./completion";
-// Completion
 export {
   CompletionService,
   collectStream,
@@ -55,7 +52,6 @@ export type {
   ProviderConfig,
   ProviderId,
 } from "./config";
-// Config
 export {
   getConfig,
   resetConfig,
@@ -74,7 +70,6 @@ export type {
   SimilarityResult,
   TextChunk,
 } from "./embeddings";
-// Embeddings
 export {
   chunkDocument,
   DEFAULT_CHUNKING_CONFIG,
@@ -92,13 +87,13 @@ export type {
   ChatModelDefinition,
   EmbeddingModelDefinition,
 } from "./providers";
-// Providers
 export {
   createAnthropicProvider,
   createAzureProvider,
   createGoogleProvider,
   createOllamaProvider,
   createOpenAIProvider,
+  createTwelveLabsProvider,
   registry,
 } from "./providers";
 export type {
@@ -111,7 +106,6 @@ export type {
   ToolRegistryOptions,
   ToolResult as ToolRegistryResult,
 } from "./tools";
-// Tools - Re-export AI SDK's tool helper and zod for convenience
 export {
   ToolRegistry,
   tool,

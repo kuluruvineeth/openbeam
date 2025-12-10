@@ -1,6 +1,12 @@
 import type { EmbeddingModel, LanguageModel } from "ai";
 
-export type ProviderId = "openai" | "anthropic" | "google" | "azure" | "ollama";
+export type ProviderId =
+  | "openai"
+  | "anthropic"
+  | "google"
+  | "azure"
+  | "ollama"
+  | "twelvelabs";
 
 export interface ChatModelDefinition {
   id: string;

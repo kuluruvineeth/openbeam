@@ -5,6 +5,7 @@ import { createAzureProvider } from "./azure";
 import { createGoogleProvider } from "./google";
 import { createOllamaProvider } from "./ollama";
 import { createOpenAIProvider } from "./openai";
+import { createTwelveLabsProvider } from "./twelvelabs";
 import type {
   AIProvider,
   ChatModelDefinition,
@@ -26,6 +27,7 @@ class ProviderRegistry {
     this.registerProvider(createGoogleProvider());
     this.registerProvider(createAzureProvider());
     this.registerProvider(createOllamaProvider());
+    this.registerProvider(createTwelveLabsProvider());
 
     this.initialized = true;
   }
