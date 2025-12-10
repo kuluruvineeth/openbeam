@@ -34,6 +34,7 @@ const storageConfig = {
   secretAccessKey: process.env.GCS_SECRET_ACCESS_KEY || "",
   bucket: process.env.GCS_BUCKET || "openplane-files",
   endpoint: process.env.GCS_ENDPOINT,
+  publicEndpoint: process.env.GCS_PUBLIC_ENDPOINT,
 };
 
 export interface FileProcessingResult {

@@ -4,6 +4,7 @@ import {
   closeIndexQueue,
   closeSharedBullMqConnection,
   closeSyncQueue,
+  closeVideoProcessingQueue,
   closeWebhookQueue,
 } from "@openplane/redis";
 import { startHealthServer, stopHealthServer } from "./health";
@@ -13,6 +14,7 @@ import {
   createFileProcessor,
   createIndexProcessor,
   createSyncProcessor,
+  createVideoProcessor,
   createWebhookProcessor,
   type ProcessorResult,
 } from "./processors";
@@ -27,6 +29,7 @@ class WorkerService {
   private readonly syncProcessor: ProcessorResult;
   private readonly indexProcessor: ProcessorResult;
   private readonly fileProcessor: ProcessorResult;
+  private readonly videoProcessor: ProcessorResult;
   private readonly webhookProcessor: ProcessorResult;
   private readonly cleanupProcessor: ProcessorResult;
 
@@ -36,6 +39,7 @@ class WorkerService {
     this.syncProcessor = createSyncProcessor();
     this.indexProcessor = createIndexProcessor();
     this.fileProcessor = createFileProcessor();
+    this.videoProcessor = createVideoProcessor();
     this.webhookProcessor = createWebhookProcessor();
     this.cleanupProcessor = createCleanupProcessor();
 
@@ -68,6 +72,7 @@ class WorkerService {
           syncProcessor: "running",
           indexProcessor: "running",
           fileProcessor: "running",
+          videoProcessor: "running",
           webhookProcessor: "running",
           cleanupProcessor: "running",
           metricsServer: "running",
@@ -90,6 +95,7 @@ class WorkerService {
       this.syncProcessor.close(),
       this.indexProcessor.close(),
       this.fileProcessor.close(),
+      this.videoProcessor.close(),
       this.webhookProcessor.close(),
       this.cleanupProcessor.close(),
       stopMetricsServer(),
@@ -99,6 +105,7 @@ class WorkerService {
     await Promise.allSettled([
       closeSyncQueue(),
       closeIndexQueue(),
+      closeVideoProcessingQueue(),
       closeWebhookQueue(),
       closeCleanupQueue(),
       closeSharedBullMqConnection(),

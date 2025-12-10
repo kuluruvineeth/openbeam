@@ -44,6 +44,14 @@ export const workerConfig = {
     },
   },
 
+  video: {
+    concurrency: Number.parseInt(process.env.VIDEO_CONCURRENCY || "3", 10),
+    rateLimit: {
+      max: Number.parseInt(process.env.VIDEO_RATE_LIMIT_MAX || "5", 10),
+      duration: 1000,
+    },
+  },
+
   scheduler: {
     checkIntervalMs: Number.parseInt(
       process.env.SCHEDULER_CHECK_INTERVAL_MS || "3600000",

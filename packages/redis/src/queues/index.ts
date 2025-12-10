@@ -6,5 +6,7 @@ export * from "./index-queue";
 export { closeIndexQueue } from "./index-queue";
 export * from "./sync-queue";
 export { closeSyncQueue } from "./sync-queue";
+export * from "./video-processing-queue";
+export { closeVideoProcessingQueue } from "./video-processing-queue";
 export * from "./webhook-queue";
 export { closeWebhookQueue } from "./webhook-queue";
