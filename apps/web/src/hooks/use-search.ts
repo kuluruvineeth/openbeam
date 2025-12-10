@@ -208,8 +208,22 @@ export function useSearch(options?: { debounceMs?: number }) {
   );
 
   const clearSearch = useCallback(
-    () => setParams({ q: null, content: "all", ...resetFilters }),
-    [setParams, resetFilters]
+    () =>
+      setParams({
+        q: null,
+        content: "all",
+        apps: null,
+        types: null,
+        sources: null,
+        statuses: null,
+        priorities: null,
+        labels: null,
+        dateRange: null,
+        fromDate: null,
+        toDate: null,
+        ranking: "hybrid",
+      }),
+    [setParams]
   );
 
   const documents = useMemo(() => {
