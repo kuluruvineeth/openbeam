@@ -22,6 +22,7 @@
     "@openplane/integrations": "workspace:*",
     "@openplane/redis": "workspace:*",
     "@openplane/vespa": "workspace:*",
+    "@openplane/video": "workspace:*",
     "@slack/web-api": "^7.8.0",
     "jsonwebtoken": "^9.0.2",
     "zod": "^3.24.2"

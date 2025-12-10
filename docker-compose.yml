@@ -46,6 +46,7 @@ services:
       ENGINE_URL: http://engine:8000
       # Storage (MinIO for local dev, GCS-compatible)
       GCS_ENDPOINT: http://minio:9000
+      # GCS_PUBLIC_ENDPOINT: Set to a publicly accessible URL (e.g., ngrok) for TwelveLabs video indexing
       GCS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
       GCS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
       GCS_BUCKET: ${S3_BUCKET:-openplane-files}
