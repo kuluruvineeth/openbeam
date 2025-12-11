@@ -95,11 +95,12 @@ export function SearchExpanded() {
   }, []);
 
   useSearchNavigation({
-    documents,
+    items: unifiedItems,
     selectedIndex,
     setSelectedIndex,
     previewId,
-    setPreviewId: (id) => (id ? openPreview(id, "document") : closePreview()),
+    openPreview,
+    closePreview,
     onOpenExternal: handleOpenExternal,
     enabled: hasResults,
   });

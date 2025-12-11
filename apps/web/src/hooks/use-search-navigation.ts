@@ -2,24 +2,28 @@
 
 import { useHotkeys } from "react-hotkeys-hook";
 import { isPreviewable } from "@/lib/file-preview-config";
-import type { SearchResultDocument } from "@/lib/search-types";
+import type { UnifiedSearchItem } from "@/lib/search-types";
+
+type PreviewType = "document" | "video";
 
 type SearchNavigationOptions = {
-  documents: SearchResultDocument[];
+  items: UnifiedSearchItem[];
   selectedIndex: number;
   setSelectedIndex: React.Dispatch<React.SetStateAction<number>>;
   previewId: string | null;
-  setPreviewId: (id: string | null) => void;
+  openPreview: (id: string, type: PreviewType) => void;
+  closePreview: () => void;
   onOpenExternal?: (url: string) => void;
   enabled?: boolean;
 };
 
 export function useSearchNavigation({
-  documents,
+  items,
   selectedIndex,
   setSelectedIndex,
   previewId,
-  setPreviewId,
+  openPreview,
+  closePreview,
   onOpenExternal,
   enabled = true,
 }: SearchNavigationOptions) {
@@ -27,9 +31,9 @@ export function useSearchNavigation({
     "down, j",
     (e) => {
       e.preventDefault();
-      setSelectedIndex((prev) => Math.min(prev + 1, documents.length - 1));
+      setSelectedIndex((prev) => Math.min(prev + 1, items.length - 1));
     },
-    { enabled: enabled && documents.length > 0, enableOnFormTags: false }
+    { enabled: enabled && items.length > 0, enableOnFormTags: false }
   );
 
   useHotkeys(
@@ -38,26 +42,34 @@ export function useSearchNavigation({
       e.preventDefault();
       setSelectedIndex((prev) => Math.max(prev - 1, 0));
     },
-    { enabled: enabled && documents.length > 0, enableOnFormTags: false }
+    { enabled: enabled && items.length > 0, enableOnFormTags: false }
   );
 
   useHotkeys(
     "enter, space",
     (e) => {
       e.preventDefault();
-      const doc = documents[selectedIndex];
-      if (!doc) {
+      const item = items[selectedIndex];
+      if (!item) {
         return;
       }
 
-      if (isPreviewable(doc.mime_type, doc.file_name, doc.document_type)) {
-        setPreviewId(doc.id);
-      } else if (doc.url) {
-        onOpenExternal?.(doc.url);
+      if (item.type === "video") {
+        openPreview(item.data.id, "video");
+      } else if (
+        isPreviewable(
+          item.data.mime_type,
+          item.data.file_name,
+          item.data.document_type
+        )
+      ) {
+        openPreview(item.data.id, "document");
+      } else if (item.data.url) {
+        onOpenExternal?.(item.data.url);
       }
     },
     {
-      enabled: enabled && selectedIndex >= 0 && documents.length > 0,
+      enabled: enabled && selectedIndex >= 0 && items.length > 0,
       enableOnFormTags: false,
     }
   );
@@ -66,7 +78,7 @@ export function useSearchNavigation({
     "escape",
     () => {
       if (previewId) {
-        setPreviewId(null);
+        closePreview();
       }
     },
     { enabled: !!previewId }
@@ -75,13 +87,13 @@ export function useSearchNavigation({
   useHotkeys(
     "o, mod+enter",
     () => {
-      const doc = documents[selectedIndex];
-      if (doc?.url) {
-        onOpenExternal?.(doc.url);
+      const item = items[selectedIndex];
+      if (item?.data.url) {
+        onOpenExternal?.(item.data.url);
       }
     },
     {
-      enabled: enabled && selectedIndex >= 0 && documents.length > 0,
+      enabled: enabled && selectedIndex >= 0 && items.length > 0,
       enableOnFormTags: false,
     }
   );
@@ -92,16 +104,16 @@ export function useSearchNavigation({
       e.preventDefault();
       setSelectedIndex(0);
     },
-    { enabled: enabled && documents.length > 0, enableOnFormTags: false }
+    { enabled: enabled && items.length > 0, enableOnFormTags: false }
   );
 
   useHotkeys(
     "end, shift+g",
     (e) => {
       e.preventDefault();
-      setSelectedIndex(documents.length - 1);
+      setSelectedIndex(items.length - 1);
     },
-    { enabled: enabled && documents.length > 0, enableOnFormTags: false }
+    { enabled: enabled && items.length > 0, enableOnFormTags: false }
   );
 
   return {
