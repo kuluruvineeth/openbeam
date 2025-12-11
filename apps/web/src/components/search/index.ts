@@ -1,11 +1,13 @@
+export { SearchCommand } from "./search-command";
+export { SearchCommandDropdown } from "./search-command-dropdown";
+export { SearchCommandItem } from "./search-command-item";
+export { SearchContentTabs } from "./search-content-tabs";
 export { SearchEmptyState } from "./search-empty-state";
+export { SearchExpanded } from "./search-expanded";
 export { SearchFilters } from "./search-filters";
-export { SearchHeader } from "./search-header";
-export { SearchInput } from "./search-input";
-export { SearchPageContent } from "./search-page-content";
+export { SearchInputBar } from "./search-input-bar";
+export { SearchPage } from "./search-page";
 export { SearchResultRow } from "./search-result-row";
 export { SearchResults } from "./search-results";
-export {
-  SearchPageSkeleton,
-  SearchResultsSkeleton,
-} from "./search-skeleton";
+export { SearchPageSkeleton, SearchResultsSkeleton } from "./search-skeleton";
+export { SearchStats } from "./search-stats";
