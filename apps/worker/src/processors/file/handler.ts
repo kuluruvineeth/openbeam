@@ -5,15 +5,11 @@ import {
   createLinkedSpan,
   type FileProcessingJobData,
 } from "@openplane/redis";
-
-interface ParsedChunk {
-  text: string;
-  page_number?: number;
-  page_end?: number;
-}
-
-import { EngineClient } from "@openplane/services";
-import { S3StorageProvider } from "@openplane/storage";
+import {
+  EngineClient,
+  getStorageProvider,
+  SIGNED_URL_EXPIRY_SECONDS,
+} from "@openplane/services";
 import { type GenericDocument, vespaClient } from "@openplane/vespa";
 import { SpanStatusCode } from "@opentelemetry/api";
 import type { Job } from "bullmq";
@@ -25,17 +21,14 @@ import {
 import logger from "../../utils/logger";
 import { logJobError, logJobStart } from "../event-handlers";
 
+interface ParsedChunk {
+  text: string;
+  page_number?: number;
+  page_end?: number;
+}
+
 const engineUrl = process.env.ENGINE_URL || "http://localhost:8000";
 const engineClient = new EngineClient(engineUrl);
-
-const storageConfig = {
-  region: process.env.GCS_REGION || "us-central1",
-  accessKeyId: process.env.GCS_ACCESS_KEY_ID || "",
-  secretAccessKey: process.env.GCS_SECRET_ACCESS_KEY || "",
-  bucket: process.env.GCS_BUCKET || "openplane-files",
-  endpoint: process.env.GCS_ENDPOINT,
-  publicEndpoint: process.env.GCS_PUBLIC_ENDPOINT,
-};
 
 export interface FileProcessingResult {
   success: boolean;
@@ -113,7 +106,7 @@ async function processDownload(
     throw new Error("Source URL required for download");
   }
 
-  const storage = new S3StorageProvider(storageConfig);
+  const storage = getStorageProvider();
 
   const connector = await prisma.connector.findUnique({
     where: { id: connectorId },
@@ -199,8 +192,11 @@ async function processParse(
     data: { processingStatus: "PARSING" },
   });
 
-  const storage = new S3StorageProvider(storageConfig);
-  const signedUrl = await storage.getSignedUrl(storageKey, 3600);
+  const storage = getStorageProvider();
+  const signedUrl = await storage.getSignedUrl(
+    storageKey,
+    SIGNED_URL_EXPIRY_SECONDS
+  );
 
   const result = await engineClient.parseUrl(signedUrl, fileName, {
     chunk: true,

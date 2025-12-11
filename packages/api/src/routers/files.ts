@@ -1,20 +1,10 @@
-import { S3StorageProvider } from "@openplane/storage";
+import { getStorageProvider } from "@openplane/services";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter } from "../index";
 import { withActiveTeam } from "./apps/middleware";
 
 const CUID_LENGTH = 25;
-
-function getStorageProvider() {
-  return new S3StorageProvider({
-    bucket: process.env.GCS_BUCKET ?? "openplane-files",
-    region: process.env.GCS_REGION ?? "us-central1",
-    endpoint: process.env.GCS_ENDPOINT,
-    accessKeyId: process.env.GCS_ACCESS_KEY_ID ?? "",
-    secretAccessKey: process.env.GCS_SECRET_ACCESS_KEY ?? "",
-  });
-}
 
 function parseDocumentId(documentId: string) {
   const prefixes = ["chunk-", "file-", "video_"] as const;

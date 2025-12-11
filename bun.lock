@@ -320,6 +320,7 @@
         "@openplane/db": "workspace:*",
         "@openplane/integrations": "workspace:*",
         "@openplane/redis": "workspace:*",
+        "@openplane/storage": "workspace:*",
         "@openplane/vespa": "workspace:*",
         "@openplane/video": "workspace:*",
         "@slack/web-api": "^7.8.0",

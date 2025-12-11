@@ -1,6 +1,5 @@
 export * from "./ai";
 export * from "./engine";
-
 export { GmailAuth, GmailServiceAccountAuth } from "./gmail";
 export {
   GoogleDriveAuth,
@@ -30,6 +29,7 @@ export {
   type TransformContext,
   verifySlackSignature,
 } from "./slack";
+export * from "./storage";
 export * from "./sync";
 export * from "./types";
 export * from "./video";
