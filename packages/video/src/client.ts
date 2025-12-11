@@ -335,9 +335,14 @@ export class TwelveLabsClient {
     ]);
 
     let duration = 0;
+    let thumbnailUrl: string | undefined;
     try {
       const asset = await this.retrieveIndexedAsset(indexId, videoId);
       duration = asset.systemMetadata?.duration ?? 0;
+      const thumbnailUrls = asset.hls?.thumbnailUrls;
+      if (thumbnailUrls && thumbnailUrls.length > 0) {
+        thumbnailUrl = thumbnailUrls[0];
+      }
     } catch {
       // ignore
     }
@@ -346,6 +351,7 @@ export class TwelveLabsClient {
       summary: summaryText,
       keywords: gist.topics ?? [],
       duration,
+      thumbnailUrl,
       chapters: chapters.map((ch) => ({
         title: ch.title,
         start: ch.startSec,

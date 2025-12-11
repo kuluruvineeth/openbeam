@@ -9,8 +9,11 @@ import {
   type VideoTwelveLabsJobData,
   type VideoVespaJobData,
 } from "@openplane/redis";
-import { videoIndexService } from "@openplane/services";
-import { S3StorageProvider } from "@openplane/storage";
+import {
+  getStorageProvider,
+  SIGNED_URL_EXPIRY_SECONDS,
+  videoIndexService,
+} from "@openplane/services";
 import { type VideoDocument, vespaClient } from "@openplane/vespa";
 import { TwelveLabsClient, type VideoSegment } from "@openplane/video";
 import { SpanStatusCode } from "@opentelemetry/api";
@@ -18,14 +21,37 @@ import type { Job } from "bullmq";
 import logger from "../../utils/logger";
 import { logJobError, logJobStart } from "../event-handlers";
 
-const storageConfig = {
-  region: process.env.GCS_REGION || "us-central1",
-  accessKeyId: process.env.GCS_ACCESS_KEY_ID || "",
-  secretAccessKey: process.env.GCS_SECRET_ACCESS_KEY || "",
-  bucket: process.env.GCS_BUCKET || "openplane-files",
-  endpoint: process.env.GCS_ENDPOINT,
-  publicEndpoint: process.env.GCS_PUBLIC_ENDPOINT,
-};
+const THUMBNAIL_FETCH_TIMEOUT_MS = 10_000;
+
+async function uploadThumbnailToStorage(
+  thumbnailUrl: string,
+  teamId: string,
+  videoId: string
+): Promise<string> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(
+    () => controller.abort(),
+    THUMBNAIL_FETCH_TIMEOUT_MS
+  );
+
+  try {
+    const response = await fetch(thumbnailUrl, { signal: controller.signal });
+    if (!response.ok) {
+      throw new Error(`Failed to fetch thumbnail: ${response.status}`);
+    }
+
+    const buffer = Buffer.from(await response.arrayBuffer());
+    const contentType = response.headers.get("content-type") || "image/jpeg";
+    const extension = contentType.includes("png") ? "png" : "jpeg";
+    const storageKey = `thumbnails/${teamId}/${videoId}.${extension}`;
+
+    await getStorageProvider().upload(storageKey, buffer, { contentType });
+
+    return storageKey;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
 
 export interface VideoProcessingResult {
   success: boolean;
@@ -107,7 +133,7 @@ async function processVideoDownload(
 ): Promise<VideoProcessingResult> {
   const { videoId, connectorId, sourceUrl, fileName, externalId } = data;
 
-  const storage = new S3StorageProvider(storageConfig);
+  const storage = getStorageProvider();
 
   const connector = await prisma.connector.findUnique({
     where: { id: connectorId },
@@ -187,8 +213,10 @@ async function processTwelveLabsIndexing(
   const twelveLabsIndexId =
     await videoIndexService.getOrCreateTeamIndex(teamId);
 
-  const storage = new S3StorageProvider(storageConfig);
-  const signedUrl = await storage.getSignedUrl(storageKey, 3600);
+  const signedUrl = await getStorageProvider().getSignedUrl(
+    storageKey,
+    SIGNED_URL_EXPIRY_SECONDS
+  );
 
   const client = new TwelveLabsClient();
   const twelveLabsVideoId = await client.indexVideo(
@@ -250,9 +278,10 @@ async function processVespaIndexing(
   });
 
   const client = new TwelveLabsClient();
-
-  const storage = new S3StorageProvider(storageConfig);
-  const signedUrl = await storage.getSignedUrl(storageKey, 3600);
+  const signedUrl = await getStorageProvider().getSignedUrl(
+    storageKey,
+    SIGNED_URL_EXPIRY_SECONDS
+  );
 
   const [{ segments, videoEmbedding }, metadata, transcriptSegments] =
     await Promise.all([
@@ -264,12 +293,26 @@ async function processVespaIndexing(
       ),
     ]);
 
+  let thumbnailStorageKey: string | undefined;
+  if (metadata.thumbnailUrl) {
+    try {
+      thumbnailStorageKey = await uploadThumbnailToStorage(
+        metadata.thumbnailUrl,
+        teamId,
+        videoId
+      );
+    } catch (error) {
+      logger.warn({ videoId, error }, "Failed to upload thumbnail to storage");
+    }
+  }
+
   logger.info(
     {
       videoId,
       segmentCount: segments.length,
       duration: metadata.duration,
       transcriptSegments: transcriptSegments.length,
+      hasThumbnail: !!thumbnailStorageKey,
     },
     "Generated video embeddings, metadata, and transcript"
   );
@@ -330,6 +373,7 @@ async function processVespaIndexing(
       twelveLabsIndexId,
       twelveLabsVideoId,
       storageKey,
+      ...(thumbnailStorageKey && { thumbnailStorageKey }),
     },
   };
 
@@ -341,7 +385,6 @@ async function processVespaIndexing(
       processingStatus: "INDEXED",
       vespaId,
       indexedAt: new Date(),
-      thumbnailUrl: undefined,
     },
   });
 
@@ -429,7 +472,7 @@ async function processVideoLegacy(
     indexed_at: now,
     access_control: accessControl || [`team:${teamId}`],
     is_public: false,
-    metadata,
+    metadata: metadata as VideoDocument["metadata"],
   };
 
   await vespaClient.feedVideoDocument(videoDoc);

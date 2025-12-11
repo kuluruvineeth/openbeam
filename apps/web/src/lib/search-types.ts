@@ -87,6 +87,20 @@ export type VideoType =
   | "webinar"
   | "other";
 
+export type VideoDocumentMetadata = {
+  originalUrl?: string;
+  fileSize?: number;
+  format?: string;
+  resolution?: string;
+  frameRate?: number;
+  bitrate?: number;
+  codec?: string;
+  uploadedBy?: string;
+  uploadedAt?: number;
+  tags?: string[];
+  customFields?: Record<string, string | number | boolean>;
+};
+
 export type VideoDocument = {
   id: string;
   team_id: string;
@@ -100,6 +114,14 @@ export type VideoDocument = {
   transcript?: string;
   duration_seconds: number;
   segment_count: number;
+  segment_embeddings?: Record<string, number[]>;
+  segment_timestamps?: Record<string, [number, number]>;
+  segment_transcripts?: string[];
+  segment_descriptions?: string[];
+  segment_speakers?: string[];
+  segment_ocr_text?: string[];
+  transcript_embedding?: number[];
+  topic_embedding?: number[];
   source_id?: string;
   source_name?: string;
   source_type?: string;
@@ -111,16 +133,28 @@ export type VideoDocument = {
   created_at: number;
   updated_at: number;
   indexed_at?: number;
+  access_control?: string[];
   is_public: boolean;
+  metadata?: VideoDocumentMetadata;
   view_count?: number;
+  unique_viewers?: number;
+  avg_watch_percentage?: number;
+  share_count?: number;
+  comment_count?: number;
+  trending_score?: number;
   chapters?: string[];
   highlights?: string[];
+  action_items?: string[];
+  detected_topics?: string[];
+  detected_logos?: string[];
+  entity_ids?: string[];
+  mentioned_entity_ids?: string[];
+  related_document_ids?: string[];
+  discussed_in_channels?: string[];
+  content_hash?: string;
+  canonical_video_id?: string;
   video_type?: VideoType;
-  metadata?: {
-    twelveLabsVideoId?: string;
-    twelveLabsIndexId?: string;
-    storageKey?: string;
-  };
+  language?: string;
 };
 
 export type ContentType = "all" | "documents" | "videos";

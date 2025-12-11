@@ -1,11 +1,62 @@
 import {
+  getStorageProvider,
   type SearchRanking,
+  SIGNED_URL_EXPIRY_SECONDS,
   searchService,
   type VideoSearchRanking,
 } from "@openplane/services";
 import { z } from "zod";
 import { createTRPCRouter } from "../index";
 import { withActiveTeam } from "./apps/middleware";
+
+type VideoWithThumbnail = {
+  thumbnail_url?: string;
+  metadata?: unknown;
+};
+
+function getThumbnailStorageKey(metadata: unknown): string | null {
+  if (
+    metadata !== null &&
+    typeof metadata === "object" &&
+    "thumbnailStorageKey" in metadata
+  ) {
+    const key = (metadata as Record<string, unknown>).thumbnailStorageKey;
+    if (typeof key === "string") {
+      return key;
+    }
+  }
+  return null;
+}
+
+async function generateThumbnailUrl(
+  video: VideoWithThumbnail
+): Promise<string | undefined> {
+  const storageKey = getThumbnailStorageKey(video.metadata);
+
+  if (!storageKey) {
+    return video.thumbnail_url || undefined;
+  }
+
+  try {
+    return await getStorageProvider().getSignedUrl(
+      storageKey,
+      SIGNED_URL_EXPIRY_SECONDS
+    );
+  } catch {
+    return;
+  }
+}
+
+async function enrichVideosWithThumbnails<T extends VideoWithThumbnail>(
+  videos: T[]
+): Promise<T[]> {
+  return await Promise.all(
+    videos.map(async (video) => ({
+      ...video,
+      thumbnail_url: await generateThumbnailUrl(video),
+    }))
+  );
+}
 
 function buildAccessControlIds(ctx: {
   teamId: string;
@@ -37,11 +88,6 @@ const searchInputSchema = z.object({
   ranking: z
     .enum(["bm25", "semantic", "hybrid", "recency", "engagement"])
     .default("hybrid"),
-});
-
-const autocompleteInputSchema = z.object({
-  prefix: z.string().min(2),
-  limit: z.number().min(1).max(50).default(10),
 });
 
 const recentInputSchema = z.object({
@@ -124,30 +170,6 @@ export const searchRouter = createTRPCRouter({
       };
     }),
 
-  autocomplete: withActiveTeam
-    .input(autocompleteInputSchema)
-    .query(async ({ ctx, input }) => {
-      const accessControlIds = buildAccessControlIds(ctx);
-
-      const suggestions = await searchService.autocomplete({
-        prefix: input.prefix,
-        teamId: ctx.teamId,
-        limit: input.limit,
-        accessControlIds,
-      });
-
-      return {
-        suggestions: suggestions.map((s) => ({
-          id: s.id,
-          title: s.title,
-          content: s.content,
-          documentType: s.documentType,
-          connectorType: s.connectorType,
-          sourceName: s.sourceName,
-        })),
-      };
-    }),
-
   recent: withActiveTeam
     .input(recentInputSchema)
     .query(async ({ ctx, input }) => {
@@ -185,17 +207,19 @@ export const searchRouter = createTRPCRouter({
         accessControlIds,
       });
 
+      const videos = await enrichVideosWithThumbnails(result.videos);
+
       const nextCursor =
-        result.videos.length === input.limit
+        videos.length === input.limit
           ? effectiveOffset + input.limit
           : undefined;
 
       return {
-        videos: result.videos,
+        videos,
         total: result.total,
         limit: input.limit,
         offset: effectiveOffset,
-        hasMore: result.videos.length === input.limit,
+        hasMore: videos.length === input.limit,
         nextCursor,
         queryTime: result.queryTime,
         query: input.q,
@@ -227,14 +251,31 @@ export const searchRouter = createTRPCRouter({
         accessControlIds,
       });
 
-      const currentCount = result.items.length;
+      const videos = await enrichVideosWithThumbnails(result.videos);
+
+      const enrichedItems = await Promise.all(
+        result.items.map(async (item) => {
+          if (item.type === "video") {
+            return {
+              ...item,
+              data: {
+                ...item.data,
+                thumbnail_url: await generateThumbnailUrl(item.data),
+              },
+            };
+          }
+          return item;
+        })
+      );
+
+      const currentCount = enrichedItems.length;
       const hasMore = effectiveOffset + currentCount < result.total;
       const nextCursor = hasMore ? effectiveOffset + input.limit : undefined;
 
       return {
-        items: result.items,
+        items: enrichedItems,
         documents: result.documents,
-        videos: result.videos,
+        videos,
         documentTotal: result.documentTotal,
         videoTotal: result.videoTotal,
         total: result.total,

@@ -1,7 +1,7 @@
 "use client";
 
-import { forwardRef } from "react";
-
+import Image from "next/image";
+import { forwardRef, useState } from "react";
 import { Icons } from "@/components/icons";
 import { AppLogo } from "@/components/integrations/app-logo";
 import { formatFullTime, formatRelativeTime } from "@/lib/format";
@@ -30,6 +30,14 @@ function formatDuration(seconds: number): string {
   return `${minutes}:${secs.toString().padStart(2, "0")}`;
 }
 
+function ThumbnailPlaceholder() {
+  return (
+    <div className="flex h-full w-full items-center justify-center">
+      <Icons.Video className="text-foreground/20" size={24} />
+    </div>
+  );
+}
+
 function VideoThumbnail({
   thumbnailUrl,
   duration,
@@ -37,21 +45,22 @@ function VideoThumbnail({
   thumbnailUrl?: string;
   duration: number;
 }) {
+  const [hasError, setHasError] = useState(false);
+  const showImage = thumbnailUrl && !hasError;
+
   return (
     <div className="relative h-16 w-28 shrink-0 overflow-hidden bg-foreground/5">
-      {thumbnailUrl ? (
-        // biome-ignore lint/performance/noImgElement: External thumbnail URL from TwelveLabs
-        <img
+      {showImage ? (
+        <Image
           alt=""
-          className="h-full w-full object-cover"
-          height={64}
+          className="object-cover"
+          fill
+          onError={() => setHasError(true)}
+          sizes="112px"
           src={thumbnailUrl}
-          width={112}
         />
       ) : (
-        <div className="flex h-full w-full items-center justify-center">
-          <Icons.Video className="text-foreground/20" size={24} />
-        </div>
+        <ThumbnailPlaceholder />
       )}
       <div className="absolute right-1 bottom-1 bg-black/80 px-1 py-0.5 font-mono text-[10px] text-white tabular-nums">
         {formatDuration(duration)}
@@ -167,7 +176,7 @@ export const SearchVideoRow = forwardRef<
         "group flex w-full cursor-pointer items-start gap-3 px-3 py-2.5 text-left transition-colors",
         !isLast && "border-border/40 border-b",
         isSelected && "bg-foreground/4",
-        isPreviewing && "border-l-2 border-l-openplane-blue/40 bg-foreground/6",
+        isPreviewing && "border-l-2 border-l-foreground/20 bg-foreground/6",
         "hover:bg-foreground/3",
         "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-foreground/10 focus-visible:ring-inset"
       )}

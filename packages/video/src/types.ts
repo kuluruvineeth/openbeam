@@ -13,6 +13,7 @@ export interface VideoMetadata {
   summary: string;
   keywords: string[];
   duration: number;
+  thumbnailUrl?: string;
   transcript?: string;
   chapters?: VideoChapter[];
   highlights?: VideoHighlight[];
