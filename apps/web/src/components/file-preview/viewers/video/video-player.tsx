@@ -67,6 +67,7 @@ export const VideoPlayer = forwardRef<HTMLDivElement, VideoPlayerProps>(
       >
         {/* biome-ignore lint/a11y/useMediaCaption: Captions provided by transcript panel */}
         <video
+          autoPlay
           className="max-h-full max-w-full cursor-pointer focus:outline-none"
           onClick={onClick}
           onDurationChange={onDurationChange}
@@ -77,7 +78,7 @@ export const VideoPlayer = forwardRef<HTMLDivElement, VideoPlayerProps>(
           onRateChange={onRateChange}
           onTimeUpdate={onTimeUpdate}
           onVolumeChange={onVolumeChange}
-          preload="metadata"
+          preload="auto"
           ref={videoRef}
           src={url}
           tabIndex={0}
@@ -103,10 +104,10 @@ function ChapterMarkers({
   return (
     <div className="pointer-events-none absolute right-0 bottom-14 left-0 px-3">
       <div className="relative h-1.5">
-        {chapters.map((chapter) => (
+        {chapters.map((chapter, index) => (
           <div
             className="absolute h-full w-0.5 bg-white/70"
-            key={chapter.chapterNumber}
+            key={`${index}-${chapter.startSec}`}
             style={{ left: `${(chapter.startSec / duration) * 100}%` }}
             title={chapter.title}
           />

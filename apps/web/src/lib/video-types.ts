@@ -38,6 +38,7 @@ export type VideoTab =
   | "info";
 
 export type VideoViewerProps = {
+  fileName: string;
   url: string;
   vespaId: string;
   videoId: string;

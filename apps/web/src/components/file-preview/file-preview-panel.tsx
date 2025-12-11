@@ -154,7 +154,14 @@ export function FilePreviewPanel({
             />
           );
         }
-        return <VideoViewer url={url} vespaId={vespaId} videoId={videoId} />;
+        return (
+          <VideoViewer
+            fileName={fileName}
+            url={url}
+            vespaId={vespaId}
+            videoId={videoId}
+          />
+        );
       default:
         return (
           <FilePreviewUnsupported

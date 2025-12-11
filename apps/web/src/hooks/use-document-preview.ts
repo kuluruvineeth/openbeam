@@ -1,10 +1,29 @@
 "use client";
 
-import { parseAsString, useQueryStates } from "nuqs";
+import {
+  parseAsFloat,
+  parseAsString,
+  parseAsStringLiteral,
+  useQueryStates,
+} from "nuqs";
 import { useCallback } from "react";
+
+const PREVIEW_TYPES = ["document", "video"] as const;
+type PreviewType = (typeof PREVIEW_TYPES)[number];
+
+const VIDEO_TABS = [
+  "chapters",
+  "highlights",
+  "transcript",
+  "ask",
+  "info",
+] as const;
 
 export const previewSchema = {
   preview: parseAsString,
+  previewType: parseAsStringLiteral(PREVIEW_TYPES),
+  panel: parseAsStringLiteral(VIDEO_TABS),
+  t: parseAsFloat,
 };
 
 export function useDocumentPreview() {
@@ -13,25 +32,26 @@ export function useDocumentPreview() {
   });
 
   const previewId = params.preview;
+  const previewType = params.previewType;
   const hasPreview = !!previewId;
 
   const openPreview = useCallback(
-    (documentId: string) => {
-      setParams({ preview: documentId });
+    (id: string, type: PreviewType = "document") => {
+      setParams({ preview: id, previewType: type });
     },
     [setParams]
   );
 
   const closePreview = useCallback(() => {
-    setParams({ preview: null });
+    setParams({ preview: null, previewType: null, panel: null, t: null });
   }, [setParams]);
 
   const togglePreview = useCallback(
-    (documentId: string) => {
-      if (previewId === documentId) {
+    (id: string, type: PreviewType = "document") => {
+      if (previewId === id) {
         closePreview();
       } else {
-        openPreview(documentId);
+        openPreview(id, type);
       }
     },
     [previewId, openPreview, closePreview]
@@ -39,6 +59,7 @@ export function useDocumentPreview() {
 
   return {
     previewId,
+    previewType,
     hasPreview,
     openPreview,
     closePreview,

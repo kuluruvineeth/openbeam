@@ -24,7 +24,12 @@ import { VideoPlayer } from "./video-player";
 import { VideoSidebarPanel, VideoSidebarToggle } from "./video-sidebar";
 import { VideoToolbar } from "./video-toolbar";
 
-export function VideoViewer({ url, vespaId, videoId }: VideoViewerProps) {
+export function VideoViewer({
+  fileName: _fileName,
+  url,
+  vespaId,
+  videoId,
+}: VideoViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [urlState, setUrlState] = useVideoUrlState();
   const { videoRef, state, actions, handlers } = useVideoPlayback();
