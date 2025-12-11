@@ -351,22 +351,24 @@ export function useSearch(options?: { debounceMs?: number }) {
 }
 
 export function useSearchAutocomplete(
-  prefix: string,
+  query: string,
   options?: { enabled?: boolean }
 ) {
   const trpc = useTRPC();
-  const debouncedPrefix = useDebounce(prefix, 150);
+  const debouncedQuery = useDebounce(query, 150);
   const shouldFetch =
-    debouncedPrefix.trim().length >= 2 && options?.enabled !== false;
+    debouncedQuery.trim().length >= 2 && options?.enabled !== false;
 
   return useQuery({
-    ...trpc.search.autocomplete.queryOptions({
-      prefix: debouncedPrefix,
+    ...trpc.search.unified.queryOptions({
+      q: debouncedQuery,
       limit: 8,
+      includeDocuments: true,
+      includeVideos: true,
+      ranking: "bm25",
     }),
     enabled: shouldFetch,
     placeholderData: keepPreviousData,
-    refetchOnWindowFocus: false,
     staleTime: 60_000,
   });
 }

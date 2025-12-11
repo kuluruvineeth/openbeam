@@ -45,15 +45,6 @@ export interface SearchResult {
   embeddingTime?: number;
 }
 
-export interface AutocompleteSuggestion {
-  id: string;
-  title: string;
-  content?: string;
-  documentType: string;
-  connectorType: string;
-  sourceName?: string;
-}
-
 export interface RecentDocumentsParams {
   teamId: string;
   hours?: number;
@@ -76,13 +67,6 @@ export interface SimilarDocumentsParams {
 
 export interface AuthorSearchParams {
   authorId: string;
-  teamId: string;
-  limit?: number;
-  accessControlIds?: string[];
-}
-
-export interface AutocompleteParams {
-  prefix: string;
   teamId: string;
   limit?: number;
   accessControlIds?: string[];

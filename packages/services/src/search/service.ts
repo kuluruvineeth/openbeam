@@ -13,8 +13,6 @@ import {
 import { getOrGenerateEmbedding } from "../ai/embedding-cache";
 import type {
   AuthorSearchParams,
-  AutocompleteParams,
-  AutocompleteSuggestion,
   RecentDocumentsParams,
   ScoredDocument,
   ScoredVideo,
@@ -40,15 +38,6 @@ type ScoredVideoSearchResult = {
   total: number;
   embeddingTime?: number;
 };
-
-interface AutocompleteFields {
-  id: string;
-  title: string;
-  content: string;
-  document_type: string;
-  connector_type: string;
-  source_name?: string;
-}
 
 function escapeYqlString(value: string): string {
   return value.replace(/(["\\])/g, "\\$1");
@@ -297,37 +286,6 @@ export class SearchService {
     });
 
     return this.extractDocuments(result);
-  }
-
-  async autocomplete(
-    params: AutocompleteParams
-  ): Promise<AutocompleteSuggestion[]> {
-    const { prefix, teamId, limit = 10, accessControlIds } = params;
-
-    if (!prefix || prefix.length < 2) {
-      return [];
-    }
-
-    const escapedPrefix = escapeYqlString(prefix);
-    const yql = `select id, title, content, document_type, connector_type, source_name from openplane_document where (title contains "${escapedPrefix}" or content contains "${escapedPrefix}") and team_id contains "${escapeYqlString(
-      teamId
-    )}" and ${this.buildAccessControlClause(accessControlIds)}`;
-
-    const result = await vespaClient.query<AutocompleteFields>({
-      yql,
-      ranking: "bm25",
-      hits: limit,
-    });
-
-    const children = result.root.children ?? [];
-    return children.map((child) => ({
-      id: child.fields.id,
-      title: child.fields.title,
-      content: child.fields.content,
-      documentType: child.fields.document_type,
-      connectorType: child.fields.connector_type,
-      sourceName: child.fields.source_name,
-    }));
   }
 
   private buildSearchYQL(
