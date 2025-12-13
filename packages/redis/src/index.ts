@@ -12,6 +12,15 @@ export { EventDeduplicator, eventDeduplicator } from "./deduplication";
 export { jobSchedulerKeys } from "./job-scheduler-keys";
 export { DistributedLock, distributedLock } from "./locks";
 export { Fence, fence } from "./locks/fence";
+export {
+  createJobProgressSubscriber,
+  createProgressEmitter,
+  type JobProgress,
+  type JobStatus,
+  type JobType,
+  type ProgressEmitterParams,
+  publishJobProgress,
+} from "./pubsub/job-progress";
 export * from "./queues";
 export {
   closeCleanupQueue,
