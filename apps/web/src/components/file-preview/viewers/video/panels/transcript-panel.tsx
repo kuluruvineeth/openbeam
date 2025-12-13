@@ -4,9 +4,10 @@ import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import { Icons } from "@/components/icons";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatTime } from "@/lib/format";
+import type { TranscriptSegment } from "@/lib/media-types";
+import { type GroupedSegment, groupSegments } from "@/lib/transcript-utils";
 import { cn } from "@/lib/utils";
-import type { TranscriptSegment } from "@/lib/video-types";
-import { formatVideoTime } from "@/lib/video-utils";
 
 type TranscriptPanelProps = {
   segments?: TranscriptSegment[];
@@ -14,46 +15,6 @@ type TranscriptPanelProps = {
   isLoading: boolean;
   onSeek: (time: number) => void;
 };
-
-type GroupedSegment = {
-  start: number;
-  end: number;
-  words: TranscriptSegment[];
-};
-
-function groupSegments(
-  segments: TranscriptSegment[],
-  windowSec = 3
-): GroupedSegment[] {
-  if (!segments.length) {
-    return [];
-  }
-
-  const groups: GroupedSegment[] = [];
-  let currentGroup: GroupedSegment = {
-    start: segments[0].start,
-    end: segments[0].end,
-    words: [segments[0]],
-  };
-
-  for (let i = 1; i < segments.length; i++) {
-    const seg = segments[i];
-    if (seg.start - currentGroup.start < windowSec) {
-      currentGroup.end = Math.max(currentGroup.end, seg.end);
-      currentGroup.words.push(seg);
-    } else {
-      groups.push(currentGroup);
-      currentGroup = {
-        start: seg.start,
-        end: seg.end,
-        words: [seg],
-      };
-    }
-  }
-  groups.push(currentGroup);
-
-  return groups;
-}
 
 export function TranscriptPanel({
   segments,
@@ -171,7 +132,7 @@ const TranscriptLine = forwardRef<HTMLButtonElement, TranscriptLineProps>(
       type="button"
     >
       <span className="shrink-0 pt-0.5 font-mono text-[10px] text-foreground/40 tabular-nums">
-        {formatVideoTime(segment.start)}
+        {formatTime(segment.start)}
       </span>
       <span className="text-[13px] text-foreground/80 leading-relaxed">
         {segment.words.map((word, i) => (

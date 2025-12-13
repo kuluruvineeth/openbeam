@@ -13,12 +13,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { formatTime } from "@/lib/format";
+import type { MediaPlaybackState } from "@/lib/media-types";
 import { cn } from "@/lib/utils";
-import type { VideoPlaybackState } from "@/lib/video-types";
-import { formatVideoTime } from "@/lib/video-utils";
 
 type VideoToolbarProps = {
-  state: VideoPlaybackState;
+  state: MediaPlaybackState;
   visible: boolean;
   onTogglePlay: () => void;
   onToggleMute: () => void;
@@ -83,7 +83,7 @@ export function VideoToolbar({
           />
 
           <span className="ml-2 font-mono text-[11px] text-white/90 tabular-nums">
-            {formatVideoTime(currentTime)} / {formatVideoTime(duration)}
+            {formatTime(currentTime)} / {formatTime(duration)}
           </span>
         </div>
 
@@ -129,7 +129,7 @@ function ProgressBar({
 
   return (
     <button
-      aria-label={`Video progress: ${formatVideoTime(currentTime)} of ${formatVideoTime(duration)}`}
+      aria-label={`Video progress: ${formatTime(currentTime)} of ${formatTime(duration)}`}
       className="group relative h-1.5 w-full cursor-pointer bg-white/20 transition-all hover:h-2"
       onClick={handleClick}
       type="button"

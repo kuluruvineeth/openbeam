@@ -5,9 +5,10 @@ import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { extractTimestamps } from "@/lib/audio-utils";
+import { formatTime } from "@/lib/format";
+import type { QAMessage } from "@/lib/media-types";
 import { cn } from "@/lib/utils";
-import type { QAMessage } from "@/lib/video-types";
-import { formatVideoTime } from "@/lib/video-utils";
 
 type QAPanelProps = {
   onAsk: (question: string) => Promise<string>;
@@ -43,7 +44,8 @@ export function QAPanel({ onAsk, onSeek, isAsking }: QAPanelProps) {
         timestamps: extractTimestamps(answer),
       };
       setMessages((prev) => [...prev, assistantMessage]);
-    } catch {
+    } catch (error) {
+      console.error("Failed to get video Q&A response:", error);
       const errorMessage: QAMessage = {
         id: crypto.randomUUID(),
         role: "assistant",
@@ -126,7 +128,7 @@ function MessageBubble({
                 onClick={() => onSeek(ts)}
                 type="button"
               >
-                {formatVideoTime(ts)}
+                {formatTime(ts)}
               </button>
             ))}
           </div>
@@ -169,15 +171,4 @@ function TypingIndicator() {
       </div>
     </div>
   );
-}
-
-function extractTimestamps(text: string): number[] {
-  const regex = /(\d{1,2}):(\d{2})(?::(\d{2}))?/g;
-  const matches = [...text.matchAll(regex)];
-  return matches.map((m) => {
-    const hours = m[3] ? Number.parseInt(m[1], 10) : 0;
-    const mins = m[3] ? Number.parseInt(m[2], 10) : Number.parseInt(m[1], 10);
-    const secs = m[3] ? Number.parseInt(m[3], 10) : Number.parseInt(m[2], 10);
-    return hours * 3600 + mins * 60 + secs;
-  });
 }

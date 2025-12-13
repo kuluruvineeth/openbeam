@@ -2,12 +2,12 @@
 
 import { Icons } from "@/components/icons";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatTime } from "@/lib/format";
+import type { MediaChapter } from "@/lib/media-types";
 import { cn } from "@/lib/utils";
-import type { VideoChapter } from "@/lib/video-types";
-import { formatVideoTime } from "@/lib/video-utils";
 
 type ChaptersPanelProps = {
-  chapters?: VideoChapter[];
+  chapters?: MediaChapter[];
   currentTime: number;
   isLoading: boolean;
   onSeek: (time: number) => void;
@@ -71,7 +71,7 @@ function ChapterItem({
   displayIndex,
   onClick,
 }: {
-  chapter: VideoChapter;
+  chapter: MediaChapter;
   isActive: boolean;
   displayIndex: number;
   onClick: () => void;
@@ -106,7 +106,7 @@ function ChapterItem({
           {chapter.title}
         </p>
         <span className="shrink-0 bg-foreground/[0.05] px-1.5 py-0.5 font-mono text-[10px] text-foreground/50 tabular-nums">
-          {formatVideoTime(chapter.startSec)}
+          {formatTime(chapter.startSec)}
         </span>
       </div>
       <p className="mt-1 line-clamp-2 pr-2 pl-[30px] text-[11px] text-foreground/50 leading-relaxed">

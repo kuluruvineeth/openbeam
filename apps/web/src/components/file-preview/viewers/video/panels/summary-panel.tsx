@@ -2,11 +2,11 @@
 
 import { Icons } from "@/components/icons";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { VideoGist } from "@/lib/video-types";
+import type { MediaGist } from "@/lib/media-types";
 
 type SummaryPanelProps = {
   summary?: string;
-  gist?: VideoGist;
+  gist?: MediaGist;
   isLoadingSummary: boolean;
   isLoadingGist?: boolean;
 };
@@ -67,7 +67,7 @@ function GistSection({
   gist,
   isLoading,
 }: {
-  gist?: VideoGist;
+  gist?: MediaGist;
   isLoading: boolean;
 }) {
   if (isLoading) {

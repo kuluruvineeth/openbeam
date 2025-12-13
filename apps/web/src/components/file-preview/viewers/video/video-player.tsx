@@ -1,14 +1,14 @@
 "use client";
 
 import { forwardRef, type RefObject, useEffect } from "react";
+import type { MediaChapter, MediaPlaybackState } from "@/lib/media-types";
 import { cn } from "@/lib/utils";
-import type { VideoChapter, VideoPlaybackState } from "@/lib/video-types";
 
 type VideoPlayerProps = {
   url: string;
   videoRef: RefObject<HTMLVideoElement | null>;
-  state: VideoPlaybackState;
-  chapters?: VideoChapter[];
+  state: MediaPlaybackState;
+  chapters?: MediaChapter[];
   onTimeUpdate: () => void;
   onDurationChange: () => void;
   onLoadedMetadata: () => void;
@@ -98,7 +98,7 @@ function ChapterMarkers({
   chapters,
   duration,
 }: {
-  chapters: VideoChapter[];
+  chapters: MediaChapter[];
   duration: number;
 }) {
   return (

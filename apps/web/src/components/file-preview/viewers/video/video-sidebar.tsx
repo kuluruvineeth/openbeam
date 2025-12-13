@@ -9,12 +9,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import type { MediaTab } from "@/lib/media-types";
 import { cn } from "@/lib/utils";
-import type { VideoTab } from "@/lib/video-types";
 
 type VideoSidebarProps = {
-  activeTab: VideoTab;
-  onTabChange: (tab: VideoTab) => void;
+  activeTab: MediaTab;
+  onTabChange: (tab: MediaTab) => void;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   children: {
@@ -26,7 +26,7 @@ type VideoSidebarProps = {
   };
 };
 
-const TABS: { value: VideoTab; icon: React.ReactNode; label: string }[] = [
+const TABS: { value: MediaTab; icon: React.ReactNode; label: string }[] = [
   { value: "chapters", icon: <Icons.BookOpen size={14} />, label: "Chapters" },
   {
     value: "highlights",
@@ -100,7 +100,7 @@ export function VideoSidebarPanel({
 
         <Tabs
           className="flex h-[calc(100%-2.25rem)] flex-col"
-          onValueChange={(v) => onTabChange(v as VideoTab)}
+          onValueChange={(v) => onTabChange(v as MediaTab)}
           value={activeTab}
         >
           <div className="shrink-0 border-border/50 border-b">

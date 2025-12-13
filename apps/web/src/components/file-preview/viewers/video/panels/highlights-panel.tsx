@@ -2,12 +2,12 @@
 
 import { Icons } from "@/components/icons";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatTime } from "@/lib/format";
+import type { MediaHighlight } from "@/lib/media-types";
 import { cn } from "@/lib/utils";
-import type { VideoHighlight } from "@/lib/video-types";
-import { formatVideoTime } from "@/lib/video-utils";
 
 type HighlightsPanelProps = {
-  highlights?: VideoHighlight[];
+  highlights?: MediaHighlight[];
   currentTime: number;
   isLoading: boolean;
   onSeek: (time: number) => void;
@@ -65,7 +65,7 @@ function HighlightItem({
   currentTime,
   onClick,
 }: {
-  highlight: VideoHighlight;
+  highlight: MediaHighlight;
   currentTime: number;
   onClick: () => void;
 }) {
@@ -86,7 +86,7 @@ function HighlightItem({
           {highlight.highlight}
         </p>
         <span className="shrink-0 bg-foreground/[0.05] px-1.5 py-0.5 font-mono text-[10px] text-foreground/50 tabular-nums">
-          {formatVideoTime(highlight.startSec)}
+          {formatTime(highlight.startSec)}
         </span>
       </div>
 

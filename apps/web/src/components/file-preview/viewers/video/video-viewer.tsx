@@ -4,17 +4,17 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import {
-  useVideoAsk,
-  useVideoChapters,
-  useVideoControls,
-  useVideoHighlights,
-  useVideoMetadata,
-  useVideoPlayback,
-  useVideoSummary,
-  useVideoTranscript,
-  useVideoUrlState,
-} from "@/hooks/use-video";
-import type { VideoTab, VideoViewerProps } from "@/lib/video-types";
+  useMediaAsk,
+  useMediaChapters,
+  useMediaControls,
+  useMediaHighlights,
+  useMediaMetadata,
+  useMediaPlayback,
+  useMediaSummary,
+  useMediaTranscript,
+  useMediaUrlState,
+} from "@/hooks/use-media";
+import type { MediaTab, MediaViewerProps } from "@/lib/media-types";
 import { ChaptersPanel } from "./panels/chapters-panel";
 import { HighlightsPanel } from "./panels/highlights-panel";
 import { QAPanel } from "./panels/qa-panel";
@@ -25,29 +25,28 @@ import { VideoSidebarPanel, VideoSidebarToggle } from "./video-sidebar";
 import { VideoToolbar } from "./video-toolbar";
 
 export function VideoViewer({
-  fileName: _fileName,
   url,
   vespaId,
-  videoId,
-}: VideoViewerProps) {
+  twelveLabsAssetId,
+}: MediaViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [urlState, setUrlState] = useVideoUrlState();
-  const { videoRef, state, actions, handlers } = useVideoPlayback();
-  const controls = useVideoControls();
+  const [urlState, setUrlState] = useMediaUrlState();
+  const { mediaRef, state, actions, handlers } = useMediaPlayback();
+  const controls = useMediaControls();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const chapters = useVideoChapters({ vespaId });
-  const highlights = useVideoHighlights({ vespaId });
-  const transcript = useVideoTranscript({ vespaId });
-  const summary = useVideoSummary({ vespaId });
-  const metadata = useVideoMetadata({ vespaId });
-  const askMutation = useVideoAsk();
+  const chapters = useMediaChapters({ vespaId });
+  const highlights = useMediaHighlights({ vespaId });
+  const transcript = useMediaTranscript({ vespaId });
+  const summary = useMediaSummary({ vespaId });
+  const metadata = useMediaMetadata({ vespaId });
+  const askMutation = useMediaAsk();
 
   useEffect(() => {
-    if (urlState.t > 0 && videoRef.current) {
-      videoRef.current.currentTime = urlState.t;
+    if (urlState.t > 0 && mediaRef.current) {
+      mediaRef.current.currentTime = urlState.t;
     }
-  }, [urlState.t, videoRef]);
+  }, [urlState.t, mediaRef]);
 
   useEffect(() => {
     const handleFullscreen = () => handlers.onFullscreenChange();
@@ -74,16 +73,19 @@ export function VideoViewer({
   );
 
   const handleTabChange = useCallback(
-    (tab: VideoTab) => setUrlState({ panel: tab }),
+    (tab: MediaTab) => setUrlState({ panel: tab }),
     [setUrlState]
   );
 
   const handleAsk = useCallback(
     async (question: string) => {
-      const result = await askMutation.mutateAsync({ videoId, question });
+      const result = await askMutation.mutateAsync({
+        mediaId: twelveLabsAssetId,
+        question,
+      });
       return result.answer;
     },
-    [askMutation, videoId]
+    [askMutation, twelveLabsAssetId]
   );
 
   const toggleSidebar = useCallback(() => {
@@ -108,7 +110,7 @@ export function VideoViewer({
             ref={containerRef}
             state={state}
             url={url}
-            videoRef={videoRef}
+            videoRef={mediaRef}
           />
 
           <VideoToolbar
