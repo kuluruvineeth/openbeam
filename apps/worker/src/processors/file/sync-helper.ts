@@ -1,6 +1,10 @@
 import prisma from "@openplane/db";
-import { addFileDownloadJob, addVideoDownloadJob } from "@openplane/redis";
-import { isVideoFile, type SlackFileInfo } from "@openplane/services";
+import { addFileDownloadJob, addMediaDownloadJob } from "@openplane/redis";
+import {
+  isAudioFile,
+  isVideoFile,
+  type SlackFileInfo,
+} from "@openplane/services";
 import logger from "../../utils/logger";
 
 export interface FileDiscoveryOptions {
@@ -13,7 +17,37 @@ export interface FileDiscoveryResult {
   queued: number;
   skipped: number;
   errors: number;
-  videosQueued: number;
+  mediaQueued: number;
+}
+
+type SingleFileResult = "queued" | "skipped" | "mediaQueued";
+
+async function processSingleFile(
+  file: SlackFileInfo,
+  connectorId: string,
+  skipExisting: boolean,
+  priority: number
+): Promise<SingleFileResult> {
+  const extension = getFileExtension(file.name);
+  const isVideo = isVideoFile(file.mimeType, extension);
+  const isAudio = isAudioFile(file.mimeType, extension);
+
+  if (isVideo || isAudio) {
+    const mediaQueued = await processDiscoveredMedia(file, {
+      connectorId,
+      skipExisting,
+      priority,
+      mediaType: isAudio ? "audio" : "video",
+    });
+    return mediaQueued ? "mediaQueued" : "skipped";
+  }
+
+  const processed = await processDiscoveredFile(file, {
+    connectorId,
+    skipExisting,
+    priority,
+  });
+  return processed ? "queued" : "skipped";
 }
 
 export async function processDiscoveredFiles(
@@ -26,38 +60,18 @@ export async function processDiscoveredFiles(
     queued: 0,
     skipped: 0,
     errors: 0,
-    videosQueued: 0,
+    mediaQueued: 0,
   };
 
   for (const file of files) {
     try {
-      const extension = getFileExtension(file.name);
-
-      if (isVideoFile(file.mimeType, extension)) {
-        const videoQueued = await processDiscoveredVideo(file, {
-          connectorId,
-          skipExisting,
-          priority,
-        });
-
-        if (videoQueued) {
-          result.videosQueued += 1;
-        } else {
-          result.skipped += 1;
-        }
-      } else {
-        const processed = await processDiscoveredFile(file, {
-          connectorId,
-          skipExisting,
-          priority,
-        });
-
-        if (processed) {
-          result.queued += 1;
-        } else {
-          result.skipped += 1;
-        }
-      }
+      const outcome = await processSingleFile(
+        file,
+        connectorId,
+        skipExisting,
+        priority
+      );
+      result[outcome] += 1;
     } catch (error) {
       logger.error(
         { error, connectorId, fileId: file.id, fileName: file.name },
@@ -148,14 +162,19 @@ async function processDiscoveredFile(
   return true;
 }
 
-async function processDiscoveredVideo(
+interface MediaDiscoveryOptions extends FileDiscoveryOptions {
+  mediaType: "video" | "audio";
+}
+
+async function processDiscoveredMedia(
   file: SlackFileInfo,
-  options: FileDiscoveryOptions
+  options: MediaDiscoveryOptions
 ): Promise<boolean> {
-  const { connectorId, skipExisting = true, priority = 5 } = options;
+  const { connectorId, skipExisting = true, priority, mediaType } = options;
+  const jobPriority = priority ?? 5;
 
   if (skipExisting) {
-    const existing = await prisma.indexedVideo.findUnique({
+    const existing = await prisma.indexedMedia.findUnique({
       where: {
         connectorId_externalId: {
           connectorId,
@@ -166,8 +185,13 @@ async function processDiscoveredVideo(
 
     if (existing) {
       logger.debug(
-        { connectorId, videoId: file.id, status: existing.processingStatus },
-        "Video already indexed, skipping"
+        {
+          connectorId,
+          mediaId: file.id,
+          mediaType,
+          status: existing.processingStatus,
+        },
+        "Media already indexed, skipping"
       );
       return false;
     }
@@ -175,17 +199,18 @@ async function processDiscoveredVideo(
 
   if (!file.downloadUrl) {
     logger.warn(
-      { connectorId, videoId: file.id, fileName: file.name },
-      "Video has no download URL, skipping"
+      { connectorId, mediaId: file.id, mediaType, fileName: file.name },
+      "Media has no download URL, skipping"
     );
     return false;
   }
 
-  const storageKey = `videos/${connectorId}/${file.id}/${file.name}`;
-  const vespaId = `video_${connectorId}_${file.id}`;
+  const folder = mediaType === "audio" ? "audio" : "videos";
+  const storageKey = `${folder}/${connectorId}/${file.id}/${file.name}`;
+  const vespaId = `media_${connectorId}_${file.id}`;
   const sourceChannelId = file.channels?.[0] ?? null;
 
-  const indexedVideo = await prisma.indexedVideo.create({
+  const indexedMedia = await prisma.indexedMedia.create({
     data: {
       connectorId,
       externalId: file.id,
@@ -197,25 +222,32 @@ async function processDiscoveredVideo(
       storageKey,
       processingStatus: "PENDING",
       sourceChannelId,
+      mediaType,
     },
   });
 
-  await addVideoDownloadJob(
+  await addMediaDownloadJob(
     {
-      videoId: indexedVideo.id,
+      mediaId: indexedMedia.id,
       connectorId,
       externalId: file.id,
       sourceUrl: file.downloadUrl,
       mimeType: file.mimeType,
       fileName: file.name,
       storageKey,
+      mediaType,
     },
-    priority
+    jobPriority
   );
 
   logger.debug(
-    { connectorId, videoId: file.id, indexedVideoId: indexedVideo.id },
-    "Queued video for processing from sync"
+    {
+      connectorId,
+      mediaId: file.id,
+      mediaType,
+      indexedMediaId: indexedMedia.id,
+    },
+    "Queued media for processing from sync"
   );
 
   return true;

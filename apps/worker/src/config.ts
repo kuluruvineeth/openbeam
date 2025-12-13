@@ -44,10 +44,10 @@ export const workerConfig = {
     },
   },
 
-  video: {
-    concurrency: Number.parseInt(process.env.VIDEO_CONCURRENCY || "3", 10),
+  media: {
+    concurrency: Number.parseInt(process.env.MEDIA_CONCURRENCY || "3", 10),
     rateLimit: {
-      max: Number.parseInt(process.env.VIDEO_RATE_LIMIT_MAX || "5", 10),
+      max: Number.parseInt(process.env.MEDIA_RATE_LIMIT_MAX || "5", 10),
       duration: 1000,
     },
   },

@@ -2,9 +2,9 @@ import "./instrumentation";
 import {
   closeCleanupQueue,
   closeIndexQueue,
+  closeMediaProcessingQueue,
   closeSharedBullMqConnection,
   closeSyncQueue,
-  closeVideoProcessingQueue,
   closeWebhookQueue,
 } from "@openplane/redis";
 import { startHealthServer, stopHealthServer } from "./health";
@@ -13,8 +13,8 @@ import {
   createCleanupProcessor,
   createFileProcessor,
   createIndexProcessor,
+  createMediaProcessor,
   createSyncProcessor,
-  createVideoProcessor,
   createWebhookProcessor,
   type ProcessorResult,
 } from "./processors";
@@ -29,7 +29,7 @@ class WorkerService {
   private readonly syncProcessor: ProcessorResult;
   private readonly indexProcessor: ProcessorResult;
   private readonly fileProcessor: ProcessorResult;
-  private readonly videoProcessor: ProcessorResult;
+  private readonly mediaProcessor: ProcessorResult;
   private readonly webhookProcessor: ProcessorResult;
   private readonly cleanupProcessor: ProcessorResult;
 
@@ -39,7 +39,7 @@ class WorkerService {
     this.syncProcessor = createSyncProcessor();
     this.indexProcessor = createIndexProcessor();
     this.fileProcessor = createFileProcessor();
-    this.videoProcessor = createVideoProcessor();
+    this.mediaProcessor = createMediaProcessor();
     this.webhookProcessor = createWebhookProcessor();
     this.cleanupProcessor = createCleanupProcessor();
 
@@ -72,7 +72,7 @@ class WorkerService {
           syncProcessor: "running",
           indexProcessor: "running",
           fileProcessor: "running",
-          videoProcessor: "running",
+          mediaProcessor: "running",
           webhookProcessor: "running",
           cleanupProcessor: "running",
           metricsServer: "running",
@@ -95,7 +95,7 @@ class WorkerService {
       this.syncProcessor.close(),
       this.indexProcessor.close(),
       this.fileProcessor.close(),
-      this.videoProcessor.close(),
+      this.mediaProcessor.close(),
       this.webhookProcessor.close(),
       this.cleanupProcessor.close(),
       stopMetricsServer(),
@@ -105,7 +105,7 @@ class WorkerService {
     await Promise.allSettled([
       closeSyncQueue(),
       closeIndexQueue(),
-      closeVideoProcessingQueue(),
+      closeMediaProcessingQueue(),
       closeWebhookQueue(),
       closeCleanupQueue(),
       closeSharedBullMqConnection(),

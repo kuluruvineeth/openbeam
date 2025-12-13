@@ -8,13 +8,13 @@ export {
 } from "./event-handlers";
 export { createFileProcessor } from "./file";
 export { createIndexProcessor } from "./index/index";
+export {
+  createMediaProcessor,
+  type MediaProcessingResult,
+  processMediaJob,
+} from "./media";
 export { createSyncProcessor } from "./sync";
 export type { CreateWorkerOptions, JobHandler, ProcessorResult } from "./types";
-export {
-  createVideoProcessor,
-  processVideoJob,
-  type VideoProcessingResult,
-} from "./video";
 export {
   createWebhookProcessor,
   replayWebhookEvent,
