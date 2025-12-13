@@ -35,7 +35,7 @@ export function AudioTranscriptPanel({
   );
 
   useEffect(() => {
-    if (activeRef.current && !search) {
+    if (activeIndex >= 0 && activeRef.current && !search) {
       activeRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   }, [activeIndex, search]);
