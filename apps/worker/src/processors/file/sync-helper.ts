@@ -1,4 +1,9 @@
-import prisma from "@openplane/db";
+import prisma, {
+  createIndexedFile,
+  createIndexedMedia,
+  findIndexedFileByExternalId,
+  findIndexedMediaByExternalId,
+} from "@openplane/db";
 import { addFileDownloadJob, addMediaDownloadJob } from "@openplane/redis";
 import {
   isAudioFile,
@@ -96,14 +101,11 @@ async function processDiscoveredFile(
   const { connectorId, skipExisting = true, priority = 5 } = options;
 
   if (skipExisting) {
-    const existing = await prisma.indexedFile.findUnique({
-      where: {
-        connectorId_externalId: {
-          connectorId,
-          externalId: file.id,
-        },
-      },
-    });
+    const existing = await findIndexedFileByExternalId(
+      prisma,
+      connectorId,
+      file.id
+    );
 
     if (existing) {
       logger.debug(
@@ -127,19 +129,17 @@ async function processDiscoveredFile(
 
   const sourceChannelId = file.channels?.[0] ?? null;
 
-  const indexedFile = await prisma.indexedFile.create({
-    data: {
-      connectorId,
-      externalId: file.id,
-      vespaId,
-      fileName: file.name,
-      mimeType: file.mimeType,
-      fileSize: file.size ?? 0,
-      fileExtension: getFileExtension(file.name),
-      storageKey,
-      processingStatus: "PENDING",
-      sourceChannelId,
-    },
+  const indexedFile = await createIndexedFile(prisma, {
+    connectorId,
+    externalId: file.id,
+    vespaId,
+    fileName: file.name,
+    mimeType: file.mimeType,
+    fileSize: file.size ?? 0,
+    fileExtension: getFileExtension(file.name),
+    storageKey,
+    processingStatus: "PENDING",
+    sourceChannelId,
   });
 
   await addFileDownloadJob(
@@ -174,14 +174,11 @@ async function processDiscoveredMedia(
   const jobPriority = priority ?? 5;
 
   if (skipExisting) {
-    const existing = await prisma.indexedMedia.findUnique({
-      where: {
-        connectorId_externalId: {
-          connectorId,
-          externalId: file.id,
-        },
-      },
-    });
+    const existing = await findIndexedMediaByExternalId(
+      prisma,
+      connectorId,
+      file.id
+    );
 
     if (existing) {
       logger.debug(
@@ -210,20 +207,18 @@ async function processDiscoveredMedia(
   const vespaId = `media_${connectorId}_${file.id}`;
   const sourceChannelId = file.channels?.[0] ?? null;
 
-  const indexedMedia = await prisma.indexedMedia.create({
-    data: {
-      connectorId,
-      externalId: file.id,
-      vespaId,
-      fileName: file.name,
-      mimeType: file.mimeType,
-      fileSize: file.size ?? 0,
-      fileExtension: getFileExtension(file.name),
-      storageKey,
-      processingStatus: "PENDING",
-      sourceChannelId,
-      mediaType,
-    },
+  const indexedMedia = await createIndexedMedia(prisma, {
+    connectorId,
+    externalId: file.id,
+    vespaId,
+    fileName: file.name,
+    mimeType: file.mimeType,
+    fileSize: file.size ?? 0,
+    fileExtension: getFileExtension(file.name),
+    storageKey,
+    processingStatus: "PENDING",
+    sourceChannelId,
+    mediaType,
   });
 
   await addMediaDownloadJob(

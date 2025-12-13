@@ -1,4 +1,9 @@
-import prisma from "@openplane/db";
+import prisma, {
+  deleteIndexedDocuments,
+  findDocumentsByConnectorStatus,
+  findOrphanedDocuments,
+  findStaleDocuments,
+} from "@openplane/db";
 import type { CleanupJobData } from "@openplane/redis";
 import { vespaClient } from "@openplane/vespa";
 import { SpanStatusCode, trace } from "@opentelemetry/api";
@@ -96,12 +101,7 @@ async function cleanupStaleDocuments(): Promise<number> {
   logger.debug("Cleaning up stale documents");
 
   const staleCutoff = new Date(Date.now() - 30 * 24 * 3600 * 1000);
-
-  const staleDocuments = await prisma.indexedDocument.findMany({
-    where: { lastSyncedAt: { lt: staleCutoff } },
-    select: { id: true, vespaId: true, connectorId: true },
-    take: 1000,
-  });
+  const staleDocuments = await findStaleDocuments(prisma, staleCutoff, 1000);
 
   if (staleDocuments.length === 0) {
     logger.debug("No stale documents found");
@@ -124,9 +124,10 @@ async function cleanupStaleDocuments(): Promise<number> {
     }
   }
 
-  const deleted = await prisma.indexedDocument.deleteMany({
-    where: { id: { in: staleDocuments.map((d) => d.id) } },
-  });
+  const deleted = await deleteIndexedDocuments(
+    prisma,
+    staleDocuments.map((d) => d.id)
+  );
 
   logger.info({ deleted: deleted.count }, "Stale documents cleaned up");
   return deleted.count;
@@ -135,15 +136,7 @@ async function cleanupStaleDocuments(): Promise<number> {
 async function cleanupOrphanedDocuments(): Promise<number> {
   logger.debug("Cleaning up orphaned documents");
 
-  const orphanedDocuments = await prisma.$queryRaw<
-    Array<{ id: string; vespaId: string; connectorId: string }>
-  >`
-    SELECT id._id as id, id."vespaId", id."connectorId"
-    FROM "indexed_document" id
-    LEFT JOIN "connector" c ON id."connectorId" = c._id
-    WHERE c._id IS NULL
-    LIMIT 1000
-  `;
+  const orphanedDocuments = await findOrphanedDocuments(prisma, 1000);
 
   if (orphanedDocuments.length === 0) {
     logger.debug("No orphaned documents found");
@@ -166,9 +159,10 @@ async function cleanupOrphanedDocuments(): Promise<number> {
     }
   }
 
-  const deleted = await prisma.indexedDocument.deleteMany({
-    where: { id: { in: orphanedDocuments.map((d) => d.id) } },
-  });
+  const deleted = await deleteIndexedDocuments(
+    prisma,
+    orphanedDocuments.map((d) => d.id)
+  );
 
   logger.info({ deleted: deleted.count }, "Orphaned documents cleaned up");
   return deleted.count;
@@ -177,57 +171,43 @@ async function cleanupOrphanedDocuments(): Promise<number> {
 async function pruneDisabledConnectors(): Promise<number> {
   logger.debug("Pruning documents from disabled connectors");
 
-  const disabledConnectors = await prisma.connector.findMany({
-    where: { status: { in: ["INACTIVE", "ERROR"] } },
-    select: { id: true, status: true },
-  });
+  const documents = await findDocumentsByConnectorStatus(
+    prisma,
+    ["INACTIVE", "ERROR"],
+    1000
+  );
 
-  if (disabledConnectors.length === 0) {
-    logger.debug("No disabled connectors found");
+  if (documents.length === 0) {
+    logger.debug("No documents from disabled connectors found");
     return 0;
   }
 
   logger.info(
-    { count: disabledConnectors.length },
-    "Found disabled connectors, pruning documents"
+    { count: documents.length },
+    "Found documents from disabled connectors, pruning"
   );
 
-  let totalPruned = 0;
-
-  for (const connector of disabledConnectors) {
-    const documents = await prisma.indexedDocument.findMany({
-      where: { connectorId: connector.id },
-      select: { id: true, vespaId: true },
-      take: 1000,
-    });
-
-    if (documents.length === 0) {
-      continue;
+  for (const doc of documents) {
+    try {
+      await vespaClient.deleteDocument(doc.vespaId);
+    } catch (error) {
+      logger.warn(
+        { error, vespaId: doc.vespaId, connectorId: doc.connectorId },
+        "Failed to delete document from Vespa"
+      );
     }
-
-    for (const doc of documents) {
-      try {
-        await vespaClient.deleteDocument(doc.vespaId);
-      } catch (error) {
-        logger.warn(
-          { error, vespaId: doc.vespaId, connectorId: connector.id },
-          "Failed to delete document from Vespa"
-        );
-      }
-    }
-
-    const deleted = await prisma.indexedDocument.deleteMany({
-      where: { id: { in: documents.map((d) => d.id) } },
-    });
-
-    totalPruned += deleted.count;
-    logger.info(
-      { connectorId: connector.id, pruned: deleted.count },
-      "Pruned documents from disabled connector"
-    );
   }
 
-  return totalPruned;
+  const deleted = await deleteIndexedDocuments(
+    prisma,
+    documents.map((d) => d.id)
+  );
+
+  logger.info(
+    { pruned: deleted.count },
+    "Pruned documents from disabled connectors"
+  );
+  return deleted.count;
 }
 
 export async function triggerCleanup(): Promise<CleanupJobResult> {

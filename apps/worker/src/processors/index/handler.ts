@@ -1,4 +1,8 @@
-import prisma from "@openplane/db";
+import prisma, {
+  findIndexedDocumentsByExternalIds,
+  updateSyncHistoryCounts,
+  upsertIndexedDocument,
+} from "@openplane/db";
 import { createLinkedSpan, type IndexJobData } from "@openplane/redis";
 import { type GenericDocument, vespaClient } from "@openplane/vespa";
 import { SpanStatusCode, trace } from "@opentelemetry/api";
@@ -133,19 +137,10 @@ async function fetchExistingDocuments(
 ): Promise<Map<string, { checksum: string; lastChecksum: string | null }>> {
   const span = tracer.startSpan("index-processor.fetch-existing");
   try {
-    const existingDocs = await prisma.indexedDocument.findMany({
-      where: {
-        connectorId,
-        externalId: { in: documents.map((d) => d.external_id) },
-      },
-      select: { externalId: true, checksum: true, lastChecksum: true },
-    });
-
-    const map = new Map(
-      existingDocs.map((d) => [
-        d.externalId,
-        { checksum: d.checksum || "", lastChecksum: d.lastChecksum },
-      ])
+    const map = await findIndexedDocumentsByExternalIds(
+      prisma,
+      connectorId,
+      documents.map((d) => d.external_id)
     );
 
     span.setAttributes({ "index.existing_count": map.size });
@@ -334,21 +329,7 @@ async function recordInDatabase(
     if (indexedDocuments.length > 0) {
       try {
         for (const doc of indexedDocuments) {
-          await prisma.indexedDocument.upsert({
-            where: {
-              connectorId_externalId: {
-                connectorId: doc.connectorId,
-                externalId: doc.externalId,
-              },
-            },
-            update: {
-              title: doc.title,
-              checksum: doc.checksum,
-              lastChecksum: doc.lastChecksum,
-              lastSyncedAt: new Date(),
-            },
-            create: doc,
-          });
+          await upsertIndexedDocument(prisma, doc);
           recordedCount += 1;
         }
       } catch (dbError) {
@@ -414,14 +395,11 @@ async function updateSyncHistory(params: {
       }
     }
 
-    await prisma.$executeRawUnsafe(
-      `UPDATE sync_history 
-       SET "dataAdded" = "dataAdded" + $1, 
-           "dataUpdated" = "dataUpdated" + $2
-       WHERE _id = $3`,
+    await updateSyncHistoryCounts(
+      prisma,
+      syncHistoryId,
       newCount,
-      updatedCount,
-      syncHistoryId
+      updatedCount
     );
 
     logger.debug(
@@ -465,7 +443,7 @@ function normalizeDocument(
       metadata = { raw: doc.metadata };
     }
   } else {
-    metadata = doc.metadata;
+    metadata = doc.metadata as GenericDocument["metadata"];
   }
 
   return { ...doc, metadata };

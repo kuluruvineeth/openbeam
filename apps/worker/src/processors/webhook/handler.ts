@@ -1,4 +1,10 @@
-import prisma, { type Prisma } from "@openplane/db";
+import prisma, {
+  createWebhookReceivedLog,
+  findAuditLogByEventId,
+  findConnectorById,
+  findWebhookAuditLogs,
+  type Prisma,
+} from "@openplane/db";
 import {
   addSyncJob,
   addWebhookJob,
@@ -70,20 +76,14 @@ async function triggerSyncFallback(
     "Webhook triggered sync job"
   );
 
-  await prisma.connectorAuditLog.create({
-    data: {
-      connectorId,
-      userId,
-      action: "WEBHOOK_RECEIVED",
-      changes: {
-        eventId,
-        eventType,
-        source,
-        syncJobId: syncJob.id,
-        payload: payload as Prisma.InputJsonValue,
-        receivedAt: new Date().toISOString(),
-      },
-    },
+  await createWebhookReceivedLog(prisma, {
+    connectorId,
+    userId,
+    eventId,
+    eventType,
+    source,
+    syncJobId: syncJob.id,
+    payload: payload as Prisma.InputJsonValue,
   });
 
   return { triggered: true };
@@ -121,10 +121,7 @@ export async function processWebhookJob(
       return { triggered: false, reason: "duplicate" };
     }
 
-    const connector = await prisma.connector.findUnique({
-      where: { id: connectorId },
-      select: { id: true, status: true, type: true, userId: true },
-    });
+    const connector = await findConnectorById(prisma, connectorId);
 
     if (!connector) {
       span.setAttributes({ "webhook.reason": "connector_not_found" });
@@ -182,17 +179,7 @@ export async function replayWebhookEvent(
   eventId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const auditLog = await prisma.connectorAuditLog.findFirst({
-      where: {
-        connectorId,
-        action: "WEBHOOK_RECEIVED",
-        changes: {
-          path: ["eventId"],
-          equals: eventId,
-        },
-      },
-      orderBy: { createdAt: "desc" },
-    });
+    const auditLog = await findAuditLogByEventId(prisma, connectorId, eventId);
 
     if (!auditLog) {
       return { success: false, error: "Webhook event not found" };
@@ -238,13 +225,9 @@ export async function replayWebhooksInRange(
   const result = { replayed: 0, failed: 0 };
 
   try {
-    const auditLogs = await prisma.connectorAuditLog.findMany({
-      where: {
-        connectorId,
-        action: "WEBHOOK_RECEIVED",
-        createdAt: { gte: startTime, lte: endTime },
-      },
-      orderBy: { createdAt: "asc" },
+    const auditLogs = await findWebhookAuditLogs(prisma, connectorId, {
+      startTime,
+      endTime,
     });
 
     logger.info(

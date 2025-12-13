@@ -1,4 +1,8 @@
-import prisma, { SyncJobStatus } from "@openplane/db";
+import prisma, {
+  findScheduledSyncJobs,
+  updateSyncJobNextRunAt,
+  updateSyncJobSchedule,
+} from "@openplane/db";
 import {
   createRepeatableSyncJob,
   intervalMsToCron,
@@ -25,25 +29,7 @@ export class SyncScheduler {
 
   private async initializeRepeatableJobs(): Promise<void> {
     try {
-      const scheduledJobs = await prisma.syncJob.findMany({
-        where: {
-          status: SyncJobStatus.PENDING,
-          trigger: "SCHEDULED",
-          deletedAt: null,
-          schedule: { not: null },
-          connector: {
-            status: "ACTIVE",
-          },
-        },
-        select: {
-          id: true,
-          connectorId: true,
-          type: true,
-          schedule: true,
-          priority: true,
-          config: true,
-        },
-      });
+      const scheduledJobs = await findScheduledSyncJobs(prisma);
 
       logger.info(
         { count: scheduledJobs.length },
@@ -85,10 +71,7 @@ export class SyncScheduler {
       const config = job.config as { intervalMs?: number } | null;
       if (config?.intervalMs) {
         job.schedule = intervalMsToCron(config.intervalMs);
-        await prisma.syncJob.update({
-          where: { id: job.id },
-          data: { schedule: job.schedule },
-        });
+        await updateSyncJobSchedule(prisma, job.id, job.schedule);
       }
     }
 
@@ -119,13 +102,8 @@ export class SyncScheduler {
 
     const config = job.config as { intervalMs?: number } | null;
     if (config?.intervalMs) {
-      const now = Date.now();
-      const nextRunAt = new Date(now + config.intervalMs);
-
-      await prisma.syncJob.update({
-        where: { id: job.id },
-        data: { nextRunAt },
-      });
+      const nextRunAt = new Date(Date.now() + config.intervalMs);
+      await updateSyncJobNextRunAt(prisma, job.id, nextRunAt);
 
       logger.debug(
         {

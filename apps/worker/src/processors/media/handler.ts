@@ -1,4 +1,15 @@
-import prisma, { decryptIfEncrypted, type OAuthProvider } from "@openplane/db";
+import prisma, {
+  decryptIfEncrypted,
+  findConnectorById,
+  findIndexedMediaById,
+  getConnectorForSync,
+  type OAuthProvider,
+  updateIndexedMediaDownloaded,
+  updateIndexedMediaIndexed,
+  updateIndexedMediaProcessingStatus,
+  updateIndexedMediaStatus,
+  updateIndexedMediaTwelveLabs,
+} from "@openplane/db";
 import {
   type MediaChapter,
   type MediaHighlight,
@@ -120,13 +131,9 @@ export async function processMediaJob(
     span.recordException(error as Error);
     logJobError(`media-${type}`, job.id, error, { connectorId, mediaId });
 
-    await prisma.indexedMedia.update({
-      where: { id: mediaId },
-      data: {
-        processingStatus: "FAILED",
-        lastError: error instanceof Error ? error.message : String(error),
-        errorCount: { increment: 1 },
-      },
+    await updateIndexedMediaStatus(prisma, mediaId, "FAILED", {
+      lastError: error instanceof Error ? error.message : String(error),
+      errorCount: { increment: 1 },
     });
 
     throw error;
@@ -150,10 +157,7 @@ async function processMediaDownload(
 
   const storage = getStorageProvider();
 
-  const connector = await prisma.connector.findUnique({
-    where: { id: connectorId },
-    include: { oauthProvider: true },
-  });
+  const connector = await getConnectorForSync(prisma, connectorId);
 
   if (!connector) {
     throw new Error("Connector not found");
@@ -182,10 +186,7 @@ async function processMediaDownload(
     throw new Error("Connector access token not found");
   }
 
-  await prisma.indexedMedia.update({
-    where: { id: mediaId },
-    data: { processingStatus: "DOWNLOADING" },
-  });
+  await updateIndexedMediaProcessingStatus(prisma, mediaId, "DOWNLOADING");
 
   const response = await fetch(sourceUrl, {
     headers: { Authorization: `Bearer ${downloadToken}` },
@@ -206,14 +207,7 @@ async function processMediaDownload(
     contentType: mimeType,
   });
 
-  await prisma.indexedMedia.update({
-    where: { id: mediaId },
-    data: {
-      processingStatus: "DOWNLOADED",
-      storageKey: finalStorageKey,
-      uploadedAt: new Date(),
-    },
-  });
+  await updateIndexedMediaDownloaded(prisma, mediaId, finalStorageKey);
 
   await progress.update(1, 4, "Downloaded");
 
@@ -240,9 +234,7 @@ async function processTwelveLabsIndexing(
   const { mediaId, connectorId, teamId, storageKey, mediaType, mimeType } =
     data;
 
-  const media = await prisma.indexedMedia.findUnique({
-    where: { id: mediaId },
-  });
+  const media = await findIndexedMediaById(prisma, mediaId);
 
   const progress = createProgressEmitter({
     id: mediaId,
@@ -254,10 +246,11 @@ async function processTwelveLabsIndexing(
 
   await progress.update(1, 4, "Transcribing");
 
-  await prisma.indexedMedia.update({
-    where: { id: mediaId },
-    data: { processingStatus: "INDEXING_TWELVELABS" },
-  });
+  await updateIndexedMediaProcessingStatus(
+    prisma,
+    mediaId,
+    "INDEXING_TWELVELABS"
+  );
 
   const twelveLabsIndexId =
     await mediaIndexService.getOrCreateTeamIndex(teamId);
@@ -276,13 +269,9 @@ async function processTwelveLabsIndexing(
     }
   );
 
-  await prisma.indexedMedia.update({
-    where: { id: mediaId },
-    data: {
-      processingStatus: "INDEXED_TWELVELABS",
-      twelveLabsIndexId,
-      twelveLabsAssetId,
-    },
+  await updateIndexedMediaTwelveLabs(prisma, mediaId, {
+    twelveLabsIndexId,
+    twelveLabsAssetId,
   });
 
   await progress.update(2, 4, "Transcribed");
@@ -339,10 +328,11 @@ async function processVespaIndexing(
 
   await progress.update(2, 4, "Generating embeddings");
 
-  await prisma.indexedMedia.update({
-    where: { id: mediaId },
-    data: { processingStatus: "GENERATING_EMBEDDINGS" },
-  });
+  await updateIndexedMediaProcessingStatus(
+    prisma,
+    mediaId,
+    "GENERATING_EMBEDDINGS"
+  );
 
   const client = new TwelveLabsClient();
   const signedUrl = await getStorageProvider().getSignedUrl(
@@ -390,12 +380,8 @@ async function processVespaIndexing(
 
   await progress.update(3, 4, "Indexing");
 
-  await prisma.indexedMedia.update({
-    where: { id: mediaId },
-    data: {
-      processingStatus: "INDEXING_VESPA",
-      durationSeconds: Math.round(metadata.duration),
-    },
+  await updateIndexedMediaProcessingStatus(prisma, mediaId, "INDEXING_VESPA", {
+    durationSeconds: Math.round(metadata.duration),
   });
 
   const segmentEmbeddings: Record<string, number[]> = {};
@@ -409,9 +395,7 @@ async function processVespaIndexing(
   const now = Date.now();
   const vespaId = `media_${connectorId}_${externalId}`;
 
-  const connector = await prisma.connector.findUnique({
-    where: { id: connectorId },
-  });
+  const connector = await findConnectorById(prisma, connectorId);
 
   const connectorType = connector?.app.toLowerCase();
 
@@ -457,14 +441,7 @@ async function processVespaIndexing(
 
   await vespaClient.feedMediaDocument(mediaDoc);
 
-  await prisma.indexedMedia.update({
-    where: { id: mediaId },
-    data: {
-      processingStatus: "INDEXED",
-      vespaId,
-      indexedAt: new Date(),
-    },
-  });
+  await updateIndexedMediaIndexed(prisma, mediaId, { vespaId });
 
   await progress.complete(4);
 
@@ -516,7 +493,7 @@ async function processMediaLegacy(
 
   const [{ segments, duration }, connector] = await Promise.all([
     generateMediaEmbeddings(mediaUrl, inputType),
-    prisma.connector.findUnique({ where: { id: connectorId } }),
+    findConnectorById(prisma, connectorId),
   ]);
 
   const segmentEmbeddings: Record<string, number[]> = {};

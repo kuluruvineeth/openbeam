@@ -1,4 +1,17 @@
-import prisma, { decryptIfEncrypted, type OAuthProvider } from "@openplane/db";
+import prisma, {
+  createIndexedChunks,
+  decryptIfEncrypted,
+  deleteChunksByFileId,
+  findChunksByFileId,
+  findIndexedFileById,
+  getConnectorForSync,
+  type OAuthProvider,
+  updateIndexedFileDownloaded,
+  updateIndexedFileIndexed,
+  updateIndexedFileParsed,
+  updateIndexedFileProcessingStatus,
+  updateIndexedFileStatus,
+} from "@openplane/db";
 import {
   addFileIndexJob,
   addFileParseJob,
@@ -83,13 +96,9 @@ export async function processFileJob(
     span.recordException(error as Error);
     logJobError(`file-${type}`, job.id, error, { connectorId, fileId });
 
-    await prisma.indexedFile.update({
-      where: { id: fileId },
-      data: {
-        processingStatus: "FAILED",
-        lastError: error instanceof Error ? error.message : String(error),
-        errorCount: { increment: 1 },
-      },
+    await updateIndexedFileStatus(prisma, fileId, "FAILED", {
+      lastError: error instanceof Error ? error.message : String(error),
+      errorCount: { increment: 1 },
     });
 
     throw error;
@@ -109,10 +118,7 @@ async function processDownload(
 
   const storage = getStorageProvider();
 
-  const connector = await prisma.connector.findUnique({
-    where: { id: connectorId },
-    include: { oauthProvider: true },
-  });
+  const connector = await getConnectorForSync(prisma, connectorId);
 
   const oauth: OAuthProvider | null | undefined = connector?.oauthProvider;
 
@@ -142,10 +148,7 @@ async function processDownload(
 
   await progress.start(3, "Downloading");
 
-  await prisma.indexedFile.update({
-    where: { id: fileId },
-    data: { processingStatus: "DOWNLOADING" },
-  });
+  await updateIndexedFileProcessingStatus(prisma, fileId, "DOWNLOADING");
 
   const response = await fetch(sourceUrl, {
     headers: {
@@ -167,14 +170,7 @@ async function processDownload(
     contentType: data.mimeType,
   });
 
-  await prisma.indexedFile.update({
-    where: { id: fileId },
-    data: {
-      processingStatus: "DOWNLOADED",
-      storageKey,
-      uploadedAt: new Date(),
-    },
-  });
+  await updateIndexedFileDownloaded(prisma, fileId, storageKey);
 
   await progress.update(1, 3, "Downloaded");
 
@@ -201,10 +197,7 @@ async function processParse(
     throw new Error("Storage key required for parsing");
   }
 
-  const file = await prisma.indexedFile.findUnique({
-    where: { id: fileId },
-    include: { connector: true },
-  });
+  const file = await findIndexedFileById(prisma, fileId);
 
   if (!file) {
     throw new Error("File not found");
@@ -220,10 +213,7 @@ async function processParse(
 
   await progress.update(1, 3, "Parsing");
 
-  await prisma.indexedFile.update({
-    where: { id: fileId },
-    data: { processingStatus: "PARSING" },
-  });
+  await updateIndexedFileProcessingStatus(prisma, fileId, "PARSING");
 
   const storage = getStorageProvider();
   const signedUrl = await storage.getSignedUrl(
@@ -255,16 +245,10 @@ async function processParse(
     };
   });
 
-  await prisma.indexedFile.update({
-    where: { id: fileId },
-    data: {
-      processingStatus: "PARSED",
-      extractedText: true,
-      textLength: result.text_length,
-      pageCount: result.page_count,
-      chunkCount: parsedChunks.length,
-      processedAt: new Date(),
-    },
+  await updateIndexedFileParsed(prisma, fileId, {
+    textLength: result.text_length,
+    pageCount: result.page_count,
+    chunkCount: parsedChunks.length,
   });
 
   await progress.update(2, 3, "Parsed");
@@ -406,10 +390,7 @@ async function indexChunkBatch(
 }
 
 async function cleanupExistingChunks(fileId: string): Promise<void> {
-  const existingChunks = await prisma.indexedChunk.findMany({
-    where: { fileId },
-    select: { vespaId: true },
-  });
+  const existingChunks = await findChunksByFileId(prisma, fileId);
 
   for (const chunk of existingChunks) {
     try {
@@ -422,7 +403,7 @@ async function cleanupExistingChunks(fileId: string): Promise<void> {
     }
   }
 
-  await prisma.indexedChunk.deleteMany({ where: { fileId } });
+  await deleteChunksByFileId(prisma, fileId);
 }
 
 async function processIndex(
@@ -441,15 +422,9 @@ async function processIndex(
     throw new Error("Storage key required for indexing");
   }
 
-  await prisma.indexedFile.update({
-    where: { id: fileId },
-    data: { processingStatus: "INDEXING" },
-  });
+  await updateIndexedFileProcessingStatus(prisma, fileId, "INDEXING");
 
-  const file = await prisma.indexedFile.findUnique({
-    where: { id: fileId },
-    include: { connector: true },
-  });
+  const file = await findIndexedFileById(prisma, fileId);
   if (!file) {
     throw new Error("File not found");
   }
@@ -538,29 +513,22 @@ async function processIndex(
     );
 
     if (results.length > 0) {
-      await prisma.indexedChunk.createMany({
-        data: results.map((c) => ({
+      await createIndexedChunks(
+        prisma,
+        results.map((c) => ({
           fileId,
           connectorId,
           vespaId: c.vespaId,
           chunkIndex: c.chunkIndex,
           checksum: c.checksum,
           contentLength: c.contentLength,
-        })),
-        skipDuplicates: true,
-      });
+        }))
+      );
       totalIndexed += results.length;
     }
   }
 
-  await prisma.indexedFile.update({
-    where: { id: fileId },
-    data: {
-      processingStatus: "INDEXED",
-      vespaId: fileVespaId,
-      indexedAt: new Date(),
-    },
-  });
+  await updateIndexedFileIndexed(prisma, fileId, fileVespaId);
 
   await progress.complete(3);
 

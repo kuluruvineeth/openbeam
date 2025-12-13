@@ -1,4 +1,10 @@
-import prisma, { getConnectorForSync } from "@openplane/db";
+import prisma, {
+  createWebhookProcessedLog,
+  deleteIndexedDocumentByExternalId,
+  getConnectorForSync,
+  updateConnector,
+  upsertIndexedDocument,
+} from "@openplane/db";
 import type { WebhookJobData } from "@openplane/redis";
 import {
   type DocumentChange,
@@ -96,28 +102,18 @@ export async function processSlackWebhook(
     eventId
   );
 
-  await prisma.connectorAuditLog.create({
-    data: {
-      connectorId,
-      userId: connector.userId,
-      action: "WEBHOOK_PROCESSED",
-      changes: {
-        eventId,
-        eventType,
-        operations: appliedChanges.map((c) => ({ ...c })),
-        processedAt: new Date().toISOString(),
-      },
-    },
+  await createWebhookProcessedLog(prisma, {
+    connectorId,
+    userId: connector.userId,
+    eventId,
+    eventType,
+    operations: appliedChanges,
   });
 
-  // Update webhook status for UI
-  await prisma.connector.update({
-    where: { id: connectorId },
-    data: {
-      webhookConfig: {
-        enabled: true,
-        lastReceivedAt: new Date().toISOString(),
-      },
+  await updateConnector(prisma, connectorId, {
+    webhookConfig: {
+      enabled: true,
+      lastReceivedAt: new Date().toISOString(),
     },
   });
 
@@ -177,22 +173,13 @@ async function handleCreateOrUpdate(
 
   await vespaClient.feedDocument(docToIndex);
 
-  await prisma.indexedDocument.upsert({
-    where: {
-      connectorId_externalId: {
-        connectorId: ctx.connectorId,
-        externalId: doc.external_id,
-      },
-    },
-    update: { checksum, lastSyncedAt: new Date() },
-    create: {
-      connectorId: ctx.connectorId,
-      externalId: doc.external_id,
-      vespaId: doc.id,
-      documentType: doc.document_type,
-      sourceId: doc.source_id,
-      checksum,
-    },
+  await upsertIndexedDocument(prisma, {
+    connectorId: ctx.connectorId,
+    externalId: doc.external_id,
+    vespaId: doc.id,
+    documentType: doc.document_type,
+    sourceId: doc.source_id,
+    checksum,
   });
 
   logger.debug(
@@ -226,10 +213,12 @@ async function handleDelete(
   const externalIdMatch = documentId.match(
     new RegExp(`^${ctx.connectorId}_(.+)$`)
   );
-  if (externalIdMatch) {
-    await prisma.indexedDocument.deleteMany({
-      where: { connectorId: ctx.connectorId, externalId: externalIdMatch[1] },
-    });
+  if (externalIdMatch?.[1]) {
+    await deleteIndexedDocumentByExternalId(
+      prisma,
+      ctx.connectorId,
+      externalIdMatch[1]
+    );
   }
 
   logger.debug({ ...ctx, documentId }, "Document deleted from webhook");
