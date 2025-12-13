@@ -99,8 +99,8 @@ function MediaPreviewPanel({
   }
 
   const mediaId =
-    "videoId" in data && typeof data.videoId === "string"
-      ? data.videoId
+    "twelveLabsAssetId" in data && typeof data.twelveLabsAssetId === "string"
+      ? data.twelveLabsAssetId
       : media.id;
   const vespaId =
     "vespaId" in data && typeof data.vespaId === "string"

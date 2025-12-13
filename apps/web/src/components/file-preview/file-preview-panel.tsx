@@ -104,10 +104,6 @@ export function FilePreviewPanel({
   }
 
   const { url, fileName, mimeType, fileSize, pageCount } = data;
-  const videoId =
-    "videoId" in data && typeof data.videoId === "string"
-      ? data.videoId
-      : undefined;
   const vespaId =
     "vespaId" in data && typeof data.vespaId === "string"
       ? data.vespaId
@@ -153,7 +149,7 @@ export function FilePreviewPanel({
           />
         );
       case "video":
-        if (!(videoId && vespaId && twelveLabsAssetId)) {
+        if (!(vespaId && twelveLabsAssetId)) {
           return (
             <FilePreviewUnsupported
               fileName={fileName}

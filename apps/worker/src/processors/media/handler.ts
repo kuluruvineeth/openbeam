@@ -1,5 +1,7 @@
 import prisma, { decryptIfEncrypted, type OAuthProvider } from "@openplane/db";
 import {
+  type MediaChapter,
+  type MediaHighlight,
   type MediaInputType,
   type MediaSegment,
   TwelveLabsClient,
@@ -10,9 +12,9 @@ import {
   addMediaVespaJob,
   createLinkedSpan,
   type MediaDownloadJobData,
-  type MediaProcessingJobData,
   type MediaTwelveLabsJobData,
   type MediaVespaJobData,
+  type QueueMediaJobData,
 } from "@openplane/redis";
 import {
   getStorageProvider,
@@ -22,7 +24,6 @@ import {
 import { type MediaDocument, vespaClient } from "@openplane/vespa";
 import { SpanStatusCode } from "@opentelemetry/api";
 import type { Job } from "bullmq";
-import { prepareAudioAsVideo } from "../../utils/audio-converter";
 import logger from "../../utils/logger";
 import { logJobError, logJobStart } from "../event-handlers";
 
@@ -102,7 +103,7 @@ export async function processMediaJob(
         break;
       case "process":
       case "index":
-        result = await processMediaLegacy(job.data as MediaProcessingJobData);
+        result = await processMediaLegacy(job.data as QueueMediaJobData);
         break;
       default:
         throw new Error(`Unknown media processing type: ${type}`);
@@ -184,20 +185,13 @@ async function processMediaDownload(
   }
 
   const content = await response.arrayBuffer();
-  const rawBuffer = Buffer.from(content);
+  const buffer = Buffer.from(content);
 
-  const {
-    buffer: finalBuffer,
-    mimeType: finalMimeType,
-    fileName: finalFileName,
-  } = mediaType === "audio"
-    ? await prepareAudioAsVideo(rawBuffer, fileName)
-    : { buffer: rawBuffer, mimeType, fileName };
+  const folder = mediaType === "audio" ? "audio" : "videos";
+  const finalStorageKey = `${connector.teamId}/${connectorId}/${folder}/${externalId}/${fileName}`;
 
-  const finalStorageKey = `${connector.teamId}/${connectorId}/videos/${externalId}/${finalFileName}`;
-
-  await storage.upload(finalStorageKey, finalBuffer, {
-    contentType: finalMimeType,
+  await storage.upload(finalStorageKey, buffer, {
+    contentType: mimeType,
   });
 
   await prisma.indexedMedia.update({
@@ -220,7 +214,7 @@ async function processMediaDownload(
     teamId: connector.teamId,
     storageKey: finalStorageKey,
     mediaType,
-    mimeType: finalMimeType,
+    mimeType,
   });
 
   return { success: true, mediaId };
@@ -305,6 +299,10 @@ async function processVespaIndexing(
     mediaType,
   } = data;
 
+  if (!(twelveLabsIndexId && twelveLabsAssetId)) {
+    throw new Error("Missing TwelveLabs index or asset ID for Vespa indexing");
+  }
+
   await prisma.indexedMedia.update({
     where: { id: mediaId },
     data: { processingStatus: "GENERATING_EMBEDDINGS" },
@@ -316,9 +314,12 @@ async function processVespaIndexing(
     SIGNED_URL_EXPIRY_SECONDS
   );
 
+  const inputType: MediaInputType = mediaType === "audio" ? "audio" : "video";
+  const isAudio = inputType === "audio";
+
   const [{ segments, mediaEmbedding }, metadata, transcriptSegments] =
     await Promise.all([
-      client.generateEmbeddingsAsync(signedUrl, { inputType: "video" }),
+      client.generateEmbeddingsAsync(signedUrl, { inputType }),
       client.generateMetadata(twelveLabsIndexId, twelveLabsAssetId),
       client.getVideoTranscriptWithTimestamps(
         twelveLabsIndexId,
@@ -327,7 +328,7 @@ async function processVespaIndexing(
     ]);
 
   let thumbnailStorageKey: string | undefined;
-  if (mediaType !== "audio" && metadata.thumbnailUrl) {
+  if (!isAudio && metadata.thumbnailUrl) {
     try {
       thumbnailStorageKey = await uploadThumbnailToStorage(
         metadata.thumbnailUrl,
@@ -400,9 +401,13 @@ async function processVespaIndexing(
     indexed_at: now,
     access_control: [`team:${teamId}`],
     is_public: false,
-    chapters: metadata.chapters?.map((c) => JSON.stringify(c)),
-    highlights: metadata.highlights?.map((h) => JSON.stringify(h)),
-    transcript_segments: transcriptSegments.map((s) => JSON.stringify(s)),
+    chapters: metadata.chapters?.map((c: MediaChapter) => JSON.stringify(c)),
+    highlights: metadata.highlights?.map((h: MediaHighlight) =>
+      JSON.stringify(h)
+    ),
+    transcript_segments: transcriptSegments.map(
+      (s: { start: number; end: number; value: string }) => JSON.stringify(s)
+    ),
     metadata: {
       twelveLabsIndexId,
       twelveLabsAssetId,
@@ -445,7 +450,7 @@ async function generateMediaEmbeddings(
 }
 
 async function processMediaLegacy(
-  data: MediaProcessingJobData
+  data: QueueMediaJobData
 ): Promise<MediaProcessingResult> {
   const {
     mediaId,
