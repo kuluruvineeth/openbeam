@@ -1,40 +1,40 @@
 import { embedQuery, getConfig as getAIConfig } from "@openplane/ai";
 import {
+  buildMediaVectorQueryFeatures,
   buildVectorQueryFeatures,
-  buildVideoVectorQueryFeatures,
   type GenericDocument,
   type JsonObject,
+  type MediaDocument,
+  type MediaQueryParams,
   type QueryParams,
   type SearchResult as VespaSearchResult,
-  type VideoDocument,
-  type VideoQueryParams,
   vespaClient,
 } from "@openplane/vespa";
 import { getOrGenerateEmbedding } from "../ai/embedding-cache";
 import type {
   AuthorSearchParams,
+  DocumentSearchResult,
+  MediaSearchParams,
+  MediaSearchResult,
   RecentDocumentsParams,
-  ScoredDocument,
-  ScoredVideo,
+  ScoredMedia,
   SearchParams,
-  SearchResult,
+  SearchScoredDocument,
   SimilarDocumentsParams,
   ThreadSearchParams,
   UnifiedSearchItem,
   UnifiedSearchParams,
   UnifiedSearchResult,
-  VideoSearchParams,
-  VideoSearchResult,
 } from "./types";
 
 type ScoredSearchResult = {
-  documents: ScoredDocument[];
+  documents: SearchScoredDocument[];
   total: number;
   embeddingTime?: number;
 };
 
-type ScoredVideoSearchResult = {
-  videos: ScoredVideo[];
+type ScoredMediaSearchResult = {
+  media: ScoredMedia[];
   total: number;
   embeddingTime?: number;
 };
@@ -44,8 +44,7 @@ function escapeYqlString(value: string): string {
 }
 
 export class SearchService {
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: search logic is inherently complex
-  async search(params: SearchParams): Promise<SearchResult> {
+  async search(params: SearchParams): Promise<DocumentSearchResult> {
     const startTime = Date.now();
     let embeddingTime: number | undefined;
 
@@ -80,9 +79,7 @@ export class SearchService {
       });
 
       const documents = this.extractDocuments(vespaResult);
-
       const total = vespaResult.root.fields?.totalCount ?? documents.length;
-
       const queryTime = Date.now() - startTime;
 
       return {
@@ -142,42 +139,43 @@ export class SearchService {
     return { documents, total, embeddingTime };
   }
 
-  private async searchVideosWithScores(
-    params: VideoSearchParams
-  ): Promise<ScoredVideoSearchResult> {
+  private async searchMediaWithScores(
+    params: MediaSearchParams
+  ): Promise<ScoredMediaSearchResult> {
     let embeddingTime: number | undefined;
 
     const ranking = params.ranking || "hybrid";
     const useSemanticSearch = ranking === "hybrid" || ranking === "semantic";
 
-    let videoEmbedding: number[] | null = null;
+    let mediaEmbedding: number[] | null = null;
     if (useSemanticSearch && params.query) {
       const embeddingStart = Date.now();
-      videoEmbedding = await this.getVideoQueryEmbedding(params.query);
+      mediaEmbedding = await this.getMediaQueryEmbedding(params.query);
       embeddingTime = Date.now() - embeddingStart;
     }
 
-    const includeVectorSearch = useSemanticSearch && videoEmbedding !== null;
+    const includeVectorSearch = useSemanticSearch && mediaEmbedding !== null;
     const effectiveRanking = includeVectorSearch ? ranking : "bm25";
-    const yql = this.buildVideoSearchYQL(params, includeVectorSearch);
+    const yql = this.buildMediaSearchYQL(params, includeVectorSearch);
 
-    const queryParams: VideoQueryParams = {
+    const queryParams: MediaQueryParams = {
       yql,
       ranking: effectiveRanking,
       hits: params.limit || 20,
       offset: params.offset || 0,
       timeout: "5s",
-      ...(includeVectorSearch && videoEmbedding
-        ? buildVideoVectorQueryFeatures(videoEmbedding)
+      ...(includeVectorSearch && mediaEmbedding
+        ? buildMediaVectorQueryFeatures(mediaEmbedding)
         : {}),
     };
 
-    const vespaResult = await vespaClient.queryVideos(queryParams);
+    const vespaResult =
+      await vespaClient.queryMedia<MediaDocument>(queryParams);
 
-    const videos = this.extractVideosWithScores(vespaResult);
-    const total = vespaResult.root.fields?.totalCount ?? videos.length;
+    const media = this.extractMediaWithScores(vespaResult);
+    const total = vespaResult.root.fields?.totalCount ?? media.length;
 
-    return { videos, total, embeddingTime };
+    return { media, total, embeddingTime };
   }
 
   private async getQueryEmbedding(query: string): Promise<number[] | null> {
@@ -422,22 +420,22 @@ export class SearchService {
     }));
   }
 
-  private extractVideosWithScores(
-    result: VespaSearchResult<VideoDocument>
-  ): Array<VideoDocument & { relevance: number }> {
+  private extractMediaWithScores(
+    result: VespaSearchResult<MediaDocument>
+  ): Array<MediaDocument & { relevance: number }> {
     if (!result.root.children || result.root.children.length === 0) {
       return [];
     }
 
     return result.root.children.map((child) => ({
       ...child.fields,
-      metadata: this.parseVideoMetadata(child.fields.metadata),
+      metadata: this.parseMediaMetadata(child.fields.metadata),
       relevance: child.relevance,
     }));
   }
 
-  private parseVideoMetadata(
-    metadata: VideoDocument["metadata"]
+  private parseMediaMetadata(
+    metadata: MediaDocument["metadata"]
   ): JsonObject | undefined {
     if (!metadata) {
       return;
@@ -452,7 +450,7 @@ export class SearchService {
     return metadata;
   }
 
-  async searchVideos(params: VideoSearchParams): Promise<VideoSearchResult> {
+  async searchMedia(params: MediaSearchParams): Promise<MediaSearchResult> {
     const startTime = Date.now();
     let embeddingTime: number | undefined;
 
@@ -460,43 +458,44 @@ export class SearchService {
       const ranking = params.ranking || "hybrid";
       const useSemanticSearch = ranking === "hybrid" || ranking === "semantic";
 
-      let videoEmbedding: number[] | null = null;
+      let mediaEmbedding: number[] | null = null;
       if (useSemanticSearch && params.query) {
         const embeddingStart = Date.now();
-        videoEmbedding = await this.getVideoQueryEmbedding(params.query);
+        mediaEmbedding = await this.getMediaQueryEmbedding(params.query);
         embeddingTime = Date.now() - embeddingStart;
       }
 
-      const includeVectorSearch = useSemanticSearch && videoEmbedding !== null;
+      const includeVectorSearch = useSemanticSearch && mediaEmbedding !== null;
       const effectiveRanking = includeVectorSearch ? ranking : "bm25";
-      const yql = this.buildVideoSearchYQL(params, includeVectorSearch);
+      const yql = this.buildMediaSearchYQL(params, includeVectorSearch);
 
-      const queryParams: VideoQueryParams = {
+      const queryParams: MediaQueryParams = {
         yql,
         ranking: effectiveRanking,
         hits: params.limit || 20,
         offset: params.offset || 0,
         timeout: "5s",
-        ...(includeVectorSearch && videoEmbedding
-          ? buildVideoVectorQueryFeatures(videoEmbedding)
+        ...(includeVectorSearch && mediaEmbedding
+          ? buildMediaVectorQueryFeatures(mediaEmbedding)
           : {}),
       };
 
-      const vespaResult = await vespaClient.queryVideos(queryParams);
+      const vespaResult =
+        await vespaClient.queryMedia<MediaDocument>(queryParams);
 
-      const videos = this.extractVideoDocuments(vespaResult);
-      const total = vespaResult.root.fields?.totalCount ?? videos.length;
+      const media = this.extractMediaDocuments(vespaResult);
+      const total = vespaResult.root.fields?.totalCount ?? media.length;
 
       return {
-        videos,
+        media,
         total,
         queryTime: Date.now() - startTime,
         embeddingTime,
       };
     } catch (error) {
-      console.error("Video search error:", error);
+      console.error("Media search error:", error);
       throw new Error(
-        `Video search failed: ${error instanceof Error ? error.message : "Unknown error"}`
+        `Media search failed: ${error instanceof Error ? error.message : "Unknown error"}`
       );
     }
   }
@@ -506,9 +505,9 @@ export class SearchService {
   ): Promise<UnifiedSearchResult> {
     const startTime = Date.now();
     const includeDocuments = params.includeDocuments ?? true;
-    const includeVideos = params.includeVideos ?? true;
+    const includeMedia = params.includeMedia ?? true;
 
-    const [docResults, videoResults] = await Promise.all([
+    const [docResults, mediaResults] = await Promise.all([
       includeDocuments
         ? this.searchWithScores({
             query: params.query,
@@ -525,8 +524,8 @@ export class SearchService {
             ranking: params.ranking,
           })
         : Promise.resolve(null),
-      includeVideos
-        ? this.searchVideosWithScores({
+      includeMedia
+        ? this.searchMediaWithScores({
             query: params.query,
             teamId: params.teamId,
             limit: params.limit,
@@ -536,44 +535,43 @@ export class SearchService {
             sourceId: params.sourceId,
             fromDate: params.fromDate,
             toDate: params.toDate,
-            ranking: params.videoRanking,
+            ranking: params.mediaRanking,
           })
         : Promise.resolve(null),
     ]);
 
     const scoredDocuments = docResults?.documents || [];
-    const scoredVideos = videoResults?.videos || [];
+    const scoredMedia = mediaResults?.media || [];
     const documentTotal = docResults?.total || 0;
-    const videoTotal = videoResults?.total || 0;
+    const mediaTotal = mediaResults?.total || 0;
 
-    // Merge documents and videos by relevance score
     const items: UnifiedSearchItem[] = [
       ...scoredDocuments.map((doc) => ({
         type: "document" as const,
         data: doc,
         relevance: doc.relevance,
       })),
-      ...scoredVideos.map((video) => ({
-        type: "video" as const,
-        data: video,
-        relevance: video.relevance,
+      ...scoredMedia.map((media) => ({
+        type: "media" as const,
+        data: media,
+        relevance: media.relevance,
       })),
     ].sort((a, b) => b.relevance - a.relevance);
 
     return {
       items,
       documents: scoredDocuments,
-      videos: scoredVideos,
+      media: scoredMedia,
       documentTotal,
-      videoTotal,
-      total: documentTotal + videoTotal,
+      mediaTotal,
+      total: documentTotal + mediaTotal,
       queryTime: Date.now() - startTime,
       embeddingTime:
-        (docResults?.embeddingTime || 0) + (videoResults?.embeddingTime || 0),
+        (docResults?.embeddingTime || 0) + (mediaResults?.embeddingTime || 0),
     };
   }
 
-  private async getVideoQueryEmbedding(
+  private async getMediaQueryEmbedding(
     query: string
   ): Promise<number[] | null> {
     try {
@@ -581,17 +579,17 @@ export class SearchService {
         return null;
       }
 
-      const { TwelveLabsClient } = await import("@openplane/video");
+      const { TwelveLabsClient } = await import("@openplane/media");
       const client = new TwelveLabsClient();
       return await client.embedText(query);
     } catch (error) {
-      console.warn("Failed to generate video query embedding:", error);
+      console.warn("Failed to generate media query embedding:", error);
       return null;
     }
   }
 
-  private buildVideoSearchYQL(
-    params: VideoSearchParams,
+  private buildMediaSearchYQL(
+    params: MediaSearchParams,
     includeVectorSearch: boolean
   ): string {
     const conditions: string[] = [];
@@ -600,7 +598,7 @@ export class SearchService {
     conditions.push(`team_id contains "${escapeYqlString(params.teamId)}"`);
 
     if (includeVectorSearch && params.query) {
-      const vectorClause = `({targetHits:${limit * 2}}nearestNeighbor(segment_embeddings, video_embedding))`;
+      const vectorClause = `({targetHits:${limit * 2}}nearestNeighbor(segment_embeddings, media_embedding))`;
       const textClause = `default contains "${escapeYqlString(params.query)}"`;
       conditions.push(`(${vectorClause} or (${textClause}))`);
     } else if (params.query) {
@@ -627,27 +625,27 @@ export class SearchService {
       conditions.push(`created_at <= ${params.toDate}`);
     }
 
-    if (params.videoType) {
+    if (params.mediaType) {
       conditions.push(
-        `video_type contains "${escapeYqlString(params.videoType)}"`
+        `media_type contains "${escapeYqlString(params.mediaType)}"`
       );
     }
 
     conditions.push(this.buildAccessControlClause(params.accessControlIds));
 
-    return `select * from video_document where ${conditions.join(" and ")}`;
+    return `select * from media_document where ${conditions.join(" and ")}`;
   }
 
-  private extractVideoDocuments(
-    result: VespaSearchResult<VideoDocument>
-  ): VideoDocument[] {
+  private extractMediaDocuments(
+    result: VespaSearchResult<MediaDocument>
+  ): MediaDocument[] {
     if (!result.root.children || result.root.children.length === 0) {
       return [];
     }
 
     return result.root.children.map((child) => ({
       ...child.fields,
-      metadata: this.parseVideoMetadata(child.fields.metadata),
+      metadata: this.parseMediaMetadata(child.fields.metadata),
     }));
   }
 }

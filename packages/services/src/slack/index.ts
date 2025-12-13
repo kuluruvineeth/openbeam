@@ -1,114 +1,152 @@
+export type { GetMembersOptions, ListChannelsOptions } from "./api/channels";
 export {
   buildChannelMemberMap,
-  buildSearchQuery,
-  createUserLookup,
-  extractChannelIds,
-  extractUserIds,
-  type FetchMessagesOptions,
-  type FetchRepliesOptions,
+  filterChannelsByType,
+  getAccessibleChannels,
+  getAllChannelMembers,
+  getAllChannels,
+  getChannelInfo,
+  getChannelMembers,
+  isBotMember,
+  listChannels,
+} from "./api/channels";
+
+export type {
+  GetFileInfoResponse,
+  ListFilesOptions,
+  ListFilesResponse,
+} from "./api/files";
+export {
+  filterSupportedFiles,
+  getAllFiles,
+  getDownloadUrl,
+  getFileInfo,
+  getFilesSince,
+  hasDownloadUrl,
+  listFiles,
+} from "./api/files";
+
+export type {
+  FetchMessagesOptions,
+  FetchRepliesOptions,
+  FetchThreadRepliesSinceOptions,
+  MessageWithReplies,
+} from "./api/messages";
+export {
   fetchMessages,
   fetchMessagesSince,
   fetchMessagesWithReplies,
   fetchThreadReplies,
   fetchThreadRepliesSince,
-  filterAdmins,
-  filterChannelsByType,
-  filterOutBots,
-  filterOutDeleted,
-  filterSupportedFiles,
-  type GetFileInfoResponse,
-  type GetMembersOptions,
-  getAccessibleChannels,
-  getActiveUsers,
-  getAllChannelMembers,
-  getAllChannels,
-  getAllFiles,
   getAllMessages,
   getAllThreadReplies,
-  getAllUsers,
-  getChannelInfo,
-  getChannelMembers,
-  getDownloadUrl,
-  getFileInfo,
-  getFilesSince,
   getLatestTimestamp,
+  hasReplies,
+  isThreadParent,
+  isThreadReply,
+  msToSlackTs,
+  slackTsToMs,
+  sortMessagesByTimestamp,
+} from "./api/messages";
+
+export type {
+  SearchMessagesOptions,
+  SearchQueryFilters,
+  SlackSearchResult,
+} from "./api/search";
+export {
+  buildSearchQuery,
+  extractChannelIds,
+  extractUserIds,
+  groupMatchesByChannel,
+  searchMessages,
+  searchMessagesAll,
+  sortMatchesByTimestamp,
+} from "./api/search";
+
+export type { ListUsersOptions, UserLookup } from "./api/users";
+export {
+  createUserLookup,
+  filterAdmins,
+  filterOutBots,
+  filterOutDeleted,
+  getActiveUsers,
+  getAllUsers,
   getTeamInfo,
   getUserAvatarUrl,
   getUserDisplayName,
   getUserInfo,
   getUsersInfo,
-  groupMatchesByChannel,
-  hasDownloadUrl,
-  hasReplies,
-  isBotMember,
-  isThreadParent,
-  isThreadReply,
-  type ListChannelsOptions,
-  type ListFilesOptions,
-  type ListFilesResponse,
-  type ListUsersOptions,
-  listChannels,
-  listFiles,
   listUsers,
-  type MessageWithReplies,
-  msToSlackTs,
-  type SearchMessagesOptions,
-  type SearchQueryFilters,
-  type SearchResult,
-  searchMessages,
-  searchMessagesAll,
-  slackTsToMs,
-  sortMatchesByTimestamp,
-  sortMessagesByTimestamp,
-  type UserLookup,
-} from "./api";
+} from "./api/users";
+
 export { SlackAuth } from "./auth";
+
+export type { SlackClient } from "./client";
 export {
   createSlackClient,
   DEFAULT_RATE_LIMITS,
   DEFAULT_TIMEOUT,
-  type SlackClient,
 } from "./client";
+
+export type {
+  DocumentChange,
+  DocumentOperation,
+  EventHandlerContext,
+  EventHandlerResult,
+} from "./events/handlers";
+export { handleSlackEvent, handleSlackEventBatch } from "./events/handlers";
+
+export type {
+  ParsedEventResult,
+  SlackEventRequest,
+  VerifyResult,
+} from "./events/parser";
 export {
-  type ChannelCreatedEvent,
-  type ChannelDeletedEvent,
-  type DocumentChange,
-  type DocumentOperation,
-  type EventHandlerContext,
-  type EventHandlerResult,
   getEventChannelId,
   getEventUserId,
-  handleSlackEvent,
-  handleSlackEventBatch,
   isChannelEvent,
   isMemberEvent,
   isMessageChangedEvent,
   isMessageDeletedEvent,
   isMessageEvent,
   isReactionEvent,
-  type MemberJoinedChannelEvent,
-  type MemberLeftChannelEvent,
-  type MessageChangedEvent,
-  type MessageDeletedEvent,
-  type MessageEvent,
-  type ParsedEventResult,
   parseSlackEvent,
-  type ReactionAddedEvent,
-  type ReactionRemovedEvent,
-  type SlackEvent,
-  type SlackEventEnvelope,
-  type SlackEventRequest,
-  type SlackEventType,
-  type VerifyResult,
   verifySlackSignature,
-} from "./events";
+} from "./events/parser";
+
+export type {
+  AppMentionEvent,
+  BaseEvent,
+  ChannelArchiveEvent,
+  ChannelCreatedEvent,
+  ChannelDeletedEvent,
+  ChannelRenameEvent,
+  ChannelUnarchiveEvent,
+  FileDeletedEvent,
+  FileSharedEvent,
+  MemberJoinedChannelEvent,
+  MemberLeftChannelEvent,
+  MessageChangedEvent,
+  MessageDeletedEvent,
+  MessageEvent,
+  ReactionAddedEvent,
+  ReactionRemovedEvent,
+  SlackEvent,
+  SlackEventEnvelope,
+  SlackEventType,
+  UserChangeEvent,
+} from "./events/types";
+export {
+  MessageChangedEventSchema,
+  MessageDeletedEventSchema,
+  MessageEventSchema,
+  SlackEventEnvelopeSchema,
+} from "./events/types";
+
+export type { ChannelFilterConfig } from "./federated/filter";
 export {
   buildChannelFilterQuery,
-  type ChannelFilterConfig,
-  type FederatedSearchResult,
-  type FullFederatedSearchOptions,
-  federatedSearch,
-  federatedSearchStream,
   filterChannels,
   filterSearchMatches,
   globToRegex,
@@ -117,65 +155,97 @@ export {
   matchesGlob,
   mergeFilterConfigs,
   parseFilterString,
+} from "./federated/filter";
+
+export type {
+  FederatedSearchResult,
+  FullFederatedSearchOptions,
+} from "./federated/search";
+export {
+  federatedSearch,
+  federatedSearchStream,
   quickSearch,
   searchInChannels,
   searchInDateRange,
-} from "./federated";
+} from "./federated/search";
+
+export type { ChannelSyncResult, SyncChannelsOptions } from "./sync/channels";
 export {
-  type ChannelSyncResult,
+  getChangedChannels,
+  syncChannels,
+  syncChannelsBatched,
+} from "./sync/channels";
+
+export type {
+  FileSyncBatch,
+  FileSyncOptions,
+  SlackFileInfo,
+} from "./sync/files";
+export {
+  getLatestFileTimestamp,
+  syncFiles,
+  transformSlackFile,
+} from "./sync/files";
+
+export type {
+  FullSyncResult,
+  IncrementalSyncOptions,
+  SyncProgressCallback,
+  SyncStatsAccumulator,
+} from "./sync/incremental";
+export {
   createInitialCursor,
   createStatsAccumulator,
   deltaSync,
-  type FileSyncBatch,
-  type FileSyncOptions,
-  type FullSyncResult,
   finalizeStats,
   fullSync,
-  getChangedChannels,
   getLatestCursorTimestamp,
-  getLatestFileTimestamp,
-  type IncrementalSyncOptions,
   incrementalSync,
   mergeCursors,
   needsFullSync,
-  type SlackFileInfo,
-  type SyncChannelsOptions,
-  type SyncMessagesOptions,
-  type SyncProgressCallback,
-  type SyncStatsAccumulator,
+  updateStats,
+} from "./sync/incremental";
+
+export type { MessageSyncResult, SyncMessagesOptions } from "./sync/messages";
+export {
   syncChannelMessages,
   syncChannelMessagesBatched,
-  syncChannels,
-  syncChannelsBatched,
-  syncFiles,
   syncMultipleChannels,
-  transformSlackFile,
-  updateStats,
-} from "./sync";
+} from "./sync/messages";
+
+export type { ChannelTransformContext } from "./transformers/channel";
 export {
-  type ChannelTransformContext,
+  getChannelDisplayName,
+  getChannelType,
+  isAccessible,
+  shouldIndex,
+  transformChannel,
+  transformChannels,
+} from "./transformers/channel";
+
+export type {
+  MessageTransformContext,
+  MessageTransformOptions,
+} from "./transformers/message";
+export {
   cleanMessageText,
   extractChannelRefs,
   extractMentions,
   extractUrls,
-  getChannelDisplayName,
-  getChannelType,
+  transformMessage,
+  transformMessages,
+} from "./transformers/message";
+
+export {
   getEmailDomain,
   getUserIdentityKey,
-  isAccessible,
   isActive,
   isAdmin,
   isHuman,
-  type MessageTransformContext,
-  type MessageTransformOptions,
-  shouldIndex,
-  transformChannel,
-  transformChannels,
-  transformMessage,
-  transformMessages,
   transformUser,
   transformUsers,
-} from "./transformers";
+} from "./transformers/user";
+
 export type {
   FederatedSearchOptions,
   RateLimitState,

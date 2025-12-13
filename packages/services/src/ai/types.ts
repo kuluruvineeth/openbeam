@@ -39,13 +39,13 @@ export interface RAGContextParams {
 }
 
 export interface RAGContext {
-  documents: ContextDocument[];
+  documents: RAGContextDocument[];
   totalTokens: number;
   truncated: boolean;
   retrievalTime: number;
 }
 
-export interface ContextDocument {
+export interface RAGContextDocument {
   id: string;
   title: string;
   content: string;
@@ -65,7 +65,7 @@ export interface RAGAnswerParams extends RAGContextParams {
 
 export interface RAGAnswer {
   answer: string;
-  citations: Citation[];
+  citations: RAGCitation[];
   context: RAGContext;
   usage: {
     promptTokens: number;
@@ -75,7 +75,7 @@ export interface RAGAnswer {
   latencyMs: number;
 }
 
-export interface Citation {
+export interface RAGCitation {
   documentId: string;
   title: string;
   url?: string;

@@ -13,10 +13,10 @@ export {
 export { handleSyncError, updateSyncCompletion } from "./status";
 
 export type {
-  CreateSyncHistoryInput,
   CreateSyncHistoryResult,
   GetSyncCursorResult,
   HandleSyncErrorInput,
+  ServiceCreateSyncHistoryInput,
   SyncHistoryStatus,
   SyncSummary,
   SyncType,

@@ -13,7 +13,7 @@ export interface SearchMessagesOptions {
   highlight?: boolean;
 }
 
-export interface SearchResult {
+export interface SlackSearchResult {
   matches: SlackSearchMatch[];
   total: number;
   page: number;
@@ -49,7 +49,7 @@ export async function searchMessages(
   client: SlackClient,
   query: string,
   options: SearchMessagesOptions = {}
-): Promise<SearchResult> {
+): Promise<SlackSearchResult> {
   const {
     count = 20,
     page = 1,

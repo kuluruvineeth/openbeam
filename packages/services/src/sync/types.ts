@@ -2,7 +2,7 @@ export type SyncHistoryStatus = "RUNNING" | "COMPLETED" | "FAILED";
 
 export type SyncType = "FULL" | "INCREMENTAL";
 
-export interface CreateSyncHistoryInput {
+export interface ServiceCreateSyncHistoryInput {
   connectorId: string;
   type: SyncType;
 }

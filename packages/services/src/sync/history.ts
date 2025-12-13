@@ -11,14 +11,14 @@ import {
   updateSyncJobNextRun,
 } from "@openplane/db";
 import type {
-  CreateSyncHistoryInput,
   CreateSyncHistoryResult,
+  ServiceCreateSyncHistoryInput,
   SyncSummary,
 } from "./types";
 
 export async function createSyncHistoryForRepeatableJob(
   db: Database,
-  input: CreateSyncHistoryInput
+  input: ServiceCreateSyncHistoryInput
 ): Promise<CreateSyncHistoryResult> {
   const syncJob = await findScheduledSyncJob(db, input.connectorId, input.type);
 

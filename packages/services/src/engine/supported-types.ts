@@ -81,6 +81,29 @@ const VIDEO_EXTENSIONS = [
   "ogv",
 ] as const;
 
+const AUDIO_MIMES = [
+  "audio/mpeg",
+  "audio/mp4",
+  "audio/wav",
+  "audio/x-wav",
+  "audio/ogg",
+  "audio/webm",
+  "audio/flac",
+  "audio/aac",
+  "audio/x-m4a",
+] as const;
+
+const AUDIO_EXTENSIONS = [
+  "mp3",
+  "m4a",
+  "wav",
+  "ogg",
+  "webm",
+  "flac",
+  "aac",
+  "wma",
+] as const;
+
 export function getSupportedFileTypes(): SupportedFileTypes {
   return {
     mimes: [...SUPPORTED_MIMES],
@@ -95,10 +118,28 @@ export function getSupportedVideoTypes(): SupportedFileTypes {
   };
 }
 
+export function getSupportedAudioTypes(): SupportedFileTypes {
+  return {
+    mimes: [...AUDIO_MIMES],
+    extensions: [...AUDIO_EXTENSIONS],
+  };
+}
+
+export function getSupportedMediaTypes(): SupportedFileTypes {
+  return {
+    mimes: [...VIDEO_MIMES, ...AUDIO_MIMES],
+    extensions: [...VIDEO_EXTENSIONS, ...AUDIO_EXTENSIONS],
+  };
+}
+
 export function getAllSupportedTypes(): SupportedFileTypes {
   return {
-    mimes: [...SUPPORTED_MIMES, ...VIDEO_MIMES],
-    extensions: [...SUPPORTED_EXTENSIONS, ...VIDEO_EXTENSIONS],
+    mimes: [...SUPPORTED_MIMES, ...VIDEO_MIMES, ...AUDIO_MIMES],
+    extensions: [
+      ...SUPPORTED_EXTENSIONS,
+      ...VIDEO_EXTENSIONS,
+      ...AUDIO_EXTENSIONS,
+    ],
   };
 }
 
@@ -135,6 +176,36 @@ export function isVideoFile(
   return false;
 }
 
+export function isAudioMime(mimeType: string): boolean {
+  return (AUDIO_MIMES as readonly string[]).includes(mimeType);
+}
+
+export function isAudioExtension(extension: string): boolean {
+  return (AUDIO_EXTENSIONS as readonly string[]).includes(
+    extension.toLowerCase()
+  );
+}
+
+export function isAudioFile(
+  mimeType?: string | null,
+  extension?: string | null
+): boolean {
+  if (mimeType && isAudioMime(mimeType)) {
+    return true;
+  }
+  if (extension && isAudioExtension(extension)) {
+    return true;
+  }
+  return false;
+}
+
+export function isMediaFile(
+  mimeType?: string | null,
+  extension?: string | null
+): boolean {
+  return isVideoFile(mimeType, extension) || isAudioFile(mimeType, extension);
+}
+
 export function isFileSupported(
   mimeType?: string | null,
   extension?: string | null
@@ -153,6 +224,6 @@ export function isAnyFileSupported(
   extension?: string | null
 ): boolean {
   return (
-    isFileSupported(mimeType, extension) || isVideoFile(mimeType, extension)
+    isFileSupported(mimeType, extension) || isMediaFile(mimeType, extension)
   );
 }

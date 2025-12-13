@@ -30,7 +30,7 @@ export {
   updateStats,
 } from "./incremental";
 export {
-  type ChannelSyncResult as MessageSyncResult,
+  type MessageSyncResult,
   type SyncMessagesOptions,
   syncChannelMessages,
   syncChannelMessagesBatched,

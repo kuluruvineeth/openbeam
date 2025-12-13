@@ -28,7 +28,7 @@ export interface SyncMessagesOptions {
   transformOptions?: MessageTransformOptions;
 }
 
-export interface ChannelSyncResult {
+export interface MessageSyncResult {
   documents: GenericDocument[];
   latestTimestamp?: string;
   stats: {
@@ -111,7 +111,7 @@ export async function syncChannelMessages(
   channel: SlackChannel,
   context: TransformContext,
   options: SyncMessagesOptions = {}
-): Promise<ChannelSyncResult> {
+): Promise<MessageSyncResult> {
   const {
     cursor,
     includeThreads = true,

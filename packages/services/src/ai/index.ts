@@ -22,13 +22,13 @@ export {
 
 export type {
   CachedEmbedding,
-  Citation,
-  ContextDocument,
   HybridSearchParams,
   HybridSearchResult,
   RAGAnswer,
   RAGAnswerParams,
+  RAGCitation,
   RAGContext,
+  RAGContextDocument,
   RAGContextParams,
   RerankParams,
   RerankResult,

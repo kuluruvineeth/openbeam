@@ -52,7 +52,7 @@ export {
   groupMatchesByChannel,
   type SearchMessagesOptions,
   type SearchQueryFilters,
-  type SearchResult,
+  type SlackSearchResult,
   searchMessages,
   searchMessagesAll,
   sortMatchesByTimestamp,

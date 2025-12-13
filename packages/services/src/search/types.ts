@@ -1,5 +1,8 @@
-import type { GenericDocument } from "@openplane/vespa";
-import type { VideoDocument } from "@openplane/video";
+import type {
+  GenericDocument,
+  MediaDocument,
+  MediaType,
+} from "@openplane/vespa";
 
 export type SearchRanking =
   | "bm25"
@@ -8,7 +11,7 @@ export type SearchRanking =
   | "recency"
   | "engagement";
 
-export type VideoSearchRanking =
+export type MediaSearchRanking =
   | "bm25"
   | "semantic"
   | "hybrid"
@@ -35,7 +38,7 @@ export interface SearchParams {
   accessControlIds?: string[];
 }
 
-export interface SearchResult {
+export interface DocumentSearchResult {
   documents: GenericDocument[];
   total: number;
   limit: number;
@@ -72,16 +75,7 @@ export interface AuthorSearchParams {
   accessControlIds?: string[];
 }
 
-export type VideoType =
-  | "meeting"
-  | "presentation"
-  | "tutorial"
-  | "demo"
-  | "interview"
-  | "webinar"
-  | "other";
-
-export interface VideoSearchParams {
+export interface MediaSearchParams {
   query: string;
   teamId: string;
   limit?: number;
@@ -91,12 +85,12 @@ export interface VideoSearchParams {
   sourceId?: string;
   fromDate?: number;
   toDate?: number;
-  ranking?: VideoSearchRanking;
-  videoType?: VideoType;
+  ranking?: MediaSearchRanking;
+  mediaType?: MediaType;
 }
 
-export interface VideoSearchResult {
-  videos: VideoDocument[];
+export interface MediaSearchResult {
+  media: MediaDocument[];
   total: number;
   queryTime: number;
   embeddingTime?: number;
@@ -115,24 +109,24 @@ export interface UnifiedSearchParams {
   fromDate?: number;
   toDate?: number;
   ranking?: SearchRanking;
-  videoRanking?: VideoSearchRanking;
+  mediaRanking?: MediaSearchRanking;
   includeDocuments?: boolean;
-  includeVideos?: boolean;
+  includeMedia?: boolean;
 }
 
-export type ScoredDocument = GenericDocument & { relevance: number };
-export type ScoredVideo = VideoDocument & { relevance: number };
+export type SearchScoredDocument = GenericDocument & { relevance: number };
+export type ScoredMedia = MediaDocument & { relevance: number };
 
 export type UnifiedSearchItem =
-  | { type: "document"; data: ScoredDocument; relevance: number }
-  | { type: "video"; data: ScoredVideo; relevance: number };
+  | { type: "document"; data: SearchScoredDocument; relevance: number }
+  | { type: "media"; data: ScoredMedia; relevance: number };
 
 export interface UnifiedSearchResult {
   items: UnifiedSearchItem[];
   documents: GenericDocument[];
-  videos: VideoDocument[];
+  media: MediaDocument[];
   documentTotal: number;
-  videoTotal: number;
+  mediaTotal: number;
   total: number;
   queryTime: number;
   embeddingTime?: number;

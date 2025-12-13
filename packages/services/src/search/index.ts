@@ -1,17 +1,18 @@
 export { SearchService, searchService } from "./service";
 export type {
   AuthorSearchParams,
+  DocumentSearchResult,
+  MediaSearchParams,
+  MediaSearchRanking,
+  MediaSearchResult,
   RecentDocumentsParams,
+  ScoredMedia,
   SearchParams,
   SearchRanking,
-  SearchResult,
+  SearchScoredDocument,
   SimilarDocumentsParams,
   ThreadSearchParams,
   UnifiedSearchItem,
   UnifiedSearchParams,
   UnifiedSearchResult,
-  VideoSearchParams,
-  VideoSearchRanking,
-  VideoSearchResult,
-  VideoType,
 } from "./types";
