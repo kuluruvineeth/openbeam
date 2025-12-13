@@ -1,6 +1,7 @@
 import prisma, {
   deleteIndexedDocuments,
-  findDocumentsByConnectorStatus,
+  findConnectorsByStatus,
+  findDocumentsForCleanup,
   findOrphanedDocuments,
   findStaleDocuments,
 } from "@openplane/db";
@@ -171,43 +172,54 @@ async function cleanupOrphanedDocuments(): Promise<number> {
 async function pruneDisabledConnectors(): Promise<number> {
   logger.debug("Pruning documents from disabled connectors");
 
-  const documents = await findDocumentsByConnectorStatus(
-    prisma,
-    ["INACTIVE", "ERROR"],
-    1000
-  );
+  const disabledConnectors = await findConnectorsByStatus(prisma, [
+    "INACTIVE",
+    "ERROR",
+  ]);
 
-  if (documents.length === 0) {
-    logger.debug("No documents from disabled connectors found");
+  if (disabledConnectors.length === 0) {
+    logger.debug("No disabled connectors found");
     return 0;
   }
 
   logger.info(
-    { count: documents.length },
-    "Found documents from disabled connectors, pruning"
+    { count: disabledConnectors.length },
+    "Found disabled connectors, pruning documents"
   );
 
-  for (const doc of documents) {
-    try {
-      await vespaClient.deleteDocument(doc.vespaId);
-    } catch (error) {
-      logger.warn(
-        { error, vespaId: doc.vespaId, connectorId: doc.connectorId },
-        "Failed to delete document from Vespa"
-      );
+  let totalPruned = 0;
+
+  for (const connector of disabledConnectors) {
+    const documents = await findDocumentsForCleanup(prisma, connector.id, 1000);
+
+    if (documents.length === 0) {
+      continue;
     }
+
+    for (const doc of documents) {
+      try {
+        await vespaClient.deleteDocument(doc.vespaId);
+      } catch (error) {
+        logger.warn(
+          { error, vespaId: doc.vespaId, connectorId: connector.id },
+          "Failed to delete document from Vespa"
+        );
+      }
+    }
+
+    const deleted = await deleteIndexedDocuments(
+      prisma,
+      documents.map((d) => d.id)
+    );
+
+    totalPruned += deleted.count;
+    logger.info(
+      { connectorId: connector.id, pruned: deleted.count },
+      "Pruned documents from disabled connector"
+    );
   }
 
-  const deleted = await deleteIndexedDocuments(
-    prisma,
-    documents.map((d) => d.id)
-  );
-
-  logger.info(
-    { pruned: deleted.count },
-    "Pruned documents from disabled connectors"
-  );
-  return deleted.count;
+  return totalPruned;
 }
 
 export async function triggerCleanup(): Promise<CleanupJobResult> {

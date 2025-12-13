@@ -63,26 +63,25 @@ export const findOrphanedDocuments = async (
     LIMIT ${limit}
   `;
 
-export const findDocumentsByConnectorStatus = async (
+export const findConnectorsByStatus = async (
   db: Database,
-  statuses: string[],
-  limit = 1000
-): Promise<Pick<IndexedDocument, "id" | "vespaId" | "connectorId">[]> => {
-  const connectors = await db.connector.findMany({
+  statuses: string[]
+): Promise<Array<{ id: string; status: string }>> =>
+  db.connector.findMany({
     where: { status: { in: statuses as never[] } },
-    select: { id: true },
+    select: { id: true, status: true },
   });
 
-  if (connectors.length === 0) {
-    return [];
-  }
-
-  return db.indexedDocument.findMany({
-    where: { connectorId: { in: connectors.map((c) => c.id) } },
-    select: { id: true, vespaId: true, connectorId: true },
+export const findDocumentsForCleanup = async (
+  db: Database,
+  connectorId: string,
+  limit = 1000
+): Promise<Pick<IndexedDocument, "id" | "vespaId">[]> =>
+  db.indexedDocument.findMany({
+    where: { connectorId },
+    select: { id: true, vespaId: true },
     take: limit,
   });
-};
 
 export const countIndexedDocuments = async (
   db: Database,
