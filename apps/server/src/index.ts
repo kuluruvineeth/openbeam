@@ -1,9 +1,9 @@
 import "./instrumentation";
 import "dotenv/config";
-import { trpcServer } from "@hono/trpc-server";
 import { createTRPCContext } from "@openplane/api/context";
 import { appRouter } from "@openplane/api/routers/index";
 import { auth } from "@openplane/auth";
+import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { configureOpenAPI } from "@/lib/configure-open-api";
 import { createApp } from "@/lib/create-app";
 import { mapRoutes } from "@/routes/index";
@@ -16,11 +16,12 @@ mapRoutes(app);
 
 configureOpenAPI(app);
 
-app.use(
-  "/trpc/*",
-  trpcServer({
+app.all("/trpc/*", async (c) =>
+  fetchRequestHandler({
+    endpoint: "/trpc",
     router: appRouter,
-    createContext: (_opts, context) => createTRPCContext({ context }),
+    req: c.req.raw,
+    createContext: () => createTRPCContext({ context: c }),
   })
 );
 
