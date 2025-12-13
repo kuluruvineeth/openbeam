@@ -6,6 +6,7 @@ import prisma, {
 import {
   addIndexJob,
   createLinkedSpan,
+  createProgressEmitter,
   rateLimiter,
   type SyncJobData,
 } from "@openplane/redis";
@@ -87,11 +88,21 @@ export async function processSyncJob(
         throw new Error("Fence became invalid during validation");
       }
 
+      const progress = createProgressEmitter({
+        id: syncJobId,
+        teamId: connector.teamId,
+        type: "sync",
+        connectorId,
+        connectorName: connector.name ?? undefined,
+      });
+
       const cursorResult = await getSyncCursorForConnector(
         prisma,
         connectorId,
         type
       );
+
+      await progress.start(0, "Fetching data");
 
       const syncResult = await streamDocumentsToIndexQueue({
         connector,
@@ -100,6 +111,7 @@ export async function processSyncJob(
         syncJobId,
         type,
         fenceToken,
+        progress,
       });
 
       await updateSyncCompletion(prisma, {
@@ -110,6 +122,8 @@ export async function processSyncJob(
         batchCount: syncResult.batchCount,
         startTime: job.processedOn || Date.now(),
       });
+
+      await progress.complete(syncResult.totalDocuments);
 
       span.setAttributes({
         "sync.documents_synced": syncResult.totalDocuments,
@@ -163,13 +177,21 @@ async function streamDocumentsToIndexQueue(params: {
   syncJobId: string;
   type: "FULL" | "INCREMENTAL";
   fenceToken: number;
+  progress: ReturnType<typeof createProgressEmitter>;
 }): Promise<{
   totalDocuments: number;
   batchCount: number;
   nextCursor?: string;
 }> {
-  const { connector, cursor, connectorId, syncJobId, type, fenceToken } =
-    params;
+  const {
+    connector,
+    cursor,
+    connectorId,
+    syncJobId,
+    type,
+    fenceToken,
+    progress,
+  } = params;
 
   const span = tracer.startSpan("sync-processor.stream-documents", {
     attributes: {
@@ -224,6 +246,13 @@ async function streamDocumentsToIndexQueue(params: {
         totalDocuments += batch.items.length;
         batchCount += 1;
         lastCursor = batch.cursor;
+
+        await progress.update(
+          totalDocuments,
+          batch.hasMore ? totalDocuments + 100 : totalDocuments,
+          "Indexing",
+          `Batch ${batchCount}`
+        );
 
         logger.debug(
           {

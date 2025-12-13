@@ -3,6 +3,7 @@ import {
   addFileIndexJob,
   addFileParseJob,
   createLinkedSpan,
+  createProgressEmitter,
   type FileProcessingJobData,
 } from "@openplane/redis";
 import {
@@ -131,6 +132,16 @@ async function processDownload(
     throw new Error("Connector not found");
   }
 
+  const progress = createProgressEmitter({
+    id: fileId,
+    teamId: connector.teamId,
+    type: "file",
+    connectorId,
+    fileName,
+  });
+
+  await progress.start(3, "Downloading");
+
   await prisma.indexedFile.update({
     where: { id: fileId },
     data: { processingStatus: "DOWNLOADING" },
@@ -143,6 +154,7 @@ async function processDownload(
   });
 
   if (!response.ok) {
+    await progress.fail(`Download failed: ${response.status}`, 3);
     throw new Error(`Download failed: ${response.status}`);
   }
 
@@ -163,6 +175,8 @@ async function processDownload(
       uploadedAt: new Date(),
     },
   });
+
+  await progress.update(1, 3, "Downloaded");
 
   logger.info({ fileId, storageKey }, "File downloaded");
 
@@ -186,6 +200,25 @@ async function processParse(
   if (!storageKey) {
     throw new Error("Storage key required for parsing");
   }
+
+  const file = await prisma.indexedFile.findUnique({
+    where: { id: fileId },
+    include: { connector: true },
+  });
+
+  if (!file) {
+    throw new Error("File not found");
+  }
+
+  const progress = createProgressEmitter({
+    id: fileId,
+    teamId: file.connector.teamId,
+    type: "file",
+    connectorId,
+    fileName,
+  });
+
+  await progress.update(1, 3, "Parsing");
 
   await prisma.indexedFile.update({
     where: { id: fileId },
@@ -233,6 +266,8 @@ async function processParse(
       processedAt: new Date(),
     },
   });
+
+  await progress.update(2, 3, "Parsed");
 
   logger.info(
     { fileId, textLength: result.text_length, chunks: parsedChunks.length },
@@ -419,6 +454,16 @@ async function processIndex(
     throw new Error("File not found");
   }
 
+  const progress = createProgressEmitter({
+    id: fileId,
+    teamId: file.connector.teamId,
+    type: "file",
+    connectorId,
+    fileName,
+  });
+
+  await progress.update(2, 3, "Indexing");
+
   const rawChunks = parsedChunks ?? [];
   const chunks: ParsedChunk[] = rawChunks.map((c) =>
     typeof c === "string" ? { text: c } : (c as ParsedChunk)
@@ -516,6 +561,8 @@ async function processIndex(
       indexedAt: new Date(),
     },
   });
+
+  await progress.complete(3);
 
   logger.info(
     {

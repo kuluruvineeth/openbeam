@@ -11,6 +11,7 @@ import {
   addMediaTwelveLabsJob,
   addMediaVespaJob,
   createLinkedSpan,
+  createProgressEmitter,
   type MediaDownloadJobData,
   type MediaTwelveLabsJobData,
   type MediaVespaJobData,
@@ -158,6 +159,16 @@ async function processMediaDownload(
     throw new Error("Connector not found");
   }
 
+  const progress = createProgressEmitter({
+    id: mediaId,
+    teamId: connector.teamId,
+    type: "media",
+    connectorId,
+    fileName,
+  });
+
+  await progress.start(4, "Downloading");
+
   const oauth: OAuthProvider | null | undefined = connector.oauthProvider;
   const syncToken = oauth
     ? decryptIfEncrypted(oauth.syncAccessToken, oauth.syncAccessTokenIv)
@@ -181,6 +192,7 @@ async function processMediaDownload(
   });
 
   if (!response.ok) {
+    await progress.fail(`Download failed: ${response.status}`, 4);
     throw new Error(`Download failed: ${response.status}`);
   }
 
@@ -202,6 +214,8 @@ async function processMediaDownload(
       uploadedAt: new Date(),
     },
   });
+
+  await progress.update(1, 4, "Downloaded");
 
   logger.info(
     { mediaId, mediaType, storageKey: finalStorageKey },
@@ -225,6 +239,20 @@ async function processTwelveLabsIndexing(
 ): Promise<MediaProcessingResult> {
   const { mediaId, connectorId, teamId, storageKey, mediaType, mimeType } =
     data;
+
+  const media = await prisma.indexedMedia.findUnique({
+    where: { id: mediaId },
+  });
+
+  const progress = createProgressEmitter({
+    id: mediaId,
+    teamId,
+    type: "media",
+    connectorId,
+    fileName: media?.fileName ?? undefined,
+  });
+
+  await progress.update(1, 4, "Transcribing");
 
   await prisma.indexedMedia.update({
     where: { id: mediaId },
@@ -257,14 +285,12 @@ async function processTwelveLabsIndexing(
     },
   });
 
+  await progress.update(2, 4, "Transcribed");
+
   logger.info(
     { mediaId, mediaType, twelveLabsAssetId },
     "Media indexed in TwelveLabs"
   );
-
-  const media = await prisma.indexedMedia.findUnique({
-    where: { id: mediaId },
-  });
 
   await addMediaVespaJob({
     mediaId,
@@ -302,6 +328,16 @@ async function processVespaIndexing(
   if (!(twelveLabsIndexId && twelveLabsAssetId)) {
     throw new Error("Missing TwelveLabs index or asset ID for Vespa indexing");
   }
+
+  const progress = createProgressEmitter({
+    id: mediaId,
+    teamId,
+    type: "media",
+    connectorId,
+    fileName,
+  });
+
+  await progress.update(2, 4, "Generating embeddings");
 
   await prisma.indexedMedia.update({
     where: { id: mediaId },
@@ -351,6 +387,8 @@ async function processVespaIndexing(
     },
     "Generated media embeddings, metadata, and transcript"
   );
+
+  await progress.update(3, 4, "Indexing");
 
   await prisma.indexedMedia.update({
     where: { id: mediaId },
@@ -427,6 +465,8 @@ async function processVespaIndexing(
       indexedAt: new Date(),
     },
   });
+
+  await progress.complete(4);
 
   logger.info(
     { mediaId, mediaType, vespaId, segmentCount: segments.length },
