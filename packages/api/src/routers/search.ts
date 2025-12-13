@@ -1,15 +1,15 @@
 import {
   getStorageProvider,
+  type MediaSearchRanking,
   type SearchRanking,
   SIGNED_URL_EXPIRY_SECONDS,
   searchService,
-  type VideoSearchRanking,
 } from "@openplane/services";
 import { z } from "zod";
 import { createTRPCRouter } from "../index";
 import { withActiveTeam } from "./apps/middleware";
 
-type VideoWithThumbnail = {
+type MediaWithThumbnail = {
   thumbnail_url?: string;
   metadata?: unknown;
 };
@@ -29,12 +29,12 @@ function getThumbnailStorageKey(metadata: unknown): string | null {
 }
 
 async function generateThumbnailUrl(
-  video: VideoWithThumbnail
+  media: MediaWithThumbnail
 ): Promise<string | undefined> {
-  const storageKey = getThumbnailStorageKey(video.metadata);
+  const storageKey = getThumbnailStorageKey(media.metadata);
 
   if (!storageKey) {
-    return video.thumbnail_url || undefined;
+    return media.thumbnail_url || undefined;
   }
 
   try {
@@ -47,13 +47,13 @@ async function generateThumbnailUrl(
   }
 }
 
-async function enrichVideosWithThumbnails<T extends VideoWithThumbnail>(
-  videos: T[]
+async function enrichMediaWithThumbnails<T extends MediaWithThumbnail>(
+  mediaItems: T[]
 ): Promise<T[]> {
   return await Promise.all(
-    videos.map(async (video) => ({
-      ...video,
-      thumbnail_url: await generateThumbnailUrl(video),
+    mediaItems.map(async (media) => ({
+      ...media,
+      thumbnail_url: await generateThumbnailUrl(media),
     }))
   );
 }
@@ -95,7 +95,7 @@ const recentInputSchema = z.object({
   limit: z.number().min(1).max(100).default(20),
 });
 
-const videoSearchInputSchema = z.object({
+const mediaSearchInputSchema = z.object({
   q: z.string().default(""),
   connectorId: z.string().optional(),
   sourceId: z.string().optional(),
@@ -110,7 +110,7 @@ const videoSearchInputSchema = z.object({
 const unifiedSearchInputSchema = z.object({
   q: z.string().default(""),
   includeDocuments: z.boolean().default(true),
-  includeVideos: z.boolean().default(true),
+  includeMedia: z.boolean().default(true),
   connectorTypes: z.array(z.string()).optional(),
   connectorId: z.string().optional(),
   documentTypes: z.array(z.string()).optional(),
@@ -123,7 +123,7 @@ const unifiedSearchInputSchema = z.object({
   ranking: z
     .enum(["bm25", "semantic", "hybrid", "recency", "engagement"])
     .default("hybrid"),
-  videoRanking: z.enum(["bm25", "semantic", "hybrid"]).default("hybrid"),
+  mediaRanking: z.enum(["bm25", "semantic", "hybrid"]).default("hybrid"),
 });
 
 export const searchRouter = createTRPCRouter({
@@ -188,13 +188,13 @@ export const searchRouter = createTRPCRouter({
       };
     }),
 
-  videos: withActiveTeam
-    .input(videoSearchInputSchema)
+  media: withActiveTeam
+    .input(mediaSearchInputSchema)
     .query(async ({ ctx, input }) => {
       const effectiveOffset = input.cursor ?? input.offset;
       const accessControlIds = buildAccessControlIds(ctx);
 
-      const result = await searchService.searchVideos({
+      const result = await searchService.searchMedia({
         query: input.q,
         teamId: ctx.teamId,
         connectorId: input.connectorId,
@@ -203,23 +203,23 @@ export const searchRouter = createTRPCRouter({
         toDate: input.toDate,
         limit: input.limit,
         offset: effectiveOffset,
-        ranking: input.ranking as VideoSearchRanking,
+        ranking: input.ranking as MediaSearchRanking,
         accessControlIds,
       });
 
-      const videos = await enrichVideosWithThumbnails(result.videos);
+      const media = await enrichMediaWithThumbnails(result.media);
 
       const nextCursor =
-        videos.length === input.limit
+        media.length === input.limit
           ? effectiveOffset + input.limit
           : undefined;
 
       return {
-        videos,
+        media,
         total: result.total,
         limit: input.limit,
         offset: effectiveOffset,
-        hasMore: videos.length === input.limit,
+        hasMore: media.length === input.limit,
         nextCursor,
         queryTime: result.queryTime,
         query: input.q,
@@ -237,7 +237,7 @@ export const searchRouter = createTRPCRouter({
         query: input.q,
         teamId: ctx.teamId,
         includeDocuments: input.includeDocuments,
-        includeVideos: input.includeVideos,
+        includeMedia: input.includeMedia,
         connectorTypes: input.connectorTypes,
         connectorId: input.connectorId,
         documentTypes: input.documentTypes,
@@ -247,15 +247,15 @@ export const searchRouter = createTRPCRouter({
         limit: input.limit,
         offset: effectiveOffset,
         ranking: input.ranking as SearchRanking,
-        videoRanking: input.videoRanking as VideoSearchRanking,
+        mediaRanking: input.mediaRanking as MediaSearchRanking,
         accessControlIds,
       });
 
-      const videos = await enrichVideosWithThumbnails(result.videos);
+      const media = await enrichMediaWithThumbnails(result.media);
 
       const enrichedItems = await Promise.all(
         result.items.map(async (item) => {
-          if (item.type === "video") {
+          if (item.type === "media") {
             return {
               ...item,
               data: {
@@ -275,9 +275,9 @@ export const searchRouter = createTRPCRouter({
       return {
         items: enrichedItems,
         documents: result.documents,
-        videos,
+        media,
         documentTotal: result.documentTotal,
-        videoTotal: result.videoTotal,
+        mediaTotal: result.mediaTotal,
         total: result.total,
         limit: input.limit,
         offset: effectiveOffset,

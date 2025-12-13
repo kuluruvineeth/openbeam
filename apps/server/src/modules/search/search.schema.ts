@@ -181,7 +181,7 @@ export const authorResponseSchema = z.object({
   count: z.number(),
 });
 
-export const videoSearchQuerySchema = z.object({
+export const mediaSearchQuerySchema = z.object({
   q: z.string().min(1).openapi({
     description: "Search query string",
     example: "product demo presentation",
@@ -192,7 +192,7 @@ export const videoSearchQuerySchema = z.object({
   source_id: z.string().optional().openapi({
     description: "Filter by source ID",
   }),
-  video_type: z
+  media_type: z
     .enum([
       "meeting",
       "presentation",
@@ -204,13 +204,13 @@ export const videoSearchQuerySchema = z.object({
     ])
     .optional()
     .openapi({
-      description: "Filter by video type",
+      description: "Filter by media type",
     }),
   from_date: z.coerce.number().optional().openapi({
-    description: "Filter videos from this timestamp (Unix epoch ms)",
+    description: "Filter media from this timestamp (Unix epoch ms)",
   }),
   to_date: z.coerce.number().optional().openapi({
-    description: "Filter videos until this timestamp (Unix epoch ms)",
+    description: "Filter media until this timestamp (Unix epoch ms)",
   }),
   limit: z.coerce.number().min(1).max(100).default(20).openapi({
     description: "Maximum number of results",
@@ -226,8 +226,8 @@ export const videoSearchQuerySchema = z.object({
     }),
 });
 
-export const videoSearchResponseSchema = z.object({
-  videos: z.array(z.any()),
+export const mediaSearchResponseSchema = z.object({
+  media: z.array(z.any()),
   total: z.number(),
   query: z.string(),
   ranking: z.string(),
@@ -242,8 +242,8 @@ export const unifiedSearchQuerySchema = z.object({
   include_documents: z.coerce.boolean().default(true).openapi({
     description: "Include documents in results",
   }),
-  include_videos: z.coerce.boolean().default(true).openapi({
-    description: "Include videos in results",
+  include_media: z.coerce.boolean().default(true).openapi({
+    description: "Include media in results",
   }),
   connector_type: arrayQueryParam.openapi({
     description: "Filter by connector types",
@@ -275,19 +275,19 @@ export const unifiedSearchQuerySchema = z.object({
     .openapi({
       description: "Ranking algorithm for documents",
     }),
-  video_ranking: z
+  media_ranking: z
     .enum(["bm25", "semantic", "hybrid", "enterprise", "engagement"])
     .default("hybrid")
     .openapi({
-      description: "Ranking algorithm for videos",
+      description: "Ranking algorithm for media",
     }),
 });
 
 export const unifiedSearchResponseSchema = z.object({
   documents: z.array(z.any()),
-  videos: z.array(z.any()),
+  media: z.array(z.any()),
   documentTotal: z.number(),
-  videoTotal: z.number(),
+  mediaTotal: z.number(),
   total: z.number(),
   query: z.string(),
   queryTime: z.number(),
@@ -315,7 +315,7 @@ export const imageSearchQuerySchema = z.object({
 export const imageSearchResponseSchema = z.object({
   results: z.array(
     z.object({
-      videoId: z.string(),
+      mediaId: z.string(),
       score: z.number(),
       startSec: z.number(),
       endSec: z.number(),

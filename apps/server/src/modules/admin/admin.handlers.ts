@@ -5,8 +5,8 @@ import {
   cleanupQueue,
   fileProcessingQueue,
   indexQueue,
+  mediaProcessingQueue,
   syncQueue,
-  videoProcessingQueue,
   webhookQueue,
 } from "@openplane/redis";
 import { serveStatic } from "hono/bun";
@@ -22,7 +22,7 @@ export const setupBullBoard = () => {
       new BullMQAdapter(webhookQueue),
       new BullMQAdapter(cleanupQueue),
       new BullMQAdapter(fileProcessingQueue),
-      new BullMQAdapter(videoProcessingQueue),
+      new BullMQAdapter(mediaProcessingQueue),
     ],
     serverAdapter,
   });

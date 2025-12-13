@@ -1,19 +1,16 @@
 export {
   type AuthorSearchParams,
-  type AutocompleteParams,
-  type AutocompleteSuggestion,
+  type DocumentSearchResult,
+  type MediaSearchParams,
+  type MediaSearchRanking,
   type RecentDocumentsParams,
   type SearchParams,
   type SearchRanking,
-  type SearchResult,
   SearchService,
   type SimilarDocumentsParams,
   searchService,
   type ThreadSearchParams,
   type UnifiedSearchParams,
   type UnifiedSearchResult,
-  type VideoSearchParams,
-  type VideoSearchRanking,
-  type VideoSearchResult,
-  type VideoType,
 } from "@openplane/services";
+export type { MediaType } from "@openplane/vespa";

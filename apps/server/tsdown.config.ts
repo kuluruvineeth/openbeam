@@ -5,5 +5,11 @@ export default defineConfig({
   format: "esm",
   outDir: "./dist",
   clean: true,
-  noExternal: [/@openplane\/.*/],
+  noExternal: [/@openplane\/(services|auth|integrations|vespa|media|ai)/],
+  external: [
+    "@openplane/db",
+    "@openplane/redis",
+    "@openplane/api",
+    "@openplane/storage",
+  ],
 });
