@@ -1,4 +1,8 @@
-import prisma from "@openplane/db";
+import prisma, {
+  createTeamMediaIndex,
+  deleteTeamMediaIndex,
+  findTeamMediaIndex,
+} from "@openplane/db";
 import { TwelveLabsClient } from "@openplane/media";
 
 export class MediaIndexService {
@@ -9,9 +13,7 @@ export class MediaIndexService {
   }
 
   async getOrCreateTeamIndex(teamId: string): Promise<string> {
-    const existing = await prisma.teamMediaIndex.findUnique({
-      where: { teamId },
-    });
+    const existing = await findTeamMediaIndex(prisma, teamId);
 
     if (existing) {
       return existing.twelveLabsIndexId;
@@ -26,22 +28,17 @@ export class MediaIndexService {
     });
 
     try {
-      await prisma.teamMediaIndex.create({
-        data: {
-          teamId,
-          twelveLabsIndexId,
-          indexName,
-        },
+      await createTeamMediaIndex(prisma, {
+        teamId,
+        twelveLabsIndexId,
+        indexName,
       });
     } catch (error) {
-      // Handle race condition: another process may have created the record
       if (
         error instanceof Error &&
         error.message.includes("Unique constraint")
       ) {
-        const raceWinner = await prisma.teamMediaIndex.findUnique({
-          where: { teamId },
-        });
+        const raceWinner = await findTeamMediaIndex(prisma, teamId);
         if (raceWinner) {
           return raceWinner.twelveLabsIndexId;
         }
@@ -53,27 +50,19 @@ export class MediaIndexService {
   }
 
   async getTeamIndex(teamId: string): Promise<string | null> {
-    const existing = await prisma.teamMediaIndex.findUnique({
-      where: { teamId },
-    });
-
+    const existing = await findTeamMediaIndex(prisma, teamId);
     return existing?.twelveLabsIndexId ?? null;
   }
 
   async deleteTeamIndex(teamId: string): Promise<void> {
-    const existing = await prisma.teamMediaIndex.findUnique({
-      where: { teamId },
-    });
+    const existing = await findTeamMediaIndex(prisma, teamId);
 
     if (!existing) {
       return;
     }
 
     await this.client.deleteIndex(existing.twelveLabsIndexId);
-
-    await prisma.teamMediaIndex.delete({
-      where: { teamId },
-    });
+    await deleteTeamMediaIndex(prisma, teamId);
   }
 }
 
