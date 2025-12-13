@@ -35,12 +35,8 @@ export const sessionMiddleware = createMiddleware<AuthEnv>(async (c, next) => {
     c.set("user", sessionData.user);
     c.set("session", sessionData.session as ExtendedSession);
 
-    // Get user's teamId from database
-    const prisma = await import("@openplane/db").then((m) => m.default);
-    const user = await prisma.user.findUnique({
-      where: { id: sessionData.user.id },
-      select: { teamId: true },
-    });
+    const { default: prisma, getUserById } = await import("@openplane/db");
+    const user = await getUserById(prisma, sessionData.user.id);
 
     // Set session auth context
     if (user?.teamId) {

@@ -1,5 +1,8 @@
 import { createHash, timingSafeEqual } from "node:crypto";
-import prisma from "@openplane/db";
+import prisma, {
+  findApiKeyByPrefix,
+  updateApiKeyLastUsed,
+} from "@openplane/db";
 import argon2 from "argon2";
 import type { AuthContext } from "@/types/auth";
 
@@ -53,27 +56,7 @@ export async function verifyApiKey(
 ): Promise<AuthContext | null> {
   try {
     const prefix = apiKey.slice(0, LOOKUP_PREFIX_LENGTH);
-
-    const apiKeyRecord = await prisma.apiKey.findFirst({
-      where: {
-        prefix,
-        revoked: false,
-        OR: [
-          { expiresAt: null },
-          {
-            expiresAt: {
-              gt: new Date(),
-            },
-          },
-        ],
-      },
-      select: {
-        id: true,
-        keyHash: true,
-        teamId: true,
-        scopes: true,
-      },
-    });
+    const apiKeyRecord = await findApiKeyByPrefix(prisma, prefix);
 
     if (!apiKeyRecord) {
       return null;
@@ -84,14 +67,9 @@ export async function verifyApiKey(
       return null;
     }
 
-    prisma.apiKey
-      .update({
-        where: { id: apiKeyRecord.id },
-        data: { lastUsedAt: new Date() },
-      })
-      .catch(() => {
-        // Ignore update errors (non-critical)
-      });
+    updateApiKeyLastUsed(prisma, apiKeyRecord.id).catch(() => {
+      // Ignore update errors (non-critical)
+    });
 
     return {
       type: "apiKey",
