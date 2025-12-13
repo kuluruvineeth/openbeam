@@ -138,7 +138,7 @@ export type ResourceDocument = {
   title: string | null;
   documentType: string;
   indexedAt: Date;
-  source: "document" | "file" | "video";
+  source: "document" | "file" | "media";
 };
 
 export type ListResourceDocumentsResult = {
@@ -171,7 +171,7 @@ export const listResourceDocuments = async (
     }),
   };
 
-  const videoWhere = {
+  const mediaWhere = {
     connectorId,
     sourceChannelId: resourceExternalId,
     processingStatus: "INDEXED" as const,
@@ -182,7 +182,7 @@ export const listResourceDocuments = async (
 
   //TODO: right now we are returning all resources, later strictly change to return resources with matching resourceExternalId
 
-  const [documents, files, videos, docCount, fileCount, videoCount] =
+  const [documents, files, media, docCount, fileCount, mediaCount] =
     await Promise.all([
       db.indexedDocument.findMany({
         where: documentWhere,
@@ -208,12 +208,13 @@ export const listResourceDocuments = async (
         take: limit + 1,
         ...(cursor && { cursor: { id: cursor }, skip: 1 }),
       }),
-      db.indexedVideo.findMany({
-        where: videoWhere,
+      db.indexedMedia.findMany({
+        where: mediaWhere,
         select: {
           id: true,
           fileName: true,
           mimeType: true,
+          mediaType: true,
           indexedAt: true,
         },
         orderBy: { indexedAt: "desc" },
@@ -222,7 +223,7 @@ export const listResourceDocuments = async (
       }),
       db.indexedDocument.count({ where: documentWhere }),
       db.indexedFile.count({ where: fileWhere }),
-      db.indexedVideo.count({ where: videoWhere }),
+      db.indexedMedia.count({ where: mediaWhere }),
     ]);
 
   const combined: ResourceDocument[] = [
@@ -240,12 +241,12 @@ export const listResourceDocuments = async (
       indexedAt: f.indexedAt ?? new Date(),
       source: "file" as const,
     })),
-    ...videos.map((v) => ({
-      id: v.id,
-      title: v.fileName,
-      documentType: "video",
-      indexedAt: v.indexedAt ?? new Date(),
-      source: "video" as const,
+    ...media.map((m) => ({
+      id: m.id,
+      title: m.fileName,
+      documentType: m.mediaType,
+      indexedAt: m.indexedAt ?? new Date(),
+      source: "media" as const,
     })),
   ]
     .sort((a, b) => b.indexedAt.getTime() - a.indexedAt.getTime())
@@ -257,6 +258,6 @@ export const listResourceDocuments = async (
   return {
     items,
     nextCursor: hasMore ? (items.at(-1)?.id ?? null) : null,
-    totalCount: docCount + fileCount + videoCount,
+    totalCount: docCount + fileCount + mediaCount,
   };
 };

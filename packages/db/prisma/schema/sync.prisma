@@ -375,7 +375,7 @@ enum FileProcessingStatus {
   FAILED
 }
 
-enum VideoProcessingStatus {
+enum MediaProcessingStatus {
   PENDING
   DOWNLOADING
   DOWNLOADED
@@ -452,12 +452,13 @@ model IndexedChunk {
   @@map("indexed_chunk")
 }
 
-model IndexedVideo {
+model IndexedMedia {
   id                  String                @id @default(cuid()) @map("_id")
   connectorId         String
   vespaId             String                @unique
   externalId          String
 
+  mediaType           String                @default("video")
   sourceMessageId     String?
   sourceChannelId     String?
   fileName            String
@@ -469,9 +470,9 @@ model IndexedVideo {
   storageUrl          String?
 
   twelveLabsIndexId   String?
-  twelveLabsVideoId   String?
+  twelveLabsAssetId   String?
 
-  processingStatus    VideoProcessingStatus @default(PENDING)
+  processingStatus    MediaProcessingStatus @default(PENDING)
   durationSeconds     Int?
   thumbnailUrl        String?
 
@@ -488,6 +489,7 @@ model IndexedVideo {
   @@unique([connectorId, externalId])
   @@index([processingStatus])
   @@index([connectorId])
-  @@map("indexed_video")
+  @@index([mediaType])
+  @@map("indexed_media")
 }
 

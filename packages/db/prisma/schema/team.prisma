@@ -21,7 +21,7 @@ model Team {
   workspaces         Workspace[]
   apiKeys            ApiKey[]
   users              User[]
-  teamVideoIndex     TeamVideoIndex?
+  teamMediaIndex     TeamMediaIndex?
 
   @@map("team")
 }
@@ -65,7 +65,7 @@ enum TeamRole {
   MEMBER
 }
 
-model TeamVideoIndex {
+model TeamMediaIndex {
   id                String   @id @default(cuid()) @map("_id")
   teamId            String   @unique
   twelveLabsIndexId String   @unique
@@ -75,6 +75,6 @@ model TeamVideoIndex {
 
   team              Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
-  @@map("team_video_index")
+  @@map("team_media_index")
 }
 
