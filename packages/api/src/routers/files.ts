@@ -1,3 +1,7 @@
+import {
+  findIndexedFileForPreview,
+  findIndexedMediaForPreview,
+} from "@openplane/db";
 import { getStorageProvider } from "@openplane/services";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
@@ -39,10 +43,6 @@ function parseDocumentId(documentId: string) {
   return { type: "file" as const, connectorId, externalId: afterConnector };
 }
 
-const fileInclude = {
-  connector: { select: { teamId: true } },
-} as const;
-
 export const filesRouter = createTRPCRouter({
   getPreviewUrl: withActiveTeam
     .input(z.object({ documentId: z.string() }))
@@ -75,23 +75,12 @@ async function getFilePreview(
   documentId: string,
   parsed: { connectorId?: string; externalId?: string }
 ) {
-  const { connectorId, externalId } = parsed;
-
-  const file =
-    (connectorId &&
-      externalId &&
-      (await ctx.prisma.indexedFile.findFirst({
-        where: { connectorId, externalId },
-        include: fileInclude,
-      }))) ||
-    (await ctx.prisma.indexedFile.findUnique({
-      where: { vespaId: documentId },
-      include: fileInclude,
-    })) ||
-    (await ctx.prisma.indexedFile.findUnique({
-      where: { id: documentId },
-      include: fileInclude,
-    }));
+  const file = await findIndexedFileForPreview(ctx.prisma, {
+    connectorId: parsed.connectorId,
+    externalId: parsed.externalId,
+    vespaId: documentId,
+    id: documentId,
+  });
 
   if (!file) {
     throw new TRPCError({ code: "NOT_FOUND", message: "File not found" });
@@ -118,23 +107,12 @@ async function getMediaPreview(
   documentId: string,
   parsed: { connectorId?: string; externalId?: string }
 ) {
-  const { connectorId, externalId } = parsed;
-
-  const media =
-    (connectorId &&
-      externalId &&
-      (await ctx.prisma.indexedMedia.findFirst({
-        where: { connectorId, externalId },
-        include: fileInclude,
-      }))) ||
-    (await ctx.prisma.indexedMedia.findUnique({
-      where: { vespaId: documentId },
-      include: fileInclude,
-    })) ||
-    (await ctx.prisma.indexedMedia.findUnique({
-      where: { id: documentId },
-      include: fileInclude,
-    }));
+  const media = await findIndexedMediaForPreview(ctx.prisma, {
+    connectorId: parsed.connectorId,
+    externalId: parsed.externalId,
+    vespaId: documentId,
+    id: documentId,
+  });
 
   if (!media) {
     throw new TRPCError({ code: "NOT_FOUND", message: "Media not found" });
