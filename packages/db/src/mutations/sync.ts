@@ -259,3 +259,37 @@ export const updateSyncSettings = async (
 
   return result;
 };
+
+export const updateSyncJobSchedule = async (
+  db: Database,
+  id: string,
+  schedule: string,
+  nextRunAt?: Date
+): Promise<void> => {
+  await db.syncJob.update({
+    where: { id },
+    data: { schedule, ...(nextRunAt && { nextRunAt }) },
+  });
+};
+
+export const updateSyncJobNextRunAt = async (
+  db: Database,
+  id: string,
+  nextRunAt: Date
+): Promise<void> => {
+  await db.syncJob.update({
+    where: { id },
+    data: { nextRunAt },
+  });
+};
+
+export const updateConnectorWebhookConfig = async (
+  db: Database,
+  connectorId: string,
+  config: { enabled: boolean; lastReceivedAt?: string }
+): Promise<void> => {
+  await db.connector.update({
+    where: { id: connectorId },
+    data: { webhookConfig: config },
+  });
+};

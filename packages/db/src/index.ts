@@ -32,14 +32,30 @@ export const connectDb = async () => prisma;
 export default prisma;
 
 export * from "./lib/encryption";
+
+export * from "./mutations/audit-logs";
 export * from "./mutations/connector-resources";
 export * from "./mutations/connectors";
+export * from "./mutations/indexed-chunks";
+export * from "./mutations/indexed-documents";
+export * from "./mutations/indexed-files";
+export * from "./mutations/indexed-media";
 export * from "./mutations/oauth";
 export * from "./mutations/sync";
 export * from "./mutations/sync-history";
+export * from "./mutations/team-media-index";
 export * from "./mutations/teams";
+
+export * from "./queries/api-keys";
+export * from "./queries/audit-logs";
 export * from "./queries/connector-resources";
 export * from "./queries/connectors";
+export * from "./queries/indexed-chunks";
+export * from "./queries/indexed-documents";
+export * from "./queries/indexed-files";
+export * from "./queries/indexed-media";
 export * from "./queries/sync";
 export * from "./queries/sync-history";
+export * from "./queries/team-media-index";
 export * from "./queries/teams";
+export * from "./queries/users";

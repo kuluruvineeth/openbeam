@@ -273,3 +273,55 @@ export const verifyConnectorOwnership = async (
 
   return connector;
 };
+
+export interface ScheduledSyncJob {
+  id: string;
+  connectorId: string;
+  type: string;
+  schedule: string | null;
+  priority: number;
+  config: unknown;
+}
+
+export const findScheduledSyncJobs = async (
+  db: Database
+): Promise<ScheduledSyncJob[]> =>
+  db.syncJob.findMany({
+    where: {
+      status: "PENDING",
+      trigger: "SCHEDULED",
+      deletedAt: null,
+      schedule: { not: null },
+      connector: { status: "ACTIVE" },
+    },
+    select: {
+      id: true,
+      connectorId: true,
+      type: true,
+      schedule: true,
+      priority: true,
+      config: true,
+    },
+  });
+
+export const findSyncJobByConnectorAndType = async (
+  db: Database,
+  connectorId: string,
+  type: "FULL" | "INCREMENTAL"
+): Promise<ScheduledSyncJob | null> =>
+  db.syncJob.findFirst({
+    where: {
+      connectorId,
+      type,
+      trigger: "SCHEDULED",
+      deletedAt: null,
+    },
+    select: {
+      id: true,
+      connectorId: true,
+      type: true,
+      schedule: true,
+      priority: true,
+      config: true,
+    },
+  });
