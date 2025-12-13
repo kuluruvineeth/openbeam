@@ -44,6 +44,7 @@ export const useJobStore = create<JobStore>((set, get) => ({
     set((state) => {
       const jobsById = { ...state.jobsById, [job.id]: job };
 
+      const dismissedIds = { ...state.dismissedIds };
       const jobIds = Object.keys(jobsById);
       if (jobIds.length > MAX_JOBS) {
         const sortedIds = jobIds.sort(
@@ -54,6 +55,7 @@ export const useJobStore = create<JobStore>((set, get) => ({
         const toRemove = sortedIds.slice(0, jobIds.length - MAX_JOBS);
         for (const id of toRemove) {
           delete jobsById[id];
+          delete dismissedIds[id];
         }
       }
 
@@ -63,7 +65,11 @@ export const useJobStore = create<JobStore>((set, get) => ({
         }, COMPLETED_JOB_TTL_MS);
       }
 
-      return { jobsById, ...computeDerivedState(jobsById, state.dismissedIds) };
+      return {
+        jobsById,
+        dismissedIds,
+        ...computeDerivedState(jobsById, dismissedIds),
+      };
     });
   },
 

@@ -12,7 +12,6 @@ import {
   type TRPCClient,
 } from "@trpc/client";
 import { createTRPCContext } from "@trpc/tanstack-react-query";
-import { useState } from "react";
 import superjson from "superjson";
 import { trpcUrl } from "@/lib/urls";
 import { makeQueryClient } from "./query-client";
@@ -71,8 +70,7 @@ export function getVanillaTRPCClient(): TRPCClient<AppRouter> {
 
 export function TRPCReactProvider(props: { children: React.ReactNode }) {
   const queryClient = getQueryClient();
-
-  const [trpcClient] = useState(() => createVanillaClient());
+  const trpcClient = getVanillaTRPCClient();
 
   return (
     <QueryClientProvider client={queryClient}>
