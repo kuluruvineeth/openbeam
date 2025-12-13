@@ -8,7 +8,7 @@ import {
 } from "nuqs";
 import { useCallback } from "react";
 
-const PREVIEW_TYPES = ["document", "video"] as const;
+const PREVIEW_TYPES = ["document", "media"] as const;
 type PreviewType = (typeof PREVIEW_TYPES)[number];
 
 const VIDEO_TABS = [

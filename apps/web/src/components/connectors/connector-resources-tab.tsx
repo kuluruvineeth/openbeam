@@ -58,7 +58,7 @@ const DOC_TYPE_CONFIG: Record<string, { icon: IconComponent; style: string }> =
     image: { icon: Icons.FileImageIcon, style: "text-openplane-pink" },
     file: { icon: Icons.FileIcon, style: "text-openplane-green" },
     video: { icon: Icons.Video, style: "text-openplane-purple" },
-    audio: { icon: Icons.FileIcon, style: "text-foreground/40" },
+    audio: { icon: Icons.FileAudio, style: "text-openplane-yellow" },
     application: { icon: Icons.FileIcon, style: "text-foreground/40" },
     text: { icon: Icons.FileTextIcon, style: "text-foreground/40" },
   };
@@ -147,7 +147,7 @@ function DocumentItem({
   onSelect: () => void;
 }) {
   const { icon: Icon, style } = getDocTypeConfig(doc.documentType);
-  const isPreviewable = doc.source === "file" || doc.source === "video";
+  const isPreviewable = doc.source === "file" || doc.source === "media";
   const title = doc.title ?? "Untitled";
 
   if (isPreviewable) {

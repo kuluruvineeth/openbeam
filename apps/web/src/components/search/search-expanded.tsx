@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useDocumentPreview } from "@/hooks/use-document-preview";
 import { useSearch } from "@/hooks/use-search";
 import { useSearchNavigation } from "@/hooks/use-search-navigation";
-import type { SearchResultDocument, VideoDocument } from "@/lib/search-types";
+import type { MediaDocument, SearchResultDocument } from "@/lib/search-types";
 import { SearchContentTabs } from "./search-content-tabs";
 import { SearchEmptyState } from "./search-empty-state";
 import { SearchFilters } from "./search-filters";
@@ -21,7 +21,7 @@ export function SearchExpanded() {
     contentType,
     setContentType,
     documents,
-    videos,
+    media,
     unifiedItems,
     hasQuery,
     hasResults,
@@ -49,7 +49,7 @@ export function SearchExpanded() {
     queryTime,
     total,
     documentTotal,
-    videoTotal,
+    mediaTotal,
   } = useSearch();
 
   const { previewId, previewType, openPreview, closePreview } =
@@ -63,12 +63,12 @@ export function SearchExpanded() {
     return documents.find((doc) => doc.id === previewId) ?? null;
   }, [previewId, previewType, documents]);
 
-  const previewedVideo = useMemo(() => {
-    if (!previewId || previewType !== "video") {
+  const previewedMedia = useMemo(() => {
+    if (!previewId || previewType !== "media") {
       return null;
     }
-    return videos.find((v) => v.id === previewId) ?? null;
-  }, [previewId, previewType, videos]);
+    return media.find((m) => m.id === previewId) ?? null;
+  }, [previewId, previewType, media]);
 
   const handleSelectDocument = useCallback(
     (_: SearchResultDocument, index: number) => setSelectedIndex(index),
@@ -80,13 +80,13 @@ export function SearchExpanded() {
     [openPreview]
   );
 
-  const handleSelectVideo = useCallback(
-    (_: VideoDocument, index: number) => setSelectedIndex(index),
+  const handleSelectMedia = useCallback(
+    (_: MediaDocument, index: number) => setSelectedIndex(index),
     []
   );
 
-  const handlePreviewVideo = useCallback(
-    (video: VideoDocument) => openPreview(video.id, "video"),
+  const handlePreviewMedia = useCallback(
+    (mediaItem: MediaDocument) => openPreview(mediaItem.id, "media"),
     [openPreview]
   );
 
@@ -109,11 +109,11 @@ export function SearchExpanded() {
     <SearchSplitView
       chunkIndex={previewedDocument?.chunk_index}
       highlightText={previewedDocument?.content}
+      mediaData={previewedMedia}
       onClosePreview={closePreview}
       pageNumber={previewedDocument?.page_number}
       previewId={previewId}
       previewType={previewType ?? undefined}
-      videoData={previewedVideo}
     >
       <div className="flex h-full flex-col">
         <div className="mb-6 flex items-center justify-between">
@@ -121,9 +121,9 @@ export function SearchExpanded() {
           <SearchStats
             documentTotal={documentTotal}
             isSearching={isSearching}
+            mediaTotal={mediaTotal}
             queryTime={queryTime}
             total={total}
-            videoTotal={videoTotal}
           />
         </div>
 
@@ -137,9 +137,9 @@ export function SearchExpanded() {
             <div className="space-y-4">
               <SearchContentTabs
                 documentCount={documentTotal}
+                mediaCount={mediaTotal}
                 onChange={setContentType}
                 value={contentType}
-                videoCount={videoTotal}
               />
               <SearchFilters
                 activeFilterCount={activeFilterCount}
@@ -173,15 +173,15 @@ export function SearchExpanded() {
               hasNextPage={hasNextPage ?? false}
               isFetchingNextPage={isFetchingNextPage}
               items={unifiedItems}
+              mediaTotal={mediaTotal}
               onPreviewDocument={handlePreviewDocument}
-              onPreviewVideo={handlePreviewVideo}
+              onPreviewMedia={handlePreviewMedia}
               onSelectDocument={handleSelectDocument}
-              onSelectVideo={handleSelectVideo}
+              onSelectMedia={handleSelectMedia}
               previewId={previewId}
               queryTime={queryTime}
               selectedIndex={selectedIndex}
               total={total}
-              videoTotal={videoTotal}
             />
           )}
         </div>

@@ -31,9 +31,9 @@ export function FilePreviewHeader({
   const typeLabel = getFileTypeLabel(mimeType);
 
   return (
-    <div className="flex h-12 shrink-0 items-center justify-between border-border/50 border-b px-4">
+    <div className="flex h-12 shrink-0 items-center gap-2 overflow-hidden border-border/50 border-b px-4">
       <div className="min-w-0 flex-1">
-        <p className="truncate font-medium text-foreground/90 text-sm">
+        <p className="overflow-hidden text-ellipsis font-medium text-foreground/90 text-sm">
           {fileName}
         </p>
         <div className="flex items-center gap-2 font-mono text-[10px] text-foreground/40">

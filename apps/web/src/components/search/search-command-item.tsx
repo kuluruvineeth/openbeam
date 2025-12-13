@@ -8,9 +8,9 @@ import { AppLogo } from "@/components/integrations/app-logo";
 import { getContentPreview } from "@/lib/format";
 import { getConnectorApp, getDocumentTypeLabel } from "@/lib/search-display";
 import type {
+  MediaDocument,
   SearchResultDocument,
   UnifiedSearchItem,
-  VideoDocument,
 } from "@/lib/search-types";
 import { cn } from "@/lib/utils";
 
@@ -28,10 +28,10 @@ function formatDuration(seconds?: number): string {
   return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
 
-function VideoThumbnail({ video }: { video: VideoDocument }) {
+function MediaThumbnail({ media }: { media: MediaDocument }) {
   const [hasError, setHasError] = useState(false);
-  const duration = formatDuration(video.duration_seconds);
-  const showImage = video.thumbnail_url && !hasError;
+  const duration = formatDuration(media.duration_seconds);
+  const showImage = media.thumbnail_url && !hasError;
 
   return (
     <div className="relative h-9 w-16 shrink-0 overflow-hidden bg-foreground/5">
@@ -42,7 +42,7 @@ function VideoThumbnail({ video }: { video: VideoDocument }) {
           fill
           onError={() => setHasError(true)}
           sizes="64px"
-          src={video.thumbnail_url ?? ""}
+          src={media.thumbnail_url ?? ""}
         />
       ) : (
         <div className="flex h-full w-full items-center justify-center">
@@ -95,7 +95,7 @@ function getDocumentPreview(doc: SearchResultDocument): string {
 }
 
 function getSubtitle(item: UnifiedSearchItem): string | null {
-  if (item.type === "video") {
+  if (item.type === "media") {
     return null;
   }
   const doc = item.data as SearchResultDocument;
@@ -104,19 +104,19 @@ function getSubtitle(item: UnifiedSearchItem): string | null {
 
 export const SearchCommandItem = forwardRef<HTMLDivElement, Props>(
   ({ item, onSelect }, ref) => {
-    const isVideo = item.type === "video";
+    const isMedia = item.type === "media";
     const doc = item.data as SearchResultDocument;
-    const video = item.data as VideoDocument;
+    const media = item.data as MediaDocument;
 
-    const displayText = isVideo
-      ? video.title || "Untitled Video"
+    const displayText = isMedia
+      ? media.title || "Untitled Media"
       : getDocumentPreview(doc);
 
     const subtitle = getSubtitle(item);
     const showSubtitle = subtitle && subtitle !== displayText;
 
-    const typeLabel = isVideo
-      ? "Video"
+    const typeLabel = isMedia
+      ? "Media"
       : getDocumentTypeLabel(doc.connector_type ?? "", doc.document_type);
 
     return (
@@ -130,8 +130,8 @@ export const SearchCommandItem = forwardRef<HTMLDivElement, Props>(
         ref={ref}
         value={item.data.id}
       >
-        {isVideo ? (
-          <VideoThumbnail video={video} />
+        {isMedia ? (
+          <MediaThumbnail media={media} />
         ) : (
           <DocumentIcon doc={doc} />
         )}

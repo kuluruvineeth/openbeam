@@ -173,7 +173,7 @@ export const PRIORITY_CONFIG: Record<
   none: { label: "None", color: "bg-foreground/5 text-foreground/40" },
 };
 
-export const VIDEO_TYPE_OPTIONS = [
+export const MEDIA_TYPE_OPTIONS = [
   "meeting",
   "presentation",
   "tutorial",
@@ -183,10 +183,10 @@ export const VIDEO_TYPE_OPTIONS = [
   "other",
 ] as const;
 
-export type VideoTypeOption = (typeof VIDEO_TYPE_OPTIONS)[number];
+export type MediaTypeOption = (typeof MEDIA_TYPE_OPTIONS)[number];
 
-export const VIDEO_TYPE_CONFIG: Record<
-  VideoTypeOption,
+export const MEDIA_TYPE_CONFIG: Record<
+  MediaTypeOption,
   { label: string; color: string }
 > = {
   meeting: {

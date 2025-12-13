@@ -3,7 +3,7 @@
 type Props = {
   total: number;
   documentTotal: number;
-  videoTotal: number;
+  mediaTotal: number;
   queryTime: number;
   isSearching: boolean;
 };
@@ -11,7 +11,7 @@ type Props = {
 export function SearchStats({
   total,
   documentTotal,
-  videoTotal,
+  mediaTotal,
   queryTime,
   isSearching,
 }: Props) {
@@ -19,7 +19,7 @@ export function SearchStats({
     return null;
   }
 
-  const showSplit = documentTotal > 0 && videoTotal > 0;
+  const showSplit = documentTotal > 0 && mediaTotal > 0;
 
   return (
     <div className="flex items-center gap-2 font-mono text-sm">
@@ -31,9 +31,9 @@ export function SearchStats({
           <span className="text-foreground/40 text-xs">docs</span>
           <span className="text-foreground/20">·</span>
           <span className="text-foreground/70 tabular-nums">
-            {videoTotal.toLocaleString()}
+            {mediaTotal.toLocaleString()}
           </span>
-          <span className="text-foreground/40 text-xs">videos</span>
+          <span className="text-foreground/40 text-xs">media</span>
         </>
       ) : (
         <>

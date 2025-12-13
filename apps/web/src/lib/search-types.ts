@@ -78,7 +78,7 @@ export type SearchPage = SearchResults & { nextCursor?: number };
 
 export type SearchInfiniteData = InfiniteData<SearchPage>;
 
-export type VideoType =
+export type MediaType =
   | "meeting"
   | "presentation"
   | "tutorial"
@@ -87,7 +87,7 @@ export type VideoType =
   | "webinar"
   | "other";
 
-export type VideoDocumentMetadata = {
+export type MediaDocumentMetadata = {
   originalUrl?: string;
   fileSize?: number;
   format?: string;
@@ -101,7 +101,7 @@ export type VideoDocumentMetadata = {
   customFields?: Record<string, string | number | boolean>;
 };
 
-export type VideoDocument = {
+export type MediaDocument = {
   id: string;
   team_id: string;
   connector_id: string;
@@ -109,8 +109,8 @@ export type VideoDocument = {
   external_id: string;
   title: string;
   description?: string;
-  video_summary: string;
-  video_keywords: string[];
+  media_summary: string;
+  media_keywords: string[];
   transcript?: string;
   duration_seconds: number;
   segment_count: number;
@@ -135,7 +135,7 @@ export type VideoDocument = {
   indexed_at?: number;
   access_control?: string[];
   is_public: boolean;
-  metadata?: VideoDocumentMetadata;
+  metadata?: MediaDocumentMetadata;
   view_count?: number;
   unique_viewers?: number;
   avg_watch_percentage?: number;
@@ -152,23 +152,23 @@ export type VideoDocument = {
   related_document_ids?: string[];
   discussed_in_channels?: string[];
   content_hash?: string;
-  canonical_video_id?: string;
-  video_type?: VideoType;
+  canonical_media_id?: string;
+  media_type?: MediaType;
   language?: string;
 };
 
-export type ContentType = "all" | "documents" | "videos";
+export type ContentType = "all" | "documents" | "media";
 
 export type UnifiedSearchItem =
   | { type: "document"; data: SearchResultDocument; relevance: number }
-  | { type: "video"; data: VideoDocument; relevance: number };
+  | { type: "media"; data: MediaDocument; relevance: number };
 
 export type UnifiedSearchResults = {
   items: UnifiedSearchItem[];
   documents: SearchResultDocument[];
-  videos: VideoDocument[];
+  media: MediaDocument[];
   documentTotal: number;
-  videoTotal: number;
+  mediaTotal: number;
   total: number;
   queryTime: number;
   query: string;

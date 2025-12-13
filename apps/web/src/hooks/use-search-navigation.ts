@@ -4,7 +4,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { isPreviewable } from "@/lib/file-preview-config";
 import type { UnifiedSearchItem } from "@/lib/search-types";
 
-type PreviewType = "document" | "video";
+type PreviewType = "document" | "media";
 
 type SearchNavigationOptions = {
   items: UnifiedSearchItem[];
@@ -54,8 +54,8 @@ export function useSearchNavigation({
         return;
       }
 
-      if (item.type === "video") {
-        openPreview(item.data.id, "video");
+      if (item.type === "media") {
+        openPreview(item.data.id, "media");
       } else if (
         isPreviewable(
           item.data.mime_type,

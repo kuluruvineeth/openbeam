@@ -28,10 +28,10 @@ import {
 } from "@/lib/search-config";
 import type {
   ContentType,
+  MediaDocument,
   SearchFilters,
   SearchResultDocument,
   UnifiedSearchItem,
-  VideoDocument,
 } from "@/lib/search-types";
 import { useTRPC } from "@/trpc/client";
 import { useDebounce } from "./use-debounce";
@@ -44,13 +44,13 @@ export {
 };
 export type {
   ContentType,
+  MediaDocument,
   SearchFilters,
   SearchResultDocument,
   UnifiedSearchItem,
-  VideoDocument,
 } from "@/lib/search-types";
 
-const CONTENT_TYPE_OPTIONS = ["all", "documents", "videos"] as const;
+const CONTENT_TYPE_OPTIONS = ["all", "documents", "media"] as const;
 
 export const searchParamsSchema = {
   q: parseAsString.withDefault(""),
@@ -90,7 +90,6 @@ function createArrayFilterSetter(
 
 const LIMIT = 20;
 
-//biome-ignore lint/complexity/noExcessiveCognitiveComplexity: search is quite complex
 export function useSearch(options?: { debounceMs?: number }) {
   const debounceMs = options?.debounceMs ?? 300;
   const trpc = useTRPC();
@@ -110,15 +109,15 @@ export function useSearch(options?: { debounceMs?: number }) {
     [params.dateRange, params.fromDate, params.toDate]
   );
 
-  const includeDocuments = params.content !== "videos";
-  const includeVideos = params.content !== "documents";
+  const includeDocuments = params.content !== "media";
+  const includeMedia = params.content !== "documents";
 
   const unifiedQuery = useInfiniteQuery({
     ...trpc.search.unified.infiniteQueryOptions(
       {
         q: debouncedQuery,
         includeDocuments,
-        includeVideos,
+        includeMedia,
         connectorTypes: params.apps ?? undefined,
         documentTypes: params.types ?? undefined,
         connectorId: undefined,
@@ -126,7 +125,7 @@ export function useSearch(options?: { debounceMs?: number }) {
         fromDate: dateTimestamps.fromDate,
         toDate: dateTimestamps.toDate,
         ranking: params.ranking,
-        videoRanking: "hybrid",
+        mediaRanking: "hybrid",
         limit: LIMIT,
       },
       {
@@ -235,12 +234,12 @@ export function useSearch(options?: { debounceMs?: number }) {
     );
   }, [unifiedQuery.data?.pages]);
 
-  const videos = useMemo(() => {
+  const media = useMemo(() => {
     if (!unifiedQuery.data?.pages) {
       return [];
     }
     return unifiedQuery.data.pages.flatMap(
-      (page) => page.videos as VideoDocument[]
+      (page) => page.media as MediaDocument[]
     );
   }, [unifiedQuery.data?.pages]);
 
@@ -256,8 +255,8 @@ export function useSearch(options?: { debounceMs?: number }) {
     if (params.content === "documents") {
       return allItems.filter((item) => item.type === "document");
     }
-    if (params.content === "videos") {
-      return allItems.filter((item) => item.type === "video");
+    if (params.content === "media") {
+      return allItems.filter((item) => item.type === "media");
     }
     return allItems;
   }, [unifiedQuery.data?.pages, params.content]);
@@ -267,7 +266,7 @@ export function useSearch(options?: { debounceMs?: number }) {
   const isEmpty = shouldSearch && !unifiedQuery.isLoading && !hasResults;
   const firstPage = unifiedQuery.data?.pages[0];
   const documentTotal = firstPage?.documentTotal ?? 0;
-  const videoTotal = firstPage?.videoTotal ?? 0;
+  const mediaTotal = firstPage?.mediaTotal ?? 0;
   const total = firstPage?.total ?? 0;
   const queryTime = firstPage?.queryTime ?? 0;
 
@@ -302,11 +301,11 @@ export function useSearch(options?: { debounceMs?: number }) {
     debouncedQuery,
     contentType: params.content,
     documents,
-    videos,
+    media,
     unifiedItems,
     total,
     documentTotal,
-    videoTotal,
+    mediaTotal,
     queryTime,
     isLoading: unifiedQuery.isLoading,
     isFetching: unifiedQuery.isFetching,
@@ -364,7 +363,7 @@ export function useSearchAutocomplete(
       q: debouncedQuery,
       limit: 8,
       includeDocuments: true,
-      includeVideos: true,
+      includeMedia: true,
       ranking: "bm25",
     }),
     enabled: shouldFetch,

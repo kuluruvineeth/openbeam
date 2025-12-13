@@ -33,7 +33,7 @@ export function SearchPage() {
       const itemTitle = item.data.title || "";
       setQuery(itemTitle);
       setHasSearched(true);
-      openPreview(item.data.id, item.type === "video" ? "video" : "document");
+      openPreview(item.data.id, item.type === "media" ? "media" : "document");
     },
     [setQuery, openPreview]
   );

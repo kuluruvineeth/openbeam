@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { FilePreviewPanel } from "@/components/file-preview";
+import { AudioViewer } from "@/components/file-preview/viewers/audio";
 import { VideoViewer } from "@/components/file-preview/viewers/video";
 import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -12,10 +13,10 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { VideoDocument } from "@/lib/search-types";
+import type { MediaDocument } from "@/lib/search-types";
 import { useTRPC } from "@/trpc/client";
 
-type PreviewType = "document" | "video";
+type PreviewType = "document" | "media";
 
 type SearchSplitViewProps = {
   children: ReactNode;
@@ -25,37 +26,39 @@ type SearchSplitViewProps = {
   highlightText?: string;
   chunkIndex?: number;
   pageNumber?: number;
-  videoData?: VideoDocument | null;
+  mediaData?: MediaDocument | null;
 };
 
-function VideoPreviewPanel({
-  video,
+function MediaPreviewPanel({
+  media,
   onClose,
 }: {
-  video: VideoDocument;
+  media: MediaDocument;
   onClose: () => void;
 }) {
   const trpc = useTRPC();
 
   const { data, isLoading, isError } = useQuery({
-    ...trpc.files.getPreviewUrl.queryOptions({ documentId: video.id }),
+    ...trpc.files.getPreviewUrl.queryOptions({ documentId: media.id }),
     staleTime: 30 * 60 * 1000,
   });
 
   if (isLoading) {
     return (
-      <div className="flex h-full flex-col">
-        <div className="flex shrink-0 items-center justify-between border-border/50 border-b px-4 py-3">
+      <div className="flex h-full flex-col overflow-hidden">
+        <div className="flex shrink-0 items-center gap-2 overflow-hidden border-border/50 border-b px-4 py-3">
           <div className="min-w-0 flex-1">
-            <h3 className="line-clamp-1 font-medium text-sm">{video.title}</h3>
-            {video.source_name && (
-              <p className="font-mono text-[10px] text-foreground/50">
-                {video.source_name}
+            <h3 className="overflow-hidden text-ellipsis font-medium text-sm">
+              {media.title}
+            </h3>
+            {media.source_name && (
+              <p className="overflow-hidden text-ellipsis font-mono text-[10px] text-foreground/50">
+                {media.source_name}
               </p>
             )}
           </div>
           <Button
-            className="ml-2 shrink-0"
+            className="shrink-0"
             onClick={onClose}
             size="icon"
             variant="ghost"
@@ -72,13 +75,15 @@ function VideoPreviewPanel({
 
   if (isError || !data) {
     return (
-      <div className="flex h-full flex-col">
-        <div className="flex shrink-0 items-center justify-between border-border/50 border-b px-4 py-3">
+      <div className="flex h-full flex-col overflow-hidden">
+        <div className="flex shrink-0 items-center gap-2 overflow-hidden border-border/50 border-b px-4 py-3">
           <div className="min-w-0 flex-1">
-            <h3 className="line-clamp-1 font-medium text-sm">{video.title}</h3>
+            <h3 className="overflow-hidden text-ellipsis font-medium text-sm">
+              {media.title}
+            </h3>
           </div>
           <Button
-            className="ml-2 shrink-0"
+            className="shrink-0"
             onClick={onClose}
             size="icon"
             variant="ghost"
@@ -87,34 +92,41 @@ function VideoPreviewPanel({
           </Button>
         </div>
         <div className="flex min-h-0 flex-1 items-center justify-center">
-          <p className="text-foreground/50 text-sm">Failed to load video</p>
+          <p className="text-foreground/50 text-sm">Failed to load media</p>
         </div>
       </div>
     );
   }
 
-  const videoId =
+  const mediaId =
     "videoId" in data && typeof data.videoId === "string"
       ? data.videoId
-      : video.id;
+      : media.id;
   const vespaId =
     "vespaId" in data && typeof data.vespaId === "string"
       ? data.vespaId
-      : video.id;
+      : media.id;
+  const mimeType =
+    "mimeType" in data && typeof data.mimeType === "string"
+      ? data.mimeType
+      : "";
+  const isAudio = mimeType.startsWith("audio/");
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex shrink-0 items-center justify-between border-border/50 border-b px-4 py-3">
+    <div className="flex h-full flex-col overflow-hidden">
+      <div className="flex shrink-0 items-center gap-2 overflow-hidden border-border/50 border-b px-4 py-3">
         <div className="min-w-0 flex-1">
-          <h3 className="line-clamp-1 font-medium text-sm">{video.title}</h3>
-          {video.source_name && (
-            <p className="font-mono text-[10px] text-foreground/50">
-              {video.source_name}
+          <h3 className="overflow-hidden text-ellipsis font-medium text-sm">
+            {media.title}
+          </h3>
+          {media.source_name && (
+            <p className="overflow-hidden text-ellipsis font-mono text-[10px] text-foreground/50">
+              {media.source_name}
             </p>
           )}
         </div>
         <Button
-          className="ml-2 shrink-0"
+          className="shrink-0"
           onClick={onClose}
           size="icon"
           variant="ghost"
@@ -122,13 +134,20 @@ function VideoPreviewPanel({
           <Icons.Close size={16} />
         </Button>
       </div>
-      <div className="min-h-0 flex-1">
-        <VideoViewer
-          fileName={video.title}
-          url={data.url}
-          vespaId={vespaId}
-          videoId={videoId}
-        />
+      <div className="min-h-0 flex-1 overflow-hidden">
+        {isAudio ? (
+          <AudioViewer
+            twelveLabsAssetId={mediaId}
+            url={data.url}
+            vespaId={vespaId}
+          />
+        ) : (
+          <VideoViewer
+            twelveLabsAssetId={mediaId}
+            url={data.url}
+            vespaId={vespaId}
+          />
+        )}
       </div>
     </div>
   );
@@ -142,10 +161,10 @@ export function SearchSplitView({
   highlightText,
   chunkIndex,
   pageNumber,
-  videoData,
+  mediaData,
 }: SearchSplitViewProps) {
   const hasPreview = !!previewId;
-  const isVideoPreview = previewType === "video" && videoData;
+  const isMediaPreview = previewType === "media" && mediaData;
 
   return (
     <ResizablePanelGroup className="h-full" direction="horizontal">
@@ -157,9 +176,9 @@ export function SearchSplitView({
         <>
           <ResizableHandle />
           <ResizablePanel defaultSize={50} minSize={30}>
-            <div className="h-full border-border/50 border-l">
-              {isVideoPreview ? (
-                <VideoPreviewPanel onClose={onClosePreview} video={videoData} />
+            <div className="h-full overflow-hidden border-border/50 border-l">
+              {isMediaPreview ? (
+                <MediaPreviewPanel media={mediaData} onClose={onClosePreview} />
               ) : (
                 <FilePreviewPanel
                   chunkIndex={chunkIndex}

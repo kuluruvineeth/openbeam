@@ -13,42 +13,42 @@ type TabConfig = {
 const TABS: TabConfig[] = [
   { id: "all", label: "All", icon: "Search" },
   { id: "documents", label: "Documents", icon: "FileIcon" },
-  { id: "videos", label: "Videos", icon: "Video" },
+  { id: "media", label: "Media", icon: "Video" },
 ];
 
 function getCount(
   tabId: ContentType,
   documentCount: number,
-  videoCount: number
+  mediaCount: number
 ): number {
   if (tabId === "documents") {
     return documentCount;
   }
-  if (tabId === "videos") {
-    return videoCount;
+  if (tabId === "media") {
+    return mediaCount;
   }
-  return documentCount + videoCount;
+  return documentCount + mediaCount;
 }
 
 type Props = {
   value: ContentType;
   onChange: (value: ContentType) => void;
   documentCount: number;
-  videoCount: number;
+  mediaCount: number;
 };
 
 export function SearchContentTabs({
   value,
   onChange,
   documentCount,
-  videoCount,
+  mediaCount,
 }: Props) {
   return (
     <div className="flex items-center gap-1 border border-border/50 p-1">
       {TABS.map((tab) => {
         const isActive = value === tab.id;
         const Icon = Icons[tab.icon];
-        const count = getCount(tab.id, documentCount, videoCount);
+        const count = getCount(tab.id, documentCount, mediaCount);
 
         return (
           <button

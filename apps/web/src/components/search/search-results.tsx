@@ -4,12 +4,12 @@ import { useEffect, useRef } from "react";
 import { useInView } from "react-intersection-observer";
 import { Icons } from "@/components/icons";
 import type {
+  MediaDocument,
   SearchResultDocument,
   UnifiedSearchItem,
-  VideoDocument,
 } from "@/lib/search-types";
+import { SearchMediaRow } from "./search-media-row";
 import { SearchResultRow } from "./search-result-row";
-import { SearchVideoRow } from "./search-video-row";
 
 function formatResultCount(total: number): string {
   return total === 1 ? "1 result" : `${total.toLocaleString()} results`;
@@ -23,13 +23,13 @@ type SearchResultsProps = {
   queryTime?: number;
   total?: number;
   documentTotal?: number;
-  videoTotal?: number;
+  mediaTotal?: number;
   selectedIndex?: number;
   previewId?: string | null;
   onSelectDocument?: (doc: SearchResultDocument, index: number) => void;
   onPreviewDocument?: (doc: SearchResultDocument) => void;
-  onSelectVideo?: (video: VideoDocument, index: number) => void;
-  onPreviewVideo?: (video: VideoDocument) => void;
+  onSelectMedia?: (media: MediaDocument, index: number) => void;
+  onPreviewMedia?: (media: MediaDocument) => void;
 };
 
 export function SearchResults({
@@ -40,13 +40,13 @@ export function SearchResults({
   queryTime,
   total,
   documentTotal,
-  videoTotal,
+  mediaTotal,
   selectedIndex = -1,
   previewId,
   onSelectDocument,
   onPreviewDocument,
-  onSelectVideo,
-  onPreviewVideo,
+  onSelectMedia,
+  onPreviewMedia,
 }: SearchResultsProps) {
   const { ref, inView } = useInView();
   const rowRefs = useRef<Map<number, HTMLButtonElement>>(new Map());
@@ -64,11 +64,11 @@ export function SearchResults({
     }
   }, [selectedIndex]);
 
-  const showDocVideoSplit =
+  const showDocMediaSplit =
     documentTotal !== undefined &&
-    videoTotal !== undefined &&
+    mediaTotal !== undefined &&
     documentTotal > 0 &&
-    videoTotal > 0;
+    mediaTotal > 0;
 
   return (
     <div className="space-y-3">
@@ -76,11 +76,11 @@ export function SearchResults({
         <div className="flex items-center justify-between px-0.5 font-mono text-[10px]">
           {total !== undefined && (
             <span className="text-foreground/40 tabular-nums">
-              {showDocVideoSplit ? (
+              {showDocMediaSplit ? (
                 <>
                   <span>{documentTotal.toLocaleString()} docs</span>
                   <span className="mx-1.5 text-foreground/20">·</span>
-                  <span>{videoTotal.toLocaleString()} videos</span>
+                  <span>{mediaTotal.toLocaleString()} media</span>
                 </>
               ) : (
                 formatResultCount(total)
@@ -123,13 +123,14 @@ export function SearchResults({
           }
 
           return (
-            <SearchVideoRow
+            <SearchMediaRow
               isLast={isLast}
               isPreviewing={isPreviewing}
               isSelected={isSelected}
-              key={`video-${item.data.id}`}
-              onPreview={onPreviewVideo}
-              onSelect={(v) => onSelectVideo?.(v, index)}
+              key={`media-${item.data.id}`}
+              media={item.data}
+              onPreview={onPreviewMedia}
+              onSelect={(m) => onSelectMedia?.(m, index)}
               ref={(el) => {
                 if (el) {
                   rowRefs.current.set(index, el);
@@ -137,7 +138,6 @@ export function SearchResults({
                   rowRefs.current.delete(index);
                 }
               }}
-              video={item.data}
             />
           );
         })}

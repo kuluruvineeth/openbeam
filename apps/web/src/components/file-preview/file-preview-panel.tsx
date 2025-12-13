@@ -7,6 +7,7 @@ import { useTRPC } from "@/trpc/client";
 import { FilePreviewError } from "./file-preview-error";
 import { FilePreviewHeader } from "./file-preview-header";
 import {
+  AudioSkeleton,
   DocxSkeleton,
   FilePreviewLoading,
   ImageSkeleton,
@@ -60,6 +61,11 @@ const VideoViewer = dynamic(
   { ssr: false, loading: () => <VideoSkeleton /> }
 );
 
+const AudioViewer = dynamic(
+  () => import("./viewers/audio/audio-viewer").then((mod) => mod.AudioViewer),
+  { ssr: false, loading: () => <AudioSkeleton /> }
+);
+
 type FilePreviewPanelProps = {
   documentId: string;
   onClose: () => void;
@@ -106,6 +112,10 @@ export function FilePreviewPanel({
     "vespaId" in data && typeof data.vespaId === "string"
       ? data.vespaId
       : undefined;
+  const twelveLabsAssetId =
+    "twelveLabsAssetId" in data && typeof data.twelveLabsAssetId === "string"
+      ? data.twelveLabsAssetId
+      : undefined;
   const category = getFileCategory(mimeType);
 
   const initialPage =
@@ -143,7 +153,7 @@ export function FilePreviewPanel({
           />
         );
       case "video":
-        if (!(videoId && vespaId)) {
+        if (!(videoId && vespaId && twelveLabsAssetId)) {
           return (
             <FilePreviewUnsupported
               fileName={fileName}
@@ -156,10 +166,28 @@ export function FilePreviewPanel({
         }
         return (
           <VideoViewer
-            fileName={fileName}
+            twelveLabsAssetId={twelveLabsAssetId}
             url={url}
             vespaId={vespaId}
-            videoId={videoId}
+          />
+        );
+      case "audio":
+        if (!(vespaId && twelveLabsAssetId)) {
+          return (
+            <FilePreviewUnsupported
+              fileName={fileName}
+              fileSize={fileSize}
+              mimeType={mimeType}
+              onClose={onClose}
+              url={url}
+            />
+          );
+        }
+        return (
+          <AudioViewer
+            twelveLabsAssetId={twelveLabsAssetId}
+            url={url}
+            vespaId={vespaId}
           />
         );
       default:
@@ -175,7 +203,7 @@ export function FilePreviewPanel({
     }
   };
 
-  if (category === "unsupported" || category === "audio") {
+  if (category === "unsupported") {
     return (
       <FilePreviewUnsupported
         fileName={fileName}
@@ -188,7 +216,7 @@ export function FilePreviewPanel({
   }
 
   return (
-    <div className="flex h-full flex-col bg-background">
+    <div className="flex h-full flex-col overflow-hidden bg-background">
       <FilePreviewHeader
         fileName={fileName}
         fileSize={fileSize}
@@ -197,7 +225,7 @@ export function FilePreviewPanel({
         pageCount={pageCount}
         url={url}
       />
-      <div className="min-h-0 flex-1">{renderViewer()}</div>
+      <div className="min-h-0 flex-1 overflow-hidden">{renderViewer()}</div>
     </div>
   );
 }

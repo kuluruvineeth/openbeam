@@ -152,6 +152,45 @@ export function VideoSkeleton() {
   );
 }
 
+export function AudioSkeleton() {
+  return (
+    <div className="flex h-full">
+      <div className="flex flex-1 flex-col items-center justify-center">
+        <div className="flex h-24 items-end gap-[2px] px-8">
+          {Array.from({ length: 40 }).map((_, i) => (
+            <Skeleton
+              className="w-[3px] rounded-[1px]"
+              key={i}
+              style={{ height: `${20 + Math.random() * 60}%` }}
+            />
+          ))}
+        </div>
+        <div className="mt-8 flex items-center gap-4">
+          <Skeleton className="size-10 rounded" />
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="size-8 rounded" />
+          <Skeleton className="h-6 w-12" />
+        </div>
+      </div>
+      <div className="w-80 shrink-0 border-border/50 border-l">
+        <div className="flex h-9 items-center gap-2 border-border/50 border-b px-2">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton className="h-5 flex-1" key={i} />
+          ))}
+        </div>
+        <div className="flex flex-col gap-2 p-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div className="flex gap-2.5" key={i}>
+              <Skeleton className="h-3 w-8" />
+              <Skeleton className="h-3 flex-1" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 type Category =
   | "pdf"
   | "image"
@@ -161,6 +200,7 @@ type Category =
   | "spreadsheet"
   | "presentation"
   | "video"
+  | "audio"
   | null;
 
 function ContentSkeleton({ category }: { category: Category }) {
@@ -180,6 +220,8 @@ function ContentSkeleton({ category }: { category: Category }) {
       return <PresentationSkeleton />;
     case "video":
       return <VideoSkeleton />;
+    case "audio":
+      return <AudioSkeleton />;
     default:
       return <PdfPagesSkeleton count={2} showLines={false} />;
   }
