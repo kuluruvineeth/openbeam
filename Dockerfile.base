@@ -4,6 +4,7 @@ RUN apt-get update && apt-get install -y \
     python3 \
     make \
     g++ \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 RUN bun add -g turbo@2.5.4

@@ -193,8 +193,7 @@ services:
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
-      # CORS configuration for file preview
-      MINIO_API_CORS_ALLOW_ORIGIN: "http://localhost:3000,http://localhost:3001"
+      MINIO_API_CORS_ALLOW_ORIGIN: "*"
     command: server /data --console-address ":9001"
     ports:
       - "${MINIO_PORT:-9000}:9000"
@@ -214,12 +213,15 @@ services:
     depends_on:
       minio:
         condition: service_healthy
-    entrypoint: >
-      /bin/sh -c "
-      mc alias set myminio http://minio:9000 $${MINIO_ROOT_USER:-minioadmin} $${MINIO_ROOT_PASSWORD:-minioadmin};
-      mc mb --ignore-existing myminio/$${S3_BUCKET:-openplane-files};
-      echo 'Bucket created successfully';
-      "
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        mc alias set myminio http://minio:9000 $${MINIO_ROOT_USER:-minioadmin} $${MINIO_ROOT_PASSWORD:-minioadmin}
+        mc mb --ignore-existing myminio/$${S3_BUCKET:-openplane-files}
+        echo 'Setting global CORS policy...'
+        mc admin config set myminio api cors_allow_origin="*"
+        echo 'Bucket initialized with CORS (restart minio container to apply)'
     restart: "no"
 
 volumes:
