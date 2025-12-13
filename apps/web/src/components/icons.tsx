@@ -5,6 +5,7 @@ import {
   ArrowDownIcon,
   ArrowLeftIcon,
   ArrowRightIcon,
+  ArrowUpIcon,
   ArrowUpRightIcon,
   AtomIcon,
   Attachment01Icon,
@@ -199,7 +200,6 @@ export const Icons = {
   ArrowRight: createIcon(ArrowRightIcon),
   ArrowLeft: createIcon(ArrowLeftIcon),
   Close: createIcon(Cancel01Icon),
-  // Chat box icons
   ArrowRightIcon: createIcon(ArrowRightIcon),
   ChevronDownIcon: createIcon(ArrowDownIcon),
   InfinityIcon: createIcon(InfinityIcon),
@@ -270,4 +270,5 @@ export const Icons = {
   Text: createIcon(TextIcon),
   Pin: createIcon(PinIcon),
   Menu: createIcon(Menu01Icon),
+  ChevronUp: createIcon(ArrowUpIcon),
 };

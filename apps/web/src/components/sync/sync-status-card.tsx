@@ -9,7 +9,6 @@ import { Icons } from "@/components/icons";
 import { getSyncStatusConfig } from "@/lib/sync-status";
 import { isSyncing, type SyncStatusType } from "@/lib/sync-types";
 import { SyncErrorAlert } from "./sync-error-alert";
-import { SyncProgressIndicator } from "./sync-progress-indicator";
 
 type SyncStatusCardProps = {
   connectorId: string;
@@ -82,8 +81,6 @@ export function SyncStatusCard({
           {config.label}
         </div>
       </div>
-
-      {syncing && <SyncProgressIndicator />}
 
       <div className="grid grid-cols-3 gap-4 border-border/50 border-y py-4">
         <Stat
