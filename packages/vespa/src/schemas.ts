@@ -3,7 +3,7 @@ export type JsonArray = JsonValue[];
 export type JsonObject = { [key: string]: JsonValue };
 export type JsonValue = JsonPrimitive | JsonArray | JsonObject;
 
-export type VideoType =
+export type MediaType =
   | "meeting"
   | "presentation"
   | "tutorial"
@@ -109,7 +109,7 @@ export interface Entity {
   is_active: boolean;
 }
 
-export interface VideoDocument {
+export interface MediaDocument {
   id: string;
   team_id: string;
   connector_id: string;
@@ -117,8 +117,8 @@ export interface VideoDocument {
   external_id: string;
   title: string;
   description?: string;
-  video_summary: string;
-  video_keywords: string[];
+  media_summary: string;
+  media_keywords: string[];
   transcript?: string;
   duration_seconds: number;
   segment_count: number;
@@ -161,17 +161,17 @@ export interface VideoDocument {
   related_document_ids?: string[];
   discussed_in_channels?: string[];
   content_hash?: string;
-  canonical_video_id?: string;
-  video_type?: VideoType;
+  canonical_media_id?: string;
+  media_type?: MediaType;
   language?: string;
 }
 
-export interface VideoVectorTensor {
+export interface MediaVectorTensor {
   type: string;
   values: number[];
 }
 
-export type VideoRankingProfile =
+export type MediaRankingProfile =
   | "bm25"
   | "semantic"
   | "hybrid"
@@ -182,15 +182,15 @@ export type VideoRankingProfile =
   | "screen_content"
   | "meeting_search";
 
-export interface VideoQueryParams {
+export interface MediaQueryParams {
   yql: string;
-  ranking?: VideoRankingProfile;
+  ranking?: MediaRankingProfile;
   hits?: number;
   offset?: number;
   timeout?: string;
-  video_embedding?: VideoVectorTensor;
+  media_embedding?: MediaVectorTensor;
   query_embedding?: VectorTensor;
-  topic_embedding?: VideoVectorTensor;
+  topic_embedding?: MediaVectorTensor;
 }
 
 export interface VectorTensor {
@@ -275,15 +275,15 @@ export interface VespaQueryBody {
   "input.query(user_dept_embedding)"?: VectorTensor;
 }
 
-export interface VespaVideoQueryBody {
+export interface VespaMediaQueryBody {
   yql: string;
   hits: number;
   offset: number;
-  "ranking.profile"?: VideoRankingProfile;
+  "ranking.profile"?: MediaRankingProfile;
   timeout?: string;
-  "input.query(video_embedding)"?: VideoVectorTensor;
+  "input.query(media_embedding)"?: MediaVectorTensor;
   "input.query(query_embedding)"?: VectorTensor;
-  "input.query(topic_embedding)"?: VideoVectorTensor;
+  "input.query(topic_embedding)"?: MediaVectorTensor;
 }
 
 export interface VespaEmbeddingCell {
@@ -381,7 +381,7 @@ export interface VespaGenericDocumentForFeed {
   trending_score?: number;
 }
 
-export interface VespaVideoDocumentForFeed {
+export interface VespaMediaDocumentForFeed {
   id: string;
   team_id: string;
   connector_id: string;
@@ -389,8 +389,8 @@ export interface VespaVideoDocumentForFeed {
   external_id: string;
   title: string;
   description: string;
-  video_summary: string;
-  video_keywords: string[];
+  media_summary: string;
+  media_keywords: string[];
   transcript: string;
   duration_seconds: number;
   segment_count: number;
@@ -433,8 +433,8 @@ export interface VespaVideoDocumentForFeed {
   related_document_ids: string[];
   discussed_in_channels?: string[];
   content_hash: string;
-  canonical_video_id?: string;
-  video_type?: VideoType;
+  canonical_media_id?: string;
+  media_type?: MediaType;
   language?: string;
 }
 
@@ -442,6 +442,6 @@ export interface VespaUpdateField<T> {
   assign: T;
 }
 
-export type VespaVideoUpdatePayload = {
-  [K in keyof VideoDocument]?: VespaUpdateField<VideoDocument[K]>;
+export type VespaMediaUpdatePayload = {
+  [K in keyof MediaDocument]?: VespaUpdateField<MediaDocument[K]>;
 };

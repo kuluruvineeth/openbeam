@@ -7,7 +7,7 @@ import { withActiveTeam } from "./apps/middleware";
 const CUID_LENGTH = 25;
 
 function parseDocumentId(documentId: string) {
-  const prefixes = ["chunk-", "file-", "video_"] as const;
+  const prefixes = ["chunk-", "file-", "video_", "media_"] as const;
   const prefix = prefixes.find((p) => documentId.startsWith(p));
 
   if (!prefix) {
@@ -28,9 +28,9 @@ function parseDocumentId(documentId: string) {
     };
   }
 
-  if (prefix === "video_") {
+  if (prefix === "video_" || prefix === "media_") {
     return {
-      type: "video" as const,
+      type: "media" as const,
       connectorId,
       externalId: afterConnector,
     };
@@ -48,19 +48,21 @@ export const filesRouter = createTRPCRouter({
     .input(z.object({ documentId: z.string() }))
     .query(async ({ ctx, input }) => {
       const parsed = parseDocumentId(input.documentId);
+      const isMediaPrefix =
+        input.documentId.startsWith("video_") ||
+        input.documentId.startsWith("media_");
 
-      if (parsed.type === "video" || input.documentId.startsWith("video_")) {
-        return await getVideoPreview(ctx, input.documentId, parsed);
+      if (parsed.type === "media" || isMediaPrefix) {
+        return await getMediaPreview(ctx, input.documentId, parsed);
       }
 
-      //TODO: Remove this legacy support for video ids that don't have a prefix
       if (parsed.type === "unknown") {
-        const video = await ctx.prisma.indexedVideo.findUnique({
+        const media = await ctx.prisma.indexedMedia.findUnique({
           where: { id: input.documentId },
           select: { id: true },
         });
-        if (video) {
-          return await getVideoPreview(ctx, input.documentId, parsed);
+        if (media) {
+          return await getMediaPreview(ctx, input.documentId, parsed);
         }
       }
 
@@ -111,48 +113,51 @@ async function getFilePreview(
   };
 }
 
-async function getVideoPreview(
+async function getMediaPreview(
   ctx: { prisma: typeof import("@openplane/db").default; teamId: string },
   documentId: string,
   parsed: { connectorId?: string; externalId?: string }
 ) {
   const { connectorId, externalId } = parsed;
 
-  const video =
+  const media =
     (connectorId &&
       externalId &&
-      (await ctx.prisma.indexedVideo.findFirst({
+      (await ctx.prisma.indexedMedia.findFirst({
         where: { connectorId, externalId },
         include: fileInclude,
       }))) ||
-    (await ctx.prisma.indexedVideo.findUnique({
+    (await ctx.prisma.indexedMedia.findUnique({
       where: { vespaId: documentId },
       include: fileInclude,
     })) ||
-    (await ctx.prisma.indexedVideo.findUnique({
+    (await ctx.prisma.indexedMedia.findUnique({
       where: { id: documentId },
       include: fileInclude,
     }));
 
-  if (!video) {
-    throw new TRPCError({ code: "NOT_FOUND", message: "Video not found" });
+  if (!media) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "Media not found" });
   }
 
-  if (video.connector.teamId !== ctx.teamId) {
+  if (media.connector.teamId !== ctx.teamId) {
     throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
   }
 
-  const url = await getStorageProvider().getSignedUrl(video.storageKey, 3600);
+  const url = await getStorageProvider().getSignedUrl(media.storageKey, 3600);
 
   return {
     url,
-    fileName: video.fileName,
-    mimeType: video.mimeType,
-    fileSize: video.fileSize,
+    fileName: media.fileName,
+    mimeType: media.mimeType,
+    fileSize: media.fileSize,
     pageCount: null,
-    isVideo: true as const,
-    videoId: video.twelveLabsVideoId,
-    indexId: video.twelveLabsIndexId,
-    vespaId: video.vespaId,
+    isMedia: true as const,
+    mediaType: media.mediaType,
+    assetId: media.twelveLabsAssetId,
+    indexId: media.twelveLabsIndexId,
+    vespaId: media.vespaId,
+    videoId: media.id,
+    twelveLabsAssetId: media.twelveLabsAssetId,
   };
 }

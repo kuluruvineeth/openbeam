@@ -2,18 +2,18 @@ import type {
   Entity,
   FeedResponse,
   GenericDocument,
+  MediaDocument,
+  MediaQueryParams,
   QueryParams,
   SearchResult,
   VespaEmbeddingCell,
   VespaError,
   VespaGenericDocumentForFeed,
+  VespaMediaDocumentForFeed,
+  VespaMediaQueryBody,
+  VespaMediaUpdatePayload,
   VespaQueryBody,
   VespaTimestampCell,
-  VespaVideoDocumentForFeed,
-  VespaVideoQueryBody,
-  VespaVideoUpdatePayload,
-  VideoDocument,
-  VideoQueryParams,
 } from "./schemas";
 
 export class VespaClient {
@@ -282,12 +282,12 @@ export class VespaClient {
     }
   }
 
-  async feedVideoDocument(
-    doc: VideoDocument,
+  async feedMediaDocument(
+    doc: MediaDocument,
     retries = 3
   ): Promise<FeedResponse> {
-    const documentPath = `${this.documentApiUrl}/default/video_document/docid/${doc.id}`;
-    const vespaDoc = this.formatVideoForVespa(doc);
+    const documentPath = `${this.documentApiUrl}/default/media_document/docid/${doc.id}`;
+    const vespaDoc = this.formatMediaForVespa(doc);
 
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
@@ -300,7 +300,7 @@ export class VespaClient {
 
         if (!response.ok) {
           const errorMessage = await this.getResponseError(response);
-          throw new Error(`Vespa video feed error: ${errorMessage}`);
+          throw new Error(`Vespa media feed error: ${errorMessage}`);
         }
 
         return (await response.json()) as FeedResponse;
@@ -317,11 +317,10 @@ export class VespaClient {
       }
     }
 
-    throw new Error("Failed to feed video document after retries");
+    throw new Error("Failed to feed media document after retries");
   }
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: tensor formatting requires multiple nested operations
-  private formatVideoForVespa(doc: VideoDocument): VespaVideoDocumentForFeed {
+  private formatMediaForVespa(doc: MediaDocument): VespaMediaDocumentForFeed {
     const embeddingCells: VespaEmbeddingCell[] = [];
     for (const [segId, embedding] of Object.entries(doc.segment_embeddings)) {
       for (let i = 0; i < embedding.length; i++) {
@@ -348,7 +347,7 @@ export class VespaClient {
       });
     }
 
-    const vespaDoc: VespaVideoDocumentForFeed = {
+    return {
       id: doc.id,
       team_id: doc.team_id,
       connector_id: doc.connector_id,
@@ -356,8 +355,8 @@ export class VespaClient {
       external_id: doc.external_id,
       title: doc.title,
       description: doc.description ?? "",
-      video_summary: doc.video_summary,
-      video_keywords: doc.video_keywords,
+      media_summary: doc.media_summary,
+      media_keywords: doc.media_keywords,
       transcript: doc.transcript ?? "",
       duration_seconds: doc.duration_seconds,
       segment_count: doc.segment_count,
@@ -402,24 +401,22 @@ export class VespaClient {
       related_document_ids: doc.related_document_ids ?? [],
       discussed_in_channels: doc.discussed_in_channels,
       content_hash: doc.content_hash ?? "",
-      canonical_video_id: doc.canonical_video_id,
-      video_type: doc.video_type,
+      canonical_media_id: doc.canonical_media_id,
+      media_type: doc.media_type,
       language: doc.language,
     };
-
-    return vespaDoc;
   }
 
-  async queryVideos<T = VideoDocument>(
-    params: VideoQueryParams
+  async queryMedia<T = MediaDocument>(
+    params: MediaQueryParams
   ): Promise<SearchResult<T>> {
-    const body: VespaVideoQueryBody = {
+    const body: VespaMediaQueryBody = {
       yql: params.yql,
       hits: params.hits ?? 20,
       offset: params.offset ?? 0,
       "ranking.profile": params.ranking,
       timeout: params.timeout,
-      "input.query(video_embedding)": params.video_embedding,
+      "input.query(media_embedding)": params.media_embedding,
       "input.query(query_embedding)": params.query_embedding,
       "input.query(topic_embedding)": params.topic_embedding,
     };
@@ -433,15 +430,15 @@ export class VespaClient {
     if (!response.ok) {
       const error = (await response.json()) as VespaError;
       throw new Error(
-        `Vespa video query error: ${error.message || response.statusText}`
+        `Vespa media query error: ${error.message || response.statusText}`
       );
     }
 
     return (await response.json()) as SearchResult<T>;
   }
 
-  async deleteVideoDocument(id: string): Promise<void> {
-    const documentPath = `${this.documentApiUrl}/default/video_document/docid/${id}`;
+  async deleteMediaDocument(id: string): Promise<void> {
+    const documentPath = `${this.documentApiUrl}/default/media_document/docid/${id}`;
 
     const response = await fetch(documentPath, {
       method: "DELETE",
@@ -450,22 +447,22 @@ export class VespaClient {
     if (!response.ok) {
       const error = (await response.json()) as VespaError;
       throw new Error(
-        `Vespa video delete error: ${error.message || response.statusText}`
+        `Vespa media delete error: ${error.message || response.statusText}`
       );
     }
   }
 
-  async updateVideoDocument(
+  async updateMediaDocument(
     id: string,
-    fields: Partial<VideoDocument>
+    fields: Partial<MediaDocument>
   ): Promise<FeedResponse> {
-    const documentPath = `${this.documentApiUrl}/default/video_document/docid/${id}`;
+    const documentPath = `${this.documentApiUrl}/default/media_document/docid/${id}`;
 
-    const updates: VespaVideoUpdatePayload = {};
+    const updates: VespaMediaUpdatePayload = {};
     for (const [key, value] of Object.entries(fields)) {
       if (value !== undefined) {
-        const typedKey = key as keyof VideoDocument;
-        (updates as Record<keyof VideoDocument, { assign: unknown }>)[
+        const typedKey = key as keyof MediaDocument;
+        (updates as Record<keyof MediaDocument, { assign: unknown }>)[
           typedKey
         ] = { assign: value };
       }
@@ -480,15 +477,15 @@ export class VespaClient {
     if (!response.ok) {
       const error = (await response.json()) as VespaError;
       throw new Error(
-        `Vespa video update error: ${error.message || response.statusText}`
+        `Vespa media update error: ${error.message || response.statusText}`
       );
     }
 
     return (await response.json()) as FeedResponse;
   }
 
-  async getVideoDocument(id: string): Promise<VideoDocument | null> {
-    const documentPath = `${this.documentApiUrl}/default/video_document/docid/${id}`;
+  async getMediaDocument(id: string): Promise<MediaDocument | null> {
+    const documentPath = `${this.documentApiUrl}/default/media_document/docid/${id}`;
 
     const response = await fetch(documentPath, {
       method: "GET",
@@ -501,11 +498,11 @@ export class VespaClient {
     if (!response.ok) {
       const error = (await response.json()) as VespaError;
       throw new Error(
-        `Vespa video get error: ${error.message || response.statusText}`
+        `Vespa media get error: ${error.message || response.statusText}`
       );
     }
 
-    const result = (await response.json()) as { fields: VideoDocument };
+    const result = (await response.json()) as { fields: MediaDocument };
     return result.fields;
   }
 }

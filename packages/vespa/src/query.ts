@@ -1,4 +1,4 @@
-import type { VectorTensor, VideoVectorTensor } from "./schemas";
+import type { MediaVectorTensor, VectorTensor } from "./schemas";
 
 export function escapeYqlString(query: string): string {
   return query.replace(/["\\]/g, "\\$&");
@@ -19,15 +19,15 @@ export function buildVectorQueryFeatures(embedding: number[]): {
   };
 }
 
-export function buildVideoVectorQueryFeatures(embedding: number[]): {
-  video_embedding: VideoVectorTensor;
+export function buildMediaVectorQueryFeatures(embedding: number[]): {
+  media_embedding: MediaVectorTensor;
 } {
   if (embedding.length === 0) {
-    throw new Error("Embedding is required for video similarity search");
+    throw new Error("Embedding is required for media similarity search");
   }
 
   return {
-    video_embedding: {
+    media_embedding: {
       type: `tensor<float>(x[${embedding.length}])`,
       values: embedding,
     },

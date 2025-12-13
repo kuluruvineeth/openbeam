@@ -1,0 +1,458 @@
+schema media_document {
+  document media_document {
+    field id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field team_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field connector_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field connector_type type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field external_id type string {
+      indexing: summary | attribute
+    }
+    
+    field title type string {
+      indexing: summary | index
+      index: enable-bm25
+    }
+    
+    field description type string {
+      indexing: summary | index
+      index: enable-bm25
+    }
+    
+    field media_summary type string {
+      indexing: summary | index
+      index: enable-bm25
+    }
+    
+    field media_keywords type array<string> {
+      indexing: summary | attribute | index
+      index: enable-bm25
+    }
+    
+    field transcript type string {
+      indexing: summary | index
+      index: enable-bm25
+    }
+    
+    field duration_seconds type float {
+      indexing: summary | attribute
+    }
+    
+    field segment_count type int {
+      indexing: summary | attribute
+    }
+    
+    field segment_embeddings type tensor<float>(segment{}, x[512]) {
+      indexing: attribute | index
+      attribute {
+        distance-metric: angular
+      }
+      index {
+        hnsw {
+          max-links-per-node: 16
+          neighbors-to-explore-at-insert: 200
+        }
+      }
+    }
+    
+    field segment_timestamps type tensor<float>(segment{}, t[2]) {
+      indexing: summary | attribute
+    }
+    
+    field segment_transcripts type array<string> {
+      indexing: summary | index
+      index: enable-bm25
+    }
+    
+    field segment_descriptions type array<string> {
+      indexing: summary
+    }
+    
+    field segment_speakers type array<string> {
+      indexing: summary | attribute
+    }
+    
+    field segment_ocr_text type array<string> {
+      indexing: summary | index
+      index: enable-bm25
+    }
+    
+    field transcript_embedding type tensor<float>(x[1536]) {
+      indexing: attribute | index
+      attribute {
+        distance-metric: angular
+      }
+      index {
+        hnsw {
+          max-links-per-node: 16
+          neighbors-to-explore-at-insert: 200
+        }
+      }
+    }
+    
+    field topic_embedding type tensor<float>(x[256]) {
+      indexing: attribute | index
+      attribute {
+        distance-metric: angular
+      }
+      index {
+        hnsw {
+          max-links-per-node: 16
+          neighbors-to-explore-at-insert: 200
+        }
+      }
+    }
+    
+    field source_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field source_name type string {
+      indexing: summary | index
+      index: enable-bm25
+    }
+    
+    field source_type type string {
+      indexing: summary | attribute
+    }
+    
+    field url type string {
+      indexing: summary
+    }
+    
+    field thumbnail_url type string {
+      indexing: summary
+    }
+    
+    field author_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field author_name type string {
+      indexing: summary | index
+      index: enable-bm25
+    }
+    
+    field participants type array<string> {
+      indexing: summary | attribute | index
+      index: enable-bm25
+    }
+    
+    field created_at type long {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field updated_at type long {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field indexed_at type long {
+      indexing: summary | attribute
+    }
+    
+    field access_control type array<string> {
+      indexing: summary | attribute
+    }
+    
+    field is_public type bool {
+      indexing: summary | attribute
+    }
+    
+    field metadata type string {
+      indexing: summary | attribute
+    }
+    
+    field view_count type int {
+      indexing: summary | attribute
+    }
+    
+    field unique_viewers type int {
+      indexing: summary | attribute
+    }
+    
+    field avg_watch_percentage type float {
+      indexing: summary | attribute
+    }
+    
+    field share_count type int {
+      indexing: summary | attribute
+    }
+    
+    field comment_count type int {
+      indexing: summary | attribute
+    }
+    
+    field trending_score type float {
+      indexing: summary | attribute
+    }
+    
+    field chapters type array<string> {
+      indexing: summary
+    }
+    
+    field highlights type array<string> {
+      indexing: summary
+    }
+    
+    field transcript_segments type array<string> {
+      indexing: summary
+    }
+    
+    field action_items type array<string> {
+      indexing: summary
+    }
+    
+    field detected_topics type array<string> {
+      indexing: summary | attribute | index
+      index: enable-bm25
+    }
+    
+    field detected_logos type array<string> {
+      indexing: summary | attribute
+    }
+    
+    field entity_ids type array<string> {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field mentioned_entity_ids type array<string> {
+      indexing: summary | attribute
+    }
+    
+    field related_document_ids type array<string> {
+      indexing: summary | attribute
+    }
+    
+    field discussed_in_channels type array<string> {
+      indexing: summary | attribute
+    }
+    
+    field content_hash type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field canonical_media_id type string {
+      indexing: summary | attribute
+    }
+    
+    field media_type type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+    
+    field language type string {
+      indexing: summary | attribute
+    }
+  }
+  
+  fieldset default {
+    fields: title, description, media_summary, transcript
+  }
+  
+  fieldset full_text {
+    fields: title, description, media_summary, transcript, segment_transcripts, segment_ocr_text
+  }
+  
+  fieldset metadata_search {
+    fields: title, description, media_keywords, author_name, source_name, participants
+  }
+  
+  rank-profile bm25 {
+    first-phase {
+      expression: bm25(title) * 2 + bm25(media_summary) + bm25(transcript) * 0.5
+    }
+  }
+  
+  rank-profile semantic {
+    inputs {
+      query(media_embedding) tensor<float>(x[512])
+    }
+    first-phase {
+      expression: closeness(field, segment_embeddings)
+    }
+  }
+  
+  rank-profile hybrid {
+    inputs {
+      query(media_embedding) tensor<float>(x[512])
+    }
+    first-phase {
+      expression {
+        0.3 * normalize(bm25(title) * 2 + bm25(media_summary) + bm25(media_keywords)) +
+        0.7 * closeness(field, segment_embeddings)
+      }
+    }
+    function normalize(score) {
+      expression: score / (1 + score)
+    }
+  }
+  
+  rank-profile enterprise {
+    inputs {
+      query(media_embedding) tensor<float>(x[512])
+    }
+    
+    first-phase {
+      expression: bm25(title) * 2 + bm25(media_summary) + bm25(media_keywords)
+      keep-rank-count: 1000
+      rank-score-drop-limit: 0.01
+    }
+    
+    second-phase {
+      expression {
+        0.25 * normalize(bm25(title) * 2 + bm25(media_summary)) +
+        0.55 * closeness(field, segment_embeddings) +
+        0.10 * freshness(attribute(created_at)) +
+        0.05 * engagement(attribute(view_count), attribute(avg_watch_percentage)) +
+        0.05 * trending(attribute(trending_score))
+      }
+      rerank-count: 100
+    }
+    
+    function normalize(score) {
+      expression: score / (1 + score)
+    }
+    function freshness(t) {
+      expression: if(t > now() - 604800000, 1.2, 1.0)
+    }
+    function engagement(views, watch_pct) {
+      expression: log(views + 1) * 0.05 + watch_pct * 0.5
+    }
+    function trending(score) {
+      expression: score
+    }
+  }
+  
+  rank-profile engagement {
+    inputs {
+      query(media_embedding) tensor<float>(x[512])
+    }
+    
+    first-phase {
+      expression: bm25(title) * 2 + bm25(media_summary) + bm25(media_keywords)
+      keep-rank-count: 1000
+    }
+    
+    second-phase {
+      expression {
+        0.35 * normalize(bm25(title) * 2 + bm25(media_summary)) +
+        0.20 * closeness(field, segment_embeddings) +
+        0.15 * log(attribute(view_count) + 1) / 10 +
+        0.10 * attribute(avg_watch_percentage) +
+        0.05 * log(attribute(share_count) + 1) / 5 +
+        0.05 * log(attribute(comment_count) + 1) / 5 +
+        0.10 * freshness(attribute(created_at))
+      }
+      rerank-count: 100
+    }
+    
+    function normalize(score) {
+      expression: score / (1 + score)
+    }
+    function freshness(t) {
+      expression: if(t > now() - 86400000, 1.5, if(t > now() - 604800000, 1.2, 1.0))
+    }
+  }
+  
+  rank-profile unified_text {
+    inputs {
+      query(query_embedding) tensor<float>(x[1536])
+    }
+    first-phase {
+      expression {
+        0.4 * closeness(field, transcript_embedding) +
+        0.3 * normalize(bm25(title) * 2 + bm25(media_summary)) +
+        0.2 * normalize(bm25(transcript) + bm25(segment_ocr_text)) +
+        0.1 * freshness(attribute(created_at))
+      }
+    }
+    function normalize(score) {
+      expression: score / (1 + score)
+    }
+    function freshness(t) {
+      expression: if(t > now() - 604800000, 1.2, 1.0)
+    }
+  }
+  
+  rank-profile topic_search {
+    inputs {
+      query(topic_embedding) tensor<float>(x[256])
+    }
+    first-phase {
+      expression {
+        0.5 * closeness(field, topic_embedding) +
+        0.3 * normalize(bm25(detected_topics) + bm25(media_keywords)) +
+        0.2 * normalize(bm25(title))
+      }
+    }
+    function normalize(score) {
+      expression: score / (1 + score)
+    }
+  }
+  
+  rank-profile screen_content {
+    inputs {
+      query(media_embedding) tensor<float>(x[512])
+    }
+    first-phase {
+      expression {
+        0.4 * normalize(bm25(segment_ocr_text) * 2 + bm25(title)) +
+        0.35 * closeness(field, segment_embeddings) +
+        0.15 * normalize(bm25(transcript)) +
+        0.10 * freshness(attribute(created_at))
+      }
+    }
+    function normalize(score) {
+      expression: score / (1 + score)
+    }
+    function freshness(t) {
+      expression: if(t > now() - 604800000, 1.2, 1.0)
+    }
+  }
+  
+  rank-profile meeting_search {
+    inputs {
+      query(media_embedding) tensor<float>(x[512])
+    }
+    first-phase {
+      expression {
+        0.30 * normalize(bm25(title) + bm25(participants)) +
+        0.30 * closeness(field, segment_embeddings) +
+        0.20 * normalize(bm25(transcript)) +
+        0.10 * normalize(bm25(media_summary)) +
+        0.10 * freshness(attribute(created_at))
+      }
+    }
+    function normalize(score) {
+      expression: score / (1 + score)
+    }
+    function freshness(t) {
+      expression: if(t > now() - 604800000, 1.3, 1.0)
+    }
+  }
+}
+
+
+
+

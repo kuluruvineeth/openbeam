@@ -3,7 +3,7 @@ import { Queue } from "bullmq";
 import { getSharedBullMqConnection } from "../client";
 import { extractTraceContext, type TraceContext } from "../utils/trace-context";
 
-export interface GenericDocument {
+export interface IndexableDocument {
   id: string;
   connector_id: string;
   connector_type: string;
@@ -30,7 +30,7 @@ export interface GenericDocument {
 
 export interface IndexJobData {
   connectorId: string;
-  documents: GenericDocument[];
+  documents: IndexableDocument[];
   batchId: string;
   syncHistoryId?: string;
   traceContext?: TraceContext;

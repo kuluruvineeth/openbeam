@@ -22,11 +22,11 @@
     "@openplane/integrations": "workspace:*",
     "@openplane/redis": "workspace:*",
     "@openplane/vespa": "workspace:*",
-    "@openplane/video": "workspace:*",
+    "@openplane/media": "workspace:*",
     "@openplane/storage": "workspace:*",
     "@slack/web-api": "^7.8.0",
     "jsonwebtoken": "^9.0.2",
-    "zod": "^3.24.2"
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@openplane/config": "workspace:*",
