@@ -120,6 +120,7 @@ enum ConnectorStatus {
   PAUSED
   RATE_LIMITED
   AUTH_EXPIRED
+  DELETING
 }
 
 model Workspace {
@@ -209,7 +210,11 @@ model Connector {
   createdAt           DateTime        @default(now())
   updatedAt           DateTime        @updatedAt
   pausedAt            DateTime?
-  
+
+  deletedAt           DateTime?
+  scheduledDeletionAt DateTime?
+  deletedBy           String?
+
   isEnterpriseInstall Boolean         @default(false)
   enterpriseId        String?
   childWorkspaces     Json?
