@@ -1,5 +1,6 @@
 import { type RateLimitConfig, rateLimiter } from "@openplane/redis";
 import { LogLevel, WebClient, type WebClientOptions } from "@slack/web-api";
+import { logger } from "../lib/logger";
 import {
   type RateLimitState,
   SlackApiError,
@@ -67,7 +68,7 @@ export function createSlackClient(config: SlackClientConfig): SlackClient {
 
     if (!allowed) {
       if (debug) {
-        console.log(`[Slack] Rate limit hit for ${method}: ${reason}`);
+        logger.debug({ method, reason }, "Slack rate limit hit");
       }
 
       state.lastRateLimitHit = Date.now();
@@ -175,8 +176,9 @@ export function createSlackClient(config: SlackClientConfig): SlackClient {
   ): Promise<T> {
     const delay = calculateRetryDelay(attempt, retryAfter);
     if (debug) {
-      console.log(
-        `[Slack] Retrying ${method} after ${delay}ms (attempt ${attempt + 1})`
+      logger.debug(
+        { method, delay, attempt: attempt + 1 },
+        "Slack retrying request"
       );
     }
     await sleep(delay);

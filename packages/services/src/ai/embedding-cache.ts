@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import type { Embedding } from "@openplane/ai";
 import { cache } from "@openplane/redis";
+import { logger } from "../lib/logger";
 import type { CachedEmbedding } from "./types";
 
 const CACHE_PREFIX = "embedding";
@@ -26,8 +27,7 @@ export async function getCachedEmbedding(
       return cached.embedding;
     }
   } catch (error) {
-    // Cache miss or error, return null
-    console.warn("Embedding cache get error:", error);
+    logger.warn({ error }, "Embedding cache get error");
   }
 
   return null;
@@ -51,7 +51,7 @@ export async function setCachedEmbedding(
   try {
     await cache.set(key, entry, ttl);
   } catch (error) {
-    console.warn("Embedding cache set error:", error);
+    logger.warn({ error }, "Embedding cache set error");
   }
 }
 
@@ -94,7 +94,7 @@ export async function getBatchCachedEmbeddings(
       }
     }
   } catch (error) {
-    console.warn("Batch embedding cache get error:", error);
+    logger.warn({ error }, "Batch embedding cache get error");
   }
 
   return results;
@@ -123,7 +123,7 @@ export async function setBatchCachedEmbeddings(
 
     await cache.mset(operations);
   } catch (error) {
-    console.warn("Batch embedding cache set error:", error);
+    logger.warn({ error }, "Batch embedding cache set error");
   }
 }
 
@@ -135,6 +135,6 @@ export async function invalidateCachedEmbedding(
   try {
     await cache.del(key);
   } catch (error) {
-    console.warn("Embedding cache delete error:", error);
+    logger.warn({ error }, "Embedding cache delete error");
   }
 }

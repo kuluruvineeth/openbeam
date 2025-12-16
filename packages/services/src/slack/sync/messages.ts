@@ -1,4 +1,5 @@
 import type { GenericDocument } from "@openplane/vespa";
+import { logger } from "../../lib/logger";
 import {
   type FetchMessagesOptions,
   fetchMessages,
@@ -371,9 +372,9 @@ export async function* syncMultipleChannels(
         errorMessage.includes("channel_not_found") ||
         errorMessage.includes("is_archived")
       ) {
-        //TODO: Add pino logger
-        console.warn(
-          `[SYNC] Skipping channel ${channel.name} (${channel.id}): Bot doesn't have access. Add the bot to this channel to sync its messages.`
+        logger.warn(
+          { channelName: channel.name, channelId: channel.id },
+          "Skipping channel: Bot doesn't have access. Add the bot to this channel to sync its messages."
         );
         continue;
       }

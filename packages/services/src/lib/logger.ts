@@ -1,0 +1,63 @@
+import pino from "pino";
+
+const isDevelopment = process.env.NODE_ENV !== "production";
+
+export const logger = pino({
+  level: process.env.LOG_LEVEL || "info",
+  transport: isDevelopment
+    ? {
+        target: "pino-pretty",
+        options: {
+          colorize: true,
+          translateTime: "SYS:standard",
+          ignore: "pid,hostname",
+        },
+      }
+    : undefined,
+  base: {
+    service: "openplane-services",
+    env: process.env.NODE_ENV || "development",
+  },
+});
+
+export function createServiceLogger(context: {
+  service?: string;
+  teamId?: string;
+  connectorId?: string;
+  [key: string]: unknown;
+}) {
+  return logger.child(context);
+}
+
+export function logWithDuration(
+  level: "info" | "error" | "warn" | "debug",
+  message: string,
+  context: Record<string, unknown>,
+  startTime: number
+) {
+  const duration = Date.now() - startTime;
+  logger[level]({ ...context, duration }, message);
+}
+
+export function logError(
+  message: string,
+  error: Error | unknown,
+  context?: Record<string, unknown>
+) {
+  logger.error(
+    {
+      ...context,
+      error:
+        error instanceof Error
+          ? {
+              message: error.message,
+              stack: error.stack,
+              name: error.name,
+            }
+          : error,
+    },
+    message
+  );
+}
+
+export default logger;
