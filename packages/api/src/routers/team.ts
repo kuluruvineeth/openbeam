@@ -59,4 +59,27 @@ export const teamRouter = createTRPCRouter({
 
       return { success: true };
     }),
+
+  getUserRole: protectedProcedure.query(async ({ ctx }) => {
+    const user = await ctx.prisma.user.findUnique({
+      where: { id: ctx.session.user.id },
+      select: { teamId: true },
+    });
+
+    if (!user?.teamId) {
+      return { role: null };
+    }
+
+    const membership = await ctx.prisma.usersOnTeam.findUnique({
+      where: {
+        userId_teamId: {
+          userId: ctx.session.user.id,
+          teamId: user.teamId,
+        },
+      },
+      select: { role: true },
+    });
+
+    return { role: membership?.role ?? null };
+  }),
 });
