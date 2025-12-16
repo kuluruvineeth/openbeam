@@ -231,6 +231,8 @@ async function processDiscoveredMedia(
       fileName: file.name,
       storageKey,
       mediaType,
+      sourceChannelId: sourceChannelId ?? undefined,
+      slackPermalink: file.permalink,
     },
     jobPriority
   );

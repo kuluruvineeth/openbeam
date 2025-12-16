@@ -7,12 +7,17 @@ import prisma, {
 } from "@openplane/db";
 import type { WebhookJobData } from "@openplane/redis";
 import {
+  type AppMentionEvent,
+  type CommandContext,
   type DocumentChange,
   type EventHandlerContext,
+  handleAppMention,
+  handleAskCommand,
   handleSlackEvent,
   parseSlackEvent,
   type SlackChannel,
   type SlackEvent,
+  type SlashCommandPayload,
 } from "@openplane/services";
 import { vespaClient } from "@openplane/vespa";
 import { createSlackClientFromConnector } from "../../connectors/slack";
@@ -22,6 +27,8 @@ import {
   isEmbeddingEnabled,
 } from "../../utils/embeddings";
 import logger from "../../utils/logger";
+
+const ASK_PREFIX_PATTERN = /^ask\s*/i;
 
 type WebhookOperation = "create" | "update" | "delete" | "skip";
 
@@ -41,6 +48,14 @@ export async function processSlackWebhook(
     { connectorId, eventId, eventType },
     "Processing Slack webhook event"
   );
+
+  if (eventType === "slash_command") {
+    return processSlashCommand(data);
+  }
+
+  if (eventType === "global_ask") {
+    return processGlobalAsk(data);
+  }
 
   const parseResult = parseSlackEvent(payload);
   if (!parseResult.success) {
@@ -71,6 +86,10 @@ export async function processSlackWebhook(
   }
 
   const { client, context } = createSlackClientFromConnector(connector);
+
+  if (event.type === "app_mention") {
+    return processAppMention(event as AppMentionEvent, client, context);
+  }
 
   const handlerContext: EventHandlerContext = {
     ...context,
@@ -276,24 +295,234 @@ async function applyDocumentChanges(
   return results;
 }
 
+interface SlackClientContext {
+  connectorId: string;
+  teamId: string;
+}
+
+interface SlackClientType {
+  call<T>(method: string, params: Record<string, unknown>): Promise<T>;
+}
+
+async function processAppMention(
+  event: AppMentionEvent,
+  client: SlackClientType,
+  context: SlackClientContext
+): Promise<SlackWebhookResult> {
+  logger.info(
+    {
+      channel: event.channel,
+      user: event.user,
+      text: event.text,
+      teamId: context.teamId,
+      connectorId: context.connectorId,
+    },
+    "Processing app_mention event"
+  );
+
+  try {
+    const assistantContext = {
+      connectorId: context.connectorId,
+      teamId: context.teamId,
+      channelId: event.channel,
+      userId: event.user,
+      threadTs: event.thread_ts,
+      accessControlIds: [event.user],
+      responseMode: "always" as const,
+      reactionsEnabled: false,
+    };
+
+    logger.info({ assistantContext }, "Calling handleAppMention");
+
+    const result = await handleAppMention(
+      client as Parameters<typeof handleAppMention>[0],
+      event,
+      assistantContext
+    );
+
+    logger.info(
+      {
+        handled: result.handled,
+        hasResponse: !!result.response,
+        hasError: !!result.error,
+        errorMessage: result.error?.message,
+      },
+      "handleAppMention result"
+    );
+
+    if (!result.handled) {
+      logger.warn(
+        { channel: event.channel, user: event.user, text: event.text },
+        "App mention not handled - query may be too short or empty"
+      );
+    }
+
+    return { processed: true, operation: "skip", reason: "app_mention" };
+  } catch (error) {
+    logger.error(
+      { error, channel: event.channel, text: event.text },
+      "Failed to handle app mention"
+    );
+    return { processed: false, reason: "app_mention_error" };
+  }
+}
+
+interface SlashCommandJobPayload extends SlashCommandPayload {
+  _subcommand: string;
+  _context: CommandContext;
+}
+
+async function processSlashCommand(
+  data: WebhookJobData
+): Promise<SlackWebhookResult> {
+  const payload = data.payload as unknown as SlashCommandJobPayload;
+  const { response_url, _subcommand, _context } = payload;
+
+  logger.debug(
+    { connectorId: data.connectorId, subcommand: _subcommand },
+    "Processing slash command"
+  );
+
+  try {
+    const commandPayload: SlashCommandPayload = {
+      token: payload.token,
+      team_id: payload.team_id,
+      team_domain: payload.team_domain,
+      enterprise_id: payload.enterprise_id,
+      enterprise_name: payload.enterprise_name,
+      channel_id: payload.channel_id,
+      channel_name: payload.channel_name,
+      user_id: payload.user_id,
+      user_name: payload.user_name,
+      command: payload.command,
+      text: payload.text.replace(ASK_PREFIX_PATTERN, ""),
+      response_url: payload.response_url,
+      trigger_id: payload.trigger_id,
+      api_app_id: payload.api_app_id,
+    };
+
+    const result = await handleAskCommand(commandPayload, _context);
+
+    await fetch(response_url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        response_type: result.response_type ?? "ephemeral",
+        replace_original: true,
+        text: result.text,
+        blocks: result.blocks,
+      }),
+    });
+
+    return { processed: true, operation: "skip", reason: "slash_command_ask" };
+  } catch (error) {
+    logger.error(
+      { error, connectorId: data.connectorId, subcommand: _subcommand },
+      "Failed to process slash command"
+    );
+
+    await fetch(response_url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        response_type: "ephemeral",
+        replace_original: true,
+        text: `Failed to process command: ${error instanceof Error ? error.message : "Unknown error"}`,
+      }),
+    });
+
+    return { processed: false, reason: "slash_command_error" };
+  }
+}
+
+async function processGlobalAsk(
+  data: WebhookJobData
+): Promise<SlackWebhookResult> {
+  const { connectorId, payload } = data;
+  const { question, userId, teamId } = payload as {
+    question: string;
+    userId: string;
+    teamId: string;
+  };
+
+  logger.debug({ connectorId, question }, "Processing global ask");
+
+  try {
+    const connector = await getConnectorForSync(prisma, connectorId);
+    if (!connector) {
+      return { processed: false, reason: "connector_not_found" };
+    }
+
+    const { client } = createSlackClientFromConnector(connector);
+    const { ragAnswer } = await import("@openplane/services");
+
+    const result = await ragAnswer({
+      query: question,
+      teamId,
+      accessControlIds: [userId, `team:${teamId}`],
+      topK: 10,
+    });
+
+    const blocks = [
+      {
+        type: "section",
+        text: { type: "mrkdwn", text: `*Question:* ${question}` },
+      },
+      { type: "divider" },
+      {
+        type: "section",
+        text: { type: "mrkdwn", text: result.answer || "_No answer found._" },
+      },
+    ];
+
+    if (result.citations.length > 0) {
+      const citationText = result.citations
+        .slice(0, 5)
+        .map((c, i) => `${i + 1}. ${c.title}`)
+        .join("\n");
+      blocks.push({ type: "divider" }, {
+        type: "context",
+        elements: [{ type: "mrkdwn", text: `*Sources:*\n${citationText}` }],
+      } as never);
+    }
+
+    await client.call("chat.postMessage", {
+      channel: userId,
+      blocks,
+      text: `Answer: ${result.answer}`,
+    });
+
+    return { processed: true, operation: "skip", reason: "global_ask" };
+  } catch (error) {
+    logger.error(
+      { error, connectorId, question },
+      "Failed to process global ask"
+    );
+    return { processed: true, reason: "global_ask_error" };
+  }
+}
+
 export function shouldProcessRealtime(eventType: string): boolean {
   const realtimeEvents = new Set([
+    "app_mention",
+    "channel_archive",
+    "channel_created",
+    "channel_deleted",
+    "channel_rename",
+    "channel_unarchive",
+    "file_deleted",
+    "file_shared",
+    "global_ask",
+    "member_joined_channel",
+    "member_left_channel",
     "message",
     "message_changed",
     "message_deleted",
     "reaction_added",
     "reaction_removed",
-    "channel_created",
-    "channel_deleted",
-    "channel_rename",
-    "channel_archive",
-    "channel_unarchive",
-    "member_joined_channel",
-    "member_left_channel",
-    "user_change",
+    "slash_command",
     "team_join",
-    "file_shared",
-    "file_deleted",
+    "user_change",
   ]);
 
   return realtimeEvents.has(eventType);

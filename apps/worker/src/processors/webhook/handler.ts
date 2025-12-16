@@ -16,7 +16,18 @@ import { SpanStatusCode } from "@opentelemetry/api";
 import type { Job } from "bullmq";
 import logger from "../../utils/logger";
 import { logJobError, logJobStart } from "../event-handlers";
+import {
+  isAssistantThreadMessage,
+  processSidebarMessage,
+} from "./sidebar-handler";
 import { processSlackWebhook, shouldProcessRealtime } from "./slack-handler";
+
+const UI_ONLY_EVENTS = new Set([
+  "app_home_opened",
+  "assistant_thread_started",
+  "assistant_thread_context_changed",
+  "global_ask",
+]);
 
 export interface WebhookJobResult {
   triggered: boolean;
@@ -41,6 +52,36 @@ async function tryRealtimeProcessing(
 ): Promise<WebhookJobResult | null> {
   if (source !== "slack" || !shouldProcessRealtime(eventType)) {
     return null;
+  }
+
+  if (eventType === "message") {
+    const payload = jobData.payload as {
+      event?: { channel: string; channel_type?: string; thread_ts?: string };
+    };
+    const event = payload.event;
+
+    if (event) {
+      const sidebarContext = await isAssistantThreadMessage({
+        type: "message",
+        channel: event.channel,
+        channel_type: event.channel_type,
+        thread_ts: event.thread_ts,
+        ts: "",
+      });
+
+      if (sidebarContext) {
+        const sidebarResult = await processSidebarMessage(
+          jobData,
+          sidebarContext
+        );
+        return {
+          triggered: true,
+          processed: sidebarResult.processed,
+          operation: sidebarResult.operation,
+          reason: sidebarResult.reason,
+        };
+      }
+    }
   }
 
   const slackResult = await processSlackWebhook(jobData);
@@ -147,6 +188,12 @@ export async function processWebhookJob(
       });
       span.setStatus({ code: SpanStatusCode.OK });
       return realtimeResult;
+    }
+
+    if (UI_ONLY_EVENTS.has(eventType)) {
+      span.setAttributes({ "webhook.reason": "ui_only_event" });
+      span.setStatus({ code: SpanStatusCode.OK });
+      return { triggered: false, reason: "ui_only_event" };
     }
 
     const result = await triggerSyncFallback({

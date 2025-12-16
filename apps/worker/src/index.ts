@@ -1,6 +1,7 @@
 import "./instrumentation";
 import {
   closeCleanupQueue,
+  closeDigestQueue,
   closeIndexQueue,
   closeMediaProcessingQueue,
   closeSharedBullMqConnection,
@@ -11,6 +12,7 @@ import { startHealthServer, stopHealthServer } from "./health";
 import { startMetricsServer, stopMetricsServer } from "./metrics";
 import {
   createCleanupProcessor,
+  createDigestProcessor,
   createFileProcessor,
   createIndexProcessor,
   createMediaProcessor,
@@ -19,6 +21,7 @@ import {
   type ProcessorResult,
 } from "./processors";
 import { CleanupScheduler } from "./schedulers/cleanup-scheduler";
+import { DigestScheduler } from "./schedulers/digest-scheduler";
 import { SyncScheduler } from "./schedulers/sync-scheduler";
 import logger from "./utils/logger";
 import { metricsPoller } from "./utils/metrics-poller";
@@ -26,12 +29,14 @@ import { metricsPoller } from "./utils/metrics-poller";
 class WorkerService {
   private readonly syncScheduler: SyncScheduler;
   private readonly cleanupScheduler: CleanupScheduler;
+  private readonly digestScheduler: DigestScheduler;
   private readonly syncProcessor: ProcessorResult;
   private readonly indexProcessor: ProcessorResult;
   private readonly fileProcessor: ProcessorResult;
   private readonly mediaProcessor: ProcessorResult;
   private readonly webhookProcessor: ProcessorResult;
   private readonly cleanupProcessor: ProcessorResult;
+  private readonly digestProcessor: ProcessorResult;
 
   constructor() {
     logger.info("Initializing OpenPlane Worker...");
@@ -42,9 +47,11 @@ class WorkerService {
     this.mediaProcessor = createMediaProcessor();
     this.webhookProcessor = createWebhookProcessor();
     this.cleanupProcessor = createCleanupProcessor();
+    this.digestProcessor = createDigestProcessor();
 
     this.syncScheduler = new SyncScheduler();
     this.cleanupScheduler = new CleanupScheduler("0 2 * * *");
+    this.digestScheduler = new DigestScheduler();
 
     this.syncScheduler.start().catch((error) => {
       logger.error({ error }, "Failed to start sync scheduler");
@@ -52,6 +59,10 @@ class WorkerService {
 
     this.cleanupScheduler.start().catch((error) => {
       logger.error({ error }, "Failed to start cleanup scheduler");
+    });
+
+    this.digestScheduler.start().catch((error) => {
+      logger.error({ error }, "Failed to start digest scheduler");
     });
 
     startMetricsServer().catch((error) => {
@@ -75,6 +86,8 @@ class WorkerService {
           mediaProcessor: "running",
           webhookProcessor: "running",
           cleanupProcessor: "running",
+          digestProcessor: "running",
+          digestScheduler: "running",
           metricsServer: "running",
           healthServer: "running",
           metricsPoller: "running",
@@ -92,12 +105,14 @@ class WorkerService {
     await Promise.all([
       this.syncScheduler.stop(),
       this.cleanupScheduler.stop(),
+      this.digestScheduler.stop(),
       this.syncProcessor.close(),
       this.indexProcessor.close(),
       this.fileProcessor.close(),
       this.mediaProcessor.close(),
       this.webhookProcessor.close(),
       this.cleanupProcessor.close(),
+      this.digestProcessor.close(),
       stopMetricsServer(),
       stopHealthServer(),
     ]);
@@ -108,6 +123,7 @@ class WorkerService {
       closeMediaProcessingQueue(),
       closeWebhookQueue(),
       closeCleanupQueue(),
+      closeDigestQueue(),
       closeSharedBullMqConnection(),
     ]);
 

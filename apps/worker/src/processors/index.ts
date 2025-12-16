@@ -1,4 +1,5 @@
 export { createCleanupProcessor, triggerCleanup } from "./cleanup";
+export { createDigestProcessor, processDigestJob } from "./digest";
 export {
   incrementMetrics,
   logJobComplete,

@@ -29,6 +29,8 @@ import {
   type QueueMediaJobData,
 } from "@openplane/redis";
 import {
+  createSlackClient,
+  getChannelInfo,
   getStorageProvider,
   mediaIndexService,
   SIGNED_URL_EXPIRY_SECONDS,
@@ -69,6 +71,67 @@ async function uploadThumbnailToStorage(
   } finally {
     clearTimeout(timeoutId);
   }
+}
+
+type ConnectorWithOAuth = Awaited<
+  ReturnType<typeof findConnectorById>
+> extends infer T
+  ? T & { oauthProvider?: { accessToken: string; accessTokenIv?: string } }
+  : never;
+
+const CONNECTOR_TYPE_LABELS: Record<string, string> = {
+  slack: "Slack",
+  google_drive: "Google Drive",
+  gmail: "Gmail",
+  notion: "Notion",
+  confluence: "Confluence",
+  jira: "Jira",
+};
+
+async function resolveSourceName(
+  connector: ConnectorWithOAuth | null,
+  channelId: string | undefined,
+  providedName: string | undefined
+): Promise<string | undefined> {
+  if (providedName) {
+    return providedName;
+  }
+
+  if (!(connector && channelId)) {
+    return connector?.app
+      ? CONNECTOR_TYPE_LABELS[connector.app.toLowerCase()]
+      : undefined;
+  }
+
+  const isSlack = connector.app.toLowerCase() === "slack";
+  if (!isSlack) {
+    return CONNECTOR_TYPE_LABELS[connector.app.toLowerCase()];
+  }
+
+  const oauth = connector.oauthProvider;
+  if (!oauth?.accessToken) {
+    return CONNECTOR_TYPE_LABELS.slack;
+  }
+
+  try {
+    const token = decryptIfEncrypted(oauth.accessToken, oauth.accessTokenIv);
+    const slackClient = createSlackClient({
+      token: token ?? "",
+      connectorId: connector.id,
+      teamId: connector.teamId,
+    });
+    const channelInfo = await getChannelInfo(slackClient, channelId);
+    if (channelInfo?.name) {
+      return `#${channelInfo.name}`;
+    }
+  } catch (error) {
+    logger.warn(
+      { connectorId: connector.id, channelId, error },
+      "Failed to look up channel name"
+    );
+  }
+
+  return CONNECTOR_TYPE_LABELS.slack;
 }
 
 export interface MediaProcessingResult {
@@ -153,6 +216,9 @@ async function processMediaDownload(
     externalId,
     mimeType,
     mediaType,
+    sourceChannelId,
+    sourceChannelName,
+    slackPermalink,
   } = data;
 
   const storage = getStorageProvider();
@@ -223,6 +289,9 @@ async function processMediaDownload(
     storageKey: finalStorageKey,
     mediaType,
     mimeType,
+    sourceChannelId,
+    sourceChannelName,
+    slackPermalink,
   });
 
   return { success: true, mediaId };
@@ -231,8 +300,17 @@ async function processMediaDownload(
 async function processTwelveLabsIndexing(
   data: MediaTwelveLabsJobData
 ): Promise<MediaProcessingResult> {
-  const { mediaId, connectorId, teamId, storageKey, mediaType, mimeType } =
-    data;
+  const {
+    mediaId,
+    connectorId,
+    teamId,
+    storageKey,
+    mediaType,
+    mimeType,
+    sourceChannelId,
+    sourceChannelName,
+    slackPermalink,
+  } = data;
 
   const media = await findIndexedMediaById(prisma, mediaId);
 
@@ -290,7 +368,9 @@ async function processTwelveLabsIndexing(
     twelveLabsAssetId,
     storageKey,
     fileName: media?.fileName ?? "",
-    sourceChannelId: media?.sourceChannelId ?? undefined,
+    sourceChannelId: sourceChannelId ?? media?.sourceChannelId ?? undefined,
+    sourceChannelName,
+    sourceUrl: slackPermalink,
     mediaType,
     mimeType,
   });
@@ -311,6 +391,8 @@ async function processVespaIndexing(
     storageKey,
     fileName,
     sourceChannelId,
+    sourceChannelName: providedChannelName,
+    sourceUrl,
     mediaType,
   } = data;
 
@@ -395,9 +477,15 @@ async function processVespaIndexing(
   const now = Date.now();
   const vespaId = `media_${connectorId}_${externalId}`;
 
-  const connector = await findConnectorById(prisma, connectorId);
+  const connector = await findConnectorById(prisma, connectorId, true);
 
   const connectorType = connector?.app.toLowerCase();
+
+  const sourceName = await resolveSourceName(
+    connector,
+    sourceChannelId,
+    providedChannelName
+  );
 
   const mediaDoc: MediaDocument = {
     id: vespaId,
@@ -415,7 +503,7 @@ async function processVespaIndexing(
     segment_timestamps: segmentTimestamps,
     transcript_embedding: mediaEmbedding,
     source_id: sourceChannelId,
-    source_name: sourceChannelId,
+    source_name: sourceName,
     source_type: connectorType,
     url: signedUrl,
     created_at: now,
@@ -436,6 +524,7 @@ async function processVespaIndexing(
       storageKey,
       mediaType,
       ...(thumbnailStorageKey && { thumbnailStorageKey }),
+      ...(sourceUrl && { sourceUrl }),
     },
   };
 
