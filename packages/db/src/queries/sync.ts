@@ -20,6 +20,7 @@ export interface GetSyncStatusResult {
     lastSyncStatus: string | null;
     lastError: string | null;
     lastErrorAt: Date | null;
+    scheduledDeletionAt: Date | null;
   };
   latestSync: {
     id: string;
@@ -59,7 +60,6 @@ export const getSyncStatus = async (
   db: Database,
   connectorId: string
 ): Promise<GetSyncStatusResult | null> => {
-  // Get connector with latest sync info and webhook config
   const connector = await db.connector.findUnique({
     where: { id: connectorId },
     select: {
@@ -69,6 +69,7 @@ export const getSyncStatus = async (
       lastSyncStatus: true,
       lastError: true,
       lastErrorAt: true,
+      scheduledDeletionAt: true,
       webhookConfig: true,
     },
   });
@@ -142,6 +143,7 @@ export const getSyncStatus = async (
       lastSyncStatus: connector.lastSyncStatus,
       lastError: connector.lastError,
       lastErrorAt: connector.lastErrorAt,
+      scheduledDeletionAt: connector.scheduledDeletionAt,
     },
     latestSync,
     stats: {

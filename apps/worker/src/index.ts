@@ -1,6 +1,7 @@
 import "./instrumentation";
 import {
   closeCleanupQueue,
+  closeConnectorCleanupQueue,
   closeDigestQueue,
   closeIndexQueue,
   closeMediaProcessingQueue,
@@ -12,6 +13,7 @@ import { startHealthServer, stopHealthServer } from "./health";
 import { startMetricsServer, stopMetricsServer } from "./metrics";
 import {
   createCleanupProcessor,
+  createConnectorCleanupProcessor,
   createDigestProcessor,
   createFileProcessor,
   createIndexProcessor,
@@ -36,6 +38,7 @@ class WorkerService {
   private readonly mediaProcessor: ProcessorResult;
   private readonly webhookProcessor: ProcessorResult;
   private readonly cleanupProcessor: ProcessorResult;
+  private readonly connectorCleanupProcessor: ProcessorResult;
   private readonly digestProcessor: ProcessorResult;
 
   constructor() {
@@ -47,6 +50,7 @@ class WorkerService {
     this.mediaProcessor = createMediaProcessor();
     this.webhookProcessor = createWebhookProcessor();
     this.cleanupProcessor = createCleanupProcessor();
+    this.connectorCleanupProcessor = createConnectorCleanupProcessor();
     this.digestProcessor = createDigestProcessor();
 
     this.syncScheduler = new SyncScheduler();
@@ -86,6 +90,7 @@ class WorkerService {
           mediaProcessor: "running",
           webhookProcessor: "running",
           cleanupProcessor: "running",
+          connectorCleanupProcessor: "running",
           digestProcessor: "running",
           digestScheduler: "running",
           metricsServer: "running",
@@ -112,6 +117,7 @@ class WorkerService {
       this.mediaProcessor.close(),
       this.webhookProcessor.close(),
       this.cleanupProcessor.close(),
+      this.connectorCleanupProcessor.close(),
       this.digestProcessor.close(),
       stopMetricsServer(),
       stopHealthServer(),
@@ -123,6 +129,7 @@ class WorkerService {
       closeMediaProcessingQueue(),
       closeWebhookQueue(),
       closeCleanupQueue(),
+      closeConnectorCleanupQueue(),
       closeDigestQueue(),
       closeSharedBullMqConnection(),
     ]);

@@ -88,3 +88,14 @@ export const findIndexedFilesByConnector = async (
     skip: options?.skip,
     orderBy: { createdAt: "desc" },
   });
+
+export const findStorageKeysForCleanup = async (
+  db: Database,
+  connectorId: string
+): Promise<string[]> => {
+  const files = await db.indexedFile.findMany({
+    where: { connectorId },
+    select: { storageKey: true },
+  });
+  return files.map((f) => f.storageKey);
+};

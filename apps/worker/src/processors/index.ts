@@ -1,4 +1,8 @@
 export { createCleanupProcessor, triggerCleanup } from "./cleanup";
+export {
+  createConnectorCleanupProcessor,
+  processConnectorCleanup,
+} from "./connector-cleanup";
 export { createDigestProcessor, processDigestJob } from "./digest";
 export {
   incrementMetrics,

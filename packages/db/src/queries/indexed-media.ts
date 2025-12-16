@@ -85,3 +85,26 @@ export const findIndexedMediasByConnector = async (
     skip: options?.skip,
     orderBy: { createdAt: "desc" },
   });
+
+export type TwelveLabsAssetForCleanup = {
+  twelveLabsIndexId: string;
+  twelveLabsAssetId: string;
+};
+
+export const findTwelveLabsAssetsForCleanup = async (
+  db: Database,
+  connectorId: string
+): Promise<TwelveLabsAssetForCleanup[]> => {
+  const media = await db.indexedMedia.findMany({
+    where: {
+      connectorId,
+      twelveLabsAssetId: { not: null },
+      twelveLabsIndexId: { not: null },
+    },
+    select: { twelveLabsAssetId: true, twelveLabsIndexId: true },
+  });
+  return media.filter(
+    (m): m is TwelveLabsAssetForCleanup =>
+      m.twelveLabsAssetId !== null && m.twelveLabsIndexId !== null
+  );
+};
