@@ -165,7 +165,7 @@ export const restoreConnector = async (
   db: Database,
   id: string
 ): Promise<Connector> =>
-  db.connector.update({
+  await db.connector.update({
     where: { id },
     data: {
       status: ConnectorStatus.INACTIVE,
@@ -178,12 +178,12 @@ export const restoreConnector = async (
 export const hardDeleteConnector = async (
   db: Database,
   id: string
-): Promise<Connector> => db.connector.delete({ where: { id } });
+): Promise<Connector> => await db.connector.delete({ where: { id } });
 
 export const findConnectorsPendingDeletion = async (
   db: Database
 ): Promise<Connector[]> =>
-  db.connector.findMany({
+  await db.connector.findMany({
     where: {
       status: ConnectorStatus.DELETING,
       scheduledDeletionAt: { lte: new Date() },
