@@ -44,44 +44,43 @@ function DetailPageSkeleton() {
   );
 }
 
-export function ConnectorDetailPage({ connectorId }: ConnectorDetailPageProps) {
-  const router = useRouter();
-  const { data: connector, isLoading } = useConnector(connectorId);
-  const { data: syncStatus } = useSyncStatus(connectorId, {
-    enabled: !!connectorId,
-  });
-  const restoreMutation = useRestoreConnector();
-  const isAdmin = useIsAdmin();
-
-  if (isLoading) {
-    return <DetailPageSkeleton />;
-  }
-
-  if (!connector) {
-    return (
-      <div className="flex h-[calc(100vh-400px)] flex-col items-center justify-center">
-        <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-xl border border-border/60 bg-background">
-          <Icons.AlertCircle className="text-foreground/40" size={24} />
-        </div>
-        <h3 className="font-medium text-foreground text-lg">
-          Connector not found
-        </h3>
-        <p className="mt-2 max-w-md text-center text-foreground/50 text-sm">
-          The connector you're looking for doesn't exist or you don't have
-          access to it.
-        </p>
-        <Button
-          className="mt-4"
-          onClick={() => router.push("/connectors")}
-          variant="outline"
-        >
-          Back to Connectors
-        </Button>
+function ConnectorNotFound({ onBack }: { onBack: () => void }) {
+  return (
+    <div className="flex h-[calc(100vh-400px)] flex-col items-center justify-center">
+      <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-xl border border-border/60 bg-background">
+        <Icons.AlertCircle className="text-foreground/40" size={24} />
       </div>
-    );
-  }
+      <h3 className="font-medium text-foreground text-lg">
+        Connector not found
+      </h3>
+      <p className="mt-2 max-w-md text-center text-foreground/50 text-sm">
+        The connector you're looking for doesn't exist or you don't have access
+        to it.
+      </p>
+      <Button className="mt-4" onClick={onBack} variant="outline">
+        Back to Connectors
+      </Button>
+    </div>
+  );
+}
 
-  // Get the app definition - either from the API response or from appStore
+function LastSyncedText({
+  lastSyncedAt,
+}: {
+  lastSyncedAt: string | Date | null;
+}) {
+  if (!lastSyncedAt) {
+    return <>Never synced</>;
+  }
+  const date =
+    typeof lastSyncedAt === "string" ? new Date(lastSyncedAt) : lastSyncedAt;
+  return <>Last synced {formatDistanceToNow(date, { addSuffix: true })}</>;
+}
+
+function useConnectorInfo(
+  connector: NonNullable<ReturnType<typeof useConnector>["data"]>,
+  syncStatus: ReturnType<typeof useSyncStatus>["data"]
+) {
   const appDefinition =
     connector.definition ??
     appStore.find(
@@ -99,18 +98,75 @@ export function ConnectorDetailPage({ connectorId }: ConnectorDetailPageProps) {
   const isDeleting = connectorStatus === "DELETING";
   const scheduledDeletionAt = syncStatus?.connector?.scheduledDeletionAt;
 
+  return {
+    displayName,
+    appName,
+    appId,
+    connectorStatus,
+    lastSyncedAt,
+    isDeleting,
+    scheduledDeletionAt,
+    appDefinition,
+  };
+}
+
+export function ConnectorDetailPage({ connectorId }: ConnectorDetailPageProps) {
+  const router = useRouter();
+  const { data: connector, isLoading } = useConnector(connectorId);
+  const { data: syncStatus } = useSyncStatus(connectorId, {
+    enabled: !!connectorId,
+  });
+  const restoreMutation = useRestoreConnector();
+  const { isAdmin, isLoading: isRoleLoading } = useIsAdmin();
+
+  if (isLoading || isRoleLoading) {
+    return <DetailPageSkeleton />;
+  }
+
+  if (!connector) {
+    return <ConnectorNotFound onBack={() => router.push("/connectors")} />;
+  }
+
+  return (
+    <ConnectorDetailContent
+      connector={connector}
+      connectorId={connectorId}
+      isAdmin={isAdmin}
+      onBack={() => router.back()}
+      restoreMutation={restoreMutation}
+      syncStatus={syncStatus}
+    />
+  );
+}
+
+function ConnectorDetailContent({
+  connector,
+  connectorId,
+  syncStatus,
+  isAdmin,
+  restoreMutation,
+  onBack,
+}: {
+  connector: NonNullable<ReturnType<typeof useConnector>["data"]>;
+  connectorId: string;
+  syncStatus: ReturnType<typeof useSyncStatus>["data"];
+  isAdmin: boolean;
+  restoreMutation: ReturnType<typeof useRestoreConnector>;
+  onBack: () => void;
+}) {
+  const info = useConnectorInfo(connector, syncStatus);
+
   return (
     <div className="space-y-6">
-      {isDeleting && scheduledDeletionAt && (
+      {info.isDeleting && info.scheduledDeletionAt && (
         <DeletionWarningBanner
           canRestore={isAdmin}
           isRestoring={restoreMutation.isPending}
           onCancel={() => restoreMutation.mutate(connectorId)}
-          scheduledDeletionAt={new Date(scheduledDeletionAt)}
+          scheduledDeletionAt={new Date(info.scheduledDeletionAt)}
         />
       )}
 
-      {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm">
         <Link
           className="text-foreground/50 transition-colors hover:text-foreground"
@@ -119,25 +175,24 @@ export function ConnectorDetailPage({ connectorId }: ConnectorDetailPageProps) {
           Connectors
         </Link>
         <span className="text-foreground/30">/</span>
-        <span className="text-foreground">{appName}</span>
+        <span className="text-foreground">{info.appName}</span>
       </nav>
 
-      {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
-          {appDefinition && (
+          {info.appDefinition && (
             <div className="flex size-12 items-center justify-center rounded-lg border border-border/50 bg-background">
-              <AppLogo app={appDefinition} size={32} />
+              <AppLogo app={info.appDefinition} size={32} />
             </div>
           )}
           <div>
             <div className="flex items-center gap-3">
               <h1 className="font-semibold text-2xl tracking-tight">
-                {displayName}
+                {info.displayName}
               </h1>
               <SyncStatusBadge
                 data={{
-                  status: connectorStatus as
+                  status: info.connectorStatus as
                     | "SYNCING"
                     | "ACTIVE"
                     | "ERROR"
@@ -145,40 +200,30 @@ export function ConnectorDetailPage({ connectorId }: ConnectorDetailPageProps) {
                     | "CONNECTING"
                     | "DELETING",
                   totalIndexed: syncStatus?.stats?.totalIndexed ?? 0,
-                  lastSyncedAt: lastSyncedAt ?? null,
+                  lastSyncedAt: info.lastSyncedAt ?? null,
                   error: syncStatus?.connector?.lastError ?? null,
                 }}
                 variant="compact"
               />
             </div>
             <p className="mt-1 text-foreground/50 text-sm">
-              {lastSyncedAt ? (
-                <>
-                  Last synced{" "}
-                  {formatDistanceToNow(new Date(lastSyncedAt), {
-                    addSuffix: true,
-                  })}
-                </>
-              ) : (
-                <>Never synced</>
-              )}
-              {appId && (
+              <LastSyncedText lastSyncedAt={info.lastSyncedAt ?? null} />
+              {info.appId && (
                 <>
                   <span className="mx-2 text-foreground/20">·</span>
-                  <span className="font-mono text-xs">{appId}</span>
+                  <span className="font-mono text-xs">{info.appId}</span>
                 </>
               )}
             </p>
           </div>
         </div>
 
-        <Button onClick={() => router.back()} size="sm" variant="ghost">
+        <Button onClick={onBack} size="sm" variant="ghost">
           <Icons.ArrowLeft className="mr-1.5" size={14} />
           Back
         </Button>
       </div>
 
-      {/* Tabs */}
       <ConnectorDetailTabs connectorId={connectorId} syncStatus={syncStatus} />
     </div>
   );

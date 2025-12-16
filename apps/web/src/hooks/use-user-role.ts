@@ -12,7 +12,8 @@ export function useUserRole() {
   });
 }
 
-export function useIsAdmin(): boolean {
-  const { data } = useUserRole();
-  return data?.role === "OWNER" || data?.role === "ADMIN";
+export function useIsAdmin(): { isAdmin: boolean; isLoading: boolean } {
+  const { data, isLoading } = useUserRole();
+  const isAdmin = data?.role === "OWNER" || data?.role === "ADMIN";
+  return { isAdmin, isLoading };
 }
