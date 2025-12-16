@@ -1,6 +1,20 @@
-import prisma from "@openplane/db";
-import { addWebhookJob } from "@openplane/redis";
-import { parseSlackEvent, verifySlackSignature } from "@openplane/services";
+import prisma, {
+  findSlackConnectorByTeamId,
+  getDecryptedOAuthCredentials,
+} from "@openplane/db";
+import { addWebhookJob, createStateStore } from "@openplane/redis";
+import {
+  type AssistantThreadContextChangedEvent,
+  type AssistantThreadStartedEvent,
+  addReaction,
+  createSlackClient,
+  handleAppHomeOpened,
+  handleAssistantContextChanged,
+  handleAssistantThreadStarted,
+  parseSlackEvent,
+  verifySlackSignature,
+} from "@openplane/services";
+import type { Context } from "hono";
 import { Hono } from "hono";
 import logger from "../../utils/logger";
 
@@ -9,8 +23,36 @@ const slackWebhook = new Hono();
 interface SlackConnectorConfig {
   teamId?: string;
   signing_secret?: string;
-  [key: string]: unknown;
 }
+
+interface ConnectorInfo {
+  id: string;
+  config: unknown;
+  teamId: string;
+}
+
+interface AppHomeOpenedEvent {
+  type: "app_home_opened";
+  user: string;
+  channel: string;
+  tab: "home" | "messages";
+  event_ts: string;
+}
+
+interface AppMentionEvent {
+  type: "app_mention";
+  user: string;
+  text: string;
+  ts: string;
+  channel: string;
+  event_ts: string;
+}
+
+const UI_ONLY_EVENTS = new Set([
+  "app_home_opened",
+  "assistant_thread_started",
+  "assistant_thread_context_changed",
+]);
 
 slackWebhook.post("/events", async (c) => {
   const rawBody = await c.req.text();
@@ -29,6 +71,69 @@ slackWebhook.post("/events", async (c) => {
 
   const { envelope, event } = parseResult;
 
+  const quickResponse = handleQuickResponses(c, envelope);
+  if (quickResponse) {
+    return quickResponse;
+  }
+
+  const validationResult = await validateAndGetConnector(c, rawBody, envelope);
+  if ("error" in validationResult) {
+    return validationResult.error;
+  }
+
+  const { connector } = validationResult;
+
+  // TODO: Check this code again later, For UI_ONLY_EVENTS, use raw event from envelope if parsed event is null
+  const rawEvent = envelope.event as
+    | { type: string; [key: string]: unknown }
+    | undefined;
+
+  if (rawEvent && UI_ONLY_EVENTS.has(rawEvent.type)) {
+    logger.info(
+      { eventType: rawEvent.type, connectorId: connector.id },
+      "Handling UI-only event"
+    );
+    await handleUiOnlyEvent(rawEvent, connector);
+    return c.json({ ok: true });
+  }
+
+  if (!event) {
+    logger.warn(
+      { eventType: rawEvent?.type, connectorId: connector.id },
+      "Failed to parse Slack event"
+    );
+    return c.json({ error: "Missing event in callback" }, 400);
+  }
+
+  if (UI_ONLY_EVENTS.has(event.type)) {
+    await handleUiOnlyEvent(event, connector);
+    return c.json({ ok: true });
+  }
+
+  await handleSyncEvents(event, connector);
+
+  const eventId = envelope.event_id ?? generateEventId(event);
+  await addWebhookJob({
+    connectorId: connector.id,
+    eventId,
+    eventType: event.type,
+    source: "slack",
+    payload: payload as Record<string, unknown>,
+    receivedAt: new Date(),
+  });
+
+  return c.json({ ok: true });
+});
+
+function handleQuickResponses(
+  c: Context,
+  envelope: {
+    type: string;
+    challenge?: string;
+    team_id?: string;
+    event_time?: number;
+  }
+) {
   if (envelope.type === "url_verification") {
     return c.json({ challenge: envelope.challenge });
   }
@@ -41,49 +146,37 @@ slackWebhook.post("/events", async (c) => {
     return c.json({ ok: true });
   }
 
+  return null;
+}
+
+async function validateAndGetConnector(
+  c: Context,
+  rawBody: string,
+  envelope: { team_id?: string }
+): Promise<{ connector: ConnectorInfo } | { error: Response }> {
   const signature = c.req.header("x-slack-signature");
   const timestamp = c.req.header("x-slack-request-timestamp");
 
   if (!(signature && timestamp)) {
-    return c.json({ error: "Missing signature headers" }, 400);
+    return { error: c.json({ error: "Missing signature headers" }, 400) };
   }
+
   const teamId = envelope.team_id;
   if (!teamId) {
-    return c.json({ error: "Missing team_id in event" }, 400);
+    return { error: c.json({ error: "Missing team_id in event" }, 400) };
   }
 
-  const connector = await prisma.connector.findFirst({
-    where: {
-      app: "SLACK",
-      status: "ACTIVE",
-      config: {
-        path: ["teamId"],
-        equals: teamId,
-      },
-    },
-    select: {
-      id: true,
-      config: true,
-      teamId: true,
-    },
-  });
-
+  const connector = await findSlackConnectorByTeamId(prisma, teamId);
   if (!connector) {
     logger.warn({ teamId }, "Slack webhook connector not found");
-    return c.json({ error: "Connector not found" }, 404);
+    return { error: c.json({ error: "Connector not found" }, 404) };
   }
 
   const config = connector.config as SlackConnectorConfig | null;
-  const signingSecret = config?.signing_secret;
-
-  if (signingSecret) {
+  if (config?.signing_secret) {
     const verifyResult = verifySlackSignature(
-      {
-        body: rawBody,
-        signature,
-        timestamp,
-      },
-      signingSecret
+      { body: rawBody, signature, timestamp },
+      config.signing_secret
     );
 
     if (!verifyResult.valid) {
@@ -91,7 +184,7 @@ slackWebhook.post("/events", async (c) => {
         { connectorId: connector.id, reason: verifyResult.reason },
         "Slack webhook invalid signature"
       );
-      return c.json({ error: "Invalid signature" }, 401);
+      return { error: c.json({ error: "Invalid signature" }, 401) };
     }
   } else {
     logger.warn(
@@ -100,23 +193,115 @@ slackWebhook.post("/events", async (c) => {
     );
   }
 
-  if (!event) {
-    return c.json({ error: "Missing event in callback" }, 400);
+  return { connector };
+}
+
+async function handleUiOnlyEvent(
+  event: { type: string; [key: string]: unknown },
+  connector: ConnectorInfo
+) {
+  if (event.type === "app_home_opened") {
+    try {
+      const client = await getSlackClientForConnector(
+        connector.id,
+        connector.teamId
+      );
+      const homeEvent = event as unknown as AppHomeOpenedEvent;
+      await handleAppHomeOpened(client, homeEvent, connector.id, {
+        stateStore: createStateStore(),
+      });
+    } catch (error) {
+      logger.error(
+        { error, connectorId: connector.id },
+        "Failed to handle app_home_opened"
+      );
+    }
   }
 
-  const eventId = envelope.event_id ?? generateEventId(event);
+  if (event.type === "assistant_thread_started") {
+    logger.info(
+      { connectorId: connector.id, event },
+      "Processing assistant_thread_started"
+    );
+    try {
+      const client = await getSlackClientForConnector(
+        connector.id,
+        connector.teamId
+      );
+      const threadEvent = event as unknown as AssistantThreadStartedEvent;
+      await handleAssistantThreadStarted(
+        client,
+        threadEvent,
+        connector.id,
+        connector.teamId
+      );
+      logger.info(
+        { connectorId: connector.id },
+        "Successfully handled assistant_thread_started"
+      );
+    } catch (error) {
+      logger.error(
+        { error, connectorId: connector.id },
+        "Failed to handle assistant_thread_started"
+      );
+    }
+  }
 
-  await addWebhookJob({
-    connectorId: connector.id,
-    eventId,
-    eventType: event.type,
-    source: "slack",
-    payload: payload as Record<string, unknown>,
-    receivedAt: new Date(),
+  if (event.type === "assistant_thread_context_changed") {
+    try {
+      const client = await getSlackClientForConnector(
+        connector.id,
+        connector.teamId
+      );
+      const contextEvent =
+        event as unknown as AssistantThreadContextChangedEvent;
+      await handleAssistantContextChanged(
+        client,
+        contextEvent,
+        connector.id,
+        connector.teamId
+      );
+    } catch (error) {
+      logger.error(
+        { error, connectorId: connector.id },
+        "Failed to handle assistant_thread_context_changed"
+      );
+    }
+  }
+}
+
+async function handleSyncEvents(
+  event: { type: string; [key: string]: unknown },
+  connector: ConnectorInfo
+) {
+  if (event.type === "app_mention") {
+    const mentionEvent = event as unknown as AppMentionEvent;
+    try {
+      const client = await getSlackClientForConnector(connector.id);
+      await addReaction(client, mentionEvent.channel, mentionEvent.ts, "eyes");
+    } catch (error) {
+      logger.debug(
+        { error, channel: mentionEvent.channel, ts: mentionEvent.ts },
+        "Failed to add reaction to app_mention"
+      );
+    }
+  }
+}
+
+async function getSlackClientForConnector(
+  connectorId: string,
+  teamId?: string
+) {
+  const credentials = await getDecryptedOAuthCredentials(prisma, connectorId);
+  if (!credentials?.accessToken) {
+    throw new Error("No access token");
+  }
+  return createSlackClient({
+    token: credentials.accessToken,
+    connectorId,
+    teamId,
   });
-
-  return c.json({ ok: true });
-});
+}
 
 function generateEventId(event: {
   type: string;
