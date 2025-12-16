@@ -5,7 +5,8 @@ export type SyncStatus =
   | "ACTIVE"
   | "ERROR"
   | "INACTIVE"
-  | "CONNECTING";
+  | "CONNECTING"
+  | "DELETING";
 
 export type SyncStatusConfig = {
   label: string;
@@ -54,6 +55,12 @@ export const SYNC_STATUS_CONFIG: Record<SyncStatus, SyncStatusConfig> = {
     className: STATUS_STYLES.warning,
     icon: Icons.Loader2Icon,
     iconClass: "animate-spin",
+  },
+  DELETING: {
+    label: "Deleting",
+    className: STATUS_STYLES.error,
+    icon: Icons.Clock,
+    iconClass: "",
   },
 };
 

@@ -10,8 +10,11 @@ import { SyncStatusBadge } from "@/components/sync/sync-status-badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useConnector } from "@/hooks/use-connector";
+import { useRestoreConnector } from "@/hooks/use-connectors";
 import { useSyncStatus } from "@/hooks/use-sync";
+import { useIsAdmin } from "@/hooks/use-user-role";
 import { ConnectorDetailTabs } from "./connector-detail-tabs";
+import { DeletionWarningBanner } from "./deletion-warning-banner";
 
 type ConnectorDetailPageProps = {
   connectorId: string;
@@ -47,6 +50,8 @@ export function ConnectorDetailPage({ connectorId }: ConnectorDetailPageProps) {
   const { data: syncStatus } = useSyncStatus(connectorId, {
     enabled: !!connectorId,
   });
+  const restoreMutation = useRestoreConnector();
+  const isAdmin = useIsAdmin();
 
   if (isLoading) {
     return <DetailPageSkeleton />;
@@ -91,9 +96,20 @@ export function ConnectorDetailPage({ connectorId }: ConnectorDetailPageProps) {
     syncStatus?.connector?.status || connector.status || "ACTIVE";
   const lastSyncedAt =
     syncStatus?.connector?.lastSyncedAt || connector.lastSyncedAt;
+  const isDeleting = connectorStatus === "DELETING";
+  const scheduledDeletionAt = syncStatus?.connector?.scheduledDeletionAt;
 
   return (
     <div className="space-y-6">
+      {isDeleting && scheduledDeletionAt && (
+        <DeletionWarningBanner
+          canRestore={isAdmin}
+          isRestoring={restoreMutation.isPending}
+          onCancel={() => restoreMutation.mutate(connectorId)}
+          scheduledDeletionAt={new Date(scheduledDeletionAt)}
+        />
+      )}
+
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm">
         <Link
@@ -126,7 +142,8 @@ export function ConnectorDetailPage({ connectorId }: ConnectorDetailPageProps) {
                     | "ACTIVE"
                     | "ERROR"
                     | "INACTIVE"
-                    | "CONNECTING",
+                    | "CONNECTING"
+                    | "DELETING",
                   totalIndexed: syncStatus?.stats?.totalIndexed ?? 0,
                   lastSyncedAt: lastSyncedAt ?? null,
                   error: syncStatus?.connector?.lastError ?? null,

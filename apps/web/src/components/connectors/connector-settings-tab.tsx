@@ -3,6 +3,7 @@
 import { SyncSettingsForm } from "@/components/forms/sync-settings-form";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSyncStatus } from "@/hooks/use-sync";
+import { DangerZone } from "./danger-zone";
 
 function SettingsSkeleton() {
   return (
@@ -30,11 +31,21 @@ export function ConnectorSettingsTab({ connectorId }: { connectorId: string }) {
     return <SettingsSkeleton />;
   }
 
+  const connectorStatus = syncStatus?.connector?.status ?? "ACTIVE";
+  const scheduledDeletionAt = syncStatus?.connector?.scheduledDeletionAt;
+
   return (
-    <SyncSettingsForm
-      connectorId={connectorId}
-      fullSyncJob={syncStatus?.syncJobs?.full ?? null}
-      incrementalSyncJob={syncStatus?.syncJobs?.incremental ?? null}
-    />
+    <div>
+      <SyncSettingsForm
+        connectorId={connectorId}
+        fullSyncJob={syncStatus?.syncJobs?.full ?? null}
+        incrementalSyncJob={syncStatus?.syncJobs?.incremental ?? null}
+      />
+      <DangerZone
+        connectorId={connectorId}
+        scheduledDeletionAt={scheduledDeletionAt}
+        status={connectorStatus}
+      />
+    </div>
   );
 }
