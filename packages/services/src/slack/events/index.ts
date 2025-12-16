@@ -22,7 +22,10 @@ export {
   verifySlackSignature,
 } from "./parser";
 export type {
+  AppHomeOpenedEvent,
   AppMentionEvent,
+  AssistantThreadContextChangedEvent,
+  AssistantThreadStartedEvent,
   BaseEvent,
   ChannelArchiveEvent,
   ChannelCreatedEvent,
@@ -44,6 +47,9 @@ export type {
   UserChangeEvent,
 } from "./types";
 export {
+  AppHomeOpenedEventSchema,
+  AssistantThreadContextChangedEventSchema,
+  AssistantThreadStartedEventSchema,
   MessageChangedEventSchema,
   MessageDeletedEventSchema,
   MessageEventSchema,

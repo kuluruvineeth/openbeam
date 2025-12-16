@@ -1,6 +1,9 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import {
+  AppHomeOpenedEventSchema,
   AppMentionEventSchema,
+  AssistantThreadContextChangedEventSchema,
+  AssistantThreadStartedEventSchema,
   ChannelArchiveEventSchema,
   ChannelCreatedEventSchema,
   ChannelDeletedEventSchema,
@@ -116,19 +119,22 @@ type EventSchema = {
 };
 
 const EVENT_SCHEMAS: Record<string, EventSchema> = {
-  reaction_added: ReactionAddedEventSchema,
-  reaction_removed: ReactionRemovedEventSchema,
-  channel_created: ChannelCreatedEventSchema,
-  channel_rename: ChannelRenameEventSchema,
+  app_home_opened: AppHomeOpenedEventSchema,
+  app_mention: AppMentionEventSchema,
+  assistant_thread_context_changed: AssistantThreadContextChangedEventSchema,
+  assistant_thread_started: AssistantThreadStartedEventSchema,
   channel_archive: ChannelArchiveEventSchema,
-  channel_unarchive: ChannelUnarchiveEventSchema,
+  channel_created: ChannelCreatedEventSchema,
   channel_deleted: ChannelDeletedEventSchema,
+  channel_rename: ChannelRenameEventSchema,
+  channel_unarchive: ChannelUnarchiveEventSchema,
+  file_deleted: FileDeletedEventSchema,
+  file_shared: FileSharedEventSchema,
   member_joined_channel: MemberJoinedChannelEventSchema,
   member_left_channel: MemberLeftChannelEventSchema,
+  reaction_added: ReactionAddedEventSchema,
+  reaction_removed: ReactionRemovedEventSchema,
   user_change: UserChangeEventSchema,
-  file_shared: FileSharedEventSchema,
-  file_deleted: FileDeletedEventSchema,
-  app_mention: AppMentionEventSchema,
 };
 
 const MESSAGE_SUBTYPE_SCHEMAS: Record<string, EventSchema> = {

@@ -1,5 +1,6 @@
 import type { Entity, GenericDocument } from "@openplane/vespa";
 import { getAllChannelMembers, getChannelInfo } from "../api/channels";
+import { fetchSingleMessage } from "../api/messages";
 import type { SlackClient } from "../client";
 import {
   type MessageTransformContext,
@@ -67,7 +68,7 @@ function dispatchMessageEvent(
 function dispatchReactionEvent(
   event: SlackEvent,
   context: EventHandlerContext
-): EventHandlerResult {
+): Promise<EventHandlerResult> {
   if (event.type === "reaction_added") {
     return handleReactionAddedEvent(event as ReactionAddedEvent, context);
   }
@@ -113,7 +114,7 @@ export async function handleSlackEvent(
       return await dispatchMessageEvent(event, context);
     }
     if (isReactionEvent(event)) {
-      return dispatchReactionEvent(event, context);
+      return await dispatchReactionEvent(event, context);
     }
     if (isChannelEvent(event)) {
       return dispatchChannelEvent(event, context);
@@ -225,18 +226,64 @@ function handleMessageDeletedEvent(
   };
 }
 
+async function handleReactionEvent(
+  event: ReactionAddedEvent | ReactionRemovedEvent,
+  context: EventHandlerContext
+): Promise<EventHandlerResult> {
+  const { client, channelCache, memberCache } = context;
+
+  if (event.item.type !== "message") {
+    return { changes: [], errors: [] };
+  }
+
+  const channelId = event.item.channel;
+  const messageTs = event.item.ts;
+
+  if (!(channelId && messageTs)) {
+    return { changes: [], errors: [] };
+  }
+
+  const message = await fetchSingleMessage(client, channelId, messageTs);
+  if (!message) {
+    return { changes: [], errors: [] };
+  }
+
+  const channel = await getChannelFromCache(client, channelId, channelCache);
+  if (!channel) {
+    return { changes: [], errors: [] };
+  }
+
+  let channelMembers: string[] | undefined;
+  if (channel.is_private) {
+    channelMembers = await getMembersFromCache(client, channel.id, memberCache);
+  }
+
+  const transformContext: MessageTransformContext = {
+    ...context,
+    channel,
+    channelMembers,
+  };
+
+  const document = transformMessage(message, transformContext);
+
+  return {
+    changes: [{ operation: "update", document }],
+    errors: [],
+  };
+}
+
 function handleReactionAddedEvent(
-  _event: ReactionAddedEvent,
-  _context: EventHandlerContext
-): EventHandlerResult {
-  return { changes: [], errors: [] };
+  event: ReactionAddedEvent,
+  context: EventHandlerContext
+): Promise<EventHandlerResult> {
+  return handleReactionEvent(event, context);
 }
 
 function handleReactionRemovedEvent(
-  _event: ReactionRemovedEvent,
-  _context: EventHandlerContext
-): EventHandlerResult {
-  return { changes: [], errors: [] };
+  event: ReactionRemovedEvent,
+  context: EventHandlerContext
+): Promise<EventHandlerResult> {
+  return handleReactionEvent(event, context);
 }
 
 function handleChannelCreatedEvent(

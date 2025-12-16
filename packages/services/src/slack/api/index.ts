@@ -1,4 +1,32 @@
 export {
+  addBookmark,
+  type BookmarkSyncResult,
+  type BookmarkType,
+  filterBookmarksByType,
+  groupBookmarksByChannel,
+  listAllBookmarks,
+  listBookmarks,
+  listBookmarksForChannels,
+  removeBookmark,
+  type SlackBookmark,
+  syncAllBookmarks,
+  syncBookmarks,
+  transformBookmarkToDocument,
+} from "./bookmarks";
+export {
+  type CanvasAccessLevel,
+  type CanvasSyncResult,
+  getCanvasContent,
+  getCanvasWithContent,
+  type ListCanvasesOptions,
+  listAllCanvases,
+  listCanvases,
+  type SlackCanvas,
+  syncAllCanvases,
+  syncCanvas,
+  transformCanvasToDocument,
+} from "./canvas";
+export {
   buildChannelMemberMap,
   filterChannelsByType,
   type GetMembersOptions,
@@ -11,7 +39,18 @@ export {
   type ListChannelsOptions,
   listChannels,
 } from "./channels";
-
+export {
+  type ClipSyncResult,
+  getClipInfo,
+  getClipTranscript,
+  type ListClipsOptions,
+  listAllClips,
+  listClips,
+  type SlackClip,
+  syncAllClips,
+  syncClip,
+  transformClipToDocument,
+} from "./clips";
 export {
   filterSupportedFiles,
   type GetFileInfoResponse,
@@ -24,7 +63,6 @@ export {
   type ListFilesResponse,
   listFiles,
 } from "./files";
-
 export {
   type FetchMessagesOptions,
   type FetchRepliesOptions,
@@ -32,6 +70,7 @@ export {
   fetchMessages,
   fetchMessagesSince,
   fetchMessagesWithReplies,
+  fetchSingleMessage,
   fetchThreadReplies,
   fetchThreadRepliesSince,
   getAllMessages,
@@ -45,6 +84,7 @@ export {
   slackTsToMs,
   sortMessagesByTimestamp,
 } from "./messages";
+export { addReaction, removeReaction, updateReaction } from "./reactions";
 export {
   buildSearchQuery,
   extractChannelIds,

@@ -103,6 +103,48 @@ export async function getAllMessages(
   return messages;
 }
 
+export async function fetchSingleMessage(
+  client: SlackClient,
+  channelId: string,
+  ts: string
+): Promise<SlackMessage | null> {
+  const historyResponse = await client.call<ConversationsHistoryResponse>(
+    "conversations.history",
+    {
+      channel: channelId,
+      oldest: ts,
+      latest: ts,
+      inclusive: true,
+      limit: 1,
+    }
+  );
+
+  const historyMessage = historyResponse.messages?.[0];
+  if (historyMessage) {
+    const parsed = SlackMessageSchema.safeParse(historyMessage);
+    if (parsed.success) {
+      return parsed.data;
+    }
+  }
+
+  const repliesResponse = await client.call<ConversationsRepliesResponse>(
+    "conversations.replies",
+    {
+      channel: channelId,
+      ts,
+      limit: 1,
+    }
+  );
+
+  const replyMessage = repliesResponse.messages?.[0];
+  if (!replyMessage) {
+    return null;
+  }
+
+  const parsed = SlackMessageSchema.safeParse(replyMessage);
+  return parsed.success ? parsed.data : null;
+}
+
 export async function* fetchThreadReplies(
   client: SlackClient,
   channelId: string,

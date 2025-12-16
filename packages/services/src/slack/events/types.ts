@@ -260,6 +260,72 @@ export const AppMentionEventSchema = z.object({
 
 export type AppMentionEvent = z.infer<typeof AppMentionEventSchema>;
 
+export const AssistantThreadStartedEventSchema = z
+  .object({
+    type: z.literal("assistant_thread_started"),
+    assistant_thread: z
+      .object({
+        user_id: z.string(),
+        context: z
+          .object({
+            channel_id: z.string().optional(),
+            team_id: z.string().optional(),
+            enterprise_id: z.string().optional(),
+          })
+          .passthrough(),
+        channel_id: z.string(),
+        thread_ts: z.string(),
+      })
+      .passthrough(),
+    event_ts: z.string().optional(),
+  })
+  .passthrough();
+
+export type AssistantThreadStartedEvent = z.infer<
+  typeof AssistantThreadStartedEventSchema
+>;
+
+export const AssistantThreadContextChangedEventSchema = z
+  .object({
+    type: z.literal("assistant_thread_context_changed"),
+    assistant_thread: z
+      .object({
+        user_id: z.string(),
+        context: z
+          .object({
+            channel_id: z.string().optional(),
+            team_id: z.string().optional(),
+            enterprise_id: z.string().optional(),
+          })
+          .passthrough(),
+        channel_id: z.string(),
+        thread_ts: z.string(),
+      })
+      .passthrough(),
+    event_ts: z.string().optional(),
+  })
+  .passthrough();
+
+export type AssistantThreadContextChangedEvent = z.infer<
+  typeof AssistantThreadContextChangedEventSchema
+>;
+
+export const AppHomeOpenedEventSchema = z.object({
+  type: z.literal("app_home_opened"),
+  user: z.string(),
+  channel: z.string(),
+  tab: z.enum(["home", "messages"]),
+  event_ts: z.string(),
+  view: z
+    .object({
+      id: z.string(),
+      type: z.string(),
+    })
+    .optional(),
+});
+
+export type AppHomeOpenedEvent = z.infer<typeof AppHomeOpenedEventSchema>;
+
 export type SlackEvent =
   | MessageEvent
   | MessageChangedEvent
@@ -276,6 +342,9 @@ export type SlackEvent =
   | UserChangeEvent
   | FileSharedEvent
   | FileDeletedEvent
-  | AppMentionEvent;
+  | AppMentionEvent
+  | AssistantThreadStartedEvent
+  | AssistantThreadContextChangedEvent
+  | AppHomeOpenedEvent;
 
 export type SlackEventType = SlackEvent["type"];
