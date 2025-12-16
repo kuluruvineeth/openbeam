@@ -257,3 +257,99 @@ export function useBulkResume(callbacks?: MutationCallbacks) {
     },
   });
 }
+
+export function useDisconnectConnector(callbacks?: MutationCallbacks) {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (appId: string) => {
+      const mutationFn = trpc.apps.disconnect.mutationOptions().mutationFn;
+      if (!mutationFn) {
+        throw new Error("disconnect mutation function not available");
+      }
+      return (mutationFn as (input: { appId: string }) => Promise<unknown>)({
+        appId,
+      });
+    },
+    onSuccess: async (_data, appId) => {
+      await invalidateConnectorsQueries(trpc, queryClient, [appId]);
+      callbacks?.onSuccess?.();
+    },
+    onError: (error) => {
+      callbacks?.onError?.(error);
+    },
+  });
+}
+
+export function useRestoreConnector(callbacks?: MutationCallbacks) {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (appId: string) => {
+      const mutationFn = trpc.apps.restore.mutationOptions().mutationFn;
+      if (!mutationFn) {
+        throw new Error("restore mutation function not available");
+      }
+      return (mutationFn as (input: { appId: string }) => Promise<unknown>)({
+        appId,
+      });
+    },
+    onSuccess: async (_data, appId) => {
+      await invalidateConnectorsQueries(trpc, queryClient, [appId]);
+      callbacks?.onSuccess?.();
+    },
+    onError: (error) => {
+      callbacks?.onError?.(error);
+    },
+  });
+}
+
+export function usePauseConnector(callbacks?: MutationCallbacks) {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (connectorId: string) => {
+      const mutationFn = trpc.apps.pauseConnector.mutationOptions().mutationFn;
+      if (!mutationFn) {
+        throw new Error("pauseConnector mutation function not available");
+      }
+      return (
+        mutationFn as (input: { connectorId: string }) => Promise<unknown>
+      )({ connectorId });
+    },
+    onSuccess: async (_data, connectorId) => {
+      await invalidateConnectorsQueries(trpc, queryClient, [connectorId]);
+      callbacks?.onSuccess?.();
+    },
+    onError: (error) => {
+      callbacks?.onError?.(error);
+    },
+  });
+}
+
+export function useResumeConnector(callbacks?: MutationCallbacks) {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (connectorId: string) => {
+      const mutationFn = trpc.apps.resumeConnector.mutationOptions().mutationFn;
+      if (!mutationFn) {
+        throw new Error("resumeConnector mutation function not available");
+      }
+      return (
+        mutationFn as (input: { connectorId: string }) => Promise<unknown>
+      )({ connectorId });
+    },
+    onSuccess: async (_data, connectorId) => {
+      await invalidateConnectorsQueries(trpc, queryClient, [connectorId]);
+      callbacks?.onSuccess?.();
+    },
+    onError: (error) => {
+      callbacks?.onError?.(error);
+    },
+  });
+}
