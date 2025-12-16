@@ -1,5 +1,7 @@
 export * from "./cleanup-queue";
 export { closeCleanupQueue } from "./cleanup-queue";
+export * from "./connector-cleanup-queue";
+export { closeConnectorCleanupQueue } from "./connector-cleanup-queue";
 export * from "./digest-queue";
 export { closeDigestQueue } from "./digest-queue";
 export * from "./file-processing-queue";
