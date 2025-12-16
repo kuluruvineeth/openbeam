@@ -49,8 +49,8 @@ export const slackApp: UnifiedApp = {
       authUrl: "https://slack.com/oauth/v2/authorize",
       tokenUrl: "https://slack.com/api/oauth.v2.access",
       redirectPath: "/connectors/setup/slack/oauth/callback",
-      // Default scopes - can be overridden by user configuration if needed
       scopes: [
+        // Reading content
         "channels:read",
         "channels:history",
         "groups:read",
@@ -62,8 +62,28 @@ export const slackApp: UnifiedApp = {
         "users:read",
         "users:read.email",
         "team:read",
-        "chat:write",
         "files:read",
+
+        // Writing & interactions
+        "chat:write",
+
+        // AI assistant features
+        "app_mentions:read",
+        "reactions:read",
+        "reactions:write",
+
+        // Slash commands
+        "commands",
+
+        // DMs for digest delivery
+        "im:write",
+
+        // AI Assistant Sidebar
+        "assistant:write",
+
+        // Bookmarks
+        "bookmarks:read",
+        "bookmarks:write",
       ],
     },
   },
@@ -258,6 +278,53 @@ export const slackApp: UnifiedApp = {
       value: "25",
       placeholder: "25",
       dependsOn: { field: "sync_mode", value: "federated" },
+    },
+    // Canvas, Clips, Bookmarks
+    {
+      id: "index_canvases",
+      label: "Index Canvases",
+      description:
+        "Index Slack Canvas documents for search. Canvases are collaborative documents within Slack.",
+      type: "switch",
+      required: false,
+      value: true,
+    },
+    {
+      id: "index_clips",
+      label: "Index Clips",
+      description:
+        "Index Slack Clips (video/audio recordings) including transcripts when available.",
+      type: "switch",
+      required: false,
+      value: true,
+    },
+    {
+      id: "index_bookmarks",
+      label: "Index Bookmarks",
+      description:
+        "Index channel bookmarks for quick access to important links and resources.",
+      type: "switch",
+      required: false,
+      value: true,
+    },
+    // Slack Connect
+    {
+      id: "sync_external_channels",
+      label: "Index Slack Connect Channels",
+      description:
+        "Index messages from external shared channels (Slack Connect). Only content from users in your organization will be indexed by default.",
+      type: "switch",
+      required: false,
+      value: true,
+    },
+    {
+      id: "index_external_content",
+      label: "Index External User Content",
+      description:
+        "Include messages from external users in Slack Connect channels. Disable to only index messages from your organization.",
+      type: "switch",
+      required: false,
+      value: false,
     },
   ],
 };
