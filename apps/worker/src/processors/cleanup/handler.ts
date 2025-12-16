@@ -172,6 +172,7 @@ async function cleanupOrphanedDocuments(): Promise<number> {
 async function pruneDisabledConnectors(): Promise<number> {
   logger.debug("Pruning documents from disabled connectors");
 
+  // Skip DELETING status - handled by connector-cleanup-queue
   const disabledConnectors = await findConnectorsByStatus(prisma, [
     "INACTIVE",
     "ERROR",
