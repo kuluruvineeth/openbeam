@@ -2,6 +2,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   AddIcon,
   Alert01Icon,
+  Alert02Icon,
   ArrowDownIcon,
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -271,4 +272,5 @@ export const Icons = {
   Pin: createIcon(PinIcon),
   Menu: createIcon(Menu01Icon),
   ChevronUp: createIcon(ArrowUpIcon),
+  Alert02: createIcon(Alert02Icon),
 };
