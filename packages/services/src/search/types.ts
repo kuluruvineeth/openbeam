@@ -26,6 +26,7 @@ export interface SearchParams {
   documentTypes?: string[];
   authorId?: string;
   sourceId?: string;
+  sourceIds?: string[];
   sourceTypes?: string[];
   statuses?: string[];
   priorities?: string[];

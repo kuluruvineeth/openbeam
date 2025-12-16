@@ -11,6 +11,7 @@ import {
   vespaClient,
 } from "@openplane/vespa";
 import { getOrGenerateEmbedding } from "../ai/embedding-cache";
+import { logger } from "../lib/logger";
 import type {
   AuthorSearchParams,
   DocumentSearchResult,
@@ -44,6 +45,7 @@ function escapeYqlString(value: string): string {
 }
 
 export class SearchService {
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: This is a complex search query
   async search(params: SearchParams): Promise<DocumentSearchResult> {
     const startTime = Date.now();
     let embeddingTime: number | undefined;
@@ -92,7 +94,7 @@ export class SearchService {
         embeddingTime,
       };
     } catch (error) {
-      console.error("Search error:", error);
+      logger.error({ error }, "Search error");
       throw new Error(
         `Search failed: ${error instanceof Error ? error.message : "Unknown error"}`
       );
@@ -142,6 +144,39 @@ export class SearchService {
   private async searchMediaWithScores(
     params: MediaSearchParams
   ): Promise<ScoredMediaSearchResult> {
+    logger.debug(
+      { query: params.query, teamId: params.teamId, limit: params.limit },
+      "searchMediaWithScores starting"
+    );
+
+    try {
+      const debugYql = `select * from media_document where team_id contains "${escapeYqlString(params.teamId)}" limit 5`;
+      const debugResult = await vespaClient.queryMedia({
+        yql: debugYql,
+        hits: 5,
+      });
+      const debugCount = debugResult.root.fields?.totalCount ?? 0;
+      logger.debug(
+        {
+          totalCount: debugCount,
+          titles: debugResult.root.children
+            ?.map((c) => c.fields.title)
+            .slice(0, 3),
+          accessControl: debugResult.root.children
+            ?.map((c) => ({
+              title: c.fields.title,
+              is_public: c.fields.is_public,
+              access_control: c.fields.access_control,
+            }))
+            .slice(0, 3),
+          requestedAcl: params.accessControlIds,
+        },
+        "searchMediaWithScores DEBUG: Total media for team (no ACL)"
+      );
+    } catch (e) {
+      logger.debug({ error: e }, "searchMediaWithScores DEBUG query failed");
+    }
+
     let embeddingTime: number | undefined;
 
     const ranking = params.ranking || "hybrid";
@@ -152,11 +187,20 @@ export class SearchService {
       const embeddingStart = Date.now();
       mediaEmbedding = await this.getMediaQueryEmbedding(params.query);
       embeddingTime = Date.now() - embeddingStart;
+      logger.debug(
+        { hasEmbedding: mediaEmbedding !== null, embeddingTime },
+        "searchMediaWithScores media embedding"
+      );
     }
 
     const includeVectorSearch = useSemanticSearch && mediaEmbedding !== null;
     const effectiveRanking = includeVectorSearch ? ranking : "bm25";
     const yql = this.buildMediaSearchYQL(params, includeVectorSearch);
+
+    logger.debug(
+      { yql, ranking: effectiveRanking, includeVectorSearch },
+      "searchMediaWithScores query"
+    );
 
     const queryParams: MediaQueryParams = {
       yql,
@@ -175,6 +219,11 @@ export class SearchService {
     const media = this.extractMediaWithScores(vespaResult);
     const total = vespaResult.root.fields?.totalCount ?? media.length;
 
+    logger.debug(
+      { mediaCount: media.length, total, firstMediaTitle: media[0]?.title },
+      "searchMediaWithScores results"
+    );
+
     return { media, total, embeddingTime };
   }
 
@@ -187,9 +236,9 @@ export class SearchService {
         embedQuery(query)
       );
     } catch (error) {
-      console.warn(
-        "Failed to generate query embedding, using BM25 only:",
-        error
+      logger.warn(
+        { error },
+        "Failed to generate query embedding, using BM25 only"
       );
       return null;
     }
@@ -345,7 +394,15 @@ export class SearchService {
 
     pushContains("connector_id", params.connectorId);
     pushContains("author_id", params.authorId);
-    pushContains("source_id", params.sourceId);
+
+    if (params.sourceIds && params.sourceIds.length > 0) {
+      const sourceConditions = params.sourceIds
+        .map((id) => `source_id contains "${escapeYqlString(id)}"`)
+        .join(" or ");
+      conditions.push(`(${sourceConditions})`);
+    } else if (params.sourceId) {
+      pushContains("source_id", params.sourceId);
+    }
 
     if (params.fromDate) {
       conditions.push(`created_at >= ${params.fromDate}`);
@@ -493,7 +550,7 @@ export class SearchService {
         embeddingTime,
       };
     } catch (error) {
-      console.error("Media search error:", error);
+      logger.error({ error }, "Media search error");
       throw new Error(
         `Media search failed: ${error instanceof Error ? error.message : "Unknown error"}`
       );
@@ -503,6 +560,17 @@ export class SearchService {
   async searchUnified(
     params: UnifiedSearchParams
   ): Promise<UnifiedSearchResult> {
+    logger.debug(
+      {
+        query: params.query,
+        teamId: params.teamId,
+        includeDocuments: params.includeDocuments,
+        includeMedia: params.includeMedia,
+        limit: params.limit,
+      },
+      "searchUnified starting"
+    );
+
     const startTime = Date.now();
     const includeDocuments = params.includeDocuments ?? true;
     const includeMedia = params.includeMedia ?? true;
@@ -545,6 +613,16 @@ export class SearchService {
     const documentTotal = docResults?.total || 0;
     const mediaTotal = mediaResults?.total || 0;
 
+    logger.debug(
+      {
+        documentCount: scoredDocuments.length,
+        mediaCount: scoredMedia.length,
+        documentTotal,
+        mediaTotal,
+      },
+      "searchUnified results summary"
+    );
+
     const items: UnifiedSearchItem[] = [
       ...scoredDocuments.map((doc) => ({
         type: "document" as const,
@@ -575,15 +653,29 @@ export class SearchService {
     query: string
   ): Promise<number[] | null> {
     try {
-      if (!process.env.TWELVELABS_API_KEY) {
+      const hasApiKey = !!process.env.TWELVELABS_API_KEY;
+      logger.debug(
+        { hasApiKey, query },
+        "getMediaQueryEmbedding checking TwelveLabs"
+      );
+
+      if (!hasApiKey) {
+        logger.debug(
+          "getMediaQueryEmbedding: No TWELVELABS_API_KEY, using BM25 only"
+        );
         return null;
       }
 
       const { TwelveLabsClient } = await import("@openplane/media");
       const client = new TwelveLabsClient();
-      return await client.embedText(query);
+      const embedding = await client.embedText(query);
+      logger.debug(
+        { embeddingLength: embedding?.length },
+        "getMediaQueryEmbedding got embedding"
+      );
+      return embedding;
     } catch (error) {
-      console.warn("Failed to generate media query embedding:", error);
+      logger.warn({ error }, "getMediaQueryEmbedding failed");
       return null;
     }
   }

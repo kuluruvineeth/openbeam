@@ -6,13 +6,14 @@ import {
   type StreamChunk,
   streamCompletion,
 } from "@openplane/ai";
-import { hybridSearch } from "./hybrid-search";
+import { searchService } from "../search/service";
+import type { ScoredMedia, SearchScoredDocument } from "../search/types";
 import type {
-  Citation,
-  ContextDocument,
   RAGAnswer,
   RAGAnswerParams,
+  RAGCitation,
   RAGContext,
+  RAGContextDocument,
   RAGContextParams,
 } from "./types";
 
@@ -22,18 +23,27 @@ const DEFAULT_CONFIG = {
   minScore: 0.2,
 };
 
-const DEFAULT_RAG_PROMPT = `You are a helpful AI assistant that answers questions based on the provided context from your organization's knowledge base.
+const DEFAULT_RAG_PROMPT = `Answer questions using the provided context. Your response MUST be under 2500 characters.
 
-Instructions:
-- Answer the user's question based primarily on the provided context documents
-- If the context doesn't contain enough information to fully answer, say so clearly
-- Cite your sources by referencing document titles when making specific claims
-- Be concise but comprehensive in your response
-- If you're unsure about something, acknowledge the uncertainty
-- Format your response using markdown for better readability
-- Do not make up information that isn't in the context`;
+Format using Slack mrkdwn (NOT standard markdown):
+- Use *bold* (single asterisk) not **bold**
+- Use _italic_ (underscores)
+- Use flat bullet points with • or -
+- Use \`code\` for inline code
+- Never use **bold** or [links](url) markdown syntax
 
-// biome-ignore lint/complexity: RAG context building has inherent complexity for token management
+Rules:
+- Answer ONLY from the provided context documents
+- If context is insufficient, say "I couldn't find enough information to answer this"
+- Be extremely concise - prefer short paragraphs and bullet points
+- Maximum 5 bullet points per list
+- One sentence per bullet, no sub-bullets
+- Cite sources by mentioning document titles inline
+- Never make up information not in the context
+- Never include lengthy explanations or caveats
+- Get straight to the answer`;
+
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: RAG context building requires handling both documents and media with token management
 export async function buildRAGContext(
   params: RAGContextParams
 ): Promise<RAGContext> {
@@ -44,61 +54,44 @@ export async function buildRAGContext(
     teamId,
     maxTokens = DEFAULT_CONFIG.maxTokens,
     topK = DEFAULT_CONFIG.topK,
-    minScore = DEFAULT_CONFIG.minScore,
     accessControlIds,
     includeMetadata = false,
   } = params;
 
-  const searchResult = await hybridSearch({
+  const searchResult = await searchService.searchUnified({
     query,
     teamId,
     limit: topK * 2,
-    minScore,
     accessControlIds,
+    includeDocuments: true,
+    includeMedia: true,
   });
 
-  const documents: ContextDocument[] = [];
+  const documents: RAGContextDocument[] = [];
   let totalTokens = 0;
   let truncated = false;
 
-  for (const doc of searchResult.documents) {
-    let content = doc.content || "";
+  for (const item of searchResult.items) {
+    const { content, title, url, source, connectorType, sourceType } =
+      item.type === "media"
+        ? extractMediaContent(item.data, includeMetadata)
+        : extractDocumentContent(item.data, includeMetadata);
 
-    if (includeMetadata) {
-      const meta: string[] = [];
-      if (doc.connector_type) {
-        meta.push(`Source: ${doc.connector_type}`);
-      }
-      if (doc.source_name) {
-        meta.push(`Channel/Folder: ${doc.source_name}`);
-      }
-      if (doc.author_name) {
-        meta.push(`Author: ${doc.author_name}`);
-      }
-      if (doc.created_at) {
-        const date = new Date(doc.created_at).toLocaleDateString();
-        meta.push(`Date: ${date}`);
-      }
-      if (meta.length > 0) {
-        content = `[${meta.join(" | ")}]\n${content}`;
-      }
-    }
-
-    const tokenCount =
-      estimateTokens(content) + estimateTokens(doc.title || "");
+    const tokenCount = estimateTokens(content) + estimateTokens(title);
 
     if (totalTokens + tokenCount > maxTokens) {
       const remainingTokens = maxTokens - totalTokens;
       if (remainingTokens > 100) {
         const truncatedContent = content.slice(0, remainingTokens * 4);
         documents.push({
-          id: doc.id,
-          title: doc.title || "Untitled",
+          id: item.type === "media" ? item.data.id : item.data.id,
+          title,
           content: `${truncatedContent}...`,
-          url: doc.url,
-          source: doc.source_name,
-          connectorType: doc.connector_type,
-          relevanceScore: doc.relevanceScore,
+          url,
+          source,
+          connectorType,
+          sourceType,
+          relevanceScore: item.relevance,
           tokenCount: estimateTokens(truncatedContent),
         });
         totalTokens += estimateTokens(truncatedContent);
@@ -108,13 +101,14 @@ export async function buildRAGContext(
     }
 
     documents.push({
-      id: doc.id,
-      title: doc.title || "Untitled",
+      id: item.type === "media" ? item.data.id : item.data.id,
+      title,
       content,
-      url: doc.url,
-      source: doc.source_name,
-      connectorType: doc.connector_type,
-      relevanceScore: doc.relevanceScore,
+      url,
+      source,
+      connectorType,
+      sourceType,
+      relevanceScore: item.relevance,
       tokenCount,
     });
 
@@ -130,6 +124,86 @@ export async function buildRAGContext(
     totalTokens,
     truncated,
     retrievalTime: Date.now() - startTime,
+  };
+}
+
+interface ExtractedContent {
+  content: string;
+  title: string;
+  url?: string;
+  source?: string;
+  connectorType?: string;
+  sourceType: "document" | "media";
+}
+
+function extractDocumentContent(
+  doc: SearchScoredDocument,
+  includeMetadata: boolean
+): ExtractedContent {
+  let content = doc.content || "";
+
+  if (includeMetadata) {
+    const meta: string[] = [];
+    if (doc.connector_type) {
+      meta.push(`Source: ${doc.connector_type}`);
+    }
+    if (doc.source_name) {
+      meta.push(`Channel/Folder: ${doc.source_name}`);
+    }
+    if (doc.author_name) {
+      meta.push(`Author: ${doc.author_name}`);
+    }
+    if (doc.created_at) {
+      const date = new Date(doc.created_at).toLocaleDateString();
+      meta.push(`Date: ${date}`);
+    }
+    if (meta.length > 0) {
+      content = `[${meta.join(" | ")}]\n${content}`;
+    }
+  }
+
+  return {
+    content,
+    title: doc.title || "Untitled",
+    url: doc.url,
+    source: doc.source_name,
+    connectorType: doc.connector_type,
+    sourceType: "document",
+  };
+}
+
+function extractMediaContent(
+  media: ScoredMedia,
+  includeMetadata: boolean
+): ExtractedContent {
+  let content = media.transcript || media.media_summary || "";
+
+  if (includeMetadata) {
+    const meta: string[] = ["Source: Video/Media"];
+    if (media.source_name) {
+      meta.push(`Channel: ${media.source_name}`);
+    }
+    if (media.author_name) {
+      meta.push(`Author: ${media.author_name}`);
+    }
+    if (media.duration_seconds) {
+      const mins = Math.floor(media.duration_seconds / 60);
+      meta.push(`Duration: ${mins}m`);
+    }
+    if (meta.length > 0) {
+      content = `[${meta.join(" | ")}]\n${content}`;
+    }
+  }
+
+  const sourceUrl = (media.metadata?.sourceUrl as string) ?? media.url;
+
+  return {
+    content,
+    title: media.title || "Untitled Media",
+    url: sourceUrl,
+    source: media.source_name,
+    connectorType: media.connector_type,
+    sourceType: "media",
   };
 }
 
@@ -167,13 +241,20 @@ export async function ragAnswer(params: RAGAnswerParams): Promise<RAGAnswer> {
     temperature: params.temperature ?? 0.3,
   });
 
-  const citations: Citation[] = result.citations.map((c) => ({
-    documentId: c.documentId,
-    title: c.title,
-    url: c.url,
-    snippet: c.snippet,
-    relevanceScore: c.relevanceScore || 0,
-  }));
+  const documentMap = new Map(context.documents.map((d) => [d.id, d]));
+
+  const citations: RAGCitation[] = result.citations.map((c) => {
+    const contextDoc = documentMap.get(c.documentId);
+    return {
+      documentId: c.documentId,
+      title: c.title,
+      url: c.url,
+      snippet: c.snippet,
+      relevanceScore: c.relevanceScore || 0,
+      connectorType: contextDoc?.connectorType,
+      sourceType: contextDoc?.sourceType,
+    };
+  });
 
   return {
     answer: result.content,

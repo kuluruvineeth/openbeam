@@ -52,6 +52,7 @@ export interface RAGContextDocument {
   url?: string;
   source?: string;
   connectorType?: string;
+  sourceType?: "document" | "media";
   relevanceScore: number;
   tokenCount: number;
 }
@@ -81,6 +82,8 @@ export interface RAGCitation {
   url?: string;
   snippet: string;
   relevanceScore: number;
+  connectorType?: string;
+  sourceType?: "document" | "media";
 }
 
 export interface CachedEmbedding {
