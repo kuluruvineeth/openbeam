@@ -1,14 +1,19 @@
-import { type Database, verifyConnectorOwnership } from "@openplane/db";
+import {
+  type Database,
+  type TeamRole,
+  verifyConnectorOwnership,
+} from "@openplane/db";
 import { TRPCError } from "@trpc/server";
 import type { TRPCContext } from "../../context";
 import { protectedProcedure, t } from "../../index";
 
-/**
- * Extended context with team ID
- */
 type ContextWithTeam = TRPCContext & {
   session: NonNullable<TRPCContext["session"]>;
   teamId: string;
+};
+
+type ContextWithRole = ContextWithTeam & {
+  role: TeamRole;
 };
 
 /**
@@ -46,14 +51,40 @@ const requireActiveTeam = t.middleware(async ({ ctx, next }) => {
   });
 });
 
-/**
- * Procedure that requires an active team
- */
 export const withActiveTeam = protectedProcedure.use(requireActiveTeam);
 
-/**
- * Helper to verify connector ownership (used in procedures after input parsing)
- */
+const requireAdminRole = t.middleware(async ({ ctx, next }) => {
+  const membership = await ctx.prisma.usersOnTeam.findUnique({
+    where: {
+      userId_teamId: {
+        userId: ctx.session.user.id,
+        teamId: (ctx as ContextWithTeam).teamId,
+      },
+    },
+    select: { role: true },
+  });
+
+  if (!membership) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Not a member of this team",
+    });
+  }
+
+  if (membership.role === "MEMBER") {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Admin or Owner role required",
+    });
+  }
+
+  return next({
+    ctx: { ...ctx, role: membership.role } as ContextWithRole,
+  });
+});
+
+export const withAdminRole = withActiveTeam.use(requireAdminRole);
+
 export async function verifyConnectorAccess(
   prisma: Database,
   connectorId: string,
