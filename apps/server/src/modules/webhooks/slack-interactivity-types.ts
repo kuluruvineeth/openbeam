@@ -21,7 +21,7 @@ export interface HandlerContext {
   teamId: string;
   userId: string;
   channelId?: string;
-  triggerId: string;
+  triggerId?: string;
 }
 
 export interface StateStore {

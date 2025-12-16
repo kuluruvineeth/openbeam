@@ -479,7 +479,11 @@ async function processVespaIndexing(
 
   const connector = await findConnectorById(prisma, connectorId, true);
 
-  const connectorType = connector?.app.toLowerCase();
+  if (!connector) {
+    throw new Error(`Connector not found: ${connectorId}`);
+  }
+
+  const connectorType = connector.app.toLowerCase();
 
   const sourceName = await resolveSourceName(
     connector,
