@@ -282,6 +282,26 @@ export class VespaClient {
     }
   }
 
+  async deleteByConnectorId(
+    connectorId: string,
+    schema: "openplane_document" | "media_document" | "entity"
+  ): Promise<{ deleted: number }> {
+    const selection = `${schema}.connector_id=="${connectorId}"`;
+    const url = `${this.documentApiUrl}/default/${schema}/docid?selection=${encodeURIComponent(selection)}&cluster=openplane`;
+
+    const response = await fetch(url, { method: "DELETE" });
+
+    if (!response.ok) {
+      const error = (await response.json()) as VespaError;
+      throw new Error(
+        `Vespa bulk delete error: ${error.message || response.statusText}`
+      );
+    }
+
+    const result = (await response.json()) as { documentCount?: number };
+    return { deleted: result.documentCount ?? 0 };
+  }
+
   async feedMediaDocument(
     doc: MediaDocument,
     retries = 3
@@ -320,6 +340,7 @@ export class VespaClient {
     throw new Error("Failed to feed media document after retries");
   }
 
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: pre-existing complexity, refactor separately
   private formatMediaForVespa(doc: MediaDocument): VespaMediaDocumentForFeed {
     const embeddingCells: VespaEmbeddingCell[] = [];
     for (const [segId, embedding] of Object.entries(doc.segment_embeddings)) {
