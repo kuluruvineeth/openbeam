@@ -141,3 +141,51 @@ export const createDefaultSyncJobs = async (
     ],
   });
 };
+
+const DELETION_GRACE_PERIOD_MS = 72 * 60 * 60 * 1000;
+
+export const softDeleteConnector = async (
+  db: Database,
+  id: string,
+  deletedBy: string
+): Promise<Connector> => {
+  const now = new Date();
+  return await db.connector.update({
+    where: { id },
+    data: {
+      status: ConnectorStatus.DELETING,
+      deletedAt: now,
+      scheduledDeletionAt: new Date(now.getTime() + DELETION_GRACE_PERIOD_MS),
+      deletedBy,
+    },
+  });
+};
+
+export const restoreConnector = async (
+  db: Database,
+  id: string
+): Promise<Connector> =>
+  db.connector.update({
+    where: { id },
+    data: {
+      status: ConnectorStatus.INACTIVE,
+      deletedAt: null,
+      scheduledDeletionAt: null,
+      deletedBy: null,
+    },
+  });
+
+export const hardDeleteConnector = async (
+  db: Database,
+  id: string
+): Promise<Connector> => db.connector.delete({ where: { id } });
+
+export const findConnectorsPendingDeletion = async (
+  db: Database
+): Promise<Connector[]> =>
+  db.connector.findMany({
+    where: {
+      status: ConnectorStatus.DELETING,
+      scheduledDeletionAt: { lte: new Date() },
+    },
+  });
