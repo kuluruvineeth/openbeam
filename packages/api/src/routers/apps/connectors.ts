@@ -1,12 +1,13 @@
 import {
-  deleteConnector,
   findConnectorById,
   findConnectorByTeam,
   listConnectorResources,
   listConnectorsByTeam,
   listResourceDocuments,
   pauseConnector as pauseConnectorDb,
+  restoreConnector as restoreConnectorDb,
   resumeConnector as resumeConnectorDb,
+  softDeleteConnector,
   updateConnectorConfig,
   updateConnectorResourceSync,
   upsertConnector,
@@ -17,10 +18,18 @@ import type {
   UnifiedApp,
 } from "@openplane/integrations";
 import { appStore } from "@openplane/integrations";
+import {
+  cancelConnectorCleanup,
+  scheduleConnectorCleanup,
+} from "@openplane/redis";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter } from "../../index";
-import { verifyConnectorAccess, withActiveTeam } from "./middleware";
+import {
+  verifyConnectorAccess,
+  withActiveTeam,
+  withAdminRole,
+} from "./middleware";
 import {
   appIdSchema,
   createConnectorSchema,
@@ -115,13 +124,58 @@ export const connectorsRouter = createTRPCRouter({
       })
     ),
 
-  disconnect: withActiveTeam
+  disconnect: withAdminRole
     .input(appIdSchema)
     .mutation(async ({ ctx, input }) => {
       await verifyConnectorAccess(ctx.prisma, input.appId, ctx.teamId);
       await cleanupRepeatableJobs(input.appId);
-      return await deleteConnector(ctx.prisma, input.appId);
+
+      const connector = await softDeleteConnector(
+        ctx.prisma,
+        input.appId,
+        ctx.session.user.id
+      );
+
+      await scheduleConnectorCleanup({
+        connectorId: input.appId,
+        teamId: ctx.teamId,
+        triggeredBy: ctx.session.user.id,
+      });
+
+      return connector;
     }),
+
+  restore: withAdminRole.input(appIdSchema).mutation(async ({ ctx, input }) => {
+    const connector = await findConnectorById(ctx.prisma, input.appId);
+
+    if (!connector || connector.teamId !== ctx.teamId) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Connector not found",
+      });
+    }
+
+    if (connector.status !== "DELETING") {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Connector is not scheduled for deletion",
+      });
+    }
+
+    if (
+      connector.scheduledDeletionAt &&
+      connector.scheduledDeletionAt < new Date()
+    ) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Grace period has expired",
+      });
+    }
+
+    await cancelConnectorCleanup(input.appId);
+
+    return restoreConnectorDb(ctx.prisma, input.appId);
+  }),
 
   updateSettings: withActiveTeam
     .input(updateSettingsSchema)
@@ -135,7 +189,7 @@ export const connectorsRouter = createTRPCRouter({
       );
     }),
 
-  pause: withActiveTeam
+  pause: withAdminRole
     .input(z.object({ connectorId: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
       await verifyConnectorAccess(ctx.prisma, input.connectorId, ctx.teamId);
@@ -143,7 +197,7 @@ export const connectorsRouter = createTRPCRouter({
       return pauseConnectorDb(ctx.prisma, input.connectorId);
     }),
 
-  resume: withActiveTeam
+  resume: withAdminRole
     .input(z.object({ connectorId: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
       await verifyConnectorAccess(ctx.prisma, input.connectorId, ctx.teamId);

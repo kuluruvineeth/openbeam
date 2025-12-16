@@ -24,6 +24,7 @@ export const appsRouter = createTRPCRouter({
   get: connectorsRouter.get,
   connect: connectorsRouter.connect,
   disconnect: connectorsRouter.disconnect,
+  restore: connectorsRouter.restore,
   updateSettings: connectorsRouter.updateSettings,
   pauseConnector: connectorsRouter.pause,
   resumeConnector: connectorsRouter.resume,
