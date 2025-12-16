@@ -210,6 +210,10 @@ model Connector {
   updatedAt           DateTime        @updatedAt
   pausedAt            DateTime?
   
+  isEnterpriseInstall Boolean         @default(false)
+  enterpriseId        String?
+  childWorkspaces     Json?
+
   user                User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   team                Team            @relation(fields: [teamId], references: [id], onDelete: Cascade)
   tools               Tool[]
@@ -224,6 +228,9 @@ model Connector {
   connectorResources  ConnectorResource[]
   indexedFiles        IndexedFile[]
   indexedMedia        IndexedMedia[]
+  slackChannelConfigs SlackChannelConfig[]
+  slackDigestSubs     SlackDigestSubscription[]
+  slackFeedback       SlackAssistantFeedback[]
 
   @@unique([teamId, workspaceExternalId, app, name])
   @@index([teamId, status])
@@ -413,4 +420,80 @@ model ConnectorResource {
   @@index([resourceType])
   @@index([syncEnabled])
   @@map("connector_resource")
+}
+
+model SlackChannelConfig {
+  id                 String    @id @default(cuid()) @map("_id")
+  connectorId        String
+  channelId          String
+  channelName        String?
+
+  responseMode       String    @default("confident")
+  reactionsEnabled   Boolean   @default(true)
+  respondToWorkflows Boolean   @default(false)
+
+  configuredBy       String?
+  configuredAt       DateTime?
+
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  connector          Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+
+  @@unique([connectorId, channelId])
+  @@index([connectorId])
+  @@map("slack_channel_config")
+}
+
+model SlackDigestSubscription {
+  id              String    @id @default(cuid()) @map("_id")
+  connectorId     String
+  userId          String
+  slackUserId     String
+
+  channelIds      String[]  @default([])
+  topics          String[]  @default([])
+
+  deliveryTime    String    @default("09:00")
+  timezone        String    @default("UTC")
+  frequency       String    @default("daily")
+  enabled         Boolean   @default(true)
+
+  lastDeliveredAt DateTime?
+  deliveryCount   Int       @default(0)
+  lastError       String?
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  connector       Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+
+  @@unique([connectorId, slackUserId])
+  @@index([connectorId])
+  @@index([enabled, deliveryTime])
+  @@map("slack_digest_subscription")
+}
+
+model SlackAssistantFeedback {
+  id           String   @id @default(cuid()) @map("_id")
+  connectorId  String
+  userId       String
+  channelId    String
+  messageTs    String
+
+  query        String
+  response     String
+  feedbackType String
+
+  citations    Json?
+  latencyMs    Int?
+
+  createdAt    DateTime @default(now())
+
+  connector    Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+
+  @@index([connectorId])
+  @@index([feedbackType])
+  @@index([createdAt])
+  @@map("slack_assistant_feedback")
 }
