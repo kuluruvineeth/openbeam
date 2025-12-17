@@ -2,15 +2,15 @@ import "./instrumentation";
 import "dotenv/config";
 import { createTRPCContext } from "@openplane/api/context";
 import { appRouter } from "@openplane/api/routers/index";
-import { auth } from "@openplane/auth";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { configureOpenAPI } from "@/lib/configure-open-api";
 import { createApp } from "@/lib/create-app";
+import authRouter from "@/modules/auth/auth.index";
 import { mapRoutes } from "@/routes/index";
 
 const app = createApp();
 
-app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
+app.route("/api/auth", authRouter);
 
 mapRoutes(app);
 

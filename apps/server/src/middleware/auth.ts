@@ -1,4 +1,9 @@
-import { auth } from "@openplane/auth";
+import {
+  createCookieConfig,
+  getSessionFromHeaders,
+  validateSession,
+} from "@openplane/auth";
+import prisma, { getUserById } from "@openplane/db";
 import { createMiddleware } from "hono/factory";
 import type { AuthContext } from "../types/auth";
 import {
@@ -6,59 +11,74 @@ import {
   hasRequiredScopes,
 } from "../types/auth";
 
-type SessionResponse = Awaited<ReturnType<typeof auth.api.getSession>>;
-type User = NonNullable<SessionResponse>["user"];
-type BaseSession = NonNullable<SessionResponse>["session"];
+interface SessionUser {
+  id: string;
+  email: string;
+  name: string;
+  image: string | null;
+  emailVerified: boolean;
+  teamId: string | null;
+}
 
-type ExtendedSession = BaseSession;
+interface SessionData {
+  id: string;
+  token: string;
+  userId: string;
+  expiresAt: Date;
+}
 
 export type AuthEnv = {
   Variables: {
-    user: User | null;
-    session: ExtendedSession | null;
+    user: SessionUser | null;
+    session: SessionData | null;
     authContext: AuthContext;
   };
 };
 
+const cookieConfig = createCookieConfig();
+
 export const sessionMiddleware = createMiddleware<AuthEnv>(async (c, next) => {
-  // Check if already authenticated via API key
   const existingContext = c.get("authContext");
   if (existingContext && existingContext.type !== "none") {
     await next();
     return;
   }
 
-  // Try session authentication
-  const sessionData = await auth.api.getSession({ headers: c.req.raw.headers });
+  const token = getSessionFromHeaders(c.req.raw.headers);
 
-  if (sessionData) {
-    c.set("user", sessionData.user);
-    c.set("session", sessionData.session as ExtendedSession);
+  if (token) {
+    const sessionData = await validateSession(prisma, token);
 
-    const { default: prisma, getUserById } = await import("@openplane/db");
-    const user = await getUserById(prisma, sessionData.user.id);
+    if (sessionData) {
+      c.set("user", sessionData.user);
+      c.set("session", sessionData.session);
 
-    // Set session auth context
-    if (user?.teamId) {
-      c.set("authContext", {
-        type: "session",
-        userId: sessionData.user.id,
-        teamId: user.teamId,
-        email: sessionData.user.email,
-      });
-    } else {
-      c.set("authContext", {
-        type: "session",
-        userId: sessionData.user.id,
-        teamId: null,
-        email: sessionData.user.email,
-      });
+      const user = await getUserById(prisma, sessionData.user.id);
+
+      if (user?.teamId) {
+        c.set("authContext", {
+          type: "session",
+          userId: sessionData.user.id,
+          teamId: user.teamId,
+          email: sessionData.user.email,
+        });
+      } else {
+        c.set("authContext", {
+          type: "session",
+          userId: sessionData.user.id,
+          teamId: null,
+          email: sessionData.user.email,
+        });
+      }
+
+      await next();
+      return;
     }
-  } else {
-    c.set("user", null);
-    c.set("session", null);
-    c.set("authContext", { type: "none" });
   }
+
+  c.set("user", null);
+  c.set("session", null);
+  c.set("authContext", { type: "none" });
 
   await next();
 });
@@ -71,8 +91,8 @@ export const requireAuth = createMiddleware<AuthEnv>(async (c, next) => {
     const isHtmlRequest = accept?.includes("text/html");
 
     if (isHtmlRequest) {
-      const loginUrl = `${process.env.CORS_ORIGIN || ""}/login`;
-      return c.redirect(`${loginUrl}?error=unauthorized`);
+      const webUrl = cookieConfig.webUrl;
+      return c.redirect(`${webUrl}/login?error=unauthorized`);
     }
 
     return c.json(
@@ -88,10 +108,6 @@ export const requireAuth = createMiddleware<AuthEnv>(async (c, next) => {
   await next();
 });
 
-/**
- * Require specific scopes for API keys
- * Session users always pass (implicit full access)
- */
 export function requireScopes(scopes: string[]) {
   return createMiddleware<AuthEnv>(async (c, next) => {
     const authContext = c.get("authContext");
@@ -121,9 +137,6 @@ export function requireScopes(scopes: string[]) {
   });
 }
 
-/**
- * Get team ID from auth context
- */
 export function getTeamId(c: {
   get: <K extends keyof AuthEnv["Variables"]>(
     key: K
@@ -133,9 +146,6 @@ export function getTeamId(c: {
   return getTeamIdFromContext(authContext);
 }
 
-/**
- * @deprecated Use getTeamId instead
- */
 export function getOrganizationId(c: {
   get: <K extends keyof AuthEnv["Variables"]>(
     key: K
