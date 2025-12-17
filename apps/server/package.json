@@ -29,7 +29,6 @@
     "@scalar/hono-api-reference": "^0.9.25",
     "@trpc/server": "catalog:",
     "argon2": "^0.44.0",
-    "better-auth": "catalog:",
     "dotenv": "catalog:",
     "hono": "catalog:",
     "pino": "^10.1.0",
