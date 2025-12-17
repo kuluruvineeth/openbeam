@@ -11,9 +11,7 @@ export function SignOut() {
 
   const handleSignOut = async () => {
     setLoading(true);
-
     await signOut();
-
     router.push("/login");
   };
 

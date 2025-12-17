@@ -1,17 +1,27 @@
-import type { auth } from "@openplane/auth";
-import { inferAdditionalFields } from "better-auth/client/plugins";
-import { createAuthClient } from "better-auth/react";
+import { serverUrl } from "../urls";
 
-import { baseUrl } from "../urls";
+export type SessionUser = {
+  id: string;
+  email: string;
+  name: string;
+  image: string | null;
+};
 
-export const authClient = createAuthClient({
-  baseURL: baseUrl,
-  basePath: "/api/auth",
-  fetchOptions: { credentials: "include" },
-  plugins: [inferAdditionalFields<typeof auth>()],
-});
+export type Session = {
+  user: SessionUser | null;
+};
 
-export const { signIn, signOut } = authClient;
+export function signIn(provider: string, callbackUrl?: string): void {
+  const url = new URL(`${serverUrl}/api/auth/signin/${provider}`);
+  url.searchParams.set("callbackUrl", callbackUrl || window.location.origin);
+  window.location.href = url.toString();
+}
 
-export type Session = typeof authClient.$Infer.Session;
-export type User = typeof authClient.$Infer.Session.user;
+export async function signOut(): Promise<void> {
+  await fetch("/api/auth/signout", { method: "POST" });
+}
+
+export async function getSession(): Promise<Session> {
+  const response = await fetch("/api/auth/session");
+  return response.json();
+}

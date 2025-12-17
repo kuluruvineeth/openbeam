@@ -8,21 +8,11 @@ import { SubmitButton } from "./submit-button";
 export function GoogleSignIn() {
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSignIn = async () => {
+  const handleSignIn = () => {
     setIsLoading(true);
-    await signIn.social(
-      {
-        provider: "google",
-        // After auth, send the user back to this site (root),
-        // letting our proxy / app routing decide where to land.
-        callbackURL:
-          typeof window !== "undefined"
-            ? `${window.location.origin}/`
-            : undefined,
-      },
-      { credentials: "include" }
-    );
+    signIn("google");
   };
+
   return (
     <SubmitButton isSubmitting={isLoading} onClick={handleSignIn}>
       <div className="flex items-center space-x-2">
