@@ -12,6 +12,9 @@ build
 .env
 .env*.local
 
+# ngrok (contains auth token)
+ngrok.yml
+
 # IDEs and editors
 .vscode/*
 !.vscode/settings.json
@@ -52,6 +55,7 @@ temp
 .npmrc
 
 .cursor
+.claude
 
 # Terraform error states
 **/*errored.tfstate
