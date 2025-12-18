@@ -189,3 +189,49 @@ export const findConnectorsPendingDeletion = async (
       scheduledDeletionAt: { lte: new Date() },
     },
   });
+
+export interface ActivateConnectorInput {
+  workspaceExternalId: string;
+  name: string;
+  config: Prisma.InputJsonValue;
+}
+
+export const activateConnector = async (
+  db: Pick<Database, "connector">,
+  id: string,
+  data: ActivateConnectorInput
+): Promise<Connector> =>
+  db.connector.update({
+    where: { id },
+    data: {
+      status: ConnectorStatus.ACTIVE,
+      statusChangedAt: new Date(),
+      lastSyncedAt: null,
+      workspaceExternalId: data.workspaceExternalId,
+      name: data.name,
+      config: data.config,
+    },
+  });
+
+export const setConnectorError = async (
+  db: Pick<Database, "connector">,
+  id: string,
+  error: string
+): Promise<Connector> =>
+  db.connector.update({
+    where: { id },
+    data: {
+      status: ConnectorStatus.ERROR,
+      statusChangedAt: new Date(),
+      lastError: error,
+      lastErrorAt: new Date(),
+    },
+  });
+
+export const getConnectorById = async (
+  db: Pick<Database, "connector">,
+  id: string
+): Promise<Connector> =>
+  db.connector.findUniqueOrThrow({
+    where: { id },
+  });
