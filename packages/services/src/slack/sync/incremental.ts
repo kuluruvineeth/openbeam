@@ -6,7 +6,10 @@ import type {
   SyncCursor,
   TransformContext,
 } from "../types";
+import { type BookmarkSyncOptions, syncBookmarksBatched } from "./bookmarks";
+import { type CanvasSyncOptions, syncCanvasesBatched } from "./canvas";
 import { type SyncChannelsOptions, syncChannels } from "./channels";
+import { type ClipSyncOptions, syncClipsBatched } from "./clips";
 import {
   type FileSyncOptions,
   getLatestFileTimestamp,
@@ -47,6 +50,12 @@ export interface IncrementalSyncOptions {
   syncFiles?: boolean;
   fileOptions?: Omit<FileSyncOptions, "lastSyncTimestamp">;
   onFilesDiscovered?: (files: SlackFileInfo[]) => Promise<void>;
+  syncCanvases?: boolean;
+  canvasOptions?: Omit<CanvasSyncOptions, "channelId">;
+  syncClips?: boolean;
+  clipOptions?: Omit<ClipSyncOptions, "channelId">;
+  syncBookmarks?: boolean;
+  bookmarkOptions?: Omit<BookmarkSyncOptions, "channels">;
 }
 
 export interface SyncProgressCallback {
@@ -107,6 +116,12 @@ export function incrementalSync(
     syncFiles: shouldSyncFiles = false,
     fileOptions = {},
     onFilesDiscovered,
+    syncCanvases: shouldSyncCanvases = false,
+    canvasOptions = {},
+    syncClips: shouldSyncClips = false,
+    clipOptions = {},
+    syncBookmarks: shouldSyncBookmarks = false,
+    bookmarkOptions = {},
   } = options;
 
   if (shouldRunFullSync(cursor, forceFullSync, fullSyncInterval)) {
@@ -119,6 +134,12 @@ export function incrementalSync(
       syncFiles: shouldSyncFiles,
       fileOptions,
       onFilesDiscovered,
+      syncCanvases: shouldSyncCanvases,
+      canvasOptions,
+      syncClips: shouldSyncClips,
+      clipOptions,
+      syncBookmarks: shouldSyncBookmarks,
+      bookmarkOptions,
     });
   }
 
@@ -132,6 +153,12 @@ export function incrementalSync(
     syncFiles: shouldSyncFiles,
     fileOptions,
     onFilesDiscovered,
+    syncCanvases: shouldSyncCanvases,
+    canvasOptions,
+    syncClips: shouldSyncClips,
+    clipOptions,
+    syncBookmarks: shouldSyncBookmarks,
+    bookmarkOptions,
   });
 }
 
@@ -147,6 +174,12 @@ export async function* fullSync(
     syncFiles?: boolean;
     fileOptions?: Omit<FileSyncOptions, "lastSyncTimestamp">;
     onFilesDiscovered?: (files: SlackFileInfo[]) => Promise<void>;
+    syncCanvases?: boolean;
+    canvasOptions?: Omit<CanvasSyncOptions, "channelId">;
+    syncClips?: boolean;
+    clipOptions?: Omit<ClipSyncOptions, "channelId">;
+    syncBookmarks?: boolean;
+    bookmarkOptions?: Omit<BookmarkSyncOptions, "channels">;
   } = {}
 ): AsyncGenerator<SyncBatch<GenericDocument>, void, undefined> {
   const {
@@ -158,6 +191,12 @@ export async function* fullSync(
     syncFiles: shouldSyncFiles = false,
     fileOptions = {},
     onFilesDiscovered,
+    syncCanvases: shouldSyncCanvases = false,
+    canvasOptions = {},
+    syncClips: shouldSyncClips = false,
+    clipOptions = {},
+    syncBookmarks: shouldSyncBookmarks = false,
+    bookmarkOptions = {},
   } = options;
 
   const channelResult = await syncChannels(client, context, channelOptions);
@@ -184,6 +223,21 @@ export async function* fullSync(
       onFilesDiscovered,
     });
   }
+
+  if (shouldSyncCanvases) {
+    yield* syncCanvasesBatched(client, context, canvasOptions);
+  }
+
+  if (shouldSyncClips) {
+    yield* syncClipsBatched(client, context, clipOptions);
+  }
+
+  if (shouldSyncBookmarks) {
+    yield* syncBookmarksBatched(client, context, {
+      ...bookmarkOptions,
+      channels: channelsToSync,
+    });
+  }
 }
 
 export async function* deltaSync(
@@ -199,6 +253,12 @@ export async function* deltaSync(
     syncFiles?: boolean;
     fileOptions?: Omit<FileSyncOptions, "lastSyncTimestamp">;
     onFilesDiscovered?: (files: SlackFileInfo[]) => Promise<void>;
+    syncCanvases?: boolean;
+    canvasOptions?: Omit<CanvasSyncOptions, "channelId">;
+    syncClips?: boolean;
+    clipOptions?: Omit<ClipSyncOptions, "channelId">;
+    syncBookmarks?: boolean;
+    bookmarkOptions?: Omit<BookmarkSyncOptions, "channels">;
   }
 ): AsyncGenerator<SyncBatch<GenericDocument>, void, undefined> {
   const {
@@ -211,6 +271,12 @@ export async function* deltaSync(
     syncFiles: shouldSyncFiles = false,
     fileOptions = {},
     onFilesDiscovered,
+    syncCanvases: shouldSyncCanvases = false,
+    canvasOptions = {},
+    syncClips: shouldSyncClips = false,
+    clipOptions = {},
+    syncBookmarks: shouldSyncBookmarks = false,
+    bookmarkOptions = {},
   } = options;
 
   const channelResult = await syncChannels(client, context, channelOptions);
@@ -236,6 +302,21 @@ export async function* deltaSync(
       ...fileOptions,
       lastSyncTimestamp: cursor.lastFileSyncTimestamp,
       onFilesDiscovered,
+    });
+  }
+
+  if (shouldSyncCanvases) {
+    yield* syncCanvasesBatched(client, context, canvasOptions);
+  }
+
+  if (shouldSyncClips) {
+    yield* syncClipsBatched(client, context, clipOptions);
+  }
+
+  if (shouldSyncBookmarks) {
+    yield* syncBookmarksBatched(client, context, {
+      ...bookmarkOptions,
+      channels: channelsToSync,
     });
   }
 }

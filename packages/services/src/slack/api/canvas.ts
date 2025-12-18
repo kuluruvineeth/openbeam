@@ -1,4 +1,5 @@
 import type { SlackClient } from "../client";
+import type { SlackFile } from "../types";
 
 export interface SlackCanvas {
   id: string;
@@ -13,139 +14,141 @@ export interface SlackCanvas {
 
 export type CanvasAccessLevel = "private" | "channel" | "org" | "external";
 
-interface CanvasesAccessListResponse {
+interface FilesListResponse {
   ok: boolean;
-  canvases?: Array<{
-    id: string;
-    title?: string;
-    channel_id?: string;
-    last_edited_at?: number;
-    last_edited_by_user?: {
-      user_id?: string;
-    };
-    is_published?: boolean;
-    access_level?: string;
-  }>;
-  response_metadata?: {
-    next_cursor?: string;
+  files?: SlackFile[];
+  paging?: {
+    count: number;
+    total: number;
+    page: number;
+    pages: number;
   };
   error?: string;
 }
 
 interface CanvasesSectionsLookupResponse {
   ok: boolean;
-  canvas?: {
-    id: string;
-    title?: string;
+  sections?: Array<{
     document_content?: {
       markdown?: string;
       type?: string;
     };
-  };
+  }>;
   error?: string;
 }
 
 export interface ListCanvasesOptions {
   channelId?: string;
   limit?: number;
-  cursor?: string;
+  page?: number;
 }
 
 export async function listCanvases(
   client: SlackClient,
   options: ListCanvasesOptions = {}
-): Promise<{ canvases: SlackCanvas[]; nextCursor?: string }> {
-  const { channelId, limit = 100, cursor } = options;
+): Promise<{ canvases: SlackCanvas[]; hasMore: boolean; nextPage?: number }> {
+  const { channelId, limit = 100, page = 1 } = options;
 
   const params: Record<string, unknown> = {
-    limit,
+    count: limit,
+    page,
+    types: "spaces",
   };
 
   if (channelId) {
-    params.channel_id = channelId;
+    params.channel = channelId;
   }
 
-  if (cursor) {
-    params.cursor = cursor;
+  const response = await client.call<FilesListResponse>("files.list", params);
+
+  if (!(response.ok && response.files)) {
+    return { canvases: [], hasMore: false };
   }
 
-  const response = await client.call<CanvasesAccessListResponse>(
-    "canvases.access.list",
-    params
+  const canvasFiles = response.files.filter(
+    (f) =>
+      f.filetype === "quip" || f.filetype === "canvas" || f.mode === "space"
   );
 
-  if (!(response.ok && response.canvases)) {
-    return { canvases: [] };
-  }
-
-  const canvases: SlackCanvas[] = response.canvases.map((c) => ({
-    id: c.id,
-    title: c.title ?? "Untitled Canvas",
-    channelId: c.channel_id,
-    lastModified: c.last_edited_at ?? Date.now(),
-    lastModifiedBy: c.last_edited_by_user?.user_id,
-    isPublished: c.is_published ?? false,
-    accessLevel: mapAccessLevel(c.access_level),
+  const canvases: SlackCanvas[] = canvasFiles.map((f) => ({
+    id: f.id,
+    title: f.title || f.name || "Untitled Canvas",
+    channelId: f.channels?.[0],
+    lastModified: f.timestamp ?? Math.floor(Date.now() / 1000),
+    lastModifiedBy: f.user,
+    isPublished: !f.is_external,
+    accessLevel: mapAccessLevel(f.mode),
   }));
+
+  const hasMore = response.paging
+    ? page < response.paging.pages
+    : canvasFiles.length >= limit;
 
   return {
     canvases,
-    nextCursor: response.response_metadata?.next_cursor,
+    hasMore,
+    nextPage: hasMore ? page + 1 : undefined,
   };
 }
 
 export async function* listAllCanvases(
   client: SlackClient,
-  options: Omit<ListCanvasesOptions, "cursor"> = {}
+  options: Omit<ListCanvasesOptions, "page"> = {}
 ): AsyncGenerator<SlackCanvas> {
-  let cursor: string | undefined;
+  let page = 1;
+  let hasMore = true;
 
-  do {
-    const result = await listCanvases(client, { ...options, cursor });
+  while (hasMore) {
+    const result = await listCanvases(client, { ...options, page });
 
     for (const canvas of result.canvases) {
       yield canvas;
     }
 
-    cursor = result.nextCursor;
-  } while (cursor);
+    hasMore = result.hasMore;
+    page = result.nextPage ?? page + 1;
+  }
 }
 
 export async function getCanvasContent(
   client: SlackClient,
   canvasId: string
 ): Promise<string | null> {
-  const response = await client.call<CanvasesSectionsLookupResponse>(
-    "canvases.sections.lookup",
-    {
-      canvas_id: canvasId,
-      criteria: { contains_text: "" },
-    }
-  );
+  try {
+    const response = await client.call<CanvasesSectionsLookupResponse>(
+      "canvases.sections.lookup",
+      {
+        canvas_id: canvasId,
+        criteria: { contains_text: "" },
+      }
+    );
 
-  if (!(response.ok && response.canvas)) {
+    if (!(response.ok && response.sections)) {
+      return null;
+    }
+
+    const markdownParts = response.sections
+      .map((s) => s.document_content?.markdown)
+      .filter(Boolean);
+
+    return markdownParts.join("\n\n") || null;
+  } catch {
     return null;
   }
-
-  return response.canvas.document_content?.markdown ?? null;
 }
 
 export async function getCanvasWithContent(
   client: SlackClient,
   canvasId: string
 ): Promise<SlackCanvas | null> {
-  const [listResult, content] = await Promise.all([
-    listCanvases(client, { limit: 1 }),
-    getCanvasContent(client, canvasId),
-  ]);
-
-  const canvasInfo = listResult.canvases.find((c) => c.id === canvasId);
-  if (!canvasInfo) {
-    return null;
-  }
+  const content = await getCanvasContent(client, canvasId);
 
   return {
-    ...canvasInfo,
+    id: canvasId,
+    title: "Canvas",
+    lastModified: Math.floor(Date.now() / 1000),
+    isPublished: false,
+    accessLevel: "private",
     documentContent: content ?? undefined,
   };
 }
@@ -206,16 +209,16 @@ export async function syncAllCanvases(
   return results;
 }
 
-function mapAccessLevel(level?: string): CanvasAccessLevel {
-  switch (level) {
-    case "private":
-      return "private";
-    case "channel":
+function mapAccessLevel(mode?: string): CanvasAccessLevel {
+  switch (mode) {
+    case "space":
+    case "hosted":
       return "channel";
-    case "org":
-      return "org";
     case "external":
       return "external";
+    case "snippet":
+    case "post":
+      return "org";
     default:
       return "private";
   }

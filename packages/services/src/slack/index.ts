@@ -231,7 +231,9 @@ export type {
 export {
   getEventChannelId,
   getEventUserId,
+  isBookmarkEvent,
   isChannelEvent,
+  isFileEvent,
   isMemberEvent,
   isMessageChangedEvent,
   isMessageDeletedEvent,
@@ -244,6 +246,8 @@ export type {
   AppHomeOpenedEvent,
   AppMentionEvent,
   BaseEvent,
+  BookmarkAddedEvent,
+  BookmarkDeletedEvent,
   ChannelArchiveEvent,
   ChannelCreatedEvent,
   ChannelDeletedEvent,
@@ -267,6 +271,8 @@ export {
   AppHomeOpenedEventSchema,
   AssistantThreadContextChangedEventSchema,
   AssistantThreadStartedEventSchema,
+  BookmarkAddedEventSchema,
+  BookmarkDeletedEventSchema,
   MessageChangedEventSchema,
   MessageDeletedEventSchema,
   MessageEventSchema,
@@ -400,12 +406,18 @@ export {
   setThreadTitle,
   type ThreadContext,
 } from "./sidebar";
+export type { BookmarkSyncOptions } from "./sync/bookmarks";
+export { syncBookmarksBatched } from "./sync/bookmarks";
+export type { CanvasSyncOptions } from "./sync/canvas";
+export { syncCanvasesBatched } from "./sync/canvas";
 export type { ChannelSyncResult, SyncChannelsOptions } from "./sync/channels";
 export {
   getChangedChannels,
   syncChannels,
   syncChannelsBatched,
 } from "./sync/channels";
+export type { ClipSyncOptions } from "./sync/clips";
+export { syncClipsBatched } from "./sync/clips";
 export type {
   FileSyncBatch,
   FileSyncOptions,
@@ -440,6 +452,16 @@ export {
   syncChannelMessagesBatched,
   syncMultipleChannels,
 } from "./sync/messages";
+export type {
+  BookmarkTransformContext,
+  SlackBookmark as TransformerSlackBookmark,
+} from "./transformers/bookmark";
+export { transformBookmark } from "./transformers/bookmark";
+export type {
+  CanvasTransformContext,
+  SlackCanvas as TransformerSlackCanvas,
+} from "./transformers/canvas";
+export { transformCanvas } from "./transformers/canvas";
 export type { ChannelTransformContext } from "./transformers/channel";
 export {
   getChannelDisplayName,
@@ -449,6 +471,11 @@ export {
   transformChannel,
   transformChannels,
 } from "./transformers/channel";
+export type {
+  ClipTransformContext,
+  SlackClip as TransformerSlackClip,
+} from "./transformers/clip";
+export { transformClip } from "./transformers/clip";
 export type {
   MessageTransformContext,
   MessageTransformOptions,
@@ -490,7 +517,17 @@ export type {
 } from "./types";
 export {
   SlackApiError,
+  type SlackBookmarkRaw,
+  SlackBookmarkSchema,
+  type SlackBookmarkType,
+  SlackBookmarkTypeSchema,
+  type SlackCanvasAccessLevel,
+  SlackCanvasAccessLevelSchema,
+  type SlackCanvasRaw,
+  SlackCanvasSchema,
   SlackChannelSchema,
+  type SlackClipRaw,
+  SlackClipSchema,
   SlackErrorCodes,
   SlackFileSchema,
   SlackMessageSchema,

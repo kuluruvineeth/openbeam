@@ -1,4 +1,14 @@
 export {
+  type BookmarkTransformContext,
+  type SlackBookmark,
+  transformBookmark,
+} from "./bookmark";
+export {
+  type CanvasTransformContext,
+  type SlackCanvas,
+  transformCanvas,
+} from "./canvas";
+export {
   type ChannelTransformContext,
   getChannelDisplayName,
   getChannelType,
@@ -7,6 +17,11 @@ export {
   transformChannel,
   transformChannels,
 } from "./channel";
+export {
+  type ClipTransformContext,
+  type SlackClip,
+  transformClip,
+} from "./clip";
 export {
   cleanMessageText,
   extractChannelRefs,
@@ -17,7 +32,6 @@ export {
   transformMessage,
   transformMessages,
 } from "./message";
-
 export {
   getEmailDomain,
   getUserIdentityKey,

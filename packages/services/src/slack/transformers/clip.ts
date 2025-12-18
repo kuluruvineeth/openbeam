@@ -1,0 +1,86 @@
+import type { GenericDocument, JsonObject, JsonValue } from "@openplane/vespa";
+import type { UserLookup } from "../api/users";
+import type { TransformContext } from "../types";
+
+function filterUndefined(obj: Record<string, unknown>): JsonObject {
+  const result: JsonObject = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined) {
+      result[key] = value as JsonValue;
+    }
+  }
+  return result;
+}
+
+export interface SlackClip {
+  id: string;
+  title: string;
+  channelId: string;
+  userId: string;
+  duration: number;
+  transcript?: string;
+  thumbnailUrl?: string;
+  videoUrl?: string;
+  createdAt: number;
+  viewCount?: number;
+}
+
+export interface ClipTransformContext extends TransformContext {
+  userLookup?: UserLookup;
+  channelName?: string;
+  channelMembers?: string[];
+}
+
+export function transformClip(
+  clip: SlackClip,
+  context: ClipTransformContext
+): GenericDocument {
+  const {
+    connectorId,
+    connectorType,
+    teamId,
+    workspaceId,
+    userLookup,
+    channelName,
+    channelMembers,
+  } = context;
+
+  const documentId = `${connectorId}_clip_${clip.id}`;
+  const authorName = clip.userId ? userLookup?.getName(clip.userId) : undefined;
+  const content = clip.transcript ?? `Video clip: ${clip.title}`;
+
+  return {
+    id: documentId,
+    connector_id: connectorId,
+    connector_type: connectorType,
+    team_id: teamId,
+    workspace_id: workspaceId,
+    external_id: clip.id,
+    document_type: "clip",
+    document_subtype: "video",
+    title: clip.title,
+    content,
+    author_id: clip.userId,
+    author_name: authorName,
+    created_at: clip.createdAt,
+    updated_at: clip.createdAt,
+    source_id: clip.channelId,
+    source_name: channelName,
+    source_type: "channel",
+    url: clip.videoUrl ?? buildClipUrl(teamId, clip.id),
+    view_count: clip.viewCount,
+    is_public: true,
+    access_control: channelMembers,
+    metadata: filterUndefined({
+      clipId: clip.id,
+      channelId: clip.channelId,
+      duration: clip.duration,
+      hasTranscript: !!clip.transcript,
+      thumbnailUrl: clip.thumbnailUrl,
+    }),
+  };
+}
+
+function buildClipUrl(teamId: string, clipId: string): string {
+  return `https://app.slack.com/files/${teamId}/${clipId}`;
+}

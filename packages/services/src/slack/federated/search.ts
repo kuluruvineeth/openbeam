@@ -1,4 +1,4 @@
-import type { GenericDocument } from "@openplane/vespa";
+import type { GenericDocument, JsonObject } from "@openplane/vespa";
 import {
   buildSearchQuery,
   type SearchQueryFilters,
@@ -194,15 +194,20 @@ function transformSearchMatch(
     source_type: "channel",
     url: match.permalink,
     is_public: !isPrivate,
-    metadata: {
-      federated: true,
-      team: match.team,
-    },
+    metadata: buildSearchMetadata(match.team),
   };
 }
 
 function slackTsToMs(ts: string): number {
   return Math.floor(Number.parseFloat(ts) * 1000);
+}
+
+function buildSearchMetadata(team?: string): JsonObject {
+  const metadata: JsonObject = { federated: true };
+  if (team) {
+    metadata.team = team;
+  }
+  return metadata;
 }
 
 export async function quickSearch(

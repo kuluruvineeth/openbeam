@@ -1,4 +1,4 @@
-import type { Entity } from "@openplane/vespa";
+import type { Entity, JsonObject } from "@openplane/vespa";
 import type { SlackChannel, TransformContext } from "../types";
 
 export interface ChannelTransformContext extends TransformContext {
@@ -57,8 +57,8 @@ function getChannelEntityType(channel: SlackChannel): string {
 function buildChannelMetadata(
   channel: SlackChannel,
   members?: string[]
-): Record<string, unknown> {
-  const metadata: Record<string, unknown> = {
+): JsonObject {
+  const metadata: JsonObject = {
     is_private: channel.is_private,
     is_archived: channel.is_archived ?? false,
     is_general: channel.is_general ?? false,

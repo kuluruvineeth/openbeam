@@ -1,4 +1,4 @@
-import type { GenericDocument } from "@openplane/vespa";
+import type { GenericDocument, JsonArray, JsonObject } from "@openplane/vespa";
 import { slackTsToMs } from "../api/messages";
 import type { UserLookup } from "../api/users";
 import type { SlackChannel, SlackMessage, TransformContext } from "../types";
@@ -135,8 +135,8 @@ function buildMetadata(
     includeAttachments: boolean;
     includeReactions: boolean;
   }
-): Record<string, unknown> {
-  const metadata: Record<string, unknown> = {};
+): JsonObject {
+  const metadata: JsonObject = {};
 
   if (message.subtype) {
     metadata.subtype = message.subtype;
@@ -146,7 +146,7 @@ function buildMetadata(
     metadata.reactions = message.reactions.map((r) => ({
       name: r.name,
       count: r.count,
-    }));
+    })) as JsonArray;
   }
 
   if (message.files && message.files.length > 0) {
@@ -154,16 +154,16 @@ function buildMetadata(
       id: f.id,
       name: f.name,
       mimetype: f.mimetype,
-      size: f.size,
-    }));
+      size: f.size ?? 0,
+    })) as JsonArray;
   }
 
   if (options.includeBlocks && message.blocks) {
-    metadata.blocks = message.blocks;
+    metadata.blocks = message.blocks as JsonArray;
   }
 
   if (options.includeAttachments && message.attachments) {
-    metadata.attachments = message.attachments;
+    metadata.attachments = message.attachments as JsonArray;
   }
 
   if (message.edited) {

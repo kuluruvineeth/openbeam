@@ -362,4 +362,112 @@ export class SlackApiError extends Error {
     ];
     return authErrorCodes.includes(code as SlackErrorCode);
   }
+
+  static isScopeError(code: string): boolean {
+    return code === SlackErrorCodes.MISSING_SCOPE;
+  }
+
+  static getScopeErrorHelp(method: string): string {
+    const scopeRequirements: Record<string, string> = {
+      "search.messages": "search:read (user scope - requires sync token)",
+      "files.list": "files:read",
+      "files.info": "files:read",
+      "conversations.history": "channels:history or groups:history",
+      "conversations.list": "channels:read or groups:read",
+      "canvases.sections.lookup": "canvases:read",
+      "canvases.access.list": "canvases:read",
+      "canvases.access.set": "canvases:write",
+    };
+
+    const requiredScope = scopeRequirements[method];
+    if (requiredScope) {
+      return `Method '${method}' requires scope: ${requiredScope}. Re-authenticate to add this scope.`;
+    }
+    return `Method '${method}' requires additional scopes. Re-authenticate with the required permissions.`;
+  }
 }
+
+export const SlackCanvasAccessLevelSchema = z.enum([
+  "private",
+  "channel",
+  "org",
+  "external",
+]);
+
+export type SlackCanvasAccessLevel = z.infer<
+  typeof SlackCanvasAccessLevelSchema
+>;
+
+export const SlackCanvasSchema = z.object({
+  id: z.string(),
+  title: z.string().optional(),
+  channel_id: z.string().optional(),
+  document_content: z
+    .object({
+      markdown: z.string().optional(),
+      type: z.string().optional(),
+    })
+    .optional(),
+  last_edited_at: z.number().optional(),
+  last_edited_by_user: z
+    .object({
+      user_id: z.string().optional(),
+    })
+    .optional(),
+  is_published: z.boolean().optional(),
+  access_level: SlackCanvasAccessLevelSchema.optional(),
+});
+
+export type SlackCanvasRaw = z.infer<typeof SlackCanvasSchema>;
+
+export const SlackClipSchema = z.object({
+  id: z.string(),
+  name: z.string().optional(),
+  title: z.string().optional(),
+  filetype: z.string().optional(),
+  channels: z.array(z.string()).optional(),
+  user: z.string().optional(),
+  timestamp: z.number().optional(),
+  transcription: z
+    .object({
+      status: z.string().optional(),
+      preview: z
+        .object({
+          content: z.string().optional(),
+        })
+        .optional(),
+    })
+    .optional(),
+  media_display_type: z.string().optional(),
+  url_private: z.string().optional(),
+  thumb_video: z.string().optional(),
+  duration_ms: z.number().optional(),
+  views: z.number().optional(),
+});
+
+export type SlackClipRaw = z.infer<typeof SlackClipSchema>;
+
+export const SlackBookmarkTypeSchema = z.enum([
+  "link",
+  "message",
+  "canvas",
+  "file",
+]);
+
+export type SlackBookmarkType = z.infer<typeof SlackBookmarkTypeSchema>;
+
+export const SlackBookmarkSchema = z.object({
+  id: z.string(),
+  channel_id: z.string(),
+  title: z.string(),
+  link: z.string().optional(),
+  emoji: z.string().optional(),
+  icon_url: z.string().optional(),
+  type: SlackBookmarkTypeSchema,
+  entity_id: z.string().optional(),
+  date_created: z.number(),
+  date_updated: z.number().optional(),
+  created_by: z.string().optional(),
+});
+
+export type SlackBookmarkRaw = z.infer<typeof SlackBookmarkSchema>;

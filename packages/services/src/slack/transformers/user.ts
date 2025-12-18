@@ -1,4 +1,4 @@
-import type { Entity } from "@openplane/vespa";
+import type { Entity, JsonObject, JsonValue } from "@openplane/vespa";
 import type { SlackUser, TransformContext } from "../types";
 
 export function transformUser(
@@ -79,10 +79,10 @@ function getAvatarUrl(user: SlackUser): string | undefined {
   );
 }
 
-function buildUserMetadata(user: SlackUser): Record<string, unknown> {
+function buildUserMetadata(user: SlackUser): JsonObject {
   const profile = user.profile;
 
-  const base: Record<string, unknown> = {
+  const base: JsonObject = {
     username: user.name,
     is_bot: user.is_bot ?? false,
     is_app_user: user.is_app_user ?? false,
@@ -94,7 +94,7 @@ function buildUserMetadata(user: SlackUser): Record<string, unknown> {
     deleted: user.deleted ?? false,
   };
 
-  const optional: Record<string, unknown> = {
+  const optional: Record<string, JsonValue | undefined> = {
     title: profile?.title,
     status_text: profile?.status_text,
     status_emoji: profile?.status_emoji,

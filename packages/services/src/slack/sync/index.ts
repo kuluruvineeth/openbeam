@@ -1,10 +1,22 @@
 export {
+  type BookmarkSyncOptions,
+  syncBookmarksBatched,
+} from "./bookmarks";
+export {
+  type CanvasSyncOptions,
+  syncCanvasesBatched,
+} from "./canvas";
+export {
   type ChannelSyncResult,
   getChangedChannels,
   type SyncChannelsOptions,
   syncChannels,
   syncChannelsBatched,
 } from "./channels";
+export {
+  type ClipSyncOptions,
+  syncClipsBatched,
+} from "./clips";
 export {
   type FileSyncBatch,
   type FileSyncOptions,

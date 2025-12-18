@@ -158,6 +158,18 @@ export function createSlackClient(config: SlackClientConfig): SlackClient {
     }
 
     if (slackError) {
+      if (SlackApiError.isScopeError(slackError.code)) {
+        const scopeHelp = SlackApiError.getScopeErrorHelp(method);
+        logger.error(
+          {
+            connectorId,
+            method,
+            errorCode: slackError.code,
+            help: scopeHelp,
+          },
+          `Slack scope error: ${scopeHelp}`
+        );
+      }
       throw slackError;
     }
 
