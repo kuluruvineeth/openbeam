@@ -10,6 +10,7 @@ import {
   rateLimiter,
   type SyncJobData,
 } from "@openplane/redis";
+
 import {
   createSyncHistoryForRepeatableJob,
   getSyncCursorForConnector,
@@ -36,6 +37,20 @@ import {
 
 const tracer = trace.getTracer("openplane-worker");
 
+type ProgressEmitter = ReturnType<typeof createProgressEmitter>;
+
+async function emitProgressFailure(
+  progress: ProgressEmitter | undefined,
+  error: unknown,
+  totalProcessed: number
+): Promise<void> {
+  if (!progress) {
+    return;
+  }
+  const message = error instanceof Error ? error.message : String(error);
+  await progress.fail(message, totalProcessed);
+}
+
 export interface SyncJobResult {
   synced: number;
 }
@@ -45,6 +60,8 @@ export async function processSyncJob(
 ): Promise<SyncJobResult> {
   let { connectorId, syncJobId, type, traceContext } = job.data;
   let fenceToken: number | undefined;
+  let progress: ProgressEmitter | undefined;
+  let totalDocumentsProcessed = 0;
 
   const span = createLinkedSpan(
     "openplane-worker",
@@ -88,7 +105,7 @@ export async function processSyncJob(
         throw new Error("Fence became invalid during validation");
       }
 
-      const progress = createProgressEmitter({
+      progress = createProgressEmitter({
         id: syncJobId,
         teamId: connector.teamId,
         type: "sync",
@@ -113,6 +130,8 @@ export async function processSyncJob(
         fenceToken,
         progress,
       });
+
+      totalDocumentsProcessed = syncResult.totalDocuments;
 
       await updateSyncCompletion(prisma, {
         connectorId,
@@ -145,6 +164,7 @@ export async function processSyncJob(
 
       return { synced: syncResult.totalDocuments };
     } catch (error) {
+      await emitProgressFailure(progress, error, totalDocumentsProcessed);
       await handleJobError({
         error,
         jobId: job.id,
@@ -218,6 +238,9 @@ async function streamDocumentsToIndexQueue(params: {
       index_group_dms?: boolean;
       federated_include_group_dms?: boolean;
       sync_files?: boolean;
+      index_canvases?: boolean;
+      index_clips?: boolean;
+      index_bookmarks?: boolean;
     };
 
     const result = await syncConnectorStreaming(connector, {
@@ -227,6 +250,9 @@ async function streamDocumentsToIndexQueue(params: {
       indexDms: config.index_dms ?? false,
       indexGroupDms:
         config.index_group_dms ?? config.federated_include_group_dms ?? false,
+      syncCanvases: config.index_canvases ?? true,
+      syncClips: config.index_clips ?? true,
+      syncBookmarks: config.index_bookmarks ?? true,
       onBatch: async (batch) => {
         if (!(await validateFence(connectorId, fenceToken))) {
           throw new Error("Fence became invalid during streaming");

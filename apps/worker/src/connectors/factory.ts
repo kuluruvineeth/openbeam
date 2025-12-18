@@ -62,6 +62,9 @@ export interface StreamingSyncOptions {
   disabledResourceIds?: Set<string>;
   enabledResourceIds?: Set<string>;
   syncFiles?: boolean;
+  syncCanvases?: boolean;
+  syncClips?: boolean;
+  syncBookmarks?: boolean;
 }
 
 export async function syncConnectorStreaming(
@@ -79,6 +82,9 @@ export async function syncConnectorStreaming(
     disabledResourceIds,
     enabledResourceIds,
     syncFiles,
+    syncCanvases,
+    syncClips,
+    syncBookmarks,
   } = options;
 
   switch (connector.app) {
@@ -105,6 +111,9 @@ export async function syncConnectorStreaming(
         disabledChannelIds: disabledResourceIds,
         enabledChannelIds: enabledResourceIds,
         syncFiles,
+        syncCanvases,
+        syncClips,
+        syncBookmarks,
       });
 
       return {

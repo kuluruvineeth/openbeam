@@ -50,6 +50,9 @@ export interface SlackSyncOptions {
   disabledChannelIds?: Set<string>;
   enabledChannelIds?: Set<string>;
   syncFiles?: boolean;
+  syncCanvases?: boolean;
+  syncClips?: boolean;
+  syncBookmarks?: boolean;
 }
 
 function extractCredentials(
@@ -139,6 +142,9 @@ export async function syncSlackStreaming(
     disabledChannelIds,
     enabledChannelIds,
     syncFiles = false,
+    syncCanvases = false,
+    syncClips = false,
+    syncBookmarks = false,
   } = options;
 
   const disabledArray = disabledChannelIds
@@ -151,6 +157,9 @@ export async function syncSlackStreaming(
       hasCursor: !!cursor,
       forceFullSync,
       syncFiles,
+      syncCanvases,
+      syncClips,
+      syncBookmarks,
       disabledChannelIdsCount: disabledChannelIds?.size ?? 0,
       disabledChannelIds: disabledArray,
       enabledChannelIdsCount: enabledChannelIds?.size ?? 0,
@@ -234,6 +243,9 @@ export async function syncSlackStreaming(
       enabledChannelIds,
       syncFiles,
       onFilesDiscovered: syncFiles ? handleFilesDiscovered : undefined,
+      syncCanvases,
+      syncClips,
+      syncBookmarks,
     })) {
       totalDocuments += batch.items.length;
       totalProcessed += batch.stats.processed;
