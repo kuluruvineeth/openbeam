@@ -287,14 +287,14 @@ export class VespaClient {
     schema: "openplane_document" | "media_document" | "entity"
   ): Promise<{ deleted: number }> {
     const selection = `${schema}.connector_id=="${connectorId}"`;
-    const url = `${this.documentApiUrl}/default/${schema}/docid?selection=${encodeURIComponent(selection)}&cluster=openplane`;
+    const url = `${this.documentApiUrl}/default/${schema}/docid?selection=${encodeURIComponent(selection)}&cluster=content`;
 
     const response = await fetch(url, { method: "DELETE" });
 
     if (!response.ok) {
-      const error = (await response.json()) as VespaError;
+      const errorMessage = await this.getResponseError(response);
       throw new Error(
-        `Vespa bulk delete error: ${error.message || response.statusText}`
+        `Vespa bulk delete failed for ${schema} (status ${response.status}): ${errorMessage}`
       );
     }
 

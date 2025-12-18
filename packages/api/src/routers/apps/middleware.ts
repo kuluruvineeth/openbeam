@@ -54,11 +54,12 @@ const requireActiveTeam = t.middleware(async ({ ctx, next }) => {
 export const withActiveTeam = protectedProcedure.use(requireActiveTeam);
 
 const requireAdminRole = t.middleware(async ({ ctx, next }) => {
+  const teamCtx = ctx as ContextWithTeam;
   const membership = await ctx.prisma.usersOnTeam.findUnique({
     where: {
       userId_teamId: {
-        userId: ctx.session.user.id,
-        teamId: (ctx as ContextWithTeam).teamId,
+        userId: teamCtx.session.user.id,
+        teamId: teamCtx.teamId,
       },
     },
     select: { role: true },
