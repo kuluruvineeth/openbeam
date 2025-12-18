@@ -4,6 +4,8 @@ import {
   AppMentionEventSchema,
   AssistantThreadContextChangedEventSchema,
   AssistantThreadStartedEventSchema,
+  BookmarkAddedEventSchema,
+  BookmarkDeletedEventSchema,
   ChannelArchiveEventSchema,
   ChannelCreatedEventSchema,
   ChannelDeletedEventSchema,
@@ -123,6 +125,8 @@ const EVENT_SCHEMAS: Record<string, EventSchema> = {
   app_mention: AppMentionEventSchema,
   assistant_thread_context_changed: AssistantThreadContextChangedEventSchema,
   assistant_thread_started: AssistantThreadStartedEventSchema,
+  bookmark_added: BookmarkAddedEventSchema,
+  bookmark_deleted: BookmarkDeletedEventSchema,
   channel_archive: ChannelArchiveEventSchema,
   channel_created: ChannelCreatedEventSchema,
   channel_deleted: ChannelDeletedEventSchema,
@@ -230,6 +234,14 @@ export function isChannelEvent(event: SlackEvent): boolean {
 
 export function isMemberEvent(event: SlackEvent): boolean {
   return ["member_joined_channel", "member_left_channel"].includes(event.type);
+}
+
+export function isBookmarkEvent(event: SlackEvent): boolean {
+  return ["bookmark_added", "bookmark_deleted"].includes(event.type);
+}
+
+export function isFileEvent(event: SlackEvent): boolean {
+  return ["file_shared", "file_deleted"].includes(event.type);
 }
 
 export function getEventChannelId(event: SlackEvent): string | undefined {

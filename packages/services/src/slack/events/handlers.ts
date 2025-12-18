@@ -1,14 +1,26 @@
 import type { Entity, GenericDocument } from "@openplane/vespa";
 import { getAllChannelMembers, getChannelInfo } from "../api/channels";
+import { getClipInfo } from "../api/clips";
 import { fetchSingleMessage } from "../api/messages";
 import type { SlackClient } from "../client";
 import {
+  type BookmarkTransformContext,
+  type ClipTransformContext,
   type MessageTransformContext,
+  transformBookmark,
+  transformClip,
   transformMessage,
 } from "../transformers";
-import type { SlackChannel, SlackMessage, TransformContext } from "../types";
+import type {
+  SlackBookmarkType,
+  SlackChannel,
+  SlackMessage,
+  TransformContext,
+} from "../types";
 import {
+  isBookmarkEvent,
   isChannelEvent,
+  isFileEvent,
   isMemberEvent,
   isMessageChangedEvent,
   isMessageDeletedEvent,
@@ -16,11 +28,15 @@ import {
   isReactionEvent,
 } from "./parser";
 import type {
+  BookmarkAddedEvent,
+  BookmarkDeletedEvent,
   ChannelArchiveEvent,
   ChannelCreatedEvent,
   ChannelDeletedEvent,
   ChannelRenameEvent,
   ChannelUnarchiveEvent,
+  FileDeletedEvent,
+  FileSharedEvent,
   MemberJoinedChannelEvent,
   MemberLeftChannelEvent,
   MessageChangedEvent,
@@ -122,6 +138,12 @@ export async function handleSlackEvent(
     if (isMemberEvent(event)) {
       return dispatchMemberEvent(event, context);
     }
+    if (isBookmarkEvent(event)) {
+      return dispatchBookmarkEvent(event, context);
+    }
+    if (isFileEvent(event)) {
+      return dispatchFileEvent(event, context);
+    }
     return { changes: [], errors: [] };
   } catch (error) {
     return {
@@ -129,6 +151,26 @@ export async function handleSlackEvent(
       errors: [error instanceof Error ? error : new Error(String(error))],
     };
   }
+}
+
+function dispatchBookmarkEvent(
+  event: SlackEvent,
+  context: EventHandlerContext
+): EventHandlerResult {
+  if (event.type === "bookmark_added") {
+    return handleBookmarkAddedEvent(event as BookmarkAddedEvent, context);
+  }
+  return handleBookmarkDeletedEvent(event as BookmarkDeletedEvent, context);
+}
+
+function dispatchFileEvent(
+  event: SlackEvent,
+  context: EventHandlerContext
+): Promise<EventHandlerResult> | EventHandlerResult {
+  if (event.type === "file_shared") {
+    return handleFileSharedEvent(event as FileSharedEvent, context);
+  }
+  return handleFileDeletedEvent(event as FileDeletedEvent, context);
 }
 
 async function handleMessageEvent(
@@ -424,6 +466,103 @@ async function getMembersFromCache(
   }
 
   return members;
+}
+
+function handleBookmarkAddedEvent(
+  event: BookmarkAddedEvent,
+  context: EventHandlerContext
+): EventHandlerResult {
+  const { bookmark } = event;
+
+  const transformContext: BookmarkTransformContext = {
+    ...context,
+  };
+
+  const doc = transformBookmark(
+    {
+      id: bookmark.id,
+      channelId: bookmark.channel_id,
+      title: bookmark.title,
+      link: bookmark.link,
+      emoji: bookmark.emoji,
+      iconUrl: bookmark.icon_url,
+      type: bookmark.type as SlackBookmarkType,
+      entityId: bookmark.entity_id,
+      createdBy: bookmark.created_by ?? "",
+      createdAt: bookmark.date_created * 1000,
+      updatedAt: bookmark.date_updated
+        ? bookmark.date_updated * 1000
+        : undefined,
+    },
+    transformContext
+  );
+
+  return {
+    changes: [{ operation: "create", document: doc }],
+    errors: [],
+  };
+}
+
+function handleBookmarkDeletedEvent(
+  event: BookmarkDeletedEvent,
+  context: TransformContext
+): EventHandlerResult {
+  const documentId = `${context.connectorId}_bookmark_${event.bookmark_id}`;
+
+  return {
+    changes: [{ operation: "delete", documentId }],
+    errors: [],
+  };
+}
+
+async function handleFileSharedEvent(
+  event: FileSharedEvent,
+  context: EventHandlerContext
+): Promise<EventHandlerResult> {
+  const { client } = context;
+  const { file_id: fileId, channel_id: channelId } = event;
+
+  const clipInfo = await getClipInfo(client, fileId);
+  if (!clipInfo) {
+    return { changes: [], errors: [] };
+  }
+
+  const transformContext: ClipTransformContext = {
+    ...context,
+  };
+
+  const doc = transformClip(
+    {
+      id: clipInfo.id,
+      title: clipInfo.title,
+      channelId: channelId ?? clipInfo.channelId,
+      userId: clipInfo.userId,
+      duration: clipInfo.duration,
+      transcript: clipInfo.transcript,
+      thumbnailUrl: clipInfo.thumbnailUrl,
+      videoUrl: clipInfo.videoUrl,
+      createdAt: clipInfo.createdAt,
+      viewCount: clipInfo.viewCount,
+    },
+    transformContext
+  );
+
+  return {
+    changes: [{ operation: "create", document: doc }],
+    errors: [],
+  };
+}
+
+function handleFileDeletedEvent(
+  event: FileDeletedEvent,
+  context: TransformContext
+): EventHandlerResult {
+  const documentId = `${context.connectorId}_clip_${event.file_id}`;
+
+  return {
+    changes: [{ operation: "delete", documentId }],
+    errors: [],
+  };
 }
 
 export async function handleSlackEventBatch(

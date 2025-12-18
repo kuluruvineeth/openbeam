@@ -326,6 +326,36 @@ export const AppHomeOpenedEventSchema = z.object({
 
 export type AppHomeOpenedEvent = z.infer<typeof AppHomeOpenedEventSchema>;
 
+export const BookmarkAddedEventSchema = z.object({
+  type: z.literal("bookmark_added"),
+  channel_id: z.string(),
+  bookmark: z.object({
+    id: z.string(),
+    channel_id: z.string(),
+    title: z.string(),
+    link: z.string().optional(),
+    emoji: z.string().optional(),
+    icon_url: z.string().optional(),
+    type: z.enum(["link", "message", "canvas", "file"]),
+    entity_id: z.string().optional(),
+    date_created: z.number(),
+    date_updated: z.number().optional(),
+    created_by: z.string().optional(),
+  }),
+  event_ts: z.string(),
+});
+
+export type BookmarkAddedEvent = z.infer<typeof BookmarkAddedEventSchema>;
+
+export const BookmarkDeletedEventSchema = z.object({
+  type: z.literal("bookmark_deleted"),
+  channel_id: z.string(),
+  bookmark_id: z.string(),
+  event_ts: z.string(),
+});
+
+export type BookmarkDeletedEvent = z.infer<typeof BookmarkDeletedEventSchema>;
+
 export type SlackEvent =
   | MessageEvent
   | MessageChangedEvent
@@ -345,6 +375,8 @@ export type SlackEvent =
   | AppMentionEvent
   | AssistantThreadStartedEvent
   | AssistantThreadContextChangedEvent
-  | AppHomeOpenedEvent;
+  | AppHomeOpenedEvent
+  | BookmarkAddedEvent
+  | BookmarkDeletedEvent;
 
 export type SlackEventType = SlackEvent["type"];
