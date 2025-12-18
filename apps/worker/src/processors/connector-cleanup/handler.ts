@@ -14,6 +14,19 @@ import type { Job } from "bullmq";
 import logger from "../../utils/logger";
 import { logJobStart } from "../event-handlers";
 
+function serializeError(
+  error: unknown
+): { message: string; name?: string; stack?: string } | unknown {
+  if (error instanceof Error) {
+    return {
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+    };
+  }
+  return error;
+}
+
 const tracer = trace.getTracer("openplane-worker");
 
 export interface ConnectorCleanupResult {
@@ -139,19 +152,19 @@ async function deleteVespaData(
 
   if (docResult.status === "rejected") {
     logger.warn(
-      { error: docResult.reason, connectorId },
+      { error: serializeError(docResult.reason), connectorId },
       "Failed to delete documents from Vespa"
     );
   }
   if (mediaResult.status === "rejected") {
     logger.warn(
-      { error: mediaResult.reason, connectorId },
+      { error: serializeError(mediaResult.reason), connectorId },
       "Failed to delete media from Vespa"
     );
   }
   if (entityResult.status === "rejected") {
     logger.warn(
-      { error: entityResult.reason, connectorId },
+      { error: serializeError(entityResult.reason), connectorId },
       "Failed to delete entities from Vespa"
     );
   }
@@ -214,7 +227,7 @@ async function deleteTwelveLabsAssets(
       deleted += 1;
     } else {
       logger.warn(
-        { error: result.reason, asset: assets[index] },
+        { error: serializeError(result.reason), asset: assets[index] },
         "Failed to delete TwelveLabs asset"
       );
     }
