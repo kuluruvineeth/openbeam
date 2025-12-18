@@ -1,9 +1,11 @@
 import prisma, {
   AppType,
-  ConnectorStatus,
+  activateConnector,
   createDefaultSyncJobs,
-  encryptIfConfigured,
+  getConnectorById,
   getConnectorWithCredentials,
+  setConnectorError,
+  upsertOAuthProvider,
 } from "@openplane/db";
 import {
   AuthType,
@@ -30,12 +32,12 @@ type GoogleDriveConfig = {
 
 export class GoogleDriveAuth implements IntegrationAuth {
   private getRedirectUri(): string {
-    const baseUrl = process.env.CORS_ORIGIN || "http://localhost:3001";
+    const webUrl = process.env.WEB_URL || "http://localhost:3001";
     const redirectPath =
       googleDriveApp.auth.type === AuthType.OAUTH2
         ? googleDriveApp.auth.config.redirectPath
         : "/connectors/setup/google-drive/oauth/callback";
-    return `${baseUrl}${redirectPath}`;
+    return `${webUrl}${redirectPath}`;
   }
 
   private async getCredentials(connectorId: string) {
@@ -94,67 +96,28 @@ export class GoogleDriveAuth implements IntegrationAuth {
         redirectUri: this.getRedirectUri(),
       });
 
-      // Encrypt sensitive credentials
-      const accessTokenEncrypted = encryptIfConfigured(tokens.accessToken);
-      const refreshTokenEncrypted = encryptIfConfigured(tokens.refreshToken);
-      const clientSecretEncrypted = encryptIfConfigured(clientSecret);
-
-      const tokenExpiresAt = new Date(Date.now() + tokens.expiresIn * 1000);
-
       const connector = await prisma.$transaction(async (tx) => {
-        const current = await tx.connector.findUniqueOrThrow({
-          where: { id: connectorId },
-        });
+        const current = await getConnectorById(tx, connectorId);
 
-        const updated = await tx.connector.update({
-          where: { id: connectorId },
-          data: {
-            status: ConnectorStatus.ACTIVE,
-            statusChangedAt: new Date(),
-            lastSyncedAt: null,
-            workspaceExternalId: tokens.userId,
-            name: `Google Drive (${tokens.userEmail})`,
-            config: {
-              ...(current.config as object),
-              userEmail: tokens.userEmail,
-              domain: tokens.hostedDomain,
-            },
+        const updated = await activateConnector(tx, connectorId, {
+          workspaceExternalId: tokens.userId,
+          name: `Google Drive (${tokens.userEmail})`,
+          config: {
+            ...(current.config as object),
+            userEmail: tokens.userEmail,
+            domain: tokens.hostedDomain,
           },
         });
 
-        await tx.oAuthProvider.upsert({
-          where: { connectorId: updated.id },
-          create: {
-            connectorId: updated.id,
-            app: AppType.GOOGLE_DRIVE,
-            accessToken: accessTokenEncrypted.encrypted,
-            accessTokenIv: accessTokenEncrypted.iv,
-            refreshToken: refreshTokenEncrypted.encrypted,
-            refreshTokenIv: refreshTokenEncrypted.iv,
-            tokenExpiresAt,
-            oauthScopes: tokens.scopes,
-            tokenScopes: tokens.scopes,
-            tokenType: "Bearer",
-            tokenRefreshedAt: new Date(),
-            clientId,
-            clientSecret: clientSecretEncrypted.encrypted,
-            clientSecretIv: clientSecretEncrypted.iv,
-          },
-          update: {
-            accessToken: accessTokenEncrypted.encrypted,
-            accessTokenIv: accessTokenEncrypted.iv,
-            refreshToken: refreshTokenEncrypted.encrypted,
-            refreshTokenIv: refreshTokenEncrypted.iv,
-            tokenExpiresAt,
-            oauthScopes: tokens.scopes,
-            tokenScopes: tokens.scopes,
-            tokenType: "Bearer",
-            tokenRefreshedAt: new Date(),
-            clientId,
-            clientSecret: clientSecretEncrypted.encrypted,
-            clientSecretIv: clientSecretEncrypted.iv,
-            updatedAt: new Date(),
-          },
+        await upsertOAuthProvider(tx, {
+          connectorId: updated.id,
+          app: AppType.GOOGLE_DRIVE,
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+          expiresIn: tokens.expiresIn,
+          scopes: tokens.scopes,
+          clientId,
+          clientSecret,
         });
 
         await createDefaultSyncJobs(tx, updated.id);
@@ -163,15 +126,11 @@ export class GoogleDriveAuth implements IntegrationAuth {
 
       return { connector, redirectUrl };
     } catch (error) {
-      await prisma.connector.update({
-        where: { id: connectorId },
-        data: {
-          status: ConnectorStatus.ERROR,
-          statusChangedAt: new Date(),
-          lastError: error instanceof Error ? error.message : "OAuth failed",
-          lastErrorAt: new Date(),
-        },
-      });
+      await setConnectorError(
+        prisma,
+        connectorId,
+        error instanceof Error ? error.message : "OAuth failed"
+      );
       throw error;
     }
   }
