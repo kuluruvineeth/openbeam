@@ -3,6 +3,7 @@ import prisma, {
   decryptIfEncrypted,
   deleteChunksByFileId,
   findChunksByFileId,
+  findConnectorById,
   findIndexedFileById,
   getConnectorForSync,
   type OAuthProvider,
@@ -18,6 +19,7 @@ import {
   createLinkedSpan,
   createProgressEmitter,
   type FileProcessingJobData,
+  type ProgressEmitterParams,
 } from "@openplane/redis";
 import {
   EngineClient,
@@ -44,10 +46,44 @@ interface ParsedChunk {
 const engineUrl = process.env.ENGINE_URL || "http://localhost:8000";
 const engineClient = new EngineClient(engineUrl);
 
+type ProgressEmitter = ReturnType<typeof createProgressEmitter>;
+
+const FILE_TOTAL_STEPS = 3;
+
 export interface FileProcessingResult {
   success: boolean;
   fileId: string;
   nextStep?: "parse" | "index";
+}
+
+async function resolveFileProgressParams(
+  data: FileProcessingJobData
+): Promise<ProgressEmitterParams> {
+  const { fileId, connectorId, fileName } = data;
+
+  const file = await findIndexedFileById(prisma, fileId);
+  if (file) {
+    return {
+      id: fileId,
+      teamId: file.connector.teamId,
+      type: "file",
+      connectorId,
+      fileName,
+    };
+  }
+
+  const connector = await findConnectorById(prisma, connectorId);
+  if (!connector) {
+    throw new Error(`Connector not found: ${connectorId}`);
+  }
+
+  return {
+    id: fileId,
+    teamId: connector.teamId,
+    type: "file",
+    connectorId,
+    fileName,
+  };
 }
 
 export async function processFileJob(
@@ -67,20 +103,25 @@ export async function processFileJob(
     }
   );
 
+  let progress: ProgressEmitter | undefined;
+
   try {
     logJobStart(`file-${type}`, job.id, { connectorId, fileId });
+
+    const progressParams = await resolveFileProgressParams(job.data);
+    progress = createProgressEmitter(progressParams);
 
     let result: FileProcessingResult;
 
     switch (type) {
       case "download":
-        result = await processDownload(job.data);
+        result = await processDownload(job.data, progress);
         break;
       case "parse":
-        result = await processParse(job.data);
+        result = await processParse(job.data, progress);
         break;
       case "index":
-        result = await processIndex(job.data);
+        result = await processIndex(job.data, progress);
         break;
       default:
         throw new Error(`Unknown file processing type: ${type}`);
@@ -96,8 +137,14 @@ export async function processFileJob(
     span.recordException(error as Error);
     logJobError(`file-${type}`, job.id, error, { connectorId, fileId });
 
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    if (progress) {
+      await progress.fail(errorMessage, FILE_TOTAL_STEPS);
+    }
+
     await updateIndexedFileStatus(prisma, fileId, "FAILED", {
-      lastError: error instanceof Error ? error.message : String(error),
+      lastError: errorMessage,
       errorCount: { increment: 1 },
     });
 
@@ -108,7 +155,8 @@ export async function processFileJob(
 }
 
 async function processDownload(
-  data: FileProcessingJobData
+  data: FileProcessingJobData,
+  progress: ProgressEmitter
 ): Promise<FileProcessingResult> {
   const { fileId, connectorId, sourceUrl, fileName, externalId } = data;
 
@@ -138,15 +186,7 @@ async function processDownload(
     throw new Error("Connector not found");
   }
 
-  const progress = createProgressEmitter({
-    id: fileId,
-    teamId: connector.teamId,
-    type: "file",
-    connectorId,
-    fileName,
-  });
-
-  await progress.start(3, "Downloading");
+  await progress.start(FILE_TOTAL_STEPS, "Downloading");
 
   await updateIndexedFileProcessingStatus(prisma, fileId, "DOWNLOADING");
 
@@ -157,7 +197,6 @@ async function processDownload(
   });
 
   if (!response.ok) {
-    await progress.fail(`Download failed: ${response.status}`, 3);
     throw new Error(`Download failed: ${response.status}`);
   }
 
@@ -172,7 +211,7 @@ async function processDownload(
 
   await updateIndexedFileDownloaded(prisma, fileId, storageKey);
 
-  await progress.update(1, 3, "Downloaded");
+  await progress.update(1, FILE_TOTAL_STEPS, "Downloaded");
 
   logger.info({ fileId, storageKey }, "File downloaded");
 
@@ -189,7 +228,8 @@ async function processDownload(
 }
 
 async function processParse(
-  data: FileProcessingJobData
+  data: FileProcessingJobData,
+  progress: ProgressEmitter
 ): Promise<FileProcessingResult> {
   const { fileId, connectorId, storageKey, fileName, externalId } = data;
 
@@ -203,15 +243,7 @@ async function processParse(
     throw new Error("File not found");
   }
 
-  const progress = createProgressEmitter({
-    id: fileId,
-    teamId: file.connector.teamId,
-    type: "file",
-    connectorId,
-    fileName,
-  });
-
-  await progress.update(1, 3, "Parsing");
+  await progress.update(1, FILE_TOTAL_STEPS, "Parsing");
 
   await updateIndexedFileProcessingStatus(prisma, fileId, "PARSING");
 
@@ -251,7 +283,7 @@ async function processParse(
     chunkCount: parsedChunks.length,
   });
 
-  await progress.update(2, 3, "Parsed");
+  await progress.update(2, FILE_TOTAL_STEPS, "Parsed");
 
   logger.info(
     { fileId, textLength: result.text_length, chunks: parsedChunks.length },
@@ -407,7 +439,8 @@ async function cleanupExistingChunks(fileId: string): Promise<void> {
 }
 
 async function processIndex(
-  data: FileProcessingJobData
+  data: FileProcessingJobData,
+  progress: ProgressEmitter
 ): Promise<FileProcessingResult> {
   const {
     fileId,
@@ -429,15 +462,7 @@ async function processIndex(
     throw new Error("File not found");
   }
 
-  const progress = createProgressEmitter({
-    id: fileId,
-    teamId: file.connector.teamId,
-    type: "file",
-    connectorId,
-    fileName,
-  });
-
-  await progress.update(2, 3, "Indexing");
+  await progress.update(2, FILE_TOTAL_STEPS, "Indexing");
 
   const rawChunks = parsedChunks ?? [];
   const chunks: ParsedChunk[] = rawChunks.map((c) =>
@@ -530,7 +555,7 @@ async function processIndex(
 
   await updateIndexedFileIndexed(prisma, fileId, fileVespaId);
 
-  await progress.complete(3);
+  await progress.complete(FILE_TOTAL_STEPS);
 
   logger.info(
     {

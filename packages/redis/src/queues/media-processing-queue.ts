@@ -48,6 +48,8 @@ export interface MediaTwelveLabsJobData {
   connectorId: string;
   teamId: string;
   storageKey: string;
+  originalAudioStorageKey?: string;
+  originalAudioMimeType?: string;
   sourceChannelId?: string;
   sourceChannelName?: string;
   slackPermalink?: string;
@@ -65,6 +67,8 @@ export interface MediaVespaJobData {
   twelveLabsIndexId?: string;
   twelveLabsAssetId?: string;
   storageKey: string;
+  originalAudioStorageKey?: string;
+  originalAudioMimeType?: string;
   fileName: string;
   sourceChannelId?: string;
   sourceChannelName?: string;

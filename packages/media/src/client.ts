@@ -1,6 +1,6 @@
 import { TwelveLabs } from "twelvelabs-js";
 import { getMediaConfig } from "./config";
-import type { MediaInputType, MediaSegment } from "./types";
+import type { MediaInputType, MediaMetadata, MediaSegment } from "./types";
 
 export class TwelveLabsClient {
   private client: TwelveLabs | null = null;
@@ -74,7 +74,6 @@ export class TwelveLabsClient {
     let page = 1;
     const pageLimit = 50;
 
-    // Paginate through all indexes to find the one with the matching name
     while (true) {
       const response = await client.indexes.list({ page, pageLimit });
       const indexes = response.data ?? [];
@@ -85,7 +84,6 @@ export class TwelveLabsClient {
         }
       }
 
-      // No more pages
       if (indexes.length < pageLimit) {
         break;
       }
@@ -102,14 +100,28 @@ export class TwelveLabsClient {
   ): Promise<string> {
     const client = this.getClient();
 
-    const task = await client.tasks.create({
-      indexId,
-      videoUrl,
-      enableVideoStream: options.enableVideoStream,
-    });
+    const urlForLogging = videoUrl.split("?")[0];
+
+    let task: Awaited<ReturnType<typeof client.tasks.create>>;
+    try {
+      task = await client.tasks.create({
+        indexId,
+        videoUrl,
+        enableVideoStream: options.enableVideoStream,
+      });
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      throw new Error(
+        `TwelveLabs failed to create indexing task for URL ${urlForLogging}: ${errorMessage}. ` +
+          "Ensure the URL is publicly accessible and the video format is supported."
+      );
+    }
 
     if (!task.id) {
-      throw new Error("Failed to create indexing task: no ID returned");
+      throw new Error(
+        `TwelveLabs failed to create indexing task for URL ${urlForLogging}: no task ID returned`
+      );
     }
 
     // TODO: Switch to TwelveLabs webhook notifications for task completion
@@ -125,15 +137,22 @@ export class TwelveLabsClient {
     }
 
     if (taskStatus.status === "failed") {
-      throw new Error(`Video indexing task failed for task: ${task.id}`);
+      throw new Error(
+        `TwelveLabs video indexing task ${task.id} failed for URL ${urlForLogging}. ` +
+          "This may be due to: unsupported video format, inaccessible URL, or TwelveLabs service issues."
+      );
     }
 
     if (taskStatus.status === "deleted") {
-      throw new Error("Video indexing task was deleted");
+      throw new Error(
+        `TwelveLabs video indexing task ${task.id} was deleted for URL ${urlForLogging}`
+      );
     }
 
     if (!taskStatus.videoId) {
-      throw new Error("No video ID returned from completed task");
+      throw new Error(
+        `TwelveLabs video indexing task ${task.id} completed but no video ID returned for URL ${urlForLogging}`
+      );
     }
 
     return taskStatus.videoId;
@@ -205,6 +224,50 @@ export class TwelveLabsClient {
     return { segments, mediaEmbedding };
   }
 
+  private createEmbeddingTask(
+    client: TwelveLabs,
+    params: {
+      mediaUrl: string;
+      inputType: MediaInputType;
+      segmentation:
+        | { strategy: "fixed"; fixed: { durationSec: number } }
+        | undefined;
+      embeddingOption: Array<"visual" | "audio" | "transcription"> | undefined;
+    }
+  ): Promise<Awaited<ReturnType<typeof client.embed.v2.tasks.create>>> {
+    const { mediaUrl, inputType, segmentation, embeddingOption } = params;
+
+    if (inputType === "audio") {
+      return client.embed.v2.tasks.create({
+        inputType: "audio",
+        modelName: this.modelName,
+        audio: {
+          mediaSource: { url: mediaUrl },
+          segmentation,
+          embeddingOption: (
+            embeddingOption ?? ["audio", "transcription"]
+          ).filter((o): o is "audio" | "transcription" => o !== "visual"),
+          embeddingScope: ["clip", "asset"],
+        },
+      });
+    }
+
+    return client.embed.v2.tasks.create({
+      inputType: "video",
+      modelName: this.modelName,
+      video: {
+        mediaSource: { url: mediaUrl },
+        segmentation,
+        embeddingOption: embeddingOption ?? [
+          "visual",
+          "audio",
+          "transcription",
+        ],
+        embeddingScope: ["clip", "asset"],
+      },
+    });
+  }
+
   async generateEmbeddingsAsync(
     mediaUrl: string,
     options: {
@@ -215,6 +278,7 @@ export class TwelveLabsClient {
   ): Promise<{ segments: MediaSegment[]; mediaEmbedding: number[] }> {
     const client = this.getClient();
     const inputType = options.inputType ?? "video";
+    const urlForLogging = mediaUrl.split("?")[0];
 
     const segmentation = options.segmentDurationSec
       ? {
@@ -223,34 +287,22 @@ export class TwelveLabsClient {
         }
       : undefined;
 
-    const task =
-      inputType === "audio"
-        ? await client.embed.v2.tasks.create({
-            inputType: "audio",
-            modelName: this.modelName,
-            audio: {
-              mediaSource: { url: mediaUrl },
-              segmentation,
-              embeddingOption: (
-                options.embeddingOption ?? ["audio", "transcription"]
-              ).filter((o): o is "audio" | "transcription" => o !== "visual"),
-              embeddingScope: ["clip", "asset"],
-            },
-          })
-        : await client.embed.v2.tasks.create({
-            inputType: "video",
-            modelName: this.modelName,
-            video: {
-              mediaSource: { url: mediaUrl },
-              segmentation,
-              embeddingOption: options.embeddingOption ?? [
-                "visual",
-                "audio",
-                "transcription",
-              ],
-              embeddingScope: ["clip", "asset"],
-            },
-          });
+    let task: Awaited<ReturnType<typeof client.embed.v2.tasks.create>>;
+    try {
+      task = await this.createEmbeddingTask(client, {
+        mediaUrl,
+        inputType,
+        segmentation,
+        embeddingOption: options.embeddingOption,
+      });
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      throw new Error(
+        `TwelveLabs failed to create embedding task for ${inputType} URL ${urlForLogging}: ${errorMessage}. ` +
+          "Ensure the URL is publicly accessible and the media format is supported."
+      );
+    }
 
     let result = await client.embed.v2.tasks.retrieve(task.id);
     while (result.status === "processing") {
@@ -259,13 +311,27 @@ export class TwelveLabsClient {
     }
 
     if (result.status === "failed") {
-      throw new Error(`Media embedding task failed: ${task.id}`);
+      throw new Error(
+        `TwelveLabs ${inputType} embedding task ${task.id} failed for URL ${urlForLogging}. ` +
+          "This may be due to: unsupported media format, inaccessible URL, or TwelveLabs service issues."
+      );
     }
 
+    return this.parseEmbeddingResult(result.data ?? []);
+  }
+
+  private parseEmbeddingResult(
+    data: Array<{
+      embeddingScope?: string;
+      embedding: number[];
+      startSec?: number;
+      endSec?: number;
+    }>
+  ): { segments: MediaSegment[]; mediaEmbedding: number[] } {
     const segments: MediaSegment[] = [];
     let mediaEmbedding: number[] = [];
 
-    for (const item of result.data ?? []) {
+    for (const item of data) {
       if (item.embeddingScope === "asset") {
         mediaEmbedding = item.embedding;
       } else if (item.embeddingScope === "clip") {

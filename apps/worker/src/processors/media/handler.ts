@@ -26,6 +26,7 @@ import {
   type MediaDownloadJobData,
   type MediaTwelveLabsJobData,
   type MediaVespaJobData,
+  type ProgressEmitterParams,
   type QueueMediaJobData,
 } from "@openplane/redis";
 import {
@@ -38,8 +39,11 @@ import {
 import { type MediaDocument, vespaClient } from "@openplane/vespa";
 import { SpanStatusCode } from "@opentelemetry/api";
 import type { Job } from "bullmq";
+import { prepareAudioAsVideo } from "../../utils/audio-converter";
 import logger from "../../utils/logger";
 import { logJobError, logJobStart } from "../event-handlers";
+
+type ProgressEmitter = ReturnType<typeof createProgressEmitter>;
 
 const THUMBNAIL_FETCH_TIMEOUT_MS = 10_000;
 
@@ -140,6 +144,44 @@ export interface MediaProcessingResult {
   vespaId?: string;
 }
 
+const MEDIA_TOTAL_STEPS = 4;
+
+async function resolveProgressParams(
+  data: AnyMediaJobData
+): Promise<ProgressEmitterParams> {
+  const { mediaId, connectorId } = data;
+
+  if ("teamId" in data && data.teamId) {
+    let fileName: string | undefined;
+    if ("fileName" in data) {
+      fileName = data.fileName;
+    } else if ("title" in data) {
+      fileName = data.title;
+    }
+    return {
+      id: mediaId,
+      teamId: data.teamId,
+      type: "media",
+      connectorId,
+      fileName,
+    };
+  }
+
+  const connector = await findConnectorById(prisma, connectorId);
+  if (!connector) {
+    throw new Error(`Connector not found: ${connectorId}`);
+  }
+
+  const fileName = "fileName" in data ? data.fileName : undefined;
+  return {
+    id: mediaId,
+    teamId: connector.teamId,
+    type: "media",
+    connectorId,
+    fileName,
+  };
+}
+
 export async function processMediaJob(
   job: Job<AnyMediaJobData>
 ): Promise<MediaProcessingResult> {
@@ -159,22 +201,34 @@ export async function processMediaJob(
     }
   );
 
+  let progress: ProgressEmitter | undefined;
+
   try {
     logJobStart(`media-${type}`, job.id, { connectorId, mediaId });
+
+    const progressParams = await resolveProgressParams(job.data);
+    progress = createProgressEmitter(progressParams);
 
     let result: MediaProcessingResult;
 
     switch (type) {
       case "download":
-        result = await processMediaDownload(job.data as MediaDownloadJobData);
+        result = await processMediaDownload(
+          job.data as MediaDownloadJobData,
+          progress
+        );
         break;
       case "index-twelvelabs":
         result = await processTwelveLabsIndexing(
-          job.data as MediaTwelveLabsJobData
+          job.data as MediaTwelveLabsJobData,
+          progress
         );
         break;
       case "index-vespa":
-        result = await processVespaIndexing(job.data as MediaVespaJobData);
+        result = await processVespaIndexing(
+          job.data as MediaVespaJobData,
+          progress
+        );
         break;
       case "process":
       case "index":
@@ -194,8 +248,14 @@ export async function processMediaJob(
     span.recordException(error as Error);
     logJobError(`media-${type}`, job.id, error, { connectorId, mediaId });
 
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    if (progress) {
+      await progress.fail(errorMessage, MEDIA_TOTAL_STEPS);
+    }
+
     await updateIndexedMediaStatus(prisma, mediaId, "FAILED", {
-      lastError: error instanceof Error ? error.message : String(error),
+      lastError: errorMessage,
       errorCount: { increment: 1 },
     });
 
@@ -206,7 +266,8 @@ export async function processMediaJob(
 }
 
 async function processMediaDownload(
-  data: MediaDownloadJobData
+  data: MediaDownloadJobData,
+  progress: ProgressEmitter
 ): Promise<MediaProcessingResult> {
   const {
     mediaId,
@@ -229,15 +290,7 @@ async function processMediaDownload(
     throw new Error("Connector not found");
   }
 
-  const progress = createProgressEmitter({
-    id: mediaId,
-    teamId: connector.teamId,
-    type: "media",
-    connectorId,
-    fileName,
-  });
-
-  await progress.start(4, "Downloading");
+  await progress.start(MEDIA_TOTAL_STEPS, "Downloading");
 
   const oauth: OAuthProvider | null | undefined = connector.oauthProvider;
   const syncToken = oauth
@@ -259,26 +312,51 @@ async function processMediaDownload(
   });
 
   if (!response.ok) {
-    await progress.fail(`Download failed: ${response.status}`, 4);
     throw new Error(`Download failed: ${response.status}`);
   }
 
   const content = await response.arrayBuffer();
-  const buffer = Buffer.from(content);
+  const rawBuffer = Buffer.from(content);
 
-  const folder = mediaType === "audio" ? "audio" : "videos";
-  const finalStorageKey = `${connector.teamId}/${connectorId}/${folder}/${externalId}/${fileName}`;
+  const isAudio = mediaType === "audio";
+  let originalAudioStorageKey: string | undefined;
+  let originalAudioMimeType: string | undefined;
 
-  await storage.upload(finalStorageKey, buffer, {
-    contentType: mimeType,
+  // For audio files, store the original audio for embeddings
+  if (isAudio) {
+    originalAudioStorageKey = `${connector.teamId}/${connectorId}/audio/${externalId}/${fileName}`;
+    originalAudioMimeType = mimeType;
+    await storage.upload(originalAudioStorageKey, rawBuffer, {
+      contentType: mimeType,
+    });
+  }
+
+  // Convert audio to video format for TwelveLabs video indexing
+  const {
+    buffer: finalBuffer,
+    mimeType: finalMimeType,
+    fileName: finalFileName,
+  } = isAudio
+    ? await prepareAudioAsVideo(rawBuffer, fileName)
+    : { buffer: rawBuffer, mimeType, fileName };
+
+  const finalStorageKey = `${connector.teamId}/${connectorId}/videos/${externalId}/${finalFileName}`;
+
+  await storage.upload(finalStorageKey, finalBuffer, {
+    contentType: finalMimeType,
   });
 
   await updateIndexedMediaDownloaded(prisma, mediaId, finalStorageKey);
 
-  await progress.update(1, 4, "Downloaded");
+  await progress.update(1, MEDIA_TOTAL_STEPS, "Downloaded");
 
   logger.info(
-    { mediaId, mediaType, storageKey: finalStorageKey },
+    {
+      mediaId,
+      mediaType,
+      storageKey: finalStorageKey,
+      originalAudioStorageKey,
+    },
     "Media downloaded"
   );
 
@@ -287,8 +365,10 @@ async function processMediaDownload(
     connectorId,
     teamId: connector.teamId,
     storageKey: finalStorageKey,
+    originalAudioStorageKey,
+    originalAudioMimeType,
     mediaType,
-    mimeType,
+    mimeType: finalMimeType,
     sourceChannelId,
     sourceChannelName,
     slackPermalink,
@@ -298,13 +378,16 @@ async function processMediaDownload(
 }
 
 async function processTwelveLabsIndexing(
-  data: MediaTwelveLabsJobData
+  data: MediaTwelveLabsJobData,
+  progress: ProgressEmitter
 ): Promise<MediaProcessingResult> {
   const {
     mediaId,
     connectorId,
     teamId,
     storageKey,
+    originalAudioStorageKey,
+    originalAudioMimeType,
     mediaType,
     mimeType,
     sourceChannelId,
@@ -314,15 +397,7 @@ async function processTwelveLabsIndexing(
 
   const media = await findIndexedMediaById(prisma, mediaId);
 
-  const progress = createProgressEmitter({
-    id: mediaId,
-    teamId,
-    type: "media",
-    connectorId,
-    fileName: media?.fileName ?? undefined,
-  });
-
-  await progress.update(1, 4, "Transcribing");
+  await progress.update(1, MEDIA_TOTAL_STEPS, "Transcribing");
 
   await updateIndexedMediaProcessingStatus(
     prisma,
@@ -352,7 +427,7 @@ async function processTwelveLabsIndexing(
     twelveLabsAssetId,
   });
 
-  await progress.update(2, 4, "Transcribed");
+  await progress.update(2, MEDIA_TOTAL_STEPS, "Transcribed");
 
   logger.info(
     { mediaId, mediaType, twelveLabsAssetId },
@@ -367,6 +442,8 @@ async function processTwelveLabsIndexing(
     twelveLabsIndexId,
     twelveLabsAssetId,
     storageKey,
+    originalAudioStorageKey,
+    originalAudioMimeType,
     fileName: media?.fileName ?? "",
     sourceChannelId: sourceChannelId ?? media?.sourceChannelId ?? undefined,
     sourceChannelName,
@@ -379,7 +456,8 @@ async function processTwelveLabsIndexing(
 }
 
 async function processVespaIndexing(
-  data: MediaVespaJobData
+  data: MediaVespaJobData,
+  progress: ProgressEmitter
 ): Promise<MediaProcessingResult> {
   const {
     mediaId,
@@ -389,6 +467,7 @@ async function processVespaIndexing(
     twelveLabsIndexId,
     twelveLabsAssetId,
     storageKey,
+    originalAudioStorageKey,
     fileName,
     sourceChannelId,
     sourceChannelName: providedChannelName,
@@ -400,15 +479,7 @@ async function processVespaIndexing(
     throw new Error("Missing TwelveLabs index or asset ID for Vespa indexing");
   }
 
-  const progress = createProgressEmitter({
-    id: mediaId,
-    teamId,
-    type: "media",
-    connectorId,
-    fileName,
-  });
-
-  await progress.update(2, 4, "Generating embeddings");
+  await progress.update(2, MEDIA_TOTAL_STEPS, "Generating embeddings");
 
   await updateIndexedMediaProcessingStatus(
     prisma,
@@ -417,17 +488,26 @@ async function processVespaIndexing(
   );
 
   const client = new TwelveLabsClient();
-  const signedUrl = await getStorageProvider().getSignedUrl(
-    storageKey,
-    SIGNED_URL_EXPIRY_SECONDS
-  );
+  const storage = getStorageProvider();
 
-  const inputType: MediaInputType = mediaType === "audio" ? "audio" : "video";
-  const isAudio = inputType === "audio";
+  const isAudio = mediaType === "audio";
+
+  // For audio, use original audio file for embeddings (TwelveLabs embed API requires mp3/wav/flac)
+  // For video, use the video file (which is also the converted MP4 for audio)
+  const embeddingStorageKey =
+    isAudio && originalAudioStorageKey ? originalAudioStorageKey : storageKey;
+  const embeddingInputType: MediaInputType = isAudio ? "audio" : "video";
+
+  const [embeddingSignedUrl, signedUrl] = await Promise.all([
+    storage.getSignedUrl(embeddingStorageKey, SIGNED_URL_EXPIRY_SECONDS),
+    storage.getSignedUrl(storageKey, SIGNED_URL_EXPIRY_SECONDS),
+  ]);
 
   const [{ segments, mediaEmbedding }, metadata, transcriptSegments] =
     await Promise.all([
-      client.generateEmbeddingsAsync(signedUrl, { inputType }),
+      client.generateEmbeddingsAsync(embeddingSignedUrl, {
+        inputType: embeddingInputType,
+      }),
       client.generateMetadata(twelveLabsIndexId, twelveLabsAssetId),
       client.getVideoTranscriptWithTimestamps(
         twelveLabsIndexId,
@@ -460,7 +540,7 @@ async function processVespaIndexing(
     "Generated media embeddings, metadata, and transcript"
   );
 
-  await progress.update(3, 4, "Indexing");
+  await progress.update(3, MEDIA_TOTAL_STEPS, "Indexing");
 
   await updateIndexedMediaProcessingStatus(prisma, mediaId, "INDEXING_VESPA", {
     durationSeconds: Math.round(metadata.duration),
@@ -536,7 +616,7 @@ async function processVespaIndexing(
 
   await updateIndexedMediaIndexed(prisma, mediaId, { vespaId });
 
-  await progress.complete(4);
+  await progress.complete(MEDIA_TOTAL_STEPS);
 
   logger.info(
     { mediaId, mediaType, vespaId, segmentCount: segments.length },
