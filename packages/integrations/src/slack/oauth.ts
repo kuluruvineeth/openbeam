@@ -18,6 +18,8 @@ export const SLACK_USER_SCOPES = [
   "users:read",
   "users:read.email",
   "files:read",
+  "canvases:read",
+  "bookmarks:read",
 ] as const;
 
 export type GenerateSlackAuthUrlParams = {

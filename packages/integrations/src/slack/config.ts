@@ -84,6 +84,9 @@ export const slackApp: UnifiedApp = {
         // Bookmarks
         "bookmarks:read",
         "bookmarks:write",
+
+        // Canvases
+        "canvases:read",
       ],
     },
   },
