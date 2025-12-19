@@ -71,6 +71,7 @@ export interface ListClipsOptions {
   userId?: string;
   limit?: number;
   cursor?: string;
+  since?: number;
 }
 
 const CLIP_FILETYPES = ["mp4", "webm", "mov", "quicktime"] as const;
@@ -79,7 +80,7 @@ export async function listClips(
   client: SlackClient,
   options: ListClipsOptions = {}
 ): Promise<{ clips: SlackClip[]; nextCursor?: string }> {
-  const { channelId, userId, limit = 100, cursor } = options;
+  const { channelId, userId, limit = 100, cursor, since } = options;
 
   const params: Record<string, unknown> = {
     types: CLIP_FILETYPES.join(","),
@@ -96,6 +97,10 @@ export async function listClips(
 
   if (cursor) {
     params.cursor = cursor;
+  }
+
+  if (since) {
+    params.ts_from = since;
   }
 
   const response = await client.call<FilesListResponse>("files.list", params);

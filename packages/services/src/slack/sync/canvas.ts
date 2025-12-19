@@ -18,6 +18,7 @@ export interface CanvasSyncOptions {
   batchSize?: number;
   channelId?: string;
   includeContent?: boolean;
+  since?: number;
 }
 
 export async function* syncCanvasesBatched(
@@ -25,14 +26,15 @@ export async function* syncCanvasesBatched(
   context: TransformContext,
   options: CanvasSyncOptions = {}
 ): AsyncGenerator<SyncBatch<GenericDocument>, void, undefined> {
-  const { batchSize = 50, channelId, includeContent = true } = options;
+  const { batchSize = 50, channelId, includeContent = true, since } = options;
 
   const userLookup = await createUserLookup(client);
   const batch: GenericDocument[] = [];
   let processed = 0;
   let errors = 0;
+  let latestTimestamp = since ?? 0;
 
-  const listOptions: ListCanvasesOptions = { channelId };
+  const listOptions: ListCanvasesOptions = { channelId, since };
 
   for await (const rawCanvas of listAllCanvases(client, listOptions)) {
     try {
@@ -44,6 +46,10 @@ export async function* syncCanvasesBatched(
       const doc = transformCanvas(canvas, transformContext);
       batch.push(doc);
       processed += 1;
+
+      if (canvas.lastModified > latestTimestamp) {
+        latestTimestamp = canvas.lastModified;
+      }
     } catch {
       errors += 1;
     }
@@ -51,17 +57,17 @@ export async function* syncCanvasesBatched(
     if (batch.length >= batchSize) {
       yield {
         items: batch.splice(0, batch.length),
-        cursor: {},
+        cursor: { lastCanvasSyncTimestamp: latestTimestamp },
         hasMore: true,
         stats: { processed, skipped: 0, errors },
       };
     }
   }
 
-  if (batch.length > 0) {
+  if (batch.length > 0 || processed === 0) {
     yield {
       items: batch,
-      cursor: {},
+      cursor: { lastCanvasSyncTimestamp: latestTimestamp || Date.now() / 1000 },
       hasMore: false,
       stats: { processed, skipped: 0, errors },
     };

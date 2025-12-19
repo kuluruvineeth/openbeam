@@ -306,17 +306,24 @@ export async function* deltaSync(
   }
 
   if (shouldSyncCanvases) {
-    yield* syncCanvasesBatched(client, context, canvasOptions);
+    yield* syncCanvasesBatched(client, context, {
+      ...canvasOptions,
+      since: cursor.lastCanvasSyncTimestamp,
+    });
   }
 
   if (shouldSyncClips) {
-    yield* syncClipsBatched(client, context, clipOptions);
+    yield* syncClipsBatched(client, context, {
+      ...clipOptions,
+      since: cursor.lastClipSyncTimestamp,
+    });
   }
 
   if (shouldSyncBookmarks) {
     yield* syncBookmarksBatched(client, context, {
       ...bookmarkOptions,
       channels: channelsToSync,
+      since: cursor.lastBookmarkSyncTimestamp,
     });
   }
 }

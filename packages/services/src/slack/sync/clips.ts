@@ -17,6 +17,7 @@ export interface ClipSyncOptions {
   batchSize?: number;
   channelId?: string;
   userId?: string;
+  since?: number;
 }
 
 export async function* syncClipsBatched(
@@ -24,14 +25,15 @@ export async function* syncClipsBatched(
   context: TransformContext,
   options: ClipSyncOptions = {}
 ): AsyncGenerator<SyncBatch<GenericDocument>, void, undefined> {
-  const { batchSize = 50, channelId, userId } = options;
+  const { batchSize = 50, channelId, userId, since } = options;
 
   const userLookup = await createUserLookup(client);
   const batch: GenericDocument[] = [];
   let processed = 0;
   let errors = 0;
+  let latestTimestamp = since ?? 0;
 
-  const listOptions: ListClipsOptions = { channelId, userId };
+  const listOptions: ListClipsOptions = { channelId, userId, since };
 
   for await (const rawClip of listAllClips(client, listOptions)) {
     try {
@@ -43,6 +45,11 @@ export async function* syncClipsBatched(
       const doc = transformClip(clip, transformContext);
       batch.push(doc);
       processed += 1;
+
+      const clipTimestamp = Math.floor(clip.createdAt / 1000);
+      if (clipTimestamp > latestTimestamp) {
+        latestTimestamp = clipTimestamp;
+      }
     } catch {
       errors += 1;
     }
@@ -50,17 +57,19 @@ export async function* syncClipsBatched(
     if (batch.length >= batchSize) {
       yield {
         items: batch.splice(0, batch.length),
-        cursor: {},
+        cursor: { lastClipSyncTimestamp: latestTimestamp },
         hasMore: true,
         stats: { processed, skipped: 0, errors },
       };
     }
   }
 
-  if (batch.length > 0) {
+  if (batch.length > 0 || processed === 0) {
     yield {
       items: batch,
-      cursor: {},
+      cursor: {
+        lastClipSyncTimestamp: latestTimestamp || Math.floor(Date.now() / 1000),
+      },
       hasMore: false,
       stats: { processed, skipped: 0, errors },
     };

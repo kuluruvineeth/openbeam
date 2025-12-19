@@ -15,6 +15,18 @@ import type { SlackChannel, SyncBatch, TransformContext } from "../types";
 export interface BookmarkSyncOptions {
   batchSize?: number;
   channels?: SlackChannel[];
+  since?: number;
+}
+
+function getBookmarkTimestamp(bookmark: SlackBookmark): number {
+  return bookmark.updatedAt ?? bookmark.createdAt;
+}
+
+function shouldSkipBookmark(bookmark: SlackBookmark, sinceMs: number): boolean {
+  if (!sinceMs) {
+    return false;
+  }
+  return getBookmarkTimestamp(bookmark) <= sinceMs;
 }
 
 export async function* syncBookmarksBatched(
@@ -22,7 +34,7 @@ export async function* syncBookmarksBatched(
   context: TransformContext,
   options: BookmarkSyncOptions = {}
 ): AsyncGenerator<SyncBatch<GenericDocument>, void, undefined> {
-  const { batchSize = 100, channels = [] } = options;
+  const { batchSize = 100, channels = [], since } = options;
 
   if (channels.length === 0) {
     return;
@@ -34,11 +46,20 @@ export async function* syncBookmarksBatched(
 
   const batch: GenericDocument[] = [];
   let processed = 0;
+  let skipped = 0;
   let errors = 0;
+  let latestTimestamp = since ?? 0;
+  const sinceMs = since ? since * 1000 : 0;
 
   for await (const rawBookmark of listAllBookmarks(client, channelIds)) {
     try {
       const bookmark = mapApiBookmarkToBookmark(rawBookmark);
+
+      if (shouldSkipBookmark(bookmark, sinceMs)) {
+        skipped += 1;
+        continue;
+      }
+
       const channel = channelMap.get(bookmark.channelId);
       const transformContext: BookmarkTransformContext = {
         ...context,
@@ -48,6 +69,11 @@ export async function* syncBookmarksBatched(
       const doc = transformBookmark(bookmark, transformContext);
       batch.push(doc);
       processed += 1;
+
+      const bookmarkTimestamp = Math.floor(
+        getBookmarkTimestamp(bookmark) / 1000
+      );
+      latestTimestamp = Math.max(latestTimestamp, bookmarkTimestamp);
     } catch {
       errors += 1;
     }
@@ -55,19 +81,20 @@ export async function* syncBookmarksBatched(
     if (batch.length >= batchSize) {
       yield {
         items: batch.splice(0, batch.length),
-        cursor: {},
+        cursor: { lastBookmarkSyncTimestamp: latestTimestamp },
         hasMore: true,
-        stats: { processed, skipped: 0, errors },
+        stats: { processed, skipped, errors },
       };
     }
   }
 
-  if (batch.length > 0) {
+  const finalTimestamp = latestTimestamp || Math.floor(Date.now() / 1000);
+  if (batch.length > 0 || processed === 0) {
     yield {
       items: batch,
-      cursor: {},
+      cursor: { lastBookmarkSyncTimestamp: finalTimestamp },
       hasMore: false,
-      stats: { processed, skipped: 0, errors },
+      stats: { processed, skipped, errors },
     };
   }
 }

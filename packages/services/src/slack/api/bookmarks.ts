@@ -74,16 +74,25 @@ export async function listBookmarks(
 
 export async function listBookmarksForChannels(
   client: SlackClient,
-  channelIds: string[]
+  channelIds: string[],
+  options: { concurrency?: number } = {}
 ): Promise<Map<string, SlackBookmark[]>> {
+  const { concurrency = 5 } = options;
   const result = new Map<string, SlackBookmark[]>();
 
-  for (const channelId of channelIds) {
-    try {
-      const bookmarks = await listBookmarks(client, channelId);
+  for (let i = 0; i < channelIds.length; i += concurrency) {
+    const batch = channelIds.slice(i, i + concurrency);
+    const results = await Promise.all(
+      batch.map(async (channelId) => {
+        const bookmarks = await listBookmarks(client, channelId).catch(
+          () => [] as SlackBookmark[]
+        );
+        return { channelId, bookmarks };
+      })
+    );
+
+    for (const { channelId, bookmarks } of results) {
       result.set(channelId, bookmarks);
-    } catch {
-      result.set(channelId, []);
     }
   }
 
@@ -92,12 +101,23 @@ export async function listBookmarksForChannels(
 
 export async function* listAllBookmarks(
   client: SlackClient,
-  channelIds: string[]
+  channelIds: string[],
+  options: { concurrency?: number } = {}
 ): AsyncGenerator<SlackBookmark> {
-  for (const channelId of channelIds) {
-    const bookmarks = await listBookmarks(client, channelId);
-    for (const bookmark of bookmarks) {
-      yield bookmark;
+  const { concurrency = 5 } = options;
+
+  for (let i = 0; i < channelIds.length; i += concurrency) {
+    const batch = channelIds.slice(i, i + concurrency);
+    const results = await Promise.all(
+      batch.map((channelId) =>
+        listBookmarks(client, channelId).catch(() => [] as SlackBookmark[])
+      )
+    );
+
+    for (const bookmarks of results) {
+      for (const bookmark of bookmarks) {
+        yield bookmark;
+      }
     }
   }
 }
@@ -220,16 +240,21 @@ export async function syncBookmarks(
 
 export async function syncAllBookmarks(
   client: SlackClient,
-  channelIds: string[]
+  channelIds: string[],
+  options: { concurrency?: number } = {}
 ): Promise<BookmarkSyncResult[]> {
-  const results: BookmarkSyncResult[] = [];
+  const { concurrency = 5 } = options;
+  const allResults: BookmarkSyncResult[] = [];
 
-  for (const channelId of channelIds) {
-    const result = await syncBookmarks(client, channelId);
-    results.push(result);
+  for (let i = 0; i < channelIds.length; i += concurrency) {
+    const batch = channelIds.slice(i, i + concurrency);
+    const results = await Promise.all(
+      batch.map((channelId) => syncBookmarks(client, channelId))
+    );
+    allResults.push(...results);
   }
 
-  return results;
+  return allResults;
 }
 
 function mapBookmarkType(type: string): BookmarkType {

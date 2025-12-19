@@ -41,13 +41,14 @@ export interface ListCanvasesOptions {
   channelId?: string;
   limit?: number;
   page?: number;
+  since?: number;
 }
 
 export async function listCanvases(
   client: SlackClient,
   options: ListCanvasesOptions = {}
 ): Promise<{ canvases: SlackCanvas[]; hasMore: boolean; nextPage?: number }> {
-  const { channelId, limit = 100, page = 1 } = options;
+  const { channelId, limit = 100, page = 1, since } = options;
 
   const params: Record<string, unknown> = {
     count: limit,
@@ -57,6 +58,10 @@ export async function listCanvases(
 
   if (channelId) {
     params.channel = channelId;
+  }
+
+  if (since) {
+    params.ts_from = since;
   }
 
   const response = await client.call<FilesListResponse>("files.list", params);
