@@ -1,10 +1,10 @@
 model ApiKey {
   id             String   @id @default(cuid()) @map("_id")
   teamId         String
-  name           String   // Human-readable name for the key
-  keyHash        String   @unique // Hashed API key (never store plaintext)
-  prefix         String   // First 8 chars of key for identification (e.g., "op_abc123")
-  scopes         String[] @default(["read", "write"]) // Permissions: read, write, admin
+  name           String   
+  keyHash        String   @unique
+  prefix         String  
+  scopes         String[] @default(["read", "write"])
   lastUsedAt     DateTime?
   expiresAt      DateTime?
   revoked        Boolean  @default(false)

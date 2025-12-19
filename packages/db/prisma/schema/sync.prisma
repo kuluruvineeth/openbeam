@@ -176,7 +176,7 @@ model SyncCursor {
   cursorType    String   @default("timestamp")  // "timestamp", "offset", "cursor", "sync_token"
   
   lastSyncedAt  DateTime @default(now())
-  lastDocumentId String? // Last processed document
+  lastDocumentId String?
   
   metadata      Json     @default("{}")
 
@@ -222,15 +222,15 @@ model IndexedDocument {
   vespaId         String   @unique
   
   documentType    String   // "message", "file", "page", "issue", etc.
-  documentSubtype String?  // More specific type
+  documentSubtype String?
   
   sourceId        String?  // Channel, folder, database ID
-  sourcePath      String?  // Full path
-  parentId        String?  // Parent document ID (for hierarchy)
+  sourcePath      String?
+  parentId        String?
   
   checksum        String?  // SHA-256 of content
-  lastChecksum    String?  // Previous checksum
-  contentLength   Int?     // Content size in chars
+  lastChecksum    String?
+  contentLength   Int?
   
   indexedAt       DateTime @default(now())
   lastSyncedAt    DateTime @updatedAt
@@ -381,7 +381,6 @@ model IndexedFile {
   @@index([processingStatus])
   @@index([mimeType])
   @@index([connectorId])
-  // Composite index for resource document listing (connector + channel + status, ordered by indexedAt)
   @@index([connectorId, sourceChannelId, processingStatus, indexedAt(sort: Desc)])
   @@map("indexed_file")
 }
@@ -447,7 +446,6 @@ model IndexedMedia {
   @@index([processingStatus])
   @@index([connectorId])
   @@index([mediaType])
-  // Composite index for resource document listing (connector + channel + status, ordered by indexedAt)
   @@index([connectorId, sourceChannelId, processingStatus, indexedAt(sort: Desc)])
   @@map("indexed_media")
 }
