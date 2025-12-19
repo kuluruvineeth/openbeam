@@ -1,3 +1,4 @@
+import { escapeYqlString } from "./query";
 import type {
   Entity,
   FeedResponse,
@@ -527,6 +528,40 @@ export class VespaClient {
     return result.fields;
   }
 
+  private computeAclUpdate(
+    currentAcl: string[],
+    userId: string,
+    action: "add" | "remove"
+  ): string[] | null {
+    if (action === "add") {
+      if (currentAcl.includes(userId)) {
+        return null;
+      }
+      return [...currentAcl, userId];
+    }
+    if (!currentAcl.includes(userId)) {
+      return null;
+    }
+    return currentAcl.filter((id) => id !== userId);
+  }
+
+  private async applyAclUpdates(
+    updates: Array<{ id: string; newAcl: string[] }>,
+    concurrency: number
+  ): Promise<number> {
+    let updated = 0;
+    for (let i = 0; i < updates.length; i += concurrency) {
+      const batch = updates.slice(i, i + concurrency);
+      await Promise.all(
+        batch.map(({ id, newAcl }) =>
+          this.updateDocument(id, { access_control: newAcl })
+        )
+      );
+      updated += batch.length;
+    }
+    return updated;
+  }
+
   async updateChannelPermissions(
     connectorId: string,
     channelId: string,
@@ -534,37 +569,46 @@ export class VespaClient {
     action: "add" | "remove"
   ): Promise<{ updated: number }> {
     const sourceIdFilter = `${connectorId}_${channelId}`;
-    const yql = `select id, access_control from openplane_document where source_id contains "${sourceIdFilter}"`;
-
-    const results = await this.query<GenericDocument>({
-      yql,
-      hits: 1000,
-    });
+    const baseYql = `select id, access_control from openplane_document where source_id contains "${escapeYqlString(sourceIdFilter)}"`;
 
     let updated = 0;
+    let offset = 0;
+    const pageSize = 1000;
 
-    for (const hit of results.root?.children ?? []) {
-      const doc = hit.fields;
-      if (!doc) {
-        continue;
+    while (true) {
+      const results = await this.query<GenericDocument>({
+        yql: baseYql,
+        hits: pageSize,
+        offset,
+      });
+
+      const hits = results.root?.children ?? [];
+      if (hits.length === 0) {
+        break;
       }
 
-      const currentAcl = doc.access_control ?? [];
-      let newAcl: string[];
-
-      if (action === "add") {
-        if (currentAcl.includes(userId)) {
+      const updates: Array<{ id: string; newAcl: string[] }> = [];
+      for (const hit of hits) {
+        const doc = hit.fields;
+        if (!doc) {
           continue;
         }
-        newAcl = [...currentAcl, userId];
-      } else if (currentAcl.includes(userId)) {
-        newAcl = currentAcl.filter((id) => id !== userId);
-      } else {
-        continue;
+        const newAcl = this.computeAclUpdate(
+          doc.access_control ?? [],
+          userId,
+          action
+        );
+        if (newAcl) {
+          updates.push({ id: doc.id, newAcl });
+        }
       }
 
-      await this.updateDocument(doc.id, { access_control: newAcl });
-      updated += 1;
+      updated += await this.applyAclUpdates(updates, 10);
+
+      if (hits.length < pageSize) {
+        break;
+      }
+      offset += pageSize;
     }
 
     return { updated };

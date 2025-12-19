@@ -17,7 +17,6 @@ export class VespaBatcher {
   private readonly config: BatcherConfig;
   private readonly buffer: PendingDocument[] = [];
   private flushTimer: ReturnType<typeof setTimeout> | null = null;
-  private flushing = false;
   private activeFlushes = 0;
 
   constructor(config?: Partial<BatcherConfig>) {
@@ -54,7 +53,7 @@ export class VespaBatcher {
   }
 
   private async flush(): Promise<void> {
-    if (this.flushing || this.buffer.length === 0) {
+    if (this.buffer.length === 0) {
       return;
     }
 
@@ -62,11 +61,8 @@ export class VespaBatcher {
       return;
     }
 
-    this.flushing = true;
-    const batch = this.buffer.splice(0, this.config.maxBatchSize);
-    this.flushing = false;
-
     this.activeFlushes += 1;
+    const batch = this.buffer.splice(0, this.config.maxBatchSize);
 
     try {
       await Promise.all(
