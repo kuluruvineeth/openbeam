@@ -48,6 +48,7 @@ export interface SearchServiceDep {
       score: number;
       documentType: string;
     }>;
+    total: number;
   }>;
 }
 

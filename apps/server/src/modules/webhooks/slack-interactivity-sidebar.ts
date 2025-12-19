@@ -11,6 +11,7 @@ import {
   buildSharedResponseBlocks,
   buildSidebarResponseBlocks,
   handleSidebarPromptSelect,
+  handleSidebarSearch,
   ragAnswer,
   SIDEBAR_CALLBACK_IDS,
   searchService,
@@ -77,6 +78,7 @@ export async function handleSidebarPromptAction(
         teamId: string;
         accessControlIds: string[];
         limit: number;
+        sourceId?: string;
       }) => {
         const results = await searchService.searchUnified({
           query: params.query,
@@ -84,6 +86,7 @@ export async function handleSidebarPromptAction(
           limit: params.limit,
           includeDocuments: true,
           accessControlIds: params.accessControlIds,
+          sourceId: params.sourceId,
         });
         return {
           documents: results.documents.map((doc) => ({
@@ -92,7 +95,9 @@ export async function handleSidebarPromptAction(
             content: doc.content,
             score: (doc as unknown as { relevance?: number }).relevance ?? 0,
             documentType: doc.document_type,
+            source_name: doc.source_name,
           })),
+          total: results.total,
         };
       },
     },
@@ -102,12 +107,15 @@ export async function handleSidebarPromptAction(
         teamId: string;
         accessControlIds: string[];
         topK: number;
+        sourceId?: string;
       }) => {
         const result = await ragAnswer({
           query: params.query,
           teamId: params.teamId,
           accessControlIds: params.accessControlIds,
           topK: params.topK,
+          sourceId: params.sourceId,
+          includeMetadata: true,
         });
         return {
           answer: result.answer,
@@ -367,4 +375,137 @@ export async function updateFeedbackMessage(
   } catch (error) {
     logger.warn({ error }, "Failed to update feedback message");
   }
+}
+
+export async function handleSidebarSearchAction(
+  ctx: HandlerContext,
+  payload: BlockActionPayload
+): Promise<void> {
+  const action = payload.actions[0];
+  if (!action) {
+    return;
+  }
+
+  const query =
+    "value" in action
+      ? (action.value as string)
+      : (action as { value?: string }).value;
+  if (!query?.trim()) {
+    logger.debug({ ctx }, "Empty search query submitted");
+    return;
+  }
+
+  const threadTs = payload.message?.thread_ts ?? payload.message?.ts;
+  const channelId = payload.channel?.id ?? ctx.channelId;
+
+  if (!(channelId && threadTs)) {
+    logger.warn(
+      { ctx },
+      "Missing channel or thread context for sidebar search"
+    );
+    return;
+  }
+
+  const cacheKey = getSidebarContextKey(channelId, threadTs);
+  const cachedContext = await getSidebarContext(cacheKey);
+
+  if (!cachedContext) {
+    logger.warn({ cacheKey }, "Sidebar context not found for search");
+    return;
+  }
+
+  const client = await getSlackClient(ctx.connectorId, ctx.teamId);
+  const threadContext = {
+    channelId,
+    threadTs,
+    userId: ctx.userId,
+  };
+
+  await setThreadStatus(client, threadContext, "Searching...");
+
+  const sidebarContext: SidebarContext = {
+    channelId: cachedContext.contextChannelId ?? channelId,
+    channelType: "channel",
+    teamId: cachedContext.teamId,
+    userId: ctx.userId,
+    threadTs,
+  };
+
+  const deps = {
+    searchService: {
+      search: async (params: {
+        query: string;
+        teamId: string;
+        accessControlIds: string[];
+        limit: number;
+        sourceId?: string;
+      }) => {
+        const results = await searchService.searchUnified({
+          query: params.query,
+          teamId: params.teamId,
+          limit: params.limit,
+          includeDocuments: true,
+          accessControlIds: params.accessControlIds,
+          sourceId: params.sourceId,
+        });
+        return {
+          documents: results.documents.map((doc) => ({
+            title: doc.title,
+            url: doc.url,
+            content: doc.content,
+            score: (doc as unknown as { relevance?: number }).relevance ?? 0,
+            documentType: doc.document_type,
+            source_name: doc.source_name,
+          })),
+          total: results.total,
+        };
+      },
+    },
+    ragService: {
+      answer: async (params: {
+        query: string;
+        teamId: string;
+        accessControlIds: string[];
+        topK: number;
+        sourceId?: string;
+      }) => {
+        const result = await ragAnswer({
+          query: params.query,
+          teamId: params.teamId,
+          accessControlIds: params.accessControlIds,
+          topK: params.topK,
+          sourceId: params.sourceId,
+          includeMetadata: true,
+        });
+        return {
+          answer: result.answer,
+          citations: result.citations.map((c) => ({
+            title: c.title,
+            url: c.url,
+          })),
+        };
+      },
+    },
+  };
+
+  const response = await handleSidebarSearch(
+    {
+      query: query.trim(),
+      context: sidebarContext,
+      accessControlIds: [ctx.userId, `team:${ctx.teamId}`],
+    },
+    deps
+  );
+
+  if (response) {
+    const blocks = buildSidebarResponseBlocks(response);
+    await client.call("chat.postMessage", {
+      channel: channelId,
+      thread_ts: threadTs,
+      text: truncateForSlack(response.content),
+      blocks,
+    });
+  }
+
+  await setThreadStatus(client, threadContext, "");
 }

@@ -32,6 +32,7 @@ import {
   handleNotHelpfulRetry,
   handleShareResponse,
   handleSidebarPromptAction,
+  handleSidebarSearchAction,
   updateFeedbackMessage,
 } from "./slack-interactivity-sidebar";
 import type {
@@ -170,6 +171,11 @@ export async function handleBlockActions(
       { actionId, userId: ctx.userId },
       "Sidebar suggestion clicked"
     );
+    return c.json({ ok: true });
+  }
+
+  if (actionId === SIDEBAR_CALLBACK_IDS.SEARCH_SUBMIT) {
+    await handleSidebarSearchAction(ctx, payload);
     return c.json({ ok: true });
   }
 
