@@ -3,7 +3,7 @@ import type { Database } from "../index";
 export const findScheduledSyncJob = async (
   db: Database,
   connectorId: string,
-  type: "FULL" | "INCREMENTAL"
+  type: "FULL" | "INCREMENTAL" | "PERMISSIONS"
 ) =>
   db.syncJob.findFirst({
     where: {

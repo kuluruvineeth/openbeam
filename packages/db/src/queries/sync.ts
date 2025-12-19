@@ -12,6 +12,13 @@ export interface SyncJobInfo {
   status: string;
 }
 
+export interface ProcessingStatus {
+  filesProcessing: number;
+  filesIndexed: number;
+  mediaProcessing: number;
+  mediaIndexed: number;
+}
+
 export interface GetSyncStatusResult {
   connector: {
     id: string;
@@ -32,10 +39,12 @@ export interface GetSyncStatusResult {
     finishedAt: Date | null;
     errorMessage: string | null;
     durationMs: number | null;
+    summary: Prisma.JsonValue;
   } | null;
   stats: {
     totalIndexed: number;
   };
+  processing: ProcessingStatus;
   resources: {
     total: number;
   };
@@ -53,9 +62,6 @@ export interface GetSyncStatusResult {
   };
 }
 
-/**
- * Get sync status for a connector
- */
 export const getSyncStatus = async (
   db: Database,
   connectorId: string
@@ -78,7 +84,6 @@ export const getSyncStatus = async (
     return null;
   }
 
-  // Get latest sync history
   const latestSync = await db.syncHistory.findFirst({
     where: { connectorId },
     orderBy: { startedAt: "desc" },
@@ -92,17 +97,48 @@ export const getSyncStatus = async (
       finishedAt: true,
       errorMessage: true,
       durationMs: true,
+      summary: true,
     },
   });
 
-  // Get counts in parallel
-  const [totalIndexed, totalResources, totalSyncHistory] = await Promise.all([
+  const [
+    totalDocuments,
+    totalFiles,
+    totalMedia,
+    totalResources,
+    totalSyncHistory,
+    filesProcessing,
+    filesIndexed,
+    mediaProcessing,
+    mediaIndexed,
+  ] = await Promise.all([
     db.indexedDocument.count({ where: { connectorId } }),
+    db.indexedFile.count({ where: { connectorId } }),
+    db.indexedMedia.count({ where: { connectorId } }),
     db.connectorResource.count({ where: { connectorId } }),
     db.syncHistory.count({ where: { connectorId } }),
+    db.indexedFile.count({
+      where: {
+        connectorId,
+        processingStatus: { notIn: ["INDEXED", "FAILED"] },
+      },
+    }),
+    db.indexedFile.count({
+      where: { connectorId, processingStatus: "INDEXED" },
+    }),
+    db.indexedMedia.count({
+      where: {
+        connectorId,
+        processingStatus: { notIn: ["INDEXED", "FAILED"] },
+      },
+    }),
+    db.indexedMedia.count({
+      where: { connectorId, processingStatus: "INDEXED" },
+    }),
   ]);
 
-  // Get sync jobs for this connector
+  const totalIndexed = totalDocuments + totalFiles + totalMedia;
+
   const syncJobs = await db.syncJob.findMany({
     where: {
       connectorId,
@@ -121,11 +157,9 @@ export const getSyncStatus = async (
     },
   });
 
-  // Separate full and incremental sync jobs
   const fullSyncJob = syncJobs.find((job) => job.type === "FULL");
   const incrementalSyncJob = syncJobs.find((job) => job.type === "INCREMENTAL");
 
-  // Parse webhook config
   const webhookConfig = connector.webhookConfig as
     | {
         enabled?: boolean;
@@ -148,6 +182,12 @@ export const getSyncStatus = async (
     latestSync,
     stats: {
       totalIndexed,
+    },
+    processing: {
+      filesProcessing,
+      filesIndexed,
+      mediaProcessing,
+      mediaIndexed,
     },
     resources: {
       total: totalResources,
@@ -205,15 +245,11 @@ export interface GetSyncHistoryResult {
   };
 }
 
-/**
- * Get sync history for a connector with pagination
- */
 export const getSyncHistory = async (
   db: Database,
   connectorId: string,
   options: { limit: number; offset: number }
 ): Promise<GetSyncHistoryResult> => {
-  // Fetch sync history with pagination
   const [history, total] = await Promise.all([
     db.syncHistory.findMany({
       where: { connectorId },
@@ -256,9 +292,6 @@ export const getSyncHistory = async (
   };
 };
 
-/**
- * Verify connector belongs to team
- */
 export const verifyConnectorOwnership = async (
   db: Database,
   connectorId: string,

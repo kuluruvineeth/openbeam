@@ -1,11 +1,68 @@
-import type { ConnectorResource } from "../../prisma/generated/client";
+import type { ConnectorResource, Prisma } from "../../prisma/generated/client";
 import type { Database } from "../index";
 
+export type ConnectorResourceWithCount = ConnectorResource & {
+  documentCount: number;
+};
+
 export type ListConnectorResourcesResult = {
-  items: ConnectorResource[];
+  items: ConnectorResourceWithCount[];
   nextCursor: string | null;
   totalCount: number;
 };
+
+type ResourceCountRow = {
+  source_id: string;
+  count: bigint;
+};
+
+async function getResourceDocumentCounts(
+  db: Database,
+  connectorId: string,
+  resourceExternalIds: string[]
+): Promise<Map<string, number>> {
+  if (resourceExternalIds.length === 0) {
+    return new Map();
+  }
+
+  const counts = await db.$queryRaw<ResourceCountRow[]>`
+    SELECT source_id, SUM(cnt)::bigint as count FROM (
+      SELECT "sourceId" as source_id, COUNT(*)::bigint as cnt
+      FROM indexed_document
+      WHERE "connectorId" = ${connectorId}
+        AND "sourceId" = ANY(${resourceExternalIds})
+        AND "deletedFromSource" = false
+      GROUP BY "sourceId"
+
+      UNION ALL
+
+      SELECT "sourceChannelId" as source_id, COUNT(*)::bigint as cnt
+      FROM indexed_file
+      WHERE "connectorId" = ${connectorId}
+        AND "sourceChannelId" = ANY(${resourceExternalIds})
+        AND "processingStatus" = 'INDEXED'
+      GROUP BY "sourceChannelId"
+
+      UNION ALL
+
+      SELECT "sourceChannelId" as source_id, COUNT(*)::bigint as cnt
+      FROM indexed_media
+      WHERE "connectorId" = ${connectorId}
+        AND "sourceChannelId" = ANY(${resourceExternalIds})
+        AND "processingStatus" = 'INDEXED'
+      GROUP BY "sourceChannelId"
+    ) combined
+    GROUP BY source_id
+  `;
+
+  const countMap = new Map<string, number>();
+  for (const row of counts) {
+    if (row.source_id) {
+      countMap.set(row.source_id, Number(row.count));
+    }
+  }
+  return countMap;
+}
 
 export const listConnectorResources = async (
   db: Database,
@@ -18,7 +75,7 @@ export const listConnectorResources = async (
 ): Promise<ListConnectorResourcesResult> => {
   const { search, cursor, limit = 50 } = options ?? {};
 
-  const where = {
+  const where: Prisma.ConnectorResourceWhereInput = {
     connectorId,
     ...(search && {
       OR: [
@@ -41,8 +98,20 @@ export const listConnectorResources = async (
   const hasMore = resources.length > limit;
   const items = resources.slice(0, limit);
 
+  const resourceExternalIds = items.map((r) => r.externalId);
+  const countMap = await getResourceDocumentCounts(
+    db,
+    connectorId,
+    resourceExternalIds
+  );
+
+  const itemsWithCounts: ConnectorResourceWithCount[] = items.map((r) => ({
+    ...r,
+    documentCount: countMap.get(r.externalId) ?? 0,
+  }));
+
   return {
-    items,
+    items: itemsWithCounts,
     nextCursor: hasMore ? (items.at(-1)?.id ?? null) : null,
     totalCount,
   };
@@ -147,117 +216,107 @@ export type ListResourceDocumentsResult = {
   totalCount: number;
 };
 
+type ResourceDocumentRow = {
+  id: string;
+  title: string | null;
+  document_type: string;
+  indexed_at: Date;
+  source: string;
+};
+
+type CountRow = { count: bigint };
+
 export const listResourceDocuments = async (
   db: Database,
   connectorId: string,
   resourceExternalId: string,
   options: { search?: string; cursor?: string; limit: number }
 ): Promise<ListResourceDocumentsResult> => {
-  const { search, cursor, limit } = options;
+  const { search, limit } = options;
+  const searchPattern = search ? `%${search}%` : null;
 
-  const documentWhere = {
-    connectorId,
-    sourceId: resourceExternalId,
-    deletedFromSource: false,
-    ...(search && {
-      title: { contains: search, mode: "insensitive" as const },
-    }),
-  };
+  const documents = await db.$queryRaw<ResourceDocumentRow[]>`
+    SELECT * FROM (
+      SELECT
+        _id as id,
+        title,
+        "documentType" as document_type,
+        "indexedAt" as indexed_at,
+        'document' as source
+      FROM indexed_document
+      WHERE "connectorId" = ${connectorId}
+        AND "sourceId" = ${resourceExternalId}
+        AND "deletedFromSource" = false
+        AND (${searchPattern}::text IS NULL OR title ILIKE ${searchPattern})
 
-  const fileWhere = {
-    connectorId,
-    ...(search && {
-      fileName: { contains: search, mode: "insensitive" as const },
-    }),
-  };
+      UNION ALL
 
-  const mediaWhere = {
-    connectorId,
-    sourceChannelId: resourceExternalId,
-    processingStatus: "INDEXED" as const,
-    ...(search && {
-      fileName: { contains: search, mode: "insensitive" as const },
-    }),
-  };
+      SELECT
+        _id as id,
+        "fileName" as title,
+        SPLIT_PART("mimeType", '/', 1) as document_type,
+        COALESCE("indexedAt", "createdAt") as indexed_at,
+        'file' as source
+      FROM indexed_file
+      WHERE "connectorId" = ${connectorId}
+        AND "sourceChannelId" = ${resourceExternalId}
+        AND "processingStatus" = 'INDEXED'
+        AND (${searchPattern}::text IS NULL OR "fileName" ILIKE ${searchPattern})
 
-  //TODO: right now we are returning all resources, later strictly change to return resources with matching resourceExternalId
+      UNION ALL
 
-  const [documents, files, media, docCount, fileCount, mediaCount] =
-    await Promise.all([
-      db.indexedDocument.findMany({
-        where: documentWhere,
-        select: {
-          id: true,
-          title: true,
-          documentType: true,
-          indexedAt: true,
-        },
-        orderBy: { indexedAt: "desc" },
-        take: limit + 1,
-        ...(cursor && { cursor: { id: cursor }, skip: 1 }),
-      }),
-      db.indexedFile.findMany({
-        where: fileWhere,
-        select: {
-          id: true,
-          fileName: true,
-          mimeType: true,
-          indexedAt: true,
-        },
-        orderBy: { indexedAt: "desc" },
-        take: limit + 1,
-        ...(cursor && { cursor: { id: cursor }, skip: 1 }),
-      }),
-      db.indexedMedia.findMany({
-        where: mediaWhere,
-        select: {
-          id: true,
-          fileName: true,
-          mimeType: true,
-          mediaType: true,
-          indexedAt: true,
-        },
-        orderBy: { indexedAt: "desc" },
-        take: limit + 1,
-        ...(cursor && { cursor: { id: cursor }, skip: 1 }),
-      }),
-      db.indexedDocument.count({ where: documentWhere }),
-      db.indexedFile.count({ where: fileWhere }),
-      db.indexedMedia.count({ where: mediaWhere }),
-    ]);
+      SELECT
+        _id as id,
+        "fileName" as title,
+        "mediaType" as document_type,
+        COALESCE("indexedAt", "createdAt") as indexed_at,
+        'media' as source
+      FROM indexed_media
+      WHERE "connectorId" = ${connectorId}
+        AND "sourceChannelId" = ${resourceExternalId}
+        AND "processingStatus" = 'INDEXED'
+        AND (${searchPattern}::text IS NULL OR "fileName" ILIKE ${searchPattern})
+    ) combined
+    ORDER BY indexed_at DESC
+    LIMIT ${limit + 1}
+  `;
 
-  const combined: ResourceDocument[] = [
-    ...documents.map((d) => ({
-      id: d.id,
-      title: d.title,
-      documentType: d.documentType,
-      indexedAt: d.indexedAt,
-      source: "document" as const,
-    })),
-    ...files.map((f) => ({
-      id: f.id,
-      title: f.fileName,
-      documentType: f.mimeType.split("/")[0] ?? "file",
-      indexedAt: f.indexedAt ?? new Date(),
-      source: "file" as const,
-    })),
-    ...media.map((m) => ({
-      id: m.id,
-      title: m.fileName,
-      documentType: m.mediaType,
-      indexedAt: m.indexedAt ?? new Date(),
-      source: "media" as const,
-    })),
-  ]
-    .sort((a, b) => b.indexedAt.getTime() - a.indexedAt.getTime())
-    .slice(0, limit + 1);
+  const [countResult] = await db.$queryRaw<CountRow[]>`
+    SELECT (
+      (SELECT COUNT(*) FROM indexed_document
+       WHERE "connectorId" = ${connectorId}
+         AND "sourceId" = ${resourceExternalId}
+         AND "deletedFromSource" = false
+         AND (${searchPattern}::text IS NULL OR title ILIKE ${searchPattern}))
+      +
+      (SELECT COUNT(*) FROM indexed_file
+       WHERE "connectorId" = ${connectorId}
+         AND "sourceChannelId" = ${resourceExternalId}
+         AND "processingStatus" = 'INDEXED'
+         AND (${searchPattern}::text IS NULL OR "fileName" ILIKE ${searchPattern}))
+      +
+      (SELECT COUNT(*) FROM indexed_media
+       WHERE "connectorId" = ${connectorId}
+         AND "sourceChannelId" = ${resourceExternalId}
+         AND "processingStatus" = 'INDEXED'
+         AND (${searchPattern}::text IS NULL OR "fileName" ILIKE ${searchPattern}))
+    )::bigint as count
+  `;
 
-  const hasMore = combined.length > limit;
-  const items = combined.slice(0, limit);
+  const totalCount = Number(countResult?.count ?? 0);
+  const hasMore = documents.length > limit;
+
+  const items: ResourceDocument[] = documents.slice(0, limit).map((row) => ({
+    id: row.id,
+    title: row.title,
+    documentType: row.document_type,
+    indexedAt: new Date(row.indexed_at),
+    source: row.source as "document" | "file" | "media",
+  }));
 
   return {
     items,
     nextCursor: hasMore ? (items.at(-1)?.id ?? null) : null,
-    totalCount: docCount + fileCount + mediaCount,
+    totalCount,
   };
 };

@@ -12,6 +12,7 @@ enum SyncCategory {
   INCREMENTAL
   DELTA
   REPAIR
+  PERMISSIONS
 }
 
 enum SyncJobStatus {
@@ -53,39 +54,32 @@ model SyncJob {
   id                  String          @id @default(cuid()) @map("_id")
   connectorId         String
   
-  // === Job Identity ===
   jobType             String          @default("sync")  // "sync", "backfill", "repair", "delete"
   
-  // === Job Configuration ===
   type                SyncCategory
   status              SyncJobStatus   @default(PENDING)
   trigger             SyncTrigger     @default(SCHEDULED)
   config              Json            @default("{}")
   // { resources: [...], filters: {...}, options: {...} }
   
-  // === Scheduling ===
-  schedule            String?         // Cron expression
+  schedule            String?        
   priority            Int             @default(5)  // 1-10, higher = more urgent
   
-  // === Exactly-Once Execution ===
   fenceToken          Int?            // Monotonic token for fencing protocol
-  lockId              String?         // Distributed lock ID
+  lockId              String?         
   lockExpiresAt       DateTime?
   
-  // === Rate Limiting ===
   rateLimitConfig     Json?
   rateLimitedUntil    DateTime?
-  
-  // === Progress Tracking ===
-  progress            Float           @default(0)  // 0-1
-  currentPhase        String?         // "fetching", "processing", "indexing"
-  currentResource     String?         // Current resource being synced
+
+  progress            Float           @default(0) 
+  currentPhase        String?         
+  currentResource     String?         
   
   itemsTotal          Int             @default(0)
   itemsProcessed      Int             @default(0)
   itemsFailed         Int             @default(0)
   
-  // === Timing ===
   scheduledAt         DateTime?
   queuedAt            DateTime?
   startedAt           DateTime?
@@ -94,10 +88,8 @@ model SyncJob {
   lastRanAt           DateTime?
   nextRunAt           DateTime?
   
-  // === Timeout ===
-  timeoutMs           Int             @default(3600000)  // 1 hour default
+  timeoutMs           Int             @default(3600000)  
   
-  // === Error Handling ===
   errorMessage        String?
   errorCode           String?
   errorStack          String?
@@ -105,11 +97,9 @@ model SyncJob {
   maxRetries          Int             @default(3)
   retryAfter          DateTime?
   
-  // === Checkpointing ===
-  checkpoint          Json?           // For resumable syncs
+  checkpoint          Json?           
   lastCheckpointAt    DateTime?
   
-  // Timestamps
   createdAt           DateTime        @default(now())
   updatedAt           DateTime        @updatedAt
   deletedAt           DateTime?
@@ -132,14 +122,10 @@ model SyncHistory {
   syncJobId           String
   connectorId         String
   
-  // === Execution Identity ===
-  executionId         String          @unique @default(cuid())  // For idempotency
-  
-  // === Execution Status ===
+  executionId         String          @unique @default(cuid())  
   status              SyncJobStatus
   trigger             SyncTrigger
   
-  // === Results ===
   dataAdded           Int             @default(0)
   dataUpdated         Int             @default(0)
   dataDeleted         Int             @default(0)
@@ -148,29 +134,23 @@ model SyncHistory {
   
   bytesProcessed      BigInt          @default(0)
   
-  // Detailed summary
   summary             Json            @default("{}")
   // { byType: { message: { added: 100 }, file: { added: 50 } }, errors: [...] }
   
-  // === Errors ===
   errorMessage        String?
   errorCode           String?
-  errors              Json            @default("[]")  // Array of error details
+  errors              Json            @default("[]")  
   
-  // === Performance ===
   startedAt           DateTime        @default(now())
   finishedAt          DateTime?
   durationMs          Int?
   
-  // Breakdown
   fetchTimeMs         Int?
   processTimeMs       Int?
   indexTimeMs         Int?
   
-  // === Resource Tracking ===
   resourcesSynced     String[]        @default([])
   
-  // === Metrics ===
   apiCallsMade        Int             @default(0)
   rateLimitHits       Int             @default(0)
   
@@ -189,19 +169,15 @@ model SyncCursor {
   id            String   @id @default(cuid()) @map("_id")
   connectorId   String
   
-  // Resource identification
   resource      String   // "messages", "files", "users", "channel:C123"
   resourceType  String?  // "channel", "folder", "repository"
   
-  // Cursor value
   cursor        String?  // API cursor, timestamp, or offset
   cursorType    String   @default("timestamp")  // "timestamp", "offset", "cursor", "sync_token"
   
-  // Sync state
   lastSyncedAt  DateTime @default(now())
   lastDocumentId String? // Last processed document
   
-  // Metadata
   metadata      Json     @default("{}")
 
   connector     Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
@@ -216,18 +192,14 @@ model ConnectorAuditLog {
   connectorId String
   userId      String
   
-  // Action
   action      String   // "created", "updated", "deleted", "paused", "resumed", "synced", "configured"
   
-  // What changed
   changes     Json     @default("{}")
   // { field: "syncConfig", old: {...}, new: {...} }
   
-  // Context
   ipAddress   String?
   userAgent   String?
   
-  // Result
   success     Boolean  @default(true)
   errorMessage String?
   
@@ -246,34 +218,27 @@ model IndexedDocument {
   id              String   @id @default(cuid()) @map("_id")
   connectorId     String
   
-  // === Document Identity ===
   externalId      String   // Connector's document ID
-  vespaId         String   @unique  // Vespa document ID
+  vespaId         String   @unique
   
-  // === Classification ===
   documentType    String   // "message", "file", "page", "issue", etc.
   documentSubtype String?  // More specific type
   
-  // === Location ===
   sourceId        String?  // Channel, folder, database ID
   sourcePath      String?  // Full path
   parentId        String?  // Parent document ID (for hierarchy)
   
-  // === Content Tracking ===
   checksum        String?  // SHA-256 of content
   lastChecksum    String?  // Previous checksum
   contentLength   Int?     // Content size in chars
   
-  // === Sync State ===
   indexedAt       DateTime @default(now())
   lastSyncedAt    DateTime @updatedAt
   syncVersion     Int      @default(1)
   
-  // Was this deleted from source?
   deletedFromSource Boolean @default(false)
   deletedAt        DateTime?
   
-  // === Metadata Cache ===
   title           String?
   authorId        String?
   createdAtSource DateTime?
@@ -291,6 +256,7 @@ model IndexedDocument {
   @@index([parentId])
   @@index([lastSyncedAt])
   @@index([deletedFromSource])
+  @@index([connectorId, sourceId, deletedFromSource, indexedAt(sort: Desc)])
   @@map("indexed_document")
 }
 
@@ -301,14 +267,11 @@ model SyncEvent {
   eventType       SyncEventType
   message         String?
   
-  // Context
   resource        String?
   documentId      String?
   
-  // Details
   details         Json            @default("{}")
   
-  // Error info
   errorCode       String?
   errorMessage    String?
   
@@ -322,33 +285,25 @@ model SyncEvent {
   @@map("sync_event")
 }
 
-// --- Dead Letter Queue ---
-// Store failed sync items for retry/investigation
-
 model SyncDeadLetter {
   id              String   @id @default(cuid()) @map("_id")
   connectorId     String
   syncJobId       String?
   
-  // Document info
   externalId      String
   documentType    String
   
-  // Original data
   rawData         Json?
   
-  // Error info
   errorType       String   // "validation", "transform", "index", "permission"
   errorMessage    String
   errorStack      String?
   
-  // Retry tracking
   retryCount      Int      @default(0)
   maxRetries      Int      @default(3)
   lastRetryAt     DateTime?
   nextRetryAt     DateTime?
   
-  // Status
   status          String   @default("pending")  // "pending", "retrying", "resolved", "abandoned"
   resolvedAt      DateTime?
   resolvedBy      String?
@@ -426,6 +381,8 @@ model IndexedFile {
   @@index([processingStatus])
   @@index([mimeType])
   @@index([connectorId])
+  // Composite index for resource document listing (connector + channel + status, ordered by indexedAt)
+  @@index([connectorId, sourceChannelId, processingStatus, indexedAt(sort: Desc)])
   @@map("indexed_file")
 }
 
@@ -490,6 +447,8 @@ model IndexedMedia {
   @@index([processingStatus])
   @@index([connectorId])
   @@index([mediaType])
+  // Composite index for resource document listing (connector + channel + status, ordered by indexedAt)
+  @@index([connectorId, sourceChannelId, processingStatus, indexedAt(sort: Desc)])
   @@map("indexed_media")
 }
 
