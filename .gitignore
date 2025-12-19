@@ -73,3 +73,6 @@ cloud-sql-proxy
 
 .venv
 __pycache__
+
+
+docs/*
