@@ -91,6 +91,7 @@ function createSidebarDeps() {
             score: (doc as unknown as { relevance?: number }).relevance ?? 0,
             documentType: doc.document_type,
           })),
+          total: results.total,
         };
       },
     },

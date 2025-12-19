@@ -58,18 +58,20 @@ async function queueCrawlHint(
 
   crawlHintTimestamps.set(key, now);
 
+  const syncType =
+    resourceType === "permissions" ? "PERMISSIONS" : "INCREMENTAL";
   const syncJob = await addSyncJob(
     {
       connectorId,
       syncJobId: "",
-      type: "INCREMENTAL",
+      type: syncType,
       priority: 8,
     },
     8
   );
 
   logger.info(
-    { connectorId, resourceType, eventType, bullmqJobId: syncJob.id },
+    { connectorId, resourceType, eventType, syncType, bullmqJobId: syncJob.id },
     "Queued crawl hint sync"
   );
 }

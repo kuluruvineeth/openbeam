@@ -65,8 +65,12 @@ async function resolveAuthorName(
       connector.oauthProvider.accessToken,
       connector.oauthProvider.accessTokenIv
     );
+    if (!token) {
+      logger.warn({ connectorId: connector.id }, "Failed to decrypt bot token");
+      return;
+    }
     const slackClient = createSlackClient({
-      token: token ?? "",
+      token,
       connectorId: connector.id,
       teamId: connector.teamId,
     });
