@@ -14,8 +14,11 @@ export const SlackFileSchema = z.object({
   thumb_80: z.string().optional(),
   thumb_360: z.string().optional(),
   created: z.number().optional(),
+  timestamp: z.number().optional(),
   user: z.string().optional(),
   channels: z.array(z.string()).optional(),
+  mode: z.string().optional(),
+  is_external: z.boolean().optional(),
 });
 
 export type SlackFile = z.infer<typeof SlackFileSchema>;
@@ -207,6 +210,9 @@ export interface SyncCursor {
   channelCursors?: Record<string, string>;
   lastFullSync?: number;
   lastFileSyncTimestamp?: string;
+  lastCanvasSyncTimestamp?: number;
+  lastClipSyncTimestamp?: number;
+  lastBookmarkSyncTimestamp?: number;
 }
 
 export interface SyncOptions {

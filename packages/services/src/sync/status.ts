@@ -18,6 +18,8 @@ export async function updateSyncCompletion(
     documentCount,
     batchCount,
     startTime,
+    filesQueued = 0,
+    mediaQueued = 0,
   } = input;
   const durationMs = Date.now() - startTime;
 
@@ -32,6 +34,8 @@ export async function updateSyncCompletion(
       totalDocuments: documentCount,
       batches: batchCount,
       documentsFetched: documentCount,
+      filesQueued,
+      mediaQueued,
     },
     durationMs
   );

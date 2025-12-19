@@ -7,10 +7,10 @@ export const DEFAULT_SYNC_RESOURCE = "messages";
 export async function getSyncCursorForConnector(
   db: Database,
   connectorId: string,
-  type: "FULL" | "INCREMENTAL",
+  type: "FULL" | "INCREMENTAL" | "PERMISSIONS",
   resource: string = DEFAULT_SYNC_RESOURCE
 ): Promise<GetSyncCursorResult> {
-  if (type === "FULL") {
+  if (type === "FULL" || type === "PERMISSIONS") {
     return { cursor: undefined, lastSyncedAt: null };
   }
 
