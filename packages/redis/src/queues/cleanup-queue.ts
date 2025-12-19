@@ -3,15 +3,15 @@ import { getSharedBullMqConnection } from "../client";
 
 export const CLEANUP_QUEUE_NAME = "cleanup";
 
+export type CleanupJobType = "DAILY_CLEANUP" | "DELETION_SYNC";
+
 export interface CleanupJobData {
-  type: "DAILY_CLEANUP";
+  type: CleanupJobType;
   triggeredAt: number;
+  connectorId?: string;
+  staleThresholdMs?: number;
 }
 
-/**
- * Cleanup queue for scheduled maintenance tasks
- * Handles daily cleanup operations like removing old jobs, expired data, etc.
- */
 export const cleanupQueue = new Queue<CleanupJobData>(CLEANUP_QUEUE_NAME, {
   connection: getSharedBullMqConnection(),
   defaultJobOptions: {
@@ -52,7 +52,6 @@ export const removeRepeatableCleanupJob = async (): Promise<void> => {
   try {
     await cleanupQueue.removeJobScheduler(schedulerId);
   } catch (error) {
-    // Job scheduler might not exist, that's okay
     console.warn(
       `Failed to remove cleanup job scheduler ${schedulerId}:`,
       error
@@ -62,4 +61,48 @@ export const removeRepeatableCleanupJob = async (): Promise<void> => {
 
 export async function closeCleanupQueue(): Promise<void> {
   await cleanupQueue.close();
+}
+
+export async function addDeletionSyncJob(
+  connectorId: string,
+  staleThresholdMs = 7 * 24 * 60 * 60 * 1000
+): Promise<void> {
+  await cleanupQueue.add(
+    "deletion-sync",
+    {
+      type: "DELETION_SYNC",
+      triggeredAt: Date.now(),
+      connectorId,
+      staleThresholdMs,
+    },
+    {
+      priority: 3,
+      jobId: `deletion-sync-${connectorId}-${Date.now()}`,
+    }
+  );
+}
+
+export async function setupDeletionSyncSchedule(
+  connectorId: string,
+  cronExpression = "0 2 * * *"
+): Promise<string> {
+  const schedulerId = `deletion-sync-${connectorId}`;
+
+  await cleanupQueue.upsertJobScheduler(
+    schedulerId,
+    {
+      pattern: cronExpression,
+    },
+    {
+      name: "deletion-sync",
+      data: {
+        type: "DELETION_SYNC",
+        triggeredAt: 0,
+        connectorId,
+        staleThresholdMs: 7 * 24 * 60 * 60 * 1000,
+      },
+    }
+  );
+
+  return schedulerId;
 }

@@ -37,6 +37,8 @@ export interface MediaDownloadJobData {
   sourceChannelId?: string;
   sourceChannelName?: string;
   slackPermalink?: string;
+  authorId?: string;
+  authorName?: string;
   traceContext?: TraceContext;
 }
 
@@ -53,6 +55,8 @@ export interface MediaTwelveLabsJobData {
   sourceChannelId?: string;
   sourceChannelName?: string;
   slackPermalink?: string;
+  authorId?: string;
+  authorName?: string;
   traceContext?: TraceContext;
 }
 
@@ -73,6 +77,8 @@ export interface MediaVespaJobData {
   sourceChannelId?: string;
   sourceChannelName?: string;
   sourceUrl?: string;
+  authorId?: string;
+  authorName?: string;
   traceContext?: TraceContext;
 }
 

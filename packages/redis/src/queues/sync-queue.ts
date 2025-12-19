@@ -6,7 +6,7 @@ import { extractTraceContext, type TraceContext } from "../utils/trace-context";
 export interface SyncJobData {
   connectorId: string;
   syncJobId: string;
-  type: "FULL" | "INCREMENTAL";
+  type: "FULL" | "INCREMENTAL" | "PERMISSIONS";
   priority?: number;
   traceContext?: TraceContext;
 }
@@ -126,7 +126,7 @@ export function intervalMsToCron(intervalMs: number): string {
 
 export async function createRepeatableSyncJob(
   connectorId: string,
-  type: "FULL" | "INCREMENTAL",
+  type: "FULL" | "INCREMENTAL" | "PERMISSIONS",
   cronExpression: string,
   priority = 5
 ): Promise<string> {
@@ -141,7 +141,7 @@ export async function createRepeatableSyncJob(
       name: "sync-repeatable",
       data: {
         connectorId,
-        syncJobId: "", // Will be filled by processor when job runs
+        syncJobId: "",
         type,
         priority,
       },
@@ -152,6 +152,19 @@ export async function createRepeatableSyncJob(
   );
 
   return jobName;
+}
+
+export async function setupPermissionSyncSchedule(
+  connectorId: string,
+  intervalMinutes = 5
+): Promise<string> {
+  const cronExpression = `*/${intervalMinutes} * * * *`;
+  return await createRepeatableSyncJob(
+    connectorId,
+    "PERMISSIONS",
+    cronExpression,
+    6
+  );
 }
 
 export async function removeRepeatableSyncJob(
