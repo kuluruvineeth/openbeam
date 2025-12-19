@@ -48,6 +48,16 @@ export function SyncHistoryItem({ entry }: { entry: SyncHistoryEntry }) {
         {entry.dataDeleted > 0 && (
           <span className="text-destructive">-{entry.dataDeleted}</span>
         )}
+        {(entry.summary?.filesQueued ?? 0) > 0 && (
+          <span className="text-openplane-orange" title="Files discovered">
+            {entry.summary?.filesQueued}f
+          </span>
+        )}
+        {(entry.summary?.mediaQueued ?? 0) > 0 && (
+          <span className="text-openplane-purple" title="Media discovered">
+            {entry.summary?.mediaQueued}m
+          </span>
+        )}
       </div>
 
       {entry.errorMessage && (

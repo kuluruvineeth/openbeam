@@ -333,9 +333,7 @@ function ResourceRow({
   const [expanded, setExpanded] = useState(false);
   const Icon = getResourceIcon(resource.resourceType);
   const isPrivate = resource.resourceType.toLowerCase().includes("private");
-  // TODO: restore after testing - const hasDocuments = resource.documentCount > 0;
-  // const hasDocuments = resource.documentCount > 0;
-  const hasDocuments = true;
+  const hasDocuments = resource.documentCount > 0;
 
   return (
     <div className="border-border/40 border-b last:border-b-0">

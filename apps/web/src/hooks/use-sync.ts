@@ -8,6 +8,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import type { ProcessingStatus } from "@/lib/sync-types";
 import { useTRPC } from "@/trpc/client";
 
 type MutationCallbacks = {
@@ -17,6 +18,12 @@ type MutationCallbacks = {
 
 type QueryOptions = {
   enabled?: boolean;
+};
+
+type SyncStatusData = {
+  connector: { status: string };
+  latestSync?: { status: string } | null;
+  processing?: ProcessingStatus;
 };
 
 export function useSyncStatus(
@@ -31,14 +38,25 @@ export function useSyncStatus(
     }),
     enabled: !!connectorId && options?.enabled !== false,
     refetchInterval: (query) => {
-      const data = query.state.data;
+      const data = query.state.data as SyncStatusData | undefined;
       if (!data) {
         return false;
       }
+
       const isSyncing =
         data.connector.status === "SYNCING" ||
         data.latestSync?.status === "SYNCING";
-      return isSyncing ? 2000 : 10_000;
+      const isProcessing =
+        (data.processing?.filesProcessing ?? 0) > 0 ||
+        (data.processing?.mediaProcessing ?? 0) > 0;
+
+      if (isSyncing) {
+        return 2000;
+      }
+      if (isProcessing) {
+        return 5000;
+      }
+      return 30_000;
     },
     staleTime: 1000,
   });
@@ -194,6 +212,10 @@ export function useBulkSyncStatus(
             | {
                 connector: { status: string };
                 latestSync: { status: string } | null;
+                processing?: {
+                  filesProcessing: number;
+                  mediaProcessing: number;
+                };
               }
             | undefined;
         };
@@ -202,10 +224,21 @@ export function useBulkSyncStatus(
         if (!queryData) {
           return false;
         }
+
         const isSyncing =
           queryData.connector.status === "SYNCING" ||
           queryData.latestSync?.status === "SYNCING";
-        return isSyncing ? 3000 : 30_000;
+        const isProcessing =
+          (queryData.processing?.filesProcessing ?? 0) > 0 ||
+          (queryData.processing?.mediaProcessing ?? 0) > 0;
+
+        if (isSyncing) {
+          return 3000;
+        }
+        if (isProcessing) {
+          return 5000;
+        }
+        return 30_000;
       },
       staleTime: 1000,
     })),

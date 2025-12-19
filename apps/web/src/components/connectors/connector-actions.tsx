@@ -69,7 +69,7 @@ export function ConnectorActions({
           onClick={() => triggerSync.mutate({ connectorId, type: "FULL" })}
         >
           <Icons.Sparkle className="mr-2" size={14} />
-          Sync Now
+          Full Sync
         </DropdownMenuItem>
         <DropdownMenuItem
           disabled={isPaused || triggerSync.isPending}
@@ -77,8 +77,8 @@ export function ConnectorActions({
             triggerSync.mutate({ connectorId, type: "INCREMENTAL" })
           }
         >
-          <Icons.History className="mr-2" size={14} />
-          Incremental Sync
+          <Icons.RefreshCw className="mr-2" size={14} />
+          Quick Sync
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => {
@@ -86,7 +86,7 @@ export function ConnectorActions({
           }}
         >
           <Icons.Settings className="mr-2" size={14} />
-          Settings
+          Manage
         </DropdownMenuItem>
         {isPaused ? (
           <DropdownMenuItem

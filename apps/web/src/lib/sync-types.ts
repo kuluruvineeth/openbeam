@@ -15,6 +15,13 @@ export type WebhookStatusInfo = {
   configured: boolean;
 };
 
+export type ProcessingStatus = {
+  filesProcessing: number;
+  filesIndexed: number;
+  mediaProcessing: number;
+  mediaIndexed: number;
+};
+
 export type SyncStatusType = {
   connector: {
     status: string;
@@ -24,10 +31,15 @@ export type SyncStatusType = {
   stats: {
     totalIndexed: number;
   };
+  processing?: ProcessingStatus;
   latestSync: {
     status: string;
     dataAdded: number;
     dataUpdated: number;
+    summary?: {
+      filesQueued?: number;
+      mediaQueued?: number;
+    } | null;
   } | null;
   syncJobs?: {
     full: SyncJobInfo | null;
@@ -47,6 +59,10 @@ export type SyncHistoryEntry = {
   errorMessage: string | null;
   syncJob: {
     type: string;
+  } | null;
+  summary: {
+    filesQueued?: number;
+    mediaQueued?: number;
   } | null;
 };
 

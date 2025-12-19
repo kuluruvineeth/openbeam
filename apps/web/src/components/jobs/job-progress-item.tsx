@@ -50,7 +50,8 @@ export function JobProgressItem({ job }: JobProgressItemProps) {
               {job.currentPhase}
               {job.itemsProcessed > 0 && (
                 <span className="ml-1 font-mono tabular-nums">
-                  • {job.itemsProcessed.toLocaleString()} processed
+                  • {job.itemsProcessed.toLocaleString()}{" "}
+                  {job.type === "sync" ? "fetched" : "processed"}
                 </span>
               )}
             </span>
@@ -68,7 +69,7 @@ export function JobProgressItem({ job }: JobProgressItemProps) {
           <span className="font-mono tabular-nums">
             {job.itemsProcessed.toLocaleString()}
           </span>{" "}
-          items processed
+          items {job.type === "sync" ? "synced" : "processed"}
         </p>
       )}
 

@@ -70,6 +70,15 @@ export function SyncStatusCard({
   const latest = syncStatus?.latestSync;
   const showLatestStats = latest && latest.status !== "SYNCING";
 
+  const filesProcessing = syncStatus?.processing?.filesProcessing ?? 0;
+  const mediaProcessing = syncStatus?.processing?.mediaProcessing ?? 0;
+  const totalProcessing = filesProcessing + mediaProcessing;
+
+  const totalAdded =
+    (latest?.dataAdded ?? 0) +
+    (latest?.summary?.filesQueued ?? 0) +
+    (latest?.summary?.mediaQueued ?? 0);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -92,7 +101,7 @@ export function SyncStatusCard({
             <Stat
               color="text-openplane-green"
               label="Added"
-              value={`+${latest.dataAdded}`}
+              value={`+${totalAdded}`}
             />
             <Stat
               color="text-openplane-blue"
@@ -100,6 +109,13 @@ export function SyncStatusCard({
               value={latest.dataUpdated}
             />
           </>
+        )}
+        {totalProcessing > 0 && (
+          <Stat
+            color="text-openplane-orange"
+            label="Processing"
+            value={totalProcessing}
+          />
         )}
         {!showLatestStats && syncing && (
           <>
