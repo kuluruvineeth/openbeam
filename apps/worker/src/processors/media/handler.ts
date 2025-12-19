@@ -33,6 +33,7 @@ import {
   createSlackClient,
   getChannelInfo,
   getStorageProvider,
+  getUserInfo,
   mediaIndexService,
   SIGNED_URL_EXPIRY_SECONDS,
 } from "@openplane/services";
@@ -44,6 +45,46 @@ import logger from "../../utils/logger";
 import { logJobError, logJobStart } from "../event-handlers";
 
 type ProgressEmitter = ReturnType<typeof createProgressEmitter>;
+
+async function resolveAuthorName(
+  authorId: string | undefined,
+  authorName: string | undefined,
+  connector: ConnectorWithOAuth,
+  connectorType: string
+): Promise<string | undefined> {
+  if (authorName) {
+    return authorName;
+  }
+
+  if (!authorId || connectorType !== "slack" || !connector?.oauthProvider) {
+    return;
+  }
+
+  try {
+    const token = decryptIfEncrypted(
+      connector.oauthProvider.accessToken,
+      connector.oauthProvider.accessTokenIv
+    );
+    const slackClient = createSlackClient({
+      token: token ?? "",
+      connectorId: connector.id,
+      teamId: connector.teamId,
+    });
+    const userInfo = await getUserInfo(slackClient, authorId);
+    if (userInfo) {
+      return (
+        userInfo.profile?.display_name ||
+        userInfo.profile?.real_name ||
+        userInfo.real_name ||
+        userInfo.name
+      );
+    }
+  } catch (error) {
+    logger.warn({ authorId, error }, "Failed to lookup author name");
+  }
+
+  return;
+}
 
 const THUMBNAIL_FETCH_TIMEOUT_MS = 10_000;
 
@@ -280,6 +321,8 @@ async function processMediaDownload(
     sourceChannelId,
     sourceChannelName,
     slackPermalink,
+    authorId,
+    authorName,
   } = data;
 
   const storage = getStorageProvider();
@@ -372,6 +415,8 @@ async function processMediaDownload(
     sourceChannelId,
     sourceChannelName,
     slackPermalink,
+    authorId,
+    authorName,
   });
 
   return { success: true, mediaId };
@@ -393,11 +438,13 @@ async function processTwelveLabsIndexing(
     sourceChannelId,
     sourceChannelName,
     slackPermalink,
+    authorId,
+    authorName,
   } = data;
 
   const media = await findIndexedMediaById(prisma, mediaId);
 
-  await progress.update(1, MEDIA_TOTAL_STEPS, "Transcribing");
+  await progress.update(1, MEDIA_TOTAL_STEPS, "Transcribing audio");
 
   await updateIndexedMediaProcessingStatus(
     prisma,
@@ -427,7 +474,7 @@ async function processTwelveLabsIndexing(
     twelveLabsAssetId,
   });
 
-  await progress.update(2, MEDIA_TOTAL_STEPS, "Transcribed");
+  await progress.update(2, MEDIA_TOTAL_STEPS, "Transcribed audio");
 
   logger.info(
     { mediaId, mediaType, twelveLabsAssetId },
@@ -450,6 +497,8 @@ async function processTwelveLabsIndexing(
     sourceUrl: slackPermalink,
     mediaType,
     mimeType,
+    authorId,
+    authorName,
   });
 
   return { success: true, mediaId };
@@ -473,13 +522,15 @@ async function processVespaIndexing(
     sourceChannelName: providedChannelName,
     sourceUrl,
     mediaType,
+    authorId,
+    authorName,
   } = data;
 
   if (!(twelveLabsIndexId && twelveLabsAssetId)) {
     throw new Error("Missing TwelveLabs index or asset ID for Vespa indexing");
   }
 
-  await progress.update(2, MEDIA_TOTAL_STEPS, "Generating embeddings");
+  await progress.update(2, MEDIA_TOTAL_STEPS, "Generating video embeddings");
 
   await updateIndexedMediaProcessingStatus(
     prisma,
@@ -540,7 +591,7 @@ async function processVespaIndexing(
     "Generated media embeddings, metadata, and transcript"
   );
 
-  await progress.update(3, MEDIA_TOTAL_STEPS, "Indexing");
+  await progress.update(3, MEDIA_TOTAL_STEPS, "Indexing to search");
 
   await updateIndexedMediaProcessingStatus(prisma, mediaId, "INDEXING_VESPA", {
     durationSeconds: Math.round(metadata.duration),
@@ -571,6 +622,13 @@ async function processVespaIndexing(
     providedChannelName
   );
 
+  const resolvedAuthorName = await resolveAuthorName(
+    authorId,
+    authorName,
+    connector,
+    connectorType
+  );
+
   const mediaDoc: MediaDocument = {
     id: vespaId,
     team_id: teamId,
@@ -589,6 +647,8 @@ async function processVespaIndexing(
     source_id: sourceChannelId,
     source_name: sourceName,
     source_type: connectorType,
+    author_id: authorId,
+    author_name: resolvedAuthorName,
     url: signedUrl,
     created_at: now,
     updated_at: now,

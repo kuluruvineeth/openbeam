@@ -140,9 +140,15 @@ export async function processSyncJob(
         documentCount: syncResult.totalDocuments,
         batchCount: syncResult.batchCount,
         startTime: job.processedOn || Date.now(),
+        filesQueued: syncResult.filesQueued,
+        mediaQueued: syncResult.mediaQueued,
       });
 
-      await progress.complete(syncResult.totalDocuments);
+      const totalItemsSynced =
+        syncResult.totalDocuments +
+        syncResult.filesQueued +
+        syncResult.mediaQueued;
+      await progress.complete(totalItemsSynced);
 
       span.setAttributes({
         "sync.documents_synced": syncResult.totalDocuments,
@@ -195,13 +201,15 @@ async function streamDocumentsToIndexQueue(params: {
   cursor: string | undefined;
   connectorId: string;
   syncJobId: string;
-  type: "FULL" | "INCREMENTAL";
+  type: "FULL" | "INCREMENTAL" | "PERMISSIONS";
   fenceToken: number;
   progress: ReturnType<typeof createProgressEmitter>;
 }): Promise<{
   totalDocuments: number;
   batchCount: number;
   nextCursor?: string;
+  filesQueued: number;
+  mediaQueued: number;
 }> {
   const {
     connector,
@@ -276,7 +284,7 @@ async function streamDocumentsToIndexQueue(params: {
         await progress.update(
           totalDocuments,
           batch.hasMore ? totalDocuments + 100 : totalDocuments,
-          "Indexing",
+          "Queueing",
           `Batch ${batchCount}`
         );
 
@@ -345,7 +353,13 @@ async function streamDocumentsToIndexQueue(params: {
     span.setStatus({ code: SpanStatusCode.OK });
 
     logger.info(
-      { connectorId, totalDocuments, batchCount },
+      {
+        connectorId,
+        totalDocuments,
+        batchCount,
+        filesQueued: result.filesQueued,
+        mediaQueued: result.mediaQueued,
+      },
       "Streaming sync completed"
     );
 
@@ -353,6 +367,8 @@ async function streamDocumentsToIndexQueue(params: {
       totalDocuments,
       batchCount,
       nextCursor: result.nextCursor,
+      filesQueued: result.filesQueued,
+      mediaQueued: result.mediaQueued,
     };
   } catch (error) {
     span.setStatus({
@@ -381,7 +397,7 @@ async function streamDocumentsToIndexQueue(params: {
 async function ensureSyncHistoryId(
   syncJobId: string | undefined,
   connectorId: string,
-  type: "FULL" | "INCREMENTAL",
+  type: "FULL" | "INCREMENTAL" | "PERMISSIONS",
   jobId: string | undefined
 ): Promise<string> {
   if (syncJobId) {
