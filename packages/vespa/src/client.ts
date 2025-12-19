@@ -526,6 +526,49 @@ export class VespaClient {
     const result = (await response.json()) as { fields: MediaDocument };
     return result.fields;
   }
+
+  async updateChannelPermissions(
+    connectorId: string,
+    channelId: string,
+    userId: string,
+    action: "add" | "remove"
+  ): Promise<{ updated: number }> {
+    const sourceIdFilter = `${connectorId}_${channelId}`;
+    const yql = `select id, access_control from openplane_document where source_id contains "${sourceIdFilter}"`;
+
+    const results = await this.query<GenericDocument>({
+      yql,
+      hits: 1000,
+    });
+
+    let updated = 0;
+
+    for (const hit of results.root?.children ?? []) {
+      const doc = hit.fields;
+      if (!doc) {
+        continue;
+      }
+
+      const currentAcl = doc.access_control ?? [];
+      let newAcl: string[];
+
+      if (action === "add") {
+        if (currentAcl.includes(userId)) {
+          continue;
+        }
+        newAcl = [...currentAcl, userId];
+      } else if (currentAcl.includes(userId)) {
+        newAcl = currentAcl.filter((id) => id !== userId);
+      } else {
+        continue;
+      }
+
+      await this.updateDocument(doc.id, { access_control: newAcl });
+      updated += 1;
+    }
+
+    return { updated };
+  }
 }
 
 export const vespaClient = new VespaClient();
