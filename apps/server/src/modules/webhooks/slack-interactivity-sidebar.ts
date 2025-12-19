@@ -423,89 +423,93 @@ export async function handleSidebarSearchAction(
 
   await setThreadStatus(client, threadContext, "Searching...");
 
-  const sidebarContext: SidebarContext = {
-    channelId: cachedContext.contextChannelId ?? channelId,
-    channelType: "channel",
-    teamId: cachedContext.teamId,
-    userId: ctx.userId,
-    threadTs,
-  };
+  try {
+    const sidebarContext: SidebarContext = {
+      channelId: cachedContext.contextChannelId ?? channelId,
+      channelType: "channel",
+      teamId: cachedContext.teamId,
+      userId: ctx.userId,
+      threadTs,
+    };
 
-  const deps = {
-    searchService: {
-      search: async (params: {
-        query: string;
-        teamId: string;
-        accessControlIds: string[];
-        limit: number;
-        sourceId?: string;
-      }) => {
-        const results = await searchService.searchUnified({
-          query: params.query,
-          teamId: params.teamId,
-          limit: params.limit,
-          includeDocuments: true,
-          accessControlIds: params.accessControlIds,
-          sourceId: params.sourceId,
-        });
-        return {
-          documents: results.documents.map((doc) => ({
-            title: doc.title,
-            url: doc.url,
-            content: doc.content,
-            score: (doc as unknown as { relevance?: number }).relevance ?? 0,
-            documentType: doc.document_type,
-            source_name: doc.source_name,
-          })),
-          total: results.total,
-        };
+    const deps = {
+      searchService: {
+        search: async (params: {
+          query: string;
+          teamId: string;
+          accessControlIds: string[];
+          limit: number;
+          sourceId?: string;
+        }) => {
+          const results = await searchService.searchUnified({
+            query: params.query,
+            teamId: params.teamId,
+            limit: params.limit,
+            includeDocuments: true,
+            accessControlIds: params.accessControlIds,
+            sourceId: params.sourceId,
+          });
+          return {
+            documents: results.documents.map((doc) => ({
+              title: doc.title,
+              url: doc.url,
+              content: doc.content,
+              score: (doc as unknown as { relevance?: number }).relevance ?? 0,
+              documentType: doc.document_type,
+              source_name: doc.source_name,
+            })),
+            total: results.total,
+          };
+        },
       },
-    },
-    ragService: {
-      answer: async (params: {
-        query: string;
-        teamId: string;
-        accessControlIds: string[];
-        topK: number;
-        sourceId?: string;
-      }) => {
-        const result = await ragAnswer({
-          query: params.query,
-          teamId: params.teamId,
-          accessControlIds: params.accessControlIds,
-          topK: params.topK,
-          sourceId: params.sourceId,
-          includeMetadata: true,
-        });
-        return {
-          answer: result.answer,
-          citations: result.citations.map((c) => ({
-            title: c.title,
-            url: c.url,
-          })),
-        };
+      ragService: {
+        answer: async (params: {
+          query: string;
+          teamId: string;
+          accessControlIds: string[];
+          topK: number;
+          sourceId?: string;
+        }) => {
+          const result = await ragAnswer({
+            query: params.query,
+            teamId: params.teamId,
+            accessControlIds: params.accessControlIds,
+            topK: params.topK,
+            sourceId: params.sourceId,
+            includeMetadata: true,
+          });
+          return {
+            answer: result.answer,
+            citations: result.citations.map((c) => ({
+              title: c.title,
+              url: c.url,
+            })),
+          };
+        },
       },
-    },
-  };
+    };
 
-  const response = await handleSidebarSearch(
-    {
-      query: query.trim(),
-      context: sidebarContext,
-      accessControlIds: [ctx.userId, `team:${ctx.teamId}`],
-    },
-    deps
-  );
+    const response = await handleSidebarSearch(
+      {
+        query: query.trim(),
+        context: sidebarContext,
+        accessControlIds: [ctx.userId, `team:${ctx.teamId}`],
+      },
+      deps
+    );
 
-  if (response) {
-    const blocks = buildSidebarResponseBlocks(response);
-    await client.call("chat.postMessage", {
-      channel: channelId,
-      thread_ts: threadTs,
-      text: truncateForSlack(response.content),
-      blocks,
-    });
+    if (response) {
+      const blocks = buildSidebarResponseBlocks(response);
+      await client.call("chat.postMessage", {
+        channel: channelId,
+        thread_ts: threadTs,
+        text: truncateForSlack(response.content),
+        blocks,
+      });
+    }
+  } catch (error) {
+    logger.error({ error, ctx, query }, "Sidebar search failed");
+  } finally {
+    await setThreadStatus(client, threadContext, "");
   }
-
-  await setThreadStatus(client, threadContext, "");
 }

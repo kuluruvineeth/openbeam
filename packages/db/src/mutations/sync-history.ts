@@ -46,6 +46,8 @@ export interface CompleteSyncHistoryInput {
     totalDocuments: number;
     batches: number;
     documentsFetched: number;
+    filesQueued?: number;
+    mediaQueued?: number;
   };
   durationMs: number;
 }
