@@ -7,6 +7,7 @@ import {
   createRepeatableSyncJob,
   jobSchedulerKeys,
   removeRepeatableSyncJob,
+  setupPermissionSyncSchedule,
 } from "@openplane/redis";
 import { TRPCError } from "@trpc/server";
 
@@ -109,6 +110,10 @@ export async function cleanupRepeatableJobs(
       await removeRepeatableSyncJob(keys.incremental);
       await jobSchedulerKeys.delete(connectorId, "INCREMENTAL");
     }
+    if (keys.permissions) {
+      await removeRepeatableSyncJob(keys.permissions);
+      await jobSchedulerKeys.delete(connectorId, "PERMISSIONS");
+    }
   } catch (error) {
     console.warn(
       `Failed to remove repeatable jobs for connector ${connectorId}:`,
@@ -187,5 +192,28 @@ export function validateSyncIntervals(input: {
       code: "BAD_REQUEST",
       message: "Incremental sync interval must be less than full sync interval",
     });
+  }
+}
+
+/**
+ * Set up permission sync schedule for a connector
+ * Runs every 5 minutes to refresh channel permissions
+ */
+export async function setupConnectorPermissionSync(
+  connectorId: string
+): Promise<void> {
+  try {
+    const existingKey = await jobSchedulerKeys.get(connectorId, "PERMISSIONS");
+    if (existingKey) {
+      await removeRepeatableSyncJob(existingKey);
+    }
+
+    const jobKey = await setupPermissionSyncSchedule(connectorId, 5);
+    await jobSchedulerKeys.set(connectorId, "PERMISSIONS", jobKey);
+  } catch (error) {
+    console.warn(
+      `Failed to setup permission sync for connector ${connectorId}:`,
+      error
+    );
   }
 }

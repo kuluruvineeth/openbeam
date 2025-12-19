@@ -67,7 +67,10 @@ export async function* syncCanvasesBatched(
   if (batch.length > 0 || processed === 0) {
     yield {
       items: batch,
-      cursor: { lastCanvasSyncTimestamp: latestTimestamp || Date.now() / 1000 },
+      cursor: {
+        lastCanvasSyncTimestamp:
+          latestTimestamp || Math.floor(Date.now() / 1000),
+      },
       hasMore: false,
       stats: { processed, skipped: 0, errors },
     };
