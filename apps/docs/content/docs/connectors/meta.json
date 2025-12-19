@@ -1,0 +1,5 @@
+{
+  "title": "Connectors",
+  "icon": "Connector",
+  "pages": ["index", "slack", "gmail", "google-drive", "notion", "linear"]
+}

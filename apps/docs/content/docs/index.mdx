@@ -1,0 +1,45 @@
+---
+title: Documentation
+description: Enterprise search and AI assistant platform
+---
+
+# OpenPlane
+
+Enterprise search and AI assistant platform. Open source alternative to Glean.
+
+<Cards>
+  <Card title="Getting Started" href="/docs/getting-started" />
+  <Card title="Connectors" href="/docs/connectors" />
+</Cards>
+
+## Connectors
+
+| Connector | Status | Auth |
+|-----------|--------|------|
+| Slack | Available | OAuth 2.0 |
+| Gmail | Coming Soon | OAuth 2.0 |
+| Google Drive | Coming Soon | OAuth 2.0 |
+| Notion | Coming Soon | OAuth 2.0 |
+| Linear | Coming Soon | OAuth 2.0 |
+
+## Architecture
+
+<Files>
+  <Folder name="apps" defaultOpen>
+    <File name="web" />
+    <File name="server" />
+    <File name="worker" />
+  </Folder>
+  <Folder name="packages">
+    <File name="ai" />
+    <File name="api" />
+    <File name="db" />
+    <File name="services" />
+    <File name="vespa" />
+  </Folder>
+</Files>
+
+- **Web** — Next.js frontend
+- **Server** — Hono API with tRPC
+- **Worker** — BullMQ job processor
+- **Vespa** — Search engine

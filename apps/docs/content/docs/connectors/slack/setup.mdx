@@ -1,0 +1,85 @@
+---
+title: Slack Setup Guide
+description: Step-by-step guide to connect Slack to OpenPlane
+---
+
+# Slack Setup Guide
+
+## Prerequisites
+
+- Slack workspace with admin permissions (or ability to request app approval)
+- OpenPlane instance running with valid environment variables
+- HTTPS endpoint for OAuth callback
+
+## Step 1: Create Slack App
+
+1. Go to [api.slack.com/apps](https://api.slack.com/apps)
+2. Click **Create New App** → **From scratch**
+3. Enter app name (e.g., "OpenPlane") and select your workspace
+4. Note the **Client ID**, **Client Secret**, and **Signing Secret**
+
+## Step 2: Configure OAuth & Permissions
+
+Navigate to **OAuth & Permissions** and configure:
+
+1. Add redirect URL: `https://your-domain.com/api/auth/callback/slack`
+2. Add required scopes (see [OAuth Scopes](/docs/connectors/slack/oauth-scopes))
+
+## Step 3: Configure Event Subscriptions
+
+1. Navigate to **Event Subscriptions**
+2. Enable events and set Request URL: `https://your-domain.com/webhooks/slack/events`
+3. Subscribe to bot events:
+   - `message.channels`
+   - `message.groups`
+   - `message.im`
+   - `message.mpim`
+   - `app_mention`
+   - `member_joined_channel`
+   - `member_left_channel`
+   - `channel_created`
+   - `channel_deleted`
+   - `channel_archive`
+   - `channel_unarchive`
+   - `file_shared`
+   - `file_deleted`
+   - `reaction_added`
+   - `reaction_removed`
+
+## Step 4: Configure Interactivity
+
+1. Navigate to **Interactivity & Shortcuts**
+2. Enable interactivity
+3. Set Request URL: `https://your-domain.com/webhooks/slack/interactivity`
+
+## Step 5: Add Environment Variables
+
+```bash
+SLACK_CLIENT_ID=your_client_id
+SLACK_CLIENT_SECRET=your_client_secret
+SLACK_SIGNING_SECRET=your_signing_secret
+```
+
+## Step 6: Connect in OpenPlane
+
+1. Navigate to **Settings → Connectors**
+2. Click **Add Connector** → **Slack**
+3. Click **Connect** to initiate OAuth flow
+4. Authorize the app in your Slack workspace
+
+## Step 7: Configure Sync Options
+
+After connecting, configure:
+
+- **Channels to index**: All public, specific channels, or exclude patterns
+- **Private channels**: Enable/disable (requires user consent)
+- **DMs**: Enable/disable direct message indexing
+- **Content types**: Messages, files, canvases, clips, bookmarks
+
+## Verification
+
+After setup, verify:
+
+1. **Connection Status**: Shows "Active" in connector list
+2. **Initial Sync**: First sync may take 5-30 minutes depending on workspace size
+3. **Test Search**: Search for a recent message to confirm indexing

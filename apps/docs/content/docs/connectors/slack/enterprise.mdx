@@ -1,0 +1,123 @@
+---
+title: Enterprise Grid
+description: Slack Enterprise Grid support and multi-workspace configuration
+---
+
+# Enterprise Grid
+
+## Overview
+
+OpenPlane supports Slack Enterprise Grid for organizations with multiple workspaces.
+
+## Multi-Workspace Setup
+
+### Organization-Level Installation
+
+For cross-workspace search, install at the organization level:
+
+1. Create app in Enterprise Grid admin console
+2. Configure org-wide OAuth scopes
+3. Install to organization (not individual workspace)
+4. Grant access to specific workspaces
+
+### Workspace-Level Installation
+
+For individual workspace control:
+
+1. Install app per workspace
+2. Configure each workspace separately
+3. Search scope limited to installed workspaces
+
+## Organization Scopes
+
+Additional scopes for Enterprise Grid:
+
+| Scope | Purpose |
+|-------|---------|
+| `admin.conversations:read` | List all org conversations |
+| `admin.teams:read` | List all workspaces |
+| `admin.users:read` | List all org users |
+
+## Cross-Workspace Search
+
+When installed at org level:
+
+- Search spans all enabled workspaces
+- Results show workspace context
+- Permissions respected per workspace
+
+## Shared Channels
+
+### Internal Shared Channels
+
+Channels shared between workspaces in your org:
+- Automatically included if both workspaces enabled
+- Single index entry, accessible from both workspaces
+
+### External Shared Channels (Slack Connect)
+
+Channels shared with external organizations:
+- Configure via `sync_external_channels` setting
+- External content indexing configurable
+- Respect external org's data policies
+
+## Discovery API
+
+Enterprise Grid includes Discovery API for compliance:
+
+| Feature | Support |
+|---------|---------|
+| Message export | Available with Discovery API |
+| File export | Available with Discovery API |
+| Retention policies | Respected during sync |
+| Legal holds | Markers preserved |
+
+## Configuration
+
+### Per-Workspace Settings
+
+```json
+{
+  "workspaces": {
+    "T01234567": {
+      "enabled": true,
+      "index_private_channels": false
+    },
+    "T89012345": {
+      "enabled": true,
+      "index_private_channels": true
+    }
+  }
+}
+```
+
+### Workspace Exclusions
+
+Exclude specific workspaces from indexing:
+
+```json
+{
+  "excluded_workspace_ids": ["T99999999"]
+}
+```
+
+## Compliance
+
+### Data Residency
+
+- Index storage location configurable
+- Vespa deployment in your region
+- No data leaves your infrastructure
+
+### Audit Logging
+
+All operations logged:
+- User searches
+- Document access
+- Admin configuration changes
+
+### Data Retention
+
+Sync respects Slack retention policies:
+- Messages deleted per policy are removed from index
+- Custom retention rules supported

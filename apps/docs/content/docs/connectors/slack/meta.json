@@ -1,0 +1,15 @@
+{
+  "title": "Slack",
+  "icon": "Slack",
+  "pages": [
+    "index",
+    "setup",
+    "oauth-scopes",
+    "configuration",
+    "features",
+    "sync",
+    "permissions",
+    "troubleshooting",
+    "enterprise"
+  ]
+}

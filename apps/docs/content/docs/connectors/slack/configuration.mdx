@@ -1,0 +1,80 @@
+---
+title: Slack Configuration
+description: Advanced configuration options for the Slack connector
+---
+
+# Configuration Reference
+
+## Connector Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `index_private_channels` | boolean | `false` | Index private channels (requires member access) |
+| `index_dms` | boolean | `false` | Index direct messages |
+| `index_group_dms` | boolean | `false` | Index multi-person DMs |
+| `index_canvases` | boolean | `true` | Index Slack Canvases |
+| `index_clips` | boolean | `true` | Index video/audio clips |
+| `index_bookmarks` | boolean | `true` | Index channel bookmarks |
+| `sync_external_channels` | boolean | `false` | Index Slack Connect channels |
+| `index_external_content` | boolean | `false` | Index external org content |
+
+## Channel Filtering
+
+### Include Specific Channels
+
+```json
+{
+  "enabled_channel_ids": ["C01234567", "C89012345"]
+}
+```
+
+### Exclude Channels
+
+```json
+{
+  "disabled_channel_ids": ["C99999999"]
+}
+```
+
+## AI Assistant Settings
+
+Per-channel configuration:
+
+| Setting | Options | Description |
+|---------|---------|-------------|
+| `responseMode` | `confident`, `hesitant`, `none` | How bot responds to queries |
+| `reactionsEnabled` | boolean | Allow bot to add emoji reactions |
+| `respondToWorkflows` | boolean | Auto-respond to workflow messages |
+
+## Sync Configuration
+
+```json
+{
+  "syncConfig": {
+    "schedule": "0 */6 * * *",
+    "batchSize": 100,
+    "maxConcurrency": 5,
+    "fullSyncInterval": 86400000
+  }
+}
+```
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `schedule` | `0 */6 * * *` | Cron expression for sync |
+| `batchSize` | 100 | Documents per batch |
+| `maxConcurrency` | 5 | Parallel API requests |
+| `fullSyncInterval` | 86400000 | Full sync interval (ms) |
+
+## Rate Limiting
+
+OpenPlane respects Slack's rate limits:
+
+| Tier | Limit | Methods |
+|------|-------|---------|
+| Tier 1 | 1 req/min | `admin.*` |
+| Tier 2 | 20 req/min | `conversations.history` |
+| Tier 3 | 50 req/min | `chat.postMessage` |
+| Tier 4 | 100 req/min | `users.list` |
+
+Automatic exponential backoff is applied when limits are hit.

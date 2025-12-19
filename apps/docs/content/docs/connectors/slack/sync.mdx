@@ -1,0 +1,112 @@
+---
+title: Sync Process
+description: How OpenPlane syncs content from Slack
+---
+
+# Sync Process
+
+## Sync Types
+
+### Initial Sync
+
+When you first connect Slack:
+
+1. **Users** - All workspace members indexed
+2. **Channels** - Public and enabled private channels
+3. **Messages** - Historical messages (configurable depth)
+4. **Files** - Shared files and attachments
+5. **Canvases** - Slack canvas documents
+6. **Bookmarks** - Channel bookmarks
+
+### Incremental Sync
+
+Scheduled sync for updates:
+
+- New messages since last sync
+- Edited messages
+- Deleted content cleanup
+- New channel members
+
+### Real-time Sync
+
+Webhook-driven instant updates:
+
+- New messages indexed immediately
+- File uploads processed on share
+- Reactions and edits captured live
+
+## Sync Schedule
+
+| Event | Default Schedule |
+|-------|------------------|
+| Full sync | Every 24 hours |
+| Incremental sync | Every 6 hours |
+| Permission sync | Every 12 hours |
+| Real-time | Instant via webhooks |
+
+## Content Processing
+
+### Messages
+
+```
+Raw Message → Extract Text → Generate Embeddings → Index to Vespa
+```
+
+Processing includes:
+- Mention resolution (@user → full name)
+- Link expansion (URLs to titles)
+- Emoji translation
+- Thread context preservation
+
+### Files
+
+Supported file types:
+- Documents: PDF, DOCX, TXT, MD
+- Spreadsheets: XLSX, CSV
+- Presentations: PPTX
+- Images: PNG, JPG (OCR enabled)
+- Code: All text-based formats
+
+### Canvases
+
+Slack Canvases are indexed as rich documents with:
+- Full text content
+- Embedded images
+- Linked resources
+
+## Monitoring
+
+### Sync Status
+
+View sync status in **Settings → Connectors → Slack**:
+
+- Last sync time
+- Documents indexed
+- Pending items
+- Error count
+
+### Logs
+
+```bash
+bun run dev:worker
+```
+
+Worker logs show:
+- Sync job progress
+- API calls made
+- Rate limit status
+- Errors encountered
+
+## Troubleshooting
+
+### Sync Stuck
+
+1. Check worker logs for errors
+2. Verify OAuth token is valid
+3. Trigger manual resync
+
+### Missing Content
+
+1. Verify channel is enabled for indexing
+2. Check bot is member of private channels
+3. Review content type settings
