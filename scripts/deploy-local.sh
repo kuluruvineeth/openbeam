@@ -36,7 +36,7 @@ echo ""
 echo "📦 Pulling images..."
 echo ""
 
-services=("server" "web" "fumadocs" "worker")
+services=("server" "web" "docs" "worker")
 for service in "${services[@]}"; do
     echo -n "Pulling openplane-$service:$TAG... "
     if docker pull "$REGISTRY/$ORG/openplane-$service:$TAG" 2>&1 | grep -q "Downloaded newer image\|Image is up to date"; then

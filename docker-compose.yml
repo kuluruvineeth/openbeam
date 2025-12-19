@@ -142,15 +142,15 @@ services:
       start_period: 10s
       retries: 3
 
-  fumadocs:
+  docs:
     build:
       context: .
-      dockerfile: apps/fumadocs/Dockerfile
-    container_name: openplane-fumadocs
+      dockerfile: apps/docs/Dockerfile
+    container_name: openplane-docs
     environment:
       NODE_ENV: ${NODE_ENV:-production}
     ports:
-      - "${FUMADOCS_PORT:-4000}:4000"
+      - "${DOCS_PORT:-4000}:4000"
     restart: unless-stopped
     healthcheck:
       test:

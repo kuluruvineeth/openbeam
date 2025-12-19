@@ -78,10 +78,10 @@ jobs:
               - 'package.json'
               - 'bun.lock'
               - 'turbo.json'
-            fumadocs:
-              - 'apps/fumadocs/**'
-              - 'Dockerfile.fumadocs'
-              - 'apps/fumadocs/Dockerfile'
+            docs:
+              - 'apps/docs/**'
+              - 'Dockerfile.docs'
+              - 'apps/docs/Dockerfile'
               - 'package.json'
               - 'bun.lock'
               - 'turbo.json'
@@ -108,7 +108,7 @@ jobs:
           # For now, build all images on manual trigger
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             # Build all services for manual trigger
-            MATRIX='["server", "web", "fumadocs", "worker", "engine"]'
+            MATRIX='["server", "web", "docs", "worker", "engine"]'
             HAS_CHANGES="true"
             echo "Manual trigger: building all images"
           else
@@ -129,8 +129,8 @@ jobs:
               HAS_CHANGES="true"
             fi
 
-            if [ "${{ steps.filter.outputs.fumadocs }}" == "true" ]; then
-              MATRIX=$(echo $MATRIX | jq '. + ["fumadocs"]')
+            if [ "${{ steps.filter.outputs.docs }}" == "true" ]; then
+              MATRIX=$(echo $MATRIX | jq '. + ["docs"]')
               HAS_CHANGES="true"
             fi
 

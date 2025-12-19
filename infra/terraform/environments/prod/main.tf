@@ -43,7 +43,7 @@ locals {
   server_image = "ghcr.io/${var.github_org}/openplane-server:${var.image_tag}"
   worker_image = "ghcr.io/${var.github_org}/openplane-worker:${var.image_tag}"
   web_image    = "ghcr.io/${var.github_org}/openplane-web:${var.image_tag}"
-  docs_image   = "ghcr.io/${var.github_org}/openplane-fumadocs:${var.image_tag}"
+  docs_image   = "ghcr.io/${var.github_org}/openplane-docs:${var.image_tag}"
 }
 
 module "networking" {
