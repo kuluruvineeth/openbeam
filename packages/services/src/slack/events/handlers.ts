@@ -47,7 +47,11 @@ import type {
   SlackEvent,
 } from "./types";
 
-export type DocumentOperation = "create" | "update" | "delete";
+export type DocumentOperation =
+  | "create"
+  | "update"
+  | "delete"
+  | "permission_update";
 
 export interface DocumentChange {
   operation: DocumentOperation;
@@ -55,6 +59,11 @@ export interface DocumentChange {
   entity?: Entity;
   documentId?: string;
   entityId?: string;
+  permissionUpdate?: {
+    channelId: string;
+    userId: string;
+    action: "add" | "remove";
+  };
 }
 
 export interface EventHandlerContext extends TransformContext {
@@ -381,7 +390,19 @@ function handleMemberJoinedEvent(
     memberCache.delete(event.channel);
   }
 
-  return { changes: [], errors: [] };
+  return {
+    changes: [
+      {
+        operation: "permission_update",
+        permissionUpdate: {
+          channelId: event.channel,
+          userId: event.user,
+          action: "add",
+        },
+      },
+    ],
+    errors: [],
+  };
 }
 
 function handleMemberLeftEvent(
@@ -394,7 +415,19 @@ function handleMemberLeftEvent(
     memberCache.delete(event.channel);
   }
 
-  return { changes: [], errors: [] };
+  return {
+    changes: [
+      {
+        operation: "permission_update",
+        permissionUpdate: {
+          channelId: event.channel,
+          userId: event.user,
+          action: "remove",
+        },
+      },
+    ],
+    errors: [],
+  };
 }
 
 function shouldSkipMessage(event: MessageEvent): boolean {

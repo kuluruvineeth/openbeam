@@ -35,6 +35,7 @@ interface SearchProvider {
     teamId: string;
     accessControlIds: string[];
     limit: number;
+    sourceId?: string;
   }): Promise<{
     documents: Array<{
       title?: string;
@@ -53,6 +54,7 @@ interface RagProvider {
     accessControlIds: string[];
     topK: number;
     systemPrompt?: string;
+    sourceId?: string;
   }): Promise<{
     answer: string;
     citations: Array<{
@@ -146,6 +148,7 @@ export async function handleSidebarPromptSelect(
     teamId: context.teamId,
     accessControlIds,
     topK: 5,
+    sourceId: context.channelId,
   });
 
   const searchResults = await deps.searchService.search({
@@ -153,6 +156,7 @@ export async function handleSidebarPromptSelect(
     teamId: context.teamId,
     accessControlIds,
     limit: 3,
+    sourceId: context.channelId,
   });
 
   const suggestions: SidebarSuggestion[] = searchResults.documents.map(
@@ -198,6 +202,7 @@ export async function handleSidebarSearch(
     teamId: context.teamId,
     accessControlIds,
     topK: 5,
+    sourceId: context.channelId,
   });
 
   const searchResults = await deps.searchService.search({
@@ -205,6 +210,7 @@ export async function handleSidebarSearch(
     teamId: context.teamId,
     accessControlIds,
     limit: 5,
+    sourceId: context.channelId,
   });
 
   const suggestions: SidebarSuggestion[] = searchResults.documents.map(
