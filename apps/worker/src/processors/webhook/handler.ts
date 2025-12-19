@@ -22,6 +22,58 @@ import {
 } from "./sidebar-handler";
 import { processSlackWebhook, shouldProcessRealtime } from "./slack-handler";
 
+const CRAWL_HINT_EVENTS: Record<string, string> = {
+  file_shared: "files",
+  file_deleted: "files",
+  file_created: "files",
+  file_change: "files",
+  channel_created: "channels",
+  channel_deleted: "channels",
+  channel_rename: "channels",
+  channel_archive: "channels",
+  channel_unarchive: "channels",
+  member_joined_channel: "permissions",
+  member_left_channel: "permissions",
+};
+
+const crawlHintTimestamps = new Map<string, number>();
+const CRAWL_HINT_DEBOUNCE_MS = 30_000;
+
+async function queueCrawlHint(
+  connectorId: string,
+  eventType: string
+): Promise<void> {
+  const resourceType = CRAWL_HINT_EVENTS[eventType];
+  if (!resourceType) {
+    return;
+  }
+
+  const key = `${connectorId}:${resourceType}`;
+  const now = Date.now();
+  const lastQueued = crawlHintTimestamps.get(key);
+
+  if (lastQueued && now - lastQueued < CRAWL_HINT_DEBOUNCE_MS) {
+    return;
+  }
+
+  crawlHintTimestamps.set(key, now);
+
+  const syncJob = await addSyncJob(
+    {
+      connectorId,
+      syncJobId: "",
+      type: "INCREMENTAL",
+      priority: 8,
+    },
+    8
+  );
+
+  logger.info(
+    { connectorId, resourceType, eventType, bullmqJobId: syncJob.id },
+    "Queued crawl hint sync"
+  );
+}
+
 const UI_ONLY_EVENTS = new Set([
   "app_home_opened",
   "assistant_thread_started",
@@ -56,7 +108,16 @@ async function tryRealtimeProcessing(
 
   if (eventType === "message") {
     const payload = jobData.payload as {
-      event?: { channel: string; channel_type?: string; thread_ts?: string };
+      event?: {
+        channel: string;
+        channel_type?: string;
+        thread_ts?: string;
+        ts: string;
+        bot_id?: string;
+        subtype?: string;
+        user?: string;
+        text?: string;
+      };
     };
     const event = payload.event;
 
@@ -66,7 +127,11 @@ async function tryRealtimeProcessing(
         channel: event.channel,
         channel_type: event.channel_type,
         thread_ts: event.thread_ts,
-        ts: "",
+        ts: event.ts,
+        bot_id: event.bot_id,
+        subtype: event.subtype,
+        user: event.user,
+        text: event.text,
       });
 
       if (sidebarContext) {
@@ -105,7 +170,7 @@ async function triggerSyncFallback(
   const syncJob = await addSyncJob(
     {
       connectorId,
-      syncJobId: `webhook-${eventId}`,
+      syncJobId: "",
       type: "INCREMENTAL",
       priority: 10,
     },
@@ -113,7 +178,7 @@ async function triggerSyncFallback(
   );
 
   logger.info(
-    { connectorId, eventId, syncJobId: syncJob.id, eventType, source },
+    { connectorId, eventId, bullmqJobId: syncJob.id, eventType, source },
     "Webhook triggered sync job"
   );
 
@@ -187,6 +252,11 @@ export async function processWebhookJob(
         "webhook.operation": realtimeResult.operation ?? "none",
       });
       span.setStatus({ code: SpanStatusCode.OK });
+
+      if (realtimeResult.processed) {
+        await queueCrawlHint(connectorId, eventType);
+      }
+
       return realtimeResult;
     }
 

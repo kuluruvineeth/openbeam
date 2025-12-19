@@ -244,6 +244,36 @@ async function handleDelete(
   return { operation: "delete", documentId, success: true };
 }
 
+async function handlePermissionUpdate(
+  change: DocumentChange,
+  ctx: ChangeContext
+): Promise<ChangeResult | null> {
+  const update = change.permissionUpdate;
+  if (!update) {
+    return null;
+  }
+
+  const { channelId, userId, action } = update;
+
+  await vespaClient.updateChannelPermissions(
+    ctx.connectorId,
+    channelId,
+    userId,
+    action
+  );
+
+  logger.info(
+    { ...ctx, channelId, userId, action },
+    "Permission update applied"
+  );
+
+  return {
+    operation: "skip",
+    documentId: `permission:${channelId}:${userId}`,
+    success: true,
+  };
+}
+
 async function applyDocumentChanges(
   changes: DocumentChange[],
   connectorId: string,
@@ -263,6 +293,9 @@ async function applyDocumentChanges(
           break;
         case "delete":
           result = await handleDelete(change, ctx);
+          break;
+        case "permission_update":
+          result = await handlePermissionUpdate(change, ctx);
           break;
         default:
           logger.warn(

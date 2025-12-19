@@ -28,6 +28,8 @@ export interface StreamingSyncResult {
     duration: number;
     batches: number;
   };
+  filesQueued: number;
+  mediaQueued: number;
 }
 
 export interface SyncOptions {
@@ -121,6 +123,8 @@ export async function syncConnectorStreaming(
         nextCursor: JSON.stringify(result.cursor),
         hasMore: result.hasMore,
         stats: result.stats,
+        filesQueued: result.filesQueued,
+        mediaQueued: result.mediaQueued,
       };
     }
 

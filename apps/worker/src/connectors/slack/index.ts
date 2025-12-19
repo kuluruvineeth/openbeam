@@ -27,6 +27,8 @@ export interface SlackSyncResult {
     duration: number;
     batches: number;
   };
+  filesQueued: number;
+  mediaQueued: number;
 }
 
 export interface SlackChannelInfo {
@@ -194,6 +196,7 @@ export async function syncSlackStreaming(
   let batchCount = 0;
   let latestCursor: SyncCursor = cursor ?? {};
   let filesQueued = 0;
+  let mediaQueued = 0;
 
   const handleFilesDiscovered = async (files: SlackFileInfo[]) => {
     logger.info(
@@ -208,6 +211,7 @@ export async function syncSlackStreaming(
     });
 
     filesQueued += result.queued;
+    mediaQueued += result.mediaQueued;
     totalErrors += result.errors;
   };
 
@@ -276,6 +280,7 @@ export async function syncSlackStreaming(
         connectorId: connector.id,
         totalDocuments,
         filesQueued,
+        mediaQueued,
         batches: batchCount,
         duration,
         errors: totalErrors,
@@ -294,6 +299,8 @@ export async function syncSlackStreaming(
         duration,
         batches: batchCount,
       },
+      filesQueued,
+      mediaQueued,
     };
   } catch (error) {
     logger.error(
@@ -412,10 +419,33 @@ export async function validateSlackConnection(
 }
 
 export function createSlackClientFromConnector(
-  connector: Connector & { oauthProvider?: OAuthProvider | null }
+  connector: Connector & { oauthProvider?: OAuthProvider | null },
+  options?: { preferBotToken?: boolean }
 ): { client: SlackClient; context: TransformContext } {
-  const { token, teamId } = extractCredentials(connector);
   const context = buildContext(connector);
+
+  let token: string;
+  let teamId: string | undefined;
+
+  if (options?.preferBotToken) {
+    if (!connector.oauthProvider) {
+      throw new Error("Slack connector requires OAuth provider");
+    }
+    const botToken = decryptIfEncrypted(
+      connector.oauthProvider.accessToken,
+      connector.oauthProvider.accessTokenIv
+    );
+    if (!botToken) {
+      throw new Error("Bot token not available");
+    }
+    token = botToken;
+    const config = connector.config as Record<string, unknown> | null;
+    teamId = config?.teamId as string | undefined;
+  } else {
+    const creds = extractCredentials(connector);
+    token = creds.token;
+    teamId = creds.teamId;
+  }
 
   const client = createSlackClient({
     token,
