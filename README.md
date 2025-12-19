@@ -51,7 +51,7 @@ openplane/
 ├── apps/
 │   ├── web/         # Next.js frontend
 │   ├── server/      # Hono API server
-│   └── fumadocs/    # Documentation site
+│   └── docs/        # Documentation site
 └── packages/
     ├── api/         # Shared API logic
     ├── auth/        # Authentication
@@ -83,7 +83,7 @@ docker-compose up -d
 ```bash
 docker pull ghcr.io/kuluruvineeth/openplane-server:latest
 docker pull ghcr.io/kuluruvineeth/openplane-web:latest
-docker pull ghcr.io/kuluruvineeth/openplane-fumadocs:latest
+docker pull ghcr.io/kuluruvineeth/openplane-docs:latest
 ```
 
 ## CI/CD Pipeline
@@ -95,7 +95,7 @@ Our automated pipeline ensures quality and efficiency:
 3. **Security** - Trivy vulnerability scanning and SBOM generation
 4. **Deploy** - Images are ready for deployment to any platform
 
-The pipeline intelligently builds only services with changes (server, web, fumadocs, worker), optimizing build times. Multi-platform builds (linux/amd64, linux/arm64) ensure broad compatibility.
+The pipeline intelligently builds only services with changes (server, web, docs, worker), optimizing build times. Multi-platform builds (linux/amd64, linux/arm64) ensure broad compatibility.
 
 ## Deployment
 
