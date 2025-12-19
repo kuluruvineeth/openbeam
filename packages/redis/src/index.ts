@@ -21,7 +21,7 @@ export {
   getDigestSchedulerKey,
   setDigestSchedulerKey,
 } from "./digest-scheduler-keys";
-export { jobSchedulerKeys } from "./job-scheduler-keys";
+export { jobSchedulerKeys, type SyncJobType } from "./job-scheduler-keys";
 export { DistributedLock, distributedLock } from "./locks";
 export { Fence, fence } from "./locks/fence";
 export {

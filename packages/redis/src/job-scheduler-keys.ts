@@ -1,25 +1,17 @@
 import { getRedisClient } from "./client";
 
-/**
- * Redis-based storage for BullMQ repeatable job scheduler keys
- * Stores job scheduler keys in Redis for multi-worker deployments.
- */
+export type SyncJobType = "FULL" | "INCREMENTAL" | "PERMISSIONS";
+
 class JobSchedulerKeys {
   private readonly KEY_PREFIX = "sync:scheduler:job:";
 
-  /**
-   * Get the Redis key for a job scheduler
-   */
-  private getKey(connectorId: string, type: "FULL" | "INCREMENTAL"): string {
+  private getKey(connectorId: string, type: SyncJobType): string {
     return `${this.KEY_PREFIX}${connectorId}:${type}`;
   }
 
-  /**
-   * Store a job scheduler key
-   */
   async set(
     connectorId: string,
-    type: "FULL" | "INCREMENTAL",
+    type: SyncJobType,
     schedulerId: string
   ): Promise<void> {
     const client = await getRedisClient();
@@ -27,63 +19,42 @@ class JobSchedulerKeys {
     await client.set(key, schedulerId);
   }
 
-  /**
-   * Get a job scheduler key
-   */
-  async get(
-    connectorId: string,
-    type: "FULL" | "INCREMENTAL"
-  ): Promise<string | null> {
+  async get(connectorId: string, type: SyncJobType): Promise<string | null> {
     const client = await getRedisClient();
     const key = this.getKey(connectorId, type);
     const value = await client.get(key);
     return value;
   }
 
-  /**
-   * Delete a job scheduler key
-   */
-  async delete(
-    connectorId: string,
-    type: "FULL" | "INCREMENTAL"
-  ): Promise<void> {
+  async delete(connectorId: string, type: SyncJobType): Promise<void> {
     const client = await getRedisClient();
     const key = this.getKey(connectorId, type);
     await client.del(key);
   }
 
-  /**
-   * Delete all job scheduler keys for a connector
-   */
   async deleteAll(connectorId: string): Promise<void> {
     const client = await getRedisClient();
     const fullKey = this.getKey(connectorId, "FULL");
     const incrementalKey = this.getKey(connectorId, "INCREMENTAL");
-    await client.del([fullKey, incrementalKey]);
+    const permissionsKey = this.getKey(connectorId, "PERMISSIONS");
+    await client.del([fullKey, incrementalKey, permissionsKey]);
   }
 
-  /**
-   * Get all job scheduler keys for a connector
-   */
   async getAll(connectorId: string): Promise<{
     full: string | null;
     incremental: string | null;
+    permissions: string | null;
   }> {
-    const [full, incremental] = await Promise.all([
+    const [full, incremental, permissions] = await Promise.all([
       this.get(connectorId, "FULL"),
       this.get(connectorId, "INCREMENTAL"),
+      this.get(connectorId, "PERMISSIONS"),
     ]);
 
-    return { full, incremental };
+    return { full, incremental, permissions };
   }
 
-  /**
-   * Check if a job scheduler key exists
-   */
-  async exists(
-    connectorId: string,
-    type: "FULL" | "INCREMENTAL"
-  ): Promise<boolean> {
+  async exists(connectorId: string, type: SyncJobType): Promise<boolean> {
     const client = await getRedisClient();
     const key = this.getKey(connectorId, type);
     const result = await client.exists(key);
