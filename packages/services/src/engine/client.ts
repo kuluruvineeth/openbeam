@@ -10,6 +10,22 @@ import {
 } from "./types";
 
 const DEFAULT_TIMEOUT = 30_000; // 30 seconds
+const PARSE_TIMEOUT = 180_000; // 3 minutes for file parsing
+const MAX_RETRIES = 2;
+const RETRY_DELAY_MS = 2000;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isRetryableError(error: unknown): boolean {
+  if (error instanceof EngineError) {
+    return (
+      error.code === "TIMEOUT" || error.status === 503 || error.status === 502
+    );
+  }
+  return false;
+}
 
 export class EngineClient {
   private readonly baseUrl: string;
@@ -22,10 +38,12 @@ export class EngineClient {
 
   private async fetchWithTimeout(
     url: string,
-    init?: RequestInit
+    init?: RequestInit,
+    customTimeout?: number
   ): Promise<Response> {
+    const timeout = customTimeout ?? this.timeout;
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
 
     try {
       const response = await fetch(url, {
@@ -36,7 +54,7 @@ export class EngineClient {
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") {
         throw new EngineError(
-          `Request timed out after ${this.timeout}ms`,
+          `Request timed out after ${timeout}ms`,
           undefined,
           "TIMEOUT"
         );
@@ -87,11 +105,15 @@ export class EngineClient {
       params.set("strategy", options.strategy);
     }
 
-    const parseUrl = `${this.baseUrl}/parse${params.toString() ? `?${params}` : ""}`;
-    const response = await this.fetchWithTimeout(parseUrl, {
-      method: "POST",
-      body: formData,
-    });
+    const parseEndpoint = `${this.baseUrl}/parse${params.toString() ? `?${params}` : ""}`;
+    const response = await this.fetchWithTimeout(
+      parseEndpoint,
+      {
+        method: "POST",
+        body: formData,
+      },
+      PARSE_TIMEOUT
+    );
 
     if (!response.ok) {
       const error = await response.text();
@@ -121,18 +143,41 @@ export class EngineClient {
     }
 
     const endpoint = `${this.baseUrl}/parse/url${params.toString() ? `?${params}` : ""}`;
-    const response = await this.fetchWithTimeout(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url, filename, strategy: options.strategy }),
-    });
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new EngineError(`Parse URL failed: ${error}`, response.status);
+    let lastError: Error | undefined;
+
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        const response = await this.fetchWithTimeout(
+          endpoint,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url, filename, strategy: options.strategy }),
+          },
+          PARSE_TIMEOUT
+        );
+
+        if (!response.ok) {
+          const error = await response.text();
+          throw new EngineError(`Parse URL failed: ${error}`, response.status);
+        }
+
+        return response.json() as Promise<ParseResponse>;
+      } catch (error) {
+        lastError = error as Error;
+
+        if (attempt < MAX_RETRIES && isRetryableError(error)) {
+          const delay = RETRY_DELAY_MS * 2 ** attempt;
+          await sleep(delay);
+          continue;
+        }
+
+        throw error;
+      }
     }
 
-    return response.json() as Promise<ParseResponse>;
+    throw lastError ?? new EngineError("Parse URL failed after retries");
   }
 
   async chunkText(

@@ -36,6 +36,8 @@ export interface RAGContextParams {
   minScore?: number;
   accessControlIds?: string[];
   includeMetadata?: boolean;
+  sourceId?: string;
+  includeMedia?: boolean;
 }
 
 export interface RAGContext {

@@ -56,6 +56,8 @@ export async function buildRAGContext(
     topK = DEFAULT_CONFIG.topK,
     accessControlIds,
     includeMetadata = false,
+    sourceId,
+    includeMedia = true,
   } = params;
 
   const searchResult = await searchService.searchUnified({
@@ -64,7 +66,8 @@ export async function buildRAGContext(
     limit: topK * 2,
     accessControlIds,
     includeDocuments: true,
-    includeMedia: true,
+    includeMedia,
+    sourceId,
   });
 
   const documents: RAGContextDocument[] = [];
@@ -136,6 +139,29 @@ interface ExtractedContent {
   sourceType: "document" | "media";
 }
 
+function buildDocumentMetadata(doc: SearchScoredDocument): string[] {
+  const meta: string[] = [];
+  if (doc.connector_type) {
+    meta.push(`Source: ${doc.connector_type}`);
+  }
+  if (doc.source_name) {
+    meta.push(`Channel: ${doc.source_name}`);
+  }
+  if (doc.author_name) {
+    meta.push(`Author: ${doc.author_name}`);
+  }
+  if (doc.author_email) {
+    meta.push(`Email: ${doc.author_email}`);
+  }
+  if (doc.document_type) {
+    meta.push(`Type: ${doc.document_type}`);
+  }
+  if (doc.created_at) {
+    meta.push(`Date: ${new Date(doc.created_at).toLocaleDateString()}`);
+  }
+  return meta;
+}
+
 function extractDocumentContent(
   doc: SearchScoredDocument,
   includeMetadata: boolean
@@ -143,20 +169,7 @@ function extractDocumentContent(
   let content = doc.content || "";
 
   if (includeMetadata) {
-    const meta: string[] = [];
-    if (doc.connector_type) {
-      meta.push(`Source: ${doc.connector_type}`);
-    }
-    if (doc.source_name) {
-      meta.push(`Channel/Folder: ${doc.source_name}`);
-    }
-    if (doc.author_name) {
-      meta.push(`Author: ${doc.author_name}`);
-    }
-    if (doc.created_at) {
-      const date = new Date(doc.created_at).toLocaleDateString();
-      meta.push(`Date: ${date}`);
-    }
+    const meta = buildDocumentMetadata(doc);
     if (meta.length > 0) {
       content = `[${meta.join(" | ")}]\n${content}`;
     }
