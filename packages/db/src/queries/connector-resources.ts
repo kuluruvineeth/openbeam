@@ -232,8 +232,18 @@ export const listResourceDocuments = async (
   resourceExternalId: string,
   options: { search?: string; cursor?: string; limit: number }
 ): Promise<ListResourceDocumentsResult> => {
-  const { search, limit } = options;
+  const { search, cursor, limit } = options;
   const searchPattern = search ? `%${search}%` : null;
+
+  let cursorTimestamp: Date | null = null;
+  let cursorId: string | null = null;
+  if (cursor) {
+    const separatorIndex = cursor.indexOf("_");
+    if (separatorIndex > 0) {
+      cursorTimestamp = new Date(cursor.slice(0, separatorIndex));
+      cursorId = cursor.slice(separatorIndex + 1);
+    }
+  }
 
   const documents = await db.$queryRaw<ResourceDocumentRow[]>`
     SELECT * FROM (
@@ -277,7 +287,12 @@ export const listResourceDocuments = async (
         AND "processingStatus" = 'INDEXED'
         AND (${searchPattern}::text IS NULL OR "fileName" ILIKE ${searchPattern})
     ) combined
-    ORDER BY indexed_at DESC
+    WHERE (
+      ${cursorTimestamp}::timestamptz IS NULL
+      OR indexed_at < ${cursorTimestamp}
+      OR (indexed_at = ${cursorTimestamp} AND ${cursorId}::text IS NOT NULL AND id < ${cursorId})
+    )
+    ORDER BY indexed_at DESC, id DESC
     LIMIT ${limit + 1}
   `;
 
@@ -314,9 +329,15 @@ export const listResourceDocuments = async (
     source: row.source as "document" | "file" | "media",
   }));
 
+  const lastItem = items.at(-1);
+  const nextCursor =
+    hasMore && lastItem
+      ? `${lastItem.indexedAt.toISOString()}_${lastItem.id}`
+      : null;
+
   return {
     items,
-    nextCursor: hasMore ? (items.at(-1)?.id ?? null) : null,
+    nextCursor,
     totalCount,
   };
 };
