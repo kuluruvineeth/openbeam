@@ -192,3 +192,43 @@ export function isPreviewableByExtension(fileName: string): boolean {
   const ext = fileName.split(".").pop()?.toLowerCase();
   return ext ? PREVIEWABLE_EXTENSIONS.has(ext) : false;
 }
+
+export type PreviewCategory = "document" | "media" | "email" | "slack";
+
+export function getPreviewCategory(
+  connectorType: string,
+  documentType: string
+): PreviewCategory | null {
+  const connector = connectorType.toLowerCase();
+  const docType = documentType.toLowerCase();
+
+  if (
+    connector === "gmail" &&
+    (docType.includes("message") ||
+      docType.includes("thread") ||
+      docType.includes("email"))
+  ) {
+    return "email";
+  }
+
+  if (
+    connector === "slack" &&
+    (docType.includes("message") || docType.includes("thread"))
+  ) {
+    return "slack";
+  }
+
+  if (docType.includes("file") || docType.includes("attachment")) {
+    return "document";
+  }
+
+  return null;
+}
+
+export function isMessagePreviewable(
+  connectorType: string,
+  documentType: string
+): boolean {
+  const category = getPreviewCategory(connectorType, documentType);
+  return category === "email" || category === "slack";
+}
