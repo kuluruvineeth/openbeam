@@ -27,7 +27,7 @@ const FFMPEG_ARGS = [
 ];
 
 export async function convertAudioToVideo(
-  audioBuffer: Buffer<ArrayBufferLike>,
+  audioBuffer: Buffer,
   inputExtension: string
 ): Promise<Buffer> {
   const workDir = join(tmpdir(), `audio-convert-${randomUUID()}`);
@@ -86,7 +86,7 @@ interface PreparedMedia {
 }
 
 export async function prepareAudioAsVideo(
-  audioBuffer: Buffer<ArrayBufferLike>,
+  audioBuffer: Buffer,
   originalFileName: string
 ): Promise<PreparedMedia> {
   const extension = getFileExtension(originalFileName);

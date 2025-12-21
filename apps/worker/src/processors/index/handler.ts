@@ -1,7 +1,8 @@
 import prisma, {
   findIndexedDocumentsByExternalIds,
+  type Prisma,
   updateSyncHistoryCounts,
-  upsertIndexedDocument,
+  upsertIndexedDocumentsBatch,
 } from "@openplane/db";
 import { createLinkedSpan, type IndexJobData } from "@openplane/redis";
 import { type GenericDocument, vespaClient } from "@openplane/vespa";
@@ -242,7 +243,6 @@ async function indexToVespa(
         docsToIndex,
         connectorId
       );
-      // Preserve checksum
       docsWithEmbeddings = embeddedDocs.map((doc, i) => ({
         ...doc,
         checksum: docsToIndex[i]?.checksum ?? "",
@@ -255,6 +255,8 @@ async function indexToVespa(
       docsWithEmbeddings = docsToIndex;
     }
 
+    // Pre-create Map for O(1) lookups instead of O(N²) find
+    const docsById = new Map(docsToIndex.map((d) => [d.id, d]));
     const successfullyIndexed: Array<GenericDocument & { checksum: string }> =
       [];
 
@@ -262,7 +264,7 @@ async function indexToVespa(
       try {
         const { checksum: _checksum, ...docForVespa } = doc;
         await vespaClient.feedDocument(docForVespa);
-        const originalDoc = docsToIndex.find((d) => d.id === doc.id);
+        const originalDoc = docsById.get(doc.id);
         if (originalDoc) {
           successfullyIndexed.push(originalDoc);
         }
@@ -323,15 +325,16 @@ async function recordInDatabase(
       title: doc.title,
       checksum: doc.checksum,
       lastChecksum: existingDocsMap.get(doc.external_id)?.checksum,
+      metadata: doc.metadata as Prisma.InputJsonValue | undefined,
     }));
 
     let recordedCount = 0;
     if (indexedDocuments.length > 0) {
       try {
-        for (const doc of indexedDocuments) {
-          await upsertIndexedDocument(prisma, doc);
-          recordedCount += 1;
-        }
+        recordedCount = await upsertIndexedDocumentsBatch(
+          prisma,
+          indexedDocuments
+        );
       } catch (dbError) {
         logger.error(
           { error: dbError, connectorId, batchId },

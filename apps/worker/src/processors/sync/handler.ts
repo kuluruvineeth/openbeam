@@ -9,10 +9,12 @@ import {
   createProgressEmitter,
   rateLimiter,
   type SyncJobData,
+  type SyncTrigger,
 } from "@openplane/redis";
 
 import {
   createSyncHistoryForRepeatableJob,
+  createSyncHistoryForWebhook,
   getSyncCursorForConnector,
   handleSyncError,
   prepareSyncHistory,
@@ -22,12 +24,13 @@ import {
 import { SpanStatusCode, trace } from "@opentelemetry/api";
 import type { Job } from "bullmq";
 import {
-  type ChannelInfo,
+  type ResourceInfo,
   syncConnectorStreaming,
   validateConnection,
 } from "../../connectors/factory";
 import logger from "../../utils/logger";
 import { logJobError, logJobStart } from "../event-handlers";
+import { processDiscoveredFiles } from "../file/sync-helper";
 import {
   acquireFence,
   checkFenceStatus,
@@ -58,7 +61,7 @@ export interface SyncJobResult {
 export async function processSyncJob(
   job: Job<SyncJobData>
 ): Promise<SyncJobResult> {
-  let { connectorId, syncJobId, type, traceContext } = job.data;
+  let { connectorId, syncJobId, type, trigger, traceContext } = job.data;
   let fenceToken: number | undefined;
   let progress: ProgressEmitter | undefined;
   let totalDocumentsProcessed = 0;
@@ -86,12 +89,13 @@ export async function processSyncJob(
     fenceToken = await acquireFence(connectorId, job.id, span);
 
     try {
-      syncJobId = await ensureSyncHistoryId(
+      syncJobId = await ensureSyncHistoryId({
         syncJobId,
         connectorId,
         type,
-        job.id
-      );
+        trigger,
+        jobId: job.id,
+      });
 
       await prepareSync(connectorId, syncJobId, fenceToken);
 
@@ -300,29 +304,29 @@ async function streamDocumentsToIndexQueue(params: {
           "Streamed batch to index queue"
         );
       },
-      onResourcesDiscovered: async (resources: ChannelInfo[]) => {
-        const memberedChannels = resources.filter((r) => r.is_member);
-        const nonMemberedChannels = resources.filter((r) => !r.is_member);
+      onResourcesDiscovered: async (resources: ResourceInfo[]) => {
+        const memberedResources = resources.filter((r) => r.isMember);
+        const nonMemberedResources = resources.filter((r) => !r.isMember);
 
         logger.info(
           {
             connectorId,
             resourceCount: resources.length,
-            memberedCount: memberedChannels.length,
-            nonMemberedCount: nonMemberedChannels.length,
-            memberedChannels: memberedChannels.map((r) => r.name),
-            nonMemberedChannels: nonMemberedChannels.map((r) => r.name),
+            memberedCount: memberedResources.length,
+            nonMemberedCount: nonMemberedResources.length,
+            memberedResources: memberedResources.map((r) => r.name),
+            nonMemberedResources: nonMemberedResources.map((r) => r.name),
           },
           "Discovered resources during sync"
         );
 
-        if (nonMemberedChannels.length > 0) {
+        if (nonMemberedResources.length > 0) {
           logger.warn(
             {
               connectorId,
-              channels: nonMemberedChannels.map((r) => r.name),
+              resources: nonMemberedResources.map((r) => r.name),
             },
-            "Bot is not a member of these channels. Add bot to sync their messages."
+            "Bot is not a member of these resources. Add bot to sync their messages."
           );
         }
 
@@ -331,19 +335,19 @@ async function streamDocumentsToIndexQueue(params: {
           resources.map((r) => ({
             connectorId,
             externalId: r.id,
-            resourceType: getResourceType(r),
+            resourceType: r.resourceType,
             name: r.name,
-            isPublic: !(r.is_private || r.is_im || r.is_mpim),
+            isPublic: !r.isPrivate,
             syncEnabled: true,
-            metadata: {
-              is_member: r.is_member ?? false,
-              is_im: r.is_im ?? false,
-              is_mpim: r.is_mpim ?? false,
-            },
+            metadata: r.metadata as Record<
+              string,
+              string | number | boolean | null
+            >,
           }))
         );
       },
       disabledResourceIds,
+      onFilesDiscovered: processDiscoveredFiles,
     });
 
     span.setAttributes({
@@ -394,24 +398,31 @@ async function streamDocumentsToIndexQueue(params: {
   }
 }
 
+interface EnsureSyncHistoryParams {
+  syncJobId: string | undefined;
+  connectorId: string;
+  type: "FULL" | "INCREMENTAL" | "PERMISSIONS";
+  trigger: SyncTrigger | undefined;
+  jobId: string | undefined;
+}
+
 async function ensureSyncHistoryId(
-  syncJobId: string | undefined,
-  connectorId: string,
-  type: "FULL" | "INCREMENTAL" | "PERMISSIONS",
-  jobId: string | undefined
+  params: EnsureSyncHistoryParams
 ): Promise<string> {
+  const { syncJobId, connectorId, type, trigger, jobId } = params;
+
   if (syncJobId) {
     return syncJobId;
   }
 
-  const result = await createSyncHistoryForRepeatableJob(prisma, {
-    connectorId,
-    type,
-  });
+  const result =
+    trigger === "WEBHOOK"
+      ? await createSyncHistoryForWebhook(prisma, { connectorId, type })
+      : await createSyncHistoryForRepeatableJob(prisma, { connectorId, type });
 
   logger.info(
-    { jobId, connectorId, syncJobId: result.syncHistoryId, type },
-    "Created SyncHistory for repeatable job"
+    { jobId, connectorId, syncJobId: result.syncHistoryId, type, trigger },
+    `Created SyncHistory for ${trigger ?? "scheduled"} job`
   );
 
   return result.syncHistoryId;
@@ -495,17 +506,4 @@ async function handleJobError(params: {
       error,
     });
   }
-}
-
-function getResourceType(channel: ChannelInfo): string {
-  if (channel.is_im) {
-    return "dm";
-  }
-  if (channel.is_mpim) {
-    return "group_dm";
-  }
-  if (channel.is_private) {
-    return "private_channel";
-  }
-  return "public_channel";
 }

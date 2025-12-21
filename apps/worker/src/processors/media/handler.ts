@@ -324,7 +324,7 @@ async function processMediaDownload(
     mediaType,
     sourceChannelId,
     sourceChannelName,
-    slackPermalink,
+    sourcePermalink,
     authorId,
     authorName,
   } = data;
@@ -353,6 +353,10 @@ async function processMediaDownload(
   }
 
   await updateIndexedMediaProcessingStatus(prisma, mediaId, "DOWNLOADING");
+
+  if (!sourceUrl) {
+    throw new Error("No source URL provided for media download");
+  }
 
   const response = await fetch(sourceUrl, {
     headers: { Authorization: `Bearer ${downloadToken}` },
@@ -418,7 +422,7 @@ async function processMediaDownload(
     mimeType: finalMimeType,
     sourceChannelId,
     sourceChannelName,
-    slackPermalink,
+    sourcePermalink,
     authorId,
     authorName,
   });
@@ -441,7 +445,7 @@ async function processTwelveLabsIndexing(
     mimeType,
     sourceChannelId,
     sourceChannelName,
-    slackPermalink,
+    sourcePermalink,
     authorId,
     authorName,
   } = data;
@@ -498,7 +502,7 @@ async function processTwelveLabsIndexing(
     fileName: media?.fileName ?? "",
     sourceChannelId: sourceChannelId ?? media?.sourceChannelId ?? undefined,
     sourceChannelName,
-    sourceUrl: slackPermalink,
+    sourceUrl: sourcePermalink,
     mediaType,
     mimeType,
     authorId,

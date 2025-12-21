@@ -1,7 +1,9 @@
 import {
+  EMBEDDING_TOKEN_LIMIT,
   type Embedding,
   embedQuery,
   getConfig as getAIConfig,
+  prepareTextForEmbedding,
 } from "@openplane/ai";
 import { getOrGenerateEmbedding } from "@openplane/services";
 import type { GenericDocument } from "@openplane/vespa";
@@ -10,8 +12,9 @@ import logger from "./logger";
 
 const tracer = trace.getTracer("openplane-worker");
 
-const MAX_CONTENT_LENGTH = 32_000;
-const MAX_TITLE_LENGTH = 512;
+const MAX_TITLE_TOKENS = 256;
+const CONTENT_TOKEN_LIMIT = EMBEDDING_TOKEN_LIMIT - 100;
+const RETRY_TOKEN_LIMIT = 4000;
 
 export interface DocumentWithEmbeddings extends GenericDocument {
   content_embedding?: Embedding;
@@ -101,6 +104,7 @@ export async function generateEmbeddingsForDocuments(
   }
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: retry logic for token limits requires branching
 async function generateEmbeddingsForDocument(
   doc: GenericDocument,
   modelId: string
@@ -108,48 +112,65 @@ async function generateEmbeddingsForDocument(
   const result: DocumentWithEmbeddings = { ...doc };
 
   if (doc.content && doc.content.length > 0) {
-    const contentToEmbed = prepareContentForEmbedding(doc.content);
+    const contentToEmbed = prepareTextForEmbedding(
+      doc.content,
+      CONTENT_TOKEN_LIMIT
+    );
     if (contentToEmbed) {
-      result.content_embedding = await getOrGenerateEmbedding(
-        contentToEmbed,
-        modelId,
-        () => embedQuery(contentToEmbed)
-      );
+      try {
+        result.content_embedding = await getOrGenerateEmbedding(
+          contentToEmbed,
+          modelId,
+          () => embedQuery(contentToEmbed)
+        );
+      } catch (error) {
+        if (isTokenLimitError(error)) {
+          logger.info(
+            { docId: doc.id, originalLength: doc.content.length },
+            "Token limit hit, retrying with further truncation"
+          );
+          const shorterContent = prepareTextForEmbedding(
+            doc.content,
+            RETRY_TOKEN_LIMIT
+          );
+          if (shorterContent) {
+            result.content_embedding = await getOrGenerateEmbedding(
+              shorterContent,
+              modelId,
+              () => embedQuery(shorterContent)
+            );
+          }
+        } else {
+          throw error;
+        }
+      }
     }
   }
 
   if (doc.title && doc.title.length > 0) {
-    const titleToEmbed = doc.title.slice(0, MAX_TITLE_LENGTH);
-    result.title_embedding = await getOrGenerateEmbedding(
-      titleToEmbed,
-      modelId,
-      () => embedQuery(titleToEmbed)
-    );
+    const titleToEmbed = prepareTextForEmbedding(doc.title, MAX_TITLE_TOKENS);
+    if (titleToEmbed) {
+      result.title_embedding = await getOrGenerateEmbedding(
+        titleToEmbed,
+        modelId,
+        () => embedQuery(titleToEmbed)
+      );
+    }
   }
 
   return result;
 }
 
-function prepareContentForEmbedding(content: string): string | null {
-  if (!content || content.trim().length === 0) {
-    return null;
+function isTokenLimitError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
   }
-
-  let cleaned = content.replace(/\s+/g, " ").replace(/\0/g, "").trim();
-
-  if (cleaned.length > MAX_CONTENT_LENGTH) {
-    cleaned = cleaned.slice(0, MAX_CONTENT_LENGTH);
-    const lastPeriod = cleaned.lastIndexOf(". ");
-    if (lastPeriod > MAX_CONTENT_LENGTH * 0.8) {
-      cleaned = cleaned.slice(0, lastPeriod + 1);
-    }
-  }
-
-  if (cleaned.length < 10) {
-    return null;
-  }
-
-  return cleaned;
+  const msg = error.message.toLowerCase();
+  return (
+    msg.includes("maximum context length") ||
+    msg.includes("token") ||
+    msg.includes("too long")
+  );
 }
 
 export function isEmbeddingEnabled(): boolean {

@@ -36,6 +36,7 @@ import {
 } from "../../utils/embeddings";
 import logger from "../../utils/logger";
 import { logJobError, logJobStart } from "../event-handlers";
+import { downloadFile } from "./download-strategies";
 
 interface ParsedChunk {
   text: string;
@@ -158,51 +159,46 @@ async function processDownload(
   data: FileProcessingJobData,
   progress: ProgressEmitter
 ): Promise<FileProcessingResult> {
-  const { fileId, connectorId, sourceUrl, fileName, externalId } = data;
-
-  if (!sourceUrl) {
-    throw new Error("Source URL required for download");
-  }
-
-  const storage = getStorageProvider();
+  const {
+    fileId,
+    connectorId,
+    sourceUrl,
+    downloadMetadata,
+    fileName,
+    externalId,
+  } = data;
 
   const connector = await getConnectorForSync(prisma, connectorId);
-
-  const oauth: OAuthProvider | null | undefined = connector?.oauthProvider;
-
-  const syncToken = oauth
-    ? decryptIfEncrypted(oauth.syncAccessToken, oauth.syncAccessTokenIv)
-    : null;
-  const botToken = oauth
-    ? decryptIfEncrypted(oauth.accessToken, oauth.accessTokenIv)
-    : null;
-  const downloadToken = syncToken ?? botToken;
-
-  if (!downloadToken) {
-    throw new Error("Connector access token not found");
-  }
-
   if (!connector) {
     throw new Error("Connector not found");
   }
 
   await progress.start(FILE_TOTAL_STEPS, "Downloading");
-
   await updateIndexedFileProcessingStatus(prisma, fileId, "DOWNLOADING");
 
-  const response = await fetch(sourceUrl, {
-    headers: {
-      Authorization: `Bearer ${downloadToken}`,
-    },
-  });
+  let buffer: Buffer;
 
-  if (!response.ok) {
-    throw new Error(`Download failed: ${response.status}`);
+  if (downloadMetadata) {
+    const result = await downloadFile(
+      {
+        connector,
+        connectorId,
+        externalId,
+        fileName: fileName ?? "",
+        mimeType: data.mimeType ?? "",
+      },
+      downloadMetadata
+    );
+    buffer = result.buffer;
+  } else if (sourceUrl) {
+    buffer = await downloadLegacy(connector, sourceUrl);
+  } else {
+    throw new Error(
+      "No download source: provide downloadMetadata or sourceUrl"
+    );
   }
 
-  const content = await response.arrayBuffer();
-  const buffer = Buffer.from(content);
-
+  const storage = getStorageProvider();
   const storageKey = `${connector.teamId}/${connectorId}/files/${externalId}/${fileName}`;
 
   await storage.upload(storageKey, buffer, {
@@ -210,7 +206,6 @@ async function processDownload(
   });
 
   await updateIndexedFileDownloaded(prisma, fileId, storageKey);
-
   await progress.update(1, FILE_TOTAL_STEPS, "Downloaded");
 
   logger.info({ fileId, storageKey }, "File downloaded");
@@ -225,6 +220,36 @@ async function processDownload(
   });
 
   return { success: true, fileId, nextStep: "parse" };
+}
+
+async function downloadLegacy(
+  connector: NonNullable<Awaited<ReturnType<typeof getConnectorForSync>>>,
+  sourceUrl: string
+): Promise<Buffer> {
+  const oauth: OAuthProvider | null | undefined = connector.oauthProvider;
+
+  const syncToken = oauth
+    ? decryptIfEncrypted(oauth.syncAccessToken, oauth.syncAccessTokenIv)
+    : null;
+  const botToken = oauth
+    ? decryptIfEncrypted(oauth.accessToken, oauth.accessTokenIv)
+    : null;
+  const downloadToken = syncToken ?? botToken;
+
+  if (!downloadToken) {
+    throw new Error("Connector access token not found");
+  }
+
+  const response = await fetch(sourceUrl, {
+    headers: { Authorization: `Bearer ${downloadToken}` },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Download failed: ${response.status}`);
+  }
+
+  const content = await response.arrayBuffer();
+  return Buffer.from(content);
 }
 
 async function processParse(
@@ -424,13 +449,18 @@ async function indexChunkBatch(
 async function cleanupExistingChunks(fileId: string): Promise<void> {
   const existingChunks = await findChunksByFileId(prisma, fileId);
 
-  for (const chunk of existingChunks) {
-    try {
-      await vespaClient.deleteDocument(chunk.vespaId);
-    } catch (error) {
+  if (existingChunks.length > 0) {
+    const deleteResults = await Promise.allSettled(
+      existingChunks.map((chunk) => vespaClient.deleteDocument(chunk.vespaId))
+    );
+
+    const failures = deleteResults.filter(
+      (r) => r.status === "rejected"
+    ).length;
+    if (failures > 0) {
       logger.warn(
-        { vespaId: chunk.vespaId, error },
-        "Failed to delete old chunk"
+        { failures, fileId },
+        "Some chunks failed to delete from Vespa"
       );
     }
   }

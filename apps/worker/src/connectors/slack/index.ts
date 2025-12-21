@@ -3,8 +3,8 @@ import {
   decryptIfEncrypted,
   type OAuthProvider,
 } from "@openplane/db";
-import type { SlackFileInfo } from "@openplane/services";
 import {
+  type ConnectorFileInfo,
   createSlackClient,
   incrementalSync,
   type SlackChannel,
@@ -14,8 +14,8 @@ import {
   type TransformContext,
 } from "@openplane/services";
 import type { GenericDocument } from "@openplane/vespa";
-import { processDiscoveredFiles } from "../../processors/file";
 import logger from "../../utils/logger";
+import type { FileDiscoveryHandler } from "../factory";
 
 export interface SlackSyncResult {
   totalDocuments: number;
@@ -49,6 +49,7 @@ export interface SlackSyncOptions {
   forceFullSync?: boolean;
   onBatch: (batch: SyncBatch<GenericDocument>) => Promise<void>;
   onChannelsDiscovered?: (channels: SlackChannelInfo[]) => Promise<void>;
+  onFilesDiscovered?: FileDiscoveryHandler;
   disabledChannelIds?: Set<string>;
   enabledChannelIds?: Set<string>;
   syncFiles?: boolean;
@@ -120,7 +121,7 @@ function extractCredentials(
 function buildContext(connector: Connector): TransformContext {
   return {
     connectorId: connector.id,
-    connectorType: connector.app,
+    connectorType: connector.app.toLowerCase(),
     teamId: connector.teamId,
     workspaceId: connector.workspaceExternalId ?? connector.id,
   };
@@ -141,6 +142,7 @@ export async function syncSlackStreaming(
     forceFullSync = false,
     onBatch,
     onChannelsDiscovered,
+    onFilesDiscovered,
     disabledChannelIds,
     enabledChannelIds,
     syncFiles = false,
@@ -198,16 +200,24 @@ export async function syncSlackStreaming(
   let filesQueued = 0;
   let mediaQueued = 0;
 
-  const handleFilesDiscovered = async (files: SlackFileInfo[]) => {
+  const handleFilesDiscovered = async (files: ConnectorFileInfo[]) => {
+    if (!onFilesDiscovered) {
+      logger.debug(
+        { connectorId: connector.id, fileCount: files.length },
+        "Files discovered but no handler provided, skipping"
+      );
+      return;
+    }
+
     logger.info(
       { connectorId: connector.id, fileCount: files.length },
       "Files discovered during sync"
     );
 
-    const result = await processDiscoveredFiles(files, {
+    const result = await onFilesDiscovered(files, {
       connectorId: connector.id,
       skipExisting: true,
-      priority: 5, // Lower priority than webhook-triggered files
+      priority: 5,
     });
 
     filesQueued += result.queued;

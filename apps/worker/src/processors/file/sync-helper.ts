@@ -4,11 +4,18 @@ import prisma, {
   findIndexedFileByExternalId,
   findIndexedMediaByExternalId,
 } from "@openplane/db";
-import { addFileDownloadJob, addMediaDownloadJob } from "@openplane/redis";
 import {
+  addFileDownloadJob,
+  addMediaDownloadJob,
+  type FileDownloadMetadata,
+  type MediaDownloadMetadata,
+} from "@openplane/redis";
+import {
+  type ConnectorFileInfo,
+  type ConnectorMediaInfo,
+  type DownloadStrategy,
   isAudioFile,
   isVideoFile,
-  type SlackFileInfo,
 } from "@openplane/services";
 import logger from "../../utils/logger";
 
@@ -27,8 +34,58 @@ export interface FileDiscoveryResult {
 
 type SingleFileResult = "queued" | "skipped" | "mediaQueued";
 
+function buildFileDownloadMetadata(
+  strategy: DownloadStrategy
+): FileDownloadMetadata | null {
+  if (strategy.type === "url") {
+    return strategy.downloadUrl
+      ? { connector: "slack", sourceUrl: strategy.downloadUrl }
+      : null;
+  }
+  if (strategy.type === "gmail-attachment") {
+    return {
+      connector: "gmail",
+      messageId: strategy.messageId,
+      attachmentId: strategy.attachmentId,
+    };
+  }
+  if (strategy.type === "google-drive") {
+    return {
+      connector: "google-drive",
+      fileId: strategy.fileId,
+      exportMimeType: strategy.exportMimeType,
+    };
+  }
+  return null;
+}
+
+function buildMediaDownloadMetadata(
+  strategy: DownloadStrategy
+): MediaDownloadMetadata | null {
+  if (strategy.type === "url") {
+    return strategy.downloadUrl
+      ? { connector: "slack", sourceUrl: strategy.downloadUrl }
+      : null;
+  }
+  if (strategy.type === "gmail-attachment") {
+    return {
+      connector: "gmail",
+      messageId: strategy.messageId,
+      attachmentId: strategy.attachmentId,
+    };
+  }
+  if (strategy.type === "google-drive") {
+    return {
+      connector: "google-drive",
+      fileId: strategy.fileId,
+      exportMimeType: strategy.exportMimeType,
+    };
+  }
+  return null;
+}
+
 async function processSingleFile(
-  file: SlackFileInfo,
+  file: ConnectorFileInfo,
   connectorId: string,
   skipExisting: boolean,
   priority: number
@@ -56,7 +113,7 @@ async function processSingleFile(
 }
 
 export async function processDiscoveredFiles(
-  files: SlackFileInfo[],
+  files: ConnectorFileInfo[],
   options: FileDiscoveryOptions
 ): Promise<FileDiscoveryResult> {
   const { connectorId, skipExisting = true, priority = 5 } = options;
@@ -95,7 +152,7 @@ export async function processDiscoveredFiles(
 }
 
 async function processDiscoveredFile(
-  file: SlackFileInfo,
+  file: ConnectorFileInfo,
   options: FileDiscoveryOptions
 ): Promise<boolean> {
   const { connectorId, skipExisting = true, priority = 5 } = options;
@@ -108,26 +165,32 @@ async function processDiscoveredFile(
     );
 
     if (existing) {
-      logger.debug(
-        { connectorId, fileId: file.id, status: existing.processingStatus },
-        "File already indexed, skipping"
+      const shouldRetry = existing.processingStatus === "FAILED";
+      if (!shouldRetry) {
+        logger.debug(
+          { connectorId, fileId: file.id, status: existing.processingStatus },
+          "File already indexed, skipping"
+        );
+        return false;
+      }
+      logger.info(
+        { connectorId, fileId: file.id, errorCount: existing.errorCount },
+        "Retrying previously failed file"
       );
-      return false;
     }
   }
 
-  if (!file.downloadUrl) {
+  const downloadMetadata = buildFileDownloadMetadata(file.downloadStrategy);
+  if (!downloadMetadata) {
     logger.warn(
       { connectorId, fileId: file.id, fileName: file.name },
-      "File has no download URL, skipping"
+      "File has no valid download strategy, skipping"
     );
     return false;
   }
 
   const storageKey = `pending/${connectorId}/files/${file.id}/${file.name}`;
   const vespaId = `file-${connectorId}-${file.id}`;
-
-  const sourceChannelId = file.channels?.[0] ?? null;
 
   const indexedFile = await createIndexedFile(prisma, {
     connectorId,
@@ -139,15 +202,21 @@ async function processDiscoveredFile(
     fileExtension: getFileExtension(file.name),
     storageKey,
     processingStatus: "PENDING",
-    sourceChannelId,
+    sourceChannelId: file.sourceChannelId ?? null,
   });
+
+  const legacySourceUrl =
+    file.downloadStrategy.type === "url"
+      ? file.downloadStrategy.downloadUrl
+      : undefined;
 
   await addFileDownloadJob(
     {
       fileId: indexedFile.id,
       connectorId,
       externalId: file.id,
-      sourceUrl: file.downloadUrl,
+      sourceUrl: legacySourceUrl,
+      downloadMetadata,
       mimeType: file.mimeType,
       fileName: file.name,
     },
@@ -167,7 +236,7 @@ interface MediaDiscoveryOptions extends FileDiscoveryOptions {
 }
 
 async function processDiscoveredMedia(
-  file: SlackFileInfo,
+  file: ConnectorFileInfo | ConnectorMediaInfo,
   options: MediaDiscoveryOptions
 ): Promise<boolean> {
   const { connectorId, skipExisting = true, priority, mediaType } = options;
@@ -181,23 +250,36 @@ async function processDiscoveredMedia(
     );
 
     if (existing) {
-      logger.debug(
+      const shouldRetry = existing.processingStatus === "FAILED";
+      if (!shouldRetry) {
+        logger.debug(
+          {
+            connectorId,
+            mediaId: file.id,
+            mediaType,
+            status: existing.processingStatus,
+          },
+          "Media already indexed, skipping"
+        );
+        return false;
+      }
+      logger.info(
         {
           connectorId,
           mediaId: file.id,
           mediaType,
-          status: existing.processingStatus,
+          errorCount: existing.errorCount,
         },
-        "Media already indexed, skipping"
+        "Retrying previously failed media"
       );
-      return false;
     }
   }
 
-  if (!file.downloadUrl) {
+  const downloadMetadata = buildMediaDownloadMetadata(file.downloadStrategy);
+  if (!downloadMetadata) {
     logger.warn(
       { connectorId, mediaId: file.id, mediaType, fileName: file.name },
-      "Media has no download URL, skipping"
+      "Media has no valid download strategy, skipping"
     );
     return false;
   }
@@ -205,7 +287,6 @@ async function processDiscoveredMedia(
   const folder = mediaType === "audio" ? "audio" : "videos";
   const storageKey = `${folder}/${connectorId}/${file.id}/${file.name}`;
   const vespaId = `media_${connectorId}_${file.id}`;
-  const sourceChannelId = file.channels?.[0] ?? null;
 
   const indexedMedia = await createIndexedMedia(prisma, {
     connectorId,
@@ -217,22 +298,28 @@ async function processDiscoveredMedia(
     fileExtension: getFileExtension(file.name),
     storageKey,
     processingStatus: "PENDING",
-    sourceChannelId,
+    sourceChannelId: file.sourceChannelId ?? null,
     mediaType,
   });
+
+  const legacySourceUrl =
+    file.downloadStrategy.type === "url"
+      ? file.downloadStrategy.downloadUrl
+      : undefined;
 
   await addMediaDownloadJob(
     {
       mediaId: indexedMedia.id,
       connectorId,
       externalId: file.id,
-      sourceUrl: file.downloadUrl,
+      sourceUrl: legacySourceUrl,
+      downloadMetadata,
       mimeType: file.mimeType,
       fileName: file.name,
       storageKey,
       mediaType,
-      sourceChannelId: sourceChannelId ?? undefined,
-      slackPermalink: file.permalink,
+      sourceChannelId: file.sourceChannelId ?? undefined,
+      sourcePermalink: file.permalink,
       authorId: file.userId,
     },
     jobPriority

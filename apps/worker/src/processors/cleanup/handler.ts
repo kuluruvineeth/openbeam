@@ -114,15 +114,16 @@ async function cleanupStaleDocuments(): Promise<number> {
     "Found stale documents, removing from Vespa and DB"
   );
 
-  for (const doc of staleDocuments) {
-    try {
-      await vespaClient.deleteDocument(doc.vespaId);
-    } catch (error) {
-      logger.warn(
-        { error, vespaId: doc.vespaId },
-        "Failed to delete stale document from Vespa"
-      );
-    }
+  const deleteResults = await Promise.allSettled(
+    staleDocuments.map((doc) => vespaClient.deleteDocument(doc.vespaId))
+  );
+
+  const failures = deleteResults.filter((r) => r.status === "rejected").length;
+  if (failures > 0) {
+    logger.warn(
+      { failures },
+      "Some stale documents failed to delete from Vespa"
+    );
   }
 
   const deleted = await deleteIndexedDocuments(
@@ -149,15 +150,16 @@ async function cleanupOrphanedDocuments(): Promise<number> {
     "Found orphaned documents, removing"
   );
 
-  for (const doc of orphanedDocuments) {
-    try {
-      await vespaClient.deleteDocument(doc.vespaId);
-    } catch (error) {
-      logger.warn(
-        { error, vespaId: doc.vespaId },
-        "Failed to delete orphaned document from Vespa"
-      );
-    }
+  const deleteResults = await Promise.allSettled(
+    orphanedDocuments.map((doc) => vespaClient.deleteDocument(doc.vespaId))
+  );
+
+  const failures = deleteResults.filter((r) => r.status === "rejected").length;
+  if (failures > 0) {
+    logger.warn(
+      { failures },
+      "Some orphaned documents failed to delete from Vespa"
+    );
   }
 
   const deleted = await deleteIndexedDocuments(
@@ -197,15 +199,18 @@ async function pruneDisabledConnectors(): Promise<number> {
       continue;
     }
 
-    for (const doc of documents) {
-      try {
-        await vespaClient.deleteDocument(doc.vespaId);
-      } catch (error) {
-        logger.warn(
-          { error, vespaId: doc.vespaId, connectorId: connector.id },
-          "Failed to delete document from Vespa"
-        );
-      }
+    const deleteResults = await Promise.allSettled(
+      documents.map((doc) => vespaClient.deleteDocument(doc.vespaId))
+    );
+
+    const failures = deleteResults.filter(
+      (r) => r.status === "rejected"
+    ).length;
+    if (failures > 0) {
+      logger.warn(
+        { failures, connectorId: connector.id },
+        "Some documents failed to delete from Vespa"
+      );
     }
 
     const deleted = await deleteIndexedDocuments(
