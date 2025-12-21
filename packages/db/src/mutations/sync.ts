@@ -11,14 +11,10 @@ export interface TriggerSyncResult {
   type: "FULL" | "INCREMENTAL";
 }
 
-/**
- * Create a sync job and history record
- */
 export const triggerSync = async (
   db: Database,
   input: TriggerSyncInput
 ): Promise<TriggerSyncResult> => {
-  // Create sync job
   const syncJob = await db.syncJob.create({
     data: {
       connectorId: input.connectorId,
@@ -28,7 +24,6 @@ export const triggerSync = async (
     },
   });
 
-  // Create sync history record
   const syncHistory = await db.syncHistory.create({
     data: {
       syncJobId: syncJob.id,
@@ -39,7 +34,6 @@ export const triggerSync = async (
     },
   });
 
-  // Update connector status to syncing
   await db.connector.update({
     where: { id: input.connectorId },
     data: { status: "SYNCING" },
@@ -49,6 +43,45 @@ export const triggerSync = async (
     syncJobId: syncJob.id,
     syncHistoryId: syncHistory.id,
     type: input.type,
+  };
+};
+
+export interface TriggerWebhookSyncInput {
+  connectorId: string;
+  type: "FULL" | "INCREMENTAL" | "PERMISSIONS";
+}
+
+export interface TriggerWebhookSyncResult {
+  syncJobId: string;
+  syncHistoryId: string;
+}
+
+export const triggerWebhookSync = async (
+  db: Database,
+  input: TriggerWebhookSyncInput
+): Promise<TriggerWebhookSyncResult> => {
+  const syncJob = await db.syncJob.create({
+    data: {
+      connectorId: input.connectorId,
+      type: input.type,
+      trigger: "WEBHOOK",
+      status: SyncJobStatus.RUNNING,
+    },
+  });
+
+  const syncHistory = await db.syncHistory.create({
+    data: {
+      syncJobId: syncJob.id,
+      connectorId: input.connectorId,
+      status: SyncJobStatus.RUNNING,
+      trigger: SyncTrigger.WEBHOOK,
+      startedAt: new Date(),
+    },
+  });
+
+  return {
+    syncJobId: syncJob.id,
+    syncHistoryId: syncHistory.id,
   };
 };
 

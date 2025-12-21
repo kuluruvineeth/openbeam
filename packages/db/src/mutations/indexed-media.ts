@@ -1,6 +1,6 @@
 import type {
   IndexedMedia,
-  ProcessingStatus,
+  MediaProcessingStatus,
 } from "../../prisma/generated/client";
 import type { Database } from "../index";
 
@@ -13,7 +13,7 @@ export interface CreateIndexedMediaInput {
   fileSize: number;
   fileExtension?: string;
   storageKey: string;
-  processingStatus?: ProcessingStatus;
+  processingStatus?: MediaProcessingStatus;
   sourceChannelId?: string | null;
   mediaType: "video" | "audio";
 }
@@ -32,7 +32,7 @@ export const createIndexedMedia = async (
 export const updateIndexedMediaStatus = async (
   db: Database,
   id: string,
-  status: ProcessingStatus,
+  status: MediaProcessingStatus,
   metadata?: {
     lastError?: string;
     errorCount?: { increment: number };
@@ -92,7 +92,7 @@ export const updateIndexedMediaIndexed = async (
 export const updateIndexedMediaProcessingStatus = async (
   db: Database,
   id: string,
-  status: ProcessingStatus,
+  status: MediaProcessingStatus,
   extraData?: { durationSeconds?: number }
 ): Promise<IndexedMedia> =>
   db.indexedMedia.update({

@@ -25,6 +25,9 @@ async function getResourceDocumentCounts(
     return new Map();
   }
 
+  // Query uses multiple strategies for resource-document linking:
+  // 1. Direct sourceId match (e.g., Slack channels)
+  // 2. metadata.resourceExternalIds array (generic multi-resource linking)
   const counts = await db.$queryRaw<ResourceCountRow[]>`
     SELECT source_id, SUM(cnt)::bigint as count FROM (
       SELECT "sourceId" as source_id, COUNT(*)::bigint as cnt
@@ -33,6 +36,18 @@ async function getResourceDocumentCounts(
         AND "sourceId" = ANY(${resourceExternalIds})
         AND "deletedFromSource" = false
       GROUP BY "sourceId"
+
+      UNION ALL
+
+      SELECT res_id as source_id, COUNT(*)::bigint as cnt
+      FROM indexed_document,
+           jsonb_array_elements_text(
+             COALESCE(metadata->'resourceExternalIds', '[]'::jsonb)
+           ) AS res_id
+      WHERE "connectorId" = ${connectorId}
+        AND res_id = ANY(${resourceExternalIds})
+        AND "deletedFromSource" = false
+      GROUP BY res_id
 
       UNION ALL
 
@@ -245,24 +260,31 @@ export const listResourceDocuments = async (
     }
   }
 
+  // Query uses multiple strategies for resource-document linking:
+  // 1. Direct sourceId match (e.g., Slack channels)
+  // 2. metadata.resourceExternalIds array (generic multi-resource linking)
+  // NOTE: Returns vespaId as id since that's what Vespa uses for document lookups
   const documents = await db.$queryRaw<ResourceDocumentRow[]>`
     SELECT * FROM (
       SELECT
-        _id as id,
+        "vespaId" as id,
         title,
         "documentType" as document_type,
         "indexedAt" as indexed_at,
         'document' as source
       FROM indexed_document
       WHERE "connectorId" = ${connectorId}
-        AND "sourceId" = ${resourceExternalId}
+        AND (
+          "sourceId" = ${resourceExternalId}
+          OR metadata->'resourceExternalIds' @> to_jsonb(${resourceExternalId}::text)
+        )
         AND "deletedFromSource" = false
         AND (${searchPattern}::text IS NULL OR title ILIKE ${searchPattern})
 
       UNION ALL
 
       SELECT
-        _id as id,
+        "vespaId" as id,
         "fileName" as title,
         SPLIT_PART("mimeType", '/', 1) as document_type,
         COALESCE("indexedAt", "createdAt") as indexed_at,
@@ -276,7 +298,7 @@ export const listResourceDocuments = async (
       UNION ALL
 
       SELECT
-        _id as id,
+        "vespaId" as id,
         "fileName" as title,
         "mediaType" as document_type,
         COALESCE("indexedAt", "createdAt") as indexed_at,
@@ -300,7 +322,10 @@ export const listResourceDocuments = async (
     SELECT (
       (SELECT COUNT(*) FROM indexed_document
        WHERE "connectorId" = ${connectorId}
-         AND "sourceId" = ${resourceExternalId}
+         AND (
+           "sourceId" = ${resourceExternalId}
+           OR metadata->'resourceExternalIds' @> to_jsonb(${resourceExternalId}::text)
+         )
          AND "deletedFromSource" = false
          AND (${searchPattern}::text IS NULL OR title ILIKE ${searchPattern}))
       +

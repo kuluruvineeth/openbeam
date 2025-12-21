@@ -1,6 +1,6 @@
 import type {
+  FileProcessingStatus,
   IndexedFile,
-  ProcessingStatus,
 } from "../../prisma/generated/client";
 import type { Database } from "../index";
 
@@ -13,7 +13,7 @@ export interface CreateIndexedFileInput {
   fileSize: number;
   fileExtension?: string;
   storageKey: string;
-  processingStatus?: ProcessingStatus;
+  processingStatus?: FileProcessingStatus;
   sourceChannelId?: string | null;
 }
 
@@ -31,7 +31,7 @@ export const createIndexedFile = async (
 export const updateIndexedFileStatus = async (
   db: Database,
   id: string,
-  status: ProcessingStatus,
+  status: FileProcessingStatus,
   metadata?: {
     lastError?: string;
     errorCount?: { increment: number };
@@ -97,7 +97,7 @@ export const updateIndexedFileIndexed = async (
 export const updateIndexedFileProcessingStatus = async (
   db: Database,
   id: string,
-  status: ProcessingStatus
+  status: FileProcessingStatus
 ): Promise<IndexedFile> =>
   db.indexedFile.update({
     where: { id },

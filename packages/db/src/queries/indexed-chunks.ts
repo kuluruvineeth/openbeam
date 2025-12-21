@@ -18,7 +18,7 @@ export const findChunksByConnector = async (
   db.indexedChunk.findMany({
     where: { connectorId },
     take: options?.take,
-    orderBy: { createdAt: "desc" },
+    orderBy: { id: "desc" },
   });
 
 export const countChunksByFileId = async (
