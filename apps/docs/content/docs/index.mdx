@@ -5,41 +5,124 @@ description: Enterprise search and AI assistant platform
 
 # OpenPlane
 
-Enterprise search and AI assistant platform. Open source alternative to Glean.
-
-<Cards>
-  <Card title="Getting Started" href="/docs/getting-started" />
-  <Card title="Connectors" href="/docs/connectors" />
-</Cards>
-
-## Connectors
-
-| Connector | Status | Auth |
-|-----------|--------|------|
-| Slack | Available | OAuth 2.0 |
-| Gmail | Coming Soon | OAuth 2.0 |
-| Google Drive | Coming Soon | OAuth 2.0 |
-| Notion | Coming Soon | OAuth 2.0 |
-| Linear | Coming Soon | OAuth 2.0 |
+Open source enterprise search and AI assistant. Alternative to Glean.
 
 ## Architecture
 
-<Files>
-  <Folder name="apps" defaultOpen>
-    <File name="web" />
-    <File name="server" />
-    <File name="worker" />
-  </Folder>
-  <Folder name="packages">
-    <File name="ai" />
-    <File name="api" />
-    <File name="db" />
-    <File name="services" />
-    <File name="vespa" />
-  </Folder>
-</Files>
+```mermaid
+flowchart TB
+    subgraph Client
+        Web[Web UI]
+    end
 
-- **Web** — Next.js frontend
-- **Server** — Hono API with tRPC
-- **Worker** — BullMQ job processor
-- **Vespa** — Search engine
+    subgraph API["API Layer"]
+        Server[Hono + tRPC]
+    end
+
+    subgraph Processing
+        Worker[BullMQ Workers]
+        Engine[Python Engine]
+    end
+
+    subgraph Storage
+        DB[(PostgreSQL)]
+        Redis[(Redis)]
+        Vespa[(Vespa)]
+        S3[(S3/R2)]
+    end
+
+    subgraph Connectors
+        Slack & Gmail & Drive & More[...]
+    end
+
+    Web --> Server
+    Server --> DB
+    Server --> Redis
+    Server --> Vespa
+    Redis --> Worker
+    Worker --> Engine
+    Worker --> Connectors
+    Worker --> Vespa
+    Worker --> S3
+    Engine --> Worker
+```
+
+## Stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | Next.js 16, React 19, TailwindCSS 4 |
+| API | Hono, tRPC 11 |
+| Workers | BullMQ |
+| ML Engine | FastAPI, Unstructured |
+| Search | Vespa |
+| AI | Vercel AI SDK (Claude, GPT, Gemini) |
+| Database | PostgreSQL, Prisma |
+| Cache/Queue | Redis |
+| Storage | S3/R2 |
+| Video | TwelveLabs |
+
+## Project Structure
+
+```
+apps/
+├── web         # Next.js frontend
+├── server      # Hono API + tRPC
+├── worker      # BullMQ job processors
+├── engine      # Python ML/parsing service
+└── docs        # Documentation (Fumadocs)
+
+packages/
+├── ai          # LLM providers, embeddings, agents
+├── api         # tRPC routers
+├── auth        # Better Auth
+├── db          # Prisma schema, queries, mutations
+├── services    # Connector logic (Slack, Gmail, etc.)
+├── redis       # BullMQ queues
+├── vespa       # Search client
+├── media       # TwelveLabs video processing
+├── storage     # S3/R2 client
+└── integrations # OAuth configs
+```
+
+## Data Flow
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant W as Web
+    participant S as Server
+    participant Q as Queue
+    participant P as Worker
+    participant E as Engine
+    participant V as Vespa
+
+    U->>W: Search query
+    W->>S: tRPC request
+    S->>V: Hybrid search
+    V-->>S: Results
+    S-->>W: Response
+    W-->>U: Display
+
+    Note over Q,E: Background Sync
+    S->>Q: Trigger sync
+    Q->>P: Process job
+    P->>E: Parse documents
+    E-->>P: Chunks
+    P->>V: Index
+```
+
+## Connectors
+
+| Connector | Status | Features |
+|-----------|--------|----------|
+| Slack | Available | Messages, files, threads, real-time |
+| Gmail | Available | Emails, attachments, Pub/Sub |
+| Google Drive | Coming Soon | Docs, sheets, files |
+| Notion | Coming Soon | Pages, databases |
+| Linear | Coming Soon | Issues, projects |
+
+<Cards>
+  <Card title="Getting Started" href="/docs/getting-started" description="Deploy OpenPlane" />
+  <Card title="Connectors" href="/docs/connectors" description="Connect your tools" />
+</Cards>

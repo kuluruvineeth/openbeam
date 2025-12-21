@@ -5,34 +5,44 @@ description: Connect workplace tools to OpenPlane
 
 # Connectors
 
-Integrate with your existing tools for unified search and AI assistance.
+Integrate your tools for unified search and AI assistance.
 
 ## Available
 
 <Cards>
-  <Card title="Slack" href="/docs/connectors/slack" />
+  <Card title="Slack" href="/docs/connectors/slack" description="Messages, files, channels" />
+  <Card title="Gmail" href="/docs/connectors/gmail" description="Emails, threads, attachments" />
 </Cards>
 
 ## Coming Soon
 
 <Cards>
-  <Card title="Gmail" href="/docs/connectors/gmail" />
-  <Card title="Google Drive" href="/docs/connectors/google-drive" />
-  <Card title="Notion" href="/docs/connectors/notion" />
-  <Card title="Linear" href="/docs/connectors/linear" />
+  <Card title="Google Drive" href="/docs/connectors/google-drive" description="Docs, sheets, files" />
+  <Card title="Notion" href="/docs/connectors/notion" description="Pages, databases" />
+  <Card title="Linear" href="/docs/connectors/linear" description="Issues, projects" />
 </Cards>
 
-## How It Works
+## How Connectors Work
 
-1. **OAuth** — Secure authentication with minimal scopes
-2. **Initial Sync** — Full index of historical content
-3. **Real-time** — Webhooks for instant updates
-4. **Permissions** — Respects source application access control
+```mermaid
+flowchart LR
+    A[OAuth] --> B[Initial Sync]
+    B --> C[Index Content]
+    C --> D[Real-time Updates]
+    D --> C
+```
+
+| Phase | Description |
+|-------|-------------|
+| **OAuth** | Secure auth with minimal scopes |
+| **Sync** | Full index of historical content |
+| **Real-time** | Webhooks for instant updates |
+| **Permissions** | Respects source access control |
 
 ## Sync Modes
 
-| Mode | Description |
-|------|-------------|
-| Full | Complete re-index of all content |
-| Incremental | New or modified content only |
-| Real-time | Webhook-driven instant updates |
+| Mode | Trigger | Use Case |
+|------|---------|----------|
+| Full | Manual, first connect | Complete re-index |
+| Incremental | Scheduled | New/modified content |
+| Real-time | Webhook | Instant updates |
