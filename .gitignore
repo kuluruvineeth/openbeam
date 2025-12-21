@@ -65,11 +65,7 @@ out/*
 tfplan
 cloud-sql-proxy
 
-# redis_final/
-# worker_final/
-# schema_final/
-# schemas_final/
-# ai_final/
+references/*
 
 .venv
 __pycache__
