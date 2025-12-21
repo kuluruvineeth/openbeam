@@ -64,26 +64,73 @@ export const SYNC_STATUS_CONFIG: Record<SyncStatus, SyncStatusConfig> = {
   },
 };
 
+export type SyncHistoryStatus =
+  | "PENDING"
+  | "QUEUED"
+  | "RUNNING"
+  | "PAUSED"
+  | "COMPLETED"
+  | "FAILED"
+  | "CANCELLED"
+  | "TIMEOUT"
+  | "PARTIAL";
+
 export const SYNC_HISTORY_STATUS_CONFIG: Record<
-  "SYNCING" | "ACTIVE" | "ERROR",
+  SyncHistoryStatus,
   SyncStatusConfig
 > = {
-  SYNCING: {
+  PENDING: {
+    label: "Pending",
+    className: STATUS_STYLES.muted,
+    icon: Icons.Clock,
+    iconClass: "",
+  },
+  QUEUED: {
+    label: "Queued",
+    className: STATUS_STYLES.muted,
+    icon: Icons.Clock,
+    iconClass: "",
+  },
+  RUNNING: {
     label: "Syncing",
     className: STATUS_STYLES.active,
     icon: Icons.Loader2Icon,
     iconClass: "animate-spin",
   },
-  ACTIVE: {
+  PAUSED: {
+    label: "Paused",
+    className: STATUS_STYLES.muted,
+    icon: Icons.Close,
+    iconClass: "",
+  },
+  COMPLETED: {
     label: "Success",
     className: STATUS_STYLES.success,
     icon: Icons.CheckIcon,
     iconClass: "",
   },
-  ERROR: {
+  PARTIAL: {
+    label: "Partial",
+    className: STATUS_STYLES.warning,
+    icon: Icons.AlertCircle,
+    iconClass: "",
+  },
+  FAILED: {
     label: "Failed",
     className: STATUS_STYLES.error,
     icon: Icons.XIcon,
+    iconClass: "",
+  },
+  CANCELLED: {
+    label: "Cancelled",
+    className: STATUS_STYLES.muted,
+    icon: Icons.XIcon,
+    iconClass: "",
+  },
+  TIMEOUT: {
+    label: "Timeout",
+    className: STATUS_STYLES.error,
+    icon: Icons.Clock,
     iconClass: "",
   },
 };
@@ -98,15 +145,20 @@ export function getSyncStatusConfig(
 }
 
 export function getSyncHistoryStatusConfig(
-  status: string | null | undefined
+  status: string | null | undefined,
+  errorMessage?: string | null
 ): SyncStatusConfig {
-  type HistoryStatus = "SYNCING" | "ACTIVE" | "ERROR";
+  //TODO: Check back later, If status is COMPLETED but there's an error message, show as PARTIAL
+  if (status === "COMPLETED" && errorMessage) {
+    return SYNC_HISTORY_STATUS_CONFIG.PARTIAL;
+  }
+
   return (
-    SYNC_HISTORY_STATUS_CONFIG[(status ?? "ACTIVE") as HistoryStatus] ??
-    SYNC_HISTORY_STATUS_CONFIG.ACTIVE
+    SYNC_HISTORY_STATUS_CONFIG[(status ?? "COMPLETED") as SyncHistoryStatus] ??
+    SYNC_HISTORY_STATUS_CONFIG.COMPLETED
   );
 }
 
 export function isSyncingStatus(status: string | null | undefined): boolean {
-  return status === "SYNCING";
+  return status === "RUNNING" || status === "SYNCING";
 }

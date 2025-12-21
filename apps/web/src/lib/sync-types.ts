@@ -22,6 +22,11 @@ export type ProcessingStatus = {
   mediaIndexed: number;
 };
 
+export type SyncSummary = {
+  filesQueued?: number;
+  mediaQueued?: number;
+};
+
 export type SyncStatusType = {
   connector: {
     status: string;
@@ -36,10 +41,7 @@ export type SyncStatusType = {
     status: string;
     dataAdded: number;
     dataUpdated: number;
-    summary?: {
-      filesQueued?: number;
-      mediaQueued?: number;
-    } | null;
+    summary?: unknown;
   } | null;
   syncJobs?: {
     full: SyncJobInfo | null;
@@ -60,19 +62,29 @@ export type SyncHistoryEntry = {
   syncJob: {
     type: string;
   } | null;
-  summary: {
-    filesQueued?: number;
-    mediaQueued?: number;
-  } | null;
+  summary: unknown;
 };
 
 export function isSyncing(syncStatus: SyncStatusType | undefined): boolean {
   return (
     syncStatus?.connector?.status === "SYNCING" ||
-    syncStatus?.latestSync?.status === "SYNCING"
+    syncStatus?.latestSync?.status === "RUNNING"
   );
 }
 
 export function isPaused(syncStatus: SyncStatusType | undefined): boolean {
   return syncStatus?.connector?.status === "INACTIVE";
+}
+
+export function parseSyncSummary(value: unknown): SyncSummary {
+  if (typeof value !== "object" || value === null) {
+    return {};
+  }
+  const obj = value as Record<string, unknown>;
+  return {
+    filesQueued:
+      typeof obj.filesQueued === "number" ? obj.filesQueued : undefined,
+    mediaQueued:
+      typeof obj.mediaQueued === "number" ? obj.mediaQueued : undefined,
+  };
 }

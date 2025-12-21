@@ -7,7 +7,11 @@ import {
 } from "date-fns";
 import { Icons } from "@/components/icons";
 import { getSyncStatusConfig } from "@/lib/sync-status";
-import { isSyncing, type SyncStatusType } from "@/lib/sync-types";
+import {
+  isSyncing,
+  parseSyncSummary,
+  type SyncStatusType,
+} from "@/lib/sync-types";
 import { SyncErrorAlert } from "./sync-error-alert";
 
 type SyncStatusCardProps = {
@@ -74,10 +78,11 @@ export function SyncStatusCard({
   const mediaProcessing = syncStatus?.processing?.mediaProcessing ?? 0;
   const totalProcessing = filesProcessing + mediaProcessing;
 
+  const summary = parseSyncSummary(latest?.summary);
   const totalAdded =
     (latest?.dataAdded ?? 0) +
-    (latest?.summary?.filesQueued ?? 0) +
-    (latest?.summary?.mediaQueued ?? 0);
+    (summary.filesQueued ?? 0) +
+    (summary.mediaQueued ?? 0);
 
   return (
     <div className="space-y-4">

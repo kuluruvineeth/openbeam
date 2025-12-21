@@ -4,7 +4,8 @@ import { forwardRef } from "react";
 
 import { Icons } from "@/components/icons";
 import { AppLogo } from "@/components/integrations/app-logo";
-import { isPreviewable } from "@/lib/file-preview-config";
+import type { PreviewType } from "@/hooks/use-document-preview";
+import { getPreviewCategory, isPreviewable } from "@/lib/file-preview-config";
 import {
   formatFileSize,
   formatFullTime,
@@ -27,7 +28,7 @@ type SearchResultRowProps = {
   isSelected?: boolean;
   isPreviewing?: boolean;
   onSelect?: (doc: SearchResultDocument) => void;
-  onPreview?: (doc: SearchResultDocument) => void;
+  onPreview?: (doc: SearchResultDocument, previewType: PreviewType) => void;
 };
 
 function RowIcon({ doc }: { doc: SearchResultDocument }) {
@@ -126,15 +127,23 @@ function RowMetadata({ doc }: { doc: SearchResultDocument }) {
 }
 
 function ActionIndicator({
-  canPreview,
+  previewCategory,
+  canPreviewFile,
   hasUrl,
   mimeType,
 }: {
-  canPreview: boolean;
+  previewCategory: ReturnType<typeof getPreviewCategory>;
+  canPreviewFile: boolean;
   hasUrl: boolean;
   mimeType?: string;
 }) {
-  if (canPreview) {
+  if (previewCategory === "email") {
+    return <Icons.Mail className="text-foreground/30" size={12} />;
+  }
+  if (previewCategory === "slack") {
+    return <Icons.Messages className="text-foreground/30" size={12} />;
+  }
+  if (canPreviewFile) {
     const isPdf = mimeType?.toLowerCase() === "application/pdf";
     const Icon = isPdf ? Icons.FilePdf : Icons.FileIcon;
     return <Icon className="text-foreground/30" size={12} />;
@@ -159,16 +168,22 @@ export const SearchResultRow = forwardRef<
   const displayTitle = showContentPrimary ? null : doc.file_name || doc.title;
   const contentPreview = getContentPreview(doc.content || "");
   const hasUrl = !!doc.url;
-  const canPreview = isPreviewable(
+  const canPreviewFile = isPreviewable(
     doc.mime_type,
     doc.file_name,
+    doc.document_type
+  );
+  const previewCategory = getPreviewCategory(
+    doc.connector_type,
     doc.document_type
   );
 
   const handleClick = () => {
     onSelect?.(doc);
-    if (canPreview) {
-      onPreview?.(doc);
+    if (previewCategory) {
+      onPreview?.(doc, previewCategory);
+    } else if (canPreviewFile) {
+      onPreview?.(doc, "document");
     } else if (hasUrl) {
       window.open(doc.url, "_blank", "noopener,noreferrer");
     }
@@ -212,9 +227,10 @@ export const SearchResultRow = forwardRef<
 
       <div className="shrink-0 self-start pt-0.5 opacity-0 transition-opacity group-hover:opacity-100">
         <ActionIndicator
-          canPreview={canPreview}
+          canPreviewFile={canPreviewFile}
           hasUrl={hasUrl}
           mimeType={doc.mime_type}
+          previewCategory={previewCategory}
         />
       </div>
     </button>

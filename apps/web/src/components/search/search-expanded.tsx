@@ -1,7 +1,10 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { useDocumentPreview } from "@/hooks/use-document-preview";
+import {
+  type PreviewType,
+  useDocumentPreview,
+} from "@/hooks/use-document-preview";
 import { useSearch } from "@/hooks/use-search";
 import { useSearchNavigation } from "@/hooks/use-search-navigation";
 import type { MediaDocument, SearchResultDocument } from "@/lib/search-types";
@@ -57,7 +60,14 @@ export function SearchExpanded() {
   const [selectedIndex, setSelectedIndex] = useState(-1);
 
   const previewedDocument = useMemo(() => {
-    if (!previewId || previewType !== "document") {
+    if (!previewId) {
+      return null;
+    }
+    if (
+      previewType !== "document" &&
+      previewType !== "email" &&
+      previewType !== "slack"
+    ) {
       return null;
     }
     return documents.find((doc) => doc.id === previewId) ?? null;
@@ -76,7 +86,7 @@ export function SearchExpanded() {
   );
 
   const handlePreviewDocument = useCallback(
-    (doc: SearchResultDocument) => openPreview(doc.id, "document"),
+    (doc: SearchResultDocument, type: PreviewType) => openPreview(doc.id, type),
     [openPreview]
   );
 

@@ -2,7 +2,7 @@
 
 import { formatDistanceToNow } from "date-fns";
 import { getSyncHistoryStatusConfig } from "@/lib/sync-status";
-import type { SyncHistoryEntry } from "@/lib/sync-types";
+import { parseSyncSummary, type SyncHistoryEntry } from "@/lib/sync-types";
 
 function formatDuration(ms: number | null) {
   if (!ms) {
@@ -17,7 +17,8 @@ export function SyncHistoryItem({ entry }: { entry: SyncHistoryEntry }) {
     className,
     iconClass,
     label,
-  } = getSyncHistoryStatusConfig(entry.status);
+  } = getSyncHistoryStatusConfig(entry.status, entry.errorMessage);
+  const summary = parseSyncSummary(entry.summary);
 
   return (
     <div className="flex items-center gap-3 border-border/40 border-b px-3 py-2.5 transition-colors last:border-b-0 hover:bg-foreground/[0.015]">
@@ -48,14 +49,14 @@ export function SyncHistoryItem({ entry }: { entry: SyncHistoryEntry }) {
         {entry.dataDeleted > 0 && (
           <span className="text-destructive">-{entry.dataDeleted}</span>
         )}
-        {(entry.summary?.filesQueued ?? 0) > 0 && (
+        {(summary.filesQueued ?? 0) > 0 && (
           <span className="text-openplane-orange" title="Files discovered">
-            {entry.summary?.filesQueued}f
+            {summary.filesQueued}f
           </span>
         )}
-        {(entry.summary?.mediaQueued ?? 0) > 0 && (
+        {(summary.mediaQueued ?? 0) > 0 && (
           <span className="text-openplane-purple" title="Media discovered">
-            {entry.summary?.mediaQueued}m
+            {summary.mediaQueued}m
           </span>
         )}
       </div>

@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useInView } from "react-intersection-observer";
 import { Icons } from "@/components/icons";
+import type { PreviewType } from "@/hooks/use-document-preview";
 import type {
   MediaDocument,
   SearchResultDocument,
@@ -27,7 +28,10 @@ type SearchResultsProps = {
   selectedIndex?: number;
   previewId?: string | null;
   onSelectDocument?: (doc: SearchResultDocument, index: number) => void;
-  onPreviewDocument?: (doc: SearchResultDocument) => void;
+  onPreviewDocument?: (
+    doc: SearchResultDocument,
+    previewType: PreviewType
+  ) => void;
   onSelectMedia?: (media: MediaDocument, index: number) => void;
   onPreviewMedia?: (media: MediaDocument) => void;
 };

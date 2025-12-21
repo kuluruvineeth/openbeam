@@ -90,6 +90,7 @@ function createArrayFilterSetter(
 
 const LIMIT = 20;
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: central search hook managing all filter state
 export function useSearch(options?: { debounceMs?: number }) {
   const debounceMs = options?.debounceMs ?? 300;
   const trpc = useTRPC();
@@ -120,6 +121,10 @@ export function useSearch(options?: { debounceMs?: number }) {
         includeMedia,
         connectorTypes: params.apps ?? undefined,
         documentTypes: params.types ?? undefined,
+        sourceTypes: params.sources ?? undefined,
+        statuses: params.statuses ?? undefined,
+        priorities: params.priorities ?? undefined,
+        labels: params.labels ?? undefined,
         connectorId: undefined,
         sourceId: undefined,
         fromDate: dateTimestamps.fromDate,
@@ -148,29 +153,30 @@ export function useSearch(options?: { debounceMs?: number }) {
     [setParams]
   );
 
-  const setConnectorTypes = useCallback(
-    createArrayFilterSetter("apps", setParams),
+  const setConnectorTypes = useMemo(
+    () => createArrayFilterSetter("apps", setParams),
     [setParams]
   );
-  const setDocumentTypes = useCallback(
-    createArrayFilterSetter("types", setParams),
+  const setDocumentTypes = useMemo(
+    () => createArrayFilterSetter("types", setParams),
     [setParams]
   );
-  const setSourceTypes = useCallback(
-    createArrayFilterSetter("sources", setParams),
+  const setSourceTypes = useMemo(
+    () => createArrayFilterSetter("sources", setParams),
     [setParams]
   );
-  const setStatuses = useCallback(
-    createArrayFilterSetter("statuses", setParams),
+  const setStatuses = useMemo(
+    () => createArrayFilterSetter("statuses", setParams),
     [setParams]
   );
-  const setPriorities = useCallback(
-    createArrayFilterSetter("priorities", setParams),
+  const setPriorities = useMemo(
+    () => createArrayFilterSetter("priorities", setParams),
     [setParams]
   );
-  const setLabels = useCallback(createArrayFilterSetter("labels", setParams), [
-    setParams,
-  ]);
+  const setLabels = useMemo(
+    () => createArrayFilterSetter("labels", setParams),
+    [setParams]
+  );
 
   const setDateRange = useCallback(
     (value: DateRangeType | null) =>

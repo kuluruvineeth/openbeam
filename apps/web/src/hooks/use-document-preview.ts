@@ -8,8 +8,8 @@ import {
 } from "nuqs";
 import { useCallback } from "react";
 
-const PREVIEW_TYPES = ["document", "media"] as const;
-type PreviewType = (typeof PREVIEW_TYPES)[number];
+const PREVIEW_TYPES = ["document", "media", "email", "slack"] as const;
+export type PreviewType = (typeof PREVIEW_TYPES)[number];
 
 const VIDEO_TABS = [
   "chapters",

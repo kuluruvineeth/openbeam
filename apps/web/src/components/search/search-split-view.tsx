@@ -2,10 +2,12 @@
 
 import { useQuery } from "@tanstack/react-query";
 import type { ReactNode } from "react";
+import { EmailPreviewPanel } from "@/components/email-preview";
 import { FilePreviewPanel } from "@/components/file-preview";
 import { AudioViewer } from "@/components/file-preview/viewers/audio";
 import { VideoViewer } from "@/components/file-preview/viewers/video";
 import { Icons } from "@/components/icons";
+import { SlackPreviewPanel } from "@/components/slack-preview";
 import { Button } from "@/components/ui/button";
 import {
   ResizableHandle,
@@ -13,10 +15,9 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { PreviewType } from "@/hooks/use-document-preview";
 import type { MediaDocument } from "@/lib/search-types";
 import { useTRPC } from "@/trpc/client";
-
-type PreviewType = "document" | "media";
 
 type SearchSplitViewProps = {
   children: ReactNode;
@@ -153,6 +154,42 @@ function MediaPreviewPanel({
   );
 }
 
+function renderPreviewPanel(
+  previewId: string,
+  previewType: PreviewType,
+  onClose: () => void,
+  options: {
+    highlightText?: string;
+    chunkIndex?: number;
+    pageNumber?: number;
+    mediaData?: MediaDocument | null;
+  }
+) {
+  switch (previewType) {
+    case "email":
+      return <EmailPreviewPanel documentId={previewId} onClose={onClose} />;
+    case "slack":
+      return <SlackPreviewPanel documentId={previewId} onClose={onClose} />;
+    case "media":
+      if (options.mediaData) {
+        return (
+          <MediaPreviewPanel media={options.mediaData} onClose={onClose} />
+        );
+      }
+      return <FilePreviewPanel documentId={previewId} onClose={onClose} />;
+    default:
+      return (
+        <FilePreviewPanel
+          chunkIndex={options.chunkIndex}
+          documentId={previewId}
+          highlightText={options.highlightText}
+          onClose={onClose}
+          pageNumber={options.pageNumber}
+        />
+      );
+  }
+}
+
 export function SearchSplitView({
   children,
   previewId,
@@ -164,7 +201,6 @@ export function SearchSplitView({
   mediaData,
 }: SearchSplitViewProps) {
   const hasPreview = !!previewId;
-  const isMediaPreview = previewType === "media" && mediaData;
 
   return (
     <ResizablePanelGroup className="h-full" direction="horizontal">
@@ -172,22 +208,17 @@ export function SearchSplitView({
         {children}
       </ResizablePanel>
 
-      {hasPreview && (
+      {hasPreview && previewId && (
         <>
           <ResizableHandle />
           <ResizablePanel defaultSize={50} minSize={30}>
             <div className="h-full overflow-hidden border-border/50 border-l">
-              {isMediaPreview ? (
-                <MediaPreviewPanel media={mediaData} onClose={onClosePreview} />
-              ) : (
-                <FilePreviewPanel
-                  chunkIndex={chunkIndex}
-                  documentId={previewId}
-                  highlightText={highlightText}
-                  onClose={onClosePreview}
-                  pageNumber={pageNumber}
-                />
-              )}
+              {renderPreviewPanel(previewId, previewType, onClosePreview, {
+                highlightText,
+                chunkIndex,
+                pageNumber,
+                mediaData,
+              })}
             </div>
           </ResizablePanel>
         </>
