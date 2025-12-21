@@ -5,6 +5,7 @@ import {
 } from "@openplane/services";
 import type { AuthEnv } from "@/middleware/auth";
 import { getTeamId } from "@/middleware/auth";
+import logger from "@/utils/logger";
 import type {
   oauthCallbackRoute,
   serviceAccountAuthRoute,
@@ -46,7 +47,7 @@ export const startOAuthHandler: RouteHandler<
 
     return c.json({ success: true, oauthUrl });
   } catch (error) {
-    console.error("Google Drive OAuth start error:", error);
+    logger.error({ error }, "Google Drive OAuth start error");
     const message =
       error instanceof Error
         ? error.message
@@ -79,7 +80,7 @@ export const oauthCallbackHandler: RouteHandler<
       redirectUrl,
     });
   } catch (error) {
-    console.error("Google Drive OAuth callback error:", error);
+    logger.error({ error }, "Google Drive OAuth callback error");
     const message = error instanceof Error ? error.message : "Unknown error";
 
     return c.json({ success: false, message }, 400);
@@ -119,7 +120,7 @@ export const serviceAccountAuthHandler: RouteHandler<
       name: connector.name,
     });
   } catch (error) {
-    console.error("Google Drive service account auth error:", error);
+    logger.error({ error }, "Google Drive service account auth error");
     const message = error instanceof Error ? error.message : "Unknown error";
 
     return c.json({ success: false, message }, 400);

@@ -2,6 +2,7 @@ import type { RouteHandler } from "@hono/zod-openapi";
 import { SlackAuth } from "@openplane/services";
 import type { AuthEnv } from "@/middleware/auth";
 import { getTeamId } from "@/middleware/auth";
+import logger from "@/utils/logger";
 import type { oauthCallbackRoute, startOAuthRoute } from "./slack.routes";
 
 const slackAuth = new SlackAuth();
@@ -38,7 +39,7 @@ export const startOAuthHandler: RouteHandler<
 
     return c.json({ success: true, oauthUrl });
   } catch (error) {
-    console.error("Slack OAuth start error:", error);
+    logger.error({ error }, "Slack OAuth start error");
     const message =
       error instanceof Error
         ? error.message
@@ -71,7 +72,7 @@ export const oauthCallbackHandler: RouteHandler<
       redirectUrl,
     });
   } catch (error) {
-    console.error("Slack OAuth callback error:", error);
+    logger.error({ error }, "Slack OAuth callback error");
     const message = error instanceof Error ? error.message : "Unknown error";
 
     return c.json({ success: false, message }, 400);

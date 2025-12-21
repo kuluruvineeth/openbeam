@@ -5,6 +5,7 @@ import prisma, {
 } from "@openplane/db";
 import argon2 from "argon2";
 import type { AuthContext } from "@/types/auth";
+import logger from "@/utils/logger";
 
 const API_KEY_PREFIX = process.env.API_KEY_PREFIX ?? "op_live_";
 const LOOKUP_PREFIX_LENGTH = API_KEY_PREFIX.length + 8;
@@ -78,7 +79,7 @@ export async function verifyApiKey(
       scopes: apiKeyRecord.scopes,
     };
   } catch (error) {
-    console.error("API key verification error:", error);
+    logger.error({ error }, "API key verification error");
     return null;
   }
 }
