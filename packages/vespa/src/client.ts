@@ -99,18 +99,7 @@ export class VespaClient {
       const batch = docs.slice(i, i + batchSize);
 
       const batchResults = await Promise.allSettled(
-        batch.map(async (doc) => {
-          try {
-            const response = await this.feedDocument(doc);
-            return response;
-          } catch (error) {
-            console.error("Vespa document feed failure:", {
-              error,
-              docId: doc.id,
-            });
-            throw error;
-          }
-        })
+        batch.map((doc) => this.feedDocument(doc))
       );
 
       for (const result of batchResults) {
@@ -132,6 +121,7 @@ export class VespaClient {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ fields: entity }),
+      signal: AbortSignal.timeout(60_000),
     });
 
     if (!response.ok) {
@@ -168,6 +158,7 @@ export class VespaClient {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(body),
+        signal: AbortSignal.timeout(10_000),
       });
 
       if (!response.ok) {
@@ -201,6 +192,7 @@ export class VespaClient {
       headers: {
         "Content-Type": "application/json",
       },
+      signal: AbortSignal.timeout(10_000),
     });
 
     if (!response.ok) {
@@ -218,6 +210,7 @@ export class VespaClient {
 
     const response = await fetch(documentPath, {
       method: "DELETE",
+      signal: AbortSignal.timeout(30_000),
     });
 
     if (!response.ok) {
@@ -240,6 +233,7 @@ export class VespaClient {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ fields }),
+      signal: AbortSignal.timeout(30_000),
     });
 
     if (!response.ok) {
@@ -257,6 +251,7 @@ export class VespaClient {
 
     const response = await fetch(documentPath, {
       method: "GET",
+      signal: AbortSignal.timeout(10_000),
     });
 
     if (response.status === 404) {
@@ -276,7 +271,9 @@ export class VespaClient {
 
   async healthCheck(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseUrl}/ApplicationStatus`);
+      const response = await fetch(`${this.baseUrl}/ApplicationStatus`, {
+        signal: AbortSignal.timeout(5000),
+      });
       return response.ok;
     } catch {
       return false;
@@ -290,7 +287,10 @@ export class VespaClient {
     const selection = `${schema}.connector_id=="${connectorId}"`;
     const url = `${this.documentApiUrl}/default/${schema}/docid?selection=${encodeURIComponent(selection)}&cluster=content`;
 
-    const response = await fetch(url, { method: "DELETE" });
+    const response = await fetch(url, {
+      method: "DELETE",
+      signal: AbortSignal.timeout(120_000),
+    });
 
     if (!response.ok) {
       const errorMessage = await this.getResponseError(response);
@@ -447,6 +447,7 @@ export class VespaClient {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
+      signal: AbortSignal.timeout(10_000),
     });
 
     if (!response.ok) {
@@ -464,6 +465,7 @@ export class VespaClient {
 
     const response = await fetch(documentPath, {
       method: "DELETE",
+      signal: AbortSignal.timeout(30_000),
     });
 
     if (!response.ok) {
@@ -494,6 +496,7 @@ export class VespaClient {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ fields: updates }),
+      signal: AbortSignal.timeout(30_000),
     });
 
     if (!response.ok) {
@@ -511,6 +514,7 @@ export class VespaClient {
 
     const response = await fetch(documentPath, {
       method: "GET",
+      signal: AbortSignal.timeout(10_000),
     });
 
     if (response.status === 404) {
@@ -560,6 +564,32 @@ export class VespaClient {
       updated += batch.length;
     }
     return updated;
+  }
+
+  async queryByThreadId<T = GenericDocument>(
+    threadId: string,
+    connectorId: string,
+    options?: { hits?: number }
+  ): Promise<SearchResult<T>> {
+    const yql = `select * from openplane_document where thread_id contains "${escapeYqlString(threadId)}" and connector_id contains "${escapeYqlString(connectorId)}" order by created_at asc`;
+
+    return await this.query<T>({
+      yql,
+      hits: options?.hits ?? 100,
+    });
+  }
+
+  async queryByParentId<T = GenericDocument>(
+    parentId: string,
+    connectorId: string,
+    options?: { hits?: number }
+  ): Promise<SearchResult<T>> {
+    const yql = `select * from openplane_document where parent_id contains "${escapeYqlString(parentId)}" and connector_id contains "${escapeYqlString(connectorId)}" order by created_at asc`;
+
+    return await this.query<T>({
+      yql,
+      hits: options?.hits ?? 100,
+    });
   }
 
   async updateChannelPermissions(

@@ -36,15 +36,23 @@ export async function bulkIndexDocuments(
   }
 
   const processBatch = async (batch: GenericDocument[]) => {
-    for (const doc of batch) {
-      try {
-        await vespaClient.feedDocument(doc);
+    const feedResults = await Promise.allSettled(
+      batch.map((doc) => vespaClient.feedDocument(doc).then(() => doc.id))
+    );
+
+    for (let i = 0; i < feedResults.length; i++) {
+      const feedResult = feedResults[i];
+      const doc = batch[i];
+      if (feedResult?.status === "fulfilled") {
         result.indexed += 1;
-      } catch (error) {
+      } else if (feedResult?.status === "rejected" && doc) {
         result.failed += 1;
         result.errors.push({
           docId: doc.id,
-          error: error instanceof Error ? error.message : "Unknown error",
+          error:
+            feedResult.reason instanceof Error
+              ? feedResult.reason.message
+              : "Unknown error",
         });
       }
     }
