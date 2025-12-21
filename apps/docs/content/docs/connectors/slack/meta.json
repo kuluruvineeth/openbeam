@@ -4,6 +4,7 @@
   "pages": [
     "index",
     "setup",
+    "app-setup",
     "oauth-scopes",
     "configuration",
     "features",

@@ -1,89 +1,36 @@
 ---
 title: Permissions
-description: Access control and permission sync for Slack
+description: Access control for Slack content
 ---
 
 # Permissions
 
-## Permission Model
+OpenPlane respects Slack's native permissions. Users can only search content from channels they're members of.
 
-OpenPlane respects Slack's native permissions:
+## Access Rules
 
-| Slack Permission | OpenPlane Behavior |
-|------------------|-------------------|
-| Public channel member | Content visible to all workspace users |
-| Private channel member | Content visible only to members |
-| DM participant | Content visible only to participants |
-| External user | Configurable access |
+| Content | Who Can Search |
+|---------|---------------|
+| Public channel | All workspace users |
+| Private channel | Channel members only |
+| DMs | Participants only |
+| Files | Inherits from share location |
+| Threads | Inherits from parent message |
 
 ## Permission Sync
 
-### How It Works
+Permissions sync:
+- On initial setup
+- Every 12 hours
+- On membership change events (via webhooks)
 
-1. **Channel Membership** - Synced from Slack API
-2. **User Mapping** - Email-based user matching
-3. **Access Calculation** - Per-document permissions computed
-4. **Real-time Updates** - Membership changes reflected immediately
-
-### Sync Schedule
-
-Permissions are synced:
-- On initial connector setup
-- Every 12 hours (configurable)
-- When membership events occur (via webhooks)
-
-## Access Control
-
-### Channel-Level
-
-Users can only search content from channels they are members of.
-
-```
-User A (member of #engineering, #general)
-  → Can search: messages from #engineering, #general
-  → Cannot search: messages from #sales, #private-hr
-```
-
-### File Access
-
-Files inherit permissions from their share location:
-- File shared in public channel → Visible to workspace
-- File shared in private channel → Visible to channel members
-- File in DM → Visible to DM participants
-
-### Thread Access
-
-Thread replies inherit parent message permissions.
-
-## External Users
-
-### Slack Connect Channels
-
-For shared channels with external organizations:
+## Slack Connect
 
 | Setting | Behavior |
 |---------|----------|
 | `sync_external_channels: false` | External channels not indexed |
 | `sync_external_channels: true` | External channels indexed |
-| `index_external_content: false` | Only your org's messages indexed |
-| `index_external_content: true` | All messages indexed |
+| `index_external_content: false` | Only your org's messages |
+| `index_external_content: true` | All messages |
 
-### Guest Users
-
-Guest users have access limited to their invited channels only.
-
-## Admin Controls
-
-### Override Settings
-
-Admins can configure:
-- Global content exclusions
-- Channel-level overrides
-- User access restrictions
-
-### Audit Logging
-
-All access is logged:
-- Search queries
-- Document views
-- AI assistant interactions
+Guest users only see their invited channels.

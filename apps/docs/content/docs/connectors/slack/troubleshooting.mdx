@@ -1,121 +1,62 @@
 ---
 title: Troubleshooting
-description: Common issues and solutions for the Slack connector
+description: Common Slack connector issues
 ---
 
 # Troubleshooting
 
-## Authentication Errors
+## OAuth Errors
 
-### `not_authed` or `invalid_auth`
-
-**Cause**: OAuth token is invalid or expired.
-
-**Solution**:
-1. Disconnect the connector
-2. Re-authenticate via OAuth flow
-3. Verify app hasn't been uninstalled from workspace
-
-### `missing_scope`
-
-**Cause**: Required OAuth scope not granted.
-
-**Solution**:
-1. Check error message for missing scope
-2. Add scope in Slack app settings
-3. Re-authorize the app
-
-### `token_revoked`
-
-**Cause**: User or admin revoked the OAuth token.
-
-**Solution**:
-1. Reconnect the Slack integration
-2. Ensure the authorizing user has appropriate permissions
+| Error | Fix |
+|-------|-----|
+| `not_authed` / `invalid_auth` | Disconnect and reconnect |
+| `missing_scope` | Add scope in Slack app, reinstall app |
+| `token_revoked` | Reconnect; check app wasn't uninstalled |
+| `invalid_client_id` | Verify `SLACK_CLIENT_ID` env var |
 
 ## Sync Issues
 
-### Messages Not Appearing
-
-1. **Check connector status**: Ensure status is "Active"
-2. **Verify channel access**: Bot must be in channel for private channels
-3. **Check sync logs**: Review worker logs for errors
-4. **Force resync**: Trigger manual sync from settings
-
-### Slow Initial Sync
-
-Large workspaces may take time. Monitor progress via:
-- Connector stats in dashboard
-- Worker logs: `bun run dev:worker`
-
-Estimated times:
-- Small workspace (< 1000 messages): 5 minutes
-- Medium workspace (< 100,000 messages): 30 minutes
-- Large workspace (> 1M messages): Several hours
-
-### Rate Limiting
-
-Slack enforces rate limits. OpenPlane handles this automatically with exponential backoff.
-
-If you see rate limit errors:
-1. Reduce `maxConcurrency` in sync config
-2. Increase `batchSize` to reduce API calls
-3. Wait for rate limit window to reset
+| Issue | Fix |
+|-------|-----|
+| Messages not appearing | Check connector is Active; invite bot to private channels |
+| Files not indexed | Enable file indexing; check `files:read` scope |
+| Slow initial sync | Normal for large workspaces (100k+ = 1-4 hours) |
+| Rate limited | Automatic backoff; wait for reset |
 
 ## Webhook Issues
 
-### Events Not Received
+| Issue | Fix |
+|-------|-----|
+| Events not received | Verify Event Subscription URL is correct and accessible |
+| Signature verification failed | Check `SLACK_SIGNING_SECRET` matches app settings |
+| Interactivity not working | Check Interactivity Request URL |
 
-1. Verify Request URL in Slack app settings
-2. Check URL is publicly accessible (HTTPS required)
-3. Verify signing secret matches
-4. Check for firewall/proxy blocking
+## Bot Issues
 
-### Duplicate Events
+| Issue | Fix |
+|-------|-----|
+| Bot not responding | Verify `@OpenPlane` mention; invite bot to channel |
+| Response timeout | AI processing exceeded 30s limit; simplify query |
+| Shortcuts not appearing | Reinstall app; refresh Slack (Cmd+R) |
 
-Slack may retry delivery. OpenPlane deduplicates by event ID automatically.
+## Debug Commands
 
-### Event Verification Failed
+```bash
+# Check webhook health
+curl https://api.your-domain.com/api/v1/webhooks/slack/health
 
-**Cause**: Signing secret mismatch.
+# Check logs
+tail -f logs/worker.log | grep -i slack
+```
 
-**Solution**:
-1. Copy signing secret from Slack app settings
-2. Update `SLACK_SIGNING_SECRET` environment variable
-3. Restart the server
+## Error Reference
 
-## AI Assistant Issues
+| Error | Code | Fix |
+|-------|------|-----|
+| `not_authed` | 401 | Reconnect |
+| `missing_scope` | 403 | Add scope, reinstall |
+| `ratelimited` | 429 | Wait |
+| `channel_not_found` | 404 | Channel deleted |
+| `service_unavailable` | 503 | Check status.slack.com |
 
-### Bot Not Responding
-
-1. Verify bot is mentioned correctly (@OpenPlane)
-2. Check bot is in the channel
-3. Review responseMode setting for channel
-4. Check worker logs for errors
-
-### Incorrect Responses
-
-1. Verify content is properly indexed
-2. Check search returns relevant results
-3. Report persistent issues for model tuning
-
-## Common Error Codes
-
-| Error | Meaning | Solution |
-|-------|---------|----------|
-| `channel_not_found` | Channel deleted or inaccessible | Remove from enabled channels |
-| `user_not_found` | User deactivated | Will be cleaned up on next sync |
-| `file_not_found` | File deleted | Will be removed from index |
-| `ratelimited` | API rate limit hit | Automatic retry with backoff |
-| `request_timeout` | Slack API timeout | Automatic retry |
-
-## Getting Help
-
-If issues persist:
-
-1. Check [GitHub Issues](https://github.com/kuluruvineeth/openplane/issues)
-2. Review worker logs for detailed errors
-3. Open a new issue with:
-   - Error messages
-   - Connector configuration
-   - Steps to reproduce
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openplane/issues) with error messages and logs.

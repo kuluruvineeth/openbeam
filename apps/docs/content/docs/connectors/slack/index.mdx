@@ -1,38 +1,41 @@
 ---
 title: Slack
-description: Slack connector for OpenPlane
+description: Search Slack messages, files, and canvases with AI assistance
 ---
 
 # Slack Connector
 
-Search messages, threads, files, and canvases. AI assistant via @mentions.
+Index messages, threads, files, canvases, and clips. Real-time sync via Event Subscriptions.
 
 <Cards>
   <Card title="Setup" href="/docs/connectors/slack/setup" />
-  <Card title="OAuth Scopes" href="/docs/connectors/slack/oauth-scopes" />
   <Card title="Features" href="/docs/connectors/slack/features" />
-  <Card title="Permissions" href="/docs/connectors/slack/permissions" />
+  <Card title="Troubleshooting" href="/docs/connectors/slack/troubleshooting" />
 </Cards>
 
-## Indexed Content
+## What's Indexed
 
-| Type | Indexed | Searchable |
-|------|---------|------------|
-| Messages | Yes | Yes |
-| Threads | Yes | Yes |
-| Files | Yes | Yes |
-| Canvases | Yes | Yes |
-| Bookmarks | Yes | Yes |
-| Clips | Yes | Yes |
+- **Messages & threads** - Full-text search with context
+- **Files** - Text extraction (PDF, DOCX, images via OCR)
+- **Canvases** - Full content indexing
+- **Clips** - Audio/video transcription
 
-## Setup
+## Quick Start
 
-1. Create a Slack app ([setup guide](/docs/connectors/slack/setup))
-2. Install to workspace with required scopes
-3. Configure sync settings
-4. Start searching
+1. Create Slack app using the [manifest](/docs/connectors/slack/app-setup)
+2. Set OAuth redirect URI and scopes
+3. Enable Event Subscriptions
+4. Connect in OpenPlane UI
+
+## Interactive Features
+
+- `/openplane search <query>` - Search all content
+- `/openplane ask <question>` - AI-powered answers
+- `@OpenPlane` - Mention in any channel for contextual help
+- Message shortcuts - Summarize threads, save messages, find related
 
 <Cards>
+  <Card title="OAuth Scopes" href="/docs/connectors/slack/oauth-scopes" />
   <Card title="Configuration" href="/docs/connectors/slack/configuration" />
-  <Card title="Troubleshooting" href="/docs/connectors/slack/troubleshooting" />
+  <Card title="Enterprise Grid" href="/docs/connectors/slack/enterprise" />
 </Cards>

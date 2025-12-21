@@ -1,66 +1,52 @@
 ---
 title: OAuth Scopes
-description: Required OAuth scopes for the Slack connector
+description: Required Slack OAuth permissions
 ---
 
 # OAuth Scopes
 
+The [app manifest](/docs/connectors/slack/app-setup) includes all required scopes. This page explains what each does.
+
 ## Bot Token Scopes (Required)
 
-These scopes are required for the Slack bot to function:
-
 | Scope | Purpose |
 |-------|---------|
-| `channels:read` | List public channels |
-| `channels:history` | Read public channel messages |
-| `groups:read` | List private channels |
-| `groups:history` | Read private channel messages |
-| `im:read` | List direct messages |
-| `im:history` | Read direct messages |
-| `mpim:read` | List group DMs |
-| `mpim:history` | Read group DM messages |
-| `users:read` | List workspace users |
-| `users:read.email` | Access user email addresses |
-| `team:read` | Access workspace info |
-| `files:read` | Access shared files |
-| `chat:write` | Send messages as bot |
-| `app_mentions:read` | Receive @mention events |
-| `reactions:read` | Read message reactions |
-| `reactions:write` | Add reactions to messages |
-| `commands` | Register slash commands |
-| `bookmarks:read` | Read channel bookmarks |
-
-## User Token Scopes (For Admin Sync)
-
-Optional scopes for admin-level access:
-
-| Scope | Purpose |
-|-------|---------|
-| `channels:history` | Historical message access |
-| `channels:read` | Channel listing |
-| `groups:history` | Private channel history |
-| `groups:read` | Private channel listing |
-| `search:read` | Search API access |
-| `users:read` | User information |
+| `channels:read`, `channels:history`, `channels:join` | Public channel access |
+| `groups:read`, `groups:history` | Private channel access (where bot is member) |
+| `im:read`, `im:history` | DM access |
+| `mpim:read`, `mpim:history` | Group DM access |
+| `users:read`, `users:read.email` | User profiles |
+| `team:read` | Workspace info |
 | `files:read` | File access |
+| `app_mentions:read` | Receive @mentions |
+| `chat:write` | Send messages |
+| `commands` | Slash commands |
+| `assistant:write` | AI assistant responses |
 
-## Minimal Scope Set
+## Bot Token Scopes (Optional)
 
-For basic functionality, you need at minimum:
+| Scope | Purpose |
+|-------|---------|
+| `bookmarks:read` | Channel bookmarks |
+| `pins:read` | Pinned messages |
+| `reactions:read`, `reactions:write` | Reactions |
+| `links:read`, `links:write` | URL unfurling |
 
-```
-channels:read
-channels:history
-users:read
-team:read
-chat:write
-app_mentions:read
-```
+## User Token Scopes (Optional)
 
-## Adding Scopes
+For admin-level sync and federated search:
 
-1. Go to your [Slack App settings](https://api.slack.com/apps)
-2. Navigate to **OAuth & Permissions**
-3. Under **Scopes**, click **Add an OAuth Scope**
-4. Add the required scopes
-5. Reinstall the app to your workspace to apply changes
+| Scope | Purpose |
+|-------|---------|
+| `search:read` | Federated search via Slack API |
+| `channels:history`, `groups:history` | History access on behalf of user |
+
+## Scope Errors
+
+| Error | Fix |
+|-------|-----|
+| `missing_scope` | Add scope in app settings, reinstall |
+| `not_in_channel` | Add `channels:join`, invite bot |
+| `cannot_dm_bot` | Add `im:write` |
+
+Adding or removing scopes requires reinstalling the app.

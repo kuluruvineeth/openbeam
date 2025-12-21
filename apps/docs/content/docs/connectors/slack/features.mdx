@@ -1,63 +1,62 @@
 ---
 title: Features
-description: AI Assistant, Digests, and search features
+description: AI assistant, slash commands, and shortcuts
 ---
 
 # Slack Features
 
 ## AI Assistant
 
-Mention the bot to get answers from your knowledge base:
+Mention `@OpenPlane` in any channel or thread:
 
 ```
 @OpenPlane What was the decision on the Q4 roadmap?
 ```
 
-### Response Modes
+Or open a direct conversation via **Apps → OpenPlane → Messages**.
 
-| Mode | Behavior |
-|------|----------|
-| Confident | Direct answers |
-| Hesitant | Qualified responses |
-| Disabled | No AI responses |
-
-## Daily Digests
-
-Automated channel summaries delivered on schedule.
-
-| Content | Description |
-|---------|-------------|
-| Discussions | Key conversations |
-| Action Items | Assigned tasks |
-| Announcements | Updates |
-
-## Search
-
-Use `/openplane` to search:
+## Slash Commands
 
 ```
-/openplane find design system documentation
+/openplane search <query>     # Search all indexed content
+/openplane ask <question>     # AI-powered answers
+/openplane digest [#channel]  # Channel summary
+/openplane configure          # Settings
 ```
 
-### Filters
+### Search Filters
 
 | Filter | Example |
 |--------|---------|
-| Channel | `in:#engineering` |
-| User | `from:@john` |
-| Date | `after:2024-01-01` |
-| Type | `type:file` |
+| `in:#channel` | `in:#engineering` |
+| `from:@user` | `from:@john` |
+| `after:YYYY-MM-DD` | `after:2024-01-01` |
+| `type:file` | `type:message` |
 
-## Message Actions
+## Message Shortcuts
 
-Right-click on any message:
+Right-click any message (or use `⋮` menu):
 
-- **Save** — Bookmark for later
-- **Ask** — Query AI about context
-- **Find related** — Search similar content
+- **Save to OpenPlane** - Bookmark for later
+- **Ask about this** - AI context on the message
+- **Summarize thread** - AI summary
+- **Find related** - Search similar content
 
-## Notifications
+## Global Shortcuts
 
-- Saved search matches
-- Topic mentions
-- Action items assigned
+Press `⌘G` (Mac) or `Ctrl+G` (Windows):
+
+- **Search OpenPlane** - Global search
+- **Ask OpenPlane** - Quick AI query
+
+## Daily Digests
+
+Automated channel summaries with key discussions, decisions, and action items. Configure via `/openplane digest configure`.
+
+## App Home
+
+Access via **Apps → OpenPlane → Home** for:
+- Quick search
+- Recent activity
+- Saved items
+- Sync status

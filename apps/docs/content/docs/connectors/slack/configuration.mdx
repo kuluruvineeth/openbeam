@@ -1,52 +1,39 @@
 ---
-title: Slack Configuration
-description: Advanced configuration options for the Slack connector
+title: Configuration
+description: Slack connector settings
 ---
 
-# Configuration Reference
+# Configuration
 
-## Connector Settings
+## Content Settings
 
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `index_private_channels` | boolean | `false` | Index private channels (requires member access) |
-| `index_dms` | boolean | `false` | Index direct messages |
-| `index_group_dms` | boolean | `false` | Index multi-person DMs |
-| `index_canvases` | boolean | `true` | Index Slack Canvases |
-| `index_clips` | boolean | `true` | Index video/audio clips |
-| `index_bookmarks` | boolean | `true` | Index channel bookmarks |
-| `sync_external_channels` | boolean | `false` | Index Slack Connect channels |
-| `index_external_content` | boolean | `false` | Index external org content |
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `index_private_channels` | `false` | Index private channels (bot must be member) |
+| `index_dms` | `false` | Index direct messages |
+| `index_group_dms` | `false` | Index multi-person DMs |
+| `index_canvases` | `true` | Index Slack Canvases |
+| `index_clips` | `true` | Index video/audio clips |
+| `index_bookmarks` | `true` | Index channel bookmarks |
+| `sync_external_channels` | `false` | Index Slack Connect channels |
 
 ## Channel Filtering
 
-### Include Specific Channels
-
 ```json
 {
-  "enabled_channel_ids": ["C01234567", "C89012345"]
-}
-```
-
-### Exclude Channels
-
-```json
-{
+  "enabled_channel_ids": ["C01234567"],
   "disabled_channel_ids": ["C99999999"]
 }
 ```
 
-## AI Assistant Settings
-
-Per-channel configuration:
+## AI Assistant
 
 | Setting | Options | Description |
 |---------|---------|-------------|
-| `responseMode` | `confident`, `hesitant`, `none` | How bot responds to queries |
-| `reactionsEnabled` | boolean | Allow bot to add emoji reactions |
-| `respondToWorkflows` | boolean | Auto-respond to workflow messages |
+| `responseMode` | `confident`, `hesitant`, `none` | Bot response style |
+| `reactionsEnabled` | boolean | Bot adds emoji reactions |
 
-## Sync Configuration
+## Sync Settings
 
 ```json
 {
@@ -59,22 +46,4 @@ Per-channel configuration:
 }
 ```
 
-| Setting | Default | Description |
-|---------|---------|-------------|
-| `schedule` | `0 */6 * * *` | Cron expression for sync |
-| `batchSize` | 100 | Documents per batch |
-| `maxConcurrency` | 5 | Parallel API requests |
-| `fullSyncInterval` | 86400000 | Full sync interval (ms) |
-
-## Rate Limiting
-
-OpenPlane respects Slack's rate limits:
-
-| Tier | Limit | Methods |
-|------|-------|---------|
-| Tier 1 | 1 req/min | `admin.*` |
-| Tier 2 | 20 req/min | `conversations.history` |
-| Tier 3 | 50 req/min | `chat.postMessage` |
-| Tier 4 | 100 req/min | `users.list` |
-
-Automatic exponential backoff is applied when limits are hit.
+Rate limits are handled automatically with exponential backoff.
