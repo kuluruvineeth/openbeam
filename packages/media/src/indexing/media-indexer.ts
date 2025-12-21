@@ -1,4 +1,4 @@
-import type { MediaDocument, MediaType } from "@openplane/vespa";
+import type { JsonObject, MediaDocument, MediaType } from "@openplane/vespa";
 import { MediaEmbeddingService } from "../processing/embedder";
 import type {
   MediaDocumentMetadata,
@@ -185,7 +185,7 @@ export class MediaIndexer {
       indexed_at: now,
       access_control: params.accessControl,
       is_public: params.isPublic ?? false,
-      metadata: params.metadata,
+      metadata: params.metadata as JsonObject | undefined,
       chapters: processed.metadata.chapters?.map((c) => JSON.stringify(c)),
       highlights: processed.metadata.highlights?.map((h) => JSON.stringify(h)),
       action_items: processed.metadata.actionItems,

@@ -4,6 +4,7 @@ import {
   listConnectorResources,
   listConnectorsByTeam,
   listResourceDocuments,
+  type Prisma,
   pauseConnector as pauseConnectorDb,
   restoreConnector as restoreConnectorDb,
   resumeConnector as resumeConnectorDb,
@@ -119,8 +120,7 @@ export const connectorsRouter = createTRPCRouter({
         name: input.name,
         type: input.type,
         authType: input.authType,
-        // biome-ignore lint/suspicious/noExplicitAny: config type varies
-        config: input.config as any,
+        config: input.config as Prisma.InputJsonValue,
       })
     ),
 
@@ -184,8 +184,7 @@ export const connectorsRouter = createTRPCRouter({
       return await updateConnectorConfig(
         ctx.prisma,
         input.appId,
-        // biome-ignore lint/suspicious/noExplicitAny: config type varies
-        input.config as any
+        input.config as Prisma.InputJsonValue
       );
     }),
 

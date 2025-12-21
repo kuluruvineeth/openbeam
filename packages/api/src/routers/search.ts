@@ -28,34 +28,64 @@ function getThumbnailStorageKey(metadata: unknown): string | null {
   return null;
 }
 
-async function generateThumbnailUrl(
-  media: MediaWithThumbnail
-): Promise<string | undefined> {
-  const storageKey = getThumbnailStorageKey(media.metadata);
-
-  if (!storageKey) {
-    return media.thumbnail_url || undefined;
+async function generateSignedUrlsForKeys(
+  storageKeys: string[]
+): Promise<Map<string, string>> {
+  if (storageKeys.length === 0) {
+    return new Map();
   }
 
-  try {
-    return await getStorageProvider().getSignedUrl(
-      storageKey,
-      SIGNED_URL_EXPIRY_SECONDS
-    );
-  } catch {
-    return;
+  const storage = getStorageProvider();
+  const results = await Promise.all(
+    storageKeys.map(async (key) => {
+      try {
+        const url = await storage.getSignedUrl(key, SIGNED_URL_EXPIRY_SECONDS);
+        return [key, url] as const;
+      } catch {
+        return null;
+      }
+    })
+  );
+
+  const urlMap = new Map<string, string>();
+  for (const result of results) {
+    if (result) {
+      urlMap.set(result[0], result[1]);
+    }
   }
+  return urlMap;
+}
+
+function collectStorageKeys(mediaItems: MediaWithThumbnail[]): string[] {
+  const keys: string[] = [];
+  for (const media of mediaItems) {
+    const key = getThumbnailStorageKey(media.metadata);
+    if (key) {
+      keys.push(key);
+    }
+  }
+  return keys;
+}
+
+function applyThumbnailUrls<T extends MediaWithThumbnail>(
+  mediaItems: T[],
+  signedUrls: Map<string, string>
+): T[] {
+  return mediaItems.map((media) => {
+    const storageKey = getThumbnailStorageKey(media.metadata);
+    if (storageKey && signedUrls.has(storageKey)) {
+      return { ...media, thumbnail_url: signedUrls.get(storageKey) };
+    }
+    return media.thumbnail_url ? media : { ...media, thumbnail_url: undefined };
+  });
 }
 
 async function enrichMediaWithThumbnails<T extends MediaWithThumbnail>(
   mediaItems: T[]
 ): Promise<T[]> {
-  return await Promise.all(
-    mediaItems.map(async (media) => ({
-      ...media,
-      thumbnail_url: await generateThumbnailUrl(media),
-    }))
-  );
+  const storageKeys = collectStorageKeys(mediaItems);
+  const signedUrls = await generateSignedUrlsForKeys(storageKeys);
+  return applyThumbnailUrls(mediaItems, signedUrls);
 }
 
 function buildAccessControlIds(ctx: {
@@ -114,6 +144,10 @@ const unifiedSearchInputSchema = z.object({
   connectorTypes: z.array(z.string()).optional(),
   connectorId: z.string().optional(),
   documentTypes: z.array(z.string()).optional(),
+  sourceTypes: z.array(z.string()).optional(),
+  statuses: z.array(z.string()).optional(),
+  priorities: z.array(z.string()).optional(),
+  labels: z.array(z.string()).optional(),
   sourceId: z.string().optional(),
   fromDate: z.number().optional(),
   toDate: z.number().optional(),
@@ -241,6 +275,10 @@ export const searchRouter = createTRPCRouter({
         connectorTypes: input.connectorTypes,
         connectorId: input.connectorId,
         documentTypes: input.documentTypes,
+        sourceTypes: input.sourceTypes,
+        statuses: input.statuses,
+        priorities: input.priorities,
+        labels: input.labels,
         sourceId: input.sourceId,
         fromDate: input.fromDate,
         toDate: input.toDate,
@@ -251,22 +289,32 @@ export const searchRouter = createTRPCRouter({
         accessControlIds,
       });
 
-      const media = await enrichMediaWithThumbnails(result.media);
+      const mediaFromItems = result.items
+        .filter(
+          (item): item is typeof item & { type: "media" } =>
+            item.type === "media"
+        )
+        .map((item) => item.data);
+      const allMedia = [...result.media, ...mediaFromItems];
 
-      const enrichedItems = await Promise.all(
-        result.items.map(async (item) => {
-          if (item.type === "media") {
-            return {
-              ...item,
-              data: {
-                ...item.data,
-                thumbnail_url: await generateThumbnailUrl(item.data),
-              },
-            };
-          }
-          return item;
-        })
-      );
+      const storageKeys = collectStorageKeys(allMedia);
+      const signedUrls = await generateSignedUrlsForKeys(storageKeys);
+
+      const media = applyThumbnailUrls(result.media, signedUrls);
+
+      const enrichedItems = result.items.map((item) => {
+        if (item.type === "media") {
+          const storageKey = getThumbnailStorageKey(item.data.metadata);
+          const thumbnailUrl = storageKey
+            ? signedUrls.get(storageKey)
+            : item.data.thumbnail_url;
+          return {
+            ...item,
+            data: { ...item.data, thumbnail_url: thumbnailUrl },
+          };
+        }
+        return item;
+      });
 
       const currentCount = enrichedItems.length;
       const hasMore = effectiveOffset + currentCount < result.total;

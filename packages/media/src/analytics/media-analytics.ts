@@ -61,6 +61,7 @@ export class MediaAnalyticsService {
     this.interactions.set(mediaId, existing);
 
     if (existing.length >= this.config.batchSize) {
+      // biome-ignore lint/suspicious/noEmptyBlockStatements: fire-and-forget flush, errors are non-critical
       this.flushMedia(mediaId).catch(() => {});
     }
   }
@@ -70,6 +71,7 @@ export class MediaAnalyticsService {
       return;
     }
     this.flushTimer = setInterval(() => {
+      // biome-ignore lint/suspicious/noEmptyBlockStatements: fire-and-forget flush, errors are non-critical
       this.flushAll().catch(() => {});
     }, this.config.flushInterval);
   }
