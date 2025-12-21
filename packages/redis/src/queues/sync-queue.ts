@@ -3,10 +3,13 @@ import { Queue } from "bullmq";
 import { getSharedBullMqConnection } from "../client";
 import { extractTraceContext, type TraceContext } from "../utils/trace-context";
 
+export type SyncTrigger = "SCHEDULED" | "MANUAL" | "WEBHOOK";
+
 export interface SyncJobData {
   connectorId: string;
   syncJobId: string;
   type: "FULL" | "INCREMENTAL" | "PERMISSIONS";
+  trigger?: SyncTrigger;
   priority?: number;
   traceContext?: TraceContext;
 }

@@ -24,19 +24,26 @@ export type MediaProcessingJobType =
   | "process"
   | "index";
 
+export type MediaDownloadMetadata =
+  | { connector: "slack"; sourceUrl: string }
+  | { connector: "gmail"; messageId: string; attachmentId: string }
+  | { connector: "google-drive"; fileId: string; exportMimeType?: string };
+
 export interface MediaDownloadJobData {
   type: "download";
   mediaId: string;
   mediaType: QueueMediaInputType;
   connectorId: string;
   externalId: string;
-  sourceUrl: string;
+  /** @deprecated Use downloadMetadata instead */
+  sourceUrl?: string;
+  downloadMetadata?: MediaDownloadMetadata;
   mimeType: string;
   fileName: string;
   storageKey: string;
   sourceChannelId?: string;
   sourceChannelName?: string;
-  slackPermalink?: string;
+  sourcePermalink?: string;
   authorId?: string;
   authorName?: string;
   traceContext?: TraceContext;
@@ -54,7 +61,7 @@ export interface MediaTwelveLabsJobData {
   originalAudioMimeType?: string;
   sourceChannelId?: string;
   sourceChannelName?: string;
-  slackPermalink?: string;
+  sourcePermalink?: string;
   authorId?: string;
   authorName?: string;
   traceContext?: TraceContext;

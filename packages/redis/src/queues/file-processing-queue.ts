@@ -10,13 +10,20 @@ export interface ParsedChunk {
   page_end?: number;
 }
 
+export type FileDownloadMetadata =
+  | { connector: "slack"; sourceUrl: string }
+  | { connector: "gmail"; messageId: string; attachmentId: string }
+  | { connector: "google-drive"; fileId: string; exportMimeType?: string };
+
 export interface FileProcessingJobData {
   type: FileProcessingJobType;
   fileId: string;
   connectorId: string;
   externalId: string;
   storageKey?: string;
+  /** @deprecated Use downloadMetadata instead */
   sourceUrl?: string;
+  downloadMetadata?: FileDownloadMetadata;
   mimeType?: string;
   fileName?: string;
   traceContext?: TraceContext;
