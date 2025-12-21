@@ -61,8 +61,42 @@ export {
   isVideoFile,
   isVideoMime,
 } from "./engine";
-
-export { GmailAuth, GmailServiceAccountAuth } from "./gmail";
+export type {
+  ConnectorFileInfo,
+  ConnectorMediaInfo,
+  DownloadStrategy,
+} from "./files";
+export type {
+  DomainSyncCursor,
+  GmailAttachmentInfo,
+  GmailClient,
+  GmailLabel,
+  GmailMediaInfo,
+  GmailSyncBatch,
+  GmailSyncCursor,
+  GmailTransformContext,
+  NotificationHandlerConfig,
+  WatchManagerConfig,
+} from "./gmail";
+export {
+  createGmailClient,
+  downloadAttachment,
+  GmailAuth,
+  GmailServiceAccountAuth,
+  GmailWatchManager,
+  getAllActiveWatches,
+  getExpiringWatches,
+  getWatchStateForConnector,
+  gmailIncrementalSync,
+  handleGmailNotification,
+  parseWebhookRequest,
+  processNotificationBatch,
+  syncDomainMailboxes,
+  transformGmailAttachment,
+  transformGmailAttachments,
+  transformGmailMedia,
+  transformGmailMediaList,
+} from "./gmail";
 export {
   GoogleDriveAuth,
   GoogleDriveServiceAccountAuth,
@@ -99,6 +133,17 @@ export {
   mediaIndexService,
   mediaMetadataService,
 } from "./media";
+export type {
+  DocumentResult,
+  EmailMessage,
+  EmailThreadResult,
+  GetDocumentParams,
+  GetEmailThreadParams,
+  GetSlackThreadParams,
+  SlackMessage as ServiceSlackMessage,
+  SlackThreadResult,
+} from "./messages";
+export { MessagesService, messagesService } from "./messages";
 export type {
   AuthorSearchParams,
   DocumentSearchResult,
@@ -407,6 +452,7 @@ export type {
 export {
   completeSyncHistoryRecord,
   createSyncHistoryForRepeatableJob,
+  createSyncHistoryForWebhook,
   DEFAULT_SYNC_RESOURCE,
   getSyncCursorForConnector,
   handleSyncError,

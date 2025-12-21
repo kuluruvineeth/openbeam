@@ -23,6 +23,7 @@ export {
 export {
   completeSyncHistoryRecord,
   createSyncHistoryForRepeatableJob,
+  createSyncHistoryForWebhook,
   markSyncHistoryFailed,
   prepareSyncHistory,
 } from "./history";

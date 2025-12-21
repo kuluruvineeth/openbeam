@@ -106,6 +106,10 @@ export interface UnifiedSearchParams {
   connectorTypes?: string[];
   connectorId?: string;
   documentTypes?: string[];
+  sourceTypes?: string[];
+  statuses?: string[];
+  priorities?: string[];
+  labels?: string[];
   sourceId?: string;
   fromDate?: number;
   toDate?: number;

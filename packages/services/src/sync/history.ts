@@ -6,6 +6,7 @@ import {
   findScheduledSyncJob,
   getSyncHistoryById,
   getSyncJobWithConfig,
+  triggerWebhookSync,
   updateSyncHistoryStatus,
   updateSyncJobFenceToken,
   updateSyncJobNextRun,
@@ -36,6 +37,21 @@ export async function createSyncHistoryForRepeatableJob(
   return {
     syncHistoryId: syncHistory.id,
     syncJobId: syncJob.id,
+  };
+}
+
+export async function createSyncHistoryForWebhook(
+  db: Database,
+  input: ServiceCreateSyncHistoryInput
+): Promise<CreateSyncHistoryResult> {
+  const result = await triggerWebhookSync(db, {
+    connectorId: input.connectorId,
+    type: input.type,
+  });
+
+  return {
+    syncHistoryId: result.syncHistoryId,
+    syncJobId: result.syncJobId,
   };
 }
 
