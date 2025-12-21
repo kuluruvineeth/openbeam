@@ -72,8 +72,10 @@ export type {
 } from "./embeddings";
 export {
   chunkDocument,
+  countTokens,
   DEFAULT_CHUNKING_CONFIG,
   DocumentChunker,
+  EMBEDDING_TOKEN_LIMIT,
   EmbeddingService,
   embedDocument,
   embedDocuments,
@@ -81,6 +83,8 @@ export {
   embedQuery,
   embedText,
   estimateTokens,
+  prepareTextForEmbedding,
+  truncateToTokenLimit,
 } from "./embeddings";
 export type {
   AIProvider,

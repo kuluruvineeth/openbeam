@@ -14,6 +14,13 @@ export {
   embedText,
 } from "./service";
 
+export {
+  countTokens,
+  EMBEDDING_TOKEN_LIMIT,
+  prepareTextForEmbedding,
+  truncateToTokenLimit,
+} from "./tokenizer";
+
 export type {
   BatchEmbeddingResult,
   ChunkingConfig,
