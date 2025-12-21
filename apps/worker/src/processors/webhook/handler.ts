@@ -17,6 +17,10 @@ import type { Job } from "bullmq";
 import logger from "../../utils/logger";
 import { logJobError, logJobStart } from "../event-handlers";
 import {
+  processGmailWebhook,
+  shouldProcessGmailRealtime,
+} from "./gmail-handler";
+import {
   isAssistantThreadMessage,
   processSidebarMessage,
 } from "./sidebar-handler";
@@ -65,6 +69,7 @@ async function queueCrawlHint(
       connectorId,
       syncJobId: "",
       type: syncType,
+      trigger: "WEBHOOK",
       priority: 8,
     },
     8
@@ -104,6 +109,19 @@ async function tryRealtimeProcessing(
   eventType: string,
   jobData: WebhookJobData
 ): Promise<WebhookJobResult | null> {
+  if (source === "gmail" && shouldProcessGmailRealtime(eventType)) {
+    const gmailResult = await processGmailWebhook(jobData);
+    if (gmailResult.processed) {
+      return {
+        triggered: true,
+        processed: true,
+        operation: gmailResult.operation,
+        reason: gmailResult.reason,
+      };
+    }
+    return null;
+  }
+
   if (source !== "slack" || !shouldProcessRealtime(eventType)) {
     return null;
   }
@@ -174,6 +192,7 @@ async function triggerSyncFallback(
       connectorId,
       syncJobId: "",
       type: "INCREMENTAL",
+      trigger: "WEBHOOK",
       priority: 10,
     },
     10

@@ -16,6 +16,11 @@ export function createWebhookProcessor(): ProcessorResult {
 }
 
 export {
+  type GmailWebhookResult,
+  processGmailWebhook,
+  shouldProcessGmailRealtime,
+} from "./gmail-handler";
+export {
   processWebhookJob,
   replayWebhookEvent,
   replayWebhooksInRange,
