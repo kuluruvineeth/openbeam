@@ -1,5 +1,16 @@
 {
   "title": "Gmail",
   "icon": "Gmail",
-  "pages": ["index"]
+  "pages": [
+    "index",
+    "setup",
+    "google-cloud-setup",
+    "oauth-scopes",
+    "pubsub-setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting",
+    "enterprise"
+  ]
 }

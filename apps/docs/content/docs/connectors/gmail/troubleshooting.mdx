@@ -1,0 +1,330 @@
+---
+title: Troubleshooting
+description: Common Gmail connector issues and solutions
+---
+
+# Troubleshooting
+
+Solutions for common Gmail connector issues, from OAuth errors to sync problems.
+
+## OAuth Errors
+
+### redirect_uri_mismatch
+
+**Error message:**
+```
+Error 400: redirect_uri_mismatch
+The redirect URI in the request does not match the ones authorized
+```
+
+**Cause:** The OAuth redirect URI doesn't exactly match what's configured in Google Cloud Console.
+
+**Solution:**
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+2. Click your OAuth 2.0 Client ID
+3. Check **Authorized redirect URIs**
+4. Ensure exact match including:
+   - Protocol (`https://` not `http://`)
+   - Domain (including `www` if used)
+   - Path (`/connectors/setup/gmail/oauth/callback`)
+   - No trailing slash
+
+**Correct format:**
+```
+https://your-domain.com/connectors/setup/gmail/oauth/callback
+```
+
+### access_denied
+
+**Error message:**
+```
+Error 403: access_denied
+```
+
+**Cause:** User not authorized to access the app (testing mode).
+
+**Solution:**
+
+1. Go to **APIs & Services → OAuth consent screen**
+2. Scroll to **Test users**
+3. Click **Add Users**
+4. Add the Gmail address trying to connect
+5. Save and retry
+
+### invalid_grant
+
+**Error message:**
+```
+Error: invalid_grant
+Token has been expired or revoked
+```
+
+**Cause:** OAuth token has expired or been revoked.
+
+**Solution:**
+
+1. Go to connector settings
+2. Click **Disconnect**
+3. Click **Connect** to re-authorize
+4. Complete OAuth flow again
+
+### Token refresh failed
+
+**Cause:** Refresh token is invalid or revoked.
+
+**Solution:**
+
+1. User may have revoked access at [Google Account Permissions](https://myaccount.google.com/permissions)
+2. Disconnect and reconnect the connector
+3. Re-authorize permissions
+
+## Pub/Sub Errors
+
+### No notifications received
+
+**Symptoms:** New emails not appearing, only scheduled sync works.
+
+**Checklist:**
+
+| Check | How to Verify | Fix |
+|-------|---------------|-----|
+| Topic exists | Check Cloud Console → Pub/Sub | Create topic |
+| Subscription exists | Check topic subscriptions | Create push subscription |
+| Endpoint URL correct | Compare subscription URL | Update to correct URL |
+| Gmail permission | Check topic IAM | Add `gmail-api-push@system.gserviceaccount.com` |
+| Watch active | Check connector logs | Refresh watch |
+
+### 403 Forbidden on webhook
+
+**Error in logs:**
+```
+Pub/Sub push failed: 403 Forbidden
+```
+
+**Causes and solutions:**
+
+| Cause | Solution |
+|-------|----------|
+| Invalid SSL certificate | Use valid certificate (not self-signed) |
+| Endpoint not reachable | Check firewall rules |
+| Wrong endpoint path | Verify URL matches webhook route |
+
+### Duplicate sync jobs
+
+**Symptoms:** Same emails processed multiple times.
+
+**Cause:** Multiple subscriptions or acknowledgment issues.
+
+**Solution:**
+
+1. Check for duplicate subscriptions on the topic
+2. Verify only one push subscription exists
+3. Check server logs for acknowledgment errors
+4. Increase acknowledgment deadline if needed
+
+## Sync Errors
+
+### HISTORY_ID_EXPIRED
+
+**Error:**
+```
+Error: historyId is no longer valid
+```
+
+**Cause:** Gap between syncs exceeded 7 days.
+
+**Solution:** OpenPlane automatically falls back to full sync. No action needed.
+
+To prevent:
+- Enable Pub/Sub for real-time sync
+- Reduce incremental sync interval
+- Ensure server uptime
+
+### Rate limit exceeded
+
+**Error:**
+```
+Error 429: Rate Limit Exceeded
+```
+
+**Cause:** Too many API requests.
+
+**Solution:** OpenPlane handles this automatically with exponential backoff.
+
+If persistent:
+1. Check for runaway sync jobs
+2. Reduce batch size in configuration
+3. Increase delay between requests
+
+### Quota exceeded
+
+**Error:**
+```
+Error 403: User rate limit exceeded
+```
+
+**Cause:** Daily quota exhausted.
+
+**Solution:**
+
+1. Wait for quota reset (midnight PT)
+2. Request quota increase in Cloud Console
+3. Reduce sync frequency
+
+## Search Issues
+
+### Emails not appearing
+
+**Checklist:**
+
+| Check | Solution |
+|-------|----------|
+| Sync complete? | Wait for sync to finish |
+| Labels excluded? | Check label configuration |
+| Date range? | Increase lookback days |
+| Index healthy? | Check Vespa status |
+
+### Attachments not indexed
+
+**Causes:**
+
+| Cause | Solution |
+|-------|----------|
+| Indexing disabled | Enable `indexAttachments` |
+| File too large | Increase `maxAttachmentSize` |
+| Unsupported format | Check supported formats list |
+| Processing failed | Check worker logs |
+
+### Old emails missing
+
+**Cause:** Lookback period too short.
+
+**Solution:**
+
+1. Go to connector configuration
+2. Increase `lookbackDays` value
+3. Trigger full resync
+
+### Search results outdated
+
+**Cause:** Sync not running or delayed.
+
+**Solution:**
+
+1. Check connector status
+2. Verify Pub/Sub is working
+3. Check for sync errors in logs
+4. Trigger manual sync
+
+## Connection Issues
+
+### Cannot connect
+
+**Checklist:**
+
+| Issue | Verify | Solution |
+|-------|--------|----------|
+| Server reachable | curl health endpoint | Check server status |
+| OAuth configured | Environment variables | Set credentials |
+| APIs enabled | Google Cloud Console | Enable required APIs |
+| Redirect URI | OAuth credentials | Match exact URL |
+
+### Connection keeps disconnecting
+
+**Causes:**
+
+| Cause | Solution |
+|-------|----------|
+| Token revoked by user | Re-authorize |
+| App removed from Google | Re-consent |
+| Credentials rotated | Update environment variables |
+
+## Debug Tools
+
+### Check connector status
+
+```bash
+# Via API
+curl https://api.your-domain.com/api/connectors/CONNECTOR_ID \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Check webhook health
+
+```bash
+curl https://api.your-domain.com/api/v1/webhooks/gmail/health
+```
+
+Expected response:
+```json
+{
+  "status": "healthy",
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+### Check sync logs
+
+```bash
+# Server logs
+tail -f logs/server.log | grep -i gmail
+
+# Worker logs
+tail -f logs/worker.log | grep -i gmail
+
+# Filter by connector ID
+grep "CONNECTOR_ID" logs/worker.log
+```
+
+### Inspect Redis queue
+
+```bash
+# Check pending jobs
+redis-cli LLEN gmail:sync:queue
+
+# Check job details
+redis-cli LRANGE gmail:sync:queue 0 10
+```
+
+### Check Vespa index
+
+```bash
+# Count Gmail documents
+curl 'http://localhost:8080/search/?yql=select * from openplane_document where connector_type contains "gmail" | count()'
+
+# Sample documents
+curl 'http://localhost:8080/search/?yql=select * from openplane_document where connector_type contains "gmail" limit 5'
+```
+
+## Error Reference
+
+| Error | Code | Cause | Solution |
+|-------|------|-------|----------|
+| `redirect_uri_mismatch` | 400 | Wrong redirect URI | Fix OAuth credentials |
+| `access_denied` | 403 | Not a test user | Add to test users |
+| `invalid_grant` | 400 | Token expired | Reconnect |
+| `rate_limit_exceeded` | 429 | Too many requests | Wait for backoff |
+| `quota_exceeded` | 403 | Daily limit | Wait for reset |
+| `history_id_expired` | 404 | Gap > 7 days | Auto full sync |
+| `token_revoked` | 401 | User revoked | Reconnect |
+
+## Getting Help
+
+If you're still experiencing issues:
+
+1. Check [GitHub Issues](https://github.com/kuluruvineeth/openplane/issues)
+2. Search for similar problems
+3. Open a new issue with:
+   - Error messages
+   - Connector configuration (sanitized)
+   - Steps to reproduce
+   - Relevant logs
+
+## Related Documentation
+
+<Cards>
+  <Card title="Setup Guide" href="/docs/connectors/gmail/setup" description="Initial setup steps" />
+  <Card title="Pub/Sub Setup" href="/docs/connectors/gmail/pubsub-setup" description="Real-time sync setup" />
+  <Card title="Configuration" href="/docs/connectors/gmail/configuration" description="Settings reference" />
+</Cards>

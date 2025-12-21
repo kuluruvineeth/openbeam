@@ -1,26 +1,71 @@
 ---
-title: Gmail Connector
-description: Connect Gmail to OpenPlane for email search
+title: Gmail
+description: Connect Gmail to OpenPlane for powerful email search and AI assistance
 ---
 
 # Gmail Connector
 
-The Gmail connector is coming soon.
+Search emails, threads, and attachments across your Gmail. Real-time sync via Google Pub/Sub keeps your index always up-to-date.
 
-## Planned Features
+<Cards>
+  <Card title="Setup Guide" href="/docs/connectors/gmail/setup" />
+  <Card title="Features" href="/docs/connectors/gmail/features" />
+  <Card title="Configuration" href="/docs/connectors/gmail/configuration" />
+  <Card title="Troubleshooting" href="/docs/connectors/gmail/troubleshooting" />
+</Cards>
 
-- Full-text search across emails
-- Attachment indexing (PDF, DOCX, etc.)
-- Label and folder support
-- Thread grouping
-- Real-time sync via Gmail push notifications
+## Indexed Content
 
-## Authentication
+| Content Type | Indexed | Searchable | Preview |
+|--------------|---------|------------|---------|
+| Emails | Yes | Full-text | Yes |
+| Threads | Yes | Grouped | Yes |
+| Attachments | Yes | Extracted text | Yes |
+| Labels | Yes | Filterable | - |
 
-Will use Google OAuth 2.0 with the following scopes:
-- `gmail.readonly` - Read email messages
-- `gmail.metadata` - Access email metadata
+## Architecture
 
-## Stay Updated
+```mermaid
+flowchart TB
+    subgraph Google["Google Cloud"]
+        Gmail[Gmail API]
+        PubSub[Cloud Pub/Sub]
+        OAuth[OAuth 2.0]
+    end
 
-Watch the [GitHub repository](https://github.com/kuluruvineeth/openplane) for updates on Gmail connector availability.
+    subgraph OpenPlane["OpenPlane"]
+        Server[API Server]
+        Worker[Sync Worker]
+        Vespa[(Vespa Search)]
+        Redis[(Redis Queue)]
+    end
+
+    Gmail -->|Messages & Threads| Worker
+    PubSub -->|Push Notifications| Server
+    Server -->|Queue Jobs| Redis
+    Redis -->|Process| Worker
+    Worker -->|Index| Vespa
+    OAuth -->|Authenticate| Server
+```
+
+## Quick Start
+
+1. **Create Google Cloud Project** - Set up OAuth credentials ([detailed guide](/docs/connectors/gmail/google-cloud-setup))
+2. **Enable APIs** - Gmail API, People API, and optionally Pub/Sub API
+3. **Configure OAuth** - Set redirect URIs and scopes
+4. **Connect in OpenPlane** - Authorize access and start syncing
+
+## Key Features
+
+- **Full-text search** across all emails and threads
+- **Attachment indexing** with text extraction (PDF, DOCX, etc.)
+- **Real-time sync** via Google Pub/Sub push notifications
+- **Thread preview** - view entire conversations in search results
+- **Label filtering** - include or exclude specific Gmail labels
+- **Media transcription** - audio/video attachment processing
+
+<Cards>
+  <Card title="Google Cloud Setup" href="/docs/connectors/gmail/google-cloud-setup" />
+  <Card title="Pub/Sub Setup" href="/docs/connectors/gmail/pubsub-setup" />
+  <Card title="Enterprise" href="/docs/connectors/gmail/enterprise" />
+</Cards>
