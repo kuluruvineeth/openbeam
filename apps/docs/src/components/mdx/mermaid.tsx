@@ -30,6 +30,8 @@ export function Mermaid({ chart }: { chart: string }): React.ReactElement {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    let isMounted = true;
+
     const render = async (mermaidInstance: typeof mermaid) => {
       mermaidInstance.initialize({
         startOnLoad: false,
@@ -39,10 +41,16 @@ export function Mermaid({ chart }: { chart: string }): React.ReactElement {
         id.replaceAll(":", "_"),
         chart
       );
-      setSvg(result.svg);
+      if (isMounted) {
+        setSvg(result.svg);
+      }
     };
 
     mermaidPromise.then(render).catch(console.error);
+
+    return () => {
+      isMounted = false;
+    };
   }, [chart, id, resolvedTheme]);
 
   const handleZoomIn = useCallback(() => {
