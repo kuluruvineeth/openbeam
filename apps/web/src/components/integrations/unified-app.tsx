@@ -43,10 +43,7 @@ export function UnifiedAppComponent({ app }: UnifiedAppProps) {
     [app.settings]
   );
 
-  const defaultValues = useMemo(
-    () => getAppDefaultValues(app),
-    [app.settings, app.userSettings]
-  );
+  const defaultValues = useMemo(() => getAppDefaultValues(app), [app]);
 
   const form = useForm({
     resolver: zodResolver(formSchema),

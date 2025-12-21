@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useEffect, useState } from "react";
+import { forwardRef, useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -30,7 +30,7 @@ export const ChatInput = forwardRef<HTMLDivElement, Props>(
       setIsPlaceholderVisible(query.length === 0);
     }, [query]);
 
-    const adjustHeight = () => {
+    const adjustHeight = useCallback(() => {
       if (ref && typeof ref !== "function" && ref.current) {
         ref.current.style.height = "auto";
         const scrollHeight = ref.current.scrollHeight;
@@ -42,11 +42,12 @@ export const ChatInput = forwardRef<HTMLDivElement, Props>(
         );
         ref.current.style.height = `${newHeight}px`;
       }
-    };
+    }, [ref]);
 
+    // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally adjust height when query prop changes
     useEffect(() => {
       adjustHeight();
-    }, [query]);
+    }, [query, adjustHeight]);
 
     return (
       <div className="relative flex items-center">

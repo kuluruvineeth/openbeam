@@ -1,7 +1,7 @@
 "use client";
 
 import JSZip from "jszip";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { PresentationSkeleton } from "@/components/file-preview/file-preview-loading";
 import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -47,6 +47,7 @@ export function PresentationViewer({
   const [state, setState] = useState<ViewerState>("loading");
   const [errorMessage, setErrorMessage] = useState<string>();
   const [data, setData] = useState<PresentationData | null>(null);
+  const thumbnailUrlRef = useRef<string | null>(null);
 
   const loadPresentation = useCallback(async () => {
     setState("loading");
@@ -60,6 +61,7 @@ export function PresentationViewer({
 
       const blob = await response.blob();
       const extracted = await extractPptxData(blob);
+      thumbnailUrlRef.current = extracted.thumbnailUrl;
       setData(extracted);
       setState("ready");
     } catch (err) {
@@ -74,8 +76,8 @@ export function PresentationViewer({
     loadPresentation();
 
     return () => {
-      if (data?.thumbnailUrl) {
-        URL.revokeObjectURL(data.thumbnailUrl);
+      if (thumbnailUrlRef.current) {
+        URL.revokeObjectURL(thumbnailUrlRef.current);
       }
     };
   }, [loadPresentation]);

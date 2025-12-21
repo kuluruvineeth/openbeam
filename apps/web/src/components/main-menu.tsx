@@ -218,7 +218,7 @@ export function MainMenu({ onSelect, isExpanded = false }: Props) {
   const pathname = usePathname();
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
 
-  // Reset expanded item when sidebar expands/collapses
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally reset when isExpanded prop changes
   useEffect(() => {
     setExpandedItem(null);
   }, [isExpanded]);

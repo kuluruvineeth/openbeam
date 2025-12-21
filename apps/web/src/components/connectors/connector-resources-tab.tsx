@@ -10,11 +10,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   type ConnectorResource,
   type ResourceDocument,
+  useConnector,
   useConnectorResources,
   useResourceDocuments,
   useToggleResourceSync,
 } from "@/hooks/use-connector";
-import { useDocumentPreview } from "@/hooks/use-document-preview";
+import {
+  type PreviewType,
+  useDocumentPreview,
+} from "@/hooks/use-document-preview";
+import { getPreviewCategory } from "@/lib/file-preview-config";
 import { cn } from "@/lib/utils";
 
 type IconComponent = React.ComponentType<{ size?: number; className?: string }>;
@@ -139,15 +144,19 @@ function EmptyState() {
 
 function DocumentItem({
   doc,
+  connectorType,
   isSelected,
   onSelect,
 }: {
   doc: ResourceDocument;
+  connectorType: string;
   isSelected: boolean;
   onSelect: () => void;
 }) {
   const { icon: Icon, style } = getDocTypeConfig(doc.documentType);
-  const isPreviewable = doc.source === "file" || doc.source === "media";
+  const previewCategory = getPreviewCategory(connectorType, doc.documentType);
+  const isPreviewable =
+    doc.source === "file" || doc.source === "media" || !!previewCategory;
   const title = doc.title ?? "Untitled";
 
   if (isPreviewable) {
@@ -207,16 +216,18 @@ function DocumentListSkeleton() {
 
 function DocumentList({
   connectorId,
+  connectorType,
   resourceExternalId,
   enabled,
   previewId,
   onSelectDocument,
 }: {
   connectorId: string;
+  connectorType: string;
   resourceExternalId: string;
   enabled: boolean;
   previewId: string | null;
-  onSelectDocument: (docId: string) => void;
+  onSelectDocument: (docId: string, previewType: PreviewType) => void;
 }) {
   const [search, setSearch] = useState("");
   const {
@@ -286,14 +297,22 @@ function DocumentList({
         </div>
       ) : (
         <>
-          {documents.map((doc) => (
-            <DocumentItem
-              doc={doc}
-              isSelected={previewId === doc.id}
-              key={doc.id}
-              onSelect={() => onSelectDocument(doc.id)}
-            />
-          ))}
+          {documents.map((doc) => {
+            const category = getPreviewCategory(
+              connectorType,
+              doc.documentType
+            );
+            const previewType: PreviewType = category ?? "document";
+            return (
+              <DocumentItem
+                connectorType={connectorType}
+                doc={doc}
+                isSelected={previewId === doc.id}
+                key={doc.id}
+                onSelect={() => onSelectDocument(doc.id, previewType)}
+              />
+            );
+          })}
           {hasNextPage && (
             <button
               className="ml-9 border-border/30 border-l py-1.5 pl-4 text-[10px] text-foreground/40 hover:text-foreground/60 disabled:opacity-50"
@@ -318,6 +337,7 @@ function DocumentList({
 function ResourceRow({
   resource,
   connectorId,
+  connectorType,
   onToggle,
   disabled,
   previewId,
@@ -325,10 +345,11 @@ function ResourceRow({
 }: {
   resource: ConnectorResource;
   connectorId: string;
+  connectorType: string;
   onToggle: (enabled: boolean) => void;
   disabled: boolean;
   previewId: string | null;
-  onSelectDocument: (docId: string) => void;
+  onSelectDocument: (docId: string, previewType: PreviewType) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const Icon = getResourceIcon(resource.resourceType);
@@ -400,6 +421,7 @@ function ResourceRow({
       {expanded && (
         <DocumentList
           connectorId={connectorId}
+          connectorType={connectorType}
           enabled={expanded}
           onSelectDocument={onSelectDocument}
           previewId={previewId}
@@ -415,6 +437,8 @@ export function ConnectorResourcesTab({
 }: {
   connectorId: string;
 }) {
+  const { data: connector } = useConnector(connectorId);
+  const connectorType = connector?.app ?? "";
   const {
     resources,
     totalCount,
@@ -428,7 +452,8 @@ export function ConnectorResourcesTab({
     fetchNextPage,
   } = useConnectorResources(connectorId);
   const toggle = useToggleResourceSync(connectorId);
-  const { previewId, openPreview, closePreview } = useDocumentPreview();
+  const { previewId, previewType, openPreview, closePreview } =
+    useDocumentPreview();
 
   if (isLoading && resources.length === 0) {
     return (
@@ -449,7 +474,11 @@ export function ConnectorResourcesTab({
   }
 
   return (
-    <SearchSplitView onClosePreview={closePreview} previewId={previewId}>
+    <SearchSplitView
+      onClosePreview={closePreview}
+      previewId={previewId}
+      previewType={previewType ?? undefined}
+    >
       <div className="flex h-full flex-col">
         <div className="flex shrink-0 items-center justify-between pb-3">
           <p className="text-foreground/50 text-xs tabular-nums">
@@ -488,6 +517,7 @@ export function ConnectorResourcesTab({
               {resources.map((r) => (
                 <ResourceRow
                   connectorId={connectorId}
+                  connectorType={connectorType}
                   disabled={toggle.isPending}
                   key={r.id}
                   onSelectDocument={openPreview}

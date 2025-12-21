@@ -8,7 +8,7 @@ export function ClientOnly({
 }: {
   children: React.ReactNode;
   fallback?: React.ReactNode;
-}) {
+}): React.ReactElement | null {
   const isClient = useSyncExternalStore(
     () => () => {
       // No-op subscribe function (never changes)
@@ -17,5 +17,9 @@ export function ClientOnly({
     () => false
   );
 
-  return isClient ? children : fallback;
+  if (!isClient) {
+    return fallback as React.ReactElement | null;
+  }
+
+  return children as React.ReactElement;
 }
