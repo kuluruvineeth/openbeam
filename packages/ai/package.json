@@ -39,6 +39,7 @@
     "@ai-sdk/google": "^2.0.44",
     "@ai-sdk/openai": "^2.0.76",
     "ai": "^5.0.106",
+    "tiktoken": "^1.0.22",
     "zod": "^4.1.13"
   },
   "devDependencies": {
