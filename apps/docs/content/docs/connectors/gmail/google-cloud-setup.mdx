@@ -1,204 +1,67 @@
 ---
 title: Google Cloud Setup
-description: Detailed guide to configure Google Cloud Console for Gmail integration
+description: Configure Google Cloud for Gmail integration
 ---
 
-# Google Cloud Console Setup
+# Google Cloud Setup
 
-This guide walks through the complete Google Cloud Console configuration for the Gmail connector, including OAuth consent screen, credentials, and API enablement.
+Detailed GCP configuration for the Gmail connector.
 
-## Create or Select a Project
+## 1. Create Project
 
-### New Project
+1. Go to [console.cloud.google.com](https://console.cloud.google.com/)
+2. Click project dropdown → **New Project**
+3. Enter name and create
 
-1. Open [Google Cloud Console](https://console.cloud.google.com/)
-2. Click the project dropdown in the top navigation
-3. Click **New Project** in the modal
-4. Enter:
-   - **Project name**: e.g., "OpenPlane Production"
-   - **Organization**: Select your organization (if applicable)
-   - **Location**: Select folder (if applicable)
-5. Click **Create**
+## 2. Enable APIs
 
-### Existing Project
+In **APIs & Services → Library**, enable:
+- **Gmail API** (required)
+- **People API** (required)
+- **Cloud Pub/Sub API** (optional, for real-time sync)
 
-If using an existing project, ensure it has:
-- Sufficient API quota
-- Correct billing account (if needed)
-- Appropriate IAM permissions
+## 3. OAuth Consent Screen
 
-## Enable APIs
+1. Go to **APIs & Services → OAuth consent screen**
+2. Select **Internal** (Workspace only) or **External** (any Google account)
+3. Fill in app name, support email, developer email
+4. Add scopes:
+   ```
+   https://www.googleapis.com/auth/gmail.readonly
+   https://www.googleapis.com/auth/userinfo.email
+   https://www.googleapis.com/auth/userinfo.profile
+   ```
+5. For External apps: add test users
 
-Navigate to **APIs & Services → Library** and enable each required API:
+| Status | Who Can Connect |
+|--------|-----------------|
+| Testing | Test users only (100 max) |
+| Production | Anyone (requires Google verification) |
 
-### Gmail API (Required)
+## 4. Create Credentials
 
-1. Search for "Gmail API"
-2. Click the result
-3. Click **Enable**
+1. Go to **APIs & Services → Credentials**
+2. Click **Create Credentials → OAuth client ID**
+3. Select **Web application**
+4. Add redirect URI:
+   ```
+   https://your-domain.com/connectors/setup/gmail/oauth/callback
+   ```
+5. Save Client ID and Client Secret
 
-The Gmail API provides access to:
-- Read email messages and threads
-- Access email metadata (labels, timestamps)
-- List mailbox contents
-
-### People API (Required)
-
-1. Search for "People API"
-2. Click the result
-3. Click **Enable**
-
-The People API provides:
-- User's email address
-- Basic profile information
-
-### Cloud Pub/Sub API (Optional)
-
-Required only for real-time sync:
-
-1. Search for "Cloud Pub/Sub API"
-2. Click the result
-3. Click **Enable**
-
-See [Pub/Sub Setup](/docs/connectors/gmail/pubsub-setup) for configuration details.
-
-## Configure OAuth Consent Screen
-
-Navigate to **APIs & Services → OAuth consent screen**.
-
-### User Type Selection
-
-| Type | Use Case | Verification |
-|------|----------|--------------|
-| **Internal** | Google Workspace users only | No verification needed |
-| **External** | Any Google account | Requires verification for production |
-
-<Callout type="info">
-  For development and testing, select **External** and add test users. You can publish the app later after Google verification.
-</Callout>
-
-### App Information
-
-Fill in the required fields:
-
-| Field | Value | Notes |
-|-------|-------|-------|
-| App name | Your app name | Shown on consent screen |
-| User support email | your@email.com | For user inquiries |
-| App logo | (optional) | 120x120px recommended |
-| Application home page | https://your-domain.com | (optional) |
-| Privacy policy | https://your-domain.com/privacy | Required for publishing |
-| Terms of service | https://your-domain.com/terms | Required for publishing |
-| Developer contact | your@email.com | For Google communications |
-
-### Scopes Configuration
-
-Click **Add or Remove Scopes** and add:
-
-```
-https://www.googleapis.com/auth/gmail.readonly
-https://www.googleapis.com/auth/userinfo.email
-https://www.googleapis.com/auth/userinfo.profile
-```
-
-See [OAuth Scopes](/docs/connectors/gmail/oauth-scopes) for detailed scope information.
-
-### Test Users
-
-For **External** apps in testing mode:
-
-1. Click **Add Users**
-2. Enter Gmail addresses that will test the integration
-3. Click **Save**
-
-<Callout type="warn">
-  Only test users can authorize the app until it's published. Add all team members who need to test.
-</Callout>
-
-### Publishing Status
-
-| Status | Behavior | Limit |
-|--------|----------|-------|
-| **Testing** | Only test users can connect | 100 users max |
-| **In production** | Any user can connect | Requires verification |
-
-## Create OAuth Credentials
-
-Navigate to **APIs & Services → Credentials**.
-
-### Create OAuth Client ID
-
-1. Click **+ CREATE CREDENTIALS**
-2. Select **OAuth client ID**
-3. Choose **Web application**
-4. Configure:
-
-| Field | Value |
-|-------|-------|
-| Name | OpenPlane Gmail |
-| Authorized JavaScript origins | `https://your-domain.com` |
-| Authorized redirect URIs | `https://your-domain.com/connectors/setup/gmail/oauth/callback` |
-
-5. Click **Create**
-
-### Save Credentials
-
-After creation, you'll see:
-- **Client ID**: `123456789-abc.apps.googleusercontent.com`
-- **Client Secret**: `GOCSPX-xxxxx`
-
-<Callout type="warn">
-  Save these credentials securely. The client secret is only shown once. You can download the JSON file for backup.
-</Callout>
-
-## Environment Variables
-
-Add these to your server configuration:
+## 5. Environment Variables
 
 ```bash
-# Google OAuth Credentials
-GOOGLE_CLIENT_ID=123456789-abc.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=GOCSPX-xxxxx
-
-# Application URLs (must match OAuth redirect URI)
+GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-your-secret
 WEB_URL=https://your-domain.com
 SERVER_URL=https://api.your-domain.com
 ```
 
-### Variable Reference
+## Common Issues
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `GOOGLE_CLIENT_ID` | OAuth 2.0 Client ID | `123...apps.googleusercontent.com` |
-| `GOOGLE_CLIENT_SECRET` | OAuth 2.0 Client Secret | `GOCSPX-...` |
-| `WEB_URL` | Frontend application URL | `https://app.example.com` |
-| `SERVER_URL` | Backend API URL | `https://api.example.com` |
-
-## Verification Checklist
-
-Before proceeding to connect:
-
-- [ ] Gmail API enabled
-- [ ] People API enabled
-- [ ] OAuth consent screen configured
-- [ ] Test users added (for testing mode)
-- [ ] OAuth credentials created
-- [ ] Redirect URI matches your domain
-- [ ] Environment variables configured
-
-## Common Configuration Issues
-
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| "App not verified" warning | App in testing mode | Normal - click "Advanced" → "Go to app" |
-| Redirect URI mismatch | URL doesn't match exactly | Ensure exact match including protocol and path |
-| API not enabled | Forgot to enable API | Go to Library and enable required APIs |
-| Quota exceeded | Too many requests | Check quotas in Console or wait for reset |
-
-## Next Steps
-
-<Cards>
-  <Card title="OAuth Scopes" href="/docs/connectors/gmail/oauth-scopes" description="Understand required permissions" />
-  <Card title="Pub/Sub Setup" href="/docs/connectors/gmail/pubsub-setup" description="Enable real-time notifications" />
-  <Card title="Setup Guide" href="/docs/connectors/gmail/setup" description="Complete the connection" />
-</Cards>
+| Issue | Fix |
+|-------|-----|
+| "App not verified" | Normal in testing - click Advanced → Go to app |
+| Redirect URI mismatch | Exact match required including protocol |
+| API not enabled | Enable in APIs & Services → Library |

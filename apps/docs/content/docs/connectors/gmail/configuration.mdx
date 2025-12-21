@@ -1,280 +1,66 @@
 ---
 title: Configuration
-description: Advanced Gmail connector configuration options
+description: Gmail connector settings
 ---
 
-# Gmail Configuration
+# Configuration
 
-Customize the Gmail connector to match your needs. Configure sync behavior, label filtering, attachment processing, and more.
+## Label Filtering
 
-## Configuration Overview
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `includeLabels` | `[]` | Only sync these (empty = all) |
+| `excludeLabels` | `["SPAM", "TRASH"]` | Skip these labels |
 
-Access Gmail settings:
+```json
+{
+  "includeLabels": ["INBOX", "IMPORTANT"],
+  "excludeLabels": ["SPAM", "TRASH", "CATEGORY_PROMOTIONS"]
+}
+```
 
-1. Navigate to **Settings → Connectors**
-2. Click on your Gmail connector
-3. Click **Settings** tab
+Common labels: `INBOX`, `SENT`, `IMPORTANT`, `STARRED`, `CATEGORY_PERSONAL`, `CATEGORY_PROMOTIONS`
 
 ## Sync Settings
 
-### Label Filtering
-
-Control which emails are indexed using Gmail labels:
-
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `includeLabels` | string[] | `[]` | Only sync these labels (empty = all) |
-| `excludeLabels` | string[] | `["SPAM", "TRASH"]` | Skip these labels |
-
-**Example configurations:**
-
-```json
-// Index only inbox and important emails
-{
-  "includeLabels": ["INBOX", "IMPORTANT"],
-  "excludeLabels": []
-}
-
-// Index everything except spam, trash, and promotions
-{
-  "includeLabels": [],
-  "excludeLabels": ["SPAM", "TRASH", "CATEGORY_PROMOTIONS"]
-}
-
-// Index specific project labels
-{
-  "includeLabels": ["Projects/Alpha", "Projects/Beta"],
-  "excludeLabels": []
-}
-```
-
-### Common Gmail Labels
-
-| Label | Description |
-|-------|-------------|
-| `INBOX` | Inbox emails |
-| `SENT` | Sent emails |
-| `DRAFT` | Draft emails |
-| `SPAM` | Spam folder |
-| `TRASH` | Deleted emails |
-| `IMPORTANT` | Marked important |
-| `STARRED` | Starred emails |
-| `CATEGORY_PERSONAL` | Personal category |
-| `CATEGORY_SOCIAL` | Social category |
-| `CATEGORY_PROMOTIONS` | Promotions category |
-| `CATEGORY_UPDATES` | Updates category |
-| `CATEGORY_FORUMS` | Forums category |
-
-### History Depth
-
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `lookbackDays` | number | `365` | Days of email history to sync |
-
-<Callout type="info">
-  Larger lookback values increase initial sync time but provide more searchable history.
-</Callout>
-
-### Thread Settings
-
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `threadAware` | boolean | `true` | Group emails by thread |
-
-When enabled:
-- Related messages indexed together
-- Thread metadata calculated (participants, date range)
-- Conversation view available in search results
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `lookbackDays` | `365` | Days of history to sync |
+| `threadAware` | `true` | Group emails by thread |
+| `fullSyncInterval` | `24h` | Full resync frequency |
+| `incrementalInterval` | `15m` | Check frequency |
 
 ## Attachment Settings
 
-### Basic Settings
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `indexAttachments` | `true` | Extract attachment content |
+| `maxAttachmentSize` | `26214400` | Max size (25MB) |
+| `ocrEnabled` | `true` | OCR for images |
+| `transcribeMedia` | `false` | Audio/video transcription |
 
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `indexAttachments` | boolean | `true` | Extract and index attachment content |
-| `maxAttachmentSize` | number | `26214400` | Max size in bytes (25MB) |
+## Real-time Sync
 
-### Supported Formats
-
-| Category | Extensions | Extraction |
-|----------|------------|------------|
-| Documents | PDF, DOCX, DOC, TXT, RTF | Full text |
-| Spreadsheets | XLSX, XLS, CSV | Cell content |
-| Presentations | PPTX, PPT | Slide text |
-| Images | PNG, JPG, GIF | OCR (if enabled) |
-| Archives | ZIP | Extracted contents |
-
-### Media Settings
-
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `transcribeMedia` | boolean | `false` | Transcribe audio/video attachments |
-| `ocrEnabled` | boolean | `true` | Extract text from images |
-
-<Callout type="warn">
-  Media transcription requires TwelveLabs integration to be configured.
-</Callout>
-
-## Real-time Settings
-
-### Pub/Sub Configuration
-
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `realtimeEnabled` | boolean | `false` | Enable push notifications |
-| `pubsubTopic` | string | `""` | Full Pub/Sub topic name |
-
-**Topic format:**
-```
-projects/YOUR-PROJECT-ID/topics/gmail-notifications
-```
-
-### Sync Intervals
-
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `fullSyncInterval` | string | `"24h"` | Full resync frequency |
-| `incrementalInterval` | string | `"15m"` | Incremental check frequency |
-
-<Callout type="info">
-  With real-time enabled, incremental checks are backup only. Most updates come via Pub/Sub.
-</Callout>
+| Setting | Description |
+|---------|-------------|
+| `realtimeEnabled` | Enable Pub/Sub push |
+| `pubsubTopic` | `projects/PROJECT/topics/gmail-notifications` |
 
 ## Environment Variables
 
-### Required Variables
-
 ```bash
-# OAuth Credentials
 GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=GOCSPX-your-secret
-
-# Application URLs
 WEB_URL=https://your-domain.com
 SERVER_URL=https://api.your-domain.com
 ```
 
-### Optional Variables
+## Resync Required
 
-```bash
-# Pub/Sub (for real-time sync)
-GOOGLE_PUBSUB_PROJECT_ID=your-project-id
+| Change | Resync |
+|--------|--------|
+| Add includeLabels | Full sync |
+| Increase lookback | Full sync |
+| Enable attachments | Full sync |
 
-# Rate limiting
-GMAIL_RATE_LIMIT_PER_SECOND=10
-GMAIL_BATCH_SIZE=100
-
-# Sync behavior
-GMAIL_DEFAULT_LOOKBACK_DAYS=365
-GMAIL_MAX_ATTACHMENT_SIZE=26214400
-```
-
-## Configuration Examples
-
-### Minimal Setup
-
-Index all emails with default settings:
-
-```json
-{
-  "excludeLabels": ["SPAM", "TRASH"],
-  "indexAttachments": true
-}
-```
-
-### Production Setup
-
-Full-featured configuration:
-
-```json
-{
-  "includeLabels": [],
-  "excludeLabels": ["SPAM", "TRASH", "CATEGORY_PROMOTIONS"],
-  "lookbackDays": 730,
-  "threadAware": true,
-  "indexAttachments": true,
-  "transcribeMedia": true,
-  "realtimeEnabled": true,
-  "pubsubTopic": "projects/my-project/topics/gmail-notifications"
-}
-```
-
-### Focused Inbox
-
-Index only important emails:
-
-```json
-{
-  "includeLabels": ["INBOX", "IMPORTANT", "STARRED"],
-  "excludeLabels": [],
-  "lookbackDays": 365,
-  "threadAware": true
-}
-```
-
-### Project-specific
-
-Index only project-related emails:
-
-```json
-{
-  "includeLabels": ["Projects/Active", "Projects/Archive"],
-  "excludeLabels": [],
-  "lookbackDays": 1095,
-  "threadAware": true
-}
-```
-
-## Applying Configuration
-
-### Via UI
-
-1. Go to **Settings → Connectors → Gmail**
-2. Click **Settings** tab
-3. Modify values
-4. Click **Save**
-5. Changes apply on next sync
-
-### Via API
-
-```bash
-curl -X PATCH https://api.your-domain.com/api/connectors/CONNECTOR_ID/settings \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "excludeLabels": ["SPAM", "TRASH"],
-    "lookbackDays": 365
-  }'
-```
-
-## Resync After Changes
-
-Some configuration changes require resync:
-
-| Change | Resync Required | Type |
-|--------|-----------------|------|
-| Add labels to include | Yes | Full sync |
-| Add labels to exclude | No | Incremental |
-| Increase lookback | Yes | Full sync |
-| Decrease lookback | No | Cleanup runs |
-| Enable attachments | Yes | Full sync |
-| Change thread settings | Yes | Full sync |
-
-To trigger a full resync:
-
-1. Go to connector settings
-2. Click **Actions → Full Resync**
-3. Confirm the operation
-
-<Callout type="warn">
-  Full resync can take significant time for large mailboxes. Consider running during off-peak hours.
-</Callout>
-
-## Related Documentation
-
-<Cards>
-  <Card title="Sync Behavior" href="/docs/connectors/gmail/sync" description="How syncing works" />
-  <Card title="Pub/Sub Setup" href="/docs/connectors/gmail/pubsub-setup" description="Enable real-time sync" />
-  <Card title="Troubleshooting" href="/docs/connectors/gmail/troubleshooting" description="Common issues" />
-</Cards>
+Trigger via **Actions → Full Resync** in connector settings.

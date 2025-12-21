@@ -1,125 +1,23 @@
 ---
 title: OAuth Scopes
-description: Gmail OAuth scopes required for OpenPlane integration
+description: Required Gmail permissions
 ---
 
 # OAuth Scopes
 
-OpenPlane requires specific OAuth scopes to access Gmail data. This page explains each scope, its purpose, and Google's sensitivity classification.
-
 ## Required Scopes
 
-| Scope | Purpose | Sensitivity |
-|-------|---------|-------------|
-| `gmail.readonly` | Read email messages and threads | Sensitive |
-| `userinfo.email` | Access user's email address | Non-sensitive |
-| `userinfo.profile` | Access user's basic profile | Non-sensitive |
+| Scope | Purpose |
+|-------|---------|
+| `gmail.readonly` | Read emails, threads, labels, attachments |
+| `userinfo.email` | Identify connected account |
+| `userinfo.profile` | Display user name |
 
-## Scope Details
+OpenPlane uses read-only access. No send, modify, or delete permissions.
 
-### gmail.readonly
+## Add Scopes
 
-```
-https://www.googleapis.com/auth/gmail.readonly
-```
-
-**Purpose**: Provides read-only access to Gmail messages, threads, labels, and settings.
-
-**Allows OpenPlane to**:
-- List and read email messages
-- Access email metadata (subject, sender, recipients, timestamps)
-- Read thread structure and conversation groupings
-- List and read Gmail labels
-- Access email attachments for indexing
-
-**Does NOT allow**:
-- Sending emails
-- Modifying or deleting emails
-- Changing Gmail settings
-- Creating or modifying labels
-
-<Callout type="info">
-  OpenPlane uses read-only access by design. Your emails are never modified, deleted, or sent on your behalf.
-</Callout>
-
-### userinfo.email
-
-```
-https://www.googleapis.com/auth/userinfo.email
-```
-
-**Purpose**: Access the user's primary email address.
-
-**Allows OpenPlane to**:
-- Identify the connected Gmail account
-- Associate indexed content with the correct user
-- Enforce access controls based on email
-
-### userinfo.profile
-
-```
-https://www.googleapis.com/auth/userinfo.profile
-```
-
-**Purpose**: Access basic profile information.
-
-**Allows OpenPlane to**:
-- Display user's name in the interface
-- Show profile information in search results
-
-## Sensitivity Levels
-
-Google classifies OAuth scopes by sensitivity:
-
-| Level | Description | Verification |
-|-------|-------------|--------------|
-| **Non-sensitive** | Basic profile data | No verification needed |
-| **Sensitive** | User data that requires care | Verification required for production |
-| **Restricted** | Highly sensitive data | Extensive security assessment |
-
-### Gmail Scope Classification
-
-The `gmail.readonly` scope is classified as **Sensitive**, which means:
-
-1. **Testing Mode**: Up to 100 test users without verification
-2. **Production**: Requires Google OAuth verification
-3. **Consent Screen**: Shows detailed permission description
-
-## Google OAuth Verification
-
-For production deployments with more than 100 users, Google requires OAuth verification.
-
-### Verification Requirements
-
-| Requirement | Details |
-|-------------|---------|
-| Privacy Policy | Publicly accessible privacy policy URL |
-| Terms of Service | Publicly accessible terms URL |
-| Application Homepage | Public website describing your application |
-| Video Demo | Recording showing OAuth flow and data usage |
-| Written Explanation | Description of how data is used |
-
-### Verification Process
-
-1. Complete OAuth consent screen configuration
-2. Click **Publish App** in Google Cloud Console
-3. Submit verification request
-4. Respond to Google's questions
-5. Wait for approval (typically 2-6 weeks)
-
-<Callout type="warn">
-  Start the verification process early. Google review can take several weeks, especially for sensitive scopes.
-</Callout>
-
-## Scope Configuration
-
-### In Google Cloud Console
-
-1. Navigate to **APIs & Services → OAuth consent screen**
-2. Click **Edit App**
-3. Go to **Scopes** section
-4. Click **Add or Remove Scopes**
-5. Enter the required scope URLs:
+In **APIs & Services → OAuth consent screen → Scopes**:
 
 ```
 https://www.googleapis.com/auth/gmail.readonly
@@ -127,44 +25,19 @@ https://www.googleapis.com/auth/userinfo.email
 https://www.googleapis.com/auth/userinfo.profile
 ```
 
-6. Click **Update** → **Save and Continue**
+## Google Verification
 
-### Minimal Permissions
+The `gmail.readonly` scope is classified as **Sensitive**:
 
-OpenPlane follows the principle of least privilege:
+| Mode | Limit |
+|------|-------|
+| Testing | 100 users, no verification |
+| Production | Unlimited, requires verification |
 
-- Only **read-only** Gmail access is requested
-- No write, send, or delete permissions
-- Only basic profile information for identification
-- No access to other Google services
+For production (100+ users), Google verification requires:
+- Privacy policy and terms URLs
+- Application homepage
+- Video demo of OAuth flow
+- Written explanation of data usage
 
-## Consent Screen Display
-
-When users authorize OpenPlane, they see:
-
-```
-OpenPlane wants to access your Google Account
-
-This will allow OpenPlane to:
-
-✓ Read, compose, send, and permanently delete all your
-  email from Gmail
-  (Note: Shows standard text for gmail.readonly)
-
-✓ See your primary Google Account email address
-
-✓ See your personal info, including any personal info
-  you've made publicly available
-```
-
-<Callout type="info">
-  Google's consent screen shows generic descriptions. OpenPlane only uses read access despite the consent text mentioning compose/send.
-</Callout>
-
-## Related Documentation
-
-<Cards>
-  <Card title="Google Cloud Setup" href="/docs/connectors/gmail/google-cloud-setup" description="Configure OAuth credentials" />
-  <Card title="Setup Guide" href="/docs/connectors/gmail/setup" description="Complete Gmail connection" />
-  <Card title="Enterprise" href="/docs/connectors/gmail/enterprise" description="Workspace deployment" />
-</Cards>
+Verification typically takes 2-6 weeks. Start early.
