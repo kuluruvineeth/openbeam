@@ -1,3 +1,4 @@
+import type { ConnectorFileInfo } from "../../files";
 import {
   filterSupportedFiles,
   getAllFiles,
@@ -18,7 +19,7 @@ export interface FileSyncOptions {
 }
 
 export interface FileSyncBatch {
-  files: SlackFileInfo[];
+  files: ConnectorFileInfo[];
   hasMore: boolean;
   stats: {
     total: number;
@@ -27,6 +28,7 @@ export interface FileSyncBatch {
   };
 }
 
+/** @deprecated Use ConnectorFileInfo instead */
 export interface SlackFileInfo {
   id: string;
   name: string;
@@ -41,19 +43,21 @@ export interface SlackFileInfo {
   channels?: string[];
 }
 
-export function transformSlackFile(file: SlackFile): SlackFileInfo {
+export function transformSlackFile(file: SlackFile): ConnectorFileInfo {
+  const downloadUrl = getDownloadUrl(file);
   return {
     id: file.id,
     name: file.name,
     title: file.title,
     mimeType: file.mimetype,
-    fileType: file.filetype,
     size: file.size,
-    downloadUrl: getDownloadUrl(file),
+    downloadStrategy: downloadUrl
+      ? { type: "url", downloadUrl }
+      : { type: "url", downloadUrl: "" },
     permalink: file.permalink,
     createdAt: file.created,
     userId: file.user,
-    channels: file.channels,
+    sourceChannelId: file.channels?.[0],
   };
 }
 
@@ -187,7 +191,7 @@ function processBatch(
 }
 
 export function getLatestFileTimestamp(
-  files: SlackFileInfo[]
+  files: ConnectorFileInfo[]
 ): string | undefined {
   if (files.length === 0) {
     return;

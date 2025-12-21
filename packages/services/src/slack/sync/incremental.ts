@@ -1,4 +1,5 @@
 import type { GenericDocument } from "@openplane/vespa";
+import type { ConnectorFileInfo } from "../../files";
 import type { SlackClient } from "../client";
 import type {
   SlackChannel,
@@ -13,7 +14,6 @@ import { type ClipSyncOptions, syncClipsBatched } from "./clips";
 import {
   type FileSyncOptions,
   getLatestFileTimestamp,
-  type SlackFileInfo,
   syncFiles,
 } from "./files";
 import { type SyncMessagesOptions, syncMultipleChannels } from "./messages";
@@ -49,7 +49,7 @@ export interface IncrementalSyncOptions {
   enabledChannelIds?: Set<string>;
   syncFiles?: boolean;
   fileOptions?: Omit<FileSyncOptions, "lastSyncTimestamp">;
-  onFilesDiscovered?: (files: SlackFileInfo[]) => Promise<void>;
+  onFilesDiscovered?: (files: ConnectorFileInfo[]) => Promise<void>;
   syncCanvases?: boolean;
   canvasOptions?: Omit<CanvasSyncOptions, "channelId">;
   syncClips?: boolean;
@@ -173,7 +173,7 @@ export async function* fullSync(
     enabledChannelIds?: Set<string>;
     syncFiles?: boolean;
     fileOptions?: Omit<FileSyncOptions, "lastSyncTimestamp">;
-    onFilesDiscovered?: (files: SlackFileInfo[]) => Promise<void>;
+    onFilesDiscovered?: (files: ConnectorFileInfo[]) => Promise<void>;
     syncCanvases?: boolean;
     canvasOptions?: Omit<CanvasSyncOptions, "channelId">;
     syncClips?: boolean;
@@ -252,7 +252,7 @@ export async function* deltaSync(
     enabledChannelIds?: Set<string>;
     syncFiles?: boolean;
     fileOptions?: Omit<FileSyncOptions, "lastSyncTimestamp">;
-    onFilesDiscovered?: (files: SlackFileInfo[]) => Promise<void>;
+    onFilesDiscovered?: (files: ConnectorFileInfo[]) => Promise<void>;
     syncCanvases?: boolean;
     canvasOptions?: Omit<CanvasSyncOptions, "channelId">;
     syncClips?: boolean;
@@ -332,7 +332,7 @@ async function* syncFilesWithCallback(
   client: SlackClient,
   context: TransformContext,
   options: FileSyncOptions & {
-    onFilesDiscovered: (files: SlackFileInfo[]) => Promise<void>;
+    onFilesDiscovered: (files: ConnectorFileInfo[]) => Promise<void>;
   }
 ): AsyncGenerator<SyncBatch<GenericDocument>, void, undefined> {
   const { onFilesDiscovered, ...fileOptions } = options;
