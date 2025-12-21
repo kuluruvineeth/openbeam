@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Icons } from "@/components/icons";
-import { CopyButton } from "@/components/ui/code-block";
 import { Markdown } from "@/components/ui/markdown";
-import { highlight } from "@/lib/shiki";
 
 const MAX_SIZE = 500_000;
 
@@ -58,16 +56,11 @@ type Props = {
 
 type State = {
   content: string | null;
-  highlighted: string | null;
   loading: boolean;
   error: string | null;
 };
 
-async function fetchAndHighlight(
-  url: string,
-  shouldHighlight: boolean,
-  lang: string | null
-): Promise<{ content: string; highlighted: string | null }> {
+async function fetchContent(url: string): Promise<string> {
   const res = await fetch(url);
   if (!res.ok) {
     throw new Error(`HTTP ${res.status}`);
@@ -78,23 +71,16 @@ async function fetchAndHighlight(
     text = `${text.slice(0, MAX_SIZE)}\n\n... [truncated] ...`;
   }
 
-  let highlighted: string | null = null;
-  if (shouldHighlight && lang) {
-    highlighted = await highlight(text, lang);
-  }
-
-  return { content: text, highlighted };
+  return text;
 }
 
 export function TextViewer({ url, fileName, mimeType }: Props) {
   const ext = fileName.split(".").pop()?.toLowerCase() ?? "";
   const lang = LANG_MAP[ext] ?? MIME_MAP[mimeType] ?? null;
   const isMarkdown = MARKDOWN_EXT.has(ext) || MARKDOWN_MIME.has(mimeType);
-  const shouldHighlight = lang !== null && !isMarkdown;
 
   const [state, setState] = useState<State>({
     content: null,
-    highlighted: null,
     loading: true,
     error: null,
   });
@@ -102,17 +88,16 @@ export function TextViewer({ url, fileName, mimeType }: Props) {
   useEffect(() => {
     let cancelled = false;
 
-    fetchAndHighlight(url, shouldHighlight, lang)
-      .then(({ content, highlighted }) => {
+    fetchContent(url)
+      .then((content) => {
         if (!cancelled) {
-          setState({ content, highlighted, loading: false, error: null });
+          setState({ content, loading: false, error: null });
         }
       })
       .catch((e) => {
         if (!cancelled) {
           setState({
             content: null,
-            highlighted: null,
             loading: false,
             error: e instanceof Error ? e.message : "Failed to load",
           });
@@ -122,7 +107,7 @@ export function TextViewer({ url, fileName, mimeType }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [url, shouldHighlight, lang]);
+  }, [url]);
 
   if (state.loading) {
     return (
@@ -147,7 +132,11 @@ export function TextViewer({ url, fileName, mimeType }: Props) {
     );
   }
 
-  if (isMarkdown && state.content) {
+  if (!state.content) {
+    return null;
+  }
+
+  if (isMarkdown) {
     return (
       <div className="h-full overflow-auto bg-background">
         <div className="mx-auto max-w-4xl px-8 py-10">
@@ -157,18 +146,11 @@ export function TextViewer({ url, fileName, mimeType }: Props) {
     );
   }
 
-  if (state.highlighted && state.content) {
+  if (lang) {
+    const codeMarkdown = `\`\`\`${lang}\n${state.content}\n\`\`\``;
     return (
-      <div className="group relative h-full overflow-auto bg-code text-code-foreground">
-        <CopyButton
-          className="absolute top-3 right-3 opacity-0 transition-opacity group-hover:opacity-100"
-          content={state.content}
-        />
-        <div
-          className="shiki-wrapper min-h-full p-4 font-mono text-xs leading-relaxed"
-          // biome-ignore lint/security/noDangerouslySetInnerHtml: Shiki output is trusted
-          dangerouslySetInnerHTML={{ __html: state.highlighted }}
-        />
+      <div className="h-full overflow-auto bg-background p-4">
+        <Markdown content={codeMarkdown} />
       </div>
     );
   }

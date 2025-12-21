@@ -122,19 +122,6 @@
   --code-number: oklch(0.56 0 0);
   --selection: oklch(0.145 0 0);
   --selection-foreground: oklch(1 0 0);
-
-  --shiki-bg: transparent;
-  --shiki-fg: oklch(0.3 0 0);
-  --shiki-comment: oklch(0.55 0 0);
-  --shiki-string: oklch(0.4 0.12 160);
-  --shiki-constant: oklch(0.45 0.12 250);
-  --shiki-keyword: oklch(0.45 0.12 330);
-  --shiki-function: oklch(0.4 0.1 250);
-  --shiki-variable: oklch(0.35 0.08 45);
-  --shiki-type: oklch(0.45 0.1 200);
-  --shiki-punctuation: oklch(0.45 0 0);
-  --shiki-tag: oklch(0.45 0.12 330);
-  --shiki-attribute: oklch(0.45 0.1 200);
 }
 
 .dark {
@@ -193,32 +180,12 @@
   --code-number: oklch(0.72 0 0);
   --selection: oklch(0.922 0 0);
   --selection-foreground: oklch(0.205 0 0);
-
-  --shiki-fg: oklch(0.85 0 0);
-  --shiki-comment: oklch(0.5 0 0);
-  --shiki-string: oklch(0.75 0.08 160);
-  --shiki-constant: oklch(0.72 0.08 250);
-  --shiki-keyword: oklch(0.75 0.08 330);
-  --shiki-function: oklch(0.72 0.08 250);
-  --shiki-variable: oklch(0.8 0.06 45);
-  --shiki-type: oklch(0.72 0.08 200);
-  --shiki-punctuation: oklch(0.6 0 0);
-  --shiki-tag: oklch(0.75 0.08 330);
-  --shiki-attribute: oklch(0.72 0.08 200);
 }
 
 @layer base {
   * {
     @apply border-border;
   }
-}
-
-.shiki-wrapper pre {
-  @apply m-0 bg-transparent p-0;
-}
-
-.shiki-wrapper code {
-  @apply font-mono;
 }
 
 html {
