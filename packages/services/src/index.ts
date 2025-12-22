@@ -75,10 +75,12 @@ export type {
   GmailSyncBatch,
   GmailSyncCursor,
   GmailTransformContext,
+  GmailWebhookValidation,
   NotificationHandlerConfig,
   WatchManagerConfig,
 } from "./gmail";
 export {
+  checkGmailWebhookRateLimit,
   createGmailClient,
   downloadAttachment,
   GmailAuth,
@@ -89,6 +91,7 @@ export {
   getWatchStateForConnector,
   gmailIncrementalSync,
   handleGmailNotification,
+  parsePubSubNotification,
   parseWebhookRequest,
   processNotificationBatch,
   syncDomainMailboxes,
@@ -96,10 +99,36 @@ export {
   transformGmailAttachments,
   transformGmailMedia,
   transformGmailMediaList,
+  validateGmailWebhookToken,
 } from "./gmail";
+export type {
+  DriveMediaInfo,
+  DriveNotification,
+  DriveWatchState,
+  GoogleDriveClient,
+  GoogleDriveDomainSyncCursor,
+  GoogleDriveSyncBatch,
+  GoogleDriveSyncCursor,
+  GoogleDriveTransformContext,
+  NotificationResult,
+  WatchManagerConfig as DriveWatchManagerConfig,
+} from "./google-drive";
 export {
+  createGoogleDriveClient,
   GoogleDriveAuth,
   GoogleDriveServiceAccountAuth,
+  GoogleDriveWatchManager,
+  getAllActiveWatches as getAllActiveDriveWatches,
+  getWatchStateForConnector as getDriveWatchStateForConnector,
+  googleDriveIncrementalSync,
+  handleNotification as handleGoogleDriveNotification,
+  isExpiredNotification as isExpiredDriveNotification,
+  isGoogleDriveDomainSyncCursor,
+  isGoogleDriveSyncCursor,
+  listAllSharedDrives,
+  parseNotification as parseGoogleDriveNotification,
+  syncDomainDrives,
+  validateNotificationSignature as validateDriveNotificationSignature,
 } from "./google-drive";
 export type { OAuthState } from "./lib/oauth-state";
 export {

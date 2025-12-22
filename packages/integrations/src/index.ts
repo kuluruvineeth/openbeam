@@ -25,6 +25,12 @@ export {
   GOOGLE_DRIVE_SERVICE_ACCOUNT_SCOPES,
   getGoogleDriveServiceAccountToken,
 } from "./google-drive/service-account";
+export type {
+  GoogleDriveAuthMethod,
+  GoogleDriveConfig,
+  GoogleDriveFile,
+  GoogleDriveFolder,
+} from "./google-drive/types";
 
 // Slack exports
 export * from "./slack/oauth";

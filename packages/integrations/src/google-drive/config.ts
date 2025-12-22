@@ -72,11 +72,14 @@ export const googleDriveApp: UnifiedApp = {
 
   features: [
     "Semantic search across all file types",
-    "Document content extraction",
-    "Shared drive support",
-    "Permission-aware indexing",
+    "Document content extraction (Google Docs, PDFs, Office files)",
+    "Shared Drive support for Google Workspace",
+    "Permission-aware indexing with access control",
+    "Real-time push notifications via Drive webhooks",
+    "Video/audio transcription via TwelveLabs",
     "OAuth for personal accounts",
-    "Service Account for Google Workspace",
+    "Domain-wide delegation for Google Workspace",
+    "Federated search option for real-time queries",
   ],
 
   auth: {
@@ -303,6 +306,53 @@ export const googleDriveApp: UnifiedApp = {
       type: "number",
       required: false,
       value: 50,
+    },
+    {
+      id: "extract_content",
+      label: "Extract Content",
+      description: "Extract text from documents, PDFs, and Office files.",
+      type: "switch",
+      required: false,
+      value: true,
+    },
+    {
+      id: "index_media",
+      label: "Transcribe Media",
+      description: "Transcribe video and audio files.",
+      type: "switch",
+      required: false,
+      value: true,
+    },
+    {
+      id: "enable_push_notifications",
+      label: "Real-time Updates",
+      description: "Receive instant updates via Drive webhooks.",
+      type: "switch",
+      required: false,
+      value: true,
+    },
+    {
+      id: "sync_mode",
+      label: "Sync Mode",
+      description:
+        "Full indexing stores all files. Federated searches Drive directly.",
+      type: "select",
+      required: false,
+      value: "full",
+      options: [
+        { label: "Full Indexing", value: "full" },
+        { label: "Federated Search", value: "federated" },
+        { label: "Hybrid", value: "hybrid" },
+      ],
+    },
+    {
+      id: "lookback_days",
+      label: "History (days)",
+      description: "How far back to sync. Leave empty for unlimited.",
+      type: "text",
+      required: false,
+      value: "",
+      placeholder: "Unlimited",
     },
   ],
 };
