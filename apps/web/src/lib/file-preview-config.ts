@@ -21,10 +21,15 @@ export type FileCategory =
   | "spreadsheet"
   | "presentation"
   | "document"
+  | "embed"
   | "unsupported";
 
 export function getFileCategory(mimeType: string): FileCategory {
   const type = mimeType.toLowerCase();
+
+  if (type.includes("google-apps")) {
+    return "embed";
+  }
 
   if (type === "application/pdf") {
     return "pdf";
@@ -150,6 +155,8 @@ export function getFileTypeLabel(mimeType: string): string {
       return "Presentation";
     case "document":
       return "Document";
+    case "embed":
+      return "Google Drive";
     default:
       return "File";
   }
@@ -218,7 +225,11 @@ export function getPreviewCategory(
     return "slack";
   }
 
-  if (docType.includes("file") || docType.includes("attachment")) {
+  if (
+    docType.includes("file") ||
+    docType.includes("attachment") ||
+    connector === "google_drive"
+  ) {
     return "document";
   }
 
