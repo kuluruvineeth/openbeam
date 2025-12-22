@@ -1,5 +1,5 @@
 {
   "title": "Google Drive",
   "icon": "GoogleDrive",
-  "pages": ["index"]
+  "pages": ["index", "real-time-sync"]
 }
