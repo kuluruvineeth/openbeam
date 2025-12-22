@@ -2,13 +2,17 @@ import {
   findIndexedFileForPreview,
   findIndexedMediaForPreview,
 } from "@openplane/db";
-import { getStorageProvider } from "@openplane/services";
+import { getStorageProvider, messagesService } from "@openplane/services";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter } from "../index";
 import { withActiveTeam } from "./apps/middleware";
 
-const CUID_LENGTH = 25;
+const CUID_PATTERN = /^c[a-z0-9]{24}$/;
+
+function isValidCuid(value: string): boolean {
+  return CUID_PATTERN.test(value);
+}
 
 function parseDocumentId(documentId: string) {
   const prefixes = ["chunk-", "file-", "video_", "media_"] as const;
@@ -19,8 +23,23 @@ function parseDocumentId(documentId: string) {
   }
 
   const rest = documentId.slice(prefix.length);
-  const connectorId = rest.slice(0, CUID_LENGTH);
-  const afterConnector = rest.slice(CUID_LENGTH + 1);
+  const dashIndex = rest.indexOf("-");
+  const underscoreIndex = rest.indexOf("_");
+  const separatorIndex =
+    dashIndex >= 0 && underscoreIndex >= 0
+      ? Math.min(dashIndex, underscoreIndex)
+      : Math.max(dashIndex, underscoreIndex);
+
+  if (separatorIndex < 0) {
+    return { type: "unknown" as const };
+  }
+
+  const connectorId = rest.slice(0, separatorIndex);
+  const afterConnector = rest.slice(separatorIndex + 1);
+
+  if (!isValidCuid(connectorId)) {
+    return { type: "unknown" as const };
+  }
 
   if (prefix === "chunk-") {
     const lastDash = afterConnector.lastIndexOf("-");
@@ -70,6 +89,10 @@ export const filesRouter = createTRPCRouter({
     }),
 });
 
+function isGoogleWorkspaceMimeType(mimeType: string): boolean {
+  return mimeType.includes("google-apps");
+}
+
 async function getFilePreview(
   ctx: { prisma: typeof import("@openplane/db").default; teamId: string },
   documentId: string,
@@ -82,23 +105,55 @@ async function getFilePreview(
     id: documentId,
   });
 
-  if (!file) {
+  if (file) {
+    if (file.connector.teamId !== ctx.teamId) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+    }
+
+    // Google Workspace files (Docs, Sheets, Slides) should use their webViewLink
+    // for preview via iframe, not the exported S3 content
+    if (isGoogleWorkspaceMimeType(file.mimeType)) {
+      const doc = await messagesService.getDocument({ documentId });
+      if (doc?.url) {
+        return {
+          url: doc.url,
+          fileName: file.fileName,
+          mimeType: file.mimeType,
+          fileSize: file.fileSize,
+          pageCount: file.pageCount,
+          isExternal: true as const,
+          externalUrl: doc.url,
+        };
+      }
+    }
+
+    const url = await getStorageProvider().getSignedUrl(file.storageKey, 3600);
+
+    return {
+      url,
+      fileName: file.fileName,
+      mimeType: file.mimeType,
+      fileSize: file.fileSize,
+      pageCount: file.pageCount,
+      isExternal: false as const,
+    };
+  }
+
+  // Fall back to Vespa for external sources (e.g., Google Drive)
+  const doc = await messagesService.getDocument({ documentId });
+
+  if (!doc?.url) {
     throw new TRPCError({ code: "NOT_FOUND", message: "File not found" });
   }
 
-  if (file.connector.teamId !== ctx.teamId) {
-    throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
-  }
-
-  const url = await getStorageProvider().getSignedUrl(file.storageKey, 3600);
-
   return {
-    url,
-    fileName: file.fileName,
-    mimeType: file.mimeType,
-    fileSize: file.fileSize,
-    pageCount: file.pageCount,
-    isVideo: false as const,
+    url: doc.url,
+    fileName: doc.fileName ?? doc.title ?? "File",
+    mimeType: doc.mimeType ?? "application/octet-stream",
+    fileSize: null,
+    pageCount: null,
+    isExternal: true as const,
+    externalUrl: doc.url,
   };
 }
 
@@ -132,10 +187,9 @@ async function getMediaPreview(
     pageCount: null,
     isMedia: true as const,
     mediaType: media.mediaType,
-    assetId: media.twelveLabsAssetId,
-    indexId: media.twelveLabsIndexId,
+    twelveLabsAssetId: media.twelveLabsAssetId,
+    twelveLabsIndexId: media.twelveLabsIndexId,
     vespaId: media.vespaId,
     videoId: media.id,
-    twelveLabsAssetId: media.twelveLabsAssetId,
   };
 }

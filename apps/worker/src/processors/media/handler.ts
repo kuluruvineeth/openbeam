@@ -43,6 +43,7 @@ import type { Job } from "bullmq";
 import { prepareAudioAsVideo } from "../../utils/audio-converter";
 import logger from "../../utils/logger";
 import { logJobError, logJobStart } from "../event-handlers";
+import { downloadFile } from "../file/download-strategies";
 
 type ProgressEmitter = ReturnType<typeof createProgressEmitter>;
 
@@ -318,6 +319,7 @@ async function processMediaDownload(
     mediaId,
     connectorId,
     sourceUrl,
+    downloadMetadata,
     fileName,
     externalId,
     mimeType,
@@ -338,36 +340,29 @@ async function processMediaDownload(
   }
 
   await progress.start(MEDIA_TOTAL_STEPS, "Downloading");
-
-  const oauth: OAuthProvider | null | undefined = connector.oauthProvider;
-  const syncToken = oauth
-    ? decryptIfEncrypted(oauth.syncAccessToken, oauth.syncAccessTokenIv)
-    : null;
-  const botToken = oauth
-    ? decryptIfEncrypted(oauth.accessToken, oauth.accessTokenIv)
-    : null;
-  const downloadToken = syncToken ?? botToken;
-
-  if (!downloadToken) {
-    throw new Error("Connector access token not found");
-  }
-
   await updateIndexedMediaProcessingStatus(prisma, mediaId, "DOWNLOADING");
 
-  if (!sourceUrl) {
-    throw new Error("No source URL provided for media download");
+  let rawBuffer: Buffer;
+
+  if (downloadMetadata) {
+    const result = await downloadFile(
+      {
+        connector,
+        connectorId,
+        externalId,
+        fileName: fileName ?? "",
+        mimeType: mimeType ?? "",
+      },
+      downloadMetadata
+    );
+    rawBuffer = result.buffer;
+  } else if (sourceUrl) {
+    rawBuffer = await downloadMediaLegacy(connector, sourceUrl);
+  } else {
+    throw new Error(
+      "No download source: provide downloadMetadata or sourceUrl"
+    );
   }
-
-  const response = await fetch(sourceUrl, {
-    headers: { Authorization: `Bearer ${downloadToken}` },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Download failed: ${response.status}`);
-  }
-
-  const content = await response.arrayBuffer();
-  const rawBuffer = Buffer.from(content);
 
   const isAudio = mediaType === "audio";
   let originalAudioStorageKey: string | undefined;
@@ -451,6 +446,12 @@ async function processTwelveLabsIndexing(
   } = data;
 
   const media = await findIndexedMediaById(prisma, mediaId);
+
+  if (!media) {
+    throw new Error(
+      `Media record not found: ${mediaId} - may have been deleted`
+    );
+  }
 
   await progress.update(1, MEDIA_TOTAL_STEPS, "Transcribing audio");
 
@@ -536,6 +537,13 @@ async function processVespaIndexing(
 
   if (!(twelveLabsIndexId && twelveLabsAssetId)) {
     throw new Error("Missing TwelveLabs index or asset ID for Vespa indexing");
+  }
+
+  const media = await findIndexedMediaById(prisma, mediaId);
+  if (!media) {
+    throw new Error(
+      `Media record not found: ${mediaId} - may have been deleted`
+    );
   }
 
   await progress.update(2, MEDIA_TOTAL_STEPS, "Generating video embeddings");
@@ -692,6 +700,36 @@ async function processVespaIndexing(
   );
 
   return { success: true, mediaId, vespaId };
+}
+
+async function downloadMediaLegacy(
+  connector: NonNullable<Awaited<ReturnType<typeof getConnectorForSync>>>,
+  sourceUrl: string
+): Promise<Buffer> {
+  const oauth: OAuthProvider | null | undefined = connector.oauthProvider;
+
+  const syncToken = oauth
+    ? decryptIfEncrypted(oauth.syncAccessToken, oauth.syncAccessTokenIv)
+    : null;
+  const botToken = oauth
+    ? decryptIfEncrypted(oauth.accessToken, oauth.accessTokenIv)
+    : null;
+  const downloadToken = syncToken ?? botToken;
+
+  if (!downloadToken) {
+    throw new Error("Connector access token not found");
+  }
+
+  const response = await fetch(sourceUrl, {
+    headers: { Authorization: `Bearer ${downloadToken}` },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Download failed: ${response.status}`);
+  }
+
+  const content = await response.arrayBuffer();
+  return Buffer.from(content);
 }
 
 async function generateMediaEmbeddings(
