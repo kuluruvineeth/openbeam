@@ -1,16 +1,6 @@
-/**
- * Event Deduplication
- *
- * Prevents duplicate webhook processing using Redis sets.
- * Events are stored with TTL for automatic cleanup.
- */
-
 import { getRedisClient } from "./client";
 
 export class EventDeduplicator {
-  /**
-   * Check if event was already processed
-   */
   async isProcessed(eventId: string, source: string): Promise<boolean> {
     const client = await getRedisClient();
     const key = `webhook:processed:${source}:${eventId}`;
@@ -18,9 +8,6 @@ export class EventDeduplicator {
     return exists === 1;
   }
 
-  /**
-   * Mark event as processed with TTL (24 hours default)
-   */
   async markProcessed(
     eventId: string,
     source: string,
@@ -30,14 +17,11 @@ export class EventDeduplicator {
     const key = `webhook:processed:${source}:${eventId}`;
     const result = await client.set(key, Date.now().toString(), {
       EX: ttlSeconds,
-      NX: true, // Only set if doesn't exist
+      NX: true,
     });
     return result === "OK";
   }
 
-  /**
-   * Check and mark in one operation (atomic)
-   */
   async checkAndMark(
     eventId: string,
     source: string,
@@ -46,7 +30,6 @@ export class EventDeduplicator {
     const client = await getRedisClient();
     const key = `webhook:processed:${source}:${eventId}`;
 
-    // Try to set with NX (only if not exists)
     const result = await client.set(key, Date.now().toString(), {
       EX: ttlSeconds,
       NX: true,
@@ -58,9 +41,6 @@ export class EventDeduplicator {
     };
   }
 
-  /**
-   * Remove event from processed set (for replay)
-   */
   async unmark(eventId: string, source: string): Promise<boolean> {
     const client = await getRedisClient();
     const key = `webhook:processed:${source}:${eventId}`;
@@ -68,9 +48,6 @@ export class EventDeduplicator {
     return deleted > 0;
   }
 
-  /**
-   * Get count of processed events for a source
-   */
   async getProcessedCount(source: string): Promise<number> {
     const client = await getRedisClient();
     const pattern = `webhook:processed:${source}:*`;

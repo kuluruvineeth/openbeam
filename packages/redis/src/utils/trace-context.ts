@@ -1,4 +1,3 @@
-// TODO: Check back tracing after Bun supports OpenTelemetry
 import { context, propagation, trace } from "@opentelemetry/api";
 
 export interface TraceContext {

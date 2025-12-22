@@ -2,10 +2,6 @@ import { randomUUID } from "node:crypto";
 import type { RedisClientType } from "redis";
 import { getRedisClient } from "./client";
 
-/**
- * Distributed lock implementation using Redis
- * Prevents race conditions in distributed systems
- */
 export class DistributedLock {
   private client: RedisClientType | null = null;
 
@@ -16,14 +12,6 @@ export class DistributedLock {
     return this.client;
   }
 
-  /**
-   * Acquire a distributed lock
-   * @param key - Lock key
-   * @param ttl - Lock expiration in seconds (default: 30)
-   * @param retries - Number of retry attempts (default: 3)
-   * @param retryDelay - Delay between retries in ms (default: 100)
-   * @returns Lock token if acquired, null otherwise
-   */
   async acquire(
     key: string,
     ttl = 30,
@@ -36,7 +24,6 @@ export class DistributedLock {
 
     for (let i = 0; i < retries; i++) {
       try {
-        // SET with NX (only if not exists) and EX (expiration)
         const result = await client.set(lockKey, token, {
           NX: true,
           EX: ttl,
@@ -46,7 +33,6 @@ export class DistributedLock {
           return token;
         }
 
-        // Wait before retrying
         if (i < retries - 1) {
           await new Promise((resolve) => setTimeout(resolve, retryDelay));
         }
@@ -58,18 +44,11 @@ export class DistributedLock {
     return null;
   }
 
-  /**
-   * Release a distributed lock
-   * @param key - Lock key
-   * @param token - Lock token returned from acquire()
-   * @returns true if released successfully
-   */
   async release(key: string, token: string): Promise<boolean> {
     const client = await this.getClient();
     const lockKey = `lock:${key}`;
 
     try {
-      // Lua script to atomically check token and delete
       const script = `
         if redis.call("get", KEYS[1]) == ARGV[1] then
           return redis.call("del", KEYS[1])
@@ -90,19 +69,11 @@ export class DistributedLock {
     }
   }
 
-  /**
-   * Extend lock TTL
-   * @param key - Lock key
-   * @param token - Lock token
-   * @param ttl - New TTL in seconds
-   * @returns true if extended successfully
-   */
   async extend(key: string, token: string, ttl: number): Promise<boolean> {
     const client = await this.getClient();
     const lockKey = `lock:${key}`;
 
     try {
-      // Lua script to atomically check token and extend TTL
       const script = `
         if redis.call("get", KEYS[1]) == ARGV[1] then
           return redis.call("expire", KEYS[1], ARGV[2])
@@ -123,9 +94,6 @@ export class DistributedLock {
     }
   }
 
-  /**
-   * Check if a lock is held
-   */
   async isLocked(key: string): Promise<boolean> {
     const client = await this.getClient();
     const lockKey = `lock:${key}`;
@@ -139,10 +107,6 @@ export class DistributedLock {
     }
   }
 
-  /**
-   * Execute a function with a lock
-   * Automatically acquires and releases the lock
-   */
   async withLock<T>(
     key: string,
     fn: () => Promise<T>,
@@ -204,5 +168,4 @@ export class DistributedLock {
   }
 }
 
-// Export singleton instance
 export const distributedLock = new DistributedLock();

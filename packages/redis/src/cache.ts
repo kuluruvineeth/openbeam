@@ -1,9 +1,6 @@
 import type { RedisClientType } from "redis";
 import { getRedisClient } from "./client";
 
-/**
- * Redis-based cache utilities with TTL support
- */
 export class Cache {
   private client: RedisClientType | null = null;
 
@@ -14,9 +11,6 @@ export class Cache {
     return this.client;
   }
 
-  /**
-   * Get a value from cache
-   */
   async get<T>(key: string): Promise<T | null> {
     const client = await this.getClient();
     const cacheKey = `cache:${key}`;
@@ -37,12 +31,6 @@ export class Cache {
     }
   }
 
-  /**
-   * Set a value in cache with optional TTL
-   * @param key - Cache key
-   * @param value - Value to cache (will be JSON stringified)
-   * @param ttl - Time to live in seconds (default: 3600 = 1 hour)
-   */
   async set<T>(key: string, value: T, ttl = 3600): Promise<void> {
     const client = await this.getClient();
     const cacheKey = `cache:${key}`;
@@ -58,9 +46,6 @@ export class Cache {
     }
   }
 
-  /**
-   * Delete a value from cache
-   */
   async del(key: string): Promise<void> {
     const client = await this.getClient();
     const cacheKey = `cache:${key}`;
@@ -72,9 +57,6 @@ export class Cache {
     }
   }
 
-  /**
-   * Check if a key exists in cache
-   */
   async exists(key: string): Promise<boolean> {
     const client = await this.getClient();
     const cacheKey = `cache:${key}`;
@@ -88,9 +70,6 @@ export class Cache {
     }
   }
 
-  /**
-   * Get multiple values from cache
-   */
   async mget<T>(keys: string[]): Promise<(T | null)[]> {
     const client = await this.getClient();
     const cacheKeys = keys.map((key) => `cache:${key}`);
@@ -122,9 +101,6 @@ export class Cache {
     }
   }
 
-  /**
-   * Set multiple values in cache
-   */
   async mset<T>(
     entries: Array<{ key: string; value: T; ttl?: number }>
   ): Promise<void> {
@@ -146,10 +122,6 @@ export class Cache {
     }
   }
 
-  /**
-   * Clear all cache keys matching a pattern
-   * WARNING: Use with caution, can be slow on large datasets
-   */
   async clearPattern(pattern: string): Promise<number> {
     const client = await this.getClient();
     const searchPattern = `cache:${pattern}`;
@@ -166,7 +138,6 @@ export class Cache {
       }
 
       if (keys.length > 0) {
-        // Delete keys individually to avoid type issues with Redis client
         let totalDeleted = 0;
         for (const key of keys) {
           await client.del(key);
@@ -183,5 +154,4 @@ export class Cache {
   }
 }
 
-// Export singleton instance
 export const cache = new Cache();

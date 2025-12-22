@@ -1,4 +1,3 @@
-// TODO: Check back tracing after Bun supports OpenTelemetry
 import { Queue } from "bullmq";
 import { getSharedBullMqConnection } from "../client";
 import { extractTraceContext, type TraceContext } from "../utils/trace-context";
@@ -21,14 +20,14 @@ export const webhookQueue = new Queue<WebhookJobData>("webhook", {
       type: "exponential",
       delay: 1000,
     },
-    priority: 10, // High priority - process before scheduled syncs
+    priority: 10,
     removeOnComplete: {
       count: 1000,
-      age: 24 * 3600, // Keep for 24 hours
+      age: 24 * 3600,
     },
     removeOnFail: {
       count: 5000,
-      age: 7 * 24 * 3600, // Keep failures for 7 days
+      age: 7 * 24 * 3600,
     },
   },
 });

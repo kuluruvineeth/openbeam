@@ -62,5 +62,4 @@ class JobSchedulerKeys {
   }
 }
 
-// Export singleton instance
 export const jobSchedulerKeys = new JobSchedulerKeys();

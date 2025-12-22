@@ -65,10 +65,6 @@ const redisConfig = parseRedisConfig();
 let redisClient: RedisClientType | null = null;
 let sharedBullMqConnection: IORedis | null = null;
 
-/**
- * Get or create a singleton Redis client instance
- * Uses node-redis v5 with Bun runtime
- */
 export async function getRedisClient(): Promise<RedisClientType> {
   if (!redisClient) {
     const reconnectMaxRetries =
@@ -121,9 +117,6 @@ export async function getRedisClient(): Promise<RedisClientType> {
   return redisClient;
 }
 
-/**
- * Close the Redis connection gracefully
- */
 export async function closeRedisClient(): Promise<void> {
   if (redisClient) {
     await redisClient.quit();
@@ -132,9 +125,6 @@ export async function closeRedisClient(): Promise<void> {
   }
 }
 
-/**
- * Close the shared BullMQ Redis connection gracefully
- */
 export async function closeSharedBullMqConnection(): Promise<void> {
   if (sharedBullMqConnection) {
     await sharedBullMqConnection.quit();
@@ -143,11 +133,6 @@ export async function closeSharedBullMqConnection(): Promise<void> {
   }
 }
 
-/**
- * Get shared ioredis connection for BullMQ
- * Reuses a single connection instance across all BullMQ queues/workers
- * to minimize Redis connection count
- */
 export function getSharedBullMqConnection(): IORedis {
   if (!sharedBullMqConnection) {
     const enableReadyCheck = process.env.REDIS_ENABLE_READY_CHECK !== "false";
@@ -188,10 +173,6 @@ export function getSharedBullMqConnection(): IORedis {
   return sharedBullMqConnection;
 }
 
-/**
- * Get Redis connection configuration for BullMQ (legacy)
- * @deprecated Use getSharedBullMqConnection() instead for better connection reuse
- */
 export function getRedisConnection(): BullMqRedisOptions {
   const enableReadyCheck = process.env.REDIS_ENABLE_READY_CHECK !== "false";
   const maxRetriesPerRequest = Number.parseInt(

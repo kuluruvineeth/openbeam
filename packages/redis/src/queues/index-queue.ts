@@ -1,4 +1,3 @@
-// TODO: Check back tracing after Bun supports OpenTelemetry
 import { Queue } from "bullmq";
 import { getSharedBullMqConnection } from "../client";
 import { extractTraceContext, type TraceContext } from "../utils/trace-context";
@@ -68,7 +67,7 @@ export const indexQueue = new Queue<IndexJobData>("index", {
     },
     removeOnComplete: {
       count: 50,
-      age: 3600, // Keep for 1 hour
+      age: 3600,
     },
     removeOnFail: {
       count: 500,

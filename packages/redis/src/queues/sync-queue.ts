@@ -1,4 +1,3 @@
-// TODO: Check back tracing after Bun supports OpenTelemetry
 import { Queue } from "bullmq";
 import { getSharedBullMqConnection } from "../client";
 import { extractTraceContext, type TraceContext } from "../utils/trace-context";
@@ -23,11 +22,11 @@ export const syncQueue = new Queue<SyncJobData>("sync", {
       delay: 2000,
     },
     removeOnComplete: {
-      count: 100, // Keep last 100 completed jobs
-      age: 24 * 3600, // Keep for 24 hours
+      count: 100,
+      age: 24 * 3600,
     },
     removeOnFail: {
-      count: 1000, // Keep last 1000 failed jobs for debugging
+      count: 1000,
     },
   },
 });
