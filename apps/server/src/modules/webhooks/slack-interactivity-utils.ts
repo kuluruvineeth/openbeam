@@ -35,17 +35,24 @@ export async function getSlackClient(
 export function verifyRequest(
   c: Context,
   rawBody: string,
-  signingSecret?: string
+  signingSecret: string | undefined
 ): boolean {
   if (!signingSecret) {
-    return true;
+    logger.error("Slack signing secret not configured - rejecting request");
+    return false;
   }
 
   const signature = c.req.header("x-slack-signature");
   const timestamp = c.req.header("x-slack-request-timestamp");
 
-  if (!(signature && timestamp)) {
-    return true;
+  if (!signature) {
+    logger.warn("Missing x-slack-signature header");
+    return false;
+  }
+
+  if (!timestamp) {
+    logger.warn("Missing x-slack-request-timestamp header");
+    return false;
   }
 
   const verifyResult = verifySlackSignature(

@@ -23,6 +23,8 @@ import type {
 } from "./slack-interactivity-types";
 import { getSlackClient } from "./slack-interactivity-utils";
 
+const QUICK_ACTION_CONNECTORS = `${HOME_CALLBACK_IDS.QUICK_ACTION}_view_connectors`;
+
 export async function handleHomeAction(
   actionId: string,
   value: string | undefined,
@@ -34,7 +36,7 @@ export async function handleHomeAction(
   if (actionId === HOME_CALLBACK_IDS.SEARCH_INPUT) {
     if (value?.trim()) {
       await handleHomeSearch(
-        { client, userId: ctx.userId, teamId: ctx.teamId, query: value.trim() },
+        { userId: ctx.userId, teamId: ctx.teamId, query: value.trim() },
         deps
       );
     }
@@ -42,14 +44,15 @@ export async function handleHomeAction(
   }
 
   if (actionId === HOME_CALLBACK_IDS.CLEAR_RECENT) {
-    await handleClearRecentSearches(
-      { client, userId: ctx.userId, teamId: ctx.teamId },
-      deps
-    );
+    await handleClearRecentSearches(client, ctx.userId, ctx.teamId, deps);
     return;
   }
 
-  if (actionId === HOME_CALLBACK_IDS.OPEN_SETTINGS) {
+  if (actionId === HOME_CALLBACK_IDS.SETTINGS) {
+    if (!ctx.triggerId) {
+      logger.warn({ ctx }, "Missing triggerId for settings modal");
+      return;
+    }
     await handleOpenSettings(
       {
         client,
@@ -76,18 +79,24 @@ export async function handleHomeAction(
     return;
   }
 
-  if (actionId === HOME_CALLBACK_IDS.CONNECTORS) {
+  if (actionId === QUICK_ACTION_CONNECTORS) {
     await showConnectorsMessage(client, ctx);
     return;
   }
 
-  if (actionId === HOME_CALLBACK_IDS.DIGEST) {
+  if (actionId === HOME_CALLBACK_IDS.CONFIGURE_DIGEST) {
     await openDigestModal(client, ctx, ctx.userId);
     return;
   }
 
   if (actionId === HOME_CALLBACK_IDS.REFRESH) {
-    await refreshHomeTab(client, ctx.userId, ctx.teamId, deps);
+    const stateKey = `home_state:${ctx.teamId}:${ctx.userId}`;
+    const state = await deps.stateStore.get<HomeTabState>(stateKey);
+    if (!state) {
+      logger.warn({ ctx }, "No state found for home tab refresh");
+      return;
+    }
+    await refreshHomeTab(client, ctx.userId, state);
     return;
   }
 

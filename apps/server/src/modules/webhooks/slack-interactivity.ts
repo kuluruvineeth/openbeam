@@ -1,4 +1,5 @@
 import prisma, { findSlackConnectorByTeamId } from "@openplane/db";
+import { rateLimiter } from "@openplane/redis";
 import {
   extractChannelId,
   extractTeamId,
@@ -57,6 +58,16 @@ slackInteractivity.post("/", async (c) => {
   const config = connector.config as SlackConnectorConfig | null;
   if (!verifyRequest(c, rawBody, config?.signing_secret)) {
     return c.json({ error: "Invalid signature" }, 401);
+  }
+
+  const rateAllowed = await rateLimiter.checkLimit(
+    `slack:interactivity:${teamId}`,
+    100,
+    60
+  );
+  if (!rateAllowed) {
+    logger.warn({ teamId }, "Slack interactivity rate limit exceeded");
+    return c.json({ error: "Rate limit exceeded" }, 429);
   }
 
   const handlerContext: HandlerContext = {

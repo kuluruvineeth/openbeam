@@ -2,7 +2,7 @@ import prisma, {
   findSlackConnectorByTeamId,
   getDecryptedOAuthCredentials,
 } from "@openplane/db";
-import { addWebhookJob, createStateStore } from "@openplane/redis";
+import { addWebhookJob, createStateStore, rateLimiter } from "@openplane/redis";
 import {
   type AssistantThreadContextChangedEvent,
   type AssistantThreadStartedEvent,
@@ -83,7 +83,6 @@ slackWebhook.post("/events", async (c) => {
 
   const { connector } = validationResult;
 
-  // TODO: Check this code again later, For UI_ONLY_EVENTS, use raw event from envelope if parsed event is null
   const rawEvent = envelope.event as
     | { type: string; [key: string]: unknown }
     | undefined;
@@ -173,24 +172,38 @@ async function validateAndGetConnector(
   }
 
   const config = connector.config as SlackConnectorConfig | null;
-  if (config?.signing_secret) {
-    const verifyResult = verifySlackSignature(
-      { body: rawBody, signature, timestamp },
-      config.signing_secret
-    );
-
-    if (!verifyResult.valid) {
-      logger.warn(
-        { connectorId: connector.id, reason: verifyResult.reason },
-        "Slack webhook invalid signature"
-      );
-      return { error: c.json({ error: "Invalid signature" }, 401) };
-    }
-  } else {
-    logger.warn(
+  if (!config?.signing_secret) {
+    logger.error(
       { connectorId: connector.id },
-      "Slack webhook no signing secret configured"
+      "Slack signing secret not configured - rejecting request"
     );
+    return { error: c.json({ error: "Configuration error" }, 500) };
+  }
+
+  const verifyResult = verifySlackSignature(
+    { body: rawBody, signature, timestamp },
+    config.signing_secret
+  );
+
+  if (!verifyResult.valid) {
+    logger.warn(
+      { connectorId: connector.id, reason: verifyResult.reason },
+      "Slack webhook invalid signature"
+    );
+    return { error: c.json({ error: "Invalid signature" }, 401) };
+  }
+
+  const rateAllowed = await rateLimiter.checkLimit(
+    `slack:webhook:${connector.teamId}`,
+    100,
+    60
+  );
+  if (!rateAllowed) {
+    logger.warn(
+      { teamId: connector.teamId },
+      "Slack webhook rate limit exceeded"
+    );
+    return { error: c.json({ error: "Rate limit exceeded" }, 429) };
   }
 
   return { connector };
