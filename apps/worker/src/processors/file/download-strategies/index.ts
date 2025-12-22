@@ -1,4 +1,5 @@
 import { gmailDownloadStrategy } from "./gmail";
+import { googleDriveDownloadStrategy } from "./google-drive";
 import { slackDownloadStrategy } from "./slack";
 import type {
   DownloadContext,
@@ -12,6 +13,7 @@ export type { DownloadContext, DownloadJobMetadata, DownloadResult };
 const strategies: DownloadStrategyHandler[] = [
   slackDownloadStrategy,
   gmailDownloadStrategy,
+  googleDriveDownloadStrategy,
 ];
 
 export async function downloadFile(
