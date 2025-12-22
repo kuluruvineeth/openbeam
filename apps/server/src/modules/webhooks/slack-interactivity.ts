@@ -56,7 +56,15 @@ slackInteractivity.post("/", async (c) => {
   }
 
   const config = connector.config as SlackConnectorConfig | null;
-  if (!verifyRequest(c, rawBody, config?.signing_secret)) {
+  if (!config?.signing_secret) {
+    logger.error(
+      { connectorId: connector.id },
+      "Slack signing secret not configured - rejecting request"
+    );
+    return c.json({ error: "Configuration error" }, 500);
+  }
+
+  if (!verifyRequest(c, rawBody, config.signing_secret)) {
     return c.json({ error: "Invalid signature" }, 401);
   }
 
