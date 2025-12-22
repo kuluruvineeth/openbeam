@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { getRedisClient } from "@openplane/redis";
 import { logger } from "../../lib/logger";
 import {
@@ -108,6 +109,7 @@ export class GmailWatchManager {
       expiration: parseWatchExpiration(response.expiration),
       topicName: this.config.topicName,
       connectorId: this.client.connectorId,
+      token: randomBytes(32).toString("hex"),
     };
 
     await this.saveWatchState(state);

@@ -1,5 +1,6 @@
+import { timingSafeEqual } from "node:crypto";
 import prisma, { ConnectorStatus } from "@openplane/db";
-import { addSyncJob } from "@openplane/redis";
+import { addSyncJob, rateLimiter } from "@openplane/redis";
 import { logger } from "../../lib/logger";
 import { type PubSubNotification, parsePubSubNotification } from "../api/watch";
 import { getWatchStateForConnector } from "./watch-manager";
@@ -196,4 +197,61 @@ export async function processNotificationBatch(
   }
 
   return { processed, skipped, errors };
+}
+
+export interface GmailWebhookValidation {
+  valid: boolean;
+  connectorId?: string;
+  reason?: string;
+}
+
+export async function validateGmailWebhookToken(
+  emailAddress: string,
+  providedToken: string | undefined
+): Promise<GmailWebhookValidation> {
+  if (!providedToken) {
+    return { valid: false, reason: "missing_token" };
+  }
+
+  const connectorId = await findConnectorForEmail(emailAddress);
+  if (!connectorId) {
+    return { valid: false, reason: "connector_not_found" };
+  }
+
+  const watchState = await getWatchStateForConnector(connectorId);
+  if (!watchState?.token) {
+    return { valid: false, connectorId, reason: "no_watch_token" };
+  }
+
+  const expectedBuffer = Buffer.from(watchState.token, "utf-8");
+  const providedBuffer = Buffer.from(providedToken, "utf-8");
+
+  if (expectedBuffer.length !== providedBuffer.length) {
+    return { valid: false, connectorId, reason: "invalid_token" };
+  }
+
+  if (!timingSafeEqual(expectedBuffer, providedBuffer)) {
+    return { valid: false, connectorId, reason: "invalid_token" };
+  }
+
+  return { valid: true, connectorId };
+}
+
+const GMAIL_WEBHOOK_RATE_LIMIT = 100;
+const GMAIL_WEBHOOK_RATE_WINDOW = 60;
+
+export async function checkGmailWebhookRateLimit(
+  connectorId: string
+): Promise<{ allowed: boolean; reason?: string }> {
+  const allowed = await rateLimiter.checkLimit(
+    `gmail:webhook:${connectorId}`,
+    GMAIL_WEBHOOK_RATE_LIMIT,
+    GMAIL_WEBHOOK_RATE_WINDOW
+  );
+
+  if (!allowed) {
+    return { allowed: false, reason: "rate_limit_exceeded" };
+  }
+
+  return { allowed: true };
 }

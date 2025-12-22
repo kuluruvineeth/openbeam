@@ -1,8 +1,11 @@
 export {
+  checkGmailWebhookRateLimit,
+  type GmailWebhookValidation,
   handleGmailNotification,
   type NotificationHandlerConfig,
   parseWebhookRequest,
   processNotificationBatch,
+  validateGmailWebhookToken,
 } from "./notification-handler";
 export {
   GmailWatchManager,
