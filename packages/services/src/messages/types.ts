@@ -37,6 +37,8 @@ export type DocumentResult = {
   attachments?: GenericDocument["attachments"];
   url?: string;
   metadata?: JsonObject;
+  mimeType?: string;
+  fileName?: string;
 };
 
 export type EmailMessage = {

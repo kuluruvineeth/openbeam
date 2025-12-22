@@ -41,6 +41,8 @@ export class MessagesService {
       attachments: doc.attachments,
       url: doc.url,
       metadata: doc.metadata,
+      mimeType: doc.mime_type,
+      fileName: doc.file_name,
     };
   }
 
