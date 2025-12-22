@@ -114,17 +114,21 @@ async function getFilePreview(
     // for preview via iframe, not the exported S3 content
     if (isGoogleWorkspaceMimeType(file.mimeType)) {
       const doc = await messagesService.getDocument({ documentId });
-      if (doc?.url) {
-        return {
-          url: doc.url,
-          fileName: file.fileName,
-          mimeType: file.mimeType,
-          fileSize: file.fileSize,
-          pageCount: file.pageCount,
-          isExternal: true as const,
-          externalUrl: doc.url,
-        };
+      if (!doc?.url) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "External URL not found for Google Workspace file",
+        });
       }
+      return {
+        url: doc.url,
+        fileName: file.fileName,
+        mimeType: file.mimeType,
+        fileSize: file.fileSize,
+        pageCount: file.pageCount,
+        isExternal: true as const,
+        externalUrl: doc.url,
+      };
     }
 
     const url = await getStorageProvider().getSignedUrl(file.storageKey, 3600);
