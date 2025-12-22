@@ -2,10 +2,15 @@ import type { Connector, OAuthProvider } from "@openplane/db";
 import type {
   ConnectorFileInfo,
   GmailSyncCursor,
+  GoogleDriveSyncCursor,
   SyncCursor,
 } from "@openplane/services";
 import type { GenericDocument } from "@openplane/vespa";
 import { syncGmailStreaming, validateGmailConnection } from "./gmail";
+import {
+  syncGoogleDriveStreaming,
+  validateGoogleDriveConnection,
+} from "./google-drive";
 import {
   syncSlack,
   syncSlackStreaming,
@@ -114,6 +119,7 @@ export interface StreamingSyncOptions {
   syncBookmarks?: boolean;
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: factory handles multiple connector types
 export async function syncConnectorStreaming(
   connector: Connector & { oauthProvider?: OAuthProvider | null },
   options: StreamingSyncOptions
@@ -245,6 +251,61 @@ export async function syncConnectorStreaming(
       };
     }
 
+    case "GOOGLE_DRIVE": {
+      const driveCursor: GoogleDriveSyncCursor | undefined = cursor
+        ? JSON.parse(cursor)
+        : undefined;
+
+      const driveConfig = connector.config as Record<string, unknown> | null;
+      const includeSharedDrives = driveConfig?.include_shared_drives !== false;
+      const driveLookbackDays = driveConfig?.lookback_days
+        ? Number(driveConfig.lookback_days)
+        : undefined;
+      const indexMedia = driveConfig?.index_media !== false;
+      const extractContent = driveConfig?.extract_content !== false;
+
+      const result = await syncGoogleDriveStreaming(connector, {
+        cursor: driveCursor,
+        batchSize,
+        forceFullSync,
+        includeSharedDrives,
+        lookbackDays: driveLookbackDays,
+        indexMedia,
+        extractContent,
+        onBatch: async (batch) => {
+          await onBatch({
+            items: batch.items,
+            cursor: JSON.stringify(batch.cursor),
+            hasMore: batch.hasMore,
+            stats: batch.stats,
+          });
+        },
+        onDrivesDiscovered: onResourcesDiscovered
+          ? async (drives) => {
+              const resources: ResourceInfo[] = drives.map((drive) => ({
+                id: drive.id,
+                name: drive.name,
+                resourceType: drive.resourceType,
+                isPrivate: drive.isPrivate,
+                isMember: true,
+                metadata: drive.metadata,
+              }));
+              await onResourcesDiscovered(resources);
+            }
+          : undefined,
+        onFilesDiscovered,
+      });
+
+      return {
+        totalDocuments: result.totalDocuments,
+        nextCursor: JSON.stringify(result.cursor),
+        hasMore: result.hasMore,
+        stats: result.stats,
+        filesQueued: result.filesQueued,
+        mediaQueued: result.mediaQueued,
+      };
+    }
+
     default:
       throw new Error(`Unsupported connector app: ${connector.app}`);
   }
@@ -294,6 +355,9 @@ export function validateConnection(
 
     case "GMAIL":
       return validateGmailConnection(connector);
+
+    case "GOOGLE_DRIVE":
+      return validateGoogleDriveConnection(connector);
 
     default:
       throw new Error(`Unsupported connector app: ${connector.app}`);

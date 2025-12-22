@@ -3,6 +3,8 @@ import prisma, {
   createIndexedMedia,
   findIndexedFileByExternalId,
   findIndexedMediaByExternalId,
+  updateIndexedFileStatus,
+  updateIndexedMediaStatus,
 } from "@openplane/db";
 import {
   addFileDownloadJob,
@@ -15,6 +17,7 @@ import {
   type ConnectorMediaInfo,
   type DownloadStrategy,
   isAudioFile,
+  isFileSupported,
   isVideoFile,
 } from "@openplane/services";
 import logger from "../../utils/logger";
@@ -94,6 +97,19 @@ async function processSingleFile(
   const isVideo = isVideoFile(file.mimeType, extension);
   const isAudio = isAudioFile(file.mimeType, extension);
 
+  logger.info(
+    {
+      connectorId,
+      fileId: file.id,
+      fileName: file.name,
+      mimeType: file.mimeType,
+      extension,
+      isVideo,
+      isAudio,
+    },
+    "Processing discovered file"
+  );
+
   if (isVideo || isAudio) {
     const mediaQueued = await processDiscoveredMedia(file, {
       connectorId,
@@ -102,6 +118,14 @@ async function processSingleFile(
       mediaType: isAudio ? "audio" : "video",
     });
     return mediaQueued ? "mediaQueued" : "skipped";
+  }
+
+  if (!isFileSupported(file.mimeType, extension)) {
+    logger.debug(
+      { connectorId, fileId: file.id, mimeType: file.mimeType, extension },
+      "File type not supported by engine, skipping"
+    );
+    return "skipped";
   }
 
   const processed = await processDiscoveredFile(file, {
@@ -157,6 +181,17 @@ async function processDiscoveredFile(
 ): Promise<boolean> {
   const { connectorId, skipExisting = true, priority = 5 } = options;
 
+  const downloadMetadata = buildFileDownloadMetadata(file.downloadStrategy);
+  if (!downloadMetadata) {
+    logger.warn(
+      { connectorId, fileId: file.id, fileName: file.name },
+      "File has no valid download strategy, skipping"
+    );
+    return false;
+  }
+
+  let fileId: string;
+
   if (skipExisting) {
     const existing = await findIndexedFileByExternalId(
       prisma,
@@ -173,37 +208,50 @@ async function processDiscoveredFile(
         );
         return false;
       }
+
       logger.info(
         { connectorId, fileId: file.id, errorCount: existing.errorCount },
         "Retrying previously failed file"
       );
+
+      await updateIndexedFileStatus(prisma, existing.id, "PENDING");
+      fileId = existing.id;
+    } else {
+      const storageKey = `pending/${connectorId}/files/${file.id}/${file.name}`;
+      const vespaId = `file-${connectorId}-${file.id}`;
+
+      const indexedFile = await createIndexedFile(prisma, {
+        connectorId,
+        externalId: file.id,
+        vespaId,
+        fileName: file.name,
+        mimeType: file.mimeType,
+        fileSize: file.size ?? 0,
+        fileExtension: getFileExtension(file.name),
+        storageKey,
+        processingStatus: "PENDING",
+        sourceChannelId: file.sourceChannelId ?? null,
+      });
+      fileId = indexedFile.id;
     }
+  } else {
+    const storageKey = `pending/${connectorId}/files/${file.id}/${file.name}`;
+    const vespaId = `file-${connectorId}-${file.id}`;
+
+    const indexedFile = await createIndexedFile(prisma, {
+      connectorId,
+      externalId: file.id,
+      vespaId,
+      fileName: file.name,
+      mimeType: file.mimeType,
+      fileSize: file.size ?? 0,
+      fileExtension: getFileExtension(file.name),
+      storageKey,
+      processingStatus: "PENDING",
+      sourceChannelId: file.sourceChannelId ?? null,
+    });
+    fileId = indexedFile.id;
   }
-
-  const downloadMetadata = buildFileDownloadMetadata(file.downloadStrategy);
-  if (!downloadMetadata) {
-    logger.warn(
-      { connectorId, fileId: file.id, fileName: file.name },
-      "File has no valid download strategy, skipping"
-    );
-    return false;
-  }
-
-  const storageKey = `pending/${connectorId}/files/${file.id}/${file.name}`;
-  const vespaId = `file-${connectorId}-${file.id}`;
-
-  const indexedFile = await createIndexedFile(prisma, {
-    connectorId,
-    externalId: file.id,
-    vespaId,
-    fileName: file.name,
-    mimeType: file.mimeType,
-    fileSize: file.size ?? 0,
-    fileExtension: getFileExtension(file.name),
-    storageKey,
-    processingStatus: "PENDING",
-    sourceChannelId: file.sourceChannelId ?? null,
-  });
 
   const legacySourceUrl =
     file.downloadStrategy.type === "url"
@@ -212,7 +260,7 @@ async function processDiscoveredFile(
 
   await addFileDownloadJob(
     {
-      fileId: indexedFile.id,
+      fileId,
       connectorId,
       externalId: file.id,
       sourceUrl: legacySourceUrl,
@@ -224,7 +272,7 @@ async function processDiscoveredFile(
   );
 
   logger.debug(
-    { connectorId, fileId: file.id, indexedFileId: indexedFile.id },
+    { connectorId, fileId: file.id, indexedFileId: fileId },
     "Queued file for processing from sync"
   );
 
@@ -235,55 +283,16 @@ interface MediaDiscoveryOptions extends FileDiscoveryOptions {
   mediaType: "video" | "audio";
 }
 
-async function processDiscoveredMedia(
+interface MediaRecord {
+  id: string;
+  storageKey: string;
+}
+
+async function createNewMediaRecord(
   file: ConnectorFileInfo | ConnectorMediaInfo,
-  options: MediaDiscoveryOptions
-): Promise<boolean> {
-  const { connectorId, skipExisting = true, priority, mediaType } = options;
-  const jobPriority = priority ?? 5;
-
-  if (skipExisting) {
-    const existing = await findIndexedMediaByExternalId(
-      prisma,
-      connectorId,
-      file.id
-    );
-
-    if (existing) {
-      const shouldRetry = existing.processingStatus === "FAILED";
-      if (!shouldRetry) {
-        logger.debug(
-          {
-            connectorId,
-            mediaId: file.id,
-            mediaType,
-            status: existing.processingStatus,
-          },
-          "Media already indexed, skipping"
-        );
-        return false;
-      }
-      logger.info(
-        {
-          connectorId,
-          mediaId: file.id,
-          mediaType,
-          errorCount: existing.errorCount,
-        },
-        "Retrying previously failed media"
-      );
-    }
-  }
-
-  const downloadMetadata = buildMediaDownloadMetadata(file.downloadStrategy);
-  if (!downloadMetadata) {
-    logger.warn(
-      { connectorId, mediaId: file.id, mediaType, fileName: file.name },
-      "Media has no valid download strategy, skipping"
-    );
-    return false;
-  }
-
+  connectorId: string,
+  mediaType: "video" | "audio"
+): Promise<MediaRecord> {
   const folder = mediaType === "audio" ? "audio" : "videos";
   const storageKey = `${folder}/${connectorId}/${file.id}/${file.name}`;
   const vespaId = `media_${connectorId}_${file.id}`;
@@ -302,6 +311,82 @@ async function processDiscoveredMedia(
     mediaType,
   });
 
+  return { id: indexedMedia.id, storageKey };
+}
+
+async function getOrCreateMediaRecord(
+  file: ConnectorFileInfo | ConnectorMediaInfo,
+  connectorId: string,
+  mediaType: "video" | "audio",
+  skipExisting: boolean
+): Promise<MediaRecord | null> {
+  if (!skipExisting) {
+    return createNewMediaRecord(file, connectorId, mediaType);
+  }
+
+  const existing = await findIndexedMediaByExternalId(
+    prisma,
+    connectorId,
+    file.id
+  );
+
+  if (!existing) {
+    return createNewMediaRecord(file, connectorId, mediaType);
+  }
+
+  if (existing.processingStatus !== "FAILED") {
+    logger.debug(
+      {
+        connectorId,
+        mediaId: file.id,
+        mediaType,
+        status: existing.processingStatus,
+      },
+      "Media already indexed, skipping"
+    );
+    return null;
+  }
+
+  logger.info(
+    {
+      connectorId,
+      mediaId: file.id,
+      mediaType,
+      errorCount: existing.errorCount,
+    },
+    "Retrying previously failed media"
+  );
+
+  await updateIndexedMediaStatus(prisma, existing.id, "PENDING");
+  return { id: existing.id, storageKey: existing.storageKey };
+}
+
+async function processDiscoveredMedia(
+  file: ConnectorFileInfo | ConnectorMediaInfo,
+  options: MediaDiscoveryOptions
+): Promise<boolean> {
+  const { connectorId, skipExisting = true, priority, mediaType } = options;
+  const jobPriority = priority ?? 5;
+
+  const downloadMetadata = buildMediaDownloadMetadata(file.downloadStrategy);
+  if (!downloadMetadata) {
+    logger.warn(
+      { connectorId, mediaId: file.id, mediaType, fileName: file.name },
+      "Media has no valid download strategy, skipping"
+    );
+    return false;
+  }
+
+  const record = await getOrCreateMediaRecord(
+    file,
+    connectorId,
+    mediaType,
+    skipExisting
+  );
+  if (!record) {
+    return false;
+  }
+
   const legacySourceUrl =
     file.downloadStrategy.type === "url"
       ? file.downloadStrategy.downloadUrl
@@ -309,14 +394,14 @@ async function processDiscoveredMedia(
 
   await addMediaDownloadJob(
     {
-      mediaId: indexedMedia.id,
+      mediaId: record.id,
       connectorId,
       externalId: file.id,
       sourceUrl: legacySourceUrl,
       downloadMetadata,
       mimeType: file.mimeType,
       fileName: file.name,
-      storageKey,
+      storageKey: record.storageKey,
       mediaType,
       sourceChannelId: file.sourceChannelId ?? undefined,
       sourcePermalink: file.permalink,
@@ -326,12 +411,7 @@ async function processDiscoveredMedia(
   );
 
   logger.debug(
-    {
-      connectorId,
-      mediaId: file.id,
-      mediaType,
-      indexedMediaId: indexedMedia.id,
-    },
+    { connectorId, mediaId: file.id, mediaType, indexedMediaId: record.id },
     "Queued media for processing from sync"
   );
 
