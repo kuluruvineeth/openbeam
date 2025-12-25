@@ -1,8 +1,13 @@
 import prisma, {
   type AppType,
   ConnectorStatus,
+  getConnectorsNeedingRefresh as dbGetConnectorsNeedingRefresh,
   decryptIfEncrypted,
-  encryptIfConfigured,
+  findConnectorById,
+  getOAuthProvider,
+  recordRefreshFailure,
+  updateConnector,
+  updateOAuthTokens,
 } from "@openplane/db";
 import {
   refreshGmailToken,
@@ -12,25 +17,25 @@ import {
 export async function refreshConnectorToken(
   connectorId: string
 ): Promise<string> {
-  const oauth = await prisma.oAuthProvider.findUnique({
-    where: { connectorId },
-    include: {
-      connector: {
-        select: { status: true },
-      },
-    },
-  });
+  const [oauth, connector] = await Promise.all([
+    getOAuthProvider(prisma, connectorId),
+    findConnectorById(prisma, connectorId),
+  ]);
 
   if (!oauth) {
     throw new Error(`OAuth provider not found for connector ${connectorId}`);
   }
 
+  if (!connector) {
+    throw new Error(`Connector not found: ${connectorId}`);
+  }
+
   if (
-    oauth.connector.status !== ConnectorStatus.ACTIVE &&
-    oauth.connector.status !== ConnectorStatus.SYNCING
+    connector.status !== ConnectorStatus.ACTIVE &&
+    connector.status !== ConnectorStatus.SYNCING
   ) {
     throw new Error(
-      `Connector ${connectorId} is not active (status: ${oauth.connector.status})`
+      `Connector ${connectorId} is not active (status: ${connector.status})`
     );
   }
 
@@ -77,25 +82,17 @@ export async function refreshConnectorToken(
       case "SLACK":
         throw new Error("Slack token refresh not implemented");
 
+      case "NOTION":
+        throw new Error("Notion tokens do not expire");
+
       default:
         throw new Error(`Token refresh not implemented for app: ${oauth.app}`);
     }
 
-    const accessTokenEncrypted = encryptIfConfigured(newToken.accessToken);
-    const tokenExpiresAt = new Date(Date.now() + newToken.expiresIn * 1000);
-
-    await prisma.oAuthProvider.update({
-      where: { connectorId },
-      data: {
-        accessToken: accessTokenEncrypted.encrypted,
-        accessTokenIv: accessTokenEncrypted.iv,
-        tokenExpiresAt,
-        tokenRefreshedAt: new Date(),
-        refreshFailures: 0,
-        refreshError: null,
-        lastRefreshAttempt: new Date(),
-        updatedAt: new Date(),
-      },
+    await updateOAuthTokens(prisma, {
+      connectorId,
+      accessToken: newToken.accessToken,
+      expiresIn: newToken.expiresIn,
     });
 
     return newToken.accessToken;
@@ -103,30 +100,18 @@ export async function refreshConnectorToken(
     const errorMessage =
       error instanceof Error ? error.message : "Token refresh failed";
 
-    await prisma.oAuthProvider.update({
-      where: { connectorId },
-      data: {
-        lastRefreshAttempt: new Date(),
-        refreshFailures: { increment: 1 },
-        refreshError: errorMessage,
-        updatedAt: new Date(),
-      },
-    });
+    const updatedOAuth = await recordRefreshFailure(
+      prisma,
+      connectorId,
+      errorMessage
+    );
 
-    const updatedOAuth = await prisma.oAuthProvider.findUnique({
-      where: { connectorId },
-      select: { refreshFailures: true },
-    });
-
-    if (updatedOAuth && updatedOAuth.refreshFailures >= 3) {
-      await prisma.connector.update({
-        where: { id: connectorId },
-        data: {
-          status: ConnectorStatus.AUTH_EXPIRED,
-          statusChangedAt: new Date(),
-          lastError: `Token refresh failed after ${updatedOAuth.refreshFailures} attempts: ${errorMessage}`,
-          lastErrorAt: new Date(),
-        },
+    if (updatedOAuth.refreshFailures >= 3) {
+      await updateConnector(prisma, connectorId, {
+        status: ConnectorStatus.AUTH_EXPIRED,
+        statusChangedAt: new Date(),
+        lastError: `Token refresh failed after ${updatedOAuth.refreshFailures} attempts: ${errorMessage}`,
+        lastErrorAt: new Date(),
       });
     }
 
@@ -134,32 +119,10 @@ export async function refreshConnectorToken(
   }
 }
 
-async function getConnectorsNeedingRefresh(
+function getConnectorsNeedingRefresh(
   bufferSeconds = 300
 ): Promise<{ connectorId: string; app: AppType }[]> {
-  const threshold = new Date(Date.now() + bufferSeconds * 1000);
-
-  const expiring = await prisma.oAuthProvider.findMany({
-    where: {
-      tokenExpiresAt: {
-        lte: threshold,
-      },
-      refreshToken: {
-        not: null,
-      },
-      connector: {
-        status: {
-          in: ["ACTIVE", "SYNCING"],
-        },
-      },
-    },
-    select: {
-      connectorId: true,
-      app: true,
-    },
-  });
-
-  return expiring;
+  return dbGetConnectorsNeedingRefresh(prisma, bufferSeconds);
 }
 
 export async function refreshExpiringTokens(bufferSeconds = 300): Promise<{
@@ -198,14 +161,7 @@ export async function getValidAccessToken(
   connectorId: string,
   bufferSeconds = 300
 ): Promise<string> {
-  const oauth = await prisma.oAuthProvider.findUnique({
-    where: { connectorId },
-    select: {
-      accessToken: true,
-      accessTokenIv: true,
-      tokenExpiresAt: true,
-    },
-  });
+  const oauth = await getOAuthProvider(prisma, connectorId);
 
   if (!oauth?.accessToken) {
     throw new Error(`No access token found for connector ${connectorId}`);

@@ -8,7 +8,7 @@ export interface OAuthCallbackResponse {
   finalize_url?: string;
 }
 
-type IntegrationName = "slack" | "gmail" | "google-drive";
+type IntegrationName = "slack" | "gmail" | "google-drive" | "notion";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -32,6 +32,11 @@ const INTEGRATION_HANDLERS: Record<
         state,
       }
     ),
+  notion: async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>("/integrations/notion/callback", {
+      code,
+      state,
+    }),
 };
 
 export async function handleOAuthAuthorizationResponse(
