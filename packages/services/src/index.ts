@@ -174,6 +174,57 @@ export type {
 } from "./messages";
 export { MessagesService, messagesService } from "./messages";
 export type {
+  NotificationResult as NotionNotificationResult,
+  NotionBlock,
+  NotionBlockChildrenResponse,
+  NotionClient,
+  NotionClientConfig,
+  NotionComment,
+  NotionCommentsResponse,
+  NotionDatabase,
+  NotionDatabaseQueryResponse,
+  NotionNotification,
+  NotionPage,
+  NotionParent,
+  NotionRateLimitConfig,
+  NotionRateLimitState,
+  NotionRichText,
+  NotionSearchResponse,
+  NotionSyncBatch,
+  NotionSyncCursor,
+  NotionSyncOptions,
+  NotionTransformContext,
+  NotionUser,
+  NotionWatchState,
+  NotionWebhookPayload,
+  SerializedBlock,
+  SerializedBlockData,
+  SerializedRichText,
+} from "./notion";
+export {
+  createNotionClient,
+  deleteWatchState as deleteNotionWatchState,
+  fullSync as notionFullSync,
+  getAllActiveWatches as getAllActiveNotionWatches,
+  getExpiringWatches as getExpiringNotionWatches,
+  getWatchState as getNotionWatchState,
+  handleNotification as handleNotionNotification,
+  incrementalSync as notionIncrementalSync,
+  isExpiredNotification as isExpiredNotionNotification,
+  NotionApiError,
+  NotionAuth,
+  NotionErrorCodes,
+  parseWebhookPayload as parseNotionWebhookPayload,
+  serializedBlocksToMarkdown,
+  serializedRichTextToMarkdown,
+  setWatchState as setNotionWatchState,
+  transformDatabase as transformNotionDatabase,
+  transformPage as transformNotionPage,
+  verifyWebhookSignature as verifyNotionWebhookSignature,
+} from "./notion";
+export type {
+  AuthorFacet,
+  AuthorFacetsParams,
   AuthorSearchParams,
   DocumentSearchResult,
   MediaSearchParams,
@@ -462,7 +513,6 @@ export {
   updateStats,
   verifySlackSignature,
 } from "./slack";
-
 export {
   getStorageProvider,
   resetStorageProvider,
@@ -490,7 +540,6 @@ export {
   updateSyncCompletion,
   updateSyncCursor,
 } from "./sync";
-
 export type {
   AuthCompleteContext,
   AuthStartContext,

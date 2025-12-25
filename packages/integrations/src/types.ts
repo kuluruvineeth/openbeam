@@ -24,6 +24,7 @@ export enum AppType {
   SLACK = "SLACK",
   GMAIL = "GMAIL",
   GOOGLE_DRIVE = "GOOGLE_DRIVE",
+  NOTION = "NOTION",
 }
 
 export type DocumentTypeCategory =

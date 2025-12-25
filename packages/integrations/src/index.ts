@@ -1,5 +1,6 @@
 import gmailApp from "./gmail/config";
 import googleDriveApp from "./google-drive/config";
+import notionApp from "./notion/config";
 import slackApp from "./slack/config";
 import type { UnifiedApp } from "./types";
 
@@ -32,6 +33,10 @@ export type {
   GoogleDriveFolder,
 } from "./google-drive/types";
 
+// Notion exports
+export { exchangeNotionCode, generateNotionAuthUrl } from "./notion/oauth";
+export type { NotionAuthResult, NotionOAuthResponse } from "./notion/types";
+
 // Slack exports
 export * from "./slack/oauth";
 export * from "./slack/types";
@@ -39,8 +44,9 @@ export * from "./slack/types";
 // Common exports
 export * from "./types";
 
-export const appStore: UnifiedApp[] = [gmailApp, googleDriveApp, slackApp];
-
-export { default as gmailApp } from "./gmail/config";
-export { default as googleDriveApp } from "./google-drive/config";
-export { default as slackApp } from "./slack/config";
+export const appStore: UnifiedApp[] = [
+  gmailApp,
+  googleDriveApp,
+  notionApp,
+  slackApp,
+];
