@@ -1,0 +1,65 @@
+---
+title: Quick Start
+description: Connect Notion to OpenPlane
+---
+
+# Notion Quick Start
+
+## Prerequisites
+
+- Notion account with workspace admin access
+- OpenPlane instance with HTTPS endpoint
+
+## 1. Create Notion Integration
+
+1. Go to [notion.so/my-integrations](https://www.notion.so/my-integrations)
+2. Click **+ New integration**
+3. Fill in name and select workspace
+4. Click **Submit**
+
+## 2. Enable OAuth
+
+1. Go to **Distribution** tab
+2. Enable **Public integration**
+3. Add redirect URI:
+   ```
+   https://your-domain.com/connectors/setup/notion/oauth/callback
+   ```
+4. Fill company info (name, website, privacy policy)
+
+## 3. Get Credentials
+
+From the **Secrets** tab, copy:
+- **OAuth client ID**
+- **OAuth client secret**
+
+## 4. Configure Capabilities
+
+In **Capabilities** tab, enable:
+- Read content
+- Read comments
+- Insert content (optional, for actions)
+- Update content (optional, for actions)
+
+## 5. Configure Environment
+
+```bash
+NOTION_CLIENT_ID=your-client-id
+NOTION_CLIENT_SECRET=secret_xxxxx
+WEB_URL=https://your-domain.com
+SERVER_URL=https://api.your-domain.com
+```
+
+## 6. Connect
+
+1. Go to **Settings → Connectors → Add Connector → Notion**
+2. Enter Client ID and Client Secret
+3. Click **Connect** and authorize
+4. Select pages to share with integration
+
+Initial sync runs in background. Large workspaces may take several minutes.
+
+<Cards>
+  <Card title="Configuration" href="/docs/connectors/notion/configuration" />
+  <Card title="Features" href="/docs/connectors/notion/features" />
+</Cards>

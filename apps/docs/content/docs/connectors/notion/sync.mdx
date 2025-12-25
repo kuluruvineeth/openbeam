@@ -1,0 +1,59 @@
+---
+title: Sync Behavior
+description: How Notion data is synced
+---
+
+# Sync Behavior
+
+## Sync Types
+
+| Type | Trigger | Duration |
+|------|---------|----------|
+| **Full** | First connection, manual resync | Minutes to hours |
+| **Incremental** | Scheduled / webhook | Seconds to minutes |
+
+## Status
+
+| Status | Meaning |
+|--------|---------|
+| **Active** | Synced, watching for changes |
+| **Syncing** | Sync in progress |
+| **Error** | Check logs |
+
+## Content Processing
+
+1. **Search API**: Find all accessible pages and databases
+2. **Block extraction**: Recursive fetch of nested blocks
+3. **Comment fetch**: Page and block comments (if enabled)
+4. **Transform**: Convert to searchable documents
+
+## Rate Limits
+
+| Quota | Limit |
+|-------|-------|
+| Average | 3 requests/second |
+| Burst | 10 requests |
+
+OpenPlane handles limits with exponential backoff and request queuing.
+
+## Webhooks (Beta)
+
+Real-time sync via Notion webhooks is in beta. When available:
+- Instant notifications for page changes
+- Reduced polling frequency
+- Lower API usage
+
+## Controls
+
+- **Full Resync**: Settings → Connectors → Notion → Actions → Full Resync
+- **Pause/Resume**: Stop processing temporarily
+- **Sync Now**: Trigger immediate incremental sync
+
+## Troubleshooting
+
+| Issue | Fix |
+|-------|-----|
+| Sync stuck | Rate limited - wait |
+| Pages missing | Share pages with integration |
+| Content empty | Check block extraction settings |
+| Slow sync | Large workspace - normal |

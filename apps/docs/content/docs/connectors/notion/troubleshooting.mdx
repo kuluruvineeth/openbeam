@@ -1,0 +1,62 @@
+---
+title: Troubleshooting
+description: Common Notion connector issues
+---
+
+# Troubleshooting
+
+## OAuth Errors
+
+| Error | Fix |
+|-------|-----|
+| `redirect_uri_mismatch` | Exact match required in integration settings |
+| `access_denied` | User denied authorization |
+| `invalid_grant` | Code expired - restart OAuth flow |
+| `unauthorized_client` | Check Client ID and Secret |
+
+## Access Issues
+
+| Issue | Fix |
+|-------|-----|
+| Pages not found | Share pages with integration in Notion |
+| `restricted_resource` | Page not shared with integration |
+| Empty workspace | No pages shared during OAuth |
+
+## Sync Issues
+
+| Issue | Fix |
+|-------|-----|
+| Rate limit exceeded | Auto-backoff; wait for reset |
+| Content not indexed | Enable `extractContent` setting |
+| Comments missing | Enable `extractComments` setting |
+| Nested blocks missing | Increase `maxBlockDepth` |
+
+## Connection Issues
+
+| Issue | Fix |
+|-------|-----|
+| Cannot connect | Verify environment variables |
+| Token invalid | Notion tokens don't expire, check integration status |
+| Integration removed | Reconnect via OAuth |
+
+## Debug Commands
+
+```bash
+# Check webhook health
+curl https://api.your-domain.com/api/v1/webhooks/notion/health
+
+# Check logs
+tail -f logs/worker.log | grep -i notion
+```
+
+## Error Reference
+
+| Error | Code | Fix |
+|-------|------|-----|
+| `redirect_uri_mismatch` | 400 | Fix OAuth redirect URI |
+| `unauthorized` | 401 | Reconnect |
+| `restricted_resource` | 403 | Share page with integration |
+| `object_not_found` | 404 | Page deleted or moved |
+| `rate_limited` | 429 | Wait for backoff |
+
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openplane/issues) with error messages and logs.

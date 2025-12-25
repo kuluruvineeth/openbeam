@@ -1,36 +1,32 @@
 ---
-title: Notion Connector
-description: Connect Notion to OpenPlane for workspace search
+title: Notion
+description: Search pages, databases, and blocks
 ---
 
 # Notion Connector
 
-The Notion connector is coming soon.
+Index pages, databases, and blocks with recursive content extraction.
 
-## Planned Features
+<Cards>
+  <Card title="Setup" href="/docs/connectors/notion/setup" />
+  <Card title="Features" href="/docs/connectors/notion/features" />
+  <Card title="Troubleshooting" href="/docs/connectors/notion/troubleshooting" />
+</Cards>
 
-- Full-text search across pages and databases
-- Database property indexing
-- Block-level content extraction
-- Workspace permission sync
-- Real-time updates via Notion webhooks
+## What's Indexed
 
-## Content Types
+- **Pages** - Full content with nested blocks
+- **Databases** - Schema, properties, and entries
+- **Comments** - Page and block discussions
 
-| Type | Support |
-|------|---------|
-| Pages | Full content indexing |
-| Databases | Properties and content |
-| Comments | Thread indexing |
-| Files | Attachment extraction |
+## Quick Start
 
-## Authentication
+1. Create Notion integration at notion.so/my-integrations
+2. Enable OAuth and add redirect URI
+3. Connect in OpenPlane UI
+4. Select pages to share with integration
 
-Will use Notion OAuth 2.0 with read access to:
-- Pages and databases
-- User information
-- Comments
-
-## Stay Updated
-
-Watch the [GitHub repository](https://github.com/kuluruvineeth/openplane) for updates on Notion connector availability.
+<Cards>
+  <Card title="Configuration" href="/docs/connectors/notion/configuration" />
+  <Card title="Sync Behavior" href="/docs/connectors/notion/sync" />
+</Cards>

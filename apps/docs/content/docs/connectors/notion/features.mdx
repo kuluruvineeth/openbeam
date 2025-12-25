@@ -1,0 +1,56 @@
+---
+title: Features
+description: Notion connector capabilities
+---
+
+# Notion Features
+
+## Search
+
+- **Full-text**: Page titles, content, database properties
+- **Block content**: All text-based block types extracted
+- **Comments**: Page and block discussions indexed
+- **Hierarchy**: Parent/child relationships preserved
+
+## Block Types
+
+| Type | Extraction |
+|------|------------|
+| Paragraph, Headings | Full text |
+| Lists (bulleted, numbered, to-do) | Text with markers |
+| Quote, Callout | Text with styling info |
+| Code | Content with language |
+| Table | Cell content |
+| Toggle | Nested content |
+| Bookmark, Link | URL and title |
+| Equation | LaTeX expression |
+
+## Database Support
+
+| Feature | Support |
+|---------|---------|
+| Properties | All types indexed |
+| Views | Not synced (data only) |
+| Relations | Referenced IDs |
+| Rollups | Computed values |
+| Formulas | Result values |
+
+## Sync Options
+
+- **Polling**: Every 15 minutes (default)
+- **Real-time**: Via webhooks (beta)
+
+## AI Capabilities
+
+- Semantic search beyond keywords
+- Question answering across pages
+- Content summarization
+
+## Limitations
+
+| Limit | Value |
+|-------|-------|
+| Access | Pages shared with integration |
+| Block depth | Configurable (default 10) |
+| Rate limit | 3 req/sec average |
+| Comments | Read-only |

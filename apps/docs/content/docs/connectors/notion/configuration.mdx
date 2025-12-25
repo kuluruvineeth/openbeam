@@ -1,0 +1,56 @@
+---
+title: Configuration
+description: Notion connector settings
+---
+
+# Configuration
+
+## Content Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `extractContent` | `true` | Parse full block content |
+| `extractComments` | `true` | Include page/block comments |
+| `maxBlockDepth` | `10` | Nested block depth (1-10) |
+
+## Sync Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `lookbackDays` | Unlimited | Days of history to sync |
+| `fullSyncInterval` | `24h` | Full resync frequency |
+| `incrementalInterval` | `15m` | Check frequency |
+
+## Real-time Sync
+
+| Setting | Description |
+|---------|-------------|
+| `enablePushNotifications` | Enable webhooks (beta) |
+
+## Environment Variables
+
+```bash
+NOTION_CLIENT_ID=your-client-id
+NOTION_CLIENT_SECRET=secret_xxxxx
+WEB_URL=https://your-domain.com
+SERVER_URL=https://api.your-domain.com
+```
+
+## Page Access
+
+Notion uses capability-based access. Users select which pages to share during OAuth:
+
+- **Select pages**: Choose specific pages/databases
+- **All pages**: Grant access to entire workspace
+
+To access new pages later, users must update integration access in Notion.
+
+## Resync Required
+
+| Change | Resync |
+|--------|--------|
+| Increase block depth | Full sync |
+| Enable comments | Full sync |
+| New pages shared | Incremental sync |
+
+Trigger via **Actions → Full Resync** in connector settings.
