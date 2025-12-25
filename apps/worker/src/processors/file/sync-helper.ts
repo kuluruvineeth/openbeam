@@ -10,7 +10,6 @@ import {
   addFileDownloadJob,
   addMediaDownloadJob,
   type FileDownloadMetadata,
-  type MediaDownloadMetadata,
 } from "@openplane/redis";
 import {
   type ConnectorFileInfo,
@@ -37,34 +36,9 @@ export interface FileDiscoveryResult {
 
 type SingleFileResult = "queued" | "skipped" | "mediaQueued";
 
-function buildFileDownloadMetadata(
+function buildDownloadMetadata(
   strategy: DownloadStrategy
 ): FileDownloadMetadata | null {
-  if (strategy.type === "url") {
-    return strategy.downloadUrl
-      ? { connector: "slack", sourceUrl: strategy.downloadUrl }
-      : null;
-  }
-  if (strategy.type === "gmail-attachment") {
-    return {
-      connector: "gmail",
-      messageId: strategy.messageId,
-      attachmentId: strategy.attachmentId,
-    };
-  }
-  if (strategy.type === "google-drive") {
-    return {
-      connector: "google-drive",
-      fileId: strategy.fileId,
-      exportMimeType: strategy.exportMimeType,
-    };
-  }
-  return null;
-}
-
-function buildMediaDownloadMetadata(
-  strategy: DownloadStrategy
-): MediaDownloadMetadata | null {
   if (strategy.type === "url") {
     return strategy.downloadUrl
       ? { connector: "slack", sourceUrl: strategy.downloadUrl }
@@ -175,13 +149,72 @@ export async function processDiscoveredFiles(
   return result;
 }
 
+async function createNewFileRecord(
+  file: ConnectorFileInfo,
+  connectorId: string
+): Promise<string> {
+  const storageKey = `pending/${connectorId}/files/${file.id}/${file.name}`;
+  const vespaId = `file-${connectorId}-${file.id}`;
+
+  const indexedFile = await createIndexedFile(prisma, {
+    connectorId,
+    externalId: file.id,
+    vespaId,
+    fileName: file.name,
+    mimeType: file.mimeType,
+    fileSize: file.size ?? 0,
+    fileExtension: getFileExtension(file.name),
+    storageKey,
+    processingStatus: "PENDING",
+    sourceChannelId: file.sourceChannelId ?? null,
+  });
+
+  return indexedFile.id;
+}
+
+async function getOrCreateFileRecord(
+  file: ConnectorFileInfo,
+  connectorId: string,
+  skipExisting: boolean
+): Promise<string | null> {
+  if (!skipExisting) {
+    return createNewFileRecord(file, connectorId);
+  }
+
+  const existing = await findIndexedFileByExternalId(
+    prisma,
+    connectorId,
+    file.id
+  );
+
+  if (!existing) {
+    return createNewFileRecord(file, connectorId);
+  }
+
+  if (existing.processingStatus !== "FAILED") {
+    logger.debug(
+      { connectorId, fileId: file.id, status: existing.processingStatus },
+      "File already indexed, skipping"
+    );
+    return null;
+  }
+
+  logger.info(
+    { connectorId, fileId: file.id, errorCount: existing.errorCount },
+    "Retrying previously failed file"
+  );
+
+  await updateIndexedFileStatus(prisma, existing.id, "PENDING");
+  return existing.id;
+}
+
 async function processDiscoveredFile(
   file: ConnectorFileInfo,
   options: FileDiscoveryOptions
 ): Promise<boolean> {
   const { connectorId, skipExisting = true, priority = 5 } = options;
 
-  const downloadMetadata = buildFileDownloadMetadata(file.downloadStrategy);
+  const downloadMetadata = buildDownloadMetadata(file.downloadStrategy);
   if (!downloadMetadata) {
     logger.warn(
       { connectorId, fileId: file.id, fileName: file.name },
@@ -190,67 +223,9 @@ async function processDiscoveredFile(
     return false;
   }
 
-  let fileId: string;
-
-  if (skipExisting) {
-    const existing = await findIndexedFileByExternalId(
-      prisma,
-      connectorId,
-      file.id
-    );
-
-    if (existing) {
-      const shouldRetry = existing.processingStatus === "FAILED";
-      if (!shouldRetry) {
-        logger.debug(
-          { connectorId, fileId: file.id, status: existing.processingStatus },
-          "File already indexed, skipping"
-        );
-        return false;
-      }
-
-      logger.info(
-        { connectorId, fileId: file.id, errorCount: existing.errorCount },
-        "Retrying previously failed file"
-      );
-
-      await updateIndexedFileStatus(prisma, existing.id, "PENDING");
-      fileId = existing.id;
-    } else {
-      const storageKey = `pending/${connectorId}/files/${file.id}/${file.name}`;
-      const vespaId = `file-${connectorId}-${file.id}`;
-
-      const indexedFile = await createIndexedFile(prisma, {
-        connectorId,
-        externalId: file.id,
-        vespaId,
-        fileName: file.name,
-        mimeType: file.mimeType,
-        fileSize: file.size ?? 0,
-        fileExtension: getFileExtension(file.name),
-        storageKey,
-        processingStatus: "PENDING",
-        sourceChannelId: file.sourceChannelId ?? null,
-      });
-      fileId = indexedFile.id;
-    }
-  } else {
-    const storageKey = `pending/${connectorId}/files/${file.id}/${file.name}`;
-    const vespaId = `file-${connectorId}-${file.id}`;
-
-    const indexedFile = await createIndexedFile(prisma, {
-      connectorId,
-      externalId: file.id,
-      vespaId,
-      fileName: file.name,
-      mimeType: file.mimeType,
-      fileSize: file.size ?? 0,
-      fileExtension: getFileExtension(file.name),
-      storageKey,
-      processingStatus: "PENDING",
-      sourceChannelId: file.sourceChannelId ?? null,
-    });
-    fileId = indexedFile.id;
+  const fileId = await getOrCreateFileRecord(file, connectorId, skipExisting);
+  if (!fileId) {
+    return false;
   }
 
   const legacySourceUrl =
@@ -368,7 +343,7 @@ async function processDiscoveredMedia(
   const { connectorId, skipExisting = true, priority, mediaType } = options;
   const jobPriority = priority ?? 5;
 
-  const downloadMetadata = buildMediaDownloadMetadata(file.downloadStrategy);
+  const downloadMetadata = buildDownloadMetadata(file.downloadStrategy);
   if (!downloadMetadata) {
     logger.warn(
       { connectorId, mediaId: file.id, mediaType, fileName: file.name },
@@ -406,6 +381,7 @@ async function processDiscoveredMedia(
       sourceChannelId: file.sourceChannelId ?? undefined,
       sourcePermalink: file.permalink,
       authorId: file.userId,
+      authorName: file.userName,
     },
     jobPriority
   );

@@ -70,6 +70,18 @@ export function formatFileSize(bytes?: number): string {
   return `${size.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
 }
 
+export function getInitials(name: string | null | undefined): string {
+  if (!name) {
+    return "?";
+  }
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
 export function getContentPreview(content: string, maxLength = 180): string {
   const cleaned = content
     .replace(/\*\*(.*?)\*\*/g, "$1")

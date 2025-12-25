@@ -10,4 +10,3 @@ export { SearchPage } from "./search-page";
 export { SearchResultRow } from "./search-result-row";
 export { SearchResults } from "./search-results";
 export { SearchPageSkeleton, SearchResultsSkeleton } from "./search-skeleton";
-export { SearchStats } from "./search-stats";

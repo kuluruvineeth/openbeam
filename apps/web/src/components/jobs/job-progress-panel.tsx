@@ -21,7 +21,10 @@ export function JobProgressPanel() {
   }
 
   return (
-    <div className="fixed right-4 bottom-4 z-50 w-80">
+    <aside
+      aria-label="Background jobs"
+      className="fixed right-4 bottom-4 z-50 w-80"
+    >
       <Collapsible onOpenChange={setIsOpen} open={isOpen}>
         <div className="overflow-hidden border border-border/50 bg-background shadow-lg">
           <CollapsibleTrigger asChild>
@@ -48,7 +51,7 @@ export function JobProgressPanel() {
             </button>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <motion.div
+            <motion.ul
               animate={{ opacity: 1 }}
               className="max-h-80 overflow-y-auto"
               exit={{ opacity: 0 }}
@@ -57,7 +60,7 @@ export function JobProgressPanel() {
             >
               <AnimatePresence initial={false}>
                 {jobs.map((job) => (
-                  <motion.div
+                  <motion.li
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
                     initial={{ opacity: 0, height: 0 }}
@@ -65,13 +68,13 @@ export function JobProgressPanel() {
                     transition={{ duration: 0.2 }}
                   >
                     <JobProgressItem job={job} />
-                  </motion.div>
+                  </motion.li>
                 ))}
               </AnimatePresence>
-            </motion.div>
+            </motion.ul>
           </CollapsibleContent>
         </div>
       </Collapsible>
-    </div>
+    </aside>
   );
 }

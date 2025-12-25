@@ -99,7 +99,10 @@ export function SearchResults({
         </div>
       )}
 
-      <div className="border border-border/50">
+      <ol
+        aria-label="Search results"
+        className="list-none border border-border/50"
+      >
         {items.map((item, index) => {
           const isLast = index === items.length - 1;
           const isSelected = selectedIndex === index;
@@ -107,14 +110,35 @@ export function SearchResults({
 
           if (item.type === "document") {
             return (
-              <SearchResultRow
-                document={item.data}
+              <li key={`doc-${item.data.id}`}>
+                <SearchResultRow
+                  document={item.data}
+                  isLast={isLast}
+                  isPreviewing={isPreviewing}
+                  isSelected={isSelected}
+                  onPreview={onPreviewDocument}
+                  onSelect={(d) => onSelectDocument?.(d, index)}
+                  ref={(el) => {
+                    if (el) {
+                      rowRefs.current.set(index, el);
+                    } else {
+                      rowRefs.current.delete(index);
+                    }
+                  }}
+                />
+              </li>
+            );
+          }
+
+          return (
+            <li key={`media-${item.data.id}`}>
+              <SearchMediaRow
                 isLast={isLast}
                 isPreviewing={isPreviewing}
                 isSelected={isSelected}
-                key={`doc-${item.data.id}`}
-                onPreview={onPreviewDocument}
-                onSelect={(d) => onSelectDocument?.(d, index)}
+                media={item.data}
+                onPreview={onPreviewMedia}
+                onSelect={(m) => onSelectMedia?.(m, index)}
                 ref={(el) => {
                   if (el) {
                     rowRefs.current.set(index, el);
@@ -123,29 +147,10 @@ export function SearchResults({
                   }
                 }}
               />
-            );
-          }
-
-          return (
-            <SearchMediaRow
-              isLast={isLast}
-              isPreviewing={isPreviewing}
-              isSelected={isSelected}
-              key={`media-${item.data.id}`}
-              media={item.data}
-              onPreview={onPreviewMedia}
-              onSelect={(m) => onSelectMedia?.(m, index)}
-              ref={(el) => {
-                if (el) {
-                  rowRefs.current.set(index, el);
-                } else {
-                  rowRefs.current.delete(index);
-                }
-              }}
-            />
+            </li>
           );
         })}
-      </div>
+      </ol>
 
       {(hasNextPage || isFetchingNextPage) && (
         <div className="flex justify-center py-3" ref={ref}>

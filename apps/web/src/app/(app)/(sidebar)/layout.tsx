@@ -28,9 +28,9 @@ export default async function Layout({
           <Sidebar />
           <div className="flex flex-1 flex-col">
             <Header />
-            <div className="no-scrollbar flex-1 overflow-y-auto px-6">
+            <main className="no-scrollbar flex-1 overflow-y-auto px-6">
               {children}
-            </div>
+            </main>
           </div>
         </div>
       </SidebarProvider>

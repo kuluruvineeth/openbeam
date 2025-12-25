@@ -28,17 +28,18 @@ export default function Teams() {
           </div>
         </header>
 
-        <div className="flex min-h-screen items-center justify-center overflow-hidden p-6 md:p-0">
-          <div className="relative z-20 m-auto flex w-full max-w-[480px] flex-col">
-            <div>
-              <div className="text-center">
-                <UserGreeting />
-              </div>
+        <main className="flex min-h-screen items-center justify-center overflow-hidden p-6 md:p-0">
+          <section className="relative z-20 m-auto flex w-full max-w-[480px] flex-col">
+            <div className="text-center">
+              <UserGreeting />
             </div>
-          </div>
+          </section>
 
-          <div className="relative mt-12 w-full border-border border-t border-dashed pt-6 text-center">
-            <span className="-translate-x-1/2 -top-3 absolute left-1/2 bg-background px-4 text-muted-foreground text-sm">
+          <section className="relative mt-12 w-full border-border border-t border-dashed pt-6 text-center">
+            <span
+              aria-hidden="true"
+              className="-translate-x-1/2 -top-3 absolute left-1/2 bg-background px-4 text-muted-foreground text-sm"
+            >
               Or
             </span>
             <Link className="w-full" href="/teams/create">
@@ -46,8 +47,8 @@ export default function Teams() {
                 Create team
               </Button>
             </Link>
-          </div>
-        </div>
+          </section>
+        </main>
       </ClientOnly>
     </HydrateClient>
   );

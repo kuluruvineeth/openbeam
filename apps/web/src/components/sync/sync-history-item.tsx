@@ -32,9 +32,12 @@ export function SyncHistoryItem({ entry }: { entry: SyncHistoryEntry }) {
       <span className="text-[10px] text-foreground/40 uppercase tracking-wide">
         {entry.syncJob?.type ?? "FULL"}
       </span>
-      <span className="text-[10px] text-foreground/30">
+      <time
+        className="text-[10px] text-foreground/30"
+        dateTime={new Date(entry.startedAt).toISOString()}
+      >
         {formatDistanceToNow(new Date(entry.startedAt), { addSuffix: true })}
-      </span>
+      </time>
 
       <div className="ml-auto flex items-center gap-3 font-mono text-[10px]">
         <span className="text-foreground/40">

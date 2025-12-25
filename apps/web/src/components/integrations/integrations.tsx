@@ -89,14 +89,15 @@ export function Integrations() {
   }
 
   return (
-    <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+    <ul
+      aria-label="Integrations"
+      className="mt-6 grid list-none grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"
+    >
       {filteredApps.map((app) => (
-        <UnifiedAppComponent
-          app={app}
-          key={app.id}
-          userEmail={user?.email || undefined}
-        />
+        <li key={app.id}>
+          <UnifiedAppComponent app={app} userEmail={user?.email || undefined} />
+        </li>
       ))}
-    </div>
+    </ul>
   );
 }

@@ -23,7 +23,10 @@ export function Header({ breadcrumbs }: Props) {
       </button>
 
       {breadcrumbs && (
-        <nav className="hidden items-center gap-2 text-sm md:flex">
+        <nav
+          aria-label="Breadcrumb"
+          className="hidden items-center gap-2 text-sm md:flex"
+        >
           {breadcrumbs}
         </nav>
       )}

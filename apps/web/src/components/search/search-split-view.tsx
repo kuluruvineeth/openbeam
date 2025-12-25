@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import type { ReactNode } from "react";
+import { DocumentPreviewPanel } from "@/components/document-preview";
 import { EmailPreviewPanel } from "@/components/email-preview";
 import { FilePreviewPanel } from "@/components/file-preview";
 import { AudioViewer } from "@/components/file-preview/viewers/audio";
@@ -46,12 +47,12 @@ function MediaPreviewPanel({
 
   if (isLoading) {
     return (
-      <div className="flex h-full flex-col overflow-hidden">
-        <div className="flex shrink-0 items-center gap-2 overflow-hidden border-border/50 border-b px-4 py-3">
+      <article className="flex h-full flex-col overflow-hidden">
+        <header className="flex shrink-0 items-center gap-2 overflow-hidden border-border/50 border-b px-4 py-3">
           <div className="min-w-0 flex-1">
-            <h3 className="overflow-hidden text-ellipsis font-medium text-sm">
+            <h2 className="overflow-hidden text-ellipsis font-medium text-sm">
               {media.title}
-            </h3>
+            </h2>
             {media.source_name && (
               <p className="overflow-hidden text-ellipsis font-mono text-[10px] text-foreground/50">
                 {media.source_name}
@@ -66,22 +67,22 @@ function MediaPreviewPanel({
           >
             <Icons.Close size={16} />
           </Button>
-        </div>
-        <div className="flex min-h-0 flex-1 items-center justify-center">
+        </header>
+        <figure className="flex min-h-0 flex-1 items-center justify-center">
           <Skeleton className="aspect-video w-full max-w-lg" />
-        </div>
-      </div>
+        </figure>
+      </article>
     );
   }
 
   if (isError || !data) {
     return (
-      <div className="flex h-full flex-col overflow-hidden">
-        <div className="flex shrink-0 items-center gap-2 overflow-hidden border-border/50 border-b px-4 py-3">
+      <article className="flex h-full flex-col overflow-hidden">
+        <header className="flex shrink-0 items-center gap-2 overflow-hidden border-border/50 border-b px-4 py-3">
           <div className="min-w-0 flex-1">
-            <h3 className="overflow-hidden text-ellipsis font-medium text-sm">
+            <h2 className="overflow-hidden text-ellipsis font-medium text-sm">
               {media.title}
-            </h3>
+            </h2>
           </div>
           <Button
             className="shrink-0"
@@ -91,11 +92,11 @@ function MediaPreviewPanel({
           >
             <Icons.Close size={16} />
           </Button>
-        </div>
-        <div className="flex min-h-0 flex-1 items-center justify-center">
+        </header>
+        <section className="flex min-h-0 flex-1 items-center justify-center">
           <p className="text-foreground/50 text-sm">Failed to load media</p>
-        </div>
-      </div>
+        </section>
+      </article>
     );
   }
 
@@ -114,12 +115,12 @@ function MediaPreviewPanel({
   const isAudio = mimeType.startsWith("audio/");
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
-      <div className="flex shrink-0 items-center gap-2 overflow-hidden border-border/50 border-b px-4 py-3">
+    <article className="flex h-full flex-col overflow-hidden">
+      <header className="flex shrink-0 items-center gap-2 overflow-hidden border-border/50 border-b px-4 py-3">
         <div className="min-w-0 flex-1">
-          <h3 className="overflow-hidden text-ellipsis font-medium text-sm">
+          <h2 className="overflow-hidden text-ellipsis font-medium text-sm">
             {media.title}
-          </h3>
+          </h2>
           {media.source_name && (
             <p className="overflow-hidden text-ellipsis font-mono text-[10px] text-foreground/50">
               {media.source_name}
@@ -134,8 +135,8 @@ function MediaPreviewPanel({
         >
           <Icons.Close size={16} />
         </Button>
-      </div>
-      <div className="min-h-0 flex-1 overflow-hidden">
+      </header>
+      <figure className="min-h-0 flex-1 overflow-hidden">
         {isAudio ? (
           <AudioViewer
             twelveLabsAssetId={mediaId}
@@ -149,8 +150,8 @@ function MediaPreviewPanel({
             vespaId={vespaId}
           />
         )}
-      </div>
-    </div>
+      </figure>
+    </article>
   );
 }
 
@@ -170,6 +171,8 @@ function renderPreviewPanel(
       return <EmailPreviewPanel documentId={previewId} onClose={onClose} />;
     case "slack":
       return <SlackPreviewPanel documentId={previewId} onClose={onClose} />;
+    case "notion":
+      return <DocumentPreviewPanel documentId={previewId} onClose={onClose} />;
     case "media":
       if (options.mediaData) {
         return (
@@ -212,14 +215,17 @@ export function SearchSplitView({
         <>
           <ResizableHandle />
           <ResizablePanel defaultSize={50} minSize={30}>
-            <div className="h-full overflow-hidden border-border/50 border-l">
+            <aside
+              aria-label="Document preview"
+              className="h-full overflow-hidden border-border/50 border-l"
+            >
               {renderPreviewPanel(previewId, previewType, onClosePreview, {
                 highlightText,
                 chunkIndex,
                 pageNumber,
                 mediaData,
               })}
-            </div>
+            </aside>
           </ResizablePanel>
         </>
       )}

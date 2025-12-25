@@ -265,6 +265,9 @@ async function streamDocumentsToIndexQueue(params: {
       syncCanvases: config.index_canvases ?? true,
       syncClips: config.index_clips ?? true,
       syncBookmarks: config.index_bookmarks ?? true,
+      onStageChange: async (stage, current, item) => {
+        await progress.update(current, current + 100, stage, item);
+      },
       onBatch: async (batch) => {
         if (!(await validateFence(connectorId, fenceToken))) {
           throw new Error("Fence became invalid during streaming");

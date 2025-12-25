@@ -20,11 +20,11 @@ export function SlackThreadView({
   const [repliesExpanded, setRepliesExpanded] = useState(true);
 
   return (
-    <div className="p-4">
+    <article aria-label="Slack thread" className="p-4">
       <SlackMessageItem isParent message={parent} onFileClick={onFileClick} />
 
       {replies.length > 0 && (
-        <div className="mt-3 border-border/50 border-t pt-3">
+        <section className="mt-3 border-border/50 border-t pt-3">
           <button
             className="flex items-center gap-2 text-[11px] text-muted-foreground hover:text-foreground"
             onClick={() => setRepliesExpanded(!repliesExpanded)}
@@ -42,18 +42,19 @@ export function SlackThreadView({
           </button>
 
           {repliesExpanded && (
-            <div className="mt-3 space-y-3 border-border/40 border-l-2 pl-4">
+            <ol
+              aria-label="Thread replies"
+              className="mt-3 list-none space-y-3 border-border/40 border-l-2 pl-4"
+            >
               {replies.map((reply) => (
-                <SlackMessageItem
-                  key={reply.id}
-                  message={reply}
-                  onFileClick={onFileClick}
-                />
+                <li key={reply.id}>
+                  <SlackMessageItem message={reply} onFileClick={onFileClick} />
+                </li>
               ))}
-            </div>
+            </ol>
           )}
-        </div>
+        </section>
       )}
-    </div>
+    </article>
   );
 }

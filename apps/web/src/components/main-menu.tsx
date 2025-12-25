@@ -237,25 +237,26 @@ export function MainMenu({ onSelect, isExpanded = false }: Props) {
   return (
     <div className="mt-6 w-full">
       <nav aria-label="Main navigation" className="w-full">
-        <div className="flex flex-col gap-2">
+        <ul className="flex list-none flex-col gap-2">
           {items.map((item) => {
             const isActive = isItemActive(item.path);
 
             return (
-              <Item
-                isActive={isActive}
-                isExpanded={isExpanded}
-                isItemExpanded={expandedItem === item.path}
-                item={item}
-                key={item.path}
-                onSelect={onSelect}
-                onToggle={(path) => {
-                  setExpandedItem(expandedItem === path ? null : path);
-                }}
-              />
+              <li key={item.path}>
+                <Item
+                  isActive={isActive}
+                  isExpanded={isExpanded}
+                  isItemExpanded={expandedItem === item.path}
+                  item={item}
+                  onSelect={onSelect}
+                  onToggle={(path) => {
+                    setExpandedItem(expandedItem === path ? null : path);
+                  }}
+                />
+              </li>
             );
           })}
-        </div>
+        </ul>
       </nav>
     </div>
   );

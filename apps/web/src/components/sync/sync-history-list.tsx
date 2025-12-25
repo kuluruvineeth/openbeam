@@ -90,20 +90,22 @@ export function SyncHistoryList({
   }
 
   return (
-    <div className="border border-border/50">
+    <ol aria-label="Sync history" className="list-none border border-border/50">
       {history.map((entry) => (
-        <SyncHistoryItem entry={entry} key={entry.id} />
+        <li key={entry.id}>
+          <SyncHistoryItem entry={entry} />
+        </li>
       ))}
       {(hasNextPage || isFetchingNextPage) && (
-        <div className="flex justify-center py-3" ref={ref}>
+        <li className="flex justify-center py-3" ref={ref}>
           {isFetchingNextPage && (
             <Icons.Loader2Icon
               className="animate-spin text-foreground/30"
               size={14}
             />
           )}
-        </div>
+        </li>
       )}
-    </div>
+    </ol>
   );
 }

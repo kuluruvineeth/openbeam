@@ -19,8 +19,8 @@ export default function CreateTeam() {
         </div>
       </header>
 
-      <div className="flex min-h-screen items-center justify-center overflow-hidden p-6 md:p-0">
-        <div className="relative z-20 m-auto flex w-full max-w-[400px] flex-col">
+      <main className="flex min-h-screen items-center justify-center overflow-hidden p-6 md:p-0">
+        <section className="relative z-20 m-auto flex w-full max-w-[400px] flex-col">
           <div className="text-center">
             <h1 className="mb-2 font-serif text-lg">Setup your team</h1>
             <p className="mb-8 text-muted-foreground text-sm">
@@ -28,8 +28,8 @@ export default function CreateTeam() {
             </p>
           </div>
           <CreateTeamForm />
-        </div>
-      </div>
+        </section>
+      </main>
     </>
   );
 }

@@ -4,6 +4,7 @@ import { forwardRef } from "react";
 
 import { Icons } from "@/components/icons";
 import { AppLogo } from "@/components/integrations/app-logo";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { PreviewType } from "@/hooks/use-document-preview";
 import { getPreviewCategory, isPreviewable } from "@/lib/file-preview-config";
 import {
@@ -11,6 +12,7 @@ import {
   formatFullTime,
   formatRelativeTime,
   getContentPreview,
+  getInitials,
 } from "@/lib/format";
 import {
   formatSourceName,
@@ -54,7 +56,7 @@ function RowHeader({ doc }: { doc: SearchResultDocument }) {
   );
 
   return (
-    <div className="flex items-center gap-2 font-mono text-[10px]">
+    <header className="flex items-center gap-2 font-mono text-[10px]">
       <span className="text-foreground/40 uppercase tracking-wide">
         {typeLabel}
       </span>
@@ -73,11 +75,44 @@ function RowHeader({ doc }: { doc: SearchResultDocument }) {
           </span>
         </>
       )}
-      <span
+      <time
         className="ml-auto text-foreground/30 tabular-nums"
+        dateTime={
+          doc.created_at ? new Date(doc.created_at).toISOString() : undefined
+        }
         title={formatFullTime(doc.created_at)}
       >
         {formatRelativeTime(doc.created_at)}
+      </time>
+    </header>
+  );
+}
+
+function RowSubtitle({ doc }: { doc: SearchResultDocument }) {
+  const updatedAt = doc.updated_at || doc.created_at;
+
+  if (!updatedAt) {
+    return null;
+  }
+
+  return (
+    <div className="flex items-center gap-1.5 text-[11px] text-foreground/50">
+      {doc.author_name && (
+        <>
+          <Avatar className="size-4">
+            {doc.author_avatar_url && (
+              <AvatarImage src={doc.author_avatar_url} />
+            )}
+            <AvatarFallback className="text-[8px]">
+              {getInitials(doc.author_name)}
+            </AvatarFallback>
+          </Avatar>
+          <span className="max-w-[120px] truncate">{doc.author_name}</span>
+          <span className="text-foreground/30">·</span>
+        </>
+      )}
+      <span title={formatFullTime(updatedAt)}>
+        Updated {formatRelativeTime(updatedAt)}
       </span>
     </div>
   );
@@ -88,17 +123,12 @@ function RowMetadata({ doc }: { doc: SearchResultDocument }) {
   const replies = doc.reply_count ?? 0;
   const attachments = doc.attachments?.length ?? 0;
 
-  if (
-    !(doc.author_name || reactions || replies || attachments || doc.file_size)
-  ) {
+  if (!(reactions || replies || attachments || doc.file_size)) {
     return null;
   }
 
   return (
-    <div className="flex items-center gap-3 font-mono text-[10px] text-foreground/40">
-      {doc.author_name && (
-        <span className="max-w-[100px] truncate">{doc.author_name}</span>
-      )}
+    <footer className="flex items-center gap-3 font-mono text-[10px] text-foreground/40">
       {reactions > 0 && (
         <span className="inline-flex items-center gap-1 tabular-nums">
           <Icons.Heart size={10} />
@@ -122,7 +152,7 @@ function RowMetadata({ doc }: { doc: SearchResultDocument }) {
           {formatFileSize(doc.file_size)}
         </span>
       )}
-    </div>
+    </footer>
   );
 }
 
@@ -142,6 +172,9 @@ function ActionIndicator({
   }
   if (previewCategory === "slack") {
     return <Icons.Messages className="text-foreground/30" size={12} />;
+  }
+  if (previewCategory === "notion") {
+    return <Icons.FileIcon className="text-foreground/30" size={12} />;
   }
   if (canPreviewFile) {
     const isPdf = mimeType?.toLowerCase() === "application/pdf";
@@ -212,6 +245,7 @@ export const SearchResultRow = forwardRef<
             {displayTitle}
           </p>
         )}
+        <RowSubtitle doc={doc} />
         {contentPreview && (
           <p
             className={cn(

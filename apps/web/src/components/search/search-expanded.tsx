@@ -15,7 +15,6 @@ import { SearchInputBar } from "./search-input-bar";
 import { SearchResults } from "./search-results";
 import { SearchResultsSkeleton } from "./search-skeleton";
 import { SearchSplitView } from "./search-split-view";
-import { SearchStats } from "./search-stats";
 
 export function SearchExpanded() {
   const {
@@ -43,6 +42,8 @@ export function SearchExpanded() {
     setStatuses,
     priorities,
     setPriorities,
+    authors,
+    setAuthors,
     dateRange,
     setDateRange,
     ranking,
@@ -66,7 +67,8 @@ export function SearchExpanded() {
     if (
       previewType !== "document" &&
       previewType !== "email" &&
-      previewType !== "slack"
+      previewType !== "slack" &&
+      previewType !== "notion"
     ) {
       return null;
     }
@@ -126,18 +128,7 @@ export function SearchExpanded() {
       previewType={previewType ?? undefined}
     >
       <div className="flex h-full flex-col">
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="font-serif text-[30px] leading-normal">Search</h1>
-          <SearchStats
-            documentTotal={documentTotal}
-            isSearching={isSearching}
-            mediaTotal={mediaTotal}
-            queryTime={queryTime}
-            total={total}
-          />
-        </div>
-
-        <div className="sticky top-0 z-10 shrink-0 space-y-4 bg-background pb-4">
+        <header className="sticky top-0 z-10 shrink-0 space-y-4 bg-background pb-4">
           <SearchInputBar
             isSearching={isSearching}
             onChange={setQuery}
@@ -153,9 +144,11 @@ export function SearchExpanded() {
               />
               <SearchFilters
                 activeFilterCount={activeFilterCount}
+                authors={authors}
                 connectorTypes={connectorTypes}
                 dateRange={dateRange}
                 documentTypes={documentTypes}
+                onAuthorsChange={setAuthors}
                 onClearAll={resetFilters}
                 onConnectorTypesChange={setConnectorTypes}
                 onDateRangeChange={setDateRange}
@@ -171,9 +164,9 @@ export function SearchExpanded() {
               />
             </div>
           )}
-        </div>
+        </header>
 
-        <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto">
+        <section className="no-scrollbar min-h-0 flex-1 overflow-y-auto">
           {isSearching && !hasResults && <SearchResultsSkeleton />}
           {isEmpty && <SearchEmptyState query={query} />}
           {hasResults && (
@@ -194,7 +187,7 @@ export function SearchExpanded() {
               total={total}
             />
           )}
-        </div>
+        </section>
       </div>
     </SearchSplitView>
   );

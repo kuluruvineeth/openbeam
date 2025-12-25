@@ -5,7 +5,7 @@ import { Icons } from "@/components/icons";
 
 export default async function Page() {
   return (
-    <div className="h-screen p-2">
+    <main className="h-screen p-2">
       <header className="absolute top-0 left-0 z-30 w-full">
         <div className="p-6 md:p-8">
           <Icons.LogoSmall className="h-8 w-auto" />
@@ -13,24 +13,24 @@ export default async function Page() {
       </header>
 
       <div className="flex h-full">
-        <div className="relative hidden lg:flex lg:w-1/2">
+        <figure aria-hidden="true" className="relative hidden lg:flex lg:w-1/2">
           <Image
-            alt="Background"
+            alt=""
             className="object-cover dark:hidden"
             fill
             priority
             src={"/assets/bg-login.jpg"}
           />
           <Image
-            alt="Background"
+            alt=""
             className="hidden object-cover dark:block"
             fill
             priority
             src={"/assets/bg-login-dark.jpg"}
           />
-        </div>
+        </figure>
 
-        <div className="relative w-full lg:w-1/2">
+        <section className="relative w-full lg:w-1/2">
           <div className="relative z-10 flex h-full items-center justify-center p-6">
             <div className="w-full max-w-md space-y-8">
               <div className="text-center">
@@ -44,7 +44,7 @@ export default async function Page() {
                 </div>
               </div>
 
-              <div className="absolute right-0 bottom-4 left-0 text-center">
+              <footer className="absolute right-0 bottom-4 left-0 text-center">
                 <p className="font-mono text-muted-foreground text-xs leading-relaxed">
                   By signing in you agree to our{" "}
                   <Link
@@ -61,11 +61,11 @@ export default async function Page() {
                     Privacy policy
                   </Link>
                 </p>
-              </div>
+              </footer>
             </div>
           </div>
-        </div>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }

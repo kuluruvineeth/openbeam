@@ -11,19 +11,19 @@ export function EmailParticipantList({ to, cc }: EmailParticipantListProps) {
   }
 
   return (
-    <div className="space-y-0.5 text-[11px] text-muted-foreground">
+    <dl className="space-y-0.5 text-[11px] text-muted-foreground">
       {to && to.length > 0 && (
         <div className="flex gap-1">
-          <span className="shrink-0 opacity-60">To:</span>
-          <span className="truncate">{to.join(", ")}</span>
+          <dt className="shrink-0 opacity-60">To:</dt>
+          <dd className="m-0 truncate">{to.join(", ")}</dd>
         </div>
       )}
       {cc && cc.length > 0 && (
         <div className="flex gap-1">
-          <span className="shrink-0 opacity-60">Cc:</span>
-          <span className="truncate">{cc.join(", ")}</span>
+          <dt className="shrink-0 opacity-60">Cc:</dt>
+          <dd className="m-0 truncate">{cc.join(", ")}</dd>
         </div>
       )}
-    </div>
+    </dl>
   );
 }

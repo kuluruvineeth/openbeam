@@ -54,9 +54,12 @@ export function ConnectorsGrid() {
   });
 
   return (
-    <div className="mx-auto mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+    <ul
+      aria-label="Available apps"
+      className="mx-auto mt-8 grid list-none grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"
+    >
       {filteredApps.map((app, index) => (
-        <div
+        <li
           className={cn(
             "fade-in slide-in-from-bottom-4 animate-in fill-mode-backwards",
             "duration-500 ease-out"
@@ -67,11 +70,11 @@ export function ConnectorsGrid() {
           }}
         >
           <UnifiedAppComponent app={app} userEmail={user?.email || undefined} />
-        </div>
+        </li>
       ))}
 
       {!(search || filteredApps.length) && (
-        <div className="col-span-full flex h-[calc(100vh-400px)] flex-col items-center justify-center">
+        <li className="col-span-full flex h-[calc(100vh-400px)] flex-col items-center justify-center">
           <div className="mx-auto mb-4 flex size-12 items-center justify-center border border-border/60 bg-background">
             <Icons.Integrations className="text-foreground/40" size={24} />
           </div>
@@ -81,11 +84,11 @@ export function ConnectorsGrid() {
           <p className="mt-2 max-w-md text-center text-foreground/50 text-sm">
             No apps are currently available in the app store.
           </p>
-        </div>
+        </li>
       )}
 
       {search && !filteredApps.length && (
-        <div className="col-span-full flex h-[calc(100vh-400px)] flex-col items-center justify-center">
+        <li className="col-span-full flex h-[calc(100vh-400px)] flex-col items-center justify-center">
           <div className="mx-auto mb-4 flex size-12 items-center justify-center border border-border/60 bg-background">
             <Icons.Search className="text-foreground/40" size={24} />
           </div>
@@ -100,8 +103,8 @@ export function ConnectorsGrid() {
           >
             Clear search
           </Button>
-        </div>
+        </li>
       )}
-    </div>
+    </ul>
   );
 }

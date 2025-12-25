@@ -49,7 +49,7 @@ export function EmailMessageItem({
   const attachments = metadata?.attachments ?? [];
 
   return (
-    <div
+    <article
       className={cn(
         "transition-colors",
         !isLast && "border-border/30 border-b"
@@ -64,7 +64,7 @@ export function EmailMessageItem({
           {getInitials(message.authorName, message.authorEmail)}
         </div>
 
-        <div className="min-w-0 flex-1">
+        <header className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="truncate text-[13px]">
               <span className="font-medium text-foreground">
@@ -76,9 +76,12 @@ export function EmailMessageItem({
                 </span>
               )}
             </span>
-            <span className="shrink-0 text-[11px] text-muted-foreground tabular-nums">
+            <time
+              className="shrink-0 text-[11px] text-muted-foreground tabular-nums"
+              dateTime={new Date(message.createdAt).toISOString()}
+            >
               {formatMessageTime(message.createdAt)}
-            </span>
+            </time>
             <Icons.ChevronDown
               className={cn(
                 "ml-auto shrink-0 text-muted-foreground transition-transform",
@@ -92,11 +95,11 @@ export function EmailMessageItem({
               {message.content.slice(0, 120)}
             </p>
           )}
-        </div>
+        </header>
       </button>
 
       {expanded && (
-        <div className="pb-3">
+        <section className="pb-3">
           <div className="pl-11">
             <EmailParticipantList cc={metadata?.cc} to={metadata?.to} />
             <div className="mt-3">
@@ -112,9 +115,9 @@ export function EmailMessageItem({
               />
             )}
           </div>
-        </div>
+        </section>
       )}
-    </div>
+    </article>
   );
 }
 

@@ -32,15 +32,15 @@ export function EmailThreadView({
   const dateKeys = Array.from(groupedMessages.keys());
 
   return (
-    <div className="space-y-4 p-4">
+    <article aria-label="Email thread" className="space-y-4 p-4">
       {dateKeys.map((dateKey, dateIndex) => {
         const dateMessages = groupedMessages.get(dateKey) ?? [];
         return (
-          <div key={dateKey}>
+          <section key={dateKey}>
             {dateIndex > 0 && (
               <EmailDateSeparator timestamp={dateMessages[0]?.createdAt ?? 0} />
             )}
-            <div className="space-y-4">
+            <ol aria-label="Messages" className="list-none space-y-4">
               {dateMessages.map((message, msgIndex) => {
                 const globalIndex =
                   dateKeys
@@ -54,20 +54,21 @@ export function EmailThreadView({
                 const isLast = globalIndex === messages.length - 1;
 
                 return (
-                  <EmailMessageItem
-                    defaultExpanded={isFirst || isLast}
-                    isFirst={isFirst}
-                    isLast={isLast}
-                    key={message.id}
-                    message={message}
-                    onAttachmentClick={onAttachmentClick}
-                  />
+                  <li key={message.id}>
+                    <EmailMessageItem
+                      defaultExpanded={isFirst || isLast}
+                      isFirst={isFirst}
+                      isLast={isLast}
+                      message={message}
+                      onAttachmentClick={onAttachmentClick}
+                    />
+                  </li>
                 );
               })}
-            </div>
-          </div>
+            </ol>
+          </section>
         );
       })}
-    </div>
+    </article>
   );
 }

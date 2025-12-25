@@ -43,16 +43,16 @@ export function NewChatView({ agent, favoriteAgents = [] }: Props) {
   );
 
   return (
-    <div className="relative flex min-h-full grow flex-col pb-8">
-      <div className="flex w-full grow flex-col items-center justify-center">
+    <main className="relative flex min-h-full grow flex-col pb-8">
+      <section className="flex w-full grow flex-col items-center justify-center">
         <div className="z-10 flex w-full max-w-3xl flex-col px-4">
           <AgentHeader agent={agent} />
 
           <ChatTabs askContent={<AskView />} searchContent={<SearchView />} />
         </div>
-      </div>
+      </section>
 
       <FavoriteAgents favoriteAgents={favoriteAgents} />
-    </div>
+    </main>
   );
 }
