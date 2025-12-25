@@ -1,0 +1,73 @@
+---
+title: Troubleshooting
+description: Common Google Drive connector issues
+---
+
+# Troubleshooting
+
+## OAuth Errors
+
+| Error | Fix |
+|-------|-----|
+| `redirect_uri_mismatch` | Exact match required in Google Cloud Console |
+| `access_denied` | Add user to test users (testing mode) |
+| `invalid_grant` | Token expired - disconnect and reconnect |
+| `insufficient_scope` | Add required scopes to OAuth consent screen |
+
+## Push Notification Issues
+
+| Issue | Fix |
+|-------|-----|
+| No notifications | Verify `SERVER_URL` is set and HTTPS |
+| Watch setup fails | Use valid SSL certificate (not self-signed) |
+| Watch expired | Auto-renewed on next sync |
+
+## Sync Issues
+
+| Issue | Fix |
+|-------|-----|
+| `startPageToken expired` | Auto-triggers full sync |
+| Rate limit exceeded | Auto-backoff; wait for reset |
+| Files not appearing | Check folder sharing permissions |
+| Content not extracted | Enable `extractContent`; check file size |
+
+## Shared Drive Issues
+
+| Issue | Fix |
+|-------|-----|
+| Shared Drives missing | Enable `includeSharedDrives` |
+| Access denied | User needs Shared Drive membership |
+| Only personal Drive | Workspace account required for Shared Drives |
+
+## Connection Issues
+
+| Issue | Fix |
+|-------|-----|
+| Cannot connect | Verify environment variables and API enabled |
+| Keeps disconnecting | Token revoked - reconnect |
+| Service account fails | Check domain-wide delegation setup |
+
+## Debug Commands
+
+```bash
+# Check webhook health
+curl https://api.your-domain.com/api/v1/webhooks/google-drive/health
+
+# Check watch state
+redis-cli GET "google-drive:watch:{connectorId}"
+
+# Check logs
+tail -f logs/worker.log | grep -i drive
+```
+
+## Error Reference
+
+| Error | Code | Fix |
+|-------|------|-----|
+| `redirect_uri_mismatch` | 400 | Fix OAuth credentials |
+| `access_denied` | 403 | Add to test users |
+| `invalid_grant` | 400 | Reconnect |
+| `rate_limit_exceeded` | 429 | Wait |
+| `file_not_found` | 404 | File deleted or moved |
+
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openplane/issues) with error messages and logs.

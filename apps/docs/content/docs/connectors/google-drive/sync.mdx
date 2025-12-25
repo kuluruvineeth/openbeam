@@ -1,0 +1,65 @@
+---
+title: Sync Behavior
+description: How Google Drive data is synced
+---
+
+# Sync Behavior
+
+## Sync Types
+
+| Type | Trigger | Duration |
+|------|---------|----------|
+| **Full** | First connection, manual resync | Minutes to hours |
+| **Incremental** | Scheduled / push notification | Seconds to minutes |
+
+## Status
+
+| Status | Meaning |
+|--------|---------|
+| **Active** | Synced, watching for changes |
+| **Syncing** | Sync in progress |
+| **Error** | Check logs |
+
+## Changes API
+
+Drive tracks changes via page tokens. OpenPlane stores the last token and fetches only changes.
+
+Page tokens expire after ~7 days. If expired, OpenPlane auto-triggers full sync.
+
+## Watch Management
+
+Push notification watches expire after 7 days. OpenPlane auto-renews 1 day before expiration.
+
+See [Real-time Sync](/docs/connectors/google-drive/real-time-sync) for details.
+
+## Rate Limits
+
+| Quota | Limit |
+|-------|-------|
+| Per user | 100 requests/minute |
+| Batch requests | 100 per batch |
+
+OpenPlane handles limits with exponential backoff.
+
+## Controls
+
+- **Full Resync**: Settings → Connectors → Drive → Actions → Full Resync
+- **Pause/Resume**: Stop processing temporarily
+- **Sync Now**: Trigger immediate incremental sync
+
+## Content Processing
+
+1. **List files**: Fetch file metadata
+2. **Export**: Convert Google formats to text
+3. **Download**: Fetch binary files
+4. **Extract**: Parse content (PDF, Office, etc.)
+5. **Index**: Store in search engine
+
+## Troubleshooting
+
+| Issue | Fix |
+|-------|-----|
+| Sync stuck | Rate limited - wait |
+| Files missing | Check folder permissions |
+| Content empty | File may be empty or unsupported |
+| Slow sync | Large drive - normal |

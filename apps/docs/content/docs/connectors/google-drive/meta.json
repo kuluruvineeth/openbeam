@@ -1,5 +1,13 @@
 {
   "title": "Google Drive",
   "icon": "GoogleDrive",
-  "pages": ["index", "real-time-sync"]
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "real-time-sync",
+    "troubleshooting"
+  ]
 }

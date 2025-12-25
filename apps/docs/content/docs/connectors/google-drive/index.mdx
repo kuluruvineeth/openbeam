@@ -1,82 +1,34 @@
 ---
-title: Google Drive Connector
-description: Connect Google Drive to OpenPlane for document search
+title: Google Drive
+description: Search documents, spreadsheets, and files
 ---
 
 # Google Drive Connector
 
-Index and search across your Google Drive files, including documents, spreadsheets, presentations, and media files.
+Index documents, spreadsheets, presentations, and media files with full-text extraction.
 
-## Features
+<Cards>
+  <Card title="Setup" href="/docs/connectors/google-drive/setup" />
+  <Card title="Features" href="/docs/connectors/google-drive/features" />
+  <Card title="Troubleshooting" href="/docs/connectors/google-drive/troubleshooting" />
+</Cards>
 
-- Full-text search across all file types
-- Google Docs, Sheets, Slides content extraction
-- PDF and Office document parsing
-- Shared Drive support for Google Workspace
-- Real-time sync via Drive push notifications
-- Video/audio transcription
-- OAuth for personal accounts
-- Service Account for domain-wide access
+## What's Indexed
 
-## Supported File Types
-
-| Type | Support |
-|------|---------|
-| Google Docs | Full text extraction |
-| Google Sheets | Cell content and metadata |
-| Google Slides | Slide text and notes |
-| PDF | Full text extraction |
-| DOCX/XLSX/PPTX | Full text extraction |
-| Images | Metadata indexing |
-| Video/Audio | Transcription via TwelveLabs |
-
-## Authentication Methods
-
-### OAuth 2.0 (Personal/Single User)
-
-Best for personal Google accounts or single-user setups.
-
-**Required scopes:**
-- `drive.readonly` - Read file content
-- `drive.metadata.readonly` - Access file metadata
-- `userinfo.email` - User identification
-
-### Service Account (Google Workspace)
-
-Best for organizations with domain-wide access needs.
-
-**Requirements:**
-- Google Workspace admin access
-- Domain-wide delegation enabled
-- Service account key file
+- **Documents** - Google Docs, PDF, DOCX with full text
+- **Spreadsheets** - Google Sheets, XLSX cell content
+- **Presentations** - Google Slides, PPTX slide text
+- **Media** - Video/audio transcription (optional)
 
 ## Quick Start
 
-1. Go to **Connectors** → **Add Connector** → **Google Drive**
-2. Choose authentication method:
-   - **OAuth**: Click "Connect with Google"
-   - **Service Account**: Upload key file and enter admin email
-3. Configure sync settings
-4. Start initial sync
+1. Create Google Cloud project with OAuth credentials
+2. Enable Drive API
+3. Configure OAuth redirect URI
+4. Connect in OpenPlane UI
 
-## Configuration Options
-
-| Setting | Description | Default |
-|---------|-------------|---------|
-| Include Shared Drives | Index team shared drives | `true` |
-| Extract Content | Parse document text | `true` |
-| Transcribe Media | Process video/audio files | `true` |
-| Real-time Updates | Enable push notifications | `true` |
-| History (days) | How far back to sync | Unlimited |
-
-## Sync Modes
-
-| Mode | Description | Use Case |
-|------|-------------|----------|
-| Full Indexing | Store all content locally | Best search quality |
-| Federated Search | Query Drive directly | Privacy-sensitive data |
-| Hybrid | Index metadata, federate content | Balance of both |
-
-## Next Steps
-
-- [Real-time Sync](/docs/connectors/google-drive/real-time-sync) - Understand push notifications
+<Cards>
+  <Card title="Configuration" href="/docs/connectors/google-drive/configuration" />
+  <Card title="Sync Behavior" href="/docs/connectors/google-drive/sync" />
+  <Card title="Real-time Sync" href="/docs/connectors/google-drive/real-time-sync" />
+</Cards>

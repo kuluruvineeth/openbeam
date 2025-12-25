@@ -1,0 +1,62 @@
+---
+title: Features
+description: Google Drive connector capabilities
+---
+
+# Google Drive Features
+
+## Search
+
+- **Full-text**: File names, content, metadata
+- **Folder hierarchy**: Preserves structure
+- **Shared Drives**: Team drives indexed
+- **Permissions**: Respects Drive ACLs
+
+## File Type Support
+
+| Type | Extraction |
+|------|------------|
+| Google Docs | Full text |
+| Google Sheets | Cell content |
+| Google Slides | Slide text and notes |
+| PDF | Full text (native + scanned) |
+| DOCX/XLSX/PPTX | Full text |
+| TXT/CSV/JSON | Full content |
+| Images | Metadata, OCR optional |
+| Video/Audio | Transcription (TwelveLabs) |
+
+## Shared Drive Support
+
+| Feature | Support |
+|---------|---------|
+| My Drive | Full access |
+| Shared Drives | Full access (Workspace) |
+| Shared with Me | Based on permissions |
+| Recent | Not separately indexed |
+
+## Sync Options
+
+- **Polling**: Every 15 minutes (default)
+- **Real-time**: Via Drive push notifications
+
+## AI Capabilities
+
+- Semantic search beyond keywords
+- Question answering across documents
+- Document summarization
+
+## Authentication Methods
+
+| Method | Use Case |
+|--------|----------|
+| OAuth 2.0 | Personal accounts, single user |
+| Service Account | Google Workspace, domain-wide |
+
+## Limitations
+
+| Limit | Value |
+|-------|-------|
+| File size | 25MB for content extraction |
+| Export size | 10MB for Google Docs export |
+| Rate limit | 100 req/min per user |
+| Shared Drives | Workspace accounts only |

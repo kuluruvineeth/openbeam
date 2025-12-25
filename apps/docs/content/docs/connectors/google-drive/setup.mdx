@@ -1,0 +1,71 @@
+---
+title: Quick Start
+description: Connect Google Drive to OpenPlane
+---
+
+# Google Drive Quick Start
+
+## Prerequisites
+
+- Google Cloud Console access
+- OpenPlane instance with HTTPS endpoint
+
+## 1. Create Google Cloud Project
+
+1. Go to [console.cloud.google.com](https://console.cloud.google.com/)
+2. Create a new project (or use existing)
+3. Enable **Google Drive API** in APIs & Services → Library
+
+## 2. Configure OAuth
+
+1. Go to **APIs & Services → OAuth consent screen**
+2. Select External (or Internal for Workspace)
+3. Add app name and email, save
+4. Add scopes:
+   - `drive.readonly`
+   - `drive.metadata.readonly`
+   - `userinfo.email`
+5. Add test users if in testing mode
+
+## 3. Create Credentials
+
+1. Go to **APIs & Services → Credentials**
+2. Click **Create Credentials → OAuth client ID**
+3. Select **Web application**
+4. Add redirect URI:
+   ```
+   https://your-domain.com/connectors/setup/google-drive/oauth/callback
+   ```
+5. Save Client ID and Client Secret
+
+## 4. Configure Environment
+
+```bash
+GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-your-secret
+WEB_URL=https://your-domain.com
+SERVER_URL=https://api.your-domain.com
+```
+
+## 5. Connect
+
+1. Go to **Settings → Connectors → Add Connector → Google Drive**
+2. Enter Client ID and Client Secret (or upload credentials file)
+3. Click **Connect** and authorize
+4. Configure sync settings
+
+Initial sync runs in background. Large drives may take 1+ hours.
+
+## Service Account (Enterprise)
+
+For Google Workspace domain-wide access:
+
+1. Create Service Account in Google Cloud Console
+2. Enable domain-wide delegation
+3. Grant scopes in Google Workspace Admin
+4. Upload key file in connector settings
+
+<Cards>
+  <Card title="Configuration" href="/docs/connectors/google-drive/configuration" />
+  <Card title="Real-time Sync" href="/docs/connectors/google-drive/real-time-sync" />
+</Cards>

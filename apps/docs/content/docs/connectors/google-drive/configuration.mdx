@@ -1,0 +1,74 @@
+---
+title: Configuration
+description: Google Drive connector settings
+---
+
+# Configuration
+
+## Content Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `extractContent` | `true` | Parse document text |
+| `includeSharedDrives` | `true` | Index team shared drives |
+| `transcribeMedia` | `true` | Video/audio transcription |
+
+## Sync Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `lookbackDays` | Unlimited | Days of history to sync |
+| `fullSyncInterval` | `24h` | Full resync frequency |
+| `incrementalInterval` | `15m` | Check frequency |
+
+## Real-time Sync
+
+| Setting | Description |
+|---------|-------------|
+| `realtimeEnabled` | Enable Drive push notifications |
+
+See [Real-time Sync](/docs/connectors/google-drive/real-time-sync) for details.
+
+## Sync Modes
+
+| Mode | Description |
+|------|-------------|
+| Full Indexing | Store all content locally |
+| Federated Search | Query Drive directly |
+| Hybrid | Index metadata, federate content |
+
+## Environment Variables
+
+```bash
+GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-your-secret
+WEB_URL=https://your-domain.com
+SERVER_URL=https://api.your-domain.com
+```
+
+## Authentication Options
+
+### OAuth (UI Config)
+
+| Setting | Description |
+|---------|-------------|
+| Client ID | From Google Cloud Console |
+| Client Secret | From Google Cloud Console |
+| Credentials File | Alternative: upload JSON file |
+
+### Service Account
+
+| Setting | Description |
+|---------|-------------|
+| Key File | Service account JSON key |
+| Admin Email | Workspace admin for delegation |
+
+## Resync Required
+
+| Change | Resync |
+|--------|--------|
+| Enable Shared Drives | Full sync |
+| Enable content extraction | Full sync |
+| Enable transcription | Full sync |
+
+Trigger via **Actions → Full Resync** in connector settings.
