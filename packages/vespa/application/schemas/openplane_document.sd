@@ -118,7 +118,11 @@ schema openplane_document {
     field author_email type string {
       indexing: summary | attribute
     }
-    
+
+    field author_avatar_url type string {
+      indexing: summary
+    }
+
     # === Contributors & Mentions ===
     field contributor_ids type array<string> {
       indexing: summary | attribute

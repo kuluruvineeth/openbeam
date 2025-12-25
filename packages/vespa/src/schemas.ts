@@ -32,6 +32,7 @@ export interface GenericDocument {
   author_external_id?: string;
   author_name?: string;
   author_email?: string;
+  author_avatar_url?: string;
   contributor_ids?: string[];
   mentioned_user_ids?: string[];
   assignee_ids?: string[];
@@ -137,6 +138,7 @@ export interface MediaDocument {
   thumbnail_url?: string;
   author_id?: string;
   author_name?: string;
+  author_avatar_url?: string;
   participants?: string[];
   created_at: number;
   updated_at: number;
@@ -320,6 +322,7 @@ export interface VespaGenericDocumentForFeed {
   author_external_id?: string;
   author_name?: string;
   author_email?: string;
+  author_avatar_url?: string;
   contributor_ids?: string[];
   mentioned_user_ids?: string[];
   assignee_ids?: string[];
@@ -409,6 +412,7 @@ export interface VespaMediaDocumentForFeed {
   thumbnail_url: string;
   author_id: string;
   author_name: string;
+  author_avatar_url?: string;
   participants?: string[];
   created_at: number;
   updated_at: number;

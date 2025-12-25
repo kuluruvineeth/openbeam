@@ -149,7 +149,11 @@ schema media_document {
       indexing: summary | index
       index: enable-bm25
     }
-    
+
+    field author_avatar_url type string {
+      indexing: summary
+    }
+
     field participants type array<string> {
       indexing: summary | attribute | index
       index: enable-bm25
