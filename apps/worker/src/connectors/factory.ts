@@ -3,6 +3,9 @@ import type {
   ConnectorFileInfo,
   GmailSyncCursor,
   GoogleDriveSyncCursor,
+  NotionDatabase,
+  NotionPage,
+  NotionSyncCursor,
   SyncCursor,
 } from "@openplane/services";
 import type { GenericDocument } from "@openplane/vespa";
@@ -11,11 +14,23 @@ import {
   syncGoogleDriveStreaming,
   validateGoogleDriveConnection,
 } from "./google-drive";
+import { syncNotionStreaming, validateNotionConnection } from "./notion";
 import {
   syncSlack,
   syncSlackStreaming,
   validateSlackConnection,
 } from "./slack";
+
+function safeParseCursor<T>(cursor: string | undefined): T | undefined {
+  if (!cursor) {
+    return;
+  }
+  try {
+    return JSON.parse(cursor) as T;
+  } catch {
+    return;
+  }
+}
 
 export type FileDiscoveryHandler = (
   files: ConnectorFileInfo[],
@@ -97,6 +112,50 @@ function channelToResource(ch: ChannelInfo): ResourceInfo {
   };
 }
 
+function notionDatabaseToResource(db: NotionDatabase): ResourceInfo {
+  const title = db.title?.[0]?.plain_text ?? "Untitled Database";
+  return {
+    id: db.id,
+    name: title,
+    resourceType: "database",
+    isPrivate: false,
+    isMember: true,
+    metadata: {
+      url: db.url,
+      parentType: db.parent?.type,
+    },
+  };
+}
+
+function notionPageToResource(page: NotionPage): ResourceInfo {
+  const properties = page.properties as Record<
+    string,
+    { type: string; title?: Array<{ plain_text: string }> }
+  >;
+  let title = "Untitled";
+  for (const prop of Object.values(properties)) {
+    if (prop.type === "title" && prop.title?.[0]) {
+      title = prop.title[0].plain_text;
+      break;
+    }
+  }
+
+  const icon =
+    page.icon?.type === "emoji" ? (page.icon as { emoji: string }).emoji : "";
+
+  return {
+    id: page.id,
+    name: icon ? `${icon} ${title}` : title,
+    resourceType: "page",
+    isPrivate: false,
+    isMember: true,
+    metadata: {
+      url: page.url,
+      parentType: page.parent.type,
+    },
+  };
+}
+
 export interface StreamingSyncOptions {
   cursor?: string;
   batchSize?: number;
@@ -109,6 +168,11 @@ export interface StreamingSyncOptions {
     hasMore: boolean;
     stats: { processed: number; errors: number };
   }) => Promise<void>;
+  onStageChange?: (
+    stage: string,
+    current: number,
+    item?: string
+  ) => Promise<void>;
   onResourcesDiscovered?: (resources: ResourceInfo[]) => Promise<void>;
   onFilesDiscovered?: FileDiscoveryHandler;
   disabledResourceIds?: Set<string>;
@@ -131,6 +195,7 @@ export async function syncConnectorStreaming(
     indexDms,
     indexGroupDms,
     onBatch,
+    onStageChange,
     onResourcesDiscovered,
     onFilesDiscovered,
     disabledResourceIds,
@@ -143,9 +208,7 @@ export async function syncConnectorStreaming(
 
   switch (connector.app) {
     case "SLACK": {
-      const slackCursor: SyncCursor | undefined = cursor
-        ? JSON.parse(cursor)
-        : undefined;
+      const slackCursor = safeParseCursor<SyncCursor>(cursor);
 
       const result = await syncSlackStreaming(connector, {
         cursor: slackCursor,
@@ -186,9 +249,7 @@ export async function syncConnectorStreaming(
     }
 
     case "GMAIL": {
-      const gmailCursor: GmailSyncCursor | undefined = cursor
-        ? JSON.parse(cursor)
-        : undefined;
+      const gmailCursor = safeParseCursor<GmailSyncCursor>(cursor);
 
       const config = connector.config as Record<string, unknown> | null;
       const includeLabels = config?.include_labels
@@ -252,9 +313,7 @@ export async function syncConnectorStreaming(
     }
 
     case "GOOGLE_DRIVE": {
-      const driveCursor: GoogleDriveSyncCursor | undefined = cursor
-        ? JSON.parse(cursor)
-        : undefined;
+      const driveCursor = safeParseCursor<GoogleDriveSyncCursor>(cursor);
 
       const driveConfig = connector.config as Record<string, unknown> | null;
       const includeSharedDrives = driveConfig?.include_shared_drives !== false;
@@ -306,6 +365,39 @@ export async function syncConnectorStreaming(
       };
     }
 
+    case "NOTION": {
+      const notionCursor = safeParseCursor<NotionSyncCursor>(cursor);
+
+      const result = await syncNotionStreaming(connector, {
+        cursor: notionCursor,
+        batchSize,
+        forceFullSync,
+        onBatch,
+        onStageChange,
+        onDatabasesDiscovered: onResourcesDiscovered
+          ? async (databases) => {
+              await onResourcesDiscovered(
+                databases.map(notionDatabaseToResource)
+              );
+            }
+          : undefined,
+        onPagesDiscovered: onResourcesDiscovered
+          ? async (pages) => {
+              await onResourcesDiscovered(pages.map(notionPageToResource));
+            }
+          : undefined,
+      });
+
+      return {
+        totalDocuments: result.totalDocuments,
+        nextCursor: JSON.stringify(result.cursor),
+        hasMore: result.hasMore,
+        stats: result.stats,
+        filesQueued: result.filesQueued,
+        mediaQueued: result.mediaQueued,
+      };
+    }
+
     default:
       throw new Error(`Unsupported connector app: ${connector.app}`);
   }
@@ -317,10 +409,7 @@ export async function syncConnector(
 ): Promise<SyncResult> {
   switch (connector.app) {
     case "SLACK": {
-      const slackCursor = options.cursor
-        ? JSON.parse(options.cursor)
-        : undefined;
-
+      const slackCursor = safeParseCursor<SyncCursor>(options.cursor);
       const onBatchCallback = options.onBatch;
       const result = await syncSlack(connector, {
         cursor: slackCursor,
@@ -358,6 +447,9 @@ export function validateConnection(
 
     case "GOOGLE_DRIVE":
       return validateGoogleDriveConnection(connector);
+
+    case "NOTION":
+      return validateNotionConnection(connector);
 
     default:
       throw new Error(`Unsupported connector app: ${connector.app}`);
