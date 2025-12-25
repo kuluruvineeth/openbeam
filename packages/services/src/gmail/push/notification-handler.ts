@@ -1,8 +1,8 @@
-import { timingSafeEqual } from "node:crypto";
 import prisma, { ConnectorStatus } from "@openplane/db";
 import { addSyncJob, rateLimiter } from "@openplane/redis";
 import { logger } from "../../lib/logger";
 import { type PubSubNotification, parsePubSubNotification } from "../api/watch";
+import { verifyPubSubToken } from "./pubsub-auth";
 import { getWatchStateForConnector } from "./watch-manager";
 
 export interface NotificationHandlerConfig {
@@ -199,39 +199,22 @@ export async function processNotificationBatch(
   return { processed, skipped, errors };
 }
 
-export interface GmailWebhookValidation {
-  valid: boolean;
-  connectorId?: string;
-  reason?: string;
-}
+export async function validateGmailWebhook(
+  authHeader: string | undefined,
+  emailAddress: string
+): Promise<{ valid: boolean; connectorId?: string; reason?: string }> {
+  const authResult = await verifyPubSubToken(authHeader);
+  if (!authResult.valid) {
+    return { valid: false, reason: authResult.reason };
+  }
 
-export async function validateGmailWebhookToken(
-  emailAddress: string,
-  providedToken: string | undefined
-): Promise<GmailWebhookValidation> {
-  if (!providedToken) {
-    return { valid: false, reason: "missing_token" };
+  if (authResult.email !== emailAddress) {
+    return { valid: false, reason: "email_mismatch" };
   }
 
   const connectorId = await findConnectorForEmail(emailAddress);
   if (!connectorId) {
     return { valid: false, reason: "connector_not_found" };
-  }
-
-  const watchState = await getWatchStateForConnector(connectorId);
-  if (!watchState?.token) {
-    return { valid: false, connectorId, reason: "no_watch_token" };
-  }
-
-  const expectedBuffer = Buffer.from(watchState.token, "utf-8");
-  const providedBuffer = Buffer.from(providedToken, "utf-8");
-
-  if (expectedBuffer.length !== providedBuffer.length) {
-    return { valid: false, connectorId, reason: "invalid_token" };
-  }
-
-  if (!timingSafeEqual(expectedBuffer, providedBuffer)) {
-    return { valid: false, connectorId, reason: "invalid_token" };
   }
 
   return { valid: true, connectorId };

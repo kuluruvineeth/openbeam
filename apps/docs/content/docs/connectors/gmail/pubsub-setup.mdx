@@ -49,7 +49,31 @@ Note the full name: `projects/YOUR-PROJECT-ID/topics/gmail-notifications`
 
 3. Create
 
-## 4. Configure OpenPlane
+## 4. Enable Push Authentication
+
+**Required for production.** Secures webhook endpoint with OIDC JWT verification.
+
+1. Create a service account (or use existing):
+   ```bash
+   gcloud iam service-accounts create pubsub-invoker \
+     --display-name="Pub/Sub Push Invoker"
+   ```
+
+2. Update subscription with OIDC auth:
+   ```bash
+   gcloud pubsub subscriptions update gmail-push-subscription \
+     --push-auth-service-account=pubsub-invoker@YOUR-PROJECT.iam.gserviceaccount.com \
+     --push-auth-token-audience=https://your-server.com/api/v1/webhooks/gmail/push
+   ```
+
+3. Set environment variable on OpenPlane server:
+   ```bash
+   PUBSUB_AUDIENCE=https://your-server.com/api/v1/webhooks/gmail/push
+   ```
+
+The audience URL must match exactly between the subscription and environment variable.
+
+## 5. Configure OpenPlane
 
 1. Go to **Settings → Connectors → Gmail**
 2. Enable **Real-time sync**
@@ -69,4 +93,6 @@ Gmail push notification received
 |-------|-----|
 | No notifications | Verify `gmail-api-push@...` has Publisher role |
 | 403 on webhook | Check SSL certificate is valid (not self-signed) |
+| 403 token validation | Verify `PUBSUB_AUDIENCE` matches subscription audience exactly |
+| pubsub_not_configured | Set `PUBSUB_AUDIENCE` environment variable |
 | Watch expired | Click **Refresh Watch** in connector settings |

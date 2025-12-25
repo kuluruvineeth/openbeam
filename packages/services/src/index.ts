@@ -75,7 +75,6 @@ export type {
   GmailSyncBatch,
   GmailSyncCursor,
   GmailTransformContext,
-  GmailWebhookValidation,
   NotificationHandlerConfig,
   WatchManagerConfig,
 } from "./gmail";
@@ -99,7 +98,8 @@ export {
   transformGmailAttachments,
   transformGmailMedia,
   transformGmailMediaList,
-  validateGmailWebhookToken,
+  validateGmailWebhook,
+  verifyPubSubToken,
 } from "./gmail";
 export type {
   DriveMediaInfo,

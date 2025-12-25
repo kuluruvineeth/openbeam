@@ -1,12 +1,12 @@
 export {
   checkGmailWebhookRateLimit,
-  type GmailWebhookValidation,
   handleGmailNotification,
   type NotificationHandlerConfig,
   parseWebhookRequest,
   processNotificationBatch,
-  validateGmailWebhookToken,
+  validateGmailWebhook,
 } from "./notification-handler";
+export { verifyPubSubToken } from "./pubsub-auth";
 export {
   GmailWatchManager,
   getAllActiveWatches,

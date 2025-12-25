@@ -3,7 +3,7 @@ import {
   handleGmailNotification,
   parsePubSubNotification,
   parseWebhookRequest,
-  validateGmailWebhookToken,
+  validateGmailWebhook,
 } from "@openplane/services";
 import { Hono } from "hono";
 import logger from "../../utils/logger";
@@ -28,10 +28,10 @@ gmailWebhook.post("/push", async (c) => {
       return c.json({ error: "Invalid notification data" }, 400);
     }
 
-    const token = c.req.header("x-goog-channel-token");
-    const validation = await validateGmailWebhookToken(
-      parsed.emailAddress,
-      token
+    const authHeader = c.req.header("authorization");
+    const validation = await validateGmailWebhook(
+      authHeader,
+      parsed.emailAddress
     );
 
     if (!validation.valid) {

@@ -12,7 +12,6 @@ export interface WatchState {
   expiration: number;
   topicName: string;
   connectorId: string;
-  token: string;
 }
 
 export async function setupWatch(
@@ -64,15 +63,13 @@ export const WATCH_RENEWAL_BUFFER_HOURS = 24;
 export function createWatchState(
   response: GmailWatchResponse,
   topicName: string,
-  connectorId: string,
-  token: string
+  connectorId: string
 ): WatchState {
   return {
     historyId: response.historyId,
     expiration: parseWatchExpiration(response.expiration),
     topicName,
     connectorId,
-    token,
   };
 }
 
