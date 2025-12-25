@@ -1,8 +1,10 @@
-import gmailApp from "./gmail/config";
-import googleDriveApp from "./google-drive/config";
-import notionApp from "./notion/config";
-import slackApp from "./slack/config";
+import { gmailApp } from "./gmail/config";
+import { googleDriveApp } from "./google-drive/config";
+import { notionApp } from "./notion/config";
+import { slackApp } from "./slack/config";
 import type { UnifiedApp } from "./types";
+
+export { gmailApp, googleDriveApp, notionApp, slackApp };
 
 // Gmail exports
 export {
