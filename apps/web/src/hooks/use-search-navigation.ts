@@ -1,10 +1,9 @@
 "use client";
 
 import { useHotkeys } from "react-hotkeys-hook";
-import { isPreviewable } from "@/lib/file-preview-config";
+import type { PreviewType } from "@/hooks/use-document-preview";
+import { getPreviewCategory, isPreviewable } from "@/lib/file-preview-config";
 import type { UnifiedSearchItem } from "@/lib/search-types";
-
-type PreviewType = "document" | "media";
 
 type SearchNavigationOptions = {
   items: UnifiedSearchItem[];
@@ -56,16 +55,24 @@ export function useSearchNavigation({
 
       if (item.type === "media") {
         openPreview(item.data.id, "media");
-      } else if (
-        isPreviewable(
-          item.data.mime_type,
-          item.data.file_name,
+      } else {
+        const previewCategory = getPreviewCategory(
+          item.data.connector_type,
           item.data.document_type
-        )
-      ) {
-        openPreview(item.data.id, "document");
-      } else if (item.data.url) {
-        onOpenExternal?.(item.data.url);
+        );
+        if (previewCategory) {
+          openPreview(item.data.id, previewCategory);
+        } else if (
+          isPreviewable(
+            item.data.mime_type,
+            item.data.file_name,
+            item.data.document_type
+          )
+        ) {
+          openPreview(item.data.id, "document");
+        } else if (item.data.url) {
+          onOpenExternal?.(item.data.url);
+        }
       }
     },
     {

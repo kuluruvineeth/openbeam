@@ -200,7 +200,12 @@ export function isPreviewableByExtension(fileName: string): boolean {
   return ext ? PREVIEWABLE_EXTENSIONS.has(ext) : false;
 }
 
-export type PreviewCategory = "document" | "media" | "email" | "slack";
+export type PreviewCategory =
+  | "document"
+  | "media"
+  | "email"
+  | "slack"
+  | "notion";
 
 export function getPreviewCategory(
   connectorType: string,
@@ -223,6 +228,13 @@ export function getPreviewCategory(
     (docType.includes("message") || docType.includes("thread"))
   ) {
     return "slack";
+  }
+
+  if (
+    connector === "notion" &&
+    (docType === "page" || docType === "database")
+  ) {
+    return "notion";
   }
 
   if (

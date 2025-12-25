@@ -80,7 +80,7 @@ export function FilePreviewPanel({
   }
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-background">
+    <article className="flex h-full flex-col overflow-hidden bg-background">
       <FilePreviewHeader
         fileName={fileName}
         fileSize={fileSize}
@@ -89,7 +89,7 @@ export function FilePreviewPanel({
         pageCount={pageCount}
         url={url}
       />
-      <div className="min-h-0 flex-1 overflow-hidden">
+      <section className="min-h-0 flex-1 overflow-hidden">
         <FileViewerSelector
           category={category}
           fileName={fileName}
@@ -102,7 +102,7 @@ export function FilePreviewPanel({
           url={url}
           vespaId={vespaId}
         />
-      </div>
-    </div>
+      </section>
+    </article>
   );
 }
