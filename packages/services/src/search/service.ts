@@ -13,6 +13,8 @@ import {
 import { getOrGenerateEmbedding } from "../ai/embedding-cache";
 import { logger } from "../lib/logger";
 import type {
+  AuthorFacet,
+  AuthorFacetsParams,
   AuthorSearchParams,
   DocumentSearchResult,
   MediaSearchParams,
@@ -335,6 +337,60 @@ export class SearchService {
     return this.extractDocuments(result);
   }
 
+  async getAuthorFacets(params: AuthorFacetsParams): Promise<AuthorFacet[]> {
+    const { teamId, accessControlIds, limit = 50 } = params;
+
+    const yql = `select author_id, author_name, author_email, author_avatar_url from openplane_document where team_id contains "${escapeYqlString(
+      teamId
+    )}" and ${this.buildAccessControlClause(
+      accessControlIds
+    )} | all(group(author_id) max(${limit}) each(output(count()) max(1) each(output(summary()))))`;
+
+    const result = await vespaClient.query({
+      yql,
+      hits: 0,
+      timeout: "3s",
+    });
+
+    type GroupingChild = {
+      value?: string;
+      fields?: Record<string, unknown>;
+      children?: GroupingChild[];
+    };
+    const rootChildren = result.root.children as unknown as GroupingChild[];
+    const groupList = rootChildren?.[0]?.children?.[0];
+    const groups = groupList?.children;
+    if (!groups || groups.length === 0) {
+      return [];
+    }
+
+    const facets: AuthorFacet[] = [];
+    for (const group of groups) {
+      const authorId = group.value;
+      if (!authorId) {
+        continue;
+      }
+      const count = (group.fields?.["count()"] as number) ?? 0;
+      const doc = group.children?.[0]?.children?.[0]?.fields as
+        | {
+            author_name?: string;
+            author_email?: string;
+            author_avatar_url?: string;
+          }
+        | undefined;
+
+      facets.push({
+        authorId,
+        authorName: doc?.author_name ?? null,
+        authorEmail: doc?.author_email ?? null,
+        authorAvatarUrl: doc?.author_avatar_url ?? null,
+        documentCount: count,
+      });
+    }
+
+    return facets.sort((a, b) => b.documentCount - a.documentCount);
+  }
+
   private buildSearchYQL(
     params: SearchParams,
     includeVectorSearch = false
@@ -393,7 +449,12 @@ export class SearchService {
     }
 
     pushContains("connector_id", params.connectorId);
-    pushContains("author_id", params.authorId);
+
+    if (params.authorIds && params.authorIds.length > 0) {
+      pushContainsAny("author_id", params.authorIds);
+    } else if (params.authorId) {
+      pushContains("author_id", params.authorId);
+    }
 
     if (params.sourceIds && params.sourceIds.length > 0) {
       const sourceConditions = params.sourceIds
@@ -590,6 +651,7 @@ export class SearchService {
             statuses: params.statuses,
             priorities: params.priorities,
             labels: params.labels,
+            authorIds: params.authorIds,
             sourceId: params.sourceId,
             fromDate: params.fromDate,
             toDate: params.toDate,

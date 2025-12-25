@@ -17,6 +17,7 @@ export type SearchResultDocument = {
   author_external_id?: string;
   author_name?: string;
   author_email?: string;
+  author_avatar_url?: string;
   created_at: number;
   updated_at: number;
   indexed_at?: number;
@@ -57,6 +58,7 @@ export type SearchFilters = {
   statuses: string[];
   priorities: string[];
   labels: string[];
+  authors: string[];
   dateRange: DateRangeType | null;
   fromDate: number | null;
   toDate: number | null;
@@ -129,6 +131,7 @@ export type MediaDocument = {
   thumbnail_url?: string;
   author_id?: string;
   author_name?: string;
+  author_avatar_url?: string;
   participants?: string[];
   created_at: number;
   updated_at: number;

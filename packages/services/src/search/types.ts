@@ -25,6 +25,7 @@ export interface SearchParams {
   connectorId?: string;
   documentTypes?: string[];
   authorId?: string;
+  authorIds?: string[];
   sourceId?: string;
   sourceIds?: string[];
   sourceTypes?: string[];
@@ -110,6 +111,7 @@ export interface UnifiedSearchParams {
   statuses?: string[];
   priorities?: string[];
   labels?: string[];
+  authorIds?: string[];
   sourceId?: string;
   fromDate?: number;
   toDate?: number;
@@ -135,4 +137,18 @@ export interface UnifiedSearchResult {
   total: number;
   queryTime: number;
   embeddingTime?: number;
+}
+
+export interface AuthorFacet {
+  authorId: string;
+  authorName: string | null;
+  authorEmail: string | null;
+  authorAvatarUrl: string | null;
+  documentCount: number;
+}
+
+export interface AuthorFacetsParams {
+  teamId: string;
+  accessControlIds?: string[];
+  limit?: number;
 }

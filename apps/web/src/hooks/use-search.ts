@@ -61,6 +61,7 @@ export const searchParamsSchema = {
   statuses: parseAsArrayOf(parseAsString),
   priorities: parseAsArrayOf(parseAsString),
   labels: parseAsArrayOf(parseAsString),
+  authors: parseAsArrayOf(parseAsString),
   dateRange: parseAsStringLiteral(DATE_RANGE_OPTIONS),
   fromDate: parseAsInteger,
   toDate: parseAsInteger,
@@ -76,7 +77,8 @@ type ArrayFilterKey =
   | "sources"
   | "statuses"
   | "priorities"
-  | "labels";
+  | "labels"
+  | "authors";
 
 function createArrayFilterSetter(
   key: ArrayFilterKey,
@@ -125,6 +127,7 @@ export function useSearch(options?: { debounceMs?: number }) {
         statuses: params.statuses ?? undefined,
         priorities: params.priorities ?? undefined,
         labels: params.labels ?? undefined,
+        authorIds: params.authors ?? undefined,
         connectorId: undefined,
         sourceId: undefined,
         fromDate: dateTimestamps.fromDate,
@@ -177,6 +180,10 @@ export function useSearch(options?: { debounceMs?: number }) {
     () => createArrayFilterSetter("labels", setParams),
     [setParams]
   );
+  const setAuthors = useMemo(
+    () => createArrayFilterSetter("authors", setParams),
+    [setParams]
+  );
 
   const setDateRange = useCallback(
     (value: DateRangeType | null) =>
@@ -204,6 +211,7 @@ export function useSearch(options?: { debounceMs?: number }) {
         statuses: null,
         priorities: null,
         labels: null,
+        authors: null,
         dateRange: null,
         fromDate: null,
         toDate: null,
@@ -223,6 +231,7 @@ export function useSearch(options?: { debounceMs?: number }) {
         statuses: null,
         priorities: null,
         labels: null,
+        authors: null,
         dateRange: null,
         fromDate: null,
         toDate: null,
@@ -276,15 +285,19 @@ export function useSearch(options?: { debounceMs?: number }) {
   const total = firstPage?.total ?? 0;
   const queryTime = firstPage?.queryTime ?? 0;
 
-  const activeFilterCount =
-    (params.apps?.length ?? 0) +
-    (params.types?.length ?? 0) +
-    (params.sources?.length ?? 0) +
-    (params.statuses?.length ?? 0) +
-    (params.priorities?.length ?? 0) +
-    (params.labels?.length ?? 0) +
-    (params.dateRange ? 1 : 0) +
-    (params.ranking !== "hybrid" ? 1 : 0);
+  const activeFilterCount = useMemo(
+    () =>
+      (params.apps?.length ?? 0) +
+      (params.types?.length ?? 0) +
+      (params.sources?.length ?? 0) +
+      (params.statuses?.length ?? 0) +
+      (params.priorities?.length ?? 0) +
+      (params.labels?.length ?? 0) +
+      (params.authors?.length ?? 0) +
+      (params.dateRange ? 1 : 0) +
+      (params.ranking !== "hybrid" ? 1 : 0),
+    [params]
+  );
 
   const filters: SearchFilters = useMemo(
     () => ({
@@ -294,6 +307,7 @@ export function useSearch(options?: { debounceMs?: number }) {
       statuses: params.statuses ?? [],
       priorities: params.priorities ?? [],
       labels: params.labels ?? [],
+      authors: params.authors ?? [],
       dateRange: params.dateRange,
       fromDate: params.fromDate,
       toDate: params.toDate,
@@ -333,6 +347,7 @@ export function useSearch(options?: { debounceMs?: number }) {
     statuses: params.statuses ?? [],
     priorities: params.priorities ?? [],
     labels: params.labels ?? [],
+    authors: params.authors ?? [],
     dateRange: params.dateRange,
     ranking: params.ranking,
     activeFilterCount,
@@ -345,6 +360,7 @@ export function useSearch(options?: { debounceMs?: number }) {
     setStatuses,
     setPriorities,
     setLabels,
+    setAuthors,
     setDateRange,
     setCustomDateRange,
     setRanking,

@@ -1,5 +1,7 @@
 export { SearchService, searchService } from "./service";
 export type {
+  AuthorFacet,
+  AuthorFacetsParams,
   AuthorSearchParams,
   DocumentSearchResult,
   MediaSearchParams,

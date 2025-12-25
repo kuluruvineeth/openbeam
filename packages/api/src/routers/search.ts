@@ -148,6 +148,7 @@ const unifiedSearchInputSchema = z.object({
   statuses: z.array(z.string()).optional(),
   priorities: z.array(z.string()).optional(),
   labels: z.array(z.string()).optional(),
+  authorIds: z.array(z.string()).optional(),
   sourceId: z.string().optional(),
   fromDate: z.number().optional(),
   toDate: z.number().optional(),
@@ -158,6 +159,10 @@ const unifiedSearchInputSchema = z.object({
     .enum(["bm25", "semantic", "hybrid", "recency", "engagement"])
     .default("hybrid"),
   mediaRanking: z.enum(["bm25", "semantic", "hybrid"]).default("hybrid"),
+});
+
+const authorsInputSchema = z.object({
+  limit: z.number().min(1).max(100).default(50),
 });
 
 export const searchRouter = createTRPCRouter({
@@ -279,6 +284,7 @@ export const searchRouter = createTRPCRouter({
         statuses: input.statuses,
         priorities: input.priorities,
         labels: input.labels,
+        authorIds: input.authorIds,
         sourceId: input.sourceId,
         fromDate: input.fromDate,
         toDate: input.toDate,
@@ -334,5 +340,19 @@ export const searchRouter = createTRPCRouter({
         queryTime: result.queryTime,
         query: input.q,
       };
+    }),
+
+  authors: withActiveTeam
+    .input(authorsInputSchema)
+    .query(async ({ ctx, input }) => {
+      const accessControlIds = buildAccessControlIds(ctx);
+
+      const authors = await searchService.getAuthorFacets({
+        teamId: ctx.teamId,
+        accessControlIds,
+        limit: input.limit,
+      });
+
+      return { authors };
     }),
 });

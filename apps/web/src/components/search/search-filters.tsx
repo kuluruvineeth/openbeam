@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import {
   ActiveFilters,
   AppFilter,
+  AuthorFilter,
   DateRangeFilter,
   MultiSelectFilter,
   RankingFilter,
@@ -36,6 +37,8 @@ type SearchFiltersProps = {
   onStatusesChange: (value: string[] | null) => void;
   priorities: string[];
   onPrioritiesChange: (value: string[] | null) => void;
+  authors: string[];
+  onAuthorsChange: (value: string[] | null) => void;
   dateRange: DateRangeType | null;
   onDateRangeChange: (value: DateRangeType | null) => void;
   ranking: SearchRanking;
@@ -55,6 +58,8 @@ export function SearchFilters({
   onStatusesChange,
   priorities,
   onPrioritiesChange,
+  authors,
+  onAuthorsChange,
   dateRange,
   onDateRangeChange,
   ranking,
@@ -63,12 +68,15 @@ export function SearchFilters({
   activeFilterCount,
 }: SearchFiltersProps) {
   return (
-    <div className="space-y-2">
+    <fieldset className="space-y-2 border-none p-0">
+      <legend className="sr-only">Search filters</legend>
       <div className="flex flex-wrap items-center gap-2">
         <AppFilter
           onChange={onConnectorTypesChange}
           selected={connectorTypes}
         />
+
+        <AuthorFilter onChange={onAuthorsChange} selected={authors} />
 
         <MultiSelectFilter
           icon="FileTextIcon"
@@ -145,13 +153,13 @@ export function SearchFilters({
 
         <DateRangeFilter onChange={onDateRangeChange} value={dateRange} />
 
-        <div className="h-4 w-px bg-border/50" />
+        <span aria-hidden="true" className="h-4 w-px bg-border/50" />
 
         <RankingFilter onChange={onRankingChange} value={ranking} />
 
         {activeFilterCount > 0 && (
           <>
-            <div className="h-4 w-px bg-border/50" />
+            <span aria-hidden="true" className="h-4 w-px bg-border/50" />
             <Button
               className="h-8 gap-1 px-2 text-foreground/50 text-xs hover:text-foreground"
               onClick={onClearAll}
@@ -167,9 +175,11 @@ export function SearchFilters({
 
       {activeFilterCount > 0 && (
         <ActiveFilters
+          authors={authors}
           connectorTypes={connectorTypes}
           dateRange={dateRange}
           documentTypes={documentTypes}
+          onAuthorsChange={onAuthorsChange}
           onConnectorTypesChange={onConnectorTypesChange}
           onDateRangeChange={onDateRangeChange}
           onDocumentTypesChange={onDocumentTypesChange}
@@ -183,6 +193,6 @@ export function SearchFilters({
           statuses={statuses}
         />
       )}
-    </div>
+    </fieldset>
   );
 }

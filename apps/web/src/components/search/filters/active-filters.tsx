@@ -1,6 +1,9 @@
 "use client";
 
 import { appStore } from "@openplane/integrations";
+import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
+import { Icons } from "@/components/icons";
 import { AppLogo } from "@/components/integrations/app-logo";
 import {
   DATE_RANGE_CONFIG,
@@ -17,6 +20,7 @@ import {
   type StatusType,
 } from "@/lib/search-config";
 import { cn } from "@/lib/utils";
+import { useTRPC } from "@/trpc/client";
 import { FilterChip } from "./filter-chip";
 
 type ActiveFiltersProps = {
@@ -30,6 +34,8 @@ type ActiveFiltersProps = {
   onStatusesChange: (value: string[] | null) => void;
   priorities: string[];
   onPrioritiesChange: (value: string[] | null) => void;
+  authors: string[];
+  onAuthorsChange: (value: string[] | null) => void;
   dateRange: DateRangeType | null;
   onDateRangeChange: (value: DateRangeType | null) => void;
   ranking: SearchRanking;
@@ -47,96 +53,145 @@ export function ActiveFilters({
   onStatusesChange,
   priorities,
   onPrioritiesChange,
+  authors,
+  onAuthorsChange,
   dateRange,
   onDateRangeChange,
   ranking,
   onRankingChange,
 }: ActiveFiltersProps) {
+  const trpc = useTRPC();
+
+  const { data: authorsData } = useQuery({
+    ...trpc.search.authors.queryOptions({ limit: 50 }),
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
+    enabled: authors.length > 0,
+  });
+
+  const authorMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const author of authorsData?.authors ?? []) {
+      map.set(
+        author.authorId,
+        author.authorName ?? author.authorEmail ?? author.authorId
+      );
+    }
+    return map;
+  }, [authorsData]);
+
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
+    <ul
+      aria-label="Active filters"
+      className="flex list-none flex-wrap items-center gap-1.5"
+    >
       {connectorTypes.map((type) => {
         const app = appStore.find((a) => a.id.toLowerCase() === type);
         return (
-          <FilterChip
-            key={type}
-            label={
-              <span className="flex items-center gap-1">
-                {app && <AppLogo app={app} size={12} />}
-                {app?.name || type}
-              </span>
-            }
-            onRemove={() =>
-              onConnectorTypesChange(connectorTypes.filter((t) => t !== type))
-            }
-          />
+          <li key={type}>
+            <FilterChip
+              label={
+                <span className="flex items-center gap-1">
+                  {app && <AppLogo app={app} size={12} />}
+                  {app?.name || type}
+                </span>
+              }
+              onRemove={() =>
+                onConnectorTypesChange(connectorTypes.filter((t) => t !== type))
+              }
+            />
+          </li>
         );
       })}
       {documentTypes.map((type) => (
-        <FilterChip
-          key={type}
-          label={DOCUMENT_TYPE_CONFIG[type as DocumentType]?.label || type}
-          onRemove={() =>
-            onDocumentTypesChange(documentTypes.filter((t) => t !== type))
-          }
-        />
+        <li key={type}>
+          <FilterChip
+            label={DOCUMENT_TYPE_CONFIG[type as DocumentType]?.label || type}
+            onRemove={() =>
+              onDocumentTypesChange(documentTypes.filter((t) => t !== type))
+            }
+          />
+        </li>
       ))}
       {sourceTypes.map((type) => (
-        <FilterChip
-          key={type}
-          label={SOURCE_TYPE_CONFIG[type as SourceType] || type}
-          onRemove={() =>
-            onSourceTypesChange(sourceTypes.filter((t) => t !== type))
-          }
-        />
+        <li key={type}>
+          <FilterChip
+            label={SOURCE_TYPE_CONFIG[type as SourceType] || type}
+            onRemove={() =>
+              onSourceTypesChange(sourceTypes.filter((t) => t !== type))
+            }
+          />
+        </li>
       ))}
       {statuses.map((status) => (
-        <FilterChip
-          key={status}
-          label={
-            <span
-              className={cn(
-                "rounded px-1 py-0.5 text-[10px]",
-                STATUS_CONFIG[status as StatusType]?.color
-              )}
-            >
-              {STATUS_CONFIG[status as StatusType]?.label || status}
-            </span>
-          }
-          onRemove={() =>
-            onStatusesChange(statuses.filter((s) => s !== status))
-          }
-        />
+        <li key={status}>
+          <FilterChip
+            label={
+              <span
+                className={cn(
+                  "rounded px-1 py-0.5 text-[10px]",
+                  STATUS_CONFIG[status as StatusType]?.color
+                )}
+              >
+                {STATUS_CONFIG[status as StatusType]?.label || status}
+              </span>
+            }
+            onRemove={() =>
+              onStatusesChange(statuses.filter((s) => s !== status))
+            }
+          />
+        </li>
       ))}
       {priorities.map((priority) => (
-        <FilterChip
-          key={priority}
-          label={
-            <span
-              className={cn(
-                "rounded px-1 py-0.5 text-[10px]",
-                PRIORITY_CONFIG[priority as PriorityType]?.color
-              )}
-            >
-              {PRIORITY_CONFIG[priority as PriorityType]?.label || priority}
-            </span>
-          }
-          onRemove={() =>
-            onPrioritiesChange(priorities.filter((p) => p !== priority))
-          }
-        />
+        <li key={priority}>
+          <FilterChip
+            label={
+              <span
+                className={cn(
+                  "rounded px-1 py-0.5 text-[10px]",
+                  PRIORITY_CONFIG[priority as PriorityType]?.color
+                )}
+              >
+                {PRIORITY_CONFIG[priority as PriorityType]?.label || priority}
+              </span>
+            }
+            onRemove={() =>
+              onPrioritiesChange(priorities.filter((p) => p !== priority))
+            }
+          />
+        </li>
+      ))}
+      {authors.map((authorId) => (
+        <li key={authorId}>
+          <FilterChip
+            label={
+              <span className="flex items-center gap-1">
+                <Icons.User size={10} />
+                {authorMap.get(authorId) ?? authorId}
+              </span>
+            }
+            onRemove={() =>
+              onAuthorsChange(authors.filter((a) => a !== authorId))
+            }
+          />
+        </li>
       ))}
       {dateRange && (
-        <FilterChip
-          label={DATE_RANGE_CONFIG[dateRange]}
-          onRemove={() => onDateRangeChange(null)}
-        />
+        <li>
+          <FilterChip
+            label={DATE_RANGE_CONFIG[dateRange]}
+            onRemove={() => onDateRangeChange(null)}
+          />
+        </li>
       )}
       {ranking !== "hybrid" && (
-        <FilterChip
-          label={`Sort: ${RANKING_CONFIG[ranking].label}`}
-          onRemove={() => onRankingChange("hybrid")}
-        />
+        <li>
+          <FilterChip
+            label={`Sort: ${RANKING_CONFIG[ranking].label}`}
+            onRemove={() => onRankingChange("hybrid")}
+          />
+        </li>
       )}
-    </div>
+    </ul>
   );
 }
