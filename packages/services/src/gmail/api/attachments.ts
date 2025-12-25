@@ -10,6 +10,36 @@ import {
   isSupportedAttachment,
 } from "../types";
 
+const EMAIL_BRACKET_REGEX = /<([^>]+)>/;
+const EMAIL_ADDRESS_REGEX = /[\w.+-]+@[\w.-]+\.\w+/;
+const QUOTED_NAME_REGEX = /"([^"]+)"/;
+const NAME_BEFORE_BRACKET_REGEX = /^([^<]+)</;
+
+function getSenderFromMessage(message: GmailMessage): {
+  email?: string;
+  name?: string;
+} {
+  const headers = message.payload?.headers ?? [];
+  const fromHeader = headers.find(
+    (h) => h.name.toLowerCase() === "from"
+  )?.value;
+  if (!fromHeader) {
+    return {};
+  }
+
+  const emailMatch = fromHeader.match(EMAIL_BRACKET_REGEX);
+  const email = emailMatch
+    ? emailMatch[1]?.toLowerCase()
+    : fromHeader.match(EMAIL_ADDRESS_REGEX)?.[0]?.toLowerCase();
+
+  const quotedMatch = fromHeader.match(QUOTED_NAME_REGEX);
+  const name = quotedMatch
+    ? quotedMatch[1]
+    : fromHeader.match(NAME_BEFORE_BRACKET_REGEX)?.[1]?.trim();
+
+  return { email, name };
+}
+
 export async function getAttachment(
   client: GmailClient,
   messageId: string,
@@ -47,6 +77,8 @@ export function extractAttachments(
     return attachments;
   }
 
+  const sender = getSenderFromMessage(message);
+
   function walkParts(parts: GmailPart[] | undefined): void {
     if (!parts) {
       return;
@@ -66,6 +98,8 @@ export function extractAttachments(
           filename: part.filename,
           mimeType: part.mimeType,
           size: part.body.size,
+          senderEmail: sender.email,
+          senderName: sender.name,
         });
       }
 
@@ -90,6 +124,8 @@ export function extractAttachments(
       filename: message.payload.filename,
       mimeType: message.payload.mimeType ?? "application/octet-stream",
       size: message.payload.body.size,
+      senderEmail: sender.email,
+      senderName: sender.name,
     });
   }
 
@@ -102,6 +138,8 @@ export function extractMedia(message: GmailMessage): GmailMediaInfo[] {
   if (!message.payload) {
     return media;
   }
+
+  const sender = getSenderFromMessage(message);
 
   function walkParts(parts: GmailPart[] | undefined): void {
     if (!parts) {
@@ -126,6 +164,8 @@ export function extractMedia(message: GmailMessage): GmailMediaInfo[] {
           mimeType: part.mimeType,
           size: part.body.size,
           mediaType,
+          senderEmail: sender.email,
+          senderName: sender.name,
         });
       }
 
@@ -155,6 +195,8 @@ export function extractMedia(message: GmailMessage): GmailMediaInfo[] {
       mimeType: message.payload.mimeType ?? "application/octet-stream",
       size: message.payload.body.size,
       mediaType,
+      senderEmail: sender.email,
+      senderName: sender.name,
     });
   }
 

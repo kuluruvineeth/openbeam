@@ -214,6 +214,8 @@ export interface GmailAttachmentInfo {
   filename: string;
   mimeType: string;
   size: number;
+  senderEmail?: string;
+  senderName?: string;
 }
 
 export interface GmailMediaInfo {
@@ -224,6 +226,8 @@ export interface GmailMediaInfo {
   mimeType: string;
   size: number;
   mediaType: "video" | "audio";
+  senderEmail?: string;
+  senderName?: string;
 }
 
 export interface GmailSyncCursor {

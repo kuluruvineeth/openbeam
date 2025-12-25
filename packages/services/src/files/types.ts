@@ -13,6 +13,7 @@ export interface ConnectorFileInfo {
   permalink?: string;
   createdAt?: number;
   userId?: string;
+  userName?: string;
   sourceChannelId?: string;
   sourceMessageId?: string;
 }

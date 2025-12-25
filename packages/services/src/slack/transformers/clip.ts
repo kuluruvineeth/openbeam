@@ -1,16 +1,7 @@
-import type { GenericDocument, JsonObject, JsonValue } from "@openplane/vespa";
+import type { GenericDocument } from "@openplane/vespa";
 import type { UserLookup } from "../api/users";
 import type { TransformContext } from "../types";
-
-function filterUndefined(obj: Record<string, unknown>): JsonObject {
-  const result: JsonObject = {};
-  for (const [key, value] of Object.entries(obj)) {
-    if (value !== undefined) {
-      result[key] = value as JsonValue;
-    }
-  }
-  return result;
-}
+import { filterUndefined } from "./utils";
 
 export interface SlackClip {
   id: string;
@@ -47,6 +38,9 @@ export function transformClip(
 
   const documentId = `${connectorId}_clip_${clip.id}`;
   const authorName = clip.userId ? userLookup?.getName(clip.userId) : undefined;
+  const authorAvatarUrl = clip.userId
+    ? userLookup?.getAvatar(clip.userId)
+    : undefined;
   const content = clip.transcript ?? `Video clip: ${clip.title}`;
 
   return {
@@ -62,6 +56,7 @@ export function transformClip(
     content,
     author_id: clip.userId,
     author_name: authorName,
+    author_avatar_url: authorAvatarUrl,
     created_at: clip.createdAt,
     updated_at: clip.createdAt,
     source_id: clip.channelId,

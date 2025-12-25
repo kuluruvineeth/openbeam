@@ -1,16 +1,7 @@
-import type { GenericDocument, JsonObject, JsonValue } from "@openplane/vespa";
+import type { GenericDocument } from "@openplane/vespa";
 import type { UserLookup } from "../api/users";
 import type { SlackBookmarkType, TransformContext } from "../types";
-
-function filterUndefined(obj: Record<string, unknown>): JsonObject {
-  const result: JsonObject = {};
-  for (const [key, value] of Object.entries(obj)) {
-    if (value !== undefined) {
-      result[key] = value as JsonValue;
-    }
-  }
-  return result;
-}
+import { filterUndefined } from "./utils";
 
 export interface SlackBookmark {
   id: string;
@@ -50,6 +41,9 @@ export function transformBookmark(
   const authorName = bookmark.createdBy
     ? userLookup?.getName(bookmark.createdBy)
     : undefined;
+  const authorAvatarUrl = bookmark.createdBy
+    ? userLookup?.getAvatar(bookmark.createdBy)
+    : undefined;
   const content = buildBookmarkContent(bookmark);
 
   return {
@@ -65,6 +59,7 @@ export function transformBookmark(
     content,
     author_id: bookmark.createdBy,
     author_name: authorName,
+    author_avatar_url: authorAvatarUrl,
     created_at: bookmark.createdAt,
     updated_at: bookmark.updatedAt ?? bookmark.createdAt,
     source_id: bookmark.channelId,

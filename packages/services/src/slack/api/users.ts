@@ -6,6 +6,8 @@ import {
   SlackUserSchema,
 } from "../types";
 
+const USER_BATCH_SIZE = 50;
+
 export interface ListUsersOptions {
   limit?: number;
   includeLocale?: boolean;
@@ -36,6 +38,7 @@ export interface UserLookup {
   get(userId: string): SlackUser | undefined;
   getName(userId: string): string | undefined;
   getEmail(userId: string): string | undefined;
+  getAvatar(userId: string): string | undefined;
   has(userId: string): boolean;
   all(): SlackUser[];
   size: number;
@@ -122,10 +125,8 @@ export async function getUsersInfo(
 ): Promise<Map<string, SlackUser>> {
   const users = new Map<string, SlackUser>();
 
-  // Fetch users in parallel batches of 50
-  const batchSize = 50;
-  for (let i = 0; i < userIds.length; i += batchSize) {
-    const batch = userIds.slice(i, i + batchSize);
+  for (let i = 0; i < userIds.length; i += USER_BATCH_SIZE) {
+    const batch = userIds.slice(i, i + USER_BATCH_SIZE);
     const results = await Promise.all(
       batch.map((id) => getUserInfo(client, id))
     );
@@ -187,6 +188,14 @@ export async function createUserLookup(
     getEmail: (userId: string) => {
       const user = userMap.get(userId);
       return user?.profile?.email;
+    },
+
+    getAvatar: (userId: string) => {
+      const user = userMap.get(userId);
+      if (!user) {
+        return;
+      }
+      return getUserAvatarUrl(user);
     },
 
     has: (userId: string) => userMap.has(userId),

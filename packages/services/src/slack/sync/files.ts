@@ -7,6 +7,7 @@ import {
   hasDownloadUrl,
   type ListFilesOptions,
 } from "../api/files";
+import { createUserLookup, type UserLookup } from "../api/users";
 import type { SlackClient } from "../client";
 import type { SlackFile, TransformContext } from "../types";
 
@@ -16,6 +17,8 @@ export interface FileSyncOptions {
   lastSyncTimestamp?: string;
   batchSize?: number;
   filterSupported?: boolean;
+  userLookup?: UserLookup;
+  fetchUsers?: boolean;
 }
 
 export interface FileSyncBatch {
@@ -43,8 +46,12 @@ export interface SlackFileInfo {
   channels?: string[];
 }
 
-export function transformSlackFile(file: SlackFile): ConnectorFileInfo {
+export function transformSlackFile(
+  file: SlackFile,
+  userLookup?: UserLookup
+): ConnectorFileInfo {
   const downloadUrl = getDownloadUrl(file);
+  const userName = file.user ? userLookup?.getName(file.user) : undefined;
   return {
     id: file.id,
     name: file.name,
@@ -57,6 +64,7 @@ export function transformSlackFile(file: SlackFile): ConnectorFileInfo {
     permalink: file.permalink,
     createdAt: file.created,
     userId: file.user,
+    userName,
     sourceChannelId: file.channels?.[0],
   };
 }
@@ -72,7 +80,13 @@ export async function* syncFiles(
     lastSyncTimestamp,
     batchSize = 100,
     filterSupported = true,
+    userLookup: providedUserLookup,
+    fetchUsers = true,
   } = options;
+
+  const userLookup =
+    providedUserLookup ??
+    (fetchUsers ? await createUserLookup(client) : undefined);
 
   const listOptions: Omit<ListFilesOptions, "page"> = {
     count: batchSize,
@@ -81,7 +95,9 @@ export async function* syncFiles(
   if (channelIds && channelIds.length > 0) {
     for (const channelId of channelIds) {
       yield* syncFilesForChannel(client, channelId, {
-        ...options,
+        lastSyncTimestamp,
+        filterSupported,
+        userLookup,
         listOptions,
       });
     }
@@ -91,7 +107,9 @@ export async function* syncFiles(
   if (userIds && userIds.length > 0) {
     for (const userId of userIds) {
       yield* syncFilesForUser(client, userId, {
-        ...options,
+        lastSyncTimestamp,
+        filterSupported,
+        userLookup,
         listOptions,
       });
     }
@@ -103,7 +121,7 @@ export async function* syncFiles(
     : getAllFiles(client, listOptions);
 
   for await (const files of fileGenerator) {
-    const batch = processBatch(files, filterSupported);
+    const batch = processBatch(files, filterSupported, userLookup);
     if (batch.files.length > 0) {
       yield batch;
     }
@@ -116,10 +134,16 @@ async function* syncFilesForChannel(
   options: {
     lastSyncTimestamp?: string;
     filterSupported?: boolean;
+    userLookup?: UserLookup;
     listOptions: Omit<ListFilesOptions, "page">;
   }
 ): AsyncGenerator<FileSyncBatch, void, undefined> {
-  const { lastSyncTimestamp, filterSupported = true, listOptions } = options;
+  const {
+    lastSyncTimestamp,
+    filterSupported = true,
+    userLookup,
+    listOptions,
+  } = options;
 
   const channelOptions = {
     ...listOptions,
@@ -131,7 +155,7 @@ async function* syncFilesForChannel(
     : getAllFiles(client, channelOptions);
 
   for await (const files of fileGenerator) {
-    const batch = processBatch(files, filterSupported);
+    const batch = processBatch(files, filterSupported, userLookup);
     if (batch.files.length > 0) {
       yield batch;
     }
@@ -144,10 +168,16 @@ async function* syncFilesForUser(
   options: {
     lastSyncTimestamp?: string;
     filterSupported?: boolean;
+    userLookup?: UserLookup;
     listOptions: Omit<ListFilesOptions, "page">;
   }
 ): AsyncGenerator<FileSyncBatch, void, undefined> {
-  const { lastSyncTimestamp, filterSupported = true, listOptions } = options;
+  const {
+    lastSyncTimestamp,
+    filterSupported = true,
+    userLookup,
+    listOptions,
+  } = options;
 
   const userOptions = {
     ...listOptions,
@@ -159,7 +189,7 @@ async function* syncFilesForUser(
     : getAllFiles(client, userOptions);
 
   for await (const files of fileGenerator) {
-    const batch = processBatch(files, filterSupported);
+    const batch = processBatch(files, filterSupported, userLookup);
     if (batch.files.length > 0) {
       yield batch;
     }
@@ -168,7 +198,8 @@ async function* syncFilesForUser(
 
 function processBatch(
   files: SlackFile[],
-  filterSupported: boolean
+  filterSupported: boolean,
+  userLookup?: UserLookup
 ): FileSyncBatch {
   const total = files.length;
 
@@ -180,7 +211,7 @@ function processBatch(
   const skipped = total - supported;
 
   return {
-    files: downloadableFiles.map(transformSlackFile),
+    files: downloadableFiles.map((f) => transformSlackFile(f, userLookup)),
     hasMore: true,
     stats: {
       total,

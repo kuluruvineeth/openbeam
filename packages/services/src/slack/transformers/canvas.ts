@@ -1,16 +1,7 @@
-import type { GenericDocument, JsonObject, JsonValue } from "@openplane/vespa";
+import type { GenericDocument } from "@openplane/vespa";
 import type { UserLookup } from "../api/users";
 import type { SlackCanvasAccessLevel, TransformContext } from "../types";
-
-function filterUndefined(obj: Record<string, unknown>): JsonObject {
-  const result: JsonObject = {};
-  for (const [key, value] of Object.entries(obj)) {
-    if (value !== undefined) {
-      result[key] = value as JsonValue;
-    }
-  }
-  return result;
-}
+import { filterUndefined } from "./utils";
 
 export interface SlackCanvas {
   id: string;
@@ -47,6 +38,9 @@ export function transformCanvas(
   const authorName = canvas.lastModifiedBy
     ? userLookup?.getName(canvas.lastModifiedBy)
     : undefined;
+  const authorAvatarUrl = canvas.lastModifiedBy
+    ? userLookup?.getAvatar(canvas.lastModifiedBy)
+    : undefined;
   const isPrivate =
     canvas.accessLevel === "private" || canvas.accessLevel === "channel";
 
@@ -62,6 +56,7 @@ export function transformCanvas(
     content: canvas.documentContent ?? "",
     author_id: canvas.lastModifiedBy,
     author_name: authorName,
+    author_avatar_url: authorAvatarUrl,
     created_at: canvas.lastModified,
     updated_at: canvas.lastModified,
     source_id: canvas.channelId,

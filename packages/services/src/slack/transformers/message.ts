@@ -41,6 +41,9 @@ export function transformMessage(
 
   const authorId = message.user ?? message.bot_id;
   const authorName = authorId ? userLookup?.getName(authorId) : undefined;
+  const authorAvatarUrl = authorId
+    ? userLookup?.getAvatar(authorId)
+    : undefined;
 
   const isReply = Boolean(
     message.thread_ts && message.thread_ts !== message.ts
@@ -72,6 +75,7 @@ export function transformMessage(
     content: message.text ?? "",
     author_id: authorId,
     author_name: authorName,
+    author_avatar_url: authorAvatarUrl,
     created_at: createdAt,
     updated_at: updatedAt,
     source_id: channel.id,

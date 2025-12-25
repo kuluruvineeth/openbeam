@@ -32,6 +32,8 @@ export function transformGmailAttachment(
     },
     sourceMessageId: attachment.messageId,
     sourceChannelId: attachment.threadId,
+    userId: attachment.senderEmail,
+    userName: attachment.senderName,
   };
 }
 
@@ -56,6 +58,8 @@ export function transformGmailMedia(media: GmailMediaInfo): ConnectorMediaInfo {
     sourceMessageId: media.messageId,
     sourceChannelId: media.threadId,
     mediaType: media.mediaType,
+    userId: media.senderEmail,
+    userName: media.senderName,
   };
 }
 
