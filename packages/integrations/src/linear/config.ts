@@ -1,0 +1,175 @@
+import {
+  AppType,
+  AuthType,
+  ConnectorType,
+  SyncMode,
+  type UnifiedApp,
+} from "../types";
+
+export const linearApp: UnifiedApp = {
+  id: AppType.LINEAR,
+  name: "Linear",
+  category: "Project Management",
+  active: true,
+  logo: AppType.LINEAR,
+  short_description: "Search across issues, projects, and documents.",
+  description:
+    "Connect Linear to search across issues, projects, documents, and cycles. Supports real-time webhooks and incremental sync.",
+  images: [],
+  installed: false,
+  type: "official",
+  connectorType: ConnectorType.SOURCE,
+  developerName: "Linear",
+  website: "https://linear.app",
+
+  searchDisplay: {
+    defaultIconKey: "CircleDotIcon",
+    documentTypes: {
+      issue: { label: "issue", iconKey: "CircleDotIcon", category: "issue" },
+      project: { label: "project", iconKey: "FolderIcon", category: "task" },
+      document: {
+        label: "document",
+        iconKey: "FileTextIcon",
+        category: "document",
+      },
+      comment: {
+        label: "comment",
+        iconKey: "MessageSquareIcon",
+        category: "comment",
+      },
+      cycle: { label: "cycle", iconKey: "RefreshCwIcon", category: "task" },
+    },
+  },
+
+  features: [
+    "Semantic search across issues and projects",
+    "Document and comment indexing",
+    "Cycle and label metadata",
+    "Real-time webhooks",
+    "OAuth 2.0 with refresh tokens",
+  ],
+
+  auth: {
+    type: AuthType.OAUTH2,
+    config: {
+      authUrl: "https://linear.app/oauth/authorize",
+      tokenUrl: "https://api.linear.app/oauth/token",
+      redirectPath: "/connectors/setup/linear/oauth/callback",
+      scopes: ["read", "write"],
+    },
+  },
+
+  streams: [
+    {
+      name: "issues",
+      label: "Issues",
+      description: "Linear issues with comments and attachments",
+      entityType: "resource",
+      dataPoints: [
+        "Title",
+        "Description",
+        "State",
+        "Priority",
+        "Assignee",
+        "Labels",
+        "Comments",
+      ],
+      isPii: true,
+      syncMode: SyncMode.REALTIME,
+      defaultInterval: 15,
+      supportsBackfill: true,
+    },
+    {
+      name: "projects",
+      label: "Projects",
+      description: "Linear projects and their status",
+      entityType: "resource",
+      dataPoints: [
+        "Name",
+        "Description",
+        "Status",
+        "Lead",
+        "Members",
+        "Milestones",
+      ],
+      syncMode: SyncMode.PERIODIC,
+      defaultInterval: 30,
+      supportsBackfill: true,
+    },
+    {
+      name: "documents",
+      label: "Documents",
+      description: "Linear documents and wiki pages",
+      entityType: "resource",
+      dataPoints: ["Title", "Content", "Author", "Project"],
+      syncMode: SyncMode.PERIODIC,
+      defaultInterval: 30,
+      supportsBackfill: true,
+    },
+    {
+      name: "cycles",
+      label: "Cycles",
+      description: "Sprint cycles with progress",
+      entityType: "resource",
+      dataPoints: ["Name", "StartDate", "EndDate", "Progress", "Issues"],
+      syncMode: SyncMode.PERIODIC,
+      defaultInterval: 60,
+      supportsBackfill: true,
+    },
+  ],
+
+  settings: [
+    {
+      id: "client_id",
+      label: "Client ID",
+      description: "From Linear OAuth application settings",
+      type: "text",
+      required: true,
+      value: "",
+      placeholder: "your-linear-client-id",
+    },
+    {
+      id: "client_secret",
+      label: "Client Secret",
+      description: "From Linear OAuth application settings",
+      type: "password",
+      required: true,
+      value: "",
+    },
+    {
+      id: "sync_comments",
+      label: "Sync Comments",
+      description: "Include issue comments in search",
+      type: "switch",
+      required: false,
+      value: true,
+    },
+    {
+      id: "sync_documents",
+      label: "Sync Documents",
+      description: "Include Linear documents/wiki pages",
+      type: "switch",
+      required: false,
+      value: true,
+    },
+    {
+      id: "enable_webhooks",
+      label: "Real-time Updates",
+      description: "Receive instant updates via Linear webhooks",
+      type: "switch",
+      required: false,
+      value: true,
+    },
+    {
+      id: "lookback_days",
+      label: "History (days)",
+      description: "How far back to sync. Leave empty for unlimited.",
+      type: "text",
+      required: false,
+      value: "",
+      placeholder: "Unlimited",
+    },
+  ],
+};
+
+export default linearApp;

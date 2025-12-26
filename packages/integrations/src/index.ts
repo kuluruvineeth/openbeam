@@ -1,10 +1,11 @@
 import { gmailApp } from "./gmail/config";
 import { googleDriveApp } from "./google-drive/config";
+import { linearApp } from "./linear/config";
 import { notionApp } from "./notion/config";
 import { slackApp } from "./slack/config";
 import type { UnifiedApp } from "./types";
 
-export { gmailApp, googleDriveApp, notionApp, slackApp };
+export { gmailApp, googleDriveApp, linearApp, notionApp, slackApp };
 
 // Gmail exports
 export {
@@ -35,6 +36,18 @@ export type {
   GoogleDriveFolder,
 } from "./google-drive/types";
 
+// Linear exports
+export {
+  exchangeLinearCode,
+  generateLinearAuthUrl,
+  refreshLinearToken,
+} from "./linear/oauth";
+export type {
+  LinearAuthResult,
+  LinearTokenResponse,
+  LinearViewer,
+} from "./linear/types";
+
 // Notion exports
 export { exchangeNotionCode, generateNotionAuthUrl } from "./notion/oauth";
 export type { NotionAuthResult, NotionOAuthResponse } from "./notion/types";
@@ -49,6 +62,7 @@ export * from "./types";
 export const appStore: UnifiedApp[] = [
   gmailApp,
   googleDriveApp,
+  linearApp,
   notionApp,
   slackApp,
 ];
