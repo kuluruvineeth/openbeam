@@ -1,0 +1,47 @@
+---
+title: Configuration
+description: Linear connector settings
+---
+
+# Configuration
+
+## Content Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `sync_comments` | `true` | Include issue comments in search |
+| `sync_documents` | `true` | Include Linear documents/wiki pages |
+
+## Sync Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `lookback_days` | Unlimited | Days of history to sync |
+| `enable_webhooks` | `true` | Enable real-time updates |
+| `fullSyncInterval` | `24h` | Full resync frequency |
+| `incrementalInterval` | `15m` | Change check frequency |
+
+## Environment Variables
+
+```bash
+WEB_URL=https://your-domain.com
+SERVER_URL=https://api.your-domain.com
+```
+
+## Workspace Access
+
+Linear OAuth grants access to:
+- All teams the authorizing user belongs to
+- All issues, projects, and documents visible to that user
+- Organization-wide documents and projects
+
+## Resync Required
+
+| Change | Resync Type |
+|--------|-------------|
+| Enable comments | Full sync |
+| Enable documents | Full sync |
+| New teams joined | Incremental sync |
+| Webhook reconnect | None |
+
+Trigger via **Actions → Full Resync** in connector settings.

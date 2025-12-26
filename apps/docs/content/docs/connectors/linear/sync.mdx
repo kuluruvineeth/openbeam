@@ -1,0 +1,71 @@
+---
+title: Sync Behavior
+description: How Linear data is synced
+---
+
+# Sync Behavior
+
+## Sync Types
+
+| Type | Trigger | Duration |
+|------|---------|----------|
+| **Full** | First connection, manual resync | Minutes to hours |
+| **Incremental** | Scheduled / webhook | Seconds to minutes |
+| **Real-time** | Webhook events | Near-instant |
+
+## Status Indicators
+
+| Status | Meaning |
+|--------|---------|
+| **Active** | Synced, watching for changes |
+| **Syncing** | Sync in progress |
+| **Error** | Check logs for details |
+
+## Sync Process
+
+1. **Teams Discovery**: Find all accessible teams
+2. **Issues**: Fetch all issues per team with comments
+3. **Projects**: Sync workspace projects
+4. **Documents**: Sync documents and wiki pages
+5. **Transform**: Convert to searchable documents
+
+## Rate Limits
+
+| Quota | Limit |
+|-------|-------|
+| Requests per hour | ~1500 |
+| Complexity budget | Shared across operations |
+
+OpenPlane handles limits with exponential backoff and request queuing.
+
+## Webhooks
+
+When enabled, Linear sends real-time notifications for:
+- Issue create/update/delete
+- Comment create/update/delete
+- Project changes
+- Document changes
+
+Webhook endpoint:
+```
+POST /webhooks/linear/events/{connectorId}
+```
+
+Headers:
+- `Linear-Signature`: HMAC-SHA256 signature
+- `Linear-Delivery`: Unique event ID
+
+## Controls
+
+- **Full Resync**: Settings → Connectors → Linear → Actions → Full Resync
+- **Pause/Resume**: Stop sync temporarily
+- **Sync Now**: Trigger immediate incremental sync
+
+## Troubleshooting
+
+| Issue | Fix |
+|-------|-----|
+| Sync stuck | Rate limited - wait for reset |
+| Issues missing | Check team membership |
+| Comments empty | Enable `sync_comments` setting |
+| Slow sync | Large workspace - normal |

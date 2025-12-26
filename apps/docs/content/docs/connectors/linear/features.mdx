@@ -1,0 +1,59 @@
+---
+title: Features
+description: Linear connector capabilities
+---
+
+# Linear Features
+
+## Search
+
+- **Full-text**: Issue titles, descriptions, comments
+- **Projects**: Project names and documentation
+- **Documents**: Wiki pages and specifications
+- **Metadata**: Labels, states, priorities, cycles
+
+## Content Types
+
+| Type | Fields Indexed |
+|------|----------------|
+| Issues | Title, description, identifier (e.g., ENG-123) |
+| Comments | Full comment text with author |
+| Projects | Name, description, status |
+| Documents | Title, content, project association |
+| Cycles | Name, dates, team |
+
+## Issue Metadata
+
+| Field | Searchable | Filterable |
+|-------|------------|------------|
+| State | ✓ | ✓ |
+| Priority | ✓ | ✓ |
+| Labels | ✓ | ✓ |
+| Assignee | ✓ | ✓ |
+| Team | ✓ | ✓ |
+| Cycle | ✓ | ✓ |
+| Project | ✓ | ✓ |
+
+## Sync Options
+
+| Mode | Trigger | Latency |
+|------|---------|---------|
+| Full | First sync, manual | Minutes |
+| Incremental | Scheduled | 15 min |
+| Real-time | Webhooks | Seconds |
+
+## AI Capabilities
+
+- Semantic search across all content
+- Question answering about issues and projects
+- Related issue discovery
+- Status summarization
+
+## Limitations
+
+| Limit | Value |
+|-------|-------|
+| API rate limit | ~1500 req/hour |
+| Archived content | Excluded by default |
+| Private teams | Based on user access |
+| Attachments | URLs indexed, not content |

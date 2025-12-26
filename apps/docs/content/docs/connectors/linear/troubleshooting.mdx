@@ -1,0 +1,93 @@
+---
+title: Troubleshooting
+description: Common Linear connector issues
+---
+
+# Troubleshooting
+
+## OAuth Errors
+
+| Error | Fix |
+|-------|-----|
+| `redirect_uri_mismatch` | Exact match required in OAuth settings |
+| `access_denied` | User denied authorization |
+| `invalid_grant` | Code expired - restart OAuth flow |
+| `unauthorized_client` | Check Client ID and Secret |
+
+## Access Issues
+
+| Issue | Fix |
+|-------|-----|
+| Teams not found | User must be member of teams |
+| Issues missing | Check team visibility settings |
+| Documents empty | Enable `sync_documents` setting |
+
+## Sync Issues
+
+| Issue | Fix |
+|-------|-----|
+| Rate limit exceeded | Auto-backoff; wait for reset |
+| Content not indexed | Check connector status |
+| Comments missing | Enable `sync_comments` setting |
+| Webhook not triggering | Verify webhook URL is accessible |
+
+## Connection Issues
+
+| Issue | Fix |
+|-------|-----|
+| Cannot connect | Verify OAuth credentials |
+| Token expired | OAuth auto-refreshes; reconnect if persistent |
+| API errors | Check Linear status page |
+
+## Webhook Issues
+
+| Issue | Fix |
+|-------|-----|
+| Events not received | Check webhook URL accessibility |
+| Signature invalid | Verify webhook secret configured |
+| Duplicate events | Deduplication is automatic |
+
+## Debug Commands
+
+```bash
+# Check webhook health
+curl https://api.your-domain.com/webhooks/linear/health
+
+# Check connector logs
+tail -f logs/worker.log | grep -i linear
+```
+
+## Error Reference
+
+| Error | Code | Fix |
+|-------|------|-----|
+| `AUTHENTICATION_ERROR` | 401 | Reconnect OAuth |
+| `FORBIDDEN` | 403 | Check user permissions |
+| `NOT_FOUND` | 404 | Resource deleted |
+| `RATELIMITED` | 429 | Wait for backoff |
+| `INTERNAL_SERVER_ERROR` | 500 | Retry later |
+
+## Common Patterns
+
+### Issue: "No issues syncing"
+
+1. Check connector status is Active
+2. Verify user has access to teams
+3. Check `lookback_days` setting
+4. Try manual Full Resync
+
+### Issue: "Slow initial sync"
+
+Large workspaces take time. Progress shown in connector status.
+- 1,000 issues: ~5 minutes
+- 10,000 issues: ~30 minutes
+- 50,000+ issues: Several hours
+
+### Issue: "Webhook not working"
+
+1. Verify `enable_webhooks` is true
+2. Check webhook URL is publicly accessible
+3. Verify SSL certificate is valid
+4. Check server logs for incoming requests
+
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openplane/issues) with error messages and logs.

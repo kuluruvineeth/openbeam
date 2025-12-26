@@ -1,0 +1,59 @@
+---
+title: Quick Start
+description: Connect Linear to OpenPlane
+---
+
+# Linear Quick Start
+
+## Prerequisites
+
+- Linear account with admin access to workspace
+- OpenPlane instance with HTTPS endpoint
+
+## 1. Create Linear OAuth Application
+
+1. Go to [Linear Settings → API](https://linear.app/settings/api)
+2. Click **Create new OAuth application**
+3. Fill in:
+   - **Application name**: OpenPlane
+   - **Description**: Enterprise search integration
+   - **Developer URL**: Your company website
+4. Click **Create**
+
+## 2. Configure OAuth Settings
+
+1. In your OAuth application, go to **OAuth settings**
+2. Add redirect URI:
+   ```
+   https://your-domain.com/connectors/setup/linear/oauth/callback
+   ```
+3. Select scopes:
+   - `read` - Required for reading issues, projects, documents
+   - `write` - Required for webhook creation
+
+## 3. Get Credentials
+
+Copy from your OAuth application:
+- **Client ID**
+- **Client Secret**
+
+## 4. Configure Environment
+
+```bash
+WEB_URL=https://your-domain.com
+SERVER_URL=https://api.your-domain.com
+```
+
+## 5. Connect in OpenPlane
+
+1. Go to **Settings → Connectors → Add Connector → Linear**
+2. Enter **Client ID** and **Client Secret**
+3. Click **Connect** and authorize in Linear
+4. Initial sync starts automatically
+
+Large workspaces may take several minutes for full sync.
+
+<Cards>
+  <Card title="OAuth Setup Details" href="/docs/connectors/linear/oauth-setup" />
+  <Card title="Configuration" href="/docs/connectors/linear/configuration" />
+</Cards>

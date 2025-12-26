@@ -1,0 +1,58 @@
+---
+title: OAuth Setup
+description: Linear OAuth application configuration
+---
+
+# Linear OAuth Setup
+
+## Create OAuth Application
+
+1. Navigate to [linear.app/settings/api](https://linear.app/settings/api)
+2. Under **OAuth applications**, click **Create new OAuth application**
+
+### Application Details
+
+| Field | Value |
+|-------|-------|
+| Application name | OpenPlane (or your app name) |
+| Description | Enterprise search integration |
+| Developer URL | Your company website |
+
+## Configure Redirect URI
+
+Add your callback URL:
+
+```
+https://your-domain.com/connectors/setup/linear/oauth/callback
+```
+
+For local development:
+```
+http://localhost:3001/connectors/setup/linear/oauth/callback
+```
+
+## Required Scopes
+
+| Scope | Purpose |
+|-------|---------|
+| `read` | Access issues, projects, documents, teams, users |
+| `write` | Create webhooks for real-time sync |
+
+## Webhook Configuration
+
+When webhooks are enabled, OpenPlane creates a webhook subscription for:
+- Issue create/update/delete
+- Comment create/update/delete
+- Project changes
+- Document changes
+
+Webhook URL format:
+```
+https://api.your-domain.com/webhooks/linear/events/{connectorId}
+```
+
+## Security
+
+- OAuth tokens are encrypted at rest
+- Refresh tokens automatically renewed
+- Webhook signatures verified with HMAC-SHA256

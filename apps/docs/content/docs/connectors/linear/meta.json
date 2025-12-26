@@ -1,5 +1,13 @@
 {
   "title": "Linear",
   "icon": "Linear",
-  "pages": ["index"]
+  "pages": [
+    "index",
+    "setup",
+    "oauth-setup",
+    "configuration",
+    "features",
+    "sync",
+    "troubleshooting"
+  ]
 }
