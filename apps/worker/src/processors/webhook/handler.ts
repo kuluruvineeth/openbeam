@@ -21,6 +21,10 @@ import {
   shouldProcessGmailRealtime,
 } from "./gmail-handler";
 import {
+  processLinearWebhook,
+  shouldProcessLinearRealtime,
+} from "./linear-handler";
+import {
   isAssistantThreadMessage,
   processSidebarMessage,
 } from "./sidebar-handler";
@@ -104,6 +108,7 @@ interface SyncFallbackParams {
   userId: string;
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: webhook handler dispatches to multiple sources
 async function tryRealtimeProcessing(
   source: string,
   eventType: string,
@@ -117,6 +122,19 @@ async function tryRealtimeProcessing(
         processed: true,
         operation: gmailResult.operation,
         reason: gmailResult.reason,
+      };
+    }
+    return null;
+  }
+
+  if (source === "linear" && shouldProcessLinearRealtime(eventType)) {
+    const linearResult = await processLinearWebhook(jobData);
+    if (linearResult.processed) {
+      return {
+        triggered: true,
+        processed: true,
+        operation: linearResult.operation,
+        reason: linearResult.reason,
       };
     }
     return null;
