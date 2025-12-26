@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { gmailWebhook } from "./gmail";
 import { googleDriveWebhook } from "./google-drive";
+import { linearWebhook } from "./linear";
 import { notionWebhook } from "./notion";
 import { slackWebhook } from "./slack";
 import { slackInteractivity } from "./slack-interactivity";
@@ -10,6 +11,7 @@ const webhooks = new Hono();
 
 webhooks.route("/gmail", gmailWebhook);
 webhooks.route("/google-drive", googleDriveWebhook);
+webhooks.route("/linear", linearWebhook);
 webhooks.route("/notion", notionWebhook);
 webhooks.route("/slack", slackWebhook);
 webhooks.route("/slack/interactivity", slackInteractivity);
