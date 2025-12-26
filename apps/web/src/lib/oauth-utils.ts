@@ -1,4 +1,4 @@
-import { apiClient } from "./api-client";
+import { apiClient } from "@/lib/api-client";
 
 export interface OAuthCallbackResponse {
   success: boolean;
@@ -8,7 +8,7 @@ export interface OAuthCallbackResponse {
   finalize_url?: string;
 }
 
-type IntegrationName = "slack" | "gmail" | "google-drive" | "notion";
+type IntegrationName = "slack" | "gmail" | "google-drive" | "notion" | "linear";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -34,6 +34,11 @@ const INTEGRATION_HANDLERS: Record<
     ),
   notion: async (code: string, state: string) =>
     apiClient.post<OAuthCallbackResponse>("/integrations/notion/callback", {
+      code,
+      state,
+    }),
+  linear: async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>("/integrations/linear/callback", {
       code,
       state,
     }),

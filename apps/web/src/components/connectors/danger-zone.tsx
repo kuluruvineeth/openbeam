@@ -1,6 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
+import { DeleteConnectorDialog } from "@/components/connectors/delete-connector-dialog";
 import { Button } from "@/components/ui/button";
 import {
   useDisconnectConnector,
@@ -10,7 +11,6 @@ import {
 } from "@/hooks/use-connectors";
 import { useIsAdmin } from "@/hooks/use-user-role";
 import { cn } from "@/lib/utils";
-import { DeleteConnectorDialog } from "./delete-connector-dialog";
 
 type DangerZoneProps = {
   connectorId: string;

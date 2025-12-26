@@ -2,8 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { signOut } from "@/lib/auth/client";
-import { DropdownMenuItem } from "./ui/dropdown-menu";
 
 export function SignOut() {
   const [isLoading, setLoading] = useState(false);

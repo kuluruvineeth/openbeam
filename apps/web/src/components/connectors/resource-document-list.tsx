@@ -2,6 +2,10 @@
 
 import { formatDistanceToNow } from "date-fns";
 import { useState } from "react";
+import {
+  getDocTypeConfig,
+  ICON_SIZE,
+} from "@/components/connectors/resource-icons";
 import { Icons } from "@/components/icons";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,7 +16,6 @@ import {
 import type { PreviewType } from "@/hooks/use-document-preview";
 import { getPreviewCategory } from "@/lib/file-preview-config";
 import { cn } from "@/lib/utils";
-import { getDocTypeConfig, ICON_SIZE } from "./resource-icons";
 
 function DocumentItem({
   doc,

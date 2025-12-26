@@ -1,10 +1,10 @@
 "use client";
 
 import { type RefObject, useCallback, useRef, useState } from "react";
+import { AudioVisualizer } from "@/components/file-preview/viewers/audio/audio-visualizer";
+import { useAudioAnalyser } from "@/components/file-preview/viewers/audio/use-audio-analyser";
 import { formatTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { AudioVisualizer } from "./audio-visualizer";
-import { useAudioAnalyser } from "./use-audio-analyser";
 
 type AudioWaveformProps = {
   audioRef: RefObject<HTMLAudioElement | null>;

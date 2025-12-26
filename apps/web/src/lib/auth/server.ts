@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { cache } from "react";
-import { serverUrl } from "../urls";
+import { serverUrl } from "@/lib/urls";
 
 const SESSION_COOKIE_NAME = "openplane-session";
 

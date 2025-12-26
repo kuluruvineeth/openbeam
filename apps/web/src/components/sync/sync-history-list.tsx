@@ -4,9 +4,9 @@ import type { InfiniteData } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useInView } from "react-intersection-observer";
 import { Icons } from "@/components/icons";
+import { SyncHistoryItem } from "@/components/sync/sync-history-item";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { SyncHistoryEntry } from "@/lib/sync-types";
-import { SyncHistoryItem } from "./sync-history-item";
 
 type SyncHistoryPage = {
   history: SyncHistoryEntry[];

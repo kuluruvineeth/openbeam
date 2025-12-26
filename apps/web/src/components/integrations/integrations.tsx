@@ -7,6 +7,8 @@ import {
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Icons } from "@/components/icons";
+import { UnifiedAppComponent } from "@/components/integrations/unified-app";
+import { Button } from "@/components/ui/button";
 import { useAppsQuery } from "@/hooks/use-apps";
 import { useUserQuery } from "@/hooks/use-user";
 import {
@@ -14,8 +16,6 @@ import {
   type ExternalApp,
   transformExternalApp,
 } from "@/lib/integrations";
-import { Button } from "../ui/button";
-import { UnifiedAppComponent } from "./unified-app";
 
 export function Integrations() {
   const { data: user } = useUserQuery();

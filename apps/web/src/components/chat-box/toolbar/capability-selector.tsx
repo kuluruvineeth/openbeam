@@ -1,5 +1,6 @@
 "use client";
 
+import type { Capability } from "@/components/chat-box/types";
 import { Icons } from "@/components/icons";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -8,7 +9,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import type { Capability } from "../types";
 
 type Props = {
   selectedCapability: Capability;

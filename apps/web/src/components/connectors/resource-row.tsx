@@ -1,17 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { ResourceDocumentList } from "@/components/connectors/resource-document-list";
+import {
+  formatResourceType,
+  getResourceIcon,
+  ICON_SIZE,
+} from "@/components/connectors/resource-icons";
 import { Icons } from "@/components/icons";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { ConnectorResource } from "@/hooks/use-connector";
 import type { PreviewType } from "@/hooks/use-document-preview";
 import { cn } from "@/lib/utils";
-import { ResourceDocumentList } from "./resource-document-list";
-import {
-  formatResourceType,
-  getResourceIcon,
-  ICON_SIZE,
-} from "./resource-icons";
 
 export function ResourceRow({
   resource,

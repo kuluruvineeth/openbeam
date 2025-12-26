@@ -1,4 +1,4 @@
-import { serverUrl } from "../urls";
+import { serverUrl } from "@/lib/urls";
 
 export type SessionUser = {
   id: string;

@@ -7,7 +7,7 @@ import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "@/styles/docx-viewer.css";
-import { DocxToolbar } from "./docx-toolbar";
+import { DocxToolbar } from "@/components/file-preview/viewers/docx-toolbar";
 
 type DocxViewerProps = {
   url: string;

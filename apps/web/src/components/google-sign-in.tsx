@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { Icons } from "@/components/icons";
+import { SubmitButton } from "@/components/submit-button";
 import { signIn } from "@/lib/auth/client";
-import { Icons } from "./icons";
-import { SubmitButton } from "./submit-button";
 
 export function GoogleSignIn() {
   const [isLoading, setIsLoading] = useState(false);

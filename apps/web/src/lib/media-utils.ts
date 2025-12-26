@@ -1,1 +1,1 @@
-export { formatDuration, formatTime } from "./format";
+export { formatDuration, formatTime } from "@/lib/format";

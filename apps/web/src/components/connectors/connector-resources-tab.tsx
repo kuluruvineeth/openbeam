@@ -1,5 +1,7 @@
 "use client";
 
+import { ICON_SIZE } from "@/components/connectors/resource-icons";
+import { ResourceRow } from "@/components/connectors/resource-row";
 import { Icons } from "@/components/icons";
 import { SearchSplitView } from "@/components/search/search-split-view";
 import { Input } from "@/components/ui/input";
@@ -10,8 +12,6 @@ import {
   useToggleResourceSync,
 } from "@/hooks/use-connector";
 import { useDocumentPreview } from "@/hooks/use-document-preview";
-import { ICON_SIZE } from "./resource-icons";
-import { ResourceRow } from "./resource-row";
 
 function ResourcesSkeleton() {
   return (

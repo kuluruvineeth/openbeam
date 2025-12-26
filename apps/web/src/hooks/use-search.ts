@@ -15,6 +15,7 @@ import {
   useQueryStates,
 } from "nuqs";
 import { useCallback, useMemo } from "react";
+import { useDebounce } from "@/hooks/use-debounce";
 import {
   DATE_RANGE_OPTIONS,
   type DateRangeType,
@@ -34,7 +35,6 @@ import type {
   UnifiedSearchItem,
 } from "@/lib/search-types";
 import { useTRPC } from "@/trpc/client";
-import { useDebounce } from "./use-debounce";
 
 export {
   DOCUMENT_TYPE_OPTIONS,

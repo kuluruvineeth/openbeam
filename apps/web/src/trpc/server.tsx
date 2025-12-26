@@ -10,7 +10,7 @@ import {
 import { headers } from "next/headers";
 import { cache } from "react";
 import superjson from "superjson";
-import { makeQueryClient } from "./query-client";
+import { makeQueryClient } from "@/trpc/query-client";
 
 // Stable per-request QueryClient (server only)
 export const getQueryClient = cache(makeQueryClient);

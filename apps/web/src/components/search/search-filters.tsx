@@ -1,6 +1,12 @@
 "use client";
 
 import { Icons } from "@/components/icons";
+import { ActiveFilters } from "@/components/search/filters/active-filters";
+import { AppFilter } from "@/components/search/filters/app-filter";
+import { AuthorFilter } from "@/components/search/filters/author-filter";
+import { DateRangeFilter } from "@/components/search/filters/date-range-filter";
+import { MultiSelectFilter } from "@/components/search/filters/multi-select-filter";
+import { RankingFilter } from "@/components/search/filters/ranking-filter";
 import { Button } from "@/components/ui/button";
 import {
   DOCUMENT_TYPE_OPTIONS,
@@ -17,14 +23,6 @@ import {
   STATUS_CONFIG,
 } from "@/lib/search-config";
 import { cn } from "@/lib/utils";
-import {
-  ActiveFilters,
-  AppFilter,
-  AuthorFilter,
-  DateRangeFilter,
-  MultiSelectFilter,
-  RankingFilter,
-} from "./filters";
 
 type SearchFiltersProps = {
   connectorTypes: string[];

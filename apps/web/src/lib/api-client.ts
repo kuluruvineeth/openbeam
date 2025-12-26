@@ -1,4 +1,4 @@
-import { baseUrl } from "./urls";
+import { baseUrl } from "@/lib/urls";
 
 type RequestMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 

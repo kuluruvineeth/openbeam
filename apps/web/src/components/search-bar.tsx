@@ -2,11 +2,11 @@
 
 import { forwardRef, useEffect, useRef } from "react";
 import { Icons } from "@/components/icons";
+import { Autocomplete } from "@/components/search-bar/autocomplete";
+import { SearchFilters } from "@/components/search-bar/search-filters";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { Autocomplete } from "./search-bar/autocomplete";
-import { SearchFilters } from "./search-bar/search-filters";
 
 type AutocompleteResult = {
   type: "file" | "user_query";

@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { Icons } from "@/components/icons";
 import { AppLogo } from "@/components/integrations/app-logo";
+import { FilterChip } from "@/components/search/filters/filter-chip";
 import {
   DATE_RANGE_CONFIG,
   type DateRangeType,
@@ -21,7 +22,6 @@ import {
 } from "@/lib/search-config";
 import { cn } from "@/lib/utils";
 import { useTRPC } from "@/trpc/client";
-import { FilterChip } from "./filter-chip";
 
 type ActiveFiltersProps = {
   connectorTypes: string[];

@@ -2,10 +2,10 @@
 
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { HotkeysProvider } from "react-hotkeys-hook";
-import { JobProgressProvider } from "@/components/jobs";
+import { JobProgressProvider } from "@/components/jobs/job-progress-provider";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 import { TRPCReactProvider } from "@/trpc/client";
-import { ThemeProvider } from "./theme-provider";
-import { Toaster } from "./ui/sonner";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (

@@ -2,9 +2,9 @@
 
 import type { UnifiedApp } from "@openplane/integrations";
 import type { UseFormReturn } from "react-hook-form";
+import { AppSettings } from "@/components/integrations/app-settings";
 import { Form } from "@/components/ui/form";
 import { TabsContent } from "@/components/ui/tabs";
-import { AppSettings } from "./app-settings";
 
 type UnifiedAppSettingsTabProps = {
   app: UnifiedApp;

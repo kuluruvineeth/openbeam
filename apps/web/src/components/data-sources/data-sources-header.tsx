@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { Icons } from "@/components/icons";
+import { Button } from "@/components/ui/button";
 import { useDataSourcesStats } from "@/hooks/use-data-sources";
-import { Button } from "../ui/button";
 
 export function DataSourcesHeader() {
   const { data: stats, isLoading } = useDataSourcesStats();

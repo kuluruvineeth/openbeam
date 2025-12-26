@@ -1,5 +1,12 @@
 "use client";
 
+import { SignOut } from "@/components/sign-out";
+import { ThemeSwitch } from "@/components/theme-switch";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImageNext,
+} from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,9 +15,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useUserQuery } from "@/hooks/use-user";
-import { SignOut } from "./sign-out";
-import { ThemeSwitch } from "./theme-switch";
-import { Avatar, AvatarFallback, AvatarImageNext } from "./ui/avatar";
 
 type Props = {
   onlySignOut?: boolean;

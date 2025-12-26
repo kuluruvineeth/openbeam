@@ -2,11 +2,11 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect } from "react";
+import { EmailPreviewHeader } from "@/components/email-preview/email-preview-header";
+import { EmailPreviewLoading } from "@/components/email-preview/email-preview-loading";
+import { EmailThreadView } from "@/components/email-preview/email-thread-view";
 import type { EmailAttachment, EmailMessage } from "@/lib/email-types";
 import { useTRPC } from "@/trpc/client";
-import { EmailPreviewHeader } from "./email-preview-header";
-import { EmailPreviewLoading } from "./email-preview-loading";
-import { EmailThreadView } from "./email-thread-view";
 
 type EmailPreviewPanelProps = {
   documentId: string;

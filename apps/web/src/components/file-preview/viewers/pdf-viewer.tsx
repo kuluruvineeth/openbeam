@@ -6,6 +6,7 @@ import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
 import { PdfPagesSkeleton } from "@/components/file-preview/file-preview-loading";
+import { PdfToolbar } from "@/components/file-preview/viewers/pdf-toolbar";
 import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,7 +15,6 @@ import {
   highlightTextInPage,
   ZOOM_LEVELS,
 } from "@/lib/pdf-utils";
-import { PdfToolbar } from "./pdf-toolbar";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 

@@ -2,13 +2,13 @@
 
 import { parseAsString, useQueryStates } from "nuqs";
 import { useCallback } from "react";
+import { ConnectorOverviewTab } from "@/components/connectors/connector-overview-tab";
+import { ConnectorResourcesTab } from "@/components/connectors/connector-resources-tab";
+import { ConnectorSettingsTab } from "@/components/connectors/connector-settings-tab";
+import { ConnectorSyncHistoryTab } from "@/components/connectors/connector-sync-history-tab";
 import { Icons } from "@/components/icons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { ConnectorOverviewTab } from "./connector-overview-tab";
-import { ConnectorResourcesTab } from "./connector-resources-tab";
-import { ConnectorSettingsTab } from "./connector-settings-tab";
-import { ConnectorSyncHistoryTab } from "./connector-sync-history-tab";
 
 type SyncStatus = {
   connector?: {

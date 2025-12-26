@@ -1,9 +1,9 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { Icons } from "@/components/icons";
+import { UserMenu } from "@/components/user-menu";
 import { useSidebar } from "@/hooks/use-sidebar";
-import { Icons } from "./icons";
-import { UserMenu } from "./user-menu";
 
 type Props = {
   breadcrumbs?: ReactNode;

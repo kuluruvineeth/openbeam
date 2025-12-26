@@ -1,5 +1,5 @@
 import type { InfiniteData } from "@tanstack/react-query";
-import type { DateRangeType, SearchRanking } from "./search-config";
+import type { DateRangeType, SearchRanking } from "@/lib/search-config";
 
 export type SearchResultDocument = {
   id: string;
@@ -177,4 +177,4 @@ export type UnifiedSearchResults = {
   query: string;
 };
 
-export type { DateRangeType, SearchRanking } from "./search-config";
+export type { DateRangeType, SearchRanking } from "@/lib/search-config";

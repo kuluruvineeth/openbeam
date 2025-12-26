@@ -1,4 +1,4 @@
-import type { TranscriptSegment } from "./media-types";
+import type { TranscriptSegment } from "@/lib/media-types";
 
 export type GroupedSegment = {
   start: number;

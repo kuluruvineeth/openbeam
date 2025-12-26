@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { useRef } from "react";
 import { useOnClickOutside } from "usehooks-ts";
+import { Icons } from "@/components/icons";
+import { MainMenu } from "@/components/main-menu";
+import { TeamDropdown } from "@/components/team-dropdown";
 import { useSidebar } from "@/hooks/use-sidebar";
 import { cn } from "@/lib/utils";
-import { Icons } from "./icons";
-import { MainMenu } from "./main-menu";
-import { TeamDropdown } from "./team-dropdown";
 
 const SIDEBAR_WIDTH = 240;
 const EDGE_TRIGGER_WIDTH = 8;

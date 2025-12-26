@@ -2,11 +2,11 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect } from "react";
+import { SlackPreviewHeader } from "@/components/slack-preview/slack-preview-header";
+import { SlackPreviewLoading } from "@/components/slack-preview/slack-preview-loading";
+import { SlackThreadView } from "@/components/slack-preview/slack-thread-view";
 import type { SlackFile, SlackMessage, SlackMetadata } from "@/lib/slack-types";
 import { useTRPC } from "@/trpc/client";
-import { SlackPreviewHeader } from "./slack-preview-header";
-import { SlackPreviewLoading } from "./slack-preview-loading";
-import { SlackThreadView } from "./slack-thread-view";
 
 type SlackPreviewPanelProps = {
   documentId: string;

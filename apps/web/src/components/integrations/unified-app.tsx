@@ -7,6 +7,11 @@ import { parseAsBoolean, parseAsString, useQueryStates } from "nuqs";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { AppLogo } from "@/components/integrations/app-logo";
+import { OAuthLoading } from "@/components/integrations/oauth-loading";
+import { UnifiedAppOverviewTab } from "@/components/integrations/unified-app-overview-tab";
+import { UnifiedAppSettingsTab } from "@/components/integrations/unified-app-settings-tab";
+import { UnifiedAppSheetHeader } from "@/components/integrations/unified-app-sheet-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -19,11 +24,6 @@ import {
 } from "@/hooks/use-apps";
 import { apiClient } from "@/lib/api-client";
 import { generateFormSchema, getAppDefaultValues } from "@/lib/integrations";
-import { AppLogo } from "./app-logo";
-import { OAuthLoading } from "./oauth-loading";
-import { UnifiedAppOverviewTab } from "./unified-app-overview-tab";
-import { UnifiedAppSettingsTab } from "./unified-app-settings-tab";
-import { UnifiedAppSheetHeader } from "./unified-app-sheet-header";
 
 type UnifiedAppProps = {
   app: UnifiedApp;

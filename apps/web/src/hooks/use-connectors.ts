@@ -7,8 +7,8 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { useMemo, useRef } from "react";
+import { useBulkSyncStatus } from "@/hooks/use-sync";
 import { useTRPC } from "@/trpc/client";
-import { useBulkSyncStatus } from "./use-sync";
 
 type Connector = {
   id: string;

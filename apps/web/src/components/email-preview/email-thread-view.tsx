@@ -1,8 +1,11 @@
 "use client";
 
+import {
+  EmailDateSeparator,
+  EmailMessageItem,
+} from "@/components/email-preview/email-message-item";
 import type { EmailAttachment, EmailMessage } from "@/lib/email-types";
 import { formatMessageDate } from "@/lib/message-format";
-import { EmailDateSeparator, EmailMessageItem } from "./email-message-item";
 
 type EmailThreadViewProps = {
   messages: EmailMessage[];

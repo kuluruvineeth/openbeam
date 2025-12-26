@@ -1,6 +1,6 @@
+import { Spinner } from "@/components/spinner";
+import { Button, type ButtonProps } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Spinner } from "./spinner";
-import { Button, type ButtonProps } from "./ui/button";
 
 export function SubmitButton({
   children,

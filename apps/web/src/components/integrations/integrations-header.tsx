@@ -1,5 +1,5 @@
+import { IntegrationsTabs } from "@/components/integrations/integrations-tabs";
 import { SearchField } from "@/components/search-field";
-import { IntegrationsTabs } from "./integrations-tabs";
 
 export function IntegrationsHeader() {
   return (

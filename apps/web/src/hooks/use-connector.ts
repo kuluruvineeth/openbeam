@@ -10,9 +10,9 @@ import {
 } from "@tanstack/react-query";
 import { createLoader, parseAsString, useQueryStates } from "nuqs";
 import { useCallback, useMemo } from "react";
+import { useDebounce } from "@/hooks/use-debounce";
+import { useSyncHistoryInfinite, useSyncStatus } from "@/hooks/use-sync";
 import { useTRPC } from "@/trpc/client";
-import { useDebounce } from "./use-debounce";
-import { useSyncHistoryInfinite, useSyncStatus } from "./use-sync";
 
 export type ConnectorDetail = {
   id: string;

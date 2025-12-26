@@ -1,13 +1,13 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { FilePreviewError } from "@/components/file-preview/file-preview-error";
+import { FilePreviewHeader } from "@/components/file-preview/file-preview-header";
+import { FilePreviewLoading } from "@/components/file-preview/file-preview-loading";
+import { FilePreviewUnsupported } from "@/components/file-preview/file-preview-unsupported";
+import { FileViewerSelector } from "@/components/file-preview/file-viewer-selector";
 import { getFileCategory } from "@/lib/file-preview-config";
 import { useTRPC } from "@/trpc/client";
-import { FilePreviewError } from "./file-preview-error";
-import { FilePreviewHeader } from "./file-preview-header";
-import { FilePreviewLoading } from "./file-preview-loading";
-import { FilePreviewUnsupported } from "./file-preview-unsupported";
-import { FileViewerSelector } from "./file-viewer-selector";
 
 const CHUNKS_PER_PAGE = 2;
 

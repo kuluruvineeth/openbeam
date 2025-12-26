@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { UnifiedConnectorsTable } from "@/components/connectors/unified-connectors-table";
+import { DataSourceDetailsSheet } from "@/components/data-sources/data-source-details-sheet";
+import { DataSourcesEmptyState } from "@/components/data-sources/data-sources-empty-state";
 import { useDataSources } from "@/hooks/use-data-sources";
-import { DataSourceDetailsSheet } from "./data-source-details-sheet";
-import { DataSourcesEmptyState } from "./data-sources-empty-state";
 
 type SelectedConnector = {
   id: string;

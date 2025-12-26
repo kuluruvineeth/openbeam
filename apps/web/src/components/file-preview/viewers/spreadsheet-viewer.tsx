@@ -3,11 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { read, utils, type WorkBook } from "xlsx";
 import { SpreadsheetSkeleton } from "@/components/file-preview/file-preview-loading";
+import { SpreadsheetToolbar } from "@/components/file-preview/viewers/spreadsheet-toolbar";
 import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { SpreadsheetToolbar } from "./spreadsheet-toolbar";
 
 type SpreadsheetViewerProps = {
   url: string;

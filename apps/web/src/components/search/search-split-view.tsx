@@ -2,13 +2,13 @@
 
 import { useQuery } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import { DocumentPreviewPanel } from "@/components/document-preview";
-import { EmailPreviewPanel } from "@/components/email-preview";
-import { FilePreviewPanel } from "@/components/file-preview";
-import { AudioViewer } from "@/components/file-preview/viewers/audio";
-import { VideoViewer } from "@/components/file-preview/viewers/video";
+import { DocumentPreviewPanel } from "@/components/document-preview/document-preview-panel";
+import { EmailPreviewPanel } from "@/components/email-preview/email-preview-panel";
+import { FilePreviewPanel } from "@/components/file-preview/file-preview-panel";
+import { AudioViewer } from "@/components/file-preview/viewers/audio/audio-viewer";
+import { VideoViewer } from "@/components/file-preview/viewers/video/video-viewer";
 import { Icons } from "@/components/icons";
-import { SlackPreviewPanel } from "@/components/slack-preview";
+import { SlackPreviewPanel } from "@/components/slack-preview/slack-preview-panel";
 import { Button } from "@/components/ui/button";
 import {
   ResizableHandle,

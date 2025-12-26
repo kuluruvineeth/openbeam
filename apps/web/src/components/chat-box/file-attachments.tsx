@@ -1,8 +1,8 @@
 "use client";
 
+import type { FileType, SelectedFile } from "@/components/chat-box/types";
 import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import type { FileType, SelectedFile } from "./types";
 
 type Props = {
   files: SelectedFile[];

@@ -6,13 +6,13 @@ import {
   isPast,
 } from "date-fns";
 import { Icons } from "@/components/icons";
+import { SyncErrorAlert } from "@/components/sync/sync-error-alert";
 import { getSyncStatusConfig } from "@/lib/sync-status";
 import {
   isSyncing,
   parseSyncSummary,
   type SyncStatusType,
 } from "@/lib/sync-types";
-import { SyncErrorAlert } from "./sync-error-alert";
 
 type SyncStatusCardProps = {
   connectorId: string;

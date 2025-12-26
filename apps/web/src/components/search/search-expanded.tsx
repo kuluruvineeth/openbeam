@@ -1,6 +1,13 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { SearchContentTabs } from "@/components/search/search-content-tabs";
+import { SearchEmptyState } from "@/components/search/search-empty-state";
+import { SearchFilters } from "@/components/search/search-filters";
+import { SearchInputBar } from "@/components/search/search-input-bar";
+import { SearchResults } from "@/components/search/search-results";
+import { SearchResultsSkeleton } from "@/components/search/search-skeleton";
+import { SearchSplitView } from "@/components/search/search-split-view";
 import {
   type PreviewType,
   useDocumentPreview,
@@ -8,13 +15,6 @@ import {
 import { useSearch } from "@/hooks/use-search";
 import { useSearchNavigation } from "@/hooks/use-search-navigation";
 import type { MediaDocument, SearchResultDocument } from "@/lib/search-types";
-import { SearchContentTabs } from "./search-content-tabs";
-import { SearchEmptyState } from "./search-empty-state";
-import { SearchFilters } from "./search-filters";
-import { SearchInputBar } from "./search-input-bar";
-import { SearchResults } from "./search-results";
-import { SearchResultsSkeleton } from "./search-skeleton";
-import { SearchSplitView } from "./search-split-view";
 
 export function SearchExpanded() {
   const {

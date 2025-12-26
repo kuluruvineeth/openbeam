@@ -1,9 +1,9 @@
 "use client";
 
+import { DangerZone } from "@/components/connectors/danger-zone";
 import { SyncSettingsForm } from "@/components/forms/sync-settings-form";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSyncStatus } from "@/hooks/use-sync";
-import { DangerZone } from "./danger-zone";
 
 function SettingsSkeleton() {
   return (

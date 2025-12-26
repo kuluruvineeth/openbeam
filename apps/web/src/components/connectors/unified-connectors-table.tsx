@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { BulkActionsToolbar } from "@/components/connectors/bulk-actions-toolbar";
+import { SharedTableRow } from "@/components/connectors/shared-table-row";
 import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -12,8 +14,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { BulkActionsToolbar } from "./bulk-actions-toolbar";
-import { SharedTableRow } from "./shared-table-row";
 
 type ConnectorData = {
   id: string;

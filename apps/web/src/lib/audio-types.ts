@@ -1,6 +1,6 @@
 export type AudioTab = "transcript" | "summary" | "ask";
 
-export type { QAMessage, TranscriptSegment } from "./media-types";
+export type { QAMessage, TranscriptSegment } from "@/lib/media-types";
 
 export type AudioViewerProps = {
   url: string;
