@@ -3,6 +3,7 @@ import type {
   ConnectorFileInfo,
   GmailSyncCursor,
   GoogleDriveSyncCursor,
+  LinearSyncCursor,
   NotionDatabase,
   NotionPage,
   NotionSyncCursor,
@@ -14,6 +15,7 @@ import {
   syncGoogleDriveStreaming,
   validateGoogleDriveConnection,
 } from "./google-drive";
+import { syncLinearStreaming, validateLinearConnection } from "./linear";
 import { syncNotionStreaming, validateNotionConnection } from "./notion";
 import {
   syncSlack,
@@ -109,6 +111,18 @@ function channelToResource(ch: ChannelInfo): ResourceInfo {
     isPrivate: ch.is_private || ch.is_im || ch.is_mpim,
     isMember: ch.is_member,
     metadata: { is_im: ch.is_im, is_mpim: ch.is_mpim },
+  };
+}
+
+function linearTeamToResource(team: {
+  id: string;
+  name: string;
+}): ResourceInfo {
+  return {
+    id: team.id,
+    name: team.name,
+    resourceType: "team",
+    isMember: true,
   };
 }
 
@@ -398,6 +412,32 @@ export async function syncConnectorStreaming(
       };
     }
 
+    case "LINEAR": {
+      const linearCursor = safeParseCursor<LinearSyncCursor>(cursor);
+
+      const result = await syncLinearStreaming(connector, {
+        cursor: linearCursor,
+        batchSize,
+        forceFullSync,
+        onBatch,
+        onStageChange,
+        onTeamsDiscovered: onResourcesDiscovered
+          ? async (teams) => {
+              await onResourcesDiscovered(teams.map(linearTeamToResource));
+            }
+          : undefined,
+      });
+
+      return {
+        totalDocuments: result.totalDocuments,
+        nextCursor: JSON.stringify(result.cursor),
+        hasMore: result.hasMore,
+        stats: result.stats,
+        filesQueued: result.filesQueued,
+        mediaQueued: result.mediaQueued,
+      };
+    }
+
     default:
       throw new Error(`Unsupported connector app: ${connector.app}`);
   }
@@ -450,6 +490,9 @@ export function validateConnection(
 
     case "NOTION":
       return validateNotionConnection(connector);
+
+    case "LINEAR":
+      return validateLinearConnection(connector);
 
     default:
       throw new Error(`Unsupported connector app: ${connector.app}`);
