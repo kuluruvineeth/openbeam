@@ -246,6 +246,60 @@ export class VespaClient {
     return (await response.json()) as FeedResponse;
   }
 
+  async partialUpdateDocument(
+    id: string,
+    fields: Record<string, unknown>
+  ): Promise<FeedResponse> {
+    const documentPath = `${this.documentApiUrl}/default/openplane_document/docid/${id}`;
+
+    const updateFields: Record<string, { assign: unknown }> = {};
+    for (const [key, value] of Object.entries(fields)) {
+      if (value !== undefined) {
+        updateFields[key] = { assign: value };
+      }
+    }
+
+    const response = await fetch(documentPath, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ fields: updateFields }),
+      signal: AbortSignal.timeout(30_000),
+    });
+
+    if (!response.ok) {
+      const error = (await response.json()) as VespaError;
+      throw new Error(
+        `Vespa partial update error: ${error.message || response.statusText}`
+      );
+    }
+
+    return (await response.json()) as FeedResponse;
+  }
+
+  async partialUpdateBatch(
+    updates: Array<{ id: string; fields: Record<string, unknown> }>,
+    concurrency = 10
+  ): Promise<FeedResponse[]> {
+    const results: FeedResponse[] = [];
+
+    for (let i = 0; i < updates.length; i += concurrency) {
+      const batch = updates.slice(i, i + concurrency);
+      const batchResults = await Promise.allSettled(
+        batch.map(({ id, fields }) => this.partialUpdateDocument(id, fields))
+      );
+
+      for (const result of batchResults) {
+        if (result.status === "fulfilled") {
+          results.push(result.value);
+        }
+      }
+    }
+
+    return results;
+  }
+
   async getDocument(id: string): Promise<GenericDocument | null> {
     const documentPath = `${this.documentApiUrl}/default/openplane_document/docid/${id}`;
 
