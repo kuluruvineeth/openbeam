@@ -69,6 +69,8 @@ references/*
 
 .venv
 __pycache__
-
+.mypy_cache/*
+.mypy_cache
+.ruff_cache/*
 
 docs/*
