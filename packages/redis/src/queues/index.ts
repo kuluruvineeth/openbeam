@@ -10,6 +10,8 @@ export * from "./index-queue";
 export { closeIndexQueue } from "./index-queue";
 export * from "./media-processing-queue";
 export { closeMediaProcessingQueue } from "./media-processing-queue";
+export * from "./reembed-queue";
+export { closeReembedQueue } from "./reembed-queue";
 export * from "./sync-queue";
 export { closeSyncQueue } from "./sync-queue";
 export * from "./webhook-queue";

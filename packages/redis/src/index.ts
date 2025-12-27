@@ -36,8 +36,10 @@ export {
 export * from "./queues";
 export {
   closeCleanupQueue,
+  closeConnectorCleanupQueue,
   closeDigestQueue,
   closeIndexQueue,
+  closeReembedQueue,
   closeSyncQueue,
   closeWebhookQueue,
 } from "./queues";
