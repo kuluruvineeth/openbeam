@@ -5,6 +5,7 @@ import {
   closeDigestQueue,
   closeIndexQueue,
   closeMediaProcessingQueue,
+  closeReembedQueue,
   closeSharedBullMqConnection,
   closeSyncQueue,
   closeWebhookQueue,
@@ -22,6 +23,7 @@ import {
   createWebhookProcessor,
   type ProcessorResult,
 } from "./processors";
+import { startReembedWorker, stopReembedWorker } from "./processors/reembed";
 import { CleanupScheduler } from "./schedulers/cleanup-scheduler";
 import { DigestScheduler } from "./schedulers/digest-scheduler";
 import { SyncScheduler } from "./schedulers/sync-scheduler";
@@ -69,6 +71,8 @@ class WorkerService {
       logger.error({ error }, "Failed to start digest scheduler");
     });
 
+    startReembedWorker();
+
     startMetricsServer().catch((error) => {
       logger.error({ error }, "Failed to start metrics server");
     });
@@ -93,6 +97,7 @@ class WorkerService {
           connectorCleanupProcessor: "running",
           digestProcessor: "running",
           digestScheduler: "running",
+          reembedProcessor: "running",
           metricsServer: "running",
           healthServer: "running",
           metricsPoller: "running",
@@ -119,6 +124,7 @@ class WorkerService {
       this.cleanupProcessor.close(),
       this.connectorCleanupProcessor.close(),
       this.digestProcessor.close(),
+      stopReembedWorker(),
       stopMetricsServer(),
       stopHealthServer(),
     ]);
@@ -131,6 +137,7 @@ class WorkerService {
       closeCleanupQueue(),
       closeConnectorCleanupQueue(),
       closeDigestQueue(),
+      closeReembedQueue(),
       closeSharedBullMqConnection(),
     ]);
 
