@@ -8,6 +8,7 @@ import {
   fileProcessingQueue,
   indexQueue,
   mediaProcessingQueue,
+  reembedQueue,
   syncQueue,
   webhookQueue,
 } from "@openplane/redis";
@@ -27,6 +28,7 @@ export const setupBullBoard = () => {
       new BullMQAdapter(mediaProcessingQueue),
       new BullMQAdapter(digestQueue),
       new BullMQAdapter(connectorCleanupQueue),
+      new BullMQAdapter(reembedQueue),
     ],
     serverAdapter,
   });
