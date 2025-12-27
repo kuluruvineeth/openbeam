@@ -28,6 +28,10 @@ export interface GenericDocument {
   content_html?: string;
   content_embedding?: number[];
   title_embedding?: number[];
+  embedding?: number[];
+  title_embedding_v2?: number[];
+  sparse_embedding?: Record<string, number>;
+  embedding_version?: number;
   author_id?: string;
   author_external_id?: string;
   author_name?: string;
@@ -211,7 +215,10 @@ export type DocumentRankingProfile =
   | "enterprise"
   | "topic_search"
   | "authority"
-  | "personalized";
+  | "personalized"
+  | "semantic_v2"
+  | "hybrid_v2"
+  | "enterprise_v2";
 
 export interface QueryParams {
   yql: string;
@@ -223,6 +230,8 @@ export interface QueryParams {
   title_embedding?: VectorTensor;
   topic_embedding?: VectorTensor;
   user_dept_embedding?: VectorTensor;
+  embedding_v2?: VectorTensor;
+  sparse_embedding?: VectorTensor;
 }
 
 export interface SearchResult<T = GenericDocument> {
@@ -275,6 +284,8 @@ export interface VespaQueryBody {
   "input.query(title_embedding)"?: VectorTensor;
   "input.query(topic_embedding)"?: VectorTensor;
   "input.query(user_dept_embedding)"?: VectorTensor;
+  "input.query(embedding_v2)"?: VectorTensor;
+  "input.query(sparse_embedding)"?: VectorTensor;
 }
 
 export interface VespaMediaQueryBody {
@@ -318,6 +329,10 @@ export interface VespaGenericDocumentForFeed {
   content_html?: string;
   content_embedding?: number[];
   title_embedding?: number[];
+  embedding?: number[];
+  title_embedding_v2?: number[];
+  sparse_embedding?: Record<string, number>;
+  embedding_version?: number;
   author_id?: string;
   author_external_id?: string;
   author_name?: string;

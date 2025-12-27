@@ -97,9 +97,44 @@ schema openplane_document {
           neighbors-to-explore-at-insert: 200
         }
       }
-      # Separate title embedding for better title matching
     }
-    
+
+    # === BGE-M3 Embeddings (1024 dimensions) ===
+    field embedding type tensor<float>(x[1024]) {
+      indexing: attribute | index
+      attribute {
+        distance-metric: angular
+      }
+      index {
+        hnsw {
+          max-links-per-node: 16
+          neighbors-to-explore-at-insert: 200
+        }
+      }
+    }
+
+    field title_embedding_v2 type tensor<float>(x[1024]) {
+      indexing: attribute | index
+      attribute {
+        distance-metric: angular
+      }
+      index {
+        hnsw {
+          max-links-per-node: 16
+          neighbors-to-explore-at-insert: 200
+        }
+      }
+    }
+
+    field sparse_embedding type tensor<float>(token{}) {
+      indexing: attribute
+    }
+
+    field embedding_version type int {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+
     # === Authorship ===
     field author_id type string {
       indexing: summary | attribute
@@ -636,6 +671,49 @@ schema openplane_document {
     }
     function trending(score) {
       expression: score
+    }
+  }
+
+  # === BGE-M3 Ranking Profiles (1024 dimensions) ===
+
+  rank-profile semantic_v2 {
+    inputs {
+      query(embedding_v2) tensor<float>(x[1024])
+    }
+    first-phase {
+      expression: closeness(field, embedding)
+    }
+  }
+
+  rank-profile hybrid_v2 {
+    inputs {
+      query(embedding_v2) tensor<float>(x[1024])
+      query(sparse_embedding) tensor<float>(token{})
+    }
+    first-phase {
+      expression {
+        0.4 * normalize(bm25(title) * 2 + bm25(content)) +
+        0.4 * closeness(field, embedding) +
+        0.2 * reduce(attribute(sparse_embedding) * query(sparse_embedding), sum)
+      }
+    }
+    function normalize(score) {
+      expression: score / (1 + score)
+    }
+  }
+
+  rank-profile enterprise_v2 inherits hybrid_v2 {
+    second-phase {
+      expression {
+        firstPhase *
+        (1 + log(attribute(view_count) + 1) * 0.02) *
+        (1 + attribute(authority_score) * 0.1) *
+        freshness(attribute(updated_at))
+      }
+      rerank-count: 1000
+    }
+    function freshness(t) {
+      expression: if(t > now() - 86400000, 1.3, if(t > now() - 604800000, 1.15, 1.0))
     }
   }
 }
