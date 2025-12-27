@@ -30,7 +30,7 @@ function DetailPageSkeleton() {
       </div>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Skeleton className="size-12 rounded-lg" />
+          <Skeleton className="size-12 rounded-md" />
           <div>
             <Skeleton className="h-7 w-48" />
             <Skeleton className="mt-2 h-4 w-32" />
@@ -181,7 +181,7 @@ function ConnectorDetailContent({
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
           {info.appDefinition && (
-            <div className="flex size-12 items-center justify-center rounded-lg border border-border/50 bg-background">
+            <div className="flex size-12 items-center justify-center rounded-md border border-border/50 bg-background">
               <AppLogo app={info.appDefinition} size={32} />
             </div>
           )}

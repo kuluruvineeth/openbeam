@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Icons } from "@/components/icons";
 import { Markdown } from "@/components/ui/markdown";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const MAX_SIZE = 500_000;
 
@@ -111,11 +112,12 @@ export function TextViewer({ url, fileName, mimeType }: Props) {
 
   if (state.loading) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <div className="flex flex-col items-center gap-2">
-          <div className="size-6 animate-spin rounded-full border-2 border-foreground/10 border-t-foreground/40" />
-          <span className="text-foreground/40 text-xs">Loading...</span>
-        </div>
+      <div className="mx-auto flex max-w-2xl flex-col gap-3 p-8">
+        <Skeleton className="h-4 w-3/4" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-5/6" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-2/3" />
       </div>
     );
   }

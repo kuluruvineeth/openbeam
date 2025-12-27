@@ -62,7 +62,7 @@ export function ConnectorsGrid() {
         <li
           className={cn(
             "fade-in slide-in-from-bottom-4 animate-in fill-mode-backwards",
-            "duration-500 ease-out"
+            "duration-300 ease-out"
           )}
           key={app.id}
           style={{

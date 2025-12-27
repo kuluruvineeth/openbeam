@@ -269,7 +269,7 @@ const PdfPage = forwardRef<HTMLDivElement, PdfPageProps>(
         {pageNum}
       </div>
       <Page
-        className="overflow-hidden rounded-sm shadow-lg ring-1 ring-black/5 dark:ring-white/5"
+        className="overflow-hidden rounded-sm shadow-sm ring-1 ring-black/5 dark:ring-white/5"
         loading={
           <div
             className="shimmer flex items-center justify-center rounded-sm"

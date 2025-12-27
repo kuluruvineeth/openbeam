@@ -82,6 +82,7 @@ export default function OAuthCallbackPage() {
     };
 
     processCallback().catch((e) => {
+      // TODO: Replace with structured logging service
       console.error(e);
       setStatus("error");
       setMessage(e instanceof Error ? e.message : "Unknown error");

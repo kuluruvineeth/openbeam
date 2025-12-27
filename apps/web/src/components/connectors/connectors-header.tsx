@@ -10,7 +10,7 @@ export function ConnectorsHeader() {
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between">
-        <h1 className="font-serif text-[30px] leading-normal">Connectors</h1>
+        <h1 className="font-semibold text-2xl tracking-tight">Connectors</h1>
         <SearchField placeholder="Search" shallow />
       </div>
 

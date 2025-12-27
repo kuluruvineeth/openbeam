@@ -103,7 +103,7 @@ export function CreateTeamForm() {
           name="name"
           render={({ field }) => (
             <FormItem className="mt-4 w-full">
-              <FormLabel className="font-normal text-[#666] text-xs">
+              <FormLabel className="font-normal text-muted-foreground text-xs">
                 Team name
               </FormLabel>
               <FormControl>

@@ -91,7 +91,7 @@ const ChildItem = ({
           <span
             className={cn(
               "font-medium text-xs transition-colors duration-200",
-              "text-[#888] group-hover/child:text-primary",
+              "text-muted-foreground group-hover/child:text-primary",
               "overflow-hidden whitespace-nowrap",
               isActive && "text-primary"
             )}
@@ -153,7 +153,7 @@ const Item = ({
             <div className="pointer-events-none absolute top-0 right-[4px] left-[55px] flex h-[40px] items-center">
               <span
                 className={cn(
-                  "font-medium text-[#666] text-sm transition-opacity duration-200 ease-in-out group-hover:text-primary",
+                  "font-medium text-muted-foreground text-sm transition-opacity duration-200 ease-in-out group-hover:text-primary",
                   "overflow-hidden whitespace-nowrap",
                   hasChildren ? "pr-2" : "",
                   isActive && "text-primary"
@@ -165,7 +165,7 @@ const Item = ({
                 <button
                   className={cn(
                     "mr-3 ml-auto flex h-8 w-8 items-center justify-center transition-all duration-200",
-                    "pointer-events-auto text-[#888] hover:text-primary",
+                    "pointer-events-auto text-muted-foreground hover:text-primary",
                     isActive && "text-primary/60",
                     shouldShowChildren && "rotate-180"
                   )}

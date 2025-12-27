@@ -52,7 +52,7 @@ export function ConnectorsGridSkeleton() {
           key={`card-skeleton-${i}`}
         >
           <div className="flex items-start justify-between">
-            <Skeleton className="size-9 rounded-lg" />
+            <Skeleton className="size-9 rounded-md" />
             <Skeleton className="h-5 w-20" />
           </div>
           <div className="mt-4">
@@ -82,7 +82,7 @@ export function ConnectorDetailSkeleton() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Skeleton className="size-12 rounded-lg" />
+          <Skeleton className="size-12 rounded-md" />
           <div>
             <Skeleton className="h-7 w-48" />
             <Skeleton className="mt-2 h-4 w-32" />

@@ -139,7 +139,7 @@ function ProgressBar({
         style={{ width: `${progress}%` }}
       />
       <div
-        className="-translate-y-1/2 pointer-events-none absolute top-1/2 size-3 bg-white opacity-0 shadow-md transition-opacity group-hover:opacity-100"
+        className="-translate-y-1/2 pointer-events-none absolute top-1/2 size-3 bg-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100"
         style={{ left: `calc(${progress}% - 6px)` }}
       />
     </button>

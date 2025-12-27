@@ -121,7 +121,7 @@ export function PresentationViewer({
     <div className="flex h-full items-center justify-center p-8">
       <div className="flex flex-col items-center gap-4 text-center">
         {data?.thumbnailUrl ? (
-          <div className="overflow-hidden rounded-lg border border-border/50 shadow-sm">
+          <div className="overflow-hidden rounded-md border border-border/50 shadow-sm">
             {/* biome-ignore lint/correctness/useImageSize: Dynamic thumbnail from PPTX */}
             {/* biome-ignore lint/performance/noImgElement: Native img for blob URL */}
             <img
@@ -131,7 +131,7 @@ export function PresentationViewer({
             />
           </div>
         ) : (
-          <div className="flex aspect-video w-80 items-center justify-center rounded-lg border border-border/50 bg-muted/30">
+          <div className="flex aspect-video w-80 items-center justify-center rounded-md border border-border/50 bg-muted/30">
             <Icons.PresentationIcon className="text-foreground/30" size={48} />
           </div>
         )}

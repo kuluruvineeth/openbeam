@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 type ImageViewerProps = {
@@ -179,11 +180,8 @@ export function ImageViewer({ url, fileName }: ImageViewerProps) {
         </div>
 
         {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="flex flex-col items-center gap-2">
-              <div className="size-6 animate-spin rounded-full border-2 border-foreground/10 border-t-foreground/40" />
-              <p className="text-foreground/40 text-xs">Loading image...</p>
-            </div>
+          <div className="absolute inset-0 flex items-center justify-center p-8">
+            <Skeleton className="aspect-video h-auto w-full max-w-md" />
           </div>
         )}
       </div>

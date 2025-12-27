@@ -18,7 +18,7 @@ export function Autocomplete({ results, onSelect }: Props) {
   }
 
   return (
-    <div className="absolute top-full left-0 w-full border border-border border-t-0 bg-popover shadow-lg">
+    <div className="absolute top-full left-0 w-full border border-border border-t-0 bg-popover shadow-sm">
       {results.map((result, index) => (
         <Button
           className={cn(

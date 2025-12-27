@@ -26,7 +26,7 @@ export function JobProgressPanel() {
       className="fixed right-4 bottom-4 z-50 w-80"
     >
       <Collapsible onOpenChange={setIsOpen} open={isOpen}>
-        <div className="overflow-hidden border border-border/50 bg-background shadow-lg">
+        <div className="overflow-hidden border border-border/50 bg-background shadow-sm">
           <CollapsibleTrigger asChild>
             <button
               className="flex w-full cursor-pointer items-center justify-between border-border/40 border-b px-3 py-2 transition-colors hover:bg-muted/50"

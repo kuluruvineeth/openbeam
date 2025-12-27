@@ -111,7 +111,7 @@ export function ModelSelector({
         </TooltipContent>
         <DropdownMenuContent
           align="start"
-          className="max-h-96 w-80 border border-border bg-popover p-0 shadow-lg"
+          className="max-h-96 w-80 border border-border bg-popover p-0 shadow-sm"
           side="bottom"
         >
           <div className="no-scrollbar max-h-80 overflow-y-auto py-2">

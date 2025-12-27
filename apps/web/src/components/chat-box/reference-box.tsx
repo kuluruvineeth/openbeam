@@ -100,7 +100,7 @@ export function ReferenceBox({
 
   return (
     <div
-      className="absolute bottom-[calc(80%+8px)] z-10 flex max-w-full flex-col border border-border bg-popover shadow-lg"
+      className="absolute bottom-[calc(80%+8px)] z-10 flex max-w-full flex-col border border-border bg-popover shadow-sm"
       style={{
         left: `${positionLeft}px`,
         width: "400px",

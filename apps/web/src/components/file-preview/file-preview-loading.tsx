@@ -15,7 +15,7 @@ export function PdfPagesSkeleton({
     <div className="flex h-full flex-col items-center gap-4 p-4 pt-8">
       {Array.from({ length: count }, (_, i) => (
         <div className="relative w-full max-w-md" key={i}>
-          <Skeleton className="aspect-[1/1.4] w-full rounded-sm shadow-lg" />
+          <Skeleton className="aspect-[1/1.4] w-full rounded-sm" />
           {showLines && (
             <div className="absolute inset-0 flex flex-col gap-2 p-6">
               <Skeleton className="h-3 w-3/4" />
@@ -56,7 +56,7 @@ export function TextSkeleton() {
 export function ImageSkeleton() {
   return (
     <div className="flex h-full items-center justify-center p-8">
-      <Skeleton className="aspect-video w-full max-w-lg rounded-lg" />
+      <Skeleton className="aspect-video w-full max-w-lg rounded-md" />
     </div>
   );
 }
@@ -116,7 +116,7 @@ export function PresentationSkeleton() {
   return (
     <div className="flex h-full items-center justify-center p-8">
       <div className="flex flex-col items-center gap-4">
-        <Skeleton className="aspect-video w-80 rounded-lg" />
+        <Skeleton className="aspect-video w-80 rounded-md" />
         <Skeleton className="h-4 w-48" />
         <Skeleton className="h-3 w-32" />
       </div>
@@ -128,7 +128,7 @@ export function VideoSkeleton() {
   return (
     <div className="flex h-full">
       <div className="flex flex-1 items-center justify-center bg-black/5 dark:bg-black/20">
-        <Skeleton className="aspect-video w-full max-w-2xl rounded-lg" />
+        <Skeleton className="aspect-video w-full max-w-2xl rounded-md" />
       </div>
       <div className="w-80 shrink-0 border-border/50 border-l">
         <div className="flex h-10 items-center gap-2 border-border/50 border-b px-2">

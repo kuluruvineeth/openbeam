@@ -47,7 +47,7 @@ export function PdfToolbar({
           : "pointer-events-none translate-y-4 opacity-0"
       )}
     >
-      <div className="flex items-center gap-1 border border-border/40 bg-background/80 px-2 py-1.5 shadow-xl backdrop-blur-xl">
+      <div className="flex items-center gap-1 border border-border/40 bg-background/80 px-2 py-1.5 shadow-sm backdrop-blur-sm">
         <PageNavigation
           currentPage={currentPage}
           numPages={numPages}
