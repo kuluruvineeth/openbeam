@@ -1,3 +1,4 @@
+import type { ConnectorStatus } from "../../prisma/generated/client";
 import type { Database } from "..";
 
 export const listUserTeams = async (db: Database, userId: string) => {
@@ -41,3 +42,19 @@ export const updateActiveTeamForUser = async (
     data: { teamId },
   });
 };
+
+export const listTeamsWithConnectors = async (
+  db: Database,
+  status?: ConnectorStatus
+) =>
+  db.team.findMany({
+    where: {
+      connectors: {
+        some: status ? { status } : {},
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+    },
+  });
