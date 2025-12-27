@@ -16,6 +16,13 @@ dependencies = [
     "python-multipart>=0.0.17",
     "aioboto3>=13.0.0",
     "types-aiobotocore-s3>=2.15.0",
+    "torch>=2.5.0",
+    "transformers>=4.47.0",
+    "sentence-transformers>=3.3.0",
+    "FlagEmbedding>=1.2.0",
+    "accelerate>=1.2.0",
+    "diskcache>=5.6.0",
+    "cachetools>=5.5.0",
 ]
 
 [project.optional-dependencies]
@@ -59,7 +66,7 @@ warn_return_any = true
 warn_unused_ignores = true
 
 [[tool.mypy.overrides]]
-module = ["aioboto3.*", "aiobotocore.*"]
+module = ["aioboto3.*", "aiobotocore.*", "FlagEmbedding.*", "sentence_transformers.*"]
 ignore_missing_imports = true
 
 [tool.pyright]
