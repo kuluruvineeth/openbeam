@@ -3,6 +3,7 @@ import {
   type Embedding,
   embedQuery,
   getConfig as getAIConfig,
+  getBGEM3Provider,
   prepareTextForEmbedding,
 } from "@openplane/ai";
 import { getOrGenerateEmbedding } from "@openplane/services";
@@ -16,9 +17,36 @@ const MAX_TITLE_TOKENS = 256;
 const CONTENT_TOKEN_LIMIT = EMBEDDING_TOKEN_LIMIT - 100;
 const RETRY_TOKEN_LIMIT = 4000;
 
+type EmbeddingProvider = "openai" | "bge-m3" | "dual";
+
 export interface DocumentWithEmbeddings extends GenericDocument {
   content_embedding?: Embedding;
   title_embedding?: Embedding;
+  embedding?: Embedding;
+  title_embedding_v2?: Embedding;
+  sparse_embedding?: Record<string, number>;
+  embedding_version?: number;
+}
+
+function getEmbeddingProvider(): EmbeddingProvider {
+  const provider = process.env.EMBEDDING_PROVIDER?.toLowerCase();
+  if (provider === "bge-m3" || provider === "dual") {
+    return provider;
+  }
+  return "openai";
+}
+
+function generateEmbeddingsForDoc(
+  doc: GenericDocument,
+  provider: EmbeddingProvider
+): Promise<DocumentWithEmbeddings> {
+  if (provider === "bge-m3") {
+    return generateBGEM3Embeddings(doc);
+  }
+  if (provider === "dual") {
+    return generateDualEmbeddings(doc);
+  }
+  return generateOpenAIEmbeddings(doc);
 }
 
 export async function generateEmbeddingsForDocuments(
@@ -33,8 +61,7 @@ export async function generateEmbeddingsForDocuments(
   });
 
   const startTime = Date.now();
-  const aiConfig = getAIConfig();
-  const modelId = aiConfig.defaultEmbeddingModel;
+  const provider = getEmbeddingProvider();
 
   try {
     const results: DocumentWithEmbeddings[] = [];
@@ -44,13 +71,14 @@ export async function generateEmbeddingsForDocuments(
 
     for (const doc of documents) {
       try {
-        const docWithEmbeddings = await generateEmbeddingsForDocument(
-          doc,
-          modelId
-        );
+        const docWithEmbeddings = await generateEmbeddingsForDoc(doc, provider);
+
         results.push(docWithEmbeddings);
 
-        if (docWithEmbeddings.content_embedding) {
+        if (
+          docWithEmbeddings.content_embedding ||
+          docWithEmbeddings.embedding
+        ) {
           embeddedCount += 1;
         } else {
           skippedCount += 1;
@@ -78,6 +106,7 @@ export async function generateEmbeddingsForDocuments(
         embedded: embeddedCount,
         skipped: skippedCount,
         errors: errorCount,
+        provider,
         durationMs,
       },
       "Generated embeddings for document batch"
@@ -87,6 +116,7 @@ export async function generateEmbeddingsForDocuments(
       "embeddings.embedded": embeddedCount,
       "embeddings.skipped": skippedCount,
       "embeddings.errors": errorCount,
+      "embeddings.provider": provider,
       "embeddings.duration_ms": durationMs,
     });
     span.setStatus({ code: SpanStatusCode.OK });
@@ -105,10 +135,11 @@ export async function generateEmbeddingsForDocuments(
 }
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: retry logic for token limits requires branching
-async function generateEmbeddingsForDocument(
-  doc: GenericDocument,
-  modelId: string
+async function generateOpenAIEmbeddings(
+  doc: GenericDocument
 ): Promise<DocumentWithEmbeddings> {
+  const aiConfig = getAIConfig();
+  const modelId = aiConfig.defaultEmbeddingModel;
   const result: DocumentWithEmbeddings = { ...doc };
 
   if (doc.content && doc.content.length > 0) {
@@ -161,6 +192,45 @@ async function generateEmbeddingsForDocument(
   return result;
 }
 
+async function generateBGEM3Embeddings(
+  doc: GenericDocument
+): Promise<DocumentWithEmbeddings> {
+  const bge = getBGEM3Provider();
+  const result: DocumentWithEmbeddings = { ...doc, embedding_version: 2 };
+
+  if (doc.content && doc.content.length > 0) {
+    const contentEmbedding = await bge.embedDocument(doc.content);
+    result.embedding = contentEmbedding.dense;
+    result.sparse_embedding = contentEmbedding.sparse ?? undefined;
+  }
+
+  if (doc.title && doc.title.length > 0) {
+    const titleEmbedding = await bge.embedQuery(doc.title);
+    result.title_embedding_v2 = titleEmbedding.dense;
+  }
+
+  return result;
+}
+
+async function generateDualEmbeddings(
+  doc: GenericDocument
+): Promise<DocumentWithEmbeddings> {
+  const [openaiResult, bgeResult] = await Promise.all([
+    generateOpenAIEmbeddings(doc),
+    generateBGEM3Embeddings(doc),
+  ]);
+
+  return {
+    ...doc,
+    content_embedding: openaiResult.content_embedding,
+    title_embedding: openaiResult.title_embedding,
+    embedding: bgeResult.embedding,
+    title_embedding_v2: bgeResult.title_embedding_v2,
+    sparse_embedding: bgeResult.sparse_embedding,
+    embedding_version: 2,
+  };
+}
+
 function isTokenLimitError(error: unknown): boolean {
   if (!(error instanceof Error)) {
     return false;
@@ -174,6 +244,17 @@ function isTokenLimitError(error: unknown): boolean {
 }
 
 export function isEmbeddingEnabled(): boolean {
+  const provider = getEmbeddingProvider();
+
+  if (provider === "bge-m3") {
+    return !!process.env.ENGINE_URL;
+  }
+
+  if (provider === "dual") {
+    const config = getAIConfig();
+    return !!config.providers.openai.apiKey && !!process.env.ENGINE_URL;
+  }
+
   try {
     const config = getAIConfig();
     return !!config.providers.openai.apiKey;
