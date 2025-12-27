@@ -49,6 +49,7 @@ export type {
   AIConfig,
   CompletionConfig,
   EmbeddingConfig,
+  EngineConfig,
   ProviderConfig,
   ProviderId,
 } from "./config";
@@ -100,6 +101,18 @@ export {
   createTwelveLabsProvider,
   registry,
 } from "./providers";
+export type {
+  BGEM3Config,
+  BGEM3EmbeddingResult,
+  BGEM3Provider,
+} from "./providers/bge-m3";
+export {
+  BGEM3Error,
+  BGEM3TimeoutError,
+  createBGEM3Provider,
+  getBGEM3Provider,
+  resetBGEM3Provider,
+} from "./providers/bge-m3";
 export type {
   AISDKTool,
   RegisteredTool,

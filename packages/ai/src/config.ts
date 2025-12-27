@@ -36,6 +36,11 @@ export interface EmbeddingConfig {
   batchSize: number;
 }
 
+export interface EngineConfig {
+  baseURL: string;
+  timeout: number;
+}
+
 export interface CompletionConfig {
   temperature: number;
   maxTokens: number;
@@ -58,8 +63,10 @@ export interface AIConfig {
   embedding: EmbeddingConfig;
   completion: CompletionConfig;
   agent: AgentConfig;
+  engine: EngineConfig;
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: configuration loading requires multiple provider checks
 function loadConfig(): AIConfig {
   return {
     defaultProvider:
@@ -113,6 +120,11 @@ function loadConfig(): AIConfig {
       maxToolRoundtrips: Number(process.env.AI_AGENT_MAX_TOOL_ROUNDTRIPS) || 10,
       enableParallelTools:
         process.env.AI_AGENT_ENABLE_PARALLEL_TOOLS !== "false",
+    },
+
+    engine: {
+      baseURL: process.env.ENGINE_URL || "http://localhost:8000",
+      timeout: Number(process.env.ENGINE_TIMEOUT) || 30_000,
     },
   };
 }
