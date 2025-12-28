@@ -233,9 +233,12 @@ model Connector {
   connectorResources  ConnectorResource[]
   indexedFiles        IndexedFile[]
   indexedMedia        IndexedMedia[]
-  slackChannelConfigs SlackChannelConfig[]
-  slackDigestSubs     SlackDigestSubscription[]
-  slackFeedback       SlackAssistantFeedback[]
+  slackChannelConfigs    SlackChannelConfig[]
+  slackDigestSubs        SlackDigestSubscription[]
+  slackFeedback          SlackAssistantFeedback[]
+  documentPermissions    DocumentPermission[]
+  connectorScopes        ConnectorScope[]
+  permissionSyncStatus   PermissionSyncStatus?
 
   @@unique([teamId, workspaceExternalId, app, name])
   @@index([teamId, status])

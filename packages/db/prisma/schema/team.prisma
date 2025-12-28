@@ -20,9 +20,13 @@ model Team {
   workspaces         Workspace[]
   apiKeys            ApiKey[]
   users              User[]
-  teamMediaIndex     TeamMediaIndex?
-  searchExperiments  SearchExperiment[]
-  entities           Entity[]
+  teamMediaIndex         TeamMediaIndex?
+  searchExperiments      SearchExperiment[]
+  entities               Entity[]
+  documentPermissions    DocumentPermission[]
+  groupMemberships       GroupMembership[]
+  connectorScopes        ConnectorScope[]
+  permissionSyncStatuses PermissionSyncStatus[]
 
   @@map("team")
 }

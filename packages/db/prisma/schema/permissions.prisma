@@ -1,0 +1,147 @@
+// Query-Time Permissions Schema
+// Permissions are pre-computed and cached for sub-10ms query-time resolution.
+// Source of truth remains the source systems (Google, Slack, etc.)
+
+enum PermissionGranteeType {
+  USER
+  GROUP
+  DOMAIN
+  ANYONE
+}
+
+enum PermissionRole {
+  READER
+  COMMENTER
+  WRITER
+  OWNER
+}
+
+enum GroupType {
+  TEAM
+  DEPARTMENT
+  ROLE
+  CHANNEL
+  DRIVE
+  WORKSPACE
+  CUSTOM
+}
+
+enum PermissionSyncState {
+  IDLE
+  SYNCING
+  FAILED
+  DISABLED
+}
+
+model DocumentPermission {
+  id            String                @id @default(cuid()) @map("_id")
+  teamId        String
+  documentId    String
+  connectorId   String
+
+  granteeType   PermissionGranteeType
+  granteeId     String?
+  granteeDomain String?
+
+  role          PermissionRole        @default(READER)
+  source        String
+
+  externalId    String?
+  syncedAt      DateTime              @default(now())
+  expiresAt     DateTime?
+
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  team          Team                  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  connector     Connector             @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, granteeType, granteeId, granteeDomain])
+  @@index([documentId])
+  @@index([granteeType, granteeId])
+  @@index([granteeType, granteeDomain])
+  @@index([connectorId, syncedAt])
+  @@index([teamId, granteeId])
+  @@index([teamId, expiresAt])
+  @@map("document_permission")
+}
+
+model GroupMembership {
+  id              String    @id @default(cuid()) @map("_id")
+  teamId          String
+  userId          String
+  groupId         String
+  groupType       GroupType
+  source          String
+
+  externalGroupId String?
+  externalUserId  String?
+
+  syncedAt        DateTime  @default(now())
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  team            Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId, groupId, source])
+  @@index([userId])
+  @@index([groupId])
+  @@index([teamId, userId])
+  @@index([source, syncedAt])
+  @@map("group_membership")
+}
+
+model ConnectorScope {
+  id             String    @id @default(cuid()) @map("_id")
+  teamId         String
+  connectorId    String
+  userId         String
+
+  resourceScopes String[]  @default([])
+  isFullAccess   Boolean   @default(false)
+
+  syncedAt       DateTime  @default(now())
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  team           Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  connector      Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([connectorId, userId])
+  @@index([teamId, userId])
+  @@index([connectorId])
+  @@map("connector_scope")
+}
+
+model PermissionSyncStatus {
+  id                    String              @id @default(cuid()) @map("_id")
+  teamId                String
+  connectorId           String              @unique
+
+  lastFullSync          DateTime?
+  lastIncrementalSync   DateTime?
+  syncCursor            String?
+
+  totalDocuments        Int                 @default(0)
+  totalPermissions      Int                 @default(0)
+  totalGroups           Int                 @default(0)
+  totalUsers            Int                 @default(0)
+
+  lastError             String?
+  errorCount            Int                 @default(0)
+  status                PermissionSyncState @default(IDLE)
+
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  team                  Team                @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  connector             Connector           @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+
+  @@index([teamId])
+  @@index([status])
+  @@map("permission_sync_status")
+}
