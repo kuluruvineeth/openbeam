@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from engine.api.routes import chunk, embeddings, health, parse, supported_types
+from engine.api.routes import chunk, embeddings, health, parse, rerank, supported_types
 
 api_router = APIRouter()
 
@@ -11,3 +11,4 @@ api_router.include_router(
     supported_types.router, prefix="/supported-types", tags=["supported-types"]
 )
 api_router.include_router(embeddings.router, prefix="/embeddings", tags=["embeddings"])
+api_router.include_router(rerank.router, prefix="/rerank", tags=["rerank"])
