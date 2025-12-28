@@ -58,3 +58,13 @@ export const listTeamsWithConnectors = async (
       name: true,
     },
   });
+
+export const getTeamMembership = async (
+  db: Database,
+  userId: string,
+  teamId: string
+) =>
+  db.usersOnTeam.findUnique({
+    where: { userId_teamId: { userId, teamId } },
+    select: { role: true },
+  });

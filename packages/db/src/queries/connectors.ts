@@ -147,6 +147,15 @@ export const isTokenExpiringSoon = async (
   return Date.now() >= expiresAt - bufferMs;
 };
 
+export const getConnectorIdsByTeam = async (
+  db: Database,
+  teamId: string
+): Promise<{ id: string }[]> =>
+  db.connector.findMany({
+    where: { teamId },
+    select: { id: true },
+  });
+
 export const getConnectorsNeedingRefresh = async (
   db: Database,
   bufferSeconds = 300
