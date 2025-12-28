@@ -6,6 +6,15 @@ export {
 } from "./assistant-response-cache";
 export { Cache, cache } from "./cache";
 export {
+  type CachedPermissionSet,
+  DOCUMENT_CACHE_TTL,
+  GROUP_CACHE_TTL,
+  getPermissionCache,
+  PERMISSION_CACHE_TTL,
+  PermissionCache,
+  PermissionCacheKeys,
+} from "./cache/index";
+export {
   closeRedisClient,
   closeSharedBullMqConnection,
   getRedisClient,
