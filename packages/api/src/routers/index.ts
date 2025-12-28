@@ -8,6 +8,7 @@ import { jobsRouter } from "./jobs";
 import { knowledgeRouter } from "./knowledge";
 import { mediaRouter } from "./media";
 import { messagesRouter } from "./messages";
+import { permissionsRouter } from "./permissions";
 import { searchRouter } from "./search";
 import { teamRouter } from "./team";
 import { userRouter } from "./user";
@@ -23,6 +24,7 @@ export const appRouter = createTRPCRouter({
   messages: messagesRouter,
   analytics: analyticsRouter,
   knowledge: knowledgeRouter,
+  permissions: permissionsRouter,
 });
 
 export type AppRouter = typeof appRouter;
