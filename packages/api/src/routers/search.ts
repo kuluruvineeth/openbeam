@@ -1,6 +1,8 @@
 import {
   getStorageProvider,
+  hybridSearchOrchestrator,
   type MediaSearchRanking,
+  type SearchMode,
   type SearchRanking,
   SIGNED_URL_EXPIRY_SECONDS,
   searchService,
@@ -163,6 +165,25 @@ const unifiedSearchInputSchema = z.object({
 
 const authorsInputSchema = z.object({
   limit: z.number().min(1).max(100).default(50),
+});
+
+const hybridSearchInputSchema = z.object({
+  q: z.string().min(1),
+  mode: z
+    .enum(["bm25", "semantic", "hybrid", "hybrid_v2", "enterprise_v2"])
+    .default("hybrid_v2"),
+  rrfK: z.number().min(1).max(100).default(60),
+  weightBm25: z.number().min(0).max(1).default(0.4),
+  weightDense: z.number().min(0).max(1).default(0.4),
+  weightSparse: z.number().min(0).max(1).default(0.2),
+  connectorTypes: z.array(z.string()).optional(),
+  documentTypes: z.array(z.string()).optional(),
+  sourceIds: z.array(z.string()).optional(),
+  authorIds: z.array(z.string()).optional(),
+  fromDate: z.number().optional(),
+  toDate: z.number().optional(),
+  limit: z.number().min(1).max(100).default(20),
+  offset: z.number().min(0).default(0),
 });
 
 export const searchRouter = createTRPCRouter({
@@ -354,5 +375,38 @@ export const searchRouter = createTRPCRouter({
       });
 
       return { authors };
+    }),
+
+  hybrid: withActiveTeam
+    .input(hybridSearchInputSchema)
+    .query(async ({ ctx, input }) => {
+      const accessControlIds = buildAccessControlIds(ctx);
+
+      const result = await hybridSearchOrchestrator.search({
+        query: input.q,
+        teamId: ctx.teamId,
+        limit: input.limit,
+        offset: input.offset,
+        mode: input.mode as SearchMode,
+        rrfConfig: {
+          k: input.rrfK,
+          weights: {
+            bm25: input.weightBm25,
+            dense: input.weightDense,
+            sparse: input.weightSparse,
+          },
+        },
+        filters: {
+          connectorTypes: input.connectorTypes,
+          documentTypes: input.documentTypes,
+          sourceIds: input.sourceIds,
+          authorIds: input.authorIds,
+          fromDate: input.fromDate,
+          toDate: input.toDate,
+        },
+        accessControlIds,
+      });
+
+      return result;
     }),
 });
