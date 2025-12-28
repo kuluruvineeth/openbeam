@@ -8,6 +8,8 @@ export * from "./file-processing-queue";
 export { closeFileProcessingQueue } from "./file-processing-queue";
 export * from "./index-queue";
 export { closeIndexQueue } from "./index-queue";
+export * from "./ltr-training-queue";
+export { closeLTRTrainingQueue } from "./ltr-training-queue";
 export * from "./media-processing-queue";
 export { closeMediaProcessingQueue } from "./media-processing-queue";
 export * from "./reembed-queue";

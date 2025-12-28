@@ -39,6 +39,7 @@ export {
   closeConnectorCleanupQueue,
   closeDigestQueue,
   closeIndexQueue,
+  closeLTRTrainingQueue,
   closeReembedQueue,
   closeSyncQueue,
   closeWebhookQueue,
