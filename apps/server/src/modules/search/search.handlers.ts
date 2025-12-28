@@ -1,10 +1,12 @@
 import type { RouteHandler } from "@hono/zod-openapi";
+import { hybridSearchOrchestrator } from "@openplane/services";
 import { searchQueriesCounter } from "@/metrics";
 import type { AuthEnv } from "@/middleware/auth";
 import { getTeamId } from "@/middleware/auth";
 import { getAccessControlIds as getACLIds } from "@/types/auth";
 import type {
   authorSearch,
+  hybridSearch,
   mainSearch,
   mediaSearch,
   recentDocuments,
@@ -278,4 +280,47 @@ export const unifiedSearchHandler: RouteHandler<
     },
     200
   );
+};
+
+export const hybridSearchHandler: RouteHandler<
+  typeof hybridSearch,
+  AuthEnv
+> = async (c) => {
+  const queryParams = c.req.valid("query");
+  const teamId = getTeamId(c);
+
+  if (!teamId) {
+    return c.json({ error: "team_id is required" }, 400);
+  }
+
+  const authContext = c.get("authContext");
+  const accessControlIds = getACLIds(authContext);
+
+  const result = await hybridSearchOrchestrator.search({
+    query: queryParams.q,
+    teamId,
+    limit: queryParams.limit,
+    offset: queryParams.offset,
+    mode: queryParams.mode,
+    rrfConfig: {
+      k: queryParams.rrf_k,
+      weights: {
+        bm25: queryParams.weight_bm25,
+        dense: queryParams.weight_dense,
+        sparse: queryParams.weight_sparse,
+      },
+    },
+    filters: {
+      connectorTypes: queryParams.connector_type,
+      documentTypes: queryParams.document_type,
+      sourceIds: queryParams.source_id,
+      fromDate: queryParams.from_date,
+      toDate: queryParams.to_date,
+    },
+    accessControlIds,
+  });
+
+  searchQueriesCounter.inc({ endpoint: "hybrid" });
+
+  return c.json(result, 200);
 };

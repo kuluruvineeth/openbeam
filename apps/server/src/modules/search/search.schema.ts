@@ -325,3 +325,74 @@ export const imageSearchResponseSchema = z.object({
   ),
   count: z.number(),
 });
+
+export const hybridSearchQuerySchema = z.object({
+  q: z.string().min(1).openapi({
+    description: "Search query string",
+    example: "project documentation",
+  }),
+  mode: z
+    .enum(["bm25", "semantic", "hybrid", "hybrid_v2", "enterprise_v2"])
+    .default("hybrid_v2")
+    .openapi({
+      description: "Search mode",
+    }),
+  rrf_k: z.coerce.number().min(1).max(100).default(60).openapi({
+    description: "RRF k parameter",
+  }),
+  weight_bm25: z.coerce.number().min(0).max(1).default(0.4).openapi({
+    description: "BM25 weight in fusion",
+  }),
+  weight_dense: z.coerce.number().min(0).max(1).default(0.4).openapi({
+    description: "Dense embedding weight in fusion",
+  }),
+  weight_sparse: z.coerce.number().min(0).max(1).default(0.2).openapi({
+    description: "Sparse embedding weight in fusion",
+  }),
+  connector_type: arrayQueryParam.openapi({
+    description: "Filter by connector types",
+  }),
+  document_type: arrayQueryParam.openapi({
+    description: "Filter by document types",
+  }),
+  source_id: arrayQueryParam.openapi({
+    description: "Filter by source IDs",
+  }),
+  from_date: z.coerce.number().optional().openapi({
+    description: "Filter from timestamp",
+  }),
+  to_date: z.coerce.number().optional().openapi({
+    description: "Filter until timestamp",
+  }),
+  limit: z.coerce.number().min(1).max(100).default(20).openapi({
+    description: "Maximum results",
+  }),
+  offset: z.coerce.number().min(0).default(0).openapi({
+    description: "Pagination offset",
+  }),
+});
+
+export const hybridSearchResponseSchema = z.object({
+  documents: z.array(
+    z.object({
+      document: z.any(),
+      score: z.number(),
+      bm25Rank: z.number().optional(),
+      denseRank: z.number().optional(),
+      sparseRank: z.number().optional(),
+      rrfScore: z.number().optional(),
+    })
+  ),
+  total: z.number(),
+  timing: z.object({
+    embeddingMs: z.number(),
+    retrievalMs: z.number(),
+    fusionMs: z.number(),
+    totalMs: z.number(),
+  }),
+  metadata: z.object({
+    mode: z.string(),
+    modelVersion: z.string(),
+    rrfK: z.number().optional(),
+  }),
+});

@@ -3,6 +3,7 @@ import { type AuthEnv, requireAuth, requireScopes } from "@/middleware/auth";
 import { API_SCOPES } from "@/types/auth";
 import {
   authorSearchHandler,
+  hybridSearchHandler,
   mainSearchHandler,
   mediaSearchHandler,
   recentDocumentsHandler,
@@ -12,6 +13,7 @@ import {
 } from "./search.handlers";
 import {
   authorSearch,
+  hybridSearch,
   mainSearch,
   mediaSearch,
   recentDocuments,
@@ -32,5 +34,6 @@ search.openapi(similarDocuments, similarDocumentsHandler);
 search.openapi(authorSearch, authorSearchHandler);
 search.openapi(mediaSearch, mediaSearchHandler);
 search.openapi(unifiedSearch, unifiedSearchHandler);
+search.openapi(hybridSearch, hybridSearchHandler);
 
 export default search;

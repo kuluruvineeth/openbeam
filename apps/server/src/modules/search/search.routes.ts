@@ -5,6 +5,8 @@ import {
   authorResponseSchema,
   documentIdParamsSchema,
   errorSchema,
+  hybridSearchQuerySchema,
+  hybridSearchResponseSchema,
   mediaSearchQuerySchema,
   mediaSearchResponseSchema,
   recentQuerySchema,
@@ -193,6 +195,32 @@ export const unifiedSearch = createRoute({
         },
       },
       description: "Unified search results retrieved successfully",
+    },
+    400: {
+      content: { "application/json": { schema: errorSchema } },
+      description: "Bad Request",
+    },
+  },
+});
+
+export const hybridSearch = createRoute({
+  tags,
+  method: "get",
+  path: "/hybrid",
+  summary: "Hybrid search with RRF",
+  description:
+    "Search using BGE-M3 embeddings with Reciprocal Rank Fusion (BM25 + dense + sparse)",
+  request: {
+    query: hybridSearchQuerySchema,
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: hybridSearchResponseSchema,
+        },
+      },
+      description: "Hybrid search results with timing and rank metadata",
     },
     400: {
       content: { "application/json": { schema: errorSchema } },
