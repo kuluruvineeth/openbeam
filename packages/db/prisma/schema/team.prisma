@@ -22,6 +22,7 @@ model Team {
   users              User[]
   teamMediaIndex     TeamMediaIndex?
   searchExperiments  SearchExperiment[]
+  entities           Entity[]
 
   @@map("team")
 }

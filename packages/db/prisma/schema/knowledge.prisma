@@ -1,0 +1,127 @@
+enum EntityType {
+  PERSON
+  TEAM
+  PROJECT
+  TOPIC
+  TECHNOLOGY
+  LOCATION
+  ORGANIZATION
+  CHANNEL
+  REPOSITORY
+}
+
+enum RelationType {
+  MEMBER_OF
+  REPORTS_TO
+  COLLABORATES_WITH
+  MENTIONS
+  EXPERT_IN
+  AUTHORED
+  MAINTAINS
+  OWNS
+  USES
+  RELATES_TO
+  CHILD_OF
+}
+
+model Entity {
+  id             String     @id @default(cuid()) @map("_id")
+  teamId         String
+  type           EntityType
+  name           String
+  normalizedName String
+  aliases        String[]   @default([])
+  description    String?
+  metadata       Json       @default("{}")
+  embedding      Bytes?
+  imageUrl       String?
+  externalId     String?
+  externalSource String?
+
+  expertiseScore Float    @default(0)
+  documentCount  Int      @default(0)
+  mentionCount   Int      @default(0)
+  lastActiveAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  team              Team             @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  outgoingRelations EntityRelation[] @relation("FromEntity")
+  incomingRelations EntityRelation[] @relation("ToEntity")
+  mentions          EntityMention[]
+
+  @@unique([teamId, type, normalizedName])
+  @@unique([teamId, externalSource, externalId])
+  @@index([teamId, type])
+  @@index([teamId, normalizedName])
+  @@index([teamId, expertiseScore(sort: Desc)])
+  @@map("entity")
+}
+
+model EntityRelation {
+  id           String       @id @default(cuid()) @map("_id")
+  fromEntityId String
+  toEntityId   String
+  relationType RelationType
+  weight       Float        @default(1.0)
+  confidence   Float        @default(1.0)
+  evidence     Json         @default("[]")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  fromEntity Entity @relation("FromEntity", fields: [fromEntityId], references: [id], onDelete: Cascade)
+  toEntity   Entity @relation("ToEntity", fields: [toEntityId], references: [id], onDelete: Cascade)
+
+  @@unique([fromEntityId, toEntityId, relationType])
+  @@index([fromEntityId])
+  @@index([toEntityId])
+  @@index([relationType])
+  @@map("entity_relation")
+}
+
+model EntityMention {
+  id         String @id @default(cuid()) @map("_id")
+  entityId   String
+  documentId String
+  teamId     String
+
+  mentionText String
+  context     String?
+  startOffset Int?
+  endOffset   Int?
+
+  confidence Float  @default(1.0)
+  source     String
+
+  createdAt DateTime @default(now())
+
+  entity Entity @relation(fields: [entityId], references: [id], onDelete: Cascade)
+
+  @@index([entityId])
+  @@index([documentId])
+  @@index([teamId, documentId])
+  @@map("entity_mention")
+}
+
+model TopicCluster {
+  id            String  @id @default(cuid()) @map("_id")
+  teamId        String
+  name          String
+  description   String?
+  parentId      String?
+  embedding     Bytes?
+  documentCount Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  parent   TopicCluster?  @relation("TopicHierarchy", fields: [parentId], references: [id])
+  children TopicCluster[] @relation("TopicHierarchy")
+
+  @@unique([teamId, name])
+  @@index([teamId])
+  @@index([parentId])
+  @@map("topic_cluster")
+}
