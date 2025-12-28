@@ -4,7 +4,7 @@ import {
   ConnectorType,
   type UnifiedApp,
 } from "@openplane/integrations";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 export type ExternalApp = {
   id: string;
