@@ -1,0 +1,63 @@
+model SearchExperiment {
+  id              String    @id @default(cuid()) @map("_id")
+  teamId          String
+  name            String
+  description     String?
+  status          String    @default("draft")
+  trafficPercent  Float     @default(10)
+
+  controlConfig   Json      @default("{}")
+  treatmentConfig Json      @default("{}")
+
+  startedAt       DateTime?
+  endedAt         DateTime?
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  team            Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@index([teamId, status])
+  @@map("search_experiment")
+}
+
+model SearchImpression {
+  id              String   @id @default(cuid()) @map("_id")
+  teamId          String
+  userId          String
+  experimentId    String?
+  variant         String?
+
+  query           String
+  queryHash       String
+  resultDocIds    String[]
+
+  timing          Json?
+  rrfConfig       Json?
+
+  createdAt       DateTime @default(now())
+
+  clicks          SearchClick[]
+
+  @@index([teamId, createdAt])
+  @@index([experimentId, createdAt])
+  @@map("search_impression")
+}
+
+model SearchClick {
+  id              String   @id @default(cuid()) @map("_id")
+  impressionId    String
+  docId           String
+  position        Int
+
+  dwellTimeMs     Int?
+  feedbackType    String?
+
+  createdAt       DateTime @default(now())
+
+  impression      SearchImpression @relation(fields: [impressionId], references: [id], onDelete: Cascade)
+
+  @@index([impressionId])
+  @@index([docId, createdAt])
+  @@map("search_click")
+}

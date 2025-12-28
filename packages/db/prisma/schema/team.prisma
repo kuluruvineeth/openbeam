@@ -21,6 +21,7 @@ model Team {
   apiKeys            ApiKey[]
   users              User[]
   teamMediaIndex     TeamMediaIndex?
+  searchExperiments  SearchExperiment[]
 
   @@map("team")
 }
