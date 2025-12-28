@@ -1,6 +1,7 @@
 import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import { createTRPCRouter } from "../index";
 
+import { analyticsRouter } from "./analytics";
 import { appsRouter } from "./apps";
 import { filesRouter } from "./files";
 import { jobsRouter } from "./jobs";
@@ -19,6 +20,7 @@ export const appRouter = createTRPCRouter({
   media: mediaRouter,
   jobs: jobsRouter,
   messages: messagesRouter,
+  analytics: analyticsRouter,
 });
 
 export type AppRouter = typeof appRouter;
