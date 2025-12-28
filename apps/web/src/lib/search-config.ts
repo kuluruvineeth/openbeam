@@ -4,6 +4,7 @@ export const RANKING_OPTIONS = [
   "bm25",
   "semantic",
   "hybrid",
+  "hybrid_v2",
   "recency",
   "engagement",
 ] as const;
@@ -12,14 +13,26 @@ export type SearchRanking = (typeof RANKING_OPTIONS)[number];
 
 export const RANKING_CONFIG: Record<
   SearchRanking,
-  { label: string; icon: keyof typeof Icons }
+  {
+    label: string;
+    icon: keyof typeof Icons;
+    group: "standard" | "advanced" | "other";
+  }
 > = {
-  hybrid: { label: "Hybrid", icon: "Sparkle" },
-  bm25: { label: "Keyword", icon: "Search" },
-  semantic: { label: "Semantic", icon: "BrainIcon" },
-  recency: { label: "Recent", icon: "Clock" },
-  engagement: { label: "Popular", icon: "Heart" },
+  hybrid_v2: { label: "Hybrid Pro", icon: "AtomIcon", group: "advanced" },
+  hybrid: { label: "Hybrid", icon: "Sparkle", group: "standard" },
+  bm25: { label: "Keyword", icon: "Search", group: "standard" },
+  semantic: { label: "Semantic", icon: "BrainIcon", group: "standard" },
+  recency: { label: "Recent", icon: "Clock", group: "other" },
+  engagement: { label: "Popular", icon: "Heart", group: "other" },
 };
+
+export const RRF_DEFAULTS = {
+  k: 60,
+  weightBm25: 0.4,
+  weightDense: 0.4,
+  weightSparse: 0.2,
+} as const;
 
 export const DATE_RANGE_OPTIONS = [
   "today",

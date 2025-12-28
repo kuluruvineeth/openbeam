@@ -178,3 +178,17 @@ export type UnifiedSearchResults = {
 };
 
 export type { DateRangeType, SearchRanking } from "@/lib/search-config";
+
+export type SearchTiming = {
+  embeddingMs: number;
+  retrievalMs: number;
+  fusionMs: number;
+  totalMs: number;
+};
+
+export type RRFConfig = {
+  k: number;
+  weightBm25: number;
+  weightDense: number;
+  weightSparse: number;
+};

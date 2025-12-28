@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { AdvancedSearchPanel } from "@/components/search/advanced-search-panel";
 import { SearchContentTabs } from "@/components/search/search-content-tabs";
 import { SearchEmptyState } from "@/components/search/search-empty-state";
 import { SearchFilters } from "@/components/search/search-filters";
@@ -14,6 +15,7 @@ import {
 } from "@/hooks/use-document-preview";
 import { useSearch } from "@/hooks/use-search";
 import { useSearchNavigation } from "@/hooks/use-search-navigation";
+import { useSearchShortcuts } from "@/hooks/use-search-shortcuts";
 import type { MediaDocument, SearchResultDocument } from "@/lib/search-types";
 
 export function SearchExpanded() {
@@ -54,7 +56,13 @@ export function SearchExpanded() {
     total,
     documentTotal,
     mediaTotal,
+    advancedMode,
+    toggleAdvancedMode,
+    rrfConfigRaw,
+    setRrfConfig,
   } = useSearch();
+
+  useSearchShortcuts({ setRanking, advancedMode, toggleAdvancedMode });
 
   const { previewId, previewType, openPreview, closePreview } =
     useDocumentPreview();
@@ -144,10 +152,12 @@ export function SearchExpanded() {
               />
               <SearchFilters
                 activeFilterCount={activeFilterCount}
+                advancedMode={advancedMode}
                 authors={authors}
                 connectorTypes={connectorTypes}
                 dateRange={dateRange}
                 documentTypes={documentTypes}
+                onAdvancedToggle={toggleAdvancedMode}
                 onAuthorsChange={setAuthors}
                 onClearAll={resetFilters}
                 onConnectorTypesChange={setConnectorTypes}
@@ -161,6 +171,12 @@ export function SearchExpanded() {
                 ranking={ranking}
                 sourceTypes={sourceTypes}
                 statuses={statuses}
+              />
+              <AdvancedSearchPanel
+                config={rrfConfigRaw}
+                isOpen={advancedMode}
+                onConfigChange={setRrfConfig}
+                onOpenChange={toggleAdvancedMode}
               />
             </div>
           )}

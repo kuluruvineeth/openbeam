@@ -8,6 +8,7 @@ import { DateRangeFilter } from "@/components/search/filters/date-range-filter";
 import { MultiSelectFilter } from "@/components/search/filters/multi-select-filter";
 import { RankingFilter } from "@/components/search/filters/ranking-filter";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import {
   DOCUMENT_TYPE_OPTIONS,
   PRIORITY_OPTIONS,
@@ -43,6 +44,8 @@ type SearchFiltersProps = {
   onRankingChange: (value: SearchRanking) => void;
   onClearAll: () => void;
   activeFilterCount: number;
+  advancedMode?: boolean;
+  onAdvancedToggle?: () => void;
 };
 
 export function SearchFilters({
@@ -64,6 +67,8 @@ export function SearchFilters({
   onRankingChange,
   onClearAll,
   activeFilterCount,
+  advancedMode,
+  onAdvancedToggle,
 }: SearchFiltersProps) {
   return (
     <fieldset className="space-y-2 border-none p-0">
@@ -151,13 +156,18 @@ export function SearchFilters({
 
         <DateRangeFilter onChange={onDateRangeChange} value={dateRange} />
 
-        <span aria-hidden="true" className="h-4 w-px bg-border/50" />
+        <Separator className="h-4 bg-border/50" orientation="vertical" />
 
-        <RankingFilter onChange={onRankingChange} value={ranking} />
+        <RankingFilter
+          advancedMode={advancedMode}
+          onAdvancedToggle={onAdvancedToggle}
+          onChange={onRankingChange}
+          value={ranking}
+        />
 
         {activeFilterCount > 0 && (
           <>
-            <span aria-hidden="true" className="h-4 w-px bg-border/50" />
+            <Separator className="h-4 bg-border/50" orientation="vertical" />
             <Button
               className="h-8 gap-1 px-2 text-foreground/50 text-xs hover:text-foreground"
               onClick={onClearAll}

@@ -137,7 +137,7 @@ export function AuthorFilter({ selected, onChange }: AuthorFilterProps) {
       <PopoverContent align="start" className="w-[260px] p-0">
         <Command>
           <CommandInput placeholder="Search people..." />
-          <CommandList>
+          <CommandList className="no-scrollbar">
             <CommandEmpty>No people found.</CommandEmpty>
             <CommandGroup>
               {authors.map((author) => (

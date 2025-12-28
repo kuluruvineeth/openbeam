@@ -79,7 +79,7 @@ export function MultiSelectFilter<T extends string>({
       <PopoverContent align="start" className="w-[220px] p-0">
         <Command>
           <CommandInput placeholder={`Search ${label.toLowerCase()}...`} />
-          <CommandList>
+          <CommandList className="no-scrollbar">
             <CommandEmpty>No options found.</CommandEmpty>
             <CommandGroup>
               {options.map((option) => (

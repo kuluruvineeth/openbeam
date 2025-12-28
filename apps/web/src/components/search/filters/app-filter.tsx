@@ -115,7 +115,7 @@ export function AppFilter({ selected, onChange }: AppFilterProps) {
       <PopoverContent align="start" className="w-[220px] p-0">
         <Command>
           <CommandInput placeholder="Search apps..." />
-          <CommandList>
+          <CommandList className="no-scrollbar">
             <CommandEmpty>No apps found.</CommandEmpty>
             <CommandGroup>
               {connectorTypes.map((type) => (

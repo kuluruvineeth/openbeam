@@ -5,10 +5,18 @@ import { useInView } from "react-intersection-observer";
 import { Icons } from "@/components/icons";
 import { SearchMediaRow } from "@/components/search/search-media-row";
 import { SearchResultRow } from "@/components/search/search-result-row";
+import { TimingBreakdown } from "@/components/search/timing-breakdown";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { PreviewType } from "@/hooks/use-document-preview";
 import type {
   MediaDocument,
   SearchResultDocument,
+  SearchTiming,
   UnifiedSearchItem,
 } from "@/lib/search-types";
 
@@ -22,6 +30,7 @@ type SearchResultsProps = {
   fetchNextPage: () => void;
   isFetchingNextPage: boolean;
   queryTime?: number;
+  timing?: SearchTiming | null;
   total?: number;
   documentTotal?: number;
   mediaTotal?: number;
@@ -42,6 +51,7 @@ export function SearchResults({
   fetchNextPage,
   isFetchingNextPage,
   queryTime,
+  timing,
   total,
   documentTotal,
   mediaTotal,
@@ -91,11 +101,29 @@ export function SearchResults({
               )}
             </span>
           )}
-          {queryTime !== undefined && (
-            <span className="text-foreground/25 tabular-nums">
-              {queryTime}ms
-            </span>
-          )}
+          {queryTime !== undefined &&
+            (timing ? (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <time className="cursor-help text-foreground/25 tabular-nums">
+                      {queryTime}ms
+                    </time>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    className="bg-background/95 backdrop-blur-lg"
+                    side="bottom"
+                    sideOffset={4}
+                  >
+                    <TimingBreakdown timing={timing} />
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              <time className="text-foreground/25 tabular-nums">
+                {queryTime}ms
+              </time>
+            ))}
         </div>
       )}
 

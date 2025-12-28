@@ -47,7 +47,7 @@ export function DateRangeFilter({ value, onChange }: DateRangeFilterProps) {
       </PopoverTrigger>
       <PopoverContent align="start" className="w-[180px] p-0">
         <Command>
-          <CommandList>
+          <CommandList className="no-scrollbar">
             <CommandGroup>
               {DATE_RANGE_OPTIONS.filter((opt) => opt !== "custom").map(
                 (option) => (

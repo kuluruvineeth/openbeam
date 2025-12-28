@@ -1,6 +1,7 @@
 "use client";
 
 import { Icons } from "@/components/icons";
+import { Badge } from "@/components/ui/badge";
 
 type FilterChipProps = {
   label: React.ReactNode;
@@ -9,7 +10,7 @@ type FilterChipProps = {
 
 export function FilterChip({ label, onRemove }: FilterChipProps) {
   return (
-    <span className="inline-flex items-center gap-1 bg-foreground/5 px-2 py-0.5 text-xs">
+    <Badge className="gap-1" variant="filter">
       {label}
       <button
         className="text-foreground/40 hover:text-foreground"
@@ -18,6 +19,6 @@ export function FilterChip({ label, onRemove }: FilterChipProps) {
       >
         <Icons.Close size={10} />
       </button>
-    </span>
+    </Badge>
   );
 }
