@@ -2,6 +2,8 @@ import {
   getStorageProvider,
   hybridSearchOrchestrator,
   type MediaSearchRanking,
+  type RerankDocument,
+  rerankerService,
   type SearchMode,
   type SearchRanking,
   SIGNED_URL_EXPIRY_SECONDS,
@@ -75,10 +77,11 @@ function applyThumbnailUrls<T extends MediaWithThumbnail>(
 ): T[] {
   return mediaItems.map((media) => {
     const storageKey = getThumbnailStorageKey(media.metadata);
-    if (storageKey && signedUrls.has(storageKey)) {
-      return { ...media, thumbnail_url: signedUrls.get(storageKey) };
+    const signedUrl = storageKey ? signedUrls.get(storageKey) : undefined;
+    if (signedUrl) {
+      return { ...media, thumbnail_url: signedUrl };
     }
-    return media.thumbnail_url ? media : { ...media, thumbnail_url: undefined };
+    return media;
   });
 }
 
@@ -90,6 +93,29 @@ async function enrichMediaWithThumbnails<T extends MediaWithThumbnail>(
   return applyThumbnailUrls(mediaItems, signedUrls);
 }
 
+type UnifiedItem = {
+  type: "document" | "media";
+  data: MediaWithThumbnail;
+  relevance: number;
+};
+
+function applyThumbnailUrlsToItems<T extends UnifiedItem>(
+  items: T[],
+  signedUrls: Map<string, string>
+): T[] {
+  return items.map((item) => {
+    if (item.type !== "media") {
+      return item;
+    }
+    const storageKey = getThumbnailStorageKey(item.data.metadata);
+    const signedUrl = storageKey ? signedUrls.get(storageKey) : undefined;
+    if (signedUrl) {
+      return { ...item, data: { ...item.data, thumbnail_url: signedUrl } };
+    }
+    return item;
+  });
+}
+
 function buildAccessControlIds(ctx: {
   teamId: string;
   session: { user: { id: string; email?: string | null } };
@@ -99,6 +125,186 @@ function buildAccessControlIds(ctx: {
     ctx.session.user.id,
     ctx.session.user.email,
   ].filter(Boolean) as string[];
+}
+
+const RERANK_CONTENT_MAX_LENGTH = 2000;
+const MEDIA_DEFAULT_SCORE = 0.5;
+
+type ScoredRef = { type: "document" | "media"; id: string; score: number };
+
+function parseRerankId(prefixedId: string, score: number): ScoredRef {
+  const colonIdx = prefixedId.indexOf(":");
+  const prefix = prefixedId.slice(0, colonIdx);
+  return {
+    type: prefix === "doc" ? "document" : "media",
+    id: prefixedId.slice(colonIdx + 1),
+    score,
+  };
+}
+
+interface UnifiedRerankParams {
+  query: string;
+  teamId: string;
+  limit: number;
+  offset: number;
+  includeMedia: boolean;
+  mediaRanking: MediaSearchRanking;
+  accessControlIds: string[];
+  filters: {
+    connectorTypes?: string[];
+    documentTypes?: string[];
+    authorIds?: string[];
+    connectorId?: string;
+    sourceId?: string;
+    fromDate?: number;
+    toDate?: number;
+  };
+}
+
+async function unifiedSearchWithRerank(params: UnifiedRerankParams) {
+  const candidateLimit = Math.max(params.limit * 3, 100);
+
+  const mediaSearchPromise = params.includeMedia
+    ? searchService
+        .searchMedia({
+          query: params.query,
+          teamId: params.teamId,
+          connectorId: params.filters.connectorId,
+          sourceId: params.filters.sourceId,
+          fromDate: params.filters.fromDate,
+          toDate: params.filters.toDate,
+          limit: candidateLimit,
+          offset: 0,
+          ranking: params.mediaRanking,
+          accessControlIds: params.accessControlIds,
+        })
+        .catch(() => ({ media: [], total: 0, queryTime: 0 }))
+    : Promise.resolve({ media: [], total: 0, queryTime: 0 });
+
+  const [orchestratorResult, mediaResult] = await Promise.all([
+    hybridSearchOrchestrator.search({
+      query: params.query,
+      teamId: params.teamId,
+      mode: "hybrid_v2",
+      limit: candidateLimit,
+      offset: 0,
+      filters: {
+        connectorTypes: params.filters.connectorTypes,
+        documentTypes: params.filters.documentTypes,
+        authorIds: params.filters.authorIds,
+        fromDate: params.filters.fromDate,
+        toDate: params.filters.toDate,
+      },
+      accessControlIds: params.accessControlIds,
+    }),
+    mediaSearchPromise,
+  ]);
+
+  const docCandidates: RerankDocument[] = orchestratorResult.documents.map(
+    (doc, idx) => ({
+      id: `doc:${doc.document.id}`,
+      content: doc.document.content?.slice(0, RERANK_CONTENT_MAX_LENGTH) ?? "",
+      title: doc.document.title,
+      score: doc.score,
+      rank: idx + 1,
+    })
+  );
+
+  const mediaCandidates: RerankDocument[] = mediaResult.media.map((m, idx) => ({
+    id: `media:${m.id}`,
+    content:
+      m.transcript?.slice(0, RERANK_CONTENT_MAX_LENGTH) ||
+      m.description?.slice(0, RERANK_CONTENT_MAX_LENGTH) ||
+      m.media_summary?.slice(0, RERANK_CONTENT_MAX_LENGTH) ||
+      "",
+    title: m.title,
+    score: MEDIA_DEFAULT_SCORE,
+    rank: docCandidates.length + idx + 1,
+  }));
+
+  const allCandidates = [...docCandidates, ...mediaCandidates];
+  const rerankResult = await rerankerService.rerank(
+    params.query,
+    allCandidates,
+    params.limit + params.offset
+  );
+
+  const docMap = new Map(
+    orchestratorResult.documents.map((d) => [d.document.id, d])
+  );
+  const mediaMap = new Map(mediaResult.media.map((m) => [m.id, m]));
+
+  const rankedRefs: ScoredRef[] = rerankResult
+    ? rerankResult.results.map((r) => parseRerankId(r.id, r.score))
+    : allCandidates.map((c) => parseRerankId(c.id, c.score ?? 0));
+
+  const paginatedRefs = rankedRefs.slice(
+    params.offset,
+    params.offset + params.limit
+  );
+
+  const items: Array<
+    | {
+        type: "document";
+        data: (typeof orchestratorResult.documents)[0]["document"] & {
+          relevance: number;
+        };
+        relevance: number;
+      }
+    | {
+        type: "media";
+        data: (typeof mediaResult.media)[0] & { relevance: number };
+        relevance: number;
+      }
+  > = [];
+
+  for (const ref of paginatedRefs) {
+    if (ref.type === "document") {
+      const d = docMap.get(ref.id);
+      if (d) {
+        items.push({
+          type: "document",
+          data: { ...d.document, relevance: ref.score },
+          relevance: ref.score,
+        });
+      }
+    } else {
+      const m = mediaMap.get(ref.id);
+      if (m) {
+        items.push({
+          type: "media",
+          data: { ...m, relevance: ref.score },
+          relevance: ref.score,
+        });
+      }
+    }
+  }
+
+  const documents = items
+    .filter(
+      (i): i is (typeof items)[number] & { type: "document" } =>
+        i.type === "document"
+    )
+    .map((i) => i.data);
+  const media = items
+    .filter(
+      (i): i is (typeof items)[number] & { type: "media" } => i.type === "media"
+    )
+    .map((i) => i.data);
+
+  return {
+    items,
+    documents,
+    media,
+    documentTotal: orchestratorResult.total,
+    mediaTotal: mediaResult.total,
+    total: orchestratorResult.total + mediaResult.total,
+    queryTime: Math.max(
+      orchestratorResult.timing.totalMs,
+      mediaResult.queryTime
+    ),
+    embeddingTime: orchestratorResult.timing.embeddingMs,
+  };
 }
 
 const searchInputSchema = z.object({
@@ -158,7 +364,14 @@ const unifiedSearchInputSchema = z.object({
   offset: z.number().min(0).default(0),
   cursor: z.number().nullish(),
   ranking: z
-    .enum(["bm25", "semantic", "hybrid", "recency", "engagement"])
+    .enum([
+      "bm25",
+      "semantic",
+      "hybrid",
+      "hybrid_v2_rerank",
+      "recency",
+      "engagement",
+    ])
     .default("hybrid"),
   mediaRanking: z.enum(["bm25", "semantic", "hybrid"]).default("hybrid"),
 });
@@ -293,32 +506,53 @@ export const searchRouter = createTRPCRouter({
       const effectiveOffset = input.cursor ?? input.offset;
       const accessControlIds = buildAccessControlIds(ctx);
 
-      const result = await searchService.searchUnified({
-        query: input.q,
-        teamId: ctx.teamId,
-        includeDocuments: input.includeDocuments,
-        includeMedia: input.includeMedia,
-        connectorTypes: input.connectorTypes,
-        connectorId: input.connectorId,
-        documentTypes: input.documentTypes,
-        sourceTypes: input.sourceTypes,
-        statuses: input.statuses,
-        priorities: input.priorities,
-        labels: input.labels,
-        authorIds: input.authorIds,
-        sourceId: input.sourceId,
-        fromDate: input.fromDate,
-        toDate: input.toDate,
-        limit: input.limit,
-        offset: effectiveOffset,
-        ranking: input.ranking as SearchRanking,
-        mediaRanking: input.mediaRanking as MediaSearchRanking,
-        accessControlIds,
-      });
+      const useReranking = input.ranking === "hybrid_v2_rerank";
+
+      const result = useReranking
+        ? await unifiedSearchWithRerank({
+            query: input.q,
+            teamId: ctx.teamId,
+            limit: input.limit,
+            offset: effectiveOffset,
+            includeMedia: input.includeMedia ?? true,
+            mediaRanking: input.mediaRanking as MediaSearchRanking,
+            accessControlIds,
+            filters: {
+              connectorTypes: input.connectorTypes,
+              documentTypes: input.documentTypes,
+              authorIds: input.authorIds,
+              connectorId: input.connectorId,
+              sourceId: input.sourceId,
+              fromDate: input.fromDate,
+              toDate: input.toDate,
+            },
+          })
+        : await searchService.searchUnified({
+            query: input.q,
+            teamId: ctx.teamId,
+            includeDocuments: input.includeDocuments,
+            includeMedia: input.includeMedia,
+            connectorTypes: input.connectorTypes,
+            connectorId: input.connectorId,
+            documentTypes: input.documentTypes,
+            sourceTypes: input.sourceTypes,
+            statuses: input.statuses,
+            priorities: input.priorities,
+            labels: input.labels,
+            authorIds: input.authorIds,
+            sourceId: input.sourceId,
+            fromDate: input.fromDate,
+            toDate: input.toDate,
+            limit: input.limit,
+            offset: effectiveOffset,
+            ranking: input.ranking as SearchRanking,
+            mediaRanking: input.mediaRanking as MediaSearchRanking,
+            accessControlIds,
+          });
 
       const mediaFromItems = result.items
         .filter(
-          (item): item is typeof item & { type: "media" } =>
+          (item): item is (typeof result.items)[number] & { type: "media" } =>
             item.type === "media"
         )
         .map((item) => item.data);
@@ -327,21 +561,8 @@ export const searchRouter = createTRPCRouter({
       const storageKeys = collectStorageKeys(allMedia);
       const signedUrls = await generateSignedUrlsForKeys(storageKeys);
 
-      const media = applyThumbnailUrls(result.media, signedUrls);
-
-      const enrichedItems = result.items.map((item) => {
-        if (item.type === "media") {
-          const storageKey = getThumbnailStorageKey(item.data.metadata);
-          const thumbnailUrl = storageKey
-            ? signedUrls.get(storageKey)
-            : item.data.thumbnail_url;
-          return {
-            ...item,
-            data: { ...item.data, thumbnail_url: thumbnailUrl },
-          };
-        }
-        return item;
-      });
+      const mediaWithThumbs = applyThumbnailUrls(result.media, signedUrls);
+      const enrichedItems = applyThumbnailUrlsToItems(result.items, signedUrls);
 
       const currentCount = enrichedItems.length;
       const hasMore = effectiveOffset + currentCount < result.total;
@@ -350,7 +571,7 @@ export const searchRouter = createTRPCRouter({
       return {
         items: enrichedItems,
         documents: result.documents,
-        media,
+        media: mediaWithThumbs,
         documentTotal: result.documentTotal,
         mediaTotal: result.mediaTotal,
         total: result.total,
