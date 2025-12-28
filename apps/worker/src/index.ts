@@ -3,6 +3,7 @@ import {
   closeCleanupQueue,
   closeConnectorCleanupQueue,
   closeDigestQueue,
+  closeEntityExtractionQueue,
   closeIndexQueue,
   closeLTRTrainingQueue,
   closeMediaProcessingQueue,
@@ -17,6 +18,7 @@ import {
   createCleanupProcessor,
   createConnectorCleanupProcessor,
   createDigestProcessor,
+  createEntityExtractionProcessor,
   createFileProcessor,
   createIndexProcessor,
   createLTRTrainingProcessor,
@@ -45,6 +47,7 @@ class WorkerService {
   private readonly connectorCleanupProcessor: ProcessorResult;
   private readonly digestProcessor: ProcessorResult;
   private readonly ltrTrainingProcessor: ProcessorResult;
+  private readonly entityExtractionProcessor: ProcessorResult;
 
   constructor() {
     logger.info("Initializing OpenPlane Worker...");
@@ -58,6 +61,7 @@ class WorkerService {
     this.connectorCleanupProcessor = createConnectorCleanupProcessor();
     this.digestProcessor = createDigestProcessor();
     this.ltrTrainingProcessor = createLTRTrainingProcessor();
+    this.entityExtractionProcessor = createEntityExtractionProcessor();
 
     this.syncScheduler = new SyncScheduler();
     this.cleanupScheduler = new CleanupScheduler("0 2 * * *");
@@ -102,6 +106,7 @@ class WorkerService {
           digestProcessor: "running",
           digestScheduler: "running",
           ltrTrainingProcessor: "running",
+          entityExtractionProcessor: "running",
           reembedProcessor: "running",
           metricsServer: "running",
           healthServer: "running",
@@ -130,6 +135,7 @@ class WorkerService {
       this.connectorCleanupProcessor.close(),
       this.digestProcessor.close(),
       this.ltrTrainingProcessor.close(),
+      this.entityExtractionProcessor.close(),
       stopReembedWorker(),
       stopMetricsServer(),
       stopHealthServer(),
@@ -139,6 +145,7 @@ class WorkerService {
       closeSyncQueue(),
       closeIndexQueue(),
       closeLTRTrainingQueue(),
+      closeEntityExtractionQueue(),
       closeMediaProcessingQueue(),
       closeWebhookQueue(),
       closeCleanupQueue(),

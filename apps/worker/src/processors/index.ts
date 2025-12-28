@@ -5,6 +5,10 @@ export {
 } from "./connector-cleanup";
 export { createDigestProcessor, processDigestJob } from "./digest";
 export {
+  createEntityExtractionProcessor,
+  processEntityExtractionJob,
+} from "./entity-extraction";
+export {
   incrementMetrics,
   logJobComplete,
   logJobError,
