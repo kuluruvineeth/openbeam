@@ -12,6 +12,7 @@ import prisma, {
 import {
   refreshGmailToken,
   refreshGoogleDriveToken,
+  refreshLinearToken,
 } from "@openplane/integrations";
 
 export async function refreshConnectorToken(
@@ -60,7 +61,11 @@ export async function refreshConnectorToken(
   }
 
   try {
-    let newToken: { accessToken: string; expiresIn: number };
+    let newToken: {
+      accessToken: string;
+      expiresIn: number;
+      refreshToken?: string;
+    };
 
     switch (oauth.app) {
       case "GMAIL":
@@ -79,6 +84,20 @@ export async function refreshConnectorToken(
         });
         break;
 
+      case "LINEAR": {
+        const linearResult = await refreshLinearToken({
+          clientId,
+          clientSecret,
+          refreshToken,
+        });
+        newToken = {
+          accessToken: linearResult.accessToken,
+          expiresIn: linearResult.expiresIn,
+          refreshToken: linearResult.refreshToken,
+        };
+        break;
+      }
+
       case "SLACK":
         throw new Error("Slack token refresh not implemented");
 
@@ -93,6 +112,7 @@ export async function refreshConnectorToken(
       connectorId,
       accessToken: newToken.accessToken,
       expiresIn: newToken.expiresIn,
+      refreshToken: newToken.refreshToken,
     });
 
     return newToken.accessToken;
