@@ -14,6 +14,10 @@ export {
 export { createFileProcessor } from "./file";
 export { createIndexProcessor } from "./index/index";
 export {
+  createLTRTrainingProcessor,
+  processLTRTrainingJob,
+} from "./ltr-training";
+export {
   createMediaProcessor,
   type MediaProcessingResult,
   processMediaJob,

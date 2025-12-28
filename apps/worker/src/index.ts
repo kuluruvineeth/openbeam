@@ -4,6 +4,7 @@ import {
   closeConnectorCleanupQueue,
   closeDigestQueue,
   closeIndexQueue,
+  closeLTRTrainingQueue,
   closeMediaProcessingQueue,
   closeReembedQueue,
   closeSharedBullMqConnection,
@@ -18,6 +19,7 @@ import {
   createDigestProcessor,
   createFileProcessor,
   createIndexProcessor,
+  createLTRTrainingProcessor,
   createMediaProcessor,
   createSyncProcessor,
   createWebhookProcessor,
@@ -42,6 +44,7 @@ class WorkerService {
   private readonly cleanupProcessor: ProcessorResult;
   private readonly connectorCleanupProcessor: ProcessorResult;
   private readonly digestProcessor: ProcessorResult;
+  private readonly ltrTrainingProcessor: ProcessorResult;
 
   constructor() {
     logger.info("Initializing OpenPlane Worker...");
@@ -54,6 +57,7 @@ class WorkerService {
     this.cleanupProcessor = createCleanupProcessor();
     this.connectorCleanupProcessor = createConnectorCleanupProcessor();
     this.digestProcessor = createDigestProcessor();
+    this.ltrTrainingProcessor = createLTRTrainingProcessor();
 
     this.syncScheduler = new SyncScheduler();
     this.cleanupScheduler = new CleanupScheduler("0 2 * * *");
@@ -97,6 +101,7 @@ class WorkerService {
           connectorCleanupProcessor: "running",
           digestProcessor: "running",
           digestScheduler: "running",
+          ltrTrainingProcessor: "running",
           reembedProcessor: "running",
           metricsServer: "running",
           healthServer: "running",
@@ -124,6 +129,7 @@ class WorkerService {
       this.cleanupProcessor.close(),
       this.connectorCleanupProcessor.close(),
       this.digestProcessor.close(),
+      this.ltrTrainingProcessor.close(),
       stopReembedWorker(),
       stopMetricsServer(),
       stopHealthServer(),
@@ -132,6 +138,7 @@ class WorkerService {
     await Promise.allSettled([
       closeSyncQueue(),
       closeIndexQueue(),
+      closeLTRTrainingQueue(),
       closeMediaProcessingQueue(),
       closeWebhookQueue(),
       closeCleanupQueue(),
