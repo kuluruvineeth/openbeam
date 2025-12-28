@@ -227,8 +227,7 @@ export interface SparseTensorCell {
 }
 
 export interface SparseTensor {
-  type: string;
-  values: SparseTensorCell[];
+  cells: SparseTensorCell[];
 }
 
 export interface QueryParams {

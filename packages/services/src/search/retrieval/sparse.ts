@@ -37,8 +37,7 @@ export async function retrieveSparse(
     hits: limit,
     timeout: "3s",
     sparse_embedding: {
-      type: "tensor<float>(token{})",
-      values: Object.entries(sparseEmbedding).map(([token, value]) => ({
+      cells: Object.entries(sparseEmbedding).map(([token, value]) => ({
         address: { token },
         value,
       })),

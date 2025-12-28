@@ -27,4 +27,12 @@ app.all("/trpc/*", async (c) =>
 
 app.get("/", (c) => c.text("OK"));
 
-export default app;
+const port = Number(process.env.PORT) || 3000;
+
+const server = Bun.serve({
+  port,
+  fetch: app.fetch,
+  idleTimeout: 120,
+});
+
+console.log(`Server running on http://localhost:${server.port}`);
