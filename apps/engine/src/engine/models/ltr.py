@@ -30,6 +30,11 @@ class DocumentFeatures(BaseModel):
     author_interaction_count: int = Field(default=0)
     author_id: str | None = None
 
+    author_expertise_score: float = Field(default=0.0)
+    author_topic_relevance: float = Field(default=0.0)
+    entity_mention_count: int = Field(default=0)
+    topic_cluster_match: float = Field(default=0.0)
+
 
 class UserContext(BaseModel):
     user_id: str

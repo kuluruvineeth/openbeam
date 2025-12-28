@@ -27,6 +27,10 @@ FEATURE_NAMES = [
     "document_type_encoded",
     "department_match",
     "author_interaction_count",
+    "author_expertise_score",
+    "author_topic_relevance",
+    "entity_mention_count",
+    "topic_cluster_match",
 ]
 
 CONNECTOR_TYPE_MAP = {
@@ -104,6 +108,11 @@ class LTRFeatureExtractor:
         else:
             features[17] = 0.0
             features[18] = 0.0
+
+        features[19] = min(doc.author_expertise_score, 10.0) / 10.0
+        features[20] = min(doc.author_topic_relevance, 1.0)
+        features[21] = np.log1p(doc.entity_mention_count)
+        features[22] = min(doc.topic_cluster_match, 1.0)
 
         return features
 
