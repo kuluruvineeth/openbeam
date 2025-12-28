@@ -18,6 +18,7 @@ import type {
   AuthorSearchParams,
   DocumentSearchResult,
   MediaSearchParams,
+  MediaSearchRanking,
   MediaSearchResult,
   RecentDocumentsParams,
   ScoredMedia,
@@ -568,53 +569,60 @@ export class SearchService {
     return metadata;
   }
 
+  private buildMediaQueryParams(
+    params: MediaSearchParams,
+    mediaEmbedding: number[] | null,
+    ranking: MediaSearchRanking
+  ): MediaQueryParams {
+    const useSemanticSearch = ranking === "hybrid" || ranking === "semantic";
+    const includeVectorSearch = useSemanticSearch && mediaEmbedding !== null;
+    const effectiveRanking = includeVectorSearch ? ranking : "bm25";
+    const yql = this.buildMediaSearchYQL(params, includeVectorSearch);
+
+    return {
+      yql,
+      ranking: effectiveRanking,
+      hits: params.limit || 20,
+      offset: params.offset || 0,
+      timeout: "5s",
+      ...(includeVectorSearch && mediaEmbedding
+        ? buildMediaVectorQueryFeatures(mediaEmbedding)
+        : {}),
+    };
+  }
+
   async searchMedia(params: MediaSearchParams): Promise<MediaSearchResult> {
     const startTime = Date.now();
+    const ranking = params.ranking || "hybrid";
+    const useSemanticSearch = ranking === "hybrid" || ranking === "semantic";
+
+    let mediaEmbedding: number[] | null = null;
     let embeddingTime: number | undefined;
 
+    if (useSemanticSearch && params.query) {
+      const embeddingStart = Date.now();
+      mediaEmbedding = await this.getMediaQueryEmbedding(params.query);
+      embeddingTime = Date.now() - embeddingStart;
+    }
+
+    const queryParams = this.buildMediaQueryParams(
+      params,
+      mediaEmbedding,
+      ranking
+    );
+
     try {
-      const ranking = params.ranking || "hybrid";
-      const useSemanticSearch = ranking === "hybrid" || ranking === "semantic";
-
-      let mediaEmbedding: number[] | null = null;
-      if (useSemanticSearch && params.query) {
-        const embeddingStart = Date.now();
-        mediaEmbedding = await this.getMediaQueryEmbedding(params.query);
-        embeddingTime = Date.now() - embeddingStart;
-      }
-
-      const includeVectorSearch = useSemanticSearch && mediaEmbedding !== null;
-      const effectiveRanking = includeVectorSearch ? ranking : "bm25";
-      const yql = this.buildMediaSearchYQL(params, includeVectorSearch);
-
-      const queryParams: MediaQueryParams = {
-        yql,
-        ranking: effectiveRanking,
-        hits: params.limit || 20,
-        offset: params.offset || 0,
-        timeout: "5s",
-        ...(includeVectorSearch && mediaEmbedding
-          ? buildMediaVectorQueryFeatures(mediaEmbedding)
-          : {}),
-      };
-
       const vespaResult =
         await vespaClient.queryMedia<MediaDocument>(queryParams);
-
       const media = this.extractMediaDocuments(vespaResult);
       const total = vespaResult.root.fields?.totalCount ?? media.length;
 
-      return {
-        media,
-        total,
-        queryTime: Date.now() - startTime,
-        embeddingTime,
-      };
+      return { media, total, queryTime: Date.now() - startTime, embeddingTime };
     } catch (error) {
-      logger.error({ error }, "Media search error");
-      throw new Error(
-        `Media search failed: ${error instanceof Error ? error.message : "Unknown error"}`
-      );
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      logger.error({ errorMessage, query: params.query }, "Media search error");
+      throw new Error(`Media search failed: ${errorMessage}`);
     }
   }
 
@@ -741,7 +749,9 @@ export class SearchService {
       );
       return embedding;
     } catch (error) {
-      logger.warn({ error }, "getMediaQueryEmbedding failed");
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      logger.warn({ errorMessage, query }, "getMediaQueryEmbedding failed");
       return null;
     }
   }

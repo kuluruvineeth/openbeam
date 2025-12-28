@@ -18,6 +18,19 @@ export {
   HybridSearchOrchestrator,
   hybridSearchOrchestrator,
 } from "./orchestrator";
+export type {
+  RerankDocument,
+  RerankerConfig,
+  RerankResponse,
+  RerankResult,
+  RerankStats,
+} from "./reranking";
+export {
+  callRerank,
+  getRerankStats,
+  RerankerService,
+  rerankerService,
+} from "./reranking";
 export { retrieveBM25 } from "./retrieval/bm25";
 export { retrieveDense } from "./retrieval/dense";
 export {

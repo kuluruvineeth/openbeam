@@ -271,6 +271,10 @@ export type {
   MediaSearchResult,
   RankedDocument,
   RecentDocumentsParams,
+  RerankDocument,
+  RerankResponse,
+  RerankResult as CrossEncoderRerankResult,
+  RerankStats,
   RetrievalResult,
   RRFConfig,
   ScoredMedia,
@@ -290,6 +294,8 @@ export type {
 export {
   HybridSearchOrchestrator,
   hybridSearchOrchestrator,
+  RerankerService,
+  rerankerService,
   SearchService,
   searchService,
 } from "./search";

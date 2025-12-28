@@ -2,6 +2,8 @@ import { getBGEM3Provider } from "@openplane/ai";
 import { type GenericDocument, vespaClient } from "@openplane/vespa";
 import { logger } from "../lib/logger";
 import { weightedReciprocalRankFusion } from "./fusion/weighted-rrf";
+import type { RerankDocument, RerankResponse } from "./reranking";
+import { rerankerService } from "./reranking";
 import { retrieveBM25 } from "./retrieval/bm25";
 import { retrieveDense } from "./retrieval/dense";
 import { retrieveSparse } from "./retrieval/sparse";
@@ -10,6 +12,7 @@ import type {
   HybridSearchResponse,
   RankedDocument,
   RRFConfig,
+  SearchMode,
   SearchTiming,
 } from "./types";
 
@@ -19,6 +22,24 @@ const DEFAULT_RRF_CONFIG: RRFConfig = {
 };
 
 const RETRIEVAL_LIMIT_MULTIPLIER = 3;
+const RERANK_CANDIDATES = 100;
+const RERANK_TOP_K_MULTIPLIER = 2;
+
+interface WeightedRRFOutput {
+  docId: string;
+  score: number;
+  components: { bm25: number; dense: number; sparse: number };
+  ranks: { bm25: number | null; dense: number | null; sparse: number | null };
+}
+
+interface HybridSearchContext {
+  request: HybridSearchRequest;
+  mode: SearchMode;
+  limit: number;
+  rrfConfig: RRFConfig;
+  timing: SearchTiming;
+  startTime: number;
+}
 
 export class HybridSearchOrchestrator {
   private readonly bge = getBGEM3Provider();
@@ -26,21 +47,6 @@ export class HybridSearchOrchestrator {
   async search(request: HybridSearchRequest): Promise<HybridSearchResponse> {
     const startTime = performance.now();
     const mode = request.mode ?? "hybrid_v2";
-    const rrfConfig = {
-      k: request.rrfConfig?.k ?? DEFAULT_RRF_CONFIG.k,
-      weights: {
-        bm25:
-          request.rrfConfig?.weights?.bm25 ?? DEFAULT_RRF_CONFIG.weights.bm25,
-        dense:
-          request.rrfConfig?.weights?.dense ?? DEFAULT_RRF_CONFIG.weights.dense,
-        sparse:
-          request.rrfConfig?.weights?.sparse ??
-          DEFAULT_RRF_CONFIG.weights.sparse,
-      },
-    };
-    const limit = request.limit ?? 20;
-    const retrievalLimit = limit * RETRIEVAL_LIMIT_MULTIPLIER;
-
     const timing: SearchTiming = {
       embeddingMs: 0,
       retrievalMs: 0,
@@ -64,6 +70,40 @@ export class HybridSearchOrchestrator {
         startTime
       );
     }
+
+    const ctx: HybridSearchContext = {
+      request,
+      mode,
+      limit: request.limit ?? 20,
+      rrfConfig: this.buildRRFConfig(request.rrfConfig),
+      timing,
+      startTime,
+    };
+
+    return this.hybridSearch(ctx, queryEmbedding);
+  }
+
+  private buildRRFConfig(config?: Partial<RRFConfig>): RRFConfig {
+    return {
+      k: config?.k ?? DEFAULT_RRF_CONFIG.k,
+      weights: {
+        bm25: config?.weights?.bm25 ?? DEFAULT_RRF_CONFIG.weights.bm25,
+        dense: config?.weights?.dense ?? DEFAULT_RRF_CONFIG.weights.dense,
+        sparse: config?.weights?.sparse ?? DEFAULT_RRF_CONFIG.weights.sparse,
+      },
+    };
+  }
+
+  private async hybridSearch(
+    ctx: HybridSearchContext,
+    queryEmbedding: { dense: number[]; sparse?: Record<string, number> | null }
+  ): Promise<HybridSearchResponse> {
+    const { request, mode, limit, rrfConfig, timing } = ctx;
+    const useReranking =
+      mode === "hybrid_v2_rerank" || mode === "enterprise_v2";
+    const retrievalLimit = useReranking
+      ? Math.max(RERANK_CANDIDATES, limit * RETRIEVAL_LIMIT_MULTIPLIER)
+      : limit * RETRIEVAL_LIMIT_MULTIPLIER;
 
     const retrievalStart = performance.now();
     const [bm25Results, denseResults, sparseResults] = await Promise.all([
@@ -107,30 +147,94 @@ export class HybridSearchOrchestrator {
     );
     timing.fusionMs = performance.now() - fusionStart;
 
-    const topDocIds = fusedResults
-      .slice(request.offset ?? 0, (request.offset ?? 0) + limit)
+    const { rerankedResults, rerankModel } = await this.maybeRerank({
+      useReranking,
+      query: request.query,
+      fusedResults,
+      limit,
+      timing,
+    });
+
+    return this.buildHybridResponse(
+      ctx,
+      fusedResults,
+      rerankedResults,
+      rerankModel
+    );
+  }
+
+  private async maybeRerank(opts: {
+    useReranking: boolean;
+    query: string;
+    fusedResults: WeightedRRFOutput[];
+    limit: number;
+    timing: SearchTiming;
+  }): Promise<{
+    rerankedResults: Array<WeightedRRFOutput & { rerankScore: number }> | null;
+    rerankModel: string | undefined;
+  }> {
+    const { useReranking, query, fusedResults, limit, timing } = opts;
+    if (!(useReranking && rerankerService.isEnabled())) {
+      return { rerankedResults: null, rerankModel: undefined };
+    }
+
+    const rerankStart = performance.now();
+
+    const candidatesToRerank = fusedResults.slice(
+      0,
+      Math.min(RERANK_CANDIDATES, fusedResults.length)
+    );
+    const candidateDocIds = candidatesToRerank.map((r) => r.docId);
+    const candidateDocs = await this.fetchDocuments(candidateDocIds);
+
+    const documentsToRerank = this.prepareForReranking(
+      candidatesToRerank,
+      candidateDocs
+    );
+
+    const rerankResponse = await rerankerService.rerank(
+      query,
+      documentsToRerank,
+      limit * RERANK_TOP_K_MULTIPLIER
+    );
+
+    if (!rerankResponse) {
+      return { rerankedResults: null, rerankModel: undefined };
+    }
+
+    timing.rerankMs = performance.now() - rerankStart;
+
+    return {
+      rerankedResults: this.applyRerankScores(fusedResults, rerankResponse),
+      rerankModel: rerankResponse.model,
+    };
+  }
+
+  private async buildHybridResponse(
+    ctx: HybridSearchContext,
+    fusedResults: WeightedRRFOutput[],
+    rerankedResults: Array<WeightedRRFOutput & { rerankScore: number }> | null,
+    rerankModel: string | undefined
+  ): Promise<HybridSearchResponse> {
+    const { request, mode, limit, rrfConfig, timing, startTime } = ctx;
+    const finalResults = rerankedResults ?? fusedResults;
+    const offset = request.offset ?? 0;
+    const topDocIds = finalResults
+      .slice(offset, offset + limit)
       .map((r) => r.docId);
 
     const documents = await this.fetchDocuments(topDocIds);
 
-    const rankedDocuments: RankedDocument[] = topDocIds.flatMap((docId) => {
-      const doc = documents.get(docId);
-      const fusedResult = fusedResults.find((r) => r.docId === docId);
-      if (!(doc && fusedResult)) {
-        return [];
-      }
+    const rerankScoreMap = rerankedResults
+      ? new Map(rerankedResults.map((r) => [r.docId, r.rerankScore]))
+      : null;
 
-      return [
-        {
-          document: doc,
-          score: fusedResult.score,
-          bm25Rank: fusedResult.ranks.bm25 ?? undefined,
-          denseRank: fusedResult.ranks.dense ?? undefined,
-          sparseRank: fusedResult.ranks.sparse ?? undefined,
-          rrfScore: fusedResult.score,
-        },
-      ];
-    });
+    const rankedDocuments = this.buildRankedDocuments(
+      topDocIds,
+      documents,
+      fusedResults,
+      rerankScoreMap
+    );
 
     timing.totalMs = performance.now() - startTime;
 
@@ -140,6 +244,7 @@ export class HybridSearchOrchestrator {
         mode,
         resultCount: rankedDocuments.length,
         timing,
+        reranked: rerankedResults !== null,
       },
       "Hybrid search completed"
     );
@@ -153,8 +258,93 @@ export class HybridSearchOrchestrator {
         experimentId: request.experimentId,
         modelVersion: "bge-m3",
         rrfK: rrfConfig.k,
+        rerankModel,
       },
     };
+  }
+
+  private buildRankedDocuments(
+    topDocIds: string[],
+    documents: Map<string, GenericDocument>,
+    fusedResults: WeightedRRFOutput[],
+    rerankScoreMap: Map<string, number> | null
+  ): RankedDocument[] {
+    return topDocIds.flatMap((docId, index) => {
+      const doc = documents.get(docId);
+      const fusedResult = fusedResults.find((r) => r.docId === docId);
+      if (!(doc && fusedResult)) {
+        return [];
+      }
+
+      const rerankScore = rerankScoreMap?.get(docId);
+      const finalScore =
+        rerankScore !== undefined ? rerankScore : fusedResult.score;
+
+      return [
+        {
+          document: doc,
+          score: finalScore,
+          bm25Rank: fusedResult.ranks.bm25 ?? undefined,
+          denseRank: fusedResult.ranks.dense ?? undefined,
+          sparseRank: fusedResult.ranks.sparse ?? undefined,
+          rrfScore: fusedResult.score,
+          rerankScore,
+          rerankRank: rerankScore !== undefined ? index + 1 : undefined,
+        },
+      ];
+    });
+  }
+
+  private prepareForReranking(
+    fusedResults: WeightedRRFOutput[],
+    documents: Map<string, GenericDocument>
+  ): RerankDocument[] {
+    return fusedResults.flatMap((result, index) => {
+      const doc = documents.get(result.docId);
+      if (!doc) {
+        return [];
+      }
+
+      return [
+        {
+          id: result.docId,
+          content: doc.content?.slice(0, 2000) ?? "",
+          title: doc.title,
+          score: result.score,
+          rank: index + 1,
+        },
+      ];
+    });
+  }
+
+  private applyRerankScores(
+    fusedResults: WeightedRRFOutput[],
+    rerankResponse: RerankResponse
+  ): Array<WeightedRRFOutput & { rerankScore: number }> {
+    const scoreMap = new Map(
+      rerankResponse.results.map((r) => [r.id, r.score])
+    );
+
+    const results = fusedResults.map((result) => ({
+      ...result,
+      rerankScore: scoreMap.get(result.docId) ?? 0,
+    }));
+
+    return results.sort((a, b) => {
+      const aHasRerank = scoreMap.has(a.docId);
+      const bHasRerank = scoreMap.has(b.docId);
+
+      if (aHasRerank && bHasRerank) {
+        return b.rerankScore - a.rerankScore;
+      }
+      if (aHasRerank) {
+        return -1;
+      }
+      if (bHasRerank) {
+        return 1;
+      }
+      return b.score - a.score;
+    });
   }
 
   private async bm25OnlySearch(
