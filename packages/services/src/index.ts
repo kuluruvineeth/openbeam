@@ -130,12 +130,25 @@ export {
   syncDomainDrives,
   validateNotificationSignature as validateDriveNotificationSignature,
 } from "./google-drive";
+export type {
+  ExpertiseUpdate,
+  ResolutionContext,
+  ResolvedEntity,
+} from "./knowledge";
+export {
+  batchResolveEntities,
+  getPersonExpertise,
+  getTopExperts,
+  processDocumentExpertise,
+  resolveEntity,
+  resolveOrCreateEntity,
+  updateExpertise,
+} from "./knowledge";
 export type { OAuthState } from "./lib/oauth-state";
 export {
   createOAuthState,
   verifyOAuthState,
 } from "./lib/oauth-state";
-
 export {
   getValidAccessToken,
   refreshConnectorToken,
