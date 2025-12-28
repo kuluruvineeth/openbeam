@@ -273,6 +273,11 @@ export {
   verifyWebhookSignature as verifyNotionWebhookSignature,
 } from "./notion";
 export type {
+  PermissionContext,
+  ResolvedPermissions,
+} from "./permissions";
+export { resolvePermissions } from "./permissions";
+export type {
   AuthorFacet,
   AuthorFacetsParams,
   AuthorSearchParams,
@@ -312,6 +317,7 @@ export {
   SearchService,
   searchService,
 } from "./search";
+export { buildPermissionFilter } from "./search/retrieval/query-builder";
 export type {
   AppMentionEvent,
   BlockActionPayload,

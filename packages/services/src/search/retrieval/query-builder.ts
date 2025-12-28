@@ -1,7 +1,24 @@
+import type { ResolvedPermissions } from "../../permissions/resolver";
 import type { SearchFilters } from "../types";
 
 export function escapeYql(value: string): string {
   return value.replace(/(["\\])/g, "\\$1");
+}
+
+export function buildPermissionFilter(perms: ResolvedPermissions): string {
+  if (perms.isTeamAdmin) {
+    return "true";
+  }
+
+  const clauses: string[] = [];
+
+  clauses.push("is_public = true");
+
+  for (const id of perms.accessControlIds) {
+    clauses.push(`access_control contains "${escapeYql(id)}"`);
+  }
+
+  return `(${clauses.join(" or ")})`;
 }
 
 export function buildFilterClause(filters?: SearchFilters): string | null {
