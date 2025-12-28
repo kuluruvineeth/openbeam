@@ -61,3 +61,46 @@ model SearchClick {
   @@index([docId, createdAt])
   @@map("search_click")
 }
+
+model UserSearchProfile {
+  id                 String   @id @default(cuid()) @map("_id")
+  userId             String
+  teamId             String
+
+  department         String?
+  searchCount        Int      @default(0)
+  clickCount         Int      @default(0)
+  avgDwellMs         Float?
+
+  connectorWeights   Json     @default("{}")
+  authorInteractions Json     @default("{}")
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@unique([userId, teamId])
+  @@index([teamId])
+  @@map("user_search_profile")
+}
+
+model LTRModel {
+  id                 String    @id @default(cuid()) @map("_id")
+  teamId             String
+  version            String
+  status             String    @default("training")
+
+  storagePath        String
+  metrics            Json      @default("{}")
+  featureImportance  Json      @default("{}")
+
+  trainingSamples    Int       @default(0)
+  trainingQueries    Int       @default(0)
+  trainingDurationMs Int       @default(0)
+
+  createdAt          DateTime  @default(now())
+  deployedAt         DateTime?
+
+  @@unique([teamId, version])
+  @@index([teamId, status])
+  @@map("ltr_model")
+}
