@@ -716,5 +716,14 @@ schema openplane_document {
       expression: if(t > now() - 86400000, 1.3, if(t > now() - 604800000, 1.15, 1.0))
     }
   }
+
+  rank-profile sparse_v2 {
+    inputs {
+      query(sparse_embedding) tensor<float>(token{})
+    }
+    first-phase {
+      expression: reduce(attribute(sparse_embedding) * query(sparse_embedding), sum)
+    }
+  }
 }
 

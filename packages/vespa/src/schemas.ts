@@ -218,7 +218,18 @@ export type DocumentRankingProfile =
   | "personalized"
   | "semantic_v2"
   | "hybrid_v2"
-  | "enterprise_v2";
+  | "enterprise_v2"
+  | "sparse_v2";
+
+export interface SparseTensorCell {
+  address: { token: string };
+  value: number;
+}
+
+export interface SparseTensor {
+  type: string;
+  values: SparseTensorCell[];
+}
 
 export interface QueryParams {
   yql: string;
@@ -231,7 +242,7 @@ export interface QueryParams {
   topic_embedding?: VectorTensor;
   user_dept_embedding?: VectorTensor;
   embedding_v2?: VectorTensor;
-  sparse_embedding?: VectorTensor;
+  sparse_embedding?: SparseTensor;
 }
 
 export interface SearchResult<T = GenericDocument> {
@@ -285,7 +296,7 @@ export interface VespaQueryBody {
   "input.query(topic_embedding)"?: VectorTensor;
   "input.query(user_dept_embedding)"?: VectorTensor;
   "input.query(embedding_v2)"?: VectorTensor;
-  "input.query(sparse_embedding)"?: VectorTensor;
+  "input.query(sparse_embedding)"?: SparseTensor;
 }
 
 export interface VespaMediaQueryBody {

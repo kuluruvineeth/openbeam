@@ -137,7 +137,10 @@ export class VespaClient {
   async query<T = GenericDocument>(
     params: QueryParams
   ): Promise<SearchResult<T>> {
-    const hasVectorFeatures = !!params.query_embedding;
+    const hasVectorFeatures =
+      !!params.query_embedding ||
+      !!params.embedding_v2 ||
+      !!params.sparse_embedding;
 
     if (hasVectorFeatures) {
       const body: VespaQueryBody = {
@@ -150,6 +153,8 @@ export class VespaClient {
         "input.query(title_embedding)": params.title_embedding,
         "input.query(topic_embedding)": params.topic_embedding,
         "input.query(user_dept_embedding)": params.user_dept_embedding,
+        "input.query(embedding_v2)": params.embedding_v2,
+        "input.query(sparse_embedding)": params.sparse_embedding,
       };
 
       const response = await fetch(this.searchApiUrl, {
