@@ -5,6 +5,7 @@ import { analyticsRouter } from "./analytics";
 import { appsRouter } from "./apps";
 import { filesRouter } from "./files";
 import { jobsRouter } from "./jobs";
+import { knowledgeRouter } from "./knowledge";
 import { mediaRouter } from "./media";
 import { messagesRouter } from "./messages";
 import { searchRouter } from "./search";
@@ -21,6 +22,7 @@ export const appRouter = createTRPCRouter({
   jobs: jobsRouter,
   messages: messagesRouter,
   analytics: analyticsRouter,
+  knowledge: knowledgeRouter,
 });
 
 export type AppRouter = typeof appRouter;
