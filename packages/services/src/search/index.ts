@@ -3,6 +3,16 @@ export { ExperimentService, experimentService } from "./experiments";
 export { reciprocalRankFusion } from "./fusion/rrf";
 export { weightedReciprocalRankFusion } from "./fusion/weighted-rrf";
 export type {
+  DocumentFeatures as LTRDocumentFeatures,
+  LTRConfig,
+  LTRHealth,
+  LTRRequest,
+  LTRResponse,
+  LTRResult,
+  UserContext as LTRUserContext,
+} from "./ltr";
+export { callLTR, getLTRHealth, LTRService, ltrService } from "./ltr";
+export type {
   ExperimentMetrics,
   ImpressionData,
   SearchMetrics,

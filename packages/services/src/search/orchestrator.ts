@@ -2,6 +2,8 @@ import { getBGEM3Provider } from "@openplane/ai";
 import { type GenericDocument, vespaClient } from "@openplane/vespa";
 import { logger } from "../lib/logger";
 import { weightedReciprocalRankFusion } from "./fusion/weighted-rrf";
+import type { DocumentFeatures, LTRResult } from "./ltr";
+import { ltrService } from "./ltr";
 import type { RerankDocument, RerankResponse } from "./reranking";
 import { rerankerService } from "./reranking";
 import { retrieveBM25 } from "./retrieval/bm25";
@@ -24,6 +26,7 @@ const DEFAULT_RRF_CONFIG: RRFConfig = {
 const RETRIEVAL_LIMIT_MULTIPLIER = 3;
 const RERANK_CANDIDATES = 100;
 const RERANK_TOP_K_MULTIPLIER = 2;
+const LTR_CANDIDATES = 50;
 
 interface WeightedRRFOutput {
   docId: string;
@@ -100,7 +103,10 @@ export class HybridSearchOrchestrator {
   ): Promise<HybridSearchResponse> {
     const { request, mode, limit, rrfConfig, timing } = ctx;
     const useReranking =
-      mode === "hybrid_v2_rerank" || mode === "enterprise_v2";
+      mode === "hybrid_v2_rerank" ||
+      mode === "enterprise_v2" ||
+      mode === "enterprise_v2_ltr";
+    const useLTR = mode === "enterprise_v2_ltr";
     const retrievalLimit = useReranking
       ? Math.max(RERANK_CANDIDATES, limit * RETRIEVAL_LIMIT_MULTIPLIER)
       : limit * RETRIEVAL_LIMIT_MULTIPLIER;
@@ -155,12 +161,23 @@ export class HybridSearchOrchestrator {
       timing,
     });
 
-    return this.buildHybridResponse(
+    const { ltrResults, ltrModelVersion } = await this.maybeLTR({
+      useLTR,
+      query: request.query,
+      fusedResults,
+      rerankedResults,
+      limit,
+      timing,
+    });
+
+    return this.buildHybridResponse({
       ctx,
       fusedResults,
       rerankedResults,
-      rerankModel
-    );
+      rerankModel,
+      ltrResults,
+      ltrModelVersion,
+    });
   }
 
   private async maybeRerank(opts: {
@@ -210,18 +227,109 @@ export class HybridSearchOrchestrator {
     };
   }
 
-  private async buildHybridResponse(
-    ctx: HybridSearchContext,
-    fusedResults: WeightedRRFOutput[],
-    rerankedResults: Array<WeightedRRFOutput & { rerankScore: number }> | null,
-    rerankModel: string | undefined
-  ): Promise<HybridSearchResponse> {
+  private async maybeLTR(opts: {
+    useLTR: boolean;
+    query: string;
+    fusedResults: WeightedRRFOutput[];
+    rerankedResults: Array<WeightedRRFOutput & { rerankScore: number }> | null;
+    limit: number;
+    timing: SearchTiming;
+  }): Promise<{
+    ltrResults: LTRResult[] | null;
+    ltrModelVersion: string | undefined;
+  }> {
+    const { useLTR, query, fusedResults, rerankedResults, limit, timing } =
+      opts;
+    if (!(useLTR && ltrService.isEnabled())) {
+      return { ltrResults: null, ltrModelVersion: undefined };
+    }
+
+    const ltrStart = performance.now();
+
+    const sourceResults = rerankedResults ?? fusedResults;
+    const candidatesForLTR = sourceResults.slice(
+      0,
+      Math.min(LTR_CANDIDATES, sourceResults.length)
+    );
+
+    const documentFeatures: DocumentFeatures[] = candidatesForLTR.map(
+      (result) => {
+        const rerankScore =
+          rerankedResults?.find((r) => r.docId === result.docId)?.rerankScore ??
+          0;
+
+        return {
+          docId: result.docId,
+          bm25Title: result.components.bm25,
+          bm25Content: result.components.bm25,
+          denseScore: result.components.dense,
+          sparseScore: result.components.sparse,
+          rerankScore,
+          recencyDays: 0,
+          docLength: 0,
+          titleLength: 0,
+          viewCount: 0,
+          reactionCount: 0,
+          replyCount: 0,
+          trendingScore: 0,
+          authorityScore: 0,
+          titleExactMatch: false,
+          titlePartialMatch: false,
+          connectorType: "unknown",
+          documentType: "unknown",
+          departmentMatch: false,
+          authorInteractionCount: 0,
+        };
+      }
+    );
+
+    const ltrResponse = await ltrService.score(
+      query,
+      documentFeatures,
+      undefined,
+      limit
+    );
+
+    if (!ltrResponse) {
+      return { ltrResults: null, ltrModelVersion: undefined };
+    }
+
+    timing.ltrMs = performance.now() - ltrStart;
+
+    return {
+      ltrResults: ltrResponse.results,
+      ltrModelVersion: ltrResponse.modelVersion,
+    };
+  }
+
+  private async buildHybridResponse(options: {
+    ctx: HybridSearchContext;
+    fusedResults: WeightedRRFOutput[];
+    rerankedResults: Array<WeightedRRFOutput & { rerankScore: number }> | null;
+    rerankModel: string | undefined;
+    ltrResults: LTRResult[] | null;
+    ltrModelVersion: string | undefined;
+  }): Promise<HybridSearchResponse> {
+    const {
+      ctx,
+      fusedResults,
+      rerankedResults,
+      rerankModel,
+      ltrResults,
+      ltrModelVersion,
+    } = options;
     const { request, mode, limit, rrfConfig, timing, startTime } = ctx;
-    const finalResults = rerankedResults ?? fusedResults;
     const offset = request.offset ?? 0;
-    const topDocIds = finalResults
-      .slice(offset, offset + limit)
-      .map((r) => r.docId);
+
+    let topDocIds: string[];
+    if (ltrResults) {
+      topDocIds = ltrResults.slice(offset, offset + limit).map((r) => r.docId);
+    } else {
+      const finalResults = rerankedResults ?? fusedResults;
+      topDocIds = finalResults
+        .slice(offset, offset + limit)
+        .map((r) => r.docId);
+    }
 
     const documents = await this.fetchDocuments(topDocIds);
 
@@ -229,12 +337,22 @@ export class HybridSearchOrchestrator {
       ? new Map(rerankedResults.map((r) => [r.docId, r.rerankScore]))
       : null;
 
-    const rankedDocuments = this.buildRankedDocuments(
+    const ltrScoreMap = ltrResults
+      ? new Map(
+          ltrResults.map((r, idx) => [
+            r.docId,
+            { score: r.score, rank: idx + 1, features: r.features },
+          ])
+        )
+      : null;
+
+    const rankedDocuments = this.buildRankedDocuments({
       topDocIds,
       documents,
       fusedResults,
-      rerankScoreMap
-    );
+      rerankScoreMap,
+      ltrScoreMap,
+    });
 
     timing.totalMs = performance.now() - startTime;
 
@@ -245,6 +363,7 @@ export class HybridSearchOrchestrator {
         resultCount: rankedDocuments.length,
         timing,
         reranked: rerankedResults !== null,
+        ltr: ltrResults !== null,
       },
       "Hybrid search completed"
     );
@@ -259,16 +378,23 @@ export class HybridSearchOrchestrator {
         modelVersion: "bge-m3",
         rrfK: rrfConfig.k,
         rerankModel,
+        ltrModelVersion,
       },
     };
   }
 
-  private buildRankedDocuments(
-    topDocIds: string[],
-    documents: Map<string, GenericDocument>,
-    fusedResults: WeightedRRFOutput[],
-    rerankScoreMap: Map<string, number> | null
-  ): RankedDocument[] {
+  private buildRankedDocuments(options: {
+    topDocIds: string[];
+    documents: Map<string, GenericDocument>;
+    fusedResults: WeightedRRFOutput[];
+    rerankScoreMap: Map<string, number> | null;
+    ltrScoreMap: Map<
+      string,
+      { score: number; rank: number; features: Record<string, number> }
+    > | null;
+  }): RankedDocument[] {
+    const { topDocIds, documents, fusedResults, rerankScoreMap, ltrScoreMap } =
+      options;
     return topDocIds.flatMap((docId, index) => {
       const doc = documents.get(docId);
       const fusedResult = fusedResults.find((r) => r.docId === docId);
@@ -277,8 +403,16 @@ export class HybridSearchOrchestrator {
       }
 
       const rerankScore = rerankScoreMap?.get(docId);
-      const finalScore =
-        rerankScore !== undefined ? rerankScore : fusedResult.score;
+      const ltrData = ltrScoreMap?.get(docId);
+
+      let finalScore: number;
+      if (ltrData) {
+        finalScore = ltrData.score;
+      } else if (rerankScore !== undefined) {
+        finalScore = rerankScore;
+      } else {
+        finalScore = fusedResult.score;
+      }
 
       return [
         {
@@ -290,6 +424,9 @@ export class HybridSearchOrchestrator {
           rrfScore: fusedResult.score,
           rerankScore,
           rerankRank: rerankScore !== undefined ? index + 1 : undefined,
+          ltrScore: ltrData?.score,
+          ltrRank: ltrData?.rank,
+          ltrFeatures: ltrData?.features,
         },
       ];
     });

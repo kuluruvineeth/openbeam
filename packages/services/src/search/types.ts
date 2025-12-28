@@ -19,6 +19,7 @@ export const SearchModeSchema = z.enum([
   "hybrid_v2",
   "hybrid_v2_rerank",
   "enterprise_v2",
+  "enterprise_v2_ltr",
 ]);
 export type SearchMode = z.infer<typeof SearchModeSchema>;
 
@@ -68,6 +69,9 @@ export interface RankedDocument {
   rrfScore?: number;
   rerankScore?: number;
   rerankRank?: number;
+  ltrScore?: number;
+  ltrRank?: number;
+  ltrFeatures?: Record<string, number>;
 }
 
 export interface HybridSearchResponse {
@@ -82,6 +86,7 @@ export interface SearchTiming {
   retrievalMs: number;
   fusionMs: number;
   rerankMs?: number;
+  ltrMs?: number;
   totalMs: number;
 }
 
@@ -91,6 +96,7 @@ export interface SearchMetadata {
   modelVersion: string;
   rrfK?: number;
   rerankModel?: string;
+  ltrModelVersion?: string;
 }
 
 export interface RetrievalResult {
