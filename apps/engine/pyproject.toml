@@ -24,6 +24,8 @@ dependencies = [
     "diskcache>=5.6.0",
     "cachetools>=5.5.0",
     "lightgbm>=4.5.0",
+    "gliner>=0.2.0",
+    "rapidfuzz>=3.10.0",
 ]
 
 [project.optional-dependencies]
@@ -67,7 +69,7 @@ warn_return_any = true
 warn_unused_ignores = true
 
 [[tool.mypy.overrides]]
-module = ["aioboto3.*", "aiobotocore.*", "FlagEmbedding.*", "sentence_transformers.*"]
+module = ["aioboto3.*", "aiobotocore.*", "FlagEmbedding.*", "sentence_transformers.*", "gliner.*"]
 ignore_missing_imports = true
 
 [tool.pyright]

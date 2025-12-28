@@ -9,6 +9,7 @@ from engine.core.config import settings
 from engine.core.logging import configure_logging, get_logger
 from engine.embeddings.cache import EmbeddingCache
 from engine.embeddings.model import BGEM3
+from engine.entities import EntityExtractor
 from engine.ltr import get_ltr_service
 from engine.parsers import register_all_parsers
 from engine.reranker import RerankerService, get_cross_encoder_model
@@ -41,6 +42,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     ltr_service = get_ltr_service()
     app.state.ltr_service = ltr_service
 
+    entity_extractor = EntityExtractor.get_instance()
+    app.state.entity_extractor = entity_extractor
+
     logger.info(
         "engine_started",
         environment=settings.environment,
@@ -50,6 +54,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         reranker_device=cross_encoder.device,
         ltr_ready=ltr_service.is_ready,
         ltr_model_version=ltr_service.model_version if ltr_service.is_ready else None,
+        entity_extractor_device=entity_extractor.device,
     )
 
     yield
