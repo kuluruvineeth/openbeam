@@ -5,6 +5,7 @@ export const RANKING_OPTIONS = [
   "semantic",
   "hybrid",
   "hybrid_v2",
+  "hybrid_v2_rerank",
   "recency",
   "engagement",
 ] as const;
@@ -19,6 +20,11 @@ export const RANKING_CONFIG: Record<
     group: "standard" | "advanced" | "other";
   }
 > = {
+  hybrid_v2_rerank: {
+    label: "Hybrid Pro + Rerank",
+    icon: "Sparkle",
+    group: "advanced",
+  },
   hybrid_v2: { label: "Hybrid Pro", icon: "AtomIcon", group: "advanced" },
   hybrid: { label: "Hybrid", icon: "Sparkle", group: "standard" },
   bm25: { label: "Keyword", icon: "Search", group: "standard" },

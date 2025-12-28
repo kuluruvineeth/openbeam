@@ -126,7 +126,8 @@ export function useSearch(options?: { debounceMs?: number }) {
   const includeDocuments = params.content !== "media";
   const includeMedia = params.content !== "documents";
 
-  // Map hybrid_v2 to hybrid for the unified API (hybrid_v2 is UI-only for now)
+  // Map hybrid_v2 to hybrid for the unified API (hybrid_v2 is UI-only)
+  // hybrid_v2_rerank is passed through directly to use the cross-encoder reranking
   const apiRanking = params.ranking === "hybrid_v2" ? "hybrid" : params.ranking;
 
   const unifiedQuery = useInfiniteQuery({

@@ -40,6 +40,7 @@ const KEYBOARD_HINTS: Record<SearchRanking, string> = {
   semantic: "⌘2",
   hybrid: "⌘3",
   hybrid_v2: "⌘4",
+  hybrid_v2_rerank: "⌘5",
   recency: "",
   engagement: "",
 };
