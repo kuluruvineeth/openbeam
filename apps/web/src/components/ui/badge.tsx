@@ -20,6 +20,8 @@ const badgeVariants = cva(
           "border-none bg-secondary px-3 py-1 font-mono font-normal text-[12px] text-muted-foreground",
         "tag-outline":
           "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        filter:
+          "border-transparent bg-foreground/5 font-normal text-foreground",
       },
     },
     defaultVariants: {
