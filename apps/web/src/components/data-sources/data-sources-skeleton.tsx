@@ -1,3 +1,4 @@
+import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function DataSourcesHeaderSkeleton() {
@@ -13,7 +14,7 @@ export function DataSourcesHeaderSkeleton() {
 
       <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-4">
         {[...new Array(4)].map((_, i) => (
-          <div className="border border-border bg-background p-4" key={i}>
+          <Card className="p-4" key={i}>
             <div className="flex items-center justify-between">
               <div>
                 <Skeleton className="h-3 w-24" />
@@ -21,7 +22,7 @@ export function DataSourcesHeaderSkeleton() {
               </div>
               <Skeleton className="size-10" />
             </div>
-          </div>
+          </Card>
         ))}
       </div>
     </div>
@@ -30,7 +31,7 @@ export function DataSourcesHeaderSkeleton() {
 
 export function DataSourcesTableSkeleton() {
   return (
-    <div className="border border-border bg-background">
+    <Card>
       <div className="border-b border-b-border p-4">
         <div className="flex items-center gap-4">
           <Skeleton className="h-4 w-4" />
@@ -59,6 +60,6 @@ export function DataSourcesTableSkeleton() {
           </div>
         </div>
       ))}
-    </div>
+    </Card>
   );
 }

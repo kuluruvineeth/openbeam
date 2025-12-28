@@ -2,7 +2,10 @@
 
 import { formatDistanceToNow } from "date-fns";
 import { Icons } from "@/components/icons";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { getSyncStatusConfig, type SyncStatus } from "@/lib/sync-status";
+import { cn } from "@/lib/utils";
 
 type SyncStatusData = {
   status: SyncStatus;
@@ -18,7 +21,6 @@ type SyncStatusBadgeProps = {
   onClick?: () => void;
 };
 
-// Status label mapping - "ACTIVE" with docs = "Indexed", without = "Ready"
 function getStatusLabel(status: SyncStatus, totalIndexed?: number): string {
   if (status === "ACTIVE") {
     return totalIndexed && totalIndexed > 0 ? "Indexed" : "Ready";
@@ -38,7 +40,7 @@ export function SyncStatusBadge({
 
   if (variant === "compact") {
     const content = (
-      <div className="flex items-center gap-1.5">
+      <>
         <StatusIcon className={config.iconClass} size={10} />
         <span>{label}</span>
         {showCount &&
@@ -49,38 +51,39 @@ export function SyncStatusBadge({
               <span>{data.totalIndexed.toLocaleString()}</span>
             </>
           )}
-      </div>
+      </>
     );
 
-    const className = `inline-flex px-2 py-0.5 font-mono text-[10px] ${config.className}`;
+    const badgeClassName = cn(
+      "gap-1.5 border-transparent font-mono text-[10px]",
+      config.className,
+      onClick && "cursor-pointer transition-opacity hover:opacity-80"
+    );
 
     if (onClick) {
       return (
-        <button
-          className={`${className} cursor-pointer transition-opacity hover:opacity-80`}
-          onClick={onClick}
-          type="button"
-        >
-          {content}
+        <button onClick={onClick} type="button">
+          <Badge className={badgeClassName}>{content}</Badge>
         </button>
       );
     }
 
-    return <div className={className}>{content}</div>;
+    return <Badge className={badgeClassName}>{content}</Badge>;
   }
 
   // Detailed variant
   const detailedContent = (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <div
-          className={`inline-flex px-2 py-0.5 font-mono text-[10px] ${config.className}`}
+        <Badge
+          className={cn(
+            "gap-1.5 border-transparent font-mono text-[10px]",
+            config.className
+          )}
         >
-          <div className="flex items-center gap-1.5">
-            <StatusIcon className={config.iconClass} size={10} />
-            {label}
-          </div>
-        </div>
+          <StatusIcon className={config.iconClass} size={10} />
+          {label}
+        </Badge>
         {data.totalIndexed !== undefined && (
           <span className="font-mono text-[13px] tabular-nums">
             {data.totalIndexed.toLocaleString()}
@@ -112,19 +115,13 @@ export function SyncStatusBadge({
 
   if (onClick) {
     return (
-      <button
-        className="cursor-pointer border border-border/50 bg-background p-3 transition-colors hover:bg-foreground/2"
-        onClick={onClick}
-        type="button"
-      >
-        {detailedContent}
+      <button onClick={onClick} type="button">
+        <Card className="cursor-pointer border-border/50 p-3 transition-colors hover:bg-foreground/2">
+          {detailedContent}
+        </Card>
       </button>
     );
   }
 
-  return (
-    <div className="border border-border/50 bg-background p-3">
-      {detailedContent}
-    </div>
-  );
+  return <Card className="border-border/50 p-3">{detailedContent}</Card>;
 }

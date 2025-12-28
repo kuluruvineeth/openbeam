@@ -2,7 +2,8 @@
 
 import { toast } from "sonner";
 import { Icons } from "@/components/icons";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/submit-button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useTriggerSync } from "@/hooks/use-sync";
 
 type SyncErrorAlertProps = {
@@ -22,24 +23,20 @@ export function SyncErrorAlert({ connectorId, error }: SyncErrorAlertProps) {
   });
 
   return (
-    <div className="border border-destructive/50 bg-destructive/10 p-3">
-      <div className="flex items-start gap-3">
-        <Icons.XIcon className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
-        <div className="flex-1 space-y-2">
-          <div>
-            <p className="font-medium text-destructive text-sm">Sync Error</p>
-            <p className="text-destructive/80 text-xs">{error}</p>
-          </div>
-          <Button
-            disabled={triggerSync.isPending}
-            onClick={() => triggerSync.mutate({ connectorId, type: "FULL" })}
-            size="sm"
-            variant="outline"
-          >
-            {triggerSync.isPending ? "Retrying..." : "Retry Sync"}
-          </Button>
-        </div>
-      </div>
-    </div>
+    <Alert className="p-3" variant="destructive">
+      <Icons.XIcon className="size-4" />
+      <AlertTitle className="text-sm">Sync Error</AlertTitle>
+      <AlertDescription className="space-y-2">
+        <p className="text-foreground/60 text-xs">{error}</p>
+        <SubmitButton
+          isSubmitting={triggerSync.isPending}
+          onClick={() => triggerSync.mutate({ connectorId, type: "FULL" })}
+          size="sm"
+          variant="outline"
+        >
+          Retry Sync
+        </SubmitButton>
+      </AlertDescription>
+    </Alert>
   );
 }

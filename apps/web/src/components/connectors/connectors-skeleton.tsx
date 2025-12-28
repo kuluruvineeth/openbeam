@@ -1,12 +1,13 @@
 "use client";
 
+import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function ConnectorsPageSkeleton() {
   return (
     <div className="space-y-6">
       {/* Table skeleton */}
-      <div className="border border-border bg-background">
+      <Card>
         <div className="border-border/50 border-b p-4">
           <div className="flex items-center gap-4">
             <Skeleton className="h-4 w-4" />
@@ -38,7 +39,7 @@ export function ConnectorsPageSkeleton() {
             </div>
           </div>
         ))}
-      </div>
+      </Card>
     </div>
   );
 }
@@ -47,10 +48,7 @@ export function ConnectorsGridSkeleton() {
   return (
     <div className="mx-auto mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
       {Array.from({ length: 8 }).map((_, i) => (
-        <div
-          className="border border-border/50 bg-background p-5"
-          key={`card-skeleton-${i}`}
-        >
+        <Card className="border-border/50 p-5" key={`card-skeleton-${i}`}>
           <div className="flex items-start justify-between">
             <Skeleton className="size-9 rounded-md" />
             <Skeleton className="h-5 w-20" />
@@ -63,7 +61,7 @@ export function ConnectorsGridSkeleton() {
           <div className="mt-4 border-border/50 border-t pt-4">
             <Skeleton className="h-9 w-full" />
           </div>
-        </div>
+        </Card>
       ))}
     </div>
   );

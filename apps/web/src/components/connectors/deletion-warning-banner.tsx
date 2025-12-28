@@ -2,7 +2,8 @@
 
 import { formatDistanceToNow } from "date-fns";
 import { Icons } from "@/components/icons";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/submit-button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 type DeletionWarningBannerProps = {
   scheduledDeletionAt: Date;
@@ -22,30 +23,30 @@ export function DeletionWarningBanner({
   });
 
   return (
-    <div className="flex items-center justify-between border border-destructive/20 bg-destructive/5 px-4 py-3">
+    <Alert
+      className="flex items-center justify-between [&>svg]:static [&>svg~*]:pl-0"
+      variant="destructive"
+    >
       <div className="flex items-center gap-3">
-        <div className="flex size-8 items-center justify-center bg-destructive/10">
-          <Icons.Alert02 className="text-destructive" size={16} />
-        </div>
+        <Icons.Alert02 className="size-4 shrink-0 text-destructive" />
         <div>
-          <p className="font-medium text-foreground text-sm">
-            Scheduled for deletion
-          </p>
-          <p className="text-foreground/60 text-xs">
+          <AlertTitle className="text-sm">Scheduled for deletion</AlertTitle>
+          <AlertDescription className="text-foreground/60 text-xs">
             Permanent deletion in {timeRemaining}
-          </p>
+          </AlertDescription>
         </div>
       </div>
       {canRestore && (
-        <Button
-          disabled={isRestoring}
+        <SubmitButton
+          className="shrink-0"
+          isSubmitting={isRestoring}
           onClick={onCancel}
           size="sm"
           variant="outline"
         >
-          {isRestoring ? "Restoring..." : "Cancel Deletion"}
-        </Button>
+          Cancel Deletion
+        </SubmitButton>
       )}
-    </div>
+    </Alert>
   );
 }

@@ -3,6 +3,7 @@
 import { toast } from "sonner";
 import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { useTriggerSync } from "@/hooks/use-sync";
 
 type BulkActionsToolbarProps = {
@@ -34,7 +35,7 @@ export function BulkActionsToolbar({
   };
 
   return (
-    <div className="flex items-center justify-between border border-border bg-background-50 p-3">
+    <Card className="flex items-center justify-between bg-background-50 p-3">
       <div className="flex items-center gap-2">
         <span className="font-medium text-sm">{selectedCount} selected</span>
         <Button onClick={onClearSelection} size="sm" variant="ghost">
@@ -52,6 +53,6 @@ export function BulkActionsToolbar({
           Sync All
         </Button>
       </div>
-    </div>
+    </Card>
   );
 }

@@ -75,6 +75,10 @@ import {
   VolumeMute01Icon,
   WebhookIcon,
 } from "@hugeicons-pro/core-stroke-rounded";
+import {
+  Circle as LucideCircle,
+  MoreHorizontal as LucideMoreHorizontal,
+} from "lucide-react";
 import Image from "next/image";
 import type React from "react";
 import type { ComponentProps, SVGProps } from "react";
@@ -273,4 +277,6 @@ export const Icons = {
   Menu: createIcon(Menu01Icon),
   ChevronUp: createIcon(ArrowUpIcon),
   Alert02: createIcon(Alert02Icon),
+  Circle: LucideCircle,
+  MoreHorizontal: LucideMoreHorizontal,
 };

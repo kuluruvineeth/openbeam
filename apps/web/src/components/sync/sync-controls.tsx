@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { Icons } from "@/components/icons";
+import { SubmitButton } from "@/components/submit-button";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import {
   usePauseConnector,
   useResumeConnector,
@@ -95,25 +97,28 @@ export function SyncControls({ connectorId, syncStatus }: SyncControlsProps) {
           </Button>
         </div>
 
-        <div className="border-border border-t pt-4">
+        <Separator className="bg-border" />
+
+        <div className="pt-4">
           {paused ? (
-            <Button
+            <SubmitButton
               className="w-full"
-              disabled={resumeConnector.isPending}
+              isSubmitting={resumeConnector.isPending}
               onClick={() => resumeConnector.mutate({ connectorId })}
               variant="outline"
             >
-              {resumeConnector.isPending ? "Resuming..." : "Resume Connector"}
-            </Button>
+              Resume Connector
+            </SubmitButton>
           ) : (
-            <Button
+            <SubmitButton
               className="w-full"
-              disabled={syncing || pauseConnector.isPending}
+              disabled={syncing}
+              isSubmitting={pauseConnector.isPending}
               onClick={() => pauseConnector.mutate({ connectorId })}
               variant="outline"
             >
-              {pauseConnector.isPending ? "Pausing..." : "Pause Connector"}
-            </Button>
+              Pause Connector
+            </SubmitButton>
           )}
         </div>
       </CardContent>

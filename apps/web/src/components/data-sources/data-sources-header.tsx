@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { useDataSourcesStats } from "@/hooks/use-data-sources";
+import { cn } from "@/lib/utils";
 
 export function DataSourcesHeader() {
   const { data: stats, isLoading } = useDataSourcesStats();
@@ -68,14 +70,14 @@ function StatCard({
   value: number | string;
   variant?: "default" | "success" | "info";
 }) {
-  const variantClasses = {
-    default: "border-border",
-    success: "border-green-200 dark:border-green-900",
-    info: "border-blue-200 dark:border-blue-900",
-  };
-
   return (
-    <div className={`border bg-background p-4 ${variantClasses[variant]}`}>
+    <Card
+      className={cn(
+        "p-4",
+        variant === "success" && "border-green-200 dark:border-green-900",
+        variant === "info" && "border-blue-200 dark:border-blue-900"
+      )}
+    >
       <div className="flex items-center justify-between">
         <div>
           <p className="text-muted-foreground text-xs">{label}</p>
@@ -85,6 +87,6 @@ function StatCard({
           <Icon className="text-muted-foreground" size={20} />
         </div>
       </div>
-    </div>
+    </Card>
   );
 }

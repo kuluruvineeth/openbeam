@@ -2,7 +2,9 @@
 
 import { format } from "date-fns";
 import { DeleteConnectorDialog } from "@/components/connectors/delete-connector-dialog";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/submit-button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import {
   useDisconnectConnector,
   usePauseConnector,
@@ -34,26 +36,28 @@ function PauseResumeAction({
 
   if (isPaused) {
     return (
-      <Button
-        disabled={!canPerformAction || resumeMutation.isPending}
+      <SubmitButton
+        disabled={!canPerformAction}
+        isSubmitting={resumeMutation.isPending}
         onClick={() => resumeMutation.mutate(connectorId)}
         size="sm"
         variant="outline"
       >
-        {resumeMutation.isPending ? "Resuming..." : "Resume"}
-      </Button>
+        Resume
+      </SubmitButton>
     );
   }
 
   return (
-    <Button
-      disabled={!canPerformAction || isDeleting || pauseMutation.isPending}
+    <SubmitButton
+      disabled={!canPerformAction || isDeleting}
+      isSubmitting={pauseMutation.isPending}
       onClick={() => pauseMutation.mutate(connectorId)}
       size="sm"
       variant="outline"
     >
-      {pauseMutation.isPending ? "Pausing..." : "Pause"}
-    </Button>
+      Pause
+    </SubmitButton>
   );
 }
 
@@ -81,14 +85,15 @@ function DeleteOrRestoreAction({
     return (
       <DangerZoneItem
         action={
-          <Button
-            disabled={!canPerformAction || restoreMutation.isPending}
+          <SubmitButton
+            disabled={!canPerformAction}
+            isSubmitting={restoreMutation.isPending}
             onClick={() => restoreMutation.mutate(connectorId)}
             size="sm"
             variant="outline"
           >
-            {restoreMutation.isPending ? "Restoring..." : "Cancel Deletion"}
-          </Button>
+            Cancel Deletion
+          </SubmitButton>
         }
         description={description}
         showPermissionMessage={showPermissionMessage}
@@ -130,12 +135,14 @@ export function DangerZone({
   const showPermissionMessage = !(isAdmin || isRoleLoading);
 
   return (
-    <div className="mt-8 border border-destructive/20">
-      <div className="border-destructive/20 border-b bg-destructive/5 px-4 py-2">
-        <h3 className="font-medium text-foreground text-sm">Danger Zone</h3>
-      </div>
+    <Card className="mt-8 border-destructive/20">
+      <CardHeader className="bg-destructive/5 px-4 py-2">
+        <CardTitle className="font-medium text-foreground text-sm">
+          Danger Zone
+        </CardTitle>
+      </CardHeader>
 
-      <div className="divide-y divide-border/50">
+      <CardContent className="p-0">
         <DangerZoneItem
           action={
             <PauseResumeAction
@@ -150,6 +157,8 @@ export function DangerZone({
           title="Pause Connector"
         />
 
+        <Separator className="bg-border/50" />
+
         <DeleteOrRestoreAction
           canPerformAction={canPerformAction}
           connectorId={connectorId}
@@ -157,8 +166,8 @@ export function DangerZone({
           scheduledDate={scheduledDate}
           showPermissionMessage={showPermissionMessage}
         />
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 

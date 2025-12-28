@@ -1,5 +1,6 @@
 import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import {
   Tooltip,
   TooltipContent,
@@ -79,7 +80,7 @@ export function PdfToolbar({
 }
 
 function Divider() {
-  return <div className="mx-1 h-5 w-px bg-border/60" />;
+  return <Separator className="mx-1 h-5 bg-border/60" orientation="vertical" />;
 }
 
 function HighlightIndicator() {
