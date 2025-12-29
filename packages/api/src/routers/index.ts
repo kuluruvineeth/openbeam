@@ -9,6 +9,7 @@ import { knowledgeRouter } from "./knowledge";
 import { mediaRouter } from "./media";
 import { messagesRouter } from "./messages";
 import { permissionsRouter } from "./permissions";
+import { personalizationRouter } from "./personalization";
 import { searchRouter } from "./search";
 import { teamRouter } from "./team";
 import { userRouter } from "./user";
@@ -25,6 +26,7 @@ export const appRouter = createTRPCRouter({
   analytics: analyticsRouter,
   knowledge: knowledgeRouter,
   permissions: permissionsRouter,
+  personalization: personalizationRouter,
 });
 
 export type AppRouter = typeof appRouter;
