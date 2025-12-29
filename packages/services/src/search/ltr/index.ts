@@ -1,4 +1,5 @@
 export { callLTR, getLTRHealth } from "./client";
+export { extractPersonalizationFeatures } from "./personalization-features";
 export type { LTRConfig } from "./service";
 export { LTRService, ltrService } from "./service";
 export type {

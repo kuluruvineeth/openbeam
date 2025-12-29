@@ -20,6 +20,13 @@ export interface DocumentFeatures {
   departmentMatch: boolean;
   authorInteractionCount: number;
   authorId?: string;
+  userQuerySimilarity?: number;
+  userDocSimilarity?: number;
+  connectorPreference?: number;
+  authorAffinity?: number;
+  topicAffinity?: number;
+  isFromPreferredConnector?: boolean;
+  isFromKnownAuthor?: boolean;
 }
 
 export interface UserContext {
@@ -31,6 +38,10 @@ export interface UserContext {
   avgDwellMs?: number;
   connectorWeights: Record<string, number>;
   authorInteractions: Record<string, number>;
+  topicWeights?: Record<string, number>;
+  queryEmbedding?: number[] | null;
+  docEmbedding?: number[] | null;
+  isNewUser?: boolean;
 }
 
 export interface LTRRequest {

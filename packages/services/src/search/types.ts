@@ -87,6 +87,7 @@ export interface SearchTiming {
   fusionMs: number;
   rerankMs?: number;
   ltrMs?: number;
+  personalizationMs?: number;
   totalMs: number;
 }
 
@@ -97,6 +98,7 @@ export interface SearchMetadata {
   rrfK?: number;
   rerankModel?: string;
   ltrModelVersion?: string;
+  personalized?: boolean;
 }
 
 export interface RetrievalResult {

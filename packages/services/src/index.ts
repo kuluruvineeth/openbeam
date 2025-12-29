@@ -278,6 +278,27 @@ export type {
 } from "./permissions";
 export { resolvePermissions } from "./permissions";
 export type {
+  DocumentForScoring,
+  PersonalizationContext,
+  PersonalizationScores,
+  PersonalizedDocument,
+  RecentClick,
+  RecentQuery,
+  ResolvedUserProfile,
+} from "./personalization";
+export {
+  applyPersonalization,
+  computePersonalizationScores,
+  computeTopicAffinity,
+  resolveColdStartProfile,
+  resolveUserProfile,
+  serializeEmbedding,
+  shouldPersonalize,
+  updateDocEmbedding,
+  updateQueryEmbedding,
+  updateTopicAffinity,
+} from "./personalization";
+export type {
   AuthorFacet,
   AuthorFacetsParams,
   AuthorSearchParams,

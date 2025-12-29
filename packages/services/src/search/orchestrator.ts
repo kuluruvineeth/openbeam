@@ -1,6 +1,11 @@
 import { getBGEM3Provider } from "@openplane/ai";
+import prisma from "@openplane/db";
 import { type GenericDocument, vespaClient } from "@openplane/vespa";
 import { logger } from "../lib/logger";
+import {
+  applyPersonalization,
+  shouldPersonalize,
+} from "../personalization/search-integration";
 import { weightedReciprocalRankFusion } from "./fusion/weighted-rrf";
 import type { DocumentFeatures, LTRResult } from "./ltr";
 import { ltrService } from "./ltr";
@@ -346,13 +351,30 @@ export class HybridSearchOrchestrator {
         )
       : null;
 
-    const rankedDocuments = this.buildRankedDocuments({
+    let rankedDocuments = this.buildRankedDocuments({
       topDocIds,
       documents,
       fusedResults,
       rerankScoreMap,
       ltrScoreMap,
     });
+
+    let personalized = false;
+    if (request.userId && shouldPersonalize(mode)) {
+      const personalizationStart = performance.now();
+      const personalizedResults = await applyPersonalization(
+        prisma,
+        {
+          userId: request.userId,
+          teamId: request.teamId,
+          email: null,
+        },
+        rankedDocuments
+      );
+      timing.personalizationMs = performance.now() - personalizationStart;
+      rankedDocuments = personalizedResults;
+      personalized = true;
+    }
 
     timing.totalMs = performance.now() - startTime;
 
@@ -364,6 +386,7 @@ export class HybridSearchOrchestrator {
         timing,
         reranked: rerankedResults !== null,
         ltr: ltrResults !== null,
+        personalized,
       },
       "Hybrid search completed"
     );
@@ -379,6 +402,7 @@ export class HybridSearchOrchestrator {
         rrfK: rrfConfig.k,
         rerankModel,
         ltrModelVersion,
+        personalized,
       },
     };
   }
