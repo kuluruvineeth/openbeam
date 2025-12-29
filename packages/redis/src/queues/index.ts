@@ -14,6 +14,8 @@ export * from "./ltr-training-queue";
 export { closeLTRTrainingQueue } from "./ltr-training-queue";
 export * from "./media-processing-queue";
 export { closeMediaProcessingQueue } from "./media-processing-queue";
+export * from "./profile-update-queue";
+export { closeProfileUpdateQueue } from "./profile-update-queue";
 export * from "./reembed-queue";
 export { closeReembedQueue } from "./reembed-queue";
 export * from "./sync-queue";

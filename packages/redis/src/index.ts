@@ -7,12 +7,21 @@ export {
 export { Cache, cache } from "./cache";
 export {
   type CachedPermissionSet,
+  type CachedUserEmbeddings,
+  type CachedUserProfile,
   DOCUMENT_CACHE_TTL,
+  EMBEDDING_CACHE_TTL,
   GROUP_CACHE_TTL,
   getPermissionCache,
+  getUserProfileCache,
   PERMISSION_CACHE_TTL,
   PermissionCache,
   PermissionCacheKeys,
+  PROFILE_CACHE_TTL,
+  ProfileCacheKeys,
+  TEAM_DEFAULTS_TTL,
+  type TeamDefaults,
+  UserProfileCache,
 } from "./cache/index";
 export {
   closeRedisClient,
