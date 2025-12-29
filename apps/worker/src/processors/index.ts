@@ -26,6 +26,10 @@ export {
   type MediaProcessingResult,
   processMediaJob,
 } from "./media";
+export {
+  createProfileUpdateProcessor,
+  processProfileUpdate,
+} from "./personalization";
 export { createSyncProcessor } from "./sync";
 export type { CreateWorkerOptions, JobHandler, ProcessorResult } from "./types";
 export {
