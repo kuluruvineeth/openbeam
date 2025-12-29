@@ -63,24 +63,60 @@ model SearchClick {
 }
 
 model UserSearchProfile {
-  id                 String   @id @default(cuid()) @map("_id")
-  userId             String
-  teamId             String
+  id                     String    @id @default(cuid()) @map("_id")
+  userId                 String
+  teamId                 String
 
-  department         String?
-  searchCount        Int      @default(0)
-  clickCount         Int      @default(0)
-  avgDwellMs         Float?
+  department             String?
+  searchCount            Int       @default(0)
+  clickCount             Int       @default(0)
+  avgDwellMs             Float?
 
-  connectorWeights   Json     @default("{}")
-  authorInteractions Json     @default("{}")
+  connectorWeights       Json      @default("{}")
+  authorInteractions     Json      @default("{}")
 
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  queryEmbedding         Bytes?
+  docEmbedding           Bytes?
+
+  topicWeights           Json      @default("{}")
+  recentQueries          Json      @default("[]")
+  recentClicks           Json      @default("[]")
+
+  embeddingVersion       Int       @default(0)
+  lastEmbeddingAt        DateTime?
+  lastActiveAt           DateTime?
+
+  personalizationEnabled Boolean   @default(true)
+
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
 
   @@unique([userId, teamId])
   @@index([teamId])
+  @@index([lastActiveAt])
   @@map("user_search_profile")
+}
+
+model UserSessionActivity {
+  id            String    @id @default(cuid()) @map("_id")
+  userId        String
+  teamId        String
+  sessionId     String
+
+  queryCount    Int       @default(0)
+  clickCount    Int       @default(0)
+  totalDwellMs  Int       @default(0)
+
+  startedAt     DateTime  @default(now())
+  endedAt       DateTime?
+
+  topConnectors Json      @default("[]")
+  topTopics     Json      @default("[]")
+
+  @@unique([sessionId])
+  @@index([userId, teamId])
+  @@index([startedAt])
+  @@map("user_session_activity")
 }
 
 model LTRModel {
