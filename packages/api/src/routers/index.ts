@@ -1,8 +1,10 @@
 import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import { createTRPCRouter } from "../index";
 
+import { aiRouter } from "./ai";
 import { analyticsRouter } from "./analytics";
 import { appsRouter } from "./apps";
+import { backgroundAgentsRouter } from "./background-agents";
 import { filesRouter } from "./files";
 import { jobsRouter } from "./jobs";
 import { knowledgeRouter } from "./knowledge";
@@ -10,6 +12,7 @@ import { mediaRouter } from "./media";
 import { messagesRouter } from "./messages";
 import { permissionsRouter } from "./permissions";
 import { personalizationRouter } from "./personalization";
+import { ragRouter } from "./rag";
 import { searchRouter } from "./search";
 import { teamRouter } from "./team";
 import { userRouter } from "./user";
@@ -27,6 +30,9 @@ export const appRouter = createTRPCRouter({
   knowledge: knowledgeRouter,
   permissions: permissionsRouter,
   personalization: personalizationRouter,
+  rag: ragRouter,
+  backgroundAgents: backgroundAgentsRouter,
+  ai: aiRouter,
 });
 
 export type AppRouter = typeof appRouter;
