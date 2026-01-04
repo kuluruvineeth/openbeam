@@ -219,7 +219,13 @@ export type DocumentRankingProfile =
   | "semantic_v2"
   | "hybrid_v2"
   | "enterprise_v2"
-  | "sparse_v2";
+  | "sparse_v2"
+  | "global_sorted"
+  | "global_sorted_v2"
+  | "hybrid_debug"
+  | "authority_debug"
+  | "personalized_debug"
+  | "enterprise_v2_debug";
 
 export interface SparseTensorCell {
   address: { token: string };

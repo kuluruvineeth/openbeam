@@ -725,5 +725,174 @@ schema openplane_document {
       expression: reduce(attribute(sparse_embedding) * query(sparse_embedding), sum)
     }
   }
+
+  # === Recency-Sorted Search (Time-Binned) ===
+  # Groups documents into time bins for stable sorting by recency
+  # Documents within same bin are ranked by relevance
+  rank-profile global_sorted {
+    inputs {
+      query(query_embedding) tensor<float>(x[1536])
+      query(bin_size_days) double: 7.0
+    }
+
+    constants {
+      ONE_DAY_MS: 86400000.0
+      THREE_MONTHS_MS: 7776000000.0
+      RECENCY_BIN_MULTIPLIER: 1000000.0
+      MAX_SCORE_BASE: 1000000000.0
+    }
+
+    function document_age_days() {
+      expression: max(0.0, if(isNan(attribute(updated_at)) == 1, THREE_MONTHS_MS / ONE_DAY_MS, (now() - attribute(updated_at)) / ONE_DAY_MS))
+    }
+
+    function recency_bin_index() {
+      expression: floor(document_age_days() / query(bin_size_days))
+    }
+
+    function recency_bin_score() {
+      expression: MAX_SCORE_BASE - (recency_bin_index() * RECENCY_BIN_MULTIPLIER)
+    }
+
+    function bm25_score() {
+      expression: bm25(title) * 2 + bm25(content)
+    }
+
+    function vector_score() {
+      expression: closeness(field, content_embedding)
+    }
+
+    function normalize(score) {
+      expression: score / (1 + score)
+    }
+
+    function hybrid_relevance() {
+      expression: 0.6 * normalize(bm25_score()) + 0.4 * vector_score()
+    }
+
+    first-phase {
+      expression: recency_bin_score() + hybrid_relevance()
+    }
+
+    match-features {
+      bm25(title)
+      bm25(content)
+      closeness(field, content_embedding)
+      document_age_days
+      recency_bin_index
+      recency_bin_score
+      hybrid_relevance
+    }
+  }
+
+  # === Recency-Sorted with BGE-M3 ===
+  rank-profile global_sorted_v2 {
+    inputs {
+      query(embedding_v2) tensor<float>(x[1024])
+      query(sparse_embedding) tensor<float>(token{})
+      query(bin_size_days) double: 7.0
+    }
+
+    constants {
+      ONE_DAY_MS: 86400000.0
+      THREE_MONTHS_MS: 7776000000.0
+      RECENCY_BIN_MULTIPLIER: 1000000.0
+      MAX_SCORE_BASE: 1000000000.0
+    }
+
+    function document_age_days() {
+      expression: max(0.0, if(isNan(attribute(updated_at)) == 1, THREE_MONTHS_MS / ONE_DAY_MS, (now() - attribute(updated_at)) / ONE_DAY_MS))
+    }
+
+    function recency_bin_index() {
+      expression: floor(document_age_days() / query(bin_size_days))
+    }
+
+    function recency_bin_score() {
+      expression: MAX_SCORE_BASE - (recency_bin_index() * RECENCY_BIN_MULTIPLIER)
+    }
+
+    function bm25_score() {
+      expression: bm25(title) * 2 + bm25(content)
+    }
+
+    function dense_score() {
+      expression: closeness(field, embedding)
+    }
+
+    function sparse_score() {
+      expression: reduce(attribute(sparse_embedding) * query(sparse_embedding), sum)
+    }
+
+    function normalize(score) {
+      expression: score / (1 + score)
+    }
+
+    function hybrid_relevance() {
+      expression: 0.4 * normalize(bm25_score()) + 0.4 * dense_score() + 0.2 * sparse_score()
+    }
+
+    first-phase {
+      expression: recency_bin_score() + hybrid_relevance()
+    }
+
+    match-features {
+      bm25(title)
+      bm25(content)
+      closeness(field, embedding)
+      sparse_score
+      document_age_days
+      recency_bin_index
+      recency_bin_score
+      hybrid_relevance
+    }
+  }
+
+  # === Enterprise V2 with Match Features ===
+  rank-profile enterprise_v2_debug inherits enterprise_v2 {
+    match-features {
+      bm25(title)
+      bm25(content)
+      closeness(field, embedding)
+      attribute(view_count)
+      attribute(authority_score)
+      attribute(updated_at)
+    }
+  }
+
+  # === Hybrid with Match Features (for debugging/tuning) ===
+  rank-profile hybrid_debug inherits hybrid {
+    match-features {
+      bm25(title)
+      bm25(content)
+      closeness(field, content_embedding)
+      attribute(updated_at)
+    }
+  }
+
+  # === Authority with Match Features ===
+  rank-profile authority_debug inherits authority {
+    match-features {
+      bm25(title)
+      bm25(content)
+      closeness(field, content_embedding)
+      attribute(authority_score)
+      attribute(is_canonical)
+      attribute(inbound_links_count)
+    }
+  }
+
+  # === Personalized with Match Features ===
+  rank-profile personalized_debug inherits personalized {
+    match-features {
+      bm25(title)
+      bm25(content)
+      closeness(field, content_embedding)
+      attribute(authority_score)
+      attribute(view_count)
+      attribute(trending_score)
+      attribute(updated_at)
+    }
+  }
 }
 

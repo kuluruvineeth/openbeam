@@ -320,4 +320,81 @@ schema entity {
       }
     }
   }
+
+  # === Recency-Sorted Entities ===
+  rank-profile global_sorted {
+    inputs {
+      query(bin_size_days) double: 7.0
+    }
+
+    constants {
+      ONE_DAY_MS: 86400000.0
+      THREE_MONTHS_MS: 7776000000.0
+      RECENCY_BIN_MULTIPLIER: 1000000.0
+      MAX_SCORE_BASE: 1000000000.0
+    }
+
+    function document_age_days() {
+      expression: max(0.0, if(isNan(attribute(last_activity_at)) == 1, THREE_MONTHS_MS / ONE_DAY_MS, (now() - attribute(last_activity_at)) / ONE_DAY_MS))
+    }
+
+    function recency_bin_index() {
+      expression: floor(document_age_days() / query(bin_size_days))
+    }
+
+    function recency_bin_score() {
+      expression: MAX_SCORE_BASE - (recency_bin_index() * RECENCY_BIN_MULTIPLIER)
+    }
+
+    function relevance_score() {
+      expression: bm25(name) * 2 + bm25(display_name) * 1.5 + bm25(email) + bm25(description) * 0.5
+    }
+
+    function normalize(score) {
+      expression: score / (1 + score)
+    }
+
+    first-phase {
+      expression: recency_bin_score() + normalize(relevance_score())
+    }
+
+    match-features {
+      bm25(name)
+      bm25(display_name)
+      bm25(email)
+      bm25(description)
+      document_age_days
+      recency_bin_index
+      recency_bin_score
+      relevance_score
+    }
+  }
+
+  # === Debug profiles with match features ===
+  rank-profile default_debug inherits default {
+    match-features {
+      bm25(name)
+      bm25(display_name)
+      bm25(email)
+      bm25(description)
+    }
+  }
+
+  rank-profile hybrid_debug inherits hybrid {
+    match-features {
+      bm25(name)
+      bm25(description)
+      bm25(tags)
+      closeness(field, entity_embedding)
+    }
+  }
+
+  rank-profile active_debug inherits active {
+    match-features {
+      bm25(name)
+      bm25(description)
+      attribute(document_count)
+      attribute(activity_score)
+    }
+  }
 }

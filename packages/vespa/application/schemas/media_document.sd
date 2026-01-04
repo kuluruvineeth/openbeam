@@ -455,6 +455,99 @@ schema media_document {
       expression: if(t > now() - 604800000, 1.3, 1.0)
     }
   }
+
+  # === Recency-Sorted Media Search ===
+  rank-profile global_sorted {
+    inputs {
+      query(media_embedding) tensor<float>(x[512])
+      query(bin_size_days) double: 7.0
+    }
+
+    constants {
+      ONE_DAY_MS: 86400000.0
+      THREE_MONTHS_MS: 7776000000.0
+      RECENCY_BIN_MULTIPLIER: 1000000.0
+      MAX_SCORE_BASE: 1000000000.0
+    }
+
+    function document_age_days() {
+      expression: max(0.0, if(isNan(attribute(created_at)) == 1, THREE_MONTHS_MS / ONE_DAY_MS, (now() - attribute(created_at)) / ONE_DAY_MS))
+    }
+
+    function recency_bin_index() {
+      expression: floor(document_age_days() / query(bin_size_days))
+    }
+
+    function recency_bin_score() {
+      expression: MAX_SCORE_BASE - (recency_bin_index() * RECENCY_BIN_MULTIPLIER)
+    }
+
+    function bm25_score() {
+      expression: bm25(title) * 2 + bm25(media_summary) + bm25(media_keywords)
+    }
+
+    function vector_score() {
+      expression: closeness(field, segment_embeddings)
+    }
+
+    function normalize(score) {
+      expression: score / (1 + score)
+    }
+
+    function hybrid_relevance() {
+      expression: 0.4 * normalize(bm25_score()) + 0.6 * vector_score()
+    }
+
+    first-phase {
+      expression: recency_bin_score() + hybrid_relevance()
+    }
+
+    match-features {
+      bm25(title)
+      bm25(media_summary)
+      bm25(media_keywords)
+      closeness(field, segment_embeddings)
+      document_age_days
+      recency_bin_index
+      recency_bin_score
+      hybrid_relevance
+    }
+  }
+
+  # === Debug profiles with match features ===
+  rank-profile hybrid_debug inherits hybrid {
+    match-features {
+      bm25(title)
+      bm25(media_summary)
+      bm25(media_keywords)
+      closeness(field, segment_embeddings)
+    }
+  }
+
+  rank-profile enterprise_debug inherits enterprise {
+    match-features {
+      bm25(title)
+      bm25(media_summary)
+      closeness(field, segment_embeddings)
+      attribute(view_count)
+      attribute(avg_watch_percentage)
+      attribute(trending_score)
+      attribute(created_at)
+    }
+  }
+
+  rank-profile engagement_debug inherits engagement {
+    match-features {
+      bm25(title)
+      bm25(media_summary)
+      closeness(field, segment_embeddings)
+      attribute(view_count)
+      attribute(avg_watch_percentage)
+      attribute(share_count)
+      attribute(comment_count)
+      attribute(created_at)
+    }
+  }
 }
 
 
