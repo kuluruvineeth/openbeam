@@ -1,0 +1,85 @@
+model Conversation {
+  id            String   @id @default(cuid()) @map("_id")
+  userId        String
+  teamId        String
+
+  title         String?
+  status        String   @default("active")
+  messageCount  Int      @default(0)
+
+  summaryUpToMessageId String?
+  summary              String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  messages      ConversationMessage[]
+
+  @@index([userId, teamId])
+  @@index([teamId, status])
+  @@index([createdAt])
+  @@map("conversation")
+}
+
+model ConversationMessage {
+  id              String   @id @default(cuid()) @map("_id")
+  conversationId  String
+
+  role            String
+  content         String
+
+  citations       Json     @default("[]")
+  contextDocIds   String[] @default([])
+  groundingScore  Float?
+  confidence      String?
+
+  promptTokens    Int?
+  completionTokens Int?
+
+  latencyMs       Int?
+  firstTokenMs    Int?
+
+  createdAt       DateTime @default(now())
+
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@map("conversation_message")
+}
+
+model RAGInteraction {
+  id              String   @id @default(cuid()) @map("_id")
+  userId          String
+  teamId          String
+  conversationId  String?
+
+  query           String
+  queryHash       String
+  queryIntent     String?
+
+  retrievedDocs   Int
+  usedChunks      Int
+  avgChunkScore   Float?
+
+  answerLength    Int
+  citationCount   Int
+  groundingScore  Float?
+  confidence      String?
+
+  retrievalMs     Int
+  chunkingMs      Int
+  generationMs    Int
+  groundingMs     Int?
+  totalMs         Int
+  firstTokenMs    Int?
+
+  feedbackType    String?
+  feedbackNote    String?
+
+  createdAt       DateTime @default(now())
+
+  @@index([userId, teamId])
+  @@index([queryHash])
+  @@index([createdAt])
+  @@map("rag_interaction")
+}
