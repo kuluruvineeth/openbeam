@@ -1,0 +1,112 @@
+{
+  "name": "@openplane/analytics",
+  "version": "0.1.0",
+  "description": "Centralized product analytics for OpenPlane - PostHog integration, event tracking, feature flags, and enterprise search metrics",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./src/index.ts"
+    },
+    "./events": {
+      "types": "./dist/events/index.d.ts",
+      "default": "./src/events/index.ts"
+    },
+    "./groups": {
+      "types": "./dist/groups/index.d.ts",
+      "default": "./src/groups/index.ts"
+    },
+    "./llm": {
+      "types": "./dist/llm/index.d.ts",
+      "default": "./src/llm/index.ts"
+    },
+    "./metrics": {
+      "types": "./dist/metrics/index.d.ts",
+      "default": "./src/metrics/index.ts"
+    },
+    "./feature-flags": {
+      "types": "./dist/feature-flags/index.d.ts",
+      "default": "./src/feature-flags/index.ts"
+    },
+    "./providers/react": {
+      "types": "./dist/providers/react.d.ts",
+      "default": "./src/providers/react.tsx"
+    },
+    "./middleware/nextjs": {
+      "types": "./dist/middleware/nextjs.d.ts",
+      "default": "./src/middleware/nextjs.ts"
+    },
+    "./middleware/hono": {
+      "types": "./dist/middleware/hono.d.ts",
+      "default": "./src/middleware/hono.ts"
+    },
+    "./middleware/trpc": {
+      "types": "./dist/middleware/trpc.d.ts",
+      "default": "./src/middleware/trpc.ts"
+    },
+    "./privacy": {
+      "types": "./dist/privacy/index.d.ts",
+      "default": "./src/privacy/index.ts"
+    },
+    "./observability": {
+      "types": "./dist/observability/index.d.ts",
+      "default": "./src/observability/index.ts"
+    },
+    "./llm/vercel-ai": {
+      "types": "./dist/llm/vercel-ai.d.ts",
+      "default": "./src/llm/vercel-ai.ts"
+    },
+    "./providers/server": {
+      "types": "./dist/providers/server-context.d.ts",
+      "default": "./src/providers/server-context.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "posthog-js": "^1.313.0",
+    "posthog-node": "^5.18.1",
+    "@posthog/ai": "^1.0.0",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@openplane/config": "workspace:*",
+    "@types/react": "^19.0.0",
+    "hono": "^4.6.15",
+    "next": "^15.3.0",
+    "react": "^19.0.0",
+    "tsdown": "^0.15.12",
+    "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "typescript": "^5",
+    "react": "^18 || ^19",
+    "next": "^14 || ^15 || ^16",
+    "hono": "^4",
+    "@trpc/server": "^11",
+    "@ai-sdk/provider": "^1",
+    "@openplane/db": "workspace:*"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "next": {
+      "optional": true
+    },
+    "hono": {
+      "optional": true
+    },
+    "@trpc/server": {
+      "optional": true
+    },
+    "@ai-sdk/provider": {
+      "optional": true
+    },
+    "@openplane/db": {
+      "optional": true
+    }
+  }
+}
