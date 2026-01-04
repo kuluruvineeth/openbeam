@@ -24,6 +24,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@openplane/ai": "workspace:*",
     "@openplane/auth": "workspace:*",
     "@openplane/db": "workspace:*",
     "@openplane/integrations": "workspace:*",
