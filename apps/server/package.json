@@ -14,6 +14,7 @@
     "@bull-board/hono": "^6.14.2",
     "@hono/trpc-server": "^0.4.0",
     "@hono/zod-openapi": "^1.1.5",
+    "@openplane/ai": "workspace:*",
     "@openplane/api": "workspace:*",
     "@openplane/auth": "workspace:*",
     "@openplane/db": "workspace:*",

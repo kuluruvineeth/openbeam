@@ -3,6 +3,7 @@ import type { AuthEnv } from "@/middleware/auth";
 import admin from "@/modules/admin/admin.index";
 import health from "@/modules/health/health.index";
 import integrations from "@/modules/integrations/integrations.index";
+import mcp from "@/modules/mcp/mcp.index";
 import v1Router from "./v1";
 
 export const mapRoutes = (app: OpenAPIHono<AuthEnv>) => {
@@ -17,6 +18,9 @@ export const mapRoutes = (app: OpenAPIHono<AuthEnv>) => {
 
   // Health API (public)
   app.route("/api/health", health);
+
+  // MCP API (authenticated)
+  app.route("/api/mcp", mcp);
 
   return app;
 };
