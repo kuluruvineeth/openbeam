@@ -412,7 +412,7 @@ export function createOllamaProvider(): AIProvider {
       return ollama(modelId);
     },
 
-    getEmbeddingModel(modelId: string): EmbeddingModel<string> {
+    getEmbeddingModel(modelId: string): EmbeddingModel {
       return ollama.embedding(modelId);
     },
 

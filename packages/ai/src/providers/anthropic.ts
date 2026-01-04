@@ -63,7 +63,7 @@ export function createAnthropicProvider(): AIProvider {
       return anthropic(modelId);
     },
 
-    getEmbeddingModel(_modelId: string): EmbeddingModel<string> {
+    getEmbeddingModel(_modelId: string): EmbeddingModel {
       throw new Error(
         "Anthropic does not provide embedding models. Use OpenAI or Google for embeddings."
       );

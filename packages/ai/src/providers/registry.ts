@@ -64,10 +64,7 @@ class ProviderRegistry {
     return provider.getChatModel(effectiveModel);
   }
 
-  embeddingModel(
-    providerId?: ProviderId,
-    modelId?: string
-  ): EmbeddingModel<string> {
+  embeddingModel(providerId?: ProviderId, modelId?: string): EmbeddingModel {
     this.ensureInitialized();
 
     const config = getConfig();

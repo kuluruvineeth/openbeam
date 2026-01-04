@@ -75,7 +75,7 @@ function createTwelveLabsTextEmbeddingModel(
   apiKey: string,
   baseUrl: string,
   modelId: string
-): EmbeddingModel<string> {
+): EmbeddingModel {
   return {
     specificationVersion: "v2",
     modelId: `twelvelabs:${modelId}`,
@@ -102,7 +102,7 @@ export function createTwelveLabsProvider(): AIProvider {
       throw new Error("TwelveLabs does not support chat models");
     },
 
-    getEmbeddingModel(modelId: string): EmbeddingModel<string> {
+    getEmbeddingModel(modelId: string): EmbeddingModel {
       return createTwelveLabsTextEmbeddingModel(apiKey, baseUrl, modelId);
     },
 

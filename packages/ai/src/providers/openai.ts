@@ -103,7 +103,7 @@ export function createOpenAIProvider(): AIProvider {
       return openai(modelId);
     },
 
-    getEmbeddingModel(modelId: string): EmbeddingModel<string> {
+    getEmbeddingModel(modelId: string): EmbeddingModel {
       return openai.embedding(modelId);
     },
 

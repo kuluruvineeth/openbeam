@@ -9,6 +9,18 @@ import type {
 
 const CHAT_MODELS: ChatModelDefinition[] = [
   {
+    id: "gemini-3-flash-preview",
+    name: "Gemini 3 Flash",
+    provider: "google",
+    contextWindow: 1_048_576,
+    maxOutputTokens: 65_536,
+    supportsTools: true,
+    supportsVision: true,
+    supportsStreaming: true,
+    costPer1kInput: 0.0005,
+    costPer1kOutput: 0.003,
+  },
+  {
     id: "gemini-3-pro-preview",
     name: "Gemini 3 Pro",
     provider: "google",
@@ -81,7 +93,7 @@ export function createGoogleProvider(): AIProvider {
       return google(modelId);
     },
 
-    getEmbeddingModel(modelId: string): EmbeddingModel<string> {
+    getEmbeddingModel(modelId: string): EmbeddingModel {
       return google.textEmbeddingModel(modelId);
     },
 

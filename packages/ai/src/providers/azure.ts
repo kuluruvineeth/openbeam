@@ -292,7 +292,7 @@ export function createAzureProvider(): AIProvider {
       return azure(modelId);
     },
 
-    getEmbeddingModel(modelId: string): EmbeddingModel<string> {
+    getEmbeddingModel(modelId: string): EmbeddingModel {
       return azure.embedding(modelId);
     },
 
