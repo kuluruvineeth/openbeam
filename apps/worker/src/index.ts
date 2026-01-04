@@ -1,5 +1,6 @@
 import "./instrumentation";
 import {
+  closeBackgroundAgentQueue,
   closeCleanupQueue,
   closeConnectorCleanupQueue,
   closeDigestQueue,
@@ -12,9 +13,11 @@ import {
   closeSyncQueue,
   closeWebhookQueue,
 } from "@openplane/redis";
+import { initializeAI } from "@openplane/services";
 import { startHealthServer, stopHealthServer } from "./health";
 import { startMetricsServer, stopMetricsServer } from "./metrics";
 import {
+  createBackgroundAgentProcessor,
   createCleanupProcessor,
   createConnectorCleanupProcessor,
   createDigestProcessor,
@@ -48,9 +51,12 @@ class WorkerService {
   private readonly digestProcessor: ProcessorResult;
   private readonly ltrTrainingProcessor: ProcessorResult;
   private readonly entityExtractionProcessor: ProcessorResult;
+  private readonly backgroundAgentProcessor: ProcessorResult;
 
   constructor() {
     logger.info("Initializing OpenPlane Worker...");
+
+    initializeAI({ enableMetrics: true });
 
     this.syncProcessor = createSyncProcessor();
     this.indexProcessor = createIndexProcessor();
@@ -62,6 +68,7 @@ class WorkerService {
     this.digestProcessor = createDigestProcessor();
     this.ltrTrainingProcessor = createLTRTrainingProcessor();
     this.entityExtractionProcessor = createEntityExtractionProcessor();
+    this.backgroundAgentProcessor = createBackgroundAgentProcessor();
 
     this.syncScheduler = new SyncScheduler();
     this.cleanupScheduler = new CleanupScheduler("0 2 * * *");
@@ -107,6 +114,7 @@ class WorkerService {
           digestScheduler: "running",
           ltrTrainingProcessor: "running",
           entityExtractionProcessor: "running",
+          backgroundAgentProcessor: "running",
           reembedProcessor: "running",
           metricsServer: "running",
           healthServer: "running",
@@ -136,6 +144,7 @@ class WorkerService {
       this.digestProcessor.close(),
       this.ltrTrainingProcessor.close(),
       this.entityExtractionProcessor.close(),
+      this.backgroundAgentProcessor.close(),
       stopReembedWorker(),
       stopMetricsServer(),
       stopHealthServer(),
@@ -152,6 +161,7 @@ class WorkerService {
       closeConnectorCleanupQueue(),
       closeDigestQueue(),
       closeReembedQueue(),
+      closeBackgroundAgentQueue(),
       closeSharedBullMqConnection(),
     ]);
 

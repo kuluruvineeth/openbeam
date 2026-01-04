@@ -1,3 +1,7 @@
+export {
+  createBackgroundAgentProcessor,
+  processBackgroundAgentJob,
+} from "./background-agent";
 export { createCleanupProcessor, triggerCleanup } from "./cleanup";
 export {
   createConnectorCleanupProcessor,
