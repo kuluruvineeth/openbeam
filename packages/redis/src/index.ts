@@ -24,6 +24,15 @@ export {
   UserProfileCache,
 } from "./cache/index";
 export {
+  type CachedAnswer,
+  type CachedChunks,
+  type CachedGrounding,
+  getRAGCache,
+  hashAnswer,
+  hashQuery,
+  RAGCache,
+} from "./cache/rag-cache";
+export {
   closeRedisClient,
   closeSharedBullMqConnection,
   getRedisClient,
@@ -53,6 +62,7 @@ export {
 } from "./pubsub/job-progress";
 export * from "./queues";
 export {
+  closeBackgroundAgentQueue,
   closeCleanupQueue,
   closeConnectorCleanupQueue,
   closeDigestQueue,

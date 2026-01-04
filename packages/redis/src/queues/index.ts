@@ -1,3 +1,5 @@
+export * from "./background-agent-queue";
+export { closeBackgroundAgentQueue } from "./background-agent-queue";
 export * from "./cleanup-queue";
 export { closeCleanupQueue } from "./cleanup-queue";
 export * from "./connector-cleanup-queue";
