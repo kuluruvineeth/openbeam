@@ -20,6 +20,8 @@ export const SearchModeSchema = z.enum([
   "hybrid_v2_rerank",
   "enterprise_v2",
   "enterprise_v2_ltr",
+  "global_sorted",
+  "global_sorted_v2",
 ]);
 export type SearchMode = z.infer<typeof SearchModeSchema>;
 
