@@ -68,7 +68,7 @@ export interface RAGAnswerParams extends RAGContextParams {
 
 export interface RAGAnswer {
   answer: string;
-  citations: RAGCitation[];
+  citations: AnswerCitation[];
   context: RAGContext;
   usage: {
     promptTokens: number;
@@ -78,7 +78,7 @@ export interface RAGAnswer {
   latencyMs: number;
 }
 
-export interface RAGCitation {
+export interface AnswerCitation {
   documentId: string;
   title: string;
   url?: string;

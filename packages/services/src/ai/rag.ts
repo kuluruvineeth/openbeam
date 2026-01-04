@@ -9,9 +9,9 @@ import {
 import { searchService } from "../search/service";
 import type { ScoredMedia, SearchScoredDocument } from "../search/types";
 import type {
+  AnswerCitation,
   RAGAnswer,
   RAGAnswerParams,
-  RAGCitation,
   RAGContext,
   RAGContextDocument,
   RAGContextParams,
@@ -256,7 +256,7 @@ export async function ragAnswer(params: RAGAnswerParams): Promise<RAGAnswer> {
 
   const documentMap = new Map(context.documents.map((d) => [d.id, d]));
 
-  const citations: RAGCitation[] = result.citations.map((c) => {
+  const citations: AnswerCitation[] = result.citations.map((c) => {
     const contextDoc = documentMap.get(c.documentId);
     return {
       documentId: c.documentId,
