@@ -106,35 +106,51 @@ function splitText(text: string, opts: ChunkingOptions): RawChunk[] {
 interface SentenceChunkState {
   buffer: string;
   bufferStart: number;
+  paragraphOffset: number;
+  positionInParagraph: number;
 }
 
 interface ProcessSentenceParams {
   sentence: string;
   state: SentenceChunkState;
-  offset: number;
   opts: ChunkingOptions;
   chunks: RawChunk[];
 }
 
 function processSentenceIntoChunks(params: ProcessSentenceParams): void {
-  const { sentence, state, offset, opts, chunks } = params;
+  const { sentence, state, opts, chunks } = params;
   const potentialLength = state.buffer.length + sentence.length + 1;
   const shouldFlush =
     potentialLength > opts.maxChunkSize &&
     state.buffer.length >= opts.minChunkSize;
 
   if (shouldFlush) {
+    const chunkEnd = state.paragraphOffset + state.positionInParagraph;
     chunks.push({
       text: state.buffer.trim(),
       start: state.bufferStart,
-      end: offset + state.buffer.length,
+      end: chunkEnd,
     });
 
-    const overlapStart = Math.max(0, state.buffer.length - opts.chunkOverlap);
-    state.buffer = `${state.buffer.slice(overlapStart)} ${sentence}`;
-    state.bufferStart = offset + overlapStart;
+    const previousBufferLength = state.buffer.length;
+    const overlapStart = Math.max(0, previousBufferLength - opts.chunkOverlap);
+    const overlapText = state.buffer.slice(overlapStart);
+    state.buffer = `${overlapText} ${sentence}`;
+    state.bufferStart =
+      state.paragraphOffset +
+      state.positionInParagraph -
+      previousBufferLength +
+      overlapStart;
+    state.positionInParagraph =
+      state.bufferStart - state.paragraphOffset + state.buffer.length;
   } else {
+    const previousBufferLength = state.buffer.length;
     state.buffer = state.buffer ? `${state.buffer} ${sentence}` : sentence;
+    if (previousBufferLength === 0) {
+      state.positionInParagraph = state.buffer.length;
+    } else {
+      state.positionInParagraph += 1 + sentence.length;
+    }
   }
 }
 
@@ -162,17 +178,23 @@ function splitBySentence(text: string, opts: ChunkingOptions): RawChunk[] {
     }
 
     const sentences = trimmed.split(SENTENCE_BOUNDARY);
-    const state: SentenceChunkState = { buffer: "", bufferStart: offset };
+    const state: SentenceChunkState = {
+      buffer: "",
+      bufferStart: offset,
+      paragraphOffset: offset,
+      positionInParagraph: 0,
+    };
 
     for (const sentence of sentences) {
-      processSentenceIntoChunks({ sentence, state, offset, opts, chunks });
+      processSentenceIntoChunks({ sentence, state, opts, chunks });
     }
 
     if (state.buffer.trim().length >= opts.minChunkSize) {
+      const finalChunkEnd = state.paragraphOffset + state.positionInParagraph;
       chunks.push({
         text: state.buffer.trim(),
         start: state.bufferStart,
-        end: offset + paragraph.length,
+        end: finalChunkEnd,
       });
     }
 

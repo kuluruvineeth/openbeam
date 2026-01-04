@@ -155,9 +155,15 @@ export class CacheOptimizer {
     hints: CacheHint[],
     contentLength: number
   ): number {
-    const persistentLength = hints
-      .filter((h) => h.type === "persistent")
-      .reduce((sum, h) => sum + (contentLength - h.position) / hints.length, 0);
+    const persistentHints = hints.filter((h) => h.type === "persistent");
+    if (persistentHints.length === 0) {
+      return 0;
+    }
+
+    const persistentLength = persistentHints.reduce(
+      (sum, h) => sum + (contentLength - h.position) / persistentHints.length,
+      0
+    );
 
     return Math.min(persistentLength / contentLength, 0.9);
   }

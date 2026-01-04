@@ -214,7 +214,8 @@ export class ContextManager {
       .sort((a, b) => a.timestamp - b.timestamp);
 
     for (const observation of sorted) {
-      if (window.utilizationPercent < this.autoMaskThreshold) {
+      const currentWindow = this.getContextWindow();
+      if (currentWindow.utilizationPercent < this.autoMaskThreshold) {
         break;
       }
       this.maskObservation(observation.id, "stale");
