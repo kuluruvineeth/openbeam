@@ -24,6 +24,15 @@ export {
   enrichQueryWithContext,
   summarizeTurns,
 } from "./query-analyzer";
+export {
+  getRoutingExplanation,
+  type QueryRoute,
+  type RoutingContext,
+  type RoutingDecision,
+  routeQuery,
+  shouldUseDuckDB,
+  shouldUseVespa,
+} from "./query-router";
 export type {
   ChunkingOptions,
   ClaimVerification,
