@@ -425,3 +425,118 @@ export async function getDailyUsageForPeriod(
     costUsd: s.totalCostUsd,
   }));
 }
+
+export interface AIUsageLogForExport {
+  id: string;
+  teamId: string;
+  userId: string | null;
+  traceId: string;
+  provider: string;
+  model: string;
+  inputTokens: number;
+  outputTokens: number;
+  cacheReadTokens: number;
+  cacheWriteTokens: number;
+  reasoningTokens: number;
+  inputCostUsd: number;
+  outputCostUsd: number;
+  cacheCostUsd: number;
+  totalCostUsd: number;
+  latencyMs: number;
+  firstTokenMs: number | null;
+  workflow: string | null;
+  feature: string | null;
+  operation: string | null;
+  success: boolean;
+  errorCode: string | null;
+  createdAt: Date;
+}
+
+export async function getAIUsageLogsForExport(
+  db: Database,
+  teamId: string,
+  date: string
+): Promise<AIUsageLogForExport[]> {
+  const startOfDay = new Date(`${date}T00:00:00.000Z`);
+  const endOfDay = new Date(`${date}T23:59:59.999Z`);
+
+  const logs = await db.aIUsageLog.findMany({
+    where: {
+      teamId,
+      createdAt: {
+        gte: startOfDay,
+        lte: endOfDay,
+      },
+    },
+    select: {
+      id: true,
+      teamId: true,
+      userId: true,
+      traceId: true,
+      provider: true,
+      model: true,
+      inputTokens: true,
+      outputTokens: true,
+      cacheReadTokens: true,
+      cacheWriteTokens: true,
+      reasoningTokens: true,
+      inputCostUsd: true,
+      outputCostUsd: true,
+      cacheCostUsd: true,
+      totalCostUsd: true,
+      latencyMs: true,
+      firstTokenMs: true,
+      workflow: true,
+      feature: true,
+      operation: true,
+      success: true,
+      errorCode: true,
+      createdAt: true,
+    },
+    orderBy: { createdAt: "asc" },
+  });
+
+  return logs;
+}
+
+export async function countAIUsageLogsForDate(
+  db: Database,
+  teamId: string,
+  date: string
+): Promise<number> {
+  const startOfDay = new Date(`${date}T00:00:00.000Z`);
+  const endOfDay = new Date(`${date}T23:59:59.999Z`);
+
+  const count = await db.aIUsageLog.count({
+    where: {
+      teamId,
+      createdAt: {
+        gte: startOfDay,
+        lte: endOfDay,
+      },
+    },
+  });
+
+  return count;
+}
+
+export async function getTeamsWithAIUsageForDate(
+  db: Database,
+  date: string
+): Promise<string[]> {
+  const startOfDay = new Date(`${date}T00:00:00.000Z`);
+  const endOfDay = new Date(`${date}T23:59:59.999Z`);
+
+  const teams = await db.aIUsageLog.findMany({
+    where: {
+      createdAt: {
+        gte: startOfDay,
+        lte: endOfDay,
+      },
+    },
+    select: { teamId: true },
+    distinct: ["teamId"],
+  });
+
+  return teams.map((t) => t.teamId);
+}
