@@ -148,7 +148,7 @@ describe("Spreadsheet Tool Composition", () => {
       );
 
       expect(result.success).toBe(true);
-      expect(result.data?.viewName).toBe("spreadsheet_doc_123");
+      expect(result.data?.viewName).toBe("data_doc_123");
     });
 
     it("sets awaitingApproval flag", async () => {

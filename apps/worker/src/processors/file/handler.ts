@@ -276,6 +276,7 @@ interface SpreadsheetMetadata {
 async function extractSpreadsheetMetadata(
   fileBuffer: Buffer,
   mimeType: string,
+  fileId: string,
   fileName: string
 ): Promise<SpreadsheetMetadata> {
   const client = createDuckDBClient({
@@ -294,7 +295,7 @@ async function extractSpreadsheetMetadata(
         : "csv";
 
     const { viewName, validation } = await client.loadSpreadsheet(
-      fileName,
+      fileId,
       fileBuffer,
       fileType
     );
@@ -313,7 +314,7 @@ async function extractSpreadsheetMetadata(
     }));
 
     const countResult = await client.query(
-      fileName,
+      fileId,
       `SELECT COUNT(*) as count FROM "${viewName}"`,
       viewName
     );
@@ -388,6 +389,7 @@ async function processParse(
     const metadata = await extractSpreadsheetMetadata(
       fileBuffer,
       data.mimeType ?? "",
+      fileId,
       fileName ?? "spreadsheet"
     );
 
