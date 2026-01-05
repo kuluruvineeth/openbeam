@@ -307,7 +307,7 @@ function splitAtBoundaries(
     if (end < text.length) {
       const paragraphBreak = text.lastIndexOf(PARAGRAPH_BREAK, end);
       if (paragraphBreak > start + maxSize / 2) {
-        end = paragraphBreak;
+        end = paragraphBreak + PARAGRAPH_BREAK.length;
       } else {
         const sentenceMatch = findLastSentenceEnd(text, start, end);
         if (sentenceMatch > start + maxSize / 2) {
