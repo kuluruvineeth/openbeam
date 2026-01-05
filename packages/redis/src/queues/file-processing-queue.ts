@@ -10,6 +10,21 @@ export interface ParsedChunk {
   page_end?: number;
 }
 
+export interface SpreadsheetColumnMetadata {
+  name: string;
+  type: string;
+  nullable: boolean;
+}
+
+export interface SpreadsheetMetadata {
+  columns: SpreadsheetColumnMetadata[];
+  sheets: string[];
+  activeSheet: string;
+  rowCount: number;
+  sampleData: Record<string, unknown>[];
+  contentSummary: string;
+}
+
 export type FileDownloadMetadata =
   | { connector: "slack"; sourceUrl: string }
   | { connector: "gmail"; messageId: string; attachmentId: string }
@@ -30,6 +45,7 @@ export interface FileProcessingJobData {
   parsedChunks?: ParsedChunk[];
   textLength?: number;
   pageCount?: number;
+  spreadsheetMetadata?: SpreadsheetMetadata;
 }
 
 export const fileProcessingQueue = new Queue<FileProcessingJobData>(

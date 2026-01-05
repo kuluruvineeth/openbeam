@@ -1,3 +1,7 @@
+import {
+  createDuckDBClient,
+  isSpreadsheetMime,
+} from "@openplane/analytics/duckdb";
 import prisma, {
   createIndexedChunks,
   decryptIfEncrypted,
@@ -26,7 +30,11 @@ import {
   getStorageProvider,
   SIGNED_URL_EXPIRY_SECONDS,
 } from "@openplane/services";
-import { type GenericDocument, vespaClient } from "@openplane/vespa";
+import {
+  type GenericDocument,
+  type SpreadsheetDocument,
+  vespaClient,
+} from "@openplane/vespa";
 import { SpanStatusCode } from "@opentelemetry/api";
 import type { Job } from "bullmq";
 import { calculateChecksum } from "../../utils/checksum";
@@ -252,6 +260,99 @@ async function downloadLegacy(
   return Buffer.from(content);
 }
 
+interface SpreadsheetMetadata {
+  columns: Array<{
+    name: string;
+    type: string;
+    nullable: boolean;
+  }>;
+  sheets: string[];
+  activeSheet: string;
+  rowCount: number;
+  sampleData: Record<string, unknown>[];
+  contentSummary: string;
+}
+
+async function extractSpreadsheetMetadata(
+  fileBuffer: Buffer,
+  mimeType: string,
+  fileName: string
+): Promise<SpreadsheetMetadata> {
+  const client = createDuckDBClient({
+    resourceConfig: {
+      maxMemoryMb: 256,
+      threads: 1,
+    },
+  });
+
+  try {
+    await client.initialize();
+
+    const fileType =
+      mimeType.includes("spreadsheetml") || mimeType.includes("ms-excel")
+        ? "xlsx"
+        : "csv";
+
+    const { viewName, validation } = await client.loadSpreadsheet(
+      fileName,
+      fileBuffer,
+      fileType
+    );
+
+    if (!validation.valid) {
+      throw new Error(validation.reason ?? "Spreadsheet validation failed");
+    }
+
+    const schemaColumns = await client.getSchema(viewName);
+    const sampleData = await client.getSampleData(viewName, 5);
+
+    const columns = schemaColumns.map((col) => ({
+      name: col.name,
+      type: col.type,
+      nullable: col.nullable,
+    }));
+
+    const countResult = await client.query(
+      fileName,
+      `SELECT COUNT(*) as count FROM "${viewName}"`,
+      viewName
+    );
+    const rowCount = Number(countResult.rows[0]?.count ?? 0);
+
+    const contentSummary = buildSpreadsheetSummary(fileName, columns, rowCount);
+
+    return {
+      columns,
+      sheets: ["Sheet1"],
+      activeSheet: "Sheet1",
+      rowCount,
+      sampleData,
+      contentSummary,
+    };
+  } finally {
+    await client.close();
+  }
+}
+
+function buildSpreadsheetSummary(
+  fileName: string,
+  columns: Array<{ name: string; type: string }>,
+  rowCount: number
+): string {
+  const lines: string[] = [];
+  lines.push(`Spreadsheet: ${fileName}`);
+  lines.push(`Rows: ${rowCount}, Columns: ${columns.length}`);
+  lines.push("");
+  lines.push("Columns:");
+  for (const col of columns.slice(0, 20)) {
+    lines.push(`- ${col.name} (${col.type})`);
+  }
+  if (columns.length > 20) {
+    lines.push(`... and ${columns.length - 20} more columns`);
+  }
+  return lines.join("\n");
+}
+
 async function processParse(
   data: FileProcessingJobData,
   progress: ProgressEmitter
@@ -269,10 +370,60 @@ async function processParse(
   }
 
   await progress.update(1, FILE_TOTAL_STEPS, "Parsing");
-
   await updateIndexedFileProcessingStatus(prisma, fileId, "PARSING");
 
   const storage = getStorageProvider();
+
+  if (isSpreadsheetMime(data.mimeType)) {
+    const signedDownloadUrl = await storage.getSignedUrl(storageKey, 300);
+    const downloadResponse = await fetch(signedDownloadUrl);
+    if (!downloadResponse.ok) {
+      throw new Error(
+        `Failed to download file: ${downloadResponse.statusText}`
+      );
+    }
+    const arrayBuffer = await downloadResponse.arrayBuffer();
+    const fileBuffer = Buffer.from(arrayBuffer);
+
+    const metadata = await extractSpreadsheetMetadata(
+      fileBuffer,
+      data.mimeType ?? "",
+      fileName ?? "spreadsheet"
+    );
+
+    await updateIndexedFileParsed(prisma, fileId, {
+      textLength: metadata.contentSummary.length,
+      pageCount: 1,
+      chunkCount: 0,
+    });
+
+    await progress.update(2, FILE_TOTAL_STEPS, "Parsed (Spreadsheet)");
+
+    logger.info(
+      {
+        fileId,
+        columns: metadata.columns.length,
+        rows: metadata.rowCount,
+      },
+      "Spreadsheet parsed"
+    );
+
+    await addFileIndexJob({
+      fileId,
+      connectorId,
+      externalId,
+      storageKey,
+      mimeType: data.mimeType,
+      fileName,
+      parsedChunks: [],
+      textLength: metadata.contentSummary.length,
+      pageCount: 1,
+      spreadsheetMetadata: metadata,
+    });
+
+    return { success: true, fileId, nextStep: "index" };
+  }
+
   const signedUrl = await storage.getSignedUrl(
     storageKey,
     SIGNED_URL_EXPIRY_SECONDS
@@ -468,6 +619,80 @@ async function cleanupExistingChunks(fileId: string): Promise<void> {
   await deleteChunksByFileId(prisma, fileId);
 }
 
+async function indexSpreadsheet(
+  data: FileProcessingJobData,
+  progress: ProgressEmitter
+): Promise<FileProcessingResult> {
+  const {
+    fileId,
+    connectorId,
+    storageKey,
+    fileName,
+    externalId,
+    spreadsheetMetadata,
+  } = data;
+
+  if (!(storageKey && spreadsheetMetadata)) {
+    throw new Error("Storage key and spreadsheet metadata required");
+  }
+
+  const file = await findIndexedFileById(prisma, fileId);
+  if (!file) {
+    throw new Error("File not found");
+  }
+
+  const spreadsheetVespaId = `spreadsheet-${connectorId}-${externalId}`;
+  const accessControl = [`team:${file.connector.teamId}`];
+
+  const columnInfo = spreadsheetMetadata.columns
+    .map((c) => `${c.name}:${c.type}`)
+    .join(",");
+
+  const spreadsheetDoc: SpreadsheetDocument = {
+    id: spreadsheetVespaId,
+    connector_id: connectorId,
+    connector_type: file.connector.app.toLowerCase(),
+    team_id: file.connector.teamId,
+    external_id: externalId,
+    title: fileName ?? "Untitled Spreadsheet",
+    file_name: fileName ?? "spreadsheet",
+    storage_key: storageKey,
+    file_size: 0,
+    mime_type: file.mimeType ?? "application/octet-stream",
+    sheets: spreadsheetMetadata.sheets,
+    active_sheet: spreadsheetMetadata.activeSheet,
+    column_names: spreadsheetMetadata.columns.map((c) => c.name),
+    column_types: spreadsheetMetadata.columns.map((c) => c.type),
+    column_info: columnInfo,
+    row_count: spreadsheetMetadata.rowCount,
+    column_count: spreadsheetMetadata.columns.length,
+    has_headers: true,
+    content_summary: spreadsheetMetadata.contentSummary,
+    created_at: file.uploadedAt?.getTime() ?? Date.now(),
+    updated_at: Date.now(),
+    indexed_at: Date.now(),
+    is_public: false,
+    is_queryable: true,
+    access_control: accessControl,
+  };
+
+  await vespaClient.feedSpreadsheetDocument(spreadsheetDoc);
+  await updateIndexedFileIndexed(prisma, fileId, spreadsheetVespaId);
+  await progress.complete(FILE_TOTAL_STEPS);
+
+  logger.info(
+    {
+      fileId,
+      vespaId: spreadsheetVespaId,
+      columns: spreadsheetMetadata.columns.length,
+      rows: spreadsheetMetadata.rowCount,
+    },
+    "Spreadsheet indexed"
+  );
+
+  return { success: true, fileId };
+}
+
 async function processIndex(
   data: FileProcessingJobData,
   progress: ProgressEmitter
@@ -486,6 +711,10 @@ async function processIndex(
   }
 
   await updateIndexedFileProcessingStatus(prisma, fileId, "INDEXING");
+
+  if (data.spreadsheetMetadata) {
+    return indexSpreadsheet(data, progress);
+  }
 
   const file = await findIndexedFileById(prisma, fileId);
   if (!file) {
