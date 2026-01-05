@@ -1,3 +1,5 @@
+export * from "./analytics-export-queue";
+export { closeAnalyticsExportQueue } from "./analytics-export-queue";
 export * from "./background-agent-queue";
 export { closeBackgroundAgentQueue } from "./background-agent-queue";
 export * from "./cleanup-queue";

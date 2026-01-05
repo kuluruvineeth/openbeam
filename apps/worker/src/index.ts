@@ -1,5 +1,6 @@
 import "./instrumentation";
 import {
+  closeAnalyticsExportQueue,
   closeBackgroundAgentQueue,
   closeCleanupQueue,
   closeConnectorCleanupQueue,
@@ -12,11 +13,14 @@ import {
   closeSharedBullMqConnection,
   closeSyncQueue,
   closeWebhookQueue,
+  createRepeatableAnalyticsExportJob,
+  removeRepeatableAnalyticsExportJob,
 } from "@openplane/redis";
 import { initializeAI } from "@openplane/services";
 import { startHealthServer, stopHealthServer } from "./health";
 import { startMetricsServer, stopMetricsServer } from "./metrics";
 import {
+  createAnalyticsExportProcessor,
   createBackgroundAgentProcessor,
   createCleanupProcessor,
   createConnectorCleanupProcessor,
@@ -52,6 +56,7 @@ class WorkerService {
   private readonly ltrTrainingProcessor: ProcessorResult;
   private readonly entityExtractionProcessor: ProcessorResult;
   private readonly backgroundAgentProcessor: ProcessorResult;
+  private readonly analyticsExportProcessor: ProcessorResult;
 
   constructor() {
     logger.info("Initializing OpenPlane Worker...");
@@ -69,6 +74,7 @@ class WorkerService {
     this.ltrTrainingProcessor = createLTRTrainingProcessor();
     this.entityExtractionProcessor = createEntityExtractionProcessor();
     this.backgroundAgentProcessor = createBackgroundAgentProcessor();
+    this.analyticsExportProcessor = createAnalyticsExportProcessor();
 
     this.syncScheduler = new SyncScheduler();
     this.cleanupScheduler = new CleanupScheduler("0 2 * * *");
@@ -84,6 +90,10 @@ class WorkerService {
 
     this.digestScheduler.start().catch((error) => {
       logger.error({ error }, "Failed to start digest scheduler");
+    });
+
+    createRepeatableAnalyticsExportJob("0 3 * * *").catch((error) => {
+      logger.error({ error }, "Failed to setup analytics export scheduler");
     });
 
     startReembedWorker();
@@ -115,6 +125,7 @@ class WorkerService {
           ltrTrainingProcessor: "running",
           entityExtractionProcessor: "running",
           backgroundAgentProcessor: "running",
+          analyticsExportProcessor: "running",
           reembedProcessor: "running",
           metricsServer: "running",
           healthServer: "running",
@@ -145,6 +156,8 @@ class WorkerService {
       this.ltrTrainingProcessor.close(),
       this.entityExtractionProcessor.close(),
       this.backgroundAgentProcessor.close(),
+      this.analyticsExportProcessor.close(),
+      removeRepeatableAnalyticsExportJob(),
       stopReembedWorker(),
       stopMetricsServer(),
       stopHealthServer(),
@@ -162,6 +175,7 @@ class WorkerService {
       closeDigestQueue(),
       closeReembedQueue(),
       closeBackgroundAgentQueue(),
+      closeAnalyticsExportQueue(),
       closeSharedBullMqConnection(),
     ]);
 

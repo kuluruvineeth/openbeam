@@ -1,4 +1,10 @@
 export {
+  createAnalyticsExportProcessor,
+  processAnalyticsExportJob,
+  triggerAllTeamsExport,
+  triggerAnalyticsExport,
+} from "./analytics-export";
+export {
   createBackgroundAgentProcessor,
   processBackgroundAgentJob,
 } from "./background-agent";

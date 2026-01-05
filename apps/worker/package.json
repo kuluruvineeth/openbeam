@@ -29,6 +29,8 @@
     "typescript": "^5.8.2"
   },
   "dependencies": {
+    "@duckdb/node-api": "^1.4.3-r.2",
+    "@openplane/analytics": "workspace:*",
     "@openplane/db": "workspace:*",
     "@openplane/integrations": "workspace:*",
     "@openplane/redis": "workspace:*",
