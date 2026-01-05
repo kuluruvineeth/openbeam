@@ -4,6 +4,7 @@ export const API_SCOPES = {
   CONNECTORS_SYNC: "connectors:sync",
 
   SEARCH_READ: "search:read",
+  ANALYTICS_READ: "analytics:read",
   ADMIN_ALL: "admin:*",
 } as const;
 
@@ -86,6 +87,7 @@ export const SCOPE_METHOD_MAP: Record<string, string[]> = {
   [API_SCOPES.CONNECTORS_WRITE]: ["POST", "PUT", "PATCH", "DELETE"],
   [API_SCOPES.CONNECTORS_SYNC]: ["POST"],
   [API_SCOPES.SEARCH_READ]: ["GET"],
+  [API_SCOPES.ANALYTICS_READ]: ["GET"],
   [API_SCOPES.ADMIN_ALL]: ["GET", "POST", "PUT", "PATCH", "DELETE"],
 };
 
@@ -107,6 +109,10 @@ export function getScopesForRoute(
 
   if (path.startsWith("/api/v1/search") && method === "GET") {
     return [API_SCOPES.SEARCH_READ];
+  }
+
+  if (path.startsWith("/api/v1/analytics") && method === "GET") {
+    return [API_SCOPES.ANALYTICS_READ];
   }
 
   return null;
