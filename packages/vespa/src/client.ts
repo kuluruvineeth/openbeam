@@ -7,6 +7,8 @@ import type {
   MediaQueryParams,
   QueryParams,
   SearchResult,
+  SpreadsheetDocument,
+  SpreadsheetQueryParams,
   VespaEmbeddingCell,
   VespaError,
   VespaGenericDocumentForFeed,
@@ -14,6 +16,7 @@ import type {
   VespaMediaQueryBody,
   VespaMediaUpdatePayload,
   VespaQueryBody,
+  VespaSpreadsheetDocumentForFeed,
   VespaTimestampCell,
 } from "./schemas";
 
@@ -589,6 +592,152 @@ export class VespaClient {
 
     const result = (await response.json()) as { fields: MediaDocument };
     return result.fields;
+  }
+
+  async feedSpreadsheetDocument(
+    doc: SpreadsheetDocument,
+    retries = 3
+  ): Promise<FeedResponse> {
+    const documentPath = `${this.documentApiUrl}/default/spreadsheet_document/docid/${doc.id}`;
+
+    const vespaDoc: VespaSpreadsheetDocumentForFeed = {
+      ...doc,
+      metadata: doc.metadata ? JSON.stringify(doc.metadata) : undefined,
+    };
+
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const response = await fetch(documentPath, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fields: vespaDoc }),
+          signal: AbortSignal.timeout(60_000),
+        });
+
+        if (!response.ok) {
+          const errorMessage = await this.getResponseError(response);
+          throw new Error(`Vespa spreadsheet feed error: ${errorMessage}`);
+        }
+
+        return (await response.json()) as FeedResponse;
+      } catch (error: unknown) {
+        const shouldRetry = this.isRetryableError(error) && attempt < retries;
+
+        if (shouldRetry) {
+          const delay = 2 ** attempt * 1000;
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          continue;
+        }
+
+        throw error;
+      }
+    }
+
+    throw new Error("Failed to feed spreadsheet document after retries");
+  }
+
+  async querySpreadsheets<T = SpreadsheetDocument>(
+    params: SpreadsheetQueryParams
+  ): Promise<SearchResult<T>> {
+    const body = {
+      yql: params.yql,
+      hits: params.hits ?? 20,
+      offset: params.offset ?? 0,
+      "ranking.profile": params.ranking,
+      timeout: params.timeout,
+      "input.query(query_embedding)": params.query_embedding,
+    };
+
+    const response = await fetch(this.searchApiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(10_000),
+    });
+
+    if (!response.ok) {
+      const error = (await response.json()) as VespaError;
+      throw new Error(
+        `Vespa spreadsheet query error: ${error.message || response.statusText}`
+      );
+    }
+
+    return (await response.json()) as SearchResult<T>;
+  }
+
+  async deleteSpreadsheetDocument(id: string): Promise<void> {
+    const documentPath = `${this.documentApiUrl}/default/spreadsheet_document/docid/${id}`;
+
+    const response = await fetch(documentPath, {
+      method: "DELETE",
+      signal: AbortSignal.timeout(30_000),
+    });
+
+    if (!response.ok) {
+      const error = (await response.json()) as VespaError;
+      throw new Error(
+        `Vespa spreadsheet delete error: ${error.message || response.statusText}`
+      );
+    }
+  }
+
+  async getSpreadsheetDocument(
+    id: string
+  ): Promise<SpreadsheetDocument | null> {
+    const documentPath = `${this.documentApiUrl}/default/spreadsheet_document/docid/${id}`;
+
+    const response = await fetch(documentPath, {
+      method: "GET",
+      signal: AbortSignal.timeout(10_000),
+    });
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      const error = (await response.json()) as VespaError;
+      throw new Error(
+        `Vespa spreadsheet get error: ${error.message || response.statusText}`
+      );
+    }
+
+    const result = (await response.json()) as { fields: SpreadsheetDocument };
+    return result.fields;
+  }
+
+  searchSpreadsheetsByTeam(
+    teamId: string,
+    query?: string,
+    options?: { hits?: number; offset?: number }
+  ): Promise<SearchResult<SpreadsheetDocument>> {
+    let yql = `select * from spreadsheet_document where team_id contains "${escapeYqlString(teamId)}"`;
+
+    if (query) {
+      yql += ` and (title contains "${escapeYqlString(query)}" or content_summary contains "${escapeYqlString(query)}" or column_names contains "${escapeYqlString(query)}")`;
+    }
+
+    yql += " order by updated_at desc";
+
+    return this.querySpreadsheets<SpreadsheetDocument>({
+      yql,
+      hits: options?.hits ?? 20,
+      offset: options?.offset ?? 0,
+      ranking: "bm25",
+    });
+  }
+
+  findQueryableSpreadsheets(
+    teamId: string,
+    options?: { hits?: number }
+  ): Promise<SearchResult<SpreadsheetDocument>> {
+    const yql = `select * from spreadsheet_document where team_id contains "${escapeYqlString(teamId)}" and is_queryable = true order by updated_at desc`;
+
+    return this.querySpreadsheets<SpreadsheetDocument>({
+      yql,
+      hits: options?.hits ?? 100,
+      ranking: "bm25",
+    });
   }
 
   private computeAclUpdate(

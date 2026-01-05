@@ -21,6 +21,7 @@
       <document type="openplane_document" mode="index"/>
       <document type="entity" mode="index"/>
       <document type="media_document" mode="index"/>
+      <document type="spreadsheet_document" mode="index"/>
     </documents>
 
     <nodes>

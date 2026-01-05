@@ -480,3 +480,133 @@ export interface VespaUpdateField<T> {
 export type VespaMediaUpdatePayload = {
   [K in keyof MediaDocument]?: VespaUpdateField<MediaDocument[K]>;
 };
+
+export type SpreadsheetColumnType =
+  | "string"
+  | "number"
+  | "date"
+  | "boolean"
+  | "unknown";
+
+export interface SpreadsheetColumnInfo {
+  name: string;
+  type: SpreadsheetColumnType;
+  nullable: boolean;
+}
+
+export interface SpreadsheetDocument {
+  id: string;
+  team_id: string;
+  connector_id: string;
+  connector_type: string;
+  external_id: string;
+  title: string;
+  file_name: string;
+  description?: string;
+  storage_key: string;
+  file_size: number;
+  mime_type: string;
+  sheets: string[];
+  active_sheet: string;
+  column_names: string[];
+  column_types: string[];
+  column_info: string;
+  row_count: number;
+  column_count: number;
+  has_headers: boolean;
+  content_summary: string;
+  content_embedding?: number[];
+  title_embedding?: number[];
+  embedding_version?: number;
+  author_id?: string;
+  author_name?: string;
+  author_email?: string;
+  created_at: number;
+  updated_at: number;
+  indexed_at?: number;
+  last_accessed_at?: number;
+  source_id?: string;
+  source_name?: string;
+  source_type?: string;
+  source_path?: string;
+  parent_id?: string;
+  project_id?: string;
+  labels?: string[];
+  access_control?: string[];
+  is_public: boolean;
+  url?: string;
+  metadata?: JsonObject;
+  checksum?: string;
+  sync_version?: number;
+  quality_score?: number;
+  view_count?: number;
+  is_queryable: boolean;
+}
+
+export interface VespaSpreadsheetDocumentForFeed {
+  id: string;
+  team_id: string;
+  connector_id: string;
+  connector_type: string;
+  external_id: string;
+  title: string;
+  file_name: string;
+  description?: string;
+  storage_key: string;
+  file_size: number;
+  mime_type: string;
+  sheets: string[];
+  active_sheet: string;
+  column_names: string[];
+  column_types: string[];
+  column_info: string;
+  row_count: number;
+  column_count: number;
+  has_headers: boolean;
+  content_summary: string;
+  content_embedding?: number[];
+  title_embedding?: number[];
+  embedding_version?: number;
+  author_id?: string;
+  author_name?: string;
+  author_email?: string;
+  created_at: number;
+  updated_at: number;
+  indexed_at?: number;
+  last_accessed_at?: number;
+  source_id?: string;
+  source_name?: string;
+  source_type?: string;
+  source_path?: string;
+  parent_id?: string;
+  project_id?: string;
+  labels?: string[];
+  access_control?: string[];
+  is_public: boolean;
+  url?: string;
+  metadata?: string;
+  checksum?: string;
+  sync_version?: number;
+  quality_score?: number;
+  view_count?: number;
+  is_queryable: boolean;
+}
+
+export type VespaSpreadsheetUpdatePayload = {
+  [K in keyof SpreadsheetDocument]?: VespaUpdateField<SpreadsheetDocument[K]>;
+};
+
+export type SpreadsheetRankingProfile =
+  | "bm25"
+  | "semantic"
+  | "hybrid"
+  | "column_search";
+
+export interface SpreadsheetQueryParams {
+  yql: string;
+  ranking?: SpreadsheetRankingProfile;
+  hits?: number;
+  offset?: number;
+  timeout?: string;
+  query_embedding?: VectorTensor;
+}

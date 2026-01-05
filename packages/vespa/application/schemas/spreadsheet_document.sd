@@ -1,0 +1,282 @@
+schema spreadsheet_document {
+  document spreadsheet_document {
+    field id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+
+    field team_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+
+    field connector_id type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+
+    field connector_type type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+
+    field external_id type string {
+      indexing: summary | attribute
+    }
+
+    field title type string {
+      indexing: summary | index
+      index: enable-bm25
+    }
+
+    field file_name type string {
+      indexing: summary | index
+      index: enable-bm25
+    }
+
+    field description type string {
+      indexing: summary | index
+      index: enable-bm25
+    }
+
+    field storage_key type string {
+      indexing: summary | attribute
+    }
+
+    field file_size type long {
+      indexing: summary | attribute
+    }
+
+    field mime_type type string {
+      indexing: summary | attribute
+    }
+
+    field sheets type array<string> {
+      indexing: summary | attribute
+    }
+
+    field active_sheet type string {
+      indexing: summary | attribute
+    }
+
+    field column_names type array<string> {
+      indexing: summary | attribute | index
+      index: enable-bm25
+    }
+
+    field column_types type array<string> {
+      indexing: summary | attribute
+    }
+
+    field column_info type string {
+      indexing: summary
+    }
+
+    field row_count type int {
+      indexing: summary | attribute
+    }
+
+    field column_count type int {
+      indexing: summary | attribute
+    }
+
+    field has_headers type bool {
+      indexing: summary | attribute
+    }
+
+    field content_summary type string {
+      indexing: summary | index
+      index: enable-bm25
+    }
+
+    field content_embedding type tensor<float>(x[1536]) {
+      indexing: attribute | index
+      attribute {
+        distance-metric: angular
+      }
+      index {
+        hnsw {
+          max-links-per-node: 16
+          neighbors-to-explore-at-insert: 200
+        }
+      }
+    }
+
+    field title_embedding type tensor<float>(x[1536]) {
+      indexing: attribute | index
+      attribute {
+        distance-metric: angular
+      }
+      index {
+        hnsw {
+          max-links-per-node: 16
+          neighbors-to-explore-at-insert: 200
+        }
+      }
+    }
+
+    field embedding_version type int {
+      indexing: summary | attribute
+    }
+
+    field author_id type string {
+      indexing: summary | attribute
+    }
+
+    field author_name type string {
+      indexing: summary | index
+      index: enable-bm25
+    }
+
+    field author_email type string {
+      indexing: summary | attribute
+    }
+
+    field created_at type long {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+
+    field updated_at type long {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+
+    field indexed_at type long {
+      indexing: summary | attribute
+    }
+
+    field last_accessed_at type long {
+      indexing: summary | attribute
+    }
+
+    field source_id type string {
+      indexing: summary | attribute
+    }
+
+    field source_name type string {
+      indexing: summary | index
+      index: enable-bm25
+    }
+
+    field source_type type string {
+      indexing: summary | attribute
+    }
+
+    field source_path type string {
+      indexing: summary | attribute
+    }
+
+    field parent_id type string {
+      indexing: summary | attribute
+    }
+
+    field project_id type string {
+      indexing: summary | attribute
+    }
+
+    field labels type array<string> {
+      indexing: summary | attribute | index
+      index: enable-bm25
+    }
+
+    field access_control type array<string> {
+      indexing: summary | attribute
+    }
+
+    field is_public type bool {
+      indexing: summary | attribute
+    }
+
+    field url type string {
+      indexing: summary
+    }
+
+    field metadata type string {
+      indexing: summary
+    }
+
+    field checksum type string {
+      indexing: summary | attribute
+    }
+
+    field sync_version type int {
+      indexing: summary | attribute
+    }
+
+    field quality_score type float {
+      indexing: summary | attribute
+    }
+
+    field view_count type int {
+      indexing: summary | attribute
+    }
+
+    field is_queryable type bool {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+  }
+
+  fieldset default {
+    fields: title, file_name, content_summary
+  }
+
+  fieldset searchable {
+    fields: title, file_name, description, content_summary, column_names, author_name, source_name
+  }
+
+  rank-profile default {
+    first-phase {
+      expression: bm25(title) * 2 + bm25(file_name) + bm25(content_summary) * 0.5
+    }
+  }
+
+  rank-profile bm25 inherits default {
+    first-phase {
+      expression: bm25(title) * 2 + bm25(file_name) + bm25(content_summary)
+    }
+  }
+
+  rank-profile semantic {
+    inputs {
+      query(query_embedding) tensor<float>(x[1536])
+    }
+    first-phase {
+      expression: closeness(field, content_embedding)
+    }
+  }
+
+  rank-profile hybrid {
+    inputs {
+      query(query_embedding) tensor<float>(x[1536])
+    }
+    first-phase {
+      expression {
+        0.5 * normalize(bm25(title) * 2 + bm25(file_name) + bm25(content_summary)) +
+        0.5 * closeness(field, content_embedding)
+      }
+    }
+    function normalize(score) {
+      expression: score / (1 + score)
+    }
+  }
+
+  rank-profile column_search {
+    first-phase {
+      expression: bm25(column_names) * 3 + bm25(title) + bm25(content_summary) * 0.5
+    }
+  }
+
+  rank-profile recency {
+    first-phase {
+      expression {
+        (bm25(title) * 2 + bm25(file_name) + bm25(content_summary)) *
+        freshness(attribute(updated_at))
+      }
+    }
+    function freshness(t) {
+      expression: if(t > now() - 86400000, 2.0, if(t > now() - 604800000, 1.5, if(t > now() - 2592000000, 1.2, 1.0)))
+    }
+  }
+}
