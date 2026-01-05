@@ -156,12 +156,19 @@ export const spreadsheetSqlRequestSchema = z.object({
   }),
 });
 
+export const routingDecisionSchema = z.object({
+  route: z.enum(["vespa", "duckdb", "hybrid"]),
+  confidence: z.number(),
+  reason: z.string(),
+});
+
 export const spreadsheetSqlResponseSchema = z.object({
   sql: z.string(),
   explanation: z.string(),
   referencedColumns: z.array(z.string()),
   complexity: z.enum(["simple", "moderate", "complex"]),
   viewName: z.string(),
+  routing: routingDecisionSchema,
 });
 
 export const spreadsheetQueryRequestSchema = z.object({
