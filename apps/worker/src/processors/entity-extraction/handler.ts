@@ -145,6 +145,73 @@ function prepareEntityData(
   return result;
 }
 
+interface AuthorRelationsContext {
+  author: string;
+  connectorType: string;
+  teamId: string;
+  documentId: string;
+  extractedData: ExtractedEntityData[];
+  entityMap: Map<string, string>;
+}
+
+async function createAuthorRelations(
+  ctx: AuthorRelationsContext
+): Promise<number> {
+  const {
+    author,
+    connectorType,
+    teamId,
+    documentId,
+    extractedData,
+    entityMap,
+  } = ctx;
+  const authorNormalized = normalizeName(author);
+
+  const authorEntities = await batchUpsertEntities(prisma, [
+    {
+      teamId,
+      type: "PERSON",
+      name: author,
+      normalizedName: authorNormalized,
+      externalSource: connectorType,
+    },
+  ]);
+
+  const authorEntity = authorEntities[0];
+  if (!authorEntity) {
+    logger.warn({ author, documentId }, "Failed to create author entity");
+    return 0;
+  }
+
+  const topicRelations: UpsertEntityRelationInput[] = [];
+  const evidence: EvidenceItem = {
+    docId: documentId,
+    timestamp: new Date().toISOString(),
+  };
+
+  for (const e of extractedData) {
+    if (e.entityType === "TOPIC" || e.entityType === "TECHNOLOGY") {
+      const topicId = entityMap.get(e.text);
+      if (topicId) {
+        topicRelations.push({
+          fromEntityId: authorEntity.id,
+          toEntityId: topicId,
+          relationType: "EXPERT_IN",
+          weight: e.score,
+          confidence: e.score,
+          evidence: [evidence],
+        });
+      }
+    }
+  }
+
+  if (topicRelations.length > 0) {
+    await batchUpsertEntityRelations(prisma, topicRelations);
+  }
+
+  return topicRelations.length;
+}
+
 export async function processEntityExtractionJob(
   job: Job<EntityExtractionJobData>
 ): Promise<ExtractionResult> {
@@ -201,7 +268,11 @@ export async function processEntityExtractionJob(
 
   const entityMap = new Map<string, string>();
   for (let i = 0; i < extractedData.length; i += 1) {
-    entityMap.set(extractedData[i].text, entities[i].id);
+    const extracted = extractedData[i];
+    const entity = entities[i];
+    if (extracted && entity) {
+      entityMap.set(extracted.text, entity.id);
+    }
   }
 
   const mentionInputs: CreateEntityMentionInput[] = extractedData.map((e) => ({
@@ -215,48 +286,16 @@ export async function processEntityExtractionJob(
 
   await createManyEntityMentions(prisma, mentionInputs);
 
-  let relationsCreated = 0;
-
-  if (author) {
-    const authorNormalized = normalizeName(author);
-
-    const [authorEntity] = await batchUpsertEntities(prisma, [
-      {
+  const relationsCreated = author
+    ? await createAuthorRelations({
+        author,
+        connectorType,
         teamId,
-        type: "PERSON",
-        name: author,
-        normalizedName: authorNormalized,
-        externalSource: connectorType,
-      },
-    ]);
-
-    const topicRelations: UpsertEntityRelationInput[] = [];
-    const evidence: EvidenceItem = {
-      docId: documentId,
-      timestamp: new Date().toISOString(),
-    };
-
-    for (const e of extractedData) {
-      if (e.entityType === "TOPIC" || e.entityType === "TECHNOLOGY") {
-        const topicId = entityMap.get(e.text);
-        if (topicId) {
-          topicRelations.push({
-            fromEntityId: authorEntity.id,
-            toEntityId: topicId,
-            relationType: "EXPERT_IN",
-            weight: e.score,
-            confidence: e.score,
-            evidence: [evidence],
-          });
-        }
-      }
-    }
-
-    if (topicRelations.length > 0) {
-      await batchUpsertEntityRelations(prisma, topicRelations);
-      relationsCreated = topicRelations.length;
-    }
-  }
+        documentId,
+        extractedData,
+        entityMap,
+      })
+    : 0;
 
   const elapsedMs = Date.now() - startTime;
 
