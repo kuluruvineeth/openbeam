@@ -159,6 +159,55 @@ export interface VirtualFileInfo {
   tokenCount: number;
 }
 
+export interface SpreadsheetColumn {
+  name: string;
+  type: "string" | "number" | "date" | "boolean" | "unknown";
+  nullable: boolean;
+  sampleValues?: unknown[];
+}
+
+export interface SpreadsheetSchema {
+  documentId: string;
+  fileName: string;
+  sheets: string[];
+  activeSheet: string;
+  columns: SpreadsheetColumn[];
+  rowCount: number;
+  sampleData: Record<string, unknown>[];
+}
+
+export interface GenerateSqlParams {
+  documentId: string;
+  naturalLanguageQuery: string;
+  schema: SpreadsheetSchema;
+}
+
+export interface GenerateSqlResult {
+  sql: string;
+  explanation: string;
+  referencedColumns: string[];
+  estimatedComplexity: "simple" | "moderate" | "complex";
+}
+
+export interface ExecuteQueryParams {
+  documentId: string;
+  sql: string;
+  viewName: string;
+  options?: {
+    timeoutMs?: number;
+    maxRows?: number;
+  };
+}
+
+export interface SpreadsheetQueryResult {
+  rows: Record<string, unknown>[];
+  columnTypes: Record<string, string>;
+  rowCount: number;
+  totalRowsScanned: number;
+  executedSql: string;
+  latencyMs: number;
+}
+
 export interface ToolServices {
   search: {
     hybrid: (params: SearchParams) => Promise<SearchResponse>;
@@ -212,6 +261,17 @@ export interface ToolServices {
     listVirtualFiles: () => VirtualFileInfo[];
     deleteVirtualFile: (fileId: string) => boolean;
   };
+
+  analytics: {
+    getSpreadsheetSchema: (
+      documentId: string,
+      teamId: string
+    ) => Promise<SpreadsheetSchema>;
+    generateSql: (params: GenerateSqlParams) => Promise<GenerateSqlResult>;
+    executeQuery: (
+      params: ExecuteQueryParams
+    ) => Promise<SpreadsheetQueryResult>;
+  };
 }
 
 export function createUnimplementedServices(): ToolServices {
@@ -251,6 +311,11 @@ export function createUnimplementedServices(): ToolServices {
       ),
       listVirtualFiles: notImplemented("context.listVirtualFiles"),
       deleteVirtualFile: notImplemented("context.deleteVirtualFile"),
+    },
+    analytics: {
+      getSpreadsheetSchema: notImplemented("analytics.getSpreadsheetSchema"),
+      generateSql: notImplemented("analytics.generateSql"),
+      executeQuery: notImplemented("analytics.executeQuery"),
     },
   };
 }
