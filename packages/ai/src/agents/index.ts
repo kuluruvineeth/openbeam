@@ -50,6 +50,11 @@ export {
   resolveInputRefs,
   setStateValue,
 } from "./config";
+export type {
+  SpreadsheetAgentResult,
+  SpreadsheetQueryConfig,
+  SpreadsheetQueryInput,
+} from "./patterns";
 export {
   CoordinatorAgent,
   createAgentFromConfig,
@@ -58,10 +63,13 @@ export {
   createLoopAgent,
   createParallelAgent,
   createSequentialAgent,
+  createSpreadsheetQueryAgent,
+  isSpreadsheetQuery,
   LlmAgent,
   LoopAgent,
   ParallelAgent,
   SequentialAgent,
+  SpreadsheetQueryAgent,
 } from "./patterns";
 export type { AgentRunner, AgentRunnerOptions } from "./runner";
 export {
