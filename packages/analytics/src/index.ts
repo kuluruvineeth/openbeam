@@ -17,6 +17,18 @@ export {
   isAnalyticsInitialized,
   resetAnalyticsConfig,
 } from "./config";
+export {
+  type AnalyticsService,
+  type AnalyticsServiceDeps,
+  createAnalyticsService,
+  type DocumentInfo,
+  type ExecuteQueryParams,
+  type GenerateSqlParams,
+  type GenerateSqlResult,
+  type SpreadsheetColumn,
+  type SpreadsheetQueryResult,
+  type SpreadsheetSchema,
+} from "./duckdb/service";
 export type {
   AIActionExecutedEvent,
   AICitationClickedEvent,
@@ -52,7 +64,6 @@ export type {
   SearchZeroResultsEvent,
   SessionEndEvent,
 } from "./events";
-
 export {
   aiAssistantEvents,
   aiAssistantEventsServer,
@@ -75,7 +86,6 @@ export {
   experiments,
   featureFlags,
 } from "./feature-flags";
-
 export type {
   OrganizationActivityMetrics,
   OrganizationProperties,
@@ -86,7 +96,6 @@ export {
   organizationAnalytics,
   teamAnalytics,
 } from "./groups";
-
 export type {
   CostBreakdown,
   LLMFeedbackEvent,
@@ -108,7 +117,6 @@ export {
   trackToolCall,
   withPostHogObservability,
 } from "./llm";
-
 export type {
   AIAnswerQualityMetrics,
   AIUsageMetrics,
@@ -180,7 +188,6 @@ export type {
   SensitiveFieldType,
   SessionRecordingConfig,
 } from "./privacy";
-
 export {
   defaultSessionRecordingConfig,
   detectRegion,

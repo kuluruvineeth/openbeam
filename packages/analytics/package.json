@@ -59,6 +59,10 @@
     "./providers/server": {
       "types": "./dist/providers/server-context.d.ts",
       "default": "./src/providers/server-context.ts"
+    },
+    "./duckdb": {
+      "types": "./dist/duckdb/index.d.ts",
+      "default": "./src/duckdb/index.ts"
     }
   },
   "scripts": {
@@ -69,6 +73,9 @@
     "posthog-js": "^1.313.0",
     "posthog-node": "^5.18.1",
     "@posthog/ai": "^1.0.0",
+    "@duckdb/node-api": "^1.4.3-r.2",
+    "@openplane/storage": "workspace:*",
+    "node-sql-parser": "^5.3.8",
     "zod": "^4.1.13"
   },
   "devDependencies": {

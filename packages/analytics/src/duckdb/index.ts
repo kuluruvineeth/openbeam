@@ -1,0 +1,174 @@
+export {
+  type CachedQueryResult,
+  type CacheStorage,
+  createQueryCache,
+  createRedisCacheStorage,
+  type QueryCache,
+  type QueryCacheInstance,
+  type QueryCacheOptions,
+} from "./cache";
+export {
+  type CircuitBreaker,
+  createCircuitBreaker,
+} from "./circuit-breaker";
+export {
+  createDuckDBClient,
+  type DuckDBClient,
+  type DuckDBClientConfig,
+} from "./client";
+export {
+  CACHE_CONFIG,
+  type CacheConfig,
+  CIRCUIT_BREAKER_CONFIG,
+  type CircuitBreakerConfig,
+  calculateOptimalConfig,
+  DEFAULT_DUCKDB_CONFIG,
+  DEFAULT_QUERY_OPTIONS,
+  DEFAULT_RETRY_CONFIG,
+  type DuckDBResourceConfig,
+  type FileLimits,
+  getConfigFromEnv,
+  mergeConfig,
+  PRODUCTION_FILE_LIMITS,
+  type RetryConfig,
+} from "./config";
+export {
+  buildJoinQuery,
+  buildUnionQuery,
+  type CrossSheetContext,
+  type CrossSheetQuery,
+  executeCrossSheetQuery,
+  extractSheetReferences,
+  type JoinConfig,
+  rewriteSheetReferences,
+  suggestJoinColumns,
+  validateJoinColumns,
+} from "./cross-sheet";
+export {
+  type ExcelWorkbook,
+  getSheetViewName,
+  isExcelFile,
+  type LoadSheetOptions,
+  loadAllSheets,
+  loadExcelWorkbook,
+  type MultiSheetResult,
+  type SheetInfo,
+  switchSheet,
+  unloadAllSheets,
+} from "./excel";
+export {
+  type DuckDBMetricsSnapshot,
+  getMetricsCollector,
+  MetricsCollector,
+  resetMetricsCollector,
+} from "./metrics";
+export {
+  buildMultiParquetQuerySql,
+  buildParquetExportSql,
+  buildParquetGlobQuerySql,
+  buildParquetQuerySql,
+  type ExportResult,
+  estimateParquetSize,
+  getParquetMetadataSql,
+  getParquetSchema,
+  type ParquetExportOptions,
+  type ParquetMetadata,
+  queryParquetFromS3,
+} from "./parquet";
+export {
+  type CostBreakdownParams,
+  CostBreakdownParamsSchema,
+  type CostBreakdownResponse,
+  type CostBreakdownResult,
+  type CostDriverResult,
+  getCostBreakdown,
+  getTopCostDrivers,
+  getUsageTrend,
+  type TopCostDriversParams,
+  TopCostDriversParamsSchema,
+  type TopCostDriversResponse,
+  type UsageTrendParams,
+  UsageTrendParamsSchema,
+  type UsageTrendPoint,
+  type UsageTrendResponse,
+} from "./queries/cost";
+export {
+  createQueryQueue,
+  type QueryQueue,
+  type QueryQueueInstance,
+  type QueueConfig,
+  type QueuedQuery,
+} from "./queue";
+export {
+  calculateDelay,
+  isRetryableError,
+  type RetryResult,
+  withRetry,
+  withRetryAsync,
+  withRetryResult,
+} from "./retry";
+export type {
+  SpreadsheetColumn as AnalyticsSpreadsheetColumn,
+  SpreadsheetSchema as AnalyticsSpreadsheetSchema,
+} from "./service";
+export {
+  type AnalyticsService,
+  type AnalyticsServiceDeps,
+  createAnalyticsService,
+  type DocumentInfo,
+  type ExecuteQueryParams,
+  type GenerateSqlParams,
+  type GenerateSqlResult,
+  type SpreadsheetQueryResult,
+} from "./service";
+export {
+  assessComplexity,
+  buildSchemaDescription,
+  buildSystemPrompt,
+  detectWarnings,
+  type GeneratedSql,
+  generateSqlFromNaturalLanguage,
+  type LlmGeneratorDeps,
+  postProcessSql,
+  type SqlGenerationContext,
+  type SqlGenerationRequest,
+  SqlGenerationRequestSchema,
+} from "./sql-generator";
+export {
+  type AnalyticsStorageConfig,
+  AnalyticsStorageConfigSchema,
+  getAnalyticsParquetPath,
+  getAnalyticsParquetPattern,
+  getAnalyticsStorage,
+  listAnalyticsParquetFiles,
+  resetAnalyticsStorageCache,
+} from "./storage";
+export {
+  type CircuitBreakerMetrics,
+  type CircuitBreakerState,
+  DuckDBApiError,
+  type DuckDBApiErrorOptions,
+  type DuckDBErrorCode,
+  DuckDBErrorCodes,
+  type FileValidationResult,
+  getSpreadsheetFormat,
+  isSpreadsheetMime,
+  type MetricLabels,
+  type QueryExecutionOptions,
+  type QueryResult,
+  SPREADSHEET_MIME_TYPES,
+  type SpreadsheetColumn,
+  SpreadsheetColumnSchema,
+  type SpreadsheetMimeType,
+  type SpreadsheetSchema,
+  SpreadsheetSchemaSchema,
+  type ValidationResult,
+} from "./types";
+export {
+  addLimitClause,
+  assertValidSQL,
+  extractReferencedColumns,
+  sanitizeTableName,
+  validateSQL,
+  validateTableName,
+} from "./validation";
