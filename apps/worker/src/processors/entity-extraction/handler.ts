@@ -275,16 +275,24 @@ export async function processEntityExtractionJob(
     }
   }
 
-  const mentionInputs: CreateEntityMentionInput[] = extractedData.map((e) => ({
-    entityId: entityMap.get(e.text) as string,
-    documentId,
-    teamId,
-    mentionText: e.text,
-    confidence: e.score,
-    source: e.source,
-  }));
+  const mentionInputs: CreateEntityMentionInput[] = [];
+  for (const e of extractedData) {
+    const entityId = entityMap.get(e.text);
+    if (entityId) {
+      mentionInputs.push({
+        entityId,
+        documentId,
+        teamId,
+        mentionText: e.text,
+        confidence: e.score,
+        source: e.source,
+      });
+    }
+  }
 
-  await createManyEntityMentions(prisma, mentionInputs);
+  if (mentionInputs.length > 0) {
+    await createManyEntityMentions(prisma, mentionInputs);
+  }
 
   const relationsCreated = author
     ? await createAuthorRelations({

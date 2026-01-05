@@ -131,8 +131,7 @@ function getAnalyticsService() {
           fileName:
             spreadsheetDoc.file_name ?? spreadsheetDoc.title ?? "unknown",
           storageKey: spreadsheetDoc.storage_key,
-          mimeType:
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          mimeType: spreadsheetDoc.mime_type,
           teamId: spreadsheetDoc.team_id,
         };
       }

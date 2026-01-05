@@ -161,7 +161,7 @@ export class SpreadsheetQueryAgent extends BaseAgent {
       schema,
     });
 
-    const viewName = `spreadsheet_${input.spreadsheetId.replace(/-/g, "_")}`;
+    const viewName = `data_${input.spreadsheetId.replace(/-/g, "_")}`;
     const queryResult = await services.analytics.executeQuery({
       documentId: input.spreadsheetId,
       sql: sqlResult.sql,
