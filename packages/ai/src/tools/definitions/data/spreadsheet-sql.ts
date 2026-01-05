@@ -95,7 +95,7 @@ EXAMPLE FLOW:
         explanation: result.explanation,
         referencedColumns: result.referencedColumns,
         complexity: result.estimatedComplexity,
-        viewName: `spreadsheet_${params.documentId.replace(/-/g, "_")}`,
+        viewName: `data_${params.documentId.replace(/-/g, "_")}`,
         awaitingApproval: true,
       },
       { source: "ai" }
