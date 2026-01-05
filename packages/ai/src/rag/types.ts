@@ -71,6 +71,13 @@ export interface RAGChunk {
   score: number;
   tokenCount: number;
   metadata?: Record<string, unknown>;
+  sectionId?: string;
+  sectionTitle?: string;
+  sectionPath?: string[];
+  sectionLevel?: number;
+  pageNumber?: number;
+  pageRange?: [number, number];
+  elementTypes?: string[];
 }
 
 export interface RAGCitation {
@@ -83,6 +90,10 @@ export interface RAGCitation {
   snippet: string;
   relevanceScore: number;
   position: number;
+  pageNumber?: number;
+  pageRange?: [number, number];
+  sectionPath?: string[];
+  sectionTitle?: string;
 }
 
 export type GroundingConfidence = "high" | "medium" | "low" | "uncertain";

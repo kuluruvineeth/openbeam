@@ -26,7 +26,9 @@ import {
   type ProgressEmitterParams,
 } from "@openplane/redis";
 import {
+  createStructuredChunks,
   EngineClient,
+  extractStructure,
   getStorageProvider,
   SIGNED_URL_EXPIRY_SECONDS,
 } from "@openplane/services";
@@ -50,6 +52,11 @@ interface ParsedChunk {
   text: string;
   page_number?: number;
   page_end?: number;
+  sectionId?: string;
+  sectionTitle?: string;
+  sectionPath?: string[];
+  sectionLevel?: number;
+  elementTypes?: string[];
 }
 
 const engineUrl = process.env.ENGINE_URL || "http://localhost:8000";
@@ -437,23 +444,22 @@ async function processParse(
     overlap: 150,
   });
 
-  const rawChunks = result.chunks ?? [];
-
-  const parsedChunks: ParsedChunk[] = rawChunks.map((chunk) => {
-    if (typeof chunk === "string") {
-      return { text: chunk };
-    }
-    const richChunk = chunk as {
-      text: string;
-      page_number?: number;
-      page_end?: number;
-    };
-    return {
-      text: richChunk.text,
-      page_number: richChunk.page_number,
-      page_end: richChunk.page_end,
-    };
+  const structure = extractStructure(result.elements);
+  const structuredChunks = createStructuredChunks(result.elements, structure, {
+    maxChunkSize: 1500,
+    overlap: 150,
   });
+
+  const parsedChunks: ParsedChunk[] = structuredChunks.map((chunk) => ({
+    text: chunk.text,
+    page_number: chunk.pageNumber,
+    page_end: chunk.pageEnd,
+    sectionId: chunk.sectionId,
+    sectionTitle: chunk.sectionTitle,
+    sectionPath: chunk.sectionPath,
+    sectionLevel: chunk.sectionLevel,
+    elementTypes: chunk.elementTypes,
+  }));
 
   await updateIndexedFileParsed(prisma, fileId, {
     textLength: result.text_length,
@@ -464,7 +470,13 @@ async function processParse(
   await progress.update(2, FILE_TOTAL_STEPS, "Parsed");
 
   logger.info(
-    { fileId, textLength: result.text_length, chunks: parsedChunks.length },
+    {
+      fileId,
+      textLength: result.text_length,
+      chunks: parsedChunks.length,
+      hasStructure: structure.hasToc,
+      sections: structure.totalSections,
+    },
     "File parsed"
   );
 
@@ -478,6 +490,12 @@ async function processParse(
     parsedChunks,
     textLength: result.text_length,
     pageCount: result.page_count ?? undefined,
+    documentStructure: {
+      hasToc: structure.hasToc,
+      totalSections: structure.totalSections,
+      maxDepth: structure.maxDepth,
+      outlineHash: structure.outlineHash,
+    },
   });
 
   return { success: true, fileId, nextStep: "index" };
@@ -502,6 +520,7 @@ interface ChunkIndexContext {
   file: Awaited<ReturnType<typeof prisma.indexedFile.findUnique>> & {
     connector: { app: string; teamId: string; workspaceExternalId: string };
   };
+  documentOutlineHash?: string;
 }
 
 async function indexChunkBatch(
@@ -523,6 +542,7 @@ async function indexChunkBatch(
 
   const chunkDocs: GenericDocument[] = batchChunks.map((chunk, idx) => {
     const i = batchStart + idx;
+    const chunkTitle = buildChunkTitle(chunk, fileName);
     return {
       id: `chunk-${connectorId}-${externalId}-${i}`,
       connector_id: connectorId,
@@ -532,9 +552,7 @@ async function indexChunkBatch(
       external_id: `${externalId}-chunk-${i}`,
       document_type: "file_chunk",
       document_subtype: mimeType,
-      title: chunk.page_number
-        ? `${fileName} · Page ${chunk.page_number}`
-        : (fileName ?? "Untitled"),
+      title: chunkTitle,
       content: chunk.text,
       content_plain: chunk.text,
       file_name: fileName,
@@ -550,6 +568,13 @@ async function indexChunkBatch(
       access_control: accessControl,
       page_number: chunk.page_number,
       page_end: chunk.page_end,
+      section_id: chunk.sectionId,
+      section_title: chunk.sectionTitle,
+      section_path: chunk.sectionPath,
+      section_level: chunk.sectionLevel,
+      document_outline_hash: ctx.documentOutlineHash,
+      has_structure: Boolean(chunk.sectionId),
+      element_types: chunk.elementTypes,
     };
   });
 
@@ -619,6 +644,20 @@ async function cleanupExistingChunks(fileId: string): Promise<void> {
   }
 
   await deleteChunksByFileId(prisma, fileId);
+}
+
+function buildChunkTitle(
+  chunk: ParsedChunk,
+  fileName: string | undefined
+): string {
+  const baseName = fileName ?? "Document";
+  if (chunk.sectionTitle) {
+    return `${baseName} · ${chunk.sectionTitle}`;
+  }
+  if (chunk.page_number) {
+    return `${baseName} · Page ${chunk.page_number}`;
+  }
+  return baseName;
 }
 
 async function indexSpreadsheet(
@@ -782,6 +821,7 @@ async function processIndex(
     totalChunks,
     accessControl,
     file,
+    documentOutlineHash: data.documentStructure?.outlineHash,
   };
 
   let totalIndexed = 0;

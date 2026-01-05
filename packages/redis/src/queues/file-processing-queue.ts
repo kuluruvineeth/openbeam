@@ -8,6 +8,18 @@ export interface ParsedChunk {
   text: string;
   page_number?: number;
   page_end?: number;
+  sectionId?: string;
+  sectionTitle?: string;
+  sectionPath?: string[];
+  sectionLevel?: number;
+  elementTypes?: string[];
+}
+
+export interface DocumentStructureMetadata {
+  hasToc: boolean;
+  totalSections: number;
+  maxDepth: number;
+  outlineHash: string;
 }
 
 export interface SpreadsheetColumnMetadata {
@@ -46,6 +58,7 @@ export interface FileProcessingJobData {
   textLength?: number;
   pageCount?: number;
   spreadsheetMetadata?: SpreadsheetMetadata;
+  documentStructure?: DocumentStructureMetadata;
 }
 
 export const fileProcessingQueue = new Queue<FileProcessingJobData>(

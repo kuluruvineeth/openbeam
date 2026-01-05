@@ -10,6 +10,16 @@ export {
   type SpreadsheetMetadata,
   spreadsheetMetadataToJson,
 } from "./spreadsheet-metadata";
+export type {
+  DocumentStructure,
+  OutlineNode,
+  StructuredChunk,
+  StructuredParseResult,
+} from "./structure";
+export {
+  createStructuredChunks,
+  extractStructure,
+} from "./structure-extractor";
 export type { SupportedFileTypes } from "./supported-types";
 export {
   getAllSupportedTypes,

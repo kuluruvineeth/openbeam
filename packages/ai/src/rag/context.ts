@@ -50,6 +50,10 @@ function createCitation(chunk: RAGChunk, position: number): RAGCitation {
     snippet: chunk.content.slice(0, 200),
     relevanceScore: chunk.score,
     position,
+    pageNumber: chunk.pageNumber,
+    pageRange: chunk.pageRange,
+    sectionPath: chunk.sectionPath,
+    sectionTitle: chunk.sectionTitle,
   };
 }
 
@@ -286,56 +290,79 @@ function splitByTokenCount(text: string, opts: ChunkingOptions): RawChunk[] {
   return chunks;
 }
 
-export function rerankChunks(
-  query: string,
-  chunks: RAGChunk[],
-  options: Partial<RerankingOptions> = {}
-): RAGChunk[] {
-  const topK = options.topK ?? 10;
-  const minScore = options.minScore ?? 0.1;
-  const diversityWeight = options.diversityWeight ?? 0.3;
+function countTermOverlap(terms: string[], queryTermSet: Set<string>): number {
+  let count = 0;
+  for (const term of terms) {
+    if (queryTermSet.has(term)) {
+      count += 1;
+    }
+  }
+  return count;
+}
 
-  if (chunks.length <= topK) {
-    return chunks.filter((c) => c.score >= minScore);
+function buildSectionCoherenceMap(chunks: RAGChunk[]): Map<string, number> {
+  const sectionCounts = new Map<string, number>();
+  for (const chunk of chunks) {
+    if (chunk.sectionId) {
+      const key = `${chunk.documentId}:${chunk.sectionId}`;
+      sectionCounts.set(key, (sectionCounts.get(key) ?? 0) + 1);
+    }
+  }
+  return sectionCounts;
+}
+
+function computeChunkScore(
+  chunk: RAGChunk,
+  queryTerms: string[],
+  queryTermSet: Set<string>,
+  sectionCoherence: Map<string, number>
+): number {
+  const chunkTerms = normalizeAndTokenize(chunk.content);
+  const titleTerms = normalizeAndTokenize(chunk.documentTitle);
+
+  const termOverlap = countTermOverlap(chunkTerms, queryTermSet);
+  const titleBoost = countTermOverlap(titleTerms, queryTermSet) * 0.1;
+
+  let sectionBoost = 0;
+  if (chunk.sectionTitle) {
+    const sectionTerms = normalizeAndTokenize(chunk.sectionTitle);
+    sectionBoost = countTermOverlap(sectionTerms, queryTermSet) * 0.15;
   }
 
-  const queryTerms = normalizeAndTokenize(query);
-  const queryTermSet = new Set(queryTerms);
+  const structureBonus =
+    chunk.sectionPath && chunk.sectionPath.length > 0 ? 0.05 : 0;
 
-  const scored = chunks.map((chunk) => {
-    const chunkTerms = normalizeAndTokenize(chunk.content);
-    const titleTerms = normalizeAndTokenize(chunk.documentTitle);
-
-    let termOverlap = 0;
-    for (const term of chunkTerms) {
-      if (queryTermSet.has(term)) {
-        termOverlap += 1;
-      }
+  let coherenceBonus = 0;
+  if (chunk.sectionId) {
+    const sectionKey = `${chunk.documentId}:${chunk.sectionId}`;
+    const sectionCount = sectionCoherence.get(sectionKey) ?? 0;
+    if (sectionCount > 1) {
+      coherenceBonus = 0.05 * Math.min(sectionCount - 1, 3);
     }
+  }
 
-    let titleBoost = 0;
-    for (const term of titleTerms) {
-      if (queryTermSet.has(term)) {
-        titleBoost += 0.1;
-      }
-    }
+  const termScore = termOverlap / Math.max(queryTerms.length, 1);
+  const positionBonus = chunk.startOffset < 500 ? 0.1 : 0;
+  const lengthPenalty = chunk.content.length < 100 ? -0.05 : 0;
 
-    const termScore = termOverlap / Math.max(queryTerms.length, 1);
-    const positionBonus = chunk.startOffset < 500 ? 0.1 : 0;
-    const lengthPenalty = chunk.content.length < 100 ? -0.05 : 0;
+  return (
+    chunk.score * 0.3 +
+    termScore * 0.5 +
+    titleBoost +
+    sectionBoost +
+    structureBonus +
+    coherenceBonus +
+    positionBonus +
+    lengthPenalty
+  );
+}
 
-    const rerankScore =
-      chunk.score * 0.3 +
-      termScore * 0.5 +
-      titleBoost +
-      positionBonus +
-      lengthPenalty;
-
-    return { chunk, rerankScore };
-  });
-
-  scored.sort((a, b) => b.rerankScore - a.rerankScore);
-
+function selectTopChunks(
+  scored: { chunk: RAGChunk; rerankScore: number }[],
+  topK: number,
+  minScore: number,
+  diversityWeight: number
+): RAGChunk[] {
   const selected: RAGChunk[] = [];
   const selectedDocs = new Set<string>();
 
@@ -359,6 +386,38 @@ export function rerankChunks(
   }
 
   return selected;
+}
+
+export function rerankChunks(
+  query: string,
+  chunks: RAGChunk[],
+  options: Partial<RerankingOptions> = {}
+): RAGChunk[] {
+  const topK = options.topK ?? 10;
+  const minScore = options.minScore ?? 0.1;
+  const diversityWeight = options.diversityWeight ?? 0.3;
+
+  if (chunks.length <= topK) {
+    return chunks.filter((c) => c.score >= minScore);
+  }
+
+  const queryTerms = normalizeAndTokenize(query);
+  const queryTermSet = new Set(queryTerms);
+  const sectionCoherence = buildSectionCoherenceMap(chunks);
+
+  const scored = chunks.map((chunk) => ({
+    chunk,
+    rerankScore: computeChunkScore(
+      chunk,
+      queryTerms,
+      queryTermSet,
+      sectionCoherence
+    ),
+  }));
+
+  scored.sort((a, b) => b.rerankScore - a.rerankScore);
+
+  return selectTopChunks(scored, topK, minScore, diversityWeight);
 }
 
 function normalizeAndTokenize(text: string): string[] {
@@ -554,12 +613,19 @@ function buildDocHeader(
   docIndex: number,
   includeMetadata: boolean
 ): string {
-  let header = `[${docIndex}] ${chunk.documentTitle}`;
+  const titleParts = [chunk.documentTitle];
+  if (chunk.sectionTitle) {
+    titleParts.push(chunk.sectionTitle);
+  }
+  let header = `[${docIndex}] ${titleParts.join(" > ")}`;
 
   if (includeMetadata) {
     const meta: string[] = [];
     if (chunk.sourceType) {
       meta.push(`Source: ${chunk.sourceType}`);
+    }
+    if (chunk.pageNumber) {
+      meta.push(`Page ${chunk.pageNumber}`);
     }
     if (chunk.documentUrl) {
       meta.push(`URL: ${chunk.documentUrl}`);

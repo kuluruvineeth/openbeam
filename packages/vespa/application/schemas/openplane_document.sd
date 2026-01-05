@@ -5,7 +5,6 @@ schema openplane_document {
       attribute: fast-search
     }
     
-    # === Metadata (all connectors) ===
     field connector_id type string {
       indexing: summary | attribute
       attribute: fast-search
@@ -26,7 +25,6 @@ schema openplane_document {
       indexing: summary | attribute
     }
     
-    # === Document identifiers ===
     field external_id type string {
       indexing: summary | attribute
     }
@@ -72,7 +70,6 @@ schema openplane_document {
       # Original HTML/rich text for display
     }
     
-    # === Semantic Embeddings (1536 dims for text-embedding-3-small) ===
     field content_embedding type tensor<float>(x[1536]) {
       indexing: attribute | index
       attribute {
@@ -99,7 +96,6 @@ schema openplane_document {
       }
     }
 
-    # === BGE-M3 Embeddings (1024 dimensions) ===
     field embedding type tensor<float>(x[1024]) {
       indexing: attribute | index
       attribute {
@@ -135,7 +131,6 @@ schema openplane_document {
       attribute: fast-search
     }
 
-    # === Authorship ===
     field author_id type string {
       indexing: summary | attribute
       attribute: fast-search
@@ -158,28 +153,22 @@ schema openplane_document {
       indexing: summary
     }
 
-    # === Contributors & Mentions ===
     field contributor_ids type array<string> {
       indexing: summary | attribute
-      # All contributors (editors, commenters)
     }
     
     field mentioned_user_ids type array<string> {
       indexing: summary | attribute
-      # Users mentioned in the document
     }
     
     field assignee_ids type array<string> {
       indexing: summary | attribute
-      # For tasks/issues
     }
     
     field reviewer_ids type array<string> {
       indexing: summary | attribute
-      # For PRs, documents requiring review
     }
     
-    # === Timestamps ===
     field created_at type long {
       indexing: summary | attribute
       attribute: fast-search
@@ -192,29 +181,23 @@ schema openplane_document {
     
     field indexed_at type long {
       indexing: summary | attribute
-      # When we indexed this document
     }
     
     field last_accessed_at type long {
       indexing: summary | attribute
-      # Last time anyone accessed/viewed
     }
     
     field due_date type long {
       indexing: summary | attribute
-      # For tasks/issues
     }
     
     field resolved_at type long {
       indexing: summary | attribute
-      # When issue/task was resolved
     }
     
-    # === Source/Container Info ===
     field source_id type string {
       indexing: summary | attribute
       attribute: fast-search
-      # Channel, folder, database, repository ID
     }
     
     field source_name type string {
@@ -224,69 +207,56 @@ schema openplane_document {
     
     field source_type type string {
       indexing: summary | attribute
-      # "channel", "folder", "database", "repository", "board", "space"
     }
     
     field source_path type string {
       indexing: summary | attribute
-      # Full path: "Engineering/Projects/Q3 Launch"
     }
     
-    # === Hierarchy & Relationships ===
     field parent_id type string {
       indexing: summary | attribute
       attribute: fast-search
-      # Parent document (folder, thread root, etc.)
     }
     
     field thread_id type string {
       indexing: summary | attribute
       attribute: fast-search
-      # Thread root for messages
     }
     
     field project_id type string {
       indexing: summary | attribute
       attribute: fast-search
-      # Associated project (Jira project, Linear team, etc.)
     }
     
     field related_doc_ids type array<string> {
       indexing: summary | attribute
-      # Explicitly related documents
     }
     
     field referenced_doc_ids type array<string> {
       indexing: summary | attribute
-      # Documents this doc references (links, citations)
     }
     
     # === Status & Workflow (Critical for Issue Tracking) ===
     field status type string {
       indexing: summary | attribute
       attribute: fast-search
-      # "open", "in_progress", "done", "closed", "archived", etc.
     }
     
     field priority type string {
       indexing: summary | attribute
-      # "critical", "high", "medium", "low", "none"
     }
     
     field state type string {
       indexing: summary | attribute
-      # Workflow state (more granular than status)
     }
     
     field labels type array<string> {
       indexing: summary | attribute | index
       index: enable-bm25
-      # Tags, labels, categories
     }
     
     field sprint type string {
       indexing: summary | attribute
-      # Sprint/iteration name
     }
     
     field milestone type string {
@@ -297,7 +267,6 @@ schema openplane_document {
       indexing: summary | attribute
     }
     
-    # === Engagement metrics ===
     field view_count type int {
       indexing: summary | attribute
     }
@@ -313,10 +282,8 @@ schema openplane_document {
     # === Rich content ===
     field attachments type array<string> {
       indexing: summary
-      # JSON array of attachment metadata
     }
     
-    # === File-Specific Fields ===
     field file_name type string {
       indexing: summary | index
       index: enable-bm25
@@ -330,43 +297,34 @@ schema openplane_document {
       indexing: summary | attribute
     }
     
-    # === Connector-Specific Metadata ===
     field metadata type string {
       indexing: summary | attribute
-      # JSON for connector-specific fields
     }
     
     field custom_fields type string {
       indexing: summary
-      # JSON for user-defined custom fields
     }
     
-    # === Sync Tracking ===
     field checksum type string {
       indexing: summary | attribute
-      # For change detection
     }
     
     field sync_version type int {
       indexing: summary | attribute
     }
     
-    # === Access control ===
     field access_control type array<string> {
       indexing: summary | attribute
-      # User/group IDs with access
     }
     
     field is_public type bool {
       indexing: summary | attribute
     }
     
-    # === URL ===
     field url type string {
       indexing: summary
     }
     
-    # === Chunk-Specific Fields ===
     field chunk_index type int {
       indexing: summary | attribute
     }
@@ -391,8 +349,37 @@ schema openplane_document {
     field page_end type int {
       indexing: summary | attribute
     }
-    
-    # === Entity Extraction & Knowledge Graph ===
+
+    field section_id type string {
+      indexing: summary | attribute
+    }
+
+    field section_title type string {
+      indexing: summary | index
+      index: enable-bm25
+    }
+
+    field section_path type array<string> {
+      indexing: summary | attribute
+    }
+
+    field section_level type int {
+      indexing: summary | attribute
+    }
+
+    field document_outline_hash type string {
+      indexing: summary | attribute
+      attribute: fast-search
+    }
+
+    field has_structure type bool {
+      indexing: summary | attribute
+    }
+
+    field element_types type array<string> {
+      indexing: summary | attribute
+    }
+
     field entity_ids type array<string> {
       indexing: summary | attribute
       attribute: fast-search
@@ -420,7 +407,6 @@ schema openplane_document {
       }
     }
     
-    # === Authority & Quality Scoring ===
     field authority_score type float {
       indexing: summary | attribute
     }
@@ -442,7 +428,6 @@ schema openplane_document {
       indexing: summary | attribute
     }
     
-    # === Personalization & Activity Signals ===
     field recent_accessor_ids type array<string> {
       indexing: summary | attribute
     }
@@ -460,7 +445,6 @@ schema openplane_document {
     }
   }
   
-  # === Field Sets ===
   fieldset default {
     fields: title, content
   }
@@ -469,23 +453,18 @@ schema openplane_document {
     fields: title, content, content_plain
   }
   
-  # === Ranking Profiles ===
-  
-  # Base rank profile
   rank-profile default {
     first-phase {
       expression: bm25(title) * 2 + bm25(content)
     }
   }
   
-  # BM25 text relevance
   rank-profile bm25 inherits default {
     first-phase {
       expression: bm25(title) * 2 + bm25(content)
     }
   }
   
-  # Semantic vector search
   rank-profile semantic {
     inputs {
       query(query_embedding) tensor<float>(x[1536])
@@ -495,7 +474,6 @@ schema openplane_document {
     }
   }
   
-  # Hybrid search (BM25 + vectors)
   rank-profile hybrid {
     inputs {
       query(query_embedding) tensor<float>(x[1536])
@@ -511,7 +489,6 @@ schema openplane_document {
     }
   }
   
-  # Advanced hybrid with title embedding
   rank-profile hybrid_advanced {
     inputs {
       query(query_embedding) tensor<float>(x[1536])
@@ -530,7 +507,6 @@ schema openplane_document {
     }
   }
   
-  # Recency-boosted search
   rank-profile recency {
     first-phase {
       expression {
@@ -543,7 +519,6 @@ schema openplane_document {
     }
   }
   
-  # Hybrid + Recency
   rank-profile hybrid_recency {
     inputs {
       query(query_embedding) tensor<float>(x[1536])
@@ -563,7 +538,6 @@ schema openplane_document {
     }
   }
   
-  # Engagement-boosted search
   rank-profile engagement {
     first-phase {
       expression {
@@ -574,7 +548,6 @@ schema openplane_document {
     }
   }
   
-  # Enterprise search (combines everything)
   rank-profile enterprise {
     inputs {
       query(query_embedding) tensor<float>(x[1536])
@@ -595,7 +568,6 @@ schema openplane_document {
     }
   }
   
-  # Cross-modal topic search (for unified search across documents and videos)
   rank-profile topic_search {
     inputs {
       query(topic_embedding) tensor<float>(x[256])
@@ -612,7 +584,6 @@ schema openplane_document {
     }
   }
   
-  # Authority-weighted search
   rank-profile authority {
     inputs {
       query(query_embedding) tensor<float>(x[1536])
@@ -637,7 +608,6 @@ schema openplane_document {
     }
   }
   
-  # Personalized enterprise search
   rank-profile personalized {
     inputs {
       query(query_embedding) tensor<float>(x[1536])
@@ -674,7 +644,6 @@ schema openplane_document {
     }
   }
 
-  # === BGE-M3 Ranking Profiles (1024 dimensions) ===
 
   rank-profile semantic_v2 {
     inputs {
@@ -785,7 +754,6 @@ schema openplane_document {
     }
   }
 
-  # === Recency-Sorted with BGE-M3 ===
   rank-profile global_sorted_v2 {
     inputs {
       query(embedding_v2) tensor<float>(x[1024])
@@ -848,7 +816,6 @@ schema openplane_document {
     }
   }
 
-  # === Enterprise V2 with Match Features ===
   rank-profile enterprise_v2_debug inherits enterprise_v2 {
     match-features {
       bm25(title)
@@ -860,7 +827,6 @@ schema openplane_document {
     }
   }
 
-  # === Hybrid with Match Features (for debugging/tuning) ===
   rank-profile hybrid_debug inherits hybrid {
     match-features {
       bm25(title)
@@ -870,7 +836,6 @@ schema openplane_document {
     }
   }
 
-  # === Authority with Match Features ===
   rank-profile authority_debug inherits authority {
     match-features {
       bm25(title)
@@ -882,7 +847,6 @@ schema openplane_document {
     }
   }
 
-  # === Personalized with Match Features ===
   rank-profile personalized_debug inherits personalized {
     match-features {
       bm25(title)

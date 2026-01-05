@@ -84,6 +84,13 @@ export interface GenericDocument {
   is_chunk?: boolean;
   page_number?: number;
   page_end?: number;
+  section_id?: string;
+  section_title?: string;
+  section_path?: string[];
+  section_level?: number;
+  document_outline_hash?: string;
+  has_structure?: boolean;
+  element_types?: string[];
   entity_ids?: string[];
   entity_types?: string[];
   topics?: string[];
@@ -400,6 +407,13 @@ export interface VespaGenericDocumentForFeed {
   is_chunk?: boolean;
   page_number?: number;
   page_end?: number;
+  section_id?: string;
+  section_title?: string;
+  section_path?: string[];
+  section_level?: number;
+  document_outline_hash?: string;
+  has_structure?: boolean;
+  element_types?: string[];
   entity_ids?: string[];
   entity_types?: string[];
   topics?: string[];
