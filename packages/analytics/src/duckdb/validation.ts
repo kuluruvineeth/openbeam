@@ -13,6 +13,7 @@ const BLOCKED_FUNCTIONS = new Set([
   "read_csv",
   "read_csv_auto",
   "read_parquet",
+  "read_xlsx",
   "read_json",
   "read_json_auto",
   "read_text",
@@ -254,4 +255,8 @@ export function addLimitClause(sql: string, limit: number): string {
   }
 
   return `${sql.trim()} LIMIT ${limit}`;
+}
+
+export function escapeSqlStringLiteral(value: string): string {
+  return value.replace(/'/g, "''");
 }

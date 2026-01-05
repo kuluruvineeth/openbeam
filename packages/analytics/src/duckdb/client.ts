@@ -24,6 +24,7 @@ import {
 import {
   addLimitClause,
   assertValidSQL,
+  escapeSqlStringLiteral,
   sanitizeTableName,
 } from "./validation";
 
@@ -275,7 +276,9 @@ export function createDuckDBClient(
         break;
 
       case "xlsx": {
-        const sheetParam = sheet ? `, sheet='${sheet}'` : "";
+        const sheetParam = sheet
+          ? `, sheet='${escapeSqlStringLiteral(sheet)}'`
+          : "";
         createViewSql = `
           CREATE VIEW "${viewName}" AS
           SELECT * FROM read_xlsx(
