@@ -155,11 +155,21 @@ export function createAnalyticsService(deps: AnalyticsServiceDeps) {
     clientCache.set(documentId, { client, viewName });
 
     setTimeout(
-      async () => {
+      () => {
         const entry = clientCache.get(documentId);
         if (entry) {
-          await entry.client.close();
-          clientCache.delete(documentId);
+          entry.client
+            .close()
+            .then(() => {
+              clientCache.delete(documentId);
+            })
+            .catch((error) => {
+              console.error(
+                `Failed to close DuckDB client for document ${documentId}:`,
+                error
+              );
+              clientCache.delete(documentId);
+            });
         }
       },
       5 * 60 * 1000

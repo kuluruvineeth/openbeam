@@ -167,6 +167,7 @@ export {
 export {
   addLimitClause,
   assertValidSQL,
+  escapeSqlStringLiteral,
   extractReferencedColumns,
   sanitizeTableName,
   validateSQL,

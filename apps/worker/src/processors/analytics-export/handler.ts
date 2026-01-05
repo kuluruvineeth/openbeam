@@ -2,7 +2,10 @@ import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
 import { DuckDBInstance } from "@duckdb/node-api";
-import { getAnalyticsStorage } from "@openplane/analytics/duckdb";
+import {
+  escapeSqlStringLiteral,
+  getAnalyticsStorage,
+} from "@openplane/analytics/duckdb";
 import prisma, {
   countAIUsageLogsForDate,
   getAIUsageLogsForExport,
@@ -72,8 +75,8 @@ async function exportTeamToParquet(
 
       try {
         await connection.run(`
-          COPY (SELECT * FROM read_json_auto('${jsonPath}'))
-          TO '${parquetPath}' (FORMAT PARQUET, COMPRESSION ZSTD)
+          COPY (SELECT * FROM read_json_auto('${escapeSqlStringLiteral(jsonPath)}'))
+          TO '${escapeSqlStringLiteral(parquetPath)}' (FORMAT PARQUET, COMPRESSION ZSTD)
         `);
       } finally {
         connection.closeSync();

@@ -260,6 +260,7 @@ export function createDuckDBClient(
     }
 
     const base64Data = fileBuffer.toString("base64");
+    const escapedBase64Data = escapeSqlStringLiteral(base64Data);
 
     let createViewSql: string;
 
@@ -268,7 +269,7 @@ export function createDuckDBClient(
         createViewSql = `
           CREATE VIEW "${viewName}" AS
           SELECT * FROM read_csv_auto(
-            decode('${base64Data}'::blob),
+            decode('${escapedBase64Data}'::blob),
             header=true,
             auto_detect=true
           )
@@ -282,7 +283,7 @@ export function createDuckDBClient(
         createViewSql = `
           CREATE VIEW "${viewName}" AS
           SELECT * FROM read_xlsx(
-            decode('${base64Data}'::blob)
+            decode('${escapedBase64Data}'::blob)
             ${sheetParam}
           )
         `;
@@ -293,7 +294,7 @@ export function createDuckDBClient(
         createViewSql = `
           CREATE VIEW "${viewName}" AS
           SELECT * FROM read_parquet(
-            decode('${base64Data}'::blob)
+            decode('${escapedBase64Data}'::blob)
           )
         `;
         break;
