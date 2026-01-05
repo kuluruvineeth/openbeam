@@ -3,6 +3,9 @@ import type {
   ContextOrchestrator,
   Document,
   DocumentChunk,
+  ExecuteQueryParams,
+  GenerateSqlParams,
+  GenerateSqlResult,
   GroundingResult,
   QueryAnalysis,
   RAGParams,
@@ -10,12 +13,20 @@ import type {
   SearchParams,
   SearchResponse,
   SearchResult,
+  SpreadsheetQueryResult,
+  SpreadsheetSchema,
   SyncHistoryEntry,
   ToolServices,
   VirtualFileInfo,
 } from "@openplane/ai";
+import { CompletionService } from "@openplane/ai";
+import {
+  type AnalyticsService,
+  createAnalyticsService,
+} from "@openplane/analytics";
 import prisma, { findConnectorById, listConnectorsByTeam } from "@openplane/db";
 import { escapeYqlString, vespaClient } from "@openplane/vespa";
+import { getStorageProvider } from "../storage";
 import { hybridSearch, keywordSearch, semanticSearch } from "./hybrid-search";
 import { ragAnswer } from "./rag";
 import { analyzeQuery, verifyGrounding } from "./rag/index";
@@ -219,6 +230,148 @@ function createContextServices(
     },
     deleteVirtualFile(fileId: string): boolean {
       return virtualFileStore.delete(fileId);
+    },
+  };
+}
+
+const SQL_GENERATION_PROMPT = `You are a SQL expert. Convert the user's natural language question into a valid DuckDB SQL query.
+
+SCHEMA:
+{schema}
+
+VIEW NAME: {viewName}
+
+RULES:
+1. Use only SELECT statements
+2. Reference the table as "{viewName}"
+3. Use proper column quoting with double quotes for column names
+4. Return valid DuckDB SQL syntax
+5. Keep queries simple and efficient
+
+Respond with a JSON object:
+{
+  "sql": "your SQL query here",
+  "explanation": "brief explanation of what the query does"
+}`;
+
+interface DocumentInfo {
+  id: string;
+  fileName: string;
+  storageKey: string;
+  mimeType: string;
+  teamId: string;
+}
+
+async function fetchGenericDocumentInfo(
+  documentId: string
+): Promise<DocumentInfo | null> {
+  const doc = await vespaClient.getDocument(documentId);
+  if (!doc) {
+    return null;
+  }
+  const metadata = doc.metadata as Record<string, unknown> | undefined;
+  const storageKey =
+    (metadata?.storageKey as string | undefined) ??
+    (metadata?.storage_key as string | undefined);
+  if (!storageKey) {
+    return null;
+  }
+  return {
+    id: doc.id,
+    fileName: doc.file_name ?? doc.title ?? "unknown",
+    storageKey,
+    mimeType: doc.mime_type ?? "application/octet-stream",
+    teamId: doc.team_id,
+  };
+}
+
+function createAnalyticsServices(): ToolServices["analytics"] {
+  let analyticsServiceInstance: AnalyticsService | null = null;
+
+  function getAnalyticsService(): AnalyticsService {
+    if (!analyticsServiceInstance) {
+      const storage = getStorageProvider();
+      const completionService = new CompletionService();
+
+      analyticsServiceInstance = createAnalyticsService({
+        async downloadFile(storageKey: string): Promise<Buffer> {
+          const signedUrl = await storage.getSignedUrl(storageKey, 300);
+          const response = await fetch(signedUrl);
+          if (!response.ok) {
+            throw new Error(`Failed to download file: ${response.statusText}`);
+          }
+          const arrayBuffer = await response.arrayBuffer();
+          return Buffer.from(arrayBuffer);
+        },
+        async getDocument(documentId: string) {
+          const spreadsheetDoc =
+            await vespaClient.getSpreadsheetDocument(documentId);
+          if (spreadsheetDoc) {
+            return {
+              id: spreadsheetDoc.id,
+              fileName:
+                spreadsheetDoc.file_name ?? spreadsheetDoc.title ?? "unknown",
+              storageKey: spreadsheetDoc.storage_key,
+              mimeType:
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+              teamId: spreadsheetDoc.team_id,
+            };
+          }
+          return fetchGenericDocumentInfo(documentId);
+        },
+        async generateSqlWithLLM({ query, schema, viewName }) {
+          const schemaDescription = schema.columns
+            .map(
+              (c) =>
+                `  - ${c.name}: ${c.type}${c.nullable ? " (nullable)" : ""}`
+            )
+            .join("\n");
+
+          const prompt = SQL_GENERATION_PROMPT.replace(
+            "{schema}",
+            `Table: ${viewName}\nColumns:\n${schemaDescription}\nRow count: ${schema.rowCount}`
+          ).replace(/{viewName}/g, viewName);
+
+          const result = await completionService.complete(
+            [{ role: "user", content: `Question: ${query}` }],
+            { systemPrompt: prompt, temperature: 0.1 }
+          );
+
+          try {
+            const parsed = JSON.parse(result.content) as {
+              sql: string;
+              explanation: string;
+            };
+            return parsed;
+          } catch {
+            return {
+              sql: `SELECT * FROM "${viewName}" LIMIT 10`,
+              explanation: "Fallback query - could not parse LLM response",
+            };
+          }
+        },
+      });
+    }
+    return analyticsServiceInstance;
+  }
+
+  return {
+    getSpreadsheetSchema(
+      documentId: string,
+      teamId: string
+    ): Promise<SpreadsheetSchema> {
+      const service = getAnalyticsService();
+      return service.getSpreadsheetSchema(documentId, teamId);
+    },
+
+    generateSql(params: GenerateSqlParams): Promise<GenerateSqlResult> {
+      const service = getAnalyticsService();
+      return service.generateSql(params);
+    },
+
+    executeQuery(params: ExecuteQueryParams): Promise<SpreadsheetQueryResult> {
+      const service = getAnalyticsService();
+      return service.executeQuery(params);
     },
   };
 }
@@ -487,5 +640,7 @@ export function createToolServices(
     },
 
     context: createContextServices(options.orchestrator),
+
+    analytics: createAnalyticsServices(),
   };
 }

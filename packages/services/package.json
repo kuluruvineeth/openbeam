@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@openplane/ai": "workspace:*",
+    "@openplane/analytics": "workspace:*",
     "@openplane/db": "workspace:*",
     "@openplane/integrations": "workspace:*",
     "@openplane/media": "workspace:*",
