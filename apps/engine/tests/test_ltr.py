@@ -1,8 +1,10 @@
 from __future__ import annotations
 
-import numpy as np
 import pytest
 
+np = pytest.importorskip("numpy")
+
+# ruff: noqa: E402
 from engine.ltr.click_model import (
     ClickSignal,
     RelevanceGrade,
@@ -253,18 +255,18 @@ class TestLTRTrainer:
         assert y.shape[0] == sum(groups)
 
     def test_prepare_training_data_labels(self, trainer, sample_impressions, sample_clicks, sample_features):
-        X, y, groups = trainer.prepare_training_data(
+        _X, y, _groups = trainer.prepare_training_data(
             sample_impressions,
             sample_clicks,
             sample_features,
             FEATURE_NAMES,
         )
-        assert y[0] == float(RelevanceGrade.RELEVANT)  # doc_1 clicked with 15s dwell
-        assert y[1] == 0.0  # doc_2 not clicked in imp_1
+        assert y[0] == float(RelevanceGrade.RELEVANT)
+        assert y[1] == 0.0
 
     def test_prepare_training_data_skips_missing_docs(self, trainer, sample_impressions, sample_clicks):
         features = {"doc_1": np.array([0.1] * 19, dtype=np.float32)}
-        X, y, groups = trainer.prepare_training_data(
+        _X, _y, groups = trainer.prepare_training_data(
             sample_impressions,
             sample_clicks,
             features,
@@ -283,7 +285,7 @@ class TestLTRTrainer:
         impressions = [{"id": "imp_1", "result_doc_ids": ["doc_1", "doc_2"]}]
         clicks = [{"impression_id": "imp_1", "doc_id": "doc_1", "position": 0}]
 
-        X, y, groups = trainer.prepare_training_data(
+        _X, _y, groups = trainer.prepare_training_data(
             impressions,
             clicks,
             sample_features,
