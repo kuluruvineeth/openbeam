@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 
 
-class ExtractedEntityResponse(BaseModel):
+class Entity(BaseModel):
     text: str
     label: str
     score: float
@@ -12,7 +12,23 @@ class ExtractedEntityResponse(BaseModel):
 
 class ExtractRequest(BaseModel):
     text: str = Field(..., min_length=1, max_length=100000)
+    labels: list[str] | None = None
     threshold: float = Field(default=0.5, ge=0.0, le=1.0)
+
+
+class EntityResponse(BaseModel):
+    entities: list[Entity]
+    model: str
+    usage: dict[str, float]
+
+
+class ExtractedEntityResponse(BaseModel):
+    text: str
+    label: str
+    score: float
+    start: int
+    end: int
+    source: str
 
 
 class ExtractResponse(BaseModel):

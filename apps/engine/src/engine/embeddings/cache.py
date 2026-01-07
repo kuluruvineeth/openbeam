@@ -4,9 +4,9 @@ import hashlib
 import json
 from typing import TypedDict
 
-import diskcache
+import diskcache  # type: ignore[import-untyped]
 import redis.asyncio as redis
-from cachetools import LRUCache
+from cachetools import LRUCache  # type: ignore[import-untyped]
 
 from engine.core.config import settings
 from engine.core.logging import get_logger
@@ -33,7 +33,7 @@ class EmbeddingCache:
 
     def __init__(
         self,
-        redis_client: redis.Redis,  # type: ignore[type-arg]
+        redis_client: redis.Redis,
         memory_size: int = 10_000,
         disk_path: str | None = None,
     ) -> None:
@@ -51,15 +51,16 @@ class EmbeddingCache:
 
         if key in self._memory:
             self._stats["memory"] += 1
-            return self._memory[key]
+            data: EmbeddingData = self._memory[key]
+            return data
 
         try:
             cached = await self._redis.get(f"emb:{key}")
             if cached:
                 self._stats["redis"] += 1
-                data: EmbeddingData = json.loads(cached)
-                self._memory[key] = data
-                return data
+                redis_data: EmbeddingData = json.loads(cached)
+                self._memory[key] = redis_data
+                return redis_data
         except redis.RedisError:
             pass
 

@@ -125,7 +125,7 @@ class RerankerService:
     def model_name(self) -> str:
         return self._model.model_name
 
-    def get_stats(self) -> dict:
+    def get_stats(self) -> dict[str, str | dict[str, int | float]]:
         return {
             "model": self._model.model_name,
             "device": self._model.device,

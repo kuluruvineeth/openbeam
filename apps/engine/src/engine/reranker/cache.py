@@ -93,8 +93,8 @@ class RerankCache:
                 logger.exception("rerank_cache_redis_mget_failed")
                 self._stats["redis_errors"] += 1
 
-        for idx, score in enumerate(results):
-            if score is None:
+        for idx, cached_score in enumerate(results):
+            if cached_score is None:
                 uncached_indices.append(idx)
                 self._stats["misses"] += 1
 
@@ -142,7 +142,7 @@ class RerankCache:
 
         self._memory[key] = score
 
-    def get_stats(self) -> dict:
+    def get_stats(self) -> dict[str, int | float]:
         total = sum(self._stats.values())
         hit_rate = (
             (self._stats["memory_hits"] + self._stats["redis_hits"]) / total

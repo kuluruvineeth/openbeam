@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -18,6 +18,6 @@ class ChunkRequest(BaseModel):
 
 
 class ChunkElementsRequest(BaseModel):
-    elements: list[dict]
+    elements: list[dict[str, Any]]
     max_characters: int = Field(default=1500, ge=100, le=10000)
     overlap: int = Field(default=150, ge=0, le=500)

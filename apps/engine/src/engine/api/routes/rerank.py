@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, Request
 
 from engine.models.rerank import (
-    RerankRequest,
-    RerankResponse,
-    RerankResult,
+    RerankDocumentResult,
+    RerankDocumentsRequest,
+    RerankDocumentsResponse,
     RerankStatsResponse,
 )
 from engine.reranker import RerankerService
@@ -13,14 +13,15 @@ router = APIRouter()
 
 
 def get_reranker_service(request: Request) -> RerankerService:
-    return request.app.state.reranker_service
+    service: RerankerService = request.app.state.reranker_service
+    return service
 
 
-@router.post("", response_model=RerankResponse)
+@router.post("", response_model=RerankDocumentsResponse)
 async def rerank(
-    request: RerankRequest,
+    request: RerankDocumentsRequest,
     service: RerankerService = Depends(get_reranker_service),
-) -> RerankResponse:
+) -> RerankDocumentsResponse:
     documents = [
         RerankInput(
             doc_id=doc.id,
@@ -38,9 +39,9 @@ async def rerank(
         top_k=request.top_k,
     )
 
-    return RerankResponse(
+    return RerankDocumentsResponse(
         results=[
-            RerankResult(
+            RerankDocumentResult(
                 id=r.doc_id,
                 score=r.score,
                 original_score=r.original_score,
@@ -57,9 +58,12 @@ async def rerank(
 async def stats(
     service: RerankerService = Depends(get_reranker_service),
 ) -> RerankStatsResponse:
-    stats = service.get_stats()
-    return RerankStatsResponse(
-        model=stats["model"],
-        device=stats["device"],
-        cache=stats["cache"],
-    )
+    data = service.get_stats()
+    model = data["model"]
+    device = data["device"]
+    cache = data["cache"]
+    if not isinstance(model, str) or not isinstance(device, str):
+        raise TypeError("Invalid stats format")
+    if not isinstance(cache, dict):
+        raise TypeError("Invalid cache stats format")
+    return RerankStatsResponse(model=model, device=device, cache=cache)

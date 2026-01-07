@@ -4,8 +4,8 @@ from engine.models.embedding import (
     BatchEmbeddingRequest,
     BatchEmbeddingResponse,
     CacheStatsResponse,
-    EmbeddingRequest,
-    EmbeddingResponse,
+    SingleEmbeddingRequest,
+    SingleEmbeddingResponse,
 )
 from engine.services.embedding import EmbeddingService
 
@@ -13,22 +13,23 @@ router = APIRouter()
 
 
 def get_embedding_service(request: Request) -> EmbeddingService:
-    return request.app.state.embedding_service
+    service: EmbeddingService = request.app.state.embedding_service
+    return service
 
 
-@router.post("/query", response_model=EmbeddingResponse)
+@router.post("/query", response_model=SingleEmbeddingResponse)
 async def embed_query(
-    request: EmbeddingRequest,
+    request: SingleEmbeddingRequest,
     service: EmbeddingService = Depends(get_embedding_service),
-) -> EmbeddingResponse:
+) -> SingleEmbeddingResponse:
     return await service.embed_query(request.text, request.max_length)
 
 
-@router.post("/document", response_model=EmbeddingResponse)
+@router.post("/document", response_model=SingleEmbeddingResponse)
 async def embed_document(
-    request: EmbeddingRequest,
+    request: SingleEmbeddingRequest,
     service: EmbeddingService = Depends(get_embedding_service),
-) -> EmbeddingResponse:
+) -> SingleEmbeddingResponse:
     return await service.embed_document(request.text, request.max_length)
 
 
@@ -50,4 +51,10 @@ async def get_cache_stats(
     service: EmbeddingService = Depends(get_embedding_service),
 ) -> CacheStatsResponse:
     stats = service.get_cache_stats()
-    return CacheStatsResponse(**stats)
+    return CacheStatsResponse(
+        memory=stats["memory"],
+        redis=stats["redis"],
+        disk=stats["disk"],
+        miss=stats["miss"],
+        hit_rate=stats["hit_rate"],
+    )

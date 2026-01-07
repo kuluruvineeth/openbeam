@@ -1,3 +1,5 @@
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -11,6 +13,16 @@ class RerankDocument(BaseModel):
 
 class RerankRequest(BaseModel):
     query: str = Field(min_length=1, max_length=512, description="Search query")
+    passages: list[str] = Field(
+        min_length=1,
+        max_length=200,
+        description="Passages to rerank",
+    )
+    top_k: int | None = Field(default=None, ge=1, le=100, description="Number of results")
+
+
+class RerankDocumentsRequest(BaseModel):
+    query: str = Field(min_length=1, max_length=512, description="Search query")
     documents: list[RerankDocument] = Field(
         min_length=1,
         max_length=200,
@@ -20,6 +32,12 @@ class RerankRequest(BaseModel):
 
 
 class RerankResult(BaseModel):
+    index: int
+    score: float
+    passage: str
+
+
+class RerankDocumentResult(BaseModel):
     id: str
     score: float
     original_score: float | None
@@ -28,6 +46,12 @@ class RerankResult(BaseModel):
 
 class RerankResponse(BaseModel):
     results: list[RerankResult]
+    model: str
+    usage: dict[str, float]
+
+
+class RerankDocumentsResponse(BaseModel):
+    results: list[RerankDocumentResult]
     elapsed_ms: float
     model: str
 
@@ -35,4 +59,4 @@ class RerankResponse(BaseModel):
 class RerankStatsResponse(BaseModel):
     model: str
     device: str
-    cache: dict
+    cache: dict[str, Any]

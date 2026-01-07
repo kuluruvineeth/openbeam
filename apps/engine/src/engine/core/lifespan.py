@@ -27,7 +27,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
     register_all_parsers()
 
-    redis_client = redis.from_url(settings.redis_url)
+    redis_client = redis.from_url(settings.redis_url)  # type: ignore[no-untyped-call]
     model = BGEM3.get_instance()
     cache = EmbeddingCache(redis_client, memory_size=10_000)
     app.state.embedding_service = EmbeddingService(model, cache)

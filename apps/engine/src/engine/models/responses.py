@@ -1,3 +1,5 @@
+from typing import Any
+
 from pydantic import BaseModel
 
 from engine.models.document import DocumentChunk, DocumentElement
@@ -18,7 +20,7 @@ class ParseResponse(BaseModel):
     mime_type: str | None
     elements: list[DocumentElement]
     chunks: list[DocumentChunk] | list[str] | None = None
-    metadata: dict
+    metadata: dict[str, Any]
     text_length: int
     page_count: int | None = None
 

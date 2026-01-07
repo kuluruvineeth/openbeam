@@ -4,6 +4,7 @@ import json
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 import lightgbm as lgb
 import numpy as np
@@ -48,8 +49,8 @@ class LTRTrainer:
 
     def prepare_training_data(
         self,
-        impressions: list[dict],
-        clicks: list[dict],
+        impressions: list[dict[str, Any]],
+        clicks: list[dict[str, Any]],
         features_by_doc: dict[str, np.ndarray],
         feature_names: list[str],
     ) -> tuple[np.ndarray, np.ndarray, list[int]]:
@@ -224,8 +225,8 @@ class LTRTrainer:
 
 
 def train_lambdamart(
-    impressions: list[dict],
-    clicks: list[dict],
+    impressions: list[dict[str, Any]],
+    clicks: list[dict[str, Any]],
     features_by_doc: dict[str, np.ndarray],
     feature_names: list[str],
     config: TrainingConfig | None = None,

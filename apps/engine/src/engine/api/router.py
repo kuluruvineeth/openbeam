@@ -1,6 +1,15 @@
 from fastapi import APIRouter
 
-from engine.api.routes import chunk, embeddings, entities, health, ltr, parse, rerank, supported_types
+from engine.api.routes import (
+    chunk,
+    embeddings,
+    entities,
+    health,
+    ltr,
+    parse,
+    rerank,
+    supported_types,
+)
 
 api_router = APIRouter()
 

@@ -15,7 +15,8 @@ router = APIRouter()
 
 
 def get_entity_extractor(request: Request) -> EntityExtractor:
-    return request.app.state.entity_extractor
+    extractor: EntityExtractor = request.app.state.entity_extractor
+    return extractor
 
 
 def to_response(entity: ExtractedEntity) -> ExtractedEntityResponse:

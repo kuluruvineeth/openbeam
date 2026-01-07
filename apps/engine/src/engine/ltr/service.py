@@ -93,6 +93,8 @@ class LTRService:
             return [], 0.0
 
         features = self._feature_extractor.extract_batch(docs, query, user_context)
+        if self._model is None:
+            return [], 0.0
         scores = self._model.predict(features)
 
         results: list[ScoredDocument] = []
