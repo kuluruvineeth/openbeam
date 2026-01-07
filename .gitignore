@@ -44,6 +44,7 @@ lerna-debug.log*
 
 # Testing
 coverage
+.coverage
 .nyc_output
 
 # Misc
@@ -73,4 +74,22 @@ __pycache__
 .mypy_cache
 .ruff_cache/*
 
+# K8s secrets (never commit real secrets)
+apps/engine/k8s/secrets/secrets.yaml
+
 docs/*
+
+# Ralph Claude Code (autonomous loop state files)
+.call_count
+.circuit_breaker_history
+.circuit_breaker_state
+.exit_signals
+.last_reset
+.last_output_length
+.response_analysis
+progress.json
+status.json
+.hypothesis
+@*.md
+PROMPT.md
+.vscode
