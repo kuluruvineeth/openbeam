@@ -1,0 +1,49 @@
+FROM ghcr.io/astral-sh/uv:0.5-python3.12-bookworm AS builder
+
+WORKDIR /app
+
+ENV UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    UV_PROJECT_ENVIRONMENT=/app/.venv
+
+COPY pyproject.toml uv.lock ./
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-install-project --no-dev --extra gpu
+
+COPY src ./src
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev --extra gpu
+
+
+FROM nvidia/cuda:12.4-runtime-ubuntu22.04 AS runtime
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3.12 \
+    python3.12-venv \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN groupadd -g 1001 engine && \
+    useradd -u 1001 -g engine -s /sbin/nologin -M engine
+
+COPY --from=builder --chown=engine:engine /app/.venv /app/.venv
+
+ENV PATH="/app/.venv/bin:$PATH" \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    CUDA_VISIBLE_DEVICES=0
+
+WORKDIR /app
+
+RUN mkdir -p /models/embeddings /models/reranker /models/entity /.cache /tmp/ray && \
+    chown -R engine:engine /models /.cache /tmp/ray
+
+EXPOSE 8001
+
+USER engine
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD python -c "import httpx; httpx.get('http://localhost:8001/-/healthz')" || exit 1
+
+CMD ["engine-gpu"]
