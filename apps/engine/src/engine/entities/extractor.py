@@ -194,18 +194,54 @@ class EntityExtractor:
 
         sorted_entities = sorted(entities, key=lambda e: e.score, reverse=True)
         result: list[ExtractedEntity] = []
+        occupied: list[tuple[int, int]] = []
 
         for entity in sorted_entities:
-            overlaps = False
-            for existing in result:
-                if self._overlaps(entity, existing):
-                    overlaps = True
-                    break
-
-            if not overlaps:
+            if not self._has_overlap(entity.start, entity.end, occupied):
                 result.append(entity)
+                self._insert_sorted(occupied, (entity.start, entity.end))
 
         return result
+
+    @staticmethod
+    def _has_overlap(
+        start: int,
+        end: int,
+        occupied: list[tuple[int, int]],
+    ) -> bool:
+        if not occupied:
+            return False
+
+        lo, hi = 0, len(occupied)
+        while lo < hi:
+            mid = (lo + hi) // 2
+            if occupied[mid][0] < end:
+                lo = mid + 1
+            else:
+                hi = mid
+
+        check_start = max(0, lo - 1)
+        check_end = min(len(occupied), lo + 1)
+
+        for i in range(check_start, check_end):
+            occ_start, occ_end = occupied[i]
+            if not (end <= occ_start or occ_end <= start):
+                return True
+        return False
+
+    @staticmethod
+    def _insert_sorted(
+        occupied: list[tuple[int, int]],
+        interval: tuple[int, int],
+    ) -> None:
+        lo, hi = 0, len(occupied)
+        while lo < hi:
+            mid = (lo + hi) // 2
+            if occupied[mid][0] < interval[0]:
+                lo = mid + 1
+            else:
+                hi = mid
+        occupied.insert(lo, interval)
 
     @staticmethod
     def _overlaps(a: ExtractedEntity, b: ExtractedEntity) -> bool:
