@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from engine.models.rerank import (
     RerankDocumentResult,
@@ -63,7 +63,7 @@ async def stats(
     device = data["device"]
     cache = data["cache"]
     if not isinstance(model, str) or not isinstance(device, str):
-        raise TypeError("Invalid stats format")
+        raise HTTPException(status_code=500, detail="Invalid stats format")
     if not isinstance(cache, dict):
-        raise TypeError("Invalid cache stats format")
+        raise HTTPException(status_code=500, detail="Invalid cache stats format")
     return RerankStatsResponse(model=model, device=device, cache=cache)

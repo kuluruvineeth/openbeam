@@ -106,6 +106,7 @@ class EntityExtractor:
         text: str,
         threshold: float = 0.5,
         max_length: int = 4096,
+        labels: list[str] | None = None,
     ) -> list[ExtractedEntity]:
         if not text or not text.strip():
             return []
@@ -113,7 +114,7 @@ class EntityExtractor:
         truncated = text[:max_length]
         entities: list[ExtractedEntity] = []
 
-        entities.extend(self._extract_with_gliner(truncated, threshold))
+        entities.extend(self._extract_with_gliner(truncated, threshold, labels))
         entities.extend(self._extract_with_regex(text))
         entities = self._deduplicate(entities)
 
@@ -123,12 +124,15 @@ class EntityExtractor:
         self,
         text: str,
         threshold: float,
+        labels: list[str] | None = None,
     ) -> list[ExtractedEntity]:
         model = self._ensure_model()
 
+        labels_to_use = labels if labels is not None else self.GLINER_LABELS
+
         raw_entities = model.predict_entities(
             text,
-            self.GLINER_LABELS,
+            labels_to_use,
             threshold=threshold,
         )
 
@@ -220,11 +224,10 @@ class EntityExtractor:
             else:
                 hi = mid
 
-        check_start = max(0, lo - 1)
-        check_end = min(len(occupied), lo + 1)
-
-        for i in range(check_start, check_end):
+        for i in range(lo - 1, -1, -1):
             occ_start, occ_end = occupied[i]
+            if occ_end <= start:
+                break
             if not (end <= occ_start or occ_end <= start):
                 return True
         return False

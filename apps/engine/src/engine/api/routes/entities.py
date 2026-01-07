@@ -38,7 +38,7 @@ def extract_entities(
     start = time.perf_counter()
     extractor = get_entity_extractor(request)
 
-    entities = extractor.extract(req.text, threshold=req.threshold)
+    entities = extractor.extract(req.text, threshold=req.threshold, labels=req.labels)
 
     elapsed = (time.perf_counter() - start) * 1000
 
