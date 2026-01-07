@@ -1,0 +1,136 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: engine-cpu
+  namespace: openplane-engine
+  labels:
+    app.kubernetes.io/name: engine-cpu
+    app.kubernetes.io/component: cpu-service
+    app.kubernetes.io/part-of: openplane
+  annotations:
+    kubernetes.io/description: "CPU service for document parsing, chunking, and LTR scoring"
+spec:
+  replicas: 3
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: engine-cpu
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: engine-cpu
+        app.kubernetes.io/component: cpu-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: engine-cpu
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: engine-cpu
+          image: openplane/engine-cpu:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          env:
+            - name: CPU_PORT
+              value: "8000"
+            - name: CPU_WORKERS
+              value: "4"
+            - name: CPU_GPU_SERVICE_URL
+              value: "http://engine-gpu.openplane-engine.svc.cluster.local:8001"
+            - name: ENVIRONMENT
+              value: "production"
+            - name: LOG_LEVEL
+              value: "INFO"
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: engine-secrets
+                  key: redis-url
+            - name: SECURITY_API_KEYS
+              valueFrom:
+                secretKeyRef:
+                  name: engine-secrets
+                  key: api-keys
+          resources:
+            requests:
+              cpu: "2"
+              memory: 4Gi
+            limits:
+              cpu: "4"
+              memory: 8Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 2
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 30
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp/engine
+            - name: cache
+              mountPath: /.cache
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 10Gi
+        - name: cache
+          emptyDir:
+            sizeLimit: 1Gi
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: engine-cpu
+                topologyKey: kubernetes.io/hostname
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: engine-cpu

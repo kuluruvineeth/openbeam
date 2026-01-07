@@ -1,0 +1,42 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: engine-minimal
+  namespace: openplane-engine
+  labels:
+    app.kubernetes.io/name: openplane-engine
+  annotations:
+    kubernetes.io/description: "Minimal role with no permissions - explicit deny-by-default"
+rules: []
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: engine-cpu-binding
+  namespace: openplane-engine
+  labels:
+    app.kubernetes.io/name: engine-cpu
+subjects:
+  - kind: ServiceAccount
+    name: engine-cpu
+    namespace: openplane-engine
+roleRef:
+  kind: Role
+  name: engine-minimal
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: engine-gpu-binding
+  namespace: openplane-engine
+  labels:
+    app.kubernetes.io/name: engine-gpu
+subjects:
+  - kind: ServiceAccount
+    name: engine-gpu
+    namespace: openplane-engine
+roleRef:
+  kind: Role
+  name: engine-minimal
+  apiGroup: rbac.authorization.k8s.io

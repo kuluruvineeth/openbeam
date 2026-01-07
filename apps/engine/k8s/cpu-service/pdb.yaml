@@ -1,0 +1,15 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: engine-cpu
+  namespace: openplane-engine
+  labels:
+    app.kubernetes.io/name: engine-cpu
+    app.kubernetes.io/component: cpu-service
+  annotations:
+    kubernetes.io/description: "Ensures at least 2 CPU service pods remain available during disruptions"
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: engine-cpu

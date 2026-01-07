@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: engine-gpu-models
+  namespace: openplane-engine
+  labels:
+    app.kubernetes.io/name: engine-gpu
+    app.kubernetes.io/component: gpu-service
+  annotations:
+    kubernetes.io/description: "Persistent storage for HuggingFace model cache - survives pod restarts"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: premium-rwo
+  resources:
+    requests:
+      storage: 50Gi
