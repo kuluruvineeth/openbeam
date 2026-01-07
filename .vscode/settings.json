@@ -41,5 +41,9 @@
     },
     "editor.defaultFormatter": "charliermarsh.ruff"
   },
-  "python.defaultInterpreterPath": "${workspaceFolder}/apps/engine/.venv/bin/python"
+  "python.defaultInterpreterPath": "${workspaceFolder}/apps/engine/.venv/bin/python",
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestArgs": ["tests"],
+  "python.testing.cwd": "${workspaceFolder}/apps/engine"
 }
