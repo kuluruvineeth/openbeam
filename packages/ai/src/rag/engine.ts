@@ -60,6 +60,15 @@ function computeConfidenceFromGrounding(
   return grounding.confidence;
 }
 
+function validateRequest(request: RAGEngineRequest): void {
+  if (!request.query?.trim()) {
+    throw new Error("Query cannot be empty");
+  }
+  if (!request.chunks?.length) {
+    throw new Error("At least one chunk is required for RAG");
+  }
+}
+
 export class RAGEngine {
   private readonly completionService: CompletionService;
   private readonly config: RAGEngineConfig;
@@ -73,6 +82,7 @@ export class RAGEngine {
   }
 
   async answer(request: RAGEngineRequest): Promise<RAGResponse> {
+    validateRequest(request);
     const startTime = performance.now();
     const timing = createEmptyTiming();
 
@@ -120,6 +130,7 @@ export class RAGEngine {
 
   // biome-ignore lint/suspicious/useAwait: yield* from async generator requires async function
   async *stream(request: RAGEngineRequest): AsyncGenerator<RAGStreamEvent> {
+    validateRequest(request);
     const startTime = performance.now();
     const timing = createEmptyTiming();
 
