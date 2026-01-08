@@ -190,8 +190,12 @@ export class ConversationManager {
     const originalTokenCount = this.calculateTokenCount(conversation.messages);
 
     const keepCount = Math.floor(conversation.messages.length / 2);
-    const messagesToSummarize = conversation.messages.slice(0, -keepCount);
-    const messagesToKeep = conversation.messages.slice(-keepCount);
+    const messagesToSummarize =
+      keepCount > 0
+        ? conversation.messages.slice(0, -keepCount)
+        : conversation.messages;
+    const messagesToKeep =
+      keepCount > 0 ? conversation.messages.slice(-keepCount) : [];
 
     let summary: ConversationSummary | null = null;
     if (this.options.summarize && messagesToSummarize.length > 0) {

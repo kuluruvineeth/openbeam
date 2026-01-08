@@ -159,6 +159,24 @@ describe("ConversationManager", () => {
     it("throws for non-existent conversation", async () => {
       await expect(manager.compactHistory("non-existent")).rejects.toThrow();
     });
+
+    it("handles edge case when keepCount is 0", async () => {
+      const managerWithSummary = new ConversationManager(store, {
+        summarize: async (messages) => `Summary of ${messages.length} messages`,
+      });
+
+      const conv = await managerWithSummary.createConversation(
+        "team-1",
+        "user-1"
+      );
+      await managerWithSummary.addMessage(conv.id, "user", "Single message");
+
+      const result = await managerWithSummary.compactHistory(conv.id);
+
+      expect(result.originalMessageCount).toBe(1);
+      expect(result.compactedMessageCount).toBe(0);
+      expect(result.summaryGenerated).toBe(true);
+    });
   });
 
   describe("maybeCompactHistory", () => {
