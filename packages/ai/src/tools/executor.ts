@@ -138,17 +138,17 @@ export class ToolExecutor {
           };
         }
 
-        const result = await coreTool.execute(params, {
+        const executionResult = (await coreTool.execute(params, {
           toolCallId: `exec_${Date.now()}`,
           messages: [],
           abortSignal: context.abortSignal,
-        });
+        })) as ToolExecutionResult<TResult>;
 
-        return {
-          success: true,
-          data: result as TResult,
-          metadata: { latencyMs: Date.now() - startTime },
-        };
+        if (!executionResult.metadata) {
+          executionResult.metadata = { latencyMs: Date.now() - startTime };
+        }
+
+        return executionResult;
       } catch (err) {
         return {
           success: false,
