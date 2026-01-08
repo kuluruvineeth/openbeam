@@ -231,6 +231,43 @@ class ToolRegistry {
   getAllMetadata(): ToolMetadata[] {
     return Array.from(this.tools.values()).map((t) => t.metadata);
   }
+
+  getToolNamesForPrompt(): string[] {
+    return Array.from(this.tools.values())
+      .filter((t) => !t.metadata.deferLoading)
+      .map((t) => t.metadata.name);
+  }
+
+  getToolNamesWithDescriptions(): Array<{ name: string; description: string }> {
+    return Array.from(this.tools.values())
+      .filter((t) => !t.metadata.deferLoading)
+      .map((t) => ({
+        name: t.metadata.name,
+        description:
+          t.metadata.description.split("\n")[0] ?? t.metadata.description,
+      }));
+  }
+
+  getToolInfo(name: string): {
+    name: string;
+    description: string;
+    category: string;
+    inputSchema: unknown;
+  } | null {
+    const registered = this.tools.get(name);
+    if (!registered) {
+      return null;
+    }
+
+    const tool = registered.coreTool as { inputSchema?: unknown };
+
+    return {
+      name: registered.metadata.name,
+      description: registered.metadata.description,
+      category: registered.metadata.category,
+      inputSchema: tool.inputSchema,
+    };
+  }
 }
 
 export const toolRegistry = new ToolRegistry();

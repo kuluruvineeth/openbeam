@@ -1,6 +1,27 @@
 import { Counter, Gauge, Histogram, Registry } from "prom-client";
 import type { MetricsRecordParams, ToolMetricsParams } from "./types";
 
+export const TOOL_METRICS = {
+  callsPerTask: "openplane_ai_tool_calls_per_task",
+  successRate: "openplane_ai_tool_success_rate",
+  retryRate: "openplane_ai_tool_retry_rate",
+  avgLatencyMs: "openplane_ai_tool_avg_latency_ms",
+} as const;
+
+export const AGENT_METRICS = {
+  taskCompletionRate: "openplane_ai_agent_task_completion_rate",
+  verificationPassRate: "openplane_ai_agent_verification_pass_rate",
+  iterationsToCompletion: "openplane_ai_agent_iterations_to_completion",
+  avgStepsPerTask: "openplane_ai_agent_avg_steps_per_task",
+} as const;
+
+export const RAG_METRICS = {
+  groundingScore: "openplane_ai_rag_grounding_score",
+  citationCoverage: "openplane_ai_rag_citation_coverage",
+  refusalRate: "openplane_ai_rag_refusal_rate",
+  avgRelevanceScore: "openplane_ai_rag_avg_relevance_score",
+} as const;
+
 export const aiMetricsRegistry = new Registry();
 
 aiMetricsRegistry.setDefaultLabels({
@@ -103,6 +124,94 @@ const loadedSkillsCount = new Gauge({
   registers: [aiMetricsRegistry],
 });
 
+const groundingScore = new Histogram({
+  name: "openplane_ai_grounding_score",
+  help: "RAG answer grounding scores",
+  labelNames: ["confidence", "team_id"] as const,
+  buckets: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+  registers: [aiMetricsRegistry],
+});
+
+const ungroundedClaimsTotal = new Counter({
+  name: "openplane_ai_ungrounded_claims_total",
+  help: "Total ungrounded claims detected",
+  labelNames: ["team_id", "severity"] as const,
+  registers: [aiMetricsRegistry],
+});
+
+const groundingChecksTotal = new Counter({
+  name: "openplane_ai_grounding_checks_total",
+  help: "Total grounding verification checks",
+  labelNames: ["team_id", "result"] as const,
+  registers: [aiMetricsRegistry],
+});
+
+const toolCallsPerTask = new Histogram({
+  name: TOOL_METRICS.callsPerTask,
+  help: "Number of tool calls per task",
+  labelNames: ["team_id", "task_type"] as const,
+  buckets: [1, 2, 3, 5, 10, 15, 20, 30, 50],
+  registers: [aiMetricsRegistry],
+});
+
+const toolSuccessRate = new Gauge({
+  name: TOOL_METRICS.successRate,
+  help: "Tool success rate (0-1)",
+  labelNames: ["tool", "team_id"] as const,
+  registers: [aiMetricsRegistry],
+});
+
+const toolRetryRate = new Gauge({
+  name: TOOL_METRICS.retryRate,
+  help: "Tool retry rate (retries per call)",
+  labelNames: ["tool", "team_id"] as const,
+  registers: [aiMetricsRegistry],
+});
+
+const agentTaskCompletionRate = new Gauge({
+  name: AGENT_METRICS.taskCompletionRate,
+  help: "Agent task completion rate (0-1)",
+  labelNames: ["team_id", "agent_type"] as const,
+  registers: [aiMetricsRegistry],
+});
+
+const agentVerificationPassRate = new Gauge({
+  name: AGENT_METRICS.verificationPassRate,
+  help: "Agent verification pass rate (0-1)",
+  labelNames: ["team_id", "agent_type"] as const,
+  registers: [aiMetricsRegistry],
+});
+
+const agentIterationsToCompletion = new Histogram({
+  name: AGENT_METRICS.iterationsToCompletion,
+  help: "Number of iterations to complete a task",
+  labelNames: ["team_id", "agent_type", "status"] as const,
+  buckets: [1, 2, 3, 4, 5, 7, 10, 15, 20],
+  registers: [aiMetricsRegistry],
+});
+
+const ragCitationCoverage = new Histogram({
+  name: RAG_METRICS.citationCoverage,
+  help: "RAG citation coverage (0-1)",
+  labelNames: ["team_id"] as const,
+  buckets: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+  registers: [aiMetricsRegistry],
+});
+
+const ragRefusalRate = new Gauge({
+  name: RAG_METRICS.refusalRate,
+  help: "RAG refusal rate (0-1)",
+  labelNames: ["team_id", "reason"] as const,
+  registers: [aiMetricsRegistry],
+});
+
+const ragAvgRelevanceScore = new Gauge({
+  name: RAG_METRICS.avgRelevanceScore,
+  help: "Average relevance score for RAG results",
+  labelNames: ["team_id"] as const,
+  registers: [aiMetricsRegistry],
+});
+
 export const aiMetrics = {
   requestsTotal,
   tokensTotal,
@@ -117,6 +226,18 @@ export const aiMetrics = {
   backgroundAgentDurationMs,
   skillLoadTime,
   loadedSkillsCount,
+  groundingScore,
+  ungroundedClaimsTotal,
+  groundingChecksTotal,
+  toolCallsPerTask,
+  toolSuccessRate,
+  toolRetryRate,
+  agentTaskCompletionRate,
+  agentVerificationPassRate,
+  agentIterationsToCompletion,
+  ragCitationCoverage,
+  ragRefusalRate,
+  ragAvgRelevanceScore,
 };
 
 export function recordAIRequest(params: MetricsRecordParams): void {
@@ -233,4 +354,118 @@ export function getMetrics(): Promise<string> {
 
 export function resetMetrics(): void {
   aiMetricsRegistry.resetMetrics();
+}
+
+export interface GroundingMetricsParams {
+  teamId: string;
+  score: number;
+  confidence: "high" | "medium" | "low" | "uncertain";
+  ungroundedClaimCount: number;
+  totalClaimCount: number;
+}
+
+export function recordGrounding(params: GroundingMetricsParams): void {
+  groundingScore.observe(
+    { confidence: params.confidence, team_id: params.teamId },
+    params.score
+  );
+
+  const result = params.score >= 0.7 ? "pass" : "fail";
+  groundingChecksTotal.inc({ team_id: params.teamId, result });
+
+  if (params.ungroundedClaimCount > 0) {
+    const severity =
+      params.ungroundedClaimCount / Math.max(params.totalClaimCount, 1) > 0.5
+        ? "high"
+        : "low";
+
+    ungroundedClaimsTotal.inc(
+      { team_id: params.teamId, severity },
+      params.ungroundedClaimCount
+    );
+  }
+}
+
+export interface ToolEfficiencyParams {
+  teamId: string;
+  tool: string;
+  taskType: string;
+  callCount: number;
+  successCount: number;
+  retryCount: number;
+}
+
+export function recordToolEfficiency(params: ToolEfficiencyParams): void {
+  toolCallsPerTask.observe(
+    { team_id: params.teamId, task_type: params.taskType },
+    params.callCount
+  );
+
+  const successRate =
+    params.callCount > 0 ? params.successCount / params.callCount : 0;
+  toolSuccessRate.set(
+    { tool: params.tool, team_id: params.teamId },
+    successRate
+  );
+
+  const retryRate =
+    params.callCount > 0 ? params.retryCount / params.callCount : 0;
+  toolRetryRate.set({ tool: params.tool, team_id: params.teamId }, retryRate);
+}
+
+export interface AgentPerformanceParams {
+  teamId: string;
+  agentType: string;
+  completed: boolean;
+  verificationPassed: boolean;
+  iterations: number;
+}
+
+export function recordAgentPerformance(params: AgentPerformanceParams): void {
+  const completionRate = params.completed ? 1 : 0;
+  agentTaskCompletionRate.set(
+    { team_id: params.teamId, agent_type: params.agentType },
+    completionRate
+  );
+
+  const verificationRate = params.verificationPassed ? 1 : 0;
+  agentVerificationPassRate.set(
+    { team_id: params.teamId, agent_type: params.agentType },
+    verificationRate
+  );
+
+  agentIterationsToCompletion.observe(
+    {
+      team_id: params.teamId,
+      agent_type: params.agentType,
+      status: params.completed ? "success" : "failure",
+    },
+    params.iterations
+  );
+}
+
+export interface RAGQualityParams {
+  teamId: string;
+  citationCoverage: number;
+  wasRefused: boolean;
+  refusalReason?: "no_sources" | "low_confidence" | "mixed_grounding" | "other";
+  avgRelevanceScore: number;
+}
+
+export function recordRAGQuality(params: RAGQualityParams): void {
+  ragCitationCoverage.observe(
+    { team_id: params.teamId },
+    params.citationCoverage
+  );
+  ragAvgRelevanceScore.set(
+    { team_id: params.teamId },
+    params.avgRelevanceScore
+  );
+
+  if (params.wasRefused) {
+    ragRefusalRate.set(
+      { team_id: params.teamId, reason: params.refusalReason ?? "other" },
+      1
+    );
+  }
 }

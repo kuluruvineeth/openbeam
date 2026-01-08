@@ -256,6 +256,21 @@ class SkillRegistry {
     this.enabledToolsBySkill.clear();
   }
 
+  getSkillNamesForPrompt(): string[] {
+    return Array.from(this.skills.keys());
+  }
+
+  getSkillNamesWithDescriptions(): Array<{
+    name: string;
+    description: string;
+  }> {
+    return Array.from(this.skills.values()).map((skill) => ({
+      name: skill.manifest.name,
+      description:
+        skill.manifest.description.split("\n")[0] ?? skill.manifest.description,
+    }));
+  }
+
   private async loadResources(
     skill: RegisteredSkill,
     basePath: string
