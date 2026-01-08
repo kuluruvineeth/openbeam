@@ -92,3 +92,4 @@ status.json
 .hypothesis
 @*.md
 PROMPT.md
+specs/
