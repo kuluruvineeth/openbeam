@@ -72,9 +72,9 @@ export class VespaClient {
       : null;
   }
 
-  close(): void {
+  async close(): Promise<void> {
     if (typeof this.agent.close === "function") {
-      this.agent.close();
+      await this.agent.close();
     }
     this.cache?.clear();
   }
@@ -473,8 +473,14 @@ export class VespaClient {
   ): Promise<boolean> {
     const startTime = Date.now();
 
+    // Construct proper URL - handle both relative paths and full URLs
+    const operationUrl =
+      operationId.startsWith("http://") || operationId.startsWith("https://")
+        ? operationId
+        : `${this.baseUrl}/operations/${operationId}`;
+
     while (Date.now() - startTime < timeoutMs) {
-      const response = await fetch(operationId, {
+      const response = await fetch(operationUrl, {
         method: "GET",
         signal: AbortSignal.timeout(5000),
         // @ts-expect-error undici dispatcher type

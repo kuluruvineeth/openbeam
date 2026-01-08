@@ -82,25 +82,25 @@ describe("VespaClient", () => {
     client = new VespaClient("http://localhost:8080");
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     globalThis.fetch = originalFetch;
-    client.close();
+    await client.close();
   });
 
   describe("constructor", () => {
-    test("creates client with default URL", () => {
+    test("creates client with default URL", async () => {
       const defaultClient = new VespaClient();
       expect(defaultClient).toBeDefined();
-      defaultClient.close();
+      await defaultClient.close();
     });
 
-    test("creates client with custom URL", () => {
+    test("creates client with custom URL", async () => {
       const customClient = new VespaClient("http://custom:8080");
       expect(customClient).toBeDefined();
-      customClient.close();
+      await customClient.close();
     });
 
-    test("accepts custom connection options", () => {
+    test("accepts custom connection options", async () => {
       const customClient = new VespaClient("http://localhost:8080", {
         keepAliveTimeout: 60_000,
         keepAliveMaxTimeout: 120_000,
@@ -108,18 +108,18 @@ describe("VespaClient", () => {
         pipelining: 2,
       });
       expect(customClient).toBeDefined();
-      customClient.close();
+      await customClient.close();
     });
   });
 
   describe("close", () => {
-    test("closes without error", () => {
-      expect(() => client.close()).not.toThrow();
+    test("closes without error", async () => {
+      await expect(client.close()).resolves.toBeUndefined();
     });
 
-    test("can be called multiple times", () => {
-      client.close();
-      expect(() => client.close()).not.toThrow();
+    test("can be called multiple times", async () => {
+      await client.close();
+      await expect(client.close()).resolves.toBeUndefined();
     });
   });
 

@@ -48,25 +48,25 @@ describe("VespaClient", () => {
     client = new VespaClient("http://localhost:8080");
   });
 
-  afterEach(() => {
-    client.close();
+  afterEach(async () => {
+    await client.close();
   });
 
   describe("constructor", () => {
-    it("uses default URL when none provided", () => {
+    it("uses default URL when none provided", async () => {
       const defaultClient = new VespaClient();
       expect(defaultClient).toBeDefined();
-      defaultClient.close();
+      await defaultClient.close();
     });
 
-    it("accepts custom connection options", () => {
+    it("accepts custom connection options", async () => {
       const customClient = new VespaClient("http://localhost:8080", {
         keepAliveTimeout: 60_000,
         connections: 20,
         pipelining: 2,
       });
       expect(customClient).toBeDefined();
-      customClient.close();
+      await customClient.close();
     });
   });
 
@@ -424,12 +424,10 @@ describe("VespaClient", () => {
   });
 
   describe("close", () => {
-    it("can be called multiple times safely", () => {
+    it("can be called multiple times safely", async () => {
       const testClient = new VespaClient();
-      expect(() => {
-        testClient.close();
-        testClient.close();
-      }).not.toThrow();
+      await testClient.close();
+      await expect(testClient.close()).resolves.toBeUndefined();
     });
   });
 
@@ -561,7 +559,7 @@ describe("VespaClient", () => {
       expect(result2.root.children).toHaveLength(1);
       expect(fetchCallCount).toBe(1);
 
-      cachedClient.close();
+      await cachedClient.close();
       globalThis.fetch = originalFetch;
     });
 
@@ -614,7 +612,7 @@ describe("VespaClient", () => {
 
       expect(fetchCallCount).toBe(2);
 
-      cachedClient.close();
+      await cachedClient.close();
       globalThis.fetch = originalFetch;
     });
   });
