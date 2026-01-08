@@ -73,13 +73,14 @@ export class EpisodicMemory implements MemoryStore {
   async retrieve(query: MemoryQuery): Promise<MemoryRetrievalResult> {
     const startTime = performance.now();
     const candidates: ScoredMemoryEntry[] = [];
+    const queryTerms = query.query.toLowerCase().split(WHITESPACE_REGEX);
 
     for (const entry of this.entries.values()) {
       if (!this.matchesFilter(entry, query)) {
         continue;
       }
 
-      const scores = this.calculateScores(entry, query);
+      const scores = this.calculateScores(entry, queryTerms);
       if (scores.combinedScore >= (query.minRelevance ?? 0)) {
         candidates.push({ entry, ...scores });
       }
@@ -254,9 +255,9 @@ export class EpisodicMemory implements MemoryStore {
 
   private calculateScores(
     entry: EpisodicEntry,
-    query: MemoryQuery
+    queryTerms: string[]
   ): Omit<ScoredMemoryEntry, "entry"> {
-    const relevanceScore = this.calculateRelevance(entry, query);
+    const relevanceScore = this.calculateRelevance(entry, queryTerms);
     const recencyScore = this.calculateRecency(entry);
     const importanceScore = entry.metadata.importance ?? 0.5;
 
@@ -271,18 +272,24 @@ export class EpisodicMemory implements MemoryStore {
     };
   }
 
-  private calculateRelevance(entry: EpisodicEntry, query: MemoryQuery): number {
-    const queryTerms = query.query.toLowerCase().split(WHITESPACE_REGEX);
-    const contentTerms = entry.content.toLowerCase().split(WHITESPACE_REGEX);
+  private calculateRelevance(
+    entry: EpisodicEntry,
+    queryTerms: string[]
+  ): number {
+    if (queryTerms.length === 0) {
+      return 0;
+    }
 
+    const contentTerms = entry.content.toLowerCase().split(WHITESPACE_REGEX);
     let matches = 0;
+
     for (const term of queryTerms) {
       if (contentTerms.some((ct) => ct.includes(term))) {
         matches += 1;
       }
     }
 
-    return queryTerms.length > 0 ? matches / queryTerms.length : 0;
+    return matches / queryTerms.length;
   }
 
   private calculateRecency(entry: EpisodicEntry): number {
