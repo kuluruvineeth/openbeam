@@ -39,12 +39,12 @@ schema openplane_document {
     
     field document_subtype type string {
       indexing: summary | attribute
-      # More specific: "slack_message", "notion_page", "jira_epic", 
-      # "github_issue", "confluence_page", "google_doc", etc.
+      attribute: fast-search
     }
     
     field mime_type type string {
       indexing: summary | attribute
+      attribute: fast-search
     }
     
     # === Content (universal fields) ===
@@ -244,10 +244,12 @@ schema openplane_document {
     
     field priority type string {
       indexing: summary | attribute
+      attribute: fast-search
     }
     
     field state type string {
       indexing: summary | attribute
+      attribute: fast-search
     }
     
     field labels type array<string> {
@@ -291,6 +293,7 @@ schema openplane_document {
     
     field file_extension type string {
       indexing: summary | attribute
+      attribute: fast-search
     }
     
     field file_size type long {
@@ -567,7 +570,54 @@ schema openplane_document {
       expression: if(t > now() - 86400000, 1.3, if(t > now() - 604800000, 1.15, 1.0))
     }
   }
-  
+
+  rank-profile enterprise_optimized {
+    inputs {
+      query(query_embedding) tensor<float>(x[1536])
+    }
+    first-phase {
+      expression: bm25(title) * 2 + bm25(content)
+      keep-rank-count: 1000
+      rank-score-drop-limit: 0.01
+    }
+    second-phase {
+      expression {
+        (0.5 * normalize(bm25(title) * 2 + bm25(content)) +
+         0.3 * closeness(field, content_embedding)) *
+        (1 + log(attribute(view_count) + 1) * 0.02) *
+        freshness(attribute(updated_at))
+      }
+      rerank-count: 100
+    }
+    function normalize(score) {
+      expression: score / (1 + score)
+    }
+    function freshness(t) {
+      expression: if(t > now() - 86400000, 1.3, if(t > now() - 604800000, 1.15, 1.0))
+    }
+  }
+
+  rank-profile navigational {
+    first-phase {
+      expression {
+        bm25(title) * 4 +
+        bm25(file_name) * 2 +
+        bm25(content) * 0.5
+      }
+    }
+  }
+
+  rank-profile recent_activity {
+    first-phase {
+      expression {
+        (bm25(title) * 2 + bm25(content)) * freshness(attribute(updated_at))
+      }
+    }
+    function freshness(t) {
+      expression: if(t > now() - 86400000, 3.0, if(t > now() - 259200000, 2.0, if(t > now() - 604800000, 1.5, 1.0)))
+    }
+  }
+
   rank-profile topic_search {
     inputs {
       query(topic_embedding) tensor<float>(x[256])
