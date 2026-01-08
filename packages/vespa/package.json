@@ -16,7 +16,9 @@
     "build": "tsdown"
   },
   "dependencies": {
-    "@openplane/config": "workspace:*"
+    "@openplane/config": "workspace:*",
+    "lru-cache": "^11.2.4",
+    "undici": "^7.2.0"
   },
   "devDependencies": {
     "tsdown": "catalog:",
