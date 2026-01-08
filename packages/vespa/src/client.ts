@@ -1,10 +1,14 @@
+import { LRUCache } from "lru-cache";
+import { Agent } from "undici";
 import { escapeYqlString } from "./query";
 import type {
+  DetailedHealthStatus,
   Entity,
   FeedResponse,
   GenericDocument,
   MediaDocument,
   MediaQueryParams,
+  QueryMetrics,
   QueryParams,
   SearchResult,
   SpreadsheetDocument,
@@ -20,15 +24,83 @@ import type {
   VespaTimestampCell,
 } from "./schemas";
 
+export interface VespaClientOptions {
+  keepAliveTimeout?: number;
+  keepAliveMaxTimeout?: number;
+  connections?: number;
+  pipelining?: number;
+  enableCache?: boolean;
+  cacheTtlMs?: number;
+  cacheMaxSize?: number;
+}
+
+const DEFAULT_CLIENT_OPTIONS: VespaClientOptions = {
+  keepAliveTimeout: 30_000,
+  keepAliveMaxTimeout: 60_000,
+  connections: 10,
+  pipelining: 1,
+  enableCache: false,
+  cacheTtlMs: 30_000,
+  cacheMaxSize: 1000,
+};
+
 export class VespaClient {
   private readonly baseUrl: string;
   private readonly documentApiUrl: string;
   private readonly searchApiUrl: string;
+  private readonly agent: Agent;
+  private readonly cache: LRUCache<string, SearchResult> | null;
 
-  constructor(baseUrl?: string) {
+  constructor(baseUrl?: string, options?: VespaClientOptions) {
     this.baseUrl = baseUrl || process.env.VESPA_URL || "http://localhost:8080";
     this.documentApiUrl = `${this.baseUrl}/document/v1`;
     this.searchApiUrl = `${this.baseUrl}/search/`;
+
+    const mergedOptions = { ...DEFAULT_CLIENT_OPTIONS, ...options };
+    this.agent = new Agent({
+      keepAliveTimeout: mergedOptions.keepAliveTimeout,
+      keepAliveMaxTimeout: mergedOptions.keepAliveMaxTimeout,
+      connections: mergedOptions.connections,
+      pipelining: mergedOptions.pipelining,
+    });
+
+    this.cache = mergedOptions.enableCache
+      ? new LRUCache<string, SearchResult>({
+          max: mergedOptions.cacheMaxSize ?? 1000,
+          ttl: mergedOptions.cacheTtlMs ?? 30_000,
+        })
+      : null;
+  }
+
+  close(): void {
+    if (typeof this.agent.close === "function") {
+      this.agent.close();
+    }
+    this.cache?.clear();
+  }
+
+  private getCacheKey(params: QueryParams): string {
+    const keyParts = [
+      params.yql,
+      params.ranking ?? "",
+      String(params.hits ?? 20),
+      String(params.offset ?? 0),
+      params.timeout ?? "",
+    ];
+
+    if (params.query_embedding) {
+      keyParts.push(
+        `qe:${params.query_embedding.values.slice(0, 5).join(",")}`
+      );
+    }
+    if (params.embedding_v2) {
+      keyParts.push(`e2:${params.embedding_v2.values.slice(0, 5).join(",")}`);
+    }
+    if (params.sparse_embedding?.cells) {
+      keyParts.push(`se:${params.sparse_embedding.cells.length}`);
+    }
+
+    return keyParts.join("|");
   }
 
   private isRetryableError(error: unknown): boolean {
@@ -70,6 +142,8 @@ export class VespaClient {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ fields: docForVespa }),
           signal: AbortSignal.timeout(60_000),
+          // @ts-expect-error undici dispatcher type
+          dispatcher: this.agent,
         });
 
         if (!response.ok) {
@@ -125,6 +199,8 @@ export class VespaClient {
       },
       body: JSON.stringify({ fields: entity }),
       signal: AbortSignal.timeout(60_000),
+      // @ts-expect-error undici dispatcher type
+      dispatcher: this.agent,
     });
 
     if (!response.ok) {
@@ -140,45 +216,35 @@ export class VespaClient {
   async query<T = GenericDocument>(
     params: QueryParams
   ): Promise<SearchResult<T>> {
-    const hasVectorFeatures =
+    const { result } = await this.queryWithMetrics<T>(params);
+    return result;
+  }
+
+  private hasVectorFeatures(params: QueryParams): boolean {
+    return (
       !!params.query_embedding ||
       !!params.embedding_v2 ||
-      !!params.sparse_embedding;
+      !!params.sparse_embedding
+    );
+  }
 
-    if (hasVectorFeatures) {
-      const body: VespaQueryBody = {
-        yql: params.yql,
-        hits: params.hits ?? 20,
-        offset: params.offset ?? 0,
-        "ranking.profile": params.ranking,
-        timeout: params.timeout,
-        "input.query(query_embedding)": params.query_embedding,
-        "input.query(title_embedding)": params.title_embedding,
-        "input.query(topic_embedding)": params.topic_embedding,
-        "input.query(user_dept_embedding)": params.user_dept_embedding,
-        "input.query(embedding_v2)": params.embedding_v2,
-        "input.query(sparse_embedding)": params.sparse_embedding,
-      };
+  private buildQueryBody(params: QueryParams): VespaQueryBody {
+    return {
+      yql: params.yql,
+      hits: params.hits ?? 20,
+      offset: params.offset ?? 0,
+      "ranking.profile": params.ranking,
+      timeout: params.timeout,
+      "input.query(query_embedding)": params.query_embedding,
+      "input.query(title_embedding)": params.title_embedding,
+      "input.query(topic_embedding)": params.topic_embedding,
+      "input.query(user_dept_embedding)": params.user_dept_embedding,
+      "input.query(embedding_v2)": params.embedding_v2,
+      "input.query(sparse_embedding)": params.sparse_embedding,
+    };
+  }
 
-      const response = await fetch(this.searchApiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-        signal: AbortSignal.timeout(10_000),
-      });
-
-      if (!response.ok) {
-        const error = (await response.json()) as VespaError;
-        throw new Error(
-          `Vespa query error: ${error.message || response.statusText}`
-        );
-      }
-
-      return (await response.json()) as SearchResult<T>;
-    }
-
+  private buildQueryUrl(params: QueryParams): string {
     const queryParams = new URLSearchParams();
     queryParams.set("yql", params.yql);
 
@@ -195,12 +261,41 @@ export class VespaClient {
       queryParams.set("timeout", params.timeout);
     }
 
-    const response = await fetch(`${this.searchApiUrl}?${queryParams}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
+    return `${this.searchApiUrl}?${queryParams}`;
+  }
+
+  private extractMetrics<T>(
+    result: SearchResult<T>,
+    latencyMs: number
+  ): QueryMetrics {
+    const coverage = result.root?.coverage ?? {
+      full: true,
+      degraded: { "match-phase": false, timeout: false },
+    };
+
+    return {
+      latencyMs,
+      coverage: {
+        full: coverage.full,
+        timeout: coverage.degraded?.timeout ?? false,
+        matchPhase: coverage.degraded?.["match-phase"] ?? false,
       },
+      resultCount: result.root?.children?.length ?? 0,
+    };
+  }
+
+  private async executeVectorQuery<T>(
+    params: QueryParams
+  ): Promise<SearchResult<T>> {
+    const body = this.buildQueryBody(params);
+
+    const response = await fetch(this.searchApiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
       signal: AbortSignal.timeout(10_000),
+      // @ts-expect-error undici dispatcher type
+      dispatcher: this.agent,
     });
 
     if (!response.ok) {
@@ -213,12 +308,201 @@ export class VespaClient {
     return (await response.json()) as SearchResult<T>;
   }
 
+  private async executeSimpleQuery<T>(
+    params: QueryParams
+  ): Promise<SearchResult<T>> {
+    const url = this.buildQueryUrl(params);
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      signal: AbortSignal.timeout(10_000),
+      // @ts-expect-error undici dispatcher type
+      dispatcher: this.agent,
+    });
+
+    if (!response.ok) {
+      const error = (await response.json()) as VespaError;
+      throw new Error(
+        `Vespa query error: ${error.message || response.statusText}`
+      );
+    }
+
+    return (await response.json()) as SearchResult<T>;
+  }
+
+  async queryWithMetrics<T = GenericDocument>(
+    params: QueryParams
+  ): Promise<{ result: SearchResult<T>; metrics: QueryMetrics }> {
+    const startTime = performance.now();
+
+    const result = this.hasVectorFeatures(params)
+      ? await this.executeVectorQuery<T>(params)
+      : await this.executeSimpleQuery<T>(params);
+
+    const latencyMs = performance.now() - startTime;
+    const metrics = this.extractMetrics(result, latencyMs);
+
+    return { result, metrics };
+  }
+
+  async queryBatch<T = GenericDocument>(
+    paramsArray: QueryParams[]
+  ): Promise<SearchResult<T>[]> {
+    const results = await Promise.all(
+      paramsArray.map((params) => this.query<T>(params))
+    );
+    return results;
+  }
+
+  async queryCached<T = GenericDocument>(
+    params: QueryParams
+  ): Promise<SearchResult<T>> {
+    if (!this.cache) {
+      return this.query<T>(params);
+    }
+
+    const cacheKey = this.getCacheKey(params);
+    const cached = this.cache.get(cacheKey);
+    if (cached) {
+      return cached as SearchResult<T>;
+    }
+
+    const result = await this.query<T>(params);
+    this.cache.set(cacheKey, result as SearchResult);
+    return result;
+  }
+
+  async *visitDocuments<T = GenericDocument>(options: {
+    schema?:
+      | "openplane_document"
+      | "media_document"
+      | "entity"
+      | "spreadsheet_document";
+    selection?: string;
+    fieldSet?: string;
+    wantedDocumentCount?: number;
+    slices?: number;
+    sliceId?: number;
+  }): AsyncGenerator<T[], void, undefined> {
+    const schema = options.schema ?? "openplane_document";
+    const params = new URLSearchParams();
+
+    if (options.selection) {
+      params.set("selection", options.selection);
+    }
+    if (options.fieldSet) {
+      params.set("fieldSet", options.fieldSet);
+    }
+    if (options.wantedDocumentCount) {
+      params.set("wantedDocumentCount", options.wantedDocumentCount.toString());
+    }
+    if (options.slices !== undefined && options.sliceId !== undefined) {
+      params.set("slices", options.slices.toString());
+      params.set("sliceId", options.sliceId.toString());
+    }
+
+    params.set("cluster", "content");
+
+    let continuation: string | undefined;
+
+    do {
+      if (continuation) {
+        params.set("continuation", continuation);
+      }
+
+      const url = `${this.documentApiUrl}/default/${schema}/docid?${params}`;
+      const response = await fetch(url, {
+        method: "GET",
+        signal: AbortSignal.timeout(60_000),
+        // @ts-expect-error undici dispatcher type
+        dispatcher: this.agent,
+      });
+
+      if (!response.ok) {
+        const error = (await response.json()) as VespaError;
+        throw new Error(
+          `Vespa visit error: ${error.message || response.statusText}`
+        );
+      }
+
+      const result = (await response.json()) as {
+        documents?: Array<{ id: string; fields: T }>;
+        continuation?: string;
+      };
+
+      if (result.documents && result.documents.length > 0) {
+        yield result.documents.map((doc) => doc.fields);
+      }
+
+      continuation = result.continuation;
+    } while (continuation);
+  }
+
+  async feedDocumentAsync(
+    doc: GenericDocument
+  ): Promise<{ operationId: string }> {
+    const documentPath = `${this.documentApiUrl}/default/openplane_document/docid/${doc.id}?asynchronous=true`;
+
+    const docForVespa: VespaGenericDocumentForFeed = {
+      ...doc,
+      metadata: doc.metadata ? JSON.stringify(doc.metadata) : undefined,
+    };
+
+    const response = await fetch(documentPath, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fields: docForVespa }),
+      signal: AbortSignal.timeout(60_000),
+      // @ts-expect-error undici dispatcher type
+      dispatcher: this.agent,
+    });
+
+    if (!response.ok) {
+      const errorMessage = await this.getResponseError(response);
+      throw new Error(`Vespa async feed error: ${errorMessage}`);
+    }
+
+    const result = (await response.json()) as { id: string };
+    return { operationId: result.id };
+  }
+
+  async waitForAsyncOperation(
+    operationId: string,
+    timeoutMs = 30_000
+  ): Promise<boolean> {
+    const startTime = Date.now();
+
+    while (Date.now() - startTime < timeoutMs) {
+      const response = await fetch(operationId, {
+        method: "GET",
+        signal: AbortSignal.timeout(5000),
+        // @ts-expect-error undici dispatcher type
+        dispatcher: this.agent,
+      });
+
+      if (response.status === 200) {
+        return true;
+      }
+
+      if (response.status !== 202) {
+        return false;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+
+    return false;
+  }
+
   async deleteDocument(id: string): Promise<void> {
     const documentPath = `${this.documentApiUrl}/default/openplane_document/docid/${id}`;
 
     const response = await fetch(documentPath, {
       method: "DELETE",
       signal: AbortSignal.timeout(30_000),
+      // @ts-expect-error undici dispatcher type
+      dispatcher: this.agent,
     });
 
     if (!response.ok) {
@@ -242,6 +526,8 @@ export class VespaClient {
       },
       body: JSON.stringify({ fields }),
       signal: AbortSignal.timeout(30_000),
+      // @ts-expect-error undici dispatcher type
+      dispatcher: this.agent,
     });
 
     if (!response.ok) {
@@ -274,6 +560,8 @@ export class VespaClient {
       },
       body: JSON.stringify({ fields: updateFields }),
       signal: AbortSignal.timeout(30_000),
+      // @ts-expect-error undici dispatcher type
+      dispatcher: this.agent,
     });
 
     if (!response.ok) {
@@ -314,6 +602,8 @@ export class VespaClient {
     const response = await fetch(documentPath, {
       method: "GET",
       signal: AbortSignal.timeout(10_000),
+      // @ts-expect-error undici dispatcher type
+      dispatcher: this.agent,
     });
 
     if (response.status === 404) {
@@ -335,11 +625,59 @@ export class VespaClient {
     try {
       const response = await fetch(`${this.baseUrl}/ApplicationStatus`, {
         signal: AbortSignal.timeout(5000),
+        // @ts-expect-error undici dispatcher type
+        dispatcher: this.agent,
       });
       return response.ok;
     } catch {
       return false;
     }
+  }
+
+  async healthCheckDetailed(): Promise<DetailedHealthStatus> {
+    const status: DetailedHealthStatus = {
+      healthy: false,
+      containerUp: false,
+      contentUp: false,
+      searchLatencyMs: -1,
+    };
+
+    try {
+      const containerResponse = await fetch(
+        `${this.baseUrl}/ApplicationStatus`,
+        {
+          signal: AbortSignal.timeout(5000),
+          // @ts-expect-error undici dispatcher type
+          dispatcher: this.agent,
+        }
+      );
+      status.containerUp = containerResponse.ok;
+
+      if (status.containerUp) {
+        const startTime = performance.now();
+        const searchResponse = await fetch(
+          `${this.searchApiUrl}?yql=select%20*%20from%20openplane_document%20where%20true%20limit%201`,
+          {
+            signal: AbortSignal.timeout(5000),
+            // @ts-expect-error undici dispatcher type
+            dispatcher: this.agent,
+          }
+        );
+        status.searchLatencyMs = performance.now() - startTime;
+        status.contentUp = searchResponse.ok;
+
+        if (searchResponse.ok) {
+          const result = (await searchResponse.json()) as SearchResult;
+          status.documentCount = result.root?.fields?.totalCount;
+        }
+      }
+
+      status.healthy = status.containerUp && status.contentUp;
+    } catch {
+      status.healthy = false;
+    }
+
+    return status;
   }
 
   async deleteByConnectorId(
@@ -352,6 +690,8 @@ export class VespaClient {
     const response = await fetch(url, {
       method: "DELETE",
       signal: AbortSignal.timeout(120_000),
+      // @ts-expect-error undici dispatcher type
+      dispatcher: this.agent,
     });
 
     if (!response.ok) {
@@ -379,6 +719,8 @@ export class VespaClient {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ fields: vespaDoc }),
           signal: AbortSignal.timeout(60_000),
+          // @ts-expect-error undici dispatcher type
+          dispatcher: this.agent,
         });
 
         if (!response.ok) {
@@ -510,6 +852,8 @@ export class VespaClient {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(10_000),
+      // @ts-expect-error undici dispatcher type
+      dispatcher: this.agent,
     });
 
     if (!response.ok) {
@@ -528,6 +872,8 @@ export class VespaClient {
     const response = await fetch(documentPath, {
       method: "DELETE",
       signal: AbortSignal.timeout(30_000),
+      // @ts-expect-error undici dispatcher type
+      dispatcher: this.agent,
     });
 
     if (!response.ok) {
@@ -559,6 +905,8 @@ export class VespaClient {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ fields: updates }),
       signal: AbortSignal.timeout(30_000),
+      // @ts-expect-error undici dispatcher type
+      dispatcher: this.agent,
     });
 
     if (!response.ok) {
@@ -577,6 +925,8 @@ export class VespaClient {
     const response = await fetch(documentPath, {
       method: "GET",
       signal: AbortSignal.timeout(10_000),
+      // @ts-expect-error undici dispatcher type
+      dispatcher: this.agent,
     });
 
     if (response.status === 404) {
@@ -612,6 +962,8 @@ export class VespaClient {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ fields: vespaDoc }),
           signal: AbortSignal.timeout(60_000),
+          // @ts-expect-error undici dispatcher type
+          dispatcher: this.agent,
         });
 
         if (!response.ok) {
@@ -653,6 +1005,8 @@ export class VespaClient {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(10_000),
+      // @ts-expect-error undici dispatcher type
+      dispatcher: this.agent,
     });
 
     if (!response.ok) {
@@ -671,6 +1025,8 @@ export class VespaClient {
     const response = await fetch(documentPath, {
       method: "DELETE",
       signal: AbortSignal.timeout(30_000),
+      // @ts-expect-error undici dispatcher type
+      dispatcher: this.agent,
     });
 
     if (!response.ok) {
@@ -689,6 +1045,8 @@ export class VespaClient {
     const response = await fetch(documentPath, {
       method: "GET",
       signal: AbortSignal.timeout(10_000),
+      // @ts-expect-error undici dispatcher type
+      dispatcher: this.agent,
     });
 
     if (response.status === 404) {
