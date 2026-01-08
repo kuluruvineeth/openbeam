@@ -220,6 +220,9 @@ export type DocumentRankingProfile =
   | "hybrid_recency"
   | "engagement"
   | "enterprise"
+  | "enterprise_optimized"
+  | "navigational"
+  | "recent_activity"
   | "topic_search"
   | "authority"
   | "personalized"
@@ -233,6 +236,37 @@ export type DocumentRankingProfile =
   | "authority_debug"
   | "personalized_debug"
   | "enterprise_v2_debug";
+
+export interface QueryMetrics {
+  latencyMs: number;
+  coverage: {
+    full: boolean;
+    timeout: boolean;
+    matchPhase: boolean;
+  };
+  resultCount: number;
+}
+
+export const VESPA_METRIC_NAMES = {
+  QUERY_LATENCY_MS: "vespa.query.latency_ms",
+  QUERY_DEGRADED: "vespa.query.degraded",
+  QUERY_ERROR: "vespa.query.error",
+  FEED_LATENCY_MS: "vespa.feed.latency_ms",
+  FEED_ERROR: "vespa.feed.error",
+  CACHE_HIT: "vespa.cache.hit",
+  CACHE_MISS: "vespa.cache.miss",
+} as const;
+
+export type VespaMetricName =
+  (typeof VESPA_METRIC_NAMES)[keyof typeof VESPA_METRIC_NAMES];
+
+export interface DetailedHealthStatus {
+  healthy: boolean;
+  containerUp: boolean;
+  contentUp: boolean;
+  searchLatencyMs: number;
+  documentCount?: number;
+}
 
 export interface SparseTensorCell {
   address: { token: string };
