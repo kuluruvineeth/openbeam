@@ -45,8 +45,7 @@ schema entity {
     
     field entity_subtype type string {
       indexing: summary | attribute
-      # More specific: "slack_channel", "public_channel", "private_channel",
-      # "dm", "group_dm", "google_drive_folder", etc.
+      attribute: fast-search
     }
     
     # === Core Information ===
@@ -203,7 +202,7 @@ schema entity {
     
     field visibility type string {
       indexing: summary | attribute
-      # "public", "internal", "private"
+      attribute: fast-search
     }
     
     # === Access Control ===
