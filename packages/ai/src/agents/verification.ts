@@ -143,8 +143,10 @@ function aggregateChecks(checks: VerificationCheck[]): VerificationCheck {
   const allPassed = checks.every((c) => c.passed);
   const scoredChecks = checks.filter((c) => c.score !== undefined);
   const avgScore =
-    scoredChecks.reduce((sum, c) => sum + (c.score ?? 0), 0) /
-      Math.max(1, scoredChecks.length) || 1;
+    scoredChecks.length > 0
+      ? scoredChecks.reduce((sum, c) => sum + (c.score ?? 0), 0) /
+        scoredChecks.length
+      : 1;
 
   return {
     passed: allPassed,

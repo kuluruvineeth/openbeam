@@ -103,6 +103,24 @@ describe("verifyWork", () => {
 
     expect(check.passed).toBe(true);
   });
+
+  it("preserves zero scores correctly", () => {
+    const result = createMockResult({ groundingScore: 0 });
+    const check = verifyWork(result, { minGroundingScore: 0.5 });
+
+    expect(check.passed).toBe(false);
+    expect(check.score).toBe(0);
+  });
+
+  it("uses default score of 1 when no scored checks exist", () => {
+    const result = createMockResult({ answer: "test" });
+    const check = verifyWork(result, {
+      requiredFields: ["answer"],
+    });
+
+    expect(check.passed).toBe(true);
+    expect(check.score).toBe(1);
+  });
 });
 
 describe("gatherContext", () => {
