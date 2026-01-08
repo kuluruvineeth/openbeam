@@ -28,11 +28,7 @@ function getAgentModel(config: AgentConfig) {
   );
 }
 
-function buildMessages(
-  task: string,
-  _context: AgentContext,
-  systemPrompt?: string
-): ModelMessage[] {
+function buildMessages(task: string, systemPrompt?: string): ModelMessage[] {
   const messages: ModelMessage[] = [];
 
   if (systemPrompt) {
@@ -67,7 +63,7 @@ export async function executeAgent(
   const startTime = Date.now();
   const aiConfig = getConfig();
   const model = getAgentModel(config);
-  const messages = buildMessages(task, context, config.systemPrompt);
+  const messages = buildMessages(task, config.systemPrompt);
   const maxSteps = config.maxSteps ?? aiConfig.agent.maxSteps;
 
   const result = await generateText({
@@ -140,7 +136,7 @@ export async function* streamAgent(
   const startTime = Date.now();
   const aiConfig = getConfig();
   const model = getAgentModel(config);
-  const messages = buildMessages(task, context, config.systemPrompt);
+  const messages = buildMessages(task, config.systemPrompt);
   const maxSteps = config.maxSteps ?? aiConfig.agent.maxSteps;
 
   const result = streamText({
