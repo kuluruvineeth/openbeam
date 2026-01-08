@@ -1,15 +1,17 @@
 import { tool } from "ai";
 import type { z } from "zod";
 import { toolRegistry } from "./registry";
-import type {
-  AISDKTool,
-  AllowedCaller,
-  ErrorCode,
-  ToolCategory,
-  ToolContext,
-  ToolExecutionOptions,
-  ToolExecutionResult,
-  ToolMetadata,
+import {
+  type AISDKTool,
+  type AllowedCaller,
+  ERROR_CODES,
+  type ErrorCode,
+  type ToolCategory,
+  type ToolContext,
+  type ToolExecutionOptions,
+  type ToolExecutionResult,
+  type ToolMetadata,
+  type ToolResultMetadata,
 } from "./types";
 
 interface ToolConfig<TParams extends z.ZodType, TResult> {
@@ -104,43 +106,47 @@ export function success<T>(
 
 export function failure(
   code: ErrorCode,
-  message: string,
-  options?: { retryable?: boolean; details?: Record<string, unknown> }
+  message?: string,
+  options?: {
+    retryable?: boolean;
+    suggestion?: string;
+    details?: Record<string, unknown>;
+    metadata?: Partial<ToolResultMetadata>;
+  }
 ): ToolExecutionResult<never> {
+  const errorInfo = ERROR_CODES[code];
   return {
     success: false,
     error: {
       code,
-      message,
-      retryable: options?.retryable ?? isRetryableError(code),
+      message: message ?? errorInfo.description,
+      retryable: options?.retryable ?? errorInfo.retryable,
+      suggestion: options?.suggestion ?? errorInfo.defaultSuggestion,
       details: options?.details,
     },
+    metadata: options?.metadata
+      ? { latencyMs: options.metadata.latencyMs ?? 0, ...options.metadata }
+      : undefined,
   };
-}
-
-function isRetryableError(code: ErrorCode): boolean {
-  const retryableCodes: ErrorCode[] = [
-    "RATE_LIMITED",
-    "TIMEOUT",
-    "PROVIDER_ERROR",
-    "NETWORK_ERROR",
-  ];
-  return retryableCodes.includes(code);
 }
 
 export function createSuccessResult<T>(
   data: T,
-  metadata?: ToolExecutionResult<T>["metadata"]
+  metadata?: Partial<ToolResultMetadata>
 ): ToolExecutionResult<T> {
   return success(data, metadata);
 }
 
-export function createErrorResult(
+export function createErrorResult<T = unknown>(
   code: ErrorCode,
-  message: string,
-  retryable = false
-): ToolExecutionResult<never> {
-  return failure(code, message, { retryable });
+  message?: string,
+  options?: {
+    suggestion?: string;
+    details?: Record<string, unknown>;
+    metadata?: Partial<ToolResultMetadata>;
+  }
+): ToolExecutionResult<T> {
+  return failure(code, message, options) as ToolExecutionResult<T>;
 }
 
 export type { ErrorCode, ToolExecutionResult };
