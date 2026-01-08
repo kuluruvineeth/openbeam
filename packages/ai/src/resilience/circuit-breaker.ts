@@ -211,10 +211,18 @@ export class CircuitBreaker {
 
   private pruneOldFailures(now: number): void {
     const windowStart = now - this.config.windowMs;
-    let oldest = this.failureTimestamps[0];
-    while (oldest !== undefined && oldest < windowStart) {
-      this.failureTimestamps.shift();
-      oldest = this.failureTimestamps[0];
+    let cutoffIndex = 0;
+
+    while (
+      cutoffIndex < this.failureTimestamps.length &&
+      (this.failureTimestamps[cutoffIndex] ?? Number.POSITIVE_INFINITY) <
+        windowStart
+    ) {
+      cutoffIndex += 1;
+    }
+
+    if (cutoffIndex > 0) {
+      this.failureTimestamps.splice(0, cutoffIndex);
     }
   }
 
