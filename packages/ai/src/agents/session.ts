@@ -196,8 +196,9 @@ export class SessionManager {
     session.updatedAt = new Date();
 
     const checkpointIndex = checkpoints.indexOf(checkpoint);
-    this.checkpoints.set(sessionId, checkpoints.slice(0, checkpointIndex + 1));
-    session.checkpoints = checkpoints.slice(0, checkpointIndex + 1);
+    const rolledBackCheckpoints = checkpoints.slice(0, checkpointIndex + 1);
+    this.checkpoints.set(sessionId, rolledBackCheckpoints);
+    session.checkpoints = rolledBackCheckpoints;
 
     return session;
   }

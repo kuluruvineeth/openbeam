@@ -158,6 +158,21 @@ describe("SessionManager", () => {
       expect(checkpoints).toHaveLength(1);
       expect(checkpoints[0]?.label).toBe("cp1");
     });
+
+    it("maintains reference consistency between session.checkpoints and internal checkpoints store", () => {
+      const session = manager.createSession("team-1", "user-1");
+
+      const cp1 = manager.createCheckpoint(session.id, "cp1");
+      expect(cp1).not.toBeNull();
+      manager.createCheckpoint(session.id, "cp2");
+      manager.createCheckpoint(session.id, "cp3");
+
+      manager.rollback(session.id, (cp1 as NonNullable<typeof cp1>).id);
+
+      const internalCheckpoints = manager.getCheckpoints(session.id);
+      expect(session.checkpoints).toBe(internalCheckpoints);
+      expect(session.checkpoints).toHaveLength(1);
+    });
   });
 
   describe("conversation history", () => {
