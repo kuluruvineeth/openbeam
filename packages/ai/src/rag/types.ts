@@ -113,6 +113,25 @@ export interface GroundingResult {
   unsupportedClaims: string[];
 }
 
+export interface Citation {
+  documentId: string;
+  chunkId: string;
+  text: string;
+  relevanceScore: number;
+  documentTitle?: string;
+  documentUrl?: string;
+  pageNumber?: number;
+}
+
+export interface GroundedAnswer {
+  answer: string;
+  citations: Citation[];
+  groundingScore: number;
+  confidence: number;
+  ungroundedClaims: string[];
+  suggestedFollowUp?: string;
+}
+
 export interface RAGContext {
   systemPrompt: string;
   contextText: string;

@@ -1,9 +1,62 @@
 import type {
+  Citation,
   ClaimVerification,
+  GroundedAnswer,
   GroundingConfidence,
   GroundingResult,
   RAGChunk,
 } from "./types";
+
+export type RefusalType =
+  | "noSources"
+  | "lowConfidence"
+  | "mixedGrounding"
+  | "outOfScope";
+
+export interface RefusalResult {
+  type: RefusalType;
+  message: string;
+  suggestedAction?: string;
+  partialAnswer?: string;
+}
+
+export interface SupportingEvidence {
+  chunkId: string;
+  snippet: string;
+  relevanceScore: number;
+  documentTitle: string;
+  documentUrl?: string;
+}
+
+export const REFUSAL_TEMPLATES: Record<RefusalType, RefusalResult> = {
+  noSources: {
+    type: "noSources",
+    message:
+      "I couldn't find any relevant information in the available sources to answer this question.",
+    suggestedAction:
+      "Try rephrasing your question or searching for related topics.",
+  },
+  lowConfidence: {
+    type: "lowConfidence",
+    message:
+      "I found some related information, but I'm not confident enough to provide a reliable answer.",
+    suggestedAction:
+      "Consider reviewing the source documents directly or providing more context.",
+  },
+  mixedGrounding: {
+    type: "mixedGrounding",
+    message:
+      "Some parts of this answer are well-supported by sources, but other claims could not be verified.",
+    suggestedAction: "Review the citations carefully for the supported claims.",
+  },
+  outOfScope: {
+    type: "outOfScope",
+    message:
+      "This question appears to be outside the scope of the available knowledge base.",
+    suggestedAction:
+      "This may require external research or different data sources.",
+  },
+};
 
 const SENTENCE_SPLIT = /(?<=[.!?])\s+/;
 const WHITESPACE = /\s+/;
@@ -130,7 +183,7 @@ export function verifyGrounding(
   chunks: RAGChunk[],
   threshold = 0.3
 ): GroundingResult {
-  const claims = extractClaims(answer);
+  const claims = extractClaimsInternal(answer);
 
   if (claims.length === 0) {
     return {
@@ -161,7 +214,7 @@ export function verifyGrounding(
   };
 }
 
-function extractClaims(answer: string): string[] {
+function extractClaimsInternal(answer: string): string[] {
   const claims: string[] = [];
   const seen = new Set<string>();
 
@@ -489,4 +542,133 @@ export function getEvidenceForAnswer(
   }
 
   return evidenceMap;
+}
+
+export function extractClaims(answer: string): string[] {
+  return extractClaimsInternal(answer);
+}
+
+export function findSupportingEvidence(
+  claim: string,
+  chunks: RAGChunk[]
+): SupportingEvidence | null {
+  const index = buildChunkIndex(chunks);
+  const claimTerms = extractSignificantTerms(claim);
+
+  if (claimTerms.length === 0) {
+    return null;
+  }
+
+  const candidateChunks = findCandidateChunks(claimTerms, index, chunks.length);
+
+  let bestMatch: { chunkIndex: number; score: number } | null = null;
+
+  for (const chunkIdx of candidateChunks) {
+    const chunkTermSet = index.chunkTerms.get(chunkIdx);
+    if (!chunkTermSet) {
+      continue;
+    }
+
+    const score = computeOverlapScore(claimTerms, chunkTermSet);
+
+    if (!bestMatch || score > bestMatch.score) {
+      bestMatch = { chunkIndex: chunkIdx, score };
+    }
+  }
+
+  if (!bestMatch || bestMatch.score < 0.3) {
+    return null;
+  }
+
+  const chunk = chunks[bestMatch.chunkIndex];
+  if (!chunk) {
+    return null;
+  }
+
+  return {
+    chunkId: chunk.id,
+    snippet: extractRelevantSnippet(claim, chunk.content),
+    relevanceScore: bestMatch.score,
+    documentTitle: chunk.documentTitle,
+    documentUrl: chunk.documentUrl,
+  };
+}
+
+export function checkForRefusal(
+  groundingResult: GroundingResult,
+  chunks: RAGChunk[]
+): RefusalResult | null {
+  if (chunks.length === 0) {
+    return REFUSAL_TEMPLATES.noSources;
+  }
+
+  if (groundingResult.overallScore < 0.3) {
+    return REFUSAL_TEMPLATES.lowConfidence;
+  }
+
+  if (
+    groundingResult.unsupportedClaims.length > 0 &&
+    groundingResult.overallScore < 0.7
+  ) {
+    return {
+      ...REFUSAL_TEMPLATES.mixedGrounding,
+      partialAnswer: `Only ${Math.round(groundingResult.overallScore * 100)}% of the claims could be verified.`,
+    };
+  }
+
+  return null;
+}
+
+export function createGroundedAnswer(
+  answer: string,
+  chunks: RAGChunk[],
+  groundingResult: GroundingResult
+): GroundedAnswer {
+  const citations: Citation[] = [];
+  const chunkById = new Map(chunks.map((c) => [c.id, c]));
+
+  for (const claim of groundingResult.claims) {
+    if (claim.supported && claim.evidenceChunkId) {
+      const chunk = chunkById.get(claim.evidenceChunkId);
+      if (chunk && !citations.some((c) => c.chunkId === chunk.id)) {
+        citations.push({
+          documentId: chunk.documentId,
+          chunkId: chunk.id,
+          text: claim.evidenceSnippet ?? chunk.content.slice(0, 200),
+          relevanceScore: claim.confidence,
+          documentTitle: chunk.documentTitle,
+          documentUrl: chunk.documentUrl,
+        });
+      }
+    }
+  }
+
+  let suggestedFollowUp: string | undefined;
+  if (groundingResult.unsupportedClaims.length > 0) {
+    suggestedFollowUp = `Some claims could not be verified. Consider searching for: "${groundingResult.unsupportedClaims[0]?.slice(0, 50)}..."`;
+  }
+
+  return {
+    answer,
+    citations,
+    groundingScore: groundingResult.overallScore,
+    confidence: confidenceToNumber(groundingResult.confidence),
+    ungroundedClaims: groundingResult.unsupportedClaims,
+    suggestedFollowUp,
+  };
+}
+
+function confidenceToNumber(confidence: GroundingConfidence): number {
+  switch (confidence) {
+    case "high":
+      return 0.9;
+    case "medium":
+      return 0.7;
+    case "low":
+      return 0.4;
+    case "uncertain":
+      return 0.2;
+    default:
+      return 0.5;
+  }
 }
