@@ -13,11 +13,34 @@ export {
   streamRAGAnswer,
 } from "./engine";
 export {
+  checkForRefusal,
+  createGroundedAnswer,
+  extractClaims,
+  findSupportingEvidence,
   formatGroundingWarning,
   getEvidenceForAnswer,
+  REFUSAL_TEMPLATES,
+  type RefusalResult,
+  type RefusalType,
+  type SupportingEvidence,
   shouldWarnAboutGrounding,
   verifyGrounding,
 } from "./grounding";
+export {
+  buildEntityExtractionPrompt,
+  buildGroundingVerificationPrompt,
+  buildQueryAnalysisPrompt,
+  buildRAGPromptWithExamples,
+  buildRAGSystemPrompt,
+  buildXMLPrompt,
+  buildXMLSection,
+  ENTITY_EXTRACTION_EXAMPLES,
+  GROUNDING_EXAMPLES,
+  type PromptContext,
+  QUERY_ANALYSIS_EXAMPLES,
+  RAG_MULTISHOT_EXAMPLES,
+  type XMLSection,
+} from "./prompts";
 export {
   analyzeQuery,
   buildConversationContext,
@@ -35,11 +58,13 @@ export {
 } from "./query-router";
 export type {
   ChunkingOptions,
+  Citation,
   ClaimVerification,
   ConversationContext,
   ConversationTurn,
   EntityType,
   ExtractedEntity,
+  GroundedAnswer,
   GroundingConfidence,
   GroundingResult,
   QueryAnalysis,

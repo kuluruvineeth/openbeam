@@ -232,6 +232,45 @@ export {
   truncateToTokenLimit,
 } from "./embeddings";
 export type {
+  BatchGradingResult,
+  CriteriaEvaluationResult,
+  Criterion,
+  EvaluationCriteria,
+  EvaluationRunner,
+  EvaluationRunResult,
+  EvaluationTestSet,
+  GradeRAGInput,
+  GradeRAGOptions,
+  GradingResult,
+  GradingRubric,
+  GradingScores,
+  LLMCompleteFn,
+  MetricType,
+  MetricValue,
+  RAGTestCase,
+  SearchTestCase,
+  TestCaseResult,
+} from "./evaluation";
+export {
+  AGENT_SUCCESS_CRITERIA,
+  buildGradingPrompt,
+  calculateGradingResult,
+  DEFAULT_GRADING_RUBRIC,
+  evaluateAgentCriteria,
+  evaluateCriteria,
+  evaluateRAGCriteria,
+  evaluateSearchCriteria,
+  filterTestSetByTags,
+  gradeRAGResponse,
+  gradeRAGResponseBatch,
+  parseGradingResponse,
+  RAG_EVAL_SET,
+  RAG_SUCCESS_CRITERIA,
+  runEvaluationSet,
+  SEARCH_EVAL_SET,
+  SEARCH_SUCCESS_CRITERIA,
+} from "./evaluation";
+export type {
   ConnectorsResourceData,
   DocumentResourceData,
   InitializeParams,
@@ -388,6 +427,20 @@ export {
   updateCircuitBreakerState,
   updateLoadedSkillsCount,
 } from "./observability";
+export type {
+  DynamicPromptContext,
+  DynamicSystemPrompt,
+  PromptBuilder,
+  SessionContextData,
+} from "./prompts";
+export {
+  buildConversationSummarySection,
+  buildDynamicSystemPrompt,
+  buildSessionContextSection,
+  buildSkillNamesSection,
+  buildToolNamesSection,
+  createPromptBuilder,
+} from "./prompts";
 export type {
   AIProvider,
   ChatModelDefinition,

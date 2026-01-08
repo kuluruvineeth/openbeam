@@ -8,6 +8,20 @@ export {
   createCheckpointService,
   DatabaseCheckpointRepository,
 } from "./checkpoint";
+export type {
+  CodeExecutionResult as CodeGenExecutionResult,
+  CodeGenerationRequest,
+  CodeGenerationToolOptions,
+  CodeIssue,
+  CodeIssueType,
+  CodeValidationResult,
+  SandboxExecutionOptions,
+} from "./code-generation";
+export {
+  createCodeGenerationTool,
+  executeInSandbox,
+  validateCode,
+} from "./code-generation";
 export {
   DockerSandboxProvider,
   getDockerSandboxProvider,

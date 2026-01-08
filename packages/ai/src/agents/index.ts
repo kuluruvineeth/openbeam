@@ -82,6 +82,14 @@ export {
   streamAgent as streamAgentNew,
 } from "./runner";
 export type {
+  AgentSession,
+  ConversationHistory,
+  ConversationTurn,
+  SessionCheckpoint,
+  SessionManagerConfig,
+} from "./session";
+export { SessionManager, sessionManager } from "./session";
+export type {
   Agent,
   AgentConfig as LegacyAgentConfig,
   AgentContext,
@@ -114,3 +122,17 @@ export {
   mergeStates,
   serializeTrace,
 } from "./utils";
+export type {
+  AgentVerificationConfig,
+  AgentVerificationResult,
+  AgentVerificationStep,
+  VerificationCheck,
+  VerificationContext,
+  VerificationCriteria,
+} from "./verification";
+export {
+  buildFeedbackPrompt,
+  executeAgentWithVerification,
+  gatherContext,
+  verifyWork,
+} from "./verification";

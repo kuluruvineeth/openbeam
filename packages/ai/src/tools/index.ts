@@ -6,6 +6,12 @@ export {
   failure,
   success,
 } from "./builder";
+export type { ChainResult, StepResult, ToolChainStep } from "./chaining";
+export {
+  createChainBuilder,
+  executeToolChain,
+  researchChain,
+} from "./chaining";
 export {
   registerAllTools,
   registerConnectorTools,
@@ -21,6 +27,28 @@ export {
   executeTool,
   ToolExecutor,
 } from "./executor";
+export type {
+  AuditLogEntry,
+  HookAction,
+  PermissionCheckResult,
+  PostToolHook,
+  PostToolHookContext,
+  PreToolHook,
+  PreToolHookContext,
+  ProvenanceInfo,
+  RateLimitConfig,
+} from "./hooks";
+export {
+  checkWebPermission,
+  createAccessControlHook,
+  createAuditLoggingHook,
+  createPermissionModeHook,
+  createProvenanceTrackingHook,
+  createRateLimitHook,
+  createRedactSensitiveDataHook,
+  HookRegistry,
+  hookRegistry,
+} from "./hooks";
 export type {
   MetricsExporter,
   ToolEventListener,
@@ -70,17 +98,24 @@ export type {
   VirtualFileInfo,
 } from "./services";
 export { createUnimplementedServices } from "./services";
-export type {
-  AISDKTool,
-  AllowedCaller,
-  ErrorCode,
-  RegisteredTool,
-  ToolBuilderOptions,
-  ToolCategory,
-  ToolContext,
-  ToolExecutionOptions,
-  ToolExecutionResult,
-  ToolMask,
-  ToolMetadata,
-  ToolRegistryOptions,
+export {
+  type AISDKTool,
+  type AllowedCaller,
+  ERROR_CODES,
+  type ErrorCode,
+  PERMISSION_MODE_CONFIGS,
+  type PermissionMode,
+  type PermissionModeConfig,
+  type RegisteredTool,
+  type ToolBuilderOptions,
+  type ToolCategory,
+  type ToolContext,
+  type ToolError,
+  type ToolExecutionOptions,
+  type ToolExecutionResult,
+  type ToolMask,
+  type ToolMetadata,
+  type ToolRegistryOptions,
+  type ToolResultMetadata,
+  type WebPermissionConfig,
 } from "./types";
