@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<query-profile id="hybrid-search" type="openplane">
+  <field name="maxHits">30</field>
+  <field name="timeout">5.0</field>
+  <field name="ranking.profile">hybrid_v2</field>
+</query-profile>

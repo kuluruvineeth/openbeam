@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<query-profile-type id="openplane">
+  <field name="maxHits" type="integer"/>
+  <field name="timeout" type="double"/>
+  <field name="ranking.profile" type="string"/>
+  <field name="ranking.features.query(query_embedding)" type="tensor&lt;float&gt;(x[1536])"/>
+  <field name="ranking.features.query(embedding_v2)" type="tensor&lt;float&gt;(x[1024])"/>
+  <field name="ranking.features.query(sparse_embedding)" type="tensor&lt;float&gt;(token{})"/>
+  <field name="ranking.features.query(bin_size_days)" type="double"/>
+</query-profile-type>

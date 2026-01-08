@@ -4,7 +4,7 @@
     <document-api/>
     <search/>
     <document-processing/>
-    
+
     <http>
       <server id="default" port="8080"/>
     </http>

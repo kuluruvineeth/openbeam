@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<query-profile id="autocomplete" type="openplane">
+  <field name="maxHits">10</field>
+  <field name="timeout">0.5</field>
+  <field name="ranking.profile">navigational</field>
+</query-profile>
