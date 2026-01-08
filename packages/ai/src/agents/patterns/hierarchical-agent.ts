@@ -1,4 +1,10 @@
-import { tool as aiTool, generateText, stepCountIs, streamText } from "ai";
+import {
+  tool as aiTool,
+  generateText,
+  stepCountIs,
+  streamText,
+  type ToolSet,
+} from "ai";
 import { z } from "zod";
 import { getConfig } from "../../config";
 import { registry } from "../../providers/registry";
@@ -283,8 +289,7 @@ export class HierarchicalAgent implements ExecutableAgent {
     ctx: AgentExecutionContext,
     parentTrace: ExecutionTrace
   ) {
-    // biome-ignore lint/suspicious/noExplicitAny: AI SDK tool types are complex
-    const tools: Record<string, any> = {};
+    const tools: ToolSet = {};
 
     const delegationSchema = z.object({
       task: z.string().describe("The specific task to delegate"),

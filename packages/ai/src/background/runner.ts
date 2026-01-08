@@ -1,4 +1,9 @@
-import { tool as aiTool, generateText, type LanguageModel } from "ai";
+import {
+  tool as aiTool,
+  generateText,
+  type LanguageModel,
+  type ToolSet,
+} from "ai";
 import { z } from "zod";
 import type {
   CheckpointData,
@@ -323,8 +328,7 @@ export class BackgroundAgentRunner {
   }
 
   private buildTools() {
-    // biome-ignore lint/suspicious/noExplicitAny: AI SDK tool types are complex and vary per tool
-    const tools: Record<string, any> = {};
+    const tools: ToolSet = {};
 
     if (this.sandbox) {
       const sandbox = this.sandbox;
