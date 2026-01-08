@@ -3,29 +3,73 @@ import { defineTool, failure, success } from "../../builder";
 
 export const searchHybridTool = defineTool({
   name: "search_hybrid",
-  description: `Search across all connected data sources using hybrid semantic + keyword search.
-Use for general queries when you need comprehensive results.
-Returns documents with relevance scores and snippets.
-Best for: finding specific information, answering questions, research.`,
+  description: `Search across all connected enterprise data sources using hybrid semantic + keyword search.
+
+USE THIS WHEN:
+- User asks a general question requiring information from the knowledge base
+- Query contains specific keywords, names, or exact phrases
+- User wants to find documents, people, projects, or entities
+- Research tasks requiring comprehensive results across all sources
+
+DO NOT USE WHEN:
+- User wants conceptually similar documents without keywords (use search_semantic)
+- User already has a document and wants related content (use search_similar)
+- Query is purely about meaning without specific terms (use search_semantic)
+- User needs to read a specific known document (use doc_get)
+
+RETURNS: Ranked list of documents with relevance scores, snippets, and source metadata. Results are filtered by team access controls.`,
   category: "search",
   deferLoading: false,
   searchKeywords: ["find", "search", "query", "lookup", "discover"],
 
   parameters: z.object({
-    query: z.string().min(1).describe("The search query"),
-    limit: z.number().min(1).max(100).optional().default(10),
+    query: z
+      .string()
+      .min(1)
+      .describe(
+        "The search query. Supports natural language questions, keyword searches, and exact phrases in quotes. Examples: 'Q3 revenue report', 'John Smith onboarding', '\"API documentation\"'"
+      ),
+    limit: z
+      .number()
+      .min(1)
+      .max(100)
+      .optional()
+      .default(10)
+      .describe(
+        "Maximum number of results to return (1-100). Use lower values (5-10) for focused queries, higher (20-50) for comprehensive research."
+      ),
     filters: z
       .object({
-        connectorTypes: z.array(z.string()).optional(),
+        connectorTypes: z
+          .array(z.string())
+          .optional()
+          .describe(
+            "Limit search to specific connectors. Valid values: 'linear', 'slack', 'notion', 'jira', 'github', 'google-drive', 'confluence'. Omit to search all."
+          ),
         dateRange: z
           .object({
-            start: z.string().optional(),
-            end: z.string().optional(),
+            start: z
+              .string()
+              .optional()
+              .describe("ISO 8601 date string. Example: '2024-01-01'"),
+            end: z
+              .string()
+              .optional()
+              .describe("ISO 8601 date string. Example: '2024-12-31'"),
           })
-          .optional(),
-        authors: z.array(z.string()).optional(),
+          .optional()
+          .describe(
+            "Filter by document modification date. Useful for recent content or historical research."
+          ),
+        authors: z
+          .array(z.string())
+          .optional()
+          .describe(
+            "Filter by author name or email. Partial matching supported."
+          ),
       })
-      .optional(),
+      .optional()
+      .describe("Optional filters to narrow search scope."),
   }),
 
   async execute(params, ctx) {

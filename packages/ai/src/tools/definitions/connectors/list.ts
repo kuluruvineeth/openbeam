@@ -3,9 +3,20 @@ import { defineTool, failure, success } from "../../builder";
 
 export const connectorListTool = defineTool({
   name: "connector_list",
-  description: `List all configured connectors for the team.
-Returns connector metadata including type, status, and last sync time.
-Use to understand what data sources are available.`,
+  description: `List all configured data source connectors for the team.
+
+USE THIS WHEN:
+- User asks "What sources do I have connected?" or "What integrations are active?"
+- Need to check available data sources before searching
+- Troubleshooting why certain content isn't appearing in search
+- Getting an overview of the team's connected applications
+
+DO NOT USE WHEN:
+- User wants to search for documents (use search_hybrid)
+- User wants details about a specific connector (use connector_status)
+- User wants to trigger a sync (use connector_sync)
+
+RETURNS: List of connectors with id, name, type, status, last sync time, and document count.`,
   category: "connectors",
   deferLoading: false,
   searchKeywords: ["connector", "integration", "source", "list", "available"],
@@ -14,8 +25,16 @@ Use to understand what data sources are available.`,
     status: z
       .enum(["active", "inactive", "error", "all"])
       .optional()
-      .default("all"),
-    type: z.string().optional().describe("Filter by connector type"),
+      .default("all")
+      .describe(
+        "Filter by connector status. 'active' = syncing normally, 'inactive' = paused, 'error' = has sync errors, 'all' = no filter."
+      ),
+    type: z
+      .string()
+      .optional()
+      .describe(
+        "Filter by connector type. Valid values: 'linear', 'slack', 'notion', 'jira', 'github', 'google-drive', 'confluence'. Omit to list all types."
+      ),
   }),
 
   async execute(params, ctx) {
