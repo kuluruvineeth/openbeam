@@ -79,7 +79,7 @@ async function fetchEntities(
     connector_metadata?: Record<string, unknown>;
   }
 ): Promise<EngineEntityResponse> {
-  const response = await fetch(`${engineUrl}/entities/extract/document`, {
+  const response = await fetch(`${engineUrl}/v1/entities/extract/document`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -236,7 +236,7 @@ export async function processEntityExtractionJob(
   log.info("Starting entity extraction");
 
   const config = getConfig();
-  const engineUrl = config.engine.baseURL;
+  const engineUrl = config.engine.gpuURL;
 
   const result = await fetchEntities(engineUrl, {
     doc_id: documentId,
