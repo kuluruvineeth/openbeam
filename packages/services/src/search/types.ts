@@ -235,6 +235,7 @@ export interface UnifiedSearchResult {
   total: number;
   queryTime: number;
   embeddingTime?: number;
+  connectorFacets: ConnectorFacet[];
 }
 
 export interface AuthorFacet {
@@ -249,4 +250,15 @@ export interface AuthorFacetsParams {
   teamId: string;
   accessControlIds?: string[];
   limit?: number;
+}
+
+export interface ConnectorFacet {
+  connectorType: string;
+  documentCount: number;
+}
+
+export interface ConnectorFacetsParams {
+  query?: string;
+  teamId: string;
+  accessControlIds?: string[];
 }

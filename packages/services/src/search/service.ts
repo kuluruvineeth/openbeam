@@ -16,6 +16,8 @@ import type {
   AuthorFacet,
   AuthorFacetsParams,
   AuthorSearchParams,
+  ConnectorFacet,
+  ConnectorFacetsParams,
   DocumentSearchResult,
   MediaSearchParams,
   MediaSearchRanking,
@@ -392,6 +394,69 @@ export class SearchService {
     return facets.sort((a, b) => b.documentCount - a.documentCount);
   }
 
+  async getConnectorFacets(
+    params: ConnectorFacetsParams
+  ): Promise<ConnectorFacet[]> {
+    const { teamId, accessControlIds } = params;
+
+    const documentYql = `select connector_type from openplane_document where team_id contains "${escapeYqlString(
+      teamId
+    )}" and ${this.buildAccessControlClause(
+      accessControlIds
+    )} | all(group(connector_type) each(output(count())))`;
+
+    const mediaYql = `select connector_type from media_document where team_id contains "${escapeYqlString(
+      teamId
+    )}" and ${this.buildAccessControlClause(
+      accessControlIds
+    )} | all(group(connector_type) each(output(count())))`;
+
+    const [documentResult, mediaResult] = await Promise.all([
+      vespaClient.query({ yql: documentYql, hits: 0, timeout: "3s" }),
+      vespaClient
+        .queryMedia({ yql: mediaYql, hits: 0, timeout: "3s" })
+        .catch(() => ({ root: { children: [] } })),
+    ]);
+
+    type GroupingChild = {
+      value?: string;
+      fields?: Record<string, unknown>;
+      children?: GroupingChild[];
+    };
+
+    const extractFacets = (
+      result: { root: { children?: unknown[] } },
+      targetMap: Map<string, number>
+    ) => {
+      const rootChildren = result.root.children as unknown as GroupingChild[];
+      const groupList = rootChildren?.[0]?.children?.[0];
+      const groups = groupList?.children;
+      if (!groups) {
+        return;
+      }
+      for (const group of groups) {
+        const connectorType = group.value?.toLowerCase();
+        if (!connectorType) {
+          continue;
+        }
+        const count = (group.fields?.["count()"] as number) ?? 0;
+        const existing = targetMap.get(connectorType) ?? 0;
+        targetMap.set(connectorType, existing + count);
+      }
+    };
+
+    const facetMap = new Map<string, number>();
+    extractFacets(documentResult, facetMap);
+    extractFacets(mediaResult, facetMap);
+
+    const facets: ConnectorFacet[] = [];
+    for (const [connectorType, documentCount] of facetMap) {
+      facets.push({ connectorType, documentCount });
+    }
+
+    return facets.sort((a, b) => b.documentCount - a.documentCount);
+  }
+
   private buildSearchYQL(
     params: SearchParams,
     includeVectorSearch = false
@@ -710,6 +775,8 @@ export class SearchService {
       })),
     ].sort((a, b) => b.relevance - a.relevance);
 
+    const connectorFacets = this.buildConnectorFacets(items);
+
     return {
       items,
       documents: scoredDocuments,
@@ -720,7 +787,26 @@ export class SearchService {
       queryTime: Date.now() - startTime,
       embeddingTime:
         (docResults?.embeddingTime || 0) + (mediaResults?.embeddingTime || 0),
+      connectorFacets,
     };
+  }
+
+  private buildConnectorFacets(
+    items: UnifiedSearchItem[]
+  ): { connectorType: string; documentCount: number }[] {
+    const facetMap = new Map<string, number>();
+    for (const item of items) {
+      const connectorType = item.data.connector_type;
+      if (connectorType) {
+        facetMap.set(connectorType, (facetMap.get(connectorType) ?? 0) + 1);
+      }
+    }
+    return Array.from(facetMap.entries())
+      .map(([connectorType, documentCount]) => ({
+        connectorType,
+        documentCount,
+      }))
+      .sort((a, b) => b.documentCount - a.documentCount);
   }
 
   private async getMediaQueryEmbedding(
