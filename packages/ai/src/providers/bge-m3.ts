@@ -97,7 +97,7 @@ export function createBGEM3Provider(config: BGEM3Config): BGEM3Provider {
   return {
     embedQuery(text, maxLength = 256) {
       return request(
-        "/embeddings/query",
+        "/v1/embeddings/query",
         { text, max_length: maxLength },
         EmbeddingResponseSchema
       );
@@ -105,7 +105,7 @@ export function createBGEM3Provider(config: BGEM3Config): BGEM3Provider {
 
     embedDocument(text, maxLength = 512) {
       return request(
-        "/embeddings/document",
+        "/v1/embeddings/document",
         { text, max_length: maxLength },
         EmbeddingResponseSchema
       );
@@ -115,7 +115,7 @@ export function createBGEM3Provider(config: BGEM3Config): BGEM3Provider {
       const effectiveMode = mode ?? "document";
       const length = maxLength ?? (effectiveMode === "query" ? 256 : 512);
       const response = await request(
-        "/embeddings/batch",
+        "/v1/embeddings/batch",
         { texts, mode: effectiveMode, max_length: length },
         BatchEmbeddingResponseSchema
       );
