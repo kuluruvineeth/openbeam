@@ -14,6 +14,9 @@ dependencies = [
     "redis>=5.2.0",
     "prometheus-client>=0.21.0",
     "cachetools>=5.5.0",
+    "uvicorn>=0.40.0",
+    "fastapi>=0.128.0",
+    "numpy>=2.4.0",
 ]
 
 [project.optional-dependencies]
@@ -27,6 +30,15 @@ cpu = [
     "lightgbm>=4.5.0",
     "rapidfuzz>=3.10.0",
     "diskcache>=5.6.0",
+]
+
+ml = [
+    "torch>=2.5.0",
+    "transformers>=4.47.0",
+    "FlagEmbedding>=1.2.0",
+    "sentence-transformers>=3.3.0",
+    "gliner>=0.2.0",
+    "accelerate>=1.2.0",
 ]
 
 gpu = [
