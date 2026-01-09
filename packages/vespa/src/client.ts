@@ -80,12 +80,13 @@ export class VespaClient {
   }
 
   private getCacheKey(params: QueryParams): string {
+    const timeout = normalizeVespaTimeout(params.timeout);
     const keyParts = [
       params.yql,
       params.ranking ?? "",
       String(params.hits ?? 20),
       String(params.offset ?? 0),
-      params.timeout ?? "",
+      timeout ?? "",
     ];
 
     if (params.query_embedding) {
@@ -229,12 +230,13 @@ export class VespaClient {
   }
 
   private buildQueryBody(params: QueryParams): VespaQueryBody {
+    const timeout = normalizeVespaTimeout(params.timeout);
     return {
       yql: params.yql,
       hits: params.hits ?? 20,
       offset: params.offset ?? 0,
       "ranking.profile": params.ranking,
-      timeout: params.timeout,
+      timeout,
       "input.query(query_embedding)": params.query_embedding,
       "input.query(title_embedding)": params.title_embedding,
       "input.query(topic_embedding)": params.topic_embedding,
@@ -258,7 +260,7 @@ export class VespaClient {
       queryParams.set("offset", params.offset.toString());
     }
     if (params.timeout) {
-      queryParams.set("timeout", params.timeout);
+      queryParams.set("timeout", normalizeVespaTimeout(params.timeout) ?? "");
     }
 
     return `${this.searchApiUrl}?${queryParams}`;
@@ -299,9 +301,15 @@ export class VespaClient {
     });
 
     if (!response.ok) {
-      const error = (await response.json()) as VespaError;
+      const errorText = await safeReadResponseText(response);
+      const parsed = safeParseVespaError(errorText);
+      const message =
+        parsed?.message || response.statusText || "Unknown Vespa error";
+
       throw new Error(
-        `Vespa query error: ${error.message || response.statusText}`
+        `Vespa query error (${response.status}): ${message}\n` +
+          `yql=${params.yql}\n` +
+          `response=${truncateForLog(errorText)}`
       );
     }
 
@@ -322,9 +330,15 @@ export class VespaClient {
     });
 
     if (!response.ok) {
-      const error = (await response.json()) as VespaError;
+      const errorText = await safeReadResponseText(response);
+      const parsed = safeParseVespaError(errorText);
+      const message =
+        parsed?.message || response.statusText || "Unknown Vespa error";
+
       throw new Error(
-        `Vespa query error: ${error.message || response.statusText}`
+        `Vespa query error (${response.status}): ${message}\n` +
+          `url=${url}\n` +
+          `response=${truncateForLog(errorText)}`
       );
     }
 
@@ -842,12 +856,13 @@ export class VespaClient {
   async queryMedia<T = MediaDocument>(
     params: MediaQueryParams
   ): Promise<SearchResult<T>> {
+    const timeout = normalizeVespaTimeout(params.timeout);
     const body: VespaMediaQueryBody = {
       yql: params.yql,
       hits: params.hits ?? 20,
       offset: params.offset ?? 0,
       "ranking.profile": params.ranking,
-      timeout: params.timeout,
+      timeout,
       "input.query(media_embedding)": params.media_embedding,
       "input.query(query_embedding)": params.query_embedding,
       "input.query(topic_embedding)": params.topic_embedding,
@@ -997,12 +1012,13 @@ export class VespaClient {
   async querySpreadsheets<T = SpreadsheetDocument>(
     params: SpreadsheetQueryParams
   ): Promise<SearchResult<T>> {
+    const timeout = normalizeVespaTimeout(params.timeout);
     const body = {
       yql: params.yql,
       hits: params.hits ?? 20,
       offset: params.offset ?? 0,
       "ranking.profile": params.ranking,
-      timeout: params.timeout,
+      timeout,
       "input.query(query_embedding)": params.query_embedding,
     };
 
@@ -1218,3 +1234,65 @@ export class VespaClient {
 }
 
 export const vespaClient = new VespaClient();
+
+async function safeReadResponseText(response: Response): Promise<string> {
+  try {
+    return await response.text();
+  } catch {
+    return "";
+  }
+}
+
+function safeParseVespaError(text: string): Partial<VespaError> | null {
+  if (!text) {
+    return null;
+  }
+  try {
+    return JSON.parse(text) as Partial<VespaError>;
+  } catch {
+    return null;
+  }
+}
+
+function truncateForLog(text: string, max = 4000): string {
+  if (!text) {
+    return "";
+  }
+  return text.length > max ? `${text.slice(0, max)}…(truncated)` : text;
+}
+
+const RE_TIMEOUT_NUMBER = /^\d+(\.\d+)?$/;
+const RE_TIMEOUT_MS = /^(\d+(\.\d+)?)ms$/;
+const RE_TIMEOUT_S = /^(\d+(\.\d+)?)s$/;
+
+function normalizeVespaTimeout(
+  timeout: string | undefined
+): string | undefined {
+  if (!timeout) {
+    return;
+  }
+
+  const t = timeout.trim().toLowerCase();
+  if (!t) {
+    return;
+  }
+
+  if (RE_TIMEOUT_NUMBER.test(t)) {
+    return t;
+  }
+
+  const msMatch = t.match(RE_TIMEOUT_MS);
+  if (msMatch) {
+    const ms = Number(msMatch[1]);
+    if (Number.isFinite(ms)) {
+      return String(ms / 1000);
+    }
+  }
+
+  const sMatch = t.match(RE_TIMEOUT_S);
+  if (sMatch) {
+    return sMatch[1];
+  }
+
+  return;
+}
