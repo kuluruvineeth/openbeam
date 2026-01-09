@@ -38,6 +38,7 @@ export interface EmbeddingConfig {
 
 export interface EngineConfig {
   baseURL: string;
+  gpuURL: string;
   timeout: number;
 }
 
@@ -124,6 +125,7 @@ function loadConfig(): AIConfig {
 
     engine: {
       baseURL: process.env.ENGINE_URL || "http://localhost:8000",
+      gpuURL: process.env.ENGINE_GPU_URL || "http://localhost:8001",
       timeout: Number(process.env.ENGINE_TIMEOUT) || 30_000,
     },
   };
