@@ -53,6 +53,8 @@ export type {
   AuthorFacet,
   AuthorFacetsParams,
   AuthorSearchParams,
+  ConnectorFacet,
+  ConnectorFacetsParams,
   DocumentSearchResult,
   HybridSearchRequest,
   HybridSearchResponse,
