@@ -153,7 +153,7 @@ export const SearchMediaRow = forwardRef<
   HTMLButtonElement,
   SearchMediaRowProps
 >(function SearchMediaRowInner(
-  { media, isLast, isSelected, isPreviewing, onSelect, onPreview },
+  { media, isSelected, isPreviewing, onSelect, onPreview },
   ref
 ) {
   const summaryPreview = getSummaryPreview(media);
@@ -167,7 +167,6 @@ export const SearchMediaRow = forwardRef<
     <button
       className={cn(
         "group flex w-full cursor-pointer items-start gap-3 px-3 py-2.5 text-left transition-colors",
-        !isLast && "border-border/40 border-b",
         isSelected && "bg-foreground/4",
         isPreviewing && "border-l-2 border-l-foreground/20 bg-foreground/6",
         "hover:bg-foreground/3",
