@@ -36,9 +36,9 @@ const sheetVariants = cva(
         top: "data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top inset-x-0 top-0",
         bottom:
           "data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom inset-x-0 bottom-0",
-        left: "data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left inset-y-0 left-0 h-full w-3/4 sm:max-w-sm",
+        left: "data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left inset-y-0 left-0 h-full w-3/4",
         right:
-          "data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right inset-y-0 right-0 h-full w-3/4 sm:max-w-[520px]",
+          "data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right inset-y-0 right-0 h-full w-3/4",
       },
     },
     defaultVariants: {
@@ -49,40 +49,28 @@ const sheetVariants = cva(
 
 interface SheetContentProps
   extends React.ComponentPropsWithoutRef<typeof SheetPrimitive.Content>,
-    VariantProps<typeof sheetVariants> {
-  stack?: boolean;
-}
+    VariantProps<typeof sheetVariants> {}
 
 const SheetContent = React.forwardRef<
   React.ComponentRef<typeof SheetPrimitive.Content>,
   SheetContentProps
->(
-  (
-    { side = "right", stack = false, className, children, title, ...props },
-    ref
-  ) => (
-    <SheetPortal>
-      <SheetOverlay />
-      <SheetPrimitive.Content
-        aria-describedby={props["aria-describedby"] || undefined}
-        className={cn("md:p-4", sheetVariants({ side }))}
-        onOpenAutoFocus={(e) => e.preventDefault()}
-        ref={ref}
-        {...props}
-      >
-        <div
-          className={cn(
-            "relative h-full w-full overflow-hidden border bg-[#FAFAF9] p-6 dark:bg-[#121212]",
-            className
-          )}
-        >
-          <SheetTitle className="sr-only">{title}</SheetTitle>
-          {children}
-        </div>
-      </SheetPrimitive.Content>
-    </SheetPortal>
-  )
-);
+>(({ side = "right", className, children, title, ...props }, ref) => (
+  <SheetPortal>
+    <SheetOverlay />
+    <SheetPrimitive.Content
+      aria-describedby={props["aria-describedby"] || undefined}
+      className={cn("md:p-4", sheetVariants({ side }), className)}
+      onOpenAutoFocus={(e) => e.preventDefault()}
+      ref={ref}
+      {...props}
+    >
+      <div className="relative h-full w-full overflow-hidden border border-border/50 bg-background p-6">
+        <SheetTitle className="sr-only">{title}</SheetTitle>
+        {children}
+      </div>
+    </SheetPrimitive.Content>
+  </SheetPortal>
+));
 SheetContent.displayName = SheetPrimitive.Content.displayName;
 
 const SheetHeader = ({
