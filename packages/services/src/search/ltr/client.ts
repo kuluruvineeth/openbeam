@@ -127,7 +127,7 @@ export async function callLTR(options: CallLTROptions): Promise<LTRResponse> {
     };
   }
 
-  const response = await fetch(`${baseURL}/ltr`, {
+  const response = await fetch(`${baseURL}/v1/ltr`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -156,7 +156,7 @@ export async function getLTRHealth(): Promise<LTRHealth> {
   const config = getConfig();
   const { baseURL } = config.engine;
 
-  const response = await fetch(`${baseURL}/ltr/health`, {
+  const response = await fetch(`${baseURL}/v1/ltr/health`, {
     signal: AbortSignal.timeout(HEALTH_TIMEOUT_MS),
   });
 
