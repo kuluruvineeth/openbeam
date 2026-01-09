@@ -95,9 +95,27 @@ async function enrichMediaWithThumbnails<T extends MediaWithThumbnail>(
 
 type UnifiedItem = {
   type: "document" | "media";
-  data: MediaWithThumbnail;
+  data: MediaWithThumbnail & { connector_type?: string };
   relevance: number;
 };
+
+type ConnectorFacet = {
+  connectorType: string;
+  documentCount: number;
+};
+
+function computeConnectorFacets(items: UnifiedItem[]): ConnectorFacet[] {
+  const facetMap = new Map<string, number>();
+  for (const item of items) {
+    const connectorType = item.data.connector_type?.toLowerCase();
+    if (connectorType) {
+      facetMap.set(connectorType, (facetMap.get(connectorType) ?? 0) + 1);
+    }
+  }
+  return Array.from(facetMap.entries())
+    .map(([connectorType, documentCount]) => ({ connectorType, documentCount }))
+    .sort((a, b) => b.documentCount - a.documentCount);
+}
 
 function applyThumbnailUrlsToItems<T extends UnifiedItem>(
   items: T[],
@@ -380,6 +398,10 @@ const authorsInputSchema = z.object({
   limit: z.number().min(1).max(100).default(50),
 });
 
+const connectorFacetsInputSchema = z.object({
+  q: z.string().optional(),
+});
+
 const hybridSearchInputSchema = z.object({
   q: z.string().min(1),
   mode: z
@@ -568,6 +590,11 @@ export const searchRouter = createTRPCRouter({
       const hasMore = effectiveOffset + currentCount < result.total;
       const nextCursor = hasMore ? effectiveOffset + input.limit : undefined;
 
+      const connectorFacets =
+        "connectorFacets" in result && Array.isArray(result.connectorFacets)
+          ? result.connectorFacets
+          : computeConnectorFacets(enrichedItems);
+
       return {
         items: enrichedItems,
         documents: result.documents,
@@ -581,6 +608,7 @@ export const searchRouter = createTRPCRouter({
         nextCursor,
         queryTime: result.queryTime,
         query: input.q,
+        connectorFacets,
       };
     }),
 
@@ -596,6 +624,20 @@ export const searchRouter = createTRPCRouter({
       });
 
       return { authors };
+    }),
+
+  connectorFacets: withActiveTeam
+    .input(connectorFacetsInputSchema)
+    .query(async ({ ctx, input }) => {
+      const accessControlIds = buildAccessControlIds(ctx);
+
+      const connectors = await searchService.getConnectorFacets({
+        query: input.q,
+        teamId: ctx.teamId,
+        accessControlIds,
+      });
+
+      return { connectors };
     }),
 
   hybrid: withActiveTeam
