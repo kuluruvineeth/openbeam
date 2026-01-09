@@ -5,12 +5,12 @@ import sys
 import warnings
 from typing import TYPE_CHECKING, Literal, TypedDict
 
-warnings.filterwarnings("ignore", message=".*resource_tracker.*leaked semaphore.*")
-warnings.filterwarnings("ignore", message=".*fast tokenizer.*pad method.*")
-
 import torch
 
 from engine.core.logging import get_logger
+
+warnings.filterwarnings("ignore", message=".*resource_tracker.*leaked semaphore.*")
+warnings.filterwarnings("ignore", message=".*fast tokenizer.*pad method.*")
 
 if TYPE_CHECKING:
     import numpy as np
@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 class EncodeResult(TypedDict):
     dense_vecs: np.ndarray[tuple[int, int], np.dtype[np.floating]]
     lexical_weights: list[dict[int, float]]
+
 
 logger = get_logger(__name__)
 
@@ -39,7 +40,9 @@ class BGEM3:
         device = self._resolve_device(device)
         self._backend: Literal["flagembedding", "transformers"] = backend
 
-        logger.info("loading_model", model=self.MODEL_NAME, device=device, backend=backend)
+        logger.info(
+            "loading_model", model=self.MODEL_NAME, device=device, backend=backend
+        )
 
         try:
             if backend == "flagembedding":
@@ -51,7 +54,7 @@ class BGEM3:
                     device=device,
                 )
             else:
-                from transformers import AutoModel, AutoTokenizer  # type: ignore[import-untyped]
+                from transformers import AutoModel, AutoTokenizer  # type: ignore[import-untyped]  # noqa: I001
 
                 self._tokenizer = AutoTokenizer.from_pretrained(self.MODEL_NAME)
                 self._hf_model = AutoModel.from_pretrained(self.MODEL_NAME)
@@ -59,7 +62,9 @@ class BGEM3:
                 self._hf_model.to(device)
 
             self._device = device
-            logger.info("model_loaded", model=self.MODEL_NAME, device=device, backend=backend)
+            logger.info(
+                "model_loaded", model=self.MODEL_NAME, device=device, backend=backend
+            )
         except Exception as e:
             logger.error(
                 "model_load_failed",
@@ -81,9 +86,6 @@ class BGEM3:
         if override in {"flagembedding", "transformers"}:
             return override  # type: ignore[return-value]
 
-        # FlagEmbedding's BGEM3 implementation has been observed to segfault on
-        # macOS/Python 3.12 in real server runs. Default to a pure-Transformers
-        # backend on macOS unless explicitly overridden.
         if sys.platform == "darwin":
             return "transformers"
 
@@ -123,8 +125,6 @@ class BGEM3:
             )
             return result
 
-        # Transformers fallback: dense-only sentence embeddings with mean pooling.
-        # Sparse weights are not supported here (returned as empty dicts).
         with torch.inference_mode():
             encoded = self._tokenizer(
                 texts,
@@ -142,7 +142,39 @@ class BGEM3:
             pooled = torch.nn.functional.normalize(pooled, p=2, dim=1)
 
         dense_np = pooled.detach().cpu().numpy()
+        lexical_weights: list[dict[int, float]]
+        if not return_sparse:
+            lexical_weights = [{} for _ in texts]
+        else:
+            input_ids = encoded["input_ids"].detach().cpu()
+            attention_mask = encoded["attention_mask"].detach().cpu()
+            special_ids = set(getattr(self._tokenizer, "all_special_ids", []) or [])
+
+            lexical_weights = []
+            for ids_row, mask_row in zip(
+                input_ids.tolist(),
+                attention_mask.tolist(),
+                strict=False,
+            ):
+                counts: dict[int, int] = {}
+                total = 0
+                for token_id, keep in zip(ids_row, mask_row, strict=False):
+                    if not keep:
+                        continue
+                    if token_id in special_ids:
+                        continue
+                    total += 1
+                    counts[token_id] = counts.get(token_id, 0) + 1
+
+                if total == 0:
+                    lexical_weights.append({})
+                    continue
+
+                lexical_weights.append(
+                    {token_id: count / total for token_id, count in counts.items()}
+                )
+
         return EncodeResult(
             dense_vecs=dense_np,
-            lexical_weights=[{} for _ in texts] if return_sparse else [{} for _ in texts],
+            lexical_weights=lexical_weights,
         )
