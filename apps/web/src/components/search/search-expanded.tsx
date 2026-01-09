@@ -1,31 +1,25 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { AdvancedSearchPanel } from "@/components/search/advanced-search-panel";
-import { SearchContentTabs } from "@/components/search/search-content-tabs";
 import { SearchEmptyState } from "@/components/search/search-empty-state";
 import { SearchFilters } from "@/components/search/search-filters";
 import { SearchInputBar } from "@/components/search/search-input-bar";
+import { SearchLayout } from "@/components/search/search-layout";
+import { SearchPreviewSheet } from "@/components/search/search-preview-sheet";
 import { SearchResults } from "@/components/search/search-results";
 import { SearchResultsSkeleton } from "@/components/search/search-skeleton";
-import { SearchSplitView } from "@/components/search/search-split-view";
 import {
   type PreviewType,
   useDocumentPreview,
 } from "@/hooks/use-document-preview";
 import { useSearch } from "@/hooks/use-search";
 import { useSearchNavigation } from "@/hooks/use-search-navigation";
-import { useSearchShortcuts } from "@/hooks/use-search-shortcuts";
 import type { MediaDocument, SearchResultDocument } from "@/lib/search-types";
 
 export function SearchExpanded() {
   const {
     query,
     setQuery,
-    contentType,
-    setContentType,
-    documents,
-    media,
     unifiedItems,
     hasQuery,
     hasResults,
@@ -38,57 +32,29 @@ export function SearchExpanded() {
     setConnectorTypes,
     documentTypes,
     setDocumentTypes,
-    sourceTypes,
-    setSourceTypes,
-    statuses,
-    setStatuses,
-    priorities,
-    setPriorities,
     authors,
     setAuthors,
     dateRange,
     setDateRange,
-    ranking,
-    setRanking,
     resetFilters,
     activeFilterCount,
-    queryTime,
-    total,
-    documentTotal,
-    mediaTotal,
-    advancedMode,
-    toggleAdvancedMode,
-    rrfConfigRaw,
-    setRrfConfig,
   } = useSearch();
-
-  useSearchShortcuts({ setRanking, advancedMode, toggleAdvancedMode });
 
   const { previewId, previewType, openPreview, closePreview } =
     useDocumentPreview();
   const [selectedIndex, setSelectedIndex] = useState(-1);
 
-  const previewedDocument = useMemo(() => {
-    if (!previewId) {
-      return null;
-    }
-    if (
-      previewType !== "document" &&
-      previewType !== "email" &&
-      previewType !== "slack" &&
-      previewType !== "notion"
-    ) {
-      return null;
-    }
-    return documents.find((doc) => doc.id === previewId) ?? null;
-  }, [previewId, previewType, documents]);
-
-  const previewedMedia = useMemo(() => {
+  const previewMediaData = useMemo(() => {
     if (!previewId || previewType !== "media") {
       return null;
     }
-    return media.find((m) => m.id === previewId) ?? null;
-  }, [previewId, previewType, media]);
+    const mediaItem = unifiedItems.find(
+      (item) => item.type === "media" && item.data.id === previewId
+    );
+    return mediaItem?.type === "media"
+      ? (mediaItem.data as MediaDocument)
+      : null;
+  }, [previewId, previewType, unifiedItems]);
 
   const handleSelectDocument = useCallback(
     (_: SearchResultDocument, index: number) => setSelectedIndex(index),
@@ -96,7 +62,9 @@ export function SearchExpanded() {
   );
 
   const handlePreviewDocument = useCallback(
-    (doc: SearchResultDocument, type: PreviewType) => openPreview(doc.id, type),
+    (doc: SearchResultDocument, type: PreviewType) => {
+      openPreview(doc.id, type);
+    },
     [openPreview]
   );
 
@@ -106,7 +74,9 @@ export function SearchExpanded() {
   );
 
   const handlePreviewMedia = useCallback(
-    (mediaItem: MediaDocument) => openPreview(mediaItem.id, "media"),
+    (mediaItem: MediaDocument) => {
+      openPreview(mediaItem.id, "media");
+    },
     [openPreview]
   );
 
@@ -126,14 +96,10 @@ export function SearchExpanded() {
   });
 
   return (
-    <SearchSplitView
-      chunkIndex={previewedDocument?.chunk_index}
-      highlightText={previewedDocument?.content}
-      mediaData={previewedMedia}
-      onClosePreview={closePreview}
-      pageNumber={previewedDocument?.page_number}
-      previewId={previewId}
-      previewType={previewType ?? undefined}
+    <SearchLayout
+      onConnectorTypesChange={setConnectorTypes}
+      selectedConnectorTypes={connectorTypes}
+      showSources={hasQuery}
     >
       <div className="flex h-full flex-col">
         <header className="sticky top-0 z-10 shrink-0 space-y-4 bg-background pb-4">
@@ -143,42 +109,16 @@ export function SearchExpanded() {
             value={query}
           />
           {hasQuery && (
-            <div className="space-y-4">
-              <SearchContentTabs
-                documentCount={documentTotal}
-                mediaCount={mediaTotal}
-                onChange={setContentType}
-                value={contentType}
-              />
-              <SearchFilters
-                activeFilterCount={activeFilterCount}
-                advancedMode={advancedMode}
-                authors={authors}
-                connectorTypes={connectorTypes}
-                dateRange={dateRange}
-                documentTypes={documentTypes}
-                onAdvancedToggle={toggleAdvancedMode}
-                onAuthorsChange={setAuthors}
-                onClearAll={resetFilters}
-                onConnectorTypesChange={setConnectorTypes}
-                onDateRangeChange={setDateRange}
-                onDocumentTypesChange={setDocumentTypes}
-                onPrioritiesChange={setPriorities}
-                onRankingChange={setRanking}
-                onSourceTypesChange={setSourceTypes}
-                onStatusesChange={setStatuses}
-                priorities={priorities}
-                ranking={ranking}
-                sourceTypes={sourceTypes}
-                statuses={statuses}
-              />
-              <AdvancedSearchPanel
-                config={rrfConfigRaw}
-                isOpen={advancedMode}
-                onConfigChange={setRrfConfig}
-                onOpenChange={toggleAdvancedMode}
-              />
-            </div>
+            <SearchFilters
+              activeFilterCount={activeFilterCount}
+              authors={authors}
+              dateRange={dateRange}
+              documentTypes={documentTypes}
+              onAuthorsChange={setAuthors}
+              onClearAll={resetFilters}
+              onDateRangeChange={setDateRange}
+              onDocumentTypesChange={setDocumentTypes}
+            />
           )}
         </header>
 
@@ -187,24 +127,27 @@ export function SearchExpanded() {
           {isEmpty && <SearchEmptyState query={query} />}
           {hasResults && (
             <SearchResults
-              documentTotal={documentTotal}
               fetchNextPage={fetchNextPage}
               hasNextPage={hasNextPage ?? false}
               isFetchingNextPage={isFetchingNextPage}
               items={unifiedItems}
-              mediaTotal={mediaTotal}
               onPreviewDocument={handlePreviewDocument}
               onPreviewMedia={handlePreviewMedia}
               onSelectDocument={handleSelectDocument}
               onSelectMedia={handleSelectMedia}
               previewId={previewId}
-              queryTime={queryTime}
               selectedIndex={selectedIndex}
-              total={total}
             />
           )}
         </section>
       </div>
-    </SearchSplitView>
+
+      <SearchPreviewSheet
+        mediaData={previewMediaData}
+        onClose={closePreview}
+        previewId={previewId}
+        previewType={previewType}
+      />
+    </SearchLayout>
   );
 }

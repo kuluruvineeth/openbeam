@@ -43,9 +43,9 @@ def create_app() -> dict[str, Any]:
     )
 
     return {
-        "/embeddings": embedding,
-        "/rerank": reranker,
-        "/entities": entity,
+        "/v1/embeddings": embedding,
+        "/v1/rerank": reranker,
+        "/v1/entities": entity,
     }
 
 

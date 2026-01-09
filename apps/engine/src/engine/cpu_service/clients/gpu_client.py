@@ -94,7 +94,7 @@ class GPUClient:
     ) -> EmbeddingResponse:
         data = await self._request(
             "POST",
-            "/embeddings",
+            "/v1/embeddings",
             json_data={"texts": texts, "return_sparse": return_sparse},
         )
         return EmbeddingResponse.model_validate(data)
@@ -109,7 +109,7 @@ class GPUClient:
         if top_k is not None:
             payload["top_k"] = top_k
 
-        data = await self._request("POST", "/rerank", json_data=payload)
+        data = await self._request("POST", "/v1/rerank", json_data=payload)
         return RerankResponse.model_validate(data)
 
     async def extract_entities(
@@ -122,8 +122,8 @@ class GPUClient:
         if labels is not None:
             payload["labels"] = labels
 
-        data = await self._request("POST", "/entities", json_data=payload)
+        data = await self._request("POST", "/v1/entities", json_data=payload)
         return EntityResponse.model_validate(data)
 
     async def health(self) -> dict[str, Any]:
-        return await self._request("GET", "/health")
+        return await self._request("GET", "/v1/health")

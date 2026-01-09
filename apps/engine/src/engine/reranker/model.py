@@ -1,9 +1,14 @@
 from __future__ import annotations
 
+import os
+import sys
 import threading
+import warnings
+from typing import Literal
+
+warnings.filterwarnings("ignore", message=".*resource_tracker.*leaked semaphore.*")
 
 import torch
-from FlagEmbedding import FlagReranker
 
 from engine.core.logging import get_logger
 
@@ -22,10 +27,32 @@ class CrossEncoderModel:
 
     _instance: CrossEncoderModel | None = None
 
-    def __init__(self, model_name: str | None = None) -> None:
+    def __init__(self, model_name: str | None = None, device: str | None = None) -> None:
         self._model_name = model_name or self.MODEL_NAME
-        self._device = self._select_device()
+        self._device = self._resolve_device(device)
+        self._backend = self._resolve_backend()
         self._model = self._load_model()
+
+        self._tokenizer = None
+
+    def _resolve_device(self, device: str | None) -> str:
+        override = (device or os.environ.get("CPU_ML_DEVICE") or "auto").strip().lower()
+        if override != "auto":
+            return override
+
+        return self._select_device()
+
+    def _resolve_backend(self) -> Literal["flagembedding", "transformers"]:
+        override = (os.environ.get("CPU_ML_BACKEND") or "auto").strip().lower()
+        if override in {"flagembedding", "transformers"}:
+            return override  # type: ignore[return-value]
+
+        # FlagEmbedding reranker has been observed to segfault on macOS/Python 3.12
+        # in real server runs. Default to Transformers there unless overridden.
+        if sys.platform == "darwin":
+            return "transformers"
+
+        return "flagembedding"
 
     def _select_device(self) -> str:
         if torch.cuda.is_available():
@@ -34,22 +61,36 @@ class CrossEncoderModel:
             return "mps"
         return "cpu"
 
-    def _load_model(self) -> FlagReranker:
+    def _load_model(self):
         logger.info(
             "loading_cross_encoder",
             model=self._model_name,
             device=self._device,
+            backend=self._backend,
         )
         try:
-            model = FlagReranker(
-                self._model_name,
-                use_fp16=self._device != "cpu",
-                device=self._device,
-            )
+            if self._backend == "flagembedding":
+                from FlagEmbedding import FlagReranker  # type: ignore[import-untyped]
+
+                model = FlagReranker(
+                    self._model_name,
+                    use_fp16=self._device != "cpu",
+                    device=self._device,
+                )
+                self._tokenizer = None
+                return model
+
+            from transformers import AutoModelForSequenceClassification, AutoTokenizer  # type: ignore[import-untyped]
+
+            self._tokenizer = AutoTokenizer.from_pretrained(self._model_name)
+            model = AutoModelForSequenceClassification.from_pretrained(self._model_name)
+            model.eval()
+            model.to(self._device)
             logger.info(
                 "cross_encoder_loaded",
                 model=self._model_name,
                 device=self._device,
+                backend=self._backend,
             )
             return model
         except Exception as e:
@@ -57,6 +98,7 @@ class CrossEncoderModel:
                 "cross_encoder_load_failed",
                 model=self._model_name,
                 device=self._device,
+                backend=self._backend,
                 error=str(e),
             )
             raise ModelLoadError(f"Failed to load {self._model_name}: {e}") from e
@@ -81,11 +123,14 @@ class CrossEncoderModel:
 
         pairs = [[query, passage] for passage in passages]
 
-        scores = self._model.compute_score(
-            pairs,
-            normalize=normalize,
-            batch_size=batch_size,
-        )
+        if self._backend == "flagembedding":
+            scores = self._model.compute_score(
+                pairs,
+                normalize=normalize,
+                batch_size=batch_size,
+            )
+        else:
+            scores = self._compute_scores_transformers(pairs, batch_size=batch_size, normalize=normalize)
 
         if isinstance(scores, (int, float)):
             return [float(scores)]
@@ -127,8 +172,39 @@ class CrossEncoderModel:
 
         return results
 
+    def _compute_scores_transformers(
+        self,
+        pairs: list[list[str]],
+        batch_size: int,
+        normalize: bool,
+    ) -> list[float]:
+        if self._tokenizer is None:
+            raise RuntimeError("Transformers backend not initialized correctly (tokenizer missing)")
 
-def get_cross_encoder_model() -> CrossEncoderModel:
+        scores: list[float] = []
+        with torch.inference_mode():
+            for i in range(0, len(pairs), batch_size):
+                batch = pairs[i : i + batch_size]
+                queries = [q for q, _ in batch]
+                passages = [p for _, p in batch]
+                encoded = self._tokenizer(
+                    queries,
+                    passages,
+                    padding=True,
+                    truncation=True,
+                    max_length=512,
+                    return_tensors="pt",
+                )
+                encoded = {k: v.to(self._device) for k, v in encoded.items()}
+                out = self._model(**encoded)
+                logits = out.logits.squeeze(-1)
+                if normalize:
+                    logits = torch.sigmoid(logits)
+                scores.extend([float(x) for x in logits.detach().cpu().tolist()])
+        return scores
+
+
+def get_cross_encoder_model(device: str | None = None) -> CrossEncoderModel:
     global _model_instance
 
     if _model_instance is not None:
@@ -136,6 +212,6 @@ def get_cross_encoder_model() -> CrossEncoderModel:
 
     with _model_lock:
         if _model_instance is None:
-            _model_instance = CrossEncoderModel()
+            _model_instance = CrossEncoderModel(device=device)
 
     return _model_instance

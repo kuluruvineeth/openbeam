@@ -66,7 +66,7 @@ export class EngineClient {
   }
 
   async health(): Promise<HealthResponse> {
-    const response = await this.fetchWithTimeout(`${this.baseUrl}/health`);
+    const response = await this.fetchWithTimeout(`${this.baseUrl}/v1/health`);
     if (!response.ok) {
       throw new EngineError("Health check failed", response.status);
     }
@@ -75,7 +75,7 @@ export class EngineClient {
 
   async getSupportedTypes(): Promise<SupportedTypesResponse> {
     const response = await this.fetchWithTimeout(
-      `${this.baseUrl}/supported-types`
+      `${this.baseUrl}/v1/supported-types`
     );
     if (!response.ok) {
       throw new EngineError("Failed to get supported types", response.status);
@@ -105,7 +105,7 @@ export class EngineClient {
       params.set("strategy", options.strategy);
     }
 
-    const parseEndpoint = `${this.baseUrl}/parse${params.toString() ? `?${params}` : ""}`;
+    const parseEndpoint = `${this.baseUrl}/v1/parse${params.toString() ? `?${params}` : ""}`;
     const response = await this.fetchWithTimeout(
       parseEndpoint,
       {
@@ -142,7 +142,7 @@ export class EngineClient {
       params.set("strategy", options.strategy);
     }
 
-    const endpoint = `${this.baseUrl}/parse/url${params.toString() ? `?${params}` : ""}`;
+    const endpoint = `${this.baseUrl}/v1/parse/url${params.toString() ? `?${params}` : ""}`;
 
     let lastError: Error | undefined;
 
@@ -184,7 +184,7 @@ export class EngineClient {
     text: string,
     options: ChunkOptions = {}
   ): Promise<ChunkResponse> {
-    const response = await this.fetchWithTimeout(`${this.baseUrl}/chunk`, {
+    const response = await this.fetchWithTimeout(`${this.baseUrl}/v1/chunk`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

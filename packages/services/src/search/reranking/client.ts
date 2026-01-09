@@ -59,7 +59,7 @@ export async function callRerank(
     top_k: topK,
   };
 
-  const response = await fetch(`${baseURL}/rerank`, {
+  const response = await fetch(`${baseURL}/v1/rerank`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -88,7 +88,7 @@ export async function getRerankStats(): Promise<RerankStats> {
   const config = getConfig();
   const { baseURL } = config.engine;
 
-  const response = await fetch(`${baseURL}/rerank/stats`, {
+  const response = await fetch(`${baseURL}/v1/rerank/stats`, {
     signal: AbortSignal.timeout(5000),
   });
 

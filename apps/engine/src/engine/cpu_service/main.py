@@ -1,5 +1,18 @@
 from __future__ import annotations
 
+import multiprocessing
+import os
+import warnings
+
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
+
+import contextlib
+
+if __name__ == "__main__" or multiprocessing.get_start_method(allow_none=True) is None:
+    with contextlib.suppress(RuntimeError):
+        multiprocessing.set_start_method("spawn", force=True)
+
 import uvicorn
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -44,7 +57,7 @@ def create_app() -> FastAPI:
     _configure_exception_handlers(app)
     _configure_middleware(app, settings, security)
 
-    app.include_router(api_router)
+    app.include_router(api_router, prefix="/v1")
     return app
 
 
@@ -90,11 +103,33 @@ def run() -> None:
     settings = get_cpu_settings()
     configure_logging(settings)
 
+    # Suppress a noisy Python 3.12+ shutdown warning that can be triggered by
+    # third-party ML libraries using multiprocessing primitives.
+    #
+    # This is intentionally placed in the entrypoint (rather than model modules)
+    # to ensure it takes precedence even if other libraries modify warning
+    # filters later during import/startup.
+    warnings.filterwarnings(
+        "ignore",
+        message=r".*resource_tracker.*leaked semaphore.*",
+        category=UserWarning,
+    )
+
+    workers = settings.workers
+    if settings.enable_ml and workers > 1:
+        logger.warning(
+            "ml_workers_override",
+            original=workers,
+            override=1,
+            reason="ML models require significant memory; use CPU_WORKERS=1 with CPU_ENABLE_ML=true",
+        )
+        workers = 1
+
     logger.info(
         "starting_cpu_service",
         host=settings.host,
         port=settings.port,
-        workers=settings.workers,
+        workers=workers,
         environment=settings.environment,
     )
 
@@ -103,7 +138,7 @@ def run() -> None:
         factory=True,
         host=settings.host,
         port=settings.port,
-        workers=settings.workers,
+        workers=workers,
     )
 
 

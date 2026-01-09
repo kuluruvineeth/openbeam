@@ -490,3 +490,16 @@ export function useRecentDocuments(options?: {
     staleTime: 60_000,
   });
 }
+
+export function useConnectorFacets(query?: string) {
+  const trpc = useTRPC();
+  const debouncedQuery = useDebounce(query ?? "", 300);
+
+  return useQuery({
+    ...trpc.search.connectorFacets.queryOptions({
+      q: debouncedQuery || undefined,
+    }),
+    placeholderData: keepPreviousData,
+    staleTime: 60_000,
+  });
+}

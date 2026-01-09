@@ -11,7 +11,7 @@ function Shimmer({ className }: { className?: string }) {
 function SearchResultRowSkeleton({ delay = 0 }: { delay?: number }) {
   return (
     <div
-      className="flex items-start gap-3 border-border/40 border-b px-3 py-2.5 last:border-b-0"
+      className="flex items-start gap-3 px-3 py-2.5"
       style={{ animationDelay: `${delay}ms` }}
     >
       <Shimmer className="size-7 shrink-0" />
@@ -33,7 +33,7 @@ function SearchResultRowSkeleton({ delay = 0 }: { delay?: number }) {
 
 export function SearchResultsSkeleton({ count = 8 }: { count?: number }) {
   return (
-    <div className="border border-border/50">
+    <div>
       {Array.from({ length: count }).map((_, i) => (
         <SearchResultRowSkeleton delay={i * 50} key={i} />
       ))}

@@ -156,7 +156,7 @@ export async function processLTRTrainingJob(
     const config = getConfig();
     const engineUrl = config.engine.baseURL;
 
-    const response = await fetch(`${engineUrl}/ltr/train`, {
+    const response = await fetch(`${engineUrl}/v1/ltr/train`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

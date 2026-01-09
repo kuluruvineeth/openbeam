@@ -52,9 +52,8 @@ export function useConnectors(): ConnectorsResult {
 
   const connectors = useMemo(
     () =>
-      appsQuery.data?.filter(
-        (app) => app.installed && typeof app.connectorId === "string"
-      ) ?? [],
+      appsQuery.data?.filter((app) => typeof app.connectorId === "string") ??
+      [],
     [appsQuery.data]
   );
 

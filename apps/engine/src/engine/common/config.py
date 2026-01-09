@@ -83,6 +83,11 @@ class CPUServiceSettings(BaseServiceSettings):
 
     ltr_model_path: str | None = None
 
+    enable_ml: bool = False
+    ml_device: Literal["auto", "cpu", "mps", "cuda"] = "auto"
+    embedding_cache_size: int = 10_000
+    embedding_cache_dir: str | None = None
+
 
 class GPUServiceSettings(BaseServiceSettings):
     model_config = SettingsConfigDict(

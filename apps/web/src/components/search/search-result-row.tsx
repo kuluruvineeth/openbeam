@@ -191,7 +191,7 @@ export const SearchResultRow = forwardRef<
   HTMLButtonElement,
   SearchResultRowProps
 >(function SearchResultRowInner(
-  { document: doc, isLast, isSelected, isPreviewing, onSelect, onPreview },
+  { document: doc, isSelected, isPreviewing, onSelect, onPreview },
   ref
 ) {
   const showContentPrimary = isContentPrimary(
@@ -217,8 +217,6 @@ export const SearchResultRow = forwardRef<
       onPreview?.(doc, previewCategory);
     } else if (canPreviewFile) {
       onPreview?.(doc, "document");
-    } else if (hasUrl) {
-      window.open(doc.url, "_blank", "noopener,noreferrer");
     }
   };
 
@@ -226,7 +224,6 @@ export const SearchResultRow = forwardRef<
     <button
       className={cn(
         "group flex w-full cursor-pointer items-start gap-3 px-3 py-2.5 text-left transition-colors",
-        !isLast && "border-border/40 border-b",
         isSelected && "bg-foreground/4",
         isPreviewing && "border-l-2 border-l-foreground/20 bg-foreground/6",
         "hover:bg-foreground/3",
