@@ -14,6 +14,44 @@ export {
 } from "./hybrid-search";
 export type { AIInitOptions } from "./init";
 export { initializeAI, isAIInitialized, resetAIInitialization } from "./init";
+export type {
+  BuiltContext,
+  CitationMatch,
+  ContextChunk,
+  ContextDocument,
+  FanoutQuery,
+  OverviewCitation,
+  OverviewConfig,
+  OverviewRequest,
+  OverviewResponse,
+  OverviewStreamChunk,
+  OverviewStreamChunkType,
+  OverviewTiming,
+  OverviewUsage,
+  RetrievalResult,
+} from "./overview";
+export {
+  AgentOverviewOrchestrator,
+  buildCitationMap,
+  buildContext,
+  buildContextDocuments,
+  calculateGroundingScore,
+  createOverviewOrchestrator,
+  DEFAULT_OVERVIEW_CONFIG,
+  deduplicateResults,
+  extractCitationsFromText,
+  extractCitationsRealtime,
+  formatCitationPrompt,
+  generateFanoutQueries,
+  generateOverview,
+  getAgentOverviewOrchestrator,
+  mergeScores,
+  OverviewOrchestrator,
+  resolveCitations,
+  selectDiverseDocuments,
+  streamOverview,
+  streamOverviewWithAgent,
+} from "./overview";
 export {
   askQuestion,
   buildRAGContext,

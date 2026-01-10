@@ -17,6 +17,8 @@ import type {
   SpreadsheetSchema,
   SyncHistoryEntry,
   ToolServices,
+  UnifiedSearchParams,
+  UnifiedSearchResponse,
   VirtualFileInfo,
 } from "@openplane/ai";
 import { CompletionService } from "@openplane/ai";
@@ -26,6 +28,7 @@ import {
 } from "@openplane/analytics";
 import prisma, { findConnectorById, listConnectorsByTeam } from "@openplane/db";
 import { escapeYqlString, vespaClient } from "@openplane/vespa";
+import { searchService } from "../search";
 import { getStorageProvider } from "../storage";
 import { hybridSearch, keywordSearch, semanticSearch } from "./hybrid-search";
 import { ragAnswer } from "./rag";
@@ -91,6 +94,83 @@ function adaptDocument(doc: {
     createdAt: doc.created_at ? Number(doc.created_at) : undefined,
     updatedAt: doc.updated_at ? Number(doc.updated_at) : undefined,
     accessControl: doc.access_control ?? undefined,
+  };
+}
+
+type UnifiedSearchItem = {
+  id: string;
+  type: "document" | "media";
+  title: string;
+  content?: string;
+  url?: string;
+  connectorType?: string;
+  relevanceScore: number;
+  authorName?: string;
+  createdAt?: number;
+  updatedAt?: number;
+};
+
+function adaptUnifiedDocumentItem(
+  doc: {
+    id: string;
+    title: string;
+    content?: string | null;
+    url?: string | null;
+    connector_type?: string | null;
+    author_name?: string | null;
+    created_at?: number | string | null;
+    updated_at?: number | string | null;
+  },
+  relevance: number
+): UnifiedSearchItem {
+  return {
+    id: doc.id,
+    type: "document" as const,
+    title: doc.title,
+    content: doc.content ?? undefined,
+    url: doc.url ?? undefined,
+    connectorType: doc.connector_type ?? undefined,
+    relevanceScore: relevance,
+    authorName: doc.author_name ?? undefined,
+    createdAt: doc.created_at ? Number(doc.created_at) : undefined,
+    updatedAt: doc.updated_at ? Number(doc.updated_at) : undefined,
+  };
+}
+
+function adaptUnifiedMediaItem(
+  media: {
+    id: string;
+    title: string;
+    description?: string | null;
+    media_summary?: string | null;
+    transcript?: string | null;
+    url?: string | null;
+    connector_type?: string | null;
+    author_name?: string | null;
+    created_at?: number | string | null;
+    updated_at?: number | string | null;
+  },
+  relevance: number
+): UnifiedSearchItem {
+  const mediaContent = [
+    media.description,
+    media.media_summary,
+    media.transcript,
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+
+  return {
+    id: media.id,
+    type: "media" as const,
+    title: media.title,
+    content: mediaContent || undefined,
+    url: media.url ?? undefined,
+    connectorType: media.connector_type ?? undefined,
+    relevanceScore: relevance,
+    authorName: media.author_name ?? undefined,
+    createdAt: media.created_at ? Number(media.created_at) : undefined,
+    updatedAt: media.updated_at ? Number(media.updated_at) : undefined,
   };
 }
 
@@ -433,6 +513,33 @@ export function createToolServices(
           documents: result.documents.map(adaptSearchResult),
           total: result.total,
           queryTime: result.queryTime,
+        };
+      },
+
+      async unified(
+        params: UnifiedSearchParams
+      ): Promise<UnifiedSearchResponse> {
+        const result = await searchService.searchUnified({
+          query: params.query,
+          teamId: params.teamId,
+          limit: params.limit,
+          accessControlIds: params.accessControlIds,
+          connectorTypes: params.connectorTypes,
+          includeDocuments: params.includeDocuments ?? true,
+          includeMedia: params.includeMedia ?? true,
+        });
+
+        const items = result.items.map((item) =>
+          item.type === "document"
+            ? adaptUnifiedDocumentItem(item.data, item.relevance)
+            : adaptUnifiedMediaItem(item.data, item.relevance)
+        );
+
+        return {
+          items,
+          total: result.total,
+          queryTime: result.queryTime,
+          embeddingTime: result.embeddingTime,
         };
       },
     },
