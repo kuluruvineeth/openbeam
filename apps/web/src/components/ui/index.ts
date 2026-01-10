@@ -28,4 +28,5 @@ export * from "./table";
 export * from "./tabs";
 export * from "./text-shimmer";
 export * from "./textarea";
+export * from "./think";
 export * from "./tooltip";
