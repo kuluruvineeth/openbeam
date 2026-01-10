@@ -7,8 +7,12 @@ import { AppLogo } from "@/components/integrations/app-logo";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useConnectors } from "@/hooks/use-connectors";
 import { cn } from "@/lib/utils";
+
+type ConnectorFacet = {
+  connectorType: string;
+  documentCount: number;
+};
 
 type SourceData = {
   type: string;
@@ -76,44 +80,37 @@ function SourcesEmpty() {
 type SearchSourcesPanelProps = {
   selectedConnectorTypes: string[];
   onConnectorTypesChange: (types: string[] | null) => void;
+  connectorFacets: ConnectorFacet[];
+  isLoading?: boolean;
 };
 
 export function SearchSourcesPanel({
   selectedConnectorTypes,
   onConnectorTypesChange,
+  connectorFacets,
+  isLoading = false,
 }: SearchSourcesPanelProps) {
-  const { data: connectors, isLoading } = useConnectors();
-
   const sources = useMemo(() => {
-    if (!connectors) {
-      return [];
-    }
-    const sourceMap = new Map<string, SourceData>();
+    const sourceList: SourceData[] = [];
 
-    for (const connector of connectors) {
-      const type = connector.app.toLowerCase();
-      const existing = sourceMap.get(type);
-      const docCount = connector.syncStatus?.stats.totalIndexed ?? 0;
-
-      if (existing) {
-        existing.documentCount += docCount;
-      } else {
-        const app = appStore.find((a) => a.id.toLowerCase() === type);
-        sourceMap.set(type, {
-          type,
-          label: app?.name ?? connector.app,
-          app,
-          documentCount: docCount,
-        });
+    for (const facet of connectorFacets) {
+      if (facet.documentCount === 0) {
+        continue;
       }
+
+      const type = facet.connectorType.toLowerCase();
+      const app = appStore.find((a) => a.id.toLowerCase() === type);
+
+      sourceList.push({
+        type,
+        label: app?.name ?? facet.connectorType,
+        app,
+        documentCount: facet.documentCount,
+      });
     }
 
-    return Array.from(sourceMap.values()).sort((a, b) =>
-      a.label.localeCompare(b.label)
-    );
-  }, [connectors]);
-
-  const totalDocuments = sources.reduce((sum, s) => sum + s.documentCount, 0);
+    return sourceList.sort((a, b) => b.documentCount - a.documentCount);
+  }, [connectorFacets]);
 
   const toggleConnector = (connectorType: string) => {
     if (selectedConnectorTypes.includes(connectorType)) {
@@ -164,18 +161,6 @@ export function SearchSourcesPanel({
           )}
         </nav>
       </ScrollArea>
-
-      <footer className="shrink-0 px-4 py-3">
-        <p className="font-mono text-[10px] text-foreground/40 tabular-nums">
-          {totalDocuments.toLocaleString()} documents
-          {hasSelection && (
-            <span className="text-foreground/30">
-              {" "}
-              · {selectedConnectorTypes.length} selected
-            </span>
-          )}
-        </p>
-      </footer>
     </aside>
   );
 }

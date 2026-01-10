@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { OverviewPanel } from "@/components/overview";
 import { SearchEmptyState } from "@/components/search/search-empty-state";
 import { SearchFilters } from "@/components/search/search-filters";
 import { SearchInputBar } from "@/components/search/search-input-bar";
@@ -12,6 +13,7 @@ import {
   type PreviewType,
   useDocumentPreview,
 } from "@/hooks/use-document-preview";
+import { useOverview } from "@/hooks/use-overview";
 import { useSearch } from "@/hooks/use-search";
 import { useSearchNavigation } from "@/hooks/use-search-navigation";
 import type { MediaDocument, SearchResultDocument } from "@/lib/search-types";
@@ -20,6 +22,7 @@ export function SearchExpanded() {
   const {
     query,
     setQuery,
+    debouncedQuery,
     unifiedItems,
     hasQuery,
     hasResults,
@@ -38,11 +41,34 @@ export function SearchExpanded() {
     setDateRange,
     resetFilters,
     activeFilterCount,
+    connectorFacets,
   } = useSearch();
 
+  const {
+    content: overviewContent,
+    citations: overviewCitations,
+    isLoading: overviewIsLoading,
+    isStreaming: overviewIsStreaming,
+    error: overviewError,
+    groundingScore: overviewGroundingScore,
+    steps: overviewSteps,
+    currentQuery: overviewCurrentQuery,
+    generateOverview,
+    reset: resetOverview,
+  } = useOverview();
   const { previewId, previewType, openPreview, closePreview } =
     useDocumentPreview();
   const [selectedIndex, setSelectedIndex] = useState(-1);
+
+  useEffect(() => {
+    if (debouncedQuery && debouncedQuery.trim().length >= 3) {
+      if (overviewCurrentQuery !== debouncedQuery) {
+        generateOverview(debouncedQuery);
+      }
+    } else {
+      resetOverview();
+    }
+  }, [debouncedQuery, overviewCurrentQuery, generateOverview, resetOverview]);
 
   const previewMediaData = useMemo(() => {
     if (!previewId || previewType !== "media") {
@@ -97,6 +123,8 @@ export function SearchExpanded() {
 
   return (
     <SearchLayout
+      connectorFacets={connectorFacets}
+      isSearching={isSearching}
       onConnectorTypesChange={setConnectorTypes}
       selectedConnectorTypes={connectorTypes}
       showSources={hasQuery}
@@ -123,6 +151,17 @@ export function SearchExpanded() {
         </header>
 
         <section className="no-scrollbar min-h-0 flex-1 overflow-y-auto">
+          {hasQuery && (overviewIsLoading || overviewContent) && (
+            <OverviewPanel
+              citations={overviewCitations}
+              content={overviewContent}
+              error={overviewError}
+              groundingScore={overviewGroundingScore}
+              isLoading={overviewIsLoading}
+              isStreaming={overviewIsStreaming}
+              steps={overviewSteps}
+            />
+          )}
           {isSearching && !hasResults && <SearchResultsSkeleton />}
           {isEmpty && <SearchEmptyState query={query} />}
           {hasResults && (

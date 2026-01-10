@@ -361,6 +361,11 @@ export function useSearch(options?: { debounceMs?: number }) {
   const total = firstPage?.total ?? 0;
   const queryTime = firstPage?.queryTime ?? 0;
 
+  const connectorFacets = useMemo(
+    () => firstPage?.connectorFacets ?? [],
+    [firstPage?.connectorFacets]
+  );
+
   const activeFilterCount = useMemo(
     () =>
       (params.apps?.length ?? 0) +
@@ -449,6 +454,7 @@ export function useSearch(options?: { debounceMs?: number }) {
     rrfConfig,
     rrfConfigRaw,
     setRrfConfig,
+    connectorFacets,
   };
 }
 
