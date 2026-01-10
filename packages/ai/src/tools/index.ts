@@ -95,6 +95,9 @@ export type {
   SpreadsheetSchema,
   SyncHistoryEntry,
   ToolServices,
+  UnifiedSearchItem,
+  UnifiedSearchParams,
+  UnifiedSearchResponse,
   VirtualFileInfo,
 } from "./services";
 export { createUnimplementedServices } from "./services";

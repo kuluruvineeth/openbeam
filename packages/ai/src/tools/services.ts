@@ -208,11 +208,42 @@ export interface SpreadsheetQueryResult {
   latencyMs: number;
 }
 
+export interface UnifiedSearchParams {
+  query: string;
+  teamId: string;
+  limit?: number;
+  accessControlIds?: string[];
+  connectorTypes?: string[];
+  includeDocuments?: boolean;
+  includeMedia?: boolean;
+}
+
+export interface UnifiedSearchItem {
+  id: string;
+  type: "document" | "media";
+  title: string;
+  content?: string;
+  url?: string;
+  connectorType?: string;
+  relevanceScore: number;
+  authorName?: string;
+  createdAt?: number;
+  updatedAt?: number;
+}
+
+export interface UnifiedSearchResponse {
+  items: UnifiedSearchItem[];
+  total: number;
+  queryTime: number;
+  embeddingTime?: number;
+}
+
 export interface ToolServices {
   search: {
     hybrid: (params: SearchParams) => Promise<SearchResponse>;
     semantic: (params: SearchParams) => Promise<SearchResponse>;
     keyword: (params: SearchParams) => Promise<SearchResponse>;
+    unified: (params: UnifiedSearchParams) => Promise<UnifiedSearchResponse>;
   };
 
   rag: {
@@ -287,6 +318,7 @@ export function createUnimplementedServices(): ToolServices {
       hybrid: notImplemented("search.hybrid"),
       semantic: notImplemented("search.semantic"),
       keyword: notImplemented("search.keyword"),
+      unified: notImplemented("search.unified"),
     },
     rag: {
       answer: notImplemented("rag.answer"),
