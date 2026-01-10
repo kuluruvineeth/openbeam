@@ -109,6 +109,7 @@
         "@openplane/api": "workspace:*",
         "@openplane/auth": "workspace:*",
         "@openplane/integrations": "workspace:*",
+        "@openplane/types": "workspace:*",
         "@prisma/client": "catalog:",
         "@radix-ui/react-accordion": "^1.2.12",
         "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -221,6 +222,7 @@
         "@ai-sdk/azure": "^3.0.2",
         "@ai-sdk/google": "^3.0.2",
         "@ai-sdk/openai": "^3.0.2",
+        "@openplane/types": "workspace:*",
         "ai": "^6.0.6",
         "fuse.js": "^7.1.0",
         "prom-client": "^15.1.3",
@@ -286,6 +288,7 @@
         "@openplane/redis": "workspace:*",
         "@openplane/services": "workspace:*",
         "@openplane/storage": "workspace:*",
+        "@openplane/types": "workspace:*",
         "@sindresorhus/slugify": "^3.0.0",
         "@trpc/client": "catalog:",
         "@trpc/server": "catalog:",
@@ -345,6 +348,7 @@
       "name": "@openplane/integrations",
       "version": "0.0.1",
       "dependencies": {
+        "@openplane/types": "workspace:*",
         "zod": "^4.1.12",
       },
       "devDependencies": {
@@ -401,6 +405,7 @@
         "@openplane/media": "workspace:*",
         "@openplane/redis": "workspace:*",
         "@openplane/storage": "workspace:*",
+        "@openplane/types": "workspace:*",
         "@openplane/vespa": "workspace:*",
         "@slack/web-api": "^7.8.0",
         "ai": "^6.0.26",
@@ -433,11 +438,25 @@
         "typescript": "catalog:",
       },
     },
+    "packages/types": {
+      "name": "@openplane/types",
+      "version": "0.1.0",
+      "devDependencies": {
+        "@openplane/config": "workspace:*",
+        "tsdown": "catalog:",
+        "typescript": "catalog:",
+        "zod": "catalog:",
+      },
+      "peerDependencies": {
+        "zod": "^4.0.0",
+      },
+    },
     "packages/vespa": {
       "name": "@openplane/vespa",
       "version": "0.0.1",
       "dependencies": {
         "@openplane/config": "workspace:*",
+        "@openplane/types": "workspace:*",
         "lru-cache": "^11.2.4",
         "undici": "^7.2.0",
       },
@@ -883,6 +902,8 @@
     "@openplane/services": ["@openplane/services@workspace:packages/services"],
 
     "@openplane/storage": ["@openplane/storage@workspace:packages/storage"],
+
+    "@openplane/types": ["@openplane/types@workspace:packages/types"],
 
     "@openplane/vespa": ["@openplane/vespa@workspace:packages/vespa"],
 
@@ -2869,6 +2890,8 @@
     "@openplane/services/zod": ["zod@4.2.1", "", {}, "sha512-0wZ1IRqGGhMP76gLqz8EyfBXKk0J2qo2+H3fi4mcUP/KtTocoX08nmIAHl1Z2kJIZbZee8KOpBCSNPRgauucjw=="],
 
     "@openplane/storage/zod": ["zod@4.2.1", "", {}, "sha512-0wZ1IRqGGhMP76gLqz8EyfBXKk0J2qo2+H3fi4mcUP/KtTocoX08nmIAHl1Z2kJIZbZee8KOpBCSNPRgauucjw=="],
+
+    "@openplane/types/zod": ["zod@4.2.1", "", {}, "sha512-0wZ1IRqGGhMP76gLqz8EyfBXKk0J2qo2+H3fi4mcUP/KtTocoX08nmIAHl1Z2kJIZbZee8KOpBCSNPRgauucjw=="],
 
     "@posthog/ai/ai": ["ai@4.3.19", "", { "dependencies": { "@ai-sdk/provider": "1.1.3", "@ai-sdk/provider-utils": "2.2.8", "@ai-sdk/react": "1.2.12", "@ai-sdk/ui-utils": "1.2.11", "@opentelemetry/api": "1.9.0", "jsondiffpatch": "0.6.0" }, "peerDependencies": { "react": "^18 || ^19 || ^19.0.0-rc", "zod": "^3.23.8" }, "optionalPeers": ["react"] }, "sha512-dIE2bfNpqHN3r6IINp9znguYdhIOheKW2LDigAMrgt/upT3B8eBGPSCblENvaZGoq+hxaN9fSMzjWpbqloP+7Q=="],
 

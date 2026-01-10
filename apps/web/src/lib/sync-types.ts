@@ -1,3 +1,7 @@
+export type { SyncSummary } from "@openplane/types/sync";
+
+import type { SyncSummary } from "@openplane/types/sync";
+
 export type SyncJobInfo = {
   id: string;
   type: string;
@@ -20,11 +24,6 @@ export type ProcessingStatus = {
   filesIndexed: number;
   mediaProcessing: number;
   mediaIndexed: number;
-};
-
-export type SyncSummary = {
-  filesQueued?: number;
-  mediaQueued?: number;
 };
 
 export type SyncStatusType = {
@@ -76,7 +75,9 @@ export function isPaused(syncStatus: SyncStatusType | undefined): boolean {
   return syncStatus?.connector?.status === "INACTIVE";
 }
 
-export function parseSyncSummary(value: unknown): SyncSummary {
+export type PartialSyncSummary = Partial<SyncSummary>;
+
+export function parseSyncSummary(value: unknown): PartialSyncSummary {
   if (typeof value !== "object" || value === null) {
     return {};
   }

@@ -1,44 +1,14 @@
-export type OverviewCitation = {
-  index: number;
-  documentId: string;
-  title: string;
-  url?: string;
-  snippet: string;
-  connectorType?: string;
-  sourceType?: "document" | "media";
-  relevanceScore: number;
-};
+export type {
+  OverviewCitation,
+  OverviewStreamChunk,
+  OverviewStreamChunkType,
+  OverviewTiming,
+  OverviewToolCallData,
+  OverviewToolResultData,
+  OverviewUsage,
+} from "@openplane/types/overview";
 
-export type OverviewStreamChunkType =
-  | "thinking"
-  | "tool_call"
-  | "tool_result"
-  | "text"
-  | "citation"
-  | "done"
-  | "error";
-
-export type OverviewToolCallData = {
-  toolCallId: string;
-  toolName: string;
-  toolInput?: unknown;
-};
-
-export type OverviewToolResultData = {
-  toolCallId: string;
-  toolName: string;
-  toolOutput?: unknown;
-};
-
-export type OverviewStreamChunk = {
-  type: OverviewStreamChunkType;
-  content?: string;
-  citation?: OverviewCitation;
-  groundingScore?: number;
-  error?: string;
-  toolCall?: OverviewToolCallData;
-  toolResult?: OverviewToolResultData;
-};
+import type { OverviewCitation } from "@openplane/types/overview";
 
 export type OverviewStepStatus = "pending" | "active" | "completed";
 
@@ -60,21 +30,6 @@ export type OverviewState = {
   error: string | null;
   groundingScore: number | null;
   steps: OverviewStep[];
-};
-
-export type OverviewTiming = {
-  fanoutMs: number;
-  retrievalMs: number;
-  contextBuildMs: number;
-  generationMs: number;
-  totalMs: number;
-  firstTokenMs: number | null;
-};
-
-export type OverviewUsage = {
-  promptTokens: number;
-  completionTokens: number;
-  totalTokens: number;
 };
 
 export const TOOL_DISPLAY_NAMES: Record<string, string> = {

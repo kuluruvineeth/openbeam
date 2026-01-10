@@ -2,31 +2,10 @@ import type { Tool, ToolExecutionOptions } from "ai";
 import type { z } from "zod";
 import type { ToolServices } from "./services";
 
-export type ToolCategory =
-  | "search"
-  | "rag"
-  | "documents"
-  | "connectors"
-  | "data"
-  | "media"
-  | "browser"
-  | "action"
-  | "analysis"
-  | "integration"
-  | "system"
-  | "skills";
+export type { ErrorCode, ToolCategory } from "@openplane/types/common";
+export { ErrorCodeSchema, ToolCategorySchema } from "@openplane/types/common";
 
-export type ErrorCode =
-  | "RATE_LIMITED"
-  | "UNAUTHORIZED"
-  | "NOT_FOUND"
-  | "TIMEOUT"
-  | "INVALID_INPUT"
-  | "INVALID_STATE"
-  | "PROVIDER_ERROR"
-  | "QUOTA_EXCEEDED"
-  | "NETWORK_ERROR"
-  | "INTERNAL_ERROR";
+import type { ErrorCode, ToolCategory } from "@openplane/types/common";
 
 export interface ToolError {
   code: ErrorCode;
@@ -49,6 +28,13 @@ export const ERROR_CODES: Record<
     description: "Authentication failed or insufficient permissions.",
     retryable: false,
     defaultSuggestion: "Check your API credentials or request access.",
+  },
+  FORBIDDEN: {
+    description:
+      "Access forbidden. Insufficient permissions for this operation.",
+    retryable: false,
+    defaultSuggestion:
+      "Request elevated permissions or contact an administrator.",
   },
   NOT_FOUND: {
     description: "The requested resource was not found.",

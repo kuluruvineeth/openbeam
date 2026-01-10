@@ -1,82 +1,16 @@
 import type { GenericDocument } from "@openplane/vespa";
 
-export interface OverviewRequest {
-  query: string;
-  teamId: string;
-  userId?: string;
-  accessControlIds?: string[];
-  maxSources?: number;
-  enableFanout?: boolean;
-  modelId?: string;
-  temperature?: number;
-}
-
-export interface OverviewCitation {
-  index: number;
-  documentId: string;
-  title: string;
-  url?: string;
-  snippet: string;
-  connectorType?: string;
-  sourceType?: "document" | "media";
-  relevanceScore: number;
-}
-
-export interface OverviewTiming {
-  fanoutMs: number;
-  retrievalMs: number;
-  contextBuildMs: number;
-  generationMs: number;
-  totalMs: number;
-  firstTokenMs: number | null;
-}
-
-export interface OverviewResponse {
-  content: string;
-  citations: OverviewCitation[];
-  groundingScore: number | null;
-  timing: OverviewTiming;
-  usage: OverviewUsage;
-}
-
-export interface OverviewUsage {
-  promptTokens: number;
-  completionTokens: number;
-  totalTokens: number;
-}
-
-export type OverviewStreamChunkType =
-  | "thinking"
-  | "tool_call"
-  | "tool_result"
-  | "text"
-  | "citation"
-  | "done"
-  | "error";
-
-export interface OverviewToolCallData {
-  toolCallId: string;
-  toolName: string;
-  toolInput?: unknown;
-}
-
-export interface OverviewToolResultData {
-  toolCallId: string;
-  toolName: string;
-  toolOutput?: unknown;
-}
-
-export interface OverviewStreamChunk {
-  type: OverviewStreamChunkType;
-  content?: string;
-  citation?: OverviewCitation;
-  usage?: OverviewUsage;
-  timing?: OverviewTiming;
-  groundingScore?: number;
-  error?: string;
-  toolCall?: OverviewToolCallData;
-  toolResult?: OverviewToolResultData;
-}
+export type {
+  OverviewCitation,
+  OverviewRequest,
+  OverviewResponse,
+  OverviewStreamChunk,
+  OverviewStreamChunkType,
+  OverviewTiming,
+  OverviewToolCallData,
+  OverviewToolResultData,
+  OverviewUsage,
+} from "@openplane/types/overview";
 
 export interface FanoutQuery {
   query: string;

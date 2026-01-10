@@ -1,5 +1,13 @@
 import type React from "react";
 
+export {
+  AppTypeSchema,
+  AuthTypeSchema,
+  ConnectorTypeSchema,
+  DocumentTypeCategorySchema,
+  SyncModeSchema,
+} from "@openplane/types/connectors";
+
 export type LogoProps = {
   size?: number;
   className?: string;

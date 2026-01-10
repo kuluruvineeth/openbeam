@@ -1,6 +1,10 @@
-export type SyncHistoryStatus = "RUNNING" | "COMPLETED" | "FAILED";
+export type {
+  SyncHistoryStatus,
+  SyncSummary,
+  SyncType,
+} from "@openplane/types/sync";
 
-export type SyncType = "FULL" | "INCREMENTAL" | "PERMISSIONS";
+import type { SyncType } from "@openplane/types/sync";
 
 export interface ServiceCreateSyncHistoryInput {
   connectorId: string;
@@ -32,12 +36,4 @@ export interface HandleSyncErrorInput {
 export interface GetSyncCursorResult {
   cursor: string | undefined;
   lastSyncedAt: Date | null;
-}
-
-export interface SyncSummary {
-  totalDocuments: number;
-  batches: number;
-  documentsFetched: number;
-  filesQueued?: number;
-  mediaQueued?: number;
 }

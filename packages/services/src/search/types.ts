@@ -3,64 +3,38 @@ import type {
   MediaDocument,
   MediaType,
 } from "@openplane/vespa";
-import { z } from "zod";
 
-export type SearchRanking =
-  | "bm25"
-  | "semantic"
-  | "hybrid"
-  | "recency"
-  | "engagement";
+export type {
+  AuthorFacet,
+  AuthorFacetsParams,
+  AuthorSearchParams,
+  ConnectorFacet,
+  ConnectorFacetsParams,
+  DocumentSearchResult as BaseDocumentSearchResult,
+  HybridSearchRequest,
+  MediaSearchParams as BaseMediaSearchParams,
+  MediaSearchRanking,
+  MediaSearchResult as BaseMediaSearchResult,
+  RecentDocumentsParams,
+  RetrievalResult,
+  RRFConfig,
+  SearchFilters,
+  SearchMetadata,
+  SearchMode,
+  SearchParams,
+  SearchRanking,
+  SearchTiming,
+  SimilarDocumentsParams,
+  ThreadSearchParams,
+  UnifiedSearchParams as BaseUnifiedSearchParams,
+} from "@openplane/types/search";
 
-export const SearchModeSchema = z.enum([
-  "bm25",
-  "semantic",
-  "hybrid",
-  "hybrid_v2",
-  "hybrid_v2_rerank",
-  "enterprise_v2",
-  "enterprise_v2_ltr",
-  "global_sorted",
-  "global_sorted_v2",
-]);
-export type SearchMode = z.infer<typeof SearchModeSchema>;
+export { RRFConfigSchema, SearchModeSchema } from "@openplane/types/search";
 
-export const RRFConfigSchema = z.object({
-  k: z.number().min(1).max(100).default(60),
-  weights: z
-    .object({
-      bm25: z.number().min(0).max(1).default(0.4),
-      dense: z.number().min(0).max(1).default(0.4),
-      sparse: z.number().min(0).max(1).default(0.2),
-    })
-    .default({ bm25: 0.4, dense: 0.4, sparse: 0.2 }),
-});
-export type RRFConfig = z.infer<typeof RRFConfigSchema>;
-
-export interface HybridSearchRequest {
-  query: string;
-  teamId: string;
-  userId?: string;
-  limit?: number;
-  offset?: number;
-  mode?: SearchMode;
-  rrfConfig?: RRFConfig;
-  filters?: SearchFilters;
-  accessControlIds?: string[];
-  experimentId?: string;
-}
-
-export interface SearchFilters {
-  connectorTypes?: string[];
-  documentTypes?: string[];
-  sourceIds?: string[];
-  authorIds?: string[];
-  statuses?: string[];
-  priorities?: string[];
-  labels?: string[];
-  fromDate?: number;
-  toDate?: number;
-}
+import type {
+  MediaSearchRanking,
+  SearchRanking,
+} from "@openplane/types/search";
 
 export interface RankedDocument {
   document: GenericDocument;
@@ -79,63 +53,8 @@ export interface RankedDocument {
 export interface HybridSearchResponse {
   documents: RankedDocument[];
   total: number;
-  timing: SearchTiming;
-  metadata: SearchMetadata;
-}
-
-export interface SearchTiming {
-  embeddingMs: number;
-  retrievalMs: number;
-  fusionMs: number;
-  rerankMs?: number;
-  ltrMs?: number;
-  personalizationMs?: number;
-  totalMs: number;
-}
-
-export interface SearchMetadata {
-  mode: SearchMode;
-  experimentId?: string;
-  modelVersion: string;
-  rrfK?: number;
-  rerankModel?: string;
-  ltrModelVersion?: string;
-  personalized?: boolean;
-}
-
-export interface RetrievalResult {
-  docId: string;
-  score: number;
-  rank: number;
-}
-
-export type MediaSearchRanking =
-  | "bm25"
-  | "semantic"
-  | "hybrid"
-  | "enterprise"
-  | "engagement";
-
-export interface SearchParams {
-  query: string;
-  teamId: string;
-  connectorTypes?: string[];
-  connectorId?: string;
-  documentTypes?: string[];
-  authorId?: string;
-  authorIds?: string[];
-  sourceId?: string;
-  sourceIds?: string[];
-  sourceTypes?: string[];
-  statuses?: string[];
-  priorities?: string[];
-  labels?: string[];
-  fromDate?: number;
-  toDate?: number;
-  limit?: number;
-  offset?: number;
-  ranking?: SearchRanking;
-  accessControlIds?: string[];
+  timing: import("@openplane/types/search").SearchTiming;
+  metadata: import("@openplane/types/search").SearchMetadata;
 }
 
 export interface DocumentSearchResult {
@@ -146,33 +65,6 @@ export interface DocumentSearchResult {
   hasMore: boolean;
   queryTime: number;
   embeddingTime?: number;
-}
-
-export interface RecentDocumentsParams {
-  teamId: string;
-  hours?: number;
-  limit?: number;
-  accessControlIds?: string[];
-}
-
-export interface ThreadSearchParams {
-  threadId: string;
-  teamId: string;
-  accessControlIds?: string[];
-}
-
-export interface SimilarDocumentsParams {
-  documentId: string;
-  teamId: string;
-  limit?: number;
-  accessControlIds?: string[];
-}
-
-export interface AuthorSearchParams {
-  authorId: string;
-  teamId: string;
-  limit?: number;
-  accessControlIds?: string[];
 }
 
 export interface MediaSearchParams {
@@ -235,30 +127,5 @@ export interface UnifiedSearchResult {
   total: number;
   queryTime: number;
   embeddingTime?: number;
-  connectorFacets: ConnectorFacet[];
-}
-
-export interface AuthorFacet {
-  authorId: string;
-  authorName: string | null;
-  authorEmail: string | null;
-  authorAvatarUrl: string | null;
-  documentCount: number;
-}
-
-export interface AuthorFacetsParams {
-  teamId: string;
-  accessControlIds?: string[];
-  limit?: number;
-}
-
-export interface ConnectorFacet {
-  connectorType: string;
-  documentCount: number;
-}
-
-export interface ConnectorFacetsParams {
-  query?: string;
-  teamId: string;
-  accessControlIds?: string[];
+  connectorFacets: import("@openplane/types/search").ConnectorFacet[];
 }

@@ -1,0 +1,50 @@
+{
+  "name": "@openplane/types",
+  "version": "0.1.0",
+  "description": "Shared types and Zod schemas for OpenPlane",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./src/index.ts"
+    },
+    "./common": {
+      "types": "./dist/common/index.d.ts",
+      "default": "./src/common/index.ts"
+    },
+    "./media": {
+      "types": "./dist/media/index.d.ts",
+      "default": "./src/media/index.ts"
+    },
+    "./search": {
+      "types": "./dist/search/index.d.ts",
+      "default": "./src/search/index.ts"
+    },
+    "./overview": {
+      "types": "./dist/overview/index.d.ts",
+      "default": "./src/overview/index.ts"
+    },
+    "./sync": {
+      "types": "./dist/sync/index.d.ts",
+      "default": "./src/sync/index.ts"
+    },
+    "./connectors": {
+      "types": "./dist/connectors/index.d.ts",
+      "default": "./src/connectors/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {},
+  "peerDependencies": {
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@openplane/config": "workspace:*",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "zod": "catalog:"
+  }
+}

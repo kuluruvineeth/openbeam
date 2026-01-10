@@ -29,6 +29,7 @@
     "react": "*"
   },
   "dependencies": {
+    "@openplane/types": "workspace:*",
     "zod": "^4.1.12"
   }
 }

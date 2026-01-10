@@ -1,16 +1,13 @@
-export type JsonPrimitive = string | number | boolean | null;
-export type JsonArray = JsonValue[];
-export type JsonObject = { [key: string]: JsonValue };
-export type JsonValue = JsonPrimitive | JsonArray | JsonObject;
+export type {
+  JsonArray,
+  JsonObject,
+  JsonPrimitive,
+  JsonValue,
+} from "@openplane/types/common";
 
-export type MediaType =
-  | "meeting"
-  | "presentation"
-  | "tutorial"
-  | "demo"
-  | "interview"
-  | "webinar"
-  | "other";
+export type { MediaType } from "@openplane/types/media";
+
+import type { JsonObject, MediaType } from "@openplane/types";
 
 export interface GenericDocument {
   id: string;

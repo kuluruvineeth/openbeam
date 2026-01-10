@@ -37,8 +37,8 @@ export const overviewRouter = createTRPCRouter({
         teamId: ctx.teamId,
         userId: ctx.session.user.id,
         accessControlIds,
-        maxSources: input.maxSources,
-        enableFanout: input.enableFanout,
+        maxSources: input.maxSources ?? 8,
+        enableFanout: input.enableFanout ?? true,
         modelId: input.modelId,
         temperature: input.temperature,
       };

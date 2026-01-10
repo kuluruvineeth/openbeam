@@ -1,6 +1,13 @@
 import type { InfiniteData } from "@tanstack/react-query";
 import type { DateRangeType, SearchRanking } from "@/lib/search-config";
 
+export type RRFConfig = {
+  k: number;
+  weightBm25: number;
+  weightDense: number;
+  weightSparse: number;
+};
+
 export type SearchResultDocument = {
   id: string;
   connector_id: string;
@@ -184,11 +191,4 @@ export type SearchTiming = {
   retrievalMs: number;
   fusionMs: number;
   totalMs: number;
-};
-
-export type RRFConfig = {
-  k: number;
-  weightBm25: number;
-  weightDense: number;
-  weightSparse: number;
 };
