@@ -276,6 +276,7 @@ export const Icons = {
   Pin: createIcon(PinIcon),
   Menu: createIcon(Menu01Icon),
   ChevronUp: createIcon(ArrowUpIcon),
+  SparklesIcon: createIcon(SparklesIcon),
   Alert02: createIcon(Alert02Icon),
   Circle: LucideCircle,
   MoreHorizontal: LucideMoreHorizontal,

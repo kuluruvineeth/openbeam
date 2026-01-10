@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { Header } from "@/components/header";
 import { Sidebar } from "@/components/sidebar";
 import { SidebarProvider } from "@/hooks/use-sidebar";
 import { ensureAccess } from "@/lib/auth/ensure-access";
@@ -26,12 +25,9 @@ export default async function Layout({
       <SidebarProvider>
         <div className="relative flex h-screen overflow-hidden">
           <Sidebar />
-          <div className="flex flex-1 flex-col">
-            <Header />
-            <main className="no-scrollbar flex-1 overflow-y-auto px-6">
-              {children}
-            </main>
-          </div>
+          <main className="no-scrollbar flex-1 overflow-y-auto px-6">
+            {children}
+          </main>
         </div>
       </SidebarProvider>
     </HydrateClient>

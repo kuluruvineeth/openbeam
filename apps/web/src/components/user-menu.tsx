@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { SignOut } from "@/components/sign-out";
 import { ThemeSwitch } from "@/components/theme-switch";
 import {
@@ -18,32 +19,47 @@ import { useUserQuery } from "@/hooks/use-user";
 
 type Props = {
   onlySignOut?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
-export function UserMenu({ onlySignOut }: Props) {
+export function UserMenu({ onlySignOut, onOpenChange }: Props) {
   const { data: user } = useUserQuery();
+  const [open, setOpen] = useState(false);
+
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+    onOpenChange?.(isOpen);
+  };
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal onOpenChange={handleOpenChange} open={open}>
       <DropdownMenuTrigger asChild>
-        <Avatar className="h-8 w-8 cursor-pointer rounded-full">
-          {user?.image && (
-            <AvatarImageNext
-              alt={user?.name ?? ""}
-              height={32}
-              quality={100}
-              src={user?.image}
-              width={32}
-            />
-          )}
-          <AvatarFallback>
-            <span className="text-xs">
-              {user?.name?.charAt(0)?.toUpperCase()}
-            </span>
-          </AvatarFallback>
-        </Avatar>
+        <button className="outline-none" type="button">
+          <Avatar className="h-8 w-8 cursor-pointer rounded-full transition-opacity hover:opacity-80">
+            {user?.image && (
+              <AvatarImageNext
+                alt={user?.name ?? ""}
+                height={32}
+                quality={100}
+                src={user?.image}
+                width={32}
+              />
+            )}
+            <AvatarFallback>
+              <span className="text-xs">
+                {user?.name?.charAt(0)?.toUpperCase()}
+              </span>
+            </AvatarFallback>
+          </Avatar>
+        </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[240px]" sideOffset={10}>
+      <DropdownMenuContent
+        align="start"
+        alignOffset={-4}
+        className="z-[200] w-[240px]"
+        side="right"
+        sideOffset={16}
+      >
         {!onlySignOut && (
           <>
             <DropdownMenuLabel>

@@ -1,26 +1,56 @@
 "use client";
 
 import Link from "next/link";
-import { useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useOnClickOutside } from "usehooks-ts";
 import { Icons } from "@/components/icons";
 import { MainMenu } from "@/components/main-menu";
 import { TeamDropdown } from "@/components/team-dropdown";
+import { UserMenu } from "@/components/user-menu";
 import { useSidebar } from "@/hooks/use-sidebar";
 import { cn } from "@/lib/utils";
 
 const SIDEBAR_WIDTH = 240;
 const EDGE_TRIGGER_WIDTH = 8;
 
+function isInsideRadixPortal(element: Element | null): boolean {
+  if (!element) {
+    return false;
+  }
+  return Boolean(
+    element.closest("[data-radix-popper-content-wrapper]") ||
+      element.closest("[data-radix-menu-content]") ||
+      element.closest("[role='menu']")
+  );
+}
+
 export function Sidebar() {
   const { isOpen, isPinned, open, close, togglePin } = useSidebar();
   const sidebarRef = useRef<HTMLElement>(null);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
-  useOnClickOutside(sidebarRef as React.RefObject<HTMLElement>, () => {
-    if (isOpen && !isPinned) {
-      close();
+  useOnClickOutside(sidebarRef as React.RefObject<HTMLElement>, (event) => {
+    if (isOpen && !isPinned && !isUserMenuOpen) {
+      const target = event.target as HTMLElement;
+      if (!isInsideRadixPortal(target)) {
+        close();
+      }
     }
   });
+
+  const handleMouseLeave = useCallback(
+    (event: React.MouseEvent) => {
+      if (isPinned || isUserMenuOpen) {
+        return;
+      }
+      const relatedTarget = event.relatedTarget as Element | null;
+      if (isInsideRadixPortal(relatedTarget)) {
+        return;
+      }
+      close();
+    },
+    [isPinned, isUserMenuOpen, close]
+  );
 
   const showSidebar = isOpen || isPinned;
 
@@ -51,7 +81,7 @@ export function Sidebar() {
           "transition-all duration-200 ease-in-out",
           showSidebar ? "translate-x-0" : "-translate-x-full"
         )}
-        onMouseLeave={isPinned ? undefined : close}
+        onMouseLeave={handleMouseLeave}
         ref={sidebarRef}
         style={{ width: SIDEBAR_WIDTH }}
       >
@@ -89,6 +119,10 @@ export function Sidebar() {
 
         <div className="flex w-full flex-1 flex-col">
           <MainMenu isExpanded />
+        </div>
+
+        <div className="absolute bottom-14 left-[19px]">
+          <UserMenu onOpenChange={setIsUserMenuOpen} />
         </div>
 
         <TeamDropdown isExpanded />

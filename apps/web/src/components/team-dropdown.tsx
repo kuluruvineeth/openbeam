@@ -84,7 +84,7 @@ export function TeamDropdown({ isExpanded = false }: Props) {
   return (
     <div className="relative h-[32px]" ref={ref}>
       {/* Avatar - fixed position that absolutely never changes */}
-      <div className="fixed bottom-4 left-[19px] h-[32px] w-[32px]">
+      <div className="fixed bottom-4 left-[19px] z-10 h-[32px] w-[32px]">
         <div className="relative h-[32px] w-[32px]">
           <AnimatePresence>
             {isActive && (
@@ -95,7 +95,7 @@ export function TeamDropdown({ isExpanded = false }: Props) {
                 }}
                 className="absolute left-0 h-[32px] w-[32px] overflow-hidden"
                 initial={{ y: 0, opacity: 0 }}
-                style={{ zIndex: 1 }}
+                style={{ zIndex: sortedTeams.length + 1 }}
                 transition={{
                   type: "spring",
                   stiffness: 400,
@@ -133,7 +133,7 @@ export function TeamDropdown({ isExpanded = false }: Props) {
                   y: index * 5,
                 }}
                 key={team.id}
-                style={{ zIndex: -index }}
+                style={{ zIndex: sortedTeams.length - index }}
                 transition={{
                   type: "spring",
                   stiffness: 400,
