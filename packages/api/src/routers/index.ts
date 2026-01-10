@@ -10,6 +10,7 @@ import { jobsRouter } from "./jobs";
 import { knowledgeRouter } from "./knowledge";
 import { mediaRouter } from "./media";
 import { messagesRouter } from "./messages";
+import { overviewRouter } from "./overview";
 import { permissionsRouter } from "./permissions";
 import { personalizationRouter } from "./personalization";
 import { ragRouter } from "./rag";
@@ -28,6 +29,7 @@ export const appRouter = createTRPCRouter({
   messages: messagesRouter,
   analytics: analyticsRouter,
   knowledge: knowledgeRouter,
+  overview: overviewRouter,
   permissions: permissionsRouter,
   personalization: personalizationRouter,
   rag: ragRouter,
