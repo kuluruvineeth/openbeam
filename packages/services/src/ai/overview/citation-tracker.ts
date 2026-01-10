@@ -5,13 +5,15 @@ const SENTENCE_SPLIT_PATTERN = /[.!?]+/;
 
 export function extractCitationsFromText(text: string): CitationMatch[] {
   const matches: CitationMatch[] = [];
-  let match: RegExpExecArray | null;
+  CITATION_PATTERN.lastIndex = 0;
 
-  match = CITATION_PATTERN.exec(text);
-  while (match !== null) {
+  for (
+    let match: RegExpExecArray | null = CITATION_PATTERN.exec(text);
+    match !== null;
+    match = CITATION_PATTERN.exec(text)
+  ) {
     const indexStr = match[1];
     if (!indexStr) {
-      match = CITATION_PATTERN.exec(text);
       continue;
     }
     const index = Number.parseInt(indexStr, 10);
@@ -21,7 +23,6 @@ export function extractCitationsFromText(text: string): CitationMatch[] {
       startPosition: match.index,
       endPosition: match.index + match[0].length,
     });
-    match = CITATION_PATTERN.exec(text);
   }
 
   CITATION_PATTERN.lastIndex = 0;
