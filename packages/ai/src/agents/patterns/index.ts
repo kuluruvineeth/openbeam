@@ -67,13 +67,3 @@ export { createLlmAgent, LlmAgent } from "./llm-agent";
 export { createLoopAgent, LoopAgent } from "./loop-agent";
 export { createParallelAgent, ParallelAgent } from "./parallel-agent";
 export { createSequentialAgent, SequentialAgent } from "./sequential-agent";
-export type {
-  SpreadsheetAgentResult,
-  SpreadsheetQueryConfig,
-  SpreadsheetQueryInput,
-} from "./spreadsheet-query-agent";
-export {
-  createSpreadsheetQueryAgent,
-  isSpreadsheetQuery,
-  SpreadsheetQueryAgent,
-} from "./spreadsheet-query-agent";

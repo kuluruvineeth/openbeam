@@ -50,11 +50,6 @@ export {
   resolveInputRefs,
   setStateValue,
 } from "./config";
-export type {
-  SpreadsheetAgentResult,
-  SpreadsheetQueryConfig,
-  SpreadsheetQueryInput,
-} from "./patterns";
 export {
   CoordinatorAgent,
   createAgentFromConfig,
@@ -63,13 +58,10 @@ export {
   createLoopAgent,
   createParallelAgent,
   createSequentialAgent,
-  createSpreadsheetQueryAgent,
-  isSpreadsheetQuery,
   LlmAgent,
   LoopAgent,
   ParallelAgent,
   SequentialAgent,
-  SpreadsheetQueryAgent,
 } from "./patterns";
 export type { AgentRunner, AgentRunnerOptions } from "./runner";
 export {
@@ -101,6 +93,20 @@ export type {
   ToolCallInfo,
   ToolResult,
 } from "./types";
+export type {
+  OverviewAgentConfig,
+  SpreadsheetAgentResult,
+  SpreadsheetQueryConfig,
+  SpreadsheetQueryInput,
+} from "./usecases";
+export {
+  createOverviewAgent,
+  createSpreadsheetQueryAgent,
+  DEFAULT_OVERVIEW_CONFIG,
+  getOverviewAgentConfig,
+  isSpreadsheetQuery,
+  SpreadsheetQueryAgent,
+} from "./usecases";
 export type {
   AgentMetrics,
   AnalysisAgentOptions,
