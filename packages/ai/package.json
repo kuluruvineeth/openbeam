@@ -38,6 +38,7 @@
     "@ai-sdk/azure": "^3.0.2",
     "@ai-sdk/google": "^3.0.2",
     "@ai-sdk/openai": "^3.0.2",
+    "@openplane/db": "workspace:*",
     "@openplane/redis": "workspace:*",
     "@openplane/types": "workspace:*",
     "ai": "^6.0.6",

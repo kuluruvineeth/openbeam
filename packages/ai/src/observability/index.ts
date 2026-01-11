@@ -7,6 +7,17 @@ export {
   registerModelPricing,
 } from "./attribution";
 export {
+  type CompositionEventInput,
+  type CompositionLogResult,
+  type CompositionTracker,
+  compareSignatures,
+  createCompositionTracker,
+  generateSignature,
+  getEmergingPatterns,
+  logComposition,
+  normalizeToolSequence,
+} from "./composition";
+export {
   AGENT_METRICS,
   type AgentPerformanceParams,
   aiMetrics,

@@ -212,6 +212,20 @@ const ragAvgRelevanceScore = new Gauge({
   registers: [aiMetricsRegistry],
 });
 
+const compositionsLogged = new Counter({
+  name: "openplane_ai_compositions_logged_total",
+  help: "Total composition events logged",
+  labelNames: ["success", "tool_count"] as const,
+  registers: [aiMetricsRegistry],
+});
+
+const emergencePatternsDetected = new Counter({
+  name: "openplane_ai_emergence_patterns_detected_total",
+  help: "Total emergence patterns detected",
+  labelNames: ["status"] as const,
+  registers: [aiMetricsRegistry],
+});
+
 export const aiMetrics = {
   requestsTotal,
   tokensTotal,
@@ -238,6 +252,8 @@ export const aiMetrics = {
   ragCitationCoverage,
   ragRefusalRate,
   ragAvgRelevanceScore,
+  compositionsLogged,
+  emergencePatternsDetected,
 };
 
 export function recordAIRequest(params: MetricsRecordParams): void {
