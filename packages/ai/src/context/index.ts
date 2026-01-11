@@ -18,6 +18,26 @@ export {
   observationsToEvents,
   shouldCompact,
 } from "./compaction";
+export type {
+  ConnectedResource,
+  ContextMdBuilder,
+  ContextMdInput,
+  ContextMdOptions,
+  RecentActivity,
+  SessionState,
+  TeamGuidelines,
+  UserPreferences,
+} from "./context-md";
+export {
+  buildContextMd,
+  ConnectedResourceSchema,
+  createContextMdBuilder,
+  parseContextMd,
+  RecentActivitySchema,
+  SessionStateSchema,
+  TeamGuidelinesSchema,
+  UserPreferencesSchema,
+} from "./context-md";
 export {
   createTokenEstimator,
   estimateMessageTokens,

@@ -1,3 +1,4 @@
+import type { MemoryAccess } from "../memory/access";
 import type { AgentStreamChunk } from "./base";
 import type {
   AgentConfig,
@@ -16,6 +17,7 @@ export interface AgentRunnerOptions {
   initialState?: AgentState;
   abortSignal?: AbortSignal;
   metadata?: Record<string, unknown>;
+  memory?: MemoryAccess;
 }
 
 export interface AgentRunner {
@@ -41,6 +43,7 @@ export function createAgentRunner(
       abortSignal: options.abortSignal,
       state,
       metadata: options.metadata,
+      memory: options.memory,
     };
   }
 

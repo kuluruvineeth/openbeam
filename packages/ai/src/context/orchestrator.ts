@@ -32,6 +32,7 @@ export interface ContextOrchestratorOptions {
   observationMaskingEnabled?: boolean;
   autoCompactionEnabled?: boolean;
   recitationInterval?: number;
+  includeContextMd?: boolean;
 }
 
 export interface OrchestratorState {

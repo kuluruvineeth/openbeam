@@ -1,3 +1,20 @@
+export type {
+  Correction,
+  HistoryItem,
+  LearnedFact,
+  MemoryAccess,
+  MemorySignal,
+  MemorySignalImportance,
+  MemorySignalType,
+  ProceduralSuggestion,
+  SourceFrequency,
+  UserPreferences,
+} from "./access";
+export {
+  createEmptyMemoryAccess,
+  createMemoryAccess,
+  MemoryAccessImpl,
+} from "./access";
 export type { MemorySystemOptions } from "./consolidator";
 export { createMemoryConsolidator, MemoryConsolidator } from "./consolidator";
 export type {

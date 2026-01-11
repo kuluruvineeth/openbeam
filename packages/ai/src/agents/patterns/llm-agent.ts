@@ -6,7 +6,12 @@ import {
   type ToolSet,
 } from "ai";
 import { getConfig } from "../../config";
+import { buildContextMd, type ContextMdInput } from "../../context/context-md";
 import { createContextOrchestrator } from "../../context/orchestrator";
+import {
+  type CompositionTracker,
+  createCompositionTracker,
+} from "../../observability/composition";
 import { registry } from "../../providers/registry";
 import { toolRegistry } from "../../tools/registry";
 import type { ToolContext } from "../../tools/types";
@@ -42,6 +47,11 @@ export class LlmAgent extends BaseAgent {
     const trace = createTrace(this.config, ctx.parentTrace);
     trace.input = input;
 
+    const compositionTracker = createCompositionTracker();
+    if (ctx.sessionId && ctx.teamId && ctx.userId) {
+      compositionTracker.startTracking(ctx.sessionId, ctx.teamId, ctx.userId);
+    }
+
     const aiConfig = getConfig();
     const providerId =
       this.config.model?.providerId ?? aiConfig.defaultProvider;
@@ -61,7 +71,7 @@ export class LlmAgent extends BaseAgent {
       this.config.state?.inputRefs
     );
     const prompt = this.buildPrompt(input, resolvedInputs);
-    const messages = this.buildMessages(prompt);
+    const messages = this.buildMessages(prompt, ctx);
 
     const maxSteps = this.config.maxSteps ?? aiConfig.agent.maxSteps;
     const toolContext = this.buildToolContext(ctx);
@@ -93,17 +103,35 @@ export class LlmAgent extends BaseAgent {
       }));
       this.recordToolCalls(trace, toolCallRecords);
 
+      for (const tc of toolCallRecords) {
+        compositionTracker.recordToolCall(tc.toolName);
+      }
+
       persistOutput(this.config, ctx.state, output);
       completeTrace(trace, output, tokens);
 
       orchestrator.addAssistantMessage(output);
 
+      await this.finalizeComposition(compositionTracker, true);
+
       return this.buildResult(output, ctx.state, trace);
     } catch (error) {
       failTrace(trace, error as Error);
+      await this.finalizeComposition(compositionTracker, false);
       throw error;
     } finally {
       toolRegistry.clearCurrentContext();
+    }
+  }
+
+  private async finalizeComposition(
+    tracker: CompositionTracker,
+    success: boolean
+  ): Promise<void> {
+    try {
+      await tracker.finalize(success, this.config.name);
+    } catch {
+      // Composition logging is best-effort, don't fail the agent
     }
   }
 
@@ -114,6 +142,11 @@ export class LlmAgent extends BaseAgent {
   ): AsyncGenerator<AgentStreamChunk> {
     const trace = createTrace(this.config, ctx.parentTrace);
     trace.input = input;
+
+    const compositionTracker = createCompositionTracker();
+    if (ctx.sessionId && ctx.teamId && ctx.userId) {
+      compositionTracker.startTracking(ctx.sessionId, ctx.teamId, ctx.userId);
+    }
 
     const aiConfig = getConfig();
     const providerId =
@@ -126,7 +159,7 @@ export class LlmAgent extends BaseAgent {
       this.config.state?.inputRefs
     );
     const prompt = this.buildPrompt(input, resolvedInputs);
-    const messages = this.buildMessages(prompt);
+    const messages = this.buildMessages(prompt, ctx);
 
     const maxSteps = this.config.maxSteps ?? aiConfig.agent.maxSteps;
     const toolContext = this.buildToolContext(ctx);
@@ -134,6 +167,7 @@ export class LlmAgent extends BaseAgent {
 
     toolRegistry.setCurrentContext(toolContext);
 
+    let streamSuccess = true;
     try {
       const result = streamText({
         model,
@@ -165,6 +199,7 @@ export class LlmAgent extends BaseAgent {
         if (chunk.type === "tool-call") {
           const toolCallInput = "input" in chunk ? chunk.input : undefined;
           toolCalls.push({ toolName: chunk.toolName, args: toolCallInput });
+          compositionTracker.recordToolCall(chunk.toolName);
           yield {
             type: "tool-call",
             agentName: this.config.name,
@@ -201,8 +236,12 @@ export class LlmAgent extends BaseAgent {
         agentName: this.config.name,
         result: this.buildResult(fullText, ctx.state, trace),
       };
+    } catch (error) {
+      streamSuccess = false;
+      throw error;
     } finally {
       toolRegistry.clearCurrentContext();
+      await this.finalizeComposition(compositionTracker, streamSuccess);
     }
   }
 
@@ -225,16 +264,133 @@ export class LlmAgent extends BaseAgent {
     return parts.join("");
   }
 
-  private buildMessages(prompt: string): ModelMessage[] {
+  private buildMessages(
+    prompt: string,
+    ctx: AgentExecutionContext
+  ): ModelMessage[] {
     const messages: ModelMessage[] = [];
 
-    if (this.config.systemPrompt) {
-      messages.push({ role: "system", content: this.config.systemPrompt });
+    const systemContent = this.buildSystemPrompt(ctx);
+    if (systemContent) {
+      messages.push({ role: "system", content: systemContent });
     }
 
     messages.push({ role: "user", content: prompt });
 
     return messages;
+  }
+
+  private buildSystemPrompt(ctx: AgentExecutionContext): string | undefined {
+    const basePrompt = this.config.systemPrompt ?? "";
+
+    if (!(ctx.memory || this.config.contextConfig?.includeContextMd)) {
+      return basePrompt || undefined;
+    }
+
+    const contextMd = this.buildContextMdFromExecution(ctx);
+    if (!contextMd) {
+      return basePrompt || undefined;
+    }
+
+    if (!basePrompt) {
+      return contextMd;
+    }
+
+    return `${basePrompt}\n\n${contextMd}`;
+  }
+
+  private buildContextMdFromExecution(
+    ctx: AgentExecutionContext
+  ): string | null {
+    if (!(ctx.teamId && ctx.userId)) {
+      return null;
+    }
+
+    const memory = ctx.memory;
+    const preferences = memory?.preferences ?? {};
+
+    const input: ContextMdInput = {
+      identity: {
+        teamId: ctx.teamId,
+        userId: ctx.userId,
+        teamName: (ctx.metadata?.teamName as string | undefined) ?? "Your Team",
+        agentRole: this.config.description,
+      },
+      preferences: {
+        responseStyle:
+          (preferences.responseStyle as
+            | "concise"
+            | "detailed"
+            | "technical"
+            | "casual") ?? "concise",
+        prefersBulletPoints: true,
+        timezone: preferences.timezone as string | undefined,
+        role: preferences.role as string | undefined,
+        primaryProject: preferences.primaryProject as string | undefined,
+        language: (preferences.language as string) ?? "en",
+      },
+      resources: [],
+      recentActivity: this.buildRecentActivity(ctx),
+      guidelines: {
+        citationRequired: true,
+        flagStaleContent: true,
+        staleThresholdDays: 30,
+        escalateSecurityQuestions: true,
+        customInstructions: [],
+      },
+      sessionState: {
+        activeConversationTopic: (ctx.metadata?.topic as string) ?? undefined,
+        mentionedEntities: [],
+        pendingTasks: [],
+        turnCount: 0,
+      },
+    };
+
+    if (memory) {
+      const facts = memory.getLearnedFacts("");
+      const corrections = memory.getCorrections("");
+      const history = memory.getRelevantHistory("");
+
+      input.memoryContext = {
+        semantic: facts.map((f) => `- ${f.fact}`).join("\n"),
+        procedural: corrections
+          .map((c) => `- When asked "${c.original}", answer: ${c.corrected}`)
+          .join("\n"),
+        episodic: history
+          .slice(0, 5)
+          .map((h) => {
+            if (h.type === "search" && h.query) {
+              return `- Searched: "${h.query}"`;
+            }
+            if (h.type === "view" && h.documentTitle) {
+              return `- Viewed: "${h.documentTitle}"`;
+            }
+            return null;
+          })
+          .filter(Boolean)
+          .join("\n"),
+      };
+    }
+
+    return buildContextMd(input, { maxTokenBudget: 2000 });
+  }
+
+  private buildRecentActivity(
+    ctx: AgentExecutionContext
+  ): ContextMdInput["recentActivity"] {
+    if (!ctx.memory) {
+      return [];
+    }
+
+    const history = ctx.memory.getRelevantHistory("", { limit: 5 });
+
+    return history.map((h) => ({
+      type: h.type as "search" | "view" | "edit" | "sync" | "question",
+      description: h.query ?? h.documentTitle ?? "interaction",
+      timestamp: h.timestamp.getTime(),
+      documentId: h.documentId,
+      documentTitle: h.documentTitle,
+    }));
   }
 
   private buildToolContext(ctx: AgentExecutionContext): ToolContext {
@@ -246,6 +402,7 @@ export class LlmAgent extends BaseAgent {
       abortSignal: ctx.abortSignal,
       metadata: ctx.metadata,
       services: toolRegistry.getServices(),
+      memory: ctx.memory,
     };
   }
 

@@ -50,6 +50,24 @@ export {
   resolveInputRefs,
   setStateValue,
 } from "./config";
+export type {
+  AgentContextData,
+  AgentMemoryConfig,
+  AgentMemoryManager,
+  LoadedAgentMemory,
+  MemoryEnrichedAgentConfig,
+  SystemPromptOptions,
+  WithMemoryOptions,
+} from "./memory";
+export {
+  buildAgentSystemPrompt,
+  createAgentMemoryManager,
+  createMemoryCallbacks,
+  extractContextMdFromState,
+  injectMemoryIntoState,
+  loadAgentMemory,
+  withAgentMemory,
+} from "./memory";
 export {
   CoordinatorAgent,
   createAgentFromConfig,

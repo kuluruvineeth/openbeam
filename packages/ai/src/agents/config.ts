@@ -1,6 +1,7 @@
 import type { FinishReason } from "ai";
 import type { ProviderId } from "../config";
 import type { ContextOrchestratorOptions } from "../context/orchestrator";
+import type { MemoryAccess } from "../memory/access";
 
 export type AgentType =
   | "llm"
@@ -139,6 +140,7 @@ export interface AgentExecutionContext {
   parentTrace?: ExecutionTrace;
   state: AgentState;
   metadata?: Record<string, unknown>;
+  memory?: MemoryAccess;
 }
 
 export function createEmptyState(): AgentState {
