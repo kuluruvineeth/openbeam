@@ -3,17 +3,20 @@ import {
   type AgentStreamChunk,
   createEmptyState,
   createOverviewAgent,
+  embedQueryWithCache,
   toolRegistry,
 } from "@openplane/ai";
 import { registerAllTools } from "@openplane/ai/tools";
+import { getSemanticCache } from "@openplane/redis";
 import { logger as baseLogger } from "../../lib/logger";
 import { createToolServices } from "../tool-binder";
-import type {
-  OverviewCitation,
-  OverviewRequest,
-  OverviewStreamChunk,
-  OverviewTiming,
-  OverviewUsage,
+import {
+  DEFAULT_OVERVIEW_CONFIG,
+  type OverviewCitation,
+  type OverviewRequest,
+  type OverviewStreamChunk,
+  type OverviewTiming,
+  type OverviewUsage,
 } from "./types";
 
 const STREAM_TIMEOUT_MS = 60_000;
@@ -71,7 +74,118 @@ function createEmptyTiming(): OverviewTiming {
     generationMs: 0,
     totalMs: 0,
     firstTokenMs: null,
+    cacheCheckMs: 0,
   };
+}
+
+function createEmptyUsage(): OverviewUsage {
+  return { promptTokens: 0, completionTokens: 0, totalTokens: 0 };
+}
+
+type SemanticCacheResult =
+  | {
+      hit: true;
+      queryEmbedding: number[];
+      entry: {
+        response: {
+          answer: string;
+          citations: OverviewCitation[];
+          groundingScore: number | null;
+        };
+      };
+      similarity: number;
+    }
+  | {
+      hit: false;
+      queryEmbedding: number[] | undefined;
+    };
+
+async function checkAgentSemanticCache(
+  request: OverviewRequest,
+  timing: OverviewTiming,
+  logger: ReturnType<typeof createRequestLogger>
+): Promise<SemanticCacheResult> {
+  const cacheCheckStart = performance.now();
+
+  try {
+    const queryEmbedding = await embedQueryWithCache(request.query);
+    const semanticCache = getSemanticCache();
+    const cached = await semanticCache.findSimilar(
+      request.teamId,
+      queryEmbedding,
+      DEFAULT_OVERVIEW_CONFIG.semanticCacheThreshold
+    );
+
+    timing.cacheCheckMs = performance.now() - cacheCheckStart;
+
+    if (cached) {
+      logger.info(
+        {
+          similarity: cached.similarity,
+          cacheCheckMs: Math.round(timing.cacheCheckMs ?? 0),
+        },
+        "Semantic cache hit"
+      );
+      return {
+        hit: true,
+        queryEmbedding,
+        entry: {
+          response: {
+            answer: cached.entry.response.answer,
+            citations: cached.entry.response.citations as OverviewCitation[],
+            groundingScore: cached.entry.response.groundingScore,
+          },
+        },
+        similarity: cached.similarity,
+      };
+    }
+
+    return { hit: false, queryEmbedding };
+  } catch (error) {
+    logger.warn({ error }, "Semantic cache check failed");
+    timing.cacheCheckMs = performance.now() - cacheCheckStart;
+    return { hit: false, queryEmbedding: undefined };
+  }
+}
+
+interface StoreAgentCacheParams {
+  request: OverviewRequest;
+  queryEmbedding: number[] | undefined;
+  content: string;
+  citations: OverviewCitation[];
+  groundingScore: number | null;
+  logger: ReturnType<typeof createRequestLogger>;
+}
+
+async function storeAgentInSemanticCache(
+  params: StoreAgentCacheParams
+): Promise<void> {
+  const {
+    request,
+    queryEmbedding,
+    content,
+    citations,
+    groundingScore,
+    logger,
+  } = params;
+
+  if (!queryEmbedding) {
+    return;
+  }
+
+  try {
+    const semanticCache = getSemanticCache();
+    await semanticCache.store(request.teamId, request.query, queryEmbedding, {
+      answer: content,
+      citations,
+      groundingScore,
+      confidence: null,
+      generatedAt: Date.now(),
+    });
+    logger.info("Stored result in semantic cache");
+  } catch (error) {
+    logger.warn({ error }, "Failed to store in semantic cache");
+  }
 }
 
 interface SynthesisData {
@@ -346,6 +460,7 @@ interface StreamStats {
   toolCallCount: number;
   textChunkCount: number;
   finalState: ChunkProcessorState;
+  collectedContent: string;
 }
 
 async function* processStream(
@@ -356,6 +471,7 @@ async function* processStream(
   let state: ChunkProcessorState = { isFirstToken: true, citations: [] };
   let toolCallCount = 0;
   let textChunkCount = 0;
+  let collectedContent = "";
 
   for await (const chunk of timeoutStream) {
     if (chunk.type === "tool-call") {
@@ -363,6 +479,7 @@ async function* processStream(
     }
     if (chunk.type === "text" && chunk.content) {
       textChunkCount += 1;
+      collectedContent += chunk.content;
     }
 
     const result = processAgentChunk(chunk, timing, startTime, state);
@@ -372,7 +489,7 @@ async function* processStream(
     }
   }
 
-  return { toolCallCount, textChunkCount, finalState: state };
+  return { toolCallCount, textChunkCount, finalState: state, collectedContent };
 }
 
 function logStreamCompletion(
@@ -423,6 +540,28 @@ export async function* streamOverviewWithAgent(
   logger.info("Starting overview generation");
   yield { type: "thinking" };
 
+  const cacheResult = await checkAgentSemanticCache(request, timing, logger);
+
+  if (cacheResult.hit) {
+    const { entry, similarity } = cacheResult;
+    for (const citation of entry.response.citations) {
+      yield { type: "citation", citation };
+    }
+    yield { type: "text", content: entry.response.answer };
+    timing.totalMs = performance.now() - startTime;
+    yield {
+      type: "done",
+      timing,
+      usage: createEmptyUsage(),
+      groundingScore: entry.response.groundingScore ?? undefined,
+      fromCache: true,
+      cacheSimilarity: similarity,
+    };
+    return;
+  }
+
+  const queryEmbedding = cacheResult.queryEmbedding;
+
   try {
     registerAllTools();
     toolRegistry.bindServices(createToolServices());
@@ -440,7 +579,17 @@ export async function* streamOverviewWithAgent(
       iteratorResult = await streamProcessor.next();
     }
 
-    logStreamCompletion(logger, startTime, timing, iteratorResult.value);
+    const stats = iteratorResult.value;
+    logStreamCompletion(logger, startTime, timing, stats);
+
+    await storeAgentInSemanticCache({
+      request,
+      queryEmbedding,
+      content: stats.collectedContent,
+      citations: stats.finalState.citations,
+      groundingScore: stats.finalState.groundingScore ?? null,
+      logger,
+    });
   } catch (error) {
     const isTimeout = error instanceof StreamTimeoutError;
     logStreamError(

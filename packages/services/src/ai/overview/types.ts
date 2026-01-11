@@ -63,6 +63,10 @@ export interface OverviewConfig {
   fanoutQueries: number;
   diversityWeight: number;
   minRelevanceScore: number;
+  enableSemanticCache: boolean;
+  semanticCacheThreshold: number;
+  enableSearchCache: boolean;
+  enableModelRouting: boolean;
 }
 
 export const DEFAULT_OVERVIEW_CONFIG: OverviewConfig = {
@@ -72,4 +76,8 @@ export const DEFAULT_OVERVIEW_CONFIG: OverviewConfig = {
   fanoutQueries: 3,
   diversityWeight: 0.3,
   minRelevanceScore: 0.3,
+  enableSemanticCache: true,
+  semanticCacheThreshold: 0.75,
+  enableSearchCache: true,
+  enableModelRouting: true,
 };

@@ -902,6 +902,37 @@ export class SearchService {
       metadata: this.parseMediaMetadata(child.fields.metadata),
     }));
   }
+
+  async getDocumentsByIds(params: {
+    ids: string[];
+    teamId: string;
+  }): Promise<(GenericDocument | MediaDocument)[]> {
+    if (params.ids.length === 0) {
+      return [];
+    }
+
+    const idConditions = params.ids
+      .map((id) => `id contains "${escapeYqlString(id)}"`)
+      .join(" or ");
+
+    const yql = `select * from openplane_document where team_id contains "${escapeYqlString(params.teamId)}" and (${idConditions})`;
+
+    try {
+      const result = await vespaClient.query({
+        yql,
+        hits: params.ids.length,
+        timeout: "5s",
+      });
+
+      return this.extractDocuments(result);
+    } catch (error) {
+      logger.error(
+        { error, ids: params.ids },
+        "Failed to fetch documents by IDs"
+      );
+      return [];
+    }
+  }
 }
 
 export const searchService = new SearchService();

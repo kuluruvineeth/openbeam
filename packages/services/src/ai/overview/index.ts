@@ -17,16 +17,48 @@ export {
   resolveCitations,
 } from "./citation-tracker";
 export {
+  analyzeQueryComplexity,
+  type QueryComplexity,
+  selectModelForComplexity,
+} from "./complexity-analyzer";
+export {
   buildContext,
   buildContextDocuments,
   selectDiverseDocuments,
 } from "./context-builder";
+export {
+  getWarmupPrefixes,
+  scheduleKVWarmup,
+  warmKVCache,
+  warmOverviewCache,
+} from "./kv-warmup";
+export {
+  getOverviewMetricsCollector,
+  OverviewMetricsCollector,
+  resetOverviewMetricsCollector,
+} from "./metrics";
 export {
   createOverviewOrchestrator,
   generateOverview,
   OverviewOrchestrator,
   streamOverview,
 } from "./orchestrator";
+export {
+  getOverviewMetrics,
+  getOverviewRegistry,
+  overviewEmbeddingCacheHitRate,
+  overviewFirstTokenLatencyMs,
+  overviewGroundingScore,
+  overviewLatencyMs,
+  overviewRequestsTotal,
+  overviewSearchCacheHitRate,
+  overviewSemanticCacheHitRate,
+  overviewSourceCount,
+  overviewTokensTotal,
+  recordOverviewMetrics,
+  resetOverviewPrometheusMetrics,
+  updateCacheHitRates,
+} from "./prometheus";
 export {
   deduplicateResults,
   generateFanoutQueries,

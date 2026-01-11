@@ -1,4 +1,5 @@
-import { streamCompletion } from "@openplane/ai";
+import { embedQueryWithCache, streamCompletion } from "@openplane/ai";
+import { getSearchCache, getSemanticCache } from "@openplane/redis";
 import type { GenericDocument, MediaDocument } from "@openplane/vespa";
 import { logger } from "../../lib/logger";
 import { searchService } from "../../search/service";
@@ -9,10 +10,15 @@ import {
   formatCitationPrompt,
 } from "./citation-tracker";
 import {
+  analyzeQueryComplexity,
+  selectModelForComplexity,
+} from "./complexity-analyzer";
+import {
   buildContext,
   buildContextDocuments,
   selectDiverseDocuments,
 } from "./context-builder";
+import { getOverviewMetricsCollector } from "./metrics";
 import {
   deduplicateResults,
   generateFanoutQueries,
@@ -32,7 +38,7 @@ import {
 } from "./types";
 
 const OVERVIEW_PROVIDER_ID = "google";
-const OVERVIEW_MODEL_ID = "gemini-3-flash-preview";
+const DEFAULT_MODEL_ID = "gemini-2.5-flash";
 
 function isGenericDocument(data: unknown): data is GenericDocument {
   return (
@@ -97,6 +103,7 @@ Format your response as a well-structured overview with citations.`;
 
 function createEmptyTiming(): OverviewTiming {
   return {
+    cacheCheckMs: 0,
     fanoutMs: 0,
     retrievalMs: 0,
     contextBuildMs: 0,
@@ -104,6 +111,22 @@ function createEmptyTiming(): OverviewTiming {
     totalMs: 0,
     firstTokenMs: null,
   };
+}
+
+function selectModel(
+  request: OverviewRequest,
+  config: OverviewConfig
+): { providerId: string; modelId: string } {
+  if (request.modelId) {
+    return { providerId: OVERVIEW_PROVIDER_ID, modelId: request.modelId };
+  }
+
+  if (!config.enableModelRouting) {
+    return { providerId: OVERVIEW_PROVIDER_ID, modelId: DEFAULT_MODEL_ID };
+  }
+
+  const complexity = analyzeQueryComplexity(request.query);
+  return selectModelForComplexity(complexity);
 }
 
 function createEmptyUsage(): OverviewUsage {
@@ -114,11 +137,100 @@ function createEmptyUsage(): OverviewUsage {
   };
 }
 
+type SearchResultItem = {
+  type: "document" | "media";
+  data: unknown;
+  relevance: number;
+};
+
+function extractDocumentsFromResults(items: SearchResultItem[]): {
+  docs: GenericDocument[];
+  scores: Map<string, number>;
+} {
+  const docs: GenericDocument[] = [];
+  const scores = new Map<string, number>();
+
+  for (const item of items) {
+    if (item.type === "document" && isGenericDocument(item.data)) {
+      docs.push(item.data);
+      scores.set(item.data.id, item.relevance);
+    } else if (item.type === "media" && isMediaDocument(item.data)) {
+      const mediaDoc = mediaToGenericDocument(item.data);
+      docs.push(mediaDoc);
+      scores.set(item.data.id, item.relevance);
+    }
+  }
+
+  return { docs, scores };
+}
+
+type FanoutQuery = {
+  query: string;
+  intent: string;
+  weight: number;
+};
+
+type SearchCacheType = ReturnType<typeof getSearchCache>;
+
+async function fetchFromCacheOrSearch(
+  fanoutQuery: FanoutQuery,
+  request: OverviewRequest,
+  config: OverviewConfig,
+  searchCache: SearchCacheType | null
+): Promise<{
+  docs: GenericDocument[];
+  scores: Map<string, number>;
+  cacheHit: boolean;
+}> {
+  if (searchCache) {
+    const cached = await searchCache.get(request.teamId, fanoutQuery.query);
+    if (cached) {
+      const fetchedDocs = await searchService.getDocumentsByIds({
+        ids: cached.documentIds,
+        teamId: request.teamId,
+      });
+      const cachedDocs = fetchedDocs.filter(isGenericDocument);
+      const cachedScores = new Map<string, number>(
+        Object.entries(cached.scores).map(([k, v]) => [k, v])
+      );
+      return { docs: cachedDocs, scores: cachedScores, cacheHit: true };
+    }
+  }
+
+  const result = await searchService.searchUnified({
+    query: fanoutQuery.query,
+    teamId: request.teamId,
+    limit: config.maxSources * 2,
+    accessControlIds: request.accessControlIds,
+    includeDocuments: true,
+    includeMedia: true,
+  });
+
+  const { docs, scores } = extractDocumentsFromResults(
+    result.items as SearchResultItem[]
+  );
+
+  if (searchCache && docs.length > 0) {
+    await searchCache.set(request.teamId, fanoutQuery.query, {
+      documentIds: docs.map((d) => d.id),
+      scores: Object.fromEntries(scores),
+      totalCount: result.items.length,
+      cachedAt: Date.now(),
+    });
+  }
+
+  return { docs, scores, cacheHit: false };
+}
+
 async function retrieveDocuments(
   request: OverviewRequest,
   config: OverviewConfig,
   timing: OverviewTiming
-): Promise<{ documents: GenericDocument[]; scores: Map<string, number> }> {
+): Promise<{
+  documents: GenericDocument[];
+  scores: Map<string, number>;
+  searchCacheHits: number;
+}> {
   const fanoutStart = performance.now();
   const queries = config.enableFanout
     ? generateFanoutQueries(request.query, config.fanoutQueries)
@@ -126,33 +238,21 @@ async function retrieveDocuments(
   timing.fanoutMs = performance.now() - fanoutStart;
 
   const retrievalStart = performance.now();
+  const searchCache = config.enableSearchCache ? getSearchCache() : null;
   const allDocuments: GenericDocument[] = [];
   let mergedScores = new Map<string, number>();
+  let searchCacheHits = 0;
 
   for (const fanoutQuery of queries) {
-    const result = await searchService.searchUnified({
-      query: fanoutQuery.query,
-      teamId: request.teamId,
-      limit: config.maxSources * 2,
-      accessControlIds: request.accessControlIds,
-      includeDocuments: true,
-      includeMedia: true,
-    });
-
-    const docs: GenericDocument[] = [];
-    const scores = new Map<string, number>();
-
-    for (const item of result.items) {
-      if (item.type === "document" && isGenericDocument(item.data)) {
-        docs.push(item.data);
-        scores.set(item.data.id, item.relevance);
-      } else if (item.type === "media" && isMediaDocument(item.data)) {
-        const mediaDoc = mediaToGenericDocument(item.data);
-        docs.push(mediaDoc);
-        scores.set(item.data.id, item.relevance);
-      }
+    const { docs, scores, cacheHit } = await fetchFromCacheOrSearch(
+      fanoutQuery,
+      request,
+      config,
+      searchCache
+    );
+    if (cacheHit) {
+      searchCacheHits += 1;
     }
-
     allDocuments.push(...docs);
     mergedScores = mergeScores(mergedScores, scores, fanoutQuery.weight);
   }
@@ -161,7 +261,7 @@ async function retrieveDocuments(
 
   const dedupedDocuments = deduplicateResults(allDocuments, mergedScores);
 
-  return { documents: dedupedDocuments, scores: mergedScores };
+  return { documents: dedupedDocuments, scores: mergedScores, searchCacheHits };
 }
 
 function processContext(
@@ -190,6 +290,144 @@ function processContext(
   return { contextDocs: builtContext.documents, builtContext, citationMap };
 }
 
+async function checkSemanticCache(
+  request: OverviewRequest,
+  config: OverviewConfig,
+  timing: OverviewTiming
+): Promise<{
+  cached: boolean;
+  response?: OverviewResponse;
+  queryEmbedding?: number[];
+  similarity?: number;
+}> {
+  if (!config.enableSemanticCache) {
+    return { cached: false };
+  }
+
+  const cacheCheckStart = performance.now();
+  try {
+    const queryEmbedding = await embedQueryWithCache(request.query);
+    const semanticCache = getSemanticCache();
+    const cached = await semanticCache.findSimilar(
+      request.teamId,
+      queryEmbedding,
+      config.semanticCacheThreshold
+    );
+
+    timing.cacheCheckMs = performance.now() - cacheCheckStart;
+
+    if (cached) {
+      const { entry, similarity } = cached;
+      logger.info(
+        {
+          teamId: request.teamId,
+          similarity,
+          queryLength: request.query.length,
+        },
+        "Semantic cache hit"
+      );
+
+      return {
+        cached: true,
+        queryEmbedding,
+        similarity,
+        response: {
+          content: entry.response.answer,
+          citations: entry.response.citations as OverviewCitation[],
+          groundingScore: entry.response.groundingScore,
+          timing: { ...timing, totalMs: performance.now() - cacheCheckStart },
+          usage: createEmptyUsage(),
+        },
+      };
+    }
+
+    return { cached: false, queryEmbedding };
+  } catch (error) {
+    logger.warn(
+      { error },
+      "Semantic cache check failed, proceeding without cache"
+    );
+    timing.cacheCheckMs = performance.now() - cacheCheckStart;
+    return { cached: false };
+  }
+}
+
+interface SemanticCacheStoreParams {
+  request: OverviewRequest;
+  queryEmbedding: number[] | undefined;
+  content: string;
+  citations: OverviewCitation[];
+  groundingScore: number | null;
+}
+
+async function storeInSemanticCache(
+  params: SemanticCacheStoreParams
+): Promise<void> {
+  const { request, queryEmbedding, content, citations, groundingScore } =
+    params;
+
+  if (!queryEmbedding) {
+    return;
+  }
+
+  try {
+    const semanticCache = getSemanticCache();
+    await semanticCache.store(request.teamId, request.query, queryEmbedding, {
+      answer: content,
+      citations,
+      groundingScore,
+      confidence: null,
+      generatedAt: Date.now(),
+    });
+  } catch (error) {
+    logger.warn({ error }, "Failed to store in semantic cache");
+  }
+}
+
+function recordCachedMetrics(
+  request: OverviewRequest,
+  response: OverviewResponse
+): void {
+  const complexity = analyzeQueryComplexity(request.query);
+  getOverviewMetricsCollector().record({
+    latencyMs: response.timing.totalMs,
+    semanticCacheHit: true,
+    embeddingCacheHits: 0,
+    searchCacheHits: 0,
+    modelUsed: "cached",
+    teamId: request.teamId,
+    complexity,
+  });
+}
+
+async function collectStreamContent(
+  userMessage: string,
+  modelId: string,
+  temperature: number
+): Promise<{ content: string; usage: OverviewUsage }> {
+  let content = "";
+  let usage = createEmptyUsage();
+
+  for await (const chunk of streamCompletion(
+    [{ role: "user", content: userMessage }],
+    {
+      systemPrompt: SYSTEM_PROMPT,
+      providerId: OVERVIEW_PROVIDER_ID,
+      modelId,
+      temperature,
+    }
+  )) {
+    if (chunk.type === "text") {
+      content += chunk.content;
+    }
+    if (chunk.type === "done" && chunk.usage) {
+      usage = parseUsageFromChunk(chunk);
+    }
+  }
+
+  return { content, usage };
+}
+
 export async function generateOverview(
   request: OverviewRequest
 ): Promise<OverviewResponse> {
@@ -201,7 +439,13 @@ export async function generateOverview(
     enableFanout: request.enableFanout ?? DEFAULT_OVERVIEW_CONFIG.enableFanout,
   };
 
-  const { documents, scores } = await retrieveDocuments(
+  const cacheResult = await checkSemanticCache(request, config, timing);
+  if (cacheResult.cached && cacheResult.response) {
+    recordCachedMetrics(request, cacheResult.response);
+    return cacheResult.response;
+  }
+
+  const { documents, scores, searchCacheHits } = await retrieveDocuments(
     request,
     config,
     timing
@@ -227,32 +471,14 @@ export async function generateOverview(
 
   const generationStart = performance.now();
   const contextText = formatCitationPrompt(contextDocs);
-  const userMessage = `Based on the following sources, provide a concise overview answering: "${request.query}"\n\n${contextText}`;
+  const userMessage = buildUserMessage(request.query, contextText);
+  const { modelId } = selectModel(request, config);
 
-  let content = "";
-  let usage = createEmptyUsage();
-
-  for await (const chunk of streamCompletion(
-    [{ role: "user", content: userMessage }],
-    {
-      systemPrompt: SYSTEM_PROMPT,
-      providerId: OVERVIEW_PROVIDER_ID,
-      modelId: request.modelId ?? OVERVIEW_MODEL_ID,
-      temperature: request.temperature ?? 0.3,
-    }
-  )) {
-    if (chunk.type === "text") {
-      content += chunk.content;
-    }
-    if (chunk.type === "done" && chunk.usage) {
-      usage = {
-        promptTokens: chunk.usage.inputTokens ?? 0,
-        completionTokens: chunk.usage.outputTokens ?? 0,
-        totalTokens:
-          (chunk.usage.inputTokens ?? 0) + (chunk.usage.outputTokens ?? 0),
-      };
-    }
-  }
+  const { content, usage } = await collectStreamContent(
+    userMessage,
+    modelId,
+    request.temperature ?? 0.3
+  );
 
   timing.generationMs = performance.now() - generationStart;
   timing.totalMs = performance.now() - startTime;
@@ -263,6 +489,25 @@ export async function generateOverview(
     new Set()
   );
   const groundingScore = calculateGroundingScore(content, citationMap);
+
+  await storeInSemanticCache({
+    request,
+    queryEmbedding: cacheResult.queryEmbedding,
+    content,
+    citations: newCitations,
+    groundingScore,
+  });
+
+  const complexity = analyzeQueryComplexity(request.query);
+  getOverviewMetricsCollector().record({
+    latencyMs: timing.totalMs,
+    semanticCacheHit: false,
+    embeddingCacheHits: 0,
+    searchCacheHits,
+    modelUsed: modelId,
+    teamId: request.teamId,
+    complexity,
+  });
 
   return {
     content,
@@ -344,41 +589,143 @@ async function* streamLLMGenerationWithContent(
   return { content: collectedContent, usage };
 }
 
-export async function* streamOverview(
-  request: OverviewRequest
-): AsyncGenerator<OverviewStreamChunk> {
-  const startTime = performance.now();
-  const timing = createEmptyTiming();
-  const config = createStreamConfig(request);
+type StreamCacheResult =
+  | {
+      hit: true;
+      queryEmbedding: number[];
+      entry: {
+        response: {
+          citations: unknown[];
+          answer: string;
+          groundingScore: number | null;
+        };
+      };
+      similarity: number;
+    }
+  | {
+      hit: false;
+      queryEmbedding: number[] | undefined;
+    };
 
-  yield { type: "thinking" };
-
-  let documents: GenericDocument[];
-  let scores: Map<string, number>;
+async function checkStreamingCache(
+  request: OverviewRequest,
+  config: OverviewConfig,
+  timing: OverviewTiming,
+  cacheCheckStart: number
+): Promise<StreamCacheResult> {
+  if (!config.enableSemanticCache) {
+    return { hit: false, queryEmbedding: undefined };
+  }
 
   try {
-    const result = await retrieveDocuments(request, config, timing);
-    documents = result.documents;
-    scores = result.scores;
+    const queryEmbedding = await embedQueryWithCache(request.query);
+    const semanticCache = getSemanticCache();
+    const cached = await semanticCache.findSimilar(
+      request.teamId,
+      queryEmbedding,
+      config.semanticCacheThreshold
+    );
+
+    timing.cacheCheckMs = performance.now() - cacheCheckStart;
+
+    if (cached) {
+      logger.info(
+        {
+          teamId: request.teamId,
+          similarity: cached.similarity,
+          queryLength: request.query.length,
+        },
+        "Semantic cache hit (streaming)"
+      );
+      return {
+        hit: true,
+        queryEmbedding,
+        entry: cached.entry,
+        similarity: cached.similarity,
+      };
+    }
+
+    return { hit: false, queryEmbedding };
   } catch (error) {
-    logger.error({ error, query: request.query }, "Overview retrieval failed");
-    const message =
-      error instanceof Error ? error.message : "Failed to retrieve documents";
-    yield { type: "error", error: message };
-    return;
+    logger.warn(
+      { error },
+      "Semantic cache check failed, proceeding without cache"
+    );
+    timing.cacheCheckMs = performance.now() - cacheCheckStart;
+    return { hit: false, queryEmbedding: undefined };
+  }
+}
+
+interface CacheHitResponseParams {
+  entry: {
+    response: {
+      citations: unknown[];
+      answer: string;
+      groundingScore: number | null;
+    };
+  };
+  similarity: number;
+  request: OverviewRequest;
+  timing: OverviewTiming;
+  startTime: number;
+}
+
+function* yieldCacheHitResponse(
+  params: CacheHitResponseParams
+): Generator<OverviewStreamChunk> {
+  const { entry, similarity, request, timing, startTime } = params;
+
+  for (const citation of entry.response.citations as OverviewCitation[]) {
+    yield { type: "citation", citation };
   }
 
-  if (documents.length === 0) {
-    const noResultsMessage =
-      "I couldn't find relevant information to answer your query. Please try rephrasing your question.";
-    yield { type: "text", content: noResultsMessage };
-    yield {
-      type: "done",
-      usage: createEmptyUsage(),
-      timing: { ...timing, totalMs: performance.now() - startTime },
-    };
-    return;
-  }
+  const cacheTiming = { ...timing, totalMs: performance.now() - startTime };
+  const complexity = analyzeQueryComplexity(request.query);
+  getOverviewMetricsCollector().record({
+    latencyMs: cacheTiming.totalMs,
+    semanticCacheHit: true,
+    embeddingCacheHits: 0,
+    searchCacheHits: 0,
+    modelUsed: "cached",
+    teamId: request.teamId,
+    complexity,
+  });
+
+  yield { type: "text", content: entry.response.answer };
+  yield {
+    type: "done",
+    usage: createEmptyUsage(),
+    timing: cacheTiming,
+    groundingScore: entry.response.groundingScore ?? undefined,
+    fromCache: true,
+    cacheSimilarity: similarity,
+  };
+}
+
+interface StreamGenerationParams {
+  request: OverviewRequest;
+  config: OverviewConfig;
+  timing: OverviewTiming;
+  startTime: number;
+  queryEmbedding: number[] | undefined;
+  documents: GenericDocument[];
+  scores: Map<string, number>;
+  searchCacheHits: number;
+}
+
+async function* streamGenerationPhase(
+  params: StreamGenerationParams
+): AsyncGenerator<OverviewStreamChunk> {
+  const {
+    request,
+    config,
+    timing,
+    startTime,
+    queryEmbedding,
+    documents,
+    scores,
+    searchCacheHits,
+  } = params;
 
   const { contextDocs, citationMap } = processContext(
     documents,
@@ -394,51 +741,143 @@ export async function* streamOverview(
   const generationStart = performance.now();
   const contextText = formatCitationPrompt(contextDocs);
   const userMessage = buildUserMessage(request.query, contextText);
-  const modelId = request.modelId ?? OVERVIEW_MODEL_ID;
+  const { modelId } = selectModel(request, config);
   const temperature = request.temperature ?? 0.3;
 
   let content = "";
   let usage = createEmptyUsage();
 
-  try {
-    const generator = streamLLMGenerationWithContent({
-      userMessage,
-      modelId,
-      temperature,
-      timing,
-      startTime,
-    });
+  const generator = streamLLMGenerationWithContent({
+    userMessage,
+    modelId,
+    temperature,
+    timing,
+    startTime,
+  });
 
-    let iteratorResult = await generator.next();
-    while (!iteratorResult.done) {
-      const chunk = iteratorResult.value;
-      yield chunk;
-      if (chunk.type === "text" && chunk.content) {
-        content += chunk.content;
-      }
-      iteratorResult = await generator.next();
+  let iteratorResult = await generator.next();
+  while (!iteratorResult.done) {
+    const chunk = iteratorResult.value;
+    yield chunk;
+    if (chunk.type === "text" && chunk.content) {
+      content += chunk.content;
     }
-
-    usage = iteratorResult.value.usage;
-  } catch (error) {
-    logger.error({ error, query: request.query }, "Overview generation failed");
-    const message =
-      error instanceof Error ? error.message : "Failed to generate overview";
-    yield { type: "error", error: message };
-    return;
+    iteratorResult = await generator.next();
   }
+
+  usage = iteratorResult.value.usage;
 
   timing.generationMs = performance.now() - generationStart;
   timing.totalMs = performance.now() - startTime;
 
   const groundingScore = calculateGroundingScore(content, citationMap);
+  const citations = Array.from(citationMap.values());
+
+  await storeInSemanticCache({
+    request,
+    queryEmbedding,
+    content,
+    citations,
+    groundingScore,
+  });
+
+  const complexity = analyzeQueryComplexity(request.query);
+  getOverviewMetricsCollector().record({
+    latencyMs: timing.totalMs,
+    semanticCacheHit: false,
+    embeddingCacheHits: 0,
+    searchCacheHits,
+    modelUsed: modelId,
+    teamId: request.teamId,
+    complexity,
+  });
 
   yield {
     type: "done",
     usage,
     timing,
     groundingScore,
+    fromCache: false,
+    modelUsed: modelId,
   };
+}
+
+export async function* streamOverview(
+  request: OverviewRequest
+): AsyncGenerator<OverviewStreamChunk> {
+  const startTime = performance.now();
+  const timing = createEmptyTiming();
+  const config = createStreamConfig(request);
+
+  yield { type: "thinking" };
+
+  const cacheCheckStart = performance.now();
+  const cacheResult = await checkStreamingCache(
+    request,
+    config,
+    timing,
+    cacheCheckStart
+  );
+
+  if (cacheResult.hit) {
+    yield* yieldCacheHitResponse({
+      entry: cacheResult.entry,
+      similarity: cacheResult.similarity,
+      request,
+      timing,
+      startTime,
+    });
+    return;
+  }
+
+  let documents: GenericDocument[];
+  let scores: Map<string, number>;
+  let searchCacheHits = 0;
+
+  try {
+    const result = await retrieveDocuments(request, config, timing);
+    documents = result.documents;
+    scores = result.scores;
+    searchCacheHits = result.searchCacheHits;
+  } catch (error) {
+    logger.error({ error, query: request.query }, "Overview retrieval failed");
+    const message =
+      error instanceof Error ? error.message : "Failed to retrieve documents";
+    yield { type: "error", error: message };
+    return;
+  }
+
+  if (documents.length === 0) {
+    yield {
+      type: "text",
+      content:
+        "I couldn't find relevant information to answer your query. Please try rephrasing your question.",
+    };
+    yield {
+      type: "done",
+      usage: createEmptyUsage(),
+      timing: { ...timing, totalMs: performance.now() - startTime },
+    };
+    return;
+  }
+
+  try {
+    yield* streamGenerationPhase({
+      request,
+      config,
+      timing,
+      startTime,
+      queryEmbedding: cacheResult.queryEmbedding,
+      documents,
+      scores,
+      searchCacheHits,
+    });
+  } catch (error) {
+    logger.error({ error, query: request.query }, "Overview generation failed");
+    const message =
+      error instanceof Error ? error.message : "Failed to generate overview";
+    yield { type: "error", error: message };
+  }
 }
 
 export class OverviewOrchestrator {
