@@ -208,6 +208,8 @@ export {
 } from "./context";
 export type {
   BatchEmbeddingResult,
+  CachedBatchEmbeddingResult,
+  CachedEmbeddingResult,
   ChunkingConfig,
   ChunkingStrategy,
   DocumentToEmbed,
@@ -226,11 +228,14 @@ export {
   DocumentChunker,
   EMBEDDING_TOKEN_LIMIT,
   EmbeddingService,
+  embedBatchWithCache,
   embedDocument,
   embedDocuments,
   embeddingService,
   embedQuery,
+  embedQueryWithCache,
   embedText,
+  embedWithCache,
   estimateTokens,
   prepareTextForEmbedding,
   truncateToTokenLimit,

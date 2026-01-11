@@ -1,3 +1,4 @@
+import { getEmbeddingCache } from "@openplane/redis";
 import { embed, embedMany } from "ai";
 import { getConfig, type ProviderId } from "../config";
 import { registry } from "../providers/registry";
@@ -8,6 +9,8 @@ import {
 } from "./chunker";
 import type {
   BatchEmbeddingResult,
+  CachedBatchEmbeddingResult,
+  CachedEmbeddingResult,
   ChunkingConfig,
   DocumentToEmbed,
   EmbeddedChunk,
@@ -174,6 +177,92 @@ export class EmbeddingService {
     return embedding;
   }
 
+  async embedWithCache(text: string): Promise<CachedEmbeddingResult> {
+    const cache = getEmbeddingCache();
+    const cached = await cache.get(text, this.modelId);
+
+    if (cached) {
+      return {
+        embedding: cached,
+        text,
+        tokenCount: 0,
+        fromCache: true,
+      };
+    }
+
+    const result = await this.embed(text);
+    await cache.set(text, this.modelId, result.embedding);
+    return { ...result, fromCache: false };
+  }
+
+  async embedQueryWithCache(query: string): Promise<Embedding> {
+    const result = await this.embedWithCache(query);
+    return result.embedding;
+  }
+
+  async embedBatchWithCache(
+    texts: string[]
+  ): Promise<CachedBatchEmbeddingResult> {
+    if (texts.length === 0) {
+      return { embeddings: [], texts: [], totalTokens: 0, cacheHits: 0 };
+    }
+
+    const cache = getEmbeddingCache();
+    const cached = await cache.getBatch(texts, this.modelId);
+
+    const uncachedTexts: string[] = [];
+    const uncachedIndexes: number[] = [];
+    const embeddings: Embedding[] = new Array(texts.length);
+    let cacheHits = 0;
+
+    for (let i = 0; i < texts.length; i += 1) {
+      const text = texts[i];
+      if (!text) {
+        continue;
+      }
+      const cachedEmb = cached.get(text);
+      if (cachedEmb) {
+        embeddings[i] = cachedEmb;
+        cacheHits += 1;
+      } else {
+        uncachedTexts.push(text);
+        uncachedIndexes.push(i);
+      }
+    }
+
+    if (uncachedTexts.length > 0) {
+      const freshResult = await this.embedBatch(uncachedTexts);
+
+      const toCache: Array<{ text: string; embedding: number[] }> = [];
+      for (let j = 0; j < uncachedTexts.length; j += 1) {
+        const idx = uncachedIndexes[j];
+        const emb = freshResult.embeddings[j];
+        const text = uncachedTexts[j];
+        if (idx === undefined || !emb || !text) {
+          continue;
+        }
+        embeddings[idx] = emb;
+        toCache.push({ text, embedding: emb });
+      }
+
+      await cache.setBatch(toCache, this.modelId);
+
+      return {
+        embeddings,
+        texts,
+        totalTokens: freshResult.totalTokens,
+        cacheHits,
+      };
+    }
+
+    return {
+      embeddings,
+      texts,
+      totalTokens: 0,
+      cacheHits,
+    };
+  }
+
   static cosineSimilarity(a: Embedding, b: Embedding): number {
     if (a.length !== b.length) {
       throw new Error(
@@ -258,4 +347,18 @@ export function embedDocuments(
   options?: EmbeddingOptions
 ): Promise<EmbeddedDocument[]> {
   return embeddingService.embedDocuments(documents, options);
+}
+
+export function embedWithCache(text: string): Promise<CachedEmbeddingResult> {
+  return embeddingService.embedWithCache(text);
+}
+
+export function embedQueryWithCache(query: string): Promise<Embedding> {
+  return embeddingService.embedQueryWithCache(query);
+}
+
+export function embedBatchWithCache(
+  texts: string[]
+): Promise<CachedBatchEmbeddingResult> {
+  return embeddingService.embedBatchWithCache(texts);
 }

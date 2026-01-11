@@ -7,11 +7,14 @@ export {
 
 export {
   EmbeddingService,
+  embedBatchWithCache,
   embedDocument,
   embedDocuments,
   embeddingService,
   embedQuery,
+  embedQueryWithCache,
   embedText,
+  embedWithCache,
 } from "./service";
 
 export {
@@ -23,6 +26,8 @@ export {
 
 export type {
   BatchEmbeddingResult,
+  CachedBatchEmbeddingResult,
+  CachedEmbeddingResult,
   ChunkingConfig,
   ChunkingStrategy,
   DocumentToEmbed,

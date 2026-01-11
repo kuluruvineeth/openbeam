@@ -8,10 +8,18 @@ export interface EmbeddingResult {
   tokenCount: number;
 }
 
+export interface CachedEmbeddingResult extends EmbeddingResult {
+  fromCache: boolean;
+}
+
 export interface BatchEmbeddingResult {
   embeddings: Embedding[];
   texts: string[];
   totalTokens: number;
+}
+
+export interface CachedBatchEmbeddingResult extends BatchEmbeddingResult {
+  cacheHits: number;
 }
 
 export interface TextChunk {
