@@ -111,7 +111,7 @@ function createUriMatcher(
       const templatePart = parts[i];
       const uriPart = uriParts[i];
 
-      if (!(templatePart && uriPart)) {
+      if (templatePart === undefined || uriPart === undefined) {
         return null;
       }
 

@@ -1,5 +1,4 @@
 import type { z } from "zod";
-import { zodToJsonSchema } from "zod-to-json-schema";
 import type { ToolRegistry } from "../tools/registry";
 import type { RegisteredTool, ToolContext } from "../tools/types";
 import type {
@@ -19,23 +18,23 @@ export interface MCPToolListItem {
 export function convertZodToJsonSchema(
   schema: z.ZodTypeAny
 ): Record<string, unknown> {
-  return zodToJsonSchema(
-    schema as unknown as Parameters<typeof zodToJsonSchema>[0],
-    { target: "jsonSchema7" }
-  ) as Record<string, unknown>;
+  if ("toJSONSchema" in schema && typeof schema.toJSONSchema === "function") {
+    return schema.toJSONSchema() as Record<string, unknown>;
+  }
+  return { type: "object" };
 }
 
 export function registeredToolToMCPDefinition(
   registered: RegisteredTool
 ): MCPToolDefinition {
   const { metadata, coreTool } = registered;
-  const parameters = (coreTool as { parameters?: z.ZodTypeAny }).parameters;
+  const inputSchema = (coreTool as { inputSchema?: z.ZodTypeAny }).inputSchema;
 
   return {
     name: metadata.name,
     description: metadata.description,
-    inputSchema: parameters
-      ? (parameters as z.ZodTypeAny)
+    inputSchema: inputSchema
+      ? (inputSchema as z.ZodTypeAny)
       : ({} as z.ZodTypeAny),
     category: metadata.category,
     allowedCallers: metadata.allowedCallers,
@@ -46,13 +45,13 @@ export function registeredToolToMCPListItem(
   registered: RegisteredTool
 ): MCPToolListItem {
   const { metadata, coreTool } = registered;
-  const parameters = (coreTool as { parameters?: z.ZodTypeAny }).parameters;
+  const inputSchema = (coreTool as { inputSchema?: z.ZodTypeAny }).inputSchema;
 
   return {
     name: metadata.name,
     description: metadata.description,
-    inputSchema: parameters
-      ? convertZodToJsonSchema(parameters as z.ZodTypeAny)
+    inputSchema: inputSchema
+      ? convertZodToJsonSchema(inputSchema as z.ZodTypeAny)
       : { type: "object" },
   };
 }

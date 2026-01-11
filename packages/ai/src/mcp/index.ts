@@ -1,4 +1,28 @@
 export {
+  type CreateAgentResourceServicesOptions,
+  createAgentResourceServices,
+} from "./agent-resource-services";
+export type {
+  AgentResourceServices,
+  RegisterAgentResourcesOptions,
+} from "./agent-resources";
+export {
+  createConnectorsHandler,
+  createMemoryStatsHandler,
+  createMockAgentResourceServices,
+  createRecentDocumentsHandler,
+  createTeamProfileHandler,
+  createTeamStatsHandler,
+  createUserContextHandler,
+  defineConnectorResourceTemplate,
+  defineConnectorSyncHistoryTemplate,
+  defineMemoryStatsResource,
+  defineTeamStatsResource,
+  getAgentResourceDefinitions,
+  getAgentResourceTemplates,
+  registerAgentResources,
+} from "./agent-resources";
+export {
   convertZodToJsonSchema,
   createMCPToolBridge,
   MCPToolBridge,
@@ -29,7 +53,6 @@ export {
   PromptRegistry,
   promptRegistry,
 } from "./prompts";
-
 export {
   type ConnectorsResourceData,
   createJsonContent,
