@@ -28,6 +28,10 @@ model Team {
   connectorScopes        ConnectorScope[]
   permissionSyncStatuses PermissionSyncStatus[]
 
+  compositionEvents      CompositionEvent[]
+  userFeedback           UserFeedback[]
+  agentExecutionTraces   AgentExecutionTrace[]
+
   @@map("team")
 }
 

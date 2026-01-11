@@ -16,6 +16,7 @@ model User {
   externalIdentities    ExternalIdentity[]
   groupMemberships      GroupMembership[]
   connectorScopes       ConnectorScope[]
+  feedback              UserFeedback[]
 
   @@unique([email])
   @@index([teamId])

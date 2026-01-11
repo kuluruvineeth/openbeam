@@ -1,0 +1,166 @@
+model CompositionEvent {
+  id              String   @id @default(cuid()) @map("_id")
+  signature       String
+
+  sessionId       String
+  teamId          String
+  userId          String
+
+  toolSequence    String[]
+  toolCount       Int
+  success         Boolean
+  latencyMs       Int
+
+  userSatisfied   Boolean?
+  feedbackId      String?
+
+  promptCategory  String?
+  entityTypes     String[] @default([])
+
+  metadata        Json?
+
+  timestamp       DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  team            Team          @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  feedback        UserFeedback? @relation(fields: [feedbackId], references: [id])
+
+  @@index([signature])
+  @@index([teamId, timestamp, success])
+  @@index([sessionId, timestamp])
+  @@index([userSatisfied, timestamp])
+  @@map("composition_event")
+}
+
+model EmergencePattern {
+  id              String   @id @default(cuid()) @map("_id")
+  signature       String   @unique
+
+  toolSequence    String[]
+  sequenceLength  Int
+
+  frequency       Int      @default(0)
+  successCount    Int      @default(0)
+  failureCount    Int      @default(0)
+  successRate     Float    @default(0)
+
+  avgLatencyMs    Float    @default(0)
+  p95LatencyMs    Float    @default(0)
+
+  firstSeen       DateTime @default(now())
+  lastSeen        DateTime @default(now())
+
+  status          EmergencePatternStatus @default(OBSERVED)
+  formalizedAs    String?
+  rejectionReason String?
+
+  examples        Json     @default("[]")
+
+  reviewedAt      DateTime?
+  reviewedBy      String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([status, frequency])
+  @@index([status, successRate])
+  @@index([lastSeen])
+  @@index([sequenceLength, frequency])
+  @@map("emergence_pattern")
+}
+
+model UserFeedback {
+  id              String   @id @default(cuid()) @map("_id")
+  teamId          String
+  userId          String
+  sessionId       String
+
+  traceId         String?
+  compositionId   String?
+
+  type            UserFeedbackType
+  rating          Int?
+  comment         String?
+  correction      String?
+
+  promptSummary   String?
+  responseSummary String?
+
+  processed       Boolean  @default(false)
+  processedAt     DateTime?
+
+  metadata        Json?
+
+  createdAt       DateTime @default(now())
+
+  team            Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  compositions    CompositionEvent[]
+
+  @@index([teamId, createdAt])
+  @@index([userId, createdAt])
+  @@index([teamId, type, processed])
+  @@index([sessionId, createdAt])
+  @@map("user_feedback")
+}
+
+model AgentExecutionTrace {
+  id               String   @id @default(cuid()) @map("_id")
+  teamId           String
+  userId           String
+  sessionId        String
+
+  agentName        String
+  agentType        String
+
+  status           AgentExecutionStatus @default(RUNNING)
+  completionSignal String?
+
+  inputPrompt      String
+  outputResult     Json?
+
+  toolCalls        Json     @default("[]")
+
+  inputTokens      Int      @default(0)
+  outputTokens     Int      @default(0)
+  latencyMs        Int      @default(0)
+  toolCallCount    Int      @default(0)
+
+  parentTraceId    String?
+
+  startedAt        DateTime @default(now())
+  completedAt      DateTime?
+
+  metadata         Json?
+
+  team             Team                  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  parentTrace      AgentExecutionTrace?  @relation("TraceHierarchy", fields: [parentTraceId], references: [id])
+  childTraces      AgentExecutionTrace[] @relation("TraceHierarchy")
+
+  @@index([teamId, startedAt])
+  @@index([sessionId, startedAt])
+  @@index([agentName, status])
+  @@index([parentTraceId])
+  @@map("agent_execution_trace")
+}
+
+enum EmergencePatternStatus {
+  OBSERVED
+  VALIDATED
+  FORMALIZED
+  REJECTED
+}
+
+enum UserFeedbackType {
+  HELPFUL
+  NOT_HELPFUL
+  CORRECTION
+  SUGGESTION
+}
+
+enum AgentExecutionStatus {
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
