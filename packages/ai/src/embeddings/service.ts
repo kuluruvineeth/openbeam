@@ -217,7 +217,7 @@ export class EmbeddingService {
 
     for (let i = 0; i < texts.length; i += 1) {
       const text = texts[i];
-      if (!text) {
+      if (text === undefined) {
         continue;
       }
       const cachedEmb = cached.get(text);
@@ -238,7 +238,7 @@ export class EmbeddingService {
         const idx = uncachedIndexes[j];
         const emb = freshResult.embeddings[j];
         const text = uncachedTexts[j];
-        if (idx === undefined || !emb || !text) {
+        if (idx === undefined || emb === undefined || text === undefined) {
           continue;
         }
         embeddings[idx] = emb;

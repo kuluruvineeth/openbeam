@@ -155,6 +155,18 @@ describe("EmbeddingService cache integration", () => {
       expect(embedBatchSpy).not.toHaveBeenCalled();
     });
 
+    it("does not skip empty-string texts", async () => {
+      await mockCache.set("", TEST_MODEL_ID, [9, 9, 9]);
+
+      const embedBatchSpy = spyOn(service, "embedBatch");
+      const result = await service.embedBatchWithCache([""]);
+
+      expect(result.cacheHits).toBe(1);
+      expect(result.embeddings).toHaveLength(1);
+      expect(result.embeddings[0]).toEqual([9, 9, 9]);
+      expect(embedBatchSpy).not.toHaveBeenCalled();
+    });
+
     it("fetches uncached texts only", async () => {
       const texts = ["cached", "uncached1", "uncached2"];
       await mockCache.set("cached", TEST_MODEL_ID, [1, 2, 3]);
