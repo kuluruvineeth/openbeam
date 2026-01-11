@@ -143,6 +143,23 @@ describe("EmbeddingCache", () => {
       expect(result.has("query 2")).toBe(false);
     });
 
+    test("does not skip empty-string text keys", async () => {
+      const cached = {
+        embedding: [0.42],
+        model: "model",
+        dimensions: 1,
+        cachedAt: Date.now(),
+      };
+
+      mockRedisClient.mGet.mockImplementation(() =>
+        Promise.resolve([JSON.stringify(cached)] as (string | null)[])
+      );
+
+      const result = await cache.getBatch([""], "model");
+      expect(result.size).toBe(1);
+      expect(result.get("")).toEqual([0.42]);
+    });
+
     test("returns empty map on Redis error", async () => {
       mockRedisClient.mGet.mockImplementation(() =>
         Promise.reject(new Error("Redis connection failed"))

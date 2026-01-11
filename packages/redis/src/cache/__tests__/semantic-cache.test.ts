@@ -225,6 +225,36 @@ describe("SemanticCache", () => {
       expect(result?.similarity).toBeCloseTo(1, 5);
     });
 
+    test("does not skip empty-string entry IDs", async () => {
+      const embedding = [0.1, 0.2, 0.3, 0.4];
+      const entry = {
+        queryEmbedding: embedding,
+        queryText: "",
+        response: {
+          answer: "test answer",
+          citations: [],
+          groundingScore: 0.9,
+          confidence: null,
+          generatedAt: Date.now(),
+        },
+        hitCount: 0,
+        createdAt: Date.now(),
+        lastAccessedAt: Date.now(),
+      };
+
+      mockRedisClient.sMembers.mockImplementation(() =>
+        Promise.resolve([""] as string[])
+      );
+      mockRedisClient.mGet.mockImplementation(() =>
+        Promise.resolve([JSON.stringify(entry)] as (string | null)[])
+      );
+      mockRedisClient.set.mockImplementation(() => Promise.resolve("OK"));
+
+      const result = await cache.findSimilar("team-1", embedding);
+      expect(result).not.toBeNull();
+      expect(result?.similarity).toBeCloseTo(1, 5);
+    });
+
     test("does not return entries below threshold", async () => {
       const embedding1 = [1, 0, 0, 0];
       const embedding2 = [0, 1, 0, 0];

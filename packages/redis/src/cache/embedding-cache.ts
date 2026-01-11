@@ -98,7 +98,7 @@ export class EmbeddingCache {
       for (let i = 0; i < texts.length; i++) {
         const data = values[i];
         const text = texts[i];
-        if (!(data && text)) {
+        if (data == null || text === undefined) {
           continue;
         }
 

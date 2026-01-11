@@ -82,7 +82,7 @@ function findBestMatchInEntries(
   for (let i = 0; i < entries.length; i += 1) {
     const data = entries[i];
     const entryId = entryIds[i];
-    if (!(data && entryId)) {
+    if (data == null || entryId === undefined) {
       continue;
     }
 
@@ -238,7 +238,7 @@ export class SemanticCache {
         const age = Date.now() - parsed.data.lastAccessedAt;
         const score = parsed.data.hitCount / (1 + age / ONE_HOUR_MS);
         const entryId = entryIds[i];
-        if (entryId) {
+        if (entryId !== undefined) {
           scored.push({ id: entryId, score });
         }
       }
