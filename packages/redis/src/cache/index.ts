@@ -1,4 +1,13 @@
 export {
+  EmbeddingCache,
+  getEmbeddingCache,
+  resetEmbeddingCache,
+} from "./embedding-cache";
+export {
+  EmbeddingCacheKeys,
+  TWENTY_FOUR_HOURS_SECONDS,
+} from "./embedding-cache-keys";
+export {
   DOCUMENT_CACHE_TTL,
   GROUP_CACHE_TTL,
   PERMISSION_CACHE_TTL,
@@ -30,6 +39,25 @@ export {
   GROUNDING_CACHE_TTL,
   RAGCacheKeys,
 } from "./rag-keys";
+export {
+  type CachedSearchResult,
+  getSearchCache,
+  resetSearchCache,
+  SearchCache,
+} from "./search-cache";
+export { SEARCH_CACHE_TTL_SECONDS, SearchCacheKeys } from "./search-cache-keys";
+export {
+  computeCosineSimilarity,
+  getSemanticCache,
+  resetSemanticCache,
+  SemanticCache,
+} from "./semantic-cache";
+export {
+  MAX_ENTRIES_PER_TEAM,
+  ONE_HOUR_SECONDS,
+  SemanticCacheKeys,
+  SIMILARITY_THRESHOLD,
+} from "./semantic-cache-keys";
 export {
   type CachedToolResult,
   getToolCache,
