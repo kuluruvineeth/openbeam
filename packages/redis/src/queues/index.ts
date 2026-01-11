@@ -8,6 +8,8 @@ export * from "./connector-cleanup-queue";
 export { closeConnectorCleanupQueue } from "./connector-cleanup-queue";
 export * from "./digest-queue";
 export { closeDigestQueue } from "./digest-queue";
+export * from "./emergence-detection-queue";
+export { closeEmergenceDetectionQueue } from "./emergence-detection-queue";
 export * from "./entity-extraction-queue";
 export { closeEntityExtractionQueue } from "./entity-extraction-queue";
 export * from "./file-processing-queue";
