@@ -15,6 +15,12 @@ export {
 } from "./connector-cleanup";
 export { createDigestProcessor, processDigestJob } from "./digest";
 export {
+  createEmergenceDetectionProcessor,
+  processEmergenceDetectionJob,
+  recordCompositionEvent,
+  triggerEmergenceAnalysisManual,
+} from "./emergence-detection";
+export {
   createEntityExtractionProcessor,
   processEntityExtractionJob,
 } from "./entity-extraction";
