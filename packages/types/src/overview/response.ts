@@ -14,6 +14,7 @@ export const OverviewCitationSchema = z.object({
 export type OverviewCitation = z.infer<typeof OverviewCitationSchema>;
 
 export const OverviewTimingSchema = z.object({
+  cacheCheckMs: z.number().optional(),
   fanoutMs: z.number(),
   retrievalMs: z.number(),
   contextBuildMs: z.number(),

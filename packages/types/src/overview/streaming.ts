@@ -47,6 +47,9 @@ export const OverviewStreamChunkSchema = z.object({
   error: z.string().optional(),
   toolCall: OverviewToolCallDataSchema.optional(),
   toolResult: OverviewToolResultDataSchema.optional(),
+  fromCache: z.boolean().optional(),
+  cacheSimilarity: z.number().optional(),
+  modelUsed: z.string().optional(),
 });
 
 export type OverviewStreamChunk = z.infer<typeof OverviewStreamChunkSchema>;
