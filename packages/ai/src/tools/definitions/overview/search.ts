@@ -1,5 +1,40 @@
+import { getSearchCache } from "@openplane/redis";
 import { z } from "zod";
 import { defineTool, failure, success } from "../../builder";
+
+type SearchResultItem = {
+  id: string;
+  relevanceScore: number;
+};
+
+type SearchResultForCache = {
+  items: SearchResultItem[];
+  total: number;
+};
+
+async function cacheSearchResult(
+  teamId: string,
+  query: string,
+  result: SearchResultForCache
+): Promise<void> {
+  if (result.items.length === 0) {
+    return;
+  }
+
+  try {
+    const searchCache = getSearchCache();
+    await searchCache.set(teamId, query, {
+      documentIds: result.items.map((item) => item.id),
+      scores: Object.fromEntries(
+        result.items.map((item) => [item.id, item.relevanceScore])
+      ),
+      totalCount: result.total,
+      cachedAt: Date.now(),
+    });
+  } catch {
+    // Ignore cache write errors
+  }
+}
 
 export const overviewSearchTool = defineTool({
   name: "overview_search",
@@ -64,6 +99,8 @@ RETURNS: Ranked list of documents and media with relevance scores, content snipp
       includeDocuments: params.includeDocuments,
       includeMedia: params.includeMedia,
     });
+
+    cacheSearchResult(ctx.teamId, params.query, result);
 
     const sources = result.items.map((item, index) => ({
       index: index + 1,

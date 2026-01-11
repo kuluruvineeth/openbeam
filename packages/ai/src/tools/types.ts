@@ -34,7 +34,7 @@ export const ERROR_CODES: Record<
       "Access forbidden. Insufficient permissions for this operation.",
     retryable: false,
     defaultSuggestion:
-      "Request elevated permissions or contact an administrator.",
+      "Check your permissions or request elevated access from an administrator.",
   },
   NOT_FOUND: {
     description: "The requested resource was not found.",

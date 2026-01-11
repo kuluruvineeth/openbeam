@@ -36,7 +36,9 @@ RETURNS: Array of sub-queries with intent classification and importance weights.
 
   execute(params, ctx) {
     if (!ctx.teamId) {
-      return failure("UNAUTHORIZED", "Team context required for fanout");
+      return Promise.resolve(
+        failure("UNAUTHORIZED", "Team context required for fanout")
+      );
     }
 
     const startTime = performance.now();
@@ -83,23 +85,25 @@ RETURNS: Array of sub-queries with intent classification and importance weights.
     const finalSubQueries = subQueries.slice(0, params.maxSubQueries);
     const complexity = getQueryComplexity(analysis.searchTerms.length);
 
-    return success(
-      {
-        originalQuery: params.query,
-        subQueries: finalSubQueries,
-        analysis: {
-          intent: analysis.intent,
-          entities: analysis.entities.map((e) => ({
-            text: e.text,
-            type: e.type,
-          })),
-          complexity,
+    return Promise.resolve(
+      success(
+        {
+          originalQuery: params.query,
+          subQueries: finalSubQueries,
+          analysis: {
+            intent: analysis.intent,
+            entities: analysis.entities.map((e) => ({
+              text: e.text,
+              type: e.type,
+            })),
+            complexity,
+          },
         },
-      },
-      {
-        latencyMs: performance.now() - startTime,
-        source: "fanout",
-      }
+        {
+          latencyMs: performance.now() - startTime,
+          source: "fanout",
+        }
+      )
     );
   },
 });
