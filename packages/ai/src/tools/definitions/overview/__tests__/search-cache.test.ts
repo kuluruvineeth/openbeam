@@ -46,6 +46,8 @@ function createContext(overrides?: Partial<ToolContext>): ToolContext {
         list: mock(() => Promise.resolve([])),
         get: mock(() => Promise.resolve(null)),
         getSyncHistory: mock(() => Promise.resolve([])),
+        triggerSync: mock(() => Promise.reject(new Error("not used"))),
+        getSyncJobStatus: mock(() => Promise.resolve(null)),
       },
       context: {
         storeVirtualFile: mock(() => ({
