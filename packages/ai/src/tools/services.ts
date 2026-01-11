@@ -125,6 +125,36 @@ export interface SyncHistoryEntry {
   errorMessage?: string | null;
 }
 
+export interface TriggerSyncParams {
+  connectorId: string;
+  teamId: string;
+  syncType: "full" | "incremental";
+  priority: "low" | "normal" | "high";
+}
+
+export interface TriggerSyncResult {
+  jobId: string;
+  connectorId: string;
+  syncType: "full" | "incremental";
+  queued: boolean;
+  queuePosition?: number;
+  estimatedStartTime?: Date;
+}
+
+export interface SyncJobStatus {
+  jobId: string;
+  connectorId: string;
+  status: "queued" | "running" | "completed" | "failed" | "cancelled";
+  progress?: {
+    documentsProcessed: number;
+    documentsTotal?: number;
+    percentComplete?: number;
+  };
+  startedAt?: Date;
+  completedAt?: Date;
+  errorMessage?: string;
+}
+
 export interface QueryAnalysis {
   normalizedQuery: string;
   intent: string;
@@ -275,6 +305,8 @@ export interface ToolServices {
       connectorId: string,
       limit?: number
     ) => Promise<SyncHistoryEntry[]>;
+    triggerSync: (params: TriggerSyncParams) => Promise<TriggerSyncResult>;
+    getSyncJobStatus: (jobId: string) => Promise<SyncJobStatus | null>;
   };
 
   context: {
@@ -334,6 +366,8 @@ export function createUnimplementedServices(): ToolServices {
       list: notImplemented("connectors.list"),
       get: notImplemented("connectors.get"),
       getSyncHistory: notImplemented("connectors.getSyncHistory"),
+      triggerSync: notImplemented("connectors.triggerSync"),
+      getSyncJobStatus: notImplemented("connectors.getSyncJobStatus"),
     },
     context: {
       storeVirtualFile: notImplemented("context.storeVirtualFile"),

@@ -77,17 +77,52 @@ RETURNS: Ranked list of documents with relevance scores, snippets, and source me
       return failure("UNAUTHORIZED", "Team context required for search");
     }
 
+    const prefs = ctx.memory?.preferences;
+    const connectorTypes =
+      params.filters?.connectorTypes ?? prefs?.searchDefaults?.connectorTypes;
+
+    const preferredSources = prefs?.preferredSources ?? [];
+    const excludedSources = prefs?.excludedSources ?? [];
+
+    let filteredConnectorTypes = connectorTypes;
+    if (excludedSources.length > 0 && filteredConnectorTypes) {
+      filteredConnectorTypes = filteredConnectorTypes.filter(
+        (ct) => !excludedSources.includes(ct)
+      );
+    }
+
+    const startTime = performance.now();
+
     const result = await ctx.services.search.hybrid({
       query: params.query,
       teamId: ctx.teamId,
       limit: params.limit,
-      connectorTypes: params.filters?.connectorTypes,
+      connectorTypes: filteredConnectorTypes,
       accessControlIds: ctx.accessControl,
     });
 
+    const latencyMs = performance.now() - startTime;
+
+    ctx.memory?.signalSearch(params.query, result.total, latencyMs);
+
+    let documents = result.documents;
+    if (preferredSources.length > 0) {
+      documents = [...documents].sort((a, b) => {
+        const aPreferred = preferredSources.includes(a.connectorType ?? "");
+        const bPreferred = preferredSources.includes(b.connectorType ?? "");
+        if (aPreferred && !bPreferred) {
+          return -1;
+        }
+        if (!aPreferred && bPreferred) {
+          return 1;
+        }
+        return b.relevanceScore - a.relevanceScore;
+      });
+    }
+
     return success(
       {
-        results: result.documents.map((doc) => ({
+        results: documents.map((doc) => ({
           id: doc.id,
           title: doc.title,
           snippet: doc.content?.slice(0, 300),
@@ -99,6 +134,7 @@ RETURNS: Ranked list of documents with relevance scores, snippets, and source me
         })),
         totalCount: result.total,
         query: params.query,
+        personalized: preferredSources.length > 0 || excludedSources.length > 0,
       },
       {
         latencyMs: result.queryTime,

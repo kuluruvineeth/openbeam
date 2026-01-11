@@ -76,6 +76,8 @@ RETURNS: Full document including title, content, URL, metadata, author, and opti
         )
       : undefined;
 
+    ctx.memory?.signalDocumentView(doc.id, doc.title);
+
     return success(
       {
         document: {

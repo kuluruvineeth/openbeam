@@ -43,24 +43,54 @@ RETURNS: Job ID for tracking sync progress. Use connector_status with the connec
       ),
   }),
 
-  execute(params, ctx) {
+  async execute(params, ctx) {
     const startTime = performance.now();
 
     if (!ctx.teamId) {
-      return Promise.resolve(failure("UNAUTHORIZED", "Team context required"));
+      return failure("UNAUTHORIZED", "Team context required");
     }
 
-    return Promise.resolve(
-      success(
-        {
-          connectorId: params.connectorId,
-          syncType: params.syncType,
-          jobId: null,
-          queued: false,
-          message: "Sync functionality not yet implemented",
-        },
-        { latencyMs: performance.now() - startTime, source: "queue" }
-      )
+    const connector = await ctx.services.connectors.get(params.connectorId);
+    if (!connector) {
+      return failure("NOT_FOUND", `Connector ${params.connectorId} not found`);
+    }
+
+    if (connector.status === "error") {
+      return failure(
+        "INVALID_STATE",
+        `Connector is in error state: ${connector.errorMessage ?? "Unknown error"}. Fix the connector configuration before syncing.`
+      );
+    }
+
+    if (connector.status !== "active") {
+      return failure(
+        "INVALID_STATE",
+        `Connector is ${connector.status}. Only active connectors can be synced.`
+      );
+    }
+
+    const result = await ctx.services.connectors.triggerSync({
+      connectorId: params.connectorId,
+      teamId: ctx.teamId,
+      syncType: params.syncType ?? "incremental",
+      priority: params.priority ?? "normal",
+    });
+
+    return success(
+      {
+        connectorId: result.connectorId,
+        connectorName: connector.name,
+        connectorType: connector.type,
+        syncType: result.syncType,
+        jobId: result.jobId,
+        queued: result.queued,
+        queuePosition: result.queuePosition,
+        estimatedStartTime: result.estimatedStartTime?.toISOString(),
+        message: result.queued
+          ? `Sync job queued${result.queuePosition ? ` at position ${result.queuePosition}` : ""}`
+          : "Sync job started",
+      },
+      { latencyMs: performance.now() - startTime, source: "queue" }
     );
   },
 });

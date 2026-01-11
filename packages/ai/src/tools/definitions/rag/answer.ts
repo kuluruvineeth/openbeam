@@ -70,6 +70,9 @@ RETURNS: A grounded answer with citations linking claims to source documents. Ea
       return failure("UNAUTHORIZED", "Team context required");
     }
 
+    const corrections = ctx.memory?.getCorrections(params.question) ?? [];
+    const learnedFacts = ctx.memory?.getLearnedFacts(params.question) ?? [];
+
     const result = await ctx.services.rag.answer({
       query: params.question,
       teamId: ctx.teamId,
@@ -79,6 +82,27 @@ RETURNS: A grounded answer with citations linking claims to source documents. Ea
       accessControlIds: ctx.accessControl,
       includeMedia: params.includeMedia,
     });
+
+    ctx.memory?.signal({
+      type: "tool_succeeded",
+      data: {
+        tool: "rag_answer",
+        question: params.question,
+        citationCount: result.citations.length,
+      },
+      importance: "medium",
+    });
+
+    const relevantCorrections = corrections.map((c) => ({
+      original: c.original,
+      corrected: c.corrected,
+      confidence: c.confidence,
+    }));
+
+    const relevantFacts = learnedFacts.map((f) => ({
+      fact: f.fact,
+      confidence: f.confidence,
+    }));
 
     return success(
       {
@@ -97,6 +121,12 @@ RETURNS: A grounded answer with citations linking claims to source documents. Ea
           truncated: result.context.truncated,
         },
         usage: result.usage,
+        memoryContext: {
+          correctionsApplied: relevantCorrections.length,
+          corrections: relevantCorrections,
+          learnedFactsUsed: relevantFacts.length,
+          learnedFacts: relevantFacts,
+        },
       },
       {
         latencyMs: result.latencyMs,

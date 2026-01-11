@@ -1,5 +1,6 @@
 import type { Tool, ToolExecutionOptions } from "ai";
 import type { z } from "zod";
+import type { MemoryAccess } from "../memory/access";
 import type { ToolServices } from "./services";
 
 export type { ErrorCode, ToolCategory } from "@openplane/types/common";
@@ -156,6 +157,28 @@ export interface ToolContext {
   abortSignal?: AbortSignal;
   metadata?: Record<string, unknown>;
   services: ToolServices;
+
+  /**
+   * Memory access for personalization and learning.
+   *
+   * Tools can use memory to:
+   * - READ: User preferences, recent history, learned corrections, facts
+   * - SIGNAL: Observations for memory accumulation (searches, views, corrections)
+   *
+   * Memory is OPTIONAL - tools that don't need it can ignore it.
+   * This enables Glean-level personalization without coupling tools to memory impl.
+   *
+   * @example
+   * ```typescript
+   * // Read user preferences to personalize search
+   * const prefs = ctx.memory?.preferences;
+   * const sourceWeights = prefs?.preferredSources ?? [];
+   *
+   * // Signal a search for memory accumulation
+   * ctx.memory?.signalSearch(query, results.length, latencyMs);
+   * ```
+   */
+  memory?: MemoryAccess;
 }
 
 export interface ToolResultMetadata {
