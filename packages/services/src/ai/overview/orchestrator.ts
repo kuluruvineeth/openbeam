@@ -293,7 +293,8 @@ function processContext(
 async function checkSemanticCache(
   request: OverviewRequest,
   config: OverviewConfig,
-  timing: OverviewTiming
+  timing: OverviewTiming,
+  startTime: number
 ): Promise<{
   cached: boolean;
   response?: OverviewResponse;
@@ -335,7 +336,7 @@ async function checkSemanticCache(
           content: entry.response.answer,
           citations: entry.response.citations as OverviewCitation[],
           groundingScore: entry.response.groundingScore,
-          timing: { ...timing, totalMs: performance.now() - cacheCheckStart },
+          timing: { ...timing, totalMs: performance.now() - startTime },
           usage: createEmptyUsage(),
         },
       };
@@ -439,7 +440,12 @@ export async function generateOverview(
     enableFanout: request.enableFanout ?? DEFAULT_OVERVIEW_CONFIG.enableFanout,
   };
 
-  const cacheResult = await checkSemanticCache(request, config, timing);
+  const cacheResult = await checkSemanticCache(
+    request,
+    config,
+    timing,
+    startTime
+  );
   if (cacheResult.cached && cacheResult.response) {
     recordCachedMetrics(request, cacheResult.response);
     return cacheResult.response;

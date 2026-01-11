@@ -2,31 +2,103 @@ import { getSearchCache } from "@openplane/redis";
 import { z } from "zod";
 import { defineTool, failure, success } from "../../builder";
 
-type SearchResultItem = {
+type FlatUnifiedSearchItem = {
   id: string;
+  type: "document" | "media";
+  title: string;
+  content?: string;
+  url?: string;
+  connectorType?: string;
   relevanceScore: number;
 };
 
-type SearchResultForCache = {
-  items: SearchResultItem[];
-  total: number;
+type RawUnifiedSearchItem = {
+  type: "document" | "media";
+  data: Record<string, unknown>;
+  relevance: number;
 };
+
+type UnifiedSearchItemLike = FlatUnifiedSearchItem | RawUnifiedSearchItem;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function getOptionalString(
+  record: Record<string, unknown>,
+  key: string
+): string | undefined {
+  const value = record[key];
+  return typeof value === "string" ? value : undefined;
+}
+
+function extractUnifiedItem(
+  item: UnifiedSearchItemLike
+): FlatUnifiedSearchItem {
+  if ("id" in item) {
+    return item;
+  }
+
+  const id = getOptionalString(item.data, "id") ?? "";
+  const title = getOptionalString(item.data, "title") ?? "";
+  const url = getOptionalString(item.data, "url");
+  const connectorType =
+    getOptionalString(item.data, "connectorType") ??
+    getOptionalString(item.data, "connector_type");
+
+  const content =
+    getOptionalString(item.data, "content") ??
+    ([
+      getOptionalString(item.data, "description"),
+      getOptionalString(item.data, "media_summary"),
+      getOptionalString(item.data, "transcript"),
+    ]
+      .filter((v): v is string => typeof v === "string" && v.length > 0)
+      .join("\n\n") ||
+      undefined);
+
+  return {
+    id,
+    type: item.type,
+    title,
+    content,
+    url,
+    connectorType,
+    relevanceScore: item.relevance,
+  };
+}
 
 async function cacheSearchResult(
   teamId: string,
   query: string,
-  result: SearchResultForCache
+  result: { items: unknown[]; total: number }
 ): Promise<void> {
   if (result.items.length === 0) {
     return;
   }
 
   try {
+    const items: FlatUnifiedSearchItem[] = result.items
+      .filter((item): item is UnifiedSearchItemLike => isRecord(item))
+      .map((item) => extractUnifiedItem(item));
+
+    const documentItems = items.filter(
+      (item) =>
+        item.type === "document" &&
+        typeof item.id === "string" &&
+        item.id.length > 0 &&
+        typeof item.relevanceScore === "number"
+    );
+
+    if (documentItems.length === 0) {
+      return;
+    }
+
     const searchCache = getSearchCache();
     await searchCache.set(teamId, query, {
-      documentIds: result.items.map((item) => item.id),
+      documentIds: documentItems.map((item) => item.id),
       scores: Object.fromEntries(
-        result.items.map((item) => [item.id, item.relevanceScore])
+        documentItems.map((item) => [item.id, item.relevanceScore])
       ),
       totalCount: result.total,
       cachedAt: Date.now(),
@@ -100,9 +172,13 @@ RETURNS: Ranked list of documents and media with relevance scores, content snipp
       includeMedia: params.includeMedia,
     });
 
-    cacheSearchResult(ctx.teamId, params.query, result);
+    await cacheSearchResult(ctx.teamId, params.query, result);
 
-    const sources = result.items.map((item, index) => ({
+    const extractedItems = (result.items as unknown[])
+      .filter((item): item is UnifiedSearchItemLike => isRecord(item))
+      .map((item) => extractUnifiedItem(item));
+
+    const sources = extractedItems.map((item, index) => ({
       index: index + 1,
       id: item.id,
       title: item.title,
@@ -116,10 +192,10 @@ RETURNS: Ranked list of documents and media with relevance scores, content snipp
     return success(
       {
         success: true,
-        documentCount: result.items.length,
+        documentCount: sources.length,
         totalAvailable: result.total,
         sources,
-        contextForCitations: result.items.map((item, index) => ({
+        contextForCitations: extractedItems.map((item, index) => ({
           index: index + 1,
           id: item.id,
           title: item.title,
