@@ -100,6 +100,10 @@ async function runWeeklyAnalysis(
   const minFrequency = data.minFrequency ?? 50;
   const minSuccessRate = data.minSuccessRate ?? 0.8;
 
+  const observedPatternsCount = patterns.filter(
+    (p) => p.status === "observed"
+  ).length;
+
   const formalizationCandidates = patterns.filter(
     (p) =>
       p.frequency >= minFrequency &&
@@ -130,7 +134,7 @@ async function runWeeklyAnalysis(
 
   const result: EmergenceDetectionResult = {
     patternsAnalyzed: patterns.length,
-    newPatterns: patterns.filter((p) => p.status === "observed").length,
+    newPatterns: observedPatternsCount,
     validatedPatterns: formalizationCandidates.length,
     formalizationCandidates,
     durationMs: Date.now() - startTime,
