@@ -4,6 +4,7 @@ export * from "./data";
 export * from "./documents";
 export * from "./memory";
 export * from "./overview";
+export * from "./preferences";
 export * from "./rag";
 export * from "./search";
 export * from "./system";
@@ -15,6 +16,7 @@ import { registerDataTools } from "./data";
 import { registerDocumentTools } from "./documents";
 import { registerMemoryTools } from "./memory";
 import { registerOverviewTools } from "./overview";
+import { registerPreferencesTools } from "./preferences";
 import { registerRagTools } from "./rag";
 import { registerSearchTools } from "./search";
 import { registerSystemTools } from "./system";
@@ -34,6 +36,7 @@ export function registerAllTools(): void {
   registerContextTools();
   registerMemoryTools();
   registerOverviewTools();
+  registerPreferencesTools();
   registerSystemTools();
   toolSearchTool.register();
 

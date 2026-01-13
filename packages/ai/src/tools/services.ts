@@ -82,6 +82,56 @@ export interface RAGResponse {
   latencyMs: number;
 }
 
+export interface SynthesizeParams {
+  question: string;
+  chunks: Array<{
+    content: string;
+    documentId: string;
+    documentTitle?: string;
+    documentUrl?: string;
+    position?: number;
+  }>;
+  temperature?: number;
+  maxOutputTokens?: number;
+  instructions?: string;
+}
+
+export interface SynthesizeResponse {
+  answer: string;
+  citations: Array<{
+    documentId: string;
+    chunkIndex: number;
+    snippet: string;
+    relevance: number;
+  }>;
+  usage: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
+  latencyMs: number;
+}
+
+export interface CapabilityInfo {
+  connectors: Array<{
+    type: string;
+    name: string;
+    documentCount: number;
+    lastSyncAt: Date | null;
+    status: string;
+  }>;
+  tools: Array<{
+    name: string;
+    category: string;
+    description: string;
+  }>;
+  stats: {
+    totalDocuments: number;
+    totalConnectors: number;
+    activeConnectors: number;
+  };
+}
+
 export interface Document {
   id: string;
   title: string;
@@ -268,21 +318,78 @@ export interface UnifiedSearchResponse {
   embeddingTime?: number;
 }
 
+export interface PauseResumeResult {
+  connectorId: string;
+  previousStatus: string;
+  newStatus: string;
+  message: string;
+}
+
+export interface SyncHistoryPage {
+  entries: SyncHistoryEntry[];
+  pagination: {
+    total: number;
+    limit: number;
+    offset: number;
+    hasMore: boolean;
+  };
+}
+
+export interface ExportResult {
+  fileId: string;
+  fileName: string;
+  format: "json" | "csv" | "markdown";
+  size: number;
+  downloadUrl?: string;
+}
+
+export interface ShareResult {
+  shareId: string;
+  shareUrl: string;
+  expiresAt?: Date;
+}
+
+export interface UserPreferences {
+  preferredSources: string[];
+  excludedSources: string[];
+  defaultSearchLimit: number;
+  dateRangeDefault?: "day" | "week" | "month" | "year" | "all";
+  resultDisplayMode: "compact" | "detailed";
+}
+
 export interface ToolServices {
   search: {
     hybrid: (params: SearchParams) => Promise<SearchResponse>;
     semantic: (params: SearchParams) => Promise<SearchResponse>;
     keyword: (params: SearchParams) => Promise<SearchResponse>;
     unified: (params: UnifiedSearchParams) => Promise<UnifiedSearchResponse>;
+    export: (params: {
+      teamId: string;
+      query: string;
+      format: "json" | "csv" | "markdown";
+      limit?: number;
+    }) => Promise<ExportResult>;
+    save: (params: {
+      teamId: string;
+      userId: string;
+      name: string;
+      query: string;
+      filters?: Record<string, unknown>;
+    }) => Promise<{ savedSearchId: string; name: string }>;
   };
 
   rag: {
     answer: (params: RAGParams) => Promise<RAGResponse>;
+    synthesize: (params: SynthesizeParams) => Promise<SynthesizeResponse>;
     analyzeQuery: (query: string) => QueryAnalysis;
     verifyGrounding: (
       response: string,
       documents: Document[]
     ) => GroundingResult;
+  };
+
+  discovery: {
+    getCapabilities: (teamId: string) => Promise<CapabilityInfo>;
   };
 
   documents: {
@@ -296,6 +403,17 @@ export interface ToolServices {
       sortOrder?: "asc" | "desc";
     }) => Promise<{ documents: Document[]; total: number }>;
     getChunks: (documentId: string) => Promise<DocumentChunk[]>;
+    export: (params: {
+      documentId: string;
+      teamId: string;
+      format: "json" | "markdown" | "text";
+    }) => Promise<ExportResult>;
+    share: (params: {
+      documentId: string;
+      teamId: string;
+      userId: string;
+      expiresInHours?: number;
+    }) => Promise<ShareResult>;
   };
 
   connectors: {
@@ -305,8 +423,24 @@ export interface ToolServices {
       connectorId: string,
       limit?: number
     ) => Promise<SyncHistoryEntry[]>;
+    getSyncHistoryPaginated: (params: {
+      connectorId: string;
+      limit?: number;
+      offset?: number;
+    }) => Promise<SyncHistoryPage>;
     triggerSync: (params: TriggerSyncParams) => Promise<TriggerSyncResult>;
     getSyncJobStatus: (jobId: string) => Promise<SyncJobStatus | null>;
+    pause: (connectorId: string, teamId: string) => Promise<PauseResumeResult>;
+    resume: (connectorId: string, teamId: string) => Promise<PauseResumeResult>;
+  };
+
+  preferences: {
+    get: (userId: string, teamId: string) => Promise<UserPreferences>;
+    update: (
+      userId: string,
+      teamId: string,
+      preferences: Partial<UserPreferences>
+    ) => Promise<UserPreferences>;
   };
 
   context: {
@@ -351,23 +485,40 @@ export function createUnimplementedServices(): ToolServices {
       semantic: notImplemented("search.semantic"),
       keyword: notImplemented("search.keyword"),
       unified: notImplemented("search.unified"),
+      export: notImplemented("search.export"),
+      save: notImplemented("search.save"),
     },
     rag: {
       answer: notImplemented("rag.answer"),
+      synthesize: notImplemented("rag.synthesize"),
       analyzeQuery: notImplemented("rag.analyzeQuery"),
       verifyGrounding: notImplemented("rag.verifyGrounding"),
+    },
+    discovery: {
+      getCapabilities: notImplemented("discovery.getCapabilities"),
     },
     documents: {
       get: notImplemented("documents.get"),
       list: notImplemented("documents.list"),
       getChunks: notImplemented("documents.getChunks"),
+      export: notImplemented("documents.export"),
+      share: notImplemented("documents.share"),
     },
     connectors: {
       list: notImplemented("connectors.list"),
       get: notImplemented("connectors.get"),
       getSyncHistory: notImplemented("connectors.getSyncHistory"),
+      getSyncHistoryPaginated: notImplemented(
+        "connectors.getSyncHistoryPaginated"
+      ),
       triggerSync: notImplemented("connectors.triggerSync"),
       getSyncJobStatus: notImplemented("connectors.getSyncJobStatus"),
+      pause: notImplemented("connectors.pause"),
+      resume: notImplemented("connectors.resume"),
+    },
+    preferences: {
+      get: notImplemented("preferences.get"),
+      update: notImplemented("preferences.update"),
     },
     context: {
       storeVirtualFile: notImplemented("context.storeVirtualFile"),
