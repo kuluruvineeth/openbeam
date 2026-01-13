@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "bun:test";
 import {
   createJsonContent,
   createResourceContent,
@@ -154,7 +154,7 @@ describe("ResourceRegistry", () => {
       let receivedContext: MCPServerContext | null = null;
       const handler = (_uri: string, ctx: MCPServerContext) => {
         receivedContext = ctx;
-        return { contents: [] };
+        return Promise.resolve({ contents: [] });
       };
 
       registry.register(defineConnectorsResource(), handler);
@@ -162,7 +162,9 @@ describe("ResourceRegistry", () => {
       const context = createTestContext({ teamId: "team_specific" });
       await registry.read("openplane://connectors", context);
 
-      expect(receivedContext?.teamId).toBe("team_specific");
+      expect((receivedContext as unknown as MCPServerContext).teamId).toBe(
+        "team_specific"
+      );
     });
 
     it("prefers static resources over templates", async () => {
@@ -292,7 +294,7 @@ describe("URI Template Matching", () => {
     expect(registry.has("openplane://teams/t1")).toBe(false);
   });
 
-  it("distinguishes between different templates", () => {
+  it("distinguishes between different templates", async () => {
     let calledTemplate: string | null = null;
 
     registry.registerTemplate(
@@ -303,7 +305,7 @@ describe("URI Template Matching", () => {
       },
       () => {
         calledTemplate = "a";
-        return { contents: [] };
+        return Promise.resolve({ contents: [] });
       }
     );
     registry.registerTemplate(
@@ -314,15 +316,15 @@ describe("URI Template Matching", () => {
       },
       () => {
         calledTemplate = "b";
-        return { contents: [] };
+        return Promise.resolve({ contents: [] });
       }
     );
 
-    registry.read("openplane://a/123", createTestContext());
-    expect(calledTemplate).toBe("a");
+    await registry.read("openplane://a/123", createTestContext());
+    expect(calledTemplate as unknown as string).toBe("a");
 
-    registry.read("openplane://b/456", createTestContext());
-    expect(calledTemplate).toBe("b");
+    await registry.read("openplane://b/456", createTestContext());
+    expect(calledTemplate as unknown as string).toBe("b");
   });
 });
 

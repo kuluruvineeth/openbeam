@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, mock } from "bun:test";
 import { ToolRegistry } from "../../tools/registry";
 import {
   createMCPServer,
@@ -341,7 +341,7 @@ describe("MCPServer", () => {
 
   describe("notification handling", () => {
     it("handles registered notifications", () => {
-      const handler = vi.fn();
+      const handler = mock();
       server.onNotification("test/event", handler);
 
       server.handleNotification(
@@ -360,7 +360,7 @@ describe("MCPServer", () => {
     });
 
     it("supports unsubscribing from notifications", () => {
-      const handler = vi.fn();
+      const handler = mock();
       const unsubscribe = server.onNotification("test/event", handler);
 
       unsubscribe();

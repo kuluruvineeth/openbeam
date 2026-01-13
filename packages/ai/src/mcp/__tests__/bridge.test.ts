@@ -1,8 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, spyOn } from "bun:test";
 import { z } from "zod";
 import { defineTool, success } from "../../tools/builder";
 import { ToolRegistry } from "../../tools/registry";
-import type { ToolServices } from "../../tools/types";
+import type { ToolServices } from "../../tools/services";
 import {
   convertZodToJsonSchema,
   createMCPToolBridge,
@@ -257,7 +257,7 @@ describe("MCPToolBridge", () => {
     });
 
     it("notifies registry of execution", async () => {
-      const notifySpy = vi.spyOn(registry, "notifyExecute");
+      const notifySpy = spyOn(registry, "notifyExecute");
       const notifyTool = defineTool({
         name: "notify_tool",
         description: "Notify",

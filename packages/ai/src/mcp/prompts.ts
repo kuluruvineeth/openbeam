@@ -313,3 +313,29 @@ export const promptRegistry = new PromptRegistry();
 export function createPromptRegistry(): PromptRegistry {
   return new PromptRegistry();
 }
+
+export function registerDefaultPrompts(registry: PromptRegistry): void {
+  registry.register(defineEnterpriseSearchPrompt(), async (args) => ({
+    messages: buildSearchPromptMessages(args),
+  }));
+
+  registry.register(defineDocumentSummaryPrompt(), async (args) => ({
+    messages: buildSummaryPromptMessages(args),
+  }));
+
+  registry.register(defineAnswerQuestionPrompt(), async (args) => ({
+    messages: buildAnswerPromptMessages(args),
+  }));
+
+  registry.register(defineAnalyzeDocumentsPrompt(), async (args) => ({
+    messages: buildAnalysisPromptMessages(args),
+  }));
+
+  registry.register(defineExplainConnectorPrompt(), async (args) => ({
+    messages: buildConnectorExplanationMessages(args),
+  }));
+
+  registry.register(defineFindExpertPrompt(), async (args) => ({
+    messages: buildExpertFinderMessages(args),
+  }));
+}

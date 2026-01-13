@@ -28,7 +28,8 @@ export function registeredToolToMCPDefinition(
   registered: RegisteredTool
 ): MCPToolDefinition {
   const { metadata, coreTool } = registered;
-  const inputSchema = (coreTool as { inputSchema?: z.ZodTypeAny }).inputSchema;
+  const inputSchema = (coreTool as unknown as { inputSchema?: z.ZodTypeAny })
+    .inputSchema;
 
   return {
     name: metadata.name,
@@ -45,7 +46,8 @@ export function registeredToolToMCPListItem(
   registered: RegisteredTool
 ): MCPToolListItem {
   const { metadata, coreTool } = registered;
-  const inputSchema = (coreTool as { inputSchema?: z.ZodTypeAny }).inputSchema;
+  const inputSchema = (coreTool as unknown as { inputSchema?: z.ZodTypeAny })
+    .inputSchema;
 
   return {
     name: metadata.name,

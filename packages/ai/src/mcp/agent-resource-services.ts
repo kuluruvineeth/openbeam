@@ -208,7 +208,7 @@ export function createAgentResourceServices(
           documentType: true,
           sourceId: true,
           sourcePath: true,
-          createdAt: true,
+          indexedAt: true,
           lastSyncedAt: true,
           createdAtSource: true,
           updatedAtSource: true,
@@ -228,11 +228,11 @@ export function createAgentResourceServices(
         sourceType: document.connector.app,
         sourceId: document.sourceId ?? document.externalId,
         url: document.sourcePath,
-        createdAt: document.createdAtSource ?? document.createdAt,
+        createdAt: document.createdAtSource ?? document.indexedAt,
         updatedAt:
           document.updatedAtSource ??
           document.lastSyncedAt ??
-          document.createdAt,
+          document.indexedAt,
         metadata: (document.metadata as Record<string, unknown>) ?? {},
       };
     },
@@ -299,7 +299,7 @@ export function createAgentResourceServices(
         where: {
           connectorId,
           status: "FAILED",
-          createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+          startedAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
         },
       });
 

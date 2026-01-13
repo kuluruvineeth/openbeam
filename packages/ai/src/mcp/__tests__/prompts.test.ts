@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "bun:test";
 import {
   buildAnalysisPromptMessages,
   buildAnswerPromptMessages,
@@ -120,7 +120,7 @@ describe("PromptRegistry", () => {
       let receivedArgs: Record<string, string> = {};
       const handler = (args: Record<string, string>) => {
         receivedArgs = args;
-        return { messages: [] };
+        return Promise.resolve({ messages: [] });
       };
 
       registry.register(defineEnterpriseSearchPrompt(), handler);
@@ -142,7 +142,7 @@ describe("PromptRegistry", () => {
         ctx: MCPServerContext
       ) => {
         receivedContext = ctx;
-        return { messages: [] };
+        return Promise.resolve({ messages: [] });
       };
 
       registry.register(defineEnterpriseSearchPrompt(), handler);
@@ -150,7 +150,9 @@ describe("PromptRegistry", () => {
       const context = createTestContext({ teamId: "specific_team" });
       await registry.get("enterprise-search", { query: "test" }, context);
 
-      expect(receivedContext?.teamId).toBe("specific_team");
+      expect((receivedContext as unknown as MCPServerContext).teamId).toBe(
+        "specific_team"
+      );
     });
   });
 

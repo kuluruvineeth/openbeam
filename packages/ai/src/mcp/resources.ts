@@ -1,11 +1,11 @@
 import type {
-  MCPContent,
   MCPResource,
   MCPResourceContent,
   MCPResourceDefinition,
   MCPResourceReadResult,
   MCPResourceTemplate,
   MCPServerContext,
+  MCPTextContent,
 } from "./types";
 
 export type ResourceHandler = (
@@ -137,11 +137,11 @@ export function extractUriParam(
   return params?.[paramName] ?? null;
 }
 
-export function createTextContent(text: string): MCPContent {
+export function createTextContent(text: string): MCPTextContent {
   return { type: "text", text };
 }
 
-export function createJsonContent(data: unknown): MCPContent {
+export function createJsonContent(data: unknown): MCPTextContent {
   return { type: "text", text: JSON.stringify(data, null, 2) };
 }
 

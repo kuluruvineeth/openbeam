@@ -52,6 +52,7 @@ export {
   type PromptHandler,
   PromptRegistry,
   promptRegistry,
+  registerDefaultPrompts,
 } from "./prompts";
 export {
   type ConnectorsResourceData,
