@@ -384,13 +384,47 @@ export class LlmAgent extends BaseAgent {
 
     const history = ctx.memory.getRelevantHistory("", { limit: 5 });
 
-    return history.map((h) => ({
-      type: h.type as "search" | "view" | "edit" | "sync" | "question",
-      description: h.query ?? h.documentTitle ?? "interaction",
-      timestamp: h.timestamp.getTime(),
-      documentId: h.documentId,
-      documentTitle: h.documentTitle,
-    }));
+    return history.map((h) => {
+      const type: ContextMdInput["recentActivity"][number]["type"] = (() => {
+        switch (h.type) {
+          case "search":
+            return "search";
+          case "view":
+            return "view";
+          case "click":
+            // Memory events can record "click" separately from "view", but the
+            // context.md schema intentionally models this as a "view" activity.
+            return "view";
+          case "interaction":
+            // Generic interaction events are best represented as a "question"
+            // activity in context.md.
+            return "question";
+          default: {
+            const _exhaustive: never = h.type;
+            return _exhaustive;
+          }
+        }
+      })();
+
+      const description = (() => {
+        // Preserve the old behavior: prefer query, then document title.
+        if (h.query) {
+          return h.query;
+        }
+        if (h.documentTitle) {
+          return h.documentTitle;
+        }
+        return "interaction";
+      })();
+
+      return {
+        type,
+        description,
+        timestamp: h.timestamp.getTime(),
+        documentId: h.documentId,
+        documentTitle: h.documentTitle,
+      };
+    });
   }
 
   private buildToolContext(ctx: AgentExecutionContext): ToolContext {
