@@ -4,14 +4,18 @@ import { toolRegistry } from "./registry";
 import {
   type AISDKTool,
   type AllowedCaller,
+  type ApprovalPattern,
   ERROR_CODES,
   type ErrorCode,
+  type ReversibilityLevel,
+  type StakesLevel,
   type ToolCategory,
   type ToolContext,
   type ToolExecutionOptions,
   type ToolExecutionResult,
   type ToolMetadata,
   type ToolResultMetadata,
+  type ToolRiskProfile,
 } from "./types";
 
 interface ToolConfig<TParams extends z.ZodType, TResult> {
@@ -22,7 +26,7 @@ interface ToolConfig<TParams extends z.ZodType, TResult> {
   execute: (
     params: z.output<TParams>,
     context: ToolContext
-  ) => Promise<ToolExecutionResult<TResult>>;
+  ) => ToolExecutionResult<TResult> | Promise<ToolExecutionResult<TResult>>;
   deferLoading?: boolean;
   searchKeywords?: string[];
   requiredPermissions?: string[];
@@ -30,6 +34,9 @@ interface ToolConfig<TParams extends z.ZodType, TResult> {
   cacheTtlMs?: number;
   cacheKeyFn?: (params: z.output<TParams>) => string;
   strict?: boolean;
+  stakes?: StakesLevel;
+  reversibility?: ReversibilityLevel;
+  approval?: ApprovalPattern;
 }
 
 export interface ToolDefinition<TParams extends z.ZodType, TResult> {
@@ -42,9 +49,49 @@ export interface ToolDefinition<TParams extends z.ZodType, TResult> {
   register: () => void;
 }
 
+function deriveApprovalPattern(
+  stakes: StakesLevel,
+  reversibility: ReversibilityLevel,
+  explicit?: ApprovalPattern
+): ApprovalPattern {
+  if (explicit) {
+    return explicit;
+  }
+
+  if (stakes === "low" && reversibility === "easy") {
+    return "auto";
+  }
+  if (stakes === "low" && reversibility === "hard") {
+    return "quick-confirm";
+  }
+  if (stakes === "high" && reversibility === "easy") {
+    return "suggest-apply";
+  }
+  if (stakes === "high") {
+    return "explicit";
+  }
+  if (stakes === "medium" && reversibility === "irreversible") {
+    return "explicit";
+  }
+  return "quick-confirm";
+}
+
 export function defineTool<TParams extends z.ZodType, TResult>(
   config: ToolConfig<TParams, TResult>
 ): ToolDefinition<TParams, TResult> {
+  const stakes = config.stakes ?? "low";
+  const reversibility = config.reversibility ?? "easy";
+  const approval = deriveApprovalPattern(
+    stakes,
+    reversibility,
+    config.approval
+  );
+
+  const riskProfile: ToolRiskProfile | undefined =
+    config.stakes || config.reversibility || config.approval
+      ? { stakes, reversibility, approval }
+      : undefined;
+
   const metadata: ToolMetadata = {
     name: config.name,
     description: config.description,
@@ -54,6 +101,7 @@ export function defineTool<TParams extends z.ZodType, TResult>(
     requiredPermissions: config.requiredPermissions ?? [],
     allowedCallers: config.allowedCallers ?? ["agent", "mcp"],
     cacheTtlMs: config.cacheTtlMs,
+    riskProfile,
   };
 
   const coreTool = tool({
@@ -82,7 +130,8 @@ export function defineTool<TParams extends z.ZodType, TResult>(
   return {
     metadata,
     coreTool: coreTool as AISDKTool,
-    execute: config.execute,
+    execute: async (params: z.output<TParams>, ctx: ToolContext) =>
+      await Promise.resolve(config.execute(params, ctx)),
     register: () => {
       toolRegistry.register(
         metadata,

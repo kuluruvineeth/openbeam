@@ -197,6 +197,20 @@ export interface ToolExecutionResult<T = unknown> {
 
 export type AISDKTool = Tool<unknown, unknown>;
 
+export type StakesLevel = "low" | "medium" | "high";
+export type ReversibilityLevel = "easy" | "hard" | "irreversible";
+export type ApprovalPattern =
+  | "auto"
+  | "quick-confirm"
+  | "suggest-apply"
+  | "explicit";
+
+export interface ToolRiskProfile {
+  stakes: StakesLevel;
+  reversibility: ReversibilityLevel;
+  approval: ApprovalPattern;
+}
+
 export interface ToolMetadata {
   name: string;
   description: string;
@@ -206,6 +220,7 @@ export interface ToolMetadata {
   requiredPermissions?: string[];
   allowedCallers?: AllowedCaller[];
   cacheTtlMs?: number;
+  riskProfile?: ToolRiskProfile;
 }
 
 export interface RegisteredTool {
@@ -238,6 +253,9 @@ export interface ToolBuilderOptions<TSchema extends z.ZodType, TResult> {
   allowedCallers?: AllowedCaller[];
   cacheTtlMs?: number;
   cacheKeyFn?: (params: z.output<TSchema>) => string;
+  stakes?: StakesLevel;
+  reversibility?: ReversibilityLevel;
+  approval?: ApprovalPattern;
 }
 
 export type { ToolExecutionOptions };
