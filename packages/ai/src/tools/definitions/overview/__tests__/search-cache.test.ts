@@ -21,9 +21,12 @@ function createContext(overrides?: Partial<ToolContext>): ToolContext {
         semantic: mock(() => Promise.reject(new Error("not used"))),
         keyword: mock(() => Promise.reject(new Error("not used"))),
         unified: mock(() => Promise.reject(new Error("not used"))),
+        export: mock(() => Promise.reject(new Error("not used"))),
+        save: mock(() => Promise.reject(new Error("not used"))),
       },
       rag: {
         answer: mock(() => Promise.reject(new Error("not used"))),
+        synthesize: mock(() => Promise.reject(new Error("not used"))),
         analyzeQuery: mock(() => ({
           normalizedQuery: "",
           intent: "",
@@ -37,17 +40,30 @@ function createContext(overrides?: Partial<ToolContext>): ToolContext {
           claims: [],
         })),
       },
+      discovery: {
+        getCapabilities: mock(() => Promise.reject(new Error("not used"))),
+      },
       documents: {
         get: mock(() => Promise.resolve(null)),
         list: mock(() => Promise.resolve({ documents: [], total: 0 })),
         getChunks: mock(() => Promise.resolve([])),
+        export: mock(() => Promise.reject(new Error("not used"))),
+        share: mock(() => Promise.reject(new Error("not used"))),
       },
       connectors: {
         list: mock(() => Promise.resolve([])),
         get: mock(() => Promise.resolve(null)),
         getSyncHistory: mock(() => Promise.resolve([])),
+        getSyncHistoryPaginated: mock(() =>
+          Promise.resolve({
+            entries: [],
+            pagination: { total: 0, limit: 20, offset: 0, hasMore: false },
+          })
+        ),
         triggerSync: mock(() => Promise.reject(new Error("not used"))),
         getSyncJobStatus: mock(() => Promise.resolve(null)),
+        pause: mock(() => Promise.reject(new Error("not used"))),
+        resume: mock(() => Promise.reject(new Error("not used"))),
       },
       context: {
         storeVirtualFile: mock(() => ({
@@ -65,6 +81,10 @@ function createContext(overrides?: Partial<ToolContext>): ToolContext {
         getSpreadsheetSchema: mock(() => Promise.reject(new Error("not used"))),
         generateSql: mock(() => Promise.reject(new Error("not used"))),
         executeQuery: mock(() => Promise.reject(new Error("not used"))),
+      },
+      preferences: {
+        get: mock(() => Promise.reject(new Error("not used"))),
+        update: mock(() => Promise.reject(new Error("not used"))),
       },
     },
     ...overrides,

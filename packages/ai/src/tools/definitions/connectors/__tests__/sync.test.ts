@@ -57,20 +57,80 @@ function createMockJobStatus(
 function createMockServices(
   overrides: Partial<ToolServices["connectors"]> = {}
 ): ToolServices {
+  const notUsed = () => {
+    throw new Error("not used");
+  };
   return {
     connectors: {
       list: mock(() => Promise.resolve([])),
       get: mock(() => Promise.resolve(createMockConnector())),
       getSyncHistory: mock(() => Promise.resolve([])),
+      getSyncHistoryPaginated: mock(() =>
+        Promise.resolve({
+          entries: [],
+          pagination: { total: 0, limit: 20, offset: 0, hasMore: false },
+        })
+      ),
       triggerSync: mock(() => Promise.resolve(createMockSyncResult())),
       getSyncJobStatus: mock(() => Promise.resolve(createMockJobStatus())),
+      pause: mock(() =>
+        Promise.resolve({
+          connectorId: "conn_123",
+          previousStatus: "active",
+          newStatus: "inactive",
+          message: "Paused",
+        })
+      ),
+      resume: mock(() =>
+        Promise.resolve({
+          connectorId: "conn_123",
+          previousStatus: "inactive",
+          newStatus: "active",
+          message: "Resumed",
+        })
+      ),
       ...overrides,
     },
-    search: {} as ToolServices["search"],
-    rag: {} as ToolServices["rag"],
-    documents: {} as ToolServices["documents"],
-    context: {} as ToolServices["context"],
-    analytics: {} as ToolServices["analytics"],
+    search: {
+      hybrid: notUsed,
+      semantic: notUsed,
+      keyword: notUsed,
+      unified: notUsed,
+      export: notUsed,
+      save: notUsed,
+    },
+    rag: {
+      answer: notUsed,
+      synthesize: notUsed,
+      analyzeQuery: notUsed,
+      verifyGrounding: notUsed,
+    },
+    documents: {
+      get: notUsed,
+      list: notUsed,
+      getChunks: notUsed,
+      export: notUsed,
+      share: notUsed,
+    },
+    discovery: {
+      getCapabilities: notUsed,
+    },
+    context: {
+      storeVirtualFile: notUsed,
+      retrieveVirtualFile: notUsed,
+      retrieveVirtualFileChunk: notUsed,
+      listVirtualFiles: notUsed,
+      deleteVirtualFile: notUsed,
+    },
+    analytics: {
+      getSpreadsheetSchema: notUsed,
+      generateSql: notUsed,
+      executeQuery: notUsed,
+    },
+    preferences: {
+      get: notUsed,
+      update: notUsed,
+    },
   };
 }
 

@@ -6,6 +6,9 @@ import { workspaceDeleteTool, workspaceWriteTool } from "../workspace";
 function createMockServices(
   overrides: Partial<ToolServices["context"]> = {}
 ): ToolServices {
+  const notUsed = () => {
+    throw new Error("not used");
+  };
   return {
     context: {
       storeVirtualFile: mock(() => ({
@@ -20,11 +23,49 @@ function createMockServices(
       deleteVirtualFile: mock(() => true),
       ...overrides,
     },
-    search: {} as ToolServices["search"],
-    rag: {} as ToolServices["rag"],
-    documents: {} as ToolServices["documents"],
-    connectors: {} as ToolServices["connectors"],
-    analytics: {} as ToolServices["analytics"],
+    search: {
+      hybrid: notUsed,
+      semantic: notUsed,
+      keyword: notUsed,
+      unified: notUsed,
+      export: notUsed,
+      save: notUsed,
+    },
+    rag: {
+      answer: notUsed,
+      synthesize: notUsed,
+      analyzeQuery: notUsed,
+      verifyGrounding: notUsed,
+    },
+    documents: {
+      get: notUsed,
+      list: notUsed,
+      getChunks: notUsed,
+      export: notUsed,
+      share: notUsed,
+    },
+    discovery: {
+      getCapabilities: notUsed,
+    },
+    connectors: {
+      list: notUsed,
+      get: notUsed,
+      getSyncHistory: notUsed,
+      getSyncHistoryPaginated: notUsed,
+      triggerSync: notUsed,
+      getSyncJobStatus: notUsed,
+      pause: notUsed,
+      resume: notUsed,
+    },
+    analytics: {
+      getSpreadsheetSchema: notUsed,
+      generateSql: notUsed,
+      executeQuery: notUsed,
+    },
+    preferences: {
+      get: notUsed,
+      update: notUsed,
+    },
   };
 }
 
