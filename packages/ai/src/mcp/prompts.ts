@@ -89,6 +89,22 @@ export function createAssistantMessage(text: string): MCPPromptMessage {
   return { role: "assistant", content: createTextContent(text) };
 }
 
+function formatPromptContext(context?: MCPServerContext): string {
+  if (!context) {
+    return "";
+  }
+
+  const parts: string[] = [`teamId=${context.teamId}`];
+  if (context.userId) {
+    parts.push(`userId=${context.userId}`);
+  }
+  if (context.sessionId) {
+    parts.push(`sessionId=${context.sessionId}`);
+  }
+
+  return `\n\nExecution context: ${parts.join(", ")}. Scope any operations to this team and respect access controls.`;
+}
+
 export function defineEnterpriseSearchPrompt(): MCPPromptDefinition {
   return {
     name: "enterprise-search",
@@ -210,7 +226,8 @@ export function getDefaultPromptDefinitions(): MCPPromptDefinition[] {
 }
 
 export function buildSearchPromptMessages(
-  args: Record<string, string>
+  args: Record<string, string>,
+  context?: MCPServerContext
 ): MCPPromptMessage[] {
   const { query, sources, limit } = args;
   const sourceFilter = sources ? ` Filter to these sources: ${sources}.` : "";
@@ -219,13 +236,16 @@ export function buildSearchPromptMessages(
   return [
     createUserMessage(
       `Search across all connected enterprise data sources for: "${query}"${sourceFilter}${limitClause} ` +
-        "Provide results with titles, snippets, and source information."
+        `Provide results with titles, snippets, and source information.${formatPromptContext(
+          context
+        )}`
     ),
   ];
 }
 
 export function buildSummaryPromptMessages(
-  args: Record<string, string>
+  args: Record<string, string>,
+  context?: MCPServerContext
 ): MCPPromptMessage[] {
   const { documentId, length = "standard" } = args;
   const lengthInstruction =
@@ -239,27 +259,35 @@ export function buildSummaryPromptMessages(
   return [
     createUserMessage(
       `Summarize the document with ID "${documentId}". ${lengthInstruction} ` +
-        "Include the document title and source in your response."
+        `Include the document title and source in your response.${formatPromptContext(
+          context
+        )}`
     ),
   ];
 }
 
 export function buildAnswerPromptMessages(
-  args: Record<string, string>
+  args: Record<string, string>,
+  context?: MCPServerContext
 ): MCPPromptMessage[] {
-  const { question, context } = args;
-  const contextClause = context ? ` Additional context: ${context}` : "";
+  const { question, context: additionalContext } = args;
+  const additionalContextClause = additionalContext
+    ? ` Additional context: ${additionalContext}`
+    : "";
 
   return [
     createUserMessage(
-      `Answer this question using the enterprise knowledge base: "${question}"${contextClause} ` +
-        "Cite specific documents as sources. If you cannot find relevant information, say so."
+      `Answer this question using the enterprise knowledge base: "${question}"${additionalContextClause} ` +
+        `Cite specific documents as sources. If you cannot find relevant information, say so.${formatPromptContext(
+          context
+        )}`
     ),
   ];
 }
 
 export function buildAnalysisPromptMessages(
-  args: Record<string, string>
+  args: Record<string, string>,
+  context?: MCPServerContext
 ): MCPPromptMessage[] {
   const { documentIds, analysisType = "themes" } = args;
   const analysisInstructions =
@@ -276,26 +304,32 @@ export function buildAnalysisPromptMessages(
 
   return [
     createUserMessage(
-      `Analyze the documents with IDs: ${documentIds}. ${analysisInstructions}`
+      `Analyze the documents with IDs: ${documentIds}. ${analysisInstructions}${formatPromptContext(
+        context
+      )}`
     ),
   ];
 }
 
 export function buildConnectorExplanationMessages(
-  args: Record<string, string>
+  args: Record<string, string>,
+  context?: MCPServerContext
 ): MCPPromptMessage[] {
   const { connectorType } = args;
 
   return [
     createUserMessage(
       `Explain the ${connectorType} connector: What data does it sync? How often? ` +
-        "What permissions are required? What entities are indexed?"
+        `What permissions are required? What entities are indexed?${formatPromptContext(
+          context
+        )}`
     ),
   ];
 }
 
 export function buildExpertFinderMessages(
-  args: Record<string, string>
+  args: Record<string, string>,
+  context?: MCPServerContext
 ): MCPPromptMessage[] {
   const { topic } = args;
 
@@ -303,7 +337,9 @@ export function buildExpertFinderMessages(
     createUserMessage(
       `Find team members who have expertise in "${topic}". ` +
         "Look at document authorship, edit history, and engagement patterns. " +
-        "List potential experts with evidence of their expertise."
+        `List potential experts with evidence of their expertise.${formatPromptContext(
+          context
+        )}`
     ),
   ];
 }
@@ -315,27 +351,27 @@ export function createPromptRegistry(): PromptRegistry {
 }
 
 export function registerDefaultPrompts(registry: PromptRegistry): void {
-  registry.register(defineEnterpriseSearchPrompt(), async (args) => ({
-    messages: buildSearchPromptMessages(args),
+  registry.register(defineEnterpriseSearchPrompt(), async (args, context) => ({
+    messages: buildSearchPromptMessages(args, context),
   }));
 
-  registry.register(defineDocumentSummaryPrompt(), async (args) => ({
-    messages: buildSummaryPromptMessages(args),
+  registry.register(defineDocumentSummaryPrompt(), async (args, context) => ({
+    messages: buildSummaryPromptMessages(args, context),
   }));
 
-  registry.register(defineAnswerQuestionPrompt(), async (args) => ({
-    messages: buildAnswerPromptMessages(args),
+  registry.register(defineAnswerQuestionPrompt(), async (args, context) => ({
+    messages: buildAnswerPromptMessages(args, context),
   }));
 
-  registry.register(defineAnalyzeDocumentsPrompt(), async (args) => ({
-    messages: buildAnalysisPromptMessages(args),
+  registry.register(defineAnalyzeDocumentsPrompt(), async (args, context) => ({
+    messages: buildAnalysisPromptMessages(args, context),
   }));
 
-  registry.register(defineExplainConnectorPrompt(), async (args) => ({
-    messages: buildConnectorExplanationMessages(args),
+  registry.register(defineExplainConnectorPrompt(), async (args, context) => ({
+    messages: buildConnectorExplanationMessages(args, context),
   }));
 
-  registry.register(defineFindExpertPrompt(), async (args) => ({
-    messages: buildExpertFinderMessages(args),
+  registry.register(defineFindExpertPrompt(), async (args, context) => ({
+    messages: buildExpertFinderMessages(args, context),
   }));
 }

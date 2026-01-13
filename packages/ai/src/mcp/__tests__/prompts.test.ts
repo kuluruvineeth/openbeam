@@ -18,6 +18,7 @@ import {
   defineFindExpertPrompt,
   getDefaultPromptDefinitions,
   PromptRegistry,
+  registerDefaultPrompts,
 } from "../prompts";
 import type { MCPServerContext } from "../types";
 
@@ -150,9 +151,21 @@ describe("PromptRegistry", () => {
       const context = createTestContext({ teamId: "specific_team" });
       await registry.get("enterprise-search", { query: "test" }, context);
 
-      expect((receivedContext as unknown as MCPServerContext).teamId).toBe(
-        "specific_team"
+      expect(receivedContext).toMatchObject({ teamId: "specific_team" });
+    });
+
+    it("default prompts include execution context in messages", async () => {
+      registerDefaultPrompts(registry);
+
+      const result = await registry.get(
+        "enterprise-search",
+        { query: "test" },
+        createTestContext({ teamId: "team_scoped" })
       );
+
+      const contentText = (result?.messages[0]?.content as { text: string })
+        .text;
+      expect(contentText).toContain("teamId=team_scoped");
     });
   });
 

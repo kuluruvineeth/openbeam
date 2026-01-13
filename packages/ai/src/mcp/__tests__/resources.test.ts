@@ -162,9 +162,7 @@ describe("ResourceRegistry", () => {
       const context = createTestContext({ teamId: "team_specific" });
       await registry.read("openplane://connectors", context);
 
-      expect((receivedContext as unknown as MCPServerContext).teamId).toBe(
-        "team_specific"
-      );
+      expect(receivedContext).toMatchObject({ teamId: "team_specific" });
     });
 
     it("prefers static resources over templates", async () => {
