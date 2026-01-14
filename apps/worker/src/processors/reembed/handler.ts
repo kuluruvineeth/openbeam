@@ -278,23 +278,24 @@ async function markEmptyDocuments(docs: GenericDocument[]): Promise<number> {
     fields: { embedding_version: 2 },
   }));
 
-  const results = await vespaClient.partialUpdateBatch(updates);
-  const successful = results.filter((r) => r.pathId).length;
-  const failed = docs.length - successful;
+  const result = await vespaClient.partialUpdateBatch(updates);
 
-  if (failed > 0) {
+  if (result.failed.length > 0) {
     logger.error(
-      { total: docs.length, failed },
+      { total: docs.length, failed: result.failed.length },
       "Failed to mark some empty documents"
     );
-    throw new Error(`Failed to mark ${failed} empty documents`);
+    throw new Error(`Failed to mark ${result.failed.length} empty documents`);
   }
 
-  if (successful > 0) {
-    logger.info({ count: successful }, "Marked empty documents as processed");
+  if (result.succeeded.length > 0) {
+    logger.info(
+      { count: result.succeeded.length },
+      "Marked empty documents as processed"
+    );
   }
 
-  return successful;
+  return result.succeeded.length;
 }
 
 interface DocumentEmbeddings {
@@ -435,9 +436,9 @@ async function updateDocumentsBulk(
     fields: buildEmbeddingUpdate(embedding),
   }));
 
-  const results = await vespaClient.partialUpdateBatch(updates);
-  const processed = results.length;
-  const failed = embeddings.length - processed;
+  const result = await vespaClient.partialUpdateBatch(updates);
+  const processed = result.succeeded.length;
+  const failed = result.failed.length;
 
   if (failed > 0) {
     logger.warn({ processed, failed }, "Some document updates failed");

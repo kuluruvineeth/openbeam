@@ -1,5 +1,11 @@
 import { LRUCache } from "lru-cache";
 import { Agent } from "undici";
+import {
+  type BatchFailure,
+  type BatchResult,
+  createBatchResult,
+  isRetryableError,
+} from "./batch-types";
 import { escapeYqlString } from "./query";
 import type {
   DetailedHealthStatus,
@@ -169,8 +175,9 @@ export class VespaClient {
     throw new Error("Failed to feed document after retries");
   }
 
-  async feedBatch(docs: GenericDocument[]): Promise<FeedResponse[]> {
-    const results: FeedResponse[] = [];
+  async feedBatch(docs: GenericDocument[]): Promise<BatchResult> {
+    const succeeded: string[] = [];
+    const failed: BatchFailure[] = [];
 
     const batchSize = 10;
     for (let i = 0; i < docs.length; i += batchSize) {
@@ -180,14 +187,27 @@ export class VespaClient {
         batch.map((doc) => this.feedDocument(doc))
       );
 
-      for (const result of batchResults) {
+      for (let j = 0; j < batchResults.length; j++) {
+        const result = batchResults[j];
+        const doc = batch[j];
+        if (!(result && doc)) {
+          continue;
+        }
+
         if (result.status === "fulfilled") {
-          results.push(result.value);
+          succeeded.push(doc.id);
+        } else {
+          const error = result.reason;
+          failed.push({
+            documentId: doc.id,
+            error: error instanceof Error ? error.message : String(error),
+            retryable: isRetryableError(error),
+          });
         }
       }
     }
 
-    return results;
+    return createBatchResult(succeeded, failed, docs.length);
   }
 
   async feedEntity(entity: Entity): Promise<FeedResponse> {
@@ -597,8 +617,9 @@ export class VespaClient {
   async partialUpdateBatch(
     updates: Array<{ id: string; fields: Record<string, unknown> }>,
     concurrency = 10
-  ): Promise<FeedResponse[]> {
-    const results: FeedResponse[] = [];
+  ): Promise<BatchResult> {
+    const succeeded: string[] = [];
+    const failed: BatchFailure[] = [];
 
     for (let i = 0; i < updates.length; i += concurrency) {
       const batch = updates.slice(i, i + concurrency);
@@ -606,14 +627,27 @@ export class VespaClient {
         batch.map(({ id, fields }) => this.partialUpdateDocument(id, fields))
       );
 
-      for (const result of batchResults) {
+      for (let j = 0; j < batchResults.length; j++) {
+        const result = batchResults[j];
+        const update = batch[j];
+        if (!(result && update)) {
+          continue;
+        }
+
         if (result.status === "fulfilled") {
-          results.push(result.value);
+          succeeded.push(update.id);
+        } else {
+          const error = result.reason;
+          failed.push({
+            documentId: update.id,
+            error: error instanceof Error ? error.message : String(error),
+            retryable: isRetryableError(error),
+          });
         }
       }
     }
 
-    return results;
+    return createBatchResult(succeeded, failed, updates.length);
   }
 
   async getDocument(id: string): Promise<GenericDocument | null> {
@@ -1140,18 +1174,28 @@ export class VespaClient {
   private async applyAclUpdates(
     updates: Array<{ id: string; newAcl: string[] }>,
     concurrency: number
-  ): Promise<number> {
-    let updated = 0;
+  ): Promise<{ succeeded: number; failed: number }> {
+    let succeeded = 0;
+    let failed = 0;
+
     for (let i = 0; i < updates.length; i += concurrency) {
       const batch = updates.slice(i, i + concurrency);
-      await Promise.all(
+      const results = await Promise.allSettled(
         batch.map(({ id, newAcl }) =>
           this.updateDocument(id, { access_control: newAcl })
         )
       );
-      updated += batch.length;
+
+      for (const result of results) {
+        if (result.status === "fulfilled") {
+          succeeded += 1;
+        } else {
+          failed += 1;
+        }
+      }
     }
-    return updated;
+
+    return { succeeded, failed };
   }
 
   async queryByThreadId<T = GenericDocument>(
@@ -1221,7 +1265,8 @@ export class VespaClient {
         }
       }
 
-      updated += await this.applyAclUpdates(updates, 10);
+      const aclResult = await this.applyAclUpdates(updates, 10);
+      updated += aclResult.succeeded;
 
       if (hits.length < pageSize) {
         break;

@@ -1,5 +1,12 @@
+import {
+  type BatchFailure,
+  type BatchResult,
+  isRetryableError,
+} from "./batch-types";
 import { vespaClient } from "./client";
 import type { FeedResponse, GenericDocument } from "./schemas";
+
+export type { BatchFailure, BatchResult };
 
 interface BatcherConfig {
   maxBatchSize: number;
@@ -11,41 +18,6 @@ interface PendingDocument {
   document: GenericDocument;
   resolve: (response: FeedResponse) => void;
   reject: (error: Error) => void;
-}
-
-export interface BatchFailure {
-  documentId: string;
-  error: string;
-  retryable: boolean;
-}
-
-export interface BatchResult {
-  succeeded: string[];
-  failed: BatchFailure[];
-  totalProcessed: number;
-  successRate: number;
-}
-
-const RETRYABLE_ERROR_PATTERNS = [
-  "ECONNREFUSED",
-  "ETIMEDOUT",
-  "ECONNRESET",
-  "EPIPE",
-  "network",
-  "timeout",
-  "503",
-  "429",
-  "rate limit",
-] as const;
-
-function isRetryableError(error: unknown): boolean {
-  if (!(error instanceof Error)) {
-    return false;
-  }
-  const message = error.message.toLowerCase();
-  return RETRYABLE_ERROR_PATTERNS.some((pattern) =>
-    message.includes(pattern.toLowerCase())
-  );
 }
 
 export class VespaBatcher {

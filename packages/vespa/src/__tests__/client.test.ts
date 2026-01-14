@@ -199,7 +199,7 @@ describe("VespaClient", () => {
   });
 
   describe("feedBatch", () => {
-    test("feeds multiple documents", async () => {
+    test("feeds multiple documents and returns BatchResult", async () => {
       const docs = [
         createMockDocument({ id: "doc-1" }),
         createMockDocument({ id: "doc-2" }),
@@ -220,9 +220,53 @@ describe("VespaClient", () => {
         );
       });
 
-      const results = await client.feedBatch(docs);
+      const result = await client.feedBatch(docs);
 
-      expect(results.length).toBe(3);
+      expect(result.succeeded).toEqual(["doc-1", "doc-2", "doc-3"]);
+      expect(result.failed).toEqual([]);
+      expect(result.totalProcessed).toBe(3);
+      expect(result.successRate).toBe(1);
+    });
+
+    test("tracks failed documents with non-retryable error", async () => {
+      const docs = [
+        createMockDocument({ id: "doc-1" }),
+        createMockDocument({ id: "doc-2" }),
+        createMockDocument({ id: "doc-3" }),
+      ];
+
+      mockFetch((url) => {
+        const urlString = typeof url === "string" ? url : url.toString();
+        const id = urlString.split("/").pop();
+
+        if (id === "doc-2") {
+          return Promise.resolve(
+            new Response(JSON.stringify({ message: "Bad Request" }), {
+              status: 400,
+              headers: { "Content-Type": "application/json" },
+            })
+          );
+        }
+
+        return Promise.resolve(
+          new Response(
+            JSON.stringify(createMockFeedResponse(id ?? "unknown")),
+            {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            }
+          )
+        );
+      });
+
+      const result = await client.feedBatch(docs);
+
+      expect(result.succeeded).toContain("doc-1");
+      expect(result.succeeded).toContain("doc-3");
+      expect(result.failed.length).toBe(1);
+      expect(result.failed[0]?.documentId).toBe("doc-2");
+      expect(result.failed[0]?.retryable).toBe(false);
+      expect(result.totalProcessed).toBe(3);
     });
   });
 
