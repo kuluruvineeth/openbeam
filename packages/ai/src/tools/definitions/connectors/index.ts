@@ -1,3 +1,4 @@
+export { connectorDataQueryTool } from "./data-query";
 export { connectorListTool } from "./list";
 export { connectorPauseTool } from "./pause";
 export { connectorResumeTool } from "./resume";
@@ -6,6 +7,7 @@ export { connectorSyncTool } from "./sync";
 export { connectorSyncHistoryTool } from "./sync-history";
 export { connectorSyncStatusTool } from "./sync-status";
 
+import { connectorDataQueryTool } from "./data-query";
 import { connectorListTool } from "./list";
 import { connectorPauseTool } from "./pause";
 import { connectorResumeTool } from "./resume";
@@ -15,6 +17,7 @@ import { connectorSyncHistoryTool } from "./sync-history";
 import { connectorSyncStatusTool } from "./sync-status";
 
 export function registerConnectorTools(): void {
+  connectorDataQueryTool.register();
   connectorListTool.register();
   connectorPauseTool.register();
   connectorResumeTool.register();
