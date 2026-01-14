@@ -77,6 +77,27 @@ function createMockServices(
       get: notUsed,
       update: notUsed,
     },
+    storage: {
+      list: notUsed,
+      getSignedUrl: notUsed,
+      exists: notUsed,
+      getMetadata: notUsed,
+    },
+    media: {
+      searchByText: notUsed,
+      searchByImage: notUsed,
+      getTranscript: notUsed,
+      getTranscriptWithTimestamps: notUsed,
+      getMetadata: notUsed,
+      analyze: notUsed,
+      getSummary: notUsed,
+      getChapters: notUsed,
+      getHighlights: notUsed,
+    },
+    integrations: {
+      listAvailable: notUsed,
+      getCapabilities: notUsed,
+    },
   };
 }
 

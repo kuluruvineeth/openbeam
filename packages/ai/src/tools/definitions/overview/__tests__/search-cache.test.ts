@@ -86,6 +86,29 @@ function createContext(overrides?: Partial<ToolContext>): ToolContext {
         get: mock(() => Promise.reject(new Error("not used"))),
         update: mock(() => Promise.reject(new Error("not used"))),
       },
+      storage: {
+        list: mock(() => Promise.reject(new Error("not used"))),
+        getSignedUrl: mock(() => Promise.reject(new Error("not used"))),
+        exists: mock(() => Promise.reject(new Error("not used"))),
+        getMetadata: mock(() => Promise.reject(new Error("not used"))),
+      },
+      media: {
+        searchByText: mock(() => Promise.reject(new Error("not used"))),
+        searchByImage: mock(() => Promise.reject(new Error("not used"))),
+        getTranscript: mock(() => Promise.reject(new Error("not used"))),
+        getTranscriptWithTimestamps: mock(() =>
+          Promise.reject(new Error("not used"))
+        ),
+        getMetadata: mock(() => Promise.reject(new Error("not used"))),
+        analyze: mock(() => Promise.reject(new Error("not used"))),
+        getSummary: mock(() => Promise.reject(new Error("not used"))),
+        getChapters: mock(() => Promise.reject(new Error("not used"))),
+        getHighlights: mock(() => Promise.reject(new Error("not used"))),
+      },
+      integrations: {
+        listAvailable: mock(() => Promise.reject(new Error("not used"))),
+        getCapabilities: mock(() => Promise.reject(new Error("not used"))),
+      },
     },
     ...overrides,
   };
