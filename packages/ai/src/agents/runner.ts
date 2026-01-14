@@ -1,4 +1,5 @@
 import type { MemoryAccess } from "../memory/access";
+import { createSessionScopedTracker } from "../observability/wiring";
 import type { AgentStreamChunk } from "./base";
 import type {
   AgentConfig,
@@ -8,6 +9,10 @@ import type {
 } from "./config";
 import { createEmptyState } from "./config";
 import { createAgentFromConfig } from "./patterns/factory";
+
+function noop() {
+  return;
+}
 
 export interface AgentRunnerOptions {
   teamId: string;
@@ -50,9 +55,25 @@ export function createAgentRunner(
   return {
     async execute(input: unknown): Promise<AgentExecutionResult> {
       const ctx = buildContext();
-      const result = await agent.execute(input, ctx);
-      state = result.state;
-      return result;
+      const sessionId =
+        options.sessionId ?? `agent_${config.name}_${Date.now()}`;
+
+      const { tracker, finalize } = createSessionScopedTracker({
+        teamId: options.teamId,
+        userId: options.userId,
+        sessionId,
+      });
+
+      let success = false;
+      try {
+        const result = await agent.execute(input, ctx);
+        state = result.state;
+        success = result.trace.status === "completed";
+        return result;
+      } finally {
+        finalize(success, config.name).catch(noop);
+        tracker.reset();
+      }
     },
 
     async *stream(input: unknown): AsyncGenerator<AgentStreamChunk> {

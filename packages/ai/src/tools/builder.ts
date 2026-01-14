@@ -116,12 +116,15 @@ export function defineTool<TParams extends z.ZodType, TResult>(
       const startTime = performance.now();
 
       const result = await config.execute(params, ctx);
+      const durationMs = performance.now() - startTime;
 
       if (result.metadata) {
-        result.metadata.latencyMs = performance.now() - startTime;
+        result.metadata.latencyMs = durationMs;
       } else {
-        result.metadata = { latencyMs: performance.now() - startTime };
+        result.metadata = { latencyMs: durationMs };
       }
+
+      toolRegistry.notifyExecute(config.name, params, result, durationMs);
 
       return result;
     },

@@ -486,8 +486,10 @@ export {
   compareSignatures,
   createCompositionTracker,
   createCostAttributionService,
+  createSessionScopedTracker,
   generateSignature,
   getEmergingPatterns,
+  getGlobalCompositionTracker,
   getMetrics,
   getModelPricing,
   logComposition,
@@ -502,6 +504,7 @@ export {
   updateCacheHitRate,
   updateCircuitBreakerState,
   updateLoadedSkillsCount,
+  wireCompositionTracking,
 } from "./observability";
 export type {
   DynamicPromptContext,

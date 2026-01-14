@@ -52,3 +52,8 @@ export type {
   UsageEvent,
   UsageSummaryResult,
 } from "./types";
+export {
+  createSessionScopedTracker,
+  getGlobalCompositionTracker,
+  wireCompositionTracking,
+} from "./wiring";

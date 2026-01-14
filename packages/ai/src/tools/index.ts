@@ -105,6 +105,11 @@ export type {
 } from "./services";
 export { createUnimplementedServices } from "./services";
 export {
+  isToolHooksInitialized,
+  resetToolHooks,
+  setupToolHooks,
+} from "./setup";
+export {
   type AISDKTool,
   type AllowedCaller,
   ERROR_CODES,
