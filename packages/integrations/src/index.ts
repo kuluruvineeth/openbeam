@@ -18,7 +18,26 @@ export {
   getServiceAccountToken,
 } from "./gmail/service-account";
 export * from "./gmail/types";
-
+export type {
+  ExchangeGoogleCodeParams,
+  GenerateGoogleAuthUrlParams,
+  GoogleAuthConfig,
+  GoogleAuthMethod,
+  GoogleOAuthConfig,
+  GoogleOAuthResult,
+  GoogleServiceAccountConfig,
+  GoogleServiceAccountResult,
+  RefreshGoogleTokenParams,
+  RefreshGoogleTokenResult,
+} from "./google";
+// Shared Google OAuth
+export {
+  exchangeGoogleCode,
+  fetchGoogleUserInfo,
+  GoogleOAuthError,
+  generateGoogleAuthUrl,
+  refreshGoogleToken,
+} from "./google";
 // Google Drive exports
 export {
   exchangeGoogleDriveCode,
@@ -35,7 +54,6 @@ export type {
   GoogleDriveFile,
   GoogleDriveFolder,
 } from "./google-drive/types";
-
 // Linear exports
 export {
   exchangeLinearCode,
@@ -47,15 +65,19 @@ export type {
   LinearTokenResponse,
   LinearViewer,
 } from "./linear/types";
-
 // Notion exports
 export { exchangeNotionCode, generateNotionAuthUrl } from "./notion/oauth";
 export type { NotionAuthResult, NotionOAuthResponse } from "./notion/types";
-
+// Secrets
+export {
+  createSecretRef,
+  isSecretRef,
+  resolveSecret,
+  SecretResolutionError,
+} from "./secrets";
 // Slack exports
 export * from "./slack/oauth";
 export * from "./slack/types";
-
 // Common exports
 export * from "./types";
 
