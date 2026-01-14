@@ -1,26 +1,26 @@
+import type {
+  ActivateConnectorInput,
+  CreateConnectorInput,
+  CreateConnectorWithOAuthInput,
+} from "@openplane/types";
 import {
-  type AppType,
-  type AuthType,
   type Connector,
   ConnectorStatus,
-  type ConnectorType,
+  type OAuthProvider,
   type Prisma,
   SyncCategory,
+  type SyncJob,
   SyncJobStatus,
   SyncTrigger,
 } from "../../prisma/generated/client";
 import type { Database } from "../index";
+import { encryptIfConfigured } from "../lib/encryption";
 
-export interface CreateConnectorInput {
-  teamId: string;
-  userId: string;
-  app: AppType;
-  workspaceExternalId: string;
-  name: string;
-  type: ConnectorType;
-  authType: AuthType;
-  config?: Prisma.InputJsonValue;
-}
+export type {
+  ActivateConnectorInput,
+  CreateConnectorInput,
+  CreateConnectorWithOAuthInput,
+};
 
 export const createConnector = async (
   db: Database,
@@ -29,7 +29,7 @@ export const createConnector = async (
   db.connector.create({
     data: {
       ...data,
-      config: data.config ?? {},
+      config: (data.config ?? {}) as Prisma.InputJsonValue,
       status: ConnectorStatus.CONNECTING,
     },
   });
@@ -52,7 +52,7 @@ export const upsertConnector = async (
       where: { id: existing.id },
       data: {
         authType: data.authType,
-        config: data.config ?? {},
+        config: (data.config ?? {}) as Prisma.InputJsonValue,
         status: ConnectorStatus.CONNECTING,
         workspaceExternalId: data.workspaceExternalId,
         name: data.name,
@@ -66,7 +66,7 @@ export const upsertConnector = async (
   return db.connector.create({
     data: {
       ...data,
-      config: data.config ?? {},
+      config: (data.config ?? {}) as Prisma.InputJsonValue,
       status: ConnectorStatus.CONNECTING,
     },
   });
@@ -190,12 +190,6 @@ export const findConnectorsPendingDeletion = async (
     },
   });
 
-export interface ActivateConnectorInput {
-  workspaceExternalId: string;
-  name: string;
-  config: Prisma.InputJsonValue;
-}
-
 export const activateConnector = async (
   db: Pick<Database, "connector">,
   id: string,
@@ -209,7 +203,7 @@ export const activateConnector = async (
       lastSyncedAt: null,
       workspaceExternalId: data.workspaceExternalId,
       name: data.name,
-      config: data.config,
+      config: data.config as Prisma.InputJsonValue,
     },
   });
 
@@ -234,4 +228,136 @@ export const getConnectorById = async (
 ): Promise<Connector> =>
   db.connector.findUniqueOrThrow({
     where: { id },
+  });
+
+export interface ConnectorWithOAuthResult {
+  connector: Connector;
+  oauthProvider: OAuthProvider;
+}
+
+export const createConnectorWithOAuth = async (
+  db: Database,
+  data: CreateConnectorWithOAuthInput
+): Promise<ConnectorWithOAuthResult> =>
+  db.$transaction(async (tx) => {
+    const connector = await tx.connector.create({
+      data: {
+        teamId: data.teamId,
+        userId: data.userId,
+        app: data.app,
+        workspaceExternalId: data.workspaceExternalId,
+        name: data.name,
+        type: data.type,
+        authType: data.authType,
+        config: (data.config ?? {}) as Prisma.InputJsonValue,
+        status: ConnectorStatus.CONNECTING,
+      },
+    });
+
+    const accessTokenEncrypted = encryptIfConfigured(data.accessToken);
+    const refreshTokenEncrypted = encryptIfConfigured(data.refreshToken);
+    const clientSecretEncrypted = encryptIfConfigured(data.clientSecret);
+
+    const tokenExpiresAt =
+      data.tokenExpiresAt ??
+      (data.tokenExpiresIn
+        ? new Date(Date.now() + data.tokenExpiresIn * 1000)
+        : null);
+
+    const oauthProvider = await tx.oAuthProvider.create({
+      data: {
+        connectorId: connector.id,
+        app: data.app,
+        accessToken: accessTokenEncrypted.encrypted,
+        accessTokenIv: accessTokenEncrypted.iv,
+        refreshToken: refreshTokenEncrypted.encrypted,
+        refreshTokenIv: refreshTokenEncrypted.iv,
+        tokenExpiresAt,
+        tokenRefreshedAt: new Date(),
+        oauthScopes: data.scopes ?? [],
+        tokenScopes: data.scopes ?? [],
+        tokenType: data.tokenType ?? "Bearer",
+        clientId: data.clientId ?? null,
+        clientSecret: clientSecretEncrypted.encrypted,
+        clientSecretIv: clientSecretEncrypted.iv,
+      },
+    });
+
+    return { connector, oauthProvider };
+  });
+
+export interface ActivateConnectorWithSyncResult {
+  connector: Connector;
+  syncJobs: SyncJob[];
+}
+
+export const activateConnectorWithSync = async (
+  db: Database,
+  id: string,
+  data: ActivateConnectorInput
+): Promise<ActivateConnectorWithSyncResult> =>
+  db.$transaction(async (tx) => {
+    const connector = await tx.connector.update({
+      where: { id },
+      data: {
+        status: ConnectorStatus.ACTIVE,
+        statusChangedAt: new Date(),
+        lastSyncedAt: null,
+        workspaceExternalId: data.workspaceExternalId,
+        name: data.name,
+        config: data.config as Prisma.InputJsonValue,
+      },
+    });
+
+    const now = new Date();
+    const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+    const sixHoursMs = 6 * 60 * 60 * 1000;
+
+    const syncJobsData = [
+      {
+        connectorId: connector.id,
+        type: SyncCategory.FULL,
+        trigger: SyncTrigger.SCHEDULED,
+        status: SyncJobStatus.PENDING,
+        priority: 3,
+        schedule: "0 0 * * 0",
+        config: { intervalMs: sevenDaysMs },
+        nextRunAt: new Date(now.getTime() + sevenDaysMs),
+      },
+      {
+        connectorId: connector.id,
+        type: SyncCategory.INCREMENTAL,
+        trigger: SyncTrigger.SCHEDULED,
+        status: SyncJobStatus.PENDING,
+        priority: 5,
+        schedule: "0 */6 * * *",
+        config: { intervalMs: sixHoursMs },
+        nextRunAt: new Date(now.getTime() + sixHoursMs),
+      },
+    ];
+
+    await tx.syncJob.createMany({ data: syncJobsData });
+
+    const syncJobs = await tx.syncJob.findMany({
+      where: { connectorId: connector.id },
+      orderBy: { priority: "asc" },
+    });
+
+    return { connector, syncJobs };
+  });
+
+export const deleteConnectorWithCleanup = async (
+  db: Database,
+  id: string
+): Promise<{ connector: Connector; deletedSyncJobs: number }> =>
+  db.$transaction(async (tx) => {
+    await tx.oAuthProvider.deleteMany({ where: { connectorId: id } });
+
+    const deletedSyncJobs = await tx.syncJob.deleteMany({
+      where: { connectorId: id },
+    });
+
+    const connector = await tx.connector.delete({ where: { id } });
+
+    return { connector, deletedSyncJobs: deletedSyncJobs.count };
   });
