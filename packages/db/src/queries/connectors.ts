@@ -1,6 +1,7 @@
 import type {
   AppType,
   Connector,
+  ConnectorStatus,
   OAuthProvider,
 } from "../../prisma/generated/client";
 import type { Database } from "../index";
@@ -183,4 +184,146 @@ export const getConnectorsNeedingRefresh = async (
   });
 
   return expiring;
+};
+
+export interface LastSyncInfo {
+  id: string;
+  status: string;
+  createdAt: Date;
+  completedAt: Date | null;
+}
+
+export interface ConnectorWithStats extends Connector {
+  documentCount: number;
+  lastSync: LastSyncInfo | null;
+}
+
+export const getConnectorsWithStats = async (
+  db: Database,
+  teamId: string,
+  statusFilter?: ConnectorStatus[]
+): Promise<ConnectorWithStats[]> => {
+  const connectors = await db.connector.findMany({
+    where: {
+      teamId,
+      ...(statusFilter && statusFilter.length > 0
+        ? { status: { in: statusFilter } }
+        : {}),
+    },
+    include: {
+      _count: { select: { indexedDocuments: true } },
+      syncJobs: {
+        orderBy: { createdAt: "desc" },
+        take: 1,
+        select: { id: true, status: true, createdAt: true, completedAt: true },
+      },
+      oauthProvider: {
+        select: { tokenExpiresAt: true },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return connectors.map((c) => {
+    const { _count, syncJobs, ...connector } = c;
+    const lastSyncJob = syncJobs[0];
+    return {
+      ...connector,
+      documentCount: _count.indexedDocuments,
+      lastSync: lastSyncJob
+        ? {
+            id: lastSyncJob.id,
+            status: lastSyncJob.status,
+            createdAt: lastSyncJob.createdAt,
+            completedAt: lastSyncJob.completedAt,
+          }
+        : null,
+    };
+  });
+};
+
+export interface ConnectorHealthInfo {
+  id: string;
+  name: string;
+  app: AppType;
+  status: ConnectorStatus;
+  lastSyncAt: Date | null;
+  lastError: string | null;
+  lastErrorAt: Date | null;
+  tokenExpiresAt: Date | null;
+  isTokenExpiringSoon: boolean;
+  documentCount: number;
+}
+
+export const getConnectorHealth = async (
+  db: Database,
+  connectorId: string
+): Promise<ConnectorHealthInfo | null> => {
+  const connector = await db.connector.findUnique({
+    where: { id: connectorId },
+    include: {
+      _count: { select: { indexedDocuments: true } },
+      oauthProvider: { select: { tokenExpiresAt: true } },
+    },
+  });
+
+  if (!connector) {
+    return null;
+  }
+
+  const tokenExpiresAt = connector.oauthProvider?.tokenExpiresAt ?? null;
+  const fiveMinutesFromNow = Date.now() + 5 * 60 * 1000;
+  const tokenExpiringSoon =
+    tokenExpiresAt !== null && tokenExpiresAt.getTime() < fiveMinutesFromNow;
+
+  return {
+    id: connector.id,
+    name: connector.name,
+    app: connector.app,
+    status: connector.status,
+    lastSyncAt: connector.lastSyncedAt,
+    lastError: connector.lastError,
+    lastErrorAt: connector.lastErrorAt,
+    tokenExpiresAt,
+    isTokenExpiringSoon: tokenExpiringSoon,
+    documentCount: connector._count.indexedDocuments,
+  };
+};
+
+export interface SyncHistoryEntry {
+  id: string;
+  status: string;
+  type: string;
+  createdAt: Date;
+  completedAt: Date | null;
+  errorMessage: string | null;
+}
+
+export const getConnectorSyncHistory = async (
+  db: Database,
+  connectorId: string,
+  limit = 10
+): Promise<SyncHistoryEntry[]> => {
+  const jobs = await db.syncJob.findMany({
+    where: { connectorId },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+    select: {
+      id: true,
+      status: true,
+      type: true,
+      createdAt: true,
+      completedAt: true,
+      errorMessage: true,
+    },
+  });
+
+  return jobs.map((job) => ({
+    id: job.id,
+    status: job.status,
+    type: job.type,
+    createdAt: job.createdAt,
+    completedAt: job.completedAt,
+    errorMessage: job.errorMessage,
+  }));
 };
