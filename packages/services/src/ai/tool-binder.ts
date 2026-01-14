@@ -478,6 +478,18 @@ const SYNC_STATUS_MAP: Record<string, SyncJobStatus> = {
   PAUSED: "queued",
 };
 
+const BULLMQ_STATE_MAP: Record<string, SyncJobStatus> = {
+  active: "running",
+  waiting: "queued",
+  delayed: "queued",
+  paused: "queued",
+  prioritized: "queued",
+  "waiting-children": "queued",
+  completed: "completed",
+  failed: "failed",
+  unknown: "queued",
+};
+
 function calculatePercentComplete(
   processed: number,
   total: number | undefined
@@ -499,11 +511,12 @@ async function getStatusFromBullMQ(jobId: string) {
     | { processed?: number; total?: number }
     | undefined;
   const processed = progress?.processed ?? 0;
+  const status = BULLMQ_STATE_MAP[state] ?? "queued";
 
   return {
     jobId,
     connectorId: bullmqJob.data.connectorId,
-    status: state as SyncJobStatus,
+    status,
     progress: {
       documentsProcessed: processed,
       documentsTotal: progress?.total,
