@@ -57,7 +57,7 @@ export function createAgentRunner(
       const sessionId =
         options.sessionId ?? `agent_${config.name}_${Date.now()}`;
 
-      const { tracker, finalize } = createSessionScopedTracker({
+      const { finalize } = createSessionScopedTracker({
         teamId: options.teamId,
         userId: options.userId,
         sessionId,
@@ -71,8 +71,11 @@ export function createAgentRunner(
         success = result.trace.status === "completed";
         return result;
       } finally {
-        finalize(success, config.name).catch(noop);
-        tracker.reset();
+        try {
+          await finalize(success, config.name);
+        } catch {
+          noop();
+        }
       }
     },
 
@@ -80,7 +83,7 @@ export function createAgentRunner(
       const sessionId =
         options.sessionId ?? `agent_${config.name}_${Date.now()}`;
 
-      const { tracker, finalize } = createSessionScopedTracker({
+      const { finalize } = createSessionScopedTracker({
         teamId: options.teamId,
         userId: options.userId,
         sessionId,
@@ -107,8 +110,11 @@ export function createAgentRunner(
           yield chunk;
         }
       } finally {
-        finalize(success, config.name).catch(noop);
-        tracker.reset();
+        try {
+          await finalize(success, config.name);
+        } catch {
+          noop();
+        }
       }
     },
 
