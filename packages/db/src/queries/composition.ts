@@ -159,49 +159,33 @@ export async function getCompositionStatsByTeam(
 ): Promise<CompositionStats> {
   const { startDate, endDate } = options;
 
-  const [aggregates, uniquePatterns] = await Promise.all([
-    db.compositionEvent.aggregate({
-      where: {
-        teamId,
-        timestamp: {
-          gte: startDate,
-          lte: endDate,
-        },
-      },
-      _count: { id: true },
-      _avg: { latencyMs: true },
-      _sum: { success: false },
-    }),
-    db.compositionEvent.groupBy({
-      by: ["signature"],
-      where: {
-        teamId,
-        timestamp: {
-          gte: startDate,
-          lte: endDate,
-        },
-      },
-      _count: true,
-    }),
-  ]);
-
-  const totalEvents = aggregates._count.id;
-  const successEvents = await db.compositionEvent.count({
-    where: {
-      teamId,
-      success: true,
-      timestamp: {
-        gte: startDate,
-        lte: endDate,
-      },
+  const whereClause = {
+    teamId,
+    timestamp: {
+      gte: startDate,
+      lte: endDate,
     },
-  });
+  };
+
+  const [totalEvents, successEvents, avgResult, uniquePatterns] =
+    await Promise.all([
+      db.compositionEvent.count({ where: whereClause }),
+      db.compositionEvent.count({ where: { ...whereClause, success: true } }),
+      db.compositionEvent.aggregate({
+        where: whereClause,
+        _avg: { latencyMs: true },
+      }),
+      db.compositionEvent.groupBy({
+        by: ["signature"],
+        where: whereClause,
+      }),
+    ]);
 
   return {
     totalEvents,
     successCount: successEvents,
     failureCount: totalEvents - successEvents,
-    avgLatencyMs: aggregates._avg.latencyMs ?? 0,
+    avgLatencyMs: avgResult._avg?.latencyMs ?? 0,
     uniquePatterns: uniquePatterns.length,
   };
 }

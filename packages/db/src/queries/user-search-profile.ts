@@ -34,8 +34,8 @@ export interface ParsedUserSearchProfile {
   connectorWeights: Record<string, number>;
   authorInteractions: Record<string, number>;
   topicWeights: Record<string, number>;
-  queryEmbedding: Uint8Array<ArrayBuffer> | null;
-  docEmbedding: Uint8Array<ArrayBuffer> | null;
+  queryEmbedding: Uint8Array | null;
+  docEmbedding: Uint8Array | null;
   recentQueries: RecentQuery[];
   recentClicks: RecentClick[];
   embeddingVersion: number;

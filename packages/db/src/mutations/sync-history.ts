@@ -184,3 +184,231 @@ export const updateConnectorSyncError = async (
       retryCount: { increment: 1 },
     },
   });
+
+export type SyncStage =
+  | "INITIALIZING"
+  | "FETCHING"
+  | "TRANSFORMING"
+  | "INDEXING"
+  | "FINALIZING"
+  | "COMPLETED"
+  | "FAILED";
+
+export interface SyncProgressUpdate {
+  syncHistoryId: string;
+  stage: SyncStage;
+  processedCount: number;
+  totalCount?: number;
+  currentBatch?: number;
+  totalBatches?: number;
+  currentResource?: string;
+  message?: string;
+}
+
+export interface SyncProgressSnapshot {
+  syncHistoryId: string;
+  stage: SyncStage;
+  processedCount: number;
+  totalCount: number | null;
+  progressPercent: number | null;
+  currentBatch: number | null;
+  totalBatches: number | null;
+  currentResource: string | null;
+  message: string | null;
+  startedAt: Date;
+  updatedAt: Date;
+  estimatedRemainingMs: number | null;
+}
+
+export const updateSyncProgress = async (
+  db: Database,
+  input: SyncProgressUpdate
+): Promise<void> => {
+  const progressData = {
+    stage: input.stage,
+    processedCount: input.processedCount,
+    totalCount: input.totalCount ?? null,
+    currentBatch: input.currentBatch ?? null,
+    totalBatches: input.totalBatches ?? null,
+    currentResource: input.currentResource ?? null,
+    message: input.message ?? null,
+    progressUpdatedAt: new Date(),
+  };
+
+  await db.syncHistory.update({
+    where: { id: input.syncHistoryId },
+    data: {
+      dataAdded: input.processedCount,
+      summary: progressData,
+    },
+  });
+};
+
+export const getSyncProgress = async (
+  db: Database,
+  syncHistoryId: string
+): Promise<SyncProgressSnapshot | null> => {
+  const history = await db.syncHistory.findUnique({
+    where: { id: syncHistoryId },
+    select: {
+      id: true,
+      startedAt: true,
+      dataAdded: true,
+      summary: true,
+    },
+  });
+
+  if (!history) {
+    return null;
+  }
+
+  const summary = history.summary as {
+    stage?: SyncStage;
+    processedCount?: number;
+    totalCount?: number | null;
+    currentBatch?: number | null;
+    totalBatches?: number | null;
+    currentResource?: string | null;
+    message?: string | null;
+    progressUpdatedAt?: string;
+  } | null;
+
+  const processedCount = summary?.processedCount ?? history.dataAdded ?? 0;
+  const totalCount = summary?.totalCount ?? null;
+  const progressPercent =
+    totalCount && totalCount > 0
+      ? Math.round((processedCount / totalCount) * 100)
+      : null;
+
+  const startedAt = history.startedAt;
+  const updatedAt = summary?.progressUpdatedAt
+    ? new Date(summary.progressUpdatedAt)
+    : startedAt;
+
+  const elapsedMs = updatedAt.getTime() - startedAt.getTime();
+  const estimatedRemainingMs =
+    progressPercent && progressPercent > 0 && progressPercent < 100
+      ? Math.round((elapsedMs / progressPercent) * (100 - progressPercent))
+      : null;
+
+  return {
+    syncHistoryId,
+    stage: summary?.stage ?? "INITIALIZING",
+    processedCount,
+    totalCount,
+    progressPercent,
+    currentBatch: summary?.currentBatch ?? null,
+    totalBatches: summary?.totalBatches ?? null,
+    currentResource: summary?.currentResource ?? null,
+    message: summary?.message ?? null,
+    startedAt,
+    updatedAt,
+    estimatedRemainingMs,
+  };
+};
+
+export interface BatchProgressUpdate {
+  syncHistoryId: string;
+  batchNumber: number;
+  totalBatches: number;
+  itemsInBatch: number;
+  resource: string;
+}
+
+export const recordBatchProgress = async (
+  db: Database,
+  input: BatchProgressUpdate
+): Promise<void> => {
+  const history = await db.syncHistory.findUnique({
+    where: { id: input.syncHistoryId },
+    select: { dataAdded: true, summary: true },
+  });
+
+  const currentProcessed = history?.dataAdded ?? 0;
+  const newProcessedCount = currentProcessed + input.itemsInBatch;
+
+  const existingSummary = (history?.summary as Record<string, unknown>) ?? {};
+
+  await db.syncHistory.update({
+    where: { id: input.syncHistoryId },
+    data: {
+      dataAdded: newProcessedCount,
+      summary: {
+        ...existingSummary,
+        stage: "INDEXING" as SyncStage,
+        processedCount: newProcessedCount,
+        currentBatch: input.batchNumber,
+        totalBatches: input.totalBatches,
+        currentResource: input.resource,
+        progressUpdatedAt: new Date().toISOString(),
+      },
+    },
+  });
+};
+
+export interface ActiveSyncInfo {
+  syncHistoryId: string;
+  connectorId: string;
+  connectorName: string;
+  connectorType: string;
+  stage: SyncStage;
+  processedCount: number;
+  progressPercent: number | null;
+  startedAt: Date;
+  elapsedMs: number;
+}
+
+export const getActiveSyncs = async (
+  db: Database,
+  teamId: string
+): Promise<ActiveSyncInfo[]> => {
+  const activeSyncs = await db.syncHistory.findMany({
+    where: {
+      status: "RUNNING",
+      connector: { teamId },
+    },
+    select: {
+      id: true,
+      connectorId: true,
+      startedAt: true,
+      dataAdded: true,
+      summary: true,
+      connector: {
+        select: {
+          name: true,
+          app: true,
+        },
+      },
+    },
+    orderBy: { startedAt: "desc" },
+  });
+
+  const now = Date.now();
+
+  return activeSyncs.map((sync) => {
+    const summary = sync.summary as {
+      stage?: SyncStage;
+      processedCount?: number;
+      totalCount?: number | null;
+    } | null;
+
+    const processedCount = summary?.processedCount ?? sync.dataAdded ?? 0;
+    const totalCount = summary?.totalCount ?? null;
+    const progressPercent =
+      totalCount && totalCount > 0
+        ? Math.round((processedCount / totalCount) * 100)
+        : null;
+
+    return {
+      syncHistoryId: sync.id,
+      connectorId: sync.connectorId,
+      connectorName: sync.connector.name,
+      connectorType: sync.connector.app,
+      stage: summary?.stage ?? "INITIALIZING",
+      processedCount,
+      progressPercent,
+      startedAt: sync.startedAt,
+      elapsedMs: now - sync.startedAt.getTime(),
+    };
+  });
+};
