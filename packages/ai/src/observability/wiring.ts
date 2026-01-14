@@ -17,6 +17,7 @@ interface WiredCompositionTracker extends CompositionTracker {
 }
 
 let activeUnwireFn: (() => void) | null = null;
+let activeTracker: WiredCompositionTracker | null = null;
 
 export function wireCompositionTracking(
   options: CompositionWiringOptions
@@ -50,23 +51,32 @@ export function wireCompositionTracking(
     }
   );
 
+  let wiredTracker: WiredCompositionTracker | null = null;
+
   const unwire = () => {
     unsubscribe();
     if (activeUnwireFn === unwire) {
       activeUnwireFn = null;
     }
+    if (wiredTracker && activeTracker === wiredTracker) {
+      activeTracker = null;
+    }
   };
 
   activeUnwireFn = unwire;
 
-  return {
+  wiredTracker = {
     ...tracker,
     unwire,
   };
+
+  activeTracker = wiredTracker;
+
+  return wiredTracker;
 }
 
 export function getGlobalCompositionTracker(): CompositionTracker | null {
-  return activeUnwireFn ? createCompositionTracker() : null;
+  return activeTracker;
 }
 
 export function createSessionScopedTracker(options: CompositionWiringOptions): {

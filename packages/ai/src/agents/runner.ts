@@ -39,11 +39,11 @@ export function createAgentRunner(
   const agent = createAgentFromConfig(config);
   let state = options.initialState ?? createEmptyState();
 
-  function buildContext(): AgentExecutionContext {
+  function buildContext(sessionId = options.sessionId): AgentExecutionContext {
     return {
       teamId: options.teamId,
       userId: options.userId,
-      sessionId: options.sessionId,
+      sessionId,
       accessControl: options.accessControl,
       abortSignal: options.abortSignal,
       state,
@@ -54,7 +54,6 @@ export function createAgentRunner(
 
   return {
     async execute(input: unknown): Promise<AgentExecutionResult> {
-      const ctx = buildContext();
       const sessionId =
         options.sessionId ?? `agent_${config.name}_${Date.now()}`;
 
@@ -66,6 +65,7 @@ export function createAgentRunner(
 
       let success = false;
       try {
+        const ctx = buildContext(sessionId);
         const result = await agent.execute(input, ctx);
         state = result.state;
         success = result.trace.status === "completed";
@@ -77,20 +77,38 @@ export function createAgentRunner(
     },
 
     async *stream(input: unknown): AsyncGenerator<AgentStreamChunk> {
-      const ctx = buildContext();
+      const sessionId =
+        options.sessionId ?? `agent_${config.name}_${Date.now()}`;
 
-      if (!agent.stream) {
-        const result = await agent.execute(input, ctx);
-        state = result.state;
-        yield { type: "done", agentName: config.name, result };
-        return;
-      }
+      const { tracker, finalize } = createSessionScopedTracker({
+        teamId: options.teamId,
+        userId: options.userId,
+        sessionId,
+      });
 
-      for await (const chunk of agent.stream(input, ctx)) {
-        if (chunk.type === "done" && chunk.result) {
-          state = chunk.result.state;
+      let success = false;
+
+      try {
+        const ctx = buildContext(sessionId);
+
+        if (!agent.stream) {
+          const result = await agent.execute(input, ctx);
+          state = result.state;
+          success = result.trace.status === "completed";
+          yield { type: "done", agentName: config.name, result };
+          return;
         }
-        yield chunk;
+
+        for await (const chunk of agent.stream(input, ctx)) {
+          if (chunk.type === "done" && chunk.result) {
+            state = chunk.result.state;
+            success = chunk.result.trace.status === "completed";
+          }
+          yield chunk;
+        }
+      } finally {
+        finalize(success, config.name).catch(noop);
+        tracker.reset();
       }
     },
 

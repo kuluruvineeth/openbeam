@@ -99,6 +99,11 @@ export function resetToolHooks(): void {
   hookRegistry.unregisterPreHook("audit-logging");
   hookRegistry.unregisterPostHook("redact-sensitive-data");
   hookRegistry.unregisterPostHook("add-provenance-tracking");
+  auditBuffer.length = 0;
+  if (flushTimer) {
+    clearTimeout(flushTimer);
+    flushTimer = null;
+  }
   initialized = false;
 }
 
