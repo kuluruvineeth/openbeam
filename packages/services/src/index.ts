@@ -151,6 +151,14 @@ export {
   isVideoFile,
   isVideoMime,
 } from "./engine";
+export type { ConnectorErrorOptions } from "./errors";
+export {
+  ConnectorError,
+  ConnectorErrorCode,
+  getRetryDelayMs,
+  isRetryableError,
+  normalizeApiError,
+} from "./errors";
 export type {
   ConnectorFileInfo,
   ConnectorMediaInfo,
@@ -220,6 +228,22 @@ export {
   syncDomainDrives,
   validateNotificationSignature as validateDriveNotificationSignature,
 } from "./google-drive";
+export type {
+  BatchHealthCheckResult,
+  CheckStatus,
+  ConnectorHealthResult,
+  HealthCheck,
+  HealthCheckContext,
+  HealthStatus,
+} from "./health";
+export {
+  checkConnectorHealth,
+  checkTeamConnectorsHealth,
+  getFailedChecks,
+  getWarningChecks,
+  isHealthy,
+  needsAttention,
+} from "./health";
 export type {
   ExpertiseUpdate,
   ResolutionContext,
