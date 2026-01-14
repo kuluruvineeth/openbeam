@@ -6,8 +6,8 @@ export interface CreateUserSearchProfileInput {
   userId: string;
   teamId: string;
   department?: string | null;
-  queryEmbedding?: Uint8Array<ArrayBuffer>;
-  docEmbedding?: Uint8Array<ArrayBuffer>;
+  queryEmbedding?: Uint8Array;
+  docEmbedding?: Uint8Array;
   recentQueries?: RecentQuery[];
   recentClicks?: RecentClick[];
   connectorWeights?: Record<string, number>;
@@ -23,8 +23,10 @@ export async function createUserSearchProfile(
       userId: data.userId,
       teamId: data.teamId,
       department: data.department,
-      queryEmbedding: data.queryEmbedding,
-      docEmbedding: data.docEmbedding,
+      queryEmbedding: data.queryEmbedding as
+        | Uint8Array<ArrayBuffer>
+        | undefined,
+      docEmbedding: data.docEmbedding as Uint8Array<ArrayBuffer> | undefined,
       recentQueries: data.recentQueries as object[] | undefined,
       recentClicks: data.recentClicks as object[] | undefined,
       connectorWeights: data.connectorWeights as object | undefined,
@@ -38,7 +40,7 @@ export async function createUserSearchProfile(
 }
 
 export interface UpdateQueryEmbeddingInput {
-  queryEmbedding: Uint8Array<ArrayBuffer>;
+  queryEmbedding: Uint8Array;
   recentQueries: RecentQuery[];
 }
 
@@ -53,7 +55,7 @@ export async function updateQueryEmbedding(
       userId_teamId: { userId, teamId },
     },
     data: {
-      queryEmbedding: data.queryEmbedding,
+      queryEmbedding: data.queryEmbedding as Uint8Array<ArrayBuffer>,
       recentQueries: data.recentQueries as object[],
       embeddingVersion: { increment: 1 },
       lastEmbeddingAt: new Date(),
@@ -64,7 +66,7 @@ export async function updateQueryEmbedding(
 }
 
 export interface UpdateDocEmbeddingInput {
-  docEmbedding: Uint8Array<ArrayBuffer>;
+  docEmbedding: Uint8Array;
   recentClicks: RecentClick[];
   connectorWeights: Record<string, number>;
   authorInteractions: Record<string, number>;
@@ -83,7 +85,7 @@ export async function updateDocEmbedding(
       userId_teamId: { userId, teamId },
     },
     data: {
-      docEmbedding: data.docEmbedding,
+      docEmbedding: data.docEmbedding as Uint8Array<ArrayBuffer>,
       recentClicks: data.recentClicks as object[],
       connectorWeights: data.connectorWeights as object,
       authorInteractions: data.authorInteractions as object,
