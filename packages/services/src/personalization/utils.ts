@@ -1,8 +1,13 @@
 import crypto from "node:crypto";
 
-export function serializeEmbedding(embedding: number[]): Uint8Array {
+export function serializeEmbedding(
+  embedding: number[]
+): Uint8Array<ArrayBuffer> {
   const float32 = new Float32Array(embedding);
-  return new Uint8Array(float32.buffer);
+  const buffer = new ArrayBuffer(float32.byteLength);
+  const result = new Uint8Array(buffer);
+  result.set(new Uint8Array(float32.buffer));
+  return result;
 }
 
 export function deserializeEmbedding(data: Uint8Array): number[] {

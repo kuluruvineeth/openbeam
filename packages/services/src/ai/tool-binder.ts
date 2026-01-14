@@ -26,7 +26,16 @@ import {
   type AnalyticsService,
   createAnalyticsService,
 } from "@openplane/analytics";
-import prisma, { findConnectorById, listConnectorsByTeam } from "@openplane/db";
+import prisma, {
+  createSavedSearch,
+  createShareLink,
+  findConnectorById,
+  findUserSearchProfile,
+  listConnectorsByTeam,
+  triggerSync,
+  upsertUserProfilePreferences,
+} from "@openplane/db";
+import { addSyncJob, getSyncJob, type SyncJobData } from "@openplane/redis";
 import { escapeYqlString, vespaClient } from "@openplane/vespa";
 import { searchService } from "../search";
 import { getStorageProvider } from "../storage";
@@ -456,6 +465,91 @@ function createAnalyticsServices(): ToolServices["analytics"] {
   };
 }
 
+type SyncJobStatus = "queued" | "running" | "completed" | "failed";
+
+const SYNC_STATUS_MAP: Record<string, SyncJobStatus> = {
+  PENDING: "queued",
+  QUEUED: "queued",
+  RUNNING: "running",
+  COMPLETED: "completed",
+  FAILED: "failed",
+  CANCELLED: "failed",
+  TIMEOUT: "failed",
+  PAUSED: "queued",
+};
+
+function calculatePercentComplete(
+  processed: number,
+  total: number | undefined
+): number | undefined {
+  if (!total || total <= 0) {
+    return;
+  }
+  return Math.round((processed / total) * 100);
+}
+
+async function getStatusFromBullMQ(jobId: string) {
+  const bullmqJob = await getSyncJob(jobId);
+  if (!bullmqJob) {
+    throw new Error(`Sync job not found: ${jobId}`);
+  }
+
+  const state = await bullmqJob.getState();
+  const progress = bullmqJob.progress as
+    | { processed?: number; total?: number }
+    | undefined;
+  const processed = progress?.processed ?? 0;
+
+  return {
+    jobId,
+    connectorId: bullmqJob.data.connectorId,
+    status: state as SyncJobStatus,
+    progress: {
+      documentsProcessed: processed,
+      documentsTotal: progress?.total,
+      percentComplete: calculatePercentComplete(processed, progress?.total),
+    },
+  };
+}
+
+function getStatusFromSyncHistory(
+  jobId: string,
+  syncHistory: {
+    connectorId: string;
+    status: string;
+    dataAdded: number;
+    dataUpdated: number;
+    dataDeleted: number;
+    dataSkipped: number;
+    startedAt: Date;
+    finishedAt: Date | null;
+    errorMessage: string | null;
+    syncJob: { itemsTotal: number | null } | null;
+  }
+) {
+  const totalProcessed =
+    syncHistory.dataAdded +
+    syncHistory.dataUpdated +
+    syncHistory.dataDeleted +
+    syncHistory.dataSkipped;
+
+  const total = syncHistory.syncJob?.itemsTotal ?? undefined;
+
+  return {
+    jobId,
+    connectorId: syncHistory.connectorId,
+    status: SYNC_STATUS_MAP[syncHistory.status] ?? "queued",
+    progress: {
+      documentsProcessed: totalProcessed,
+      documentsTotal: total,
+      percentComplete: calculatePercentComplete(totalProcessed, total),
+    },
+    startedAt: syncHistory.startedAt,
+    completedAt: syncHistory.finishedAt ?? undefined,
+    errorMessage: syncHistory.errorMessage ?? undefined,
+  };
+}
+
 export function createToolServices(
   options: ToolServicesOptions = {}
 ): ToolServices {
@@ -542,6 +636,76 @@ export function createToolServices(
           embeddingTime: result.embeddingTime,
         };
       },
+
+      async export(params: {
+        teamId: string;
+        query: string;
+        format: "json" | "csv" | "markdown";
+        limit?: number;
+      }) {
+        const searchResult = await hybridSearch({
+          query: params.query,
+          teamId: params.teamId,
+          limit: params.limit ?? 100,
+        });
+
+        const fileName = `search-export-${Date.now()}.${params.format}`;
+        let content: string;
+
+        if (params.format === "json") {
+          content = JSON.stringify(searchResult.documents, null, 2);
+        } else if (params.format === "csv") {
+          const headers = [
+            "id",
+            "title",
+            "url",
+            "connectorType",
+            "relevanceScore",
+          ];
+          const rows = searchResult.documents.map((d) =>
+            [
+              d.id,
+              d.title,
+              d.url ?? "",
+              d.connector_type ?? "",
+              d.relevanceScore ?? 0,
+            ].join(",")
+          );
+          content = [headers.join(","), ...rows].join("\n");
+        } else {
+          content = searchResult.documents
+            .map((d) => `## ${d.title}\n\n${d.content ?? ""}\n\n---`)
+            .join("\n\n");
+        }
+
+        const contextServices = createContextServices(options.orchestrator);
+        const fileInfo = contextServices.storeVirtualFile(fileName, content);
+
+        return {
+          fileId: fileInfo.fileId,
+          fileName,
+          format: params.format,
+          size: content.length,
+        };
+      },
+
+      async save(params: {
+        teamId: string;
+        userId: string;
+        name: string;
+        query: string;
+        filters?: Record<string, unknown>;
+      }) {
+        const savedSearch = await createSavedSearch(prisma, {
+          teamId: params.teamId,
+          userId: params.userId,
+          name: params.name,
+          query: params.query,
+          filters: params.filters,
+        });
+
+        return { savedSearchId: savedSearch.id, name: savedSearch.name };
+      },
     },
 
     rag: {
@@ -590,6 +754,66 @@ export function createToolServices(
         );
         const result = verifyGrounding(_response, chunks);
         return adaptGroundingResult(result);
+      },
+
+      async synthesize(params: {
+        question: string;
+        chunks: Array<{
+          content: string;
+          documentId: string;
+          documentTitle?: string;
+          documentUrl?: string;
+          position?: number;
+        }>;
+        temperature?: number;
+        maxOutputTokens?: number;
+        instructions?: string;
+      }) {
+        const startTime = performance.now();
+        const completionService = new CompletionService();
+
+        const contextText = params.chunks
+          .map(
+            (c, i) =>
+              `[${i + 1}] ${c.documentTitle ?? "Document"}\n${c.content}`
+          )
+          .join("\n\n---\n\n");
+
+        const systemPrompt = `You are a helpful assistant that synthesizes information from provided context.
+${params.instructions ?? ""}
+
+CONTEXT:
+${contextText}
+
+Answer the question using ONLY the information from the context above.
+Cite sources using [n] notation where n is the document number.`;
+
+        const result = await completionService.complete(
+          [{ role: "user", content: params.question }],
+          {
+            systemPrompt,
+            temperature: params.temperature ?? 0.3,
+            maxTokens: params.maxOutputTokens ?? 1024,
+          }
+        );
+
+        const citations = params.chunks.map((c, i) => ({
+          documentId: c.documentId,
+          chunkIndex: i,
+          snippet: c.content.slice(0, 200),
+          relevance: 1 - i * 0.1,
+        }));
+
+        return {
+          answer: result.content,
+          citations,
+          usage: {
+            promptTokens: result.usage?.inputTokens ?? 0,
+            completionTokens: result.usage?.outputTokens ?? 0,
+            totalTokens: result.usage?.totalTokens ?? 0,
+          },
+          latencyMs: performance.now() - startTime,
+        };
       },
     },
 
@@ -678,6 +902,75 @@ export function createToolServices(
 
         return chunks;
       },
+
+      async export(params: {
+        documentId: string;
+        teamId: string;
+        format: "json" | "markdown" | "text";
+      }) {
+        const doc = await vespaClient.getDocument(params.documentId);
+        if (!doc) {
+          throw new Error(`Document not found: ${params.documentId}`);
+        }
+
+        let extension: string;
+        let outputFormat: "json" | "csv" | "markdown";
+        if (params.format === "json") {
+          extension = "json";
+          outputFormat = "json";
+        } else if (params.format === "markdown") {
+          extension = "md";
+          outputFormat = "markdown";
+        } else {
+          extension = "csv";
+          outputFormat = "csv";
+        }
+
+        const fileName = `${doc.title ?? "document"}-${Date.now()}.${extension}`;
+        let content: string;
+
+        if (params.format === "json") {
+          content = JSON.stringify(adaptDocument(doc), null, 2);
+        } else if (params.format === "markdown") {
+          content = `# ${doc.title}\n\n${doc.content ?? ""}`;
+        } else {
+          content = doc.content ?? "";
+        }
+
+        const contextServices = createContextServices(options.orchestrator);
+        const fileInfo = contextServices.storeVirtualFile(fileName, content);
+
+        return {
+          fileId: fileInfo.fileId,
+          fileName,
+          format: outputFormat,
+          size: content.length,
+        };
+      },
+
+      async share(params: {
+        documentId: string;
+        teamId: string;
+        userId: string;
+        expiresInHours?: number;
+      }) {
+        const expiresAt = params.expiresInHours
+          ? new Date(Date.now() + params.expiresInHours * 3600 * 1000)
+          : undefined;
+
+        const shareLink = await createShareLink(prisma, {
+          teamId: params.teamId,
+          userId: params.userId,
+          documentId: params.documentId,
+          expiresAt,
+        });
+
+        return {
+          shareId: shareLink.id,
+          shareUrl: `/shared/${shareLink.id}`,
+          expiresAt: shareLink.expiresAt ?? undefined,
+        };
+      },
     },
 
     connectors: {
@@ -743,6 +1036,292 @@ export function createToolServices(
             h.dataAdded + h.dataUpdated + h.dataDeleted + h.dataSkipped,
           errorMessage: h.errorMessage ?? undefined,
         }));
+      },
+
+      async getSyncHistoryPaginated(params: {
+        connectorId: string;
+        limit?: number;
+        offset?: number;
+      }) {
+        const limit = params.limit ?? 10;
+        const offset = params.offset ?? 0;
+
+        const [history, total] = await Promise.all([
+          prisma.syncHistory.findMany({
+            where: { connectorId: params.connectorId },
+            orderBy: { startedAt: "desc" },
+            take: limit,
+            skip: offset,
+            select: {
+              id: true,
+              status: true,
+              startedAt: true,
+              finishedAt: true,
+              dataAdded: true,
+              dataUpdated: true,
+              dataDeleted: true,
+              dataSkipped: true,
+              errorMessage: true,
+            },
+          }),
+          prisma.syncHistory.count({
+            where: { connectorId: params.connectorId },
+          }),
+        ]);
+
+        const entries: SyncHistoryEntry[] = history.map((h) => ({
+          id: h.id,
+          status: h.status,
+          startedAt: h.startedAt,
+          completedAt: h.finishedAt,
+          documentsProcessed:
+            h.dataAdded + h.dataUpdated + h.dataDeleted + h.dataSkipped,
+          errorMessage: h.errorMessage ?? undefined,
+        }));
+
+        return {
+          entries,
+          pagination: {
+            total,
+            limit,
+            offset,
+            hasMore: offset + entries.length < total,
+          },
+        };
+      },
+
+      async triggerSync(params: {
+        connectorId: string;
+        teamId: string;
+        syncType: "full" | "incremental";
+        priority: "low" | "normal" | "high";
+      }) {
+        const connector = await findConnectorById(
+          prisma,
+          params.connectorId,
+          false
+        );
+        if (!connector) {
+          throw new Error(`Connector not found: ${params.connectorId}`);
+        }
+
+        if (connector.teamId !== params.teamId) {
+          throw new Error("Connector does not belong to this team");
+        }
+
+        const syncType = params.syncType === "full" ? "FULL" : "INCREMENTAL";
+        const priorityMap = { low: 3, normal: 5, high: 7 };
+        const jobPriority = priorityMap[params.priority];
+
+        const syncResult = await triggerSync(prisma, {
+          connectorId: params.connectorId,
+          type: syncType,
+        });
+
+        const jobData: SyncJobData = {
+          connectorId: params.connectorId,
+          syncJobId: syncResult.syncHistoryId,
+          type: syncType,
+          trigger: "MANUAL",
+          priority: jobPriority,
+        };
+
+        const bullmqJob = await addSyncJob(jobData, jobPriority);
+
+        return {
+          jobId: syncResult.syncHistoryId,
+          queueJobId: bullmqJob.id ?? "",
+          connectorId: params.connectorId,
+          syncType: params.syncType,
+          queued: true,
+          queuePosition: 1,
+          estimatedStartTime: new Date(Date.now() + 5000),
+        };
+      },
+
+      async getSyncJobStatus(jobId: string) {
+        const syncHistory = await prisma.syncHistory.findUnique({
+          where: { id: jobId },
+          include: { syncJob: true },
+        });
+
+        if (!syncHistory) {
+          return getStatusFromBullMQ(jobId);
+        }
+
+        return getStatusFromSyncHistory(jobId, syncHistory);
+      },
+
+      async pause(connectorId: string, _teamId: string) {
+        const connector = await findConnectorById(prisma, connectorId, false);
+        if (!connector) {
+          throw new Error(`Connector not found: ${connectorId}`);
+        }
+
+        await prisma.connector.update({
+          where: { id: connectorId },
+          data: { status: "PAUSED" },
+        });
+
+        return {
+          connectorId,
+          previousStatus: connector.status,
+          newStatus: "PAUSED",
+          message: `Connector ${connector.name} has been paused`,
+        };
+      },
+
+      async resume(connectorId: string, _teamId: string) {
+        const connector = await findConnectorById(prisma, connectorId, false);
+        if (!connector) {
+          throw new Error(`Connector not found: ${connectorId}`);
+        }
+
+        await prisma.connector.update({
+          where: { id: connectorId },
+          data: { status: "ACTIVE" },
+        });
+
+        return {
+          connectorId,
+          previousStatus: connector.status,
+          newStatus: "ACTIVE",
+          message: `Connector ${connector.name} has been resumed`,
+        };
+      },
+    },
+
+    discovery: {
+      async getCapabilities(teamId: string) {
+        const connectors = await listConnectorsByTeam(prisma, teamId);
+
+        const totalCountYql = `select id from openplane_document where team_id contains "${escapeYqlString(teamId)}" limit 0`;
+        const totalCountResult = await vespaClient.query({
+          yql: totalCountYql,
+          hits: 0,
+        });
+        const totalDocuments =
+          (totalCountResult.root?.fields?.totalCount as number) ?? 0;
+
+        const connectorCounts = await Promise.all(
+          connectors.map(async (c) => {
+            const countYql = `select id from openplane_document where connector_id contains "${escapeYqlString(c.id)}" limit 0`;
+            const result = await vespaClient.query({ yql: countYql, hits: 0 });
+            return {
+              connectorId: c.id,
+              count: (result.root?.fields?.totalCount as number) ?? 0,
+            };
+          })
+        );
+
+        const countMap = new Map(
+          connectorCounts.map((cc) => [cc.connectorId, cc.count])
+        );
+
+        return {
+          connectors: connectors.map((c) => ({
+            type: c.app,
+            name: c.name,
+            documentCount: countMap.get(c.id) ?? 0,
+            lastSyncAt: c.lastSyncedAt,
+            status: c.status,
+          })),
+          tools: [
+            {
+              name: "search_hybrid",
+              category: "search",
+              description: "Hybrid search across all sources",
+            },
+            {
+              name: "search_semantic",
+              category: "search",
+              description: "Semantic similarity search",
+            },
+            {
+              name: "rag_answer",
+              category: "rag",
+              description: "Generate answers from context",
+            },
+            {
+              name: "doc_get",
+              category: "documents",
+              description: "Retrieve document by ID",
+            },
+          ],
+          stats: {
+            totalDocuments,
+            totalConnectors: connectors.length,
+            activeConnectors: connectors.filter((c) => c.status === "ACTIVE")
+              .length,
+          },
+        };
+      },
+    },
+
+    preferences: {
+      async get(userId: string, teamId: string) {
+        const profile = await findUserSearchProfile(prisma, userId, teamId);
+
+        if (!profile) {
+          return {
+            preferredSources: [] as string[],
+            excludedSources: [] as string[],
+            defaultSearchLimit: 10,
+            dateRangeDefault: "all" as const,
+            resultDisplayMode: "detailed" as const,
+            personalizationEnabled: true,
+            department: null as string | null,
+          };
+        }
+
+        const connectorWeights = profile.connectorWeights;
+        const preferredSources = Object.entries(connectorWeights)
+          .filter(([, weight]) => weight > 0.5)
+          .sort(([, a], [, b]) => b - a)
+          .map(([source]) => source);
+
+        const excludedSources = Object.entries(connectorWeights)
+          .filter(([, weight]) => weight < 0.2)
+          .map(([source]) => source);
+
+        return {
+          preferredSources,
+          excludedSources,
+          defaultSearchLimit: 10,
+          dateRangeDefault: "all" as const,
+          resultDisplayMode: "detailed" as const,
+          personalizationEnabled: profile.personalizationEnabled,
+          department: profile.department,
+        };
+      },
+
+      async update(
+        userId: string,
+        teamId: string,
+        preferences: {
+          preferredSources?: string[];
+          excludedSources?: string[];
+          defaultSearchLimit?: number;
+          dateRangeDefault?: "day" | "week" | "month" | "year" | "all";
+          resultDisplayMode?: "compact" | "detailed";
+          personalizationEnabled?: boolean;
+          department?: string | null;
+        }
+      ) {
+        await upsertUserProfilePreferences(prisma, userId, teamId, {
+          personalizationEnabled: preferences.personalizationEnabled,
+          department: preferences.department,
+        });
+
+        return {
+          preferredSources: preferences.preferredSources ?? [],
+          excludedSources: preferences.excludedSources ?? [],
+          defaultSearchLimit: preferences.defaultSearchLimit ?? 10,
+          dateRangeDefault: preferences.dateRangeDefault ?? "all",
+          resultDisplayMode: preferences.resultDisplayMode ?? "detailed",
+          personalizationEnabled: preferences.personalizationEnabled ?? true,
+          department: preferences.department ?? null,
+        };
       },
     },
 
