@@ -58,6 +58,10 @@ temp
 .cursor
 .claude
 
+# Ralph TUI working files
+.ralph-tui/
+.ralph-tui-progress.md
+
 # Terraform error states
 **/*errored.tfstate
 
