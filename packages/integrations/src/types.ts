@@ -15,6 +15,10 @@ export type LogoProps = {
 
 export type LogoComponent = React.ComponentType<LogoProps>;
 
+export type SecretRef = {
+  secretName: string;
+};
+
 export enum ConnectorType {
   SOURCE = "SOURCE",
   DESTINATION = "DESTINATION",
