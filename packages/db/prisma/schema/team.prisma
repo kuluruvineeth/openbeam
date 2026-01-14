@@ -31,6 +31,8 @@ model Team {
   compositionEvents      CompositionEvent[]
   userFeedback           UserFeedback[]
   agentExecutionTraces   AgentExecutionTrace[]
+  savedSearches          SavedSearch[]
+  shareLinks             ShareLink[]
 
   @@map("team")
 }

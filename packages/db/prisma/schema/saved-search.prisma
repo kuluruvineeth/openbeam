@@ -1,0 +1,59 @@
+model SavedSearch {
+  id            String   @id @default(cuid()) @map("_id")
+  teamId        String
+  userId        String
+
+  name          String
+  query         String
+
+  filters       Json     @default("{}")
+  sortBy        String?
+  sortOrder     String?
+
+  isPinned      Boolean  @default(false)
+  usageCount    Int      @default(0)
+  lastUsedAt    DateTime?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  team          Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId, name])
+  @@index([teamId, userId])
+  @@index([userId, isPinned])
+  @@map("saved_search")
+}
+
+model ShareLink {
+  id            String    @id @default(cuid()) @map("_id")
+  teamId        String
+  userId        String
+
+  documentId    String
+
+  accessType    String    @default("view")
+
+  expiresAt     DateTime?
+  maxViews      Int?
+  viewCount     Int       @default(0)
+
+  password      String?
+
+  isActive      Boolean   @default(true)
+  revokedAt     DateTime?
+  revokedBy     String?
+
+  lastAccessedAt DateTime?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  team          Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@index([teamId, documentId])
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([isActive])
+  @@map("share_link")
+}
