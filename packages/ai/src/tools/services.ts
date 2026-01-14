@@ -349,6 +349,63 @@ export interface ShareResult {
   expiresAt?: Date;
 }
 
+export interface StorageObject {
+  key: string;
+  lastModified?: Date;
+  size?: number;
+}
+
+export interface StorageListResult {
+  objects: StorageObject[];
+  nextCursor?: string;
+  commonPrefixes?: string[];
+}
+
+export interface MediaSearchResult {
+  videoId: string;
+  score: number;
+  startSec: number;
+  endSec: number;
+  confidence: string;
+  thumbnailUrl?: string;
+}
+
+export interface MediaTranscriptSegment {
+  start: number;
+  end: number;
+  value: string;
+}
+
+export interface MediaChapter {
+  title: string;
+  start: number;
+  end: number;
+}
+
+export interface MediaHighlight {
+  description: string;
+  start: number;
+  end: number;
+}
+
+export interface MediaMetadata {
+  summary: string;
+  keywords: string[];
+  duration: number;
+  thumbnailUrl?: string;
+  chapters: MediaChapter[];
+  highlights: MediaHighlight[];
+}
+
+export interface IntegrationInfo {
+  type: string;
+  name: string;
+  category: string;
+  authType: "oauth" | "api_key" | "service_account";
+  capabilities: string[];
+  documentTypes: string[];
+}
+
 export interface UserPreferences {
   preferredSources: string[];
   excludedSources: string[];
@@ -398,7 +455,11 @@ export interface ToolServices {
       teamId: string;
       limit?: number;
       offset?: number;
+      connectorId?: string;
       connectorType?: string;
+      query?: string;
+      dateFrom?: Date;
+      dateTo?: Date;
       sortBy?: string;
       sortOrder?: "asc" | "desc";
     }) => Promise<{ documents: Document[]; total: number }>;
@@ -469,6 +530,80 @@ export interface ToolServices {
       params: ExecuteQueryParams
     ) => Promise<SpreadsheetQueryResult>;
   };
+
+  storage: {
+    list: (params: {
+      teamId: string;
+      prefix?: string;
+      limit?: number;
+      cursor?: string;
+    }) => Promise<StorageListResult>;
+    getSignedUrl: (params: {
+      teamId: string;
+      key: string;
+      expiresIn?: number;
+    }) => Promise<string>;
+    exists: (params: { teamId: string; key: string }) => Promise<boolean>;
+    getMetadata: (params: {
+      teamId: string;
+      key: string;
+    }) => Promise<StorageObject | null>;
+  };
+
+  media: {
+    searchByText: (params: {
+      teamId: string;
+      indexId: string;
+      query: string;
+      limit?: number;
+    }) => Promise<MediaSearchResult[]>;
+    searchByImage: (params: {
+      teamId: string;
+      indexId: string;
+      imageUrl: string;
+      limit?: number;
+    }) => Promise<MediaSearchResult[]>;
+    getTranscript: (params: {
+      teamId: string;
+      indexId: string;
+      videoId: string;
+    }) => Promise<string | null>;
+    getTranscriptWithTimestamps: (params: {
+      teamId: string;
+      indexId: string;
+      videoId: string;
+    }) => Promise<MediaTranscriptSegment[]>;
+    getMetadata: (params: {
+      teamId: string;
+      indexId: string;
+      videoId: string;
+    }) => Promise<MediaMetadata>;
+    analyze: (params: {
+      teamId: string;
+      videoId: string;
+      prompt: string;
+    }) => Promise<string>;
+    getSummary: (params: {
+      teamId: string;
+      videoId: string;
+      prompt?: string;
+    }) => Promise<string>;
+    getChapters: (params: {
+      teamId: string;
+      videoId: string;
+    }) => Promise<MediaChapter[]>;
+    getHighlights: (params: {
+      teamId: string;
+      videoId: string;
+    }) => Promise<MediaHighlight[]>;
+  };
+
+  integrations: {
+    listAvailable: () => Promise<IntegrationInfo[]>;
+    getCapabilities: (
+      integrationType: string
+    ) => Promise<IntegrationInfo | null>;
+  };
 }
 
 export function createUnimplementedServices(): ToolServices {
@@ -533,6 +668,29 @@ export function createUnimplementedServices(): ToolServices {
       getSpreadsheetSchema: notImplemented("analytics.getSpreadsheetSchema"),
       generateSql: notImplemented("analytics.generateSql"),
       executeQuery: notImplemented("analytics.executeQuery"),
+    },
+    storage: {
+      list: notImplemented("storage.list"),
+      getSignedUrl: notImplemented("storage.getSignedUrl"),
+      exists: notImplemented("storage.exists"),
+      getMetadata: notImplemented("storage.getMetadata"),
+    },
+    media: {
+      searchByText: notImplemented("media.searchByText"),
+      searchByImage: notImplemented("media.searchByImage"),
+      getTranscript: notImplemented("media.getTranscript"),
+      getTranscriptWithTimestamps: notImplemented(
+        "media.getTranscriptWithTimestamps"
+      ),
+      getMetadata: notImplemented("media.getMetadata"),
+      analyze: notImplemented("media.analyze"),
+      getSummary: notImplemented("media.getSummary"),
+      getChapters: notImplemented("media.getChapters"),
+      getHighlights: notImplemented("media.getHighlights"),
+    },
+    integrations: {
+      listAvailable: notImplemented("integrations.listAvailable"),
+      getCapabilities: notImplemented("integrations.getCapabilities"),
     },
   };
 }
