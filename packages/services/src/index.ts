@@ -166,13 +166,7 @@ export type {
 } from "./files";
 export type {
   DomainSyncCursor,
-  GmailAttachmentInfo,
   GmailClient,
-  GmailLabel,
-  GmailMediaInfo,
-  GmailSyncBatch,
-  GmailSyncCursor,
-  GmailTransformContext,
   NotificationHandlerConfig,
   WatchManagerConfig,
 } from "./gmail";
