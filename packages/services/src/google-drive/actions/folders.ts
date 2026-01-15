@@ -1,6 +1,8 @@
+import {
+  type DriveFile,
+  GOOGLE_WORKSPACE_MIME_TYPES,
+} from "@openplane/types/services/connectors/google-drive";
 import type { GoogleDriveClient } from "../client";
-import type { DriveFile } from "../types";
-import { GOOGLE_WORKSPACE_MIME_TYPES } from "../types";
 
 export interface FolderActionResult {
   success: boolean;

@@ -1,5 +1,8 @@
+import type {
+  GoogleDriveTransformContext,
+  SharedDrive,
+} from "@openplane/types/services/connectors/google-drive";
 import type { GenericDocument } from "@openplane/vespa";
-import type { GoogleDriveTransformContext, SharedDrive } from "../types";
 import { buildSharedDriveUrl } from "../utils/content-extractor";
 
 export function transformSharedDrive(

@@ -1,17 +1,17 @@
+import {
+  type DriveChange,
+  type DriveFile,
+  type DriveMediaInfo,
+  GOOGLE_WORKSPACE_MIME_TYPES,
+  type GoogleDriveSyncBatch,
+  type GoogleDriveSyncCursor,
+  type GoogleDriveTransformContext,
+} from "@openplane/types/services/connectors/google-drive";
 import type { GenericDocument } from "@openplane/vespa";
 import { logger } from "../../lib/logger";
 import { fetchChanges, partitionChanges } from "../api/changes";
 import type { GoogleDriveClient } from "../client";
 import { transformFile } from "../transformers/file";
-import type {
-  DriveChange,
-  DriveFile,
-  DriveMediaInfo,
-  GoogleDriveSyncBatch,
-  GoogleDriveSyncCursor,
-  GoogleDriveTransformContext,
-} from "../types";
-import { GOOGLE_WORKSPACE_MIME_TYPES } from "../types";
 import { extractFileContent } from "../utils/content-extractor";
 import { isMediaType, isTextExtractable } from "../utils/mime-types";
 

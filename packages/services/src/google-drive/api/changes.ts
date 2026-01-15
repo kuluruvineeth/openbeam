@@ -1,11 +1,11 @@
-import type { GoogleDriveClient } from "../client";
 import {
   type DriveChange,
   type DriveChangesListResponse,
   DriveChangesListResponseSchema,
   type DriveStartPageTokenResponse,
   DriveStartPageTokenResponseSchema,
-} from "../types";
+} from "@openplane/types/services/connectors/google-drive";
+import type { GoogleDriveClient } from "../client";
 
 const DEFAULT_CHANGE_FIELDS = [
   "nextPageToken",

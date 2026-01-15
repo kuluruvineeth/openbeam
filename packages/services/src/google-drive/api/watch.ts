@@ -1,6 +1,9 @@
 import { randomUUID } from "node:crypto";
+import {
+  type DriveWatchChannel,
+  DriveWatchChannelSchema,
+} from "@openplane/types/services/connectors/google-drive";
 import type { GoogleDriveClient } from "../client";
-import { type DriveWatchChannel, DriveWatchChannelSchema } from "../types";
 
 export interface WatchChangesOptions {
   pageToken: string;

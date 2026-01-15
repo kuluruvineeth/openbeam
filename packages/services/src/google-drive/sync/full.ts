@@ -1,11 +1,3 @@
-import type { GenericDocument } from "@openplane/vespa";
-import type { ConnectorFileInfo } from "../../files/types";
-import { logger } from "../../lib/logger";
-import { getStartPageToken } from "../api/changes";
-import { getDefaultExportMimeType } from "../api/export";
-import { fetchFiles } from "../api/files";
-import type { GoogleDriveClient } from "../client";
-import { transformFile } from "../transformers/file";
 import {
   type DriveFile,
   type DriveMediaInfo,
@@ -14,7 +6,15 @@ import {
   type GoogleDriveSyncCursor,
   type GoogleDriveTransformContext,
   isUnexportableGoogleType,
-} from "../types";
+} from "@openplane/types/services/connectors/google-drive";
+import type { GenericDocument } from "@openplane/vespa";
+import type { ConnectorFileInfo } from "../../files/types";
+import { logger } from "../../lib/logger";
+import { getStartPageToken } from "../api/changes";
+import { getDefaultExportMimeType } from "../api/export";
+import { fetchFiles } from "../api/files";
+import type { GoogleDriveClient } from "../client";
+import { transformFile } from "../transformers/file";
 import { extractFileContent, getDriveId } from "../utils/content-extractor";
 import { isMediaType, isTextExtractable } from "../utils/mime-types";
 

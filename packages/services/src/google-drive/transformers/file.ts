@@ -1,6 +1,12 @@
+import type {
+  DriveFile,
+  GoogleDriveTransformContext,
+} from "@openplane/types/services/connectors/google-drive";
+import {
+  isFolder,
+  isShortcut,
+} from "@openplane/types/services/connectors/google-drive";
 import type { GenericDocument } from "@openplane/vespa";
-import type { DriveFile, GoogleDriveTransformContext } from "../types";
-import { isFolder, isShortcut } from "../types";
 import {
   buildDocumentUrl,
   getAccessControlList,

@@ -1,5 +1,8 @@
+import {
+  type DriveAbout,
+  DriveAboutSchema,
+} from "@openplane/types/services/connectors/google-drive";
 import type { GoogleDriveClient } from "../client";
-import { type DriveAbout, DriveAboutSchema } from "../types";
 
 const DEFAULT_ABOUT_FIELDS = [
   "user(displayName,emailAddress,photoLink,permissionId)",

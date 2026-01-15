@@ -1,8 +1,8 @@
+import type { GoogleDriveTransformContext } from "@openplane/types/services/connectors/google-drive";
 import type { GenericDocument } from "@openplane/vespa";
 import { fetchFiles } from "../api/files";
 import type { GoogleDriveClient } from "../client";
 import { transformFile } from "../transformers/file";
-import type { GoogleDriveTransformContext } from "../types";
 import { extractFileContent } from "../utils/content-extractor";
 import { isTextExtractable } from "../utils/mime-types";
 

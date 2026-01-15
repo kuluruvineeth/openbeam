@@ -1,5 +1,8 @@
+import {
+  GOOGLE_WORKSPACE_MIME_TYPES,
+  isGoogleWorkspaceType,
+} from "@openplane/types/services/connectors/google-drive";
 import type { GoogleDriveClient } from "../client";
-import { GOOGLE_WORKSPACE_MIME_TYPES, isGoogleWorkspaceType } from "../types";
 
 export const EXPORT_MIME_TYPES = {
   TEXT_PLAIN: "text/plain",

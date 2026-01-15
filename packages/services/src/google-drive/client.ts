@@ -1,12 +1,11 @@
 import { type RateLimitConfig, rateLimiter } from "@openplane/redis";
+import type {
+  GoogleDriveClientConfig,
+  GoogleDriveRateLimitState,
+} from "@openplane/types/services/connectors/google-drive";
 import { logger } from "../lib/logger";
 import { getValidAccessToken } from "../lib/token-refresh";
-import {
-  GoogleDriveApiError,
-  type GoogleDriveClientConfig,
-  GoogleDriveErrorCodes,
-  type GoogleDriveRateLimitState,
-} from "./types";
+import { GoogleDriveApiError, GoogleDriveErrorCodes } from "./types";
 
 const DRIVE_API_BASE = "https://www.googleapis.com/drive/v3";
 const DEFAULT_TIMEOUT = 30_000;

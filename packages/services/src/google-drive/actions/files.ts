@@ -1,5 +1,5 @@
+import type { DriveFile } from "@openplane/types/services/connectors/google-drive";
 import type { GoogleDriveClient } from "../client";
-import type { DriveFile } from "../types";
 
 export interface FileActionResult {
   success: boolean;

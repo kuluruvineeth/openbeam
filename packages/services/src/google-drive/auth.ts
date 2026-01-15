@@ -14,13 +14,13 @@ import {
   googleDriveApp,
   parseOAuthCredentialsFile,
 } from "@openplane/integrations";
-import { createOAuthState, verifyOAuthState } from "../lib/oauth-state";
 import type {
   AuthCompleteContext,
   AuthStartContext,
   ConnectorResult,
   IntegrationAuth,
-} from "../types";
+} from "@openplane/types/services";
+import { createOAuthState, verifyOAuthState } from "../lib/oauth-state";
 
 type GoogleDriveConfig = {
   client_id?: string;

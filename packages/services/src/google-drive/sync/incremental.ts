@@ -1,13 +1,13 @@
-import type { GenericDocument } from "@openplane/vespa";
-import type { ConnectorFileInfo } from "../../files/types";
-import type { GoogleDriveClient } from "../client";
 import type {
   DriveMediaInfo,
   GoogleDriveSyncBatch,
   GoogleDriveSyncCursor,
   GoogleDriveSyncOptions,
   GoogleDriveTransformContext,
-} from "../types";
+} from "@openplane/types/services/connectors/google-drive";
+import type { GenericDocument } from "@openplane/vespa";
+import type { ConnectorFileInfo } from "../../files/types";
+import type { GoogleDriveClient } from "../client";
 import { GoogleDriveApiError, GoogleDriveErrorCodes } from "../types";
 import { changesSync } from "./changes";
 import { fullSync } from "./full";

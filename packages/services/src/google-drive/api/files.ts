@@ -1,11 +1,11 @@
-import { logger } from "../../lib/logger";
-import type { GoogleDriveClient } from "../client";
 import {
   type DriveFile,
   type DriveFileListResponse,
   DriveFileListResponseSchema,
   DriveFileSchema,
-} from "../types";
+} from "@openplane/types/services/connectors/google-drive";
+import { logger } from "../../lib/logger";
+import type { GoogleDriveClient } from "../client";
 
 const DEFAULT_FILE_FIELDS = [
   "id",

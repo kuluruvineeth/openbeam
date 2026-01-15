@@ -1,6 +1,9 @@
+import {
+  type DriveFile,
+  GOOGLE_WORKSPACE_MIME_TYPES,
+} from "@openplane/types/services/connectors/google-drive";
 import { exportFileAsText } from "../api/export";
 import type { GoogleDriveClient } from "../client";
-import { type DriveFile, GOOGLE_WORKSPACE_MIME_TYPES } from "../types";
 import { isTextExtractable } from "./mime-types";
 
 export interface ExtractedContent {

@@ -3,16 +3,16 @@ import {
   getGoogleDriveServiceAccountToken,
   parseServiceAccountCredentials,
 } from "@openplane/integrations";
-import type { GenericDocument } from "@openplane/vespa";
-import { logger } from "../../lib/logger";
-import { listAllSharedDrives } from "../api/drives";
-import { createGoogleDriveClient, type GoogleDriveClient } from "../client";
 import type {
   DriveMediaInfo,
   GoogleDriveDomainSyncCursor,
   GoogleDriveSyncBatch,
   GoogleDriveTransformContext,
-} from "../types";
+} from "@openplane/types/services/connectors/google-drive";
+import type { GenericDocument } from "@openplane/vespa";
+import { logger } from "../../lib/logger";
+import { listAllSharedDrives } from "../api/drives";
+import { createGoogleDriveClient, type GoogleDriveClient } from "../client";
 import {
   googleDriveIncrementalSync,
   type IncrementalSyncOptions,
