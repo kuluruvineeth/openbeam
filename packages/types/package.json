@@ -35,6 +35,10 @@
     "./connectors": {
       "types": "./dist/connectors/index.d.ts",
       "default": "./src/connectors/index.ts"
+    },
+    "./db": {
+      "types": "./dist/db/index.d.ts",
+      "default": "./src/db/index.ts"
     }
   },
   "scripts": {

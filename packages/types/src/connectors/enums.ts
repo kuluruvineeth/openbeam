@@ -16,10 +16,37 @@ export type AuthType = z.infer<typeof AuthTypeSchema>;
 
 export const AppTypeSchema = z.enum([
   "SLACK",
+  "MICROSOFT_TEAMS",
+  "DISCORD",
+  "WHATSAPP",
   "GMAIL",
+  "OUTLOOK",
   "GOOGLE_DRIVE",
+  "ONEDRIVE",
+  "SHAREPOINT",
+  "DROPBOX",
+  "BOX",
   "NOTION",
+  "CONFLUENCE",
+  "CODA",
+  "JIRA",
+  "ASANA",
+  "TRELLO",
+  "CLICKUP",
   "LINEAR",
+  "MONDAY",
+  "BASECAMP",
+  "GITHUB",
+  "GITLAB",
+  "BITBUCKET",
+  "SALESFORCE",
+  "HUBSPOT",
+  "PIPEDRIVE",
+  "ZOHO",
+  "ZENDESK",
+  "INTERCOM",
+  "FRESHDESK",
+  "SERVICENOW",
 ]);
 
 export type AppType = z.infer<typeof AppTypeSchema>;
@@ -27,3 +54,17 @@ export type AppType = z.infer<typeof AppTypeSchema>;
 export const SyncModeSchema = z.enum(["REALTIME", "PERIODIC", "ON_DEMAND"]);
 
 export type SyncMode = z.infer<typeof SyncModeSchema>;
+
+export const ConnectorStatusSchema = z.enum([
+  "ACTIVE",
+  "INACTIVE",
+  "ERROR",
+  "SYNCING",
+  "CONNECTING",
+  "PAUSED",
+  "RATE_LIMITED",
+  "AUTH_EXPIRED",
+  "DELETING",
+]);
+
+export type ConnectorStatus = z.infer<typeof ConnectorStatusSchema>;

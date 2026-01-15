@@ -10,12 +10,14 @@ export { DocumentTypeCategorySchema } from "./document-types";
 export type {
   AppType,
   AuthType,
+  ConnectorStatus,
   ConnectorType,
   SyncMode,
 } from "./enums";
 export {
   AppTypeSchema,
   AuthTypeSchema,
+  ConnectorStatusSchema,
   ConnectorTypeSchema,
   SyncModeSchema,
 } from "./enums";
