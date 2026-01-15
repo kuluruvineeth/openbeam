@@ -1,10 +1,10 @@
-import type { GenericDocument, JsonArray } from "@openplane/vespa";
-import type { BlockWithDepth } from "../api/blocks";
 import type {
   NotionComment,
   NotionPage,
   NotionTransformContext,
-} from "../types";
+} from "@openplane/types/services/connectors/notion";
+import type { GenericDocument, JsonArray } from "@openplane/vespa";
+import type { BlockWithDepth } from "../api/blocks";
 import { serializeBlocks } from "../utils/block-serializer";
 import {
   blocksToText,

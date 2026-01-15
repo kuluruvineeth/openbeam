@@ -1,7 +1,9 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import {
+  type NotionWebhookPayload,
+  NotionWebhookPayloadSchema,
+} from "@openplane/types/services/connectors/notion";
 import { logger } from "../../lib/logger";
-import type { NotionWebhookPayload } from "../types";
-import { NotionWebhookPayloadSchema } from "../types";
 import type { NotionWatchState } from "./watch-manager";
 
 export interface NotionNotification {

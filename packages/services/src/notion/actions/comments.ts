@@ -1,10 +1,10 @@
+import type { NotionComment } from "@openplane/types/services/connectors/notion";
 import {
   createBlockComment as apiCreateBlockComment,
   createPageComment as apiCreatePageComment,
   getAllComments,
 } from "../api/comments";
 import type { NotionClient } from "../client";
-import type { NotionComment } from "../types";
 
 export interface CommentActionResult {
   success: boolean;

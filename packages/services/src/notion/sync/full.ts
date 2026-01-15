@@ -1,3 +1,11 @@
+import type {
+  NotionDatabase,
+  NotionPage,
+  NotionSyncBatch,
+  NotionSyncCursor,
+  NotionSyncOptions,
+  NotionTransformContext,
+} from "@openplane/types/services/connectors/notion";
 import type { GenericDocument } from "@openplane/vespa";
 import { logger } from "../../lib/logger";
 import { getAllBlockChildren } from "../api/blocks";
@@ -7,14 +15,6 @@ import { createUserLookup } from "../api/users";
 import type { NotionClient } from "../client";
 import { transformDatabase } from "../transformers/database";
 import { transformPage } from "../transformers/page";
-import type {
-  NotionDatabase,
-  NotionPage,
-  NotionSyncBatch,
-  NotionSyncCursor,
-  NotionSyncOptions,
-  NotionTransformContext,
-} from "../types";
 
 const DEFAULT_BATCH_SIZE = 50;
 const DEFAULT_MAX_BLOCK_DEPTH = 10;

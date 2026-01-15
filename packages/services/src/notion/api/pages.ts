@@ -1,5 +1,5 @@
+import type { NotionPage } from "@openplane/types/services/connectors/notion";
 import type { NotionClient } from "../client";
-import type { NotionPage } from "../types";
 
 export async function getPage(
   client: NotionClient,

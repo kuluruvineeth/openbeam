@@ -1,5 +1,8 @@
+import type {
+  NotionBlock,
+  NotionBlockChildrenResponse,
+} from "@openplane/types/services/connectors/notion";
 import type { NotionClient } from "../client";
-import type { NotionBlock, NotionBlockChildrenResponse } from "../types";
 
 const MAX_BLOCK_DEPTH = 10;
 

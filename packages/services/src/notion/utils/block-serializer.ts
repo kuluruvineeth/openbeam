@@ -1,5 +1,5 @@
+import type { NotionRichText } from "@openplane/types/services/connectors/notion";
 import type { BlockWithDepth } from "../api/blocks";
-import type { NotionRichText } from "../types";
 
 export interface SerializedBlock {
   id: string;

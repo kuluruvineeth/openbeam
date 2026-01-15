@@ -1,3 +1,4 @@
+import type { NotionPage } from "@openplane/types/services/connectors/notion";
 import {
   archivePage as apiArchivePage,
   createPage as apiCreatePage,
@@ -6,7 +7,6 @@ import {
   updatePage as apiUpdatePage,
 } from "../api/pages";
 import type { NotionClient } from "../client";
-import type { NotionPage } from "../types";
 import { createTextRichText } from "../utils/rich-text";
 
 export interface PageActionResult {

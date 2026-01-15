@@ -1,3 +1,7 @@
+import type {
+  NotionDatabase,
+  NotionPage,
+} from "@openplane/types/services/connectors/notion";
 import {
   getDatabase as apiGetDatabase,
   queryDatabase as apiQueryDatabase,
@@ -5,7 +9,6 @@ import {
 } from "../api/databases";
 import { createPage as apiCreatePage } from "../api/pages";
 import type { NotionClient } from "../client";
-import type { NotionDatabase, NotionPage } from "../types";
 import { createTextRichText } from "../utils/rich-text";
 
 export interface DatabaseActionResult {

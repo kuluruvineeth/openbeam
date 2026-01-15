@@ -1,5 +1,8 @@
+import type {
+  NotionUser,
+  NotionUserLookup,
+} from "@openplane/types/services/connectors/notion";
 import type { NotionClient } from "../client";
-import type { NotionUser, NotionUserLookup } from "../types";
 
 interface UsersListResponse {
   object: "list";

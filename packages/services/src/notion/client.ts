@@ -1,14 +1,13 @@
 import { type RateLimitConfig, rateLimiter } from "@openplane/redis";
-import { logger } from "../lib/logger";
-import { getValidAccessToken } from "../lib/token-refresh";
 import {
   NOTION_API_BASE,
   NOTION_API_VERSION,
-  NotionApiError,
   type NotionClientConfig,
-  NotionErrorCodes,
   type NotionRateLimitState,
-} from "./types";
+} from "@openplane/types/services/connectors/notion";
+import { logger } from "../lib/logger";
+import { getValidAccessToken } from "../lib/token-refresh";
+import { NotionApiError, NotionErrorCodes } from "./types";
 
 const DEFAULT_TIMEOUT = 30_000;
 const DEFAULT_RETRY_ATTEMPTS = 3;

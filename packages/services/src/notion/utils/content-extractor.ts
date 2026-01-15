@@ -1,4 +1,3 @@
-import type { BlockWithDepth } from "../api/blocks";
 import type {
   NotionBlock,
   NotionComment,
@@ -6,7 +5,8 @@ import type {
   NotionPage,
   NotionParent,
   NotionRichText,
-} from "../types";
+} from "@openplane/types/services/connectors/notion";
+import type { BlockWithDepth } from "../api/blocks";
 import { richTextToPlainText } from "./rich-text";
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: comprehensive block type handling is inherently complex

@@ -1,4 +1,4 @@
-import type { NotionRichText } from "../types";
+import type { NotionRichText } from "@openplane/types/services/connectors/notion";
 
 export function richTextToPlainText(richText: NotionRichText[]): string {
   return richText.map((rt) => rt.plain_text).join("");

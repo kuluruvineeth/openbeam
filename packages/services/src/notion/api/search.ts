@@ -1,9 +1,9 @@
-import type { NotionClient } from "../client";
 import type {
   NotionDatabase,
   NotionPage,
   NotionSearchResponse,
-} from "../types";
+} from "@openplane/types/services/connectors/notion";
+import type { NotionClient } from "../client";
 
 export interface SearchOptions {
   query?: string;

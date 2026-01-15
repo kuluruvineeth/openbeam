@@ -1,9 +1,9 @@
-import type { NotionClient } from "../client";
 import type {
   NotionDatabase,
   NotionDatabaseQueryResponse,
   NotionPage,
-} from "../types";
+} from "@openplane/types/services/connectors/notion";
+import type { NotionClient } from "../client";
 
 export async function getDatabase(
   client: NotionClient,

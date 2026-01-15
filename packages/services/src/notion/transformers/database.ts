@@ -1,5 +1,8 @@
+import type {
+  NotionDatabase,
+  NotionTransformContext,
+} from "@openplane/types/services/connectors/notion";
 import type { GenericDocument } from "@openplane/vespa";
-import type { NotionDatabase, NotionTransformContext } from "../types";
 import {
   extractDatabaseDescription,
   extractDatabaseTitle,

@@ -1,5 +1,8 @@
+import type {
+  NotionComment,
+  NotionCommentsResponse,
+} from "@openplane/types/services/connectors/notion";
 import type { NotionClient } from "../client";
-import type { NotionComment, NotionCommentsResponse } from "../types";
 
 export interface GetCommentsOptions {
   blockId?: string;
