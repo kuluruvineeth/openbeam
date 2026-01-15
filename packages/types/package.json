@@ -39,6 +39,18 @@
     "./db": {
       "types": "./dist/db/index.d.ts",
       "default": "./src/db/index.ts"
+    },
+    "./services": {
+      "types": "./dist/services/index.d.ts",
+      "default": "./src/services/index.ts"
+    },
+    "./services/connectors/*": {
+      "types": "./dist/services/connectors/*.d.ts",
+      "default": "./src/services/connectors/*.ts"
+    },
+    "./services/ai": {
+      "types": "./dist/services/ai/index.d.ts",
+      "default": "./src/services/ai/index.ts"
     }
   },
   "scripts": {
