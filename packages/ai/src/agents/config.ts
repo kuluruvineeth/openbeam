@@ -13,11 +13,20 @@ export type AgentType =
   | "human-in-loop"
   | "hierarchical";
 
+export type ThinkingLevel = "minimal" | "low" | "medium" | "high";
+
+export interface ThinkingConfig {
+  enabled?: boolean;
+  thinkingLevel?: ThinkingLevel;
+  includeThoughts?: boolean;
+}
+
 export interface ModelConfig {
   providerId?: ProviderId;
   modelId?: string;
   temperature?: number;
   maxTokens?: number;
+  thinking?: ThinkingConfig;
 }
 
 export interface StateConfig {

@@ -27,6 +27,10 @@
     "./tools": {
       "types": "./dist/tools/index.d.ts",
       "default": "./src/tools/index.ts"
+    },
+    "./streaming": {
+      "types": "./dist/streaming/index.d.ts",
+      "default": "./src/streaming/index.ts"
     }
   },
   "scripts": {

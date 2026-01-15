@@ -5,6 +5,16 @@ import {
   streamText,
   type ToolSet,
 } from "ai";
+
+type JSONValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JSONValue[]
+  | { [key: string]: JSONValue };
+type JSONObject = { [key: string]: JSONValue };
+
 import { getConfig } from "../../config";
 import { buildContextMd, type ContextMdInput } from "../../context/context-md";
 import { createContextOrchestrator } from "../../context/orchestrator";
@@ -38,6 +48,110 @@ export class LlmAgent extends BaseAgent {
   constructor(config: LlmAgentConfig) {
     super(config);
     this.config = config;
+  }
+
+  private buildGoogleProviderOptions(
+    thinkingConfig: NonNullable<typeof this.config.model>["thinking"]
+  ): Record<string, JSONObject> {
+    const modelId = this.config.model?.modelId ?? "";
+    const isGemini25 = modelId.includes("gemini-2.5");
+
+    if (isGemini25) {
+      const thinkingBudgetMap: Record<string, number> = {
+        minimal: 1024,
+        low: 4096,
+        medium: 8192,
+        high: 16_384,
+      };
+      const thinkingBudget =
+        thinkingBudgetMap[thinkingConfig?.thinkingLevel ?? "low"] ?? 4096;
+
+      return {
+        google: {
+          thinkingConfig: {
+            includeThoughts: thinkingConfig?.includeThoughts ?? true,
+            thinkingBudget,
+          },
+        },
+      };
+    }
+
+    return {
+      google: {
+        thinkingConfig: {
+          includeThoughts: thinkingConfig?.includeThoughts ?? true,
+          thinkingLevel: thinkingConfig?.thinkingLevel ?? "low",
+        },
+      },
+    };
+  }
+
+  private buildProviderOptions(
+    providerId: string
+  ): Record<string, JSONObject> | undefined {
+    const thinkingConfig = this.config.model?.thinking;
+    if (!thinkingConfig?.enabled) {
+      return;
+    }
+
+    if (providerId === "google") {
+      return this.buildGoogleProviderOptions(thinkingConfig);
+    }
+
+    if (providerId === "anthropic") {
+      const budgetMap: Record<string, number> = {
+        minimal: 2048,
+        low: 4096,
+        medium: 8192,
+        high: 16_384,
+      };
+      const budgetTokens =
+        budgetMap[thinkingConfig?.thinkingLevel ?? "low"] ?? 4096;
+
+      return {
+        anthropic: {
+          thinking: {
+            type: "enabled",
+            budgetTokens,
+          },
+        },
+      };
+    }
+
+    if (providerId === "openai") {
+      const effortMap = {
+        minimal: "low",
+        low: "low",
+        medium: "medium",
+        high: "high",
+      } as const;
+      const effort = effortMap[thinkingConfig.thinkingLevel ?? "medium"];
+
+      return {
+        openai: {
+          reasoningEffort: effort,
+        },
+      };
+    }
+
+    return;
+  }
+
+  private extractDeltaText(chunk: unknown): string {
+    if (!chunk || typeof chunk !== "object") {
+      return "";
+    }
+    const obj = chunk as Record<string, unknown>;
+    if (typeof obj.textDelta === "string") {
+      return obj.textDelta;
+    }
+    if (typeof obj.delta === "string") {
+      return obj.delta;
+    }
+    if (typeof obj.text === "string") {
+      return obj.text;
+    }
+    return "";
   }
 
   async execute(
@@ -76,6 +190,7 @@ export class LlmAgent extends BaseAgent {
     const maxSteps = this.config.maxSteps ?? aiConfig.agent.maxSteps;
     const toolContext = this.buildToolContext(ctx);
     const tools = this.resolveTools(toolContext);
+    const providerOptions = this.buildProviderOptions(providerId);
 
     try {
       toolRegistry.setCurrentContext(toolContext);
@@ -89,6 +204,7 @@ export class LlmAgent extends BaseAgent {
         maxOutputTokens:
           this.config.model?.maxTokens ?? aiConfig.agent.maxTokensPerStep,
         abortSignal: ctx.abortSignal,
+        providerOptions,
       });
 
       const output = result.text;
@@ -164,6 +280,7 @@ export class LlmAgent extends BaseAgent {
     const maxSteps = this.config.maxSteps ?? aiConfig.agent.maxSteps;
     const toolContext = this.buildToolContext(ctx);
     const tools = this.resolveTools(toolContext);
+    const providerOptions = this.buildProviderOptions(providerId);
 
     toolRegistry.setCurrentContext(toolContext);
 
@@ -178,50 +295,88 @@ export class LlmAgent extends BaseAgent {
         maxOutputTokens:
           this.config.model?.maxTokens ?? aiConfig.agent.maxTokensPerStep,
         abortSignal: ctx.abortSignal,
+        providerOptions,
       });
 
       let fullText = "";
+      let pendingReasoning = "";
       const toolCalls: Array<{ toolName: string; args: unknown }> = [];
 
       for await (const chunk of result.fullStream) {
-        if (chunk.type === "text-delta") {
-          const text = "text" in chunk ? chunk.text : "";
-          if (text) {
-            fullText += text;
+        const chunkType = (chunk as { type?: string }).type ?? "unknown";
+
+        if (
+          chunkType === "reasoning-delta" ||
+          chunkType === "reasoning" ||
+          chunkType === "reasoning-start" ||
+          chunkType === "thinking" ||
+          chunkType === "thought"
+        ) {
+          const reasoning = this.extractDeltaText(chunk);
+          if (reasoning) {
+            pendingReasoning += reasoning;
             yield {
-              type: "text",
+              type: "thinking",
               agentName: this.config.name,
-              content: text,
+              content: reasoning,
+              modelDescription: reasoning,
             };
           }
         }
 
-        if (chunk.type === "tool-call") {
-          const toolCallInput = "input" in chunk ? chunk.input : undefined;
-          toolCalls.push({ toolName: chunk.toolName, args: toolCallInput });
-          compositionTracker.recordToolCall(chunk.toolName);
+        if (chunkType === "text-delta") {
+          const deltaText = this.extractDeltaText(chunk);
+          if (deltaText) {
+            fullText += deltaText;
+            yield {
+              type: "text",
+              agentName: this.config.name,
+              content: deltaText,
+            };
+          }
+        }
+
+        if (chunkType === "tool-call") {
+          const toolChunk = chunk as {
+            toolCallId: string;
+            toolName: string;
+            input?: unknown;
+          };
+          const toolCallInput = toolChunk.input;
+          toolCalls.push({ toolName: toolChunk.toolName, args: toolCallInput });
+          compositionTracker.recordToolCall(toolChunk.toolName);
+
+          const modelDescription = pendingReasoning.trim() || undefined;
+          pendingReasoning = "";
+
           yield {
             type: "tool-call",
             agentName: this.config.name,
-            toolCallId: chunk.toolCallId,
-            toolName: chunk.toolName,
+            toolCallId: toolChunk.toolCallId,
+            toolName: toolChunk.toolName,
             toolInput: toolCallInput,
+            modelDescription,
           };
         }
 
-        if (chunk.type === "tool-result") {
-          const output = "output" in chunk ? chunk.output : undefined;
+        if (chunkType === "tool-result") {
+          const toolResultChunk = chunk as {
+            toolCallId: string;
+            toolName: string;
+            output?: unknown;
+          };
           yield {
             type: "tool-result",
             agentName: this.config.name,
-            toolCallId: chunk.toolCallId,
-            toolName: chunk.toolName,
-            toolOutput: output,
+            toolCallId: toolResultChunk.toolCallId,
+            toolName: toolResultChunk.toolName,
+            toolOutput: toolResultChunk.output,
           };
         }
       }
 
       const [finalUsage] = await Promise.all([result.usage]);
+
       const tokens = {
         inputTokens: finalUsage?.inputTokens ?? 0,
         outputTokens: finalUsage?.outputTokens ?? 0,

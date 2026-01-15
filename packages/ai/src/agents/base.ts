@@ -20,7 +20,7 @@ export interface ExecutableAgent {
 }
 
 export interface AgentStreamChunk {
-  type: "text" | "tool-call" | "tool-result" | "step" | "done";
+  type: "text" | "thinking" | "tool-call" | "tool-result" | "step" | "done";
   agentName: string;
   content?: string;
   toolCallId?: string;
@@ -29,6 +29,7 @@ export interface AgentStreamChunk {
   toolOutput?: unknown;
   step?: ExecutionTrace;
   result?: AgentExecutionResult;
+  modelDescription?: string;
 }
 
 export interface AgentFactory {

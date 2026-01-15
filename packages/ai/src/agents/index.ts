@@ -42,6 +42,8 @@ export type {
   SequentialAgentConfig,
   StateConfig,
   StopCondition,
+  ThinkingConfig,
+  ThinkingLevel,
   ToolCallRecord,
 } from "./config";
 export {
