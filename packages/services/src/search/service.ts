@@ -1,4 +1,4 @@
-import { embedQuery, getConfig as getAIConfig } from "@openplane/ai";
+import { getConfig as getAIConfig, getBGEM3Provider } from "@openplane/ai";
 import {
   buildMediaVectorQueryFeatures,
   buildVectorQueryFeatures,
@@ -237,9 +237,11 @@ export class SearchService {
       const aiConfig = getAIConfig();
       const modelId = aiConfig.defaultEmbeddingModel;
 
-      return await getOrGenerateEmbedding(query, modelId, () =>
-        embedQuery(query)
-      );
+      return await getOrGenerateEmbedding(query, modelId, async () => {
+        const bgeProvider = getBGEM3Provider();
+        const result = await bgeProvider.embedQuery(query);
+        return result.dense;
+      });
     } catch (error) {
       logger.warn(
         { error },

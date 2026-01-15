@@ -1,4 +1,8 @@
-import { registry } from "@openplane/ai";
+import {
+  buildThinkingProviderOptions,
+  extractReasoningContent,
+  registry,
+} from "@openplane/ai";
 import type { GenericDocument, MediaDocument } from "@openplane/vespa";
 import { tool as aiTool, stepCountIs, streamText } from "ai";
 import { z } from "zod";
@@ -357,34 +361,72 @@ function isTextDeltaChunk(
   );
 }
 
+function isReasoningDeltaChunk(chunk: unknown): boolean {
+  if (!chunk || typeof chunk !== "object") {
+    return false;
+  }
+  const obj = chunk as Record<string, unknown>;
+  return obj.type === "reasoning" || obj.type === "reasoning-delta";
+}
+
+function handleReasoningChunk(chunk: unknown): OverviewStreamChunk | undefined {
+  const content = extractReasoningContent(chunk);
+  if (content) {
+    return { type: "thinking", thinkingMessage: content };
+  }
+  return;
+}
+
+function* processChunk(
+  chunk: unknown,
+  toolState: SearchToolState,
+  streamState: StreamState
+): Generator<OverviewStreamChunk> {
+  if (isReasoningDeltaChunk(chunk)) {
+    const result = handleReasoningChunk(chunk);
+    if (result) {
+      yield result;
+    }
+    return;
+  }
+
+  if (isToolCallChunk(chunk)) {
+    yield handleToolCallChunk({
+      toolCallId: chunk.toolCallId,
+      toolName: chunk.toolName,
+      input: chunk.input,
+    });
+    return;
+  }
+
+  if (isToolResultChunk(chunk)) {
+    yield* handleToolResultChunk(
+      {
+        toolCallId: chunk.toolCallId,
+        toolName: chunk.toolName,
+        output: chunk.output,
+      },
+      toolState.citationMap
+    );
+    return;
+  }
+
+  if (isTextDeltaChunk(chunk)) {
+    const text = chunk.text ?? "";
+    const textChunk = handleTextDeltaChunk(text, streamState);
+    if (textChunk) {
+      yield textChunk;
+    }
+  }
+}
+
 async function* processStream(
   fullStream: AsyncIterable<unknown>,
   toolState: SearchToolState,
   streamState: StreamState
 ): AsyncGenerator<OverviewStreamChunk> {
   for await (const chunk of fullStream) {
-    if (isToolCallChunk(chunk)) {
-      yield handleToolCallChunk({
-        toolCallId: chunk.toolCallId,
-        toolName: chunk.toolName,
-        input: chunk.input,
-      });
-    } else if (isToolResultChunk(chunk)) {
-      yield* handleToolResultChunk(
-        {
-          toolCallId: chunk.toolCallId,
-          toolName: chunk.toolName,
-          output: chunk.output,
-        },
-        toolState.citationMap
-      );
-    } else if (isTextDeltaChunk(chunk)) {
-      const text = chunk.text ?? "";
-      const textChunk = handleTextDeltaChunk(text, streamState);
-      if (textChunk) {
-        yield textChunk;
-      }
-    }
+    yield* processChunk(chunk, toolState, streamState);
   }
 }
 
@@ -430,6 +472,8 @@ export async function* streamAgenticOverview(
   let usage = createEmptyUsage();
 
   try {
+    const thinkingOptions = buildThinkingProviderOptions({ enabled: true });
+
     const result = streamText({
       model,
       system: AGENTIC_SYSTEM_PROMPT,
@@ -439,6 +483,9 @@ export async function* streamAgenticOverview(
       },
       stopWhen: stepCountIs(5),
       temperature: request.temperature ?? 0.3,
+      providerOptions: thinkingOptions as Parameters<
+        typeof streamText
+      >[0]["providerOptions"],
     });
 
     yield* processStream(result.fullStream, toolState, streamState);

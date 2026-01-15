@@ -7,6 +7,7 @@ import type {
   GenerateSqlParams,
   GenerateSqlResult,
   GroundingResult,
+  IntegrationInfo,
   QueryAnalysis,
   RAGParams,
   RAGResponse,
@@ -35,8 +36,10 @@ import prisma, {
   triggerSync,
   upsertUserProfilePreferences,
 } from "@openplane/db";
+import { AuthType, appStore } from "@openplane/integrations";
 import { addSyncJob, getSyncJob, type SyncJobData } from "@openplane/redis";
 import { escapeYqlString, vespaClient } from "@openplane/vespa";
+import { mediaAIService } from "../media/service";
 import { searchService } from "../search";
 import { getStorageProvider } from "../storage";
 import { hybridSearch, keywordSearch, semanticSearch } from "./hybrid-search";
@@ -1341,5 +1344,246 @@ Cite sources using [n] notation where n is the document number.`;
     context: createContextServices(options.orchestrator),
 
     analytics: createAnalyticsServices(),
+
+    storage: {
+      async list(params: {
+        teamId: string;
+        prefix?: string;
+        limit?: number;
+        cursor?: string;
+      }) {
+        const storage = getStorageProvider();
+        const result = await storage.list(params.prefix, {
+          limit: params.limit,
+          cursor: params.cursor,
+        });
+
+        return {
+          objects: result.objects.map((obj) => ({
+            key: obj.key,
+            lastModified: obj.lastModified,
+            size: obj.size,
+          })),
+          nextCursor: result.nextCursor,
+          commonPrefixes: result.commonPrefixes,
+        };
+      },
+
+      getSignedUrl(params: {
+        teamId: string;
+        key: string;
+        expiresIn?: number;
+      }) {
+        const storage = getStorageProvider();
+        return storage.getSignedUrl(params.key, params.expiresIn ?? 3600);
+      },
+
+      exists(params: { teamId: string; key: string }) {
+        const storage = getStorageProvider();
+        return storage.exists(params.key);
+      },
+
+      async getMetadata(params: { teamId: string; key: string }) {
+        const storage = getStorageProvider();
+        const exists = await storage.exists(params.key);
+        if (!exists) {
+          return null;
+        }
+        const listResult = await storage.list(params.key, { limit: 1 });
+        const obj = listResult.objects.find((o) => o.key === params.key);
+        if (!obj) {
+          return null;
+        }
+        return {
+          key: obj.key,
+          lastModified: obj.lastModified,
+          size: obj.size,
+        };
+      },
+    },
+
+    media: {
+      async searchByText(params: {
+        teamId: string;
+        indexId: string;
+        query: string;
+        limit?: number;
+      }) {
+        const results = await mediaAIService.searchByText(
+          params.indexId,
+          params.query,
+          { pageLimit: params.limit }
+        );
+        return results.map((r) => ({
+          videoId: r.videoId,
+          score: r.score,
+          startSec: r.startSec,
+          endSec: r.endSec,
+          confidence: r.confidence,
+          thumbnailUrl: r.thumbnailUrl,
+        }));
+      },
+
+      async searchByImage(params: {
+        teamId: string;
+        indexId: string;
+        imageUrl: string;
+        limit?: number;
+      }) {
+        const results = await mediaAIService.searchByImage(
+          params.indexId,
+          params.imageUrl,
+          { pageLimit: params.limit }
+        );
+        return results.map((r) => ({
+          videoId: r.videoId,
+          score: r.score,
+          startSec: r.startSec,
+          endSec: r.endSec,
+          confidence: r.confidence,
+          thumbnailUrl: r.thumbnailUrl,
+        }));
+      },
+
+      getTranscript(params: {
+        teamId: string;
+        indexId: string;
+        videoId: string;
+      }) {
+        return mediaAIService.getTranscript(params.indexId, params.videoId);
+      },
+
+      async getTranscriptWithTimestamps(params: {
+        teamId: string;
+        indexId: string;
+        videoId: string;
+      }) {
+        const segments = await mediaAIService.getTranscriptWithTimestamps(
+          params.indexId,
+          params.videoId
+        );
+        return segments.map((s) => ({
+          start: s.start,
+          end: s.end,
+          value: s.value,
+        }));
+      },
+
+      async getMetadata(params: {
+        teamId: string;
+        indexId: string;
+        videoId: string;
+      }) {
+        const [gist, chapters, highlights] = await Promise.all([
+          mediaAIService.generateGist(params.videoId),
+          mediaAIService.generateChapters(params.videoId),
+          mediaAIService.generateHighlights(params.videoId),
+        ]);
+
+        return {
+          summary: gist.title ?? "",
+          keywords: gist.hashtags ?? [],
+          duration: 0,
+          thumbnailUrl: undefined,
+          chapters: chapters.map((ch) => ({
+            title: ch.title,
+            start: ch.startSec,
+            end: ch.endSec,
+          })),
+          highlights: highlights.map((h) => ({
+            description: h.highlight,
+            start: h.startSec,
+            end: h.endSec,
+          })),
+        };
+      },
+
+      async analyze(params: {
+        teamId: string;
+        videoId: string;
+        prompt: string;
+      }) {
+        const result = await mediaAIService.analyzeMedia(
+          params.videoId,
+          params.prompt
+        );
+        return result.answer;
+      },
+
+      getSummary(params: { teamId: string; videoId: string; prompt?: string }) {
+        return mediaAIService.generateSummary(params.videoId, {
+          prompt: params.prompt,
+        });
+      },
+
+      async getChapters(params: { teamId: string; videoId: string }) {
+        const chapters = await mediaAIService.generateChapters(params.videoId);
+        return chapters.map((ch) => ({
+          title: ch.title,
+          start: ch.startSec,
+          end: ch.endSec,
+        }));
+      },
+
+      async getHighlights(params: { teamId: string; videoId: string }) {
+        const highlights = await mediaAIService.generateHighlights(
+          params.videoId
+        );
+        return highlights.map((h) => ({
+          description: h.highlight,
+          start: h.startSec,
+          end: h.endSec,
+        }));
+      },
+    },
+
+    integrations: {
+      listAvailable(): Promise<IntegrationInfo[]> {
+        return Promise.resolve(
+          appStore.map((app) => ({
+            type: app.id,
+            name: app.name,
+            category: app.category,
+            authType: mapAuthType(app.auth.type),
+            capabilities: app.features,
+            documentTypes: app.streams.map((s) => s.name),
+          }))
+        );
+      },
+
+      getCapabilities(
+        integrationType: string
+      ): Promise<IntegrationInfo | null> {
+        const app = appStore.find(
+          (a) => a.id.toLowerCase() === integrationType.toLowerCase()
+        );
+        if (!app) {
+          return Promise.resolve(null);
+        }
+        return Promise.resolve({
+          type: app.id,
+          name: app.name,
+          category: app.category,
+          authType: mapAuthType(app.auth.type),
+          capabilities: app.features,
+          documentTypes: app.streams.map((s) => s.name),
+        });
+      },
+    },
   };
+}
+
+function mapAuthType(
+  authType: AuthType
+): "oauth" | "api_key" | "service_account" {
+  switch (authType) {
+    case AuthType.OAUTH2:
+      return "oauth";
+    case AuthType.API_KEY:
+      return "api_key";
+    case AuthType.SERVICE_ACCOUNT:
+      return "service_account";
+    default:
+      return "oauth";
+  }
 }

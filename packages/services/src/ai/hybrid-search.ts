@@ -1,7 +1,7 @@
 import {
   type Embedding,
-  embedQuery,
   getConfig as getAIConfig,
+  getBGEM3Provider,
 } from "@openplane/ai";
 import { buildVectorQueryFeatures, vespaClient } from "@openplane/vespa";
 import { getOrGenerateEmbedding } from "./embedding-cache";
@@ -53,7 +53,11 @@ export async function hybridSearch(
     queryEmbedding = await getOrGenerateEmbedding(
       query,
       aiConfig.defaultEmbeddingModel,
-      () => embedQuery(query)
+      async () => {
+        const bgeProvider = getBGEM3Provider();
+        const result = await bgeProvider.embedQuery(query);
+        return result.dense;
+      }
     );
     embeddingTime = Date.now() - embeddingStartTime;
   }

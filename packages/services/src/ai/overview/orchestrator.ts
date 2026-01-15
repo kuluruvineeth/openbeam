@@ -416,6 +416,7 @@ async function collectStreamContent(
       providerId: OVERVIEW_PROVIDER_ID,
       modelId,
       temperature,
+      enableThinking: true,
     }
   )) {
     if (chunk.type === "text") {
@@ -576,18 +577,19 @@ async function* streamLLMGenerationWithContent(
       providerId: OVERVIEW_PROVIDER_ID,
       modelId,
       temperature,
+      enableThinking: true,
     }
   )) {
-    if (chunk.type === "text") {
+    if (chunk.type === "thinking") {
+      yield { type: "thinking", thinkingMessage: chunk.content };
+    } else if (chunk.type === "text") {
       if (firstToken) {
         timing.firstTokenMs = performance.now() - startTime;
         firstToken = false;
       }
       collectedContent += chunk.content;
       yield { type: "text", content: chunk.content };
-    }
-
-    if (chunk.type === "done" && chunk.usage) {
+    } else if (chunk.type === "done" && chunk.usage) {
       usage = parseUsageFromChunk(chunk);
     }
   }

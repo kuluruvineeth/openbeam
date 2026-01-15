@@ -1,11 +1,17 @@
 import {
   type AgentExecutionContext,
-  type AgentStreamChunk,
   createEmptyState,
   createOverviewAgent,
   embedQueryWithCache,
+  registerAllBuiltinTools,
   toolRegistry,
 } from "@openplane/ai";
+import {
+  type AgentEvent,
+  adaptAgentStream,
+  StreamTimeoutError,
+  withTimeout,
+} from "@openplane/ai/streaming";
 import { registerAllTools } from "@openplane/ai/tools";
 import { getSemanticCache } from "@openplane/redis";
 import { logger as baseLogger } from "../../lib/logger";
@@ -30,13 +36,6 @@ function createRequestLogger(request: OverviewRequest) {
   });
 }
 
-class StreamTimeoutError extends Error {
-  constructor(timeoutMs: number) {
-    super(`Stream timed out after ${timeoutMs}ms`);
-    this.name = "StreamTimeoutError";
-  }
-}
-
 function getErrorMessage(error: unknown, isTimeout: boolean): string {
   if (isTimeout) {
     return "Request timed out. Please try a simpler query.";
@@ -45,25 +44,6 @@ function getErrorMessage(error: unknown, isTimeout: boolean): string {
     return error.message;
   }
   return "Overview generation failed";
-}
-
-async function* withStreamTimeout<T>(
-  generator: AsyncGenerator<T>,
-  timeoutMs: number
-): AsyncGenerator<T> {
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    setTimeout(() => reject(new StreamTimeoutError(timeoutMs)), timeoutMs);
-  });
-
-  const iterator = generator[Symbol.asyncIterator]();
-
-  while (true) {
-    const result = await Promise.race([iterator.next(), timeoutPromise]);
-    if (result.done) {
-      break;
-    }
-    yield result.value;
-  }
 }
 
 function createEmptyTiming(): OverviewTiming {
@@ -173,6 +153,11 @@ async function storeAgentInSemanticCache(
     return;
   }
 
+  if (!content.trim()) {
+    logger.warn("Skipping cache store - no content generated");
+    return;
+  }
+
   try {
     const semanticCache = getSemanticCache();
     await semanticCache.store(request.teamId, request.query, queryEmbedding, {
@@ -189,7 +174,6 @@ async function storeAgentInSemanticCache(
 }
 
 interface SynthesisData {
-  query?: string;
   citations?: Array<{
     index: number;
     documentId: string;
@@ -201,7 +185,6 @@ interface SynthesisData {
     relevanceScore: number;
   }>;
   groundingScore?: number;
-  sourceCount?: number;
 }
 
 interface ToolResultWrapper {
@@ -209,23 +192,7 @@ interface ToolResultWrapper {
   data?: SynthesisData;
 }
 
-interface OverviewAgentOutput {
-  answer?: string;
-  citations?: Array<{
-    index: number;
-    documentId: string;
-    title: string;
-    url?: string;
-    snippet: string;
-    connectorType?: string;
-    sourceType: "document" | "media";
-    relevanceScore: number;
-  }>;
-  groundingScore?: number;
-  sourceCount?: number;
-}
-
-function extractCitationsFromToolResult(
+function extractCitationsFromToolOutput(
   toolOutput: unknown,
   toolName: string
 ): { citations: OverviewCitation[]; groundingScore?: number } {
@@ -250,193 +217,6 @@ function extractCitationsFromToolResult(
   return { citations: [] };
 }
 
-function extractCitationsFromAgentResult(
-  output: unknown
-): OverviewCitation[] | null {
-  const result = output as OverviewAgentOutput;
-  if (result?.citations && Array.isArray(result.citations)) {
-    return result.citations.map((c) => ({
-      index: c.index,
-      documentId: c.documentId,
-      title: c.title,
-      url: c.url,
-      snippet: c.snippet,
-      connectorType: c.connectorType,
-      sourceType: c.sourceType,
-      relevanceScore: c.relevanceScore,
-    }));
-  }
-  return null;
-}
-
-function extractGroundingScore(output: unknown): number | undefined {
-  const result = output as OverviewAgentOutput;
-  return result?.groundingScore;
-}
-
-interface ChunkProcessorState {
-  isFirstToken: boolean;
-  citations: OverviewCitation[];
-  groundingScore?: number;
-}
-
-interface ChunkProcessorResult {
-  chunks: OverviewStreamChunk[];
-  state: ChunkProcessorState;
-}
-
-function buildTextChunk(
-  chunk: AgentStreamChunk,
-  timing: OverviewTiming,
-  startTime: number,
-  state: ChunkProcessorState
-): ChunkProcessorResult {
-  if (state.isFirstToken) {
-    timing.firstTokenMs = performance.now() - startTime;
-  }
-  return {
-    chunks: [{ type: "text", content: chunk.content ?? "" }],
-    state: { ...state, isFirstToken: false },
-  };
-}
-
-function buildToolCallChunk(
-  chunk: AgentStreamChunk,
-  state: ChunkProcessorState
-): ChunkProcessorResult {
-  return {
-    chunks: [
-      {
-        type: "tool_call",
-        toolCall: {
-          toolCallId: chunk.toolCallId ?? "",
-          toolName: chunk.toolName ?? "",
-          toolInput: chunk.toolInput,
-        },
-      },
-    ],
-    state,
-  };
-}
-
-function buildToolResultChunk(
-  chunk: AgentStreamChunk,
-  state: ChunkProcessorState
-): ChunkProcessorResult {
-  const resultChunk: OverviewStreamChunk = {
-    type: "tool_result",
-    toolResult: {
-      toolCallId: chunk.toolCallId ?? "",
-      toolName: chunk.toolName ?? "",
-      toolOutput: chunk.toolOutput,
-    },
-  };
-
-  const extracted = extractCitationsFromToolResult(
-    chunk.toolOutput,
-    chunk.toolName ?? ""
-  );
-  const chunks: OverviewStreamChunk[] = [resultChunk];
-
-  for (const citation of extracted.citations) {
-    chunks.push({ type: "citation", citation });
-  }
-
-  return {
-    chunks,
-    state: {
-      ...state,
-      citations:
-        extracted.citations.length > 0 ? extracted.citations : state.citations,
-      groundingScore: extracted.groundingScore ?? state.groundingScore,
-    },
-  };
-}
-
-function buildDoneChunk(
-  chunk: AgentStreamChunk,
-  timing: OverviewTiming,
-  startTime: number,
-  state: ChunkProcessorState
-): ChunkProcessorResult {
-  timing.generationMs =
-    performance.now() - startTime - (timing.firstTokenMs ?? 0);
-  timing.totalMs = performance.now() - startTime;
-
-  const result = chunk.result;
-  const usage: OverviewUsage = {
-    promptTokens: result?.totalTokens?.inputTokens ?? 0,
-    completionTokens: result?.totalTokens?.outputTokens ?? 0,
-    totalTokens:
-      (result?.totalTokens?.inputTokens ?? 0) +
-      (result?.totalTokens?.outputTokens ?? 0),
-  };
-
-  const agentCitations = extractCitationsFromAgentResult(result?.output);
-  const finalCitations = agentCitations ?? state.citations;
-
-  const agentGroundingScore = extractGroundingScore(result?.output);
-  const groundingScore =
-    agentGroundingScore ??
-    state.groundingScore ??
-    (finalCitations.length > 0
-      ? finalCitations.reduce((sum, c) => sum + c.relevanceScore, 0) /
-        finalCitations.length
-      : undefined);
-
-  const chunks: OverviewStreamChunk[] = [];
-
-  if (agentCitations && agentCitations.length > 0) {
-    for (const citation of agentCitations) {
-      if (!state.citations.some((c) => c.documentId === citation.documentId)) {
-        chunks.push({ type: "citation", citation });
-      }
-    }
-  }
-
-  chunks.push({ type: "done", timing, usage, groundingScore });
-
-  return {
-    chunks,
-    state: { ...state, citations: finalCitations, groundingScore },
-  };
-}
-
-const CHUNK_PROCESSORS: Record<
-  string,
-  (
-    chunk: AgentStreamChunk,
-    timing: OverviewTiming,
-    startTime: number,
-    state: ChunkProcessorState
-  ) => ChunkProcessorResult | null
-> = {
-  text: (chunk, timing, startTime, state) =>
-    chunk.content ? buildTextChunk(chunk, timing, startTime, state) : null,
-  "tool-call": (chunk, _timing, _startTime, state) =>
-    chunk.toolCallId && chunk.toolName
-      ? buildToolCallChunk(chunk, state)
-      : null,
-  "tool-result": (chunk, _timing, _startTime, state) =>
-    chunk.toolCallId && chunk.toolName
-      ? buildToolResultChunk(chunk, state)
-      : null,
-  done: (chunk, timing, startTime, state) =>
-    buildDoneChunk(chunk, timing, startTime, state),
-  step: () => null,
-};
-
-function processAgentChunk(
-  chunk: AgentStreamChunk,
-  timing: OverviewTiming,
-  startTime: number,
-  state: ChunkProcessorState
-): ChunkProcessorResult {
-  const processor = CHUNK_PROCESSORS[chunk.type];
-  const result = processor?.(chunk, timing, startTime, state);
-  return result ?? { chunks: [], state };
-}
-
 function createAgentContext(request: OverviewRequest): AgentExecutionContext {
   return {
     teamId: request.teamId,
@@ -446,57 +226,233 @@ function createAgentContext(request: OverviewRequest): AgentExecutionContext {
   };
 }
 
+const DEFAULT_OVERVIEW_MODEL = {
+  providerId: "anthropic" as const,
+  modelId: "claude-sonnet-4-20250514",
+};
+
 function createAgentConfig(request: OverviewRequest) {
+  const baseModel = request.modelId
+    ? { providerId: "anthropic" as const, modelId: request.modelId }
+    : DEFAULT_OVERVIEW_MODEL;
+
   return {
-    model: request.modelId
-      ? { providerId: "google" as const, modelId: request.modelId }
-      : undefined,
-    temperature: request.temperature,
+    model: {
+      ...baseModel,
+      temperature: request.temperature,
+      maxTokens: 16_384,
+      thinking: {
+        enabled: true,
+        thinkingLevel: "low" as const,
+        includeThoughts: true,
+      },
+    },
     maxSources: request.maxSources ?? 8,
   };
 }
 
-interface StreamStats {
+interface StreamState {
+  isFirstToken: boolean;
+  citations: OverviewCitation[];
+  groundingScore?: number;
+  collectedContent: string;
   toolCallCount: number;
   textChunkCount: number;
-  finalState: ChunkProcessorState;
-  collectedContent: string;
 }
 
-async function* processStream(
-  timeoutStream: AsyncGenerator<AgentStreamChunk>,
+function createInitialState(): StreamState {
+  return {
+    isFirstToken: true,
+    citations: [],
+    groundingScore: undefined,
+    collectedContent: "",
+    toolCallCount: 0,
+    textChunkCount: 0,
+  };
+}
+
+function buildDoneChunk(
+  event: AgentEvent & { type: "done" },
+  state: StreamState,
   timing: OverviewTiming,
   startTime: number
-): AsyncGenerator<OverviewStreamChunk, StreamStats> {
-  let state: ChunkProcessorState = { isFirstToken: true, citations: [] };
-  let toolCallCount = 0;
-  let textChunkCount = 0;
-  let collectedContent = "";
+): OverviewStreamChunk {
+  timing.generationMs =
+    performance.now() - startTime - (timing.firstTokenMs ?? 0);
+  timing.totalMs = performance.now() - startTime;
 
-  for await (const chunk of timeoutStream) {
-    if (chunk.type === "tool-call") {
-      toolCallCount += 1;
-    }
-    if (chunk.type === "text" && chunk.content) {
-      textChunkCount += 1;
-      collectedContent += chunk.content;
+  const tokens = event.metadata?.tokens as
+    | { inputTokens?: number; outputTokens?: number }
+    | undefined;
+
+  const usage: OverviewUsage = {
+    promptTokens: tokens?.inputTokens ?? 0,
+    completionTokens: tokens?.outputTokens ?? 0,
+    totalTokens: (tokens?.inputTokens ?? 0) + (tokens?.outputTokens ?? 0),
+  };
+
+  const groundingScore =
+    state.groundingScore ??
+    (state.citations.length > 0
+      ? state.citations.reduce((sum, c) => sum + c.relevanceScore, 0) /
+        state.citations.length
+      : undefined);
+
+  return { type: "done", timing, usage, groundingScore };
+}
+
+interface ChunkProcessingContext {
+  event: AgentEvent;
+  state: StreamState;
+  timing: OverviewTiming;
+  startTime: number;
+  logger: ReturnType<typeof createRequestLogger>;
+}
+
+function eventToOverviewChunks(ctx: ChunkProcessingContext): {
+  chunks: OverviewStreamChunk[];
+  state: StreamState;
+} {
+  const { event, state, timing, startTime, logger } = ctx;
+  const chunks: OverviewStreamChunk[] = [];
+  let newState = state;
+
+  switch (event.type) {
+    case "thinking": {
+      logger.debug(
+        { thinkingMessage: event.message?.slice(0, 100) },
+        "Received thinking event"
+      );
+      chunks.push({ type: "thinking", thinkingMessage: event.message });
+      break;
     }
 
-    const result = processAgentChunk(chunk, timing, startTime, state);
-    state = result.state;
-    for (const outputChunk of result.chunks) {
-      yield outputChunk;
+    case "status": {
+      chunks.push({
+        type: "status",
+        status: event.status,
+        statusMessage: event.message,
+      });
+      break;
     }
+
+    case "tool_call": {
+      logger.debug(
+        { toolName: event.toolName, toolCallId: event.toolCallId },
+        "Received tool_call event"
+      );
+      newState = { ...state, toolCallCount: state.toolCallCount + 1 };
+      chunks.push({
+        type: "tool_call",
+        toolCall: {
+          toolCallId: event.toolCallId,
+          toolName: event.toolName,
+          toolInput: event.toolInput,
+          ephemeral: event.visibility === "ephemeral",
+        },
+      });
+      break;
+    }
+
+    case "tool_result": {
+      const toolOutput = event.toolOutput as
+        | { success?: boolean; error?: { code?: string; message?: string } }
+        | undefined;
+      const toolSuccess = toolOutput?.success ?? true;
+
+      if (toolSuccess) {
+        logger.info(
+          {
+            toolName: event.toolName,
+            toolCallId: event.toolCallId,
+          },
+          "Tool execution succeeded"
+        );
+      } else {
+        logger.warn(
+          {
+            toolName: event.toolName,
+            toolCallId: event.toolCallId,
+            errorCode: toolOutput?.error?.code,
+            errorMessage: toolOutput?.error?.message,
+          },
+          "Tool execution failed"
+        );
+      }
+
+      chunks.push({
+        type: "tool_result",
+        toolResult: {
+          toolCallId: event.toolCallId,
+          toolName: event.toolName,
+          toolOutput: event.toolOutput,
+        },
+      });
+
+      const extracted = extractCitationsFromToolOutput(
+        event.toolOutput,
+        event.toolName
+      );
+
+      logger.debug(
+        {
+          toolName: event.toolName,
+          extractedCitations: extracted.citations.length,
+          groundingScore: extracted.groundingScore,
+        },
+        "Citation extraction result"
+      );
+
+      for (const citation of extracted.citations) {
+        chunks.push({ type: "citation", citation });
+      }
+
+      if (extracted.citations.length > 0) {
+        newState = {
+          ...state,
+          citations: extracted.citations,
+          groundingScore: extracted.groundingScore ?? state.groundingScore,
+        };
+      }
+      break;
+    }
+
+    case "text": {
+      if (state.isFirstToken) {
+        timing.firstTokenMs = performance.now() - startTime;
+      }
+      newState = {
+        ...state,
+        isFirstToken: false,
+        textChunkCount: state.textChunkCount + 1,
+        collectedContent: state.collectedContent + event.content,
+      };
+      chunks.push({ type: "text", content: event.content });
+      break;
+    }
+
+    case "error": {
+      chunks.push({ type: "error", error: event.message });
+      break;
+    }
+
+    case "done": {
+      chunks.push(buildDoneChunk(event, state, timing, startTime));
+      break;
+    }
+
+    default:
+      break;
   }
 
-  return { toolCallCount, textChunkCount, finalState: state, collectedContent };
+  return { chunks, state: newState };
 }
 
 function logStreamCompletion(
   logger: ReturnType<typeof createRequestLogger>,
   startTime: number,
   timing: OverviewTiming,
-  stats: StreamStats
+  state: StreamState
 ): void {
   logger.info(
     {
@@ -504,10 +460,10 @@ function logStreamCompletion(
       firstTokenMs: timing.firstTokenMs
         ? Math.round(timing.firstTokenMs)
         : null,
-      toolCalls: stats.toolCallCount,
-      textChunks: stats.textChunkCount,
-      citationCount: stats.finalState.citations.length,
-      groundingScore: stats.finalState.groundingScore,
+      toolCalls: state.toolCallCount,
+      textChunks: state.textChunkCount,
+      citationCount: state.citations.length,
+      groundingScore: state.groundingScore,
     },
     "Overview generation completed"
   );
@@ -538,7 +494,6 @@ export async function* streamOverviewWithAgent(
   const logger = createRequestLogger(request);
 
   logger.info("Starting overview generation");
-  yield { type: "thinking" };
 
   const cacheResult = await checkAgentSemanticCache(request, timing, logger);
 
@@ -564,30 +519,88 @@ export async function* streamOverviewWithAgent(
 
   try {
     registerAllTools();
+    registerAllBuiltinTools();
     toolRegistry.bindServices(createToolServices());
 
     const agent = createOverviewAgent(createAgentConfig(request));
     const context = createAgentContext(request);
     const rawStream = agent.stream(request.query, context);
-    const timeoutStream = withStreamTimeout(rawStream, STREAM_TIMEOUT_MS);
 
-    const streamProcessor = processStream(timeoutStream, timing, startTime);
-    let iteratorResult = await streamProcessor.next();
+    const adaptedStream = adaptAgentStream(rawStream, {
+      visibilityFilter: ["visible", "ephemeral"],
+      emitStatusEvents: true,
+      emitThinkingEvents: true,
+    });
 
-    while (!iteratorResult.done) {
-      yield iteratorResult.value;
-      iteratorResult = await streamProcessor.next();
+    const timeoutStream = withTimeout(adaptedStream, {
+      timeoutMs: STREAM_TIMEOUT_MS,
+      errorMessage: `Overview generation timed out after ${STREAM_TIMEOUT_MS}ms`,
+    });
+
+    let state = createInitialState();
+
+    logger.debug("Starting to process agent stream events");
+
+    const eventCounts = {
+      thinking: 0,
+      status: 0,
+      tool_call: 0,
+      tool_result: 0,
+      text: 0,
+      error: 0,
+      done: 0,
+      other: 0,
+    };
+
+    for await (const event of timeoutStream) {
+      const eventKey = event.type as keyof typeof eventCounts;
+      if (eventKey in eventCounts) {
+        eventCounts[eventKey] += 1;
+      } else {
+        eventCounts.other += 1;
+      }
+
+      logger.debug(
+        { eventType: event.type, eventCounts },
+        "Received agent event"
+      );
+      const result = eventToOverviewChunks({
+        event,
+        state,
+        timing,
+        startTime,
+        logger,
+      });
+      state = result.state;
+
+      for (const chunk of result.chunks) {
+        yield chunk;
+      }
     }
 
-    const stats = iteratorResult.value;
-    logStreamCompletion(logger, startTime, timing, stats);
+    logger.info(
+      {
+        eventCounts,
+        totalEvents:
+          eventCounts.thinking +
+          eventCounts.status +
+          eventCounts.tool_call +
+          eventCounts.tool_result +
+          eventCounts.text +
+          eventCounts.error +
+          eventCounts.done,
+      },
+      "Agent stream event summary"
+    );
+
+    logStreamCompletion(logger, startTime, timing, state);
 
     await storeAgentInSemanticCache({
       request,
       queryEmbedding,
-      content: stats.collectedContent,
-      citations: stats.finalState.citations,
-      groundingScore: stats.finalState.groundingScore ?? null,
+      content: state.collectedContent,
+      citations: state.citations,
+      groundingScore: state.groundingScore ?? null,
       logger,
     });
   } catch (error) {
