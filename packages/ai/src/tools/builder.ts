@@ -115,7 +115,27 @@ export function defineTool<TParams extends z.ZodType, TResult>(
       const ctx = toolRegistry.getCurrentContext();
       const startTime = performance.now();
 
-      const result = await config.execute(params, ctx);
+      let result: ToolExecutionResult<TResult>;
+      try {
+        result = await config.execute(params, ctx);
+      } catch (error) {
+        const durationMs = performance.now() - startTime;
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        result = {
+          success: false,
+          error: {
+            code: "INTERNAL_ERROR",
+            message: errorMessage,
+            retryable: true,
+          },
+          metadata: { latencyMs: durationMs },
+        } as ToolExecutionResult<TResult>;
+
+        toolRegistry.notifyExecute(config.name, params, result, durationMs);
+        return result;
+      }
+
       const durationMs = performance.now() - startTime;
 
       if (result.metadata) {

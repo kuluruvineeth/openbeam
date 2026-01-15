@@ -83,6 +83,7 @@ export type {
   GenerateSqlParams,
   GenerateSqlResult,
   GroundingResult,
+  IntegrationInfo,
   QueryAnalysis,
   RAGCitation,
   RAGParams,

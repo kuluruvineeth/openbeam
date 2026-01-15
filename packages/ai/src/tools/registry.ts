@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from "node:async_hooks";
 import { tool as createAITool } from "ai";
 import { z } from "zod";
 import { createUnimplementedServices, type ToolServices } from "./services";
@@ -11,9 +12,10 @@ import type {
   ToolRegistryOptions,
 } from "./types";
 
+const contextStorage = new AsyncLocalStorage<ToolContext>();
+
 class ToolRegistry {
   private readonly tools = new Map<string, RegisteredTool>();
-  private _currentContext: ToolContext | null = null;
   private _boundServices: ToolServices = createUnimplementedServices();
   private readonly onExecuteCallbacks: Array<
     (
@@ -173,8 +175,9 @@ class ToolRegistry {
 
   getCurrentContext(): ToolContext {
     const services = this._boundServices;
+    const storedContext = contextStorage.getStore();
 
-    if (!this._currentContext) {
+    if (!storedContext) {
       return {
         teamId: "",
         userId: "",
@@ -184,17 +187,28 @@ class ToolRegistry {
     }
 
     return {
-      ...this._currentContext,
+      ...storedContext,
       services,
     };
   }
 
   setCurrentContext(context: ToolContext): void {
-    this._currentContext = context;
+    contextStorage.enterWith(context);
   }
 
   clearCurrentContext(): void {
-    this._currentContext = null;
+    contextStorage.enterWith(undefined as unknown as ToolContext);
+  }
+
+  runWithContext<T>(context: ToolContext, fn: () => T): T {
+    return contextStorage.run(context, fn);
+  }
+
+  runWithContextAsync<T>(
+    context: ToolContext,
+    fn: () => Promise<T>
+  ): Promise<T> {
+    return contextStorage.run(context, fn);
   }
 
   onExecute(
