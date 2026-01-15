@@ -1,9 +1,10 @@
-export type LLMProvider =
-  | "anthropic"
-  | "openai"
-  | "google"
-  | "azure"
-  | "ollama";
+import {
+  calculateModelCost,
+  getModelPricing,
+  type ProviderId,
+} from "@openplane/types/ai";
+
+export type LLMProvider = ProviderId;
 
 interface TokenCost {
   input: number;
@@ -11,19 +12,7 @@ interface TokenCost {
   cached?: number;
 }
 
-const TOKEN_COSTS: Record<string, TokenCost> = {
-  "claude-opus-4-20250514": { input: 15.0, output: 75.0, cached: 1.5 },
-  "claude-sonnet-4-20250514": { input: 3.0, output: 15.0, cached: 0.3 },
-  "claude-haiku-3-5-20241022": { input: 0.8, output: 4.0, cached: 0.08 },
-  "gpt-4o": { input: 2.5, output: 10.0 },
-  "gpt-4o-mini": { input: 0.15, output: 0.6 },
-  "gpt-4-turbo": { input: 10.0, output: 30.0 },
-  "gpt-3.5-turbo": { input: 0.5, output: 1.5 },
-  "gemini-2.0-flash": { input: 0.075, output: 0.3 },
-  "gemini-2.0-pro": { input: 1.25, output: 5.0 },
-  "gemini-1.5-pro": { input: 1.25, output: 5.0 },
-  "gemini-1.5-flash": { input: 0.075, output: 0.3 },
-};
+const customCosts: Record<string, TokenCost> = {};
 
 export function calculateCost(
   model: string,
@@ -31,7 +20,15 @@ export function calculateCost(
   outputTokens: number,
   cachedTokens = 0
 ): number {
-  const costs = TOKEN_COSTS[model];
+  const result = calculateModelCost(model, inputTokens, outputTokens, {
+    cacheTokens: cachedTokens,
+  });
+
+  if (result.totalCostUsd > 0) {
+    return result.totalCostUsd;
+  }
+
+  const costs = customCosts[model];
   if (!costs) {
     return 0;
   }
@@ -44,11 +41,19 @@ export function calculateCost(
 }
 
 export function getModelCosts(model: string): TokenCost | null {
-  return TOKEN_COSTS[model] ?? null;
+  const pricing = getModelPricing(model);
+  if (pricing) {
+    return {
+      input: pricing.inputPer1M,
+      output: pricing.outputPer1M,
+      cached: pricing.cachePer1M,
+    };
+  }
+  return customCosts[model] ?? null;
 }
 
 export function registerModelCost(model: string, costs: TokenCost): void {
-  TOKEN_COSTS[model] = costs;
+  customCosts[model] = costs;
 }
 
 export function estimateCostFromPrompt(
@@ -75,7 +80,7 @@ export function getCostBreakdown(
   outputTokens: number,
   cachedTokens = 0
 ): CostBreakdown {
-  const costs = TOKEN_COSTS[model];
+  const costs = getModelCosts(model);
   if (!costs) {
     return {
       inputCostUsd: 0,

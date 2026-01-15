@@ -75,6 +75,7 @@
     "@posthog/ai": "^1.0.0",
     "@duckdb/node-api": "^1.4.3-r.2",
     "@openplane/storage": "workspace:*",
+    "@openplane/types": "workspace:*",
     "node-sql-parser": "^5.3.8",
     "zod": "^4.1.13"
   },
