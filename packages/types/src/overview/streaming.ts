@@ -7,6 +7,7 @@ import {
 
 export const OverviewStreamChunkTypeSchema = z.enum([
   "thinking",
+  "status",
   "tool_call",
   "tool_result",
   "text",
@@ -23,6 +24,7 @@ export const OverviewToolCallDataSchema = z.object({
   toolCallId: z.string(),
   toolName: z.string(),
   toolInput: z.unknown().optional(),
+  ephemeral: z.boolean().optional(),
 });
 
 export type OverviewToolCallData = z.infer<typeof OverviewToolCallDataSchema>;
@@ -37,9 +39,24 @@ export type OverviewToolResultData = z.infer<
   typeof OverviewToolResultDataSchema
 >;
 
+export const OverviewStatusSchema = z.enum([
+  "idle",
+  "analyzing",
+  "searching",
+  "retrieving",
+  "synthesizing",
+  "verifying",
+  "waiting",
+]);
+
+export type OverviewStatus = z.infer<typeof OverviewStatusSchema>;
+
 export const OverviewStreamChunkSchema = z.object({
   type: OverviewStreamChunkTypeSchema,
   content: z.string().optional(),
+  thinkingMessage: z.string().optional(),
+  status: OverviewStatusSchema.optional(),
+  statusMessage: z.string().optional(),
   citation: OverviewCitationSchema.optional(),
   usage: OverviewUsageSchema.optional(),
   timing: OverviewTimingSchema.optional(),
