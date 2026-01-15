@@ -1,10 +1,10 @@
-import { classifyError } from "./errors";
 import type {
   CircuitBreakerConfig,
   CircuitBreakerState,
   CircuitState,
   ClassifiedError,
-} from "./types";
+} from "@openplane/types/ai";
+import { classifyError } from "./errors";
 import { DEFAULT_CIRCUIT_BREAKER_CONFIG } from "./types";
 
 export interface CircuitBreakerResult<T> {

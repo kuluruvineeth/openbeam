@@ -1,9 +1,9 @@
+import type { ToolMetadata } from "@openplane/types/ai";
 import Fuse from "fuse.js";
 import { z } from "zod";
 import { embedQuery } from "../embeddings";
 import { defineTool, success } from "./builder";
 import { toolRegistry } from "./registry";
-import type { ToolMetadata } from "./types";
 
 interface ToolSearchConfig {
   bm25Weight: number;

@@ -1,18 +1,19 @@
+import type {
+  ChatModelDefinition,
+  EmbeddingModelDefinition,
+  ProviderId,
+} from "@openplane/types/ai";
 import type { EmbeddingModel, LanguageModel } from "ai";
-import { getConfig, type ProviderId } from "../config";
+import { getConfig } from "../config";
 import { createAnthropicProvider } from "./anthropic";
 import { createAzureProvider } from "./azure";
 import { createGoogleProvider } from "./google";
 import { createOllamaProvider } from "./ollama";
 import { createOpenAIProvider } from "./openai";
 import { createTwelveLabsProvider } from "./twelvelabs";
-import type {
-  AIProvider,
-  ChatModelDefinition,
-  EmbeddingModelDefinition,
-} from "./types";
+import type { AIProvider } from "./types";
 
-class ProviderRegistry {
+export class ProviderRegistry {
   private readonly providers: Map<ProviderId, AIProvider> = new Map();
   private initialized = false;
 
@@ -21,7 +22,6 @@ class ProviderRegistry {
       return;
     }
 
-    // Register all built-in providers
     this.registerProvider(createOpenAIProvider());
     this.registerProvider(createAnthropicProvider());
     this.registerProvider(createGoogleProvider());
@@ -147,3 +147,27 @@ class ProviderRegistry {
 }
 
 export const registry = new ProviderRegistry();
+
+export const providerRegistry = registry;
+
+export function createProviderRegistry(): ProviderRegistry {
+  return new ProviderRegistry();
+}
+
+export function getLanguageModel(
+  providerId?: ProviderId,
+  modelId?: string
+): LanguageModel {
+  return registry.chatModel(providerId, modelId);
+}
+
+export function getEmbeddingModel(
+  providerId?: ProviderId,
+  modelId?: string
+): EmbeddingModel {
+  return registry.embeddingModel(providerId, modelId);
+}
+
+export function registerAllProviders(): void {
+  registry.listProviders();
+}

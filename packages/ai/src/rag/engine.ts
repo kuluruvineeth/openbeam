@@ -1,22 +1,22 @@
-import { type ChatMessage, CompletionService } from "../completion";
-import type { ProviderId } from "../config";
-import { buildContext, getCitationsFromText, rerankChunks } from "./context";
-import { shouldWarnAboutGrounding, verifyGrounding } from "./grounding";
-import { analyzeQuery, enrichQueryWithContext } from "./query-analyzer";
 import type {
-  ConversationContext,
+  ChatMessage,
   GroundingConfidence,
   GroundingResult,
+  ProviderId,
   QueryAnalysis,
   RAGChunk,
   RAGConfig,
-  RAGContext,
   RAGResponse,
   RAGStreamEvent,
   RAGTiming,
   RAGTokenUsage,
   RerankingOptions,
-} from "./types";
+} from "@openplane/types/ai";
+import { CompletionService } from "../completion";
+import { buildContext, getCitationsFromText, rerankChunks } from "./context";
+import { shouldWarnAboutGrounding, verifyGrounding } from "./grounding";
+import { analyzeQuery, enrichQueryWithContext } from "./query-analyzer";
+import type { ConversationContext, RAGContext } from "./types";
 
 export interface RAGEngineConfig extends Partial<RAGConfig> {
   providerId?: ProviderId;

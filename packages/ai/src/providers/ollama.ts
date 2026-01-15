@@ -1,11 +1,11 @@
 import { createOpenAI } from "@ai-sdk/openai";
-import type { EmbeddingModel, LanguageModel } from "ai";
-import { getConfig } from "../config";
 import type {
-  AIProvider,
   ChatModelDefinition,
   EmbeddingModelDefinition,
-} from "./types";
+} from "@openplane/types/ai";
+import type { EmbeddingModel, LanguageModel } from "ai";
+import { getConfig } from "../config";
+import type { AIProvider } from "./types";
 
 const CHAT_MODELS: ChatModelDefinition[] = [
   {

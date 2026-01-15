@@ -1,21 +1,23 @@
+import type {
+  AllowedCaller,
+  ApprovalPattern,
+  ErrorCode,
+  ReversibilityLevel,
+  StakesLevel,
+  ToolCategory,
+  ToolExecutionResult,
+  ToolMetadata,
+  ToolResultMetadata,
+  ToolRiskProfile,
+} from "@openplane/types/ai";
 import { tool } from "ai";
 import type { z } from "zod";
 import { toolRegistry } from "./registry";
 import {
   type AISDKTool,
-  type AllowedCaller,
-  type ApprovalPattern,
   ERROR_CODES,
-  type ErrorCode,
-  type ReversibilityLevel,
-  type StakesLevel,
-  type ToolCategory,
   type ToolContext,
   type ToolExecutionOptions,
-  type ToolExecutionResult,
-  type ToolMetadata,
-  type ToolResultMetadata,
-  type ToolRiskProfile,
 } from "./types";
 
 interface ToolConfig<TParams extends z.ZodType, TResult> {

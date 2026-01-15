@@ -1,4 +1,4 @@
-import type { ChunkingConfig, TextChunk } from "./types";
+import type { ChunkingConfig, TextChunk } from "@openplane/types/ai";
 
 const SENTENCE_REGEX = /[^.!?]+[.!?]+\s*/g;
 const PARAGRAPH_REGEX = /\n\s*\n/;

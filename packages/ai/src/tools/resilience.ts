@@ -1,12 +1,15 @@
+import type {
+  CircuitBreakerConfig,
+  RetryConfig,
+  ToolExecutionResult,
+} from "@openplane/types/ai";
 import {
   CircuitBreaker,
-  type CircuitBreakerConfig,
   DEFAULT_CIRCUIT_BREAKER_CONFIG,
   DEFAULT_RETRY_CONFIG,
-  type RetryConfig,
   withRetry,
 } from "../resilience";
-import type { ErrorCode, ToolContext, ToolExecutionResult } from "./types";
+import type { ErrorCode, ToolContext } from "./types";
 
 export interface ToolResilienceConfig {
   retry?: Partial<RetryConfig> | false;

@@ -1,3 +1,17 @@
+export type {
+  ChatMessage,
+  Citation,
+  CompletionContext,
+  CompletionResult,
+  ContextDocument,
+  Conversation,
+  MessageRole,
+  RAGCompletionResult,
+  StreamChunk,
+  TokenUsage,
+  ToolCall,
+} from "@openplane/types/ai";
+export { FinishReasonSchema } from "@openplane/types/ai";
 export {
   CompletionService,
   complete,
@@ -5,7 +19,6 @@ export {
   completionService,
   streamCompletion,
 } from "./service";
-
 export {
   collectStream,
   createDataStream,
@@ -14,20 +27,12 @@ export {
   createTextPart,
   parseSSEStream,
 } from "./streaming";
+export type FinishReason =
+  | "stop"
+  | "length"
+  | "content_filter"
+  | "tool_calls"
+  | "error"
+  | "unknown";
 
-export type {
-  AISDKToolSet,
-  ChatMessage,
-  Citation,
-  CompletionContext,
-  CompletionOptions,
-  CompletionResult,
-  ContextDocument,
-  Conversation,
-  FinishReason,
-  MessageRole,
-  RAGCompletionResult,
-  StreamChunk,
-  TokenUsage,
-  ToolCall,
-} from "./types";
+export type { AISDKToolSet, CompletionOptions } from "./types";

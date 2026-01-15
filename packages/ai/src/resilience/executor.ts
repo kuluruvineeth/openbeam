@@ -1,17 +1,16 @@
+import type {
+  CircuitBreakerConfig,
+  ExecutionResult,
+  FallbackChainConfig,
+  ResilienceMetrics,
+  RetryConfig,
+} from "@openplane/types/ai";
 import { circuitBreakerRegistry } from "./circuit-breaker";
 import { classifyError } from "./errors";
 import { type FallbackOptions, withFallback } from "./fallback";
 import { type RetryOptions, withRetry } from "./retry";
 import { globalUsageTracker, type UsageTracker } from "./tracking";
-import type {
-  CircuitBreakerConfig,
-  ExecutionResult,
-  FallbackChainConfig,
-  ProviderConfig,
-  ResilienceMetrics,
-  RetryConfig,
-  TokenUsage,
-} from "./types";
+import type { ProviderConfig, TokenUsage } from "./types";
 import { DEFAULT_CIRCUIT_BREAKER_CONFIG, DEFAULT_RETRY_CONFIG } from "./types";
 
 export interface ResilientExecutorConfig {

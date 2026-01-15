@@ -1,5 +1,8 @@
+import type {
+  MetricsRecordParams,
+  ToolMetricsParams,
+} from "@openplane/types/ai";
 import { Counter, Gauge, Histogram, Registry } from "prom-client";
-import type { MetricsRecordParams, ToolMetricsParams } from "./types";
 
 export const TOOL_METRICS = {
   callsPerTask: "openplane_ai_tool_calls_per_task",

@@ -160,7 +160,7 @@ export {
   streamCompletion,
 } from "./completion";
 export type {
-  AgentConfig as AgentConfigType,
+  AgentRuntimeConfig as AgentConfigType,
   AIConfig,
   CompletionConfig,
   EmbeddingConfig,
@@ -255,10 +255,8 @@ export type {
 } from "./embeddings";
 export {
   chunkDocument,
-  countTokens,
   DEFAULT_CHUNKING_CONFIG,
   DocumentChunker,
-  EMBEDDING_TOKEN_LIMIT,
   EmbeddingService,
   embedBatchWithCache,
   embedDocument,
@@ -269,8 +267,6 @@ export {
   embedText,
   embedWithCache,
   estimateTokens,
-  prepareTextForEmbedding,
-  truncateToTokenLimit,
 } from "./embeddings";
 export type {
   BatchGradingResult,

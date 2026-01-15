@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from "bun:test";
+import type { ToolMetadata } from "@openplane/types/ai";
 import {
   checkWebPermission,
   createAccessControlHook,
@@ -9,7 +10,7 @@ import {
   HookRegistry,
   type PreToolHook,
 } from "../hooks";
-import type { ToolContext, ToolMetadata, WebPermissionConfig } from "../types";
+import type { ToolContext, WebPermissionConfig } from "../types";
 
 const SEARCH_OR_DOC_PATTERN = /^(search|doc)_/;
 

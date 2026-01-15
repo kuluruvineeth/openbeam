@@ -1,14 +1,12 @@
 import { AsyncLocalStorage } from "node:async_hooks";
+import type { ToolCategory, ToolMask, ToolMetadata } from "@openplane/types/ai";
 import { tool as createAITool } from "ai";
 import { z } from "zod";
 import { createUnimplementedServices, type ToolServices } from "./services";
 import type {
   AISDKTool,
   RegisteredTool,
-  ToolCategory,
   ToolContext,
-  ToolMask,
-  ToolMetadata,
   ToolRegistryOptions,
 } from "./types";
 

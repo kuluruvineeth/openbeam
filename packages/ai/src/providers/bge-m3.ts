@@ -56,7 +56,6 @@ export interface BGEM3Provider {
 }
 
 export function createBGEM3Provider(config: BGEM3Config): BGEM3Provider {
-  // 120s timeout: allows batch of 20 docs × 512 tokens × ~100ms/doc + network overhead
   const timeout = config.timeout ?? 120_000;
 
   const request = async <T>(

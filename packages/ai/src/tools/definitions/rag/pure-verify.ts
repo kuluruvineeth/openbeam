@@ -1,9 +1,9 @@
+import type { RAGChunk } from "@openplane/types/ai";
 import { z } from "zod";
 import {
   formatGroundingWarning,
   verifyGrounding,
 } from "../../../rag/grounding";
-import type { RAGChunk } from "../../../rag/types";
 import { defineTool, success } from "../../builder";
 
 const ChunkSchema = z.object({

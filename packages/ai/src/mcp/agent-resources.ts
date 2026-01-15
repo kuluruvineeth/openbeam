@@ -1,3 +1,9 @@
+import type {
+  MCPResourceContent,
+  MCPResourceDefinition,
+  MCPResourceReadResult,
+  MCPResourceTemplate,
+} from "@openplane/types/ai";
 import {
   defineConnectorsResource,
   defineDocumentResourceTemplate,
@@ -8,12 +14,6 @@ import {
   type ResourceHandler,
   type ResourceRegistry,
 } from "./resources";
-import type {
-  MCPResourceContent,
-  MCPResourceDefinition,
-  MCPResourceReadResult,
-  MCPResourceTemplate,
-} from "./types";
 
 export interface AgentResourceServices {
   getConnectors: (teamId: string) => Promise<

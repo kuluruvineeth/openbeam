@@ -1,4 +1,5 @@
 import { describe, expect, it } from "bun:test";
+import type { RAGChunk } from "@openplane/types/ai";
 import {
   checkForRefusal,
   createGroundedAnswer,
@@ -7,7 +8,6 @@ import {
   REFUSAL_TEMPLATES,
   verifyGrounding,
 } from "../grounding";
-import type { RAGChunk } from "../types";
 
 const createMockChunk = (
   id: string,

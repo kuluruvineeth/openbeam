@@ -1,50 +1,33 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
-import type { EmbeddingModel, LanguageModel } from "ai";
-import { getConfig } from "../config";
 import type {
-  AIProvider,
   ChatModelDefinition,
   EmbeddingModelDefinition,
-} from "./types";
+} from "@openplane/types/ai";
+import { getChatModelsByProvider } from "@openplane/types/ai";
+import type { EmbeddingModel, LanguageModel } from "ai";
+import { getConfig } from "../config";
+import type { AIProvider } from "./types";
 
-const CHAT_MODELS: ChatModelDefinition[] = [
-  {
-    id: "claude-opus-4-5",
-    name: "Claude Opus 4.5",
-    provider: "anthropic",
-    contextWindow: 200_000,
-    maxOutputTokens: 64_000,
-    supportsTools: true,
-    supportsVision: true,
-    supportsStreaming: true,
-    costPer1kInput: 0.005,
-    costPer1kOutput: 0.025,
-  },
-  {
-    id: "claude-sonnet-4-5",
-    name: "Claude Sonnet 4.5",
-    provider: "anthropic",
-    contextWindow: 200_000,
-    maxOutputTokens: 64_000,
-    supportsTools: true,
-    supportsVision: true,
-    supportsStreaming: true,
-    costPer1kInput: 0.003,
-    costPer1kOutput: 0.015,
-  },
-  {
-    id: "claude-haiku-4-5",
-    name: "Claude Haiku 4.5",
-    provider: "anthropic",
-    contextWindow: 200_000,
-    maxOutputTokens: 64_000,
-    supportsTools: true,
-    supportsVision: true,
-    supportsStreaming: true,
-    costPer1kInput: 0.001,
-    costPer1kOutput: 0.005,
-  },
-];
+function toChatModelDefinition(
+  model: ReturnType<typeof getChatModelsByProvider>[number]
+): ChatModelDefinition {
+  return {
+    id: model.id,
+    name: model.name,
+    provider: model.provider,
+    contextWindow: model.contextWindow,
+    maxOutputTokens: model.maxOutputTokens,
+    supportsTools: model.supportsTools,
+    supportsVision: model.supportsVision,
+    supportsStreaming: model.supportsStreaming,
+    costPer1kInput: model.pricing.inputPer1M / 1000,
+    costPer1kOutput: model.pricing.outputPer1M / 1000,
+  };
+}
+
+const CHAT_MODELS: ChatModelDefinition[] = getChatModelsByProvider(
+  "anthropic"
+).map(toChatModelDefinition);
 
 export function createAnthropicProvider(): AIProvider {
   const config = getConfig();

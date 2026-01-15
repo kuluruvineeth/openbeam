@@ -1,21 +1,5 @@
-/**
- * MemoryAccess - Tool-level interface for memory operations
- *
- * This is the interface that tools use to:
- * 1. READ memory (preferences, history, corrections, facts)
- * 2. SIGNAL observations (for memory accumulation)
- *
- * Design Principles:
- * - Read operations return cached/preloaded data (fast, synchronous-feeling)
- * - Signal operations are fire-and-forget (async, non-blocking)
- * - Tools opt-in to memory - if they don't need it, they ignore it
- * - This enables personalization without coupling tools to memory implementation
- *
- * This is what makes us competitive with Glean - tools that learn and adapt.
- */
-
+import type { EpisodicEntry, SemanticEntry } from "@openplane/types/ai";
 import type { MemoryConsolidator } from "./consolidator";
-import type { EpisodicEntry, SemanticEntry } from "./types";
 
 const ORIGINAL_PATTERN = /When asked about "([^"]+)"/;
 const CORRECTED_PATTERN = /the correct answer is: (.+)$/;

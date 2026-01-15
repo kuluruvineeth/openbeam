@@ -1,4 +1,4 @@
-import type { StreamChunk, TokenUsage } from "./types";
+import type { StreamChunk, TokenUsage } from "@openplane/types/ai";
 
 export function createSSEStream(
   chunks: AsyncIterable<StreamChunk>

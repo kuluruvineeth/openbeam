@@ -1,12 +1,11 @@
 import type {
   CostEstimate,
-  ErrorCode,
   ModelUsageSummary,
   ProviderUsageSummary,
-  TokenUsage,
   UsageRecord,
-  UsageSummary,
-} from "./types";
+} from "@openplane/types/ai";
+import { calculateModelCost, getModelPricing } from "@openplane/types/ai";
+import type { ErrorCode, TokenUsage, UsageSummary } from "./types";
 
 export interface ModelPricing {
   inputCostPer1M: number;
@@ -14,55 +13,28 @@ export interface ModelPricing {
   cachedInputCostPer1M?: number;
 }
 
-const MODEL_PRICING: Record<string, Record<string, ModelPricing>> = {
-  anthropic: {
-    "claude-opus-4-20250514": { inputCostPer1M: 15, outputCostPer1M: 75 },
-    "claude-sonnet-4-20250514": { inputCostPer1M: 3, outputCostPer1M: 15 },
-    "claude-haiku-3-5-20241022": { inputCostPer1M: 0.8, outputCostPer1M: 4 },
-  },
-  openai: {
-    "gpt-4o": { inputCostPer1M: 2.5, outputCostPer1M: 10 },
-    "gpt-4o-mini": { inputCostPer1M: 0.15, outputCostPer1M: 0.6 },
-    "gpt-4-turbo": { inputCostPer1M: 10, outputCostPer1M: 30 },
-    "text-embedding-3-large": { inputCostPer1M: 0.13, outputCostPer1M: 0 },
-    "text-embedding-3-small": { inputCostPer1M: 0.02, outputCostPer1M: 0 },
-  },
-  google: {
-    "gemini-2.0-flash": { inputCostPer1M: 0.1, outputCostPer1M: 0.4 },
-    "gemini-1.5-pro": { inputCostPer1M: 1.25, outputCostPer1M: 5 },
-    "text-embedding-004": { inputCostPer1M: 0.025, outputCostPer1M: 0 },
-  },
-};
-
 export function estimateCost(
-  providerId: string,
+  _providerId: string,
   modelId: string,
   tokens: TokenUsage
 ): CostEstimate {
-  const pricing = MODEL_PRICING[providerId]?.[modelId];
+  const pricing = getModelPricing(modelId);
 
   if (!pricing) {
     return { inputCostUsd: 0, outputCostUsd: 0, totalCostUsd: 0 };
   }
 
-  const effectiveInputTokens = tokens.cachedTokens
-    ? tokens.inputTokens - tokens.cachedTokens
-    : tokens.inputTokens;
-
-  const cachedCost = tokens.cachedTokens
-    ? (tokens.cachedTokens / 1_000_000) *
-      (pricing.cachedInputCostPer1M ?? pricing.inputCostPer1M * 0.1)
-    : 0;
-
-  const inputCostUsd =
-    (effectiveInputTokens / 1_000_000) * pricing.inputCostPer1M + cachedCost;
-  const outputCostUsd =
-    (tokens.outputTokens / 1_000_000) * pricing.outputCostPer1M;
+  const result = calculateModelCost(
+    modelId,
+    tokens.inputTokens,
+    tokens.outputTokens,
+    { cacheTokens: tokens.cachedTokens }
+  );
 
   return {
-    inputCostUsd,
-    outputCostUsd,
-    totalCostUsd: inputCostUsd + outputCostUsd,
+    inputCostUsd: result.inputCostUsd,
+    outputCostUsd: result.outputCostUsd,
+    totalCostUsd: result.totalCostUsd,
   };
 }
 

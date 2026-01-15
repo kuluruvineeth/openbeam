@@ -1,7 +1,7 @@
+import type { ToolExecutionResult } from "@openplane/types/ai";
 import { z } from "zod";
 import type { SessionState } from "../../../memory/session-state";
 import { defineTool, failure, success } from "../../builder";
-import type { ToolExecutionResult } from "../../types";
 
 let sessionStateStore: SessionState | null = null;
 

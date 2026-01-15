@@ -1,3 +1,4 @@
+import type { ToolExecutionResult, ToolMetadata } from "@openplane/types/ai";
 import {
   createExecutionEvent,
   generateCorrelationId,
@@ -11,7 +12,7 @@ import {
   type ToolExecutionStats,
   type ToolResilienceConfig,
 } from "./resilience";
-import type { ToolContext, ToolExecutionResult, ToolMetadata } from "./types";
+import type { ToolContext } from "./types";
 
 export interface ToolExecutorConfig {
   enableCache?: boolean;

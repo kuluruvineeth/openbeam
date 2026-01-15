@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from "bun:test";
+import type { MCPServerContext } from "@openplane/types/ai";
 import {
   buildAnalysisPromptMessages,
   buildAnswerPromptMessages,
@@ -20,7 +21,6 @@ import {
   PromptRegistry,
   registerDefaultPrompts,
 } from "../prompts";
-import type { MCPServerContext } from "../types";
 
 function createTestContext(
   overrides?: Partial<MCPServerContext>

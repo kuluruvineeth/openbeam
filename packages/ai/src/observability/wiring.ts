@@ -1,5 +1,5 @@
+import type { ToolExecutionResult } from "@openplane/types/ai";
 import { toolRegistry } from "../tools/registry";
-import type { ToolExecutionResult } from "../tools/types";
 import {
   type CompositionTracker,
   createCompositionTracker,

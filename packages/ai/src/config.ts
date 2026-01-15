@@ -1,80 +1,29 @@
-export type ProviderId =
-  | "openai"
-  | "anthropic"
-  | "google"
-  | "azure"
-  | "ollama"
-  | "twelvelabs";
+import type { ProviderId } from "@openplane/types/ai";
+import {
+  DEFAULT_CHAT_MODEL,
+  DEFAULT_EMBEDDING_MODEL,
+} from "@openplane/types/ai";
 
-export interface ProviderConfig {
-  openai: {
-    apiKey?: string;
-    organization?: string;
-    baseURL?: string;
-  };
-  anthropic: {
-    apiKey?: string;
-    baseURL?: string;
-  };
-  google: {
-    apiKey?: string;
-  };
-  azure: {
-    apiKey?: string;
-    resourceName?: string;
-    deploymentName?: string;
-    apiVersion?: string;
-  };
-  ollama: {
-    baseURL: string;
-  };
-}
+export type {
+  AgentRuntimeConfig,
+  AIConfig,
+  CompletionConfig,
+  EmbeddingConfig,
+  EngineConfig,
+  ProviderConfig,
+  ProviderId,
+} from "@openplane/types/ai";
 
-export interface EmbeddingConfig {
-  dimensions: number;
-  maxTokens: number;
-  batchSize: number;
-}
-
-export interface EngineConfig {
-  baseURL: string;
-  gpuURL: string;
-  timeout: number;
-}
-
-export interface CompletionConfig {
-  temperature: number;
-  maxTokens: number;
-  topP: number;
-}
-
-export interface AgentConfig {
-  maxSteps: number;
-  maxTokensPerStep: number;
-  timeoutMs: number;
-  maxToolRoundtrips: number;
-  enableParallelTools: boolean;
-}
-
-export interface AIConfig {
-  defaultProvider: ProviderId;
-  defaultChatModel: string;
-  defaultEmbeddingModel: string;
-  providers: ProviderConfig;
-  embedding: EmbeddingConfig;
-  completion: CompletionConfig;
-  agent: AgentConfig;
-  engine: EngineConfig;
-}
+type AIConfig = import("@openplane/types/ai").AIConfig;
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: configuration loading requires multiple provider checks
 function loadConfig(): AIConfig {
   return {
     defaultProvider:
       (process.env.AI_DEFAULT_PROVIDER as ProviderId) || "openai",
-    defaultChatModel: process.env.AI_DEFAULT_CHAT_MODEL || "gpt-5.1",
+    defaultChatModel: process.env.AI_DEFAULT_CHAT_MODEL || DEFAULT_CHAT_MODEL,
     defaultEmbeddingModel:
-      process.env.AI_DEFAULT_EMBEDDING_MODEL || "text-embedding-3-small",
+      process.env.AI_DEFAULT_EMBEDDING_MODEL || DEFAULT_EMBEDDING_MODEL,
 
     providers: {
       openai: {

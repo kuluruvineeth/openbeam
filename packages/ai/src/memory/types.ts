@@ -1,97 +1,11 @@
-export type MemoryType = "episodic" | "semantic" | "procedural";
-
-export interface MemoryEntry {
-  id: string;
-  type: MemoryType;
-  content: string;
-  embedding?: number[];
-  timestamp: number;
-  accessCount: number;
-  lastAccessedAt: number;
-  decayFactor: number;
-  metadata: MemoryMetadata;
-}
-
-export interface MemoryMetadata {
-  teamId: string;
-  userId?: string;
-  sessionId?: string;
-  agentId?: string;
-  tags?: string[];
-  source?: string;
-  importance?: number;
-  associations?: string[];
-}
-
-export interface EpisodicEntry extends MemoryEntry {
-  type: "episodic";
-  eventType: "query" | "response" | "tool_call" | "tool_result" | "error";
-  conversationId?: string;
-  turnNumber?: number;
-  parentId?: string;
-}
-
-export interface SemanticEntry extends MemoryEntry {
-  type: "semantic";
-  category: string;
-  confidence: number;
-  sources: string[];
-  validUntil?: number;
-}
-
-export interface ProceduralEntry extends MemoryEntry {
-  type: "procedural";
-  pattern: string;
-  trigger: string;
-  action: string;
-  successRate: number;
-  executionCount: number;
-}
-
-export interface MemoryQuery {
-  query: string;
-  teamId: string;
-  userId?: string;
-  sessionId?: string;
-  types?: MemoryType[];
-  limit?: number;
-  minRelevance?: number;
-  timeRange?: {
-    start?: number;
-    end?: number;
-  };
-  tags?: string[];
-}
-
-export interface MemoryRetrievalResult {
-  entries: ScoredMemoryEntry[];
-  totalCount: number;
-  queryTime: number;
-}
-
-export interface ScoredMemoryEntry {
-  entry: MemoryEntry;
-  relevanceScore: number;
-  recencyScore: number;
-  importanceScore: number;
-  combinedScore: number;
-}
-
-export interface ConsolidatedMemory {
-  episodic: string;
-  semantic: string;
-  procedural: string;
-  combined: string;
-  tokenCount: number;
-  entryCount: number;
-}
-
-export interface MemoryStoreOptions {
-  maxEntries?: number;
-  decayRate?: number;
-  consolidationThreshold?: number;
-  embeddingEnabled?: boolean;
-}
+import type {
+  MemoryConsolidatorOptions,
+  MemoryEntry,
+  MemoryMetadata,
+  MemoryQuery,
+  MemoryRetrievalResult,
+  MemoryStoreOptions,
+} from "@openplane/types/ai";
 
 export interface MemoryStore {
   store(
@@ -106,15 +20,6 @@ export interface MemoryStore {
   delete(id: string): Promise<void>;
   clear(filter?: Partial<MemoryMetadata>): Promise<number>;
   count(filter?: Partial<MemoryMetadata>): Promise<number>;
-}
-
-export interface MemoryConsolidatorOptions {
-  maxTokens?: number;
-  episodicWeight?: number;
-  semanticWeight?: number;
-  proceduralWeight?: number;
-  recencyBias?: number;
-  importanceBias?: number;
 }
 
 export const DEFAULT_MEMORY_OPTIONS: Required<MemoryStoreOptions> = {

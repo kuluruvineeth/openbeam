@@ -1,27 +1,11 @@
+import type {
+  MCPPromptResult,
+  MCPRequestMethod,
+  MCPResourceReadResult,
+  MCPServerContext,
+  MCPToolResult,
+} from "@openplane/types/ai";
 import type { z } from "zod";
-
-export type MCPTransport = "stdio" | "sse" | "websocket";
-
-export interface MCPServerConfig {
-  name: string;
-  version: string;
-  transport: MCPTransport;
-  capabilities: MCPCapabilities;
-}
-
-export interface MCPCapabilities {
-  tools: boolean;
-  resources: boolean;
-  prompts: boolean;
-  logging?: boolean;
-  sampling?: boolean;
-}
-
-export interface MCPClientInfo {
-  name: string;
-  version: string;
-  protocolVersion?: string;
-}
 
 export interface MCPToolDefinition {
   name: string;
@@ -29,128 +13,6 @@ export interface MCPToolDefinition {
   inputSchema: z.ZodTypeAny;
   category?: string;
   allowedCallers?: string[];
-}
-
-export interface MCPToolCall {
-  name: string;
-  arguments: Record<string, unknown>;
-}
-
-export interface MCPToolResult {
-  content: MCPContent[];
-  isError?: boolean;
-}
-
-export type MCPContentType = "text" | "image" | "resource";
-
-export interface MCPTextContent {
-  type: "text";
-  text: string;
-}
-
-export interface MCPImageContent {
-  type: "image";
-  data: string;
-  mimeType: string;
-}
-
-export interface MCPResourceContent {
-  type: "resource";
-  uri: string;
-  mimeType?: string;
-  text?: string;
-  blob?: string;
-}
-
-export type MCPContent = MCPTextContent | MCPImageContent | MCPResourceContent;
-
-export interface MCPResourceDefinition {
-  uri: string;
-  name: string;
-  description: string;
-  mimeType?: string;
-}
-
-export interface MCPResourceTemplate {
-  uriTemplate: string;
-  name: string;
-  description: string;
-  mimeType?: string;
-}
-
-export interface MCPResource {
-  uri: string;
-  name: string;
-  description?: string;
-  mimeType?: string;
-}
-
-export interface MCPResourceReadResult {
-  contents: MCPResourceContent[];
-}
-
-export interface MCPPromptDefinition {
-  name: string;
-  description: string;
-  arguments?: MCPPromptArgument[];
-}
-
-export interface MCPPromptArgument {
-  name: string;
-  description?: string;
-  required?: boolean;
-}
-
-export interface MCPPromptMessage {
-  role: "user" | "assistant";
-  content: MCPContent;
-}
-
-export interface MCPPromptResult {
-  description?: string;
-  messages: MCPPromptMessage[];
-}
-
-export type MCPRequestMethod =
-  | "initialize"
-  | "initialized"
-  | "ping"
-  | "tools/list"
-  | "tools/call"
-  | "resources/list"
-  | "resources/templates/list"
-  | "resources/read"
-  | "resources/subscribe"
-  | "resources/unsubscribe"
-  | "prompts/list"
-  | "prompts/get"
-  | "logging/setLevel"
-  | "sampling/createMessage";
-
-export interface MCPRequest<T = unknown> {
-  jsonrpc: "2.0";
-  id: string | number;
-  method: MCPRequestMethod;
-  params?: T;
-}
-
-export interface MCPResponse<T = unknown> {
-  jsonrpc: "2.0";
-  id: string | number;
-  result?: T;
-  error?: MCPError;
-}
-
-export interface MCPNotification<T = unknown> {
-  jsonrpc: "2.0";
-  method: string;
-  params?: T;
-}
-
-export interface MCPError {
-  code: number;
-  message: string;
-  data?: unknown;
 }
 
 export const MCP_ERROR_CODES = {
@@ -168,65 +30,6 @@ export const MCP_ERROR_CODES = {
 
 export type MCPErrorCode =
   (typeof MCP_ERROR_CODES)[keyof typeof MCP_ERROR_CODES];
-
-export interface InitializeParams {
-  protocolVersion: string;
-  capabilities: Partial<MCPCapabilities>;
-  clientInfo: MCPClientInfo;
-}
-
-export interface InitializeResult {
-  protocolVersion: string;
-  capabilities: MCPCapabilities;
-  serverInfo: {
-    name: string;
-    version: string;
-  };
-}
-
-export interface ToolsListResult {
-  tools: Array<{
-    name: string;
-    description: string;
-    inputSchema: Record<string, unknown>;
-  }>;
-}
-
-export interface ToolsCallParams {
-  name: string;
-  arguments?: Record<string, unknown>;
-}
-
-export interface ResourcesListResult {
-  resources: MCPResource[];
-  nextCursor?: string;
-}
-
-export interface ResourcesReadParams {
-  uri: string;
-}
-
-export interface PromptsListResult {
-  prompts: MCPPromptDefinition[];
-}
-
-export interface PromptsGetParams {
-  name: string;
-  arguments?: Record<string, string>;
-}
-
-export interface MCPServerContext {
-  teamId: string;
-  userId?: string;
-  sessionId?: string;
-  metadata?: Record<string, unknown>;
-}
-
-export interface MCPServerOptions {
-  name: string;
-  version: string;
-  capabilities?: Partial<MCPCapabilities>;
-}
 
 export interface MCPMessageHandler {
   handleRequest<T, R>(

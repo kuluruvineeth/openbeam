@@ -1,24 +1,25 @@
+import type {
+  ChatMessage,
+  Citation,
+  CompletionContext,
+  CompletionResult,
+  ContextDocument,
+  Conversation,
+  ProviderId,
+  RAGCompletionResult,
+  StreamChunk,
+  TokenUsage,
+  ToolCall,
+} from "@openplane/types/ai";
 import { generateText, type ModelMessage, streamText } from "ai";
-import { getConfig, type ProviderId } from "../config";
+import { getConfig } from "../config";
 import { registry } from "../providers/registry";
 import {
   buildThinkingProviderOptions,
   extractReasoningContent,
 } from "../providers/thinking";
 import { createSSEStream } from "./streaming";
-import type {
-  ChatMessage,
-  Citation,
-  CompletionContext,
-  CompletionOptions,
-  CompletionResult,
-  ContextDocument,
-  Conversation,
-  RAGCompletionResult,
-  StreamChunk,
-  TokenUsage,
-  ToolCall,
-} from "./types";
+import type { CompletionOptions } from "./types";
 
 const DEFAULT_RAG_SYSTEM_PROMPT = `You are a helpful AI assistant that answers questions based on the provided context.
 

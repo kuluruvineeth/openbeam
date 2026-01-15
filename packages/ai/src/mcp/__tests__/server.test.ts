@@ -1,4 +1,9 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
+import type {
+  InitializeParams,
+  MCPCapabilities,
+  MCPServerContext,
+} from "@openplane/types/ai";
 import { ToolRegistry } from "../../tools/registry";
 import {
   createMCPServer,
@@ -9,11 +14,6 @@ import {
   MCPServer,
   parseMessage,
 } from "../server";
-import type {
-  InitializeParams,
-  MCPCapabilities,
-  MCPServerContext,
-} from "../types";
 import { MCP_ERROR_CODES } from "../types";
 
 function createTestContext(

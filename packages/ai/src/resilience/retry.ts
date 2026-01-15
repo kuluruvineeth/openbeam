@@ -1,5 +1,5 @@
+import type { ClassifiedError, RetryConfig } from "@openplane/types/ai";
 import { classifyError } from "./errors";
-import type { ClassifiedError, RetryConfig } from "./types";
 import { DEFAULT_RETRY_CONFIG } from "./types";
 
 export interface RetryResult<T> {

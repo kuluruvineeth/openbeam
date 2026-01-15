@@ -1,9 +1,9 @@
-import type { EmbeddingModel, LanguageModel } from "ai";
 import type {
-  AIProvider,
   ChatModelDefinition,
   EmbeddingModelDefinition,
-} from "./types";
+} from "@openplane/types/ai";
+import type { EmbeddingModel, LanguageModel } from "ai";
+import type { AIProvider } from "./types";
 
 const EMBEDDING_MODELS: EmbeddingModelDefinition[] = [
   {

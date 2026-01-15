@@ -1,4 +1,19 @@
 export type {
+  CircuitBreakerConfig,
+  CircuitBreakerState,
+  CircuitState,
+  ClassifiedError,
+  CostEstimate,
+  ExecutionResult,
+  FallbackChainConfig,
+  ModelUsageSummary,
+  ProviderUsageSummary,
+  ResilienceMetrics,
+  ResilienceProviderConfig,
+  RetryConfig,
+  UsageRecord,
+} from "@openplane/types/ai";
+export type {
   CircuitBreakerListener,
   CircuitBreakerResult,
 } from "./circuit-breaker";
@@ -65,22 +80,11 @@ export {
   trackUsage,
   UsageTracker,
 } from "./tracking";
+
 export type {
-  CircuitBreakerConfig,
-  CircuitBreakerState,
-  CircuitState,
-  ClassifiedError,
-  CostEstimate,
   ErrorCode,
-  ExecutionResult,
-  FallbackChainConfig,
-  ModelUsageSummary,
   ProviderConfig,
-  ProviderUsageSummary,
-  ResilienceMetrics,
-  RetryConfig,
   TokenUsage,
-  UsageRecord,
   UsageSummary,
 } from "./types";
 export {

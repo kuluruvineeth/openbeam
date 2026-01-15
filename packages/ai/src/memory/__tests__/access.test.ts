@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
+import type { EpisodicEntry, SemanticEntry } from "@openplane/types/ai";
 import {
   createEmptyMemoryAccess,
   createMemoryAccess,
@@ -6,7 +7,6 @@ import {
   MemoryAccessImpl,
 } from "../access";
 import type { MemoryConsolidator } from "../consolidator";
-import type { EpisodicEntry, SemanticEntry } from "../types";
 
 function createMockConsolidator(
   overrides?: Partial<MemoryConsolidator>

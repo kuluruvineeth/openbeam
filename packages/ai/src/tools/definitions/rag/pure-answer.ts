@@ -1,6 +1,6 @@
+import type { RAGChunk } from "@openplane/types/ai";
 import { z } from "zod";
 import { RAGEngine } from "../../../rag/engine";
-import type { RAGChunk } from "../../../rag/types";
 import { defineTool, failure, success } from "../../builder";
 
 const ChunkSchema = z.object({

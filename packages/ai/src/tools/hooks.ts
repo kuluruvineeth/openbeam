@@ -1,9 +1,5 @@
-import type {
-  ToolContext,
-  ToolExecutionResult,
-  ToolMetadata,
-  WebPermissionConfig,
-} from "./types";
+import type { ToolExecutionResult, ToolMetadata } from "@openplane/types/ai";
+import type { ToolContext, WebPermissionConfig } from "./types";
 import { PERMISSION_MODE_CONFIGS } from "./types";
 
 export type HookAction =

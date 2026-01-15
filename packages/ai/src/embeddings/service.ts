@@ -1,13 +1,4 @@
 import { getEmbeddingCache } from "@openplane/redis";
-import { embed, embedMany } from "ai";
-import { getConfig, type ProviderId } from "../config";
-import { getBGEM3Provider } from "../providers/bge-m3";
-import { registry } from "../providers/registry";
-import {
-  DEFAULT_CHUNKING_CONFIG,
-  DocumentChunker,
-  estimateTokens,
-} from "./chunker";
 import type {
   BatchEmbeddingResult,
   CachedBatchEmbeddingResult,
@@ -20,7 +11,16 @@ import type {
   EmbeddingOptions,
   EmbeddingResult,
   SimilarityResult,
-} from "./types";
+} from "@openplane/types/ai";
+import { embed, embedMany } from "ai";
+import { getConfig, type ProviderId } from "../config";
+import { getBGEM3Provider } from "../providers/bge-m3";
+import { registry } from "../providers/registry";
+import {
+  DEFAULT_CHUNKING_CONFIG,
+  DocumentChunker,
+  estimateTokens,
+} from "./chunker";
 
 export class EmbeddingService {
   private readonly providerId: ProviderId;

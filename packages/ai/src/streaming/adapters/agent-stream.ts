@@ -1,22 +1,8 @@
+import type { AgentEvent } from "@openplane/types/ai";
 import type { AgentStreamChunk } from "../../agents/base";
-import type { AgentEvent } from "../events";
 import { done, text, thinking, toolCall, toolResult } from "../events";
 import { getStatusForTool, getToolMetadata } from "../tool-metadata";
 import type { TransformerOptions } from "../transformer";
-
-/**
- * Agent Stream Adapter
- *
- * Bridges the internal AgentStreamChunk (from agent patterns) to the
- * unified AgentEvent format (for UI consumption).
- *
- * This is the CANONICAL way to consume agent streams. Features should:
- * 1. Get stream from agent.stream()
- * 2. Pipe through adaptAgentStream()
- * 3. Consume AgentEvent[]
- *
- * DO NOT re-implement this logic in feature-specific adapters.
- */
 
 export interface AgentStreamAdapterOptions extends TransformerOptions {
   includeSteps?: boolean;

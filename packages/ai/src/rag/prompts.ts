@@ -1,4 +1,8 @@
-import type { ExtractedEntity, QueryAnalysis, TemporalContext } from "./types";
+import type {
+  ExtractedEntity,
+  QueryAnalysis,
+  TemporalContext,
+} from "@openplane/types/ai";
 
 export interface PromptContext {
   query: QueryAnalysis;

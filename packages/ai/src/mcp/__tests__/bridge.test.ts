@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, spyOn } from "bun:test";
+import type { MCPServerContext } from "@openplane/types/ai";
 import { z } from "zod";
 import { defineTool, success } from "../../tools/builder";
 import { ToolRegistry } from "../../tools/registry";
@@ -10,7 +11,6 @@ import {
   mcpContextToToolContext,
   toolResultToMCPResult,
 } from "../bridge";
-import type { MCPServerContext } from "../types";
 
 function createTestMcpContext(
   overrides?: Partial<MCPServerContext>

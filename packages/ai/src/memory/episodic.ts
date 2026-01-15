@@ -3,10 +3,10 @@ import type {
   MemoryMetadata,
   MemoryQuery,
   MemoryRetrievalResult,
-  MemoryStore,
   MemoryStoreOptions,
   ScoredMemoryEntry,
-} from "./types";
+} from "@openplane/types/ai";
+import type { MemoryStore } from "./types";
 import { DEFAULT_MEMORY_OPTIONS } from "./types";
 
 export interface EpisodicMemoryOptions extends MemoryStoreOptions {

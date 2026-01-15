@@ -3,43 +3,15 @@ import type {
   ModelPricing,
   UsageEvent,
   UsageSummaryResult,
-} from "./types";
-
-const MODEL_PRICING: Record<string, ModelPricing> = {
-  "claude-opus-4-5-20251101": {
-    inputPer1M: 15.0,
-    outputPer1M: 75.0,
-    cachePer1M: 1.5,
-  },
-  "claude-opus-4-20250514": {
-    inputPer1M: 15.0,
-    outputPer1M: 75.0,
-    cachePer1M: 1.5,
-  },
-  "claude-sonnet-4-20250514": {
-    inputPer1M: 3.0,
-    outputPer1M: 15.0,
-    cachePer1M: 0.3,
-  },
-  "claude-haiku-3-5-20241022": {
-    inputPer1M: 0.25,
-    outputPer1M: 1.25,
-    cachePer1M: 0.025,
-  },
-  "gpt-4o": { inputPer1M: 2.5, outputPer1M: 10.0 },
-  "gpt-4o-mini": { inputPer1M: 0.15, outputPer1M: 0.6 },
-  "gpt-4-turbo": { inputPer1M: 10.0, outputPer1M: 30.0 },
-  o1: { inputPer1M: 15.0, outputPer1M: 60.0, reasoningPer1M: 60.0 },
-  "o1-mini": { inputPer1M: 3.0, outputPer1M: 12.0, reasoningPer1M: 12.0 },
-  "o3-mini": { inputPer1M: 1.1, outputPer1M: 4.4, reasoningPer1M: 4.4 },
-  "gemini-2.0-flash": { inputPer1M: 0.075, outputPer1M: 0.3 },
-  "gemini-1.5-pro": { inputPer1M: 1.25, outputPer1M: 5.0 },
-  "text-embedding-3-large": { inputPer1M: 0.13, outputPer1M: 0 },
-  "text-embedding-3-small": { inputPer1M: 0.02, outputPer1M: 0 },
-  "text-embedding-004": { inputPer1M: 0.025, outputPer1M: 0 },
-};
+} from "@openplane/types/ai";
+import {
+  calculateModelCost,
+  getModelPricing as getCentralizedPricing,
+} from "@openplane/types/ai";
 
 const DEFAULT_PRICING: ModelPricing = { inputPer1M: 1.0, outputPer1M: 5.0 };
+
+const customPricing: Record<string, ModelPricing> = {};
 
 export function calculateCost(
   model: string,
@@ -50,40 +22,54 @@ export function calculateCost(
     reasoningTokens?: number;
   }
 ): CostBreakdown {
-  const pricing = MODEL_PRICING[model] ?? DEFAULT_PRICING;
+  const result = calculateModelCost(model, inputTokens, outputTokens, options);
 
-  const inputCostUsd = (inputTokens / 1_000_000) * pricing.inputPer1M;
-  const outputCostUsd = (outputTokens / 1_000_000) * pricing.outputPer1M;
+  if (result.totalCostUsd === 0) {
+    const pricing = customPricing[model] ?? DEFAULT_PRICING;
+    const inputCostUsd = (inputTokens / 1_000_000) * pricing.inputPer1M;
+    const outputCostUsd = (outputTokens / 1_000_000) * pricing.outputPer1M;
 
-  let cacheCostUsd = 0;
-  if (options?.cacheTokens && pricing.cachePer1M) {
-    cacheCostUsd = (options.cacheTokens / 1_000_000) * pricing.cachePer1M;
-  }
+    let cacheCostUsd = 0;
+    if (options?.cacheTokens && pricing.cachePer1M) {
+      cacheCostUsd = (options.cacheTokens / 1_000_000) * pricing.cachePer1M;
+    }
 
-  let reasoningCostUsd = 0;
-  if (options?.reasoningTokens && pricing.reasoningPer1M) {
-    reasoningCostUsd =
-      (options.reasoningTokens / 1_000_000) * pricing.reasoningPer1M;
+    let reasoningCostUsd = 0;
+    if (options?.reasoningTokens && pricing.reasoningPer1M) {
+      reasoningCostUsd =
+        (options.reasoningTokens / 1_000_000) * pricing.reasoningPer1M;
+    }
+
+    return {
+      inputCostUsd,
+      outputCostUsd,
+      cacheCostUsd,
+      totalCostUsd:
+        inputCostUsd + outputCostUsd + cacheCostUsd + reasoningCostUsd,
+    };
   }
 
   return {
-    inputCostUsd,
-    outputCostUsd,
-    cacheCostUsd,
-    totalCostUsd:
-      inputCostUsd + outputCostUsd + cacheCostUsd + reasoningCostUsd,
+    inputCostUsd: result.inputCostUsd,
+    outputCostUsd: result.outputCostUsd,
+    cacheCostUsd: 0,
+    totalCostUsd: result.totalCostUsd,
   };
 }
 
 export function getModelPricing(model: string): ModelPricing {
-  return MODEL_PRICING[model] ?? DEFAULT_PRICING;
+  const centralized = getCentralizedPricing(model);
+  if (centralized) {
+    return centralized;
+  }
+  return customPricing[model] ?? DEFAULT_PRICING;
 }
 
 export function registerModelPricing(
   model: string,
   pricing: ModelPricing
 ): void {
-  MODEL_PRICING[model] = pricing;
+  customPricing[model] = pricing;
 }
 
 export interface UsageLogCreateData {

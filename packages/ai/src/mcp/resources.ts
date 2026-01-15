@@ -6,7 +6,7 @@ import type {
   MCPResourceTemplate,
   MCPServerContext,
   MCPTextContent,
-} from "./types";
+} from "@openplane/types/ai";
 
 export type ResourceHandler = (
   uri: string,

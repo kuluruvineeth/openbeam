@@ -1,12 +1,12 @@
 import type {
-  ConversationContext,
   ConversationTurn,
   EntityType,
   ExtractedEntity,
   QueryAnalysis,
   QueryIntent,
   TemporalContext,
-} from "./types";
+} from "@openplane/types/ai";
+import type { ConversationContext } from "./types";
 
 const WHITESPACE = /\s+/;
 const MULTI_SPACE = /\s+/g;

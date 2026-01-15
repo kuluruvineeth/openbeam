@@ -1,9 +1,9 @@
+import type { AgentEvent } from "@openplane/types/ai";
 import type { AgentStreamChunk } from "../../agents/base";
 import {
   type AgentStreamAdapterOptions,
   adaptAgentStream,
 } from "../adapters/agent-stream";
-import type { AgentEvent } from "../events";
 import {
   createStreamState,
   getStreamMetrics,
@@ -12,37 +12,6 @@ import {
   updateStateFromEvent,
 } from "./state";
 import { StreamTimeoutError, withTimeout } from "./timeout";
-
-/**
- * Stream Consumer
- *
- * The canonical way to consume agent streams in any feature.
- * Provides:
- * - AgentStreamChunk → AgentEvent transformation
- * - State accumulation
- * - Timeout handling
- * - Metrics collection
- *
- * Usage:
- *
- * ```typescript
- * const consumer = createStreamConsumer(agent.stream(input, ctx), {
- *   timeoutMs: 60_000,
- *   visibilityFilter: ["visible", "ephemeral"],
- * });
- *
- * for await (const event of consumer.events()) {
- *   // Handle event
- *   switch (event.type) {
- *     case "text": updateUI(event.content); break;
- *     case "tool_call": showProgress(event.displayName); break;
- *     // ...
- *   }
- * }
- *
- * const metrics = consumer.getMetrics();
- * ```
- */
 
 export interface StreamConsumerOptions extends AgentStreamAdapterOptions {
   timeoutMs?: number;

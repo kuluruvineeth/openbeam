@@ -1,15 +1,12 @@
 import { describe, expect, it } from "bun:test";
+import type { ErrorCode, ToolExecutionResult } from "@openplane/types/ai";
 import {
   createErrorResult,
   createSuccessResult,
   failure,
   success,
 } from "../builder";
-import {
-  ERROR_CODES,
-  type ErrorCode,
-  type ToolExecutionResult,
-} from "../types";
+import { ERROR_CODES } from "../types";
 
 const ACTIONABLE_PATTERNS = [
   /try/i,

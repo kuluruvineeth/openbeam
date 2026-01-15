@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from "bun:test";
+import type { MCPServerContext } from "@openplane/types/ai";
 import {
   createJsonContent,
   createResourceContent,
@@ -15,7 +16,6 @@ import {
   getDefaultResourceTemplates,
   ResourceRegistry,
 } from "../resources";
-import type { MCPServerContext } from "../types";
 
 function createTestContext(
   overrides?: Partial<MCPServerContext>

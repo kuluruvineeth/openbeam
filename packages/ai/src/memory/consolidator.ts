@@ -1,3 +1,12 @@
+import type {
+  ConsolidatedMemory,
+  EpisodicEntry,
+  MemoryConsolidatorOptions,
+  MemoryQuery,
+  ProceduralEntry,
+  ScoredMemoryEntry,
+  SemanticEntry,
+} from "@openplane/types/ai";
 import {
   createEpisodicMemory,
   type EpisodicMemory,
@@ -13,15 +22,6 @@ import {
   type SemanticMemory,
   type SemanticMemoryOptions,
 } from "./semantic";
-import type {
-  ConsolidatedMemory,
-  EpisodicEntry,
-  MemoryConsolidatorOptions,
-  MemoryQuery,
-  ProceduralEntry,
-  ScoredMemoryEntry,
-  SemanticEntry,
-} from "./types";
 import { DEFAULT_CONSOLIDATION_OPTIONS } from "./types";
 
 export interface MemorySystemOptions {

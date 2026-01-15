@@ -1,9 +1,23 @@
+export type {
+  ChatModelDefinition,
+  EmbeddingModelDefinition,
+  ProviderId,
+} from "@openplane/types/ai";
 export { createAnthropicProvider } from "./anthropic";
 export { createAzureProvider } from "./azure";
 export { createGoogleProvider } from "./google";
 export { createOllamaProvider } from "./ollama";
 export { createOpenAIProvider } from "./openai";
-export { registry } from "./registry";
+export {
+  createProviderRegistry,
+  getEmbeddingModel,
+  getLanguageModel,
+  ProviderRegistry,
+  providerRegistry,
+  registerAllProviders,
+  registry,
+} from "./registry";
+
 export type {
   GoogleThinkingConfig,
   ReasoningChunk,
@@ -18,10 +32,5 @@ export {
   isReasoningDeltaChunk,
 } from "./thinking";
 export { createTwelveLabsProvider } from "./twelvelabs";
-export type {
-  AIProvider,
-  ChatModelDefinition,
-  EmbeddingModelDefinition,
-  ProviderId,
-  RegistryState,
-} from "./types";
+
+export type { AIProvider, RegistryState } from "./types";

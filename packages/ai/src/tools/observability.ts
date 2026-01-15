@@ -1,4 +1,5 @@
-import type { ErrorCode, ToolCategory, ToolExecutionResult } from "./types";
+import type { ToolCategory, ToolExecutionResult } from "@openplane/types/ai";
+import type { ErrorCode } from "./types";
 
 export interface ToolExecutionEvent {
   toolName: string;

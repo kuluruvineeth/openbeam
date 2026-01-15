@@ -1,4 +1,5 @@
-import type { ClassifiedError, ErrorCode } from "./types";
+import type { ClassifiedError } from "@openplane/types/ai";
+import type { ErrorCode } from "./types";
 import { RETRYABLE_ERROR_CODES } from "./types";
 
 const RETRY_AFTER_PATTERNS = [

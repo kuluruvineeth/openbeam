@@ -1,20 +1,25 @@
+import type {
+  AllowedCaller,
+  ApprovalPattern,
+  ErrorCode,
+  PermissionMode,
+  PermissionModeConfig,
+  ReversibilityLevel,
+  StakesLevel,
+  ToolCategory,
+  ToolContextBase,
+  ToolExecutionResult,
+  ToolMetadata,
+  ToolRiskProfile,
+} from "@openplane/types/ai";
 import type { Tool, ToolExecutionOptions } from "ai";
 import type { z } from "zod";
 import type { MemoryAccess } from "../memory/access";
 import type { ToolServices } from "./services";
 
-export type { ErrorCode, ToolCategory } from "@openplane/types/common";
-export { ErrorCodeSchema, ToolCategorySchema } from "@openplane/types/common";
+export type { ToolExecutionOptions };
 
-import type { ErrorCode, ToolCategory } from "@openplane/types/common";
-
-export interface ToolError {
-  code: ErrorCode;
-  message: string;
-  retryable: boolean;
-  suggestion?: string;
-  details?: Record<string, unknown>;
-}
+export type { ErrorCode } from "@openplane/types/ai";
 
 export const ERROR_CODES: Record<
   ErrorCode,
@@ -79,20 +84,6 @@ export const ERROR_CODES: Record<
   },
 };
 
-export type AllowedCaller = "agent" | "code_execution" | "mcp" | "api";
-
-export type PermissionMode = "default" | "readOnly" | "elevated" | "plan";
-
-export interface PermissionModeConfig {
-  allowedCategories: ToolCategory[];
-  allowedTools?: string[];
-  deniedTools?: string[];
-  requiresApproval?: boolean;
-  canWrite: boolean;
-  canExecute: boolean;
-  canAccessExternal: boolean;
-}
-
 export const PERMISSION_MODE_CONFIGS: Record<
   PermissionMode,
   PermissionModeConfig
@@ -145,83 +136,13 @@ export interface WebPermissionConfig {
   approvalCallback?: (toolName: string, params: unknown) => Promise<boolean>;
 }
 
-export interface ToolContext {
-  teamId: string;
-  userId: string;
-  accessControl?: string[];
-  conversationId?: string;
-  sessionId?: string;
-  executionId?: string;
-  correlationId?: string;
-  parentSpanId?: string;
+export interface ToolContext extends ToolContextBase {
   abortSignal?: AbortSignal;
-  metadata?: Record<string, unknown>;
   services: ToolServices;
-
-  /**
-   * Memory access for personalization and learning.
-   *
-   * Tools can use memory to:
-   * - READ: User preferences, recent history, learned corrections, facts
-   * - SIGNAL: Observations for memory accumulation (searches, views, corrections)
-   *
-   * Memory is OPTIONAL - tools that don't need it can ignore it.
-   * This enables Glean-level personalization without coupling tools to memory impl.
-   *
-   * @example
-   * ```typescript
-   * // Read user preferences to personalize search
-   * const prefs = ctx.memory?.preferences;
-   * const sourceWeights = prefs?.preferredSources ?? [];
-   *
-   * // Signal a search for memory accumulation
-   * ctx.memory?.signalSearch(query, results.length, latencyMs);
-   * ```
-   */
   memory?: MemoryAccess;
 }
 
-export interface ToolResultMetadata {
-  latencyMs: number;
-  tokenCount?: number;
-  source?: string;
-  cached?: boolean;
-}
-
-export interface ToolExecutionResult<T = unknown> {
-  success: boolean;
-  data?: T;
-  error?: ToolError;
-  metadata?: ToolResultMetadata;
-}
-
 export type AISDKTool = Tool<unknown, unknown>;
-
-export type StakesLevel = "low" | "medium" | "high";
-export type ReversibilityLevel = "easy" | "hard" | "irreversible";
-export type ApprovalPattern =
-  | "auto"
-  | "quick-confirm"
-  | "suggest-apply"
-  | "explicit";
-
-export interface ToolRiskProfile {
-  stakes: StakesLevel;
-  reversibility: ReversibilityLevel;
-  approval: ApprovalPattern;
-}
-
-export interface ToolMetadata {
-  name: string;
-  description: string;
-  category: ToolCategory;
-  deferLoading?: boolean;
-  searchKeywords?: string[];
-  requiredPermissions?: string[];
-  allowedCallers?: AllowedCaller[];
-  cacheTtlMs?: number;
-  riskProfile?: ToolRiskProfile;
-}
 
 export interface RegisteredTool {
   metadata: ToolMetadata;
@@ -231,11 +152,6 @@ export interface RegisteredTool {
 
 export interface ToolRegistryOptions {
   defaultContext?: Partial<ToolContext>;
-}
-
-export interface ToolMask {
-  loaded?: string[];
-  disabled?: string[];
 }
 
 export interface ToolBuilderOptions<TSchema extends z.ZodType, TResult> {
@@ -256,6 +172,5 @@ export interface ToolBuilderOptions<TSchema extends z.ZodType, TResult> {
   stakes?: StakesLevel;
   reversibility?: ReversibilityLevel;
   approval?: ApprovalPattern;
+  riskProfile?: ToolRiskProfile;
 }
-
-export type { ToolExecutionOptions };

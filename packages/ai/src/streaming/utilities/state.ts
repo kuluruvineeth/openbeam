@@ -1,11 +1,4 @@
-import type { AgentEvent, AgentStatus } from "../events";
-
-/**
- * Stream State Utilities
- *
- * Provides state accumulation for streaming operations.
- * Use these to track progress, collect results, and manage timing.
- */
+import type { AgentEvent, AgentStatus } from "@openplane/types/ai";
 
 export interface StreamTiming {
   startTime: number;

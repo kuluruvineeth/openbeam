@@ -1,3 +1,12 @@
+export type {
+  AgentResult,
+  AgentStreamEvent,
+  AgentTaskType,
+  StepFinishEvent,
+  TokenUsage,
+  ToolCallInfo,
+  ToolResult,
+} from "@openplane/types/ai";
 export {
   createAgent,
   createTaskAgent,
@@ -26,7 +35,7 @@ export {
 } from "./base";
 export type {
   AgentBaseConfig,
-  AgentConfig,
+  AgentConfig as AgentBaseConfigLegacy,
   AgentExecutionContext,
   AgentExecutionResult,
   AgentState,
@@ -101,18 +110,14 @@ export type {
   SessionManagerConfig,
 } from "./session";
 export { SessionManager, sessionManager } from "./session";
+
 export type {
   Agent,
+  AgentConfig,
   AgentConfig as LegacyAgentConfig,
   AgentContext,
-  AgentResult,
-  AgentStreamEvent,
-  AgentTaskType,
-  StepFinishEvent,
-  TokenUsage,
-  ToolCallInfo,
-  ToolResult,
 } from "./types";
+
 export type {
   OverviewAgentConfig,
   SpreadsheetAgentResult,

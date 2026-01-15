@@ -1,11 +1,11 @@
 import type {
-  Citation,
   ClaimVerification,
   GroundedAnswer,
   GroundingConfidence,
   GroundingResult,
   RAGChunk,
-} from "./types";
+} from "@openplane/types/ai";
+import type { Citation } from "./types";
 
 export type RefusalType =
   | "noSources"

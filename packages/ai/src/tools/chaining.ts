@@ -1,9 +1,6 @@
+import type { ToolExecutionResult } from "@openplane/types/ai";
 import { toolRegistry } from "./registry";
-import type {
-  ToolContext,
-  ToolExecutionOptions,
-  ToolExecutionResult,
-} from "./types";
+import type { ToolContext, ToolExecutionOptions } from "./types";
 
 export interface ToolChainStep<TInput = unknown, TOutput = unknown> {
   toolName: string;

@@ -1,3 +1,14 @@
+export type {
+  CacheMetricsData,
+  CostBreakdown,
+  MetricsRecordParams,
+  MetricsStatus,
+  ModelPricing,
+  ToolMetricsParams,
+  ToolUsageData,
+  UsageEvent,
+  UsageSummaryResult,
+} from "@openplane/types/ai";
 export type { UsageLogCreateData, UsageLogRepository } from "./attribution";
 export {
   CostAttributionService,
@@ -6,10 +17,12 @@ export {
   getModelPricing,
   registerModelPricing,
 } from "./attribution";
+export type {
+  CompositionEventInput,
+  CompositionLogResult,
+  CompositionTracker,
+} from "./composition";
 export {
-  type CompositionEventInput,
-  type CompositionLogResult,
-  type CompositionTracker,
   compareSignatures,
   createCompositionTracker,
   generateSignature,
@@ -17,15 +30,18 @@ export {
   logComposition,
   normalizeToolSequence,
 } from "./composition";
+export type {
+  AgentPerformanceParams,
+  GroundingMetricsParams,
+  RAGQualityParams,
+  ToolEfficiencyParams,
+} from "./metrics";
 export {
   AGENT_METRICS,
-  type AgentPerformanceParams,
   aiMetrics,
   aiMetricsRegistry,
-  type GroundingMetricsParams,
   getMetrics,
   RAG_METRICS,
-  type RAGQualityParams,
   recordAgentPerformance,
   recordAIRequest,
   recordBackgroundAgentDuration,
@@ -36,22 +52,11 @@ export {
   recordToolEfficiency,
   resetMetrics,
   TOOL_METRICS,
-  type ToolEfficiencyParams,
   updateActiveBackgroundAgents,
   updateCacheHitRate,
   updateCircuitBreakerState,
   updateLoadedSkillsCount,
 } from "./metrics";
-export type {
-  CacheMetricsData,
-  CostBreakdown,
-  MetricsRecordParams,
-  ModelPricing,
-  ToolMetricsParams,
-  ToolUsageData,
-  UsageEvent,
-  UsageSummaryResult,
-} from "./types";
 export {
   createSessionScopedTracker,
   getGlobalCompositionTracker,

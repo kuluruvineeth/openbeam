@@ -1,13 +1,13 @@
-import type { z } from "zod";
-import type { ToolRegistry } from "../tools/registry";
-import type { RegisteredTool, ToolContext } from "../tools/types";
 import type {
   MCPContent,
   MCPServerContext,
   MCPToolCall,
-  MCPToolDefinition,
   MCPToolResult,
-} from "./types";
+} from "@openplane/types/ai";
+import type { z } from "zod";
+import type { ToolRegistry } from "../tools/registry";
+import type { RegisteredTool, ToolContext } from "../tools/types";
+import type { MCPToolDefinition } from "./types";
 
 export interface MCPToolListItem {
   name: string;

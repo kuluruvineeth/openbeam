@@ -1,7 +1,3 @@
-import type { ToolRegistry } from "../tools/registry";
-import { MCPToolBridge } from "./bridge";
-import { PromptRegistry } from "./prompts";
-import { ResourceRegistry } from "./resources";
 import type {
   InitializeParams,
   InitializeResult,
@@ -19,7 +15,11 @@ import type {
   ResourcesReadParams,
   ToolsCallParams,
   ToolsListResult,
-} from "./types";
+} from "@openplane/types/ai";
+import type { ToolRegistry } from "../tools/registry";
+import { MCPToolBridge } from "./bridge";
+import { PromptRegistry } from "./prompts";
+import { ResourceRegistry } from "./resources";
 import { MCP_ERROR_CODES } from "./types";
 
 const PROTOCOL_VERSION = "2024-11-05";

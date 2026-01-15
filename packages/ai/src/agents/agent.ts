@@ -1,3 +1,12 @@
+import type {
+  AgentResult,
+  AgentStreamEvent,
+  AgentTaskType,
+  StepFinishEvent,
+  TokenUsage,
+  ToolCallInfo,
+  ToolResult,
+} from "@openplane/types/ai";
 import {
   generateText,
   type ModelMessage,
@@ -7,18 +16,7 @@ import {
 } from "ai";
 import { getConfig } from "../config";
 import { registry } from "../providers/registry";
-import type {
-  Agent,
-  AgentConfig,
-  AgentContext,
-  AgentResult,
-  AgentStreamEvent,
-  AgentTaskType,
-  StepFinishEvent,
-  TokenUsage,
-  ToolCallInfo,
-  ToolResult,
-} from "./types";
+import type { Agent, AgentConfig, AgentContext } from "./types";
 
 function getAgentModel(config: AgentConfig) {
   const aiConfig = getConfig();

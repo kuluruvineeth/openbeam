@@ -1,4 +1,18 @@
 export type {
+  ConsolidatedMemory,
+  EpisodicEntry,
+  MemoryConsolidatorOptions,
+  MemoryEntry,
+  MemoryMetadata,
+  MemoryQuery,
+  MemoryRetrievalResult,
+  MemoryStoreOptions,
+  MemoryType,
+  ProceduralEntry,
+  ScoredMemoryEntry,
+  SemanticEntry,
+} from "@openplane/types/ai";
+export type {
   Correction,
   HistoryItem,
   LearnedFact,
@@ -77,21 +91,8 @@ export {
   InMemoryShortTermClient,
   ShortTermMemoryStore,
 } from "./short-term";
-export type {
-  ConsolidatedMemory,
-  EpisodicEntry,
-  MemoryConsolidatorOptions,
-  MemoryEntry,
-  MemoryMetadata,
-  MemoryQuery,
-  MemoryRetrievalResult,
-  MemoryStore,
-  MemoryStoreOptions,
-  MemoryType,
-  ProceduralEntry,
-  ScoredMemoryEntry,
-  SemanticEntry,
-} from "./types";
+
+export type { MemoryStore } from "./types";
 export {
   DEFAULT_CONSOLIDATION_OPTIONS,
   DEFAULT_MEMORY_OPTIONS,

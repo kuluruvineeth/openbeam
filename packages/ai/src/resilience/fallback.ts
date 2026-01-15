@@ -1,9 +1,6 @@
+import type { ClassifiedError, FallbackChainConfig } from "@openplane/types/ai";
 import { classifyError } from "./errors";
-import type {
-  ClassifiedError,
-  FallbackChainConfig,
-  ProviderConfig,
-} from "./types";
+import type { ProviderConfig } from "./types";
 import { FAILOVER_ERROR_CODES } from "./types";
 
 export interface FallbackResult<T> {

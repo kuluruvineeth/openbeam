@@ -1,4 +1,5 @@
 import { describe, expect, it } from "bun:test";
+import type { QueryAnalysis, QueryIntent } from "@openplane/types/ai";
 import {
   buildEntityExtractionPrompt,
   buildGroundingVerificationPrompt,
@@ -12,7 +13,6 @@ import {
   RAG_MULTISHOT_EXAMPLES,
   type XMLSection,
 } from "../prompts";
-import type { QueryAnalysis, QueryIntent } from "../types";
 
 const CONFIDENCE_PATTERN = /confidence>(high|medium|low)</;
 

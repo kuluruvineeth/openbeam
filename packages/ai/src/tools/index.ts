@@ -1,3 +1,18 @@
+export type {
+  AllowedCaller,
+  ApprovalPattern,
+  ErrorCode,
+  PermissionMode,
+  PermissionModeConfig,
+  ReversibilityLevel,
+  StakesLevel,
+  ToolCategory,
+  ToolError,
+  ToolExecutionResult,
+  ToolMask,
+  ToolMetadata,
+  ToolResultMetadata,
+} from "@openplane/types/ai";
 export type { ToolDefinition } from "./builder";
 export {
   createErrorResult,
@@ -110,24 +125,14 @@ export {
   resetToolHooks,
   setupToolHooks,
 } from "./setup";
-export {
-  type AISDKTool,
-  type AllowedCaller,
-  ERROR_CODES,
-  type ErrorCode,
-  PERMISSION_MODE_CONFIGS,
-  type PermissionMode,
-  type PermissionModeConfig,
-  type RegisteredTool,
-  type ToolBuilderOptions,
-  type ToolCategory,
-  type ToolContext,
-  type ToolError,
-  type ToolExecutionOptions,
-  type ToolExecutionResult,
-  type ToolMask,
-  type ToolMetadata,
-  type ToolRegistryOptions,
-  type ToolResultMetadata,
-  type WebPermissionConfig,
+
+export type {
+  AISDKTool,
+  RegisteredTool,
+  ToolBuilderOptions,
+  ToolContext,
+  ToolExecutionOptions,
+  ToolRegistryOptions,
+  WebPermissionConfig,
 } from "./types";
+export { ERROR_CODES, PERMISSION_MODE_CONFIGS } from "./types";

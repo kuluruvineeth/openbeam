@@ -1,14 +1,15 @@
-import { estimateTokens } from "../embeddings/chunker";
 import type {
-  ChunkingOptions,
-  ConversationContext,
   QueryAnalysis,
   RAGChunk,
+  RAGChunkingOptions,
   RAGCitation,
   RAGConfig,
-  RAGContext,
   RerankingOptions,
-} from "./types";
+} from "@openplane/types/ai";
+import { estimateTokens } from "../embeddings/chunker";
+import type { ConversationContext, RAGContext } from "./types";
+
+type ChunkingOptions = RAGChunkingOptions;
 
 const SENTENCE_BOUNDARY = /(?<=[.!?])\s+(?=[A-Z])/;
 const PARAGRAPH_BOUNDARY = /\n\s*\n/;
