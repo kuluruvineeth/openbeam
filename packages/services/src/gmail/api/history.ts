@@ -1,11 +1,10 @@
-import type { GmailClient } from "../client";
 import {
-  GmailApiError,
-  GmailErrorCodes,
   type GmailHistoryListResponse,
   GmailHistoryListResponseSchema,
   type GmailHistoryRecord,
-} from "../types";
+} from "@openplane/types/services/connectors/gmail";
+import type { GmailClient } from "../client";
+import { GmailApiError, GmailErrorCodes } from "../types";
 
 export interface HistoryOptions {
   startHistoryId: string;

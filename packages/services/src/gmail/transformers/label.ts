@@ -1,4 +1,7 @@
-import type { GmailLabel, GmailTransformContext } from "../types";
+import type {
+  GmailLabel,
+  GmailTransformContext,
+} from "@openplane/types/services/connectors/gmail";
 
 export interface GmailLabelEntity {
   id: string;

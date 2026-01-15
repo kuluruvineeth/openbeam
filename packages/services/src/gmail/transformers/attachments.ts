@@ -1,6 +1,9 @@
 import { createHash } from "node:crypto";
+import type {
+  GmailAttachmentInfo,
+  GmailMediaInfo,
+} from "@openplane/types/services/connectors/gmail";
 import type { ConnectorFileInfo, ConnectorMediaInfo } from "../../files";
-import type { GmailAttachmentInfo, GmailMediaInfo } from "../types";
 
 function createSafeAttachmentId(
   messageId: string,

@@ -1,6 +1,3 @@
-import type { GenericDocument } from "@openplane/vespa";
-import { createLabelLookup } from "../api/labels";
-import type { GmailClient } from "../client";
 import type {
   GmailAttachmentInfo,
   GmailLabel,
@@ -10,7 +7,10 @@ import type {
   GmailSyncCursor,
   GmailSyncOptions,
   GmailTransformContext,
-} from "../types";
+} from "@openplane/types/services/connectors/gmail";
+import type { GenericDocument } from "@openplane/vespa";
+import { createLabelLookup } from "../api/labels";
+import type { GmailClient } from "../client";
 import { GmailApiError, GmailErrorCodes } from "../types";
 import { fullSync } from "./full";
 import { historySync } from "./history";

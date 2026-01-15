@@ -1,10 +1,3 @@
-import type { GenericDocument } from "@openplane/vespa";
-import { logger } from "../../lib/logger";
-import { extractAllAttachments, extractAllMedia } from "../api/attachments";
-import { buildLabelQuery, type LabelLookup } from "../api/labels";
-import { fetchThreadsWithMessages } from "../api/threads";
-import type { GmailClient } from "../client";
-import { transformThread } from "../transformers/thread";
 import type {
   GmailAttachmentInfo,
   GmailMediaInfo,
@@ -12,7 +5,14 @@ import type {
   GmailSyncCursor,
   GmailThread,
   GmailTransformContext,
-} from "../types";
+} from "@openplane/types/services/connectors/gmail";
+import type { GenericDocument } from "@openplane/vespa";
+import { logger } from "../../lib/logger";
+import { extractAllAttachments, extractAllMedia } from "../api/attachments";
+import { buildLabelQuery, type LabelLookup } from "../api/labels";
+import { fetchThreadsWithMessages } from "../api/threads";
+import type { GmailClient } from "../client";
+import { transformThread } from "../transformers/thread";
 
 export interface FullSyncOptions {
   batchSize?: number;

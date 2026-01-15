@@ -9,7 +9,10 @@ import {
   getServiceAccountToken,
   parseServiceAccountCredentials,
 } from "@openplane/integrations";
-import type { ConnectorResult, IntegrationServiceAccountAuth } from "../types";
+import type {
+  ConnectorResult,
+  IntegrationServiceAccountAuth,
+} from "@openplane/types/services";
 
 type ConnectorConfig = {
   service_account_file?: string;

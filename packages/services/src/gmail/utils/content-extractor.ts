@@ -1,11 +1,11 @@
-import { extractAttachments, extractMedia } from "../api/attachments";
 import type {
   ExtractedEmailContent,
   GmailMessage,
   GmailPart,
   GmailPayload,
   ParsedEmailHeaders,
-} from "../types";
+} from "@openplane/types/services/connectors/gmail";
+import { extractAttachments, extractMedia } from "../api/attachments";
 
 const WHITESPACE_REGEX = /\s+/;
 const EMAIL_BRACKET_REGEX = /<([^>]+)>/;

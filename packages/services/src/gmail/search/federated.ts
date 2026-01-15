@@ -1,3 +1,4 @@
+import type { GmailTransformContext } from "@openplane/types/services/connectors/gmail";
 import type { GenericDocument } from "@openplane/vespa";
 import { createLabelLookup } from "../api/labels";
 import { fetchMessagesWithContent } from "../api/messages";
@@ -5,7 +6,6 @@ import { getThread } from "../api/threads";
 import type { GmailClient } from "../client";
 import { transformMessage } from "../transformers/message";
 import { transformThread } from "../transformers/thread";
-import type { GmailTransformContext } from "../types";
 
 export interface FederatedSearchOptions {
   query: string;

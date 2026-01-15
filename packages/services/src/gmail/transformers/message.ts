@@ -1,6 +1,9 @@
+import type {
+  GmailMessage,
+  GmailTransformContext,
+} from "@openplane/types/services/connectors/gmail";
 import type { GenericDocument } from "@openplane/vespa";
 import type { LabelLookup } from "../api/labels";
-import type { GmailMessage, GmailTransformContext } from "../types";
 import {
   buildEmailUrl,
   extractContent,

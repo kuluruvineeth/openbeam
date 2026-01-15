@@ -1,12 +1,11 @@
 import { type RateLimitConfig, rateLimiter } from "@openplane/redis";
+import type {
+  GmailClientConfig,
+  GmailRateLimitState,
+} from "@openplane/types/services/connectors/gmail";
 import { logger } from "../lib/logger";
 import { getValidAccessToken } from "../lib/token-refresh";
-import {
-  GmailApiError,
-  type GmailClientConfig,
-  GmailErrorCodes,
-  type GmailRateLimitState,
-} from "./types";
+import { GmailApiError, GmailErrorCodes } from "./types";
 
 const GMAIL_API_BASE = "https://gmail.googleapis.com/gmail/v1";
 const DEFAULT_TIMEOUT = 30_000;

@@ -1,11 +1,11 @@
-import type { GmailClient } from "../client";
 import {
   type GmailListMessagesResponse,
   GmailListMessagesResponseSchema,
   type GmailMessage,
   type GmailMessageListItem,
   GmailMessageSchema,
-} from "../types";
+} from "@openplane/types/services/connectors/gmail";
+import type { GmailClient } from "../client";
 
 export interface FetchMessagesOptions {
   labelIds?: string[];

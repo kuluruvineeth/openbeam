@@ -1,11 +1,11 @@
-import { logger } from "../../lib/logger";
-import type { GmailClient } from "../client";
 import {
   type GmailListThreadsResponse,
   GmailListThreadsResponseSchema,
   type GmailThread,
   GmailThreadSchema,
-} from "../types";
+} from "@openplane/types/services/connectors/gmail";
+import { logger } from "../../lib/logger";
+import type { GmailClient } from "../client";
 
 export interface FetchThreadsOptions {
   labelIds?: string[];

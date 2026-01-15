@@ -1,10 +1,10 @@
-import type { GenericDocument } from "@openplane/vespa";
-import type { LabelLookup } from "../api/labels";
 import type {
   GmailMessage,
   GmailThread,
   GmailTransformContext,
-} from "../types";
+} from "@openplane/types/services/connectors/gmail";
+import type { GenericDocument } from "@openplane/vespa";
+import type { LabelLookup } from "../api/labels";
 import {
   buildThreadUrl,
   extractContent,

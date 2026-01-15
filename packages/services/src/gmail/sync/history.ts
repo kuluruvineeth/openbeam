@@ -1,3 +1,10 @@
+import type {
+  GmailAttachmentInfo,
+  GmailHistoryRecord,
+  GmailMediaInfo,
+  GmailSyncBatch,
+  GmailTransformContext,
+} from "@openplane/types/services/connectors/gmail";
 import type { GenericDocument } from "@openplane/vespa";
 import { extractAllAttachments, extractAllMedia } from "../api/attachments";
 import {
@@ -11,13 +18,6 @@ import type { LabelLookup } from "../api/labels";
 import { batchGetMessages } from "../api/messages";
 import type { GmailClient } from "../client";
 import { transformMessage } from "../transformers/message";
-import type {
-  GmailAttachmentInfo,
-  GmailHistoryRecord,
-  GmailMediaInfo,
-  GmailSyncBatch,
-  GmailTransformContext,
-} from "../types";
 
 export interface HistorySyncOptions {
   startHistoryId: string;

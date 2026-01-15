@@ -1,4 +1,3 @@
-import type { GmailClient } from "../client";
 import {
   type GmailAttachment,
   type GmailAttachmentInfo,
@@ -8,7 +7,8 @@ import {
   type GmailPart,
   isMediaType,
   isSupportedAttachment,
-} from "../types";
+} from "@openplane/types/services/connectors/gmail";
+import type { GmailClient } from "../client";
 
 const EMAIL_BRACKET_REGEX = /<([^>]+)>/;
 const EMAIL_ADDRESS_REGEX = /[\w.+-]+@[\w.-]+\.\w+/;

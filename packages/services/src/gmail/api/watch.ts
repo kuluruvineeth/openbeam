@@ -1,5 +1,8 @@
+import {
+  type GmailWatchResponse,
+  GmailWatchResponseSchema,
+} from "@openplane/types/services/connectors/gmail";
 import type { GmailClient } from "../client";
-import { type GmailWatchResponse, GmailWatchResponseSchema } from "../types";
 
 export interface WatchRequest {
   topicName: string;

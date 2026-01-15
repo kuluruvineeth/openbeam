@@ -1,11 +1,11 @@
-import type { GmailClient } from "../client";
 import {
   GMAIL_SYSTEM_LABELS,
   type GmailLabel,
   GmailLabelSchema,
   type GmailListLabelsResponse,
   GmailListLabelsResponseSchema,
-} from "../types";
+} from "@openplane/types/services/connectors/gmail";
+import type { GmailClient } from "../client";
 
 export async function listLabels(client: GmailClient): Promise<GmailLabel[]> {
   const response =

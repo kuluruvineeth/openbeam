@@ -3,15 +3,15 @@ import {
   getServiceAccountToken,
   parseServiceAccountCredentials,
 } from "@openplane/integrations";
-import type { GenericDocument } from "@openplane/vespa";
-import { logger } from "../../lib/logger";
-import { createGmailClient, type GmailClient } from "../client";
 import type {
   GmailAttachmentInfo,
   GmailMediaInfo,
   GmailSyncBatch,
   GmailTransformContext,
-} from "../types";
+} from "@openplane/types/services/connectors/gmail";
+import type { GenericDocument } from "@openplane/vespa";
+import { logger } from "../../lib/logger";
+import { createGmailClient, type GmailClient } from "../client";
 import {
   gmailIncrementalSync,
   type IncrementalSyncOptions,
