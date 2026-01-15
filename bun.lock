@@ -371,6 +371,7 @@
       "name": "@openplane/media",
       "version": "0.0.1",
       "dependencies": {
+        "@openplane/types": "workspace:*",
         "@openplane/vespa": "workspace:*",
         "twelvelabs-js": "^1.1.0",
       },
@@ -437,6 +438,7 @@
         "@aws-sdk/client-s3": "^3.701.0",
         "@aws-sdk/lib-storage": "^3.701.0",
         "@aws-sdk/s3-request-presigner": "^3.701.0",
+        "@openplane/types": "workspace:*",
         "zod": "catalog:",
       },
       "devDependencies": {
