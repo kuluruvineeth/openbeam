@@ -1,9 +1,9 @@
-import type { GenericDocument } from "@openplane/vespa";
 import type {
   LinearComment,
   LinearIssue,
   LinearTransformContext,
-} from "../types";
+} from "@openplane/types/services/connectors/linear";
+import type { GenericDocument } from "@openplane/vespa";
 
 export interface IssueTransformOptions {
   comments?: LinearComment[];

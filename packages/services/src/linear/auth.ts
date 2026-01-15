@@ -13,14 +13,14 @@ import {
   generateLinearAuthUrl,
   linearApp,
 } from "@openplane/integrations";
-import { z } from "zod";
-import { createOAuthState, verifyOAuthState } from "../lib/oauth-state";
 import type {
   AuthCompleteContext,
   AuthStartContext,
   ConnectorResult,
   IntegrationAuth,
-} from "../types";
+} from "@openplane/types/services";
+import { z } from "zod";
+import { createOAuthState, verifyOAuthState } from "../lib/oauth-state";
 
 const LinearConfigSchema = z
   .object({

@@ -1,4 +1,10 @@
 import crypto from "node:crypto";
+import {
+  type LinearComment,
+  type LinearTransformContext,
+  type LinearWebhookPayload,
+  LinearWebhookPayloadSchema,
+} from "@openplane/types/services/connectors/linear";
 import type { GenericDocument } from "@openplane/vespa";
 import { logger } from "../../lib/logger";
 import { getDocument } from "../api/documents";
@@ -8,12 +14,6 @@ import type { LinearClient } from "../client";
 import { transformDocument } from "../transformers/document";
 import { transformIssue } from "../transformers/issue";
 import { transformProject } from "../transformers/project";
-import {
-  type LinearComment,
-  type LinearTransformContext,
-  type LinearWebhookPayload,
-  LinearWebhookPayloadSchema,
-} from "../types";
 
 export interface WebhookRequest {
   headers: {

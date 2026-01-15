@@ -1,10 +1,10 @@
-import type { LinearClient } from "../client";
 import {
   LinearConnectionSchema,
   type LinearDocument,
   LinearDocumentSchema,
   type LinearPageInfo,
-} from "../types";
+} from "@openplane/types/services/connectors/linear";
+import type { LinearClient } from "../client";
 
 const DOCUMENT_FRAGMENT = `
   fragment DocumentFields on Document {

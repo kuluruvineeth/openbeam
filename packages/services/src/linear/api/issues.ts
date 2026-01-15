@@ -1,11 +1,11 @@
-import type { LinearClient } from "../client";
 import {
   type LinearComment,
   LinearConnectionSchema,
   type LinearIssue,
   LinearIssueSchema,
   type LinearPageInfo,
-} from "../types";
+} from "@openplane/types/services/connectors/linear";
+import type { LinearClient } from "../client";
 
 const ISSUE_FRAGMENT = `
   fragment IssueFields on Issue {

@@ -1,5 +1,5 @@
+import type { LinearLabel } from "@openplane/types/services/connectors/linear";
 import type { LinearClient } from "../client";
-import type { LinearLabel } from "../types";
 
 const LABELS_QUERY = `
   query IssueLabels($first: Int!, $after: String) {

@@ -1,5 +1,8 @@
+import type {
+  LinearProject,
+  LinearTransformContext,
+} from "@openplane/types/services/connectors/linear";
 import type { GenericDocument } from "@openplane/vespa";
-import type { LinearProject, LinearTransformContext } from "../types";
 
 function buildProjectDocumentId(
   connectorId: string,

@@ -1,10 +1,10 @@
-import type { LinearClient } from "../client";
 import {
   LinearConnectionSchema,
   type LinearCycle,
   LinearCycleSchema,
   type LinearPageInfo,
-} from "../types";
+} from "@openplane/types/services/connectors/linear";
+import type { LinearClient } from "../client";
 
 const CYCLE_FRAGMENT = `
   fragment CycleFields on Cycle {

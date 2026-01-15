@@ -1,13 +1,12 @@
 import { type RateLimitConfig, rateLimiter } from "@openplane/redis";
-import { logger } from "../lib/logger";
-import { getValidAccessToken } from "../lib/token-refresh";
 import {
   LINEAR_API_URL,
-  LinearApiError,
   type LinearClientConfig,
-  LinearErrorCodes,
   type LinearRateLimitState,
-} from "./types";
+} from "@openplane/types/services/connectors/linear";
+import { logger } from "../lib/logger";
+import { getValidAccessToken } from "../lib/token-refresh";
+import { LinearApiError, LinearErrorCodes } from "./types";
 
 const DEFAULT_TIMEOUT = 30_000;
 const DEFAULT_RETRY_ATTEMPTS = 3;

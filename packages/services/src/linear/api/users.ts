@@ -1,11 +1,11 @@
 import { getRedisClient } from "@openplane/redis";
-import type { LinearClient } from "../client";
 import {
   LinearConnectionSchema,
   type LinearUser,
   type LinearUserLookup,
   LinearUserSchema,
-} from "../types";
+} from "@openplane/types/services/connectors/linear";
+import type { LinearClient } from "../client";
 
 const USER_CACHE_PREFIX = "linear:users:";
 const USER_CACHE_TTL = 3600; // 1 hour

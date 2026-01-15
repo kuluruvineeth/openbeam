@@ -1,9 +1,9 @@
-import type { LinearClient } from "../client";
 import {
   LinearConnectionSchema,
   type LinearTeam,
   LinearTeamSchema,
-} from "../types";
+} from "@openplane/types/services/connectors/linear";
+import type { LinearClient } from "../client";
 
 const TEAMS_QUERY = `
   query Teams($first: Int!, $after: String) {

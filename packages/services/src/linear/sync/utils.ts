@@ -1,5 +1,8 @@
+import type {
+  LinearSyncBatch,
+  LinearSyncCursor,
+} from "@openplane/types/services/connectors/linear";
 import type { GenericDocument } from "@openplane/vespa";
-import type { LinearSyncBatch, LinearSyncCursor } from "../types";
 
 export function createSyncBatch(
   items: GenericDocument[],

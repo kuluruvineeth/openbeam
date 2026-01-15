@@ -1,3 +1,10 @@
+import type {
+  LinearComment,
+  LinearSyncBatch,
+  LinearSyncCursor,
+  LinearSyncOptions,
+  LinearTransformContext,
+} from "@openplane/types/services/connectors/linear";
 import type { GenericDocument } from "@openplane/vespa";
 import { logger } from "../../lib/logger";
 import { getAllDocuments } from "../api/documents";
@@ -9,13 +16,6 @@ import type { LinearClient } from "../client";
 import { transformDocument } from "../transformers/document";
 import { transformIssue } from "../transformers/issue";
 import { transformProject } from "../transformers/project";
-import type {
-  LinearComment,
-  LinearSyncBatch,
-  LinearSyncCursor,
-  LinearSyncOptions,
-  LinearTransformContext,
-} from "../types";
 import { createSyncBatch } from "./utils";
 
 const DEFAULT_BATCH_SIZE = 50;
