@@ -247,6 +247,7 @@
       "dependencies": {
         "@duckdb/node-api": "^1.4.3-r.2",
         "@openplane/storage": "workspace:*",
+        "@openplane/types": "workspace:*",
         "@posthog/ai": "^1.0.0",
         "node-sql-parser": "^5.3.8",
         "posthog-js": "^1.313.0",
