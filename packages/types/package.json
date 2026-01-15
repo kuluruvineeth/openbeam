@@ -8,6 +8,10 @@
       "types": "./dist/index.d.ts",
       "default": "./src/index.ts"
     },
+    "./ai": {
+      "types": "./dist/ai/index.d.ts",
+      "default": "./src/ai/index.ts"
+    },
     "./common": {
       "types": "./dist/common/index.d.ts",
       "default": "./src/common/index.ts"

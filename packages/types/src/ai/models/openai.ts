@@ -1,0 +1,78 @@
+import type { ChatModel } from "./types";
+
+export const OPENAI_MODELS: ChatModel[] = [
+  {
+    id: "gpt-5.2",
+    name: "GPT-5.2",
+    provider: "openai",
+    contextWindow: 400_000,
+    maxOutputTokens: 128_000,
+    supportsTools: true,
+    supportsVision: true,
+    supportsStreaming: true,
+    pricing: {
+      inputPer1M: 1.75,
+      outputPer1M: 14.0,
+      cachePer1M: 0.175,
+    },
+  },
+  {
+    id: "gpt-5.2-pro",
+    name: "GPT-5.2 Pro",
+    provider: "openai",
+    contextWindow: 400_000,
+    maxOutputTokens: 128_000,
+    supportsTools: true,
+    supportsVision: true,
+    supportsStreaming: true,
+    pricing: {
+      inputPer1M: 21.0,
+      outputPer1M: 168.0,
+    },
+  },
+  {
+    id: "gpt-5.1",
+    name: "GPT-5.1",
+    provider: "openai",
+    contextWindow: 400_000,
+    maxOutputTokens: 128_000,
+    supportsTools: true,
+    supportsVision: true,
+    supportsStreaming: true,
+    pricing: {
+      inputPer1M: 1.25,
+      outputPer1M: 10.0,
+      cachePer1M: 0.125,
+    },
+  },
+  {
+    id: "o1",
+    name: "o1",
+    provider: "openai",
+    contextWindow: 200_000,
+    maxOutputTokens: 100_000,
+    supportsTools: true,
+    supportsVision: true,
+    supportsStreaming: true,
+    pricing: {
+      inputPer1M: 15.0,
+      outputPer1M: 60.0,
+      reasoningPer1M: 60.0,
+    },
+  },
+  {
+    id: "o3",
+    name: "o3",
+    provider: "openai",
+    contextWindow: 200_000,
+    maxOutputTokens: 100_000,
+    supportsTools: true,
+    supportsVision: true,
+    supportsStreaming: true,
+    pricing: {
+      inputPer1M: 2.0,
+      outputPer1M: 8.0,
+      reasoningPer1M: 8.0,
+    },
+  },
+];
