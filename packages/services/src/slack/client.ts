@@ -1,12 +1,11 @@
 import { type RateLimitConfig, rateLimiter } from "@openplane/redis";
+import type {
+  RateLimitState,
+  SlackClientConfig,
+} from "@openplane/types/services/connectors/slack";
 import { LogLevel, WebClient, type WebClientOptions } from "@slack/web-api";
 import { logger } from "../lib/logger";
-import {
-  type RateLimitState,
-  SlackApiError,
-  type SlackClientConfig,
-  SlackErrorCodes,
-} from "./types";
+import { SlackApiError, SlackErrorCodes } from "./types";
 
 const DEFAULT_TIMEOUT = 30_000;
 const DEFAULT_RETRY_ATTEMPTS = 3;

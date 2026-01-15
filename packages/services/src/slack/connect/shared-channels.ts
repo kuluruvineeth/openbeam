@@ -1,5 +1,5 @@
+import type { SlackChannel } from "@openplane/types/services/connectors/slack";
 import type { SlackClient } from "../client";
-import type { SlackChannel } from "../types";
 import type {
   ConnectedTeam,
   ConnectPermission,

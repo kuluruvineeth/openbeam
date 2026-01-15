@@ -1,5 +1,8 @@
+import {
+  type SlackMessage,
+  SlackMessageSchema,
+} from "@openplane/types/services/connectors/slack";
 import type { SlackClient } from "../client";
-import { type SlackMessage, SlackMessageSchema } from "../types";
 
 export interface FetchMessagesOptions {
   oldest?: string;

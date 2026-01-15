@@ -1,3 +1,8 @@
+import type {
+  FederatedSearchOptions,
+  SlackSearchMatch,
+  TransformContext,
+} from "@openplane/types/services/connectors/slack";
 import type { GenericDocument, JsonObject } from "@openplane/vespa";
 import {
   buildSearchQuery,
@@ -6,11 +11,6 @@ import {
 } from "../api/search";
 import { createUserLookup, type UserLookup } from "../api/users";
 import type { SlackClient } from "../client";
-import type {
-  FederatedSearchOptions,
-  SlackSearchMatch,
-  TransformContext,
-} from "../types";
 import {
   buildChannelFilterQuery,
   type ChannelFilterConfig,

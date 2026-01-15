@@ -1,10 +1,10 @@
-import type { SlackClient } from "../client";
 import {
   type SlackTeam,
   SlackTeamSchema,
   type SlackUser,
   SlackUserSchema,
-} from "../types";
+} from "@openplane/types/services/connectors/slack";
+import type { SlackClient } from "../client";
 
 const USER_BATCH_SIZE = 50;
 

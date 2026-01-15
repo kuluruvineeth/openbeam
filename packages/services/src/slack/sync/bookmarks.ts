@@ -1,3 +1,8 @@
+import type {
+  SlackChannel,
+  SlackSyncBatch as SyncBatch,
+  TransformContext,
+} from "@openplane/types/services/connectors/slack";
 import type { GenericDocument } from "@openplane/vespa";
 import {
   type SlackBookmark as ApiSlackBookmark,
@@ -10,7 +15,6 @@ import {
   type SlackBookmark,
   transformBookmark,
 } from "../transformers/bookmark";
-import type { SlackChannel, SyncBatch, TransformContext } from "../types";
 
 export interface BookmarkSyncOptions {
   batchSize?: number;

@@ -1,3 +1,10 @@
+import type {
+  SlackChannel,
+  SlackMessage,
+  SlackSyncBatch as SyncBatch,
+  SyncCursor,
+  TransformContext,
+} from "@openplane/types/services/connectors/slack";
 import type { GenericDocument } from "@openplane/vespa";
 import { logger } from "../../lib/logger";
 import {
@@ -12,13 +19,6 @@ import {
   type MessageTransformOptions,
   transformMessage,
 } from "../transformers";
-import type {
-  SlackChannel,
-  SlackMessage,
-  SyncBatch,
-  SyncCursor,
-  TransformContext,
-} from "../types";
 
 export interface SyncMessagesOptions {
   cursor?: SyncCursor;

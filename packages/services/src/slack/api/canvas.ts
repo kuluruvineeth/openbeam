@@ -1,5 +1,5 @@
+import type { SlackFile } from "@openplane/types/services/connectors/slack";
 import type { SlackClient } from "../client";
-import type { SlackFile } from "../types";
 
 export interface SlackCanvas {
   id: string;

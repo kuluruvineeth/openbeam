@@ -1,5 +1,8 @@
+import type {
+  SlackUser,
+  TransformContext,
+} from "@openplane/types/services/connectors/slack";
 import type { Entity, JsonObject, JsonValue } from "@openplane/vespa";
-import type { SlackUser, TransformContext } from "../types";
 
 export function transformUser(
   user: SlackUser,

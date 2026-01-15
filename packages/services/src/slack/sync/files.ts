@@ -1,3 +1,7 @@
+import type {
+  SlackFile,
+  TransformContext,
+} from "@openplane/types/services/connectors/slack";
 import type { ConnectorFileInfo } from "../../files";
 import {
   filterSupportedFiles,
@@ -9,7 +13,6 @@ import {
 } from "../api/files";
 import { createUserLookup, type UserLookup } from "../api/users";
 import type { SlackClient } from "../client";
-import type { SlackFile, TransformContext } from "../types";
 
 export interface FileSyncOptions {
   channelIds?: string[];

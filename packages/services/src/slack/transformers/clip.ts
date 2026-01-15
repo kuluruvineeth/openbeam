@@ -1,6 +1,6 @@
+import type { TransformContext } from "@openplane/types/services/connectors/slack";
 import type { GenericDocument } from "@openplane/vespa";
 import type { UserLookup } from "../api/users";
-import type { TransformContext } from "../types";
 import { filterUndefined } from "./utils";
 
 export interface SlackClip {

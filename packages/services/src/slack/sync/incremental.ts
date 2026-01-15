@@ -1,12 +1,12 @@
+import type {
+  SlackChannel,
+  SlackSyncBatch as SyncBatch,
+  SyncCursor,
+  TransformContext,
+} from "@openplane/types/services/connectors/slack";
 import type { GenericDocument } from "@openplane/vespa";
 import type { ConnectorFileInfo } from "../../files";
 import type { SlackClient } from "../client";
-import type {
-  SlackChannel,
-  SyncBatch,
-  SyncCursor,
-  TransformContext,
-} from "../types";
 import { type BookmarkSyncOptions, syncBookmarksBatched } from "./bookmarks";
 import { type CanvasSyncOptions, syncCanvasesBatched } from "./canvas";
 import { type SyncChannelsOptions, syncChannels } from "./channels";

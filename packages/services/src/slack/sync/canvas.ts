@@ -1,3 +1,7 @@
+import type {
+  SlackSyncBatch as SyncBatch,
+  TransformContext,
+} from "@openplane/types/services/connectors/slack";
 import type { GenericDocument } from "@openplane/vespa";
 import {
   type SlackCanvas as ApiSlackCanvas,
@@ -12,7 +16,6 @@ import {
   type SlackCanvas,
   transformCanvas,
 } from "../transformers/canvas";
-import type { SyncBatch, TransformContext } from "../types";
 
 export interface CanvasSyncOptions {
   batchSize?: number;

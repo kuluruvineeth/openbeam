@@ -1,3 +1,8 @@
+import type {
+  SlackChannel,
+  SlackSyncBatch as SyncBatch,
+  TransformContext,
+} from "@openplane/types/services/connectors/slack";
 import type { Entity } from "@openplane/vespa";
 import {
   buildChannelMemberMap,
@@ -6,7 +11,6 @@ import {
 } from "../api/channels";
 import type { SlackClient } from "../client";
 import { shouldIndex, transformChannels } from "../transformers";
-import type { SlackChannel, SyncBatch, TransformContext } from "../types";
 
 export interface SyncChannelsOptions {
   types?: Array<"public" | "private" | "im" | "mpim">;

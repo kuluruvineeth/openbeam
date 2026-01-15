@@ -1,5 +1,8 @@
+import {
+  type SlackChannel,
+  SlackChannelSchema,
+} from "@openplane/types/services/connectors/slack";
 import type { SlackClient } from "../client";
-import { type SlackChannel, SlackChannelSchema } from "../types";
 
 export interface ListChannelsOptions {
   types?: Array<"public_channel" | "private_channel" | "im" | "mpim">;

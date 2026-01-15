@@ -1,5 +1,8 @@
+import type {
+  SlackChannel,
+  TransformContext,
+} from "@openplane/types/services/connectors/slack";
 import type { Entity, JsonObject } from "@openplane/vespa";
-import type { SlackChannel, TransformContext } from "../types";
 
 export interface ChannelTransformContext extends TransformContext {
   members?: string[];

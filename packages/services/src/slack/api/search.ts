@@ -1,9 +1,9 @@
-import type { SlackClient } from "../client";
 import {
   type SlackSearchMatch,
   SlackSearchMatchSchema,
   SlackSearchResponseSchema,
-} from "../types";
+} from "@openplane/types/services/connectors/slack";
+import type { SlackClient } from "../client";
 
 export interface SearchMessagesOptions {
   count?: number;

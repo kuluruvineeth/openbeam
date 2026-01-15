@@ -1,7 +1,11 @@
+import type {
+  SlackChannel,
+  SlackMessage,
+  TransformContext,
+} from "@openplane/types/services/connectors/slack";
 import type { GenericDocument, JsonArray, JsonObject } from "@openplane/vespa";
 import { slackTsToMs } from "../api/messages";
 import type { UserLookup } from "../api/users";
-import type { SlackChannel, SlackMessage, TransformContext } from "../types";
 
 export interface MessageTransformContext extends TransformContext {
   channel: SlackChannel;

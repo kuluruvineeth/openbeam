@@ -1,6 +1,6 @@
+import type { SlackFile } from "@openplane/types/services/connectors/slack";
 import { getAllSupportedTypes } from "../../engine/supported-types";
 import type { SlackClient } from "../client";
-import type { SlackFile } from "../types";
 
 export interface ListFilesOptions {
   channel?: string;

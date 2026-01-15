@@ -1,3 +1,7 @@
+import type {
+  SlackSyncBatch as SyncBatch,
+  TransformContext,
+} from "@openplane/types/services/connectors/slack";
 import type { GenericDocument } from "@openplane/vespa";
 import {
   type SlackClip as ApiSlackClip,
@@ -11,7 +15,6 @@ import {
   type SlackClip,
   transformClip,
 } from "../transformers/clip";
-import type { SyncBatch, TransformContext } from "../types";
 
 export interface ClipSyncOptions {
   batchSize?: number;

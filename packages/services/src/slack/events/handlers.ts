@@ -1,3 +1,9 @@
+import type {
+  SlackBookmarkType,
+  SlackChannel,
+  SlackMessage,
+  TransformContext,
+} from "@openplane/types/services/connectors/slack";
 import type { Entity, GenericDocument } from "@openplane/vespa";
 import { getAllChannelMembers, getChannelInfo } from "../api/channels";
 import { getClipInfo } from "../api/clips";
@@ -11,12 +17,6 @@ import {
   transformClip,
   transformMessage,
 } from "../transformers";
-import type {
-  SlackBookmarkType,
-  SlackChannel,
-  SlackMessage,
-  TransformContext,
-} from "../types";
 import {
   isBookmarkEvent,
   isChannelEvent,

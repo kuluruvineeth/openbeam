@@ -1,4 +1,7 @@
-import type { SlackChannel, SlackSearchMatch } from "../types";
+import type {
+  SlackChannel,
+  SlackSearchMatch,
+} from "@openplane/types/services/connectors/slack";
 
 export interface ChannelFilterConfig {
   include?: string[];
