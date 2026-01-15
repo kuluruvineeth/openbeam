@@ -1,15 +1,12 @@
+import type {
+  TriggerSyncInput,
+  TriggerSyncResult,
+  TriggerWebhookSyncInput,
+  TriggerWebhookSyncResult,
+  UpdateSyncSettingsInput,
+  UpdateSyncSettingsResult,
+} from "@openplane/types/db";
 import { type Database, SyncJobStatus, SyncTrigger } from "../index";
-
-export interface TriggerSyncInput {
-  connectorId: string;
-  type: "FULL" | "INCREMENTAL";
-}
-
-export interface TriggerSyncResult {
-  syncJobId: string;
-  syncHistoryId: string;
-  type: "FULL" | "INCREMENTAL";
-}
 
 export const triggerSync = async (
   db: Database,
@@ -46,16 +43,6 @@ export const triggerSync = async (
   };
 };
 
-export interface TriggerWebhookSyncInput {
-  connectorId: string;
-  type: "FULL" | "INCREMENTAL" | "PERMISSIONS";
-}
-
-export interface TriggerWebhookSyncResult {
-  syncJobId: string;
-  syncHistoryId: string;
-}
-
 export const triggerWebhookSync = async (
   db: Database,
   input: TriggerWebhookSyncInput
@@ -85,9 +72,6 @@ export const triggerWebhookSync = async (
   };
 };
 
-/**
- * Pause a connector (set status to INACTIVE)
- */
 export const pauseConnector = async (
   db: Database,
   connectorId: string
@@ -115,9 +99,6 @@ export const pauseConnector = async (
   };
 };
 
-/**
- * Resume a connector (set status to ACTIVE)
- */
 export const resumeConnector = async (
   db: Database,
   connectorId: string
@@ -145,31 +126,6 @@ export const resumeConnector = async (
   };
 };
 
-export interface UpdateSyncSettingsInput {
-  connectorId: string;
-  fullSyncIntervalMs?: number;
-  incrementalSyncIntervalMs?: number;
-}
-
-export interface UpdateSyncSettingsResult {
-  fullSyncJob: {
-    id: string;
-    intervalMs: number;
-    schedule: string;
-    nextRunAt: Date;
-  } | null;
-  incrementalSyncJob: {
-    id: string;
-    intervalMs: number;
-    schedule: string;
-    nextRunAt: Date;
-  } | null;
-}
-
-/**
- * Update sync settings for a connector
- * Updates or creates sync jobs with new intervals
- */
 export const updateSyncSettings = async (
   db: Database,
   input: UpdateSyncSettingsInput,
@@ -180,7 +136,6 @@ export const updateSyncSettings = async (
     incrementalSyncJob: null,
   };
 
-  // Update full sync job if interval provided
   if (input.fullSyncIntervalMs) {
     const cronExpression = intervalMsToCron(input.fullSyncIntervalMs);
     const nextRunAt = new Date(Date.now() + input.fullSyncIntervalMs);
@@ -195,7 +150,6 @@ export const updateSyncSettings = async (
     });
 
     if (existingJob) {
-      // Update existing job
       const updated = await db.syncJob.update({
         where: { id: existingJob.id },
         data: {
@@ -212,7 +166,6 @@ export const updateSyncSettings = async (
         nextRunAt,
       };
     } else {
-      // Create new job
       const created = await db.syncJob.create({
         data: {
           connectorId: input.connectorId,
@@ -235,7 +188,6 @@ export const updateSyncSettings = async (
     }
   }
 
-  // Update incremental sync job if interval provided
   if (input.incrementalSyncIntervalMs) {
     const cronExpression = intervalMsToCron(input.incrementalSyncIntervalMs);
     const nextRunAt = new Date(Date.now() + input.incrementalSyncIntervalMs);
@@ -250,7 +202,6 @@ export const updateSyncSettings = async (
     });
 
     if (existingJob) {
-      // Update existing job
       const updated = await db.syncJob.update({
         where: { id: existingJob.id },
         data: {
@@ -267,7 +218,6 @@ export const updateSyncSettings = async (
         nextRunAt,
       };
     } else {
-      // Create new job
       const created = await db.syncJob.create({
         data: {
           connectorId: input.connectorId,

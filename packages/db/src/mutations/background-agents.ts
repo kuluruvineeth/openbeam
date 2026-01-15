@@ -1,22 +1,11 @@
 import type {
+  Artifact,
   BackgroundAgentStatus,
-  SandboxType,
-} from "../../prisma/generated/enums";
+  CreateBackgroundAgentData,
+  LogEntry,
+  UsageIncrement,
+} from "@openplane/types/db";
 import type { Database } from "../index";
-
-export interface CreateBackgroundAgentData {
-  teamId: string;
-  userId: string;
-  name: string;
-  description?: string;
-  prompt: string;
-  preset?: string;
-  sandboxType?: SandboxType;
-  repositoryUrl?: string;
-  baseBranch?: string;
-  maxRetries?: number;
-  timeoutMs?: number;
-}
 
 export function createBackgroundAgent(
   db: Database,
@@ -118,12 +107,6 @@ export function updateBackgroundAgentWorktree(
   });
 }
 
-interface Artifact {
-  type: string;
-  path: string;
-  content?: string;
-}
-
 export function updateBackgroundAgentResult(
   db: Database,
   id: string,
@@ -143,12 +126,6 @@ export function updateBackgroundAgentResult(
       completedAt: new Date(),
     },
   });
-}
-
-export interface UsageIncrement {
-  inputTokens: number;
-  outputTokens: number;
-  estimatedCostUsd: number;
 }
 
 export function updateBackgroundAgentUsage(
@@ -248,12 +225,6 @@ export function createBackgroundAgentCheckpoint(
       description: data.description,
     },
   });
-}
-
-export interface LogEntry {
-  level: string;
-  message: string;
-  metadata?: Record<string, unknown>;
 }
 
 export function addBackgroundAgentLog(

@@ -1,66 +1,9 @@
-import type { Prisma } from "../../prisma/generated/client";
+import type {
+  GetSyncHistoryResult,
+  GetSyncStatusResult,
+  ScheduledSyncJob,
+} from "@openplane/types/db";
 import type { Database } from "../index";
-
-export interface SyncJobInfo {
-  id: string;
-  type: string;
-  schedule: string | null;
-  nextRunAt: Date | null;
-  lastRanAt: Date | null;
-  config: Record<string, unknown>;
-  priority: number;
-  status: string;
-}
-
-export interface ProcessingStatus {
-  filesProcessing: number;
-  filesIndexed: number;
-  mediaProcessing: number;
-  mediaIndexed: number;
-}
-
-export interface GetSyncStatusResult {
-  connector: {
-    id: string;
-    status: string;
-    lastSyncedAt: Date | null;
-    lastSyncStatus: string | null;
-    lastError: string | null;
-    lastErrorAt: Date | null;
-    scheduledDeletionAt: Date | null;
-  };
-  latestSync: {
-    id: string;
-    status: string;
-    dataAdded: number;
-    dataUpdated: number;
-    dataDeleted: number;
-    startedAt: Date;
-    finishedAt: Date | null;
-    errorMessage: string | null;
-    durationMs: number | null;
-    summary: Prisma.JsonValue;
-  } | null;
-  stats: {
-    totalIndexed: number;
-  };
-  processing: ProcessingStatus;
-  resources: {
-    total: number;
-  };
-  syncHistory: {
-    total: number;
-  };
-  syncJobs: {
-    full: SyncJobInfo | null;
-    incremental: SyncJobInfo | null;
-  };
-  webhookStatus: {
-    enabled: boolean;
-    lastReceivedAt: Date | null;
-    configured: boolean;
-  };
-}
 
 export const getSyncStatus = async (
   db: Database,
@@ -179,7 +122,7 @@ export const getSyncStatus = async (
       lastErrorAt: connector.lastErrorAt,
       scheduledDeletionAt: connector.scheduledDeletionAt,
     },
-    latestSync,
+    latestSync: latestSync as GetSyncStatusResult["latestSync"],
     stats: {
       totalIndexed,
     },
@@ -219,32 +162,6 @@ export const getSyncStatus = async (
   };
 };
 
-export interface GetSyncHistoryResult {
-  connectorId: string;
-  history: Array<{
-    id: string;
-    status: string;
-    dataAdded: number;
-    dataUpdated: number;
-    dataDeleted: number;
-    errorMessage: string | null;
-    summary: Prisma.JsonValue;
-    startedAt: Date;
-    finishedAt: Date | null;
-    durationMs: number | null;
-    syncJob: {
-      type: string;
-      trigger: string;
-    } | null;
-  }>;
-  pagination: {
-    total: number;
-    limit: number;
-    offset: number;
-    hasMore: boolean;
-  };
-}
-
 export const getSyncHistory = async (
   db: Database,
   connectorId: string,
@@ -282,7 +199,7 @@ export const getSyncHistory = async (
 
   return {
     connectorId,
-    history,
+    history: history as GetSyncHistoryResult["history"],
     pagination: {
       total,
       limit: options.limit,
@@ -308,15 +225,6 @@ export const verifyConnectorOwnership = async (
 
   return connector;
 };
-
-export interface ScheduledSyncJob {
-  id: string;
-  connectorId: string;
-  type: string;
-  schedule: string | null;
-  priority: number;
-  config: unknown;
-}
 
 export const findScheduledSyncJobs = async (
   db: Database

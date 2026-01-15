@@ -1,17 +1,6 @@
+import type { UpsertIndexedDocumentInput } from "@openplane/types/db";
 import type { IndexedDocument, Prisma } from "../../prisma/generated/client";
 import type { Database } from "../index";
-
-export interface UpsertIndexedDocumentInput {
-  connectorId: string;
-  externalId: string;
-  vespaId: string;
-  documentType: string;
-  sourceId?: string | null;
-  title?: string | null;
-  checksum: string;
-  lastChecksum?: string | null;
-  metadata?: Prisma.InputJsonValue;
-}
 
 export const upsertIndexedDocument = async (
   db: Database,
@@ -29,9 +18,14 @@ export const upsertIndexedDocument = async (
       checksum: data.checksum,
       lastChecksum: data.lastChecksum,
       lastSyncedAt: new Date(),
-      ...(data.metadata !== undefined && { metadata: data.metadata }),
+      ...(data.metadata !== undefined && {
+        metadata: data.metadata as Prisma.InputJsonValue,
+      }),
     },
-    create: data,
+    create: {
+      ...data,
+      metadata: data.metadata as Prisma.InputJsonValue,
+    },
   });
 
 export const upsertIndexedDocumentsBatch = async (
@@ -58,9 +52,14 @@ export const upsertIndexedDocumentsBatch = async (
           checksum: data.checksum,
           lastChecksum: data.lastChecksum,
           lastSyncedAt: now,
-          ...(data.metadata !== undefined && { metadata: data.metadata }),
+          ...(data.metadata !== undefined && {
+            metadata: data.metadata as Prisma.InputJsonValue,
+          }),
         },
-        create: data,
+        create: {
+          ...data,
+          metadata: data.metadata as Prisma.InputJsonValue,
+        },
       })
     )
   );

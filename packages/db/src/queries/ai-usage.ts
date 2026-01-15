@@ -1,3 +1,8 @@
+import type {
+  AIUsageLogForExport,
+  BillingUsageSummary,
+  TopCostDriversOptions,
+} from "@openplane/types/db";
 import type { AIUsageGranularity } from "../../prisma/generated/enums";
 import type { Database } from "../index";
 
@@ -185,18 +190,6 @@ export function getToolUsageStats(
   });
 }
 
-export interface BillingUsageSummary {
-  periodStart: Date;
-  periodEnd: Date;
-  totalRequests: number;
-  totalInputTokens: bigint;
-  totalOutputTokens: bigint;
-  totalCacheTokens: bigint;
-  totalCostUsd: number;
-  costByProvider: Record<string, number>;
-  costByModel: Record<string, number>;
-}
-
 export async function getTeamBillingUsage(
   db: Database,
   teamId: string,
@@ -329,13 +322,6 @@ export async function getUsageByWorkflow(
   return result;
 }
 
-export interface TopCostDriversOptions {
-  teamId: string;
-  startDate: Date;
-  endDate: Date;
-  limit?: number;
-}
-
 export async function getTopCostDrivers(
   db: Database,
   options: TopCostDriversOptions
@@ -424,32 +410,6 @@ export async function getDailyUsageForPeriod(
     outputTokens: Number(s.totalOutputTokens),
     costUsd: s.totalCostUsd,
   }));
-}
-
-export interface AIUsageLogForExport {
-  id: string;
-  teamId: string;
-  userId: string | null;
-  traceId: string;
-  provider: string;
-  model: string;
-  inputTokens: number;
-  outputTokens: number;
-  cacheReadTokens: number;
-  cacheWriteTokens: number;
-  reasoningTokens: number;
-  inputCostUsd: number;
-  outputCostUsd: number;
-  cacheCostUsd: number;
-  totalCostUsd: number;
-  latencyMs: number;
-  firstTokenMs: number | null;
-  workflow: string | null;
-  feature: string | null;
-  operation: string | null;
-  success: boolean;
-  errorCode: string | null;
-  createdAt: Date;
 }
 
 export async function getAIUsageLogsForExport(

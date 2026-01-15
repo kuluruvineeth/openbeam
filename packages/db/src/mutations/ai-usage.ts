@@ -1,38 +1,17 @@
 import type {
+  CreateAIUsageLogInput,
+  UpsertAICacheMetricsInput,
+  UpsertAIToolUsageInput,
+  UpsertAIUsageSummaryInput,
+} from "@openplane/types/db";
+import type {
   AICacheMetrics,
   AIToolUsage,
-  AIUsageGranularity,
   AIUsageLog,
   AIUsageSummary,
   Prisma,
 } from "../../prisma/generated/client";
 import type { Database } from "../index";
-
-export interface CreateAIUsageLogInput {
-  teamId: string;
-  userId?: string;
-  traceId: string;
-  parentSpanId?: string;
-  provider: string;
-  model: string;
-  inputTokens: number;
-  outputTokens: number;
-  cacheReadTokens?: number;
-  cacheWriteTokens?: number;
-  reasoningTokens?: number;
-  inputCostUsd: number;
-  outputCostUsd: number;
-  cacheCostUsd?: number;
-  totalCostUsd: number;
-  latencyMs: number;
-  firstTokenMs?: number;
-  workflow?: string;
-  feature?: string;
-  operation?: string;
-  success?: boolean;
-  errorCode?: string;
-  metadata?: Prisma.InputJsonValue;
-}
 
 export async function createAIUsageLog(
   db: Database,
@@ -62,7 +41,7 @@ export async function createAIUsageLog(
       operation: data.operation,
       success: data.success ?? true,
       errorCode: data.errorCode,
-      metadata: data.metadata,
+      metadata: data.metadata as Prisma.InputJsonValue,
     },
   });
   return log;
@@ -96,33 +75,11 @@ export async function createAIUsageLogBatch(
       operation: data.operation,
       success: data.success ?? true,
       errorCode: data.errorCode,
-      metadata: data.metadata,
+      metadata: data.metadata as Prisma.InputJsonValue,
     })),
     skipDuplicates: true,
   });
   return result;
-}
-
-export interface UpsertAIUsageSummaryInput {
-  teamId: string;
-  periodStart: Date;
-  periodEnd: Date;
-  granularity: AIUsageGranularity;
-  totalRequests: number;
-  successfulRequests: number;
-  failedRequests: number;
-  totalInputTokens: bigint;
-  totalOutputTokens: bigint;
-  totalCacheTokens: bigint;
-  totalCostUsd: number;
-  costByProvider: Record<string, number>;
-  costByModel: Record<string, number>;
-  costByWorkflow: Record<string, number>;
-  costByUser: Record<string, number>;
-  avgLatencyMs: number;
-  p50LatencyMs: number;
-  p95LatencyMs: number;
-  p99LatencyMs: number;
 }
 
 export async function upsertAIUsageSummary(
@@ -159,20 +116,6 @@ export async function upsertAIUsageSummary(
   return summary;
 }
 
-export interface UpsertAICacheMetricsInput {
-  teamId: string;
-  periodStart: Date;
-  periodEnd: Date;
-  kvCacheHits: number;
-  kvCacheMisses: number;
-  kvCacheHitRate: number;
-  toolCacheHits: number;
-  toolCacheMisses: number;
-  toolCacheHitRate: number;
-  tokensSaved: bigint;
-  costSavedUsd: number;
-}
-
 export async function upsertAICacheMetrics(
   db: Database,
   data: UpsertAICacheMetricsInput
@@ -197,19 +140,6 @@ export async function upsertAICacheMetrics(
     },
   });
   return metrics;
-}
-
-export interface UpsertAIToolUsageInput {
-  teamId: string;
-  toolName: string;
-  category: string;
-  periodStart: Date;
-  periodEnd: Date;
-  callCount: number;
-  successCount: number;
-  failureCount: number;
-  avgLatencyMs: number;
-  p95LatencyMs: number;
 }
 
 export async function upsertAIToolUsage(

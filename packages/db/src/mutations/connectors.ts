@@ -16,12 +16,6 @@ import {
 import type { Database } from "../index";
 import { encryptIfConfigured } from "../lib/encryption";
 
-export type {
-  ActivateConnectorInput,
-  CreateConnectorInput,
-  CreateConnectorWithOAuthInput,
-};
-
 export const createConnector = async (
   db: Database,
   data: CreateConnectorInput
@@ -38,7 +32,6 @@ export const upsertConnector = async (
   db: Database,
   data: CreateConnectorInput
 ): Promise<Connector> => {
-  // Find existing connector for this team+app (regardless of status)
   const existing = await db.connector.findFirst({
     where: {
       teamId: data.teamId,
@@ -47,7 +40,6 @@ export const upsertConnector = async (
   });
 
   if (existing) {
-    // Reuse existing connector - reset it for new OAuth flow
     return db.connector.update({
       where: { id: existing.id },
       data: {
@@ -62,7 +54,6 @@ export const upsertConnector = async (
     });
   }
 
-  // Create new connector
   return db.connector.create({
     data: {
       ...data,
@@ -96,18 +87,10 @@ export const deleteConnector = async (
   db: Database,
   id: string
 ): Promise<Connector> =>
-  // Note: BullMQ repeatable jobs should be cleaned up by the caller
-  // before calling this function, as we don't have access to Redis here.
-  // The API router should handle BullMQ cleanup before calling this.
   db.connector.delete({
     where: { id },
   });
 
-/**
- * Create default sync jobs for a connector
- * - FULL sync: Every 7 days (604800000ms)
- * - INCREMENTAL sync: Every 6 hours (21600000ms)
- */
 export const createDefaultSyncJobs = async (
   db: Pick<Database, "syncJob">,
   connectorId: string

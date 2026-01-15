@@ -1,4 +1,10 @@
 import type {
+  ConnectorHealthInfo,
+  DecryptedOAuthCredentials,
+  LastSyncInfo,
+  SyncHistoryEntry,
+} from "@openplane/types/db";
+import type {
   AppType,
   Connector,
   ConnectorStatus,
@@ -6,13 +12,6 @@ import type {
 } from "../../prisma/generated/client";
 import type { Database } from "../index";
 import { decryptIfEncrypted } from "../lib/encryption";
-
-export interface FindConnectorOptions {
-  id?: string;
-  teamId?: string;
-  app?: AppType;
-  includeOAuthProvider?: boolean;
-}
 
 export const findConnectorById = async (
   db: Database,
@@ -70,18 +69,6 @@ export const getConnectorForSync = async (
     include: { oauthProvider: true },
   });
 
-export interface DecryptedOAuthCredentials {
-  accessToken: string | null;
-  refreshToken: string | null;
-  clientId: string | null;
-  clientSecret: string | null;
-  tokenExpiresAt: Date | null;
-  scopes: string[];
-  tokenType: string | null;
-  isExpired: boolean;
-  expiresInSeconds: number | null;
-}
-
 export const getDecryptedOAuthCredentials = async (
   db: Database,
   connectorId: string
@@ -107,7 +94,6 @@ export const getDecryptedOAuthCredentials = async (
     oauth.clientSecretIv
   );
 
-  // Calculate expiration
   const now = Date.now();
   const expiresAt = oauth.tokenExpiresAt?.getTime() ?? null;
   const isExpired = expiresAt ? now >= expiresAt : false;
@@ -131,7 +117,7 @@ export const getDecryptedOAuthCredentials = async (
 export const isTokenExpiringSoon = async (
   db: Database,
   connectorId: string,
-  bufferSeconds = 300 // Default 5 minutes
+  bufferSeconds = 300
 ): Promise<boolean> => {
   const oauth = await db.oAuthProvider.findUnique({
     where: { connectorId },
@@ -186,13 +172,6 @@ export const getConnectorsNeedingRefresh = async (
   return expiring;
 };
 
-export interface LastSyncInfo {
-  id: string;
-  status: string;
-  createdAt: Date;
-  completedAt: Date | null;
-}
-
 export interface ConnectorWithStats extends Connector {
   documentCount: number;
   lastSync: LastSyncInfo | null;
@@ -242,19 +221,6 @@ export const getConnectorsWithStats = async (
   });
 };
 
-export interface ConnectorHealthInfo {
-  id: string;
-  name: string;
-  app: AppType;
-  status: ConnectorStatus;
-  lastSyncAt: Date | null;
-  lastError: string | null;
-  lastErrorAt: Date | null;
-  tokenExpiresAt: Date | null;
-  isTokenExpiringSoon: boolean;
-  documentCount: number;
-}
-
 export const getConnectorHealth = async (
   db: Database,
   connectorId: string
@@ -289,15 +255,6 @@ export const getConnectorHealth = async (
     documentCount: connector._count.indexedDocuments,
   };
 };
-
-export interface SyncHistoryEntry {
-  id: string;
-  status: string;
-  type: string;
-  createdAt: Date;
-  completedAt: Date | null;
-  errorMessage: string | null;
-}
 
 export const getConnectorSyncHistory = async (
   db: Database,

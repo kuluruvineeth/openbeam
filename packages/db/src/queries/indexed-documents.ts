@@ -1,3 +1,8 @@
+import type {
+  DocumentListResult,
+  DocumentQueryParams,
+  DocumentsByTypeCount,
+} from "@openplane/types/db";
 import type { IndexedDocument } from "../../prisma/generated/client";
 import type { Database } from "../index";
 
@@ -88,34 +93,6 @@ export const countIndexedDocuments = async (
   connectorId: string
 ): Promise<number> => db.indexedDocument.count({ where: { connectorId } });
 
-export interface DocumentQueryParams {
-  teamId: string;
-  connectorId?: string;
-  documentType?: string;
-  limit?: number;
-  cursor?: string;
-  orderBy?: "indexedAt" | "lastSyncedAt" | "externalId";
-  order?: "asc" | "desc";
-}
-
-export interface DocumentListItem {
-  id: string;
-  vespaId: string;
-  externalId: string;
-  documentType: string;
-  documentSubtype: string | null;
-  connectorId: string;
-  indexedAt: Date;
-  lastSyncedAt: Date;
-}
-
-export interface DocumentListResult {
-  documents: DocumentListItem[];
-  nextCursor: string | null;
-  hasMore: boolean;
-  total: number;
-}
-
 export const queryDocuments = async (
   db: Database,
   params: DocumentQueryParams
@@ -174,11 +151,6 @@ export const queryDocuments = async (
     total,
   };
 };
-
-export interface DocumentsByTypeCount {
-  documentType: string;
-  count: number;
-}
 
 export const countDocumentsByType = async (
   db: Database,
