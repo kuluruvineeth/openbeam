@@ -120,7 +120,7 @@ export const connectorsRouter = createTRPCRouter({
         name: input.name,
         type: input.type,
         authType: input.authType,
-        config: input.config as Prisma.InputJsonValue,
+        config: input.config,
       })
     ),
 
