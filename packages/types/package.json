@@ -51,6 +51,14 @@
     "./services/ai": {
       "types": "./dist/services/ai/index.d.ts",
       "default": "./src/services/ai/index.ts"
+    },
+    "./integrations": {
+      "types": "./dist/integrations/index.d.ts",
+      "default": "./src/integrations/index.ts"
+    },
+    "./storage": {
+      "types": "./dist/storage/index.d.ts",
+      "default": "./src/storage/index.ts"
     }
   },
   "scripts": {
