@@ -512,40 +512,5 @@ export {
   transformUser,
   transformUsers,
 } from "./transformers/user";
-export type {
-  FederatedSearchOptions,
-  RateLimitState,
-  SlackBlock,
-  SlackChannel,
-  SlackClientConfig,
-  SlackFile,
-  SlackMessage,
-  SlackProfile,
-  SlackReaction,
-  SlackSearchMatch,
-  SlackTeam,
-  SlackUser,
-  SyncBatch,
-  SyncCursor,
-  SyncOptions,
-  TransformContext,
-} from "./types";
-export {
-  SlackApiError,
-  type SlackBookmarkRaw,
-  SlackBookmarkSchema,
-  type SlackBookmarkType,
-  SlackBookmarkTypeSchema,
-  type SlackCanvasAccessLevel,
-  SlackCanvasAccessLevelSchema,
-  type SlackCanvasRaw,
-  SlackCanvasSchema,
-  SlackChannelSchema,
-  type SlackClipRaw,
-  SlackClipSchema,
-  SlackErrorCodes,
-  SlackFileSchema,
-  SlackMessageSchema,
-  SlackUserSchema,
-} from "./types";
+export { SlackApiError, SlackErrorCodes } from "./types";
 export { truncateForSlack } from "./utils/text";
