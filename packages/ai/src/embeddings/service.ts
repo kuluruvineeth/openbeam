@@ -1,6 +1,7 @@
 import { getEmbeddingCache } from "@openplane/redis";
 import { embed, embedMany } from "ai";
 import { getConfig, type ProviderId } from "../config";
+import { getBGEM3Provider } from "../providers/bge-m3";
 import { registry } from "../providers/registry";
 import {
   DEFAULT_CHUNKING_CONFIG,
@@ -331,8 +332,10 @@ export async function embedText(text: string): Promise<Embedding> {
   return result.embedding;
 }
 
-export function embedQuery(query: string): Promise<Embedding> {
-  return embeddingService.embedQuery(query);
+export async function embedQuery(query: string): Promise<Embedding> {
+  const bgeProvider = getBGEM3Provider();
+  const result = await bgeProvider.embedQuery(query);
+  return result.dense;
 }
 
 export function embedDocument(
@@ -353,8 +356,20 @@ export function embedWithCache(text: string): Promise<CachedEmbeddingResult> {
   return embeddingService.embedWithCache(text);
 }
 
-export function embedQueryWithCache(query: string): Promise<Embedding> {
-  return embeddingService.embedQueryWithCache(query);
+const BGE_M3_MODEL_ID = "bge-m3";
+
+export async function embedQueryWithCache(query: string): Promise<Embedding> {
+  const cache = getEmbeddingCache();
+  const cached = await cache.get(query, BGE_M3_MODEL_ID);
+
+  if (cached) {
+    return cached;
+  }
+
+  const bgeProvider = getBGEM3Provider();
+  const result = await bgeProvider.embedQuery(query);
+  await cache.set(query, BGE_M3_MODEL_ID, result.dense);
+  return result.dense;
 }
 
 export function embedBatchWithCache(

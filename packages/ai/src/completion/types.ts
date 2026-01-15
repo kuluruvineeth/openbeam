@@ -36,6 +36,7 @@ export interface CompletionResult {
 
 export type StreamChunk =
   | { type: "text"; content: string }
+  | { type: "thinking"; content: string }
   | { type: "tool-call"; toolCall: ToolCall }
   | { type: "error"; error: string }
   | { type: "done"; content: string; usage?: Partial<TokenUsage> };
@@ -51,7 +52,9 @@ export interface CompletionOptions {
   topP?: number;
   tools?: ToolSet;
   abortSignal?: AbortSignal;
+  enableThinking?: boolean;
   onToken?: (token: string) => void;
+  onThinking?: (content: string) => void;
   onComplete?: (result: CompletionResult) => void;
 }
 

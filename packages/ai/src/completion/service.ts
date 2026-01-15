@@ -1,6 +1,10 @@
 import { generateText, type ModelMessage, streamText } from "ai";
 import { getConfig, type ProviderId } from "../config";
 import { registry } from "../providers/registry";
+import {
+  buildThinkingProviderOptions,
+  extractReasoningContent,
+} from "../providers/thinking";
 import { createSSEStream } from "./streaming";
 import type {
   ChatMessage,
@@ -138,6 +142,44 @@ export class CompletionService {
     return completionResult;
   }
 
+  private async *streamWithThinking(
+    fullStream: AsyncIterable<unknown>,
+    options: CompletionOptions
+  ): AsyncGenerator<{ chunk: StreamChunk; text: string }> {
+    for await (const chunk of fullStream) {
+      const chunkObj = chunk as Record<string, unknown>;
+      if (
+        chunkObj.type === "reasoning" ||
+        chunkObj.type === "reasoning-delta"
+      ) {
+        const reasoningContent = extractReasoningContent(chunk);
+        if (reasoningContent) {
+          options.onThinking?.(reasoningContent);
+          yield {
+            chunk: { type: "thinking", content: reasoningContent },
+            text: "",
+          };
+        }
+      } else if (chunkObj.type === "text-delta") {
+        const text = (chunkObj.textDelta as string) || "";
+        if (text) {
+          options.onToken?.(text);
+          yield { chunk: { type: "text", content: text }, text };
+        }
+      }
+    }
+  }
+
+  private async *streamStandard(
+    textStream: AsyncIterable<string>,
+    options: CompletionOptions
+  ): AsyncGenerator<{ chunk: StreamChunk; text: string }> {
+    for await (const text of textStream) {
+      options.onToken?.(text);
+      yield { chunk: { type: "text", content: text }, text };
+    }
+  }
+
   async *stream(
     messages: ChatMessage[],
     options: CompletionOptions = {}
@@ -151,7 +193,7 @@ export class CompletionService {
 
     const config = getConfig();
 
-    const result = streamText({
+    const streamTextParams = {
       model: this.getModel(options.providerId, options.modelId),
       messages: this.toSDKMessages(allMessages),
       temperature: options.temperature ?? config.completion.temperature,
@@ -159,16 +201,24 @@ export class CompletionService {
       topP: options.topP ?? config.completion.topP,
       tools: options.tools,
       abortSignal: options.abortSignal,
-    });
+    } as Parameters<typeof streamText>[0];
 
+    if (options.enableThinking) {
+      streamTextParams.providerOptions = buildThinkingProviderOptions({
+        enabled: true,
+      }) as typeof streamTextParams.providerOptions;
+    }
+
+    const result = streamText(streamTextParams);
     let totalText = "";
 
-    for await (const chunk of result.textStream) {
-      totalText += chunk;
-      if (options.onToken) {
-        options.onToken(chunk);
-      }
-      yield { type: "text", content: chunk };
+    const innerStream = options.enableThinking
+      ? this.streamWithThinking(result.fullStream, options)
+      : this.streamStandard(result.textStream, options);
+
+    for await (const { chunk, text } of innerStream) {
+      totalText += text;
+      yield chunk;
     }
 
     const [finalUsage, finalFinishReason] = await Promise.all([
