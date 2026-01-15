@@ -1,5 +1,6 @@
 export type {
   OverviewCitation,
+  OverviewStatus,
   OverviewStreamChunk,
   OverviewStreamChunkType,
   OverviewTiming,
@@ -9,6 +10,9 @@ export type {
 } from "@openplane/types/overview";
 
 import type { OverviewCitation } from "@openplane/types/overview";
+import type { ThinkingState } from "./thinking-types";
+
+export type { ThinkingState } from "./thinking-types";
 
 export type OverviewStepStatus = "pending" | "active" | "completed";
 
@@ -20,6 +24,7 @@ export type OverviewStep = {
   sourceCount?: number;
   toolCallId?: string;
   durationMs?: number;
+  ephemeral?: boolean;
 };
 
 export type OverviewState = {
@@ -30,6 +35,9 @@ export type OverviewState = {
   error: string | null;
   groundingScore: number | null;
   steps: OverviewStep[];
+  thinkingMessage: string | null;
+  statusMessage: string | null;
+  thinking: ThinkingState;
 };
 
 export const TOOL_DISPLAY_NAMES: Record<string, string> = {

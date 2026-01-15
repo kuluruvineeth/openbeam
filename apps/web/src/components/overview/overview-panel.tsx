@@ -4,9 +4,14 @@ import { AnimatePresence, motion } from "motion/react";
 import { memo, useCallback, useEffect, useState } from "react";
 import { Icons } from "@/components/icons";
 import { SearchPreviewSheet } from "@/components/search/search-preview-sheet";
+import { ThinkingDemo } from "@/components/thinking";
 import { Button } from "@/components/ui/button";
 import type { PreviewType } from "@/hooks/use-document-preview";
-import type { OverviewCitation, OverviewStep } from "@/lib/overview-types";
+import type {
+  OverviewCitation,
+  OverviewStep,
+  ThinkingState,
+} from "@/lib/overview-types";
 import { cn } from "@/lib/utils";
 import { OverviewCitations } from "./overview-citations";
 import { OverviewContent } from "./overview-content";
@@ -40,6 +45,9 @@ type OverviewPanelProps = {
   error?: string | null;
   groundingScore?: number | null;
   steps: OverviewStep[];
+  thinkingMessage?: string | null;
+  statusMessage?: string | null;
+  thinking: ThinkingState;
   className?: string;
 };
 
@@ -51,6 +59,9 @@ function OverviewPanelInner({
   error,
   groundingScore,
   steps,
+  thinkingMessage,
+  statusMessage,
+  thinking,
   className,
 }: OverviewPanelProps) {
   const [isExpanded, setIsExpanded] = useState(true);
@@ -153,6 +164,8 @@ function OverviewPanelInner({
           </div>
         </header>
 
+        <ThinkingDemo mode="animated" />
+
         <AnimatePresence mode="wait">
           {isExpanded && (
             <motion.div
@@ -166,7 +179,13 @@ function OverviewPanelInner({
               )}
 
               {isStreaming && !content && (
-                <OverviewThinking className="mb-3" steps={steps} />
+                <OverviewThinking
+                  className="mb-3"
+                  statusMessage={statusMessage}
+                  steps={steps}
+                  thinking={thinking}
+                  thinkingMessage={thinkingMessage}
+                />
               )}
 
               {error && (

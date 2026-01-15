@@ -8,6 +8,7 @@ import type {
   OverviewStreamChunk,
 } from "@/lib/overview-types";
 import { getToolDisplayName } from "@/lib/overview-types";
+import { EMPTY_THINKING_STATE } from "@/lib/thinking-types";
 import { getVanillaTRPCClient } from "@/trpc/client";
 
 const INITIAL_STATE: OverviewState = {
@@ -18,15 +19,21 @@ const INITIAL_STATE: OverviewState = {
   error: null,
   groundingScore: null,
   steps: [],
+  thinkingMessage: null,
+  statusMessage: null,
+  thinking: EMPTY_THINKING_STATE,
+};
+
+type StepUpdate = {
+  toolCallId: string;
+  toolName: string;
+  status: OverviewStep["status"];
+  sourceCount?: number;
+  ephemeral?: boolean;
 };
 
 type StepManager = {
-  addOrUpdate: (
-    toolCallId: string,
-    toolName: string,
-    status: OverviewStep["status"],
-    sourceCount?: number
-  ) => OverviewStep[];
+  addOrUpdate: (update: StepUpdate) => OverviewStep[];
 };
 
 function createStepManager(): StepManager {
@@ -34,7 +41,7 @@ function createStepManager(): StepManager {
   const startTimes = new Map<string, number>();
 
   return {
-    addOrUpdate(toolCallId, toolName, status, sourceCount) {
+    addOrUpdate({ toolCallId, toolName, status, sourceCount, ephemeral }) {
       const existingStep = activeSteps.get(toolCallId);
       if (existingStep) {
         existingStep.status = status;
@@ -56,6 +63,7 @@ function createStepManager(): StepManager {
           status,
           sourceCount,
           toolCallId,
+          ephemeral,
         };
         activeSteps.set(toolCallId, newStep);
       }
@@ -68,18 +76,59 @@ type ChunkHandler = {
   handleChunk: (chunk: OverviewStreamChunk) => void;
 };
 
-function createChunkHandler(
-  setState: React.Dispatch<React.SetStateAction<OverviewState>>,
-  stepManager: StepManager,
-  contentRef: { value: string },
-  citationsRef: { value: OverviewCitation[] }
-): ChunkHandler {
+type ChunkHandlerConfig = {
+  setState: React.Dispatch<React.SetStateAction<OverviewState>>;
+  stepManager: StepManager;
+  refs: {
+    content: { value: string };
+    citations: { value: OverviewCitation[] };
+    thinking: { value: string };
+  };
+};
+
+function createChunkHandler(config: ChunkHandlerConfig): ChunkHandler {
+  const { setState, stepManager, refs } = config;
+  function handleThinking(chunk: OverviewStreamChunk) {
+    const newContent = chunk.thinkingMessage ?? "";
+    refs.thinking.value += newContent;
+
+    setState((prev) => {
+      const isFirstThinking = !prev.thinking.isActive;
+      return {
+        ...prev,
+        isLoading: true,
+        isStreaming: true,
+        thinkingMessage: chunk.thinkingMessage ?? null,
+        thinking: {
+          ...prev.thinking,
+          content: refs.thinking.value,
+          isActive: true,
+          startTime: isFirstThinking
+            ? performance.now()
+            : prev.thinking.startTime,
+        },
+      };
+    });
+  }
+
+  function handleStatus(chunk: OverviewStreamChunk) {
+    setState((prev) => ({
+      ...prev,
+      statusMessage: chunk.statusMessage ?? null,
+    }));
+  }
+
   function handleToolCall(chunk: OverviewStreamChunk) {
     if (!chunk.toolCall) {
       return;
     }
-    const { toolCallId, toolName } = chunk.toolCall;
-    const newSteps = stepManager.addOrUpdate(toolCallId, toolName, "active");
+    const { toolCallId, toolName, ephemeral } = chunk.toolCall;
+    const newSteps = stepManager.addOrUpdate({
+      toolCallId,
+      toolName,
+      status: "active",
+      ephemeral,
+    });
     setState((prev) => ({ ...prev, steps: newSteps }));
   }
 
@@ -89,12 +138,12 @@ function createChunkHandler(
     }
     const { toolCallId, toolName, toolOutput } = chunk.toolResult;
     const sourceCount = extractSourceCount(toolOutput);
-    const newSteps = stepManager.addOrUpdate(
+    const newSteps = stepManager.addOrUpdate({
       toolCallId,
       toolName,
-      "completed",
-      sourceCount
-    );
+      status: "completed",
+      sourceCount,
+    });
     setState((prev) => ({ ...prev, steps: newSteps }));
   }
 
@@ -119,29 +168,42 @@ function createChunkHandler(
     if (!chunk.citation) {
       return;
     }
-    citationsRef.value = [...citationsRef.value, chunk.citation];
-    setState((prev) => ({ ...prev, citations: citationsRef.value }));
+    refs.citations.value = [...refs.citations.value, chunk.citation];
+    setState((prev) => ({ ...prev, citations: refs.citations.value }));
   }
 
   function handleText(chunk: OverviewStreamChunk) {
     if (!chunk.content) {
       return;
     }
-    contentRef.value += chunk.content;
+    refs.content.value += chunk.content;
     setState((prev) => ({
       ...prev,
-      content: contentRef.value,
+      content: refs.content.value,
       isLoading: false,
     }));
   }
 
   function handleDone(chunk: OverviewStreamChunk) {
-    setState((prev) => ({
-      ...prev,
-      isLoading: false,
-      isStreaming: false,
-      groundingScore: chunk.groundingScore ?? null,
-    }));
+    setState((prev) => {
+      const endTime = performance.now();
+      const durationMs = prev.thinking.startTime
+        ? endTime - prev.thinking.startTime
+        : null;
+
+      return {
+        ...prev,
+        isLoading: false,
+        isStreaming: false,
+        groundingScore: chunk.groundingScore ?? null,
+        thinking: {
+          ...prev.thinking,
+          isActive: false,
+          endTime,
+          durationMs,
+        },
+      };
+    });
   }
 
   function handleError(chunk: OverviewStreamChunk) {
@@ -157,7 +219,10 @@ function createChunkHandler(
     handleChunk(chunk: OverviewStreamChunk) {
       switch (chunk.type) {
         case "thinking":
-          setState((prev) => ({ ...prev, isLoading: true, isStreaming: true }));
+          handleThinking(chunk);
+          break;
+        case "status":
+          handleStatus(chunk);
           break;
         case "tool_call":
           handleToolCall(chunk);
@@ -231,19 +296,19 @@ export function useOverview(options?: {
         ...INITIAL_STATE,
         isLoading: true,
         isStreaming: true,
-        steps: [],
       });
       setCurrentQuery(query);
 
-      const contentRef = { value: "" };
-      const citationsRef: { value: OverviewCitation[] } = { value: [] };
       const stepManager = createStepManager();
-      const chunkHandler = createChunkHandler(
+      const chunkHandler = createChunkHandler({
         setState,
         stepManager,
-        contentRef,
-        citationsRef
-      );
+        refs: {
+          content: { value: "" },
+          citations: { value: [] },
+          thinking: { value: "" },
+        },
+      });
 
       try {
         const client = getVanillaTRPCClient();

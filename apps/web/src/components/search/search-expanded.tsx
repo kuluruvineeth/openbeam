@@ -52,6 +52,9 @@ export function SearchExpanded() {
     error: overviewError,
     groundingScore: overviewGroundingScore,
     steps: overviewSteps,
+    thinkingMessage: overviewThinkingMessage,
+    statusMessage: overviewStatusMessage,
+    thinking: overviewThinking,
     currentQuery: overviewCurrentQuery,
     generateOverview,
     reset: resetOverview,
@@ -159,7 +162,10 @@ export function SearchExpanded() {
               groundingScore={overviewGroundingScore}
               isLoading={overviewIsLoading}
               isStreaming={overviewIsStreaming}
+              statusMessage={overviewStatusMessage}
               steps={overviewSteps}
+              thinking={overviewThinking}
+              thinkingMessage={overviewThinkingMessage}
             />
           )}
           {isSearching && !hasResults && <SearchResultsSkeleton />}
