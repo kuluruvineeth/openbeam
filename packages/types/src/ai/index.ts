@@ -1,4 +1,36 @@
 export type {
+  AgentConversation,
+  AgentMessage,
+  AgentUIConfig,
+  AgentUIState,
+  ChatStatus,
+  CollapsibleState,
+  EventUIState,
+  PartState,
+  StreamingTextState,
+  ToolDisplayMeta,
+  ToolRegistryEntry,
+  UICitation,
+  UIEnrichedEvent,
+  UIToolStatus,
+} from "./agent-ui";
+export {
+  AgentConversationSchema,
+  AgentMessageSchema,
+  AgentUIConfigSchema,
+  AgentUIStateSchema,
+  ChatStatusSchema,
+  CollapsibleStateSchema,
+  EventUIStateSchema,
+  PartStateSchema,
+  StreamingTextStateSchema,
+  ToolDisplayMetaSchema,
+  ToolRegistryEntrySchema,
+  UICitationSchema,
+  UIEnrichedEventSchema,
+  UIToolStatusSchema,
+} from "./agent-ui";
+export type {
   AgentConfig,
   AgentContext,
   AgentResult,
@@ -90,6 +122,30 @@ export {
   SimilarityResultSchema,
   TextChunkSchema,
 } from "./embeddings";
+export type {
+  AgentExecutionContext,
+  AgentExecutionResult,
+  AgentState,
+  AgentStateSnapshot,
+  AgentStreamChunk,
+  AgentStreamChunkType,
+  AgentType,
+  ExecutionStatus,
+  ExecutionTrace,
+  ToolCallRecord,
+} from "./execution";
+export {
+  AgentExecutionContextSchema,
+  AgentExecutionResultSchema,
+  AgentStateSchema,
+  AgentStateSnapshotSchema,
+  AgentStreamChunkSchema,
+  AgentStreamChunkTypeSchema,
+  AgentTypeSchema,
+  ExecutionStatusSchema,
+  ExecutionTraceSchema,
+  ToolCallRecordSchema,
+} from "./execution";
 export type {
   InitializeParams,
   InitializeResult,
