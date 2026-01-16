@@ -6,6 +6,7 @@ export type {
   InputProps,
   SpinnerProps,
   TextareaProps,
+  TextShimmerProps,
 } from "./components";
 
 export {
@@ -193,6 +194,7 @@ export {
   TabsList,
   TabsTrigger,
   Textarea,
+  TextShimmer,
   Toggle,
   ToggleGroup,
   ToggleGroupItem,

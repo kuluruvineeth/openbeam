@@ -1,19 +1,25 @@
 "use client";
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
+import type { ComponentProps } from "react";
+import { forwardRef } from "react";
+import { cn } from "../utils/cn";
 
-type TextShimmerProps = {
-  children: React.ReactNode;
+type TextShimmerProps = ComponentProps<"p"> & {
   as?: React.ElementType;
-  className?: string;
   duration?: number;
   spread?: number;
 };
 
-const TextShimmer = React.forwardRef<HTMLElement, TextShimmerProps>(
+const TextShimmer = forwardRef<HTMLElement, TextShimmerProps>(
   (
-    { children, as: Component = "p", className, duration = 2, spread = 2 },
+    {
+      children,
+      as: Component = "p",
+      className,
+      duration = 2,
+      spread = 2,
+      ...props
+    },
     ref
   ) => (
     <Component
@@ -29,6 +35,7 @@ const TextShimmer = React.forwardRef<HTMLElement, TextShimmerProps>(
         animationTimingFunction: "linear",
         backgroundSize: `${spread * 100}% 100%`,
       }}
+      {...props}
     >
       {children}
     </Component>

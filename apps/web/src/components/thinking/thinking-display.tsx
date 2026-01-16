@@ -5,11 +5,11 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
+  TextShimmer,
 } from "@openplane/ui";
 import { motion } from "motion/react";
 import { memo, useEffect, useRef, useState } from "react";
 import { Icons } from "@/components/icons";
-import { TextShimmer } from "@/components/ui/text-shimmer";
 import type { ThinkingState, ThinkingStep } from "@/lib/thinking-types";
 import { cn } from "@/lib/utils";
 import { ThinkingContent } from "./thinking-content";

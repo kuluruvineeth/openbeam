@@ -211,6 +211,8 @@ export {
   TableRow,
 } from "./table";
 export { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
+export type { TextShimmerProps } from "./text-shimmer";
+export { TextShimmer } from "./text-shimmer";
 export type { TextareaProps } from "./textarea";
 export { Textarea } from "./textarea";
 export { Toggle, toggleVariants } from "./toggle";
