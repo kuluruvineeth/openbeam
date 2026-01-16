@@ -1,13 +1,13 @@
 "use client";
 
-import Image from "next/image";
-import { useEffect, useState } from "react";
 import {
   Carousel,
   type CarouselApi,
   CarouselContent,
   CarouselItem,
-} from "@/components/ui/carousel";
+} from "@openplane/ui";
+import Image from "next/image";
+import { useEffect, useState } from "react";
 
 type CarouselWithDotsProps = {
   images: string[];

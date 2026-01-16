@@ -1,6 +1,11 @@
 "use client";
 
 import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
   Input,
   Select,
   SelectContent,
@@ -13,13 +18,6 @@ import {
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useFormContext, useWatch } from "react-hook-form";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 
 // biome-ignore lint/suspicious/noExplicitAny: value can be string, boolean, number

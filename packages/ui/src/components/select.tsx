@@ -1,9 +1,14 @@
 "use client";
 
+import {
+  CheckIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+} from "@radix-ui/react-icons";
 import * as SelectPrimitive from "@radix-ui/react-select";
+import { ChevronDown } from "lucide-react";
 import * as React from "react";
 import { cn } from "../utils/cn";
-import { Icons } from "./icons";
 
 const Select = SelectPrimitive.Root;
 
@@ -19,17 +24,19 @@ const SelectTrigger = React.forwardRef<
 >(({ className, children, hideIcon = false, ...props }, ref) => (
   <SelectPrimitive.Trigger
     className={cn(
-      "flex h-9 w-full items-center justify-between whitespace-nowrap border border-border bg-transparent px-3 py-2 font-normal text-sm placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+      "!flex h-9 w-full items-center justify-between whitespace-nowrap border border-border bg-transparent px-3 py-2 font-normal text-sm placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
       className
     )}
     ref={ref}
     {...props}
   >
-    {children}
+    <span className="line-clamp-1">{children}</span>
     {!hideIcon && (
-      <SelectPrimitive.Icon asChild>
-        <Icons.ChevronDown className="h-4 w-4 opacity-50" />
-      </SelectPrimitive.Icon>
+      <div className="h-4 w-4">
+        <SelectPrimitive.Icon asChild>
+          <ChevronDown className="h-4 w-4" />
+        </SelectPrimitive.Icon>
+      </div>
     )}
   </SelectPrimitive.Trigger>
 ));
@@ -47,7 +54,7 @@ const SelectScrollUpButton = React.forwardRef<
     ref={ref}
     {...props}
   >
-    <Icons.ChevronUp className="h-4 w-4" />
+    <ChevronUpIcon />
   </SelectPrimitive.ScrollUpButton>
 ));
 SelectScrollUpButton.displayName = SelectPrimitive.ScrollUpButton.displayName;
@@ -64,7 +71,7 @@ const SelectScrollDownButton = React.forwardRef<
     ref={ref}
     {...props}
   >
-    <Icons.ChevronDown className="h-4 w-4" />
+    <ChevronDownIcon />
   </SelectPrimitive.ScrollDownButton>
 ));
 SelectScrollDownButton.displayName =
@@ -77,13 +84,9 @@ const SelectContent = React.forwardRef<
   <SelectPrimitive.Portal>
     <SelectPrimitive.Content
       className={cn(
-        "relative z-50 max-h-96 overflow-hidden border bg-popover text-popover-foreground shadow-md",
-        "data-[state=closed]:animate-out data-[state=open]:animate-in",
-        "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-        "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
-        "data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+        "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-[300] max-h-96 min-w-[8rem] overflow-hidden border bg-popover text-popover-foreground shadow-sm data-[state=closed]:animate-out data-[state=open]:animate-in",
         position === "popper" &&
-          "data-[side=left]:-translate-x-1 data-[side=top]:-translate-y-1 w-[var(--radix-select-trigger-width)] data-[side=right]:translate-x-1 data-[side=bottom]:translate-y-1",
+          "data-[side=left]:-translate-x-1 data-[side=top]:-translate-y-1 data-[side=right]:translate-x-1 data-[side=bottom]:translate-y-1",
         className
       )}
       position={position}
@@ -92,7 +95,11 @@ const SelectContent = React.forwardRef<
     >
       <SelectScrollUpButton />
       <SelectPrimitive.Viewport
-        className={cn("p-1", position === "popper" && "w-full")}
+        className={cn(
+          "p-1",
+          position === "popper" &&
+            "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"
+        )}
       >
         {children}
       </SelectPrimitive.Viewport>
@@ -128,7 +135,7 @@ const SelectItem = React.forwardRef<
   >
     <span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center">
       <SelectPrimitive.ItemIndicator>
-        <Icons.CheckIcon className="h-4 w-4" />
+        <CheckIcon className="h-4 w-4" />
       </SelectPrimitive.ItemIndicator>
     </span>
     <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>

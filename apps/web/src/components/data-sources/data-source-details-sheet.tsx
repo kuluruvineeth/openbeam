@@ -3,6 +3,10 @@
 import { appStore } from "@openplane/integrations";
 import {
   ScrollArea,
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
   Tabs,
   TabsContent,
   TabsList,
@@ -13,12 +17,6 @@ import { Icons } from "@/components/icons";
 import { AppLogo } from "@/components/integrations/app-logo";
 import { SyncHistoryList } from "@/components/sync/sync-history-list";
 import { SyncStatusCard } from "@/components/sync/sync-status-card";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { useSyncHistoryInfinite, useSyncStatus } from "@/hooks/use-sync";
 
 type DataSourceDetailsSheetProps = {

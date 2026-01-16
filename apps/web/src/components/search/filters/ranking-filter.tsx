@@ -2,6 +2,11 @@
 
 import {
   Button,
+  Command,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -12,13 +17,6 @@ import {
 } from "@openplane/ui";
 import { useMemo, useState } from "react";
 import { Icons } from "@/components/icons";
-import {
-  Command,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@/components/ui/command";
 import {
   RANKING_CONFIG,
   RANKING_OPTIONS,

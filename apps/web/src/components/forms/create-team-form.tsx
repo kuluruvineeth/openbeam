@@ -1,13 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Input } from "@openplane/ui";
-import { useQueryClient } from "@tanstack/react-query";
-import { useRef, useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod/v3";
-import { revalidateAfterTeamChange } from "@/actions/revalidate-action";
-import { SubmitButton } from "@/components/submit-button";
 import {
   Form,
   FormControl,
@@ -15,7 +8,14 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
+  Input,
+} from "@openplane/ui";
+import { useQueryClient } from "@tanstack/react-query";
+import { useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod/v3";
+import { revalidateAfterTeamChange } from "@/actions/revalidate-action";
+import { SubmitButton } from "@/components/submit-button";
 import { useCreateTeam } from "@/hooks/use-team";
 
 const formSchema = z.object({

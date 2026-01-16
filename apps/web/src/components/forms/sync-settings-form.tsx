@@ -2,6 +2,12 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
   Select,
   SelectContent,
   SelectItem,
@@ -14,14 +20,6 @@ import { toast } from "sonner";
 import { z } from "zod/v3";
 import { Icons } from "@/components/icons";
 import { SubmitButton } from "@/components/submit-button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { useUpdateSyncSettings, useWebhookStatus } from "@/hooks/use-sync";
 import type { SyncJobInfo } from "@/lib/sync-types";
 

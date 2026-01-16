@@ -1,14 +1,14 @@
 "use client";
 
-import { Button } from "@openplane/ui";
-import { motion } from "motion/react";
-import { memo, useEffect, useRef, useState } from "react";
-import { Icons } from "@/components/icons";
 import {
+  Button,
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+} from "@openplane/ui";
+import { motion } from "motion/react";
+import { memo, useEffect, useRef, useState } from "react";
+import { Icons } from "@/components/icons";
 import { TextShimmer } from "@/components/ui/text-shimmer";
 import type { ThinkingState, ThinkingStep } from "@/lib/thinking-types";
 import { cn } from "@/lib/utils";

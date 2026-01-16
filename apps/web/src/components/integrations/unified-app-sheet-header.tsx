@@ -3,6 +3,8 @@
 import type { UnifiedApp } from "@openplane/integrations";
 import {
   Button,
+  SheetHeader,
+  SheetTitle,
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -10,7 +12,6 @@ import {
 } from "@openplane/ui";
 import { formatDistanceToNow } from "date-fns";
 import { AppLogo } from "@/components/integrations/app-logo";
-import { SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
 type ActionButtonProps = {

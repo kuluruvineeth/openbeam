@@ -22,6 +22,15 @@ export { AspectRatio } from "./aspect-ratio";
 export { Avatar, AvatarFallback, AvatarImage } from "./avatar";
 export type { BadgeProps } from "./badge";
 export { Badge, badgeVariants } from "./badge";
+export {
+  Breadcrumb,
+  BreadcrumbEllipsis,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "./breadcrumb";
 export type { ButtonProps } from "./button";
 export { Button, buttonVariants } from "./button";
 export {
@@ -32,7 +41,48 @@ export {
   CardHeader,
   CardTitle,
 } from "./card";
+export type { CarouselApi } from "./carousel";
+export {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "./carousel";
 export { Checkbox } from "./checkbox";
+export {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "./collapsible";
+export {
+  Command,
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+  CommandShortcut,
+} from "./command";
+export {
+  ContextMenu,
+  ContextMenuCheckboxItem,
+  ContextMenuContent,
+  ContextMenuGroup,
+  ContextMenuItem,
+  ContextMenuLabel,
+  ContextMenuPortal,
+  ContextMenuRadioGroup,
+  ContextMenuRadioItem,
+  ContextMenuSeparator,
+  ContextMenuShortcut,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
+  ContextMenuTrigger,
+} from "./context-menu";
 export {
   Dialog,
   DialogClose,
@@ -45,6 +95,18 @@ export {
   DialogTitle,
   DialogTrigger,
 } from "./dialog";
+export {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerOverlay,
+  DrawerPortal,
+  DrawerTitle,
+  DrawerTrigger,
+} from "./drawer";
 export {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -62,10 +124,38 @@ export {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "./dropdown-menu";
+export {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  useFormField,
+} from "./form";
+export { HoverCard, HoverCardContent, HoverCardTrigger } from "./hover-card";
 export { Icons, type IconWrapperProps } from "./icons";
 export type { InputProps } from "./input";
 export { Input } from "./input";
+export {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSeparator,
+  InputOTPSlot,
+} from "./input-otp";
 export { Label } from "./label";
+export {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuIndicator,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  NavigationMenuViewport,
+  navigationMenuTriggerStyle,
+} from "./navigation-menu";
 export {
   Popover,
   PopoverAnchor,
@@ -74,6 +164,11 @@ export {
 } from "./popover";
 export { Progress } from "./progress";
 export { RadioGroup, RadioGroupItem } from "./radio-group";
+export {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "./resizable";
 export { ScrollArea, ScrollBar } from "./scroll-area";
 export {
   Select,
@@ -88,11 +183,33 @@ export {
   SelectValue,
 } from "./select";
 export { Separator } from "./separator";
+export {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetOverlay,
+  SheetPortal,
+  SheetTitle,
+  SheetTrigger,
+} from "./sheet";
 export { Skeleton } from "./skeleton";
 export { Slider } from "./slider";
 export type { SpinnerProps } from "./spinner";
 export { Spinner } from "./spinner";
 export { Switch } from "./switch";
+export {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./table";
 export { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 export type { TextareaProps } from "./textarea";
 export { Textarea } from "./textarea";
