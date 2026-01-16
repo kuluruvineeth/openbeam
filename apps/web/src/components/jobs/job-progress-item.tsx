@@ -1,7 +1,7 @@
 "use client";
 
+import { Progress } from "@openplane/ui";
 import { Icons } from "@/components/icons";
-import { Progress } from "@/components/ui/progress";
 import {
   formatTimeRemaining,
   getJobLabel,

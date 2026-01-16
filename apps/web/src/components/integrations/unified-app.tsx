@@ -8,6 +8,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  ScrollArea,
   Tabs,
   TabsList,
   TabsTrigger,
@@ -22,7 +23,6 @@ import { OAuthLoading } from "@/components/integrations/oauth-loading";
 import { UnifiedAppOverviewTab } from "@/components/integrations/unified-app-overview-tab";
 import { UnifiedAppSettingsTab } from "@/components/integrations/unified-app-settings-tab";
 import { UnifiedAppSheetHeader } from "@/components/integrations/unified-app-sheet-header";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import {
   useConnectApp,

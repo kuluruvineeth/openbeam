@@ -1,10 +1,10 @@
 "use client";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@openplane/ui";
 import { forwardRef } from "react";
 
 import { Icons } from "@/components/icons";
 import { AppLogo } from "@/components/integrations/app-logo";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { PreviewType } from "@/hooks/use-document-preview";
 import { getPreviewCategory, isPreviewable } from "@/lib/file-preview-config";
 import {

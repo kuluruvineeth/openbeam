@@ -1,13 +1,18 @@
 "use client";
 
 import { appStore } from "@openplane/integrations";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@openplane/ui";
+import {
+  ScrollArea,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@openplane/ui";
 import { SyncSettingsForm } from "@/components/forms/sync-settings-form";
 import { Icons } from "@/components/icons";
 import { AppLogo } from "@/components/integrations/app-logo";
 import { SyncHistoryList } from "@/components/sync/sync-history-list";
 import { SyncStatusCard } from "@/components/sync/sync-status-card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Sheet,
   SheetContent,

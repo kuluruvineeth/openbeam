@@ -7,12 +7,12 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  Separator,
 } from "@openplane/ui";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Icons } from "@/components/icons";
 import { SubmitButton } from "@/components/submit-button";
-import { Separator } from "@/components/ui/separator";
 import {
   usePauseConnector,
   useResumeConnector,

@@ -2,6 +2,8 @@
 
 import {
   Button,
+  ScrollArea,
+  ScrollBar,
   Tabs,
   TabsContent,
   TabsList,
@@ -11,7 +13,6 @@ import {
   TooltipTrigger,
 } from "@openplane/ui";
 import { Icons } from "@/components/icons";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import type { AudioTab } from "@/lib/audio-types";
 import { cn } from "@/lib/utils";
 

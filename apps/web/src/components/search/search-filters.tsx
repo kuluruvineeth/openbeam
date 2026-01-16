@@ -1,12 +1,11 @@
 "use client";
 
-import { Button } from "@openplane/ui";
+import { Button, Separator } from "@openplane/ui";
 import { Icons } from "@/components/icons";
 import { ActiveFilters } from "@/components/search/filters/active-filters";
 import { AuthorFilter } from "@/components/search/filters/author-filter";
 import { DateRangeFilter } from "@/components/search/filters/date-range-filter";
 import { MultiSelectFilter } from "@/components/search/filters/multi-select-filter";
-import { Separator } from "@/components/ui/separator";
 import { DOCUMENT_TYPE_OPTIONS } from "@/hooks/use-search";
 import { type DateRangeType, DOCUMENT_TYPE_CONFIG } from "@/lib/search-config";
 

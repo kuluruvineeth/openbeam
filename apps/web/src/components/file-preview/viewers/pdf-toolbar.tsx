@@ -1,6 +1,11 @@
-import { Button, Tooltip, TooltipContent, TooltipTrigger } from "@openplane/ui";
+import {
+  Button,
+  Separator,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@openplane/ui";
 import { Icons } from "@/components/icons";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 type PdfToolbarProps = {

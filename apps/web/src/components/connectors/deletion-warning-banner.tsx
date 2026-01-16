@@ -1,9 +1,9 @@
 "use client";
 
+import { Alert, AlertDescription, AlertTitle } from "@openplane/ui";
 import { formatDistanceToNow } from "date-fns";
 import { Icons } from "@/components/icons";
 import { SubmitButton } from "@/components/submit-button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 type DeletionWarningBannerProps = {
   scheduledDeletionAt: Date;

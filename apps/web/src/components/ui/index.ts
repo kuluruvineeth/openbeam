@@ -1,5 +1,3 @@
-export * from "./accordion";
-export * from "./alert";
 export * from "./alert-dialog";
 export * from "./avatar";
 export * from "./carousel";
@@ -7,9 +5,7 @@ export * from "./collapsible";
 export * from "./command";
 export * from "./form";
 export * from "./markdown";
-export * from "./progress";
 export * from "./resizable";
-export * from "./scroll-area";
 export * from "./sheet";
 export * from "./sonner";
 export * from "./table";

@@ -1,9 +1,9 @@
 "use client";
 
+import { Alert, AlertDescription, AlertTitle } from "@openplane/ui";
 import { toast } from "sonner";
 import { Icons } from "@/components/icons";
 import { SubmitButton } from "@/components/submit-button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useTriggerSync } from "@/hooks/use-sync";
 
 type SyncErrorAlertProps = {

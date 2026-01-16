@@ -1,10 +1,15 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@openplane/ui";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Separator,
+} from "@openplane/ui";
 import { format } from "date-fns";
 import { DeleteConnectorDialog } from "@/components/connectors/delete-connector-dialog";
 import { SubmitButton } from "@/components/submit-button";
-import { Separator } from "@/components/ui/separator";
 import {
   useDisconnectConnector,
   usePauseConnector,
