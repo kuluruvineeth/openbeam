@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "@/styles/globals.css";
+import "@openplane/ui/styles/globals.css";
 import localFont from "next/font/local";
 import Providers from "@/components/providers";
 

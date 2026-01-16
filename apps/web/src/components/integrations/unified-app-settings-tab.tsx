@@ -1,10 +1,9 @@
 "use client";
 
 import type { UnifiedApp } from "@openplane/integrations";
+import { Form, TabsContent } from "@openplane/ui";
 import type { UseFormReturn } from "react-hook-form";
 import { AppSettings } from "@/components/integrations/app-settings";
-import { Form } from "@/components/ui/form";
-import { TabsContent } from "@/components/ui/tabs";
 
 type UnifiedAppSettingsTabProps = {
   app: UnifiedApp;

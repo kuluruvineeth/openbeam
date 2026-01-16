@@ -1,12 +1,10 @@
 "use client";
 
 import { appStore } from "@openplane/integrations";
+import { Button, ScrollArea, Skeleton } from "@openplane/ui";
 import { useMemo } from "react";
 import { Icons } from "@/components/icons";
 import { AppLogo } from "@/components/integrations/app-logo";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 type ConnectorFacet = {

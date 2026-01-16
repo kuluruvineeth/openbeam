@@ -1,6 +1,4 @@
-import { Button, type ButtonProps } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
-import { cn } from "@/lib/utils";
+import { Button, type ButtonProps, cn, Spinner } from "@openplane/ui";
 
 export function SubmitButton({
   children,

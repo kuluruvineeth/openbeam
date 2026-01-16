@@ -1,14 +1,18 @@
 "use client";
 
-import { Icons } from "@/components/icons";
-import { Button } from "@/components/ui/button";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  Button,
+  ScrollArea,
+  ScrollBar,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@openplane/ui";
+import { Icons } from "@/components/icons";
 import type { AudioTab } from "@/lib/audio-types";
 import { cn } from "@/lib/utils";
 

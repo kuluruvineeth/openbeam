@@ -1,14 +1,14 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
-import { Icons } from "@/components/icons";
-import { JobProgressItem } from "@/components/jobs/job-progress-item";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+} from "@openplane/ui";
+import { AnimatePresence, motion } from "motion/react";
+import { useState } from "react";
+import { Icons } from "@/components/icons";
+import { JobProgressItem } from "@/components/jobs/job-progress-item";
 import { useActiveJobs, useRunningJobsCount } from "@/stores/job-store";
 
 export function JobProgressPanel() {

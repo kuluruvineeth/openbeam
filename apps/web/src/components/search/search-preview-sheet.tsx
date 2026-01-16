@@ -1,5 +1,6 @@
 "use client";
 
+import { Button, Sheet, SheetContent, Skeleton } from "@openplane/ui";
 import { useQuery } from "@tanstack/react-query";
 import { DocumentPreviewPanel } from "@/components/document-preview/document-preview-panel";
 import { EmailPreviewPanel } from "@/components/email-preview/email-preview-panel";
@@ -8,9 +9,6 @@ import { AudioViewer } from "@/components/file-preview/viewers/audio/audio-viewe
 import { VideoViewer } from "@/components/file-preview/viewers/video/video-viewer";
 import { Icons } from "@/components/icons";
 import { SlackPreviewPanel } from "@/components/slack-preview/slack-preview-panel";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Skeleton } from "@/components/ui/skeleton";
 import type { PreviewType } from "@/hooks/use-document-preview";
 import type { MediaDocument } from "@/lib/search-types";
 import { useTRPC } from "@/trpc/client";

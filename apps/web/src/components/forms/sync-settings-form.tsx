@@ -1,12 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { formatDistanceToNow } from "date-fns";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { z } from "zod/v3";
-import { Icons } from "@/components/icons";
-import { SubmitButton } from "@/components/submit-button";
 import {
   Form,
   FormControl,
@@ -14,14 +8,18 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@openplane/ui";
+import { formatDistanceToNow } from "date-fns";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod/v3";
+import { Icons } from "@/components/icons";
+import { SubmitButton } from "@/components/submit-button";
 import { useUpdateSyncSettings, useWebhookStatus } from "@/hooks/use-sync";
 import type { SyncJobInfo } from "@/lib/sync-types";
 

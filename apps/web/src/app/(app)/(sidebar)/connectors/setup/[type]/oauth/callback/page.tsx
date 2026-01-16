@@ -1,12 +1,12 @@
 "use client";
 
+import { Button } from "@openplane/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { OAuthLoading } from "@/components/integrations/oauth-loading";
-import { Button } from "@/components/ui/button";
 import { handleOAuthAuthorizationResponse } from "@/lib/oauth-utils";
 import { useTRPC } from "@/trpc/client";
 

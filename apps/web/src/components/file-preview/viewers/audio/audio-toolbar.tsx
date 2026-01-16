@@ -1,18 +1,16 @@
 "use client";
 
-import { Icons } from "@/components/icons";
-import { Button } from "@/components/ui/button";
 import {
+  Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@openplane/ui";
+import { Icons } from "@/components/icons";
 import type { AudioPlaybackState } from "@/lib/audio-types";
 import { formatTime } from "@/lib/format";
 import { cn } from "@/lib/utils";

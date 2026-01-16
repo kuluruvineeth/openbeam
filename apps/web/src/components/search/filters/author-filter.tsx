@@ -1,23 +1,23 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
-import { Icons } from "@/components/icons";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  Button,
   Command,
   CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command";
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
+} from "@openplane/ui";
+import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
+import { Icons } from "@/components/icons";
 import { getInitials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useTRPC } from "@/trpc/client";

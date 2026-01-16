@@ -1,16 +1,17 @@
 "use client";
 
 import type { UnifiedApp } from "@openplane/integrations";
-import { formatDistanceToNow } from "date-fns";
-import { AppLogo } from "@/components/integrations/app-logo";
-import { Button } from "@/components/ui/button";
-import { SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
+  Button,
+  SheetHeader,
+  SheetTitle,
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@openplane/ui";
+import { formatDistanceToNow } from "date-fns";
+import { AppLogo } from "@/components/integrations/app-logo";
 import { cn } from "@/lib/utils";
 
 type ActionButtonProps = {

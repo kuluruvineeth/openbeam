@@ -1,7 +1,7 @@
 "use client";
 
+import { TextShimmer } from "@openplane/ui";
 import { memo, useEffect, useRef } from "react";
-import { TextShimmer } from "@/components/ui/text-shimmer";
 import { cn } from "@/lib/utils";
 
 type ThinkingContentProps = {

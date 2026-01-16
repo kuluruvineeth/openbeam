@@ -1,14 +1,14 @@
 "use client";
 
-import { toast } from "sonner";
-import { Icons } from "@/components/icons";
-import { Button } from "@/components/ui/button";
 import {
+  Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@openplane/ui";
+import { toast } from "sonner";
+import { Icons } from "@/components/icons";
 import {
   usePauseConnector,
   useResumeConnector,

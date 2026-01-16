@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@openplane/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
@@ -11,7 +12,6 @@ import {
   AvatarFallback,
   AvatarImageNext,
 } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { useChangeTeam, useTeams } from "@/hooks/use-team";
 import { useUserQuery } from "@/hooks/use-user";
 

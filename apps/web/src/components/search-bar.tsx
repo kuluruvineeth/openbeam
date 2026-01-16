@@ -1,11 +1,10 @@
 "use client";
 
+import { Button, Input } from "@openplane/ui";
 import { forwardRef, useEffect, useRef } from "react";
 import { Icons } from "@/components/icons";
 import { Autocomplete } from "@/components/search-bar/autocomplete";
 import { SearchFilters } from "@/components/search-bar/search-filters";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 type AutocompleteResult = {

@@ -1,11 +1,11 @@
 "use client";
 
 import type { UnifiedApp } from "@openplane/integrations";
+import { TabsContent } from "@openplane/ui";
 import Image from "next/image";
 import { useState } from "react";
 import { Icons } from "@/components/icons";
 import { CarouselWithDots } from "@/components/integrations/carousel-with-dots";
-import { TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
 type UnifiedAppOverviewTabProps = {

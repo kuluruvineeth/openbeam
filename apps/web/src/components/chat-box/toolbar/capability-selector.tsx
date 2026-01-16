@@ -1,13 +1,15 @@
 "use client";
 
-import type { Capability } from "@/components/chat-box/types";
-import { Icons } from "@/components/icons";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@openplane/ui";
+import type { Capability } from "@/components/chat-box/types";
+import { Icons } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 type Props = {

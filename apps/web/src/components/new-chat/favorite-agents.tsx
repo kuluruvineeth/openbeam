@@ -1,5 +1,5 @@
+import { Card } from "@openplane/ui";
 import { Icons } from "@/components/icons";
-import { Card } from "@/components/ui/card";
 
 type FavoriteAgent = {
   externalId: string;

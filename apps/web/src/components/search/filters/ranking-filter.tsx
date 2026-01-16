@@ -1,26 +1,22 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Icons } from "@/components/icons";
-import { Button } from "@/components/ui/button";
 import {
+  Button,
   Command,
   CommandGroup,
   CommandItem,
   CommandList,
   CommandSeparator,
-} from "@/components/ui/command";
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@openplane/ui";
+import { useMemo, useState } from "react";
+import { Icons } from "@/components/icons";
 import {
   RANKING_CONFIG,
   RANKING_OPTIONS,

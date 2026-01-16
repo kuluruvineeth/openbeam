@@ -1,12 +1,7 @@
 "use client";
 
+import { Button, Tooltip, TooltipContent, TooltipTrigger } from "@openplane/ui";
 import { Icons } from "@/components/icons";
-import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 type Props = {
   isStreaming: boolean;

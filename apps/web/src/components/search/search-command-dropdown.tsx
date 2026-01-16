@@ -1,9 +1,9 @@
 "use client";
 
+import { Skeleton } from "@openplane/ui";
 import { Command as CommandPrimitive } from "cmdk";
 import { Icons } from "@/components/icons";
 import { SearchCommandItem } from "@/components/search/search-command-item";
-import { Skeleton } from "@/components/ui/skeleton";
 import type { UnifiedSearchItem } from "@/lib/search-types";
 
 type Props = {

@@ -1,8 +1,8 @@
 "use client";
 
+import { Button } from "@openplane/ui";
 import Link from "next/link";
 import { Icons } from "@/components/icons";
-import { Button } from "@/components/ui/button";
 
 export function DataSourcesEmptyState() {
   return (

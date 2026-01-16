@@ -1,9 +1,8 @@
 "use client";
 
+import { Badge, Card } from "@openplane/ui";
 import { formatDistanceToNow } from "date-fns";
 import { Icons } from "@/components/icons";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 import { getSyncStatusConfig, type SyncStatus } from "@/lib/sync-status";
 import { cn } from "@/lib/utils";
 

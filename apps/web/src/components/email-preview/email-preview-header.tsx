@@ -1,13 +1,13 @@
 "use client";
 
-import { Icons } from "@/components/icons";
-import { Button } from "@/components/ui/button";
 import {
+  Button,
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@openplane/ui";
+import { Icons } from "@/components/icons";
 
 type EmailPreviewHeaderProps = {
   subject: string;

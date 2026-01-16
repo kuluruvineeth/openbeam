@@ -1,19 +1,19 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { BulkActionsToolbar } from "@/components/connectors/bulk-actions-toolbar";
-import { SharedTableRow } from "@/components/connectors/shared-table-row";
-import { Icons } from "@/components/icons";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
+  Button,
+  Checkbox,
+  Skeleton,
   Table,
   TableBody,
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@openplane/ui";
+import { useMemo, useState } from "react";
+import { BulkActionsToolbar } from "@/components/connectors/bulk-actions-toolbar";
+import { SharedTableRow } from "@/components/connectors/shared-table-row";
+import { Icons } from "@/components/icons";
 
 type ConnectorData = {
   id: string;

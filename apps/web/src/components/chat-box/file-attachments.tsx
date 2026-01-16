@@ -1,8 +1,8 @@
 "use client";
 
+import { Button } from "@openplane/ui";
 import type { FileType, SelectedFile } from "@/components/chat-box/types";
 import { Icons } from "@/components/icons";
-import { Button } from "@/components/ui/button";
 
 type Props = {
   files: SelectedFile[];

@@ -1,7 +1,25 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AuthType, type UnifiedApp } from "@openplane/integrations";
+import {
+  type AppType,
+  AuthType,
+  type ConnectorType,
+  type UnifiedApp,
+} from "@openplane/integrations";
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  ScrollArea,
+  Sheet,
+  SheetContent,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from "@openplane/ui";
 import Link from "next/link";
 import { parseAsBoolean, parseAsString, useQueryStates } from "nuqs";
 import { useEffect, useMemo, useState } from "react";
@@ -12,11 +30,6 @@ import { OAuthLoading } from "@/components/integrations/oauth-loading";
 import { UnifiedAppOverviewTab } from "@/components/integrations/unified-app-overview-tab";
 import { UnifiedAppSettingsTab } from "@/components/integrations/unified-app-settings-tab";
 import { UnifiedAppSheetHeader } from "@/components/integrations/unified-app-sheet-header";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   useConnectApp,
   useDisconnectApp,
@@ -154,11 +167,11 @@ export function UnifiedAppComponent({ app }: UnifiedAppProps) {
     }
 
     const connector = await connectMutation.mutateAsync({
-      appId: app.id,
+      appId: app.id as AppType,
       workspaceExternalId: "pending-oauth",
       name: app.name,
-      type: app.connectorType,
-      authType: app.auth.type,
+      type: app.connectorType as ConnectorType,
+      authType: app.auth.type as AuthType,
       config: configValues,
     });
 

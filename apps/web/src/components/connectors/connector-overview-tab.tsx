@@ -1,13 +1,12 @@
 "use client";
 
 import { appStore } from "@openplane/integrations";
+import { Button, Skeleton } from "@openplane/ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Icons } from "@/components/icons";
 import { AppLogo } from "@/components/integrations/app-logo";
 import { SyncStatusCard } from "@/components/sync/sync-status-card";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useConnector } from "@/hooks/use-connector";
 import { useSyncStatus } from "@/hooks/use-sync";
 import { useTRPC } from "@/trpc/client";

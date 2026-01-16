@@ -1,7 +1,7 @@
 "use client";
 
+import { Badge } from "@openplane/ui";
 import { Icons } from "@/components/icons";
-import { Badge } from "@/components/ui/badge";
 
 type FilterChipProps = {
   label: React.ReactNode;

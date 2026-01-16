@@ -1,5 +1,12 @@
 "use client";
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@openplane/ui";
 import { useState } from "react";
 import { SignOut } from "@/components/sign-out";
 import { ThemeSwitch } from "@/components/theme-switch";
@@ -8,13 +15,6 @@ import {
   AvatarFallback,
   AvatarImageNext,
 } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useUserQuery } from "@/hooks/use-user";
 
 type Props = {

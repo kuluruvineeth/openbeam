@@ -1,4 +1,4 @@
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@openplane/ui";
 
 export function AuthLayoutSkeleton() {
   return (

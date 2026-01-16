@@ -1,9 +1,8 @@
 "use client";
 
+import { Input, Skeleton } from "@openplane/ui";
 import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import { Icons } from "@/components/icons";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
 import { formatTime } from "@/lib/format";
 import type { TranscriptSegment } from "@/lib/media-types";
 import { type GroupedSegment, groupSegments } from "@/lib/transcript-utils";

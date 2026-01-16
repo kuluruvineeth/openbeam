@@ -1,6 +1,7 @@
 "use client";
 
 import { appStore } from "@openplane/integrations";
+import { Button, Skeleton } from "@openplane/ui";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -9,8 +10,6 @@ import { DeletionWarningBanner } from "@/components/connectors/deletion-warning-
 import { Icons } from "@/components/icons";
 import { AppLogo } from "@/components/integrations/app-logo";
 import { SyncStatusBadge } from "@/components/sync/sync-status-badge";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useConnector } from "@/hooks/use-connector";
 import { useRestoreConnector } from "@/hooks/use-connectors";
 import { useSyncStatus } from "@/hooks/use-sync";

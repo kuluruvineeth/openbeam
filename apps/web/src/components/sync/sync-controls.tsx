@@ -1,18 +1,18 @@
 "use client";
 
-import { useState } from "react";
-import { toast } from "sonner";
-import { Icons } from "@/components/icons";
-import { SubmitButton } from "@/components/submit-button";
-import { Button } from "@/components/ui/button";
 import {
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+  Separator,
+} from "@openplane/ui";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Icons } from "@/components/icons";
+import { SubmitButton } from "@/components/submit-button";
 import {
   usePauseConnector,
   useResumeConnector,

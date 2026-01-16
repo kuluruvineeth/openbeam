@@ -1,7 +1,7 @@
 "use client";
 
+import { Skeleton } from "@openplane/ui";
 import { Icons } from "@/components/icons";
-import { Skeleton } from "@/components/ui/skeleton";
 import type { MediaGist } from "@/lib/media-types";
 
 type SummaryPanelProps = {

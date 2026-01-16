@@ -1,8 +1,8 @@
 "use client";
 
+import { Skeleton } from "@openplane/ui";
 import { DangerZone } from "@/components/connectors/danger-zone";
 import { SyncSettingsForm } from "@/components/forms/sync-settings-form";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useSyncStatus } from "@/hooks/use-sync";
 
 function SettingsSkeleton() {

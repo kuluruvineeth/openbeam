@@ -1,8 +1,8 @@
 "use client";
 
+import { TextShimmer } from "@openplane/ui";
 import { memo } from "react";
 import { Icons } from "@/components/icons";
-import { TextShimmer } from "@/components/ui/text-shimmer";
 import type { ThinkingStep } from "@/lib/thinking-types";
 import { formatThinkingDuration } from "@/lib/thinking-types";
 import { cn } from "@/lib/utils";

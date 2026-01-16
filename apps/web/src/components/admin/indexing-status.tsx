@@ -1,15 +1,15 @@
 "use client";
 
-import { AlertCircle, CheckCircle, Clock, XCircle } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Badge } from "@/components/ui/badge";
 import {
+  Badge,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@openplane/ui";
+import { AlertCircle, CheckCircle, Clock, XCircle } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface QueueMetrics {
   waiting: number;

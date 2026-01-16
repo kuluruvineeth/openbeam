@@ -4,10 +4,10 @@ import {
   appStore as appStoreApps,
   type SettingValue,
 } from "@openplane/integrations";
+import { Button } from "@openplane/ui";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Icons } from "@/components/icons";
 import { UnifiedAppComponent } from "@/components/integrations/unified-app";
-import { Button } from "@/components/ui/button";
 import { useAppsQuery } from "@/hooks/use-apps";
 import { useUserQuery } from "@/hooks/use-user";
 import {

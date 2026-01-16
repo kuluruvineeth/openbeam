@@ -1,3 +1,4 @@
+import type React from "react";
 import { z } from "zod";
 import { DocumentTypeCategorySchema } from "../connectors/document-types";
 import {
@@ -11,7 +12,7 @@ export type LogoProps = {
   className?: string;
 };
 
-export type LogoComponent = (props: LogoProps) => unknown;
+export type LogoComponent = (props: LogoProps) => React.JSX.Element | null;
 
 export type SecretRef = {
   secretName: string;
