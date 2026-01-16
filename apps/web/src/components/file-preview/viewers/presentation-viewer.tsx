@@ -1,10 +1,10 @@
 "use client";
 
+import { Button } from "@openplane/ui";
 import JSZip from "jszip";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PresentationSkeleton } from "@/components/file-preview/file-preview-loading";
 import { Icons } from "@/components/icons";
-import { Button } from "@/components/ui/button";
 import { formatFileSize } from "@/lib/format";
 
 type PresentationViewerProps = {

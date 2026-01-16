@@ -1,5 +1,5 @@
+import { Button } from "@openplane/ui";
 import { Icons } from "@/components/icons";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
   Tooltip,

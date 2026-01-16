@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button } from "@openplane/ui";
 import { cn } from "@/lib/utils";
 
 type AutocompleteResult = {

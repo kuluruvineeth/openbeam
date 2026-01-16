@@ -1,11 +1,11 @@
 "use client";
 
+import { Button } from "@openplane/ui";
 import { AnimatePresence, motion } from "motion/react";
 import { memo, useCallback, useEffect, useState } from "react";
 import { Icons } from "@/components/icons";
 import { SearchPreviewSheet } from "@/components/search/search-preview-sheet";
 import { ThinkingDemo } from "@/components/thinking";
-import { Button } from "@/components/ui/button";
 import type { PreviewType } from "@/hooks/use-document-preview";
 import type {
   OverviewCitation,

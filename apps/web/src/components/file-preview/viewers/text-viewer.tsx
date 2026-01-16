@@ -1,9 +1,9 @@
 "use client";
 
+import { Skeleton } from "@openplane/ui";
 import { useEffect, useState } from "react";
 import { Icons } from "@/components/icons";
 import { Markdown } from "@/components/ui/markdown";
-import { Skeleton } from "@/components/ui/skeleton";
 
 const MAX_SIZE = 500_000;
 

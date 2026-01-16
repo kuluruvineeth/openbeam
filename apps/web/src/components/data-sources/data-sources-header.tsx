@@ -1,9 +1,8 @@
 "use client";
 
+import { Button, Card } from "@openplane/ui";
 import Link from "next/link";
 import { Icons } from "@/components/icons";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { useDataSourcesStats } from "@/hooks/use-data-sources";
 import { cn } from "@/lib/utils";
 

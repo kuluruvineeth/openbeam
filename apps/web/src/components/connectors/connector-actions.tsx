@@ -1,8 +1,8 @@
 "use client";
 
+import { Button } from "@openplane/ui";
 import { toast } from "sonner";
 import { Icons } from "@/components/icons";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@openplane/ui";
 import {
   ENABLE_THINKING_MOCK,
   getMockThinkingProps,

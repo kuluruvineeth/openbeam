@@ -1,5 +1,4 @@
-import { Card } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Card, Skeleton } from "@openplane/ui";
 
 export function DataSourcesHeaderSkeleton() {
   return (

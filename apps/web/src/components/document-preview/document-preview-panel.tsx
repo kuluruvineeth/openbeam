@@ -1,11 +1,10 @@
 "use client";
 
+import { Button, Skeleton } from "@openplane/ui";
 import { useQuery } from "@tanstack/react-query";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Icons } from "@/components/icons";
-import { Button } from "@/components/ui/button";
 import { Markdown } from "@/components/ui/markdown";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Tooltip,
   TooltipContent,

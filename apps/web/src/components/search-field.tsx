@@ -1,9 +1,9 @@
 "use client";
 
+import { Input } from "@openplane/ui";
 import { useQueryState } from "nuqs";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Icons } from "@/components/icons";
-import { Input } from "@/components/ui/input";
 
 type Props = {
   placeholder: string;

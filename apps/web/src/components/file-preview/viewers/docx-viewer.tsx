@@ -1,10 +1,10 @@
 "use client";
 
+import { Button } from "@openplane/ui";
 import { renderAsync } from "docx-preview";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DocxSkeleton } from "@/components/file-preview/file-preview-loading";
 import { Icons } from "@/components/icons";
-import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "@/styles/docx-viewer.css";
 import { DocxToolbar } from "@/components/file-preview/viewers/docx-toolbar";

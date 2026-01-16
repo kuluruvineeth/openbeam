@@ -1,5 +1,6 @@
 "use client";
 
+import { Input, Skeleton } from "@openplane/ui";
 import { formatDistanceToNow } from "date-fns";
 import { useState } from "react";
 import {
@@ -7,8 +8,6 @@ import {
   ICON_SIZE,
 } from "@/components/connectors/resource-icons";
 import { Icons } from "@/components/icons";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   type ResourceDocument,
   useResourceDocuments,

@@ -1,8 +1,8 @@
 "use client";
 
+import { Button } from "@openplane/ui";
 import { useMemo } from "react";
 import { Icons } from "@/components/icons";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,

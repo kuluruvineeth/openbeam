@@ -1,9 +1,8 @@
 "use client";
 
+import { Button, Card } from "@openplane/ui";
 import { toast } from "sonner";
 import { Icons } from "@/components/icons";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { useTriggerSync } from "@/hooks/use-sync";
 
 type BulkActionsToolbarProps = {

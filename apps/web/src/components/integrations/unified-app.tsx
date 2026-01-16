@@ -2,6 +2,13 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AuthType, type UnifiedApp } from "@openplane/integrations";
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@openplane/ui";
 import Link from "next/link";
 import { parseAsBoolean, parseAsString, useQueryStates } from "nuqs";
 import { useEffect, useMemo, useState } from "react";
@@ -12,8 +19,6 @@ import { OAuthLoading } from "@/components/integrations/oauth-loading";
 import { UnifiedAppOverviewTab } from "@/components/integrations/unified-app-overview-tab";
 import { UnifiedAppSettingsTab } from "@/components/integrations/unified-app-settings-tab";
 import { UnifiedAppSheetHeader } from "@/components/integrations/unified-app-sheet-header";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";

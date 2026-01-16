@@ -1,7 +1,7 @@
 "use client";
 
+import { Button } from "@openplane/ui";
 import { Icons } from "@/components/icons";
-import { Button } from "@/components/ui/button";
 import { getFileTypeLabel } from "@/lib/file-preview-config";
 import { formatFileSize } from "@/lib/format";
 

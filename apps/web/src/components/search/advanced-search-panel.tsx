@@ -1,7 +1,7 @@
 "use client";
 
+import { Button } from "@openplane/ui";
 import { useCallback } from "react";
-import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { RRF_DEFAULTS } from "@/lib/search-config";
 import type { RRFConfig, SearchTiming } from "@/lib/search-types";

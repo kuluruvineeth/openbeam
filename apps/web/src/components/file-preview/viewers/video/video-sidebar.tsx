@@ -1,7 +1,7 @@
 "use client";
 
+import { Button } from "@openplane/ui";
 import { Icons } from "@/components/icons";
-import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {

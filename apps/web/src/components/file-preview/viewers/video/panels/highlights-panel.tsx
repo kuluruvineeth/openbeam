@@ -1,7 +1,7 @@
 "use client";
 
+import { Skeleton } from "@openplane/ui";
 import { Icons } from "@/components/icons";
-import { Skeleton } from "@/components/ui/skeleton";
 import { formatTime } from "@/lib/format";
 import type { MediaHighlight } from "@/lib/media-types";
 import { cn } from "@/lib/utils";

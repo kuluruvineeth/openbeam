@@ -1,7 +1,7 @@
 "use client";
 
+import { Button } from "@openplane/ui";
 import { useQueryState } from "nuqs";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const tabs = [

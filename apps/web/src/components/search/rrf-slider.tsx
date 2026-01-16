@@ -1,6 +1,6 @@
 "use client";
 
-import { Label } from "@/components/ui/label";
+import { Label } from "@openplane/ui";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 

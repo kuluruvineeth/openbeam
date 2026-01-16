@@ -1,7 +1,7 @@
 "use client";
 
+import { Input } from "@openplane/ui";
 import { Icons } from "@/components/icons";
-import { Input } from "@/components/ui/input";
 
 type Props = {
   value: string;

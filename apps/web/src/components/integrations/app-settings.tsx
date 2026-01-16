@@ -1,5 +1,6 @@
 "use client";
 
+import { Input } from "@openplane/ui";
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useFormContext, useWatch } from "react-hook-form";
@@ -10,7 +11,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,

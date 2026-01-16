@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@openplane/ui";
 import { useState } from "react";
 import {
   AlertDialog,
@@ -12,7 +13,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
 
 type DeleteConnectorDialogProps = {
   disabled: boolean;

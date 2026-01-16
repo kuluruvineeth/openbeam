@@ -1,11 +1,10 @@
 "use client";
 
+import { Input, Skeleton } from "@openplane/ui";
 import { ICON_SIZE } from "@/components/connectors/resource-icons";
 import { ResourceRow } from "@/components/connectors/resource-row";
 import { Icons } from "@/components/icons";
 import { SearchSplitView } from "@/components/search/search-split-view";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   useConnector,
   useConnectorResources,

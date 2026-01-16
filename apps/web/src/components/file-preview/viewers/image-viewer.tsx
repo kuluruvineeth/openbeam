@@ -1,9 +1,8 @@
 "use client";
 
+import { Button, Skeleton } from "@openplane/ui";
 import { useCallback, useRef, useState } from "react";
 import { Icons } from "@/components/icons";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 type ImageViewerProps = {
