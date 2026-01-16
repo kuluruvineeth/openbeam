@@ -1,7 +1,7 @@
 "use client";
 
+import { Button } from "@openplane/ui";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
 
 export function ErrorFallback() {
   const router = useRouter();
