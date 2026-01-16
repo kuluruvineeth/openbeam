@@ -8,6 +8,9 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  Tabs,
+  TabsList,
+  TabsTrigger,
 } from "@openplane/ui";
 import Link from "next/link";
 import { parseAsBoolean, parseAsString, useQueryStates } from "nuqs";
@@ -21,7 +24,6 @@ import { UnifiedAppSettingsTab } from "@/components/integrations/unified-app-set
 import { UnifiedAppSheetHeader } from "@/components/integrations/unified-app-sheet-header";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   useConnectApp,
   useDisconnectApp,

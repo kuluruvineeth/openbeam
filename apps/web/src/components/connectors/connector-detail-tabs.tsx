@@ -1,5 +1,6 @@
 "use client";
 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@openplane/ui";
 import { parseAsString, useQueryStates } from "nuqs";
 import { useCallback } from "react";
 import { ConnectorOverviewTab } from "@/components/connectors/connector-overview-tab";
@@ -7,7 +8,6 @@ import { ConnectorResourcesTab } from "@/components/connectors/connector-resourc
 import { ConnectorSettingsTab } from "@/components/connectors/connector-settings-tab";
 import { ConnectorSyncHistoryTab } from "@/components/connectors/connector-sync-history-tab";
 import { Icons } from "@/components/icons";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
 type SyncStatus = {

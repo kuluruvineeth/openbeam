@@ -1,6 +1,15 @@
 "use client";
 
-import { Button } from "@openplane/ui";
+import {
+  Button,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@openplane/ui";
 import { useMemo, useState } from "react";
 import { Icons } from "@/components/icons";
 import {
@@ -10,17 +19,6 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import {
   RANKING_CONFIG,
   RANKING_OPTIONS,

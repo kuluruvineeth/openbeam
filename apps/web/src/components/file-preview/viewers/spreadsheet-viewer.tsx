@@ -1,12 +1,11 @@
 "use client";
 
-import { Button } from "@openplane/ui";
+import { Button, TooltipProvider } from "@openplane/ui";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { read, utils, type WorkBook } from "xlsx";
 import { SpreadsheetSkeleton } from "@/components/file-preview/file-preview-loading";
 import { SpreadsheetToolbar } from "@/components/file-preview/viewers/spreadsheet-toolbar";
 import { Icons } from "@/components/icons";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 type SpreadsheetViewerProps = {

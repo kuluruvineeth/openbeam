@@ -1,7 +1,7 @@
 "use client";
 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@openplane/ui";
 import { Icons } from "@/components/icons";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useChatTab } from "@/hooks/use-chat-tab";
 import { cn } from "@/lib/utils";
 

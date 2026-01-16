@@ -1,20 +1,18 @@
 "use client";
 
-import { Button } from "@openplane/ui";
-import { Icons } from "@/components/icons";
 import {
+  Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@openplane/ui";
+import { Icons } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 type Props = {

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@openplane/ui";
+import { Button, Popover, PopoverContent, PopoverTrigger } from "@openplane/ui";
 import { useState } from "react";
 import { Icons } from "@/components/icons";
 import {
@@ -11,11 +11,6 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
 export type MultiSelectFilterProps<T extends string> = {

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@openplane/ui";
+import { Button, Popover, PopoverContent, PopoverTrigger } from "@openplane/ui";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Icons } from "@/components/icons";
@@ -13,11 +13,6 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { getInitials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useTRPC } from "@/trpc/client";

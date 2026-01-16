@@ -1,12 +1,12 @@
 "use client";
 
 import { appStore } from "@openplane/integrations";
+import { Checkbox } from "@openplane/ui";
 import { formatDistanceToNow } from "date-fns";
 import { useState } from "react";
 import { ConnectorActions } from "@/components/connectors/connector-actions";
 import { AppLogo } from "@/components/integrations/app-logo";
 import { SyncStatusBadge } from "@/components/sync/sync-status-badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 

@@ -1,11 +1,10 @@
 "use client";
 
-import { Button, Skeleton } from "@openplane/ui";
+import { Button, Checkbox, Skeleton } from "@openplane/ui";
 import { useMemo, useState } from "react";
 import { BulkActionsToolbar } from "@/components/connectors/bulk-actions-toolbar";
 import { SharedTableRow } from "@/components/connectors/shared-table-row";
 import { Icons } from "@/components/icons";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,

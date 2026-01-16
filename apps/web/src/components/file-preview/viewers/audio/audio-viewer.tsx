@@ -1,5 +1,6 @@
 "use client";
 
+import { TooltipProvider } from "@openplane/ui";
 import { useCallback, useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { AudioPlayer } from "@/components/file-preview/viewers/audio/audio-player";
@@ -10,7 +11,6 @@ import {
 import { AudioQAPanel } from "@/components/file-preview/viewers/audio/panels/qa-panel";
 import { AudioSummaryPanel } from "@/components/file-preview/viewers/audio/panels/summary-panel";
 import { AudioTranscriptPanel } from "@/components/file-preview/viewers/audio/panels/transcript-panel";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import {
   useAudioAsk,
   useAudioPlayback,

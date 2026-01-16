@@ -1,8 +1,8 @@
 "use client";
 
+import { DropdownMenuItem } from "@openplane/ui";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { signOut } from "@/lib/auth/client";
 
 export function SignOut() {

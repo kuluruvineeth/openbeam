@@ -1,6 +1,15 @@
 "use client";
 
-import { Input } from "@openplane/ui";
+import {
+  Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Switch,
+  Textarea,
+} from "@openplane/ui";
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useFormContext, useWatch } from "react-hook-form";
@@ -11,15 +20,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
 // biome-ignore lint/suspicious/noExplicitAny: value can be string, boolean, number

@@ -1,20 +1,18 @@
 "use client";
 
-import { Button } from "@openplane/ui";
-import { useMemo } from "react";
-import { Icons } from "@/components/icons";
 import {
+  Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@openplane/ui";
+import { useMemo } from "react";
+import { Icons } from "@/components/icons";
 
 type Model = {
   labelName: string;

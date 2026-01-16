@@ -5,11 +5,10 @@ import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
-import { Button } from "@openplane/ui";
+import { Button, TooltipProvider } from "@openplane/ui";
 import { PdfPagesSkeleton } from "@/components/file-preview/file-preview-loading";
 import { PdfToolbar } from "@/components/file-preview/viewers/pdf-toolbar";
 import { Icons } from "@/components/icons";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import {
   clearHighlights,
   highlightTextInPage,

@@ -1,7 +1,7 @@
 "use client";
 
+import { Tabs, TabsList, TabsTrigger } from "@openplane/ui";
 import { Icons } from "@/components/icons";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ContentType } from "@/lib/search-types";
 import { cn } from "@/lib/utils";
 

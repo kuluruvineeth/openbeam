@@ -1,16 +1,17 @@
 "use client";
 
-import { Button, Skeleton } from "@openplane/ui";
-import { useQuery } from "@tanstack/react-query";
-import { useHotkeys } from "react-hotkeys-hook";
-import { Icons } from "@/components/icons";
-import { Markdown } from "@/components/ui/markdown";
 import {
+  Button,
+  Skeleton,
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@openplane/ui";
+import { useQuery } from "@tanstack/react-query";
+import { useHotkeys } from "react-hotkeys-hook";
+import { Icons } from "@/components/icons";
+import { Markdown } from "@/components/ui/markdown";
 import { useTRPC } from "@/trpc/client";
 
 // Types mirror SerializedBlock/SerializedRichText from @openplane/services

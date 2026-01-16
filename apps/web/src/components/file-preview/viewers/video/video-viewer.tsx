@@ -1,5 +1,6 @@
 "use client";
 
+import { TooltipProvider } from "@openplane/ui";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { ChaptersPanel } from "@/components/file-preview/viewers/video/panels/chapters-panel";
@@ -13,7 +14,6 @@ import {
   VideoSidebarToggle,
 } from "@/components/file-preview/viewers/video/video-sidebar";
 import { VideoToolbar } from "@/components/file-preview/viewers/video/video-toolbar";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import {
   useMediaAsk,
   useMediaChapters,

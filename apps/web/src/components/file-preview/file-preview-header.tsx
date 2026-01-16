@@ -1,13 +1,13 @@
 "use client";
 
-import { Button } from "@openplane/ui";
-import { Icons } from "@/components/icons";
 import {
+  Button,
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@openplane/ui";
+import { Icons } from "@/components/icons";
 import { getFileTypeLabel } from "@/lib/file-preview-config";
 import { formatFileSize } from "@/lib/format";
 

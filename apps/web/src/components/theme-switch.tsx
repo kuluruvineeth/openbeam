@@ -1,9 +1,5 @@
 "use client";
 
-import { Monitor, Moon, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
-
 import {
   Select,
   SelectContent,
@@ -11,7 +7,10 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@openplane/ui";
+import { Monitor, Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
 type Theme = "dark" | "system" | "light";
 

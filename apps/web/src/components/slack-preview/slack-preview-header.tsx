@@ -1,13 +1,13 @@
 "use client";
 
-import { Button } from "@openplane/ui";
-import { Icons } from "@/components/icons";
 import {
+  Button,
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@openplane/ui";
+import { Icons } from "@/components/icons";
 
 type SlackPreviewHeaderProps = {
   channelName?: string;

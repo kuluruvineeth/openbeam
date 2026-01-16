@@ -1,6 +1,7 @@
 "use client";
 
 import { appStore } from "@openplane/integrations";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@openplane/ui";
 import { SyncSettingsForm } from "@/components/forms/sync-settings-form";
 import { Icons } from "@/components/icons";
 import { AppLogo } from "@/components/integrations/app-logo";
@@ -13,7 +14,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSyncHistoryInfinite, useSyncStatus } from "@/hooks/use-sync";
 
 type DataSourceDetailsSheetProps = {
