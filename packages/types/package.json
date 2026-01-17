@@ -59,6 +59,10 @@
     "./storage": {
       "types": "./dist/storage/index.d.ts",
       "default": "./src/storage/index.ts"
+    },
+    "./canvas": {
+      "types": "./dist/canvas/index.d.ts",
+      "default": "./src/canvas/index.ts"
     }
   },
   "scripts": {
