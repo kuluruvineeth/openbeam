@@ -1,6 +1,11 @@
 import { z } from "zod";
 
-export const EdgeTypeSchema = z.enum(["data", "control", "conditional"]);
+export const EdgeTypeSchema = z.enum([
+  "data",
+  "control",
+  "conditional",
+  "error",
+]);
 export type EdgeType = z.infer<typeof EdgeTypeSchema>;
 
 export const AgentCanvasEdgeSchema = z.object({

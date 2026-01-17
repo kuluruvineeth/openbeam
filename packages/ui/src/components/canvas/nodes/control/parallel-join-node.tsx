@@ -41,7 +41,7 @@ export const ParallelJoinNode = memo(
           )}
           ref={ref}
         >
-          {data.inputs.map((input, idx) => {
+          {data.inputs?.map((input, idx) => {
             const position = ((idx + 1) / (branchCount + 1)) * 100;
             return (
               <Handle

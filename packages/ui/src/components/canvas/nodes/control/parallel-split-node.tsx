@@ -53,7 +53,7 @@ export const ParallelSplitNode = memo(
             </div>
           </div>
 
-          {data.outputs.map((output, idx) => {
+          {data.outputs?.map((output, idx) => {
             const position = ((idx + 1) / (branchCount + 1)) * 100;
             return (
               <Handle
