@@ -24,3 +24,25 @@ export const SelectionStateSchema = z.object({
 });
 
 export type SelectionState = z.infer<typeof SelectionStateSchema>;
+
+export const AgentCanvasSettingsSchema = z.object({
+  autoSave: z.boolean().default(true),
+  theme: z.enum(["light", "dark", "system"]).default("system"),
+  snapToGrid: z.boolean().default(true),
+  gridSize: z.number().default(20),
+  maxExecutionTime: z.number().default(300_000),
+  enableLogging: z.boolean().default(true),
+  environment: z.record(z.string(), z.string()).optional(),
+});
+
+export type AgentCanvasSettings = z.infer<typeof AgentCanvasSettingsSchema>;
+
+export const TriggerConfigSchema = z.object({
+  webhookUrl: z.string().url().optional(),
+  webhookSecret: z.string().optional(),
+  schedule: z.string().optional(),
+  eventType: z.string().optional(),
+  eventFilter: z.record(z.string(), z.unknown()).optional(),
+});
+
+export type TriggerConfig = z.infer<typeof TriggerConfigSchema>;
