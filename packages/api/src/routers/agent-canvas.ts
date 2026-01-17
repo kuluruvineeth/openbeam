@@ -9,6 +9,7 @@ import {
   listAgentCanvasExecutions,
   listAgentCanvases,
   listAgentCanvasTemplates,
+  listAgentCanvasVersions,
   listPendingApprovals,
   publishAgentCanvas,
   respondToApproval,
@@ -286,9 +287,22 @@ export const agentCanvasRouter = createTRPCRouter({
         });
       }
 
+      const [latestVersion] = await listAgentCanvasVersions(
+        ctx.prisma,
+        input.canvasId,
+        { limit: 1 }
+      );
+
+      if (!latestVersion) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Published version not found",
+        });
+      }
+
       return createAgentCanvasExecution(ctx.prisma, {
         agentCanvasId: input.canvasId,
-        versionNumber: canvas.version,
+        versionNumber: latestVersion.version,
         input: input.input,
         trace: { steps: [] },
         triggeredById: ctx.session.user.id,
@@ -297,7 +311,7 @@ export const agentCanvasRouter = createTRPCRouter({
     }),
 
   listPendingApprovals: withActiveTeam.query(async ({ ctx }) =>
-    listPendingApprovals(ctx.prisma, ctx.teamId, ctx.session.user.id)
+    listPendingApprovals(ctx.prisma, ctx.teamId)
   ),
 
   respondToApproval: withActiveTeam

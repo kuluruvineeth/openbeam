@@ -184,20 +184,14 @@ export function findPendingApproval(
   });
 }
 
-export function listPendingApprovals(
-  db: Database,
-  teamId: string,
-  userId?: string
-) {
+export function listPendingApprovals(db: Database, teamId: string) {
   return db.agentCanvasApproval.findMany({
     where: {
       status: "PENDING",
       execution: {
         agentCanvas: { teamId },
       },
-      ...(userId && {
-        OR: [{ respondedById: null }, { respondedById: userId }],
-      }),
+      respondedById: null,
     },
     include: {
       execution: {
