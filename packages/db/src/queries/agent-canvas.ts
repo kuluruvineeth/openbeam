@@ -225,13 +225,15 @@ export function listAgentCanvasTemplates(
 ) {
   const { teamId, category, isPublic, limit = 20, offset = 0 } = options;
 
+  const visibilityFilters = [
+    ...(isPublic === true ? [{ isPublic: true }] : []),
+    ...(teamId ? [{ teamId }] : []),
+  ];
+
   return db.agentCanvasTemplate.findMany({
     where: {
       ...(category && { category }),
-      OR: [
-        ...(isPublic !== false ? [{ isPublic: true }] : []),
-        ...(teamId ? [{ teamId }] : []),
-      ],
+      ...(visibilityFilters.length > 0 && { OR: visibilityFilters }),
     },
     orderBy: [{ usageCount: "desc" }, { createdAt: "desc" }],
     take: limit,
