@@ -453,6 +453,54 @@ body {
 }
 
 @layer components {
+  @keyframes edge-flow {
+    from {
+      stroke-dashoffset: 24;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes edge-flow-error {
+    from {
+      stroke-dashoffset: 12;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes edge-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  .edge-animated {
+    stroke-dasharray: 8 4;
+    animation: edge-flow 1s linear infinite;
+  }
+
+  .edge-animated-error {
+    stroke-dasharray: 6 3;
+    animation:
+      edge-flow-error 0.5s linear infinite,
+      edge-pulse 1s ease-in-out infinite;
+  }
+
+  .react-flow__edge.selected .react-flow__edge-path {
+    stroke-width: 2.5;
+  }
+
+  .react-flow__edge:hover .react-flow__edge-path {
+    stroke-width: 2.5;
+  }
+
   .steps {
     &:first-child {
       @apply !mt-0;
