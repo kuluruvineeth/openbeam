@@ -56,13 +56,51 @@ export {
   ParallelSplitNode,
   StartNode,
 } from "./control";
+export type {
+  AnnotationColor,
+  AnnotationNodeConfig,
+  AnnotationNodeData,
+  ApprovalNodeConfig,
+  ApprovalNodeData,
+  Approver,
+  InputNodeConfig,
+  InputNodeData,
+  InputOption,
+  InputType,
+} from "./human";
+export {
+  AnnotationNode,
+  ApprovalNode,
+  createAnnotationNodeData,
+  createApprovalNodeData,
+  createInputNodeData,
+  humanNodeTypes,
+  InputNode,
+} from "./human";
+export type {
+  CodeNodeConfig,
+  CodeNodeData,
+  TemplateNodeConfig,
+  TemplateNodeData,
+} from "./transform";
+export {
+  CodeNode,
+  createCodeNodeData,
+  createTemplateNodeData,
+  TemplateNode,
+  transformNodeTypes,
+} from "./transform";
 
 import { aiNodeTypes as _aiNodeTypes } from "./ai";
 import { controlNodeTypes as _controlNodeTypes } from "./control";
+import { humanNodeTypes as _humanNodeTypes } from "./human";
+import { transformNodeTypes as _transformNodeTypes } from "./transform";
 
 export function createAllNodeTypes() {
   return {
     ..._controlNodeTypes,
     ..._aiNodeTypes,
+    ..._transformNodeTypes,
+    ..._humanNodeTypes,
   };
 }
