@@ -1,14 +1,14 @@
 import { z } from "zod";
 
 export const ExecutionStatusSchema = z.enum([
-  "pending",
-  "running",
-  "waiting_approval",
-  "waiting_input",
-  "completed",
-  "failed",
-  "cancelled",
-  "timed_out",
+  "PENDING",
+  "RUNNING",
+  "WAITING_APPROVAL",
+  "WAITING_INPUT",
+  "COMPLETED",
+  "FAILED",
+  "CANCELLED",
+  "TIMED_OUT",
 ]);
 
 export type ExecutionStatus = z.infer<typeof ExecutionStatusSchema>;

@@ -70,14 +70,14 @@ describe("canvas type schemas", () => {
   describe("ExecutionStatusSchema", () => {
     it("accepts all valid statuses", () => {
       const statuses: ExecutionStatus[] = [
-        "pending",
-        "running",
-        "waiting_approval",
-        "waiting_input",
-        "completed",
-        "failed",
-        "cancelled",
-        "timed_out",
+        "PENDING",
+        "RUNNING",
+        "WAITING_APPROVAL",
+        "WAITING_INPUT",
+        "COMPLETED",
+        "FAILED",
+        "CANCELLED",
+        "TIMED_OUT",
       ];
       for (const status of statuses) {
         expect(ExecutionStatusSchema.parse(status)).toBe(status);

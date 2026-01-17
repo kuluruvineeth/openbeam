@@ -151,11 +151,12 @@ const createCanvasStoreSlice: StateCreator<
     }),
 
   hydrate: (persisted) =>
-    set((state) => ({
-      ...state,
-      ...persisted,
-      isHydrated: true,
-    })),
+    set((state) => {
+      if (persisted) {
+        Object.assign(state, persisted);
+      }
+      state.isHydrated = true;
+    }),
 
   reset: () => set(initialState),
 });
