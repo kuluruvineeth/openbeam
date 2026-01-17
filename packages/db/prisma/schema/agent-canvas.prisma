@@ -33,7 +33,7 @@ model AgentCanvas {
   teamId        String
   team          Team                @relation(fields: [teamId], references: [id], onDelete: Cascade)
   createdById   String
-  createdBy     User                @relation("AgentCanvasCreator", fields: [createdById], references: [id])
+  createdBy     User                @relation("AgentCanvasCreator", fields: [createdById], references: [id], onDelete: Restrict)
 
   versions      AgentCanvasVersion[]
   executions    AgentCanvasExecution[]
@@ -62,6 +62,7 @@ model AgentCanvasVersion {
 
   changelog     String?
   createdById   String
+  createdBy     User          @relation("AgentCanvasVersionCreator", fields: [createdById], references: [id], onDelete: Restrict)
 
   createdAt     DateTime      @default(now())
 
@@ -193,8 +194,9 @@ model AgentCanvasTemplate {
   isPublic            Boolean   @default(false)
 
   teamId              String?
-  team                Team?     @relation(fields: [teamId], references: [id])
+  team                Team?     @relation(fields: [teamId], references: [id], onDelete: SetNull)
   createdById         String
+  createdBy           User      @relation("AgentCanvasTemplateCreator", fields: [createdById], references: [id], onDelete: Restrict)
 
   usageCount          Int       @default(0)
 

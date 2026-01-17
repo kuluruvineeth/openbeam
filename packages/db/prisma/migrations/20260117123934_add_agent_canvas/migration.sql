@@ -202,3 +202,9 @@ ALTER TABLE "agent_canvas_approval" ADD CONSTRAINT "agent_canvas_approval_respon
 
 -- AddForeignKey
 ALTER TABLE "agent_canvas_template" ADD CONSTRAINT "agent_canvas_template_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "team"("_id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "agent_canvas_version" ADD CONSTRAINT "agent_canvas_version_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "user"("_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "agent_canvas_template" ADD CONSTRAINT "agent_canvas_template_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "user"("_id") ON DELETE RESTRICT ON UPDATE CASCADE;
