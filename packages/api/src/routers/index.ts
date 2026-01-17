@@ -1,6 +1,7 @@
 import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import { createTRPCRouter } from "../index";
 
+import { agentCanvasRouter } from "./agent-canvas";
 import { aiRouter } from "./ai";
 import { analyticsRouter } from "./analytics";
 import { appsRouter } from "./apps";
@@ -19,22 +20,23 @@ import { teamRouter } from "./team";
 import { userRouter } from "./user";
 
 export const appRouter = createTRPCRouter({
-  team: teamRouter,
-  user: userRouter,
-  apps: appsRouter,
-  search: searchRouter,
-  files: filesRouter,
-  media: mediaRouter,
-  jobs: jobsRouter,
-  messages: messagesRouter,
+  agentCanvas: agentCanvasRouter,
+  ai: aiRouter,
   analytics: analyticsRouter,
+  apps: appsRouter,
+  backgroundAgents: backgroundAgentsRouter,
+  files: filesRouter,
+  jobs: jobsRouter,
   knowledge: knowledgeRouter,
+  media: mediaRouter,
+  messages: messagesRouter,
   overview: overviewRouter,
   permissions: permissionsRouter,
   personalization: personalizationRouter,
   rag: ragRouter,
-  backgroundAgents: backgroundAgentsRouter,
-  ai: aiRouter,
+  search: searchRouter,
+  team: teamRouter,
+  user: userRouter,
 });
 
 export type AppRouter = typeof appRouter;
