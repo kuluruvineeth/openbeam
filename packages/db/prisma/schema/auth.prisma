@@ -17,6 +17,9 @@ model User {
   groupMemberships      GroupMembership[]
   connectorScopes       ConnectorScope[]
   feedback              UserFeedback[]
+  createdAgentCanvases  AgentCanvas[]          @relation("AgentCanvasCreator")
+  executedAgentCanvases AgentCanvasExecution[] @relation("AgentCanvasExecutor")
+  agentCanvasApprovals  AgentCanvasApproval[]  @relation("AgentCanvasApprover")
 
   @@unique([email])
   @@index([teamId])
