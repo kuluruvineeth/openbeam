@@ -8,3 +8,4 @@ export { CanvasMinimap, type CanvasMinimapProps } from "./canvas-minimap";
 export { CanvasToolbar, type CanvasToolbarProps } from "./canvas-toolbar";
 export * from "./edges";
 export * from "./nodes";
+export * from "./panels";
