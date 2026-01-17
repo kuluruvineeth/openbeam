@@ -54,22 +54,41 @@ export function updateAgentCanvas(
     triggerConfig?: unknown;
   }
 ) {
-  return db.agentCanvas.updateMany({
-    where: { id, teamId },
-    data: {
-      ...(data.name !== undefined && { name: data.name }),
-      ...(data.description !== undefined && { description: data.description }),
-      ...(data.icon !== undefined && { icon: data.icon }),
-      ...(data.nodes !== undefined && { nodes: data.nodes as never }),
-      ...(data.edges !== undefined && { edges: data.edges as never }),
-      ...(data.viewport !== undefined && { viewport: data.viewport as never }),
-      ...(data.settings !== undefined && { settings: data.settings as never }),
-      ...(data.triggerType !== undefined && { triggerType: data.triggerType }),
-      ...(data.triggerConfig !== undefined && {
-        triggerConfig: data.triggerConfig as never,
-      }),
-      updatedAt: new Date(),
-    },
+  return db.$transaction(async (tx) => {
+    const canvas = await tx.agentCanvas.findFirst({
+      where: { id, teamId },
+      select: { id: true },
+    });
+
+    if (!canvas) {
+      throw new Error("Agent canvas not found");
+    }
+
+    return tx.agentCanvas.update({
+      where: { id: canvas.id },
+      data: {
+        ...(data.name !== undefined && { name: data.name }),
+        ...(data.description !== undefined && {
+          description: data.description,
+        }),
+        ...(data.icon !== undefined && { icon: data.icon }),
+        ...(data.nodes !== undefined && { nodes: data.nodes as never }),
+        ...(data.edges !== undefined && { edges: data.edges as never }),
+        ...(data.viewport !== undefined && {
+          viewport: data.viewport as never,
+        }),
+        ...(data.settings !== undefined && {
+          settings: data.settings as never,
+        }),
+        ...(data.triggerType !== undefined && {
+          triggerType: data.triggerType,
+        }),
+        ...(data.triggerConfig !== undefined && {
+          triggerConfig: data.triggerConfig as never,
+        }),
+        updatedAt: new Date(),
+      },
+    });
   });
 }
 
@@ -113,9 +132,20 @@ export function publishAgentCanvas(
 }
 
 export function archiveAgentCanvas(db: Database, id: string, teamId: string) {
-  return db.agentCanvas.updateMany({
-    where: { id, teamId },
-    data: { status: "ARCHIVED" },
+  return db.$transaction(async (tx) => {
+    const canvas = await tx.agentCanvas.findFirst({
+      where: { id, teamId },
+      select: { id: true },
+    });
+
+    if (!canvas) {
+      throw new Error("Agent canvas not found");
+    }
+
+    return tx.agentCanvas.update({
+      where: { id: canvas.id },
+      data: { status: "ARCHIVED" },
+    });
   });
 }
 
