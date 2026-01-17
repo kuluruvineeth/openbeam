@@ -94,13 +94,16 @@ export function updateAgentCanvas(
 
 export function publishAgentCanvas(
   db: Database,
-  id: string,
-  teamId: string,
-  changelog?: string
+  data: {
+    id: string;
+    teamId: string;
+    publishedById: string;
+    changelog?: string;
+  }
 ) {
   return db.$transaction(async (tx) => {
     const canvas = await tx.agentCanvas.findFirst({
-      where: { id, teamId },
+      where: { id: data.id, teamId: data.teamId },
     });
 
     if (!canvas) {
@@ -109,19 +112,19 @@ export function publishAgentCanvas(
 
     await tx.agentCanvasVersion.create({
       data: {
-        agentCanvasId: id,
+        agentCanvasId: data.id,
         version: canvas.version,
         nodes: canvas.nodes as never,
         edges: canvas.edges as never,
         viewport: canvas.viewport as never,
         settings: canvas.settings as never,
-        changelog,
-        createdById: canvas.createdById,
+        changelog: data.changelog,
+        createdById: data.publishedById,
       },
     });
 
     return tx.agentCanvas.update({
-      where: { id },
+      where: { id: data.id },
       data: {
         status: "PUBLISHED",
         version: { increment: 1 },
@@ -295,20 +298,37 @@ export function createAgentCanvasApproval(
 export function respondToApproval(
   db: Database,
   id: string,
+  teamId: string,
   data: {
     status: AgentCanvasApprovalStatus;
     responseMessage?: string;
     respondedById: string;
   }
 ) {
-  return db.agentCanvasApproval.update({
-    where: { id },
-    data: {
-      status: data.status,
-      responseMessage: data.responseMessage,
-      respondedById: data.respondedById,
-      respondedAt: new Date(),
-    },
+  return db.$transaction(async (tx) => {
+    const approval = await tx.agentCanvasApproval.findFirst({
+      where: {
+        id,
+        execution: {
+          agentCanvas: { teamId },
+        },
+      },
+      select: { id: true },
+    });
+
+    if (!approval) {
+      throw new Error("Agent canvas approval not found");
+    }
+
+    return tx.agentCanvasApproval.update({
+      where: { id: approval.id },
+      data: {
+        status: data.status,
+        responseMessage: data.responseMessage,
+        respondedById: data.respondedById,
+        respondedAt: new Date(),
+      },
+    });
   });
 }
 

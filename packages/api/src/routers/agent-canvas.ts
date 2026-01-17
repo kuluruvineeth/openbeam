@@ -191,12 +191,12 @@ export const agentCanvasRouter = createTRPCRouter({
     .input(publishCanvasSchema)
     .mutation(async ({ ctx, input }) => {
       await verifyCanvasAccess(ctx.prisma, input.canvasId, ctx.teamId);
-      return publishAgentCanvas(
-        ctx.prisma,
-        input.canvasId,
-        ctx.teamId,
-        input.changelog
-      );
+      return publishAgentCanvas(ctx.prisma, {
+        id: input.canvasId,
+        teamId: ctx.teamId,
+        publishedById: ctx.session.user.id,
+        changelog: input.changelog,
+      });
     }),
 
   archive: withAdminRole
@@ -305,7 +305,7 @@ export const agentCanvasRouter = createTRPCRouter({
   respondToApproval: withActiveTeam
     .input(approvalResponseSchema)
     .mutation(async ({ ctx, input }) =>
-      respondToApproval(ctx.prisma, input.approvalId, {
+      respondToApproval(ctx.prisma, input.approvalId, ctx.teamId, {
         status: input.status,
         responseMessage: input.responseMessage,
         respondedById: ctx.session.user.id,
