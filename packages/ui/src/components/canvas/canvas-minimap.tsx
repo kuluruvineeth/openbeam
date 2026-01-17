@@ -35,6 +35,10 @@ function getNodeColor(node: Node): string {
       return "rgb(244, 63, 94)";
     case "classify":
       return "rgb(236, 72, 153)";
+    case "transform":
+      return "rgb(249, 115, 22)";
+    case "filter":
+      return "rgb(234, 179, 8)";
     case "code":
       return "rgb(245, 158, 11)";
     case "template":
@@ -43,8 +47,14 @@ function getNodeColor(node: Node): string {
       return "rgb(34, 197, 94)";
     case "input":
       return "rgb(6, 182, 212)";
+    case "notify":
+      return "rgb(168, 85, 247)";
     case "annotation":
       return "rgb(107, 114, 128)";
+    case "connector":
+      return "rgb(16, 185, 129)";
+    case "tool":
+      return "rgb(99, 102, 241)";
     default:
       return "rgb(107, 114, 128)";
   }

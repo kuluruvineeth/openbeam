@@ -13,6 +13,8 @@ import type {
 } from "@xyflow/react";
 import {
   addEdge,
+  applyEdgeChanges,
+  applyNodeChanges,
   ConnectionMode,
   ReactFlow,
   ReactFlowProvider,
@@ -67,8 +69,8 @@ function AgentCanvasInner({
   className,
 }: AgentCanvasProps) {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [nodes, setNodes] = useNodesState(initialNodes);
+  const [edges, setEdges] = useEdgesState(initialEdges);
 
   const mergedNodeTypes = useMemo(
     () => nodeTypes ?? createAllNodeTypes(),
@@ -82,18 +84,24 @@ function AgentCanvasInner({
 
   const handleNodesChange: OnNodesChange = useCallback(
     (changes) => {
-      onNodesChange(changes);
-      onNodesChangeCallback?.(nodes);
+      setNodes((currentNodes) => {
+        const nextNodes = applyNodeChanges(changes, currentNodes);
+        onNodesChangeCallback?.(nextNodes);
+        return nextNodes;
+      });
     },
-    [onNodesChange, nodes, onNodesChangeCallback]
+    [setNodes, onNodesChangeCallback]
   );
 
   const handleEdgesChange: OnEdgesChange = useCallback(
     (changes) => {
-      onEdgesChange(changes);
-      onEdgesChangeCallback?.(edges);
+      setEdges((currentEdges) => {
+        const nextEdges = applyEdgeChanges(changes, currentEdges);
+        onEdgesChangeCallback?.(nextEdges);
+        return nextEdges;
+      });
     },
-    [onEdgesChange, edges, onEdgesChangeCallback]
+    [setEdges, onEdgesChangeCallback]
   );
 
   const handleConnect: OnConnect = useCallback(
