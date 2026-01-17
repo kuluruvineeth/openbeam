@@ -119,13 +119,10 @@ export function publishAgentCanvas(
       },
     });
 
-    const versionIncrement = 1;
-    const publishedVersion = updatedCanvas.version - versionIncrement;
-
     await tx.agentCanvasVersion.create({
       data: {
         agentCanvasId: id,
-        version: publishedVersion,
+        version: updatedCanvas.version,
         nodes: canvas.nodes as never,
         edges: canvas.edges as never,
         viewport: canvas.viewport as never,
