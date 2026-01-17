@@ -151,6 +151,7 @@
   --openplane-orange: oklch(70% 0.16 45);
   --openplane-green: oklch(72% 0.14 160);
 
+  --surface: var(--background);
   --surface-foreground: var(--foreground);
   --code: var(--surface);
   --code-foreground: var(--surface-foreground);

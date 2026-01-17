@@ -102,7 +102,7 @@ model AgentCanvasExecution {
   latencyMs       Int?
 
   triggeredById   String
-  triggeredBy     User                        @relation("AgentCanvasExecutor", fields: [triggeredById], references: [id])
+  triggeredBy     User                        @relation("AgentCanvasExecutor", fields: [triggeredById], references: [id], onDelete: Restrict)
   triggerSource   String?
 
   startedAt       DateTime?
@@ -169,7 +169,7 @@ model AgentCanvasApproval {
   expiresAt       DateTime?
 
   respondedById   String?
-  respondedBy     User?                       @relation("AgentCanvasApprover", fields: [respondedById], references: [id])
+  respondedBy     User?                       @relation("AgentCanvasApprover", fields: [respondedById], references: [id], onDelete: SetNull)
 
   @@index([executionId])
   @@index([status])
