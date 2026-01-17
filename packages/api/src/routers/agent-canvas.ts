@@ -191,9 +191,7 @@ export const agentCanvasRouter = createTRPCRouter({
     .input(publishCanvasSchema)
     .mutation(async ({ ctx, input }) => {
       await verifyCanvasAccess(ctx.prisma, input.canvasId, ctx.teamId);
-      return publishAgentCanvas(ctx.prisma, {
-        id: input.canvasId,
-        teamId: ctx.teamId,
+      return publishAgentCanvas(ctx.prisma, input.canvasId, ctx.teamId, {
         publishedById: ctx.session.user.id,
         changelog: input.changelog,
       });

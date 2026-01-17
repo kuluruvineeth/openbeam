@@ -94,16 +94,16 @@ export function updateAgentCanvas(
 
 export function publishAgentCanvas(
   db: Database,
-  data: {
-    id: string;
-    teamId: string;
+  id: string,
+  teamId: string,
+  options: {
     publishedById: string;
     changelog?: string;
   }
 ) {
   return db.$transaction(async (tx) => {
     const canvas = await tx.agentCanvas.findFirst({
-      where: { id: data.id, teamId: data.teamId },
+      where: { id, teamId },
     });
 
     if (!canvas) {
@@ -112,19 +112,19 @@ export function publishAgentCanvas(
 
     await tx.agentCanvasVersion.create({
       data: {
-        agentCanvasId: data.id,
+        agentCanvasId: id,
         version: canvas.version,
         nodes: canvas.nodes as never,
         edges: canvas.edges as never,
         viewport: canvas.viewport as never,
         settings: canvas.settings as never,
-        changelog: data.changelog,
-        createdById: data.publishedById,
+        changelog: options.changelog,
+        createdById: options.publishedById,
       },
     });
 
     return tx.agentCanvas.update({
-      where: { id: data.id },
+      where: { id },
       data: {
         status: "PUBLISHED",
         version: { increment: 1 },

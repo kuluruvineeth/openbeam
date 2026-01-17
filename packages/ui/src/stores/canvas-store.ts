@@ -177,7 +177,7 @@ function createCanvasZustandStorage(adapter: StorageAdapter) {
     },
     setItem: (name, value) => {
       const parsed = JSON.parse(value) as CanvasStorePersisted;
-      adapter.setItem(name, parsed as Record<string, unknown>);
+      return adapter.setItem(name, parsed as Record<string, unknown>);
     },
     removeItem: (name) => {
       adapter.removeItem(name);
@@ -217,7 +217,25 @@ export function createCanvasStore(config: CanvasStoreConfig = {}) {
   );
 }
 
-export const useCanvasStore = createCanvasStore();
+type CanvasStoreHook = ReturnType<typeof createCanvasStore>;
+
+let sharedCanvasStore: CanvasStoreHook | null = null;
+
+function getCanvasStore() {
+  if (typeof window === "undefined") {
+    return createCanvasStore();
+  }
+
+  if (!sharedCanvasStore) {
+    sharedCanvasStore = createCanvasStore();
+  }
+
+  return sharedCanvasStore;
+}
+
+export const useCanvasStore: CanvasStoreHook = ((
+  ...args: Parameters<CanvasStoreHook>
+) => getCanvasStore()(...args)) as CanvasStoreHook;
 
 export const useCanvasNodes = () => useCanvasStore((s) => s.nodes);
 export const useCanvasEdges = () => useCanvasStore((s) => s.edges);
