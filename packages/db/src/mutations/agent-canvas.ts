@@ -110,10 +110,22 @@ export function publishAgentCanvas(
       throw new Error("Agent canvas not found");
     }
 
+    const updatedCanvas = await tx.agentCanvas.update({
+      where: { id },
+      data: {
+        status: "PUBLISHED",
+        version: { increment: 1 },
+        publishedAt: new Date(),
+      },
+    });
+
+    const versionIncrement = 1;
+    const publishedVersion = updatedCanvas.version - versionIncrement;
+
     await tx.agentCanvasVersion.create({
       data: {
         agentCanvasId: id,
-        version: canvas.version,
+        version: publishedVersion,
         nodes: canvas.nodes as never,
         edges: canvas.edges as never,
         viewport: canvas.viewport as never,
@@ -123,14 +135,7 @@ export function publishAgentCanvas(
       },
     });
 
-    return tx.agentCanvas.update({
-      where: { id },
-      data: {
-        status: "PUBLISHED",
-        version: { increment: 1 },
-        publishedAt: new Date(),
-      },
-    });
+    return updatedCanvas;
   });
 }
 
