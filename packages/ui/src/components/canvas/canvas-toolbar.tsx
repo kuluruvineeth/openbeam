@@ -56,6 +56,7 @@ export interface CanvasToolbarProps {
   onToggleSnapToGrid?: () => void;
   onAddNode?: (type: string) => void;
   onToolChange?: (tool: CanvasTool) => void;
+  onClipboardError?: (error: unknown) => void;
 }
 
 interface ToolButtonProps {
@@ -108,6 +109,7 @@ export const CanvasToolbar = memo(function CanvasToolbarComponent({
   onToggleSnapToGrid,
   onAddNode,
   onToolChange,
+  onClipboardError,
 }: CanvasToolbarProps) {
   const reactFlow = useReactFlow();
   const [activeTool, setActiveTool] = useState<CanvasTool>("select");
@@ -144,30 +146,34 @@ export const CanvasToolbar = memo(function CanvasToolbarComponent({
     }
   }, [selectedNodeIds, onDuplicate]);
 
-  const handleCopy = useCallback(() => {
+  const handleCopy = useCallback(async () => {
     const nodes = reactFlow
       .getNodes()
       .filter((n) => selectedNodeIds.includes(n.id));
     if (nodes.length > 0) {
-      navigator.clipboard.writeText(JSON.stringify(nodes));
+      try {
+        await navigator.clipboard.writeText(JSON.stringify(nodes));
+      } catch (error) {
+        onClipboardError?.(error);
+      }
     }
-  }, [reactFlow, selectedNodeIds]);
+  }, [reactFlow, selectedNodeIds, onClipboardError]);
 
   const handlePaste = useCallback(async () => {
     try {
       const text = await navigator.clipboard.readText();
       JSON.parse(text);
-    } catch {
-      // Invalid clipboard content
+    } catch (error) {
+      onClipboardError?.(error);
     }
-  }, []);
+  }, [onClipboardError]);
 
   const hasSelection = selectedNodeIds.length > 0;
 
   return (
     <div
       className={cn(
-        "flex items-center gap-1 rounded-lg border bg-background/95 p-1 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-background/60",
+        "flex items-center gap-1 rounded-lg border bg-background/95 p-1 shadow-lg backdrop-blur supports-backdrop-filter:bg-background/60",
         className
       )}
     >

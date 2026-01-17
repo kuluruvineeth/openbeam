@@ -168,19 +168,16 @@ interface CanvasStoreConfig {
 
 function createCanvasZustandStorage(adapter: StorageAdapter) {
   return createJSONStorage<CanvasStorePersisted>(() => ({
-    getItem: (name) => {
-      const result = adapter.getItem(name);
-      if (result instanceof Promise) {
-        return result.then((v) => (v ? JSON.stringify(v) : null));
-      }
+    getItem: async (name) => {
+      const result = await adapter.getItem(name);
       return result ? JSON.stringify(result) : null;
     },
-    setItem: (name, value) => {
+    setItem: async (name, value) => {
       const parsed = JSON.parse(value) as CanvasStorePersisted;
-      return adapter.setItem(name, parsed as Record<string, unknown>);
+      await adapter.setItem(name, parsed as Record<string, unknown>);
     },
-    removeItem: (name) => {
-      adapter.removeItem(name);
+    removeItem: async (name) => {
+      await adapter.removeItem(name);
     },
   }));
 }

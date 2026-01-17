@@ -67,6 +67,8 @@ export type {
   InputNodeData,
   InputOption,
   InputType,
+  NotifyNodeConfig,
+  NotifyNodeData,
 } from "./human";
 export {
   AnnotationNode,
@@ -74,19 +76,25 @@ export {
   createAnnotationNodeData,
   createApprovalNodeData,
   createInputNodeData,
+  createNotifyNodeData,
   humanNodeTypes,
   InputNode,
+  NotifyNode,
 } from "./human";
 export type {
   CodeNodeConfig,
   CodeNodeData,
+  FilterNodeConfig,
+  FilterNodeData,
   TemplateNodeConfig,
   TemplateNodeData,
 } from "./transform";
 export {
   CodeNode,
   createCodeNodeData,
+  createFilterNodeData,
   createTemplateNodeData,
+  FilterNode,
   TemplateNode,
   transformNodeTypes,
 } from "./transform";

@@ -37,6 +37,21 @@ const DEFAULT_EDGE_OPTIONS = {
   animated: false,
 };
 
+const ID_COUNTER_LIMIT = 1_000_000;
+let lastIdTimestamp = 0;
+let idCounter = 0;
+
+function createUniqueId(prefix: string) {
+  const timestamp = Date.now();
+  if (timestamp !== lastIdTimestamp) {
+    lastIdTimestamp = timestamp;
+    idCounter = 0;
+  } else {
+    idCounter = (idCounter + 1) % ID_COUNTER_LIMIT;
+  }
+  return `${prefix}-${timestamp}-${idCounter}`;
+}
+
 export interface AgentCanvasProps {
   initialNodes?: Node[];
   initialEdges?: Edge[];
@@ -121,7 +136,7 @@ function AgentCanvasInner({
 
       const newEdge: Edge = {
         ...connection,
-        id: `edge-${connection.source}-${connection.target}-${Date.now()}`,
+        id: createUniqueId(`edge-${connection.source}-${connection.target}`),
         type: edgeType,
       } as Edge;
 
@@ -160,7 +175,7 @@ function AgentCanvasInner({
       };
 
       const newNode: Node = {
-        id: `${type}-${Date.now()}`,
+        id: createUniqueId(type),
         type,
         position,
         data: { label: `New ${type}` },
