@@ -58,6 +58,42 @@
   --color-code-number: var(--code-number);
   --color-selection: var(--selection);
   --color-selection-foreground: var(--selection-foreground);
+
+  --color-node-start: var(--node-start);
+  --color-node-end: var(--node-end);
+  --color-node-condition: var(--node-condition);
+  --color-node-loop: var(--node-loop);
+  --color-node-parallel: var(--node-parallel);
+  --color-node-llm: var(--node-llm);
+  --color-node-rag: var(--node-rag);
+  --color-node-summarize: var(--node-summarize);
+  --color-node-extract: var(--node-extract);
+  --color-node-classify: var(--node-classify);
+  --color-node-transform: var(--node-transform);
+  --color-node-approval: var(--node-approval);
+  --color-node-input: var(--node-input);
+  --color-node-connector: var(--node-connector);
+  --color-node-tool: var(--node-tool);
+  --color-node-filter: var(--node-filter);
+  --color-node-template: var(--node-template);
+  --color-node-script: var(--node-script);
+  --color-node-notify: var(--node-notify);
+
+  --color-canvas-success: var(--canvas-success);
+  --color-canvas-error: var(--canvas-error);
+  --color-canvas-warning: var(--canvas-warning);
+  --color-canvas-running: var(--canvas-running);
+
+  --color-connector-communication: var(--connector-communication);
+  --color-connector-productivity: var(--connector-productivity);
+  --color-connector-development: var(--connector-development);
+  --color-connector-storage: var(--connector-storage);
+  --color-connector-crm: var(--connector-crm);
+  --color-connector-support: var(--connector-support);
+  --color-connector-marketing: var(--connector-marketing);
+  --color-connector-analytics: var(--connector-analytics);
+  --color-connector-hr: var(--connector-hr);
+  --color-connector-finance: var(--connector-finance);
 }
 
 :root {
@@ -122,6 +158,42 @@
   --code-number: oklch(0.56 0 0);
   --selection: oklch(0.145 0 0);
   --selection-foreground: oklch(1 0 0);
+
+  --node-start: oklch(72% 0.18 145);
+  --node-end: oklch(65% 0.2 25);
+  --node-condition: oklch(75% 0.16 85);
+  --node-loop: oklch(70% 0.15 195);
+  --node-parallel: oklch(65% 0.2 285);
+  --node-llm: oklch(65% 0.2 285);
+  --node-rag: oklch(60% 0.18 265);
+  --node-summarize: oklch(70% 0.15 175);
+  --node-extract: oklch(70% 0.18 55);
+  --node-classify: oklch(70% 0.18 340);
+  --node-transform: oklch(72% 0.16 130);
+  --node-approval: oklch(68% 0.18 25);
+  --node-input: oklch(75% 0.16 55);
+  --node-connector: oklch(60% 0.15 230);
+  --node-tool: oklch(62% 0.18 265);
+  --node-filter: oklch(68% 0.16 200);
+  --node-template: oklch(72% 0.16 130);
+  --node-script: oklch(55% 0.08 240);
+  --node-notify: oklch(65% 0.18 235);
+
+  --canvas-success: oklch(72% 0.18 145);
+  --canvas-error: oklch(65% 0.2 25);
+  --canvas-warning: oklch(75% 0.16 85);
+  --canvas-running: oklch(65% 0.18 250);
+
+  --connector-communication: oklch(65% 0.15 230);
+  --connector-productivity: oklch(68% 0.14 155);
+  --connector-development: oklch(62% 0.18 285);
+  --connector-storage: oklch(72% 0.16 60);
+  --connector-crm: oklch(68% 0.18 340);
+  --connector-support: oklch(68% 0.14 175);
+  --connector-marketing: oklch(65% 0.18 295);
+  --connector-analytics: oklch(62% 0.16 240);
+  --connector-hr: oklch(70% 0.18 45);
+  --connector-finance: oklch(68% 0.14 145);
 }
 
 .dark {
@@ -180,6 +252,42 @@
   --code-number: oklch(0.72 0 0);
   --selection: oklch(0.922 0 0);
   --selection-foreground: oklch(0.205 0 0);
+
+  --node-start: oklch(78% 0.14 145);
+  --node-end: oklch(72% 0.16 25);
+  --node-condition: oklch(80% 0.12 85);
+  --node-loop: oklch(76% 0.12 195);
+  --node-parallel: oklch(72% 0.16 285);
+  --node-llm: oklch(72% 0.16 285);
+  --node-rag: oklch(68% 0.14 265);
+  --node-summarize: oklch(76% 0.12 175);
+  --node-extract: oklch(76% 0.14 55);
+  --node-classify: oklch(76% 0.14 340);
+  --node-transform: oklch(78% 0.12 130);
+  --node-approval: oklch(74% 0.14 25);
+  --node-input: oklch(80% 0.12 55);
+  --node-connector: oklch(68% 0.12 230);
+  --node-tool: oklch(70% 0.14 265);
+  --node-filter: oklch(74% 0.12 200);
+  --node-template: oklch(78% 0.12 130);
+  --node-script: oklch(62% 0.06 240);
+  --node-notify: oklch(72% 0.14 235);
+
+  --canvas-success: oklch(78% 0.14 145);
+  --canvas-error: oklch(72% 0.16 25);
+  --canvas-warning: oklch(80% 0.12 85);
+  --canvas-running: oklch(72% 0.14 250);
+
+  --connector-communication: oklch(72% 0.12 230);
+  --connector-productivity: oklch(74% 0.11 155);
+  --connector-development: oklch(70% 0.14 285);
+  --connector-storage: oklch(78% 0.12 60);
+  --connector-crm: oklch(74% 0.14 340);
+  --connector-support: oklch(74% 0.11 175);
+  --connector-marketing: oklch(72% 0.14 295);
+  --connector-analytics: oklch(70% 0.12 240);
+  --connector-hr: oklch(76% 0.14 45);
+  --connector-finance: oklch(74% 0.11 145);
 }
 
 @layer base {
