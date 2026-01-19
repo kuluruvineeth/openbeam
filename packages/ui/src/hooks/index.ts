@@ -15,6 +15,7 @@ export type {
 export { useAgentStream } from "./use-agent-stream";
 export { useAutoCollapse } from "./use-auto-collapse";
 export { useAutoScroll } from "./use-auto-scroll";
+export { useDebounce } from "./use-debounce";
 export type {
   AgentEvent,
   EventGroup,

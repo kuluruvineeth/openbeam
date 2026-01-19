@@ -350,6 +350,30 @@ export {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "./dropdown-menu";
+export type {
+  AiFilterInputProps,
+  FilterChip,
+  FilterChipsProps,
+  FilterChipType,
+  FilterOption,
+  FilterPanelProps,
+  FilterSection,
+  FilterSuggestion,
+  FilterValues,
+  ParsedFilters,
+  SavedFilter,
+  SavedFiltersProps,
+  SmartFilterSuggestionsProps,
+  UseFilterChipsOptions,
+} from "./filters";
+export {
+  AiFilterInput,
+  FilterChips,
+  FilterPanel,
+  SavedFilters,
+  SmartFilterSuggestions,
+  useFilterChips,
+} from "./filters";
 export {
   Form,
   FormControl,
