@@ -1,88 +1,87 @@
 "use client";
 
+import type {
+  NodeStatus,
+  ParallelJoinNodeConfig,
+  Port,
+} from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
-import { Handle, Position } from "@xyflow/react";
+import { Position } from "@xyflow/react";
 import { Merge } from "lucide-react";
-import { forwardRef, memo } from "react";
-import { cn } from "../../../../utils";
-import type { NodePortDefinition } from "../base-node";
-
-export interface ParallelJoinNodeConfig {
-  branches: number;
-  joinType: "all" | "any" | "race";
-  timeout?: number;
-}
+import { forwardRef, memo, useMemo } from "react";
+import { NodeField, NodeHeader, NodeSection, NodeShell } from "../primitives";
 
 export interface ParallelJoinNodeData {
   label: string;
   config: ParallelJoinNodeConfig;
-  inputs: NodePortDefinition[];
-  outputs: NodePortDefinition[];
+  inputs?: Port[];
+  outputs?: Port[];
+  status?: NodeStatus;
   [key: string]: unknown;
 }
 
 type ParallelJoinNodeType = Node<ParallelJoinNodeData, "parallel_join">;
 
+const JOIN_LABELS: Record<string, string> = {
+  all: "Wait for all",
+  any: "Wait for any",
+  race: "First wins",
+};
+
 export const ParallelJoinNode = memo(
   forwardRef<HTMLDivElement, NodeProps<ParallelJoinNodeType>>(
     function ParallelJoinNodeComponent({ data, selected }, ref) {
       const branchCount = data.config.branches || 2;
-      const joinLabels: Record<string, string> = {
-        all: "Wait for all",
-        any: "Wait for any",
-        race: "First wins",
-      };
+
+      const handles = useMemo(() => {
+        const result: Array<{
+          id?: string;
+          type: "source" | "target";
+          position: Position;
+          offset?: string;
+        }> = [];
+
+        for (let i = 0; i < branchCount; i++) {
+          const offset = `${((i + 1) / (branchCount + 1)) * 100}%`;
+          result.push({
+            id: `branch-${i}`,
+            type: "target",
+            position: Position.Left,
+            offset,
+          });
+        }
+        result.push({ type: "source", position: Position.Right });
+        return result;
+      }, [branchCount]);
 
       return (
-        <div
-          className={cn(
-            "flex min-w-[180px] flex-col rounded-sm border border-cyan-500/50 bg-cyan-500/5 shadow-sm",
-            selected && "ring-2 ring-primary ring-offset-1"
-          )}
+        <NodeShell
+          handles={handles}
           ref={ref}
+          selected={selected}
+          status={data.status}
         >
-          {data.inputs?.map((input, idx) => {
-            const position = ((idx + 1) / (branchCount + 1)) * 100;
-            return (
-              <Handle
-                className="h-3! w-3! border-2! border-background! bg-cyan-500!"
-                id={input.id}
-                key={input.id}
-                position={Position.Left}
-                style={{ top: `${position}%` }}
-                type="target"
-              />
-            );
-          })}
-
-          <div className="flex items-center gap-2 rounded-t-sm bg-cyan-500/10 px-3 py-2">
-            <div className="flex h-6 w-6 items-center justify-center text-cyan-500">
-              <Merge className="h-4 w-4" />
-            </div>
-            <span className="font-medium text-sm">Parallel Join</span>
-          </div>
-
-          <div className="border-border/50 border-t px-3 py-2">
-            <div className="text-muted-foreground text-xs">
-              {joinLabels[data.config.joinType]}
-            </div>
-            {data.config.timeout && (
-              <div className="mt-1 text-muted-foreground/70 text-xs">
-                Timeout: {data.config.timeout}ms
-              </div>
-            )}
-          </div>
-
-          <Handle
-            className="h-3! w-3! border-2! border-background! bg-cyan-500!"
-            position={Position.Right}
-            type="source"
+          <NodeHeader
+            colorVar="--node-parallel"
+            icon={<Merge className="size-5" />}
+            subtitle={JOIN_LABELS[data.config.joinType]}
+            title={data.label}
           />
-        </div>
+          {data.config.timeout && (
+            <NodeSection>
+              <NodeField
+                label="Timeout"
+                mono
+                value={`${data.config.timeout}ms`}
+              />
+            </NodeSection>
+          )}
+        </NodeShell>
       );
     }
   )
 );
+
 ParallelJoinNode.displayName = "ParallelJoinNode";
 
 export function createParallelJoinNodeData(branches = 2): ParallelJoinNodeData {

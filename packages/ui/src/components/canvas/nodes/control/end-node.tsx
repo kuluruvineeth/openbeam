@@ -1,70 +1,53 @@
 "use client";
 
+import type { EndNodeConfig, NodeStatus, Port } from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
-import { Handle, Position } from "@xyflow/react";
+import { Position } from "@xyflow/react";
 import { Square } from "lucide-react";
 import { forwardRef, memo } from "react";
-import { cn } from "../../../../utils";
-import type { NodePortDefinition } from "../base-node";
-
-export interface EndNodeConfig {
-  outputType: "result" | "notification" | "webhook" | "none";
-  webhookUrl?: string;
-  notificationChannel?: string;
-}
+import { NodeHeader, NodeShell } from "../primitives";
 
 export interface EndNodeData {
   label: string;
   config: EndNodeConfig;
-  inputs: NodePortDefinition[];
-  outputs: NodePortDefinition[];
+  inputs?: Port[];
+  outputs?: Port[];
+  status?: NodeStatus;
   [key: string]: unknown;
 }
 
 type EndNodeType = Node<EndNodeData, "end">;
+
+const OUTPUT_LABELS: Record<string, string> = {
+  result: "Return Result",
+  notification: "Send Notification",
+  webhook: "Call Webhook",
+  none: "No Output",
+};
 
 export const EndNode = memo(
   forwardRef<HTMLDivElement, NodeProps<EndNodeType>>(function EndNodeComponent(
     { data, selected },
     ref
   ) {
-    const outputLabels: Record<string, string> = {
-      result: "Return Result",
-      notification: "Send Notification",
-      webhook: "Call Webhook",
-      none: "No Output",
-    };
-
     return (
-      <div
-        className={cn(
-          "flex min-w-[160px] flex-col rounded-sm border border-red-500/50 bg-red-500/5 shadow-sm",
-          selected && "ring-2 ring-primary ring-offset-1"
-        )}
+      <NodeShell
+        handles={[{ type: "target", position: Position.Left }]}
         ref={ref}
+        selected={selected}
+        status={data.status}
       >
-        <Handle
-          className="h-3! w-3! border-2! border-background! bg-red-500!"
-          position={Position.Left}
-          type="target"
+        <NodeHeader
+          colorVar="--node-end"
+          icon={<Square className="size-5" />}
+          subtitle={OUTPUT_LABELS[data.config.outputType]}
+          title={data.label}
         />
-
-        <div className="flex items-center gap-2 rounded-t-sm bg-red-500/10 px-3 py-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-sm bg-red-500 text-white">
-            <Square className="h-3 w-3" />
-          </div>
-          <span className="font-medium text-sm">End</span>
-        </div>
-
-        <div className="border-border/50 border-t px-3 py-2">
-          <div className="text-muted-foreground text-xs">
-            {outputLabels[data.config.outputType]}
-          </div>
-        </div>
-      </div>
+      </NodeShell>
     );
   })
 );
+
 EndNode.displayName = "EndNode";
 
 export function createEndNodeData(
