@@ -405,6 +405,21 @@ export {
   FormMessage,
   useFormField,
 } from "./form";
+export type {
+  ColorPickerProps,
+  InlineEditableProps,
+  SearchInputProps,
+  SliderInputProps,
+  TagInputProps,
+} from "./forms";
+export {
+  ColorPicker,
+  InlineEditable,
+  PRESET_COLORS,
+  SearchInput,
+  SliderInput,
+  TagInput,
+} from "./forms";
 export { HoverCard, HoverCardContent, HoverCardTrigger } from "./hover-card";
 export { Icons, type IconWrapperProps } from "./icons";
 export type { InputProps } from "./input";
