@@ -449,6 +449,28 @@ export {
   NavigationMenuViewport,
   navigationMenuTriggerStyle,
 } from "./navigation-menu";
+export type {
+  Notification,
+  NotificationCenterProps,
+  NotificationItemProps,
+  NotificationType,
+  ProgressStatus,
+  ProgressToastContentProps,
+  ProgressToastControls,
+  ProgressToastOptions,
+  TabValue,
+  ToastOptions,
+} from "./notifications";
+export {
+  NotificationCenter,
+  NotificationItem,
+  NotificationItemSkeleton,
+  NotificationList,
+  ProgressToastContent,
+  showToast,
+  Toaster,
+  useProgressToast,
+} from "./notifications";
 export {
   Popover,
   PopoverAnchor,
