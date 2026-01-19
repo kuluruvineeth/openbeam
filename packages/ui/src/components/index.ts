@@ -143,6 +143,27 @@ export {
 export type { ButtonProps } from "./button";
 export { Button, buttonVariants } from "./button";
 export type {
+  ActivityData,
+  ActivityHeatmapProps,
+  CalendarEvent,
+  CalendarView,
+  MonthCalendarProps,
+  TimelineEvent,
+  TimerProps,
+  TrackerEntry,
+  TrackerRowProps,
+  ViewSwitcherProps,
+  WeekTimelineProps,
+} from "./calendar";
+export {
+  ActivityHeatmap,
+  CalendarViewSwitcher,
+  HoldToStopTimer,
+  MonthCalendar,
+  TrackerRow,
+  WeekTimeline,
+} from "./calendar";
+export type {
   AgentCanvasProps,
   AnnotationColor,
   AnnotationNodeConfig,
