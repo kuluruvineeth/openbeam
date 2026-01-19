@@ -460,6 +460,29 @@ export type {
   StepModalProps,
 } from "./modals";
 export { ConfirmProvider, StepModal, useConfirm } from "./modals";
+export type {
+  BreadcrumbItem as NavBreadcrumbItem,
+  BreadcrumbProps as NavBreadcrumbProps,
+  KeyboardNavigationOptions,
+  PageHeaderProps,
+  SidebarNavItemProps,
+  SidebarProps,
+  SidebarProviderProps,
+  SplitLayoutProps,
+  Tab,
+  TabNavigationProps,
+} from "./navigation";
+export {
+  Breadcrumb as NavBreadcrumb,
+  PageHeader,
+  Sidebar,
+  SidebarNavItem,
+  SidebarProvider,
+  SplitLayout,
+  TabNavigation,
+  useKeyboardNavigation,
+  useSidebar,
+} from "./navigation";
 export {
   NavigationMenu,
   NavigationMenuContent,
