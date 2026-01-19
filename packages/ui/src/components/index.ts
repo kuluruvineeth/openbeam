@@ -410,6 +410,19 @@ export {
   SelectTrigger,
   SelectValue,
 } from "./select";
+export type {
+  BaseItem,
+  SelectionAction,
+  SelectionBarProps,
+  SelectionContextValue,
+} from "./selection";
+export {
+  SelectionBar,
+  SelectionProvider,
+  selectionBarVariants,
+  useKeyboardSelection,
+  useSelection,
+} from "./selection";
 export { Separator } from "./separator";
 export {
   Sheet,
