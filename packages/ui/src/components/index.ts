@@ -438,6 +438,13 @@ export {
   ProgressRing,
   Sparkline,
 } from "./metrics";
+export type {
+  ConfirmOptions,
+  ConfirmProviderProps,
+  Step,
+  StepModalProps,
+} from "./modals";
+export { ConfirmProvider, StepModal, useConfirm } from "./modals";
 export {
   NavigationMenu,
   NavigationMenuContent,
