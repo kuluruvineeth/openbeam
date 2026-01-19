@@ -1,11 +1,26 @@
 import { z } from "zod";
 
+export const NodeStatusSchema = z.enum([
+  "idle",
+  "pending",
+  "running",
+  "success",
+  "error",
+  "waiting",
+  "skipped",
+]);
+
+export type NodeStatus = z.infer<typeof NodeStatusSchema>;
+
 export const NodeCategorySchema = z.enum([
   "control",
   "ai",
   "transform",
   "integration",
   "human",
+  "trigger",
+  "memory",
+  "orchestration",
 ]);
 
 export type NodeCategory = z.infer<typeof NodeCategorySchema>;
@@ -72,6 +87,25 @@ export type HandleType = z.infer<typeof HandleTypeSchema>;
 
 export const HandlePositionSchema = z.enum(["top", "right", "bottom", "left"]);
 export type HandlePosition = z.infer<typeof HandlePositionSchema>;
+
+export const HandleVariantSchema = z.enum([
+  "default",
+  "true",
+  "false",
+  "loop",
+  "done",
+]);
+
+export type HandleVariant = z.infer<typeof HandleVariantSchema>;
+
+export const PortSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  type: z.enum(["data", "control"]),
+  required: z.boolean(),
+});
+
+export type Port = z.infer<typeof PortSchema>;
 
 export const NodeHandleSchema = z.object({
   id: z.string(),
@@ -234,6 +268,23 @@ export const NotifyNodeConfigSchema = z.object({
 
 export type NotifyNodeConfig = z.infer<typeof NotifyNodeConfigSchema>;
 
+export const AnnotationColorSchema = z.enum([
+  "yellow",
+  "blue",
+  "green",
+  "pink",
+  "purple",
+  "orange",
+]);
+
+export type AnnotationColor = z.infer<typeof AnnotationColorSchema>;
+
+export const AnnotationNodeConfigSchema = z.object({
+  color: AnnotationColorSchema.default("yellow"),
+});
+
+export type AnnotationNodeConfig = z.infer<typeof AnnotationNodeConfigSchema>;
+
 export const ConnectorNodeConfigSchema = z.object({
   connectorType: z.string(),
   operation: z.string(),
@@ -248,6 +299,45 @@ export const ToolNodeConfigSchema = z.object({
 });
 
 export type ToolNodeConfig = z.infer<typeof ToolNodeConfigSchema>;
+
+export const StartNodeConfigSchema = z.object({
+  triggerType: z
+    .enum(["manual", "schedule", "webhook", "event"])
+    .default("manual"),
+  schedule: z.string().optional(),
+  webhookPath: z.string().optional(),
+  eventType: z.string().optional(),
+});
+
+export type StartNodeConfig = z.infer<typeof StartNodeConfigSchema>;
+
+export const EndNodeConfigSchema = z.object({
+  outputType: z
+    .enum(["result", "notification", "webhook", "none"])
+    .default("result"),
+  webhookUrl: z.string().optional(),
+  notificationChannel: z.string().optional(),
+});
+
+export type EndNodeConfig = z.infer<typeof EndNodeConfigSchema>;
+
+export const ParallelSplitNodeConfigSchema = z.object({
+  branches: z.number().min(2).default(2),
+});
+
+export type ParallelSplitNodeConfig = z.infer<
+  typeof ParallelSplitNodeConfigSchema
+>;
+
+export const ParallelJoinNodeConfigSchema = z.object({
+  branches: z.number().min(2).default(2),
+  joinType: z.enum(["all", "any", "race"]).default("all"),
+  timeout: z.number().optional(),
+});
+
+export type ParallelJoinNodeConfig = z.infer<
+  typeof ParallelJoinNodeConfigSchema
+>;
 
 export const StartNodeDataSchema = BaseNodeDataSchema.extend({
   inputs: z
