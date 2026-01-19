@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "@xyflow/react/dist/style.css";
 
 @plugin "tailwind-scrollbar";
 
@@ -493,14 +494,6 @@ body {
       edge-pulse 1s ease-in-out infinite;
   }
 
-  .react-flow__edge.selected .react-flow__edge-path {
-    stroke-width: 2.5;
-  }
-
-  .react-flow__edge:hover .react-flow__edge-path {
-    stroke-width: 2.5;
-  }
-
   .steps {
     &:first-child {
       @apply !mt-0;
@@ -517,5 +510,43 @@ body {
     > h3 + p {
       @apply !mt-2;
     }
+  }
+}
+
+@layer base {
+  .react-flow__background {
+    @apply bg-secondary! dark:bg-background!;
+  }
+  .react-flow__background-pattern.dots {
+    @apply fill-foreground/25!;
+  }
+  .react-flow__node.selected .node-container {
+    @apply ring-2! ring-primary!;
+  }
+  .react-flow__controls {
+    @apply border-none! bg-transparent! shadow-none!;
+  }
+  .react-flow__controls-button {
+    @apply border-none! size-9! rounded-md! bg-card! hover:bg-accent! transition-colors!;
+  }
+  .react-flow__controls-button > svg {
+    @apply size-4!;
+  }
+  .react-flow__handle {
+    @apply !size-4 !border-2 !border-border !bg-background;
+  }
+  .react-flow__handle-left {
+    @apply !-left-4;
+  }
+  .react-flow__handle-right {
+    @apply !-right-4;
+  }
+  .react-flow__edge-path {
+    @apply stroke-border;
+  }
+  .react-flow__edge.selected .react-flow__edge-path,
+  .react-flow__edge:hover .react-flow__edge-path {
+    @apply stroke-primary;
+    stroke-width: 2.5;
   }
 }
