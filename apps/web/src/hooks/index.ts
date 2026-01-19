@@ -27,6 +27,8 @@ export {
   useResumeConnector as useResumeConnectorFromConnectors,
 } from "./use-connectors";
 export { useDataSources } from "./use-data-sources";
+export type { DatePreset, DateRange } from "./use-date-range";
+export { dateRangeParser, useDateRange } from "./use-date-range";
 export { useDebounce } from "./use-debounce";
 export { useDocumentPreview } from "./use-document-preview";
 export { useJobProgressSubscription } from "./use-job-progress";
@@ -51,6 +53,7 @@ export { useSearch } from "./use-search";
 export { useSearchNavigation } from "./use-search-navigation";
 export { useSearchShortcuts } from "./use-search-shortcuts";
 export { useSearchTracking } from "./use-search-tracking";
+export { useShareableLink } from "./use-shareable-link";
 export { SidebarProvider, useSidebar } from "./use-sidebar";
 export {
   useBulkSyncStatus,
@@ -71,5 +74,15 @@ export {
   useTeams,
 } from "./use-team";
 export { useThinking } from "./use-thinking";
+export type { SortDirection, ViewMode } from "./use-url-state";
+export {
+  parseAsArrayOf,
+  parseAsBoolean,
+  parseAsInteger,
+  parseAsString,
+  parseAsStringEnum,
+  useUrlFilters,
+  useUrlState,
+} from "./use-url-state";
 export { useUserQuery } from "./use-user";
 export { useUserRole } from "./use-user-role";
