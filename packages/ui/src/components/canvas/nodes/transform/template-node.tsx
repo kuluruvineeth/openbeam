@@ -1,11 +1,11 @@
 "use client";
 
+import type { NodeStatus, Port } from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
-import { Handle, Position } from "@xyflow/react";
-import { FileText, Variable } from "lucide-react";
+import { Position } from "@xyflow/react";
+import { FileText } from "lucide-react";
 import { forwardRef, memo } from "react";
-import { cn } from "../../../../utils";
-import type { NodePortDefinition } from "../base-node";
+import { NodeHeader, NodeSection, NodeShell } from "../primitives";
 
 export interface TemplateNodeConfig {
   template: string;
@@ -16,8 +16,9 @@ export interface TemplateNodeConfig {
 export interface TemplateNodeData {
   label: string;
   config: TemplateNodeConfig;
-  inputs: NodePortDefinition[];
-  outputs: NodePortDefinition[];
+  inputs?: Port[];
+  outputs?: Port[];
+  status?: NodeStatus;
   preview?: string;
   [key: string]: unknown;
 }
@@ -39,80 +40,54 @@ export const TemplateNode = memo(
       const hasTemplate = (data.config.template?.length ?? 0) > 0;
 
       return (
-        <div
-          className={cn(
-            "flex min-w-[200px] flex-col rounded-sm border border-teal-500/50 bg-teal-500/5 shadow-sm",
-            selected && "ring-2 ring-primary ring-offset-1"
-          )}
+        <NodeShell
+          handles={[
+            { type: "target", position: Position.Left },
+            { type: "source", position: Position.Right },
+          ]}
           ref={ref}
+          selected={selected}
+          status={data.status}
         >
-          <Handle
-            className="h-3! w-3! border-2! border-background! bg-teal-500!"
-            position={Position.Left}
-            type="target"
+          <NodeHeader
+            colorVar="--node-template"
+            icon={<FileText className="size-5" />}
+            subtitle={FORMAT_LABELS[data.config.outputFormat]}
+            title={data.label}
           />
-
-          <div className="flex items-center gap-2 rounded-t-sm bg-teal-500/10 px-3 py-2">
-            <div className="flex h-6 w-6 items-center justify-center text-teal-500">
-              <FileText className="h-4 w-4" />
-            </div>
-            <span className="font-medium text-sm">{data.label}</span>
-          </div>
-
-          <div className="space-y-1.5 border-border/50 border-t px-3 py-2">
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground text-xs">Format</span>
-              <span className="font-medium text-xs">
-                {FORMAT_LABELS[data.config.outputFormat]}
-              </span>
-            </div>
-
-            {variableCount > 0 && (
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground text-xs">Variables</span>
-                <div className="flex items-center gap-1">
-                  <Variable className="h-3 w-3 text-teal-500" />
-                  <span className="text-xs">{variableCount}</span>
+          <NodeSection>
+            <div className="space-y-2">
+              {hasTemplate && (
+                <div className="rounded-sm bg-muted/50 p-2 font-mono text-[10px] text-muted-foreground">
+                  {templatePreview}
+                  {(data.config.template?.length ?? 0) > 60 && "..."}
                 </div>
-              </div>
-            )}
-
-            {hasTemplate && (
-              <div className="mt-2 rounded-sm bg-muted/50 p-2 font-mono text-[10px] text-muted-foreground">
-                {templatePreview}
-                {(data.config.template?.length ?? 0) > 60 && "..."}
-              </div>
-            )}
-
-            {variableCount > 0 && (
-              <div className="flex flex-wrap gap-1 pt-1">
-                {data.config.variables?.slice(0, 4).map((v) => (
-                  <span
-                    className="rounded-sm bg-teal-500/20 px-1.5 py-0.5 text-teal-500 text-xs"
-                    key={v}
-                  >
-                    {`{{${v}}}`}
-                  </span>
-                ))}
-                {variableCount > 4 && (
-                  <span className="text-muted-foreground text-xs">
-                    +{variableCount - 4} more
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-
-          <Handle
-            className="h-3! w-3! border-2! border-background! bg-teal-500!"
-            position={Position.Right}
-            type="source"
-          />
-        </div>
+              )}
+              {variableCount > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {data.config.variables?.slice(0, 4).map((v) => (
+                    <span
+                      className="rounded-sm bg-muted px-2 py-0.5 font-mono text-muted-foreground text-xs"
+                      key={v}
+                    >
+                      {`{{${v}}}`}
+                    </span>
+                  ))}
+                  {variableCount > 4 && (
+                    <span className="text-muted-foreground text-xs">
+                      +{variableCount - 4}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          </NodeSection>
+        </NodeShell>
       );
     }
   )
 );
+
 TemplateNode.displayName = "TemplateNode";
 
 export function createTemplateNodeData(): TemplateNodeData {

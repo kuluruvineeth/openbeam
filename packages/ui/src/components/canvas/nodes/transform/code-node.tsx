@@ -1,11 +1,11 @@
 "use client";
 
+import type { NodeStatus, Port } from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
-import { Handle, Position } from "@xyflow/react";
-import { Code2, Square } from "lucide-react";
+import { Position } from "@xyflow/react";
+import { Code2 } from "lucide-react";
 import { forwardRef, memo } from "react";
-import { cn } from "../../../../utils";
-import type { NodePortDefinition } from "../base-node";
+import { NodeHeader, NodeSection, NodeShell } from "../primitives";
 
 export interface CodeNodeConfig {
   language: "javascript" | "typescript" | "python" | "json";
@@ -17,116 +17,66 @@ export interface CodeNodeConfig {
 export interface CodeNodeData {
   label: string;
   config: CodeNodeConfig;
-  inputs: NodePortDefinition[];
-  outputs: NodePortDefinition[];
-  status?: "idle" | "running" | "success" | "error";
+  inputs?: Port[];
+  outputs?: Port[];
+  status?: NodeStatus;
   lastError?: string;
   [key: string]: unknown;
 }
 
 type CodeNodeType = Node<CodeNodeData, "code">;
 
-const LANGUAGE_COLORS: Record<string, string> = {
-  javascript: "text-yellow-500",
-  typescript: "text-blue-500",
-  python: "text-green-500",
-  json: "text-orange-500",
-};
-
 export const CodeNode = memo(
   forwardRef<HTMLDivElement, NodeProps<CodeNodeType>>(
     function CodeNodeComponent({ data, selected }, ref) {
-      const status = data.status ?? "idle";
       const language = data.config.language ?? "javascript";
       const hasCode = (data.config.code?.length ?? 0) > 0;
       const codePreview = data.config.code?.slice(0, 50) ?? "";
 
-      const statusColors: Record<string, string> = {
-        idle: "bg-muted",
-        running: "bg-blue-500/20 text-blue-500",
-        success: "bg-green-500/20 text-green-500",
-        error: "bg-red-500/20 text-red-500",
-      };
-
       return (
-        <div
-          className={cn(
-            "flex min-w-[220px] flex-col rounded-sm border border-amber-500/50 bg-amber-500/5 shadow-sm",
-            selected && "ring-2 ring-primary ring-offset-1"
-          )}
+        <NodeShell
+          handles={[
+            { type: "target", position: Position.Left },
+            { type: "source", position: Position.Right },
+          ]}
           ref={ref}
+          selected={selected}
+          status={data.status}
         >
-          <Handle
-            className="h-3! w-3! border-2! border-background! bg-amber-500!"
-            position={Position.Left}
-            type="target"
+          <NodeHeader
+            colorVar="--node-code"
+            icon={<Code2 className="size-5" />}
+            subtitle={language}
+            title={data.label}
           />
-
-          <div className="flex items-center gap-2 rounded-t-sm bg-amber-500/10 px-3 py-2">
-            <div className="flex h-6 w-6 items-center justify-center text-amber-500">
-              <Code2 className="h-4 w-4" />
-            </div>
-            <span className="font-medium text-sm">{data.label}</span>
-            {status === "running" && (
-              <Square className="ml-auto h-3 w-3 animate-pulse text-blue-500" />
-            )}
-          </div>
-
-          <div className="space-y-1.5 border-border/50 border-t px-3 py-2">
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground text-xs">Language</span>
-              <span
-                className={cn(
-                  "font-medium text-xs capitalize",
-                  LANGUAGE_COLORS[language]
+          <NodeSection>
+            <div className="space-y-2">
+              {hasCode && (
+                <div className="rounded-sm bg-muted/50 p-2 font-mono text-[10px] text-muted-foreground">
+                  {codePreview}
+                  {(data.config.code?.length ?? 0) > 50 && "..."}
+                </div>
+              )}
+              {data.lastError && (
+                <div className="rounded-sm bg-destructive/10 px-2 py-1 text-destructive text-xs">
+                  {data.lastError.slice(0, 50)}
+                </div>
+              )}
+              <div className="flex flex-wrap gap-1.5">
+                {data.config.sandboxed && (
+                  <span className="rounded-sm bg-muted px-2 py-0.5 text-muted-foreground text-xs">
+                    Sandboxed
+                  </span>
                 )}
-              >
-                {language}
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground text-xs">Status</span>
-              <span
-                className={cn(
-                  "rounded-sm px-1.5 py-0.5 text-xs",
-                  statusColors[status]
-                )}
-              >
-                {status}
-              </span>
-            </div>
-
-            {hasCode && (
-              <div className="mt-2 rounded-sm bg-muted/50 p-2 font-mono text-[10px] text-muted-foreground">
-                {codePreview}
-                {(data.config.code?.length ?? 0) > 50 && "..."}
               </div>
-            )}
-
-            {data.lastError && (
-              <div className="rounded-sm bg-red-500/10 px-2 py-1 text-red-500 text-xs">
-                {data.lastError.slice(0, 50)}
-              </div>
-            )}
-
-            {data.config.sandboxed && (
-              <span className="rounded-sm bg-amber-500/20 px-1.5 py-0.5 text-amber-500 text-xs">
-                Sandboxed
-              </span>
-            )}
-          </div>
-
-          <Handle
-            className="h-3! w-3! border-2! border-background! bg-amber-500!"
-            position={Position.Right}
-            type="source"
-          />
-        </div>
+            </div>
+          </NodeSection>
+        </NodeShell>
       );
     }
   )
 );
+
 CodeNode.displayName = "CodeNode";
 
 export function createCodeNodeData(): CodeNodeData {

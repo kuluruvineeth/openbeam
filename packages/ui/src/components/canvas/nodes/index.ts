@@ -1,61 +1,66 @@
 export type {
   ClassifyCategory,
-  ClassifyNodeConfig,
   ClassifyNodeData,
   ExtractField,
-  ExtractNodeConfig,
   ExtractNodeData,
-  LlmNodeConfig,
   LlmNodeData,
-  RagNodeConfig,
   RagNodeData,
-  SummarizeNodeConfig,
   SummarizeNodeData,
 } from "./ai";
 export {
   aiNodeTypes,
   ClassifyNode,
-  createClassifyNodeData,
-  createExtractNodeData,
-  createLlmNodeData,
-  createRagNodeData,
-  createSummarizeNodeData,
   ExtractNode,
   LlmNode,
   RagNode,
   SummarizeNode,
 } from "./ai";
+
 export type { BaseNodeData, NodePortDefinition } from "./base-node";
 export { BaseNode } from "./base-node";
+
 export type {
-  ConditionNodeConfig,
   ConditionNodeData,
-  EndNodeConfig,
   EndNodeData,
-  LoopNodeConfig,
   LoopNodeData,
-  ParallelJoinNodeConfig,
   ParallelJoinNodeData,
-  ParallelSplitNodeConfig,
   ParallelSplitNodeData,
-  StartNodeConfig,
   StartNodeData,
 } from "./control";
 export {
   ConditionNode,
   controlNodeTypes,
-  createConditionNodeData,
-  createEndNodeData,
-  createLoopNodeData,
-  createParallelJoinNodeData,
-  createParallelSplitNodeData,
-  createStartNodeData,
   EndNode,
   LoopNode,
   ParallelJoinNode,
   ParallelSplitNode,
   StartNode,
 } from "./control";
+
+export type { DropNodeData } from "./drop-node";
+export { DropNode } from "./drop-node";
+export {
+  createAnnotationNodeData,
+  createApprovalNodeData,
+  createClassifyNodeData,
+  createCodeNodeData,
+  createConditionNodeData,
+  createEndNodeData,
+  createExtractNodeData,
+  createFilterNodeData,
+  createInputNodeData,
+  createLlmNodeData,
+  createLoopNodeData,
+  createNodeData,
+  createNotifyNodeData,
+  createParallelJoinNodeData,
+  createParallelSplitNodeData,
+  createRagNodeData,
+  createStartNodeData,
+  createSummarizeNodeData,
+  createTemplateNodeData,
+  hasNodeDataFactory,
+} from "./factory";
 export type {
   AnnotationColor,
   AnnotationNodeConfig,
@@ -73,14 +78,22 @@ export type {
 export {
   AnnotationNode,
   ApprovalNode,
-  createAnnotationNodeData,
-  createApprovalNodeData,
-  createInputNodeData,
-  createNotifyNodeData,
   humanNodeTypes,
   InputNode,
   NotifyNode,
 } from "./human";
+export { categoryLabels, nodeButtons } from "./node-buttons";
+
+export { NodeField, NodeHeader, NodeSection, NodeShell } from "./primitives";
+export {
+  CATEGORY_LABELS,
+  createAllNodeTypes,
+  getNodeEntry,
+  getNodesByCategory,
+  type NodeRegistryEntry,
+  nodeRegistry,
+  nodeRegistryMap,
+} from "./registry";
 export type {
   CodeNodeConfig,
   CodeNodeData,
@@ -91,24 +104,7 @@ export type {
 } from "./transform";
 export {
   CodeNode,
-  createCodeNodeData,
-  createFilterNodeData,
-  createTemplateNodeData,
   FilterNode,
   TemplateNode,
   transformNodeTypes,
 } from "./transform";
-
-import { aiNodeTypes as _aiNodeTypes } from "./ai";
-import { controlNodeTypes as _controlNodeTypes } from "./control";
-import { humanNodeTypes as _humanNodeTypes } from "./human";
-import { transformNodeTypes as _transformNodeTypes } from "./transform";
-
-export function createAllNodeTypes() {
-  return {
-    ..._controlNodeTypes,
-    ..._aiNodeTypes,
-    ..._transformNodeTypes,
-    ..._humanNodeTypes,
-  };
-}

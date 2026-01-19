@@ -1,11 +1,13 @@
 "use client";
 
+import type { NodeStatus, Port } from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
+import { Position } from "@xyflow/react";
 import { Filter } from "lucide-react";
 import { forwardRef, memo } from "react";
-import { BaseNode, type NodePortDefinition } from "../base-node";
+import { NodeHeader, NodeSection, NodeShell } from "../primitives";
 
-export interface FilterNodeConfig extends Record<string, unknown> {
+export interface FilterNodeConfig {
   expression: string;
   language: "jmespath" | "jsonata" | "javascript";
 }
@@ -13,15 +15,13 @@ export interface FilterNodeConfig extends Record<string, unknown> {
 export interface FilterNodeData {
   label: string;
   config: FilterNodeConfig;
-  inputs: NodePortDefinition[];
-  outputs: NodePortDefinition[];
+  inputs?: Port[];
+  outputs?: Port[];
+  status?: NodeStatus;
   [key: string]: unknown;
 }
 
 type FilterNodeType = Node<FilterNodeData, "filter">;
-
-const FILTER_NODE_COLOR = "rgb(249, 115, 22)";
-const FILTER_PREVIEW_LIMIT = 60;
 
 const FILTER_LANGUAGE_LABELS: Record<FilterNodeConfig["language"], string> = {
   jmespath: "JMESPath",
@@ -31,40 +31,41 @@ const FILTER_LANGUAGE_LABELS: Record<FilterNodeConfig["language"], string> = {
 
 export const FilterNode = memo(
   forwardRef<HTMLDivElement, NodeProps<FilterNodeType>>(
-    function FilterNodeComponent(props, ref) {
-      const { data } = props;
+    function FilterNodeComponent({ data, selected }, ref) {
       const expression = data.config.expression ?? "";
       const language = data.config.language ?? "jmespath";
       const hasExpression = expression.length > 0;
-      const expressionPreview = expression.slice(0, FILTER_PREVIEW_LIMIT);
 
       return (
-        <BaseNode
-          {...props}
-          category="transform"
-          color={FILTER_NODE_COLOR}
-          icon={<Filter className="h-4 w-4" />}
+        <NodeShell
+          handles={[
+            { type: "target", position: Position.Left },
+            { type: "source", position: Position.Right },
+          ]}
           ref={ref}
+          selected={selected}
+          status={data.status}
         >
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground text-xs">Language</span>
-              <span className="font-medium text-xs">
-                {FILTER_LANGUAGE_LABELS[language]}
-              </span>
-            </div>
-            {hasExpression && (
+          <NodeHeader
+            colorVar="--node-filter"
+            icon={<Filter className="size-5" />}
+            subtitle={FILTER_LANGUAGE_LABELS[language]}
+            title={data.label}
+          />
+          {hasExpression && (
+            <NodeSection>
               <div className="rounded-sm bg-muted/50 p-2 font-mono text-[10px] text-muted-foreground">
-                {expressionPreview}
-                {expression.length > FILTER_PREVIEW_LIMIT && "..."}
+                {expression.slice(0, 60)}
+                {expression.length > 60 && "..."}
               </div>
-            )}
-          </div>
-        </BaseNode>
+            </NodeSection>
+          )}
+        </NodeShell>
       );
     }
   )
 );
+
 FilterNode.displayName = "FilterNode";
 
 export function createFilterNodeData(): FilterNodeData {
