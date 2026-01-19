@@ -1,7 +1,6 @@
 "use client";
 
 import { ControlButton, Controls, useReactFlow } from "@xyflow/react";
-import { Lock, Maximize2, Unlock, ZoomIn, ZoomOut } from "lucide-react";
 import { memo, useCallback, useState } from "react";
 import {
   Tooltip,
@@ -9,6 +8,7 @@ import {
   TooltipTrigger,
 } from "../../components/tooltip";
 import { cn } from "../../utils";
+import { Icons } from "../icons";
 
 export interface CanvasControlsProps {
   position?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
@@ -51,9 +51,10 @@ export const CanvasControls = memo(function CanvasControlsComponent({
   return (
     <Controls
       className={cn(
-        "flex flex-col gap-1 rounded-md border bg-background/95 p-1 shadow-sm backdrop-blur-sm",
+        "flex flex-row gap-0.5 rounded-full border bg-card/90 p-1 shadow-none drop-shadow-xs backdrop-blur-sm",
         className
       )}
+      orientation="horizontal"
       position={position}
       showFitView={false}
       showInteractive={false}
@@ -64,25 +65,25 @@ export const CanvasControls = memo(function CanvasControlsComponent({
           <Tooltip>
             <TooltipTrigger asChild>
               <ControlButton
-                className="rounded-sm hover:bg-muted"
+                className="rounded-full hover:bg-muted"
                 onClick={handleZoomIn}
               >
-                <ZoomIn className="size-4" />
+                <Icons.ZoomIn size={16} />
               </ControlButton>
             </TooltipTrigger>
-            <TooltipContent side="right">Zoom In</TooltipContent>
+            <TooltipContent side="top">Zoom In</TooltipContent>
           </Tooltip>
 
           <Tooltip>
             <TooltipTrigger asChild>
               <ControlButton
-                className="rounded-sm hover:bg-muted"
+                className="rounded-full hover:bg-muted"
                 onClick={handleZoomOut}
               >
-                <ZoomOut className="size-4" />
+                <Icons.ZoomOut size={16} />
               </ControlButton>
             </TooltipTrigger>
-            <TooltipContent side="right">Zoom Out</TooltipContent>
+            <TooltipContent side="top">Zoom Out</TooltipContent>
           </Tooltip>
         </>
       )}
@@ -91,13 +92,13 @@ export const CanvasControls = memo(function CanvasControlsComponent({
         <Tooltip>
           <TooltipTrigger asChild>
             <ControlButton
-              className="rounded-sm hover:bg-muted"
+              className="rounded-full hover:bg-muted"
               onClick={handleFitView}
             >
-              <Maximize2 className="size-4" />
+              <Icons.Fullscreen size={16} />
             </ControlButton>
           </TooltipTrigger>
-          <TooltipContent side="right">Fit View</TooltipContent>
+          <TooltipContent side="top">Fit View</TooltipContent>
         </Tooltip>
       )}
 
@@ -105,17 +106,17 @@ export const CanvasControls = memo(function CanvasControlsComponent({
         <Tooltip>
           <TooltipTrigger asChild>
             <ControlButton
-              className="rounded-sm hover:bg-muted"
+              className="rounded-full hover:bg-muted"
               onClick={handleToggleLock}
             >
               {isLocked ? (
-                <Lock className="size-4" />
+                <Icons.LockIcon size={16} />
               ) : (
-                <Unlock className="size-4" />
+                <Icons.Unlock size={16} />
               )}
             </ControlButton>
           </TooltipTrigger>
-          <TooltipContent side="right">
+          <TooltipContent side="top">
             {isLocked ? "Unlock Canvas" : "Lock Canvas"}
           </TooltipContent>
         </Tooltip>

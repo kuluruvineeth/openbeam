@@ -89,7 +89,11 @@ const createCanvasStoreSlice: StateCreator<
     set((state) => {
       const node = state.nodes.find((n: AgentCanvasNode) => n.id === nodeId);
       if (node) {
-        node.data = { ...node.data, ...data };
+        const existingData =
+          typeof node.data === "object" && node.data !== null
+            ? (node.data as Record<string, unknown>)
+            : {};
+        node.data = { ...existingData, ...data };
         state.isDirty = true;
       }
     }),

@@ -24,17 +24,17 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import type { DragEvent } from "react";
-import { memo, useCallback, useMemo, useRef } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef } from "react";
 import { cn } from "../../utils";
 import { CanvasBackground } from "./canvas-background";
+import { CanvasContextMenu } from "./canvas-context-menu";
 import { CanvasControls } from "./canvas-controls";
-import { CanvasMinimap } from "./canvas-minimap";
+import { ConnectionLine } from "./connection-line";
 import { edgeTypes as defaultEdgeTypes } from "./edges";
-import { createAllNodeTypes } from "./nodes";
+import { createAllNodeTypes, createNodeData } from "./nodes";
 
 const DEFAULT_EDGE_OPTIONS = {
-  type: "data",
-  animated: false,
+  type: "animated",
 };
 
 const ID_COUNTER_LIMIT = 1_000_000;
@@ -60,9 +60,9 @@ export interface AgentCanvasProps {
   onNodesChange?: (nodes: Node[]) => void;
   onEdgesChange?: (edges: Edge[]) => void;
   onNodeSelect?: (node: Node | null) => void;
+  onNodeAdd?: (type: string, position: { x: number; y: number }) => void;
   onConnect?: (connection: Connection) => void;
   showControls?: boolean;
-  showMinimap?: boolean;
   showBackground?: boolean;
   readOnly?: boolean;
   className?: string;
@@ -76,9 +76,9 @@ function AgentCanvasInner({
   onNodesChange: onNodesChangeCallback,
   onEdgesChange: onEdgesChangeCallback,
   onNodeSelect,
+  onNodeAdd,
   onConnect: onConnectCallback,
   showControls = true,
-  showMinimap = true,
   showBackground = true,
   readOnly = false,
   className,
@@ -99,51 +99,38 @@ function AgentCanvasInner({
 
   const handleNodesChange: OnNodesChange = useCallback(
     (changes) => {
-      setNodes((currentNodes) => {
-        const nextNodes = applyNodeChanges(changes, currentNodes);
-        onNodesChangeCallback?.(nextNodes);
-        return nextNodes;
-      });
+      setNodes((currentNodes) => applyNodeChanges(changes, currentNodes));
     },
-    [setNodes, onNodesChangeCallback]
+    [setNodes]
   );
 
   const handleEdgesChange: OnEdgesChange = useCallback(
     (changes) => {
-      setEdges((currentEdges) => {
-        const nextEdges = applyEdgeChanges(changes, currentEdges);
-        onEdgesChangeCallback?.(nextEdges);
-        return nextEdges;
-      });
+      setEdges((currentEdges) => applyEdgeChanges(changes, currentEdges));
     },
-    [setEdges, onEdgesChangeCallback]
+    [setEdges]
   );
+
+  useEffect(() => {
+    onNodesChangeCallback?.(nodes);
+  }, [nodes, onNodesChangeCallback]);
+
+  useEffect(() => {
+    onEdgesChangeCallback?.(edges);
+  }, [edges, onEdgesChangeCallback]);
 
   const handleConnect: OnConnect = useCallback(
     (connection: Connection) => {
-      const sourceNode = nodes.find((n) => n.id === connection.source);
-
-      let edgeType = "data";
-      if (sourceNode?.type === "condition") {
-        edgeType = "conditional";
-      } else if (
-        sourceNode?.type === "start" ||
-        sourceNode?.type === "loop" ||
-        sourceNode?.type === "parallel_split"
-      ) {
-        edgeType = "control";
-      }
-
       const newEdge: Edge = {
-        ...connection,
         id: createUniqueId(`edge-${connection.source}-${connection.target}`),
-        type: edgeType,
+        type: "animated",
+        ...connection,
       } as Edge;
 
       setEdges((eds) => addEdge(newEdge, eds));
       onConnectCallback?.(connection);
     },
-    [setEdges, nodes, onConnectCallback]
+    [setEdges, onConnectCallback]
   );
 
   const handleSelectionChange: OnSelectionChangeFunc = useCallback(
@@ -178,7 +165,7 @@ function AgentCanvasInner({
         id: createUniqueId(type),
         type,
         position,
-        data: { label: `New ${type}` },
+        data: createNodeData(type),
       };
 
       setNodes((nds) => [...nds, newNode]);
@@ -190,39 +177,41 @@ function AgentCanvasInner({
 
   return (
     <div className={cn("h-full w-full", className)} ref={reactFlowWrapper}>
-      <ReactFlow
-        connectionMode={ConnectionMode.Loose}
-        defaultEdgeOptions={DEFAULT_EDGE_OPTIONS}
-        edges={edges}
-        edgeTypes={mergedEdgeTypes}
-        elementsSelectable={!readOnly}
-        fitView
-        fitViewOptions={{ padding: 0.2 }}
-        maxZoom={2}
-        minZoom={0.1}
-        nodes={nodes}
-        nodesConnectable={!readOnly}
-        nodesDraggable={!readOnly}
-        nodeTypes={mergedNodeTypes}
-        onConnect={handleConnect}
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-        onEdgesChange={handleEdgesChange}
-        onNodesChange={handleNodesChange}
-        onSelectionChange={handleSelectionChange}
-        panOnDrag={[1, 2]}
-        panOnScroll
-        proOptions={proOptions}
-        selectionMode={SelectionMode.Partial}
-        selectionOnDrag
-        selectNodesOnDrag={false}
-        zoomOnPinch
-        zoomOnScroll
-      >
-        {showBackground && <CanvasBackground />}
-        {showControls && <CanvasControls />}
-        {showMinimap && <CanvasMinimap />}
-      </ReactFlow>
+      <CanvasContextMenu onNodeAdd={onNodeAdd}>
+        <ReactFlow
+          connectionLineComponent={ConnectionLine}
+          connectionMode={ConnectionMode.Loose}
+          defaultEdgeOptions={DEFAULT_EDGE_OPTIONS}
+          edges={edges}
+          edgeTypes={mergedEdgeTypes}
+          elementsSelectable={!readOnly}
+          fitView
+          fitViewOptions={{ padding: 0.2 }}
+          maxZoom={2}
+          minZoom={0.1}
+          nodes={nodes}
+          nodesConnectable={!readOnly}
+          nodesDraggable={!readOnly}
+          nodeTypes={mergedNodeTypes}
+          onConnect={handleConnect}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+          onEdgesChange={handleEdgesChange}
+          onNodesChange={handleNodesChange}
+          onSelectionChange={handleSelectionChange}
+          panOnDrag={[1]}
+          panOnScroll
+          proOptions={proOptions}
+          selectionMode={SelectionMode.Partial}
+          selectionOnDrag
+          selectNodesOnDrag={false}
+          zoomOnPinch
+          zoomOnScroll
+        >
+          {showBackground && <CanvasBackground />}
+          {showControls && <CanvasControls />}
+        </ReactFlow>
+      </CanvasContextMenu>
     </div>
   );
 }
