@@ -1,17 +1,12 @@
 "use client";
 
+import type { AnnotationColor } from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Pin, StickyNote } from "lucide-react";
 import { forwardRef, memo } from "react";
 import { cn } from "../../../../utils";
 
-export type AnnotationColor =
-  | "yellow"
-  | "blue"
-  | "green"
-  | "pink"
-  | "purple"
-  | "orange";
+export type { AnnotationColor };
 
 export interface AnnotationNodeConfig {
   color: AnnotationColor;
@@ -150,6 +145,7 @@ export const AnnotationNode = memo(
     }
   )
 );
+
 AnnotationNode.displayName = "AnnotationNode";
 
 export function createAnnotationNodeData(): AnnotationNodeData {

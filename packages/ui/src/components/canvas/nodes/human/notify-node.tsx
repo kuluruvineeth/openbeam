@@ -1,11 +1,13 @@
 "use client";
 
+import type { NodeStatus, Port } from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
+import { Position } from "@xyflow/react";
 import { Bell } from "lucide-react";
 import { forwardRef, memo } from "react";
-import { BaseNode, type NodePortDefinition } from "../base-node";
+import { NodeField, NodeHeader, NodeSection, NodeShell } from "../primitives";
 
-export interface NotifyNodeConfig extends Record<string, unknown> {
+export interface NotifyNodeConfig {
   channel: "email" | "slack" | "webhook";
   template: string;
   recipients?: string[];
@@ -15,15 +17,13 @@ export interface NotifyNodeConfig extends Record<string, unknown> {
 export interface NotifyNodeData {
   label: string;
   config: NotifyNodeConfig;
-  inputs: NodePortDefinition[];
-  outputs: NodePortDefinition[];
+  inputs?: Port[];
+  outputs?: Port[];
+  status?: NodeStatus;
   [key: string]: unknown;
 }
 
 type NotifyNodeType = Node<NotifyNodeData, "notify">;
-
-const NOTIFY_NODE_COLOR = "rgb(168, 85, 247)";
-const TEMPLATE_PREVIEW_LIMIT = 60;
 
 const CHANNEL_LABELS: Record<NotifyNodeConfig["channel"], string> = {
   email: "Email",
@@ -33,50 +33,51 @@ const CHANNEL_LABELS: Record<NotifyNodeConfig["channel"], string> = {
 
 export const NotifyNode = memo(
   forwardRef<HTMLDivElement, NodeProps<NotifyNodeType>>(
-    function NotifyNodeComponent(props, ref) {
-      const { data } = props;
+    function NotifyNodeComponent({ data, selected }, ref) {
       const channel = data.config.channel ?? "email";
       const recipients = data.config.recipients ?? [];
       const template = data.config.template ?? "";
       const hasTemplate = template.length > 0;
-      const templatePreview = template.slice(0, TEMPLATE_PREVIEW_LIMIT);
-      const recipientCount = recipients.length;
 
       return (
-        <BaseNode
-          {...props}
-          category="human"
-          color={NOTIFY_NODE_COLOR}
-          icon={<Bell className="h-4 w-4" />}
+        <NodeShell
+          handles={[
+            { type: "target", position: Position.Left },
+            { type: "source", position: Position.Right },
+          ]}
           ref={ref}
+          selected={selected}
+          status={data.status}
         >
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground text-xs">Channel</span>
-              <span className="font-medium text-xs">
-                {CHANNEL_LABELS[channel]}
-              </span>
+          <NodeHeader
+            colorVar="--node-notify"
+            icon={<Bell className="size-5" />}
+            subtitle={CHANNEL_LABELS[channel]}
+            title={data.label}
+          />
+          <NodeSection>
+            <div className="space-y-2">
+              {recipients.length > 0 && (
+                <NodeField label="Recipients">
+                  <span className="font-mono text-muted-foreground">
+                    {recipients.length}
+                  </span>
+                </NodeField>
+              )}
+              {hasTemplate && (
+                <div className="rounded-sm bg-muted/50 p-2 font-mono text-[10px] text-muted-foreground">
+                  {template.slice(0, 60)}
+                  {template.length > 60 && "..."}
+                </div>
+              )}
             </div>
-            {recipientCount > 0 && (
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground text-xs">
-                  Recipients
-                </span>
-                <span className="text-xs">{recipientCount}</span>
-              </div>
-            )}
-            {hasTemplate && (
-              <div className="rounded-sm bg-muted/50 p-2 font-mono text-[10px] text-muted-foreground">
-                {templatePreview}
-                {template.length > TEMPLATE_PREVIEW_LIMIT && "..."}
-              </div>
-            )}
-          </div>
-        </BaseNode>
+          </NodeSection>
+        </NodeShell>
       );
     }
   )
 );
+
 NotifyNode.displayName = "NotifyNode";
 
 export function createNotifyNodeData(): NotifyNodeData {
