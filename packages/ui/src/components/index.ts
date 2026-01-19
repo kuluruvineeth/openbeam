@@ -451,6 +451,22 @@ export {
   TableHeader,
   TableRow,
 } from "./table";
+export type {
+  ColumnHeaderProps,
+  ColumnReorderProps,
+  DraggableColumnProps,
+  StickyColumnProps,
+  TableSkeletonProps,
+  VirtualTableProps,
+} from "./tables";
+export {
+  ColumnHeader,
+  ColumnReorder,
+  DraggableColumn,
+  StickyColumn,
+  TableSkeleton,
+  VirtualTable,
+} from "./tables";
 export { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 export type { TextShimmerProps } from "./text-shimmer";
 export { TextShimmer } from "./text-shimmer";
