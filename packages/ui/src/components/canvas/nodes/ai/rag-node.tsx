@@ -1,109 +1,81 @@
 "use client";
 
+import type { NodeStatus, Port, RagNodeConfig } from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
-import { Handle, Position } from "@xyflow/react";
+import { Position } from "@xyflow/react";
 import { BookOpen } from "lucide-react";
 import { forwardRef, memo } from "react";
-import { cn } from "../../../../utils";
-import type { NodePortDefinition } from "../base-node";
-
-export interface RagNodeConfig {
-  searchType: "hybrid" | "semantic" | "keyword";
-  topK: number;
-  minScore?: number;
-  connectorFilter?: string[];
-  rerank: boolean;
-  synthesize: boolean;
-}
+import { NodeField, NodeHeader, NodeSection, NodeShell } from "../primitives";
 
 export interface RagNodeData {
   label: string;
   config: RagNodeConfig;
-  inputs: NodePortDefinition[];
-  outputs: NodePortDefinition[];
+  inputs?: Port[];
+  outputs?: Port[];
+  status?: NodeStatus;
   [key: string]: unknown;
 }
 
 type RagNodeType = Node<RagNodeData, "rag">;
+
+const SEARCH_LABELS: Record<string, string> = {
+  hybrid: "Hybrid Search",
+  semantic: "Semantic Search",
+  keyword: "Keyword Search",
+};
 
 export const RagNode = memo(
   forwardRef<HTMLDivElement, NodeProps<RagNodeType>>(function RagNodeComponent(
     { data, selected },
     ref
   ) {
-    const searchLabels: Record<string, string> = {
-      hybrid: "Hybrid Search",
-      semantic: "Semantic Search",
-      keyword: "Keyword Search",
-    };
-
     return (
-      <div
-        className={cn(
-          "flex min-w-[220px] flex-col rounded-sm border border-indigo-500/50 bg-indigo-500/5 shadow-sm",
-          selected && "ring-2 ring-primary ring-offset-1"
-        )}
+      <NodeShell
+        handles={[
+          { type: "target", position: Position.Left },
+          {
+            id: "results",
+            type: "source",
+            position: Position.Right,
+            offset: "35%",
+          },
+          {
+            id: "answer",
+            type: "source",
+            position: Position.Right,
+            offset: "65%",
+          },
+        ]}
         ref={ref}
+        selected={selected}
+        status={data.status}
       >
-        <Handle
-          className="h-3! w-3! border-2! border-background! bg-indigo-500!"
-          position={Position.Left}
-          type="target"
+        <NodeHeader
+          colorVar="--node-rag"
+          icon={<BookOpen className="size-5" />}
+          subtitle={SEARCH_LABELS[data.config.searchType]}
+          title={data.label}
         />
-
-        <div className="flex items-center gap-2 rounded-t-sm bg-indigo-500/10 px-3 py-2">
-          <div className="flex h-6 w-6 items-center justify-center text-indigo-500">
-            <BookOpen className="h-4 w-4" />
-          </div>
-          <span className="font-medium text-sm">{data.label}</span>
-        </div>
-
-        <div className="space-y-1.5 border-border/50 border-t px-3 py-2">
-          <div className="flex items-center justify-between">
-            <span className="text-muted-foreground text-xs">Search</span>
-            <span className="font-medium text-xs">
-              {searchLabels[data.config.searchType]}
-            </span>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <span className="text-muted-foreground text-xs">Top K</span>
-            <span className="text-xs">{data.config.topK}</span>
-          </div>
-
-          <div className="flex gap-2">
-            {data.config.rerank && (
-              <span className="rounded-sm bg-indigo-500/20 px-1.5 py-0.5 text-indigo-500 text-xs">
-                Rerank
-              </span>
+        <NodeSection>
+          <div className="space-y-1.5">
+            <NodeField label="Top K" mono value={data.config.topK} />
+            {data.config.minScore !== undefined && (
+              <NodeField label="Min Score" mono value={data.config.minScore} />
             )}
-            {data.config.synthesize && (
-              <span className="rounded-sm bg-indigo-500/20 px-1.5 py-0.5 text-indigo-500 text-xs">
-                Synthesize
-              </span>
-            )}
+            <div className="flex flex-wrap gap-1.5">
+              {data.config.rerank && (
+                <span className="rounded-sm bg-muted px-2 py-0.5 text-muted-foreground text-xs">
+                  Rerank
+                </span>
+              )}
+            </div>
           </div>
-        </div>
-
-        <Handle
-          className="h-3! w-3! border-2! border-background! bg-indigo-500!"
-          id="results"
-          position={Position.Right}
-          style={{ top: "35%" }}
-          type="source"
-        />
-
-        <Handle
-          className="h-3! w-3! border-2! border-background! bg-violet-500!"
-          id="answer"
-          position={Position.Right}
-          style={{ top: "65%" }}
-          type="source"
-        />
-      </div>
+        </NodeSection>
+      </NodeShell>
     );
   })
 );
+
 RagNode.displayName = "RagNode";
 
 export function createRagNodeData(): RagNodeData {
@@ -114,7 +86,6 @@ export function createRagNodeData(): RagNodeData {
       topK: 10,
       minScore: 0.5,
       rerank: true,
-      synthesize: true,
     },
     inputs: [{ id: "query", label: "Query", type: "data", required: true }],
     outputs: [
