@@ -201,6 +201,9 @@ export const CATEGORY_LABELS: Record<NodeCategory, string> = {
   transform: "Transform",
   human: "Human",
   integration: "Integration",
+  trigger: "Trigger",
+  memory: "Memory",
+  orchestration: "Orchestration",
 };
 
 export function createAllNodeTypes() {
