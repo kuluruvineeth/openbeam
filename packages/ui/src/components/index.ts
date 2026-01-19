@@ -397,6 +397,26 @@ export {
 export { Label } from "./label";
 export type { MarkdownComponents, MarkdownProps } from "./markdown";
 export { Markdown, markdownVariants } from "./markdown";
+export type {
+  AnimatedNumberProps,
+  Metric,
+  MetricCardProps,
+  MetricCardWithSparklineProps,
+  MetricGridProps,
+  NumberFormat,
+  ProgressRingProps,
+  SparklineProps,
+  Trend,
+} from "./metrics";
+export {
+  AnimatedNumber,
+  MetricCard,
+  MetricCardSkeleton,
+  MetricCardWithSparkline,
+  MetricGrid,
+  ProgressRing,
+  Sparkline,
+} from "./metrics";
 export {
   NavigationMenu,
   NavigationMenuContent,
