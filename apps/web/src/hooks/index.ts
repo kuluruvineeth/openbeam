@@ -1,4 +1,5 @@
 export { useDebounce } from "@openplane/ui";
+export { useDocumentPreview } from "@/features/file-preview";
 export {
   useAppQuery,
   useAppsQuery,
@@ -16,7 +17,6 @@ export {
 export { useDataSources } from "./use-data-sources";
 export type { DatePreset, DateRange } from "./use-date-range";
 export { dateRangeParser, useDateRange } from "./use-date-range";
-export { useDocumentPreview } from "./use-document-preview";
 export { useJobProgressSubscription } from "./use-job-progress";
 export {
   useMediaAsk,

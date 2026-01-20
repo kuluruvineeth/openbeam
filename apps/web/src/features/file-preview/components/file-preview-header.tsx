@@ -8,8 +8,8 @@ import {
   TooltipTrigger,
 } from "@openplane/ui";
 import { Icons } from "@/components/icons";
-import { getFileTypeLabel } from "@/lib/file-preview-config";
 import { formatFileSize } from "@/lib/format";
+import { getFileTypeLabel } from "../lib/file-preview-config";
 
 type FilePreviewHeaderProps = {
   fileName: string;

@@ -1,9 +1,9 @@
 "use client";
 
 import { forwardRef, type RefObject } from "react";
-import { AudioToolbar } from "@/components/file-preview/viewers/audio/audio-toolbar";
-import { AudioWaveform } from "@/components/file-preview/viewers/audio/audio-waveform";
 import type { AudioPlaybackState } from "@/lib/audio-types";
+import { AudioToolbar } from "./audio-toolbar";
+import { AudioWaveform } from "./audio-waveform";
 
 type AudioPlayerProps = {
   url: string;

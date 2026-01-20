@@ -3,9 +3,9 @@
 import { Button } from "@openplane/ui";
 import JSZip from "jszip";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { PresentationSkeleton } from "@/components/file-preview/file-preview-loading";
 import { Icons } from "@/components/icons";
 import { formatFileSize } from "@/lib/format";
+import { PresentationSkeleton } from "../file-preview-loading";
 
 type PresentationViewerProps = {
   url: string;

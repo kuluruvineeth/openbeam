@@ -7,8 +7,8 @@ import {
   useConnectorResources,
   useToggleResourceSync,
 } from "@/features/connectors/hooks";
+import { useDocumentPreview } from "@/features/file-preview";
 import { SearchSplitView } from "@/features/search/components/search-split-view";
-import { useDocumentPreview } from "@/hooks/use-document-preview";
 import { ICON_SIZE } from "./resource-icons";
 import { ResourceRow } from "./resource-row";
 

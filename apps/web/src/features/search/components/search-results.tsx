@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useInView } from "react-intersection-observer";
 import { Icons } from "@/components/icons";
-import type { PreviewType } from "@/hooks/use-document-preview";
+import type { PreviewType } from "@/features/file-preview";
 import type {
   MediaDocument,
   SearchResultDocument,

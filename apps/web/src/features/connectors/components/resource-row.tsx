@@ -3,7 +3,7 @@
 import { Checkbox } from "@openplane/ui";
 import { useState } from "react";
 import { Icons } from "@/components/icons";
-import type { PreviewType } from "@/hooks/use-document-preview";
+import type { PreviewType } from "@/features/file-preview";
 import { cn } from "@/lib/utils";
 import type { ConnectorResource } from "../types";
 import { ResourceDocumentList } from "./resource-document-list";

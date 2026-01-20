@@ -5,8 +5,11 @@ import { forwardRef } from "react";
 
 import { Icons } from "@/components/icons";
 import { AppLogo } from "@/components/integrations/app-logo";
-import type { PreviewType } from "@/hooks/use-document-preview";
-import { getPreviewCategory, isPreviewable } from "@/lib/file-preview-config";
+import {
+  getPreviewCategory,
+  isPreviewable,
+  type PreviewType,
+} from "@/features/file-preview";
 import {
   formatFileSize,
   formatFullTime,

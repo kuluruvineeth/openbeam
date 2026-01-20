@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import type { FileCategory } from "../lib/file-preview-config";
 import {
   AudioSkeleton,
   DocxSkeleton,
@@ -10,9 +11,8 @@ import {
   SpreadsheetSkeleton,
   TextSkeleton,
   VideoSkeleton,
-} from "@/components/file-preview/file-preview-loading";
-import { FilePreviewUnsupported } from "@/components/file-preview/file-preview-unsupported";
-import type { FileCategory } from "@/lib/file-preview-config";
+} from "./file-preview-loading";
+import { FilePreviewUnsupported } from "./file-preview-unsupported";
 
 const PdfViewer = dynamic(
   () => import("./viewers/pdf-viewer").then((mod) => mod.PdfViewer),

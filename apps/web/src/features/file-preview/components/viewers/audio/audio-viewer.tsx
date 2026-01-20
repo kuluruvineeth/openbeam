@@ -3,14 +3,6 @@
 import { TooltipProvider } from "@openplane/ui";
 import { useCallback, useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
-import { AudioPlayer } from "@/components/file-preview/viewers/audio/audio-player";
-import {
-  AudioSidebarPanel,
-  AudioSidebarToggle,
-} from "@/components/file-preview/viewers/audio/audio-sidebar";
-import { AudioQAPanel } from "@/components/file-preview/viewers/audio/panels/qa-panel";
-import { AudioSummaryPanel } from "@/components/file-preview/viewers/audio/panels/summary-panel";
-import { AudioTranscriptPanel } from "@/components/file-preview/viewers/audio/panels/transcript-panel";
 import {
   useAudioAsk,
   useAudioPlayback,
@@ -19,6 +11,11 @@ import {
   useAudioUrlState,
 } from "@/hooks/use-audio";
 import type { AudioTab, AudioViewerProps } from "@/lib/audio-types";
+import { AudioPlayer } from "./audio-player";
+import { AudioSidebarPanel, AudioSidebarToggle } from "./audio-sidebar";
+import { AudioQAPanel } from "./panels/qa-panel";
+import { AudioSummaryPanel } from "./panels/summary-panel";
+import { AudioTranscriptPanel } from "./panels/transcript-panel";
 
 export function AudioViewer({
   url,

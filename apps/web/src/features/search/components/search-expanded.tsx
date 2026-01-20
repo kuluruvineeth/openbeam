@@ -2,10 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { OverviewPanel } from "@/components/overview";
-import {
-  type PreviewType,
-  useDocumentPreview,
-} from "@/hooks/use-document-preview";
+import { type PreviewType, useDocumentPreview } from "@/features/file-preview";
 import { useOverview } from "@/hooks/use-overview";
 import { useSearch } from "../hooks/use-search";
 import { useSearchNavigation } from "../hooks/use-search-navigation";

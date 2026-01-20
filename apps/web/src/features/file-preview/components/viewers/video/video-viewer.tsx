@@ -3,17 +3,6 @@
 import { TooltipProvider } from "@openplane/ui";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
-import { ChaptersPanel } from "@/components/file-preview/viewers/video/panels/chapters-panel";
-import { HighlightsPanel } from "@/components/file-preview/viewers/video/panels/highlights-panel";
-import { QAPanel } from "@/components/file-preview/viewers/video/panels/qa-panel";
-import { SummaryPanel } from "@/components/file-preview/viewers/video/panels/summary-panel";
-import { TranscriptPanel } from "@/components/file-preview/viewers/video/panels/transcript-panel";
-import { VideoPlayer } from "@/components/file-preview/viewers/video/video-player";
-import {
-  VideoSidebarPanel,
-  VideoSidebarToggle,
-} from "@/components/file-preview/viewers/video/video-sidebar";
-import { VideoToolbar } from "@/components/file-preview/viewers/video/video-toolbar";
 import {
   useMediaAsk,
   useMediaChapters,
@@ -26,6 +15,14 @@ import {
   useMediaUrlState,
 } from "@/hooks/use-media";
 import type { MediaTab, MediaViewerProps } from "@/lib/media-types";
+import { ChaptersPanel } from "./panels/chapters-panel";
+import { HighlightsPanel } from "./panels/highlights-panel";
+import { QAPanel } from "./panels/qa-panel";
+import { SummaryPanel } from "./panels/summary-panel";
+import { TranscriptPanel } from "./panels/transcript-panel";
+import { VideoPlayer } from "./video-player";
+import { VideoSidebarPanel, VideoSidebarToggle } from "./video-sidebar";
+import { VideoToolbar } from "./video-toolbar";
 
 export function VideoViewer({
   url,

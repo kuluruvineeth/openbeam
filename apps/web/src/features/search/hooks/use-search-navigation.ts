@@ -1,8 +1,11 @@
 "use client";
 
 import { useHotkeys } from "react-hotkeys-hook";
-import type { PreviewType } from "@/hooks/use-document-preview";
-import { getPreviewCategory, isPreviewable } from "@/lib/file-preview-config";
+import {
+  getPreviewCategory,
+  isPreviewable,
+  type PreviewType,
+} from "@/features/file-preview";
 import type { UnifiedSearchItem } from "../types";
 
 type SearchNavigationOptions = {

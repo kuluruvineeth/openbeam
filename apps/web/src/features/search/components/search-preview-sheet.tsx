@@ -4,12 +4,12 @@ import { Button, Sheet, SheetContent, Skeleton } from "@openplane/ui";
 import { useQuery } from "@tanstack/react-query";
 import { DocumentPreviewPanel } from "@/components/document-preview/document-preview-panel";
 import { EmailPreviewPanel } from "@/components/email-preview/email-preview-panel";
-import { FilePreviewPanel } from "@/components/file-preview/file-preview-panel";
-import { AudioViewer } from "@/components/file-preview/viewers/audio/audio-viewer";
-import { VideoViewer } from "@/components/file-preview/viewers/video/video-viewer";
 import { Icons } from "@/components/icons";
 import { SlackPreviewPanel } from "@/components/slack-preview/slack-preview-panel";
-import type { PreviewType } from "@/hooks/use-document-preview";
+import type { PreviewType } from "@/features/file-preview";
+import { FilePreviewPanel } from "@/features/file-preview/components/file-preview-panel";
+import { AudioViewer } from "@/features/file-preview/components/viewers/audio/audio-viewer";
+import { VideoViewer } from "@/features/file-preview/components/viewers/video/video-viewer";
 import { useTRPC } from "@/trpc/client";
 import type { MediaDocument } from "../types";
 

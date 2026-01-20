@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useDocumentPreview } from "@/hooks/use-document-preview";
+import { useDocumentPreview } from "@/features/file-preview";
 import { useSearch } from "../hooks/use-search";
 import type { UnifiedSearchItem } from "../types";
 import { SearchCommand } from "./search-command";
