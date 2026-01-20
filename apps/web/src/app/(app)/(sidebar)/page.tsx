@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { ErrorBoundary } from "next/dist/client/components/error-boundary";
 import { ErrorFallback } from "@/components/error-fallback";
-import { NewChatView } from "@/components/new-chat-view";
+import { NewChatView } from "@/features/chat/components/new-chat-view";
 import { batchPrefetch, HydrateClient, trpc } from "@/trpc/server";
 
 export const metadata: Metadata = {

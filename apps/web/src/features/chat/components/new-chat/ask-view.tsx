@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChatBox } from "@/components/chat-box/chat-box";
+import { ChatBox } from "@/features/chat/components/chat-box/chat-box";
 
 export function AskView() {
   const [query, setQuery] = useState("");

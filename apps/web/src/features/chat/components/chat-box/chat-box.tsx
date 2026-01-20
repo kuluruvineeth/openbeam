@@ -1,17 +1,17 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ChatInput } from "@/components/chat-box/chat-input";
-import { ChatToolbar } from "@/components/chat-box/chat-toolbar";
-import { FileAttachments } from "@/components/chat-box/file-attachments";
-import { ReferenceBox } from "@/components/chat-box/reference-box";
+import { Icons } from "@/components/icons";
 import type {
   Capability,
   ChatBoxProps,
   SelectedFile,
-} from "@/components/chat-box/types";
-import { Icons } from "@/components/icons";
+} from "@/features/chat/types";
 import { cn } from "@/lib/utils";
+import { ChatInput } from "./chat-input";
+import { ChatToolbar } from "./chat-toolbar";
+import { FileAttachments } from "./file-attachments";
+import { ReferenceBox } from "./reference-box";
 
 type Props = ChatBoxProps & {
   agentName?: string | null;

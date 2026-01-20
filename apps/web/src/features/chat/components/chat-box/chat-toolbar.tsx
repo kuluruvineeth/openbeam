@@ -1,13 +1,13 @@
 "use client";
 
 import { TooltipProvider } from "@openplane/ui";
-import { AgentModeToggle } from "@/components/chat-box/toolbar/agent-mode-toggle";
-import { AttachButton } from "@/components/chat-box/toolbar/attach-button";
-import { CapabilitySelector } from "@/components/chat-box/toolbar/capability-selector";
-import { MCPConnectorsDropdown } from "@/components/chat-box/toolbar/mcp-connectors-dropdown";
-import { ModelSelector } from "@/components/chat-box/toolbar/model-selector";
-import { SendStopButton } from "@/components/chat-box/toolbar/send-stop-button";
-import type { Capability, UserRole } from "@/components/chat-box/types";
+import type { Capability, UserRole } from "@/features/chat/types";
+import { AgentModeToggle } from "./toolbar/agent-mode-toggle";
+import { AttachButton } from "./toolbar/attach-button";
+import { CapabilitySelector } from "./toolbar/capability-selector";
+import { MCPConnectorsDropdown } from "./toolbar/mcp-connectors-dropdown";
+import { ModelSelector } from "./toolbar/model-selector";
+import { SendStopButton } from "./toolbar/send-stop-button";
 
 type Props = {
   role: UserRole;

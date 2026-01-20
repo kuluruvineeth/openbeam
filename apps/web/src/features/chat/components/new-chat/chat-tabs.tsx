@@ -2,7 +2,7 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@openplane/ui";
 import { Icons } from "@/components/icons";
-import { useChatTab } from "@/hooks/use-chat-tab";
+import { useChatTab } from "@/features/chat/hooks/use-chat-tab";
 import { cn } from "@/lib/utils";
 
 type Props = {

@@ -1,12 +1,12 @@
 "use client";
 
 import { useHotkeys } from "react-hotkeys-hook";
-import { AgentHeader } from "@/components/new-chat/agent-header";
-import { AskView } from "@/components/new-chat/ask-view";
-import { ChatTabs } from "@/components/new-chat/chat-tabs";
-import { FavoriteAgents } from "@/components/new-chat/favorite-agents";
-import { SearchView } from "@/components/new-chat/search-view";
-import { useChatTab } from "@/hooks/use-chat-tab";
+import { useChatTab } from "@/features/chat/hooks/use-chat-tab";
+import { AgentHeader } from "./new-chat/agent-header";
+import { AskView } from "./new-chat/ask-view";
+import { ChatTabs } from "./new-chat/chat-tabs";
+import { FavoriteAgents } from "./new-chat/favorite-agents";
+import { SearchView } from "./new-chat/search-view";
 
 type Agent = {
   name: string;

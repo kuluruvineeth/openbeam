@@ -13,8 +13,6 @@ export {
   useAudioTranscript,
   useAudioUrlState,
 } from "./use-audio";
-export { useChatInput } from "./use-chat-input";
-export { chatTabOptions, loadChatTab, useChatTab } from "./use-chat-tab";
 export { type ConnectorDetail, useConnector } from "./use-connector";
 export {
   useBulkPause,

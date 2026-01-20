@@ -8,8 +8,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@openplane/ui";
-import type { Capability } from "@/components/chat-box/types";
 import { Icons } from "@/components/icons";
+import type { Capability } from "@/features/chat/types";
 import { cn } from "@/lib/utils";
 
 type Props = {
