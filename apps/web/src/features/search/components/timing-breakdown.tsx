@@ -1,7 +1,7 @@
 "use client";
 
-import type { SearchTiming } from "@/lib/search-types";
 import { cn } from "@/lib/utils";
+import type { SearchTiming } from "../types";
 
 type TimingBreakdownProps = {
   timing: SearchTiming;

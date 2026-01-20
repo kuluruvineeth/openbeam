@@ -3,14 +3,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { Icons } from "@/components/icons";
-import { FilterChip } from "@/components/search/filters/filter-chip";
+import { useTRPC } from "@/trpc/client";
 import {
   DATE_RANGE_CONFIG,
   type DateRangeType,
   DOCUMENT_TYPE_CONFIG,
   type DocumentType,
-} from "@/lib/search-config";
-import { useTRPC } from "@/trpc/client";
+} from "../../lib/config";
+import { FilterChip } from "./filter-chip";
 
 type ActiveFiltersProps = {
   documentTypes: string[];

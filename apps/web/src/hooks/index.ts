@@ -49,10 +49,6 @@ export {
   useMentionSuggestions,
 } from "./use-mention-suggestions";
 export { useOverview } from "./use-overview";
-export { useSearch } from "./use-search";
-export { useSearchNavigation } from "./use-search-navigation";
-export { useSearchShortcuts } from "./use-search-shortcuts";
-export { useSearchTracking } from "./use-search-tracking";
 export { useShareableLink } from "./use-shareable-link";
 export { SidebarProvider, useSidebar } from "./use-sidebar";
 export {

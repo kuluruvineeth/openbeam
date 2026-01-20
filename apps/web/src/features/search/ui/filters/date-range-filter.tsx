@@ -12,12 +12,12 @@ import {
 } from "@openplane/ui";
 import { useState } from "react";
 import { Icons } from "@/components/icons";
+import { cn } from "@/lib/utils";
 import {
   DATE_RANGE_CONFIG,
   DATE_RANGE_OPTIONS,
   type DateRangeType,
-} from "@/lib/search-config";
-import { cn } from "@/lib/utils";
+} from "../../lib/config";
 
 type DateRangeFilterProps = {
   value: DateRangeType | null;

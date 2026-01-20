@@ -3,8 +3,8 @@
 import { Skeleton } from "@openplane/ui";
 import { Command as CommandPrimitive } from "cmdk";
 import { Icons } from "@/components/icons";
-import { SearchCommandItem } from "@/components/search/search-command-item";
-import type { UnifiedSearchItem } from "@/lib/search-types";
+import type { UnifiedSearchItem } from "../types";
+import { SearchCommandItem } from "./search-command-item";
 
 type Props = {
   items: UnifiedSearchItem[];

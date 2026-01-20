@@ -17,12 +17,12 @@ import {
 } from "@openplane/ui";
 import { useMemo, useState } from "react";
 import { Icons } from "@/components/icons";
+import { cn } from "@/lib/utils";
 import {
   RANKING_CONFIG,
   RANKING_OPTIONS,
   type SearchRanking,
-} from "@/lib/search-config";
-import { cn } from "@/lib/utils";
+} from "../../lib/config";
 
 type RankingFilterProps = {
   value: SearchRanking;

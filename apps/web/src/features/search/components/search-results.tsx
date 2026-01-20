@@ -3,14 +3,14 @@
 import { useEffect, useRef } from "react";
 import { useInView } from "react-intersection-observer";
 import { Icons } from "@/components/icons";
-import { SearchMediaRow } from "@/components/search/search-media-row";
-import { SearchResultRow } from "@/components/search/search-result-row";
 import type { PreviewType } from "@/hooks/use-document-preview";
 import type {
   MediaDocument,
   SearchResultDocument,
   UnifiedSearchItem,
-} from "@/lib/search-types";
+} from "../types";
+import { SearchMediaRow } from "./search-media-row";
+import { SearchResultRow } from "./search-result-row";
 
 type SearchResultsProps = {
   items: UnifiedSearchItem[];

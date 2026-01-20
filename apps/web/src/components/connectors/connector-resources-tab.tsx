@@ -4,7 +4,7 @@ import { Input, Skeleton } from "@openplane/ui";
 import { ICON_SIZE } from "@/components/connectors/resource-icons";
 import { ResourceRow } from "@/components/connectors/resource-row";
 import { Icons } from "@/components/icons";
-import { SearchSplitView } from "@/components/search/search-split-view";
+import { SearchSplitView } from "@/features/search/components/search-split-view";
 import {
   useConnector,
   useConnectorResources,

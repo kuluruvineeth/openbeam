@@ -14,15 +14,15 @@ import {
   getContentPreview,
   getInitials,
 } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import {
   formatSourceName,
   getConnectorApp,
   getDocumentIcon,
   getDocumentTypeLabel,
   isContentPrimary,
-} from "@/lib/search-display";
-import type { SearchResultDocument } from "@/lib/search-types";
-import { cn } from "@/lib/utils";
+} from "../lib/display";
+import type { SearchResultDocument } from "../types";
 
 type SearchResultRowProps = {
   document: SearchResultDocument;

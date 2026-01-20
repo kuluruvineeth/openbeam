@@ -1,7 +1,7 @@
 "use client";
 
 import { useHotkeys } from "react-hotkeys-hook";
-import type { SearchRanking } from "@/lib/search-config";
+import type { SearchRanking } from "../lib/config";
 
 type SearchShortcutsOptions = {
   setRanking: (ranking: SearchRanking) => void;

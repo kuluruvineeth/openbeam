@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { SearchCommand } from "@/components/search/search-command";
-import { SearchExpanded } from "@/components/search/search-expanded";
 import { useDocumentPreview } from "@/hooks/use-document-preview";
-import { useSearch } from "@/hooks/use-search";
-import type { UnifiedSearchItem } from "@/lib/search-types";
+import { useSearch } from "../hooks/use-search";
+import type { UnifiedSearchItem } from "../types";
+import { SearchCommand } from "./search-command";
+import { SearchExpanded } from "./search-expanded";
 
 export function SearchPage() {
   const { setQuery, hasQuery } = useSearch();

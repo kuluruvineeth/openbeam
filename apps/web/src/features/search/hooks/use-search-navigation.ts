@@ -3,7 +3,7 @@
 import { useHotkeys } from "react-hotkeys-hook";
 import type { PreviewType } from "@/hooks/use-document-preview";
 import { getPreviewCategory, isPreviewable } from "@/lib/file-preview-config";
-import type { UnifiedSearchItem } from "@/lib/search-types";
+import type { UnifiedSearchItem } from "../types";
 
 type SearchNavigationOptions = {
   items: UnifiedSearchItem[];

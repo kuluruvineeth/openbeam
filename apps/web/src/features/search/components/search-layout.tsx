@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { SearchSourcesPanel } from "@/components/search/search-sources-panel";
+import { SearchSourcesPanel } from "./search-sources-panel";
 
 type ConnectorFacet = {
   connectorType: string;

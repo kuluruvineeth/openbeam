@@ -6,13 +6,13 @@ import { forwardRef, useState } from "react";
 import { Icons } from "@/components/icons";
 import { AppLogo } from "@/components/integrations/app-logo";
 import { getContentPreview } from "@/lib/format";
-import { getConnectorApp, getDocumentTypeLabel } from "@/lib/search-display";
+import { cn } from "@/lib/utils";
+import { getConnectorApp, getDocumentTypeLabel } from "../lib/display";
 import type {
   MediaDocument,
   SearchResultDocument,
   UnifiedSearchItem,
-} from "@/lib/search-types";
-import { cn } from "@/lib/utils";
+} from "../types";
 
 type Props = {
   item: UnifiedSearchItem;

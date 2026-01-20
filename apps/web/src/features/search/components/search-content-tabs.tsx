@@ -2,8 +2,8 @@
 
 import { Tabs, TabsList, TabsTrigger } from "@openplane/ui";
 import { Icons } from "@/components/icons";
-import type { ContentType } from "@/lib/search-types";
 import { cn } from "@/lib/utils";
+import type { ContentType } from "../types";
 
 type TabConfig = {
   id: ContentType;

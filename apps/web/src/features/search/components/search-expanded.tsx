@@ -2,21 +2,21 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { OverviewPanel } from "@/components/overview";
-import { SearchEmptyState } from "@/components/search/search-empty-state";
-import { SearchFilters } from "@/components/search/search-filters";
-import { SearchInputBar } from "@/components/search/search-input-bar";
-import { SearchLayout } from "@/components/search/search-layout";
-import { SearchPreviewSheet } from "@/components/search/search-preview-sheet";
-import { SearchResults } from "@/components/search/search-results";
-import { SearchResultsSkeleton } from "@/components/search/search-skeleton";
 import {
   type PreviewType,
   useDocumentPreview,
 } from "@/hooks/use-document-preview";
 import { useOverview } from "@/hooks/use-overview";
-import { useSearch } from "@/hooks/use-search";
-import { useSearchNavigation } from "@/hooks/use-search-navigation";
-import type { MediaDocument, SearchResultDocument } from "@/lib/search-types";
+import { useSearch } from "../hooks/use-search";
+import { useSearchNavigation } from "../hooks/use-search-navigation";
+import type { MediaDocument, SearchResultDocument } from "../types";
+import { SearchEmptyState } from "./search-empty-state";
+import { SearchFilters } from "./search-filters";
+import { SearchInputBar } from "./search-input-bar";
+import { SearchLayout } from "./search-layout";
+import { SearchPreviewSheet } from "./search-preview-sheet";
+import { SearchResults } from "./search-results";
+import { SearchResultsSkeleton } from "./search-skeleton";
 
 export function SearchExpanded() {
   const {

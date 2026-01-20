@@ -9,10 +9,10 @@ import {
   formatFullTime,
   formatRelativeTime,
 } from "@/lib/format";
-import { MEDIA_TYPE_CONFIG } from "@/lib/search-config";
-import { formatSourceName, getConnectorApp } from "@/lib/search-display";
-import type { MediaDocument, MediaType } from "@/lib/search-types";
 import { cn } from "@/lib/utils";
+import { MEDIA_TYPE_CONFIG } from "../lib/config";
+import { formatSourceName, getConnectorApp } from "../lib/display";
+import type { MediaDocument, MediaType } from "../types";
 
 type SearchMediaRowProps = {
   media: MediaDocument;

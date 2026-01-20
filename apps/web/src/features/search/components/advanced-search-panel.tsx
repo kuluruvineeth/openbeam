@@ -2,9 +2,9 @@
 
 import { Button, Collapsible, CollapsibleContent } from "@openplane/ui";
 import { useCallback } from "react";
-import { RRF_DEFAULTS } from "@/lib/search-config";
-import type { RRFConfig, SearchTiming } from "@/lib/search-types";
 import { cn } from "@/lib/utils";
+import { RRF_DEFAULTS } from "../lib/config";
+import type { RRFConfig, SearchTiming } from "../types";
 import { RrfSlider } from "./rrf-slider";
 import { TimingBreakdown } from "./timing-breakdown";
 

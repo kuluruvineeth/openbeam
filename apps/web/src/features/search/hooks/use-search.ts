@@ -18,6 +18,7 @@ import {
   useQueryStates,
 } from "nuqs";
 import { useCallback, useMemo } from "react";
+import { useTRPC } from "@/trpc/client";
 import {
   DATE_RANGE_OPTIONS,
   type DateRangeType,
@@ -29,7 +30,7 @@ import {
   type SearchRanking,
   SOURCE_TYPE_OPTIONS,
   STATUS_OPTIONS,
-} from "@/lib/search-config";
+} from "../lib/config";
 import type {
   ContentType,
   MediaDocument,
@@ -37,8 +38,7 @@ import type {
   SearchFilters,
   SearchResultDocument,
   UnifiedSearchItem,
-} from "@/lib/search-types";
-import { useTRPC } from "@/trpc/client";
+} from "../types";
 
 export {
   DOCUMENT_TYPE_OPTIONS,
@@ -46,15 +46,6 @@ export {
   SOURCE_TYPE_OPTIONS,
   STATUS_OPTIONS,
 };
-export type {
-  ContentType,
-  MediaDocument,
-  RRFConfig,
-  SearchFilters,
-  SearchResultDocument,
-  SearchTiming,
-  UnifiedSearchItem,
-} from "@/lib/search-types";
 
 const CONTENT_TYPE_OPTIONS = ["all", "documents", "media"] as const;
 

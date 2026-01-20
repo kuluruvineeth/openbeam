@@ -17,8 +17,8 @@ import { VideoViewer } from "@/components/file-preview/viewers/video/video-viewe
 import { Icons } from "@/components/icons";
 import { SlackPreviewPanel } from "@/components/slack-preview/slack-preview-panel";
 import type { PreviewType } from "@/hooks/use-document-preview";
-import type { MediaDocument } from "@/lib/search-types";
 import { useTRPC } from "@/trpc/client";
+import type { MediaDocument } from "../types";
 
 type SearchSplitViewProps = {
   children: ReactNode;

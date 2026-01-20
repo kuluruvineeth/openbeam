@@ -5,10 +5,10 @@ import { Command as CommandPrimitive } from "cmdk";
 import { useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Icons } from "@/components/icons";
-import { SearchCommandDropdown } from "@/components/search/search-command-dropdown";
-import { useSearchAutocomplete } from "@/hooks/use-search";
-import type { UnifiedSearchItem } from "@/lib/search-types";
 import { cn } from "@/lib/utils";
+import { useSearchAutocomplete } from "../hooks/use-search";
+import type { UnifiedSearchItem } from "../types";
+import { SearchCommandDropdown } from "./search-command-dropdown";
 
 type Props = {
   onSubmit: (query: string) => void;

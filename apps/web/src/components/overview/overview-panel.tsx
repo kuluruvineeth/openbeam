@@ -4,8 +4,8 @@ import { Button } from "@openplane/ui";
 import { AnimatePresence, motion } from "motion/react";
 import { memo, useCallback, useEffect, useState } from "react";
 import { Icons } from "@/components/icons";
-import { SearchPreviewSheet } from "@/components/search/search-preview-sheet";
 import { ThinkingDemo } from "@/components/thinking";
+import { SearchPreviewSheet } from "@/features/search/components/search-preview-sheet";
 import type { PreviewType } from "@/hooks/use-document-preview";
 import type {
   OverviewCitation,
