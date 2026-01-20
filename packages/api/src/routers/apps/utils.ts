@@ -1,14 +1,11 @@
-import {
-  type Database,
-  SyncJobStatus,
-  type UpdateSyncSettingsResult,
-} from "@openplane/db";
+import { type Database, SyncJobStatus } from "@openplane/db";
 import {
   createRepeatableSyncJob,
   jobSchedulerKeys,
   removeRepeatableSyncJob,
   setupPermissionSyncSchedule,
 } from "@openplane/redis";
+import type { UpdateSyncSettingsResult } from "@openplane/types/db";
 import { TRPCError } from "@trpc/server";
 
 /**

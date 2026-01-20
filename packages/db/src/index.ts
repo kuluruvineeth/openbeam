@@ -33,6 +33,7 @@ export default prisma;
 
 export * from "./lib/encryption";
 export * from "./mutations/accounts";
+export * from "./mutations/agent-canvas";
 export * from "./mutations/ai-usage";
 export * from "./mutations/audit-logs";
 export * from "./mutations/background-agents";
@@ -60,6 +61,7 @@ export * from "./mutations/teams";
 export * from "./mutations/user-search-profile";
 export * from "./mutations/users";
 export * from "./queries/accounts";
+export * from "./queries/agent-canvas";
 export * from "./queries/ai-usage";
 export * from "./queries/api-keys";
 export * from "./queries/audit-logs";

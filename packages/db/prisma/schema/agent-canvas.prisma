@@ -1,0 +1,210 @@
+enum AgentCanvasStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum AgentTriggerType {
+  MANUAL
+  SCHEDULE
+  WEBHOOK
+  EVENT
+}
+
+model AgentCanvas {
+  id            String              @id @default(cuid()) @map("_id")
+  name          String
+  description   String?
+  icon          String?
+  status        AgentCanvasStatus   @default(DRAFT)
+  version       Int                 @default(1)
+
+  nodes         Json
+  edges         Json
+  viewport      Json?
+
+  settings      Json?
+  permissions   Json?
+
+  triggerId     String?
+  triggerType   AgentTriggerType?
+  triggerConfig Json?
+
+  teamId        String
+  team          Team                @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  createdById   String
+  createdBy     User                @relation("AgentCanvasCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  versions      AgentCanvasVersion[]
+  executions    AgentCanvasExecution[]
+
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  publishedAt   DateTime?
+
+  @@index([teamId])
+  @@index([createdById])
+  @@index([status])
+  @@map("agent_canvas")
+}
+
+model AgentCanvasVersion {
+  id            String        @id @default(cuid()) @map("_id")
+  version       Int
+
+  agentCanvasId String
+  agentCanvas   AgentCanvas   @relation(fields: [agentCanvasId], references: [id], onDelete: Cascade)
+
+  nodes         Json
+  edges         Json
+  viewport      Json?
+  settings      Json?
+
+  changelog     String?
+  createdById   String
+  createdBy     User          @relation("AgentCanvasVersionCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  createdAt     DateTime      @default(now())
+
+  @@unique([agentCanvasId, version])
+  @@index([agentCanvasId])
+  @@map("agent_canvas_version")
+}
+
+enum AgentCanvasExecutionStatus {
+  PENDING
+  RUNNING
+  WAITING_APPROVAL
+  WAITING_INPUT
+  COMPLETED
+  FAILED
+  CANCELLED
+  TIMED_OUT
+}
+
+model AgentCanvasExecution {
+  id              String                      @id @default(cuid()) @map("_id")
+
+  agentCanvasId   String
+  agentCanvas     AgentCanvas                 @relation(fields: [agentCanvasId], references: [id], onDelete: Cascade)
+
+  versionNumber   Int
+  status          AgentCanvasExecutionStatus  @default(PENDING)
+
+  input           Json?
+  output          Json?
+  error           String?
+
+  currentNodeId   String?
+  trace           Json
+
+  tokenUsage      Json?
+  latencyMs       Int?
+
+  triggeredById   String
+  triggeredBy     User                        @relation("AgentCanvasExecutor", fields: [triggeredById], references: [id], onDelete: Restrict)
+  triggerSource   String?
+
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime                    @default(now())
+
+  steps           AgentCanvasExecutionStep[]
+  approvals       AgentCanvasApproval[]
+
+  @@index([agentCanvasId])
+  @@index([status])
+  @@index([triggeredById])
+  @@map("agent_canvas_execution")
+}
+
+model AgentCanvasExecutionStep {
+  id              String                    @id @default(cuid()) @map("_id")
+
+  executionId     String
+  execution       AgentCanvasExecution      @relation(fields: [executionId], references: [id], onDelete: Cascade)
+
+  nodeId          String
+  nodeType        String
+
+  status          AgentCanvasExecutionStatus
+
+  input           Json?
+  output          Json?
+  error           String?
+
+  tokenUsage      Json?
+  latencyMs       Int?
+
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime                  @default(now())
+
+  @@index([executionId])
+  @@index([nodeId])
+  @@map("agent_canvas_execution_step")
+}
+
+enum AgentCanvasApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+model AgentCanvasApproval {
+  id              String                      @id @default(cuid()) @map("_id")
+
+  executionId     String
+  execution       AgentCanvasExecution        @relation(fields: [executionId], references: [id], onDelete: Cascade)
+
+  nodeId          String
+  status          AgentCanvasApprovalStatus   @default(PENDING)
+
+  requestMessage  String?
+  responseMessage String?
+
+  requestedAt     DateTime                    @default(now())
+  respondedAt     DateTime?
+  expiresAt       DateTime?
+
+  respondedById   String?
+  respondedBy     User?                       @relation("AgentCanvasApprover", fields: [respondedById], references: [id], onDelete: SetNull)
+
+  @@index([executionId])
+  @@index([status])
+  @@map("agent_canvas_approval")
+}
+
+model AgentCanvasTemplate {
+  id                  String    @id @default(cuid()) @map("_id")
+  name                String
+  description         String?
+  icon                String?
+  category            String
+
+  nodes               Json
+  edges               Json
+  settings            Json?
+
+  requiredConnectors  String[]
+  requiredTools       String[]
+  variables           Json?
+
+  isPublic            Boolean   @default(false)
+
+  teamId              String?
+  team                Team?     @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  createdById         String
+  createdBy           User      @relation("AgentCanvasTemplateCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  usageCount          Int       @default(0)
+
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([category])
+  @@index([isPublic])
+  @@index([teamId])
+  @@map("agent_canvas_template")
+}

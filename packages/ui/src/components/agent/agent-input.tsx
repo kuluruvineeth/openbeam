@@ -29,7 +29,7 @@ interface AttachedFile {
   type: string;
 }
 
-type AgentInputProps = React.ComponentProps<"div"> &
+type AgentInputProps = Omit<React.ComponentProps<"div">, "onSubmit"> &
   VariantProps<typeof agentInputVariants> & {
     placeholder?: string;
     value?: string;

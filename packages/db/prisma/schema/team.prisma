@@ -33,6 +33,8 @@ model Team {
   agentExecutionTraces   AgentExecutionTrace[]
   savedSearches          SavedSearch[]
   shareLinks             ShareLink[]
+  agentCanvases          AgentCanvas[]
+  agentCanvasTemplates   AgentCanvasTemplate[]
 
   @@map("team")
 }

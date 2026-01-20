@@ -21,7 +21,27 @@ export {
   useSelectedModel,
   useToolbarExpanded,
 } from "./agent-store";
-
+export type {
+  CanvasStore,
+  CanvasStoreConfig,
+  CanvasStorePersisted,
+} from "./canvas-store";
+export {
+  createCanvasStore,
+  useCanvasEdges,
+  useCanvasIsDirty,
+  useCanvasIsHydrated,
+  useCanvasNodes,
+  useCanvasSelection,
+  useCanvasStore,
+  useCanvasViewport,
+} from "./canvas-store";
+export {
+  useCurrentExecution,
+  useExecutionHistory,
+  useExecutionStore,
+  useIsExecuting,
+} from "./execution-store";
 export type {
   ApiStorageConfig,
   HybridStorageConfig,
