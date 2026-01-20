@@ -457,6 +457,7 @@ export {
   type UseToolStepsReturn,
   useAutoCollapse,
   useAutoScroll,
+  useDebounce,
   useEventGrouping,
   useThinking,
   useToolSteps,

@@ -1,5 +1,6 @@
 "use client";
 
+import { useDebounce } from "@openplane/ui";
 import {
   keepPreviousData,
   useInfiniteQuery,
@@ -17,7 +18,6 @@ import {
   useQueryStates,
 } from "nuqs";
 import { useCallback, useMemo } from "react";
-import { useDebounce } from "@/hooks/use-debounce";
 import {
   DATE_RANGE_OPTIONS,
   type DateRangeType,

@@ -1,6 +1,7 @@
 "use client";
 
 import type { UnifiedApp } from "@openplane/integrations";
+import { useDebounce } from "@openplane/ui";
 import {
   keepPreviousData,
   useInfiniteQuery,
@@ -10,7 +11,6 @@ import {
 } from "@tanstack/react-query";
 import { createLoader, parseAsString, useQueryStates } from "nuqs";
 import { useCallback, useMemo } from "react";
-import { useDebounce } from "@/hooks/use-debounce";
 import { useSyncHistoryInfinite, useSyncStatus } from "@/hooks/use-sync";
 import { useTRPC } from "@/trpc/client";
 
