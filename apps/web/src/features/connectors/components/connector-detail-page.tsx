@@ -5,15 +5,14 @@ import { Button, Skeleton } from "@openplane/ui";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ConnectorDetailTabs } from "@/components/connectors/connector-detail-tabs";
-import { DeletionWarningBanner } from "@/components/connectors/deletion-warning-banner";
 import { Icons } from "@/components/icons";
 import { AppLogo } from "@/components/integrations/app-logo";
 import { SyncStatusBadge } from "@/components/sync/sync-status-badge";
-import { useConnector } from "@/hooks/use-connector";
-import { useRestoreConnector } from "@/hooks/use-connectors";
+import { useConnector, useRestoreConnector } from "@/features/connectors/hooks";
 import { useSyncStatus } from "@/hooks/use-sync";
 import { useIsAdmin } from "@/hooks/use-user-role";
+import { ConnectorDetailTabs } from "./connector-detail-tabs";
+import { DeletionWarningBanner } from "./deletion-warning-banner";
 
 type ConnectorDetailPageProps = {
   connectorId: string;

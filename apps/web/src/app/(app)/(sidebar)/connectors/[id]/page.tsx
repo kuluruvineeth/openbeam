@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { ErrorBoundary } from "next/dist/client/components/error-boundary";
 import { Suspense } from "react";
-import { ConnectorDetailPage } from "@/components/connectors/connector-detail-page";
-import { ConnectorDetailSkeleton } from "@/components/connectors/connectors-skeleton";
 import { ErrorFallback } from "@/components/error-fallback";
+import {
+  ConnectorDetailPage,
+  ConnectorDetailSkeleton,
+} from "@/features/connectors/components";
 import { batchPrefetch, HydrateClient, trpc } from "@/trpc/server";
 
 type Props = {

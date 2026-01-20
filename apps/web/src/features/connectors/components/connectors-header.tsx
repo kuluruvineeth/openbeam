@@ -1,8 +1,8 @@
 "use client";
 
-import { ConnectorsTabs } from "@/components/connectors/connectors-tabs";
 import { SearchField } from "@/components/search-field";
-import { useConnectorsStats } from "@/hooks/use-connectors";
+import { useConnectorsStats } from "@/features/connectors/hooks";
+import { ConnectorsTabs } from "./connectors-tabs";
 
 export function ConnectorsHeader() {
   const { data: stats, isLoading } = useConnectorsStats();

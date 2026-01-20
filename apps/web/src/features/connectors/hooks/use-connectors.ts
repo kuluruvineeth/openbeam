@@ -9,38 +9,7 @@ import {
 import { useMemo, useRef } from "react";
 import { useBulkSyncStatus } from "@/hooks/use-sync";
 import { useTRPC } from "@/trpc/client";
-
-type Connector = {
-  id: string;
-  name: string;
-  app: string;
-  status: string;
-  lastSyncedAt: string | Date | null;
-  syncStatus: {
-    connector: {
-      id: string;
-      status: string | null;
-      lastSyncedAt: string | Date | null;
-      lastError: string | null;
-    };
-    stats: {
-      totalIndexed: number;
-    };
-  } | null;
-};
-
-type ConnectorsResult = {
-  data: Connector[] | null;
-  isLoading: boolean;
-  isFetching: boolean;
-  error: unknown;
-  refetch: () => void;
-};
-
-type MutationCallbacks = {
-  onSuccess?: () => void;
-  onError?: (error: unknown) => void;
-};
+import type { Connector, ConnectorsResult, MutationCallbacks } from "../types";
 
 export function useConnectors(): ConnectorsResult {
   const trpc = useTRPC();

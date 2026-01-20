@@ -1,7 +1,7 @@
 "use client";
 
 import { SyncHistoryList } from "@/components/sync/sync-history-list";
-import { useConnectorSyncHistory } from "@/hooks/use-connector";
+import { useConnectorSyncHistory } from "@/features/connectors/hooks";
 
 export function ConnectorSyncHistoryTab({
   connectorId,

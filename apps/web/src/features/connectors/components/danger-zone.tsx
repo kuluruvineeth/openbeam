@@ -8,16 +8,16 @@ import {
   Separator,
 } from "@openplane/ui";
 import { format } from "date-fns";
-import { DeleteConnectorDialog } from "@/components/connectors/delete-connector-dialog";
 import { SubmitButton } from "@/components/submit-button";
 import {
   useDisconnectConnector,
   usePauseConnector,
   useRestoreConnector,
   useResumeConnector,
-} from "@/hooks/use-connectors";
+} from "@/features/connectors/hooks";
 import { useIsAdmin } from "@/hooks/use-user-role";
 import { cn } from "@/lib/utils";
+import { DeleteConnectorDialog } from "./delete-connector-dialog";
 
 type DangerZoneProps = {
   connectorId: string;

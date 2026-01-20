@@ -1,16 +1,16 @@
 "use client";
 
 import { Input, Skeleton } from "@openplane/ui";
-import { ICON_SIZE } from "@/components/connectors/resource-icons";
-import { ResourceRow } from "@/components/connectors/resource-row";
 import { Icons } from "@/components/icons";
-import { SearchSplitView } from "@/features/search/components/search-split-view";
 import {
   useConnector,
   useConnectorResources,
   useToggleResourceSync,
-} from "@/hooks/use-connector";
+} from "@/features/connectors/hooks";
+import { SearchSplitView } from "@/features/search/components/search-split-view";
 import { useDocumentPreview } from "@/hooks/use-document-preview";
+import { ICON_SIZE } from "./resource-icons";
+import { ResourceRow } from "./resource-row";
 
 function ResourcesSkeleton() {
   return (

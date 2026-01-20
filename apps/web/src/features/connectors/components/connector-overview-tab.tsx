@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Icons } from "@/components/icons";
 import { AppLogo } from "@/components/integrations/app-logo";
 import { SyncStatusCard } from "@/components/sync/sync-status-card";
-import { useConnector } from "@/hooks/use-connector";
+import { useConnector } from "@/features/connectors/hooks";
 import { useSyncStatus } from "@/hooks/use-sync";
 import { useTRPC } from "@/trpc/client";
 

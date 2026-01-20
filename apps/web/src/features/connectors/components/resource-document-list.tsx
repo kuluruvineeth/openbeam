@@ -3,18 +3,13 @@
 import { Input, Skeleton } from "@openplane/ui";
 import { formatDistanceToNow } from "date-fns";
 import { useState } from "react";
-import {
-  getDocTypeConfig,
-  ICON_SIZE,
-} from "@/components/connectors/resource-icons";
 import { Icons } from "@/components/icons";
-import {
-  type ResourceDocument,
-  useResourceDocuments,
-} from "@/hooks/use-connector";
+import { useResourceDocuments } from "@/features/connectors/hooks";
 import type { PreviewType } from "@/hooks/use-document-preview";
 import { getPreviewCategory } from "@/lib/file-preview-config";
 import { cn } from "@/lib/utils";
+import type { ResourceDocument } from "../types";
+import { getDocTypeConfig, ICON_SIZE } from "./resource-icons";
 
 function DocumentItem({
   doc,

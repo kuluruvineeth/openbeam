@@ -1,9 +1,9 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { ConnectorsEmptyState } from "@/components/connectors/connectors-empty-state";
-import { UnifiedConnectorsTable } from "@/components/connectors/unified-connectors-table";
-import { useConnectors } from "@/hooks/use-connectors";
+import { useConnectors } from "@/features/connectors/hooks";
+import { ConnectorsEmptyState } from "./connectors-empty-state";
+import { UnifiedConnectorsTable } from "./unified-connectors-table";
 
 export function ConnectorsTable() {
   const { data: connectors, isLoading } = useConnectors();

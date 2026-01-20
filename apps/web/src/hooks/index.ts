@@ -13,18 +13,6 @@ export {
   useAudioTranscript,
   useAudioUrlState,
 } from "./use-audio";
-export { type ConnectorDetail, useConnector } from "./use-connector";
-export {
-  useBulkPause,
-  useBulkResume,
-  useBulkSync,
-  useConnectors,
-  useConnectorsStats,
-  useDisconnectConnector,
-  usePauseConnector as usePauseConnectorFromConnectors,
-  useRestoreConnector,
-  useResumeConnector as useResumeConnectorFromConnectors,
-} from "./use-connectors";
 export { useDataSources } from "./use-data-sources";
 export type { DatePreset, DateRange } from "./use-date-range";
 export { dateRangeParser, useDateRange } from "./use-date-range";
