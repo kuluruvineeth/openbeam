@@ -1,9 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { OverviewPanel } from "@/components/overview";
 import { type PreviewType, useDocumentPreview } from "@/features/file-preview";
-import { useOverview } from "@/hooks/use-overview";
+import { OverviewPanel, useOverview } from "@/features/overview";
 import { useSearch } from "../hooks/use-search";
 import { useSearchNavigation } from "../hooks/use-search-navigation";
 import type { MediaDocument, SearchResultDocument } from "../types";

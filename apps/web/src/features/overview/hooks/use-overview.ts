@@ -1,15 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { EMPTY_THINKING_STATE } from "@/lib/thinking-types";
+import { getVanillaTRPCClient } from "@/trpc/client";
 import type {
   OverviewCitation,
   OverviewState,
   OverviewStep,
   OverviewStreamChunk,
-} from "@/lib/overview-types";
-import { getToolDisplayName } from "@/lib/overview-types";
-import { EMPTY_THINKING_STATE } from "@/lib/thinking-types";
-import { getVanillaTRPCClient } from "@/trpc/client";
+} from "../lib/overview-types";
+import { getToolDisplayName } from "../lib/overview-types";
 
 const INITIAL_STATE: OverviewState = {
   content: "",

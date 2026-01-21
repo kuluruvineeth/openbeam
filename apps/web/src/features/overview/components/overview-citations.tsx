@@ -3,8 +3,8 @@
 import { memo } from "react";
 import { AppLogo } from "@/components/integrations/app-logo";
 import { getConnectorApp } from "@/features/search/lib/display";
-import type { OverviewCitation } from "@/lib/overview-types";
 import { cn } from "@/lib/utils";
+import type { OverviewCitation } from "../lib/overview-types";
 
 type OverviewCitationsProps = {
   citations: OverviewCitation[];

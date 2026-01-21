@@ -2,8 +2,8 @@
 
 import { memo, useMemo } from "react";
 import { ThinkingDisplay } from "@/components/thinking";
-import type { OverviewStep, ThinkingState } from "@/lib/overview-types";
 import type { ThinkingStep } from "@/lib/thinking-types";
+import type { OverviewStep, ThinkingState } from "../lib/overview-types";
 
 type OverviewThinkingProps = {
   steps: OverviewStep[];

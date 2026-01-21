@@ -7,12 +7,12 @@ import { Icons } from "@/components/icons";
 import { ThinkingDemo } from "@/components/thinking";
 import type { PreviewType } from "@/features/file-preview";
 import { SearchPreviewSheet } from "@/features/search/components/search-preview-sheet";
+import { cn } from "@/lib/utils";
 import type {
   OverviewCitation,
   OverviewStep,
   ThinkingState,
-} from "@/lib/overview-types";
-import { cn } from "@/lib/utils";
+} from "../lib/overview-types";
 import { OverviewCitations } from "./overview-citations";
 import { OverviewContent } from "./overview-content";
 import { OverviewSkeleton } from "./overview-skeleton";

@@ -3,8 +3,8 @@
 import { Button } from "@openplane/ui";
 import { Fragment, memo, useCallback, useMemo } from "react";
 import { Markdown } from "@/components/ui/markdown";
-import type { OverviewCitation } from "@/lib/overview-types";
 import { cn } from "@/lib/utils";
+import type { OverviewCitation } from "../lib/overview-types";
 
 type OverviewContentProps = {
   content: string;

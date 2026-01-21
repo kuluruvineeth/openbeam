@@ -10,9 +10,9 @@ export type {
 } from "@openplane/types/overview";
 
 import type { OverviewCitation } from "@openplane/types/overview";
-import type { ThinkingState } from "./thinking-types";
+import type { ThinkingState } from "@/lib/thinking-types";
 
-export type { ThinkingState } from "./thinking-types";
+export type { ThinkingState } from "@/lib/thinking-types";
 
 export type OverviewStepStatus = "pending" | "active" | "completed";
 

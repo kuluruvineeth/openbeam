@@ -1,5 +1,6 @@
 export { useDebounce } from "@openplane/ui";
 export { useDocumentPreview } from "@/features/file-preview";
+export { useOverview } from "@/features/overview";
 export {
   useAppQuery,
   useAppsQuery,
@@ -34,7 +35,6 @@ export {
   type MentionItem,
   useMentionSuggestions,
 } from "./use-mention-suggestions";
-export { useOverview } from "./use-overview";
 export { useShareableLink } from "./use-shareable-link";
 export { SidebarProvider, useSidebar } from "./use-sidebar";
 export {
