@@ -9,10 +9,10 @@ import {
 } from "@openplane/ui";
 import { useQuery } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import { DocumentPreviewPanel } from "@/components/document-preview/document-preview-panel";
-import { EmailPreviewPanel } from "@/components/email-preview/email-preview-panel";
 import { Icons } from "@/components/icons";
-import { SlackPreviewPanel } from "@/components/slack-preview/slack-preview-panel";
+import { DocumentPreviewPanel } from "@/features/content-preview/components/document/document-preview-panel";
+import { EmailPreviewPanel } from "@/features/content-preview/components/email/email-preview-panel";
+import { SlackPreviewPanel } from "@/features/content-preview/components/slack/slack-preview-panel";
 import type { PreviewType } from "@/features/file-preview";
 import { FilePreviewPanel } from "@/features/file-preview/components/file-preview-panel";
 import { AudioViewer } from "@/features/file-preview/components/viewers/audio/audio-viewer";

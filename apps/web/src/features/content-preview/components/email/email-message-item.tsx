@@ -1,9 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { EmailAttachmentList } from "@/components/email-preview/email-attachment-list";
-import { EmailContentRenderer } from "@/components/email-preview/email-content-renderer";
-import { EmailParticipantList } from "@/components/email-preview/email-participant-list";
 import { Icons } from "@/components/icons";
 import type {
   EmailAttachment,
@@ -12,6 +9,9 @@ import type {
 } from "@/lib/email-types";
 import { formatMessageTime } from "@/lib/message-format";
 import { cn } from "@/lib/utils";
+import { EmailAttachmentList } from "./email-attachment-list";
+import { EmailContentRenderer } from "./email-content-renderer";
+import { EmailParticipantList } from "./email-participant-list";
 
 type EmailMessageItemProps = {
   message: EmailMessage;

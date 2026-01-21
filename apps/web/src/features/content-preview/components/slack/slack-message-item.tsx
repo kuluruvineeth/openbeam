@@ -1,8 +1,5 @@
 "use client";
 
-import { SlackContentRenderer } from "@/components/slack-preview/slack-content-renderer";
-import { SlackFileList } from "@/components/slack-preview/slack-file-list";
-import { SlackReactions } from "@/components/slack-preview/slack-reactions";
 import { formatMessageTime } from "@/lib/message-format";
 import type {
   SlackFile,
@@ -11,6 +8,9 @@ import type {
   SlackReaction,
 } from "@/lib/slack-types";
 import { cn } from "@/lib/utils";
+import { SlackContentRenderer } from "./slack-content-renderer";
+import { SlackFileList } from "./slack-file-list";
+import { SlackReactions } from "./slack-reactions";
 
 type SlackMessageItemProps = {
   message: SlackMessage;

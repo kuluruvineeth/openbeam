@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { Icons } from "@/components/icons";
-import { SlackMessageItem } from "@/components/slack-preview/slack-message-item";
 import type { SlackFile, SlackMessage } from "@/lib/slack-types";
 import { cn } from "@/lib/utils";
+import { SlackMessageItem } from "./slack-message-item";
 
 type SlackThreadViewProps = {
   parent: SlackMessage;
