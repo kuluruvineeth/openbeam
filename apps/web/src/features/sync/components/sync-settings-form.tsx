@@ -20,8 +20,8 @@ import { toast } from "sonner";
 import { z } from "zod/v3";
 import { Icons } from "@/components/icons";
 import { SubmitButton } from "@/components/submit-button";
-import { useUpdateSyncSettings, useWebhookStatus } from "@/hooks/use-sync";
-import type { SyncJobInfo } from "@/lib/sync-types";
+import { useUpdateSyncSettings, useWebhookStatus } from "../hooks/use-sync";
+import type { SyncJobInfo } from "../lib/sync-types";
 
 const INCREMENTAL_INTERVALS = [
   { label: "Every minute", value: 60 * 1000 },

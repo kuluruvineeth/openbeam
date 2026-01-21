@@ -17,8 +17,8 @@ import {
   usePauseConnector,
   useResumeConnector,
   useTriggerSync,
-} from "@/hooks/use-sync";
-import { isPaused, isSyncing, type SyncStatusType } from "@/lib/sync-types";
+} from "../hooks/use-sync";
+import { isPaused, isSyncing, type SyncStatusType } from "../lib/sync-types";
 
 type SyncControlsProps = {
   connectorId: string;

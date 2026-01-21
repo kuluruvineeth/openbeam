@@ -1,8 +1,8 @@
 "use client";
 
 import { formatDistanceToNow } from "date-fns";
-import { getSyncHistoryStatusConfig } from "@/lib/sync-status";
-import { parseSyncSummary, type SyncHistoryEntry } from "@/lib/sync-types";
+import { getSyncHistoryStatusConfig } from "../lib/sync-status";
+import { parseSyncSummary, type SyncHistoryEntry } from "../lib/sync-types";
 
 function formatDuration(ms: number | null) {
   if (!ms) {

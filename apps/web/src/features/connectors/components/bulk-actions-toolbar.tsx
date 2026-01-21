@@ -3,7 +3,7 @@
 import { Button, Card } from "@openplane/ui";
 import { toast } from "sonner";
 import { Icons } from "@/components/icons";
-import { useTriggerSync } from "@/hooks/use-sync";
+import { useTriggerSync } from "@/features/sync";
 
 type BulkActionsToolbarProps = {
   selectedCount: number;

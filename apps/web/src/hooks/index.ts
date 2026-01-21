@@ -2,6 +2,17 @@ export { useDebounce } from "@openplane/ui";
 export { useDocumentPreview } from "@/features/file-preview";
 export { useOverview } from "@/features/overview";
 export {
+  useBulkSyncStatus,
+  usePauseConnector,
+  useResumeConnector,
+  useSyncHistory,
+  useSyncHistoryInfinite,
+  useSyncStatus,
+  useTriggerSync,
+  useUpdateSyncSettings,
+  useWebhookStatus,
+} from "@/features/sync";
+export {
   useAppQuery,
   useAppsQuery,
   useConnectApp,
@@ -37,17 +48,6 @@ export {
 } from "./use-mention-suggestions";
 export { useShareableLink } from "./use-shareable-link";
 export { SidebarProvider, useSidebar } from "./use-sidebar";
-export {
-  useBulkSyncStatus,
-  usePauseConnector,
-  useResumeConnector,
-  useSyncHistory,
-  useSyncHistoryInfinite,
-  useSyncStatus,
-  useTriggerSync,
-  useUpdateSyncSettings,
-  useWebhookStatus,
-} from "./use-sync";
 export {
   type ChangeTeamInput,
   type CreateTeamInput,

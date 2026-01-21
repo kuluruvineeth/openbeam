@@ -8,8 +8,8 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import type { ProcessingStatus } from "@/lib/sync-types";
 import { useTRPC } from "@/trpc/client";
+import type { ProcessingStatus } from "../lib/sync-types";
 
 type MutationCallbacks = {
   onSuccess?: () => void;

@@ -5,7 +5,7 @@ import { Checkbox, TableCell, TableRow } from "@openplane/ui";
 import { formatDistanceToNow } from "date-fns";
 import { useState } from "react";
 import { AppLogo } from "@/components/integrations/app-logo";
-import { SyncStatusBadge } from "@/components/sync/sync-status-badge";
+import { SyncStatusBadge } from "@/features/sync";
 import { cn } from "@/lib/utils";
 import { ConnectorActions } from "./connector-actions";
 

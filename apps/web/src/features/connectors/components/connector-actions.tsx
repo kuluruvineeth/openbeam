@@ -13,7 +13,7 @@ import {
   usePauseConnector,
   useResumeConnector,
   useTriggerSync,
-} from "@/hooks/use-sync";
+} from "@/features/sync";
 
 type ConnectorActionsProps = {
   connectorId: string;

@@ -7,7 +7,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { useMemo, useRef } from "react";
-import { useBulkSyncStatus } from "@/hooks/use-sync";
+import { useBulkSyncStatus } from "@/features/sync";
 import { useTRPC } from "@/trpc/client";
 import type { Connector, ConnectorsResult, MutationCallbacks } from "../types";
 

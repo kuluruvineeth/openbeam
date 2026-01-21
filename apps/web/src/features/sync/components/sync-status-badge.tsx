@@ -3,8 +3,8 @@
 import { Badge, Card } from "@openplane/ui";
 import { formatDistanceToNow } from "date-fns";
 import { Icons } from "@/components/icons";
-import { getSyncStatusConfig, type SyncStatus } from "@/lib/sync-status";
 import { cn } from "@/lib/utils";
+import { getSyncStatusConfig, type SyncStatus } from "../lib/sync-status";
 
 type SyncStatusData = {
   status: SyncStatus;

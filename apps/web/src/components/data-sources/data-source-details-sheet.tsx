@@ -12,12 +12,15 @@ import {
   TabsList,
   TabsTrigger,
 } from "@openplane/ui";
-import { SyncSettingsForm } from "@/components/forms/sync-settings-form";
 import { Icons } from "@/components/icons";
 import { AppLogo } from "@/components/integrations/app-logo";
-import { SyncHistoryList } from "@/components/sync/sync-history-list";
-import { SyncStatusCard } from "@/components/sync/sync-status-card";
-import { useSyncHistoryInfinite, useSyncStatus } from "@/hooks/use-sync";
+import {
+  SyncHistoryList,
+  SyncSettingsForm,
+  SyncStatusCard,
+  useSyncHistoryInfinite,
+  useSyncStatus,
+} from "@/features/sync";
 
 type DataSourceDetailsSheetProps = {
   connectorId: string | null;

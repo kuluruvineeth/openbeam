@@ -10,7 +10,7 @@ import {
 } from "@tanstack/react-query";
 import { createLoader, parseAsString, useQueryStates } from "nuqs";
 import { useCallback, useMemo } from "react";
-import { useSyncHistoryInfinite, useSyncStatus } from "@/hooks/use-sync";
+import { useSyncHistoryInfinite, useSyncStatus } from "@/features/sync";
 import { useTRPC } from "@/trpc/client";
 import type { ConnectorDetail } from "../types";
 

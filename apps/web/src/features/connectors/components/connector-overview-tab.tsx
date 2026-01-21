@@ -6,9 +6,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Icons } from "@/components/icons";
 import { AppLogo } from "@/components/integrations/app-logo";
-import { SyncStatusCard } from "@/components/sync/sync-status-card";
 import { useConnector } from "@/features/connectors/hooks";
-import { useSyncStatus } from "@/hooks/use-sync";
+import { SyncStatusCard, useSyncStatus } from "@/features/sync";
 import { useTRPC } from "@/trpc/client";
 
 function OverviewSkeleton() {
