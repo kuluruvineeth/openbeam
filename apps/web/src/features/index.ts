@@ -1,3 +1,4 @@
+export * as agents from "./agents";
 export * as chat from "./chat";
 export * as connectors from "./connectors";
 export * as contentPreview from "./content-preview";
