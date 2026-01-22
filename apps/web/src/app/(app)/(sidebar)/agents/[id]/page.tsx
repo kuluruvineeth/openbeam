@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { ErrorBoundary } from "next/dist/client/components/error-boundary";
 import { notFound } from "next/navigation";
-import { AgentCanvasView } from "@/components/agents/agent-canvas-view";
 import { ErrorFallback } from "@/components/error-fallback";
+import { AgentCanvasView } from "@/features/agents";
 import { HydrateClient } from "@/trpc/server";
 
 interface AgentPageProps {

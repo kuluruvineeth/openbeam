@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { ErrorBoundary } from "next/dist/client/components/error-boundary";
 import { Suspense } from "react";
-import { ConnectorsContent } from "@/components/connectors/connectors-content";
-import { ConnectorsHeader } from "@/components/connectors/connectors-header";
-import { ConnectorsPageSkeleton } from "@/components/connectors/connectors-skeleton";
 import { ErrorFallback } from "@/components/error-fallback";
+import {
+  ConnectorsContent,
+  ConnectorsHeader,
+  ConnectorsPageSkeleton,
+} from "@/features/connectors/components";
 import { batchPrefetch, HydrateClient, trpc } from "@/trpc/server";
 
 export const metadata: Metadata = {
