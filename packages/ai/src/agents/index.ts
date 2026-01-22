@@ -110,14 +110,43 @@ export type {
   SessionManagerConfig,
 } from "./session";
 export { SessionManager, sessionManager } from "./session";
-
+export {
+  ANALYST_AGENT_PROMPT,
+  analystAgent,
+  analystAgentConfig,
+  CODER_AGENT_PROMPT,
+  coderAgent,
+  coderAgentConfig,
+  codeWithReviewAgent,
+  codeWithReviewConfig,
+  DEEP_RESEARCH_PROMPT,
+  deepResearchAgent,
+  deepResearchAgentConfig,
+  driveAnalystConfig,
+  multiSourceAnalystAgent,
+  multiSourceAnalystConfig,
+  notionAnalystConfig,
+  qualityWriterAgent,
+  qualityWriterConfig,
+  RESEARCH_AGENT_PROMPT,
+  REVIEWER_AGENT_PROMPT,
+  researchAgent,
+  researchAgentConfig,
+  reviewerAgent,
+  reviewerAgentConfig,
+  SOURCE_SPECIFIC_ANALYST_PROMPT,
+  slackAnalystConfig,
+  WRITER_AGENT_PROMPT,
+  WRITER_CRITIC_PROMPT,
+  writerAgent,
+  writerAgentConfig,
+} from "./specialized";
 export type {
   Agent,
   AgentConfig,
   AgentConfig as LegacyAgentConfig,
   AgentContext,
 } from "./types";
-
 export type {
   OverviewAgentConfig,
   SpreadsheetAgentResult,
