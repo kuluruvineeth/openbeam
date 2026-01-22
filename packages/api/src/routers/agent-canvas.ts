@@ -4,6 +4,7 @@ import {
   createAgentCanvas,
   createAgentCanvasExecution,
   deleteAgentCanvas,
+  duplicateAgentCanvas,
   findAgentCanvasById,
   findAgentCanvasExecution,
   listAgentCanvasExecutions,
@@ -19,7 +20,7 @@ import {
   AgentCanvasEdgeSchema,
   AgentCanvasNodeSchema,
   AgentCanvasSettingsSchema,
-  TriggerConfigSchema,
+  CanvasTriggerSettingsSchema,
   ViewportSchema,
 } from "@openplane/types/canvas";
 import { TRPCError } from "@trpc/server";
@@ -39,10 +40,16 @@ const listCanvasesSchema = z.object({
   status: AgentCanvasStatusSchema.optional(),
   limit: z.number().min(1).max(100).default(20),
   offset: z.number().min(0).default(0),
+  cursor: z.number().nullish(),
 });
 
 const canvasIdSchema = z.object({
   canvasId: z.string(),
+});
+
+const duplicateCanvasSchema = z.object({
+  canvasId: z.string(),
+  name: z.string().min(1).max(100).optional(),
 });
 
 const createCanvasSchema = z.object({
@@ -54,7 +61,7 @@ const createCanvasSchema = z.object({
   viewport: ViewportSchema.optional(),
   settings: AgentCanvasSettingsSchema.optional(),
   triggerType: AgentTriggerTypeSchema.optional(),
-  triggerConfig: TriggerConfigSchema.optional(),
+  triggerConfig: CanvasTriggerSettingsSchema.optional(),
 });
 
 const updateCanvasSchema = z.object({
@@ -67,7 +74,7 @@ const updateCanvasSchema = z.object({
   viewport: ViewportSchema.optional(),
   settings: AgentCanvasSettingsSchema.optional(),
   triggerType: AgentTriggerTypeSchema.optional(),
-  triggerConfig: TriggerConfigSchema.optional(),
+  triggerConfig: CanvasTriggerSettingsSchema.optional(),
 });
 
 const publishCanvasSchema = z.object({
@@ -126,23 +133,29 @@ export const agentCanvasRouter = createTRPCRouter({
   list: withActiveTeam
     .input(listCanvasesSchema)
     .query(async ({ ctx, input }) => {
+      const effectiveOffset = input.cursor ?? input.offset;
+
       const [items, total] = await Promise.all([
         listAgentCanvases(ctx.prisma, ctx.teamId, {
           status: input.status,
           limit: input.limit + 1,
-          offset: input.offset,
+          offset: effectiveOffset,
         }),
         countAgentCanvases(ctx.prisma, ctx.teamId, input.status),
       ]);
 
       const hasMore = items.length > input.limit;
       const canvases = hasMore ? items.slice(0, -1) : items;
+      const nextCursor = hasMore
+        ? effectiveOffset + canvases.length
+        : undefined;
 
       return {
         items: canvases,
         total,
         hasMore,
-        nextOffset: hasMore ? input.offset + canvases.length : undefined,
+        nextOffset: nextCursor,
+        nextCursor,
       };
     }),
 
@@ -225,6 +238,17 @@ export const agentCanvasRouter = createTRPCRouter({
       }
 
       return { success: true };
+    }),
+
+  duplicate: withActiveTeam
+    .input(duplicateCanvasSchema)
+    .mutation(async ({ ctx, input }) => {
+      await verifyCanvasAccess(ctx.prisma, input.canvasId, ctx.teamId);
+
+      return duplicateAgentCanvas(ctx.prisma, input.canvasId, ctx.teamId, {
+        name: input.name,
+        createdById: ctx.session.user.id,
+      });
     }),
 
   listExecutions: withActiveTeam

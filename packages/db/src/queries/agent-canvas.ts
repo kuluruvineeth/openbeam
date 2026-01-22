@@ -57,6 +57,7 @@ export function listAgentCanvases(
       status: true,
       version: true,
       triggerType: true,
+      settings: true,
       createdAt: true,
       updatedAt: true,
       publishedAt: true,
