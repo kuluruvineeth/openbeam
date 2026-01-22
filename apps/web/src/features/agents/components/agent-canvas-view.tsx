@@ -7,12 +7,10 @@ import {
   AgentPanel,
   AgentToolbar,
   type AttachedFile,
-  createEndNodeData,
-  createLlmNodeData,
-  createStartNodeData,
   type MessageData,
 } from "@openplane/ui";
 import { Button } from "@openplane/ui/components/button";
+import { Skeleton } from "@openplane/ui/components/skeleton";
 import {
   Tabs,
   TabsContent,
@@ -20,10 +18,12 @@ import {
   TabsTrigger,
 } from "@openplane/ui/components/tabs";
 import { TooltipProvider } from "@openplane/ui/components/tooltip";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import type { Edge, Node } from "@xyflow/react";
 import { ArrowLeft, Play, Settings, Square } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useState } from "react";
+import { Suspense, useCallback, useState } from "react";
+import { useTRPC } from "@/trpc/client";
 
 interface AgentCanvasViewProps {
   agentId: string;
@@ -38,66 +38,41 @@ function createTextEvent(content: string) {
   };
 }
 
-const mockMessages: MessageData[] = [
-  {
-    id: "1",
-    role: "user",
-    events: [createTextEvent("Help me analyze the Q4 sales data")],
-    createdAt: Date.now() - 60_000,
-  },
-  {
-    id: "2",
-    role: "assistant",
-    events: [
-      createTextEvent(
-        "I'll help you analyze the Q4 sales data. Let me search through your connected data sources to find the relevant information."
-      ),
-    ],
-    status: "complete",
-    createdAt: Date.now() - 55_000,
-  },
-];
+function AgentCanvasViewSkeleton() {
+  return (
+    <div className="flex h-full flex-col">
+      <header className="flex items-center justify-between border-border/50 border-b px-4 py-3">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-8 w-8" />
+          <div className="space-y-1">
+            <Skeleton className="h-5 w-32" />
+            <Skeleton className="h-3 w-48" />
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-8 w-16" />
+          <Skeleton className="h-8 w-8" />
+        </div>
+      </header>
+      <div className="flex-1 p-4">
+        <Skeleton className="h-full w-full" />
+      </div>
+    </div>
+  );
+}
 
-const DEMO_NODES: Node[] = [
-  {
-    id: "start-1",
-    type: "start",
-    position: { x: 250, y: 50 },
-    data: createStartNodeData(),
-  },
-  {
-    id: "llm-1",
-    type: "llm",
-    position: { x: 250, y: 200 },
-    data: createLlmNodeData(),
-  },
-  {
-    id: "end-1",
-    type: "end",
-    position: { x: 250, y: 350 },
-    data: createEndNodeData(),
-  },
-];
+function AgentCanvasViewContent({ agentId }: AgentCanvasViewProps) {
+  const trpc = useTRPC();
+  const { data: agent } = useSuspenseQuery(
+    trpc.agentCanvas.get.queryOptions({ canvasId: agentId })
+  );
 
-const DEMO_EDGES: Edge[] = [
-  {
-    id: "edge-start-llm",
-    source: "start-1",
-    target: "llm-1",
-    type: "control",
-  },
-  {
-    id: "edge-llm-end",
-    source: "llm-1",
-    target: "end-1",
-    type: "data",
-  },
-];
-
-export function AgentCanvasView({ agentId }: AgentCanvasViewProps) {
-  const [messages, setMessages] = useState<MessageData[]>(mockMessages);
+  const [messages, setMessages] = useState<MessageData[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("chat");
+
+  const nodes = (agent.nodes as Node[]) || [];
+  const edges = (agent.edges as Edge[]) || [];
 
   const handleSend = useCallback((value: string, _files?: AttachedFile[]) => {
     const userMessage: MessageData = {
@@ -137,9 +112,9 @@ export function AgentCanvasView({ agentId }: AgentCanvasViewProps) {
               </Link>
             </Button>
             <div>
-              <h1 className="font-medium">Agent {agentId}</h1>
+              <h1 className="font-medium">{agent.name}</h1>
               <p className="text-muted-foreground text-xs">
-                Research Assistant
+                {agent.description || "No description"}
               </p>
             </div>
           </div>
@@ -150,7 +125,11 @@ export function AgentCanvasView({ agentId }: AgentCanvasViewProps) {
                 Stop
               </Button>
             ) : (
-              <Button disabled size="sm" variant="default">
+              <Button
+                disabled={agent.status !== "PUBLISHED"}
+                size="sm"
+                variant="default"
+              >
                 <Play className="mr-2 h-3 w-3" />
                 Run
               </Button>
@@ -204,8 +183,8 @@ export function AgentCanvasView({ agentId }: AgentCanvasViewProps) {
           >
             <AgentCanvas
               className="h-full w-full"
-              initialEdges={DEMO_EDGES}
-              initialNodes={DEMO_NODES}
+              initialEdges={edges}
+              initialNodes={nodes}
               readOnly
               showBackground
               showControls
@@ -214,5 +193,13 @@ export function AgentCanvasView({ agentId }: AgentCanvasViewProps) {
         </Tabs>
       </div>
     </TooltipProvider>
+  );
+}
+
+export function AgentCanvasView({ agentId }: AgentCanvasViewProps) {
+  return (
+    <Suspense fallback={<AgentCanvasViewSkeleton />}>
+      <AgentCanvasViewContent agentId={agentId} />
+    </Suspense>
   );
 }

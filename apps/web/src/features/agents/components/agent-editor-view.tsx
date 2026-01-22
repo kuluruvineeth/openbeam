@@ -15,17 +15,25 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@openplane/ui/components/sheet";
+import { Skeleton } from "@openplane/ui/components/skeleton";
 import { TooltipProvider } from "@openplane/ui/components/tooltip";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import type { Edge, Node } from "@xyflow/react";
 import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useState } from "react";
+import { Suspense, useCallback, useState } from "react";
+import { toast } from "sonner";
+import { useTRPC } from "@/trpc/client";
 
 interface AgentEditorViewProps {
   agentId: string;
 }
 
-const INITIAL_NODES: Node[] = [
+const DEFAULT_NODES: Node[] = [
   {
     id: "start-1",
     type: "start",
@@ -40,13 +48,57 @@ const INITIAL_NODES: Node[] = [
   },
 ];
 
-const INITIAL_EDGES: Edge[] = [];
+function AgentEditorViewSkeleton() {
+  return (
+    <div className="flex h-full flex-col">
+      <header className="flex items-center justify-between border-border/50 border-b px-4 py-3">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-8 w-8" />
+          <div className="space-y-1">
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="h-3 w-64" />
+          </div>
+        </div>
+        <Skeleton className="h-9 w-20" />
+      </header>
+      <div className="flex-1 p-4">
+        <Skeleton className="h-full w-full" />
+      </div>
+    </div>
+  );
+}
 
-export function AgentEditorView({ agentId }: AgentEditorViewProps) {
-  const [isSaving, setIsSaving] = useState(false);
-  const [nodes, setNodes] = useState<Node[]>(INITIAL_NODES);
-  const [edges, setEdges] = useState<Edge[]>(INITIAL_EDGES);
+function AgentEditorViewContent({ agentId }: AgentEditorViewProps) {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  const { data: agent } = useSuspenseQuery(
+    trpc.agentCanvas.get.queryOptions({ canvasId: agentId })
+  );
+
+  const initialNodes = (agent.nodes as Node[]) || DEFAULT_NODES;
+  const initialEdges = (agent.edges as Edge[]) || [];
+
+  const [nodes, setNodes] = useState<Node[]>(initialNodes);
+  const [edges, setEdges] = useState<Edge[]>(initialEdges);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+
+  const updateMutation = useMutation({
+    ...trpc.agentCanvas.update.mutationOptions(),
+    onSuccess: () => {
+      toast.success("Agent saved successfully");
+      queryClient.invalidateQueries({
+        queryKey: trpc.agentCanvas.get.queryOptions({ canvasId: agentId })
+          .queryKey,
+      });
+      queryClient.invalidateQueries({
+        queryKey: trpc.agentCanvas.list.infiniteQueryOptions({}).queryKey,
+      });
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
 
   const handleNodesChange = useCallback((newNodes: Node[]) => {
     setNodes(newNodes);
@@ -148,11 +200,15 @@ export function AgentEditorView({ agentId }: AgentEditorViewProps) {
     setNodes((prev) => [...prev, newNode]);
   }, [selectedNode]);
 
-  const handleSave = async () => {
-    setIsSaving(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsSaving(false);
+  const handleSave = () => {
+    updateMutation.mutate({
+      canvasId: agentId,
+      nodes,
+      edges,
+    });
   };
+
+  const isSaving = updateMutation.isPending;
 
   return (
     <TooltipProvider>
@@ -165,7 +221,7 @@ export function AgentEditorView({ agentId }: AgentEditorViewProps) {
               </Link>
             </Button>
             <div>
-              <h1 className="font-medium">Agent Workflow Editor</h1>
+              <h1 className="font-medium">{agent.name}</h1>
               <p className="text-muted-foreground text-xs">
                 Right-click to add nodes • Click a node to configure
               </p>
@@ -229,5 +285,13 @@ export function AgentEditorView({ agentId }: AgentEditorViewProps) {
         </div>
       </div>
     </TooltipProvider>
+  );
+}
+
+export function AgentEditorView({ agentId }: AgentEditorViewProps) {
+  return (
+    <Suspense fallback={<AgentEditorViewSkeleton />}>
+      <AgentEditorViewContent agentId={agentId} />
+    </Suspense>
   );
 }
