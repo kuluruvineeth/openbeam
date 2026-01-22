@@ -6,7 +6,11 @@ import { aiNodeTypes } from "./ai";
 import { controlNodeTypes } from "./control";
 import { DropNode } from "./drop-node";
 import { humanNodeTypes } from "./human";
+import { integrationNodeTypes } from "./integration";
+import { memoryNodeTypes } from "./memory";
+import { orchestrationNodeTypes } from "./orchestration";
 import { transformNodeTypes } from "./transform";
+import { triggerNodeTypes } from "./trigger";
 
 export interface NodeRegistryEntry {
   id: string;
@@ -174,11 +178,147 @@ const HUMAN_ENTRIES: NodeRegistryEntry[] = [
   },
 ];
 
+const INTEGRATION_ENTRIES: NodeRegistryEntry[] = [
+  {
+    id: "connector",
+    label: "Connector",
+    description: "Connect to external service",
+    icon: Icons.Plug,
+    category: "integration",
+    component: integrationNodeTypes.connector,
+  },
+  {
+    id: "http_request",
+    label: "HTTP Request",
+    description: "Make HTTP API call",
+    icon: Icons.GlobeIcon,
+    category: "integration",
+    component: integrationNodeTypes.http_request,
+  },
+  {
+    id: "database_query",
+    label: "Database Query",
+    description: "Query database",
+    icon: Icons.Database,
+    category: "integration",
+    component: integrationNodeTypes.database_query,
+  },
+  {
+    id: "graphql_query",
+    label: "GraphQL Query",
+    description: "Execute GraphQL query",
+    icon: Icons.Braces,
+    category: "integration",
+    component: integrationNodeTypes.graphql_query,
+  },
+  {
+    id: "tool",
+    label: "Tool",
+    description: "Execute AI tool",
+    icon: Icons.Wrench,
+    category: "integration",
+    component: integrationNodeTypes.tool,
+  },
+];
+
+const TRIGGER_ENTRIES: NodeRegistryEntry[] = [
+  {
+    id: "trigger_manual",
+    label: "Manual Trigger",
+    description: "Manually start workflow",
+    icon: Icons.Hand,
+    category: "trigger",
+    component: triggerNodeTypes.trigger_manual,
+  },
+  {
+    id: "trigger_schedule",
+    label: "Schedule Trigger",
+    description: "Run on schedule",
+    icon: Icons.Clock,
+    category: "trigger",
+    component: triggerNodeTypes.trigger_schedule,
+  },
+  {
+    id: "trigger_webhook",
+    label: "Webhook Trigger",
+    description: "Trigger via webhook",
+    icon: Icons.Webhook,
+    category: "trigger",
+    component: triggerNodeTypes.trigger_webhook,
+  },
+  {
+    id: "trigger_event",
+    label: "Event Trigger",
+    description: "Trigger on event",
+    icon: Icons.Zap,
+    category: "trigger",
+    component: triggerNodeTypes.trigger_event,
+  },
+];
+
+const MEMORY_ENTRIES: NodeRegistryEntry[] = [
+  {
+    id: "memory_read",
+    label: "Memory Read",
+    description: "Read from memory",
+    icon: Icons.Download,
+    category: "memory",
+    component: memoryNodeTypes.memory_read,
+  },
+  {
+    id: "memory_write",
+    label: "Memory Write",
+    description: "Write to memory",
+    icon: Icons.Upload,
+    category: "memory",
+    component: memoryNodeTypes.memory_write,
+  },
+  {
+    id: "memory_search",
+    label: "Memory Search",
+    description: "Search memory",
+    icon: Icons.SearchIcon,
+    category: "memory",
+    component: memoryNodeTypes.memory_search,
+  },
+];
+
+const ORCHESTRATION_ENTRIES: NodeRegistryEntry[] = [
+  {
+    id: "sub_workflow",
+    label: "Sub-Workflow",
+    description: "Execute sub-workflow",
+    icon: Icons.Workflow,
+    category: "orchestration",
+    component: orchestrationNodeTypes.sub_workflow,
+  },
+  {
+    id: "agent_call",
+    label: "Agent Call",
+    description: "Call AI agent",
+    icon: Icons.BotIcon,
+    category: "orchestration",
+    component: orchestrationNodeTypes.agent_call,
+  },
+  {
+    id: "parallel_map",
+    label: "Parallel Map",
+    description: "Process items in parallel",
+    icon: Icons.GitFork,
+    category: "orchestration",
+    component: orchestrationNodeTypes.parallel_map,
+  },
+];
+
 export const nodeRegistry: NodeRegistryEntry[] = [
   ...CONTROL_ENTRIES,
   ...AI_ENTRIES,
   ...TRANSFORM_ENTRIES,
   ...HUMAN_ENTRIES,
+  ...INTEGRATION_ENTRIES,
+  ...TRIGGER_ENTRIES,
+  ...MEMORY_ENTRIES,
+  ...ORCHESTRATION_ENTRIES,
 ];
 
 export const nodeRegistryMap = new Map<string, NodeRegistryEntry>(
@@ -212,6 +352,10 @@ export function createAllNodeTypes() {
     ...aiNodeTypes,
     ...transformNodeTypes,
     ...humanNodeTypes,
+    ...integrationNodeTypes,
+    ...triggerNodeTypes,
+    ...memoryNodeTypes,
+    ...orchestrationNodeTypes,
     drop: DropNode,
   } as const;
 }

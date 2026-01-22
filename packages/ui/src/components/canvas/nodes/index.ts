@@ -40,25 +40,40 @@ export {
 export type { DropNodeData } from "./drop-node";
 export { DropNode } from "./drop-node";
 export {
+  createAgentCallNodeData,
   createAnnotationNodeData,
   createApprovalNodeData,
   createClassifyNodeData,
   createCodeNodeData,
   createConditionNodeData,
+  createConnectorNodeData,
+  createDatabaseQueryNodeData,
   createEndNodeData,
+  createEventTriggerNodeData,
   createExtractNodeData,
   createFilterNodeData,
+  createGraphqlQueryNodeData,
+  createHttpRequestNodeData,
   createInputNodeData,
   createLlmNodeData,
   createLoopNodeData,
+  createManualTriggerNodeData,
+  createMemoryReadNodeData,
+  createMemorySearchNodeData,
+  createMemoryWriteNodeData,
   createNodeData,
   createNotifyNodeData,
   createParallelJoinNodeData,
+  createParallelMapNodeData,
   createParallelSplitNodeData,
   createRagNodeData,
+  createScheduleTriggerNodeData,
   createStartNodeData,
+  createSubWorkflowNodeData,
   createSummarizeNodeData,
   createTemplateNodeData,
+  createToolNodeData,
+  createWebhookTriggerNodeData,
   hasNodeDataFactory,
 } from "./factory";
 export type {
@@ -82,8 +97,44 @@ export {
   InputNode,
   NotifyNode,
 } from "./human";
+export type {
+  ConnectorNodeData,
+  DatabaseQueryNodeData,
+  GraphqlQueryNodeData,
+  HttpRequestNodeData,
+  ToolNodeData,
+} from "./integration";
+export {
+  ConnectorNode,
+  DatabaseQueryNode,
+  GraphqlQueryNode,
+  HttpRequestNode,
+  integrationNodeTypes,
+  ToolNode,
+} from "./integration";
+export type {
+  MemoryReadNodeData,
+  MemorySearchNodeData,
+  MemoryWriteNodeData,
+} from "./memory";
+export {
+  MemoryReadNode,
+  MemorySearchNode,
+  MemoryWriteNode,
+  memoryNodeTypes,
+} from "./memory";
 export { categoryLabels, nodeButtons } from "./node-buttons";
-
+export type {
+  AgentCallNodeData,
+  ParallelMapNodeData,
+  SubWorkflowNodeData,
+} from "./orchestration";
+export {
+  AgentCallNode,
+  orchestrationNodeTypes,
+  ParallelMapNode,
+  SubWorkflowNode,
+} from "./orchestration";
 export { NodeField, NodeHeader, NodeSection, NodeShell } from "./primitives";
 export {
   CATEGORY_LABELS,
@@ -108,3 +159,16 @@ export {
   TemplateNode,
   transformNodeTypes,
 } from "./transform";
+export type {
+  EventTriggerNodeData,
+  ManualTriggerNodeData,
+  ScheduleTriggerNodeData,
+  WebhookTriggerNodeData,
+} from "./trigger";
+export {
+  EventTriggerNode,
+  ManualTriggerNode,
+  ScheduleTriggerNode,
+  triggerNodeTypes,
+  WebhookTriggerNode,
+} from "./trigger";
