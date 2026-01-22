@@ -29,6 +29,8 @@ export function wireCompositionTracking(
   const tracker = createCompositionTracker();
   tracker.startTracking(options.sessionId, options.teamId, options.userId);
 
+  toolRegistry.setCompositionTracker(tracker);
+
   const unsubscribe = toolRegistry.onExecute(
     (tool, _params, result, durationMs) => {
       const typedResult = result as ToolExecutionResult;
