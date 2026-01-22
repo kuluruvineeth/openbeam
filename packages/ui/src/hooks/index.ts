@@ -27,6 +27,12 @@ export {
   isExplorationTool,
   useEventGrouping,
 } from "./use-event-grouping";
+export type {
+  ModifierKey,
+  ShortcutConfig,
+  UseGlobalShortcutsOptions,
+} from "./use-global-shortcuts";
+export { useGlobalShortcuts } from "./use-global-shortcuts";
 export {
   EMPTY_THINKING_STATE,
   type ThinkingState,
