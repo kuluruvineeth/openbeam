@@ -32,11 +32,17 @@ export const CanvasNodeTypeSchema = z.enum([
   "loop",
   "parallel_split",
   "parallel_join",
+  "retry",
+  "try_catch",
   "llm",
   "rag",
   "summarize",
   "extract",
   "classify",
+  "embeddings",
+  "rerank",
+  "chunk",
+  "merge",
   "transform",
   "filter",
   "template",
@@ -46,7 +52,21 @@ export const CanvasNodeTypeSchema = z.enum([
   "notify",
   "annotation",
   "connector",
+  "connector_action",
   "tool",
+  "http_request",
+  "database_query",
+  "graphql_query",
+  "trigger_manual",
+  "trigger_schedule",
+  "trigger_webhook",
+  "trigger_event",
+  "memory_read",
+  "memory_write",
+  "memory_search",
+  "sub_workflow",
+  "agent_call",
+  "parallel_map",
 ]);
 
 export type CanvasNodeType = z.infer<typeof CanvasNodeTypeSchema>;
@@ -58,11 +78,17 @@ export const NODE_CATEGORIES: Record<CanvasNodeType, NodeCategory> = {
   loop: "control",
   parallel_split: "control",
   parallel_join: "control",
+  retry: "control",
+  try_catch: "control",
   llm: "ai",
   rag: "ai",
   summarize: "ai",
   extract: "ai",
   classify: "ai",
+  embeddings: "ai",
+  rerank: "ai",
+  chunk: "ai",
+  merge: "ai",
   transform: "transform",
   filter: "transform",
   template: "transform",
@@ -72,7 +98,21 @@ export const NODE_CATEGORIES: Record<CanvasNodeType, NodeCategory> = {
   notify: "human",
   annotation: "human",
   connector: "integration",
+  connector_action: "integration",
   tool: "integration",
+  http_request: "integration",
+  database_query: "integration",
+  graphql_query: "integration",
+  trigger_manual: "trigger",
+  trigger_schedule: "trigger",
+  trigger_webhook: "trigger",
+  trigger_event: "trigger",
+  memory_read: "memory",
+  memory_write: "memory",
+  memory_search: "memory",
+  sub_workflow: "orchestration",
+  agent_call: "orchestration",
+  parallel_map: "orchestration",
 };
 
 export const PositionSchema = z.object({
@@ -339,6 +379,261 @@ export type ParallelJoinNodeConfig = z.infer<
   typeof ParallelJoinNodeConfigSchema
 >;
 
+export const RetryNodeConfigSchema = z.object({
+  maxAttempts: z.number().min(1).max(10).default(3),
+  backoffMs: z.number().min(100).default(1000),
+  exponential: z.boolean().default(true),
+  retryOnErrors: z.array(z.string()).optional(),
+  jitterMs: z.number().min(0).optional(),
+});
+
+export type RetryNodeConfig = z.infer<typeof RetryNodeConfigSchema>;
+
+export const TryCatchNodeConfigSchema = z.object({
+  catchErrors: z.array(z.string()).optional(),
+  fallbackValue: z.unknown().optional(),
+  rethrowUnhandled: z.boolean().default(true),
+  logErrors: z.boolean().default(true),
+});
+
+export type TryCatchNodeConfig = z.infer<typeof TryCatchNodeConfigSchema>;
+
+export const EmbeddingsNodeConfigSchema = z.object({
+  model: z.string().default("text-embedding-3-small"),
+  dimensions: z.number().positive().optional(),
+  batchSize: z.number().positive().default(100),
+  normalize: z.boolean().default(true),
+});
+
+export type EmbeddingsNodeConfig = z.infer<typeof EmbeddingsNodeConfigSchema>;
+
+export const RerankNodeConfigSchema = z.object({
+  model: z.string().default("cohere-rerank-v3"),
+  topK: z.number().positive().default(10),
+  threshold: z.number().min(0).max(1).optional(),
+  returnScores: z.boolean().default(true),
+});
+
+export type RerankNodeConfig = z.infer<typeof RerankNodeConfigSchema>;
+
+export const ChunkNodeConfigSchema = z.object({
+  strategy: z
+    .enum(["fixed", "semantic", "sentence", "paragraph"])
+    .default("semantic"),
+  maxChunkSize: z.number().positive().default(512),
+  overlap: z.number().min(0).default(50),
+  preserveStructure: z.boolean().default(true),
+});
+
+export type ChunkNodeConfig = z.infer<typeof ChunkNodeConfigSchema>;
+
+export const MergeNodeConfigSchema = z.object({
+  strategy: z
+    .enum(["concatenate", "interleave", "deduplicate"])
+    .default("concatenate"),
+  separator: z.string().default("\n\n"),
+  maxLength: z.number().positive().optional(),
+  dedupeThreshold: z.number().min(0).max(1).default(0.95),
+});
+
+export type MergeNodeConfig = z.infer<typeof MergeNodeConfigSchema>;
+
+export const HttpMethodSchema = z.enum([
+  "GET",
+  "POST",
+  "PUT",
+  "PATCH",
+  "DELETE",
+  "HEAD",
+  "OPTIONS",
+]);
+export type HttpMethod = z.infer<typeof HttpMethodSchema>;
+
+export const HttpRequestNodeConfigSchema = z.object({
+  url: z.string(),
+  method: HttpMethodSchema.default("GET"),
+  headers: z.record(z.string(), z.string()).optional(),
+  body: z.unknown().optional(),
+  queryParams: z.record(z.string(), z.string()).optional(),
+  timeoutMs: z.number().positive().default(30_000),
+  retryOn5xx: z.boolean().default(true),
+  validateStatus: z.array(z.number()).optional(),
+  responseType: z.enum(["json", "text", "blob"]).default("json"),
+});
+
+export type HttpRequestNodeConfig = z.infer<typeof HttpRequestNodeConfigSchema>;
+
+export const DatabaseQueryNodeConfigSchema = z.object({
+  connectionId: z.string(),
+  query: z.string(),
+  parameters: z.array(z.unknown()).optional(),
+  timeout: z.number().positive().default(30_000),
+  readOnly: z.boolean().default(true),
+  maxRows: z.number().positive().default(1000),
+});
+
+export type DatabaseQueryNodeConfig = z.infer<
+  typeof DatabaseQueryNodeConfigSchema
+>;
+
+export const GraphqlQueryNodeConfigSchema = z.object({
+  endpoint: z.string(),
+  query: z.string(),
+  variables: z.record(z.string(), z.unknown()).optional(),
+  headers: z.record(z.string(), z.string()).optional(),
+  operationName: z.string().optional(),
+  timeoutMs: z.number().positive().default(30_000),
+});
+
+export type GraphqlQueryNodeConfig = z.infer<
+  typeof GraphqlQueryNodeConfigSchema
+>;
+
+export const TriggerManualNodeConfigSchema = z.object({
+  inputSchema: z
+    .array(
+      z.object({
+        name: z.string(),
+        type: z.enum([
+          "string",
+          "number",
+          "boolean",
+          "array",
+          "object",
+          "file",
+        ]),
+        required: z.boolean().default(true),
+        description: z.string().optional(),
+        defaultValue: z.unknown().optional(),
+      })
+    )
+    .optional(),
+  requiredPermissions: z.array(z.string()).optional(),
+});
+
+export type TriggerManualNodeConfig = z.infer<
+  typeof TriggerManualNodeConfigSchema
+>;
+
+export const TriggerScheduleNodeConfigSchema = z.object({
+  cron: z.string(),
+  timezone: z.string().default("UTC"),
+  enabled: z.boolean().default(true),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  maxRuns: z.number().positive().optional(),
+  runOnStart: z.boolean().default(false),
+  catchUpMissed: z.boolean().default(false),
+});
+
+export type TriggerScheduleNodeConfig = z.infer<
+  typeof TriggerScheduleNodeConfigSchema
+>;
+
+export const TriggerWebhookNodeConfigSchema = z.object({
+  path: z.string(),
+  method: HttpMethodSchema.default("POST"),
+  authentication: z
+    .enum(["none", "bearer", "basic", "hmac", "api_key"])
+    .default("none"),
+  secret: z.string().optional(),
+  signatureHeader: z.string().optional(),
+  validationSchema: z.unknown().optional(),
+  rateLimit: z
+    .object({
+      requests: z.number(),
+      windowMs: z.number(),
+    })
+    .optional(),
+  allowedIps: z.array(z.string()).optional(),
+});
+
+export type TriggerWebhookNodeConfig = z.infer<
+  typeof TriggerWebhookNodeConfigSchema
+>;
+
+export const TriggerEventNodeConfigSchema = z.object({
+  eventType: z.string(),
+  eventSource: z
+    .enum(["connector", "system", "custom", "workflow"])
+    .default("system"),
+  connectorType: z.string().optional(),
+  filter: z.record(z.string(), z.unknown()).optional(),
+  debounceMs: z.number().positive().optional(),
+  batchSize: z.number().positive().optional(),
+  batchWindowMs: z.number().positive().optional(),
+});
+
+export type TriggerEventNodeConfig = z.infer<
+  typeof TriggerEventNodeConfigSchema
+>;
+
+export const MemoryReadNodeConfigSchema = z.object({
+  key: z.string(),
+  namespace: z.string().optional(),
+  scope: z.enum(["workflow", "user", "team", "global"]).default("workflow"),
+  defaultValue: z.unknown().optional(),
+});
+
+export type MemoryReadNodeConfig = z.infer<typeof MemoryReadNodeConfigSchema>;
+
+export const MemoryWriteNodeConfigSchema = z.object({
+  key: z.string(),
+  namespace: z.string().optional(),
+  scope: z.enum(["workflow", "user", "team", "global"]).default("workflow"),
+  ttlMs: z.number().positive().optional(),
+  overwrite: z.boolean().default(true),
+});
+
+export type MemoryWriteNodeConfig = z.infer<typeof MemoryWriteNodeConfigSchema>;
+
+export const MemorySearchNodeConfigSchema = z.object({
+  query: z.string(),
+  namespace: z.string().optional(),
+  scope: z.enum(["workflow", "user", "team", "global"]).default("workflow"),
+  topK: z.number().positive().default(10),
+  threshold: z.number().min(0).max(1).optional(),
+  includeMetadata: z.boolean().default(true),
+});
+
+export type MemorySearchNodeConfig = z.infer<
+  typeof MemorySearchNodeConfigSchema
+>;
+
+export const SubWorkflowNodeConfigSchema = z.object({
+  workflowId: z.string(),
+  version: z.string().optional(),
+  inputMappings: z.record(z.string(), z.unknown()).optional(),
+  outputMappings: z.record(z.string(), z.string()).optional(),
+  waitForCompletion: z.boolean().default(true),
+  timeoutMs: z.number().positive().optional(),
+  inheritContext: z.boolean().default(true),
+});
+
+export type SubWorkflowNodeConfig = z.infer<typeof SubWorkflowNodeConfigSchema>;
+
+export const AgentCallNodeConfigSchema = z.object({
+  agentId: z.string(),
+  prompt: z.string(),
+  tools: z.array(z.string()).optional(),
+  model: z.string().optional(),
+  maxSteps: z.number().positive().default(10),
+  temperature: z.number().min(0).max(2).default(0.7),
+  systemPromptOverride: z.string().optional(),
+});
+
+export type AgentCallNodeConfig = z.infer<typeof AgentCallNodeConfigSchema>;
+
+export const ParallelMapNodeConfigSchema = z.object({
+  collection: z.string(),
+  maxConcurrency: z.number().positive().default(10),
+  continueOnError: z.boolean().default(false),
+  timeout: z.number().positive().optional(),
+  batchSize: z.number().positive().optional(),
+});
+
+export type ParallelMapNodeConfig = z.infer<typeof ParallelMapNodeConfigSchema>;
+
 export const StartNodeDataSchema = BaseNodeDataSchema.extend({
   inputs: z
     .array(
@@ -369,7 +664,7 @@ export type EndNodeData = z.infer<typeof EndNodeDataSchema>;
 
 export const AgentCanvasNodeSchema = z.object({
   id: z.string(),
-  type: CanvasNodeTypeSchema,
+  type: z.string().optional(),
   position: PositionSchema,
   data: z.unknown(),
   selected: z.boolean().optional(),
@@ -377,9 +672,23 @@ export const AgentCanvasNodeSchema = z.object({
   width: z.number().optional(),
   height: z.number().optional(),
   parentId: z.string().optional(),
-  extent: z.enum(["parent"]).optional(),
+  extent: z
+    .union([
+      z.literal("parent"),
+      z.tuple([
+        z.tuple([z.number(), z.number()]),
+        z.tuple([z.number(), z.number()]),
+      ]),
+    ])
+    .nullish(),
   expandParent: z.boolean().optional(),
   zIndex: z.number().optional(),
 });
 
 export type AgentCanvasNode = z.infer<typeof AgentCanvasNodeSchema>;
+
+export const StrictAgentCanvasNodeSchema = AgentCanvasNodeSchema.extend({
+  type: CanvasNodeTypeSchema,
+});
+
+export type StrictAgentCanvasNode = z.infer<typeof StrictAgentCanvasNodeSchema>;

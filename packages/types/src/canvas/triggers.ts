@@ -39,8 +39,8 @@ export const ScheduleTriggerConfigSchema = z.object({
   cron: z.string(),
   timezone: z.string().default("UTC"),
   enabled: z.boolean().default(true),
-  startDate: z.string().datetime().optional(),
-  endDate: z.string().datetime().optional(),
+  startDate: z.iso.datetime().optional(),
+  endDate: z.iso.datetime().optional(),
   maxRuns: z.number().positive().optional(),
   runOnStart: z.boolean().default(false),
   catchUpMissed: z.boolean().default(false),
@@ -121,49 +121,65 @@ export const TriggerNodeDataSchema = z.object({
   description: z.string().optional(),
   config: TriggerConfigSchema,
   enabled: z.boolean().default(true),
-  lastTriggeredAt: z.string().datetime().optional(),
+  lastTriggeredAt: z.iso.datetime().optional(),
   triggerCount: z.number().default(0),
 });
 
 export type TriggerNodeData = z.infer<typeof TriggerNodeDataSchema>;
 
-export interface TriggerExecutionContext {
-  triggerId: string;
-  triggerType: TriggerType;
-  workflowId: string;
-  timestamp: number;
-  payload: unknown;
-  metadata: {
-    source: string;
-    correlationId?: string;
-    headers?: Record<string, string>;
-  };
-}
+export const TriggerExecutionMetadataSchema = z.object({
+  source: z.string(),
+  correlationId: z.string().optional(),
+  headers: z.record(z.string(), z.string()).optional(),
+});
 
-export interface ScheduleNextRun {
-  scheduledAt: Date;
-  cron: string;
-  timezone: string;
-}
+export type TriggerExecutionMetadata = z.infer<
+  typeof TriggerExecutionMetadataSchema
+>;
 
-export interface WebhookRegistration {
-  id: string;
-  path: string;
-  method: string;
-  workflowId: string;
-  createdAt: Date;
-  expiresAt?: Date;
-}
+export const TriggerExecutionContextSchema = z.object({
+  triggerId: z.string(),
+  triggerType: TriggerTypeSchema,
+  workflowId: z.string(),
+  timestamp: z.number(),
+  payload: z.unknown(),
+  metadata: TriggerExecutionMetadataSchema,
+});
 
-export interface EventSubscription {
-  id: string;
-  eventType: string;
-  eventSource: EventSource;
-  workflowId: string;
-  filter?: Record<string, unknown>;
-  createdAt: Date;
-  active: boolean;
-}
+export type TriggerExecutionContext = z.infer<
+  typeof TriggerExecutionContextSchema
+>;
+
+export const ScheduleNextRunSchema = z.object({
+  scheduledAt: z.date(),
+  cron: z.string(),
+  timezone: z.string(),
+});
+
+export type ScheduleNextRun = z.infer<typeof ScheduleNextRunSchema>;
+
+export const WebhookRegistrationSchema = z.object({
+  id: z.string(),
+  path: z.string(),
+  method: z.string(),
+  workflowId: z.string(),
+  createdAt: z.date(),
+  expiresAt: z.date().optional(),
+});
+
+export type WebhookRegistration = z.infer<typeof WebhookRegistrationSchema>;
+
+export const EventSubscriptionSchema = z.object({
+  id: z.string(),
+  eventType: z.string(),
+  eventSource: EventSourceSchema,
+  workflowId: z.string(),
+  filter: z.record(z.string(), z.unknown()).optional(),
+  createdAt: z.date(),
+  active: z.boolean(),
+});
+
+export type EventSubscription = z.infer<typeof EventSubscriptionSchema>;
 
 export const COMMON_EVENT_TYPES = {
   connector: [
