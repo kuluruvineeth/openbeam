@@ -1,3 +1,4 @@
+export * from "./canvas";
 export * from "./connectors";
 export * from "./context";
 export * from "./data";
@@ -13,6 +14,7 @@ export * from "./storage";
 export * from "./system";
 
 import { toolSearchTool } from "../search";
+import { registerCanvasTools } from "./canvas";
 import { registerConnectorTools } from "./connectors";
 import { registerContextTools } from "./context";
 import { registerDataTools } from "./data";
@@ -47,6 +49,7 @@ export function registerAllTools(): void {
   registerStorageTools();
   registerMediaTools();
   registerIntegrationTools();
+  registerCanvasTools();
   toolSearchTool.register();
 
   registered = true;
