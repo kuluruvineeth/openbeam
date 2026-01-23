@@ -583,6 +583,8 @@ export class LlmAgent extends BaseAgent {
   }
 
   private buildToolContext(ctx: AgentExecutionContext): ToolContext {
+    const canvasState = this.extractCanvasState(ctx.metadata);
+
     return {
       teamId: ctx.teamId,
       userId: ctx.userId,
@@ -592,7 +594,27 @@ export class LlmAgent extends BaseAgent {
       metadata: ctx.metadata,
       services: toolRegistry.getServices(),
       memory: ctx.memory,
+      canvasState,
     };
+  }
+
+  private extractCanvasState(
+    metadata: Record<string, unknown> | undefined
+  ): ToolContext["canvasState"] {
+    if (!metadata?.canvas) {
+      return;
+    }
+
+    const canvas = metadata.canvas as {
+      nodes?: unknown[];
+      edges?: unknown[];
+    };
+
+    if (!(Array.isArray(canvas.nodes) && Array.isArray(canvas.edges))) {
+      return;
+    }
+
+    return canvas as ToolContext["canvasState"];
   }
 
   private resolveTools(toolContext: ToolContext): ToolSet | undefined {

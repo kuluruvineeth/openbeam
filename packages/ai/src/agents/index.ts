@@ -33,6 +33,15 @@ export {
   persistOutput,
   skipTrace,
 } from "./base";
+export type { CanvasStreamEvent } from "./canvas-builder";
+export {
+  CANVAS_BUILDER_PROMPT,
+  CANVAS_BUILDER_TOOLS,
+  CanvasBuilderAgent,
+  canvasBuilderConfig,
+  createCanvasBuilderAgent,
+  streamCanvasBuilder,
+} from "./canvas-builder";
 export type {
   AgentBaseConfig,
   AgentConfig as AgentBaseConfigLegacy,
