@@ -2,7 +2,6 @@
 
 import type { ReactNode } from "react";
 import { memo } from "react";
-import { cn } from "../../../../utils";
 
 interface NodeHeaderProps {
   icon: ReactNode;
@@ -17,24 +16,10 @@ export const NodeHeader = memo(function NodeHeaderComponent({
   title,
   subtitle,
   actions,
-  colorVar,
 }: NodeHeaderProps) {
   return (
     <div className="flex items-center gap-3 p-3">
-      <div
-        className={cn(
-          "flex size-9 shrink-0 items-center justify-center rounded-md",
-          "bg-muted text-muted-foreground"
-        )}
-        style={
-          colorVar
-            ? {
-                backgroundColor: `hsl(var(${colorVar}) / 0.15)`,
-                color: `hsl(var(${colorVar}))`,
-              }
-            : undefined
-        }
-      >
+      <div className="flex size-9 shrink-0 items-center justify-center text-foreground">
         {icon}
       </div>
       <div className="min-w-0 flex-1">
