@@ -4,5 +4,6 @@ export * from "./connector-actions";
 export * from "./edges";
 export * from "./execution";
 export * from "./nodes";
+export * from "./operations";
 export * from "./state";
 export * from "./triggers";
