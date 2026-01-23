@@ -1,7 +1,5 @@
-export { AgentCanvasView } from "./agent-canvas-view";
 export { AgentCapabilityBadges } from "./agent-capability-badges";
 export { AgentCreationSheet } from "./agent-creation-sheet";
-export { AgentEditorView } from "./agent-editor-view";
 export {
   AgentItem,
   type AgentItemData,
@@ -9,6 +7,7 @@ export {
 } from "./agent-item";
 export { AgentItemActions } from "./agent-item-actions";
 export { AgentItemTags } from "./agent-item-tags";
+export { AgenticView } from "./agentic";
 export { AgentsActions } from "./agents-actions";
 export { AgentsEmptyState, AgentsNoResults, EmptyState } from "./agents-empty";
 export { AgentsGrid } from "./agents-grid";

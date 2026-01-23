@@ -1,4 +1,9 @@
 import {
+  type CanvasStreamEvent,
+  createEmptyState,
+  streamCanvasBuilder,
+} from "@openplane/ai";
+import {
   archiveAgentCanvas,
   countAgentCanvases,
   createAgentCanvas,
@@ -110,6 +115,12 @@ const listTemplatesSchema = z.object({
   isPublic: z.boolean().optional(),
   limit: z.number().min(1).max(100).default(20),
   offset: z.number().min(0).default(0),
+});
+
+const buildCanvasSchema = z.object({
+  prompt: z.string().min(1).max(10_000),
+  canvasId: z.string().optional(),
+  sessionId: z.string().optional(),
 });
 
 async function verifyCanvasAccess(
@@ -359,4 +370,42 @@ export const agentCanvasRouter = createTRPCRouter({
         offset: input.offset,
       })
     ),
+
+  buildCanvas: withActiveTeam
+    .input(buildCanvasSchema)
+    .subscription(async function* ({
+      ctx,
+      input,
+    }): AsyncGenerator<CanvasStreamEvent> {
+      let canvasState: { nodes: unknown[]; edges: unknown[] } | undefined;
+
+      if (input.canvasId) {
+        const canvas = await findAgentCanvasById(
+          ctx.prisma,
+          input.canvasId,
+          ctx.teamId
+        );
+        if (canvas) {
+          canvasState = {
+            nodes: canvas.nodes as unknown[],
+            edges: canvas.edges as unknown[],
+          };
+        }
+      }
+
+      const agentCtx = {
+        teamId: ctx.teamId,
+        userId: ctx.session.user.id,
+        sessionId: input.sessionId,
+        state: createEmptyState(),
+        metadata: {
+          ...(input.canvasId ? { canvasId: input.canvasId } : {}),
+          ...(canvasState ? { canvas: canvasState } : {}),
+        },
+      };
+
+      for await (const event of streamCanvasBuilder(input.prompt, agentCtx)) {
+        yield event;
+      }
+    }),
 });

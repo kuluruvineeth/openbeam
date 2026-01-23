@@ -2,15 +2,13 @@
 
 import { Button } from "@openplane/ui/components/button";
 import { Plus, Search } from "lucide-react";
-import type { Route } from "next";
-import Link from "next/link";
 
 type EmptyStateProps = {
   title: string;
   description: string;
   action?: {
     label: string;
-    href?: Route<string>;
+    href?: string;
     onClick?: () => void;
   };
   icon?: React.ReactNode;
@@ -32,7 +30,7 @@ function EmptyState({ title, description, action, icon }: EmptyStateProps) {
         <div className="mt-6">
           {action.href ? (
             <Button asChild>
-              <Link href={action.href}>{action.label}</Link>
+              <a href={action.href}>{action.label}</a>
             </Button>
           ) : (
             <Button onClick={action.onClick}>{action.label}</Button>
