@@ -5,11 +5,11 @@ import type {
   Edge,
   EdgeTypes,
   Node,
+  NodeMouseHandler,
   NodeTypes,
   OnConnect,
   OnEdgesChange,
   OnNodesChange,
-  OnSelectionChangeFunc,
 } from "@xyflow/react";
 import {
   addEdge,
@@ -133,13 +133,16 @@ function AgentCanvasInner({
     [setEdges, onConnectCallback]
   );
 
-  const handleSelectionChange: OnSelectionChangeFunc = useCallback(
-    ({ nodes: selectedNodes }) => {
-      const selectedNode = selectedNodes.length === 1 ? selectedNodes[0] : null;
-      onNodeSelect?.(selectedNode ?? null);
+  const handleNodeClick: NodeMouseHandler = useCallback(
+    (_event, node) => {
+      onNodeSelect?.(node);
     },
     [onNodeSelect]
   );
+
+  const handlePaneClick = useCallback(() => {
+    onNodeSelect?.(null);
+  }, [onNodeSelect]);
 
   const handleDragOver = useCallback((event: DragEvent) => {
     event.preventDefault();
@@ -180,7 +183,7 @@ function AgentCanvasInner({
       <CanvasContextMenu onNodeAdd={onNodeAdd}>
         <ReactFlow
           connectionLineComponent={ConnectionLine}
-          connectionMode={ConnectionMode.Loose}
+          connectionMode={ConnectionMode.Strict}
           defaultEdgeOptions={DEFAULT_EDGE_OPTIONS}
           edges={edges}
           edgeTypes={mergedEdgeTypes}
@@ -197,8 +200,9 @@ function AgentCanvasInner({
           onDragOver={handleDragOver}
           onDrop={handleDrop}
           onEdgesChange={handleEdgesChange}
+          onNodeClick={handleNodeClick}
           onNodesChange={handleNodesChange}
-          onSelectionChange={handleSelectionChange}
+          onPaneClick={handlePaneClick}
           panOnDrag={[1]}
           panOnScroll
           proOptions={proOptions}

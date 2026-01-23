@@ -6,17 +6,17 @@ import { memo, useCallback } from "react";
 import { cn } from "../../utils";
 
 const CATEGORY_COLORS: Record<NodeCategory, string> = {
-  control: "hsl(var(--node-control))",
-  ai: "hsl(var(--node-ai))",
-  transform: "hsl(var(--node-transform))",
-  human: "hsl(var(--node-human))",
-  integration: "hsl(var(--node-integration))",
-  trigger: "hsl(var(--node-trigger))",
-  memory: "hsl(var(--node-memory))",
-  orchestration: "hsl(var(--node-orchestration))",
+  control: "var(--node-control)",
+  ai: "var(--node-ai)",
+  transform: "var(--node-transform)",
+  human: "var(--node-human)",
+  integration: "var(--node-integration)",
+  trigger: "var(--node-trigger)",
+  memory: "var(--node-memory)",
+  orchestration: "var(--node-orchestration)",
 };
 
-const DEFAULT_COLOR = "hsl(var(--muted-foreground))";
+const DEFAULT_COLOR = "var(--muted-foreground)";
 
 export interface CanvasMinimapProps {
   className?: string;

@@ -190,7 +190,7 @@ export const CanvasContextMenu = memo(function CanvasContextMenuComponent({
               placeholder="Search nodes..."
               value={searchValue}
             />
-            <CommandList>
+            <CommandList className="no-scrollbar max-h-80 overflow-y-auto">
               <CommandEmpty>No nodes found.</CommandEmpty>
               {(
                 Object.entries(groupedButtons) as [string, typeof nodeButtons][]
