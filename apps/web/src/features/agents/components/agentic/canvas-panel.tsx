@@ -1,16 +1,24 @@
 "use client";
 
-import type { AgentCanvasNode, CanvasNodeType } from "@openplane/types/canvas";
+import { connectorLogos } from "@openplane/integrations/logos";
+import type {
+  AgentCanvasEdge,
+  AgentCanvasNode,
+  CanvasNodeType,
+} from "@openplane/types/canvas";
+import {
+  type ConnectorType,
+  normalizeToConnectorType,
+} from "@openplane/types/services/connectors/events";
 import {
   AgentCanvas,
   ConfigPanel,
   createNodeData,
   useBuilderStatus,
-  useCanvasEdges,
-  useCanvasNodes,
   useCanvasStore,
   usePendingOperationCount,
 } from "@openplane/ui";
+import type { ConnectorInfo } from "@openplane/ui/components/event-builder";
 import {
   Sheet,
   SheetContent,
@@ -19,11 +27,14 @@ import {
   SheetTitle,
 } from "@openplane/ui/components/sheet";
 import { cn } from "@openplane/ui/utils";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import type { Edge, Node } from "@xyflow/react";
-import { forwardRef, Suspense, useCallback, useState } from "react";
+import { Suspense, useCallback, useMemo, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { useTRPC } from "@/trpc/client";
 import { useCanvasCommandPalette } from "../../hooks/use-canvas-command-palette";
+import { useCanvasSync } from "../../hooks/use-canvas-sync";
+import { useConnectorResources } from "../../hooks/use-connector-resources";
 import { BuildingIndicator } from "./building-indicator";
 import { CanvasCommandPalette } from "./canvas-command-palette";
 
@@ -34,13 +45,25 @@ interface CanvasPanelProps {
 
 function CanvasPanelContent({ agentId, className }: CanvasPanelProps) {
   const trpc = useTRPC();
+  const { fetchResources } = useConnectorResources();
   const status = useBuilderStatus();
   const pendingCount = usePendingOperationCount();
-  const storeNodes = useCanvasNodes();
-  const storeEdges = useCanvasEdges();
-  const addNode = useCanvasStore((s) => s.addNode);
-  const updateNode = useCanvasStore((s) => s.updateNode);
-  const removeNode = useCanvasStore((s) => s.removeNode);
+
+  const { nodes, edges } = useCanvasStore(
+    useShallow((s) => ({ nodes: s.nodes, edges: s.edges }))
+  );
+
+  const { setNodes, setEdges, addNode, updateNode, removeNode } =
+    useCanvasStore(
+      useShallow((s) => ({
+        setNodes: s.setNodes,
+        setEdges: s.setEdges,
+        addNode: s.addNode,
+        updateNode: s.updateNode,
+        removeNode: s.removeNode,
+      }))
+    );
+
   const commandPalette = useCanvasCommandPalette();
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
 
@@ -48,14 +71,52 @@ function CanvasPanelContent({ agentId, className }: CanvasPanelProps) {
     trpc.agentCanvas.get.queryOptions({ canvasId: agentId })
   );
 
+  const { data: connectorApps } = useQuery(trpc.apps.list.queryOptions());
+
+  const connectors: ConnectorInfo[] = useMemo(() => {
+    if (!connectorApps) {
+      return [];
+    }
+    return connectorApps
+      .filter((app) => app.connectorId && app.status !== "DELETING")
+      .map((app) => ({
+        id: app.connectorId as string,
+        type:
+          normalizeToConnectorType(app.id) ??
+          (app.id.toLowerCase() as ConnectorType),
+        name: app.name,
+      }));
+  }, [connectorApps]);
+
+  useCanvasSync(agent);
+
   const isBuilding = status === "building";
 
-  const nodes = (
-    storeNodes.length > 0 ? storeNodes : (agent.nodes ?? [])
-  ) as Node[];
-  const edges = (
-    storeEdges.length > 0 ? storeEdges : (agent.edges ?? [])
-  ) as Edge[];
+  const initialNodes = useMemo(
+    () => (agent.nodes ?? []) as Node[],
+    [agent.nodes]
+  );
+  const initialEdges = useMemo(
+    () => (agent.edges ?? []) as Edge[],
+    [agent.edges]
+  );
+
+  const externalNodes = useMemo(() => nodes as Node[], [nodes]);
+  const externalEdges = useMemo(() => edges as Edge[], [edges]);
+
+  const handleNodesChange = useCallback(
+    (updatedNodes: Node[]) => {
+      setNodes(updatedNodes as AgentCanvasNode[]);
+    },
+    [setNodes]
+  );
+
+  const handleEdgesChange = useCallback(
+    (updatedEdges: Edge[]) => {
+      setEdges(updatedEdges as AgentCanvasEdge[]);
+    },
+    [setEdges]
+  );
 
   const handleSelectNodeFromPalette = useCallback(
     (nodeType: string) => {
@@ -150,9 +211,16 @@ function CanvasPanelContent({ agentId, className }: CanvasPanelProps) {
 
       <AgentCanvas
         className="h-full w-full"
-        initialEdges={edges}
-        initialNodes={nodes}
+        connectorLogos={connectorLogos}
+        connectors={connectors}
+        externalEdges={externalEdges}
+        externalNodes={externalNodes}
+        initialEdges={initialEdges}
+        initialNodes={initialNodes}
+        onEdgesChange={handleEdgesChange}
+        onFetchResources={fetchResources}
         onNodeSelect={handleNodeSelect}
+        onNodesChange={handleNodesChange}
         readOnly={isBuilding}
         showBackground
         showControls
@@ -175,6 +243,8 @@ function CanvasPanelContent({ agentId, className }: CanvasPanelProps) {
           </SheetHeader>
           {selectedNode && (
             <ConfigPanel
+              connectorLogos={connectorLogos}
+              connectors={connectors}
               embedded
               nodeConfig={
                 (selectedNode.data as { config?: Record<string, unknown> })
@@ -191,6 +261,7 @@ function CanvasPanelContent({ agentId, className }: CanvasPanelProps) {
               onConfigChange={handleConfigChange}
               onDelete={handleDeleteNode}
               onDuplicate={handleDuplicateNode}
+              onFetchResources={fetchResources}
               onLabelChange={handleLabelChange}
             />
           )}
@@ -211,14 +282,12 @@ function CanvasPanelSkeleton() {
   );
 }
 
-export const CanvasPanel = forwardRef<HTMLDivElement, CanvasPanelProps>(
-  ({ agentId, className }, ref) => (
-    <div className={cn("h-full w-full", className)} ref={ref}>
+export function CanvasPanel({ agentId, className }: CanvasPanelProps) {
+  return (
+    <div className={cn("h-full w-full", className)}>
       <Suspense fallback={<CanvasPanelSkeleton />}>
         <CanvasPanelContent agentId={agentId} />
       </Suspense>
     </div>
-  )
-);
-
-CanvasPanel.displayName = "CanvasPanel";
+  );
+}

@@ -2,7 +2,9 @@
 
 import { TooltipProvider } from "@openplane/ui/components/tooltip";
 import { cn } from "@openplane/ui/utils";
-import { forwardRef, Suspense } from "react";
+import { Suspense } from "react";
+import { useCanvasKeyboard } from "../../hooks/use-canvas-keyboard";
+import { useCanvasPersistence } from "../../hooks/use-canvas-persistence";
 import {
   AgenticViewHeader,
   AgenticViewHeaderSkeleton,
@@ -16,6 +18,10 @@ interface AgenticViewProps {
 }
 
 function AgenticViewContent({ agentId, className }: AgenticViewProps) {
+  const { save } = useCanvasPersistence(agentId);
+
+  useCanvasKeyboard({ onSave: save });
+
   return (
     <div className={cn("flex h-full flex-col", className)}>
       <Suspense fallback={<AgenticViewHeaderSkeleton />}>
@@ -35,14 +41,12 @@ function AgenticViewContent({ agentId, className }: AgenticViewProps) {
   );
 }
 
-export const AgenticView = forwardRef<HTMLDivElement, AgenticViewProps>(
-  ({ agentId, className }, ref) => (
+export function AgenticView({ agentId, className }: AgenticViewProps) {
+  return (
     <TooltipProvider>
-      <div className={cn("h-full", className)} ref={ref}>
+      <div className={cn("h-full", className)}>
         <AgenticViewContent agentId={agentId} className="h-full" />
       </div>
     </TooltipProvider>
-  )
-);
-
-AgenticView.displayName = "AgenticView";
+  );
+}

@@ -5,22 +5,23 @@ import { Button } from "@openplane/ui/components/button";
 import { Skeleton } from "@openplane/ui/components/skeleton";
 import { cn } from "@openplane/ui/utils";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { ArrowLeft, Play, Save, Square } from "lucide-react";
+import { ArrowLeft, Check, Loader2, Play, Save, Square } from "lucide-react";
 import Link from "next/link";
-import { forwardRef } from "react";
 import { useTRPC } from "@/trpc/client";
+import { useCanvasPersistence } from "../../hooks/use-canvas-persistence";
 
 interface AgenticViewHeaderProps {
   agentId: string;
   className?: string;
 }
 
-export const AgenticViewHeader = forwardRef<
-  HTMLDivElement,
-  AgenticViewHeaderProps
->(({ agentId, className }, ref) => {
+export function AgenticViewHeader({
+  agentId,
+  className,
+}: AgenticViewHeaderProps) {
   const trpc = useTRPC();
   const status = useBuilderStatus();
+  const { save, isSaving, isDirty } = useCanvasPersistence(agentId);
 
   const { data: agent } = useSuspenseQuery(
     trpc.agentCanvas.get.queryOptions({ canvasId: agentId })
@@ -28,13 +29,37 @@ export const AgenticViewHeader = forwardRef<
 
   const isBuilding = status === "building";
 
+  const getSaveButtonContent = () => {
+    if (isSaving) {
+      return (
+        <>
+          <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+          Saving...
+        </>
+      );
+    }
+    if (!isDirty) {
+      return (
+        <>
+          <Check className="mr-2 h-3 w-3" />
+          Saved
+        </>
+      );
+    }
+    return (
+      <>
+        <Save className="mr-2 h-3 w-3" />
+        Save
+      </>
+    );
+  };
+
   return (
     <header
       className={cn(
         "flex items-center justify-between border-border/50 border-b px-4 py-3",
         className
       )}
-      ref={ref}
     >
       <div className="flex items-center gap-3">
         <Button asChild size="icon" variant="ghost">
@@ -62,16 +87,18 @@ export const AgenticViewHeader = forwardRef<
             Run
           </Button>
         )}
-        <Button size="sm" variant="outline">
-          <Save className="mr-2 h-3 w-3" />
-          Save
+        <Button
+          disabled={!isDirty || isSaving}
+          onClick={() => save()}
+          size="sm"
+          variant="outline"
+        >
+          {getSaveButtonContent()}
         </Button>
       </div>
     </header>
   );
-});
-
-AgenticViewHeader.displayName = "AgenticViewHeader";
+}
 
 export function AgenticViewHeaderSkeleton() {
   return (
