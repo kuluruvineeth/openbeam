@@ -3,7 +3,7 @@
 import type { ConnectorType } from "@openplane/types/services/connectors/events";
 import type { ComponentType, ReactNode } from "react";
 import { createContext, useContext, useMemo } from "react";
-import type { ConnectorInfo, LogoProps, ResourceInfo } from "../event-builder";
+import type { ConnectorInfo, LogoProps, ResourceInfo } from "./event-builder";
 
 interface CanvasContextValue {
   connectorLogos?: Partial<Record<ConnectorType, ComponentType<LogoProps>>>;

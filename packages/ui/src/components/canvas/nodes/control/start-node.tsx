@@ -9,10 +9,10 @@ import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
 import { forwardRef, memo, useMemo } from "react";
 import { CronDisplay } from "../../../cron-display";
-import { EventDisplay } from "../../../event-display";
-import { WebhookDisplay } from "../../../webhook-display";
 import { useCanvasContext } from "../../canvas-context";
+import { EventDisplay } from "../../event-builder";
 import { getTriggerType } from "../../trigger-types";
+import { WebhookDisplay } from "../../webhook-builder";
 import {
   NodeErrorBoundary,
   NodeHeader,

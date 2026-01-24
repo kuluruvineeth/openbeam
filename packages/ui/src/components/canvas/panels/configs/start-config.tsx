@@ -4,13 +4,6 @@ import type { StartNodeConfig } from "@openplane/types/canvas";
 import type { ConnectorType } from "@openplane/types/services/connectors/events";
 import type { ComponentType } from "react";
 import { forwardRef, memo, useMemo } from "react";
-import type {
-  ConnectorInfo,
-  EventConfig,
-  LogoProps,
-  ResourceInfo,
-} from "../../../event-builder";
-import { EventBuilder } from "../../../event-builder";
 import { Icons } from "../../../icons";
 import { ScheduleBuilder } from "../../../schedule-builder";
 import {
@@ -19,8 +12,15 @@ import {
   SelectItem,
   SelectTrigger,
 } from "../../../select";
-import { WebhookBuilder } from "../../../webhook-builder";
+import type {
+  ConnectorInfo,
+  EventConfig,
+  LogoProps,
+  ResourceInfo,
+} from "../../event-builder";
+import { EventBuilder } from "../../event-builder";
 import { getTriggerType, TRIGGER_TYPE_LIST } from "../../trigger-types";
+import { WebhookBuilder } from "../../webhook-builder";
 import { ConfigField } from "../config-field";
 import { ConfigSection } from "../config-section";
 

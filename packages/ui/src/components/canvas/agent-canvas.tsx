@@ -27,13 +27,13 @@ import "@xyflow/react/dist/style.css";
 import type { ComponentType, DragEvent } from "react";
 import { memo, useCallback, useEffect, useMemo, useRef } from "react";
 import { cn } from "../../utils";
-import type { ConnectorInfo, LogoProps, ResourceInfo } from "../event-builder";
 import { CanvasBackground } from "./canvas-background";
 import { CanvasProvider } from "./canvas-context";
 import { CanvasContextMenu } from "./canvas-context-menu";
 import { CanvasControls } from "./canvas-controls";
 import { ConnectionLine } from "./connection-line";
 import { edgeTypes as defaultEdgeTypes } from "./edges";
+import type { ConnectorInfo, LogoProps, ResourceInfo } from "./event-builder";
 import { createAllNodeTypes, createNodeData } from "./nodes";
 
 const DEFAULT_EDGE_OPTIONS = {

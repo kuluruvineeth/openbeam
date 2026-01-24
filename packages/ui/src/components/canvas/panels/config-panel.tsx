@@ -14,15 +14,11 @@ import type {
 import type { ConnectorType } from "@openplane/types/services/connectors/events";
 import type { ComponentType } from "react";
 import { forwardRef, memo, useCallback } from "react";
-import type {
-  ConnectorInfo,
-  LogoProps,
-  ResourceInfo,
-} from "../../event-builder";
 import { Input } from "../../input";
 import { ScrollArea } from "../../scroll-area";
 import { Sheet, SheetContent } from "../../sheet";
 import { Textarea } from "../../textarea";
+import type { ConnectorInfo, LogoProps, ResourceInfo } from "../event-builder";
 import { ConfigField } from "./config-field";
 import { ConfigPanelHeader } from "./config-panel-header";
 import { ConfigSection } from "./config-section";
