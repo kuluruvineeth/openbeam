@@ -4,7 +4,6 @@ import { Icons } from "@openplane/ui";
 import { cn } from "@openplane/ui/utils";
 import { motion } from "motion/react";
 import Image from "next/image";
-import { forwardRef } from "react";
 
 interface ChatGreetingProps {
   onSuggestionClick?: (suggestion: string) => void;
@@ -32,14 +31,16 @@ const SUGGESTIONS = [
   },
 ];
 
-export const ChatGreeting = forwardRef<HTMLDivElement, ChatGreetingProps>(
-  ({ onSuggestionClick, className }, ref) => (
+export function ChatGreeting({
+  onSuggestionClick,
+  className,
+}: ChatGreetingProps) {
+  return (
     <div
       className={cn(
         "flex h-full flex-col items-center justify-center px-4",
         className
       )}
-      ref={ref}
     >
       <motion.div
         animate={{ opacity: 1, y: 0 }}
@@ -96,7 +97,5 @@ export const ChatGreeting = forwardRef<HTMLDivElement, ChatGreetingProps>(
         </div>
       </motion.div>
     </div>
-  )
-);
-
-ChatGreeting.displayName = "ChatGreeting";
+  );
+}

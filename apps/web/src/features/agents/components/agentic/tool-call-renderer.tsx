@@ -8,7 +8,6 @@ import {
 import { cn } from "@openplane/ui/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Check, ChevronRight, Loader2, X } from "lucide-react";
-import { forwardRef } from "react";
 
 const toolCallVariants = cva(
   "group flex flex-col rounded-md border transition-colors",
@@ -40,78 +39,68 @@ interface ToolCallRendererProps extends VariantProps<typeof toolCallVariants> {
   className?: string;
 }
 
-export const ToolCallRenderer = forwardRef<
-  HTMLDivElement,
-  ToolCallRendererProps
->(
-  (
-    {
-      name,
-      status = "pending",
-      input,
-      output,
-      error,
-      duration,
-      defaultOpen = false,
-      className,
-    },
-    ref
-  ) => {
-    const hasDetails =
-      input !== undefined || output !== undefined || error !== undefined;
+export function ToolCallRenderer({
+  name,
+  status = "pending",
+  input,
+  output,
+  error,
+  duration,
+  defaultOpen = false,
+  className,
+}: ToolCallRendererProps) {
+  const hasDetails =
+    input !== undefined || output !== undefined || error !== undefined;
 
-    return (
-      <div className={cn(toolCallVariants({ status }), className)} ref={ref}>
-        <Collapsible defaultOpen={defaultOpen}>
-          <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 text-left">
-            <div className="flex items-center gap-2">
-              <StatusIcon status={status} />
-              <span className="font-medium font-mono text-xs">{name}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              {duration !== undefined && status !== "running" && (
-                <span className="font-mono text-[10px] text-muted-foreground">
-                  {duration}ms
-                </span>
+  return (
+    <div className={cn(toolCallVariants({ status }), className)}>
+      <Collapsible defaultOpen={defaultOpen}>
+        <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 text-left">
+          <div className="flex items-center gap-2">
+            <StatusIcon status={status} />
+            <span className="font-medium font-mono text-xs">{name}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {duration !== undefined && status !== "running" && (
+              <span className="font-mono text-[10px] text-muted-foreground">
+                {duration}ms
+              </span>
+            )}
+            {hasDetails && (
+              <ChevronRight className="h-3 w-3 text-muted-foreground transition-transform group-data-[state=open]:rotate-90" />
+            )}
+          </div>
+        </CollapsibleTrigger>
+
+        {hasDetails && (
+          <CollapsibleContent>
+            <div className="border-border/50 border-t px-3 py-2 text-xs">
+              {input !== undefined && (
+                <ToolCallSection label="Input">
+                  <pre className="overflow-x-auto whitespace-pre-wrap font-mono text-[10px] text-muted-foreground">
+                    {formatValue(input)}
+                  </pre>
+                </ToolCallSection>
               )}
-              {hasDetails && (
-                <ChevronRight className="h-3 w-3 text-muted-foreground transition-transform group-data-[state=open]:rotate-90" />
+              {output !== undefined && (
+                <ToolCallSection label="Output">
+                  <pre className="overflow-x-auto whitespace-pre-wrap font-mono text-[10px] text-muted-foreground">
+                    {formatValue(output)}
+                  </pre>
+                </ToolCallSection>
+              )}
+              {error && (
+                <ToolCallSection label="Error">
+                  <p className="text-destructive">{error}</p>
+                </ToolCallSection>
               )}
             </div>
-          </CollapsibleTrigger>
-
-          {hasDetails && (
-            <CollapsibleContent>
-              <div className="border-border/50 border-t px-3 py-2 text-xs">
-                {input !== undefined && (
-                  <ToolCallSection label="Input">
-                    <pre className="overflow-x-auto whitespace-pre-wrap font-mono text-[10px] text-muted-foreground">
-                      {formatValue(input)}
-                    </pre>
-                  </ToolCallSection>
-                )}
-                {output !== undefined && (
-                  <ToolCallSection label="Output">
-                    <pre className="overflow-x-auto whitespace-pre-wrap font-mono text-[10px] text-muted-foreground">
-                      {formatValue(output)}
-                    </pre>
-                  </ToolCallSection>
-                )}
-                {error && (
-                  <ToolCallSection label="Error">
-                    <p className="text-destructive">{error}</p>
-                  </ToolCallSection>
-                )}
-              </div>
-            </CollapsibleContent>
-          )}
-        </Collapsible>
-      </div>
-    );
-  }
-);
-
-ToolCallRenderer.displayName = "ToolCallRenderer";
+          </CollapsibleContent>
+        )}
+      </Collapsible>
+    </div>
+  );
+}
 
 function StatusIcon({ status }: { status: ToolCallStatus }) {
   switch (status) {

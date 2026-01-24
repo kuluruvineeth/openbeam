@@ -16,7 +16,7 @@ import {
   usePromptInputText,
 } from "@openplane/ui";
 import { cn } from "@openplane/ui/utils";
-import { forwardRef, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useCanvasBuilder } from "../../hooks";
 import { ChatGreeting } from "./chat-greeting";
 
@@ -25,102 +25,97 @@ interface ChatPanelProps {
   className?: string;
 }
 
-export const ChatPanel = forwardRef<HTMLDivElement, ChatPanelProps>(
-  ({ agentId, className }, ref) => {
-    const [pendingText, setPendingText] = useState("");
-    const [selectedModel, setSelectedModel] = useState(
-      "claude-sonnet-4-20250514"
-    );
+export function ChatPanel({ agentId, className }: ChatPanelProps) {
+  const [pendingText, setPendingText] = useState("");
+  const [selectedModel, setSelectedModel] = useState(
+    "claude-sonnet-4-20250514"
+  );
 
-    const { messages, isProcessing, sendMessage, cancel } =
-      useCanvasBuilder(agentId);
+  const { messages, isProcessing, sendMessage, cancel } =
+    useCanvasBuilder(agentId);
 
-    const handleSubmit = useCallback(
-      (message: { text?: string; files?: unknown[] }) => {
-        const hasContent =
-          Boolean(message.text?.trim()) || Boolean(message.files?.length);
-        if (!hasContent || isProcessing) {
-          return;
-        }
-        sendMessage(message.text ?? "");
-        setPendingText("");
-      },
-      [isProcessing, sendMessage]
-    );
+  const handleSubmit = useCallback(
+    (message: { text?: string; files?: unknown[] }) => {
+      const hasContent =
+        Boolean(message.text?.trim()) || Boolean(message.files?.length);
+      if (!hasContent || isProcessing) {
+        return;
+      }
+      sendMessage(message.text ?? "");
+      setPendingText("");
+    },
+    [isProcessing, sendMessage]
+  );
 
-    const handleStopClick = useCallback(() => {
-      cancel();
-    }, [cancel]);
+  const handleStopClick = useCallback(() => {
+    cancel();
+  }, [cancel]);
 
-    const status = isProcessing ? "streaming" : "ready";
+  const status = isProcessing ? "streaming" : "ready";
 
-    return (
-      <div
-        className={cn(
-          "flex h-full flex-col border-border/50 border-r",
-          className
+  return (
+    <div
+      className={cn(
+        "flex h-full flex-col border-border/50 border-r",
+        className
+      )}
+    >
+      <div className="flex-1 overflow-auto">
+        {messages.length === 0 ? (
+          <ChatGreeting onSuggestionClick={setPendingText} />
+        ) : (
+          <AgentMessageList isStreaming={isProcessing} messages={messages} />
         )}
-        ref={ref}
-      >
-        <div className="flex-1 overflow-auto">
-          {messages.length === 0 ? (
-            <ChatGreeting onSuggestionClick={setPendingText} />
-          ) : (
-            <AgentMessageList isStreaming={isProcessing} messages={messages} />
-          )}
-        </div>
-
-        <div className="p-4">
-          <PromptInput
-            accept="image/*"
-            className={cn(
-              "rounded-md border border-border/50 bg-background",
-              "ring-ring/50 focus-within:ring-1",
-              isProcessing && "opacity-80"
-            )}
-            maxFiles={5}
-            multiple
-            onSubmit={handleSubmit}
-          >
-            <PromptInputBody>
-              <PromptInputAttachments>
-                {(file) => <PromptInputAttachment data={file} />}
-              </PromptInputAttachments>
-
-              <EditorWithExternalText
-                disabled={isProcessing}
-                externalText={pendingText}
-                onExternalTextConsumed={() => setPendingText("")}
-                placeholder="Describe your workflow..."
-              />
-
-              <PromptInputToolbar>
-                <PromptInputTools>
-                  <ModelSelect
-                    onValueChange={setSelectedModel}
-                    showBadges={false}
-                    size="sm"
-                    triggerClassName="h-7 w-auto min-w-0 gap-1.5 border-0 bg-transparent px-2 text-xs shadow-none hover:bg-accent"
-                    value={selectedModel}
-                  />
-                  <PromptInputActionAddAttachments />
-                </PromptInputTools>
-
-                <SubmitButton
-                  isProcessing={isProcessing}
-                  onStopClick={handleStopClick}
-                  status={status}
-                />
-              </PromptInputToolbar>
-            </PromptInputBody>
-          </PromptInput>
-        </div>
       </div>
-    );
-  }
-);
 
-ChatPanel.displayName = "ChatPanel";
+      <div className="p-4">
+        <PromptInput
+          accept="image/*"
+          className={cn(
+            "rounded-md border border-border/50 bg-background",
+            "ring-ring/50 focus-within:ring-1",
+            isProcessing && "opacity-80"
+          )}
+          maxFiles={5}
+          multiple
+          onSubmit={handleSubmit}
+        >
+          <PromptInputBody>
+            <PromptInputAttachments>
+              {(file) => <PromptInputAttachment data={file} />}
+            </PromptInputAttachments>
+
+            <EditorWithExternalText
+              disabled={isProcessing}
+              externalText={pendingText}
+              onExternalTextConsumed={() => setPendingText("")}
+              placeholder="Describe your workflow..."
+            />
+
+            <PromptInputToolbar>
+              <PromptInputTools>
+                <ModelSelect
+                  onValueChange={setSelectedModel}
+                  showBadges={false}
+                  size="sm"
+                  triggerClassName="h-7 w-auto min-w-0 gap-1.5 border-0 bg-transparent px-2 text-xs shadow-none hover:bg-accent"
+                  value={selectedModel}
+                />
+                <PromptInputActionAddAttachments />
+              </PromptInputTools>
+
+              <SubmitButton
+                isProcessing={isProcessing}
+                onStopClick={handleStopClick}
+                status={status}
+              />
+            </PromptInputToolbar>
+          </PromptInputBody>
+        </PromptInput>
+      </div>
+    </div>
+  );
+}
 
 interface EditorWithExternalTextProps {
   disabled?: boolean;
