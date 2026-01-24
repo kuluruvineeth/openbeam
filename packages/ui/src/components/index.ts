@@ -163,7 +163,9 @@ export type {
 } from "./calendar";
 export {
   ActivityHeatmap,
+  CalendarDayButton,
   CalendarViewSwitcher,
+  DayPickerCalendar,
   HoldToStopTimer,
   MonthCalendar,
   TrackerRow,
@@ -313,6 +315,14 @@ export {
   transformNodeTypes,
   validateAgentConfig,
 } from "./canvas";
+export type {
+  ConnectorInfo,
+  EventConfig,
+  LogoProps,
+  ResourceInfo,
+} from "./canvas/event-builder";
+export { EventBuilder, EventDisplay } from "./canvas/event-builder";
+export { WebhookBuilder, WebhookDisplay } from "./canvas/webhook-builder";
 export {
   Card,
   CardContent,
@@ -364,6 +374,12 @@ export {
   ContextMenuTrigger,
 } from "./context-menu";
 export { CronDisplay } from "./cron-display";
+export type {
+  CompactDatePickerProps,
+  DatePickerProps,
+  DateRangePickerProps,
+} from "./date-picker";
+export { CompactDatePicker, DatePicker, DateRangePicker } from "./date-picker";
 export {
   Dialog,
   DialogClose,
@@ -405,14 +421,6 @@ export {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "./dropdown-menu";
-export type {
-  ConnectorInfo,
-  EventConfig,
-  LogoProps,
-  ResourceInfo,
-} from "./event-builder";
-export { EventBuilder } from "./event-builder";
-export { EventDisplay } from "./event-display";
 export type {
   AiFilterInputProps,
   FilterChip,
@@ -699,5 +707,3 @@ export {
   TooltipProvider,
   TooltipTrigger,
 } from "./tooltip";
-export { WebhookBuilder } from "./webhook-builder";
-export { WebhookDisplay } from "./webhook-display";
