@@ -219,15 +219,85 @@ export const ClassifyNodeConfigSchema = z.object({
 export type ClassifyNodeConfig = z.infer<typeof ClassifyNodeConfigSchema>;
 
 export const ConditionNodeConfigSchema = z.object({
-  expression: z.string(),
+  mode: z.enum(["visual", "expression"]).default("visual"),
+  expression: z.string().optional(),
   branches: z.array(
     z.object({
       id: z.string(),
       label: z.string(),
-      condition: z.string(),
+      color: z.string().optional(),
+      groups: z
+        .array(
+          z.object({
+            id: z.string(),
+            logic: z.enum(["and", "or"]).default("and"),
+            conditions: z
+              .array(
+                z.object({
+                  id: z.string(),
+                  field: z.string(),
+                  dataType: z
+                    .enum([
+                      "string",
+                      "number",
+                      "boolean",
+                      "date",
+                      "array",
+                      "object",
+                      "any",
+                    ])
+                    .default("string"),
+                  operator: z.enum([
+                    "equals",
+                    "not_equals",
+                    "contains",
+                    "not_contains",
+                    "starts_with",
+                    "ends_with",
+                    "is_empty",
+                    "is_not_empty",
+                    "matches_regex",
+                    "greater_than",
+                    "less_than",
+                    "greater_or_equal",
+                    "less_or_equal",
+                    "is_between",
+                    "is_true",
+                    "is_false",
+                    "is_before",
+                    "is_after",
+                    "is_today",
+                    "is_in_past",
+                    "is_in_future",
+                    "date_between",
+                    "has_key",
+                    "key_equals",
+                    "array_contains",
+                    "array_not_contains",
+                    "array_length_equals",
+                    "array_length_greater",
+                    "array_length_less",
+                    "array_is_empty",
+                    "exists",
+                    "not_exists",
+                  ]),
+                  value: z
+                    .union([z.string(), z.number(), z.boolean(), z.null()])
+                    .optional(),
+                  secondValue: z
+                    .union([z.string(), z.number(), z.null()])
+                    .optional()
+                    .nullable(),
+                })
+              )
+              .default([]),
+          })
+        )
+        .default([]),
     })
   ),
-  defaultBranch: z.string().optional(),
+  defaultBranchLabel: z.string().default("Default"),
+  evaluationOrder: z.enum(["sequential", "parallel"]).default("sequential"),
 });
 
 export type ConditionNodeConfig = z.infer<typeof ConditionNodeConfigSchema>;
