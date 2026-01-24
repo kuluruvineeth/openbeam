@@ -465,6 +465,32 @@ body {
   .animate-blink {
     animation: blink 1s step-end infinite;
   }
+
+  @keyframes collapsible-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-collapsible-content-height);
+    }
+  }
+
+  @keyframes collapsible-up {
+    from {
+      height: var(--radix-collapsible-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+
+  .animate-collapsible-down {
+    animation: collapsible-down 200ms ease-out;
+  }
+
+  .animate-collapsible-up {
+    animation: collapsible-up 200ms ease-out;
+  }
 }
 
 @utility step {
@@ -553,8 +579,17 @@ body {
   .react-flow__node {
     @apply !bg-transparent !border-0 !shadow-none;
   }
-  .react-flow__node.selected .node-container {
+  .node-container[data-node-selected="true"] {
     @apply ring-2! ring-primary!;
+  }
+  .node-container[data-node-status="running"] {
+    @apply ring-2! ring-primary!;
+  }
+  .node-container[data-node-status="error"] {
+    @apply ring-destructive!;
+  }
+  .node-container[data-node-status="success"] {
+    @apply ring-green-500/50!;
   }
   .react-flow__controls {
     @apply border-none! bg-transparent! shadow-none!;

@@ -190,11 +190,16 @@ export type {
   CompiledNode,
   ConditionalEdgeData,
   ConditionNodeData,
+  ConnectorEventUIConfig,
+  ConnectorIconMap,
+  ConnectorWithEvents,
   ControlEdgeData,
   DataEdgeData,
   DetectedPattern,
   EndNodeData,
   ErrorEdgeData,
+  EventCategoryGroup,
+  EventCategoryIconMap,
   ExecutionContext,
   ExecutionEvent,
   ExecutionEventHandler,
@@ -220,6 +225,8 @@ export type {
   SummarizeNodeData,
   TemplateNodeConfig,
   TemplateNodeData,
+  TriggerTypeConfig,
+  TriggerTypeId,
 } from "./canvas";
 export {
   AgentCanvas,
@@ -234,6 +241,7 @@ export {
   CanvasControls,
   CanvasToolbar,
   ClassifyNode,
+  CONNECTOR_ICONS,
   CodeNode,
   ConditionalEdge,
   ConditionNode,
@@ -269,12 +277,21 @@ export {
   detectPatterns,
   EndNode,
   ErrorEdge,
+  EVENT_CATEGORY_ICONS,
   ExtractNode,
   edgeTypes,
   FilterNode,
+  getAllConnectorsWithEvents,
+  getConnectorEventsUI,
+  getConnectorEventUI,
+  getConnectorIcon,
+  getEventCategoryIcon,
+  getEventsByCategoryUI,
+  getEventsByConnectorGrouped,
   getNodeEntry,
   getNodesByCategory,
   getTopologicalOrder,
+  getTriggerType,
   hasNodeDataFactory,
   humanNodeTypes,
   InputNode,
@@ -291,6 +308,8 @@ export {
   SummarizeNode,
   serializeAgentConfig,
   TemplateNode,
+  TRIGGER_TYPE_LIST,
+  TRIGGER_TYPES,
   transformNodeTypes,
   validateAgentConfig,
 } from "./canvas";
@@ -344,6 +363,7 @@ export {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "./context-menu";
+export { CronDisplay } from "./cron-display";
 export {
   Dialog,
   DialogClose,
@@ -385,6 +405,14 @@ export {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "./dropdown-menu";
+export type {
+  ConnectorInfo,
+  EventConfig,
+  LogoProps,
+  ResourceInfo,
+} from "./event-builder";
+export { EventBuilder } from "./event-builder";
+export { EventDisplay } from "./event-display";
 export type {
   AiFilterInputProps,
   FilterChip,
@@ -587,6 +615,7 @@ export {
   ResizablePanel,
   ResizablePanelGroup,
 } from "./resizable";
+export { ScheduleBuilder } from "./schedule-builder";
 export { ScrollArea, ScrollBar } from "./scroll-area";
 export {
   Select,
@@ -670,3 +699,5 @@ export {
   TooltipProvider,
   TooltipTrigger,
 } from "./tooltip";
+export { WebhookBuilder } from "./webhook-builder";
+export { WebhookDisplay } from "./webhook-display";
