@@ -86,11 +86,13 @@ export const NodeShell = memo(
         })}
         <div
           className={cn(
-            "flex flex-col rounded-md border border-border/50 bg-card/20 ring-1 ring-transparent transition-all",
+            "node-container flex flex-col rounded-md border border-border/50 bg-card/20 ring-1 ring-transparent transition-all",
             STATUS_STYLES[status],
             selected && "ring-2 ring-primary",
             className
           )}
+          data-node-selected={selected ? "true" : undefined}
+          data-node-status={status}
         >
           {children}
         </div>
