@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 
 interface UseCanvasCommandPaletteOptions {
   enabled?: boolean;
@@ -16,28 +17,24 @@ export function useCanvasCommandPalette(
   const close = useCallback(() => setIsOpen(false), []);
   const toggle = useCallback(() => setIsOpen((prev) => !prev), []);
 
-  useEffect(() => {
-    if (!enabled) {
-      return;
-    }
+  useHotkeys(
+    "mod+k",
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggle();
+    },
+    { enabled, enableOnFormTags: true }
+  );
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "k" && (event.metaKey || event.ctrlKey)) {
-        event.preventDefault();
-        event.stopPropagation();
-        toggle();
-      }
-
-      if (event.key === "Escape" && isOpen) {
-        event.preventDefault();
-        close();
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown, { capture: true });
-    return () =>
-      document.removeEventListener("keydown", handleKeyDown, { capture: true });
-  }, [enabled, isOpen, toggle, close]);
+  useHotkeys(
+    "escape",
+    (e) => {
+      e.preventDefault();
+      close();
+    },
+    { enabled: enabled && isOpen }
+  );
 
   return {
     isOpen,
