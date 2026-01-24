@@ -1,24 +1,24 @@
 "use client";
 
 import { forwardRef, memo, useCallback, useId, useMemo, useState } from "react";
-import { cn } from "../utils/cn";
-import { Badge } from "./badge";
-import { Button } from "./button";
+import { cn } from "../../../utils/cn";
+import { Badge } from "../../badge";
+import { Button } from "../../button";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "./collapsible";
-import { Icons } from "./icons";
-import { Input } from "./input";
-import { Label } from "./label";
-import { Select, SelectContent, SelectItem, SelectTrigger } from "./select";
+} from "../../collapsible";
+import { Icons } from "../../icons";
+import { Input } from "../../input";
+import { Label } from "../../label";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "../../select";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "./tooltip";
+} from "../../tooltip";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 type AuthMethod = "none" | "hmac-sha256" | "bearer" | "basic" | "api-key";

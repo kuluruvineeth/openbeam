@@ -4,9 +4,9 @@ import { getResourceLabel } from "@openplane/types/services/connectors/common/re
 import type { ConnectorType } from "@openplane/types/services/connectors/events";
 import type { ComponentType } from "react";
 import { forwardRef, memo, useMemo } from "react";
-import { cn } from "../utils/cn";
-import { Badge } from "./badge";
-import { getConnectorEventUI, getConnectorIcon } from "./canvas/event-types";
+import { cn } from "../../../utils/cn";
+import { Badge } from "../../badge";
+import { getConnectorEventUI, getConnectorIcon } from "../event-types";
 import type { LogoProps } from "./event-builder";
 
 const CONNECTOR_LABELS: Record<ConnectorType, string> = {

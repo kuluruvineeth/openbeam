@@ -1,8 +1,8 @@
 "use client";
 
 import { memo } from "react";
-import { cn } from "../utils/cn";
-import { Icons } from "./icons";
+import { cn } from "../../../utils/cn";
+import { Icons } from "../../icons";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 type AuthMethod = "none" | "hmac-sha256" | "bearer" | "basic" | "api-key";

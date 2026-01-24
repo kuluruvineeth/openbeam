@@ -6,7 +6,7 @@ import {
   getConnectorIcon,
   getEventCategoryIcon,
   getEventsByConnectorGrouped,
-} from "../canvas/event-types";
+} from "../../event-types";
 
 describe("event-types utilities", () => {
   describe("getConnectorIcon", () => {

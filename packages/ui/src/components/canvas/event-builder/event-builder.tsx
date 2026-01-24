@@ -19,16 +19,9 @@ import {
   useMemo,
   useState,
 } from "react";
-import { cn } from "../utils/cn";
-import { Badge } from "./badge";
-import { Button } from "./button";
-import {
-  CONNECTOR_ICONS,
-  EVENT_CATEGORY_ICONS,
-  getAllConnectorsWithEvents,
-  getConnectorEventsUI,
-  getEventsByConnectorGrouped,
-} from "./canvas/event-types";
+import { cn } from "../../../utils/cn";
+import { Badge } from "../../badge";
+import { Button } from "../../button";
 import {
   Command,
   CommandEmpty,
@@ -36,9 +29,16 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "./command";
-import { Popover, PopoverContent, PopoverTrigger } from "./popover";
-import { Skeleton } from "./skeleton";
+} from "../../command";
+import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
+import { Skeleton } from "../../skeleton";
+import {
+  CONNECTOR_ICONS,
+  EVENT_CATEGORY_ICONS,
+  getAllConnectorsWithEvents,
+  getConnectorEventsUI,
+  getEventsByConnectorGrouped,
+} from "../event-types";
 
 export interface EventConfig {
   connectorId?: string;
