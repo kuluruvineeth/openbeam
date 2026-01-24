@@ -6,3 +6,4 @@ export { ConditionConfigPanel } from "./condition-config";
 export { LlmConfigPanel } from "./llm-config";
 export { LoopConfigPanel } from "./loop-config";
 export { RagConfigPanel } from "./rag-config";
+export { StartConfigPanel } from "./start-config";

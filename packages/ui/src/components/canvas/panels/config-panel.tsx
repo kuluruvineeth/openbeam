@@ -9,8 +9,16 @@ import type {
   NodeStatus,
   RagNodeConfig,
   ScriptNodeConfig,
+  StartNodeConfig,
 } from "@openplane/types/canvas";
+import type { ConnectorType } from "@openplane/types/services/connectors/events";
+import type { ComponentType } from "react";
 import { forwardRef, memo, useCallback } from "react";
+import type {
+  ConnectorInfo,
+  LogoProps,
+  ResourceInfo,
+} from "../../event-builder";
 import { Input } from "../../input";
 import { ScrollArea } from "../../scroll-area";
 import { Sheet, SheetContent } from "../../sheet";
@@ -25,6 +33,7 @@ import {
   LlmConfigPanel,
   LoopConfigPanel,
   RagConfigPanel,
+  StartConfigPanel,
 } from "./configs";
 
 interface ConfigPanelBaseProps {
@@ -37,6 +46,12 @@ interface ConfigPanelBaseProps {
   onConfigChange?: (nodeId: string, config: Record<string, unknown>) => void;
   onDelete?: () => void;
   onDuplicate?: () => void;
+  connectorLogos?: Partial<Record<ConnectorType, ComponentType<LogoProps>>>;
+  connectors?: ConnectorInfo[];
+  onFetchResources?: (
+    connectorId: string,
+    resourceType: string
+  ) => Promise<ResourceInfo[]>;
 }
 
 interface StandaloneConfigPanelProps extends ConfigPanelBaseProps {
@@ -71,6 +86,9 @@ const ConfigPanelContent = memo(
         onDelete,
         onDuplicate,
         onClose,
+        connectorLogos,
+        connectors,
+        onFetchResources,
       },
       ref
     ) {
@@ -83,6 +101,16 @@ const ConfigPanelContent = memo(
 
       const renderNodeConfig = () => {
         switch (nodeType) {
+          case "start":
+            return (
+              <StartConfigPanel
+                config={nodeConfig as StartNodeConfig}
+                connectorLogos={connectorLogos}
+                connectors={connectors}
+                onChange={handleConfigChange}
+                onFetchResources={onFetchResources}
+              />
+            );
           case "llm":
             return (
               <LlmConfigPanel
@@ -133,7 +161,7 @@ const ConfigPanelContent = memo(
       const nodeSpecificConfig = renderNodeConfig();
 
       return (
-        <div className="flex h-full flex-col" ref={ref}>
+        <div className="flex h-full w-full min-w-0 flex-col" ref={ref}>
           <ConfigPanelHeader
             nodeId={nodeId}
             nodeLabel={nodeLabel}
@@ -145,8 +173,8 @@ const ConfigPanelContent = memo(
             status={nodeStatus}
           />
 
-          <ScrollArea className="flex-1">
-            <div className="divide-y divide-border/50">
+          <ScrollArea className="min-w-0 flex-1">
+            <div className="min-w-0 divide-y divide-border/50">
               <ConfigSection collapsible={false} defaultOpen title="General">
                 <div className="space-y-4">
                   <ConfigField label="Label">
@@ -215,6 +243,8 @@ export const ConfigPanel = memo(
       if (props.embedded) {
         return (
           <ConfigPanelContent
+            connectorLogos={props.connectorLogos}
+            connectors={props.connectors}
             nodeConfig={nodeConfig}
             nodeId={nodeId}
             nodeLabel={nodeLabel}
@@ -224,6 +254,7 @@ export const ConfigPanel = memo(
             onConfigChange={onConfigChange}
             onDelete={onDelete}
             onDuplicate={onDuplicate}
+            onFetchResources={props.onFetchResources}
             onLabelChange={onLabelChange}
             ref={ref}
           />
@@ -239,6 +270,8 @@ export const ConfigPanel = memo(
             side="right"
           >
             <ConfigPanelContent
+              connectorLogos={props.connectorLogos}
+              connectors={props.connectors}
               nodeConfig={nodeConfig}
               nodeId={nodeId}
               nodeLabel={nodeLabel}
@@ -248,6 +281,7 @@ export const ConfigPanel = memo(
               onConfigChange={onConfigChange}
               onDelete={onDelete}
               onDuplicate={onDuplicate}
+              onFetchResources={props.onFetchResources}
               onLabelChange={onLabelChange}
             />
           </SheetContent>

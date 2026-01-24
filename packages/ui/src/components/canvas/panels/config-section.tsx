@@ -106,7 +106,7 @@ export const ConfigSection = memo(
             ref={ref}
           >
             {headerContent}
-            <div className="section-content space-y-4 px-4 pb-4">
+            <div className="section-content min-w-0 space-y-4 overflow-hidden px-4 pb-4">
               {children}
             </div>
           </div>
@@ -129,7 +129,7 @@ export const ConfigSection = memo(
             </button>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <div className="section-content fade-in-0 slide-in-from-top-1 animate-in space-y-4 px-4 pb-4 duration-200">
+            <div className="section-content fade-in-0 slide-in-from-top-1 min-w-0 animate-in space-y-4 overflow-hidden px-4 pb-4 duration-200">
               {children}
             </div>
           </CollapsibleContent>
