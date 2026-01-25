@@ -302,12 +302,43 @@ export const ConditionNodeConfigSchema = z.object({
 
 export type ConditionNodeConfig = z.infer<typeof ConditionNodeConfigSchema>;
 
+export const LoopExecutionModeSchema = z.enum([
+  "sequential",
+  "parallel",
+  "batch",
+]);
+
+export type LoopExecutionMode = z.infer<typeof LoopExecutionModeSchema>;
+
+export const LoopErrorHandlingSchema = z.enum(["stop", "continue", "collect"]);
+
+export type LoopErrorHandling = z.infer<typeof LoopErrorHandlingSchema>;
+
+export const LoopOutputModeSchema = z.enum(["lastOnly", "all", "aggregate"]);
+
+export type LoopOutputMode = z.infer<typeof LoopOutputModeSchema>;
+
 export const LoopNodeConfigSchema = z.object({
   type: z.enum(["forEach", "while", "times"]),
+
   collection: z.string().optional(),
   condition: z.string().optional(),
-  times: z.number().optional(),
-  maxIterations: z.number().default(100),
+  times: z.number().positive().optional(),
+
+  executionMode: LoopExecutionModeSchema.default("sequential"),
+
+  batchSize: z.number().positive().default(10),
+  batchDelayMs: z.number().min(0).default(0),
+
+  errorHandling: LoopErrorHandlingSchema.default("stop"),
+
+  maxIterations: z.number().positive().default(100),
+  timeoutMs: z.number().positive().optional(),
+
+  breakCondition: z.string().optional(),
+
+  outputMode: LoopOutputModeSchema.default("all"),
+  aggregateExpression: z.string().optional(),
 });
 
 export type LoopNodeConfig = z.infer<typeof LoopNodeConfigSchema>;

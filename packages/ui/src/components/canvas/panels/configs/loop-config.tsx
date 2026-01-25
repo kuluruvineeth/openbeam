@@ -1,7 +1,13 @@
 "use client";
 
-import type { LoopNodeConfig } from "@openplane/types/canvas";
-import { forwardRef, memo } from "react";
+import type {
+  LoopErrorHandling,
+  LoopExecutionMode,
+  LoopNodeConfig,
+  LoopOutputMode,
+} from "@openplane/types/canvas";
+import { forwardRef, memo, useMemo } from "react";
+import { cn } from "../../../../utils";
 import { Icons } from "../../../icons";
 import { Input } from "../../../input";
 import {
@@ -21,19 +27,268 @@ const LOOP_TYPES = [
   { id: "times", name: "Times", description: "Fixed number of iterations" },
 ] as const;
 
+const EXECUTION_MODES: Array<{
+  id: LoopExecutionMode;
+  name: string;
+  description: string;
+  iconName: "ArrowRight" | "GitFork" | "Layers";
+}> = [
+  {
+    id: "sequential",
+    name: "Sequential",
+    description: "One item at a time, in order",
+    iconName: "ArrowRight",
+  },
+  {
+    id: "parallel",
+    name: "Parallel",
+    description: "All items simultaneously",
+    iconName: "GitFork",
+  },
+  {
+    id: "batch",
+    name: "Batch",
+    description: "Groups of items in parallel",
+    iconName: "Layers",
+  },
+];
+
+const ERROR_HANDLING_OPTIONS: Array<{
+  id: LoopErrorHandling;
+  name: string;
+  description: string;
+}> = [
+  { id: "stop", name: "Stop", description: "Halt on first error" },
+  { id: "continue", name: "Continue", description: "Skip failed items" },
+  {
+    id: "collect",
+    name: "Collect",
+    description: "Continue and collect errors",
+  },
+];
+
+const OUTPUT_MODE_OPTIONS: Array<{
+  id: LoopOutputMode;
+  name: string;
+  description: string;
+}> = [
+  {
+    id: "all",
+    name: "All Results",
+    description: "Array of all iteration outputs",
+  },
+  {
+    id: "lastOnly",
+    name: "Last Only",
+    description: "Only the final iteration",
+  },
+  {
+    id: "aggregate",
+    name: "Aggregate",
+    description: "Custom aggregation expression",
+  },
+];
+
 interface LoopConfigPanelProps {
   config: LoopNodeConfig;
   onChange: (config: Partial<LoopNodeConfig>) => void;
 }
 
+function getConfigWarnings(
+  config: LoopNodeConfig,
+  executionMode: LoopExecutionMode
+): string[] {
+  const result: string[] = [];
+  if (executionMode === "parallel" && (config.times ?? 0) > 50) {
+    result.push("High parallel count may impact performance");
+  }
+  if (executionMode === "batch" && (config.batchSize ?? 10) > 100) {
+    result.push("Large batch size may cause memory issues");
+  }
+  if (config.type === "while" && !config.breakCondition) {
+    result.push("While loops should have a break condition");
+  }
+  if ((config.maxIterations ?? 100) > 1000) {
+    result.push("High iteration limit may indicate an issue");
+  }
+  return result;
+}
+
+function BatchConfigFields({
+  config,
+  onChange,
+}: {
+  config: LoopNodeConfig;
+  onChange: (config: Partial<LoopNodeConfig>) => void;
+}) {
+  return (
+    <>
+      <ConfigField label="Batch Size" tooltip="Number of items per batch">
+        <div className="flex items-center gap-4">
+          <Slider
+            className="flex-1"
+            max={100}
+            min={1}
+            onValueChange={(v) => onChange({ batchSize: v[0] })}
+            step={1}
+            value={[config.batchSize ?? 10]}
+          />
+          <span className="w-8 text-right font-mono text-sm tabular-nums">
+            {config.batchSize ?? 10}
+          </span>
+        </div>
+      </ConfigField>
+      <ConfigField label="Batch Delay" tooltip="Delay between batches (ms)">
+        <div className="flex items-center gap-4">
+          <Slider
+            className="flex-1"
+            max={5000}
+            min={0}
+            onValueChange={(v) => onChange({ batchDelayMs: v[0] })}
+            step={100}
+            value={[config.batchDelayMs ?? 0]}
+          />
+          <span className="w-14 text-right font-mono text-sm tabular-nums">
+            {config.batchDelayMs ?? 0}ms
+          </span>
+        </div>
+      </ConfigField>
+    </>
+  );
+}
+
+function WarningsList({ warnings }: { warnings: string[] }) {
+  if (warnings.length === 0) {
+    return null;
+  }
+  return (
+    <div className="space-y-2">
+      {warnings.map((warning) => (
+        <div
+          className="flex items-start gap-2 rounded-md bg-warning/10 px-3 py-2 text-warning text-xs"
+          key={warning}
+        >
+          <Icons.AlertTriangle className="mt-0.5 shrink-0" size={14} />
+          <span>{warning}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function LoopTypeFields({
+  config,
+  onChange,
+}: {
+  config: LoopNodeConfig;
+  onChange: (config: Partial<LoopNodeConfig>) => void;
+}) {
+  if (config.type === "forEach") {
+    return (
+      <ConfigField label="Collection" tooltip="Path to the array to iterate">
+        <Input
+          className="h-9 font-mono text-sm"
+          onChange={(e) => onChange({ collection: e.target.value })}
+          placeholder="input.items"
+          value={config.collection ?? ""}
+        />
+      </ConfigField>
+    );
+  }
+  if (config.type === "while") {
+    return (
+      <ConfigField label="Condition" tooltip="Continue while this is true">
+        <Input
+          className="h-9 font-mono text-sm"
+          onChange={(e) => onChange({ condition: e.target.value })}
+          placeholder="index < 10 && !done"
+          value={config.condition ?? ""}
+        />
+      </ConfigField>
+    );
+  }
+  if (config.type === "times") {
+    return (
+      <ConfigField label="Iterations">
+        <div className="flex items-center gap-4">
+          <Slider
+            className="flex-1"
+            max={100}
+            min={1}
+            onValueChange={(v) => onChange({ times: v[0] })}
+            step={1}
+            value={[config.times ?? 10]}
+          />
+          <span className="w-8 text-right font-mono text-sm tabular-nums">
+            {config.times ?? 10}
+          </span>
+        </div>
+      </ConfigField>
+    );
+  }
+  return null;
+}
+
+function ExecutionModeSelector({
+  executionMode,
+  onChange,
+}: {
+  executionMode: LoopExecutionMode;
+  onChange: (mode: LoopExecutionMode) => void;
+}) {
+  return (
+    <div className="grid grid-cols-3 gap-1.5">
+      {EXECUTION_MODES.map((mode) => {
+        const isSelected = executionMode === mode.id;
+        const Icon = Icons[mode.iconName];
+        return (
+          <button
+            className={cn(
+              "flex flex-col items-center gap-1 rounded-md border p-2 text-center transition-colors",
+              isSelected
+                ? "border-primary bg-primary/5"
+                : "border-border/50 hover:border-border hover:bg-muted/50"
+            )}
+            key={mode.id}
+            onClick={() => onChange(mode.id)}
+            type="button"
+          >
+            <Icon
+              className={cn(
+                isSelected ? "text-primary" : "text-muted-foreground"
+              )}
+              size={16}
+            />
+            <span
+              className={cn(
+                "font-medium text-[11px]",
+                isSelected ? "text-primary" : "text-foreground"
+              )}
+            >
+              {mode.name}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export const LoopConfigPanel = memo(
   forwardRef<HTMLDivElement, LoopConfigPanelProps>(
     function LoopConfigPanelComponent({ config, onChange }, ref) {
+      const executionMode = config.executionMode ?? "sequential";
+      const showBatchConfig = executionMode === "batch";
+      const warnings = useMemo(
+        () => getConfigWarnings(config, executionMode),
+        [config, executionMode]
+      );
+
       return (
         <div className="divide-y divide-border/50" ref={ref}>
           <ConfigSection
             defaultOpen
-            icon={<Icons.RefreshCw className="size-4" />}
+            icon={<Icons.RefreshCw size={16} />}
             title="Loop Type"
           >
             <div className="space-y-4">
@@ -50,61 +305,143 @@ export const LoopConfigPanel = memo(
                   <SelectContent>
                     {LOOP_TYPES.map((type) => (
                       <SelectItem key={type.id} value={type.id}>
-                        <div className="flex flex-col">
+                        <span className="flex items-center gap-2">
                           <span>{type.name}</span>
-                          <span className="text-muted-foreground text-xs">
+                          <span className="text-[10px] text-muted-foreground">
                             {type.description}
                           </span>
-                        </div>
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </ConfigField>
+              <LoopTypeFields config={config} onChange={onChange} />
+            </div>
+          </ConfigSection>
+
+          <ConfigSection
+            defaultOpen
+            icon={<Icons.Zap size={16} />}
+            title="Execution"
+          >
+            <div className="space-y-4">
+              <ConfigField label="Mode" tooltip="How iterations are executed">
+                <ExecutionModeSelector
+                  executionMode={executionMode}
+                  onChange={(mode) => onChange({ executionMode: mode })}
+                />
+              </ConfigField>
+
+              {showBatchConfig && (
+                <BatchConfigFields config={config} onChange={onChange} />
+              )}
+            </div>
+          </ConfigSection>
+
+          <ConfigSection
+            defaultOpen={false}
+            icon={<Icons.AlertTriangle size={16} />}
+            title="Error Handling"
+          >
+            <div className="space-y-4">
+              <ConfigField
+                label="On Error"
+                tooltip="How to handle iteration failures"
+              >
+                <Select
+                  onValueChange={(mode) =>
+                    onChange({ errorHandling: mode as LoopErrorHandling })
+                  }
+                  value={config.errorHandling ?? "stop"}
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ERROR_HANDLING_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.id} value={opt.id}>
+                        <span className="flex items-center gap-2">
+                          <span>{opt.name}</span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {opt.description}
+                          </span>
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </ConfigField>
+            </div>
+          </ConfigSection>
+
+          <ConfigSection
+            defaultOpen={false}
+            icon={<Icons.LogOut size={16} />}
+            title="Break Condition"
+          >
+            <div className="space-y-4">
+              <ConfigField
+                label="Expression"
+                tooltip="Exit loop early when this is true"
+              >
+                <Input
+                  className="h-9 font-mono text-sm"
+                  onChange={(e) => onChange({ breakCondition: e.target.value })}
+                  placeholder="item.status === 'complete'"
+                  value={config.breakCondition ?? ""}
+                />
+              </ConfigField>
+            </div>
+          </ConfigSection>
+
+          <ConfigSection
+            defaultOpen={false}
+            icon={<Icons.FileExport size={16} />}
+            title="Output"
+          >
+            <div className="space-y-4">
+              <ConfigField
+                label="Output Mode"
+                tooltip="How to collect iteration results"
+              >
+                <Select
+                  onValueChange={(mode) =>
+                    onChange({ outputMode: mode as LoopOutputMode })
+                  }
+                  value={config.outputMode ?? "all"}
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {OUTPUT_MODE_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.id} value={opt.id}>
+                        <span className="flex items-center gap-2">
+                          <span>{opt.name}</span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {opt.description}
+                          </span>
+                        </span>
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </ConfigField>
 
-              {config.type === "forEach" && (
+              {config.outputMode === "aggregate" && (
                 <ConfigField
-                  label="Collection"
-                  tooltip="Path to the array to iterate"
+                  label="Aggregation"
+                  tooltip="Expression to reduce results"
                 >
                   <Input
                     className="h-9 font-mono text-sm"
-                    onChange={(e) => onChange({ collection: e.target.value })}
-                    placeholder="input.items"
-                    value={config.collection ?? ""}
+                    onChange={(e) =>
+                      onChange({ aggregateExpression: e.target.value })
+                    }
+                    placeholder="results.reduce((a, b) => a + b, 0)"
+                    value={config.aggregateExpression ?? ""}
                   />
-                </ConfigField>
-              )}
-
-              {config.type === "while" && (
-                <ConfigField
-                  label="Condition"
-                  tooltip="Continue while this is true"
-                >
-                  <Input
-                    className="h-9 font-mono text-sm"
-                    onChange={(e) => onChange({ condition: e.target.value })}
-                    placeholder="index < 10 && !done"
-                    value={config.condition ?? ""}
-                  />
-                </ConfigField>
-              )}
-
-              {config.type === "times" && (
-                <ConfigField label="Iterations">
-                  <div className="flex items-center gap-4">
-                    <Slider
-                      className="flex-1"
-                      max={100}
-                      min={1}
-                      onValueChange={(v) => onChange({ times: v[0] })}
-                      step={1}
-                      value={[config.times ?? 10]}
-                    />
-                    <span className="w-8 text-right font-mono text-sm tabular-nums">
-                      {config.times ?? 10}
-                    </span>
-                  </div>
                 </ConfigField>
               )}
             </div>
@@ -112,8 +449,9 @@ export const LoopConfigPanel = memo(
 
           <ConfigSection
             defaultOpen={false}
-            icon={<Icons.Settings2 className="size-4" />}
+            icon={<Icons.ShieldIcon size={16} />}
             title="Safety"
+            variant={warnings.length > 0 ? "warning" : "default"}
           >
             <div className="space-y-4">
               <ConfigField
@@ -133,6 +471,25 @@ export const LoopConfigPanel = memo(
                   value={config.maxIterations ?? 100}
                 />
               </ConfigField>
+
+              <ConfigField
+                label="Timeout"
+                tooltip="Maximum execution time (ms)"
+              >
+                <Input
+                  className="h-9 font-mono"
+                  min={0}
+                  onChange={(e) => {
+                    const val = Number.parseInt(e.target.value, 10);
+                    onChange({ timeoutMs: val > 0 ? val : undefined });
+                  }}
+                  placeholder="No timeout"
+                  type="number"
+                  value={config.timeoutMs ?? ""}
+                />
+              </ConfigField>
+
+              <WarningsList warnings={warnings} />
             </div>
           </ConfigSection>
         </div>
