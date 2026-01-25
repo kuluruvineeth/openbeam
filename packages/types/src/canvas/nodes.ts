@@ -568,8 +568,55 @@ export const EndNodeConfigSchema = z.object({
 
 export type EndNodeConfig = z.infer<typeof EndNodeConfigSchema>;
 
+export const ParallelSplitBranchSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+});
+
+export type ParallelSplitBranch = z.infer<typeof ParallelSplitBranchSchema>;
+
+export const ParallelSplitExecutionModeSchema = z.enum([
+  "parallel",
+  "sequential",
+]);
+
+export type ParallelSplitExecutionMode = z.infer<
+  typeof ParallelSplitExecutionModeSchema
+>;
+
+export const ParallelSplitDataDistributionSchema = z.enum([
+  "broadcast",
+  "roundRobin",
+  "partition",
+]);
+
+export type ParallelSplitDataDistribution = z.infer<
+  typeof ParallelSplitDataDistributionSchema
+>;
+
+export const ParallelSplitErrorHandlingSchema = z.enum([
+  "failFast",
+  "continueOnError",
+  "collectErrors",
+]);
+
+export type ParallelSplitErrorHandling = z.infer<
+  typeof ParallelSplitErrorHandlingSchema
+>;
+
 export const ParallelSplitNodeConfigSchema = z.object({
-  branches: z.number().min(2).default(2),
+  branches: z.array(ParallelSplitBranchSchema).min(2).max(10),
+
+  dataDistribution: ParallelSplitDataDistributionSchema.default("broadcast"),
+  partitionKey: z.string().optional(),
+
+  executionMode: ParallelSplitExecutionModeSchema.default("parallel"),
+  maxConcurrency: z.number().min(1).max(100).default(10),
+
+  waitForAll: z.boolean().default(true),
+  timeoutMs: z.number().min(0).optional(),
+
+  errorHandling: ParallelSplitErrorHandlingSchema.default("failFast"),
 });
 
 export type ParallelSplitNodeConfig = z.infer<

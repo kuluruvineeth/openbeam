@@ -9,7 +9,7 @@ import type {
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
 import { forwardRef, memo, useMemo } from "react";
-import { cn } from "../../../../utils";
+import { Badge } from "../../../badge";
 import { Icons } from "../../../icons";
 import { NodeHeader, NodeSection, NodeShell } from "../primitives";
 
@@ -68,20 +68,12 @@ function hasWarning(
 
 function ExecutionBadge({ mode }: { mode: LoopExecutionMode }) {
   const meta = EXECUTION_MODE_META[mode];
-  const isParallel = mode === "parallel";
   const Icon = Icons[meta.iconName];
   return (
-    <div
-      className={cn(
-        "flex items-center gap-1 rounded-sm px-1.5 py-0.5 font-medium text-[10px]",
-        isParallel
-          ? "bg-purple-500/15 text-purple-600 dark:text-purple-400"
-          : "bg-cyan-500/15 text-cyan-600 dark:text-cyan-400"
-      )}
-    >
+    <Badge variant={mode === "parallel" ? "node-parallel" : "node-sequential"}>
       <Icon size={12} />
       <span>{meta.label}</span>
-    </div>
+    </Badge>
   );
 }
 
@@ -154,16 +146,15 @@ export const LoopNode = memo(
               {config.errorHandling && config.errorHandling !== "stop" && (
                 <div className="flex items-center justify-between text-[10px]">
                   <span className="text-muted-foreground">On error</span>
-                  <span
-                    className={cn(
-                      "rounded-sm px-1 py-0.5 font-medium",
+                  <Badge
+                    variant={
                       config.errorHandling === "continue"
-                        ? "bg-amber-500/15 text-amber-600 dark:text-amber-400"
-                        : "bg-blue-500/15 text-blue-600 dark:text-blue-400"
-                    )}
+                        ? "node-warning"
+                        : "node-info"
+                    }
                   >
                     {config.errorHandling === "continue" ? "Skip" : "Collect"}
-                  </span>
+                  </Badge>
                 </div>
               )}
 

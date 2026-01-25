@@ -7,7 +7,7 @@ import type {
   LoopOutputMode,
 } from "@openplane/types/canvas";
 import { forwardRef, memo, useMemo } from "react";
-import { cn } from "../../../../utils";
+import { AnimatedSizeContainer } from "../../../animated-size-container";
 import { Icons } from "../../../icons";
 import { Input } from "../../../input";
 import {
@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../select";
+import { SelectionCard } from "../../../selection-card";
 import { Slider } from "../../../slider";
 import { ConfigField } from "../config-field";
 import { ConfigSection } from "../config-section";
@@ -239,35 +240,19 @@ function ExecutionModeSelector({
   return (
     <div className="grid grid-cols-3 gap-1.5">
       {EXECUTION_MODES.map((mode) => {
-        const isSelected = executionMode === mode.id;
         const Icon = Icons[mode.iconName];
         return (
-          <button
-            className={cn(
-              "flex flex-col items-center gap-1 rounded-md border p-2 text-center transition-colors",
-              isSelected
-                ? "border-primary bg-primary/5"
-                : "border-border/50 hover:border-border hover:bg-muted/50"
-            )}
+          <SelectionCard
+            className="p-2"
+            description={mode.description}
+            icon={<Icon size={16} />}
             key={mode.id}
+            label={mode.name}
+            layout="vertical"
             onClick={() => onChange(mode.id)}
-            type="button"
-          >
-            <Icon
-              className={cn(
-                isSelected ? "text-primary" : "text-muted-foreground"
-              )}
-              size={16}
-            />
-            <span
-              className={cn(
-                "font-medium text-[11px]",
-                isSelected ? "text-primary" : "text-foreground"
-              )}
-            >
-              {mode.name}
-            </span>
-          </button>
+            selected={executionMode === mode.id}
+            size="sm"
+          />
         );
       })}
     </div>
@@ -333,9 +318,11 @@ export const LoopConfigPanel = memo(
                 />
               </ConfigField>
 
-              {showBatchConfig && (
-                <BatchConfigFields config={config} onChange={onChange} />
-              )}
+              <AnimatedSizeContainer height>
+                {showBatchConfig && (
+                  <BatchConfigFields config={config} onChange={onChange} />
+                )}
+              </AnimatedSizeContainer>
             </div>
           </ConfigSection>
 
@@ -429,21 +416,23 @@ export const LoopConfigPanel = memo(
                 </Select>
               </ConfigField>
 
-              {config.outputMode === "aggregate" && (
-                <ConfigField
-                  label="Aggregation"
-                  tooltip="Expression to reduce results"
-                >
-                  <Input
-                    className="h-9 font-mono text-sm"
-                    onChange={(e) =>
-                      onChange({ aggregateExpression: e.target.value })
-                    }
-                    placeholder="results.reduce((a, b) => a + b, 0)"
-                    value={config.aggregateExpression ?? ""}
-                  />
-                </ConfigField>
-              )}
+              <AnimatedSizeContainer height>
+                {config.outputMode === "aggregate" && (
+                  <ConfigField
+                    label="Aggregation"
+                    tooltip="Expression to reduce results"
+                  >
+                    <Input
+                      className="h-9 font-mono text-sm"
+                      onChange={(e) =>
+                        onChange({ aggregateExpression: e.target.value })
+                      }
+                      placeholder="results.reduce((a, b) => a + b, 0)"
+                      value={config.aggregateExpression ?? ""}
+                    />
+                  </ConfigField>
+                )}
+              </AnimatedSizeContainer>
             </div>
           </ConfigSection>
 

@@ -7,6 +7,7 @@ import type {
   LlmNodeConfig,
   LoopNodeConfig,
   NodeStatus,
+  ParallelSplitNodeConfig,
   RagNodeConfig,
   ScriptNodeConfig,
   StartNodeConfig,
@@ -28,6 +29,7 @@ import {
   ConditionConfigPanel,
   LlmConfigPanel,
   LoopConfigPanel,
+  ParallelSplitConfigPanel,
   RagConfigPanel,
   StartConfigPanel,
 } from "./configs";
@@ -132,6 +134,13 @@ const ConfigPanelContent = memo(
             return (
               <LoopConfigPanel
                 config={nodeConfig as LoopNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "parallel_split":
+            return (
+              <ParallelSplitConfigPanel
+                config={nodeConfig as ParallelSplitNodeConfig}
                 onChange={handleConfigChange}
               />
             );

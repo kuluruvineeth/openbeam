@@ -4,6 +4,7 @@ import type { StartNodeConfig } from "@openplane/types/canvas";
 import type { ConnectorType } from "@openplane/types/services/connectors/events";
 import type { ComponentType } from "react";
 import { forwardRef, memo, useMemo } from "react";
+import { AnimatedSizeContainer } from "../../../animated-size-container";
 import { Icons } from "../../../icons";
 import { ScheduleBuilder } from "../../../schedule-builder";
 import {
@@ -100,31 +101,33 @@ export const StartConfigPanel = memo(
                 </Select>
               </ConfigField>
 
-              {triggerType === "schedule" && (
-                <ScheduleBuilder
-                  onChange={(schedule) => onChange({ schedule })}
-                  value={config.schedule}
-                />
-              )}
+              <AnimatedSizeContainer height>
+                {triggerType === "schedule" && (
+                  <ScheduleBuilder
+                    onChange={(schedule) => onChange({ schedule })}
+                    value={config.schedule}
+                  />
+                )}
 
-              {triggerType === "webhook" && (
-                <WebhookBuilder
-                  onChange={(webhookConfig) => onChange({ webhookConfig })}
-                  value={config.webhookConfig}
-                />
-              )}
+                {triggerType === "webhook" && (
+                  <WebhookBuilder
+                    onChange={(webhookConfig) => onChange({ webhookConfig })}
+                    value={config.webhookConfig}
+                  />
+                )}
 
-              {triggerType === "event" && (
-                <EventBuilder
-                  connectors={connectors}
-                  logos={connectorLogos}
-                  onChange={(eventConfig: EventConfig) =>
-                    onChange({ eventConfig })
-                  }
-                  onFetchResources={onFetchResources}
-                  value={config.eventConfig}
-                />
-              )}
+                {triggerType === "event" && (
+                  <EventBuilder
+                    connectors={connectors}
+                    logos={connectorLogos}
+                    onChange={(eventConfig: EventConfig) =>
+                      onChange({ eventConfig })
+                    }
+                    onFetchResources={onFetchResources}
+                    value={config.eventConfig}
+                  />
+                )}
+              </AnimatedSizeContainer>
             </div>
           </ConfigSection>
         </div>
