@@ -56,10 +56,7 @@ export function AgenticViewHeader({
 
   return (
     <header
-      className={cn(
-        "flex items-center justify-between border-border/50 border-b px-4 py-3",
-        className
-      )}
+      className={cn("flex items-center justify-between px-4 py-3", className)}
     >
       <div className="flex items-center gap-3">
         <Button asChild size="icon" variant="ghost">
@@ -102,7 +99,7 @@ export function AgenticViewHeader({
 
 export function AgenticViewHeaderSkeleton() {
   return (
-    <header className="flex items-center justify-between border-border/50 border-b px-4 py-3">
+    <header className="flex items-center justify-between px-4 py-3">
       <div className="flex items-center gap-3">
         <Skeleton className="h-8 w-8" />
         <div className="space-y-1">

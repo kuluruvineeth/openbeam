@@ -54,12 +54,7 @@ export function ChatPanel({ agentId, className }: ChatPanelProps) {
   const status = isProcessing ? "streaming" : "ready";
 
   return (
-    <div
-      className={cn(
-        "flex h-full flex-col border-border/50 border-r",
-        className
-      )}
-    >
+    <div className={cn("flex h-full flex-col", className)}>
       <div className="flex-1 overflow-auto">
         {messages.length === 0 ? (
           <ChatGreeting onSuggestionClick={setPendingText} />
