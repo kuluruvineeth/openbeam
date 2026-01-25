@@ -133,6 +133,7 @@ export {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "./alert-dialog";
+export { AnimatedSizeContainer } from "./animated-size-container";
 export { AspectRatio } from "./aspect-ratio";
 export { Avatar, AvatarFallback, AvatarImage } from "./avatar";
 export type { BadgeProps } from "./badge";
@@ -650,6 +651,8 @@ export {
   useKeyboardSelection,
   useSelection,
 } from "./selection";
+export type { SelectionCardProps } from "./selection-card";
+export { SelectionCard, selectionCardVariants } from "./selection-card";
 export { Separator } from "./separator";
 export {
   Sheet,

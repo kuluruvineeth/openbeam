@@ -22,6 +22,14 @@ const badgeVariants = cva(
           "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
         filter:
           "border-transparent bg-foreground/5 font-normal text-foreground",
+        "node-parallel":
+          "gap-1 rounded-sm border-transparent bg-purple-500/15 px-1.5 py-0.5 font-medium text-[10px] text-purple-600 dark:text-purple-400",
+        "node-sequential":
+          "gap-1 rounded-sm border-transparent bg-cyan-500/15 px-1.5 py-0.5 font-medium text-[10px] text-cyan-600 dark:text-cyan-400",
+        "node-warning":
+          "gap-1 rounded-sm border-transparent bg-amber-500/15 px-1.5 py-0.5 font-medium text-[10px] text-amber-600 dark:text-amber-400",
+        "node-info":
+          "gap-1 rounded-sm border-transparent bg-blue-500/15 px-1.5 py-0.5 font-medium text-[10px] text-blue-600 dark:text-blue-400",
       },
     },
     defaultVariants: {
