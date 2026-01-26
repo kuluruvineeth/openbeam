@@ -7,8 +7,8 @@ import type {
 } from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
-import { Plug } from "lucide-react";
 import { forwardRef, memo } from "react";
+import { Icons } from "../../../icons";
 import { NodeField, NodeHeader, NodeSection, NodeShell } from "../primitives";
 
 export interface ConnectorNodeData {
@@ -37,7 +37,7 @@ export const ConnectorNode = memo(
         >
           <NodeHeader
             colorVar="--node-integration"
-            icon={<Plug className="size-5" />}
+            icon={<Icons.Plug size={20} />}
             subtitle={data.config.connectorType}
             title={data.label}
           />

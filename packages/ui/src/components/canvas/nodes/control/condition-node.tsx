@@ -8,8 +8,8 @@ import type {
 import { BRANCH_COLORS } from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
-import { GitBranch } from "lucide-react";
 import { forwardRef, memo, useMemo } from "react";
+import { Icons } from "../../../icons";
 import { NodeHeader, NodeSection, NodeShell } from "../primitives";
 
 export interface ConditionNodeData {
@@ -127,7 +127,7 @@ export const ConditionNode = memo(
         >
           <NodeHeader
             colorVar="--node-condition"
-            icon={<GitBranch className="size-5" />}
+            icon={<Icons.GitBranch size={20} />}
             subtitle={mode === "expression" ? "Expression" : "Visual Logic"}
             title={data.label}
           />

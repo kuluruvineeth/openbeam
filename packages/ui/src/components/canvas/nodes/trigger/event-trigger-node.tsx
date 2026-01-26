@@ -7,8 +7,8 @@ import type {
 } from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
-import { Zap } from "lucide-react";
 import { forwardRef, memo } from "react";
+import { Icons } from "../../../icons";
 import { NodeField, NodeHeader, NodeSection, NodeShell } from "../primitives";
 
 export interface EventTriggerNodeData {
@@ -41,7 +41,7 @@ export const EventTriggerNode = memo(
         >
           <NodeHeader
             colorVar="--node-trigger"
-            icon={<Zap className="size-5" />}
+            icon={<Icons.Zap size={20} />}
             subtitle={SOURCE_LABELS[data.config.eventSource] ?? "System"}
             title={data.label}
           />

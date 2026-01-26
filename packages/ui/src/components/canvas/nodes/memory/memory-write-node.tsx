@@ -7,8 +7,8 @@ import type {
 } from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
-import { Upload } from "lucide-react";
 import { forwardRef, memo } from "react";
+import { Icons } from "../../../icons";
 import { NodeField, NodeHeader, NodeSection, NodeShell } from "../primitives";
 
 export interface MemoryWriteNodeData {
@@ -59,7 +59,7 @@ export const MemoryWriteNode = memo(
         >
           <NodeHeader
             colorVar="--node-memory"
-            icon={<Upload className="size-5" />}
+            icon={<Icons.Upload size={20} />}
             subtitle={SCOPE_LABELS[data.config.scope] ?? "Workflow"}
             title={data.label}
           />

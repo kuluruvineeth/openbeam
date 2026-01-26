@@ -3,8 +3,8 @@
 import type { NodeStatus, Port, ToolNodeConfig } from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
-import { Wrench } from "lucide-react";
 import { forwardRef, memo } from "react";
+import { Icons } from "../../../icons";
 import { NodeField, NodeHeader, NodeSection, NodeShell } from "../primitives";
 
 export interface ToolNodeData {
@@ -37,7 +37,7 @@ export const ToolNode = memo(
         >
           <NodeHeader
             colorVar="--node-integration"
-            icon={<Wrench className="size-5" />}
+            icon={<Icons.Wrench size={20} />}
             subtitle={data.config.toolId || "Select tool"}
             title={data.label}
           />

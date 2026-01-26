@@ -3,8 +3,8 @@
 import type { NodeStatus, Port } from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
-import { FileText } from "lucide-react";
 import { forwardRef, memo } from "react";
+import { Icons } from "../../../icons";
 import { NodeHeader, NodeSection, NodeShell } from "../primitives";
 
 export interface TemplateNodeConfig {
@@ -51,7 +51,7 @@ export const TemplateNode = memo(
         >
           <NodeHeader
             colorVar="--node-template"
-            icon={<FileText className="size-5" />}
+            icon={<Icons.FileText size={20} />}
             subtitle={FORMAT_LABELS[data.config.outputFormat]}
             title={data.label}
           />

@@ -7,8 +7,8 @@ import type {
 } from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
-import { Play } from "lucide-react";
 import { forwardRef, memo } from "react";
+import { Icons } from "../../../icons";
 import { NodeField, NodeHeader, NodeSection, NodeShell } from "../primitives";
 
 export interface ManualTriggerNodeData {
@@ -36,7 +36,7 @@ export const ManualTriggerNode = memo(
         >
           <NodeHeader
             colorVar="--node-trigger"
-            icon={<Play className="size-5" />}
+            icon={<Icons.Play size={20} />}
             subtitle="Manual start"
             title={data.label}
           />

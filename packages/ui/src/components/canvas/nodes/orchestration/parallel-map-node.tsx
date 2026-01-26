@@ -7,8 +7,8 @@ import type {
 } from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
-import { GitFork } from "lucide-react";
 import { forwardRef, memo } from "react";
+import { Icons } from "../../../icons";
 import { NodeField, NodeHeader, NodeSection, NodeShell } from "../primitives";
 
 export interface ParallelMapNodeData {
@@ -49,7 +49,7 @@ export const ParallelMapNode = memo(
         >
           <NodeHeader
             colorVar="--node-orchestration"
-            icon={<GitFork className="size-5" />}
+            icon={<Icons.GitFork size={20} />}
             subtitle="Parallel"
             title={data.label}
           />

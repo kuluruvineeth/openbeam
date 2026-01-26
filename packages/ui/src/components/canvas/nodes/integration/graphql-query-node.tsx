@@ -7,8 +7,8 @@ import type {
 } from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
-import { Braces } from "lucide-react";
 import { forwardRef, memo, useMemo } from "react";
+import { Icons } from "../../../icons";
 import { NodeField, NodeHeader, NodeSection, NodeShell } from "../primitives";
 
 export interface GraphqlQueryNodeData {
@@ -51,7 +51,7 @@ export const GraphqlQueryNode = memo(
         >
           <NodeHeader
             colorVar="--node-integration"
-            icon={<Braces className="size-5" />}
+            icon={<Icons.Braces size={20} />}
             subtitle={endpointDisplay}
             title={data.label}
           />

@@ -3,8 +3,8 @@
 import type { NodeStatus, Port } from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
-import { Filter } from "lucide-react";
 import { forwardRef, memo } from "react";
+import { Icons } from "../../../icons";
 import { NodeHeader, NodeSection, NodeShell } from "../primitives";
 
 export interface FilterNodeConfig {
@@ -48,7 +48,7 @@ export const FilterNode = memo(
         >
           <NodeHeader
             colorVar="--node-filter"
-            icon={<Filter className="size-5" />}
+            icon={<Icons.Filter size={20} />}
             subtitle={FILTER_LANGUAGE_LABELS[language]}
             title={data.label}
           />

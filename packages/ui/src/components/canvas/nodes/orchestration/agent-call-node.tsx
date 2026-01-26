@@ -7,8 +7,8 @@ import type {
 } from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
-import { Bot } from "lucide-react";
 import { forwardRef, memo } from "react";
+import { Icons } from "../../../icons";
 import { NodeField, NodeHeader, NodeSection, NodeShell } from "../primitives";
 
 export interface AgentCallNodeData {
@@ -39,7 +39,7 @@ export const AgentCallNode = memo(
         >
           <NodeHeader
             colorVar="--node-orchestration"
-            icon={<Bot className="size-5" />}
+            icon={<Icons.Bot size={20} />}
             subtitle="Agent"
             title={data.label}
           />

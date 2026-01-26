@@ -7,8 +7,8 @@ import type {
 } from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
-import { Globe } from "lucide-react";
 import { forwardRef, memo, useMemo } from "react";
+import { Icons } from "../../../icons";
 import { NodeField, NodeHeader, NodeSection, NodeShell } from "../primitives";
 
 export interface HttpRequestNodeData {
@@ -57,7 +57,7 @@ export const HttpRequestNode = memo(
         >
           <NodeHeader
             colorVar="--node-integration"
-            icon={<Globe className="size-5" />}
+            icon={<Icons.Globe size={20} />}
             subtitle={urlDisplay}
             title={data.label}
           />

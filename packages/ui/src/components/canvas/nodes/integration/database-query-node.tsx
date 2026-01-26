@@ -7,8 +7,8 @@ import type {
 } from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
-import { Database } from "lucide-react";
 import { forwardRef, memo } from "react";
+import { Icons } from "../../../icons";
 import { NodeField, NodeHeader, NodeSection, NodeShell } from "../primitives";
 
 export interface DatabaseQueryNodeData {
@@ -42,7 +42,7 @@ export const DatabaseQueryNode = memo(
         >
           <NodeHeader
             colorVar="--node-integration"
-            icon={<Database className="size-5" />}
+            icon={<Icons.Database size={20} />}
             subtitle={data.config.connectionId || "No connection"}
             title={data.label}
           />

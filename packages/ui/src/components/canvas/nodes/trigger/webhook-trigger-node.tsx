@@ -7,8 +7,8 @@ import type {
 } from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
-import { Webhook } from "lucide-react";
 import { forwardRef, memo } from "react";
+import { Icons } from "../../../icons";
 import { NodeField, NodeHeader, NodeSection, NodeShell } from "../primitives";
 
 export interface WebhookTriggerNodeData {
@@ -42,7 +42,7 @@ export const WebhookTriggerNode = memo(
         >
           <NodeHeader
             colorVar="--node-trigger"
-            icon={<Webhook className="size-5" />}
+            icon={<Icons.Webhook size={20} />}
             subtitle={data.config.method}
             title={data.label}
           />
