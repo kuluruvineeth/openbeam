@@ -1,9 +1,8 @@
 "use client";
 
-import { Check } from "lucide-react";
 import { useState } from "react";
-
 import { cn } from "../../utils/cn";
+import { Icons } from "../icons";
 import { Input } from "../input";
 import { Popover, PopoverContent, PopoverTrigger } from "../popover";
 
@@ -83,9 +82,9 @@ function ColorPicker({
               type="button"
             >
               {value === color && (
-                <Check
+                <Icons.Check
                   className={cn(
-                    "h-4 w-4",
+                    "size-4",
                     color === "#000000" || color === "#64748b"
                       ? "text-white"
                       : "text-black"

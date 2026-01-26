@@ -1,5 +1,7 @@
 export type { ColorPickerProps } from "./color-picker";
 export { ColorPicker, PRESET_COLORS } from "./color-picker";
+export type { ColorOption, ColorSwatchesProps } from "./color-swatches";
+export { ColorSwatches, DEFAULT_COLOR_OPTIONS } from "./color-swatches";
 export type { EmojiPickerProps } from "./emoji-picker";
 export { EmojiPicker } from "./emoji-picker";
 export type { InlineEditableProps } from "./inline-editable";
