@@ -2,8 +2,10 @@
 
 import type {
   ApprovalNodeConfig,
+  AudioNodeConfig,
   CanvasNodeType,
   ConditionNodeConfig,
+  ImageNodeConfig,
   LlmNodeConfig,
   LoopNodeConfig,
   NodeStatus,
@@ -12,6 +14,7 @@ import type {
   RagNodeConfig,
   ScriptNodeConfig,
   StartNodeConfig,
+  VideoNodeConfig,
 } from "@openplane/types/canvas";
 import type { ConnectorType } from "@openplane/types/services/connectors/events";
 import type { ComponentType } from "react";
@@ -26,14 +29,17 @@ import { ConfigPanelHeader } from "./config-panel-header";
 import { ConfigSection } from "./config-section";
 import {
   ApprovalConfigPanel,
+  AudioConfigPanel,
   CodeConfigPanel,
   ConditionConfigPanel,
+  ImageConfigPanel,
   LlmConfigPanel,
   LoopConfigPanel,
   ParallelJoinConfigPanel,
   ParallelSplitConfigPanel,
   RagConfigPanel,
   StartConfigPanel,
+  VideoConfigPanel,
 } from "./configs";
 
 interface ConfigPanelBaseProps {
@@ -164,6 +170,27 @@ const ConfigPanelContent = memo(
             return (
               <ApprovalConfigPanel
                 config={nodeConfig as ApprovalNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "image":
+            return (
+              <ImageConfigPanel
+                config={nodeConfig as ImageNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "audio":
+            return (
+              <AudioConfigPanel
+                config={nodeConfig as AudioNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "video":
+            return (
+              <VideoConfigPanel
+                config={nodeConfig as VideoNodeConfig}
                 onChange={handleConfigChange}
               />
             );

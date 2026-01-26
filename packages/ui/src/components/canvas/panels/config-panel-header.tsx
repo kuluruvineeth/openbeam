@@ -19,6 +19,7 @@ const headerVariants = cva(
         idle: "border-border/50",
         pending: "border-amber-500/30 bg-amber-500/5",
         running: "border-primary/50 bg-primary/5",
+        streaming: "border-primary/50 bg-primary/5",
         success: "border-green-500/30 bg-green-500/5",
         error: "border-destructive/30 bg-destructive/5",
         waiting: "border-amber-500/30",
