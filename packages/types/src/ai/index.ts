@@ -269,6 +269,7 @@ export type {
 export {
   ALL_EMBEDDING_MODELS,
   ALL_IMAGE_MODELS,
+  ALL_RERANKER_MODELS,
   ALL_TTS_MODELS,
   ALL_VIDEO_MODELS,
   CHAT_MODELS,
@@ -276,6 +277,7 @@ export {
   calculateModelCost,
   DEFAULT_CHAT_MODEL,
   DEFAULT_EMBEDDING_MODEL,
+  DEFAULT_RERANKER_MODEL_ID,
   EmbeddingModelSchema,
   getChatModel,
   getChatModelsByProvider,
@@ -283,9 +285,12 @@ export {
   getEmbeddingModelsByProvider,
   getImageModel,
   getModelPricing,
+  getRerankerModel,
   getTTSModel,
   getVideoModel,
   ImageModelSchema,
+  RERANKER_MODELS,
+  RerankerModelSchema,
   TTSModelSchema,
   VideoModelSchema,
 } from "./models";
