@@ -87,6 +87,27 @@ export const nodeButtons: NodeButton[] = [
     category: "ai",
   },
   {
+    id: "image",
+    label: "Image",
+    description: "Generate images with AI",
+    icon: Icons.ImageIcon,
+    category: "ai",
+  },
+  {
+    id: "audio",
+    label: "Audio",
+    description: "Generate speech from text",
+    icon: Icons.Mic,
+    category: "ai",
+  },
+  {
+    id: "video",
+    label: "Video",
+    description: "Generate video content",
+    icon: Icons.Video,
+    category: "ai",
+  },
+  {
     id: "template",
     label: "Template",
     description: "Apply text template",

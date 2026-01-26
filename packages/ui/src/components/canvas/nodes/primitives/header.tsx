@@ -9,6 +9,7 @@ interface NodeHeaderProps {
   subtitle?: string;
   actions?: ReactNode;
   colorVar?: string;
+  badge?: ReactNode;
 }
 
 export const NodeHeader = memo(function NodeHeaderComponent({
@@ -16,6 +17,7 @@ export const NodeHeader = memo(function NodeHeaderComponent({
   title,
   subtitle,
   actions,
+  badge,
 }: NodeHeaderProps) {
   return (
     <div className="flex items-center gap-3 p-3">
@@ -23,7 +25,10 @@ export const NodeHeader = memo(function NodeHeaderComponent({
         {icon}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="font-medium text-sm leading-tight">{title}</p>
+        <div className="flex items-center gap-2">
+          <p className="font-medium text-sm leading-tight">{title}</p>
+          {badge}
+        </div>
         {subtitle && (
           <p className="truncate text-muted-foreground text-xs">{subtitle}</p>
         )}

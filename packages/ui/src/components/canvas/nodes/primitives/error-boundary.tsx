@@ -1,9 +1,9 @@
 "use client";
 
-import { AlertTriangle } from "lucide-react";
 import type { ReactNode } from "react";
 import { ErrorBoundary, type FallbackProps } from "react-error-boundary";
 import { cn } from "../../../../utils";
+import { Icons } from "../../../icons";
 
 interface NodeErrorBoundaryProps {
   children: ReactNode;
@@ -20,7 +20,7 @@ function DefaultFallback({ className }: { className?: string }) {
         className
       )}
     >
-      <AlertTriangle className="size-3.5 shrink-0" />
+      <Icons.AlertTriangle className="shrink-0" size={14} />
       <span className="truncate">Failed to render</span>
     </div>
   );

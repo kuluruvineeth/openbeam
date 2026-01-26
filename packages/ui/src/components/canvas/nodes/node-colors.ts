@@ -44,6 +44,9 @@ export const NODE_COLORS: Record<CanvasNodeType | "default", string> = {
   sub_workflow: "var(--node-orchestration)",
   agent_call: "var(--node-orchestration)",
   parallel_map: "var(--node-orchestration)",
+  audio: "var(--node-audio)",
+  video: "var(--node-video)",
+  image: "var(--node-image)",
   default: "var(--muted-foreground)",
 };
 
