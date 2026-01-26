@@ -1,4 +1,5 @@
 export { AgentCanvas, type AgentCanvasProps } from "./agent-canvas";
+export * from "./ai-elements";
 export {
   CanvasBackground,
   type CanvasBackgroundProps,
@@ -32,7 +33,16 @@ export {
   getEventsByCategoryUI,
   getEventsByConnectorGrouped,
 } from "./event-types";
+export {
+  KeyboardShortcutsPanel,
+  type KeyboardShortcutsPanelProps,
+} from "./keyboard-shortcuts-panel";
 export { NodePalette, type NodePaletteProps } from "./node-palette";
+export {
+  NodeQuickAdd,
+  type NodeQuickAddProps,
+  useNodeQuickAdd,
+} from "./node-quick-add";
 export * from "./nodes";
 export * from "./panels";
 export {
@@ -42,4 +52,11 @@ export {
   type TriggerTypeConfig,
   type TriggerTypeId,
 } from "./trigger-types";
+export {
+  CANVAS_KEYBOARD_SHORTCUTS,
+  type CanvasKeyboardActions,
+  type CanvasShortcut,
+  type UseCanvasKeyboardOptions,
+  useCanvasKeyboard,
+} from "./use-canvas-keyboard";
 export * from "./webhook-builder";

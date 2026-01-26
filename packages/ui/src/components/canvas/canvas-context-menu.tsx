@@ -14,11 +14,14 @@ import {
   CommandList,
 } from "../command";
 import {
+  createAudioNodeData,
   createClassifyNodeData,
   createExtractNodeData,
+  createImageNodeData,
   createLlmNodeData,
   createRagNodeData,
   createSummarizeNodeData,
+  createVideoNodeData,
 } from "./nodes/ai";
 import {
   createConditionNodeData,
@@ -68,6 +71,9 @@ const nodeDataFactories: Record<string, () => Record<string, unknown>> = {
   summarize: createSummarizeNodeData,
   extract: createExtractNodeData,
   classify: createClassifyNodeData,
+  image: createImageNodeData,
+  audio: createAudioNodeData,
+  video: createVideoNodeData,
   template: createTemplateNodeData,
   code: createCodeNodeData,
   filter: createFilterNodeData,

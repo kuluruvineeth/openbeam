@@ -200,6 +200,18 @@ const PROVIDER_ICONS: Record<ProviderId, React.ComponentType<IconProps>> = {
   azure: AzureIcon,
   ollama: OllamaIcon,
   twelvelabs: DefaultProviderIcon,
+  cohere: CohereIcon,
+  voyage: DefaultProviderIcon,
+  openplane: DefaultProviderIcon,
+  elevenlabs: DefaultProviderIcon,
+  cartesia: DefaultProviderIcon,
+  playht: DefaultProviderIcon,
+  deepgram: DefaultProviderIcon,
+  assemblyai: DefaultProviderIcon,
+  stability: DefaultProviderIcon,
+  blackforestlabs: DefaultProviderIcon,
+  runway: DefaultProviderIcon,
+  jina: DefaultProviderIcon,
 };
 
 export function getProviderIcon(

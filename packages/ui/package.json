@@ -11,6 +11,7 @@
     "./components/*": "./src/components/*.tsx",
     "./components/forms": "./src/components/forms/index.ts",
     "./components/modals": "./src/components/modals/index.ts",
+    "./components/event-builder": "./src/components/canvas/event-builder/index.ts",
     "./hooks": "./src/hooks/index.ts",
     "./stores": "./src/stores/index.ts",
     "./utils": "./src/utils/index.ts"
