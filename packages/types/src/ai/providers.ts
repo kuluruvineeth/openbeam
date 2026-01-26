@@ -7,6 +7,18 @@ export const ProviderIdSchema = z.enum([
   "azure",
   "ollama",
   "twelvelabs",
+  "cohere",
+  "voyage",
+  "openplane",
+  "elevenlabs",
+  "cartesia",
+  "playht",
+  "deepgram",
+  "assemblyai",
+  "stability",
+  "blackforestlabs",
+  "runway",
+  "jina",
 ]);
 
 export type ProviderId = z.infer<typeof ProviderIdSchema>;

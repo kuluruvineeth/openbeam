@@ -1,27 +1,8 @@
 import { z } from "zod";
 
-export const ProviderIdSchema = z.enum([
-  "openai",
-  "anthropic",
-  "google",
-  "azure",
-  "ollama",
-  "twelvelabs",
-  "cohere",
-  "voyage",
-  "openplane",
-  "elevenlabs",
-  "cartesia",
-  "playht",
-  "deepgram",
-  "assemblyai",
-  "stability",
-  "blackforestlabs",
-  "runway",
-  "jina",
-]);
+import { ProviderIdSchema } from "../providers";
 
-export type ProviderId = z.infer<typeof ProviderIdSchema>;
+export { type ProviderId, ProviderIdSchema } from "../providers";
 
 export const ModelPricingSchema = z.object({
   inputPer1M: z.number(),

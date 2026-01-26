@@ -256,9 +256,21 @@ export {
   ScoredMemoryEntrySchema,
   SemanticEntrySchema,
 } from "./memory";
-export type { ChatModel, EmbeddingModel } from "./models";
+export type {
+  ChatModel,
+  EmbeddingModel,
+  ImageModel,
+  RerankerModel,
+  STTModel,
+  TTSModel,
+  VideoModel,
+  VisionModel,
+} from "./models";
 export {
   ALL_EMBEDDING_MODELS,
+  ALL_IMAGE_MODELS,
+  ALL_TTS_MODELS,
+  ALL_VIDEO_MODELS,
   CHAT_MODELS,
   ChatModelSchema,
   calculateModelCost,
@@ -269,7 +281,13 @@ export {
   getChatModelsByProvider,
   getEmbeddingModel,
   getEmbeddingModelsByProvider,
+  getImageModel,
   getModelPricing,
+  getTTSModel,
+  getVideoModel,
+  ImageModelSchema,
+  TTSModelSchema,
+  VideoModelSchema,
 } from "./models";
 export type {
   CacheMetricsData,
