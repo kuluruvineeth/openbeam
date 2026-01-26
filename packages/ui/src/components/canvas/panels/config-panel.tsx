@@ -4,7 +4,9 @@ import type {
   ApprovalNodeConfig,
   AudioNodeConfig,
   CanvasNodeType,
+  ClassifyNodeConfig,
   ConditionNodeConfig,
+  ExtractNodeConfig,
   ImageNodeConfig,
   LlmNodeConfig,
   LoopNodeConfig,
@@ -14,6 +16,7 @@ import type {
   RagNodeConfig,
   ScriptNodeConfig,
   StartNodeConfig,
+  SummarizeNodeConfig,
   VideoNodeConfig,
 } from "@openplane/types/canvas";
 import type { ConnectorType } from "@openplane/types/services/connectors/events";
@@ -30,8 +33,10 @@ import { ConfigSection } from "./config-section";
 import {
   ApprovalConfigPanel,
   AudioConfigPanel,
+  ClassifyConfigPanel,
   CodeConfigPanel,
   ConditionConfigPanel,
+  ExtractConfigPanel,
   ImageConfigPanel,
   LlmConfigPanel,
   LoopConfigPanel,
@@ -39,6 +44,7 @@ import {
   ParallelSplitConfigPanel,
   RagConfigPanel,
   StartConfigPanel,
+  SummarizeConfigPanel,
   VideoConfigPanel,
 } from "./configs";
 
@@ -128,6 +134,7 @@ const ConfigPanelContent = memo(
             return (
               <RagConfigPanel
                 config={nodeConfig as RagNodeConfig}
+                connectorLogos={connectorLogos}
                 onChange={handleConfigChange}
               />
             );
@@ -191,6 +198,27 @@ const ConfigPanelContent = memo(
             return (
               <VideoConfigPanel
                 config={nodeConfig as VideoNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "summarize":
+            return (
+              <SummarizeConfigPanel
+                config={nodeConfig as SummarizeNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "extract":
+            return (
+              <ExtractConfigPanel
+                config={nodeConfig as ExtractNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "classify":
+            return (
+              <ClassifyConfigPanel
+                config={nodeConfig as ClassifyNodeConfig}
                 onChange={handleConfigChange}
               />
             );

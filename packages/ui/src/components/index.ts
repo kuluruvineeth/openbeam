@@ -184,7 +184,6 @@ export type {
   CanvasBackgroundProps,
   CanvasControlsProps,
   CanvasToolbarProps,
-  ClassifyCategory,
   ClassifyNodeData,
   CodeNodeConfig,
   CodeNodeData,
@@ -206,8 +205,8 @@ export type {
   ExecutionContext,
   ExecutionEvent,
   ExecutionEventHandler,
-  ExtractField,
   ExtractNodeData,
+  ExtractNodeProps,
   FilterNodeConfig,
   FilterNodeData,
   InputNodeConfig,
@@ -457,7 +456,9 @@ export {
   useFormField,
 } from "./form";
 export type {
+  ColorOption,
   ColorPickerProps,
+  ColorSwatchesProps,
   InlineEditableProps,
   SearchInputProps,
   SliderInputProps,
@@ -465,6 +466,8 @@ export type {
 } from "./forms";
 export {
   ColorPicker,
+  ColorSwatches,
+  DEFAULT_COLOR_OPTIONS,
   InlineEditable,
   PRESET_COLORS,
   SearchInput,

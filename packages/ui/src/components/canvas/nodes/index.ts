@@ -1,8 +1,7 @@
 export type {
-  ClassifyCategory,
   ClassifyNodeData,
-  ExtractField,
   ExtractNodeData,
+  ExtractNodeProps,
   LlmNodeData,
   RagNodeData,
   SummarizeNodeData,

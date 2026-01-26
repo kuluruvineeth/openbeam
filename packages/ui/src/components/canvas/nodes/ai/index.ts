@@ -9,9 +9,9 @@ import { VideoNode } from "./video-node";
 
 export type { AudioNodeData, AudioNodeProps } from "./audio-node";
 export { AudioNode, createAudioNodeData } from "./audio-node";
-export type { ClassifyCategory, ClassifyNodeData } from "./classify-node";
+export type { ClassifyNodeData } from "./classify-node";
 export { ClassifyNode, createClassifyNodeData } from "./classify-node";
-export type { ExtractField, ExtractNodeData } from "./extract-node";
+export type { ExtractNodeData, ExtractNodeProps } from "./extract-node";
 export { createExtractNodeData, ExtractNode } from "./extract-node";
 export type { ImageNodeData, ImageNodeProps } from "./image-node";
 export { createImageNodeData, ImageNode } from "./image-node";

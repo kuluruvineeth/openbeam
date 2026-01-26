@@ -6,7 +6,7 @@ import { memo } from "react";
 interface NodeHeaderProps {
   icon: ReactNode;
   title: ReactNode;
-  subtitle?: string;
+  subtitle?: ReactNode;
   actions?: ReactNode;
   colorVar?: string;
   badge?: ReactNode;
