@@ -7,8 +7,8 @@ import type {
 } from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
-import { Scissors } from "lucide-react";
 import { forwardRef, memo } from "react";
+import { Icons } from "../../../icons";
 import { NodeHeader, NodeSection, NodeShell } from "../primitives";
 
 export interface ExtractField {
@@ -48,7 +48,7 @@ export const ExtractNode = memo(
         >
           <NodeHeader
             colorVar="--node-extract"
-            icon={<Scissors className="size-5" />}
+            icon={<Icons.Scissors size={20} />}
             subtitle={`${fieldCount} fields defined`}
             title={data.label}
           />

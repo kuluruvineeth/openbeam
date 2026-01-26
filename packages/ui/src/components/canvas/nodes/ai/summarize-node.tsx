@@ -7,8 +7,8 @@ import type {
 } from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
-import { FileText } from "lucide-react";
 import { forwardRef, memo } from "react";
+import { Icons } from "../../../icons";
 import { NodeField, NodeHeader, NodeSection, NodeShell } from "../primitives";
 
 export interface SummarizeNodeData {
@@ -43,7 +43,7 @@ export const SummarizeNode = memo(
         >
           <NodeHeader
             colorVar="--node-summarize"
-            icon={<FileText className="size-5" />}
+            icon={<Icons.FileText size={20} />}
             subtitle={STYLE_LABELS[data.config.style]}
             title={data.label}
           />

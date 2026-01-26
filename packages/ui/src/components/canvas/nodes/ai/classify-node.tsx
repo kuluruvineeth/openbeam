@@ -7,8 +7,8 @@ import type {
 } from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
-import { Tags } from "lucide-react";
 import { forwardRef, memo } from "react";
+import { Icons } from "../../../icons";
 import { NodeHeader, NodeSection, NodeShell } from "../primitives";
 
 export interface ClassifyCategory {
@@ -46,7 +46,7 @@ export const ClassifyNode = memo(
         >
           <NodeHeader
             colorVar="--node-classify"
-            icon={<Tags className="size-5" />}
+            icon={<Icons.Tags size={20} />}
             subtitle={`${categoryCount} categories`}
             title={data.label}
           />

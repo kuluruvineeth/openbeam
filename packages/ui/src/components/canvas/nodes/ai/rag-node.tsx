@@ -3,8 +3,8 @@
 import type { NodeStatus, Port, RagNodeConfig } from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
-import { BookOpen } from "lucide-react";
 import { forwardRef, memo } from "react";
+import { Icons } from "../../../icons";
 import { NodeField, NodeHeader, NodeSection, NodeShell } from "../primitives";
 
 export interface RagNodeData {
@@ -52,7 +52,7 @@ export const RagNode = memo(
       >
         <NodeHeader
           colorVar="--node-rag"
-          icon={<BookOpen className="size-5" />}
+          icon={<Icons.BookOpen size={20} />}
           subtitle={SEARCH_LABELS[data.config.searchType]}
           title={data.label}
         />
