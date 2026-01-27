@@ -1,14 +1,20 @@
 "use client";
 
+export { AnnotationConfigPanel } from "./annotation-config";
 export { ApprovalConfigPanel } from "./approval-config";
 export { AudioConfigPanel } from "./audio-config";
 export { ClassifyConfigPanel } from "./classify-config";
 export { CodeConfigPanel } from "./code-config";
 export { ConditionConfigPanel } from "./condition-config";
+export { ConnectorActionConfigPanel } from "./connector-action-config";
+export { ConnectorConfigPanel } from "./connector-config";
 export { ExtractConfigPanel } from "./extract-config";
+export { FilterConfigPanel } from "./filter-config";
 export { ImageConfigPanel } from "./image-config";
+export { InputConfigPanel } from "./input-config";
 export { LlmConfigPanel } from "./llm-config";
 export { LoopConfigPanel } from "./loop-config";
+export { NotifyConfigPanel } from "./notify-config";
 export { ParallelJoinConfigPanel } from "./parallel-join-config";
 export { ParallelSplitConfigPanel } from "./parallel-split-config";
 export { RagConfigPanel } from "./rag-config";

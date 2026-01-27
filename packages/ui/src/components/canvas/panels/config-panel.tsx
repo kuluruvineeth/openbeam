@@ -1,17 +1,24 @@
 "use client";
 
 import type {
+  AnnotationNodeConfig,
   ApprovalNodeConfig,
   AudioNodeConfig,
   CanvasNodeType,
   ClassifyNodeConfig,
   CodeNodeConfig,
   ConditionNodeConfig,
+  ConnectorActionNodeConfig,
+  ConnectorActionsRegistry,
+  ConnectorNodeConfig,
   ExtractNodeConfig,
+  FilterNodeConfig,
   ImageNodeConfig,
+  InputNodeConfig,
   LlmNodeConfig,
   LoopNodeConfig,
   NodeStatus,
+  NotifyNodeConfig,
   ParallelJoinNodeConfig,
   ParallelSplitNodeConfig,
   RagNodeConfig,
@@ -32,15 +39,21 @@ import { ConfigField } from "./config-field";
 import { ConfigPanelHeader } from "./config-panel-header";
 import { ConfigSection } from "./config-section";
 import {
+  AnnotationConfigPanel,
   ApprovalConfigPanel,
   AudioConfigPanel,
   ClassifyConfigPanel,
   CodeConfigPanel,
   ConditionConfigPanel,
+  ConnectorActionConfigPanel,
+  ConnectorConfigPanel,
   ExtractConfigPanel,
+  FilterConfigPanel,
   ImageConfigPanel,
+  InputConfigPanel,
   LlmConfigPanel,
   LoopConfigPanel,
+  NotifyConfigPanel,
   ParallelJoinConfigPanel,
   ParallelSplitConfigPanel,
   RagConfigPanel,
@@ -66,6 +79,7 @@ interface ConfigPanelBaseProps {
     connectorId: string,
     resourceType: string
   ) => Promise<ResourceInfo[]>;
+  actionRegistries?: ConnectorActionsRegistry[];
 }
 
 interface StandaloneConfigPanelProps extends ConfigPanelBaseProps {
@@ -103,6 +117,7 @@ const ConfigPanelContent = memo(
         connectorLogos,
         connectors,
         onFetchResources,
+        actionRegistries,
       },
       ref
     ) {
@@ -189,6 +204,13 @@ const ConfigPanelContent = memo(
                 onChange={handleConfigChange}
               />
             );
+          case "input":
+            return (
+              <InputConfigPanel
+                config={nodeConfig as InputNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
           case "audio":
             return (
               <AudioConfigPanel
@@ -224,10 +246,49 @@ const ConfigPanelContent = memo(
                 onChange={handleConfigChange}
               />
             );
+          case "filter":
+            return (
+              <FilterConfigPanel
+                config={nodeConfig as FilterNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
           case "template":
             return (
               <TemplateConfigPanel
                 config={nodeConfig as TemplateNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "annotation":
+            return (
+              <AnnotationConfigPanel
+                config={nodeConfig as AnnotationNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "notify":
+            return (
+              <NotifyConfigPanel
+                config={nodeConfig as NotifyNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "connector":
+            return (
+              <ConnectorConfigPanel
+                actionRegistries={actionRegistries}
+                config={nodeConfig as ConnectorNodeConfig}
+                connectorLogos={connectorLogos}
+                connectors={connectors}
+                onChange={handleConfigChange}
+                onFetchResources={onFetchResources}
+              />
+            );
+          case "connector_action":
+            return (
+              <ConnectorActionConfigPanel
+                config={nodeConfig as ConnectorActionNodeConfig}
                 onChange={handleConfigChange}
               />
             );
@@ -321,6 +382,7 @@ export const ConfigPanel = memo(
       if (props.embedded) {
         return (
           <ConfigPanelContent
+            actionRegistries={props.actionRegistries}
             connectorLogos={props.connectorLogos}
             connectors={props.connectors}
             nodeConfig={nodeConfig}
@@ -348,6 +410,7 @@ export const ConfigPanel = memo(
             side="right"
           >
             <ConfigPanelContent
+              actionRegistries={props.actionRegistries}
               connectorLogos={props.connectorLogos}
               connectors={props.connectors}
               nodeConfig={nodeConfig}
