@@ -7,6 +7,10 @@
       "types": "./dist/index.d.ts",
       "default": "./src/index.ts"
     },
+    "./connector-actions": {
+      "types": "./src/connector-actions/index.ts",
+      "default": "./src/connector-actions/index.ts"
+    },
     "./*": {
       "types": "./dist/*.d.ts",
       "default": "./src/*.ts"
