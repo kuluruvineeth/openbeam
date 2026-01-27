@@ -339,6 +339,8 @@ export {
   CarouselPrevious,
 } from "./carousel";
 export { Checkbox } from "./checkbox";
+export type { CodeEditorProps } from "./code-editor";
+export { CodeEditor } from "./code-editor";
 export {
   Collapsible,
   CollapsibleContent,

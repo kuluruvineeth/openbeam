@@ -8,6 +8,7 @@ import type {
 } from "@openplane/types/canvas";
 import { forwardRef, memo, useCallback, useState } from "react";
 import { AnimatedSizeContainer } from "../../../animated-size-container";
+import { CodeEditor } from "../../../code-editor";
 import { Icons } from "../../../icons";
 import { Input } from "../../../input";
 import { Label } from "../../../label";
@@ -71,6 +72,13 @@ export const CodeConfigPanel = memo(
       const handleInputVariablesChange = useCallback(
         (inputVariables: InputVariable[]) => {
           onChange({ inputVariables });
+        },
+        [onChange]
+      );
+
+      const handleCodeChange = useCallback(
+        (code: string) => {
+          onChange({ code });
         },
         [onChange]
       );
@@ -156,11 +164,13 @@ export const CodeConfigPanel = memo(
               </ConfigField>
 
               <ConfigField label="Source Code">
-                <Textarea
-                  className="min-h-[200px] resize-y bg-secondary/30 font-mono text-sm"
-                  onChange={(e) => onChange({ code: e.target.value })}
+                <CodeEditor
+                  language={runtime}
+                  maxHeight="400px"
+                  minHeight="200px"
+                  onChange={handleCodeChange}
                   placeholder={`Enter your ${runtime} code here...`}
-                  spellCheck={false}
+                  readOnly={isRunning}
                   value={config.code ?? ""}
                 />
               </ConfigField>
