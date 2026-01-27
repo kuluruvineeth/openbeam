@@ -3,7 +3,10 @@
 import { javascript } from "@codemirror/lang-javascript";
 import { python } from "@codemirror/lang-python";
 import type { CodeRuntime } from "@openplane/types/canvas";
-import CodeMirror, { type ReactCodeMirrorProps } from "@uiw/react-codemirror";
+import CodeMirror, {
+  EditorView,
+  type ReactCodeMirrorProps,
+} from "@uiw/react-codemirror";
 import { useTheme } from "next-themes";
 import { forwardRef, memo, useMemo } from "react";
 import { cn } from "../utils";
@@ -34,6 +37,7 @@ interface CodeEditorProps
   className?: string;
   minHeight?: string;
   maxHeight?: string;
+  lineWrapping?: boolean;
 }
 
 const CodeEditor = memo(
@@ -47,6 +51,7 @@ const CodeEditor = memo(
       className,
       minHeight = "200px",
       maxHeight,
+      lineWrapping = true,
       ...rest
     },
     ref
@@ -54,14 +59,17 @@ const CodeEditor = memo(
     const { resolvedTheme } = useTheme();
 
     const extensions = useMemo(
-      () => [getLanguageExtension(language)],
-      [language]
+      () => [
+        getLanguageExtension(language),
+        ...(lineWrapping ? [EditorView.lineWrapping] : []),
+      ],
+      [language, lineWrapping]
     );
 
     return (
       <div
         className={cn(
-          "overflow-hidden rounded-md border border-border/50",
+          "w-full min-w-0 overflow-hidden rounded-md border border-border/50",
           className
         )}
         ref={ref}
@@ -84,6 +92,7 @@ const CodeEditor = memo(
           placeholder={placeholder}
           theme={resolvedTheme === "dark" ? "dark" : "light"}
           value={value}
+          width="100%"
           {...rest}
         />
       </div>

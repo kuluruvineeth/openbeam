@@ -89,7 +89,7 @@ export const InputVariableRow = memo(function InputVariableRowComponent({
   return (
     <div
       className={cn(
-        "group rounded-md border border-border/50 bg-muted/30",
+        "group min-w-0 overflow-hidden rounded-md border border-border/50 bg-muted/30",
         "transition-colors hover:border-border hover:bg-muted/50",
         isDragging && "z-50 opacity-90 shadow-md",
         disabled && "pointer-events-none opacity-50",
@@ -98,7 +98,7 @@ export const InputVariableRow = memo(function InputVariableRowComponent({
       ref={setNodeRef}
       style={style}
     >
-      <div className="flex items-center gap-1.5 px-2 py-1.5">
+      <div className="flex min-w-0 items-center gap-1.5 px-2 py-1.5">
         {sortable && (
           <button
             className={cn(
@@ -122,6 +122,7 @@ export const InputVariableRow = memo(function InputVariableRowComponent({
         />
 
         <VariableTypeSelector
+          className="shrink-0"
           compact
           disabled={disabled}
           onChange={handleTypeChange}
@@ -152,16 +153,16 @@ export const InputVariableRow = memo(function InputVariableRowComponent({
         </Button>
       </div>
 
-      <div className="flex gap-2 border-border/30 border-t px-2 py-1.5">
+      <div className="flex min-w-0 gap-2 border-border/30 border-t px-2 py-1.5">
         <Input
-          className="h-6 flex-1 text-xs"
+          className="h-6 min-w-0 flex-1 text-xs"
           disabled={disabled}
           onChange={handleDescriptionChange}
-          placeholder="Description (optional)..."
+          placeholder="Description..."
           value={variable.description ?? ""}
         />
         <Input
-          className="h-6 w-32 font-mono text-xs"
+          className="h-6 w-24 shrink-0 font-mono text-xs"
           disabled={disabled}
           onChange={handleSourcePathChange}
           placeholder="$.data.field"

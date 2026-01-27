@@ -138,7 +138,10 @@ export const CodeConfigPanel = memo(
       const timeoutMs = config.timeoutMs ?? 30_000;
 
       return (
-        <div className="divide-y divide-border/50" ref={ref}>
+        <div
+          className="min-w-0 divide-y divide-border/50 overflow-hidden"
+          ref={ref}
+        >
           <ConfigSection
             defaultOpen
             icon={<Icons.Code className="size-4" />}
