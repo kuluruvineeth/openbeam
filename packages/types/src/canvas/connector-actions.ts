@@ -44,6 +44,7 @@ export const ConnectorActionInputSchema = z.object({
     })
     .optional(),
   dynamic: z.boolean().optional(),
+  resourceType: z.string().optional(),
   dependsOn: z.string().optional(),
 });
 
@@ -97,6 +98,7 @@ export const ConnectorActionDefinitionSchema = z.object({
   name: z.string(),
   description: z.string(),
   connectorType: z.string(),
+  resource: z.string(),
   category: ConnectorActionCategorySchema,
   inputs: z.array(ConnectorActionInputSchema),
   outputs: z.array(ConnectorActionOutputSchema),

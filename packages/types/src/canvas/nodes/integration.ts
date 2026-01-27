@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const ConnectorNodeConfigSchema = z.object({
+  connectorId: z.string().optional(),
   connectorType: z.string(),
   operation: z.string(),
   params: z.record(z.string(), z.unknown()).optional(),

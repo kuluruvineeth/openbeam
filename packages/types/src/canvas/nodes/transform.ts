@@ -1,4 +1,9 @@
 import { z } from "zod";
+import {
+  ConditionBuilderModeSchema,
+  ConditionLogicSchema,
+  SingleConditionSchema,
+} from "../condition";
 
 export const TransformNodeConfigSchema = z.object({
   expression: z.string(),
@@ -7,9 +12,20 @@ export const TransformNodeConfigSchema = z.object({
 
 export type TransformNodeConfig = z.infer<typeof TransformNodeConfigSchema>;
 
+export const FilterLanguageSchema = z.enum([
+  "javascript",
+  "jmespath",
+  "jsonata",
+]);
+
+export type FilterLanguage = z.infer<typeof FilterLanguageSchema>;
+
 export const FilterNodeConfigSchema = z.object({
-  expression: z.string(),
-  language: z.enum(["jmespath", "jsonata", "javascript"]).default("jmespath"),
+  mode: ConditionBuilderModeSchema.default("visual"),
+  logic: ConditionLogicSchema.default("and"),
+  conditions: z.array(SingleConditionSchema).default([]),
+  expression: z.string().default(""),
+  language: FilterLanguageSchema.default("javascript"),
 });
 
 export type FilterNodeConfig = z.infer<typeof FilterNodeConfigSchema>;
