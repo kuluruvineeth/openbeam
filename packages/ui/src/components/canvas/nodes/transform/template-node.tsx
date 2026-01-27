@@ -1,17 +1,17 @@
 "use client";
 
-import type { NodeStatus, Port } from "@openplane/types/canvas";
+import type {
+  NodeStatus,
+  Port,
+  TemplateNodeConfig,
+} from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
-import { forwardRef, memo } from "react";
+import { forwardRef, memo, useMemo } from "react";
+import { cn } from "../../../../utils";
+import { Badge } from "../../../badge";
 import { Icons } from "../../../icons";
 import { NodeHeader, NodeSection, NodeShell } from "../primitives";
-
-export interface TemplateNodeConfig {
-  template: string;
-  outputFormat: "text" | "json" | "markdown" | "html";
-  variables?: string[];
-}
 
 export interface TemplateNodeData {
   label: string;
@@ -32,12 +32,34 @@ const FORMAT_LABELS: Record<string, string> = {
   html: "HTML",
 };
 
+const SYNTAX_LABELS: Record<string, string> = {
+  handlebars: "Handlebars",
+  mustache: "Mustache",
+  ejs: "EJS",
+};
+
 export const TemplateNode = memo(
   forwardRef<HTMLDivElement, NodeProps<TemplateNodeType>>(
     function TemplateNodeComponent({ data, selected }, ref) {
-      const variableCount = data.config.variables?.length ?? 0;
-      const templatePreview = data.config.template?.slice(0, 60) ?? "";
-      const hasTemplate = (data.config.template?.length ?? 0) > 0;
+      const config = data.config;
+      const syntax = config.syntax ?? "handlebars";
+      const outputFormat = config.outputFormat ?? "text";
+      const template = config.template ?? "";
+      const variables = config.variables ?? [];
+
+      const variableCount = variables.length;
+      const requiredCount = variables.filter((v) => v.required).length;
+
+      const templatePreview = useMemo(() => {
+        if (!template) {
+          return "";
+        }
+        const lines = template.split("\n");
+        const firstLine = lines[0]?.slice(0, 50) ?? "";
+        return lines.length > 1 ? `${firstLine}...` : firstLine;
+      }, [template]);
+
+      const hasTemplate = template.length > 0;
 
       return (
         <NodeShell
@@ -52,30 +74,53 @@ export const TemplateNode = memo(
           <NodeHeader
             colorVar="--node-template"
             icon={<Icons.FileText size={20} />}
-            subtitle={FORMAT_LABELS[data.config.outputFormat]}
+            subtitle={FORMAT_LABELS[outputFormat]}
             title={data.label}
           />
           <NodeSection>
             <div className="space-y-2">
-              {hasTemplate && (
-                <div className="rounded-sm bg-muted/50 p-2 font-mono text-[10px] text-muted-foreground">
-                  {templatePreview}
-                  {(data.config.template?.length ?? 0) > 60 && "..."}
+              <div className="flex items-center gap-1.5">
+                <Badge className="text-[10px]" variant="outline">
+                  {SYNTAX_LABELS[syntax]}
+                </Badge>
+                {variableCount > 0 && (
+                  <Badge className="text-[10px]" variant="secondary">
+                    {variableCount} var{variableCount !== 1 ? "s" : ""}
+                    {requiredCount > 0 && ` (${requiredCount} req)`}
+                  </Badge>
+                )}
+              </div>
+
+              {hasTemplate ? (
+                <div className="rounded-sm border border-border/30 bg-muted/30 p-2">
+                  <pre className="overflow-hidden font-mono text-[10px] text-muted-foreground">
+                    {templatePreview}
+                  </pre>
+                </div>
+              ) : (
+                <div className="rounded-sm border border-border/50 border-dashed px-2 py-3 text-center text-muted-foreground text-xs">
+                  No template
                 </div>
               )}
+
               {variableCount > 0 && (
                 <div className="flex flex-wrap gap-1">
-                  {data.config.variables?.slice(0, 4).map((v) => (
+                  {variables.slice(0, 3).map((v) => (
                     <span
-                      className="rounded-sm bg-muted px-2 py-0.5 font-mono text-muted-foreground text-xs"
-                      key={v}
+                      className={cn(
+                        "rounded-sm px-1.5 py-0.5 font-mono text-[10px]",
+                        v.required
+                          ? "bg-primary/10 text-primary"
+                          : "bg-muted text-muted-foreground"
+                      )}
+                      key={v.id}
                     >
-                      {`{{${v}}}`}
+                      {syntax === "ejs" ? `<%= ${v.name} %>` : `{{${v.name}}}`}
                     </span>
                   ))}
-                  {variableCount > 4 && (
-                    <span className="text-muted-foreground text-xs">
-                      +{variableCount - 4}
+                  {variableCount > 3 && (
+                    <span className="text-[10px] text-muted-foreground">
+                      +{variableCount - 3} more
                     </span>
                   )}
                 </div>
@@ -95,8 +140,19 @@ export function createTemplateNodeData(): TemplateNodeData {
     label: "Template",
     config: {
       template: "",
+      syntax: "handlebars",
       outputFormat: "text",
       variables: [],
+      trimWhitespace: true,
+      preserveNewlines: true,
+      escapeHtml: false,
+      undefinedVariable: "placeholder",
+      fallbackBehavior: "preserve",
+      validation: {
+        enabled: true,
+        strict: false,
+        validateJson: false,
+      },
     },
     inputs: [
       { id: "variables", label: "Variables", type: "data", required: true },
