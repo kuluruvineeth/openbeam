@@ -55,34 +55,66 @@ function createUniqueId(prefix: string) {
   return `${prefix}-${timestamp}-${idCounter}`;
 }
 
-function compareConfigObjects(
-  a: Record<string, unknown>,
-  b: Record<string, unknown>
-): boolean {
-  const configKeys = new Set([...Object.keys(a), ...Object.keys(b)]);
-  for (const ck of configKeys) {
-    if (a[ck] !== b[ck]) {
+function deepEqualArrays(a: unknown[], b: unknown[]): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+  for (let i = 0; i < a.length; i++) {
+    if (!deepEqual(a[i], b[i])) {
       return false;
     }
   }
   return true;
 }
 
+function deepEqualObjects(
+  a: Record<string, unknown>,
+  b: Record<string, unknown>
+): boolean {
+  const aKeys = Object.keys(a);
+  if (aKeys.length !== Object.keys(b).length) {
+    return false;
+  }
+  for (const key of aKeys) {
+    if (!deepEqual(a[key], b[key])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function deepEqual(a: unknown, b: unknown): boolean {
+  if (a === b) {
+    return true;
+  }
+  if (
+    typeof a !== "object" ||
+    typeof b !== "object" ||
+    a === null ||
+    b === null
+  ) {
+    return false;
+  }
+
+  const aIsArray = Array.isArray(a);
+  const bIsArray = Array.isArray(b);
+  if (aIsArray !== bIsArray) {
+    return false;
+  }
+  if (aIsArray) {
+    return deepEqualArrays(a as unknown[], b as unknown[]);
+  }
+  return deepEqualObjects(
+    a as Record<string, unknown>,
+    b as Record<string, unknown>
+  );
+}
+
 function compareValueAtKey(key: string, aVal: unknown, bVal: unknown): boolean {
   if (key !== "config") {
     return aVal === bVal;
   }
-
-  const aIsObject = typeof aVal === "object" && aVal !== null;
-  const bIsObject = typeof bVal === "object" && bVal !== null;
-
-  if (aIsObject && bIsObject) {
-    return compareConfigObjects(
-      aVal as Record<string, unknown>,
-      bVal as Record<string, unknown>
-    );
-  }
-  return aVal === bVal;
+  return deepEqual(aVal, bVal);
 }
 
 function shallowCompareNodeData(
@@ -203,7 +235,8 @@ function AgentCanvasInner({
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [nodes, setNodes] = useNodesState(initialNodes);
   const [edges, setEdges] = useEdgesState(initialEdges);
-  const isSyncingFromExternalRef = useRef(false);
+  const isSyncingNodesRef = useRef(false);
+  const isSyncingEdgesRef = useRef(false);
 
   const prevExternalNodesRef = useRef<Node[] | undefined>(undefined);
   const prevExternalEdgesRef = useRef<Edge[] | undefined>(undefined);
@@ -218,11 +251,8 @@ function AgentCanvasInner({
     prevExternalNodesRef.current = externalNodes;
 
     if (hasNodesChanged(externalNodes, nodes)) {
-      isSyncingFromExternalRef.current = true;
+      isSyncingNodesRef.current = true;
       setNodes(externalNodes);
-      requestAnimationFrame(() => {
-        isSyncingFromExternalRef.current = false;
-      });
     }
   }, [externalNodes, nodes, setNodes]);
 
@@ -236,11 +266,8 @@ function AgentCanvasInner({
     prevExternalEdgesRef.current = externalEdges;
 
     if (hasEdgesChanged(externalEdges, edges)) {
-      isSyncingFromExternalRef.current = true;
+      isSyncingEdgesRef.current = true;
       setEdges(externalEdges);
-      requestAnimationFrame(() => {
-        isSyncingFromExternalRef.current = false;
-      });
     }
   }, [externalEdges, edges, setEdges]);
 
@@ -269,15 +296,19 @@ function AgentCanvasInner({
   );
 
   useEffect(() => {
-    if (!isSyncingFromExternalRef.current) {
-      onNodesChangeCallback?.(nodes);
+    if (isSyncingNodesRef.current) {
+      isSyncingNodesRef.current = false;
+      return;
     }
+    onNodesChangeCallback?.(nodes);
   }, [nodes, onNodesChangeCallback]);
 
   useEffect(() => {
-    if (!isSyncingFromExternalRef.current) {
-      onEdgesChangeCallback?.(edges);
+    if (isSyncingEdgesRef.current) {
+      isSyncingEdgesRef.current = false;
+      return;
     }
+    onEdgesChangeCallback?.(edges);
   }, [edges, onEdgesChangeCallback]);
 
   const handleConnect: OnConnect = useCallback(
