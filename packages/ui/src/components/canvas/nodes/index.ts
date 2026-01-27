@@ -35,16 +35,18 @@ export {
   ParallelSplitNode,
   StartNode,
 } from "./control";
-
+export { createAllNodeTypes } from "./create-node-types";
 export type { DropNodeData } from "./drop-node";
 export { DropNode } from "./drop-node";
 export {
   createAgentCallNodeData,
   createAnnotationNodeData,
   createApprovalNodeData,
+  createAudioNodeData,
   createClassifyNodeData,
   createCodeNodeData,
   createConditionNodeData,
+  createConnectorActionNodeData,
   createConnectorNodeData,
   createDatabaseQueryNodeData,
   createEndNodeData,
@@ -53,6 +55,7 @@ export {
   createFilterNodeData,
   createGraphqlQueryNodeData,
   createHttpRequestNodeData,
+  createImageNodeData,
   createInputNodeData,
   createLlmNodeData,
   createLoopNodeData,
@@ -72,6 +75,8 @@ export {
   createSummarizeNodeData,
   createTemplateNodeData,
   createToolNodeData,
+  createUniqueNodeId,
+  createVideoNodeData,
   createWebhookTriggerNodeData,
   hasNodeDataFactory,
 } from "./factory";
@@ -79,13 +84,8 @@ export type {
   AnnotationColor,
   AnnotationNodeConfig,
   AnnotationNodeData,
-  ApprovalNodeConfig,
   ApprovalNodeData,
-  Approver,
-  InputNodeConfig,
   InputNodeData,
-  InputOption,
-  InputType,
   NotifyNodeConfig,
   NotifyNodeData,
 } from "./human";
@@ -122,7 +122,6 @@ export {
   MemoryWriteNode,
   memoryNodeTypes,
 } from "./memory";
-export { categoryLabels, nodeButtons } from "./node-buttons";
 export type {
   AgentCallNodeData,
   ParallelMapNodeData,
@@ -137,7 +136,6 @@ export {
 export { NodeField, NodeHeader, NodeSection, NodeShell } from "./primitives";
 export {
   CATEGORY_LABELS,
-  createAllNodeTypes,
   getNodeEntry,
   getNodesByCategory,
   type NodeRegistryEntry,

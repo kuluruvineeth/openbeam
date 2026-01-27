@@ -1,43 +1,34 @@
 "use client";
 
-import type { NodeStatus, Port } from "@openplane/types/canvas";
+import type {
+  InputField,
+  InputFieldType,
+  InputNodeConfig,
+  NodeStatus,
+  Port,
+} from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
-import {
-  Calendar,
-  FormInput,
-  Hash,
-  List,
-  ToggleLeft,
-  Type,
-  Upload,
-} from "lucide-react";
-import { forwardRef, memo } from "react";
-import { NodeField, NodeHeader, NodeSection, NodeShell } from "../primitives";
+import { forwardRef, memo, useMemo } from "react";
+import { Icons } from "../../../icons";
+import { NodeHeader, NodeSection, NodeShell } from "../primitives";
 
-export type InputType =
-  | "text"
-  | "number"
-  | "date"
-  | "select"
-  | "boolean"
-  | "file"
-  | "textarea";
+const MAX_VISIBLE_FIELDS = 4;
 
-export interface InputOption {
-  value: string;
-  label: string;
-}
-
-export interface InputNodeConfig {
-  inputType: InputType;
-  placeholder?: string;
-  required?: boolean;
-  options?: InputOption[];
-  min?: number;
-  max?: number;
-  accept?: string;
-}
+const FIELD_TYPE_LABELS: Record<InputFieldType, string> = {
+  text: "text",
+  textarea: "long",
+  number: "num",
+  boolean: "bool",
+  date: "date",
+  select: "sel",
+  multiselect: "multi",
+  email: "email",
+  url: "url",
+  file: "file",
+  password: "pass",
+  hidden: "hide",
+};
 
 export interface InputNodeData {
   label: string;
@@ -45,85 +36,103 @@ export interface InputNodeData {
   inputs?: Port[];
   outputs?: Port[];
   status?: NodeStatus;
-  value?: string | number | boolean;
+  values?: Record<string, unknown>;
   hasSubmitted?: boolean;
-  fieldLabel?: string;
-  helperText?: string;
   [key: string]: unknown;
 }
 
 type InputNodeType = Node<InputNodeData, "input">;
 
-const INPUT_TYPE_CONFIG: Record<
-  InputType,
-  { icon: React.ElementType; label: string }
-> = {
-  text: { icon: Type, label: "Text" },
-  number: { icon: Hash, label: "Number" },
-  date: { icon: Calendar, label: "Date" },
-  select: { icon: List, label: "Select" },
-  boolean: { icon: ToggleLeft, label: "Boolean" },
-  file: { icon: Upload, label: "File" },
-  textarea: { icon: FormInput, label: "Long Text" },
-};
-
 export const InputNode = memo(
   forwardRef<HTMLDivElement, NodeProps<InputNodeType>>(
     function InputNodeComponent({ data, selected }, ref) {
-      const inputType = data.config.inputType ?? "text";
-      const isRequired = data.config.required !== false;
+      const fields = data.config.fields ?? [];
+      const allowSkip = data.config.allowSkip ?? false;
       const hasSubmitted = data.hasSubmitted ?? false;
-      const typeConfig = INPUT_TYPE_CONFIG[inputType];
-      const TypeIcon = typeConfig.icon;
+      const fieldCount = fields.length;
+
+      const handles = useMemo(() => {
+        const h: Array<{
+          type: "target" | "source";
+          position: typeof Position.Left | typeof Position.Right;
+          id?: string;
+          style?: React.CSSProperties;
+        }> = [{ type: "target", position: Position.Left }];
+
+        if (allowSkip) {
+          h.push(
+            {
+              type: "source",
+              position: Position.Right,
+              id: "data",
+              style: { top: "35%" },
+            },
+            {
+              type: "source",
+              position: Position.Right,
+              id: "skipped",
+              style: { top: "65%" },
+            }
+          );
+        } else {
+          h.push({ type: "source", position: Position.Right });
+        }
+        return h;
+      }, [allowSkip]);
+
+      const visibleFields = fields.slice(0, MAX_VISIBLE_FIELDS);
+      const hiddenCount = fieldCount - MAX_VISIBLE_FIELDS;
 
       return (
         <NodeShell
-          handles={[
-            { type: "target", position: Position.Left },
-            { type: "source", position: Position.Right },
-          ]}
+          handles={handles}
           ref={ref}
           selected={selected}
           status={data.status}
         >
           <NodeHeader
             colorVar="--node-input"
-            icon={<TypeIcon className="size-5" />}
-            subtitle={typeConfig.label}
-            title={
-              <>
-                {data.label}
-                {isRequired && <span className="ml-1 text-destructive">*</span>}
-              </>
+            icon={<Icons.Clipboard className="size-5" />}
+            subtitle={
+              fieldCount > 0
+                ? `${fieldCount} field${fieldCount !== 1 ? "s" : ""}`
+                : "No fields"
             }
+            title={data.label}
           />
           <NodeSection>
-            <div className="space-y-2">
-              {data.fieldLabel && (
-                <NodeField label="Field">
-                  <span className="text-muted-foreground">
-                    {data.fieldLabel}
-                  </span>
-                </NodeField>
-              )}
-              {data.config.placeholder && (
-                <div className="truncate text-muted-foreground/70 text-xs">
-                  "{data.config.placeholder}"
-                </div>
-              )}
-              {hasSubmitted && (
-                <div className="flex items-center gap-2">
-                  <span className="rounded-sm bg-muted px-2 py-0.5 text-muted-foreground text-xs">
-                    Submitted
-                  </span>
-                  {data.value !== undefined && (
-                    <span className="truncate text-xs">
-                      {String(data.value).slice(0, 20)}
+            {fieldCount > 0 ? (
+              <div className="space-y-1">
+                {visibleFields.map((field) => (
+                  <FieldRow field={field} key={field.id} />
+                ))}
+                {hiddenCount > 0 && (
+                  <div className="pt-0.5 text-center text-[10px] text-muted-foreground/70">
+                    +{hiddenCount} more
+                  </div>
+                )}
+                {hasSubmitted ? (
+                  <div className="flex items-center gap-1.5 pt-1">
+                    <span className="rounded-sm bg-emerald-500/10 px-1.5 py-0.5 text-[10px] text-emerald-600">
+                      Submitted
                     </span>
-                  )}
-                </div>
-              )}
-            </div>
+                    {data.values && (
+                      <span className="text-[10px] text-muted-foreground">
+                        {Object.keys(data.values).length} values
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <div className="truncate border-border/30 border-t pt-1.5 text-[10px] text-muted-foreground/70">
+                    "{data.config.submitLabel ?? "Submit"}"
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="py-2 text-center text-muted-foreground/50 text-xs">
+                No fields configured
+              </div>
+            )}
           </NodeSection>
         </NodeShell>
       );
@@ -133,15 +142,38 @@ export const InputNode = memo(
 
 InputNode.displayName = "InputNode";
 
+const FieldRow = memo(function FieldRowComponent({
+  field,
+}: {
+  field: InputField;
+}) {
+  const isRequired = field.validation?.required ?? false;
+  return (
+    <div className="flex items-center gap-1.5 text-xs">
+      <span className="min-w-0 flex-1 truncate">{field.label}</span>
+      <span className="shrink-0 rounded-sm bg-muted px-1 py-0.5 font-mono text-[10px] text-muted-foreground">
+        {FIELD_TYPE_LABELS[field.type]}
+      </span>
+      {isRequired && <span className="shrink-0 text-destructive">*</span>}
+    </div>
+  );
+});
+
+FieldRow.displayName = "FieldRow";
+
 export function createInputNodeData(): InputNodeData {
   return {
     label: "User Input",
     config: {
-      inputType: "text",
-      required: true,
+      prompt: "",
+      fields: [],
+      submitLabel: "Submit",
+      allowSkip: false,
+      skipLabel: "Skip",
+      timeoutAction: "skip",
     },
     inputs: [],
-    outputs: [{ id: "value", label: "Value", type: "data", required: true }],
+    outputs: [{ id: "data", label: "Data", type: "data", required: true }],
     hasSubmitted: false,
   };
 }

@@ -4,7 +4,6 @@ import { Icons } from "../../icons";
 
 import { aiNodeTypes } from "./ai";
 import { controlNodeTypes } from "./control";
-import { DropNode } from "./drop-node";
 import { humanNodeTypes } from "./human";
 import { integrationNodeTypes } from "./integration";
 import { memoryNodeTypes } from "./memory";
@@ -219,6 +218,14 @@ const INTEGRATION_ENTRIES: NodeRegistryEntry[] = [
     category: "integration",
     component: integrationNodeTypes.tool,
   },
+  {
+    id: "connector_action",
+    label: "Connector Action",
+    description: "Execute connector action (Slack, Gmail, etc.)",
+    icon: Icons.Zap,
+    category: "integration",
+    component: integrationNodeTypes.connector_action,
+  },
 ];
 
 const TRIGGER_ENTRIES: NodeRegistryEntry[] = [
@@ -345,17 +352,3 @@ export const CATEGORY_LABELS: Record<NodeCategory, string> = {
   memory: "Memory",
   orchestration: "Orchestration",
 };
-
-export function createAllNodeTypes() {
-  return {
-    ...controlNodeTypes,
-    ...aiNodeTypes,
-    ...transformNodeTypes,
-    ...humanNodeTypes,
-    ...integrationNodeTypes,
-    ...triggerNodeTypes,
-    ...memoryNodeTypes,
-    ...orchestrationNodeTypes,
-    drop: DropNode,
-  } as const;
-}

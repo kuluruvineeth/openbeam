@@ -1,11 +1,14 @@
 import type { CanvasNodeType } from "@openplane/types/canvas";
 
 import {
+  createAudioNodeData,
   createClassifyNodeData,
   createExtractNodeData,
+  createImageNodeData,
   createLlmNodeData,
   createRagNodeData,
   createSummarizeNodeData,
+  createVideoNodeData,
 } from "./ai";
 import {
   createConditionNodeData,
@@ -21,26 +24,35 @@ import {
   createInputNodeData,
   createNotifyNodeData,
 } from "./human";
-import { createConnectorNodeData } from "./integration/connector-node";
-import { createDatabaseQueryNodeData } from "./integration/database-query-node";
-import { createGraphqlQueryNodeData } from "./integration/graphql-query-node";
-import { createHttpRequestNodeData } from "./integration/http-request-node";
-import { createToolNodeData } from "./integration/tool-node";
-import { createMemoryReadNodeData } from "./memory/memory-read-node";
-import { createMemorySearchNodeData } from "./memory/memory-search-node";
-import { createMemoryWriteNodeData } from "./memory/memory-write-node";
-import { createAgentCallNodeData } from "./orchestration/agent-call-node";
-import { createParallelMapNodeData } from "./orchestration/parallel-map-node";
-import { createSubWorkflowNodeData } from "./orchestration/sub-workflow-node";
+import {
+  createConnectorActionNodeData,
+  createConnectorNodeData,
+  createDatabaseQueryNodeData,
+  createGraphqlQueryNodeData,
+  createHttpRequestNodeData,
+  createToolNodeData,
+} from "./integration";
+import {
+  createMemoryReadNodeData,
+  createMemorySearchNodeData,
+  createMemoryWriteNodeData,
+} from "./memory";
+import {
+  createAgentCallNodeData,
+  createParallelMapNodeData,
+  createSubWorkflowNodeData,
+} from "./orchestration";
 import {
   createCodeNodeData,
   createFilterNodeData,
   createTemplateNodeData,
 } from "./transform";
-import { createEventTriggerNodeData } from "./trigger/event-trigger-node";
-import { createManualTriggerNodeData } from "./trigger/manual-trigger-node";
-import { createScheduleTriggerNodeData } from "./trigger/schedule-trigger-node";
-import { createWebhookTriggerNodeData } from "./trigger/webhook-trigger-node";
+import {
+  createEventTriggerNodeData,
+  createManualTriggerNodeData,
+  createScheduleTriggerNodeData,
+  createWebhookTriggerNodeData,
+} from "./trigger";
 
 type NodeDataFactory = () => Record<string, unknown>;
 
@@ -57,6 +69,9 @@ const nodeDataFactories: Record<string, NodeDataFactory> = {
   summarize: createSummarizeNodeData,
   extract: createExtractNodeData,
   classify: createClassifyNodeData,
+  image: createImageNodeData,
+  audio: createAudioNodeData,
+  video: createVideoNodeData,
 
   template: createTemplateNodeData,
   code: createCodeNodeData,
@@ -68,6 +83,7 @@ const nodeDataFactories: Record<string, NodeDataFactory> = {
   annotation: createAnnotationNodeData,
 
   connector: createConnectorNodeData,
+  connector_action: createConnectorActionNodeData,
   http_request: createHttpRequestNodeData,
   database_query: createDatabaseQueryNodeData,
   graphql_query: createGraphqlQueryNodeData,
@@ -104,13 +120,30 @@ export function hasNodeDataFactory(nodeType: string): boolean {
   return nodeType in nodeDataFactories;
 }
 
+const ID_COUNTER_LIMIT = 1_000_000;
+let lastIdTimestamp = 0;
+let idCounter = 0;
+
+export function createUniqueNodeId(prefix: string) {
+  const timestamp = Date.now();
+  if (timestamp !== lastIdTimestamp) {
+    lastIdTimestamp = timestamp;
+    idCounter = 0;
+  } else {
+    idCounter = (idCounter + 1) % ID_COUNTER_LIMIT;
+  }
+  return `${prefix}-${timestamp}-${idCounter}`;
+}
+
 export {
   createAgentCallNodeData,
   createAnnotationNodeData,
   createApprovalNodeData,
+  createAudioNodeData,
   createClassifyNodeData,
   createCodeNodeData,
   createConditionNodeData,
+  createConnectorActionNodeData,
   createConnectorNodeData,
   createDatabaseQueryNodeData,
   createEndNodeData,
@@ -119,6 +152,7 @@ export {
   createFilterNodeData,
   createGraphqlQueryNodeData,
   createHttpRequestNodeData,
+  createImageNodeData,
   createInputNodeData,
   createLlmNodeData,
   createLoopNodeData,
@@ -137,5 +171,6 @@ export {
   createSummarizeNodeData,
   createTemplateNodeData,
   createToolNodeData,
+  createVideoNodeData,
   createWebhookTriggerNodeData,
 };
