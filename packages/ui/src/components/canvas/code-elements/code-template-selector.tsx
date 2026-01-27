@@ -86,7 +86,7 @@ export const CodeTemplateSelector = memo(
             </p>
           </div>
 
-          <div className="flex gap-1 overflow-x-auto border-border/50 border-b px-2 py-1.5">
+          <div className="no-scrollbar flex gap-1 overflow-x-auto border-border/50 border-b px-2 py-1.5">
             <button
               className={cn(
                 "shrink-0 rounded-sm px-2 py-0.5 text-xs transition-colors",
