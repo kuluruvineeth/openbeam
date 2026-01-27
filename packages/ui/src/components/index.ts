@@ -225,7 +225,6 @@ export type {
   RagNodeData,
   StartNodeData,
   SummarizeNodeData,
-  TemplateNodeConfig,
   TemplateNodeData,
   TriggerTypeConfig,
   TriggerTypeId,

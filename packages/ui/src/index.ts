@@ -114,7 +114,6 @@ export type {
   StreamingTextProps,
   SummarizeNodeData,
   TableSkeletonProps,
-  TemplateNodeConfig,
   TemplateNodeData,
   TextareaProps,
   TextShimmerProps,

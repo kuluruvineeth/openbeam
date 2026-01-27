@@ -14,4 +14,5 @@ export { ParallelSplitConfigPanel } from "./parallel-split-config";
 export { RagConfigPanel } from "./rag-config";
 export { StartConfigPanel } from "./start-config";
 export { SummarizeConfigPanel } from "./summarize-config";
+export { TemplateConfigPanel } from "./template-config";
 export { VideoConfigPanel } from "./video-config";

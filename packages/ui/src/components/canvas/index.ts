@@ -13,6 +13,7 @@ export { CanvasContextMenu } from "./canvas-context-menu";
 export { CanvasControls, type CanvasControlsProps } from "./canvas-controls";
 export { CanvasMinimap, type CanvasMinimapProps } from "./canvas-minimap";
 export { CanvasToolbar, type CanvasToolbarProps } from "./canvas-toolbar";
+export * from "./code-elements";
 export * from "./compiler";
 export * from "./condition-builder";
 export * from "./edges";

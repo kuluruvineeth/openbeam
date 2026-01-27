@@ -5,6 +5,7 @@ import type {
   AudioNodeConfig,
   CanvasNodeType,
   ClassifyNodeConfig,
+  CodeNodeConfig,
   ConditionNodeConfig,
   ExtractNodeConfig,
   ImageNodeConfig,
@@ -14,9 +15,9 @@ import type {
   ParallelJoinNodeConfig,
   ParallelSplitNodeConfig,
   RagNodeConfig,
-  ScriptNodeConfig,
   StartNodeConfig,
   SummarizeNodeConfig,
+  TemplateNodeConfig,
   VideoNodeConfig,
 } from "@openplane/types/canvas";
 import type { ConnectorType } from "@openplane/types/services/connectors/events";
@@ -45,6 +46,7 @@ import {
   RagConfigPanel,
   StartConfigPanel,
   SummarizeConfigPanel,
+  TemplateConfigPanel,
   VideoConfigPanel,
 } from "./configs";
 
@@ -169,7 +171,7 @@ const ConfigPanelContent = memo(
           case "code":
             return (
               <CodeConfigPanel
-                config={nodeConfig as ScriptNodeConfig}
+                config={nodeConfig as CodeNodeConfig}
                 onChange={handleConfigChange}
               />
             );
@@ -219,6 +221,13 @@ const ConfigPanelContent = memo(
             return (
               <ClassifyConfigPanel
                 config={nodeConfig as ClassifyNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "template":
+            return (
+              <TemplateConfigPanel
+                config={nodeConfig as TemplateNodeConfig}
                 onChange={handleConfigChange}
               />
             );
