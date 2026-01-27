@@ -1,5 +1,6 @@
 "use client";
 
+import { ALL_CONNECTOR_ACTION_REGISTRIES } from "@openplane/integrations/connector-actions";
 import { connectorLogos } from "@openplane/integrations/logos";
 import type {
   AgentCanvasEdge,
@@ -243,6 +244,7 @@ function CanvasPanelContent({ agentId, className }: CanvasPanelProps) {
           </SheetHeader>
           {selectedNode && (
             <ConfigPanel
+              actionRegistries={ALL_CONNECTOR_ACTION_REGISTRIES}
               connectorLogos={connectorLogos}
               connectors={connectors}
               embedded
