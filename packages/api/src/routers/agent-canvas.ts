@@ -1,7 +1,11 @@
 import {
   type CanvasStreamEvent,
   createEmptyState,
+  createGetToolParameters,
+  registerAllTools,
   streamCanvasBuilder,
+  toolRegistry,
+  toToolPickerItems,
 } from "@openplane/ai";
 import {
   archiveAgentCanvas,
@@ -370,6 +374,19 @@ export const agentCanvasRouter = createTRPCRouter({
         offset: input.offset,
       })
     ),
+
+  listTools: withActiveTeam.query(() => {
+    registerAllTools();
+    return toToolPickerItems(toolRegistry.getAllMetadata());
+  }),
+
+  getToolParameters: withActiveTeam
+    .input(z.object({ toolId: z.string() }))
+    .query(async ({ input }) => {
+      registerAllTools();
+      const getParams = createGetToolParameters(toolRegistry);
+      return await getParams(input.toolId);
+    }),
 
   buildCanvas: withActiveTeam
     .input(buildCanvasSchema)
