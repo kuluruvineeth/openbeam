@@ -108,8 +108,23 @@ export const TemplateNodeConfigSchema = z.object({
 
 export type TemplateNodeConfig = z.infer<typeof TemplateNodeConfigSchema>;
 
-export const CodeRuntimeSchema = z.enum(["javascript", "typescript", "python"]);
+export const CodeRuntimeSchema = z.enum([
+  "javascript",
+  "typescript",
+  "python",
+  "sql",
+]);
 export type CodeRuntime = z.infer<typeof CodeRuntimeSchema>;
+
+export const EditorLanguageSchema = z.enum([
+  "javascript",
+  "typescript",
+  "python",
+  "sql",
+  "json",
+  "graphql",
+]);
+export type EditorLanguage = z.infer<typeof EditorLanguageSchema>;
 
 export const CodeVariableTypeSchema = z.enum([
   "string",

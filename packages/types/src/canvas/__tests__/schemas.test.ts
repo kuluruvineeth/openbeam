@@ -71,9 +71,9 @@ describe("canvas type schemas", () => {
   });
 
   describe("CanvasNodeTypeSchema", () => {
-    it("accepts all 41 node types", () => {
+    it("accepts all 44 node types", () => {
       const nodeTypes = CanvasNodeTypeSchema.options;
-      expect(nodeTypes).toHaveLength(41);
+      expect(nodeTypes).toHaveLength(44);
       for (const type of nodeTypes) {
         expect(CanvasNodeTypeSchema.parse(type)).toBe(type);
       }
@@ -116,6 +116,9 @@ describe("canvas type schemas", () => {
     it("maps ai nodes correctly", () => {
       const aiNodes = [
         "llm",
+        "image",
+        "audio",
+        "video",
         "rag",
         "summarize",
         "extract",
@@ -205,10 +208,10 @@ describe("canvas type schemas", () => {
   });
 
   describe("AgentCanvasEdgeSchema", () => {
-    it("parses valid edge with defaults", () => {
+    it("parses valid edge", () => {
       const edge = { id: "edge-1", source: "node-1", target: "node-2" };
       const parsed = AgentCanvasEdgeSchema.parse(edge);
-      expect(parsed.type).toBe("data");
+      expect(parsed.type).toBeUndefined();
     });
 
     it("accepts all edge types", () => {
@@ -406,8 +409,8 @@ describe("canvas type schemas", () => {
         });
         expect(parsed.method).toBe("GET");
         expect(parsed.timeoutMs).toBe(30_000);
-        expect(parsed.retryOn5xx).toBe(true);
-        expect(parsed.responseType).toBe("json");
+        expect(parsed.retry.enabled).toBe(true);
+        expect(parsed.response.responseType).toBe("auto");
       });
 
       it("accepts all HTTP methods", () => {
@@ -433,11 +436,13 @@ describe("canvas type schemas", () => {
       it("accepts headers and query params", () => {
         const parsed = HttpRequestNodeConfigSchema.parse({
           url: "https://api.example.com",
-          headers: { Authorization: "Bearer token" },
-          queryParams: { page: "1" },
+          headers: [{ key: "Authorization", value: "Bearer token" }],
+          queryParams: [{ key: "page", value: "1" }],
         });
-        expect(parsed.headers).toEqual({ Authorization: "Bearer token" });
-        expect(parsed.queryParams).toEqual({ page: "1" });
+        expect(parsed.headers).toHaveLength(1);
+        expect(parsed.headers.at(0)?.key).toBe("Authorization");
+        expect(parsed.queryParams).toHaveLength(1);
+        expect(parsed.queryParams.at(0)?.value).toBe("1");
       });
     });
 
@@ -456,9 +461,11 @@ describe("canvas type schemas", () => {
         const parsed = DatabaseQueryNodeConfigSchema.parse({
           connectionId: "conn_123",
           query: "SELECT * FROM users WHERE id = $1",
-          parameters: ["user_123"],
+          parameters: [{ name: "id", value: "user_123", type: "string" }],
         });
-        expect(parsed.parameters).toEqual(["user_123"]);
+        expect(parsed.parameters).toHaveLength(1);
+        expect(parsed.parameters.at(0)?.name).toBe("id");
+        expect(parsed.parameters.at(0)?.value).toBe("user_123");
       });
     });
 
@@ -475,10 +482,10 @@ describe("canvas type schemas", () => {
         const parsed = GraphqlQueryNodeConfigSchema.parse({
           endpoint: "https://api.example.com/graphql",
           query: "query GetUser($id: ID!) { user(id: $id) { name } }",
-          variables: { id: "123" },
+          variables: '{"id":"123"}',
           operationName: "GetUser",
         });
-        expect(parsed.variables).toEqual({ id: "123" });
+        expect(parsed.variables).toBe('{"id":"123"}');
         expect(parsed.operationName).toBe("GetUser");
       });
     });
@@ -712,6 +719,7 @@ describe("canvas type schemas", () => {
           name: "Send Message",
           description: "Send a message to a Slack channel",
           connectorType: "slack",
+          resource: "message",
           category: "notify",
           inputs: [
             {
