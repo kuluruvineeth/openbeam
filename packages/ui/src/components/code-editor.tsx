@@ -1,8 +1,10 @@
 "use client";
 
 import { javascript } from "@codemirror/lang-javascript";
+import { json } from "@codemirror/lang-json";
 import { python } from "@codemirror/lang-python";
-import type { CodeRuntime } from "@openplane/types/canvas";
+import { PostgreSQL, sql } from "@codemirror/lang-sql";
+import type { EditorLanguage } from "@openplane/types/canvas";
 import CodeMirror, {
   EditorView,
   type ReactCodeMirrorProps,
@@ -11,7 +13,7 @@ import { useTheme } from "next-themes";
 import { forwardRef, memo, useMemo } from "react";
 import { cn } from "../utils";
 
-function getLanguageExtension(language: CodeRuntime) {
+function getLanguageExtension(language: EditorLanguage) {
   switch (language) {
     case "typescript":
       return javascript({ jsx: false, typescript: true });
@@ -19,6 +21,12 @@ function getLanguageExtension(language: CodeRuntime) {
       return javascript({ jsx: false, typescript: false });
     case "python":
       return python();
+    case "sql":
+      return sql({ dialect: PostgreSQL });
+    case "json":
+      return json();
+    case "graphql":
+      return javascript({ jsx: false, typescript: false });
     default:
       return javascript({ jsx: false, typescript: false });
   }
@@ -31,7 +39,7 @@ interface CodeEditorProps
   > {
   value: string;
   onChange?: (value: string) => void;
-  language?: CodeRuntime;
+  language?: EditorLanguage;
   readOnly?: boolean;
   placeholder?: string;
   className?: string;

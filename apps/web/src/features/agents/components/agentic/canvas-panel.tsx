@@ -28,7 +28,7 @@ import {
   SheetTitle,
 } from "@openplane/ui/components/sheet";
 import { cn } from "@openplane/ui/utils";
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import type { Edge, Node } from "@xyflow/react";
 import { Suspense, useCallback, useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
@@ -68,7 +68,7 @@ function CanvasPanelContent({ agentId, className }: CanvasPanelProps) {
   const commandPalette = useCanvasCommandPalette();
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
 
-  const { data: agent } = useSuspenseQuery(
+  const { data: agent } = useQuery(
     trpc.agentCanvas.get.queryOptions({ canvasId: agentId })
   );
 
@@ -89,17 +89,36 @@ function CanvasPanelContent({ agentId, className }: CanvasPanelProps) {
       }));
   }, [connectorApps]);
 
+  const { data: availableTools } = useQuery(
+    trpc.agentCanvas.listTools.queryOptions()
+  );
+
+  const selectedToolId = useMemo(() => {
+    if (!selectedNode || selectedNode.type !== "tool") {
+      return;
+    }
+    return (selectedNode.data as { config?: { toolId?: string } })?.config
+      ?.toolId;
+  }, [selectedNode]);
+
+  const { data: toolParameters, isLoading: toolParametersLoading } = useQuery({
+    ...trpc.agentCanvas.getToolParameters.queryOptions({
+      toolId: selectedToolId ?? "",
+    }),
+    enabled: !!selectedToolId,
+  });
+
   useCanvasSync(agent);
 
   const isBuilding = status === "building";
 
   const initialNodes = useMemo(
-    () => (agent.nodes ?? []) as Node[],
-    [agent.nodes]
+    () => (agent?.nodes ?? []) as Node[],
+    [agent?.nodes]
   );
   const initialEdges = useMemo(
-    () => (agent.edges ?? []) as Edge[],
-    [agent.edges]
+    () => (agent?.edges ?? []) as Edge[],
+    [agent?.edges]
   );
 
   const externalNodes = useMemo(() => nodes as Node[], [nodes]);
@@ -206,6 +225,10 @@ function CanvasPanelContent({ agentId, className }: CanvasPanelProps) {
     addNode(newNode);
   }, [selectedNode, addNode]);
 
+  if (!agent) {
+    return <CanvasPanelSkeleton />;
+  }
+
   return (
     <div className={cn("relative h-full w-full", className)}>
       {isBuilding && <BuildingIndicator pendingCount={pendingCount} />}
@@ -245,6 +268,7 @@ function CanvasPanelContent({ agentId, className }: CanvasPanelProps) {
           {selectedNode && (
             <ConfigPanel
               actionRegistries={ALL_CONNECTOR_ACTION_REGISTRIES}
+              availableTools={availableTools}
               connectorLogos={connectorLogos}
               connectors={connectors}
               embedded
@@ -265,6 +289,8 @@ function CanvasPanelContent({ agentId, className }: CanvasPanelProps) {
               onDuplicate={handleDuplicateNode}
               onFetchResources={fetchResources}
               onLabelChange={handleLabelChange}
+              toolParameters={toolParameters}
+              toolParametersLoading={toolParametersLoading}
             />
           )}
         </SheetContent>

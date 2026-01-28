@@ -227,6 +227,7 @@ export const Icons = {
   FileIcon: createIcon(File01Icon),
   FileTextIcon: createIcon(DocumentCodeIcon),
   FileSpreadsheetIcon: createIcon(TableIcon),
+  Table: createIcon(TableIcon),
   PresentationIcon: createIcon(PresentationIcon),
   FileImageIcon: createIcon(ImageIcon),
   FilePdf: createIcon(Pdf01Icon),
