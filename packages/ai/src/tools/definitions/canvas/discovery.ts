@@ -76,6 +76,21 @@ const NODE_TYPE_INFO: Record<CanvasNodeType, Omit<NodeTypeInfo, "type">> = {
       "outputSchema",
     ],
   },
+  image: {
+    category: "ai",
+    description: "Generate or process images using AI models.",
+    configFields: ["model", "prompt", "size", "quality", "style"],
+  },
+  audio: {
+    category: "ai",
+    description: "Process or generate audio using AI models.",
+    configFields: ["model", "input", "voice", "format", "speed"],
+  },
+  video: {
+    category: "ai",
+    description: "Process or generate video using AI models.",
+    configFields: ["model", "input", "duration", "resolution", "format"],
+  },
   rag: {
     category: "ai",
     description: "Retrieve relevant documents and generate grounded responses.",

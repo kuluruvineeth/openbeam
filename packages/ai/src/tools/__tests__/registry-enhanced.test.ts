@@ -334,7 +334,11 @@ describe("ToolRegistry Enhanced Features", () => {
       const mockSearchService = {
         search: mock(() =>
           Promise.resolve([
-            { name: "custom_tool", description: "Custom", category: "search" },
+            {
+              name: "custom_tool",
+              description: "Custom",
+              category: "search" as const,
+            },
           ])
         ),
       };

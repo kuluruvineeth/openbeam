@@ -21,6 +21,11 @@ export {
   failure,
   success,
 } from "./builder";
+export type {
+  CanvasToolParameterDef,
+  CanvasToolPickerItem,
+} from "./canvas-adapter";
+export { createGetToolParameters, toToolPickerItems } from "./canvas-adapter";
 export type { ChainResult, StepResult, ToolChainStep } from "./chaining";
 export {
   createChainBuilder,
@@ -132,7 +137,6 @@ export {
   resetToolHooks,
   setupToolHooks,
 } from "./setup";
-
 export type {
   AISDKTool,
   RegisteredTool,

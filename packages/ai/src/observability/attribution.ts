@@ -59,8 +59,14 @@ export function calculateCost(
 
 export function getModelPricing(model: string): ModelPricing {
   const centralized = getCentralizedPricing(model);
-  if (centralized) {
-    return centralized;
+  if (
+    centralized?.inputPer1M !== undefined &&
+    centralized.outputPer1M !== undefined
+  ) {
+    return {
+      inputPer1M: centralized.inputPer1M,
+      outputPer1M: centralized.outputPer1M,
+    };
   }
   return customPricing[model] ?? DEFAULT_PRICING;
 }

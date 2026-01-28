@@ -39,7 +39,17 @@ export interface EmergenceAnalysis {
   formalizationCandidates: EmergencePattern[];
 }
 
-const EMERGENCE_THRESHOLDS = {
+interface EmergenceThresholds {
+  minFrequency: number;
+  minSuccessRate: number;
+  minFrequencyForGap: number;
+  maxSuccessRateForGap: number;
+  recentDays: number;
+  formalizationMinFrequency: number;
+  formalizationMinSuccessRate: number;
+}
+
+const EMERGENCE_THRESHOLDS: EmergenceThresholds = {
   minFrequency: 50,
   minSuccessRate: 0.8,
   minFrequencyForGap: 20,
@@ -47,16 +57,16 @@ const EMERGENCE_THRESHOLDS = {
   recentDays: 7,
   formalizationMinFrequency: 100,
   formalizationMinSuccessRate: 0.85,
-} as const;
+};
 
 export interface EmergenceDetectorConfig {
-  thresholds?: Partial<typeof EMERGENCE_THRESHOLDS>;
+  thresholds?: Partial<EmergenceThresholds>;
   onPatternDiscovered?: (pattern: EmergencePattern) => void;
   onCapabilityGapFound?: (pattern: EmergencePattern) => void;
 }
 
 export class EmergenceDetector {
-  private thresholds: typeof EMERGENCE_THRESHOLDS;
+  private thresholds: EmergenceThresholds;
   private readonly callbacks: {
     onPatternDiscovered?: (pattern: EmergencePattern) => void;
     onCapabilityGapFound?: (pattern: EmergencePattern) => void;
@@ -169,11 +179,11 @@ export class EmergenceDetector {
     );
   }
 
-  getThresholds(): typeof EMERGENCE_THRESHOLDS {
+  getThresholds(): EmergenceThresholds {
     return { ...this.thresholds };
   }
 
-  updateThresholds(updates: Partial<typeof EMERGENCE_THRESHOLDS>): void {
+  updateThresholds(updates: Partial<EmergenceThresholds>): void {
     this.thresholds = { ...this.thresholds, ...updates };
   }
 }

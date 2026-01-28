@@ -2,12 +2,10 @@ import { beforeEach, describe, expect, it, mock } from "bun:test";
 
 mock.module("prom-client", () => ({
   Counter: class MockCounter {
-    private _labels: Record<string, string> = {};
     inc(_labels?: Record<string, string>) {
       return;
     }
-    labels(l: Record<string, string>) {
-      this._labels = l;
+    labels(_l: Record<string, string>) {
       return this;
     }
   },

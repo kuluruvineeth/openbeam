@@ -827,6 +827,8 @@ export {
 export type {
   AISDKTool,
   AllowedCaller,
+  CanvasToolParameterDef,
+  CanvasToolPickerItem,
   Connector,
   Document,
   DocumentChunk,
@@ -866,9 +868,12 @@ export type {
   VirtualFileInfo,
 } from "./tools";
 export {
+  createGetToolParameters,
   createUnimplementedServices,
+  registerAllTools,
   ToolRegistry,
   tool,
   toolRegistry,
+  toToolPickerItems,
   z,
 } from "./tools";
