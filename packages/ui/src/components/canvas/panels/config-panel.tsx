@@ -11,8 +11,11 @@ import type {
   ConnectorActionNodeConfig,
   ConnectorActionsRegistry,
   ConnectorNodeConfig,
+  DatabaseQueryNodeConfig,
   ExtractNodeConfig,
   FilterNodeConfig,
+  GraphqlQueryNodeConfig,
+  HttpRequestNodeConfig,
   ImageNodeConfig,
   InputNodeConfig,
   LlmNodeConfig,
@@ -25,6 +28,7 @@ import type {
   StartNodeConfig,
   SummarizeNodeConfig,
   TemplateNodeConfig,
+  ToolNodeConfig,
   VideoNodeConfig,
 } from "@openplane/types/canvas";
 import type { ConnectorType } from "@openplane/types/services/connectors/events";
@@ -35,6 +39,7 @@ import { ScrollArea } from "../../scroll-area";
 import { Sheet, SheetContent } from "../../sheet";
 import { Textarea } from "../../textarea";
 import type { ConnectorInfo, LogoProps, ResourceInfo } from "../event-builder";
+import type { ToolParameterDef, ToolPickerItem } from "../tool-elements";
 import { ConfigField } from "./config-field";
 import { ConfigPanelHeader } from "./config-panel-header";
 import { ConfigSection } from "./config-section";
@@ -47,8 +52,11 @@ import {
   ConditionConfigPanel,
   ConnectorActionConfigPanel,
   ConnectorConfigPanel,
+  DatabaseQueryConfigPanel,
   ExtractConfigPanel,
   FilterConfigPanel,
+  GraphqlQueryConfigPanel,
+  HttpRequestConfigPanel,
   ImageConfigPanel,
   InputConfigPanel,
   LlmConfigPanel,
@@ -60,6 +68,7 @@ import {
   StartConfigPanel,
   SummarizeConfigPanel,
   TemplateConfigPanel,
+  ToolConfigPanel,
   VideoConfigPanel,
 } from "./configs";
 
@@ -80,6 +89,9 @@ interface ConfigPanelBaseProps {
     resourceType: string
   ) => Promise<ResourceInfo[]>;
   actionRegistries?: ConnectorActionsRegistry[];
+  availableTools?: ToolPickerItem[];
+  toolParameters?: ToolParameterDef[];
+  toolParametersLoading?: boolean;
 }
 
 interface StandaloneConfigPanelProps extends ConfigPanelBaseProps {
@@ -118,6 +130,9 @@ const ConfigPanelContent = memo(
         connectors,
         onFetchResources,
         actionRegistries,
+        availableTools,
+        toolParameters,
+        toolParametersLoading,
       },
       ref
     ) {
@@ -253,6 +268,20 @@ const ConfigPanelContent = memo(
                 onChange={handleConfigChange}
               />
             );
+          case "graphql_query":
+            return (
+              <GraphqlQueryConfigPanel
+                config={nodeConfig as GraphqlQueryNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "http_request":
+            return (
+              <HttpRequestConfigPanel
+                config={nodeConfig as HttpRequestNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
           case "template":
             return (
               <TemplateConfigPanel
@@ -285,11 +314,28 @@ const ConfigPanelContent = memo(
                 onFetchResources={onFetchResources}
               />
             );
+          case "database_query":
+            return (
+              <DatabaseQueryConfigPanel
+                config={nodeConfig as DatabaseQueryNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
           case "connector_action":
             return (
               <ConnectorActionConfigPanel
                 config={nodeConfig as ConnectorActionNodeConfig}
                 onChange={handleConfigChange}
+              />
+            );
+          case "tool":
+            return (
+              <ToolConfigPanel
+                availableTools={availableTools}
+                config={nodeConfig as ToolNodeConfig}
+                onChange={handleConfigChange}
+                toolParameters={toolParameters}
+                toolParametersLoading={toolParametersLoading}
               />
             );
           default:
@@ -383,6 +429,7 @@ export const ConfigPanel = memo(
         return (
           <ConfigPanelContent
             actionRegistries={props.actionRegistries}
+            availableTools={props.availableTools}
             connectorLogos={props.connectorLogos}
             connectors={props.connectors}
             nodeConfig={nodeConfig}
@@ -397,6 +444,8 @@ export const ConfigPanel = memo(
             onFetchResources={props.onFetchResources}
             onLabelChange={onLabelChange}
             ref={ref}
+            toolParameters={props.toolParameters}
+            toolParametersLoading={props.toolParametersLoading}
           />
         );
       }
@@ -411,6 +460,7 @@ export const ConfigPanel = memo(
           >
             <ConfigPanelContent
               actionRegistries={props.actionRegistries}
+              availableTools={props.availableTools}
               connectorLogos={props.connectorLogos}
               connectors={props.connectors}
               nodeConfig={nodeConfig}
@@ -424,6 +474,8 @@ export const ConfigPanel = memo(
               onDuplicate={onDuplicate}
               onFetchResources={props.onFetchResources}
               onLabelChange={onLabelChange}
+              toolParameters={props.toolParameters}
+              toolParametersLoading={props.toolParametersLoading}
             />
           </SheetContent>
         </Sheet>

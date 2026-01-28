@@ -42,6 +42,11 @@ export const HttpRequestNode = memo(
         }
       }, [data.config.url]);
 
+      const activeHeaderCount = useMemo(() => {
+        const headers = data.config.headers ?? [];
+        return headers.filter((h) => h.enabled && h.key).length;
+      }, [data.config.headers]);
+
       const methodColor =
         METHOD_COLORS[data.config.method] ?? "text-muted-foreground";
 
@@ -66,14 +71,19 @@ export const HttpRequestNode = memo(
               <NodeField label="Method">
                 <span className={methodColor}>{data.config.method}</span>
               </NodeField>
-              {data.config.headers &&
-                Object.keys(data.config.headers).length > 0 && (
-                  <NodeField
-                    label="Headers"
-                    mono
-                    value={`${Object.keys(data.config.headers).length} set`}
-                  />
-                )}
+              {data.config.auth && data.config.auth.type !== "none" && (
+                <NodeField label="Auth" mono value={data.config.auth.type} />
+              )}
+              {activeHeaderCount > 0 && (
+                <NodeField
+                  label="Headers"
+                  mono
+                  value={`${activeHeaderCount} set`}
+                />
+              )}
+              {data.config.bodyType && data.config.bodyType !== "none" && (
+                <NodeField label="Body" mono value={data.config.bodyType} />
+              )}
               <NodeField
                 label="Timeout"
                 mono
@@ -95,9 +105,25 @@ export function createHttpRequestNodeData(): HttpRequestNodeData {
     config: {
       url: "",
       method: "GET",
+      headers: [],
+      queryParams: [],
+      auth: { type: "none" },
+      bodyType: "none",
+      retry: {
+        enabled: true,
+        maxAttempts: 3,
+        backoffMs: 1000,
+        retryOn: [429, 500, 502, 503, 504],
+      },
+      response: {
+        responseType: "auto",
+        followRedirects: true,
+        maxRedirects: 10,
+        validateCertificate: true,
+        parseResponse: true,
+      },
       timeoutMs: 30_000,
-      retryOn5xx: true,
-      responseType: "json",
+      continueOnError: false,
     },
     inputs: [{ id: "input", label: "Body", type: "data", required: false }],
     outputs: [

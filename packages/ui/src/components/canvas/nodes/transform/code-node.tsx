@@ -33,6 +33,7 @@ const RUNTIME_CONFIG: Record<
   javascript: { label: "JS", icon: "Braces", color: "text-yellow-500" },
   typescript: { label: "TS", icon: "FileCode", color: "text-blue-500" },
   python: { label: "PY", icon: "Code2", color: "text-green-500" },
+  sql: { label: "SQL", icon: "Database", color: "text-cyan-500" },
 };
 
 function getCodePreview(code: string, maxLength = 60): string {
