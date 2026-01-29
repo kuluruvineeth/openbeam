@@ -1,6 +1,7 @@
 "use client";
 
 import type {
+  AgentCallNodeConfig,
   AnnotationNodeConfig,
   ApprovalNodeConfig,
   AudioNodeConfig,
@@ -20,12 +21,17 @@ import type {
   InputNodeConfig,
   LlmNodeConfig,
   LoopNodeConfig,
+  MemoryReadNodeConfig,
+  MemorySearchNodeConfig,
+  MemoryWriteNodeConfig,
   NodeStatus,
   NotifyNodeConfig,
   ParallelJoinNodeConfig,
+  ParallelMapNodeConfig,
   ParallelSplitNodeConfig,
   RagNodeConfig,
   StartNodeConfig,
+  SubWorkflowNodeConfig,
   SummarizeNodeConfig,
   TemplateNodeConfig,
   ToolNodeConfig,
@@ -44,6 +50,7 @@ import { ConfigField } from "./config-field";
 import { ConfigPanelHeader } from "./config-panel-header";
 import { ConfigSection } from "./config-section";
 import {
+  AgentCallConfigPanel,
   AnnotationConfigPanel,
   ApprovalConfigPanel,
   AudioConfigPanel,
@@ -61,11 +68,16 @@ import {
   InputConfigPanel,
   LlmConfigPanel,
   LoopConfigPanel,
+  MemoryReadConfigPanel,
+  MemorySearchConfigPanel,
+  MemoryWriteConfigPanel,
   NotifyConfigPanel,
   ParallelJoinConfigPanel,
+  ParallelMapConfigPanel,
   ParallelSplitConfigPanel,
   RagConfigPanel,
   StartConfigPanel,
+  SubWorkflowConfigPanel,
   SummarizeConfigPanel,
   TemplateConfigPanel,
   ToolConfigPanel,
@@ -145,6 +157,13 @@ const ConfigPanelContent = memo(
 
       const renderNodeConfig = () => {
         switch (nodeType) {
+          case "agent_call":
+            return (
+              <AgentCallConfigPanel
+                config={nodeConfig as AgentCallNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
           case "start":
             return (
               <StartConfigPanel
@@ -198,6 +217,13 @@ const ConfigPanelContent = memo(
                 onChange={handleConfigChange}
               />
             );
+          case "parallel_map":
+            return (
+              <ParallelMapConfigPanel
+                config={nodeConfig as ParallelMapNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
           case "code":
             return (
               <CodeConfigPanel
@@ -237,6 +263,13 @@ const ConfigPanelContent = memo(
             return (
               <VideoConfigPanel
                 config={nodeConfig as VideoNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "sub_workflow":
+            return (
+              <SubWorkflowConfigPanel
+                config={nodeConfig as SubWorkflowNodeConfig}
                 onChange={handleConfigChange}
               />
             );
@@ -324,8 +357,12 @@ const ConfigPanelContent = memo(
           case "connector_action":
             return (
               <ConnectorActionConfigPanel
+                actionRegistries={actionRegistries}
                 config={nodeConfig as ConnectorActionNodeConfig}
+                connectorLogos={connectorLogos}
+                connectors={connectors}
                 onChange={handleConfigChange}
+                onFetchResources={onFetchResources}
               />
             );
           case "tool":
@@ -336,6 +373,27 @@ const ConfigPanelContent = memo(
                 onChange={handleConfigChange}
                 toolParameters={toolParameters}
                 toolParametersLoading={toolParametersLoading}
+              />
+            );
+          case "memory_read":
+            return (
+              <MemoryReadConfigPanel
+                config={nodeConfig as MemoryReadNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "memory_write":
+            return (
+              <MemoryWriteConfigPanel
+                config={nodeConfig as MemoryWriteNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "memory_search":
+            return (
+              <MemorySearchConfigPanel
+                config={nodeConfig as MemorySearchNodeConfig}
+                onChange={handleConfigChange}
               />
             );
           default:

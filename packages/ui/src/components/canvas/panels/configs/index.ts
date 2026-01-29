@@ -1,5 +1,6 @@
 "use client";
 
+export { AgentCallConfigPanel } from "./agent-call-config";
 export { AnnotationConfigPanel } from "./annotation-config";
 export { ApprovalConfigPanel } from "./approval-config";
 export { AudioConfigPanel } from "./audio-config";
@@ -17,11 +18,16 @@ export { ImageConfigPanel } from "./image-config";
 export { InputConfigPanel } from "./input-config";
 export { LlmConfigPanel } from "./llm-config";
 export { LoopConfigPanel } from "./loop-config";
+export { MemoryReadConfigPanel } from "./memory-read-config";
+export { MemorySearchConfigPanel } from "./memory-search-config";
+export { MemoryWriteConfigPanel } from "./memory-write-config";
 export { NotifyConfigPanel } from "./notify-config";
 export { ParallelJoinConfigPanel } from "./parallel-join-config";
+export { ParallelMapConfigPanel } from "./parallel-map-config";
 export { ParallelSplitConfigPanel } from "./parallel-split-config";
 export { RagConfigPanel } from "./rag-config";
 export { StartConfigPanel } from "./start-config";
+export { SubWorkflowConfigPanel } from "./sub-workflow-config";
 export { SummarizeConfigPanel } from "./summarize-config";
 export { TemplateConfigPanel } from "./template-config";
 export { ToolConfigPanel } from "./tool-config";
