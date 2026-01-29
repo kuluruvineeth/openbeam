@@ -141,6 +141,7 @@ export type RetryConfig = z.infer<typeof RetryConfigSchema>;
 
 export const ConnectorActionNodeConfigSchema = z.object({
   connectorType: z.string(),
+  connectorId: z.string().optional(),
   actionId: z.string(),
   inputMappings: z.record(z.string(), z.unknown()),
   outputMappings: z.record(z.string(), z.string()).optional(),
