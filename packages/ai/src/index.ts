@@ -19,6 +19,7 @@ export type {
   AgentTaskType,
   AgentType,
   AggregatorConfig,
+  CanvasStreamEvent,
   CoordinatorAgentConfig,
   ExecutableAgent,
   ExecutionTrace,
@@ -48,14 +49,19 @@ export {
   aggregateTokens,
   BaseAgent,
   buildAgentSystemPrompt,
+  CANVAS_BUILDER_PROMPT,
+  CANVAS_BUILDER_TOOLS,
+  CanvasBuilderAgent,
   CoordinatorAgent,
   calculateDuration,
+  canvasBuilderConfig,
   completeTrace,
   composeAgents,
   createAgent,
   createAgentFromConfig,
   createAgentMemoryManager,
   createAgentRunner,
+  createCanvasBuilderAgent,
   createCoordinatorAgent,
   createEmptyState,
   createLlmAgent,
@@ -96,6 +102,7 @@ export {
   skipTrace,
   streamAgent,
   streamAgentNew,
+  streamCanvasBuilder,
   withAgentMemory,
 } from "./agents";
 export type {
@@ -820,6 +827,8 @@ export {
 export type {
   AISDKTool,
   AllowedCaller,
+  CanvasToolParameterDef,
+  CanvasToolPickerItem,
   Connector,
   Document,
   DocumentChunk,
@@ -859,9 +868,12 @@ export type {
   VirtualFileInfo,
 } from "./tools";
 export {
+  createGetToolParameters,
   createUnimplementedServices,
+  registerAllTools,
   ToolRegistry,
   tool,
   toolRegistry,
+  toToolPickerItems,
   z,
 } from "./tools";

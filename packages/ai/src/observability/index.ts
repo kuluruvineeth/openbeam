@@ -31,6 +31,32 @@ export {
   normalizeToolSequence,
 } from "./composition";
 export type {
+  EmergenceAnalysis,
+  EmergenceDetectorConfig,
+  EmergencePattern,
+  EmergencePatternStatus,
+} from "./emergence";
+export {
+  createEmergenceDetector,
+  EmergenceDetector,
+  EmergencePatternStatusSchema,
+  getGlobalEmergenceDetector,
+  setGlobalEmergenceDetector,
+} from "./emergence";
+export type {
+  LatentDemandEvent,
+  LatentDemandReason,
+  LatentDemandSummary,
+} from "./latent-demand";
+export {
+  createLatentDemandEvent,
+  getLatentDemandLogger,
+  LatentDemandEventSchema,
+  LatentDemandLogger,
+  LatentDemandReasonSchema,
+  logLatentDemand,
+} from "./latent-demand";
+export type {
   AgentPerformanceParams,
   GroundingMetricsParams,
   RAGQualityParams,

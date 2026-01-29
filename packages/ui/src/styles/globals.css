@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "@xyflow/react/dist/style.css";
+@import "./react-day-picker.css";
 
 @plugin "tailwind-scrollbar";
 
@@ -80,6 +81,14 @@
   --color-node-script: var(--node-script);
   --color-node-notify: var(--node-notify);
 
+  --color-node-control: var(--node-control);
+  --color-node-ai: var(--node-ai);
+  --color-node-human: var(--node-human);
+  --color-node-integration: var(--node-integration);
+  --color-node-trigger: var(--node-trigger);
+  --color-node-memory: var(--node-memory);
+  --color-node-orchestration: var(--node-orchestration);
+
   --color-canvas-success: var(--canvas-success);
   --color-canvas-error: var(--canvas-error);
   --color-canvas-warning: var(--canvas-warning);
@@ -109,6 +118,9 @@
   --background-700: oklch(86% 0 0);
 
   --foreground: oklch(14.5% 0 0);
+
+  --card: oklch(99% 0 0);
+  --card-foreground: oklch(14.5% 0 0);
 
   --header-height: 80px;
   --footer-height: 0px;
@@ -181,6 +193,14 @@
   --node-script: oklch(55% 0.08 240);
   --node-notify: oklch(65% 0.18 235);
 
+  --node-control: oklch(72% 0.18 145);
+  --node-ai: oklch(65% 0.2 285);
+  --node-human: oklch(75% 0.16 55);
+  --node-integration: oklch(60% 0.15 230);
+  --node-trigger: oklch(72% 0.18 145);
+  --node-memory: oklch(70% 0.15 195);
+  --node-orchestration: oklch(65% 0.2 285);
+
   --canvas-success: oklch(72% 0.18 145);
   --canvas-error: oklch(65% 0.2 25);
   --canvas-warning: oklch(75% 0.16 85);
@@ -210,6 +230,9 @@
   --background-700: oklch(34.5% 0 0);
 
   --foreground: oklch(98.5% 0 0);
+
+  --card: oklch(18% 0 0);
+  --card-foreground: oklch(98.5% 0 0);
 
   --popover: oklch(14.5% 0 0);
   --popover-foreground: oklch(98.5% 0 0);
@@ -274,6 +297,14 @@
   --node-template: oklch(78% 0.12 130);
   --node-script: oklch(62% 0.06 240);
   --node-notify: oklch(72% 0.14 235);
+
+  --node-control: oklch(78% 0.14 145);
+  --node-ai: oklch(72% 0.16 285);
+  --node-human: oklch(80% 0.12 55);
+  --node-integration: oklch(68% 0.12 230);
+  --node-trigger: oklch(78% 0.14 145);
+  --node-memory: oklch(76% 0.12 195);
+  --node-orchestration: oklch(72% 0.16 285);
 
   --canvas-success: oklch(78% 0.14 145);
   --canvas-error: oklch(72% 0.16 25);
@@ -435,6 +466,32 @@ body {
   .animate-blink {
     animation: blink 1s step-end infinite;
   }
+
+  @keyframes collapsible-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-collapsible-content-height);
+    }
+  }
+
+  @keyframes collapsible-up {
+    from {
+      height: var(--radix-collapsible-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+
+  .animate-collapsible-down {
+    animation: collapsible-down 200ms ease-out;
+  }
+
+  .animate-collapsible-up {
+    animation: collapsible-up 200ms ease-out;
+  }
 }
 
 @utility step {
@@ -520,8 +577,20 @@ body {
   .react-flow__background-pattern.dots {
     @apply fill-foreground/25!;
   }
-  .react-flow__node.selected .node-container {
+  .react-flow__node {
+    @apply !bg-transparent !border-0 !shadow-none;
+  }
+  .node-container[data-node-selected="true"] {
     @apply ring-2! ring-primary!;
+  }
+  .node-container[data-node-status="running"] {
+    @apply ring-2! ring-primary!;
+  }
+  .node-container[data-node-status="error"] {
+    @apply ring-destructive!;
+  }
+  .node-container[data-node-status="success"] {
+    @apply ring-green-500/50!;
   }
   .react-flow__controls {
     @apply border-none! bg-transparent! shadow-none!;

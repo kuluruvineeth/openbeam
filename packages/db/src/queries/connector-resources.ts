@@ -217,6 +217,35 @@ export const getConnectorResourceByExternalId = async (
     },
   });
 
+export const getConnectorResourceTypes = async (
+  db: Database,
+  connectorId: string
+): Promise<string[]> => {
+  const resources = await db.connectorResource.findMany({
+    where: { connectorId },
+    select: { resourceType: true },
+    distinct: ["resourceType"],
+  });
+  return resources.map((r) => r.resourceType);
+};
+
+export const listConnectorResourcesByType = async (
+  db: Database,
+  connectorId: string,
+  resourceType: string,
+  options?: { syncEnabled?: boolean }
+): Promise<ConnectorResource[]> =>
+  db.connectorResource.findMany({
+    where: {
+      connectorId,
+      resourceType,
+      ...(options?.syncEnabled !== undefined && {
+        syncEnabled: options.syncEnabled,
+      }),
+    },
+    orderBy: { name: "asc" },
+  });
+
 export type ResourceDocument = {
   id: string;
   title: string | null;

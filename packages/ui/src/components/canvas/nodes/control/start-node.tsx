@@ -7,9 +7,18 @@ import type {
 } from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
-import { Play } from "lucide-react";
-import { forwardRef, memo } from "react";
-import { NodeField, NodeHeader, NodeSection, NodeShell } from "../primitives";
+import { forwardRef, memo, useMemo } from "react";
+import { CronDisplay } from "../../../cron-display";
+import { useCanvasContext } from "../../canvas-context";
+import { EventDisplay } from "../../event-builder";
+import { getTriggerType } from "../../trigger-types";
+import { WebhookDisplay } from "../../webhook-builder";
+import {
+  NodeErrorBoundary,
+  NodeHeader,
+  NodeSection,
+  NodeShell,
+} from "../primitives";
 
 export interface StartNodeData {
   label: string;
@@ -22,17 +31,33 @@ export interface StartNodeData {
 
 type StartNodeType = Node<StartNodeData, "start">;
 
-const TRIGGER_LABELS: Record<string, string> = {
-  manual: "Manual Trigger",
-  schedule: "Scheduled",
-  webhook: "Webhook",
-  event: "Event",
-};
-
 export const StartNode = memo(
   forwardRef<HTMLDivElement, NodeProps<StartNodeType>>(
     function StartNodeComponent({ data, selected }, ref) {
-      const { triggerType, schedule, webhookPath } = data.config;
+      const { connectorLogos } = useCanvasContext();
+
+      const {
+        triggerType = "manual",
+        schedule,
+        webhookConfig,
+        eventConfig,
+      } = data.config ?? {};
+
+      const triggerConfig = useMemo(
+        () => getTriggerType(triggerType),
+        [triggerType]
+      );
+
+      const TriggerIcon = triggerConfig.icon;
+
+      const hasDetails =
+        (triggerType === "schedule" && schedule) ||
+        (triggerType === "webhook" && webhookConfig?.path) ||
+        (triggerType === "event" && eventConfig);
+
+      const connectorLogo = eventConfig?.connectorType
+        ? connectorLogos?.[eventConfig.connectorType]
+        : undefined;
 
       return (
         <NodeShell
@@ -43,18 +68,34 @@ export const StartNode = memo(
         >
           <NodeHeader
             colorVar="--node-start"
-            icon={<Play className="size-5" />}
-            subtitle={TRIGGER_LABELS[triggerType]}
+            icon={<TriggerIcon className="size-4" />}
+            subtitle={triggerConfig.name}
             title={data.label}
           />
-          {(schedule || webhookPath) && (
+          {hasDetails && (
             <NodeSection>
-              {triggerType === "schedule" && schedule && (
-                <NodeField label="Schedule" mono value={schedule} />
-              )}
-              {triggerType === "webhook" && webhookPath && (
-                <NodeField label="Path" mono value={webhookPath} />
-              )}
+              <NodeErrorBoundary>
+                {triggerType === "schedule" && schedule && (
+                  <CronDisplay expression={schedule} showExpression={false} />
+                )}
+                {triggerType === "webhook" && webhookConfig?.path && (
+                  <WebhookDisplay
+                    authentication={webhookConfig.authentication}
+                    compact
+                    method={webhookConfig.method}
+                    path={webhookConfig.path}
+                  />
+                )}
+                {triggerType === "event" && eventConfig && (
+                  <EventDisplay
+                    connectorType={eventConfig.connectorType}
+                    eventId={eventConfig.eventId}
+                    logo={connectorLogo}
+                    resourceName={eventConfig.resourceName}
+                    resourceType={eventConfig.resourceType}
+                  />
+                )}
+              </NodeErrorBoundary>
             </NodeSection>
           )}
         </NodeShell>

@@ -9,18 +9,9 @@ export type {
   AnnotationNodeData,
 } from "./annotation-node";
 export { AnnotationNode, createAnnotationNodeData } from "./annotation-node";
-export type {
-  ApprovalNodeConfig,
-  ApprovalNodeData,
-  Approver,
-} from "./approval-node";
+export type { ApprovalNodeData } from "./approval-node";
 export { ApprovalNode, createApprovalNodeData } from "./approval-node";
-export type {
-  InputNodeConfig,
-  InputNodeData,
-  InputOption,
-  InputType,
-} from "./input-node";
+export type { InputNodeData } from "./input-node";
 export { createInputNodeData, InputNode } from "./input-node";
 export type { NotifyNodeConfig, NotifyNodeData } from "./notify-node";
 export { createNotifyNodeData, NotifyNode } from "./notify-node";

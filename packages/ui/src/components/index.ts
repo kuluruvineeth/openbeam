@@ -33,11 +33,14 @@ export type {
   ApprovalAction,
   ApprovalSeverity,
   AttachedFile,
+  ChatInputProps,
+  ChatInputRef,
   CitationSource,
   ErrorCode,
   GroupedTool,
   MessageData,
   ModelOption,
+  ModelSelectProps,
   ProviderGroup,
   SearchResult,
   StreamingCursorProps,
@@ -97,7 +100,10 @@ export {
   agentToolCallVariants,
   agentToolGroupVariants,
   agentToolIconVariants,
+  ChatInput,
   formatDuration,
+  ModelSelect,
+  modelSelectVariants,
   StreamingCursor,
   StreamingText,
   stepIndicatorVariants,
@@ -127,6 +133,7 @@ export {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "./alert-dialog";
+export { AnimatedSizeContainer } from "./animated-size-container";
 export { AspectRatio } from "./aspect-ratio";
 export { Avatar, AvatarFallback, AvatarImage } from "./avatar";
 export type { BadgeProps } from "./badge";
@@ -157,7 +164,9 @@ export type {
 } from "./calendar";
 export {
   ActivityHeatmap,
+  CalendarDayButton,
   CalendarViewSwitcher,
+  DayPickerCalendar,
   HoldToStopTimer,
   MonthCalendar,
   TrackerRow,
@@ -168,14 +177,11 @@ export type {
   AnnotationColor,
   AnnotationNodeConfig,
   AnnotationNodeData,
-  ApprovalNodeConfig,
   ApprovalNodeData,
-  Approver,
   BaseNodeData,
   CanvasBackgroundProps,
   CanvasControlsProps,
   CanvasToolbarProps,
-  ClassifyCategory,
   ClassifyNodeData,
   CodeNodeConfig,
   CodeNodeData,
@@ -184,26 +190,29 @@ export type {
   CompiledNode,
   ConditionalEdgeData,
   ConditionNodeData,
+  ConnectorEventUIConfig,
+  ConnectorIconMap,
+  ConnectorWithEvents,
   ControlEdgeData,
   DataEdgeData,
   DetectedPattern,
   EndNodeData,
   ErrorEdgeData,
+  EventCategoryGroup,
+  EventCategoryIconMap,
   ExecutionContext,
   ExecutionEvent,
   ExecutionEventHandler,
-  ExtractField,
   ExtractNodeData,
+  ExtractNodeProps,
   FilterNodeConfig,
   FilterNodeData,
-  InputNodeConfig,
   InputNodeData,
-  InputOption,
-  InputType,
   LlmNodeData,
   LoopNodeData,
   NodeExecutor,
   NodePortDefinition,
+  NodeRegistryEntry,
   NotifyNodeConfig,
   NotifyNodeData,
   ParallelJoinNodeData,
@@ -211,8 +220,9 @@ export type {
   RagNodeData,
   StartNodeData,
   SummarizeNodeData,
-  TemplateNodeConfig,
   TemplateNodeData,
+  TriggerTypeConfig,
+  TriggerTypeId,
 } from "./canvas";
 export {
   AgentCanvas,
@@ -221,17 +231,18 @@ export {
   ApprovalNode,
   aiNodeTypes,
   BaseNode,
+  CATEGORY_LABELS,
   CanvasBackground,
   CanvasContextMenu,
   CanvasControls,
   CanvasToolbar,
   ClassifyNode,
+  CONNECTOR_ICONS,
   CodeNode,
   ConditionalEdge,
   ConditionNode,
   ConfigPanel,
   ControlEdge,
-  categoryLabels,
   compileAgentConfig,
   controlNodeTypes,
   createAllNodeTypes,
@@ -246,6 +257,7 @@ export {
   createInputNodeData,
   createLlmNodeData,
   createLoopNodeData,
+  createNodeData,
   createNotifyNodeData,
   createParallelJoinNodeData,
   createParallelSplitNodeData,
@@ -260,16 +272,29 @@ export {
   detectPatterns,
   EndNode,
   ErrorEdge,
+  EVENT_CATEGORY_ICONS,
   ExtractNode,
   edgeTypes,
   FilterNode,
+  getAllConnectorsWithEvents,
+  getConnectorEventsUI,
+  getConnectorEventUI,
+  getConnectorIcon,
+  getEventCategoryIcon,
+  getEventsByCategoryUI,
+  getEventsByConnectorGrouped,
+  getNodeEntry,
+  getNodesByCategory,
   getTopologicalOrder,
+  getTriggerType,
+  hasNodeDataFactory,
   humanNodeTypes,
   InputNode,
   LlmNode,
   LoopNode,
   NotifyNode,
-  nodeButtons,
+  nodeRegistry,
+  nodeRegistryMap,
   ParallelJoinNode,
   ParallelSplitNode,
   RagNode,
@@ -277,9 +302,19 @@ export {
   SummarizeNode,
   serializeAgentConfig,
   TemplateNode,
+  TRIGGER_TYPE_LIST,
+  TRIGGER_TYPES,
   transformNodeTypes,
   validateAgentConfig,
 } from "./canvas";
+export type {
+  ConnectorInfo,
+  EventConfig,
+  LogoProps,
+  ResourceInfo,
+} from "./canvas/event-builder";
+export { EventBuilder, EventDisplay } from "./canvas/event-builder";
+export { WebhookBuilder, WebhookDisplay } from "./canvas/webhook-builder";
 export {
   Card,
   CardContent,
@@ -297,6 +332,8 @@ export {
   CarouselPrevious,
 } from "./carousel";
 export { Checkbox } from "./checkbox";
+export type { CodeEditorProps } from "./code-editor";
+export { CodeEditor } from "./code-editor";
 export {
   Collapsible,
   CollapsibleContent,
@@ -330,6 +367,13 @@ export {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "./context-menu";
+export { CronDisplay } from "./cron-display";
+export type {
+  CompactDatePickerProps,
+  DatePickerProps,
+  DateRangePickerProps,
+} from "./date-picker";
+export { CompactDatePicker, DatePicker, DateRangePicker } from "./date-picker";
 export {
   Dialog,
   DialogClose,
@@ -406,7 +450,9 @@ export {
   useFormField,
 } from "./form";
 export type {
+  ColorOption,
   ColorPickerProps,
+  ColorSwatchesProps,
   InlineEditableProps,
   SearchInputProps,
   SliderInputProps,
@@ -414,6 +460,8 @@ export type {
 } from "./forms";
 export {
   ColorPicker,
+  ColorSwatches,
+  DEFAULT_COLOR_OPTIONS,
   InlineEditable,
   PRESET_COLORS,
   SearchInput,
@@ -433,6 +481,12 @@ export {
 export { Label } from "./label";
 export type { MarkdownComponents, MarkdownProps } from "./markdown";
 export { Markdown, markdownVariants } from "./markdown";
+export type {
+  MessageAvatarProps,
+  MessageContentProps,
+  MessageProps,
+} from "./message";
+export { Message, MessageAvatar, MessageContent } from "./message";
 export type {
   AnimatedNumberProps,
   Metric,
@@ -523,12 +577,51 @@ export {
   PopoverTrigger,
 } from "./popover";
 export { Progress } from "./progress";
+export type {
+  PromptInputAttachmentProps,
+  PromptInputAttachmentsProps,
+  PromptInputBodyProps,
+  PromptInputEditorProps,
+  PromptInputMessage,
+  PromptInputProps,
+  PromptInputSubmitProps,
+  PromptInputToolbarProps,
+  PromptInputToolsProps,
+} from "./prompt-input";
+export {
+  PromptInput,
+  PromptInputActionAddAttachments,
+  PromptInputAttachment,
+  PromptInputAttachments,
+  PromptInputBody,
+  PromptInputEditor,
+  PromptInputSubmit,
+  PromptInputToolbar,
+  PromptInputTools,
+  usePromptInputAttachments,
+  usePromptInputText,
+} from "./prompt-input";
+export {
+  AnthropicIcon,
+  AzureIcon,
+  CohereIcon,
+  DefaultProviderIcon,
+  GeminiIcon,
+  GoogleIcon,
+  GroqIcon,
+  getProviderIcon,
+  MistralIcon,
+  OllamaIcon,
+  OpenAIIcon,
+  ProviderIcon,
+} from "./provider-icons";
 export { RadioGroup, RadioGroupItem } from "./radio-group";
 export {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "./resizable";
+export { ScheduleBuilder } from "./schedule-builder";
 export { ScrollArea, ScrollBar } from "./scroll-area";
 export {
   Select,
@@ -555,6 +648,8 @@ export {
   useKeyboardSelection,
   useSelection,
 } from "./selection";
+export type { SelectionCardProps } from "./selection-card";
+export { SelectionCard, selectionCardVariants } from "./selection-card";
 export { Separator } from "./separator";
 export {
   Sheet,

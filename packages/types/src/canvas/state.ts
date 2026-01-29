@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ToolCategorySchema } from "../common/errors";
 import { AgentCanvasEdgeSchema } from "./edges";
 import { AgentCanvasNodeSchema } from "./nodes";
 
@@ -25,6 +26,14 @@ export const SelectionStateSchema = z.object({
 
 export type SelectionState = z.infer<typeof SelectionStateSchema>;
 
+export const AgentConfigSchema = z.object({
+  model: z.string(),
+  capabilities: z.array(ToolCategorySchema),
+  systemPrompt: z.string().optional(),
+});
+
+export type AgentConfig = z.infer<typeof AgentConfigSchema>;
+
 export const AgentCanvasSettingsSchema = z.object({
   autoSave: z.boolean().default(true),
   theme: z.enum(["light", "dark", "system"]).default("system"),
@@ -33,16 +42,17 @@ export const AgentCanvasSettingsSchema = z.object({
   maxExecutionTime: z.number().default(300_000),
   enableLogging: z.boolean().default(true),
   environment: z.record(z.string(), z.string()).optional(),
+  agentConfig: AgentConfigSchema.optional(),
 });
 
 export type AgentCanvasSettings = z.infer<typeof AgentCanvasSettingsSchema>;
 
-export const TriggerConfigSchema = z.object({
-  webhookUrl: z.string().url().optional(),
+export const CanvasTriggerSettingsSchema = z.object({
+  webhookUrl: z.url().optional(),
   webhookSecret: z.string().optional(),
   schedule: z.string().optional(),
   eventType: z.string().optional(),
   eventFilter: z.record(z.string(), z.unknown()).optional(),
 });
 
-export type TriggerConfig = z.infer<typeof TriggerConfigSchema>;
+export type CanvasTriggerSettings = z.infer<typeof CanvasTriggerSettingsSchema>;

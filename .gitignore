@@ -98,3 +98,5 @@ status.json
 PROMPT.md
 specs/
 story/
+agents_engine_core/
+*.md

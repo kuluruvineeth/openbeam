@@ -3,8 +3,8 @@
 import type { EndNodeConfig, NodeStatus, Port } from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
-import { Square } from "lucide-react";
 import { forwardRef, memo } from "react";
+import { Icons } from "../../../icons";
 import { NodeHeader, NodeShell } from "../primitives";
 
 export interface EndNodeData {
@@ -39,7 +39,7 @@ export const EndNode = memo(
       >
         <NodeHeader
           colorVar="--node-end"
-          icon={<Square className="size-5" />}
+          icon={<Icons.Square size={20} />}
           subtitle={OUTPUT_LABELS[data.config.outputType]}
           title={data.label}
         />

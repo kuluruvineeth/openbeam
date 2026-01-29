@@ -12,74 +12,30 @@ import {
   CommandItem,
   CommandList,
 } from "../../command";
+import { createNodeData, createUniqueNodeId } from "./factory";
 import {
-  createClassifyNodeData,
-  createExtractNodeData,
-  createLlmNodeData,
-  createRagNodeData,
-  createSummarizeNodeData,
-} from "./ai";
-import {
-  createConditionNodeData,
-  createEndNodeData,
-  createLoopNodeData,
-  createParallelJoinNodeData,
-  createParallelSplitNodeData,
-  createStartNodeData,
-} from "./control";
-import {
-  createAnnotationNodeData,
-  createApprovalNodeData,
-  createInputNodeData,
-  createNotifyNodeData,
-} from "./human";
-import { categoryLabels, nodeButtons } from "./node-buttons";
-import {
-  createCodeNodeData,
-  createFilterNodeData,
-  createTemplateNodeData,
-} from "./transform";
+  CATEGORY_LABELS,
+  type NodeRegistryEntry,
+  nodeRegistry,
+} from "./registry";
+
+const GROUPED_ENTRIES: Map<string, NodeRegistryEntry[]> = (() => {
+  const groups = new Map<string, NodeRegistryEntry[]>();
+  for (const entry of nodeRegistry) {
+    const existing = groups.get(entry.category);
+    if (existing) {
+      existing.push(entry);
+    } else {
+      groups.set(entry.category, [entry]);
+    }
+  }
+  return groups;
+})();
 
 export interface DropNodeData {
   isSource?: boolean;
   position?: XYPosition;
 }
-
-const ID_COUNTER_LIMIT = 1_000_000;
-let lastIdTimestamp = 0;
-let idCounter = 0;
-
-function createUniqueId(prefix: string) {
-  const timestamp = Date.now();
-  if (timestamp !== lastIdTimestamp) {
-    lastIdTimestamp = timestamp;
-    idCounter = 0;
-  } else {
-    idCounter = (idCounter + 1) % ID_COUNTER_LIMIT;
-  }
-  return `${prefix}-${timestamp}-${idCounter}`;
-}
-
-const nodeDataFactories: Record<string, () => Record<string, unknown>> = {
-  start: createStartNodeData,
-  end: createEndNodeData,
-  condition: createConditionNodeData,
-  loop: createLoopNodeData,
-  parallel_split: createParallelSplitNodeData,
-  parallel_join: createParallelJoinNodeData,
-  llm: createLlmNodeData,
-  rag: createRagNodeData,
-  summarize: createSummarizeNodeData,
-  extract: createExtractNodeData,
-  classify: createClassifyNodeData,
-  template: createTemplateNodeData,
-  code: createCodeNodeData,
-  filter: createFilterNodeData,
-  approval: createApprovalNodeData,
-  input: createInputNodeData,
-  annotation: createAnnotationNodeData,
-  notify: createNotifyNodeData,
-};
 
 interface DropNodeProps {
   data: DropNodeData;
@@ -102,9 +58,8 @@ export const DropNode = memo(function DropNodeComponent({
 
       deleteElements({ nodes: [{ id }] });
 
-      const newNodeId = createUniqueId(type);
-      const dataFactory = nodeDataFactories[type];
-      const nodeData = dataFactory ? dataFactory() : { label: type };
+      const newNodeId = createUniqueNodeId(type);
+      const nodeData = createNodeData(type);
 
       addNodes({
         id: newNodeId,
@@ -116,7 +71,7 @@ export const DropNode = memo(function DropNodeComponent({
 
       for (const sourceNode of sourceNodes) {
         addEdges({
-          id: createUniqueId(`edge-${sourceNode.source}-${newNodeId}`),
+          id: createUniqueNodeId(`edge-${sourceNode.source}-${newNodeId}`),
           source: data.isSource ? newNodeId : sourceNode.source,
           target: data.isSource ? sourceNode.source : newNodeId,
           type: "animated",
@@ -160,17 +115,6 @@ export const DropNode = memo(function DropNodeComponent({
     };
   }, [deleteElements, id]);
 
-  const groupedButtons = nodeButtons.reduce(
-    (acc, button) => {
-      const category = button.category;
-      const categoryArray = acc[category] ?? [];
-      categoryArray.push(button);
-      acc[category] = categoryArray;
-      return acc;
-    },
-    {} as Record<string, typeof nodeButtons>
-  );
-
   return (
     <div
       className={cn(
@@ -183,26 +127,26 @@ export const DropNode = memo(function DropNodeComponent({
         <CommandInput autoFocus className="h-9" placeholder="Search nodes..." />
         <CommandList className="max-h-[300px]">
           <CommandEmpty>No nodes found.</CommandEmpty>
-          {(
-            Object.entries(groupedButtons) as [string, typeof nodeButtons][]
-          ).map(([category, buttons]) => (
+          {Array.from(GROUPED_ENTRIES.entries()).map(([category, entries]) => (
             <CommandGroup
-              heading={categoryLabels[category as keyof typeof categoryLabels]}
+              heading={
+                CATEGORY_LABELS[category as keyof typeof CATEGORY_LABELS]
+              }
               key={category}
             >
-              {buttons.map((button) => {
-                const Icon = button.icon;
+              {entries.map((entry) => {
+                const Icon = entry.icon;
                 return (
                   <CommandItem
                     className="flex items-center gap-2"
-                    key={button.id}
-                    onSelect={() => handleSelect(button.id)}
+                    key={entry.id}
+                    onSelect={() => handleSelect(entry.id)}
                   >
                     <Icon className="size-4 text-muted-foreground" />
                     <div className="flex flex-col">
-                      <span className="text-sm">{button.label}</span>
+                      <span className="text-sm">{entry.label}</span>
                       <span className="text-muted-foreground text-xs">
-                        {button.description}
+                        {entry.description}
                       </span>
                     </div>
                   </CommandItem>

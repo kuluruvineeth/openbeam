@@ -2,6 +2,11 @@ export type { ActivityData, ActivityHeatmapProps } from "./activity-heatmap";
 export { ActivityHeatmap } from "./activity-heatmap";
 export type { CalendarView, ViewSwitcherProps } from "./calendar-view-switcher";
 export { CalendarViewSwitcher } from "./calendar-view-switcher";
+export {
+  Calendar,
+  Calendar as DayPickerCalendar,
+  CalendarDayButton,
+} from "./day-picker-calendar";
 export type { TimerProps } from "./hold-to-stop-timer";
 export { HoldToStopTimer } from "./hold-to-stop-timer";
 export type { CalendarEvent, MonthCalendarProps } from "./month-calendar";

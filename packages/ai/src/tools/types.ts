@@ -136,10 +136,31 @@ export interface WebPermissionConfig {
   approvalCallback?: (toolName: string, params: unknown) => Promise<boolean>;
 }
 
+export interface CanvasNode {
+  id: string;
+  type?: string;
+  data?: Record<string, unknown>;
+  position?: { x: number; y: number };
+}
+
+export interface CanvasEdge {
+  id: string;
+  source: string;
+  target: string;
+  sourceHandle?: string;
+  targetHandle?: string;
+}
+
+export interface CanvasStateAccess {
+  nodes: CanvasNode[];
+  edges: CanvasEdge[];
+}
+
 export interface ToolContext extends ToolContextBase {
   abortSignal?: AbortSignal;
   services: ToolServices;
   memory?: MemoryAccess;
+  canvasState?: CanvasStateAccess;
 }
 
 export type AISDKTool = Tool<unknown, unknown>;

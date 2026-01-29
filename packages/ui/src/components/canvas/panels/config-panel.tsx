@@ -1,30 +1,87 @@
 "use client";
 
 import type {
+  AgentCallNodeConfig,
+  AnnotationNodeConfig,
   ApprovalNodeConfig,
+  AudioNodeConfig,
   CanvasNodeType,
+  ClassifyNodeConfig,
+  CodeNodeConfig,
   ConditionNodeConfig,
+  ConnectorActionNodeConfig,
+  ConnectorActionsRegistry,
+  ConnectorNodeConfig,
+  DatabaseQueryNodeConfig,
+  ExtractNodeConfig,
+  FilterNodeConfig,
+  GraphqlQueryNodeConfig,
+  HttpRequestNodeConfig,
+  ImageNodeConfig,
+  InputNodeConfig,
   LlmNodeConfig,
   LoopNodeConfig,
+  MemoryReadNodeConfig,
+  MemorySearchNodeConfig,
+  MemoryWriteNodeConfig,
   NodeStatus,
+  NotifyNodeConfig,
+  ParallelJoinNodeConfig,
+  ParallelMapNodeConfig,
+  ParallelSplitNodeConfig,
   RagNodeConfig,
-  ScriptNodeConfig,
+  StartNodeConfig,
+  SubWorkflowNodeConfig,
+  SummarizeNodeConfig,
+  TemplateNodeConfig,
+  ToolNodeConfig,
+  VideoNodeConfig,
 } from "@openplane/types/canvas";
+import type { ConnectorType } from "@openplane/types/services/connectors/events";
+import type { ComponentType } from "react";
 import { forwardRef, memo, useCallback } from "react";
 import { Input } from "../../input";
 import { ScrollArea } from "../../scroll-area";
 import { Sheet, SheetContent } from "../../sheet";
 import { Textarea } from "../../textarea";
+import type { ConnectorInfo, LogoProps, ResourceInfo } from "../event-builder";
+import type { ToolParameterDef, ToolPickerItem } from "../tool-elements";
 import { ConfigField } from "./config-field";
 import { ConfigPanelHeader } from "./config-panel-header";
 import { ConfigSection } from "./config-section";
 import {
+  AgentCallConfigPanel,
+  AnnotationConfigPanel,
   ApprovalConfigPanel,
+  AudioConfigPanel,
+  ClassifyConfigPanel,
   CodeConfigPanel,
   ConditionConfigPanel,
+  ConnectorActionConfigPanel,
+  ConnectorConfigPanel,
+  DatabaseQueryConfigPanel,
+  ExtractConfigPanel,
+  FilterConfigPanel,
+  GraphqlQueryConfigPanel,
+  HttpRequestConfigPanel,
+  ImageConfigPanel,
+  InputConfigPanel,
   LlmConfigPanel,
   LoopConfigPanel,
+  MemoryReadConfigPanel,
+  MemorySearchConfigPanel,
+  MemoryWriteConfigPanel,
+  NotifyConfigPanel,
+  ParallelJoinConfigPanel,
+  ParallelMapConfigPanel,
+  ParallelSplitConfigPanel,
   RagConfigPanel,
+  StartConfigPanel,
+  SubWorkflowConfigPanel,
+  SummarizeConfigPanel,
+  TemplateConfigPanel,
+  ToolConfigPanel,
+  VideoConfigPanel,
 } from "./configs";
 
 interface ConfigPanelBaseProps {
@@ -37,6 +94,16 @@ interface ConfigPanelBaseProps {
   onConfigChange?: (nodeId: string, config: Record<string, unknown>) => void;
   onDelete?: () => void;
   onDuplicate?: () => void;
+  connectorLogos?: Partial<Record<ConnectorType, ComponentType<LogoProps>>>;
+  connectors?: ConnectorInfo[];
+  onFetchResources?: (
+    connectorId: string,
+    resourceType: string
+  ) => Promise<ResourceInfo[]>;
+  actionRegistries?: ConnectorActionsRegistry[];
+  availableTools?: ToolPickerItem[];
+  toolParameters?: ToolParameterDef[];
+  toolParametersLoading?: boolean;
 }
 
 interface StandaloneConfigPanelProps extends ConfigPanelBaseProps {
@@ -71,6 +138,13 @@ const ConfigPanelContent = memo(
         onDelete,
         onDuplicate,
         onClose,
+        connectorLogos,
+        connectors,
+        onFetchResources,
+        actionRegistries,
+        availableTools,
+        toolParameters,
+        toolParametersLoading,
       },
       ref
     ) {
@@ -83,6 +157,23 @@ const ConfigPanelContent = memo(
 
       const renderNodeConfig = () => {
         switch (nodeType) {
+          case "agent_call":
+            return (
+              <AgentCallConfigPanel
+                config={nodeConfig as AgentCallNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "start":
+            return (
+              <StartConfigPanel
+                config={nodeConfig as StartNodeConfig}
+                connectorLogos={connectorLogos}
+                connectors={connectors}
+                onChange={handleConfigChange}
+                onFetchResources={onFetchResources}
+              />
+            );
           case "llm":
             return (
               <LlmConfigPanel
@@ -94,6 +185,7 @@ const ConfigPanelContent = memo(
             return (
               <RagConfigPanel
                 config={nodeConfig as RagNodeConfig}
+                connectorLogos={connectorLogos}
                 onChange={handleConfigChange}
               />
             );
@@ -111,10 +203,31 @@ const ConfigPanelContent = memo(
                 onChange={handleConfigChange}
               />
             );
+          case "parallel_split":
+            return (
+              <ParallelSplitConfigPanel
+                config={nodeConfig as ParallelSplitNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "parallel_join":
+            return (
+              <ParallelJoinConfigPanel
+                config={nodeConfig as ParallelJoinNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "parallel_map":
+            return (
+              <ParallelMapConfigPanel
+                config={nodeConfig as ParallelMapNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
           case "code":
             return (
               <CodeConfigPanel
-                config={nodeConfig as ScriptNodeConfig}
+                config={nodeConfig as CodeNodeConfig}
                 onChange={handleConfigChange}
               />
             );
@@ -122,6 +235,164 @@ const ConfigPanelContent = memo(
             return (
               <ApprovalConfigPanel
                 config={nodeConfig as ApprovalNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "image":
+            return (
+              <ImageConfigPanel
+                config={nodeConfig as ImageNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "input":
+            return (
+              <InputConfigPanel
+                config={nodeConfig as InputNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "audio":
+            return (
+              <AudioConfigPanel
+                config={nodeConfig as AudioNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "video":
+            return (
+              <VideoConfigPanel
+                config={nodeConfig as VideoNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "sub_workflow":
+            return (
+              <SubWorkflowConfigPanel
+                config={nodeConfig as SubWorkflowNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "summarize":
+            return (
+              <SummarizeConfigPanel
+                config={nodeConfig as SummarizeNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "extract":
+            return (
+              <ExtractConfigPanel
+                config={nodeConfig as ExtractNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "classify":
+            return (
+              <ClassifyConfigPanel
+                config={nodeConfig as ClassifyNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "filter":
+            return (
+              <FilterConfigPanel
+                config={nodeConfig as FilterNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "graphql_query":
+            return (
+              <GraphqlQueryConfigPanel
+                config={nodeConfig as GraphqlQueryNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "http_request":
+            return (
+              <HttpRequestConfigPanel
+                config={nodeConfig as HttpRequestNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "template":
+            return (
+              <TemplateConfigPanel
+                config={nodeConfig as TemplateNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "annotation":
+            return (
+              <AnnotationConfigPanel
+                config={nodeConfig as AnnotationNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "notify":
+            return (
+              <NotifyConfigPanel
+                config={nodeConfig as NotifyNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "connector":
+            return (
+              <ConnectorConfigPanel
+                actionRegistries={actionRegistries}
+                config={nodeConfig as ConnectorNodeConfig}
+                connectorLogos={connectorLogos}
+                connectors={connectors}
+                onChange={handleConfigChange}
+                onFetchResources={onFetchResources}
+              />
+            );
+          case "database_query":
+            return (
+              <DatabaseQueryConfigPanel
+                config={nodeConfig as DatabaseQueryNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "connector_action":
+            return (
+              <ConnectorActionConfigPanel
+                actionRegistries={actionRegistries}
+                config={nodeConfig as ConnectorActionNodeConfig}
+                connectorLogos={connectorLogos}
+                connectors={connectors}
+                onChange={handleConfigChange}
+                onFetchResources={onFetchResources}
+              />
+            );
+          case "tool":
+            return (
+              <ToolConfigPanel
+                availableTools={availableTools}
+                config={nodeConfig as ToolNodeConfig}
+                onChange={handleConfigChange}
+                toolParameters={toolParameters}
+                toolParametersLoading={toolParametersLoading}
+              />
+            );
+          case "memory_read":
+            return (
+              <MemoryReadConfigPanel
+                config={nodeConfig as MemoryReadNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "memory_write":
+            return (
+              <MemoryWriteConfigPanel
+                config={nodeConfig as MemoryWriteNodeConfig}
+                onChange={handleConfigChange}
+              />
+            );
+          case "memory_search":
+            return (
+              <MemorySearchConfigPanel
+                config={nodeConfig as MemorySearchNodeConfig}
                 onChange={handleConfigChange}
               />
             );
@@ -133,7 +404,7 @@ const ConfigPanelContent = memo(
       const nodeSpecificConfig = renderNodeConfig();
 
       return (
-        <div className="flex h-full flex-col" ref={ref}>
+        <div className="flex h-full w-full min-w-0 flex-col" ref={ref}>
           <ConfigPanelHeader
             nodeId={nodeId}
             nodeLabel={nodeLabel}
@@ -145,8 +416,8 @@ const ConfigPanelContent = memo(
             status={nodeStatus}
           />
 
-          <ScrollArea className="flex-1">
-            <div className="divide-y divide-border/50">
+          <ScrollArea className="min-w-0 flex-1">
+            <div className="min-w-0 divide-y divide-border/50">
               <ConfigSection collapsible={false} defaultOpen title="General">
                 <div className="space-y-4">
                   <ConfigField label="Label">
@@ -215,6 +486,10 @@ export const ConfigPanel = memo(
       if (props.embedded) {
         return (
           <ConfigPanelContent
+            actionRegistries={props.actionRegistries}
+            availableTools={props.availableTools}
+            connectorLogos={props.connectorLogos}
+            connectors={props.connectors}
             nodeConfig={nodeConfig}
             nodeId={nodeId}
             nodeLabel={nodeLabel}
@@ -224,8 +499,11 @@ export const ConfigPanel = memo(
             onConfigChange={onConfigChange}
             onDelete={onDelete}
             onDuplicate={onDuplicate}
+            onFetchResources={props.onFetchResources}
             onLabelChange={onLabelChange}
             ref={ref}
+            toolParameters={props.toolParameters}
+            toolParametersLoading={props.toolParametersLoading}
           />
         );
       }
@@ -239,6 +517,10 @@ export const ConfigPanel = memo(
             side="right"
           >
             <ConfigPanelContent
+              actionRegistries={props.actionRegistries}
+              availableTools={props.availableTools}
+              connectorLogos={props.connectorLogos}
+              connectors={props.connectors}
               nodeConfig={nodeConfig}
               nodeId={nodeId}
               nodeLabel={nodeLabel}
@@ -248,7 +530,10 @@ export const ConfigPanel = memo(
               onConfigChange={onConfigChange}
               onDelete={onDelete}
               onDuplicate={onDuplicate}
+              onFetchResources={props.onFetchResources}
               onLabelChange={onLabelChange}
+              toolParameters={props.toolParameters}
+              toolParametersLoading={props.toolParametersLoading}
             />
           </SheetContent>
         </Sheet>

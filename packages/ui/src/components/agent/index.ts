@@ -69,6 +69,10 @@ export type {
   ProviderGroup,
 } from "./agent-toolbar";
 export { AgentToolbar, agentToolbarVariants } from "./agent-toolbar";
+export type { ChatInputProps, ChatInputRef } from "./chat-input";
+export { ChatInput } from "./chat-input";
+export type { ModelSelectProps } from "./model-select";
+export { ModelSelect, modelSelectVariants } from "./model-select";
 export type { StreamingCursorProps } from "./streaming-cursor";
 export { StreamingCursor } from "./streaming-cursor";
 export type { StreamingTextProps } from "./streaming-text";

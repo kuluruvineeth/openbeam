@@ -152,10 +152,7 @@ function getSummaryPreview(media: MediaDocument): string | undefined {
 export const SearchMediaRow = forwardRef<
   HTMLButtonElement,
   SearchMediaRowProps
->(function SearchMediaRowInner(
-  { media, isSelected, isPreviewing, onSelect, onPreview },
-  ref
-) {
+>(({ media, isSelected, isPreviewing, onSelect, onPreview }, ref) => {
   const summaryPreview = getSummaryPreview(media);
 
   const handleClick = () => {
@@ -200,3 +197,5 @@ export const SearchMediaRow = forwardRef<
     </button>
   );
 });
+
+SearchMediaRow.displayName = "SearchMediaRow";

@@ -1,171 +1,344 @@
 "use client";
 
-import type { ScriptNodeConfig } from "@openplane/types/canvas";
+import type {
+  CodeNodeConfig,
+  CodeRuntime,
+  InputVariable,
+  OutputField,
+} from "@openplane/types/canvas";
 import { forwardRef, memo, useCallback, useState } from "react";
-import { Badge } from "../../../badge";
-import { Button } from "../../../button";
+import { AnimatedSizeContainer } from "../../../animated-size-container";
+import { CodeEditor } from "../../../code-editor";
 import { Icons } from "../../../icons";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../../select";
+import { Input } from "../../../input";
+import { Label } from "../../../label";
+import { Slider } from "../../../slider";
+import { Switch } from "../../../switch";
 import { Textarea } from "../../../textarea";
+import {
+  CodeTemplateSelector,
+  ExecutionPanel,
+  InputVariableMapper,
+  OutputSchemaEditor,
+  RuntimeSelector,
+} from "../../code-elements";
+import type { CodeTemplateWithIcon } from "../../code-elements/code-templates";
 import { ConfigField } from "../config-field";
 import { ConfigSection } from "../config-section";
 
-const LANGUAGES = [
-  { id: "javascript", name: "JavaScript", extension: ".js" },
-  { id: "python", name: "Python", extension: ".py" },
-] as const;
-
-const CODE_TEMPLATES: Record<string, string> = {
-  javascript: `async function execute(input, context) {
-  return { result: input };
-}`,
-  python: `async def execute(input: dict, context: Context) -> dict:
-    return {"result": input}`,
-};
-
 interface CodeConfigPanelProps {
-  config: ScriptNodeConfig;
-  onChange: (config: Partial<ScriptNodeConfig>) => void;
+  config: CodeNodeConfig;
+  onChange: (config: Partial<CodeNodeConfig>) => void;
+}
+
+const TIMEOUT_OPTIONS = [
+  { value: 5000, label: "5 seconds" },
+  { value: 10_000, label: "10 seconds" },
+  { value: 30_000, label: "30 seconds" },
+  { value: 60_000, label: "1 minute" },
+  { value: 120_000, label: "2 minutes" },
+  { value: 300_000, label: "5 minutes" },
+];
+
+function formatTimeout(ms: number): string {
+  if (ms < 60_000) {
+    return `${ms / 1000}s`;
+  }
+  return `${ms / 60_000}m`;
 }
 
 export const CodeConfigPanel = memo(
   forwardRef<HTMLDivElement, CodeConfigPanelProps>(
     function CodeConfigPanelComponent({ config, onChange }, ref) {
       const [isRunning, setIsRunning] = useState(false);
-      const [testResult, setTestResult] = useState<{
-        success: boolean;
-        output?: string;
-        error?: string;
-      } | null>(null);
 
-      const handleLanguageChange = useCallback(
-        (runtime: string) => {
+      const handleRuntimeChange = useCallback(
+        (value: CodeRuntime) => {
+          onChange({ runtime: value });
+        },
+        [onChange]
+      );
+
+      const handleTemplateSelect = useCallback(
+        (template: CodeTemplateWithIcon) => {
           onChange({
-            runtime: runtime as ScriptNodeConfig["runtime"],
-            code: CODE_TEMPLATES[runtime] ?? CODE_TEMPLATES.javascript,
+            code: template.code,
+            runtime: template.runtime,
           });
+        },
+        [onChange]
+      );
+
+      const handleInputVariablesChange = useCallback(
+        (inputVariables: InputVariable[]) => {
+          onChange({ inputVariables });
+        },
+        [onChange]
+      );
+
+      const handleCodeChange = useCallback(
+        (code: string) => {
+          onChange({ code });
+        },
+        [onChange]
+      );
+
+      const handleOutputSchemaChange = useCallback(
+        (outputSchema: OutputField[]) => {
+          onChange({ outputSchema });
         },
         [onChange]
       );
 
       const handleRunTest = useCallback(async () => {
         setIsRunning(true);
-        setTestResult(null);
-
         try {
-          await new Promise((resolve) => setTimeout(resolve, 500));
-          setTestResult({ success: true, output: '{"result": "test"}' });
-        } catch (error) {
-          setTestResult({ success: false, error: String(error) });
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          onChange({
+            lastExecution: {
+              success: true,
+              output: { result: "test output" },
+              executionTimeMs: 42,
+              logs: [
+                {
+                  level: "log",
+                  message: "Execution started",
+                  timestamp: Date.now() - 100,
+                },
+                {
+                  level: "info",
+                  message: "Processing input...",
+                  timestamp: Date.now() - 50,
+                },
+                {
+                  level: "log",
+                  message: "Execution completed",
+                  timestamp: Date.now(),
+                },
+              ],
+            },
+          });
+        } catch {
+          onChange({
+            lastExecution: {
+              success: false,
+              executionTimeMs: 100,
+              logs: [],
+              error: {
+                message: "Test execution failed",
+              },
+            },
+          });
         } finally {
           setIsRunning(false);
         }
-      }, []);
+      }, [onChange]);
+
+      const runtime = config.runtime ?? "javascript";
+      const timeoutMs = config.timeoutMs ?? 30_000;
 
       return (
-        <div className="divide-y divide-border/50" ref={ref}>
+        <div
+          className="min-w-0 divide-y divide-border/50 overflow-hidden"
+          ref={ref}
+        >
           <ConfigSection
             defaultOpen
             icon={<Icons.Code className="size-4" />}
             title="Code"
           >
             <div className="space-y-4">
-              <ConfigField label="Language" required>
-                <Select
-                  onValueChange={handleLanguageChange}
-                  value={config.runtime ?? "javascript"}
-                >
-                  <SelectTrigger className="h-9">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {LANGUAGES.map((lang) => (
-                      <SelectItem key={lang.id} value={lang.id}>
-                        <div className="flex items-center gap-2">
-                          <span>{lang.name}</span>
-                          <Badge
-                            className="font-mono text-xs"
-                            variant="outline"
-                          >
-                            {lang.extension}
-                          </Badge>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <ConfigField
+                label="Runtime"
+                tooltip="Select the programming language for your code"
+              >
+                <div className="flex items-center gap-2">
+                  <RuntimeSelector
+                    compact
+                    onChange={handleRuntimeChange}
+                    value={runtime}
+                  />
+                  <CodeTemplateSelector
+                    disabled={isRunning}
+                    onSelect={handleTemplateSelect}
+                    runtime={runtime}
+                  />
+                </div>
               </ConfigField>
 
               <ConfigField label="Source Code">
-                <div className="relative">
-                  <Textarea
-                    className="min-h-[240px] resize-y bg-secondary/30 font-mono text-sm"
-                    onChange={(e) => onChange({ code: e.target.value })}
-                    spellCheck={false}
-                    value={
-                      config.code ??
-                      CODE_TEMPLATES[config.runtime ?? "javascript"]
-                    }
-                  />
-                  <div className="absolute top-2 right-2">
-                    <Button
-                      disabled={isRunning}
-                      onClick={handleRunTest}
-                      size="sm"
-                      variant="secondary"
-                    >
-                      <Icons.Play className="mr-1 size-3.5" />
-                      {isRunning ? "Running..." : "Test"}
-                    </Button>
-                  </div>
-                </div>
+                <CodeEditor
+                  language={runtime}
+                  maxHeight="400px"
+                  minHeight="200px"
+                  onChange={handleCodeChange}
+                  placeholder={`Enter your ${runtime} code here...`}
+                  readOnly={isRunning}
+                  value={config.code ?? ""}
+                />
               </ConfigField>
-
-              {testResult && (
-                <div
-                  className={`rounded-md p-3 font-mono text-sm ${
-                    testResult.success
-                      ? "border border-green-500/20 bg-green-500/10 text-green-500"
-                      : "border border-destructive/20 bg-destructive/10 text-destructive"
-                  }`}
-                >
-                  {testResult.success ? testResult.output : testResult.error}
-                </div>
-              )}
             </div>
+          </ConfigSection>
+
+          <ConfigSection
+            defaultOpen
+            icon={<Icons.Download className="size-4" />}
+            title="Input Variables"
+          >
+            <InputVariableMapper
+              disabled={isRunning}
+              onChange={handleInputVariablesChange}
+              variables={config.inputVariables ?? []}
+            />
+          </ConfigSection>
+
+          <ConfigSection
+            defaultOpen={false}
+            icon={<Icons.Upload className="size-4" />}
+            title="Output Schema"
+          >
+            <OutputSchemaEditor
+              disabled={isRunning}
+              fields={config.outputSchema ?? []}
+              onChange={handleOutputSchemaChange}
+            />
           </ConfigSection>
 
           <ConfigSection
             defaultOpen={false}
             icon={<Icons.Settings2 className="size-4" />}
-            title="Execution"
+            title="Execution Settings"
           >
             <div className="space-y-4">
-              <ConfigField label="Timeout">
-                <Select
-                  onValueChange={(v) =>
-                    onChange({ timeoutMs: Number.parseInt(v, 10) })
-                  }
-                  value={String(config.timeoutMs ?? 30_000)}
-                >
-                  <SelectTrigger className="h-9">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="5000">5 seconds</SelectItem>
-                    <SelectItem value="10000">10 seconds</SelectItem>
-                    <SelectItem value="30000">30 seconds</SelectItem>
-                    <SelectItem value="60000">1 minute</SelectItem>
-                    <SelectItem value="300000">5 minutes</SelectItem>
-                  </SelectContent>
-                </Select>
+              <ConfigField
+                label="Timeout"
+                tooltip="Maximum execution time before the code is terminated"
+              >
+                <div className="space-y-2">
+                  <Slider
+                    max={TIMEOUT_OPTIONS.length - 1}
+                    min={0}
+                    onValueChange={(values) => {
+                      const idx = values[0];
+                      if (idx !== undefined) {
+                        const option = TIMEOUT_OPTIONS[idx];
+                        if (option) {
+                          onChange({ timeoutMs: option.value });
+                        }
+                      }
+                    }}
+                    step={1}
+                    value={[
+                      Math.max(
+                        0,
+                        TIMEOUT_OPTIONS.findIndex((o) => o.value === timeoutMs)
+                      ),
+                    ]}
+                  />
+                  <div className="flex justify-between text-muted-foreground text-xs">
+                    <span>5s</span>
+                    <span className="font-medium text-foreground">
+                      {formatTimeout(timeoutMs)}
+                    </span>
+                    <span>5m</span>
+                  </div>
+                </div>
               </ConfigField>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-sm">Sandboxed Execution</Label>
+                  <p className="text-muted-foreground text-xs">
+                    Run code in isolated environment
+                  </p>
+                </div>
+                <Switch
+                  checked={config.sandboxed ?? true}
+                  onCheckedChange={(sandboxed) => onChange({ sandboxed })}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-sm">Console Logging</Label>
+                  <p className="text-muted-foreground text-xs">
+                    Capture console.log output
+                  </p>
+                </div>
+                <Switch
+                  checked={config.enableConsole ?? true}
+                  onCheckedChange={(enableConsole) =>
+                    onChange({ enableConsole })
+                  }
+                />
+              </div>
+
+              <AnimatedSizeContainer height>
+                {config.enableConsole && (
+                  <ConfigField
+                    label="Memory Limit"
+                    tooltip="Maximum memory allowed for execution"
+                  >
+                    <Input
+                      className="h-9"
+                      onChange={(e) => {
+                        const mb = Number.parseInt(e.target.value, 10);
+                        if (!Number.isNaN(mb) && mb > 0) {
+                          onChange({ memoryLimitMb: mb });
+                        }
+                      }}
+                      placeholder="128"
+                      type="number"
+                      value={config.memoryLimitMb ?? ""}
+                    />
+                    <p className="mt-1 text-muted-foreground text-xs">
+                      Memory limit in MB (leave empty for default)
+                    </p>
+                  </ConfigField>
+                )}
+              </AnimatedSizeContainer>
+            </div>
+          </ConfigSection>
+
+          <ConfigSection
+            defaultOpen
+            icon={<Icons.Play className="size-4" />}
+            title="Test Execution"
+          >
+            <div className="space-y-4">
+              <ConfigField label="Test Input">
+                <Textarea
+                  className="min-h-[80px] resize-y font-mono text-sm"
+                  onChange={(e) => onChange({ testInput: e.target.value })}
+                  placeholder='{"example": "input data"}'
+                  spellCheck={false}
+                  value={config.testInput ?? ""}
+                />
+              </ConfigField>
+
+              <button
+                className="flex w-full items-center justify-center gap-2 rounded-md bg-primary py-2 font-medium text-primary-foreground text-sm transition-colors hover:bg-primary/90 disabled:opacity-50"
+                disabled={isRunning || !config.code}
+                onClick={handleRunTest}
+                type="button"
+              >
+                {isRunning ? (
+                  <>
+                    <Icons.Loader2 className="size-4 animate-spin" />
+                    Running...
+                  </>
+                ) : (
+                  <>
+                    <Icons.Play className="size-4" />
+                    Run Test
+                  </>
+                )}
+              </button>
+
+              <ExecutionPanel
+                isRunning={isRunning}
+                result={config.lastExecution}
+              />
             </div>
           </ConfigSection>
         </div>

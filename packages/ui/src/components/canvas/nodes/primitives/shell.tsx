@@ -10,6 +10,7 @@ const STATUS_STYLES: Record<NodeStatus, string> = {
   idle: "",
   pending: "ring-muted-foreground/50 animate-pulse",
   running: "ring-primary ring-2",
+  streaming: "ring-primary ring-2 ring-offset-1 ring-offset-background",
   success: "ring-green-500/50",
   error: "ring-destructive",
   waiting: "ring-amber-500/50 animate-pulse",
@@ -86,11 +87,13 @@ export const NodeShell = memo(
         })}
         <div
           className={cn(
-            "flex flex-col rounded-md border bg-card shadow-sm ring-1 ring-transparent transition-all",
+            "node-container flex flex-col rounded-md border border-border/50 bg-card/20 ring-1 ring-transparent transition-all",
             STATUS_STYLES[status],
             selected && "ring-2 ring-primary",
             className
           )}
+          data-node-selected={selected ? "true" : undefined}
+          data-node-status={status}
         >
           {children}
         </div>

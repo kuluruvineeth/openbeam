@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ErrorBoundary } from "next/dist/client/components/error-boundary";
 import { notFound } from "next/navigation";
 import { ErrorFallback } from "@/components/error-fallback";
-import { AgentCanvasView } from "@/features/agents";
+import { AgenticView } from "@/features/agents";
 import { HydrateClient } from "@/trpc/server";
 
 interface AgentPageProps {
@@ -29,7 +29,7 @@ export default async function AgentPage({ params }: AgentPageProps) {
   return (
     <HydrateClient>
       <ErrorBoundary errorComponent={ErrorFallback}>
-        <AgentCanvasView agentId={id} />
+        <AgenticView agentId={id} />
       </ErrorBoundary>
     </HydrateClient>
   );

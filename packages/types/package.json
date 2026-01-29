@@ -48,6 +48,22 @@
       "types": "./dist/services/connectors/*.d.ts",
       "default": "./src/services/connectors/*.ts"
     },
+    "./services/connectors/events": {
+      "types": "./dist/services/connectors/events.d.ts",
+      "default": "./src/services/connectors/events.ts"
+    },
+    "./services/connectors/common/events": {
+      "types": "./dist/services/connectors/common/events.d.ts",
+      "default": "./src/services/connectors/common/events.ts"
+    },
+    "./services/connectors/common/resources": {
+      "types": "./dist/services/connectors/common/resources.d.ts",
+      "default": "./src/services/connectors/common/resources.ts"
+    },
+    "./services/connectors/common": {
+      "types": "./dist/services/connectors/common/index.d.ts",
+      "default": "./src/services/connectors/common/index.ts"
+    },
     "./services/ai": {
       "types": "./dist/services/ai/index.d.ts",
       "default": "./src/services/ai/index.ts"

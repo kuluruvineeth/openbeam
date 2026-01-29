@@ -1,24 +1,6 @@
 "use client";
 
 import { useReactFlow } from "@xyflow/react";
-import {
-  Clipboard,
-  Copy,
-  CopyPlus,
-  Grid3X3,
-  Hand,
-  Lock,
-  Magnet,
-  Maximize2,
-  MousePointer2,
-  Plus,
-  Redo2,
-  Trash2,
-  Undo2,
-  Unlock,
-  ZoomIn,
-  ZoomOut,
-} from "lucide-react";
 import type { ComponentType } from "react";
 import { memo, useCallback, useState } from "react";
 import { Button } from "../../components/button";
@@ -36,6 +18,7 @@ import {
   TooltipTrigger,
 } from "../../components/tooltip";
 import { cn } from "../../utils";
+import { Icons } from "../icons";
 
 type CanvasTool = "select" | "pan" | "add";
 
@@ -60,7 +43,7 @@ export interface CanvasToolbarProps {
 }
 
 interface ToolButtonProps {
-  icon: ComponentType<{ className?: string }>;
+  icon: ComponentType<{ size?: number }>;
   label: string;
   isActive?: boolean;
   disabled?: boolean;
@@ -84,7 +67,7 @@ function ToolButton({
           size="icon"
           variant={isActive ? "secondary" : "ghost"}
         >
-          <Icon className="h-4 w-4" />
+          <Icon size={16} />
         </Button>
       </TooltipTrigger>
       <TooltipContent side="bottom">{label}</TooltipContent>
@@ -179,13 +162,13 @@ export const CanvasToolbar = memo(function CanvasToolbarComponent({
     >
       <div className="flex items-center gap-0.5">
         <ToolButton
-          icon={MousePointer2}
+          icon={Icons.Pointer}
           isActive={activeTool === "select"}
           label="Select (V)"
           onClick={() => handleToolChange("select")}
         />
         <ToolButton
-          icon={Hand}
+          icon={Icons.Hand}
           isActive={activeTool === "pan"}
           label="Pan (H)"
           onClick={() => handleToolChange("pan")}
@@ -199,7 +182,7 @@ export const CanvasToolbar = memo(function CanvasToolbarComponent({
                   size="icon"
                   variant={activeTool === "add" ? "secondary" : "ghost"}
                 >
-                  <Plus className="h-4 w-4" />
+                  <Icons.Plus size={16} />
                 </Button>
               </DropdownMenuTrigger>
             </TooltipTrigger>
@@ -207,28 +190,41 @@ export const CanvasToolbar = memo(function CanvasToolbarComponent({
           </Tooltip>
           <DropdownMenuContent align="start">
             <DropdownMenuItem onClick={() => onAddNode?.("llm")}>
-              <Plus className="mr-2 h-4 w-4" />
+              <Icons.Plus size={16} />
               LLM Node
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onAddNode?.("rag")}>
-              <Plus className="mr-2 h-4 w-4" />
+              <Icons.Plus size={16} />
               RAG Node
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onAddNode?.("code")}>
-              <Plus className="mr-2 h-4 w-4" />
+              <Icons.Plus size={16} />
               Code Node
             </DropdownMenuItem>
             <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => onAddNode?.("image")}>
+              <Icons.Image size={16} />
+              Image Node
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onAddNode?.("audio")}>
+              <Icons.Mic size={16} />
+              Audio Node
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onAddNode?.("video")}>
+              <Icons.Video size={16} />
+              Video Node
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => onAddNode?.("input")}>
-              <Plus className="mr-2 h-4 w-4" />
+              <Icons.Plus size={16} />
               Input Node
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onAddNode?.("condition")}>
-              <Plus className="mr-2 h-4 w-4" />
+              <Icons.Plus size={16} />
               Condition Node
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onAddNode?.("loop")}>
-              <Plus className="mr-2 h-4 w-4" />
+              <Icons.Plus size={16} />
               Loop Node
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -240,13 +236,13 @@ export const CanvasToolbar = memo(function CanvasToolbarComponent({
       <div className="flex items-center gap-0.5">
         <ToolButton
           disabled={!canUndo}
-          icon={Undo2}
+          icon={Icons.Undo}
           label="Undo (⌘Z)"
           onClick={onUndo}
         />
         <ToolButton
           disabled={!canRedo}
-          icon={Redo2}
+          icon={Icons.Redo}
           label="Redo (⌘⇧Z)"
           onClick={onRedo}
         />
@@ -257,20 +253,24 @@ export const CanvasToolbar = memo(function CanvasToolbarComponent({
       <div className="flex items-center gap-0.5">
         <ToolButton
           disabled={!hasSelection}
-          icon={Copy}
+          icon={Icons.Copy}
           label="Copy (⌘C)"
           onClick={handleCopy}
         />
-        <ToolButton icon={Clipboard} label="Paste (⌘V)" onClick={handlePaste} />
+        <ToolButton
+          icon={Icons.Clipboard}
+          label="Paste (⌘V)"
+          onClick={handlePaste}
+        />
         <ToolButton
           disabled={!hasSelection}
-          icon={CopyPlus}
+          icon={Icons.Copy}
           label="Duplicate (⌘D)"
           onClick={handleDuplicate}
         />
         <ToolButton
           disabled={!hasSelection}
-          icon={Trash2}
+          icon={Icons.Trash}
           label="Delete (⌫)"
           onClick={handleDelete}
         />
@@ -280,13 +280,17 @@ export const CanvasToolbar = memo(function CanvasToolbarComponent({
 
       <div className="flex items-center gap-0.5">
         <ToolButton
-          icon={ZoomOut}
+          icon={Icons.ZoomOut}
           label="Zoom Out (-)"
           onClick={handleZoomOut}
         />
-        <ToolButton icon={ZoomIn} label="Zoom In (+)" onClick={handleZoomIn} />
         <ToolButton
-          icon={Maximize2}
+          icon={Icons.ZoomIn}
+          label="Zoom In (+)"
+          onClick={handleZoomIn}
+        />
+        <ToolButton
+          icon={Icons.Maximize}
           label="Fit View (F)"
           onClick={handleFitView}
         />
@@ -296,19 +300,19 @@ export const CanvasToolbar = memo(function CanvasToolbarComponent({
 
       <div className="flex items-center gap-0.5">
         <ToolButton
-          icon={isLocked ? Lock : Unlock}
+          icon={isLocked ? Icons.LockIcon : Icons.Unlock}
           isActive={isLocked}
           label={isLocked ? "Unlock Canvas" : "Lock Canvas"}
           onClick={onToggleLock}
         />
         <ToolButton
-          icon={Grid3X3}
+          icon={Icons.Grid3x3}
           isActive={showGrid}
           label="Toggle Grid (G)"
           onClick={onToggleGrid}
         />
         <ToolButton
-          icon={Magnet}
+          icon={Icons.Magnet}
           isActive={snapToGrid}
           label="Snap to Grid"
           onClick={onToggleSnapToGrid}

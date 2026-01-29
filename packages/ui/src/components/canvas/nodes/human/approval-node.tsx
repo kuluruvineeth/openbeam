@@ -1,26 +1,26 @@
 "use client";
 
-import type { NodeStatus, Port } from "@openplane/types/canvas";
+import type {
+  ApprovalNodeConfig,
+  ApprovalSeverity,
+  Approver,
+  NodeStatus,
+  Port,
+} from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
-import { CheckCircle2, Clock, UserCheck, XCircle } from "lucide-react";
 import { forwardRef, memo } from "react";
 import { cn } from "../../../../utils";
+import { Avatar, AvatarFallback, AvatarImage } from "../../../avatar";
+import { Icons } from "../../../icons";
 import { NodeField, NodeHeader, NodeSection, NodeShell } from "../primitives";
 
-export interface Approver {
-  id: string;
-  name: string;
-  avatar?: string;
-  status?: "pending" | "approved" | "rejected";
-}
-
-export interface ApprovalNodeConfig {
-  approvalType: "single" | "multi";
-  requiredApprovals: number;
-  timeout?: number;
-  autoReject?: boolean;
-}
+type ApprovalStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "expired"
+  | "escalated";
 
 export interface ApprovalNodeData {
   label: string;
@@ -28,36 +28,77 @@ export interface ApprovalNodeData {
   inputs?: Port[];
   outputs?: Port[];
   status?: NodeStatus;
-  approvalStatus?: "pending" | "approved" | "rejected" | "expired";
+  approvalStatus?: ApprovalStatus;
   currentApprovals?: number;
-  approvers?: Approver[];
-  deadline?: string;
   [key: string]: unknown;
 }
 
 type ApprovalNodeType = Node<ApprovalNodeData, "approval">;
 
-const APPROVAL_STATUS_CONFIG = {
-  pending: { icon: Clock, label: "Pending" },
-  approved: { icon: CheckCircle2, label: "Approved" },
-  rejected: { icon: XCircle, label: "Rejected" },
-  expired: { icon: Clock, label: "Expired" },
-} as const;
+const SEVERITY_BORDER: Record<ApprovalSeverity, string> = {
+  low: "border-l-emerald-500",
+  medium: "border-l-amber-500",
+  high: "border-l-orange-500",
+  critical: "border-l-red-500",
+};
+
+const SEVERITY_LABEL: Record<ApprovalSeverity, string> = {
+  low: "Low",
+  medium: "Medium",
+  high: "High",
+  critical: "Critical",
+};
+
+const STATUS_CONFIG: Record<
+  ApprovalStatus,
+  { icon: keyof typeof Icons; label: string; color: string }
+> = {
+  pending: { icon: "Clock", label: "Pending", color: "text-muted-foreground" },
+  approved: { icon: "CheckIcon", label: "Approved", color: "text-emerald-600" },
+  rejected: { icon: "Close", label: "Rejected", color: "text-red-600" },
+  expired: { icon: "Clock", label: "Expired", color: "text-amber-600" },
+  escalated: {
+    icon: "ChevronUp",
+    label: "Escalated",
+    color: "text-orange-600",
+  },
+};
+
+const STRATEGY_LABEL: Record<string, string> = {
+  single: "Single",
+  sequential: "Sequential",
+  parallel: "Parallel",
+};
+
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
 
 export const ApprovalNode = memo(
   forwardRef<HTMLDivElement, NodeProps<ApprovalNodeType>>(
     function ApprovalNodeComponent({ data, selected }, ref) {
-      const approvalStatus = data.approvalStatus ?? "pending";
+      const severity = data.config.severity ?? "medium";
       const approvalType = data.config.approvalType ?? "single";
       const requiredApprovals = data.config.requiredApprovals ?? 1;
       const currentApprovals = data.currentApprovals ?? 0;
-      const approverCount = data.approvers?.length ?? 0;
+      const approvalStatus: ApprovalStatus = data.approvalStatus ?? "pending";
+      const approvers = data.config.approvers ?? [];
 
-      const currentStatus = APPROVAL_STATUS_CONFIG[approvalStatus];
-      const StatusIcon = currentStatus.icon;
+      const statusCfg = STATUS_CONFIG[approvalStatus];
+      const StatusIcon = Icons[statusCfg.icon];
+      const showProgress = approvalType !== "single" && requiredApprovals > 1;
+      const progressPercent = showProgress
+        ? Math.min((currentApprovals / requiredApprovals) * 100, 100)
+        : 0;
 
       return (
         <NodeShell
+          className={cn("border-l-2", SEVERITY_BORDER[severity])}
           handles={[
             { type: "target", position: Position.Left },
             {
@@ -86,22 +127,26 @@ export const ApprovalNode = memo(
             No
           </div>
           <NodeHeader
-            colorVar="--node-approval"
-            icon={<UserCheck className="size-5" />}
-            subtitle={
-              approvalType === "multi" ? "Multi-approval" : "Single approval"
+            badge={
+              <span className="rounded-sm bg-muted px-1.5 py-0.5 font-medium text-[10px] text-muted-foreground">
+                {STRATEGY_LABEL[approvalType] ?? approvalType}
+              </span>
             }
+            colorVar="--node-approval"
+            icon={<Icons.UserCheck className="size-5" />}
+            subtitle={SEVERITY_LABEL[severity]}
             title={data.label}
           />
           <NodeSection>
             <div className="space-y-2">
               <NodeField label="Status">
-                <div className="flex items-center gap-1 text-muted-foreground">
+                <div className={cn("flex items-center gap-1", statusCfg.color)}>
                   <StatusIcon className="size-3" />
-                  <span>{currentStatus.label}</span>
+                  <span>{statusCfg.label}</span>
                 </div>
               </NodeField>
-              {approvalType === "multi" && (
+
+              {showProgress && (
                 <div className="space-y-1">
                   <NodeField label="Progress">
                     <span className="font-mono">
@@ -111,43 +156,42 @@ export const ApprovalNode = memo(
                   <div className="h-1.5 rounded-full bg-muted">
                     <div
                       className="h-full rounded-full bg-primary transition-all"
-                      style={{
-                        width: `${Math.min((currentApprovals / requiredApprovals) * 100, 100)}%`,
-                      }}
+                      style={{ width: `${progressPercent}%` }}
                     />
                   </div>
                 </div>
               )}
-              {approverCount > 0 && (
-                <div className="flex flex-wrap gap-1 pt-1">
-                  {data.approvers?.slice(0, 3).map((approver) => (
-                    <span
-                      className={cn(
-                        "rounded-sm px-2 py-0.5 text-xs",
-                        approver.status === "approved" &&
-                          "bg-muted text-foreground",
-                        approver.status === "rejected" &&
-                          "bg-destructive/10 text-destructive",
-                        approver.status === "pending" &&
-                          "bg-muted text-muted-foreground"
-                      )}
-                      key={approver.id}
-                    >
-                      {approver.name.split(" ")[0]}
-                    </span>
-                  ))}
-                  {approverCount > 3 && (
+
+              {approvers.length > 0 && (
+                <div className="flex items-center gap-1 pt-1">
+                  <div className="-space-x-1.5 flex">
+                    {approvers.slice(0, 3).map((approver: Approver) => (
+                      <Avatar
+                        className="size-5 border border-background"
+                        key={approver.id}
+                      >
+                        <AvatarImage src={approver.avatar} />
+                        <AvatarFallback className="text-[8px]">
+                          {getInitials(approver.name)}
+                        </AvatarFallback>
+                      </Avatar>
+                    ))}
+                  </div>
+                  {approvers.length > 3 && (
                     <span className="text-muted-foreground text-xs">
-                      +{approverCount - 3}
+                      +{approvers.length - 3}
                     </span>
                   )}
                 </div>
               )}
-              {data.deadline && (
-                <div className="flex items-center gap-1 pt-1 text-muted-foreground text-xs">
-                  <Clock className="size-3" />
+
+              {data.config.timeoutMs && data.config.timeoutMs > 0 && (
+                <div className="flex items-center gap-1 pt-0.5 text-muted-foreground text-xs">
+                  <Icons.Clock className="size-3" />
                   <span>
-                    Due: {new Date(data.deadline).toLocaleDateString()}
+                    {data.config.timeoutMs >= 3_600_000
+                      ? `${Math.round(data.config.timeoutMs / 3_600_000)}h`
+                      : `${Math.round(data.config.timeoutMs / 60_000)}m`}
                   </span>
                 </div>
               )}
@@ -165,10 +209,14 @@ export function createApprovalNodeData(): ApprovalNodeData {
   return {
     label: "Approval",
     config: {
+      message: "",
       approvalType: "single",
       requiredApprovals: 1,
-      timeout: 86_400_000,
-      autoReject: false,
+      severity: "medium",
+      allowedActions: ["approve", "reject"],
+      timeoutAction: "reject",
+      autoApprove: false,
+      requireComment: false,
     },
     inputs: [{ id: "request", label: "Request", type: "data", required: true }],
     outputs: [

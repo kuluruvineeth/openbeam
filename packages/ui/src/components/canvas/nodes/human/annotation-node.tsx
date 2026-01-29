@@ -1,23 +1,20 @@
 "use client";
 
-import type { AnnotationColor } from "@openplane/types/canvas";
+import type {
+  AnnotationColor,
+  AnnotationNodeConfig,
+} from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
-import { Pin, StickyNote } from "lucide-react";
-import { forwardRef, memo } from "react";
+import { NodeResizer } from "@xyflow/react";
+import { forwardRef, memo, useCallback, useRef, useState } from "react";
 import { cn } from "../../../../utils";
+import { Icons } from "../../../icons";
 
-export type { AnnotationColor };
-
-export interface AnnotationNodeConfig {
-  color: AnnotationColor;
-}
+export type { AnnotationColor, AnnotationNodeConfig };
 
 export interface AnnotationNodeData {
   label: string;
   config: AnnotationNodeConfig;
-  content?: string;
-  isPinned?: boolean;
-  isExpanded?: boolean;
   author?: string;
   timestamp?: string;
   [key: string]: unknown;
@@ -27,61 +24,87 @@ type AnnotationNodeType = Node<AnnotationNodeData, "annotation">;
 
 const COLOR_CONFIG: Record<
   AnnotationColor,
-  { bg: string; border: string; text: string }
+  { bg: string; border: string; text: string; headerBg: string }
 > = {
   yellow: {
-    bg: "bg-yellow-100 dark:bg-yellow-900/30",
-    border: "border-yellow-300 dark:border-yellow-700",
+    bg: "bg-yellow-50 dark:bg-yellow-950/40",
+    border: "border-yellow-300 dark:border-yellow-800",
     text: "text-yellow-900 dark:text-yellow-100",
+    headerBg: "bg-yellow-100/80 dark:bg-yellow-900/50",
   },
   blue: {
-    bg: "bg-blue-100 dark:bg-blue-900/30",
-    border: "border-blue-300 dark:border-blue-700",
+    bg: "bg-blue-50 dark:bg-blue-950/40",
+    border: "border-blue-300 dark:border-blue-800",
     text: "text-blue-900 dark:text-blue-100",
+    headerBg: "bg-blue-100/80 dark:bg-blue-900/50",
   },
   green: {
-    bg: "bg-green-100 dark:bg-green-900/30",
-    border: "border-green-300 dark:border-green-700",
+    bg: "bg-green-50 dark:bg-green-950/40",
+    border: "border-green-300 dark:border-green-800",
     text: "text-green-900 dark:text-green-100",
+    headerBg: "bg-green-100/80 dark:bg-green-900/50",
   },
   pink: {
-    bg: "bg-pink-100 dark:bg-pink-900/30",
-    border: "border-pink-300 dark:border-pink-700",
+    bg: "bg-pink-50 dark:bg-pink-950/40",
+    border: "border-pink-300 dark:border-pink-800",
     text: "text-pink-900 dark:text-pink-100",
+    headerBg: "bg-pink-100/80 dark:bg-pink-900/50",
   },
   purple: {
-    bg: "bg-purple-100 dark:bg-purple-900/30",
-    border: "border-purple-300 dark:border-purple-700",
+    bg: "bg-purple-50 dark:bg-purple-950/40",
+    border: "border-purple-300 dark:border-purple-800",
     text: "text-purple-900 dark:text-purple-100",
+    headerBg: "bg-purple-100/80 dark:bg-purple-900/50",
   },
   orange: {
-    bg: "bg-orange-100 dark:bg-orange-900/30",
-    border: "border-orange-300 dark:border-orange-700",
+    bg: "bg-orange-50 dark:bg-orange-950/40",
+    border: "border-orange-300 dark:border-orange-800",
     text: "text-orange-900 dark:text-orange-100",
+    headerBg: "bg-orange-100/80 dark:bg-orange-900/50",
   },
 };
 
+const FONT_SIZE_CLASS = {
+  sm: "text-sm",
+  base: "text-base",
+} as const;
+
 export const AnnotationNode = memo(
   forwardRef<HTMLDivElement, NodeProps<AnnotationNodeType>>(
+    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: annotation node has collapsed/expanded/editing states
     function AnnotationNodeComponent({ data, selected }, ref) {
       const color = data.config.color ?? "yellow";
-      const isPinned = data.isPinned ?? false;
-      const isExpanded = data.isExpanded !== false;
-      const colorConfig = COLOR_CONFIG[color];
-      const hasContent = (data.content?.length ?? 0) > 0;
+      const isPinned = data.config.isPinned ?? false;
+      const isCollapsed = data.config.isCollapsed ?? false;
+      const content = data.config.content ?? "";
+      const fontSize = data.config.fontSize ?? "sm";
+      const colorCfg = COLOR_CONFIG[color];
+      const hasContent = content.length > 0;
+      const [isEditing, setIsEditing] = useState(false);
+      const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-      if (!isExpanded) {
+      const handleDoubleClick = useCallback(() => {
+        setIsEditing(true);
+        requestAnimationFrame(() => textareaRef.current?.focus());
+      }, []);
+
+      const handleBlur = useCallback(() => {
+        setIsEditing(false);
+      }, []);
+
+      if (isCollapsed) {
         return (
           <div
             className={cn(
-              "flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border-2 shadow-sm transition-transform hover:scale-110",
-              colorConfig.bg,
-              colorConfig.border,
-              selected && "ring-2 ring-primary ring-offset-2"
+              "flex size-9 items-center justify-center rounded-md border-2 shadow-sm transition-transform hover:scale-105",
+              colorCfg.bg,
+              colorCfg.border,
+              selected &&
+                "ring-2 ring-primary ring-offset-1 ring-offset-background"
             )}
             ref={ref}
           >
-            <StickyNote className={cn("h-4 w-4", colorConfig.text)} />
+            <Icons.Note className={cn("size-4", colorCfg.text)} />
           </div>
         );
       }
@@ -89,54 +112,91 @@ export const AnnotationNode = memo(
       return (
         <div
           className={cn(
-            "min-w-[180px] max-w-[280px] rounded-md border-2 shadow-sm",
-            colorConfig.bg,
-            colorConfig.border,
-            selected && "ring-2 ring-primary ring-offset-2",
+            "flex flex-col rounded-md border-2 shadow-sm",
+            colorCfg.bg,
+            colorCfg.border,
+            selected &&
+              "ring-2 ring-primary ring-offset-1 ring-offset-background",
             isPinned && "shadow-md"
           )}
           ref={ref}
+          style={{
+            minWidth: 160,
+            minHeight: 60,
+          }}
         >
+          <NodeResizer
+            color="transparent"
+            handleClassName="!size-2 !rounded-sm !border-2 !border-primary/50 !bg-background"
+            isVisible={selected ?? false}
+            maxWidth={600}
+            minHeight={60}
+            minWidth={160}
+          />
+
           <div
             className={cn(
-              "flex items-center justify-between border-b px-2 py-1",
-              colorConfig.border
+              "flex items-center justify-between rounded-t-[4px] border-b px-2.5 py-1.5",
+              colorCfg.headerBg,
+              colorCfg.border
             )}
           >
-            <div className="flex items-center gap-1">
-              <StickyNote className={cn("h-3 w-3", colorConfig.text)} />
-              <span className={cn("font-medium text-xs", colorConfig.text)}>
+            <div className="flex items-center gap-1.5">
+              <Icons.Note className={cn("size-3.5", colorCfg.text)} />
+              <span
+                className={cn(
+                  "max-w-[180px] truncate font-medium text-xs",
+                  colorCfg.text
+                )}
+              >
                 {data.label}
               </span>
             </div>
-            {isPinned && <Pin className={cn("h-3 w-3", colorConfig.text)} />}
+            {isPinned && <Icons.Pin className={cn("size-3", colorCfg.text)} />}
           </div>
 
-          <div className="p-2">
-            <p
-              className={cn(
-                "whitespace-pre-wrap text-sm",
-                colorConfig.text,
-                !hasContent && "italic opacity-50"
-              )}
-            >
-              {hasContent ? data.content : "No content..."}
-            </p>
+          {/* biome-ignore lint/a11y/noStaticElementInteractions: Canvas node interaction */}
+          {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: Canvas node interaction */}
+          <div className="flex-1 p-2.5" onDoubleClick={handleDoubleClick}>
+            {isEditing ? (
+              <textarea
+                autoFocus
+                className={cn(
+                  "size-full resize-none border-none bg-transparent outline-none",
+                  FONT_SIZE_CLASS[fontSize],
+                  colorCfg.text
+                )}
+                defaultValue={content}
+                onBlur={handleBlur}
+                ref={textareaRef}
+              />
+            ) : (
+              <p
+                className={cn(
+                  "whitespace-pre-wrap break-words",
+                  FONT_SIZE_CLASS[fontSize],
+                  colorCfg.text,
+                  !hasContent && "italic opacity-50"
+                )}
+              >
+                {hasContent ? content : "Double-click to edit..."}
+              </p>
+            )}
           </div>
 
           {(data.author || data.timestamp) && (
             <div
               className={cn(
-                "border-t px-2 py-1 text-[10px] opacity-60",
-                colorConfig.border,
-                colorConfig.text
+                "flex items-center gap-2 border-t px-2.5 py-1 text-[10px] opacity-60",
+                colorCfg.border,
+                colorCfg.text
               )}
             >
-              {data.author}
+              {data.author && <span>{data.author}</span>}
               {data.timestamp && (
-                <span className="ml-2">
+                <time dateTime={data.timestamp}>
                   {new Date(data.timestamp).toLocaleDateString()}
-                </span>
+                </time>
               )}
             </div>
           )}
@@ -153,9 +213,11 @@ export function createAnnotationNodeData(): AnnotationNodeData {
     label: "Note",
     config: {
       color: "yellow",
+      content: "",
+      width: 240,
+      isPinned: false,
+      isCollapsed: false,
+      fontSize: "sm",
     },
-    content: "",
-    isPinned: false,
-    isExpanded: true,
   };
 }

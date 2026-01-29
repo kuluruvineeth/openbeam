@@ -37,7 +37,7 @@ export const VideoPlayer = forwardRef<HTMLDivElement, VideoPlayerProps>(
       onMouseMove,
       onClick,
     },
-    containerRef
+    ref
   ) => {
     useEffect(() => {
       const handleFullscreen = () => {
@@ -63,7 +63,7 @@ export const VideoPlayer = forwardRef<HTMLDivElement, VideoPlayerProps>(
           state.isFullscreen && "fixed inset-0 z-50"
         )}
         onMouseMove={onMouseMove}
-        ref={containerRef}
+        ref={ref}
       >
         {/* biome-ignore lint/a11y/useMediaCaption: Captions provided by transcript panel */}
         <video

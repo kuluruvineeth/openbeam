@@ -1,11 +1,17 @@
 "use client";
 
-import type { LoopNodeConfig, NodeStatus, Port } from "@openplane/types/canvas";
+import type {
+  LoopExecutionMode,
+  LoopNodeConfig,
+  NodeStatus,
+  Port,
+} from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
-import { Repeat } from "lucide-react";
 import { forwardRef, memo, useMemo } from "react";
-import { NodeField, NodeHeader, NodeSection, NodeShell } from "../primitives";
+import { Badge } from "../../../badge";
+import { Icons } from "../../../icons";
+import { NodeHeader, NodeSection, NodeShell } from "../primitives";
 
 export interface LoopNodeData {
   label: string;
@@ -18,22 +24,67 @@ export interface LoopNodeData {
 
 type LoopNodeType = Node<LoopNodeData, "loop">;
 
+const EXECUTION_MODE_META: Record<
+  LoopExecutionMode,
+  { label: string; iconName: "ArrowRight" | "GitFork" | "Layers" }
+> = {
+  sequential: { label: "Seq", iconName: "ArrowRight" },
+  parallel: { label: "Par", iconName: "GitFork" },
+  batch: { label: "Batch", iconName: "Layers" },
+};
+
+function getLoopPreview(config: LoopNodeConfig): string {
+  const { type, collection, condition, times } = config;
+  if (type === "forEach") {
+    return `For each in ${collection || "items"}`;
+  }
+  if (type === "while") {
+    return `While ${condition || "condition"}`;
+  }
+  if (type === "times") {
+    return `Repeat ${times ?? 1} times`;
+  }
+  return "Configure loop";
+}
+
+function hasWarning(
+  config: LoopNodeConfig,
+  executionMode: LoopExecutionMode
+): boolean {
+  if (executionMode === "parallel" && (config.times ?? 0) > 50) {
+    return true;
+  }
+  if (executionMode === "batch" && (config.batchSize ?? 10) > 100) {
+    return true;
+  }
+  if (config.type === "while" && !config.breakCondition) {
+    return true;
+  }
+  if ((config.maxIterations ?? 100) > 1000) {
+    return true;
+  }
+  return false;
+}
+
+function ExecutionBadge({ mode }: { mode: LoopExecutionMode }) {
+  const meta = EXECUTION_MODE_META[mode];
+  const Icon = Icons[meta.iconName];
+  return (
+    <Badge variant={mode === "parallel" ? "node-parallel" : "node-sequential"}>
+      <Icon size={12} />
+      <span>{meta.label}</span>
+    </Badge>
+  );
+}
+
 export const LoopNode = memo(
   forwardRef<HTMLDivElement, NodeProps<LoopNodeType>>(
     function LoopNodeComponent({ data, selected }, ref) {
-      const preview = useMemo(() => {
-        const { type, collection, condition, times } = data.config;
-        switch (type) {
-          case "forEach":
-            return `For each in ${collection ?? "items"}`;
-          case "while":
-            return `While ${condition ?? "condition"}`;
-          case "times":
-            return `Repeat ${times ?? 1} times`;
-          default:
-            return "Configure loop";
-        }
-      }, [data.config]);
+      const { config } = data;
+      const executionMode = config.executionMode ?? "sequential";
+      const preview = useMemo(() => getLoopPreview(config), [config]);
+      const showBatchInfo = executionMode === "batch";
+      const showWarning = hasWarning(config, executionMode);
 
       return (
         <NodeShell
@@ -42,31 +93,20 @@ export const LoopNode = memo(
               id: "input",
               type: "target",
               position: Position.Left,
-              offset: "30%",
-              label: "In",
-            },
-            {
-              id: "loopBack",
-              type: "target",
-              position: Position.Left,
-              offset: "70%",
-              variant: "loop",
-              label: "Loop",
+              offset: "50%",
             },
             {
               id: "body",
               type: "source",
               position: Position.Right,
-              offset: "30%",
-              label: "Body",
+              offset: "35%",
             },
             {
               id: "done",
               type: "source",
               position: Position.Right,
-              offset: "70%",
+              offset: "65%",
               variant: "done",
-              label: "Done",
             },
           ]}
           ref={ref}
@@ -74,17 +114,57 @@ export const LoopNode = memo(
           status={data.status}
         >
           <NodeHeader
+            actions={<ExecutionBadge mode={executionMode} />}
             colorVar="--node-loop"
-            icon={<Repeat className="size-5" />}
+            icon={<Icons.Repeat size={20} />}
             subtitle={preview}
             title={data.label}
           />
           <NodeSection>
-            <NodeField
-              label="Max iterations"
-              mono
-              value={data.config.maxIterations}
-            />
+            <div className="space-y-2">
+              {showBatchInfo && (
+                <div className="flex items-center gap-2 rounded-sm bg-muted/50 px-2 py-1.5 text-[10px]">
+                  <span className="text-muted-foreground">Batch:</span>
+                  <span className="font-mono">{config.batchSize ?? 10}</span>
+                  {(config.batchDelayMs ?? 0) > 0 && (
+                    <>
+                      <span className="text-muted-foreground">•</span>
+                      <span className="text-muted-foreground">Delay:</span>
+                      <span className="font-mono">{config.batchDelayMs}ms</span>
+                    </>
+                  )}
+                </div>
+              )}
+
+              <div className="flex items-center justify-between text-[10px]">
+                <span className="text-muted-foreground">Max iterations</span>
+                <span className="font-mono tabular-nums">
+                  {config.maxIterations ?? 100}
+                </span>
+              </div>
+
+              {config.errorHandling && config.errorHandling !== "stop" && (
+                <div className="flex items-center justify-between text-[10px]">
+                  <span className="text-muted-foreground">On error</span>
+                  <Badge
+                    variant={
+                      config.errorHandling === "continue"
+                        ? "node-warning"
+                        : "node-info"
+                    }
+                  >
+                    {config.errorHandling === "continue" ? "Skip" : "Collect"}
+                  </Badge>
+                </div>
+              )}
+
+              {showWarning && (
+                <div className="flex items-center gap-1.5 text-[10px] text-warning">
+                  <Icons.AlertCircle size={12} />
+                  <span>Review config for performance</span>
+                </div>
+              )}
+            </div>
           </NodeSection>
         </NodeShell>
       );
@@ -97,11 +177,16 @@ LoopNode.displayName = "LoopNode";
 export function createLoopNodeData(): LoopNodeData {
   return {
     label: "Loop",
-    config: { type: "forEach", maxIterations: 100 },
-    inputs: [
-      { id: "input", label: "Input", type: "data", required: true },
-      { id: "loopBack", label: "Loop Back", type: "control", required: false },
-    ],
+    config: {
+      type: "forEach",
+      executionMode: "sequential",
+      batchSize: 10,
+      batchDelayMs: 0,
+      errorHandling: "stop",
+      maxIterations: 100,
+      outputMode: "all",
+    },
+    inputs: [{ id: "input", label: "Input", type: "data", required: true }],
     outputs: [
       { id: "body", label: "Body", type: "control", required: false },
       { id: "done", label: "Done", type: "control", required: false },

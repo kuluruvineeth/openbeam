@@ -2,7 +2,6 @@
 
 import type { LlmNodeConfig } from "@openplane/types/canvas";
 import { forwardRef, memo, useCallback } from "react";
-import { Badge } from "../../../badge";
 import { Button } from "../../../button";
 import { Icons } from "../../../icons";
 import { Input } from "../../../input";
@@ -14,26 +13,11 @@ import {
   SelectValue,
 } from "../../../select";
 import { Slider } from "../../../slider";
+import { Switch } from "../../../switch";
 import { Textarea } from "../../../textarea";
+import { ModelSelector, PromptStrengthIndicator } from "../../ai-elements";
 import { ConfigField } from "../config-field";
 import { ConfigSection } from "../config-section";
-
-const CHAT_MODELS = [
-  {
-    id: "claude-sonnet-4-20250514",
-    name: "Claude Sonnet 4",
-    provider: "Anthropic",
-  },
-  {
-    id: "claude-opus-4-20250514",
-    name: "Claude Opus 4",
-    provider: "Anthropic",
-  },
-  { id: "gpt-4o", name: "GPT-4o", provider: "OpenAI" },
-  { id: "gpt-4o-mini", name: "GPT-4o Mini", provider: "OpenAI" },
-  { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash", provider: "Google" },
-  { id: "gemini-2.0-pro", name: "Gemini 2.0 Pro", provider: "Google" },
-] as const;
 
 const RESPONSE_FORMATS = [
   { id: "text", name: "Text", description: "Plain text response" },
@@ -52,6 +36,7 @@ interface LlmConfigPanelProps {
 
 export const LlmConfigPanel = memo(
   forwardRef<HTMLDivElement, LlmConfigPanelProps>(
+    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: LLM config form has many conditional sections
     function LlmConfigPanelComponent({ config, onChange }, ref) {
       const handleRemoveTool = useCallback(
         (index: number) => {
@@ -70,26 +55,11 @@ export const LlmConfigPanel = memo(
           >
             <div className="space-y-4">
               <ConfigField label="Model" required>
-                <Select
+                <ModelSelector
                   onValueChange={(model) => onChange({ model })}
+                  type="chat"
                   value={config.model ?? "claude-sonnet-4-20250514"}
-                >
-                  <SelectTrigger className="h-9">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CHAT_MODELS.map((model) => (
-                      <SelectItem key={model.id} value={model.id}>
-                        <div className="flex items-center justify-between gap-4">
-                          <span>{model.name}</span>
-                          <Badge className="text-xs" variant="outline">
-                            {model.provider}
-                          </Badge>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                />
               </ConfigField>
 
               <ConfigField
@@ -128,6 +98,18 @@ export const LlmConfigPanel = memo(
                   value={config.maxTokens ?? 4096}
                 />
               </ConfigField>
+
+              <ConfigField label="Streaming">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground text-sm">
+                    Stream response tokens
+                  </span>
+                  <Switch
+                    checked={config.streaming ?? true}
+                    onCheckedChange={(streaming) => onChange({ streaming })}
+                  />
+                </div>
+              </ConfigField>
             </div>
           </ConfigSection>
 
@@ -148,6 +130,14 @@ export const LlmConfigPanel = memo(
                   value={config.systemPrompt ?? ""}
                 />
               </ConfigField>
+
+              {config.systemPrompt && (
+                <PromptStrengthIndicator
+                  compact
+                  prompt={config.systemPrompt}
+                  showSuggestions={false}
+                />
+              )}
             </div>
           </ConfigSection>
 
@@ -157,7 +147,10 @@ export const LlmConfigPanel = memo(
             title="Output"
           >
             <div className="space-y-4">
-              <ConfigField label="Response Format">
+              <ConfigField
+                label="Response Format"
+                tooltip="Text: Plain text. JSON: JSON object. Structured: Schema-validated output."
+              >
                 <Select
                   onValueChange={(format) =>
                     onChange({
@@ -172,12 +165,7 @@ export const LlmConfigPanel = memo(
                   <SelectContent>
                     {RESPONSE_FORMATS.map((format) => (
                       <SelectItem key={format.id} value={format.id}>
-                        <div className="flex flex-col">
-                          <span>{format.name}</span>
-                          <span className="text-muted-foreground text-xs">
-                            {format.description}
-                          </span>
-                        </div>
+                        {format.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -237,6 +225,82 @@ export const LlmConfigPanel = memo(
                 <Icons.Plus className="mr-1.5 size-3.5" />
                 Add Tool
               </Button>
+            </div>
+          </ConfigSection>
+
+          <ConfigSection
+            defaultOpen={false}
+            icon={<Icons.Settings className="size-4" />}
+            title="Advanced"
+          >
+            <div className="space-y-4">
+              <ConfigField label="Top P" tooltip="Nucleus sampling threshold">
+                <div className="flex items-center gap-4">
+                  <Slider
+                    className="flex-1"
+                    max={1}
+                    min={0}
+                    onValueChange={(v) => onChange({ topP: v[0] })}
+                    step={0.05}
+                    value={[config.topP ?? 1]}
+                  />
+                  <span className="w-10 text-right font-mono text-sm tabular-nums">
+                    {(config.topP ?? 1).toFixed(2)}
+                  </span>
+                </div>
+              </ConfigField>
+
+              <ConfigField
+                label="Frequency Penalty"
+                tooltip="Penalize repeated tokens"
+              >
+                <div className="flex items-center gap-4">
+                  <Slider
+                    className="flex-1"
+                    max={2}
+                    min={0}
+                    onValueChange={(v) => onChange({ frequencyPenalty: v[0] })}
+                    step={0.1}
+                    value={[config.frequencyPenalty ?? 0]}
+                  />
+                  <span className="w-10 text-right font-mono text-sm tabular-nums">
+                    {(config.frequencyPenalty ?? 0).toFixed(1)}
+                  </span>
+                </div>
+              </ConfigField>
+
+              <ConfigField
+                label="Presence Penalty"
+                tooltip="Encourage topic diversity"
+              >
+                <div className="flex items-center gap-4">
+                  <Slider
+                    className="flex-1"
+                    max={2}
+                    min={0}
+                    onValueChange={(v) => onChange({ presencePenalty: v[0] })}
+                    step={0.1}
+                    value={[config.presencePenalty ?? 0]}
+                  />
+                  <span className="w-10 text-right font-mono text-sm tabular-nums">
+                    {(config.presencePenalty ?? 0).toFixed(1)}
+                  </span>
+                </div>
+              </ConfigField>
+
+              <ConfigField label="Stop Sequences" tooltip="Stop generation at">
+                <Textarea
+                  className="min-h-[60px] resize-y font-mono text-sm"
+                  onChange={(e) => {
+                    const stops = e.target.value
+                      .split("\n")
+                      .filter((s) => s.trim());
+                    onChange({ stop: stops.length > 0 ? stops : undefined });
+                  }}
+                  placeholder="Enter stop sequences (one per line)"
+                  value={config.stop?.join("\n") ?? ""}
+                />
+              </ConfigField>
             </div>
           </ConfigSection>
         </div>

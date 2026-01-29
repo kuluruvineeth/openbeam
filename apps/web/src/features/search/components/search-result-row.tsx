@@ -193,10 +193,7 @@ function ActionIndicator({
 export const SearchResultRow = forwardRef<
   HTMLButtonElement,
   SearchResultRowProps
->(function SearchResultRowInner(
-  { document: doc, isSelected, isPreviewing, onSelect, onPreview },
-  ref
-) {
+>(({ document: doc, isSelected, isPreviewing, onSelect, onPreview }, ref) => {
   const showContentPrimary = isContentPrimary(
     doc.connector_type,
     doc.document_type
@@ -270,3 +267,5 @@ export const SearchResultRow = forwardRef<
     </button>
   );
 });
+
+SearchResultRow.displayName = "SearchResultRow";

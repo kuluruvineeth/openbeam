@@ -1,16 +1,15 @@
 "use client";
 
-import type { NodeStatus, Port } from "@openplane/types/canvas";
+import type {
+  FilterNodeConfig,
+  NodeStatus,
+  Port,
+} from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
-import { Filter } from "lucide-react";
 import { forwardRef, memo } from "react";
-import { NodeHeader, NodeSection, NodeShell } from "../primitives";
-
-export interface FilterNodeConfig {
-  expression: string;
-  language: "jmespath" | "jsonata" | "javascript";
-}
+import { Icons } from "../../../icons";
+import { NodeField, NodeHeader, NodeSection, NodeShell } from "../primitives";
 
 export interface FilterNodeData {
   label: string;
@@ -23,18 +22,41 @@ export interface FilterNodeData {
 
 type FilterNodeType = Node<FilterNodeData, "filter">;
 
-const FILTER_LANGUAGE_LABELS: Record<FilterNodeConfig["language"], string> = {
-  jmespath: "JMESPath",
-  jsonata: "JSONata",
-  javascript: "JavaScript",
-};
+function getFilterSummary(config: FilterNodeConfig): string {
+  const mode = config.mode ?? "visual";
+
+  if (mode === "expression") {
+    const expr = config.expression ?? "";
+    if (!expr) {
+      return "No expression";
+    }
+    return expr.length > 50 ? `${expr.slice(0, 50)}...` : expr;
+  }
+
+  const conditions = config.conditions ?? [];
+  if (conditions.length === 0) {
+    return "No conditions";
+  }
+  const logic = (config.logic ?? "and").toUpperCase();
+  return `${conditions.length} condition${conditions.length !== 1 ? "s" : ""} \u00B7 ${logic}`;
+}
+
+function getFilterSubtitle(config: FilterNodeConfig): string {
+  const mode = config.mode ?? "visual";
+  return mode === "visual" ? "Visual" : "Expression";
+}
 
 export const FilterNode = memo(
   forwardRef<HTMLDivElement, NodeProps<FilterNodeType>>(
     function FilterNodeComponent({ data, selected }, ref) {
-      const expression = data.config.expression ?? "";
-      const language = data.config.language ?? "jmespath";
-      const hasExpression = expression.length > 0;
+      const summary = getFilterSummary(data.config);
+      const subtitle = getFilterSubtitle(data.config);
+      const mode = data.config.mode ?? "visual";
+      const conditions = data.config.conditions ?? [];
+      const hasContent =
+        mode === "visual"
+          ? conditions.length > 0
+          : (data.config.expression ?? "").length > 0;
 
       return (
         <NodeShell
@@ -48,16 +70,19 @@ export const FilterNode = memo(
         >
           <NodeHeader
             colorVar="--node-filter"
-            icon={<Filter className="size-5" />}
-            subtitle={FILTER_LANGUAGE_LABELS[language]}
+            icon={<Icons.Filter size={20} />}
+            subtitle={subtitle}
             title={data.label}
           />
-          {hasExpression && (
+          {hasContent && (
             <NodeSection>
-              <div className="rounded-sm bg-muted/50 p-2 font-mono text-[10px] text-muted-foreground">
-                {expression.slice(0, 60)}
-                {expression.length > 60 && "..."}
-              </div>
+              {mode === "visual" ? (
+                <NodeField label="Conditions" value={summary} />
+              ) : (
+                <div className="rounded-sm bg-muted/50 p-2 font-mono text-[10px] text-muted-foreground">
+                  {summary}
+                </div>
+              )}
             </NodeSection>
           )}
         </NodeShell>
@@ -72,8 +97,11 @@ export function createFilterNodeData(): FilterNodeData {
   return {
     label: "Filter",
     config: {
+      mode: "visual",
+      logic: "and",
+      conditions: [],
       expression: "",
-      language: "jmespath",
+      language: "javascript",
     },
     inputs: [{ id: "input", label: "Input", type: "data", required: true }],
     outputs: [{ id: "output", label: "Output", type: "data", required: true }],

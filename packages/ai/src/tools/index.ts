@@ -21,6 +21,11 @@ export {
   failure,
   success,
 } from "./builder";
+export type {
+  CanvasToolParameterDef,
+  CanvasToolPickerItem,
+} from "./canvas-adapter";
+export { createGetToolParameters, toToolPickerItems } from "./canvas-adapter";
 export type { ChainResult, StepResult, ToolChainStep } from "./chaining";
 export {
   createChainBuilder,
@@ -78,6 +83,11 @@ export {
   ToolMetricsCollector,
   toolMetrics,
 } from "./observability";
+export type {
+  MultiExecuteParams,
+  MultiExecuteResult,
+  ToolSearchParams,
+} from "./registry";
 export { ToolRegistry, tool, toolRegistry, z } from "./registry";
 export type { ToolExecutionStats, ToolResilienceConfig } from "./resilience";
 export {
@@ -89,6 +99,8 @@ export {
   getCircuitBreakerState,
   noRetryConfig,
 } from "./resilience";
+export type { RouteResult, ToolRouterConfig, ToolSuggestion } from "./router";
+export { initializeToolRouter, ToolRouter, toolRouter } from "./router";
 export { ToolSearchService, toolSearchService, toolSearchTool } from "./search";
 export type {
   Connector,
@@ -125,7 +137,6 @@ export {
   resetToolHooks,
   setupToolHooks,
 } from "./setup";
-
 export type {
   AISDKTool,
   RegisteredTool,

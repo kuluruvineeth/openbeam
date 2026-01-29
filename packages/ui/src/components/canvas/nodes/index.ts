@@ -1,8 +1,7 @@
 export type {
-  ClassifyCategory,
   ClassifyNodeData,
-  ExtractField,
   ExtractNodeData,
+  ExtractNodeProps,
   LlmNodeData,
   RagNodeData,
   SummarizeNodeData,
@@ -36,42 +35,57 @@ export {
   ParallelSplitNode,
   StartNode,
 } from "./control";
-
+export { createAllNodeTypes } from "./create-node-types";
 export type { DropNodeData } from "./drop-node";
 export { DropNode } from "./drop-node";
 export {
+  createAgentCallNodeData,
   createAnnotationNodeData,
   createApprovalNodeData,
+  createAudioNodeData,
   createClassifyNodeData,
   createCodeNodeData,
   createConditionNodeData,
+  createConnectorActionNodeData,
+  createConnectorNodeData,
+  createDatabaseQueryNodeData,
   createEndNodeData,
+  createEventTriggerNodeData,
   createExtractNodeData,
   createFilterNodeData,
+  createGraphqlQueryNodeData,
+  createHttpRequestNodeData,
+  createImageNodeData,
   createInputNodeData,
   createLlmNodeData,
   createLoopNodeData,
+  createManualTriggerNodeData,
+  createMemoryReadNodeData,
+  createMemorySearchNodeData,
+  createMemoryWriteNodeData,
   createNodeData,
   createNotifyNodeData,
   createParallelJoinNodeData,
+  createParallelMapNodeData,
   createParallelSplitNodeData,
   createRagNodeData,
+  createScheduleTriggerNodeData,
   createStartNodeData,
+  createSubWorkflowNodeData,
   createSummarizeNodeData,
   createTemplateNodeData,
+  createToolNodeData,
+  createUniqueNodeId,
+  createVideoNodeData,
+  createWebhookTriggerNodeData,
   hasNodeDataFactory,
 } from "./factory";
 export type {
   AnnotationColor,
   AnnotationNodeConfig,
   AnnotationNodeData,
-  ApprovalNodeConfig,
   ApprovalNodeData,
-  Approver,
-  InputNodeConfig,
   InputNodeData,
-  InputOption,
-  InputType,
   NotifyNodeConfig,
   NotifyNodeData,
 } from "./human";
@@ -82,12 +96,46 @@ export {
   InputNode,
   NotifyNode,
 } from "./human";
-export { categoryLabels, nodeButtons } from "./node-buttons";
-
+export type {
+  ConnectorNodeData,
+  DatabaseQueryNodeData,
+  GraphqlQueryNodeData,
+  HttpRequestNodeData,
+  ToolNodeData,
+} from "./integration";
+export {
+  ConnectorNode,
+  DatabaseQueryNode,
+  GraphqlQueryNode,
+  HttpRequestNode,
+  integrationNodeTypes,
+  ToolNode,
+} from "./integration";
+export type {
+  MemoryReadNodeData,
+  MemorySearchNodeData,
+  MemoryWriteNodeData,
+} from "./memory";
+export {
+  MemoryReadNode,
+  MemorySearchNode,
+  MemoryWriteNode,
+  memoryNodeTypes,
+} from "./memory";
+export type {
+  AgentCallNodeData,
+  ParallelMapNodeData,
+  SubWorkflowNodeData,
+} from "./orchestration";
+export {
+  AgentCallNode,
+  orchestrationNodeTypes,
+  ParallelMapNode,
+  SubWorkflowNode,
+} from "./orchestration";
 export { NodeField, NodeHeader, NodeSection, NodeShell } from "./primitives";
 export {
   CATEGORY_LABELS,
-  createAllNodeTypes,
   getNodeEntry,
   getNodesByCategory,
   type NodeRegistryEntry,
@@ -108,3 +156,16 @@ export {
   TemplateNode,
   transformNodeTypes,
 } from "./transform";
+export type {
+  EventTriggerNodeData,
+  ManualTriggerNodeData,
+  ScheduleTriggerNodeData,
+  WebhookTriggerNodeData,
+} from "./trigger";
+export {
+  EventTriggerNode,
+  ManualTriggerNode,
+  ScheduleTriggerNode,
+  triggerNodeTypes,
+  WebhookTriggerNode,
+} from "./trigger";

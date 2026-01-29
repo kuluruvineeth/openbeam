@@ -22,6 +22,20 @@ export {
   useToolbarExpanded,
 } from "./agent-store";
 export type {
+  CanvasBuilderActions,
+  CanvasBuilderState,
+  CanvasBuilderStore,
+} from "./canvas-builder-store";
+export {
+  useBuilderError,
+  useBuilderStatus,
+  useCanvasBuilderStore,
+  useHasPendingOperations,
+  useOperationHistory,
+  usePendingOperationCount,
+  usePendingOperations,
+} from "./canvas-builder-store";
+export type {
   CanvasStore,
   CanvasStoreConfig,
   CanvasStorePersisted,

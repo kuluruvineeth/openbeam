@@ -44,6 +44,7 @@ export const ConnectorActionInputSchema = z.object({
     })
     .optional(),
   dynamic: z.boolean().optional(),
+  resourceType: z.string().optional(),
   dependsOn: z.string().optional(),
 });
 
@@ -97,6 +98,7 @@ export const ConnectorActionDefinitionSchema = z.object({
   name: z.string(),
   description: z.string(),
   connectorType: z.string(),
+  resource: z.string(),
   category: ConnectorActionCategorySchema,
   inputs: z.array(ConnectorActionInputSchema),
   outputs: z.array(ConnectorActionOutputSchema),
@@ -139,6 +141,7 @@ export type RetryConfig = z.infer<typeof RetryConfigSchema>;
 
 export const ConnectorActionNodeConfigSchema = z.object({
   connectorType: z.string(),
+  connectorId: z.string().optional(),
   actionId: z.string(),
   inputMappings: z.record(z.string(), z.unknown()),
   outputMappings: z.record(z.string(), z.string()).optional(),
@@ -164,28 +167,52 @@ export type ConnectorActionNodeData = z.infer<
   typeof ConnectorActionNodeDataSchema
 >;
 
-export interface ConnectorActionExecuteParams {
-  connectorId: string;
-  actionId: string;
-  inputs: Record<string, unknown>;
-  context: {
-    teamId: string;
-    userId: string;
-    runId: string;
-    nodeId: string;
-  };
-}
+export const ConnectorActionExecuteContextSchema = z.object({
+  teamId: z.string(),
+  userId: z.string(),
+  runId: z.string(),
+  nodeId: z.string(),
+});
 
-export interface ConnectorActionExecuteResult {
-  success: boolean;
-  data?: unknown;
-  error?: {
-    code: string;
-    message: string;
-    retryable: boolean;
-  };
-  metrics?: {
-    durationMs: number;
-    retryCount?: number;
-  };
-}
+export type ConnectorActionExecuteContext = z.infer<
+  typeof ConnectorActionExecuteContextSchema
+>;
+
+export const ConnectorActionExecuteParamsSchema = z.object({
+  connectorId: z.string(),
+  actionId: z.string(),
+  inputs: z.record(z.string(), z.unknown()),
+  context: ConnectorActionExecuteContextSchema,
+});
+
+export type ConnectorActionExecuteParams = z.infer<
+  typeof ConnectorActionExecuteParamsSchema
+>;
+
+export const ConnectorActionErrorSchema = z.object({
+  code: z.string(),
+  message: z.string(),
+  retryable: z.boolean(),
+});
+
+export type ConnectorActionError = z.infer<typeof ConnectorActionErrorSchema>;
+
+export const ConnectorActionMetricsSchema = z.object({
+  durationMs: z.number(),
+  retryCount: z.number().optional(),
+});
+
+export type ConnectorActionMetrics = z.infer<
+  typeof ConnectorActionMetricsSchema
+>;
+
+export const ConnectorActionExecuteResultSchema = z.object({
+  success: z.boolean(),
+  data: z.unknown().optional(),
+  error: ConnectorActionErrorSchema.optional(),
+  metrics: ConnectorActionMetricsSchema.optional(),
+});
+
+export type ConnectorActionExecuteResult = z.infer<
+  typeof ConnectorActionExecuteResultSchema
+>;

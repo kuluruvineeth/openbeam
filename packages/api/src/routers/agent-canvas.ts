@@ -1,9 +1,19 @@
 import {
+  type CanvasStreamEvent,
+  createEmptyState,
+  createGetToolParameters,
+  registerAllTools,
+  streamCanvasBuilder,
+  toolRegistry,
+  toToolPickerItems,
+} from "@openplane/ai";
+import {
   archiveAgentCanvas,
   countAgentCanvases,
   createAgentCanvas,
   createAgentCanvasExecution,
   deleteAgentCanvas,
+  duplicateAgentCanvas,
   findAgentCanvasById,
   findAgentCanvasExecution,
   listAgentCanvasExecutions,
@@ -19,7 +29,7 @@ import {
   AgentCanvasEdgeSchema,
   AgentCanvasNodeSchema,
   AgentCanvasSettingsSchema,
-  TriggerConfigSchema,
+  CanvasTriggerSettingsSchema,
   ViewportSchema,
 } from "@openplane/types/canvas";
 import { TRPCError } from "@trpc/server";
@@ -39,10 +49,16 @@ const listCanvasesSchema = z.object({
   status: AgentCanvasStatusSchema.optional(),
   limit: z.number().min(1).max(100).default(20),
   offset: z.number().min(0).default(0),
+  cursor: z.number().nullish(),
 });
 
 const canvasIdSchema = z.object({
   canvasId: z.string(),
+});
+
+const duplicateCanvasSchema = z.object({
+  canvasId: z.string(),
+  name: z.string().min(1).max(100).optional(),
 });
 
 const createCanvasSchema = z.object({
@@ -54,7 +70,7 @@ const createCanvasSchema = z.object({
   viewport: ViewportSchema.optional(),
   settings: AgentCanvasSettingsSchema.optional(),
   triggerType: AgentTriggerTypeSchema.optional(),
-  triggerConfig: TriggerConfigSchema.optional(),
+  triggerConfig: CanvasTriggerSettingsSchema.optional(),
 });
 
 const updateCanvasSchema = z.object({
@@ -67,7 +83,7 @@ const updateCanvasSchema = z.object({
   viewport: ViewportSchema.optional(),
   settings: AgentCanvasSettingsSchema.optional(),
   triggerType: AgentTriggerTypeSchema.optional(),
-  triggerConfig: TriggerConfigSchema.optional(),
+  triggerConfig: CanvasTriggerSettingsSchema.optional(),
 });
 
 const publishCanvasSchema = z.object({
@@ -105,6 +121,12 @@ const listTemplatesSchema = z.object({
   offset: z.number().min(0).default(0),
 });
 
+const buildCanvasSchema = z.object({
+  prompt: z.string().min(1).max(10_000),
+  canvasId: z.string().optional(),
+  sessionId: z.string().optional(),
+});
+
 async function verifyCanvasAccess(
   prisma: Parameters<typeof findAgentCanvasById>[0],
   canvasId: string,
@@ -126,23 +148,29 @@ export const agentCanvasRouter = createTRPCRouter({
   list: withActiveTeam
     .input(listCanvasesSchema)
     .query(async ({ ctx, input }) => {
+      const effectiveOffset = input.cursor ?? input.offset;
+
       const [items, total] = await Promise.all([
         listAgentCanvases(ctx.prisma, ctx.teamId, {
           status: input.status,
           limit: input.limit + 1,
-          offset: input.offset,
+          offset: effectiveOffset,
         }),
         countAgentCanvases(ctx.prisma, ctx.teamId, input.status),
       ]);
 
       const hasMore = items.length > input.limit;
       const canvases = hasMore ? items.slice(0, -1) : items;
+      const nextCursor = hasMore
+        ? effectiveOffset + canvases.length
+        : undefined;
 
       return {
         items: canvases,
         total,
         hasMore,
-        nextOffset: hasMore ? input.offset + canvases.length : undefined,
+        nextOffset: nextCursor,
+        nextCursor,
       };
     }),
 
@@ -225,6 +253,17 @@ export const agentCanvasRouter = createTRPCRouter({
       }
 
       return { success: true };
+    }),
+
+  duplicate: withActiveTeam
+    .input(duplicateCanvasSchema)
+    .mutation(async ({ ctx, input }) => {
+      await verifyCanvasAccess(ctx.prisma, input.canvasId, ctx.teamId);
+
+      return duplicateAgentCanvas(ctx.prisma, input.canvasId, ctx.teamId, {
+        name: input.name,
+        createdById: ctx.session.user.id,
+      });
     }),
 
   listExecutions: withActiveTeam
@@ -335,4 +374,55 @@ export const agentCanvasRouter = createTRPCRouter({
         offset: input.offset,
       })
     ),
+
+  listTools: withActiveTeam.query(() => {
+    registerAllTools();
+    return toToolPickerItems(toolRegistry.getAllMetadata());
+  }),
+
+  getToolParameters: withActiveTeam
+    .input(z.object({ toolId: z.string() }))
+    .query(async ({ input }) => {
+      registerAllTools();
+      const getParams = createGetToolParameters(toolRegistry);
+      return await getParams(input.toolId);
+    }),
+
+  buildCanvas: withActiveTeam
+    .input(buildCanvasSchema)
+    .subscription(async function* ({
+      ctx,
+      input,
+    }): AsyncGenerator<CanvasStreamEvent> {
+      let canvasState: { nodes: unknown[]; edges: unknown[] } | undefined;
+
+      if (input.canvasId) {
+        const canvas = await findAgentCanvasById(
+          ctx.prisma,
+          input.canvasId,
+          ctx.teamId
+        );
+        if (canvas) {
+          canvasState = {
+            nodes: canvas.nodes as unknown[],
+            edges: canvas.edges as unknown[],
+          };
+        }
+      }
+
+      const agentCtx = {
+        teamId: ctx.teamId,
+        userId: ctx.session.user.id,
+        sessionId: input.sessionId,
+        state: createEmptyState(),
+        metadata: {
+          ...(input.canvasId ? { canvasId: input.canvasId } : {}),
+          ...(canvasState ? { canvas: canvasState } : {}),
+        },
+      };
+
+      for await (const event of streamCanvasBuilder(input.prompt, agentCtx)) {
+        yield event;
+      }
+    }),
 });

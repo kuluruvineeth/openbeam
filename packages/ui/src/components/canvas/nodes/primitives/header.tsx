@@ -2,14 +2,14 @@
 
 import type { ReactNode } from "react";
 import { memo } from "react";
-import { cn } from "../../../../utils";
 
 interface NodeHeaderProps {
   icon: ReactNode;
   title: ReactNode;
-  subtitle?: string;
+  subtitle?: ReactNode;
   actions?: ReactNode;
   colorVar?: string;
+  badge?: ReactNode;
 }
 
 export const NodeHeader = memo(function NodeHeaderComponent({
@@ -17,28 +17,18 @@ export const NodeHeader = memo(function NodeHeaderComponent({
   title,
   subtitle,
   actions,
-  colorVar,
+  badge,
 }: NodeHeaderProps) {
   return (
     <div className="flex items-center gap-3 p-3">
-      <div
-        className={cn(
-          "flex size-9 shrink-0 items-center justify-center rounded-md",
-          "bg-muted text-muted-foreground"
-        )}
-        style={
-          colorVar
-            ? {
-                backgroundColor: `hsl(var(${colorVar}) / 0.15)`,
-                color: `hsl(var(${colorVar}))`,
-              }
-            : undefined
-        }
-      >
+      <div className="flex size-9 shrink-0 items-center justify-center text-foreground">
         {icon}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="font-medium text-sm leading-tight">{title}</p>
+        <div className="flex items-center gap-2">
+          <p className="font-medium text-sm leading-tight">{title}</p>
+          {badge}
+        </div>
         {subtitle && (
           <p className="truncate text-muted-foreground text-xs">{subtitle}</p>
         )}

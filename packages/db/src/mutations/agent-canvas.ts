@@ -160,6 +160,42 @@ export function deleteAgentCanvas(db: Database, id: string, teamId: string) {
   });
 }
 
+export function duplicateAgentCanvas(
+  db: Database,
+  id: string,
+  teamId: string,
+  options: {
+    name?: string;
+    createdById: string;
+  }
+) {
+  return db.$transaction(async (tx) => {
+    const canvas = await tx.agentCanvas.findFirst({
+      where: { id, teamId },
+    });
+
+    if (!canvas) {
+      throw new Error("Agent canvas not found");
+    }
+
+    return tx.agentCanvas.create({
+      data: {
+        name: options.name ?? `${canvas.name} (Copy)`,
+        description: canvas.description,
+        icon: canvas.icon,
+        nodes: canvas.nodes as never,
+        edges: canvas.edges as never,
+        viewport: canvas.viewport as never,
+        settings: canvas.settings as never,
+        triggerType: canvas.triggerType,
+        triggerConfig: canvas.triggerConfig as never,
+        teamId,
+        createdById: options.createdById,
+      },
+    });
+  });
+}
+
 export function createAgentCanvasExecution(
   db: Database,
   data: {
