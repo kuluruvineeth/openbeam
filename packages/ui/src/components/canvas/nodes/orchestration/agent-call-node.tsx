@@ -89,6 +89,9 @@ export function createAgentCallNodeData(): AgentCallNodeData {
       prompt: "",
       maxSteps: 10,
       temperature: 0.7,
+      executionMode: "react",
+      outputFormat: "text",
+      memoryEnabled: true,
     },
     inputs: [
       { id: "prompt", label: "Prompt", type: "data", required: false },

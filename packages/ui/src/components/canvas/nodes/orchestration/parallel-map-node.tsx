@@ -92,8 +92,13 @@ export function createParallelMapNodeData(): ParallelMapNodeData {
     label: "Parallel Map",
     config: {
       collection: "",
+      itemVariable: "item",
+      indexVariable: "index",
       maxConcurrency: 10,
       continueOnError: false,
+      batchDelayMs: 0,
+      aggregationMode: "array",
+      progressTracking: true,
     },
     inputs: [{ id: "items", label: "Items", type: "data", required: true }],
     outputs: [

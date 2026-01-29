@@ -89,6 +89,9 @@ export function createSubWorkflowNodeData(): SubWorkflowNodeData {
       workflowId: "",
       waitForCompletion: true,
       inheritContext: true,
+      inputMode: "fields",
+      retryOnFailure: false,
+      maxRetries: 3,
     },
     inputs: [
       { id: "context", label: "Context", type: "data", required: false },
