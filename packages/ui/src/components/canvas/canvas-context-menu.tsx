@@ -17,7 +17,7 @@ import { createNodeData, createUniqueNodeId } from "./nodes/factory";
 import {
   CATEGORY_LABELS,
   type NodeRegistryEntry,
-  nodeRegistry,
+  visibleNodeRegistry,
 } from "./nodes/registry";
 
 interface CanvasContextMenuProps {
@@ -95,7 +95,7 @@ export const CanvasContextMenu = memo(function CanvasContextMenuComponent({
 
   const groupedEntries = useMemo(() => {
     const groups = new Map<string, NodeRegistryEntry[]>();
-    for (const entry of nodeRegistry) {
+    for (const entry of visibleNodeRegistry) {
       const existing = groups.get(entry.category);
       if (existing) {
         existing.push(entry);

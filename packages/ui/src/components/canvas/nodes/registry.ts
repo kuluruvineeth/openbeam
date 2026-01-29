@@ -19,6 +19,7 @@ export interface NodeRegistryEntry {
   category: NodeCategory;
   // biome-ignore lint/suspicious/noExplicitAny: Registry holds heterogeneous node types
   component: ComponentType<any>;
+  hidden?: boolean;
 }
 
 const CONTROL_ENTRIES: NodeRegistryEntry[] = [
@@ -179,12 +180,12 @@ const HUMAN_ENTRIES: NodeRegistryEntry[] = [
 
 const INTEGRATION_ENTRIES: NodeRegistryEntry[] = [
   {
-    id: "connector",
-    label: "Connector",
-    description: "Connect to external service",
-    icon: Icons.Plug,
+    id: "connector_action",
+    label: "App Action",
+    description: "Execute app action (Gmail, Slack, Linear, etc.)",
+    icon: Icons.Zap,
     category: "integration",
-    component: integrationNodeTypes.connector,
+    component: integrationNodeTypes.connector_action,
   },
   {
     id: "http_request",
@@ -196,7 +197,7 @@ const INTEGRATION_ENTRIES: NodeRegistryEntry[] = [
   },
   {
     id: "database_query",
-    label: "Database Query",
+    label: "Database",
     description: "Query database",
     icon: Icons.Database,
     category: "integration",
@@ -204,7 +205,7 @@ const INTEGRATION_ENTRIES: NodeRegistryEntry[] = [
   },
   {
     id: "graphql_query",
-    label: "GraphQL Query",
+    label: "GraphQL",
     description: "Execute GraphQL query",
     icon: Icons.Braces,
     category: "integration",
@@ -212,19 +213,20 @@ const INTEGRATION_ENTRIES: NodeRegistryEntry[] = [
   },
   {
     id: "tool",
-    label: "Tool",
+    label: "AI Tool",
     description: "Execute AI tool",
     icon: Icons.Wrench,
     category: "integration",
     component: integrationNodeTypes.tool,
   },
   {
-    id: "connector_action",
-    label: "Connector Action",
-    description: "Execute connector action (Slack, Gmail, etc.)",
-    icon: Icons.Zap,
+    id: "connector",
+    label: "Connector",
+    description: "Connect to external service",
+    icon: Icons.Plug,
     category: "integration",
-    component: integrationNodeTypes.connector_action,
+    component: integrationNodeTypes.connector,
+    hidden: true,
   },
 ];
 
@@ -236,6 +238,7 @@ const TRIGGER_ENTRIES: NodeRegistryEntry[] = [
     icon: Icons.Hand,
     category: "trigger",
     component: triggerNodeTypes.trigger_manual,
+    hidden: true,
   },
   {
     id: "trigger_schedule",
@@ -244,6 +247,7 @@ const TRIGGER_ENTRIES: NodeRegistryEntry[] = [
     icon: Icons.Clock,
     category: "trigger",
     component: triggerNodeTypes.trigger_schedule,
+    hidden: true,
   },
   {
     id: "trigger_webhook",
@@ -252,6 +256,7 @@ const TRIGGER_ENTRIES: NodeRegistryEntry[] = [
     icon: Icons.Webhook,
     category: "trigger",
     component: triggerNodeTypes.trigger_webhook,
+    hidden: true,
   },
   {
     id: "trigger_event",
@@ -260,6 +265,7 @@ const TRIGGER_ENTRIES: NodeRegistryEntry[] = [
     icon: Icons.Zap,
     category: "trigger",
     component: triggerNodeTypes.trigger_event,
+    hidden: true,
   },
 ];
 
@@ -328,6 +334,10 @@ export const nodeRegistry: NodeRegistryEntry[] = [
   ...ORCHESTRATION_ENTRIES,
 ];
 
+export const visibleNodeRegistry: NodeRegistryEntry[] = nodeRegistry.filter(
+  (entry) => !entry.hidden
+);
+
 export const nodeRegistryMap = new Map<string, NodeRegistryEntry>(
   nodeRegistry.map((entry) => [entry.id, entry])
 );
@@ -340,6 +350,12 @@ export function getNodesByCategory(
   category: NodeCategory
 ): NodeRegistryEntry[] {
   return nodeRegistry.filter((entry) => entry.category === category);
+}
+
+export function getVisibleNodesByCategory(
+  category: NodeCategory
+): NodeRegistryEntry[] {
+  return visibleNodeRegistry.filter((entry) => entry.category === category);
 }
 
 export const CATEGORY_LABELS: Record<NodeCategory, string> = {
