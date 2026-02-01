@@ -33,7 +33,7 @@ export const getSyncHistorySchema = connectorIdSchema.extend({
 });
 
 export const triggerSyncSchema = connectorIdSchema.extend({
-  type: z.enum(["FULL", "INCREMENTAL"]).default("FULL"),
+  type: z.enum(["FULL", "INCREMENTAL"]).default("INCREMENTAL"),
 });
 
 export const updateSyncSettingsSchema = connectorIdSchema.extend({

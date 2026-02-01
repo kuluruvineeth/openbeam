@@ -90,7 +90,7 @@ export async function verifyConnectorAccess(
   prisma: Database,
   connectorId: string,
   teamId: string
-) {
+): Promise<{ id: string; status: string; teamId: string; app: string }> {
   const connector = await verifyConnectorOwnership(prisma, connectorId, teamId);
 
   if (!connector) {
