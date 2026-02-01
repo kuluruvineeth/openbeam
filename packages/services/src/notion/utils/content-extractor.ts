@@ -9,7 +9,6 @@ import type {
 import type { BlockWithDepth } from "../api/blocks";
 import { richTextToPlainText } from "./rich-text";
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: comprehensive block type handling is inherently complex
 export function extractBlockText(block: NotionBlock): string | null {
   const blockType = block.type;
   const blockData = block[blockType] as Record<string, unknown> | undefined;
@@ -216,7 +215,6 @@ export function getCoverUrl(item: {
   }
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Notion has many property types requiring individual handling
 export function extractPropertyValue(
   property: Record<string, unknown>
 ): string | undefined {

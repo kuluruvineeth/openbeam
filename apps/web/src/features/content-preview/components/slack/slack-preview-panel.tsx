@@ -108,7 +108,7 @@ export function SlackPreviewPanel({
         replyCount={thread.replyCount}
         url={thread.url ?? undefined}
       />
-      <div className="min-h-0 flex-1 overflow-auto">
+      <div className="no-scrollbar min-h-0 flex-1 overflow-auto">
         <SlackThreadView
           onFileClick={handleFileClick}
           parent={parent}

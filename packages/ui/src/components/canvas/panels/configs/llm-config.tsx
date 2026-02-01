@@ -36,7 +36,6 @@ interface LlmConfigPanelProps {
 
 export const LlmConfigPanel = memo(
   forwardRef<HTMLDivElement, LlmConfigPanelProps>(
-    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: LLM config form has many conditional sections
     function LlmConfigPanelComponent({ config, onChange }, ref) {
       const handleRemoveTool = useCallback(
         (index: number) => {

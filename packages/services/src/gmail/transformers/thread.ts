@@ -4,6 +4,7 @@ import type {
   GmailTransformContext,
 } from "@openplane/types/services/connectors/gmail";
 import type { GenericDocument } from "@openplane/vespa";
+import { calculateDocumentChecksum } from "../../lib/checksum";
 import type { LabelLookup } from "../api/labels";
 import {
   buildThreadUrl,
@@ -26,17 +27,17 @@ export interface ThreadTransformResult {
   messageDocuments: GenericDocument[];
 }
 
-export function transformThread(
+export async function transformThread(
   thread: GmailThread,
   context: GmailTransformContext,
   options: ThreadTransformOptions = {}
-): ThreadTransformResult {
+): Promise<ThreadTransformResult> {
   const { labelLookup, includeAllMessages = true } = options;
   const messages = thread.messages ?? [];
 
   if (messages.length === 0) {
     return {
-      threadDocument: createEmptyThreadDocument(thread, context),
+      threadDocument: await createEmptyThreadDocument(thread, context),
       messageDocuments: [],
     };
   }
@@ -63,6 +64,25 @@ export function transformThread(
 
   const threadContent = buildThreadContent(messages);
 
+  const title = firstHeaders.subject ?? "Thread (No Subject)";
+  const metadata = {
+    ...(thread.historyId && { historyId: thread.historyId }),
+    messageCount: messages.length,
+    participants,
+    hasAttachments: totalAttachments > 0,
+    attachmentCount: totalAttachments,
+    resourceExternalIds: labelInfo.ids,
+    ...((thread.snippet ?? firstMessage.snippet) && {
+      snippet: thread.snippet ?? firstMessage.snippet,
+    }),
+  };
+
+  const checksum = await calculateDocumentChecksum({
+    title,
+    content: threadContent,
+    metadata,
+  });
+
   const threadDocument: GenericDocument = {
     id: buildThreadDocumentId(context.connectorId, thread.id),
     connector_id: context.connectorId,
@@ -71,7 +91,7 @@ export function transformThread(
     workspace_id: context.workspaceId,
     external_id: thread.id,
     document_type: "thread",
-    title: firstHeaders.subject ?? "Thread (No Subject)",
+    title,
     content: threadContent,
     content_html: firstContent.html,
     author_id: authorEmail,
@@ -88,32 +108,25 @@ export function transformThread(
     is_public: false,
     access_control: participants,
     contributor_ids: participants,
-    metadata: {
-      ...(thread.historyId && { historyId: thread.historyId }),
-      messageCount: messages.length,
-      participants,
-      hasAttachments: totalAttachments > 0,
-      attachmentCount: totalAttachments,
-      resourceExternalIds: labelInfo.ids,
-      ...((thread.snippet ?? firstMessage.snippet) && {
-        snippet: thread.snippet ?? firstMessage.snippet,
-      }),
-    },
+    metadata,
+    checksum,
   };
 
   let messageDocuments: GenericDocument[] = [];
 
   if (includeAllMessages) {
-    messageDocuments = messages.map((message, index) => {
-      const isReply = index > 0;
-      const parentMessageId = isReply ? messages[index - 1]?.id : undefined;
+    messageDocuments = await Promise.all(
+      messages.map((message, index) => {
+        const isReply = index > 0;
+        const parentMessageId = isReply ? messages[index - 1]?.id : undefined;
 
-      return transformMessage(message, context, {
-        labelLookup,
-        isReply,
-        parentMessageId,
-      });
-    });
+        return transformMessage(message, context, {
+          labelLookup,
+          isReply,
+          parentMessageId,
+        });
+      })
+    );
   }
 
   return { threadDocument, messageDocuments };
@@ -154,7 +167,6 @@ function createEmptyThreadDocument(
   };
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: iterating headers for each message
 function collectThreadParticipants(messages: GmailMessage[]): string[] {
   const participants = new Set<string>();
 
@@ -244,6 +256,8 @@ export function transformThreads(
   threads: GmailThread[],
   context: GmailTransformContext,
   options: ThreadTransformOptions = {}
-): ThreadTransformResult[] {
-  return threads.map((thread) => transformThread(thread, context, options));
+): Promise<ThreadTransformResult[]> {
+  return Promise.all(
+    threads.map((thread) => transformThread(thread, context, options))
+  );
 }

@@ -3,6 +3,7 @@ import type {
   LinearTransformContext,
 } from "@openplane/types/services/connectors/linear";
 import type { GenericDocument } from "@openplane/vespa";
+import { calculateDocumentChecksum } from "../../lib/checksum";
 
 function buildProjectDocumentId(
   connectorId: string,
@@ -68,10 +69,10 @@ function buildProjectMetadata(
   };
 }
 
-export function transformProject(
+export async function transformProject(
   project: LinearProject,
   context: LinearTransformContext
-): GenericDocument {
+): Promise<GenericDocument> {
   const content = buildProjectContent(project);
   const leadId = project.lead?.id;
   const leadName = leadId
@@ -80,6 +81,14 @@ export function transformProject(
   const leadAvatar = leadId
     ? (context.userLookup?.getAvatar(leadId) ?? project.lead?.avatarUrl)
     : undefined;
+
+  const metadata = buildProjectMetadata(project);
+
+  const checksum = await calculateDocumentChecksum({
+    title: project.name,
+    content,
+    metadata,
+  });
 
   return {
     id: buildProjectDocumentId(context.connectorId, project.id),
@@ -103,13 +112,16 @@ export function transformProject(
     url: project.url,
     is_public: false,
     access_control: [`team:${context.teamId}`],
-    metadata: buildProjectMetadata(project),
+    metadata,
+    checksum,
   };
 }
 
 export function transformProjects(
   projects: LinearProject[],
   context: LinearTransformContext
-): GenericDocument[] {
-  return projects.map((project) => transformProject(project, context));
+): Promise<GenericDocument[]> {
+  return Promise.all(
+    projects.map((project) => transformProject(project, context))
+  );
 }

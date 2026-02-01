@@ -75,11 +75,11 @@ export async function federatedSearch(
 
       const thread = await getThread(client, message.threadId);
       if (thread) {
-        const result = transformThread(thread, context, { labelLookup });
+        const result = await transformThread(thread, context, { labelLookup });
         documents.push(result.threadDocument);
       }
     } else {
-      const doc = transformMessage(message, context, { labelLookup });
+      const doc = await transformMessage(message, context, { labelLookup });
       documents.push(doc);
     }
 

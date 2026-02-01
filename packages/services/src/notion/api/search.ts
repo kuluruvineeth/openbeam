@@ -3,6 +3,7 @@ import type {
   NotionPage,
   NotionSearchResponse,
 } from "@openplane/types/services/connectors/notion";
+import { logger } from "../../lib/logger";
 import type { NotionClient } from "../client";
 
 export interface SearchOptions {
@@ -49,13 +50,33 @@ export async function* searchAll(
   options: Omit<SearchOptions, "startCursor"> = {}
 ): AsyncGenerator<NotionPage | NotionDatabase> {
   let cursor: string | undefined;
+  let pageNum = 0;
+  let totalResults = 0;
 
   do {
+    pageNum += 1;
+    logger.info(
+      { pageNum, filter: options.filter?.value, cursor: cursor?.slice(0, 20) },
+      "Fetching Notion search page"
+    );
+
     const response = await search(client, {
       ...options,
       startCursor: cursor,
       pageSize: options.pageSize ?? 100,
     });
+
+    totalResults += response.results.length;
+    logger.info(
+      {
+        pageNum,
+        resultsInPage: response.results.length,
+        totalResults,
+        hasMore: response.has_more,
+        nextCursor: response.next_cursor?.slice(0, 20),
+      },
+      "Notion search page received"
+    );
 
     for (const result of response.results) {
       yield result;
@@ -65,6 +86,11 @@ export async function* searchAll(
       ? (response.next_cursor ?? undefined)
       : undefined;
   } while (cursor);
+
+  logger.info(
+    { totalResults, filter: options.filter?.value },
+    "Notion search completed"
+  );
 }
 
 export async function* searchPages(

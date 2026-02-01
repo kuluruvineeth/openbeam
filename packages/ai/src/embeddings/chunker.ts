@@ -221,7 +221,6 @@ export class DocumentChunker {
     }));
   }
 
-  // biome-ignore lint/complexity: Recursive text splitting algorithm is inherently complex
   private recursiveSplit(
     text: string,
     separators: string[],

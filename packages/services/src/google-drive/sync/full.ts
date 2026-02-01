@@ -19,6 +19,7 @@ import { extractFileContent, getDriveId } from "../utils/content-extractor";
 import { isMediaType, isTextExtractable } from "../utils/mime-types";
 
 export interface FullSyncOptions {
+  cursor?: GoogleDriveSyncCursor;
   batchSize?: number;
   includeSharedDrives?: boolean;
   includeTrashed?: boolean;
@@ -30,7 +31,6 @@ export interface FullSyncOptions {
   onFilesDiscovered?: (files: ConnectorFileInfo[]) => Promise<void>;
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Async generator with pagination requires this complexity
 export async function* fullSync(
   client: GoogleDriveClient,
   context: GoogleDriveTransformContext,
@@ -87,7 +87,7 @@ export async function* fullSync(
         content = extracted.text;
       }
 
-      const document = transformFile(file, context, { content });
+      const document = await transformFile(file, context, { content });
       documents.push(document);
 
       if (indexMedia && isMediaType(file.mimeType) && onMediaDiscovered) {

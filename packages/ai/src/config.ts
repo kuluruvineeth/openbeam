@@ -16,7 +16,6 @@ export type {
 
 type AIConfig = import("@openplane/types/ai").AIConfig;
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: configuration loading requires multiple provider checks
 function loadConfig(): AIConfig {
   return {
     defaultProvider:

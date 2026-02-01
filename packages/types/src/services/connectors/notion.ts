@@ -476,8 +476,8 @@ export const NotionRateLimitConfigSchema = z.object({
 export type NotionRateLimitConfig = z.infer<typeof NotionRateLimitConfigSchema>;
 
 export const NotionClientConfigSchema = z.object({
-  accessToken: z.string(),
   connectorId: z.string(),
+  accessToken: z.string().optional(),
   rateLimitConfig: NotionRateLimitConfigSchema.optional(),
   timeout: z.number().optional(),
   debug: z.boolean().optional(),

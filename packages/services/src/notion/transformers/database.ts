@@ -3,6 +3,7 @@ import type {
   NotionTransformContext,
 } from "@openplane/types/services/connectors/notion";
 import type { GenericDocument } from "@openplane/vespa";
+import { calculateDocumentChecksum } from "../utils/checksum";
 import {
   extractDatabaseDescription,
   extractDatabaseTitle,
@@ -96,10 +97,10 @@ function buildDatabaseMetadata(
   };
 }
 
-export function transformDatabase(
+export async function transformDatabase(
   database: NotionDatabase,
   context: NotionTransformContext
-): GenericDocument {
+): Promise<GenericDocument> {
   const title = extractDatabaseTitle(database);
   const content = buildDatabaseContent(database);
   const authorId = getAuthorId(database);
@@ -111,6 +112,13 @@ export function transformDatabase(
     : undefined;
 
   const isPublic = !!database.public_url;
+  const metadata = buildDatabaseMetadata(database);
+
+  const checksum = await calculateDocumentChecksum({
+    title: title || "Untitled Database",
+    content,
+    metadata,
+  });
 
   return {
     id: buildDatabaseDocumentId(context.connectorId, database.id),
@@ -134,13 +142,16 @@ export function transformDatabase(
     url: database.url,
     is_public: isPublic,
     access_control: isPublic ? undefined : [`team:${context.teamId}`],
-    metadata: buildDatabaseMetadata(database),
+    metadata,
+    checksum,
   };
 }
 
 export function transformDatabases(
   databases: NotionDatabase[],
   context: NotionTransformContext
-): GenericDocument[] {
-  return databases.map((database) => transformDatabase(database, context));
+): Promise<GenericDocument[]> {
+  return Promise.all(
+    databases.map((database) => transformDatabase(database, context))
+  );
 }

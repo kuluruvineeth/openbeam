@@ -46,7 +46,7 @@ export async function* syncCanvasesBatched(
         ...context,
         userLookup,
       };
-      const doc = transformCanvas(canvas, transformContext);
+      const doc = await transformCanvas(canvas, transformContext);
       batch.push(doc);
       processed += 1;
 

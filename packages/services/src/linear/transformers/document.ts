@@ -3,6 +3,7 @@ import type {
   LinearTransformContext,
 } from "@openplane/types/services/connectors/linear";
 import type { GenericDocument } from "@openplane/vespa";
+import { calculateDocumentChecksum } from "../../lib/checksum";
 
 function buildDocumentId(connectorId: string, documentId: string): string {
   return `${connectorId}_document_${documentId}`;
@@ -23,10 +24,10 @@ function buildDocumentMetadata(
   };
 }
 
-export function transformDocument(
+export async function transformDocument(
   document: LinearDocument,
   context: LinearTransformContext
-): GenericDocument {
+): Promise<GenericDocument> {
   const creatorId = document.creator?.id;
   const creatorName = creatorId
     ? (context.userLookup?.getName(creatorId) ?? document.creator?.displayName)
@@ -34,6 +35,15 @@ export function transformDocument(
   const creatorAvatar = creatorId
     ? (context.userLookup?.getAvatar(creatorId) ?? document.creator?.avatarUrl)
     : undefined;
+
+  const content = document.content ?? "";
+  const metadata = buildDocumentMetadata(document);
+
+  const checksum = await calculateDocumentChecksum({
+    title: document.title,
+    content,
+    metadata,
+  });
 
   return {
     id: buildDocumentId(context.connectorId, document.id),
@@ -45,7 +55,7 @@ export function transformDocument(
     document_type: "document",
     document_subtype: document.project ? "project_doc" : "standalone",
     title: document.title,
-    content: document.content ?? "",
+    content,
     author_id: creatorId,
     author_name: creatorName,
     author_avatar_url: creatorAvatar ?? undefined,
@@ -57,13 +67,14 @@ export function transformDocument(
     url: document.url,
     is_public: false,
     access_control: [`team:${context.teamId}`],
-    metadata: buildDocumentMetadata(document),
+    metadata,
+    checksum,
   };
 }
 
 export function transformDocuments(
   documents: LinearDocument[],
   context: LinearTransformContext
-): GenericDocument[] {
-  return documents.map((doc) => transformDocument(doc, context));
+): Promise<GenericDocument[]> {
+  return Promise.all(documents.map((doc) => transformDocument(doc, context)));
 }

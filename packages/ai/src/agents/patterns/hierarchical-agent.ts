@@ -141,7 +141,6 @@ export class HierarchicalAgent implements ExecutableAgent {
     }
   }
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Hierarchical orchestration requires complex control flow
   async *stream(
     input: unknown,
     ctx: AgentExecutionContext

@@ -4,7 +4,7 @@ import {
   NotionWebhookPayloadSchema,
 } from "@openplane/types/services/connectors/notion";
 import { logger } from "../../lib/logger";
-import type { NotionWatchState } from "./watch-manager";
+import { getAllActiveWatches, type NotionWatchState } from "./watch-manager";
 
 export interface NotionNotification {
   payload: NotionWebhookPayload;
@@ -60,9 +60,7 @@ export async function handleNotification(
   if (watchStateCache?.has(webhookId)) {
     watchState = watchStateCache.get(webhookId) ?? null;
   } else {
-    const allStates = await import("./watch-manager").then((m) =>
-      m.getAllActiveWatches()
-    );
+    const allStates = await getAllActiveWatches();
     watchState = allStates.find((s) => s.webhookId === webhookId) ?? null;
 
     if (watchState && watchStateCache) {

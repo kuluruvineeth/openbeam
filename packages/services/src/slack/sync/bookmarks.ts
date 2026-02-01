@@ -70,7 +70,7 @@ export async function* syncBookmarksBatched(
         userLookup,
         channelName: channel?.name,
       };
-      const doc = transformBookmark(bookmark, transformContext);
+      const doc = await transformBookmark(bookmark, transformContext);
       batch.push(doc);
       processed += 1;
 

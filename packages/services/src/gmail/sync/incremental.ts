@@ -34,7 +34,6 @@ export interface IncrementalSyncResult {
   };
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: incremental sync handles both full and history modes
 export async function* gmailIncrementalSync(
   client: GmailClient,
   context: GmailTransformContext,

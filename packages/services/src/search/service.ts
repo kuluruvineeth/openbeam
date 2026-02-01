@@ -50,7 +50,6 @@ function escapeYqlString(value: string): string {
 }
 
 export class SearchService {
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: This is a complex search query
   async search(params: SearchParams): Promise<DocumentSearchResult> {
     const startTime = Date.now();
     let embeddingTime: number | undefined;

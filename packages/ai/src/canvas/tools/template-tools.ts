@@ -453,7 +453,6 @@ RETURNS: IDs of imported nodes and connections.`,
       .describe("Clear existing canvas before import"),
   }),
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Complex import logic with ID mapping
   async execute(params, ctx) {
     const canvasCtx = ctx as unknown as CanvasToolContext;
 

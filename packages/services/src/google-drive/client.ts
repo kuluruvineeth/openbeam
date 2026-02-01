@@ -50,6 +50,7 @@ export function createGoogleDriveClient(
 ): GoogleDriveClient {
   const {
     connectorId,
+    accessToken: providedToken,
     userEmail,
     rateLimitConfig = DEFAULT_RATE_LIMITS,
     timeout = DEFAULT_TIMEOUT,
@@ -60,8 +61,14 @@ export function createGoogleDriveClient(
     consecutiveErrors: 0,
   };
 
+  let cachedToken: string | undefined = providedToken;
+
   async function getAccessToken(): Promise<string> {
-    return await getValidAccessToken(connectorId);
+    if (cachedToken) {
+      return cachedToken;
+    }
+    cachedToken = await getValidAccessToken(connectorId);
+    return cachedToken;
   }
 
   async function checkRateLimit(method: string): Promise<void> {

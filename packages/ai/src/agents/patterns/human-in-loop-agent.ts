@@ -162,7 +162,6 @@ export class HumanInLoopAgent implements ExecutableAgent {
     }
   }
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Human-in-loop requires complex approval flow
   async *stream(
     input: unknown,
     ctx: AgentExecutionContext
@@ -299,7 +298,6 @@ export class HumanInLoopAgent implements ExecutableAgent {
     };
   }
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Approval logic requires pattern matching
   private requiresApproval(toolCall: PendingToolCall): boolean {
     const config = this.hilConfig.approvalRequired;
 

@@ -27,6 +27,14 @@
   },
   "linter": {
     "rules": {
+      "complexity": {
+        "noExcessiveCognitiveComplexity": {
+          "level": "warn",
+          "options": {
+            "maxAllowedComplexity": 80
+          }
+        }
+      },
       "performance": {
         "noNamespaceImport": "off",
         "noBarrelFile": "off"
@@ -41,5 +49,36 @@
       }
     }
   },
+  "overrides": [
+    {
+      "includes": [
+        "packages/services/src/lib/bloom-filter.ts",
+        "packages/services/src/lib/chunking.ts"
+      ],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noBitwiseOperators": "off"
+          },
+          "style": {
+            "noNonNullAssertion": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["packages/services/src/lib/__tests__/benchmarks.test.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noSkippedTests": "off"
+          },
+          "style": {
+            "noNonNullAssertion": "off"
+          }
+        }
+      }
+    }
+  ],
   "extends": ["ultracite/core", "ultracite/next"]
 }

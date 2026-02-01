@@ -36,8 +36,7 @@ import prisma, {
   triggerSync,
   upsertUserProfilePreferences,
 } from "@openplane/db";
-import { AuthType, appStore } from "@openplane/integrations";
-import { addSyncJob, getSyncJob, type SyncJobData } from "@openplane/redis";
+import { appStore } from "@openplane/integrations";
 import { escapeYqlString, vespaClient } from "@openplane/vespa";
 import { mediaAIService } from "../media/service";
 import { searchService } from "../search";
@@ -481,18 +480,6 @@ const SYNC_STATUS_MAP: Record<string, SyncJobStatus> = {
   PAUSED: "queued",
 };
 
-const BULLMQ_STATE_MAP: Record<string, SyncJobStatus> = {
-  active: "running",
-  waiting: "queued",
-  delayed: "queued",
-  paused: "queued",
-  prioritized: "queued",
-  "waiting-children": "queued",
-  completed: "completed",
-  failed: "failed",
-  unknown: "queued",
-};
-
 function calculatePercentComplete(
   processed: number,
   total: number | undefined
@@ -501,31 +488,6 @@ function calculatePercentComplete(
     return;
   }
   return Math.round((processed / total) * 100);
-}
-
-async function getStatusFromBullMQ(jobId: string) {
-  const bullmqJob = await getSyncJob(jobId);
-  if (!bullmqJob) {
-    throw new Error(`Sync job not found: ${jobId}`);
-  }
-
-  const state = await bullmqJob.getState();
-  const progress = bullmqJob.progress as
-    | { processed?: number; total?: number }
-    | undefined;
-  const processed = progress?.processed ?? 0;
-  const status = BULLMQ_STATE_MAP[state] ?? "queued";
-
-  return {
-    jobId,
-    connectorId: bullmqJob.data.connectorId,
-    status,
-    progress: {
-      documentsProcessed: processed,
-      documentsTotal: progress?.total,
-      percentComplete: calculatePercentComplete(processed, progress?.total),
-    },
-  };
 }
 
 function getStatusFromSyncHistory(
@@ -1126,27 +1088,15 @@ Cite sources using [n] notation where n is the document number.`;
         }
 
         const syncType = params.syncType === "full" ? "FULL" : "INCREMENTAL";
-        const priorityMap = { low: 3, normal: 5, high: 7 };
-        const jobPriority = priorityMap[params.priority];
 
         const syncResult = await triggerSync(prisma, {
           connectorId: params.connectorId,
           type: syncType,
         });
 
-        const jobData: SyncJobData = {
-          connectorId: params.connectorId,
-          syncJobId: syncResult.syncHistoryId,
-          type: syncType,
-          trigger: "MANUAL",
-          priority: jobPriority,
-        };
-
-        const bullmqJob = await addSyncJob(jobData, jobPriority);
-
         return {
           jobId: syncResult.syncHistoryId,
-          queueJobId: bullmqJob.id ?? "",
+          queueJobId: syncResult.syncHistoryId,
           connectorId: params.connectorId,
           syncType: params.syncType,
           queued: true,
@@ -1162,7 +1112,7 @@ Cite sources using [n] notation where n is the document number.`;
         });
 
         if (!syncHistory) {
-          return getStatusFromBullMQ(jobId);
+          throw new Error(`Sync job not found: ${jobId}`);
         }
 
         return getStatusFromSyncHistory(jobId, syncHistory);
@@ -1574,14 +1524,14 @@ Cite sources using [n] notation where n is the document number.`;
 }
 
 function mapAuthType(
-  authType: AuthType
+  authType: "OAUTH2" | "API_KEY" | "BASIC" | "SESSION" | "SERVICE_ACCOUNT"
 ): "oauth" | "api_key" | "service_account" {
   switch (authType) {
-    case AuthType.OAUTH2:
+    case "OAUTH2":
       return "oauth";
-    case AuthType.API_KEY:
+    case "API_KEY":
       return "api_key";
-    case AuthType.SERVICE_ACCOUNT:
+    case "SERVICE_ACCOUNT":
       return "service_account";
     default:
       return "oauth";

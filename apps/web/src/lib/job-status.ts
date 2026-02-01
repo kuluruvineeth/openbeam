@@ -9,6 +9,15 @@ export type JobStatus =
   | "failed"
   | "cancelled";
 
+export type SyncStage =
+  | "INITIALIZING"
+  | "FETCHING"
+  | "TRANSFORMING"
+  | "INDEXING"
+  | "FINALIZING"
+  | "COMPLETED"
+  | "FAILED";
+
 export type JobProgress = {
   id: string;
   teamId: string;

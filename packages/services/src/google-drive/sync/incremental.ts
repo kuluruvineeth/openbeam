@@ -29,7 +29,6 @@ export interface IncrementalSyncResult {
   };
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Sync orchestration requires this complexity
 export async function* googleDriveIncrementalSync(
   client: GoogleDriveClient,
   context: GoogleDriveTransformContext,

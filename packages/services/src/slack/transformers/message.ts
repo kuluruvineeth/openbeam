@@ -4,6 +4,7 @@ import type {
   TransformContext,
 } from "@openplane/types/services/connectors/slack";
 import type { GenericDocument, JsonArray, JsonObject } from "@openplane/vespa";
+import { calculateDocumentChecksum } from "../../lib/checksum";
 import { slackTsToMs } from "../api/messages";
 import type { UserLookup } from "../api/users";
 
@@ -19,11 +20,11 @@ export interface MessageTransformOptions {
   includeReactions?: boolean;
 }
 
-export function transformMessage(
+export async function transformMessage(
   message: SlackMessage,
   context: MessageTransformContext,
   options: MessageTransformOptions = {}
-): GenericDocument {
+): Promise<GenericDocument> {
   const {
     connectorId,
     connectorType,
@@ -65,6 +66,15 @@ export function transformMessage(
     includeReactions,
   });
 
+  const title = buildTitle(channel, message, isReply);
+  const content = message.text ?? "";
+
+  const checksum = await calculateDocumentChecksum({
+    title,
+    content,
+    metadata,
+  });
+
   const accessControl = channel.is_private ? channelMembers : undefined;
 
   return {
@@ -75,8 +85,8 @@ export function transformMessage(
     workspace_id: workspaceId,
     external_id: message.ts,
     document_type: "message",
-    title: buildTitle(channel, message, isReply),
-    content: message.text ?? "",
+    title,
+    content,
     author_id: authorId,
     author_name: authorName,
     author_avatar_url: authorAvatarUrl,
@@ -90,6 +100,7 @@ export function transformMessage(
     reaction_count: countReactions(message),
     reply_count: message.reply_count ?? 0,
     metadata,
+    checksum,
     url,
     is_public: !channel.is_private,
     access_control: accessControl,
@@ -100,8 +111,10 @@ export function transformMessages(
   messages: SlackMessage[],
   context: MessageTransformContext,
   options: MessageTransformOptions = {}
-): GenericDocument[] {
-  return messages.map((message) => transformMessage(message, context, options));
+): Promise<GenericDocument[]> {
+  return Promise.all(
+    messages.map((message) => transformMessage(message, context, options))
+  );
 }
 
 function buildTitle(

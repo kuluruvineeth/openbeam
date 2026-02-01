@@ -97,7 +97,7 @@ export function EmailPreviewPanel({
         subject={thread.subject}
         url={thread.url ?? undefined}
       />
-      <div className="min-h-0 flex-1 overflow-auto">
+      <div className="no-scrollbar min-h-0 flex-1 overflow-auto">
         <EmailThreadView
           messages={messages}
           onAttachmentClick={handleAttachmentClick}

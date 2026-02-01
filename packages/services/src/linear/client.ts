@@ -38,6 +38,7 @@ interface ClientState {
 export function createLinearClient(config: LinearClientConfig): LinearClient {
   const {
     connectorId,
+    accessToken: providedToken,
     rateLimitConfig = DEFAULT_RATE_LIMITS,
     timeout = DEFAULT_TIMEOUT,
     debug = false,
@@ -45,8 +46,14 @@ export function createLinearClient(config: LinearClientConfig): LinearClient {
 
   const state: ClientState = { consecutiveErrors: 0 };
 
+  let cachedToken: string | undefined = providedToken;
+
   async function getAccessToken(): Promise<string> {
-    return await getValidAccessToken(connectorId);
+    if (cachedToken) {
+      return cachedToken;
+    }
+    cachedToken = await getValidAccessToken(connectorId);
+    return cachedToken;
   }
 
   async function checkRateLimit(): Promise<void> {

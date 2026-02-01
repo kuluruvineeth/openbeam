@@ -3,6 +3,7 @@ import type {
   TransformContext,
 } from "@openplane/types/services/connectors/slack";
 import type { GenericDocument } from "@openplane/vespa";
+import { calculateDocumentChecksum } from "../../lib/checksum";
 import type { UserLookup } from "../api/users";
 import { filterUndefined } from "./utils";
 
@@ -23,10 +24,10 @@ export interface CanvasTransformContext extends TransformContext {
   channelMembers?: string[];
 }
 
-export function transformCanvas(
+export async function transformCanvas(
   canvas: SlackCanvas,
   context: CanvasTransformContext
-): GenericDocument {
+): Promise<GenericDocument> {
   const {
     connectorId,
     connectorType,
@@ -46,6 +47,19 @@ export function transformCanvas(
     : undefined;
   const isPrivate =
     canvas.accessLevel === "private" || canvas.accessLevel === "channel";
+
+  const metadata = filterUndefined({
+    canvasId: canvas.id,
+    channelId: canvas.channelId,
+    isPublished: canvas.isPublished,
+    accessLevel: canvas.accessLevel,
+  });
+
+  const checksum = await calculateDocumentChecksum({
+    title: canvas.title,
+    content: canvas.documentContent ?? "",
+    metadata,
+  });
 
   return {
     id: documentId,
@@ -68,12 +82,8 @@ export function transformCanvas(
     url: buildCanvasUrl(teamId, canvas.id),
     is_public: !isPrivate,
     access_control: isPrivate ? channelMembers : undefined,
-    metadata: filterUndefined({
-      canvasId: canvas.id,
-      channelId: canvas.channelId,
-      isPublished: canvas.isPublished,
-      accessLevel: canvas.accessLevel,
-    }),
+    metadata,
+    checksum,
   };
 }
 

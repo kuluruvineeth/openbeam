@@ -44,6 +44,7 @@ interface ClientState {
 export function createGmailClient(config: GmailClientConfig): GmailClient {
   const {
     connectorId,
+    accessToken: providedToken,
     userEmail,
     rateLimitConfig = DEFAULT_RATE_LIMITS,
     timeout = DEFAULT_TIMEOUT,
@@ -54,8 +55,14 @@ export function createGmailClient(config: GmailClientConfig): GmailClient {
     consecutiveErrors: 0,
   };
 
+  let cachedToken: string | undefined = providedToken;
+
   async function getAccessToken(): Promise<string> {
-    return await getValidAccessToken(connectorId);
+    if (cachedToken) {
+      return cachedToken;
+    }
+    cachedToken = await getValidAccessToken(connectorId);
+    return cachedToken;
   }
 
   async function checkRateLimit(method: string): Promise<void> {
@@ -99,7 +106,6 @@ export function createGmailClient(config: GmailClientConfig): GmailClient {
     return Math.min(exponentialDelay + jitter, MAX_RETRY_DELAY);
   }
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: URL building with array/value handling
   function buildUrl(
     path: string,
     params?: Record<string, GmailParamValue>
@@ -170,7 +176,6 @@ export function createGmailClient(config: GmailClientConfig): GmailClient {
     }
   }
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: retry logic requires branching
   // biome-ignore lint/nursery/useMaxParams: internal function with related parameters
   async function handleRetryableError<T>(
     error: unknown,

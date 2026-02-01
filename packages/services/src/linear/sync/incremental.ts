@@ -29,7 +29,6 @@ export interface IncrementalSyncOptions extends LinearSyncOptions {
   }) => void;
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: sync orchestration requires handling multiple data sources
 export async function* incrementalSync(
   client: LinearClient,
   context: LinearTransformContext,
@@ -88,7 +87,9 @@ export async function* incrementalSync(
           }
         }
 
-        const document = transformIssue(issue, enrichedContext, { comments });
+        const document = await transformIssue(issue, enrichedContext, {
+          comments,
+        });
         documents.push(document);
         processed += 1;
 
@@ -120,7 +121,7 @@ export async function* incrementalSync(
         project.name
       );
 
-      const document = transformProject(project, enrichedContext);
+      const document = await transformProject(project, enrichedContext);
       documents.push(document);
       processed += 1;
 
@@ -152,7 +153,7 @@ export async function* incrementalSync(
           doc.title
         );
 
-        const document = transformDocument(doc, enrichedContext);
+        const document = await transformDocument(doc, enrichedContext);
         documents.push(document);
         processed += 1;
 

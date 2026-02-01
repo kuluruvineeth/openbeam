@@ -90,7 +90,6 @@ export function createFinishPart(
   return { type: "done", content, usage };
 }
 
-// biome-ignore lint/complexity: SSE parsing requires handling multiple stream states
 export async function* parseSSEStream(
   stream: ReadableStream<Uint8Array>
 ): AsyncGenerator<StreamChunk> {

@@ -68,7 +68,6 @@ export interface WorkflowAnalysis {
   };
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Complex workflow analysis logic
 function analyzeWorkflow(
   nodes: CanvasNode[],
   connections: CanvasConnection[]
@@ -395,7 +394,6 @@ RETURNS: Validation results with pass/fail status and error details.`,
 
   parameters: z.object({}),
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Complex validation logic
   async execute(_params, ctx) {
     const canvasCtx = ctx as unknown as CanvasToolContext;
 

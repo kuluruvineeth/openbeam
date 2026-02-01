@@ -45,7 +45,7 @@ export function useSyncStatus(
 
       const isSyncing =
         data.connector.status === "SYNCING" ||
-        data.latestSync?.status === "SYNCING";
+        data.latestSync?.status === "RUNNING";
       const isProcessing =
         (data.processing?.filesProcessing ?? 0) > 0 ||
         (data.processing?.mediaProcessing ?? 0) > 0;
@@ -227,7 +227,7 @@ export function useBulkSyncStatus(
 
         const isSyncing =
           queryData.connector.status === "SYNCING" ||
-          queryData.latestSync?.status === "SYNCING";
+          queryData.latestSync?.status === "RUNNING";
         const isProcessing =
           (queryData.processing?.filesProcessing ?? 0) > 0 ||
           (queryData.processing?.mediaProcessing ?? 0) > 0;

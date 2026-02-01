@@ -4,6 +4,7 @@ import type {
   LinearTransformContext,
 } from "@openplane/types/services/connectors/linear";
 import type { GenericDocument } from "@openplane/vespa";
+import { calculateDocumentChecksum } from "../../lib/checksum";
 
 export interface IssueTransformOptions {
   comments?: LinearComment[];
@@ -105,11 +106,11 @@ function buildIssueMetadata(
   };
 }
 
-export function transformIssue(
+export async function transformIssue(
   issue: LinearIssue,
   context: LinearTransformContext,
   options: IssueTransformOptions = {}
-): GenericDocument {
+): Promise<GenericDocument> {
   const title = `${issue.identifier}: ${issue.title}`;
   const content = buildIssueContent(issue, options);
   const creatorId = issue.creator?.id;
@@ -119,6 +120,14 @@ export function transformIssue(
   const creatorAvatar = creatorId
     ? (context.userLookup?.getAvatar(creatorId) ?? issue.creator?.avatarUrl)
     : undefined;
+
+  const metadata = buildIssueMetadata(issue, options);
+
+  const checksum = await calculateDocumentChecksum({
+    title,
+    content,
+    metadata,
+  });
 
   return {
     id: buildIssueDocumentId(context.connectorId, issue.id),
@@ -142,7 +151,8 @@ export function transformIssue(
     url: issue.url,
     is_public: false,
     access_control: [`team:${context.teamId}`],
-    metadata: buildIssueMetadata(issue, options),
+    metadata,
+    checksum,
   };
 }
 
@@ -150,6 +160,8 @@ export function transformIssues(
   issues: LinearIssue[],
   context: LinearTransformContext,
   options: IssueTransformOptions = {}
-): GenericDocument[] {
-  return issues.map((issue) => transformIssue(issue, context, options));
+): Promise<GenericDocument[]> {
+  return Promise.all(
+    issues.map((issue) => transformIssue(issue, context, options))
+  );
 }

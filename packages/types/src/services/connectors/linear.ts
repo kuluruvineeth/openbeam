@@ -230,6 +230,7 @@ export type LinearRateLimitConfig = z.infer<typeof LinearRateLimitConfigSchema>;
 
 export const LinearClientConfigSchema = z.object({
   connectorId: z.string(),
+  accessToken: z.string().optional(),
   rateLimitConfig: LinearRateLimitConfigSchema.optional(),
   timeout: z.number().optional(),
   debug: z.boolean().optional(),

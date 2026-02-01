@@ -176,9 +176,14 @@ export function SearchPreviewSheet({
 
   return (
     <Sheet onOpenChange={(open) => !open && onClose()} open={isOpen}>
-      <SheetContent className="w-[800px]" side="right" title="Document Preview">
+      <SheetContent
+        className="w-full max-w-[800px] overflow-hidden p-0 sm:w-[800px] sm:max-w-[800px]"
+        hideClose={true}
+        side="right"
+        title="Document Preview"
+      >
         {previewId && previewType && (
-          <div className="h-full overflow-hidden">
+          <div className="no-scrollbar h-full overflow-y-auto overflow-x-hidden">
             {renderPreviewContent(previewId, previewType, onClose, mediaData)}
           </div>
         )}

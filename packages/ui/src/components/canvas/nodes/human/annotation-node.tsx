@@ -71,7 +71,6 @@ const FONT_SIZE_CLASS = {
 
 export const AnnotationNode = memo(
   forwardRef<HTMLDivElement, NodeProps<AnnotationNodeType>>(
-    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: annotation node has collapsed/expanded/editing states
     function AnnotationNodeComponent({ data, selected }, ref) {
       const color = data.config.color ?? "yellow";
       const isPinned = data.config.isPinned ?? false;

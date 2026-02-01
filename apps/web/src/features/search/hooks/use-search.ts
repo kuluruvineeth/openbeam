@@ -94,7 +94,6 @@ function createArrayFilterSetter(
 
 const LIMIT = 20;
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: central search hook managing all filter state
 export function useSearch(options?: { debounceMs?: number }) {
   const debounceMs = options?.debounceMs ?? 300;
   const trpc = useTRPC();

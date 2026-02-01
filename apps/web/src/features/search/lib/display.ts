@@ -83,7 +83,6 @@ function getIconFromMimeType(mimeType: string): IconComponent | null {
   return entry ? Icons[entry.icon] : null;
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Icon resolution requires checking multiple sources
 function getAppIcon(
   app: UnifiedApp,
   mimeType: string | undefined,

@@ -16,7 +16,10 @@ import type { NotionClient } from "../client";
 import { transformDatabase } from "../transformers/database";
 import { transformPage } from "../transformers/page";
 
-const DEFAULT_BATCH_SIZE = 50;
+// Yield frequently to avoid Temporal activity timeouts
+// Each page requires multiple API calls (blocks + comments)
+// With rate limits, waiting for 50 pages could take 20+ minutes
+const DEFAULT_BATCH_SIZE = 5;
 const DEFAULT_MAX_BLOCK_DEPTH = 10;
 
 export interface FullSyncOptions extends NotionSyncOptions {
@@ -29,7 +32,6 @@ export interface FullSyncOptions extends NotionSyncOptions {
   onPagesDiscovered?: (pages: NotionPage[]) => Promise<void>;
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: sync orchestration requires handling multiple data sources and batching
 export async function* fullSync(
   client: NotionClient,
   context: NotionTransformContext,
@@ -48,7 +50,7 @@ export async function* fullSync(
   } = options;
 
   logger.info(
-    { extractContent, extractComments, maxBlockDepth, lookbackDays },
+    { extractContent, extractComments, maxBlockDepth, lookbackDays, batchSize },
     "Notion full sync started"
   );
 
@@ -62,7 +64,7 @@ export async function* fullSync(
   let skipped = 0;
   let errors = 0;
 
-  const cursor: NotionSyncCursor = {
+  const cursor: NotionSyncCursor = options.cursor ?? {
     lastSyncTime: Date.now(),
   };
 
@@ -73,12 +75,37 @@ export async function* fullSync(
   const discoveredDatabases: NotionDatabase[] = [];
   const discoveredPages: NotionPage[] = [];
 
+  logger.info("Starting database discovery");
   await onStageChange?.("Discovering databases", 0);
 
-  for await (const database of searchDatabases(client)) {
+  let dbCount = 0;
+
+  const dbSearchOptions = options.cursor?.lastSyncTime
+    ? {
+        sort: {
+          direction: "descending" as const,
+          timestamp: "last_edited_time" as const,
+        },
+      }
+    : {};
+
+  for await (const database of searchDatabases(client, dbSearchOptions)) {
+    dbCount += 1;
+    if (dbCount % 10 === 1) {
+      logger.info({ dbCount }, "Processing databases");
+    }
     discoveredDatabases.push(database);
     const dbTitle = database.title?.[0]?.plain_text ?? "Untitled";
     await onStageChange?.("Processing databases", processed, dbTitle);
+
+    const editedAt = new Date(database.last_edited_time).getTime();
+
+    if (
+      options.cursor?.lastSyncTime &&
+      editedAt < options.cursor.lastSyncTime
+    ) {
+      break;
+    }
 
     if (shouldSkipByTime(database.last_edited_time, lookbackTime)) {
       skipped += 1;
@@ -86,7 +113,7 @@ export async function* fullSync(
     }
 
     try {
-      const document = transformDatabase(database, enrichedContext);
+      const document = await transformDatabase(database, enrichedContext);
       documents.push(document);
       processed += 1;
 
@@ -112,43 +139,119 @@ export async function* fullSync(
     await onDatabasesDiscovered(discoveredDatabases);
   }
 
+  logger.info(
+    { databasesFound: discoveredDatabases.length, processed, skipped, errors },
+    "Database discovery complete, starting page discovery"
+  );
   await onStageChange?.("Discovering pages", processed);
 
-  for await (const page of searchPages(client)) {
+  let pageCount = 0;
+  let skippedByTime = 0;
+  let skippedByArchived = 0;
+
+  const searchOptions = options.cursor?.lastSyncTime
+    ? {
+        sort: {
+          direction: "descending" as const,
+          timestamp: "last_edited_time" as const,
+        },
+      }
+    : {};
+
+  for await (const page of searchPages(client, searchOptions)) {
+    pageCount += 1;
+    const pageTitle = getPageTitle(page);
+    if (pageCount % 10 === 1) {
+      logger.info(
+        { pageCount, processed, skipped, skippedByTime, skippedByArchived },
+        "Processing pages"
+      );
+    }
     if (page.parent.type === "workspace") {
       discoveredPages.push(page);
     }
 
+    const editedAt = new Date(page.last_edited_time).getTime();
+
+    if (
+      options.cursor?.lastSyncTime &&
+      editedAt < options.cursor.lastSyncTime
+    ) {
+      break;
+    }
+
     if (shouldSkipByTime(page.last_edited_time, lookbackTime)) {
+      skippedByTime += 1;
       skipped += 1;
+      logger.debug(
+        { pageId: page.id, pageTitle, lastEdited: page.last_edited_time },
+        "Page skipped by time filter"
+      );
       continue;
     }
 
     if (page.archived || page.in_trash) {
+      skippedByArchived += 1;
       skipped += 1;
+      logger.debug(
+        {
+          pageId: page.id,
+          pageTitle,
+          archived: page.archived,
+          inTrash: page.in_trash,
+        },
+        "Page skipped - archived or in trash"
+      );
       continue;
     }
 
-    const pageTitle = getPageTitle(page);
     await onStageChange?.("Processing pages", processed, pageTitle);
 
     try {
+      logger.info(
+        {
+          pageId: page.id,
+          pageTitle,
+          parentType: page.parent.type,
+          pageCount,
+          processed,
+        },
+        "Processing page - will fetch blocks and comments"
+      );
       const blocks = extractContent
         ? await getAllBlockChildren(client, page.id, maxBlockDepth)
         : undefined;
 
+      logger.debug(
+        { pageId: page.id, blockCount: blocks?.length ?? 0 },
+        "Fetching page comments"
+      );
       const comments = extractComments
         ? await getAllComments(client, { blockId: page.id })
         : undefined;
 
-      const document = transformPage(page, enrichedContext, {
+      const document = await transformPage(page, enrichedContext, {
         blocks,
         comments,
       });
       documents.push(document);
       processed += 1;
 
+      logger.debug(
+        {
+          pageId: page.id,
+          processed,
+          documentsInBatch: documents.length,
+          batchSize,
+        },
+        "Page processed"
+      );
+
       if (documents.length >= batchSize) {
+        logger.info(
+          { batchSize: documents.length, processed, skipped, errors },
+          "Yielding batch"
+        );
         yield createBatch(documents, cursor, true, {
           processed,
           skipped,
@@ -168,7 +271,16 @@ export async function* fullSync(
   }
 
   logger.info(
-    { processed, skipped, errors, documentsCount: documents.length },
+    {
+      totalPagesFromSearch: pageCount,
+      processed,
+      skipped,
+      skippedByTime,
+      skippedByArchived,
+      errors,
+      documentsInFinalBatch: documents.length,
+      workspacePagesDiscovered: discoveredPages.length,
+    },
     "Notion full sync iteration complete"
   );
 

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { JobProgress } from "@/lib/job-types";
+import type { JobProgress } from "@/lib/job-status";
 
 const COMPLETED_JOB_TTL_MS = 30_000;
 const MAX_JOBS = 50;

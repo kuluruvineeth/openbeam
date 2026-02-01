@@ -61,7 +61,7 @@ async function processFile(
     const extracted = await extractFileContent(client, file);
     content = extracted.text;
   }
-  return transformFile(file, context, { content });
+  return await transformFile(file, context, { content });
 }
 
 async function handleRemovedFiles(

@@ -39,7 +39,6 @@ export interface HistorySyncResult {
   newHistoryId?: string;
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: history sync requires processing multiple change types
 export async function* historySync(
   client: GmailClient,
   context: GmailTransformContext,
@@ -89,7 +88,7 @@ export async function* historySync(
 
     for (const message of messages) {
       try {
-        const doc = transformMessage(message, context, { labelLookup });
+        const doc = await transformMessage(message, context, { labelLookup });
         documents.push(doc);
 
         if (indexAttachments && onAttachmentsDiscovered) {
@@ -196,7 +195,7 @@ export async function processHistoryBatch(
   const messages = await batchGetMessages(client, messageIds);
 
   for (const message of messages) {
-    const doc = transformMessage(message, context, { labelLookup });
+    const doc = await transformMessage(message, context, { labelLookup });
     documents.push(doc);
 
     if (indexAttachments && onAttachmentsDiscovered) {

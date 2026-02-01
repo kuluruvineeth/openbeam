@@ -1,5 +1,5 @@
 import prisma, { ConnectorStatus } from "@openplane/db";
-import { addSyncJob, rateLimiter } from "@openplane/redis";
+import { rateLimiter } from "@openplane/redis";
 import { logger } from "../../lib/logger";
 import { type PubSubNotification, parsePubSubNotification } from "../api/watch";
 import { verifyPubSubToken } from "./pubsub-auth";
@@ -7,7 +7,6 @@ import { getWatchStateForConnector } from "./watch-manager";
 
 export interface NotificationHandlerConfig {
   deduplicationWindowMs?: number;
-  syncPriority?: number;
 }
 
 const DEFAULT_DEDUP_WINDOW_MS = 5000;
@@ -18,8 +17,7 @@ export async function handleGmailNotification(
   notification: PubSubNotification,
   config: NotificationHandlerConfig = {}
 ): Promise<{ handled: boolean; reason?: string }> {
-  const { deduplicationWindowMs = DEFAULT_DEDUP_WINDOW_MS, syncPriority = 2 } =
-    config;
+  const { deduplicationWindowMs = DEFAULT_DEDUP_WINDOW_MS } = config;
 
   const parsed = parsePubSubNotification(notification);
   if (!parsed) {
@@ -61,21 +59,13 @@ export async function handleGmailNotification(
     );
   }
 
-  await addSyncJob({
-    connectorId,
-    syncJobId: "",
-    type: "INCREMENTAL",
-    trigger: "WEBHOOK",
-    priority: syncPriority,
-  });
-
   logger.info(
     {
       connectorId,
       historyId: parsed.historyId,
       emailAddress: parsed.emailAddress,
     },
-    "Gmail push notification processed"
+    "Gmail push notification received"
   );
 
   return { handled: true };

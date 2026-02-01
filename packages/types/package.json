@@ -79,6 +79,14 @@
     "./canvas": {
       "types": "./dist/canvas/index.d.ts",
       "default": "./src/canvas/index.ts"
+    },
+    "./temporal": {
+      "types": "./dist/temporal/index.d.ts",
+      "default": "./src/temporal/index.ts"
+    },
+    "./temporal/workflows": {
+      "types": "./dist/temporal/workflows.d.ts",
+      "default": "./src/temporal/workflows.ts"
     }
   },
   "scripts": {

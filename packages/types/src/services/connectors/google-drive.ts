@@ -425,8 +425,8 @@ export type GoogleDriveRateLimitConfig = z.infer<
 >;
 
 export const GoogleDriveClientConfigSchema = z.object({
-  accessToken: z.string(),
   connectorId: z.string(),
+  accessToken: z.string().optional(),
   userEmail: z.string().optional(),
   rateLimitConfig: GoogleDriveRateLimitConfigSchema.optional(),
   timeout: z.number().optional(),

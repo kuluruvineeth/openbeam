@@ -303,7 +303,6 @@ function circularLayout(
 }
 
 // biome-ignore lint/nursery/useMaxParams: Layout algorithm requires multiple parameters
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Complex radial layout algorithm
 function radialLayout(
   nodes: CanvasNode[],
   connections: Array<{ sourceNodeId: string; targetNodeId: string }>,
@@ -350,7 +349,6 @@ function radialLayout(
 }
 
 // biome-ignore lint/nursery/useMaxParams: Tree layout requires direction parameter
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Complex tree layout algorithm
 function treeLayout(
   nodes: CanvasNode[],
   connections: Array<{ sourceNodeId: string; targetNodeId: string }>,
@@ -414,7 +412,6 @@ function treeLayout(
 }
 
 // biome-ignore lint/nursery/useMaxParams: Force layout requires multiple parameters
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Complex force-directed layout algorithm
 function forceLayout(
   nodes: CanvasNode[],
   connections: Array<{ sourceNodeId: string; targetNodeId: string }>,
@@ -515,7 +512,6 @@ function forceLayout(
   return nodes.map((n) => positions.get(n.id) ?? { x: centerX, y: centerY });
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Complex level computation for graphs
 function computeLevels(
   nodes: CanvasNode[],
   connections: Array<{ sourceNodeId: string; targetNodeId: string }>

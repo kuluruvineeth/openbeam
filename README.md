@@ -7,115 +7,115 @@
 [![Hono](https://img.shields.io/badge/Hono-000000?style=flat&logo=hono&logoColor=white)](https://hono.dev/)
 [![Bun](https://img.shields.io/badge/Bun-000000?style=flat&logo=bun&logoColor=white)](https://bun.sh/)
 
+**Enterprise search and AI assistant platform — open source alternative to Glean**
+
 </div>
-
-## Overview
-
-OpenPlane is a production platform for workplace search, reinforcement learning agents, and video editing. Built for reliability and scale.
 
 ## Tech Stack
 
-| Category     | Technology         |
-| ------------ | ------------------ |
-| **Language** | TypeScript         |
-| **Frontend** | Next.js, React     |
-| **Backend**  | Hono, tRPC         |
-| **Runtime**  | Bun                |
-| **Database** | PostgreSQL, Prisma |
-| **Auth**     | Better-Auth        |
-| **Monorepo** | Turborepo          |
+| Layer | Technology |
+|-------|------------|
+| **Monorepo** | Turborepo + Bun |
+| **Language** | TypeScript, Python |
+| **Frontend** | Next.js 16, React 19, TailwindCSS 4 |
+| **Backend** | Hono, tRPC 11 |
+| **Database** | PostgreSQL + Prisma |
+| **Search** | Vespa |
+| **Queue** | Temporal |
+| **Cache** | Redis |
+| **Storage** | S3/MinIO |
+| **AI** | Vercel AI SDK |
+| **Auth** | Better-Auth |
 
 ## Quick Start
 
 ```bash
-# Install dependencies
-bun install
-
-# Set up database
-bun run db:push
-
-# Start development servers
-bun run dev
+make setup    # Install deps, start infra, setup database
+make apps     # Start all apps with hot reload
 ```
 
-**Access:**
-
-- Web App: <http://localhost:3001>
-- API Server: <http://localhost:3000>
-- Documentation: <http://localhost:4000>
+Open http://localhost:3001
 
 ## Project Structure
 
 ```
-openplane/
-├── apps/
-│   ├── web/         # Next.js frontend
-│   ├── server/      # Hono API server
-│   └── docs/        # Documentation site
-└── packages/
-    ├── api/         # Shared API logic
-    ├── auth/        # Authentication
-    └── db/          # Database schema
+apps/
+├── web/        # Next.js frontend (:3001)
+├── server/     # Hono API server (:3000)
+├── worker/     # Temporal workers
+├── engine/     # Python ML service (:8000)
+└── docs/       # Documentation (:4000)
+
+packages/
+├── temporal/     # Workflows & activities
+├── services/     # Connector business logic
+├── db/           # Prisma schema
+├── api/          # tRPC routers
+├── ai/           # AI tools & agents
+├── vespa/        # Search client
+├── redis/        # Cache utilities
+├── auth/         # Authentication
+├── integrations/ # OAuth configs
+├── types/        # Shared types
+├── storage/      # S3 client
+└── ui/           # Shared components
 ```
 
 ## Development
 
-### Available Scripts
+| Command | Description |
+|---------|-------------|
+| `make setup` | First-time setup |
+| `make dev` | Start infrastructure |
+| `make apps` | Start all apps |
+| `make status` | Show service status |
+| `make down` | Stop infrastructure |
 
-| Command               | Description                       |
-| --------------------- | --------------------------------- |
-| `bun run dev`         | Start all services in development |
-| `bun run build`       | Build all packages                |
-| `bun run check-types` | Run TypeScript type checking      |
-| `bun run db:push`     | Push Prisma schema to database    |
-| `bun run db:studio`   | Open Prisma Studio                |
+| Command | Description |
+|---------|-------------|
+| `make db-push` | Push schema changes |
+| `make db-studio` | Open Prisma Studio |
+| `make db-reset` | Reset database |
 
-### Docker
+| Command | Description |
+|---------|-------------|
+| `bun run check` | Lint & format |
+| `bun run build` | Build all |
+| `bun test` | Run tests |
 
-**Using Docker Compose:**
+See [DEVELOPMENT.md](./DEVELOPMENT.md) for detailed setup guide.
 
+## Services
+
+| Service | URL |
+|---------|-----|
+| Web | http://localhost:3001 |
+| Server | http://localhost:3000 |
+| Temporal UI | http://localhost:8233 |
+| MinIO Console | http://localhost:9001 |
+| Grafana | http://localhost:3002 |
+| Jaeger | http://localhost:16686 |
+
+## Docker
+
+**All-in-Docker development:**
 ```bash
-docker-compose up -d
+docker compose -f docker-compose.infra.yml -f docker-compose.dev.yml up --watch
 ```
 
-**Pre-built Images:**
-
+**Production:**
 ```bash
-docker pull ghcr.io/kuluruvineeth/openplane-server:latest
-docker pull ghcr.io/kuluruvineeth/openplane-web:latest
-docker pull ghcr.io/kuluruvineeth/openplane-docs:latest
+docker compose -f docker-compose.infra.yml -f docker-compose.yml up -d
 ```
-
-## CI/CD Pipeline
-
-Our automated pipeline ensures quality and efficiency:
-
-1. **CI** - Linting, type checking, and builds on every push
-2. **Docker** - Builds and pushes images to GHCR after CI succeeds
-3. **Security** - Trivy vulnerability scanning and SBOM generation
-4. **Deploy** - Images are ready for deployment to any platform
-
-The pipeline intelligently builds only services with changes (server, web, docs, worker), optimizing build times. Multi-platform builds (linux/amd64, linux/arm64) ensure broad compatibility.
-
-## Deployment
-
-OpenPlane can be deployed using:
-
-- **Docker Compose** (local/single-node): `docker-compose up -d`
-- **Kubernetes** (production): Helm charts in `infra/k8s/`
-- **GCP** (cloud): Terraform modules in `infra/terraform/`
-- **Self-Hosted**: See comprehensive guides in `docs/self-hosting/`
-
-All images are published to GitHub Container Registry and include security scanning results.
 
 ## Contributing
 
-We welcome contributions! See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
 
 ---
 
 <div align="center">
 
-Built with ❤️ by the OpenPlane team
+Built with care by the OpenPlane team
 
 </div>

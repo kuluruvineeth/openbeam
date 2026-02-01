@@ -28,6 +28,7 @@
     "@openplane/vespa": "workspace:*",
     "@slack/web-api": "^7.8.0",
     "ai": "^6.0.26",
+    "hash-wasm": "^4.12.0",
     "jose": "^6.1.3",
     "jsonwebtoken": "^9.0.2",
     "pino": "^10.1.0",

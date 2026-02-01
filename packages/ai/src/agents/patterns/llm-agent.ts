@@ -251,7 +251,6 @@ export class LlmAgent extends BaseAgent {
     }
   }
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Streaming with tool calls requires handling multiple chunk types
   async *stream(
     input: unknown,
     ctx: AgentExecutionContext

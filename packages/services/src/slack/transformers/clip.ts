@@ -1,5 +1,6 @@
 import type { TransformContext } from "@openplane/types/services/connectors/slack";
 import type { GenericDocument } from "@openplane/vespa";
+import { calculateDocumentChecksum } from "../../lib/checksum";
 import type { UserLookup } from "../api/users";
 import { filterUndefined } from "./utils";
 
@@ -22,10 +23,10 @@ export interface ClipTransformContext extends TransformContext {
   channelMembers?: string[];
 }
 
-export function transformClip(
+export async function transformClip(
   clip: SlackClip,
   context: ClipTransformContext
-): GenericDocument {
+): Promise<GenericDocument> {
   const {
     connectorId,
     connectorType,
@@ -42,6 +43,20 @@ export function transformClip(
     ? userLookup?.getAvatar(clip.userId)
     : undefined;
   const content = clip.transcript ?? `Video clip: ${clip.title}`;
+
+  const metadata = filterUndefined({
+    clipId: clip.id,
+    channelId: clip.channelId,
+    duration: clip.duration,
+    hasTranscript: !!clip.transcript,
+    thumbnailUrl: clip.thumbnailUrl,
+  });
+
+  const checksum = await calculateDocumentChecksum({
+    title: clip.title,
+    content,
+    metadata,
+  });
 
   return {
     id: documentId,
@@ -66,13 +81,8 @@ export function transformClip(
     view_count: clip.viewCount,
     is_public: true,
     access_control: channelMembers,
-    metadata: filterUndefined({
-      clipId: clip.id,
-      channelId: clip.channelId,
-      duration: clip.duration,
-      hasTranscript: !!clip.transcript,
-      thumbnailUrl: clip.thumbnailUrl,
-    }),
+    metadata,
+    checksum,
   };
 }
 

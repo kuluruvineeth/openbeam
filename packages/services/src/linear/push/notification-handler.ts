@@ -82,7 +82,6 @@ export function isTimestampValid(webhookTimestamp: number): boolean {
   return age >= 0 && age <= MAX_TIMESTAMP_AGE_MS;
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: webhook handler must dispatch multiple entity types
 export async function handleWebhookNotification(
   client: LinearClient,
   context: LinearTransformContext,
@@ -118,7 +117,7 @@ export async function handleWebhookNotification(
         );
         comments.push(...issueComments);
 
-        const document = transformIssue(issue, context, { comments });
+        const document = await transformIssue(issue, context, { comments });
         changes.push({ action: "upsert", document });
         break;
       }
@@ -131,7 +130,7 @@ export async function handleWebhookNotification(
         }
 
         const project = await getProject(client, projectId);
-        const document = transformProject(project, context);
+        const document = await transformProject(project, context);
         changes.push({ action: "upsert", document });
         break;
       }
@@ -144,7 +143,7 @@ export async function handleWebhookNotification(
         }
 
         const doc = await getDocument(client, documentId);
-        const document = transformDocument(doc, context);
+        const document = await transformDocument(doc, context);
         changes.push({ action: "upsert", document });
         break;
       }
@@ -171,7 +170,7 @@ export async function handleWebhookNotification(
         );
         comments.push(...issueComments);
 
-        const document = transformIssue(issue, context, { comments });
+        const document = await transformIssue(issue, context, { comments });
         changes.push({ action: "upsert", document });
         break;
       }
