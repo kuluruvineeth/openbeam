@@ -1,0 +1,27 @@
+frontend.enableClientVersionCheck:
+  - value: true
+    constraints: {}
+
+system.forceSearchAttributesCacheRefreshOnRead:
+  - value: true
+    constraints: {}
+
+history.defaultActivityRetryPolicy:
+  - value:
+      InitialIntervalInSeconds: 1
+      BackoffCoefficient: 2.0
+      MaximumIntervalInSeconds: 60
+      MaximumAttempts: 5
+    constraints: {}
+
+limit.maxIDLength:
+  - value: 1000
+    constraints: {}
+
+frontend.keepAliveMaxConnectionAge:
+  - value: 5m
+    constraints: {}
+
+frontend.keepAliveMaxConnectionAgeGrace:
+  - value: 70s
+    constraints: {}
