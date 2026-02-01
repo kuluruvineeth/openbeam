@@ -1,10 +1,11 @@
 /**
  * OpenTelemetry Instrumentation for Worker
  * MUST be imported before any other modules to ensure proper instrumentation
- *
- * TODO: Check back tracing after Bun supports OpenTelemetry
- * Currently using Node.js SDK which may not work fully with Bun runtime
  */
+
+import { config } from "dotenv";
+
+config();
 
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto";
 import { HttpInstrumentation } from "@opentelemetry/instrumentation-http";
@@ -32,7 +33,6 @@ const sdk = new NodeSDK({
         return url.includes("/health") || url.includes("/metrics");
       },
     }),
-    // Redis instrumentation for BullMQ operations
     new IORedisInstrumentation(),
   ],
 });

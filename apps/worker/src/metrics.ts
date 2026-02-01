@@ -1,16 +1,8 @@
+import { createServer, type Server } from "node:http";
 import { Hono } from "hono";
 import { Counter, Gauge, Histogram, Registry } from "prom-client";
 import { workerConfig } from "./config";
 import logger from "./utils/logger";
-
-declare const Bun: {
-  serve(options: {
-    port: number;
-    fetch: (req: Request) => Response | Promise<Response>;
-  }): {
-    stop(): void;
-  };
-};
 
 export const register = new Registry();
 
@@ -191,7 +183,7 @@ export const redisConnectionStatus = new Gauge({
   registers: [register],
 });
 
-let metricsServer: ReturnType<typeof Bun.serve> | null = null;
+let metricsServer: Server | null = null;
 
 export function startMetricsServer(): Promise<void> {
   if (!workerConfig.metrics.enabled) {
@@ -199,27 +191,51 @@ export function startMetricsServer(): Promise<void> {
     return Promise.resolve();
   }
 
-  const app = new Hono();
+  return new Promise((resolve, reject) => {
+    const app = new Hono();
 
-  app.get("/metrics", async (c) => {
-    c.header("Content-Type", register.contentType);
-    return c.body(await register.metrics());
+    app.get("/metrics", async (c) => {
+      c.header("Content-Type", register.contentType);
+      return c.body(await register.metrics());
+    });
+
+    metricsServer = createServer(async (req, res) => {
+      const url = new URL(req.url ?? "/", "http://localhost");
+      const request = new Request(url, {
+        method: req.method,
+        headers: req.headers as HeadersInit,
+      });
+      const response = await app.fetch(request);
+      res.statusCode = response.status;
+      for (const [key, value] of response.headers) {
+        res.setHeader(key, value);
+      }
+      const body = await response.text();
+      res.end(body);
+    });
+
+    metricsServer.listen(workerConfig.metrics.port, () => {
+      logger.info(
+        { port: workerConfig.metrics.port },
+        "Metrics server started"
+      );
+      resolve();
+    });
+
+    metricsServer.on("error", reject);
   });
-
-  metricsServer = Bun.serve({
-    port: workerConfig.metrics.port,
-    fetch: app.fetch,
-  });
-
-  logger.info({ port: workerConfig.metrics.port }, "Metrics server started");
-  return Promise.resolve();
 }
 
 export function stopMetricsServer(): Promise<void> {
-  if (metricsServer) {
-    metricsServer.stop();
-    logger.info("Metrics server stopped");
-    metricsServer = null;
-  }
-  return Promise.resolve();
+  return new Promise((resolve) => {
+    if (metricsServer) {
+      metricsServer.close(() => {
+        logger.info("Metrics server stopped");
+        metricsServer = null;
+        resolve();
+      });
+    } else {
+      resolve();
+    }
+  });
 }

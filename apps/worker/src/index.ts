@@ -1,207 +1,182 @@
 import "./instrumentation";
-import {
-  closeAnalyticsExportQueue,
-  closeBackgroundAgentQueue,
-  closeCleanupQueue,
-  closeConnectorCleanupQueue,
-  closeDigestQueue,
-  closeEntityExtractionQueue,
-  closeIndexQueue,
-  closeLTRTrainingQueue,
-  closeMediaProcessingQueue,
-  closeReembedQueue,
-  closeSharedBullMqConnection,
-  closeSyncQueue,
-  closeWebhookQueue,
-  createRepeatableAnalyticsExportJob,
-  removeRepeatableAnalyticsExportJob,
-} from "@openplane/redis";
 import { initializeAI } from "@openplane/services";
+import {
+  checkHealth,
+  getTaskQueuesForWorkerType,
+  registerSchedules,
+  type StartWorkerOptions,
+  startWorker,
+  type WorkerType,
+  waitForHealthy,
+} from "@openplane/temporal";
+import type { Worker } from "@temporalio/worker";
 import { startHealthServer, stopHealthServer } from "./health";
 import { startMetricsServer, stopMetricsServer } from "./metrics";
-import {
-  createAnalyticsExportProcessor,
-  createBackgroundAgentProcessor,
-  createCleanupProcessor,
-  createConnectorCleanupProcessor,
-  createDigestProcessor,
-  createEntityExtractionProcessor,
-  createFileProcessor,
-  createIndexProcessor,
-  createLTRTrainingProcessor,
-  createMediaProcessor,
-  createSyncProcessor,
-  createWebhookProcessor,
-  type ProcessorResult,
-} from "./processors";
-import { startReembedWorker, stopReembedWorker } from "./processors/reembed";
-import { CleanupScheduler } from "./schedulers/cleanup-scheduler";
-import { DigestScheduler } from "./schedulers/digest-scheduler";
-import { SyncScheduler } from "./schedulers/sync-scheduler";
 import logger from "./utils/logger";
-import { metricsPoller } from "./utils/metrics-poller";
+
+const WORKER_TYPES: WorkerType[] = [
+  "sync",
+  "file",
+  "media",
+  "webhook",
+  "agent",
+  "maintenance",
+];
 
 class WorkerService {
-  private readonly syncScheduler: SyncScheduler;
-  private readonly cleanupScheduler: CleanupScheduler;
-  private readonly digestScheduler: DigestScheduler;
-  private readonly syncProcessor: ProcessorResult;
-  private readonly indexProcessor: ProcessorResult;
-  private readonly fileProcessor: ProcessorResult;
-  private readonly mediaProcessor: ProcessorResult;
-  private readonly webhookProcessor: ProcessorResult;
-  private readonly cleanupProcessor: ProcessorResult;
-  private readonly connectorCleanupProcessor: ProcessorResult;
-  private readonly digestProcessor: ProcessorResult;
-  private readonly ltrTrainingProcessor: ProcessorResult;
-  private readonly entityExtractionProcessor: ProcessorResult;
-  private readonly backgroundAgentProcessor: ProcessorResult;
-  private readonly analyticsExportProcessor: ProcessorResult;
+  private readonly workers: Map<WorkerType, Worker> = new Map();
+  private isShuttingDown = false;
 
   constructor() {
     logger.info("Initializing OpenPlane Worker...");
-
     initializeAI({ enableMetrics: true });
+  }
 
-    this.syncProcessor = createSyncProcessor();
-    this.indexProcessor = createIndexProcessor();
-    this.fileProcessor = createFileProcessor();
-    this.mediaProcessor = createMediaProcessor();
-    this.webhookProcessor = createWebhookProcessor();
-    this.cleanupProcessor = createCleanupProcessor();
-    this.connectorCleanupProcessor = createConnectorCleanupProcessor();
-    this.digestProcessor = createDigestProcessor();
-    this.ltrTrainingProcessor = createLTRTrainingProcessor();
-    this.entityExtractionProcessor = createEntityExtractionProcessor();
-    this.backgroundAgentProcessor = createBackgroundAgentProcessor();
-    this.analyticsExportProcessor = createAnalyticsExportProcessor();
+  async start(): Promise<void> {
+    logger.info("Waiting for Temporal to be healthy...");
+    await waitForHealthy(undefined, { timeoutMs: 60_000, intervalMs: 2000 });
 
-    this.syncScheduler = new SyncScheduler();
-    this.cleanupScheduler = new CleanupScheduler("0 2 * * *");
-    this.digestScheduler = new DigestScheduler();
+    const health = await checkHealth();
+    logger.info({ health }, "Temporal health check passed");
 
-    this.syncScheduler.start().catch((error) => {
-      logger.error({ error }, "Failed to start sync scheduler");
-    });
-
-    this.cleanupScheduler.start().catch((error) => {
-      logger.error({ error }, "Failed to start cleanup scheduler");
-    });
-
-    this.digestScheduler.start().catch((error) => {
-      logger.error({ error }, "Failed to start digest scheduler");
-    });
-
-    createRepeatableAnalyticsExportJob("0 3 * * *").catch((error) => {
-      logger.error({ error }, "Failed to setup analytics export scheduler");
-    });
-
-    startReembedWorker();
-
-    startMetricsServer().catch((error) => {
-      logger.error({ error }, "Failed to start metrics server");
-    });
-
-    startHealthServer().catch((error) => {
-      logger.error({ error }, "Failed to start health server");
-    });
-
-    metricsPoller.start();
+    await this.startTemporalWorkers();
+    await this.registerTemporalSchedules();
+    await this.startServers();
 
     logger.info("OpenPlane Worker started successfully");
     logger.info(
       {
         components: {
-          syncScheduler: "running",
-          syncProcessor: "running",
-          indexProcessor: "running",
-          fileProcessor: "running",
-          mediaProcessor: "running",
-          webhookProcessor: "running",
-          cleanupProcessor: "running",
-          connectorCleanupProcessor: "running",
-          digestProcessor: "running",
-          digestScheduler: "running",
-          ltrTrainingProcessor: "running",
-          entityExtractionProcessor: "running",
-          backgroundAgentProcessor: "running",
-          analyticsExportProcessor: "running",
-          reembedProcessor: "running",
+          temporalWorkers: Array.from(this.workers.keys()),
           metricsServer: "running",
           healthServer: "running",
-          metricsPoller: "running",
         },
       },
       "All worker components initialized"
     );
   }
 
+  private async startTemporalWorkers(): Promise<void> {
+    logger.info("Starting Temporal workers...");
+
+    const workerPromises = WORKER_TYPES.flatMap((workerType) => {
+      const taskQueues = getTaskQueuesForWorkerType(workerType);
+
+      return taskQueues.map(async (taskQueue) => {
+        const options: StartWorkerOptions = {
+          workerType,
+          taskQueue,
+          maxConcurrentActivities: this.getConcurrencyForWorkerType(workerType),
+        };
+
+        try {
+          const worker = await startWorker(options);
+          const workerKey = `${workerType}:${taskQueue}` as WorkerType;
+          this.workers.set(workerKey, worker);
+          logger.info({ workerType, taskQueue }, "Temporal worker created");
+
+          worker.run().catch((error) => {
+            if (!this.isShuttingDown) {
+              logger.error(
+                { error, workerType, taskQueue },
+                "Temporal worker crashed"
+              );
+            }
+          });
+        } catch (error) {
+          logger.error(
+            { error, workerType, taskQueue },
+            "Failed to start Temporal worker"
+          );
+          throw error;
+        }
+      });
+    });
+
+    await Promise.all(workerPromises);
+    logger.info(
+      { workerCount: this.workers.size },
+      "All Temporal workers started"
+    );
+  }
+
+  private getConcurrencyForWorkerType(workerType: WorkerType): number {
+    const concurrencyMap: Record<WorkerType, number> = {
+      sync: 5,
+      file: 10,
+      media: 3,
+      webhook: 20,
+      agent: 5,
+      maintenance: 2,
+    };
+    return concurrencyMap[workerType];
+  }
+
+  private async registerTemporalSchedules(): Promise<void> {
+    try {
+      await registerSchedules();
+      logger.info("Temporal schedules registered");
+    } catch (error) {
+      logger.error({ error }, "Failed to register Temporal schedules");
+    }
+  }
+
+  private async startServers(): Promise<void> {
+    await startMetricsServer().catch((error) => {
+      logger.error({ error }, "Failed to start metrics server");
+    });
+
+    await startHealthServer().catch((error) => {
+      logger.error({ error }, "Failed to start health server");
+    });
+  }
+
   async shutdown(): Promise<void> {
     logger.info("Shutting down OpenPlane Worker...");
+    this.isShuttingDown = true;
 
-    metricsPoller.stop();
-
-    await Promise.all([
-      this.syncScheduler.stop(),
-      this.cleanupScheduler.stop(),
-      this.digestScheduler.stop(),
-      this.syncProcessor.close(),
-      this.indexProcessor.close(),
-      this.fileProcessor.close(),
-      this.mediaProcessor.close(),
-      this.webhookProcessor.close(),
-      this.cleanupProcessor.close(),
-      this.connectorCleanupProcessor.close(),
-      this.digestProcessor.close(),
-      this.ltrTrainingProcessor.close(),
-      this.entityExtractionProcessor.close(),
-      this.backgroundAgentProcessor.close(),
-      this.analyticsExportProcessor.close(),
-      removeRepeatableAnalyticsExportJob(),
-      stopReembedWorker(),
-      stopMetricsServer(),
-      stopHealthServer(),
-    ]);
-
-    await Promise.allSettled([
-      closeSyncQueue(),
-      closeIndexQueue(),
-      closeLTRTrainingQueue(),
-      closeEntityExtractionQueue(),
-      closeMediaProcessingQueue(),
-      closeWebhookQueue(),
-      closeCleanupQueue(),
-      closeConnectorCleanupQueue(),
-      closeDigestQueue(),
-      closeReembedQueue(),
-      closeBackgroundAgentQueue(),
-      closeAnalyticsExportQueue(),
-      closeSharedBullMqConnection(),
-    ]);
+    for (const [workerType, worker] of this.workers.entries()) {
+      try {
+        worker.shutdown();
+        logger.info({ workerType }, "Temporal worker shutdown initiated");
+      } catch (error) {
+        logger.error({ error, workerType }, "Error shutting down worker");
+      }
+    }
+    await Promise.all([stopMetricsServer(), stopHealthServer()]);
 
     logger.info("OpenPlane Worker shut down successfully");
     process.exit(0);
   }
 }
 
-const workerService = new WorkerService();
+async function main() {
+  const workerService = new WorkerService();
 
-process.on("SIGTERM", async () => {
-  logger.info("SIGTERM received");
-  await workerService.shutdown();
-});
+  process.on("SIGTERM", async () => {
+    logger.info("SIGTERM received");
+    await workerService.shutdown();
+  });
 
-process.on("SIGINT", async () => {
-  logger.info("SIGINT received");
-  await workerService.shutdown();
-});
+  process.on("SIGINT", async () => {
+    logger.info("SIGINT received");
+    await workerService.shutdown();
+  });
 
-process.on("uncaughtException", (error) => {
-  logger.error({ error }, "Uncaught exception");
-  process.exit(1);
-});
+  process.on("uncaughtException", (error) => {
+    logger.error({ error }, "Uncaught exception");
+    process.exit(1);
+  });
 
-process.on("unhandledRejection", (reason, promise) => {
-  logger.error({ reason, promise }, "Unhandled rejection");
+  process.on("unhandledRejection", (reason, promise) => {
+    logger.error({ reason, promise }, "Unhandled rejection");
+    process.exit(1);
+  });
+
+  await workerService.start();
+}
+
+main().catch((error) => {
+  logger.error({ error }, "Failed to start worker service");
   process.exit(1);
 });
