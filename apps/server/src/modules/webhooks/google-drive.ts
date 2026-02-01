@@ -1,4 +1,4 @@
-import { addSyncJob, rateLimiter } from "@openplane/redis";
+import { rateLimiter } from "@openplane/redis";
 import {
   getDriveWatchStateForConnector,
   handleGoogleDriveNotification,
@@ -6,6 +6,7 @@ import {
   parseGoogleDriveNotification,
   validateDriveNotificationSignature,
 } from "@openplane/services";
+import { startConnectorSync } from "@openplane/temporal";
 import { Hono } from "hono";
 import logger from "../../utils/logger";
 
@@ -80,13 +81,12 @@ googleDriveWebhook.post("/push", async (c) => {
     }
 
     if (result.shouldSync) {
-      const syncJobId = `webhook-${notification.channelId}-${notification.messageNumber}`;
-      await addSyncJob({
+      const syncHandle = await startConnectorSync({
         connectorId: result.connectorId,
-        syncJobId,
-        type: "INCREMENTAL",
+        connectorType: "google-drive",
+        syncType: "INCREMENTAL",
         trigger: "WEBHOOK",
-        priority: 10,
+        requestId: `webhook-${notification.channelId}-${notification.messageNumber}`,
       });
 
       logger.info(
@@ -94,9 +94,9 @@ googleDriveWebhook.post("/push", async (c) => {
           connectorId: result.connectorId,
           channelId: notification.channelId,
           resourceState: notification.resourceState,
-          syncJobId,
+          workflowId: syncHandle.workflowId,
         },
-        "Google Drive sync queued from push notification"
+        "Google Drive sync triggered from push notification"
       );
     }
 

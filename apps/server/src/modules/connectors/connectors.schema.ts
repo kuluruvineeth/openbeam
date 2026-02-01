@@ -26,7 +26,7 @@ export const triggerSyncBodySchema = z.object({
 export const triggerSyncResponseSchema = z.object({
   success: z.boolean(),
   syncJobId: z.string(),
-  queueJobId: z.string(),
+  workflowId: z.string(),
   type: z.string(),
   message: z.string(),
 });

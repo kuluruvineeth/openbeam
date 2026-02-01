@@ -1,8 +1,3 @@
-import {
-  getIndexQueueMetrics,
-  getSyncQueueMetrics,
-  getWebhookQueueMetrics,
-} from "@openplane/redis";
 import type { Context } from "hono";
 import type { SystemHealthResponse } from "./health.schema";
 
@@ -67,6 +62,31 @@ async function checkWorkerHealth(): Promise<SystemHealthResponse["worker"]> {
   }
 }
 
+async function checkTemporalHealth(): Promise<
+  NonNullable<SystemHealthResponse["temporal"]>
+> {
+  try {
+    const temporalUrl = process.env.TEMPORAL_ADDRESS || "http://localhost:7233";
+
+    const response = await fetch(`${temporalUrl}/health`, {
+      signal: AbortSignal.timeout(3000),
+    });
+
+    if (response.ok) {
+      return { status: "healthy" };
+    }
+    return {
+      status: "unhealthy",
+      error: `HTTP ${response.status}`,
+    };
+  } catch (error) {
+    return {
+      status: "unknown",
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
 export async function systemHealthHandler(c: Context) {
   try {
     const now = Date.now();
@@ -74,64 +94,29 @@ export async function systemHealthHandler(c: Context) {
       return c.json(healthCache.data, 200);
     }
 
-    const [
-      syncMetrics,
-      indexMetrics,
-      webhookMetrics,
-      vespaHealth,
-      workerHealth,
-    ] = await Promise.all([
-      getSyncQueueMetrics(),
-      getIndexQueueMetrics(),
-      getWebhookQueueMetrics(),
+    const [vespaHealth, workerHealth, temporalHealth] = await Promise.all([
       checkVespaHealth(),
       checkWorkerHealth(),
+      checkTemporalHealth(),
     ]);
 
     let overallStatus: "healthy" | "degraded" | "unhealthy" = "healthy";
-
-    const totalFailed =
-      syncMetrics.failed + indexMetrics.failed + webhookMetrics.failed;
-    if (totalFailed > 10) {
-      overallStatus = "degraded";
-    }
-
-    const totalWaiting = syncMetrics.waiting + indexMetrics.waiting;
-    if (totalWaiting > 100) {
-      overallStatus = "degraded";
-    }
 
     if (
       vespaHealth.status === "unhealthy" ||
       workerHealth.status === "unhealthy"
     ) {
       overallStatus = "unhealthy";
+    } else if (temporalHealth.status === "unhealthy") {
+      overallStatus = "degraded";
     }
 
     const healthData: SystemHealthResponse = {
       status: overallStatus,
       timestamp: now,
-      queues: {
-        sync: {
-          waiting: syncMetrics.waiting,
-          active: syncMetrics.active,
-          failed: syncMetrics.failed,
-          delayed: syncMetrics.delayed,
-        },
-        index: {
-          waiting: indexMetrics.waiting,
-          active: indexMetrics.active,
-          failed: indexMetrics.failed,
-          delayed: indexMetrics.delayed,
-        },
-        webhook: {
-          waiting: webhookMetrics.waiting,
-          active: webhookMetrics.active,
-          failed: webhookMetrics.failed,
-        },
-      },
       vespa: vespaHealth,
       worker: workerHealth,
+      temporal: temporalHealth,
     };
 
     healthCache.data = healthData;

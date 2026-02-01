@@ -1,6 +1,6 @@
 import type { RouteHandler } from "@hono/zod-openapi";
 import prisma, { SyncJobStatus, SyncTrigger } from "@openplane/db";
-import { type SyncJobData, syncQueue } from "@openplane/redis";
+import { startConnectorSync } from "@openplane/temporal";
 import type { AuthEnv } from "@/middleware/auth";
 import { getTeamId } from "@/middleware/auth";
 import type {
@@ -20,7 +20,7 @@ export const triggerSyncHandler: RouteHandler<
 
   const connector = await prisma.connector.findUnique({
     where: { id: connectorId },
-    select: { id: true, status: true, teamId: true },
+    select: { id: true, status: true, teamId: true, app: true },
   });
 
   if (!connector) {
@@ -62,19 +62,14 @@ export const triggerSyncHandler: RouteHandler<
     },
   });
 
-  const jobData: SyncJobData = {
+  const connectorType = connector.app.toLowerCase().replace(/_/g, "-");
+  const syncHandle = await startConnectorSync({
     connectorId,
-    syncJobId: syncHistory.id,
-    type: type === "INCREMENTAL" ? "INCREMENTAL" : "FULL",
-  };
-
-  const job = await syncQueue.add("sync-connector", jobData, {
-    attempts: 3,
-    backoff: { type: "exponential", delay: 2000 },
-    removeOnComplete: {
-      age: 3600,
-      count: 100,
-    },
+    connectorType,
+    syncType: type === "INCREMENTAL" ? "INCREMENTAL" : "FULL",
+    trigger: "MANUAL",
+    requestId: syncHistory.id,
+    teamId,
   });
 
   await prisma.connector.update({
@@ -86,9 +81,9 @@ export const triggerSyncHandler: RouteHandler<
     {
       success: true,
       syncJobId: syncHistory.id,
-      queueJobId: job.id || "",
-      type: jobData.type,
-      message: "Sync job queued successfully",
+      workflowId: syncHandle.workflowId,
+      type: type === "INCREMENTAL" ? "INCREMENTAL" : "FULL",
+      message: "Sync workflow started successfully",
     },
     200
   );

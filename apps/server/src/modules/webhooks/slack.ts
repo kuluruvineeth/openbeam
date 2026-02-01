@@ -2,7 +2,7 @@ import prisma, {
   findSlackConnectorByTeamId,
   getDecryptedOAuthCredentials,
 } from "@openplane/db";
-import { addWebhookJob, createStateStore, rateLimiter } from "@openplane/redis";
+import { createStateStore, rateLimiter } from "@openplane/redis";
 import {
   type AssistantThreadContextChangedEvent,
   type AssistantThreadStartedEvent,
@@ -112,14 +112,10 @@ slackWebhook.post("/events", async (c) => {
   await handleSyncEvents(event, connector);
 
   const eventId = envelope.event_id ?? generateEventId(event);
-  await addWebhookJob({
-    connectorId: connector.id,
-    eventId,
-    eventType: event.type,
-    source: "slack",
-    payload: payload as Record<string, unknown>,
-    receivedAt: new Date(),
-  });
+  logger.info(
+    { connectorId: connector.id, eventId, eventType: event.type },
+    "Slack webhook received"
+  );
 
   return c.json({ ok: true });
 });

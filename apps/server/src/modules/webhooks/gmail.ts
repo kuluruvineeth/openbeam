@@ -53,9 +53,7 @@ gmailWebhook.post("/push", async (c) => {
       return c.json({ error: "Rate limit exceeded" }, 429);
     }
 
-    const result = await handleGmailNotification(notification, {
-      syncPriority: 2,
-    });
+    const result = await handleGmailNotification(notification, {});
 
     if (result.handled) {
       logger.info(
