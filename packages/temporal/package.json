@@ -1,0 +1,67 @@
+{
+  "name": "@openplane/temporal",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./src/index.ts"
+    },
+    "./client": {
+      "types": "./dist/client.d.ts",
+      "default": "./src/client.ts"
+    },
+    "./workflows": {
+      "types": "./dist/workflows/index.d.ts",
+      "default": "./src/workflows/index.ts"
+    },
+    "./activities": {
+      "types": "./dist/activities/index.d.ts",
+      "default": "./src/activities/index.ts"
+    },
+    "./worker": {
+      "types": "./dist/worker/index.d.ts",
+      "default": "./src/worker/index.ts"
+    },
+    "./interceptors": {
+      "types": "./dist/interceptors/index.d.ts",
+      "default": "./src/interceptors/index.ts"
+    },
+    "./testing": {
+      "types": "./dist/testing/index.d.ts",
+      "default": "./src/testing/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "check-types": "tsc -b"
+  },
+  "devDependencies": {
+    "tsdown": "catalog:",
+    "@openplane/config": "workspace:*",
+    "@temporalio/testing": "^1.12.2",
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@openplane/types": "workspace:*",
+    "@openplane/db": "workspace:*",
+    "@openplane/ai": "workspace:*",
+    "@openplane/analytics": "workspace:*",
+    "@openplane/vespa": "workspace:*",
+    "@openplane/storage": "workspace:*",
+    "@openplane/media": "workspace:*",
+    "@openplane/redis": "workspace:*",
+    "@openplane/services": "workspace:*",
+    "@duckdb/node-api": "^1.4.3-r.2",
+    "@temporalio/client": "^1.12.2",
+    "@temporalio/worker": "^1.12.2",
+    "@temporalio/workflow": "^1.12.2",
+    "@temporalio/activity": "^1.12.2",
+    "@temporalio/common": "^1.12.2",
+    "generic-pool": "^3.9.0",
+    "zod": "catalog:"
+  }
+}
