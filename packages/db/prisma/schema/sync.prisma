@@ -121,39 +121,44 @@ model SyncHistory {
   id                  String          @id @default(cuid()) @map("_id")
   syncJobId           String
   connectorId         String
-  
-  executionId         String          @unique @default(cuid())  
+
+  executionId         String          @unique @default(cuid())
   status              SyncJobStatus
   trigger             SyncTrigger
-  
+
   dataAdded           Int             @default(0)
   dataUpdated         Int             @default(0)
   dataDeleted         Int             @default(0)
   dataSkipped         Int             @default(0)
   dataFailed          Int             @default(0)
-  
+
+  documentsAdded      Int             @default(0)
+  documentsUpdated    Int             @default(0)
+  documentsRemoved    Int             @default(0)
+  filesDiscovered     Int             @default(0)
+  mediaDiscovered     Int             @default(0)
+
   bytesProcessed      BigInt          @default(0)
-  
+
   summary             Json            @default("{}")
-  // { byType: { message: { added: 100 }, file: { added: 50 } }, errors: [...] }
-  
+
   errorMessage        String?
   errorCode           String?
-  errors              Json            @default("[]")  
-  
+  errors              Json            @default("[]")
+
   startedAt           DateTime        @default(now())
   finishedAt          DateTime?
   durationMs          Int?
-  
+
   fetchTimeMs         Int?
   processTimeMs       Int?
   indexTimeMs         Int?
-  
+
   resourcesSynced     String[]        @default([])
-  
+
   apiCallsMade        Int             @default(0)
   rateLimitHits       Int             @default(0)
-  
+
   syncJob             SyncJob         @relation(fields: [syncJobId], references: [id], onDelete: Cascade)
   connector           Connector       @relation(fields: [connectorId], references: [id], onDelete: Cascade)
 

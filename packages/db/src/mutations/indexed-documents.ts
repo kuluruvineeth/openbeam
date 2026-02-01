@@ -88,6 +88,18 @@ export const deleteIndexedDocumentByExternalId = async (
     where: { connectorId, externalId },
   });
 
+export const deleteStaleIndexedDocuments = async (
+  db: Database,
+  connectorId: string,
+  olderThan: Date
+): Promise<{ count: number }> =>
+  db.indexedDocument.deleteMany({
+    where: {
+      connectorId,
+      lastSyncedAt: { lt: olderThan },
+    },
+  });
+
 export const updateSyncHistoryCounts = async (
   db: Database,
   syncHistoryId: string,

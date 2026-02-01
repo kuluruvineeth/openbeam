@@ -189,6 +189,38 @@ export function cancelBackgroundAgent(
   });
 }
 
+export function pauseBackgroundAgent(db: Database, id: string, teamId: string) {
+  return db.backgroundAgent.updateMany({
+    where: {
+      id,
+      teamId,
+      status: "RUNNING",
+    },
+    data: {
+      status: "PAUSED",
+      lastActivityAt: new Date(),
+    },
+  });
+}
+
+export function resumeBackgroundAgent(
+  db: Database,
+  id: string,
+  teamId: string
+) {
+  return db.backgroundAgent.updateMany({
+    where: {
+      id,
+      teamId,
+      status: "PAUSED",
+    },
+    data: {
+      status: "RUNNING",
+      lastActivityAt: new Date(),
+    },
+  });
+}
+
 export function markTimedOutAgents(db: Database) {
   return db.backgroundAgent.updateMany({
     where: {

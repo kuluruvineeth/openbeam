@@ -1,4 +1,9 @@
-import { type Database, SyncJobStatus, SyncTrigger } from "../index";
+import {
+  type Database,
+  SyncCategory,
+  SyncJobStatus,
+  SyncTrigger,
+} from "../index";
 
 export interface CreateSyncHistoryInput {
   syncJobId: string;
@@ -19,6 +24,61 @@ export const createSyncHistory = async (
     },
     select: { id: true },
   });
+
+export interface CreateSyncJobWithHistoryInput {
+  connectorId: string;
+  syncType: "FULL" | "INCREMENTAL" | "PERMISSIONS";
+  trigger: "SCHEDULED" | "MANUAL" | "WEBHOOK";
+}
+
+export interface CreateSyncJobWithHistoryResult {
+  syncJobId: string;
+  syncHistoryId: string;
+}
+
+export const createSyncJobWithHistory = async (
+  db: Database,
+  input: CreateSyncJobWithHistoryInput
+): Promise<CreateSyncJobWithHistoryResult> => {
+  const typeMap: Record<string, SyncCategory> = {
+    FULL: SyncCategory.FULL,
+    INCREMENTAL: SyncCategory.INCREMENTAL,
+    PERMISSIONS: SyncCategory.PERMISSIONS,
+  };
+
+  const triggerMap: Record<string, SyncTrigger> = {
+    SCHEDULED: SyncTrigger.SCHEDULED,
+    MANUAL: SyncTrigger.MANUAL,
+    WEBHOOK: SyncTrigger.WEBHOOK,
+  };
+
+  const syncJob = await db.syncJob.create({
+    data: {
+      connectorId: input.connectorId,
+      type: typeMap[input.syncType] ?? SyncCategory.FULL,
+      trigger: triggerMap[input.trigger] ?? SyncTrigger.SCHEDULED,
+      status: SyncJobStatus.RUNNING,
+      startedAt: new Date(),
+    },
+    select: { id: true },
+  });
+
+  const syncHistory = await db.syncHistory.create({
+    data: {
+      syncJobId: syncJob.id,
+      connectorId: input.connectorId,
+      status: SyncJobStatus.RUNNING,
+      trigger: triggerMap[input.trigger] ?? SyncTrigger.SCHEDULED,
+      startedAt: new Date(),
+    },
+    select: { id: true },
+  });
+
+  return {
+    syncJobId: syncJob.id,
+    syncHistoryId: syncHistory.id,
+  };
+};
 
 export interface UpdateSyncHistoryStatusInput {
   syncHistoryId: string;
@@ -50,6 +110,11 @@ export interface CompleteSyncHistoryInput {
     mediaQueued?: number;
   };
   durationMs: number;
+  documentsAdded?: number;
+  documentsUpdated?: number;
+  documentsRemoved?: number;
+  filesDiscovered?: number;
+  mediaDiscovered?: number;
 }
 
 export const completeSyncHistory = async (
@@ -63,6 +128,11 @@ export const completeSyncHistory = async (
       summary: input.summary,
       finishedAt: new Date(),
       durationMs: input.durationMs,
+      documentsAdded: input.documentsAdded ?? 0,
+      documentsUpdated: input.documentsUpdated ?? 0,
+      documentsRemoved: input.documentsRemoved ?? 0,
+      filesDiscovered: input.filesDiscovered ?? 0,
+      mediaDiscovered: input.mediaDiscovered ?? 0,
     },
   });
 
@@ -178,6 +248,7 @@ export const updateConnectorSyncError = async (
   db.connector.update({
     where: { id: input.connectorId },
     data: {
+      status: "ACTIVE",
       lastSyncStatus: "FAILED",
       lastError: input.errorMessage,
       lastErrorAt: new Date(),
@@ -198,6 +269,7 @@ export interface SyncProgressUpdate {
   syncHistoryId: string;
   stage: SyncStage;
   processedCount: number;
+  indexedCount?: number;
   totalCount?: number;
   currentBatch?: number;
   totalBatches?: number;
@@ -227,6 +299,7 @@ export const updateSyncProgress = async (
   const progressData = {
     stage: input.stage,
     processedCount: input.processedCount,
+    indexedCount: input.indexedCount ?? 0,
     totalCount: input.totalCount ?? null,
     currentBatch: input.currentBatch ?? null,
     totalBatches: input.totalBatches ?? null,
@@ -238,7 +311,8 @@ export const updateSyncProgress = async (
   await db.syncHistory.update({
     where: { id: input.syncHistoryId },
     data: {
-      dataAdded: input.processedCount,
+      dataAdded: input.indexedCount ?? 0,
+      documentsAdded: input.indexedCount ?? 0,
       summary: progressData,
     },
   });
