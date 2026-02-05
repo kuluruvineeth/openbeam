@@ -183,6 +183,13 @@ export const redisConnectionStatus = new Gauge({
   registers: [register],
 });
 
+export const executionEventsPublished = new Counter({
+  name: "execution_events_published_total",
+  help: "Total execution events published",
+  labelNames: ["event_type"],
+  registers: [register],
+});
+
 let metricsServer: Server | null = null;
 
 export function startMetricsServer(): Promise<void> {
@@ -201,9 +208,9 @@ export function startMetricsServer(): Promise<void> {
 
     metricsServer = createServer(async (req, res) => {
       const url = new URL(req.url ?? "/", "http://localhost");
-      const request = new Request(url, {
+      const request = new Request(url.toString(), {
         method: req.method,
-        headers: req.headers as HeadersInit,
+        headers: req.headers as Record<string, string>,
       });
       const response = await app.fetch(request);
       res.statusCode = response.status;
