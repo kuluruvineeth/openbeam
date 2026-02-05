@@ -1,9 +1,3 @@
-/**
- * Health Check Server
- *
- * HTTP endpoints for Kubernetes liveness and readiness probes.
- */
-
 import { createServer, type Server } from "node:http";
 import prisma from "@openplane/db";
 import { getRedisClient } from "@openplane/redis";
@@ -27,9 +21,6 @@ interface HealthStatus {
 let healthServer: Server | null = null;
 const startTime = Date.now();
 
-/**
- * Check Redis health
- */
 async function checkRedis(): Promise<{ status: string; latency?: number }> {
   try {
     const start = Date.now();
@@ -43,9 +34,6 @@ async function checkRedis(): Promise<{ status: string; latency?: number }> {
   }
 }
 
-/**
- * Check Database health
- */
 async function checkDatabase(): Promise<{ status: string; latency?: number }> {
   try {
     const start = Date.now();
@@ -58,9 +46,6 @@ async function checkDatabase(): Promise<{ status: string; latency?: number }> {
   }
 }
 
-/**
- * Check Vespa health
- */
 async function checkVespa(): Promise<{ status: string; latency?: number }> {
   try {
     const start = Date.now();
@@ -73,9 +58,6 @@ async function checkVespa(): Promise<{ status: string; latency?: number }> {
   }
 }
 
-/**
- * Liveness probe - worker is running
- */
 function liveness(): HealthStatus {
   return {
     status: "healthy",
@@ -84,9 +66,6 @@ function liveness(): HealthStatus {
   };
 }
 
-/**
- * Readiness probe - worker is ready to handle requests
- */
 async function readiness(): Promise<HealthStatus> {
   try {
     const [redis, database, vespa] = await Promise.all([
@@ -116,9 +95,6 @@ async function readiness(): Promise<HealthStatus> {
   }
 }
 
-/**
- * Start health check server
- */
 export function startHealthServer(): Promise<void> {
   if (!workerConfig.health.enabled) {
     logger.info("Health server disabled");
@@ -146,18 +122,24 @@ export function startHealthServer(): Promise<void> {
     });
 
     healthServer = createServer(async (req, res) => {
-      const url = new URL(req.url ?? "/", "http://localhost");
-      const request = new Request(url, {
-        method: req.method,
-        headers: req.headers as HeadersInit,
-      });
-      const response = await app.fetch(request);
-      res.statusCode = response.status;
-      for (const [key, value] of response.headers) {
-        res.setHeader(key, value);
+      try {
+        const url = new URL(req.url ?? "/", "http://localhost");
+        const request = new Request(url.toString(), {
+          method: req.method,
+          headers: req.headers as Record<string, string>,
+        });
+        const response = await app.fetch(request);
+        res.statusCode = response.status;
+        for (const [key, value] of response.headers) {
+          res.setHeader(key, value);
+        }
+        const body = await response.text();
+        res.end(body);
+      } catch (error) {
+        logger.error({ error }, "Health endpoint error");
+        res.statusCode = 500;
+        res.end(JSON.stringify({ status: "error" }));
       }
-      const body = await response.text();
-      res.end(body);
     });
 
     healthServer.listen(workerConfig.health.port, () => {
@@ -169,9 +151,6 @@ export function startHealthServer(): Promise<void> {
   });
 }
 
-/**
- * Stop health check server
- */
 export function stopHealthServer(): Promise<void> {
   return new Promise((resolve) => {
     if (healthServer) {
