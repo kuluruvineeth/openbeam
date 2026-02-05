@@ -1,5 +1,6 @@
 "use client";
 
+import type { NodeStatus } from "@openplane/types/canvas";
 import type { ConnectorType } from "@openplane/types/services/connectors/events";
 import type {
   Connection,
@@ -25,19 +26,22 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import type { ComponentType, DragEvent } from "react";
-import { memo, useCallback, useEffect, useMemo, useRef } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "../../utils";
 import { CanvasBackground } from "./canvas-background";
 import { CanvasProvider } from "./canvas-context";
 import { CanvasContextMenu } from "./canvas-context-menu";
 import { CanvasControls } from "./canvas-controls";
+import { CanvasEmptyState } from "./canvas-empty-state";
+import { CanvasMinimap } from "./canvas-minimap";
 import { ConnectionLine } from "./connection-line";
 import { edgeTypes as defaultEdgeTypes } from "./edges";
 import type { ConnectorInfo, LogoProps, ResourceInfo } from "./event-builder";
 import { createAllNodeTypes, createNodeData } from "./nodes";
 
 const DEFAULT_EDGE_OPTIONS = {
-  type: "animated",
+  type: "data",
+  data: { animated: true },
 };
 
 const ID_COUNTER_LIMIT = 1_000_000;
@@ -193,6 +197,8 @@ export interface AgentCanvasProps {
   initialEdges?: Edge[];
   externalNodes?: Node[];
   externalEdges?: Edge[];
+  nodeStatusMap?: Record<string, NodeStatus>;
+  edgeStateMap?: Record<string, "idle" | "running" | "success" | "error">;
   nodeTypes?: NodeTypes;
   edgeTypes?: EdgeTypes;
   onNodesChange?: (nodes: Node[]) => void;
@@ -201,7 +207,9 @@ export interface AgentCanvasProps {
   onNodeAdd?: (type: string, position: { x: number; y: number }) => void;
   onConnect?: (connection: Connection) => void;
   showControls?: boolean;
+  showMinimap?: boolean;
   showBackground?: boolean;
+  showEmptyState?: boolean;
   readOnly?: boolean;
   connectorLogos?: Partial<Record<ConnectorType, ComponentType<LogoProps>>>;
   connectors?: ConnectorInfo[];
@@ -209,6 +217,8 @@ export interface AgentCanvasProps {
     connectorId: string,
     resourceType: string
   ) => Promise<ResourceInfo[]>;
+  onOpenCommandPalette?: () => void;
+  onSelectTemplate?: (templateId: string) => void;
   className?: string;
 }
 
@@ -217,6 +227,8 @@ function AgentCanvasInner({
   initialEdges = [],
   externalNodes,
   externalEdges,
+  nodeStatusMap,
+  edgeStateMap,
   nodeTypes,
   edgeTypes,
   onNodesChange: onNodesChangeCallback,
@@ -225,21 +237,32 @@ function AgentCanvasInner({
   onNodeAdd,
   onConnect: onConnectCallback,
   showControls = true,
+  showMinimap = false,
   showBackground = true,
+  showEmptyState = true,
   readOnly = false,
   connectorLogos,
   connectors,
   onFetchResources,
+  onOpenCommandPalette,
+  onSelectTemplate,
   className,
 }: AgentCanvasProps) {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [nodes, setNodes] = useNodesState(initialNodes);
   const [edges, setEdges] = useEdgesState(initialEdges);
+  const [minimapVisible, setMinimapVisible] = useState(showMinimap);
   const isSyncingNodesRef = useRef(false);
   const isSyncingEdgesRef = useRef(false);
 
   const prevExternalNodesRef = useRef<Node[] | undefined>(undefined);
   const prevExternalEdgesRef = useRef<Edge[] | undefined>(undefined);
+
+  const handleMinimapToggle = useCallback(() => {
+    setMinimapVisible((prev) => !prev);
+  }, []);
+
+  const isEmpty = nodes.length === 0;
 
   useEffect(() => {
     if (!externalNodes) {
@@ -281,6 +304,61 @@ function AgentCanvasInner({
     [edgeTypes]
   );
 
+  const renderNodes = useMemo(() => {
+    if (!nodeStatusMap || Object.keys(nodeStatusMap).length === 0) {
+      return nodes;
+    }
+
+    return nodes.map((node) => {
+      const status = nodeStatusMap[node.id];
+      if (!status) {
+        return node;
+      }
+      const data =
+        typeof node.data === "object" && node.data !== null ? node.data : {};
+      const currentStatus = (data as { status?: NodeStatus }).status;
+      if (currentStatus === status) {
+        return node;
+      }
+      return {
+        ...node,
+        data: {
+          ...data,
+          status,
+        },
+      };
+    });
+  }, [nodeStatusMap, nodes]);
+
+  const renderEdges = useMemo(() => {
+    if (!edgeStateMap || Object.keys(edgeStateMap).length === 0) {
+      return edges;
+    }
+
+    return edges.map((edge) => {
+      const executionState = edgeStateMap[edge.id];
+      if (!executionState) {
+        return edge;
+      }
+      const data =
+        typeof edge.data === "object" && edge.data !== null ? edge.data : {};
+      const nextAnimated = executionState === "running";
+      const currentState = (data as { executionState?: string }).executionState;
+      const currentAnimated = (data as { animated?: boolean }).animated;
+      if (currentState === executionState && currentAnimated === nextAnimated) {
+        return edge;
+      }
+      return {
+        ...edge,
+        data: {
+          ...data,
+          executionState,
+          animated: nextAnimated,
+        },
+      };
+    });
+  }, [edgeStateMap, edges]);
+
   const handleNodesChange: OnNodesChange = useCallback(
     (changes) => {
       setNodes((currentNodes) => applyNodeChanges(changes, currentNodes));
@@ -315,7 +393,8 @@ function AgentCanvasInner({
     (connection: Connection) => {
       const newEdge: Edge = {
         id: createUniqueId(`edge-${connection.source}-${connection.target}`),
-        type: "animated",
+        type: "data",
+        data: { animated: true },
         ...connection,
       } as Edge;
 
@@ -382,14 +461,14 @@ function AgentCanvasInner({
             connectionLineComponent={ConnectionLine}
             connectionMode={ConnectionMode.Strict}
             defaultEdgeOptions={DEFAULT_EDGE_OPTIONS}
-            edges={edges}
+            edges={renderEdges}
             edgeTypes={mergedEdgeTypes}
             elementsSelectable={!readOnly}
             fitView
             fitViewOptions={{ padding: 0.2 }}
             maxZoom={2}
             minZoom={0.1}
-            nodes={nodes}
+            nodes={renderNodes}
             nodesConnectable={!readOnly}
             nodesDraggable={!readOnly}
             nodeTypes={mergedNodeTypes}
@@ -410,9 +489,23 @@ function AgentCanvasInner({
             zoomOnScroll
           >
             {showBackground && <CanvasBackground />}
-            {showControls && <CanvasControls />}
+            {showControls && (
+              <CanvasControls
+                minimapVisible={minimapVisible}
+                onMinimapToggle={handleMinimapToggle}
+                showMinimap
+              />
+            )}
+            {minimapVisible && <CanvasMinimap />}
           </ReactFlow>
         </CanvasContextMenu>
+
+        {showEmptyState && isEmpty && !readOnly && (
+          <CanvasEmptyState
+            onAddNode={onOpenCommandPalette}
+            onSelectTemplate={onSelectTemplate}
+          />
+        )}
       </div>
     </CanvasProvider>
   );
