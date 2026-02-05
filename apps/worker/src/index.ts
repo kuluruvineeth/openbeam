@@ -1,4 +1,6 @@
 import "./instrumentation";
+import prisma from "@openplane/db";
+import { closeRedisClient } from "@openplane/redis";
 import { initializeAI } from "@openplane/services";
 import {
   checkHealth,
@@ -20,8 +22,21 @@ const WORKER_TYPES: WorkerType[] = [
   "media",
   "webhook",
   "agent",
+  "canvas",
   "maintenance",
+  "scheduled",
 ];
+
+const WORKER_CONCURRENCY: Record<WorkerType, number> = {
+  sync: 5,
+  file: 10,
+  media: 3,
+  webhook: 20,
+  agent: 5,
+  canvas: 5,
+  maintenance: 2,
+  scheduled: 3,
+};
 
 class WorkerService {
   private readonly workers: Map<WorkerType, Worker> = new Map();
@@ -101,15 +116,7 @@ class WorkerService {
   }
 
   private getConcurrencyForWorkerType(workerType: WorkerType): number {
-    const concurrencyMap: Record<WorkerType, number> = {
-      sync: 5,
-      file: 10,
-      media: 3,
-      webhook: 20,
-      agent: 5,
-      maintenance: 2,
-    };
-    return concurrencyMap[workerType];
+    return WORKER_CONCURRENCY[workerType];
   }
 
   private async registerTemporalSchedules(): Promise<void> {
@@ -135,6 +142,10 @@ class WorkerService {
     logger.info("Shutting down OpenPlane Worker...");
     this.isShuttingDown = true;
 
+    logger.info("Stopping health and metrics servers...");
+    await Promise.all([stopMetricsServer(), stopHealthServer()]);
+
+    logger.info("Shutting down Temporal workers...");
     for (const [workerType, worker] of this.workers.entries()) {
       try {
         worker.shutdown();
@@ -143,7 +154,16 @@ class WorkerService {
         logger.error({ error, workerType }, "Error shutting down worker");
       }
     }
-    await Promise.all([stopMetricsServer(), stopHealthServer()]);
+
+    logger.info("Closing database and cache connections...");
+    await Promise.all([
+      prisma.$disconnect().catch((error) => {
+        logger.error({ error }, "Error disconnecting Prisma");
+      }),
+      closeRedisClient().catch((error) => {
+        logger.error({ error }, "Error closing Redis connection");
+      }),
+    ]);
 
     logger.info("OpenPlane Worker shut down successfully");
     process.exit(0);
