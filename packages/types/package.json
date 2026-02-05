@@ -40,6 +40,10 @@
       "types": "./dist/db/index.d.ts",
       "default": "./src/db/index.ts"
     },
+    "./db/agent-canvas": {
+      "types": "./dist/db/agent-canvas.d.ts",
+      "default": "./src/db/agent-canvas.ts"
+    },
     "./services": {
       "types": "./dist/services/index.d.ts",
       "default": "./src/services/index.ts"
@@ -79,6 +83,22 @@
     "./canvas": {
       "types": "./dist/canvas/index.d.ts",
       "default": "./src/canvas/index.ts"
+    },
+    "./canvas/timeline": {
+      "types": "./dist/canvas/timeline.d.ts",
+      "default": "./src/canvas/timeline.ts"
+    },
+    "./canvas/execution": {
+      "types": "./dist/canvas/execution.d.ts",
+      "default": "./src/canvas/execution.ts"
+    },
+    "./canvas/execution-ui": {
+      "types": "./dist/canvas/execution-ui.d.ts",
+      "default": "./src/canvas/execution-ui.ts"
+    },
+    "./canvas/execution-events": {
+      "types": "./dist/canvas/execution-events.d.ts",
+      "default": "./src/canvas/execution-events.ts"
     },
     "./temporal": {
       "types": "./dist/temporal/index.d.ts",

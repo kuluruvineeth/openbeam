@@ -123,7 +123,7 @@ export const InputNodeConfigSchema = z.object({
   allowSkip: z.boolean().default(false),
   skipLabel: z.string().default("Skip"),
   timeoutMs: z.number().optional(),
-  timeoutAction: z.enum(["skip", "error", "default"]).default("skip"),
+  timeoutAction: z.enum(["skip", "error", "default"]).default("error"),
 });
 
 export type InputNodeConfig = z.infer<typeof InputNodeConfigSchema>;

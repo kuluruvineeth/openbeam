@@ -37,7 +37,3 @@ export const RETRYABLE_ERRORS: TemporalErrorCode[] = [
   "INDEX_ERROR",
   "PARSE_ERROR",
 ];
-
-export function isRetryableError(code: TemporalErrorCode): boolean {
-  return !NON_RETRYABLE_ERRORS.includes(code);
-}
