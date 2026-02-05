@@ -2,6 +2,7 @@
 
 import { Button } from "@openplane/ui";
 import JSZip from "jszip";
+import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Icons } from "@/components/icons";
 import { formatFileSize } from "@/lib/format";
@@ -121,13 +122,14 @@ export function PresentationViewer({
     <div className="flex h-full items-center justify-center p-8">
       <div className="flex flex-col items-center gap-4 text-center">
         {data?.thumbnailUrl ? (
-          <div className="overflow-hidden rounded-md border border-border/50 shadow-sm">
-            {/* biome-ignore lint/correctness/useImageSize: Dynamic thumbnail from PPTX */}
-            {/* biome-ignore lint/performance/noImgElement: Native img for blob URL */}
-            <img
+          <div className="relative aspect-video w-80 overflow-hidden rounded-md border border-border/50 bg-muted/30 shadow-sm">
+            <Image
               alt={`${fileName} thumbnail`}
-              className="aspect-video w-80 bg-muted/30 object-contain"
+              className="object-contain"
+              fill
+              sizes="320px"
               src={data.thumbnailUrl}
+              unoptimized
             />
           </div>
         ) : (

@@ -65,7 +65,6 @@ export const VideoPlayer = forwardRef<HTMLDivElement, VideoPlayerProps>(
         onMouseMove={onMouseMove}
         ref={ref}
       >
-        {/* biome-ignore lint/a11y/useMediaCaption: Captions provided by transcript panel */}
         <video
           autoPlay
           className="max-h-full max-w-full cursor-pointer focus:outline-none"
@@ -82,7 +81,9 @@ export const VideoPlayer = forwardRef<HTMLDivElement, VideoPlayerProps>(
           ref={videoRef}
           src={url}
           tabIndex={0}
-        />
+        >
+          <track kind="captions" />
+        </video>
 
         {chapters && state.duration > 0 && (
           <ChapterMarkers chapters={chapters} duration={state.duration} />

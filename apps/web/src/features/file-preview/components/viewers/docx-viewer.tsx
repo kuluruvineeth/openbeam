@@ -163,8 +163,9 @@ export function DocxViewer({ url }: DocxViewerProps) {
   return (
     <TooltipProvider delayDuration={300}>
       <div className="relative h-full">
-        {/* biome-ignore lint/a11y/noStaticElementInteractions lint/a11y/noNoninteractiveElementInteractions: Mouse tracking for auto-hide toolbar */}
-        <div
+        {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: passive tracking for toolbar auto-hide */}
+        <section
+          aria-label="Document content"
           className="docx-viewer-container"
           onMouseMove={resetHideTimer}
           onScroll={handleScroll}
@@ -176,7 +177,7 @@ export function DocxViewer({ url }: DocxViewerProps) {
             </div>
           )}
           <div className="docx-viewer-content" ref={containerRef} />
-        </div>
+        </section>
 
         {state === "ready" && totalPages > 0 && (
           <DocxToolbar

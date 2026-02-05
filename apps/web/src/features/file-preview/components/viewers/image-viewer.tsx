@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, Skeleton } from "@openplane/ui";
+import Image from "next/image";
 import { useCallback, useRef, useState } from "react";
 import { Icons } from "@/components/icons";
 import { cn } from "@/lib/utils";
@@ -129,8 +130,9 @@ export function ImageViewer({ url, fileName }: ImageViewerProps) {
         </Button>
       </div>
 
-      {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: Custom zoom/pan interaction requires mouse handlers */}
+      {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: pan/zoom controls require mouse interactions */}
       <div
+        aria-label="Image viewer - use mouse to pan and zoom"
         className={cn(
           "relative flex-1 overflow-hidden",
           isZoomed ? "cursor-grab" : "cursor-default",
@@ -146,7 +148,7 @@ export function ImageViewer({ url, fileName }: ImageViewerProps) {
       >
         <div
           className={cn(
-            "flex h-full items-center justify-center p-4",
+            "relative flex h-full w-full items-center justify-center p-4",
             isLoading && "animate-pulse"
           )}
           style={{
@@ -155,26 +157,26 @@ export function ImageViewer({ url, fileName }: ImageViewerProps) {
               : "none",
           }}
         >
-          {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: Image with zoom transform needs native img */}
-          {/* biome-ignore lint/correctness/useImageSize: Dynamic sizing for zoom feature */}
-          {/* biome-ignore lint/performance/noImgElement: Native img needed for transform/zoom functionality */}
-          <img
+          <Image
             alt={fileName}
             className={cn(
-              "max-h-full max-w-full object-contain transition-opacity duration-200",
+              "object-contain transition-opacity duration-200",
               isLoading ? "opacity-0" : "opacity-100"
             )}
             draggable={false}
+            fill
             onError={() => {
               setError(true);
               setIsLoading(false);
             }}
             onLoad={() => setIsLoading(false)}
+            sizes="100vw"
             src={url}
             style={{
               transform: `scale(${zoom})`,
               transformOrigin: "center center",
             }}
+            unoptimized
           />
         </div>
 

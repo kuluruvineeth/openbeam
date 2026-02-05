@@ -1,7 +1,8 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 import type { SlackFile, SlackMessage, SlackMetadata } from "@/lib/slack-types";
 import { useTRPC } from "@/trpc/client";
 import { SlackPreviewHeader } from "./slack-preview-header";
@@ -38,15 +39,7 @@ export function SlackPreviewPanel({
     staleTime: 5 * 60 * 1000,
   });
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
+  useHotkeys("escape", onClose);
 
   const handleFileClick = useCallback(
     (file: SlackFile) => {
