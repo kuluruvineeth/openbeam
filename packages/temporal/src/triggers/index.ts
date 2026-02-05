@@ -13,7 +13,17 @@ export {
   type StartAgentOptions,
   startAgent,
 } from "./agents";
-
+export {
+  awaitCanvasExecutionCompletion,
+  type CanvasExecutionHandle,
+  cancelCanvasExecution,
+  pauseCanvasExecution,
+  resumeCanvasExecution,
+  type StartCanvasExecutionOptions,
+  startCanvasExecution,
+  submitCanvasApproval,
+  submitCanvasInput,
+} from "./canvas";
 export {
   awaitCleanupResult,
   type CleanupHandle,
@@ -24,7 +34,6 @@ export {
   runConnectorCleanup,
   runDailyCleanup,
 } from "./cleanup";
-
 export {
   awaitFileProcessingResult,
   type FileHandle,
@@ -33,7 +42,6 @@ export {
   processFile,
   processFileBatch,
 } from "./files";
-
 export {
   awaitIndexResult,
   type IndexDocumentsOptions,
