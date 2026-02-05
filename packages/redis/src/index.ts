@@ -53,6 +53,13 @@ export {
 export { DistributedLock, distributedLock } from "./locks";
 export { Fence, fence } from "./locks/fence";
 export {
+  cleanupExecutionThrottleCache,
+  createExecutionEventEmitter,
+  createExecutionEventSubscriber,
+  type ExecutionEventEmitterParams,
+  publishExecutionEvent,
+} from "./pubsub/execution-events";
+export {
   createJobProgressSubscriber,
   createProgressEmitter,
   type JobProgress,
