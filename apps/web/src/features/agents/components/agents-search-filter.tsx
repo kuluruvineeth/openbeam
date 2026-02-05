@@ -1,18 +1,18 @@
 "use client";
 
-import { Badge } from "@openplane/ui/components/badge";
-import { Button } from "@openplane/ui/components/button";
 import {
+  Badge,
+  Button,
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@openplane/ui/components/dropdown-menu";
-import { Input } from "@openplane/ui/components/input";
+  Icons,
+  Input,
+} from "@openplane/ui";
 import { cn } from "@openplane/ui/utils";
-import { ChevronDown, Search, X } from "lucide-react";
 import { type AgentStatus, useAgentFilters } from "../hooks/use-agent-filters";
 import { FilterList } from "./filter-list";
 
@@ -30,7 +30,10 @@ export function AgentsSearchFilter() {
   return (
     <div className="flex items-center gap-2">
       <div className="relative w-[250px]">
-        <Search className="-translate-y-1/2 absolute top-1/2 left-3 size-4 text-muted-foreground" />
+        <Icons.Search
+          className="-translate-y-1/2 absolute top-1/2 left-3 text-muted-foreground"
+          size={16}
+        />
         <Input
           className="pr-9 pl-9"
           onChange={(e) => setSearch(e.target.value)}
@@ -44,7 +47,7 @@ export function AgentsSearchFilter() {
             size="icon"
             variant="ghost"
           >
-            <X className="size-3" />
+            <Icons.XIcon size={12} />
           </Button>
         )}
       </div>
@@ -61,7 +64,7 @@ export function AgentsSearchFilter() {
                 {status.length}
               </Badge>
             )}
-            <ChevronDown className="size-4" />
+            <Icons.ChevronDown size={16} />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-48">

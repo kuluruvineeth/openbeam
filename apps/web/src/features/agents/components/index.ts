@@ -7,7 +7,21 @@ export {
 } from "./agent-item";
 export { AgentItemActions } from "./agent-item-actions";
 export { AgentItemTags } from "./agent-item-tags";
-export { AgenticView } from "./agentic";
+export {
+  AgenticView,
+  AgenticViewTabs,
+  type AgenticViewTabsProps,
+  type AgentViewTab,
+  ExecutionDetailView,
+  type ExecutionDetailViewProps,
+  ExecutionListSidebar,
+  type ExecutionListSidebarProps,
+  ExecutionLiveBanner,
+  type ExecutionLiveBannerProps,
+  ExecutionView,
+  type ExecutionViewProps,
+  type LiveBannerStatus,
+} from "./agentic";
 export { AgentsActions } from "./agents-actions";
 export { AgentsEmptyState, AgentsNoResults, EmptyState } from "./agents-empty";
 export { AgentsGrid } from "./agents-grid";
@@ -25,6 +39,7 @@ export { AgentsTable } from "./agents-table";
 export { AgentsView } from "./agents-view";
 export { AgentsViewSwitch } from "./agents-view-switch";
 export { CreateAgentButton } from "./create-agent-button";
+export { AgentExecutionDetails } from "./executions/agent-execution-details";
 export { FilterList } from "./filter-list";
 export { LoadMore } from "./load-more";
 export { ScrollableContent } from "./scrollable-content";

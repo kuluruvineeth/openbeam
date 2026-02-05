@@ -2,7 +2,8 @@
 
 import { Button } from "@openplane/ui";
 import { AnimatePresence, motion } from "motion/react";
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useState } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 import { Icons } from "@/components/icons";
 import { ThinkingDemo } from "@/components/thinking";
 import type { PreviewType } from "@/features/file-preview";
@@ -79,19 +80,7 @@ function OverviewPanelInner({
     setPreviewType(null);
   }, []);
 
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !isCollapsed) {
-        setIsCollapsed(true);
-      }
-    },
-    [isCollapsed]
-  );
-
-  useEffect(() => {
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [handleKeyDown]);
+  useHotkeys("escape", () => setIsCollapsed(true), { enabled: !isCollapsed });
 
   if (isCollapsed) {
     return (

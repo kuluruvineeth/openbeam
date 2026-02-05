@@ -74,7 +74,6 @@ const ChildItem = ({
       prefetch
     >
       <div className="relative">
-        {/* Child item text */}
         <div
           className={cn(
             "mr-[15px] ml-[35px] flex h-[32px] items-center",
@@ -133,7 +132,6 @@ const Item = ({
         prefetch
       >
         <div className="relative">
-          {/* Background that expands */}
           <div
             className={cn(
               "mr-[15px] ml-[15px] h-[40px] border border-transparent transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)]",
@@ -142,7 +140,6 @@ const Item = ({
             )}
           />
 
-          {/* Icon - always in same position from sidebar edge */}
           <div className="group-hover:!text-primary pointer-events-none absolute top-0 left-[15px] flex h-[40px] w-[40px] items-center justify-center text-foreground dark:text-muted-foreground">
             <div className={cn(isActive && "dark:!text-white")}>
               <Icon />
@@ -180,7 +177,6 @@ const Item = ({
         </div>
       </Link>
 
-      {/* Children */}
       {hasChildren && (
         <div
           className={cn(

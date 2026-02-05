@@ -8,13 +8,12 @@ export function AskView() {
 
   return (
     <div className="flex w-full items-center justify-center">
-      {/* biome-ignore lint/a11y/useValidAriaRole: role is a component prop, not an ARIA attribute */}
       <ChatBox
         isStreaming={false}
         query={query}
         retryIsStreaming={false}
-        role="user"
         setQuery={setQuery}
+        userRole="user"
       />
     </div>
   );

@@ -39,7 +39,7 @@ type Props = ChatBoxProps & {
 };
 
 export function ChatBox({
-  role,
+  userRole,
   query,
   setQuery,
   isStreaming = false,
@@ -118,7 +118,6 @@ export function ChatBox({
 
   return (
     <div className="relative flex w-full max-w-3xl flex-col pb-5">
-      {/* Agent Header */}
       {agentId && agentName && (
         <div className="flex items-center justify-between gap-2 border-border border-x border-t bg-muted px-4 py-3">
           <div className="flex items-center gap-2">
@@ -133,7 +132,6 @@ export function ChatBox({
         </div>
       )}
 
-      {/* Reference Box */}
       {showReferenceBox && referenceBoxProps && (
         <ReferenceBox
           citations={referenceBoxProps.citations}
@@ -156,14 +154,12 @@ export function ChatBox({
         />
       )}
 
-      {/* Main Chat Container */}
       <div
         className={cn(
           "flex w-full flex-col border border-border bg-background",
           agentId && agentName && "border-t-0"
         )}
       >
-        {/* Chat Input */}
         <ChatInput
           onKeyDown={handleKeyDown}
           placeholder={
@@ -176,7 +172,6 @@ export function ChatBox({
           setQuery={setQuery}
         />
 
-        {/* File Attachments */}
         {selectedFiles.length > 0 && (
           <FileAttachments
             files={selectedFiles}
@@ -189,7 +184,6 @@ export function ChatBox({
           />
         )}
 
-        {/* Toolbar */}
         <ChatToolbar
           availableModels={availableModels}
           canAttach={selectedFiles.length < 5}
@@ -203,10 +197,10 @@ export function ChatBox({
           onSend={handleSend}
           onStop={handleStop}
           retryIsStreaming={retryIsStreaming}
-          role={role}
           selectedCapability={selectedCapability}
           selectedModel={selectedModel}
           showAdvancedOptions={showAdvancedOptions}
+          userRole={userRole}
         />
       </div>
     </div>

@@ -42,7 +42,6 @@ export function OAuthLoading({
 
   return (
     <div className="flex flex-col items-center justify-center py-16">
-      {/* Status indicator */}
       <div className="relative mb-6">
         {isLoading && <Spinner className="text-primary" size={24} />}
         {state === "success" && (
@@ -57,7 +56,6 @@ export function OAuthLoading({
         )}
       </div>
 
-      {/* Text content */}
       <div className="space-y-1.5 text-center">
         <p
           className={cn(

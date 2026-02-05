@@ -73,8 +73,9 @@ export function Sidebar() {
         />
       )}
 
-      {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: Sidebar hover detection */}
+      {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: aside tracks mouse for auto-pin behavior */}
       <aside
+        aria-label="Main navigation"
         className={cn(
           "fixed top-0 left-0 z-55 flex h-screen flex-col pb-4",
           "border-border border-r bg-background",

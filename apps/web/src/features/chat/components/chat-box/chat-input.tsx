@@ -56,8 +56,11 @@ export const ChatInput = forwardRef<HTMLDivElement, Props>(
             {placeholder}
           </div>
         )}
-        {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions lint/a11y/noStaticElementInteractions: contentEditable div is interactive */}
+
+        {/* biome-ignore lint/a11y/useSemanticElements: contentEditable div provides rich editing that textarea cannot */}
         <div
+          aria-label="Message input"
+          aria-multiline="true"
           className={cn(
             "grow resize-none overflow-y-auto bg-transparent pt-[14px] pr-4 pb-[14px] pl-4 font-[450] text-[15px] text-foreground leading-[24px] outline-none placeholder:text-muted-foreground",
             className
@@ -72,10 +75,12 @@ export const ChatInput = forwardRef<HTMLDivElement, Props>(
           onKeyDown={onKeyDown}
           onPaste={onPaste}
           ref={ref}
+          role="textbox"
           style={{
             minHeight: "52px",
             maxHeight: "320px",
           }}
+          tabIndex={0}
         />
       </div>
     );

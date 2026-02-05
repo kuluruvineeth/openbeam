@@ -31,7 +31,6 @@ export function UnifiedAppOverviewTab({ app }: UnifiedAppOverviewTabProps) {
 
   return (
     <TabsContent className="space-y-6 pt-5" value="overview">
-      {/* Hero Image*/}
       {app.images.length > 0 && (
         <div className="overflow-hidden rounded-sm border border-border/40">
           {app.images.length === 1 ? (
@@ -49,12 +48,10 @@ export function UnifiedAppOverviewTab({ app }: UnifiedAppOverviewTabProps) {
         </div>
       )}
 
-      {/* Description - Let content speak, no generic heading */}
       <p className="text-foreground/80 text-sm leading-relaxed">
         {app.description || app.overview}
       </p>
 
-      {/* Features*/}
       {app.features && app.features.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {app.features.map((feature) => (
@@ -68,7 +65,6 @@ export function UnifiedAppOverviewTab({ app }: UnifiedAppOverviewTabProps) {
         </div>
       )}
 
-      {/* Data Access*/}
       {app.streams && app.streams.length > 0 && (
         <div className="space-y-3 border-border/40 border-t pt-6">
           <p className="text-foreground/60 text-xs uppercase tracking-wider">
@@ -137,7 +133,6 @@ export function UnifiedAppOverviewTab({ app }: UnifiedAppOverviewTabProps) {
                     )}
                   </div>
 
-                  {/* Expandable details */}
                   <div
                     className={cn(
                       "grid transition-all duration-200 ease-out",
@@ -177,7 +172,6 @@ export function UnifiedAppOverviewTab({ app }: UnifiedAppOverviewTabProps) {
         </div>
       )}
 
-      {/* Footer*/}
       {app.website && (
         <div className="border-border/40 border-t pt-4">
           <a

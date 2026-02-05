@@ -1,6 +1,7 @@
 "use client";
 
 import type { ToolCategory } from "@openplane/types/ai";
+import { type IconComponent, Icons } from "@openplane/ui";
 import { Badge } from "@openplane/ui/components/badge";
 import {
   Tooltip,
@@ -9,49 +10,41 @@ import {
   TooltipTrigger,
 } from "@openplane/ui/components/tooltip";
 import { cn } from "@openplane/ui/utils";
-import {
-  Brain,
-  Database,
-  FileText,
-  Link,
-  MessageSquare,
-  Search,
-} from "lucide-react";
 
 type CapabilityConfig = {
-  icon: typeof Search;
+  icon: IconComponent;
   label: string;
   color: string;
 };
 
 const CAPABILITY_CONFIG: Partial<Record<ToolCategory, CapabilityConfig>> = {
   search: {
-    icon: Search,
+    icon: Icons.Search,
     label: "Search",
     color: "bg-blue-500/10 text-blue-500",
   },
   rag: {
-    icon: MessageSquare,
+    icon: Icons.MessageSquare,
     label: "RAG",
     color: "bg-purple-500/10 text-purple-500",
   },
   documents: {
-    icon: FileText,
+    icon: Icons.FileText,
     label: "Documents",
     color: "bg-green-500/10 text-green-500",
   },
   connectors: {
-    icon: Link,
+    icon: Icons.Link,
     label: "Connectors",
     color: "bg-orange-500/10 text-orange-500",
   },
   data: {
-    icon: Database,
+    icon: Icons.Database,
     label: "Data",
     color: "bg-cyan-500/10 text-cyan-500",
   },
   analysis: {
-    icon: Brain,
+    icon: Icons.BrainIcon,
     label: "Analysis",
     color: "bg-pink-500/10 text-pink-500",
   },
@@ -98,7 +91,7 @@ export function AgentCapabilityBadges({
                       config.color
                     )}
                   >
-                    <Icon className="h-3 w-3" />
+                    <Icon size={12} />
                   </div>
                 </TooltipTrigger>
                 <TooltipContent side="top">
@@ -149,7 +142,7 @@ export function AgentCapabilityBadges({
             key={capability}
             variant="secondary"
           >
-            <Icon className="h-3 w-3" />
+            <Icon size={12} />
             {config.label}
           </Badge>
         );

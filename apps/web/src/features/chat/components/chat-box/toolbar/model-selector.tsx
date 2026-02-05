@@ -119,7 +119,7 @@ export function ModelSelector({
                 return (
                   <div key={group.provider}>
                     {groupIndex > 0 && <DropdownMenuSeparator />}
-                    {/* Provider Header */}
+
                     <div className="border-border px-4 py-2">
                       <div className="flex items-center gap-2">
                         <ProviderIcon className="text-foreground" size={16} />
@@ -128,7 +128,7 @@ export function ModelSelector({
                         </span>
                       </div>
                     </div>
-                    {/* Models */}
+
                     {group.models.map((model) => (
                       <DropdownMenuItem
                         className="mb-1 px-4 py-2 hover:bg-transparent focus:bg-transparent data-highlighted:bg-transparent"

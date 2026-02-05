@@ -7,7 +7,6 @@ import { Icons } from "@/components/icons";
 export function ConnectorsEmptyState() {
   return (
     <div className="relative flex h-[calc(100vh-400px)] flex-col items-center justify-center overflow-hidden">
-      {/* Background pattern - subtle grid */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.015]"
         style={{
@@ -19,7 +18,6 @@ export function ConnectorsEmptyState() {
         }}
       />
 
-      {/* Floating connector icons - decorative */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="-translate-x-1/2 absolute top-1/4 left-1/4 animate-pulse opacity-5">
           <Icons.ConnectorIcon size={120} />
@@ -29,7 +27,6 @@ export function ConnectorsEmptyState() {
         </div>
       </div>
 
-      {/* Content */}
       <div className="relative z-10 max-w-sm text-center">
         <p className="text-foreground/40 text-xs uppercase tracking-widest">
           Get started

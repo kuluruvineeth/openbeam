@@ -10,7 +10,7 @@ import { ModelSelector } from "./toolbar/model-selector";
 import { SendStopButton } from "./toolbar/send-stop-button";
 
 type Props = {
-  role: UserRole;
+  userRole: UserRole;
   selectedCapability: Capability;
   onCapabilityChange: (capability: Capability) => void;
   isAgenticMode: boolean;
@@ -33,7 +33,7 @@ type Props = {
 };
 
 export function ChatToolbar({
-  role,
+  userRole,
   selectedCapability,
   onCapabilityChange,
   isAgenticMode,
@@ -64,17 +64,19 @@ export function ChatToolbar({
           />
         )}
 
-        {showAdvancedOptions && (role === "superadmin" || role === "admin") && (
-          <MCPConnectorsDropdown isAgenticMode={isAgenticMode} />
-        )}
+        {showAdvancedOptions &&
+          (userRole === "superadmin" || userRole === "admin") && (
+            <MCPConnectorsDropdown isAgenticMode={isAgenticMode} />
+          )}
         <MCPConnectorsDropdown isAgenticMode={isAgenticMode} />
 
-        {showAdvancedOptions && (role === "admin" || role === "superadmin") && (
-          <AgentModeToggle
-            isAgenticMode={isAgenticMode}
-            onAgenticModeToggle={onAgenticModeToggle}
-          />
-        )}
+        {showAdvancedOptions &&
+          (userRole === "admin" || userRole === "superadmin") && (
+            <AgentModeToggle
+              isAgenticMode={isAgenticMode}
+              onAgenticModeToggle={onAgenticModeToggle}
+            />
+          )}
 
         <AgentModeToggle
           isAgenticMode={isAgenticMode}

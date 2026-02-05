@@ -1,8 +1,7 @@
 "use client";
 
-import { Button } from "@openplane/ui/components/button";
+import { Button, Icons } from "@openplane/ui";
 import { cn } from "@openplane/ui/utils";
-import { Grid3X3, List } from "lucide-react";
 import { useAgentParams } from "../hooks/use-agent-params";
 
 export function AgentsViewSwitch() {
@@ -16,7 +15,7 @@ export function AgentsViewSwitch() {
         size="icon"
         variant="outline"
       >
-        <Grid3X3 size={18} />
+        <Icons.Grid3x3 size={18} />
       </Button>
       <Button
         className={cn(params.view === "table" && "border-primary text-primary")}
@@ -24,7 +23,7 @@ export function AgentsViewSwitch() {
         size="icon"
         variant="outline"
       >
-        <List size={18} />
+        <Icons.List size={18} />
       </Button>
     </div>
   );

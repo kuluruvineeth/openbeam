@@ -1,7 +1,6 @@
 "use client";
 
-import { Button } from "@openplane/ui/components/button";
-import { Plus, Search } from "lucide-react";
+import { Button, Icons } from "@openplane/ui";
 
 type EmptyStateProps = {
   title: string;
@@ -49,7 +48,7 @@ function AgentsEmptyState() {
         href: "/agents/new",
       }}
       description="Create your first agent to automate workflows and connect to your data sources."
-      icon={<Plus className="h-6 w-6 text-muted-foreground" />}
+      icon={<Icons.Plus className="text-muted-foreground" size={24} />}
       title="No agents yet"
     />
   );
@@ -63,7 +62,7 @@ function AgentsNoResults({ onClear }: { onClear: () => void }) {
         onClick: onClear,
       }}
       description="Try adjusting your search or filter to find what you're looking for."
-      icon={<Search className="h-6 w-6 text-muted-foreground" />}
+      icon={<Icons.Search className="text-muted-foreground" size={24} />}
       title="No results found"
     />
   );
