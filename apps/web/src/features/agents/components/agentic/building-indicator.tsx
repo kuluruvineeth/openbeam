@@ -1,7 +1,7 @@
 "use client";
 
+import { Icons } from "@openplane/ui";
 import { cn } from "@openplane/ui/utils";
-import { Loader2 } from "lucide-react";
 
 interface BuildingIndicatorProps {
   pendingCount?: number;
@@ -19,7 +19,7 @@ export function BuildingIndicator({
         className
       )}
     >
-      <Loader2 className="h-4 w-4 animate-spin text-primary" />
+      <Icons.Loader2 className="h-4 w-4 animate-spin text-primary" />
       <span className="font-medium text-sm">Building</span>
       {pendingCount > 0 && (
         <span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground text-xs">

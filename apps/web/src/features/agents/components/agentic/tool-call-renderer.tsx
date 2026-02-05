@@ -1,5 +1,6 @@
 "use client";
 
+import { Icons } from "@openplane/ui";
 import {
   Collapsible,
   CollapsibleContent,
@@ -7,7 +8,6 @@ import {
 } from "@openplane/ui/components/collapsible";
 import { cn } from "@openplane/ui/utils";
 import { cva, type VariantProps } from "class-variance-authority";
-import { Check, ChevronRight, Loader2, X } from "lucide-react";
 
 const toolCallVariants = cva(
   "group flex flex-col rounded-md border transition-colors",
@@ -67,7 +67,7 @@ export function ToolCallRenderer({
               </span>
             )}
             {hasDetails && (
-              <ChevronRight className="h-3 w-3 text-muted-foreground transition-transform group-data-[state=open]:rotate-90" />
+              <Icons.ChevronRight className="h-3 w-3 text-muted-foreground transition-transform group-data-[state=open]:rotate-90" />
             )}
           </div>
         </CollapsibleTrigger>
@@ -107,11 +107,11 @@ function StatusIcon({ status }: { status: ToolCallStatus }) {
     case "pending":
       return <div className="h-2 w-2 rounded-full bg-muted-foreground" />;
     case "running":
-      return <Loader2 className="h-3 w-3 animate-spin text-primary" />;
+      return <Icons.Loader2 className="h-3 w-3 animate-spin text-primary" />;
     case "success":
-      return <Check className="h-3 w-3 text-green-500" />;
+      return <Icons.Check className="h-3 w-3 text-green-500" />;
     case "error":
-      return <X className="h-3 w-3 text-destructive" />;
+      return <Icons.Close className="h-3 w-3 text-destructive" />;
     default:
       return null;
   }
