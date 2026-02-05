@@ -49,12 +49,10 @@ describe("Workflow ID Generation (Idempotency Fix)", () => {
     const timestamp = 1_706_742_000_000;
 
     const id = generateWorkflowId({
-      type: "file",
-      documentId: "doc_123",
+      type: "maintenance",
       timestamp,
     });
 
-    expect(id).toContain("doc_123");
     expect(id).toContain(String(timestamp));
   });
 
@@ -65,6 +63,25 @@ describe("Workflow ID Generation (Idempotency Fix)", () => {
         connectorId: undefined,
       });
     }).toThrow("connectorId required for sync");
+  });
+
+  it("generates deterministic canvas workflow IDs", () => {
+    const executionId = "exec_canvas_123";
+
+    const id1 = generateWorkflowId({ type: "canvas", executionId });
+    const id2 = generateWorkflowId({ type: "canvas", executionId });
+
+    expect(id1).toBe(id2);
+    expect(id1).toBe(`canvas:${executionId}`);
+  });
+
+  it("throws error when executionId is missing for canvas workflow", () => {
+    expect(() => {
+      generateWorkflowId({
+        type: "canvas",
+        executionId: undefined,
+      });
+    }).toThrow("executionId required for canvas");
   });
 
   it("prevents concurrent execution scenario", () => {

@@ -73,11 +73,16 @@ describe("workflow-id utils", () => {
       expect(id).toContain("agent:");
     });
 
-    it("uses current timestamp if not provided", () => {
-      const id1 = generateWorkflowId({ type: "maintenance" });
-      const id2 = generateWorkflowId({ type: "maintenance" });
+    it("includes timestamp component when not provided", () => {
+      const id = generateWorkflowId({ type: "maintenance" });
 
-      expect(id1).not.toBe(id2);
+      expect(id).toContain("maintenance:");
+      const parts = id.split(":");
+      const timestampPart = parts.at(-1);
+      expect(timestampPart).toBeDefined();
+      const timestamp = Number.parseInt(timestampPart ?? "0", 10);
+      expect(timestamp).toBeGreaterThan(1_700_000_000_000);
+      expect(timestamp).toBeLessThanOrEqual(Date.now());
     });
   });
 
