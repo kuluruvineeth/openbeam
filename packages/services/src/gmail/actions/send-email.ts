@@ -12,6 +12,7 @@ export interface SendEmailParams {
   body: string;
   cc?: string[];
   bcc?: string[];
+  replyTo?: string;
   isHtml?: boolean;
   threadId?: string;
   inReplyTo?: string;
@@ -30,6 +31,14 @@ const BASE64_SLASH = /\//g;
 const BASE64_PADDING = /=+$/;
 const HTML_TAG = /<[^>]*>/g;
 
+function sanitizeEmailHeader(value: string): string {
+  return value.replace(/[\r\n\0]/g, "");
+}
+
+function sanitizeEmailAddresses(addresses: string[]): string[] {
+  return addresses.map(sanitizeEmailHeader);
+}
+
 function encodeBase64Url(str: string): string {
   const base64 = btoa(unescape(encodeURIComponent(str)));
   return base64
@@ -42,23 +51,31 @@ function buildRawEmail(params: SendEmailParams, fromEmail?: string): string {
   const boundary = `boundary_${Date.now()}`;
   const lines: string[] = [];
 
-  lines.push(`To: ${params.to.join(", ")}`);
+  const sanitizedTo = sanitizeEmailAddresses(params.to);
+  lines.push(`To: ${sanitizedTo.join(", ")}`);
+
   if (fromEmail) {
-    lines.push(`From: ${fromEmail}`);
+    lines.push(`From: ${sanitizeEmailHeader(fromEmail)}`);
   }
   if (params.cc?.length) {
-    lines.push(`Cc: ${params.cc.join(", ")}`);
+    const sanitizedCc = sanitizeEmailAddresses(params.cc);
+    lines.push(`Cc: ${sanitizedCc.join(", ")}`);
   }
   if (params.bcc?.length) {
-    lines.push(`Bcc: ${params.bcc.join(", ")}`);
+    const sanitizedBcc = sanitizeEmailAddresses(params.bcc);
+    lines.push(`Bcc: ${sanitizedBcc.join(", ")}`);
   }
-  lines.push(`Subject: ${params.subject}`);
+  lines.push(`Subject: ${sanitizeEmailHeader(params.subject)}`);
+  if (params.replyTo) {
+    lines.push(`Reply-To: ${sanitizeEmailHeader(params.replyTo)}`);
+  }
 
   if (params.inReplyTo) {
-    lines.push(`In-Reply-To: ${params.inReplyTo}`);
+    lines.push(`In-Reply-To: ${sanitizeEmailHeader(params.inReplyTo)}`);
   }
   if (params.references?.length) {
-    lines.push(`References: ${params.references.join(" ")}`);
+    const sanitizedRefs = sanitizeEmailAddresses(params.references);
+    lines.push(`References: ${sanitizedRefs.join(" ")}`);
   }
 
   lines.push("MIME-Version: 1.0");

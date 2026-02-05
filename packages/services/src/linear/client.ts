@@ -185,7 +185,10 @@ export function createLinearClient(config: LinearClientConfig): LinearClient {
         });
       }
 
-      throw error;
+      throw new Error(
+        `Linear GraphQL request failed for connector ${connectorId}`,
+        { cause: error }
+      );
     }
   }
 

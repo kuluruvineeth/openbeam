@@ -238,7 +238,10 @@ export function createGoogleDriveClient(
       });
     }
 
-    throw error;
+    throw new Error(
+      `Google Drive ${ctx.method} ${ctx.path} failed for connector ${connectorId}`,
+      { cause: error }
+    );
   }
 
   async function retryWithDelay<T>(
@@ -385,7 +388,8 @@ export function createGoogleDriveClient(
     try {
       await get("/about", { fields: "user" });
       return true;
-    } catch {
+    } catch (error) {
+      logger.debug({ error, connectorId }, "Google Drive health check failed");
       return false;
     }
   }

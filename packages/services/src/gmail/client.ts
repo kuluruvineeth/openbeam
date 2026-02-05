@@ -221,7 +221,10 @@ export function createGmailClient(config: GmailClientConfig): GmailClient {
       return await retryWithDelay<T>(method, path, options, attempt);
     }
 
-    throw error;
+    throw new Error(
+      `Gmail ${method} ${path} failed for connector ${connectorId} after ${DEFAULT_RETRY_ATTEMPTS} attempts`,
+      { cause: error }
+    );
   }
 
   // biome-ignore lint/nursery/useMaxParams: internal function with related parameters
@@ -320,7 +323,8 @@ export function createGmailClient(config: GmailClientConfig): GmailClient {
       const path = "/users/me/profile";
       await get(path);
       return true;
-    } catch {
+    } catch (error) {
+      logger.debug({ error, connectorId }, "Gmail health check failed");
       return false;
     }
   }

@@ -220,7 +220,10 @@ export function createNotionClient(config: NotionClientConfig): NotionClient {
       });
     }
 
-    throw error;
+    throw new Error(
+      `Notion ${ctx.method} ${ctx.path} failed for connector ${connectorId}`,
+      { cause: error }
+    );
   }
 
   async function retryWithDelay<T>(
@@ -282,7 +285,8 @@ export function createNotionClient(config: NotionClientConfig): NotionClient {
     try {
       await get("/users/me");
       return true;
-    } catch {
+    } catch (error) {
+      logger.debug({ error, connectorId }, "Notion health check failed");
       return false;
     }
   }

@@ -113,26 +113,37 @@ export function createSlackClient(config: SlackClientConfig): SlackClient {
         throw new Error(`Invalid Slack API method: ${method}`);
       }
 
-      // biome-ignore lint/suspicious/noExplicitAny: Slack WebClient uses dynamic method access
-      let target: any = webClient;
+      let target: unknown = webClient;
 
       for (const part of methodParts.slice(0, -1)) {
-        target = target[part];
-        if (!target) {
+        if (
+          !target ||
+          typeof target !== "object" ||
+          !Object.hasOwn(target, part)
+        ) {
           throw new Error(
             `Invalid Slack API method: ${method} (${part} not found)`
           );
         }
+        target = (target as Record<string, unknown>)[part];
       }
 
       const finalMethod = methodParts.at(-1);
-      if (!finalMethod || typeof target[finalMethod] !== "function") {
+      if (
+        !(finalMethod && target) ||
+        typeof target !== "object" ||
+        !Object.hasOwn(target, finalMethod) ||
+        typeof (target as Record<string, unknown>)[finalMethod] !== "function"
+      ) {
         throw new Error(
           `Invalid Slack API method: ${method} (${finalMethod} is not a function)`
         );
       }
 
-      const result = await target[finalMethod](args);
+      const fn = (target as Record<string, unknown>)[finalMethod] as (
+        params: Record<string, unknown>
+      ) => Promise<unknown>;
+      const result = await fn(args);
       state.consecutiveErrors = 0;
       return result as T;
     } catch (error) {
@@ -176,7 +187,10 @@ export function createSlackClient(config: SlackClientConfig): SlackClient {
       return retryWithDelay<T>(method, args, attempt);
     }
 
-    throw error;
+    throw new Error(
+      `Slack ${method} failed for connector ${connectorId} after ${DEFAULT_RETRY_ATTEMPTS} attempts`,
+      { cause: error }
+    );
   }
 
   async function retryWithDelay<T>(
@@ -216,7 +230,8 @@ export function createSlackClient(config: SlackClientConfig): SlackClient {
     try {
       const result = await webClient.auth.test();
       return result.ok === true;
-    } catch {
+    } catch (error) {
+      logger.debug({ error, connectorId }, "Slack health check failed");
       return false;
     }
   }
