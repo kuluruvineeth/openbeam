@@ -11,6 +11,14 @@ export {
 } from "./canvas-context";
 export { CanvasContextMenu } from "./canvas-context-menu";
 export { CanvasControls, type CanvasControlsProps } from "./canvas-controls";
+export {
+  CanvasEmptyState,
+  type CanvasEmptyStateProps,
+} from "./canvas-empty-state";
+export {
+  CanvasHistoryControls,
+  type CanvasHistoryControlsProps,
+} from "./canvas-history-controls";
 export { CanvasMinimap, type CanvasMinimapProps } from "./canvas-minimap";
 export { CanvasToolbar, type CanvasToolbarProps } from "./canvas-toolbar";
 export * from "./code-elements";
