@@ -1,8 +1,6 @@
 import { z } from "zod";
 
-import { ProviderIdSchema } from "../providers";
-
-export { type ProviderId, ProviderIdSchema } from "../providers";
+import { type ProviderId, ProviderIdSchema } from "../providers";
 
 export const ModelPricingSchema = z.object({
   inputPer1M: z.number(),
@@ -132,6 +130,8 @@ export const ImageModelSchema = z.object({
   supportsInpainting: z.boolean(),
   supportsOutpainting: z.boolean(),
   supportsVariations: z.boolean(),
+  supportsStyle: z.boolean().optional(),
+  supportsQuality: z.boolean().optional(),
   isLocal: z.boolean().optional(),
   pricing: z.object({
     perImage: z.number(),
@@ -139,3 +139,6 @@ export const ImageModelSchema = z.object({
 });
 
 export type ImageModel = z.infer<typeof ImageModelSchema>;
+
+export type { ProviderId };
+export { ProviderIdSchema };

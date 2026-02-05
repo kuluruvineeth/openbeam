@@ -9,6 +9,8 @@ export const OPENAI_IMAGE_MODELS: ImageModel[] = [
     supportsInpainting: false,
     supportsOutpainting: false,
     supportsVariations: true,
+    supportsStyle: true,
+    supportsQuality: true,
     pricing: { perImage: 0.04 },
   },
   {
@@ -123,4 +125,4 @@ export const IMAGE_MODELS: ImageModel[] = [
   ...GOOGLE_IMAGE_MODELS,
 ];
 
-export const DEFAULT_IMAGE_MODEL_ID = "flux-1.1-pro";
+export const DEFAULT_IMAGE_MODEL_ID = "dall-e-3";
