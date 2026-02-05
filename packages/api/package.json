@@ -28,6 +28,7 @@
     "@openplane/auth": "workspace:*",
     "@openplane/db": "workspace:*",
     "@openplane/integrations": "workspace:*",
+    "@openplane/orchestrations": "workspace:*",
     "@openplane/redis": "workspace:*",
     "@openplane/services": "workspace:*",
     "@openplane/storage": "workspace:*",
