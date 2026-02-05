@@ -1,0 +1,17 @@
+export const POLLING_INTERVALS = {
+  EXECUTION_STATUS: 2000,
+  SYSTEM_HEALTH: 10_000,
+  APPROVAL_STATUS: 2000,
+} as const;
+
+export const PAGE_SIZES = {
+  EXECUTIONS: 8,
+  CONNECTORS: 20,
+  SEARCH_RESULTS: 20,
+} as const;
+
+export const DEBOUNCE_DELAYS = {
+  CANVAS_HISTORY: 500,
+  SEARCH_INPUT: 300,
+  AUTOSAVE: 1000,
+} as const;
