@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { ExecutionStatusSchema } from "../canvas/execution";
+import { CanvasStateSchema } from "../canvas/state";
 
 export const SyncCursorSchema = z.object({
   pageToken: z.string().optional(),
@@ -199,6 +201,31 @@ export const DigestDeliveryOutputSchema = z.object({
 
 export type DigestDeliveryOutput = z.infer<typeof DigestDeliveryOutputSchema>;
 
+export const AgentCanvasExecutionInputSchema = z.object({
+  executionId: z.string(),
+  agentCanvasId: z.string(),
+  versionNumber: z.number(),
+  teamId: z.string(),
+  triggeredById: z.string(),
+  triggerSource: z.string().optional(),
+  input: z.unknown().optional(),
+  canvas: CanvasStateSchema,
+});
+
+export type AgentCanvasExecutionInput = z.infer<
+  typeof AgentCanvasExecutionInputSchema
+>;
+
+export const AgentCanvasExecutionOutputSchema = z.object({
+  executionId: z.string(),
+  status: ExecutionStatusSchema,
+  output: z.unknown().optional(),
+});
+
+export type AgentCanvasExecutionOutput = z.infer<
+  typeof AgentCanvasExecutionOutputSchema
+>;
+
 export const ReembedInputSchema = z.object({
   connectorId: z.string(),
   batchSize: z.number().optional(),
@@ -296,6 +323,10 @@ export const AnalyticsExportInputSchema = z.object({
   exportType: z.enum(["daily", "weekly", "monthly"]),
   startDate: z.number(),
   endDate: z.number(),
+  remainingTeamIds: z.array(z.string()).optional(),
+  accumulatedRecords: z.number().optional(),
+  processedCount: z.number().optional(),
+  errorCount: z.number().optional(),
 });
 
 export type AnalyticsExportInput = z.infer<typeof AnalyticsExportInputSchema>;
@@ -336,27 +367,41 @@ export type EmergenceDetectionOutput = z.infer<
   typeof EmergenceDetectionOutputSchema
 >;
 
-export type SyncStage = "initializing" | "fetching" | "indexing" | "finalizing";
+export const SyncStageSchema = z.enum([
+  "initializing",
+  "fetching",
+  "indexing",
+  "finalizing",
+]);
 
-export interface SyncState {
-  processed: number;
-  indexed: number;
-  errors: number;
-  cursor?: SyncCursor;
-  stage: SyncStage;
-  cancelled?: boolean;
-}
+export type SyncStage = z.infer<typeof SyncStageSchema>;
 
-export type WorkflowAgentStatus =
-  | "running"
-  | "completed"
-  | "cancelled"
-  | "error";
+export const SyncStateSchema = z.object({
+  processed: z.number(),
+  indexed: z.number(),
+  errors: z.number(),
+  cursor: SyncCursorSchema.optional(),
+  stage: SyncStageSchema,
+  cancelled: z.boolean().optional(),
+});
 
-export interface WorkflowAgentState {
-  steps: number;
-  artifacts: AgentArtifact[];
-  status: WorkflowAgentStatus;
-  lastCheckpoint: AgentCheckpoint | null;
-  config?: Record<string, unknown>;
-}
+export type SyncState = z.infer<typeof SyncStateSchema>;
+
+export const WorkflowAgentStatusSchema = z.enum([
+  "running",
+  "completed",
+  "cancelled",
+  "error",
+]);
+
+export type WorkflowAgentStatus = z.infer<typeof WorkflowAgentStatusSchema>;
+
+export const WorkflowAgentStateSchema = z.object({
+  steps: z.number(),
+  artifacts: z.array(AgentArtifactSchema),
+  status: WorkflowAgentStatusSchema,
+  lastCheckpoint: AgentCheckpointSchema.nullable(),
+  config: z.record(z.string(), z.unknown()).optional(),
+});
+
+export type WorkflowAgentState = z.infer<typeof WorkflowAgentStateSchema>;
