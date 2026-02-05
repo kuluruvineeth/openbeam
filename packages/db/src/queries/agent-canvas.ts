@@ -1,4 +1,7 @@
-import type { AgentCanvasStatus } from "../../prisma/generated/client";
+import type {
+  AgentCanvasExecutionStatus,
+  AgentCanvasStatus,
+} from "../../prisma/generated/client";
 import type { Database } from "../index";
 
 export function findAgentCanvasById(db: Database, id: string, teamId: string) {
@@ -15,14 +18,17 @@ export function findAgentCanvasById(db: Database, id: string, teamId: string) {
 export function findAgentCanvasWithVersions(
   db: Database,
   id: string,
-  teamId: string
+  teamId: string,
+  options: { versionLimit?: number } = {}
 ) {
+  const { versionLimit = 10 } = options;
+
   return db.agentCanvas.findFirst({
     where: { id, teamId },
     include: {
       versions: {
         orderBy: { version: "desc" },
-        take: 10,
+        take: versionLimit,
       },
       createdBy: {
         select: { id: true, name: true, image: true },
@@ -131,7 +137,20 @@ export function findAgentCanvasExecution(
       triggeredBy: {
         select: { id: true, name: true, image: true },
       },
+      agentCanvas: {
+        select: { createdById: true },
+      },
     },
+  });
+}
+
+export function findAgentCanvasExecutionData(
+  db: Database,
+  executionId: string,
+  dataId: string
+) {
+  return db.agentCanvasExecutionData.findFirst({
+    where: { id: dataId, executionId },
   });
 }
 
@@ -139,7 +158,7 @@ export function listAgentCanvasExecutions(
   db: Database,
   agentCanvasId: string,
   options: {
-    status?: string;
+    status?: AgentCanvasExecutionStatus;
     limit?: number;
     offset?: number;
   } = {}
@@ -149,12 +168,15 @@ export function listAgentCanvasExecutions(
   return db.agentCanvasExecution.findMany({
     where: {
       agentCanvasId,
-      ...(status && { status: status as never }),
+      ...(status && { status }),
     },
     select: {
       id: true,
       versionNumber: true,
       status: true,
+      workflowId: true,
+      runId: true,
+      temporalStatus: true,
       currentNodeId: true,
       tokenUsage: true,
       latencyMs: true,
@@ -181,6 +203,33 @@ export function findPendingApproval(
       executionId,
       nodeId,
       status: "PENDING",
+    },
+  });
+}
+
+export function findApprovalWithExecutionAuth(
+  db: Database,
+  approvalId: string,
+  teamId: string
+) {
+  return db.agentCanvasApproval.findFirst({
+    where: {
+      id: approvalId,
+      execution: {
+        agentCanvas: { teamId },
+      },
+    },
+    include: {
+      execution: {
+        select: {
+          id: true,
+          triggeredById: true,
+          workflowId: true,
+          agentCanvas: {
+            select: { createdById: true },
+          },
+        },
+      },
     },
   });
 }
