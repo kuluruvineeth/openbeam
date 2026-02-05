@@ -90,6 +90,12 @@ model AgentCanvasExecution {
 
   versionNumber   Int
   status          AgentCanvasExecutionStatus  @default(PENDING)
+  workflowId      String?
+  runId           String?
+  temporalStatus  String?
+  historyEventCount Int?
+  historySizeBytes Int?
+  continueAsNewCount Int?
 
   input           Json?
   output          Json?
@@ -111,10 +117,14 @@ model AgentCanvasExecution {
 
   steps           AgentCanvasExecutionStep[]
   approvals       AgentCanvasApproval[]
+  payloads        AgentCanvasExecutionData[]
 
   @@index([agentCanvasId])
   @@index([status])
   @@index([triggeredById])
+  @@index([workflowId])
+  @@index([agentCanvasId, status])
+  @@index([agentCanvasId, createdAt(sort: Desc)])
   @@map("agent_canvas_execution")
 }
 
@@ -145,6 +155,24 @@ model AgentCanvasExecutionStep {
   @@map("agent_canvas_execution_step")
 }
 
+model AgentCanvasExecutionData {
+  id              String                    @id @default(cuid()) @map("_id")
+
+  executionId     String
+  execution       AgentCanvasExecution      @relation(fields: [executionId], references: [id], onDelete: Cascade)
+
+  nodeId          String?
+  contentType     String?
+  payload         Json
+  sizeBytes       Int?
+
+  createdAt       DateTime                  @default(now())
+
+  @@index([executionId])
+  @@index([nodeId])
+  @@map("agent_canvas_execution_data")
+}
+
 enum AgentCanvasApprovalStatus {
   PENDING
   APPROVED
@@ -173,6 +201,7 @@ model AgentCanvasApproval {
 
   @@index([executionId])
   @@index([status])
+  @@index([executionId, nodeId, status])
   @@map("agent_canvas_approval")
 }
 
