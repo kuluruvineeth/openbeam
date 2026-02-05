@@ -1,4 +1,28 @@
+import type { ExecutionTrace } from "@openplane/types/canvas";
+import type {
+  CanvasApprovalSignalPayload,
+  CanvasInputSignalPayload,
+} from "@openplane/types/temporal";
 import { defineQuery, defineSignal } from "@temporalio/workflow";
+
+export interface CanvasExecutionQueryState {
+  executionId: string;
+  status: ExecutionTrace["status"];
+  currentNodeId: string | undefined;
+  stepsCompleted: number;
+  stepsTotal: number;
+  isPaused: boolean;
+  isCancelled: boolean;
+  startedAt: number;
+  steps: Array<{
+    nodeId: string;
+    nodeType: string;
+    status: string;
+    startedAt?: number;
+    completedAt?: number;
+    error?: string;
+  }>;
+}
 
 export type SyncCursor = Record<string, unknown>;
 
@@ -262,9 +286,15 @@ export interface EmergenceDetectionOutput {
 export const progressQuery = defineQuery<SyncState>("progress");
 export const agentProgressQuery = defineQuery<AgentState>("agentProgress");
 export const artifactsQuery = defineQuery<AgentArtifact[]>("artifacts");
+export const canvasExecutionQuery =
+  defineQuery<CanvasExecutionQueryState>("canvasExecution");
 export const cancelSignal = defineSignal("cancel");
 export const pauseSignal = defineSignal("pause");
 export const resumeSignal = defineSignal("resume");
 export const skipGracePeriodSignal = defineSignal("skipGracePeriod");
 export const updateConfigSignal =
   defineSignal<[Record<string, unknown>]>("updateConfig");
+export const canvasApprovalSignal =
+  defineSignal<[CanvasApprovalSignalPayload]>("canvasApproval");
+export const canvasInputSignal =
+  defineSignal<[CanvasInputSignalPayload]>("canvasInput");
