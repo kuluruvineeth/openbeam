@@ -273,8 +273,6 @@ export async function createDigestSchedule(
     memo: {
       subscriptionId: options.subscriptionId,
       connectorId: options.connectorId,
-      userId: options.userId,
-      teamId: options.teamId,
       frequency: options.frequency,
       deliveryTime: options.deliveryTime,
       scheduleType: "digest",

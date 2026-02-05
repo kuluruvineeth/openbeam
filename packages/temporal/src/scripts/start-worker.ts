@@ -9,6 +9,7 @@ import {
 import { type VespaClient, vespaClient } from "@openplane/vespa";
 import { NativeConnection, Worker } from "@temporalio/worker";
 import * as analyticsActivities from "../activities/analytics";
+import { createCanvasExecutionActivities } from "../activities/canvas";
 import {
   createBaseConnectorActivities,
   createUnifiedSyncActivities,
@@ -96,6 +97,7 @@ export function getTaskQueuesForWorkerType(workerType: WorkerType): string[] {
     media: TASK_QUEUES.MEDIA_PROCESSING,
     webhook: TASK_QUEUES.WEBHOOKS,
     agent: TASK_QUEUES.AGENTS,
+    canvas: TASK_QUEUES.CANVAS,
     maintenance: TASK_QUEUES.MAINTENANCE,
     scheduled: TASK_QUEUES.SCHEDULED,
   };
@@ -110,6 +112,7 @@ function getTaskQueueForWorkerType(workerType: WorkerType): string {
     media: TASK_QUEUES.MEDIA_PROCESSING,
     webhook: TASK_QUEUES.WEBHOOKS,
     agent: TASK_QUEUES.AGENTS,
+    canvas: TASK_QUEUES.CANVAS,
     maintenance: TASK_QUEUES.MAINTENANCE,
     scheduled: TASK_QUEUES.SCHEDULED,
   };
@@ -204,6 +207,12 @@ function loadActivitiesForWorkerType(
         ...baseActivities,
         ...createCleanupActivities({ db: deps.db }),
         ...createVespaActivities({ vespa: deps.vespa }),
+      };
+
+    case "canvas":
+      return {
+        ...baseActivities,
+        ...createCanvasExecutionActivities({ db: deps.db }),
       };
 
     default:

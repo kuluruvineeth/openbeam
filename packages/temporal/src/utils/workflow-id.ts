@@ -5,6 +5,7 @@ export type WorkflowType =
   | "media"
   | "webhook"
   | "agent"
+  | "canvas"
   | "cleanup"
   | "maintenance";
 
@@ -14,6 +15,7 @@ export interface WorkflowIdOptions {
   documentId?: string;
   agentId?: string;
   sessionId?: string;
+  executionId?: string;
   timestamp?: number;
 }
 
@@ -78,6 +80,16 @@ function generateAgentWorkflowId(
   return `agent:${agentId}:${sessionId ?? ""}`;
 }
 
+function generateCanvasWorkflowId(
+  executionId: string | undefined,
+  _ts: number
+): string {
+  if (!executionId) {
+    throw new Error("executionId required for canvas");
+  }
+  return `canvas:${executionId}`;
+}
+
 function generateCleanupWorkflowId(
   connectorId: string | undefined,
   _ts: number
@@ -98,6 +110,7 @@ const WORKFLOW_ID_GENERATORS: Record<
   media: (o, _ts) => generateMediaWorkflowId(o.documentId, _ts),
   webhook: (o, _ts) => generateWebhookWorkflowId(o.connectorId, _ts),
   agent: (o, _ts) => generateAgentWorkflowId(o.agentId, o.sessionId, _ts),
+  canvas: (o, _ts) => generateCanvasWorkflowId(o.executionId, _ts),
   cleanup: (o, _ts) => generateCleanupWorkflowId(o.connectorId, _ts),
   maintenance: (_, ts) => `maintenance:${ts}`,
 };

@@ -69,9 +69,6 @@ export async function startConnectorSync(
       args: [input],
       workflowTaskTimeout: "60s",
       memo: {
-        requestId: options.requestId,
-        userId: options.userId,
-        teamId: options.teamId,
         trigger: options.trigger,
         connectorType: options.connectorType,
       },

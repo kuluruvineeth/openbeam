@@ -103,9 +103,11 @@ export class PIIRedactionCodec implements PayloadCodec {
   private redactString(str: string): string {
     let result = str;
     for (const pattern of Array.from(this.options.patterns)) {
-      if (PATTERNS[pattern]) {
-        result = result.replace(PATTERNS[pattern], this.applyStrategy(str));
+      const regex = PATTERNS[pattern];
+      if (!regex) {
+        continue;
       }
+      result = result.replace(regex, (match) => this.applyStrategy(match));
     }
     return result;
   }

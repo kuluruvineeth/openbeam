@@ -4,6 +4,7 @@ export type WorkerType =
   | "media"
   | "webhook"
   | "agent"
+  | "canvas"
   | "maintenance"
   | "scheduled";
 

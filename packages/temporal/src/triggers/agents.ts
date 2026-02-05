@@ -73,8 +73,6 @@ export async function startAgent(
     args: [input],
     memo: {
       agentType: options.agentType,
-      userId: options.userId,
-      teamId: options.teamId,
     },
   });
 

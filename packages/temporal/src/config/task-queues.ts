@@ -8,6 +8,7 @@ export const TASK_QUEUES = {
   MEDIA_PROCESSING: "media-processing",
   WEBHOOKS: "webhooks",
   AGENTS: "agents",
+  CANVAS: "canvas",
   MAINTENANCE: "maintenance",
   TRAINING: "training",
   SCHEDULED: "scheduled",

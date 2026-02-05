@@ -45,7 +45,6 @@ export async function runDailyCleanup(
     args: [input],
     memo: {
       type: input.type,
-      teamId: input.teamId,
     },
   });
 
@@ -77,7 +76,6 @@ export async function runConnectorCleanup(
     args: [input],
     memo: {
       connectorId: options.connectorId,
-      teamId: options.teamId,
     },
   });
 

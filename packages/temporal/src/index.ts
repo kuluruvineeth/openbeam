@@ -33,6 +33,20 @@ export {
   WorkerConfigSchema,
 } from "./config";
 export {
+  CanvasValidationError,
+  type ClaimCheckMetadata,
+  type ClaimCheckOptions,
+  type ClaimCheckStore,
+  type ClaimCheckValue,
+  compileCanvasPlan,
+  createDbClaimCheckStore,
+  estimatePayloadSize,
+  isExecutionDataRef,
+  resolvePayload,
+  storePayload,
+  validateCanvasGraph,
+} from "./engine";
+export {
   type ActivityInterceptorConfig,
   createActivityInboundInterceptor,
   createActivityOutboundInterceptor,
@@ -82,6 +96,18 @@ export {
   type StartAgentOptions,
   startAgent,
 } from "./triggers/agents";
+export {
+  awaitCanvasExecutionCompletion,
+  type CanvasExecutionHandle,
+  cancelCanvasExecution,
+  getCanvasExecutionState,
+  pauseCanvasExecution,
+  resumeCanvasExecution,
+  type StartCanvasExecutionOptions,
+  startCanvasExecution,
+  submitCanvasApproval,
+  submitCanvasInput,
+} from "./triggers/canvas";
 export {
   awaitCleanupResult,
   type CleanupHandle,
@@ -197,3 +223,7 @@ export {
   type WorkerHandle,
 } from "./worker/factory";
 export type { WorkerOptions, WorkerType } from "./worker/types";
+export {
+  type CanvasExecutionQueryState,
+  canvasExecutionQuery,
+} from "./workflows/types";

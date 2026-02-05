@@ -1,3 +1,4 @@
+import { logger } from "@openplane/services/lib/logger";
 import {
   activityInfo,
   Context,
@@ -128,8 +129,9 @@ export function createAutoHeartbeat(config: HeartbeatConfig): () => void {
     try {
       const progress = getProgress();
       heartbeatWithProgress(progress);
-      // biome-ignore lint/suspicious/noEmptyBlockStatements: heartbeat failures should be silently ignored
-    } catch {}
+    } catch (error) {
+      logger.debug({ error }, "Heartbeat failed (activity may have completed)");
+    }
   }, intervalMs);
 
   return () => {

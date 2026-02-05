@@ -27,6 +27,32 @@ export type {
   GetTeamsWithUsageInput,
   GetTeamsWithUsageOutput,
 } from "./analytics/types";
+export type {
+  ExecuteCanvasNodeInput,
+  ExecuteCanvasNodeOutput,
+  ExecuteLoopNodeInput,
+  ExecuteLoopNodeOutput,
+  ExecuteParallelJoinNodeInput,
+  ExecuteParallelJoinNodeOutput,
+  ExecuteParallelMapNodeInput,
+  ExecuteParallelMapNodeOutput,
+  ExecuteParallelSplitNodeInput,
+  ExecuteParallelSplitNodeOutput,
+  LoopIterationError,
+  LoopState,
+  ParallelJoinBranchResult,
+  ParallelSplitBranchInput,
+  ResolveParallelMapBatchInput,
+  ResolveParallelMapBatchOutput,
+  StoreParallelMapOutputInput,
+  StoreParallelMapOutputOutput,
+  UpdateCanvasExecutionInput,
+} from "./canvas";
+export {
+  type CanvasExecutionActivities,
+  type CanvasExecutionActivityDependencies,
+  createCanvasExecutionActivities,
+} from "./canvas";
 export {
   type BaseConnectorActivities,
   type ConnectorSyncActivities,
