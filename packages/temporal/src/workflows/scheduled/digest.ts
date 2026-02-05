@@ -8,11 +8,13 @@ import type { SlackDigestActivities } from "../../activities/slack/types";
 
 const databaseActivities = proxyActivities<DatabaseActivities>({
   startToCloseTimeout: "30s",
+  scheduleToCloseTimeout: "2m",
   retry: { maximumAttempts: 3 },
 });
 
 const slackActivities = proxyActivities<SlackDigestActivities>({
   startToCloseTimeout: "2m",
+  scheduleToCloseTimeout: "6m",
   retry: {
     initialInterval: "5s",
     backoffCoefficient: 2,

@@ -19,6 +19,7 @@ import {
 
 const agentActivities = proxyActivities<AgentActivities>({
   startToCloseTimeout: "10m",
+  scheduleToCloseTimeout: "30m",
   heartbeatTimeout: "1m",
   retry: { maximumAttempts: 3 },
 });
@@ -47,12 +48,18 @@ export async function backgroundAgentWorkflow(
   });
 
   while (state.status === "running" && state.steps < input.maxSteps) {
+    const stepContext = {
+      ...input.context,
+      initialPrompt: input.initialPrompt,
+      ...(state.config ?? {}),
+    };
+
     const stepResult = await agentActivities.executeAgentStep({
       sessionId: input.sessionId,
       agentType: input.agentType,
       step: state.steps,
       previousArtifacts: state.artifacts,
-      context: input.context,
+      context: stepContext,
     });
 
     state.steps += 1;

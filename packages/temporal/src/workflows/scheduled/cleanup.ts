@@ -12,16 +12,19 @@ import { cancelSignal, skipGracePeriodSignal } from "../types";
 
 const cleanupActivities = proxyActivities<CleanupActivities>({
   startToCloseTimeout: "30m",
+  scheduleToCloseTimeout: "90m",
   heartbeatTimeout: "2m",
 });
 
 const vespaActivities = proxyActivities<VespaActivities>({
   startToCloseTimeout: "30m",
+  scheduleToCloseTimeout: "90m",
   heartbeatTimeout: "2m",
 });
 
 const storageActivities = proxyActivities<StorageActivities>({
   startToCloseTimeout: "30m",
+  scheduleToCloseTimeout: "90m",
   heartbeatTimeout: "2m",
 });
 

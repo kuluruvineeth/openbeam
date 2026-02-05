@@ -11,6 +11,7 @@ import type { LtrTrainingActivities } from "../../activities/ltr/types";
 
 const ltrActivities = proxyActivities<LtrTrainingActivities>({
   startToCloseTimeout: "10 minutes",
+  scheduleToCloseTimeout: "30 minutes",
   retry: {
     maximumAttempts: 3,
     initialInterval: "5 seconds",
@@ -26,11 +27,12 @@ export async function ltrTrainingWorkflow(
   const input = LtrTrainingInputSchema.parse(rawInput);
   const { teamId, modelVersion, minSamples } = input;
 
-  const now = new Date();
-  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-  const fromDate = thirtyDaysAgo.toISOString();
-  const toDate = now.toISOString();
-  const version = modelVersion ?? `v${now.toISOString().split("T")[0]}`;
+  const nowMs = Date.now();
+  const thirtyDaysAgoMs = nowMs - 30 * 24 * 60 * 60 * 1000;
+  const fromDate = new Date(thirtyDaysAgoMs).toISOString();
+  const toDate = new Date(nowMs).toISOString();
+  const version =
+    modelVersion ?? `v${new Date(nowMs).toISOString().split("T")[0]}`;
   const minRequired = minSamples ?? DEFAULT_MIN_SAMPLES;
 
   const isSystemWide = !teamId || teamId === "__all__";
@@ -84,7 +86,8 @@ export async function ltrTrainingWorkflow(
           : `batch-${workflowInfo().workflowId}`,
       samplesUsed: totalSamples,
       accuracy: 0,
-      deployedAt: successfulModels > 0 ? Date.now() : undefined,
+      deployedAt:
+        successfulModels > 0 ? workflowInfo().startTime.getTime() : undefined,
     };
   }
 
@@ -158,6 +161,6 @@ export async function ltrTrainingWorkflow(
     modelId,
     samplesUsed: impressions.length,
     accuracy,
-    deployedAt: Date.now(),
+    deployedAt: workflowInfo().startTime.getTime(),
   };
 }

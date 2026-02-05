@@ -1,4 +1,5 @@
 export { backgroundAgentWorkflow } from "./agents/background-agent";
+export { agentCanvasExecutionWorkflow } from "./canvas/canvas-execution";
 export { entityExtractionWorkflow } from "./processing/entity-extraction";
 export { fileProcessingWorkflow } from "./processing/file-processing";
 export { indexDocumentsWorkflow } from "./processing/index-documents";
@@ -54,6 +55,8 @@ export type {
 export {
   artifactsQuery,
   cancelSignal,
+  canvasApprovalSignal,
+  canvasInputSignal,
   pauseSignal,
   progressQuery,
   resumeSignal,

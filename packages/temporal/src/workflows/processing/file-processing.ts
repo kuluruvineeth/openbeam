@@ -18,16 +18,19 @@ import { indexDocumentsWorkflow } from "./index-documents";
 
 const storageActivities = proxyActivities<StorageActivities>({
   startToCloseTimeout: "10m",
+  scheduleToCloseTimeout: "30m",
   heartbeatTimeout: "1m",
 });
 
 const engineActivities = proxyActivities<EngineActivities>({
   startToCloseTimeout: "5m",
+  scheduleToCloseTimeout: "15m",
   heartbeatTimeout: "30s",
 });
 
 const connectorFileActivities = proxyActivities<ConnectorFileActivities>({
   startToCloseTimeout: "10m",
+  scheduleToCloseTimeout: "30m",
   heartbeatTimeout: "1m",
   retry: {
     initialInterval: "5s",
@@ -39,6 +42,7 @@ const connectorFileActivities = proxyActivities<ConnectorFileActivities>({
 
 const databaseActivities = proxyActivities<DatabaseActivities>({
   startToCloseTimeout: "30s",
+  scheduleToCloseTimeout: "2m",
   retry: { maximumAttempts: 3 },
 });
 
@@ -50,6 +54,9 @@ export async function fileProcessingWorkflow(
     processed: 0,
     indexed: 0,
     errors: 0,
+    dataAdded: 0,
+    dataUpdated: 0,
+    dataDeleted: 0,
     stage: "initializing",
   };
 
@@ -109,6 +116,11 @@ export async function fileProcessingWorkflow(
       connectorId: input.connectorId,
     }),
   });
+
+  state.processed = documents.length;
+  state.indexed = indexResult.indexed;
+  state.dataAdded = indexResult.dataAdded ?? 0;
+  state.dataUpdated = indexResult.dataUpdated ?? 0;
 
   await storageActivities.cleanupTempFile({ path: downloadResult.localPath });
 

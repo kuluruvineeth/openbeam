@@ -11,27 +11,25 @@ import type { EngineActivities } from "../../activities/engine/types";
 import type { MediaActivities } from "../../activities/media/types";
 import type { StorageActivities } from "../../activities/storage/types";
 import { generateWorkflowId } from "../../utils/workflow-id";
-import { progressQuery } from "../types";
+import { progressQuery, type SyncState } from "../types";
 import { indexDocumentsWorkflow } from "./index-documents";
-
-interface MediaState {
-  stage: "downloading" | "processing" | "chunking" | "embedding" | "indexing";
-  progress: number;
-}
 
 const storageActivities = proxyActivities<StorageActivities>({
   startToCloseTimeout: "30m",
+  scheduleToCloseTimeout: "90m",
   heartbeatTimeout: "2m",
 });
 
 const mediaActivities = proxyActivities<MediaActivities>({
   startToCloseTimeout: "1h",
+  scheduleToCloseTimeout: "3h",
   heartbeatTimeout: "5m",
   retry: { maximumAttempts: 2 },
 });
 
 const engineActivities = proxyActivities<EngineActivities>({
   startToCloseTimeout: "5m",
+  scheduleToCloseTimeout: "15m",
   heartbeatTimeout: "30s",
 });
 
@@ -39,14 +37,17 @@ export async function mediaProcessingWorkflow(
   rawInput: unknown
 ): Promise<MediaProcessingOutput> {
   const input = MediaProcessingInputSchema.parse(rawInput);
-  const state: MediaState = { stage: "downloading", progress: 0 };
-
-  setHandler(progressQuery, () => ({
+  const state: SyncState = {
     processed: 0,
     indexed: 0,
     errors: 0,
-    stage: state.stage,
-  }));
+    dataAdded: 0,
+    dataUpdated: 0,
+    dataDeleted: 0,
+    stage: "downloading",
+  };
+
+  setHandler(progressQuery, () => state);
 
   const downloadResult = await storageActivities.downloadFile({
     url: input.sourceUrl,
@@ -94,13 +95,18 @@ export async function mediaProcessingWorkflow(
     },
   }));
 
-  await executeChild(indexDocumentsWorkflow, {
+  const indexResult = await executeChild(indexDocumentsWorkflow, {
     args: [{ documents, connectorId: input.connectorId }],
     workflowId: generateWorkflowId({
       type: "index",
       connectorId: input.connectorId,
     }),
   });
+
+  state.processed = documents.length;
+  state.indexed = indexResult.indexed;
+  state.dataAdded = indexResult.dataAdded ?? 0;
+  state.dataUpdated = indexResult.dataUpdated ?? 0;
 
   await storageActivities.cleanupTempFile({ path: downloadResult.localPath });
 

@@ -27,6 +27,7 @@ import {
 
 const connectorFetchActivities = proxyActivities<ConnectorSyncActivities>({
   startToCloseTimeout: "15m",
+  scheduleToCloseTimeout: "45m",
   heartbeatTimeout: "60s",
   retry: {
     initialInterval: "2s",
@@ -38,6 +39,7 @@ const connectorFetchActivities = proxyActivities<ConnectorSyncActivities>({
 
 const syncProgressActivities = proxyActivities<DatabaseActivities>({
   startToCloseTimeout: "30s",
+  scheduleToCloseTimeout: "3m",
   heartbeatTimeout: "10s",
   retry: { maximumAttempts: 5 },
 });
@@ -76,7 +78,7 @@ export async function connectorSyncWorkflow(
   const connector = await syncProgressActivities.loadConnector(
     input.connectorId
   );
-  const startTime = Date.now();
+  const startTime = workflowInfo().startTime.getTime();
 
   const connectionValidation = await syncProgressActivities.validateConnection({
     connectorId: input.connectorId,
@@ -220,8 +222,8 @@ export async function connectorSyncWorkflow(
       state.processed += batch.items.length;
       state.indexed += indexResult.indexed;
       state.errors += indexResult.errors;
-      state.dataAdded += indexResult.dataAdded;
-      state.dataUpdated += indexResult.dataUpdated;
+      state.dataAdded += indexResult.dataAdded ?? 0;
+      state.dataUpdated += indexResult.dataUpdated ?? 0;
       state.cursor = batch.nextCursor;
 
       state.stage = "INDEXING";
@@ -255,6 +257,7 @@ export async function connectorSyncWorkflow(
     }
 
     state.stage = "FINALIZING";
+    const endTime = Date.now();
     await syncProgressActivities.completeSyncJob({
       workflowId,
       connectorId: input.connectorId,
@@ -267,7 +270,7 @@ export async function connectorSyncWorkflow(
         dataAdded: state.dataAdded,
         dataUpdated: state.dataUpdated,
         dataDeleted: state.dataDeleted,
-        durationMs: Date.now() - startTime,
+        durationMs: endTime - startTime,
       },
       cursor: state.cursor ? JSON.stringify(state.cursor) : undefined,
     });
@@ -277,12 +280,13 @@ export async function connectorSyncWorkflow(
       indexed: state.indexed,
       errors: state.errors,
       finalCursor: state.cursor ?? {},
-      duration: Date.now() - startTime,
+      duration: endTime - startTime,
     };
   } catch (error) {
     state.stage = "FAILED";
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error during sync";
+    const endTime = Date.now();
 
     await syncProgressActivities.completeSyncJob({
       workflowId,
@@ -294,7 +298,10 @@ export async function connectorSyncWorkflow(
         processed: state.processed,
         indexed: state.indexed,
         errors: state.errors + 1,
-        durationMs: Date.now() - startTime,
+        dataAdded: state.dataAdded,
+        dataUpdated: state.dataUpdated,
+        dataDeleted: state.dataDeleted,
+        durationMs: endTime - startTime,
       },
       cursor: state.cursor ? JSON.stringify(state.cursor) : undefined,
     });

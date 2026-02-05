@@ -3,6 +3,7 @@ import {
   type AnalyticsExportOutput,
 } from "@openplane/types/temporal/workflows";
 import {
+  continueAsNew,
   executeChild,
   proxyActivities,
   setHandler,
@@ -13,6 +14,7 @@ import { progressQuery, type SyncState } from "../types";
 
 const analyticsActivities = proxyActivities<AnalyticsExportActivities>({
   startToCloseTimeout: "10m",
+  scheduleToCloseTimeout: "30m",
   heartbeatTimeout: "2m",
   retry: {
     initialInterval: "10s",
@@ -21,9 +23,8 @@ const analyticsActivities = proxyActivities<AnalyticsExportActivities>({
   },
 });
 
-function getYesterdayDate(): string {
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
+function getYesterdayDateFromTimestamp(nowMs: number): string {
+  const yesterday = new Date(nowMs - 24 * 60 * 60 * 1000);
   return yesterday.toISOString().split("T")[0] as string;
 }
 
@@ -41,6 +42,9 @@ export async function analyticsExportWorkflow(
     processed: 0,
     indexed: 0,
     errors: 0,
+    dataAdded: 0,
+    dataUpdated: 0,
+    dataDeleted: 0,
     stage: "initializing",
   };
 
@@ -49,31 +53,43 @@ export async function analyticsExportWorkflow(
   const { teamId, exportType, startDate, endDate } = input;
 
   const isAllTeams = !teamId || teamId === "__all__";
+  const nowMs = Date.now();
   const exportDate =
     exportType === "daily"
-      ? getYesterdayDate()
+      ? getYesterdayDateFromTimestamp(nowMs)
       : formatDateRange(startDate, endDate);
 
   if (isAllTeams) {
-    state.stage = "discovering";
+    let teamIdsToProcess: string[];
+    let totalRecords = input.accumulatedRecords ?? 0;
+    let processedCount = input.processedCount ?? 0;
+    let errorCount = input.errorCount ?? 0;
 
-    const teamsResult = await analyticsActivities.getTeamsWithUsage({
-      date: exportDate,
-    });
+    if (input.remainingTeamIds && input.remainingTeamIds.length > 0) {
+      teamIdsToProcess = input.remainingTeamIds;
+    } else {
+      state.stage = "discovering";
+      const teamsResult = await analyticsActivities.getTeamsWithUsage({
+        date: exportDate,
+      });
+      teamIdsToProcess = teamsResult.teamIds;
+    }
 
-    if (teamsResult.teamIds.length === 0) {
+    if (teamIdsToProcess.length === 0) {
       state.stage = "complete";
       return {
         exportId: workflowInfo().workflowId,
-        recordCount: 0,
-        storagePath: "",
+        recordCount: totalRecords,
+        storagePath: totalRecords > 0 ? `multi-team/${exportDate}` : "",
       };
     }
 
-    let totalRecords = 0;
-    const errors: string[] = [];
+    state.processed = processedCount;
+    state.errors = errorCount;
+    state.indexed = processedCount - errorCount;
 
-    for (const tid of teamsResult.teamIds) {
+    for (let i = 0; i < teamIdsToProcess.length; i++) {
+      const tid = teamIdsToProcess[i] as string;
       state.stage = `exporting:${tid}`;
 
       try {
@@ -90,14 +106,29 @@ export async function analyticsExportWorkflow(
         });
         totalRecords += result.recordCount;
         state.indexed += 1;
-      } catch (error) {
-        errors.push(
-          `${tid}: ${error instanceof Error ? error.message : String(error)}`
-        );
+      } catch {
+        errorCount += 1;
         state.errors += 1;
       }
 
+      processedCount += 1;
       state.processed += 1;
+
+      if (workflowInfo().historyLength > 5000) {
+        const remainingTeams = teamIdsToProcess.slice(i + 1);
+        if (remainingTeams.length > 0) {
+          return continueAsNew<typeof analyticsExportWorkflow>({
+            teamId: "__all__",
+            exportType,
+            startDate,
+            endDate,
+            remainingTeamIds: remainingTeams,
+            accumulatedRecords: totalRecords,
+            processedCount,
+            errorCount,
+          });
+        }
+      }
     }
 
     state.stage = "complete";

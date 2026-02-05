@@ -14,6 +14,7 @@ const BATCH_SIZE = 10;
 
 const reembedActivities = proxyActivities<ReembedActivities>({
   startToCloseTimeout: "10m",
+  scheduleToCloseTimeout: "30m",
   heartbeatTimeout: "1m",
   retry: {
     initialInterval: "5s",
@@ -33,6 +34,9 @@ export async function reembedWorkflow(
     processed: 0,
     indexed: 0,
     errors: 0,
+    dataAdded: 0,
+    dataUpdated: 0,
+    dataDeleted: 0,
     stage: "counting",
   };
 
@@ -101,6 +105,7 @@ export async function reembedWorkflow(
     state.processed = totalProcessed;
     state.indexed = totalUpdated;
     state.errors = totalErrors;
+    state.dataUpdated = totalUpdated;
 
     if (totalProcessed > 1000) {
       await continueAsNew<typeof reembedWorkflow>({

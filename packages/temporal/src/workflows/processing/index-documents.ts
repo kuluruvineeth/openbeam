@@ -10,16 +10,19 @@ import type { VespaActivities } from "../../activities/vespa/types";
 
 const vespaActivities = proxyActivities<VespaActivities>({
   startToCloseTimeout: "2m",
+  scheduleToCloseTimeout: "10m",
   retry: { maximumAttempts: 5, backoffCoefficient: 2 },
 });
 
 const databaseActivities = proxyActivities<DatabaseActivities>({
   startToCloseTimeout: "1m",
+  scheduleToCloseTimeout: "3m",
   retry: { maximumAttempts: 3, backoffCoefficient: 2 },
 });
 
 const engineActivities = proxyActivities<EngineActivities>({
   startToCloseTimeout: "2m",
+  scheduleToCloseTimeout: "6m",
   retry: { maximumAttempts: 3, backoffCoefficient: 2 },
 });
 

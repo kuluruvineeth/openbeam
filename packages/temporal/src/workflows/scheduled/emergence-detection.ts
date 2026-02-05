@@ -2,12 +2,17 @@ import {
   EmergenceDetectionInputSchema,
   type EmergenceDetectionOutput,
 } from "@openplane/types/temporal/workflows";
-import { proxyActivities, setHandler } from "@temporalio/workflow";
+import {
+  proxyActivities,
+  setHandler,
+  workflowInfo,
+} from "@temporalio/workflow";
 import type { EmergenceDetectionActivities } from "../../activities/emergence/types";
 import { progressQuery, type SyncState } from "../types";
 
 const emergenceActivities = proxyActivities<EmergenceDetectionActivities>({
   startToCloseTimeout: "5m",
+  scheduleToCloseTimeout: "15m",
   heartbeatTimeout: "1m",
   retry: {
     initialInterval: "10s",
@@ -27,6 +32,9 @@ export async function emergenceDetectionWorkflow(
     processed: 0,
     indexed: 0,
     errors: 0,
+    dataAdded: 0,
+    dataUpdated: 0,
+    dataDeleted: 0,
     stage: "initializing",
   };
 
@@ -39,9 +47,10 @@ export async function emergenceDetectionWorkflow(
     minSuccessRate = 0.8,
   } = input;
 
+  const now = workflowInfo().startTime.getTime();
   const dateRange = input.dateRange ?? {
-    start: Date.now() - ONE_WEEK_MS,
-    end: Date.now(),
+    start: now - ONE_WEEK_MS,
+    end: now,
   };
 
   let patternsAnalyzed = 0;

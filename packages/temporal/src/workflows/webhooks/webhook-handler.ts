@@ -8,6 +8,7 @@ import { connectorSyncWorkflow } from "../sync/connector-sync";
 
 const webhookActivities = proxyActivities<WebhookActivities>({
   startToCloseTimeout: "30s",
+  scheduleToCloseTimeout: "3m",
   retry: { maximumAttempts: 5 },
 });
 

@@ -8,6 +8,7 @@ import { progressQuery, type SyncState } from "../types";
 
 const entityActivities = proxyActivities<EntityExtractionActivities>({
   startToCloseTimeout: "2m",
+  scheduleToCloseTimeout: "6m",
   heartbeatTimeout: "30s",
   retry: {
     initialInterval: "5s",
@@ -24,6 +25,9 @@ export async function entityExtractionWorkflow(
     processed: 0,
     indexed: 0,
     errors: 0,
+    dataAdded: 0,
+    dataUpdated: 0,
+    dataDeleted: 0,
     stage: "initializing",
   };
 
@@ -69,6 +73,7 @@ export async function entityExtractionWorkflow(
       state.processed = totalProcessed;
       state.indexed = totalEntities;
       state.errors = totalErrors;
+      state.dataAdded = totalEntities;
     }
   }
 

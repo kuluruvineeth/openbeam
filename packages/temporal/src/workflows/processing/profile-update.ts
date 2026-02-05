@@ -7,6 +7,7 @@ import type { ProfileUpdateActivities } from "../../activities/personalization/t
 
 const profileActivities = proxyActivities<ProfileUpdateActivities>({
   startToCloseTimeout: "30 seconds",
+  scheduleToCloseTimeout: "2 minutes",
   retry: {
     maximumAttempts: 3,
     initialInterval: "1 second",
