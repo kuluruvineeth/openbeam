@@ -1,9 +1,9 @@
 "use client";
 
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
-import { CheckIcon } from "lucide-react";
 import * as React from "react";
 import { cn } from "../utils/cn";
+import { Icons } from "./icons";
 
 const Checkbox = React.forwardRef<
   React.ComponentRef<typeof CheckboxPrimitive.Root>,
@@ -22,7 +22,7 @@ const Checkbox = React.forwardRef<
       className="flex items-center justify-center text-current transition-none"
       data-slot="checkbox-indicator"
     >
-      <CheckIcon className="size-3.5" />
+      <Icons.CheckIcon className="size-3.5" />
     </CheckboxPrimitive.Indicator>
   </CheckboxPrimitive.Root>
 ));

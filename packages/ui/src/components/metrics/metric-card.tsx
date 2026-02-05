@@ -1,9 +1,9 @@
 "use client";
 
-import { Info, Minus, TrendingDown, TrendingUp } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { cn } from "../../utils/cn";
+import { Icons } from "../icons";
 import {
   Tooltip,
   TooltipContent,
@@ -84,7 +84,7 @@ function MetricCardContent({
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
-                    <Info className="h-3 w-3 text-muted-foreground" />
+                    <Icons.Info className="h-3 w-3 text-muted-foreground" />
                   </TooltipTrigger>
                   <TooltipContent>{tooltip}</TooltipContent>
                 </Tooltip>
@@ -102,9 +102,9 @@ function MetricCardContent({
               trend === "neutral" && "bg-muted text-muted-foreground"
             )}
           >
-            {trend === "up" && <TrendingUp className="h-3 w-3" />}
-            {trend === "down" && <TrendingDown className="h-3 w-3" />}
-            {trend === "neutral" && <Minus className="h-3 w-3" />}
+            {trend === "up" && <Icons.TrendingUp className="h-3 w-3" />}
+            {trend === "down" && <Icons.TrendingDown className="h-3 w-3" />}
+            {trend === "neutral" && <Icons.Minus className="h-3 w-3" />}
             <AnimatedNumber
               decimals={1}
               format="percent"

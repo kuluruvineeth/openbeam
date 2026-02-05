@@ -1,10 +1,10 @@
 "use client";
 
 import { OTPInput, OTPInputContext } from "input-otp";
-import { Minus } from "lucide-react";
 import type { ComponentProps } from "react";
 import { forwardRef, useContext } from "react";
 import { cn } from "../utils/cn";
+import { Icons } from "./icons";
 
 const InputOTP = forwardRef<
   React.ComponentRef<typeof OTPInput>,
@@ -66,7 +66,7 @@ InputOTPSlot.displayName = "InputOTPSlot";
 const InputOTPSeparator = forwardRef<HTMLDivElement, ComponentProps<"div">>(
   ({ ...props }, ref) => (
     <div aria-hidden="true" ref={ref} {...props}>
-      <Minus className="h-4 w-4" />
+      <Icons.Minus className="h-4 w-4" />
     </div>
   )
 );

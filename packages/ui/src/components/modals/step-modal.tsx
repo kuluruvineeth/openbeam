@@ -1,6 +1,5 @@
 "use client";
 
-import { Check, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { type ReactNode, useState } from "react";
 
 import { cn } from "../../utils/cn";
@@ -12,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../dialog";
+import { Icons } from "../icons";
 
 interface Step {
   id: string;
@@ -53,7 +53,7 @@ function StepIndicator({
           !(isCompleted || isCurrent) && "bg-muted text-muted-foreground"
         )}
       >
-        {isCompleted ? <Check className="h-4 w-4" /> : index + 1}
+        {isCompleted ? <Icons.Check className="h-4 w-4" /> : index + 1}
       </div>
       {index < totalSteps - 1 && (
         <div
@@ -142,14 +142,14 @@ function StepModal({
               onClick={handleBack}
               variant="outline"
             >
-              <ChevronLeft className="mr-1 h-4 w-4" />
+              <Icons.ChevronLeft className="mr-1 h-4 w-4" />
               Back
             </Button>
             <Button disabled={!canGoNext || isSubmitting} onClick={handleNext}>
               {isLastStep ? (
                 isSubmitting ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Icons.Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Processing...
                   </>
                 ) : (
@@ -158,7 +158,7 @@ function StepModal({
               ) : (
                 <>
                   Next
-                  <ChevronRight className="ml-1 h-4 w-4" />
+                  <Icons.ChevronRight className="ml-1 h-4 w-4" />
                 </>
               )}
             </Button>

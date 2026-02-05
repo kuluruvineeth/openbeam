@@ -6,9 +6,9 @@ import {
   ChevronUpIcon,
 } from "@radix-ui/react-icons";
 import * as SelectPrimitive from "@radix-ui/react-select";
-import { ChevronDown } from "lucide-react";
 import * as React from "react";
 import { cn } from "../utils/cn";
+import { Icons } from "./icons";
 
 const Select = SelectPrimitive.Root;
 
@@ -34,7 +34,7 @@ const SelectTrigger = React.forwardRef<
     {!hideIcon && (
       <div className="h-4 w-4">
         <SelectPrimitive.Icon asChild>
-          <ChevronDown className="h-4 w-4" />
+          <Icons.ChevronDown className="h-4 w-4" />
         </SelectPrimitive.Icon>
       </div>
     )}

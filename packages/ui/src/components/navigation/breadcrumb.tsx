@@ -1,9 +1,9 @@
 "use client";
 
-import { ChevronRight, Home } from "lucide-react";
 import { Fragment, type ReactNode } from "react";
 
 import { cn } from "../../utils/cn";
+import { Icons } from "../icons";
 
 interface BreadcrumbItem {
   label: string;
@@ -21,12 +21,12 @@ interface BreadcrumbProps {
 function Breadcrumb({
   items,
   showHome = true,
-  separator = <ChevronRight className="h-4 w-4 text-muted-foreground" />,
+  separator = <Icons.ChevronRight className="h-4 w-4 text-muted-foreground" />,
   className,
 }: BreadcrumbProps) {
   const allItems = showHome
     ? [
-        { label: "Home", href: "/", icon: <Home className="h-4 w-4" /> },
+        { label: "Home", href: "/", icon: <Icons.Home className="h-4 w-4" /> },
         ...items,
       ]
     : items;

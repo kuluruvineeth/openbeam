@@ -1,12 +1,12 @@
 "use client";
 
 import { cva, type VariantProps } from "class-variance-authority";
-import { Archive, Copy, Pause, Play, Tag, Trash2, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import type { ReactNode } from "react";
 
 import { cn } from "../../utils/cn";
 import { Button } from "../button";
+import { Icons } from "../icons";
 
 const selectionBarVariants = cva(
   "-translate-x-1/2 fixed left-1/2 z-50 flex items-center gap-2 rounded-lg border border-border bg-background/95 px-4 py-2 shadow-sm backdrop-blur-sm",
@@ -78,42 +78,42 @@ export function SelectionBar({
               onClick={onClear}
               type="button"
             >
-              <X className="h-4 w-4" />
+              <Icons.X className="h-4 w-4" />
             </button>
           </div>
 
           <div className="flex items-center gap-1">
             {onRun && (
               <Button onClick={onRun} size="sm" variant="ghost">
-                <Play className="mr-1 h-4 w-4" />
+                <Icons.Play className="mr-1 h-4 w-4" />
                 Run
               </Button>
             )}
 
             {onPause && (
               <Button onClick={onPause} size="sm" variant="ghost">
-                <Pause className="mr-1 h-4 w-4" />
+                <Icons.Pause className="mr-1 h-4 w-4" />
                 Pause
               </Button>
             )}
 
             {onDuplicate && (
               <Button onClick={onDuplicate} size="sm" variant="ghost">
-                <Copy className="mr-1 h-4 w-4" />
+                <Icons.Copy className="mr-1 h-4 w-4" />
                 Duplicate
               </Button>
             )}
 
             {onTag && (
               <Button onClick={onTag} size="sm" variant="ghost">
-                <Tag className="mr-1 h-4 w-4" />
+                <Icons.Tag className="mr-1 h-4 w-4" />
                 Tag
               </Button>
             )}
 
             {onArchive && (
               <Button onClick={onArchive} size="sm" variant="ghost">
-                <Archive className="mr-1 h-4 w-4" />
+                <Icons.Archive className="mr-1 h-4 w-4" />
                 Archive
               </Button>
             )}
@@ -140,7 +140,7 @@ export function SelectionBar({
                 size="sm"
                 variant="ghost"
               >
-                <Trash2 className="mr-1 h-4 w-4" />
+                <Icons.Trash2 className="mr-1 h-4 w-4" />
                 Delete
               </Button>
             )}

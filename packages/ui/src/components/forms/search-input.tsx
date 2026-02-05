@@ -1,9 +1,9 @@
 "use client";
 
-import { Loader2, Search, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { cn } from "../../utils/cn";
+import { Icons } from "../icons";
 import { Input } from "../input";
 
 interface SearchInputProps {
@@ -53,7 +53,9 @@ function SearchInput({
 
   function renderRightIcon() {
     if (isLoading) {
-      return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />;
+      return (
+        <Icons.Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+      );
     }
 
     if (localValue) {
@@ -63,7 +65,7 @@ function SearchInput({
           onClick={handleClear}
           type="button"
         >
-          <X className="h-3 w-3" />
+          <Icons.X className="h-3 w-3" />
         </button>
       );
     }
@@ -73,7 +75,7 @@ function SearchInput({
 
   return (
     <div className={cn("relative", className)}>
-      <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
+      <Icons.Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
       <Input
         autoFocus={autoFocus}
         className="pr-10 pl-10"

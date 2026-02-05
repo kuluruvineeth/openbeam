@@ -13,11 +13,11 @@ import {
   startOfWeek,
   subMonths,
 } from "date-fns";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { cn } from "../../utils/cn";
 import { Button } from "../button";
+import { Icons } from "../icons";
 
 interface CalendarEvent {
   id: string;
@@ -85,7 +85,7 @@ function MonthCalendar({
             size="icon"
             variant="ghost"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <Icons.ChevronLeft className="h-4 w-4" />
           </Button>
           <Button
             onClick={() => {
@@ -102,7 +102,7 @@ function MonthCalendar({
             size="icon"
             variant="ghost"
           >
-            <ChevronRight className="h-4 w-4" />
+            <Icons.ChevronRight className="h-4 w-4" />
           </Button>
         </div>
       </div>

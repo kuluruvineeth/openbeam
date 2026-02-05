@@ -1,16 +1,9 @@
 "use client";
 
-import {
-  AlertTriangle,
-  CheckCircle2,
-  Info,
-  Loader2,
-  Sparkles,
-  XCircle,
-} from "lucide-react";
 import { type ExternalToast, Toaster as SonnerToaster, toast } from "sonner";
 
 import { cn } from "../../utils/cn";
+import { Icons } from "../icons";
 
 function Toaster() {
   return (
@@ -48,7 +41,7 @@ const showToast = {
     toast.success(message, {
       description: options?.description,
       duration: options?.duration,
-      icon: <CheckCircle2 className="h-5 w-5 text-emerald-500" />,
+      icon: <Icons.CheckCircle2 className="h-5 w-5 text-emerald-500" />,
       action: options?.action,
     }),
 
@@ -56,7 +49,7 @@ const showToast = {
     toast.error(message, {
       description: options?.description,
       duration: options?.duration ?? 5000,
-      icon: <XCircle className="h-5 w-5 text-red-500" />,
+      icon: <Icons.XCircle className="h-5 w-5 text-red-500" />,
       action: options?.action,
     }),
 
@@ -64,7 +57,7 @@ const showToast = {
     toast.warning(message, {
       description: options?.description,
       duration: options?.duration,
-      icon: <AlertTriangle className="h-5 w-5 text-amber-500" />,
+      icon: <Icons.AlertTriangle className="h-5 w-5 text-amber-500" />,
       action: options?.action,
     }),
 
@@ -72,7 +65,7 @@ const showToast = {
     toast.info(message, {
       description: options?.description,
       duration: options?.duration,
-      icon: <Info className="h-5 w-5 text-blue-500" />,
+      icon: <Icons.Info className="h-5 w-5 text-blue-500" />,
       action: options?.action,
     }),
 
@@ -80,7 +73,9 @@ const showToast = {
     toast.loading(message, {
       description: options?.description,
       duration: options?.duration,
-      icon: <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />,
+      icon: (
+        <Icons.Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      ),
     }),
 
   promise: <T,>(
@@ -102,7 +97,7 @@ const showToast = {
   ai: (message: string, options?: ToastOptions) =>
     toast(message, {
       description: options?.description,
-      icon: <Sparkles className="h-5 w-5 text-purple-500" />,
+      icon: <Icons.Sparkles className="h-5 w-5 text-purple-500" />,
       action: options?.action,
       duration: options?.duration ?? 5000,
     }),

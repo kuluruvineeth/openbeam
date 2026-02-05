@@ -4,7 +4,6 @@ import Placeholder from "@tiptap/extension-placeholder";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import type { FileUIPart } from "ai";
-import { PaperclipIcon, XIcon } from "lucide-react";
 import {
   type ChangeEventHandler,
   type ComponentProps,
@@ -94,7 +93,7 @@ export function PromptInputAttachment({
         />
       ) : (
         <div className="flex size-full items-center justify-center text-muted-foreground">
-          <PaperclipIcon className="size-4" />
+          <Icons.PaperclipIcon className="size-4" />
         </div>
       )}
       <Button
@@ -105,7 +104,7 @@ export function PromptInputAttachment({
         type="button"
         variant="outline"
       >
-        <XIcon className="h-3 w-3" />
+        <Icons.XIcon className="h-3 w-3" />
       </Button>
     </div>
   );
@@ -661,7 +660,7 @@ export const PromptInputSubmit = ({
   if (status === "streaming" || status === "submitted") {
     Icon = <div className="h-3 w-3 rounded-[2px] bg-current" />;
   } else if (status === "error") {
-    Icon = <XIcon className="size-4" />;
+    Icon = <Icons.XIcon className="size-4" />;
   }
 
   const buttonType =

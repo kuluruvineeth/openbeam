@@ -1,6 +1,5 @@
 "use client";
 
-import { ChevronDown, ChevronRight, Filter } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { cn } from "../../utils/cn";
@@ -11,6 +10,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "../collapsible";
+import { Icons } from "../icons";
 
 interface FilterOption {
   value: string;
@@ -83,7 +83,7 @@ function FilterPanel({
     >
       <div className="flex items-center justify-between border-border border-b p-4">
         <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4" />
+          <Icons.Filter className="h-4 w-4" />
           <span className="font-medium">Filters</span>
           {activeFilterCount > 0 && (
             <span className="rounded-full bg-primary px-1.5 py-0.5 text-primary-foreground text-xs">
@@ -108,9 +108,9 @@ function FilterPanel({
             <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md p-2 font-medium text-sm hover:bg-muted">
               {section.title}
               {expandedSections.has(section.id) ? (
-                <ChevronDown className="h-4 w-4" />
+                <Icons.ChevronDown className="h-4 w-4" />
               ) : (
-                <ChevronRight className="h-4 w-4" />
+                <Icons.ChevronRight className="h-4 w-4" />
               )}
             </CollapsibleTrigger>
             <CollapsibleContent>

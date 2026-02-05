@@ -2,9 +2,9 @@
 
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu";
 import { cva } from "class-variance-authority";
-import { ChevronDown } from "lucide-react";
 import type { ComponentProps } from "react";
 import { cn } from "../utils/cn";
+import { Icons } from "./icons";
 
 function NavigationMenu({
   className,
@@ -57,7 +57,7 @@ function NavigationMenuTrigger({
       {...props}
     >
       {children}{" "}
-      <ChevronDown
+      <Icons.ChevronDown
         aria-hidden="true"
         className="relative top-[1px] ml-1 h-3 w-3 transition duration-300 group-data-[state=open]:rotate-180"
       />

@@ -1,11 +1,11 @@
 "use client";
 
-import { Loader2, Sparkles, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useRef, useState } from "react";
 import { useDebounce } from "../../hooks/use-debounce";
 import { cn } from "../../utils/cn";
 import { Button } from "../button";
+import { Icons } from "../icons";
 import { Input } from "../input";
 
 interface ParsedFilters {
@@ -116,7 +116,7 @@ function AiFilterInput({
   return (
     <div className={cn("relative", className)}>
       <div className="relative">
-        <Sparkles className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
+        <Icons.Sparkles className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
         <Input
           className="pr-20 pl-10"
           onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
@@ -134,7 +134,7 @@ function AiFilterInput({
               onClick={() => setInput("")}
               type="button"
             >
-              <X className="h-3 w-3" />
+              <Icons.X className="h-3 w-3" />
             </button>
           )}
           <Button
@@ -144,7 +144,7 @@ function AiFilterInput({
             variant="ghost"
           >
             {isProcessing ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Icons.Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               "Apply"
             )}
@@ -170,7 +170,7 @@ function AiFilterInput({
                 }}
                 type="button"
               >
-                <Sparkles className="h-3 w-3 text-muted-foreground" />
+                <Icons.Sparkles className="h-3 w-3 text-muted-foreground" />
                 {suggestion}
               </button>
             ))}

@@ -1,8 +1,7 @@
 "use client";
 
-import { Calendar, LayoutGrid, List } from "lucide-react";
-
 import { cn } from "../../utils/cn";
+import { Icons } from "../icons";
 
 type CalendarView = "month" | "week" | "list";
 
@@ -13,9 +12,13 @@ interface ViewSwitcherProps {
 }
 
 const views: { id: CalendarView; icon: React.ReactNode; label: string }[] = [
-  { id: "month", icon: <LayoutGrid className="h-4 w-4" />, label: "Month" },
-  { id: "week", icon: <Calendar className="h-4 w-4" />, label: "Week" },
-  { id: "list", icon: <List className="h-4 w-4" />, label: "List" },
+  {
+    id: "month",
+    icon: <Icons.LayoutGrid className="h-4 w-4" />,
+    label: "Month",
+  },
+  { id: "week", icon: <Icons.Calendar className="h-4 w-4" />, label: "Week" },
+  { id: "list", icon: <Icons.List className="h-4 w-4" />, label: "List" },
 ];
 
 function CalendarViewSwitcher({

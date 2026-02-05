@@ -2,7 +2,6 @@
 
 import { formatDistanceToNow } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
-import { Archive, Check, MoreHorizontal, Trash2 } from "lucide-react";
 
 import { cn } from "../../utils/cn";
 import { Button } from "../button";
@@ -12,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../dropdown-menu";
+import { Icons } from "../icons";
 
 type NotificationType = "info" | "success" | "warning" | "error" | "agent";
 
@@ -84,19 +84,19 @@ function NotificationItem({
                 size="icon"
                 variant="ghost"
               >
-                <MoreHorizontal className="h-4 w-4" />
+                <Icons.MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               {!notification.read && onMarkAsRead && (
                 <DropdownMenuItem onClick={onMarkAsRead}>
-                  <Check className="mr-2 h-4 w-4" />
+                  <Icons.Check className="mr-2 h-4 w-4" />
                   Mark as read
                 </DropdownMenuItem>
               )}
               {onArchive && (
                 <DropdownMenuItem onClick={onArchive}>
-                  <Archive className="mr-2 h-4 w-4" />
+                  <Icons.Archive className="mr-2 h-4 w-4" />
                   {notification.archived ? "Unarchive" : "Archive"}
                 </DropdownMenuItem>
               )}
@@ -105,7 +105,7 @@ function NotificationItem({
                   className="text-destructive"
                   onClick={onDelete}
                 >
-                  <Trash2 className="mr-2 h-4 w-4" />
+                  <Icons.Trash2 className="mr-2 h-4 w-4" />
                   Delete
                 </DropdownMenuItem>
               )}

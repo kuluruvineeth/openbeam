@@ -1,9 +1,9 @@
 "use client";
 
-import { X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
 import { cn } from "../../utils/cn";
+import { Icons } from "../icons";
 
 type FilterChipType = "status" | "date" | "tag" | "search" | "type" | "custom";
 
@@ -55,7 +55,7 @@ function FilterChips({
               onClick={() => onRemove(filter.id)}
               type="button"
             >
-              <X className="h-3 w-3" />
+              <Icons.X className="h-3 w-3" />
             </button>
           </motion.div>
         ))}
