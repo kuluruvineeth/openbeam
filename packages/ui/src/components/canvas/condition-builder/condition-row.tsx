@@ -12,10 +12,10 @@ import {
   OPERATOR_NEEDS_VALUE,
   OPERATORS_BY_TYPE,
 } from "@openplane/types/canvas";
-import { X } from "lucide-react";
 import { forwardRef, memo, useCallback, useMemo } from "react";
 import { cn } from "../../../utils";
 import { CompactDatePicker } from "../../date-picker";
+import { Icons } from "../../icons";
 import { Input } from "../../input";
 import {
   Select,
@@ -188,7 +188,7 @@ export const ConditionRow = memo(
           onClick={onDelete}
           type="button"
         >
-          <X className="size-3.5" />
+          <Icons.XIcon className="size-3.5" />
         </button>
       </div>
     );

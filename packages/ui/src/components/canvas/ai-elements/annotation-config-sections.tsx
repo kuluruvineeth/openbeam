@@ -152,12 +152,28 @@ export const SizeSection = memo(function SizeSectionComponent({
   onChange,
 }: SectionProps) {
   const currentWidth = config.width ?? 240;
+  const currentHeight = config.height ?? "";
 
   const handleWidthChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const val = Number.parseInt(e.target.value, 10);
       if (!Number.isNaN(val) && val >= 160 && val <= 600) {
         onChange({ width: val });
+      }
+    },
+    [onChange]
+  );
+
+  const handleHeightChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const raw = e.target.value;
+      if (!raw) {
+        onChange({ height: undefined });
+        return;
+      }
+      const val = Number.parseInt(raw, 10);
+      if (!Number.isNaN(val) && val >= 60 && val <= 800) {
+        onChange({ height: val });
       }
     },
     [onChange]
@@ -191,6 +207,16 @@ export const SizeSection = memo(function SizeSectionComponent({
             onChange={handleWidthChange}
             type="number"
             value={currentWidth}
+          />
+        </ConfigField>
+        <ConfigField label="Custom Height (px)">
+          <Input
+            className="h-9"
+            max={800}
+            min={60}
+            onChange={handleHeightChange}
+            type="number"
+            value={currentHeight}
           />
         </ConfigField>
       </div>

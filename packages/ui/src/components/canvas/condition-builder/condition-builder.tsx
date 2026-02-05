@@ -5,7 +5,6 @@ import type {
   ConditionBranch,
   ConditionBuilderMode,
 } from "@openplane/types/canvas";
-import { AlertTriangle, CheckCircle2, Layers, XCircle } from "lucide-react";
 import { forwardRef, memo, useCallback, useMemo } from "react";
 import { cn } from "../../../utils";
 import { Icons } from "../../icons";
@@ -157,12 +156,12 @@ export const ConditionBuilder = memo(
                     >
                       {expressionValidation.valid ? (
                         <>
-                          <CheckCircle2 className="size-3" />
+                          <Icons.CheckCircle2 className="size-3" />
                           Valid
                         </>
                       ) : (
                         <>
-                          <XCircle className="size-3" />
+                          <Icons.XCircle className="size-3" />
                           Invalid
                         </>
                       )}
@@ -190,13 +189,13 @@ return 'default';`}
 
               {expressionValidation?.valid === false && (
                 <div className="rounded-sm bg-destructive/10 p-2 text-destructive text-xs">
-                  <XCircle className="mr-1 inline size-3.5" />
+                  <Icons.XCircle className="mr-1 inline size-3.5" />
                   {expressionValidation.error}
                 </div>
               )}
 
               <div className="rounded-sm bg-amber-500/10 p-2 text-amber-600 text-xs dark:text-amber-400">
-                <AlertTriangle className="mr-1 inline size-3.5" />
+                <Icons.AlertTriangle className="mr-1 inline size-3.5" />
                 Expression mode requires JavaScript knowledge. Use visual mode
                 for simpler logic.
               </div>
@@ -231,7 +230,7 @@ const ModeToggle = memo(function ModeToggleComponent({
         onClick={() => onModeChange("visual")}
         type="button"
       >
-        <Layers className="size-3.5" />
+        <Icons.Layers className="size-3.5" />
         Visual
       </button>
       <button

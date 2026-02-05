@@ -5,13 +5,14 @@ import type {
   MemoryScope,
 } from "@openplane/types/canvas";
 import { cva } from "class-variance-authority";
-import { memo, useCallback } from "react";
+import { memo, useCallback, useMemo } from "react";
 import { Icons } from "../../../icons";
 import { Input } from "../../../input";
 import { Switch } from "../../../switch";
 import { Textarea } from "../../../textarea";
 import { ConfigField } from "../config-field";
 import { ConfigSection } from "../config-section";
+import { NotesList, WarningsList } from "../feedback-lists";
 
 interface MemoryReadConfigPanelProps {
   config: MemoryReadNodeConfig;
@@ -46,10 +47,37 @@ export const MemoryReadConfigPanel = memo(
     config,
     onChange,
   }: MemoryReadConfigPanelProps) {
+    const warnings = useMemo(() => {
+      const list: string[] = [];
+      if (!config.key?.trim()) {
+        list.push("Key is required");
+      }
+      if (config.throwOnMissing && config.defaultValue !== undefined) {
+        list.push("Default value disables throw-on-missing");
+      }
+      return list;
+    }, [config.defaultValue, config.key, config.throwOnMissing]);
+
+    const notes = useMemo(() => {
+      const list: string[] = [];
+      if (config.namespace?.trim()) {
+        list.push("Namespace scoped");
+      }
+      if (config.includeMetadata) {
+        list.push("Returns metadata with the value");
+      }
+      if (config.defaultValue !== undefined) {
+        list.push("Fallback value configured");
+      }
+      return list;
+    }, [config.defaultValue, config.includeMetadata, config.namespace]);
+
     return (
       <div className="divide-y divide-border/50">
         <MemoryLocationSection config={config} onChange={onChange} />
         <BehaviorSection config={config} onChange={onChange} />
+        <WarningsList items={warnings} />
+        <NotesList items={notes} />
       </div>
     );
   }

@@ -1,10 +1,12 @@
 "use client";
 
+import { DEFAULT_CHAT_MODEL } from "@openplane/types/ai";
 import type {
   ClassificationMode,
+  ClassifyCategory,
   ClassifyNodeConfig,
 } from "@openplane/types/canvas";
-import { forwardRef, memo, useCallback } from "react";
+import { forwardRef, memo, useCallback, useEffect, useMemo } from "react";
 import { AnimatedSizeContainer } from "../../../animated-size-container";
 import { Icons } from "../../../icons";
 import { Slider } from "../../../slider";
@@ -19,10 +21,83 @@ import {
 } from "../../ai-elements";
 import { ConfigField } from "../config-field";
 import { ConfigSection } from "../config-section";
+import { NotesList, WarningsList } from "../feedback-lists";
 
 interface ClassifyConfigPanelProps {
   config: ClassifyNodeConfig;
   onChange: (config: Partial<ClassifyNodeConfig>) => void;
+}
+
+function normalizeName(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function resolveFallbackCategory(
+  config: ClassifyNodeConfig,
+  categories: ClassifyCategory[]
+): ClassifyCategory | undefined {
+  if (config.fallbackCategoryId) {
+    return categories.find(
+      (category) => category.id === config.fallbackCategoryId
+    );
+  }
+  return categories.find((category) => category.isFallback);
+}
+
+function buildWarnings(
+  config: ClassifyNodeConfig,
+  categories: ClassifyCategory[]
+): string[] {
+  const warnings: string[] = [];
+  const names = categories.map((category) => normalizeName(category.name));
+  const hasEmptyName = names.some((name) => !name);
+
+  if (categories.length === 0) {
+    warnings.push("Add at least one category");
+  }
+  if (hasEmptyName) {
+    warnings.push("Fill in category names");
+  }
+
+  const uniqueNames = new Set(names.filter(Boolean));
+  if (uniqueNames.size !== names.filter(Boolean).length) {
+    warnings.push("Duplicate category names detected");
+  }
+
+  if (config.mode === "routing" && config.allowMultiple) {
+    warnings.push("Multi-label is disabled in routing mode");
+  }
+
+  if (
+    config.fallbackBehavior === "other_branch" &&
+    categories.length > 0 &&
+    !resolveFallbackCategory(config, categories)
+  ) {
+    warnings.push("Select a fallback category to label the Other branch");
+  }
+
+  if (config.mode === "routing" && categories.length < 2) {
+    warnings.push("Routing works best with at least two categories");
+  }
+
+  return warnings;
+}
+
+function buildNotes(config: ClassifyNodeConfig): string[] {
+  const notes: string[] = [];
+  if (config.mode === "routing") {
+    notes.push("Routing creates an output handle per category");
+  }
+  if (!config.enableAutoFix) {
+    notes.push("Malformed model output will fail the node");
+  }
+  if (config.enableMemory) {
+    notes.push("Memory is enabled for classification context");
+  }
+  if (config.fallbackBehavior === "lowest_match") {
+    notes.push("Lowest-match can return below-threshold results");
+  }
+  return notes;
 }
 
 function getModeDescription(
@@ -40,16 +115,32 @@ function getModeDescription(
 export const ClassifyConfigPanel = memo(
   forwardRef<HTMLDivElement, ClassifyConfigPanelProps>(
     function ClassifyConfigPanelComponent({ config, onChange }, ref) {
+      const categories = config.categories ?? [];
+      const mode = config.mode ?? "categories";
+      const modelValue = config.model?.trim() || DEFAULT_CHAT_MODEL;
+      const warnings = useMemo(
+        () => buildWarnings(config, categories),
+        [config, categories]
+      );
+      const notes = useMemo(() => buildNotes(config), [config]);
+      const allowMultipleDisabled = mode === "routing";
+
+      useEffect(() => {
+        if (allowMultipleDisabled && config.allowMultiple) {
+          onChange({ allowMultiple: false });
+        }
+      }, [allowMultipleDisabled, config.allowMultiple, onChange]);
+
       const handleCategoriesChange = useCallback(
-        (categories: ClassifyNodeConfig["categories"]) => {
-          onChange({ categories });
+        (nextCategories: ClassifyNodeConfig["categories"]) => {
+          onChange({ categories: nextCategories });
         },
         [onChange]
       );
 
       const handleModeChange = useCallback(
-        (mode: ClassifyNodeConfig["mode"]) => {
-          onChange({ mode });
+        (nextMode: ClassifyNodeConfig["mode"]) => {
+          onChange({ mode: nextMode });
         },
         [onChange]
       );
@@ -118,7 +209,7 @@ export const ClassifyConfigPanel = memo(
                 <ModelSelector
                   onValueChange={(model) => onChange({ model })}
                   type="chat"
-                  value={config.model ?? "claude-sonnet-4-20250514"}
+                  value={modelValue}
                 />
               </ConfigField>
 
@@ -152,10 +243,13 @@ export const ClassifyConfigPanel = memo(
               <ConfigField label="Multi-Label">
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground text-sm">
-                    Allow multiple categories per input
+                    {allowMultipleDisabled
+                      ? "Multi-label is unavailable in routing mode"
+                      : "Allow multiple categories per input"}
                   </span>
                   <Switch
                     checked={config.allowMultiple ?? false}
+                    disabled={allowMultipleDisabled}
                     onCheckedChange={(allowMultiple) =>
                       onChange({ allowMultiple })
                     }
@@ -272,6 +366,9 @@ export const ClassifyConfigPanel = memo(
               </ConfigField>
             </div>
           </ConfigSection>
+
+          <WarningsList items={warnings} />
+          <NotesList items={notes} />
         </div>
       );
     }

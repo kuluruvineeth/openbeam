@@ -13,7 +13,8 @@ const STATUS_STYLES: Record<NodeStatus, string> = {
   streaming: "ring-primary ring-2 ring-offset-1 ring-offset-background",
   success: "ring-green-500/50",
   error: "ring-destructive",
-  waiting: "ring-amber-500/50 animate-pulse",
+  waiting:
+    "ring-2 ring-amber-400/70 animate-pulse shadow-[0_0_0_4px_rgba(251,191,36,0.15)]",
   skipped: "opacity-60",
 };
 
@@ -40,11 +41,21 @@ interface NodeShellProps {
   className?: string;
   handles?: NodeHandle[];
   selected?: boolean;
+  ariaLabelledBy?: string;
+  ariaDescribedBy?: string;
 }
 
 export const NodeShell = memo(
   forwardRef<HTMLDivElement, NodeShellProps>(function NodeShellComponent(
-    { children, status = "idle", className, handles = [], selected },
+    {
+      children,
+      status = "idle",
+      className,
+      handles = [],
+      selected,
+      ariaLabelledBy,
+      ariaDescribedBy,
+    },
     ref
   ) {
     return (
@@ -85,7 +96,9 @@ export const NodeShell = memo(
             </div>
           );
         })}
-        <div
+        <article
+          aria-describedby={ariaDescribedBy}
+          aria-labelledby={ariaLabelledBy}
           className={cn(
             "node-container flex flex-col rounded-md border border-border/50 bg-card/20 ring-1 ring-transparent transition-all",
             STATUS_STYLES[status],
@@ -96,7 +109,7 @@ export const NodeShell = memo(
           data-node-status={status}
         >
           {children}
-        </div>
+        </article>
       </div>
     );
   })

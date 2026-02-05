@@ -8,6 +8,8 @@ import { Badge } from "../../../badge";
 import { Icons } from "../../../icons";
 import { NodeField, NodeHeader, NodeSection, NodeShell } from "../primitives";
 
+const VARIABLE_NAME_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
+
 const CATEGORY_COLORS: Record<string, string> = {
   search: "text-blue-500",
   rag: "text-violet-500",
@@ -38,6 +40,7 @@ type ToolNodeType = Node<ToolNodeData, "tool">;
 export const ToolNode = memo(
   forwardRef<HTMLDivElement, NodeProps<ToolNodeType>>(
     function ToolNodeComponent({ data, selected }, ref) {
+      const toolId = data.config.toolId?.trim() ?? "";
       const bindings = data.config.parameterBindings ?? {};
       const bindingEntries = Object.values(bindings);
       const paramCount = bindingEntries.length;
@@ -82,6 +85,58 @@ export const ToolNode = memo(
       const retryEnabled = data.config.retryConfig?.enabled;
       const retryMax = data.config.retryConfig?.maxAttempts ?? 3;
       const hasResultPath = !!data.config.resultPath;
+      const hasResultVariable = !!data.config.resultVariable;
+
+      const warnings = useMemo(() => {
+        const list: string[] = [];
+        if (!toolId) {
+          list.push("Tool ID required");
+        }
+        if (data.config.resultPath?.trim()?.startsWith("$")) {
+          list.push("Result path should not include $");
+        }
+        if (data.config.resultVariable?.trim()) {
+          const variable = data.config.resultVariable.trim();
+          if (!VARIABLE_NAME_REGEX.test(variable)) {
+            list.push("Variable name must be valid");
+          }
+        }
+        return list;
+      }, [data.config.resultPath, data.config.resultVariable, toolId]);
+
+      const notes = useMemo(() => {
+        const list: string[] = [];
+        if (paramCount === 0) {
+          list.push("Input payload passes directly");
+        }
+        const aiCount = bindingEntries.filter(
+          (binding) => (binding.mode ?? "static") === "ai_inferred"
+        ).length;
+        if (aiCount > 0) {
+          list.push(`AI infers ${aiCount} param${aiCount > 1 ? "s" : ""}`);
+        }
+        if (retryEnabled) {
+          list.push(`Retry ${retryMax}x`);
+        }
+        if (hasResultPath) {
+          list.push("Result path enabled");
+        }
+        if (hasResultVariable) {
+          list.push("Result variable set");
+        }
+        if (data.config.continueOnError) {
+          list.push("Continue on error enabled");
+        }
+        return list;
+      }, [
+        bindingEntries,
+        data.config.continueOnError,
+        hasResultPath,
+        hasResultVariable,
+        paramCount,
+        retryEnabled,
+        retryMax,
+      ]);
 
       return (
         <NodeShell
@@ -124,6 +179,11 @@ export const ToolNode = memo(
                     mapped
                   </Badge>
                 )}
+                {hasResultVariable && (
+                  <Badge className="h-4 px-1 text-[10px]" variant="secondary">
+                    var
+                  </Badge>
+                )}
                 {data.config.continueOnError && (
                   <Badge className="h-4 px-1 text-[10px]" variant="outline">
                     safe
@@ -137,6 +197,33 @@ export const ToolNode = memo(
               )}
               {data.config.toolId && (
                 <NodeField label="Timeout" mono value={timeoutLabel} />
+              )}
+              {warnings.length > 0 && (
+                <div className="space-y-1">
+                  {warnings.map((warning) => (
+                    <div
+                      className="flex items-center gap-1.5 text-[10px] text-warning"
+                      key={warning}
+                    >
+                      <Icons.AlertCircle size={12} />
+                      <span>{warning}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {notes.length > 0 && (
+                <div className="space-y-1">
+                  {notes.map((note) => (
+                    <div
+                      className="flex items-center gap-1.5 text-[10px] text-muted-foreground"
+                      key={note}
+                    >
+                      <Icons.Info size={12} />
+                      <span>{note}</span>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           </NodeSection>

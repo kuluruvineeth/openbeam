@@ -7,7 +7,7 @@ import type {
   MemoryWriteNodeConfig,
 } from "@openplane/types/canvas";
 import { cva } from "class-variance-authority";
-import { memo, useCallback } from "react";
+import { memo, useCallback, useMemo } from "react";
 import { AnimatedSizeContainer } from "../../../animated-size-container";
 import { Icons } from "../../../icons";
 import { Input } from "../../../input";
@@ -22,6 +22,7 @@ import { Slider } from "../../../slider";
 import { Switch } from "../../../switch";
 import { ConfigField } from "../config-field";
 import { ConfigSection } from "../config-section";
+import { NotesList, WarningsList } from "../feedback-lists";
 
 interface MemoryWriteConfigPanelProps {
   config: MemoryWriteNodeConfig;
@@ -112,12 +113,51 @@ export const MemoryWriteConfigPanel = memo(
     config,
     onChange,
   }: MemoryWriteConfigPanelProps) {
+    const warnings = useMemo(() => {
+      const list: string[] = [];
+      if (!config.key?.trim()) {
+        list.push("Key is required");
+      }
+      if (config.ttlMs !== undefined && config.ttlMs <= 0) {
+        list.push("TTL must be greater than 0");
+      }
+      return list;
+    }, [config.key, config.ttlMs]);
+
+    const notes = useMemo(() => {
+      const list: string[] = [];
+      if (config.namespace?.trim()) {
+        list.push("Namespace scoped");
+      }
+      if (config.generateEmbedding) {
+        list.push("Embedding generated on write");
+      }
+      if (config.encoding === "embedding") {
+        list.push("Embedding input uses vector or content");
+      }
+      if (config.overwrite === false) {
+        list.push("Writes skip existing values");
+      }
+      if (config.tags && config.tags.length > 0) {
+        list.push(`${config.tags.length} tags`);
+      }
+      return list;
+    }, [
+      config.encoding,
+      config.generateEmbedding,
+      config.namespace,
+      config.overwrite,
+      config.tags,
+    ]);
+
     return (
       <div className="divide-y divide-border/50">
         <MemoryLocationSection config={config} onChange={onChange} />
         <MemoryTypeSection config={config} onChange={onChange} />
         <ExpirationSection config={config} onChange={onChange} />
         <OrganizationSection config={config} onChange={onChange} />
+        <WarningsList items={warnings} />
+        <NotesList items={notes} />
       </div>
     );
   }

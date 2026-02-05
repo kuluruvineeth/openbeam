@@ -1,6 +1,6 @@
 "use client";
 
-import { getImageModel } from "@openplane/types/ai";
+import { DEFAULT_IMAGE_MODEL_ID, getImageModel } from "@openplane/types/ai";
 import type {
   GeneratedImage,
   ImageNodeConfig,
@@ -176,7 +176,7 @@ export function createImageNodeData(): ImageNodeData {
   return {
     label: "Image",
     config: {
-      model: "dall-e-3",
+      model: DEFAULT_IMAGE_MODEL_ID,
       size: "1024x1024",
       quality: "standard",
       style: "vivid",

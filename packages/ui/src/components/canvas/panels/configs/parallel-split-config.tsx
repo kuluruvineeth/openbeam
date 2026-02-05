@@ -1,12 +1,13 @@
 "use client";
 
 import type {
+  ParallelSplitBranch,
   ParallelSplitDataDistribution,
   ParallelSplitErrorHandling,
   ParallelSplitExecutionMode,
   ParallelSplitNodeConfig,
 } from "@openplane/types/canvas";
-import { forwardRef, memo, useCallback, useMemo } from "react";
+import { forwardRef, memo, useCallback, useEffect, useMemo } from "react";
 import { cn } from "../../../../utils";
 import { AnimatedSizeContainer } from "../../../animated-size-container";
 import { Button } from "../../../button";
@@ -17,6 +18,7 @@ import { Slider } from "../../../slider";
 import { Switch } from "../../../switch";
 import { ConfigField } from "../config-field";
 import { ConfigSection } from "../config-section";
+import { NotesList, WarningsList } from "../feedback-lists";
 
 const EXECUTION_MODES: Array<{
   id: ParallelSplitExecutionMode;
@@ -93,10 +95,67 @@ interface ParallelSplitConfigPanelProps {
   onChange: (config: Partial<ParallelSplitNodeConfig>) => void;
 }
 
-function getConfigWarnings(config: ParallelSplitNodeConfig): string[] {
-  const result: string[] = [];
-  const outputCount = config.branches?.length ?? 0;
+function createBranchId(base: string, used: Set<string>): string {
+  let candidate = base;
+  let suffix = 1;
+  while (used.has(candidate)) {
+    candidate = `${base}-${suffix}`;
+    suffix += 1;
+  }
+  used.add(candidate);
+  return candidate;
+}
 
+function normalizeBranches(
+  branches: ParallelSplitBranch[] | undefined,
+  count: number
+): ParallelSplitBranch[] {
+  const base = Array.isArray(branches) ? branches : [];
+  const normalized: ParallelSplitBranch[] = [];
+  const used = new Set<string>();
+  const limit = Math.min(base.length, count);
+
+  for (let i = 0; i < limit; i += 1) {
+    const branch = base[i];
+    const baseId = branch?.id?.trim() || `output-${i + 1}`;
+    const id = createBranchId(baseId, used);
+    const label = branch?.label?.trim() || `Output ${i + 1}`;
+    normalized.push({ id, label });
+  }
+
+  for (let i = normalized.length; i < count; i += 1) {
+    const id = createBranchId(`output-${i + 1}`, used);
+    normalized.push({ id, label: `Output ${i + 1}` });
+  }
+
+  return normalized;
+}
+
+function areBranchesEqual(
+  left: ParallelSplitBranch[] | undefined,
+  right: ParallelSplitBranch[]
+): boolean {
+  if (!left || left.length !== right.length) {
+    return false;
+  }
+  return left.every(
+    (branch, index) =>
+      branch.id === right[index]?.id && branch.label === right[index]?.label
+  );
+}
+
+function getConfigWarnings(params: {
+  config: ParallelSplitNodeConfig;
+  outputCount: number;
+}): string[] {
+  const { config, outputCount } = params;
+  const result: string[] = [];
+
+  if (config.waitForAll === false) {
+    result.push(
+      "Engine currently waits for all outputs; toggle is reserved for future behavior"
+    );
+  }
   if (
     config.executionMode === "parallel" &&
     outputCount > (config.maxConcurrency ?? 10)
@@ -108,14 +167,33 @@ function getConfigWarnings(config: ParallelSplitNodeConfig): string[] {
   if (config.dataDistribution === "partition" && !config.partitionKey) {
     result.push("Partition mode requires a key expression");
   }
+  if (
+    config.executionMode === "sequential" &&
+    (config.maxConcurrency ?? 1) > 1
+  ) {
+    result.push("Sequential mode enforces a single concurrent branch");
+  }
   return result;
 }
 
-function generateOutputs(count: number) {
-  return Array.from({ length: count }, (_, i) => ({
-    id: `output-${i + 1}`,
-    label: `Output ${i + 1}`,
-  }));
+function getConfigNotes(params: {
+  config: ParallelSplitNodeConfig;
+  outputCount: number;
+}): string[] {
+  const { config, outputCount } = params;
+  const notes: string[] = [];
+
+  if (config.dataDistribution !== "broadcast") {
+    notes.push("Round Robin and Partition require array input");
+  }
+  if (
+    config.executionMode === "parallel" &&
+    (config.maxConcurrency ?? outputCount) > outputCount
+  ) {
+    notes.push("Max concurrency above outputs has no effect");
+  }
+
+  return notes;
 }
 
 function OutputCountSelector({
@@ -300,35 +378,42 @@ function ErrorHandlingSelector({
   );
 }
 
-function WarningsList({ warnings }: { warnings: string[] }) {
-  if (warnings.length === 0) {
-    return null;
-  }
-  return (
-    <div className="space-y-2">
-      {warnings.map((warning) => (
-        <div
-          className="flex items-start gap-2 rounded-md bg-warning/10 px-3 py-2 text-warning text-xs"
-          key={warning}
-        >
-          <Icons.AlertTriangle className="mt-0.5 shrink-0" size={14} />
-          <span>{warning}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 export const ParallelSplitConfigPanel = memo(
   forwardRef<HTMLDivElement, ParallelSplitConfigPanelProps>(
     function ParallelSplitConfigPanelComponent({ config, onChange }, ref) {
+      const baseCount =
+        config.branches && config.branches.length > 0
+          ? config.branches.length
+          : 3;
+      const outputCount = Math.min(
+        Math.max(baseCount, OUTPUT_COUNT_RANGE.min),
+        OUTPUT_COUNT_RANGE.max
+      );
+      const branches = useMemo(
+        () => normalizeBranches(config.branches, outputCount),
+        [config.branches, outputCount]
+      );
       const executionMode = config.executionMode ?? "parallel";
       const dataDistribution = config.dataDistribution ?? "broadcast";
       const errorHandling = config.errorHandling ?? "failFast";
-      const outputCount = config.branches?.length ?? 3;
       const waitForAll = config.waitForAll ?? true;
+      const partitionKeyMissing =
+        dataDistribution === "partition" && !config.partitionKey?.trim();
 
-      const warnings = useMemo(() => getConfigWarnings(config), [config]);
+      useEffect(() => {
+        if (!areBranchesEqual(config.branches, branches)) {
+          onChange({ branches });
+        }
+      }, [branches, config.branches, onChange]);
+
+      const warnings = useMemo(
+        () => getConfigWarnings({ config, outputCount }),
+        [config, outputCount]
+      );
+      const notes = useMemo(
+        () => getConfigNotes({ config, outputCount }),
+        [config, outputCount]
+      );
 
       const handleOutputCountChange = useCallback(
         (count: number) => {
@@ -338,9 +423,20 @@ export const ParallelSplitConfigPanel = memo(
           ) {
             return;
           }
-          onChange({ branches: generateOutputs(count) });
+          onChange({ branches: normalizeBranches(branches, count) });
         },
-        [onChange]
+        [branches, onChange]
+      );
+
+      const handleLabelChange = useCallback(
+        (index: number, value: string) => {
+          const nextLabel = value.trim() || `Output ${index + 1}`;
+          const nextBranches = branches.map((branch, idx) =>
+            idx === index ? { ...branch, label: nextLabel } : branch
+          );
+          onChange({ branches: nextBranches });
+        },
+        [branches, onChange]
       );
 
       return (
@@ -350,10 +446,33 @@ export const ParallelSplitConfigPanel = memo(
             icon={<Icons.GitFork size={16} />}
             title="Outputs"
           >
-            <OutputCountSelector
-              count={outputCount}
-              onChange={handleOutputCountChange}
-            />
+            <div className="space-y-4">
+              <OutputCountSelector
+                count={outputCount}
+                onChange={handleOutputCountChange}
+              />
+              <ConfigField
+                label="Output Labels"
+                tooltip="Labels are used to identify each branch"
+              >
+                <div className="space-y-2">
+                  {branches.map((branch, index) => (
+                    <div className="flex items-center gap-2" key={branch.id}>
+                      <Input
+                        className="h-9"
+                        onChange={(e) =>
+                          handleLabelChange(index, e.target.value)
+                        }
+                        value={branch.label}
+                      />
+                      <span className="w-20 truncate text-[10px] text-muted-foreground">
+                        {branch.id}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </ConfigField>
+            </div>
           </ConfigSection>
 
           <ConfigSection
@@ -408,7 +527,13 @@ export const ParallelSplitConfigPanel = memo(
               <AnimatedSizeContainer height>
                 {dataDistribution === "partition" && (
                   <ConfigField
+                    error={
+                      partitionKeyMissing
+                        ? "Partition key expression is required"
+                        : undefined
+                    }
                     label="Partition Key"
+                    required
                     tooltip="Expression to route items to outputs"
                   >
                     <Input
@@ -434,14 +559,9 @@ export const ParallelSplitConfigPanel = memo(
               <ConfigField
                 horizontal
                 label="Wait for all"
-                tooltip="Wait for all outputs to complete"
+                tooltip="Currently enforced by the execution engine"
               >
-                <Switch
-                  checked={waitForAll}
-                  onCheckedChange={(checked) =>
-                    onChange({ waitForAll: checked })
-                  }
-                />
+                <Switch checked={waitForAll} disabled />
               </ConfigField>
 
               <AnimatedSizeContainer height>
@@ -472,7 +592,8 @@ export const ParallelSplitConfigPanel = memo(
                 />
               </ConfigField>
 
-              <WarningsList warnings={warnings} />
+              <WarningsList items={warnings} />
+              <NotesList items={notes} />
             </div>
           </ConfigSection>
         </div>

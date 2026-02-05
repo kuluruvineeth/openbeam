@@ -22,7 +22,6 @@ const ASPECT_RATIOS = [
   { id: "9:16", name: "9:16", description: "Vertical (TikTok, Reels)" },
   { id: "1:1", name: "1:1", description: "Square (Instagram)" },
   { id: "4:3", name: "4:3", description: "Standard (Classic TV)" },
-  { id: "21:9", name: "21:9", description: "Cinematic (Ultra-wide)" },
 ] as const;
 
 const RESOLUTIONS = [
@@ -58,14 +57,14 @@ export const VideoConfigPanel = memo(
                 <ModelSelector
                   onValueChange={(model) => onChange({ model })}
                   type="video"
-                  value={config.model ?? "runway-gen3"}
+                  value={config.model ?? "sora-2"}
                 />
               </ConfigField>
 
               <ConfigField
                 label="Aspect Ratio"
                 required
-                tooltip="16:9 Widescreen, 9:16 Vertical, 1:1 Square, 4:3 Standard, 21:9 Cinematic"
+                tooltip="16:9 Widescreen, 9:16 Vertical, 1:1 Square, 4:3 Standard"
               >
                 <Select
                   onValueChange={(ratio) =>

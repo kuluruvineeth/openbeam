@@ -2,9 +2,9 @@
 
 import type { Edge, EdgeProps } from "@xyflow/react";
 import { BaseEdge, EdgeLabelRenderer, getBezierPath } from "@xyflow/react";
-import { AlertCircle } from "lucide-react";
 import { memo } from "react";
 import { cn } from "../../../utils";
+import { Icons } from "../../icons";
 
 export interface ErrorEdgeData {
   label?: string;
@@ -78,7 +78,7 @@ export const ErrorEdge = memo(function ErrorEdgeComponent({
               transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
             }}
           >
-            <AlertCircle
+            <Icons.AlertCircle
               className={cn(
                 "h-3 w-3",
                 executionState === "triggered" && "text-red-500",

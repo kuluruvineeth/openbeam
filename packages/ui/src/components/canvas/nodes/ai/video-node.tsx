@@ -174,7 +174,7 @@ export function createVideoNodeData(): VideoNodeData {
   return {
     label: "Video",
     config: {
-      model: "runway-gen3",
+      model: "sora-2",
       aspectRatio: "16:9",
       duration: 5,
       resolution: "1080p",

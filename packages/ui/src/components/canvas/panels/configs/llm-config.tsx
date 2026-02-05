@@ -1,7 +1,15 @@
 "use client";
 
+import { DEFAULT_CHAT_MODEL } from "@openplane/types/ai";
 import type { LlmNodeConfig } from "@openplane/types/canvas";
-import { forwardRef, memo, useCallback } from "react";
+import {
+  forwardRef,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { Button } from "../../../button";
 import { Icons } from "../../../icons";
 import { Input } from "../../../input";
@@ -37,13 +45,75 @@ interface LlmConfigPanelProps {
 export const LlmConfigPanel = memo(
   forwardRef<HTMLDivElement, LlmConfigPanelProps>(
     function LlmConfigPanelComponent({ config, onChange }, ref) {
+      const tools = config.tools ?? [];
+      const hasTools = tools.length > 0;
+      const [toolInput, setToolInput] = useState("");
+      const trimmedTool = toolInput.trim();
+      const toolExists = tools.includes(trimmedTool);
+      const toolError =
+        trimmedTool && toolExists ? "Tool already added" : undefined;
+      const schemaError = useMemo(() => {
+        if (config.responseFormat !== "structured") {
+          return;
+        }
+        if (config.outputSchema === undefined || config.outputSchema === null) {
+          return "Output schema is required";
+        }
+        if (typeof config.outputSchema === "string") {
+          const trimmed = config.outputSchema.trim();
+          if (!trimmed) {
+            return "Output schema is required";
+          }
+          try {
+            const parsed = JSON.parse(trimmed);
+            if (!parsed || typeof parsed !== "object") {
+              return "Output schema must be a JSON object";
+            }
+          } catch (error) {
+            const message =
+              error instanceof Error ? error.message : String(error);
+            return `Invalid JSON: ${message}`;
+          }
+          return;
+        }
+        if (typeof config.outputSchema !== "object") {
+          return "Output schema must be a JSON object";
+        }
+        return;
+      }, [config.outputSchema, config.responseFormat]);
+
       const handleRemoveTool = useCallback(
         (index: number) => {
-          const newTools = config.tools?.filter((_, i) => i !== index);
+          const newTools = tools.filter((_, i) => i !== index);
           onChange({ tools: newTools });
         },
-        [config.tools, onChange]
+        [tools, onChange]
       );
+
+      const handleAddTool = useCallback(() => {
+        if (!trimmedTool || toolExists) {
+          return;
+        }
+        onChange({ tools: [...tools, trimmedTool] });
+        setToolInput("");
+      }, [trimmedTool, toolExists, tools, onChange]);
+
+      useEffect(() => {
+        if (hasTools && config.streaming) {
+          onChange({ streaming: false });
+        }
+      }, [hasTools, config.streaming, onChange]);
+
+      const modelValue = config.model?.trim() || DEFAULT_CHAT_MODEL;
+      let schemaTextValue = "";
+      if (typeof config.outputSchema === "string") {
+        schemaTextValue = config.outputSchema;
+      } else if (config.outputSchema) {
+        schemaTextValue = JSON.stringify(config.outputSchema, null, 2) ?? "";
+      }
+      const streamingDisabled = hasTools;
+      const toolHelperText =
+        "Tools require tool context (teamId and userId) in the input payload.";
 
       return (
         <div className="divide-y divide-border/50" ref={ref}>
@@ -57,7 +127,7 @@ export const LlmConfigPanel = memo(
                 <ModelSelector
                   onValueChange={(model) => onChange({ model })}
                   type="chat"
-                  value={config.model ?? "claude-sonnet-4-20250514"}
+                  value={modelValue}
                 />
               </ConfigField>
 
@@ -101,10 +171,13 @@ export const LlmConfigPanel = memo(
               <ConfigField label="Streaming">
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground text-sm">
-                    Stream response tokens
+                    {streamingDisabled
+                      ? "Streaming disabled when tools are enabled"
+                      : "Stream response tokens"}
                   </span>
                   <Switch
                     checked={config.streaming ?? true}
+                    disabled={streamingDisabled}
                     onCheckedChange={(streaming) => onChange({ streaming })}
                   />
                 </div>
@@ -173,6 +246,7 @@ export const LlmConfigPanel = memo(
 
               {config.responseFormat === "structured" && (
                 <ConfigField
+                  error={schemaError}
                   label="Output Schema"
                   tooltip="JSON Schema for structured output"
                 >
@@ -186,11 +260,7 @@ export const LlmConfigPanel = memo(
                       }
                     }}
                     placeholder='{"type": "object", "properties": {...}}'
-                    value={
-                      typeof config.outputSchema === "string"
-                        ? config.outputSchema
-                        : (JSON.stringify(config.outputSchema, null, 2) ?? "")
-                    }
+                    value={schemaTextValue}
                   />
                 </ConfigField>
               )}
@@ -198,13 +268,13 @@ export const LlmConfigPanel = memo(
           </ConfigSection>
 
           <ConfigSection
-            badge={config.tools?.length ?? 0}
+            badge={tools.length}
             defaultOpen={false}
             icon={<Icons.Wrench className="size-4" />}
             title="Tools"
           >
             <div className="space-y-2">
-              {config.tools?.map((tool, index) => (
+              {tools.map((tool, index) => (
                 <div
                   className="flex items-center justify-between rounded-md bg-secondary/50 px-3 py-2"
                   key={tool}
@@ -220,10 +290,33 @@ export const LlmConfigPanel = memo(
                   </Button>
                 </div>
               ))}
-              <Button className="w-full" size="sm" variant="outline">
-                <Icons.Plus className="mr-1.5 size-3.5" />
-                Add Tool
-              </Button>
+              <ConfigField error={toolError} label="Add tool">
+                <div className="flex items-center gap-2">
+                  <Input
+                    className="h-9 font-mono text-sm"
+                    onChange={(e) => setToolInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddTool();
+                      }
+                    }}
+                    placeholder="tool_name"
+                    value={toolInput}
+                  />
+                  <Button
+                    className="h-9 px-3"
+                    disabled={!trimmedTool || toolExists}
+                    onClick={handleAddTool}
+                    size="sm"
+                    variant="outline"
+                  >
+                    <Icons.Plus className="mr-1.5 size-3.5" />
+                    Add
+                  </Button>
+                </div>
+              </ConfigField>
+              <p className="text-muted-foreground text-xs">{toolHelperText}</p>
             </div>
           </ConfigSection>
 

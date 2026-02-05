@@ -1,12 +1,15 @@
 "use client";
 
-import type {
-  ConditionBuilderMode,
-  ConditionLogic,
-  FilterNodeConfig,
-  SingleCondition,
+import {
+  type ConditionBuilderMode,
+  type ConditionLogic,
+  type FilterLanguage,
+  type FilterNodeConfig,
+  OPERATOR_NEEDS_SECOND_VALUE,
+  OPERATOR_NEEDS_VALUE,
+  type SingleCondition,
 } from "@openplane/types/canvas";
-import { memo, useCallback } from "react";
+import { memo, useCallback, useMemo } from "react";
 import { cn } from "../../../../utils";
 import { CodeEditor } from "../../../code-editor";
 import { Icons } from "../../../icons";
@@ -20,6 +23,7 @@ import {
 import { ConditionRow } from "../../condition-builder/condition-row";
 import { ConfigField } from "../config-field";
 import { ConfigSection } from "../config-section";
+import { NotesList, WarningsList } from "../feedback-lists";
 
 interface FilterConfigPanelProps {
   config: FilterNodeConfig;
@@ -32,6 +36,121 @@ const FILTER_LANGUAGE_LABELS = {
   jmespath: "JMESPath",
   jsonata: "JSONata",
 } as const;
+const FILTER_PLACEHOLDERS: Record<FilterLanguage, string> = {
+  javascript: "data.status === 'active'",
+  jmespath: "status == 'active'",
+  jsonata: "status = 'active'",
+};
+const FILTER_EDITOR_LANGUAGES: Record<FilterLanguage, "javascript" | "json"> = {
+  javascript: "javascript",
+  jmespath: "json",
+  jsonata: "javascript",
+};
+const RETURN_PATTERN = /\breturn\b/;
+
+function isEmptyValue(value: unknown): boolean {
+  if (value === undefined || value === null) {
+    return true;
+  }
+  if (typeof value === "string") {
+    return value.trim().length === 0;
+  }
+  return false;
+}
+
+function collectConditionIssues(conditions: SingleCondition[]) {
+  let missingField = false;
+  let missingValue = false;
+  let missingSecondValue = false;
+
+  for (const condition of conditions) {
+    if (!condition.field.trim()) {
+      missingField = true;
+    }
+    if (
+      OPERATOR_NEEDS_VALUE[condition.operator] &&
+      isEmptyValue(condition.value)
+    ) {
+      missingValue = true;
+    }
+    if (
+      OPERATOR_NEEDS_SECOND_VALUE[condition.operator] &&
+      isEmptyValue(condition.secondValue)
+    ) {
+      missingSecondValue = true;
+    }
+  }
+
+  return { missingField, missingValue, missingSecondValue };
+}
+
+function buildWarnings(config: FilterNodeConfig): string[] {
+  const warnings: string[] = [];
+  const mode = config.mode ?? "visual";
+
+  if (mode === "visual") {
+    const conditions = config.conditions ?? [];
+    const issues = collectConditionIssues(conditions);
+    if (issues.missingField) {
+      warnings.push("Fill in condition fields");
+    }
+    if (issues.missingValue) {
+      warnings.push("Provide values for all conditions");
+    }
+    if (issues.missingSecondValue) {
+      warnings.push("Provide the second value for range conditions");
+    }
+    return warnings;
+  }
+
+  const expression = config.expression ?? "";
+  if (!expression.trim()) {
+    warnings.push("Filter expression is required");
+  }
+  if (
+    (config.language ?? "javascript") === "javascript" &&
+    RETURN_PATTERN.test(expression)
+  ) {
+    warnings.push("JavaScript expressions should not include return");
+  }
+
+  return warnings;
+}
+
+function buildNotes(config: FilterNodeConfig): string[] {
+  const notes: string[] = [];
+  const mode = config.mode ?? "visual";
+  const conditions = config.conditions ?? [];
+  const logic = config.logic ?? "and";
+
+  notes.push("Arrays are filtered per item; objects with items[] keep shape");
+
+  if (mode === "visual") {
+    if (conditions.length === 0) {
+      notes.push("No conditions means everything passes through");
+    } else if (conditions.length > 1) {
+      notes.push(`Matches ${logic === "and" ? "all" : "any"} conditions`);
+    }
+    notes.push("Use dot notation for nested fields");
+    return notes;
+  }
+
+  const language = config.language ?? "javascript";
+  notes.push("Expression must resolve to a truthy value");
+  if (language === "javascript") {
+    notes.push(
+      "Use data/item for current value, input for source payload, index for arrays"
+    );
+  }
+  if (language === "jmespath") {
+    notes.push("JMESPath runs against the current item");
+  }
+  if (language === "jsonata") {
+    notes.push("JSONata bindings include input, item, index");
+  }
+
+  return notes;
+}
 
 export const FilterConfigPanel = memo(function FilterConfigPanelComponent({
   config,
@@ -43,6 +162,8 @@ export const FilterConfigPanel = memo(function FilterConfigPanelComponent({
   const conditions = config.conditions ?? [];
   const expression = config.expression ?? "";
   const language = config.language ?? "javascript";
+  const warnings = useMemo(() => buildWarnings(config), [config]);
+  const notes = useMemo(() => buildNotes(config), [config]);
 
   const handleModeChange = useCallback(
     (newMode: ConditionBuilderMode) => {
@@ -115,6 +236,8 @@ export const FilterConfigPanel = memo(function FilterConfigPanelComponent({
           )}
         </div>
       </ConfigSection>
+      <WarningsList items={warnings} />
+      <NotesList items={notes} />
     </div>
   );
 });
@@ -277,6 +400,9 @@ const ExpressionFilterBuilder = memo(function ExpressionFilterBuilderComponent({
   onExpressionChange,
   onLanguageChange,
 }: ExpressionFilterBuilderProps) {
+  const editorLanguage = FILTER_EDITOR_LANGUAGES[language];
+  const placeholder = FILTER_PLACEHOLDERS[language];
+
   return (
     <div className="space-y-4">
       <ConfigField label="Language">
@@ -295,14 +421,14 @@ const ExpressionFilterBuilder = memo(function ExpressionFilterBuilderComponent({
       </ConfigField>
 
       <ConfigField
-        description="Expression must return a boolean value"
+        description="Expression must resolve to a truthy or falsey value"
         label="Filter Expression"
       >
         <CodeEditor
-          language="javascript"
+          language={editorLanguage}
           minHeight="120px"
           onChange={onExpressionChange}
-          placeholder="return data.status === 'active';"
+          placeholder={placeholder}
           value={expression}
         />
       </ConfigField>

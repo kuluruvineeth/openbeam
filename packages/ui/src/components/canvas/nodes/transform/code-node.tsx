@@ -35,6 +35,25 @@ const RUNTIME_CONFIG: Record<
   python: { label: "PY", icon: "Code2", color: "text-green-500" },
   sql: { label: "SQL", icon: "Database", color: "text-cyan-500" },
 };
+const SUPPORTED_RUNTIMES: CodeRuntime[] = ["javascript", "typescript"];
+const RUNTIME_LABELS: Record<CodeRuntime, string> = {
+  javascript: "JavaScript",
+  typescript: "TypeScript",
+  python: "Python",
+  sql: "SQL",
+};
+const IDENTIFIER_PATTERN = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
+const RESERVED_NAMES = new Set([
+  "input",
+  "data",
+  "$input",
+  "$data",
+  "vars",
+  "console",
+  "fetch",
+  "process",
+  "global",
+]);
 
 function getCodePreview(code: string, maxLength = 60): string {
   if (!code) {
@@ -45,6 +64,104 @@ function getCodePreview(code: string, maxLength = 60): string {
     return firstLine;
   }
   return `${firstLine.slice(0, maxLength)}...`;
+}
+
+function normalizeName(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function buildWarnings(config: CodeNodeConfig): string[] {
+  const warnings: string[] = [];
+  const runtime = config.runtime ?? "javascript";
+  const runtimeLabel = RUNTIME_LABELS[runtime] ?? runtime;
+
+  if (!SUPPORTED_RUNTIMES.includes(runtime)) {
+    warnings.push(`${runtimeLabel} runtime is not supported`);
+  }
+
+  if (!config.code?.trim()) {
+    warnings.push("Code is empty");
+  }
+
+  const inputVariables = config.inputVariables ?? [];
+  const inputNames = inputVariables.map((variable) => variable.name.trim());
+  const filteredInputNames = inputNames.filter(Boolean);
+
+  if (inputNames.some((name) => !name)) {
+    warnings.push("Fill in input variable names");
+  }
+
+  const normalizedInput = filteredInputNames.map(normalizeName);
+  if (new Set(normalizedInput).size !== normalizedInput.length) {
+    warnings.push("Duplicate input variable names detected");
+  }
+
+  if (filteredInputNames.some((name) => RESERVED_NAMES.has(name))) {
+    warnings.push("Rename reserved input variables");
+  }
+
+  const outputFields = config.outputSchema ?? [];
+  const outputNames = outputFields.map((field) => field.name.trim());
+  const filteredOutputNames = outputNames.filter(Boolean);
+
+  if (outputFields.length > 0 && outputNames.some((name) => !name)) {
+    warnings.push("Fill in output field names");
+  }
+
+  const normalizedOutput = filteredOutputNames.map(normalizeName);
+  if (new Set(normalizedOutput).size !== normalizedOutput.length) {
+    warnings.push("Duplicate output field names detected");
+  }
+
+  if ((config.enableConsole ?? true) && !(config.sandboxed ?? true)) {
+    warnings.push("Console logs are only captured in sandboxed mode");
+  }
+
+  return warnings;
+}
+
+function buildNotes(config: CodeNodeConfig): string[] {
+  const notes: string[] = [];
+  const runtime = config.runtime ?? "javascript";
+  const inputVariables = config.inputVariables ?? [];
+  const inputNames = inputVariables.map((variable) => variable.name.trim());
+  const filteredInputNames = inputNames.filter(Boolean);
+
+  if (
+    filteredInputNames.some((name) => name && !IDENTIFIER_PATTERN.test(name))
+  ) {
+    notes.push('Use vars["name"] for non-identifier variables');
+  }
+
+  if (inputVariables.some((variable) => variable.sourcePath?.trim())) {
+    notes.push("Source paths override variable names");
+  }
+
+  const outputCount = config.outputSchema?.length ?? 0;
+  if (outputCount === 0) {
+    notes.push("Output schema is not enforced");
+  } else {
+    notes.push("Output must be an object matching the schema");
+  }
+
+  if (config.sandboxed ?? true) {
+    notes.push("Sandboxed execution blocks eval and dynamic codegen");
+  }
+
+  if (!(config.enableConsole ?? true)) {
+    notes.push("Console logs are disabled");
+  }
+
+  if (config.retryOnError) {
+    const maxRetries = Math.max(0, config.maxRetries ?? 0);
+    notes.push(`Retries enabled (${maxRetries} max)`);
+  }
+
+  if (runtime === "typescript") {
+    notes.push("TypeScript is transpiled at runtime");
+  }
+
+  return notes;
 }
 
 function CodeNodeBadges({ config }: { config: CodeNodeConfig }) {
@@ -130,6 +247,8 @@ export const CodeNode = memo(
         () => getCodePreview(data.config.code ?? ""),
         [data.config.code]
       );
+      const warnings = useMemo(() => buildWarnings(data.config), [data.config]);
+      const notes = useMemo(() => buildNotes(data.config), [data.config]);
 
       return (
         <NodeShell
@@ -172,6 +291,34 @@ export const CodeNode = memo(
               )}
 
               <CodeNodeBadges config={data.config} />
+
+              {warnings.length > 0 && (
+                <div className="space-y-1">
+                  {warnings.map((warning) => (
+                    <div
+                      className="flex items-center gap-1.5 text-[10px] text-warning"
+                      key={warning}
+                    >
+                      <Icons.AlertCircle size={12} />
+                      <span>{warning}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {notes.length > 0 && (
+                <div className="space-y-1">
+                  {notes.map((note) => (
+                    <div
+                      className="flex items-center gap-1.5 text-[10px] text-muted-foreground"
+                      key={note}
+                    >
+                      <Icons.Info size={12} />
+                      <span>{note}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </NodeSection>
         </NodeShell>

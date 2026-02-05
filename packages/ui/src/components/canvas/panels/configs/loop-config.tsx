@@ -6,7 +6,7 @@ import type {
   LoopNodeConfig,
   LoopOutputMode,
 } from "@openplane/types/canvas";
-import { forwardRef, memo, useMemo } from "react";
+import { forwardRef, memo, useEffect, useMemo } from "react";
 import { AnimatedSizeContainer } from "../../../animated-size-container";
 import { Icons } from "../../../icons";
 import { Input } from "../../../input";
@@ -21,6 +21,7 @@ import { SelectionCard } from "../../../selection-card";
 import { Slider } from "../../../slider";
 import { ConfigField } from "../config-field";
 import { ConfigSection } from "../config-section";
+import { WarningsList } from "../feedback-lists";
 
 const LOOP_TYPES = [
   { id: "forEach", name: "For Each", description: "Iterate over array items" },
@@ -100,6 +101,9 @@ function getConfigWarnings(
   executionMode: LoopExecutionMode
 ): string[] {
   const result: string[] = [];
+  if (executionMode !== "sequential") {
+    result.push("Only sequential execution is supported right now");
+  }
   if (executionMode === "parallel" && (config.times ?? 0) > 50) {
     result.push("High parallel count may impact performance");
   }
@@ -158,25 +162,6 @@ function BatchConfigFields({
   );
 }
 
-function WarningsList({ warnings }: { warnings: string[] }) {
-  if (warnings.length === 0) {
-    return null;
-  }
-  return (
-    <div className="space-y-2">
-      {warnings.map((warning) => (
-        <div
-          className="flex items-start gap-2 rounded-md bg-warning/10 px-3 py-2 text-warning text-xs"
-          key={warning}
-        >
-          <Icons.AlertTriangle className="mt-0.5 shrink-0" size={14} />
-          <span>{warning}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function LoopTypeFields({
   config,
   onChange,
@@ -185,8 +170,13 @@ function LoopTypeFields({
   onChange: (config: Partial<LoopNodeConfig>) => void;
 }) {
   if (config.type === "forEach") {
+    const hasError = !config.collection?.trim();
     return (
-      <ConfigField label="Collection" tooltip="Path to the array to iterate">
+      <ConfigField
+        error={hasError ? "Collection is required" : undefined}
+        label="Collection"
+        tooltip="JavaScript expression. Use input/data (e.g. input.items)"
+      >
         <Input
           className="h-9 font-mono text-sm"
           onChange={(e) => onChange({ collection: e.target.value })}
@@ -197,8 +187,13 @@ function LoopTypeFields({
     );
   }
   if (config.type === "while") {
+    const hasError = !config.condition?.trim();
     return (
-      <ConfigField label="Condition" tooltip="Continue while this is true">
+      <ConfigField
+        error={hasError ? "Condition is required" : undefined}
+        label="Condition"
+        tooltip="JavaScript expression. Available: item, index, iteration, lastOutput, results, errors, initialInput"
+      >
         <Input
           className="h-9 font-mono text-sm"
           onChange={(e) => onChange({ condition: e.target.value })}
@@ -209,8 +204,12 @@ function LoopTypeFields({
     );
   }
   if (config.type === "times") {
+    const hasError = !(config.times && config.times > 0);
     return (
-      <ConfigField label="Iterations">
+      <ConfigField
+        error={hasError ? "Iterations must be at least 1" : undefined}
+        label="Iterations"
+      >
         <div className="flex items-center gap-4">
           <Slider
             className="flex-1"
@@ -241,10 +240,15 @@ function ExecutionModeSelector({
     <div className="grid grid-cols-3 gap-1.5">
       {EXECUTION_MODES.map((mode) => {
         const Icon = Icons[mode.iconName];
+        const isSupported = mode.id === "sequential";
+        const description = isSupported
+          ? mode.description
+          : `${mode.description} (not supported yet)`;
         return (
           <SelectionCard
             className="p-2"
-            description={mode.description}
+            description={description}
+            disabled={!isSupported}
             icon={<Icon size={16} />}
             key={mode.id}
             label={mode.name}
@@ -252,6 +256,7 @@ function ExecutionModeSelector({
             onClick={() => onChange(mode.id)}
             selected={executionMode === mode.id}
             size="sm"
+            title={isSupported ? undefined : "Not supported yet"}
           />
         );
       })}
@@ -264,10 +269,25 @@ export const LoopConfigPanel = memo(
     function LoopConfigPanelComponent({ config, onChange }, ref) {
       const executionMode = config.executionMode ?? "sequential";
       const showBatchConfig = executionMode === "batch";
+      const missingAggregateExpression =
+        config.outputMode === "aggregate" &&
+        !config.aggregateExpression?.trim();
       const warnings = useMemo(
         () => getConfigWarnings(config, executionMode),
         [config, executionMode]
       );
+
+      useEffect(() => {
+        if (config.executionMode && config.executionMode !== "sequential") {
+          onChange({ executionMode: "sequential" });
+        }
+      }, [config.executionMode, onChange]);
+
+      useEffect(() => {
+        if (config.type === "times" && !(config.times && config.times > 0)) {
+          onChange({ times: 10 });
+        }
+      }, [config.type, config.times, onChange]);
 
       return (
         <div className="divide-y divide-border/50" ref={ref}>
@@ -370,7 +390,7 @@ export const LoopConfigPanel = memo(
             <div className="space-y-4">
               <ConfigField
                 label="Expression"
-                tooltip="Exit loop early when this is true"
+                tooltip="JavaScript expression. Available: item, index, iteration, lastOutput, results, errors, initialInput"
               >
                 <Input
                   className="h-9 font-mono text-sm"
@@ -419,8 +439,13 @@ export const LoopConfigPanel = memo(
               <AnimatedSizeContainer height>
                 {config.outputMode === "aggregate" && (
                   <ConfigField
+                    error={
+                      missingAggregateExpression
+                        ? "Aggregation expression is required"
+                        : undefined
+                    }
                     label="Aggregation"
-                    tooltip="Expression to reduce results"
+                    tooltip="JavaScript expression. Available: results, errors"
                   >
                     <Input
                       className="h-9 font-mono text-sm"
@@ -478,7 +503,7 @@ export const LoopConfigPanel = memo(
                 />
               </ConfigField>
 
-              <WarningsList warnings={warnings} />
+              <WarningsList items={warnings} />
             </div>
           </ConfigSection>
         </div>

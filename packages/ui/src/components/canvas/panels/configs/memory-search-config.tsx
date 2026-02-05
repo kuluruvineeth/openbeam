@@ -7,7 +7,7 @@ import type {
   MemoryType,
 } from "@openplane/types/canvas";
 import { cva } from "class-variance-authority";
-import { memo, useCallback } from "react";
+import { memo, useCallback, useMemo } from "react";
 import { AnimatedSizeContainer } from "../../../animated-size-container";
 import { Icons } from "../../../icons";
 import { Input } from "../../../input";
@@ -15,6 +15,7 @@ import { Slider } from "../../../slider";
 import { Switch } from "../../../switch";
 import { ConfigField } from "../config-field";
 import { ConfigSection } from "../config-section";
+import { NotesList, WarningsList } from "../feedback-lists";
 
 interface MemorySearchConfigPanelProps {
   config: MemorySearchNodeConfig;
@@ -99,12 +100,72 @@ export const MemorySearchConfigPanel = memo(
     config,
     onChange,
   }: MemorySearchConfigPanelProps) {
+    const warnings = useMemo(() => {
+      const list: string[] = [];
+      if (!config.query?.trim()) {
+        list.push("Query is required");
+      }
+      if ((config.topK ?? 10) <= 0) {
+        list.push("Top K must be at least 1");
+      }
+      const threshold = config.threshold ?? 0.5;
+      if (threshold < 0 || threshold > 1) {
+        list.push("Threshold must be between 0 and 1");
+      }
+      if (config.dateRange?.start && config.dateRange?.end) {
+        const start = Date.parse(config.dateRange.start);
+        const end = Date.parse(config.dateRange.end);
+        if (!(Number.isNaN(start) || Number.isNaN(end)) && start > end) {
+          list.push("Date range start must be before end");
+        }
+      }
+      return list;
+    }, [
+      config.dateRange?.end,
+      config.dateRange?.start,
+      config.query,
+      config.threshold,
+      config.topK,
+    ]);
+
+    const notes = useMemo(() => {
+      const list: string[] = [];
+      if (config.namespace?.trim()) {
+        list.push("Namespace scoped");
+      }
+      if ((config.memoryTypes?.length ?? 0) > 0) {
+        list.push(`${config.memoryTypes?.length ?? 0} memory types filtered`);
+      }
+      if ((config.tags?.length ?? 0) > 0) {
+        list.push(`${config.tags?.length ?? 0} tags filtered`);
+      }
+      if (config.rerank) {
+        list.push("Rerank enabled");
+      }
+      if (config.includeMetadata === false) {
+        list.push("Metadata excluded from results");
+      }
+      if (config.searchMode === "keyword") {
+        list.push("Keyword search ignores embeddings");
+      }
+      return list;
+    }, [
+      config.includeMetadata,
+      config.memoryTypes?.length,
+      config.namespace,
+      config.rerank,
+      config.searchMode,
+      config.tags?.length,
+    ]);
+
     return (
       <div className="divide-y divide-border/50">
         <QuerySection config={config} onChange={onChange} />
         <ScopeFiltersSection config={config} onChange={onChange} />
         <RetrievalSection config={config} onChange={onChange} />
         <OutputSection config={config} onChange={onChange} />
+        <WarningsList items={warnings} />
+        <NotesList items={notes} />
       </div>
     );
   }

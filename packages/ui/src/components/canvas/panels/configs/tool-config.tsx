@@ -18,8 +18,10 @@ import {
 } from "../../tool-elements";
 import { ConfigField } from "../config-field";
 import { ConfigSection } from "../config-section";
+import { NotesList, WarningsList } from "../feedback-lists";
 
 const TIMEOUT_STEPS = [5, 10, 15, 30, 60, 120, 300];
+const VARIABLE_NAME_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
 function msToStepIndex(ms: number): number {
   const seconds = ms / 1000;
@@ -29,6 +31,65 @@ function msToStepIndex(ms: number): number {
 
 function stepIndexToMs(idx: number): number {
   return (TIMEOUT_STEPS[idx] ?? 30) * 1000;
+}
+
+function buildWarnings(config: ToolNodeConfig): string[] {
+  const warnings: string[] = [];
+  if (!config.toolId?.trim()) {
+    warnings.push("Tool ID is required");
+  }
+  if (config.resultPath?.trim()) {
+    const path = config.resultPath.trim();
+    if (path.startsWith("$")) {
+      warnings.push("Result path should not include a $ prefix");
+    }
+  }
+  if (config.resultVariable?.trim()) {
+    const variable = config.resultVariable.trim();
+    const match = variable.match(VARIABLE_NAME_REGEX);
+    if (!match) {
+      warnings.push("Variable name must be a valid identifier");
+    }
+  }
+  return warnings;
+}
+
+function buildNotes(config: ToolNodeConfig): string[] {
+  const notes: string[] = [];
+  const bindings = config.parameterBindings ?? {};
+  const bindingEntries = Object.values(bindings);
+  const retryConfig = config.retryConfig;
+
+  if (bindingEntries.length === 0) {
+    notes.push("Input payload is passed directly to the tool");
+  }
+
+  const aiCount = bindingEntries.filter((b) => b.mode === "ai_inferred").length;
+  if (aiCount > 0) {
+    notes.push(`AI infers ${aiCount} parameter${aiCount > 1 ? "s" : ""}`);
+  }
+
+  if (retryConfig?.enabled) {
+    notes.push(`Retry up to ${retryConfig.maxAttempts}x`);
+  }
+
+  if (config.timeoutMs) {
+    notes.push(`Timeout ${config.timeoutMs / 1000}s`);
+  }
+
+  if (config.continueOnError) {
+    notes.push("Continue on error enabled");
+  }
+
+  if (config.resultPath?.trim()) {
+    notes.push("Result path extracts data from tool output");
+  }
+
+  if (config.resultVariable?.trim()) {
+    notes.push("Result is stored in a variable");
+  }
+
+  return notes;
 }
 
 interface ToolConfigPanelProps {
@@ -177,6 +238,8 @@ export const ToolConfigPanel = memo(
         () => (config.resultPath ? "mapped" : undefined),
         [config.resultPath]
       );
+      const warnings = useMemo(() => buildWarnings(config), [config]);
+      const notes = useMemo(() => buildNotes(config), [config]);
 
       return (
         <div
@@ -365,6 +428,9 @@ export const ToolConfigPanel = memo(
               </ConfigField>
             </div>
           </ConfigSection>
+
+          <WarningsList items={warnings} />
+          <NotesList items={notes} />
         </div>
       );
     }

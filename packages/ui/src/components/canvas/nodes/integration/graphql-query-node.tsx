@@ -41,8 +41,11 @@ export const GraphqlQueryNode = memo(
     function GraphqlQueryNodeComponent({ data, selected }, ref) {
       const method = data.config.method ?? "POST";
       const operationType = data.config.operationType ?? "query";
-      const authType = data.config.auth?.type ?? "none";
+      const auth = data.config.auth ?? { type: "none" as const };
+      const authType = auth.type;
       const headerCount = data.config.headers?.length ?? 0;
+      const timeoutMs = data.config.timeoutMs ?? 30_000;
+      const hasResponsePath = Boolean(data.config.responsePath?.trim());
 
       const endpointDisplay = useMemo(() => {
         try {
@@ -72,6 +75,116 @@ export const GraphqlQueryNode = memo(
           return v.trim().length > 0;
         }
       }, [data.config.variables]);
+
+      const warnings = useMemo(() => {
+        const list: string[] = [];
+        if (!data.config.endpoint?.trim()) {
+          list.push("Endpoint required");
+        }
+        if (!data.config.query?.trim()) {
+          list.push("Query required");
+        }
+        if (method === "GET" && operationType !== "query") {
+          list.push("GET only supports query");
+        }
+        if (data.config.variables?.trim()) {
+          try {
+            const parsed = JSON.parse(data.config.variables);
+            if (
+              parsed === null ||
+              typeof parsed !== "object" ||
+              Array.isArray(parsed)
+            ) {
+              list.push("Variables must be JSON object");
+            }
+          } catch {
+            list.push("Variables must be valid JSON");
+          }
+        }
+        switch (auth.type) {
+          case "basic":
+            if (!auth.username?.trim()) {
+              list.push("Basic auth username required");
+            }
+            break;
+          case "bearer":
+            if (!auth.token?.trim()) {
+              list.push("Bearer token required");
+            }
+            break;
+          case "api_key":
+            if (!(auth.apiKeyName?.trim() && auth.apiKeyValue?.trim())) {
+              list.push("API key required");
+            }
+            break;
+          case "oauth2":
+            if (!auth.token?.trim()) {
+              if (!auth.oauth2TokenUrl?.trim()) {
+                list.push("OAuth token URL required");
+              }
+              if (!auth.oauth2ClientId?.trim()) {
+                list.push("OAuth client ID required");
+              }
+            }
+            break;
+          case "custom_header":
+            if (!auth.customHeaderName?.trim()) {
+              list.push("Custom header required");
+            }
+            break;
+          default:
+            break;
+        }
+        return list;
+      }, [
+        auth.apiKeyName,
+        auth.apiKeyValue,
+        auth.customHeaderName,
+        auth.oauth2ClientId,
+        auth.oauth2TokenUrl,
+        auth.token,
+        auth.type,
+        auth.username,
+        data.config.endpoint,
+        data.config.query,
+        data.config.variables,
+        method,
+        operationType,
+      ]);
+
+      const notes = useMemo(() => {
+        const list: string[] = [];
+        if (method === "GET") {
+          list.push("GET sends query via URL");
+        }
+        if (data.config.operationName?.trim()) {
+          list.push("Operation name set");
+        }
+        if (hasResponsePath) {
+          list.push("Response path enabled");
+        }
+        if (data.config.includeExtensions) {
+          list.push("Extensions included");
+        }
+        if (data.config.followRedirects === false) {
+          list.push("Redirects disabled");
+        }
+        if (data.config.continueOnError) {
+          list.push("Continue on error enabled");
+        }
+        if (operationType === "subscription") {
+          list.push("Subscriptions execute as HTTP");
+        }
+        return list;
+      }, [
+        data.config.continueOnError,
+        data.config.followRedirects,
+        data.config.includeExtensions,
+        data.config.operationName,
+        hasResponsePath,
+        method,
+        operationType,
+      ]);
 
       return (
         <NodeShell
@@ -127,11 +240,45 @@ export const GraphqlQueryNode = memo(
                   value={data.config.operationName}
                 />
               )}
-              <NodeField
-                label="Timeout"
-                mono
-                value={`${(data.config.timeoutMs ?? 30_000) / 1000}s`}
-              />
+              {hasResponsePath && (
+                <NodeField
+                  label="Response Path"
+                  mono
+                  value={data.config.responsePath}
+                />
+              )}
+              <NodeField label="Timeout" mono value={`${timeoutMs / 1000}s`} />
+              {data.config.continueOnError && (
+                <NodeField label="On Error" value="Continue" />
+              )}
+
+              {warnings.length > 0 && (
+                <div className="space-y-1">
+                  {warnings.map((warning) => (
+                    <div
+                      className="flex items-center gap-1.5 text-[10px] text-warning"
+                      key={warning}
+                    >
+                      <Icons.AlertCircle size={12} />
+                      <span>{warning}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {notes.length > 0 && (
+                <div className="space-y-1">
+                  {notes.map((note) => (
+                    <div
+                      className="flex items-center gap-1.5 text-[10px] text-muted-foreground"
+                      key={note}
+                    >
+                      <Icons.Info size={12} />
+                      <span>{note}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </NodeSection>
         </NodeShell>

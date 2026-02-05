@@ -9,8 +9,9 @@ import type {
 } from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
-import { forwardRef, memo } from "react";
+import { forwardRef, memo, useMemo } from "react";
 import { cn } from "../../../../utils";
+import { formatDuration, getInitials } from "../../../../utils/format";
 import { Avatar, AvatarFallback, AvatarImage } from "../../../avatar";
 import { Icons } from "../../../icons";
 import { NodeField, NodeHeader, NodeSection, NodeShell } from "../primitives";
@@ -70,13 +71,75 @@ const STRATEGY_LABEL: Record<string, string> = {
   parallel: "Parallel",
 };
 
-function getInitials(name: string): string {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
+function buildWarnings(config: ApprovalNodeConfig): string[] {
+  const warnings: string[] = [];
+
+  if (!config.message?.trim()) {
+    warnings.push("Approval message is required");
+  }
+
+  if (config.approvalType !== "single") {
+    warnings.push("Only single approvals are supported");
+  }
+
+  if ((config.requiredApprovals ?? 1) !== 1) {
+    warnings.push("Required approvals must be 1");
+  }
+
+  if (
+    config.allowedActions?.some(
+      (action) => action !== "approve" && action !== "reject"
+    )
+  ) {
+    warnings.push("Only approve/reject actions are supported");
+  }
+
+  if (config.timeoutAction === "escalate") {
+    warnings.push("Escalation is not supported");
+  }
+
+  if (config.autoApprove) {
+    warnings.push("Auto-approve is not supported");
+  }
+
+  if (config.escalation?.enabled) {
+    warnings.push("Escalation rules are not supported");
+  }
+
+  if (config.notification) {
+    warnings.push("Notifications are not supported");
+  }
+
+  return warnings;
+}
+
+function buildNotes(config: ApprovalNodeConfig): string[] {
+  const notes: string[] = [];
+
+  if ((config.approvers?.length ?? 0) === 0) {
+    notes.push("Any team member can approve");
+  }
+
+  if (config.timeoutMs && config.timeoutMs > 0) {
+    const action = config.timeoutAction ?? "reject";
+    if (action === "approve" || action === "reject") {
+      notes.push(
+        `Timeout after ${formatDuration(config.timeoutMs)} will auto-${action}`
+      );
+    } else {
+      notes.push(`Timeout after ${formatDuration(config.timeoutMs)}`);
+    }
+  }
+
+  if (config.requireComment) {
+    notes.push("Comments are required for approval responses");
+  }
+
+  if (config.customLabels?.approve || config.customLabels?.reject) {
+    notes.push("Custom action labels are set");
+  }
+
+  return notes;
 }
 
 export const ApprovalNode = memo(
@@ -88,6 +151,8 @@ export const ApprovalNode = memo(
       const currentApprovals = data.currentApprovals ?? 0;
       const approvalStatus: ApprovalStatus = data.approvalStatus ?? "pending";
       const approvers = data.config.approvers ?? [];
+      const warnings = useMemo(() => buildWarnings(data.config), [data.config]);
+      const notes = useMemo(() => buildNotes(data.config), [data.config]);
 
       const statusCfg = STATUS_CONFIG[approvalStatus];
       const StatusIcon = Icons[statusCfg.icon];
@@ -188,11 +253,35 @@ export const ApprovalNode = memo(
               {data.config.timeoutMs && data.config.timeoutMs > 0 && (
                 <div className="flex items-center gap-1 pt-0.5 text-muted-foreground text-xs">
                   <Icons.Clock className="size-3" />
-                  <span>
-                    {data.config.timeoutMs >= 3_600_000
-                      ? `${Math.round(data.config.timeoutMs / 3_600_000)}h`
-                      : `${Math.round(data.config.timeoutMs / 60_000)}m`}
-                  </span>
+                  <span>{formatDuration(data.config.timeoutMs)}</span>
+                </div>
+              )}
+
+              {warnings.length > 0 && (
+                <div className="space-y-1">
+                  {warnings.map((warning) => (
+                    <div
+                      className="flex items-center gap-1.5 text-[10px] text-warning"
+                      key={warning}
+                    >
+                      <Icons.AlertCircle size={12} />
+                      <span>{warning}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {notes.length > 0 && (
+                <div className="space-y-1">
+                  {notes.map((note) => (
+                    <div
+                      className="flex items-center gap-1.5 text-[10px] text-muted-foreground"
+                      key={note}
+                    >
+                      <Icons.Info size={12} />
+                      <span>{note}</span>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

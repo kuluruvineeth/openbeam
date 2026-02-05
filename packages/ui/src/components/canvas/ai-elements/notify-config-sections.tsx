@@ -27,13 +27,19 @@ const ALL_CHANNELS: {
   value: NotifyChannel;
   label: string;
   icon: keyof typeof Icons;
+  available: boolean;
 }[] = [
-  { value: "email", label: "Email", icon: "Mail" },
-  { value: "slack", label: "Slack", icon: "Message" },
-  { value: "webhook", label: "Webhook", icon: "Webhook" },
-  { value: "sms", label: "SMS", icon: "MessageSquare" },
-  { value: "in_app", label: "In-App", icon: "Bell" },
+  { value: "email", label: "Email", icon: "Mail", available: true },
+  { value: "slack", label: "Slack", icon: "Message", available: true },
+  { value: "webhook", label: "Webhook", icon: "Webhook", available: true },
+  { value: "sms", label: "SMS", icon: "MessageSquare", available: false },
+  { value: "in_app", label: "In-App", icon: "Bell", available: false },
 ];
+const SUPPORTED_CHANNELS = new Set<NotifyChannel>(
+  ALL_CHANNELS.filter((channel) => channel.available).map(
+    (channel) => channel.value
+  )
+);
 
 const ALL_PRIORITIES: {
   value: NotifyPriority;
@@ -78,6 +84,9 @@ export const ChannelSection = memo(function ChannelSectionComponent({
 
   const handleToggleChannel = useCallback(
     (channel: NotifyChannel, checked: boolean) => {
+      if (!SUPPORTED_CHANNELS.has(channel) && checked) {
+        return;
+      }
       const updated = checked
         ? [...channels, channel]
         : channels.filter((c) => c !== channel);
@@ -101,27 +110,46 @@ export const ChannelSection = memo(function ChannelSectionComponent({
             {ALL_CHANNELS.map((channel) => {
               const Icon = Icons[channel.icon];
               const isChecked = channels.includes(channel.value);
+              const isSupported = channel.available;
+              const isDisabled = !(isSupported || isChecked);
               const checkboxId = `channel-${channel.value}`;
               return (
                 <label
                   className={cn(
                     "flex cursor-pointer items-center gap-2.5 rounded-md border px-3 py-2 transition-colors",
-                    isChecked
-                      ? "border-primary bg-primary/5"
-                      : "border-border/50 hover:border-border hover:bg-muted/50"
+                    isChecked && isSupported && "border-primary bg-primary/5",
+                    isChecked &&
+                      !isSupported &&
+                      "border-warning/40 bg-warning/5",
+                    !isChecked &&
+                      "border-border/50 hover:border-border hover:bg-muted/50",
+                    isDisabled && "pointer-events-none opacity-50"
                   )}
                   htmlFor={checkboxId}
                   key={channel.value}
                 >
                   <Checkbox
                     checked={isChecked}
+                    disabled={isDisabled}
                     id={checkboxId}
                     onCheckedChange={(checked) =>
                       handleToggleChannel(channel.value, checked === true)
                     }
                   />
-                  <Icon className="size-3.5 text-muted-foreground" />
-                  <span className="text-sm">{channel.label}</span>
+                  <Icon
+                    className={cn(
+                      "size-3.5",
+                      isSupported ? "text-muted-foreground" : "text-warning"
+                    )}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <span className="text-sm">{channel.label}</span>
+                    {!isSupported && (
+                      <div className="text-[10px] text-warning">
+                        Not supported
+                      </div>
+                    )}
+                  </div>
                 </label>
               );
             })}

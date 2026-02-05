@@ -1,5 +1,6 @@
 "use client";
 
+import { DEFAULT_IMAGE_MODEL_ID } from "@openplane/types/ai";
 import type { ImageNodeConfig } from "@openplane/types/canvas";
 import { forwardRef, memo } from "react";
 import { Icons } from "../../../icons";
@@ -61,7 +62,7 @@ export const ImageConfigPanel = memo(
                 <ModelSelector
                   onValueChange={(model) => onChange({ model })}
                   type="image"
-                  value={config.model ?? "dall-e-3"}
+                  value={config.model ?? DEFAULT_IMAGE_MODEL_ID}
                 />
               </ConfigField>
 

@@ -56,9 +56,16 @@ export const TemplateEditorSection = memo(
 
     const handleSyntaxChange = useCallback(
       (newSyntax: TemplateSyntax) => {
-        onChange({ syntax: newSyntax });
+        const detected = detectVariables(template, newSyntax);
+        const existingManual = (config.variables ?? []).filter(
+          (v) => v.source === "manual"
+        );
+        onChange({
+          syntax: newSyntax,
+          variables: [...detected, ...existingManual],
+        });
       },
-      [onChange]
+      [config.variables, onChange, template]
     );
 
     return (
@@ -282,6 +289,7 @@ export const OutputSection = memo(function OutputSectionComponent({
   onChange,
 }: SectionProps) {
   const outputFormat = config.outputFormat ?? "text";
+  const validationEnabled = config.validation?.enabled ?? true;
 
   const handleFormatChange = useCallback(
     (format: TemplateOutputFormat) => {
@@ -314,6 +322,7 @@ export const OutputSection = memo(function OutputSectionComponent({
             >
               <Switch
                 checked={config.validation?.validateJson ?? false}
+                disabled={!validationEnabled}
                 onCheckedChange={(validateJson) =>
                   onChange({
                     validation: { ...config.validation, validateJson },
@@ -323,6 +332,13 @@ export const OutputSection = memo(function OutputSectionComponent({
             </ConfigField>
           )}
         </AnimatedSizeContainer>
+
+        {!validationEnabled && outputFormat === "json" && (
+          <div className="flex items-start gap-2 rounded-md bg-warning/10 px-3 py-2 text-warning text-xs">
+            <Icons.AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
+            <span>Enable validation to enforce JSON output</span>
+          </div>
+        )}
 
         <ConfigField
           horizontal
@@ -358,6 +374,10 @@ export const AdvancedSection = memo(function AdvancedSectionComponent({
   config,
   onChange,
 }: SectionProps) {
+  const validationEnabled = config.validation?.enabled ?? true;
+  const strictMode = config.validation?.strict ?? false;
+  const maxOutputLength = config.validation?.maxOutputLength;
+
   return (
     <ConfigSection
       defaultOpen={false}
@@ -365,6 +385,66 @@ export const AdvancedSection = memo(function AdvancedSectionComponent({
       title="Advanced"
     >
       <div className="space-y-4">
+        <ConfigField
+          horizontal
+          label="Validation"
+          tooltip="Enable output validation rules"
+        >
+          <Switch
+            checked={validationEnabled}
+            onCheckedChange={(enabled) =>
+              onChange({
+                validation: { ...config.validation, enabled },
+              })
+            }
+          />
+        </ConfigField>
+
+        <ConfigField
+          horizontal
+          label="Strict Mode"
+          tooltip="Throw errors for missing required variables"
+        >
+          <Switch
+            checked={strictMode}
+            onCheckedChange={(strict) =>
+              onChange({
+                validation: { ...config.validation, strict },
+              })
+            }
+          />
+        </ConfigField>
+
+        <ConfigField
+          label="Max Output Length"
+          tooltip="Maximum characters allowed in output"
+        >
+          <Input
+            className="h-9 font-mono"
+            disabled={!validationEnabled}
+            min={1}
+            onChange={(e) => {
+              const parsed = Number.parseInt(e.target.value, 10);
+              onChange({
+                validation: {
+                  ...config.validation,
+                  maxOutputLength: Number.isNaN(parsed) ? undefined : parsed,
+                },
+              });
+            }}
+            placeholder="Unlimited"
+            type="number"
+            value={maxOutputLength ?? ""}
+          />
+        </ConfigField>
+
+        {!validationEnabled && (
+          <div className="flex items-start gap-2 rounded-md bg-muted/40 px-3 py-2 text-muted-foreground text-xs">
+            <Icons.Info className="mt-0.5 size-3.5 shrink-0" />
+            <span>Output length and JSON validation are skipped</span>
+          </div>
+        )}
+
         <ConfigField
           horizontal
           label="Escape HTML"

@@ -1,7 +1,9 @@
 "use client";
 
+import { DEFAULT_CHAT_MODEL, getChatModel } from "@openplane/types/ai";
 import type {
   ClassificationMode,
+  ClassifyCategory,
   ClassifyNodeConfig,
   NodeStatus,
   Port,
@@ -11,7 +13,7 @@ import { Position } from "@xyflow/react";
 import { forwardRef, memo, useMemo } from "react";
 import { cn } from "../../../../utils";
 import { Icons } from "../../../icons";
-import { NodeHeader, NodeSection, NodeShell } from "../primitives";
+import { NodeField, NodeHeader, NodeSection, NodeShell } from "../primitives";
 
 const CATEGORY_COLORS = [
   "#3b82f6",
@@ -36,6 +38,22 @@ const MODE_ICONS: Record<ClassificationMode, React.ReactNode> = {
   zero_shot: <Icons.Zap className="size-3" />,
 };
 
+function normalizeName(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function resolveFallbackCategory(
+  config: ClassifyNodeConfig,
+  categories: ClassifyCategory[]
+): ClassifyCategory | undefined {
+  if (config.fallbackCategoryId) {
+    return categories.find(
+      (category) => category.id === config.fallbackCategoryId
+    );
+  }
+  return categories.find((category) => category.isFallback);
+}
+
 export interface ClassifyNodeData {
   label: string;
   config: ClassifyNodeConfig;
@@ -59,7 +77,25 @@ export const ClassifyNode = memo(
       } = data.config;
 
       const categoryCount = categories.length;
-      const fallbackCategory = categories.find((c) => c.isFallback);
+      const fallbackCategory = resolveFallbackCategory(data.config, categories);
+      const modelId = data.config.model?.trim() || DEFAULT_CHAT_MODEL;
+      const modelMeta = getChatModel(modelId);
+      const modelLabel = modelMeta?.name ?? modelId;
+      const normalizedNames = categories.map((category) =>
+        normalizeName(category.name)
+      );
+      const uniqueNames = new Set(normalizedNames.filter(Boolean));
+      const hasDuplicateNames =
+        uniqueNames.size !== normalizedNames.filter(Boolean).length;
+      const hasEmptyName = normalizedNames.some((name) => !name);
+      let fallbackLabel = "Error";
+      if (fallbackBehavior === "other_branch") {
+        fallbackLabel = fallbackCategory?.name ?? "Other";
+      } else if (fallbackBehavior === "lowest_match") {
+        fallbackLabel = "Lowest match";
+      } else if (fallbackBehavior === "discard") {
+        fallbackLabel = "Discard";
+      }
 
       const handles = useMemo(() => {
         const result: Array<{
@@ -111,6 +147,59 @@ export const ClassifyNode = memo(
       const confidencePercent = Math.round(confidenceThreshold * 100);
       const isLowConfidence = confidenceThreshold < 0.7;
       const isHighConfidence = confidenceThreshold >= 0.9;
+      const warnings = useMemo(() => {
+        const items: string[] = [];
+        if (categoryCount === 0) {
+          items.push("Add at least one category");
+        }
+        if (hasEmptyName) {
+          items.push("Fill in category names");
+        }
+        if (hasDuplicateNames) {
+          items.push("Duplicate category names detected");
+        }
+        if (mode === "routing" && allowMultiple) {
+          items.push("Multi-label is disabled in routing mode");
+        }
+        if (
+          fallbackBehavior === "other_branch" &&
+          categoryCount > 0 &&
+          !fallbackCategory
+        ) {
+          items.push("Select a fallback category to label the Other branch");
+        }
+        return items;
+      }, [
+        allowMultiple,
+        categoryCount,
+        fallbackBehavior,
+        fallbackCategory,
+        hasDuplicateNames,
+        hasEmptyName,
+        mode,
+      ]);
+
+      const notes = useMemo(() => {
+        const items: string[] = [];
+        if (mode === "routing") {
+          items.push("Routing creates an output handle per category");
+        }
+        if (!data.config.enableAutoFix) {
+          items.push("Auto-fix is disabled");
+        }
+        if (data.config.enableMemory) {
+          items.push("Memory is enabled");
+        }
+        if (fallbackBehavior === "lowest_match") {
+          items.push("Lowest-match can return below-threshold results");
+        }
+        return items;
+      }, [
+        data.config.enableAutoFix,
+        data.config.enableMemory,
+        fallbackBehavior,
+        mode,
+      ]);
 
       return (
         <NodeShell
@@ -127,6 +216,11 @@ export const ClassifyNode = memo(
           />
           <NodeSection>
             <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-3">
+                <NodeField label="Model" value={modelLabel} />
+                <NodeField label="Fallback" value={fallbackLabel} />
+              </div>
+
               <div className="flex flex-wrap items-center gap-1.5">
                 <span className="inline-flex items-center gap-1 rounded-sm bg-primary/10 px-1.5 py-0.5 font-medium text-[10px] text-primary">
                   {MODE_ICONS[mode]}
@@ -196,6 +290,34 @@ export const ClassifyNode = memo(
                   No categories defined
                 </p>
               )}
+
+              {warnings.length > 0 && (
+                <div className="space-y-1">
+                  {warnings.map((warning) => (
+                    <div
+                      className="flex items-center gap-1.5 text-[10px] text-warning"
+                      key={warning}
+                    >
+                      <Icons.AlertCircle size={12} />
+                      <span>{warning}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {notes.length > 0 && (
+                <div className="space-y-1">
+                  {notes.map((note) => (
+                    <div
+                      className="flex items-center gap-1.5 text-[10px] text-muted-foreground"
+                      key={note}
+                    >
+                      <Icons.Info size={12} />
+                      <span>{note}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </NodeSection>
         </NodeShell>
@@ -213,6 +335,7 @@ export function createClassifyNodeData(): ClassifyNodeData {
       mode: "categories",
       categories: [],
       allowMultiple: false,
+      model: DEFAULT_CHAT_MODEL,
       temperature: 0.1,
       confidenceThreshold: 0.7,
       includeConfidence: false,

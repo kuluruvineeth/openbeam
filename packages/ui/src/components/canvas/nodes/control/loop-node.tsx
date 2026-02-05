@@ -82,9 +82,19 @@ export const LoopNode = memo(
     function LoopNodeComponent({ data, selected }, ref) {
       const { config } = data;
       const executionMode = config.executionMode ?? "sequential";
+      const unsupportedMode = executionMode !== "sequential";
       const preview = useMemo(() => getLoopPreview(config), [config]);
       const showBatchInfo = executionMode === "batch";
       const showWarning = hasWarning(config, executionMode);
+      const missingCollection =
+        config.type === "forEach" && !config.collection?.trim();
+      const missingCondition =
+        config.type === "while" && !config.condition?.trim();
+      const missingTimes =
+        config.type === "times" && !(config.times && config.times > 0);
+      const missingAggregate =
+        config.outputMode === "aggregate" &&
+        !config.aggregateExpression?.trim();
 
       return (
         <NodeShell
@@ -162,6 +172,41 @@ export const LoopNode = memo(
                 <div className="flex items-center gap-1.5 text-[10px] text-warning">
                   <Icons.AlertCircle size={12} />
                   <span>Review config for performance</span>
+                </div>
+              )}
+
+              {missingCollection && (
+                <div className="flex items-center gap-1.5 text-[10px] text-warning">
+                  <Icons.AlertCircle size={12} />
+                  <span>Collection required</span>
+                </div>
+              )}
+
+              {missingCondition && (
+                <div className="flex items-center gap-1.5 text-[10px] text-warning">
+                  <Icons.AlertCircle size={12} />
+                  <span>Condition required</span>
+                </div>
+              )}
+
+              {missingTimes && (
+                <div className="flex items-center gap-1.5 text-[10px] text-warning">
+                  <Icons.AlertCircle size={12} />
+                  <span>Iterations required</span>
+                </div>
+              )}
+
+              {missingAggregate && (
+                <div className="flex items-center gap-1.5 text-[10px] text-warning">
+                  <Icons.AlertCircle size={12} />
+                  <span>Aggregation required</span>
+                </div>
+              )}
+
+              {unsupportedMode && (
+                <div className="flex items-center gap-1.5 text-[10px] text-warning">
+                  <Icons.AlertCircle size={12} />
+                  <span>Only sequential is supported</span>
                 </div>
               )}
             </div>

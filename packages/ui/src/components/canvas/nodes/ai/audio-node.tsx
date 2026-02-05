@@ -155,7 +155,7 @@ export function createAudioNodeData(): AudioNodeData {
   return {
     label: "Audio",
     config: {
-      model: "eleven_multilingual_v2",
+      model: "gpt-4o-mini-tts",
       voice: "alloy",
       outputFormat: "mp3",
       speed: 1,

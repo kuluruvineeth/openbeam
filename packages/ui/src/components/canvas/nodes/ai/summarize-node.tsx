@@ -1,5 +1,6 @@
 "use client";
 
+import { DEFAULT_CHAT_MODEL, getChatModel } from "@openplane/types/ai";
 import type {
   ActionItem,
   Citation,
@@ -102,7 +103,7 @@ function FocusAreaBadges({ areas }: { areas: SummaryFocusArea[] }) {
           key={area}
           variant="secondary"
         >
-          {area.replace("_", " ")}
+          {area.replace(/_/g, " ")}
         </Badge>
       ))}
       {areas.length > 3 && (
@@ -231,6 +232,20 @@ export const SummarizeNode = memo(
       const format = data.config.outputFormat ?? "paragraph";
       const length = data.config.length ?? "standard";
       const focusAreas = data.config.focusAreas ?? [];
+      const strategyLabel = data.result?.strategyUsed ?? strategy;
+      const modelId = data.config.model?.trim() || DEFAULT_CHAT_MODEL;
+      const modelMeta = getChatModel(modelId);
+      const modelLabel = modelMeta?.name ?? modelId;
+      const chunkSize = data.config.chunkSize ?? 1000;
+      const chunkOverlap = data.config.chunkOverlap ?? 100;
+      const needsCustomLength = length === "custom";
+      const missingCustomWords =
+        needsCustomLength &&
+        !(data.config.maxWords && data.config.maxWords >= 50);
+      const overlapTooHigh = chunkOverlap >= chunkSize;
+      const citationStyle = data.config.citationStyle ?? "inline";
+      const citationsHidden =
+        (data.config.includeCitations ?? false) && citationStyle === "none";
 
       const hasContent = Boolean(data.result?.summary || data.streamingContent);
       const displayContent =
@@ -278,7 +293,10 @@ export const SummarizeNode = memo(
         >
           <NodeHeader
             badge={
-              <StrategyBadge isRunning={data.isRunning} strategy={strategy} />
+              <StrategyBadge
+                isRunning={data.isRunning}
+                strategy={strategyLabel}
+              />
             }
             colorVar="--node-summarize"
             icon={<Icons.FileText size={20} />}
@@ -289,10 +307,7 @@ export const SummarizeNode = memo(
           <NodeSection>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <NodeField
-                  label="Model"
-                  value={data.config.model ?? "Default"}
-                />
+                <NodeField label="Model" value={modelLabel} />
                 {tokenUsage && <CostIndicator compact usage={tokenUsage} />}
               </div>
 
@@ -302,6 +317,30 @@ export const SummarizeNode = memo(
                 <p className="truncate text-muted-foreground/70 text-xs">
                   {data.config.customInstructions.slice(0, 50)}...
                 </p>
+              )}
+
+              {(missingCustomWords || overlapTooHigh) && (
+                <div className="space-y-1">
+                  {missingCustomWords && (
+                    <div className="flex items-center gap-1.5 text-[10px] text-warning">
+                      <Icons.AlertCircle size={12} />
+                      <span>Custom length needs a word limit</span>
+                    </div>
+                  )}
+                  {overlapTooHigh && (
+                    <div className="flex items-center gap-1.5 text-[10px] text-warning">
+                      <Icons.AlertCircle size={12} />
+                      <span>Chunk overlap must be smaller than chunk size</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {citationsHidden && (
+                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                  <Icons.Info size={12} />
+                  <span>Citations enabled but hidden in summary text</span>
+                </div>
               )}
             </div>
           </NodeSection>
@@ -357,8 +396,10 @@ export function createSummarizeNodeData(): SummarizeNodeData {
     label: "Summarize",
     config: {
       strategy: "auto",
+      model: DEFAULT_CHAT_MODEL,
       outputFormat: "paragraph",
       length: "standard",
+      maxTokens: 4096,
       temperature: 0.3,
       extractEntities: false,
       preserveStructure: false,

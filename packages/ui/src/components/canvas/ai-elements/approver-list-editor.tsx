@@ -3,6 +3,7 @@
 import type { Approver } from "@openplane/types/canvas";
 import { memo, useCallback, useState } from "react";
 import { cn } from "../../../utils";
+import { getInitials } from "../../../utils/format";
 import { Avatar, AvatarFallback, AvatarImage } from "../../avatar";
 import { Button } from "../../button";
 import { Icons } from "../../icons";
@@ -18,15 +19,6 @@ export interface ApproverListEditorProps {
 
 function generateApproverId(): string {
   return `apr_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
-}
-
-function getInitials(name: string): string {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
 }
 
 export const ApproverListEditor = memo(function ApproverListEditorComponent({

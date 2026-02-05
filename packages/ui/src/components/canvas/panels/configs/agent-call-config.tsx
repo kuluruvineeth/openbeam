@@ -6,7 +6,7 @@ import type {
   AgentOutputFormat,
 } from "@openplane/types/canvas";
 import { cva } from "class-variance-authority";
-import { memo, useCallback } from "react";
+import { memo, useCallback, useMemo } from "react";
 import { AnimatedSizeContainer } from "../../../animated-size-container";
 import { Icons } from "../../../icons";
 import { Input } from "../../../input";
@@ -22,6 +22,7 @@ import { Switch } from "../../../switch";
 import { Textarea } from "../../../textarea";
 import { ConfigField } from "../config-field";
 import { ConfigSection } from "../config-section";
+import { NotesList, WarningsList } from "../feedback-lists";
 
 interface AgentCallConfigPanelProps {
   config: AgentCallNodeConfig;
@@ -94,6 +95,82 @@ export const AgentCallConfigPanel = memo(
     config,
     onChange,
   }: AgentCallConfigPanelProps) {
+    const warnings = useMemo(() => {
+      const list: string[] = [];
+      if (!config.agentId?.trim()) {
+        list.push("Agent ID required");
+      }
+      if (!config.prompt?.trim()) {
+        list.push("Prompt is required");
+      }
+      const maxSteps = config.maxSteps ?? 10;
+      if (maxSteps <= 0) {
+        list.push("Max steps must be at least 1");
+      }
+      const temperature = config.temperature ?? 0.7;
+      if (temperature < 0 || temperature > 2) {
+        list.push("Temperature must be between 0 and 2");
+      }
+      const tools = config.tools ?? [];
+      if (tools.length > 0 && new Set(tools).size !== tools.length) {
+        list.push("Duplicate tools selected");
+      }
+      return list;
+    }, [
+      config.agentId,
+      config.maxSteps,
+      config.prompt,
+      config.temperature,
+      config.tools,
+    ]);
+
+    const notes = useMemo(() => {
+      const list: string[] = [];
+      if (config.agentName?.trim()) {
+        list.push("Display name set");
+      }
+      if (config.model?.trim()) {
+        list.push("Model override set");
+      }
+      if (config.systemPromptOverride?.trim()) {
+        list.push("System prompt override set");
+      }
+      const toolCount = config.tools?.length ?? 0;
+      if (toolCount > 0) {
+        list.push(`${toolCount} tool${toolCount > 1 ? "s" : ""} enabled`);
+      }
+      if (config.memoryEnabled === false) {
+        list.push("Memory disabled");
+      }
+      const executionMode = config.executionMode ?? "react";
+      if (executionMode !== "react") {
+        const modeLabel =
+          EXECUTION_MODES.find((mode) => mode.id === executionMode)?.label ??
+          executionMode;
+        list.push(`${modeLabel} execution`);
+      }
+      if (config.outputFormat === "json") {
+        list.push("JSON output");
+      }
+      if (config.outputFormat === "structured") {
+        list.push(
+          config.stopCondition?.trim()
+            ? "Stop condition set"
+            : "No stop condition set"
+        );
+      }
+      return list;
+    }, [
+      config.agentName,
+      config.executionMode,
+      config.memoryEnabled,
+      config.model,
+      config.outputFormat,
+      config.stopCondition,
+      config.systemPromptOverride,
+      config.tools?.length,
+    ]);
+
     return (
       <div className="divide-y divide-border/50">
         <AgentSelectionSection config={config} onChange={onChange} />
@@ -102,6 +179,8 @@ export const AgentCallConfigPanel = memo(
         <ModelSection config={config} onChange={onChange} />
         <OutputSection config={config} onChange={onChange} />
         <AdvancedSection config={config} onChange={onChange} />
+        <WarningsList items={warnings} />
+        <NotesList items={notes} />
       </div>
     );
   }
