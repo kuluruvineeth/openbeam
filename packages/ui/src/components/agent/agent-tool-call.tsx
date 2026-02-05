@@ -1,7 +1,6 @@
 "use client";
 
 import { cva, type VariantProps } from "class-variance-authority";
-import { Check, ChevronDown, Loader2, XCircle } from "lucide-react";
 import { forwardRef, useState } from "react";
 import { AGENT_UI_CONSTANTS } from "../../lib/agent-constants";
 import { cn } from "../../utils/cn";
@@ -10,6 +9,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "../collapsible";
+import { Icons } from "../icons";
 import { TextShimmer } from "../text-shimmer";
 import { AgentToolIcon } from "./agent-tool-icon";
 
@@ -92,11 +92,13 @@ const AgentToolCall = forwardRef<HTMLDivElement, AgentToolCallProps>(
     const renderStatusIcon = () => {
       switch (status) {
         case "running":
-          return <Loader2 className="size-3.5 animate-spin text-primary" />;
+          return (
+            <Icons.Loader2 className="size-3.5 animate-spin text-primary" />
+          );
         case "success":
-          return <Check className="size-3.5 text-emerald-500" />;
+          return <Icons.Check className="size-3.5 text-emerald-500" />;
         case "error":
-          return <XCircle className="size-3.5 text-destructive" />;
+          return <Icons.XCircle className="size-3.5 text-destructive" />;
         default:
           return null;
       }
@@ -129,7 +131,7 @@ const AgentToolCall = forwardRef<HTMLDivElement, AgentToolCallProps>(
         <div className="ml-auto flex items-center gap-1.5">
           {renderStatusIcon()}
           {canExpand && (
-            <ChevronDown
+            <Icons.ChevronDown
               className={cn(
                 "size-3.5 text-muted-foreground transition-transform duration-200",
                 isOpen && "rotate-180"

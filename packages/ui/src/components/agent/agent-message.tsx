@@ -1,13 +1,13 @@
 "use client";
 
 import { cva, type VariantProps } from "class-variance-authority";
-import { Bot, User } from "lucide-react";
 import { forwardRef } from "react";
 import {
   type AgentEvent,
   useEventGrouping,
 } from "../../hooks/use-event-grouping";
 import { cn } from "../../utils/cn";
+import { Icons } from "../icons";
 import { AgentEventRenderer } from "./agent-event-renderer";
 import type { GroupedTool } from "./agent-tool-group";
 import { AgentToolGroup } from "./agent-tool-group";
@@ -86,13 +86,13 @@ const AgentMessage = forwardRef<HTMLDivElement, AgentMessageProps>(
       if (role === "user") {
         return (
           <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted">
-            <User className="size-4 text-muted-foreground" />
+            <Icons.User className="size-4 text-muted-foreground" />
           </div>
         );
       }
       return (
         <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
-          <Bot className="size-4 text-primary" />
+          <Icons.Bot className="size-4 text-primary" />
         </div>
       );
     };

@@ -1,10 +1,10 @@
 "use client";
 
 import { cva, type VariantProps } from "class-variance-authority";
-import { ExternalLink, FileText } from "lucide-react";
 import { forwardRef } from "react";
 import { cn } from "../../utils/cn";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "../hover-card";
+import { Icons } from "../icons";
 
 const agentCitationVariants = cva(
   "inline-flex items-center justify-center rounded font-medium text-xs tabular-nums transition-colors",
@@ -99,7 +99,7 @@ const AgentCitation = forwardRef<HTMLSpanElement, AgentCitationProps>(
         <HoverCardContent align="start" className="w-80" side="top">
           <div className="space-y-2">
             <div className="flex items-start gap-2">
-              <FileText className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+              <Icons.FileText className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
               <div className="min-w-0 flex-1">
                 <p className="truncate font-medium text-sm">{source.title}</p>
                 {source.source && (
@@ -122,7 +122,7 @@ const AgentCitation = forwardRef<HTMLSpanElement, AgentCitationProps>(
                 target="_blank"
               >
                 Open source
-                <ExternalLink className="size-3" />
+                <Icons.ExternalLink className="size-3" />
               </a>
             )}
             {source.relevance !== undefined && (

@@ -1,9 +1,9 @@
 "use client";
 
-import { Sparkles } from "lucide-react";
 import { forwardRef } from "react";
 import { cn } from "../../utils/cn";
-import { formatDuration } from "./agent-duration";
+import { formatDurationPrecise } from "../../utils/format";
+import { Icons } from "../icons";
 
 type AgentThinkingSummaryProps = React.ComponentProps<"span"> & {
   durationMs?: number | null;
@@ -22,10 +22,10 @@ const AgentThinkingSummary = forwardRef<
     ref={ref}
     {...props}
   >
-    <Sparkles className="size-3.5 text-primary/70" />
+    <Icons.Sparkles className="size-3.5 text-primary/70" />
     <span>
       {hasContent ? "Reasoned" : "Processed"}
-      {durationMs != null && ` for ${formatDuration(durationMs)}`}
+      {durationMs != null && ` for ${formatDurationPrecise(durationMs)}`}
     </span>
   </span>
 ));

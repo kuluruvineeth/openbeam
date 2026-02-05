@@ -1,10 +1,10 @@
 "use client";
 
 import { cva, type VariantProps } from "class-variance-authority";
-import { AlertCircle, RefreshCw, XCircle } from "lucide-react";
 import { forwardRef } from "react";
 import { cn } from "../../utils/cn";
 import { Button } from "../button";
+import { Icons } from "../icons";
 
 const agentErrorVariants = cva("rounded-lg border p-4", {
   variants: {
@@ -59,7 +59,7 @@ const errorCodeLabels: Record<ErrorCode, string> = {
 type ErrorVariant = "default" | "warning" | "inline" | null | undefined;
 
 function getIconComponent(variant: ErrorVariant) {
-  return variant === "warning" ? AlertCircle : XCircle;
+  return variant === "warning" ? Icons.AlertCircle : Icons.XCircle;
 }
 
 function getIconContainerClasses(
@@ -119,7 +119,9 @@ function ErrorActions({
           size="sm"
           variant="outline"
         >
-          <RefreshCw className={cn("size-3.5", isRetrying && "animate-spin")} />
+          <Icons.RefreshCw
+            className={cn("size-3.5", isRetrying && "animate-spin")}
+          />
           {isRetrying ? "Retrying..." : "Retry"}
         </Button>
       )}
@@ -155,7 +157,7 @@ function InlineRetryButton({
       size="icon"
       variant="ghost"
     >
-      <RefreshCw className={cn("size-3", isRetrying && "animate-spin")} />
+      <Icons.RefreshCw className={cn("size-3", isRetrying && "animate-spin")} />
     </Button>
   );
 }

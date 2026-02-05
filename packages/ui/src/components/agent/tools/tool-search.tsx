@@ -1,16 +1,8 @@
 "use client";
 
 import { cva, type VariantProps } from "class-variance-authority";
-import {
-  ChevronDown,
-  Circle,
-  ExternalLink,
-  File,
-  FileSearch,
-  FolderSearch,
-  Search,
-} from "lucide-react";
 import { forwardRef, useState } from "react";
+
 import { AGENT_UI_CONSTANTS } from "../../../lib/agent-constants";
 import { cn } from "../../../utils/cn";
 import { Button } from "../../button";
@@ -19,6 +11,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "../../collapsible";
+import { Icons } from "../../icons";
 import { TextShimmer } from "../../text-shimmer";
 
 const toolSearchVariants = cva("rounded-md border text-sm", {
@@ -79,28 +72,32 @@ const ToolSearch = forwardRef<HTMLDivElement, ToolSearchProps>(
     const renderStatusIndicator = () => {
       if (status === "running") {
         return (
-          <Circle className="size-2 animate-pulse fill-primary text-primary" />
+          <Icons.Circle className="size-2 animate-pulse fill-primary text-primary" />
         );
       }
       if (status === "success") {
-        return <Circle className="size-2 fill-green-500 text-green-500" />;
+        return (
+          <Icons.Circle className="size-2 fill-green-500 text-green-500" />
+        );
       }
       if (status === "error") {
-        return <Circle className="size-2 fill-destructive text-destructive" />;
+        return (
+          <Icons.Circle className="size-2 fill-destructive text-destructive" />
+        );
       }
       return (
-        <Circle className="size-2 fill-muted-foreground/50 text-muted-foreground/50" />
+        <Icons.Circle className="size-2 fill-muted-foreground/50 text-muted-foreground/50" />
       );
     };
 
     const getSearchIcon = () => {
       if (searchType === "glob") {
-        return FolderSearch;
+        return Icons.FolderSearch;
       }
       if (searchType === "grep") {
-        return FileSearch;
+        return Icons.FileSearch;
       }
-      return Search;
+      return Icons.Search;
     };
 
     const SearchIcon = getSearchIcon();
@@ -135,7 +132,7 @@ const ToolSearch = forwardRef<HTMLDivElement, ToolSearchProps>(
           className="group flex items-start gap-2 px-3 py-1.5 transition-colors hover:bg-muted/50"
           key={`${result.path}-${result.lineNumber}-${index}`}
         >
-          <File className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
+          <Icons.File className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1">
               <span
@@ -156,7 +153,7 @@ const ToolSearch = forwardRef<HTMLDivElement, ToolSearchProps>(
               </pre>
             )}
           </div>
-          <ExternalLink className="size-3 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+          <Icons.ExternalLink className="size-3 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
         </div>
       );
     };
@@ -218,7 +215,7 @@ const ToolSearch = forwardRef<HTMLDivElement, ToolSearchProps>(
               <span className="text-xs">
                 {isOpen ? "Show less" : `Show all ${totalResults} results`}
               </span>
-              <ChevronDown
+              <Icons.ChevronDown
                 className={cn(
                   "ml-1 size-3 transition-transform duration-200",
                   isOpen && "rotate-180"

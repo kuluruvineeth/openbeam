@@ -1,10 +1,10 @@
 "use client";
 
 import { cva, type VariantProps } from "class-variance-authority";
-import { ArrowUp, Loader2, Paperclip, Square, X } from "lucide-react";
 import { forwardRef, useCallback, useRef, useState } from "react";
 import { cn } from "../../utils/cn";
 import { Button } from "../button";
+import { Icons } from "../icons";
 
 const agentInputVariants = cva(
   "relative flex flex-col rounded-lg border bg-background transition-colors focus-within:ring-1 focus-within:ring-ring",
@@ -148,14 +148,14 @@ const AgentInput = forwardRef<HTMLDivElement, AgentInputProps>(
                 className="flex items-center gap-1.5 rounded bg-muted px-2 py-1 text-xs"
                 key={file.id}
               >
-                <Paperclip className="size-3 text-muted-foreground" />
+                <Icons.Paperclip className="size-3 text-muted-foreground" />
                 <span className="max-w-[120px] truncate">{file.name}</span>
                 <button
                   className="text-muted-foreground transition-colors hover:text-foreground"
                   onClick={() => onRemoveFile?.(file.id)}
                   type="button"
                 >
-                  <X className="size-3" />
+                  <Icons.X className="size-3" />
                 </button>
               </div>
             ))}
@@ -197,7 +197,7 @@ const AgentInput = forwardRef<HTMLDivElement, AgentInputProps>(
                   type="button"
                   variant="ghost"
                 >
-                  <Paperclip className="size-4" />
+                  <Icons.Paperclip className="size-4" />
                 </Button>
               </>
             )}
@@ -217,7 +217,7 @@ const AgentInput = forwardRef<HTMLDivElement, AgentInputProps>(
                 type="button"
                 variant="destructive"
               >
-                <Square className="size-3 fill-current" />
+                <Icons.Square className="size-3 fill-current" />
               </Button>
             ) : (
               <Button
@@ -228,9 +228,9 @@ const AgentInput = forwardRef<HTMLDivElement, AgentInputProps>(
                 type="button"
               >
                 {isLoading ? (
-                  <Loader2 className="size-4 animate-spin" />
+                  <Icons.Loader2 className="size-4 animate-spin" />
                 ) : (
-                  <ArrowUp className="size-4" />
+                  <Icons.ArrowUp className="size-4" />
                 )}
               </Button>
             )}

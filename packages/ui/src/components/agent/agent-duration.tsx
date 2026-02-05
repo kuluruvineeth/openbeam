@@ -3,6 +3,7 @@
 import { forwardRef, useCallback, useEffect, useState } from "react";
 import { AGENT_UI_CONSTANTS } from "../../lib/agent-constants";
 import { cn } from "../../utils/cn";
+import { formatDurationPrecise } from "../../utils/format";
 
 type AgentDurationProps = React.ComponentProps<"time"> & {
   startTime?: number;
@@ -10,19 +11,6 @@ type AgentDurationProps = React.ComponentProps<"time"> & {
   isActive?: boolean;
   updateInterval?: number;
 };
-
-function formatDuration(ms: number): string {
-  if (ms < 1000) {
-    return `${Math.round(ms)}ms`;
-  }
-  const seconds = ms / 1000;
-  if (seconds < 60) {
-    return `${seconds.toFixed(1)}s`;
-  }
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = Math.round(seconds % 60);
-  return `${minutes}m ${remainingSeconds}s`;
-}
 
 const AgentDuration = forwardRef<HTMLTimeElement, AgentDurationProps>(
   (
@@ -70,12 +58,12 @@ const AgentDuration = forwardRef<HTMLTimeElement, AgentDurationProps>(
         ref={ref}
         {...props}
       >
-        {formatDuration(duration)}
+        {formatDurationPrecise(duration)}
       </time>
     );
   }
 );
 AgentDuration.displayName = "AgentDuration";
 
-export { AgentDuration, formatDuration };
+export { AgentDuration, formatDurationPrecise };
 export type { AgentDurationProps };

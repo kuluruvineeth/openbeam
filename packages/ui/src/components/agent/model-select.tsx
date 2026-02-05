@@ -3,7 +3,6 @@
 import type { ChatModel } from "@openplane/types/ai";
 import { CHAT_MODELS } from "@openplane/types/ai";
 import { cva, type VariantProps } from "class-variance-authority";
-import { Check, ChevronDown, Sparkles, Zap } from "lucide-react";
 import { forwardRef, useMemo, useState } from "react";
 import { cn } from "../../utils/cn";
 import { Button } from "../button";
@@ -15,6 +14,7 @@ import {
   CommandItem,
   CommandList,
 } from "../command";
+import { Icons } from "../icons";
 import { Popover, PopoverContent, PopoverTrigger } from "../popover";
 import {
   AnthropicIcon,
@@ -174,7 +174,7 @@ export const ModelSelect = forwardRef<HTMLButtonElement, ModelSelectProps>(
             ) : (
               <span className="text-muted-foreground">{placeholder}</span>
             )}
-            <ChevronDown className="size-4 shrink-0 opacity-50" />
+            <Icons.ChevronDown className="size-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
         <PopoverContent
@@ -209,10 +209,10 @@ export const ModelSelect = forwardRef<HTMLButtonElement, ModelSelectProps>(
                             {badge && (
                               <span className="flex items-center gap-0.5 rounded bg-primary/10 px-1 py-0.5 font-medium text-[10px] text-primary">
                                 {badge === "Fast" && (
-                                  <Zap className="size-2.5" />
+                                  <Icons.Zap className="size-2.5" />
                                 )}
                                 {badge === "Most Capable" && (
-                                  <Sparkles className="size-2.5" />
+                                  <Icons.Sparkles className="size-2.5" />
                                 )}
                                 {badge}
                               </span>
@@ -224,7 +224,7 @@ export const ModelSelect = forwardRef<HTMLButtonElement, ModelSelectProps>(
                             {model.supportsTools && " · Tools"}
                           </span>
                         </div>
-                        <Check
+                        <Icons.Check
                           className={cn(
                             "size-4 shrink-0",
                             value === model.id ? "opacity-100" : "opacity-0"

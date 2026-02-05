@@ -1,10 +1,10 @@
 "use client";
 
 import { cva, type VariantProps } from "class-variance-authority";
-import { AlertTriangle, Check, Info, ShieldAlert, X } from "lucide-react";
 import { forwardRef } from "react";
 import { cn } from "../../utils/cn";
 import { Button } from "../button";
+import { Icons } from "../icons";
 
 const agentApprovalVariants = cva("rounded-lg border p-4", {
   variants: {
@@ -43,9 +43,9 @@ type AgentApprovalProps = React.ComponentProps<"div"> &
   };
 
 const severityIcons = {
-  low: Info,
-  medium: AlertTriangle,
-  high: ShieldAlert,
+  low: Icons.Info,
+  medium: Icons.AlertTriangle,
+  high: Icons.ShieldAlert,
 };
 
 const AgentApproval = forwardRef<HTMLDivElement, AgentApprovalProps>(
@@ -157,7 +157,7 @@ const AgentApproval = forwardRef<HTMLDivElement, AgentApprovalProps>(
                 onClick={onApprove}
                 size="sm"
               >
-                <Check className="size-3.5" />
+                <Icons.Check className="size-3.5" />
                 {approveLabel}
               </Button>
               <Button
@@ -167,7 +167,7 @@ const AgentApproval = forwardRef<HTMLDivElement, AgentApprovalProps>(
                 size="sm"
                 variant="ghost"
               >
-                <X className="size-3.5" />
+                <Icons.X className="size-3.5" />
                 {rejectLabel}
               </Button>
             </div>

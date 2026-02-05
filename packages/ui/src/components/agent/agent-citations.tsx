@@ -1,7 +1,6 @@
 "use client";
 
 import { cva, type VariantProps } from "class-variance-authority";
-import { ChevronDown, ExternalLink, FileText } from "lucide-react";
 import { forwardRef, useState } from "react";
 import { AGENT_UI_CONSTANTS } from "../../lib/agent-constants";
 import { cn } from "../../utils/cn";
@@ -11,6 +10,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "../collapsible";
+import { Icons } from "../icons";
 import type { CitationSource } from "./agent-citation";
 
 const agentCitationsVariants = cva("rounded-md border", {
@@ -68,7 +68,7 @@ const AgentCitations = forwardRef<HTMLDivElement, AgentCitationsProps>(
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <FileText className="size-3.5 shrink-0 text-muted-foreground" />
+              <Icons.FileText className="size-3.5 shrink-0 text-muted-foreground" />
               <p className="truncate font-medium text-sm">{citation.title}</p>
             </div>
             {citation.source && (
@@ -90,7 +90,7 @@ const AgentCitations = forwardRef<HTMLDivElement, AgentCitationsProps>(
               rel="noopener noreferrer"
               target="_blank"
             >
-              <ExternalLink className="size-3.5" />
+              <Icons.ExternalLink className="size-3.5" />
             </a>
           )}
         </>
@@ -127,7 +127,7 @@ const AgentCitations = forwardRef<HTMLDivElement, AgentCitationsProps>(
           {...props}
         >
           <div className="flex items-center gap-2 px-3 py-2">
-            <FileText className="size-3.5 text-muted-foreground" />
+            <Icons.FileText className="size-3.5 text-muted-foreground" />
             <span className="font-medium text-foreground text-sm">{title}</span>
             <span className="ml-auto text-muted-foreground text-xs tabular-nums">
               {citations.length}
@@ -151,14 +151,14 @@ const AgentCitations = forwardRef<HTMLDivElement, AgentCitationsProps>(
               variant="ghost"
             >
               <div className="flex w-full items-center gap-2 px-3 py-2">
-                <FileText className="size-3.5 text-muted-foreground" />
+                <Icons.FileText className="size-3.5 text-muted-foreground" />
                 <span className="font-medium text-foreground text-sm">
                   {title}
                 </span>
                 <span className="ml-auto text-muted-foreground text-xs tabular-nums">
                   {citations.length}
                 </span>
-                <ChevronDown
+                <Icons.ChevronDown
                   className={cn(
                     "size-3.5 text-muted-foreground transition-transform duration-200",
                     isOpen && "rotate-180"

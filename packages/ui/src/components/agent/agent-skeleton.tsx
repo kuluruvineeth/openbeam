@@ -1,9 +1,9 @@
 "use client";
 
 import { cva, type VariantProps } from "class-variance-authority";
-import { Bot } from "lucide-react";
 import { forwardRef } from "react";
 import { cn } from "../../utils/cn";
+import { Icons } from "../icons";
 import { Skeleton } from "../skeleton";
 
 const agentSkeletonVariants = cva("flex gap-3 px-4 py-3", {
@@ -49,7 +49,7 @@ const AgentSkeleton = forwardRef<HTMLDivElement, AgentSkeletonProps>(
       >
         {showAvatar && (
           <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
-            <Bot className="size-4 text-primary" />
+            <Icons.Bot className="size-4 text-primary" />
           </div>
         )}
         <div className="min-w-0 flex-1 space-y-3">

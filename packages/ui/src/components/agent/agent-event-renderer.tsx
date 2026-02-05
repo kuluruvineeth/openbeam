@@ -1,9 +1,9 @@
 "use client";
 
-import { AlertCircle, CheckCircle2, XCircle } from "lucide-react";
 import { forwardRef } from "react";
 import { getToolCategory } from "../../lib/tool-registry";
 import { cn } from "../../utils/cn";
+import { Icons } from "../icons";
 import { AgentStatus } from "./agent-status";
 import { AgentThinking } from "./agent-thinking";
 import { AgentToolCall } from "./agent-tool-call";
@@ -164,7 +164,7 @@ const ErrorRenderer = forwardRef<
     )}
     ref={ref}
   >
-    <AlertCircle className="mt-0.5 size-4 shrink-0 text-destructive" />
+    <Icons.AlertCircle className="mt-0.5 size-4 shrink-0 text-destructive" />
     <div className="min-w-0 flex-1">
       <p className="font-medium text-destructive text-sm">{event.code}</p>
       <p className="text-destructive/80 text-sm">{event.message}</p>
@@ -193,9 +193,9 @@ const DoneRenderer = forwardRef<
     ref={ref}
   >
     {event.success ? (
-      <CheckCircle2 className="size-4 text-green-500" />
+      <Icons.CheckCircle2 className="size-4 text-green-500" />
     ) : (
-      <XCircle className="size-4 text-destructive" />
+      <Icons.XCircle className="size-4 text-destructive" />
     )}
     <span className="text-muted-foreground text-sm">
       {event.success ? "Completed successfully" : "Completed with errors"}
