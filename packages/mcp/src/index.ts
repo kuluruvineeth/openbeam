@@ -25,7 +25,7 @@ const server = new Server(
   }
 );
 
-server.setRequestHandler(ListToolsRequestSchema, async () => ({
+server.setRequestHandler(ListToolsRequestSchema, () => ({
   tools: [...connectorTools, ...statsTools],
 }));
 

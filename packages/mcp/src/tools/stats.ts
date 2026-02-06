@@ -198,7 +198,6 @@ export async function handleStatsTool(
           | "INACTIVE"
           | "ERROR"
           | "SYNCING"
-          | "PENDING_AUTH"
           | undefined;
         const teams = await listTeamsWithConnectors(db, status);
         return {
