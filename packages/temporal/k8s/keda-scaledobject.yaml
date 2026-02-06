@@ -1,0 +1,194 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: canvas-worker-scaler
+  namespace: openplane
+  labels:
+    app.kubernetes.io/name: canvas-worker
+    app.kubernetes.io/component: temporal-worker
+    app.kubernetes.io/part-of: openplane
+  annotations:
+    kubernetes.io/description: "KEDA ScaledObject for canvas workflow worker based on Temporal task queue depth"
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: canvas-worker
+  pollingInterval: 15
+  cooldownPeriod: 300
+  idleReplicaCount: 0
+  minReplicaCount: 1
+  maxReplicaCount: 10
+  fallback:
+    failureThreshold: 3
+    replicas: 2
+  advanced:
+    restoreToOriginalReplicaCount: false
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 300
+          policies:
+            - type: Percent
+              value: 25
+              periodSeconds: 60
+            - type: Pods
+              value: 2
+              periodSeconds: 60
+          selectPolicy: Min
+        scaleUp:
+          stabilizationWindowSeconds: 30
+          policies:
+            - type: Percent
+              value: 100
+              periodSeconds: 30
+            - type: Pods
+              value: 4
+              periodSeconds: 30
+          selectPolicy: Max
+  triggers:
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus.monitoring.svc.cluster.local:9090
+        metricName: temporal_workflow_task_queue_depth
+        query: |
+          sum(temporal_workflow_task_schedule_to_start_latency_count{task_queue="canvas"})
+          - sum(temporal_workflow_task_schedule_to_start_latency_count{task_queue="canvas"} offset 1m)
+        threshold: "100"
+        activationThreshold: "10"
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus.monitoring.svc.cluster.local:9090
+        metricName: temporal_activity_task_queue_depth
+        query: |
+          sum(temporal_activity_schedule_to_start_latency_count{task_queue="canvas"})
+          - sum(temporal_activity_schedule_to_start_latency_count{task_queue="canvas"} offset 1m)
+        threshold: "50"
+        activationThreshold: "5"
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: sync-worker-scaler
+  namespace: openplane
+  labels:
+    app.kubernetes.io/name: sync-worker
+    app.kubernetes.io/component: temporal-worker
+    app.kubernetes.io/part-of: openplane
+  annotations:
+    kubernetes.io/description: "KEDA ScaledObject for sync workflow worker based on Temporal task queue depth"
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: sync-worker
+  pollingInterval: 15
+  cooldownPeriod: 300
+  idleReplicaCount: 0
+  minReplicaCount: 1
+  maxReplicaCount: 20
+  fallback:
+    failureThreshold: 3
+    replicas: 3
+  advanced:
+    restoreToOriginalReplicaCount: false
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 300
+          policies:
+            - type: Percent
+              value: 20
+              periodSeconds: 60
+            - type: Pods
+              value: 3
+              periodSeconds: 60
+          selectPolicy: Min
+        scaleUp:
+          stabilizationWindowSeconds: 30
+          policies:
+            - type: Percent
+              value: 100
+              periodSeconds: 30
+            - type: Pods
+              value: 5
+              periodSeconds: 30
+          selectPolicy: Max
+  triggers:
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus.monitoring.svc.cluster.local:9090
+        metricName: temporal_sync_workflow_task_queue_depth
+        query: |
+          sum(temporal_workflow_task_schedule_to_start_latency_count{task_queue=~"sync:.*|default"})
+          - sum(temporal_workflow_task_schedule_to_start_latency_count{task_queue=~"sync:.*|default"} offset 1m)
+        threshold: "200"
+        activationThreshold: "20"
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus.monitoring.svc.cluster.local:9090
+        metricName: temporal_sync_activity_task_queue_depth
+        query: |
+          sum(temporal_activity_schedule_to_start_latency_count{task_queue=~"sync:.*|default"})
+          - sum(temporal_activity_schedule_to_start_latency_count{task_queue=~"sync:.*|default"} offset 1m)
+        threshold: "100"
+        activationThreshold: "10"
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: agent-worker-scaler
+  namespace: openplane
+  labels:
+    app.kubernetes.io/name: agent-worker
+    app.kubernetes.io/component: temporal-worker
+    app.kubernetes.io/part-of: openplane
+  annotations:
+    kubernetes.io/description: "KEDA ScaledObject for agent workflow worker based on Temporal task queue depth"
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: agent-worker
+  pollingInterval: 15
+  cooldownPeriod: 300
+  idleReplicaCount: 0
+  minReplicaCount: 1
+  maxReplicaCount: 15
+  fallback:
+    failureThreshold: 3
+    replicas: 2
+  advanced:
+    restoreToOriginalReplicaCount: false
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 300
+          policies:
+            - type: Percent
+              value: 25
+              periodSeconds: 60
+            - type: Pods
+              value: 2
+              periodSeconds: 60
+          selectPolicy: Min
+        scaleUp:
+          stabilizationWindowSeconds: 30
+          policies:
+            - type: Percent
+              value: 100
+              periodSeconds: 30
+            - type: Pods
+              value: 4
+              periodSeconds: 30
+          selectPolicy: Max
+  triggers:
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus.monitoring.svc.cluster.local:9090
+        metricName: temporal_agent_workflow_task_queue_depth
+        query: |
+          sum(temporal_workflow_task_schedule_to_start_latency_count{task_queue="agents"})
+          - sum(temporal_workflow_task_schedule_to_start_latency_count{task_queue="agents"} offset 1m)
+        threshold: "50"
+        activationThreshold: "5"
