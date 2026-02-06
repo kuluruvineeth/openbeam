@@ -44,9 +44,8 @@ export function getModelCosts(model: string): TokenCost | null {
   const pricing = getModelPricing(model);
   if (pricing) {
     return {
-      input: pricing.inputPer1M,
-      output: pricing.outputPer1M,
-      cached: pricing.cachePer1M,
+      input: pricing.inputPer1M ?? 0,
+      output: pricing.outputPer1M ?? 0,
     };
   }
   return customCosts[model] ?? null;

@@ -28,7 +28,7 @@ import {
 } from "@openplane/db";
 import { createExecutionAndStartCanvasWorkflow } from "@openplane/orchestrations";
 import { createExecutionEventSubscriber, rateLimiter } from "@openplane/redis";
-import { logger } from "@openplane/services";
+import { logger } from "@openplane/services/lib/logger";
 import { submitCanvasApproval, submitCanvasInput } from "@openplane/temporal";
 import {
   AgentCanvasEdgeSchema,
@@ -121,7 +121,18 @@ const publishCanvasSchema = z.object({
 
 const listExecutionsSchema = z.object({
   canvasId: z.string(),
-  status: z.string().optional(),
+  status: z
+    .enum([
+      "PENDING",
+      "RUNNING",
+      "WAITING_APPROVAL",
+      "WAITING_INPUT",
+      "COMPLETED",
+      "FAILED",
+      "CANCELLED",
+      "TIMED_OUT",
+    ])
+    .optional(),
   limit: z.number().min(1).max(100).default(20),
   offset: z.number().min(0).default(0),
 });
