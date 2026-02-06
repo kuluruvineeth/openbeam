@@ -194,6 +194,7 @@ export type UpdateCanvasExecutionStepOutput = z.infer<
 
 export const CreateCanvasApprovalInputSchema = z.object({
   executionId: z.string(),
+  teamId: z.string().optional(),
   nodeId: z.string(),
   requestMessage: z.string().optional(),
   timeoutMs: z.number().optional(),
@@ -214,6 +215,7 @@ export type CreateCanvasApprovalOutput = z.infer<
 
 export const PrepareSubWorkflowExecutionInputSchema = z.object({
   executionId: z.string(),
+  teamId: z.string().optional(),
   node: ExecutionPlanNodeSchema,
   input: z.unknown().optional(),
   context: ExecutionContextSchema.optional(),
@@ -239,6 +241,8 @@ export type PrepareSubWorkflowExecutionOutput = z.infer<
 >;
 
 export const ResolveSubWorkflowOutputInputSchema = z.object({
+  teamId: z.string().optional(),
+  agentCanvasId: z.string().optional(),
   output: z.unknown().optional(),
   mappings: z.record(z.string(), z.string()),
 });
@@ -467,4 +471,30 @@ export const UpdateCanvasExecutionInputSchema = z.object({
 
 export type UpdateCanvasExecutionInput = z.infer<
   typeof UpdateCanvasExecutionInputSchema
+>;
+
+export const EvaluateCanvasExecutionInputSchema = z.object({
+  executionId: z.string(),
+  teamId: z.string(),
+  canvasId: z.string(),
+});
+
+export type EvaluateCanvasExecutionInput = z.infer<
+  typeof EvaluateCanvasExecutionInputSchema
+>;
+
+export const EvaluateCanvasExecutionOutputSchema = z.object({
+  score: z.number().int().min(0).max(100),
+  dimensions: z.object({
+    completion: z.number().min(0).max(100),
+    efficiency: z.number().min(0).max(100),
+    errorRate: z.number().min(0).max(100),
+    latency: z.number().min(0).max(100),
+    approvalOverhead: z.number().min(0).max(100),
+  }),
+  flags: z.array(z.string()),
+});
+
+export type EvaluateCanvasExecutionOutput = z.infer<
+  typeof EvaluateCanvasExecutionOutputSchema
 >;

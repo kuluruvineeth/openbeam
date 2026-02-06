@@ -72,6 +72,10 @@
       "types": "./dist/services/ai/index.d.ts",
       "default": "./src/services/ai/index.ts"
     },
+    "./services/policy": {
+      "types": "./dist/services/policy.d.ts",
+      "default": "./src/services/policy.ts"
+    },
     "./integrations": {
       "types": "./dist/integrations/index.d.ts",
       "default": "./src/integrations/index.ts"
@@ -107,6 +111,30 @@
     "./temporal/workflows": {
       "types": "./dist/temporal/workflows.d.ts",
       "default": "./src/temporal/workflows.ts"
+    },
+    "./temporal/mission": {
+      "types": "./dist/temporal/mission.d.ts",
+      "default": "./src/temporal/mission.ts"
+    },
+    "./temporal/rate-limit": {
+      "types": "./dist/temporal/rate-limit.d.ts",
+      "default": "./src/temporal/rate-limit.ts"
+    },
+    "./temporal/activities/knowledge": {
+      "types": "./dist/temporal/activities/knowledge.d.ts",
+      "default": "./src/temporal/activities/knowledge.ts"
+    },
+    "./temporal/workflows/knowledge-changes": {
+      "types": "./dist/temporal/workflows/knowledge-changes.d.ts",
+      "default": "./src/temporal/workflows/knowledge-changes.ts"
+    },
+    "./temporal/workflows/knowledge-inference": {
+      "types": "./dist/temporal/workflows/knowledge-inference.d.ts",
+      "default": "./src/temporal/workflows/knowledge-inference.ts"
+    },
+    "./services/eval": {
+      "types": "./dist/services/eval.d.ts",
+      "default": "./src/services/eval.ts"
     }
   },
   "scripts": {

@@ -201,6 +201,23 @@ export const DigestDeliveryOutputSchema = z.object({
 
 export type DigestDeliveryOutput = z.infer<typeof DigestDeliveryOutputSchema>;
 
+export const CanvasExecutionCheckpointSchema = z.object({
+  currentNodeId: z.string().nullable(),
+  currentPayload: z.unknown().optional(),
+  lastStepOutput: z.unknown().optional(),
+  traceSnapshot: z.object({
+    id: z.string(),
+    status: z.string(),
+    stepsCount: z.number(),
+    totalLatencyMs: z.number(),
+  }),
+  approvalResponses: z.array(z.tuple([z.string(), z.unknown()])),
+  inputResponses: z.array(z.tuple([z.string(), z.unknown()])),
+  loopStates: z.array(z.tuple([z.string(), z.unknown()])),
+  loopStack: z.array(z.string()),
+  continueAsNewCount: z.number(),
+});
+
 export const AgentCanvasExecutionInputSchema = z.object({
   executionId: z.string(),
   agentCanvasId: z.string(),
@@ -210,6 +227,8 @@ export const AgentCanvasExecutionInputSchema = z.object({
   triggerSource: z.string().optional(),
   input: z.unknown().optional(),
   canvas: CanvasStateSchema,
+  checkpoint: CanvasExecutionCheckpointSchema.optional(),
+  policy: z.unknown().optional(),
 });
 
 export type AgentCanvasExecutionInput = z.infer<
@@ -405,3 +424,7 @@ export const WorkflowAgentStateSchema = z.object({
 });
 
 export type WorkflowAgentState = z.infer<typeof WorkflowAgentStateSchema>;
+
+export type CanvasExecutionCheckpoint = z.infer<
+  typeof CanvasExecutionCheckpointSchema
+>;
