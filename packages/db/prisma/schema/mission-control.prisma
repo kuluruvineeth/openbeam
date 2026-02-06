@@ -1,0 +1,180 @@
+enum MissionStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+  ARCHIVED
+}
+
+enum MissionTaskStatus {
+  INBOX
+  ASSIGNED
+  IN_PROGRESS
+  REVIEW
+  DONE
+  BLOCKED
+  CANCELLED
+}
+
+enum MissionTaskPriority {
+  P0
+  P1
+  P2
+  P3
+}
+
+enum MissionRunStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+  TIMED_OUT
+}
+
+model Mission {
+  id                   String        @id @default(cuid()) @map("_id")
+  teamId               String
+  createdById          String
+  name                 String
+  objective            String        @db.Text
+  status               MissionStatus @default(DRAFT)
+  timezone             String        @default("UTC")
+  budgetCents          Int?
+  consumedCents        Int           @default(0)
+  maxConcurrentRuns    Int           @default(3)
+  heartbeatIntervalMin Int           @default(15)
+  workflowId           String?
+  runId                String?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  agents     MissionAgent[]
+  tasks      MissionTask[]
+  runs       MissionRun[]
+  activities MissionActivity[]
+  memory     MissionMemory[]
+
+  @@index([teamId, status, updatedAt(sort: Desc)])
+  @@map("mission")
+}
+
+model MissionAgent {
+  id         String @id @default(cuid()) @map("_id")
+  missionId  String
+  agentId    String
+  name       String
+  role       String
+  soulPrompt String @db.Text
+  level      String @default("specialist")
+  sortOrder  Int    @default(0)
+
+  mission  Mission          @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  agent    BackgroundAgent  @relation(fields: [agentId], references: [id])
+  tasks    MissionTask[]    @relation("assignee")
+  runs     MissionRun[]
+  comments MissionComment[]
+
+  @@unique([missionId, agentId])
+  @@index([missionId, sortOrder])
+  @@map("mission_agent")
+}
+
+model MissionTask {
+  id          String              @id @default(cuid()) @map("_id")
+  missionId   String
+  title       String
+  description String?             @db.Text
+  status      MissionTaskStatus   @default(INBOX)
+  priority    MissionTaskPriority @default(P2)
+  assigneeId  String?
+  claimedAt   DateTime?
+  completedAt DateTime?
+  requestId   String              @unique
+  createdById String
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  mission  Mission          @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  assignee MissionAgent?    @relation("assignee", fields: [assigneeId], references: [id])
+  comments MissionComment[]
+  runs     MissionRun[]
+
+  @@index([missionId, status, priority])
+  @@index([assigneeId, status])
+  @@map("mission_task")
+}
+
+model MissionComment {
+  id          String   @id @default(cuid()) @map("_id")
+  taskId      String
+  fromAgentId String?
+  fromUserId  String?
+  content     String   @db.Text
+  mentions    String[]
+  createdAt   DateTime @default(now())
+
+  task      MissionTask   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  fromAgent MissionAgent? @relation(fields: [fromAgentId], references: [id])
+
+  @@index([taskId, createdAt])
+  @@map("mission_comment")
+}
+
+model MissionRun {
+  id          String           @id @default(cuid()) @map("_id")
+  missionId   String
+  taskId      String?
+  agentId     String
+  status      MissionRunStatus @default(QUEUED)
+  workflowId  String?
+  startedAt   DateTime?
+  completedAt DateTime?
+  tokensUsed  Int              @default(0)
+  costCents   Int              @default(0)
+  artifacts   Json             @default("[]")
+  error       String?
+  createdAt   DateTime         @default(now())
+
+  mission Mission      @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  task    MissionTask? @relation(fields: [taskId], references: [id])
+  agent   MissionAgent @relation(fields: [agentId], references: [id])
+
+  @@index([missionId, status])
+  @@index([agentId, status])
+  @@map("mission_run")
+}
+
+model MissionActivity {
+  id        String   @id @default(cuid()) @map("_id")
+  missionId String
+  agentId   String?
+  userId    String?
+  type      String
+  message   String
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now())
+
+  mission Mission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  @@index([missionId, createdAt(sort: Desc)])
+  @@map("mission_activity")
+}
+
+model MissionMemory {
+  id        String   @id @default(cuid()) @map("_id")
+  missionId String
+  agentId   String?
+  key       String
+  value     Json
+  scope     String   @default("mission")
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  mission Mission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  @@unique([missionId, agentId, key, scope])
+  @@index([missionId, scope])
+  @@map("mission_memory")
+}

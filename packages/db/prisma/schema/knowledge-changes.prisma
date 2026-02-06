@@ -1,0 +1,98 @@
+enum ChangeType {
+  CREATED
+  UPDATED
+  DELETED
+  PERMISSION_CHANGED
+}
+
+enum ChangeSource {
+  CONNECTOR_SYNC
+  AGENT_ACTION
+  USER_FEEDBACK
+  INFERENCE_PIPELINE
+}
+
+model DocumentChange {
+  id           String       @id @default(cuid()) @map("_id")
+  teamId       String
+  documentId   String
+  connectorId  String
+  changeType   ChangeType
+  source       ChangeSource @default(CONNECTOR_SYNC)
+
+  changedBy     String?
+  changedFields String[]    @default([])
+  metadata      Json        @default("{}")
+
+  eventTime   DateTime?
+  processedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([teamId, processedAt])
+  @@index([teamId, connectorId, createdAt])
+  @@index([documentId])
+  @@map("document_change")
+}
+
+model EntityChange {
+  id          String       @id @default(cuid()) @map("_id")
+  teamId      String
+  entityId    String
+  field       String
+  oldValue    Json?
+  newValue    Json?
+  source      ChangeSource
+  triggeredBy String?
+
+  processedAt DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([teamId, processedAt])
+  @@index([entityId])
+  @@map("entity_change")
+}
+
+model ActivityEvent {
+  id           String   @id @default(cuid()) @map("_id")
+  teamId       String
+  userId       String
+  action       String
+  resourceType String
+  resourceId   String
+  metadata     Json     @default("{}")
+  createdAt    DateTime @default(now())
+
+  @@index([teamId, userId, createdAt])
+  @@index([teamId, resourceType, createdAt])
+  @@map("activity_event")
+}
+
+model UserInteraction {
+  id         String   @id @default(cuid()) @map("_id")
+  teamId     String
+  userId     String
+  documentId String
+  action     String
+  metadata   Json     @default("{}")
+  createdAt  DateTime @default(now())
+
+  @@index([teamId, userId, createdAt])
+  @@index([documentId])
+  @@map("user_interaction")
+}
+
+model UserEntityAffinity {
+  id       String @id @default(cuid()) @map("_id")
+  teamId   String
+  userId   String
+  entityId String
+  score    Float  @default(0)
+  source   String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([teamId, userId, entityId])
+  @@index([teamId, userId, score(sort: Desc)])
+  @@map("user_entity_affinity")
+}
