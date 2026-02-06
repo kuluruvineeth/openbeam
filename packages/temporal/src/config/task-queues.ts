@@ -12,6 +12,9 @@ export const TASK_QUEUES = {
   MAINTENANCE: "maintenance",
   TRAINING: "training",
   SCHEDULED: "scheduled",
+  MISSION: "mission",
+  KNOWLEDGE: "knowledge",
+  KNOWLEDGE_INFERENCE: "knowledge-inference",
   DEFAULT: "default",
 } as const;
 

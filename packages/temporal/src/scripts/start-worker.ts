@@ -100,6 +100,7 @@ export function getTaskQueuesForWorkerType(workerType: WorkerType): string[] {
     canvas: TASK_QUEUES.CANVAS,
     maintenance: TASK_QUEUES.MAINTENANCE,
     scheduled: TASK_QUEUES.SCHEDULED,
+    knowledge: TASK_QUEUES.KNOWLEDGE,
   };
 
   return [mapping[workerType] ?? TASK_QUEUES.DEFAULT];
@@ -115,6 +116,7 @@ function getTaskQueueForWorkerType(workerType: WorkerType): string {
     canvas: TASK_QUEUES.CANVAS,
     maintenance: TASK_QUEUES.MAINTENANCE,
     scheduled: TASK_QUEUES.SCHEDULED,
+    knowledge: TASK_QUEUES.KNOWLEDGE,
   };
 
   return mapping[workerType] ?? TASK_QUEUES.DEFAULT;

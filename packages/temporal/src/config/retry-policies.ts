@@ -63,6 +63,34 @@ export const DATABASE_RETRY_POLICY: RetryPolicy = {
   nonRetryableErrorTypes: ["ConstraintViolationError", "NotFoundError"],
 };
 
+export const CANVAS_NODE_RETRY_POLICY: RetryPolicy = {
+  initialInterval: "2s",
+  backoffCoefficient: 2,
+  maximumAttempts: 3,
+  maximumInterval: "30s",
+  nonRetryableErrorTypes: [
+    "AuthorizationError",
+    "CanvasNotFoundError",
+    "ValidationError",
+  ],
+};
+
+export const CANVAS_UPDATE_RETRY_POLICY: RetryPolicy = {
+  initialInterval: "500ms",
+  backoffCoefficient: 2,
+  maximumAttempts: 5,
+  maximumInterval: "15s",
+  nonRetryableErrorTypes: ["ExecutionNotFoundError", "CanvasNotFoundError"],
+};
+
+export const AUDIT_RETRY_POLICY: RetryPolicy = {
+  initialInterval: "1s",
+  backoffCoefficient: 2,
+  maximumAttempts: 3,
+  maximumInterval: "10s",
+  nonRetryableErrorTypes: [],
+};
+
 export function getRetryPolicyForActivity(activityType: string): RetryPolicy {
   const mapping: Record<string, RetryPolicy> = {
     sync: SYNC_RETRY_POLICY,
@@ -75,6 +103,9 @@ export function getRetryPolicyForActivity(activityType: string): RetryPolicy {
     webhook: WEBHOOK_RETRY_POLICY,
     storage: STORAGE_RETRY_POLICY,
     database: DATABASE_RETRY_POLICY,
+    canvas: CANVAS_NODE_RETRY_POLICY,
+    canvasUpdate: CANVAS_UPDATE_RETRY_POLICY,
+    audit: AUDIT_RETRY_POLICY,
   };
 
   return mapping[activityType] ?? DEFAULT_RETRY_POLICY;

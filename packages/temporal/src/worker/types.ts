@@ -6,7 +6,8 @@ export type WorkerType =
   | "agent"
   | "canvas"
   | "maintenance"
-  | "scheduled";
+  | "scheduled"
+  | "knowledge";
 
 export interface WorkerOptions {
   taskQueue: string;
