@@ -211,7 +211,9 @@ describe("CompletionService", () => {
       await service.complete(messages, { onComplete });
 
       expect(onComplete).toHaveBeenCalledTimes(1);
-      const callArg = onComplete.mock.calls[0]?.[0];
+      const callArg = (onComplete.mock.calls as unknown[][])[0]?.[0] as
+        | Record<string, unknown>
+        | undefined;
       expect(callArg).toBeDefined();
       expect(callArg).toMatchObject({
         content: "Generated response text",
@@ -272,7 +274,7 @@ describe("CompletionService", () => {
       const chunks: Array<{
         type: string;
         content?: string;
-        usage?: { inputTokens: number; outputTokens: number };
+        usage?: { inputTokens?: number; outputTokens?: number };
       }> = [];
 
       for await (const chunk of service.stream(messages)) {

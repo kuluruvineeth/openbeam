@@ -51,7 +51,7 @@ export interface ToolDefinition<TParams extends z.ZodType, TResult> {
   register: () => void;
 }
 
-function deriveApprovalPattern(
+export function deriveApprovalPattern(
   stakes: StakesLevel,
   reversibility: ReversibilityLevel,
   explicit?: ApprovalPattern
