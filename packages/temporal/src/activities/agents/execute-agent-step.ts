@@ -26,10 +26,12 @@ export function createExecuteAgentStepActivity(
       artifacts: result.artifacts,
       checkpoint: {
         step: input.step,
-        state: {},
+        state: input.context,
         timestamp: Date.now(),
       },
       complete: result.complete,
+      tokensUsed: result.tokensUsed ?? 0,
+      costCents: result.costCents ?? 0,
     };
   };
 }

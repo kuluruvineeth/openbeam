@@ -3,6 +3,11 @@ import type {
   CanvasApprovalSignalPayload,
   CanvasInputSignalPayload,
 } from "@openplane/types/temporal";
+import type {
+  MissionCommandPayload,
+  MissionRuntimeQueryResult,
+  MissionWakePayload,
+} from "@openplane/types/temporal/mission";
 import { defineQuery, defineSignal } from "@temporalio/workflow";
 
 export interface CanvasExecutionQueryState {
@@ -14,6 +19,9 @@ export interface CanvasExecutionQueryState {
   isPaused: boolean;
   isCancelled: boolean;
   startedAt: number;
+  droppedSignals: number;
+  totalNodeExecutions: number;
+  continueAsNewCount: number;
   steps: Array<{
     nodeId: string;
     nodeType: string;
@@ -298,3 +306,9 @@ export const canvasApprovalSignal =
   defineSignal<[CanvasApprovalSignalPayload]>("canvasApproval");
 export const canvasInputSignal =
   defineSignal<[CanvasInputSignalPayload]>("canvasInput");
+export const missionWakeSignal =
+  defineSignal<[MissionWakePayload]>("missionWake");
+export const missionCommandSignal =
+  defineSignal<[MissionCommandPayload]>("missionCommand");
+export const missionRuntimeQuery =
+  defineQuery<MissionRuntimeQueryResult>("missionRuntime");

@@ -51,9 +51,12 @@ beforeAll(async () => {
 describe("createFetchBatchActivity", () => {
   function createMockSyncGenerator(
     batches: Array<{ items: unknown[]; cursor?: SyncCursor }>
-  ) {
+  ): (
+    connector: ConnectorRecord,
+    cursor?: SyncCursor
+  ) => AsyncGenerator<{ items: unknown[]; cursor?: SyncCursor }> {
     let batchIndex = 0;
-    return function* mockSync(
+    return async function* mockSync(
       _connector: ConnectorRecord,
       _cursor?: SyncCursor
     ) {
@@ -61,7 +64,7 @@ describe("createFetchBatchActivity", () => {
         const batch = batches[batchIndex];
         batchIndex += 1;
         if (batch) {
-          yield batch;
+          yield await Promise.resolve(batch);
         }
       }
     };

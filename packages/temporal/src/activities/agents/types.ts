@@ -7,7 +7,12 @@ export interface AgentExecutor {
     step: number,
     previousArtifacts: AgentArtifact[],
     context: Record<string, unknown>
-  ): Promise<{ artifacts: AgentArtifact[]; complete: boolean }>;
+  ): Promise<{
+    artifacts: AgentArtifact[];
+    complete: boolean;
+    tokensUsed?: number;
+    costCents?: number;
+  }>;
 }
 
 export interface ExecuteAgentStepInput {
@@ -22,6 +27,8 @@ export interface ExecuteAgentStepOutput {
   artifacts: AgentArtifact[];
   checkpoint: AgentCheckpoint;
   complete: boolean;
+  tokensUsed: number;
+  costCents: number;
 }
 
 export interface FinalizeAgentSessionInput {

@@ -4319,6 +4319,9 @@ export async function agentCanvasExecutionWorkflow(
       isPaused: state.paused,
       isCancelled: state.cancelled,
       startedAt: trace.startedAt,
+      droppedSignals: 0,
+      totalNodeExecutions: trace.steps.length,
+      continueAsNewCount: 0,
       steps: trace.steps.map((s) => ({
         nodeId: s.nodeId,
         nodeType: s.nodeType,
