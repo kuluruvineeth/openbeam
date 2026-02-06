@@ -247,6 +247,7 @@ export {
   resolveOrCreateEntity,
   updateExpertise,
 } from "./knowledge";
+export { logger } from "./lib/logger";
 export type { OAuthState } from "./lib/oauth-state";
 export {
   createOAuthState,
