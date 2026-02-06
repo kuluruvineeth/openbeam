@@ -1,0 +1,28 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "composite": false,
+    "noEmit": true
+  },
+  "include": [
+    "src/activities/database/record-sync-document-changes.ts",
+    "src/activities/database/types.ts",
+    "src/activities/knowledge/**/*.ts",
+    "src/config.ts",
+    "src/triggers/knowledge.ts",
+    "src/worker/types.ts",
+    "src/workflows/processing/index-documents.ts",
+    "src/workflows/scheduled/knowledge-changes.ts",
+    "src/workflows/scheduled/knowledge-cleanup.ts",
+    "src/workflows/scheduled/knowledge-inference.ts",
+    "src/workflows/sync/connector-sync.ts",
+    "src/scripts/register-schedules.ts",
+    "src/__tests__/knowledge-activities-changes.test.ts",
+    "src/__tests__/knowledge-changes.test.ts",
+    "src/__tests__/knowledge-cleanup.test.ts",
+    "src/__tests__/knowledge-inference.test.ts",
+    "src/__tests__/knowledge-schema-validation.test.ts",
+    "src/__tests__/knowledge-e2e.integration.test.ts",
+    "src/__tests__/register-schedules.test.ts"
+  ]
+}
