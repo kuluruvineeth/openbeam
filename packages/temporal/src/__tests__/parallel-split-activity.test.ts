@@ -1,5 +1,5 @@
-import { beforeAll, describe, expect, it, mock } from "bun:test";
 import type { ExecutionPlanNode } from "@openplane/types/canvas";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 
 const executionDataStore = new Map<
   string,
@@ -8,8 +8,8 @@ const executionDataStore = new Map<
 let executionDataCounter = 0;
 let stepCounter = 0;
 
-mock.module("@openplane/db", () => ({
-  createAgentCanvasExecutionData: mock(
+vi.mock("@openplane/db", () => ({
+  createAgentCanvasExecutionData: vi.fn(
     (
       _db: unknown,
       _teamId: string,
@@ -35,7 +35,7 @@ mock.module("@openplane/db", () => ({
       });
     }
   ),
-  findAgentCanvasExecutionData: mock(
+  findAgentCanvasExecutionData: vi.fn(
     (_db: unknown, _executionId: string, dataId: string) => {
       const record = executionDataStore.get(dataId);
       if (!record) {
@@ -49,11 +49,11 @@ mock.module("@openplane/db", () => ({
       });
     }
   ),
-  createAgentCanvasExecutionStep: mock(() => {
+  createAgentCanvasExecutionStep: vi.fn(() => {
     stepCounter += 1;
     return Promise.resolve({ id: `step-${stepCounter}` });
   }),
-  updateAgentCanvasExecutionStep: mock(() => Promise.resolve(null)),
+  updateAgentCanvasExecutionStep: vi.fn(() => Promise.resolve(null)),
 }));
 
 let createExecuteParallelSplitNodeActivity: typeof import("../activities/canvas/parallel-split-node").createExecuteParallelSplitNodeActivity;

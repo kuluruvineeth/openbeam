@@ -4,12 +4,14 @@ vi.mock("@temporalio/activity", () => ({
   Context: {
     current: () => ({
       heartbeat: vi.fn(),
+      info: { activityId: "test-activity", attempt: 1 },
     }),
   },
 }));
 
 import { createExecuteAgentStepActivity } from "../activities/agents/execute-agent-step";
 import type { AgentExecutor } from "../activities/agents/types";
+import type { AgentArtifact } from "../workflows/types";
 
 function createMockExecutor(
   overrides: Partial<
@@ -109,7 +111,7 @@ describe("executeAgentStep", () => {
       sessionId: "session-1",
       agentType: "research",
       step: 2,
-      previousArtifacts: artifacts as any,
+      previousArtifacts: artifacts as unknown as AgentArtifact[],
       context: {},
     });
 

@@ -22,7 +22,7 @@ describe("saveAgentCheckpoint", () => {
     mockGetCheckpoints.mockResolvedValue([{ version: 3 }]);
     mockCreateCheckpoint.mockResolvedValue(undefined);
 
-    const db = {} as any;
+    const db = {} as never;
     const activity = createSaveAgentCheckpointActivity({ db });
 
     await activity({
@@ -46,7 +46,7 @@ describe("saveAgentCheckpoint", () => {
     mockGetCheckpoints.mockResolvedValue([]);
     mockCreateCheckpoint.mockResolvedValue(undefined);
 
-    const activity = createSaveAgentCheckpointActivity({ db: {} as any });
+    const activity = createSaveAgentCheckpointActivity({ db: {} as never });
 
     await activity({
       sessionId: "session-1",
@@ -68,7 +68,7 @@ describe("saveAgentCheckpoint", () => {
     mockGetCheckpoints.mockResolvedValue([{ version: 1 }]);
     mockCreateCheckpoint.mockResolvedValue(undefined);
 
-    const activity = createSaveAgentCheckpointActivity({ db: {} as any });
+    const activity = createSaveAgentCheckpointActivity({ db: {} as never });
 
     await (activity as (...args: unknown[]) => Promise<unknown>)({
       sessionId: "session-1",
@@ -96,7 +96,7 @@ describe("saveAgentCheckpoint", () => {
     mockGetCheckpoints.mockResolvedValue([{ version: 1 }]);
     mockCreateCheckpoint.mockResolvedValue(undefined);
 
-    const activity = createSaveAgentCheckpointActivity({ db: {} as any });
+    const activity = createSaveAgentCheckpointActivity({ db: {} as never });
 
     const contextWindow = [
       { role: "user", content: "hello" },
@@ -128,7 +128,7 @@ describe("saveAgentCheckpoint", () => {
     mockGetCheckpoints.mockResolvedValue([{ version: 5 }]);
     mockCreateCheckpoint.mockResolvedValue(undefined);
 
-    const activity = createSaveAgentCheckpointActivity({ db: {} as any });
+    const activity = createSaveAgentCheckpointActivity({ db: {} as never });
 
     await (activity as (...args: unknown[]) => Promise<unknown>)({
       sessionId: "session-1",
@@ -160,7 +160,7 @@ describe("saveAgentCheckpoint", () => {
     mockGetCheckpoints.mockResolvedValue([{ version: 1 }]);
     mockCreateCheckpoint.mockResolvedValue(undefined);
 
-    const activity = createSaveAgentCheckpointActivity({ db: {} as any });
+    const activity = createSaveAgentCheckpointActivity({ db: {} as never });
 
     await activity({
       sessionId: "session-1",

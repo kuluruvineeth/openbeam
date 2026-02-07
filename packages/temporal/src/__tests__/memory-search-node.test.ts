@@ -17,7 +17,11 @@ describe("memorySearchNode", () => {
       { key: "counter_b", value: 2, scope: "workflow", updatedAt: new Date() },
     ]);
 
-    const activity = createMemorySearchNodeActivity({ db: db as any });
+    const activity = createMemorySearchNodeActivity({
+      db: db as unknown as Parameters<
+        typeof createMemorySearchNodeActivity
+      >[0]["db"],
+    });
 
     const result = await activity({
       executionId: "exec-1",
@@ -56,7 +60,11 @@ describe("memorySearchNode", () => {
       },
     ]);
 
-    const activity = createMemorySearchNodeActivity({ db: db as any });
+    const activity = createMemorySearchNodeActivity({
+      db: db as unknown as Parameters<
+        typeof createMemorySearchNodeActivity
+      >[0]["db"],
+    });
 
     const result = await activity({
       executionId: "exec-1",
@@ -89,7 +97,11 @@ describe("memorySearchNode", () => {
       },
     ]);
 
-    const activity = createMemorySearchNodeActivity({ db: db as any });
+    const activity = createMemorySearchNodeActivity({
+      db: db as unknown as Parameters<
+        typeof createMemorySearchNodeActivity
+      >[0]["db"],
+    });
 
     const result = await activity({
       executionId: "exec-1",
@@ -122,7 +134,11 @@ describe("memorySearchNode", () => {
   it("respects topK parameter", async () => {
     const db = createMockDb();
 
-    const activity = createMemorySearchNodeActivity({ db: db as any });
+    const activity = createMemorySearchNodeActivity({
+      db: db as unknown as Parameters<
+        typeof createMemorySearchNodeActivity
+      >[0]["db"],
+    });
 
     await activity({
       executionId: "exec-1",
@@ -141,7 +157,11 @@ describe("memorySearchNode", () => {
   it("falls back to executionId as missionId", async () => {
     const db = createMockDb();
 
-    const activity = createMemorySearchNodeActivity({ db: db as any });
+    const activity = createMemorySearchNodeActivity({
+      db: db as unknown as Parameters<
+        typeof createMemorySearchNodeActivity
+      >[0]["db"],
+    });
 
     await activity({
       executionId: "exec-fallback",
@@ -170,7 +190,11 @@ describe("memorySearchNode", () => {
       },
     ]);
 
-    const activity = createMemorySearchNodeActivity({ db: db as any });
+    const activity = createMemorySearchNodeActivity({
+      db: db as unknown as Parameters<
+        typeof createMemorySearchNodeActivity
+      >[0]["db"],
+    });
 
     const result = await activity({
       executionId: "exec-1",

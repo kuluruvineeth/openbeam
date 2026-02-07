@@ -11,6 +11,7 @@
  *   npx vitest run --config vitest.integration.config.ts
  */
 
+import { fileURLToPath } from "node:url";
 import type {
   AgentCanvasExecutionInput,
   AgentCanvasExecutionOutput,
@@ -274,7 +275,9 @@ describe("Canvas Execution Integration Tests", () => {
     worker = await Worker.create({
       connection: env.nativeConnection,
       taskQueue: "test-canvas-integration",
-      workflowsPath: require.resolve("../workflows/canvas/canvas-execution"),
+      workflowsPath: fileURLToPath(
+        new URL("../workflows/canvas/canvas-execution.ts", import.meta.url)
+      ),
       activities,
     });
 
@@ -282,7 +285,7 @@ describe("Canvas Execution Integration Tests", () => {
   });
 
   afterAll(async () => {
-    worker?.shutdown();
+    await worker?.shutdown();
     await env?.teardown();
   });
 

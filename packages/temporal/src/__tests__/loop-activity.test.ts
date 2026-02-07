@@ -1,12 +1,11 @@
-import { beforeAll, describe, expect, it, mock } from "bun:test";
 import type { ExecutionPlanNode } from "@openplane/types/canvas";
 import type { LoopIterationError, LoopState } from "@openplane/types/temporal";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 
-mock.module("@temporalio/activity", () => ({
+vi.mock("@temporalio/activity", () => ({
   Context: {
     current: () => ({
-      // biome-ignore lint/suspicious/noEmptyBlockStatements: noop mock heartbeat
-      heartbeat: mock(() => {}),
+      heartbeat: vi.fn(),
     }),
   },
 }));
@@ -18,8 +17,8 @@ const executionDataStore = new Map<
 let executionDataCounter = 0;
 let stepCounter = 0;
 
-mock.module("@openplane/db", () => ({
-  createAgentCanvasExecutionData: mock(
+vi.mock("@openplane/db", () => ({
+  createAgentCanvasExecutionData: vi.fn(
     (
       _db: unknown,
       _teamId: string,
@@ -45,7 +44,7 @@ mock.module("@openplane/db", () => ({
       });
     }
   ),
-  findAgentCanvasExecutionData: mock(
+  findAgentCanvasExecutionData: vi.fn(
     (_db: unknown, _executionId: string, dataId: string) => {
       const record = executionDataStore.get(dataId);
       if (!record) {
@@ -59,11 +58,11 @@ mock.module("@openplane/db", () => ({
       });
     }
   ),
-  createAgentCanvasExecutionStep: mock(() => {
+  createAgentCanvasExecutionStep: vi.fn(() => {
     stepCounter += 1;
     return Promise.resolve({ id: `step-${stepCounter}` });
   }),
-  updateAgentCanvasExecutionStep: mock(() => Promise.resolve(null)),
+  updateAgentCanvasExecutionStep: vi.fn(() => Promise.resolve(null)),
 }));
 
 let createExecuteLoopNodeActivity: typeof import("../activities/canvas/loop-node").createExecuteLoopNodeActivity;

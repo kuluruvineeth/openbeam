@@ -1,6 +1,7 @@
-import { afterAll, beforeAll, describe, expect, it } from "bun:test";
+import { fileURLToPath } from "node:url";
 import { TestWorkflowEnvironment } from "@temporalio/testing";
 import { Worker } from "@temporalio/worker";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { cleanupWorkflow } from "../workflows/scheduled/cleanup";
 import {
   createMockDatabaseActivities,
@@ -24,7 +25,9 @@ describe("cleanupWorkflow", () => {
     worker = await Worker.create({
       connection: env.nativeConnection,
       taskQueue: "test-cleanup",
-      workflowsPath: require.resolve("../workflows/scheduled/cleanup"),
+      workflowsPath: fileURLToPath(
+        new URL("../workflows/scheduled/cleanup.ts", import.meta.url)
+      ),
       activities,
     });
 
@@ -32,7 +35,7 @@ describe("cleanupWorkflow", () => {
   });
 
   afterAll(async () => {
-    worker?.shutdown();
+    await worker?.shutdown();
     await env?.teardown();
   });
 

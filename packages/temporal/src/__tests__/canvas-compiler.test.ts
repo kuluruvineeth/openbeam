@@ -1,10 +1,10 @@
-import { describe, expect, it } from "bun:test";
 import type {
   AgentCanvasEdge,
   AgentCanvasNode,
   CanvasNodeType,
   CanvasState,
 } from "@openplane/types/canvas";
+import { describe, expect, it } from "vitest";
 import {
   CanvasValidationError,
   compileCanvasPlan,

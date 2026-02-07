@@ -49,6 +49,7 @@ vi.mock("@temporalio/workflow", () => {
       workflowId: "sync:conn-1:manual",
       startTime: new Date("2026-02-06T00:00:00Z"),
       historyLength: 0,
+      unsafe: { now: () => Date.now() },
     }),
   };
 });

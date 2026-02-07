@@ -1,5 +1,5 @@
-import { describe, expect, it } from "bun:test";
 import type { ExecutionDataRef } from "@openplane/types/canvas";
+import { describe, expect, it } from "vitest";
 import {
   type ClaimCheckStore,
   isExecutionDataRef,

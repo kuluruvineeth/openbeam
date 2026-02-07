@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockGetCheckpoints: ReturnType<typeof vi.fn> = vi.fn(() => []);
 
@@ -8,6 +8,10 @@ vi.mock("@openplane/db", () => ({
 }));
 
 import { createLoadAgentContextActivity } from "../activities/agents/load-agent-context";
+
+beforeEach(() => {
+  mockGetCheckpoints.mockReset();
+});
 
 function createMockDb() {
   return {

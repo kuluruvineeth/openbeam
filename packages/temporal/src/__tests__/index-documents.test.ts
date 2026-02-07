@@ -1,8 +1,13 @@
-import { afterAll, beforeAll, describe, expect, it } from "bun:test";
+import { fileURLToPath } from "node:url";
 import { TestWorkflowEnvironment } from "@temporalio/testing";
 import { Worker } from "@temporalio/worker";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { indexDocumentsWorkflow } from "../workflows/processing/index-documents";
-import { createMockVespaActivities } from "./setup";
+import {
+  createMockDatabaseActivities,
+  createMockEngineActivities,
+  createMockVespaActivities,
+} from "./setup";
 
 describe("indexDocumentsWorkflow", () => {
   let env: TestWorkflowEnvironment;
@@ -11,12 +16,18 @@ describe("indexDocumentsWorkflow", () => {
   beforeAll(async () => {
     env = await TestWorkflowEnvironment.createTimeSkipping();
 
-    const activities = createMockVespaActivities();
+    const activities = {
+      ...createMockDatabaseActivities(),
+      ...createMockEngineActivities(),
+      ...createMockVespaActivities(),
+    };
 
     worker = await Worker.create({
       connection: env.nativeConnection,
       taskQueue: "test-index",
-      workflowsPath: require.resolve("../workflows/processing/index-documents"),
+      workflowsPath: fileURLToPath(
+        new URL("../workflows/processing/index-documents.ts", import.meta.url)
+      ),
       activities,
     });
 
@@ -24,7 +35,7 @@ describe("indexDocumentsWorkflow", () => {
   });
 
   afterAll(async () => {
-    worker?.shutdown();
+    await worker?.shutdown();
     await env?.teardown();
   });
 

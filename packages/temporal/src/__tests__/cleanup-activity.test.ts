@@ -2,12 +2,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 let createCleanupExecutionDataActivity: typeof import("../activities/canvas/cleanup").createCleanupExecutionDataActivity;
 
+const mockExecutionFindMany = vi.fn();
+const mockExecutionDataDeleteMany = vi.fn();
+
 const mockDb = {
   agentCanvasExecution: {
-    findMany: vi.fn(),
+    findMany: mockExecutionFindMany,
   },
   agentCanvasExecutionData: {
-    deleteMany: vi.fn(),
+    deleteMany: mockExecutionDataDeleteMany,
   },
 } as never;
 
@@ -19,11 +22,11 @@ beforeEach(async () => {
 
 describe("cleanupExecutionData", () => {
   it("deletes payloads for old completed executions", async () => {
-    (mockDb as any).agentCanvasExecution.findMany.mockResolvedValue([
+    mockExecutionFindMany.mockResolvedValue([
       { id: "exec-1" },
       { id: "exec-2" },
     ]);
-    (mockDb as any).agentCanvasExecutionData.deleteMany.mockResolvedValue({
+    mockExecutionDataDeleteMany.mockResolvedValue({
       count: 15,
     });
 
@@ -33,7 +36,7 @@ describe("cleanupExecutionData", () => {
     expect(result.deletedPayloads).toBe(15);
     expect(result.processedExecutions).toBe(2);
 
-    expect((mockDb as any).agentCanvasExecution.findMany).toHaveBeenCalledWith(
+    expect(mockExecutionFindMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
           status: { in: ["COMPLETED", "FAILED", "CANCELLED", "TIMED_OUT"] },
@@ -45,30 +48,26 @@ describe("cleanupExecutionData", () => {
   });
 
   it("returns zeros when no executions found", async () => {
-    (mockDb as any).agentCanvasExecution.findMany.mockResolvedValue([]);
+    mockExecutionFindMany.mockResolvedValue([]);
 
     const activity = createCleanupExecutionDataActivity({ db: mockDb });
     const result = await activity({ olderThanDays: 30 });
 
     expect(result.deletedPayloads).toBe(0);
     expect(result.processedExecutions).toBe(0);
-    expect(
-      (mockDb as any).agentCanvasExecutionData.deleteMany
-    ).not.toHaveBeenCalled();
+    expect(mockExecutionDataDeleteMany).not.toHaveBeenCalled();
   });
 
   it("scopes cleanup to team when teamId provided", async () => {
-    (mockDb as any).agentCanvasExecution.findMany.mockResolvedValue([
-      { id: "exec-1" },
-    ]);
-    (mockDb as any).agentCanvasExecutionData.deleteMany.mockResolvedValue({
+    mockExecutionFindMany.mockResolvedValue([{ id: "exec-1" }]);
+    mockExecutionDataDeleteMany.mockResolvedValue({
       count: 3,
     });
 
     const activity = createCleanupExecutionDataActivity({ db: mockDb });
     await activity({ olderThanDays: 30, teamId: "team-1" });
 
-    expect((mockDb as any).agentCanvasExecution.findMany).toHaveBeenCalledWith(
+    expect(mockExecutionFindMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
           agentCanvas: { teamId: "team-1" },
@@ -89,8 +88,8 @@ describe("cleanupExecutionData", () => {
     const executions = Array.from({ length: 5 }, (_, i) => ({
       id: `exec-${i}`,
     }));
-    (mockDb as any).agentCanvasExecution.findMany.mockResolvedValue(executions);
-    (mockDb as any).agentCanvasExecutionData.deleteMany.mockResolvedValue({
+    mockExecutionFindMany.mockResolvedValue(executions);
+    mockExecutionDataDeleteMany.mockResolvedValue({
       count: 50,
     });
 
@@ -98,9 +97,7 @@ describe("cleanupExecutionData", () => {
     const result = await activity({ olderThanDays: 7 });
 
     expect(result.processedExecutions).toBe(5);
-    expect(
-      (mockDb as any).agentCanvasExecutionData.deleteMany
-    ).toHaveBeenCalledWith({
+    expect(mockExecutionDataDeleteMany).toHaveBeenCalledWith({
       where: {
         executionId: {
           in: ["exec-0", "exec-1", "exec-2", "exec-3", "exec-4"],

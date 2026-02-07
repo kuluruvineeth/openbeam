@@ -1,11 +1,4 @@
-import {
-  afterAll,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-} from "bun:test";
+import { fileURLToPath } from "node:url";
 import type {
   ExecuteCanvasNodeInput,
   ExecuteCanvasNodeOutput,
@@ -23,8 +16,10 @@ import type {
   StoreParallelMapOutputOutput,
   UpdateCanvasExecutionInput,
 } from "@openplane/types/temporal";
+import { ApplicationFailure } from "@temporalio/common";
 import { TestWorkflowEnvironment } from "@temporalio/testing";
 import { Worker } from "@temporalio/worker";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { agentCanvasExecutionWorkflow } from "../workflows/canvas/canvas-execution";
 
 const executedNodes: string[] = [];
@@ -476,9 +471,9 @@ describe("agentCanvasExecutionWorkflow", () => {
       ): Promise<ExecuteCanvasNodeOutput> => {
         executedNodes.push(input.node.id);
         if (input.node.id === "always-fail") {
-          const error = new Error("PermanentError");
-          error.name = "PermanentError";
-          return Promise.reject(error);
+          return Promise.reject(
+            ApplicationFailure.nonRetryable("PermanentError", "PermanentError")
+          );
         }
         if (input.node.id === "unstable") {
           const attempt = nodeAttempts.get(input.node.id) ?? 0;
@@ -614,7 +609,9 @@ describe("agentCanvasExecutionWorkflow", () => {
     worker = await Worker.create({
       connection: env.nativeConnection,
       taskQueue: "test-canvas",
-      workflowsPath: require.resolve("../workflows/canvas/canvas-execution"),
+      workflowsPath: fileURLToPath(
+        new URL("../workflows/canvas/canvas-execution.ts", import.meta.url)
+      ),
       activities,
     });
 
@@ -622,7 +619,7 @@ describe("agentCanvasExecutionWorkflow", () => {
   });
 
   afterAll(async () => {
-    worker?.shutdown();
+    await worker?.shutdown();
     await env?.teardown();
   });
 

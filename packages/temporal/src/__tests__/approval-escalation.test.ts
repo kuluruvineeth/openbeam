@@ -12,9 +12,11 @@ let createSendApprovalReminderActivity: typeof import("../activities/canvas/esca
 let createEscalateApprovalActivity: typeof import("../activities/canvas/escalation").createEscalateApprovalActivity;
 let createExpireApprovalActivity: typeof import("../activities/canvas/escalation").createExpireApprovalActivity;
 
+const mockApprovalFindUnique = vi.fn();
+
 const mockDb = {
   agentCanvasApproval: {
-    findUnique: vi.fn(),
+    findUnique: mockApprovalFindUnique,
   },
 } as never;
 
@@ -28,7 +30,7 @@ beforeEach(async () => {
 
 describe("sendApprovalReminder", () => {
   it("sends reminder for pending approval", async () => {
-    (mockDb as any).agentCanvasApproval.findUnique.mockResolvedValue({
+    mockApprovalFindUnique.mockResolvedValue({
       status: "PENDING",
       reminderSentAt: null,
     });
@@ -50,7 +52,7 @@ describe("sendApprovalReminder", () => {
   });
 
   it("skips reminder if already sent", async () => {
-    (mockDb as any).agentCanvasApproval.findUnique.mockResolvedValue({
+    mockApprovalFindUnique.mockResolvedValue({
       status: "PENDING",
       reminderSentAt: new Date(),
     });
@@ -67,7 +69,7 @@ describe("sendApprovalReminder", () => {
   });
 
   it("skips reminder if approval is not pending", async () => {
-    (mockDb as any).agentCanvasApproval.findUnique.mockResolvedValue({
+    mockApprovalFindUnique.mockResolvedValue({
       status: "APPROVED",
       reminderSentAt: null,
     });
@@ -83,7 +85,7 @@ describe("sendApprovalReminder", () => {
   });
 
   it("throws if approval not found", async () => {
-    (mockDb as any).agentCanvasApproval.findUnique.mockResolvedValue(null);
+    mockApprovalFindUnique.mockResolvedValue(null);
 
     const activity = createSendApprovalReminderActivity({ db: mockDb });
 
@@ -99,7 +101,7 @@ describe("sendApprovalReminder", () => {
 
 describe("escalateApproval", () => {
   it("escalates pending approval to target user", async () => {
-    (mockDb as any).agentCanvasApproval.findUnique.mockResolvedValue({
+    mockApprovalFindUnique.mockResolvedValue({
       status: "PENDING",
       escalatedAt: null,
     });
@@ -125,7 +127,7 @@ describe("escalateApproval", () => {
   });
 
   it("skips escalation if already escalated", async () => {
-    (mockDb as any).agentCanvasApproval.findUnique.mockResolvedValue({
+    mockApprovalFindUnique.mockResolvedValue({
       status: "PENDING",
       escalatedAt: new Date(),
     });
@@ -143,7 +145,7 @@ describe("escalateApproval", () => {
   });
 
   it("skips escalation if approval resolved", async () => {
-    (mockDb as any).agentCanvasApproval.findUnique.mockResolvedValue({
+    mockApprovalFindUnique.mockResolvedValue({
       status: "REJECTED",
       escalatedAt: null,
     });
@@ -162,7 +164,7 @@ describe("escalateApproval", () => {
 
 describe("expireApproval", () => {
   it("expires pending approval", async () => {
-    (mockDb as any).agentCanvasApproval.findUnique.mockResolvedValue({
+    mockApprovalFindUnique.mockResolvedValue({
       status: "PENDING",
     });
     mockExpireApproval.mockResolvedValue({});
@@ -179,7 +181,7 @@ describe("expireApproval", () => {
   });
 
   it("skips expiry if already resolved", async () => {
-    (mockDb as any).agentCanvasApproval.findUnique.mockResolvedValue({
+    mockApprovalFindUnique.mockResolvedValue({
       status: "APPROVED",
     });
 
@@ -195,7 +197,7 @@ describe("expireApproval", () => {
   });
 
   it("throws if approval not found", async () => {
-    (mockDb as any).agentCanvasApproval.findUnique.mockResolvedValue(null);
+    mockApprovalFindUnique.mockResolvedValue(null);
 
     const activity = createExpireApprovalActivity({ db: mockDb });
 

@@ -1,10 +1,20 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@temporalio/workflow", () => ({
   workflowInfo: vi.fn(() => ({
     startTime: new Date(1_700_000_000_000),
   })),
 }));
+
+const FAKE_NOW = 1_700_000_000_000;
+beforeEach(() => {
+  vi.useFakeTimers();
+  vi.setSystemTime(FAKE_NOW);
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 import {
   createSagaBuilder,

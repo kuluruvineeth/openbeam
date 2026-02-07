@@ -19,7 +19,41 @@ vi.mock("@openplane/db", () => ({
   createEntityChange: vi.fn(),
 }));
 
-function createMockDb() {
+interface MockDb {
+  $queryRaw: ReturnType<typeof vi.fn>;
+  documentChange: {
+    findMany: ReturnType<typeof vi.fn>;
+    updateMany: ReturnType<typeof vi.fn>;
+    deleteMany: ReturnType<typeof vi.fn>;
+  };
+  entityMention: {
+    findMany: ReturnType<typeof vi.fn>;
+    createMany: ReturnType<typeof vi.fn>;
+    count: ReturnType<typeof vi.fn>;
+    groupBy: ReturnType<typeof vi.fn>;
+    deleteMany: ReturnType<typeof vi.fn>;
+  };
+  entityRelation: {
+    findMany: ReturnType<typeof vi.fn>;
+    findFirst: ReturnType<typeof vi.fn>;
+    create: ReturnType<typeof vi.fn>;
+    update: ReturnType<typeof vi.fn>;
+    updateMany: ReturnType<typeof vi.fn>;
+  };
+  entity: {
+    findFirst: ReturnType<typeof vi.fn>;
+    create: ReturnType<typeof vi.fn>;
+    update: ReturnType<typeof vi.fn>;
+  };
+  entityChange: {
+    create: ReturnType<typeof vi.fn>;
+    deleteMany: ReturnType<typeof vi.fn>;
+  };
+  activityEvent: { deleteMany: ReturnType<typeof vi.fn> };
+  indexedDocument: { findFirst: ReturnType<typeof vi.fn> };
+}
+
+function createMockDb(): MockDb {
   return {
     $queryRaw: vi.fn().mockResolvedValue([{ co_count: BigInt(2) }]),
     documentChange: {
@@ -31,6 +65,7 @@ function createMockDb() {
       findMany: vi.fn().mockResolvedValue([]),
       createMany: vi.fn().mockResolvedValue({ count: 0 }),
       count: vi.fn().mockResolvedValue(0),
+      groupBy: vi.fn().mockResolvedValue([]),
       deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
     },
     entityRelation: {
@@ -38,6 +73,7 @@ function createMockDb() {
       findFirst: vi.fn().mockResolvedValue(null),
       create: vi.fn().mockResolvedValue({}),
       update: vi.fn().mockResolvedValue({}),
+      updateMany: vi.fn().mockResolvedValue({ count: 0 }),
     },
     entity: {
       findFirst: vi.fn().mockResolvedValue(null),
@@ -54,13 +90,17 @@ function createMockDb() {
     indexedDocument: {
       findFirst: vi.fn().mockResolvedValue(null),
     },
-  } as any;
+  };
 }
 
-function createMockVespa() {
+interface MockVespa {
+  getDocument: ReturnType<typeof vi.fn>;
+}
+
+function createMockVespa(): MockVespa {
   return {
     getDocument: vi.fn().mockResolvedValue(null),
-  } as any;
+  };
 }
 
 describe("fetchUnprocessedChanges activity", () => {
@@ -72,12 +112,14 @@ describe("fetchUnprocessedChanges activity", () => {
     const changes = [
       { id: "c1", teamId: "team1", documentId: "doc1", changeType: "CREATED" },
     ];
-    mockFetch.mockResolvedValue(changes as any);
+    mockFetch.mockResolvedValue(
+      changes as unknown as Awaited<ReturnType<typeof fetchUnprocessedChanges>>
+    );
 
     const { createFetchUnprocessedChangesActivity } = await import(
       "../activities/knowledge/fetch-unprocessed-changes"
     );
-    const activity = createFetchUnprocessedChangesActivity({ db });
+    const activity = createFetchUnprocessedChangesActivity({ db: db as never });
     const result = await activity({
       teamId: "team1",
       connectorId: "conn-1",
@@ -100,12 +142,12 @@ describe("fetchUnprocessedChanges activity", () => {
     const { fetchUnprocessedChanges } = await import("@openplane/db");
     const mockFetch = vi.mocked(fetchUnprocessedChanges);
     const db = createMockDb();
-    mockFetch.mockResolvedValue([] as any);
+    mockFetch.mockResolvedValue([]);
 
     const { createFetchUnprocessedChangesActivity } = await import(
       "../activities/knowledge/fetch-unprocessed-changes"
     );
-    const activity = createFetchUnprocessedChangesActivity({ db });
+    const activity = createFetchUnprocessedChangesActivity({ db: db as never });
     await activity({
       teamId: "team1",
       connectorId: "conn-1",
@@ -135,7 +177,7 @@ describe("countUnprocessedChanges activity", () => {
     const { createCountUnprocessedChangesActivity } = await import(
       "../activities/knowledge/count-unprocessed-changes"
     );
-    const activity = createCountUnprocessedChangesActivity({ db });
+    const activity = createCountUnprocessedChangesActivity({ db: db as never });
     const result = await activity({
       teamId: "team1",
       connectorId: "conn-1",
@@ -155,13 +197,13 @@ describe("markChangesProcessed activity", () => {
   it("delegates to db mutation with change IDs", async () => {
     const { markChangesProcessed } = await import("@openplane/db");
     const mockMark = vi.mocked(markChangesProcessed);
-    mockMark.mockResolvedValue(undefined as any);
+    mockMark.mockResolvedValue(undefined);
     const db = createMockDb();
 
     const { createMarkChangesProcessedActivity } = await import(
       "../activities/knowledge/mark-changes-processed"
     );
-    const activity = createMarkChangesProcessedActivity({ db });
+    const activity = createMarkChangesProcessedActivity({ db: db as never });
     await activity({ changeIds: ["c1", "c2"] });
 
     expect(mockMark).toHaveBeenCalledWith(db, ["c1", "c2"]);
@@ -177,7 +219,7 @@ describe("invalidateEdges activity", () => {
     const db = createMockDb();
     db.entityMention.findMany.mockResolvedValue([]);
 
-    const activity = createInvalidateEdgesActivity({ db });
+    const activity = createInvalidateEdgesActivity({ db: db as never });
     const result = await activity({
       teamId: "team1",
       documentId: "doc-deleted",
@@ -198,7 +240,7 @@ describe("invalidateEdges activity", () => {
       { id: "r2", fromEntityId: "e3", toEntityId: "e1", confidence: 0.5 },
     ]);
 
-    const activity = createInvalidateEdgesActivity({ db });
+    const activity = createInvalidateEdgesActivity({ db: db as never });
     const result = await activity({
       teamId: "team1",
       documentId: "doc-deleted",
@@ -253,7 +295,7 @@ describe("updateCoOccurrenceEdges activity", () => {
       },
     ];
 
-    const activity = createUpdateCoOccurrenceEdgesActivity({ db });
+    const activity = createUpdateCoOccurrenceEdgesActivity({ db: db as never });
     const result = await activity({
       teamId: "team1",
       entityMentions: mentions,
@@ -304,7 +346,7 @@ describe("updateCoOccurrenceEdges activity", () => {
       },
     ];
 
-    const activity = createUpdateCoOccurrenceEdgesActivity({ db });
+    const activity = createUpdateCoOccurrenceEdgesActivity({ db: db as never });
     await activity({ teamId: "team1", entityMentions: mentions });
 
     expect(db.entityRelation.create).toHaveBeenCalledWith({
@@ -359,7 +401,7 @@ describe("updateCoOccurrenceEdges activity", () => {
       },
     ];
 
-    const activity = createUpdateCoOccurrenceEdgesActivity({ db });
+    const activity = createUpdateCoOccurrenceEdgesActivity({ db: db as never });
     const result = await activity({
       teamId: "team1",
       entityMentions: mentions,
@@ -413,8 +455,8 @@ describe("extractEntitiesFromChanges activity", () => {
     );
 
     const activity = createExtractEntitiesFromChangesActivity({
-      db,
-      vespa,
+      db: db as never,
+      vespa: vespa as never,
       engineBaseUrl: "http://engine:8000",
     });
 
@@ -495,8 +537,8 @@ describe("extractEntitiesFromChanges activity", () => {
     );
 
     const activity = createExtractEntitiesFromChangesActivity({
-      db,
-      vespa,
+      db: db as never,
+      vespa: vespa as never,
       engineBaseUrl: "http://engine:8000",
     });
 
@@ -522,7 +564,7 @@ describe("cleanupKnowledgeChanges activity", () => {
     db.entityChange.deleteMany.mockResolvedValue({ count: 5 });
     db.activityEvent.deleteMany.mockResolvedValue({ count: 20 });
 
-    const activity = createCleanupKnowledgeChangesActivity({ db });
+    const activity = createCleanupKnowledgeChangesActivity({ db: db as never });
     const result = await activity({});
 
     expect(result).toEqual({
@@ -538,7 +580,7 @@ describe("cleanupKnowledgeChanges activity", () => {
     db.entityChange.deleteMany.mockResolvedValue({ count: 0 });
     db.activityEvent.deleteMany.mockResolvedValue({ count: 0 });
 
-    const activity = createCleanupKnowledgeChangesActivity({ db });
+    const activity = createCleanupKnowledgeChangesActivity({ db: db as never });
     await activity({
       documentChangeRetentionDays: 30,
       entityChangeRetentionDays: 60,

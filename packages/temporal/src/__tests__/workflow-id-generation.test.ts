@@ -1,4 +1,4 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, it } from "vitest";
 import { generateWorkflowId } from "../utils/workflow-id";
 
 const TIMESTAMP_REGEX = /:\d+$/;
@@ -33,10 +33,9 @@ describe("Workflow ID Generation (Idempotency Fix)", () => {
 
     const id1 = generateWorkflowId({ type: "sync", connectorId });
 
-    // Simulate time passing
     const now = Date.now();
     while (Date.now() === now) {
-      // Wait for next millisecond
+      /* spin */
     }
 
     const id2 = generateWorkflowId({ type: "sync", connectorId });

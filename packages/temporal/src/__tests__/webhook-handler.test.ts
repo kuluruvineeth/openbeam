@@ -1,6 +1,7 @@
-import { afterAll, beforeAll, describe, expect, it } from "bun:test";
+import { fileURLToPath } from "node:url";
 import { TestWorkflowEnvironment } from "@temporalio/testing";
 import { Worker } from "@temporalio/worker";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { webhookHandlerWorkflow } from "../workflows/webhooks/webhook-handler";
 import {
   createMockVespaActivities,
@@ -22,7 +23,9 @@ describe("webhookHandlerWorkflow", () => {
     worker = await Worker.create({
       connection: env.nativeConnection,
       taskQueue: "test-webhook",
-      workflowsPath: require.resolve("../workflows/webhooks/webhook-handler"),
+      workflowsPath: fileURLToPath(
+        new URL("../workflows/webhooks/webhook-handler.ts", import.meta.url)
+      ),
       activities,
     });
 
@@ -30,7 +33,7 @@ describe("webhookHandlerWorkflow", () => {
   });
 
   afterAll(async () => {
-    worker?.shutdown();
+    await worker?.shutdown();
     await env?.teardown();
   });
 

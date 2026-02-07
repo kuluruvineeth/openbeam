@@ -12,7 +12,11 @@ function createMockDb() {
 describe("memoryWriteNode", () => {
   it("writes to workflow scope using missionMemory", async () => {
     const db = createMockDb();
-    const activity = createMemoryWriteNodeActivity({ db: db as any });
+    const activity = createMemoryWriteNodeActivity({
+      db: db as unknown as Parameters<
+        typeof createMemoryWriteNodeActivity
+      >[0]["db"],
+    });
 
     const result = await activity({
       executionId: "exec-1",
@@ -49,7 +53,11 @@ describe("memoryWriteNode", () => {
 
   it("writes to mission scope with explicit missionId", async () => {
     const db = createMockDb();
-    const activity = createMemoryWriteNodeActivity({ db: db as any });
+    const activity = createMemoryWriteNodeActivity({
+      db: db as unknown as Parameters<
+        typeof createMemoryWriteNodeActivity
+      >[0]["db"],
+    });
 
     const result = await activity({
       executionId: "exec-1",
@@ -88,7 +96,11 @@ describe("memoryWriteNode", () => {
 
   it("falls back to executionId when missionId absent", async () => {
     const db = createMockDb();
-    const activity = createMemoryWriteNodeActivity({ db: db as any });
+    const activity = createMemoryWriteNodeActivity({
+      db: db as unknown as Parameters<
+        typeof createMemoryWriteNodeActivity
+      >[0]["db"],
+    });
 
     await activity({
       executionId: "exec-fallback",
@@ -112,7 +124,11 @@ describe("memoryWriteNode", () => {
 
   it("writes to team scope", async () => {
     const db = createMockDb();
-    const activity = createMemoryWriteNodeActivity({ db: db as any });
+    const activity = createMemoryWriteNodeActivity({
+      db: db as unknown as Parameters<
+        typeof createMemoryWriteNodeActivity
+      >[0]["db"],
+    });
 
     const result = await activity({
       executionId: "exec-1",

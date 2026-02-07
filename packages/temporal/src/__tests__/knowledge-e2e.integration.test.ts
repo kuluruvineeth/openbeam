@@ -202,14 +202,12 @@ describe("Knowledge E2E integration", () => {
     try {
       try {
         await syncWorker?.shutdown();
-      } catch {
-        // Worker may already be stopped by runUntil.
-      }
+        // biome-ignore lint/suspicious/noEmptyBlockStatements: best-effort teardown
+      } catch {}
       try {
         await knowledgeWorker?.shutdown();
-      } catch {
-        // Worker may already be stopped by runUntil.
-      }
+        // biome-ignore lint/suspicious/noEmptyBlockStatements: best-effort teardown
+      } catch {}
     } finally {
       await env?.teardown();
     }

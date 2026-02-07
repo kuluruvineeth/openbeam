@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it, mock } from "bun:test";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import type {
   ConnectorRecord,
   FetchBatchInput,
@@ -22,20 +22,16 @@ const mockOAuthCredentials = {
   tokenExpiresAt: new Date("2025-12-31"),
 };
 
-let getConnectorForSyncMock: ReturnType<typeof mock>;
-let getDecryptedOAuthCredentialsMock: ReturnType<typeof mock>;
+const { getConnectorForSyncMock, getDecryptedOAuthCredentialsMock } =
+  vi.hoisted(() => ({
+    getConnectorForSyncMock: vi.fn(),
+    getDecryptedOAuthCredentialsMock: vi.fn(),
+  }));
 
-mock.module("@openplane/db", () => {
-  getConnectorForSyncMock = mock(() => Promise.resolve(mockConnectorData));
-  getDecryptedOAuthCredentialsMock = mock(() =>
-    Promise.resolve(mockOAuthCredentials)
-  );
-
-  return {
-    getConnectorForSync: getConnectorForSyncMock,
-    getDecryptedOAuthCredentials: getDecryptedOAuthCredentialsMock,
-  };
-});
+vi.mock("@openplane/db", () => ({
+  getConnectorForSync: getConnectorForSyncMock,
+  getDecryptedOAuthCredentials: getDecryptedOAuthCredentialsMock,
+}));
 
 let createFetchBatchActivity: typeof import("../activities/connectors/fetch-batch").createFetchBatchActivity;
 let createLoadConnectorActivity: typeof import("../activities/connectors/load-connector").createLoadConnectorActivity;

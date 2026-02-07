@@ -1,9 +1,17 @@
-import { beforeAll, beforeEach, describe, expect, it, mock } from "bun:test";
 import type {
   CanvasNodeType,
   ExecutionContext,
   ExecutionPlanNode,
 } from "@openplane/types/canvas";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("@temporalio/activity", () => ({
+  Context: {
+    current: () => ({
+      heartbeat: vi.fn(),
+    }),
+  },
+}));
 
 const executionDataStore = new Map<
   string,
@@ -12,8 +20,8 @@ const executionDataStore = new Map<
 let executionDataCounter = 0;
 let stepCounter = 0;
 
-mock.module("@openplane/db", () => ({
-  createAgentCanvasExecutionData: mock(
+vi.mock("@openplane/db", () => ({
+  createAgentCanvasExecutionData: vi.fn(
     (
       _db: unknown,
       _teamId: string,
@@ -39,7 +47,7 @@ mock.module("@openplane/db", () => ({
       });
     }
   ),
-  findAgentCanvasExecutionData: mock(
+  findAgentCanvasExecutionData: vi.fn(
     (_db: unknown, _executionId: string, dataId: string) => {
       const record = executionDataStore.get(dataId);
       if (!record) {
@@ -53,40 +61,44 @@ mock.module("@openplane/db", () => ({
       });
     }
   ),
-  createAgentCanvasExecutionStep: mock(() => {
+  createAgentCanvasExecutionStep: vi.fn(() => {
     stepCounter += 1;
     return Promise.resolve({ id: `step-${stepCounter}` });
   }),
-  updateAgentCanvasExecutionStep: mock(() => Promise.resolve(null)),
+  updateAgentCanvasExecutionStep: vi.fn(() => Promise.resolve(null)),
 }));
 
-let executeCanvasNodeServiceMock: ReturnType<typeof mock>;
-
-class MockCanvasNodeExecutorNotFoundError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "CanvasNodeExecutorNotFoundError";
+const {
+  executeCanvasNodeServiceMock,
+  MockCanvasNodeExecutorNotFoundError,
+  MockCanvasNodeExecutionError,
+} = vi.hoisted(() => {
+  class ExecutorNotFoundError extends Error {
+    constructor(message: string) {
+      super(message);
+      this.name = "CanvasNodeExecutorNotFoundError";
+    }
   }
-}
 
-class MockCanvasNodeExecutionError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "CanvasNodeExecutionError";
+  class ExecutionError extends Error {
+    constructor(message: string) {
+      super(message);
+      this.name = "CanvasNodeExecutionError";
+    }
   }
-}
-
-mock.module("@openplane/services/canvas", () => {
-  executeCanvasNodeServiceMock = mock(() =>
-    Promise.resolve({ result: "success" })
-  );
 
   return {
-    executeCanvasNode: executeCanvasNodeServiceMock,
-    CanvasNodeExecutorNotFoundError: MockCanvasNodeExecutorNotFoundError,
-    CanvasNodeExecutionError: MockCanvasNodeExecutionError,
+    executeCanvasNodeServiceMock: vi.fn(),
+    MockCanvasNodeExecutorNotFoundError: ExecutorNotFoundError,
+    MockCanvasNodeExecutionError: ExecutionError,
   };
 });
+
+vi.mock("@openplane/services/canvas", () => ({
+  executeCanvasNode: executeCanvasNodeServiceMock,
+  CanvasNodeExecutorNotFoundError: MockCanvasNodeExecutorNotFoundError,
+  CanvasNodeExecutionError: MockCanvasNodeExecutionError,
+}));
 
 let createExecuteCanvasNodeActivity: typeof import("../activities/canvas/execute-node").createExecuteCanvasNodeActivity;
 

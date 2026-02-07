@@ -16,6 +16,9 @@ vi.mock("../connection", () => ({
 }));
 
 vi.mock("@temporalio/worker", () => ({
+  NativeConnection: {
+    connect: mockCreateWorkerConnection,
+  },
   Worker: {
     create: mockWorkerCreate,
   },

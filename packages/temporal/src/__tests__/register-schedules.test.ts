@@ -14,11 +14,14 @@ vi.mock("../connection", () => ({
 }));
 
 vi.mock("@temporalio/client", () => ({
+  Connection: {
+    connect: mockCreateClientConnection,
+  },
   ScheduleClient: vi.fn().mockImplementation(() => ({
     create: mockCreate,
     getHandle: mockGetHandle,
     list: vi.fn(async function* () {
-      // no-op for these tests
+      /* no-op */
     }),
   })),
 }));

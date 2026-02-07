@@ -14,6 +14,7 @@ const { mockWorkflowInfo } = vi.hoisted(() => ({
     runId: "run-test",
     historyLength: 0,
     continueAsNewSuggested: false,
+    unsafe: { now: () => Date.now() },
   })),
 }));
 
@@ -188,6 +189,7 @@ beforeEach(() => {
     runId: "run-test",
     historyLength: 0,
     continueAsNewSuggested: false,
+    unsafe: { now: () => Date.now() },
   });
   mockUpdateCanvasExecution.mockClear();
   mockExecuteCanvasNode.mockReset();

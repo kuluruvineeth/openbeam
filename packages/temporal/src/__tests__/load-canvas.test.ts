@@ -199,9 +199,8 @@ describe("createLoadCanvasActivity", () => {
         versionNumber: 1,
         teamId: "team_1",
       });
-    } catch {
-      // expected
-    }
+      // biome-ignore lint/suspicious/noEmptyBlockStatements: expected throw
+    } catch {}
 
     expect(mockDb.agentCanvas.findUnique).not.toHaveBeenCalled();
   });

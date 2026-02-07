@@ -17,7 +17,11 @@ describe("memoryReadNode", () => {
       value: 42,
     });
 
-    const activity = createMemoryReadNodeActivity({ db: db as any });
+    const activity = createMemoryReadNodeActivity({
+      db: db as unknown as Parameters<
+        typeof createMemoryReadNodeActivity
+      >[0]["db"],
+    });
 
     const result = await activity({
       executionId: "exec-1",
@@ -47,7 +51,11 @@ describe("memoryReadNode", () => {
       scope: "mission",
     });
 
-    const activity = createMemoryReadNodeActivity({ db: db as any });
+    const activity = createMemoryReadNodeActivity({
+      db: db as unknown as Parameters<
+        typeof createMemoryReadNodeActivity
+      >[0]["db"],
+    });
 
     const result = await activity({
       executionId: "exec-1",
@@ -75,7 +83,11 @@ describe("memoryReadNode", () => {
     const db = createMockDb();
     db.missionMemory.findUnique.mockResolvedValue(null);
 
-    const activity = createMemoryReadNodeActivity({ db: db as any });
+    const activity = createMemoryReadNodeActivity({
+      db: db as unknown as Parameters<
+        typeof createMemoryReadNodeActivity
+      >[0]["db"],
+    });
 
     const result = await activity({
       executionId: "exec-1",
@@ -92,7 +104,11 @@ describe("memoryReadNode", () => {
     const db = createMockDb();
     db.missionMemory.findUnique.mockResolvedValue(null);
 
-    const activity = createMemoryReadNodeActivity({ db: db as any });
+    const activity = createMemoryReadNodeActivity({
+      db: db as unknown as Parameters<
+        typeof createMemoryReadNodeActivity
+      >[0]["db"],
+    });
 
     const result = await activity({
       executionId: "exec-1",
@@ -108,7 +124,11 @@ describe("memoryReadNode", () => {
     const db = createMockDb();
     db.missionMemory.findUnique.mockResolvedValue(null);
 
-    const activity = createMemoryReadNodeActivity({ db: db as any });
+    const activity = createMemoryReadNodeActivity({
+      db: db as unknown as Parameters<
+        typeof createMemoryReadNodeActivity
+      >[0]["db"],
+    });
 
     await expect(
       activity({
@@ -127,7 +147,11 @@ describe("memoryReadNode", () => {
     const db = createMockDb();
     db.missionMemory.findUnique.mockResolvedValue(null);
 
-    const activity = createMemoryReadNodeActivity({ db: db as any });
+    const activity = createMemoryReadNodeActivity({
+      db: db as unknown as Parameters<
+        typeof createMemoryReadNodeActivity
+      >[0]["db"],
+    });
 
     await activity({
       executionId: "exec-fallback",
