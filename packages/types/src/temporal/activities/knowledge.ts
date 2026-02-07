@@ -33,7 +33,7 @@ export type AggregateMentionsOutput = z.infer<
 export const ComputeExpertiseInputSchema = z.object({
   teamId: z.string(),
   mentionSummary: z.record(z.string(), z.unknown()),
-  decayHalfLifeDays: z.number(),
+  decayHalfLifeDays: z.number().optional(),
 });
 
 export type ComputeExpertiseInput = z.infer<typeof ComputeExpertiseInputSchema>;

@@ -17,6 +17,16 @@ export const ConnectorSyncInputSchema = z.object({
   trigger: z.enum(["SCHEDULE", "MANUAL", "WEBHOOK"]),
   cursor: SyncCursorSchema.optional(),
   syncHistoryId: z.string().optional(),
+  accumulatedStats: z
+    .object({
+      processed: z.number(),
+      indexed: z.number(),
+      errors: z.number(),
+      dataAdded: z.number(),
+      dataUpdated: z.number(),
+      dataDeleted: z.number(),
+    })
+    .optional(),
 });
 
 export type ConnectorSyncInput = z.infer<typeof ConnectorSyncInputSchema>;
@@ -35,8 +45,8 @@ export const FileProcessingInputSchema = z.object({
   connectorId: z.string(),
   externalId: z.string(),
   mimeType: z.string(),
-  downloadUrl: z.string(),
-  metadata: z.record(z.string(), z.string()).optional(),
+  downloadUrl: z.string().optional(),
+  metadata: z.record(z.string(), z.string().optional()).optional(),
 });
 
 export type FileProcessingInput = z.infer<typeof FileProcessingInputSchema>;
@@ -127,6 +137,7 @@ export type BackgroundAgentOutput = z.infer<typeof BackgroundAgentOutputSchema>;
 export const CleanupInputSchema = z.object({
   type: z.enum(["DAILY", "DELETION_SYNC"]),
   teamId: z.string().optional(),
+  connectorId: z.string().optional(),
 });
 
 export type CleanupInput = z.infer<typeof CleanupInputSchema>;
@@ -170,9 +181,9 @@ export const IndexDocumentsOutputSchema = z.object({
   errors: z.number(),
   total: z.number(),
   success: z.boolean(),
-  skipped: z.number().optional(),
-  dataAdded: z.number().optional(),
-  dataUpdated: z.number().optional(),
+  skipped: z.number().default(0),
+  dataAdded: z.number().default(0),
+  dataUpdated: z.number().default(0),
 });
 
 export type IndexDocumentsOutput = z.infer<typeof IndexDocumentsOutputSchema>;
@@ -386,12 +397,7 @@ export type EmergenceDetectionOutput = z.infer<
   typeof EmergenceDetectionOutputSchema
 >;
 
-export const SyncStageSchema = z.enum([
-  "initializing",
-  "fetching",
-  "indexing",
-  "finalizing",
-]);
+export const SyncStageSchema = z.string();
 
 export type SyncStage = z.infer<typeof SyncStageSchema>;
 
@@ -399,9 +405,15 @@ export const SyncStateSchema = z.object({
   processed: z.number(),
   indexed: z.number(),
   errors: z.number(),
+  dataAdded: z.number().default(0),
+  dataUpdated: z.number().default(0),
+  dataDeleted: z.number().default(0),
   cursor: SyncCursorSchema.optional(),
   stage: SyncStageSchema,
+  progressMessage: z.string().optional(),
+  batchNumber: z.number().optional(),
   cancelled: z.boolean().optional(),
+  isPaused: z.boolean().optional(),
 });
 
 export type SyncState = z.infer<typeof SyncStateSchema>;

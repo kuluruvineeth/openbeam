@@ -114,6 +114,8 @@ export const ExecuteAgentStepOutputSchema = z.object({
     timestamp: z.number(),
   }),
   complete: z.boolean(),
+  tokensUsed: z.number().default(0),
+  costCents: z.number().default(0),
 });
 
 export type ExecuteAgentStepOutput = z.infer<
@@ -471,30 +473,4 @@ export const UpdateCanvasExecutionInputSchema = z.object({
 
 export type UpdateCanvasExecutionInput = z.infer<
   typeof UpdateCanvasExecutionInputSchema
->;
-
-export const EvaluateCanvasExecutionInputSchema = z.object({
-  executionId: z.string(),
-  teamId: z.string(),
-  canvasId: z.string(),
-});
-
-export type EvaluateCanvasExecutionInput = z.infer<
-  typeof EvaluateCanvasExecutionInputSchema
->;
-
-export const EvaluateCanvasExecutionOutputSchema = z.object({
-  score: z.number().int().min(0).max(100),
-  dimensions: z.object({
-    completion: z.number().min(0).max(100),
-    efficiency: z.number().min(0).max(100),
-    errorRate: z.number().min(0).max(100),
-    latency: z.number().min(0).max(100),
-    approvalOverhead: z.number().min(0).max(100),
-  }),
-  flags: z.array(z.string()),
-});
-
-export type EvaluateCanvasExecutionOutput = z.infer<
-  typeof EvaluateCanvasExecutionOutputSchema
 >;
