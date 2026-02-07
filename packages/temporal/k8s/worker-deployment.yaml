@@ -1,0 +1,513 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: canvas-worker
+  namespace: openplane
+  labels:
+    app.kubernetes.io/name: canvas-worker
+    app.kubernetes.io/component: temporal-worker
+    app.kubernetes.io/part-of: openplane
+  annotations:
+    kubernetes.io/description: "Temporal worker for canvas workflow execution"
+spec:
+  replicas: 1
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: canvas-worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: canvas-worker
+        app.kubernetes.io/component: temporal-worker
+        app.kubernetes.io/part-of: openplane
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9464"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: temporal-worker
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 60
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: worker
+          image: openplane/worker:latest
+          imagePullPolicy: IfNotPresent
+          args:
+            - "--worker-type=canvas"
+          ports:
+            - name: metrics
+              containerPort: 9464
+              protocol: TCP
+            - name: health
+              containerPort: 9091
+              protocol: TCP
+          env:
+            - name: WORKER_TYPE
+              value: "canvas"
+            - name: TEMPORAL_ADDRESS
+              value: "temporal.temporal.svc.cluster.local:7233"
+            - name: TEMPORAL_NAMESPACE
+              valueFrom:
+                configMapKeyRef:
+                  name: temporal-config
+                  key: namespace
+            - name: TEMPORAL_TASK_QUEUE
+              value: "canvas"
+            - name: NODE_ENV
+              value: "production"
+            - name: LOG_LEVEL
+              value: "info"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector.monitoring.svc.cluster.local:4317"
+            - name: OTEL_SERVICE_NAME
+              value: "canvas-worker"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: temporal-worker-secrets
+                  key: database-url
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: temporal-worker-secrets
+                  key: redis-url
+            - name: GCS_BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  name: temporal-config
+                  key: gcs-bucket
+            - name: GCS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: temporal-worker-secrets
+                  key: gcs-access-key-id
+            - name: GCS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: temporal-worker-secrets
+                  key: gcs-secret-access-key
+            - name: VESPA_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: temporal-config
+                  key: vespa-url
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: health
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: health
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 2
+          startupProbe:
+            httpGet:
+              path: /health
+              port: health
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 30
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: cache
+              mountPath: /.cache
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 5Gi
+        - name: cache
+          emptyDir:
+            sizeLimit: 1Gi
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: canvas-worker
+                topologyKey: kubernetes.io/hostname
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: canvas-worker
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sync-worker
+  namespace: openplane
+  labels:
+    app.kubernetes.io/name: sync-worker
+    app.kubernetes.io/component: temporal-worker
+    app.kubernetes.io/part-of: openplane
+  annotations:
+    kubernetes.io/description: "Temporal worker for connector sync workflow execution"
+spec:
+  replicas: 2
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sync-worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: sync-worker
+        app.kubernetes.io/component: temporal-worker
+        app.kubernetes.io/part-of: openplane
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9464"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: temporal-worker
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 120
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: worker
+          image: openplane/worker:latest
+          imagePullPolicy: IfNotPresent
+          args:
+            - "--worker-type=sync"
+          ports:
+            - name: metrics
+              containerPort: 9464
+              protocol: TCP
+            - name: health
+              containerPort: 9091
+              protocol: TCP
+          env:
+            - name: WORKER_TYPE
+              value: "sync"
+            - name: TEMPORAL_ADDRESS
+              value: "temporal.temporal.svc.cluster.local:7233"
+            - name: TEMPORAL_NAMESPACE
+              valueFrom:
+                configMapKeyRef:
+                  name: temporal-config
+                  key: namespace
+            - name: NODE_ENV
+              value: "production"
+            - name: LOG_LEVEL
+              value: "info"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector.monitoring.svc.cluster.local:4317"
+            - name: OTEL_SERVICE_NAME
+              value: "sync-worker"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: temporal-worker-secrets
+                  key: database-url
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: temporal-worker-secrets
+                  key: redis-url
+            - name: GCS_BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  name: temporal-config
+                  key: gcs-bucket
+            - name: GCS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: temporal-worker-secrets
+                  key: gcs-access-key-id
+            - name: GCS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: temporal-worker-secrets
+                  key: gcs-secret-access-key
+            - name: VESPA_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: temporal-config
+                  key: vespa-url
+            - name: ENGINE_CPU_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: temporal-config
+                  key: engine-cpu-url
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "4Gi"
+              cpu: "2000m"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: health
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: health
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 2
+          startupProbe:
+            httpGet:
+              path: /health
+              port: health
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 30
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: cache
+              mountPath: /.cache
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 10Gi
+        - name: cache
+          emptyDir:
+            sizeLimit: 2Gi
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: sync-worker
+                topologyKey: kubernetes.io/hostname
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: sync-worker
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-worker
+  namespace: openplane
+  labels:
+    app.kubernetes.io/name: agent-worker
+    app.kubernetes.io/component: temporal-worker
+    app.kubernetes.io/part-of: openplane
+  annotations:
+    kubernetes.io/description: "Temporal worker for AI agent workflow execution"
+spec:
+  replicas: 1
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: agent-worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: agent-worker
+        app.kubernetes.io/component: temporal-worker
+        app.kubernetes.io/part-of: openplane
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9464"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: temporal-worker
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 90
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: worker
+          image: openplane/worker:latest
+          imagePullPolicy: IfNotPresent
+          args:
+            - "--worker-type=agent"
+          ports:
+            - name: metrics
+              containerPort: 9464
+              protocol: TCP
+            - name: health
+              containerPort: 9091
+              protocol: TCP
+          env:
+            - name: WORKER_TYPE
+              value: "agent"
+            - name: TEMPORAL_ADDRESS
+              value: "temporal.temporal.svc.cluster.local:7233"
+            - name: TEMPORAL_NAMESPACE
+              valueFrom:
+                configMapKeyRef:
+                  name: temporal-config
+                  key: namespace
+            - name: TEMPORAL_TASK_QUEUE
+              value: "agents"
+            - name: NODE_ENV
+              value: "production"
+            - name: LOG_LEVEL
+              value: "info"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector.monitoring.svc.cluster.local:4317"
+            - name: OTEL_SERVICE_NAME
+              value: "agent-worker"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: temporal-worker-secrets
+                  key: database-url
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: temporal-worker-secrets
+                  key: redis-url
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: temporal-worker-secrets
+                  key: openai-api-key
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: temporal-worker-secrets
+                  key: anthropic-api-key
+            - name: ENGINE_GPU_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: temporal-config
+                  key: engine-gpu-url
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "4Gi"
+              cpu: "2000m"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: health
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: health
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 2
+          startupProbe:
+            httpGet:
+              path: /health
+              port: health
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 30
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: cache
+              mountPath: /.cache
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 5Gi
+        - name: cache
+          emptyDir:
+            sizeLimit: 1Gi
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: agent-worker
+                topologyKey: kubernetes.io/hostname
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: agent-worker

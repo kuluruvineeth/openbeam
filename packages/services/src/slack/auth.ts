@@ -13,10 +13,6 @@ import {
   generateSlackAuthUrl,
   slackApp,
 } from "@openplane/integrations";
-import {
-  jobSchedulerKeys,
-  setupPermissionSyncSchedule,
-} from "@openplane/redis";
 import type {
   AuthCompleteContext,
   AuthStartContext,
@@ -127,10 +123,6 @@ export class SlackAuth implements IntegrationAuth {
         await createDefaultSyncJobs(tx, updated.id);
         return updated;
       });
-
-      // Set up permission sync schedule (every 5 minutes)
-      const jobKey = await setupPermissionSyncSchedule(connector.id, 5);
-      await jobSchedulerKeys.set(connector.id, "PERMISSIONS", jobKey);
 
       return { connector, redirectUrl };
     } catch (error) {

@@ -40,7 +40,6 @@ export function AudioPlayer({
 }: AudioPlayerProps) {
   return (
     <div className="relative flex h-full w-full items-center justify-center bg-muted/30">
-      {/* biome-ignore lint/a11y/useMediaCaption: Captions in transcript panel */}
       <audio
         autoPlay
         crossOrigin="anonymous"
@@ -54,7 +53,9 @@ export function AudioPlayer({
         preload="auto"
         ref={audioRef}
         src={url}
-      />
+      >
+        <track kind="captions" />
+      </audio>
 
       <div className="w-full max-w-xl px-6">
         <AudioWaveform

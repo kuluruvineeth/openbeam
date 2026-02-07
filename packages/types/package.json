@@ -40,6 +40,10 @@
       "types": "./dist/db/index.d.ts",
       "default": "./src/db/index.ts"
     },
+    "./db/agent-canvas": {
+      "types": "./dist/db/agent-canvas.d.ts",
+      "default": "./src/db/agent-canvas.ts"
+    },
     "./services": {
       "types": "./dist/services/index.d.ts",
       "default": "./src/services/index.ts"
@@ -68,6 +72,10 @@
       "types": "./dist/services/ai/index.d.ts",
       "default": "./src/services/ai/index.ts"
     },
+    "./services/policy": {
+      "types": "./dist/services/policy.d.ts",
+      "default": "./src/services/policy.ts"
+    },
     "./integrations": {
       "types": "./dist/integrations/index.d.ts",
       "default": "./src/integrations/index.ts"
@@ -79,6 +87,54 @@
     "./canvas": {
       "types": "./dist/canvas/index.d.ts",
       "default": "./src/canvas/index.ts"
+    },
+    "./canvas/timeline": {
+      "types": "./dist/canvas/timeline.d.ts",
+      "default": "./src/canvas/timeline.ts"
+    },
+    "./canvas/execution": {
+      "types": "./dist/canvas/execution.d.ts",
+      "default": "./src/canvas/execution.ts"
+    },
+    "./canvas/execution-ui": {
+      "types": "./dist/canvas/execution-ui.d.ts",
+      "default": "./src/canvas/execution-ui.ts"
+    },
+    "./canvas/execution-events": {
+      "types": "./dist/canvas/execution-events.d.ts",
+      "default": "./src/canvas/execution-events.ts"
+    },
+    "./temporal": {
+      "types": "./dist/temporal/index.d.ts",
+      "default": "./src/temporal/index.ts"
+    },
+    "./temporal/workflows": {
+      "types": "./dist/temporal/workflows.d.ts",
+      "default": "./src/temporal/workflows.ts"
+    },
+    "./temporal/mission": {
+      "types": "./dist/temporal/mission.d.ts",
+      "default": "./src/temporal/mission.ts"
+    },
+    "./temporal/rate-limit": {
+      "types": "./dist/temporal/rate-limit.d.ts",
+      "default": "./src/temporal/rate-limit.ts"
+    },
+    "./temporal/activities/knowledge": {
+      "types": "./dist/temporal/activities/knowledge.d.ts",
+      "default": "./src/temporal/activities/knowledge.ts"
+    },
+    "./temporal/workflows/knowledge-changes": {
+      "types": "./dist/temporal/workflows/knowledge-changes.d.ts",
+      "default": "./src/temporal/workflows/knowledge-changes.ts"
+    },
+    "./temporal/workflows/knowledge-inference": {
+      "types": "./dist/temporal/workflows/knowledge-inference.d.ts",
+      "default": "./src/temporal/workflows/knowledge-inference.ts"
+    },
+    "./services/eval": {
+      "types": "./dist/services/eval.d.ts",
+      "default": "./src/services/eval.ts"
     }
   },
   "scripts": {

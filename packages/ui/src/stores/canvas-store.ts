@@ -24,6 +24,7 @@ interface CanvasStoreState {
   isDirty: boolean;
   isHydrated: boolean;
   canvasId: string | null;
+  isActionPanelDocked: boolean;
 }
 
 interface CanvasStoreActions {
@@ -38,6 +39,7 @@ interface CanvasStoreActions {
   setSelection: (selection: SelectionState) => void;
   clearSelection: () => void;
   setCanvasId: (id: string | null) => void;
+  setActionPanelDocked: (docked: boolean) => void;
   loadCanvas: (
     nodes: AgentCanvasNode[],
     edges: AgentCanvasEdge[],
@@ -49,7 +51,10 @@ interface CanvasStoreActions {
 }
 
 type CanvasStore = CanvasStoreState & CanvasStoreActions;
-type CanvasStorePersisted = Pick<CanvasStoreState, "viewport">;
+type CanvasStorePersisted = Pick<
+  CanvasStoreState,
+  "viewport" | "isActionPanelDocked"
+>;
 
 const initialState: CanvasStoreState = {
   nodes: [],
@@ -59,6 +64,7 @@ const initialState: CanvasStoreState = {
   isDirty: false,
   isHydrated: false,
   canvasId: null,
+  isActionPanelDocked: false,
 };
 
 const createCanvasStoreSlice: StateCreator<
@@ -88,12 +94,8 @@ const createCanvasStoreSlice: StateCreator<
   updateNode: (nodeId, data) =>
     set((state) => {
       const node = state.nodes.find((n: AgentCanvasNode) => n.id === nodeId);
-      if (node) {
-        const existingData =
-          typeof node.data === "object" && node.data !== null
-            ? (node.data as Record<string, unknown>)
-            : {};
-        node.data = { ...existingData, ...data };
+      if (node && typeof node.data === "object" && node.data !== null) {
+        Object.assign(node.data, data);
         state.isDirty = true;
       }
     }),
@@ -137,6 +139,11 @@ const createCanvasStoreSlice: StateCreator<
   setCanvasId: (id) =>
     set((state) => {
       state.canvasId = id;
+    }),
+
+  setActionPanelDocked: (docked) =>
+    set((state) => {
+      state.isActionPanelDocked = docked;
     }),
 
   loadCanvas: (nodes, edges, viewport) =>
@@ -208,7 +215,10 @@ export function createCanvasStore(config: CanvasStoreConfig = {}) {
     persist(immer(createCanvasStoreSlice), {
       name: config.storageKey ?? "canvas-store",
       storage: createCanvasZustandStorage(adapter),
-      partialize: (state) => ({ viewport: state.viewport }),
+      partialize: (state) => ({
+        viewport: state.viewport,
+        isActionPanelDocked: state.isActionPanelDocked,
+      }),
       onRehydrateStorage: () => (state) => {
         if (state) {
           state.isHydrated = true;
@@ -224,7 +234,14 @@ export const useCanvasNodes = () => useCanvasStore((s) => s.nodes);
 export const useCanvasEdges = () => useCanvasStore((s) => s.edges);
 export const useCanvasViewport = () => useCanvasStore((s) => s.viewport);
 export const useCanvasSelection = () => useCanvasStore((s) => s.selection);
+export const useSelectedNodes = () => useCanvasStore((s) => s.selection.nodes);
+export const useSelectedEdges = () => useCanvasStore((s) => s.selection.edges);
+export const useCanvasId = () => useCanvasStore((s) => s.canvasId);
 export const useCanvasIsDirty = () => useCanvasStore((s) => s.isDirty);
 export const useCanvasIsHydrated = () => useCanvasStore((s) => s.isHydrated);
+export const useIsActionPanelDocked = () =>
+  useCanvasStore((s) => s.isActionPanelDocked);
+export const useSetActionPanelDocked = () =>
+  useCanvasStore((s) => s.setActionPanelDocked);
 
 export type { CanvasStore, CanvasStoreConfig, CanvasStorePersisted };

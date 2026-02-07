@@ -3,21 +3,14 @@ import prisma, {
   upsertSlackChannelConfig,
   upsertSlackDigestSubscription,
 } from "@openplane/db";
-import {
-  addWebhookJob,
-  createRepeatableDigestJob,
-  createStateStore,
-  getDigestSchedulerKey,
-  removeRepeatableDigestJob,
-  setDigestSchedulerKey,
-  toUtcCron,
-} from "@openplane/redis";
+import { createStateStore } from "@openplane/redis";
 import {
   extractSettingsFromSubmission,
   handleSaveSettings,
   handleSaveShortcut,
   handleSearchContextShortcut,
   handleSummarizeShortcut,
+  routeCommand,
   SHORTCUT_CALLBACK_IDS,
   SIDEBAR_CALLBACK_IDS,
 } from "@openplane/services";
@@ -71,30 +64,15 @@ export async function handleSlashCommand(
   const subcommand = parts[0]?.toLowerCase() ?? "";
 
   if (ASYNC_COMMANDS.has(subcommand)) {
-    await addWebhookJob({
-      connectorId: ctx.connectorId,
-      eventId: `slash-${payload.trigger_id}`,
-      eventType: "slash_command",
-      source: "slack",
-      payload: {
-        ...payload,
-        _subcommand: subcommand,
-        _context: {
-          connectorId: ctx.connectorId,
-          teamId: ctx.teamId,
-          accessControlIds: [ctx.userId, `team:${ctx.teamId}`],
-        },
-      },
-      receivedAt: new Date(),
-    });
-
+    logger.info(
+      { connectorId: ctx.connectorId, subcommand },
+      "Async slash command received"
+    );
     return c.json({
       response_type: "ephemeral",
-      text: ":hourglass_flowing_sand: Thinking... I'll respond in a moment.",
+      text: "This command is not yet available.",
     });
   }
-
-  const { routeCommand } = await import("@openplane/services");
 
   if (SYNC_COMMANDS_WITH_CLIENT.has(subcommand)) {
     const client = await getSlackClient(ctx.connectorId, ctx.teamId);
@@ -265,18 +243,10 @@ export async function handleViewSubmission(
       "question_input"
     );
     if (question?.trim()) {
-      await addWebhookJob({
-        connectorId: ctx.connectorId,
-        eventId: `ask-${Date.now()}`,
-        eventType: "global_ask",
-        source: "slack",
-        payload: {
-          question: question.trim(),
-          userId: ctx.userId,
-          teamId: ctx.teamId,
-        },
-        receivedAt: new Date(),
-      });
+      logger.info(
+        { connectorId: ctx.connectorId, userId: ctx.userId },
+        "Global ask submitted"
+      );
     }
     return c.json({ response_action: "clear" });
   }
@@ -399,7 +369,7 @@ async function handleDigestConfigSubmission(
       .map((t) => t.trim())
       .filter(Boolean) ?? [];
 
-  const subscription = await upsertSlackDigestSubscription(prisma, {
+  await upsertSlackDigestSubscription(prisma, {
     connectorId: ctx.connectorId,
     userId: ctx.userId,
     slackUserId: payload.user.id,
@@ -411,25 +381,10 @@ async function handleDigestConfigSubmission(
     enabled: true,
   });
 
-  const existingKey = await getDigestSchedulerKey(subscription.id);
-  if (existingKey) {
-    await removeRepeatableDigestJob(existingKey);
-  }
-
-  const cron = toUtcCron(deliveryTime, timezone, frequency);
-  const schedulerId = await createRepeatableDigestJob(subscription.id, cron, {
-    subscriptionId: subscription.id,
-    connectorId: ctx.connectorId,
-    userId: ctx.userId,
-    slackUserId: payload.user.id,
-    teamId: ctx.teamId ?? "",
-    channelIds,
-    topics,
-    deliveryTime,
-    timezone,
-    frequency,
-  });
-  await setDigestSchedulerKey(subscription.id, schedulerId);
+  logger.info(
+    { connectorId: ctx.connectorId, userId: ctx.userId, frequency },
+    "Digest config saved"
+  );
 }
 
 async function handleConfigureChannelSubmission(

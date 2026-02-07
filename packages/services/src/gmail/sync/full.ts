@@ -29,7 +29,6 @@ export interface FullSyncOptions {
   onMediaDiscovered?: (media: GmailMediaInfo[]) => Promise<void>;
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: full sync requires batching and error handling
 export async function* fullSync(
   client: GmailClient,
   context: GmailTransformContext,
@@ -70,7 +69,7 @@ export async function* fullSync(
   for await (const thread of fetchThreadsWithMessages(client, { query })) {
     threadCount += 1;
     try {
-      const result = transformThread(thread, context, { labelLookup });
+      const result = await transformThread(thread, context, { labelLookup });
 
       documents.push(result.threadDocument);
       documents.push(...result.messageDocuments);

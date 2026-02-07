@@ -1,5 +1,5 @@
 import prisma, { getConnectorById } from "@openplane/db";
-import { addWebhookJob, getRedisClient, rateLimiter } from "@openplane/redis";
+import { getRedisClient, rateLimiter } from "@openplane/redis";
 import {
   isLinearTimestampValid,
   parseLinearWebhookPayload,
@@ -87,18 +87,9 @@ linearWebhook.post("/events/:connectorId", async (c) => {
   }
   await redis.set(dedupeKey, "1", { EX: WEBHOOK_DEDUPE_TTL });
 
-  await addWebhookJob({
-    connectorId,
-    eventId,
-    eventType: payload.type ?? "unknown",
-    source: "linear",
-    payload: payload as Record<string, unknown>,
-    receivedAt: new Date(),
-  });
-
   logger.info(
     { connectorId, eventId, eventType: payload.type },
-    "Linear webhook queued"
+    "Linear webhook received"
   );
 
   return c.json({ ok: true });

@@ -1,50 +1,51 @@
 model BackgroundAgent {
-  id              String   @id @default(cuid()) @map("_id")
-  teamId          String
-  userId          String
+  id     String @id @default(cuid()) @map("_id")
+  teamId String
+  userId String
 
-  name            String
-  description     String?
-  prompt          String   @db.Text
-  preset          String   @default("researcher")
+  name        String
+  description String?
+  prompt      String  @db.Text
+  preset      String  @default("researcher")
 
-  status          BackgroundAgentStatus @default(PENDING)
-  progress        Float    @default(0)
-  currentStep     String?
-  totalSteps      Int?
+  status      BackgroundAgentStatus @default(PENDING)
+  progress    Float                 @default(0)
+  currentStep String?
+  totalSteps  Int?
 
-  sandboxType     SandboxType @default(E2B)
-  sandboxId       String?
-  sandboxUrl      String?
+  sandboxType SandboxType @default(E2B)
+  sandboxId   String?
+  sandboxUrl  String?
 
-  repositoryUrl   String?
-  baseBranch      String?
-  workingBranch   String?
-  worktreePath    String?
+  repositoryUrl String?
+  baseBranch    String?
+  workingBranch String?
+  worktreePath  String?
 
-  output          String?  @db.Text
-  artifacts       Json     @default("[]")
-  pullRequestUrl  String?
+  output         String? @db.Text
+  artifacts      Json    @default("[]")
+  pullRequestUrl String?
 
-  errorCode       String?
-  errorMessage    String?
-  retryCount      Int      @default(0)
-  maxRetries      Int      @default(3)
+  errorCode    String?
+  errorMessage String?
+  retryCount   Int     @default(0)
+  maxRetries   Int     @default(3)
 
-  inputTokens     Int      @default(0)
-  outputTokens    Int      @default(0)
-  estimatedCostUsd Float   @default(0)
+  inputTokens      Int   @default(0)
+  outputTokens     Int   @default(0)
+  estimatedCostUsd Float @default(0)
 
-  startedAt       DateTime?
-  completedAt     DateTime?
-  lastActivityAt  DateTime?
-  timeoutAt       DateTime?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  lastActivityAt DateTime?
+  timeoutAt      DateTime?
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  checkpoints     BackgroundAgentCheckpoint[]
-  logs            BackgroundAgentLog[]
+  checkpoints   BackgroundAgentCheckpoint[]
+  logs          BackgroundAgentLog[]
+  missionAgents MissionAgent[]
 
   @@index([teamId, status])
   @@index([userId, status])
@@ -53,20 +54,20 @@ model BackgroundAgent {
 }
 
 model BackgroundAgentCheckpoint {
-  id              String   @id @default(cuid()) @map("_id")
-  agentId         String
+  id      String @id @default(cuid()) @map("_id")
+  agentId String
 
-  version         Int
-  state           Json     @db.JsonB
-  memorySnapshot  Json?    @db.JsonB
-  contextWindow   Json?    @db.JsonB
+  version        Int
+  state          Json  @db.JsonB
+  memorySnapshot Json? @db.JsonB
+  contextWindow  Json? @db.JsonB
 
-  stepIndex       Int
-  description     String?
+  stepIndex   Int
+  description String?
 
-  createdAt       DateTime @default(now())
+  createdAt DateTime @default(now())
 
-  agent           BackgroundAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  agent BackgroundAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
 
   @@unique([agentId, version])
   @@index([agentId])
@@ -74,16 +75,16 @@ model BackgroundAgentCheckpoint {
 }
 
 model BackgroundAgentLog {
-  id              String   @id @default(cuid()) @map("_id")
-  agentId         String
+  id      String @id @default(cuid()) @map("_id")
+  agentId String
 
-  level           String   @default("info")
-  message         String
-  metadata        Json?
+  level    String @default("info")
+  message  String
+  metadata Json?
 
-  createdAt       DateTime @default(now())
+  createdAt DateTime @default(now())
 
-  agent           BackgroundAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  agent BackgroundAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
 
   @@index([agentId, createdAt])
   @@map("background_agent_log")

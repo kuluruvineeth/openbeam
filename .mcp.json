@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "openplane": {
+      "command": "bun",
+      "args": ["run", "packages/mcp/src/index.ts"],
+      "env": {
+        "DATABASE_URL": "${DATABASE_URL}"
+      }
+    }
+  }
+}

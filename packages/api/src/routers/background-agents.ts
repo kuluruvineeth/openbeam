@@ -7,13 +7,9 @@ import {
   getBackgroundAgentCheckpoints,
   getBackgroundAgentLogs,
   listBackgroundAgents,
+  pauseBackgroundAgent,
+  resumeBackgroundAgent,
 } from "@openplane/db";
-import {
-  addBackgroundAgentJob,
-  cancelBackgroundAgentJob,
-  pauseBackgroundAgentJob,
-  resumeBackgroundAgentJob,
-} from "@openplane/redis";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter } from "../index";
@@ -145,8 +141,8 @@ export const backgroundAgentsRouter = createTRPCRouter({
 
   create: withActiveTeam
     .input(createAgentSchema)
-    .mutation(async ({ ctx, input }) => {
-      const agent = await createBackgroundAgent(ctx.prisma, {
+    .mutation(async ({ ctx, input }) =>
+      createBackgroundAgent(ctx.prisma, {
         teamId: ctx.teamId,
         userId: ctx.session.user.id,
         name: input.name,
@@ -160,27 +156,8 @@ export const backgroundAgentsRouter = createTRPCRouter({
         repositoryUrl: input.repositoryUrl,
         baseBranch: input.baseBranch,
         timeoutMs: input.timeoutMs,
-      });
-
-      await addBackgroundAgentJob(
-        {
-          agentId: agent.id,
-          teamId: ctx.teamId,
-          userId: ctx.session.user.id,
-          name: input.name,
-          prompt: input.prompt,
-          preset: input.preset,
-          sandboxType: input.sandboxType,
-          repositoryUrl: input.repositoryUrl,
-          baseBranch: input.baseBranch,
-          maxSteps: input.maxSteps,
-          timeoutMs: input.timeoutMs,
-        },
-        5
-      );
-
-      return agent;
-    }),
+      })
+    ),
 
   cancel: withActiveTeam
     .input(agentIdSchema)
@@ -206,7 +183,6 @@ export const backgroundAgentsRouter = createTRPCRouter({
         });
       }
 
-      await cancelBackgroundAgentJob(input.agentId);
       return cancelBackgroundAgent(ctx.prisma, input.agentId, ctx.teamId);
     }),
 
@@ -226,15 +202,7 @@ export const backgroundAgentsRouter = createTRPCRouter({
         });
       }
 
-      const paused = await pauseBackgroundAgentJob(input.agentId);
-
-      if (!paused) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Failed to pause agent job",
-        });
-      }
-
+      await pauseBackgroundAgent(ctx.prisma, input.agentId, ctx.teamId);
       return { success: true };
     }),
 
@@ -259,42 +227,14 @@ export const backgroundAgentsRouter = createTRPCRouter({
         });
       }
 
-      const resumed = await resumeBackgroundAgentJob(
-        input.agentId,
-        input.fromCheckpoint
-      );
-
-      if (!resumed) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Failed to resume agent job",
-        });
-      }
-
+      await resumeBackgroundAgent(ctx.prisma, input.agentId, ctx.teamId);
       return { success: true };
     }),
 
   delete: withActiveTeam
     .input(agentIdSchema)
     .mutation(async ({ ctx, input }) => {
-      const agent = await verifyAgentAccess(
-        ctx.prisma,
-        input.agentId,
-        ctx.teamId
-      );
-
-      const activeStatuses = [
-        "PENDING",
-        "INITIALIZING",
-        "RUNNING",
-        "PAUSED",
-        "AWAITING_INPUT",
-      ];
-
-      if (activeStatuses.includes(agent.status)) {
-        await cancelBackgroundAgentJob(input.agentId);
-      }
-
+      await verifyAgentAccess(ctx.prisma, input.agentId, ctx.teamId);
       return deleteBackgroundAgent(ctx.prisma, input.agentId, ctx.teamId);
     }),
 });

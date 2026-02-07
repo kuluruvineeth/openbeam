@@ -39,7 +39,6 @@ Use when preparing context for generation tasks.`,
       .describe("Include document metadata in context"),
   }),
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Context building requires multiple conditional paths
   async execute(params, ctx) {
     const startTime = performance.now();
 

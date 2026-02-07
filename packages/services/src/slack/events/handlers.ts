@@ -162,12 +162,12 @@ export async function handleSlackEvent(
   }
 }
 
-function dispatchBookmarkEvent(
+async function dispatchBookmarkEvent(
   event: SlackEvent,
   context: EventHandlerContext
-): EventHandlerResult {
+): Promise<EventHandlerResult> {
   if (event.type === "bookmark_added") {
-    return handleBookmarkAddedEvent(event as BookmarkAddedEvent, context);
+    return await handleBookmarkAddedEvent(event as BookmarkAddedEvent, context);
   }
   return handleBookmarkDeletedEvent(event as BookmarkDeletedEvent, context);
 }
@@ -214,7 +214,7 @@ async function handleMessageEvent(
   };
 
   const message = eventToMessage(event);
-  const document = transformMessage(message, transformContext);
+  const document = await transformMessage(message, transformContext);
 
   return {
     changes: [{ operation: "create", document }],
@@ -257,7 +257,7 @@ async function handleMessageChangedEvent(
     edited: event.message.edited,
   };
 
-  const document = transformMessage(message, transformContext);
+  const document = await transformMessage(message, transformContext);
 
   return {
     changes: [{ operation: "update", document }],
@@ -315,7 +315,7 @@ async function handleReactionEvent(
     channelMembers,
   };
 
-  const document = transformMessage(message, transformContext);
+  const document = await transformMessage(message, transformContext);
 
   return {
     changes: [{ operation: "update", document }],
@@ -501,17 +501,17 @@ async function getMembersFromCache(
   return members;
 }
 
-function handleBookmarkAddedEvent(
+async function handleBookmarkAddedEvent(
   event: BookmarkAddedEvent,
   context: EventHandlerContext
-): EventHandlerResult {
+): Promise<EventHandlerResult> {
   const { bookmark } = event;
 
   const transformContext: BookmarkTransformContext = {
     ...context,
   };
 
-  const doc = transformBookmark(
+  const doc = await transformBookmark(
     {
       id: bookmark.id,
       channelId: bookmark.channel_id,
@@ -564,7 +564,7 @@ async function handleFileSharedEvent(
     ...context,
   };
 
-  const doc = transformClip(
+  const doc = await transformClip(
     {
       id: clipInfo.id,
       title: clipInfo.title,

@@ -4,6 +4,7 @@ import type {
   NodeStatus,
   Port,
   TemplateNodeConfig,
+  TemplateVariable,
 } from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
@@ -11,7 +12,8 @@ import { forwardRef, memo, useMemo } from "react";
 import { cn } from "../../../../utils";
 import { Badge } from "../../../badge";
 import { Icons } from "../../../icons";
-import { NodeHeader, NodeSection, NodeShell } from "../primitives";
+import { validateTemplate } from "../../ai-elements/template-variable-detector";
+import { NodeField, NodeHeader, NodeSection, NodeShell } from "../primitives";
 
 export interface TemplateNodeData {
   label: string;
@@ -30,6 +32,7 @@ const FORMAT_LABELS: Record<string, string> = {
   json: "JSON",
   markdown: "Markdown",
   html: "HTML",
+  xml: "XML",
 };
 
 const SYNTAX_LABELS: Record<string, string> = {
@@ -37,6 +40,20 @@ const SYNTAX_LABELS: Record<string, string> = {
   mustache: "Mustache",
   ejs: "EJS",
 };
+
+function normalizeName(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function hasInvalidVariableNames(variables: TemplateVariable[]): boolean {
+  return variables.some((variable) => !variable.name.trim());
+}
+
+function hasDuplicateVariableNames(variables: TemplateVariable[]): boolean {
+  const names = variables.map((variable) => normalizeName(variable.name));
+  const filtered = names.filter(Boolean);
+  return new Set(filtered).size !== filtered.length;
+}
 
 export const TemplateNode = memo(
   forwardRef<HTMLDivElement, NodeProps<TemplateNodeType>>(
@@ -46,6 +63,10 @@ export const TemplateNode = memo(
       const outputFormat = config.outputFormat ?? "text";
       const template = config.template ?? "";
       const variables = config.variables ?? [];
+      const validationEnabled = config.validation?.enabled ?? true;
+      const validationStrict = config.validation?.strict ?? false;
+      const validateJson = config.validation?.validateJson ?? false;
+      const maxOutputLength = config.validation?.maxOutputLength;
 
       const variableCount = variables.length;
       const requiredCount = variables.filter((v) => v.required).length;
@@ -60,6 +81,76 @@ export const TemplateNode = memo(
       }, [template]);
 
       const hasTemplate = template.length > 0;
+      const validation = useMemo(
+        () => validateTemplate(template, syntax),
+        [template, syntax]
+      );
+
+      const warnings = useMemo(() => {
+        const items: string[] = [];
+        if (!template.trim()) {
+          items.push("Template is empty");
+        }
+        if (!validation.valid) {
+          items.push(...validation.errors);
+        }
+        if (hasInvalidVariableNames(variables)) {
+          items.push("Fill in variable names");
+        }
+        if (hasDuplicateVariableNames(variables)) {
+          items.push("Duplicate variable names detected");
+        }
+        if (outputFormat === "json" && validateJson && !validationEnabled) {
+          items.push("JSON validation is disabled");
+        }
+        return items;
+      }, [
+        outputFormat,
+        template,
+        validateJson,
+        validation.errors,
+        validation.valid,
+        validationEnabled,
+        variables,
+      ]);
+
+      const notes = useMemo(() => {
+        const items: string[] = [];
+        if (!validationEnabled) {
+          items.push("Validation is disabled");
+        }
+        if (validationStrict) {
+          items.push("Strict mode requires all variables");
+        }
+        if (outputFormat === "json" && !validateJson) {
+          items.push("JSON output is not validated");
+        }
+        if (maxOutputLength) {
+          items.push(`Max output length: ${maxOutputLength} chars`);
+        }
+        if (config.undefinedVariable === "placeholder") {
+          items.push("Missing variables keep placeholders");
+        }
+        if (config.fallbackBehavior === "preserve") {
+          items.push("Errors return the template output");
+        }
+        if (config.fallbackBehavior === "empty") {
+          items.push("Errors return an empty output");
+        }
+        if (config.escapeHtml) {
+          items.push("HTML escaping is enabled");
+        }
+        return items;
+      }, [
+        config.escapeHtml,
+        config.fallbackBehavior,
+        config.undefinedVariable,
+        maxOutputLength,
+        outputFormat,
+        validateJson,
+        validationEnabled,
+        validationStrict,
+      ]);
 
       return (
         <NodeShell
@@ -79,6 +170,17 @@ export const TemplateNode = memo(
           />
           <NodeSection>
             <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-3">
+                <NodeField
+                  label="Output"
+                  value={FORMAT_LABELS[outputFormat] ?? outputFormat}
+                />
+                <NodeField
+                  label="Variables"
+                  value={variableCount > 0 ? `${variableCount}` : "None"}
+                />
+              </div>
+
               <div className="flex items-center gap-1.5">
                 <Badge className="text-[10px]" variant="outline">
                   {SYNTAX_LABELS[syntax]}
@@ -123,6 +225,34 @@ export const TemplateNode = memo(
                       +{variableCount - 3} more
                     </span>
                   )}
+                </div>
+              )}
+
+              {warnings.length > 0 && (
+                <div className="space-y-1">
+                  {warnings.map((warning) => (
+                    <div
+                      className="flex items-center gap-1.5 text-[10px] text-warning"
+                      key={warning}
+                    >
+                      <Icons.AlertCircle size={12} />
+                      <span>{warning}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {notes.length > 0 && (
+                <div className="space-y-1">
+                  {notes.map((note) => (
+                    <div
+                      className="flex items-center gap-1.5 text-[10px] text-muted-foreground"
+                      key={note}
+                    >
+                      <Icons.Info size={12} />
+                      <span>{note}</span>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

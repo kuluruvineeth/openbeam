@@ -6,7 +6,7 @@ import type {
   InputVariable,
   OutputField,
 } from "@openplane/types/canvas";
-import { forwardRef, memo, useCallback, useState } from "react";
+import { forwardRef, memo, useCallback, useMemo } from "react";
 import { AnimatedSizeContainer } from "../../../animated-size-container";
 import { CodeEditor } from "../../../code-editor";
 import { Icons } from "../../../icons";
@@ -14,7 +14,6 @@ import { Input } from "../../../input";
 import { Label } from "../../../label";
 import { Slider } from "../../../slider";
 import { Switch } from "../../../switch";
-import { Textarea } from "../../../textarea";
 import {
   CodeTemplateSelector,
   ExecutionPanel,
@@ -25,6 +24,7 @@ import {
 import type { CodeTemplateWithIcon } from "../../code-elements/code-templates";
 import { ConfigField } from "../config-field";
 import { ConfigSection } from "../config-section";
+import { NotesList, WarningsList } from "../feedback-lists";
 
 interface CodeConfigPanelProps {
   config: CodeNodeConfig;
@@ -39,6 +39,26 @@ const TIMEOUT_OPTIONS = [
   { value: 120_000, label: "2 minutes" },
   { value: 300_000, label: "5 minutes" },
 ];
+const SUPPORTED_RUNTIMES: CodeRuntime[] = ["javascript", "typescript"];
+const RUNTIME_LABELS: Record<CodeRuntime, string> = {
+  javascript: "JavaScript",
+  typescript: "TypeScript",
+  python: "Python",
+  sql: "SQL",
+};
+const IDENTIFIER_PATTERN = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
+const RESERVED_NAMES = new Set([
+  "input",
+  "data",
+  "$input",
+  "$data",
+  "vars",
+  "console",
+  "fetch",
+  "process",
+  "global",
+]);
+const MAX_RETRIES = 10;
 
 function formatTimeout(ms: number): string {
   if (ms < 60_000) {
@@ -47,11 +67,107 @@ function formatTimeout(ms: number): string {
   return `${ms / 60_000}m`;
 }
 
+function normalizeName(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function buildWarnings(config: CodeNodeConfig): string[] {
+  const warnings: string[] = [];
+  const runtime = config.runtime ?? "javascript";
+  const runtimeLabel = RUNTIME_LABELS[runtime] ?? runtime;
+
+  if (!SUPPORTED_RUNTIMES.includes(runtime)) {
+    warnings.push(`${runtimeLabel} runtime is not supported`);
+  }
+
+  if (!config.code?.trim()) {
+    warnings.push("Code is empty");
+  }
+
+  const inputVariables = config.inputVariables ?? [];
+  const inputNames = inputVariables.map((variable) => variable.name.trim());
+  const filteredInputNames = inputNames.filter(Boolean);
+
+  if (inputNames.some((name) => !name)) {
+    warnings.push("Fill in input variable names");
+  }
+
+  const normalizedInput = filteredInputNames.map(normalizeName);
+  if (new Set(normalizedInput).size !== normalizedInput.length) {
+    warnings.push("Duplicate input variable names detected");
+  }
+
+  if (filteredInputNames.some((name) => RESERVED_NAMES.has(name))) {
+    warnings.push("Rename reserved input variables");
+  }
+
+  const outputFields = config.outputSchema ?? [];
+  const outputNames = outputFields.map((field) => field.name.trim());
+  const filteredOutputNames = outputNames.filter(Boolean);
+
+  if (outputFields.length > 0 && outputNames.some((name) => !name)) {
+    warnings.push("Fill in output field names");
+  }
+
+  const normalizedOutput = filteredOutputNames.map(normalizeName);
+  if (new Set(normalizedOutput).size !== normalizedOutput.length) {
+    warnings.push("Duplicate output field names detected");
+  }
+
+  if ((config.enableConsole ?? true) && !(config.sandboxed ?? true)) {
+    warnings.push("Console logs are only captured in sandboxed mode");
+  }
+
+  return warnings;
+}
+
+function buildNotes(config: CodeNodeConfig): string[] {
+  const notes: string[] = [];
+  const runtime = config.runtime ?? "javascript";
+  const inputVariables = config.inputVariables ?? [];
+  const inputNames = inputVariables.map((variable) => variable.name.trim());
+  const filteredInputNames = inputNames.filter(Boolean);
+
+  if (
+    filteredInputNames.some((name) => name && !IDENTIFIER_PATTERN.test(name))
+  ) {
+    notes.push('Use vars["name"] for non-identifier variables');
+  }
+
+  if (inputVariables.some((variable) => variable.sourcePath?.trim())) {
+    notes.push("Source paths override variable names");
+  }
+
+  const outputCount = config.outputSchema?.length ?? 0;
+  if (outputCount === 0) {
+    notes.push("Output schema is not enforced");
+  } else {
+    notes.push("Output must be an object matching the schema");
+  }
+
+  if (config.sandboxed ?? true) {
+    notes.push("Sandboxed execution blocks eval and dynamic codegen");
+  }
+
+  if (!(config.enableConsole ?? true)) {
+    notes.push("Console logs are disabled");
+  }
+
+  if (config.retryOnError) {
+    const maxRetries = Math.max(0, config.maxRetries ?? 0);
+    notes.push(`Retries enabled (${maxRetries} max)`);
+  }
+
+  if (runtime === "typescript") {
+    notes.push("TypeScript is transpiled at runtime");
+  }
+
+  return notes;
+}
+
 export const CodeConfigPanel = memo(
   forwardRef<HTMLDivElement, CodeConfigPanelProps>(
     function CodeConfigPanelComponent({ config, onChange }, ref) {
-      const [isRunning, setIsRunning] = useState(false);
-
       const handleRuntimeChange = useCallback(
         (value: CodeRuntime) => {
           onChange({ runtime: value });
@@ -90,52 +206,11 @@ export const CodeConfigPanel = memo(
         [onChange]
       );
 
-      const handleRunTest = useCallback(async () => {
-        setIsRunning(true);
-        try {
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-          onChange({
-            lastExecution: {
-              success: true,
-              output: { result: "test output" },
-              executionTimeMs: 42,
-              logs: [
-                {
-                  level: "log",
-                  message: "Execution started",
-                  timestamp: Date.now() - 100,
-                },
-                {
-                  level: "info",
-                  message: "Processing input...",
-                  timestamp: Date.now() - 50,
-                },
-                {
-                  level: "log",
-                  message: "Execution completed",
-                  timestamp: Date.now(),
-                },
-              ],
-            },
-          });
-        } catch {
-          onChange({
-            lastExecution: {
-              success: false,
-              executionTimeMs: 100,
-              logs: [],
-              error: {
-                message: "Test execution failed",
-              },
-            },
-          });
-        } finally {
-          setIsRunning(false);
-        }
-      }, [onChange]);
-
       const runtime = config.runtime ?? "javascript";
       const timeoutMs = config.timeoutMs ?? 30_000;
+      const warnings = useMemo(() => buildWarnings(config), [config]);
+      const notes = useMemo(() => buildNotes(config), [config]);
+      const runtimeSupported = SUPPORTED_RUNTIMES.includes(runtime);
 
       return (
         <div
@@ -159,7 +234,7 @@ export const CodeConfigPanel = memo(
                     value={runtime}
                   />
                   <CodeTemplateSelector
-                    disabled={isRunning}
+                    disabled={!runtimeSupported}
                     onSelect={handleTemplateSelect}
                     runtime={runtime}
                   />
@@ -173,7 +248,6 @@ export const CodeConfigPanel = memo(
                   minHeight="200px"
                   onChange={handleCodeChange}
                   placeholder={`Enter your ${runtime} code here...`}
-                  readOnly={isRunning}
                   value={config.code ?? ""}
                 />
               </ConfigField>
@@ -186,7 +260,6 @@ export const CodeConfigPanel = memo(
             title="Input Variables"
           >
             <InputVariableMapper
-              disabled={isRunning}
               onChange={handleInputVariablesChange}
               variables={config.inputVariables ?? []}
             />
@@ -198,7 +271,6 @@ export const CodeConfigPanel = memo(
             title="Output Schema"
           >
             <OutputSchemaEditor
-              disabled={isRunning}
               fields={config.outputSchema ?? []}
               onChange={handleOutputSchemaChange}
             />
@@ -273,27 +345,44 @@ export const CodeConfigPanel = memo(
                 />
               </div>
 
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-sm">Retry on Error</Label>
+                  <p className="text-muted-foreground text-xs">
+                    Retry the execution when it fails
+                  </p>
+                </div>
+                <Switch
+                  checked={config.retryOnError ?? false}
+                  onCheckedChange={(retryOnError) => onChange({ retryOnError })}
+                />
+              </div>
+
               <AnimatedSizeContainer height>
-                {config.enableConsole && (
+                {config.retryOnError && (
                   <ConfigField
-                    label="Memory Limit"
-                    tooltip="Maximum memory allowed for execution"
+                    label="Max Retries"
+                    tooltip="Maximum retry attempts after a failure"
                   >
                     <Input
                       className="h-9"
+                      max={MAX_RETRIES}
+                      min={0}
                       onChange={(e) => {
-                        const mb = Number.parseInt(e.target.value, 10);
-                        if (!Number.isNaN(mb) && mb > 0) {
-                          onChange({ memoryLimitMb: mb });
+                        const retries = Number.parseInt(e.target.value, 10);
+                        if (!Number.isNaN(retries)) {
+                          onChange({
+                            maxRetries: Math.max(
+                              0,
+                              Math.min(MAX_RETRIES, retries)
+                            ),
+                          });
                         }
                       }}
-                      placeholder="128"
+                      placeholder="3"
                       type="number"
-                      value={config.memoryLimitMb ?? ""}
+                      value={config.maxRetries ?? 3}
                     />
-                    <p className="mt-1 text-muted-foreground text-xs">
-                      Memory limit in MB (leave empty for default)
-                    </p>
                   </ConfigField>
                 )}
               </AnimatedSizeContainer>
@@ -302,45 +391,18 @@ export const CodeConfigPanel = memo(
 
           <ConfigSection
             defaultOpen
-            icon={<Icons.Play className="size-4" />}
-            title="Test Execution"
+            icon={<Icons.Clock className="size-4" />}
+            title="Last Execution"
           >
             <div className="space-y-4">
-              <ConfigField label="Test Input">
-                <Textarea
-                  className="min-h-[80px] resize-y font-mono text-sm"
-                  onChange={(e) => onChange({ testInput: e.target.value })}
-                  placeholder='{"example": "input data"}'
-                  spellCheck={false}
-                  value={config.testInput ?? ""}
-                />
-              </ConfigField>
-
-              <button
-                className="flex w-full items-center justify-center gap-2 rounded-md bg-primary py-2 font-medium text-primary-foreground text-sm transition-colors hover:bg-primary/90 disabled:opacity-50"
-                disabled={isRunning || !config.code}
-                onClick={handleRunTest}
-                type="button"
-              >
-                {isRunning ? (
-                  <>
-                    <Icons.Loader2 className="size-4 animate-spin" />
-                    Running...
-                  </>
-                ) : (
-                  <>
-                    <Icons.Play className="size-4" />
-                    Run Test
-                  </>
-                )}
-              </button>
-
-              <ExecutionPanel
-                isRunning={isRunning}
-                result={config.lastExecution}
-              />
+              <ExecutionPanel result={config.lastExecution} />
+              <div className="rounded-md border border-border/50 bg-muted/30 px-3 py-2 text-muted-foreground text-xs">
+                Run the canvas to capture execution output and logs.
+              </div>
             </div>
           </ConfigSection>
+          <WarningsList items={warnings} />
+          <NotesList items={notes} />
         </div>
       );
     }

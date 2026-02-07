@@ -24,7 +24,6 @@ export interface HistoryChange {
   labelIds?: string[];
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: pagination with error handling requires branching
 export async function* fetchHistory(
   client: GmailClient,
   options: HistoryOptions
@@ -100,7 +99,6 @@ export async function* fetchHistory(
   return latestHistoryId ? { historyId: latestHistoryId } : null;
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: parsing multiple change types requires iteration
 export function parseHistoryChanges(
   records: GmailHistoryRecord[]
 ): HistoryChange[] {

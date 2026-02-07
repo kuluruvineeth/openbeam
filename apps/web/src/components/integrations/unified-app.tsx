@@ -285,7 +285,6 @@ export function UnifiedAppComponent({ app }: UnifiedAppProps) {
           </p>
         </CardContent>
 
-        {/* Card Footer */}
         <div className="border-border/50 border-t p-4">
           <Button
             className="w-full"
@@ -298,7 +297,6 @@ export function UnifiedAppComponent({ app }: UnifiedAppProps) {
           </Button>
         </div>
 
-        {/* Sheet */}
         <SheetContent className="flex flex-col sm:max-w-[480px]">
           <UnifiedAppSheetHeader
             app={app}
@@ -357,7 +355,6 @@ export function UnifiedAppComponent({ app }: UnifiedAppProps) {
               </Tabs>
             )}
 
-            {/* Footer */}
             <div className="mt-10 flex items-center justify-between border-t pt-5 pb-4">
               <p className="text-[10px] text-muted-foreground/60">
                 Secured by OpenPlane

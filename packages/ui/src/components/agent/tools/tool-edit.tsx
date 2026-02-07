@@ -1,7 +1,6 @@
 "use client";
 
 import { cva, type VariantProps } from "class-variance-authority";
-import { ChevronDown, Circle, Edit3, Minus, Plus } from "lucide-react";
 import { forwardRef, useState } from "react";
 import { cn } from "../../../utils/cn";
 import { Button } from "../../button";
@@ -10,6 +9,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "../../collapsible";
+import { Icons } from "../../icons";
 import { TextShimmer } from "../../text-shimmer";
 
 const toolEditVariants = cva("rounded-md border font-mono text-xs", {
@@ -59,23 +59,27 @@ const ToolEdit = forwardRef<HTMLDivElement, ToolEditProps>(
     const renderStatusIndicator = () => {
       if (status === "running") {
         return (
-          <Circle className="size-2 animate-pulse fill-primary text-primary" />
+          <Icons.Circle className="size-2 animate-pulse fill-primary text-primary" />
         );
       }
       if (status === "success") {
-        return <Circle className="size-2 fill-green-500 text-green-500" />;
+        return (
+          <Icons.Circle className="size-2 fill-green-500 text-green-500" />
+        );
       }
       if (status === "error") {
-        return <Circle className="size-2 fill-destructive text-destructive" />;
+        return (
+          <Icons.Circle className="size-2 fill-destructive text-destructive" />
+        );
       }
       return (
-        <Circle className="size-2 fill-muted-foreground/50 text-muted-foreground/50" />
+        <Icons.Circle className="size-2 fill-muted-foreground/50 text-muted-foreground/50" />
       );
     };
 
     const renderHeader = () => (
       <div className="flex items-center gap-2 border-border/30 border-b px-3 py-2">
-        <Edit3 className="size-3.5 text-muted-foreground" />
+        <Icons.Edit3 className="size-3.5 text-muted-foreground" />
         {status === "running" ? (
           <TextShimmer as="span" className="font-medium text-xs" duration={1.5}>
             Editing file...
@@ -120,9 +124,9 @@ const ToolEdit = forwardRef<HTMLDivElement, ToolEditProps>(
             )}
           >
             {isRemoved ? (
-              <Minus className="size-3" />
+              <Icons.Minus className="size-3" />
             ) : (
-              <Plus className="size-3" />
+              <Icons.Plus className="size-3" />
             )}
           </span>
           <pre
@@ -186,7 +190,7 @@ const ToolEdit = forwardRef<HTMLDivElement, ToolEditProps>(
                 <span className="text-green-400">+{newLines.length}</span>
                 <span>{isOpen ? "Hide diff" : "Show diff"}</span>
               </span>
-              <ChevronDown
+              <Icons.ChevronDown
                 className={cn(
                   "ml-1 size-3 transition-transform duration-200",
                   isOpen && "rotate-180"

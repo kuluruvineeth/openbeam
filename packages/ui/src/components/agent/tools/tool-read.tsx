@@ -1,7 +1,6 @@
 "use client";
 
 import { cva, type VariantProps } from "class-variance-authority";
-import { ChevronDown, Circle, Eye, File } from "lucide-react";
 import { forwardRef, useState } from "react";
 import { AGENT_UI_CONSTANTS } from "../../../lib/agent-constants";
 import { cn } from "../../../utils/cn";
@@ -11,6 +10,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "../../collapsible";
+import { Icons } from "../../icons";
 import { TextShimmer } from "../../text-shimmer";
 
 const toolReadVariants = cva("rounded-md border font-mono text-xs", {
@@ -61,52 +61,37 @@ const ToolRead = forwardRef<HTMLDivElement, ToolReadProps>(
     const totalLines = lines.length;
     const isLongFile = totalLines > maxPreviewLines;
 
-    const fileName = filePath.split("/").pop() ?? filePath;
-    const fileExt = fileName.split(".").pop()?.toLowerCase() ?? "";
-
-    const getFileIcon = () => {
-      const iconMap: Record<string, typeof File> = {
-        ts: File,
-        tsx: File,
-        js: File,
-        jsx: File,
-        json: File,
-        md: File,
-        css: File,
-        html: File,
-      };
-      return iconMap[fileExt] ?? File;
-    };
-
-    const FileIcon = getFileIcon();
-
     const renderStatusIndicator = () => {
       if (status === "running") {
         return (
-          <Circle className="size-2 animate-pulse fill-primary text-primary" />
+          <Icons.Circle className="size-2 animate-pulse fill-primary text-primary" />
         );
       }
       if (status === "success") {
-        return <Circle className="size-2 fill-green-500 text-green-500" />;
+        return (
+          <Icons.Circle className="size-2 fill-green-500 text-green-500" />
+        );
       }
       if (status === "error") {
-        return <Circle className="size-2 fill-destructive text-destructive" />;
+        return (
+          <Icons.Circle className="size-2 fill-destructive text-destructive" />
+        );
       }
       return (
-        <Circle className="size-2 fill-muted-foreground/50 text-muted-foreground/50" />
+        <Icons.Circle className="size-2 fill-muted-foreground/50 text-muted-foreground/50" />
       );
     };
 
     const renderHeader = () => (
       <div className="flex items-center gap-2 border-border/30 border-b px-3 py-2">
-        <Eye className="size-3.5 text-muted-foreground" />
+        <Icons.Eye className="size-3.5 text-muted-foreground" />
         {status === "running" ? (
           <TextShimmer as="span" className="font-medium text-xs" duration={1.5}>
             Reading file...
           </TextShimmer>
         ) : (
           <>
-            <FileIcon className="size-3.5 text-muted-foreground" />
+            <Icons.File className="size-3.5 text-muted-foreground" />
             <span
               className="flex-1 truncate text-foreground text-xs"
               title={filePath}
@@ -201,7 +186,7 @@ const ToolRead = forwardRef<HTMLDivElement, ToolReadProps>(
               <span className="text-xs">
                 {isOpen ? "Show less" : `Show all ${totalLines} lines`}
               </span>
-              <ChevronDown
+              <Icons.ChevronDown
                 className={cn(
                   "ml-1 size-3 transition-transform duration-200",
                   isOpen && "rotate-180"

@@ -79,6 +79,36 @@ export const MemoryReadNode = memo(
 
       const scope = data.config.scope ?? "workflow";
       const ScopeIcon = Icons[SCOPE_ICONS[scope] ?? "Database"];
+      const key = data.config.key?.trim() ?? "";
+      const namespace = data.config.namespace?.trim() ?? "";
+
+      const warnings = useMemo(() => {
+        const list: string[] = [];
+        if (!key) {
+          list.push("Key is required");
+        }
+        if (
+          data.config.throwOnMissing &&
+          data.config.defaultValue !== undefined
+        ) {
+          list.push("Default value disables throw-on-missing");
+        }
+        return list;
+      }, [data.config.defaultValue, data.config.throwOnMissing, key]);
+
+      const notes = useMemo(() => {
+        const list: string[] = [];
+        if (namespace) {
+          list.push("Namespace scoped");
+        }
+        if (data.config.includeMetadata) {
+          list.push("Returns metadata");
+        }
+        if (data.config.defaultValue !== undefined) {
+          list.push("Fallback value configured");
+        }
+        return list;
+      }, [data.config.defaultValue, data.config.includeMetadata, namespace]);
 
       return (
         <NodeShell
@@ -103,18 +133,10 @@ export const MemoryReadNode = memo(
           />
           <NodeSection>
             <div className="space-y-3">
-              <NodeField
-                label="Key"
-                mono
-                value={data.config.key || "Not set"}
-              />
+              <NodeField label="Key" mono value={key || "Not set"} />
 
-              {data.config.namespace && (
-                <NodeField
-                  label="Namespace"
-                  mono
-                  value={data.config.namespace}
-                />
+              {namespace && (
+                <NodeField label="Namespace" mono value={namespace} />
               )}
 
               {featureBadges.length > 0 && (
@@ -136,6 +158,34 @@ export const MemoryReadNode = memo(
                       </span>
                     );
                   })}
+                </div>
+              )}
+
+              {warnings.length > 0 && (
+                <div className="space-y-1">
+                  {warnings.map((warning) => (
+                    <div
+                      className="flex items-center gap-1.5 text-[10px] text-warning"
+                      key={warning}
+                    >
+                      <Icons.AlertCircle size={12} />
+                      <span>{warning}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {notes.length > 0 && (
+                <div className="space-y-1">
+                  {notes.map((note) => (
+                    <div
+                      className="flex items-center gap-1.5 text-[10px] text-muted-foreground"
+                      key={note}
+                    >
+                      <Icons.Info size={12} />
+                      <span>{note}</span>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

@@ -1,4 +1,4 @@
-import { addSyncJob, rateLimiter } from "@openplane/redis";
+import { rateLimiter } from "@openplane/redis";
 import {
   getNotionWatchState,
   handleNotionNotification,
@@ -8,6 +8,7 @@ import {
   parseNotionWebhookPayload,
   verifyNotionWebhookSignature,
 } from "@openplane/services";
+import { startConnectorSync } from "@openplane/temporal";
 import { Hono } from "hono";
 import logger from "../../utils/logger";
 
@@ -131,24 +132,23 @@ notionWebhook.post("/push/:connectorId", async (c) => {
     }
 
     if (result.shouldSync) {
-      const syncJobId = `webhook-${connectorId}-${Date.now()}`;
-      await addSyncJob({
+      const syncHandle = await startConnectorSync({
         connectorId,
-        syncJobId,
-        type: "INCREMENTAL",
+        connectorType: "notion",
+        syncType: "INCREMENTAL",
         trigger: "WEBHOOK",
-        priority: 10,
+        requestId: `webhook-${connectorId}-${Date.now()}`,
       });
 
       logger.info(
         {
           connectorId,
           eventType: payload.type,
-          syncJobId,
+          workflowId: syncHandle.workflowId,
           affectedPageIds: result.affectedPageIds?.length,
           affectedDatabaseIds: result.affectedDatabaseIds?.length,
         },
-        "Notion sync queued from push notification"
+        "Notion sync triggered from push notification"
       );
     }
 

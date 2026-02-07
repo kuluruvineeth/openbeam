@@ -1,11 +1,11 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { createContext, type ReactNode, useContext, useState } from "react";
 
 import { cn } from "../../utils/cn";
 import { Button } from "../button";
+import { Icons } from "../icons";
 import {
   Tooltip,
   TooltipContent,
@@ -80,9 +80,9 @@ function Sidebar({ children, className }: SidebarProps) {
         variant="ghost"
       >
         {isCollapsed ? (
-          <ChevronRight className="h-3 w-3" />
+          <Icons.ChevronRight className="h-3 w-3" />
         ) : (
-          <ChevronLeft className="h-3 w-3" />
+          <Icons.ChevronLeft className="h-3 w-3" />
         )}
       </Button>
     </motion.aside>

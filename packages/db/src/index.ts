@@ -76,6 +76,7 @@ export * from "./queries/indexed-chunks";
 export * from "./queries/indexed-documents";
 export * from "./queries/indexed-files";
 export * from "./queries/indexed-media";
+export * from "./queries/ltr";
 export * from "./queries/permissions";
 export * from "./queries/saved-search";
 export * from "./queries/search-experiments";

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DEFAULT_IMAGE_MODEL_ID } from "../../ai/models";
 
 export const LlmNodeConfigSchema = z.object({
   model: z.string(),
@@ -36,7 +37,7 @@ export const ImageStyleSchema = z.enum(["vivid", "natural"]);
 export type ImageStyle = z.infer<typeof ImageStyleSchema>;
 
 export const ImageNodeConfigSchema = z.object({
-  model: z.string().default("dall-e-3"),
+  model: z.string().default(DEFAULT_IMAGE_MODEL_ID),
   size: ImageSizeSchema.default("1024x1024"),
   quality: ImageQualitySchema.default("standard"),
   style: ImageStyleSchema.default("vivid"),
@@ -49,7 +50,14 @@ export const ImageNodeConfigSchema = z.object({
 
 export type ImageNodeConfig = z.infer<typeof ImageNodeConfigSchema>;
 
-export const AudioFormatSchema = z.enum(["mp3", "wav", "ogg", "flac"]);
+export const AudioFormatSchema = z.enum([
+  "mp3",
+  "wav",
+  "ogg",
+  "flac",
+  "aac",
+  "opus",
+]);
 
 export type AudioFormat = z.infer<typeof AudioFormatSchema>;
 
@@ -63,7 +71,7 @@ export const VoiceSettingsSchema = z.object({
 export type VoiceSettings = z.infer<typeof VoiceSettingsSchema>;
 
 export const AudioNodeConfigSchema = z.object({
-  model: z.string().default("eleven_multilingual_v2"),
+  model: z.string().default("gpt-4o-mini-tts"),
   voice: z.string(),
   voiceSettings: VoiceSettingsSchema.optional(),
   outputFormat: AudioFormatSchema.default("mp3"),
@@ -77,7 +85,7 @@ export const VideoAspectRatioSchema = z.enum(["16:9", "9:16", "1:1", "4:3"]);
 export type VideoAspectRatio = z.infer<typeof VideoAspectRatioSchema>;
 
 export const VideoNodeConfigSchema = z.object({
-  model: z.string().default("runway-gen3"),
+  model: z.string().default("sora-2"),
   aspectRatio: VideoAspectRatioSchema.default("16:9"),
   duration: z.number().min(3).max(60).default(5),
   style: z.string().optional(),

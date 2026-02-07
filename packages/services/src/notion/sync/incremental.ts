@@ -32,7 +32,6 @@ export interface IncrementalSyncOptions extends NotionSyncOptions {
   onPagesDiscovered?: (pages: NotionPage[]) => Promise<void>;
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: sync orchestration handles affected IDs, search-based sync, and batching
 export async function* incrementalSync(
   client: NotionClient,
   context: NotionTransformContext,
@@ -127,7 +126,7 @@ export async function* incrementalSync(
         }
 
         discoveredDatabases.push(database);
-        const document = transformDatabase(database, context);
+        const document = await transformDatabase(database, context);
         documents.push(document);
         processed += 1;
 
@@ -187,7 +186,7 @@ export async function* incrementalSync(
         } else {
           const database = item as NotionDatabase;
           discoveredDatabases.push(database);
-          document = transformDatabase(database, context);
+          document = await transformDatabase(database, context);
         }
 
         documents.push(document);
@@ -261,7 +260,7 @@ async function processPage(
     ? await getAllComments(client, { blockId: page.id })
     : undefined;
 
-  return transformPage(page, context, { blocks, comments });
+  return await transformPage(page, context, { blocks, comments });
 }
 
 function createBatch(

@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Icons } from "@/components/icons";
 import { AppLogo } from "@/components/integrations/app-logo";
 import { useConnector } from "@/features/connectors/hooks";
-import { SyncStatusCard, useSyncStatus } from "@/features/sync";
+import { isSyncing, SyncStatusCard, useSyncStatus } from "@/features/sync";
 import { useTRPC } from "@/trpc/client";
 
 function OverviewSkeleton() {
@@ -90,7 +90,7 @@ export function ConnectorOverviewTab({ connectorId }: { connectorId: string }) {
           </div>
           <Button
             className="h-8 gap-1.5 px-3 text-xs"
-            disabled={triggerSync.isPending}
+            disabled={triggerSync.isPending || isSyncing(syncStatus)}
             onClick={() => triggerSync.mutate({ connectorId, type: "FULL" })}
             variant="outline"
           >

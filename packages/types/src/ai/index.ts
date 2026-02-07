@@ -277,6 +277,7 @@ export {
   calculateModelCost,
   DEFAULT_CHAT_MODEL,
   DEFAULT_EMBEDDING_MODEL,
+  DEFAULT_IMAGE_MODEL_ID,
   DEFAULT_RERANKER_MODEL_ID,
   EmbeddingModelSchema,
   getChatModel,

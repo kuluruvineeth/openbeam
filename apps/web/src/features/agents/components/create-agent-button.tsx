@@ -1,7 +1,6 @@
 "use client";
 
-import { Button } from "@openplane/ui/components/button";
-import { Plus } from "lucide-react";
+import { Button, Icons } from "@openplane/ui";
 import { useAgentCreationParams } from "../hooks/use-agent-creation-params";
 
 export function CreateAgentButton() {
@@ -9,7 +8,7 @@ export function CreateAgentButton() {
 
   return (
     <Button onClick={open}>
-      <Plus className="mr-2 size-4" />
+      <Icons.Plus className="mr-2" size={16} />
       New Agent
     </Button>
   );

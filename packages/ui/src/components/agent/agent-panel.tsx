@@ -1,10 +1,10 @@
 "use client";
 
 import { cva, type VariantProps } from "class-variance-authority";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { forwardRef } from "react";
 import { cn } from "../../utils/cn";
 import { Button } from "../button";
+import { Icons } from "../icons";
 import { ScrollArea } from "../scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../sheet";
 
@@ -74,7 +74,7 @@ const AgentPanel = forwardRef<HTMLDivElement, AgentPanelProps>(
                     size="icon"
                     variant="ghost"
                   >
-                    <ChevronLeft className="size-4" />
+                    <Icons.ChevronLeft className="size-4" />
                   </Button>
                   <Button
                     className="size-7"
@@ -83,7 +83,7 @@ const AgentPanel = forwardRef<HTMLDivElement, AgentPanelProps>(
                     size="icon"
                     variant="ghost"
                   >
-                    <ChevronRight className="size-4" />
+                    <Icons.ChevronRight className="size-4" />
                   </Button>
                 </div>
               )}
@@ -102,7 +102,7 @@ const AgentPanel = forwardRef<HTMLDivElement, AgentPanelProps>(
               size="icon"
               variant="ghost"
             >
-              <X className="size-4" />
+              <Icons.X className="size-4" />
             </Button>
           </div>
           <ScrollArea className="flex-1">

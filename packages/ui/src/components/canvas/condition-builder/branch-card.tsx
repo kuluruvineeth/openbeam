@@ -5,7 +5,6 @@ import type {
   ConditionGroup as ConditionGroupType,
 } from "@openplane/types/canvas";
 import { BRANCH_COLORS } from "@openplane/types/canvas";
-import { GripVertical } from "lucide-react";
 import { forwardRef, memo, useCallback, useState } from "react";
 import { cn } from "../../../utils";
 import { Button } from "../../button";
@@ -100,7 +99,7 @@ export const BranchCard = memo(
             className="cursor-grab text-muted-foreground/50 transition-colors hover:text-muted-foreground active:cursor-grabbing"
             {...dragHandleProps}
           >
-            <GripVertical className="size-4" />
+            <Icons.GripVertical className="size-4" />
           </div>
 
           <div

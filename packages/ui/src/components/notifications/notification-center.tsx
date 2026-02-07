@@ -1,10 +1,10 @@
 "use client";
 
-import { Bell } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { cn } from "../../utils/cn";
 import { Button } from "../button";
+import { Icons } from "../icons";
 import { Popover, PopoverContent, PopoverTrigger } from "../popover";
 import { ScrollArea } from "../scroll-area";
 import {
@@ -69,7 +69,7 @@ function NotificationCenter({
     if (filteredNotifications.length === 0) {
       return (
         <div className="flex h-32 flex-col items-center justify-center text-muted-foreground">
-          <Bell className="mb-2 h-8 w-8 opacity-50" />
+          <Icons.Bell className="mb-2 h-8 w-8 opacity-50" />
           <p className="text-sm">No notifications</p>
         </div>
       );
@@ -90,7 +90,7 @@ function NotificationCenter({
     <Popover onOpenChange={setOpen} open={open}>
       <PopoverTrigger asChild>
         <Button className="relative" size="icon" variant="ghost">
-          <Bell className="h-5 w-5" />
+          <Icons.Bell className="h-5 w-5" />
           {unreadCount > 0 && (
             <span className="-right-1 -top-1 absolute flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
               {unreadCount > 9 ? "9+" : unreadCount}

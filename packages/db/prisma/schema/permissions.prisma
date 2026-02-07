@@ -34,27 +34,27 @@ enum PermissionSyncState {
 }
 
 model DocumentPermission {
-  id            String                @id @default(cuid()) @map("_id")
-  teamId        String
-  documentId    String
-  connectorId   String
+  id          String @id @default(cuid()) @map("_id")
+  teamId      String
+  documentId  String
+  connectorId String
 
   granteeType   PermissionGranteeType
   granteeId     String?
   granteeDomain String?
 
-  role          PermissionRole        @default(READER)
-  source        String
+  role   PermissionRole @default(READER)
+  source String
 
-  externalId    String?
-  syncedAt      DateTime              @default(now())
-  expiresAt     DateTime?
+  externalId String?
+  syncedAt   DateTime  @default(now())
+  expiresAt  DateTime?
 
-  createdAt     DateTime              @default(now())
-  updatedAt     DateTime              @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  team          Team                  @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  connector     Connector             @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+  team      Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  connector Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
 
   @@unique([documentId, granteeType, granteeId, granteeDomain])
   @@index([documentId])
@@ -67,23 +67,23 @@ model DocumentPermission {
 }
 
 model GroupMembership {
-  id              String    @id @default(cuid()) @map("_id")
-  teamId          String
-  userId          String
-  groupId         String
-  groupType       GroupType
-  source          String
+  id        String    @id @default(cuid()) @map("_id")
+  teamId    String
+  userId    String
+  groupId   String
+  groupType GroupType
+  source    String
 
   externalGroupId String?
   externalUserId  String?
 
-  syncedAt        DateTime  @default(now())
+  syncedAt DateTime @default(now())
 
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  team            Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([teamId, userId, groupId, source])
   @@index([userId])
@@ -94,22 +94,22 @@ model GroupMembership {
 }
 
 model ConnectorScope {
-  id             String    @id @default(cuid()) @map("_id")
-  teamId         String
-  connectorId    String
-  userId         String
+  id          String @id @default(cuid()) @map("_id")
+  teamId      String
+  connectorId String
+  userId      String
 
-  resourceScopes String[]  @default([])
-  isFullAccess   Boolean   @default(false)
+  resourceScopes String[] @default([])
+  isFullAccess   Boolean  @default(false)
 
-  syncedAt       DateTime  @default(now())
+  syncedAt DateTime @default(now())
 
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  team           Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  connector      Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
-  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team      Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  connector Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([connectorId, userId])
   @@index([teamId, userId])
@@ -118,28 +118,28 @@ model ConnectorScope {
 }
 
 model PermissionSyncStatus {
-  id                    String              @id @default(cuid()) @map("_id")
-  teamId                String
-  connectorId           String              @unique
+  id          String @id @default(cuid()) @map("_id")
+  teamId      String
+  connectorId String @unique
 
-  lastFullSync          DateTime?
-  lastIncrementalSync   DateTime?
-  syncCursor            String?
+  lastFullSync        DateTime?
+  lastIncrementalSync DateTime?
+  syncCursor          String?
 
-  totalDocuments        Int                 @default(0)
-  totalPermissions      Int                 @default(0)
-  totalGroups           Int                 @default(0)
-  totalUsers            Int                 @default(0)
+  totalDocuments   Int @default(0)
+  totalPermissions Int @default(0)
+  totalGroups      Int @default(0)
+  totalUsers       Int @default(0)
 
-  lastError             String?
-  errorCount            Int                 @default(0)
-  status                PermissionSyncState @default(IDLE)
+  lastError  String?
+  errorCount Int                 @default(0)
+  status     PermissionSyncState @default(IDLE)
 
-  createdAt             DateTime            @default(now())
-  updatedAt             DateTime            @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  team                  Team                @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  connector             Connector           @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+  team      Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  connector Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
 
   @@index([teamId])
   @@index([status])

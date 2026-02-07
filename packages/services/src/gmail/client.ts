@@ -44,6 +44,7 @@ interface ClientState {
 export function createGmailClient(config: GmailClientConfig): GmailClient {
   const {
     connectorId,
+    accessToken: providedToken,
     userEmail,
     rateLimitConfig = DEFAULT_RATE_LIMITS,
     timeout = DEFAULT_TIMEOUT,
@@ -54,8 +55,14 @@ export function createGmailClient(config: GmailClientConfig): GmailClient {
     consecutiveErrors: 0,
   };
 
+  let cachedToken: string | undefined = providedToken;
+
   async function getAccessToken(): Promise<string> {
-    return await getValidAccessToken(connectorId);
+    if (cachedToken) {
+      return cachedToken;
+    }
+    cachedToken = await getValidAccessToken(connectorId);
+    return cachedToken;
   }
 
   async function checkRateLimit(method: string): Promise<void> {
@@ -99,7 +106,6 @@ export function createGmailClient(config: GmailClientConfig): GmailClient {
     return Math.min(exponentialDelay + jitter, MAX_RETRY_DELAY);
   }
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: URL building with array/value handling
   function buildUrl(
     path: string,
     params?: Record<string, GmailParamValue>
@@ -170,7 +176,6 @@ export function createGmailClient(config: GmailClientConfig): GmailClient {
     }
   }
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: retry logic requires branching
   // biome-ignore lint/nursery/useMaxParams: internal function with related parameters
   async function handleRetryableError<T>(
     error: unknown,
@@ -183,7 +188,7 @@ export function createGmailClient(config: GmailClientConfig): GmailClient {
     attempt: number
   ): Promise<T> {
     state.consecutiveErrors += 1;
-    state.lastError = error as Error;
+    state.lastError = error instanceof Error ? error : new Error(String(error));
 
     const canRetry = attempt < DEFAULT_RETRY_ATTEMPTS;
 
@@ -216,7 +221,10 @@ export function createGmailClient(config: GmailClientConfig): GmailClient {
       return await retryWithDelay<T>(method, path, options, attempt);
     }
 
-    throw error;
+    throw new Error(
+      `Gmail ${method} ${path} failed for connector ${connectorId} after ${DEFAULT_RETRY_ATTEMPTS} attempts`,
+      { cause: error }
+    );
   }
 
   // biome-ignore lint/nursery/useMaxParams: internal function with related parameters
@@ -315,7 +323,8 @@ export function createGmailClient(config: GmailClientConfig): GmailClient {
       const path = "/users/me/profile";
       await get(path);
       return true;
-    } catch {
+    } catch (error) {
+      logger.debug({ error, connectorId }, "Gmail health check failed");
       return false;
     }
   }
@@ -353,7 +362,6 @@ function parseBatchResponse<T>(responseText: string): T[] {
   logger.debug({ partsCount: parts.length }, "Gmail batch response parts");
 
   for (const part of parts) {
-    // Extract HTTP status from the part
     const statusMatch = part.match(HTTP_STATUS_REGEX);
     const status = statusMatch?.[1] ? Number.parseInt(statusMatch[1], 10) : 0;
 
@@ -370,7 +378,7 @@ function parseBatchResponse<T>(responseText: string): T[] {
         results.push(parsed);
       } catch (e) {
         logger.warn(
-          { parseError: (e as Error).message, status },
+          { parseError: e instanceof Error ? e.message : String(e), status },
           "Gmail batch response JSON parse failed"
         );
       }

@@ -40,6 +40,12 @@ export type SyncStatusType = {
     status: string;
     dataAdded: number;
     dataUpdated: number;
+    dataDeleted: number;
+    documentsAdded?: number;
+    documentsUpdated?: number;
+    documentsRemoved?: number;
+    filesDiscovered?: number;
+    mediaDiscovered?: number;
     summary?: unknown;
   } | null;
   syncJobs?: {
@@ -57,6 +63,11 @@ export type SyncHistoryEntry = {
   dataAdded: number;
   dataUpdated: number;
   dataDeleted: number;
+  documentsAdded?: number;
+  documentsUpdated?: number;
+  documentsRemoved?: number;
+  filesDiscovered?: number;
+  mediaDiscovered?: number;
   errorMessage: string | null;
   syncJob: {
     type: string;

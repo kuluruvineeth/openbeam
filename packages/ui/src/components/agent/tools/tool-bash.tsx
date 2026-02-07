@@ -1,7 +1,6 @@
 "use client";
 
 import { cva, type VariantProps } from "class-variance-authority";
-import { ChevronDown, Circle, Terminal } from "lucide-react";
 import { forwardRef, useState } from "react";
 import { AGENT_UI_CONSTANTS } from "../../../lib/agent-constants";
 import { cn } from "../../../utils/cn";
@@ -11,6 +10,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "../../collapsible";
+import { Icons } from "../../icons";
 import { TextShimmer } from "../../text-shimmer";
 
 const toolBashVariants = cva("rounded-md border font-mono text-xs", {
@@ -69,23 +69,27 @@ const ToolBash = forwardRef<HTMLDivElement, ToolBashProps>(
     const renderStatusIndicator = () => {
       if (status === "running") {
         return (
-          <Circle className="size-2 animate-pulse fill-primary text-primary" />
+          <Icons.Circle className="size-2 animate-pulse fill-primary text-primary" />
         );
       }
       if (status === "success") {
-        return <Circle className="size-2 fill-green-500 text-green-500" />;
+        return (
+          <Icons.Circle className="size-2 fill-green-500 text-green-500" />
+        );
       }
       if (status === "error") {
-        return <Circle className="size-2 fill-destructive text-destructive" />;
+        return (
+          <Icons.Circle className="size-2 fill-destructive text-destructive" />
+        );
       }
       return (
-        <Circle className="size-2 fill-muted-foreground/50 text-muted-foreground/50" />
+        <Icons.Circle className="size-2 fill-muted-foreground/50 text-muted-foreground/50" />
       );
     };
 
     const renderHeader = () => (
       <div className="flex items-center gap-2 border-border/30 border-b px-3 py-2">
-        <Terminal className="size-3.5 text-muted-foreground" />
+        <Icons.Terminal className="size-3.5 text-muted-foreground" />
         {status === "running" ? (
           <TextShimmer as="span" className="font-medium text-xs" duration={1.5}>
             Running command...
@@ -180,7 +184,7 @@ const ToolBash = forwardRef<HTMLDivElement, ToolBashProps>(
                         ? "Show less"
                         : `Show all ${outputLines.length} lines`}
                     </span>
-                    <ChevronDown
+                    <Icons.ChevronDown
                       className={cn(
                         "ml-1 size-3 transition-transform duration-200",
                         isOpen && "rotate-180"

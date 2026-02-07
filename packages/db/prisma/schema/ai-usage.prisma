@@ -1,38 +1,38 @@
 model AIUsageLog {
-  id              String   @id @default(cuid()) @map("_id")
-  teamId          String
-  userId          String?
+  id     String  @id @default(cuid()) @map("_id")
+  teamId String
+  userId String?
 
-  traceId         String   @unique
-  parentSpanId    String?
+  traceId      String  @unique
+  parentSpanId String?
 
-  provider        String
-  model           String
+  provider String
+  model    String
 
-  inputTokens     Int
-  outputTokens    Int
-  cacheReadTokens Int      @default(0)
-  cacheWriteTokens Int     @default(0)
-  reasoningTokens Int      @default(0)
+  inputTokens      Int
+  outputTokens     Int
+  cacheReadTokens  Int @default(0)
+  cacheWriteTokens Int @default(0)
+  reasoningTokens  Int @default(0)
 
-  inputCostUsd    Float
-  outputCostUsd   Float
-  cacheCostUsd    Float    @default(0)
-  totalCostUsd    Float
+  inputCostUsd  Float
+  outputCostUsd Float
+  cacheCostUsd  Float @default(0)
+  totalCostUsd  Float
 
-  latencyMs       Int
-  firstTokenMs    Int?
+  latencyMs    Int
+  firstTokenMs Int?
 
-  workflow        String?
-  feature         String?
-  operation       String?
+  workflow  String?
+  feature   String?
+  operation String?
 
-  success         Boolean  @default(true)
-  errorCode       String?
+  success   Boolean @default(true)
+  errorCode String?
 
-  metadata        Json?
+  metadata Json?
 
-  createdAt       DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@index([teamId, createdAt])
   @@index([userId, createdAt])
@@ -43,35 +43,35 @@ model AIUsageLog {
 }
 
 model AIUsageSummary {
-  id              String   @id @default(cuid()) @map("_id")
-  teamId          String
+  id     String @id @default(cuid()) @map("_id")
+  teamId String
 
-  periodStart     DateTime
-  periodEnd       DateTime
-  granularity     AIUsageGranularity @default(DAY)
+  periodStart DateTime
+  periodEnd   DateTime
+  granularity AIUsageGranularity @default(DAY)
 
-  totalRequests   Int
-  successfulRequests Int   @default(0)
-  failedRequests  Int      @default(0)
+  totalRequests      Int
+  successfulRequests Int @default(0)
+  failedRequests     Int @default(0)
 
   totalInputTokens  BigInt
   totalOutputTokens BigInt
   totalCacheTokens  BigInt @default(0)
 
-  totalCostUsd    Float
+  totalCostUsd Float
 
-  costByProvider  Json
-  costByModel     Json
-  costByWorkflow  Json     @default("{}")
-  costByUser      Json     @default("{}")
+  costByProvider Json
+  costByModel    Json
+  costByWorkflow Json @default("{}")
+  costByUser     Json @default("{}")
 
-  avgLatencyMs    Float
-  p50LatencyMs    Float    @default(0)
-  p95LatencyMs    Float    @default(0)
-  p99LatencyMs    Float    @default(0)
+  avgLatencyMs Float
+  p50LatencyMs Float @default(0)
+  p95LatencyMs Float @default(0)
+  p99LatencyMs Float @default(0)
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([teamId, periodStart, granularity])
   @@index([teamId, periodStart])
@@ -79,24 +79,24 @@ model AIUsageSummary {
 }
 
 model AICacheMetrics {
-  id              String   @id @default(cuid()) @map("_id")
-  teamId          String
+  id     String @id @default(cuid()) @map("_id")
+  teamId String
 
-  periodStart     DateTime
-  periodEnd       DateTime
+  periodStart DateTime
+  periodEnd   DateTime
 
-  kvCacheHits     Int      @default(0)
-  kvCacheMisses   Int      @default(0)
-  kvCacheHitRate  Float    @default(0)
+  kvCacheHits    Int   @default(0)
+  kvCacheMisses  Int   @default(0)
+  kvCacheHitRate Float @default(0)
 
-  toolCacheHits   Int      @default(0)
-  toolCacheMisses Int      @default(0)
-  toolCacheHitRate Float   @default(0)
+  toolCacheHits    Int   @default(0)
+  toolCacheMisses  Int   @default(0)
+  toolCacheHitRate Float @default(0)
 
-  tokensSaved     BigInt   @default(0)
-  costSavedUsd    Float    @default(0)
+  tokensSaved  BigInt @default(0)
+  costSavedUsd Float  @default(0)
 
-  createdAt       DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@unique([teamId, periodStart])
   @@index([teamId, periodStart])
@@ -104,23 +104,23 @@ model AICacheMetrics {
 }
 
 model AIToolUsage {
-  id              String   @id @default(cuid()) @map("_id")
-  teamId          String
+  id     String @id @default(cuid()) @map("_id")
+  teamId String
 
-  toolName        String
-  category        String
+  toolName String
+  category String
 
-  callCount       Int      @default(0)
-  successCount    Int      @default(0)
-  failureCount    Int      @default(0)
+  callCount    Int @default(0)
+  successCount Int @default(0)
+  failureCount Int @default(0)
 
-  avgLatencyMs    Float    @default(0)
-  p95LatencyMs    Float    @default(0)
+  avgLatencyMs Float @default(0)
+  p95LatencyMs Float @default(0)
 
-  periodStart     DateTime
-  periodEnd       DateTime
+  periodStart DateTime
+  periodEnd   DateTime
 
-  createdAt       DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@unique([teamId, toolName, periodStart])
   @@index([teamId, periodStart])

@@ -53,7 +53,6 @@ export interface DomainSyncResult {
   };
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: domain sync requires handling multiple users
 export async function* syncDomainMailboxes(
   connectorId: string,
   context: Omit<GmailTransformContext, "userEmail">,

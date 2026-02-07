@@ -22,6 +22,7 @@ enum RelationType {
   USES
   RELATES_TO
   CHILD_OF
+  WORKS_ON
 }
 
 model Entity {
@@ -38,9 +39,9 @@ model Entity {
   externalId     String?
   externalSource String?
 
-  expertiseScore Float    @default(0)
-  documentCount  Int      @default(0)
-  mentionCount   Int      @default(0)
+  expertiseScore Float     @default(0)
+  documentCount  Int       @default(0)
+  mentionCount   Int       @default(0)
   lastActiveAt   DateTime?
 
   createdAt DateTime @default(now())

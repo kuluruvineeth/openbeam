@@ -154,6 +154,14 @@ export const ParallelJoinNode = memo(
       const errorHandling = config?.errorHandling ?? "failFast";
       const timeoutMs = config?.timeoutMs;
       const requiredCount = config?.requiredCount;
+      const preferredBranch = config?.preferredBranch;
+      const matchFields = config?.matchFields ?? [];
+      const combineType = config?.combineType ?? "inner";
+
+      const preferredLabel = useMemo(
+        () => inputs.find((input) => input.id === preferredBranch)?.label,
+        [inputs, preferredBranch]
+      );
 
       const inputOffsets = useMemo(
         () => calculateInputOffsets(inputs.length),
@@ -188,6 +196,58 @@ export const ParallelJoinNode = memo(
       }, [inputs, inputOffsets]);
 
       const MergeIcon = Icons[MERGE_STRATEGY_META[mergeStrategy].iconName];
+      const validMatchFields = matchFields.filter(
+        (field) => field.left.trim() && field.right.trim()
+      );
+
+      const warnings = useMemo(() => {
+        const items: string[] = [];
+        if (inputs.length < 2) {
+          items.push("Add at least two inputs");
+        }
+        if (mergeStrategy === "combine" && validMatchFields.length === 0) {
+          items.push("Combine requires match fields");
+        }
+        if (
+          mergeStrategy === "combine" &&
+          validMatchFields.length !== matchFields.length
+        ) {
+          items.push("Fill in all match fields");
+        }
+        if (mergeStrategy === "chooseBranch" && !preferredLabel) {
+          items.push("Preferred input is required");
+        }
+        if (
+          joinMode === "nOutOfM" &&
+          requiredCount !== undefined &&
+          (requiredCount < 1 || requiredCount > inputs.length)
+        ) {
+          items.push("Required inputs are out of range");
+        }
+        return items;
+      }, [
+        inputs.length,
+        joinMode,
+        matchFields.length,
+        mergeStrategy,
+        preferredLabel,
+        requiredCount,
+        validMatchFields.length,
+      ]);
+
+      const notes = useMemo(() => {
+        const items: string[] = [];
+        if (joinMode !== "waitForAll") {
+          items.push("Execution waits for all inputs");
+        }
+        if (mergeStrategy === "combine" && inputs.length > 2) {
+          items.push("Combine uses first two inputs");
+        }
+        if (errorHandling === "collectErrors") {
+          items.push("Output includes errors when branches fail");
+        }
+        return items;
+      }, [errorHandling, inputs.length, joinMode, mergeStrategy]);
 
       return (
         <NodeShell
@@ -244,6 +304,24 @@ export const ParallelJoinNode = memo(
                 )}
               </div>
 
+              {mergeStrategy === "combine" && (
+                <div className="flex items-center justify-between text-[10px]">
+                  <span className="text-muted-foreground">Combine</span>
+                  <span className="font-mono tabular-nums">
+                    {combineType} • {validMatchFields.length} fields
+                  </span>
+                </div>
+              )}
+
+              {mergeStrategy === "chooseBranch" && preferredLabel && (
+                <div className="flex items-center justify-between text-[10px]">
+                  <span className="text-muted-foreground">Preferred</span>
+                  <span className="truncate font-mono tabular-nums">
+                    {preferredLabel}
+                  </span>
+                </div>
+              )}
+
               {emptyBranchHandling !== "includeEmpty" && (
                 <div className="flex items-center justify-between text-[10px]">
                   <span className="text-muted-foreground">On empty</span>
@@ -261,6 +339,34 @@ export const ParallelJoinNode = memo(
                   <Badge variant={ERROR_HANDLING_META[errorHandling].variant}>
                     {ERROR_HANDLING_META[errorHandling].label}
                   </Badge>
+                </div>
+              )}
+
+              {warnings.length > 0 && (
+                <div className="space-y-1">
+                  {warnings.map((warning) => (
+                    <div
+                      className="flex items-center gap-1.5 text-[10px] text-warning"
+                      key={warning}
+                    >
+                      <Icons.AlertCircle size={12} />
+                      <span>{warning}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {notes.length > 0 && (
+                <div className="space-y-1">
+                  {notes.map((note) => (
+                    <div
+                      className="flex items-center gap-1.5 text-[10px] text-muted-foreground"
+                      key={note}
+                    >
+                      <Icons.Info size={12} />
+                      <span>{note}</span>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

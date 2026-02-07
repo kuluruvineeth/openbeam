@@ -23,7 +23,6 @@ function escapeYqlString(value: string): string {
   return value.replace(/(["\\])/g, "\\$1");
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: This is a complex search query
 export async function hybridSearch(
   params: HybridSearchParams
 ): Promise<HybridSearchResult> {

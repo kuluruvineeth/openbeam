@@ -353,7 +353,6 @@ function buildSessionSection(session: SessionState): string {
   return `${lines.join("\n")}\n`;
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: handles multiple memory types with conditional logic
 function buildMemorySection(
   memory: NonNullable<ContextMdInput["memoryContext"]>,
   tokenBudget: number

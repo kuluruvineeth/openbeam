@@ -1,13 +1,4 @@
-// TODO: Check back tracing after Bun supports OpenTelemetry
-// Currently using Node.js SDK which may not work fully with Bun runtime
-import {
-  closeCleanupQueue,
-  closeIndexQueue,
-  closeRedisClient,
-  closeSharedBullMqConnection,
-  closeSyncQueue,
-  closeWebhookQueue,
-} from "@openplane/redis";
+import { closeRedisClient } from "@openplane/redis";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto";
 import { HttpInstrumentation } from "@opentelemetry/instrumentation-http";
 import { IORedisInstrumentation } from "@opentelemetry/instrumentation-ioredis";
@@ -39,15 +30,7 @@ sdk.start();
 async function gracefulShutdown(): Promise<void> {
   logger.info("Starting graceful shutdown...");
 
-  await Promise.allSettled([
-    sdk.shutdown(),
-    closeSyncQueue(),
-    closeIndexQueue(),
-    closeWebhookQueue(),
-    closeCleanupQueue(),
-    closeSharedBullMqConnection(),
-    closeRedisClient(),
-  ]);
+  await Promise.allSettled([sdk.shutdown(), closeRedisClient()]);
 
   logger.info("Graceful shutdown complete");
 }

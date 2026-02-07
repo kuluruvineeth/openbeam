@@ -12,11 +12,11 @@ import {
   startOfWeek,
   subWeeks,
 } from "date-fns";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useRef } from "react";
 
 import { cn } from "../../utils/cn";
 import { Button } from "../button";
+import { Icons } from "../icons";
 
 interface TimelineEvent {
   id: string;
@@ -82,7 +82,7 @@ function WeekTimeline({
             size="icon"
             variant="ghost"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <Icons.ChevronLeft className="h-4 w-4" />
           </Button>
           <Button
             onClick={() => onDateChange?.(new Date())}
@@ -96,7 +96,7 @@ function WeekTimeline({
             size="icon"
             variant="ghost"
           >
-            <ChevronRight className="h-4 w-4" />
+            <Icons.ChevronRight className="h-4 w-4" />
           </Button>
         </div>
       </div>

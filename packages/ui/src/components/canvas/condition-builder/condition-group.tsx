@@ -5,7 +5,6 @@ import type {
   ConditionLogic,
   SingleCondition,
 } from "@openplane/types/canvas";
-import { Circle, CircleDot } from "lucide-react";
 import { forwardRef, memo, useCallback } from "react";
 import { cn } from "../../../utils";
 import { Button } from "../../button";
@@ -89,12 +88,12 @@ export const ConditionGroup = memo(
               >
                 {group.logic === "and" ? (
                   <>
-                    <CircleDot className="size-3" />
+                    <Icons.CircleDot className="size-3" />
                     ALL
                   </>
                 ) : (
                   <>
-                    <Circle className="size-3" />
+                    <Icons.Circle className="size-3" />
                     ANY
                   </>
                 )}

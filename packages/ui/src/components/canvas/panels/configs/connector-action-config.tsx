@@ -14,6 +14,10 @@ import {
 import type { ComponentType } from "react";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "../../../../utils";
+import {
+  formatDuration,
+  normalizeConnectorType,
+} from "../../../../utils/format";
 import { AnimatedSizeContainer } from "../../../animated-size-container";
 import { Badge } from "../../../badge";
 import { Button } from "../../../button";
@@ -76,10 +80,6 @@ const RESOURCE_LABELS: Record<string, string> = {
   team: "Teams",
   comment: "Comments",
 };
-
-function normalizeConnectorType(type: string): string {
-  return type.replace(/-/g, "_");
-}
 
 function findRegistryForType(
   registries: ConnectorActionsRegistry[],
@@ -170,6 +170,111 @@ export const ConnectorActionConfigPanel = memo(
       () => selectedAction?.inputs.filter((i) => !i.required) ?? [],
       [selectedAction]
     );
+
+    const warnings = useMemo(() => {
+      const list: string[] = [];
+      const connectorType = config.connectorType?.trim() ?? "";
+
+      if (!connectorType) {
+        list.push("Select a connector");
+      }
+
+      if (connectorType && !config.connectorId?.trim()) {
+        list.push("Select an account");
+      }
+
+      if (connectorType && matchingAccounts.length === 0 && connectors) {
+        list.push(
+          `Connect a ${CONNECTOR_LABELS[connectorType as ConnectorType] ?? connectorType} account`
+        );
+      }
+
+      if (connectorType && !config.actionId?.trim()) {
+        list.push("Select an action");
+      }
+
+      if (selectedAction) {
+        const missingRequired = requiredInputs.filter((input) => {
+          const value = config.inputMappings[input.id];
+          if (value === undefined || value === null) {
+            return true;
+          }
+          if (typeof value === "string" && value.trim().length === 0) {
+            return true;
+          }
+          return false;
+        });
+        if (missingRequired.length > 0) {
+          list.push(
+            `Missing required inputs: ${missingRequired
+              .map((input) => input.name)
+              .join(", ")}`
+          );
+        }
+      }
+
+      return list;
+    }, [
+      config.actionId,
+      config.connectorId,
+      config.connectorType,
+      config.inputMappings,
+      connectors,
+      matchingAccounts.length,
+      requiredInputs,
+      selectedAction,
+    ]);
+
+    const notes = useMemo(() => {
+      const list: string[] = [];
+
+      if (selectedAction?.stakes === "high") {
+        list.push("Destructive action");
+      }
+
+      if (selectedAction?.reversible) {
+        list.push("Action is reversible");
+      }
+
+      if (selectedAction?.batchSupport) {
+        list.push("Supports batch execution");
+      }
+
+      if (selectedAction?.rateLimit) {
+        list.push(
+          `Rate limit: ${selectedAction.rateLimit.requests} / ${formatDuration(
+            selectedAction.rateLimit.windowMs
+          )}`
+        );
+      }
+
+      if (config.retryConfig) {
+        list.push(`Retries: ${config.retryConfig.maxAttempts}x`);
+      }
+
+      if (config.timeoutMs) {
+        list.push(`Timeout: ${formatDuration(config.timeoutMs)}`);
+      }
+
+      if (config.continueOnError) {
+        list.push("Continue on error enabled");
+      }
+
+      if (
+        config.outputMappings &&
+        Object.keys(config.outputMappings).length > 0
+      ) {
+        list.push("Output mapping enabled");
+      }
+
+      return list;
+    }, [
+      config.continueOnError,
+      config.outputMappings,
+      config.retryConfig,
+      config.timeoutMs,
+      selectedAction,
+    ]);
 
     const handleConnectorTypeChange = useCallback(
       (connectorType: string) => {
@@ -371,6 +476,34 @@ export const ConnectorActionConfigPanel = memo(
             )}
           </div>
         </ConfigSection>
+
+        {warnings.length > 0 && (
+          <div className="space-y-2 px-5 pb-4">
+            {warnings.map((warning) => (
+              <div
+                className="flex items-start gap-2 rounded-md bg-warning/10 px-3 py-2 text-warning text-xs"
+                key={warning}
+              >
+                <Icons.AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
+                <span>{warning}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {notes.length > 0 && (
+          <div className="space-y-2 px-5 pb-4">
+            {notes.map((note) => (
+              <div
+                className="flex items-start gap-2 rounded-md bg-muted/40 px-3 py-2 text-muted-foreground text-xs"
+                key={note}
+              >
+                <Icons.Info className="mt-0.5 size-3.5 shrink-0" />
+                <span>{note}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     );
   }

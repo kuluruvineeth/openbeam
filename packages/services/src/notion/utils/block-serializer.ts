@@ -61,7 +61,6 @@ function serializeRichText(richText: NotionRichText[]): SerializedRichText[] {
   });
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: block type extraction requires handling many cases
 function extractBlockData(block: BlockWithDepth): SerializedBlockData {
   const blockType = block.type;
   const blockData = block[blockType] as Record<string, unknown> | undefined;
@@ -210,7 +209,6 @@ export function serializedRichTextToMarkdown(
     .join("");
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: block type switch requires many cases
 export function serializedBlocksToMarkdown(blocks: SerializedBlock[]): string {
   const lines: string[] = [];
 

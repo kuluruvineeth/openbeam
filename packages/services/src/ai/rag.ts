@@ -43,7 +43,6 @@ Rules:
 - Never include lengthy explanations or caveats
 - Get straight to the answer`;
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: RAG context building requires handling both documents and media with token management
 export async function buildRAGContext(
   params: RAGContextParams
 ): Promise<RAGContext> {

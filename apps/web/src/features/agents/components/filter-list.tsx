@@ -1,8 +1,6 @@
 "use client";
 
-import { Badge } from "@openplane/ui/components/badge";
-import { Button } from "@openplane/ui/components/button";
-import { X } from "lucide-react";
+import { Badge, Button, Icons } from "@openplane/ui";
 
 type Filter = {
   id: string;
@@ -30,7 +28,7 @@ export function FilterList({ filters, onRemove, onClear }: FilterListProps) {
             onClick={() => onRemove(filter.id)}
             type="button"
           >
-            <X className="size-3" />
+            <Icons.XIcon size={12} />
           </button>
         </Badge>
       ))}

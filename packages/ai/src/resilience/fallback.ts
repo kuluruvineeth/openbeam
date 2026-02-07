@@ -32,7 +32,6 @@ export interface FallbackOptions {
 const defaultShouldFailover: FallbackPredicate = (error) =>
   FAILOVER_ERROR_CODES.has(error.code);
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Fallback logic requires handling multiple provider scenarios
 export async function withFallback<T>(
   config: FallbackChainConfig,
   operation: ProviderOperation<T>,

@@ -114,7 +114,6 @@ export class GeneratorCriticAgent implements ExecutableAgent {
     }
   }
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Agent pattern requires complex control flow
   async *stream(
     input: unknown,
     ctx: AgentExecutionContext
@@ -286,7 +285,6 @@ export class GeneratorCriticAgent implements ExecutableAgent {
     });
   }
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Multiple output format parsing requires branching
   private parseCritiqueResult(output: unknown): CritiqueResult {
     if (typeof output === "string") {
       const upperOutput = output.toUpperCase().trim();

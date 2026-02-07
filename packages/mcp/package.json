@@ -1,0 +1,33 @@
+{
+  "name": "@openplane/mcp",
+  "version": "1.0.0",
+  "description": "MCP server for OpenPlane database access via Claude Code",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "openplane-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "dev": "node --import tsx src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "keywords": [
+    "mcp",
+    "claude",
+    "database",
+    "openplane"
+  ],
+  "license": "ISC",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@openplane/db": "workspace:*",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@openplane/config": "workspace:*",
+    "tsdown": "catalog:",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.2"
+  }
+}

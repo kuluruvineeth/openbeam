@@ -1,7 +1,8 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 import type { EmailAttachment, EmailMessage } from "@/lib/email-types";
 import { useTRPC } from "@/trpc/client";
 import { EmailPreviewHeader } from "./email-preview-header";
@@ -38,15 +39,7 @@ export function EmailPreviewPanel({
     staleTime: 5 * 60 * 1000,
   });
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
+  useHotkeys("escape", onClose);
 
   const handleAttachmentClick = useCallback(
     (attachment: EmailAttachment) => {
@@ -97,7 +90,7 @@ export function EmailPreviewPanel({
         subject={thread.subject}
         url={thread.url ?? undefined}
       />
-      <div className="min-h-0 flex-1 overflow-auto">
+      <div className="no-scrollbar min-h-0 flex-1 overflow-auto">
         <EmailThreadView
           messages={messages}
           onAttachmentClick={handleAttachmentClick}

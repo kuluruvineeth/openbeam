@@ -1,7 +1,6 @@
 "use client";
 
 import { cva, type VariantProps } from "class-variance-authority";
-import { ChevronDown, FolderSearch, Layers } from "lucide-react";
 import { forwardRef, useState } from "react";
 import { AGENT_UI_CONSTANTS } from "../../lib/agent-constants";
 import { getToolCategory, getToolIcon } from "../../lib/tool-registry";
@@ -12,6 +11,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "../collapsible";
+import { Icons } from "../icons";
 import { TextShimmer } from "../text-shimmer";
 import { AgentToolIcon } from "./agent-tool-icon";
 
@@ -73,7 +73,7 @@ const AgentToolGroup = forwardRef<HTMLDivElement, AgentToolGroupProps>(
 
     const renderHeader = () => (
       <div className="flex items-center gap-2 px-3 py-2">
-        <FolderSearch className="size-3.5 text-muted-foreground" />
+        <Icons.FolderSearch className="size-3.5 text-muted-foreground" />
         {isRunning ? (
           <TextShimmer as="span" className="font-medium text-sm" duration={1.5}>
             {groupLabel}...
@@ -149,7 +149,7 @@ const AgentToolGroup = forwardRef<HTMLDivElement, AgentToolGroupProps>(
               variant="ghost"
             >
               {renderHeader()}
-              <ChevronDown
+              <Icons.ChevronDown
                 className={cn(
                   "mr-3 size-3.5 text-muted-foreground transition-transform duration-200",
                   isOpen && "rotate-180"
@@ -162,7 +162,7 @@ const AgentToolGroup = forwardRef<HTMLDivElement, AgentToolGroupProps>(
           </CollapsibleContent>
           {!isOpen && (
             <div className="flex items-center gap-1 border-border/30 border-t px-3 py-1.5">
-              <Layers className="size-3 text-muted-foreground" />
+              <Icons.Layers className="size-3 text-muted-foreground" />
               <span className="text-muted-foreground text-xs">
                 {totalCount} tools grouped
               </span>

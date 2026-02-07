@@ -42,6 +42,7 @@ const SEARCH_LABELS: Record<string, string> = {
 const SOURCE_ICONS: Record<string, typeof Icons.Database> = {
   slack: Icons.MessageSquare,
   notion: Icons.BookOpen,
+  "google-drive": Icons.Folder,
   google_drive: Icons.Folder,
   gmail: Icons.Mail,
   linear: Icons.Layers,
@@ -63,6 +64,8 @@ function getFeatureBadges(config: RagNodeConfig): FeatureBadge[] {
 
   if (config.synthesize !== false) {
     badges.push({ id: "synthesize", label: "Synth", icon: Icons.Sparkles });
+  } else {
+    badges.push({ id: "context", label: "Context", icon: Icons.FileText });
   }
 
   if (config.citationStyle && config.citationStyle !== "none") {
@@ -94,6 +97,8 @@ export const RagNode = memo(
     const hasResults = !!data.executionResult;
     const chunksCount = data.executionResult?.chunks.length ?? 0;
     const citationsCount = data.executionResult?.citations.length ?? 0;
+    const topK = data.config.topK ?? 10;
+    const minScore = data.config.minScore ?? 0.5;
 
     return (
       <NodeShell
@@ -124,7 +129,7 @@ export const RagNode = memo(
           subtitle={
             <span className="flex items-center gap-1">
               <SearchIcon size={12} />
-              {SEARCH_LABELS[data.config.searchType]}
+              {SEARCH_LABELS[data.config.searchType] ?? "Hybrid"}
             </span>
           }
           title={data.label}
@@ -133,12 +138,8 @@ export const RagNode = memo(
         <NodeSection>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <NodeField label="Top K" mono value={data.config.topK} />
-              <NodeField
-                label="Min Score"
-                mono
-                value={data.config.minScore?.toFixed(2) ?? "0.50"}
-              />
+              <NodeField label="Top K" mono value={topK} />
+              <NodeField label="Min Score" mono value={minScore.toFixed(2)} />
             </div>
 
             {data.config.connectorTypes &&
@@ -155,7 +156,7 @@ export const RagNode = memo(
                         >
                           <SourceIcon size={12} />
                           <span className="capitalize">
-                            {type.replace("_", " ")}
+                            {type.replace(/[_-]/g, " ")}
                           </span>
                         </span>
                       );

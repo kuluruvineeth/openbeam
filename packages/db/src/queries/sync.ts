@@ -36,6 +36,11 @@ export const getSyncStatus = async (
       dataAdded: true,
       dataUpdated: true,
       dataDeleted: true,
+      documentsAdded: true,
+      documentsUpdated: true,
+      documentsRemoved: true,
+      filesDiscovered: true,
+      mediaDiscovered: true,
       startedAt: true,
       finishedAt: true,
       errorMessage: true,
@@ -179,6 +184,11 @@ export const getSyncHistory = async (
         dataAdded: true,
         dataUpdated: true,
         dataDeleted: true,
+        documentsAdded: true,
+        documentsUpdated: true,
+        documentsRemoved: true,
+        filesDiscovered: true,
+        mediaDiscovered: true,
         errorMessage: true,
         summary: true,
         startedAt: true,
@@ -213,10 +223,15 @@ export const verifyConnectorOwnership = async (
   db: Database,
   connectorId: string,
   teamId: string
-): Promise<{ id: string; status: string; teamId: string } | null> => {
+): Promise<{
+  id: string;
+  status: string;
+  teamId: string;
+  app: string;
+} | null> => {
   const connector = await db.connector.findUnique({
     where: { id: connectorId },
-    select: { id: true, status: true, teamId: true },
+    select: { id: true, status: true, teamId: true, app: true },
   });
 
   if (!connector || connector.teamId !== teamId) {

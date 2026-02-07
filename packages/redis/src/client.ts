@@ -1,4 +1,3 @@
-import IORedis, { type RedisOptions } from "ioredis";
 import { createClient, type RedisClientType } from "redis";
 
 type ParsedRedisConfig = {
@@ -12,20 +11,6 @@ type ParsedRedisConfig = {
 };
 
 const DEFAULT_REDIS_URL = "redis://localhost:6379";
-
-type BullMqRedisOptions = {
-  host?: string;
-  port?: number;
-  username?: string;
-  password?: string;
-  db?: number;
-  connectionName?: string;
-  enableReadyCheck?: boolean;
-  maxRetriesPerRequest?: number | null;
-  retryStrategy?: (attempts: number) => number | null;
-  lazyConnect?: boolean;
-  tls?: Record<string, unknown>;
-};
 
 function parseRedisConfig(): ParsedRedisConfig {
   const rawUrl = process.env.REDIS_URL || DEFAULT_REDIS_URL;
@@ -63,7 +48,6 @@ function parseRedisConfig(): ParsedRedisConfig {
 const redisConfig = parseRedisConfig();
 
 let redisClient: RedisClientType | null = null;
-let sharedBullMqConnection: IORedis | null = null;
 
 export async function getRedisClient(): Promise<RedisClientType> {
   if (!redisClient) {
@@ -125,86 +109,4 @@ export async function closeRedisClient(): Promise<void> {
   }
 }
 
-export async function closeSharedBullMqConnection(): Promise<void> {
-  if (sharedBullMqConnection) {
-    await sharedBullMqConnection.quit();
-    sharedBullMqConnection = null;
-    console.log("BullMQ Redis: Connection closed");
-  }
-}
-
-export function getSharedBullMqConnection(): IORedis {
-  if (!sharedBullMqConnection) {
-    const enableReadyCheck = process.env.REDIS_ENABLE_READY_CHECK !== "false";
-
-    const connectionOptions: RedisOptions = {
-      host: redisConfig.host,
-      port: redisConfig.port,
-      username: redisConfig.username,
-      password: redisConfig.password,
-      db: redisConfig.db,
-      connectionName: process.env.REDIS_CONNECTION_NAME,
-      enableReadyCheck,
-      maxRetriesPerRequest: null,
-      lazyConnect: true,
-    };
-
-    if (redisConfig.isTls) {
-      const rejectUnauthorized =
-        process.env.REDIS_TLS_REJECT_UNAUTHORIZED !== "false";
-      connectionOptions.tls = { rejectUnauthorized };
-    }
-
-    sharedBullMqConnection = new IORedis(connectionOptions);
-
-    sharedBullMqConnection.on("error", (err: Error) => {
-      console.error("BullMQ Redis Connection Error:", err);
-    });
-
-    sharedBullMqConnection.on("connect", () => {
-      console.log("BullMQ Redis: Connected");
-    });
-
-    sharedBullMqConnection.on("ready", () => {
-      console.log("BullMQ Redis: Ready");
-    });
-  }
-
-  return sharedBullMqConnection;
-}
-
-export function getRedisConnection(): BullMqRedisOptions {
-  const enableReadyCheck = process.env.REDIS_ENABLE_READY_CHECK !== "false";
-  const maxRetriesPerRequest = Number.parseInt(
-    process.env.REDIS_MAX_RETRIES_PER_REQUEST || "2",
-    10
-  );
-  const retryBaseDelay =
-    Number.parseInt(process.env.REDIS_RETRY_DELAY_MS || "500", 10) || 500;
-  const retryMaxDelay =
-    Number.parseInt(process.env.REDIS_RETRY_MAX_DELAY_MS || "5000", 10) || 5000;
-
-  const options: BullMqRedisOptions = {
-    host: redisConfig.host,
-    port: redisConfig.port,
-    username: redisConfig.username,
-    password: redisConfig.password,
-    db: redisConfig.db,
-    connectionName: process.env.REDIS_CONNECTION_NAME,
-    enableReadyCheck,
-    maxRetriesPerRequest,
-    retryStrategy: (attempts: number) =>
-      Math.min(attempts * retryBaseDelay, retryMaxDelay),
-    lazyConnect: true,
-  };
-
-  if (redisConfig.isTls) {
-    const rejectUnauthorized =
-      process.env.REDIS_TLS_REJECT_UNAUTHORIZED !== "false";
-    options.tls = { rejectUnauthorized };
-  }
-
-  return options;
-}
-
-export { redisClient, sharedBullMqConnection };
+export { redisClient };

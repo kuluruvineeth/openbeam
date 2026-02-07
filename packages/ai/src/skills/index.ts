@@ -1,5 +1,7 @@
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { skillRegistry } from "./registry";
+import { registerSkillTools } from "./tools";
 
 export type {
   ParsedSkill,
@@ -47,8 +49,8 @@ function getBuiltinSkillsPath(): string {
   }
 }
 
+// biome-ignore lint/suspicious/useAwait: returns promise directly, caller awaits
 export async function initializeBuiltinSkills(): Promise<number> {
-  const { skillRegistry } = await import("./registry");
   const builtinPath = getBuiltinSkillsPath();
   return skillRegistry.discoverSkills(builtinPath);
 }
@@ -56,9 +58,6 @@ export async function initializeBuiltinSkills(): Promise<number> {
 export async function initializeSkills(
   customSkillsPath?: string
 ): Promise<{ builtin: number; custom: number }> {
-  const { skillRegistry } = await import("./registry");
-  const { registerSkillTools } = await import("./tools");
-
   registerSkillTools();
 
   const builtinPath = getBuiltinSkillsPath();

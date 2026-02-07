@@ -23,7 +23,7 @@ export type SelectedFile = {
 };
 
 export type ChatBoxProps = {
-  role: UserRole;
+  userRole: UserRole;
   query: string;
   setQuery: (query: string) => void;
   isStreaming?: boolean;

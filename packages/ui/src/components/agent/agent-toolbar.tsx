@@ -1,17 +1,6 @@
 "use client";
 
 import { cva, type VariantProps } from "class-variance-authority";
-import {
-  Brain,
-  ChevronDown,
-  Code2,
-  Database,
-  FileText,
-  Globe,
-  Link2,
-  Search,
-  Sparkles,
-} from "lucide-react";
 import type * as React from "react";
 import { forwardRef, useCallback, useMemo } from "react";
 import {
@@ -22,6 +11,7 @@ import {
 } from "../../stores/agent-store";
 import { cn } from "../../utils/cn";
 import { Button } from "../button";
+import { Icons } from "../icons";
 import {
   Select,
   SelectContent,
@@ -96,14 +86,14 @@ const CAPABILITY_ICONS: Record<
   CapabilityId,
   React.ComponentType<{ className?: string }>
 > = {
-  search: Search,
-  rag: Sparkles,
-  documents: FileText,
-  connectors: Link2,
-  memory: Brain,
-  web: Globe,
-  code: Code2,
-  data: Database,
+  search: Icons.Search,
+  rag: Icons.Sparkles,
+  documents: Icons.FileText,
+  connectors: Icons.Link,
+  memory: Icons.BrainIcon,
+  web: Icons.Globe,
+  code: Icons.Code2,
+  data: Icons.Database,
 };
 
 type AgentToolbarProps = React.ComponentProps<"div"> &
@@ -267,7 +257,7 @@ const AgentToolbar = forwardRef<HTMLDivElement, AgentToolbarProps>(
           size="sm"
           variant="ghost"
         >
-          <ChevronDown
+          <Icons.ChevronDown
             className={cn(
               "size-4 transition-transform",
               isExpanded && "rotate-180"

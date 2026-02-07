@@ -492,6 +492,17 @@ body {
   .animate-collapsible-up {
     animation: collapsible-up 200ms ease-out;
   }
+
+  @keyframes ellipsis {
+    0%,
+    20% {
+      opacity: 0;
+    }
+    40%,
+    100% {
+      opacity: 1;
+    }
+  }
 }
 
 @utility step {

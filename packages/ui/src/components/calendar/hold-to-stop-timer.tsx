@@ -1,10 +1,10 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Play, Square } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { cn } from "../../utils/cn";
+import { Icons } from "../icons";
 
 interface TimerProps {
   isRunning: boolean;
@@ -116,9 +116,9 @@ function HoldToStopTimer({
           type="button"
         >
           {isRunning ? (
-            <Square className={sizeStyles.icon} />
+            <Icons.Square className={sizeStyles.icon} />
           ) : (
-            <Play className={cn(sizeStyles.icon, "ml-0.5")} />
+            <Icons.Play className={cn(sizeStyles.icon, "ml-0.5")} />
           )}
         </button>
 

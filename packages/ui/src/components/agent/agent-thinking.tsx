@@ -1,6 +1,5 @@
 "use client";
 
-import { ChevronDown, Loader2, Sparkles } from "lucide-react";
 import { forwardRef } from "react";
 import { useAutoCollapse } from "../../hooks/use-auto-collapse";
 import { cn } from "../../utils/cn";
@@ -10,6 +9,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "../collapsible";
+import { Icons } from "../icons";
 import { TextShimmer } from "../text-shimmer";
 import { AgentThinkingSummary } from "./agent-thinking-summary";
 import { StreamingText } from "./streaming-text";
@@ -57,7 +57,7 @@ const AgentThinking = forwardRef<HTMLDivElement, AgentThinkingProps>(
           ref={ref}
           {...props}
         >
-          <Loader2 className="size-3.5 animate-spin text-primary" />
+          <Icons.Loader2 className="size-3.5 animate-spin text-primary" />
           <TextShimmer as="span" className="text-sm" duration={1.5}>
             {label}...
           </TextShimmer>
@@ -97,12 +97,12 @@ const AgentThinking = forwardRef<HTMLDivElement, AgentThinkingProps>(
               variant="ghost"
             >
               {isActive ? (
-                <Loader2 className="size-3.5 animate-spin text-primary" />
+                <Icons.Loader2 className="size-3.5 animate-spin text-primary" />
               ) : (
-                <Sparkles className="size-3.5 text-primary/70" />
+                <Icons.Sparkles className="size-3.5 text-primary/70" />
               )}
               {renderTriggerLabel()}
-              <ChevronDown
+              <Icons.ChevronDown
                 className={cn(
                   "ml-auto size-3.5 transition-transform duration-200",
                   isOpen && "rotate-180"

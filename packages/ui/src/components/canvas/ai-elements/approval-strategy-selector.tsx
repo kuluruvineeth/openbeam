@@ -12,24 +12,28 @@ const STRATEGY_OPTIONS: {
   label: string;
   description: string;
   icon: keyof typeof Icons;
+  available: boolean;
 }[] = [
   {
     value: "single",
     label: "Single",
     description: "One person decides",
     icon: "UserCheck",
+    available: true,
   },
   {
     value: "sequential",
     label: "Sequential",
     description: "Chain of approvers in order",
     icon: "ArrowRight",
+    available: false,
   },
   {
     value: "parallel",
     label: "Parallel",
     description: "Multiple approvers at once",
     icon: "Users",
+    available: false,
   },
 ];
 
@@ -61,15 +65,16 @@ export const ApprovalStrategySelector = memo(
         {STRATEGY_OPTIONS.map((option) => {
           const isSelected = value === option.value;
           const Icon = Icons[option.icon];
+          const isDisabled = disabled || !option.available;
           return (
             <button
               className={cn(
                 "flex flex-col items-center gap-1.5 rounded-md border p-3 text-center transition-colors",
                 "hover:border-border hover:bg-muted/50",
                 isSelected && "border-primary bg-primary/5",
-                disabled && "pointer-events-none opacity-50"
+                isDisabled && "pointer-events-none opacity-50"
               )}
-              disabled={disabled}
+              disabled={isDisabled}
               key={option.value}
               onClick={() => handleSelect(option.value)}
               type="button"
@@ -84,6 +89,11 @@ export const ApprovalStrategySelector = memo(
               <span className="line-clamp-2 text-[10px] text-muted-foreground leading-tight">
                 {option.description}
               </span>
+              {!option.available && (
+                <span className="text-[10px] text-muted-foreground">
+                  Not supported
+                </span>
+              )}
             </button>
           );
         })}

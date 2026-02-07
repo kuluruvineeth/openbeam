@@ -391,7 +391,6 @@ export class ProceduralMemory implements MemoryStore {
     return matches / triggerKeywords.length >= 0.5;
   }
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Filter matching requires multiple checks
   private matchesFilter(entry: ProceduralEntry, query: MemoryQuery): boolean {
     if (entry.metadata.teamId !== query.teamId) {
       return false;

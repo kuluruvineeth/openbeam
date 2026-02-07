@@ -1,5 +1,6 @@
 "use client";
 
+import { Icons } from "@openplane/ui";
 import {
   CommandDialog,
   CommandEmpty,
@@ -9,7 +10,6 @@ import {
   CommandList,
   CommandShortcut,
 } from "@openplane/ui/components/command";
-import { Bot, Home, Link2, Plus, Search, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
@@ -56,7 +56,7 @@ function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         {
           id: "home",
           label: "Go to Home",
-          icon: <Home className="h-4 w-4" />,
+          icon: <Icons.Home size={16} />,
           shortcut: "⌘H",
           onSelect: () => router.push("/"),
           keywords: ["dashboard", "main"],
@@ -64,7 +64,7 @@ function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         {
           id: "search",
           label: "Search",
-          icon: <Search className="h-4 w-4" />,
+          icon: <Icons.Search size={16} />,
           shortcut: "/",
           onSelect: () => router.push("/search"),
           keywords: ["find", "query"],
@@ -72,14 +72,14 @@ function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         {
           id: "agents",
           label: "Agents",
-          icon: <Bot className="h-4 w-4" />,
+          icon: <Icons.BotIcon size={16} />,
           onSelect: () => router.push("/agents"),
           keywords: ["automation", "workflows", "ai"],
         },
         {
           id: "connectors",
           label: "Connectors",
-          icon: <Link2 className="h-4 w-4" />,
+          icon: <Icons.Link size={16} />,
           onSelect: () => router.push("/connectors"),
           keywords: ["integrations", "sources", "data"],
         },
@@ -92,7 +92,7 @@ function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         {
           id: "new-agent",
           label: "Create New Agent",
-          icon: <Plus className="h-4 w-4" />,
+          icon: <Icons.Plus size={16} />,
           shortcut: "⌘⇧A",
           onSelect: () => router.push("/agents/new"),
           keywords: ["add", "create", "agent"],
@@ -100,7 +100,7 @@ function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         {
           id: "new-connector",
           label: "Add Connector",
-          icon: <Settings className="h-4 w-4" />,
+          icon: <Icons.Settings size={16} />,
           shortcut: "⌘⇧C",
           onSelect: () => router.push("/connectors"),
           keywords: ["add", "integration", "source", "setup"],

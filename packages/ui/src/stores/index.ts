@@ -49,11 +49,20 @@ export {
   useCanvasSelection,
   useCanvasStore,
   useCanvasViewport,
+  useIsActionPanelDocked,
+  useSetActionPanelDocked,
 } from "./canvas-store";
+export type { ExecutionPanelState, ExecutionStore } from "./execution-store";
 export {
   useCurrentExecution,
+  useExecutionFilter,
   useExecutionHistory,
+  useExecutionPanelOpen,
+  useExecutionPanelTab,
+  useExecutionReplay,
+  useExecutionSelectedStep,
   useExecutionStore,
+  useExecutionViewMode,
   useIsExecuting,
 } from "./execution-store";
 export type {

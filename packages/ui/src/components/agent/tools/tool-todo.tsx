@@ -1,9 +1,9 @@
 "use client";
 
 import { cva, type VariantProps } from "class-variance-authority";
-import { Check, Circle, List, Loader2 } from "lucide-react";
 import { forwardRef } from "react";
 import { cn } from "../../../utils/cn";
+import { Icons } from "../../icons";
 import { TextShimmer } from "../../text-shimmer";
 
 const toolTodoVariants = cva("rounded-md border text-sm", {
@@ -56,17 +56,21 @@ const ToolTodo = forwardRef<HTMLDivElement, ToolTodoProps>(
     const renderStatusIndicator = () => {
       if (status === "running") {
         return (
-          <Circle className="size-2 animate-pulse fill-primary text-primary" />
+          <Icons.Circle className="size-2 animate-pulse fill-primary text-primary" />
         );
       }
       if (status === "success") {
-        return <Circle className="size-2 fill-green-500 text-green-500" />;
+        return (
+          <Icons.Circle className="size-2 fill-green-500 text-green-500" />
+        );
       }
       if (status === "error") {
-        return <Circle className="size-2 fill-destructive text-destructive" />;
+        return (
+          <Icons.Circle className="size-2 fill-destructive text-destructive" />
+        );
       }
       return (
-        <Circle className="size-2 fill-muted-foreground/50 text-muted-foreground/50" />
+        <Icons.Circle className="size-2 fill-muted-foreground/50 text-muted-foreground/50" />
       );
     };
 
@@ -74,14 +78,14 @@ const ToolTodo = forwardRef<HTMLDivElement, ToolTodoProps>(
       if (itemStatus === "completed") {
         return (
           <div className="flex size-4 items-center justify-center rounded-full bg-green-500/20">
-            <Check className="size-2.5 text-green-500" />
+            <Icons.Check className="size-2.5 text-green-500" />
           </div>
         );
       }
       if (itemStatus === "in_progress") {
         return (
           <div className="flex size-4 items-center justify-center rounded-full bg-primary/20">
-            <Loader2 className="size-2.5 animate-spin text-primary" />
+            <Icons.Loader2 className="size-2.5 animate-spin text-primary" />
           </div>
         );
       }
@@ -92,7 +96,7 @@ const ToolTodo = forwardRef<HTMLDivElement, ToolTodoProps>(
 
     const renderHeader = () => (
       <div className="flex items-center gap-2 border-border/30 border-b px-3 py-2">
-        <List className="size-3.5 text-muted-foreground" />
+        <Icons.List className="size-3.5 text-muted-foreground" />
         {status === "running" ? (
           <TextShimmer as="span" className="font-medium text-xs" duration={1.5}>
             Updating todos...

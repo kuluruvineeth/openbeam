@@ -158,7 +158,7 @@ export const InputTimeoutSection = memo(function InputTimeoutSectionComponent({
                     timeoutAction: v as InputNodeConfig["timeoutAction"],
                   })
                 }
-                value={config.timeoutAction ?? "skip"}
+                value={config.timeoutAction ?? "error"}
               >
                 <SelectTrigger className="h-9">
                   <SelectValue />

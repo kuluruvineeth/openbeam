@@ -39,7 +39,6 @@ function estimateTokens(text: string): number {
   return Math.ceil(text.length / CHARS_PER_TOKEN);
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Building messages requires conditional assembly
 export function buildContextMessages(
   options: MessageBuilderOptions
 ): BuiltContext {

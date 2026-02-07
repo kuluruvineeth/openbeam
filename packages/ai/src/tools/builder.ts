@@ -51,7 +51,7 @@ export interface ToolDefinition<TParams extends z.ZodType, TResult> {
   register: () => void;
 }
 
-function deriveApprovalPattern(
+export function deriveApprovalPattern(
   stakes: StakesLevel,
   reversibility: ReversibilityLevel,
   explicit?: ApprovalPattern
@@ -60,22 +60,20 @@ function deriveApprovalPattern(
     return explicit;
   }
 
-  if (stakes === "low" && reversibility === "easy") {
-    return "auto";
-  }
-  if (stakes === "low" && reversibility === "hard") {
-    return "quick-confirm";
-  }
-  if (stakes === "high" && reversibility === "easy") {
-    return "suggest-apply";
-  }
-  if (stakes === "high") {
-    return "explicit";
-  }
-  if (stakes === "medium" && reversibility === "irreversible") {
-    return "explicit";
-  }
-  return "quick-confirm";
+  const matrix: Record<
+    StakesLevel,
+    Record<ReversibilityLevel, ApprovalPattern>
+  > = {
+    low: { easy: "auto", hard: "quick-confirm", irreversible: "explicit" },
+    medium: {
+      easy: "quick-confirm",
+      hard: "suggest-apply",
+      irreversible: "explicit",
+    },
+    high: { easy: "suggest-apply", hard: "explicit", irreversible: "explicit" },
+  };
+
+  return matrix[stakes][reversibility];
 }
 
 export function defineTool<TParams extends z.ZodType, TResult>(

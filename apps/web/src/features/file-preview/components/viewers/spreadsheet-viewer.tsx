@@ -124,8 +124,9 @@ export function SpreadsheetViewer({ url }: SpreadsheetViewerProps) {
 
   return (
     <TooltipProvider delayDuration={300}>
-      {/* biome-ignore lint/a11y/noStaticElementInteractions lint/a11y/noNoninteractiveElementInteractions: Mouse tracking for auto-hide toolbar */}
-      <div
+      {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: passive tracking for toolbar auto-hide */}
+      <section
+        aria-label="Spreadsheet content"
         className="relative flex h-full flex-col"
         onMouseMove={resetHideTimer}
       >
@@ -145,7 +146,7 @@ export function SpreadsheetViewer({ url }: SpreadsheetViewerProps) {
         >
           <SpreadsheetTable data={data} />
         </div>
-      </div>
+      </section>
     </TooltipProvider>
   );
 }

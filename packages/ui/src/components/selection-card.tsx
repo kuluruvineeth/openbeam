@@ -5,7 +5,7 @@ import { forwardRef, type ReactNode } from "react";
 import { cn } from "../utils";
 
 const selectionCardVariants = cva(
-  "flex cursor-pointer items-center transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+  "flex cursor-pointer items-center transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60",
   {
     variants: {
       selected: {

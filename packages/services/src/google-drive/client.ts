@@ -50,6 +50,7 @@ export function createGoogleDriveClient(
 ): GoogleDriveClient {
   const {
     connectorId,
+    accessToken: providedToken,
     userEmail,
     rateLimitConfig = DEFAULT_RATE_LIMITS,
     timeout = DEFAULT_TIMEOUT,
@@ -60,8 +61,14 @@ export function createGoogleDriveClient(
     consecutiveErrors: 0,
   };
 
+  let cachedToken: string | undefined = providedToken;
+
   async function getAccessToken(): Promise<string> {
-    return await getValidAccessToken(connectorId);
+    if (cachedToken) {
+      return cachedToken;
+    }
+    cachedToken = await getValidAccessToken(connectorId);
+    return cachedToken;
   }
 
   async function checkRateLimit(method: string): Promise<void> {
@@ -231,7 +238,10 @@ export function createGoogleDriveClient(
       });
     }
 
-    throw error;
+    throw new Error(
+      `Google Drive ${ctx.method} ${ctx.path} failed for connector ${connectorId}`,
+      { cause: error }
+    );
   }
 
   async function retryWithDelay<T>(
@@ -378,7 +388,8 @@ export function createGoogleDriveClient(
     try {
       await get("/about", { fields: "user" });
       return true;
-    } catch {
+    } catch (error) {
+      logger.debug({ error, connectorId }, "Google Drive health check failed");
       return false;
     }
   }

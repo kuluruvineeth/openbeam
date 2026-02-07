@@ -1,6 +1,5 @@
 "use client";
 
-import { Bookmark, Edit2, MoreHorizontal, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "../../utils/cn";
 import { Button } from "../button";
@@ -17,6 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../dropdown-menu";
+import { Icons } from "../icons";
 import { Input } from "../input";
 
 interface SavedFilter {
@@ -70,7 +70,7 @@ function SavedFilters({
             size="sm"
             variant="ghost"
           >
-            <Plus className="mr-1 h-3 w-3" />
+            <Icons.Plus className="mr-1 h-3 w-3" />
             Save
           </Button>
         )}
@@ -87,7 +87,7 @@ function SavedFilters({
               onClick={() => onApply(filter.filters)}
               type="button"
             >
-              <Bookmark className="h-4 w-4 text-muted-foreground" />
+              <Icons.Bookmark className="h-4 w-4 text-muted-foreground" />
               <span className="truncate text-sm">{filter.name}</span>
             </button>
             <DropdownMenu>
@@ -97,19 +97,19 @@ function SavedFilters({
                   size="sm"
                   variant="ghost"
                 >
-                  <MoreHorizontal className="h-4 w-4" />
+                  <Icons.MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => onApply(filter.filters)}>
-                  <Edit2 className="mr-2 h-4 w-4" />
+                  <Icons.Edit2 className="mr-2 h-4 w-4" />
                   Apply
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-destructive"
                   onClick={() => onDelete(filter.id)}
                 >
-                  <Trash2 className="mr-2 h-4 w-4" />
+                  <Icons.Trash2 className="mr-2 h-4 w-4" />
                   Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>

@@ -201,7 +201,6 @@ export class EpisodicMemory implements MemoryStore {
       .join("\n\n");
   }
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Filter matching requires multiple checks
   private matchesFilter(entry: EpisodicEntry, query: MemoryQuery): boolean {
     if (entry.metadata.teamId !== query.teamId) {
       return false;

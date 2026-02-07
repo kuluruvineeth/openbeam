@@ -1,4 +1,8 @@
-import { type AST, Parser } from "node-sql-parser";
+import NodeSqlParser from "node-sql-parser";
+
+type AST = NodeSqlParser.AST;
+const { Parser } = NodeSqlParser;
+
 import {
   DuckDBApiError,
   DuckDBErrorCodes,

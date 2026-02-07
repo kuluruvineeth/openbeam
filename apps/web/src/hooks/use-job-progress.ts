@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type { JobProgress } from "@/lib/job-types";
+import type { JobProgress } from "@/lib/job-status";
 import { useJobStore } from "@/stores/job-store";
 import { getVanillaTRPCClient } from "@/trpc/client";
 

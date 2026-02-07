@@ -7,7 +7,7 @@ import {
   queryDatabase as apiQueryDatabase,
   queryDatabaseAll,
 } from "../api/databases";
-import { createPage as apiCreatePage } from "../api/pages";
+import { createPage as apiCreatePage, updatePage } from "../api/pages";
 import type { NotionClient } from "../client";
 import { createTextRichText } from "../utils/rich-text";
 
@@ -75,7 +75,6 @@ export async function updateDatabaseEntry(
   properties: Record<string, unknown>
 ): Promise<DatabaseActionResult> {
   try {
-    const { updatePage } = await import("../api/pages");
     const page = await updatePage(client, pageId, { properties });
 
     return {

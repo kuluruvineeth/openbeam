@@ -1,5 +1,6 @@
 "use client";
 
+import { Icons } from "@openplane/ui";
 import { formatDistanceToNow } from "date-fns";
 import { getSyncHistoryStatusConfig } from "../lib/sync-status";
 import { parseSyncSummary, type SyncHistoryEntry } from "../lib/sync-types";
@@ -39,28 +40,46 @@ export function SyncHistoryItem({ entry }: { entry: SyncHistoryEntry }) {
         {formatDistanceToNow(new Date(entry.startedAt), { addSuffix: true })}
       </time>
 
-      <div className="ml-auto flex items-center gap-3 font-mono text-[10px]">
-        <span className="text-foreground/40">
+      <div className="ml-auto flex items-center gap-3">
+        <span className="font-mono text-[10px] text-foreground/40">
           {formatDuration(entry.durationMs)}
         </span>
-        {entry.dataAdded > 0 && (
-          <span className="text-openplane-green">+{entry.dataAdded}</span>
-        )}
-        {entry.dataUpdated > 0 && (
-          <span className="text-openplane-blue">{entry.dataUpdated}</span>
-        )}
-        {entry.dataDeleted > 0 && (
-          <span className="text-destructive">-{entry.dataDeleted}</span>
-        )}
-        {(summary.filesQueued ?? 0) > 0 && (
-          <span className="text-openplane-orange" title="Files discovered">
-            {summary.filesQueued}f
-          </span>
-        )}
-        {(summary.mediaQueued ?? 0) > 0 && (
-          <span className="text-openplane-purple" title="Media discovered">
-            {summary.mediaQueued}m
-          </span>
+        <div className="flex items-center gap-2 font-mono text-[10px]">
+          {(entry.documentsAdded ?? entry.dataAdded ?? 0) > 0 && (
+            <span className="flex items-center gap-1 text-openplane-green">
+              <Icons.Plus size={10} />
+              {entry.documentsAdded ?? entry.dataAdded}
+            </span>
+          )}
+          {(entry.documentsUpdated ?? entry.dataUpdated ?? 0) > 0 && (
+            <span className="flex items-center gap-1 text-openplane-blue">
+              <Icons.RefreshCw size={10} />
+              {entry.documentsUpdated ?? entry.dataUpdated}
+            </span>
+          )}
+          {(entry.documentsRemoved ?? entry.dataDeleted ?? 0) > 0 && (
+            <span className="flex items-center gap-1 text-destructive">
+              <Icons.Trash size={10} />
+              {entry.documentsRemoved ?? entry.dataDeleted}
+            </span>
+          )}
+        </div>
+        {((entry.filesDiscovered ?? summary.filesQueued ?? 0) > 0 ||
+          (entry.mediaDiscovered ?? summary.mediaQueued ?? 0) > 0) && (
+          <div className="flex items-center gap-1.5 rounded-sm border border-border/40 bg-foreground/[0.02] px-1.5 py-0.5">
+            {(entry.filesDiscovered ?? summary.filesQueued ?? 0) > 0 && (
+              <span className="flex items-center gap-0.5 font-mono text-[9px] text-openplane-orange">
+                <Icons.FileText size={9} />
+                {entry.filesDiscovered ?? summary.filesQueued}
+              </span>
+            )}
+            {(entry.mediaDiscovered ?? summary.mediaQueued ?? 0) > 0 && (
+              <span className="flex items-center gap-0.5 font-mono text-[9px] text-openplane-purple">
+                <Icons.Image size={9} />
+                {entry.mediaDiscovered ?? summary.mediaQueued}
+              </span>
+            )}
+          </div>
         )}
       </div>
 

@@ -1,9 +1,9 @@
 "use client";
 
 import { Slot } from "@radix-ui/react-slot";
-import { ChevronRight, MoreHorizontal } from "lucide-react";
 import type { ComponentProps } from "react";
 import { cn } from "../utils/cn";
+import { Icons } from "./icons";
 
 function Breadcrumb({ ...props }: ComponentProps<"nav">) {
   return <nav aria-label="breadcrumb" {...props} />;
@@ -67,7 +67,7 @@ function BreadcrumbSeparator({
       role="presentation"
       {...props}
     >
-      {children ?? <ChevronRight />}
+      {children ?? <Icons.ChevronRight />}
     </li>
   );
 }
@@ -80,7 +80,7 @@ function BreadcrumbEllipsis({ className, ...props }: ComponentProps<"span">) {
       role="presentation"
       {...props}
     >
-      <MoreHorizontal className="h-4 w-4" />
+      <Icons.MoreHorizontal className="h-4 w-4" />
       <span className="sr-only">More</span>
     </span>
   );

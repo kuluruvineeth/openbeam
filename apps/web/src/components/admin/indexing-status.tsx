@@ -7,9 +7,10 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  Icons,
 } from "@openplane/ui";
-import { AlertCircle, CheckCircle, Clock, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
+import { POLLING_INTERVALS } from "@/lib/constants/polling";
 
 interface QueueMetrics {
   waiting: number;
@@ -59,11 +60,9 @@ export function IndexingStatus() {
       }
     };
 
-    // Initial fetch
     fetchHealth();
 
-    // Poll every 10 seconds
-    const interval = setInterval(fetchHealth, 10_000);
+    const interval = setInterval(fetchHealth, POLLING_INTERVALS.SYSTEM_HEALTH);
 
     return () => clearInterval(interval);
   }, []);
@@ -97,28 +96,28 @@ export function IndexingStatus() {
       case "healthy":
         return (
           <Badge className="bg-green-500" variant="default">
-            <CheckCircle className="mr-1 h-3 w-3" />
+            <Icons.CheckCircle className="mr-1" size={12} />
             Healthy
           </Badge>
         );
       case "degraded":
         return (
           <Badge className="bg-yellow-500" variant="default">
-            <AlertCircle className="mr-1 h-3 w-3" />
+            <Icons.AlertCircle className="mr-1" size={12} />
             Degraded
           </Badge>
         );
       case "unhealthy":
         return (
           <Badge variant="destructive">
-            <XCircle className="mr-1 h-3 w-3" />
+            <Icons.Close className="mr-1" size={12} />
             Unhealthy
           </Badge>
         );
       default:
         return (
           <Badge variant="secondary">
-            <Clock className="mr-1 h-3 w-3" />
+            <Icons.Clock className="mr-1" size={12} />
             Unknown
           </Badge>
         );
@@ -143,7 +142,6 @@ export function IndexingStatus() {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Overall Queue Status */}
         <div>
           <h4 className="mb-2 font-semibold text-sm">Queue Overview</h4>
           <div className="grid grid-cols-3 gap-4">
@@ -164,11 +162,9 @@ export function IndexingStatus() {
           </div>
         </div>
 
-        {/* Individual Queue Details */}
         <div className="space-y-2">
           <h4 className="font-semibold text-sm">Queue Details</h4>
 
-          {/* Sync Queue */}
           <div className="flex items-center justify-between rounded bg-muted/50 p-2">
             <span className="font-medium text-sm">Sync Queue</span>
             <div className="space-x-2 text-sm">
@@ -195,7 +191,6 @@ export function IndexingStatus() {
             </div>
           </div>
 
-          {/* Index Queue */}
           <div className="flex items-center justify-between rounded bg-muted/50 p-2">
             <span className="font-medium text-sm">Index Queue</span>
             <div className="space-x-2 text-sm">
@@ -222,7 +217,6 @@ export function IndexingStatus() {
             </div>
           </div>
 
-          {/* Webhook Queue */}
           <div className="flex items-center justify-between rounded bg-muted/50 p-2">
             <span className="font-medium text-sm">Webhook Queue</span>
             <div className="space-x-2 text-sm">
@@ -250,11 +244,9 @@ export function IndexingStatus() {
           </div>
         </div>
 
-        {/* Service Status */}
         <div className="space-y-2">
           <h4 className="font-semibold text-sm">Services</h4>
 
-          {/* Vespa */}
           <div className="flex items-center justify-between rounded bg-muted/50 p-2">
             <span className="font-medium text-sm">Vespa</span>
             <div className="flex items-center gap-2">
@@ -267,14 +259,12 @@ export function IndexingStatus() {
             </div>
           </div>
 
-          {/* Worker */}
           <div className="flex items-center justify-between rounded bg-muted/50 p-2">
             <span className="font-medium text-sm">Worker</span>
             {getStatusBadge(health.worker.status)}
           </div>
         </div>
 
-        {/* Last Updated */}
         <div className="text-right text-muted-foreground text-xs">
           Last updated: {new Date(health.timestamp).toLocaleTimeString()}
         </div>

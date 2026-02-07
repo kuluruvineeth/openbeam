@@ -16,10 +16,10 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { cn } from "../../utils/cn";
+import { Icons } from "../icons";
 
 interface DraggableColumnProps {
   id: string;
@@ -53,7 +53,7 @@ function DraggableColumn({ id, children }: DraggableColumnProps) {
         className="cursor-grab rounded p-1 hover:bg-muted active:cursor-grabbing"
         type="button"
       >
-        <GripVertical className="h-3 w-3 text-muted-foreground" />
+        <Icons.GripVertical className="h-3 w-3 text-muted-foreground" />
       </button>
       {children}
     </div>

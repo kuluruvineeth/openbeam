@@ -58,6 +58,8 @@ export const RetrievalSettingsSection = memo(
     config,
     onChange,
   }: SectionProps) {
+    const minScore = config.minScore ?? 0.5;
+    const highScoreWarning = minScore >= 0.85;
     return (
       <ConfigSection
         defaultOpen
@@ -95,10 +97,10 @@ export const RetrievalSettingsSection = memo(
                 min={0}
                 onValueChange={(v) => onChange({ minScore: v[0] })}
                 step={0.05}
-                value={[config.minScore ?? 0.5]}
+                value={[minScore]}
               />
               <span className="w-10 text-right font-mono text-sm tabular-nums">
-                {(config.minScore ?? 0.5).toFixed(2)}
+                {minScore.toFixed(2)}
               </span>
             </div>
           </ConfigField>
@@ -121,6 +123,13 @@ export const RetrievalSettingsSection = memo(
               </span>
             </div>
           </ConfigField>
+
+          {highScoreWarning && (
+            <div className="flex items-start gap-2 rounded-md bg-warning/10 px-3 py-2 text-warning text-xs">
+              <Icons.AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
+              <span>High thresholds may return no results.</span>
+            </div>
+          )}
         </div>
       </ConfigSection>
     );
@@ -192,6 +201,15 @@ export const SynthesisSection = memo(function SynthesisSectionComponent({
             <SynthesisOptions config={config} onChange={onChange} />
           )}
         </AnimatedSizeContainer>
+
+        {!synthesizeEnabled && (
+          <div className="flex items-start gap-2 rounded-md bg-muted/40 px-3 py-2 text-muted-foreground text-xs">
+            <Icons.Info className="mt-0.5 size-3.5 shrink-0" />
+            <span>
+              Returns chunks and citations only; no synthesized answer.
+            </span>
+          </div>
+        )}
       </div>
     </ConfigSection>
   );
@@ -419,9 +437,14 @@ const RerankModelField = memo(function RerankModelFieldComponent({
   return (
     <ConfigField label="Rerank Model">
       <RerankerSelector
+        disabled
         onValueChange={(rerankModel) => onChange({ rerankModel })}
         value={config.rerankModel ?? DEFAULT_RERANKER_MODEL_ID}
       />
+      <p className="mt-2 text-muted-foreground text-xs">
+        Heuristic reranking is active. Model selection will be enabled when
+        model-based reranking ships.
+      </p>
     </ConfigField>
   );
 });

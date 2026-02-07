@@ -7,6 +7,7 @@ import {
   isShortcut,
 } from "@openplane/types/services/connectors/google-drive";
 import type { GenericDocument } from "@openplane/vespa";
+import { calculateDocumentChecksum } from "../../lib/checksum";
 import {
   buildDocumentUrl,
   getAccessControlList,
@@ -125,17 +126,26 @@ function getResourceSourceId(file: DriveFile): string {
   return driveId ?? "my-drive";
 }
 
-export function transformFile(
+export async function transformFile(
   file: DriveFile,
   context: GoogleDriveTransformContext,
   options: FileTransformOptions = {}
-): GenericDocument {
+): Promise<GenericDocument> {
   if (isFolder(file.mimeType)) {
     return transformFolder(file, context);
   }
 
   const ownerEmail = getOwnerEmail(file);
   const accessControl = getAccessControlList(file);
+
+  const content = options.content ?? file.description ?? "";
+  const metadata = buildFileMetadata(file);
+
+  const checksum = await calculateDocumentChecksum({
+    title: file.name,
+    content,
+    metadata,
+  });
 
   return {
     id: buildFileDocumentId(context.connectorId, file.id),
@@ -148,7 +158,7 @@ export function transformFile(
     document_subtype: getDocumentSubtype(file.mimeType),
     mime_type: file.mimeType,
     title: file.name,
-    content: options.content ?? file.description ?? "",
+    content,
     author_id: ownerEmail,
     author_email: ownerEmail,
     author_name: getOwnerName(file) ?? ownerEmail,
@@ -164,7 +174,8 @@ export function transformFile(
     access_control: accessControl,
     contributor_ids: accessControl,
     labels: file.starred ? ["starred"] : undefined,
-    metadata: buildFileMetadata(file),
+    metadata,
+    checksum,
   };
 }
 
@@ -180,12 +191,21 @@ function buildFolderMetadata(file: DriveFile): GenericDocument["metadata"] {
   };
 }
 
-function transformFolder(
+async function transformFolder(
   file: DriveFile,
   context: GoogleDriveTransformContext
-): GenericDocument {
+): Promise<GenericDocument> {
   const ownerEmail = getOwnerEmail(file);
   const accessControl = getAccessControlList(file);
+
+  const content = file.description ?? "";
+  const metadata = buildFolderMetadata(file);
+
+  const checksum = await calculateDocumentChecksum({
+    title: file.name,
+    content,
+    metadata,
+  });
 
   return {
     id: buildFileDocumentId(context.connectorId, file.id),
@@ -197,7 +217,7 @@ function transformFolder(
     document_type: "folder",
     mime_type: file.mimeType,
     title: file.name,
-    content: file.description ?? "",
+    content,
     author_id: ownerEmail,
     author_email: ownerEmail,
     author_name: getOwnerName(file) ?? ownerEmail,
@@ -213,7 +233,8 @@ function transformFolder(
     access_control: accessControl,
     contributor_ids: accessControl,
     labels: file.starred ? ["starred"] : undefined,
-    metadata: buildFolderMetadata(file),
+    metadata,
+    checksum,
   };
 }
 
@@ -241,6 +262,8 @@ export function transformFiles(
   files: DriveFile[],
   context: GoogleDriveTransformContext,
   options: FileTransformOptions = {}
-): GenericDocument[] {
-  return files.map((file) => transformFile(file, context, options));
+): Promise<GenericDocument[]> {
+  return Promise.all(
+    files.map((file) => transformFile(file, context, options))
+  );
 }

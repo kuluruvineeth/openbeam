@@ -31,6 +31,12 @@ const OUTPUT_FORMATS = [
     description: "Web content",
     icon: Icons.Code,
   },
+  {
+    id: "xml" as const,
+    name: "XML",
+    description: "Structured markup",
+    icon: Icons.FileCode,
+  },
 ];
 
 export interface TemplateOutputFormatSelectorProps {

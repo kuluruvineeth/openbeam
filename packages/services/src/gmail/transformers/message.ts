@@ -3,6 +3,7 @@ import type {
   GmailTransformContext,
 } from "@openplane/types/services/connectors/gmail";
 import type { GenericDocument } from "@openplane/vespa";
+import { calculateDocumentChecksum } from "../../lib/checksum";
 import type { LabelLookup } from "../api/labels";
 import {
   buildEmailUrl,
@@ -21,11 +22,11 @@ export interface MessageTransformOptions {
   parentMessageId?: string;
 }
 
-export function transformMessage(
+export async function transformMessage(
   message: GmailMessage,
   context: GmailTransformContext,
   options: MessageTransformOptions = {}
-): GenericDocument {
+): Promise<GenericDocument> {
   const { labelLookup, isReply = false, parentMessageId } = options;
   const headers = parseHeaders(message);
   const content = extractContent(message);
@@ -45,6 +46,30 @@ export function transformMessage(
   const participants = getAllParticipants(headers);
 
   const title = buildEmailTitle(headers.subject, isReply);
+
+  const metadata = {
+    ...(headers.messageId && { messageId: headers.messageId }),
+    ...(headers.inReplyTo && { inReplyTo: headers.inReplyTo }),
+    ...(headers.references && { references: headers.references }),
+    ...(headers.to && { to: headers.to }),
+    ...(headers.cc && { cc: headers.cc }),
+    ...(message.labelIds && { resourceExternalIds: message.labelIds }),
+    ...(message.snippet && { snippet: message.snippet }),
+    ...(message.historyId && { historyId: message.historyId }),
+    ...(message.sizeEstimate !== undefined && {
+      sizeEstimate: message.sizeEstimate,
+    }),
+    hasAttachments: content.attachments.length > 0,
+    hasMedia: content.media.length > 0,
+    attachmentCount: content.attachments.length,
+    mediaCount: content.media.length,
+  };
+
+  const checksum = await calculateDocumentChecksum({
+    title,
+    content: plainText,
+    metadata,
+  });
 
   return {
     id: buildDocumentId(context.connectorId, message.id),
@@ -72,23 +97,8 @@ export function transformMessage(
     is_public: false,
     access_control: participants,
     attachments: content.attachments.map((a) => a.filename),
-    metadata: {
-      ...(headers.messageId && { messageId: headers.messageId }),
-      ...(headers.inReplyTo && { inReplyTo: headers.inReplyTo }),
-      ...(headers.references && { references: headers.references }),
-      ...(headers.to && { to: headers.to }),
-      ...(headers.cc && { cc: headers.cc }),
-      ...(message.labelIds && { resourceExternalIds: message.labelIds }),
-      ...(message.snippet && { snippet: message.snippet }),
-      ...(message.historyId && { historyId: message.historyId }),
-      ...(message.sizeEstimate !== undefined && {
-        sizeEstimate: message.sizeEstimate,
-      }),
-      hasAttachments: content.attachments.length > 0,
-      hasMedia: content.media.length > 0,
-      attachmentCount: content.attachments.length,
-      mediaCount: content.media.length,
-    },
+    metadata,
+    checksum,
   };
 }
 
@@ -110,8 +120,10 @@ export function transformMessages(
   messages: GmailMessage[],
   context: GmailTransformContext,
   options: MessageTransformOptions = {}
-): GenericDocument[] {
-  return messages.map((message) => transformMessage(message, context, options));
+): Promise<GenericDocument[]> {
+  return Promise.all(
+    messages.map((message) => transformMessage(message, context, options))
+  );
 }
 
 export function isReplyMessage(message: GmailMessage): boolean {

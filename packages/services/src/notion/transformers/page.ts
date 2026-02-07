@@ -6,6 +6,7 @@ import type {
 import type { GenericDocument, JsonArray } from "@openplane/vespa";
 import type { BlockWithDepth } from "../api/blocks";
 import { serializeBlocks } from "../utils/block-serializer";
+import { calculateDocumentChecksum } from "../utils/checksum";
 import {
   blocksToText,
   commentsToText,
@@ -104,11 +105,11 @@ function buildPageMetadata(
   };
 }
 
-export function transformPage(
+export async function transformPage(
   page: NotionPage,
   context: NotionTransformContext,
   options: PageTransformOptions = {}
-): GenericDocument {
+): Promise<GenericDocument> {
   const title = extractPageTitle(page);
   const content = buildPageContent(page, options);
   const authorId = getAuthorId(page);
@@ -120,6 +121,13 @@ export function transformPage(
     : undefined;
 
   const isPublic = !!page.public_url;
+  const metadata = buildPageMetadata(page, options);
+
+  const checksum = await calculateDocumentChecksum({
+    title,
+    content,
+    metadata,
+  });
 
   return {
     id: buildPageDocumentId(context.connectorId, page.id),
@@ -148,14 +156,17 @@ export function transformPage(
     url: page.url,
     is_public: isPublic,
     access_control: isPublic ? undefined : [`team:${context.teamId}`],
-    metadata: buildPageMetadata(page, options),
+    metadata,
+    checksum,
   };
 }
 
-export function transformPages(
+export async function transformPages(
   pages: NotionPage[],
   context: NotionTransformContext,
   options: PageTransformOptions = {}
-): GenericDocument[] {
-  return pages.map((page) => transformPage(page, context, options));
+): Promise<GenericDocument[]> {
+  return Promise.all(
+    pages.map((page) => transformPage(page, context, options))
+  );
 }

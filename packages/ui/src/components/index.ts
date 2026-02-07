@@ -101,7 +101,7 @@ export {
   agentToolGroupVariants,
   agentToolIconVariants,
   ChatInput,
-  formatDuration,
+  formatDurationPrecise,
   ModelSelect,
   modelSelectVariants,
   StreamingCursor,
@@ -181,6 +181,9 @@ export type {
   BaseNodeData,
   CanvasBackgroundProps,
   CanvasControlsProps,
+  CanvasEmptyStateProps,
+  CanvasHistoryControlsProps,
+  CanvasMinimapProps,
   CanvasToolbarProps,
   ClassifyNodeData,
   CodeNodeConfig,
@@ -235,6 +238,9 @@ export {
   CanvasBackground,
   CanvasContextMenu,
   CanvasControls,
+  CanvasEmptyState,
+  CanvasHistoryControls,
+  CanvasMinimap,
   CanvasToolbar,
   ClassifyNode,
   CONNECTOR_ICONS,
@@ -416,6 +422,48 @@ export {
   DropdownMenuTrigger,
 } from "./dropdown-menu";
 export type {
+  ExecutionHistoryListProps,
+  ExecutionPanelProps,
+  ExecutionTimelineProps,
+  NodeExecutionOverlayProps,
+  StepDetailPanelProps,
+  TimelineConnectorProps,
+  TimelineControlsProps,
+  TimelineEmptyStateProps,
+  TimelineGanttProps,
+  TimelineHeaderProps,
+  TimelineStepIndicatorProps,
+  TimelineStepProps,
+} from "./execution";
+export {
+  ExecutionHistoryItem,
+  ExecutionHistoryItemSkeleton,
+  ExecutionHistoryList,
+  ExecutionPanel,
+  ExecutionTimeline,
+  executionHistoryListVariants,
+  executionItemVariants,
+  executionTimelineVariants,
+  getNodeIcon,
+  NodeExecutionOverlay,
+  nodeExecutionOverlayVariants,
+  nodeStatusBadgeVariants,
+  nodeStatusRingVariants,
+  StepDetailPanel,
+  statusConfig,
+  TimelineConnector,
+  TimelineControls,
+  TimelineEmptyState,
+  TimelineGantt,
+  TimelineHeader,
+  TimelineStep,
+  TimelineStepIndicator,
+  timelineConnectorVariants,
+  timelineHeaderVariants,
+  timelineStepIndicatorVariants,
+  timelineStepVariants,
+} from "./execution";
+export type {
   AiFilterInputProps,
   FilterChip,
   FilterChipsProps,
@@ -469,7 +517,7 @@ export {
   TagInput,
 } from "./forms";
 export { HoverCard, HoverCardContent, HoverCardTrigger } from "./hover-card";
-export { Icons, type IconWrapperProps } from "./icons";
+export { type IconComponent, Icons, type IconWrapperProps } from "./icons";
 export type { InputProps } from "./input";
 export { Input } from "./input";
 export {

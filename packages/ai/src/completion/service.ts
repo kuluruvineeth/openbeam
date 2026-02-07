@@ -18,6 +18,7 @@ import {
   buildThinkingProviderOptions,
   extractReasoningContent,
 } from "../providers/thinking";
+import { AIProviderError, classifyError } from "../resilience/errors";
 import { createSSEStream } from "./streaming";
 import type { CompletionOptions } from "./types";
 
@@ -30,6 +31,9 @@ Instructions:
 - Be concise but comprehensive
 - If you're unsure about something, acknowledge the uncertainty
 - Format your response using markdown for better readability`;
+
+const VALID_SDK_ROLES = ["system", "user", "assistant", "tool"] as const;
+const CITATION_SNIPPET_LENGTH = 200;
 
 function normalizeUsage(usage: {
   inputTokens?: number;
@@ -72,6 +76,12 @@ export class CompletionService {
 
   private toSDKMessages(messages: ChatMessage[]): ModelMessage[] {
     return messages.map((msg): ModelMessage => {
+      if (
+        !VALID_SDK_ROLES.includes(msg.role as (typeof VALID_SDK_ROLES)[number])
+      ) {
+        throw new Error(`Invalid message role: ${msg.role}`);
+      }
+
       if (msg.role === "tool") {
         return {
           role: "tool",
@@ -93,54 +103,80 @@ export class CompletionService {
     });
   }
 
+  private prepareMessages(
+    messages: ChatMessage[],
+    systemPrompt?: string
+  ): ChatMessage[] {
+    if (!systemPrompt) {
+      return messages;
+    }
+    return [{ role: "system", content: systemPrompt }, ...messages];
+  }
+
   async complete(
     messages: ChatMessage[],
     options: CompletionOptions = {}
   ): Promise<CompletionResult> {
     const startTime = Date.now();
-
+    const provider = options.providerId || this.providerId;
     const systemPrompt = options.systemPrompt || this.defaultSystemPrompt;
-    const allMessages: ChatMessage[] = systemPrompt
-      ? [{ role: "system", content: systemPrompt }, ...messages]
-      : messages;
-
+    const allMessages = this.prepareMessages(messages, systemPrompt);
     const config = getConfig();
 
-    const result = await generateText({
-      model: this.getModel(options.providerId, options.modelId),
-      messages: this.toSDKMessages(allMessages),
-      temperature: options.temperature ?? config.completion.temperature,
-      maxOutputTokens: options.maxTokens ?? config.completion.maxTokens,
-      topP: options.topP ?? config.completion.topP,
-      tools: options.tools,
-      abortSignal: options.abortSignal,
-    });
+    try {
+      const result = await generateText({
+        model: this.getModel(options.providerId, options.modelId),
+        messages: this.toSDKMessages(allMessages),
+        temperature: options.temperature ?? config.completion.temperature,
+        maxOutputTokens: options.maxTokens ?? config.completion.maxTokens,
+        topP: options.topP ?? config.completion.topP,
+        presencePenalty: options.presencePenalty,
+        frequencyPenalty: options.frequencyPenalty,
+        stopSequences: options.stopSequences,
+        tools: options.tools,
+        abortSignal: options.abortSignal,
+      });
 
-    const toolCalls: ToolCall[] = [];
-    if (result.toolCalls?.length) {
-      for (const tc of result.toolCalls) {
-        toolCalls.push({
-          id: tc.toolCallId,
-          name: tc.toolName,
-          arguments: tc.input as Record<string, unknown>,
-        });
+      const toolCalls: ToolCall[] = [];
+      if (result.toolCalls?.length) {
+        for (const tc of result.toolCalls) {
+          const input = tc.input;
+          if (typeof input !== "object" || input === null) {
+            throw new Error(
+              `Invalid tool call input: expected object, got ${typeof input}`
+            );
+          }
+          toolCalls.push({
+            id: tc.toolCallId,
+            name: tc.toolName,
+            arguments: input as Record<string, unknown>,
+          });
+        }
       }
+
+      const completionResult: CompletionResult = {
+        content: result.text,
+        role: "assistant",
+        finishReason: result.finishReason,
+        toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
+        usage: normalizeUsage(result.usage),
+        latencyMs: Date.now() - startTime,
+      };
+
+      if (options.onComplete) {
+        options.onComplete(completionResult);
+      }
+
+      return completionResult;
+    } catch (error) {
+      const classified = classifyError(error, provider);
+      throw new AIProviderError(
+        classified.code,
+        classified.message,
+        provider,
+        classified.retryAfterMs
+      );
     }
-
-    const completionResult: CompletionResult = {
-      content: result.text,
-      role: "assistant",
-      finishReason: result.finishReason,
-      toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
-      usage: normalizeUsage(result.usage),
-      latencyMs: Date.now() - startTime,
-    };
-
-    if (options.onComplete) {
-      options.onComplete(completionResult);
-    }
-
-    return completionResult;
   }
 
   private async *streamWithThinking(
@@ -186,12 +222,9 @@ export class CompletionService {
     options: CompletionOptions = {}
   ): AsyncGenerator<StreamChunk> {
     const startTime = Date.now();
-
+    const provider = options.providerId || this.providerId;
     const systemPrompt = options.systemPrompt || this.defaultSystemPrompt;
-    const allMessages: ChatMessage[] = systemPrompt
-      ? [{ role: "system", content: systemPrompt }, ...messages]
-      : messages;
-
+    const allMessages = this.prepareMessages(messages, systemPrompt);
     const config = getConfig();
 
     const streamTextParams = {
@@ -200,6 +233,9 @@ export class CompletionService {
       temperature: options.temperature ?? config.completion.temperature,
       maxOutputTokens: options.maxTokens ?? config.completion.maxTokens,
       topP: options.topP ?? config.completion.topP,
+      presencePenalty: options.presencePenalty,
+      frequencyPenalty: options.frequencyPenalty,
+      stopSequences: options.stopSequences,
       tools: options.tools,
       abortSignal: options.abortSignal,
     } as Parameters<typeof streamText>[0];
@@ -211,17 +247,30 @@ export class CompletionService {
     }
 
     const result = streamText(streamTextParams);
-    let totalText = "";
+    const textChunks: string[] = [];
 
     const innerStream = options.enableThinking
       ? this.streamWithThinking(result.fullStream, options)
       : this.streamStandard(result.textStream, options);
 
-    for await (const { chunk, text } of innerStream) {
-      totalText += text;
-      yield chunk;
+    try {
+      for await (const { chunk, text } of innerStream) {
+        if (text) {
+          textChunks.push(text);
+        }
+        yield chunk;
+      }
+    } catch (error) {
+      const classified = classifyError(error, provider);
+      throw new AIProviderError(
+        classified.code,
+        classified.message,
+        provider,
+        classified.retryAfterMs
+      );
     }
 
+    const totalText = textChunks.join("");
     const [finalUsage, finalFinishReason] = await Promise.all([
       result.usage,
       result.finishReason,
@@ -352,7 +401,7 @@ export class CompletionService {
           documentId: doc.id,
           title: doc.title,
           url: doc.url,
-          snippet: doc.content.slice(0, 200),
+          snippet: doc.content.slice(0, CITATION_SNIPPET_LENGTH),
           relevanceScore: doc.relevanceScore,
         });
       }
@@ -364,7 +413,7 @@ export class CompletionService {
           documentId: doc.id,
           title: doc.title,
           url: doc.url,
-          snippet: doc.content.slice(0, 200),
+          snippet: doc.content.slice(0, CITATION_SNIPPET_LENGTH),
           relevanceScore: doc.relevanceScore,
         });
       }

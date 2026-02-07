@@ -1,19 +1,19 @@
 model Conversation {
-  id            String   @id @default(cuid()) @map("_id")
-  userId        String
-  teamId        String
+  id     String @id @default(cuid()) @map("_id")
+  userId String
+  teamId String
 
-  title         String?
-  status        String   @default("active")
-  messageCount  Int      @default(0)
+  title        String?
+  status       String  @default("active")
+  messageCount Int     @default(0)
 
   summaryUpToMessageId String?
   summary              String?
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  messages      ConversationMessage[]
+  messages ConversationMessage[]
 
   @@index([userId, teamId])
   @@index([teamId, status])
@@ -22,61 +22,61 @@ model Conversation {
 }
 
 model ConversationMessage {
-  id              String   @id @default(cuid()) @map("_id")
-  conversationId  String
+  id             String @id @default(cuid()) @map("_id")
+  conversationId String
 
-  role            String
-  content         String
+  role    String
+  content String
 
-  citations       Json     @default("[]")
-  contextDocIds   String[] @default([])
-  groundingScore  Float?
-  confidence      String?
+  citations      Json     @default("[]")
+  contextDocIds  String[] @default([])
+  groundingScore Float?
+  confidence     String?
 
-  promptTokens    Int?
+  promptTokens     Int?
   completionTokens Int?
 
-  latencyMs       Int?
-  firstTokenMs    Int?
+  latencyMs    Int?
+  firstTokenMs Int?
 
-  createdAt       DateTime @default(now())
+  createdAt DateTime @default(now())
 
-  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
   @@index([conversationId])
   @@map("conversation_message")
 }
 
 model RAGInteraction {
-  id              String   @id @default(cuid()) @map("_id")
-  userId          String
-  teamId          String
-  conversationId  String?
+  id             String  @id @default(cuid()) @map("_id")
+  userId         String
+  teamId         String
+  conversationId String?
 
-  query           String
-  queryHash       String
-  queryIntent     String?
+  query       String
+  queryHash   String
+  queryIntent String?
 
-  retrievedDocs   Int
-  usedChunks      Int
-  avgChunkScore   Float?
+  retrievedDocs Int
+  usedChunks    Int
+  avgChunkScore Float?
 
-  answerLength    Int
-  citationCount   Int
-  groundingScore  Float?
-  confidence      String?
+  answerLength   Int
+  citationCount  Int
+  groundingScore Float?
+  confidence     String?
 
-  retrievalMs     Int
-  chunkingMs      Int
-  generationMs    Int
-  groundingMs     Int?
-  totalMs         Int
-  firstTokenMs    Int?
+  retrievalMs  Int
+  chunkingMs   Int
+  generationMs Int
+  groundingMs  Int?
+  totalMs      Int
+  firstTokenMs Int?
 
-  feedbackType    String?
-  feedbackNote    String?
+  feedbackType String?
+  feedbackNote String?
 
-  createdAt       DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@index([userId, teamId])
   @@index([queryHash])

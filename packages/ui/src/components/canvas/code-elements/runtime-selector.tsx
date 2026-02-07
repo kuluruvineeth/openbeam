@@ -20,24 +20,35 @@ const RUNTIMES: Array<{
   label: string;
   icon: keyof typeof Icons;
   description: string;
+  available: boolean;
 }> = [
   {
     value: "javascript",
     label: "JS",
     icon: "Zap",
     description: "Fast execution, browser-native",
+    available: true,
   },
   {
     value: "typescript",
     label: "TS",
     icon: "Type",
     description: "Type-safe JavaScript",
+    available: true,
   },
   {
     value: "python",
     label: "PY",
     icon: "BrainCircuit",
-    description: "Data processing, ML libraries",
+    description: "Not supported in the execution engine",
+    available: false,
+  },
+  {
+    value: "sql",
+    label: "SQL",
+    icon: "Database",
+    description: "Not supported in the execution engine",
+    available: false,
   },
 ];
 
@@ -75,6 +86,7 @@ export const RuntimeSelector = memo(function RuntimeSelectorComponent({
                   className={cn(
                     "h-7 px-2 text-xs data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
                   )}
+                  disabled={disabled || !runtime.available}
                   value={runtime.value}
                 >
                   <Icon className="size-3.5" />
@@ -111,6 +123,7 @@ export const RuntimeSelector = memo(function RuntimeSelectorComponent({
                   "h-8 gap-1.5 px-2.5",
                   "data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
                 )}
+                disabled={disabled || !runtime.available}
                 value={runtime.value}
               >
                 <Icon className="size-3.5" />

@@ -1,27 +1,27 @@
 model User {
-  id                    String    @id @default(cuid()) @map("_id")
-  name                  String
-  email                 String
-  emailVerified         Boolean
-  image                 String?
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-  teamId                String?
-  sessions              Session[]
-  accounts              Account[]
-  usersOnTeam           UsersOnTeam[]
-  sentInvites           UserInvite[]         @relation("SentInvites")
-  team                  Team?                @relation(fields: [teamId], references: [id], onDelete: SetNull)
-  connectors            Connector[]
-  externalIdentities    ExternalIdentity[]
-  groupMemberships      GroupMembership[]
-  connectorScopes       ConnectorScope[]
-  feedback              UserFeedback[]
-  createdAgentCanvases    AgentCanvas[]          @relation("AgentCanvasCreator")
-  createdCanvasVersions   AgentCanvasVersion[]   @relation("AgentCanvasVersionCreator")
-  createdCanvasTemplates  AgentCanvasTemplate[]  @relation("AgentCanvasTemplateCreator")
-  executedAgentCanvases   AgentCanvasExecution[] @relation("AgentCanvasExecutor")
-  agentCanvasApprovals    AgentCanvasApproval[]  @relation("AgentCanvasApprover")
+  id                     String                 @id @default(cuid()) @map("_id")
+  name                   String
+  email                  String
+  emailVerified          Boolean
+  image                  String?
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+  teamId                 String?
+  sessions               Session[]
+  accounts               Account[]
+  usersOnTeam            UsersOnTeam[]
+  sentInvites            UserInvite[]           @relation("SentInvites")
+  team                   Team?                  @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  connectors             Connector[]
+  externalIdentities     ExternalIdentity[]
+  groupMemberships       GroupMembership[]
+  connectorScopes        ConnectorScope[]
+  feedback               UserFeedback[]
+  createdAgentCanvases   AgentCanvas[]          @relation("AgentCanvasCreator")
+  createdCanvasVersions  AgentCanvasVersion[]   @relation("AgentCanvasVersionCreator")
+  createdCanvasTemplates AgentCanvasTemplate[]  @relation("AgentCanvasTemplateCreator")
+  executedAgentCanvases  AgentCanvasExecution[] @relation("AgentCanvasExecutor")
+  agentCanvasApprovals   AgentCanvasApproval[]  @relation("AgentCanvasApprover")
 
   @@unique([email])
   @@index([teamId])
@@ -64,4 +64,3 @@ model Account {
   @@index([userId])
   @@map("account")
 }
-

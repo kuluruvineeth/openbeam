@@ -1,10 +1,10 @@
 "use client";
 
-import { Check, Pencil, X } from "lucide-react";
 import { type KeyboardEvent, useEffect, useRef, useState } from "react";
 
 import { cn } from "../../utils/cn";
 import { Button } from "../button";
+import { Icons } from "../icons";
 import { Input } from "../input";
 
 interface InlineEditableProps {
@@ -100,7 +100,7 @@ function InlineEditable({
           size="icon"
           variant="ghost"
         >
-          <Check className="h-4 w-4" />
+          <Icons.Check className="h-4 w-4" />
         </Button>
         <Button
           disabled={isSaving}
@@ -108,7 +108,7 @@ function InlineEditable({
           size="icon"
           variant="ghost"
         >
-          <X className="h-4 w-4" />
+          <Icons.X className="h-4 w-4" />
         </Button>
       </div>
     );
@@ -128,7 +128,7 @@ function InlineEditable({
       <span className={cn(!value && "text-muted-foreground")}>
         {value || placeholder}
       </span>
-      <Pencil className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-50" />
+      <Icons.Pencil className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-50" />
     </button>
   );
 }

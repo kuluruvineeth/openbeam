@@ -799,7 +799,6 @@ export class VespaClient {
     throw new Error("Failed to feed media document after retries");
   }
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: pre-existing complexity, refactor separately
   private formatMediaForVespa(doc: MediaDocument): VespaMediaDocumentForFeed {
     const embeddingCells: VespaEmbeddingCell[] = [];
     for (const [segId, embedding] of Object.entries(doc.segment_embeddings)) {

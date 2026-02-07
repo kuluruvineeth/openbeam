@@ -93,7 +93,6 @@ export function getAppDefaultValues(app: UnifiedApp) {
   return defaults;
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Transformation logic is complex
 export function transformExternalApp(
   app: ExternalApp,
   authorizedExternalApps: { data: AuthorizedApp[] }

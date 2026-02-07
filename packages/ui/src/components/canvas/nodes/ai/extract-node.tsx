@@ -1,5 +1,6 @@
 "use client";
 
+import { DEFAULT_CHAT_MODEL, getChatModel } from "@openplane/types/ai";
 import type {
   EntityType,
   ExtractedValue,
@@ -250,39 +251,81 @@ interface NodeInfoSectionProps {
   activeFields: ExtractionField[];
   config: ExtractNodeConfig;
   mode: ExtractionMode;
+  modelLabel: string;
+  notes: string[];
   tokenUsage: {
     input: number;
     output: number;
     total: number;
     estimatedCost: number;
   } | null;
+  warnings: string[];
 }
 
 function NodeInfoSection({
   activeFields,
   config,
   mode,
+  modelLabel,
+  notes,
   tokenUsage,
+  warnings,
 }: NodeInfoSectionProps) {
   const hasNer = config.extractEntities && config.entityTypes?.length;
+  const hasAllEntities =
+    config.extractEntities && (config.entityTypes?.length ?? 0) === 0;
   const showNaturalPrompt = mode === "natural" && config.extractionPrompt;
 
   return (
     <NodeSection>
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <NodeField label="Model" value={config.model ?? "Default"} />
+          <NodeField label="Model" value={modelLabel} />
           {tokenUsage && <CostIndicator compact usage={tokenUsage} />}
         </div>
 
         <FieldsBadges fields={activeFields} />
 
         {hasNer && <EntityTypesBadges types={config.entityTypes ?? []} />}
+        {hasAllEntities && (
+          <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
+            <Icons.Tags className="size-3" />
+            <span>NER: all entity types</span>
+          </div>
+        )}
 
         {showNaturalPrompt && (
           <p className="truncate text-muted-foreground/70 text-xs">
             {config.extractionPrompt?.slice(0, 50)}...
           </p>
+        )}
+
+        {warnings.length > 0 && (
+          <div className="space-y-1">
+            {warnings.map((warning) => (
+              <div
+                className="flex items-center gap-1.5 text-[10px] text-warning"
+                key={warning}
+              >
+                <Icons.AlertCircle size={12} />
+                <span>{warning}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {notes.length > 0 && (
+          <div className="space-y-1">
+            {notes.map((note) => (
+              <div
+                className="flex items-center gap-1.5 text-[10px] text-muted-foreground"
+                key={note}
+              >
+                <Icons.Info size={12} />
+                <span>{note}</span>
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </NodeSection>
@@ -377,6 +420,10 @@ function getActiveFields(config: ExtractNodeConfig): ExtractionField[] {
   }
 }
 
+function hasIncompleteFields(fields: ExtractionField[]): boolean {
+  return fields.some((field) => !(field.name.trim() && field.id.trim()));
+}
+
 export const ExtractNode = memo(
   forwardRef<HTMLDivElement, ExtractNodeProps>(function ExtractNodeComponent(
     { id, data, selected, onRun, onStop, onCopy },
@@ -388,6 +435,9 @@ export const ExtractNode = memo(
       [data.config]
     );
     const subtitle = useMemo(() => getSubtitle(data.config), [data.config]);
+    const modelId = data.config.model?.trim() || DEFAULT_CHAT_MODEL;
+    const modelMeta = getChatModel(modelId);
+    const modelLabel = modelMeta?.name ?? modelId;
 
     const hasContent = Boolean(data.result || data.streamingContent);
 
@@ -417,6 +467,76 @@ export const ExtractNode = memo(
     const values = data.result?.values ?? [];
     const entities = data.result?.entities ?? [];
 
+    const warnings = useMemo(() => {
+      const items: string[] = [];
+      if (mode === "schema") {
+        if ((data.config.fields?.length ?? 0) === 0) {
+          items.push("Add at least one field");
+        }
+        if (hasIncompleteFields(data.config.fields ?? [])) {
+          items.push("Fill in field names");
+        }
+      }
+      if (mode === "template") {
+        const hasTemplate = Boolean(data.config.template);
+        const hasCustomFields =
+          (data.config.customTemplate?.fields?.length ?? 0) > 0;
+        const hasFields = (data.config.fields?.length ?? 0) > 0;
+        if (!(hasTemplate || hasCustomFields || hasFields)) {
+          items.push("Select a template or add custom fields");
+        }
+        if (activeFields.length > 0 && hasIncompleteFields(activeFields)) {
+          items.push("Fill in field names");
+        }
+      }
+      if (mode === "example") {
+        if (!data.config.jsonExample?.trim()) {
+          items.push("Provide a JSON example");
+        } else if ((data.config.inferredSchema?.length ?? 0) === 0) {
+          items.push("No fields inferred");
+        }
+      }
+      if (mode === "natural" && !data.config.extractionPrompt?.trim()) {
+        items.push("Describe what to extract");
+      }
+      return items;
+    }, [
+      activeFields,
+      data.config.customTemplate?.fields?.length,
+      data.config.extractionPrompt,
+      data.config.fields,
+      data.config.inferredSchema?.length,
+      data.config.jsonExample,
+      data.config.template,
+      mode,
+    ]);
+
+    const notes = useMemo(() => {
+      const items: string[] = [];
+      if (data.config.customTemplate?.fields?.length) {
+        items.push("Custom fields override template defaults");
+      }
+      if (
+        data.config.extractEntities &&
+        (data.config.entityTypes?.length ?? 0) === 0
+      ) {
+        items.push("NER includes all entity types");
+      }
+      if (!data.config.strictMode) {
+        items.push("Raw output is retained");
+      }
+      if (data.config.includeConfidence) {
+        items.push("Confidence scores included");
+      }
+      return items;
+    }, [
+      data.config.customTemplate?.fields?.length,
+      data.config.entityTypes?.length,
+      data.config.extractEntities,
+      data.config.includeConfidence,
+      data.config.strictMode,
+    ]);
+
     return (
       <NodeShell
         handles={[
@@ -439,7 +559,10 @@ export const ExtractNode = memo(
           activeFields={activeFields}
           config={data.config}
           mode={mode}
+          modelLabel={modelLabel}
+          notes={notes}
           tokenUsage={tokenUsage}
+          warnings={warnings}
         />
 
         {showStreaming && (
@@ -479,6 +602,7 @@ export function createExtractNodeData(): ExtractNodeData {
     config: {
       mode: "schema",
       fields: [],
+      model: DEFAULT_CHAT_MODEL,
       temperature: 0.1,
       strictMode: true,
       includeConfidence: false,

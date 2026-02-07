@@ -45,7 +45,7 @@ export async function* syncClipsBatched(
         ...context,
         userLookup,
       };
-      const doc = transformClip(clip, transformContext);
+      const doc = await transformClip(clip, transformContext);
       batch.push(doc);
       processed += 1;
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { DEFAULT_CHAT_MODEL } from "@openplane/types/ai";
 import type {
   SummarizationStrategy,
   SummarizeNodeConfig,
@@ -17,6 +18,7 @@ import { Textarea } from "../../../textarea";
 import {
   CitationStyleSelector,
   FocusAreaSelector,
+  ModelSelector,
   OutputFormatSelector,
   SummarizationStrategySelector,
   SummaryLengthSelector,
@@ -41,10 +43,18 @@ export const StrategySection = memo(function StrategySectionComponent({
   onChange,
 }: SectionProps) {
   const strategy = config.strategy ?? "auto";
+  const modelValue = config.model?.trim() || DEFAULT_CHAT_MODEL;
 
   const handleStrategyChange = useCallback(
     (newStrategy: SummarizationStrategy) => {
       onChange({ strategy: newStrategy });
+    },
+    [onChange]
+  );
+
+  const handleModelChange = useCallback(
+    (model: string) => {
+      onChange({ model });
     },
     [onChange]
   );
@@ -62,12 +72,11 @@ export const StrategySection = memo(function StrategySectionComponent({
           value={strategy}
         />
 
-        <ConfigField label="Model" tooltip="LLM for summarization">
-          <Input
-            className="h-9"
-            onChange={(e) => onChange({ model: e.target.value || undefined })}
-            placeholder="Default model"
-            value={config.model ?? ""}
+        <ConfigField label="Model" required tooltip="LLM for summarization">
+          <ModelSelector
+            onValueChange={handleModelChange}
+            type="chat"
+            value={modelValue}
           />
         </ConfigField>
       </div>
@@ -98,6 +107,11 @@ export const OutputFormatSection = memo(function OutputFormatSectionComponent({
 }: SectionProps) {
   const format = config.outputFormat ?? "paragraph";
   const length = config.length ?? "standard";
+  const isCustomLength = length === "custom";
+  const lengthError =
+    isCustomLength && !(config.maxWords && config.maxWords >= 50)
+      ? "Custom length requires a word limit"
+      : undefined;
 
   const handleFormatChange = useCallback(
     (newFormat: SummaryOutputFormat) => {
@@ -108,9 +122,13 @@ export const OutputFormatSection = memo(function OutputFormatSectionComponent({
 
   const handleLengthChange = useCallback(
     (newLength: SummaryLength) => {
-      onChange({ length: newLength });
+      if (newLength === "custom") {
+        onChange({ length: newLength, maxWords: config.maxWords ?? 200 });
+        return;
+      }
+      onChange({ length: newLength, maxWords: undefined });
     },
-    [onChange]
+    [config.maxWords, onChange]
   );
 
   const handleCustomWordsChange = useCallback(
@@ -132,7 +150,7 @@ export const OutputFormatSection = memo(function OutputFormatSectionComponent({
           <OutputFormatSelector onChange={handleFormatChange} value={format} />
         </ConfigField>
 
-        <ConfigField label="Length">
+        <ConfigField error={lengthError} label="Length">
           <SummaryLengthSelector
             customWords={config.maxWords}
             onChange={handleLengthChange}
@@ -207,6 +225,11 @@ export const CitationsSection = memo(function CitationsSectionComponent({
   onChange,
 }: SectionProps) {
   const includeCitations = config.includeCitations ?? false;
+  const citationStyle = config.citationStyle ?? "inline";
+  const hideCitationsWarning =
+    includeCitations && citationStyle === "none"
+      ? "Citations enabled, but summary text hides references"
+      : undefined;
 
   return (
     <ConfigSection
@@ -233,12 +256,19 @@ export const CitationsSection = memo(function CitationsSectionComponent({
           {includeCitations && (
             <ConfigField label="Citation Style">
               <CitationStyleSelector
-                onChange={(citationStyle) => onChange({ citationStyle })}
-                value={config.citationStyle ?? "inline"}
+                onChange={(nextStyle) => onChange({ citationStyle: nextStyle })}
+                value={citationStyle}
               />
             </ConfigField>
           )}
         </AnimatedSizeContainer>
+
+        {hideCitationsWarning && (
+          <div className="flex items-start gap-2 rounded-md bg-warning/10 px-3 py-2 text-warning text-xs">
+            <Icons.AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
+            <span>{hideCitationsWarning}</span>
+          </div>
+        )}
       </div>
     </ConfigSection>
   );
@@ -250,6 +280,11 @@ export const ChunkingSection = memo(function ChunkingSectionComponent({
 }: SectionProps) {
   const strategy = config.strategy ?? "auto";
   const showChunking = strategy === "map_reduce" || strategy === "refine";
+  const chunkSize = config.chunkSize ?? 1000;
+  const chunkOverlap = config.chunkOverlap ?? 100;
+  const maxOverlap = Math.min(512, Math.max(0, chunkSize - 1));
+  const overlapError =
+    chunkOverlap >= chunkSize ? "Overlap must be smaller than chunk size" : "";
 
   if (!showChunking && strategy !== "auto") {
     return null;
@@ -275,28 +310,52 @@ export const ChunkingSection = memo(function ChunkingSectionComponent({
               className="flex-1"
               max={4096}
               min={256}
-              onValueChange={(v) => onChange({ chunkSize: v[0] })}
+              onValueChange={(v) => {
+                const nextSize = v[0];
+                if (nextSize === undefined) {
+                  return;
+                }
+                const nextOverlap = Math.min(
+                  config.chunkOverlap ?? 100,
+                  Math.max(0, nextSize - 1)
+                );
+                onChange(
+                  nextOverlap !== (config.chunkOverlap ?? 100)
+                    ? { chunkSize: nextSize, chunkOverlap: nextOverlap }
+                    : { chunkSize: nextSize }
+                );
+              }}
               step={128}
-              value={[config.chunkSize ?? 1000]}
+              value={[chunkSize]}
             />
             <span className="w-12 text-right font-mono text-sm tabular-nums">
-              {config.chunkSize ?? 1000}
+              {chunkSize}
             </span>
           </div>
         </ConfigField>
 
-        <ConfigField label="Chunk Overlap" tooltip="Overlap between chunks">
+        <ConfigField
+          error={overlapError || undefined}
+          label="Chunk Overlap"
+          tooltip="Overlap between chunks"
+        >
           <div className="flex items-center gap-4">
             <Slider
               className="flex-1"
-              max={512}
+              max={maxOverlap}
               min={0}
-              onValueChange={(v) => onChange({ chunkOverlap: v[0] })}
+              onValueChange={(v) => {
+                const nextOverlap = v[0];
+                if (nextOverlap === undefined) {
+                  return;
+                }
+                onChange({ chunkOverlap: Math.min(nextOverlap, maxOverlap) });
+              }}
               step={32}
-              value={[config.chunkOverlap ?? 100]}
+              value={[Math.min(chunkOverlap, maxOverlap)]}
             />
             <span className="w-10 text-right font-mono text-sm tabular-nums">
-              {config.chunkOverlap ?? 100}
+              {Math.min(chunkOverlap, maxOverlap)}
             </span>
           </div>
         </ConfigField>
@@ -309,6 +368,11 @@ export const AdvancedSection = memo(function AdvancedSectionComponent({
   config,
   onChange,
 }: SectionProps) {
+  const maxTokensError =
+    config.maxTokens !== undefined && config.maxTokens <= 0
+      ? "Max tokens must be positive"
+      : undefined;
+
   return (
     <ConfigSection
       defaultOpen={false}
@@ -333,6 +397,26 @@ export const AdvancedSection = memo(function AdvancedSectionComponent({
               {(config.temperature ?? 0.3).toFixed(1)}
             </span>
           </div>
+        </ConfigField>
+
+        <ConfigField
+          error={maxTokensError}
+          label="Max Tokens"
+          tooltip="Maximum tokens in the summary response"
+        >
+          <Input
+            className="h-9 font-mono"
+            max={128_000}
+            min={1}
+            onChange={(e) => {
+              const parsed = Number.parseInt(e.target.value, 10);
+              onChange({
+                maxTokens: Number.isNaN(parsed) ? undefined : parsed,
+              });
+            }}
+            type="number"
+            value={config.maxTokens ?? ""}
+          />
         </ConfigField>
 
         <ConfigField label="Language" tooltip="Output language (optional)">

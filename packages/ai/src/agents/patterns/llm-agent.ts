@@ -246,12 +246,10 @@ export class LlmAgent extends BaseAgent {
   ): Promise<void> {
     try {
       await tracker.finalize(success, this.config.name);
-    } catch {
-      // Composition logging is best-effort, don't fail the agent
-    }
+      // biome-ignore lint/suspicious/noEmptyBlockStatements: best-effort telemetry
+    } catch {}
   }
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Streaming with tool calls requires handling multiple chunk types
   async *stream(
     input: unknown,
     ctx: AgentExecutionContext
@@ -547,12 +545,8 @@ export class LlmAgent extends BaseAgent {
           case "view":
             return "view";
           case "click":
-            // Memory events can record "click" separately from "view", but the
-            // context.md schema intentionally models this as a "view" activity.
             return "view";
           case "interaction":
-            // Generic interaction events are best represented as a "question"
-            // activity in context.md.
             return "question";
           default: {
             const _exhaustive: never = h.type;
@@ -562,7 +556,6 @@ export class LlmAgent extends BaseAgent {
       })();
 
       const description = (() => {
-        // Preserve the old behavior: prefer query, then document title.
         if (h.query) {
           return h.query;
         }

@@ -80,7 +80,6 @@ export class DocumentChunker {
     const chunks: TextChunk[] = [];
     const { maxChunkSize, minChunkSize } = this.config;
 
-    // Split into sentences
     const sentences = text.match(SENTENCE_REGEX) ?? [text];
 
     let currentChunk = "";
@@ -221,7 +220,6 @@ export class DocumentChunker {
     }));
   }
 
-  // biome-ignore lint/complexity: Recursive text splitting algorithm is inherently complex
   private recursiveSplit(
     text: string,
     separators: string[],

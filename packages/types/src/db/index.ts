@@ -1,4 +1,15 @@
 export type {
+  AgentCanvasExecution,
+  CreateAgentCanvasExecutionInput,
+  UpdateAgentCanvasExecutionInput,
+} from "./agent-canvas";
+export {
+  AgentCanvasExecutionSchema,
+  CreateAgentCanvasExecutionInputSchema,
+  UpdateAgentCanvasExecutionInputSchema,
+} from "./agent-canvas";
+
+export type {
   AIUsageGranularity,
   AIUsageLogForExport,
   BillingUsageSummary,

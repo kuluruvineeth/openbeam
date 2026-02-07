@@ -1,11 +1,11 @@
 "use client";
 
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
 import type { DateRange } from "react-day-picker";
 import { cn } from "../utils";
 import { Button } from "./button";
 import { Calendar } from "./calendar";
+import { Icons } from "./icons";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 
 interface DatePickerProps {
@@ -36,7 +36,7 @@ function DatePicker({
           )}
           variant="outline"
         >
-          <CalendarIcon className="mr-2 size-4" />
+          <Icons.Calendar className="mr-2 size-4" />
           {value ? format(value, formatStr) : <span>{placeholder}</span>}
         </Button>
       </PopoverTrigger>
@@ -82,7 +82,7 @@ function DateRangePicker({
           )}
           variant="outline"
         >
-          <CalendarIcon className="mr-2 size-4" />
+          <Icons.Calendar className="mr-2 size-4" />
           {value?.from ? (
             value.to ? (
               <>
@@ -137,7 +137,7 @@ function CompactDatePicker({
           )}
           type="button"
         >
-          <CalendarIcon className="size-3" />
+          <Icons.Calendar className="size-3" />
           {value ? format(value, "MMM d, yyyy") : <span>{placeholder}</span>}
         </button>
       </PopoverTrigger>

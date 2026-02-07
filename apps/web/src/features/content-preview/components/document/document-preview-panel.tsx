@@ -62,7 +62,6 @@ function richTextToMarkdown(segments: SerializedRichText[]): string {
     .join("");
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: block type switch requires many cases
 function blocksToMarkdown(blocks: SerializedBlock[]): string {
   const lines: string[] = [];
 
@@ -269,7 +268,7 @@ export function DocumentPreviewPanel({
         </TooltipProvider>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-auto p-4">
+      <div className="no-scrollbar min-h-0 flex-1 overflow-auto p-4">
         <Markdown content={content} />
       </div>
     </div>

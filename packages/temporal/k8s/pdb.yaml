@@ -1,0 +1,44 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: canvas-worker-pdb
+  namespace: openplane
+  labels:
+    app.kubernetes.io/name: canvas-worker
+    app.kubernetes.io/component: temporal-worker
+    app.kubernetes.io/part-of: openplane
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: canvas-worker
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: sync-worker-pdb
+  namespace: openplane
+  labels:
+    app.kubernetes.io/name: sync-worker
+    app.kubernetes.io/component: temporal-worker
+    app.kubernetes.io/part-of: openplane
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sync-worker
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: agent-worker-pdb
+  namespace: openplane
+  labels:
+    app.kubernetes.io/name: agent-worker
+    app.kubernetes.io/component: temporal-worker
+    app.kubernetes.io/part-of: openplane
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: agent-worker

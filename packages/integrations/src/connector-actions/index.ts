@@ -1,23 +1,15 @@
 import type { ConnectorActionsRegistry } from "@openplane/types/canvas";
 
-import { gmailActions } from "./gmail";
-import { googleDriveActions } from "./google-drive";
-import { linearActions } from "./linear";
-import { notionActions } from "./notion";
-import { slackActions } from "./slack";
-
-export {
-  gmailActions,
-  googleDriveActions,
-  linearActions,
-  notionActions,
-  slackActions,
-};
+import { gmailActionsRegistry } from "./gmail";
+import { googleDriveActionsRegistry } from "./google-drive";
+import { linearActionsRegistry } from "./linear";
+import { notionActionsRegistry } from "./notion";
+import { slackActionsRegistry } from "./slack";
 
 export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
-  gmailActions,
-  googleDriveActions,
-  linearActions,
-  notionActions,
-  slackActions,
+  slackActionsRegistry,
+  gmailActionsRegistry,
+  notionActionsRegistry,
+  googleDriveActionsRegistry,
+  linearActionsRegistry,
 ];

@@ -68,7 +68,6 @@ export function useCanvasKeyboard({
   onRun,
 }: UseCanvasKeyboardOptions) {
   const handleKeyDown = useCallback(
-    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: keyboard handler needs many branching paths for different shortcuts
     (e: KeyboardEvent) => {
       if (!enabled) {
         return;

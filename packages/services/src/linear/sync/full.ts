@@ -36,9 +36,6 @@ interface SyncState {
   errors: number;
 }
 
-// Note: Comments are fetched per-issue (N+1 pattern). Linear's GraphQL API
-// requires accessing comments via issue.comments, preventing batch fetching
-// across issues. This trade-off is acceptable given API constraints.
 async function collectIssueComments(
   client: LinearClient,
   issueId: string,
@@ -78,14 +75,13 @@ async function processIssue(
 ): Promise<void> {
   const { client, issue, context, syncComments } = params;
   const comments = await collectIssueComments(client, issue.id, syncComments);
-  const document = transformIssue(issue, context, {
+  const document = await transformIssue(issue, context, {
     comments: comments.length > 0 ? comments : undefined,
   });
   state.documents.push(document);
   state.processed += 1;
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: sync orchestration requires handling multiple data sources
 export async function* fullSync(
   client: LinearClient,
   context: LinearTransformContext,
@@ -185,7 +181,7 @@ export async function* fullSync(
         state.processed,
         project.name
       );
-      state.documents.push(transformProject(project, enrichedContext));
+      state.documents.push(await transformProject(project, enrichedContext));
       state.processed += 1;
 
       if (state.documents.length >= batchSize) {
@@ -216,7 +212,7 @@ export async function* fullSync(
           state.processed,
           doc.title
         );
-        state.documents.push(transformDocument(doc, enrichedContext));
+        state.documents.push(await transformDocument(doc, enrichedContext));
         state.processed += 1;
 
         if (state.documents.length >= batchSize) {

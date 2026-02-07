@@ -65,7 +65,6 @@ export class LoopAgent extends BaseAgent {
     }
   }
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Streaming with iteration tracking requires this complexity
   async *stream(
     input: unknown,
     ctx: AgentExecutionContext

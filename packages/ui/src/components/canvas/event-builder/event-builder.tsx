@@ -9,7 +9,6 @@ import type {
   ConnectorType,
   EventCategory,
 } from "@openplane/types/services/connectors/events";
-import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import {
   type ComponentType,
   forwardRef,
@@ -30,6 +29,7 @@ import {
   CommandItem,
   CommandList,
 } from "../../command";
+import { Icons } from "../../icons";
 import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
 import { Skeleton } from "../../skeleton";
 import {
@@ -180,7 +180,7 @@ const ConnectorCombobox = memo(function ConnectorComboboxInner({
           ) : (
             <span className="text-muted-foreground">Select integration...</span>
           )}
-          <ChevronsUpDown className="ml-auto size-4 shrink-0 opacity-50" />
+          <Icons.ChevronsUpDown className="ml-auto size-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-[300px] p-0">
@@ -226,7 +226,7 @@ const ConnectorCombobox = memo(function ConnectorComboboxInner({
                         {connectorType.eventCount} events
                       </span>
                       {value === connectorType.type && (
-                        <Check className="ml-1 size-4 shrink-0" />
+                        <Icons.Check className="ml-1 size-4 shrink-0" />
                       )}
                     </div>
                   </CommandItem>
@@ -309,7 +309,7 @@ const ResourceCombobox = memo(function ResourceComboboxInner({
             if (loading) {
               return (
                 <div className="flex items-center gap-2">
-                  <Loader2 className="size-4 animate-spin" />
+                  <Icons.Loader2 className="size-4 animate-spin" />
                   <span className="text-muted-foreground">Loading...</span>
                 </div>
               );
@@ -319,7 +319,7 @@ const ResourceCombobox = memo(function ResourceComboboxInner({
             }
             return <span className="text-muted-foreground">{placeholder}</span>;
           })()}
-          <ChevronsUpDown className="ml-auto size-4 shrink-0 opacity-50" />
+          <Icons.ChevronsUpDown className="ml-auto size-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-[300px] p-0">
@@ -357,7 +357,7 @@ const ResourceCombobox = memo(function ResourceComboboxInner({
                       <div className="flex w-full items-center gap-2">
                         <span>{resource.name}</span>
                         {value === resource.id && (
-                          <Check className="ml-auto size-4 shrink-0" />
+                          <Icons.Check className="ml-auto size-4 shrink-0" />
                         )}
                       </div>
                     </CommandItem>
@@ -430,7 +430,7 @@ const EventCombobox = memo(function EventComboboxInner({
           ) : (
             <span className="text-muted-foreground">Select event...</span>
           )}
-          <ChevronsUpDown className="ml-auto size-4 shrink-0 opacity-50" />
+          <Icons.ChevronsUpDown className="ml-auto size-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-[350px] p-0">
@@ -471,7 +471,7 @@ const EventCombobox = memo(function EventComboboxInner({
                             </Badge>
                           )}
                           {value === event.id && (
-                            <Check className="ml-auto size-4 shrink-0" />
+                            <Icons.Check className="ml-auto size-4 shrink-0" />
                           )}
                         </div>
                         <span className="text-muted-foreground text-xs">

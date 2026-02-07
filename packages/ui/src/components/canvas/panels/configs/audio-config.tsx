@@ -65,7 +65,7 @@ export const AudioConfigPanel = memo(
                 <ModelSelector
                   onValueChange={(model) => onChange({ model })}
                   type="audio"
-                  value={config.model ?? "eleven_multilingual_v2"}
+                  value={config.model ?? "gpt-4o-mini-tts"}
                 />
               </ConfigField>
 

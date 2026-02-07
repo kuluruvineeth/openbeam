@@ -27,9 +27,12 @@ export const ConditionNode = memo(
   forwardRef<HTMLDivElement, NodeProps<ConditionNodeType>>(
     function ConditionNodeComponent({ data, selected }, ref) {
       const { mode, expression, branches, defaultBranchLabel } = data.config;
+      const branchList = useMemo(() => branches ?? [], [branches]);
+      const isVisual = (mode ?? "visual") === "visual";
+      const missingBranches = isVisual && branchList.length === 0;
+      const missingExpression = mode === "expression" && !expression?.trim();
 
       const handles = useMemo(() => {
-        const branchList = branches ?? [];
         const totalOutputs =
           branchList.length + (defaultBranchLabel ? 1 : 0) || 2;
 
@@ -89,18 +92,20 @@ export const ConditionNode = memo(
         }
 
         return result;
-      }, [branches, defaultBranchLabel]);
+      }, [branchList, defaultBranchLabel]);
 
       const preview = useMemo(() => {
-        if (mode === "expression" && expression) {
+        if (mode === "expression") {
+          if (!expression?.trim()) {
+            return "Expression required";
+          }
           return expression.length > 35
             ? `${expression.slice(0, 35)}...`
             : expression;
         }
 
-        const branchList = branches ?? [];
         if (branchList.length === 0) {
-          return "No conditions defined";
+          return "Add branches or use expression";
         }
 
         const totalConditions = branchList.reduce(
@@ -114,9 +119,19 @@ export const ConditionNode = memo(
         );
 
         return `${branchList.length} ${branchList.length === 1 ? "branch" : "branches"} • ${totalConditions} ${totalConditions === 1 ? "condition" : "conditions"}`;
-      }, [mode, expression, branches]);
+      }, [mode, expression, branchList]);
 
-      const branchList = branches ?? [];
+      const emptyBranchCount = useMemo(
+        () =>
+          branchList.reduce((count, branch) => {
+            const conditionCount = (branch.groups ?? []).reduce(
+              (sum, group) => sum + (group.conditions?.length ?? 0),
+              0
+            );
+            return conditionCount === 0 ? count + 1 : count;
+          }, 0),
+        [branchList]
+      );
 
       return (
         <NodeShell
@@ -164,6 +179,28 @@ export const ConditionNode = memo(
                       </span>
                     </div>
                   )}
+                </div>
+              )}
+              {missingBranches && (
+                <div className="flex items-center gap-1.5 text-[10px] text-warning">
+                  <Icons.AlertCircle size={12} />
+                  <span>Add a branch or switch to expression</span>
+                </div>
+              )}
+              {missingExpression && (
+                <div className="flex items-center gap-1.5 text-[10px] text-warning">
+                  <Icons.AlertCircle size={12} />
+                  <span>Expression required</span>
+                </div>
+              )}
+              {emptyBranchCount > 0 && (
+                <div className="flex items-center gap-1.5 text-[10px] text-warning">
+                  <Icons.AlertCircle size={12} />
+                  <span>
+                    {emptyBranchCount}{" "}
+                    {emptyBranchCount === 1 ? "branch" : "branches"} always
+                    match
+                  </span>
                 </div>
               )}
             </div>

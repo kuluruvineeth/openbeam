@@ -95,6 +95,50 @@ export const MemoryWriteNode = memo(
       const memoryType = data.config.memoryType ?? "semantic";
       const typeConfig = MEMORY_TYPE_CONFIG[memoryType];
       const TypeIcon = Icons[typeConfig?.icon ?? "BrainIcon"];
+      const key = data.config.key?.trim() ?? "";
+      const namespace = data.config.namespace?.trim() ?? "";
+      const scope = data.config.scope ?? "workflow";
+      const encoding = data.config.encoding ?? "json";
+
+      const warnings = useMemo(() => {
+        const list: string[] = [];
+        if (!key) {
+          list.push("Key is required");
+        }
+        if (!data.config.overwrite) {
+          list.push("Writes will skip existing values");
+        }
+        if (data.config.ttlMs !== undefined && data.config.ttlMs <= 0) {
+          list.push("TTL must be greater than 0");
+        }
+        return list;
+      }, [data.config.overwrite, data.config.ttlMs, key]);
+
+      const notes = useMemo(() => {
+        const list: string[] = [];
+        if (namespace) {
+          list.push("Namespace scoped");
+        }
+        if (data.config.generateEmbedding) {
+          list.push("Embedding generated on write");
+        }
+        if (encoding === "embedding") {
+          list.push("Embedding input uses vector or content");
+        }
+        if (data.config.tags && data.config.tags.length > 0) {
+          list.push(
+            `${data.config.tags.length} tag${
+              data.config.tags.length > 1 ? "s" : ""
+            }`
+          );
+        }
+        return list;
+      }, [
+        data.config.generateEmbedding,
+        data.config.tags,
+        encoding,
+        namespace,
+      ]);
 
       return (
         <NodeShell
@@ -120,30 +164,19 @@ export const MemoryWriteNode = memo(
           <NodeSection>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <NodeField
-                  label="Key"
-                  mono
-                  value={data.config.key || "Not set"}
-                />
+                <NodeField label="Key" mono value={key || "Not set"} />
                 <span className="rounded-sm bg-muted/50 px-1.5 py-0.5 text-muted-foreground text-xs">
-                  {SCOPE_LABELS[data.config.scope] ?? "Workflow"}
+                  {SCOPE_LABELS[scope] ?? "Workflow"}
                 </span>
               </div>
 
-              {data.config.namespace && (
-                <NodeField
-                  label="Namespace"
-                  mono
-                  value={data.config.namespace}
-                />
+              {namespace && (
+                <NodeField label="Namespace" mono value={namespace} />
               )}
 
               <div className="flex items-center justify-between">
                 <NodeField label="TTL" value={ttlDisplay} />
-                <NodeField
-                  label="Encoding"
-                  value={ENCODING_LABELS[data.config.encoding ?? "json"]}
-                />
+                <NodeField label="Encoding" value={ENCODING_LABELS[encoding]} />
               </div>
 
               {featureBadges.length > 0 && (
@@ -163,12 +196,34 @@ export const MemoryWriteNode = memo(
                       </span>
                     );
                   })}
-                  {!data.config.overwrite && (
-                    <span className="flex items-center gap-1 rounded-sm bg-amber-500/10 px-1.5 py-0.5 text-amber-500 text-xs">
-                      <Icons.AlertCircle size={10} />
-                      No overwrite
-                    </span>
-                  )}
+                </div>
+              )}
+
+              {warnings.length > 0 && (
+                <div className="space-y-1">
+                  {warnings.map((warning) => (
+                    <div
+                      className="flex items-center gap-1.5 text-[10px] text-warning"
+                      key={warning}
+                    >
+                      <Icons.AlertCircle size={12} />
+                      <span>{warning}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {notes.length > 0 && (
+                <div className="space-y-1">
+                  {notes.map((note) => (
+                    <div
+                      className="flex items-center gap-1.5 text-[10px] text-muted-foreground"
+                      key={note}
+                    >
+                      <Icons.Info size={12} />
+                      <span>{note}</span>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

@@ -1,10 +1,10 @@
 "use client";
 
-import { AlertCircle, Clock, Star, TrendingUp } from "lucide-react";
 import type { ReactNode } from "react";
 import { useMemo } from "react";
 
 import { cn } from "../../utils/cn";
+import { Icons } from "../icons";
 
 interface FilterSuggestion {
   id: string;
@@ -31,7 +31,7 @@ function SmartFilterSuggestions({
         id: "active-recent",
         label: "Active & Recent",
         description: "Active items updated in the last 7 days",
-        icon: <Clock className="h-4 w-4" />,
+        icon: <Icons.Clock className="h-4 w-4" />,
         filters: {
           status: ["active"],
           dateRange: { preset: "last7d" },
@@ -42,7 +42,7 @@ function SmartFilterSuggestions({
         id: "most-used",
         label: "Most Used",
         description: "Items with the highest usage count",
-        icon: <TrendingUp className="h-4 w-4" />,
+        icon: <Icons.TrendingUp className="h-4 w-4" />,
         filters: {
           sortBy: "usage",
           sortDir: "desc",
@@ -52,7 +52,7 @@ function SmartFilterSuggestions({
         id: "favorites",
         label: "Favorites",
         description: "Your starred items",
-        icon: <Star className="h-4 w-4" />,
+        icon: <Icons.Star className="h-4 w-4" />,
         filters: {
           starred: true,
         },
@@ -61,7 +61,7 @@ function SmartFilterSuggestions({
         id: "needs-attention",
         label: "Needs Attention",
         description: "Items with errors or issues",
-        icon: <AlertCircle className="h-4 w-4" />,
+        icon: <Icons.AlertCircle className="h-4 w-4" />,
         filters: {
           status: ["error", "failed"],
           sortBy: "lastError",

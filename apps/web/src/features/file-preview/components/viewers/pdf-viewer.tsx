@@ -199,8 +199,9 @@ export function PdfViewer({ url, initialPage, highlightText }: PdfViewerProps) {
           visible={showControls}
         />
 
-        {/* biome-ignore lint/a11y/noStaticElementInteractions lint/a11y/noNoninteractiveElementInteractions: Scroll container mouse tracking for auto-hide toolbar */}
-        <div
+        {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: passive tracking for toolbar auto-hide */}
+        <section
+          aria-label="PDF content"
           className="flex-1 overflow-auto"
           onMouseMove={resetHideTimer}
           onScroll={handleScroll}
@@ -230,7 +231,7 @@ export function PdfViewer({ url, initialPage, highlightText }: PdfViewerProps) {
                 />
               ))}
           </Document>
-        </div>
+        </section>
       </div>
     </TooltipProvider>
   );

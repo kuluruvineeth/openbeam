@@ -9,7 +9,7 @@ export { AgentCitation, agentCitationVariants } from "./agent-citation";
 export type { AgentCitationsProps } from "./agent-citations";
 export { AgentCitations, agentCitationsVariants } from "./agent-citations";
 export type { AgentDurationProps } from "./agent-duration";
-export { AgentDuration, formatDuration } from "./agent-duration";
+export { AgentDuration, formatDurationPrecise } from "./agent-duration";
 export type { AgentErrorInfo, AgentErrorProps, ErrorCode } from "./agent-error";
 export { AgentError, agentErrorVariants } from "./agent-error";
 export type { AgentEventRendererProps } from "./agent-event-renderer";

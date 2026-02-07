@@ -86,7 +86,11 @@ export function useCanvasBuilder(canvasId?: string) {
   const textAccumulatorRef = useRef<string>("");
 
   const canvasBuilderStore = useCanvasBuilderStore();
-  const canvasStore = useCanvasStore();
+  const addNode = useCanvasStore((s) => s.addNode);
+  const removeNode = useCanvasStore((s) => s.removeNode);
+  const addEdge = useCanvasStore((s) => s.addEdge);
+  const removeEdge = useCanvasStore((s) => s.removeEdge);
+  const updateNode = useCanvasStore((s) => s.updateNode);
   const toolCallMapRef = useRef<Map<string, string>>(new Map());
 
   const applyCanvasOperation = useCallback(
@@ -95,7 +99,7 @@ export function useCanvasBuilder(canvasId?: string) {
 
       switch (operation.type) {
         case "add_node":
-          canvasStore.addNode({
+          addNode({
             id: operation.id,
             type: operation.nodeType,
             position: operation.position ?? { x: 0, y: 0 },
@@ -106,10 +110,10 @@ export function useCanvasBuilder(canvasId?: string) {
           });
           break;
         case "remove_node":
-          canvasStore.removeNode(operation.nodeId);
+          removeNode(operation.nodeId);
           break;
         case "connect":
-          canvasStore.addEdge({
+          addEdge({
             id: operation.id,
             source: operation.source,
             target: operation.target,
@@ -118,10 +122,10 @@ export function useCanvasBuilder(canvasId?: string) {
           });
           break;
         case "disconnect":
-          canvasStore.removeEdge(operation.edgeId);
+          removeEdge(operation.edgeId);
           break;
         case "update_config":
-          canvasStore.updateNode(operation.nodeId, operation.config);
+          updateNode(operation.nodeId, operation.config);
           break;
         case "layout":
           break;
@@ -129,7 +133,7 @@ export function useCanvasBuilder(canvasId?: string) {
           break;
       }
     },
-    [canvasBuilderStore, canvasStore]
+    [canvasBuilderStore, addNode, removeNode, addEdge, removeEdge, updateNode]
   );
 
   const addEventToMessage = useCallback((newEvent: AgentEvent) => {

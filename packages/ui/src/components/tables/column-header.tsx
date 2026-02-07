@@ -1,9 +1,9 @@
 "use client";
 
 import type { Column, SortDirection } from "@tanstack/react-table";
-import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 
 import { cn } from "../../utils/cn";
+import { Icons } from "../icons";
 
 interface ColumnHeaderProps<T> {
   column: Column<T>;
@@ -13,12 +13,12 @@ interface ColumnHeaderProps<T> {
 
 function SortIcon({ direction }: { direction: false | SortDirection }) {
   if (direction === "asc") {
-    return <ArrowUp className="h-3 w-3" />;
+    return <Icons.ArrowUp className="h-3 w-3" />;
   }
   if (direction === "desc") {
-    return <ArrowDown className="h-3 w-3" />;
+    return <Icons.ArrowDown className="h-3 w-3" />;
   }
-  return <ArrowUpDown className="h-3 w-3 opacity-50" />;
+  return <Icons.ArrowUpDown className="h-3 w-3 opacity-50" />;
 }
 
 function ColumnHeader<T>({ column, title, className }: ColumnHeaderProps<T>) {

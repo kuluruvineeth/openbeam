@@ -9,16 +9,14 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@openplane/ui/components/alert-dialog";
-import { Button } from "@openplane/ui/components/button";
-import {
+  Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@openplane/ui/components/dropdown-menu";
+  Icons,
+} from "@openplane/ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { type MouseEvent, useState } from "react";
 import { toast } from "sonner";
 import { useTRPC } from "@/trpc/client";
@@ -79,7 +77,7 @@ export function AgentItemActions({ id, name }: AgentItemActionsProps) {
           size="icon"
           variant="outline"
         >
-          <Pencil className="size-3.5" />
+          <Icons.Pencil size={14} />
         </Button>
 
         <DropdownMenu>
@@ -89,7 +87,7 @@ export function AgentItemActions({ id, name }: AgentItemActionsProps) {
               size="icon"
               variant="outline"
             >
-              <MoreHorizontal className="size-3.5" />
+              <Icons.MoreHorizontal size={14} />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -97,7 +95,7 @@ export function AgentItemActions({ id, name }: AgentItemActionsProps) {
               className="text-destructive focus:text-destructive"
               onClick={handleDeleteClick}
             >
-              <Trash2 className="mr-2 size-4" />
+              <Icons.Trash className="mr-2" size={16} />
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>

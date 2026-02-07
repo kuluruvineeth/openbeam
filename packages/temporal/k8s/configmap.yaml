@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: temporal-config
+  namespace: openplane
+  labels:
+    app.kubernetes.io/name: temporal-worker
+    app.kubernetes.io/component: temporal-worker
+    app.kubernetes.io/part-of: openplane
+data:
+  namespace: "openplane-prod"
+  gcs-bucket: "openplane-files"
+  vespa-url: "http://vespa.vespa.svc.cluster.local:8080"
+  engine-cpu-url: "http://engine-cpu.openplane-engine.svc.cluster.local:8000"
+  engine-gpu-url: "http://engine-gpu.openplane-engine.svc.cluster.local:8001"

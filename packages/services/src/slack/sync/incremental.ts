@@ -166,6 +166,7 @@ export async function* fullSync(
   client: SlackClient,
   context: TransformContext,
   options: {
+    cursor?: SyncCursor;
     channelOptions?: SyncChannelsOptions;
     messageOptions?: Omit<SyncMessagesOptions, "cursor">;
     onChannelsDiscovered?: (channels: SlackChannel[]) => Promise<void>;

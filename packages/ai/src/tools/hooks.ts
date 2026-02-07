@@ -24,7 +24,7 @@ export interface PreToolHook {
   name: string;
   priority: number;
   toolPattern?: string | RegExp;
-  handler: (ctx: PreToolHookContext) => Promise<HookAction>;
+  handler: (ctx: PreToolHookContext) => HookAction | Promise<HookAction>;
 }
 
 export interface PostToolHook {
@@ -151,6 +151,61 @@ export class HookRegistry {
 }
 
 export const hookRegistry = new HookRegistry();
+
+export { deriveApprovalPattern } from "./builder";
+
+export function createApprovalEnforcementHook(
+  approvalCallback?: (
+    toolName: string,
+    params: Record<string, unknown>,
+    pattern: string
+  ) => Promise<boolean>
+): PreToolHook {
+  return {
+    name: "approval-enforcement",
+    priority: 5,
+    async handler(ctx) {
+      const riskProfile = ctx.toolMetadata.riskProfile;
+      if (!riskProfile) {
+        return { action: "allow" };
+      }
+
+      const pattern = riskProfile.approval ?? "auto";
+      if (pattern === "auto") {
+        return { action: "allow" };
+      }
+
+      const approvedTools = (ctx.context as unknown as Record<string, unknown>)
+        .approvedTools as string[] | undefined;
+      if (approvedTools?.includes(ctx.toolName)) {
+        return { action: "allow" };
+      }
+
+      if (pattern === "explicit" && !approvalCallback) {
+        return {
+          action: "deny",
+          reason: `Tool "${ctx.toolName}" requires explicit approval`,
+        };
+      }
+
+      if (approvalCallback) {
+        const approved = await approvalCallback(
+          ctx.toolName,
+          ctx.params,
+          pattern
+        );
+        if (!approved) {
+          return {
+            action: "deny",
+            reason: `Approval denied for "${ctx.toolName}"`,
+          };
+        }
+      }
+
+      return { action: "allow" };
+    },
+  };
+}
 
 export function createAccessControlHook(
   checkPermission: (

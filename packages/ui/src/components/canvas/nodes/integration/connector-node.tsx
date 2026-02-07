@@ -7,7 +7,7 @@ import type {
 } from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
-import { forwardRef, memo } from "react";
+import { forwardRef, memo, useMemo } from "react";
 import { Icons } from "../../../icons";
 import { NodeField, NodeHeader, NodeSection, NodeShell } from "../primitives";
 
@@ -25,6 +25,24 @@ type ConnectorNodeType = Node<ConnectorNodeData, "connector">;
 export const ConnectorNode = memo(
   forwardRef<HTMLDivElement, NodeProps<ConnectorNodeType>>(
     function ConnectorNodeComponent({ data, selected }, ref) {
+      const warnings = useMemo(() => {
+        const list: string[] = [];
+        if (!data.config.connectorType?.trim()) {
+          list.push("Connector type required");
+        }
+        if (!data.config.connectorId?.trim()) {
+          list.push("Account required");
+        }
+        if (!data.config.operation?.trim()) {
+          list.push("Action required");
+        }
+        return list;
+      }, [
+        data.config.connectorId,
+        data.config.connectorType,
+        data.config.operation,
+      ]);
+
       return (
         <NodeShell
           handles={[
@@ -44,6 +62,9 @@ export const ConnectorNode = memo(
           <NodeSection>
             <div className="space-y-1">
               <NodeField label="Operation" value={data.config.operation} />
+              {data.config.connectorId && (
+                <NodeField label="Account" value={data.config.connectorId} />
+              )}
               {data.config.params &&
                 Object.keys(data.config.params).length > 0 && (
                   <NodeField
@@ -52,6 +73,19 @@ export const ConnectorNode = memo(
                     value={`${Object.keys(data.config.params).length} configured`}
                   />
                 )}
+              {warnings.length > 0 && (
+                <div className="space-y-1">
+                  {warnings.map((warning) => (
+                    <div
+                      className="flex items-center gap-1.5 text-[10px] text-warning"
+                      key={warning}
+                    >
+                      <Icons.AlertCircle size={12} />
+                      <span>{warning}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </NodeSection>
         </NodeShell>

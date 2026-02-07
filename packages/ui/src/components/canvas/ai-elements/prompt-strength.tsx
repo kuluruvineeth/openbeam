@@ -31,7 +31,6 @@ interface PromptAnalysis {
 
 const WHITESPACE_REGEX = /\s+/;
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: prompt analysis requires multiple conditional checks
 function analyzePrompt(prompt: string): PromptAnalysis {
   if (!prompt.trim()) {
     return {

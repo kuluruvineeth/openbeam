@@ -38,7 +38,6 @@ export function calculateMRR(impressions: ImpressionData[]): number {
   return rrSum / impressions.length;
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: NDCG calculation requires nested loops
 export function calculateNDCG(impressions: ImpressionData[], k = 10): number {
   if (impressions.length === 0) {
     return 0;

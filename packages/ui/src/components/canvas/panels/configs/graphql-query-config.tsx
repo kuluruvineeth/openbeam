@@ -20,10 +20,120 @@ import {
 import { AuthSection, HeaderEditor } from "../../http-elements";
 import { ConfigField } from "../config-field";
 import { ConfigSection } from "../config-section";
+import { NotesList, WarningsList } from "../feedback-lists";
 
 interface GraphqlQueryConfigPanelProps {
   config: GraphqlQueryNodeConfig;
   onChange: (config: Partial<GraphqlQueryNodeConfig>) => void;
+}
+
+function buildWarnings(config: GraphqlQueryNodeConfig): string[] {
+  const warnings: string[] = [];
+  const endpoint = config.endpoint?.trim() ?? "";
+  const query = config.query?.trim() ?? "";
+  const method = config.method ?? "POST";
+  const operationType = config.operationType ?? "query";
+  const auth = config.auth ?? { type: "none" as const };
+
+  if (!endpoint) {
+    warnings.push("Endpoint is required");
+  }
+
+  if (!query) {
+    warnings.push("Query is required");
+  }
+
+  if (method === "GET" && operationType !== "query") {
+    warnings.push("GET only supports query operations");
+  }
+
+  if (config.variables?.trim()) {
+    try {
+      const parsed = JSON.parse(config.variables);
+      if (
+        parsed === null ||
+        typeof parsed !== "object" ||
+        Array.isArray(parsed)
+      ) {
+        warnings.push("Variables must be a JSON object");
+      }
+    } catch {
+      warnings.push("Variables must be valid JSON");
+    }
+  }
+
+  switch (auth.type) {
+    case "basic":
+      if (!auth.username?.trim()) {
+        warnings.push("Basic auth username is required");
+      }
+      break;
+    case "bearer":
+      if (!auth.token?.trim()) {
+        warnings.push("Bearer token is required");
+      }
+      break;
+    case "api_key":
+      if (!(auth.apiKeyName?.trim() && auth.apiKeyValue?.trim())) {
+        warnings.push("API key name and value are required");
+      }
+      break;
+    case "oauth2":
+      if (!auth.token?.trim()) {
+        if (!auth.oauth2TokenUrl?.trim()) {
+          warnings.push("OAuth2 token URL is required");
+        }
+        if (!auth.oauth2ClientId?.trim()) {
+          warnings.push("OAuth2 client ID is required");
+        }
+      }
+      break;
+    case "custom_header":
+      if (!auth.customHeaderName?.trim()) {
+        warnings.push("Custom header name is required");
+      }
+      break;
+    default:
+      break;
+  }
+
+  return warnings;
+}
+
+function buildNotes(config: GraphqlQueryNodeConfig): string[] {
+  const notes: string[] = [];
+  const method = config.method ?? "POST";
+  const operationType = config.operationType ?? "query";
+
+  if (method === "GET") {
+    notes.push("GET sends query and variables via URL");
+  }
+
+  if (config.operationName?.trim()) {
+    notes.push("Operation name set");
+  }
+
+  if (config.responsePath?.trim()) {
+    notes.push("Response path enabled");
+  }
+
+  if (config.includeExtensions) {
+    notes.push("Extensions included in output");
+  }
+
+  if (config.followRedirects === false) {
+    notes.push("Redirects disabled");
+  }
+
+  if (config.continueOnError) {
+    notes.push("Continue on error enabled");
+  }
+
+  if (operationType === "subscription") {
+    notes.push("Subscriptions are executed as HTTP requests");
+  }
+
+  return notes;
 }
 
 export const GraphqlQueryConfigPanel = memo(
@@ -102,6 +212,8 @@ export const GraphqlQueryConfigPanel = memo(
           return v.trim().length > 0 ? "JSON" : undefined;
         }
       }, [config.variables]);
+      const warnings = useMemo(() => buildWarnings(config), [config]);
+      const notes = useMemo(() => buildNotes(config), [config]);
 
       return (
         <div
@@ -204,6 +316,9 @@ export const GraphqlQueryConfigPanel = memo(
               onChange={handleExecutionChange}
             />
           </ConfigSection>
+
+          <WarningsList items={warnings} />
+          <NotesList items={notes} />
         </div>
       );
     }

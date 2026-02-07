@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Icons,
   Select,
   SelectContent,
   SelectGroup,
@@ -8,7 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@openplane/ui";
-import { Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
@@ -21,11 +21,11 @@ type Props = {
 const ThemeIcon = ({ currentTheme }: Props) => {
   switch (currentTheme) {
     case "dark":
-      return <Moon size={12} />;
+      return <Icons.Moon size={12} />;
     case "system":
-      return <Monitor size={12} />;
+      return <Icons.Monitor size={12} />;
     default:
-      return <Sun size={12} />;
+      return <Icons.Sun size={12} />;
   }
 };
 

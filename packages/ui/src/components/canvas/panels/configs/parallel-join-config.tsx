@@ -4,11 +4,12 @@ import type {
   ParallelJoinCombineType,
   ParallelJoinEmptyBranchHandling,
   ParallelJoinErrorHandling,
+  ParallelJoinInput,
   ParallelJoinMergeStrategy,
   ParallelJoinMode,
   ParallelJoinNodeConfig,
 } from "@openplane/types/canvas";
-import { forwardRef, memo, useCallback, useMemo } from "react";
+import { forwardRef, memo, useCallback, useEffect, useMemo } from "react";
 import { cn } from "../../../../utils";
 import { AnimatedSizeContainer } from "../../../animated-size-container";
 import { Button } from "../../../button";
@@ -18,6 +19,7 @@ import { SelectionCard } from "../../../selection-card";
 import { Slider } from "../../../slider";
 import { ConfigField } from "../config-field";
 import { ConfigSection } from "../config-section";
+import { NotesList, WarningsList } from "../feedback-lists";
 
 const JOIN_MODE_OPTIONS: Array<{
   id: ParallelJoinMode;
@@ -34,13 +36,13 @@ const JOIN_MODE_OPTIONS: Array<{
   {
     id: "pickFirst",
     name: "First",
-    description: "Continue on first",
+    description: "Use the first input result",
     iconName: "Zap",
   },
   {
     id: "nOutOfM",
     name: "N of M",
-    description: "Wait for N inputs",
+    description: "Use a subset of inputs",
     iconName: "Users",
   },
 ];
@@ -125,12 +127,68 @@ interface ParallelJoinConfigPanelProps {
   onChange: (config: Partial<ParallelJoinNodeConfig>) => void;
 }
 
-function getConfigWarnings(config: ParallelJoinNodeConfig): string[] {
+function createInputId(base: string, used: Set<string>): string {
+  let candidate = base;
+  let suffix = 1;
+  while (used.has(candidate)) {
+    candidate = `${base}-${suffix}`;
+    suffix += 1;
+  }
+  used.add(candidate);
+  return candidate;
+}
+
+function normalizeInputs(
+  inputs: ParallelJoinInput[] | undefined,
+  count: number
+): ParallelJoinInput[] {
+  const base = Array.isArray(inputs) ? inputs : [];
+  const normalized: ParallelJoinInput[] = [];
+  const used = new Set<string>();
+  const limit = Math.min(base.length, count);
+
+  for (let i = 0; i < limit; i += 1) {
+    const input = base[i];
+    const baseId = input?.id?.trim() || `input-${i + 1}`;
+    const id = createInputId(baseId, used);
+    const label = input?.label?.trim() || `Input ${i + 1}`;
+    normalized.push({ id, label });
+  }
+
+  for (let i = normalized.length; i < count; i += 1) {
+    const id = createInputId(`input-${i + 1}`, used);
+    normalized.push({ id, label: `Input ${i + 1}` });
+  }
+
+  return normalized;
+}
+
+function areInputsEqual(
+  left: ParallelJoinInput[] | undefined,
+  right: ParallelJoinInput[]
+): boolean {
+  if (!left || left.length !== right.length) {
+    return false;
+  }
+  return left.every(
+    (input, index) =>
+      input.id === right[index]?.id && input.label === right[index]?.label
+  );
+}
+
+function getConfigWarnings(params: {
+  config: ParallelJoinNodeConfig;
+  inputCount: number;
+}): string[] {
+  const { config, inputCount } = params;
   const result: string[] = [];
-  const inputCount = config.inputs?.length ?? 0;
+  const required = config.requiredCount ?? 0;
+  const matchFields = config.matchFields ?? [];
+  const emptyMatchFields = matchFields.filter(
+    (field) => !(field.left.trim() && field.right.trim())
+  );
 
   if (config.joinMode === "nOutOfM") {
-    const required = config.requiredCount ?? 0;
     if (required > inputCount) {
       result.push(
         `Required count (${required}) exceeds inputs (${inputCount})`
@@ -146,6 +204,9 @@ function getConfigWarnings(config: ParallelJoinNodeConfig): string[] {
   ) {
     result.push("Combine strategy requires at least one match field");
   }
+  if (config.mergeStrategy === "combine" && emptyMatchFields.length > 0) {
+    result.push("Fill in all match fields for Combine");
+  }
   if (config.mergeStrategy === "chooseBranch" && !config.preferredBranch) {
     result.push("Choose Branch requires selecting a preferred input");
   }
@@ -158,11 +219,27 @@ function getConfigWarnings(config: ParallelJoinNodeConfig): string[] {
   return result;
 }
 
-function generateInputs(count: number) {
-  return Array.from({ length: count }, (_, i) => ({
-    id: `input-${i + 1}`,
-    label: `Input ${i + 1}`,
-  }));
+function getConfigNotes(params: {
+  config: ParallelJoinNodeConfig;
+  inputCount: number;
+}): string[] {
+  const { config, inputCount } = params;
+  const notes: string[] = [];
+
+  if (config.mergeStrategy === "combine" && inputCount > 2) {
+    notes.push("Combine uses the first two inputs only");
+  }
+  if (config.joinMode !== "waitForAll") {
+    notes.push("Execution waits for all inputs; join mode affects merge only");
+  }
+  if (config.errorHandling === "collectErrors") {
+    notes.push("Output includes an errors array when branches fail");
+  }
+  if (config.errorHandling === "continueOnError") {
+    notes.push("Branches with errors are skipped from the merge");
+  }
+
+  return notes;
 }
 
 function InputCountSelector({
@@ -511,46 +588,103 @@ function MatchFieldsEditor({
   );
 }
 
-function WarningsList({ warnings }: { warnings: string[] }) {
-  if (warnings.length === 0) {
-    return null;
-  }
-  return (
-    <div className="space-y-2">
-      {warnings.map((warning) => (
-        <div
-          className="flex items-start gap-2 rounded-md bg-warning/10 px-3 py-2 text-warning text-xs"
-          key={warning}
-        >
-          <Icons.AlertTriangle className="mt-0.5 shrink-0" size={14} />
-          <span>{warning}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 export const ParallelJoinConfigPanel = memo(
   forwardRef<HTMLDivElement, ParallelJoinConfigPanelProps>(
     function ParallelJoinConfigPanelComponent({ config, onChange }, ref) {
+      const baseCount =
+        config.inputs && config.inputs.length > 0 ? config.inputs.length : 2;
+      const inputCount = Math.min(
+        Math.max(baseCount, INPUT_COUNT_RANGE.min),
+        INPUT_COUNT_RANGE.max
+      );
+      const inputs = useMemo(
+        () => normalizeInputs(config.inputs, inputCount),
+        [config.inputs, inputCount]
+      );
       const joinMode = config.joinMode ?? "waitForAll";
       const mergeStrategy = config.mergeStrategy ?? "append";
       const combineType = config.combineType ?? "inner";
       const emptyBranchHandling = config.emptyBranchHandling ?? "includeEmpty";
       const errorHandling = config.errorHandling ?? "failFast";
-      const inputCount = config.inputs?.length ?? 2;
       const matchFields = config.matchFields ?? [];
+      const preferredBranchExists = inputs.some(
+        (input) => input.id === config.preferredBranch
+      );
+      const missingPreferredBranch =
+        mergeStrategy === "chooseBranch" && !preferredBranchExists;
+      const emptyMatchFields = matchFields.filter(
+        (field) => !(field.left.trim() && field.right.trim())
+      );
+      let matchFieldsError: string | undefined;
+      if (mergeStrategy === "combine") {
+        if (matchFields.length === 0) {
+          matchFieldsError = "Match fields are required";
+        } else if (emptyMatchFields.length > 0) {
+          matchFieldsError = "Fill in both sides for each match field";
+        }
+      }
+      const requiredBase =
+        config.requiredCount ?? Math.ceil(inputCount / 2) ?? 1;
+      const requiredCount = Math.min(Math.max(requiredBase, 1), inputCount);
 
-      const warnings = useMemo(() => getConfigWarnings(config), [config]);
+      useEffect(() => {
+        if (!areInputsEqual(config.inputs, inputs)) {
+          onChange({ inputs });
+        }
+      }, [config.inputs, inputs, onChange]);
+
+      useEffect(() => {
+        if (joinMode === "nOutOfM" && config.requiredCount !== requiredCount) {
+          onChange({ requiredCount });
+        }
+        if (joinMode !== "nOutOfM" && config.requiredCount !== undefined) {
+          onChange({ requiredCount: undefined });
+        }
+      }, [config.requiredCount, joinMode, onChange, requiredCount]);
+
+      useEffect(() => {
+        if (mergeStrategy === "chooseBranch" && missingPreferredBranch) {
+          onChange({ preferredBranch: inputs[0]?.id });
+        }
+        if (mergeStrategy !== "chooseBranch" && config.preferredBranch) {
+          onChange({ preferredBranch: undefined });
+        }
+      }, [
+        config.preferredBranch,
+        inputs,
+        mergeStrategy,
+        missingPreferredBranch,
+        onChange,
+      ]);
+
+      const warnings = useMemo(
+        () => getConfigWarnings({ config, inputCount }),
+        [config, inputCount]
+      );
+      const notes = useMemo(
+        () => getConfigNotes({ config, inputCount }),
+        [config, inputCount]
+      );
 
       const handleInputCountChange = useCallback(
         (count: number) => {
           if (count < INPUT_COUNT_RANGE.min || count > INPUT_COUNT_RANGE.max) {
             return;
           }
-          onChange({ inputs: generateInputs(count) });
+          onChange({ inputs: normalizeInputs(inputs, count) });
         },
-        [onChange]
+        [inputs, onChange]
+      );
+
+      const handleLabelChange = useCallback(
+        (index: number, value: string) => {
+          const nextLabel = value.trim() || `Input ${index + 1}`;
+          const nextInputs = inputs.map((input, idx) =>
+            idx === index ? { ...input, label: nextLabel } : input
+          );
+          onChange({ inputs: nextInputs });
+        },
+        [inputs, onChange]
       );
 
       return (
@@ -560,10 +694,33 @@ export const ParallelJoinConfigPanel = memo(
             icon={<Icons.GitMerge size={16} />}
             title="Inputs"
           >
-            <InputCountSelector
-              count={inputCount}
-              onChange={handleInputCountChange}
-            />
+            <div className="space-y-4">
+              <InputCountSelector
+                count={inputCount}
+                onChange={handleInputCountChange}
+              />
+              <ConfigField
+                label="Input Labels"
+                tooltip="Labels are used to identify each branch"
+              >
+                <div className="space-y-2">
+                  {inputs.map((input, index) => (
+                    <div className="flex items-center gap-2" key={input.id}>
+                      <Input
+                        className="h-9"
+                        onChange={(e) =>
+                          handleLabelChange(index, e.target.value)
+                        }
+                        value={input.label}
+                      />
+                      <span className="w-20 truncate text-[10px] text-muted-foreground">
+                        {input.id}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </ConfigField>
+            </div>
           </ConfigSection>
 
           <ConfigSection
@@ -588,15 +745,18 @@ export const ParallelJoinConfigPanel = memo(
                         className="flex-1"
                         max={inputCount}
                         min={1}
-                        onValueChange={(v) => onChange({ requiredCount: v[0] })}
+                        onValueChange={(v) => {
+                          const nextRequired = v[0];
+                          if (nextRequired === undefined) {
+                            return;
+                          }
+                          onChange({ requiredCount: nextRequired });
+                        }}
                         step={1}
-                        value={[
-                          config.requiredCount ?? Math.ceil(inputCount / 2),
-                        ]}
+                        value={[requiredCount]}
                       />
                       <span className="w-12 text-right font-mono text-sm tabular-nums">
-                        {config.requiredCount ?? Math.ceil(inputCount / 2)}/
-                        {inputCount}
+                        {requiredCount}/{inputCount}
                       </span>
                     </div>
                   </ConfigField>
@@ -626,6 +786,7 @@ export const ParallelJoinConfigPanel = memo(
                       />
                     </ConfigField>
                     <ConfigField
+                      error={matchFieldsError}
                       label="Match Fields"
                       tooltip="Fields to match between inputs"
                     >
@@ -641,11 +802,16 @@ export const ParallelJoinConfigPanel = memo(
               <AnimatedSizeContainer height>
                 {mergeStrategy === "chooseBranch" && (
                   <ConfigField
+                    error={
+                      missingPreferredBranch
+                        ? "Preferred input is required"
+                        : undefined
+                    }
                     label="Preferred Input"
                     tooltip="Select which input's data to use"
                   >
                     <PreferredBranchSelector
-                      inputs={config.inputs ?? generateInputs(inputCount)}
+                      inputs={inputs}
                       onChange={(branchId) =>
                         onChange({ preferredBranch: branchId })
                       }
@@ -693,7 +859,8 @@ export const ParallelJoinConfigPanel = memo(
                 />
               </ConfigField>
 
-              <WarningsList warnings={warnings} />
+              <WarningsList items={warnings} />
+              <NotesList items={notes} />
             </div>
           </ConfigSection>
         </div>

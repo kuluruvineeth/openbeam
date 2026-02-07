@@ -170,7 +170,7 @@ export function createInputNodeData(): InputNodeData {
       submitLabel: "Submit",
       allowSkip: false,
       skipLabel: "Skip",
-      timeoutAction: "skip",
+      timeoutAction: "error",
     },
     inputs: [],
     outputs: [{ id: "data", label: "Data", type: "data", required: true }],

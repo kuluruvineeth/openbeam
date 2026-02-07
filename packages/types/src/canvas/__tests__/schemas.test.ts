@@ -585,7 +585,7 @@ describe("canvas type schemas", () => {
       });
 
       it("accepts all scopes", () => {
-        const scopes = ["workflow", "user", "team", "global"];
+        const scopes = ["workflow", "user", "team", "global"] as const;
         for (const scope of scopes) {
           expect(
             MemoryReadNodeConfigSchema.parse({ key: "test", scope }).scope
@@ -705,7 +705,7 @@ describe("canvas type schemas", () => {
           "sync",
           "transform",
           "batch",
-        ];
+        ] as const;
         for (const cat of categories) {
           expect(ConnectorActionCategorySchema.parse(cat)).toBe(cat);
         }

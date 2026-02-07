@@ -7,40 +7,14 @@ import {
 } from "date-fns";
 import { Icons } from "@/components/icons";
 import { getSyncStatusConfig } from "../lib/sync-status";
-import {
-  isSyncing,
-  parseSyncSummary,
-  type SyncStatusType,
-} from "../lib/sync-types";
+import type { SyncStatusType } from "../lib/sync-types";
+import { MetricBadge } from "./metric-badge";
 import { SyncErrorAlert } from "./sync-error-alert";
 
 type SyncStatusCardProps = {
   connectorId: string;
   syncStatus: SyncStatusType | undefined;
 };
-
-function Stat({
-  label,
-  value,
-  color,
-}: {
-  label: string;
-  value: string | number;
-  color?: string;
-}) {
-  return (
-    <div>
-      <p className="text-[10px] text-foreground/40 uppercase tracking-wide">
-        {label}
-      </p>
-      <p
-        className={`font-mono text-base tabular-nums ${color ?? "text-foreground/80"}`}
-      >
-        {value}
-      </p>
-    </div>
-  );
-}
 
 function NextSyncRow({
   icon: Icon,
@@ -68,21 +42,20 @@ export function SyncStatusCard({
   connectorId,
   syncStatus,
 }: SyncStatusCardProps) {
-  const syncing = isSyncing(syncStatus);
   const config = getSyncStatusConfig(syncStatus?.connector?.status);
   const StatusIcon = config.icon;
   const latest = syncStatus?.latestSync;
   const showLatestStats = latest && latest.status !== "SYNCING";
 
-  const filesProcessing = syncStatus?.processing?.filesProcessing ?? 0;
-  const mediaProcessing = syncStatus?.processing?.mediaProcessing ?? 0;
-  const totalProcessing = filesProcessing + mediaProcessing;
+  const documentsAdded = latest?.documentsAdded ?? latest?.dataAdded ?? 0;
+  const documentsUpdated = latest?.documentsUpdated ?? latest?.dataUpdated ?? 0;
+  const documentsRemoved = latest?.documentsRemoved ?? latest?.dataDeleted ?? 0;
+  const filesDiscovered = latest?.filesDiscovered ?? 0;
+  const mediaDiscovered = latest?.mediaDiscovered ?? 0;
 
-  const summary = parseSyncSummary(latest?.summary);
-  const totalAdded =
-    (latest?.dataAdded ?? 0) +
-    (summary.filesQueued ?? 0) +
-    (summary.mediaQueued ?? 0);
+  const hasDocumentMetrics =
+    documentsAdded > 0 || documentsUpdated > 0 || documentsRemoved > 0;
+  const hasProcessingMetrics = filesDiscovered > 0 || mediaDiscovered > 0;
 
   return (
     <div className="space-y-4">
@@ -96,37 +69,73 @@ export function SyncStatusCard({
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 border-border/50 border-y py-4">
-        <Stat
-          label="Indexed"
-          value={syncStatus?.stats?.totalIndexed?.toLocaleString() ?? "0"}
-        />
-        {showLatestStats && (
-          <>
-            <Stat
-              color="text-openplane-green"
-              label="Added"
-              value={`+${totalAdded}`}
-            />
-            <Stat
-              color="text-openplane-blue"
-              label="Updated"
-              value={latest.dataUpdated}
-            />
-          </>
-        )}
-        {totalProcessing > 0 && (
-          <Stat
-            color="text-openplane-orange"
-            label="Processing"
-            value={totalProcessing}
-          />
-        )}
-        {!showLatestStats && syncing && (
-          <>
-            <Stat color="text-foreground/30" label="Added" value="—" />
-            <Stat color="text-foreground/30" label="Updated" value="—" />
-          </>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <span className="text-foreground/50 text-xs">Total Indexed</span>
+          <span className="font-mono text-base tabular-nums">
+            {syncStatus?.stats?.totalIndexed?.toLocaleString() ?? "0"}
+          </span>
+        </div>
+
+        {showLatestStats && hasDocumentMetrics && (
+          <div className="space-y-3 border border-border/50 p-3">
+            <p className="text-[10px] text-foreground/40 uppercase tracking-wide">
+              Latest Sync
+            </p>
+            <div className="grid grid-cols-3 gap-3">
+              {documentsAdded > 0 && (
+                <MetricBadge
+                  color="green"
+                  icon={Icons.Plus}
+                  label="Added"
+                  value={documentsAdded}
+                />
+              )}
+              {documentsUpdated > 0 && (
+                <MetricBadge
+                  color="blue"
+                  icon={Icons.RefreshCw}
+                  label="Updated"
+                  value={documentsUpdated}
+                />
+              )}
+              {documentsRemoved > 0 && (
+                <MetricBadge
+                  color="red"
+                  icon={Icons.Trash}
+                  label="Removed"
+                  value={documentsRemoved}
+                />
+              )}
+            </div>
+            {hasProcessingMetrics && (
+              <div className="border-border/40 border-t pt-3">
+                <p className="mb-2 text-[10px] text-foreground/40 uppercase tracking-wide">
+                  Processing
+                </p>
+                <div className="flex gap-3">
+                  {filesDiscovered > 0 && (
+                    <MetricBadge
+                      color="orange"
+                      icon={Icons.FileText}
+                      label="Files"
+                      value={filesDiscovered}
+                      variant="compact"
+                    />
+                  )}
+                  {mediaDiscovered > 0 && (
+                    <MetricBadge
+                      color="purple"
+                      icon={Icons.Image}
+                      label="Media"
+                      value={mediaDiscovered}
+                      variant="compact"
+                    />
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         )}
       </div>
 

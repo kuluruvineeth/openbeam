@@ -83,7 +83,6 @@ export function TeamDropdown({ isExpanded = false }: Props) {
 
   return (
     <div className="relative h-[32px]" ref={ref}>
-      {/* Avatar - fixed position that absolutely never changes */}
       <div className="fixed bottom-4 left-[19px] z-10 h-[32px] w-[32px]">
         <div className="relative h-[32px] w-[32px]">
           <AnimatePresence>
@@ -171,7 +170,6 @@ export function TeamDropdown({ isExpanded = false }: Props) {
         </div>
       </div>
 
-      {/* Team name - appears to the right of the fixed avatar */}
       {isExpanded && sortedTeams[0] && (
         <div className="fixed bottom-4 left-[62px] flex h-[32px] items-center">
           <button

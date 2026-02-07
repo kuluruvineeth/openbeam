@@ -90,7 +90,6 @@ export function createFinishPart(
   return { type: "done", content, usage };
 }
 
-// biome-ignore lint/complexity: SSE parsing requires handling multiple stream states
 export async function* parseSSEStream(
   stream: ReadableStream<Uint8Array>
 ): AsyncGenerator<StreamChunk> {
@@ -117,9 +116,8 @@ export async function* parseSSEStream(
           }
           try {
             yield JSON.parse(data) as StreamChunk;
-          } catch {
-            // Ignore malformed JSON
-          }
+            // biome-ignore lint/suspicious/noEmptyBlockStatements: skip malformed chunks
+          } catch {}
         }
       }
     }

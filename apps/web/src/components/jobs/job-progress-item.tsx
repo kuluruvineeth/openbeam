@@ -2,12 +2,14 @@
 
 import { Progress } from "@openplane/ui";
 import { Icons } from "@/components/icons";
+import { getUserFriendlyError } from "@/lib/error-messages";
 import {
   formatTimeRemaining,
   getJobLabel,
   getJobStatusConfig,
   type JobProgress,
-} from "@/lib/job-types";
+} from "@/lib/job-status";
+import { getPhaseMessage } from "@/lib/phase-messages";
 import { cn } from "@/lib/utils";
 import { useJobStore } from "@/stores/job-store";
 
@@ -20,6 +22,14 @@ export function JobProgressItem({ job }: JobProgressItemProps) {
   const config = getJobStatusConfig(job.status);
   const StatusIcon = config.icon;
   const label = getJobLabel(job.type, job.connectorName ?? job.fileName);
+  const phaseMessage = getPhaseMessage(
+    job.type,
+    job.currentPhase,
+    job.connectorName
+  );
+  const friendlyError = job.error
+    ? getUserFriendlyError(job.error, job.connectorName)
+    : null;
 
   return (
     <div className="space-y-2 border-border/40 border-b px-3 py-2.5 last:border-b-0">
@@ -47,7 +57,26 @@ export function JobProgressItem({ job }: JobProgressItemProps) {
           </div>
           <div className="flex items-center justify-between text-[10px] text-foreground/40">
             <span>
-              {job.currentPhase}
+              {phaseMessage ? (
+                <>
+                  {phaseMessage.text}
+                  {phaseMessage.useEllipsis && (
+                    <span className="inline-flex">
+                      <span className="ml-px animate-[ellipsis_1.5s_infinite]">
+                        .
+                      </span>
+                      <span className="ml-px animate-[ellipsis_1.5s_infinite_0.2s]">
+                        .
+                      </span>
+                      <span className="ml-px animate-[ellipsis_1.5s_infinite_0.4s]">
+                        .
+                      </span>
+                    </span>
+                  )}
+                </>
+              ) : (
+                (job.currentPhase ?? "Processing")
+              )}
               {job.itemsProcessed > 0 && (
                 <span className="ml-1 font-mono tabular-nums">
                   • {job.itemsProcessed.toLocaleString()}{" "}
@@ -73,8 +102,22 @@ export function JobProgressItem({ job }: JobProgressItemProps) {
         </p>
       )}
 
-      {job.status === "failed" && job.error && (
-        <p className="truncate text-[10px] text-destructive">{job.error}</p>
+      {job.status === "failed" && friendlyError && (
+        <div className="space-y-1">
+          <div className="flex items-center justify-between gap-2">
+            <p className="font-medium text-[11px] text-destructive">
+              {friendlyError.title}
+            </p>
+            {friendlyError.action && (
+              <span className="shrink-0 text-[10px] text-foreground/50">
+                {friendlyError.action}
+              </span>
+            )}
+          </div>
+          <p className="text-[10px] text-foreground/60 leading-relaxed">
+            {friendlyError.message}
+          </p>
+        </div>
       )}
     </div>
   );

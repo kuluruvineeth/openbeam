@@ -63,7 +63,6 @@ export class ToolExecutor {
     this.config = { ...defaultConfig, ...config };
   }
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Tool execution requires handling multiple scenarios
   async execute<TParams, TResult>(
     toolName: string,
     params: TParams,

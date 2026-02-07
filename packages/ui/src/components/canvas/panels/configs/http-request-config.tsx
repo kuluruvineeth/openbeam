@@ -27,6 +27,7 @@ import {
 } from "../../http-elements";
 import { ConfigField } from "../config-field";
 import { ConfigSection } from "../config-section";
+import { NotesList, WarningsList } from "../feedback-lists";
 
 const METHODS_WITH_BODY = new Set<HttpMethod>(["POST", "PUT", "PATCH"]);
 
@@ -40,11 +41,156 @@ const TIMEOUT_OPTIONS = [
   { value: 300_000, label: "5m" },
 ];
 
+const RESPONSE_TYPE_LABELS: Record<
+  HttpResponseHandling["responseType"],
+  string
+> = {
+  auto: "Auto",
+  json: "JSON",
+  text: "Text",
+  binary: "Binary",
+  stream: "Stream",
+};
+
 function formatTimeout(ms: number): string {
   if (ms < 60_000) {
     return `${ms / 1000}s`;
   }
   return `${ms / 60_000}m`;
+}
+
+function buildWarnings(config: HttpRequestNodeConfig): string[] {
+  const warnings: string[] = [];
+  const url = config.url?.trim() ?? "";
+  const auth = config.auth ?? { type: "none" as const };
+  const response = config.response ?? {
+    responseType: "auto" as const,
+    followRedirects: true,
+    maxRedirects: 10,
+    validateCertificate: true,
+    parseResponse: true,
+  };
+  const retry = config.retry ?? {
+    enabled: true,
+    maxAttempts: 3,
+    backoffMs: 1000,
+    retryOn: [429, 500, 502, 503, 504],
+  };
+  const method = config.method ?? "GET";
+  const bodyType = config.bodyType ?? "none";
+
+  if (!url) {
+    warnings.push("URL is required");
+  }
+
+  if (response.validateCertificate === false) {
+    warnings.push("Certificate validation cannot be disabled");
+  }
+
+  if (!METHODS_WITH_BODY.has(method) && bodyType !== "none") {
+    warnings.push(`${method} requests cannot include a body`);
+  }
+
+  if (retry.enabled && retry.retryOn.length === 0) {
+    warnings.push("Retry status codes are required");
+  }
+
+  switch (auth.type) {
+    case "basic":
+      if (!auth.username?.trim()) {
+        warnings.push("Basic auth username is required");
+      }
+      break;
+    case "bearer":
+      if (!auth.token?.trim()) {
+        warnings.push("Bearer token is required");
+      }
+      break;
+    case "api_key":
+      if (!(auth.apiKeyName?.trim() && auth.apiKeyValue?.trim())) {
+        warnings.push("API key name and value are required");
+      }
+      break;
+    case "oauth2":
+      if (!auth.token?.trim()) {
+        if (!auth.oauth2TokenUrl?.trim()) {
+          warnings.push("OAuth2 token URL is required");
+        }
+        if (!auth.oauth2ClientId?.trim()) {
+          warnings.push("OAuth2 client ID is required");
+        }
+      }
+      break;
+    case "custom_header":
+      if (!auth.customHeaderName?.trim()) {
+        warnings.push("Custom header name is required");
+      }
+      break;
+    default:
+      break;
+  }
+
+  return warnings;
+}
+
+function buildNotes(config: HttpRequestNodeConfig): string[] {
+  const notes: string[] = [];
+  const response = config.response ?? {
+    responseType: "auto" as const,
+    followRedirects: true,
+    maxRedirects: 10,
+    validateCertificate: true,
+    parseResponse: true,
+  };
+  const retry = config.retry ?? {
+    enabled: true,
+    maxAttempts: 3,
+    backoffMs: 1000,
+    retryOn: [429, 500, 502, 503, 504],
+  };
+  const auth = config.auth ?? { type: "none" as const };
+
+  if (
+    (config.bodyType === "form_data" ||
+      config.bodyType === "form_urlencoded") &&
+    (config.bodyFormFields?.length ?? 0) === 0
+  ) {
+    notes.push("Form body uses input payload");
+  }
+
+  if (config.bodyType === "json" && !config.bodyContent?.trim()) {
+    notes.push("JSON body uses input payload");
+  }
+
+  if (retry.enabled) {
+    notes.push(`Retry up to ${retry.maxAttempts}x`);
+  }
+
+  if (response.followRedirects) {
+    notes.push(`Follows redirects up to ${response.maxRedirects}`);
+  }
+
+  if (response.responseType !== "auto") {
+    notes.push(`Response type: ${RESPONSE_TYPE_LABELS[response.responseType]}`);
+  }
+
+  if (response.parseResponse === false) {
+    notes.push("Response parsed as raw text");
+  }
+
+  if (config.continueOnError) {
+    notes.push("HTTP errors return output instead of failing");
+  }
+
+  if (auth.type === "api_key" && auth.apiKeyLocation === "query") {
+    notes.push("API key sent in query string");
+  }
+
+  if (auth.type === "oauth2" && auth.token?.trim()) {
+    notes.push("Using static OAuth token");
+  }
+
+  return notes;
 }
 
 interface RetryTimeoutSectionProps {
@@ -321,6 +467,8 @@ export const HttpRequestConfigPanel = memo(
         () => (auth.type !== "none" ? auth.type : undefined),
         [auth.type]
       );
+      const warnings = useMemo(() => buildWarnings(config), [config]);
+      const notes = useMemo(() => buildNotes(config), [config]);
 
       return (
         <div
@@ -464,6 +612,9 @@ export const HttpRequestConfigPanel = memo(
               </button>
             </div>
           </ConfigSection>
+
+          <WarningsList items={warnings} />
+          <NotesList items={notes} />
         </div>
       );
     }

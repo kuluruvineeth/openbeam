@@ -1,14 +1,10 @@
 import {
+  getSyncCursor,
   getSyncHistory,
   getSyncStatus,
-  triggerSync as triggerSyncDb,
   updateSyncSettings as updateSyncSettingsDb,
 } from "@openplane/db";
-import {
-  addSyncJob,
-  intervalMsToCron,
-  type SyncJobData,
-} from "@openplane/redis";
+import { startConnectorSync } from "@openplane/temporal";
 import { TRPCError } from "@trpc/server";
 import { createTRPCRouter } from "../../index";
 import { verifyConnectorAccess, withActiveTeam } from "./middleware";
@@ -18,11 +14,7 @@ import {
   triggerSyncSchema,
   updateSyncSettingsSchema,
 } from "./schemas";
-import {
-  rollbackCreatedJobs,
-  updateRepeatableJobsForSettings,
-  validateSyncIntervals,
-} from "./utils";
+import { validateSyncIntervals } from "./utils";
 
 export const syncRouter = createTRPCRouter({
   getStatus: withActiveTeam
@@ -68,7 +60,6 @@ export const syncRouter = createTRPCRouter({
         ctx.teamId
       );
 
-      // Check if connector is active
       if (connector.status === "INACTIVE" || connector.status === "ERROR") {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -76,27 +67,40 @@ export const syncRouter = createTRPCRouter({
         });
       }
 
-      // Create sync job and history
-      const syncResult = await triggerSyncDb(ctx.prisma, {
+      const connectorType = connector.app.toLowerCase().replace(/_/g, "-");
+
+      let cursor: Record<string, unknown> | undefined;
+      if (input.type === "INCREMENTAL") {
+        const storedCursor = await getSyncCursor(
+          ctx.prisma,
+          input.connectorId,
+          "default"
+        );
+
+        if (storedCursor?.cursor) {
+          cursor =
+            typeof storedCursor.cursor === "string"
+              ? JSON.parse(storedCursor.cursor)
+              : (storedCursor.cursor as Record<string, unknown>);
+        }
+      }
+
+      const syncHandle = await startConnectorSync({
         connectorId: input.connectorId,
-        type: input.type,
+        connectorType,
+        syncType: input.type,
+        trigger: "MANUAL",
+        teamId: ctx.teamId,
+        userId: ctx.session.user.id,
+        cursor,
       });
-
-      // Enqueue sync job to Redis
-      const jobData: SyncJobData = {
-        connectorId: input.connectorId,
-        syncJobId: syncResult.syncHistoryId,
-        type: input.type,
-      };
-
-      const job = await addSyncJob(jobData, 7);
 
       return {
         success: true,
-        syncJobId: syncResult.syncHistoryId,
-        queueJobId: job.id,
+        workflowId: syncHandle.workflowId,
+        runId: syncHandle.runId,
         type: input.type,
-        message: "Sync job queued successfully",
+        message: "Sync workflow started",
       };
     }),
 
@@ -106,8 +110,9 @@ export const syncRouter = createTRPCRouter({
       await verifyConnectorAccess(ctx.prisma, input.connectorId, ctx.teamId);
       validateSyncIntervals(input);
 
-      // Update sync settings in database
-      const result = await updateSyncSettingsDb(
+      const intervalMsToCron = (_intervalMs: number) => "";
+
+      await updateSyncSettingsDb(
         ctx.prisma,
         {
           connectorId: input.connectorId,
@@ -117,32 +122,9 @@ export const syncRouter = createTRPCRouter({
         intervalMsToCron
       );
 
-      // Track created jobs for rollback on failure
-      const createdJobKeys: string[] = [];
-
-      try {
-        // Update BullMQ repeatable jobs with transaction-like safety
-        await updateRepeatableJobsForSettings(
-          input.connectorId,
-          result,
-          createdJobKeys
-        );
-
-        return {
-          success: true,
-          fullSyncJob: result.fullSyncJob,
-          incrementalSyncJob: result.incrementalSyncJob,
-        };
-      } catch (error) {
-        // Rollback: Remove any created BullMQ jobs and clean up Redis keys
-        await rollbackCreatedJobs(input.connectorId, createdJobKeys);
-
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to update BullMQ jobs: ${
-            error instanceof Error ? error.message : "Unknown error"
-          }`,
-        });
-      }
+      return {
+        success: true,
+        message: "Sync settings updated",
+      };
     }),
 });

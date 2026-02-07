@@ -2,6 +2,7 @@ import { logger } from "../../lib/logger";
 import { parseWebhookHeaders } from "../api/watch";
 import {
   type DriveWatchState,
+  getAllActiveWatches,
   getWatchStateForConnector,
 } from "./watch-manager";
 
@@ -144,7 +145,6 @@ function processNotification(
 async function findConnectorByChannelId(
   channelId: string
 ): Promise<DriveWatchState | null> {
-  const { getAllActiveWatches } = await import("./watch-manager");
   const watches = await getAllActiveWatches();
   return watches.find((w) => w.channelId === channelId) ?? null;
 }

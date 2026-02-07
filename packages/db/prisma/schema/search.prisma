@@ -1,43 +1,43 @@
 model SearchExperiment {
-  id              String    @id @default(cuid()) @map("_id")
-  teamId          String
-  name            String
-  description     String?
-  status          String    @default("draft")
-  trafficPercent  Float     @default(10)
+  id             String  @id @default(cuid()) @map("_id")
+  teamId         String
+  name           String
+  description    String?
+  status         String  @default("draft")
+  trafficPercent Float   @default(10)
 
-  controlConfig   Json      @default("{}")
-  treatmentConfig Json      @default("{}")
+  controlConfig   Json @default("{}")
+  treatmentConfig Json @default("{}")
 
-  startedAt       DateTime?
-  endedAt         DateTime?
+  startedAt DateTime?
+  endedAt   DateTime?
 
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  team            Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@index([teamId, status])
   @@map("search_experiment")
 }
 
 model SearchImpression {
-  id              String   @id @default(cuid()) @map("_id")
-  teamId          String
-  userId          String
-  experimentId    String?
-  variant         String?
+  id           String  @id @default(cuid()) @map("_id")
+  teamId       String
+  userId       String
+  experimentId String?
+  variant      String?
 
-  query           String
-  queryHash       String
-  resultDocIds    String[]
+  query        String
+  queryHash    String
+  resultDocIds String[]
 
-  timing          Json?
-  rrfConfig       Json?
+  timing    Json?
+  rrfConfig Json?
 
-  createdAt       DateTime @default(now())
+  createdAt DateTime @default(now())
 
-  clicks          SearchClick[]
+  clicks SearchClick[]
 
   @@index([teamId, createdAt])
   @@index([experimentId, createdAt])
@@ -45,17 +45,17 @@ model SearchImpression {
 }
 
 model SearchClick {
-  id              String   @id @default(cuid()) @map("_id")
-  impressionId    String
-  docId           String
-  position        Int
+  id           String @id @default(cuid()) @map("_id")
+  impressionId String
+  docId        String
+  position     Int
 
-  dwellTimeMs     Int?
-  feedbackType    String?
+  dwellTimeMs  Int?
+  feedbackType String?
 
-  createdAt       DateTime @default(now())
+  createdAt DateTime @default(now())
 
-  impression      SearchImpression @relation(fields: [impressionId], references: [id], onDelete: Cascade)
+  impression SearchImpression @relation(fields: [impressionId], references: [id], onDelete: Cascade)
 
   @@index([impressionId])
   @@index([docId, createdAt])
@@ -63,33 +63,33 @@ model SearchClick {
 }
 
 model UserSearchProfile {
-  id                     String    @id @default(cuid()) @map("_id")
-  userId                 String
-  teamId                 String
+  id     String @id @default(cuid()) @map("_id")
+  userId String
+  teamId String
 
-  department             String?
-  searchCount            Int       @default(0)
-  clickCount             Int       @default(0)
-  avgDwellMs             Float?
+  department  String?
+  searchCount Int     @default(0)
+  clickCount  Int     @default(0)
+  avgDwellMs  Float?
 
-  connectorWeights       Json      @default("{}")
-  authorInteractions     Json      @default("{}")
+  connectorWeights   Json @default("{}")
+  authorInteractions Json @default("{}")
 
-  queryEmbedding         Bytes?
-  docEmbedding           Bytes?
+  queryEmbedding Bytes?
+  docEmbedding   Bytes?
 
-  topicWeights           Json      @default("{}")
-  recentQueries          Json      @default("[]")
-  recentClicks           Json      @default("[]")
+  topicWeights  Json @default("{}")
+  recentQueries Json @default("[]")
+  recentClicks  Json @default("[]")
 
-  embeddingVersion       Int       @default(0)
-  lastEmbeddingAt        DateTime?
-  lastActiveAt           DateTime?
+  embeddingVersion Int       @default(0)
+  lastEmbeddingAt  DateTime?
+  lastActiveAt     DateTime?
 
-  personalizationEnabled Boolean   @default(true)
+  personalizationEnabled Boolean @default(true)
 
-  createdAt              DateTime  @default(now())
-  updatedAt              DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([userId, teamId])
   @@index([teamId])
@@ -98,20 +98,20 @@ model UserSearchProfile {
 }
 
 model UserSessionActivity {
-  id            String    @id @default(cuid()) @map("_id")
-  userId        String
-  teamId        String
-  sessionId     String
+  id        String @id @default(cuid()) @map("_id")
+  userId    String
+  teamId    String
+  sessionId String
 
-  queryCount    Int       @default(0)
-  clickCount    Int       @default(0)
-  totalDwellMs  Int       @default(0)
+  queryCount   Int @default(0)
+  clickCount   Int @default(0)
+  totalDwellMs Int @default(0)
 
-  startedAt     DateTime  @default(now())
-  endedAt       DateTime?
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
 
-  topConnectors Json      @default("[]")
-  topTopics     Json      @default("[]")
+  topConnectors Json @default("[]")
+  topTopics     Json @default("[]")
 
   @@unique([sessionId])
   @@index([userId, teamId])
@@ -120,21 +120,21 @@ model UserSessionActivity {
 }
 
 model LTRModel {
-  id                 String    @id @default(cuid()) @map("_id")
-  teamId             String
-  version            String
-  status             String    @default("training")
+  id      String @id @default(cuid()) @map("_id")
+  teamId  String
+  version String
+  status  String @default("training")
 
-  storagePath        String
-  metrics            Json      @default("{}")
-  featureImportance  Json      @default("{}")
+  storagePath       String
+  metrics           Json   @default("{}")
+  featureImportance Json   @default("{}")
 
-  trainingSamples    Int       @default(0)
-  trainingQueries    Int       @default(0)
-  trainingDurationMs Int       @default(0)
+  trainingSamples    Int @default(0)
+  trainingQueries    Int @default(0)
+  trainingDurationMs Int @default(0)
 
-  createdAt          DateTime  @default(now())
-  deployedAt         DateTime?
+  createdAt  DateTime  @default(now())
+  deployedAt DateTime?
 
   @@unique([teamId, version])
   @@index([teamId, status])

@@ -362,7 +362,6 @@ export class SemanticMemory implements MemoryStore {
     return Promise.resolve();
   }
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Filter matching requires multiple checks
   private matchesFilter(entry: SemanticEntry, query: MemoryQuery): boolean {
     if (entry.metadata.teamId !== query.teamId) {
       return false;

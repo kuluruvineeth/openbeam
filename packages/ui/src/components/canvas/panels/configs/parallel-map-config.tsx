@@ -5,7 +5,7 @@ import type {
   ParallelMapNodeConfig,
 } from "@openplane/types/canvas";
 import { cva } from "class-variance-authority";
-import { memo, useCallback } from "react";
+import { memo, useCallback, useMemo } from "react";
 import { AnimatedSizeContainer } from "../../../animated-size-container";
 import { Icons } from "../../../icons";
 import { Input } from "../../../input";
@@ -20,6 +20,7 @@ import { Slider } from "../../../slider";
 import { Switch } from "../../../switch";
 import { ConfigField } from "../config-field";
 import { ConfigSection } from "../config-section";
+import { NotesList, WarningsList } from "../feedback-lists";
 
 interface ParallelMapConfigPanelProps {
   config: ParallelMapNodeConfig;
@@ -84,11 +85,16 @@ const modeCardVariants = cva(
   }
 );
 
-function getExecutionMode(config: ParallelMapNodeConfig): ExecutionMode {
-  if (config.batchSize !== undefined && config.batchSize > 0) {
+const VARIABLE_NAME_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
+
+function getExecutionMode(
+  batchSize: number | undefined,
+  maxConcurrency: number | undefined
+): ExecutionMode {
+  if (batchSize !== undefined && batchSize > 0) {
     return "batch";
   }
-  if ((config.maxConcurrency ?? 10) > 1) {
+  if ((maxConcurrency ?? 10) > 1) {
     return "parallel";
   }
   return "sequential";
@@ -99,12 +105,99 @@ export const ParallelMapConfigPanel = memo(
     config,
     onChange,
   }: ParallelMapConfigPanelProps) {
+    const warnings = useMemo(() => {
+      const list: string[] = [];
+      const collection = config.collection?.trim() ?? "";
+      const itemVariable = config.itemVariable?.trim() ?? "";
+      const indexVariable = config.indexVariable?.trim() ?? "";
+      if (!collection) {
+        list.push("Collection path required");
+      }
+      if (!itemVariable) {
+        list.push("Item variable required");
+      } else if (!VARIABLE_NAME_REGEX.test(itemVariable)) {
+        list.push("Item variable must be valid");
+      }
+      if (!indexVariable) {
+        list.push("Index variable required");
+      } else if (!VARIABLE_NAME_REGEX.test(indexVariable)) {
+        list.push("Index variable must be valid");
+      }
+      if (itemVariable && indexVariable && itemVariable === indexVariable) {
+        list.push("Item/index variables must differ");
+      }
+      if ((config.maxConcurrency ?? 1) <= 0) {
+        list.push("Max concurrency must be at least 1");
+      }
+      if (config.batchSize !== undefined && config.batchSize <= 0) {
+        list.push("Batch size must be at least 1");
+      }
+      if ((config.batchDelayMs ?? 0) < 0) {
+        list.push("Batch delay must be zero or higher");
+      }
+      if (config.timeout !== undefined && config.timeout <= 0) {
+        list.push("Timeout must be positive");
+      }
+      return list;
+    }, [
+      config.batchDelayMs,
+      config.batchSize,
+      config.collection,
+      config.indexVariable,
+      config.itemVariable,
+      config.maxConcurrency,
+      config.timeout,
+    ]);
+
+    const notes = useMemo(() => {
+      const list: string[] = [];
+      const executionMode = getExecutionMode(
+        config.batchSize,
+        config.maxConcurrency
+      );
+      if (executionMode === "parallel") {
+        list.push(`Parallel up to ${config.maxConcurrency ?? 1}`);
+      }
+      if (executionMode === "batch" && config.batchSize !== undefined) {
+        list.push(`Batch size ${config.batchSize}`);
+      }
+      if ((config.batchDelayMs ?? 0) > 0) {
+        list.push(`Batch delay ${config.batchDelayMs}ms`);
+      }
+      if (config.aggregationMode && config.aggregationMode !== "array") {
+        const label =
+          AGGREGATION_MODES.find((mode) => mode.id === config.aggregationMode)
+            ?.label ?? config.aggregationMode;
+        list.push(`Aggregation ${label}`);
+      }
+      if (config.continueOnError) {
+        list.push("Continue on error enabled");
+      }
+      if (config.progressTracking === false) {
+        list.push("Progress tracking off");
+      }
+      if (config.timeout !== undefined) {
+        list.push(`Timeout ${config.timeout}ms`);
+      }
+      return list;
+    }, [
+      config.aggregationMode,
+      config.batchDelayMs,
+      config.batchSize,
+      config.continueOnError,
+      config.maxConcurrency,
+      config.progressTracking,
+      config.timeout,
+    ]);
+
     return (
       <div className="divide-y divide-border/50">
         <CollectionSection config={config} onChange={onChange} />
         <ExecutionSection config={config} onChange={onChange} />
         <ErrorHandlingSection config={config} onChange={onChange} />
         <AggregationSection config={config} onChange={onChange} />
+        <WarningsList items={warnings} />
+        <NotesList items={notes} />
       </div>
     );
   }
@@ -179,7 +272,7 @@ const ExecutionSection = memo(function ExecutionSectionComponent({
   config,
   onChange,
 }: SectionProps) {
-  const currentMode = getExecutionMode(config);
+  const currentMode = getExecutionMode(config.batchSize, config.maxConcurrency);
 
   const handleModeChange = useCallback(
     (mode: ExecutionMode) => {

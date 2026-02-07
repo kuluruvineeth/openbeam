@@ -100,6 +100,38 @@ export const ParallelSplitNode = memo(
       const errorHandling = config?.errorHandling ?? "failFast";
       const waitForAll = config?.waitForAll ?? true;
       const maxConcurrency = config?.maxConcurrency ?? 10;
+      const partitionKey = config?.partitionKey?.trim();
+
+      const warnings = useMemo(() => {
+        const items: string[] = [];
+        if (outputs.length < 2) {
+          items.push("Add at least two outputs");
+        }
+        if (dataDistribution === "partition" && !partitionKey) {
+          items.push("Partition key is required");
+        }
+        if (executionMode === "parallel" && outputs.length > maxConcurrency) {
+          items.push("Outputs exceed max concurrency");
+        }
+        return items;
+      }, [
+        dataDistribution,
+        executionMode,
+        maxConcurrency,
+        outputs.length,
+        partitionKey,
+      ]);
+
+      const notes = useMemo(() => {
+        const items: string[] = [];
+        if (dataDistribution !== "broadcast") {
+          items.push("Input must be an array for distribution");
+        }
+        if (executionMode === "sequential") {
+          items.push("Sequential mode runs one branch at a time");
+        }
+        return items;
+      }, [dataDistribution, executionMode]);
 
       const outputOffsets = useMemo(
         () => calculateOutputOffsets(outputs.length),
@@ -173,12 +205,10 @@ export const ParallelSplitNode = memo(
                   <DistributionIcon size={12} />
                   <span>{DATA_DISTRIBUTION_META[dataDistribution].label}</span>
                 </div>
-                {waitForAll && (
-                  <Badge variant="node-info">
-                    <Icons.Clock size={10} />
-                    <span>Sync</span>
-                  </Badge>
-                )}
+                <Badge variant={waitForAll ? "node-info" : "node-warning"}>
+                  <Icons.Clock size={10} />
+                  <span>{waitForAll ? "Sync" : "Sync (enforced)"}</span>
+                </Badge>
               </div>
 
               {executionMode === "parallel" && (
@@ -190,12 +220,49 @@ export const ParallelSplitNode = memo(
                 </div>
               )}
 
+              {dataDistribution === "partition" && partitionKey && (
+                <div className="flex items-center justify-between text-[10px]">
+                  <span className="text-muted-foreground">Partition key</span>
+                  <span className="max-w-[140px] truncate font-mono tabular-nums">
+                    {partitionKey}
+                  </span>
+                </div>
+              )}
+
               {errorHandling !== "failFast" && (
                 <div className="flex items-center justify-between text-[10px]">
                   <span className="text-muted-foreground">On error</span>
                   <Badge variant={ERROR_HANDLING_META[errorHandling].variant}>
                     {ERROR_HANDLING_META[errorHandling].label}
                   </Badge>
+                </div>
+              )}
+
+              {warnings.length > 0 && (
+                <div className="space-y-1">
+                  {warnings.map((warning) => (
+                    <div
+                      className="flex items-center gap-1.5 text-[10px] text-warning"
+                      key={warning}
+                    >
+                      <Icons.AlertCircle size={12} />
+                      <span>{warning}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {notes.length > 0 && (
+                <div className="space-y-1">
+                  {notes.map((note) => (
+                    <div
+                      className="flex items-center gap-1.5 text-[10px] text-muted-foreground"
+                      key={note}
+                    >
+                      <Icons.Info size={12} />
+                      <span>{note}</span>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

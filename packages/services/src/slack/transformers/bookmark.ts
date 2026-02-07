@@ -3,6 +3,7 @@ import type {
   TransformContext,
 } from "@openplane/types/services/connectors/slack";
 import type { GenericDocument } from "@openplane/vespa";
+import { calculateDocumentChecksum } from "../../lib/checksum";
 import type { UserLookup } from "../api/users";
 import { filterUndefined } from "./utils";
 
@@ -26,10 +27,10 @@ export interface BookmarkTransformContext extends TransformContext {
   channelMembers?: string[];
 }
 
-export function transformBookmark(
+export async function transformBookmark(
   bookmark: SlackBookmark,
   context: BookmarkTransformContext
-): GenericDocument {
+): Promise<GenericDocument> {
   const {
     connectorId,
     connectorType,
@@ -48,6 +49,21 @@ export function transformBookmark(
     ? userLookup?.getAvatar(bookmark.createdBy)
     : undefined;
   const content = buildBookmarkContent(bookmark);
+
+  const metadata = filterUndefined({
+    bookmarkId: bookmark.id,
+    channelId: bookmark.channelId,
+    bookmarkType: bookmark.type,
+    entityId: bookmark.entityId,
+    emoji: bookmark.emoji,
+    iconUrl: bookmark.iconUrl,
+  });
+
+  const checksum = await calculateDocumentChecksum({
+    title: bookmark.title,
+    content,
+    metadata,
+  });
 
   return {
     id: documentId,
@@ -71,14 +87,8 @@ export function transformBookmark(
     url: bookmark.link ?? buildBookmarkUrl(bookmark.channelId, bookmark.id),
     is_public: true,
     access_control: channelMembers,
-    metadata: filterUndefined({
-      bookmarkId: bookmark.id,
-      channelId: bookmark.channelId,
-      bookmarkType: bookmark.type,
-      entityId: bookmark.entityId,
-      emoji: bookmark.emoji,
-      iconUrl: bookmark.iconUrl,
-    }),
+    metadata,
+    checksum,
   };
 }
 

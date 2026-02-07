@@ -25,6 +25,9 @@ export interface CompletionOptions
   temperature?: number;
   maxTokens?: number;
   topP?: number;
+  presencePenalty?: number;
+  frequencyPenalty?: number;
+  stopSequences?: string[];
   tools?: ToolSet;
   abortSignal?: AbortSignal;
   enableThinking?: boolean;

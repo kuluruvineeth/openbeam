@@ -5,7 +5,6 @@ import { Card, Skeleton } from "@openplane/ui";
 export function ConnectorsPageSkeleton() {
   return (
     <div className="space-y-6">
-      {/* Table skeleton */}
       <Card>
         <div className="border-border/50 border-b p-4">
           <div className="flex items-center gap-4">
@@ -69,14 +68,12 @@ export function ConnectorsGridSkeleton() {
 export function ConnectorDetailSkeleton() {
   return (
     <div className="space-y-6">
-      {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm">
         <Skeleton className="h-4 w-20" />
         <span className="text-foreground/30">/</span>
         <Skeleton className="h-4 w-32" />
       </div>
 
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Skeleton className="size-12 rounded-md" />
@@ -88,10 +85,8 @@ export function ConnectorDetailSkeleton() {
         <Skeleton className="h-9 w-24" />
       </div>
 
-      {/* Tabs */}
       <Skeleton className="h-10 w-full" />
 
-      {/* Content */}
       <Skeleton className="h-64 w-full" />
     </div>
   );

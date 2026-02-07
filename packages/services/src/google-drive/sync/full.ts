@@ -19,6 +19,7 @@ import { extractFileContent, getDriveId } from "../utils/content-extractor";
 import { isMediaType, isTextExtractable } from "../utils/mime-types";
 
 export interface FullSyncOptions {
+  cursor?: GoogleDriveSyncCursor;
   batchSize?: number;
   includeSharedDrives?: boolean;
   includeTrashed?: boolean;
@@ -30,7 +31,6 @@ export interface FullSyncOptions {
   onFilesDiscovered?: (files: ConnectorFileInfo[]) => Promise<void>;
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Async generator with pagination requires this complexity
 export async function* fullSync(
   client: GoogleDriveClient,
   context: GoogleDriveTransformContext,
@@ -87,7 +87,7 @@ export async function* fullSync(
         content = extracted.text;
       }
 
-      const document = transformFile(file, context, { content });
+      const document = await transformFile(file, context, { content });
       documents.push(document);
 
       if (indexMedia && isMediaType(file.mimeType) && onMediaDiscovered) {
@@ -225,18 +225,16 @@ function addExtensionForExport(name: string, exportMimeType: string): string {
 function buildConnectorFileInfo(file: DriveFile): ConnectorFileInfo {
   const exportMimeType = getDefaultExportMimeType(file.mimeType);
 
-  // Add proper extension for Google Workspace exports so engine can parse
   const effectiveName = exportMimeType
     ? addExtensionForExport(file.name, exportMimeType)
     : file.name;
 
-  // Use drive ID for resource linking (shared drive ID or "my-drive" for personal)
   const sourceChannelId = getDriveId(file) ?? "my-drive";
 
   return {
     id: file.id,
     name: effectiveName,
-    mimeType: file.mimeType, // Keep original for preview detection
+    mimeType: file.mimeType,
     size: file.size ? Number.parseInt(file.size, 10) : undefined,
     downloadStrategy: {
       type: "google-drive",

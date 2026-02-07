@@ -14,6 +14,10 @@ import {
 import type { ComponentType } from "react";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "../../../../utils";
+import {
+  formatDuration,
+  normalizeConnectorType,
+} from "../../../../utils/format";
 import { AnimatedSizeContainer } from "../../../animated-size-container";
 import { Badge } from "../../../badge";
 import { Button } from "../../../button";
@@ -76,10 +80,6 @@ const RESOURCE_LABELS: Record<string, string> = {
   team: "Teams",
   comment: "Comments",
 };
-
-function normalizeConnectorType(type: string): string {
-  return type.replace(/-/g, "_");
-}
 
 function findRegistryForType(
   registries: ConnectorActionsRegistry[],
@@ -237,6 +237,107 @@ export const ConnectorConfigPanel = memo(
       [config.params, actionInputIds, onChange]
     );
 
+    const warnings = useMemo(() => {
+      const list: string[] = [];
+      const connectorType = config.connectorType?.trim() ?? "";
+
+      if (!connectorType) {
+        list.push("Select a connector");
+      }
+
+      if (connectorType && !config.connectorId?.trim()) {
+        list.push("Select an account");
+      }
+
+      if (connectorType && connectors && matchingAccounts.length === 0) {
+        list.push(
+          `Connect a ${CONNECTOR_LABELS[connectorType as ConnectorType] ?? connectorType} account`
+        );
+      }
+
+      if (
+        connectorType &&
+        actionRegistries.length > 0 &&
+        actions.length === 0
+      ) {
+        list.push("No actions available for this connector");
+      }
+
+      if (connectorType && !config.operation?.trim()) {
+        list.push("Select an action");
+      }
+
+      if (selectedAction) {
+        const missingRequired = requiredInputs.filter((input) => {
+          const value = config.params?.[input.id];
+          if (value === undefined || value === null) {
+            return true;
+          }
+          if (typeof value === "string" && value.trim().length === 0) {
+            return true;
+          }
+          return false;
+        });
+        if (missingRequired.length > 0) {
+          list.push(
+            `Missing required fields: ${missingRequired
+              .map((input) => input.name)
+              .join(", ")}`
+          );
+        }
+      }
+
+      return list;
+    }, [
+      actionRegistries.length,
+      actions.length,
+      config.connectorId,
+      config.connectorType,
+      config.operation,
+      config.params,
+      connectors,
+      matchingAccounts.length,
+      requiredInputs,
+      selectedAction,
+    ]);
+
+    const notes = useMemo(() => {
+      const list: string[] = [];
+      const customParamCount = Object.keys(customParams).length;
+
+      if (selectedAction?.stakes === "high") {
+        list.push("Destructive action");
+      }
+
+      if (selectedAction?.reversible) {
+        list.push("Action is reversible");
+      }
+
+      if (selectedAction?.batchSupport) {
+        list.push("Supports batch execution");
+      }
+
+      if (selectedAction?.rateLimit) {
+        list.push(
+          `Rate limit: ${selectedAction.rateLimit.requests} / ${formatDuration(
+            selectedAction.rateLimit.windowMs
+          )}`
+        );
+      }
+
+      if (selectedAction?.requiredScopes?.length) {
+        list.push(
+          `Requires scopes: ${selectedAction.requiredScopes.join(", ")}`
+        );
+      }
+
+      if (customParamCount > 0) {
+        list.push("Custom params are ignored unless action defines them");
+      }
+
+      return list;
+    }, [customParams, selectedAction]);
+
     return (
       <div>
         <ConfigSection
@@ -358,6 +459,34 @@ export const ConnectorConfigPanel = memo(
             params={customParams}
           />
         </ConfigSection>
+
+        {warnings.length > 0 && (
+          <div className="space-y-2 px-5 pb-4">
+            {warnings.map((warning) => (
+              <div
+                className="flex items-start gap-2 rounded-md bg-warning/10 px-3 py-2 text-warning text-xs"
+                key={warning}
+              >
+                <Icons.AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
+                <span>{warning}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {notes.length > 0 && (
+          <div className="space-y-2 px-5 pb-4">
+            {notes.map((note) => (
+              <div
+                className="flex items-start gap-2 rounded-md bg-muted/40 px-3 py-2 text-muted-foreground text-xs"
+                key={note}
+              >
+                <Icons.Info className="mt-0.5 size-3.5 shrink-0" />
+                <span>{note}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     );
   }

@@ -1,0 +1,167 @@
+services:
+  web-dev:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile.dev
+    container_name: openplane-web-dev
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_SERVER_URL: http://localhost:3000
+      WATCHPACK_POLLING: "true"
+    ports:
+      - "3001:3001"
+    depends_on:
+      server-dev:
+        condition: service_started
+    volumes:
+      - ./apps/web:/app/apps/web
+      - ./packages:/app/packages
+      - /app/node_modules
+      - /app/apps/web/node_modules
+      - /app/apps/web/.next
+    develop:
+      watch:
+        - action: sync
+          path: ./apps/web/src
+          target: /app/apps/web/src
+          ignore:
+            - node_modules/
+        - action: sync
+          path: ./packages
+          target: /app/packages
+          ignore:
+            - node_modules/
+            - dist/
+        - action: rebuild
+          path: ./apps/web/package.json
+    restart: unless-stopped
+
+  server-dev:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile.dev
+    container_name: openplane-server-dev
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/openplane
+      REDIS_URL: redis://redis:6379
+      VESPA_URL: http://vespa:8080
+      TEMPORAL_ADDRESS: temporal:7233
+      CORS_ORIGIN: http://localhost:3001
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-super-secret-key}
+      BETTER_AUTH_URL: http://localhost:3000
+      JWT_SECRET: ${JWT_SECRET:-jwt-secret-key}
+      LOG_LEVEL: debug
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      vespa:
+        condition: service_healthy
+      temporal:
+        condition: service_healthy
+    volumes:
+      - ./apps/server:/app/apps/server
+      - ./packages:/app/packages
+      - /app/node_modules
+      - /app/apps/server/node_modules
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./apps/server/src
+          target: /app/apps/server/src
+          ignore:
+            - node_modules/
+        - action: sync+restart
+          path: ./packages
+          target: /app/packages
+          ignore:
+            - node_modules/
+            - dist/
+        - action: rebuild
+          path: ./apps/server/package.json
+    restart: unless-stopped
+
+  worker-dev:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile.dev
+    container_name: openplane-worker-dev
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/openplane
+      REDIS_URL: redis://redis:6379
+      VESPA_URL: http://vespa:8080
+      TEMPORAL_ADDRESS: temporal:7233
+      ENGINE_URL: http://engine:8000
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+      GCS_ENDPOINT: http://minio:9000
+      GCS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
+      GCS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      GCS_BUCKET: ${S3_BUCKET:-openplane-files}
+      LOG_LEVEL: debug
+    ports:
+      - "9091:9091"
+      - "9092:9092"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      vespa:
+        condition: service_healthy
+      temporal:
+        condition: service_healthy
+    volumes:
+      - ./apps/worker:/app/apps/worker
+      - ./packages:/app/packages
+      - /app/node_modules
+      - /app/apps/worker/node_modules
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./apps/worker/src
+          target: /app/apps/worker/src
+          ignore:
+            - node_modules/
+        - action: sync+restart
+          path: ./packages
+          target: /app/packages
+          ignore:
+            - node_modules/
+            - dist/
+        - action: rebuild
+          path: ./apps/worker/package.json
+    restart: unless-stopped
+
+  engine-dev:
+    build:
+      context: .
+      dockerfile: apps/engine/Dockerfile.dev
+    container_name: openplane-engine-dev
+    environment:
+      PYTHONUNBUFFERED: 1
+      LOG_LEVEL: debug
+      REDIS_URL: redis://redis:6379
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./apps/engine:/app
+      - /app/.venv
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./apps/engine/src
+          target: /app/src
+        - action: rebuild
+          path: ./apps/engine/pyproject.toml
+    restart: unless-stopped

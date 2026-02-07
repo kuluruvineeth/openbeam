@@ -3,16 +3,42 @@ import type {
   SharedDrive,
 } from "@openplane/types/services/connectors/google-drive";
 import type { GenericDocument } from "@openplane/vespa";
+import { calculateDocumentChecksum } from "../../lib/checksum";
 import { buildSharedDriveUrl } from "../utils/content-extractor";
 
-export function transformSharedDrive(
+export async function transformSharedDrive(
   drive: SharedDrive,
   context: GoogleDriveTransformContext,
   members: string[] = []
-): GenericDocument {
+): Promise<GenericDocument> {
   const createdAt = drive.createdTime
     ? new Date(drive.createdTime).getTime()
     : Date.now();
+
+  const metadata = {
+    driveId: drive.id,
+    ...(drive.colorRgb && { color: drive.colorRgb }),
+    ...(drive.themeId && { theme: drive.themeId }),
+    ...(drive.hidden && { hidden: true }),
+    ...(drive.restrictions && {
+      adminManagedRestrictions: drive.restrictions.adminManagedRestrictions,
+      copyRequiresWriterPermission:
+        drive.restrictions.copyRequiresWriterPermission,
+      domainUsersOnly: drive.restrictions.domainUsersOnly,
+      driveMembersOnly: drive.restrictions.driveMembersOnly,
+    }),
+    ...(drive.capabilities && {
+      canManageMembers: drive.capabilities.canManageMembers,
+      canDeleteDrive: drive.capabilities.canDeleteDrive,
+      canRenameDrive: drive.capabilities.canRenameDrive,
+    }),
+  };
+
+  const checksum = await calculateDocumentChecksum({
+    title: drive.name,
+    content: "",
+    metadata,
+  });
 
   return {
     id: buildSharedDriveDocumentId(context.connectorId, drive.id),
@@ -32,24 +58,8 @@ export function transformSharedDrive(
     is_public: false,
     access_control: members,
     contributor_ids: members,
-    metadata: {
-      driveId: drive.id,
-      ...(drive.colorRgb && { color: drive.colorRgb }),
-      ...(drive.themeId && { theme: drive.themeId }),
-      ...(drive.hidden && { hidden: true }),
-      ...(drive.restrictions && {
-        adminManagedRestrictions: drive.restrictions.adminManagedRestrictions,
-        copyRequiresWriterPermission:
-          drive.restrictions.copyRequiresWriterPermission,
-        domainUsersOnly: drive.restrictions.domainUsersOnly,
-        driveMembersOnly: drive.restrictions.driveMembersOnly,
-      }),
-      ...(drive.capabilities && {
-        canManageMembers: drive.capabilities.canManageMembers,
-        canDeleteDrive: drive.capabilities.canDeleteDrive,
-        canRenameDrive: drive.capabilities.canRenameDrive,
-      }),
-    },
+    metadata,
+    checksum,
   };
 }
 
@@ -64,8 +74,10 @@ export function transformSharedDrives(
   drives: SharedDrive[],
   context: GoogleDriveTransformContext,
   membersByDriveId: Map<string, string[]> = new Map()
-): GenericDocument[] {
-  return drives.map((drive) =>
-    transformSharedDrive(drive, context, membersByDriveId.get(drive.id) ?? [])
+): Promise<GenericDocument[]> {
+  return Promise.all(
+    drives.map((drive) =>
+      transformSharedDrive(drive, context, membersByDriveId.get(drive.id) ?? [])
+    )
   );
 }

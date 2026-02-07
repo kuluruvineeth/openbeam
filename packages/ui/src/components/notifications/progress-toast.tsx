@@ -1,10 +1,10 @@
 "use client";
 
-import { CheckCircle2, Loader2, XCircle } from "lucide-react";
 import { useCallback, useRef } from "react";
 import { toast } from "sonner";
 
 import { cn } from "../../utils/cn";
+import { Icons } from "../icons";
 
 type ProgressStatus = "loading" | "success" | "error";
 
@@ -45,12 +45,14 @@ function ProgressToastContent({
     >
       <div className="mt-0.5 flex-shrink-0">
         {status === "loading" && (
-          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          <Icons.Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         )}
         {status === "success" && (
-          <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+          <Icons.CheckCircle2 className="h-5 w-5 text-emerald-500" />
         )}
-        {status === "error" && <XCircle className="h-5 w-5 text-red-500" />}
+        {status === "error" && (
+          <Icons.XCircle className="h-5 w-5 text-red-500" />
+        )}
       </div>
 
       <div className="min-w-0 flex-1">

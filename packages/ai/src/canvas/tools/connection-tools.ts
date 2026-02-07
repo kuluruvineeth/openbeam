@@ -435,7 +435,6 @@ RETURNS: Array of node IDs representing the path, or empty if no path exists.`,
       .describe("Maximum path length to search"),
   }),
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Complex path-finding algorithm
   async execute(params, ctx) {
     const canvasCtx = ctx as unknown as CanvasToolContext;
 

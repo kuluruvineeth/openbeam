@@ -1,16 +1,16 @@
 model ApiKey {
-  id             String   @id @default(cuid()) @map("_id")
-  teamId         String
-  name           String   
-  keyHash        String   @unique
-  prefix         String  
-  scopes         String[] @default(["read", "write"])
-  lastUsedAt     DateTime?
-  expiresAt      DateTime?
-  revoked        Boolean  @default(false)
-  
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id         String    @id @default(cuid()) @map("_id")
+  teamId     String
+  name       String
+  keyHash    String    @unique
+  prefix     String
+  scopes     String[]  @default(["read", "write"])
+  lastUsedAt DateTime?
+  expiresAt  DateTime?
+  revoked    Boolean   @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
@@ -19,4 +19,3 @@ model ApiKey {
   @@index([prefix])
   @@map("api_key")
 }
-

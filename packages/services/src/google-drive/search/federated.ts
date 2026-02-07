@@ -75,7 +75,7 @@ export async function federatedSearch(
       content = extracted.text;
     }
 
-    const document = transformFile(file, context, { content });
+    const document = await transformFile(file, context, { content });
     documents.push(document);
 
     if (documents.length >= maxResults) {

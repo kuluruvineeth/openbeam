@@ -5,8 +5,16 @@ import type {
   AnnotationNodeConfig,
 } from "@openplane/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
-import { NodeResizer } from "@xyflow/react";
-import { forwardRef, memo, useCallback, useRef, useState } from "react";
+import { NodeResizer, useReactFlow } from "@xyflow/react";
+import {
+  forwardRef,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { cn } from "../../../../utils";
 import { Icons } from "../../../icons";
 
@@ -71,8 +79,8 @@ const FONT_SIZE_CLASS = {
 
 export const AnnotationNode = memo(
   forwardRef<HTMLDivElement, NodeProps<AnnotationNodeType>>(
-    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: annotation node has collapsed/expanded/editing states
-    function AnnotationNodeComponent({ data, selected }, ref) {
+    function AnnotationNodeComponent({ data, id, selected }, ref) {
+      const { setNodes } = useReactFlow();
       const color = data.config.color ?? "yellow";
       const isPinned = data.config.isPinned ?? false;
       const isCollapsed = data.config.isCollapsed ?? false;
@@ -80,23 +88,143 @@ export const AnnotationNode = memo(
       const fontSize = data.config.fontSize ?? "sm";
       const colorCfg = COLOR_CONFIG[color];
       const hasContent = content.length > 0;
+      const width = data.config.width ?? 240;
+      const height = data.config.height;
       const [isEditing, setIsEditing] = useState(false);
+      const [draftContent, setDraftContent] = useState(content);
       const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-      const handleDoubleClick = useCallback(() => {
+      useEffect(() => {
+        if (!isEditing) {
+          setDraftContent(content);
+        }
+      }, [content, isEditing]);
+
+      const updateConfig = useCallback(
+        (updates: Partial<AnnotationNodeConfig>) => {
+          setNodes((nodes) =>
+            nodes.map((node) => {
+              if (node.id !== id) {
+                return node;
+              }
+              const nodeData = node.data as AnnotationNodeData;
+              return {
+                ...node,
+                data: {
+                  ...node.data,
+                  config: {
+                    ...nodeData.config,
+                    ...updates,
+                  },
+                },
+              };
+            })
+          );
+        },
+        [id, setNodes]
+      );
+
+      const startEditing = useCallback(() => {
         setIsEditing(true);
         requestAnimationFrame(() => textareaRef.current?.focus());
       }, []);
 
+      const stopEditing = useCallback(
+        (commit: boolean) => {
+          if (commit && draftContent !== content) {
+            updateConfig({ content: draftContent });
+          }
+          if (!commit) {
+            setDraftContent(content);
+          }
+          setIsEditing(false);
+        },
+        [content, draftContent, updateConfig]
+      );
+
+      const handleEditorKeyDown = useCallback(
+        (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+          if (event.key === "Escape") {
+            event.preventDefault();
+            stopEditing(false);
+          }
+          if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+            event.preventDefault();
+            stopEditing(true);
+          }
+        },
+        [stopEditing]
+      );
+
+      const handleResizeEnd = useCallback(
+        (_event: unknown, params: { width: number; height: number }) => {
+          updateConfig({
+            width: Math.round(params.width),
+            height: Math.round(params.height),
+          });
+        },
+        [updateConfig]
+      );
+
+      const containerStyle = useMemo(() => {
+        const style: React.CSSProperties = {
+          minWidth: 160,
+          minHeight: 60,
+          width,
+        };
+        if (height) {
+          style.height = height;
+        }
+        return style;
+      }, [height, width]);
+
       const handleBlur = useCallback(() => {
-        setIsEditing(false);
-      }, []);
+        stopEditing(true);
+      }, [stopEditing]);
+
+      const handleContentChange = useCallback(
+        (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+          setDraftContent(event.target.value);
+        },
+        []
+      );
+
+      const contentLabel = hasContent ? content : "Edit in panel or click";
+      const contentClassName = cn(
+        "whitespace-pre-wrap break-words",
+        FONT_SIZE_CLASS[fontSize],
+        colorCfg.text,
+        !hasContent && "italic opacity-50"
+      );
+
+      const contentBody = isEditing ? (
+        <textarea
+          className={cn(
+            "size-full resize-none border-none bg-transparent outline-none",
+            FONT_SIZE_CLASS[fontSize],
+            colorCfg.text
+          )}
+          onBlur={handleBlur}
+          onChange={handleContentChange}
+          onKeyDown={handleEditorKeyDown}
+          ref={textareaRef}
+          value={draftContent}
+        />
+      ) : (
+        <button
+          className={cn("w-full flex-1 p-2.5 text-left", "cursor-text")}
+          onClick={startEditing}
+          type="button"
+        >
+          <p className={contentClassName}>{contentLabel}</p>
+        </button>
+      );
 
       if (isCollapsed) {
         return (
           <div
             className={cn(
-              "flex size-9 items-center justify-center rounded-md border-2 shadow-sm transition-transform hover:scale-105",
+              "flex size-9 items-center justify-center rounded-md border-2 shadow-sm transition-colors",
               colorCfg.bg,
               colorCfg.border,
               selected &&
@@ -117,13 +245,10 @@ export const AnnotationNode = memo(
             colorCfg.border,
             selected &&
               "ring-2 ring-primary ring-offset-1 ring-offset-background",
-            isPinned && "shadow-md"
+            isPinned && "ring-1 ring-foreground/15"
           )}
           ref={ref}
-          style={{
-            minWidth: 160,
-            minHeight: 60,
-          }}
+          style={containerStyle}
         >
           <NodeResizer
             color="transparent"
@@ -132,11 +257,12 @@ export const AnnotationNode = memo(
             maxWidth={600}
             minHeight={60}
             minWidth={160}
+            onResizeEnd={handleResizeEnd}
           />
 
           <div
             className={cn(
-              "flex items-center justify-between rounded-t-[4px] border-b px-2.5 py-1.5",
+              "flex items-center justify-between rounded-t-sm border-b px-2.5 py-1.5",
               colorCfg.headerBg,
               colorCfg.border
             )}
@@ -155,34 +281,7 @@ export const AnnotationNode = memo(
             {isPinned && <Icons.Pin className={cn("size-3", colorCfg.text)} />}
           </div>
 
-          {/* biome-ignore lint/a11y/noStaticElementInteractions: Canvas node interaction */}
-          {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: Canvas node interaction */}
-          <div className="flex-1 p-2.5" onDoubleClick={handleDoubleClick}>
-            {isEditing ? (
-              <textarea
-                autoFocus
-                className={cn(
-                  "size-full resize-none border-none bg-transparent outline-none",
-                  FONT_SIZE_CLASS[fontSize],
-                  colorCfg.text
-                )}
-                defaultValue={content}
-                onBlur={handleBlur}
-                ref={textareaRef}
-              />
-            ) : (
-              <p
-                className={cn(
-                  "whitespace-pre-wrap break-words",
-                  FONT_SIZE_CLASS[fontSize],
-                  colorCfg.text,
-                  !hasContent && "italic opacity-50"
-                )}
-              >
-                {hasContent ? content : "Double-click to edit..."}
-              </p>
-            )}
-          </div>
+          {contentBody}
 
           {(data.author || data.timestamp) && (
             <div

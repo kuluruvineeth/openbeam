@@ -1,7 +1,6 @@
 "use client";
 
 import { cva, type VariantProps } from "class-variance-authority";
-import { Check, Circle, Loader2, X } from "lucide-react";
 import { forwardRef } from "react";
 import {
   type AgentEvent,
@@ -10,8 +9,9 @@ import {
 } from "../../hooks/use-tool-steps";
 import { getToolCategory, getToolIcon } from "../../lib/tool-registry";
 import { cn } from "../../utils/cn";
+import { formatDurationPrecise } from "../../utils/format";
+import { Icons } from "../icons";
 import { TextShimmer } from "../text-shimmer";
-import { formatDuration } from "./agent-duration";
 import { AgentToolIcon } from "./agent-tool-icon";
 
 const agentStepsVariants = cva("space-y-0", {
@@ -60,14 +60,14 @@ const StepIndicator = forwardRef<
     switch (status) {
       case "pending":
         return (
-          <Circle className="size-2 fill-muted-foreground/50 text-muted-foreground/50" />
+          <Icons.Circle className="size-2 fill-muted-foreground/50 text-muted-foreground/50" />
         );
       case "running":
-        return <Loader2 className="size-3 animate-spin text-primary" />;
+        return <Icons.Loader2 className="size-3 animate-spin text-primary" />;
       case "success":
-        return <Check className="size-3 text-green-500" />;
+        return <Icons.Check className="size-3 text-green-500" />;
       case "error":
-        return <X className="size-3 text-destructive" />;
+        return <Icons.X className="size-3 text-destructive" />;
       default:
         return null;
     }
@@ -140,7 +140,7 @@ const AgentSteps = forwardRef<HTMLDivElement, AgentStepsProps>(
               )}
               {showDuration && step.durationMs != null && (
                 <span className="text-muted-foreground text-xs tabular-nums">
-                  {formatDuration(step.durationMs)}
+                  {formatDurationPrecise(step.durationMs)}
                 </span>
               )}
             </div>
@@ -149,7 +149,7 @@ const AgentSteps = forwardRef<HTMLDivElement, AgentStepsProps>(
                 {typeof step.output === "object" &&
                 step.output !== null &&
                 "message" in step.output
-                  ? String((step.output as { message: string }).message)
+                  ? String(step.output.message)
                   : String(step.output)}
               </p>
             )}
@@ -192,7 +192,7 @@ const AgentSteps = forwardRef<HTMLDivElement, AgentStepsProps>(
             )}
             {showDuration && totalDurationMs > 0 && (
               <span className="ml-auto tabular-nums">
-                Total: {formatDuration(totalDurationMs)}
+                Total: {formatDurationPrecise(totalDurationMs)}
               </span>
             )}
           </div>

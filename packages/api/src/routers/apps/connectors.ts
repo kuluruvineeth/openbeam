@@ -21,8 +21,8 @@ import type {
 import { appStore } from "@openplane/integrations";
 import {
   cancelConnectorCleanup,
-  scheduleConnectorCleanup,
-} from "@openplane/redis";
+  runConnectorCleanup,
+} from "@openplane/temporal";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter } from "../../index";
@@ -36,7 +36,6 @@ import {
   createConnectorSchema,
   updateSettingsSchema,
 } from "./schemas";
-import { cleanupRepeatableJobs, recreateRepeatableJobs } from "./utils";
 
 export const connectorsRouter = createTRPCRouter({
   list: withActiveTeam.query(async ({ ctx }) => {
@@ -128,7 +127,6 @@ export const connectorsRouter = createTRPCRouter({
     .input(appIdSchema)
     .mutation(async ({ ctx, input }) => {
       await verifyConnectorAccess(ctx.prisma, input.appId, ctx.teamId);
-      await cleanupRepeatableJobs(input.appId);
 
       const connector = await softDeleteConnector(
         ctx.prisma,
@@ -136,10 +134,9 @@ export const connectorsRouter = createTRPCRouter({
         ctx.session.user.id
       );
 
-      await scheduleConnectorCleanup({
+      await runConnectorCleanup({
         connectorId: input.appId,
         teamId: ctx.teamId,
-        triggeredBy: ctx.session.user.id,
       });
 
       return connector;
@@ -192,7 +189,6 @@ export const connectorsRouter = createTRPCRouter({
     .input(z.object({ connectorId: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
       await verifyConnectorAccess(ctx.prisma, input.connectorId, ctx.teamId);
-      await cleanupRepeatableJobs(input.connectorId);
       return pauseConnectorDb(ctx.prisma, input.connectorId);
     }),
 
@@ -200,9 +196,7 @@ export const connectorsRouter = createTRPCRouter({
     .input(z.object({ connectorId: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
       await verifyConnectorAccess(ctx.prisma, input.connectorId, ctx.teamId);
-      const result = await resumeConnectorDb(ctx.prisma, input.connectorId);
-      await recreateRepeatableJobs(ctx.prisma, input.connectorId);
-      return result;
+      return resumeConnectorDb(ctx.prisma, input.connectorId);
     }),
 
   getResources: withActiveTeam

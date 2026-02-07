@@ -1,10 +1,10 @@
 "use client";
 
-import { X } from "lucide-react";
 import { type KeyboardEvent, useRef, useState } from "react";
 
 import { cn } from "../../utils/cn";
 import { Badge } from "../badge";
+import { Icons } from "../icons";
 
 interface TagInputProps {
   value: string[];
@@ -78,7 +78,7 @@ function TagInput({
               }}
               type="button"
             >
-              <X className="h-3 w-3" />
+              <Icons.X className="h-3 w-3" />
             </button>
           </Badge>
         ))}

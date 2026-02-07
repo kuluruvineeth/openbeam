@@ -292,8 +292,8 @@ export const GmailRateLimitConfigSchema = z.object({
 export type GmailRateLimitConfig = z.infer<typeof GmailRateLimitConfigSchema>;
 
 export const GmailClientConfigSchema = z.object({
-  accessToken: z.string(),
   connectorId: z.string(),
+  accessToken: z.string().optional(),
   userEmail: z.string().optional(),
   rateLimitConfig: GmailRateLimitConfigSchema.optional(),
   timeout: z.number().optional(),

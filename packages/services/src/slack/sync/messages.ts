@@ -91,7 +91,7 @@ async function processThreadReplies(
 
     for (const reply of replies) {
       state.stats.replies += 1;
-      const replyDoc = transformMessage(
+      const replyDoc = await transformMessage(
         reply,
         ctx.transformContext,
         ctx.transformOptions
@@ -145,7 +145,11 @@ export async function syncChannelMessages(
       fetchOptions
     )) {
       state.stats.messages += 1;
-      const doc = transformMessage(message, transformContext, transformOptions);
+      const doc = await transformMessage(
+        message,
+        transformContext,
+        transformOptions
+      );
       state.documents.push(doc);
       state.latestTimestamp = updateLatestTimestamp(
         state.latestTimestamp,
@@ -251,7 +255,11 @@ export async function* syncChannelMessagesBatched(
   };
 
   for await (const message of fetchMessages(client, channel.id, fetchOptions)) {
-    const doc = transformMessage(message, transformContext, transformOptions);
+    const doc = await transformMessage(
+      message,
+      transformContext,
+      transformOptions
+    );
     state.batch.push(doc);
     state.stats.processed += 1;
     state.latestTimestamp = updateLatestTimestamp(
@@ -312,7 +320,7 @@ async function* processThreadRepliesBatched(
       message.ts,
       { oldest: ctx.cursor?.lastTimestamp }
     )) {
-      const replyDoc = transformMessage(
+      const replyDoc = await transformMessage(
         reply,
         ctx.transformContext,
         ctx.transformOptions

@@ -166,6 +166,7 @@ const ALL_ACTIONS: { value: ApprovalAction; label: string }[] = [
   { value: "delegate", label: "Delegate" },
   { value: "request_info", label: "Request Info" },
 ];
+const SUPPORTED_ACTIONS = new Set<ApprovalAction>(["approve", "reject"]);
 
 export interface ActionsSectionProps extends SectionProps {}
 
@@ -177,6 +178,9 @@ export const ActionsSection = memo(function ActionsSectionComponent({
 
   const handleToggleAction = useCallback(
     (action: ApprovalAction, checked: boolean) => {
+      if (!SUPPORTED_ACTIONS.has(action) && checked) {
+        return;
+      }
       const updated = checked
         ? [...allowedActions, action]
         : allowedActions.filter((a) => a !== action);
@@ -199,6 +203,8 @@ export const ActionsSection = memo(function ActionsSectionComponent({
           <div className="space-y-2">
             {ALL_ACTIONS.map((action) => {
               const isChecked = allowedActions.includes(action.value);
+              const isSupported = SUPPORTED_ACTIONS.has(action.value);
+              const isDisabled = !(isSupported || isChecked);
               const checkboxId = `action-${action.value}`;
               return (
                 <label
@@ -208,12 +214,18 @@ export const ActionsSection = memo(function ActionsSectionComponent({
                 >
                   <Checkbox
                     checked={isChecked}
+                    disabled={isDisabled}
                     id={checkboxId}
                     onCheckedChange={(checked) =>
                       handleToggleAction(action.value, checked === true)
                     }
                   />
                   <span className="text-sm">{action.label}</span>
+                  {!isSupported && (
+                    <span className="text-muted-foreground text-xs">
+                      Not supported
+                    </span>
+                  )}
                 </label>
               );
             })}
@@ -271,6 +283,16 @@ ActionsSection.displayName = "ActionsSection";
 
 export interface TimeoutSectionProps extends SectionProps {}
 
+const TIMEOUT_ACTION_OPTIONS: {
+  value: ApprovalNodeConfig["timeoutAction"];
+  label: string;
+  supported: boolean;
+}[] = [
+  { value: "reject", label: "Auto Reject", supported: true },
+  { value: "approve", label: "Auto Approve", supported: true },
+  { value: "escalate", label: "Escalate", supported: false },
+];
+
 export const TimeoutSection = memo(function TimeoutSectionComponent({
   config,
   onChange,
@@ -318,9 +340,16 @@ export const TimeoutSection = memo(function TimeoutSectionComponent({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="reject">Auto Reject</SelectItem>
-                    <SelectItem value="approve">Auto Approve</SelectItem>
-                    <SelectItem value="escalate">Escalate</SelectItem>
+                    {TIMEOUT_ACTION_OPTIONS.map((option) => (
+                      <SelectItem
+                        disabled={!option.supported}
+                        key={option.value}
+                        value={option.value}
+                      >
+                        {option.label}
+                        {!option.supported && " (Not supported)"}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </ConfigField>
