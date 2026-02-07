@@ -13,16 +13,16 @@ enum ChangeSource {
 }
 
 model DocumentChange {
-  id           String       @id @default(cuid()) @map("_id")
-  teamId       String
-  documentId   String
-  connectorId  String
-  changeType   ChangeType
-  source       ChangeSource @default(CONNECTOR_SYNC)
+  id          String       @id @default(cuid()) @map("_id")
+  teamId      String
+  documentId  String
+  connectorId String
+  changeType  ChangeType
+  source      ChangeSource @default(CONNECTOR_SYNC)
 
   changedBy     String?
-  changedFields String[]    @default([])
-  metadata      Json        @default("{}")
+  changedFields String[] @default([])
+  metadata      Json     @default("{}")
 
   eventTime   DateTime?
   processedAt DateTime?
@@ -45,7 +45,7 @@ model EntityChange {
   triggeredBy String?
 
   processedAt DateTime?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
 
   @@index([teamId, processedAt])
   @@index([entityId])

@@ -41,18 +41,18 @@ export const getWorkflowAuditLogs = (
   }
 
   if (startDate || endDate) {
-    where.timestamp = {};
+    where.createdAt = {};
     if (startDate) {
-      where.timestamp.gte = startDate;
+      where.createdAt.gte = startDate;
     }
     if (endDate) {
-      where.timestamp.lte = endDate;
+      where.createdAt.lte = endDate;
     }
   }
 
   return db.workflowAuditLog.findMany({
     where,
-    orderBy: { timestamp: "desc" },
+    orderBy: { createdAt: "desc" },
     take: limit,
     skip: offset,
   });
@@ -60,30 +60,31 @@ export const getWorkflowAuditLogs = (
 
 export const getWorkflowAuditLogsByWorkflow = (
   db: Database,
+  teamId: string,
   workflowId: string,
   options: Omit<GetWorkflowAuditLogsOptions, "workflowId"> = {}
 ): Promise<WorkflowAuditLog[]> => {
   const { action, startDate, endDate, limit = 100, offset = 0 } = options;
 
-  const where: Prisma.WorkflowAuditLogWhereInput = { workflowId };
+  const where: Prisma.WorkflowAuditLogWhereInput = { teamId, workflowId };
 
   if (action) {
     where.action = action;
   }
 
   if (startDate || endDate) {
-    where.timestamp = {};
+    where.createdAt = {};
     if (startDate) {
-      where.timestamp.gte = startDate;
+      where.createdAt.gte = startDate;
     }
     if (endDate) {
-      where.timestamp.lte = endDate;
+      where.createdAt.lte = endDate;
     }
   }
 
   return db.workflowAuditLog.findMany({
     where,
-    orderBy: { timestamp: "desc" },
+    orderBy: { createdAt: "desc" },
     take: limit,
     skip: offset,
   });
@@ -99,12 +100,12 @@ export const countWorkflowAuditLogsByAction = async (
   const where: Prisma.WorkflowAuditLogWhereInput = { teamId };
 
   if (startDate || endDate) {
-    where.timestamp = {};
+    where.createdAt = {};
     if (startDate) {
-      where.timestamp.gte = startDate;
+      where.createdAt.gte = startDate;
     }
     if (endDate) {
-      where.timestamp.lte = endDate;
+      where.createdAt.lte = endDate;
     }
   }
 
@@ -124,7 +125,7 @@ export const getRecentWorkflowAuditLogs = (
 ): Promise<WorkflowAuditLog[]> =>
   db.workflowAuditLog.findMany({
     where: { teamId },
-    orderBy: { timestamp: "desc" },
+    orderBy: { createdAt: "desc" },
     take: limit,
   });
 
@@ -138,12 +139,12 @@ export const getWorkflowAuditLogCountByTeam = (
   const where: Prisma.WorkflowAuditLogWhereInput = { teamId };
 
   if (startDate || endDate) {
-    where.timestamp = {};
+    where.createdAt = {};
     if (startDate) {
-      where.timestamp.gte = startDate;
+      where.createdAt.gte = startDate;
     }
     if (endDate) {
-      where.timestamp.lte = endDate;
+      where.createdAt.lte = endDate;
     }
   }
 
@@ -180,36 +181,29 @@ export const getExecutionAuditLogs = (
   }
 
   if (startDate || endDate) {
-    where.timestamp = {};
+    where.createdAt = {};
     if (startDate) {
-      where.timestamp.gte = startDate;
+      where.createdAt.gte = startDate;
     }
     if (endDate) {
-      where.timestamp.lte = endDate;
+      where.createdAt.lte = endDate;
     }
   }
 
-  if (executionId || actor) {
-    where.metadata = {
-      path: [],
-      ...(executionId ? { path: ["executionId"], equals: executionId } : {}),
-    };
-
-    if (executionId && actor) {
-      where.AND = [
-        { metadata: { path: ["executionId"], equals: executionId } },
-        { metadata: { path: ["actor"], string_contains: actor } },
-      ];
-    } else if (executionId) {
-      where.metadata = { path: ["executionId"], equals: executionId };
-    } else if (actor) {
-      where.metadata = { path: ["actor"], string_contains: actor };
-    }
+  if (executionId && actor) {
+    where.AND = [
+      { metadata: { path: ["executionId"], equals: executionId } },
+      { metadata: { path: ["actor"], string_contains: actor } },
+    ];
+  } else if (executionId) {
+    where.metadata = { path: ["executionId"], equals: executionId };
+  } else if (actor) {
+    where.metadata = { path: ["actor"], string_contains: actor };
   }
 
   return db.workflowAuditLog.findMany({
     where,
-    orderBy: { timestamp: "desc" },
+    orderBy: { createdAt: "desc" },
     take: limit,
     skip: offset,
   });
@@ -233,7 +227,7 @@ export const getRecentExecutionErrors = (
         ],
       },
     },
-    orderBy: { timestamp: "desc" },
+    orderBy: { createdAt: "desc" },
     take: limit,
   });
 
@@ -266,12 +260,12 @@ export const countExecutionAuditLogsByAction = async (
   };
 
   if (startDate || endDate) {
-    where.timestamp = {};
+    where.createdAt = {};
     if (startDate) {
-      where.timestamp.gte = startDate;
+      where.createdAt.gte = startDate;
     }
     if (endDate) {
-      where.timestamp.lte = endDate;
+      where.createdAt.lte = endDate;
     }
   }
 

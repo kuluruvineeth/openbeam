@@ -34,7 +34,7 @@ describe("workflow audit mutations", () => {
       expect(mockDb.workflowAuditLog.create).toHaveBeenCalledTimes(1);
     });
 
-    it("uses current timestamp when not provided", async () => {
+    it("defaults metadata to empty object when not provided", async () => {
       const mockDb = createMockDb();
       await createWorkflowAuditLog(
         mockDb as unknown as Parameters<typeof createWorkflowAuditLog>[0],
@@ -46,8 +46,11 @@ describe("workflow audit mutations", () => {
       );
 
       const createCall = mockDb.workflowAuditLog.create.mock.calls[0];
-      const data = createCall?.[0]?.data as Record<string, unknown>;
-      expect(data.timestamp).toBeInstanceOf(Date);
+      const data = (createCall?.[0] as Record<string, unknown>)?.data as Record<
+        string,
+        unknown
+      >;
+      expect(data.metadata).toEqual({});
     });
   });
 
@@ -91,13 +94,14 @@ describe("workflow audit mutations", () => {
   });
 
   describe("deleteWorkflowAuditLogsByWorkflow", () => {
-    it("deletes all logs for a workflow", async () => {
+    it("deletes all logs for a workflow scoped by team", async () => {
       const mockDb = createMockDb();
 
       const result = await deleteWorkflowAuditLogsByWorkflow(
         mockDb as unknown as Parameters<
           typeof deleteWorkflowAuditLogsByWorkflow
         >[0],
+        "team_456",
         "workflow_123"
       );
 
@@ -106,6 +110,7 @@ describe("workflow audit mutations", () => {
 
       const deleteCall = mockDb.workflowAuditLog.deleteMany.mock.calls[0];
       const where = deleteCall?.[0]?.where as Record<string, unknown>;
+      expect(where.teamId).toBe("team_456");
       expect(where.workflowId).toBe("workflow_123");
     });
   });

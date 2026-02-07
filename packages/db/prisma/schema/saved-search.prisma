@@ -1,23 +1,23 @@
 model SavedSearch {
-  id            String   @id @default(cuid()) @map("_id")
-  teamId        String
-  userId        String
+  id     String @id @default(cuid()) @map("_id")
+  teamId String
+  userId String
 
-  name          String
-  query         String
+  name  String
+  query String
 
-  filters       Json     @default("{}")
-  sortBy        String?
-  sortOrder     String?
+  filters   Json    @default("{}")
+  sortBy    String?
+  sortOrder String?
 
-  isPinned      Boolean  @default(false)
-  usageCount    Int      @default(0)
-  lastUsedAt    DateTime?
+  isPinned   Boolean   @default(false)
+  usageCount Int       @default(0)
+  lastUsedAt DateTime?
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  team          Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@unique([teamId, userId, name])
   @@index([teamId, userId])
@@ -26,30 +26,30 @@ model SavedSearch {
 }
 
 model ShareLink {
-  id            String    @id @default(cuid()) @map("_id")
-  teamId        String
-  userId        String
+  id     String @id @default(cuid()) @map("_id")
+  teamId String
+  userId String
 
-  documentId    String
+  documentId String
 
-  accessType    String    @default("view")
+  accessType String @default("view")
 
-  expiresAt     DateTime?
-  maxViews      Int?
-  viewCount     Int       @default(0)
+  expiresAt DateTime?
+  maxViews  Int?
+  viewCount Int       @default(0)
 
-  password      String?
+  password String?
 
-  isActive      Boolean   @default(true)
-  revokedAt     DateTime?
-  revokedBy     String?
+  isActive  Boolean   @default(true)
+  revokedAt DateTime?
+  revokedBy String?
 
   lastAccessedAt DateTime?
 
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  team          Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@index([teamId, documentId])
   @@index([userId])

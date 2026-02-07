@@ -51,62 +51,62 @@ enum SyncEventType {
 }
 
 model SyncJob {
-  id                  String          @id @default(cuid()) @map("_id")
-  connectorId         String
-  
-  jobType             String          @default("sync")  // "sync", "backfill", "repair", "delete"
-  
-  type                SyncCategory
-  status              SyncJobStatus   @default(PENDING)
-  trigger             SyncTrigger     @default(SCHEDULED)
-  config              Json            @default("{}")
+  id          String @id @default(cuid()) @map("_id")
+  connectorId String
+
+  jobType String @default("sync") // "sync", "backfill", "repair", "delete"
+
+  type    SyncCategory
+  status  SyncJobStatus @default(PENDING)
+  trigger SyncTrigger   @default(SCHEDULED)
+  config  Json          @default("{}")
   // { resources: [...], filters: {...}, options: {...} }
-  
-  schedule            String?        
-  priority            Int             @default(5)  // 1-10, higher = more urgent
-  
-  fenceToken          Int?            // Monotonic token for fencing protocol
-  lockId              String?         
-  lockExpiresAt       DateTime?
-  
-  rateLimitConfig     Json?
-  rateLimitedUntil    DateTime?
 
-  progress            Float           @default(0) 
-  currentPhase        String?         
-  currentResource     String?         
-  
-  itemsTotal          Int             @default(0)
-  itemsProcessed      Int             @default(0)
-  itemsFailed         Int             @default(0)
-  
-  scheduledAt         DateTime?
-  queuedAt            DateTime?
-  startedAt           DateTime?
-  completedAt         DateTime?
-  
-  lastRanAt           DateTime?
-  nextRunAt           DateTime?
-  
-  timeoutMs           Int             @default(3600000)  
-  
-  errorMessage        String?
-  errorCode           String?
-  errorStack          String?
-  retryCount          Int             @default(0)
-  maxRetries          Int             @default(3)
-  retryAfter          DateTime?
-  
-  checkpoint          Json?           
-  lastCheckpointAt    DateTime?
-  
-  createdAt           DateTime        @default(now())
-  updatedAt           DateTime        @updatedAt
-  deletedAt           DateTime?
+  schedule String?
+  priority Int     @default(5) // 1-10, higher = more urgent
 
-  connector           Connector       @relation(fields: [connectorId], references: [id], onDelete: Cascade)
-  history             SyncHistory[]
-  events              SyncEvent[]
+  fenceToken    Int? // Monotonic token for fencing protocol
+  lockId        String?
+  lockExpiresAt DateTime?
+
+  rateLimitConfig  Json?
+  rateLimitedUntil DateTime?
+
+  progress        Float   @default(0)
+  currentPhase    String?
+  currentResource String?
+
+  itemsTotal     Int @default(0)
+  itemsProcessed Int @default(0)
+  itemsFailed    Int @default(0)
+
+  scheduledAt DateTime?
+  queuedAt    DateTime?
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  lastRanAt DateTime?
+  nextRunAt DateTime?
+
+  timeoutMs Int @default(3600000)
+
+  errorMessage String?
+  errorCode    String?
+  errorStack   String?
+  retryCount   Int       @default(0)
+  maxRetries   Int       @default(3)
+  retryAfter   DateTime?
+
+  checkpoint       Json?
+  lastCheckpointAt DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  connector Connector     @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+  history   SyncHistory[]
+  events    SyncEvent[]
 
   @@index([connectorId])
   @@index([status])
@@ -118,49 +118,49 @@ model SyncJob {
 }
 
 model SyncHistory {
-  id                  String          @id @default(cuid()) @map("_id")
-  syncJobId           String
-  connectorId         String
+  id          String @id @default(cuid()) @map("_id")
+  syncJobId   String
+  connectorId String
 
-  executionId         String          @unique @default(cuid())
-  status              SyncJobStatus
-  trigger             SyncTrigger
+  executionId String        @unique @default(cuid())
+  status      SyncJobStatus
+  trigger     SyncTrigger
 
-  dataAdded           Int             @default(0)
-  dataUpdated         Int             @default(0)
-  dataDeleted         Int             @default(0)
-  dataSkipped         Int             @default(0)
-  dataFailed          Int             @default(0)
+  dataAdded   Int @default(0)
+  dataUpdated Int @default(0)
+  dataDeleted Int @default(0)
+  dataSkipped Int @default(0)
+  dataFailed  Int @default(0)
 
-  documentsAdded      Int             @default(0)
-  documentsUpdated    Int             @default(0)
-  documentsRemoved    Int             @default(0)
-  filesDiscovered     Int             @default(0)
-  mediaDiscovered     Int             @default(0)
+  documentsAdded   Int @default(0)
+  documentsUpdated Int @default(0)
+  documentsRemoved Int @default(0)
+  filesDiscovered  Int @default(0)
+  mediaDiscovered  Int @default(0)
 
-  bytesProcessed      BigInt          @default(0)
+  bytesProcessed BigInt @default(0)
 
-  summary             Json            @default("{}")
+  summary Json @default("{}")
 
-  errorMessage        String?
-  errorCode           String?
-  errors              Json            @default("[]")
+  errorMessage String?
+  errorCode    String?
+  errors       Json    @default("[]")
 
-  startedAt           DateTime        @default(now())
-  finishedAt          DateTime?
-  durationMs          Int?
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+  durationMs Int?
 
-  fetchTimeMs         Int?
-  processTimeMs       Int?
-  indexTimeMs         Int?
+  fetchTimeMs   Int?
+  processTimeMs Int?
+  indexTimeMs   Int?
 
-  resourcesSynced     String[]        @default([])
+  resourcesSynced String[] @default([])
 
-  apiCallsMade        Int             @default(0)
-  rateLimitHits       Int             @default(0)
+  apiCallsMade  Int @default(0)
+  rateLimitHits Int @default(0)
 
-  syncJob             SyncJob         @relation(fields: [syncJobId], references: [id], onDelete: Cascade)
-  connector           Connector       @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+  syncJob   SyncJob   @relation(fields: [syncJobId], references: [id], onDelete: Cascade)
+  connector Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
 
   @@index([syncJobId])
   @@index([connectorId])
@@ -171,21 +171,21 @@ model SyncHistory {
 }
 
 model SyncCursor {
-  id            String   @id @default(cuid()) @map("_id")
-  connectorId   String
-  
-  resource      String   // "messages", "files", "users", "channel:C123"
-  resourceType  String?  // "channel", "folder", "repository"
-  
-  cursor        String?  // API cursor, timestamp, or offset
-  cursorType    String   @default("timestamp")  // "timestamp", "offset", "cursor", "sync_token"
-  
-  lastSyncedAt  DateTime @default(now())
-  lastDocumentId String?
-  
-  metadata      Json     @default("{}")
+  id          String @id @default(cuid()) @map("_id")
+  connectorId String
 
-  connector     Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+  resource     String // "messages", "files", "users", "channel:C123"
+  resourceType String? // "channel", "folder", "repository"
+
+  cursor     String? // API cursor, timestamp, or offset
+  cursorType String  @default("timestamp") // "timestamp", "offset", "cursor", "sync_token"
+
+  lastSyncedAt   DateTime @default(now())
+  lastDocumentId String?
+
+  metadata Json @default("{}")
+
+  connector Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
 
   @@unique([connectorId, resource])
   @@index([connectorId])
@@ -193,24 +193,24 @@ model SyncCursor {
 }
 
 model ConnectorAuditLog {
-  id          String   @id @default(cuid()) @map("_id")
+  id          String @id @default(cuid()) @map("_id")
   connectorId String
   userId      String
-  
-  action      String   // "created", "updated", "deleted", "paused", "resumed", "synced", "configured"
-  
-  changes     Json     @default("{}")
-  // { field: "syncConfig", old: {...}, new: {...} }
-  
-  ipAddress   String?
-  userAgent   String?
-  
-  success     Boolean  @default(true)
-  errorMessage String?
-  
-  createdAt   DateTime @default(now())
 
-  connector   Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+  action String // "created", "updated", "deleted", "paused", "resumed", "synced", "configured"
+
+  changes Json @default("{}")
+  // { field: "syncConfig", old: {...}, new: {...} }
+
+  ipAddress String?
+  userAgent String?
+
+  success      Boolean @default(true)
+  errorMessage String?
+
+  createdAt DateTime @default(now())
+
+  connector Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
 
   @@index([connectorId])
   @@index([userId])
@@ -220,39 +220,39 @@ model ConnectorAuditLog {
 }
 
 model IndexedDocument {
-  id              String   @id @default(cuid()) @map("_id")
-  connectorId     String
-  
-  externalId      String   // Connector's document ID
-  vespaId         String   @unique
-  
-  documentType    String   // "message", "file", "page", "issue", etc.
+  id          String @id @default(cuid()) @map("_id")
+  connectorId String
+
+  externalId String // Connector's document ID
+  vespaId    String @unique
+
+  documentType    String // "message", "file", "page", "issue", etc.
   documentSubtype String?
-  
-  sourceId        String?  // Channel, folder, database ID
-  sourcePath      String?
-  parentId        String?
-  
-  checksum        String?  // SHA-256 of content
-  lastChecksum    String?
-  contentLength   Int?
-  
-  indexedAt       DateTime @default(now())
-  lastSyncedAt    DateTime @updatedAt
-  syncVersion     Int      @default(1)
-  
-  deletedFromSource Boolean @default(false)
-  deletedAt        DateTime?
-  
+
+  sourceId   String? // Channel, folder, database ID
+  sourcePath String?
+  parentId   String?
+
+  checksum      String? // SHA-256 of content
+  lastChecksum  String?
+  contentLength Int?
+
+  indexedAt    DateTime @default(now())
+  lastSyncedAt DateTime @updatedAt
+  syncVersion  Int      @default(1)
+
+  deletedFromSource Boolean   @default(false)
+  deletedAt         DateTime?
+
   title           String?
   authorId        String?
   createdAtSource DateTime?
   updatedAtSource DateTime?
-  
-  metadata        Json     @default("{}")
-  
-  connector       Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
-  
+
+  metadata Json @default("{}")
+
+  connector Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+
   @@unique([connectorId, externalId])
   @@index([connectorId, documentType])
   @@index([connectorId, checksum])
@@ -266,24 +266,24 @@ model IndexedDocument {
 }
 
 model SyncEvent {
-  id              String          @id @default(cuid()) @map("_id")
-  syncJobId       String
-  
-  eventType       SyncEventType
-  message         String?
-  
-  resource        String?
-  documentId      String?
-  
-  details         Json            @default("{}")
-  
-  errorCode       String?
-  errorMessage    String?
-  
-  createdAt       DateTime        @default(now())
-  
-  syncJob         SyncJob         @relation(fields: [syncJobId], references: [id], onDelete: Cascade)
-  
+  id        String @id @default(cuid()) @map("_id")
+  syncJobId String
+
+  eventType SyncEventType
+  message   String?
+
+  resource   String?
+  documentId String?
+
+  details Json @default("{}")
+
+  errorCode    String?
+  errorMessage String?
+
+  createdAt DateTime @default(now())
+
+  syncJob SyncJob @relation(fields: [syncJobId], references: [id], onDelete: Cascade)
+
   @@index([syncJobId])
   @@index([eventType])
   @@index([createdAt])
@@ -291,32 +291,32 @@ model SyncEvent {
 }
 
 model SyncDeadLetter {
-  id              String   @id @default(cuid()) @map("_id")
-  connectorId     String
-  syncJobId       String?
-  
-  externalId      String
-  documentType    String
-  
-  rawData         Json?
-  
-  errorType       String   // "validation", "transform", "index", "permission"
-  errorMessage    String
-  errorStack      String?
-  
-  retryCount      Int      @default(0)
-  maxRetries      Int      @default(3)
-  lastRetryAt     DateTime?
-  nextRetryAt     DateTime?
-  
-  status          String   @default("pending")  // "pending", "retrying", "resolved", "abandoned"
-  resolvedAt      DateTime?
-  resolvedBy      String?
-  resolution      String?  // "retried", "skipped", "manual_fix"
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
+  id          String  @id @default(cuid()) @map("_id")
+  connectorId String
+  syncJobId   String?
+
+  externalId   String
+  documentType String
+
+  rawData Json?
+
+  errorType    String // "validation", "transform", "index", "permission"
+  errorMessage String
+  errorStack   String?
+
+  retryCount  Int       @default(0)
+  maxRetries  Int       @default(3)
+  lastRetryAt DateTime?
+  nextRetryAt DateTime?
+
+  status     String    @default("pending") // "pending", "retrying", "resolved", "abandoned"
+  resolvedAt DateTime?
+  resolvedBy String?
+  resolution String? // "retried", "skipped", "manual_fix"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([connectorId])
   @@index([status])
   @@index([nextRetryAt])
@@ -348,20 +348,20 @@ enum MediaProcessingStatus {
 }
 
 model IndexedFile {
-  id               String               @id @default(cuid()) @map("_id")
-  connectorId      String
-  vespaId          String               @unique
-  externalId       String
-  sourceMessageId  String?
-  sourceChannelId  String?
+  id              String  @id @default(cuid()) @map("_id")
+  connectorId     String
+  vespaId         String  @unique
+  externalId      String
+  sourceMessageId String?
+  sourceChannelId String?
 
-  fileName         String
-  mimeType         String
-  fileSize         Int
-  fileExtension    String?
+  fileName      String
+  mimeType      String
+  fileSize      Int
+  fileExtension String?
 
-  storageKey       String               @unique
-  storageUrl       String?
+  storageKey String  @unique
+  storageUrl String?
 
   processingStatus FileProcessingStatus @default(PENDING)
   extractedText    Boolean              @default(false)
@@ -369,18 +369,18 @@ model IndexedFile {
   pageCount        Int?
   chunkCount       Int?
 
-  lastError        String?
-  errorCount       Int                  @default(0)
-  checksum         String?
+  lastError  String?
+  errorCount Int     @default(0)
+  checksum   String?
 
-  uploadedAt       DateTime?
-  processedAt      DateTime?
-  indexedAt        DateTime?
-  createdAt        DateTime             @default(now())
-  updatedAt        DateTime             @updatedAt
+  uploadedAt  DateTime?
+  processedAt DateTime?
+  indexedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-  connector        Connector            @relation(fields: [connectorId], references: [id], onDelete: Cascade)
-  chunks           IndexedChunk[]
+  connector Connector      @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+  chunks    IndexedChunk[]
 
   @@unique([connectorId, externalId])
   @@index([processingStatus])
@@ -391,21 +391,21 @@ model IndexedFile {
 }
 
 model IndexedChunk {
-  id              String      @id @default(cuid()) @map("_id")
-  fileId          String
-  connectorId     String
+  id          String @id @default(cuid()) @map("_id")
+  fileId      String
+  connectorId String
 
-  vespaId         String      @unique
+  vespaId String @unique
 
-  chunkIndex      Int
+  chunkIndex Int
 
-  checksum        String?
-  contentLength   Int?
+  checksum      String?
+  contentLength Int?
 
-  indexedAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  indexedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  file            IndexedFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  file IndexedFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
 
   @@unique([fileId, chunkIndex])
   @@index([connectorId])
@@ -414,38 +414,38 @@ model IndexedChunk {
 }
 
 model IndexedMedia {
-  id                  String                @id @default(cuid()) @map("_id")
-  connectorId         String
-  vespaId             String                @unique
-  externalId          String
+  id          String @id @default(cuid()) @map("_id")
+  connectorId String
+  vespaId     String @unique
+  externalId  String
 
-  mediaType           String                @default("video")
-  sourceMessageId     String?
-  sourceChannelId     String?
-  fileName            String
-  mimeType            String
-  fileSize            Int
-  fileExtension       String?
+  mediaType       String  @default("video")
+  sourceMessageId String?
+  sourceChannelId String?
+  fileName        String
+  mimeType        String
+  fileSize        Int
+  fileExtension   String?
 
-  storageKey          String                @unique
-  storageUrl          String?
+  storageKey String  @unique
+  storageUrl String?
 
-  twelveLabsIndexId   String?
-  twelveLabsAssetId   String?
+  twelveLabsIndexId String?
+  twelveLabsAssetId String?
 
-  processingStatus    MediaProcessingStatus @default(PENDING)
-  durationSeconds     Int?
-  thumbnailUrl        String?
+  processingStatus MediaProcessingStatus @default(PENDING)
+  durationSeconds  Int?
+  thumbnailUrl     String?
 
-  lastError           String?
-  errorCount          Int                   @default(0)
+  lastError  String?
+  errorCount Int     @default(0)
 
-  uploadedAt          DateTime?
-  indexedAt           DateTime?
-  createdAt           DateTime              @default(now())
-  updatedAt           DateTime              @updatedAt
+  uploadedAt DateTime?
+  indexedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
-  connector           Connector             @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+  connector Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
 
   @@unique([connectorId, externalId])
   @@index([processingStatus])
@@ -454,4 +454,3 @@ model IndexedMedia {
   @@index([connectorId, sourceChannelId, processingStatus, indexedAt(sort: Desc)])
   @@map("indexed_media")
 }
-

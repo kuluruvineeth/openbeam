@@ -1,7 +1,4 @@
 -- CreateEnum
-CREATE TYPE "AgentCanvasRole" AS ENUM ('VIEWER', 'EXECUTOR', 'EDITOR', 'OWNER');
-
--- CreateEnum
 CREATE TYPE "MissionStatus" AS ENUM ('DRAFT', 'ACTIVE', 'PAUSED', 'COMPLETED', 'CANCELLED', 'ARCHIVED');
 
 -- CreateEnum
@@ -14,42 +11,7 @@ CREATE TYPE "MissionTaskPriority" AS ENUM ('P0', 'P1', 'P2', 'P3');
 CREATE TYPE "MissionRunStatus" AS ENUM ('QUEUED', 'RUNNING', 'COMPLETED', 'FAILED', 'CANCELLED', 'TIMED_OUT');
 
 -- AlterTable
-ALTER TABLE "agent_canvas" ADD COLUMN     "isPublic" BOOLEAN NOT NULL DEFAULT true;
-
--- AlterTable
-ALTER TABLE "agent_canvas_approval" ADD COLUMN     "escalatedAt" TIMESTAMP(3),
-ADD COLUMN     "escalatedTo" TEXT,
-ADD COLUMN     "reminderSentAt" TIMESTAMP(3);
-
--- AlterTable
-ALTER TABLE "agent_canvas_execution" ADD COLUMN     "evalDimensions" JSONB,
-ADD COLUMN     "evalFlags" TEXT[],
-ADD COLUMN     "evalScore" INTEGER;
-
--- CreateTable
-CREATE TABLE "agent_canvas_permission" (
-    "_id" TEXT NOT NULL,
-    "canvasId" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "role" "AgentCanvasRole" NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "agent_canvas_permission_pkey" PRIMARY KEY ("_id")
-);
-
--- CreateTable
-CREATE TABLE "agent_policy" (
-    "_id" TEXT NOT NULL,
-    "teamId" TEXT NOT NULL,
-    "policy" JSONB NOT NULL,
-    "enabled" BOOLEAN NOT NULL DEFAULT true,
-    "createdBy" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "agent_policy_pkey" PRIMARY KEY ("_id")
-);
+ALTER TABLE "agent_canvas_execution" ALTER COLUMN "trace" SET DEFAULT '{}';
 
 -- CreateTable
 CREATE TABLE "mission" (
@@ -181,21 +143,6 @@ CREATE TABLE "workflow_audit_log" (
 );
 
 -- CreateIndex
-CREATE INDEX "agent_canvas_permission_canvasId_idx" ON "agent_canvas_permission"("canvasId");
-
--- CreateIndex
-CREATE INDEX "agent_canvas_permission_userId_idx" ON "agent_canvas_permission"("userId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "agent_canvas_permission_canvasId_userId_key" ON "agent_canvas_permission"("canvasId", "userId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "agent_policy_teamId_key" ON "agent_policy"("teamId");
-
--- CreateIndex
-CREATE INDEX "agent_policy_teamId_idx" ON "agent_policy"("teamId");
-
--- CreateIndex
 CREATE INDEX "mission_teamId_status_updatedAt_idx" ON "mission"("teamId", "status", "updatedAt" DESC);
 
 -- CreateIndex
@@ -253,13 +200,7 @@ CREATE INDEX "agent_canvas_execution_agentCanvasId_status_idx" ON "agent_canvas_
 CREATE INDEX "agent_canvas_execution_agentCanvasId_createdAt_idx" ON "agent_canvas_execution"("agentCanvasId", "createdAt" DESC);
 
 -- AddForeignKey
-ALTER TABLE "agent_canvas_permission" ADD CONSTRAINT "agent_canvas_permission_canvasId_fkey" FOREIGN KEY ("canvasId") REFERENCES "agent_canvas"("_id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "agent_canvas_permission" ADD CONSTRAINT "agent_canvas_permission_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("_id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "agent_policy" ADD CONSTRAINT "agent_policy_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "team"("_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "mission" ADD CONSTRAINT "mission_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "team"("_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "mission_agent" ADD CONSTRAINT "mission_agent_missionId_fkey" FOREIGN KEY ("missionId") REFERENCES "mission"("_id") ON DELETE CASCADE ON UPDATE CASCADE;

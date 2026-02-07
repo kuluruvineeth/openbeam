@@ -1,15 +1,15 @@
 model WorkflowAuditLog {
-  id          String   @id @default(cuid()) @map("_id")
-  timestamp   DateTime @default(now())
-  workflowId  String
-  runId       String?
-  teamId      String
-  userId      String?
-  action      String
-  metadata    Json?
-  createdAt   DateTime @default(now())
+  id         String   @id @default(cuid()) @map("_id")
+  timestamp  DateTime @default(now())
+  workflowId String
+  runId      String?
+  teamId     String
+  userId     String?
+  action     String
+  metadata   Json?
+  createdAt  DateTime @default(now())
 
-  team        Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@index([teamId, timestamp])
   @@index([workflowId])

@@ -23,8 +23,8 @@ export async function createUserSearchProfile(
       userId: data.userId,
       teamId: data.teamId,
       department: data.department,
-      queryEmbedding: data.queryEmbedding as Uint8Array | undefined,
-      docEmbedding: data.docEmbedding as Uint8Array | undefined,
+      queryEmbedding: data.queryEmbedding,
+      docEmbedding: data.docEmbedding,
       recentQueries: data.recentQueries as object[] | undefined,
       recentClicks: data.recentClicks as object[] | undefined,
       connectorWeights: data.connectorWeights as object | undefined,
@@ -53,7 +53,7 @@ export async function updateQueryEmbedding(
       userId_teamId: { userId, teamId },
     },
     data: {
-      queryEmbedding: data.queryEmbedding as Uint8Array,
+      queryEmbedding: data.queryEmbedding,
       recentQueries: data.recentQueries as object[],
       embeddingVersion: { increment: 1 },
       lastEmbeddingAt: new Date(),
@@ -83,7 +83,7 @@ export async function updateDocEmbedding(
       userId_teamId: { userId, teamId },
     },
     data: {
-      docEmbedding: data.docEmbedding as Uint8Array,
+      docEmbedding: data.docEmbedding,
       recentClicks: data.recentClicks as object[],
       connectorWeights: data.connectorWeights as object,
       authorInteractions: data.authorInteractions as object,

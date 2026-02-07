@@ -12,35 +12,35 @@ enum AgentTriggerType {
 }
 
 model AgentCanvas {
-  id            String              @id @default(cuid()) @map("_id")
-  name          String
-  description   String?
-  icon          String?
-  status        AgentCanvasStatus   @default(DRAFT)
-  version       Int                 @default(1)
+  id          String            @id @default(cuid()) @map("_id")
+  name        String
+  description String?
+  icon        String?
+  status      AgentCanvasStatus @default(DRAFT)
+  version     Int               @default(1)
 
-  nodes         Json
-  edges         Json
-  viewport      Json?
+  nodes    Json
+  edges    Json
+  viewport Json?
 
-  settings      Json?
-  permissions   Json?
+  settings    Json?
+  permissions Json?
 
   triggerId     String?
   triggerType   AgentTriggerType?
   triggerConfig Json?
 
-  teamId        String
-  team          Team                @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  createdById   String
-  createdBy     User                @relation("AgentCanvasCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  teamId      String
+  team        Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  createdById String
+  createdBy   User   @relation("AgentCanvasCreator", fields: [createdById], references: [id], onDelete: Restrict)
 
-  versions      AgentCanvasVersion[]
-  executions    AgentCanvasExecution[]
+  versions   AgentCanvasVersion[]
+  executions AgentCanvasExecution[]
 
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
-  publishedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  publishedAt DateTime?
 
   @@index([teamId])
   @@index([createdById])
@@ -49,22 +49,22 @@ model AgentCanvas {
 }
 
 model AgentCanvasVersion {
-  id            String        @id @default(cuid()) @map("_id")
-  version       Int
+  id      String @id @default(cuid()) @map("_id")
+  version Int
 
   agentCanvasId String
-  agentCanvas   AgentCanvas   @relation(fields: [agentCanvasId], references: [id], onDelete: Cascade)
+  agentCanvas   AgentCanvas @relation(fields: [agentCanvasId], references: [id], onDelete: Cascade)
 
-  nodes         Json
-  edges         Json
-  viewport      Json?
-  settings      Json?
+  nodes    Json
+  edges    Json
+  viewport Json?
+  settings Json?
 
-  changelog     String?
-  createdById   String
-  createdBy     User          @relation("AgentCanvasVersionCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  changelog   String?
+  createdById String
+  createdBy   User    @relation("AgentCanvasVersionCreator", fields: [createdById], references: [id], onDelete: Restrict)
 
-  createdAt     DateTime      @default(now())
+  createdAt DateTime @default(now())
 
   @@unique([agentCanvasId, version])
   @@index([agentCanvasId])
@@ -83,41 +83,41 @@ enum AgentCanvasExecutionStatus {
 }
 
 model AgentCanvasExecution {
-  id              String                      @id @default(cuid()) @map("_id")
+  id String @id @default(cuid()) @map("_id")
 
-  agentCanvasId   String
-  agentCanvas     AgentCanvas                 @relation(fields: [agentCanvasId], references: [id], onDelete: Cascade)
+  agentCanvasId String
+  agentCanvas   AgentCanvas @relation(fields: [agentCanvasId], references: [id], onDelete: Cascade)
 
-  versionNumber   Int
-  status          AgentCanvasExecutionStatus  @default(PENDING)
-  workflowId      String?
-  runId           String?
-  temporalStatus  String?
-  historyEventCount Int?
-  historySizeBytes Int?
+  versionNumber      Int
+  status             AgentCanvasExecutionStatus @default(PENDING)
+  workflowId         String?
+  runId              String?
+  temporalStatus     String?
+  historyEventCount  Int?
+  historySizeBytes   Int?
   continueAsNewCount Int?
 
-  input           Json?
-  output          Json?
-  error           String?
+  input  Json?
+  output Json?
+  error  String?
 
-  currentNodeId   String?
-  trace           Json
+  currentNodeId String?
+  trace         Json     @default("{}")
 
-  tokenUsage      Json?
-  latencyMs       Int?
+  tokenUsage Json?
+  latencyMs  Int?
 
-  triggeredById   String
-  triggeredBy     User                        @relation("AgentCanvasExecutor", fields: [triggeredById], references: [id], onDelete: Restrict)
-  triggerSource   String?
+  triggeredById String
+  triggeredBy   User    @relation("AgentCanvasExecutor", fields: [triggeredById], references: [id], onDelete: Restrict)
+  triggerSource String?
 
-  startedAt       DateTime?
-  completedAt     DateTime?
-  createdAt       DateTime                    @default(now())
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
 
-  steps           AgentCanvasExecutionStep[]
-  approvals       AgentCanvasApproval[]
-  payloads        AgentCanvasExecutionData[]
+  steps     AgentCanvasExecutionStep[]
+  approvals AgentCanvasApproval[]
+  payloads  AgentCanvasExecutionData[]
 
   @@index([agentCanvasId])
   @@index([status])
@@ -129,26 +129,26 @@ model AgentCanvasExecution {
 }
 
 model AgentCanvasExecutionStep {
-  id              String                    @id @default(cuid()) @map("_id")
+  id String @id @default(cuid()) @map("_id")
 
-  executionId     String
-  execution       AgentCanvasExecution      @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  executionId String
+  execution   AgentCanvasExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
 
-  nodeId          String
-  nodeType        String
+  nodeId   String
+  nodeType String
 
-  status          AgentCanvasExecutionStatus
+  status AgentCanvasExecutionStatus
 
-  input           Json?
-  output          Json?
-  error           String?
+  input  Json?
+  output Json?
+  error  String?
 
-  tokenUsage      Json?
-  latencyMs       Int?
+  tokenUsage Json?
+  latencyMs  Int?
 
-  startedAt       DateTime?
-  completedAt     DateTime?
-  createdAt       DateTime                  @default(now())
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
 
   @@index([executionId])
   @@index([nodeId])
@@ -156,17 +156,17 @@ model AgentCanvasExecutionStep {
 }
 
 model AgentCanvasExecutionData {
-  id              String                    @id @default(cuid()) @map("_id")
+  id String @id @default(cuid()) @map("_id")
 
-  executionId     String
-  execution       AgentCanvasExecution      @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  executionId String
+  execution   AgentCanvasExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
 
-  nodeId          String?
-  contentType     String?
-  payload         Json
-  sizeBytes       Int?
+  nodeId      String?
+  contentType String?
+  payload     Json
+  sizeBytes   Int?
 
-  createdAt       DateTime                  @default(now())
+  createdAt DateTime @default(now())
 
   @@index([executionId])
   @@index([nodeId])
@@ -181,23 +181,23 @@ enum AgentCanvasApprovalStatus {
 }
 
 model AgentCanvasApproval {
-  id              String                      @id @default(cuid()) @map("_id")
+  id String @id @default(cuid()) @map("_id")
 
-  executionId     String
-  execution       AgentCanvasExecution        @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  executionId String
+  execution   AgentCanvasExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
 
-  nodeId          String
-  status          AgentCanvasApprovalStatus   @default(PENDING)
+  nodeId String
+  status AgentCanvasApprovalStatus @default(PENDING)
 
   requestMessage  String?
   responseMessage String?
 
-  requestedAt     DateTime                    @default(now())
-  respondedAt     DateTime?
-  expiresAt       DateTime?
+  requestedAt DateTime  @default(now())
+  respondedAt DateTime?
+  expiresAt   DateTime?
 
-  respondedById   String?
-  respondedBy     User?                       @relation("AgentCanvasApprover", fields: [respondedById], references: [id], onDelete: SetNull)
+  respondedById String?
+  respondedBy   User?   @relation("AgentCanvasApprover", fields: [respondedById], references: [id], onDelete: SetNull)
 
   @@index([executionId])
   @@index([status])
@@ -206,31 +206,31 @@ model AgentCanvasApproval {
 }
 
 model AgentCanvasTemplate {
-  id                  String    @id @default(cuid()) @map("_id")
-  name                String
-  description         String?
-  icon                String?
-  category            String
+  id          String  @id @default(cuid()) @map("_id")
+  name        String
+  description String?
+  icon        String?
+  category    String
 
-  nodes               Json
-  edges               Json
-  settings            Json?
+  nodes    Json
+  edges    Json
+  settings Json?
 
-  requiredConnectors  String[]
-  requiredTools       String[]
-  variables           Json?
+  requiredConnectors String[]
+  requiredTools      String[]
+  variables          Json?
 
-  isPublic            Boolean   @default(false)
+  isPublic Boolean @default(false)
 
-  teamId              String?
-  team                Team?     @relation(fields: [teamId], references: [id], onDelete: SetNull)
-  createdById         String
-  createdBy           User      @relation("AgentCanvasTemplateCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  teamId      String?
+  team        Team?   @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  createdById String
+  createdBy   User    @relation("AgentCanvasTemplateCreator", fields: [createdById], references: [id], onDelete: Restrict)
 
-  usageCount          Int       @default(0)
+  usageCount Int @default(0)
 
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([category])
   @@index([isPublic])

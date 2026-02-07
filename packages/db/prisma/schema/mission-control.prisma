@@ -36,6 +36,7 @@ enum MissionRunStatus {
 model Mission {
   id                   String        @id @default(cuid()) @map("_id")
   teamId               String
+  team                 Team          @relation(fields: [teamId], references: [id], onDelete: Cascade)
   createdById          String
   name                 String
   objective            String        @db.Text

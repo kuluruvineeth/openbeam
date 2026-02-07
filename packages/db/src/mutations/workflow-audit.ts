@@ -37,7 +37,6 @@ export type AgentAuditAction =
   | "budget_exceeded";
 
 export interface CreateWorkflowAuditLogInput {
-  timestamp?: Date;
   workflowId: string;
   runId?: string;
   teamId: string;
@@ -52,7 +51,6 @@ export const createWorkflowAuditLog = (
 ): Promise<WorkflowAuditLog> =>
   db.workflowAuditLog.create({
     data: {
-      timestamp: data.timestamp ?? new Date(),
       workflowId: data.workflowId,
       runId: data.runId,
       teamId: data.teamId,
@@ -68,7 +66,6 @@ export const createWorkflowAuditLogs = (
 ): Promise<{ count: number }> =>
   db.workflowAuditLog.createMany({
     data: data.map((d) => ({
-      timestamp: d.timestamp ?? new Date(),
       workflowId: d.workflowId,
       runId: d.runId,
       teamId: d.teamId,
@@ -97,7 +94,6 @@ export const createExecutionLifecycleLog = (
 ): Promise<WorkflowAuditLog> =>
   db.workflowAuditLog.create({
     data: {
-      timestamp: new Date(),
       workflowId: params.workflowId,
       teamId: params.teamId,
       userId: params.triggeredBy.startsWith("user:")
@@ -130,7 +126,6 @@ export const createToolCallLog = (
 ): Promise<WorkflowAuditLog> =>
   db.workflowAuditLog.create({
     data: {
-      timestamp: new Date(),
       workflowId: params.workflowId,
       teamId: params.teamId,
       action: params.action,
@@ -164,7 +159,6 @@ export const createApprovalLog = (
 ): Promise<WorkflowAuditLog> =>
   db.workflowAuditLog.create({
     data: {
-      timestamp: new Date(),
       workflowId: params.workflowId,
       teamId: params.teamId,
       userId: params.respondedBy,
@@ -196,7 +190,6 @@ export const createNodeExecutionLog = (
 ): Promise<WorkflowAuditLog> =>
   db.workflowAuditLog.create({
     data: {
-      timestamp: new Date(),
       workflowId: params.workflowId,
       teamId: params.teamId,
       action: params.action,
@@ -229,7 +222,6 @@ export const createPolicyLog = (
 ): Promise<WorkflowAuditLog> =>
   db.workflowAuditLog.create({
     data: {
-      timestamp: new Date(),
       workflowId: params.workflowId,
       teamId: params.teamId,
       action: params.action,
@@ -256,8 +248,9 @@ export const deleteOldWorkflowAuditLogs = (
 
 export const deleteWorkflowAuditLogsByWorkflow = (
   db: Database,
+  teamId: string,
   workflowId: string
 ): Promise<{ count: number }> =>
   db.workflowAuditLog.deleteMany({
-    where: { workflowId },
+    where: { teamId, workflowId },
   });

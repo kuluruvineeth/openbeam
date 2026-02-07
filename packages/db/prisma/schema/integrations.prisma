@@ -18,20 +18,20 @@ enum AppType {
   MICROSOFT_TEAMS
   DISCORD
   WHATSAPP
-  
+
   GMAIL
   OUTLOOK
-  
+
   GOOGLE_DRIVE
   ONEDRIVE
   SHAREPOINT
   DROPBOX
   BOX
-  
+
   NOTION
   CONFLUENCE
   CODA
-  
+
   JIRA
   ASANA
   TRELLO
@@ -39,65 +39,65 @@ enum AppType {
   LINEAR
   MONDAY
   BASECAMP
-  
+
   GITHUB
   GITLAB
   BITBUCKET
-  
+
   SALESFORCE
   HUBSPOT
   PIPEDRIVE
   ZOHO
-  
+
   ZENDESK
   INTERCOM
   FRESHDESK
   SERVICENOW
-  
+
   STRIPE
   XERO
   QUICKBOOKS
   NETSUITE
   SAGE
-  
+
   MAILCHIMP
   MARKETO
   PARDOT
-  
+
   SNOWFLAKE
   BIGQUERY
   REDSHIFT
   DATABRICKS
   TABLEAU
   LOOKER
-  
+
   POSTGRESQL
   MYSQL
   MONGODB
   ELASTICSEARCH
-  
+
   S3
   GCS
   AZURE_BLOB
-  
+
   OKTA
   AZURE_AD
   GOOGLE_WORKSPACE
-  
+
   GOOGLE_CALENDAR
   OUTLOOK_CALENDAR
-  
+
   AIRTABLE
   FIGMA
   MIRO
   LOOM
   ZOOM
-  
+
   GENERIC_API
   WEBHOOK
   RSS
   CUSTOM
-  
+
   TWILIO
   SENDGRID
   HUBSPOT_MARKETING
@@ -124,121 +124,121 @@ enum ConnectorStatus {
 }
 
 model Workspace {
-  id             String       @id @default(cuid()) @map("_id")
-  externalId     String       @unique
-  teamId         String
-  name           String
-  
-  domain         String?      // e.g., "company.slack.com"
-  iconUrl        String?
-  
-  settings       Json         @default("{}")
-  
-  isActive       Boolean      @default(true)
-  
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id         String @id @default(cuid()) @map("_id")
+  externalId String @unique
+  teamId     String
+  name       String
 
-  team           Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  domain  String? // e.g., "company.slack.com"
+  iconUrl String?
+
+  settings Json @default("{}")
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@index([teamId])
   @@map("workspace")
 }
 
 model Connector {
-  id                  String          @id @default(cuid()) @map("_id")
+  id                  String @id @default(cuid()) @map("_id")
   teamId              String
   userId              String
   workspaceExternalId String
-  
-  name                String
-  description         String?
-  
-  type                ConnectorType
-  authType            AuthType
-  app                 AppType
-  
-  config              Json            @default("{}")
+
+  name        String
+  description String?
+
+  type     ConnectorType
+  authType AuthType
+  app      AppType
+
+  config Json @default("{}")
   // { scopes: [...], channels: [...], excludePatterns: [...] }
-  
+
   encryptedCredentials String?
   credentialsIv        String?
-  
-  status              ConnectorStatus @default(CONNECTING)
-  statusMessage       String?
-  statusChangedAt     DateTime?
-  
-  state               Json            @default("{}")
+
+  status          ConnectorStatus @default(CONNECTING)
+  statusMessage   String?
+  statusChangedAt DateTime?
+
+  state Json @default("{}")
   // { phase: "initial_sync", progress: 0.45, currentResource: "messages" }
-  
-  syncConfig          Json            @default("{}")
+
+  syncConfig Json @default("{}")
   // { schedule: "0 */6 * * *", batchSize: 100, maxConcurrency: 5 }
-  
-  syncEnabled         Boolean         @default(true)
-  syncMode            String          @default("incremental")  // "full", "incremental"
-  
-  lastSyncedAt        DateTime?
-  lastSyncStatus      String?
-  lastSyncDuration    Int?
-  lastError           String?
-  lastErrorAt         DateTime?
-  lastErrorCode       String?
-  
-  consecutiveErrors   Int             @default(0)
-  errorBackoffUntil   DateTime?
-  
-  totalDocuments      Int             @default(0)
-  totalMessages       Int             @default(0)
-  totalFiles          Int             @default(0)
-  totalEntities       Int             @default(0)
-  
-  webhookConfig       Json?
-  webhookSecret       String?
-  webhookEnabled      Boolean         @default(false)
-  
-  rateLimits          Json?
-  rateLimitResetAt    DateTime?
-  
-  retryCount          Int             @default(0)
-  maxRetries          Int             @default(3)
-  
-  dataResidency       String?         // "us", "eu", "ap"
-  
-  healthScore         Float           @default(100)  // 0-100
-  lastHealthCheck     DateTime?
-  
-  createdAt           DateTime        @default(now())
-  updatedAt           DateTime        @updatedAt
-  pausedAt            DateTime?
+
+  syncEnabled Boolean @default(true)
+  syncMode    String  @default("incremental") // "full", "incremental"
+
+  lastSyncedAt     DateTime?
+  lastSyncStatus   String?
+  lastSyncDuration Int?
+  lastError        String?
+  lastErrorAt      DateTime?
+  lastErrorCode    String?
+
+  consecutiveErrors Int       @default(0)
+  errorBackoffUntil DateTime?
+
+  totalDocuments Int @default(0)
+  totalMessages  Int @default(0)
+  totalFiles     Int @default(0)
+  totalEntities  Int @default(0)
+
+  webhookConfig  Json?
+  webhookSecret  String?
+  webhookEnabled Boolean @default(false)
+
+  rateLimits       Json?
+  rateLimitResetAt DateTime?
+
+  retryCount Int @default(0)
+  maxRetries Int @default(3)
+
+  dataResidency String? // "us", "eu", "ap"
+
+  healthScore     Float     @default(100) // 0-100
+  lastHealthCheck DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  pausedAt  DateTime?
 
   deletedAt           DateTime?
   scheduledDeletionAt DateTime?
   deletedBy           String?
 
-  isEnterpriseInstall Boolean         @default(false)
+  isEnterpriseInstall Boolean @default(false)
   enterpriseId        String?
   childWorkspaces     Json?
 
-  user                User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  team                Team            @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  tools               Tool[]
-  oauthProvider       OAuthProvider?
-  syncJobs            SyncJob[]
-  syncHistory         SyncHistory[]
-  syncCursors         SyncCursor[]
-  auditLogs           ConnectorAuditLog[]
-  externalIdentities  ExternalIdentity[]
-  externalGroups      ExternalGroup[]
-  indexedDocuments    IndexedDocument[]
-  connectorResources  ConnectorResource[]
-  indexedFiles        IndexedFile[]
-  indexedMedia        IndexedMedia[]
-  slackChannelConfigs    SlackChannelConfig[]
-  slackDigestSubs        SlackDigestSubscription[]
-  slackFeedback          SlackAssistantFeedback[]
-  documentPermissions    DocumentPermission[]
-  connectorScopes        ConnectorScope[]
-  permissionSyncStatus   PermissionSyncStatus?
+  user                 User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team                 Team                      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  tools                Tool[]
+  oauthProvider        OAuthProvider?
+  syncJobs             SyncJob[]
+  syncHistory          SyncHistory[]
+  syncCursors          SyncCursor[]
+  auditLogs            ConnectorAuditLog[]
+  externalIdentities   ExternalIdentity[]
+  externalGroups       ExternalGroup[]
+  indexedDocuments     IndexedDocument[]
+  connectorResources   ConnectorResource[]
+  indexedFiles         IndexedFile[]
+  indexedMedia         IndexedMedia[]
+  slackChannelConfigs  SlackChannelConfig[]
+  slackDigestSubs      SlackDigestSubscription[]
+  slackFeedback        SlackAssistantFeedback[]
+  documentPermissions  DocumentPermission[]
+  connectorScopes      ConnectorScope[]
+  permissionSyncStatus PermissionSyncStatus?
 
   @@unique([teamId, workspaceExternalId, app, name])
   @@index([teamId, status])
@@ -250,81 +250,81 @@ model Connector {
 }
 
 model OAuthProvider {
-  id                  String   @id @default(cuid()) @map("_id")
-  connectorId         String   @unique
-  
-  clientId            String?
-  clientSecret        String?
-  clientSecretIv      String?
-  
-  oauthScopes         String[] @default([])
-  app                 AppType
-  isGlobal            Boolean  @default(false)  // Shared across team
-  
-  accessToken         String?
-  accessTokenIv       String?
-  refreshToken        String?
-  refreshTokenIv      String?
-  
-  tokenExpiresAt      DateTime?
-  tokenRefreshedAt     DateTime?
-  
-  tokenScopes         String[] @default([])
-  tokenType           String?
-  
-  syncAccessToken     String?
-  syncAccessTokenIv   String?
-  syncTokenScopes     String[] @default([])
-  syncAuthedUserId    String?
-  
-  lastRefreshAttempt  DateTime?
-  refreshFailures     Int      @default(0)
-  refreshError        String?
+  id          String @id @default(cuid()) @map("_id")
+  connectorId String @unique
 
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  clientId       String?
+  clientSecret   String?
+  clientSecretIv String?
 
-  connector           Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+  oauthScopes String[] @default([])
+  app         AppType
+  isGlobal    Boolean  @default(false) // Shared across team
+
+  accessToken    String?
+  accessTokenIv  String?
+  refreshToken   String?
+  refreshTokenIv String?
+
+  tokenExpiresAt   DateTime?
+  tokenRefreshedAt DateTime?
+
+  tokenScopes String[] @default([])
+  tokenType   String?
+
+  syncAccessToken   String?
+  syncAccessTokenIv String?
+  syncTokenScopes   String[] @default([])
+  syncAuthedUserId  String?
+
+  lastRefreshAttempt DateTime?
+  refreshFailures    Int       @default(0)
+  refreshError       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  connector Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
 
   @@map("oauth_provider")
 }
 
 model Tool {
-  id             String   @id @default(cuid()) @map("_id")
-  teamId         String
-  connectorId    String
-  externalId     String?  @unique
-  
-  toolName       String
-  displayName    String?
-  description    String?
-  category       String?
-  
-  toolSchema     Json
-  outputSchema   Json?
-  schemaVersion  String   @default("1.0.0")
-  
-  config         Json     @default("{}")
-  
+  id          String  @id @default(cuid()) @map("_id")
+  teamId      String
+  connectorId String
+  externalId  String? @unique
+
+  toolName    String
+  displayName String?
+  description String?
+  category    String?
+
+  toolSchema    Json
+  outputSchema  Json?
+  schemaVersion String @default("1.0.0")
+
+  config Json @default("{}")
+
   requiredPermissions String[] @default([])
-  
-  enabled        Boolean  @default(false)
-  deprecated     Boolean  @default(false)
-  deprecatedAt   DateTime?
-  
-  usageCount     Int      @default(0)
-  lastUsedAt     DateTime?
-  avgLatencyMs   Float?
-  errorRate      Float    @default(0)
-  
+
+  enabled      Boolean   @default(false)
+  deprecated   Boolean   @default(false)
+  deprecatedAt DateTime?
+
+  usageCount   Int       @default(0)
+  lastUsedAt   DateTime?
+  avgLatencyMs Float?
+  errorRate    Float     @default(0)
+
   rateLimitPerMinute Int?
   rateLimitPerHour   Int?
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  connector      Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
-  team           Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  connector Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+  team      Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@unique([teamId, connectorId, toolName])
   @@index([connectorId])
@@ -335,30 +335,30 @@ model Tool {
 }
 
 model ExternalIdentity {
-  id          String   @id @default(cuid()) @map("_id")
+  id          String  @id @default(cuid()) @map("_id")
   userId      String?
   connectorId String
-  
+
   externalId  String
   email       String?
   username    String?
   displayName String?
   avatarUrl   String?
-  
-  externalRole String?
-  isBot       Boolean  @default(false)
-  isActive    Boolean  @default(true)
-  
-  groupIds    String[] @default([])
-  
-  metadata    Json?
-  rawData     Json?
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
 
-  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
-  connector   Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+  externalRole String?
+  isBot        Boolean @default(false)
+  isActive     Boolean @default(true)
+
+  groupIds String[] @default([])
+
+  metadata Json?
+  rawData  Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  connector Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
 
   @@unique([connectorId, externalId])
   @@index([userId])
@@ -368,28 +368,28 @@ model ExternalIdentity {
 }
 
 model ExternalGroup {
-  id          String   @id @default(cuid()) @map("_id")
+  id          String @id @default(cuid()) @map("_id")
   connectorId String
-  
+
   externalId  String
   name        String
   description String?
-  
-  groupType   String?  // "team", "channel", "department", "role"
-  
-  parentId    String?
-  
+
+  groupType String? // "team", "channel", "department", "role"
+
+  parentId String?
+
   memberCount Int      @default(0)
   memberIds   String[] @default([])
-  
-  isActive    Boolean  @default(true)
-  
-  metadata    Json?
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
 
-  connector   Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+  isActive Boolean @default(true)
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  connector Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
 
   @@unique([connectorId, externalId])
   @@index([groupType])
@@ -398,31 +398,31 @@ model ExternalGroup {
 }
 
 model ConnectorResource {
-  id              String   @id @default(cuid()) @map("_id")
-  connectorId     String
-  externalId      String
-  resourceType    String   // "channel", "folder", "repository", "database", etc.
-  
-  name            String?
-  path            String?
-  parentId        String?
-  
-  syncEnabled     Boolean  @default(true)
-  syncPriority    Int      @default(5)
-  
-  lastSyncedAt    DateTime?
-  documentCount   Int      @default(0)
-  
-  isPublic        Boolean  @default(false)
-  accessControl   String[] @default([])
-  
-  metadata        Json?
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  connector       Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
-  
+  id           String @id @default(cuid()) @map("_id")
+  connectorId  String
+  externalId   String
+  resourceType String // "channel", "folder", "repository", "database", etc.
+
+  name     String?
+  path     String?
+  parentId String?
+
+  syncEnabled  Boolean @default(true)
+  syncPriority Int     @default(5)
+
+  lastSyncedAt  DateTime?
+  documentCount Int       @default(0)
+
+  isPublic      Boolean  @default(false)
+  accessControl String[] @default([])
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  connector Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+
   @@unique([connectorId, externalId])
   @@index([connectorId])
   @@index([resourceType])
@@ -431,22 +431,22 @@ model ConnectorResource {
 }
 
 model SlackChannelConfig {
-  id                 String    @id @default(cuid()) @map("_id")
-  connectorId        String
-  channelId          String
-  channelName        String?
+  id          String  @id @default(cuid()) @map("_id")
+  connectorId String
+  channelId   String
+  channelName String?
 
-  responseMode       String    @default("confident")
-  reactionsEnabled   Boolean   @default(true)
-  respondToWorkflows Boolean   @default(false)
+  responseMode       String  @default("confident")
+  reactionsEnabled   Boolean @default(true)
+  respondToWorkflows Boolean @default(false)
 
-  configuredBy       String?
-  configuredAt       DateTime?
+  configuredBy String?
+  configuredAt DateTime?
 
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  connector          Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+  connector Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
 
   @@unique([connectorId, channelId])
   @@index([connectorId])
@@ -454,27 +454,27 @@ model SlackChannelConfig {
 }
 
 model SlackDigestSubscription {
-  id              String    @id @default(cuid()) @map("_id")
-  connectorId     String
-  userId          String
-  slackUserId     String
+  id          String @id @default(cuid()) @map("_id")
+  connectorId String
+  userId      String
+  slackUserId String
 
-  channelIds      String[]  @default([])
-  topics          String[]  @default([])
+  channelIds String[] @default([])
+  topics     String[] @default([])
 
-  deliveryTime    String    @default("09:00")
-  timezone        String    @default("UTC")
-  frequency       String    @default("daily")
-  enabled         Boolean   @default(true)
+  deliveryTime String  @default("09:00")
+  timezone     String  @default("UTC")
+  frequency    String  @default("daily")
+  enabled      Boolean @default(true)
 
   lastDeliveredAt DateTime?
   deliveryCount   Int       @default(0)
   lastError       String?
 
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  connector       Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+  connector Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
 
   @@unique([connectorId, slackUserId])
   @@index([connectorId])
@@ -483,22 +483,22 @@ model SlackDigestSubscription {
 }
 
 model SlackAssistantFeedback {
-  id           String   @id @default(cuid()) @map("_id")
-  connectorId  String
-  userId       String
-  channelId    String
-  messageTs    String
+  id          String @id @default(cuid()) @map("_id")
+  connectorId String
+  userId      String
+  channelId   String
+  messageTs   String
 
   query        String
   response     String
   feedbackType String
 
-  citations    Json?
-  latencyMs    Int?
+  citations Json?
+  latencyMs Int?
 
-  createdAt    DateTime @default(now())
+  createdAt DateTime @default(now())
 
-  connector    Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+  connector Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
 
   @@index([connectorId])
   @@index([feedbackType])
