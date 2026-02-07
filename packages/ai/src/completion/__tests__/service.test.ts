@@ -36,7 +36,7 @@ mock.module("ai", () => {
   };
 });
 
-mock.module("../config", () => ({
+mock.module("../../config", () => ({
   getConfig: () => ({
     defaultProvider: "openai",
     defaultChatModel: "gpt-4",
@@ -50,35 +50,47 @@ mock.module("../config", () => ({
 
 const mockChatModel = { id: "mock-model" };
 
-mock.module("../providers/registry", () => ({
+class MockProviderRegistry {}
+
+class MockAIProviderError extends Error {
+  code: string;
+  provider: string;
+  retryAfterMs?: number;
+
+  constructor(
+    code: string,
+    message: string,
+    provider: string,
+    retryAfterMs?: number
+  ) {
+    super(message);
+    this.code = code;
+    this.provider = provider;
+    this.retryAfterMs = retryAfterMs;
+  }
+}
+
+mock.module("../../providers/registry", () => ({
+  ProviderRegistry: MockProviderRegistry,
   registry: {
     chatModel: mock(() => mockChatModel),
   },
+  providerRegistry: {
+    chatModel: mock(() => mockChatModel),
+  },
+  createProviderRegistry: mock(),
+  getLanguageModel: mock(() => mockChatModel),
+  getEmbeddingModel: mock(),
+  registerAllProviders: mock(),
 }));
 
-mock.module("../providers/thinking", () => ({
+mock.module("../../providers/thinking", () => ({
   buildThinkingProviderOptions: mock(() => ({})),
   extractReasoningContent: mock(() => null),
 }));
 
-mock.module("../resilience/errors", () => ({
-  AIProviderError: class extends Error {
-    code: string;
-    provider: string;
-    retryAfterMs?: number;
-
-    constructor(
-      code: string,
-      message: string,
-      provider: string,
-      retryAfterMs?: number
-    ) {
-      super(message);
-      this.code = code;
-      this.provider = provider;
-      this.retryAfterMs = retryAfterMs;
-    }
-  },
+mock.module("../../resilience/errors", () => ({
+  AIProviderError: MockAIProviderError,
   classifyError: mock((error: Error) => ({
     code: "UNKNOWN_ERROR",
     message: error.message,

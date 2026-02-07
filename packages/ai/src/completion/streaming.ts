@@ -116,9 +116,8 @@ export async function* parseSSEStream(
           }
           try {
             yield JSON.parse(data) as StreamChunk;
-          } catch {
-            // Ignore malformed JSON
-          }
+            // biome-ignore lint/suspicious/noEmptyBlockStatements: skip malformed chunks
+          } catch {}
         }
       }
     }

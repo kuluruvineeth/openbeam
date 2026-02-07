@@ -80,7 +80,6 @@ export class DocumentChunker {
     const chunks: TextChunk[] = [];
     const { maxChunkSize, minChunkSize } = this.config;
 
-    // Split into sentences
     const sentences = text.match(SENTENCE_REGEX) ?? [text];
 
     let currentChunk = "";

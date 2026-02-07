@@ -3,6 +3,29 @@ import { z } from "zod";
 import { defineTool, failure, success } from "../../tools/builder";
 import type { CanvasConnection, CanvasNode, CanvasToolContext } from "../types";
 
+function isCanvasNode(value: unknown): value is CanvasNode {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as Record<string, unknown>).id === "string" &&
+    typeof (value as Record<string, unknown>).type === "string" &&
+    typeof (value as Record<string, unknown>).position === "object" &&
+    (value as Record<string, unknown>).position !== null
+  );
+}
+
+function isCanvasConnection(value: unknown): value is CanvasConnection {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as Record<string, unknown>).id === "string" &&
+    (typeof (value as Record<string, unknown>).sourceNodeId === "string" ||
+      typeof (value as Record<string, unknown>).source === "string") &&
+    (typeof (value as Record<string, unknown>).targetNodeId === "string" ||
+      typeof (value as Record<string, unknown>).target === "string")
+  );
+}
+
 export const canvasSaveAsTemplateTool = defineTool({
   name: "canvas_save_as_template",
   description: `Save the current workflow or selection as a reusable template.
@@ -152,8 +175,8 @@ RETURNS: IDs of created nodes and connections.`,
   parameters: z.object({
     templateData: z
       .object({
-        nodes: z.array(z.any()),
-        connections: z.array(z.any()),
+        nodes: z.array(z.unknown()),
+        connections: z.array(z.unknown()),
       })
       .describe("Template data containing nodes and connections"),
     position: z
@@ -181,7 +204,11 @@ RETURNS: IDs of created nodes and connections.`,
     const newNodes: CanvasNode[] = [];
     const newConnections: CanvasConnection[] = [];
 
-    for (const templateNode of params.templateData.nodes as CanvasNode[]) {
+    for (const raw of params.templateData.nodes) {
+      if (!isCanvasNode(raw)) {
+        continue;
+      }
+      const templateNode = raw;
       const newId = prefix + Math.random().toString(36).slice(2, 8);
       idMapping.set(templateNode.id, newId);
 
@@ -197,8 +224,11 @@ RETURNS: IDs of created nodes and connections.`,
       newNodes.push(newNode);
     }
 
-    for (const templateConn of params.templateData
-      .connections as CanvasConnection[]) {
+    for (const raw of params.templateData.connections) {
+      if (!isCanvasConnection(raw)) {
+        continue;
+      }
+      const templateConn = raw;
       const newSourceId = idMapping.get(templateConn.sourceNodeId);
       const newTargetId = idMapping.get(templateConn.targetNodeId);
 
@@ -435,8 +465,8 @@ RETURNS: IDs of imported nodes and connections.`,
   parameters: z.object({
     data: z
       .object({
-        nodes: z.array(z.any()),
-        connections: z.array(z.any()),
+        nodes: z.array(z.unknown()),
+        connections: z.array(z.unknown()),
       })
       .describe("Workflow data to import"),
     position: z
@@ -483,7 +513,11 @@ RETURNS: IDs of imported nodes and connections.`,
     const importedNodes: string[] = [];
     const importedConnections: string[] = [];
 
-    for (const node of params.data.nodes as CanvasNode[]) {
+    for (const raw of params.data.nodes) {
+      if (!isCanvasNode(raw)) {
+        continue;
+      }
+      const node = raw;
       const newId = prefix + Math.random().toString(36).slice(2, 8);
       idMapping.set(node.id, newId);
 
@@ -500,7 +534,11 @@ RETURNS: IDs of imported nodes and connections.`,
       importedNodes.push(newId);
     }
 
-    for (const conn of params.data.connections as CanvasConnection[]) {
+    for (const rawConn of params.data.connections) {
+      if (!isCanvasConnection(rawConn)) {
+        continue;
+      }
+      const conn = rawConn;
       const sourceId =
         conn.sourceNodeId ?? (conn as unknown as { source?: string }).source;
       const targetId =
