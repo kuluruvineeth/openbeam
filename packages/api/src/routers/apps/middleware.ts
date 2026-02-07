@@ -16,9 +16,6 @@ type ContextWithRole = ContextWithTeam & {
   role: TeamRole;
 };
 
-/**
- * Middleware to ensure user has an active team
- */
 const requireActiveTeam = t.middleware(async ({ ctx, next }) => {
   if (!ctx.session?.user) {
     throw new TRPCError({
@@ -27,7 +24,6 @@ const requireActiveTeam = t.middleware(async ({ ctx, next }) => {
     });
   }
 
-  // Get user's teamId from database
   const user = await ctx.prisma.user.findUnique({
     where: { id: ctx.session.user.id },
     select: { teamId: true },

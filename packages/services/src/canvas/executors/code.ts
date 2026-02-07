@@ -52,6 +52,9 @@ const DANGEROUS_PATTERNS = [
   /\bmodule\b/,
   /\beval\b/,
   /\bFunction\s*\(/,
+  /\bimport\s*\(/,
+  /\bReflect\b/,
+  /\bProxy\b/,
 ];
 
 function validateCodeSafety(code: string): { safe: boolean; reason?: string } {

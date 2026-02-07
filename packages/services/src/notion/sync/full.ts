@@ -16,9 +16,6 @@ import type { NotionClient } from "../client";
 import { transformDatabase } from "../transformers/database";
 import { transformPage } from "../transformers/page";
 
-// Yield frequently to avoid Temporal activity timeouts
-// Each page requires multiple API calls (blocks + comments)
-// With rate limits, waiting for 50 pages could take 20+ minutes
 const DEFAULT_BATCH_SIZE = 5;
 const DEFAULT_MAX_BLOCK_DEPTH = 10;
 

@@ -34,7 +34,11 @@ import {
   triggerWebhookExecutor,
 } from "./executors/trigger";
 import { videoExecutor } from "./executors/video";
-import { getCanvasNodeExecutor, registerCanvasNodeExecutor } from "./registry";
+import {
+  freezeRegistry,
+  getCanvasNodeExecutor,
+  registerCanvasNodeExecutor,
+} from "./registry";
 
 let defaultsRegistered = false;
 
@@ -180,4 +184,5 @@ export function registerDefaultCanvasNodeExecutors(): void {
   }
 
   defaultsRegistered = true;
+  freezeRegistry();
 }

@@ -53,9 +53,9 @@ describe("createExecutionAndStartCanvasWorkflow", () => {
 
     const result = await createExecutionAndStartCanvasWorkflow({
       deps: {
-        createAgentCanvasExecution: createExecution as any,
-        updateAgentCanvasExecution: updateExecution as any,
-        startCanvasExecution: startExecution as any,
+        createAgentCanvasExecution: createExecution as never,
+        updateAgentCanvasExecution: updateExecution as never,
+        startCanvasExecution: startExecution as never,
       },
       ...baseParams,
     });
@@ -103,9 +103,9 @@ describe("createExecutionAndStartCanvasWorkflow", () => {
     await expect(
       createExecutionAndStartCanvasWorkflow({
         deps: {
-          createAgentCanvasExecution: createExecution as any,
-          updateAgentCanvasExecution: updateExecution as any,
-          startCanvasExecution: startExecution as any,
+          createAgentCanvasExecution: createExecution as never,
+          updateAgentCanvasExecution: updateExecution as never,
+          startCanvasExecution: startExecution as never,
         },
         ...baseParams,
       })
@@ -135,9 +135,9 @@ describe("createExecutionAndStartCanvasWorkflow", () => {
 
     await createExecutionAndStartCanvasWorkflow({
       deps: {
-        createAgentCanvasExecution: createExecution as any,
-        updateAgentCanvasExecution: updateExecution as any,
-        startCanvasExecution: startExecution as any,
+        createAgentCanvasExecution: createExecution as never,
+        updateAgentCanvasExecution: updateExecution as never,
+        startCanvasExecution: startExecution as never,
       },
       ...baseParams,
       viewport: { x: 100, y: 200, zoom: 1 },
@@ -165,9 +165,9 @@ describe("createExecutionAndStartCanvasWorkflow", () => {
 
     await createExecutionAndStartCanvasWorkflow({
       deps: {
-        createAgentCanvasExecution: createExecution as any,
-        updateAgentCanvasExecution: updateExecution as any,
-        startCanvasExecution: startExecution as any,
+        createAgentCanvasExecution: createExecution as never,
+        updateAgentCanvasExecution: updateExecution as never,
+        startCanvasExecution: startExecution as never,
       },
       ...baseParams,
       triggerSource: "manual",
@@ -202,9 +202,9 @@ describe("createExecutionAndStartCanvasWorkflow", () => {
     await expect(
       createExecutionAndStartCanvasWorkflow({
         deps: {
-          createAgentCanvasExecution: createExecution as any,
-          updateAgentCanvasExecution: updateExecution as any,
-          startCanvasExecution: startExecution as any,
+          createAgentCanvasExecution: createExecution as never,
+          updateAgentCanvasExecution: updateExecution as never,
+          startCanvasExecution: startExecution as never,
         },
         ...baseParams,
       })
@@ -235,9 +235,9 @@ describe("createExecutionAndStartCanvasWorkflow", () => {
     await expect(
       createExecutionAndStartCanvasWorkflow({
         deps: {
-          createAgentCanvasExecution: createExecution as any,
-          updateAgentCanvasExecution: updateExecution as any,
-          startCanvasExecution: startExecution as any,
+          createAgentCanvasExecution: createExecution as never,
+          updateAgentCanvasExecution: updateExecution as never,
+          startCanvasExecution: startExecution as never,
         },
         ...baseParams,
         versionNumber: 0,
@@ -256,9 +256,9 @@ describe("createExecutionAndStartCanvasWorkflow", () => {
     await expect(
       createExecutionAndStartCanvasWorkflow({
         deps: {
-          createAgentCanvasExecution: createExecution as any,
-          updateAgentCanvasExecution: updateExecution as any,
-          startCanvasExecution: startExecution as any,
+          createAgentCanvasExecution: createExecution as never,
+          updateAgentCanvasExecution: updateExecution as never,
+          startCanvasExecution: startExecution as never,
         },
         ...baseParams,
       })

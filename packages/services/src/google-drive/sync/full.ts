@@ -225,18 +225,16 @@ function addExtensionForExport(name: string, exportMimeType: string): string {
 function buildConnectorFileInfo(file: DriveFile): ConnectorFileInfo {
   const exportMimeType = getDefaultExportMimeType(file.mimeType);
 
-  // Add proper extension for Google Workspace exports so engine can parse
   const effectiveName = exportMimeType
     ? addExtensionForExport(file.name, exportMimeType)
     : file.name;
 
-  // Use drive ID for resource linking (shared drive ID or "my-drive" for personal)
   const sourceChannelId = getDriveId(file) ?? "my-drive";
 
   return {
     id: file.id,
     name: effectiveName,
-    mimeType: file.mimeType, // Keep original for preview detection
+    mimeType: file.mimeType,
     size: file.size ? Number.parseInt(file.size, 10) : undefined,
     downloadStrategy: {
       type: "google-drive",

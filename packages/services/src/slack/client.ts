@@ -46,7 +46,6 @@ export function createSlackClient(config: SlackClientConfig): SlackClient {
   const webClientOptions: WebClientOptions = {
     timeout,
     retryConfig: {
-      // Disable built-in retry, we handle it ourselves
       retries: 0,
     },
     logLevel: debug ? LogLevel.DEBUG : LogLevel.ERROR,
@@ -158,7 +157,7 @@ export function createSlackClient(config: SlackClientConfig): SlackClient {
     attempt: number
   ): Promise<T> {
     state.consecutiveErrors += 1;
-    state.lastError = error as Error;
+    state.lastError = error instanceof Error ? error : new Error(String(error));
 
     const slackError = extractSlackError(error);
     const canRetry = attempt < DEFAULT_RETRY_ATTEMPTS;
@@ -219,7 +218,7 @@ export function createSlackClient(config: SlackClientConfig): SlackClient {
 
     return {
       remaining: quota.minuteRemaining ?? 0,
-      resetAt: Date.now() + 60_000, // Approximate
+      resetAt: Date.now() + 60_000,
       retryAfter: state.lastRateLimitHit
         ? Math.max(0, 60_000 - (Date.now() - state.lastRateLimitHit))
         : undefined,
@@ -252,7 +251,6 @@ function extractSlackError(error: unknown): SlackApiError | null {
     return error;
   }
 
-  // Slack WebClient error format
   if (
     error &&
     typeof error === "object" &&

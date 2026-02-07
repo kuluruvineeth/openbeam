@@ -74,7 +74,6 @@ export async function handleGmailNotification(
 async function findConnectorForEmail(
   emailAddress: string
 ): Promise<string | null> {
-  // First try to find by config fields
   const connector = await prisma.connector.findFirst({
     where: {
       app: "GMAIL",
@@ -181,7 +180,11 @@ export async function processNotificationBatch(
       } else {
         skipped += 1;
       }
-    } catch {
+    } catch (error) {
+      logger.error(
+        { error, messageId: notification.message?.messageId },
+        "Failed to process Gmail notification"
+      );
       errors += 1;
     }
   }

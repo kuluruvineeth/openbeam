@@ -36,9 +36,6 @@ interface SyncState {
   errors: number;
 }
 
-// Note: Comments are fetched per-issue (N+1 pattern). Linear's GraphQL API
-// requires accessing comments via issue.comments, preventing batch fetching
-// across issues. This trade-off is acceptable given API constraints.
 async function collectIssueComments(
   client: LinearClient,
   issueId: string,

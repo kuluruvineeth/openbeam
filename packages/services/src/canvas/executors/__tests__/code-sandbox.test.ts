@@ -159,7 +159,6 @@ describe("Code Executor Sandbox Security", () => {
 
   it("allows async fetch operations", async () => {
     const safeCode = `
-      // Just test that fetch is available, don't actually call it
       return typeof fetch === 'function';
     `;
     const node = createNode(safeCode);

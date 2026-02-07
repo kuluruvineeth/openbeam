@@ -188,7 +188,7 @@ export function createGmailClient(config: GmailClientConfig): GmailClient {
     attempt: number
   ): Promise<T> {
     state.consecutiveErrors += 1;
-    state.lastError = error as Error;
+    state.lastError = error instanceof Error ? error : new Error(String(error));
 
     const canRetry = attempt < DEFAULT_RETRY_ATTEMPTS;
 
@@ -362,7 +362,6 @@ function parseBatchResponse<T>(responseText: string): T[] {
   logger.debug({ partsCount: parts.length }, "Gmail batch response parts");
 
   for (const part of parts) {
-    // Extract HTTP status from the part
     const statusMatch = part.match(HTTP_STATUS_REGEX);
     const status = statusMatch?.[1] ? Number.parseInt(statusMatch[1], 10) : 0;
 
@@ -379,7 +378,7 @@ function parseBatchResponse<T>(responseText: string): T[] {
         results.push(parsed);
       } catch (e) {
         logger.warn(
-          { parseError: (e as Error).message, status },
+          { parseError: e instanceof Error ? e.message : String(e), status },
           "Gmail batch response JSON parse failed"
         );
       }

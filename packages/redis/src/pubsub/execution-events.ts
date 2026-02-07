@@ -59,9 +59,8 @@ export async function publishExecutionEvent(
     const client = await getRedisClient();
     const channel = `${EXECUTION_EVENTS_CHANNEL_PREFIX}:${executionId}`;
     await client.publish(channel, JSON.stringify(event));
-  } catch {
-    // Silent fail - pub/sub is best-effort, UI will poll for updates
-  }
+    // biome-ignore lint/suspicious/noEmptyBlockStatements: best-effort pub/sub
+  } catch {}
 }
 
 export async function createExecutionEventSubscriber(
@@ -85,18 +84,16 @@ export async function createExecutionEventSubscriber(
       const parsed = JSON.parse(message);
       const event = ExecutionEventSchema.parse(parsed);
       onEvent(event);
-    } catch {
-      // Silent fail - malformed events are dropped, client will recover via polling
-    }
+      // biome-ignore lint/suspicious/noEmptyBlockStatements: skip malformed events
+    } catch {}
   });
 
   return async () => {
     try {
       await subscriber.unsubscribe(channel);
       await subscriber.quit();
-    } catch {
-      // Silent fail - cleanup errors are non-critical
-    }
+      // biome-ignore lint/suspicious/noEmptyBlockStatements: best-effort cleanup
+    } catch {}
   };
 }
 
