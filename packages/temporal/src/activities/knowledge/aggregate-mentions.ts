@@ -4,7 +4,7 @@ import {
   type AggregateMentionsOutput,
 } from "@openplane/types/temporal/activities/knowledge";
 import { Context } from "@temporalio/activity";
-import { ApplicationFailure } from "@temporalio/workflow";
+import { ApplicationFailure } from "@temporalio/common";
 
 const HEARTBEAT_INTERVAL = 500;
 
@@ -60,12 +60,22 @@ export function createAggregateMentionsActivity(
 
     const summary: AggregateMentionsOutput["summary"] = {};
 
+    const mentionsByEntityId = new Map<string, typeof mentions>();
+    for (const mention of mentions) {
+      const existing = mentionsByEntityId.get(mention.entityId);
+      if (existing) {
+        existing.push(mention);
+      } else {
+        mentionsByEntityId.set(mention.entityId, [mention]);
+      }
+    }
+
     for (let i = 0; i < entities.length; i++) {
       const entity = entities[i];
       if (!entity) {
         continue;
       }
-      const entityMentions = mentions.filter((m) => m.entityId === entity.id);
+      const entityMentions = mentionsByEntityId.get(entity.id) ?? [];
 
       if (entityMentions.length === 0) {
         continue;
@@ -106,11 +116,16 @@ export function createAggregateMentionsActivity(
     });
 
     try {
-      for (const [entityId, data] of Object.entries(summary)) {
-        await deps.db.entity.update({
-          where: { id: entityId },
-          data: { mentionCount: data.mentionCount },
-        });
+      const entries = Object.entries(summary);
+      if (entries.length > 0) {
+        await deps.db.$transaction(
+          entries.map(([entityId, data]) =>
+            deps.db.entity.update({
+              where: { id: entityId },
+              data: { mentionCount: data.mentionCount },
+            })
+          )
+        );
       }
     } catch (error) {
       throw ApplicationFailure.nonRetryable(

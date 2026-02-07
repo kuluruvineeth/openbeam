@@ -15,8 +15,10 @@ import type {
   DatabaseActivities,
   SyncStage,
 } from "../../activities/database/types";
+import { TASK_QUEUES } from "../../config";
 import { generateWorkflowId } from "../../utils/workflow-id";
 import { indexDocumentsWorkflow } from "../processing/index-documents";
+import { processKnowledgeChangesWorkflow } from "../scheduled/knowledge-changes";
 import {
   cancelSignal,
   pauseSignal,
@@ -49,13 +51,14 @@ export async function connectorSyncWorkflow(
 ): Promise<ConnectorSyncOutput> {
   const input = ConnectorSyncInputSchema.parse(rawInput);
 
+  const prior = input.accumulatedStats;
   const state: SyncState = {
-    processed: 0,
-    indexed: 0,
-    errors: 0,
-    dataAdded: 0,
-    dataUpdated: 0,
-    dataDeleted: 0,
+    processed: prior?.processed ?? 0,
+    indexed: prior?.indexed ?? 0,
+    errors: prior?.errors ?? 0,
+    dataAdded: prior?.dataAdded ?? 0,
+    dataUpdated: prior?.dataUpdated ?? 0,
+    dataDeleted: prior?.dataDeleted ?? 0,
     cursor: input.cursor,
     stage: "INITIALIZING",
     batchNumber: 0,
@@ -216,6 +219,7 @@ export async function connectorSyncWorkflow(
         workflowId: generateWorkflowId({
           type: "index",
           connectorId: input.connectorId,
+          timestamp: state.batchNumber,
         }),
       });
 
@@ -252,12 +256,39 @@ export async function connectorSyncWorkflow(
           ...input,
           syncHistoryId,
           cursor: state.cursor,
+          accumulatedStats: {
+            processed: state.processed,
+            indexed: state.indexed,
+            errors: state.errors,
+            dataAdded: state.dataAdded,
+            dataUpdated: state.dataUpdated,
+            dataDeleted: state.dataDeleted,
+          },
         });
       }
     }
 
+    const changeTypeMap = {
+      FULL: "full",
+      INCREMENTAL: "incremental",
+      PERMISSIONS: "incremental",
+    } as const;
+
+    await executeChild(processKnowledgeChangesWorkflow, {
+      taskQueue: TASK_QUEUES.KNOWLEDGE,
+      workflowId: `kg-changes:${input.connectorId}:${syncHistoryId}`,
+      args: [
+        {
+          teamId: connector.teamId,
+          connectorId: input.connectorId,
+          syncHistoryId,
+          changeType: changeTypeMap[input.syncType],
+        },
+      ],
+    });
+
     state.stage = "FINALIZING";
-    const endTime = Date.now();
+    const endTime = workflowInfo().unsafe.now();
     await syncProgressActivities.completeSyncJob({
       workflowId,
       connectorId: input.connectorId,
@@ -286,7 +317,7 @@ export async function connectorSyncWorkflow(
     state.stage = "FAILED";
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error during sync";
-    const endTime = Date.now();
+    const endTime = workflowInfo().unsafe.now();
 
     await syncProgressActivities.completeSyncJob({
       workflowId,

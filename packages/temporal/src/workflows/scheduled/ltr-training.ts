@@ -27,7 +27,7 @@ export async function ltrTrainingWorkflow(
   const input = LtrTrainingInputSchema.parse(rawInput);
   const { teamId, modelVersion, minSamples } = input;
 
-  const nowMs = Date.now();
+  const nowMs = workflowInfo().unsafe.now();
   const thirtyDaysAgoMs = nowMs - 30 * 24 * 60 * 60 * 1000;
   const fromDate = new Date(thirtyDaysAgoMs).toISOString();
   const toDate = new Date(nowMs).toISOString();
@@ -75,8 +75,9 @@ export async function ltrTrainingWorkflow(
           lastModelId = result.modelId;
           totalSamples += result.samplesUsed;
         }
-        // biome-ignore lint/suspicious/noEmptyBlockStatements: training failures for individual teams should not stop batch processing
-      } catch {}
+      } catch {
+        /* child workflow failed — skip team, continue with remaining */
+      }
     }
 
     return {
@@ -87,7 +88,7 @@ export async function ltrTrainingWorkflow(
       samplesUsed: totalSamples,
       accuracy: 0,
       deployedAt:
-        successfulModels > 0 ? workflowInfo().startTime.getTime() : undefined,
+        successfulModels > 0 ? workflowInfo().unsafe.now() : undefined,
     };
   }
 
@@ -161,6 +162,6 @@ export async function ltrTrainingWorkflow(
     modelId,
     samplesUsed: impressions.length,
     accuracy,
-    deployedAt: workflowInfo().startTime.getTime(),
+    deployedAt: workflowInfo().unsafe.now(),
   };
 }

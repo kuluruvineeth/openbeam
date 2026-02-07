@@ -51,6 +51,7 @@ export function createDetectPatternsActivity(deps: DetectPatternsDependencies) {
         relationType: true,
         weight: true,
       },
+      take: 10_000,
     });
 
     const adjacency = new Map<string, Set<string>>();
@@ -108,10 +109,12 @@ export function createDetectPatternsActivity(deps: DetectPatternsDependencies) {
 
     let clustersCreated = 0;
 
+    const entityById = new Map(entities.map((e) => [e.id, e]));
+
     for (const community of communities) {
-      const communityEntities = entities.filter((e) =>
-        community.includes(e.id)
-      );
+      const communityEntities = community
+        .map((id) => entityById.get(id))
+        .filter((e): e is NonNullable<typeof e> => e !== undefined);
       if (communityEntities.length === 0) {
         continue;
       }

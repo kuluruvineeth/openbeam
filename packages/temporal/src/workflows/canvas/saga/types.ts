@@ -40,6 +40,7 @@ export interface SagaExecutionResult<T = unknown> {
 }
 
 export interface SagaConfig {
+  clock?: () => number;
   onStepComplete?: (step: CompletedSagaStep) => void | Promise<void>;
   onStepError?: (stepName: string, error: unknown) => void | Promise<void>;
   onRollbackStart?: (steps: CompletedSagaStep[]) => void | Promise<void>;

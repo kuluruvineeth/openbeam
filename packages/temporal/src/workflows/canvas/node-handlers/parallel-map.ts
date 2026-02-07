@@ -3,7 +3,7 @@ import {
   type ExecutionTrace,
   ParallelMapNodeConfigSchema,
 } from "@openplane/types/canvas";
-import { ApplicationFailure, sleep } from "@temporalio/workflow";
+import { ApplicationFailure, sleep, workflowInfo } from "@temporalio/workflow";
 
 import {
   buildCompletedStep,
@@ -35,7 +35,7 @@ export interface ParallelMapHandlerParams {
   mapPlan: ParallelMapPlan;
   graph: ExecutionGraph;
   executionContext: ExecutionContext;
-  cancelled: boolean;
+  state: { cancelled: boolean };
 }
 
 export interface ParallelMapResult {
@@ -45,7 +45,7 @@ export interface ParallelMapResult {
 }
 
 function getTimestamp(): number {
-  return Date.now();
+  return workflowInfo().unsafe.now();
 }
 
 type ParallelMapItemResult =
@@ -108,7 +108,7 @@ export async function handleParallelMapNode(
     mapPlan,
     graph,
     executionContext,
-    cancelled,
+    state,
   } = params;
 
   const mapConfig = ParallelMapNodeConfigSchema.parse(
@@ -273,7 +273,7 @@ export async function handleParallelMapNode(
       });
     }
 
-    if (cancelled) {
+    if (state.cancelled) {
       return {
         nextNodeId: null,
         output: lastStepOutput,

@@ -8,7 +8,7 @@ import type {
   LoopState,
   ParallelJoinBranchResult,
 } from "@openplane/types/temporal";
-import { ApplicationFailure } from "@temporalio/workflow";
+import { ApplicationFailure, workflowInfo } from "@temporalio/workflow";
 
 import { isExecutionDataRef } from "../../../engine/claim-check-utils";
 import {
@@ -47,7 +47,7 @@ export interface ParallelSplitHandlerParams {
     cancelled: boolean;
     stoppedAt?: string | null;
   }>;
-  cancelled: boolean;
+  state: { cancelled: boolean };
 }
 
 export interface ParallelSplitResult {
@@ -57,7 +57,7 @@ export interface ParallelSplitResult {
 }
 
 function getTimestamp(): number {
-  return Date.now();
+  return workflowInfo().unsafe.now();
 }
 
 export async function handleParallelSplitNode(
@@ -74,7 +74,7 @@ export async function handleParallelSplitNode(
     splitPlan,
     graph,
     runExecution: runBranchExecution,
-    cancelled,
+    state,
   } = params;
 
   const splitResult = await executeActivities.executeParallelSplitNode({
@@ -165,7 +165,7 @@ export async function handleParallelSplitNode(
     throw firstFailure.reason;
   }
 
-  if (cancelled) {
+  if (state.cancelled) {
     return {
       nextNodeId: null,
       output: lastStepOutput,

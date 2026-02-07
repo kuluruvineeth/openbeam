@@ -3,7 +3,7 @@ import {
   type ExecutionTrace,
   TryCatchNodeConfigSchema,
 } from "@openplane/types/canvas";
-import { ApplicationFailure } from "@temporalio/workflow";
+import { ApplicationFailure, workflowInfo } from "@temporalio/workflow";
 
 import {
   buildCompletedStep,
@@ -42,7 +42,7 @@ export interface TryCatchResult {
 }
 
 function getTimestamp(): number {
-  return Date.now();
+  return workflowInfo().unsafe.now();
 }
 
 export async function handleTryCatchNode(

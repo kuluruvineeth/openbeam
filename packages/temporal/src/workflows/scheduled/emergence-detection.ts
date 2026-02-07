@@ -47,7 +47,7 @@ export async function emergenceDetectionWorkflow(
     minSuccessRate = 0.8,
   } = input;
 
-  const now = workflowInfo().startTime.getTime();
+  const now = workflowInfo().unsafe.now();
   const dateRange = input.dateRange ?? {
     start: now - ONE_WEEK_MS,
     end: now,

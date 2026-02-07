@@ -14,16 +14,33 @@ export function createCleanupActivities(deps: CleanupDeps): CleanupActivities {
 
   return {
     async removeStaleDocuments(input: {
-      connectorId: string;
+      teamId: string;
       olderThanMs: number;
     }): Promise<{ deleted: number }> {
       const cutoff = new Date(Date.now() - input.olderThanMs);
-      const result = await deleteStaleIndexedDocuments(
-        db,
-        input.connectorId,
-        cutoff
-      );
-      return { deleted: result.count };
+      const connectors = await db.connector.findMany({
+        where: { teamId: input.teamId },
+        select: { id: true },
+      });
+
+      let totalDeleted = 0;
+      for (const connector of connectors) {
+        const result = await deleteStaleIndexedDocuments(
+          db,
+          connector.id,
+          cutoff
+        );
+        totalDeleted += result.count;
+      }
+      return { deleted: totalDeleted };
+    },
+
+    async getTeamConnectorIds(input: { teamId: string }): Promise<string[]> {
+      const connectors = await db.connector.findMany({
+        where: { teamId: input.teamId },
+        select: { id: true },
+      });
+      return connectors.map((c) => c.id);
     },
 
     async deleteConnectorRecord(input: { connectorId: string }): Promise<void> {

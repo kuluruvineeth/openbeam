@@ -31,12 +31,12 @@ function generateSyncWorkflowId(
 
 function generateIndexWorkflowId(
   connectorId: string | undefined,
-  _ts: number
+  ts: number
 ): string {
   if (!connectorId) {
     throw new Error("connectorId required for index");
   }
-  return `index:${connectorId}`;
+  return `index:${connectorId}:${ts}`;
 }
 
 function generateFileWorkflowId(

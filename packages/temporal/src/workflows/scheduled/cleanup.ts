@@ -42,26 +42,31 @@ export async function cleanupWorkflow(
     errors: [],
   };
 
-  if (input.type === "DAILY") {
+  if (input.type === "DAILY" && input.teamId) {
     const staleResult = await cleanupActivities.removeStaleDocuments({
-      connectorId: input.teamId ?? "",
+      teamId: input.teamId,
       olderThanMs: THIRTY_DAYS_MS,
     });
     result.staleDeleted = staleResult.deleted;
 
-    const orphanResult = await vespaActivities.removeOrphanChunks({
-      connectorId: input.teamId ?? "",
+    const connectorIds = await cleanupActivities.getTeamConnectorIds({
+      teamId: input.teamId,
     });
-    result.orphansRemoved = orphanResult.removed;
+    for (const connectorId of connectorIds) {
+      const orphanResult = await vespaActivities.removeOrphanChunks({
+        connectorId,
+      });
+      result.orphansRemoved += orphanResult.removed;
+    }
   }
 
-  if (input.type === "DELETION_SYNC" && input.teamId) {
+  if (input.type === "DELETION_SYNC" && input.connectorId) {
     await vespaActivities.deleteByConnector({
-      connectorId: input.teamId,
+      connectorId: input.connectorId,
     });
 
     await storageActivities.deleteByPrefix({
-      prefix: `connectors/${input.teamId}/`,
+      prefix: `connectors/${input.connectorId}/`,
     });
   }
 
@@ -86,17 +91,10 @@ export async function connectorCleanupWorkflow(
 
   const gracePeriodMs = GRACE_PERIOD_HOURS * 60 * 60 * 1000;
 
-  const shouldProceed = await condition(
-    () => cancelled || skipGracePeriod,
-    gracePeriodMs
-  );
+  await condition(() => cancelled || skipGracePeriod, gracePeriodMs);
 
   if (cancelled) {
     return { connectorId: input.connectorId, status: "cancelled" };
-  }
-
-  if (!(shouldProceed || skipGracePeriod)) {
-    // Grace period expired naturally, proceed with cleanup
   }
 
   await vespaActivities.deleteByConnector({

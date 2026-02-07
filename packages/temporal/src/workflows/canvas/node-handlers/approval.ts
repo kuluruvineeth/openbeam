@@ -13,14 +13,14 @@ import { resolveNodeConfig } from "../utils/type-guards";
 import type { NodeExecutionResult, NodeHandlerContext } from "./types";
 
 function getTimestamp(): number {
-  return workflowInfo().startTime.getTime();
+  return workflowInfo().unsafe.now();
 }
 
 async function waitForApprovalResponse(params: {
   approvalId: string;
   timeoutMs?: number;
   approvalResponses: Map<string, CanvasApprovalSignalPayload>;
-  cancelled: boolean;
+  isCancelled: () => boolean;
 }): Promise<{
   response?: CanvasApprovalSignalPayload;
   timedOut: boolean;
@@ -30,17 +30,17 @@ async function waitForApprovalResponse(params: {
 
   if (params.timeoutMs && params.timeoutMs > 0) {
     const signaled = await condition(
-      () => params.cancelled || hasResponse(),
+      () => params.isCancelled() || hasResponse(),
       params.timeoutMs
     );
     if (!signaled) {
       return { timedOut: true, cancelled: false };
     }
   } else {
-    await condition(() => params.cancelled || hasResponse());
+    await condition(() => params.isCancelled() || hasResponse());
   }
 
-  if (params.cancelled) {
+  if (params.isCancelled()) {
     return { timedOut: false, cancelled: true };
   }
 
@@ -116,7 +116,7 @@ export async function executeApprovalNode(
     approvalId: approvalRecord.approvalId,
     timeoutMs: approvalConfig.timeoutMs,
     approvalResponses,
-    cancelled: state.cancelled,
+    isCancelled: () => state.cancelled,
   });
 
   if (approvalWait.cancelled) {

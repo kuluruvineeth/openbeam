@@ -113,7 +113,7 @@ type RunExecutionResult = {
 };
 
 function getTimestamp(): number {
-  return workflowInfo().startTime.getTime();
+  return workflowInfo().unsafe.now();
 }
 
 export async function executePlanNodes(
@@ -595,8 +595,7 @@ async function handleControlNodes(
         teamId: input.teamId,
         graph,
         executionContext,
-        paused: state.paused,
-        cancelled: state.cancelled,
+        state,
       };
       return await handleRetryNode(retryParams);
     }
@@ -626,7 +625,7 @@ async function handleControlNodes(
         splitPlan,
         graph,
         runExecution: context.runExecution,
-        cancelled: state.cancelled,
+        state,
       };
       return await handleParallelSplitNode(splitParams);
     }
@@ -655,7 +654,7 @@ async function handleControlNodes(
         mapPlan,
         graph,
         executionContext,
-        cancelled: state.cancelled,
+        state,
       };
       return await handleParallelMapNode(mapParams);
     }

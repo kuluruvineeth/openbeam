@@ -1,4 +1,3 @@
-import { workflowInfo } from "@temporalio/workflow";
 import type {
   CompletedSagaStep,
   SagaConfig,
@@ -7,29 +6,19 @@ import type {
   SagaStepDefinition,
 } from "./types";
 
-function getWorkflowStartTime(): number {
-  try {
-    return workflowInfo().startTime.getTime();
-  } catch {
-    return Date.now();
-  }
-}
-
-function createInitialState(): SagaExecutionState {
-  return {
-    completedSteps: [],
-    status: "pending",
-    startedAt: getWorkflowStartTime(),
-    rolledBack: false,
-  };
-}
-
 export class SagaExecutor {
   private readonly state: SagaExecutionState;
   private readonly config: SagaConfig;
+  private readonly clock: () => number;
 
   constructor(config: SagaConfig = {}) {
-    this.state = createInitialState();
+    this.clock = config.clock ?? (() => Date.now());
+    this.state = {
+      completedSteps: [],
+      status: "pending",
+      startedAt: this.clock(),
+      rolledBack: false,
+    };
     this.config = config;
   }
 
@@ -48,10 +37,10 @@ export class SagaExecutor {
     }
 
     this.state.status = "running";
-    const startedAt = getWorkflowStartTime();
+    const startedAt = this.clock();
 
     const output = await step.execute(input);
-    const completedAt = getWorkflowStartTime();
+    const completedAt = this.clock();
 
     const completedStep: CompletedSagaStep<TInput, TOutput> = {
       name: step.name,
@@ -95,7 +84,7 @@ export class SagaExecutor {
 
     this.state.status = "rolled_back";
     this.state.rolledBack = true;
-    this.state.completedAt = getWorkflowStartTime();
+    this.state.completedAt = this.clock();
 
     if (this.config.onRollbackComplete) {
       await this.config.onRollbackComplete(stepsToRollback, rollbackSuccess);
@@ -141,7 +130,7 @@ export class SagaExecutor {
 
   complete<T>(output: T): SagaExecutionResult<T> {
     this.state.status = "completed";
-    this.state.completedAt = getWorkflowStartTime();
+    this.state.completedAt = this.clock();
 
     return {
       success: true,
@@ -153,7 +142,7 @@ export class SagaExecutor {
   fail(error: string): SagaExecutionResult<never> {
     this.state.status = "failed";
     this.state.error = error;
-    this.state.completedAt = getWorkflowStartTime();
+    this.state.completedAt = this.clock();
 
     return {
       success: false,

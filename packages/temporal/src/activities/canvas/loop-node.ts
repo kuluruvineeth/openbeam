@@ -13,6 +13,7 @@ import type {
   LoopState,
 } from "@openplane/types/temporal";
 import { Context } from "@temporalio/activity";
+import { SAFETY_CEILINGS } from "../../config/constants";
 import {
   createDbClaimCheckStore,
   isExecutionDataRef,
@@ -543,6 +544,21 @@ export function createExecuteLoopNodeActivity(
           iteration: loopState.iteration,
           nodeId: input.node.id,
         });
+      }
+
+      if (loopState.iteration >= SAFETY_CEILINGS.HARD_MAX_LOOP_ITERATIONS) {
+        throw new Error(
+          `Loop reached hard iteration ceiling (${SAFETY_CEILINGS.HARD_MAX_LOOP_ITERATIONS})`
+        );
+      }
+
+      if (
+        Date.now() - loopState.startedAt >
+        SAFETY_CEILINGS.HARD_MAX_LOOP_DURATION_MS
+      ) {
+        throw new Error(
+          `Loop reached hard duration ceiling (${SAFETY_CEILINGS.HARD_MAX_LOOP_DURATION_MS}ms)`
+        );
       }
 
       if (

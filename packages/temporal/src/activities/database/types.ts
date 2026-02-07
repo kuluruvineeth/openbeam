@@ -165,8 +165,9 @@ export interface UpsertDiscoveredResourcesInput {
 
 export interface CleanupActivities {
   removeStaleDocuments(input: {
-    connectorId: string;
+    teamId: string;
     olderThanMs: number;
   }): Promise<{ deleted: number }>;
+  getTeamConnectorIds(input: { teamId: string }): Promise<string[]>;
   deleteConnectorRecord(input: { connectorId: string }): Promise<void>;
 }

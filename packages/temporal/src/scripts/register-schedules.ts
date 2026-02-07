@@ -91,6 +91,18 @@ const DEFAULT_SCHEDULES: ScheduleConfig[] = [
       description: "Daily export of analytics data to parquet format",
     },
   },
+  {
+    id: "weekly-knowledge-cleanup",
+    workflowType: "knowledgeCleanupWorkflow",
+    taskQueue: TASK_QUEUES.SCHEDULED,
+    args: [{}],
+    cronExpression: "0 4 * * 1",
+    overlap: "skip",
+    memo: {
+      description:
+        "Weekly cleanup of stale knowledge graph changes and entity data",
+    },
+  },
 ];
 
 export async function registerSchedules(

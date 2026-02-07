@@ -158,9 +158,11 @@ function findReachable(
 ): Set<string> {
   const visited = new Set<string>();
   const queue = [startNodeId];
+  let head = 0;
 
-  while (queue.length > 0) {
-    const current = queue.shift();
+  while (head < queue.length) {
+    const current = queue[head];
+    head += 1;
     if (!current || visited.has(current)) {
       continue;
     }
@@ -227,9 +229,11 @@ function computeNodeOrder(
   const order: string[] = [];
   const queue = [startNodeId];
   const visited = new Set<string>();
+  let head = 0;
 
-  while (queue.length > 0) {
-    const current = queue.shift();
+  while (head < queue.length) {
+    const current = queue[head];
+    head += 1;
     if (!current || visited.has(current)) {
       continue;
     }
@@ -311,9 +315,13 @@ function buildValidationResult(
     issues.push(`Unreachable nodes: ${unreachableNodes.length}`);
   }
 
+  const nodeTypeMap = new Map(prepared.nodes.map((n) => [n.id, n.type]));
   const cycles = detectCycles(adjacency.outbound);
   for (const cycle of cycles) {
-    issues.push(`Cycle detected: ${cycle.join(" → ")}`);
+    const isLoopBackEdge = cycle.some((id) => nodeTypeMap.get(id) === "loop");
+    if (!isLoopBackEdge) {
+      issues.push(`Cycle detected: ${cycle.join(" → ")}`);
+    }
   }
 
   return CanvasValidationResultSchema.parse({

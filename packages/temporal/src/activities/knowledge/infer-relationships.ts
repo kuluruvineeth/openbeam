@@ -1,11 +1,11 @@
-import type { Database } from "@openplane/db";
+import type { Database, RelationType } from "@openplane/db";
 import {
   InferRelationshipsInputSchema,
   type InferRelationshipsOutput,
 } from "@openplane/types/temporal/activities/knowledge";
 import { Context } from "@temporalio/activity";
 
-const ENTITY_TYPE_RELATION_MAP: Record<string, string> = {
+const ENTITY_TYPE_RELATION_MAP: Record<string, RelationType> = {
   "PERSON:PERSON": "COLLABORATES_WITH",
   "PERSON:TECHNOLOGY": "EXPERT_IN",
   "TECHNOLOGY:PERSON": "EXPERT_IN",
@@ -39,6 +39,8 @@ export function createInferRelationshipsActivity(
 
     Context.current().heartbeat({ stage: "finding_co_occurrences" });
 
+    const CO_OCCURRENCE_LIMIT = 10_000;
+
     const coOccurrences = await deps.db.$queryRaw<CoOccurrence[]>`
       SELECT
         m1.entity_id AS from_entity_id,
@@ -56,11 +58,14 @@ export function createInferRelationshipsActivity(
       WHERE m1.team_id = ${input.teamId}
       GROUP BY m1.entity_id, m2.entity_id, e1.type, e2.type
       HAVING COUNT(DISTINCT m1.document_id) >= ${input.coOccurrenceThreshold}
+      ORDER BY co_count DESC
+      LIMIT ${CO_OCCURRENCE_LIMIT}
     `;
 
-    const maxCoCount = coOccurrences.reduce(
-      (max, co) => Math.max(max, Number(co.co_count)),
-      1
+    const MIN_STATISTICAL_CO_COUNT = 3;
+    const maxCoCount = Math.max(
+      coOccurrences.reduce((max, co) => Math.max(max, Number(co.co_count)), 1),
+      MIN_STATISTICAL_CO_COUNT
     );
 
     let edgesCreated = 0;
@@ -81,38 +86,31 @@ export function createInferRelationshipsActivity(
           continue;
         }
 
-        const existing = await deps.db.entityRelation.findUnique({
+        const result = await deps.db.entityRelation.upsert({
           where: {
             fromEntityId_toEntityId_relationType: {
               fromEntityId: co.from_entity_id,
               toEntityId: co.to_entity_id,
-              relationType: relationType as never,
+              relationType,
             },
+          },
+          update: {
+            weight: Number(co.co_count),
+            confidence,
+          },
+          create: {
+            fromEntityId: co.from_entity_id,
+            toEntityId: co.to_entity_id,
+            relationType,
+            weight: Number(co.co_count),
+            confidence,
+            evidence: [{ source: "co_occurrence", count: Number(co.co_count) }],
           },
         });
 
-        if (existing) {
-          await deps.db.entityRelation.update({
-            where: { id: existing.id },
-            data: {
-              weight: Number(co.co_count),
-              confidence,
-            },
-          });
+        if (result.updatedAt > result.createdAt) {
           edgesUpdated += 1;
         } else {
-          await deps.db.entityRelation.create({
-            data: {
-              fromEntityId: co.from_entity_id,
-              toEntityId: co.to_entity_id,
-              relationType: relationType as never,
-              weight: Number(co.co_count),
-              confidence,
-              evidence: [
-                { source: "co_occurrence", count: Number(co.co_count) },
-              ],
-            },
-          });
           edgesCreated += 1;
         }
       }

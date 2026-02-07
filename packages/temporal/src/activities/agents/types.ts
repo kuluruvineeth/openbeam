@@ -44,6 +44,8 @@ export interface LoadAgentContextInput {
 export interface SaveAgentCheckpointInput {
   sessionId: string;
   checkpoint: AgentCheckpoint;
+  memorySnapshot?: Record<string, unknown>;
+  contextWindow?: unknown[];
 }
 
 export interface AgentActivities {

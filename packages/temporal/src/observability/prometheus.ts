@@ -230,23 +230,6 @@ export function recordInputResponseTime(
   inputResponseTimeSeconds.labels(outcome).observe(durationMs / 1000);
 }
 
-export const evalScoreHistogram = new Histogram({
-  name: "canvas_execution_eval_score",
-  help: "Execution evaluation scores",
-  labelNames: ["canvas_id", "team_id", "status"] as const,
-  buckets: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
-  registers: [canvasMetricsRegistry],
-});
-
-export function recordEvalScore(
-  canvasId: string,
-  teamId: string,
-  status: string,
-  score: number
-): void {
-  evalScoreHistogram.labels(canvasId, teamId, status).observe(score);
-}
-
 export async function getCanvasMetrics(): Promise<string> {
   return await canvasMetricsRegistry.metrics();
 }

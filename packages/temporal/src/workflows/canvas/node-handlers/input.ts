@@ -13,14 +13,14 @@ import { resolveNodeConfig } from "../utils/type-guards";
 import type { NodeExecutionResult, NodeHandlerContext } from "./types";
 
 function getTimestamp(): number {
-  return workflowInfo().startTime.getTime();
+  return workflowInfo().unsafe.now();
 }
 
 async function waitForInputResponse(params: {
   nodeId: string;
   timeoutMs?: number;
   inputResponses: Map<string, CanvasInputSignalPayload>;
-  cancelled: boolean;
+  isCancelled: () => boolean;
 }): Promise<{
   response?: CanvasInputSignalPayload;
   timedOut: boolean;
@@ -30,17 +30,17 @@ async function waitForInputResponse(params: {
 
   if (params.timeoutMs && params.timeoutMs > 0) {
     const signaled = await condition(
-      () => params.cancelled || hasResponse(),
+      () => params.isCancelled() || hasResponse(),
       params.timeoutMs
     );
     if (!signaled) {
       return { timedOut: true, cancelled: false };
     }
   } else {
-    await condition(() => params.cancelled || hasResponse());
+    await condition(() => params.isCancelled() || hasResponse());
   }
 
-  if (params.cancelled) {
+  if (params.isCancelled()) {
     return { timedOut: false, cancelled: true };
   }
 
@@ -106,7 +106,7 @@ export async function executeInputNode(
     nodeId: node.id,
     timeoutMs: inputConfig.timeoutMs,
     inputResponses,
-    cancelled: state.cancelled,
+    isCancelled: () => state.cancelled,
   });
 
   if (responseResult.cancelled) {

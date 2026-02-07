@@ -39,8 +39,7 @@ export interface RetryHandlerParams {
   teamId: string;
   graph: ExecutionGraph;
   executionContext: ExecutionContext;
-  paused: boolean;
-  cancelled: boolean;
+  state: { paused: boolean; cancelled: boolean };
 }
 
 export interface RetryResult {
@@ -50,7 +49,7 @@ export interface RetryResult {
 }
 
 function getTimestamp(): number {
-  return Date.now();
+  return workflowInfo().unsafe.now();
 }
 
 export async function handleRetryNode(
@@ -66,8 +65,7 @@ export async function handleRetryNode(
     teamId,
     graph,
     executionContext,
-    paused,
-    cancelled,
+    state,
   } = params;
 
   const retryConfig = RetryNodeConfigSchema.parse(resolveNodeConfig(node.data));
@@ -100,9 +98,9 @@ export async function handleRetryNode(
   const seedBase = `${workflowMeta.workflowId}:${workflowMeta.runId}:${node.id}:${targetNode.id}`;
 
   for (let attempt = 1; attempt <= retryConfig.maxAttempts; attempt += 1) {
-    await condition(() => !paused || cancelled);
+    await condition(() => !state.paused || state.cancelled);
 
-    if (cancelled) {
+    if (state.cancelled) {
       return {
         nextNodeId: null,
         output: lastStepOutput,

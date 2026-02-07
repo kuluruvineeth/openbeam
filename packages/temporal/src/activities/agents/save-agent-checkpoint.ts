@@ -22,9 +22,17 @@ export function createSaveAgentCheckpointActivity(
     );
     const nextVersion = (existingCheckpoints[0]?.version ?? 0) + 1;
 
+    const state: Record<string, unknown> = { ...input.checkpoint.state };
+    if (input.memorySnapshot) {
+      state._memorySnapshot = input.memorySnapshot;
+    }
+    if (input.contextWindow) {
+      state._contextWindow = input.contextWindow;
+    }
+
     await createBackgroundAgentCheckpoint(deps.db, input.sessionId, {
       version: nextVersion,
-      state: input.checkpoint.state,
+      state,
       stepIndex: input.checkpoint.step,
     });
   };

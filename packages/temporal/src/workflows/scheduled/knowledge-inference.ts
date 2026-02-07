@@ -71,6 +71,37 @@ export async function knowledgeInferenceWorkflow(
     summary: {},
   };
 
+  if (mentionResult.entityCount === 0) {
+    await dbActivities.persistInferenceResults({
+      teamId: input.teamId,
+      inferenceRunId: workflowInfo().workflowId,
+      mentionResult,
+      expertiseResult: { scoresUpdated: 0, topExperts: [] },
+      relationshipResult: { edgesCreated: 0, edgesUpdated: 0, edgesRemoved: 0 },
+      patternResult: { patternsDetected: 0, clusters: 0, communities: 0 },
+      decayResult: { scoresDecayed: 0, entitiesPruned: 0 },
+    });
+
+    if (input.remainingTeamIds && input.remainingTeamIds.length > 0) {
+      const [nextTeamId, ...rest] = input.remainingTeamIds;
+      return continueAsNew<typeof knowledgeInferenceWorkflow>({
+        ...input,
+        phase: "aggregate",
+        teamId: nextTeamId,
+        remainingTeamIds: rest,
+        resumeOffset: 0,
+      });
+    }
+
+    return {
+      teamId: input.teamId,
+      entitiesProcessed: 0,
+      edgesCreated: 0,
+      patternsDetected: 0,
+      scoresDecayed: 0,
+    };
+  }
+
   const expertiseResult = await inferenceActivities.computeExpertiseScores({
     teamId: input.teamId,
     mentionSummary: mentionResult.summary,

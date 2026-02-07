@@ -36,7 +36,7 @@ import { enforceExecutionPlan, ensureSupportedNodes } from "./utils/validators";
 const HISTORY_LENGTH_THRESHOLD = 10_000;
 
 function getTimestamp(): number {
-  return workflowInfo().startTime.getTime();
+  return workflowInfo().unsafe.now();
 }
 
 function shouldContinueAsNew(): boolean {
@@ -300,8 +300,17 @@ export async function agentCanvasExecutionWorkflow(
   const continueAsNewCount = input.checkpoint?.continueAsNewCount ?? 0;
   const isResumingFromCheckpoint = !!input.checkpoint;
 
+  let restoredLoopStates: Map<string, unknown> | undefined;
+  let restoredLoopStack: string[] | undefined;
+
   if (isResumingFromCheckpoint && input.checkpoint) {
-    restoreFromCheckpoint(input.checkpoint, approvalResponses, inputResponses);
+    const restored = restoreFromCheckpoint(
+      input.checkpoint,
+      approvalResponses,
+      inputResponses
+    );
+    restoredLoopStates = restored.loopStates;
+    restoredLoopStack = restored.loopStack;
   }
 
   if (patched("v4-rate-limit-enforcement") && !isResumingFromCheckpoint) {
@@ -358,6 +367,20 @@ export async function agentCanvasExecutionWorkflow(
     inputResponses,
     startedAt,
     agentCanvasExecutionWorkflow,
+    shouldContinueAsNew,
+    initialLoopStates: restoredLoopStates as
+      | Map<string, import("@openplane/types/temporal").LoopState>
+      | undefined,
+    initialLoopStack: restoredLoopStack,
+    resumeFromNodeId: isResumingFromCheckpoint
+      ? input.checkpoint?.currentNodeId
+      : undefined,
+    resumePayload: isResumingFromCheckpoint
+      ? input.checkpoint?.currentPayload
+      : undefined,
+    resumeLastStepOutput: isResumingFromCheckpoint
+      ? input.checkpoint?.lastStepOutput
+      : undefined,
   };
 
   if (patched("v3-continue-as-new-support")) {
@@ -375,6 +398,9 @@ export async function agentCanvasExecutionWorkflow(
         loopStates: executionResult.loopStates,
         loopStack: executionResult.loopStack,
         continueAsNewCount,
+        currentPayload: executionResult.currentPayload,
+        lastStepOutput: executionResult.lastStepOutput,
+        nextNodeId: executionResult.nextNodeId,
       });
 
       return continueAsNew<typeof agentCanvasExecutionWorkflow>({

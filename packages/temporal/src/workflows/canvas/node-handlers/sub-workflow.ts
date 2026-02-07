@@ -7,7 +7,7 @@ import type {
   AgentCanvasExecutionInput,
   AgentCanvasExecutionOutput,
 } from "@openplane/types/temporal/workflows";
-import { sleep, startChild } from "@temporalio/workflow";
+import { sleep, startChild, workflowInfo } from "@temporalio/workflow";
 
 import { TASK_QUEUES } from "../../../config/task-queues";
 import { generateWorkflowId } from "../../../utils/workflow-id";
@@ -49,7 +49,7 @@ export interface SubWorkflowResult {
 }
 
 function getTimestamp(): number {
-  return Date.now();
+  return workflowInfo().unsafe.now();
 }
 
 export async function handleSubWorkflowNode(

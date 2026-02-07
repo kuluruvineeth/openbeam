@@ -16,7 +16,6 @@ export function createComputeExpertiseActivity(
     rawInput: unknown
   ): Promise<ComputeExpertiseOutput> {
     const input = ComputeExpertiseInputSchema.parse(rawInput);
-    const halfLife = input.decayHalfLifeDays;
 
     Context.current().heartbeat({ stage: "computing_scores" });
 
@@ -34,7 +33,6 @@ export function createComputeExpertiseActivity(
               WHEN 'REVIEWED' THEN 1.5
               ELSE 1.0
             END
-            * POWER(0.5, EXTRACT(EPOCH FROM (NOW() - m.created_at)) / 86400.0 / ${halfLife}::float)
           ), 0) AS new_score
         FROM entity e
         LEFT JOIN entity_mention m ON m.entity_id = e.id

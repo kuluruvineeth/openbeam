@@ -41,7 +41,7 @@ import {
 } from "@temporalio/workflow";
 
 function getTimestamp(): number {
-  return workflowInfo().startTime.getTime();
+  return workflowInfo().unsafe.now();
 }
 
 import type { CanvasExecutionActivities } from "../../activities/canvas/types";
