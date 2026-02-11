@@ -140,6 +140,24 @@ export {
   processMedia,
 } from "./triggers/media";
 export {
+  awaitMissionCompletion,
+  cancelLinearRun,
+  cancelMission,
+  createMissionHeartbeatSchedule,
+  deleteMissionHeartbeatSchedule,
+  getActiveMissionsForTeam,
+  getLinearRunProgress,
+  getMissionRuntime,
+  type MissionHandle,
+  pauseMission,
+  resumeMission,
+  type StartMissionOptions,
+  sendMissionCommand,
+  startLinearRun,
+  startMission,
+  wakeMission,
+} from "./triggers/mission";
+export {
   createDigestSchedule,
   createSyncSchedule,
   type DigestScheduleInfo,

@@ -1,6 +1,7 @@
 import type { Database } from "@openplane/db";
 import { updateAgentCanvasExecution } from "@openplane/db";
 import type { UpdateCanvasExecutionInput } from "@openplane/types/temporal";
+import { emitRuntimeEvent } from "./runtime-event-emitter";
 
 export interface UpdateCanvasExecutionDependencies {
   db: Database;
@@ -33,5 +34,56 @@ export function createUpdateCanvasExecutionActivity(
       historySizeBytes: input.historySizeBytes,
       continueAsNewCount: input.continueAsNewCount,
     });
+
+    if (!(input.sessionId && input.canvasId && input.status)) {
+      return;
+    }
+
+    const ctx = {
+      db: deps.db,
+      sessionId: input.sessionId,
+      canvasId: input.canvasId,
+      teamId: input.teamId,
+      executionId: input.executionId,
+      turnId: input.turnId,
+    };
+
+    switch (input.status) {
+      case "RUNNING":
+        await emitRuntimeEvent(ctx, {
+          type: "execution.started",
+          executionId: input.executionId,
+          status: "RUNNING",
+        });
+        break;
+
+      case "COMPLETED":
+        await emitRuntimeEvent(ctx, {
+          type: "execution.completed",
+          executionId: input.executionId,
+          status: "COMPLETED",
+          durationMs: input.latencyMs,
+        });
+        break;
+
+      case "FAILED":
+        await emitRuntimeEvent(ctx, {
+          type: "execution.failed",
+          executionId: input.executionId,
+          error: input.error ?? "Unknown error",
+        });
+        break;
+
+      case "CANCELLED":
+        await emitRuntimeEvent(ctx, {
+          type: "execution.failed",
+          executionId: input.executionId,
+          error: "Execution cancelled",
+        });
+        break;
+
+      default:
+        break;
+    }
   };
 }

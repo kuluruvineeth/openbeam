@@ -43,6 +43,20 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+function coerceArray(value: unknown): unknown[] | null {
+  if (Array.isArray(value)) {
+    return value;
+  }
+  if (
+    value !== null &&
+    typeof value === "object" &&
+    typeof (value as Record<string, unknown>).length === "number"
+  ) {
+    return Array.from(value as ArrayLike<unknown>);
+  }
+  return null;
+}
+
 function buildLoopContext(params: LoopContextParams): Record<string, unknown> {
   const base = isRecord(params.currentValue) ? params.currentValue : {};
 
@@ -178,13 +192,14 @@ async function initializeLoopState(params: {
       data: resolvedInput,
     });
 
-    if (!Array.isArray(value)) {
+    const items = coerceArray(value);
+    if (!items) {
       throw new Error("Loop collection expression must return an array");
     }
 
-    loopState.collectionRef = await claimCheck.put(value, { nodeId });
-    loopState.collectionSize = value.length;
-    collection = value;
+    loopState.collectionRef = await claimCheck.put(items, { nodeId });
+    loopState.collectionSize = items.length;
+    collection = items;
   }
 
   return { loopState, collection };

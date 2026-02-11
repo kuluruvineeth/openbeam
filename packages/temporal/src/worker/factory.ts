@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import { logger } from "@openplane/services/lib/logger";
 import {
   type ActivityInboundCallsInterceptor,
   NativeConnection,
@@ -201,12 +202,12 @@ export async function createWorkerWithHandle(
     }
     isShuttingDown = true;
 
-    console.log("[worker] Initiating graceful shutdown...");
+    logger.info("[worker] Initiating graceful shutdown...");
 
     worker.shutdown();
     await connection.close();
 
-    console.log("[worker] Shutdown complete");
+    logger.info("[worker] Shutdown complete");
   };
 
   const run = async (): Promise<void> => {

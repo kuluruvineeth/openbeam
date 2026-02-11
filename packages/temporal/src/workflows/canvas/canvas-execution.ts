@@ -232,6 +232,17 @@ const subWorkflowActivities = proxyActivities<
   retry: { maximumAttempts: 3 },
 });
 
+function sessionContext(input: AgentCanvasExecutionInput) {
+  if (!input.sessionId) {
+    return {};
+  }
+  return {
+    sessionId: input.sessionId,
+    canvasId: input.agentCanvasId,
+    turnId: input.turnId,
+  };
+}
+
 function getExecutableNodes(plan: ExecutionPlan): ExecutionPlanNode[] {
   return plan.nodes.filter((node) => !IGNORED_NODE_TYPES.has(node.type));
 }
@@ -2382,6 +2393,7 @@ async function compilePlanOrThrow(
       startedAt,
       completedAt,
       ...getWorkflowMetadata("FAILED"),
+      ...sessionContext(input),
     });
 
     throw ApplicationFailure.nonRetryable(message, "CanvasValidationError");
@@ -2402,6 +2414,7 @@ async function initializeExecution(
     trace,
     startedAt,
     ...getWorkflowMetadata("RUNNING"),
+    ...sessionContext(input),
   });
 }
 
@@ -2491,6 +2504,7 @@ async function executePlanNodes(params: {
       trace,
       latencyMs: trace.totalLatencyMs,
       ...getWorkflowMetadata("RUNNING"),
+      ...sessionContext(input),
     });
 
     const splitConfig = ParallelSplitNodeConfigSchema.parse(
@@ -2676,6 +2690,7 @@ async function executePlanNodes(params: {
       trace,
       latencyMs: trace.totalLatencyMs,
       ...getWorkflowMetadata("RUNNING"),
+      ...sessionContext(input),
     });
 
     const joinOutput = joinResult.outputRef ?? joinResult.output;
@@ -2872,6 +2887,7 @@ async function executePlanNodes(params: {
           trace,
           latencyMs: trace.totalLatencyMs,
           ...getWorkflowMetadata("RUNNING"),
+          ...sessionContext(input),
         });
       }
 
@@ -2935,6 +2951,7 @@ async function executePlanNodes(params: {
       trace,
       latencyMs: trace.totalLatencyMs,
       ...getWorkflowMetadata("RUNNING"),
+      ...sessionContext(input),
     });
 
     return {
@@ -3019,6 +3036,7 @@ async function executePlanNodes(params: {
           trace,
           latencyMs: trace.totalLatencyMs,
           ...getWorkflowMetadata("RUNNING"),
+          ...sessionContext(input),
         });
 
         const retryStep = buildCompletedStep(node, currentPayload, {
@@ -3043,6 +3061,7 @@ async function executePlanNodes(params: {
           trace,
           latencyMs: trace.totalLatencyMs,
           ...getWorkflowMetadata("RUNNING"),
+          ...sessionContext(input),
         });
 
         const stepOutput = result.outputRef ?? result.output;
@@ -3078,6 +3097,7 @@ async function executePlanNodes(params: {
           trace,
           latencyMs: trace.totalLatencyMs,
           ...getWorkflowMetadata("RUNNING"),
+          ...sessionContext(input),
         });
 
         if (
@@ -3162,6 +3182,7 @@ async function executePlanNodes(params: {
         trace,
         latencyMs: trace.totalLatencyMs,
         ...getWorkflowMetadata("RUNNING"),
+        ...sessionContext(input),
       });
 
       const tryOutput = result.outputRef ?? result.output;
@@ -3185,6 +3206,7 @@ async function executePlanNodes(params: {
         trace,
         latencyMs: trace.totalLatencyMs,
         ...getWorkflowMetadata("RUNNING"),
+        ...sessionContext(input),
       });
 
       const branchId =
@@ -3219,6 +3241,7 @@ async function executePlanNodes(params: {
         trace,
         latencyMs: trace.totalLatencyMs,
         ...getWorkflowMetadata("RUNNING"),
+        ...sessionContext(input),
       });
 
       if (!shouldCatchFailure(error, tryCatchConfig)) {
@@ -3262,6 +3285,7 @@ async function executePlanNodes(params: {
         trace,
         latencyMs: trace.totalLatencyMs,
         ...getWorkflowMetadata("RUNNING"),
+        ...sessionContext(input),
       });
 
       const catchOutput = catchResult.outputRef ?? catchResult.output;
@@ -3290,6 +3314,7 @@ async function executePlanNodes(params: {
         trace,
         latencyMs: trace.totalLatencyMs,
         ...getWorkflowMetadata("RUNNING"),
+        ...sessionContext(input),
       });
 
       const branchId =
@@ -3359,6 +3384,7 @@ async function executePlanNodes(params: {
       input: currentPayload,
       status: "WAITING_APPROVAL",
       startedAt: stepStartedAt,
+      ...sessionContext(input),
     });
 
     const approvalRecord = await stepActivities.createCanvasApproval({
@@ -3366,6 +3392,7 @@ async function executePlanNodes(params: {
       nodeId: node.id,
       requestMessage: approvalConfig.message,
       timeoutMs: approvalConfig.timeoutMs,
+      ...sessionContext(input),
     });
 
     const waitingStep = buildWaitingStep({
@@ -3389,6 +3416,7 @@ async function executePlanNodes(params: {
       trace,
       latencyMs: trace.totalLatencyMs,
       ...getWorkflowMetadata("WAITING_APPROVAL"),
+      ...sessionContext(input),
     });
 
     const approvalWait = await waitForApprovalResponse({
@@ -3436,6 +3464,7 @@ async function executePlanNodes(params: {
       output: stepOutput,
       completedAt,
       latencyMs: completedAt - stepStartedAt,
+      ...sessionContext(input),
     });
 
     waitingStep.status = stepStatus;
@@ -3455,6 +3484,7 @@ async function executePlanNodes(params: {
       trace,
       latencyMs: trace.totalLatencyMs,
       ...getWorkflowMetadata("RUNNING"),
+      ...sessionContext(input),
     });
 
     const nextNodeId = resolveNextEdge({
@@ -3521,6 +3551,7 @@ async function executePlanNodes(params: {
       input: currentPayload,
       status: "WAITING_INPUT",
       startedAt: stepStartedAt,
+      ...sessionContext(input),
     });
 
     const waitingStep = buildWaitingStep({
@@ -3544,6 +3575,7 @@ async function executePlanNodes(params: {
       trace,
       latencyMs: trace.totalLatencyMs,
       ...getWorkflowMetadata("WAITING_INPUT"),
+      ...sessionContext(input),
     });
 
     const responseResult = await waitForInputResponse({
@@ -3592,6 +3624,7 @@ async function executePlanNodes(params: {
         error: message,
         completedAt,
         latencyMs: completedAt - stepStartedAt,
+        ...sessionContext(input),
       });
       waitingStep.status = "FAILED";
       waitingStep.error = message;
@@ -3674,6 +3707,7 @@ async function executePlanNodes(params: {
       output: stepOutput,
       completedAt,
       latencyMs: completedAt - stepStartedAt,
+      ...sessionContext(input),
     });
 
     waitingStep.status = stepStatus;
@@ -3693,6 +3727,7 @@ async function executePlanNodes(params: {
       trace,
       latencyMs: trace.totalLatencyMs,
       ...getWorkflowMetadata("RUNNING"),
+      ...sessionContext(input),
     });
 
     let branchId: string | null = null;
@@ -3731,6 +3766,7 @@ async function executePlanNodes(params: {
       input: currentPayload,
       status: "RUNNING",
       startedAt: stepStartedAt,
+      ...sessionContext(input),
     });
 
     const prepared = await subWorkflowActivities.prepareSubWorkflowExecution({
@@ -3782,6 +3818,7 @@ async function executePlanNodes(params: {
         error: message,
         completedAt,
         latencyMs: completedAt - stepStartedAt,
+        ...sessionContext(input),
       });
       throw new Error(message);
     };
@@ -3861,6 +3898,7 @@ async function executePlanNodes(params: {
       output: stepOutput,
       completedAt,
       latencyMs: completedAt - stepStartedAt,
+      ...sessionContext(input),
     });
 
     const step = buildCompletedStep(node, currentPayload, {
@@ -3886,6 +3924,7 @@ async function executePlanNodes(params: {
       trace,
       latencyMs: trace.totalLatencyMs,
       ...getWorkflowMetadata("RUNNING"),
+      ...sessionContext(input),
     });
 
     const nextNodeId = resolveNextEdge({
@@ -4101,6 +4140,7 @@ async function executePlanNodes(params: {
           trace,
           latencyMs: trace.totalLatencyMs,
           ...getWorkflowMetadata("RUNNING"),
+          ...sessionContext(input),
         });
       } catch (error) {
         const completedAt = getTimestamp();
@@ -4162,6 +4202,7 @@ async function executePlanNodes(params: {
                 trace,
                 latencyMs: trace.totalLatencyMs,
                 ...getWorkflowMetadata("RUNNING"),
+                ...sessionContext(input),
               });
 
               currentNodeId = activeLoopId;
@@ -4186,6 +4227,7 @@ async function executePlanNodes(params: {
           startedAt,
           completedAt,
           ...getWorkflowMetadata("FAILED"),
+          ...sessionContext(input),
         });
 
         throw error;
@@ -4235,6 +4277,7 @@ async function finalizeExecution(params: {
       startedAt,
       completedAt,
       ...getWorkflowMetadata("CANCELLED"),
+      ...sessionContext(input),
     });
 
     return {
@@ -4259,6 +4302,7 @@ async function finalizeExecution(params: {
     startedAt,
     completedAt,
     ...getWorkflowMetadata("COMPLETED"),
+    ...sessionContext(input),
   });
 
   return {

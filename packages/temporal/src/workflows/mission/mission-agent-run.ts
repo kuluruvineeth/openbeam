@@ -2,8 +2,14 @@ import {
   MissionAgentRunInputSchema,
   type MissionAgentRunOutput,
 } from "@openplane/types/temporal/mission";
-import { proxyActivities, setHandler } from "@temporalio/workflow";
+import {
+  proxyActivities,
+  setHandler,
+  workflowInfo,
+} from "@temporalio/workflow";
+import type { AgentActivities } from "../../activities/agents/types";
 import type { MissionActivities } from "../../activities/mission/types";
+import type { AgentArtifact } from "../types";
 import { cancelSignal } from "../types";
 
 const activities = proxyActivities<MissionActivities>({
@@ -12,6 +18,18 @@ const activities = proxyActivities<MissionActivities>({
   retry: {
     maximumAttempts: 3,
     initialInterval: "2s",
+    backoffCoefficient: 2,
+  },
+});
+
+const agentActivities = proxyActivities<
+  Pick<AgentActivities, "executeAgentStep">
+>({
+  startToCloseTimeout: "10m",
+  heartbeatTimeout: "2m",
+  retry: {
+    maximumAttempts: 2,
+    initialInterval: "5s",
     backoffCoefficient: 2,
   },
 });
@@ -34,9 +52,9 @@ export async function missionAgentRunWorkflow(
   });
 
   let steps = 0;
-  const tokensUsed = 0;
-  const costCents = 0;
-  const artifacts: unknown[] = [];
+  let tokensUsed = 0;
+  let costCents = 0;
+  const allArtifacts: AgentArtifact[] = [];
   let status: MissionAgentRunOutput["status"] = "completed";
 
   try {
@@ -59,9 +77,29 @@ export async function missionAgentRunWorkflow(
         scope: "agent",
       });
 
+      const stepResult = await agentActivities.executeAgentStep({
+        sessionId: input.agentId,
+        agentType: "mission",
+        step: steps,
+        previousArtifacts: allArtifacts,
+        context: {
+          prompt: input.soulPrompt,
+          taskTitle: context.taskTitle,
+          taskDescription: context.taskDescription,
+          memory: context.memory,
+          teamId: input.teamId,
+          agentId: input.agentId,
+          preset: "researcher",
+        },
+      });
+
+      allArtifacts.push(...stepResult.artifacts);
+      tokensUsed += stepResult.tokensUsed;
+      costCents += stepResult.costCents;
+
       const budgetCheck = await activities.updateBudget({
         missionId: input.missionId,
-        costCents: 0,
+        costCents: stepResult.costCents,
       });
 
       if (budgetCheck.exceeded) {
@@ -69,7 +107,9 @@ export async function missionAgentRunWorkflow(
         break;
       }
 
-      break;
+      if (stepResult.complete) {
+        break;
+      }
     }
 
     if (isCancelled) {
@@ -115,7 +155,7 @@ export async function missionAgentRunWorkflow(
   await activities.updateRun({
     runId: input.runId,
     status: runStatus,
-    completedAt: Date.now(),
+    completedAt: workflowInfo().unsafe.now(),
     tokensUsed,
     costCents,
     ...(status === "failed" ? { error: "Agent run failed" } : {}),
@@ -143,7 +183,7 @@ export async function missionAgentRunWorkflow(
     steps,
     tokensUsed,
     costCents,
-    artifacts,
+    artifacts: allArtifacts,
     status,
   };
 }

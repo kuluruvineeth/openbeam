@@ -230,6 +230,64 @@ export function recordInputResponseTime(
   inputResponseTimeSeconds.labels(outcome).observe(durationMs / 1000);
 }
 
+export const runtimeEventEmissionTotal = new Counter({
+  name: "canvas_runtime_event_emission_total",
+  help: "Total runtime events emitted",
+  labelNames: ["status", "payload_type"] as const,
+  registers: [canvasMetricsRegistry],
+});
+
+export const runtimeEventEmissionDurationSeconds = new Histogram({
+  name: "canvas_runtime_event_emission_duration_seconds",
+  help: "Duration of runtime event emission stages in seconds",
+  labelNames: ["stage"] as const,
+  buckets: [0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1],
+  registers: [canvasMetricsRegistry],
+});
+
+export const runtimeEventPersistFailuresTotal = new Counter({
+  name: "canvas_runtime_event_persist_failures_total",
+  help: "Total runtime event database persist failures",
+  registers: [canvasMetricsRegistry],
+});
+
+export const runtimeEventPublishFailuresTotal = new Counter({
+  name: "canvas_runtime_event_publish_failures_total",
+  help: "Total runtime event Redis publish failures",
+  registers: [canvasMetricsRegistry],
+});
+
+type RuntimeEventEmissionMetrics = {
+  payloadType: string;
+  status: "success" | "failure";
+  persistMs: number;
+  publishMs: number;
+  totalMs: number;
+};
+
+export function recordRuntimeEventEmission(
+  metrics: RuntimeEventEmissionMetrics
+): void {
+  runtimeEventEmissionTotal.labels(metrics.status, metrics.payloadType).inc();
+  runtimeEventEmissionDurationSeconds
+    .labels("persist")
+    .observe(metrics.persistMs / 1000);
+  runtimeEventEmissionDurationSeconds
+    .labels("publish")
+    .observe(metrics.publishMs / 1000);
+  runtimeEventEmissionDurationSeconds
+    .labels("total")
+    .observe(metrics.totalMs / 1000);
+}
+
+export function recordRuntimeEventPersistFailure(): void {
+  runtimeEventPersistFailuresTotal.inc();
+}
+
+export function recordRuntimeEventPublishFailure(): void {
+  runtimeEventPublishFailuresTotal.inc();
+}
+
 export async function getCanvasMetrics(): Promise<string> {
   return await canvasMetricsRegistry.metrics();
 }

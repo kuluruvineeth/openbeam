@@ -15,6 +15,7 @@ import {
   resolvePayload,
   storePayload,
 } from "../../engine/claim-check";
+import { emitRuntimeEvent } from "./runtime-event-emitter";
 
 export interface CanvasExecutionStepDependencies {
   db: Database;
@@ -54,6 +55,26 @@ export function createCreateCanvasExecutionStepActivity(
         input.startedAt !== undefined ? new Date(input.startedAt) : undefined,
     });
 
+    if (input.sessionId && input.canvasId) {
+      await emitRuntimeEvent(
+        {
+          db: deps.db,
+          sessionId: input.sessionId,
+          canvasId: input.canvasId,
+          teamId: input.teamId,
+          executionId: input.executionId,
+          turnId: input.turnId,
+          stepId: step.id,
+        },
+        {
+          type: "execution.progress",
+          executionId: input.executionId,
+          nodeId: input.node.id,
+          message: `Started ${input.node.type}`,
+        }
+      );
+    }
+
     return {
       stepId: step.id,
       inputRef: isExecutionDataRef(storedInput) ? storedInput : undefined,
@@ -85,7 +106,7 @@ export function createUpdateCanvasExecutionStepActivity(
 
     await updateAgentCanvasExecutionStep(deps.db, input.stepId, input.teamId, {
       status: input.status,
-      output: storedOutput !== undefined ? (storedOutput as never) : undefined,
+      output: storedOutput !== undefined ? storedOutput : undefined,
       error: input.error,
       latencyMs: input.latencyMs,
       completedAt:
@@ -93,6 +114,33 @@ export function createUpdateCanvasExecutionStepActivity(
           ? new Date(input.completedAt)
           : undefined,
     });
+
+    if (
+      input.sessionId &&
+      input.canvasId &&
+      (input.status === "COMPLETED" || input.status === "FAILED")
+    ) {
+      await emitRuntimeEvent(
+        {
+          db: deps.db,
+          sessionId: input.sessionId,
+          canvasId: input.canvasId,
+          teamId: input.teamId,
+          executionId: input.executionId,
+          turnId: input.turnId,
+          stepId: input.stepId,
+        },
+        {
+          type: "execution.progress",
+          executionId: input.executionId,
+          nodeId: input.nodeId,
+          message:
+            input.status === "COMPLETED"
+              ? `Completed ${input.nodeId}`
+              : `Failed ${input.nodeId}: ${input.error ?? "Unknown"}`,
+        }
+      );
+    }
 
     return {
       output: isExecutionDataRef(storedOutput) ? undefined : storedOutput,

@@ -1,4 +1,5 @@
 import type {
+  LinearRunProgress,
   MissionCommandPayload,
   MissionOrchestratorInput,
   MissionOrchestratorOutput,
@@ -12,6 +13,8 @@ import {
 import { getTemporalClient } from "../client";
 import { TASK_QUEUES } from "../config/task-queues";
 import {
+  linearRunCancelSignal,
+  linearRunProgressQuery,
   missionCommandSignal,
   missionRuntimeQuery,
   missionWakeSignal,
@@ -212,5 +215,107 @@ export async function deleteMissionHeartbeatSchedule(
     return true;
   } catch {
     return false;
+  }
+}
+
+export async function getActiveMissionsForTeam(
+  teamId: string
+): Promise<MissionHandle[]> {
+  const client = await getTemporalClient();
+
+  const workflows = client.workflow.list({
+    query: `ExecutionStatus = "Running" AND WorkflowType = "missionOrchestratorWorkflow"`,
+  });
+
+  const handles: MissionHandle[] = [];
+  for await (const workflow of workflows) {
+    const memo = workflow.memo as Record<string, unknown> | undefined;
+    if (memo?.teamId === teamId) {
+      handles.push({
+        workflowId: workflow.workflowId,
+        runId: workflow.runId,
+      });
+    }
+  }
+
+  return handles;
+}
+
+export async function startLinearRun(params: {
+  missionId: string;
+  teamId: string;
+  runId: string;
+  taskIds: string[];
+  agentId: string;
+}): Promise<MissionHandle> {
+  const client = await getTemporalClient();
+  const workflowId = `mission-linear-run:${params.missionId}:${params.runId}`;
+
+  try {
+    const handle = await client.workflow.start("missionLinearRunWorkflow", {
+      taskQueue: TASK_QUEUES.MISSION,
+      workflowId,
+      args: [
+        {
+          missionId: params.missionId,
+          teamId: params.teamId,
+          runId: params.runId,
+          taskIds: params.taskIds,
+          agentId: params.agentId,
+        },
+      ],
+      memo: {
+        missionId: params.missionId,
+        teamId: params.teamId,
+        runId: params.runId,
+      },
+    });
+
+    return {
+      workflowId: handle.workflowId,
+      runId: handle.firstExecutionRunId,
+    };
+  } catch (error) {
+    if (error instanceof WorkflowExecutionAlreadyStartedError) {
+      return { workflowId, runId: "" };
+    }
+    throw error;
+  }
+}
+
+export async function getLinearRunProgress(
+  missionId: string,
+  runId: string
+): Promise<LinearRunProgress | null> {
+  const client = await getTemporalClient();
+  const workflowId = `mission-linear-run:${missionId}:${runId}`;
+
+  try {
+    const handle = client.workflow.getHandle(workflowId);
+    return await handle.query(linearRunProgressQuery);
+  } catch (error) {
+    if (error instanceof WorkflowNotFoundError) {
+      return null;
+    }
+    throw error;
+  }
+}
+
+export async function cancelLinearRun(
+  missionId: string,
+  runId: string
+): Promise<boolean> {
+  const client = await getTemporalClient();
+  const workflowId = `mission-linear-run:${missionId}:${runId}`;
+
+  try {
+    const handle = client.workflow.getHandle(workflowId);
+    await handle.signal(linearRunCancelSignal);
+    return true;
+  } catch (error) {
+    if (error instanceof WorkflowNotFoundError) {
+      return false;
+    }
+    throw error;
   }
 }

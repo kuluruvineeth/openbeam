@@ -23,6 +23,7 @@ export function createAgentActivities(
   };
 }
 
+export { LlmAgentExecutor } from "./llm-agent-executor";
 export type { AgentActivities, AgentExecutor };
 export type {
   ExecuteAgentStepInput,

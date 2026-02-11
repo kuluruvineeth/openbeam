@@ -34,6 +34,8 @@ export interface StartCanvasExecutionOptions {
   input?: unknown;
   canvas: CanvasState;
   requestId?: string;
+  sessionId?: string;
+  turnId?: string;
 }
 
 export interface CanvasExecutionHandle {
@@ -60,6 +62,8 @@ export async function startCanvasExecution(
     triggerSource: options.triggerSource,
     input: options.input,
     canvas: options.canvas,
+    sessionId: options.sessionId,
+    turnId: options.turnId,
   };
 
   try {

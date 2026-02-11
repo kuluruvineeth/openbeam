@@ -3,6 +3,7 @@ export {
   type AgentActivityDependencies,
   type AgentExecutor,
   createAgentActivities,
+  LlmAgentExecutor,
 } from "./agents";
 export type {
   ExecuteAgentStepInput,

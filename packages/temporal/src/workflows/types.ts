@@ -4,6 +4,7 @@ import type {
   CanvasInputSignalPayload,
 } from "@openplane/types/temporal";
 import type {
+  LinearRunProgress,
   MissionCommandPayload,
   MissionRuntimeQueryResult,
   MissionWakePayload,
@@ -312,3 +313,6 @@ export const missionCommandSignal =
   defineSignal<[MissionCommandPayload]>("missionCommand");
 export const missionRuntimeQuery =
   defineQuery<MissionRuntimeQueryResult>("missionRuntime");
+export const linearRunProgressQuery =
+  defineQuery<LinearRunProgress>("linearRunProgress");
+export const linearRunCancelSignal = defineSignal("linearRunCancel");

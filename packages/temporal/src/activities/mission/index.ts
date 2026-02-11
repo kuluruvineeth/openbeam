@@ -130,6 +130,17 @@ export function createMissionActivities(
     async loadMissionContext(
       input: LoadMissionContextInput
     ): Promise<LoadMissionContextOutput> {
+      const mission = await db.mission.findUnique({
+        where: { id: input.missionId },
+        select: { teamId: true },
+      });
+
+      if (!mission || mission.teamId !== input.teamId) {
+        throw new Error(
+          `Mission ${input.missionId} does not belong to team ${input.teamId}`
+        );
+      }
+
       const [agent, task, memories, comments] = await Promise.all([
         db.missionAgent.findFirst({
           where: { id: input.agentId, missionId: input.missionId },
