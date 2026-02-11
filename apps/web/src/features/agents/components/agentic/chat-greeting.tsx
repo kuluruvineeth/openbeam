@@ -1,40 +1,23 @@
 "use client";
 
-import { Icons } from "@openplane/ui";
 import { cn } from "@openplane/ui/utils";
 import { motion } from "motion/react";
 import Image from "next/image";
+import { useMemo } from "react";
+import { buildSuggestions } from "./chat-suggestions";
 
 interface ChatGreetingProps {
+  connectors?: readonly { app: string }[] | null;
   onSuggestionClick?: (suggestion: string) => void;
   className?: string;
 }
 
-const SUGGESTIONS = [
-  {
-    icon: Icons.Workflow,
-    label: "Create a workflow",
-    prompt:
-      "Create a workflow that monitors my Slack channels and sends summaries to email",
-  },
-  {
-    icon: Icons.Zap,
-    label: "Automate a task",
-    prompt:
-      "Build an automation that triggers when new issues are created in Linear",
-  },
-  {
-    icon: Icons.SparklesIcon,
-    label: "Build an AI agent",
-    prompt:
-      "Create an AI agent that can search across my documents and answer questions",
-  },
-];
-
 export function ChatGreeting({
+  connectors,
   onSuggestionClick,
   className,
 }: ChatGreetingProps) {
+  const suggestions = useMemo(() => buildSuggestions(connectors), [connectors]);
   return (
     <div
       className={cn(
@@ -73,7 +56,7 @@ export function ChatGreeting({
         </p>
 
         <div className="flex w-full max-w-sm flex-col gap-2">
-          {SUGGESTIONS.map((suggestion, index) => (
+          {suggestions.map((suggestion, index) => (
             <motion.button
               animate={{ opacity: 1, y: 0 }}
               className={cn(

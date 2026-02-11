@@ -1,19 +1,26 @@
 "use client";
 
+import type { ExecutionStatus } from "@openplane/types/canvas/execution";
 import type { ExecutionListItem } from "@openplane/types/canvas/execution-ui";
 import type {
   TimelineData,
   TimelineStep,
   TimelineStepStatus,
 } from "@openplane/types/canvas/timeline";
+import { Button, Icons } from "@openplane/ui";
 import { TooltipProvider } from "@openplane/ui/components/tooltip";
 import { cn } from "@openplane/ui/utils";
 import { useQuery } from "@tanstack/react-query";
+import { motion } from "motion/react";
 import { parseAsString, parseAsStringLiteral, useQueryState } from "nuqs";
-import { Suspense, useCallback, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
+import { useShallow } from "zustand/react/shallow";
 import { useTRPC } from "@/trpc/client";
 import { useCanvasKeyboard } from "../../hooks/use-canvas-keyboard";
 import { useCanvasPersistence } from "../../hooks/use-canvas-persistence";
+import { useAgenticRuntimeStore } from "../../stores/agentic-runtime-store";
+import { useChatPanelStore } from "../../stores/chat-panel-store";
 import {
   AgenticViewHeader,
   AgenticViewHeaderSkeleton,
@@ -27,6 +34,16 @@ import {
 } from "./execution-live-banner";
 import { ExecutionView } from "./execution-view";
 
+const LIVE_BANNER_STATUSES = new Set<string>([
+  "RUNNING",
+  "WAITING_APPROVAL",
+  "WAITING_INPUT",
+]);
+
+function isLiveBannerStatus(status: string): status is LiveBannerStatus {
+  return LIVE_BANNER_STATUSES.has(status);
+}
+
 interface AgenticViewProps {
   agentId: string;
   className?: string;
@@ -38,21 +55,50 @@ const ACTIVE_STATUSES = new Set([
   "WAITING_APPROVAL",
   "WAITING_INPUT",
 ]);
+
+function parseTokenUsage(
+  value: unknown
+): { input: number; output: number } | undefined {
+  if (typeof value !== "object" || value === null) {
+    return;
+  }
+  const obj = value as Record<string, unknown>;
+  if (typeof obj.input === "number" && typeof obj.output === "number") {
+    return { input: obj.input, output: obj.output };
+  }
+  return;
+}
 const POLLING_INTERVAL_MS = 2000;
 const EXECUTIONS_PAGE_SIZE = 20;
 
+const VALID_EXECUTION_STATUSES: ReadonlySet<string> = new Set<ExecutionStatus>([
+  "PENDING",
+  "RUNNING",
+  "WAITING_APPROVAL",
+  "WAITING_INPUT",
+  "COMPLETED",
+  "FAILED",
+  "CANCELLED",
+  "TIMED_OUT",
+]);
+
+function isValidExecutionStatus(status: string): status is ExecutionStatus {
+  return VALID_EXECUTION_STATUSES.has(status);
+}
+
+const STEP_STATUS_MAP: Record<string, TimelineStepStatus> = {
+  PENDING: "pending",
+  RUNNING: "running",
+  COMPLETED: "success",
+  FAILED: "error",
+  CANCELLED: "cancelled",
+  TIMED_OUT: "error",
+  WAITING_APPROVAL: "running",
+  WAITING_INPUT: "running",
+};
+
 function mapStepStatus(dbStatus: string): TimelineStepStatus {
-  const statusMap: Record<string, TimelineStepStatus> = {
-    PENDING: "pending",
-    RUNNING: "running",
-    COMPLETED: "success",
-    FAILED: "error",
-    CANCELLED: "cancelled",
-    TIMED_OUT: "error",
-    WAITING_APPROVAL: "running",
-    WAITING_INPUT: "running",
-  };
-  return statusMap[dbStatus] ?? "pending";
+  return STEP_STATUS_MAP[dbStatus] ?? "pending";
 }
 
 function executionToListItem(
@@ -79,7 +125,9 @@ function executionToListItem(
     agentCanvasId,
     agentCanvasName,
     versionNumber: execution.versionNumber,
-    status: execution.status as ExecutionListItem["status"],
+    status: isValidExecutionStatus(execution.status)
+      ? execution.status
+      : "PENDING",
     triggeredById: execution.triggeredBy?.id ?? "",
     triggeredByName: execution.triggeredBy?.name ?? undefined,
     triggerSource: undefined,
@@ -96,6 +144,14 @@ function executionToListItem(
 function AgenticViewContent({ agentId, className }: AgenticViewProps) {
   const trpc = useTRPC();
   const { save } = useCanvasPersistence(agentId);
+  const { collapsed, toggleCollapsed } = useChatPanelStore(
+    useShallow((s) => ({ collapsed: s.collapsed, toggleCollapsed: s.toggle }))
+  );
+
+  useHotkeys("mod+b", (e) => {
+    e.preventDefault();
+    toggleCollapsed();
+  });
 
   const [view, setView] = useQueryState(
     "view",
@@ -107,6 +163,16 @@ function AgenticViewContent({ agentId, className }: AgenticViewProps) {
     "run",
     parseAsString.withDefault("")
   );
+  const [sessionParam, setSessionParam] = useQueryState(
+    "session",
+    parseAsString.withDefault("")
+  );
+
+  const sessionIdFromStore = useAgenticRuntimeStore((s) => s.sessionId);
+
+  useEffect(() => {
+    setSessionParam(sessionIdFromStore ?? null);
+  }, [sessionIdFromStore, setSessionParam]);
 
   const [executionsOffset, setExecutionsOffset] = useState(0);
   const [dismissedLiveBanner, setDismissedLiveBanner] = useState(false);
@@ -165,8 +231,6 @@ function AgenticViewContent({ agentId, className }: AgenticViewProps) {
     liveExecution?.status === "WAITING_INPUT" ||
     liveExecution?.status === "WAITING_APPROVAL";
 
-  // Show banner on executions tab (canvas has its own overlays)
-  // Waiting states cannot be dismissed - user must take action
   const showLiveBanner =
     hasLiveExecution &&
     view === "executions" &&
@@ -210,14 +274,15 @@ function AgenticViewContent({ agentId, className }: AgenticViewProps) {
   }, []);
 
   const nodeNameMap = useMemo(() => {
-    const nodes = agentQuery.data?.nodes as
-      | Array<{ id: string; data?: { label?: string } }>
-      | undefined;
-    if (!nodes) {
+    const rawNodes = agentQuery.data?.nodes;
+    if (!Array.isArray(rawNodes)) {
       return new Map<string, string>();
     }
     return new Map(
-      nodes.map((n) => [n.id, n.data?.label ?? `Node ${n.id.slice(0, 6)}`])
+      rawNodes.map((n: { id: string; data?: { label?: string } }) => [
+        n.id,
+        n.data?.label ?? `Node ${n.id.slice(0, 6)}`,
+      ])
     );
   }, [agentQuery.data?.nodes]);
 
@@ -245,9 +310,7 @@ function AgenticViewContent({ agentId, className }: AgenticViewProps) {
         error: step.error ?? undefined,
         input: step.input ?? undefined,
         output: step.output ?? undefined,
-        tokenUsage: step.tokenUsage as
-          | { input: number; output: number }
-          | undefined,
+        tokenUsage: parseTokenUsage(step.tokenUsage),
         retryCount: 0,
         attempt: 1,
         depth: 0,
@@ -293,10 +356,30 @@ function AgenticViewContent({ agentId, className }: AgenticViewProps) {
 
       {view === "canvas" ? (
         <div className="flex flex-1 overflow-hidden">
-          <div className="w-[380px] shrink-0">
-            <ChatPanel agentId={agentId} />
-          </div>
-          <div className="flex-1">
+          <motion.div
+            animate={{ width: collapsed ? 0 : 380 }}
+            className="shrink-0 overflow-hidden"
+            transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+          >
+            <div className="h-full w-[380px]">
+              <ChatPanel
+                agentId={agentId}
+                initialSessionId={sessionParam || undefined}
+                onCollapse={toggleCollapsed}
+              />
+            </div>
+          </motion.div>
+          <div className="relative flex-1">
+            {collapsed && (
+              <Button
+                className="absolute top-2 left-2 z-10 h-8 w-8"
+                onClick={toggleCollapsed}
+                size="icon"
+                variant="ghost"
+              >
+                <Icons.SidebarRight size={16} />
+              </Button>
+            )}
             <CanvasPanel agentId={agentId} />
           </div>
         </div>
@@ -315,20 +398,22 @@ function AgenticViewContent({ agentId, className }: AgenticViewProps) {
         />
       )}
 
-      {showLiveBanner && liveExecution && (
-        <ExecutionLiveBanner
-          executionId={liveExecution.id}
-          executionName={liveExecution.agentCanvasName}
-          onAction={handleLiveBannerAction}
-          onDismiss={() => setDismissedLiveBanner(true)}
-          startedAt={
-            liveExecution.startedAt
-              ? new Date(liveExecution.startedAt).getTime()
-              : undefined
-          }
-          status={liveExecution.status as LiveBannerStatus}
-        />
-      )}
+      {showLiveBanner &&
+        liveExecution &&
+        isLiveBannerStatus(liveExecution.status) && (
+          <ExecutionLiveBanner
+            executionId={liveExecution.id}
+            executionName={liveExecution.agentCanvasName}
+            onAction={handleLiveBannerAction}
+            onDismiss={() => setDismissedLiveBanner(true)}
+            startedAt={
+              liveExecution.startedAt
+                ? new Date(liveExecution.startedAt).getTime()
+                : undefined
+            }
+            status={liveExecution.status}
+          />
+        )}
     </div>
   );
 }

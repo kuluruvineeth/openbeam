@@ -1,97 +1,336 @@
 "use client";
 
-import type { CanvasOperation } from "@openplane/types/canvas";
+import dagre from "@dagrejs/dagre";
+import type {
+  AgentCanvasEdge,
+  AgentCanvasNode,
+  CanvasOperation,
+} from "@openplane/types/canvas";
+import type { RuntimeEvent } from "@openplane/types/canvas/runtime-events";
 import {
-  type MessageData,
   useCanvasBuilderStore,
   useCanvasStore,
+  useExecutionStore,
 } from "@openplane/ui";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getVanillaTRPCClient } from "@/trpc/client";
-
-type CanvasStreamEvent =
-  | { type: "thinking"; content: string }
-  | { type: "tool_call"; tool: string; input: unknown; id: string }
-  | { type: "tool_result"; id: string; result: unknown }
-  | { type: "canvas_op"; operation: CanvasOperation }
-  | { type: "text"; chunk: string }
-  | { type: "error"; message: string }
-  | { type: "complete"; summary: string; result: unknown };
-
-type AgentEvent =
-  | { type: "thinking"; timestamp: number; message: string }
-  | { type: "status"; timestamp: number; status: string; message: string }
-  | {
-      type: "tool_call";
-      timestamp: number;
-      toolCallId: string;
-      toolName: string;
-      displayName: string;
-      toolInput?: unknown;
-      visibility: "visible" | "ephemeral" | "hidden";
-    }
-  | {
-      type: "tool_result";
-      timestamp: number;
-      toolCallId: string;
-      toolName: string;
-      toolOutput?: unknown;
-      durationMs?: number;
-      success: boolean;
-    }
-  | { type: "text"; timestamp: number; content: string; isPartial: boolean }
-  | {
-      type: "error";
-      timestamp: number;
-      code: string;
-      message: string;
-      retryable: boolean;
-    }
-  | { type: "done"; timestamp: number; success: boolean };
+import { projectRuntimeEventsToMessages } from "../lib/runtime-message-projection";
+import { useAgenticRuntimeStore } from "../stores/agentic-runtime-store";
 
 export type CanvasBuilderState = {
-  messages: MessageData[];
+  messages: ReturnType<typeof projectRuntimeEventsToMessages>;
   isProcessing: boolean;
   error: string | null;
 };
 
-const INITIAL_STATE: CanvasBuilderState = {
-  messages: [],
-  isProcessing: false,
-  error: null,
-};
-
 type Subscription = { unsubscribe: () => void };
 
-function generateMessageId(): string {
-  return `msg_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+const SYNTHETIC_DELTA_INTERVAL_MS = 44;
+const SYNTHETIC_DELTA_CHUNK_SIZE = 10;
+const SYNTHETIC_STREAM_MIN_MS = 900;
+const SYNTHETIC_STREAM_MAX_MS = 2400;
+const LAYOUT_DEFAULT_NODE_WIDTH = 320;
+const LAYOUT_DEFAULT_NODE_HEIGHT = 156;
+const LAYOUT_NODE_SEP = 120;
+const LAYOUT_RANK_SEP = 180;
+const LAYOUT_EDGE_SEP = 44;
+const LAYOUT_MARGIN_X = 160;
+const LAYOUT_MARGIN_Y = 120;
+const LAYOUT_COLLISION_PADDING = 26;
+
+function getNumericLayoutDimension(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value)
+    ? value
+    : undefined;
 }
 
-function getToolDisplayName(toolName: string): string {
-  const displayNames: Record<string, string> = {
-    canvas_add_node: "Add Node",
-    canvas_remove_node: "Remove Node",
-    canvas_update_node: "Update Node",
-    canvas_add_edge: "Add Edge",
-    canvas_remove_edge: "Remove Edge",
+function getLayoutNodeSize(node: AgentCanvasNode | undefined) {
+  const defaultHeight =
+    node?.type === "start" || node?.type === "end"
+      ? 100
+      : LAYOUT_DEFAULT_NODE_HEIGHT;
+  const width = getNumericLayoutDimension(node?.width);
+  const height = getNumericLayoutDimension(node?.height);
+
+  return {
+    width: Math.max(220, Math.round(width ?? LAYOUT_DEFAULT_NODE_WIDTH)),
+    height: Math.max(88, Math.round(height ?? defaultHeight)),
   };
-  return displayNames[toolName] ?? toolName;
+}
+
+function areNodesOverlapping(
+  a: AgentCanvasNode,
+  b: AgentCanvasNode,
+  padding: number
+): boolean {
+  const aSize = getLayoutNodeSize(a);
+  const bSize = getLayoutNodeSize(b);
+
+  return !(
+    a.position.x + aSize.width + padding <= b.position.x ||
+    b.position.x + bSize.width + padding <= a.position.x ||
+    a.position.y + aSize.height + padding <= b.position.y ||
+    b.position.y + bSize.height + padding <= a.position.y
+  );
+}
+
+function resolveLayoutCollisions(
+  nodes: AgentCanvasNode[],
+  direction: "TB" | "LR"
+): AgentCanvasNode[] {
+  const sortedNodes = [...nodes].sort((a, b) => {
+    if (direction === "TB") {
+      if (a.position.y !== b.position.y) {
+        return a.position.y - b.position.y;
+      }
+      return a.position.x - b.position.x;
+    }
+    if (a.position.x !== b.position.x) {
+      return a.position.x - b.position.x;
+    }
+    return a.position.y - b.position.y;
+  });
+
+  const placedNodes: AgentCanvasNode[] = [];
+  for (const node of sortedNodes) {
+    let candidate: AgentCanvasNode = node;
+    let guard = 0;
+
+    while (guard < 64) {
+      const conflict = placedNodes.find((placed) =>
+        areNodesOverlapping(candidate, placed, LAYOUT_COLLISION_PADDING)
+      );
+      if (!conflict) {
+        break;
+      }
+
+      const conflictSize = getLayoutNodeSize(conflict);
+      candidate = {
+        ...candidate,
+        position:
+          direction === "TB"
+            ? {
+                x: Math.round(candidate.position.x),
+                y: Math.round(
+                  conflict.position.y +
+                    conflictSize.height +
+                    LAYOUT_COLLISION_PADDING
+                ),
+              }
+            : {
+                x: Math.round(
+                  conflict.position.x +
+                    conflictSize.width +
+                    LAYOUT_COLLISION_PADDING
+                ),
+                y: Math.round(candidate.position.y),
+              },
+      };
+      guard += 1;
+    }
+
+    placedNodes.push(candidate);
+  }
+
+  const byId = new Map(placedNodes.map((node) => [node.id, node]));
+  return nodes.map((node) => byId.get(node.id) ?? node);
+}
+
+function computeAutoLayout(
+  nodes: AgentCanvasNode[],
+  edges: AgentCanvasEdge[],
+  direction: "TB" | "LR" = "TB"
+): AgentCanvasNode[] {
+  if (nodes.length <= 1) {
+    return nodes;
+  }
+  if (nodes.some((node) => Boolean(node.parentId))) {
+    return nodes;
+  }
+
+  const graph = new dagre.graphlib.Graph({
+    multigraph: false,
+    compound: false,
+  });
+  graph.setDefaultEdgeLabel(() => ({}));
+  graph.setGraph({
+    rankdir: direction,
+    nodesep: LAYOUT_NODE_SEP,
+    ranksep: LAYOUT_RANK_SEP,
+    edgesep: LAYOUT_EDGE_SEP,
+    marginx: LAYOUT_MARGIN_X,
+    marginy: LAYOUT_MARGIN_Y,
+    ranker: "tight-tree",
+  });
+
+  const nodeIds = new Set(nodes.map((node) => node.id));
+  for (const node of nodes) {
+    const size = getLayoutNodeSize(node);
+    graph.setNode(node.id, size);
+  }
+
+  let edgeCount = 0;
+  for (const edge of edges) {
+    if (
+      !(nodeIds.has(edge.source) && nodeIds.has(edge.target)) ||
+      edge.source === edge.target
+    ) {
+      continue;
+    }
+    graph.setEdge(edge.source, edge.target);
+    edgeCount += 1;
+  }
+
+  if (edgeCount === 0) {
+    for (let index = 1; index < nodes.length; index += 1) {
+      const prev = nodes[index - 1];
+      const curr = nodes[index];
+      if (prev && curr) {
+        graph.setEdge(prev.id, curr.id);
+      }
+    }
+  }
+
+  try {
+    dagre.layout(graph);
+  } catch {
+    return nodes;
+  }
+
+  const positionedNodes = nodes.map((node) => {
+    const layoutNode = graph.node(node.id);
+    if (
+      !(
+        layoutNode &&
+        Number.isFinite(layoutNode.x) &&
+        Number.isFinite(layoutNode.y)
+      )
+    ) {
+      return node;
+    }
+
+    const size = getLayoutNodeSize(node);
+    return {
+      ...node,
+      position: {
+        x: Math.round(layoutNode.x - size.width / 2),
+        y: Math.round(layoutNode.y - size.height / 2),
+      },
+    };
+  });
+
+  return resolveLayoutCollisions(positionedNodes, direction);
+}
+
+function hasPositionCollisions(nodes: AgentCanvasNode[]): boolean {
+  for (let i = 0; i < nodes.length; i += 1) {
+    const current = nodes[i];
+    if (!current) {
+      continue;
+    }
+    for (let j = i + 1; j < nodes.length; j += 1) {
+      const other = nodes[j];
+      if (!other) {
+        continue;
+      }
+      if (areNodesOverlapping(current, other, LAYOUT_COLLISION_PADDING / 2)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function splitAssistantText(content: string): string[] {
+  if (content.length === 0) {
+    return [];
+  }
+
+  const chunks: string[] = [];
+  let current = "";
+  const tokens = content.match(/\S+\s*|\s+/g) ?? [content];
+
+  for (const token of tokens) {
+    if (token.length > SYNTHETIC_DELTA_CHUNK_SIZE) {
+      if (current) {
+        chunks.push(current);
+        current = "";
+      }
+      for (let i = 0; i < token.length; i += SYNTHETIC_DELTA_CHUNK_SIZE) {
+        chunks.push(token.slice(i, i + SYNTHETIC_DELTA_CHUNK_SIZE));
+      }
+      continue;
+    }
+
+    if ((current + token).length > SYNTHETIC_DELTA_CHUNK_SIZE && current) {
+      chunks.push(current);
+      current = token;
+    } else {
+      current += token;
+    }
+  }
+
+  if (current) {
+    chunks.push(current);
+  }
+
+  return chunks;
 }
 
 export function useCanvasBuilder(canvasId?: string) {
-  const [state, setState] = useState<CanvasBuilderState>(INITIAL_STATE);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const subscriptionRef = useRef<Subscription | null>(null);
-  const currentAssistantMessageRef = useRef<string | null>(null);
-  const textAccumulatorRef = useRef<string>("");
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const toolCallMapRef = useRef<Map<string, string>>(new Map());
+  const turnsWithDeltaRef = useRef<Set<string>>(new Set());
+  const pendingDeltaUntilRef = useRef<Map<string, number>>(new Map());
+  const pendingTimerIdsRef = useRef<Set<ReturnType<typeof setTimeout>>>(
+    new Set()
+  );
+  const pendingSyntheticFinalTurnRef = useRef<string | null>(null);
+  const turnIdRef = useRef("");
+
+  const runtimeEvents = useAgenticRuntimeStore((s) => s.events);
+  const activeTurnId = useAgenticRuntimeStore((s) => s.activeTurnId);
+  const sessionId = useAgenticRuntimeStore((s) => s.sessionId);
+
+  const messages = useMemo(
+    () => projectRuntimeEventsToMessages(runtimeEvents),
+    [runtimeEvents]
+  );
+  const isProcessing = !!activeTurnId;
 
   const canvasBuilderStore = useCanvasBuilderStore();
   const addNode = useCanvasStore((s) => s.addNode);
+  const setNodes = useCanvasStore((s) => s.setNodes);
   const removeNode = useCanvasStore((s) => s.removeNode);
   const addEdge = useCanvasStore((s) => s.addEdge);
   const removeEdge = useCanvasStore((s) => s.removeEdge);
   const updateNode = useCanvasStore((s) => s.updateNode);
-  const toolCallMapRef = useRef<Map<string, string>>(new Map());
+
+  const clearPendingTimers = useCallback(() => {
+    for (const timerId of pendingTimerIdsRef.current) {
+      clearTimeout(timerId);
+    }
+    pendingTimerIdsRef.current.clear();
+    pendingSyntheticFinalTurnRef.current = null;
+  }, []);
+
+  const scheduleTimer = useCallback((callback: () => void, delayMs: number) => {
+    const timerId = setTimeout(() => {
+      pendingTimerIdsRef.current.delete(timerId);
+      callback();
+    }, delayMs);
+    pendingTimerIdsRef.current.add(timerId);
+    return timerId;
+  }, []);
+
+  const resetLocalStreamingState = useCallback(() => {
+    clearPendingTimers();
+    toolCallMapRef.current.clear();
+    turnsWithDeltaRef.current.clear();
+    pendingDeltaUntilRef.current.clear();
+  }, [clearPendingTimers]);
 
   const applyCanvasOperation = useCallback(
     (operation: CanvasOperation) => {
@@ -105,7 +344,7 @@ export function useCanvasBuilder(canvasId?: string) {
             position: operation.position ?? { x: 0, y: 0 },
             data: {
               label: operation.label ?? operation.nodeType,
-              ...operation.config,
+              config: operation.config ?? {},
             },
           });
           break;
@@ -125,177 +364,98 @@ export function useCanvasBuilder(canvasId?: string) {
           removeEdge(operation.edgeId);
           break;
         case "update_config":
-          updateNode(operation.nodeId, operation.config);
+          updateNode(operation.nodeId, { config: operation.config });
           break;
         case "layout":
+          setNodes(
+            computeAutoLayout(
+              useCanvasStore.getState().nodes as AgentCanvasNode[],
+              useCanvasStore.getState().edges as AgentCanvasEdge[],
+              operation.direction ?? "TB"
+            )
+          );
           break;
         default:
           break;
       }
     },
-    [canvasBuilderStore, addNode, removeNode, addEdge, removeEdge, updateNode]
+    [
+      canvasBuilderStore,
+      addNode,
+      setNodes,
+      removeNode,
+      addEdge,
+      removeEdge,
+      updateNode,
+    ]
   );
 
-  const addEventToMessage = useCallback((newEvent: AgentEvent) => {
-    setState((prev) => {
-      const messageId = currentAssistantMessageRef.current;
-      if (!messageId) {
-        return prev;
-      }
+  const handleRuntimeEventSideEffects = useCallback(
+    (event: RuntimeEvent) => {
+      const { payload } = event;
 
-      return {
-        ...prev,
-        messages: prev.messages.map((msg) => {
-          if (msg.id !== messageId) {
-            return msg;
-          }
-          return {
-            ...msg,
-            events: [...msg.events, newEvent],
-          };
-        }),
-      };
-    });
-  }, []);
-
-  const handleStreamEvent = useCallback(
-    (event: CanvasStreamEvent) => {
-      const timestamp = Date.now();
-
-      switch (event.type) {
-        case "thinking":
-          addEventToMessage({
-            type: "thinking",
-            timestamp,
-            message: event.content,
-          });
-          break;
-
-        case "tool_call":
-          toolCallMapRef.current.set(event.id, event.tool);
-          addEventToMessage({
-            type: "tool_call",
-            timestamp,
-            toolCallId: event.id,
-            toolName: event.tool,
-            displayName: getToolDisplayName(event.tool),
-            toolInput: event.input,
-            visibility: "visible",
-          });
-          break;
-
-        case "tool_result": {
-          const toolName = toolCallMapRef.current.get(event.id) ?? "";
-          addEventToMessage({
-            type: "tool_result",
-            timestamp,
-            toolCallId: event.id,
-            toolName,
-            toolOutput: event.result,
-            success: true,
-          });
+      switch (payload.type) {
+        case "tool.call_start": {
+          toolCallMapRef.current.set(payload.toolCallId, payload.toolName);
           break;
         }
 
-        case "canvas_op":
-          applyCanvasOperation(event.operation);
+        case "tool.call_result": {
+          toolCallMapRef.current.delete(payload.toolCallId);
+          break;
+        }
+
+        case "canvas.op_applied":
+          applyCanvasOperation(payload.operation);
           break;
 
-        case "text":
-          textAccumulatorRef.current += event.chunk;
-          addEventToMessage({
-            type: "text",
-            timestamp,
-            content: textAccumulatorRef.current,
-            isPartial: true,
-          });
-          break;
-
-        case "error":
-          addEventToMessage({
-            type: "error",
-            timestamp,
-            code: "AGENT_ERROR",
-            message: event.message,
-            retryable: false,
-          });
-          setState((prev) => ({
-            ...prev,
-            error: event.message,
-            isProcessing: false,
-          }));
-          canvasBuilderStore.setStatus("error");
-          break;
-
-        case "complete":
-          if (textAccumulatorRef.current) {
-            setState((prev) => {
-              const messageId = currentAssistantMessageRef.current;
-              if (!messageId) {
-                return prev;
-              }
-
-              return {
-                ...prev,
-                messages: prev.messages.map((msg) => {
-                  if (msg.id !== messageId) {
-                    return msg;
-                  }
-                  const otherEvents = msg.events.filter(
-                    (e) => e.type !== "text"
-                  );
-                  return {
-                    ...msg,
-                    events: [
-                      ...otherEvents,
-                      {
-                        type: "text" as const,
-                        timestamp: Date.now(),
-                        content: textAccumulatorRef.current,
-                        isPartial: false,
-                      },
-                    ],
-                    status: "complete" as const,
-                  };
-                }),
-              };
-            });
-          } else {
-            setState((prev) => {
-              const messageId = currentAssistantMessageRef.current;
-              if (!messageId) {
-                return prev;
-              }
-
-              return {
-                ...prev,
-                messages: prev.messages.map((msg) =>
-                  msg.id === messageId
-                    ? { ...msg, status: "complete" as const }
-                    : msg
-                ),
-              };
-            });
+        case "chat.assistant_final":
+          {
+            const canvasState = useCanvasStore.getState();
+            if (
+              canvasState.nodes.length > 1 &&
+              hasPositionCollisions(canvasState.nodes as AgentCanvasNode[])
+            ) {
+              canvasState.setNodes(
+                computeAutoLayout(
+                  canvasState.nodes as AgentCanvasNode[],
+                  canvasState.edges as AgentCanvasEdge[],
+                  "TB"
+                )
+              );
+            }
           }
-          textAccumulatorRef.current = "";
-          currentAssistantMessageRef.current = null;
-          setState((prev) => ({
-            ...prev,
-            isProcessing: false,
-          }));
+          toolCallMapRef.current.clear();
+          pendingDeltaUntilRef.current.clear();
+          if (event.turnId) {
+            turnsWithDeltaRef.current.delete(event.turnId);
+          }
+          pendingSyntheticFinalTurnRef.current = null;
           canvasBuilderStore.setStatus("idle");
+          useAgenticRuntimeStore.getState().clearActiveTurn();
+          turnIdRef.current = "";
           break;
 
         default:
           break;
       }
     },
-    [addEventToMessage, applyCanvasOperation, canvasBuilderStore]
+    [applyCanvasOperation, canvasBuilderStore]
   );
 
   const sendMessage = useCallback(
-    (content: string) => {
-      if (!content.trim() || state.isProcessing) {
+    (
+      content: string,
+      options?: {
+        model?: string;
+        attachments?: Array<{
+          type: "image" | "document";
+          url: string;
+          name: string;
+        }>;
+      }
+    ) => {
+      if (!content.trim() || isProcessing || !sessionId) {
         return;
       }
 
@@ -309,43 +469,14 @@ export function useCanvasBuilder(canvasId?: string) {
       }
 
       abortControllerRef.current = new AbortController();
-      textAccumulatorRef.current = "";
-      toolCallMapRef.current.clear();
+      resetLocalStreamingState();
+      setError(null);
 
-      const userMessageId = generateMessageId();
-      const assistantMessageId = generateMessageId();
-      currentAssistantMessageRef.current = assistantMessageId;
+      const turnId = crypto.randomUUID();
+      turnIdRef.current = turnId;
 
-      const now = Date.now();
-
-      const userMessage: MessageData = {
-        id: userMessageId,
-        role: "user",
-        events: [
-          {
-            type: "text",
-            timestamp: now,
-            content,
-            isPartial: false,
-          },
-        ],
-        createdAt: now,
-      };
-
-      const assistantMessage: MessageData = {
-        id: assistantMessageId,
-        role: "assistant",
-        events: [],
-        status: "streaming",
-        createdAt: now,
-      };
-
-      setState((prev) => ({
-        ...prev,
-        messages: [...prev.messages, userMessage, assistantMessage],
-        isProcessing: true,
-        error: null,
-      }));
+      const runtimeStore = useAgenticRuntimeStore.getState();
+      runtimeStore.setStreamingTurnId(turnId);
 
       canvasBuilderStore.setStatus("building");
 
@@ -354,35 +485,244 @@ export function useCanvasBuilder(canvasId?: string) {
         {
           prompt: content,
           canvasId,
-          sessionId: `session_${Date.now()}`,
+          sessionId,
+          model: options?.model,
+          turnId,
+          attachments: options?.attachments,
         },
         {
-          onData: (event: CanvasStreamEvent) => {
+          onData: (event: RuntimeEvent) => {
             if (abortControllerRef.current?.signal.aborted) {
               return;
             }
-            handleStreamEvent(event);
+
+            const runtimeState = useAgenticRuntimeStore.getState();
+            if (
+              !runtimeState.sessionId ||
+              event.sessionId !== runtimeState.sessionId
+            ) {
+              return;
+            }
+            if (
+              runtimeState.streamingTurnId &&
+              event.turnId &&
+              event.turnId !== runtimeState.streamingTurnId
+            ) {
+              return;
+            }
+
+            if (event.payload.type === "chat.assistant_delta" && event.turnId) {
+              turnsWithDeltaRef.current.add(event.turnId);
+
+              const deltaChunks = splitAssistantText(event.payload.chunk);
+              if (deltaChunks.length === 0) {
+                return;
+              }
+
+              const now = Date.now();
+              const scheduledStartAt = Math.max(
+                now,
+                pendingDeltaUntilRef.current.get(event.turnId) ?? 0
+              );
+              const initialDelayMs = Math.max(0, scheduledStartAt - now);
+
+              deltaChunks.forEach((chunk, index) => {
+                scheduleTimer(
+                  () => {
+                    const state = useAgenticRuntimeStore.getState();
+                    if (
+                      !state.sessionId ||
+                      state.sessionId !== event.sessionId
+                    ) {
+                      return;
+                    }
+                    if (
+                      state.streamingTurnId &&
+                      event.turnId &&
+                      state.streamingTurnId !== event.turnId
+                    ) {
+                      return;
+                    }
+
+                    state.applyEvent(
+                      {
+                        ...event,
+                        eventId: `${event.eventId}:split:${scheduledStartAt}:${index}`,
+                        visibility: "ephemeral",
+                        payload: {
+                          type: "chat.assistant_delta",
+                          chunk,
+                        },
+                      },
+                      { local: true }
+                    );
+                  },
+                  initialDelayMs + index * SYNTHETIC_DELTA_INTERVAL_MS
+                );
+              });
+
+              pendingDeltaUntilRef.current.set(
+                event.turnId,
+                scheduledStartAt +
+                  deltaChunks.length * SYNTHETIC_DELTA_INTERVAL_MS
+              );
+              return;
+            }
+
+            if (event.payload.type === "chat.assistant_final" && event.turnId) {
+              const finalTurnId = event.turnId;
+              const pendingUntil =
+                pendingDeltaUntilRef.current.get(finalTurnId) ?? 0;
+              const pendingDelayMs = Math.max(0, pendingUntil - Date.now());
+
+              if (!turnsWithDeltaRef.current.has(finalTurnId)) {
+                const chunks = splitAssistantText(event.payload.content);
+                if (chunks.length > 0) {
+                  pendingSyntheticFinalTurnRef.current = finalTurnId;
+
+                  const baseEvent = event;
+                  const computedStreamMs =
+                    chunks.length * SYNTHETIC_DELTA_INTERVAL_MS;
+                  const targetStreamMs = Math.min(
+                    SYNTHETIC_STREAM_MAX_MS,
+                    Math.max(SYNTHETIC_STREAM_MIN_MS, computedStreamMs)
+                  );
+                  const intervalMs = Math.max(
+                    SYNTHETIC_DELTA_INTERVAL_MS,
+                    Math.floor(targetStreamMs / chunks.length)
+                  );
+                  const now = Date.now();
+                  const scheduledStartAt = Math.max(
+                    now,
+                    pendingDeltaUntilRef.current.get(finalTurnId) ?? 0
+                  );
+                  const initialDelayMs = Math.max(0, scheduledStartAt - now);
+                  const finalDelayMs =
+                    initialDelayMs + chunks.length * intervalMs;
+                  pendingDeltaUntilRef.current.set(
+                    finalTurnId,
+                    scheduledStartAt + chunks.length * intervalMs
+                  );
+
+                  chunks.forEach((chunk, index) => {
+                    scheduleTimer(
+                      () => {
+                        const state = useAgenticRuntimeStore.getState();
+                        if (
+                          !state.sessionId ||
+                          state.sessionId !== baseEvent.sessionId
+                        ) {
+                          return;
+                        }
+                        if (
+                          state.streamingTurnId &&
+                          baseEvent.turnId &&
+                          state.streamingTurnId !== baseEvent.turnId
+                        ) {
+                          return;
+                        }
+
+                        if (baseEvent.turnId) {
+                          turnsWithDeltaRef.current.add(baseEvent.turnId);
+                        }
+
+                        state.applyEvent(
+                          {
+                            ...baseEvent,
+                            eventId: `${baseEvent.eventId}:delta:${scheduledStartAt}:${index}`,
+                            visibility: "ephemeral",
+                            payload: {
+                              type: "chat.assistant_delta",
+                              chunk,
+                            },
+                          },
+                          { local: true }
+                        );
+                      },
+                      initialDelayMs + index * intervalMs
+                    );
+                  });
+
+                  scheduleTimer(() => {
+                    const state = useAgenticRuntimeStore.getState();
+                    if (
+                      !state.sessionId ||
+                      state.sessionId !== baseEvent.sessionId
+                    ) {
+                      return;
+                    }
+                    if (
+                      state.streamingTurnId &&
+                      baseEvent.turnId &&
+                      state.streamingTurnId !== baseEvent.turnId
+                    ) {
+                      return;
+                    }
+
+                    pendingDeltaUntilRef.current.delete(finalTurnId);
+                    state.applyEvent(baseEvent, { local: true });
+                    handleRuntimeEventSideEffects(baseEvent);
+                  }, finalDelayMs + 16);
+
+                  return;
+                }
+              }
+
+              if (pendingDelayMs > 0) {
+                pendingSyntheticFinalTurnRef.current = finalTurnId;
+                const baseEvent = event;
+                scheduleTimer(() => {
+                  const state = useAgenticRuntimeStore.getState();
+                  if (
+                    !state.sessionId ||
+                    state.sessionId !== baseEvent.sessionId
+                  ) {
+                    return;
+                  }
+                  if (
+                    state.streamingTurnId &&
+                    baseEvent.turnId &&
+                    state.streamingTurnId !== baseEvent.turnId
+                  ) {
+                    return;
+                  }
+
+                  pendingDeltaUntilRef.current.delete(finalTurnId);
+                  state.applyEvent(baseEvent, { local: true });
+                  handleRuntimeEventSideEffects(baseEvent);
+                }, pendingDelayMs + 16);
+                return;
+              }
+            }
+
+            runtimeState.applyEvent(event, { local: true });
+            handleRuntimeEventSideEffects(event);
           },
-          onError: (error: unknown) => {
+          onError: (err: unknown) => {
             if (abortControllerRef.current?.signal.aborted) {
               return;
             }
             const errorMessage =
-              error instanceof Error ? error.message : "An error occurred";
-            setState((prev) => ({
-              ...prev,
-              error: errorMessage,
-              isProcessing: false,
-              messages: prev.messages.map((msg) =>
-                msg.id === assistantMessageId
-                  ? { ...msg, status: "error" as const }
-                  : msg
-              ),
-            }));
+              err instanceof Error ? err.message : "An error occurred";
+            setError(errorMessage);
             canvasBuilderStore.setStatus("error");
-            currentAssistantMessageRef.current = null;
+            useExecutionStore.getState().clearExecution();
+            useAgenticRuntimeStore.getState().clearActiveTurn();
+            resetLocalStreamingState();
+            turnIdRef.current = "";
           },
           onComplete: () => {
+            if (pendingSyntheticFinalTurnRef.current === turnId) {
+              subscriptionRef.current = null;
+              return;
+            }
+            const runtimeState = useAgenticRuntimeStore.getState();
+            if (runtimeState.streamingTurnId === turnId) {
+              canvasBuilderStore.setStatus("idle");
+              runtimeState.clearActiveTurn();
+              resetLocalStreamingState();
+              turnIdRef.current = "";
+            }
             subscriptionRef.current = null;
           },
         }
@@ -390,7 +730,15 @@ export function useCanvasBuilder(canvasId?: string) {
 
       subscriptionRef.current = subscription;
     },
-    [state.isProcessing, canvasId, canvasBuilderStore, handleStreamEvent]
+    [
+      isProcessing,
+      canvasId,
+      sessionId,
+      canvasBuilderStore,
+      handleRuntimeEventSideEffects,
+      resetLocalStreamingState,
+      scheduleTimer,
+    ]
   );
 
   const cancel = useCallback(() => {
@@ -402,24 +750,40 @@ export function useCanvasBuilder(canvasId?: string) {
       abortControllerRef.current.abort();
       abortControllerRef.current = null;
     }
-    textAccumulatorRef.current = "";
-    setState((prev) => ({
-      ...prev,
-      isProcessing: false,
-      messages: prev.messages.map((msg) =>
-        msg.status === "streaming"
-          ? { ...msg, status: "complete" as const }
-          : msg
-      ),
-    }));
+    useExecutionStore.getState().clearExecution();
+    useAgenticRuntimeStore.getState().clearActiveTurn();
+    resetLocalStreamingState();
+    turnIdRef.current = "";
     canvasBuilderStore.setStatus("idle");
-    currentAssistantMessageRef.current = null;
-  }, [canvasBuilderStore]);
+  }, [canvasBuilderStore, resetLocalStreamingState]);
 
   const clearMessages = useCallback(() => {
     cancel();
-    setState(INITIAL_STATE);
+    useAgenticRuntimeStore.getState().resetSessionState();
+    turnIdRef.current = "";
   }, [cancel]);
+
+  const prevSessionIdRef = useRef(sessionId);
+  useEffect(() => {
+    if (prevSessionIdRef.current === sessionId) {
+      return;
+    }
+    prevSessionIdRef.current = sessionId;
+
+    if (subscriptionRef.current) {
+      subscriptionRef.current.unsubscribe();
+      subscriptionRef.current = null;
+    }
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    useExecutionStore.getState().clearExecution();
+    canvasBuilderStore.setStatus("idle");
+    setError(null);
+    turnIdRef.current = "";
+    resetLocalStreamingState();
+  }, [sessionId, canvasBuilderStore, resetLocalStreamingState]);
 
   useEffect(
     () => () => {
@@ -429,12 +793,16 @@ export function useCanvasBuilder(canvasId?: string) {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
+      clearPendingTimers();
     },
-    []
+    [clearPendingTimers]
   );
 
   return {
-    ...state,
+    messages,
+    isProcessing,
+    error,
+    sessionId,
     sendMessage,
     cancel,
     clearMessages,

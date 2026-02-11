@@ -20,6 +20,7 @@ import {
   createNodeData,
   useBuilderStatus,
   useCanvasStore,
+  useExecutionOverlays,
   useIsActionPanelDocked,
   usePendingOperationCount,
   useSetActionPanelDocked,
@@ -615,6 +616,30 @@ function CanvasPanelContent({ agentId, className }: CanvasPanelProps) {
     [activeExecutionSummary, edges, executionQuery.data, nodes]
   );
 
+  const streamingOverlay = useExecutionOverlays(
+    edges as ReadonlyArray<{ id: string; source: string; target: string }>
+  );
+
+  const mergedNodeStatusMap = useMemo(() => {
+    if (!(executionOverlay.nodeStatusMap || streamingOverlay.nodeStatusMap)) {
+      return;
+    }
+    return {
+      ...executionOverlay.nodeStatusMap,
+      ...streamingOverlay.nodeStatusMap,
+    };
+  }, [executionOverlay.nodeStatusMap, streamingOverlay.nodeStatusMap]);
+
+  const mergedEdgeStateMap = useMemo(() => {
+    if (!(executionOverlay.edgeStateMap || streamingOverlay.edgeStateMap)) {
+      return;
+    }
+    return {
+      ...executionOverlay.edgeStateMap,
+      ...streamingOverlay.edgeStateMap,
+    };
+  }, [executionOverlay.edgeStateMap, streamingOverlay.edgeStateMap]);
+
   const handleNodesChange = useCallback(
     (updatedNodes: Node[]) => {
       setNodes(updatedNodes as AgentCanvasNode[]);
@@ -632,7 +657,7 @@ function CanvasPanelContent({ agentId, className }: CanvasPanelProps) {
   const handleSelectNodeFromPalette = useCallback(
     (nodeType: string) => {
       const newNode: AgentCanvasNode = {
-        id: `${nodeType}_${Date.now()}`,
+        id: `${nodeType}_${crypto.randomUUID()}`,
         type: nodeType,
         position: { x: 250, y: 250 },
         data: createNodeData(nodeType),
@@ -708,7 +733,7 @@ function CanvasPanelContent({ agentId, className }: CanvasPanelProps) {
     }
     const newNode: AgentCanvasNode = {
       ...selectedNode,
-      id: `${selectedNode.type}_${Date.now()}`,
+      id: `${selectedNode.type}_${crypto.randomUUID()}`,
       position: {
         x: selectedNode.position.x + 50,
         y: selectedNode.position.y + 50,
@@ -754,12 +779,12 @@ function CanvasPanelContent({ agentId, className }: CanvasPanelProps) {
           className="h-full w-full"
           connectorLogos={connectorLogos}
           connectors={connectors}
-          edgeStateMap={executionOverlay.edgeStateMap}
+          edgeStateMap={mergedEdgeStateMap}
           externalEdges={externalEdges}
           externalNodes={externalNodes}
           initialEdges={initialEdges}
           initialNodes={initialNodes}
-          nodeStatusMap={executionOverlay.nodeStatusMap}
+          nodeStatusMap={mergedNodeStatusMap}
           onEdgesChange={handleEdgesChange}
           onFetchResources={fetchResources}
           onNodeSelect={handleNodeSelect}

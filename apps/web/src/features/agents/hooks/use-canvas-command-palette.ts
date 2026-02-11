@@ -1,16 +1,35 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
-interface UseCanvasCommandPaletteOptions {
+export type CommandPaletteItem = {
+  id: string;
+  label: string;
+  shortcut?: string;
+  group?: string;
+  onSelect: () => void;
+};
+
+export type UseCanvasCommandPaletteOptions = {
   enabled?: boolean;
-}
+  commands?: CommandPaletteItem[];
+};
+
+export type UseCanvasCommandPaletteReturn = {
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
+  open: () => void;
+  close: () => void;
+  toggle: () => void;
+  commands: CommandPaletteItem[];
+  filteredCommands: (query: string) => CommandPaletteItem[];
+};
 
 export function useCanvasCommandPalette(
   options: UseCanvasCommandPaletteOptions = {}
-) {
-  const { enabled = true } = options;
+): UseCanvasCommandPaletteReturn {
+  const { enabled = true, commands: providedCommands = [] } = options;
   const [isOpen, setIsOpen] = useState(false);
 
   const open = useCallback(() => setIsOpen(true), []);
@@ -36,11 +55,29 @@ export function useCanvasCommandPalette(
     { enabled: enabled && isOpen }
   );
 
-  return {
-    isOpen,
-    setIsOpen,
-    open,
-    close,
-    toggle,
-  };
+  const filteredCommands = useCallback(
+    (query: string) => {
+      if (!query) {
+        return providedCommands;
+      }
+      const lower = query.toLowerCase();
+      return providedCommands.filter((cmd) =>
+        cmd.label.toLowerCase().includes(lower)
+      );
+    },
+    [providedCommands]
+  );
+
+  return useMemo(
+    () => ({
+      isOpen,
+      setIsOpen,
+      open,
+      close,
+      toggle,
+      commands: providedCommands,
+      filteredCommands,
+    }),
+    [isOpen, open, close, toggle, providedCommands, filteredCommands]
+  );
 }
