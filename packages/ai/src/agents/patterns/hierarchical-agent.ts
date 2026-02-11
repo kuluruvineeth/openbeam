@@ -100,9 +100,11 @@ export class HierarchicalAgent implements ExecutableAgent {
     trace.input = input;
 
     const aiConfig = getConfig();
-    const providerId =
-      this.hConfig.model?.providerId ?? aiConfig.defaultProvider;
     const modelId = this.hConfig.model?.modelId ?? aiConfig.defaultChatModel;
+    const providerId = registry.resolveProvider(
+      this.hConfig.model?.providerId,
+      modelId
+    );
     const model = registry.chatModel(providerId, modelId);
 
     const tools = this.buildDelegationTools(ctx, trace);
@@ -127,7 +129,7 @@ export class HierarchicalAgent implements ExecutableAgent {
       };
 
       const toolCallsForRecord = (result.toolCalls ?? []).map((tc) => ({
-        toolName: tc.toolName,
+        toolName: typeof tc.toolName === "string" ? tc.toolName : "unknown",
         args: "args" in tc ? tc.args : undefined,
       }));
       this.recordDelegations(trace, toolCallsForRecord);
@@ -149,9 +151,11 @@ export class HierarchicalAgent implements ExecutableAgent {
     trace.input = input;
 
     const aiConfig = getConfig();
-    const providerId =
-      this.hConfig.model?.providerId ?? aiConfig.defaultProvider;
     const modelId = this.hConfig.model?.modelId ?? aiConfig.defaultChatModel;
+    const providerId = registry.resolveProvider(
+      this.hConfig.model?.providerId,
+      modelId
+    );
     const model = registry.chatModel(providerId, modelId);
 
     const tools = this.buildDelegationTools(ctx, trace);
@@ -354,19 +358,19 @@ export class HierarchicalAgent implements ExecutableAgent {
       return outputStr;
     }
 
-    const aiConfig = getConfig();
-    const model = registry.chatModel(
-      aiConfig.defaultProvider,
-      aiConfig.defaultChatModel
-    );
+    try {
+      const model = registry.chatModel(undefined, undefined);
 
-    const summary = await generateText({
-      model,
-      prompt: `Summarize this result concisely (max 500 words):\n\n${outputStr}`,
-      maxOutputTokens: 1000,
-    });
+      const summary = await generateText({
+        model,
+        prompt: `Summarize this result concisely (max 500 words):\n\n${outputStr}`,
+        maxOutputTokens: 1000,
+      });
 
-    return summary.text;
+      return summary.text;
+    } catch {
+      return outputStr.slice(0, 2000);
+    }
   }
 
   private recordDelegations(
@@ -453,9 +457,13 @@ export function wrapAsAgentTool(
     description,
     inputSchema: agentToolSchema,
     execute: async (params: z.infer<typeof agentToolSchema>) => {
+      const contextTeamId =
+        typeof params.context?.teamId === "string" ? params.context.teamId : "";
+      const contextUserId =
+        typeof params.context?.userId === "string" ? params.context.userId : "";
       const toolContext: ToolContext = {
-        teamId: (params.context?.teamId as string) ?? "",
-        userId: (params.context?.userId as string) ?? "",
+        teamId: contextTeamId,
+        userId: contextUserId,
         services: toolRegistry.getServices(),
       };
 

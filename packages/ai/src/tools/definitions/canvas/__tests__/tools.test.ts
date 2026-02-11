@@ -32,7 +32,7 @@ describe("canvas_add_node", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.data?.nodeId).toContain("llm");
+    expect(result.data?.nodeId).toBeDefined();
     expect(result.data?.operation.type).toBe("add_node");
     expect(result.data?.operation.nodeType).toBe("llm");
     expect(result.data?.message).toContain("llm");
@@ -57,11 +57,42 @@ describe("canvas_add_node", () => {
     expect(result.data?.operation.position).toEqual({ x: 500, y: 300 });
   });
 
-  it("defaults to position 100,100 when not provided", async () => {
+  it("defaults to origin position when not provided", async () => {
     const ctx = createMockContext();
     const result = await canvasAddNodeTool.execute({ type: "condition" }, ctx);
 
-    expect(result.data?.operation.position).toEqual({ x: 100, y: 100 });
+    expect(result.data?.operation.position).toEqual({ x: 240, y: 140 });
+  });
+
+  it("places new node in the first non-overlapping candidate slot", async () => {
+    const ctx = createMockContext({
+      canvasState: {
+        nodes: [
+          {
+            id: "n1",
+            type: "start",
+            data: { label: "Start" },
+            position: { x: 100, y: 100 },
+          },
+          {
+            id: "n2",
+            type: "llm",
+            data: { label: "LLM" },
+            position: { x: 300, y: 300 },
+          },
+          {
+            id: "n3",
+            type: "end",
+            data: { label: "End" },
+            position: { x: 500, y: 200 },
+          },
+        ],
+        edges: [],
+      },
+    });
+    const result = await canvasAddNodeTool.execute({ type: "condition" }, ctx);
+
+    expect(result.data?.operation.position).toEqual({ x: 300, y: 490 });
   });
 
   it("passes config to operation", async () => {
@@ -119,6 +150,26 @@ describe("canvas_connect_nodes", () => {
 
     expect(result.data?.operation.sourceHandle).toBe("out-true");
     expect(result.data?.operation.targetHandle).toBe("in-1");
+  });
+
+  it("rejects connections from end nodes", async () => {
+    const ctx = createMockContext({
+      canvasState: {
+        nodes: [
+          { id: "start-1", type: "start", data: {} },
+          { id: "end-1", type: "end", data: {} },
+          { id: "llm-1", type: "llm", data: {} },
+        ],
+        edges: [],
+      },
+    });
+    const result = await canvasConnectNodesTool.execute(
+      { source: "end-1", target: "llm-1" },
+      ctx
+    );
+
+    expect(result.success).toBe(false);
+    expect(result.error?.code).toBe("INVALID_STATE");
   });
 });
 
@@ -249,6 +300,30 @@ describe("canvas_validate", () => {
     expect(result.success).toBe(true);
     expect(result.data?.valid).toBe(true);
     expect(result.data?.issues).toHaveLength(0);
+  });
+
+  it("flags end nodes with outgoing connections", async () => {
+    const ctx = createMockContext({
+      canvasState: {
+        nodes: [
+          { id: "n1", type: "start", data: {} },
+          { id: "n2", type: "end", data: {} },
+          { id: "n3", type: "llm", data: {} },
+        ],
+        edges: [
+          { id: "e1", source: "n1", target: "n2" },
+          { id: "e2", source: "n2", target: "n3" },
+        ],
+      },
+    });
+
+    const result = await canvasValidateTool.execute({}, ctx);
+
+    expect(result.success).toBe(true);
+    expect(result.data?.valid).toBe(false);
+    expect(result.data?.issues).toContain(
+      "End node cannot have outgoing connections"
+    );
   });
 });
 

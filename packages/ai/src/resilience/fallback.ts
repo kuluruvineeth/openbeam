@@ -254,12 +254,12 @@ interface ProviderHealth {
 export const DEFAULT_CHAT_FALLBACK_CHAIN: FallbackChainConfig = {
   primary: {
     providerId: "anthropic",
-    modelId: "claude-sonnet-4-20250514",
+    modelId: "claude-sonnet-4-5",
     priority: 1,
   },
   fallbacks: [
-    { providerId: "openai", modelId: "gpt-4o", priority: 2 },
-    { providerId: "google", modelId: "gemini-2.0-flash", priority: 3 },
+    { providerId: "openai", modelId: "gpt-5.2", priority: 2 },
+    { providerId: "google", modelId: "gemini-3-flash-preview", priority: 3 },
   ],
 };
 

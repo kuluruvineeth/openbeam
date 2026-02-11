@@ -141,7 +141,7 @@ function parseWorkflowDescription(
       id: generateId("node"),
       type: "llm",
       position: { x: currentX, y: startPosition.y },
-      content: { label: "Process with LLM", model: "claude-sonnet-4-20250514" },
+      content: { label: "Process with LLM", model: "claude-sonnet-4-5" },
       zIndex: 1,
       locked: false,
       visible: true,

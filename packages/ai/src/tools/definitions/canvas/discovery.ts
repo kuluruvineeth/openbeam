@@ -166,14 +166,16 @@ const NODE_TYPE_INFO: Record<CanvasNodeType, Omit<NodeTypeInfo, "type">> = {
   },
   input: {
     category: "human",
-    description: "Collect input from a user.",
+    description:
+      "Collect structured input from a user via a form. Config uses a 'fields' array where each field has id, type (text/textarea/number/boolean/date/select/multiselect/email/url/file/password/hidden), label, placeholder, helperText, defaultValue, options (for select/multiselect), validation ({ required, minLength, maxLength, min, max, pattern }), and width (full/half).",
     configFields: [
       "prompt",
-      "inputType",
-      "options",
-      "required",
-      "defaultValue",
-      "validation",
+      "fields",
+      "submitLabel",
+      "allowSkip",
+      "skipLabel",
+      "timeoutMs",
+      "timeoutAction",
     ],
   },
   notify: {
@@ -398,6 +400,39 @@ export const canvasListNodeTypesTool = defineTool({
   },
 });
 
+const CONNECTOR_ACTIONS: Record<string, readonly string[]> = {
+  SLACK: [
+    "monitor channels",
+    "send messages",
+    "search messages",
+    "list channels",
+  ],
+  GMAIL: ["read emails", "send emails", "search inbox", "monitor labels"],
+  GOOGLE_DRIVE: [
+    "search files",
+    "read documents",
+    "list folders",
+    "monitor changes",
+  ],
+  NOTION: [
+    "search pages",
+    "read databases",
+    "query collections",
+    "monitor updates",
+  ],
+  LINEAR: [
+    "list issues",
+    "create issues",
+    "search projects",
+    "monitor updates",
+  ],
+  GITHUB: ["search repos", "list issues", "read PRs", "monitor events"],
+  JIRA: ["search issues", "create tickets", "list projects", "monitor boards"],
+  CONFLUENCE: ["search pages", "read spaces", "list content"],
+  HUBSPOT: ["search contacts", "list deals", "query companies"],
+  SALESFORCE: ["search records", "list opportunities", "query accounts"],
+};
+
 export const canvasListConnectorsTool = defineTool({
   name: "canvas_list_connectors",
   description:
@@ -421,9 +456,10 @@ export const canvasListConnectorsTool = defineTool({
           type: string;
           name: string;
           status: string;
+          availableActions: readonly string[];
         }>,
         totalCount: 0,
-        message: "Connector service not available",
+        message: "Connector service not available" as string | undefined,
       });
     }
 
@@ -444,6 +480,7 @@ export const canvasListConnectorsTool = defineTool({
         type: c.type,
         name: c.name,
         status: c.status,
+        availableActions: CONNECTOR_ACTIONS[c.type] ?? [],
       })),
       totalCount: filtered.length,
       message: undefined as string | undefined,

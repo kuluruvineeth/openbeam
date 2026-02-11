@@ -45,6 +45,13 @@ export {
   createConversationManager,
   InMemoryConversationStore,
 } from "./conversation";
+export type {
+  DurableMemoryEntry,
+  DurableMemorySearchOptions,
+  DurableMemoryStore,
+  MemoryScope,
+} from "./durable-store";
+export { createDurableMemoryStore } from "./durable-store";
 export type { EpisodicMemoryOptions } from "./episodic";
 export { createEpisodicMemory, EpisodicMemory } from "./episodic";
 export type {
@@ -91,7 +98,6 @@ export {
   InMemoryShortTermClient,
   ShortTermMemoryStore,
 } from "./short-term";
-
 export type { MemoryStore } from "./types";
 export {
   DEFAULT_CONSOLIDATION_OPTIONS,

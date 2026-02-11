@@ -74,9 +74,11 @@ mock.module("../../providers/registry", () => ({
   ProviderRegistry: MockProviderRegistry,
   registry: {
     chatModel: mock(() => mockChatModel),
+    resolveProvider: mock(() => "openai"),
   },
   providerRegistry: {
     chatModel: mock(() => mockChatModel),
+    resolveProvider: mock(() => "openai"),
   },
   createProviderRegistry: mock(),
   getLanguageModel: mock(() => mockChatModel),

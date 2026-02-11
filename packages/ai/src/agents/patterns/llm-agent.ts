@@ -167,9 +167,11 @@ export class LlmAgent extends BaseAgent {
     }
 
     const aiConfig = getConfig();
-    const providerId =
-      this.config.model?.providerId ?? aiConfig.defaultProvider;
     const modelId = this.config.model?.modelId ?? aiConfig.defaultChatModel;
+    const providerId = registry.resolveProvider(
+      this.config.model?.providerId,
+      modelId
+    );
     const model = registry.chatModel(providerId, modelId);
 
     const orchestrator = createContextOrchestrator({
@@ -246,8 +248,12 @@ export class LlmAgent extends BaseAgent {
   ): Promise<void> {
     try {
       await tracker.finalize(success, this.config.name);
-      // biome-ignore lint/suspicious/noEmptyBlockStatements: best-effort telemetry
-    } catch {}
+    } catch (error) {
+      console.warn(
+        "Composition tracking failed:",
+        error instanceof Error ? error.message : String(error)
+      );
+    }
   }
 
   async *stream(
@@ -263,9 +269,11 @@ export class LlmAgent extends BaseAgent {
     }
 
     const aiConfig = getConfig();
-    const providerId =
-      this.config.model?.providerId ?? aiConfig.defaultProvider;
     const modelId = this.config.model?.modelId ?? aiConfig.defaultChatModel;
+    const providerId = registry.resolveProvider(
+      this.config.model?.providerId,
+      modelId
+    );
     const model = registry.chatModel(providerId, modelId);
 
     const resolvedInputs = resolveInputRefs(
@@ -428,6 +436,12 @@ export class LlmAgent extends BaseAgent {
       messages.push({ role: "system", content: systemContent });
     }
 
+    if (ctx.conversationHistory?.length) {
+      for (const msg of ctx.conversationHistory) {
+        messages.push({ role: msg.role, content: msg.content });
+      }
+    }
+
     messages.push({ role: "user", content: prompt });
 
     return messages;
@@ -462,25 +476,46 @@ export class LlmAgent extends BaseAgent {
     const memory = ctx.memory;
     const preferences = memory?.preferences ?? {};
 
+    const RESPONSE_STYLES = [
+      "concise",
+      "detailed",
+      "technical",
+      "casual",
+    ] as const;
+    type ResponseStyle = (typeof RESPONSE_STYLES)[number];
+    const isResponseStyle = (value: unknown): value is ResponseStyle =>
+      typeof value === "string" &&
+      (RESPONSE_STYLES as readonly string[]).includes(value);
+
     const input: ContextMdInput = {
       identity: {
         teamId: ctx.teamId,
         userId: ctx.userId,
-        teamName: (ctx.metadata?.teamName as string | undefined) ?? "Your Team",
+        teamName:
+          typeof ctx.metadata?.teamName === "string"
+            ? ctx.metadata.teamName
+            : "Your Team",
         agentRole: this.config.description,
       },
       preferences: {
-        responseStyle:
-          (preferences.responseStyle as
-            | "concise"
-            | "detailed"
-            | "technical"
-            | "casual") ?? "concise",
+        responseStyle: isResponseStyle(preferences.responseStyle)
+          ? preferences.responseStyle
+          : "concise",
         prefersBulletPoints: true,
-        timezone: preferences.timezone as string | undefined,
-        role: preferences.role as string | undefined,
-        primaryProject: preferences.primaryProject as string | undefined,
-        language: (preferences.language as string) ?? "en",
+        timezone:
+          typeof preferences.timezone === "string"
+            ? preferences.timezone
+            : undefined,
+        role:
+          typeof preferences.role === "string" ? preferences.role : undefined,
+        primaryProject:
+          typeof preferences.primaryProject === "string"
+            ? preferences.primaryProject
+            : undefined,
+        language:
+          typeof preferences.language === "string"
+            ? preferences.language
+            : "en",
       },
       resources: [],
       recentActivity: this.buildRecentActivity(ctx),
@@ -492,7 +527,10 @@ export class LlmAgent extends BaseAgent {
         customInstructions: [],
       },
       sessionState: {
-        activeConversationTopic: (ctx.metadata?.topic as string) ?? undefined,
+        activeConversationTopic:
+          typeof ctx.metadata?.topic === "string"
+            ? ctx.metadata.topic
+            : undefined,
         mentionedEntities: [],
         pendingTasks: [],
         turnCount: 0,
@@ -548,10 +586,8 @@ export class LlmAgent extends BaseAgent {
             return "view";
           case "interaction":
             return "question";
-          default: {
-            const _exhaustive: never = h.type;
-            return _exhaustive;
-          }
+          default:
+            return "question" as const;
         }
       })();
 
@@ -576,7 +612,10 @@ export class LlmAgent extends BaseAgent {
   }
 
   private buildToolContext(ctx: AgentExecutionContext): ToolContext {
-    const canvasState = this.extractCanvasState(ctx.metadata);
+    const canvasState = this.extractCanvasState(ctx.metadata) ?? {
+      nodes: [],
+      edges: [],
+    };
 
     return {
       teamId: ctx.teamId,

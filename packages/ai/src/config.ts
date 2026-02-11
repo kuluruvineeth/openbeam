@@ -19,7 +19,7 @@ type AIConfig = import("@openplane/types/ai").AIConfig;
 function loadConfig(): AIConfig {
   return {
     defaultProvider:
-      (process.env.AI_DEFAULT_PROVIDER as ProviderId) || "openai",
+      (process.env.AI_DEFAULT_PROVIDER as ProviderId) || "google",
     defaultChatModel: process.env.AI_DEFAULT_CHAT_MODEL || DEFAULT_CHAT_MODEL,
     defaultEmbeddingModel:
       process.env.AI_DEFAULT_EMBEDDING_MODEL || DEFAULT_EMBEDDING_MODEL,
@@ -50,23 +50,45 @@ function loadConfig(): AIConfig {
     },
 
     embedding: {
-      dimensions: Number(process.env.AI_EMBEDDING_DIMENSIONS) || 1536,
-      maxTokens: Number(process.env.AI_EMBEDDING_MAX_TOKENS) || 8191,
-      batchSize: Number(process.env.AI_EMBEDDING_BATCH_SIZE) || 100,
+      dimensions: Number.parseInt(
+        process.env.AI_EMBEDDING_DIMENSIONS || "1536",
+        10
+      ),
+      maxTokens: Number.parseInt(
+        process.env.AI_EMBEDDING_MAX_TOKENS || "8191",
+        10
+      ),
+      batchSize: Number.parseInt(
+        process.env.AI_EMBEDDING_BATCH_SIZE || "100",
+        10
+      ),
     },
 
     completion: {
-      temperature: Number(process.env.AI_COMPLETION_TEMPERATURE) || 0.7,
-      maxTokens: Number(process.env.AI_COMPLETION_MAX_TOKENS) || 4096,
-      topP: Number(process.env.AI_COMPLETION_TOP_P) || 1,
+      temperature: Number.parseFloat(
+        process.env.AI_COMPLETION_TEMPERATURE || "0.7"
+      ),
+      maxTokens: Number.parseInt(
+        process.env.AI_COMPLETION_MAX_TOKENS || "4096",
+        10
+      ),
+      topP: Number.parseFloat(process.env.AI_COMPLETION_TOP_P || "1"),
     },
 
     agent: {
-      maxSteps: Number(process.env.AI_AGENT_MAX_STEPS) || 15,
-      maxTokensPerStep:
-        Number(process.env.AI_AGENT_MAX_TOKENS_PER_STEP) || 4096,
-      timeoutMs: Number(process.env.AI_AGENT_TIMEOUT_MS) || 300_000,
-      maxToolRoundtrips: Number(process.env.AI_AGENT_MAX_TOOL_ROUNDTRIPS) || 10,
+      maxSteps: Number.parseInt(process.env.AI_AGENT_MAX_STEPS || "15", 10),
+      maxTokensPerStep: Number.parseInt(
+        process.env.AI_AGENT_MAX_TOKENS_PER_STEP || "4096",
+        10
+      ),
+      timeoutMs: Number.parseInt(
+        process.env.AI_AGENT_TIMEOUT_MS || "300000",
+        10
+      ),
+      maxToolRoundtrips: Number.parseInt(
+        process.env.AI_AGENT_MAX_TOOL_ROUNDTRIPS || "10",
+        10
+      ),
       enableParallelTools:
         process.env.AI_AGENT_ENABLE_PARALLEL_TOOLS !== "false",
     },
@@ -74,7 +96,7 @@ function loadConfig(): AIConfig {
     engine: {
       baseURL: process.env.ENGINE_URL || "http://localhost:8000",
       gpuURL: process.env.ENGINE_GPU_URL || "http://localhost:8001",
-      timeout: Number(process.env.ENGINE_TIMEOUT) || 30_000,
+      timeout: Number.parseInt(process.env.ENGINE_TIMEOUT || "30000", 10),
     },
   };
 }

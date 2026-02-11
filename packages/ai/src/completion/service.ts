@@ -62,8 +62,9 @@ export class CompletionService {
     } = {}
   ) {
     const config = getConfig();
-    this.providerId = options.providerId || config.defaultProvider;
     this.modelId = options.modelId || config.defaultChatModel;
+    this.providerId =
+      options.providerId || registry.resolveProvider(undefined, this.modelId);
     this.defaultSystemPrompt = options.systemPrompt || "";
   }
 
@@ -74,11 +75,13 @@ export class CompletionService {
     );
   }
 
+  private isValidRole(role: string): role is (typeof VALID_SDK_ROLES)[number] {
+    return (VALID_SDK_ROLES as readonly string[]).includes(role);
+  }
+
   private toSDKMessages(messages: ChatMessage[]): ModelMessage[] {
     return messages.map((msg): ModelMessage => {
-      if (
-        !VALID_SDK_ROLES.includes(msg.role as (typeof VALID_SDK_ROLES)[number])
-      ) {
+      if (!this.isValidRole(msg.role)) {
         throw new Error(`Invalid message role: ${msg.role}`);
       }
 
@@ -141,9 +144,13 @@ export class CompletionService {
       if (result.toolCalls?.length) {
         for (const tc of result.toolCalls) {
           const input = tc.input;
-          if (typeof input !== "object" || input === null) {
+          if (
+            typeof input !== "object" ||
+            input === null ||
+            Array.isArray(input)
+          ) {
             throw new Error(
-              `Invalid tool call input: expected object, got ${typeof input}`
+              `Invalid tool call input: expected object, got ${Array.isArray(input) ? "array" : typeof input}`
             );
           }
           toolCalls.push({

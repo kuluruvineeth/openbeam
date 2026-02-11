@@ -397,6 +397,20 @@ export interface MediaMetadata {
   highlights: MediaHighlight[];
 }
 
+export interface TemplateInfo {
+  id: string;
+  name: string;
+  description: string | null;
+  category: string;
+  nodes: unknown;
+  edges: unknown;
+  settings: unknown;
+  requiredConnectors: string[];
+  isPublic: boolean;
+  teamId: string | null;
+  usageCount: number;
+}
+
 export interface IntegrationInfo {
   type: string;
   name: string;
@@ -603,6 +617,16 @@ export interface ToolServices {
     getCapabilities: (
       integrationType: string
     ) => Promise<IntegrationInfo | null>;
+  };
+
+  templates?: {
+    list: (params: {
+      teamId?: string;
+      category?: string;
+      isPublic?: boolean;
+      limit?: number;
+    }) => Promise<TemplateInfo[]>;
+    get: (id: string) => Promise<TemplateInfo | null>;
   };
 }
 

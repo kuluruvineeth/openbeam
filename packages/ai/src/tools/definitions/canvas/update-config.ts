@@ -15,7 +15,7 @@ export const canvasUpdateConfigTool = defineTool({
   }),
   stakes: "low",
   reversibility: "easy",
-  execute: (params) => {
+  execute: (params, ctx) => {
     const operation: CanvasOperation = {
       type: "update_config",
       id: crypto.randomUUID(),
@@ -23,6 +23,13 @@ export const canvasUpdateConfigTool = defineTool({
       config: params.config,
       timestamp: Date.now(),
     };
+
+    if (ctx.canvasState) {
+      const node = ctx.canvasState.nodes.find((n) => n.id === params.nodeId);
+      if (node) {
+        node.data = { ...node.data, ...params.config };
+      }
+    }
 
     return success({
       operation,

@@ -140,16 +140,30 @@ export interface AgentExecutionResult {
   durationMs: number;
 }
 
+export type CanvasStateSnapshot = {
+  nodes: Array<{ id: string; type: string; data: { label: string } }>;
+  edges: Array<{ id: string; source: string; target: string }>;
+};
+
+export type ConversationMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
+
 export interface AgentExecutionContext {
   teamId: string;
   userId: string;
   sessionId?: string;
+  turnId?: string;
+  canvasId?: string;
   accessControl?: string[];
   abortSignal?: AbortSignal;
   parentTrace?: ExecutionTrace;
   state: AgentState;
   metadata?: Record<string, unknown>;
   memory?: MemoryAccess;
+  canvasState?: CanvasStateSnapshot;
+  conversationHistory?: ConversationMessage[];
 }
 
 export function createEmptyState(): AgentState {
@@ -159,11 +173,8 @@ export function createEmptyState(): AgentState {
   };
 }
 
-export function getStateValue<T>(
-  state: AgentState,
-  key: string
-): T | undefined {
-  return state.values.get(key) as T | undefined;
+export function getStateValue(state: AgentState, key: string): unknown {
+  return state.values.get(key);
 }
 
 export function setStateValue(

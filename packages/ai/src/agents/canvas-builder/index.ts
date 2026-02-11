@@ -1,8 +1,12 @@
 import type { CanvasOperation } from "@openplane/types/canvas";
 import type { AgentStreamChunk } from "../base";
-import type { AgentExecutionContext, AgentExecutionResult } from "../config";
+import type {
+  AgentExecutionContext,
+  AgentExecutionResult,
+  LlmAgentConfig,
+} from "../config";
 import { LlmAgent } from "../patterns/llm-agent";
-import { canvasBuilderConfig } from "./config";
+import { canvasBuilderConfig, createCanvasBuilderConfig } from "./config";
 
 export type CanvasStreamEvent =
   | { type: "thinking"; content: string }
@@ -14,16 +18,18 @@ export type CanvasStreamEvent =
   | { type: "complete"; summary: string; result: AgentExecutionResult };
 
 export class CanvasBuilderAgent extends LlmAgent {
-  constructor() {
-    super(canvasBuilderConfig);
+  constructor(configOverrides?: Partial<LlmAgentConfig>) {
+    super(
+      configOverrides
+        ? createCanvasBuilderConfig(configOverrides)
+        : canvasBuilderConfig
+    );
   }
 
   async *streamCanvas(
     prompt: string,
     ctx: AgentExecutionContext
   ): AsyncGenerator<CanvasStreamEvent> {
-    yield { type: "thinking", content: "Analyzing workflow request..." };
-
     try {
       for await (const chunk of this.stream(prompt, ctx)) {
         const event = this.transformChunk(chunk);
@@ -109,26 +115,46 @@ export class CanvasBuilderAgent extends LlmAgent {
       return null;
     }
 
-    const output = chunk.toolOutput as
-      | { operation?: CanvasOperation }
-      | undefined;
-    return output?.operation ?? null;
+    const output = chunk.toolOutput;
+    if (!output || typeof output !== "object") {
+      return null;
+    }
+
+    const obj = output as Record<string, unknown>;
+    const dataObj =
+      typeof obj.data === "object" && obj.data !== null
+        ? (obj.data as Record<string, unknown>)
+        : null;
+
+    const operation = dataObj?.operation ?? obj.operation;
+    if (!operation || typeof operation !== "object") {
+      return null;
+    }
+
+    return operation as CanvasOperation;
   }
 }
 
-export function createCanvasBuilderAgent(): CanvasBuilderAgent {
-  return new CanvasBuilderAgent();
+export function createCanvasBuilderAgent(
+  configOverrides?: Partial<LlmAgentConfig>
+): CanvasBuilderAgent {
+  return new CanvasBuilderAgent(configOverrides);
 }
 
 export async function* streamCanvasBuilder(
   prompt: string,
-  ctx: AgentExecutionContext
+  ctx: AgentExecutionContext,
+  configOverrides?: Partial<LlmAgentConfig>
 ): AsyncGenerator<CanvasStreamEvent> {
-  const agent = createCanvasBuilderAgent();
+  const agent = createCanvasBuilderAgent(configOverrides);
   for await (const event of agent.streamCanvas(prompt, ctx)) {
     yield event;
   }
 }
 
-export { CANVAS_BUILDER_TOOLS, canvasBuilderConfig } from "./config";
+export {
+  CANVAS_BUILDER_TOOLS,
+  canvasBuilderConfig,
+  createCanvasBuilderConfig,
+} from "./config";
 export { CANVAS_BUILDER_PROMPT } from "./prompts";

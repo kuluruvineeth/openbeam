@@ -62,6 +62,7 @@ export {
   createAgentMemoryManager,
   createAgentRunner,
   createCanvasBuilderAgent,
+  createCanvasBuilderConfig,
   createCoordinatorAgent,
   createEmptyState,
   createLlmAgent,
@@ -492,6 +493,9 @@ export {
 export type {
   ConsolidatedMemory,
   Correction,
+  DurableMemoryEntry,
+  DurableMemorySearchOptions,
+  DurableMemoryStore,
   EpisodicEntry,
   EpisodicMemoryOptions,
   HistoryItem,
@@ -502,6 +506,7 @@ export type {
   MemoryMetadata,
   MemoryQuery,
   MemoryRetrievalResult,
+  MemoryScope,
   MemorySignal,
   MemorySignalImportance,
   MemorySignalType,
@@ -519,6 +524,7 @@ export type {
   UserPreferences as MemoryUserPreferences,
 } from "./memory";
 export {
+  createDurableMemoryStore,
   createEmptyMemoryAccess,
   createEpisodicMemory,
   createMemoryAccess,

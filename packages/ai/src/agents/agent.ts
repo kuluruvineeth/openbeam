@@ -20,10 +20,14 @@ import type { Agent, AgentConfig, AgentContext } from "./types";
 
 function getAgentModel(config: AgentConfig) {
   const aiConfig = getConfig();
-  return registry.chatModel(
-    config.providerId || aiConfig.defaultProvider,
-    config.modelId || aiConfig.defaultChatModel
-  );
+  const modelId = config.modelId || aiConfig.defaultChatModel;
+  try {
+    return registry.chatModel(config.providerId, modelId);
+  } catch (error) {
+    throw new Error(
+      `Failed to initialize model ${config.providerId ?? "default"}/${modelId}: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
 }
 
 function buildMessages(task: string, systemPrompt?: string): ModelMessage[] {

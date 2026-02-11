@@ -3,6 +3,7 @@ import type {
   EmbeddingModelDefinition,
   ProviderId,
 } from "@openplane/types/ai";
+import { getChatModel as lookupChatModelDef } from "@openplane/types/ai";
 import type { EmbeddingModel, LanguageModel } from "ai";
 import { getConfig } from "../config";
 import { createAnthropicProvider } from "./anthropic";
@@ -46,12 +47,23 @@ export class ProviderRegistry {
     return provider;
   }
 
+  resolveProvider(providerId?: ProviderId, modelId?: string): ProviderId {
+    if (providerId) {
+      return providerId;
+    }
+    const config = getConfig();
+    const effectiveModel = modelId || config.defaultChatModel;
+    return (
+      lookupChatModelDef(effectiveModel)?.provider || config.defaultProvider
+    );
+  }
+
   chatModel(providerId?: ProviderId, modelId?: string): LanguageModel {
     this.ensureInitialized();
 
     const config = getConfig();
-    const effectiveProvider = providerId || config.defaultProvider;
     const effectiveModel = modelId || config.defaultChatModel;
+    const effectiveProvider = this.resolveProvider(providerId, effectiveModel);
 
     const provider = this.getProvider(effectiveProvider);
 

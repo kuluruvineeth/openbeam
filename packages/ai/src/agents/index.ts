@@ -40,6 +40,7 @@ export {
   CanvasBuilderAgent,
   canvasBuilderConfig,
   createCanvasBuilderAgent,
+  createCanvasBuilderConfig,
   streamCanvasBuilder,
 } from "./canvas-builder";
 export type {

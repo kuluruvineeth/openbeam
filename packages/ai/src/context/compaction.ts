@@ -117,7 +117,7 @@ export async function compactContext(
 
   const aiConfig = getConfig();
   const model = registry.chatModel(
-    aiConfig.defaultProvider,
+    undefined,
     config.model ?? aiConfig.defaultChatModel
   );
 

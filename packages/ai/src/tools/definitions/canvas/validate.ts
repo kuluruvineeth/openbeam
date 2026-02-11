@@ -41,9 +41,29 @@ export const canvasValidateTool = defineTool({
     }
 
     const connectedNodeIds = new Set<string>();
+    const nodeIdSet = new Set(nodes.map((node) => node.id));
+    const incomingEdgeCount = new Map<string, number>();
+    const outgoingEdgeCount = new Map<string, number>();
+
     for (const edge of edges) {
+      if (!(nodeIdSet.has(edge.source) && nodeIdSet.has(edge.target))) {
+        issues.push(
+          `Edge ${edge.id} references a missing source or target node`
+        );
+        continue;
+      }
+
       connectedNodeIds.add(edge.source);
       connectedNodeIds.add(edge.target);
+
+      outgoingEdgeCount.set(
+        edge.source,
+        (outgoingEdgeCount.get(edge.source) ?? 0) + 1
+      );
+      incomingEdgeCount.set(
+        edge.target,
+        (incomingEdgeCount.get(edge.target) ?? 0) + 1
+      );
     }
 
     const orphanNodes = nodes.filter(
@@ -55,6 +75,20 @@ export const canvasValidateTool = defineTool({
 
     if (orphanNodes.length > 0) {
       issues.push(["Found", orphanNodes.length, "unconnected nodes"].join(" "));
+    }
+
+    const invalidStartNodes = startNodes.filter(
+      (node) => (incomingEdgeCount.get(node.id) ?? 0) > 0
+    );
+    if (invalidStartNodes.length > 0) {
+      issues.push("Start node cannot have incoming connections");
+    }
+
+    const invalidEndNodes = endNodes.filter(
+      (node) => (outgoingEdgeCount.get(node.id) ?? 0) > 0
+    );
+    if (invalidEndNodes.length > 0) {
+      issues.push("End node cannot have outgoing connections");
     }
 
     const result: ValidationResult = {

@@ -173,12 +173,17 @@ RETURNS: IDs of created nodes and connections.`,
   reversibility: "easy",
 
   parameters: z.object({
+    templateId: z
+      .string()
+      .optional()
+      .describe("ID of a saved template to apply (from canvas_list_templates)"),
     templateData: z
       .object({
         nodes: z.array(z.unknown()),
         connections: z.array(z.unknown()),
       })
-      .describe("Template data containing nodes and connections"),
+      .optional()
+      .describe("Raw template data containing nodes and connections"),
     position: z
       .object({
         x: z.number(),
@@ -197,6 +202,30 @@ RETURNS: IDs of created nodes and connections.`,
       return failure("INVALID_STATE", "Canvas context not available");
     }
 
+    let resolvedData = params.templateData;
+
+    if (params.templateId && !resolvedData) {
+      const getTemplate = ctx.services.templates?.get;
+      if (!getTemplate) {
+        return failure("NOT_FOUND", "Template service not available");
+      }
+      const template = await getTemplate(params.templateId);
+      if (!template) {
+        return failure("NOT_FOUND", `Template ${params.templateId} not found`);
+      }
+      resolvedData = {
+        nodes: Array.isArray(template.nodes) ? template.nodes : [],
+        connections: Array.isArray(template.edges) ? template.edges : [],
+      };
+    }
+
+    if (!resolvedData) {
+      return failure(
+        "INVALID_INPUT",
+        "Provide either templateId or templateData"
+      );
+    }
+
     const position = params.position ?? { x: 100, y: 100 };
     const prefix = params.prefix || `inst_${Date.now()}_`;
 
@@ -204,7 +233,7 @@ RETURNS: IDs of created nodes and connections.`,
     const newNodes: CanvasNode[] = [];
     const newConnections: CanvasConnection[] = [];
 
-    for (const raw of params.templateData.nodes) {
+    for (const raw of resolvedData.nodes) {
       if (!isCanvasNode(raw)) {
         continue;
       }
@@ -224,7 +253,7 @@ RETURNS: IDs of created nodes and connections.`,
       newNodes.push(newNode);
     }
 
-    for (const raw of params.templateData.connections) {
+    for (const raw of resolvedData.connections) {
       if (!isCanvasConnection(raw)) {
         continue;
       }
@@ -288,7 +317,7 @@ RETURNS: List of available templates with metadata.`,
     limit: z.number().optional().default(20).describe("Maximum results"),
   }),
 
-  execute(params) {
+  async execute(params, ctx) {
     const builtInTemplates = [
       {
         id: "tmpl_rag_answer",
@@ -340,7 +369,30 @@ RETURNS: List of available templates with metadata.`,
       },
     ];
 
-    let templates = builtInTemplates;
+    const listTemplates = ctx.services.templates?.list;
+    const dbTemplates: (typeof builtInTemplates)[number][] = [];
+
+    if (listTemplates) {
+      const teamTemplates = await listTemplates({
+        teamId: ctx.teamId,
+        isPublic: true,
+        limit: params.limit,
+      });
+
+      for (const t of teamTemplates) {
+        dbTemplates.push({
+          id: t.id,
+          name: t.name,
+          description: t.description ?? "",
+          tags: [t.category, ...(t.isPublic ? ["public"] : ["team"])],
+          nodeCount: Array.isArray(t.nodes) ? t.nodes.length : 0,
+          pattern: t.category,
+        });
+      }
+    }
+
+    const allTemplates = [...builtInTemplates, ...dbTemplates];
+    let templates = allTemplates;
 
     if (params.tags && params.tags.length > 0) {
       const tagSet = new Set(params.tags);
@@ -356,7 +408,7 @@ RETURNS: List of available templates with metadata.`,
         templates,
         totalCount: templates.length,
         availableTags: Array.from(
-          new Set(builtInTemplates.flatMap((t) => t.tags))
+          new Set(allTemplates.flatMap((t) => t.tags))
         ).sort(),
       },
       { source: "canvas" }

@@ -12,13 +12,22 @@ export const canvasRemoveNodeTool = defineTool({
   }),
   stakes: "low",
   reversibility: "easy",
-  execute: (params) => {
+  execute: (params, ctx) => {
     const operation: CanvasOperation = {
       type: "remove_node",
       id: crypto.randomUUID(),
       nodeId: params.nodeId,
       timestamp: Date.now(),
     };
+
+    if (ctx.canvasState) {
+      ctx.canvasState.nodes = ctx.canvasState.nodes.filter(
+        (n) => n.id !== params.nodeId
+      );
+      ctx.canvasState.edges = ctx.canvasState.edges.filter(
+        (e) => e.source !== params.nodeId && e.target !== params.nodeId
+      );
+    }
 
     return success({
       operation,

@@ -12,13 +12,19 @@ export const canvasDisconnectNodesTool = defineTool({
   }),
   stakes: "low",
   reversibility: "easy",
-  execute: (params) => {
+  execute: (params, ctx) => {
     const operation: CanvasOperation = {
       type: "disconnect",
       id: crypto.randomUUID(),
       edgeId: params.edgeId,
       timestamp: Date.now(),
     };
+
+    if (ctx.canvasState) {
+      ctx.canvasState.edges = ctx.canvasState.edges.filter(
+        (e) => e.id !== params.edgeId
+      );
+    }
 
     return success({
       operation,
