@@ -63,11 +63,7 @@ export function AgenticViewHeader({
     onSuccess: (_execution) => {
       toast.success("Execution started");
       queryClient.invalidateQueries({
-        queryKey: trpc.agentCanvas.listExecutions.queryOptions({
-          canvasId: agentId,
-          limit: 8,
-          offset: 0,
-        }).queryKey,
+        queryKey: trpc.agentCanvas.listExecutions.queryKey(),
       });
     },
     onError: (error) => {
