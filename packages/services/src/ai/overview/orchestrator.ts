@@ -38,7 +38,7 @@ import {
 } from "./types";
 
 const OVERVIEW_PROVIDER_ID = "google";
-const DEFAULT_MODEL_ID = "gemini-2.5-flash";
+const DEFAULT_MODEL_ID = "gemini-3-flash-preview";
 
 function isGenericDocument(data: unknown): data is GenericDocument {
   return (

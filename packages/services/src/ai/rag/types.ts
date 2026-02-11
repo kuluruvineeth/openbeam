@@ -1,4 +1,4 @@
-export const DEFAULT_RAG_MODEL = "gemini-2.0-flash";
+export const DEFAULT_RAG_MODEL = "gemini-3-flash-preview";
 
 export type QueryIntent =
   | "question"

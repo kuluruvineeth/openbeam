@@ -128,19 +128,19 @@ describe("analyzeQueryComplexity", () => {
 describe("selectModelForComplexity", () => {
   test("returns fast model for simple queries", () => {
     const config = selectModelForComplexity("simple");
-    expect(config.modelId).toBe("gemini-2.5-flash-lite");
+    expect(config.modelId).toBe("gemini-3-flash-preview");
     expect(config.providerId).toBe("google");
   });
 
   test("returns balanced model for moderate queries", () => {
     const config = selectModelForComplexity("moderate");
-    expect(config.modelId).toBe("gemini-2.5-flash");
+    expect(config.modelId).toBe("gemini-3-flash-preview");
     expect(config.providerId).toBe("google");
   });
 
   test("returns capable model for complex queries", () => {
     const config = selectModelForComplexity("complex");
-    expect(config.modelId).toBe("gemini-3-flash-preview");
+    expect(config.modelId).toBe("gemini-3-pro-preview");
     expect(config.providerId).toBe("google");
   });
 

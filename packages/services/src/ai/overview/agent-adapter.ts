@@ -228,7 +228,7 @@ function createAgentContext(request: OverviewRequest): AgentExecutionContext {
 
 const DEFAULT_OVERVIEW_MODEL = {
   providerId: "anthropic" as const,
-  modelId: "claude-sonnet-4-20250514",
+  modelId: "claude-sonnet-4-5",
 };
 
 function createAgentConfig(request: OverviewRequest) {

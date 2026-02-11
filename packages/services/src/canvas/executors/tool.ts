@@ -24,11 +24,30 @@ import type { CanvasNodeExecutionInput, CanvasNodeExecutor } from "../types";
 
 const JSON_FENCE_REGEX = /```(?:json)?\s*([\s\S]*?)```/i;
 
+const MAX_INFERENCE_TEMPERATURE = 0.2;
+const MAX_INFERENCE_TOKENS = 1024;
+
 let toolsReady = false;
 let toolsInit: Promise<void> | null = null;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+interface ExecutableTool {
+  execute: (
+    input: unknown,
+    options: { abortSignal?: AbortSignal }
+  ) => Promise<ToolExecutionResult>;
+}
+
+function isExecutableTool(tool: unknown): tool is ExecutableTool {
+  return (
+    typeof tool === "object" &&
+    tool !== null &&
+    "execute" in tool &&
+    typeof (tool as Record<string, unknown>).execute === "function"
+  );
 }
 
 async function ensureToolsReady(): Promise<void> {
@@ -208,8 +227,11 @@ async function inferParameters(params: {
   const result = await completion.complete(messages, {
     providerId: config.defaultProvider,
     modelId: config.defaultChatModel,
-    temperature: Math.min(0.2, config.completion.temperature),
-    maxTokens: Math.min(1024, config.completion.maxTokens),
+    temperature: Math.min(
+      MAX_INFERENCE_TEMPERATURE,
+      config.completion.temperature
+    ),
+    maxTokens: Math.min(MAX_INFERENCE_TOKENS, config.completion.maxTokens),
     topP: config.completion.topP,
   });
   const candidate = extractJsonCandidate(result.content ?? "");
@@ -526,13 +548,14 @@ export const toolExecutor: CanvasNodeExecutor = async ({
       exponential: true,
     };
 
+    if (!isExecutableTool(tool)) {
+      throw new Error(
+        `Tool "${config.toolId}" does not have a valid execute method`
+      );
+    }
+
     const result = await executeToolWithRetry({
-      tool: tool as unknown as {
-        execute: (
-          input: unknown,
-          options: { abortSignal?: AbortSignal }
-        ) => Promise<ToolExecutionResult>;
-      },
+      tool,
       context: toolContext,
       services: toolRegistry.getServices(),
       input: validated.params,

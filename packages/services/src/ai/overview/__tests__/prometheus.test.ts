@@ -21,7 +21,7 @@ describe("Prometheus metrics", () => {
       recordOverviewMetrics({
         status: "success",
         cacheHit: false,
-        model: "gemini-2.5-flash",
+        model: "gemini-3-flash-preview",
         complexity: "simple",
         latencyMs: 250,
       });
@@ -29,7 +29,7 @@ describe("Prometheus metrics", () => {
       const metrics = await getOverviewMetrics();
       expect(metrics).toContain("overview_requests_total");
       expect(metrics).toContain('status="success"');
-      expect(metrics).toContain('model="gemini-2.5-flash"');
+      expect(metrics).toContain('model="gemini-3-flash-preview"');
       expect(metrics).toContain('complexity="simple"');
     });
 
@@ -37,7 +37,7 @@ describe("Prometheus metrics", () => {
       recordOverviewMetrics({
         status: "success",
         cacheHit: false,
-        model: "gemini-2.5-flash",
+        model: "gemini-3-flash-preview",
         complexity: "moderate",
         latencyMs: 350,
       });
@@ -50,7 +50,7 @@ describe("Prometheus metrics", () => {
       recordOverviewMetrics({
         status: "success",
         cacheHit: false,
-        model: "gemini-2.5-flash",
+        model: "gemini-3-flash-preview",
         complexity: "simple",
         latencyMs: 200,
         promptTokens: 1000,
@@ -67,7 +67,7 @@ describe("Prometheus metrics", () => {
       recordOverviewMetrics({
         status: "success",
         cacheHit: false,
-        model: "gemini-2.5-flash",
+        model: "gemini-3-flash-preview",
         complexity: "simple",
         latencyMs: 200,
         groundingScore: 0.85,
@@ -81,7 +81,7 @@ describe("Prometheus metrics", () => {
       recordOverviewMetrics({
         status: "success",
         cacheHit: false,
-        model: "gemini-2.5-flash",
+        model: "gemini-3-flash-preview",
         complexity: "simple",
         latencyMs: 200,
         sourceCount: 5,

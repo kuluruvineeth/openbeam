@@ -31,15 +31,17 @@ const defaultDeps: StartCanvasExecutionDeps = {
 const CreateExecutionAndStartCanvasWorkflowParamsSchema = z.object({
   deps: z.custom<StartCanvasExecutionDeps>().optional(),
   prisma: z.custom<Database>(),
-  canvasId: z.string().uuid(),
+  canvasId: z.string().min(1),
   versionNumber: z.number().int().positive(),
   nodes: z.array(AgentCanvasNodeSchema),
   edges: z.array(AgentCanvasEdgeSchema),
   viewport: ViewportSchema.optional(),
   input: z.unknown().optional(),
-  teamId: z.string().uuid(),
-  triggeredById: z.string().uuid(),
+  teamId: z.string().min(1),
+  triggeredById: z.string().min(1),
   triggerSource: z.string().optional(),
+  sessionId: z.string().optional(),
+  turnId: z.string().optional(),
 });
 
 export type CreateExecutionAndStartCanvasWorkflowParams = z.infer<
@@ -64,6 +66,8 @@ export async function createExecutionAndStartCanvasWorkflow(
     teamId,
     triggeredById,
     triggerSource,
+    sessionId,
+    turnId,
   } = params;
 
   const execution = await deps.createAgentCanvasExecution(prisma, {
@@ -73,6 +77,8 @@ export async function createExecutionAndStartCanvasWorkflow(
     trace: { steps: [] },
     triggeredById,
     triggerSource,
+    sessionId,
+    turnId,
   });
 
   const canvas: CanvasState = {
@@ -91,6 +97,8 @@ export async function createExecutionAndStartCanvasWorkflow(
       triggerSource,
       input,
       canvas,
+      sessionId,
+      turnId,
     });
 
     return await deps.updateAgentCanvasExecution(prisma, execution.id, teamId, {

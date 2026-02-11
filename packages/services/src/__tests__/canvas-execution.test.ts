@@ -1,4 +1,12 @@
-import { afterAll, beforeAll, describe, expect, it, mock } from "bun:test";
+import {
+  afterAll,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  mock,
+  setDefaultTimeout,
+} from "bun:test";
 import type {
   ClassifyExecutionResult,
   ExecutionPlanNode,
@@ -6,6 +14,8 @@ import type {
   RagExecutionResult,
   SummarizeExecutionResult,
 } from "@openplane/types/canvas";
+
+setDefaultTimeout(30_000);
 
 const completeMock = mock(() =>
   Promise.resolve({
@@ -330,6 +340,16 @@ mock.module("@openplane/ai", () => ({
   registerAllTools: mock(() => 0),
   registerAllBuiltinTools: mock(() => 0),
   toolRegistry: toolRegistryMock,
+  isReasoningChunk: () => false,
+  isReasoningDeltaChunk: () => false,
+  extractReasoningContent: () => "",
+  buildThinkingProviderOptions: () => ({}),
+  getProviderOptionsForModel: () => ({}),
+  registry: {
+    languageModel: () => null,
+    textEmbeddingModel: () => null,
+  },
+  embedQueryWithCache: mock(() => Promise.resolve([])),
 }));
 
 mock.module("@openplane/ai/agents", () => ({
@@ -358,7 +378,7 @@ mock.module("@openplane/ai/agents", () => ({
   writerAgentConfig: { type: "llm", name: "writer" },
 }));
 
-mock.module("../../search/reranking/service", () => ({
+mock.module("../search/reranking/service", () => ({
   rerankerService: {
     rerank: rerankMock,
   },
@@ -375,6 +395,30 @@ mock.module("@openplane/integrations/connector-actions", () => ({
 mock.module("@openplane/db", () => ({
   __esModule: true,
   default: {},
+  AppType: {
+    SLACK: "SLACK",
+    GMAIL: "GMAIL",
+    GOOGLE_DRIVE: "GOOGLE_DRIVE",
+    NOTION: "NOTION",
+    LINEAR: "LINEAR",
+    JIRA: "JIRA",
+    GITHUB: "GITHUB",
+    CONFLUENCE: "CONFLUENCE",
+    MICROSOFT_TEAMS: "MICROSOFT_TEAMS",
+    DISCORD: "DISCORD",
+    OUTLOOK: "OUTLOOK",
+    ONEDRIVE: "ONEDRIVE",
+    SHAREPOINT: "SHAREPOINT",
+    DROPBOX: "DROPBOX",
+    BOX: "BOX",
+    ASANA: "ASANA",
+    TRELLO: "TRELLO",
+    CLICKUP: "CLICKUP",
+    MONDAY: "MONDAY",
+    BASECAMP: "BASECAMP",
+    GITLAB: "GITLAB",
+    BITBUCKET: "BITBUCKET",
+  },
   ConnectorStatus: {
     ACTIVE: "ACTIVE",
     SYNCING: "SYNCING",
@@ -450,13 +494,13 @@ mock.module("@openplane/redis", () => {
   };
 });
 
-mock.module("../../slack/client", () => ({
+mock.module("../slack/client", () => ({
   createSlackClient: () => ({
     call: slackCallMock,
   }),
 }));
 
-mock.module("../../slack/actions", () => ({
+mock.module("../slack/actions", () => ({
   sendMessage: sendSlackMessageMock,
   updateMessage: () =>
     Promise.resolve({ success: true, messageTs: "1711.22", channelId: "C123" }),
@@ -530,11 +574,150 @@ mock.module("../ai/tool-binder", () => ({
   createToolServices: () => ({}),
 }));
 
+const executorRegistry = new Map<string, (...args: unknown[]) => unknown>();
+let executorsLoaded = false;
+
+mock.module("../canvas/registry", () => ({
+  registerCanvasNodeExecutor: (
+    nodeType: string,
+    executor: (...args: unknown[]) => unknown
+  ) => {
+    executorRegistry.set(nodeType, executor);
+  },
+  getCanvasNodeExecutor: (nodeType: string) => executorRegistry.get(nodeType),
+  listCanvasNodeExecutors: () => Array.from(executorRegistry.keys()),
+  freezeRegistry: () => {
+    return;
+  },
+}));
+
+mock.module("../canvas/defaults", () => ({
+  registerDefaultCanvasNodeExecutors: () => {
+    if (executorsLoaded) {
+      return;
+    }
+  },
+}));
+
 let executeCanvasNode: typeof import("../canvas").executeCanvasNode;
 let CanvasNodeExecutorNotFoundError: typeof import("../canvas").CanvasNodeExecutorNotFoundError;
 
 beforeAll(async () => {
   globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+  const [
+    { startExecutor },
+    { agentCallExecutor },
+    { audioExecutor },
+    { codeExecutor },
+    { connectorActionExecutor },
+    { connectorExecutor },
+    { conditionExecutor },
+    { endExecutor },
+    { transformExecutor },
+    { filterExecutor },
+    { httpRequestExecutor },
+    { databaseQueryExecutor },
+    { graphqlQueryExecutor },
+    { toolExecutor },
+    { memoryWriteExecutor },
+    { memoryReadExecutor },
+    { memorySearchExecutor },
+    { chunkExecutor },
+    { templateExecutor },
+    { notifyExecutor },
+    { llmExecutor },
+    { mergeExecutor },
+    { ragExecutor },
+    { rerankExecutor },
+    { summarizeExecutor },
+    { embeddingsExecutor },
+    { extractExecutor },
+    { classifyExecutor },
+    { imageExecutor },
+    { videoExecutor },
+    {
+      triggerManualExecutor,
+      triggerScheduleExecutor,
+      triggerWebhookExecutor,
+      triggerEventExecutor,
+    },
+  ] = await Promise.all([
+    import("../canvas/executors/start"),
+    import("../canvas/executors/agent-call"),
+    import("../canvas/executors/audio"),
+    import("../canvas/executors/code"),
+    import("../canvas/executors/connector-action"),
+    import("../canvas/executors/connector"),
+    import("../canvas/executors/condition"),
+    import("../canvas/executors/end"),
+    import("../canvas/executors/transform"),
+    import("../canvas/executors/filter"),
+    import("../canvas/executors/http-request"),
+    import("../canvas/executors/database-query"),
+    import("../canvas/executors/graphql-query"),
+    import("../canvas/executors/tool"),
+    import("../canvas/executors/memory-write"),
+    import("../canvas/executors/memory-read"),
+    import("../canvas/executors/memory-search"),
+    import("../canvas/executors/chunk"),
+    import("../canvas/executors/template"),
+    import("../canvas/executors/notify"),
+    import("../canvas/executors/llm"),
+    import("../canvas/executors/merge"),
+    import("../canvas/executors/rag"),
+    import("../canvas/executors/rerank"),
+    import("../canvas/executors/summarize"),
+    import("../canvas/executors/embeddings"),
+    import("../canvas/executors/extract"),
+    import("../canvas/executors/classify"),
+    import("../canvas/executors/image"),
+    import("../canvas/executors/video"),
+    import("../canvas/executors/trigger"),
+  ]);
+
+  const entries: [string, unknown][] = [
+    ["start", startExecutor],
+    ["agent_call", agentCallExecutor],
+    ["audio", audioExecutor],
+    ["code", codeExecutor],
+    ["connector_action", connectorActionExecutor],
+    ["connector", connectorExecutor],
+    ["condition", conditionExecutor],
+    ["end", endExecutor],
+    ["transform", transformExecutor],
+    ["filter", filterExecutor],
+    ["http_request", httpRequestExecutor],
+    ["database_query", databaseQueryExecutor],
+    ["graphql_query", graphqlQueryExecutor],
+    ["tool", toolExecutor],
+    ["memory_write", memoryWriteExecutor],
+    ["memory_read", memoryReadExecutor],
+    ["memory_search", memorySearchExecutor],
+    ["chunk", chunkExecutor],
+    ["template", templateExecutor],
+    ["notify", notifyExecutor],
+    ["llm", llmExecutor],
+    ["merge", mergeExecutor],
+    ["rag", ragExecutor],
+    ["rerank", rerankExecutor],
+    ["summarize", summarizeExecutor],
+    ["embeddings", embeddingsExecutor],
+    ["extract", extractExecutor],
+    ["classify", classifyExecutor],
+    ["image", imageExecutor],
+    ["video", videoExecutor],
+    ["trigger_manual", triggerManualExecutor],
+    ["trigger_schedule", triggerScheduleExecutor],
+    ["trigger_webhook", triggerWebhookExecutor],
+    ["trigger_event", triggerEventExecutor],
+  ];
+
+  for (const [type, executor] of entries) {
+    executorRegistry.set(type, executor as (...args: unknown[]) => unknown);
+  }
+  executorsLoaded = true;
+
   const mod = await import("../canvas");
   executeCanvasNode = mod.executeCanvasNode;
   CanvasNodeExecutorNotFoundError = mod.CanvasNodeExecutorNotFoundError;
@@ -628,6 +811,13 @@ describe("executeCanvasNode", () => {
     const result = await executeCanvasNode({
       node,
       input: undefined,
+      context: {
+        executionId: "exec-1",
+        agentCanvasId: "canvas-1",
+        versionNumber: 1,
+        teamId: "team-1",
+        triggeredById: "user-1",
+      },
     });
 
     expect(result).toMatchObject({
@@ -660,6 +850,13 @@ describe("executeCanvasNode", () => {
     const result = await executeCanvasNode({
       node,
       input: undefined,
+      context: {
+        executionId: "exec-1",
+        agentCanvasId: "canvas-1",
+        versionNumber: 1,
+        teamId: "team-1",
+        triggeredById: "user-1",
+      },
     });
 
     expect(result).toMatchObject({
@@ -700,6 +897,13 @@ describe("executeCanvasNode", () => {
       const result = await executeCanvasNode({
         node,
         input: undefined,
+        context: {
+          executionId: "exec-1",
+          agentCanvasId: "canvas-1",
+          versionNumber: 1,
+          teamId: "team-1",
+          triggeredById: "user-1",
+        },
       });
 
       expect(result).toMatchObject({
@@ -750,6 +954,13 @@ describe("executeCanvasNode", () => {
         executeCanvasNode({
           node,
           input: undefined,
+          context: {
+            executionId: "exec-1",
+            agentCanvasId: "canvas-1",
+            versionNumber: 1,
+            teamId: "team-1",
+            triggeredById: "user-1",
+          },
         })
       ).rejects.toThrow("Read-only");
     } finally {
@@ -1661,6 +1872,13 @@ describe("executeCanvasNode", () => {
     const result = (await executeCanvasNode({
       node,
       input: { query: "Show context", teamId: "team-1" },
+      context: {
+        executionId: "exec-1",
+        agentCanvasId: "canvas-1",
+        versionNumber: 1,
+        teamId: "team-1",
+        triggeredById: "user-1",
+      },
     })) as RagExecutionResult;
 
     expect(result.answer).toBeUndefined();

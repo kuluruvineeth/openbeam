@@ -43,6 +43,14 @@ mock.module("@openplane/ai", () => ({
   streamCompletion: mock(() => {
     throw new Error("streamCompletion should not be called on cache hit");
   }),
+  getBGEM3Provider: () => ({}),
+  isReasoningChunk: () => false,
+  isReasoningDeltaChunk: () => false,
+  extractReasoningContent: () => "",
+  buildThinkingProviderOptions: () => ({}),
+  getProviderOptionsForModel: () => ({}),
+  registry: { languageModel: () => null, textEmbeddingModel: () => null },
+  estimateTokens: () => 0,
 }));
 
 mock.module("@openplane/redis", () => ({

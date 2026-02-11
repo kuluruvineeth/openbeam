@@ -34,7 +34,7 @@ describe("Canvas Execution Security", () => {
       };
 
       await expect(executeCanvasNode({ node, input: {} })).rejects.toThrow(
-        "Execution context with teamId is required for this node type"
+        'Node type "connector" requires execution context'
       );
     });
 
@@ -54,7 +54,7 @@ describe("Canvas Execution Security", () => {
       };
 
       await expect(executeCanvasNode({ node, input: {} })).rejects.toThrow(
-        "Execution context with teamId is required for this node type"
+        'Node type "connector_action" requires execution context'
       );
     });
 
@@ -73,7 +73,7 @@ describe("Canvas Execution Security", () => {
       };
 
       await expect(executeCanvasNode({ node, input: {} })).rejects.toThrow(
-        "Execution context with teamId is required for this node type"
+        'Node type "tool" requires execution context'
       );
     });
 
@@ -92,7 +92,7 @@ describe("Canvas Execution Security", () => {
       };
 
       await expect(executeCanvasNode({ node, input: {} })).rejects.toThrow(
-        "Execution context with teamId is required for this node type"
+        'Node type "rag" requires execution context'
       );
     });
 
@@ -110,7 +110,7 @@ describe("Canvas Execution Security", () => {
       };
 
       await expect(executeCanvasNode({ node, input: {} })).rejects.toThrow(
-        "Execution context with teamId is required for this node type"
+        'Node type "database_query" requires execution context'
       );
     });
 
@@ -128,7 +128,7 @@ describe("Canvas Execution Security", () => {
       };
 
       await expect(executeCanvasNode({ node, input: {} })).rejects.toThrow(
-        "Execution context with teamId is required for this node type"
+        'Node type "graphql_query" requires execution context'
       );
     });
 
@@ -147,7 +147,7 @@ describe("Canvas Execution Security", () => {
       };
 
       await expect(executeCanvasNode({ node, input: {} })).rejects.toThrow(
-        "Execution context with teamId is required for this node type"
+        'Node type "http_request" requires execution context'
       );
     });
 
@@ -323,7 +323,7 @@ describe("Canvas Execution Security", () => {
         };
 
         await expect(executeCanvasNode({ node, input: {} })).rejects.toThrow(
-          "Execution context with teamId is required for this node type"
+          `Node type "${nodeType}" requires execution context`
         );
       });
     }
@@ -476,7 +476,7 @@ describe("Canvas Execution Security", () => {
 
         if (requiresContext) {
           await expect(executeCanvasNode({ node, input: {} })).rejects.toThrow(
-            "Execution context with teamId is required for this node type"
+            `Node type "${nodeType}" requires execution context`
           );
         } else {
           await expect(
