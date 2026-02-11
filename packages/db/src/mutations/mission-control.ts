@@ -32,6 +32,8 @@ export function updateMission(
   db: Database,
   missionId: string,
   data: {
+    name?: string;
+    objective?: string;
     status?:
       | "DRAFT"
       | "ACTIVE"
@@ -42,11 +44,83 @@ export function updateMission(
     workflowId?: string;
     runId?: string;
     consumedCents?: number;
+    budgetCents?: number;
+    maxConcurrentRuns?: number;
+    heartbeatIntervalMin?: number;
   }
 ) {
   return db.mission.update({
     where: { id: missionId },
     data,
+  });
+}
+
+export function deleteMission(db: Database, missionId: string) {
+  return db.mission.delete({
+    where: { id: missionId },
+  });
+}
+
+export function removeMissionAgent(
+  db: Database,
+  agentId: string,
+  missionId: string
+) {
+  return db.missionAgent.deleteMany({
+    where: { id: agentId, missionId },
+  });
+}
+
+export function updateMissionAgent(
+  db: Database,
+  agentId: string,
+  data: {
+    name?: string;
+    role?: string;
+    soulPrompt?: string;
+    level?: string;
+  }
+) {
+  return db.missionAgent.update({
+    where: { id: agentId },
+    data,
+  });
+}
+
+export function updateMissionTask(
+  db: Database,
+  taskId: string,
+  data: {
+    title?: string;
+    description?: string;
+    priority?: string;
+    status?: string;
+    assigneeId?: string | null;
+    claimedAt?: Date;
+    completedAt?: Date;
+  }
+) {
+  return db.missionTask.update({
+    where: { id: taskId },
+    data: data as Prisma.MissionTaskUpdateInput,
+  });
+}
+
+export function completeMissionTaskByMission(
+  db: Database,
+  taskId: string,
+  missionId: string
+) {
+  return db.missionTask.updateMany({
+    where: {
+      id: taskId,
+      missionId,
+      status: { in: ["IN_PROGRESS", "REVIEW"] },
+    },
+    data: {
+      status: "DONE",
+      completedAt: new Date(),
+    },
   });
 }
 
@@ -112,10 +186,12 @@ export function createMissionTask(
     title: string;
     description?: string;
     priority?: "P0" | "P1" | "P2" | "P3";
+    assigneeId?: string;
     requestId: string;
     createdById: string;
   }
 ) {
+  const status = input.assigneeId ? "ASSIGNED" : "INBOX";
   return db.missionTask.upsert({
     where: { requestId: input.requestId },
     create: {
@@ -123,6 +199,8 @@ export function createMissionTask(
       title: input.title,
       description: input.description,
       priority: input.priority ?? "P2",
+      assigneeId: input.assigneeId,
+      status,
       requestId: input.requestId,
       createdById: input.createdById,
     },
@@ -133,11 +211,13 @@ export function createMissionTask(
 export function claimMissionTask(
   db: Database,
   taskId: string,
-  agentId: string
+  agentId: string,
+  missionId?: string
 ) {
   return db.missionTask.updateMany({
     where: {
       id: taskId,
+      ...(missionId ? { missionId } : {}),
       status: { in: ["INBOX", "ASSIGNED"] },
     },
     data: {

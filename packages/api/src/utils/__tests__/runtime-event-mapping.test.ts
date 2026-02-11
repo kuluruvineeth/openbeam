@@ -2,6 +2,7 @@ import { describe, expect, it } from "bun:test";
 import {
   isCanvasToolName,
   isEphemeralEvent,
+  type MappingContext,
   mapBuilderEventToPayload,
 } from "../runtime-event-mapping";
 
@@ -124,7 +125,9 @@ describe("mapBuilderEventToPayload", () => {
 
 describe("canvas tool context tracking", () => {
   it("tracks activeCanvasToolCallId on canvas tool_call", () => {
-    const context = { toolNameByCallId: new Map<string, string>() };
+    const context: MappingContext = {
+      toolNameByCallId: new Map<string, string>(),
+    };
 
     mapBuilderEventToPayload(
       { type: "tool_call", tool: "canvas_add_node", input: {}, id: "tc_1" },
@@ -135,7 +138,9 @@ describe("canvas tool context tracking", () => {
   });
 
   it("does not set activeCanvasToolCallId for non-canvas tools", () => {
-    const context = { toolNameByCallId: new Map<string, string>() };
+    const context: MappingContext = {
+      toolNameByCallId: new Map<string, string>(),
+    };
 
     mapBuilderEventToPayload(
       { type: "tool_call", tool: "search_hybrid", input: {}, id: "tc_2" },
@@ -213,6 +218,7 @@ describe("canvas tool context tracking", () => {
     const op = {
       type: "remove_node" as const,
       id: "n1",
+      nodeId: "n1",
       timestamp: 1000,
     };
 

@@ -4,6 +4,130 @@ import type {
 } from "../../prisma/generated/client";
 import type { Database } from "../index";
 
+export function listMissionsWithStats(
+  db: Database,
+  teamId: string,
+  opts: {
+    status?: string;
+    limit: number;
+    offset: number;
+  }
+) {
+  return db.mission.findMany({
+    where: {
+      teamId,
+      ...(opts.status ? { status: opts.status as never } : {}),
+    },
+    include: {
+      _count: { select: { agents: true } },
+      tasks: { select: { status: true } },
+      runs: { select: { costCents: true } },
+    },
+    orderBy: { updatedAt: "desc" },
+    take: opts.limit,
+    skip: opts.offset,
+  });
+}
+
+export function listMissionApprovals(
+  db: Database,
+  missionId: string,
+  opts?: { status?: string }
+) {
+  return db.missionActivity.findMany({
+    where: {
+      missionId,
+      type: { startsWith: "approval" },
+      ...(opts?.status
+        ? { metadata: { path: ["status"], equals: opts.status } }
+        : {}),
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export function listMissionRuns(
+  db: Database,
+  missionId: string,
+  opts: {
+    status?: string;
+    limit: number;
+    offset: number;
+  }
+) {
+  return db.missionRun.findMany({
+    where: {
+      missionId,
+      ...(opts.status ? { status: opts.status as never } : {}),
+    },
+    include: {
+      agent: { select: { id: true, name: true, role: true } },
+      task: { select: { id: true, title: true } },
+    },
+    orderBy: { createdAt: "desc" },
+    take: opts.limit,
+    skip: opts.offset,
+  });
+}
+
+export function listMissionRunArtifacts(db: Database, missionId: string) {
+  return db.missionRun.findMany({
+    where: {
+      missionId,
+      status: "COMPLETED",
+    },
+    select: {
+      id: true,
+      artifacts: true,
+      agent: { select: { name: true } },
+      createdAt: true,
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export function findMissionAgent(
+  db: Database,
+  agentId: string,
+  missionId: string
+) {
+  return db.missionAgent.findFirst({
+    where: { id: agentId, missionId },
+  });
+}
+
+export function findMissionTask(
+  db: Database,
+  taskId: string,
+  missionId: string
+) {
+  return db.missionTask.findFirst({
+    where: { id: taskId, missionId },
+  });
+}
+
+export function getMissionRun(db: Database, runId: string, missionId: string) {
+  return db.missionRun.findFirst({
+    where: { id: runId, missionId },
+    select: { artifacts: true },
+  });
+}
+
+export function listMissionMemory(
+  db: Database,
+  missionId: string,
+  opts?: { scope?: string; agentId?: string }
+) {
+  return db.missionMemory.findMany({
+    where: {
+      missionId,
+      ...(opts?.scope ? { scope: opts.scope } : {}),
+      ...(opts?.agentId ? { agentId: opts.agentId } : {}),
+    },
+    orderBy: { updatedAt: "desc" },
+  });
+}
+
 export function getMission(db: Database, missionId: string, teamId: string) {
   return db.mission.findFirst({
     where: { id: missionId, teamId },

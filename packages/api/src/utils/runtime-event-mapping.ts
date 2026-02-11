@@ -15,7 +15,7 @@ type EventContext = {
   turnId: string;
 };
 
-type MappingContext = {
+export type MappingContext = {
   toolNameByCallId?: Map<string, string>;
   activeCanvasToolCallId?: string;
 };

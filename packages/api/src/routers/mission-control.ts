@@ -1,11 +1,27 @@
 import {
+  claimMissionTask,
+  completeMissionTaskByMission,
   createMission,
   createMissionAgent,
+  createMissionTask,
+  deleteMission,
+  findMissionAgent,
+  findMissionTask,
   getMission,
   getMissionActivity,
+  getMissionMemory,
+  getMissionRun,
   getMissionStats,
+  listMissionApprovals,
+  listMissionMemory,
+  listMissionRunArtifacts,
+  listMissionRuns,
+  listMissionsWithStats,
   logMissionActivity,
+  removeMissionAgent,
   updateMission,
+  updateMissionAgent,
+  updateMissionTask,
   upsertMissionMemory,
 } from "@openplane/db";
 import { createMissionEventSubscriber } from "@openplane/redis";
@@ -67,8 +83,6 @@ const DELETABLE_STATUSES = [
   "ARCHIVED",
 ] as const;
 const ARCHIVABLE_STATUSES = ["COMPLETED", "CANCELLED"] as const;
-const CLAIMABLE_STATUSES = ["INBOX", "ASSIGNED"] as const;
-const COMPLETABLE_STATUSES = ["IN_PROGRESS", "REVIEW"] as const;
 const TERMINAL_MISSION_EVENTS = [
   "mission.completed",
   "mission.failed",
@@ -95,23 +109,23 @@ async function verifyMissionAccess(
   return mission;
 }
 
+function assertMutableStatus(status: string) {
+  if (!MUTABLE_STATUSES.includes(status as (typeof MUTABLE_STATUSES)[number])) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Cannot modify mission in ${status} status`,
+    });
+  }
+}
+
 export const missionControlRouter = createTRPCRouter({
   getBoard: withActiveTeam
     .input(listMissionsSchema)
     .query(async ({ ctx, input }) => {
-      const missions = await ctx.prisma.mission.findMany({
-        where: {
-          teamId: ctx.teamId,
-          ...(input.status ? { status: input.status } : {}),
-        },
-        include: {
-          _count: { select: { agents: true } },
-          tasks: { select: { status: true } },
-          runs: { select: { costCents: true } },
-        },
-        orderBy: { updatedAt: "desc" },
-        take: input.limit + 1,
-        skip: input.offset,
+      const missions = await listMissionsWithStats(ctx.prisma, ctx.teamId, {
+        status: input.status,
+        limit: input.limit + 1,
+        offset: input.offset,
       });
 
       const hasMore = missions.length > input.limit;
@@ -172,16 +186,8 @@ export const missionControlRouter = createTRPCRouter({
     .input(listApprovalsSchema)
     .query(async ({ ctx, input }) => {
       await verifyMissionAccess(ctx.prisma, input.missionId, ctx.teamId);
-
-      return ctx.prisma.missionActivity.findMany({
-        where: {
-          missionId: input.missionId,
-          type: { startsWith: "approval" },
-          ...(input.status
-            ? { metadata: { path: ["status"], equals: input.status } }
-            : {}),
-        },
-        orderBy: { createdAt: "desc" },
+      return listMissionApprovals(ctx.prisma, input.missionId, {
+        status: input.status,
       });
     }),
 
@@ -206,18 +212,10 @@ export const missionControlRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       await verifyMissionAccess(ctx.prisma, input.missionId, ctx.teamId);
 
-      const items = await ctx.prisma.missionRun.findMany({
-        where: {
-          missionId: input.missionId,
-          ...(input.status ? { status: input.status } : {}),
-        },
-        include: {
-          agent: { select: { id: true, name: true, role: true } },
-          task: { select: { id: true, title: true } },
-        },
-        orderBy: { createdAt: "desc" },
-        take: input.limit + 1,
-        skip: input.offset,
+      const items = await listMissionRuns(ctx.prisma, input.missionId, {
+        status: input.status,
+        limit: input.limit + 1,
+        offset: input.offset,
       });
 
       const hasMore = items.length > input.limit;
@@ -235,19 +233,7 @@ export const missionControlRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       await verifyMissionAccess(ctx.prisma, input.missionId, ctx.teamId);
 
-      const runs = await ctx.prisma.missionRun.findMany({
-        where: {
-          missionId: input.missionId,
-          status: "COMPLETED",
-        },
-        select: {
-          id: true,
-          artifacts: true,
-          agent: { select: { name: true } },
-          createdAt: true,
-        },
-        orderBy: { createdAt: "desc" },
-      });
+      const runs = await listMissionRunArtifacts(ctx.prisma, input.missionId);
 
       const artifactsSchema = z.array(z.unknown());
 
@@ -324,7 +310,6 @@ export const missionControlRouter = createTRPCRouter({
       }
 
       await pauseMission(input.missionId, ctx.session.user.id);
-
       await updateMission(ctx.prisma, input.missionId, { status: "PAUSED" });
 
       return { success: true };
@@ -347,7 +332,6 @@ export const missionControlRouter = createTRPCRouter({
       }
 
       await resumeMission(input.missionId, ctx.session.user.id);
-
       await updateMission(ctx.prisma, input.missionId, { status: "ACTIVE" });
 
       return { success: true };
@@ -454,34 +438,14 @@ export const missionControlRouter = createTRPCRouter({
         ctx.teamId
       );
 
-      if (
-        !MUTABLE_STATUSES.includes(
-          mission.status as (typeof MUTABLE_STATUSES)[number]
-        )
-      ) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: `Cannot update mission in ${mission.status} status`,
-        });
-      }
+      assertMutableStatus(mission.status);
 
-      return ctx.prisma.mission.update({
-        where: { id: input.missionId },
-        data: {
-          ...(input.name !== undefined ? { name: input.name } : {}),
-          ...(input.objective !== undefined
-            ? { objective: input.objective }
-            : {}),
-          ...(input.budgetCents !== undefined
-            ? { budgetCents: input.budgetCents }
-            : {}),
-          ...(input.maxConcurrentRuns !== undefined
-            ? { maxConcurrentRuns: input.maxConcurrentRuns }
-            : {}),
-          ...(input.heartbeatIntervalMin !== undefined
-            ? { heartbeatIntervalMin: input.heartbeatIntervalMin }
-            : {}),
-        },
+      return updateMission(ctx.prisma, input.missionId, {
+        name: input.name,
+        objective: input.objective,
+        budgetCents: input.budgetCents,
+        maxConcurrentRuns: input.maxConcurrentRuns,
+        heartbeatIntervalMin: input.heartbeatIntervalMin,
       });
     }),
 
@@ -505,9 +469,7 @@ export const missionControlRouter = createTRPCRouter({
         });
       }
 
-      await ctx.prisma.mission.delete({
-        where: { id: input.missionId },
-      });
+      await deleteMission(ctx.prisma, input.missionId);
 
       return { success: true };
     }),
@@ -557,16 +519,7 @@ export const missionControlRouter = createTRPCRouter({
         ctx.teamId
       );
 
-      if (
-        !MUTABLE_STATUSES.includes(
-          mission.status as (typeof MUTABLE_STATUSES)[number]
-        )
-      ) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: `Cannot add agents in ${mission.status} status`,
-        });
-      }
+      assertMutableStatus(mission.status);
 
       return createMissionAgent(ctx.prisma, {
         missionId: input.missionId,
@@ -593,23 +546,13 @@ export const missionControlRouter = createTRPCRouter({
         ctx.teamId
       );
 
-      if (
-        !MUTABLE_STATUSES.includes(
-          mission.status as (typeof MUTABLE_STATUSES)[number]
-        )
-      ) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: `Cannot remove agents in ${mission.status} status`,
-        });
-      }
+      assertMutableStatus(mission.status);
 
-      const result = await ctx.prisma.missionAgent.deleteMany({
-        where: {
-          id: input.agentId,
-          missionId: input.missionId,
-        },
-      });
+      const result = await removeMissionAgent(
+        ctx.prisma,
+        input.agentId,
+        input.missionId
+      );
 
       if (result.count === 0) {
         throw new TRPCError({
@@ -635,9 +578,11 @@ export const missionControlRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       await verifyMissionAccess(ctx.prisma, input.missionId, ctx.teamId);
 
-      const agent = await ctx.prisma.missionAgent.findFirst({
-        where: { id: input.agentId, missionId: input.missionId },
-      });
+      const agent = await findMissionAgent(
+        ctx.prisma,
+        input.agentId,
+        input.missionId
+      );
 
       if (!agent) {
         throw new TRPCError({
@@ -646,16 +591,11 @@ export const missionControlRouter = createTRPCRouter({
         });
       }
 
-      return ctx.prisma.missionAgent.update({
-        where: { id: input.agentId },
-        data: {
-          ...(input.name !== undefined ? { name: input.name } : {}),
-          ...(input.role !== undefined ? { role: input.role } : {}),
-          ...(input.soulPrompt !== undefined
-            ? { soulPrompt: input.soulPrompt }
-            : {}),
-          ...(input.level !== undefined ? { level: input.level } : {}),
-        },
+      return updateMissionAgent(ctx.prisma, input.agentId, {
+        name: input.name,
+        role: input.role,
+        soulPrompt: input.soulPrompt,
+        level: input.level,
       });
     }),
 
@@ -672,17 +612,14 @@ export const missionControlRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       await verifyMissionAccess(ctx.prisma, input.missionId, ctx.teamId);
 
-      return ctx.prisma.missionTask.create({
-        data: {
-          missionId: input.missionId,
-          title: input.title,
-          description: input.description,
-          priority: input.priority,
-          assigneeId: input.assigneeId,
-          status: input.assigneeId ? "ASSIGNED" : "INBOX",
-          requestId: crypto.randomUUID(),
-          createdById: ctx.session.user.id,
-        },
+      return createMissionTask(ctx.prisma, {
+        missionId: input.missionId,
+        title: input.title,
+        description: input.description,
+        priority: input.priority,
+        assigneeId: input.assigneeId,
+        requestId: crypto.randomUUID(),
+        createdById: ctx.session.user.id,
       });
     }),
 
@@ -711,9 +648,11 @@ export const missionControlRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       await verifyMissionAccess(ctx.prisma, input.missionId, ctx.teamId);
 
-      const task = await ctx.prisma.missionTask.findFirst({
-        where: { id: input.taskId, missionId: input.missionId },
-      });
+      const task = await findMissionTask(
+        ctx.prisma,
+        input.taskId,
+        input.missionId
+      );
 
       if (!task) {
         throw new TRPCError({
@@ -734,20 +673,13 @@ export const missionControlRouter = createTRPCRouter({
         }
       }
 
-      return ctx.prisma.missionTask.update({
-        where: { id: input.taskId },
-        data: {
-          ...(input.title !== undefined ? { title: input.title } : {}),
-          ...(input.description !== undefined
-            ? { description: input.description }
-            : {}),
-          ...(input.priority !== undefined ? { priority: input.priority } : {}),
-          ...(input.status !== undefined ? { status: input.status } : {}),
-          ...(input.assigneeId !== undefined
-            ? { assigneeId: input.assigneeId }
-            : {}),
-          ...timestamps,
-        },
+      return updateMissionTask(ctx.prisma, input.taskId, {
+        title: input.title,
+        description: input.description,
+        priority: input.priority,
+        status: input.status,
+        assigneeId: input.assigneeId,
+        ...timestamps,
       });
     }),
 
@@ -762,18 +694,12 @@ export const missionControlRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       await verifyMissionAccess(ctx.prisma, input.missionId, ctx.teamId);
 
-      const result = await ctx.prisma.missionTask.updateMany({
-        where: {
-          id: input.taskId,
-          missionId: input.missionId,
-          status: { in: [...CLAIMABLE_STATUSES] },
-        },
-        data: {
-          status: "IN_PROGRESS",
-          assigneeId: input.agentId,
-          claimedAt: new Date(),
-        },
-      });
+      const result = await claimMissionTask(
+        ctx.prisma,
+        input.taskId,
+        input.agentId,
+        input.missionId
+      );
 
       if (result.count === 0) {
         throw new TRPCError({
@@ -795,17 +721,11 @@ export const missionControlRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       await verifyMissionAccess(ctx.prisma, input.missionId, ctx.teamId);
 
-      const result = await ctx.prisma.missionTask.updateMany({
-        where: {
-          id: input.taskId,
-          missionId: input.missionId,
-          status: { in: [...COMPLETABLE_STATUSES] },
-        },
-        data: {
-          status: "DONE",
-          completedAt: new Date(),
-        },
-      });
+      const result = await completeMissionTaskByMission(
+        ctx.prisma,
+        input.taskId,
+        input.missionId
+      );
 
       if (result.count === 0) {
         throw new TRPCError({
@@ -958,25 +878,17 @@ export const missionControlRouter = createTRPCRouter({
       await verifyMissionAccess(ctx.prisma, input.missionId, ctx.teamId);
 
       if (input.key) {
-        return ctx.prisma.missionMemory.findUnique({
-          where: {
-            missionId_agentId_key_scope: {
-              missionId: input.missionId,
-              agentId: input.agentId ?? "",
-              key: input.key,
-              scope: input.scope ?? "mission",
-            },
-          },
+        return getMissionMemory(ctx.prisma, {
+          missionId: input.missionId,
+          agentId: input.agentId,
+          key: input.key,
+          scope: input.scope,
         });
       }
 
-      return ctx.prisma.missionMemory.findMany({
-        where: {
-          missionId: input.missionId,
-          ...(input.scope ? { scope: input.scope } : {}),
-          ...(input.agentId ? { agentId: input.agentId } : {}),
-        },
-        orderBy: { updatedAt: "desc" },
+      return listMissionMemory(ctx.prisma, input.missionId, {
+        scope: input.scope,
+        agentId: input.agentId,
       });
     }),
 
@@ -1027,13 +939,7 @@ export const missionControlRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       await verifyMissionAccess(ctx.prisma, input.missionId, ctx.teamId);
 
-      const run = await ctx.prisma.missionRun.findFirst({
-        where: {
-          id: input.runId,
-          missionId: input.missionId,
-        },
-        select: { artifacts: true },
-      });
+      const run = await getMissionRun(ctx.prisma, input.runId, input.missionId);
 
       if (!run) {
         throw new TRPCError({
