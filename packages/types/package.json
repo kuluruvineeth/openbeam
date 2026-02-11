@@ -104,6 +104,14 @@
       "types": "./dist/canvas/execution-events.d.ts",
       "default": "./src/canvas/execution-events.ts"
     },
+    "./canvas/runtime-events": {
+      "types": "./dist/canvas/runtime-events.d.ts",
+      "default": "./src/canvas/runtime-events.ts"
+    },
+    "./canvas/session": {
+      "types": "./dist/canvas/session.d.ts",
+      "default": "./src/canvas/session.ts"
+    },
     "./temporal": {
       "types": "./dist/temporal/index.d.ts",
       "default": "./src/temporal/index.ts"
@@ -135,6 +143,10 @@
     "./services/eval": {
       "types": "./dist/services/eval.d.ts",
       "default": "./src/services/eval.ts"
+    },
+    "./mission-control": {
+      "types": "./dist/mission-control/index.d.ts",
+      "default": "./src/mission-control/index.ts"
     }
   },
   "scripts": {

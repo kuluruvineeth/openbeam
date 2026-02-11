@@ -142,3 +142,91 @@ export const ExecutionReplayStateSchema = z.object({
 });
 
 export type ExecutionReplayState = z.infer<typeof ExecutionReplayStateSchema>;
+
+export const ContextGraphNodeSchema = z.object({
+  id: z.string(),
+  kind: z.string(),
+  label: z.string(),
+  x: z.number().optional(),
+  y: z.number().optional(),
+  highlighted: z.boolean().optional(),
+});
+
+export const ContextGraphEdgeSchema = z.object({
+  id: z.string(),
+  source: z.string(),
+  target: z.string(),
+  kind: z.string(),
+  active: z.boolean().optional(),
+});
+
+export const ContextSnapshotViewSchema = z.object({
+  snapshotId: z.string(),
+  version: z.number(),
+  nodeCount: z.number(),
+  edgeCount: z.number(),
+  lastUpdated: z.number(),
+});
+
+export const InferenceQueueItemSchema = z.object({
+  inferenceId: z.string(),
+  statement: z.string(),
+  confidence: z.number(),
+  status: z.string(),
+  evidenceCount: z.number(),
+  createdAt: z.number(),
+});
+
+export const ActionVerificationSchema = z.object({
+  actionId: z.string(),
+  intent: z.string(),
+  riskLevel: z.enum(["low", "medium", "high", "critical"]),
+  status: z.enum(["pending", "approved", "rejected", "escalated"]),
+  agentName: z.string(),
+});
+
+export const RuntimeLedgerItemSchema = z.object({
+  eventId: z.string(),
+  sequence: z.number(),
+  eventType: z.string(),
+  summary: z.string(),
+  timestamp: z.number(),
+  agentName: z.string().optional(),
+});
+
+export const AgentWorkforceSnapshotSchema = z.object({
+  activeAgents: z.number(),
+  queuedTasks: z.number(),
+  completedTasks: z.number(),
+  blockedTasks: z.number(),
+  totalTokensUsed: z.number(),
+});
+
+export const ExecutionCostSummarySchema = z.object({
+  totalCost: z.number(),
+  byModel: z.record(z.string(), z.number()),
+  byAgent: z.record(z.string(), z.number()),
+  tokenBreakdown: z.object({
+    input: z.number(),
+    output: z.number(),
+  }),
+});
+
+export const ApprovalQueueSummarySchema = z.object({
+  pendingCount: z.number(),
+  approvedCount: z.number(),
+  rejectedCount: z.number(),
+  escalatedCount: z.number(),
+});
+
+export type ContextGraphNode = z.infer<typeof ContextGraphNodeSchema>;
+export type ContextGraphEdge = z.infer<typeof ContextGraphEdgeSchema>;
+export type ContextSnapshotView = z.infer<typeof ContextSnapshotViewSchema>;
+export type InferenceQueueItem = z.infer<typeof InferenceQueueItemSchema>;
+export type ActionVerification = z.infer<typeof ActionVerificationSchema>;
+export type RuntimeLedgerItem = z.infer<typeof RuntimeLedgerItemSchema>;
+export type AgentWorkforceSnapshot = z.infer<
+  typeof AgentWorkforceSnapshotSchema
+>;
+export type ExecutionCostSummary = z.infer<typeof ExecutionCostSummarySchema>;
+export type ApprovalQueueSummary = z.infer<typeof ApprovalQueueSummarySchema>;

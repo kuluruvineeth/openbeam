@@ -154,6 +154,9 @@ export const CreateCanvasExecutionStepInputSchema = z.object({
   input: z.unknown().optional(),
   status: ExecutionStatusSchema,
   startedAt: z.number().optional(),
+  sessionId: z.string().optional(),
+  canvasId: z.string().optional(),
+  turnId: z.string().optional(),
 });
 
 export type CreateCanvasExecutionStepInput = z.infer<
@@ -179,6 +182,9 @@ export const UpdateCanvasExecutionStepInputSchema = z.object({
   error: z.string().optional(),
   completedAt: z.number().optional(),
   latencyMs: z.number().optional(),
+  sessionId: z.string().optional(),
+  canvasId: z.string().optional(),
+  turnId: z.string().optional(),
 });
 
 export type UpdateCanvasExecutionStepInput = z.infer<
@@ -200,6 +206,9 @@ export const CreateCanvasApprovalInputSchema = z.object({
   nodeId: z.string(),
   requestMessage: z.string().optional(),
   timeoutMs: z.number().optional(),
+  sessionId: z.string().optional(),
+  canvasId: z.string().optional(),
+  turnId: z.string().optional(),
 });
 
 export type CreateCanvasApprovalInput = z.infer<
@@ -469,6 +478,9 @@ export const UpdateCanvasExecutionInputSchema = z.object({
   historyEventCount: z.number().optional(),
   historySizeBytes: z.number().optional(),
   continueAsNewCount: z.number().optional(),
+  sessionId: z.string().optional(),
+  canvasId: z.string().optional(),
+  turnId: z.string().optional(),
 });
 
 export type UpdateCanvasExecutionInput = z.infer<

@@ -280,13 +280,14 @@ describe("ComputeExpertiseInputSchema", () => {
     expect(result.decayHalfLifeDays).toBe(30);
   });
 
-  it("rejects missing decayHalfLifeDays", () => {
-    expect(() =>
-      ComputeExpertiseInputSchema.parse({
-        teamId: "team_1",
-        mentionSummary: {},
-      })
-    ).toThrow();
+  it("accepts missing decayHalfLifeDays as optional", () => {
+    const result = ComputeExpertiseInputSchema.parse({
+      teamId: "team_1",
+      mentionSummary: {},
+    });
+
+    expect(result.teamId).toBe("team_1");
+    expect(result.decayHalfLifeDays).toBeUndefined();
   });
 });
 

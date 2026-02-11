@@ -86,3 +86,33 @@ export const MissionRuntimeQueryResultSchema = z.object({
 export type MissionRuntimeQueryResult = z.infer<
   typeof MissionRuntimeQueryResultSchema
 >;
+
+export const MissionLinearRunInputSchema = z.object({
+  missionId: z.string(),
+  teamId: z.string(),
+  runId: z.string(),
+  taskIds: z.array(z.string()).min(1),
+  agentId: z.string(),
+});
+
+export type MissionLinearRunInput = z.infer<typeof MissionLinearRunInputSchema>;
+
+export const MissionLinearRunOutputSchema = z.object({
+  runId: z.string(),
+  completedTasks: z.number(),
+  failedTasks: z.number(),
+  status: z.enum(["completed", "failed", "cancelled"]),
+});
+
+export type MissionLinearRunOutput = z.infer<
+  typeof MissionLinearRunOutputSchema
+>;
+
+export const LinearRunProgressSchema = z.object({
+  completedTasks: z.number(),
+  currentTaskIndex: z.number(),
+  totalTasks: z.number(),
+  status: z.enum(["running", "cancelled"]),
+});
+
+export type LinearRunProgress = z.infer<typeof LinearRunProgressSchema>;

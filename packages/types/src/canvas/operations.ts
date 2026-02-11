@@ -8,6 +8,7 @@ export const CanvasOperationSchema = z.discriminatedUnion("type", [
     position: z.object({ x: z.number(), y: z.number() }).optional(),
     label: z.string().optional(),
     config: z.record(z.string(), z.unknown()).optional(),
+    toolCallId: z.string().optional(),
     timestamp: z.number(),
   }),
   z.object({
@@ -57,6 +58,7 @@ export const AddNodeOperationSchema = z.object({
   position: z.object({ x: z.number(), y: z.number() }).optional(),
   label: z.string().optional(),
   config: z.record(z.string(), z.unknown()).optional(),
+  toolCallId: z.string().optional(),
   timestamp: z.number(),
 });
 

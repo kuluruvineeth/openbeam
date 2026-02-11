@@ -240,6 +240,8 @@ export const AgentCanvasExecutionInputSchema = z.object({
   canvas: CanvasStateSchema,
   checkpoint: CanvasExecutionCheckpointSchema.optional(),
   policy: z.unknown().optional(),
+  sessionId: z.string().optional(),
+  turnId: z.string().optional(),
 });
 
 export type AgentCanvasExecutionInput = z.infer<
