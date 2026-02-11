@@ -20,12 +20,19 @@ export {
   reviewerAgentConfig,
 } from "./coder";
 export {
+  CROSS_REFERENCE_PROMPT,
   DEEP_RESEARCH_PROMPT,
   deepResearchAgent,
   deepResearchAgentConfig,
+  ENTERPRISE_RESEARCHER_PROMPT,
+  REPORT_CRITIC_PROMPT,
+  REPORT_WRITER_PROMPT,
   RESEARCH_AGENT_PROMPT,
   researchAgent,
   researchAgentConfig,
+  researchSquadAgent,
+  researchSquadConfig,
+  WEB_RESEARCHER_PROMPT,
 } from "./research";
 export {
   qualityWriterAgent,

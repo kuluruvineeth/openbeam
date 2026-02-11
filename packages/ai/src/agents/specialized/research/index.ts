@@ -49,3 +49,15 @@ export const deepResearchAgentConfig: LoopAgentConfig = {
 export const deepResearchAgent = createLoopAgent(deepResearchAgentConfig);
 
 export { DEEP_RESEARCH_PROMPT, RESEARCH_AGENT_PROMPT };
+
+export {
+  researchSquadAgent,
+  researchSquadConfig,
+} from "./squad";
+export {
+  CROSS_REFERENCE_PROMPT,
+  ENTERPRISE_RESEARCHER_PROMPT,
+  REPORT_CRITIC_PROMPT,
+  REPORT_WRITER_PROMPT,
+  WEB_RESEARCHER_PROMPT,
+} from "./squad-prompts";
