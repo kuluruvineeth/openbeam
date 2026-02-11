@@ -10,6 +10,25 @@ import type {
 } from "../../prisma/generated/client";
 import type { Database } from "../index";
 
+type TransactionClient = Parameters<Parameters<Database["$transaction"]>[0]>[0];
+
+async function verifyCanvasOwnership(
+  tx: TransactionClient,
+  id: string,
+  teamId: string
+) {
+  const canvas = await tx.agentCanvas.findFirst({
+    where: { id, teamId },
+    select: { id: true },
+  });
+
+  if (!canvas) {
+    throw new Error("Agent canvas not found");
+  }
+
+  return canvas;
+}
+
 export function createAgentCanvas(
   db: Database,
   data: {
@@ -63,14 +82,7 @@ export function updateAgentCanvas(
   }
 ) {
   return db.$transaction(async (tx) => {
-    const canvas = await tx.agentCanvas.findFirst({
-      where: { id, teamId },
-      select: { id: true },
-    });
-
-    if (!canvas) {
-      throw new Error("Agent canvas not found");
-    }
+    const canvas = await verifyCanvasOwnership(tx, id, teamId);
 
     const updateData: Prisma.AgentCanvasUpdateInput = {
       updatedAt: new Date(),
@@ -167,14 +179,7 @@ export function publishAgentCanvas(
 
 export function archiveAgentCanvas(db: Database, id: string, teamId: string) {
   return db.$transaction(async (tx) => {
-    const canvas = await tx.agentCanvas.findFirst({
-      where: { id, teamId },
-      select: { id: true },
-    });
-
-    if (!canvas) {
-      throw new Error("Agent canvas not found");
-    }
+    const canvas = await verifyCanvasOwnership(tx, id, teamId);
 
     return tx.agentCanvas.update({
       where: { id: canvas.id },
@@ -243,6 +248,8 @@ export function createAgentCanvasExecution(
     historyEventCount?: number;
     historySizeBytes?: number;
     continueAsNewCount?: number;
+    sessionId?: string;
+    turnId?: string;
   }
 ) {
   if (data.historyEventCount !== undefined && data.historyEventCount < 0) {
@@ -269,6 +276,8 @@ export function createAgentCanvasExecution(
       historyEventCount: data.historyEventCount,
       historySizeBytes: data.historySizeBytes,
       continueAsNewCount: data.continueAsNewCount,
+      sessionId: data.sessionId,
+      turnId: data.turnId,
     },
   });
 }

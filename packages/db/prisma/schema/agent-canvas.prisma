@@ -37,6 +37,7 @@ model AgentCanvas {
 
   versions   AgentCanvasVersion[]
   executions AgentCanvasExecution[]
+  sessions   AgentCanvasSession[]
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -111,13 +112,18 @@ model AgentCanvasExecution {
   triggeredBy   User    @relation("AgentCanvasExecutor", fields: [triggeredById], references: [id], onDelete: Restrict)
   triggerSource String?
 
+  sessionId String?
+  session   AgentCanvasSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  turnId    String?
+
   startedAt   DateTime?
   completedAt DateTime?
   createdAt   DateTime  @default(now())
 
-  steps     AgentCanvasExecutionStep[]
-  approvals AgentCanvasApproval[]
-  payloads  AgentCanvasExecutionData[]
+  steps         AgentCanvasExecutionStep[]
+  approvals     AgentCanvasApproval[]
+  payloads      AgentCanvasExecutionData[]
+  sessionEvents AgentCanvasSessionEvent[]
 
   @@index([agentCanvasId])
   @@index([status])
@@ -125,6 +131,7 @@ model AgentCanvasExecution {
   @@index([workflowId])
   @@index([agentCanvasId, status])
   @@index([agentCanvasId, createdAt(sort: Desc)])
+  @@index([sessionId, createdAt(sort: Desc)])
   @@map("agent_canvas_execution")
 }
 
@@ -236,4 +243,64 @@ model AgentCanvasTemplate {
   @@index([isPublic])
   @@index([teamId])
   @@map("agent_canvas_template")
+}
+
+model AgentCanvasSession {
+  id String @id @default(cuid()) @map("_id")
+
+  agentCanvasId String
+  agentCanvas   AgentCanvas @relation(fields: [agentCanvasId], references: [id], onDelete: Cascade)
+
+  teamId String
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation("AgentCanvasSessionUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  title  String?
+  status String  @default("active")
+
+  lastEventSequence Int @default(0)
+
+  lastActivityAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  events     AgentCanvasSessionEvent[]
+  executions AgentCanvasExecution[]
+
+  @@index([teamId, userId, agentCanvasId, status])
+  @@index([agentCanvasId, updatedAt(sort: Desc)])
+  @@map("agent_canvas_session")
+}
+
+model AgentCanvasSessionEvent {
+  id String @id @default(cuid()) @map("_id")
+
+  sessionId String
+  session   AgentCanvasSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  teamId        String
+  agentCanvasId String
+
+  executionId String?
+  execution   AgentCanvasExecution? @relation(fields: [executionId], references: [id], onDelete: SetNull)
+
+  turnId   String?
+  sequence Int
+
+  eventType  String
+  source     String
+  visibility String @default("visible")
+
+  payload Json
+
+  eventTimestamp DateTime
+  createdAt      DateTime @default(now())
+
+  @@unique([sessionId, sequence])
+  @@index([sessionId, createdAt])
+  @@index([executionId, createdAt])
+  @@index([teamId, agentCanvasId, createdAt])
+  @@map("agent_canvas_session_event")
 }

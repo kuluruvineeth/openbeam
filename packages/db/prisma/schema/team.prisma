@@ -33,8 +33,9 @@ model Team {
   agentExecutionTraces AgentExecutionTrace[]
   savedSearches        SavedSearch[]
   shareLinks           ShareLink[]
-  agentCanvases        AgentCanvas[]
-  agentCanvasTemplates AgentCanvasTemplate[]
+  agentCanvases         AgentCanvas[]
+  agentCanvasTemplates  AgentCanvasTemplate[]
+  agentCanvasSessions   AgentCanvasSession[]
   workflowAuditLogs    WorkflowAuditLog[]
   missions             Mission[]
 

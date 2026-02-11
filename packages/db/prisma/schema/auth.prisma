@@ -22,6 +22,7 @@ model User {
   createdCanvasTemplates AgentCanvasTemplate[]  @relation("AgentCanvasTemplateCreator")
   executedAgentCanvases  AgentCanvasExecution[] @relation("AgentCanvasExecutor")
   agentCanvasApprovals   AgentCanvasApproval[]  @relation("AgentCanvasApprover")
+  agentCanvasSessions    AgentCanvasSession[]   @relation("AgentCanvasSessionUser")
 
   @@unique([email])
   @@index([teamId])
