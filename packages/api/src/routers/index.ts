@@ -12,10 +12,12 @@ import { jobsRouter } from "./jobs";
 import { knowledgeRouter } from "./knowledge";
 import { mediaRouter } from "./media";
 import { messagesRouter } from "./messages";
+import { missionControlRouter } from "./mission-control";
 import { overviewRouter } from "./overview";
 import { permissionsRouter } from "./permissions";
 import { personalizationRouter } from "./personalization";
 import { ragRouter } from "./rag";
+import { researchRouter } from "./research";
 import { searchRouter } from "./search";
 import { teamRouter } from "./team";
 import { userRouter } from "./user";
@@ -32,10 +34,12 @@ export const appRouter = createTRPCRouter({
   knowledge: knowledgeRouter,
   media: mediaRouter,
   messages: messagesRouter,
+  missionControl: missionControlRouter,
   overview: overviewRouter,
   permissions: permissionsRouter,
   personalization: personalizationRouter,
   rag: ragRouter,
+  research: researchRouter,
   search: searchRouter,
   team: teamRouter,
   user: userRouter,
