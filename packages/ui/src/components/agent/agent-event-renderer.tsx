@@ -4,10 +4,11 @@ import { forwardRef } from "react";
 import { getToolCategory } from "../../lib/tool-registry";
 import { cn } from "../../utils/cn";
 import { Icons } from "../icons";
+import { Markdown } from "../markdown";
+import { TextShimmer } from "../text-shimmer";
 import { AgentStatus } from "./agent-status";
 import { AgentThinking } from "./agent-thinking";
 import { AgentToolCall } from "./agent-tool-call";
-import { StreamingText } from "./streaming-text";
 
 type AgentEventType =
   | "thinking"
@@ -82,10 +83,21 @@ type AgentEvent =
 
 type AgentEventRendererProps = React.ComponentProps<"div"> & {
   event: AgentEvent;
+  toolResult?: ToolResultEvent;
   isStreaming?: boolean;
   defaultExpanded?: boolean;
   onToolClick?: (toolCallId: string) => void;
 };
+
+function formatToolOutput(toolOutput: unknown): string | undefined {
+  if (toolOutput == null) {
+    return;
+  }
+  if (typeof toolOutput === "string") {
+    return toolOutput;
+  }
+  return JSON.stringify(toolOutput, null, 2);
+}
 
 const ThinkingRenderer = forwardRef<
   HTMLDivElement,
@@ -95,13 +107,19 @@ const ThinkingRenderer = forwardRef<
 ));
 ThinkingRenderer.displayName = "ThinkingRenderer";
 
-const StatusRenderer = forwardRef<HTMLDivElement, { event: StatusEvent }>(
-  ({ event }, ref) => (
-    <AgentStatus isActive ref={ref} status="streaming">
-      {event.message}
-    </AgentStatus>
-  )
-);
+const StatusRenderer = forwardRef<
+  HTMLDivElement,
+  { event: StatusEvent; isActive?: boolean }
+>(({ event, isActive = false }, ref) => (
+  <AgentStatus
+    icon={isActive ? undefined : <Icons.Check className="size-3 shrink-0" />}
+    isActive={isActive}
+    ref={ref}
+    status={isActive ? "streaming" : "complete"}
+  >
+    {event.message}
+  </AgentStatus>
+));
 StatusRenderer.displayName = "StatusRenderer";
 
 const ToolCallRenderer = forwardRef<
@@ -119,8 +137,7 @@ const ToolCallRenderer = forwardRef<
     event.toolInput && typeof event.toolInput === "object"
       ? (event.toolInput as Record<string, unknown>)
       : undefined;
-  const output =
-    result?.toolOutput != null ? String(result.toolOutput) : undefined;
+  const output = formatToolOutput(result?.toolOutput);
 
   return (
     <AgentToolCall
@@ -140,15 +157,17 @@ ToolCallRenderer.displayName = "ToolCallRenderer";
 
 const TextRenderer = forwardRef<
   HTMLDivElement,
-  { event: TextEvent; isStreaming?: boolean; className?: string }
->(({ event, isStreaming, className }, ref) => (
-  <div
-    className={cn("prose prose-sm dark:prose-invert max-w-none", className)}
-    ref={ref}
-  >
-    <StreamingText isStreaming={isStreaming && event.isPartial}>
-      {event.content}
-    </StreamingText>
+  { event: TextEvent; className?: string }
+>(({ event, className }, ref) => (
+  <div className={cn("relative max-w-none", className)} ref={ref}>
+    {event.isPartial && (
+      <div className="mb-1.5 flex items-center gap-1.5 text-xs">
+        <TextShimmer as="span" className="font-medium text-foreground/80">
+          Building workflow...
+        </TextShimmer>
+      </div>
+    )}
+    <Markdown content={event.content} size="sm" variant="agent" />
   </div>
 ));
 TextRenderer.displayName = "TextRenderer";
@@ -186,14 +205,14 @@ const DoneRenderer = forwardRef<
     className={cn(
       "flex items-center gap-2 rounded-md border px-3 py-2",
       event.success
-        ? "border-green-500/30 bg-green-500/5"
+        ? "border-emerald-500/30 bg-emerald-500/5"
         : "border-destructive/30 bg-destructive/5",
       className
     )}
     ref={ref}
   >
     {event.success ? (
-      <Icons.CheckCircle2 className="size-4 text-green-500" />
+      <Icons.CheckCircle2 className="size-4 text-emerald-500" />
     ) : (
       <Icons.XCircle className="size-4 text-destructive" />
     )}
@@ -206,7 +225,15 @@ DoneRenderer.displayName = "DoneRenderer";
 
 const AgentEventRenderer = forwardRef<HTMLDivElement, AgentEventRendererProps>(
   (
-    { className, event, isStreaming, defaultExpanded, onToolClick, ...props },
+    {
+      className,
+      event,
+      toolResult,
+      isStreaming,
+      defaultExpanded,
+      onToolClick,
+      ...props
+    },
     ref
   ) => {
     const renderEvent = () => {
@@ -214,19 +241,20 @@ const AgentEventRenderer = forwardRef<HTMLDivElement, AgentEventRendererProps>(
         case "thinking":
           return <ThinkingRenderer event={event} isActive={isStreaming} />;
         case "status":
-          return <StatusRenderer event={event} />;
+          return <StatusRenderer event={event} isActive={isStreaming} />;
         case "tool_call":
           return (
             <ToolCallRenderer
               defaultExpanded={defaultExpanded}
               event={event}
               onClick={() => onToolClick?.(event.toolCallId)}
+              result={toolResult}
             />
           );
         case "tool_result":
           return null;
         case "text":
-          return <TextRenderer event={event} isStreaming={isStreaming} />;
+          return <TextRenderer event={event} />;
         case "error":
           return <ErrorRenderer event={event} />;
         case "done":

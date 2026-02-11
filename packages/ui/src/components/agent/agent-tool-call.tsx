@@ -1,6 +1,7 @@
 "use client";
 
 import { cva, type VariantProps } from "class-variance-authority";
+import { motion } from "framer-motion";
 import { forwardRef, useState } from "react";
 import { AGENT_UI_CONSTANTS } from "../../lib/agent-constants";
 import { cn } from "../../utils/cn";
@@ -13,13 +14,13 @@ import { Icons } from "../icons";
 import { TextShimmer } from "../text-shimmer";
 import { AgentToolIcon } from "./agent-tool-icon";
 
-const agentToolCallVariants = cva("flex flex-col rounded-md border", {
+const agentToolCallVariants = cva("flex flex-col rounded-md", {
   variants: {
     status: {
-      pending: "border-border/50 bg-muted/30",
-      running: "border-primary/30 bg-primary/5",
-      success: "border-emerald-500/30 bg-emerald-500/5",
-      error: "border-destructive/30 bg-destructive/5",
+      pending: "bg-muted/30",
+      running: "bg-primary/5",
+      success: "bg-emerald-500/5",
+      error: "bg-destructive/5",
     },
   },
   defaultVariants: {
@@ -81,20 +82,16 @@ const AgentToolCall = forwardRef<HTMLDivElement, AgentToolCallProps>(
       output,
       isExpandable = true,
       defaultExpanded = false,
-      ...props
     },
     ref
   ) => {
     const [isOpen, setIsOpen] = useState(defaultExpanded);
-    const hasContent = params || output;
+    const hasParams = params && Object.keys(params).length > 0;
+    const hasContent = hasParams || output;
     const canExpand = isExpandable && hasContent;
 
     const renderStatusIcon = () => {
       switch (status) {
-        case "running":
-          return (
-            <Icons.Loader2 className="size-3.5 animate-spin text-primary" />
-          );
         case "success":
           return <Icons.Check className="size-3.5 text-emerald-500" />;
         case "error":
@@ -104,31 +101,27 @@ const AgentToolCall = forwardRef<HTMLDivElement, AgentToolCallProps>(
       }
     };
 
-    const renderLabel = () => {
-      const label = displayName ?? name;
-      if (status === "running") {
-        return (
-          <TextShimmer as="span" className="text-sm" duration={1.5}>
-            {label}
-          </TextShimmer>
-        );
-      }
-      return <span className="text-sm">{label}</span>;
-    };
-
     const header = (
-      <div className="flex items-center gap-2 px-3 py-2">
+      <div className="flex min-w-0 items-center gap-2 overflow-hidden px-3 py-2">
         <AgentToolIcon category={category} icon={icon} size="sm" />
-        {renderLabel()}
-        {params && status !== "running" && (
-          <span className="truncate text-muted-foreground text-xs">
+        <span className="shrink-0 text-sm">
+          {status === "running" ? (
+            <TextShimmer as="span" duration={1.5}>
+              {displayName ?? name}
+            </TextShimmer>
+          ) : (
+            (displayName ?? name)
+          )}
+        </span>
+        {hasParams && status !== "running" && (
+          <span className="min-w-0 truncate text-muted-foreground text-xs">
             {truncateText(
               formatParams(params),
               AGENT_UI_CONSTANTS.PREVIEW_LENGTH
             )}
           </span>
         )}
-        <div className="ml-auto flex items-center gap-1.5">
+        <div className="ml-auto flex shrink-0 items-center gap-1.5">
           {renderStatusIcon()}
           {canExpand && (
             <Icons.ChevronDown
@@ -144,22 +137,26 @@ const AgentToolCall = forwardRef<HTMLDivElement, AgentToolCallProps>(
 
     if (!canExpand) {
       return (
-        <div
+        <motion.div
+          animate={{ opacity: 1, y: 0 }}
           className={cn(agentToolCallVariants({ status }), className)}
+          initial={{ opacity: 0, y: 4 }}
           ref={ref}
-          {...props}
+          transition={{ duration: 0.2, ease: "easeOut" }}
         >
           {header}
-        </div>
+        </motion.div>
       );
     }
 
     return (
-      <Collapsible asChild onOpenChange={setIsOpen} open={isOpen}>
-        <div
+      <Collapsible onOpenChange={setIsOpen} open={isOpen}>
+        <motion.div
+          animate={{ opacity: 1, y: 0 }}
           className={cn(agentToolCallVariants({ status }), className)}
+          initial={{ opacity: 0, y: 4 }}
           ref={ref}
-          {...props}
+          transition={{ duration: 0.2, ease: "easeOut" }}
         >
           <CollapsibleTrigger asChild>
             <button className="w-full text-left" type="button">
@@ -167,14 +164,14 @@ const AgentToolCall = forwardRef<HTMLDivElement, AgentToolCallProps>(
             </button>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <div className="border-border/50 border-t px-3 py-2">
-              {params && (
+            <div className="px-3 py-2">
+              {hasParams && (
                 <pre className="overflow-x-auto font-mono text-muted-foreground text-xs">
                   {JSON.stringify(params, null, 2)}
                 </pre>
               )}
               {output && (
-                <div className="mt-2 border-border/30 border-t pt-2">
+                <div className="mt-2 pt-2">
                   <pre className="overflow-x-auto whitespace-pre-wrap font-mono text-xs">
                     {output}
                   </pre>
@@ -182,7 +179,7 @@ const AgentToolCall = forwardRef<HTMLDivElement, AgentToolCallProps>(
               )}
             </div>
           </CollapsibleContent>
-        </div>
+        </motion.div>
       </Collapsible>
     );
   }

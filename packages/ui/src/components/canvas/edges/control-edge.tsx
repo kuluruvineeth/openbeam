@@ -4,6 +4,7 @@ import type { Edge, EdgeProps } from "@xyflow/react";
 import { BaseEdge, EdgeLabelRenderer, getBezierPath } from "@xyflow/react";
 import { memo } from "react";
 import { cn } from "../../../utils";
+import { REACT_FLOW_NO_INTERACT } from "./constants";
 
 export interface ControlEdgeData {
   label?: string;
@@ -59,9 +60,10 @@ export const ControlEdge = memo(function ControlEdgeComponent({
           isAnimated && "edge-animated"
         )}
         id={id}
+        markerEnd={`url(#arrow-${executionState})`}
         path={edgePath}
         style={{
-          strokeWidth: selected ? 2.5 : 2,
+          strokeWidth: selected ? 2 : 1.5,
           strokeDasharray: executionState === "skipped" ? "5,5" : undefined,
           ...style,
         }}
@@ -70,7 +72,7 @@ export const ControlEdge = memo(function ControlEdgeComponent({
         <EdgeLabelRenderer>
           <div
             className={cn(
-              "nodrag nopan pointer-events-auto absolute rounded-sm border bg-background px-2 py-1 text-xs",
+              `${REACT_FLOW_NO_INTERACT} pointer-events-auto absolute rounded-sm border bg-background px-2 py-1 text-xs`,
               executionState === "skipped" && "opacity-50",
               selected && "border-primary"
             )}

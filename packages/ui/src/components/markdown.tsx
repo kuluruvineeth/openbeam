@@ -225,6 +225,7 @@ type MarkdownProps = Omit<ComponentProps<"article">, "children"> &
     content: string;
     components?: Partial<MarkdownComponents>;
     shikiTheme?: [BundledTheme, BundledTheme];
+    showControls?: boolean;
   };
 
 const Markdown = forwardRef<HTMLElement, MarkdownProps>(
@@ -236,6 +237,7 @@ const Markdown = forwardRef<HTMLElement, MarkdownProps>(
       size,
       components,
       shikiTheme = ["github-light", "github-dark"],
+      showControls = true,
       ...props
     },
     ref
@@ -254,6 +256,7 @@ const Markdown = forwardRef<HTMLElement, MarkdownProps>(
       >
         <Streamdown
           components={mergedComponents as Record<string, unknown>}
+          controls={showControls ? { code: true, table: true } : false}
           shikiTheme={shikiTheme}
         >
           {content}

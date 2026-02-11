@@ -1,5 +1,7 @@
 "use client";
 
+import type { ChatModel } from "@openplane/types/ai";
+import { CHAT_MODELS } from "@openplane/types/ai";
 import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
 import { forwardRef, useCallback, useMemo } from "react";
@@ -51,36 +53,20 @@ const agentToolbarVariants = cva(
   }
 );
 
-type ModelOption = {
-  id: string;
-  name: string;
-  provider: string;
-  badge?: string;
-};
-
 type ProviderGroup = {
   provider: string;
-  models: ModelOption[];
+  models: ChatModel[];
 };
 
-const DEFAULT_MODELS: ModelOption[] = [
-  {
-    id: "claude-sonnet-4-20250514",
-    name: "Claude Sonnet 4",
-    provider: "anthropic",
-  },
-  {
-    id: "claude-opus-4-20250514",
-    name: "Claude Opus 4",
-    provider: "anthropic",
-    badge: "Most Capable",
-  },
-  { id: "gpt-4.1", name: "GPT-4.1", provider: "openai" },
-  { id: "gpt-4.1-mini", name: "GPT-4.1 Mini", provider: "openai" },
-  { id: "gpt-5.2", name: "GPT-5.2", provider: "openai", badge: "Latest" },
-  { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro", provider: "google" },
-  { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", provider: "google" },
-];
+function getToolbarBadge(model: ChatModel): string | undefined {
+  if (model.id.includes("opus")) {
+    return "Most Capable";
+  }
+  if (model.id.includes("flash") || model.id.includes("mini")) {
+    return "Fast";
+  }
+  return;
+}
 
 const CAPABILITY_ICONS: Record<
   CapabilityId,
@@ -98,7 +84,7 @@ const CAPABILITY_ICONS: Record<
 
 type AgentToolbarProps = React.ComponentProps<"div"> &
   VariantProps<typeof agentToolbarVariants> & {
-    models?: ModelOption[];
+    models?: ChatModel[];
     showModelSelector?: boolean;
     showCapabilities?: boolean;
     visibleCapabilities?: CapabilityId[];
@@ -112,7 +98,7 @@ const AgentToolbar = forwardRef<HTMLDivElement, AgentToolbarProps>(
       className,
       variant,
       size,
-      models = DEFAULT_MODELS,
+      models = CHAT_MODELS,
       showModelSelector = true,
       showCapabilities = true,
       visibleCapabilities,
@@ -145,7 +131,7 @@ const AgentToolbar = forwardRef<HTMLDivElement, AgentToolbarProps>(
     );
 
     const groupedModels = useMemo<ProviderGroup[]>(() => {
-      const groups: Record<string, ModelOption[]> = {};
+      const groups: Record<string, ChatModel[]> = {};
       for (const model of models) {
         const existing = groups[model.provider];
         if (existing) {
@@ -198,9 +184,9 @@ const AgentToolbar = forwardRef<HTMLDivElement, AgentToolbarProps>(
                     >
                       <span className="flex items-center gap-2">
                         {model.name}
-                        {model.badge && (
+                        {getToolbarBadge(model) && (
                           <span className="rounded bg-primary/10 px-1 py-0.5 text-[10px] text-primary">
-                            {model.badge}
+                            {getToolbarBadge(model)}
                           </span>
                         )}
                       </span>
@@ -271,4 +257,4 @@ const AgentToolbar = forwardRef<HTMLDivElement, AgentToolbarProps>(
 AgentToolbar.displayName = "AgentToolbar";
 
 export { AgentToolbar, agentToolbarVariants };
-export type { AgentToolbarProps, ModelOption, ProviderGroup };
+export type { AgentToolbarProps, ProviderGroup };

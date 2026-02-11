@@ -14,9 +14,9 @@ export {
   RagNode,
   SummarizeNode,
 } from "./ai";
-
 export type { BaseNodeData, NodePortDefinition } from "./base-node";
 export { BaseNode } from "./base-node";
+export { CATEGORY_COLORS } from "./category-colors";
 
 export type {
   ConditionNodeData,
@@ -81,6 +81,12 @@ export {
   hasNodeDataFactory,
 } from "./factory";
 export type {
+  GhostNodeData,
+  GhostNodeOverlayProps,
+} from "./ghost-node";
+export { GhostNodeOverlay } from "./ghost-node";
+export { GroupNode } from "./group-node";
+export type {
   AnnotationColor,
   AnnotationNodeConfig,
   AnnotationNodeData,
@@ -133,7 +139,14 @@ export {
   ParallelMapNode,
   SubWorkflowNode,
 } from "./orchestration";
-export { NodeField, NodeHeader, NodeSection, NodeShell } from "./primitives";
+export {
+  LimitedHandle,
+  NodeField,
+  NodeFloatingToolbar,
+  NodeHeader,
+  NodeSection,
+  NodeShell,
+} from "./primitives";
 export {
   CATEGORY_LABELS,
   getNodeEntry,
@@ -142,6 +155,12 @@ export {
   nodeRegistry,
   nodeRegistryMap,
 } from "./registry";
+export {
+  getShapeClipPath,
+  getShapeSvgPath,
+  SHAPE_CLIP_PATHS,
+  SHAPE_SVG_PATHS,
+} from "./shapes";
 export type {
   CodeNodeConfig,
   CodeNodeData,

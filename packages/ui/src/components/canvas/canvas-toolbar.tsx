@@ -20,7 +20,14 @@ import {
 import { cn } from "../../utils";
 import { Icons } from "../icons";
 
-type CanvasTool = "select" | "pan" | "add";
+type CanvasTool =
+  | "select"
+  | "pan"
+  | "add"
+  | "draw"
+  | "lasso"
+  | "rectangle"
+  | "eraser";
 
 export interface CanvasToolbarProps {
   className?: string;
@@ -172,6 +179,30 @@ export const CanvasToolbar = memo(function CanvasToolbarComponent({
           isActive={activeTool === "pan"}
           label="Pan (H)"
           onClick={() => handleToolChange("pan")}
+        />
+        <ToolButton
+          icon={Icons.DrawingMode}
+          isActive={activeTool === "draw"}
+          label="Draw (D)"
+          onClick={() => handleToolChange("draw")}
+        />
+        <ToolButton
+          icon={Icons.RectangleSelect}
+          isActive={activeTool === "rectangle"}
+          label="Rectangle (R)"
+          onClick={() => handleToolChange("rectangle")}
+        />
+        <ToolButton
+          icon={Icons.LassoTool}
+          isActive={activeTool === "lasso"}
+          label="Lasso Select"
+          onClick={() => handleToolChange("lasso")}
+        />
+        <ToolButton
+          icon={Icons.Eraser}
+          isActive={activeTool === "eraser"}
+          label="Eraser (E)"
+          onClick={() => handleToolChange("eraser")}
         />
         <DropdownMenu>
           <Tooltip>

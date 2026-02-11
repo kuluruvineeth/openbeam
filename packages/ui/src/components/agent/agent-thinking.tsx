@@ -1,8 +1,9 @@
 "use client";
 
-import { forwardRef } from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
 import { useAutoCollapse } from "../../hooks/use-auto-collapse";
 import { cn } from "../../utils/cn";
+import { formatDurationPrecise } from "../../utils/format";
 import { Button } from "../button";
 import {
   Collapsible,
@@ -39,6 +40,27 @@ const AgentThinking = forwardRef<HTMLDivElement, AgentThinkingProps>(
   ) => {
     const hasContent = content.length > 0;
     const showSummary = !isActive && durationMs != null && durationMs > 500;
+    const startTimeRef = useRef<number | null>(null);
+    const [elapsed, setElapsed] = useState(0);
+
+    useEffect(() => {
+      if (isActive && !startTimeRef.current) {
+        startTimeRef.current = Date.now();
+      }
+      if (!isActive) {
+        startTimeRef.current = null;
+        setElapsed(0);
+        return;
+      }
+
+      const interval = setInterval(() => {
+        if (startTimeRef.current) {
+          setElapsed(Date.now() - startTimeRef.current);
+        }
+      }, 100);
+
+      return () => clearInterval(interval);
+    }, [isActive]);
 
     const { isOpen, setIsOpen } = useAutoCollapse({
       isActive: isActive && hasContent,
@@ -61,6 +83,11 @@ const AgentThinking = forwardRef<HTMLDivElement, AgentThinkingProps>(
           <TextShimmer as="span" className="text-sm" duration={1.5}>
             {label}...
           </TextShimmer>
+          {elapsed > 0 && (
+            <span className="text-muted-foreground text-xs tabular-nums">
+              {formatDurationPrecise(elapsed)}
+            </span>
+          )}
         </div>
       );
     }
@@ -68,9 +95,20 @@ const AgentThinking = forwardRef<HTMLDivElement, AgentThinkingProps>(
     const renderTriggerLabel = () => {
       if (isActive) {
         return (
-          <TextShimmer as="span" className="font-medium text-sm" duration={1.5}>
-            {label}...
-          </TextShimmer>
+          <span className="flex items-center gap-2">
+            <TextShimmer
+              as="span"
+              className="font-medium text-sm"
+              duration={1.5}
+            >
+              {label}...
+            </TextShimmer>
+            {elapsed > 0 && (
+              <span className="text-muted-foreground text-xs tabular-nums">
+                {formatDurationPrecise(elapsed)}
+              </span>
+            )}
+          </span>
         );
       }
       if (showSummary) {

@@ -4,6 +4,8 @@ export type {
   ApprovalSeverity,
 } from "./agent-approval";
 export { AgentApproval, agentApprovalVariants } from "./agent-approval";
+export type { AgentCanvasProgressProps } from "./agent-canvas-progress";
+export { AgentCanvasProgress } from "./agent-canvas-progress";
 export type { AgentCitationProps, CitationSource } from "./agent-citation";
 export { AgentCitation, agentCitationVariants } from "./agent-citation";
 export type { AgentCitationsProps } from "./agent-citations";
@@ -20,6 +22,8 @@ export type { AgentMarkdownProps } from "./agent-markdown";
 export { AgentMarkdown, agentMarkdownVariants } from "./agent-markdown";
 export type { AgentMessageProps, AgentMessageRole } from "./agent-message";
 export { AgentMessage, agentMessageVariants } from "./agent-message";
+export type { AgentMessageActionsProps } from "./agent-message-actions";
+export { AgentMessageActions } from "./agent-message-actions";
 export type {
   AgentMessageListProps,
   AgentMessageListRef,
@@ -63,11 +67,7 @@ export type {
 export { AgentToolGroup, agentToolGroupVariants } from "./agent-tool-group";
 export type { AgentToolIconProps } from "./agent-tool-icon";
 export { AgentToolIcon, agentToolIconVariants } from "./agent-tool-icon";
-export type {
-  AgentToolbarProps,
-  ModelOption,
-  ProviderGroup,
-} from "./agent-toolbar";
+export type { AgentToolbarProps, ProviderGroup } from "./agent-toolbar";
 export { AgentToolbar, agentToolbarVariants } from "./agent-toolbar";
 export type { ChatInputProps, ChatInputRef } from "./chat-input";
 export { ChatInput } from "./chat-input";
@@ -105,3 +105,5 @@ export {
   toolSearchVariants,
   toolTodoVariants,
 } from "./tools";
+export type { TypingIndicatorProps } from "./typing-indicator";
+export { TypingIndicator } from "./typing-indicator";

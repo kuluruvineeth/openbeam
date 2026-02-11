@@ -1,6 +1,7 @@
 import { aiNodeTypes } from "./ai";
 import { controlNodeTypes } from "./control";
 import { DropNode } from "./drop-node";
+import { GroupNode } from "./group-node";
 import { humanNodeTypes } from "./human";
 import { integrationNodeTypes } from "./integration";
 import { memoryNodeTypes } from "./memory";
@@ -19,5 +20,6 @@ export function createAllNodeTypes() {
     ...memoryNodeTypes,
     ...orchestrationNodeTypes,
     drop: DropNode,
+    group: GroupNode,
   } as const;
 }

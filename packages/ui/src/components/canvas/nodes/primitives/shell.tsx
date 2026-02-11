@@ -3,8 +3,9 @@
 import type { HandleVariant, NodeStatus } from "@openplane/types/canvas";
 import { Handle, Position } from "@xyflow/react";
 import type { ReactNode } from "react";
-import { forwardRef, memo } from "react";
+import { forwardRef, memo, useMemo } from "react";
 import { cn } from "../../../../utils";
+import { Icons } from "../../../icons";
 
 const STATUS_STYLES: Record<NodeStatus, string> = {
   idle: "",
@@ -41,6 +42,9 @@ interface NodeShellProps {
   className?: string;
   handles?: NodeHandle[];
   selected?: boolean;
+  categoryColor?: string;
+  error?: string;
+  progress?: number;
   ariaLabelledBy?: string;
   ariaDescribedBy?: string;
 }
@@ -53,11 +57,22 @@ export const NodeShell = memo(
       className,
       handles = [],
       selected,
+      categoryColor,
+      error,
+      progress,
       ariaLabelledBy,
       ariaDescribedBy,
     },
     ref
   ) {
+    const borderStyle = useMemo(
+      () =>
+        categoryColor
+          ? { borderLeftWidth: "3px" as const, borderLeftColor: categoryColor }
+          : undefined,
+      [categoryColor]
+    );
+
     return (
       <div className="relative w-80" ref={ref}>
         {handles.map((handle, i) => {
@@ -107,8 +122,25 @@ export const NodeShell = memo(
           )}
           data-node-selected={selected ? "true" : undefined}
           data-node-status={status}
+          style={borderStyle}
         >
           {children}
+          {error && status === "error" && (
+            <div className="flex items-center gap-1.5 border-destructive/30 border-t bg-destructive/5 px-3 py-1.5 text-destructive text-xs">
+              <Icons.AlertCircle className="shrink-0" size={12} />
+              <span className="truncate">{error}</span>
+            </div>
+          )}
+          {status === "running" && typeof progress === "number" && (
+            <div className="h-0.5 w-full bg-muted">
+              <div
+                className="h-full bg-primary transition-all duration-300"
+                style={{
+                  width: `${Math.min(100, Math.max(0, progress))}%`,
+                }}
+              />
+            </div>
+          )}
         </article>
       </div>
     );

@@ -7,8 +7,9 @@ import {
   useEventGrouping,
 } from "../../hooks/use-event-grouping";
 import { cn } from "../../utils/cn";
-import { Icons } from "../icons";
+import { AgentCanvasProgress } from "./agent-canvas-progress";
 import { AgentEventRenderer } from "./agent-event-renderer";
+import { AgentMessageActions } from "./agent-message-actions";
 import type { GroupedTool } from "./agent-tool-group";
 import { AgentToolGroup } from "./agent-tool-group";
 
@@ -34,11 +35,11 @@ interface ToolResultEvent {
 
 type ChatStatus = "idle" | "streaming" | "complete" | "error";
 
-const agentMessageVariants = cva("flex gap-3 px-4 py-3", {
+const agentMessageVariants = cva("group/message", {
   variants: {
     role: {
-      user: "bg-muted/30",
-      assistant: "bg-background",
+      user: "flex justify-end px-4 py-2",
+      assistant: "px-4 py-3",
     },
   },
   defaultVariants: {
@@ -48,7 +49,7 @@ const agentMessageVariants = cva("flex gap-3 px-4 py-3", {
 
 type AgentMessageRole = "user" | "assistant";
 
-type AgentMessageProps = React.ComponentProps<"div"> &
+type AgentMessageProps = Omit<React.ComponentProps<"div">, "onCopy"> &
   VariantProps<typeof agentMessageVariants> & {
     id: string;
     role: AgentMessageRole;
@@ -56,6 +57,8 @@ type AgentMessageProps = React.ComponentProps<"div"> &
     status?: ChatStatus;
     isStreaming?: boolean;
     onToolClick?: (toolCallId: string) => void;
+    onCopy?: (content: string) => void;
+    onRetry?: () => void;
   };
 
 function isToolCallEvent(event: AgentEvent): event is ToolCallEvent {
@@ -64,6 +67,18 @@ function isToolCallEvent(event: AgentEvent): event is ToolCallEvent {
 
 function isToolResultEvent(event: AgentEvent): event is ToolResultEvent {
   return event.type === "tool_result";
+}
+
+function extractTextContent(events: AgentEvent[]): string {
+  return events
+    .filter(
+      (e): e is AgentEvent & { type: "text"; content: string } =>
+        e.type === "text" &&
+        "content" in e &&
+        typeof (e as Record<string, unknown>).content === "string"
+    )
+    .map((e) => e.content)
+    .join("");
 }
 
 const AgentMessage = forwardRef<HTMLDivElement, AgentMessageProps>(
@@ -76,26 +91,13 @@ const AgentMessage = forwardRef<HTMLDivElement, AgentMessageProps>(
       status: _status,
       isStreaming,
       onToolClick,
+      onCopy,
+      onRetry,
       ...props
     },
     ref
   ) => {
     const { groupedItems } = useEventGrouping(events);
-
-    const renderAvatar = () => {
-      if (role === "user") {
-        return (
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted">
-            <Icons.User className="size-4 text-muted-foreground" />
-          </div>
-        );
-      }
-      return (
-        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
-          <Icons.Bot className="size-4 text-primary" />
-        </div>
-      );
-    };
 
     const renderGroupedItem = (
       item: (typeof groupedItems)[number],
@@ -151,15 +153,70 @@ const AgentMessage = forwardRef<HTMLDivElement, AgentMessageProps>(
         );
       }
 
+      if (item.type === "canvas_progress") {
+        const statusEvents = item.events.filter(
+          (
+            e
+          ): e is {
+            type: "status";
+            timestamp: number;
+            status: string;
+            message: string;
+          } => e.type === "status"
+        );
+        const hasSubsequentContent = groupedItems
+          .slice(index + 1)
+          .some(
+            (g) =>
+              g.type === "single" &&
+              (g.event.type === "text" || g.event.type === "done")
+          );
+        return (
+          <AgentCanvasProgress
+            events={statusEvents}
+            isStreaming={!!isStreaming && !hasSubsequentContent}
+            key={item.groupId}
+          />
+        );
+      }
+
+      const matchedResult = isToolCallEvent(item.event)
+        ? (events.find(
+            (e) =>
+              isToolResultEvent(e) &&
+              e.toolCallId === (item.event as ToolCallEvent).toolCallId
+          ) as ToolResultEvent | undefined)
+        : undefined;
+
       return (
         <AgentEventRenderer
           event={item.event}
           isStreaming={isStreaming && index === groupedItems.length - 1}
           key={`event-${index}`}
           onToolClick={onToolClick}
+          toolResult={matchedResult}
         />
       );
     };
+
+    if (role === "user") {
+      const textContent = extractTextContent(events);
+      return (
+        <div
+          className={cn(agentMessageVariants({ role }), className)}
+          data-message-id={id}
+          data-message-role={role}
+          ref={ref}
+          {...props}
+        >
+          <div className="max-w-[85%] overflow-hidden rounded-2xl bg-muted/60 px-4 py-2.5">
+            <p className="whitespace-pre-wrap break-words text-foreground text-sm leading-relaxed">
+              {textContent}
+            </p>
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div
@@ -169,9 +226,14 @@ const AgentMessage = forwardRef<HTMLDivElement, AgentMessageProps>(
         ref={ref}
         {...props}
       >
-        {renderAvatar()}
-        <div className="min-w-0 flex-1 space-y-3">
+        <div className="min-w-0 space-y-3 overflow-hidden">
           {groupedItems.map((item, index) => renderGroupedItem(item, index))}
+          {!isStreaming && events.some((e) => e.type === "text") && (
+            <AgentMessageActions
+              onCopy={() => onCopy?.(extractTextContent(events))}
+              onRetry={onRetry}
+            />
+          )}
         </div>
       </div>
     );

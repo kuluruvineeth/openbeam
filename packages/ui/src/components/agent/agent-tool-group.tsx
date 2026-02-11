@@ -1,6 +1,7 @@
 "use client";
 
 import { cva, type VariantProps } from "class-variance-authority";
+import { motion } from "framer-motion";
 import { forwardRef, useState } from "react";
 import { AGENT_UI_CONSTANTS } from "../../lib/agent-constants";
 import { getToolCategory, getToolIcon } from "../../lib/tool-registry";
@@ -15,13 +16,13 @@ import { Icons } from "../icons";
 import { TextShimmer } from "../text-shimmer";
 import { AgentToolIcon } from "./agent-tool-icon";
 
-const agentToolGroupVariants = cva("rounded-md border", {
+const agentToolGroupVariants = cva("rounded-md", {
   variants: {
     status: {
-      pending: "border-border/50 bg-muted/30",
-      running: "border-primary/30 bg-muted/30",
-      completed: "border-border/50 bg-muted/30",
-      error: "border-destructive/30 bg-destructive/5",
+      pending: "bg-muted/30",
+      running: "bg-muted/30",
+      completed: "bg-muted/30",
+      error: "bg-destructive/5",
     },
   },
   defaultVariants: {
@@ -48,14 +49,7 @@ type AgentToolGroupProps = React.ComponentProps<"div"> &
 
 const AgentToolGroup = forwardRef<HTMLDivElement, AgentToolGroupProps>(
   (
-    {
-      className,
-      tools,
-      status = "pending",
-      label,
-      defaultExpanded = false,
-      ...props
-    },
+    { className, tools, status = "pending", label, defaultExpanded = false },
     ref
   ) => {
     const [isOpen, setIsOpen] = useState(defaultExpanded);
@@ -72,8 +66,8 @@ const AgentToolGroup = forwardRef<HTMLDivElement, AgentToolGroupProps>(
         : `${totalCount} tools`);
 
     const renderHeader = () => (
-      <div className="flex items-center gap-2 px-3 py-2">
-        <Icons.FolderSearch className="size-3.5 text-muted-foreground" />
+      <div className="flex min-w-0 items-center gap-2 overflow-hidden px-3 py-2">
+        <Icons.FolderSearch className="size-3.5 shrink-0 text-muted-foreground" />
         {isRunning ? (
           <TextShimmer as="span" className="font-medium text-sm" duration={1.5}>
             {groupLabel}...
@@ -83,7 +77,7 @@ const AgentToolGroup = forwardRef<HTMLDivElement, AgentToolGroupProps>(
             {groupLabel}
           </span>
         )}
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex shrink-0 items-center gap-2">
           <span className="text-muted-foreground text-xs tabular-nums">
             {completedCount}/{totalCount}
           </span>
@@ -103,7 +97,7 @@ const AgentToolGroup = forwardRef<HTMLDivElement, AgentToolGroupProps>(
       return (
         <div
           className={cn(
-            "flex items-center gap-2 border-border/30 border-t px-3 py-1.5",
+            "flex min-w-0 items-center gap-2 overflow-hidden px-3 py-1.5",
             tool.status === "error" && "bg-destructive/5"
           )}
           key={tool.id}
@@ -125,23 +119,27 @@ const AgentToolGroup = forwardRef<HTMLDivElement, AgentToolGroupProps>(
 
     if (totalCount <= 2) {
       return (
-        <div
+        <motion.div
+          animate={{ opacity: 1, y: 0 }}
           className={cn(agentToolGroupVariants({ status }), className)}
+          initial={{ opacity: 0, y: 4 }}
           ref={ref}
-          {...props}
+          transition={{ duration: 0.2, ease: "easeOut" }}
         >
           {renderHeader()}
           {tools.map(renderToolItem)}
-        </div>
+        </motion.div>
       );
     }
 
     return (
-      <Collapsible asChild onOpenChange={setIsOpen} open={isOpen}>
-        <div
+      <Collapsible onOpenChange={setIsOpen} open={isOpen}>
+        <motion.div
+          animate={{ opacity: 1, y: 0 }}
           className={cn(agentToolGroupVariants({ status }), className)}
+          initial={{ opacity: 0, y: 4 }}
           ref={ref}
-          {...props}
+          transition={{ duration: 0.2, ease: "easeOut" }}
         >
           <CollapsibleTrigger asChild>
             <Button
@@ -161,14 +159,14 @@ const AgentToolGroup = forwardRef<HTMLDivElement, AgentToolGroupProps>(
             {tools.map(renderToolItem)}
           </CollapsibleContent>
           {!isOpen && (
-            <div className="flex items-center gap-1 border-border/30 border-t px-3 py-1.5">
+            <div className="flex items-center gap-1 px-3 py-1.5">
               <Icons.Layers className="size-3 text-muted-foreground" />
               <span className="text-muted-foreground text-xs">
                 {totalCount} tools grouped
               </span>
             </div>
           )}
-        </div>
+        </motion.div>
       </Collapsible>
     );
   }

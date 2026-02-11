@@ -1,18 +1,31 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 
-type CanvasTool = "select" | "pan" | "add";
+type CanvasTool =
+  | "select"
+  | "pan"
+  | "add"
+  | "draw"
+  | "lasso"
+  | "rectangle"
+  | "eraser";
 
 export interface CanvasKeyboardActions {
   onUndo?: () => void;
   onRedo?: () => void;
   onCopy?: () => void;
   onPaste?: () => void;
+  onCut?: () => void;
   onDuplicate?: () => void;
   onDelete?: () => void;
   onSelectAll?: () => void;
   onEscape?: () => void;
+  onGroup?: () => void;
+  onUngroup?: () => void;
+  onLayout?: () => void;
+  onExportImage?: () => void;
+  onTestNode?: () => void;
   onZoomIn?: () => void;
   onZoomOut?: () => void;
   onFitView?: () => void;
@@ -27,36 +40,38 @@ export interface CanvasKeyboardActions {
 export interface UseCanvasKeyboardOptions extends CanvasKeyboardActions {
   enabled?: boolean;
   hasSelection?: boolean;
+  canGroup?: boolean;
   canUndo?: boolean;
   canRedo?: boolean;
+  hasTestableSelection?: boolean;
 }
 
-function isInputElement(target: EventTarget | null): boolean {
-  if (!(target && target instanceof HTMLElement)) {
-    return false;
-  }
-  return (
-    target.tagName === "INPUT" ||
-    target.tagName === "TEXTAREA" ||
-    target.isContentEditable ||
-    target.closest("[role='textbox']") !== null ||
-    target.closest("[contenteditable='true']") !== null
-  );
-}
+const FORM_OPTIONS = {
+  enableOnFormTags: true as const,
+  enableOnContentEditable: true,
+};
 
 export function useCanvasKeyboard({
   enabled = true,
   hasSelection = false,
+  canGroup = false,
   canUndo = false,
   canRedo = false,
+  hasTestableSelection = false,
   onUndo,
   onRedo,
   onCopy,
   onPaste,
+  onCut,
   onDuplicate,
   onDelete,
   onSelectAll,
   onEscape,
+  onGroup,
+  onUngroup,
+  onLayout,
+  onExportImage,
+  onTestNode,
   onZoomIn,
   onZoomOut,
   onFitView,
@@ -67,197 +82,324 @@ export function useCanvasKeyboard({
   onSave,
   onRun,
 }: UseCanvasKeyboardOptions) {
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (!enabled) {
-        return;
-      }
-
-      const isInput = isInputElement(e.target);
-      const isMod = e.metaKey || e.ctrlKey;
-
-      if (isMod && e.key === "z" && !e.shiftKey) {
-        e.preventDefault();
-        if (canUndo) {
-          onUndo?.();
-        }
-        return;
-      }
-
-      if (isMod && e.key === "z" && e.shiftKey) {
-        e.preventDefault();
-        if (canRedo) {
-          onRedo?.();
-        }
-        return;
-      }
-
-      if (isMod && e.key === "y") {
-        e.preventDefault();
-        if (canRedo) {
-          onRedo?.();
-        }
-        return;
-      }
-
-      if (isMod && e.key === "s") {
-        e.preventDefault();
-        onSave?.();
-        return;
-      }
-
-      if (isMod && e.shiftKey && e.key === "Enter") {
-        e.preventDefault();
-        onRun?.();
-        return;
-      }
-
-      if (isInput) {
-        return;
-      }
-
-      if (isMod && e.key === "c") {
-        e.preventDefault();
-        if (hasSelection) {
-          onCopy?.();
-        }
-        return;
-      }
-
-      if (isMod && e.key === "v") {
-        e.preventDefault();
-        onPaste?.();
-        return;
-      }
-
-      if (isMod && e.key === "d") {
-        e.preventDefault();
-        if (hasSelection) {
-          onDuplicate?.();
-        }
-        return;
-      }
-
-      if (isMod && e.key === "a") {
-        e.preventDefault();
-        onSelectAll?.();
-        return;
-      }
-
-      if (e.key === "Backspace" || e.key === "Delete") {
-        e.preventDefault();
-        if (hasSelection) {
-          onDelete?.();
-        }
-        return;
-      }
-
-      if (e.key === "Escape") {
-        onEscape?.();
-        return;
-      }
-
-      if (e.key === "v" && !isMod) {
-        e.preventDefault();
-        onToolChange?.("select");
-        return;
-      }
-
-      if (e.key === "h" && !isMod) {
-        e.preventDefault();
-        onToolChange?.("pan");
-        return;
-      }
-
-      if (e.key === "a" && !isMod) {
-        e.preventDefault();
-        onOpenQuickAdd?.();
-        return;
-      }
-
-      if ((e.key === "+" || e.key === "=") && !isMod) {
-        e.preventDefault();
-        onZoomIn?.();
-        return;
-      }
-
-      if (e.key === "-" && !isMod) {
-        e.preventDefault();
-        onZoomOut?.();
-        return;
-      }
-
-      if (e.key === "f" && !isMod) {
-        e.preventDefault();
-        onFitView?.();
-        return;
-      }
-
-      if (e.key === "g" && !isMod) {
-        e.preventDefault();
-        onToggleGrid?.();
-        return;
-      }
-
-      if (isMod && e.key === "l") {
-        e.preventDefault();
-        onToggleLock?.();
-        return;
+  useHotkeys(
+    "mod+z",
+    (e) => {
+      e.preventDefault();
+      if (canUndo) {
+        onUndo?.();
       }
     },
-    [
-      enabled,
-      hasSelection,
-      canUndo,
-      canRedo,
-      onUndo,
-      onRedo,
-      onCopy,
-      onPaste,
-      onDuplicate,
-      onDelete,
-      onSelectAll,
-      onEscape,
-      onZoomIn,
-      onZoomOut,
-      onFitView,
-      onToggleGrid,
-      onToggleLock,
-      onToolChange,
-      onOpenQuickAdd,
-      onSave,
-      onRun,
-    ]
+    { enabled, ...FORM_OPTIONS },
+    [canUndo, onUndo]
   );
 
-  useEffect(() => {
-    if (!enabled) {
-      return;
-    }
+  useHotkeys(
+    "mod+shift+z",
+    (e) => {
+      e.preventDefault();
+      if (canRedo) {
+        onRedo?.();
+      }
+    },
+    { enabled, ...FORM_OPTIONS },
+    [canRedo, onRedo]
+  );
 
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [enabled, handleKeyDown]);
+  useHotkeys(
+    "mod+y",
+    (e) => {
+      e.preventDefault();
+      if (canRedo) {
+        onRedo?.();
+      }
+    },
+    { enabled, ...FORM_OPTIONS },
+    [canRedo, onRedo]
+  );
+
+  useHotkeys(
+    "mod+s",
+    (e) => {
+      e.preventDefault();
+      onSave?.();
+    },
+    { enabled, ...FORM_OPTIONS },
+    [onSave]
+  );
+
+  useHotkeys(
+    "mod+shift+enter",
+    (e) => {
+      e.preventDefault();
+      onRun?.();
+    },
+    { enabled, ...FORM_OPTIONS },
+    [onRun]
+  );
+
+  useHotkeys(
+    "mod+c",
+    (e) => {
+      e.preventDefault();
+      if (hasSelection) {
+        onCopy?.();
+      }
+    },
+    { enabled },
+    [hasSelection, onCopy]
+  );
+
+  useHotkeys(
+    "mod+v",
+    (e) => {
+      e.preventDefault();
+      onPaste?.();
+    },
+    { enabled },
+    [onPaste]
+  );
+
+  useHotkeys(
+    "mod+x",
+    (e) => {
+      e.preventDefault();
+      if (hasSelection) {
+        onCut?.();
+      }
+    },
+    { enabled },
+    [hasSelection, onCut]
+  );
+
+  useHotkeys(
+    "mod+g",
+    (e) => {
+      e.preventDefault();
+      if (canGroup) {
+        onGroup?.();
+      }
+    },
+    { enabled },
+    [canGroup, onGroup]
+  );
+
+  useHotkeys(
+    "mod+shift+g",
+    (e) => {
+      e.preventDefault();
+      onUngroup?.();
+    },
+    { enabled },
+    [onUngroup]
+  );
+
+  useHotkeys(
+    "mod+shift+e",
+    (e) => {
+      e.preventDefault();
+      onExportImage?.();
+    },
+    { enabled },
+    [onExportImage]
+  );
+
+  useHotkeys(
+    "mod+d",
+    (e) => {
+      e.preventDefault();
+      if (hasSelection) {
+        onDuplicate?.();
+      }
+    },
+    { enabled },
+    [hasSelection, onDuplicate]
+  );
+
+  useHotkeys(
+    "mod+a",
+    (e) => {
+      e.preventDefault();
+      onSelectAll?.();
+    },
+    { enabled },
+    [onSelectAll]
+  );
+
+  useHotkeys(
+    "mod+l",
+    (e) => {
+      e.preventDefault();
+      onToggleLock?.();
+    },
+    { enabled },
+    [onToggleLock]
+  );
+
+  useHotkeys(
+    "backspace, delete",
+    (e) => {
+      e.preventDefault();
+      if (hasSelection) {
+        onDelete?.();
+      }
+    },
+    { enabled },
+    [hasSelection, onDelete]
+  );
+
+  useHotkeys("escape", () => onEscape?.(), { enabled }, [onEscape]);
+
+  useHotkeys(
+    "v",
+    (e) => {
+      e.preventDefault();
+      onToolChange?.("select");
+    },
+    { enabled },
+    [onToolChange]
+  );
+
+  useHotkeys(
+    "h",
+    (e) => {
+      e.preventDefault();
+      onToolChange?.("pan");
+    },
+    { enabled },
+    [onToolChange]
+  );
+
+  useHotkeys(
+    "a",
+    (e) => {
+      e.preventDefault();
+      onOpenQuickAdd?.();
+    },
+    { enabled },
+    [onOpenQuickAdd]
+  );
+
+  useHotkeys(
+    "equal, plus",
+    (e) => {
+      e.preventDefault();
+      onZoomIn?.();
+    },
+    { enabled },
+    [onZoomIn]
+  );
+
+  useHotkeys(
+    "minus",
+    (e) => {
+      e.preventDefault();
+      onZoomOut?.();
+    },
+    { enabled },
+    [onZoomOut]
+  );
+
+  useHotkeys(
+    "f",
+    (e) => {
+      e.preventDefault();
+      onFitView?.();
+    },
+    { enabled },
+    [onFitView]
+  );
+
+  useHotkeys(
+    "g",
+    (e) => {
+      e.preventDefault();
+      onToggleGrid?.();
+    },
+    { enabled },
+    [onToggleGrid]
+  );
+
+  useHotkeys(
+    "l",
+    (e) => {
+      e.preventDefault();
+      onLayout?.();
+    },
+    { enabled },
+    [onLayout]
+  );
+
+  useHotkeys(
+    "t",
+    (e) => {
+      e.preventDefault();
+      if (hasTestableSelection) {
+        onTestNode?.();
+      }
+    },
+    { enabled },
+    [hasTestableSelection, onTestNode]
+  );
+
+  useHotkeys(
+    "d",
+    (e) => {
+      e.preventDefault();
+      onToolChange?.("draw");
+    },
+    { enabled },
+    [onToolChange]
+  );
+
+  useHotkeys(
+    "r",
+    (e) => {
+      e.preventDefault();
+      onToolChange?.("rectangle");
+    },
+    { enabled },
+    [onToolChange]
+  );
+
+  useHotkeys(
+    "e",
+    (e) => {
+      e.preventDefault();
+      onToolChange?.("eraser");
+    },
+    { enabled },
+    [onToolChange]
+  );
 }
 
 export const CANVAS_KEYBOARD_SHORTCUTS = [
   { key: "V", description: "Select tool", category: "Tools" },
   { key: "H", description: "Pan tool", category: "Tools" },
   { key: "A", description: "Add node", category: "Tools" },
+  { key: "D", description: "Draw tool", category: "Tools" },
+  { key: "R", description: "Rectangle tool", category: "Tools" },
+  { key: "E", description: "Eraser tool", category: "Tools" },
   { key: "⌘Z", description: "Undo", category: "Edit" },
   { key: "⌘⇧Z", description: "Redo", category: "Edit" },
   { key: "⌘C", description: "Copy", category: "Edit" },
   { key: "⌘V", description: "Paste", category: "Edit" },
+  { key: "⌘X", description: "Cut", category: "Edit" },
   { key: "⌘D", description: "Duplicate", category: "Edit" },
   { key: "⌫", description: "Delete", category: "Edit" },
   { key: "⌘A", description: "Select all", category: "Edit" },
+  { key: "⌘G", description: "Group nodes", category: "Edit" },
+  { key: "⌘⇧G", description: "Ungroup", category: "Edit" },
   { key: "Esc", description: "Deselect", category: "Edit" },
   { key: "+", description: "Zoom in", category: "View" },
   { key: "-", description: "Zoom out", category: "View" },
   { key: "F", description: "Fit view", category: "View" },
   { key: "G", description: "Toggle grid", category: "View" },
   { key: "⌘L", description: "Lock canvas", category: "View" },
+  { key: "L", description: "Auto layout", category: "Actions" },
+  { key: "T", description: "Test node", category: "Actions" },
   { key: "⌘S", description: "Save", category: "Actions" },
+  { key: "⌘⇧E", description: "Export image", category: "Actions" },
   { key: "⌘⇧↵", description: "Run workflow", category: "Actions" },
 ] as const;
 

@@ -1,6 +1,10 @@
 export { AgentCanvas, type AgentCanvasProps } from "./agent-canvas";
 export * from "./ai-elements";
 export {
+  AnnotationLayer,
+  type AnnotationLayerProps,
+} from "./annotation-layer";
+export {
   CanvasBackground,
   type CanvasBackgroundProps,
 } from "./canvas-background";

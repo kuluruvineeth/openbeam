@@ -474,6 +474,8 @@ export const PromptInput = ({
       ...item,
     }));
     onSubmit({ text, files }, event);
+    setText("");
+    clear();
   };
 
   const ctx = useMemo<PromptInputContextValue>(

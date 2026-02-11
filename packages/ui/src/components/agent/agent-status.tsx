@@ -15,6 +15,7 @@ const agentStatusVariants = cva(
         thinking: "text-muted-foreground",
         error: "text-destructive",
         success: "text-emerald-600 dark:text-emerald-400",
+        complete: "text-muted-foreground",
       },
     },
     defaultVariants: {
@@ -44,7 +45,10 @@ const AgentStatus = forwardRef<HTMLSpanElement, AgentStatusProps>(
         ref={ref}
         {...props}
       >
-        {isActive && status !== "error" && status !== "success" ? (
+        {isActive &&
+        status !== "error" &&
+        status !== "success" &&
+        status !== "complete" ? (
           <TextShimmer duration={1.5} spread={1.5}>
             {content}
           </TextShimmer>

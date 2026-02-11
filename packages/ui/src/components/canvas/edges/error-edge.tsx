@@ -5,6 +5,7 @@ import { BaseEdge, EdgeLabelRenderer, getBezierPath } from "@xyflow/react";
 import { memo } from "react";
 import { cn } from "../../../utils";
 import { Icons } from "../../icons";
+import { REACT_FLOW_NO_INTERACT } from "./constants";
 
 export interface ErrorEdgeData {
   label?: string;
@@ -46,6 +47,12 @@ export const ErrorEdge = memo(function ErrorEdgeComponent({
     resolved: "stroke-green-500",
   } as const;
 
+  const arrowIdMap = {
+    idle: "arrow-idle",
+    triggered: "arrow-error",
+    resolved: "arrow-success",
+  } as const;
+
   const displayLabel = data?.errorMessage ?? data?.label ?? "Error";
 
   return (
@@ -58,9 +65,10 @@ export const ErrorEdge = memo(function ErrorEdgeComponent({
           isAnimated && "edge-animated-error"
         )}
         id={id}
+        markerEnd={`url(#${arrowIdMap[executionState]})`}
         path={edgePath}
         style={{
-          strokeWidth: selected ? 2.5 : 2,
+          strokeWidth: selected ? 2 : 1.5,
           strokeDasharray: "3,3",
           ...style,
         }}
@@ -69,7 +77,7 @@ export const ErrorEdge = memo(function ErrorEdgeComponent({
         <EdgeLabelRenderer>
           <div
             className={cn(
-              "nodrag nopan pointer-events-auto absolute flex items-center gap-1.5 rounded-sm border border-red-500/50 bg-red-500/10 px-2 py-1 text-xs",
+              `${REACT_FLOW_NO_INTERACT} pointer-events-auto absolute flex items-center gap-1.5 rounded-sm border border-red-500/50 bg-red-500/10 px-2 py-1 text-xs`,
               executionState === "resolved" &&
                 "border-green-500/50 bg-green-500/10",
               selected && "border-primary"
