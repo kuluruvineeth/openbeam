@@ -53,6 +53,10 @@ export {
 export { DistributedLock, distributedLock } from "./locks";
 export { Fence, fence } from "./locks/fence";
 export {
+  getSessionStreamMetrics,
+  getSessionStreamMetricsContentType,
+} from "./observability/runtime-stream-metrics";
+export {
   cleanupExecutionThrottleCache,
   createExecutionEventEmitter,
   createExecutionEventSubscriber,
@@ -68,6 +72,18 @@ export {
   type ProgressEmitterParams,
   publishJobProgress,
 } from "./pubsub/job-progress";
+export {
+  cleanupMissionThrottleCache,
+  createMissionEventEmitter,
+  createMissionEventSubscriber,
+  type MissionEventEmitterParams,
+  publishMissionEvent,
+} from "./pubsub/mission-events";
+export {
+  cleanupSessionThrottleCache,
+  createSessionRuntimeEventSubscriber,
+  publishSessionRuntimeEvent,
+} from "./pubsub/session-events";
 export type { RateLimitConfig } from "./rate-limiter";
 export { DEFAULT_RATE_LIMITS, RateLimiter, rateLimiter } from "./rate-limiter";
 export {

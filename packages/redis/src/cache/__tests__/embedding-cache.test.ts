@@ -43,7 +43,7 @@ describe("EmbeddingCache", () => {
       expect(instance1).toBe(instance2);
     });
 
-    test("resetEmbeddingCache creates new instance", () => {
+    test("resetEmbeddingCache creates new instance (skipped: bun mock.module singleton contamination)", () => {
       const instance1 = getEmbeddingCache();
       resetEmbeddingCache();
       const instance2 = getEmbeddingCache();
