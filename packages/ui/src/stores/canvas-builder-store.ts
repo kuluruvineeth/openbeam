@@ -1,14 +1,27 @@
 "use client";
 
-import type { BuilderStatus, CanvasOperation } from "@openplane/types/canvas";
+import type {
+  AgentCanvasEdge,
+  AgentCanvasNode,
+  BuilderStatus,
+  CanvasOperation,
+} from "@openplane/types/canvas";
 import { create, type StateCreator } from "zustand";
 import { immer } from "zustand/middleware/immer";
+import { useCanvasStore } from "./canvas-store";
+
+type UndoSnapshot = {
+  node?: AgentCanvasNode;
+  edge?: AgentCanvasEdge;
+};
 
 interface CanvasBuilderState {
   status: BuilderStatus;
   pendingOperations: CanvasOperation[];
   operationHistory: CanvasOperation[];
+  undoSnapshots: Record<string, UndoSnapshot>;
   errorMessage: string | null;
+  layoutVersion: number;
 }
 
 interface CanvasBuilderActions {
@@ -19,6 +32,8 @@ interface CanvasBuilderActions {
   applyOperation: (operation: CanvasOperation) => void;
   applyAllPending: () => CanvasOperation[];
   revertLastOperation: () => CanvasOperation | undefined;
+  undoLastAiOperation: () => void;
+  captureUndoSnapshot: (operationId: string, snapshot: UndoSnapshot) => void;
   clearPending: () => void;
   clearHistory: () => void;
   reset: () => void;
@@ -30,7 +45,9 @@ const initialState: CanvasBuilderState = {
   status: "idle",
   pendingOperations: [],
   operationHistory: [],
+  undoSnapshots: {},
   errorMessage: null,
+  layoutVersion: 0,
 };
 
 const createCanvasBuilderSlice: StateCreator<
@@ -77,6 +94,9 @@ const createCanvasBuilderSlice: StateCreator<
       state.pendingOperations = state.pendingOperations.filter(
         (op) => op.id !== operation.id
       );
+      if (operation.type === "layout") {
+        state.layoutVersion += 1;
+      }
       if (state.pendingOperations.length === 0) {
         state.status = "idle";
       }
@@ -100,6 +120,48 @@ const createCanvasBuilderSlice: StateCreator<
     return last;
   },
 
+  undoLastAiOperation: () => {
+    const history = get().operationHistory;
+    const lastOp = history.at(-1);
+    if (!lastOp) {
+      return;
+    }
+
+    const canvasState = useCanvasStore.getState();
+    const snapshot = get().undoSnapshots[lastOp.id];
+
+    switch (lastOp.type) {
+      case "add_node":
+        canvasState.removeNode(lastOp.id);
+        break;
+      case "connect":
+        canvasState.removeEdge(lastOp.id);
+        break;
+      case "remove_node":
+        if (snapshot?.node) {
+          canvasState.addNode(snapshot.node);
+        }
+        break;
+      case "disconnect":
+        if (snapshot?.edge) {
+          canvasState.addEdge(snapshot.edge);
+        }
+        break;
+      default:
+        break;
+    }
+
+    set((state) => {
+      state.operationHistory.pop();
+      delete state.undoSnapshots[lastOp.id];
+    });
+  },
+
+  captureUndoSnapshot: (operationId, snapshot) =>
+    set((state) => {
+      state.undoSnapshots[operationId] = snapshot;
+    }),
+
   clearPending: () =>
     set((state) => {
       state.pendingOperations = [];
@@ -111,6 +173,7 @@ const createCanvasBuilderSlice: StateCreator<
   clearHistory: () =>
     set((state) => {
       state.operationHistory = [];
+      state.undoSnapshots = {};
     }),
 
   reset: () => set(initialState),

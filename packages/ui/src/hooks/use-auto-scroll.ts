@@ -68,5 +68,26 @@ export function useAutoScroll({
     }
   }, [isActive, scrollToBottom]);
 
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!(isActive && container)) {
+      return;
+    }
+
+    const observer = new MutationObserver(() => {
+      if (!userScrolledRef.current) {
+        scrollToBottom();
+      }
+    });
+
+    observer.observe(container, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
+
+    return () => observer.disconnect();
+  }, [isActive, scrollToBottom]);
+
   return { containerRef, scrollToBottom, isNearBottom };
 }

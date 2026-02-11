@@ -1,5 +1,6 @@
 "use client";
 
+import { DEFAULT_CHAT_MODEL } from "@openplane/types/ai";
 import { create, type StateCreator } from "zustand";
 import {
   createJSONStorage,
@@ -27,14 +28,6 @@ type Capability = {
   name: string;
   description: string;
   isEnabled: boolean;
-};
-
-type ModelOption = {
-  id: string;
-  name: string;
-  provider: string;
-  supportsTools?: boolean;
-  supportsVision?: boolean;
 };
 
 type AgentStoreState = {
@@ -114,7 +107,7 @@ const DEFAULT_CAPABILITIES: Record<CapabilityId, Capability> = {
   },
 };
 
-const DEFAULT_MODEL_ID = "claude-sonnet-4-20250514";
+const DEFAULT_MODEL_ID = DEFAULT_CHAT_MODEL;
 
 function computeEnabledCapabilities(
   capabilities: Record<CapabilityId, Capability>
@@ -331,7 +324,6 @@ export type {
   AgentStorePersisted,
   Capability,
   CapabilityId,
-  ModelOption,
 };
 
 export {

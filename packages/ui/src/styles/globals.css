@@ -524,7 +524,7 @@ body {
 @layer components {
   @keyframes edge-flow {
     from {
-      stroke-dashoffset: 24;
+      stroke-dashoffset: 18;
     }
     to {
       stroke-dashoffset: 0;
@@ -551,15 +551,20 @@ body {
   }
 
   .edge-animated {
-    stroke-dasharray: 8 4;
-    animation: edge-flow 1s linear infinite;
+    stroke-dasharray: 6 3;
+    animation: edge-flow 0.8s linear infinite;
   }
 
   .edge-animated-error {
-    stroke-dasharray: 6 3;
+    stroke-dasharray: 4 2;
     animation:
-      edge-flow-error 0.5s linear infinite,
-      edge-pulse 1s ease-in-out infinite;
+      edge-flow-error 0.4s linear infinite,
+      edge-pulse 1.5s ease-in-out infinite;
+  }
+
+  .edge-animated-success {
+    stroke-dasharray: 0;
+    animation: none;
   }
 
   .steps {
@@ -628,5 +633,32 @@ body {
   .react-flow__edge:hover .react-flow__edge-path {
     @apply stroke-primary;
     stroke-width: 2.5;
+  }
+}
+
+@media (pointer: coarse) {
+  .react-flow .react-flow__handle {
+    width: 20px;
+    height: 20px;
+  }
+
+  .react-flow .react-flow__edge-interaction {
+    pointer-events: all;
+    cursor: pointer;
+  }
+
+  .react-flow .react-flow__node {
+    touch-action: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .edge-animated,
+  .edge-animated-error {
+    animation: none;
+  }
+
+  .react-flow .react-flow__node {
+    transition: none !important;
   }
 }

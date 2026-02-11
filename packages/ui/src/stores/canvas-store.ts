@@ -6,6 +6,7 @@ import type {
   SelectionState,
   Viewport,
 } from "@openplane/types/canvas";
+import { temporal } from "zundo";
 import { create, type StateCreator } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
@@ -212,19 +213,30 @@ export function createCanvasStore(config: CanvasStoreConfig = {}) {
   const adapter = resolveCanvasStorageAdapter(config.storage);
 
   return create<CanvasStore>()(
-    persist(immer(createCanvasStoreSlice), {
-      name: config.storageKey ?? "canvas-store",
-      storage: createCanvasZustandStorage(adapter),
-      partialize: (state) => ({
-        viewport: state.viewport,
-        isActionPanelDocked: state.isActionPanelDocked,
+    persist(
+      temporal(immer(createCanvasStoreSlice), {
+        partialize: (state) => ({
+          nodes: state.nodes,
+          edges: state.edges,
+        }),
+        equality: (past, current) =>
+          JSON.stringify(past) === JSON.stringify(current),
+        limit: 50,
       }),
-      onRehydrateStorage: () => (state) => {
-        if (state) {
-          state.isHydrated = true;
-        }
-      },
-    })
+      {
+        name: config.storageKey ?? "canvas-store",
+        storage: createCanvasZustandStorage(adapter),
+        partialize: (state) => ({
+          viewport: state.viewport,
+          isActionPanelDocked: state.isActionPanelDocked,
+        }),
+        onRehydrateStorage: () => (state) => {
+          if (state) {
+            state.isHydrated = true;
+          }
+        },
+      }
+    )
   );
 }
 

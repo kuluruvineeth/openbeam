@@ -65,9 +65,14 @@ function isToolResultEvent(event: AgentEvent): event is ToolResultEvent {
   return event.type === "tool_result";
 }
 
+function isCanvasStatusEvent(event: AgentEvent): boolean {
+  return event.type === "status" && event.status === "canvas_tool";
+}
+
 type GroupedEventItem =
   | { type: "single"; event: AgentEvent }
-  | { type: "group"; groupId: string; events: AgentEvent[]; label: string };
+  | { type: "group"; groupId: string; events: AgentEvent[]; label: string }
+  | { type: "canvas_progress"; groupId: string; events: AgentEvent[] };
 
 interface EventGroup {
   id: string;
@@ -123,6 +128,7 @@ interface GroupingState {
   groups: EventGroup[];
   ungroupedEvents: AgentEvent[];
   currentGroupEvents: AgentEvent[];
+  currentCanvasStatusEvents: AgentEvent[];
   groupIndex: number;
 }
 
@@ -153,6 +159,29 @@ function flushCurrentGroup(state: GroupingState, minGroupSize: number): void {
     }
   }
   state.currentGroupEvents = [];
+}
+
+const MIN_CANVAS_STATUS_GROUP_SIZE = 1;
+
+function flushCanvasStatusGroup(state: GroupingState): void {
+  const { currentCanvasStatusEvents } = state;
+  if (currentCanvasStatusEvents.length === 0) {
+    return;
+  }
+
+  if (currentCanvasStatusEvents.length >= MIN_CANVAS_STATUS_GROUP_SIZE) {
+    state.groupIndex += 1;
+    state.groupedItems.push({
+      type: "canvas_progress",
+      groupId: `canvas-progress-${state.groupIndex}`,
+      events: [...currentCanvasStatusEvents],
+    });
+  } else {
+    for (const event of currentCanvasStatusEvents) {
+      addSingleEvent(state, event);
+    }
+  }
+  state.currentCanvasStatusEvents = [];
 }
 
 function processToolCallEvent(
@@ -191,21 +220,29 @@ function groupEvents(
     groups: [],
     ungroupedEvents: [],
     currentGroupEvents: [],
+    currentCanvasStatusEvents: [],
     groupIndex: 0,
   };
 
   for (const event of events) {
     if (isToolCallEvent(event)) {
+      flushCanvasStatusGroup(state);
       processToolCallEvent(state, event, minGroupSize);
     } else if (isToolResultEvent(event)) {
+      flushCanvasStatusGroup(state);
       processToolResultEvent(state, event);
+    } else if (isCanvasStatusEvent(event)) {
+      flushCurrentGroup(state, minGroupSize);
+      state.currentCanvasStatusEvents.push(event);
     } else {
       flushCurrentGroup(state, minGroupSize);
+      flushCanvasStatusGroup(state);
       addSingleEvent(state, event);
     }
   }
 
   flushCurrentGroup(state, minGroupSize);
+  flushCanvasStatusGroup(state);
 
   return {
     groupedItems: state.groupedItems,
@@ -224,7 +261,13 @@ function useEventGrouping(
   );
 }
 
-export { useEventGrouping, isExplorationTool, EXPLORATION_TOOLS };
+export {
+  groupEvents,
+  useEventGrouping,
+  isExplorationTool,
+  isCanvasStatusEvent,
+  EXPLORATION_TOOLS,
+};
 export type {
   AgentEvent,
   GroupedEventItem,

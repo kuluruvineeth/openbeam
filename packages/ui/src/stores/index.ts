@@ -6,7 +6,6 @@ export type {
   AgentStoreState,
   Capability,
   CapabilityId,
-  ModelOption,
 } from "./agent-store";
 export {
   createAgentStore,
@@ -21,6 +20,18 @@ export {
   useSelectedModel,
   useToolbarExpanded,
 } from "./agent-store";
+export type {
+  AnnotationStore,
+  AnnotationStoreActions,
+  AnnotationStoreState,
+} from "./annotation-store";
+export {
+  useActiveAnnotation,
+  useActiveAnnotationId,
+  useAnnotationCount,
+  useAnnotationStore,
+  useAnnotations,
+} from "./annotation-store";
 export type {
   CanvasBuilderActions,
   CanvasBuilderState,
@@ -52,6 +63,8 @@ export {
   useIsActionPanelDocked,
   useSetActionPanelDocked,
 } from "./canvas-store";
+export { calculateNextPosition } from "./canvas-utils";
+export { dispatchExecutionEvent } from "./execution-dispatcher";
 export type { ExecutionPanelState, ExecutionStore } from "./execution-store";
 export {
   useCurrentExecution,
@@ -80,3 +93,7 @@ export {
   createMemoryStorageAdapter,
   createNoopStorageAdapter,
 } from "./storage-adapters";
+export {
+  deriveExecutionOverlays,
+  useExecutionOverlays,
+} from "./use-execution-overlays";
