@@ -43,9 +43,15 @@
     "db:start": "turbo -F @openplane/db db:start",
     "db:watch": "turbo -F @openplane/db db:watch",
     "db:stop": "turbo -F @openplane/db db:stop",
-    "db:down": "turbo -F @openplane/db db:down"
+    "db:down": "turbo -F @openplane/db db:down",
+    "test": "bun test ./apps/ ./packages/ai/ ./packages/api/ ./packages/db/ ./packages/redis/ ./packages/services/ ./packages/types/ ./packages/ui/ ./packages/vespa/",
+    "test:temporal": "cd packages/temporal && bun run test",
+    "test:all": "bun run test && bun run test:temporal"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@webbuf/blake3": "^3.5.0",
     "dotenv": "^17.2.2",
     "zod": "^4.1.11"

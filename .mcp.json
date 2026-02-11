@@ -6,6 +6,24 @@
       "env": {
         "DATABASE_URL": "${DATABASE_URL}"
       }
+    },
+    "postgres": {
+      "command": "uvx",
+      "args": [
+        "postgres-mcp",
+        "--access-mode=restricted",
+        "postgresql://postgres:postgres@localhost:5432/openplane"
+      ]
+    },
+    "redis": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "redis-mcp-server@latest",
+        "redis-mcp-server",
+        "--url",
+        "redis://localhost:6379/0"
+      ]
     }
   }
 }
