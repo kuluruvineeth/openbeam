@@ -6,6 +6,7 @@ import type {
 } from "@openplane/types/mission-control";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getVanillaTRPCClient } from "@/trpc/client";
+import { normalizeMissionEventType } from "../lib/event-type-normalization";
 import { useMissionRuntimeStore } from "../stores/mission-runtime-store";
 
 type UseMissionEventStreamOptions = {
@@ -34,8 +35,8 @@ function toEventLedgerItem(event: MissionEventPayload): MissionEventLedgerItem {
     runId: event.runId,
     lane: event.lane,
     sequence: event.sequence,
-    eventType: event.eventType,
-    summary: event.eventType,
+    eventType: normalizeMissionEventType(event.eventType),
+    summary: normalizeMissionEventType(event.eventType),
     agentName: (event.payload?.agentName as string) ?? undefined,
     timestamp: event.timestamp,
     payload: event.payload,
@@ -93,6 +94,9 @@ export function useMissionEventStream({
       { missionId, runId },
       {
         onData(event: MissionEventPayload) {
+          if (event.eventType === "connected") {
+            return;
+          }
           ingestEvent(runId, toEventLedgerItem(event));
           setError(null);
         },

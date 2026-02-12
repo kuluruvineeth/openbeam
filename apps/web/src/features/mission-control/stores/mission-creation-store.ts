@@ -1,5 +1,6 @@
 "use client";
 
+import type { MissionTemplate } from "@openplane/types/mission-control";
 import { create } from "zustand";
 
 type AgentDraft = {
@@ -7,12 +8,15 @@ type AgentDraft = {
   role: string;
   soulPrompt: string;
   tools: string[];
+  capabilities: string[];
 };
 
 type TaskDraft = {
   title: string;
   description: string;
   priority: "P0" | "P1" | "P2" | "P3";
+  dependsOn: string[];
+  requiredCapabilities: string[];
 };
 
 type MissionCreationState = {
@@ -21,6 +25,7 @@ type MissionCreationState = {
   templateId: string | null;
   lane: "linear" | "autonomous" | "hybrid";
   budgetCents: number | null;
+  cronSchedule: string | null;
   agents: AgentDraft[];
   tasks: TaskDraft[];
   isSubmitting: boolean;
@@ -34,12 +39,15 @@ type MissionCreationActions = {
   setTemplateId: (id: string | null) => void;
   setLane: (lane: MissionCreationState["lane"]) => void;
   setBudgetCents: (cents: number | null) => void;
+  setCronSchedule: (cron: string | null) => void;
   addAgent: (agent: AgentDraft) => void;
   removeAgent: (index: number) => void;
   updateAgent: (index: number, agent: Partial<AgentDraft>) => void;
   addTask: (task: TaskDraft) => void;
   removeTask: (index: number) => void;
   updateTask: (index: number, task: Partial<TaskDraft>) => void;
+  applyTemplate: (template: MissionTemplate) => void;
+  clearTemplate: () => void;
   setSubmitting: (isSubmitting: boolean) => void;
   reset: () => void;
 };
@@ -52,6 +60,7 @@ const INITIAL_STATE: MissionCreationState = {
   templateId: null,
   lane: "autonomous",
   budgetCents: null,
+  cronSchedule: null,
   agents: [],
   tasks: [],
   isSubmitting: false,
@@ -90,6 +99,8 @@ const useMissionCreationStore = create<MissionCreationStore>((set) => ({
 
   setBudgetCents: (budgetCents) => set({ budgetCents }),
 
+  setCronSchedule: (cronSchedule) => set({ cronSchedule }),
+
   addAgent: (agent) => set((state) => ({ agents: [...state.agents, agent] })),
 
   removeAgent: (index) =>
@@ -117,6 +128,35 @@ const useMissionCreationStore = create<MissionCreationStore>((set) => ({
         i === index ? { ...task, ...partial } : task
       ),
     })),
+
+  applyTemplate: (template) =>
+    set({
+      step: 3,
+      templateId: template.id,
+      objective: template.defaultObjective ?? template.description,
+      agents: template.agents.map((a) => ({
+        name: a.name,
+        role: a.role,
+        soulPrompt: a.soulPrompt,
+        tools: a.tools,
+        capabilities: a.capabilities ?? [],
+      })),
+      tasks: template.tasks.map((t) => ({
+        title: t.title,
+        description: t.description,
+        priority: t.priority,
+        dependsOn: t.dependsOn ?? [],
+        requiredCapabilities: t.requiredCapabilities ?? [],
+      })),
+    }),
+
+  clearTemplate: () =>
+    set({
+      templateId: null,
+      objective: "",
+      agents: [],
+      tasks: [],
+    }),
 
   setSubmitting: (isSubmitting) => set({ isSubmitting }),
 

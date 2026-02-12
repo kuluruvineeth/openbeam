@@ -115,6 +115,31 @@ describe("useMissionRuntimeStore", () => {
       store.getState().replayFromCursor("run-1", []);
       expect(store.getState().resumeCursor["run-1"]).toBe(0);
     });
+
+    it("replays events chronologically when source events are reverse-ordered", () => {
+      const events = [
+        createEvent({
+          sequence: 2,
+          timestamp: 2000,
+          eventType: "run.completed",
+          payload: { agentId: "agent-1" },
+          agentName: "Researcher",
+        }),
+        createEvent({
+          sequence: 1,
+          timestamp: 1000,
+          eventType: "run.started",
+          payload: { agentId: "agent-1" },
+          agentName: "Researcher",
+        }),
+      ];
+
+      store.getState().replayFromCursor("run-1", events);
+
+      expect(store.getState().agentBoardState["agent-1"]?.status).toBe(
+        "completed"
+      );
+    });
   });
 
   describe("reset", () => {
@@ -175,6 +200,116 @@ describe("useMissionRuntimeStore", () => {
         perAgentCosts: {},
       });
     });
+  });
+});
+
+describe("seedAgentBoard", () => {
+  let store: typeof import("../mission-runtime-store").useMissionRuntimeStore;
+
+  beforeEach(async () => {
+    const mod = await import("../mission-runtime-store");
+    store = mod.useMissionRuntimeStore;
+    store.getState().resetAll();
+  });
+
+  it("creates agents in the board with correct role and status", () => {
+    store.getState().seedAgentBoard([
+      { id: "agent-1", name: "Researcher", role: "specialist", status: "idle" },
+      {
+        id: "agent-2",
+        name: "Coordinator",
+        role: "coordinator",
+        status: "running",
+      },
+    ]);
+
+    const board = store.getState().agentBoardState;
+    expect(Object.keys(board)).toHaveLength(2);
+    expect(board["agent-1"]?.agentName).toBe("Researcher");
+    expect(board["agent-1"]?.role).toBe("specialist");
+    expect(board["agent-1"]?.status).toBe("idle");
+    expect(board["agent-2"]?.agentName).toBe("Coordinator");
+    expect(board["agent-2"]?.role).toBe("coordinator");
+    expect(board["agent-2"]?.status).toBe("running");
+  });
+
+  it("does not overwrite existing agents from events", () => {
+    store.getState().ingestEvent(
+      "run-1",
+      createEvent({
+        sequence: 1,
+        eventType: "run.started",
+        payload: { agentId: "agent-1", role: "specialist" },
+        agentName: "Researcher",
+      })
+    );
+
+    store.getState().seedAgentBoard([
+      {
+        id: "agent-1",
+        name: "Researcher",
+        role: "specialist",
+        status: "idle",
+      },
+    ]);
+
+    const agent = store.getState().agentBoardState["agent-1"];
+    expect(agent?.status).toBe("running");
+  });
+
+  it("fills in role for existing agents with empty role", () => {
+    store.getState().ingestEvent(
+      "run-1",
+      createEvent({
+        sequence: 1,
+        eventType: "run.started",
+        payload: { agentId: "agent-1" },
+        agentName: "Researcher",
+      })
+    );
+
+    expect(store.getState().agentBoardState["agent-1"]?.role).toBe("");
+
+    store.getState().seedAgentBoard([
+      {
+        id: "agent-1",
+        name: "Researcher",
+        role: "coordinator",
+        status: "idle",
+      },
+    ]);
+
+    expect(store.getState().agentBoardState["agent-1"]?.role).toBe(
+      "coordinator"
+    );
+    expect(store.getState().agentBoardState["agent-1"]?.status).toBe("running");
+  });
+
+  it("handles empty agents array", () => {
+    store.getState().seedAgentBoard([]);
+    expect(store.getState().agentBoardState).toEqual({});
+  });
+
+  it("normalizes seeded agent statuses from backend enum values", () => {
+    store.getState().seedAgentBoard([
+      {
+        id: "agent-1",
+        name: "Researcher",
+        role: "specialist",
+        status: "RUNNING",
+      },
+      {
+        id: "agent-2",
+        name: "QA",
+        role: "specialist",
+        status: "COMPLETED",
+      },
+    ]);
+
+    expect(store.getState().agentBoardState["agent-1"]?.status).toBe("running");
+    expect(store.getState().agentBoardState["agent-2"]?.status).toBe(
+      "completed"
+    );
   });
 });
 
@@ -268,6 +403,120 @@ describe("applyEventToAgentBoard", () => {
     const board = applyEventToAgentBoard(initial, event);
 
     expect(board).toBe(initial);
+  });
+
+  it("captures role from agent_dispatched payload", () => {
+    const event = createEvent({
+      eventType: "agent_dispatched",
+      payload: { agentId: "agent-1", role: "coordinator" },
+      agentName: "Lead",
+    });
+
+    const board = applyEventToAgentBoard({}, event);
+
+    expect(board["agent-1"]?.role).toBe("coordinator");
+    expect(board["agent-1"]?.status).toBe("running");
+  });
+
+  it("captures role from run.started payload", () => {
+    const event = createEvent({
+      eventType: "run.started",
+      payload: { agentId: "agent-1", role: "specialist" },
+      agentName: "Worker",
+    });
+
+    const board = applyEventToAgentBoard({}, event);
+
+    expect(board["agent-1"]?.role).toBe("specialist");
+  });
+
+  it("preserves existing role when event payload has no role", () => {
+    const initial = {
+      "agent-1": {
+        agentId: "agent-1",
+        agentName: "Lead",
+        role: "coordinator",
+        status: "idle" as const,
+        stepsCompleted: 0,
+        tokensUsed: 0,
+        costCents: 0,
+        recentToolCalls: [],
+      },
+    };
+
+    const event = createEvent({
+      eventType: "run.started",
+      payload: { agentId: "agent-1" },
+    });
+
+    const board = applyEventToAgentBoard(initial, event);
+
+    expect(board["agent-1"]?.role).toBe("coordinator");
+  });
+
+  it("uses agentName fallback when event payload has no agentId", () => {
+    const initial = {
+      "agent-1": {
+        agentId: "agent-1",
+        agentName: "Researcher",
+        role: "specialist",
+        status: "running" as const,
+        stepsCompleted: 1,
+        tokensUsed: 0,
+        costCents: 0,
+        recentToolCalls: [],
+      },
+    };
+
+    const event = createEvent({
+      eventType: "run.completed",
+      payload: {},
+      agentName: "Researcher",
+    });
+
+    const board = applyEventToAgentBoard(initial, event);
+
+    expect(board["agent-1"]?.status).toBe("completed");
+    expect(board["agent-1"]?.stepsCompleted).toBe(2);
+  });
+
+  it("settles running agents when mission reaches terminal completion", () => {
+    const initial = {
+      "agent-1": {
+        agentId: "agent-1",
+        agentName: "Lead",
+        role: "coordinator",
+        status: "running" as const,
+        stepsCompleted: 0,
+        tokensUsed: 0,
+        costCents: 0,
+        recentToolCalls: [],
+      },
+      "agent-2": {
+        agentId: "agent-2",
+        agentName: "Specialist",
+        role: "specialist",
+        status: "blocked" as const,
+        stepsCompleted: 0,
+        tokensUsed: 0,
+        costCents: 0,
+        recentToolCalls: [],
+      },
+    };
+
+    const board = applyEventToAgentBoard(
+      initial,
+      createEvent({
+        eventType: "orchestrator_completed",
+        summary: "Mission completed",
+        timestamp: 5000,
+      })
+    );
+
+    expect(board["agent-1"]?.status).toBe("completed");
+    expect(board["agent-2"]?.status).toBe("completed");
+    expect(board["agent-1"]?.lastActivityAt).toBe(5000);
+    expect(board["agent-2"]?.lastActivityAt).toBe(5000);
   });
 });
 

@@ -27,6 +27,7 @@ export function usePromptToMission() {
               role: "coordinator",
               soulPrompt: "You are a research coordinator.",
               tools: ["search_hybrid", "doc_get"],
+              capabilities: [],
             },
           ],
           tasks: [
@@ -34,6 +35,8 @@ export function usePromptToMission() {
               title: "Initial Research",
               description: "",
               priority: "P1" as const,
+              dependsOn: [],
+              requiredCapabilities: [],
             },
           ],
           lane: "autonomous" as const,

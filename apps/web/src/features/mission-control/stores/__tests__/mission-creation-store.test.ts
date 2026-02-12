@@ -5,6 +5,12 @@ function getState() {
   return useMissionCreationStore.getState();
 }
 
+const AGENT_DEFAULTS = { capabilities: [] as string[] };
+const TASK_DEFAULTS = {
+  dependsOn: [] as string[],
+  requiredCapabilities: [] as string[],
+};
+
 describe("mission-creation-store", () => {
   afterEach(() => {
     getState().reset();
@@ -51,6 +57,7 @@ describe("mission-creation-store", () => {
       role: "research",
       soulPrompt: "You are a research agent",
       tools: ["search_hybrid"],
+      ...AGENT_DEFAULTS,
     };
 
     getState().addAgent(agent);
@@ -59,9 +66,27 @@ describe("mission-creation-store", () => {
   });
 
   it("removeAgent removes by index", () => {
-    getState().addAgent({ name: "A", role: "a", soulPrompt: "", tools: [] });
-    getState().addAgent({ name: "B", role: "b", soulPrompt: "", tools: [] });
-    getState().addAgent({ name: "C", role: "c", soulPrompt: "", tools: [] });
+    getState().addAgent({
+      name: "A",
+      role: "a",
+      soulPrompt: "",
+      tools: [],
+      ...AGENT_DEFAULTS,
+    });
+    getState().addAgent({
+      name: "B",
+      role: "b",
+      soulPrompt: "",
+      tools: [],
+      ...AGENT_DEFAULTS,
+    });
+    getState().addAgent({
+      name: "C",
+      role: "c",
+      soulPrompt: "",
+      tools: [],
+      ...AGENT_DEFAULTS,
+    });
 
     getState().removeAgent(1);
 
@@ -76,6 +101,7 @@ describe("mission-creation-store", () => {
       role: "old",
       soulPrompt: "",
       tools: [],
+      ...AGENT_DEFAULTS,
     });
     getState().updateAgent(0, { role: "updated", tools: ["search"] });
 
@@ -89,6 +115,7 @@ describe("mission-creation-store", () => {
       title: "Analyze data",
       description: "Run analysis on dataset",
       priority: "P1" as const,
+      ...TASK_DEFAULTS,
     };
 
     getState().addTask(task);
@@ -97,8 +124,18 @@ describe("mission-creation-store", () => {
   });
 
   it("removeTask removes by index", () => {
-    getState().addTask({ title: "A", description: "", priority: "P0" });
-    getState().addTask({ title: "B", description: "", priority: "P1" });
+    getState().addTask({
+      title: "A",
+      description: "",
+      priority: "P0",
+      ...TASK_DEFAULTS,
+    });
+    getState().addTask({
+      title: "B",
+      description: "",
+      priority: "P1",
+      ...TASK_DEFAULTS,
+    });
 
     getState().removeTask(0);
 
@@ -107,7 +144,12 @@ describe("mission-creation-store", () => {
   });
 
   it("updateTask merges partial update at index", () => {
-    getState().addTask({ title: "Task", description: "old", priority: "P2" });
+    getState().addTask({
+      title: "Task",
+      description: "old",
+      priority: "P2",
+      ...TASK_DEFAULTS,
+    });
     getState().updateTask(0, { description: "new", priority: "P0" });
 
     expect(getState().tasks[0]?.title).toBe("Task");
@@ -120,8 +162,19 @@ describe("mission-creation-store", () => {
     getState().setObjective("Test objective");
     getState().setLane("linear");
     getState().setBudgetCents(5000);
-    getState().addAgent({ name: "A", role: "a", soulPrompt: "", tools: [] });
-    getState().addTask({ title: "T", description: "", priority: "P1" });
+    getState().addAgent({
+      name: "A",
+      role: "a",
+      soulPrompt: "",
+      tools: [],
+      ...AGENT_DEFAULTS,
+    });
+    getState().addTask({
+      title: "T",
+      description: "",
+      priority: "P1",
+      ...TASK_DEFAULTS,
+    });
     getState().setSubmitting(true);
 
     getState().reset();
