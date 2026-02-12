@@ -750,16 +750,28 @@ export type {
   ColumnHeaderProps,
   ColumnReorderProps,
   DraggableColumnProps,
+  DraggableHeaderProps,
+  ResizeHandleProps,
+  StickyColumnConfig,
   StickyColumnProps,
+  TableColumnMeta,
+  TableConfig,
+  TableScrollState,
   TableSkeletonProps,
+  VirtualRowProps,
   VirtualTableProps,
 } from "./tables";
 export {
   ColumnHeader,
   ColumnReorder,
   DraggableColumn,
+  DraggableHeader,
+  getColumnId,
+  getHeaderLabel,
+  ResizeHandle,
   StickyColumn,
   TableSkeleton,
+  VirtualRow,
   VirtualTable,
 } from "./tables";
 export { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
