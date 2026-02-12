@@ -37,6 +37,7 @@ export const ToolCategorySchema = z.enum([
   "system",
   "skills",
   "canvas",
+  "mission",
 ]);
 
 export type ToolCategory = z.infer<typeof ToolCategorySchema>;

@@ -199,9 +199,12 @@ model AgentCanvasApproval {
   requestMessage  String?
   responseMessage String?
 
-  requestedAt DateTime  @default(now())
-  respondedAt DateTime?
-  expiresAt   DateTime?
+  requestedAt    DateTime  @default(now())
+  respondedAt    DateTime?
+  expiresAt      DateTime?
+  reminderSentAt DateTime?
+  escalatedAt    DateTime?
+  escalatedTo    String?
 
   respondedById String?
   respondedBy   User?   @relation("AgentCanvasApprover", fields: [respondedById], references: [id], onDelete: SetNull)

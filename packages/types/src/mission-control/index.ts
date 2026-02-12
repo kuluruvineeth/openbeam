@@ -111,6 +111,7 @@ export const MissionTemplateSchema = z.object({
       role: z.string(),
       soulPrompt: z.string(),
       tools: z.array(z.string()),
+      capabilities: z.array(z.string()).optional(),
     })
   ),
   tasks: z.array(
@@ -118,8 +119,11 @@ export const MissionTemplateSchema = z.object({
       title: z.string(),
       description: z.string(),
       priority: z.enum(["P0", "P1", "P2", "P3"]),
+      dependsOn: z.array(z.string()).optional(),
+      requiredCapabilities: z.array(z.string()).optional(),
     })
   ),
+  defaultObjective: z.string().optional(),
   complianceProfile: z.string().optional(),
 });
 

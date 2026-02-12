@@ -6,7 +6,7 @@ export const MissionOrchestratorInputSchema = z.object({
   objective: z.string(),
   maxConcurrentRuns: z.number().int().positive().default(3),
   budgetCents: z.number().int().nonnegative().optional(),
-  heartbeatIntervalMin: z.number().int().positive().default(15),
+  heartbeatIntervalMin: z.number().int().positive().default(2),
   checkpoint: z
     .object({
       dispatchedRuns: z.number().default(0),
@@ -37,9 +37,11 @@ export const MissionAgentRunInputSchema = z.object({
   missionId: z.string(),
   teamId: z.string(),
   agentId: z.string(),
+  agentName: z.string().optional(),
   taskId: z.string(),
   runId: z.string(),
   soulPrompt: z.string(),
+  tools: z.array(z.string()).optional(),
   maxSteps: z.number().int().positive().default(20),
 });
 
@@ -60,7 +62,14 @@ export type MissionAgentRunOutput = z.infer<typeof MissionAgentRunOutputSchema>;
 
 export const MissionWakePayloadSchema = z.object({
   missionId: z.string(),
-  reason: z.enum(["heartbeat", "task", "mention", "manual", "run_complete"]),
+  reason: z.enum([
+    "initial",
+    "heartbeat",
+    "task",
+    "mention",
+    "manual",
+    "run_complete",
+  ]),
   metadata: z.record(z.string(), z.unknown()).optional(),
 });
 

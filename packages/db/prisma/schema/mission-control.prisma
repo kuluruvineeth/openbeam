@@ -45,7 +45,11 @@ model Mission {
   budgetCents          Int?
   consumedCents        Int           @default(0)
   maxConcurrentRuns    Int           @default(3)
-  heartbeatIntervalMin Int           @default(15)
+  heartbeatIntervalMin Int           @default(2)
+  cronSchedule         String?
+  nextRunAt            DateTime?
+  isRecurring          Boolean       @default(false)
+  lastRunAt            DateTime?
   workflowId           String?
   runId                String?
   createdAt            DateTime      @default(now())
@@ -58,18 +62,21 @@ model Mission {
   memory     MissionMemory[]
 
   @@index([teamId, status, updatedAt(sort: Desc)])
+  @@index([isRecurring, nextRunAt])
   @@map("mission")
 }
 
 model MissionAgent {
-  id         String @id @default(cuid()) @map("_id")
-  missionId  String
-  agentId    String
-  name       String
-  role       String
-  soulPrompt String @db.Text
-  level      String @default("specialist")
-  sortOrder  Int    @default(0)
+  id           String   @id @default(cuid()) @map("_id")
+  missionId    String
+  agentId      String
+  name         String
+  role         String
+  soulPrompt   String   @db.Text
+  level        String   @default("specialist")
+  sortOrder    Int      @default(0)
+  tools        String[] @default([])
+  capabilities String[] @default([])
 
   mission  Mission          @relation(fields: [missionId], references: [id], onDelete: Cascade)
   agent    BackgroundAgent  @relation(fields: [agentId], references: [id])
@@ -83,19 +90,21 @@ model MissionAgent {
 }
 
 model MissionTask {
-  id          String              @id @default(cuid()) @map("_id")
-  missionId   String
-  title       String
-  description String?             @db.Text
-  status      MissionTaskStatus   @default(INBOX)
-  priority    MissionTaskPriority @default(P2)
-  assigneeId  String?
-  claimedAt   DateTime?
-  completedAt DateTime?
-  requestId   String              @unique
-  createdById String
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
+  id                   String              @id @default(cuid()) @map("_id")
+  missionId            String
+  title                String
+  description          String?             @db.Text
+  status               MissionTaskStatus   @default(INBOX)
+  priority             MissionTaskPriority @default(P2)
+  assigneeId           String?
+  claimedAt            DateTime?
+  completedAt          DateTime?
+  requestId            String              @unique
+  createdById          String
+  dependsOn            String[]            @default([])
+  requiredCapabilities String[]            @default([])
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
 
   mission  Mission          @relation(fields: [missionId], references: [id], onDelete: Cascade)
   assignee MissionAgent?    @relation("assignee", fields: [assigneeId], references: [id])
