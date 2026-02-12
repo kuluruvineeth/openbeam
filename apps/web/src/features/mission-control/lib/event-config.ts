@@ -2,6 +2,7 @@
 
 import { Icons } from "@openplane/ui";
 import type { ComponentType } from "react";
+import { resolveTemplateText } from "./template-text";
 
 type IconProps = { size: number };
 
@@ -10,6 +11,7 @@ type EventTypeConfig = {
   summaryTemplate: string;
   shimmerWhenActive: boolean;
   priority: "critical" | "high" | "medium" | "low";
+  expandable?: boolean;
 };
 
 export const EVENT_TYPE_CONFIG: Record<string, EventTypeConfig> = {
@@ -27,20 +29,74 @@ export const EVENT_TYPE_CONFIG: Record<string, EventTypeConfig> = {
   },
   "mission.failed": {
     icon: Icons.AlertCircle,
-    summaryTemplate: "Mission failed: {error}",
+    summaryTemplate: "Mission failed",
     shimmerWhenActive: false,
     priority: "critical",
   },
-  "mission.paused": {
+  "mission.cancelled": {
+    icon: Icons.Close,
+    summaryTemplate: "Mission cancelled",
+    shimmerWhenActive: false,
+    priority: "high",
+  },
+  orchestrator_started: {
+    icon: Icons.Play,
+    summaryTemplate: "Mission orchestrator started",
+    shimmerWhenActive: false,
+    priority: "high",
+  },
+  orchestrator_completed: {
+    icon: Icons.CheckCircle2,
+    summaryTemplate: "Mission completed",
+    shimmerWhenActive: false,
+    priority: "high",
+  },
+  orchestrator_failed: {
+    icon: Icons.AlertCircle,
+    summaryTemplate: "Mission failed",
+    shimmerWhenActive: false,
+    priority: "critical",
+  },
+  orchestrator_paused: {
     icon: Icons.Pause,
     summaryTemplate: "Mission paused",
     shimmerWhenActive: false,
     priority: "medium",
   },
-  "mission.resumed": {
-    icon: Icons.Play,
-    summaryTemplate: "Mission resumed",
+  orchestrator_cancelled: {
+    icon: Icons.Close,
+    summaryTemplate: "Mission cancelled",
     shimmerWhenActive: false,
+    priority: "high",
+  },
+  budget_exceeded: {
+    icon: Icons.DollarSign,
+    summaryTemplate: "Budget limit reached",
+    shimmerWhenActive: false,
+    priority: "critical",
+  },
+  "budget.set": {
+    icon: Icons.Coins,
+    summaryTemplate: "Budget updated to {budgetCents} cents",
+    shimmerWhenActive: false,
+    priority: "low",
+  },
+  "cost.updated": {
+    icon: Icons.Coins,
+    summaryTemplate: "Spend updated",
+    shimmerWhenActive: false,
+    priority: "low",
+  },
+  agent_dispatched: {
+    icon: Icons.ArrowRight,
+    summaryTemplate: '{agentName} dispatched for "{taskTitle}"',
+    shimmerWhenActive: false,
+    priority: "medium",
+  },
+  agent_run_started: {
+    icon: Icons.Play,
+    summaryTemplate: "{agentName} started working",
+    shimmerWhenActive: true,
     priority: "medium",
   },
   "run.started": {
@@ -49,100 +105,118 @@ export const EVENT_TYPE_CONFIG: Record<string, EventTypeConfig> = {
     shimmerWhenActive: true,
     priority: "medium",
   },
-  "run.completed": {
+  agent_run_completed: {
     icon: Icons.Check,
-    summaryTemplate: "{agentName} finished",
+    summaryTemplate:
+      "{agentName} finished ({steps} steps, {tokensUsed} tokens)",
     shimmerWhenActive: false,
     priority: "medium",
+  },
+  "run.completed": {
+    icon: Icons.Check,
+    summaryTemplate:
+      "{agentName} finished ({steps} steps, {tokensUsed} tokens)",
+    shimmerWhenActive: false,
+    priority: "medium",
+  },
+  agent_run_failed: {
+    icon: Icons.AlertCircle,
+    summaryTemplate: "{agentName} failed",
+    shimmerWhenActive: false,
+    priority: "high",
   },
   "run.failed": {
     icon: Icons.AlertCircle,
-    summaryTemplate: "{agentName} failed: {error}",
+    summaryTemplate: "{agentName} failed",
     shimmerWhenActive: false,
     priority: "high",
+  },
+  agent_step_completed: {
+    icon: Icons.BotIcon,
+    summaryTemplate: "{agentName} — step {step}",
+    shimmerWhenActive: false,
+    priority: "medium",
+    expandable: true,
   },
   "task.claimed": {
     icon: Icons.ArrowRight,
-    summaryTemplate: "{agentName} claimed: {taskTitle}",
-    shimmerWhenActive: true,
+    summaryTemplate: '{agentName} claimed "{taskTitle}"',
+    shimmerWhenActive: false,
     priority: "medium",
   },
   "task.completed": {
-    icon: Icons.Check,
-    summaryTemplate: "{agentName} completed task",
+    icon: Icons.CheckCircle2,
+    summaryTemplate: '{agentName} completed "{taskTitle}"',
     shimmerWhenActive: false,
     priority: "medium",
-  },
-  "task.failed": {
-    icon: Icons.AlertCircle,
-    summaryTemplate: "{agentName} failed task: {error}",
-    shimmerWhenActive: false,
-    priority: "high",
   },
   "tool.started": {
-    icon: Icons.Settings,
-    summaryTemplate: "{agentName} using {toolName}",
+    icon: Icons.Wrench,
+    summaryTemplate: "{agentName} started {toolName}",
     shimmerWhenActive: true,
-    priority: "low",
+    priority: "medium",
   },
   "tool.completed": {
-    icon: Icons.Settings,
-    summaryTemplate: "{toolName} done ({latencyMs}ms)",
+    icon: Icons.Check,
+    summaryTemplate: "{agentName} completed {toolName}",
     shimmerWhenActive: false,
     priority: "low",
   },
-  "approval.requested": {
+  "tool.failed": {
     icon: Icons.AlertCircle,
-    summaryTemplate: "{agentName} needs approval: {intent}",
-    shimmerWhenActive: true,
-    priority: "critical",
-  },
-  "approval.resolved": {
-    icon: Icons.Check,
-    summaryTemplate: "Approval {decision}",
+    summaryTemplate: "{agentName} failed {toolName}",
     shimmerWhenActive: false,
     priority: "high",
   },
-  "artifact.published": {
-    icon: Icons.Download,
-    summaryTemplate: "{agentName} published: {title}",
+  "approval.requested": {
+    icon: Icons.ShieldAlert,
+    summaryTemplate: "{agentName} requested approval for {intent}",
+    shimmerWhenActive: false,
+    priority: "high",
+  },
+  "approval.resolved": {
+    icon: Icons.UserCheck,
+    summaryTemplate: "{agentName} approval resolved",
     shimmerWhenActive: false,
     priority: "medium",
   },
-  "budget.updated": {
-    icon: Icons.DollarSign,
-    summaryTemplate: "Budget: {consumed}/{budget}",
+  "artifact.published": {
+    icon: Icons.FileText,
+    summaryTemplate: 'Output published: "{artifactTitle}"',
     shimmerWhenActive: false,
-    priority: "low",
+    priority: "medium",
+    expandable: true,
   },
 };
 
 export const HIDDEN_EVENT_TYPES = new Set(["heartbeat"]);
 
-export const TERMINAL_EVENT_SUFFIXES = [
-  ".completed",
-  ".failed",
-  ".cancelled",
-  ".resolved",
-];
+const ACTIVE_EVENT_TERMINALS: Record<string, string[]> = {
+  agent_run_started: ["agent_run_completed", "agent_run_failed"],
+  "run.started": ["run.completed", "run.failed"],
+  "tool.started": ["tool.completed", "tool.failed"],
+};
 
 export function isActiveEvent(
   eventType: string,
-  events: Array<{ eventType: string }>
+  events: Array<{ eventType: string; agentName?: string }>,
+  agentName?: string
 ): boolean {
   const config = EVENT_TYPE_CONFIG[eventType];
   if (!config?.shimmerWhenActive) {
     return false;
   }
 
-  const base = eventType.split(".")[0];
-  return !events.some((e) => {
-    const eBase = e.eventType.split(".")[0];
-    return (
-      eBase === base &&
-      TERMINAL_EVENT_SUFFIXES.some((s) => e.eventType.endsWith(s))
-    );
-  });
+  const terminals = ACTIVE_EVENT_TERMINALS[eventType];
+  if (!terminals) {
+    return false;
+  }
+
+  return !events.some(
+    (e) =>
+      terminals.includes(e.eventType) &&
+      (!agentName || e.agentName === agentName)
+  );
 }
 
 export function resolveTemplate(
@@ -150,14 +224,5 @@ export function resolveTemplate(
   payload: Record<string, unknown> | undefined,
   agentName?: string
 ): string {
-  let result = template;
-  if (agentName) {
-    result = result.replace("{agentName}", agentName);
-  }
-  if (payload) {
-    for (const [key, value] of Object.entries(payload)) {
-      result = result.replace(`{${key}}`, String(value ?? ""));
-    }
-  }
-  return result.replace(/\{[^}]+\}/g, "");
+  return resolveTemplateText(template, payload, agentName);
 }
