@@ -74,7 +74,6 @@ export function listMissionRunArtifacts(db: Database, missionId: string) {
   return db.missionRun.findMany({
     where: {
       missionId,
-      status: "COMPLETED",
     },
     select: {
       id: true,
@@ -272,21 +271,14 @@ export function getMissionRunningRuns(db: Database, missionId: string) {
   });
 }
 
-export async function getMissionIdleAgents(db: Database, missionId: string) {
-  const busyAgentIds = await db.missionRun.findMany({
-    where: { missionId, status: "RUNNING" },
-    select: { agentId: true },
-    distinct: ["agentId"],
-  });
-
-  const busyIds = new Set(busyAgentIds.map((r) => r.agentId));
-
-  const allAgents = await db.missionAgent.findMany({
-    where: { missionId },
+export function getMissionIdleAgents(db: Database, missionId: string) {
+  return db.missionAgent.findMany({
+    where: {
+      missionId,
+      runs: { none: { status: "RUNNING", missionId } },
+    },
     orderBy: { sortOrder: "asc" },
   });
-
-  return allAgents.filter((a) => !busyIds.has(a.id));
 }
 
 export function getMissionMemory(

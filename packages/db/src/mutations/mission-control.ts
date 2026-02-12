@@ -12,6 +12,9 @@ export function createMission(
     budgetCents?: number;
     maxConcurrentRuns?: number;
     heartbeatIntervalMin?: number;
+    cronSchedule?: string;
+    nextRunAt?: Date;
+    isRecurring?: boolean;
   }
 ) {
   return db.mission.create({
@@ -23,7 +26,10 @@ export function createMission(
       timezone: input.timezone ?? "UTC",
       budgetCents: input.budgetCents,
       maxConcurrentRuns: input.maxConcurrentRuns ?? 3,
-      heartbeatIntervalMin: input.heartbeatIntervalMin ?? 15,
+      heartbeatIntervalMin: input.heartbeatIntervalMin ?? 2,
+      cronSchedule: input.cronSchedule,
+      nextRunAt: input.nextRunAt,
+      isRecurring: input.isRecurring ?? false,
     },
   });
 }
@@ -79,6 +85,8 @@ export function updateMissionAgent(
     role?: string;
     soulPrompt?: string;
     level?: string;
+    tools?: string[];
+    capabilities?: string[];
   }
 ) {
   return db.missionAgent.update({
@@ -100,9 +108,32 @@ export function updateMissionTask(
     completedAt?: Date;
   }
 ) {
+  const update: Record<string, unknown> = {};
+  if (data.title !== undefined) {
+    update.title = data.title;
+  }
+  if (data.description !== undefined) {
+    update.description = data.description;
+  }
+  if (data.priority !== undefined) {
+    update.priority = data.priority;
+  }
+  if (data.status !== undefined) {
+    update.status = data.status;
+  }
+  if (data.assigneeId !== undefined) {
+    update.assigneeId = data.assigneeId;
+  }
+  if (data.claimedAt !== undefined) {
+    update.claimedAt = data.claimedAt;
+  }
+  if (data.completedAt !== undefined) {
+    update.completedAt = data.completedAt;
+  }
+
   return db.missionTask.update({
     where: { id: taskId },
-    data: data as Prisma.MissionTaskUpdateInput,
+    data: update as Prisma.MissionTaskUpdateInput,
   });
 }
 
@@ -146,6 +177,8 @@ export function createMissionAgent(
     soulPrompt: string;
     level?: string;
     sortOrder?: number;
+    tools?: string[];
+    capabilities?: string[];
     teamId: string;
     userId: string;
   }
@@ -172,6 +205,8 @@ export function createMissionAgent(
         soulPrompt: input.soulPrompt,
         level: input.level ?? "specialist",
         sortOrder: input.sortOrder ?? 0,
+        tools: input.tools ?? [],
+        capabilities: input.capabilities ?? [],
       },
     });
 
@@ -189,6 +224,8 @@ export function createMissionTask(
     assigneeId?: string;
     requestId: string;
     createdById: string;
+    dependsOn?: string[];
+    requiredCapabilities?: string[];
   }
 ) {
   const status = input.assigneeId ? "ASSIGNED" : "INBOX";
@@ -203,6 +240,8 @@ export function createMissionTask(
       status,
       requestId: input.requestId,
       createdById: input.createdById,
+      dependsOn: input.dependsOn ?? [],
+      requiredCapabilities: input.requiredCapabilities ?? [],
     },
     update: {},
   });

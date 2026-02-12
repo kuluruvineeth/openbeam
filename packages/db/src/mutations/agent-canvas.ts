@@ -632,3 +632,25 @@ export function incrementTemplateUsage(db: Database, id: string) {
     data: { usageCount: { increment: 1 } },
   });
 }
+
+export function updateApprovalEscalation(
+  db: Database,
+  id: string,
+  data: {
+    reminderSentAt?: Date;
+    escalatedAt?: Date;
+    escalatedTo?: string;
+  }
+) {
+  return db.agentCanvasApproval.update({
+    where: { id },
+    data,
+  });
+}
+
+export function expireApproval(db: Database, id: string) {
+  return db.agentCanvasApproval.update({
+    where: { id },
+    data: { status: "EXPIRED" as AgentCanvasApprovalStatus },
+  });
+}
