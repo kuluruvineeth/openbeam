@@ -5,8 +5,11 @@ import {
 import { LRUCache } from "lru-cache";
 import type { RedisClientType } from "redis";
 import { getRedisClient } from "../client";
+import { redisLogger } from "../lib/logger";
 
 const MISSION_EVENT_CHANNEL_PREFIX = "mission-events";
+const MISSION_EVENT_SEQUENCE_KEY_PREFIX = "mission-events-sequence";
+const MISSION_EVENT_SEQUENCE_TTL_SECONDS = 24 * 60 * 60;
 const PROGRESS_THROTTLE_MS = 250;
 const THROTTLE_CACHE_MAX_ENTRIES = 10_000;
 const THROTTLE_CACHE_TTL_MS = 5 * 60 * 1000;
@@ -22,6 +25,31 @@ const missionIdIndex = new Map<string, Set<string>>();
 
 function getMissionEventChannel(missionId: string, runId: string): string {
   return `${MISSION_EVENT_CHANNEL_PREFIX}:${missionId}:${runId}`;
+}
+
+function getMissionSequenceKey(missionId: string, runId: string): string {
+  return `${MISSION_EVENT_SEQUENCE_KEY_PREFIX}:${missionId}:${runId}`;
+}
+
+async function nextMissionSequence(
+  client: RedisClientType,
+  missionId: string,
+  runId: string
+): Promise<number> {
+  const key = getMissionSequenceKey(missionId, runId);
+  const sequence = await client.incr(key);
+  await client.expire(key, MISSION_EVENT_SEQUENCE_TTL_SECONDS);
+  return sequence;
+}
+
+async function publishToChannel(
+  client: RedisClientType,
+  missionId: string,
+  runId: string,
+  event: MissionEventPayload
+): Promise<void> {
+  const channel = getMissionEventChannel(missionId, runId);
+  await client.publish(channel, JSON.stringify(event));
 }
 
 const TERMINAL_EVENT_TYPES = [
@@ -76,12 +104,43 @@ export async function publishMissionEvent(
 
   try {
     const client = await getRedisClient();
-    const channel = getMissionEventChannel(missionId, runId);
-    await client.publish(channel, JSON.stringify(event));
+    await publishToChannel(client, missionId, runId, event);
   } catch (error) {
-    console.warn(
-      `[mission-events] publish failed: ${error instanceof Error ? error.message : String(error)}`
+    redisLogger.warn("mission event publish failed", {
+      error: redisLogger.formatError(error),
+    });
+  }
+}
+
+export async function publishMissionTimelineEvent(input: {
+  missionId: string;
+  runId: string;
+  lane: "linear" | "autonomous" | "hybrid";
+  eventType: string;
+  payload?: Record<string, unknown>;
+  timestamp?: number;
+}): Promise<void> {
+  try {
+    const client = await getRedisClient();
+    const sequence = await nextMissionSequence(
+      client,
+      input.missionId,
+      input.runId
     );
+
+    await publishToChannel(client, input.missionId, input.runId, {
+      missionId: input.missionId,
+      runId: input.runId,
+      lane: input.lane,
+      sequence,
+      eventType: input.eventType,
+      timestamp: input.timestamp ?? Date.now(),
+      payload: input.payload ?? {},
+    });
+  } catch (error) {
+    redisLogger.warn("mission timeline publish failed", {
+      error: redisLogger.formatError(error),
+    });
   }
 }
 
@@ -108,9 +167,9 @@ export async function createMissionEventSubscriber(
       const event = MissionEventPayloadSchema.parse(parsed);
       onEvent(event);
     } catch (error) {
-      console.warn(
-        `[mission-events] parse failed: ${error instanceof Error ? error.message : String(error)}`
-      );
+      redisLogger.warn("mission event parse failed", {
+        error: redisLogger.formatError(error),
+      });
     }
   });
 
@@ -119,9 +178,9 @@ export async function createMissionEventSubscriber(
       await subscriber.unsubscribe(channel);
       await subscriber.quit();
     } catch (error) {
-      console.warn(
-        `[mission-events] cleanup failed: ${error instanceof Error ? error.message : String(error)}`
-      );
+      redisLogger.warn("mission event subscriber cleanup failed", {
+        error: redisLogger.formatError(error),
+      });
     }
   };
 }

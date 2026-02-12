@@ -2,6 +2,12 @@ import { beforeEach, describe, expect, it, mock } from "bun:test";
 import type { MissionEventPayload } from "@openplane/types/mission-control";
 
 const mockPublish = mock(() => Promise.resolve(0));
+let sequence = 0;
+const mockIncr = mock(() => {
+  sequence += 1;
+  return Promise.resolve(sequence);
+});
+const mockExpire = mock(() => Promise.resolve(1));
 const mockConnect = mock(() => Promise.resolve());
 const mockSubscribe = mock(
   (_channel: string, _handler: (msg: string) => void) => Promise.resolve()
@@ -19,6 +25,8 @@ const mockDuplicate = mock(() => ({
 
 const mockRedisClient = {
   publish: mockPublish,
+  incr: mockIncr,
+  expire: mockExpire,
   duplicate: mockDuplicate,
 };
 
@@ -28,6 +36,7 @@ mock.module("../../client", () => ({
 
 const {
   publishMissionEvent,
+  publishMissionTimelineEvent,
   createMissionEventEmitter,
   createMissionEventSubscriber,
   cleanupMissionThrottleCache,
@@ -48,11 +57,29 @@ function createPayload(
   };
 }
 
+function getPublishedCall(index: number): { channel: string; message: string } {
+  const rawCall = mockPublish.mock.calls[index] as unknown[] | undefined;
+  if (!rawCall || rawCall.length < 2) {
+    throw new Error(`Missing publish call at index ${index}`);
+  }
+
+  const channel = rawCall[0];
+  const message = rawCall[1];
+  if (typeof channel !== "string" || typeof message !== "string") {
+    throw new Error("Unexpected publish call payload");
+  }
+
+  return { channel, message };
+}
+
 describe("publishMissionEvent", () => {
   beforeEach(() => {
     cleanupMissionThrottleCache("m1");
     cleanupMissionThrottleCache("m2");
     mockPublish.mockClear();
+    mockIncr.mockClear();
+    mockExpire.mockClear();
+    sequence = 0;
   });
 
   it("publishes an event to the correct channel", async () => {
@@ -61,7 +88,7 @@ describe("publishMissionEvent", () => {
     await publishMissionEvent("m1", "run1", payload);
 
     expect(mockPublish).toHaveBeenCalledTimes(1);
-    const [channel, message] = mockPublish.mock.calls[0] as [string, string];
+    const { channel, message } = getPublishedCall(0);
     expect(channel).toBe("mission-events:m1:run1");
     expect(JSON.parse(message)).toEqual(payload);
   });
@@ -119,6 +146,64 @@ describe("publishMissionEvent", () => {
 
     expect(mockPublish).toHaveBeenCalledTimes(2);
   });
+
+  it("publishes timeline events with global sequence", async () => {
+    await publishMissionTimelineEvent({
+      missionId: "m1",
+      runId: "run1",
+      lane: "autonomous",
+      eventType: "run.started",
+      payload: { agentId: "agent-1" },
+      timestamp: 1_700_000_000_000,
+    });
+
+    await publishMissionTimelineEvent({
+      missionId: "m1",
+      runId: "run1",
+      lane: "autonomous",
+      eventType: "run.completed",
+      payload: { agentId: "agent-1" },
+      timestamp: 1_700_000_000_100,
+    });
+
+    expect(mockIncr).toHaveBeenCalledTimes(2);
+    expect(mockExpire).toHaveBeenCalledTimes(2);
+    expect(mockPublish).toHaveBeenCalledTimes(2);
+
+    const firstEvent = JSON.parse(getPublishedCall(0).message);
+    const secondEvent = JSON.parse(getPublishedCall(1).message);
+
+    expect(firstEvent.sequence).toBe(1);
+    expect(secondEvent.sequence).toBe(2);
+    expect(firstEvent.eventType).toBe("run.started");
+    expect(secondEvent.eventType).toBe("run.completed");
+  });
+
+  it("does not throttle timeline events even with repeated non-terminal types", async () => {
+    await publishMissionTimelineEvent({
+      missionId: "m1",
+      runId: "run1",
+      lane: "autonomous",
+      eventType: "tool.started",
+      payload: { toolName: "search" },
+      timestamp: 1_700_000_000_000,
+    });
+
+    await publishMissionTimelineEvent({
+      missionId: "m1",
+      runId: "run1",
+      lane: "autonomous",
+      eventType: "tool.started",
+      payload: { toolName: "search" },
+      timestamp: 1_700_000_000_100,
+    });
+
+    expect(mockPublish).toHaveBeenCalledTimes(2);
+    const firstEvent = JSON.parse(getPublishedCall(0).message);
+    const secondEvent = JSON.parse(getPublishedCall(1).message);
+    expect(firstEvent.sequence).toBe(1);
+    expect(secondEvent.sequence).toBe(2);
+  });
 });
 
 describe("createMissionEventEmitter", () => {
@@ -139,12 +224,8 @@ describe("createMissionEventEmitter", () => {
 
     expect(mockPublish).toHaveBeenCalledTimes(2);
 
-    const firstEvent = JSON.parse(
-      (mockPublish.mock.calls[0] as [string, string])[1]
-    );
-    const secondEvent = JSON.parse(
-      (mockPublish.mock.calls[1] as [string, string])[1]
-    );
+    const firstEvent = JSON.parse(getPublishedCall(0).message);
+    const secondEvent = JSON.parse(getPublishedCall(1).message);
 
     expect(firstEvent.sequence).toBe(0);
     expect(firstEvent.eventType).toBe("mission.started");
@@ -202,9 +283,7 @@ describe("createMissionEventEmitter", () => {
 
     await emitter.budgetUpdated(500, 1000);
 
-    const event = JSON.parse(
-      (mockPublish.mock.calls[0] as [string, string])[1]
-    );
+    const event = JSON.parse(getPublishedCall(0).message);
     expect(event.payload.consumedCents).toBe(500);
     expect(event.payload.budgetCents).toBe(1000);
   });
@@ -218,9 +297,7 @@ describe("createMissionEventEmitter", () => {
 
     await emitter.heartbeat();
 
-    const event = JSON.parse(
-      (mockPublish.mock.calls[0] as [string, string])[1]
-    );
+    const event = JSON.parse(getPublishedCall(0).message);
     expect(event.eventType).toBe("heartbeat");
   });
 });
@@ -242,7 +319,8 @@ describe("createMissionEventSubscriber", () => {
 
     expect(mockConnect).toHaveBeenCalledTimes(1);
     expect(mockSubscribe).toHaveBeenCalledTimes(1);
-    const [channel] = mockSubscribe.mock.calls[0] as [string, unknown];
+    const subscribeCall = mockSubscribe.mock.calls[0];
+    const channel = subscribeCall?.[0];
     expect(channel).toBe("mission-events:m1:run1");
   });
 

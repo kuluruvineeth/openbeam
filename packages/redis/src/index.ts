@@ -78,6 +78,7 @@ export {
   createMissionEventSubscriber,
   type MissionEventEmitterParams,
   publishMissionEvent,
+  publishMissionTimelineEvent,
 } from "./pubsub/mission-events";
 export {
   cleanupSessionThrottleCache,

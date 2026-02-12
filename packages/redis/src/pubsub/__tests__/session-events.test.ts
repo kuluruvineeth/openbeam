@@ -49,6 +49,21 @@ function createEvent(
   };
 }
 
+function getPublishedCall(index: number): { channel: string; message: string } {
+  const rawCall = mockPublish.mock.calls[index] as unknown[] | undefined;
+  if (!rawCall || rawCall.length < 2) {
+    throw new Error(`Missing publish call at index ${index}`);
+  }
+
+  const channel = rawCall[0];
+  const message = rawCall[1];
+  if (typeof channel !== "string" || typeof message !== "string") {
+    throw new Error("Unexpected publish call payload");
+  }
+
+  return { channel, message };
+}
+
 describe("publishSessionRuntimeEvent", () => {
   beforeEach(() => {
     cleanupSessionThrottleCache("s1");
@@ -62,7 +77,7 @@ describe("publishSessionRuntimeEvent", () => {
     await publishSessionRuntimeEvent("s1", event);
 
     expect(mockPublish).toHaveBeenCalledTimes(1);
-    const [channel, message] = mockPublish.mock.calls[0] as [string, string];
+    const { channel, message } = getPublishedCall(0);
     expect(channel).toBe("session-runtime-events:s1");
     expect(JSON.parse(message)).toEqual(event);
   });
@@ -151,7 +166,8 @@ describe("createSessionRuntimeEventSubscriber", () => {
 
     expect(mockConnect).toHaveBeenCalledTimes(1);
     expect(mockSubscribe).toHaveBeenCalledTimes(1);
-    const [channel] = mockSubscribe.mock.calls[0] as [string, unknown];
+    const subscribeCall = mockSubscribe.mock.calls[0];
+    const channel = subscribeCall?.[0];
     expect(channel).toBe("session-runtime-events:s1");
   });
 
