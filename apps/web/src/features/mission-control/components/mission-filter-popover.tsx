@@ -42,7 +42,8 @@ type MissionFilterPopoverProps = {
 };
 
 export function MissionFilterPopover({ trigger }: MissionFilterPopoverProps) {
-  const [, setParams] = useMissionFilterParams();
+  const { setStatus, clearFilters: clearParamFilters } =
+    useMissionFilterParams();
   const [open, setOpen] = useState(false);
   const [filters, setFilters] = useState<FilterState>(INITIAL_FILTER);
 
@@ -59,15 +60,16 @@ export function MissionFilterPopover({ trigger }: MissionFilterPopoverProps) {
   }
 
   function handleApply() {
-    const statusArr = Array.from(filters.statuses);
-    const status = statusArr.length === 1 ? statusArr[0] : "all";
-    setParams({ status: status as "all" });
+    const statusArr = Array.from(filters.statuses) as Parameters<
+      typeof setStatus
+    >[0];
+    setStatus(statusArr);
     setOpen(false);
   }
 
   function handleClear() {
     setFilters(INITIAL_FILTER);
-    setParams({ status: "all" });
+    clearParamFilters();
     setOpen(false);
   }
 

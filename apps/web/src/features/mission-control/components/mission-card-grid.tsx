@@ -1,6 +1,7 @@
 "use client";
 
-import { cva } from "class-variance-authority";
+import { Icons } from "@openplane/ui";
+import { formatCents } from "../lib/budget-utils";
 import { StatusChip } from "./status-chip";
 
 type MissionRow = {
@@ -18,48 +19,9 @@ type MissionRow = {
   updatedAt: Date;
 };
 
-const missionCardVariants = cva(
-  "cursor-pointer rounded-md border p-4 text-left transition-colors",
-  {
-    variants: {
-      status: {
-        ACTIVE: "border-emerald-500/30 hover:bg-emerald-500/5",
-        COMPLETED: "border-primary/20 hover:bg-primary/5",
-        FAILED: "border-destructive/20 hover:bg-destructive/5",
-        CANCELLED: "border-destructive/20 hover:bg-destructive/5",
-        default: "border-border/50 hover:bg-muted/50",
-      },
-    },
-    defaultVariants: {
-      status: "default",
-    },
-  }
-);
-
-function resolveCardStatus(
-  status: string
-): "ACTIVE" | "COMPLETED" | "FAILED" | "CANCELLED" | "default" {
-  const mapped: Record<
-    string,
-    "ACTIVE" | "COMPLETED" | "FAILED" | "CANCELLED"
-  > = {
-    ACTIVE: "ACTIVE",
-    COMPLETED: "COMPLETED",
-    FAILED: "FAILED",
-    CANCELLED: "CANCELLED",
-  };
-  return mapped[status] ?? "default";
-}
-
-function formatCostDollars(cents: number): string {
-  return `$${(cents / 100).toFixed(2)}`;
-}
-
 function formatRelativeTime(date: Date): string {
-  const now = Date.now();
-  const diff = now - new Date(date).getTime();
-  const seconds = Math.floor(diff / 1000);
-  const minutes = Math.floor(seconds / 60);
+  const diff = Date.now() - new Date(date).getTime();
+  const minutes = Math.floor(diff / 60_000);
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
 
@@ -86,42 +48,64 @@ export function MissionCardGrid({
 }: MissionCardGridProps) {
   return (
     <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-      {missions.map((mission) => (
-        <button
-          className={missionCardVariants({
-            status: resolveCardStatus(mission.status),
-          })}
-          key={mission.id}
-          onClick={() => onMissionClick(mission.id)}
-          type="button"
-        >
-          <div className="flex items-start justify-between gap-2">
-            <span className="truncate font-medium text-sm">{mission.name}</span>
-            <StatusChip status={mission.status} />
-          </div>
-          {mission.objective && (
-            <p className="mt-1.5 line-clamp-2 text-muted-foreground text-xs">
-              {mission.objective}
-            </p>
-          )}
-          <div className="mt-3 flex items-center gap-3 text-muted-foreground text-xs">
-            <span>
-              {mission.agentCount} agent{mission.agentCount !== 1 ? "s" : ""}
-            </span>
-            <span>
-              {mission.completedTasks}/{mission.taskCount} tasks
-            </span>
-            {mission.totalCostCents > 0 && (
-              <span>{formatCostDollars(mission.totalCostCents)}</span>
-            )}
-            <span className="ml-auto">
-              {formatRelativeTime(mission.updatedAt)}
-            </span>
-          </div>
-        </button>
-      ))}
+      {missions.map((mission) => {
+        const ratio =
+          mission.taskCount > 0
+            ? mission.completedTasks / mission.taskCount
+            : 0;
+
+        return (
+          <button
+            className="group flex h-[180px] cursor-pointer flex-col justify-between rounded-sm border border-border/50 p-4 text-left transition-all duration-300 hover:border-border hover:bg-[#F2F1EF] dark:border-[#1d1d1d] dark:bg-[#0c0c0c] dark:hover:border-[#222222] dark:hover:bg-[#0f0f0f]"
+            key={mission.id}
+            onClick={() => onMissionClick(mission.id)}
+            type="button"
+          >
+            <div>
+              <div className="flex items-start justify-between gap-3">
+                <h3 className="min-w-0 truncate font-medium text-sm">
+                  {mission.name}
+                </h3>
+                <StatusChip status={mission.status} />
+              </div>
+              {mission.objective && (
+                <p className="mt-1.5 line-clamp-2 text-muted-foreground text-xs leading-relaxed">
+                  {mission.objective}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full rounded-full bg-primary transition-all"
+                    style={{ width: `${ratio * 100}%` }}
+                  />
+                </div>
+                <span className="text-muted-foreground text-xs tabular-nums">
+                  {mission.completedTasks}/{mission.taskCount}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-3 text-muted-foreground text-xs tabular-nums">
+                <span className="flex items-center gap-1">
+                  <Icons.BotIcon className="size-3" />
+                  {mission.agentCount}
+                </span>
+                {mission.totalCostCents > 0 && (
+                  <span>{formatCents(mission.totalCostCents)}</span>
+                )}
+                <span className="ml-auto">
+                  {formatRelativeTime(mission.updatedAt)}
+                </span>
+              </div>
+            </div>
+          </button>
+        );
+      })}
     </div>
   );
 }
 
-export { missionCardVariants, type MissionRow };
+export type { MissionRow };

@@ -5,12 +5,9 @@ import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { getVanillaTRPCClient } from "@/trpc/client";
 import { useMissionFilterParams } from "../hooks/use-mission-filter-params";
-import { useMissionListStore } from "../stores/mission-list-store";
-import { MissionBulkBar } from "./mission-bulk-bar";
 import { MissionCardGrid } from "./mission-card-grid";
 import { MissionCreateSheet } from "./mission-create-sheet";
 import { MissionEmptyState } from "./mission-empty-state";
-import { MissionStatusTabs } from "./mission-status-tabs";
 import {
   type DashboardStats,
   MissionSummaryCards,
@@ -23,12 +20,11 @@ const PAGE_SIZE = 20;
 
 export function MissionDashboard() {
   const router = useRouter();
-  const [params, setParams] = useMissionFilterParams();
-  const viewMode = useMissionListStore((s) => s.viewMode);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const { search, status, viewMode, hasActiveFilters, clearFilters } =
+    useMissionFilterParams();
   const [createOpen, setCreateOpen] = useState(false);
 
-  const statusFilter = params.status === "all" ? undefined : params.status;
+  const statusFilter = status.length === 1 ? status[0] : undefined;
 
   const { data, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } =
     useInfiniteQuery({
@@ -58,11 +54,20 @@ export function MissionDashboard() {
     [data]
   );
 
-  const stats = useMemo((): DashboardStats | undefined => {
-    if (missions.length === 0) {
-      return;
+  const filteredMissions = useMemo(() => {
+    let result = missions;
+    if (status.length > 1) {
+      const statusSet = new Set(status);
+      result = result.filter((m) => statusSet.has(m.status));
     }
+    if (search) {
+      const q = search.toLowerCase();
+      result = result.filter((m) => m.name.toLowerCase().includes(q));
+    }
+    return result;
+  }, [missions, status, search]);
 
+  const stats = useMemo((): DashboardStats => {
     const totalTasks = missions.reduce((sum, m) => sum + m.taskCount, 0);
     const completedTasks = missions.reduce(
       (sum, m) => sum + m.completedTasks,
@@ -77,97 +82,62 @@ export function MissionDashboard() {
     };
   }, [missions]);
 
-  const statusCounts = useMemo(() => {
-    const counts: Record<string, number> = { all: missions.length };
-    for (const m of missions) {
-      counts[m.status] = (counts[m.status] ?? 0) + 1;
-    }
-    return counts;
-  }, [missions]);
-
   const handleRowClick = useCallback(
     (id: string) => {
       const href = `/missions/${id}`;
-      router.push(href as Parameters<typeof router.push>[0]);
+      router.push(href);
     },
     [router]
   );
 
-  const handleToggleSelection = useCallback((id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  }, []);
-
-  const handleToggleAll = useCallback(() => {
-    setSelectedIds((prev) => {
-      if (prev.size === missions.length) {
-        return new Set();
-      }
-      return new Set(missions.map((m) => m.id));
-    });
-  }, [missions]);
-
-  const handleClearFilters = useCallback(() => {
-    setParams({ status: "all", search: "" });
-  }, [setParams]);
-
-  const hasActiveFilters = params.status !== "all" || params.search !== "";
+  const hasMissions = missions.length > 0;
+  const showFullChrome = hasMissions || hasActiveFilters || isLoading;
 
   return (
-    <div className="flex flex-col gap-4 p-6">
-      <MissionToolbar
-        onCreateClick={() => setCreateOpen(true)}
-        resultCount={missions.length}
-      />
-      <MissionStatusTabs counts={statusCounts} />
-      <MissionSummaryCards isLoading={isLoading} stats={stats} />
+    <div className="flex flex-col gap-4 px-6">
+      {showFullChrome ? (
+        <>
+          <MissionToolbar onCreateClick={() => setCreateOpen(true)} />
+          {hasMissions && <MissionSummaryCards stats={stats} />}
 
-      {(() => {
-        if (isLoading) {
-          return <MissionTableSkeleton />;
-        }
-        if (missions.length === 0) {
-          return (
-            <MissionEmptyState
-              onClearFilters={hasActiveFilters ? handleClearFilters : undefined}
-              onCreateClick={() => setCreateOpen(true)}
-              variant={hasActiveFilters ? "no-results" : "empty"}
-            />
-          );
-        }
-        if (viewMode === "table") {
-          return (
-            <MissionDataTable
-              data={missions}
-              fetchNextPage={fetchNextPage}
-              hasMore={hasNextPage ?? false}
-              isFetchingNextPage={isFetchingNextPage}
-              onRowClick={handleRowClick}
-              onToggleAll={handleToggleAll}
-              onToggleSelection={handleToggleSelection}
-              selectedIds={selectedIds}
-            />
-          );
-        }
-        return (
-          <MissionCardGrid
-            missions={missions}
-            onMissionClick={handleRowClick}
-          />
-        );
-      })()}
-
-      <MissionBulkBar
-        onDeselect={() => setSelectedIds(new Set())}
-        selectedCount={selectedIds.size}
-      />
+          {(() => {
+            if (isLoading) {
+              return <MissionTableSkeleton />;
+            }
+            if (filteredMissions.length === 0) {
+              return (
+                <MissionEmptyState
+                  onClearFilters={hasActiveFilters ? clearFilters : undefined}
+                  onCreateClick={() => setCreateOpen(true)}
+                  variant="no-results"
+                />
+              );
+            }
+            if (viewMode === "table") {
+              return (
+                <MissionDataTable
+                  data={filteredMissions}
+                  fetchNextPage={fetchNextPage}
+                  hasMore={hasNextPage ?? false}
+                  isFetchingNextPage={isFetchingNextPage}
+                  onRowClick={handleRowClick}
+                />
+              );
+            }
+            return (
+              <MissionCardGrid
+                missions={filteredMissions}
+                onMissionClick={handleRowClick}
+              />
+            );
+          })()}
+        </>
+      ) : (
+        <MissionEmptyState
+          onCreateClick={() => setCreateOpen(true)}
+          variant="empty"
+        />
+      )}
 
       <MissionCreateSheet
         isOpen={createOpen}

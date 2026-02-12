@@ -2,7 +2,7 @@
 
 import { Tabs, TabsList, TabsTrigger } from "@openplane/ui";
 import {
-  type MissionStatusFilter,
+  type MissionStatus,
   useMissionFilterParams,
 } from "../hooks/use-mission-filter-params";
 
@@ -10,7 +10,6 @@ const STATUS_TABS = [
   { value: "all", label: "All" },
   { value: "ACTIVE", label: "Active" },
   { value: "COMPLETED", label: "Completed" },
-  { value: "FAILED", label: "Failed" },
   { value: "DRAFT", label: "Draft" },
 ] as const;
 
@@ -19,18 +18,18 @@ type MissionStatusTabsProps = {
 };
 
 function MissionStatusTabs({ counts }: MissionStatusTabsProps) {
-  const [params, setParams] = useMissionFilterParams();
+  const { status, setStatus } = useMissionFilterParams();
+
+  const activeValue = status.length === 1 ? status[0] : "all";
 
   return (
     <Tabs
       onValueChange={(value) =>
-        setParams({
-          status: value === "all" ? null : (value as MissionStatusFilter),
-        })
+        setStatus(value === "all" ? [] : [value as MissionStatus])
       }
-      value={params.status ?? "all"}
+      value={activeValue}
     >
-      <TabsList className="inline-flex h-9">
+      <TabsList>
         {STATUS_TABS.map((tab) => {
           const count = counts?.[tab.value];
           return (

@@ -1,167 +1,188 @@
 "use client";
 
 import {
+  Badge,
   Button,
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
   Icons,
   Input,
 } from "@openplane/ui";
-import { cva } from "class-variance-authority";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useMissionFilterParams } from "../hooks/use-mission-filter-params";
-import { useMissionListStore } from "../stores/mission-list-store";
+import { cn } from "@openplane/ui/utils";
+import {
+  type MissionStatus,
+  useMissionFilterParams,
+} from "../hooks/use-mission-filter-params";
 
-const viewToggleVariants = cva(
-  "inline-flex h-7 w-7 items-center justify-center rounded-sm transition-colors",
-  {
-    variants: {
-      active: {
-        true: "bg-accent text-accent-foreground",
-        false: "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
-      },
-    },
-  }
-);
-
-const SORT_OPTIONS = [
-  { value: "updatedAt", label: "Updated" },
-  { value: "createdAt", label: "Created" },
-  { value: "name", label: "Name" },
-  { value: "status", label: "Status" },
-] as const;
-
-const DEBOUNCE_MS = 300;
+const STATUS_OPTIONS: { value: MissionStatus; label: string }[] = [
+  { value: "ACTIVE", label: "Active" },
+  { value: "DRAFT", label: "Draft" },
+  { value: "PAUSED", label: "Paused" },
+  { value: "COMPLETED", label: "Completed" },
+  { value: "CANCELLED", label: "Cancelled" },
+  { value: "ARCHIVED", label: "Archived" },
+];
 
 type MissionToolbarProps = {
   onCreateClick: () => void;
-  resultCount?: number;
 };
 
-function MissionToolbar({ onCreateClick, resultCount }: MissionToolbarProps) {
-  const [params, setParams] = useMissionFilterParams();
-  const viewMode = useMissionListStore((s) => s.viewMode);
-  const setViewMode = useMissionListStore((s) => s.setViewMode);
-  const sortField = useMissionListStore((s) => s.sortField);
-  const sortDirection = useMissionListStore((s) => s.sortDirection);
-  const setSortField = useMissionListStore((s) => s.setSortField);
-  const setSortDirection = useMissionListStore((s) => s.setSortDirection);
-
-  const [localSearch, setLocalSearch] = useState(params.search);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
-
-  useEffect(() => {
-    setLocalSearch(params.search);
-  }, [params.search]);
-
-  const handleSearchChange = useCallback(
-    (value: string) => {
-      setLocalSearch(value);
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
-      debounceRef.current = setTimeout(() => {
-        setParams({ search: value || null });
-      }, DEBOUNCE_MS);
-    },
-    [setParams]
-  );
-
-  const handleSortChange = useCallback(
-    (value: string) => {
-      const field = value as typeof sortField;
-      setSortField(field);
-      setParams({ sort: field });
-    },
-    [setSortField, setParams]
-  );
-
-  const toggleSortDirection = useCallback(() => {
-    const next = sortDirection === "asc" ? "desc" : "asc";
-    setSortDirection(next);
-    setParams({ order: next });
-  }, [sortDirection, setSortDirection, setParams]);
+function MissionSearchFilter() {
+  const { search, setSearch, status, toggleStatus, clearFilters } =
+    useMissionFilterParams();
 
   return (
     <div className="flex items-center gap-2">
-      <div className="relative max-w-xs flex-1">
-        <Icons.Search className="-translate-y-1/2 pointer-events-none absolute top-1/2 left-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          className="h-8 pl-8 text-sm"
-          onChange={(e) => handleSearchChange(e.target.value)}
-          placeholder="Search missions..."
-          value={localSearch}
+      <div className="relative w-[250px]">
+        <Icons.Search
+          className="-translate-y-1/2 absolute top-1/2 left-3 text-muted-foreground"
+          size={16}
         />
+        <Input
+          className="pr-9 pl-9"
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search missions..."
+          value={search}
+        />
+        {search && (
+          <Button
+            className="-translate-y-1/2 absolute top-1/2 right-1 size-6"
+            onClick={() => setSearch("")}
+            size="icon"
+            variant="ghost"
+          >
+            <Icons.XIcon size={12} />
+          </Button>
+        )}
       </div>
 
-      {resultCount !== undefined && (
-        <span className="text-muted-foreground text-xs tabular-nums">
-          {resultCount} results
-        </span>
-      )}
-
-      <div className="ml-auto flex items-center gap-1">
-        <Button size="sm" variant="ghost">
-          <Icons.Filter className="mr-1.5 h-3.5 w-3.5" />
-          Filter
-        </Button>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button size="sm" variant="ghost">
-              <Icons.ArrowUpDown className="mr-1.5 h-3.5 w-3.5" />
-              Sort
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuRadioGroup
-              onValueChange={handleSortChange}
-              value={sortField}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            className={cn("gap-2", status.length > 0 && "border-primary")}
+            variant="outline"
+          >
+            Status
+            {status.length > 0 && (
+              <Badge className="ml-1 h-5 min-w-5 px-1" variant="secondary">
+                {status.length}
+              </Badge>
+            )}
+            <Icons.ChevronDown size={16} />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-48">
+          <DropdownMenuLabel>Filter by status</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {STATUS_OPTIONS.map((option) => (
+            <DropdownMenuCheckboxItem
+              checked={status.includes(option.value)}
+              key={option.value}
+              onCheckedChange={() => toggleStatus(option.value)}
             >
-              {SORT_OPTIONS.map((option) => (
-                <DropdownMenuRadioItem key={option.value} value={option.value}>
-                  {option.label}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              {option.label}
+            </DropdownMenuCheckboxItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
 
+      <MissionFilterList
+        filters={status.map((s) => ({
+          id: s,
+          label: STATUS_OPTIONS.find((o) => o.value === s)?.label ?? s,
+        }))}
+        onClear={clearFilters}
+        onRemove={(id) => toggleStatus(id as MissionStatus)}
+      />
+    </div>
+  );
+}
+
+type Filter = {
+  id: string;
+  label: string;
+};
+
+type MissionFilterListProps = {
+  filters: Filter[];
+  onRemove: (id: string) => void;
+  onClear: () => void;
+};
+
+function MissionFilterList({
+  filters,
+  onRemove,
+  onClear,
+}: MissionFilterListProps) {
+  if (filters.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      {filters.map((filter) => (
+        <Badge className="gap-1 pr-1 pl-2" key={filter.id} variant="secondary">
+          {filter.label}
+          <button
+            className="rounded-full p-0.5 hover:bg-muted"
+            onClick={() => onRemove(filter.id)}
+            type="button"
+          >
+            <Icons.XIcon size={12} />
+          </button>
+        </Badge>
+      ))}
+      {filters.length > 1 && (
         <Button
-          className="h-7 w-7"
-          onClick={toggleSortDirection}
-          size="icon"
+          className="h-6 text-muted-foreground text-xs"
+          onClick={onClear}
+          size="sm"
           variant="ghost"
         >
-          {sortDirection === "asc" ? (
-            <Icons.ArrowUp className="h-3.5 w-3.5" />
-          ) : (
-            <Icons.ArrowDown className="h-3.5 w-3.5" />
-          )}
+          Clear all
         </Button>
+      )}
+    </div>
+  );
+}
 
-        <div className="flex items-center rounded-sm border border-border/50">
-          <button
-            className={viewToggleVariants({ active: viewMode === "table" })}
-            onClick={() => setViewMode("table")}
-            type="button"
-          >
-            <Icons.List className="h-3.5 w-3.5" />
-          </button>
-          <button
-            className={viewToggleVariants({ active: viewMode === "card" })}
-            onClick={() => setViewMode("card")}
-            type="button"
-          >
-            <Icons.LayoutGrid className="h-3.5 w-3.5" />
-          </button>
-        </div>
+function MissionViewSwitch() {
+  const { viewMode, setViewMode } = useMissionFilterParams();
 
-        <Button onClick={onCreateClick} size="sm">
-          <Icons.Plus className="mr-1.5 h-3.5 w-3.5" />
+  return (
+    <div className="flex gap-2 text-muted-foreground">
+      <Button
+        className={cn(viewMode === "card" && "border-primary text-primary")}
+        onClick={() => setViewMode("card")}
+        size="icon"
+        variant="outline"
+      >
+        <Icons.Grid3x3 size={18} />
+      </Button>
+      <Button
+        className={cn(viewMode === "table" && "border-primary text-primary")}
+        onClick={() => setViewMode("table")}
+        size="icon"
+        variant="outline"
+      >
+        <Icons.List size={18} />
+      </Button>
+    </div>
+  );
+}
+
+function MissionToolbar({ onCreateClick }: MissionToolbarProps) {
+  return (
+    <div className="flex justify-between py-6">
+      <MissionSearchFilter />
+      <div className="hidden space-x-2 md:flex">
+        <MissionViewSwitch />
+        <Button onClick={onCreateClick}>
+          <Icons.Plus className="mr-2" size={16} />
           Create Mission
         </Button>
       </div>
@@ -169,5 +190,5 @@ function MissionToolbar({ onCreateClick, resultCount }: MissionToolbarProps) {
   );
 }
 
-export { MissionToolbar, viewToggleVariants };
+export { MissionToolbar };
 export type { MissionToolbarProps };
