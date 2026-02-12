@@ -9,6 +9,11 @@ export {
   statusDotVariants,
 } from "./components/agent-lane";
 export {
+  AgentLaneCard,
+  agentCardVariants as agentLaneCardVariants,
+} from "./components/agent-lane-card";
+export { AgentLanesPanel } from "./components/agent-lanes-panel";
+export {
   AgentMiniCard,
   agentMiniCardVariants,
 } from "./components/agent-mini-card";
@@ -85,7 +90,7 @@ export {
   taskPriorityBadgeVariants as createTaskPriorityBadgeVariants,
 } from "./components/create/task-step";
 export {
-  DEMO_TEMPLATES,
+  MISSION_TEMPLATES,
   TemplatePicker,
   templateCardVariants,
 } from "./components/create/template-picker";
@@ -112,35 +117,28 @@ export {
 export { MissionApprovalDrawer } from "./components/mission-approval-drawer";
 export { MissionArtifactPanel } from "./components/mission-artifact-panel";
 export { MissionBulkBar } from "./components/mission-bulk-bar";
-export {
-  MissionCardGrid,
-  missionCardVariants,
-} from "./components/mission-card-grid";
+export { MissionCardGrid } from "./components/mission-card-grid";
 export { MissionCommandPalette } from "./components/mission-command-palette";
+export { MissionControlLayout } from "./components/mission-control-layout";
 export { MissionControlView } from "./components/mission-control-view";
 export { MissionCreateSheet } from "./components/mission-create-sheet";
 export { MissionDashboard } from "./components/mission-dashboard";
-export {
-  MissionDetailContent,
-  tabVariants as detailTabVariants,
-} from "./components/mission-detail-content";
 export {
   headerCostVariants,
   MissionDetailHeader,
 } from "./components/mission-detail-header";
 export { MissionDetailLoader } from "./components/mission-detail-loader";
 export { MissionDetailShell } from "./components/mission-detail-shell";
-export { MissionDetailSidebar } from "./components/mission-detail-sidebar";
 export { MissionDetailSkeleton } from "./components/mission-detail-skeleton";
+export { MissionDrawer } from "./components/mission-drawer";
 export { MissionEmptyState } from "./components/mission-empty-state";
 export { MissionEventFeed } from "./components/mission-event-feed";
 export { MissionFilterPopover } from "./components/mission-filter-popover";
-export { MissionRunTable } from "./components/mission-run-table";
 export {
-  MissionStatusTabs,
-  type MissionStatusTabsProps,
-  STATUS_TABS,
-} from "./components/mission-status-tabs";
+  budgetStatusVariants,
+  MissionLedger,
+} from "./components/mission-ledger";
+export { MissionRunTable } from "./components/mission-run-table";
 export {
   type DashboardStats,
   MissionSummaryCards,
@@ -149,7 +147,6 @@ export {
 export {
   MissionToolbar,
   type MissionToolbarProps,
-  viewToggleVariants,
 } from "./components/mission-toolbar";
 export { SidebarSection } from "./components/sidebar-section";
 export { SquadHeader } from "./components/squad-header";
@@ -160,22 +157,17 @@ export {
 } from "./components/status-chip";
 export { TabErrorFallback } from "./components/tab-error-fallback";
 export {
-  type CellHandlers,
-  type ColumnDefinition,
   formatCentsCompact,
+  MISSION_TABLE_CONFIG,
   type MissionRow,
   missionColumns,
-  SKELETON_COLUMNS,
 } from "./components/table/mission-columns";
 export {
   MissionDataTable,
   type MissionDataTableProps,
 } from "./components/table/mission-data-table";
+export { MissionTableHeader } from "./components/table/mission-table-header";
 export { MissionTableSkeleton } from "./components/table/mission-table-skeleton";
-export {
-  MissionVirtualRow,
-  type MissionVirtualRowProps,
-} from "./components/table/mission-virtual-row";
 export { TaskBoard } from "./components/task-board";
 export {
   priorityBadgeVariants,
@@ -205,15 +197,16 @@ export {
   useMissionActions,
 } from "./hooks/use-mission-actions";
 export {
-  type DetailTab,
-  useMissionDetailParams,
-} from "./hooks/use-mission-detail-params";
+  type DrawerType,
+  useMissionDrawer,
+} from "./hooks/use-mission-drawer";
 export {
   type UseMissionEventStreamReturn,
   useMissionEventStream,
 } from "./hooks/use-mission-event-stream";
 export {
-  type MissionStatusFilter,
+  type MissionStatus as MissionStatusFilter,
+  type MissionViewMode,
   useMissionFilterParams,
 } from "./hooks/use-mission-filter-params";
 export { useMissionKeySequences } from "./hooks/use-mission-key-sequences";
@@ -241,7 +234,6 @@ export {
   HIDDEN_EVENT_TYPES,
   isActiveEvent,
   resolveTemplate,
-  TERMINAL_EVENT_SUFFIXES,
 } from "./lib/event-config";
 export {
   groupTasksByStatus,
