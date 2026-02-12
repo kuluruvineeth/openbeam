@@ -1,13 +1,14 @@
 "use client";
 
 import type { MissionEventLedgerItem } from "@openplane/types/mission-control";
-import { useEffect } from "react";
-import { useMissionDetailParams } from "../hooks/use-mission-detail-params";
+import { useCallback, useEffect, useRef } from "react";
+import { useMissionDrawer } from "../hooks/use-mission-drawer";
+import { useMissionEventStream } from "../hooks/use-mission-event-stream";
 import { useMissionRuntimeStore } from "../stores/mission-runtime-store";
 import { MissionActionBar } from "./mission-action-bar";
-import { MissionDetailContent } from "./mission-detail-content";
+import { MissionControlLayout } from "./mission-control-layout";
 import { MissionDetailHeader } from "./mission-detail-header";
-import { MissionDetailSidebar } from "./mission-detail-sidebar";
+import { MissionDrawer } from "./mission-drawer";
 
 type Mission = {
   id: string;
@@ -21,15 +22,7 @@ type Mission = {
   consumedCents: number;
   maxConcurrentRuns: number;
   createdAt: Date;
-  startedAt: Date | null;
-};
-
-type MissionStats = {
-  totalAgents: number;
-  totalTasks: number;
-  completedTasks: number;
-  totalTokens: number;
-  totalCostCents: number;
+  updatedAt: Date;
 };
 
 type MissionAgent = {
@@ -41,19 +34,40 @@ type MissionAgent = {
 
 type MissionDetailShellProps = {
   mission: Mission;
-  initialStats: MissionStats;
   initialAgents: MissionAgent[];
   initialActivity: MissionEventLedgerItem[];
 };
 
 export function MissionDetailShell({
   mission,
-  initialStats,
   initialAgents,
   initialActivity,
 }: MissionDetailShellProps) {
-  const [params, setParams] = useMissionDetailParams();
   const replayFromCursor = useMissionRuntimeStore((s) => s.replayFromCursor);
+  const seedAgentBoard = useMissionRuntimeStore((s) => s.seedAgentBoard);
+  const resetAll = useMissionRuntimeStore((s) => s.resetAll);
+  const { openDrawer, open, close } = useMissionDrawer();
+  const prevMissionIdRef = useRef(mission.id);
+  const isLiveMission =
+    mission.status === "ACTIVE" || mission.status === "PAUSED";
+  const openArtifacts = useCallback(() => open("artifacts"), [open]);
+
+  useMissionEventStream({
+    missionId: mission.id,
+    runId: mission.runId,
+    enabled: isLiveMission,
+  });
+
+  useEffect(() => {
+    if (prevMissionIdRef.current !== mission.id) {
+      resetAll();
+      prevMissionIdRef.current = mission.id;
+    }
+
+    if (initialAgents.length > 0) {
+      seedAgentBoard(initialAgents);
+    }
+  }, [mission.id, initialAgents, seedAgentBoard, resetAll]);
 
   useEffect(() => {
     if (initialActivity.length > 0) {
@@ -61,23 +75,25 @@ export function MissionDetailShell({
     }
   }, [mission.runId, initialActivity, replayFromCursor]);
 
+  useEffect(() => () => resetAll(), [resetAll]);
+
   return (
-    <div className="flex h-full flex-col">
-      <MissionDetailHeader mission={mission} />
-      <div className="flex flex-1 overflow-hidden">
-        <MissionDetailSidebar
-          agents={initialAgents}
-          mission={mission}
-          stats={initialStats}
-        />
-        <MissionDetailContent
-          activeTab={params.tab}
-          missionId={mission.id}
-          onTabChange={(tab) => setParams({ tab })}
-          runId={mission.runId}
-        />
-      </div>
+    <div className="flex h-full flex-col dark:bg-[#0c0c0c]">
+      <MissionDetailHeader mission={mission} onOpenArtifacts={openArtifacts} />
+      <MissionControlLayout
+        missionId={mission.id}
+        missionStatus={mission.status}
+        onOpenArtifacts={openArtifacts}
+        runId={mission.runId}
+      />
       <MissionActionBar missionId={mission.id} status={mission.status} />
+      <MissionDrawer
+        agents={initialAgents}
+        drawerType={openDrawer}
+        missionId={mission.id}
+        onClose={close}
+        runId={mission.runId}
+      />
     </div>
   );
 }

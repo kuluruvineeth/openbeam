@@ -73,13 +73,8 @@ export function MissionDetailSidebar({
       : 0;
   const threshold = computeBudgetThreshold(mission.consumedCents, budgetCents);
 
-  const _taskProgress =
-    stats.totalTasks > 0
-      ? Math.round((stats.completedTasks / stats.totalTasks) * 100)
-      : 0;
-
   return (
-    <div className="flex w-60 shrink-0 flex-col border-border/50 border-r">
+    <div className="flex w-60 shrink-0 flex-col border-border/50 border-r dark:border-[#1d1d1d] dark:bg-[#0c0c0c]">
       <ScrollArea className="flex-1">
         <SidebarSection title="Mission Info">
           <div className="space-y-2">
@@ -197,7 +192,7 @@ function StatCell({
   value: string;
 }) {
   return (
-    <div className="flex flex-col gap-1 rounded-sm border border-border/30 p-2">
+    <div className="flex flex-col gap-1 rounded-sm border border-border/30 p-2 dark:border-[#1d1d1d]">
       <div className="flex items-center gap-1 text-muted-foreground">
         {icon}
         <span className="text-[10px] uppercase tracking-wider">{label}</span>
