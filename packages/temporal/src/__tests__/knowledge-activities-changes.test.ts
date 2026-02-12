@@ -197,7 +197,7 @@ describe("markChangesProcessed activity", () => {
   it("delegates to db mutation with change IDs", async () => {
     const { markChangesProcessed } = await import("@openplane/db");
     const mockMark = vi.mocked(markChangesProcessed);
-    mockMark.mockResolvedValue(undefined);
+    mockMark.mockResolvedValue({ count: 2 });
     const db = createMockDb();
 
     const { createMarkChangesProcessedActivity } = await import(

@@ -157,6 +157,6 @@ describe("emitRuntimeEvent", () => {
     ];
     expect(event.eventId).toBeDefined();
     expect(typeof event.eventId).toBe("string");
-    expect(event.eventId.length).toBeGreaterThan(0);
+    expect((event.eventId as string).length).toBeGreaterThan(0);
   });
 });

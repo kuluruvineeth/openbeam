@@ -35,7 +35,7 @@ describe("Mission Type Schemas", () => {
 
       const result = MissionOrchestratorInputSchema.parse(input);
       expect(result.maxConcurrentRuns).toBe(3);
-      expect(result.heartbeatIntervalMin).toBe(15);
+      expect(result.heartbeatIntervalMin).toBe(2);
     });
 
     it("accepts optional checkpoint", () => {
@@ -134,6 +134,35 @@ describe("Mission Type Schemas", () => {
 
       const result = MissionAgentRunInputSchema.parse(input);
       expect(result.maxSteps).toBe(20);
+    });
+
+    it("accepts tools array", () => {
+      const input = {
+        missionId: "m1",
+        teamId: "team1",
+        agentId: "a1",
+        taskId: "t1",
+        runId: "r1",
+        soulPrompt: "prompt",
+        tools: ["search_hybrid", "rag_answer"],
+      };
+
+      const result = MissionAgentRunInputSchema.parse(input);
+      expect(result.tools).toEqual(["search_hybrid", "rag_answer"]);
+    });
+
+    it("validates without tools (backwards compat)", () => {
+      const input = {
+        missionId: "m1",
+        teamId: "team1",
+        agentId: "a1",
+        taskId: "t1",
+        runId: "r1",
+        soulPrompt: "prompt",
+      };
+
+      const result = MissionAgentRunInputSchema.parse(input);
+      expect(result.tools).toBeUndefined();
     });
   });
 

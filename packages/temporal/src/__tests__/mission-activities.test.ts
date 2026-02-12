@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createMissionActivities } from "../activities/mission";
+import {
+  createMissionActivities,
+  createMissionTimelinePublisher,
+} from "../activities/mission";
 import type { MissionActivities } from "../activities/mission/types";
+
+const REQUEST_ID_PATTERN = /^agent-agent-xyz-\d+$/;
 
 function createMockDb() {
   return {
@@ -9,6 +14,8 @@ function createMockDb() {
       findUnique: vi.fn(),
       updateMany: vi.fn(),
       groupBy: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
     },
     missionAgent: {
       findMany: vi.fn(),
@@ -42,17 +49,36 @@ function createMockDb() {
 describe("Mission Activities", () => {
   let db: ReturnType<typeof createMockDb>;
   let activities: MissionActivities;
+  let publishTimelineEvent: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     db = createMockDb();
-    activities = createMissionActivities({ db: db as never });
+    publishTimelineEvent = vi.fn().mockResolvedValue(undefined);
+    activities = createMissionActivities({
+      db: db as never,
+      publishTimelineEvent,
+    });
   });
 
   describe("refreshQueue", () => {
     it("returns pending tasks ordered by priority", async () => {
       db.missionTask.findMany.mockResolvedValue([
-        { id: "t1", title: "Fix bug", priority: "P0", assigneeId: null },
-        { id: "t2", title: "Add feature", priority: "P2", assigneeId: null },
+        {
+          id: "t1",
+          title: "Fix bug",
+          priority: "P0",
+          assigneeId: null,
+          dependsOn: [],
+          requiredCapabilities: [],
+        },
+        {
+          id: "t2",
+          title: "Add feature",
+          priority: "P2",
+          assigneeId: null,
+          dependsOn: [],
+          requiredCapabilities: [],
+        },
       ]);
 
       const result = await activities.refreshQueue({ missionId: "m1" });
@@ -76,21 +102,136 @@ describe("Mission Activities", () => {
 
       expect(result.tasks).toHaveLength(0);
     });
+
+    it("filters out tasks with unmet dependencies", async () => {
+      db.missionTask.findMany
+        .mockResolvedValueOnce([
+          {
+            id: "t1",
+            title: "Research",
+            priority: "P0",
+            assigneeId: null,
+            dependsOn: [],
+            requiredCapabilities: [],
+          },
+          {
+            id: "t2",
+            title: "Synthesize",
+            priority: "P1",
+            assigneeId: null,
+            dependsOn: ["t1"],
+            requiredCapabilities: [],
+          },
+        ])
+        .mockResolvedValueOnce([]);
+
+      const result = await activities.refreshQueue({ missionId: "m1" });
+
+      expect(result.tasks).toHaveLength(1);
+      expect(result.tasks[0]?.id).toBe("t1");
+    });
+
+    it("includes tasks with all dependencies satisfied", async () => {
+      db.missionTask.findMany
+        .mockResolvedValueOnce([
+          {
+            id: "t1",
+            title: "Research",
+            priority: "P0",
+            assigneeId: null,
+            dependsOn: [],
+            requiredCapabilities: [],
+          },
+          {
+            id: "t2",
+            title: "Synthesize",
+            priority: "P1",
+            assigneeId: null,
+            dependsOn: ["t3"],
+            requiredCapabilities: [],
+          },
+        ])
+        .mockResolvedValueOnce([{ id: "t3" }]);
+
+      const result = await activities.refreshQueue({ missionId: "m1" });
+
+      expect(result.tasks).toHaveLength(2);
+      expect(result.tasks.map((t) => t.id)).toEqual(["t1", "t2"]);
+    });
+
+    it("skips dependency check when no tasks have dependencies", async () => {
+      db.missionTask.findMany.mockResolvedValue([
+        {
+          id: "t1",
+          title: "Task A",
+          priority: "P0",
+          assigneeId: null,
+          dependsOn: [],
+          requiredCapabilities: [],
+        },
+        {
+          id: "t2",
+          title: "Task B",
+          priority: "P1",
+          assigneeId: null,
+          dependsOn: [],
+          requiredCapabilities: [],
+        },
+      ]);
+
+      const result = await activities.refreshQueue({ missionId: "m1" });
+
+      expect(result.tasks).toHaveLength(2);
+      expect(db.missionTask.findMany).toHaveBeenCalledTimes(1);
+    });
+
+    it("handles tasks with multiple dependencies partially met", async () => {
+      db.missionTask.findMany
+        .mockResolvedValueOnce([
+          {
+            id: "t3",
+            title: "Final",
+            priority: "P2",
+            assigneeId: null,
+            dependsOn: ["t1", "t2"],
+            requiredCapabilities: [],
+          },
+        ])
+        .mockResolvedValueOnce([{ id: "t1" }]);
+
+      const result = await activities.refreshQueue({ missionId: "m1" });
+
+      expect(result.tasks).toHaveLength(0);
+    });
   });
 
   describe("planDispatch", () => {
-    it("matches idle agents to pending tasks", async () => {
+    it("matches idle agents to same-priority tasks", async () => {
       db.missionRun.findMany.mockResolvedValue([]);
       db.missionAgent.findMany.mockResolvedValue([
-        { id: "a1", name: "Agent A", soulPrompt: "Do stuff", sortOrder: 0 },
-        { id: "a2", name: "Agent B", soulPrompt: "Do more", sortOrder: 1 },
+        {
+          id: "a1",
+          name: "Agent A",
+          soulPrompt: "Do stuff",
+          sortOrder: 0,
+          capabilities: [],
+          tools: [],
+        },
+        {
+          id: "a2",
+          name: "Agent B",
+          soulPrompt: "Do more",
+          sortOrder: 1,
+          capabilities: [],
+          tools: [],
+        },
       ]);
 
       const result = await activities.planDispatch({
         missionId: "m1",
         pendingTasks: [
           { id: "t1", title: "Task 1", priority: "P0" },
-          { id: "t2", title: "Task 2", priority: "P1" },
+          { id: "t2", title: "Task 2", priority: "P0" },
         ],
         maxConcurrentRuns: 3,
       });
@@ -102,20 +243,132 @@ describe("Mission Activities", () => {
       expect(result.dispatches[1]?.taskId).toBe("t2");
     });
 
+    it("includes tools in dispatch output", async () => {
+      db.missionRun.findMany.mockResolvedValue([]);
+      db.missionAgent.findMany.mockResolvedValue([
+        {
+          id: "a1",
+          name: "Researcher",
+          soulPrompt: "P",
+          sortOrder: 0,
+          capabilities: [],
+          tools: ["search_hybrid", "rag_answer"],
+        },
+      ]);
+
+      const result = await activities.planDispatch({
+        missionId: "m1",
+        pendingTasks: [{ id: "t1", title: "Research", priority: "P0" }],
+        maxConcurrentRuns: 3,
+      });
+
+      expect(result.dispatches[0]?.tools).toEqual([
+        "search_hybrid",
+        "rag_answer",
+      ]);
+    });
+
+    it("only dispatches highest priority tier", async () => {
+      db.missionRun.findMany.mockResolvedValue([]);
+      db.missionAgent.findMany.mockResolvedValue([
+        {
+          id: "a1",
+          name: "Specialist A",
+          soulPrompt: "P",
+          sortOrder: 0,
+          capabilities: [],
+          tools: [],
+        },
+        {
+          id: "a2",
+          name: "Specialist B",
+          soulPrompt: "P",
+          sortOrder: 1,
+          capabilities: [],
+          tools: [],
+        },
+        {
+          id: "a3",
+          name: "Coordinator",
+          soulPrompt: "P",
+          sortOrder: 2,
+          capabilities: [],
+          tools: [],
+        },
+      ]);
+
+      const result = await activities.planDispatch({
+        missionId: "m1",
+        pendingTasks: [
+          { id: "t1", title: "Research A", priority: "P0" },
+          { id: "t2", title: "Research B", priority: "P0" },
+          { id: "t3", title: "Synthesize", priority: "P1" },
+        ],
+        maxConcurrentRuns: 5,
+      });
+
+      expect(result.dispatches).toHaveLength(2);
+      expect(result.dispatches.map((d) => d.taskId)).toEqual(["t1", "t2"]);
+    });
+
+    it("dispatches lower priority when higher priority done", async () => {
+      db.missionRun.findMany.mockResolvedValue([]);
+      db.missionAgent.findMany.mockResolvedValue([
+        {
+          id: "a1",
+          name: "Coordinator",
+          soulPrompt: "P",
+          sortOrder: 0,
+          capabilities: [],
+          tools: [],
+        },
+      ]);
+
+      const result = await activities.planDispatch({
+        missionId: "m1",
+        pendingTasks: [{ id: "t3", title: "Synthesize", priority: "P1" }],
+        maxConcurrentRuns: 3,
+      });
+
+      expect(result.dispatches).toHaveLength(1);
+      expect(result.dispatches[0]?.taskId).toBe("t3");
+    });
+
     it("respects max concurrent runs", async () => {
       db.missionRun.findMany.mockResolvedValue([{ agentId: "a1" }]);
       db.missionAgent.findMany.mockResolvedValue([
-        { id: "a1", name: "Agent A", soulPrompt: "Prompt", sortOrder: 0 },
-        { id: "a2", name: "Agent B", soulPrompt: "Prompt", sortOrder: 1 },
-        { id: "a3", name: "Agent C", soulPrompt: "Prompt", sortOrder: 2 },
+        {
+          id: "a1",
+          name: "Agent A",
+          soulPrompt: "Prompt",
+          sortOrder: 0,
+          capabilities: [],
+          tools: [],
+        },
+        {
+          id: "a2",
+          name: "Agent B",
+          soulPrompt: "Prompt",
+          sortOrder: 1,
+          capabilities: [],
+          tools: [],
+        },
+        {
+          id: "a3",
+          name: "Agent C",
+          soulPrompt: "Prompt",
+          sortOrder: 2,
+          capabilities: [],
+          tools: [],
+        },
       ]);
 
       const result = await activities.planDispatch({
         missionId: "m1",
         pendingTasks: [
           { id: "t1", title: "Task 1", priority: "P0" },
-          { id: "t2", title: "Task 2", priority: "P1" },
-          { id: "t3", title: "Task 3", priority: "P2" },
+          { id: "t2", title: "Task 2", priority: "P0" },
+          { id: "t3", title: "Task 3", priority: "P0" },
         ],
         maxConcurrentRuns: 2,
       });
@@ -129,8 +382,22 @@ describe("Mission Activities", () => {
         { agentId: "a2" },
       ]);
       db.missionAgent.findMany.mockResolvedValue([
-        { id: "a1", name: "Agent A", soulPrompt: "Prompt", sortOrder: 0 },
-        { id: "a2", name: "Agent B", soulPrompt: "Prompt", sortOrder: 1 },
+        {
+          id: "a1",
+          name: "Agent A",
+          soulPrompt: "Prompt",
+          sortOrder: 0,
+          capabilities: [],
+          tools: [],
+        },
+        {
+          id: "a2",
+          name: "Agent B",
+          soulPrompt: "Prompt",
+          sortOrder: 1,
+          capabilities: [],
+          tools: [],
+        },
       ]);
 
       const result = await activities.planDispatch({
@@ -140,6 +407,133 @@ describe("Mission Activities", () => {
       });
 
       expect(result.dispatches).toHaveLength(0);
+    });
+
+    it("handles empty pending tasks", async () => {
+      db.missionRun.findMany.mockResolvedValue([]);
+      db.missionAgent.findMany.mockResolvedValue([
+        {
+          id: "a1",
+          name: "Agent A",
+          soulPrompt: "P",
+          sortOrder: 0,
+          capabilities: [],
+          tools: [],
+        },
+      ]);
+
+      const result = await activities.planDispatch({
+        missionId: "m1",
+        pendingTasks: [],
+        maxConcurrentRuns: 3,
+      });
+
+      expect(result.dispatches).toHaveLength(0);
+    });
+
+    it("matches agent capabilities to task requirements", async () => {
+      db.missionRun.findMany.mockResolvedValue([]);
+      db.missionAgent.findMany.mockResolvedValue([
+        {
+          id: "a1",
+          name: "Writer",
+          soulPrompt: "P",
+          sortOrder: 0,
+          capabilities: ["writing", "synthesis"],
+          tools: [],
+        },
+        {
+          id: "a2",
+          name: "Researcher",
+          soulPrompt: "P",
+          sortOrder: 1,
+          capabilities: ["research", "analysis"],
+          tools: [],
+        },
+      ]);
+
+      const result = await activities.planDispatch({
+        missionId: "m1",
+        pendingTasks: [
+          {
+            id: "t1",
+            title: "Analyze data",
+            priority: "P0",
+            requiredCapabilities: ["research", "analysis"],
+          },
+        ],
+        maxConcurrentRuns: 3,
+      });
+
+      expect(result.dispatches).toHaveLength(1);
+      expect(result.dispatches[0]?.agentId).toBe("a2");
+    });
+
+    it("falls back to sortOrder when no capabilities defined", async () => {
+      db.missionRun.findMany.mockResolvedValue([]);
+      db.missionAgent.findMany.mockResolvedValue([
+        {
+          id: "a1",
+          name: "Agent A",
+          soulPrompt: "P",
+          sortOrder: 0,
+          capabilities: [],
+          tools: [],
+        },
+        {
+          id: "a2",
+          name: "Agent B",
+          soulPrompt: "P",
+          sortOrder: 1,
+          capabilities: [],
+          tools: [],
+        },
+      ]);
+
+      const result = await activities.planDispatch({
+        missionId: "m1",
+        pendingTasks: [{ id: "t1", title: "Generic task", priority: "P0" }],
+        maxConcurrentRuns: 3,
+      });
+
+      expect(result.dispatches[0]?.agentId).toBe("a1");
+    });
+
+    it("prefers agent with higher capability overlap", async () => {
+      db.missionRun.findMany.mockResolvedValue([]);
+      db.missionAgent.findMany.mockResolvedValue([
+        {
+          id: "a1",
+          name: "Generalist",
+          soulPrompt: "P",
+          sortOrder: 0,
+          capabilities: ["research"],
+          tools: [],
+        },
+        {
+          id: "a2",
+          name: "Specialist",
+          soulPrompt: "P",
+          sortOrder: 1,
+          capabilities: ["research", "analysis", "data"],
+          tools: [],
+        },
+      ]);
+
+      const result = await activities.planDispatch({
+        missionId: "m1",
+        pendingTasks: [
+          {
+            id: "t1",
+            title: "Data analysis",
+            priority: "P0",
+            requiredCapabilities: ["research", "analysis", "data"],
+          },
+        ],
+        maxConcurrentRuns: 3,
+      });
+
+      expect(result.dispatches[0]?.agentId).toBe("a2");
     });
   });
 
@@ -192,6 +586,7 @@ describe("Mission Activities", () => {
 
   describe("loadMissionContext", () => {
     it("loads agent, task, memory, and comments", async () => {
+      db.mission.findUnique.mockResolvedValue({ teamId: "team1" });
       db.missionAgent.findFirst.mockResolvedValue({
         id: "a1",
         soulPrompt: "You are a researcher",
@@ -248,6 +643,15 @@ describe("Mission Activities", () => {
       expect(result.exceeded).toBe(true);
       expect(result.consumedCents).toBe(1500);
       expect(result.budgetCents).toBe(1000);
+      expect(publishTimelineEvent).toHaveBeenCalledWith({
+        missionId: "m1",
+        eventType: "cost.updated",
+        payload: {
+          consumedCents: 1500,
+          budgetCents: 1000,
+          costCents: 100,
+        },
+      });
     });
 
     it("returns not exceeded when within budget", async () => {
@@ -406,7 +810,9 @@ describe("Mission Activities", () => {
 
   describe("logActivity", () => {
     it("creates an activity log entry", async () => {
-      db.missionActivity.create.mockResolvedValue({});
+      db.missionActivity.create.mockResolvedValue({
+        createdAt: new Date("2026-01-01T00:00:00.000Z"),
+      });
 
       await activities.logActivity({
         missionId: "m1",
@@ -424,6 +830,79 @@ describe("Mission Activities", () => {
           agentId: "a1",
           metadata: { taskId: "t1" },
         },
+      });
+      expect(publishTimelineEvent).toHaveBeenCalledWith({
+        missionId: "m1",
+        eventType: "agent_dispatched",
+        payload: {
+          taskId: "t1",
+          agentId: "a1",
+          summary: "Agent dispatched for task",
+        },
+        timestamp: new Date("2026-01-01T00:00:00.000Z").getTime(),
+      });
+    });
+
+    it("forwards metadata payload for timeline stream", async () => {
+      db.missionActivity.create.mockResolvedValue({
+        createdAt: new Date("2026-01-01T00:00:01.000Z"),
+      });
+
+      await activities.logActivity({
+        missionId: "m1",
+        type: "approval_resolved",
+        message: "Approved",
+        metadata: {
+          approvalId: "approval-1",
+          approved: true,
+        },
+      });
+
+      expect(publishTimelineEvent).toHaveBeenCalledWith({
+        missionId: "m1",
+        eventType: "approval_resolved",
+        payload: {
+          approvalId: "approval-1",
+          approved: true,
+          summary: "Approved",
+        },
+        timestamp: new Date("2026-01-01T00:00:01.000Z").getTime(),
+      });
+    });
+  });
+
+  describe("finalizeMission", () => {
+    it("publishes mission.completed when finalizing completed state", async () => {
+      db.mission.update.mockResolvedValue({});
+
+      await activities.finalizeMission({
+        missionId: "m1",
+        status: "COMPLETED",
+      });
+
+      expect(db.mission.update).toHaveBeenCalledWith({
+        where: { id: "m1" },
+        data: { status: "COMPLETED" },
+      });
+      expect(publishTimelineEvent).toHaveBeenCalledWith({
+        missionId: "m1",
+        eventType: "mission.completed",
+        payload: { status: "COMPLETED" },
+      });
+    });
+
+    it("publishes mission.cancelled when finalizing cancelled state", async () => {
+      db.mission.update.mockResolvedValue({});
+
+      await activities.finalizeMission({
+        missionId: "m1",
+        status: "CANCELLED",
+      });
+
+      expect(publishTimelineEvent).toHaveBeenCalledWith({
+        missionId: "m1",
+        eventType: "mission.cancelled",
+        payload: { status: "CANCELLED" },
       });
     });
   });
@@ -448,5 +927,203 @@ describe("Mission Activities", () => {
         },
       });
     });
+  });
+
+  describe("createMissionTask", () => {
+    it("creates a task and returns taskId", async () => {
+      db.missionTask.create.mockResolvedValue({ id: "new-task-1" });
+
+      const result = await activities.createMissionTask({
+        missionId: "m1",
+        agentId: "a1",
+        title: "Sub-investigation",
+        description: "Research subtopic X",
+        priority: "P1",
+      });
+
+      expect(result.taskId).toBe("new-task-1");
+      expect(db.missionTask.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          missionId: "m1",
+          title: "Sub-investigation",
+          description: "Research subtopic X",
+          priority: "P1",
+          dependsOn: [],
+          requiredCapabilities: [],
+          createdById: "a1",
+        }),
+      });
+    });
+
+    it("stores dependsOn and requiredCapabilities", async () => {
+      db.missionTask.create.mockResolvedValue({ id: "new-task-2" });
+
+      await activities.createMissionTask({
+        missionId: "m1",
+        agentId: "a1",
+        title: "Analysis",
+        dependsOn: ["t1", "t2"],
+        requiredCapabilities: ["analysis", "data"],
+      });
+
+      expect(db.missionTask.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          dependsOn: ["t1", "t2"],
+          requiredCapabilities: ["analysis", "data"],
+        }),
+      });
+    });
+
+    it("defaults priority to P2", async () => {
+      db.missionTask.create.mockResolvedValue({ id: "new-task-3" });
+
+      await activities.createMissionTask({
+        missionId: "m1",
+        agentId: "a1",
+        title: "Default priority task",
+      });
+
+      expect(db.missionTask.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          priority: "P2",
+        }),
+      });
+    });
+
+    it("generates requestId with agent prefix", async () => {
+      db.missionTask.create.mockResolvedValue({ id: "new-task-4" });
+
+      await activities.createMissionTask({
+        missionId: "m1",
+        agentId: "agent-xyz",
+        title: "Task",
+      });
+
+      const createCall = db.missionTask.create.mock.calls[0]?.[0];
+      expect(createCall?.data?.requestId).toMatch(REQUEST_ID_PATTERN);
+    });
+  });
+
+  describe("sendFeedback", () => {
+    it("posts comment with feedback", async () => {
+      db.missionComment.create.mockResolvedValue({});
+
+      await activities.sendFeedback({
+        taskId: "t1",
+        fromAgentId: "a1",
+        feedback: "Needs more detail on section 2",
+        reopen: false,
+      });
+
+      expect(db.missionComment.create).toHaveBeenCalledWith({
+        data: {
+          taskId: "t1",
+          fromAgentId: "a1",
+          content: "Needs more detail on section 2",
+          mentions: [],
+        },
+      });
+      expect(db.missionTask.update).not.toHaveBeenCalled();
+    });
+
+    it("reopens task to INBOX when reopen is true", async () => {
+      db.missionComment.create.mockResolvedValue({});
+      db.missionTask.update.mockResolvedValue({});
+
+      await activities.sendFeedback({
+        taskId: "t1",
+        fromAgentId: "a1",
+        feedback: "Incomplete research, please redo",
+        reopen: true,
+      });
+
+      expect(db.missionTask.update).toHaveBeenCalledWith({
+        where: { id: "t1" },
+        data: { status: "INBOX", assigneeId: null, completedAt: null },
+      });
+    });
+
+    it("mentions targetAgentId when provided", async () => {
+      db.missionComment.create.mockResolvedValue({});
+
+      await activities.sendFeedback({
+        taskId: "t1",
+        fromAgentId: "a1",
+        feedback: "Revise your analysis",
+        targetAgentId: "a2",
+        reopen: false,
+      });
+
+      expect(db.missionComment.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          mentions: ["a2"],
+        }),
+      });
+    });
+  });
+});
+
+describe("createMissionTimelinePublisher", () => {
+  it("publishes normalized timeline events using resolved run id", async () => {
+    const db = createMockDb();
+    db.mission.findUnique.mockResolvedValue({ runId: "run-1" });
+    const publish = vi.fn().mockResolvedValue(undefined);
+    const publisher = createMissionTimelinePublisher(db as never, publish);
+
+    await publisher({
+      missionId: "m1",
+      eventType: "approval_resolved",
+      payload: { approvalId: "appr-1" },
+      timestamp: 1_700_000_000_000,
+    });
+
+    expect(db.mission.findUnique).toHaveBeenCalledWith({
+      where: { id: "m1" },
+      select: { runId: true },
+    });
+    expect(publish).toHaveBeenCalledWith({
+      missionId: "m1",
+      runId: "run-1",
+      lane: "autonomous",
+      eventType: "approval.resolved",
+      payload: { approvalId: "appr-1" },
+      timestamp: 1_700_000_000_000,
+    });
+  });
+
+  it("reuses cached run id for subsequent events", async () => {
+    const db = createMockDb();
+    db.mission.findUnique.mockResolvedValue({ runId: "run-1" });
+    const publish = vi.fn().mockResolvedValue(undefined);
+    const publisher = createMissionTimelinePublisher(db as never, publish);
+
+    await publisher({
+      missionId: "m1",
+      eventType: "agent_run_started",
+      payload: { agentId: "a1" },
+    });
+    await publisher({
+      missionId: "m1",
+      eventType: "agent_run_completed",
+      payload: { agentId: "a1" },
+    });
+
+    expect(db.mission.findUnique).toHaveBeenCalledTimes(1);
+    expect(publish).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not publish when mission run id is missing", async () => {
+    const db = createMockDb();
+    db.mission.findUnique.mockResolvedValue({ runId: null });
+    const publish = vi.fn().mockResolvedValue(undefined);
+    const publisher = createMissionTimelinePublisher(db as never, publish);
+
+    await publisher({
+      missionId: "m1",
+      eventType: "agent_run_started",
+      payload: { agentId: "a1" },
+    });
+
+    expect(publish).not.toHaveBeenCalled();
   });
 });

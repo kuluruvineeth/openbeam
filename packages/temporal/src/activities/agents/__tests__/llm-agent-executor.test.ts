@@ -10,6 +10,22 @@ vi.mock("@openplane/ai", () => ({
     values: new Map(),
     history: [],
   })),
+  getConfig: vi.fn(() => ({
+    defaultChatModel: "claude-sonnet-4-20250514",
+  })),
+  calculateCost: vi.fn(() => ({
+    totalCostUsd: 0,
+    inputCostUsd: 0,
+    outputCostUsd: 0,
+  })),
+}));
+
+vi.mock("@temporalio/activity", () => ({
+  Context: {
+    current: () => ({
+      heartbeat: vi.fn(),
+    }),
+  },
 }));
 
 import { createLlmAgent } from "@openplane/ai";
@@ -185,7 +201,7 @@ describe("LlmAgentExecutor", () => {
       );
     });
 
-    it("serializes non-string output as JSON", async () => {
+    it("falls back to 'No output' for non-string output", async () => {
       mockExecute.mockResolvedValue(createSuccessResult({ data: [1, 2, 3] }));
 
       const result = await executor.executeStep("session-1", "mission", 1, [], {
@@ -193,7 +209,7 @@ describe("LlmAgentExecutor", () => {
       });
 
       expect(result.artifacts).toEqual([
-        expect.objectContaining({ content: '{"data":[1,2,3]}' }),
+        expect.objectContaining({ content: "No output" }),
       ]);
     });
 

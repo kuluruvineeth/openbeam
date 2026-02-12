@@ -53,6 +53,7 @@ describe("Mission Triggers", () => {
       mockStart.mockResolvedValue({
         workflowId: "mission:m1",
         firstExecutionRunId: "run-1",
+        signal: mockSignal.mockResolvedValue(undefined),
       });
 
       const result = await startMission({
@@ -74,7 +75,7 @@ describe("Mission Triggers", () => {
               teamId: "team1",
               objective: "Build the thing",
               maxConcurrentRuns: 3,
-              heartbeatIntervalMin: 15,
+              heartbeatIntervalMin: 2,
             }),
           ],
         })
