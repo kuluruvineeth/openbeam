@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 
 const SECOND_MS = 1000;
-const MINUTE_MS = 60 * SECOND_MS;
-const _HOUR_MS = 60 * MINUTE_MS;
 
 function formatElapsed(ms: number): string {
   const totalSeconds = Math.max(0, Math.floor(ms / SECOND_MS));
@@ -19,16 +17,29 @@ function formatElapsed(ms: number): string {
 
 type ElapsedTimerProps = {
   startedAt: number;
+  endedAt?: number;
   status: string;
 };
 
-export function ElapsedTimer({ startedAt, status }: ElapsedTimerProps) {
-  const [elapsed, setElapsed] = useState(() =>
-    startedAt > 0 ? Date.now() - startedAt : 0
+export function ElapsedTimer({
+  startedAt,
+  endedAt,
+  status,
+}: ElapsedTimerProps) {
+  const fixedDuration =
+    endedAt && endedAt > 0 && startedAt > 0 ? endedAt - startedAt : null;
+
+  const [elapsed, setElapsed] = useState(
+    () => fixedDuration ?? (startedAt > 0 ? Date.now() - startedAt : 0)
   );
-  const isTicking = status === "ACTIVE";
+  const isTicking = status === "ACTIVE" && !fixedDuration;
 
   useEffect(() => {
+    if (fixedDuration !== null) {
+      setElapsed(fixedDuration);
+      return;
+    }
+
     if (!isTicking || startedAt <= 0) {
       return;
     }
@@ -41,14 +52,10 @@ export function ElapsedTimer({ startedAt, status }: ElapsedTimerProps) {
     raf = requestAnimationFrame(tick);
 
     return () => cancelAnimationFrame(raf);
-  }, [startedAt, isTicking]);
+  }, [startedAt, isTicking, fixedDuration]);
 
   if (startedAt <= 0) {
-    return (
-      <span className="font-mono text-muted-foreground text-sm tabular-nums">
-        --:--:--
-      </span>
-    );
+    return null;
   }
 
   return (

@@ -41,7 +41,7 @@ export function MissionCreateSheet({
         </SheetHeader>
 
         <MissionFormContext>
-          <MissionCreateContent />
+          <MissionCreateContent onClose={onClose} />
         </MissionFormContext>
       </SheetContent>
     </Sheet>

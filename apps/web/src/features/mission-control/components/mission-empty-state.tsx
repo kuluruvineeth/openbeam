@@ -39,23 +39,21 @@ export function MissionEmptyState({
   }
 
   return (
-    <div className="mx-auto flex max-w-sm flex-col items-center py-16 text-center">
-      <Icons.BotIcon className="text-muted-foreground" size={48} />
-      <h3 className="mt-4 font-medium text-lg">No missions yet</h3>
-      <p className="mt-1.5 text-muted-foreground text-sm">
-        Create your first AI mission to orchestrate agents that work toward a
-        shared objective.
-      </p>
-      <div className="mt-4 flex items-center gap-2">
-        {onCreateClick && (
-          <Button onClick={onCreateClick} size="sm">
-            Create Mission
-          </Button>
-        )}
-        <Button size="sm" variant="outline">
-          Use Template
-        </Button>
+    <div className="mx-auto flex max-w-md flex-col items-center py-24 text-center">
+      <div className="flex h-16 w-16 items-center justify-center rounded-md bg-muted/50">
+        <Icons.BotIcon className="text-muted-foreground" size={32} />
       </div>
+      <h3 className="mt-5 font-medium text-lg">No missions yet</h3>
+      <p className="mt-1.5 text-muted-foreground text-sm leading-relaxed">
+        Missions orchestrate teams of AI agents toward a shared objective.
+        Create one to get started.
+      </p>
+      {onCreateClick && (
+        <Button className="mt-5" onClick={onCreateClick} size="sm">
+          <Icons.Plus size={14} />
+          Create Mission
+        </Button>
+      )}
     </div>
   );
 }
