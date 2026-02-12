@@ -1,6 +1,7 @@
 "use client";
 
 import type { MissionAgentLaneState } from "@openplane/types/mission-control";
+import { Icons } from "@openplane/ui";
 import { cva } from "class-variance-authority";
 import { memo } from "react";
 import { cn } from "@/lib/utils";
@@ -74,7 +75,11 @@ export const AgentLane = memo(function AgentLaneInner({
 
         <span className="truncate font-medium text-sm">{agent.agentName}</span>
 
-        <span className="text-muted-foreground text-xs">{agent.role}</span>
+        {agent.role.toLowerCase() === "coordinator" ? (
+          <Icons.Workflow className="shrink-0 text-primary/60" size={12} />
+        ) : (
+          <span className="text-muted-foreground text-xs">{agent.role}</span>
+        )}
 
         {agent.model && (
           <span className="rounded-sm bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">

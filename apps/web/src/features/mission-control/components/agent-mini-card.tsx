@@ -1,5 +1,6 @@
 "use client";
 
+import { Icons } from "@openplane/ui";
 import { cva } from "class-variance-authority";
 
 const AGENT_STATUSES = [
@@ -12,15 +13,19 @@ const AGENT_STATUSES = [
 type AgentStatus = (typeof AGENT_STATUSES)[number];
 
 const agentMiniCardVariants = cva(
-  "flex cursor-pointer items-center gap-2 rounded-sm border px-2 py-1.5 text-xs transition-colors",
+  "flex cursor-pointer items-center gap-1.5 rounded-sm border px-2 py-1 text-xs transition-colors duration-100",
   {
     variants: {
       status: {
-        idle: "border-border/30 bg-card hover:bg-muted/50",
-        running: "border-primary/30 bg-primary/5 hover:bg-primary/10",
-        blocked: "border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10",
-        completed: "border-emerald-500/30 bg-emerald-500/5",
-        failed: "border-destructive/30 bg-destructive/5",
+        idle: "border-border/40 hover:bg-muted/30 dark:border-[#1d1d1d] dark:hover:bg-[#0f0f0f]",
+        running:
+          "border-primary/20 hover:bg-primary/[0.04] dark:border-primary/15",
+        blocked:
+          "border-amber-500/20 hover:bg-amber-500/[0.04] dark:border-amber-500/15",
+        completed:
+          "border-border/40 hover:bg-muted/30 dark:border-[#1d1d1d] dark:hover:bg-[#0f0f0f]",
+        failed:
+          "border-destructive/20 hover:bg-destructive/[0.04] dark:border-destructive/15",
       },
     },
     defaultVariants: { status: "idle" },
@@ -28,7 +33,7 @@ const agentMiniCardVariants = cva(
 );
 
 const STATUS_DOT_CLASSES: Record<AgentStatus, string> = {
-  idle: "bg-muted-foreground",
+  idle: "bg-muted-foreground/50",
   running: "bg-primary animate-pulse",
   blocked: "bg-amber-500",
   completed: "bg-emerald-500",
@@ -55,6 +60,7 @@ export function AgentMiniCard({
   onClick,
 }: AgentMiniCardProps) {
   const resolved = resolveAgentStatus(status);
+  const isCoordinator = role.toLowerCase() === "coordinator";
 
   return (
     <button
@@ -63,10 +69,12 @@ export function AgentMiniCard({
       type="button"
     >
       <span
-        className={`h-2 w-2 shrink-0 rounded-full ${STATUS_DOT_CLASSES[resolved]}`}
+        className={`h-1.5 w-1.5 shrink-0 rounded-full ${STATUS_DOT_CLASSES[resolved]}`}
       />
       <span className="truncate font-medium">{name}</span>
-      <span className="ml-auto shrink-0 text-muted-foreground">{role}</span>
+      {isCoordinator && (
+        <Icons.Star className="ml-auto shrink-0 text-primary/60" size={10} />
+      )}
     </button>
   );
 }
