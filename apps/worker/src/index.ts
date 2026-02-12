@@ -25,6 +25,7 @@ const WORKER_TYPES: WorkerType[] = [
   "canvas",
   "maintenance",
   "scheduled",
+  "mission",
 ];
 
 const WORKER_CONCURRENCY: Record<WorkerType, number> = {
@@ -36,6 +37,8 @@ const WORKER_CONCURRENCY: Record<WorkerType, number> = {
   canvas: 5,
   maintenance: 2,
   scheduled: 3,
+  mission: 5,
+  knowledge: 5,
 };
 
 class WorkerService {

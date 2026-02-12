@@ -24,7 +24,11 @@ import {
   updateMissionTask,
   upsertMissionMemory,
 } from "@openplane/db";
-import { createMissionEventSubscriber } from "@openplane/redis";
+import {
+  createMissionEventSubscriber,
+  publishMissionTimelineEvent,
+} from "@openplane/redis";
+import { logger } from "@openplane/services/lib/logger";
 import {
   cancelMission,
   pauseMission,
@@ -62,6 +66,7 @@ const createMissionSchema = z.object({
   budgetCents: z.number().int().positive().optional(),
   maxConcurrentRuns: z.number().int().min(1).max(10).default(3),
   heartbeatIntervalMin: z.number().int().min(1).max(1440).optional(),
+  cronSchedule: z.string().min(9).max(100).optional(),
 });
 
 const listActivitySchema = z.object({
@@ -74,6 +79,19 @@ const listApprovalsSchema = z.object({
   missionId: z.string(),
   status: z.enum(["PENDING", "APPROVED", "REJECTED", "ESCALATED"]).optional(),
 });
+
+const ROLE_CAPABILITIES: Record<string, string[]> = {
+  coordinator: ["coordination", "synthesis", "review"],
+  researcher: ["research", "analysis"],
+  analyst: ["analysis", "data"],
+  writer: ["writing", "synthesis"],
+  reviewer: ["review", "analysis"],
+  specialist: ["research"],
+};
+
+function deriveCapabilities(role: string): string[] {
+  return ROLE_CAPABILITIES[role] ?? ["research"];
+}
 
 const MUTABLE_STATUSES = ["DRAFT", "PAUSED"] as const;
 const DELETABLE_STATUSES = [
@@ -88,6 +106,48 @@ const TERMINAL_MISSION_EVENTS = [
   "mission.failed",
   "mission.cancelled",
 ];
+
+const EVENT_TYPE_ALIASES: Record<string, string> = {
+  approval_requested: "approval.requested",
+  approval_resolved: "approval.resolved",
+  artifact_published: "artifact.published",
+};
+
+function normalizeMissionEventType(eventType: string): string {
+  return EVENT_TYPE_ALIASES[eventType] ?? eventType;
+}
+
+async function publishMissionTimelineEventSafe(input: {
+  missionId: string;
+  runId: string | null;
+  eventType: string;
+  payload: Record<string, unknown>;
+  timestamp?: number;
+}): Promise<void> {
+  if (!input.runId) {
+    return;
+  }
+
+  try {
+    await publishMissionTimelineEvent({
+      missionId: input.missionId,
+      runId: input.runId,
+      lane: "autonomous",
+      eventType: normalizeMissionEventType(input.eventType),
+      timestamp: input.timestamp ?? Date.now(),
+      payload: input.payload,
+    });
+  } catch (error) {
+    logger.warn(
+      {
+        missionId: input.missionId,
+        eventType: input.eventType,
+        error: error instanceof Error ? error.message : String(error),
+      },
+      "Failed to publish mission timeline event"
+    );
+  }
+}
 
 const MissionAgentLevelSchema = z.enum(["lead", "specialist", "reviewer"]);
 const MissionTaskPrioritySchema = z.enum(["P0", "P1", "P2", "P3"]);
@@ -256,6 +316,8 @@ export const missionControlRouter = createTRPCRouter({
         budgetCents: input.budgetCents,
         maxConcurrentRuns: input.maxConcurrentRuns,
         heartbeatIntervalMin: input.heartbeatIntervalMin,
+        cronSchedule: input.cronSchedule,
+        isRecurring: !!input.cronSchedule,
       })
     ),
 
@@ -287,7 +349,7 @@ export const missionControlRouter = createTRPCRouter({
       await updateMission(ctx.prisma, input.missionId, {
         status: "ACTIVE",
         workflowId: handle.workflowId,
-        runId: handle.runId,
+        runId: handle.runId || mission.runId || undefined,
       });
 
       return { missionId: input.missionId, workflowId: handle.workflowId };
@@ -375,19 +437,33 @@ export const missionControlRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      await verifyMissionAccess(ctx.prisma, input.missionId, ctx.teamId);
+      const mission = await verifyMissionAccess(
+        ctx.prisma,
+        input.missionId,
+        ctx.teamId
+      );
+
+      const metadata = {
+        approvalId: input.approvalId,
+        approved: true,
+        resolvedById: ctx.session.user.id,
+        reason: input.reason,
+      };
+      const message = `Approved${input.reason ? `: ${input.reason}` : ""}`;
 
       await logMissionActivity(ctx.prisma, {
         missionId: input.missionId,
         userId: ctx.session.user.id,
         type: "approval_resolved",
-        message: `Approved${input.reason ? `: ${input.reason}` : ""}`,
-        metadata: {
-          approvalId: input.approvalId,
-          approved: true,
-          resolvedById: ctx.session.user.id,
-          reason: input.reason,
-        },
+        message,
+        metadata,
+      });
+
+      await publishMissionTimelineEventSafe({
+        missionId: input.missionId,
+        runId: mission.runId,
+        eventType: "approval_resolved",
+        payload: metadata,
       });
 
       return { approved: true };
@@ -402,19 +478,33 @@ export const missionControlRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      await verifyMissionAccess(ctx.prisma, input.missionId, ctx.teamId);
+      const mission = await verifyMissionAccess(
+        ctx.prisma,
+        input.missionId,
+        ctx.teamId
+      );
+
+      const metadata = {
+        approvalId: input.approvalId,
+        approved: false,
+        resolvedById: ctx.session.user.id,
+        reason: input.reason,
+      };
+      const message = `Rejected: ${input.reason}`;
 
       await logMissionActivity(ctx.prisma, {
         missionId: input.missionId,
         userId: ctx.session.user.id,
         type: "approval_resolved",
-        message: `Rejected: ${input.reason}`,
-        metadata: {
-          approvalId: input.approvalId,
-          approved: false,
-          resolvedById: ctx.session.user.id,
-          reason: input.reason,
-        },
+        message,
+        metadata,
+      });
+
+      await publishMissionTimelineEventSafe({
+        missionId: input.missionId,
+        runId: mission.runId,
+        eventType: "approval_resolved",
+        payload: metadata,
       });
 
       return { approved: false };
@@ -527,6 +617,8 @@ export const missionControlRouter = createTRPCRouter({
         role: input.role,
         soulPrompt: input.soulPrompt,
         level: input.level,
+        tools: input.tools,
+        capabilities: deriveCapabilities(input.role),
         teamId: ctx.teamId,
         userId: ctx.session.user.id,
       });
@@ -573,6 +665,8 @@ export const missionControlRouter = createTRPCRouter({
         role: z.string().min(1).max(200).optional(),
         soulPrompt: z.string().min(1).max(10_000).optional(),
         level: MissionAgentLevelSchema.optional(),
+        tools: z.array(z.string()).optional(),
+        capabilities: z.array(z.string()).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -596,6 +690,8 @@ export const missionControlRouter = createTRPCRouter({
         role: input.role,
         soulPrompt: input.soulPrompt,
         level: input.level,
+        tools: input.tools,
+        capabilities: input.capabilities,
       });
     }),
 
@@ -607,6 +703,8 @@ export const missionControlRouter = createTRPCRouter({
         description: z.string().max(5000).optional(),
         priority: MissionTaskPrioritySchema.default("P2"),
         assigneeId: z.string().optional(),
+        dependsOn: z.array(z.string()).optional(),
+        requiredCapabilities: z.array(z.string()).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -618,6 +716,8 @@ export const missionControlRouter = createTRPCRouter({
         description: input.description,
         priority: input.priority,
         assigneeId: input.assigneeId,
+        dependsOn: input.dependsOn,
+        requiredCapabilities: input.requiredCapabilities,
         requestId: crypto.randomUUID(),
         createdById: ctx.session.user.id,
       });
@@ -754,13 +854,14 @@ export const missionControlRouter = createTRPCRouter({
         input.missionId,
         ctx.teamId
       );
+      const resolvedRunId = input.runId ?? mission.runId ?? "";
 
       const queue: MissionEventPayload[] = [];
       let resolve: (() => void) | null = null;
 
       const unsubscribe = await createMissionEventSubscriber(
         input.missionId,
-        input.runId ?? mission.runId ?? "",
+        resolvedRunId,
         (event) => {
           queue.push(event);
           resolve?.();
@@ -780,7 +881,7 @@ export const missionControlRouter = createTRPCRouter({
 
         yield {
           missionId: input.missionId,
-          runId: input.runId ?? "",
+          runId: resolvedRunId,
           lane: "autonomous" as const,
           sequence: -1,
           eventType: "connected",
@@ -834,19 +935,29 @@ export const missionControlRouter = createTRPCRouter({
         ctx.teamId
       );
 
+      const metadata = {
+        approvalId: input.approvalId,
+        approved: input.approved,
+        resolvedById: ctx.session.user.id,
+        reason: input.reason,
+      };
+      const message = input.approved
+        ? `Approved${input.reason ? `: ${input.reason}` : ""}`
+        : `Rejected${input.reason ? `: ${input.reason}` : ""}`;
+
       await logMissionActivity(ctx.prisma, {
         missionId: input.missionId,
         userId: ctx.session.user.id,
         type: "approval_resolved",
-        message: input.approved
-          ? `Approved${input.reason ? `: ${input.reason}` : ""}`
-          : `Rejected${input.reason ? `: ${input.reason}` : ""}`,
-        metadata: {
-          approvalId: input.approvalId,
-          approved: input.approved,
-          resolvedById: ctx.session.user.id,
-          reason: input.reason,
-        },
+        message,
+        metadata,
+      });
+
+      await publishMissionTimelineEventSafe({
+        missionId: input.missionId,
+        runId: mission.runId,
+        eventType: "approval_resolved",
+        payload: metadata,
       });
 
       if (mission.workflowId) {
