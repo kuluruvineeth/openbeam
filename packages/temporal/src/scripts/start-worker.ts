@@ -8,6 +8,7 @@ import {
 } from "@openplane/storage";
 import { type VespaClient, vespaClient } from "@openplane/vespa";
 import { NativeConnection, Worker } from "@temporalio/worker";
+import { createAgentActivities, LlmAgentExecutor } from "../activities/agents";
 import * as analyticsActivities from "../activities/analytics";
 import { createCanvasExecutionActivities } from "../activities/canvas";
 import {
@@ -22,7 +23,15 @@ import {
 import * as emergenceActivities from "../activities/emergence";
 import { createEngineActivities } from "../activities/engine";
 import * as entitiesActivities from "../activities/entities";
+import {
+  createKnowledgeCleanupActivities,
+  createKnowledgeInferenceActivities,
+} from "../activities/knowledge";
 import * as ltrActivities from "../activities/ltr";
+import {
+  createMissionActivities,
+  createMissionTimelinePublisher,
+} from "../activities/mission";
 import * as personalizationActivities from "../activities/personalization";
 import * as reembedActivities from "../activities/reembed";
 import * as slackActivities from "../activities/slack";
@@ -101,6 +110,7 @@ export function getTaskQueuesForWorkerType(workerType: WorkerType): string[] {
     maintenance: TASK_QUEUES.MAINTENANCE,
     scheduled: TASK_QUEUES.SCHEDULED,
     knowledge: TASK_QUEUES.KNOWLEDGE,
+    mission: TASK_QUEUES.MISSION,
   };
 
   return [mapping[workerType] ?? TASK_QUEUES.DEFAULT];
@@ -117,6 +127,7 @@ function getTaskQueueForWorkerType(workerType: WorkerType): string {
     maintenance: TASK_QUEUES.MAINTENANCE,
     scheduled: TASK_QUEUES.SCHEDULED,
     knowledge: TASK_QUEUES.KNOWLEDGE,
+    mission: TASK_QUEUES.MISSION,
   };
 
   return mapping[workerType] ?? TASK_QUEUES.DEFAULT;
@@ -193,6 +204,8 @@ function loadActivitiesForWorkerType(
       return {
         ...baseActivities,
         ...createCleanupActivities({ db: deps.db }),
+        ...createKnowledgeCleanupActivities({ db: deps.db }),
+        ...createKnowledgeInferenceActivities({ db: deps.db }),
         ...createVespaActivities({ vespa: deps.vespa }),
         ...engineActivities,
         ...reembedActivities,
@@ -211,10 +224,32 @@ function loadActivitiesForWorkerType(
         ...createVespaActivities({ vespa: deps.vespa }),
       };
 
+    case "agent":
+      return {
+        ...baseActivities,
+        ...createAgentActivities({
+          db: deps.db,
+          executor: new LlmAgentExecutor(),
+        }),
+      };
+
     case "canvas":
       return {
         ...baseActivities,
         ...createCanvasExecutionActivities({ db: deps.db }),
+      };
+
+    case "mission":
+      return {
+        ...baseActivities,
+        ...createMissionActivities({
+          db: deps.db,
+          publishTimelineEvent: createMissionTimelinePublisher(deps.db),
+        }),
+        ...createAgentActivities({
+          db: deps.db,
+          executor: new LlmAgentExecutor(),
+        }),
       };
 
     default:

@@ -1,8 +1,3 @@
-import type {
-  MissionAgentRunInput,
-  MissionAgentRunOutput,
-} from "@openplane/types/temporal/mission";
-
 export interface RefreshQueueInput {
   missionId: string;
 }
@@ -13,6 +8,8 @@ export interface RefreshQueueOutput {
     title: string;
     priority: string;
     assigneeId: string | null;
+    dependsOn: string[];
+    requiredCapabilities: string[];
   }>;
 }
 
@@ -22,6 +19,7 @@ export interface PlanDispatchInput {
     id: string;
     title: string;
     priority: string;
+    requiredCapabilities?: string[];
   }>;
   maxConcurrentRuns: number;
 }
@@ -32,6 +30,7 @@ export interface DispatchPlan {
   taskId: string;
   taskTitle: string;
   soulPrompt: string;
+  tools: string[];
 }
 
 export interface PlanDispatchOutput {
@@ -134,6 +133,7 @@ export interface UpdateRunInput {
   completedAt?: number;
   tokensUsed?: number;
   costCents?: number;
+  artifacts?: unknown[];
   error?: string;
 }
 
@@ -170,6 +170,33 @@ export interface CompleteTaskOutput {
   completed: boolean;
 }
 
+export interface FinalizeMissionInput {
+  missionId: string;
+  status: "COMPLETED" | "CANCELLED";
+}
+
+export interface CreateTaskInput {
+  missionId: string;
+  agentId: string;
+  title: string;
+  description?: string;
+  priority?: "P0" | "P1" | "P2" | "P3";
+  dependsOn?: string[];
+  requiredCapabilities?: string[];
+}
+
+export interface CreateTaskOutput {
+  taskId: string;
+}
+
+export interface SendFeedbackInput {
+  taskId: string;
+  fromAgentId: string;
+  feedback: string;
+  targetAgentId?: string;
+  reopen: boolean;
+}
+
 export interface MissionActivities {
   refreshQueue(input: RefreshQueueInput): Promise<RefreshQueueOutput>;
   planDispatch(input: PlanDispatchInput): Promise<PlanDispatchOutput>;
@@ -186,6 +213,7 @@ export interface MissionActivities {
   createRun(input: CreateRunInput): Promise<CreateRunOutput>;
   updateRun(input: UpdateRunInput): Promise<void>;
   getMissionStats(input: GetMissionStatsInput): Promise<MissionStatsOutput>;
+  finalizeMission(input: FinalizeMissionInput): Promise<void>;
+  createMissionTask(input: CreateTaskInput): Promise<CreateTaskOutput>;
+  sendFeedback(input: SendFeedbackInput): Promise<void>;
 }
-
-export type { MissionAgentRunInput, MissionAgentRunOutput };

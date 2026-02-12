@@ -215,13 +215,27 @@ export class LlmAgent extends BaseAgent {
         outputTokens: result.usage?.outputTokens ?? 0,
       };
 
-      const toolCallRecords = (result.toolCalls ?? []).map((tc) => ({
-        toolName: tc.toolName,
-        args: "input" in tc ? (tc as { input: unknown }).input : undefined,
-      }));
-      this.recordToolCalls(trace, toolCallRecords);
+      const allToolCalls: Array<{
+        toolName: string;
+        args: unknown;
+        output?: unknown;
+      }> = [];
+      for (const step of result.steps) {
+        const outputsByCallId = new Map<string, unknown>();
+        for (const tr of step.toolResults) {
+          outputsByCallId.set(tr.toolCallId, tr.output);
+        }
+        for (const tc of step.toolCalls) {
+          allToolCalls.push({
+            toolName: tc.toolName,
+            args: tc.input,
+            output: outputsByCallId.get(tc.toolCallId),
+          });
+        }
+      }
+      this.recordToolCalls(trace, allToolCalls);
 
-      for (const tc of toolCallRecords) {
+      for (const tc of allToolCalls) {
         compositionTracker.recordToolCall(tc.toolName);
       }
 
@@ -306,7 +320,12 @@ export class LlmAgent extends BaseAgent {
 
       let fullText = "";
       let pendingReasoning = "";
-      const toolCalls: Array<{ toolName: string; args: unknown }> = [];
+      const toolCalls: Array<{
+        toolCallId: string;
+        toolName: string;
+        args: unknown;
+      }> = [];
+      const toolOutputByCallId = new Map<string, unknown>();
 
       for await (const chunk of result.fullStream) {
         const chunkType = (chunk as { type?: string }).type ?? "unknown";
@@ -349,7 +368,11 @@ export class LlmAgent extends BaseAgent {
             input?: unknown;
           };
           const toolCallInput = toolChunk.input;
-          toolCalls.push({ toolName: toolChunk.toolName, args: toolCallInput });
+          toolCalls.push({
+            toolCallId: toolChunk.toolCallId,
+            toolName: toolChunk.toolName,
+            args: toolCallInput,
+          });
           compositionTracker.recordToolCall(toolChunk.toolName);
 
           const modelDescription = pendingReasoning.trim() || undefined;
@@ -371,6 +394,10 @@ export class LlmAgent extends BaseAgent {
             toolName: string;
             output?: unknown;
           };
+          toolOutputByCallId.set(
+            toolResultChunk.toolCallId,
+            toolResultChunk.output
+          );
           yield {
             type: "tool-result",
             agentName: this.config.name,
@@ -388,7 +415,12 @@ export class LlmAgent extends BaseAgent {
         outputTokens: finalUsage?.outputTokens ?? 0,
       };
 
-      this.recordToolCalls(trace, toolCalls);
+      const enrichedToolCalls = toolCalls.map((tc) => ({
+        toolName: tc.toolName,
+        args: tc.args,
+        output: toolOutputByCallId.get(tc.toolCallId),
+      }));
+      this.recordToolCalls(trace, enrichedToolCalls);
       persistOutput(this.config, ctx.state, fullText);
       completeTrace(trace, fullText, tokens);
 
@@ -673,7 +705,7 @@ export class LlmAgent extends BaseAgent {
 
   private recordToolCalls(
     trace: ExecutionTrace,
-    toolCalls: Array<{ toolName: string; args: unknown }>
+    toolCalls: Array<{ toolName: string; args: unknown; output?: unknown }>
   ): void {
     if (toolCalls.length === 0) {
       return;
@@ -682,6 +714,7 @@ export class LlmAgent extends BaseAgent {
     const records: ToolCallRecord[] = toolCalls.map((tc) => ({
       name: tc.toolName,
       input: tc.args,
+      output: tc.output,
       timestamp: Date.now(),
     }));
 

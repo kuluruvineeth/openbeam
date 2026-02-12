@@ -240,6 +240,7 @@ export {
   createWorkerWithHandle,
   type WorkerHandle,
 } from "./worker/factory";
+export { createMissionWorker } from "./worker/mission-worker";
 export type { WorkerOptions, WorkerType } from "./worker/types";
 export {
   type CanvasExecutionQueryState,

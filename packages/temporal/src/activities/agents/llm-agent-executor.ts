@@ -1,7 +1,9 @@
 import {
   type AgentExecutionContext,
+  calculateCost,
   createEmptyState,
   createLlmAgent,
+  getConfig,
   type LlmAgentConfig,
 } from "@openplane/ai";
 import { Context } from "@temporalio/activity";
@@ -13,6 +15,7 @@ const PRESET_TOOLS: Record<string, string[]> = {
   analyst: ["search_hybrid", "doc_get", "rag_analyze", "rag_answer"],
   writer: ["search_hybrid", "doc_get", "rag_answer"],
   general: ["*"],
+  custom: [],
 };
 
 const DEFAULT_MAX_STEPS_PER_EXECUTION = 10;
@@ -32,8 +35,13 @@ export class LlmAgentExecutor implements AgentExecutor {
     costCents?: number;
   }> {
     const systemPrompt = (context.prompt as string) ?? "";
-    const preset = (context.preset as string) ?? agentType;
-    const tools = PRESET_TOOLS[preset] ?? PRESET_TOOLS.general;
+    const explicitTools = context.tools as string[] | undefined;
+    const preset = explicitTools?.length
+      ? "custom"
+      : ((context.preset as string) ?? agentType);
+    const tools = explicitTools?.length
+      ? explicitTools
+      : (PRESET_TOOLS[preset] ?? PRESET_TOOLS.general);
 
     const config: LlmAgentConfig = {
       type: "llm",
@@ -77,25 +85,35 @@ export class LlmAgentExecutor implements AgentExecutor {
 
     Context.current().heartbeat({ step, status: "completed_llm_call" });
 
+    const textOutput = typeof result.output === "string" ? result.output : "";
+    const toolCalls = result.trace.toolCalls ?? [];
+    const content = this.buildArtifactContent(textOutput, toolCalls);
+
     const artifact: AgentArtifact = {
       id: `${sessionId}-step-${step}`,
       type: "text",
-      content:
-        typeof result.output === "string"
-          ? result.output
-          : JSON.stringify(result.output),
+      content,
       createdAt: Date.now(),
     };
 
-    const hasToolCalls = (result.trace.toolCalls?.length ?? 0) > 0;
+    const hasToolCalls = toolCalls.length > 0;
     const complete = result.finishReason === "stop" && !hasToolCalls;
+
+    const aiConfig = getConfig();
+    const modelId = config.model?.modelId ?? aiConfig.defaultChatModel;
+    const cost = calculateCost(
+      modelId,
+      result.totalTokens.inputTokens,
+      result.totalTokens.outputTokens
+    );
+    const costCents = Math.ceil(cost.totalCostUsd * 100);
 
     return {
       artifacts: [artifact],
       complete,
       tokensUsed:
         result.totalTokens.inputTokens + result.totalTokens.outputTokens,
-      costCents: 0,
+      costCents,
     };
   }
 
@@ -116,6 +134,31 @@ export class LlmAgentExecutor implements AgentExecutor {
         role: "assistant" as const,
         content: a.content as string,
       }));
+  }
+
+  private buildArtifactContent(
+    textOutput: string,
+    toolCalls: Array<{ name: string; input?: unknown; output?: unknown }>
+  ): string {
+    if (textOutput && toolCalls.length === 0) {
+      return textOutput;
+    }
+
+    const parts: string[] = [];
+
+    for (const tc of toolCalls) {
+      const raw = tc.output;
+      const preview = raw
+        ? (typeof raw === "string" ? raw : JSON.stringify(raw)).slice(0, 1000)
+        : "";
+      parts.push(preview ? `[${tc.name}]\n${preview}` : `[${tc.name}]`);
+    }
+
+    if (textOutput) {
+      parts.push(textOutput);
+    }
+
+    return parts.join("\n\n") || "No output";
   }
 
   private buildStepPrompt(

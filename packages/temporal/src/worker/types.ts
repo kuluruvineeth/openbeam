@@ -7,7 +7,8 @@ export type WorkerType =
   | "canvas"
   | "maintenance"
   | "scheduled"
-  | "knowledge";
+  | "knowledge"
+  | "mission";
 
 export interface WorkerOptions {
   taskQueue: string;
