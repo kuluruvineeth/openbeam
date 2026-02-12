@@ -2,6 +2,7 @@
 
 import { Button, Icons, ScrollArea } from "@openplane/ui";
 import { cva } from "class-variance-authority";
+import { useCreateMission } from "../../hooks/use-create-mission";
 import {
   useCanProceed,
   useCreationStep,
@@ -61,12 +62,17 @@ function StepBody({ step }: { step: number }) {
   }
 }
 
-export function MissionCreateContent() {
+type MissionCreateContentProps = {
+  onClose?: () => void;
+};
+
+export function MissionCreateContent({ onClose }: MissionCreateContentProps) {
   const step = useCreationStep();
   const canProceed = useCanProceed();
   const nextStep = useMissionCreationStore((s) => s.nextStep);
   const prevStep = useMissionCreationStore((s) => s.prevStep);
   const isSubmitting = useMissionCreationStore((s) => s.isSubmitting);
+  const { mutate: launchMission } = useCreateMission(onClose);
 
   const isLastStep = step === 3;
 
@@ -104,7 +110,11 @@ export function MissionCreateContent() {
         )}
 
         {isLastStep ? (
-          <Button disabled={isSubmitting} size="sm">
+          <Button
+            disabled={isSubmitting}
+            onClick={() => launchMission()}
+            size="sm"
+          >
             {isSubmitting ? (
               <Icons.Loader2 className="animate-spin" size={14} />
             ) : (

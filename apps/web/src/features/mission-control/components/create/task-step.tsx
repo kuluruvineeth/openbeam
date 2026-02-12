@@ -107,7 +107,13 @@ export function TaskStep() {
   const addTask = useMissionCreationStore((s) => s.addTask);
 
   function handleAddTask() {
-    addTask({ title: "", description: "", priority: "P2" });
+    addTask({
+      title: "",
+      description: "",
+      priority: "P2",
+      dependsOn: [],
+      requiredCapabilities: [],
+    });
   }
 
   return (

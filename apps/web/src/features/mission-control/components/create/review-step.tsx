@@ -34,6 +34,45 @@ const reviewPriorityVariants = cva(
   }
 );
 
+const CRON_DAY_NAMES: Record<string, string> = {
+  "0": "Sun",
+  "1": "Mon",
+  "2": "Tue",
+  "3": "Wed",
+  "4": "Thu",
+  "5": "Fri",
+  "6": "Sat",
+};
+
+function describeCron(cron: string): string {
+  const parts = cron.split(" ");
+  if (parts.length !== 5) {
+    return cron;
+  }
+
+  const [minutePart, hourPart, dayOfMonth, , dayOfWeek] = parts;
+  const minute = Number.parseInt(minutePart ?? "0", 10);
+  const hour = Number.parseInt(hourPart ?? "9", 10);
+  const h = hour % 12 || 12;
+  const ampm = hour < 12 ? "AM" : "PM";
+  const time = `${h}:${minute.toString().padStart(2, "0")} ${ampm}`;
+
+  if (hourPart === "*") {
+    return `Every hour at :${minute.toString().padStart(2, "0")}`;
+  }
+  if (dayOfMonth !== "*") {
+    return `Monthly on day ${dayOfMonth} at ${time}`;
+  }
+  if (dayOfWeek !== "*") {
+    const days = (dayOfWeek ?? "")
+      .split(",")
+      .map((d) => CRON_DAY_NAMES[d] ?? d)
+      .join(", ");
+    return `Weekly on ${days} at ${time}`;
+  }
+  return `Daily at ${time}`;
+}
+
 function formatBudget(cents: number | null): string {
   if (cents === null) {
     return "No limit";
@@ -45,6 +84,7 @@ export function ReviewStep() {
   const objective = useMissionCreationStore((s) => s.objective);
   const lane = useMissionCreationStore((s) => s.lane);
   const budgetCents = useMissionCreationStore((s) => s.budgetCents);
+  const cronSchedule = useMissionCreationStore((s) => s.cronSchedule);
   const agents = useMissionCreationStore((s) => s.agents);
   const tasks = useMissionCreationStore((s) => s.tasks);
 
@@ -90,6 +130,17 @@ export function ReviewStep() {
             {formatBudget(budgetCents)}
           </span>
         </div>
+        {cronSchedule && (
+          <>
+            <div className="h-8 w-px bg-border/50" />
+            <div className="flex flex-col gap-0.5">
+              <span className="font-medium text-[10px] text-muted-foreground uppercase tracking-wider">
+                Schedule
+              </span>
+              <span className="text-sm">{describeCron(cronSchedule)}</span>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="flex flex-col gap-2 rounded-md border border-border/50 p-3">

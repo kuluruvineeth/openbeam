@@ -143,7 +143,13 @@ export function SquadStep() {
   const indices = Array.from({ length: agentCount }, (_, i) => i);
 
   function handleAddAgent() {
-    addAgent({ name: "", role: "specialist", soulPrompt: "", tools: [] });
+    addAgent({
+      name: "",
+      role: "specialist",
+      soulPrompt: "",
+      tools: [],
+      capabilities: [],
+    });
   }
 
   return (
