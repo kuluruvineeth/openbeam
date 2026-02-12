@@ -3,15 +3,17 @@
 import {
   Button,
   Checkbox,
+  ColumnHeader,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   Icons,
+  type TableColumnMeta,
 } from "@openplane/ui";
+import type { ColumnDef } from "@tanstack/react-table";
 import { formatDistanceToNow } from "date-fns";
-import type { ReactNode } from "react";
 import { StatusChip } from "../status-chip";
 
 type MissionRow = {
@@ -29,76 +31,93 @@ type MissionRow = {
   updatedAt: Date;
 };
 
-type ColumnDefinition = {
-  id: string;
-  header: string;
-  width: number;
-  align?: "left" | "right";
-  renderCell: (row: MissionRow, handlers: CellHandlers) => ReactNode;
-};
-
-type CellHandlers = {
-  isSelected: boolean;
-  onToggleSelection: () => void;
-  allSelected: boolean;
-  onToggleAll: () => void;
-};
-
 function formatCentsCompact(cents: number): string {
   return `$${(cents / 100).toFixed(2)}`;
 }
 
-const missionColumns: ColumnDefinition[] = [
+const missionColumns: ColumnDef<MissionRow>[] = [
   {
     id: "select",
-    header: "",
-    width: 40,
-    renderCell: (_row, handlers) => (
+    size: 50,
+    minSize: 50,
+    maxSize: 50,
+    enableResizing: false,
+    enableSorting: false,
+    meta: {
+      sticky: true,
+      className: "justify-center",
+    } satisfies TableColumnMeta,
+    header: ({ table }) => (
+      <Checkbox
+        aria-label="Select all"
+        checked={table.getIsAllRowsSelected()}
+        onCheckedChange={(checked) => table.toggleAllRowsSelected(!!checked)}
+      />
+    ),
+    cell: ({ row }) => (
       <Checkbox
         aria-label="Select row"
-        checked={handlers.isSelected}
-        onCheckedChange={() => handlers.onToggleSelection()}
+        checked={row.getIsSelected()}
+        onCheckedChange={(checked) => row.toggleSelected(!!checked)}
         onClick={(e) => e.stopPropagation()}
       />
     ),
   },
   {
-    id: "name",
-    header: "Mission",
-    width: 0,
-    renderCell: (row) => (
-      <div className="flex min-w-0 flex-col gap-0.5">
-        <span className="truncate font-medium text-sm">{row.name}</span>
-        {row.objective && (
-          <span className="line-clamp-1 text-muted-foreground text-xs">
-            {row.objective}
-          </span>
-        )}
-      </div>
+    accessorKey: "name",
+    header: ({ column }) => <ColumnHeader column={column} title="Mission" />,
+    size: 280,
+    minSize: 200,
+    maxSize: 600,
+    enableResizing: true,
+    enableSorting: true,
+    meta: {
+      sticky: true,
+      sortField: "name",
+      headerLabel: "Mission",
+    } satisfies TableColumnMeta,
+    cell: ({ row }) => (
+      <span className="truncate font-medium text-sm">{row.original.name}</span>
     ),
   },
   {
-    id: "status",
-    header: "Status",
-    width: 120,
-    renderCell: (row) => <StatusChip status={row.status} />,
+    accessorKey: "status",
+    header: ({ column }) => <ColumnHeader column={column} title="Status" />,
+    size: 120,
+    minSize: 100,
+    enableSorting: true,
+    meta: {
+      sortField: "status",
+      headerLabel: "Status",
+    } satisfies TableColumnMeta,
+    cell: ({ row }) => <StatusChip status={row.original.status} />,
   },
   {
-    id: "agents",
-    header: "Agents",
-    width: 80,
-    align: "right",
-    renderCell: (row) => (
-      <span className="w-full text-right tabular-nums">{row.agentCount}</span>
+    accessorKey: "agentCount",
+    header: ({ column }) => <ColumnHeader column={column} title="Agents" />,
+    size: 90,
+    minSize: 70,
+    enableSorting: true,
+    meta: {
+      sortField: "agentCount",
+      headerLabel: "Agents",
+    } satisfies TableColumnMeta,
+    cell: ({ row }) => (
+      <span className="w-full text-right tabular-nums">
+        {row.original.agentCount}
+      </span>
     ),
   },
   {
     id: "progress",
-    header: "Progress",
-    width: 140,
-    align: "right",
-    renderCell: (row) => {
-      const ratio = row.taskCount > 0 ? row.completedTasks / row.taskCount : 0;
+    header: ({ column }) => <ColumnHeader column={column} title="Progress" />,
+    size: 160,
+    minSize: 120,
+    enableSorting: false,
+    meta: { headerLabel: "Progress" } satisfies TableColumnMeta,
+    cell: ({ row }) => {
+      const { taskCount, completedTasks } = row.original;
+      const ratio = taskCount > 0 ? completedTasks / taskCount : 0;
       return (
         <div className="flex w-full items-center justify-end gap-2">
           <div className="h-1.5 w-16 overflow-hidden rounded-full bg-muted">
@@ -108,49 +127,59 @@ const missionColumns: ColumnDefinition[] = [
             />
           </div>
           <span className="text-muted-foreground text-xs tabular-nums">
-            {row.completedTasks}/{row.taskCount}
+            {completedTasks}/{taskCount}
           </span>
         </div>
       );
     },
   },
   {
-    id: "cost",
-    header: "Cost",
-    width: 100,
-    align: "right",
-    renderCell: (row) => (
-      <div className="flex w-full flex-col items-end">
-        <span className="text-sm tabular-nums">
-          {formatCentsCompact(row.totalCostCents)}
-        </span>
-        {row.budgetCents !== null && row.budgetCents > 0 && (
-          <span className="text-muted-foreground text-xs tabular-nums">
-            / {formatCentsCompact(row.budgetCents)}
-          </span>
-        )}
-      </div>
+    accessorKey: "totalCostCents",
+    header: ({ column }) => <ColumnHeader column={column} title="Cost" />,
+    size: 110,
+    minSize: 90,
+    enableSorting: true,
+    meta: {
+      sortField: "totalCostCents",
+      headerLabel: "Cost",
+    } satisfies TableColumnMeta,
+    cell: ({ row }) => (
+      <span className="w-full text-right text-sm tabular-nums">
+        {formatCentsCompact(row.original.totalCostCents)}
+      </span>
     ),
   },
   {
-    id: "updated",
-    header: "Updated",
-    width: 120,
-    renderCell: (row) => (
+    accessorKey: "updatedAt",
+    header: ({ column }) => <ColumnHeader column={column} title="Updated" />,
+    size: 130,
+    minSize: 100,
+    enableSorting: true,
+    meta: {
+      sortField: "updatedAt",
+      headerLabel: "Updated",
+    } satisfies TableColumnMeta,
+    cell: ({ row }) => (
       <span className="text-muted-foreground text-xs">
-        {formatDistanceToNow(new Date(row.updatedAt), { addSuffix: true })}
+        {formatDistanceToNow(new Date(row.original.updatedAt), {
+          addSuffix: true,
+        })}
       </span>
     ),
   },
   {
     id: "actions",
-    header: "",
-    width: 40,
-    renderCell: (row) => (
+    size: 50,
+    minSize: 50,
+    maxSize: 50,
+    enableResizing: false,
+    enableSorting: false,
+    meta: { className: "justify-center" } satisfies TableColumnMeta,
+    cell: ({ row }) => (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
-            className="h-7 w-7"
+            className="h-8 w-8"
             onClick={(e) => e.stopPropagation()}
             size="icon"
             variant="ghost"
@@ -159,15 +188,24 @@ const missionColumns: ColumnDefinition[] = [
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem data-action="pause" data-mission-id={row.id}>
+          <DropdownMenuItem
+            data-action="pause"
+            data-mission-id={row.original.id}
+          >
             <Icons.Pause className="mr-2 h-4 w-4" />
             Pause
           </DropdownMenuItem>
-          <DropdownMenuItem data-action="cancel" data-mission-id={row.id}>
+          <DropdownMenuItem
+            data-action="cancel"
+            data-mission-id={row.original.id}
+          >
             <Icons.XCircle className="mr-2 h-4 w-4" />
             Cancel
           </DropdownMenuItem>
-          <DropdownMenuItem data-action="archive" data-mission-id={row.id}>
+          <DropdownMenuItem
+            data-action="archive"
+            data-mission-id={row.original.id}
+          >
             <Icons.Archive className="mr-2 h-4 w-4" />
             Archive
           </DropdownMenuItem>
@@ -175,7 +213,7 @@ const missionColumns: ColumnDefinition[] = [
           <DropdownMenuItem
             className="text-destructive"
             data-action="delete"
-            data-mission-id={row.id}
+            data-mission-id={row.original.id}
           >
             <Icons.Trash className="mr-2 h-4 w-4" />
             Delete
@@ -186,16 +224,15 @@ const missionColumns: ColumnDefinition[] = [
   },
 ];
 
-const SKELETON_COLUMNS = [
-  { id: "select", width: 40 },
-  { id: "name", width: 0 },
-  { id: "status", width: 120 },
-  { id: "agents", width: 80 },
-  { id: "progress", width: 140 },
-  { id: "cost", width: 100 },
-  { id: "updated", width: 120 },
-  { id: "actions", width: 40 },
-] as const;
+const MISSION_TABLE_CONFIG = {
+  stickyColumns: [
+    { id: "select", width: 50 },
+    { id: "name", width: 280 },
+  ],
+  nonReorderableColumns: new Set(["select", "actions"]),
+  nonClickableColumns: new Set(["select", "actions"]),
+  rowHeight: 45,
+} as const;
 
-export { missionColumns, SKELETON_COLUMNS, formatCentsCompact };
-export type { MissionRow, ColumnDefinition, CellHandlers };
+export { missionColumns, MISSION_TABLE_CONFIG, formatCentsCompact };
+export type { MissionRow };

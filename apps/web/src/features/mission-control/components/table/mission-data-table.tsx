@@ -1,14 +1,28 @@
 "use client";
 
-import { Checkbox } from "@openplane/ui";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { closestCenter, DndContext } from "@dnd-kit/core";
+import { VirtualRow } from "@openplane/ui";
+import {
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
-import { cn } from "@/lib/utils";
-import { type MissionRow, missionColumns } from "./mission-columns";
-import { MissionVirtualRow } from "./mission-virtual-row";
+import { useStickyColumns } from "@/lib/hooks/use-sticky-columns";
+import { useTableDnd } from "@/lib/hooks/use-table-dnd";
+import { useTableSettings } from "@/lib/hooks/use-table-settings";
 
-const ROW_HEIGHT = 52;
-const OVERSCAN = 5;
+import {
+  MISSION_TABLE_CONFIG,
+  type MissionRow,
+  missionColumns,
+} from "./mission-columns";
+import { MissionTableHeader } from "./mission-table-header";
+
+const { stickyColumns, nonReorderableColumns, nonClickableColumns, rowHeight } =
+  MISSION_TABLE_CONFIG;
 
 type MissionDataTableProps = {
   data: MissionRow[];
@@ -16,9 +30,6 @@ type MissionDataTableProps = {
   fetchNextPage: () => void;
   isFetchingNextPage: boolean;
   onRowClick: (id: string) => void;
-  selectedIds: Set<string>;
-  onToggleSelection: (id: string) => void;
-  onToggleAll: () => void;
 };
 
 function MissionDataTable({
@@ -27,33 +38,58 @@ function MissionDataTable({
   fetchNextPage,
   isFetchingNextPage,
   onRowClick,
-  selectedIds,
-  onToggleSelection,
-  onToggleAll,
 }: MissionDataTableProps) {
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const parentRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [focusedIndex, setFocusedIndex] = useState(0);
-  const [scrollTop, setScrollTop] = useState(0);
 
-  const allSelected = data.length > 0 && selectedIds.size === data.length;
+  const {
+    columnVisibility,
+    setColumnVisibility,
+    columnSizing,
+    setColumnSizing,
+    columnOrder,
+    setColumnOrder,
+  } = useTableSettings({ tableId: "mission-control" });
 
-  const containerHeight = scrollRef.current?.clientHeight ?? 600;
-  const totalHeight = data.length * ROW_HEIGHT;
+  const table = useReactTable({
+    data,
+    columns: missionColumns,
+    state: {
+      columnVisibility,
+      columnSizing,
+      columnOrder,
+    },
+    onColumnVisibilityChange: setColumnVisibility,
+    onColumnSizingChange: setColumnSizing,
+    onColumnOrderChange: setColumnOrder,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    enableColumnResizing: true,
+    columnResizeMode: "onChange",
+    getRowId: (row) => row.id,
+  });
 
-  const visibleRange = useMemo(() => {
-    const startIndex = Math.max(
-      0,
-      Math.floor(scrollTop / ROW_HEIGHT) - OVERSCAN
-    );
-    const visibleCount = Math.ceil(containerHeight / ROW_HEIGHT) + OVERSCAN * 2;
-    const endIndex = Math.min(data.length - 1, startIndex + visibleCount);
-    return { startIndex, endIndex };
-  }, [scrollTop, containerHeight, data.length]);
+  const { rows } = table.getRowModel();
+
+  const virtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => rowHeight,
+    overscan: 10,
+  });
+
+  const { sensors, handleDragEnd } = useTableDnd(table);
+
+  const { getStickyStyle, getStickyClassName } = useStickyColumns({
+    columnVisibility,
+    table,
+    stickyColumns: [...stickyColumns],
+  });
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
-    const container = scrollRef.current;
+    const container = parentRef.current;
     if (!(sentinel && container && hasMore) || isFetchingNextPage) {
       return;
     }
@@ -71,126 +107,116 @@ function MissionDataTable({
     return () => observer.disconnect();
   }, [hasMore, isFetchingNextPage, fetchNextPage]);
 
-  const handleScroll = useCallback(() => {
-    if (scrollRef.current) {
-      setScrollTop(scrollRef.current.scrollTop);
-    }
-  }, []);
+  const handleCellClick = useCallback(
+    (rowId: string) => {
+      const idx = rows.findIndex((r) => r.id === rowId);
+      if (idx !== -1) {
+        setFocusedIndex(idx);
+      }
+      onRowClick(rowId);
+    },
+    [rows, onRowClick]
+  );
 
   useHotkeys("j", () => {
     setFocusedIndex((prev) => {
-      const next = Math.min(prev + 1, data.length - 1);
-      scrollRef.current?.scrollTo({
-        top: next * ROW_HEIGHT - containerHeight / 2,
+      const next = Math.min(prev + 1, rows.length - 1);
+      const height = parentRef.current?.clientHeight ?? 600;
+      parentRef.current?.scrollTo({
+        top: next * rowHeight - height / 2,
         behavior: "smooth",
       });
       return next;
     });
-  }, [data.length, containerHeight]);
+  }, [rows.length]);
 
   useHotkeys("k", () => {
     setFocusedIndex((prev) => {
       const next = Math.max(prev - 1, 0);
-      scrollRef.current?.scrollTo({
-        top: next * ROW_HEIGHT - containerHeight / 2,
+      const height = parentRef.current?.clientHeight ?? 600;
+      parentRef.current?.scrollTo({
+        top: next * rowHeight - height / 2,
         behavior: "smooth",
       });
       return next;
     });
-  }, [containerHeight]);
+  });
 
   useHotkeys("enter", () => {
-    const row = data[focusedIndex];
+    const row = rows[focusedIndex];
     if (row) {
       onRowClick(row.id);
     }
-  }, [focusedIndex, data, onRowClick]);
+  }, [focusedIndex, rows, onRowClick]);
 
   useHotkeys("x", () => {
-    const row = data[focusedIndex];
+    const row = rows[focusedIndex];
     if (row) {
-      onToggleSelection(row.id);
+      row.toggleSelected();
     }
-  }, [focusedIndex, data, onToggleSelection]);
-
-  const virtualRows: MissionRow[] = [];
-  for (let i = visibleRange.startIndex; i <= visibleRange.endIndex; i++) {
-    const row = data[i];
-    if (row) {
-      virtualRows.push(row);
-    }
-  }
+  }, [focusedIndex, rows]);
 
   return (
-    <div
-      className="relative flex-1 overflow-auto"
-      onScroll={handleScroll}
-      ref={scrollRef}
+    <DndContext
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+      sensors={sensors}
     >
-      <table className="w-full border-collapse">
-        <thead className="sticky top-0 z-20 bg-background">
-          <tr className="flex w-full">
-            {missionColumns.map((col) => (
-              <th
-                className={cn(
-                  "flex h-10 items-center border-border/50 border-b px-3 font-medium text-muted-foreground text-xs",
-                  col.align === "right" && "justify-end"
-                )}
-                key={col.id}
-                style={{
-                  width: col.width === 0 ? undefined : col.width,
-                  flex: col.width === 0 ? 1 : `0 0 ${col.width}px`,
-                }}
-              >
-                {col.id === "select" ? (
-                  <Checkbox
-                    aria-label="Select all"
-                    checked={allSelected}
-                    onCheckedChange={() => onToggleAll()}
-                  />
-                ) : (
-                  col.header
-                )}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className="relative" style={{ height: totalHeight }}>
-          {virtualRows.map((row) => {
-            const index = data.indexOf(row);
-            return (
-              <MissionVirtualRow
-                allSelected={allSelected}
-                isFocused={index === focusedIndex}
-                isSelected={selectedIds.has(row.id)}
-                key={row.id}
-                onClick={() => {
-                  setFocusedIndex(index);
-                  onRowClick(row.id);
-                }}
-                onToggleAll={onToggleAll}
-                onToggleSelection={() => onToggleSelection(row.id)}
-                row={row}
-                style={{
-                  height: ROW_HEIGHT,
-                  transform: `translateY(${index * ROW_HEIGHT}px)`,
-                }}
-              />
-            );
-          })}
-        </tbody>
-      </table>
+      <div className="relative flex-1 overflow-hidden rounded-sm border border-border/50">
+        <div
+          className="no-scrollbar overflow-auto overscroll-none"
+          ref={parentRef}
+          style={{ maxHeight: "calc(100vh - 260px)" }}
+        >
+          <table className="w-full min-w-full border-collapse">
+            <MissionTableHeader
+              getStickyClassName={getStickyClassName}
+              getStickyStyle={getStickyStyle}
+              nonReorderableColumns={nonReorderableColumns}
+              table={table}
+            />
+            <tbody
+              className="relative block"
+              style={{ height: virtualizer.getTotalSize() }}
+            >
+              {virtualizer.getVirtualItems().map((virtualRow) => {
+                const row = rows[virtualRow.index];
+                if (!row) {
+                  return null;
+                }
 
-      {hasMore && (
-        <div className="h-10" ref={sentinelRef}>
-          {isFetchingNextPage && (
-            <div className="flex items-center justify-center py-3 text-muted-foreground text-xs">
-              Loading more...
+                return (
+                  <VirtualRow
+                    columnOrder={columnOrder}
+                    columnSizing={columnSizing}
+                    columnVisibility={columnVisibility}
+                    getStickyClassName={getStickyClassName}
+                    getStickyStyle={getStickyStyle}
+                    isSelected={row.getIsSelected()}
+                    key={row.id}
+                    nonClickableColumns={nonClickableColumns}
+                    onCellClick={handleCellClick}
+                    row={row}
+                    rowHeight={rowHeight}
+                    virtualStart={virtualRow.start}
+                  />
+                );
+              })}
+            </tbody>
+          </table>
+
+          {hasMore && (
+            <div className="h-10" ref={sentinelRef}>
+              {isFetchingNextPage && (
+                <div className="flex items-center justify-center py-2 text-muted-foreground text-xs">
+                  Loading more...
+                </div>
+              )}
             </div>
           )}
         </div>
-      )}
-    </div>
+      </div>
+    </DndContext>
   );
 }
 
