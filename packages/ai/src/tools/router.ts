@@ -39,6 +39,7 @@ const CATEGORY_PRIORITY: Record<ToolCategory, number> = {
   browser: 0,
   skills: 0,
   canvas: 0,
+  mission: 5,
 };
 
 export class ToolRouter {

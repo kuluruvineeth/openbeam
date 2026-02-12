@@ -1,4 +1,5 @@
 import {
+  type MissionAgentRunOutput,
   MissionOrchestratorInputSchema,
   type MissionOrchestratorOutput,
 } from "@openplane/types/temporal/mission";
@@ -6,6 +7,7 @@ import {
   condition,
   continueAsNew,
   executeChild,
+  patched,
   proxyActivities,
   setHandler,
   workflowInfo,
@@ -127,6 +129,11 @@ export async function missionOrchestratorWorkflow(
       input.budgetCents !== undefined &&
       state.consumedCents >= input.budgetCents
     ) {
+      await activities.finalizeMission({
+        missionId: input.missionId,
+        status: "COMPLETED",
+      });
+
       await activities.logActivity({
         missionId: input.missionId,
         type: "budget_exceeded",
@@ -170,9 +177,12 @@ export async function missionOrchestratorWorkflow(
         id: t.id,
         title: t.title,
         priority: t.priority,
+        requiredCapabilities: t.requiredCapabilities,
       })),
       maxConcurrentRuns: input.maxConcurrentRuns,
     });
+
+    const childPromises: Promise<MissionAgentRunOutput>[] = [];
 
     for (const dispatch of plan.dispatches) {
       const claimed = await activities.claimTask({
@@ -192,25 +202,28 @@ export async function missionOrchestratorWorkflow(
 
       const childWorkflowId = `mission-run:${input.missionId}:${runId}`;
 
-      executeChild("missionAgentRunWorkflow", {
+      const childPromise = executeChild("missionAgentRunWorkflow", {
         workflowId: childWorkflowId,
         args: [
           {
             missionId: input.missionId,
             teamId: input.teamId,
             agentId: dispatch.agentId,
+            agentName: dispatch.agentName,
             taskId: dispatch.taskId,
             runId,
             soulPrompt: dispatch.soulPrompt,
+            tools: dispatch.tools,
             maxSteps: 20,
           },
         ],
       });
+      childPromises.push(childPromise);
 
       await activities.updateRun({
         runId,
         status: "RUNNING",
-        startedAt: Date.now(),
+        startedAt: workflowInfo().unsafe.now(),
       });
 
       await activities.logActivity({
@@ -218,11 +231,32 @@ export async function missionOrchestratorWorkflow(
         type: "agent_dispatched",
         message: `Agent "${dispatch.agentName}" dispatched for task "${dispatch.taskTitle}"`,
         agentId: dispatch.agentId,
-        metadata: { taskId: dispatch.taskId, runId },
+        metadata: {
+          agentName: dispatch.agentName,
+          taskId: dispatch.taskId,
+          taskTitle: dispatch.taskTitle,
+          runId,
+        },
       });
 
       state.dispatchedRuns += 1;
-      state.lastDispatchAt = Date.now();
+      state.lastDispatchAt = workflowInfo().unsafe.now();
+    }
+
+    if (childPromises.length > 0) {
+      const settled = await Promise.allSettled(childPromises);
+      for (const result of settled) {
+        if (result.status === "fulfilled") {
+          const output = result.value;
+          if (output.status === "completed") {
+            state.completedTasks += 1;
+          }
+          state.consumedCents += output.costCents;
+        }
+      }
+      if (patched("self-wake-after-dispatch")) {
+        state.wakeQueue.push({ reason: "dispatch_cycle_complete" });
+      }
     }
 
     state.status = "idle";
@@ -241,6 +275,12 @@ export async function missionOrchestratorWorkflow(
   }
 
   const finalStatus = state.status === "cancelled" ? "cancelled" : "completed";
+  const dbStatus = finalStatus === "cancelled" ? "CANCELLED" : "COMPLETED";
+
+  await activities.finalizeMission({
+    missionId: input.missionId,
+    status: dbStatus,
+  });
 
   await activities.logActivity({
     missionId: input.missionId,

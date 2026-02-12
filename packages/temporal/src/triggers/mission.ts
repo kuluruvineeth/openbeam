@@ -50,7 +50,7 @@ export async function startMission(
     objective: options.objective,
     maxConcurrentRuns: options.maxConcurrentRuns ?? 3,
     budgetCents: options.budgetCents,
-    heartbeatIntervalMin: options.heartbeatIntervalMin ?? 15,
+    heartbeatIntervalMin: options.heartbeatIntervalMin ?? 2,
   };
 
   try {
@@ -62,6 +62,11 @@ export async function startMission(
         missionId: options.missionId,
         teamId: options.teamId,
       },
+    });
+
+    await handle.signal(missionWakeSignal, {
+      missionId: options.missionId,
+      reason: "initial",
     });
 
     return {

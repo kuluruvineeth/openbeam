@@ -34,6 +34,35 @@ const agentActivities = proxyActivities<
   },
 });
 
+function toRecord(value: unknown): Record<string, unknown> | null {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return null;
+  }
+  return value as Record<string, unknown>;
+}
+
+function getArtifactTitle(artifact: AgentArtifact, step: number): string {
+  const artifactContent = toRecord(artifact.content);
+  const title = artifactContent?.title;
+  if (typeof title === "string" && title.length > 0) {
+    return title;
+  }
+
+  return `Run output - step ${step}`;
+}
+
+function getArtifactPreview(content: unknown): string {
+  if (typeof content === "string") {
+    return content.slice(0, 1200);
+  }
+
+  try {
+    return JSON.stringify(content).slice(0, 1200);
+  } catch {
+    return "Output artifact published";
+  }
+}
+
 export async function missionAgentRunWorkflow(
   rawInput: unknown
 ): Promise<MissionAgentRunOutput> {
@@ -63,7 +92,11 @@ export async function missionAgentRunWorkflow(
       type: "agent_run_started",
       message: `Agent started working on "${context.taskTitle}"`,
       agentId: input.agentId,
-      metadata: { taskId: input.taskId, runId: input.runId },
+      metadata: {
+        agentName: input.agentName,
+        taskId: input.taskId,
+        runId: input.runId,
+      },
     });
 
     while (steps < input.maxSteps && !isCancelled) {
@@ -89,13 +122,35 @@ export async function missionAgentRunWorkflow(
           memory: context.memory,
           teamId: input.teamId,
           agentId: input.agentId,
-          preset: "researcher",
+          tools: input.tools,
         },
       });
 
       allArtifacts.push(...stepResult.artifacts);
       tokensUsed += stepResult.tokensUsed;
       costCents += stepResult.costCents;
+
+      const stepContent = stepResult.artifacts[0]?.content ?? "";
+      const preview =
+        typeof stepContent === "string"
+          ? stepContent.slice(0, 300)
+          : JSON.stringify(stepContent).slice(0, 300);
+
+      await activities.logActivity({
+        missionId: input.missionId,
+        type: "agent_step_completed",
+        message: preview || `Step ${steps} completed`,
+        agentId: input.agentId,
+        metadata: {
+          agentName: input.agentName,
+          taskId: input.taskId,
+          runId: input.runId,
+          step: steps,
+          tokensUsed: stepResult.tokensUsed,
+          costCents: stepResult.costCents,
+          content: stepContent,
+        },
+      });
 
       const budgetCheck = await activities.updateBudget({
         missionId: input.missionId,
@@ -139,7 +194,11 @@ export async function missionAgentRunWorkflow(
       type: "agent_run_failed",
       message: `Agent run failed: ${error instanceof Error ? error.message : String(error)}`,
       agentId: input.agentId,
-      metadata: { taskId: input.taskId, runId: input.runId },
+      metadata: {
+        agentName: input.agentName,
+        taskId: input.taskId,
+        runId: input.runId,
+      },
     });
   }
 
@@ -158,8 +217,32 @@ export async function missionAgentRunWorkflow(
     completedAt: workflowInfo().unsafe.now(),
     tokensUsed,
     costCents,
+    artifacts: allArtifacts,
     ...(status === "failed" ? { error: "Agent run failed" } : {}),
   });
+
+  const finalArtifact = allArtifacts.at(-1);
+  if (finalArtifact && status !== "failed") {
+    const artifactTitle = getArtifactTitle(finalArtifact, steps);
+    const contentPreview = getArtifactPreview(finalArtifact.content);
+
+    await activities.logActivity({
+      missionId: input.missionId,
+      type: "artifact.published",
+      message: `Output published: ${artifactTitle}`,
+      agentId: input.agentId,
+      metadata: {
+        agentName: input.agentName,
+        taskId: input.taskId,
+        runId: input.runId,
+        artifactId: finalArtifact.id,
+        artifactType: finalArtifact.type,
+        artifactTitle,
+        content: contentPreview,
+        artifactCount: allArtifacts.length,
+      },
+    });
+  }
 
   await activities.logActivity({
     missionId: input.missionId,
@@ -167,6 +250,7 @@ export async function missionAgentRunWorkflow(
     message: `Agent run ${status}. Steps: ${steps}, Tokens: ${tokensUsed}`,
     agentId: input.agentId,
     metadata: {
+      agentName: input.agentName,
       taskId: input.taskId,
       runId: input.runId,
       steps,
