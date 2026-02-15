@@ -7,6 +7,14 @@
       "types": "./dist/index.d.ts",
       "default": "./src/index.ts"
     },
+    "./canvas": {
+      "types": "./dist/canvas/index.d.ts",
+      "default": "./src/canvas/index.ts"
+    },
+    "./canvas/*": {
+      "types": "./dist/canvas/*.d.ts",
+      "default": "./src/canvas/*.ts"
+    },
     "./*": {
       "types": "./dist/*.d.ts",
       "default": "./src/*.ts"
