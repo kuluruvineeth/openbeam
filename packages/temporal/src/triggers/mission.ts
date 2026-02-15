@@ -6,6 +6,10 @@ import type {
   MissionRuntimeQueryResult,
   MissionWakePayload,
 } from "@openplane/types/temporal/mission";
+import type {
+  MissionHealthSnapshot,
+  ReflectionEntry,
+} from "@openplane/types/temporal/mission-reflection";
 import {
   WorkflowExecutionAlreadyStartedError,
   WorkflowNotFoundError,
@@ -13,12 +17,16 @@ import {
 import { getTemporalClient } from "../client";
 import { TASK_QUEUES } from "../config/task-queues";
 import {
+  agentReflectionQuery,
   linearRunCancelSignal,
   linearRunProgressQuery,
   missionCommandSignal,
+  missionHealthQuery,
   missionRuntimeQuery,
   missionWakeSignal,
 } from "../workflows/types";
+
+const DEFAULT_MAX_MISSIONS_PER_TEAM = 5;
 
 export interface StartMissionOptions {
   missionId: string;
@@ -27,6 +35,7 @@ export interface StartMissionOptions {
   maxConcurrentRuns?: number;
   budgetCents?: number;
   heartbeatIntervalMin?: number;
+  maxConcurrentMissionsPerTeam?: number;
 }
 
 export interface MissionHandle {
@@ -41,6 +50,16 @@ function getMissionWorkflowId(missionId: string): string {
 export async function startMission(
   options: StartMissionOptions
 ): Promise<MissionHandle> {
+  const maxConcurrent =
+    options.maxConcurrentMissionsPerTeam ?? DEFAULT_MAX_MISSIONS_PER_TEAM;
+
+  const activeMissions = await getActiveMissionsForTeam(options.teamId);
+  if (activeMissions.length >= maxConcurrent) {
+    throw new Error(
+      `Team ${options.teamId} has ${activeMissions.length} active missions (limit: ${maxConcurrent})`
+    );
+  }
+
   const client = await getTemporalClient();
   const workflowId = getMissionWorkflowId(options.missionId);
 
@@ -149,6 +168,44 @@ export async function getMissionRuntime(
   try {
     const handle = client.workflow.getHandle(workflowId);
     return await handle.query(missionRuntimeQuery);
+  } catch (error) {
+    if (error instanceof WorkflowNotFoundError) {
+      return null;
+    }
+    throw error;
+  }
+}
+
+export async function getMissionHealth(
+  missionId: string
+): Promise<MissionHealthSnapshot | null> {
+  const client = await getTemporalClient();
+  const workflowId = getMissionWorkflowId(missionId);
+
+  try {
+    const handle = client.workflow.getHandle(workflowId);
+    return await handle.query(missionHealthQuery);
+  } catch (error) {
+    if (error instanceof WorkflowNotFoundError) {
+      return null;
+    }
+    throw error;
+  }
+}
+
+export async function getAgentReflection(input: {
+  missionId: string;
+  runId: string;
+}): Promise<{
+  reflectionBuffer: ReflectionEntry[];
+  replanCount: number;
+} | null> {
+  const client = await getTemporalClient();
+  const workflowId = `mission-run:${input.missionId}:${input.runId}`;
+
+  try {
+    const handle = client.workflow.getHandle(workflowId);
+    return await handle.query(agentReflectionQuery);
   } catch (error) {
     if (error instanceof WorkflowNotFoundError) {
       return null;

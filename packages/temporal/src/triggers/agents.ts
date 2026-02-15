@@ -2,6 +2,12 @@ import { WorkflowNotFoundError } from "@temporalio/client";
 import { getTemporalClient } from "../client";
 import { TASK_QUEUES } from "../config/task-queues";
 import { generateWorkflowId } from "../utils/workflow-id";
+import {
+  type AgentChainProgress as AgentChainProgressState,
+  agentChainProgressQuery,
+  type ExtendTimeoutPayload,
+  extendTimeoutSignal,
+} from "../workflows/agents/signals";
 import type {
   AgentArtifact,
   AgentState,
@@ -39,6 +45,10 @@ export interface AgentHandle {
 }
 
 export interface AgentProgress extends AgentState {
+  workflowId: string;
+}
+
+export interface AgentChainProgress extends AgentChainProgressState {
   workflowId: string;
 }
 
@@ -159,6 +169,44 @@ export async function cancelAgent(workflowId: string): Promise<boolean> {
   } catch (error) {
     if (error instanceof WorkflowNotFoundError) {
       return false;
+    }
+    throw error;
+  }
+}
+
+export async function extendAgentTimeout(
+  workflowId: string,
+  payload: ExtendTimeoutPayload
+): Promise<boolean> {
+  const client = await getTemporalClient();
+
+  try {
+    const handle = client.workflow.getHandle(workflowId);
+    await handle.signal(extendTimeoutSignal, payload);
+    return true;
+  } catch (error) {
+    if (error instanceof WorkflowNotFoundError) {
+      return false;
+    }
+    throw error;
+  }
+}
+
+export async function getAgentChainProgress(
+  workflowId: string
+): Promise<AgentChainProgress | null> {
+  const client = await getTemporalClient();
+
+  try {
+    const handle = client.workflow.getHandle(workflowId);
+    const progress = await handle.query(agentChainProgressQuery);
+    return {
+      workflowId,
+      ...progress,
+    };
+  } catch (error) {
+    if (error instanceof WorkflowNotFoundError) {
+      return null;
     }
     throw error;
   }

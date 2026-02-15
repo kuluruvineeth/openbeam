@@ -1,5 +1,25 @@
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  missionDelegateToMission,
+  missionDiscoverMissions,
+  missionEscalate,
+  missionEvaluateProgress,
+  missionGetInbox,
+  missionGetSpawnTree,
+  missionListAgents,
+  missionQueryCapabilities,
+  missionQueryTeamKnowledge,
+  missionRequestReplan,
+  missionSendMessage,
+  missionSpawnAgent,
+  missionStoreTeamKnowledge,
+  missionWaitForReply,
+  setMissionDelegationServices,
+  setMissionMessagingServices,
+  setMissionSpawnServices,
+  setTeamKnowledgeServices,
+} from "@openplane/ai/tools";
 import prisma, { type Database } from "@openplane/db";
 import {
   S3StorageProvider,
@@ -29,15 +49,17 @@ import {
 } from "../activities/knowledge";
 import * as ltrActivities from "../activities/ltr";
 import {
+  createDefaultReflectionTextGenerator,
   createMissionActivities,
   createMissionTimelinePublisher,
+  createReflectionActivities,
 } from "../activities/mission";
 import * as personalizationActivities from "../activities/personalization";
 import * as reembedActivities from "../activities/reembed";
 import * as slackActivities from "../activities/slack";
 import { createStorageActivities } from "../activities/storage";
 import { createVespaActivities } from "../activities/vespa";
-import { TASK_QUEUES } from "../config";
+import { loadMissionWorkerConfig, TASK_QUEUES } from "../config";
 import type { WorkerType } from "../worker/types";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -136,14 +158,20 @@ function getTaskQueueForWorkerType(workerType: WorkerType): string {
 export async function startWorker(
   options: StartWorkerOptions
 ): Promise<Worker> {
-  const {
-    workerType,
-    taskQueue,
-    maxConcurrentActivities,
-    maxConcurrentWorkflows,
-    temporalAddress,
-    namespace,
-  } = { ...DEFAULT_OPTIONS, ...options };
+  const missionDefaults =
+    options.workerType === "mission" ? loadMissionWorkerConfig() : null;
+
+  const merged = { ...DEFAULT_OPTIONS, ...options };
+  const { workerType, taskQueue, temporalAddress, namespace } = merged;
+
+  const maxConcurrentActivities =
+    merged.maxConcurrentActivities ??
+    missionDefaults?.maxConcurrentActivityTaskExecutions ??
+    DEFAULT_OPTIONS.maxConcurrentActivities;
+  const maxConcurrentWorkflows =
+    merged.maxConcurrentWorkflows ??
+    missionDefaults?.maxConcurrentWorkflowTaskExecutions ??
+    DEFAULT_OPTIONS.maxConcurrentWorkflows;
 
   const connection = await NativeConnection.connect({
     address: temporalAddress,
@@ -239,18 +267,82 @@ function loadActivitiesForWorkerType(
         ...createCanvasExecutionActivities({ db: deps.db }),
       };
 
-    case "mission":
+    case "mission": {
+      const missionActivities = createMissionActivities({
+        db: deps.db,
+        publishTimelineEvent: createMissionTimelinePublisher(deps.db),
+      });
+      const reflectionActivities = createReflectionActivities({
+        db: deps.db,
+        generateText: createDefaultReflectionTextGenerator(),
+      });
+
+      setMissionMessagingServices({
+        sendMessage: async (input) =>
+          missionActivities.routeAgentMessage({
+            ...input,
+            orchestratorWorkflowId: `mission:${input.missionId}`,
+          }),
+        waitForReply: async (input) =>
+          missionActivities.waitForAgentReply(input),
+        getInbox: async (input) =>
+          missionActivities.fetchAgentInbox({
+            missionId: input.missionId,
+            agentId: input.agentId,
+            limit: input.limit,
+          }),
+      });
+
+      setMissionSpawnServices({
+        requestAgentSpawn: async (input) =>
+          missionActivities.requestAgentSpawn({
+            ...input,
+            orchestratorWorkflowId: `mission:${input.missionId}`,
+          }),
+        getMissionAgents: async (input) =>
+          missionActivities.getMissionAgents(input),
+        getSpawnTree: async (input) => missionActivities.getSpawnTree(input),
+      });
+
+      setTeamKnowledgeServices({
+        queryTeamKnowledge: async (input) =>
+          missionActivities.queryTeamKnowledge(input),
+        storeTeamKnowledge: async (input) =>
+          missionActivities.storeTeamKnowledge(input),
+      });
+
+      setMissionDelegationServices({
+        discoverMissions: async (input) =>
+          missionActivities.discoverMissions(input),
+        delegateTask: async (input) =>
+          missionActivities.delegateTaskToMission(input),
+      });
+
+      missionSendMessage.register();
+      missionWaitForReply.register();
+      missionGetInbox.register();
+      missionEvaluateProgress.register();
+      missionRequestReplan.register();
+      missionEscalate.register();
+      missionQueryCapabilities.register();
+      missionSpawnAgent.register();
+      missionListAgents.register();
+      missionGetSpawnTree.register();
+      missionQueryTeamKnowledge.register();
+      missionStoreTeamKnowledge.register();
+      missionDiscoverMissions.register();
+      missionDelegateToMission.register();
+
       return {
         ...baseActivities,
-        ...createMissionActivities({
-          db: deps.db,
-          publishTimelineEvent: createMissionTimelinePublisher(deps.db),
-        }),
+        ...missionActivities,
+        ...reflectionActivities,
         ...createAgentActivities({
           db: deps.db,
           executor: new LlmAgentExecutor(),
         }),
       };
+    }
 
     default:
       return baseActivities;
