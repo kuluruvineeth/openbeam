@@ -2,6 +2,7 @@ import type { AppType, Database } from "@openplane/db";
 import {
   ConnectorStatus,
   findConnectorById,
+  getConnectorIdsByTeamExcludingStatuses,
   getDecryptedOAuthCredentials,
 } from "@openplane/db";
 import { z } from "zod";
@@ -370,13 +371,10 @@ export async function checkTeamConnectorsHealth(
   db: Database,
   teamId: string
 ): Promise<BatchHealthCheckResult> {
-  const connectors = await db.connector.findMany({
-    where: {
-      teamId,
-      status: { notIn: [ConnectorStatus.INACTIVE, ConnectorStatus.DELETING] },
-    },
-    select: { id: true },
-  });
+  const connectors = await getConnectorIdsByTeamExcludingStatuses(db, teamId, [
+    ConnectorStatus.INACTIVE,
+    ConnectorStatus.DELETING,
+  ]);
 
   const results: ConnectorHealthResult[] = [];
   let successCount = 0;

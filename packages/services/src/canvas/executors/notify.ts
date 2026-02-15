@@ -1,4 +1,7 @@
-import prisma, { AppType, ConnectorStatus } from "@openplane/db";
+import prisma, {
+  AppType,
+  findLatestActiveConnectorByTeamAndApp,
+} from "@openplane/db";
 import type { NotifyChannel } from "@openplane/types/canvas";
 import { NotifyNodeConfigSchema } from "@openplane/types/canvas";
 import jmespath from "jmespath";
@@ -175,17 +178,11 @@ async function findActiveConnector(
   id: string;
   config: unknown;
 }> {
-  const connector = await prisma.connector.findFirst({
-    where: {
-      teamId,
-      app,
-      status: {
-        in: [ConnectorStatus.ACTIVE, ConnectorStatus.SYNCING],
-      },
-    },
-    orderBy: { createdAt: "desc" },
-    select: { id: true, config: true },
-  });
+  const connector = await findLatestActiveConnectorByTeamAndApp(
+    prisma,
+    teamId,
+    app
+  );
 
   if (!connector) {
     throw new Error(`No active ${app} connector found`);

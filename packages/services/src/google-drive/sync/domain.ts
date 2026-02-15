@@ -1,4 +1,4 @@
-import prisma, { decryptIfEncrypted } from "@openplane/db";
+import prisma, { decryptIfEncrypted, getConnectorForSync } from "@openplane/db";
 import {
   getGoogleDriveServiceAccountToken,
   parseServiceAccountCredentials,
@@ -45,10 +45,7 @@ export async function* syncDomainDrives(
     onDocumentsRemoved,
   } = options;
 
-  const connector = await prisma.connector.findUnique({
-    where: { id: connectorId },
-    include: { oauthProvider: true },
-  });
+  const connector = await getConnectorForSync(prisma, connectorId);
 
   if (!connector) {
     throw new Error(`Connector ${connectorId} not found`);

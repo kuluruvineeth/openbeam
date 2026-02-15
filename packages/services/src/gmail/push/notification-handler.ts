@@ -1,4 +1,4 @@
-import prisma, { ConnectorStatus } from "@openplane/db";
+import prisma, { findActiveGmailConnectorByEmail } from "@openplane/db";
 import { rateLimiter } from "@openplane/redis";
 import { logger } from "../../lib/logger";
 import { type PubSubNotification, parsePubSubNotification } from "../api/watch";
@@ -74,31 +74,7 @@ export async function handleGmailNotification(
 async function findConnectorForEmail(
   emailAddress: string
 ): Promise<string | null> {
-  const connector = await prisma.connector.findFirst({
-    where: {
-      app: "GMAIL",
-      status: {
-        in: [ConnectorStatus.ACTIVE, ConnectorStatus.SYNCING],
-      },
-      OR: [
-        {
-          config: {
-            path: ["userEmail"],
-            equals: emailAddress,
-          },
-        },
-        {
-          config: {
-            path: ["delegatedEmail"],
-            equals: emailAddress,
-          },
-        },
-      ],
-    },
-    select: {
-      id: true,
-    },
-  });
+  const connector = await findActiveGmailConnectorByEmail(prisma, emailAddress);
 
   return connector?.id ?? null;
 }

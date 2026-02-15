@@ -1,4 +1,4 @@
-import prisma from "@openplane/db";
+import prisma, { findIndexedMediaByVespaId } from "@openplane/db";
 import { TwelveLabsClient } from "@openplane/media";
 import type { MediaDocument } from "@openplane/vespa";
 import { vespaClient } from "@openplane/vespa";
@@ -264,10 +264,7 @@ export class MediaMetadataService {
     const assetId = metadata.twelveLabsAssetId;
 
     if (!(indexId && assetId)) {
-      const dbMedia = await prisma.indexedMedia.findFirst({
-        where: { vespaId },
-        select: { twelveLabsIndexId: true, twelveLabsAssetId: true },
-      });
+      const dbMedia = await findIndexedMediaByVespaId(prisma, vespaId);
 
       if (!(dbMedia?.twelveLabsIndexId && dbMedia?.twelveLabsAssetId)) {
         return null;

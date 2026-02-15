@@ -1,4 +1,4 @@
-import prisma, { decryptIfEncrypted } from "@openplane/db";
+import prisma, { decryptIfEncrypted, getConnectorForSync } from "@openplane/db";
 import {
   getServiceAccountToken,
   parseServiceAccountCredentials,
@@ -75,14 +75,7 @@ export async function* syncDomainMailboxes(
     onMediaDiscovered,
   } = options;
 
-  const connector = await prisma.connector.findUnique({
-    where: { id: connectorId },
-    select: {
-      encryptedCredentials: true,
-      credentialsIv: true,
-      config: true,
-    },
-  });
+  const connector = await getConnectorForSync(prisma, connectorId);
 
   if (!connector?.encryptedCredentials) {
     throw new Error("Service account credentials not found");
@@ -99,8 +92,11 @@ export async function* syncDomainMailboxes(
 
   const credentials = parseServiceAccountCredentials(credentialsJson);
 
+  const config = connector.config as { delegatedEmail?: string } | null;
+  const delegatedEmail = config?.delegatedEmail;
+
   const emails =
-    userEmails ?? (await listDomainUsers(credentials, connectorId));
+    userEmails ?? (await listDomainUsers(credentials, delegatedEmail));
 
   const newCursor: DomainSyncCursor = {
     users: { ...cursor.users },
@@ -196,16 +192,8 @@ export async function* syncDomainMailboxes(
 
 async function listDomainUsers(
   credentials: ReturnType<typeof parseServiceAccountCredentials>,
-  connectorId: string
+  delegatedEmail: string | undefined
 ): Promise<string[]> {
-  const connector = await prisma.connector.findUnique({
-    where: { id: connectorId },
-    select: { config: true },
-  });
-
-  const config = connector?.config as { delegatedEmail?: string } | undefined;
-  const delegatedEmail = config?.delegatedEmail;
-
   if (!delegatedEmail) {
     throw new Error("Delegated admin email not configured");
   }

@@ -28,12 +28,16 @@ import {
   createAnalyticsService,
 } from "@openplane/analytics";
 import prisma, {
+  countConnectorSyncHistoryEntries,
   createSavedSearch,
   createShareLink,
   findConnectorById,
+  findSyncHistoryWithItemsById,
   findUserSearchProfile,
+  listConnectorSyncHistoryEntries,
   listConnectorsByTeam,
   triggerSync,
+  updateConnector,
   upsertUserProfilePreferences,
 } from "@openplane/db";
 import { appStore } from "@openplane/integrations";
@@ -988,31 +992,26 @@ Cite sources using [n] notation where n is the document number.`;
         connectorId: string,
         limit = 10
       ): Promise<SyncHistoryEntry[]> {
-        const history = await prisma.syncHistory.findMany({
-          where: { connectorId },
-          orderBy: { startedAt: "desc" },
-          take: limit,
-          select: {
-            id: true,
-            status: true,
-            startedAt: true,
-            finishedAt: true,
-            dataAdded: true,
-            dataUpdated: true,
-            dataDeleted: true,
-            dataSkipped: true,
-            errorMessage: true,
-          },
-        });
+        const history = await listConnectorSyncHistoryEntries(
+          prisma,
+          connectorId,
+          {
+            take: limit,
+            skip: 0,
+          }
+        );
 
-        return history.map((h) => ({
-          id: h.id,
-          status: h.status,
-          startedAt: h.startedAt,
-          completedAt: h.finishedAt,
+        return history.map((entry) => ({
+          id: entry.id,
+          status: entry.status,
+          startedAt: entry.startedAt,
+          completedAt: entry.finishedAt,
           documentsProcessed:
-            h.dataAdded + h.dataUpdated + h.dataDeleted + h.dataSkipped,
-          errorMessage: h.errorMessage ?? undefined,
+            entry.dataAdded +
+            entry.dataUpdated +
+            entry.dataDeleted +
+            entry.dataSkipped,
+          errorMessage: entry.errorMessage ?? undefined,
         }));
       },
 
@@ -1025,36 +1024,24 @@ Cite sources using [n] notation where n is the document number.`;
         const offset = params.offset ?? 0;
 
         const [history, total] = await Promise.all([
-          prisma.syncHistory.findMany({
-            where: { connectorId: params.connectorId },
-            orderBy: { startedAt: "desc" },
+          listConnectorSyncHistoryEntries(prisma, params.connectorId, {
             take: limit,
             skip: offset,
-            select: {
-              id: true,
-              status: true,
-              startedAt: true,
-              finishedAt: true,
-              dataAdded: true,
-              dataUpdated: true,
-              dataDeleted: true,
-              dataSkipped: true,
-              errorMessage: true,
-            },
           }),
-          prisma.syncHistory.count({
-            where: { connectorId: params.connectorId },
-          }),
+          countConnectorSyncHistoryEntries(prisma, params.connectorId),
         ]);
 
-        const entries: SyncHistoryEntry[] = history.map((h) => ({
-          id: h.id,
-          status: h.status,
-          startedAt: h.startedAt,
-          completedAt: h.finishedAt,
+        const entries: SyncHistoryEntry[] = history.map((entry) => ({
+          id: entry.id,
+          status: entry.status,
+          startedAt: entry.startedAt,
+          completedAt: entry.finishedAt,
           documentsProcessed:
-            h.dataAdded + h.dataUpdated + h.dataDeleted + h.dataSkipped,
-          errorMessage: h.errorMessage ?? undefined,
+            entry.dataAdded +
+            entry.dataUpdated +
+            entry.dataDeleted +
+            entry.dataSkipped,
+          errorMessage: entry.errorMessage ?? undefined,
         }));
 
         return {
@@ -1106,10 +1093,7 @@ Cite sources using [n] notation where n is the document number.`;
       },
 
       async getSyncJobStatus(jobId: string) {
-        const syncHistory = await prisma.syncHistory.findUnique({
-          where: { id: jobId },
-          include: { syncJob: true },
-        });
+        const syncHistory = await findSyncHistoryWithItemsById(prisma, jobId);
 
         if (!syncHistory) {
           throw new Error(`Sync job not found: ${jobId}`);
@@ -1124,10 +1108,7 @@ Cite sources using [n] notation where n is the document number.`;
           throw new Error(`Connector not found: ${connectorId}`);
         }
 
-        await prisma.connector.update({
-          where: { id: connectorId },
-          data: { status: "PAUSED" },
-        });
+        await updateConnector(prisma, connectorId, { status: "PAUSED" });
 
         return {
           connectorId,
@@ -1143,10 +1124,7 @@ Cite sources using [n] notation where n is the document number.`;
           throw new Error(`Connector not found: ${connectorId}`);
         }
 
-        await prisma.connector.update({
-          where: { id: connectorId },
-          data: { status: "ACTIVE" },
-        });
+        await updateConnector(prisma, connectorId, { status: "ACTIVE" });
 
         return {
           connectorId,

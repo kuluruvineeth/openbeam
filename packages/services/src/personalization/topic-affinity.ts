@@ -1,6 +1,8 @@
 import {
   type Database,
+  findEntityByTeamTypeAndExternalId,
   findUserSearchProfile,
+  listAllExpertiseRelationsByPerson,
   updateTopicWeights,
 } from "@openplane/db";
 import { getUserProfileCache } from "@openplane/redis";
@@ -64,29 +66,21 @@ async function getTopicsFromClicks(
 async function getTopicsFromAuthorship(
   ctx: TopicAffinityContext
 ): Promise<Record<string, number>> {
-  const userEntity = await ctx.db.entity.findFirst({
-    where: {
-      teamId: ctx.teamId,
-      type: "PERSON",
-      externalId: ctx.userId,
-    },
-  });
+  const userEntity = await findEntityByTeamTypeAndExternalId(
+    ctx.db,
+    ctx.teamId,
+    "PERSON",
+    ctx.userId
+  );
 
   if (!userEntity) {
     return {};
   }
 
-  const expertiseRelations = await ctx.db.entityRelation.findMany({
-    where: {
-      fromEntityId: userEntity.id,
-      relationType: "EXPERT_IN",
-    },
-    include: {
-      toEntity: {
-        select: { id: true, type: true },
-      },
-    },
-  });
+  const expertiseRelations = await listAllExpertiseRelationsByPerson(
+    ctx.db,
+    userEntity.id
+  );
 
   const topicWeights: Record<string, number> = {};
 

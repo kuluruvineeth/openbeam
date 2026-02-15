@@ -1,8 +1,10 @@
 import type { Database, Entity } from "@openplane/db";
 import {
   type EvidenceItem,
+  getEntityRelationByFromToAndType,
   getExpertiseRelations,
   getExpertsForTopic,
+  listAllExpertiseRelationsByPerson,
   updateEntity,
   upsertEntityRelation,
 } from "@openplane/db";
@@ -40,15 +42,12 @@ export async function updateExpertise(
 ): Promise<void> {
   const weight = calculateWeight(update.action, update.confidence);
 
-  const existing = await db.entityRelation.findUnique({
-    where: {
-      fromEntityId_toEntityId_relationType: {
-        fromEntityId: update.personId,
-        toEntityId: update.topicId,
-        relationType: "EXPERT_IN",
-      },
-    },
-  });
+  const existing = await getEntityRelationByFromToAndType(
+    db,
+    update.personId,
+    update.topicId,
+    "EXPERT_IN"
+  );
 
   const newEvidence: EvidenceItem = {
     docId: update.documentId,
@@ -93,12 +92,7 @@ async function recalculateExpertiseScore(
   db: Database,
   personId: string
 ): Promise<void> {
-  const relations = await db.entityRelation.findMany({
-    where: {
-      fromEntityId: personId,
-      relationType: "EXPERT_IN",
-    },
-  });
+  const relations = await listAllExpertiseRelationsByPerson(db, personId);
 
   const now = Date.now();
   let totalScore = 0;

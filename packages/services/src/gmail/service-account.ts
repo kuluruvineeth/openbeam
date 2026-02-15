@@ -4,6 +4,9 @@ import prisma, {
   createDefaultSyncJobs,
   encryptIfConfigured,
   getConnectorWithCredentials,
+  setConnectorError,
+  updateConnector,
+  upsertOAuthProvider,
 } from "@openplane/db";
 import {
   getServiceAccountToken,
@@ -70,7 +73,6 @@ export class GmailServiceAccountAuth implements IntegrationServiceAccountAuth {
       });
 
       const encryptedCredentials = encryptIfConfigured(credentialsJson);
-      const accessTokenEncrypted = encryptIfConfigured(tokenResult.accessToken);
       const tokenExpiresAt = new Date(
         Date.now() + tokenResult.expiresIn * 1000
       );
@@ -79,54 +81,32 @@ export class GmailServiceAccountAuth implements IntegrationServiceAccountAuth {
         const currentConfig =
           (existingConnector.config as ConnectorConfig) || {};
 
-        const updated = await tx.connector.update({
-          where: { id: connectorId },
-          data: {
-            status: ConnectorStatus.ACTIVE,
-            statusChangedAt: new Date(),
-            lastSyncedAt: null,
-            workspaceExternalId: tokenResult.projectId,
-            name: `Gmail (${delegatedEmail})`,
-            encryptedCredentials: encryptedCredentials.encrypted,
-            credentialsIv: encryptedCredentials.iv,
-            config: {
-              ...currentConfig,
-              serviceAccountEmail: tokenResult.serviceAccountEmail,
-              delegatedEmail: tokenResult.delegatedUserEmail,
-              projectId: tokenResult.projectId,
-              service_account_file: undefined,
-              service_account_json: undefined,
-            },
+        const updated = await updateConnector(tx, connectorId, {
+          status: ConnectorStatus.ACTIVE,
+          statusChangedAt: new Date(),
+          lastSyncedAt: null,
+          workspaceExternalId: tokenResult.projectId,
+          name: `Gmail (${delegatedEmail})`,
+          encryptedCredentials: encryptedCredentials.encrypted,
+          credentialsIv: encryptedCredentials.iv,
+          config: {
+            ...currentConfig,
+            serviceAccountEmail: tokenResult.serviceAccountEmail,
+            delegatedEmail: tokenResult.delegatedUserEmail,
+            projectId: tokenResult.projectId,
+            service_account_file: undefined,
+            service_account_json: undefined,
           },
         });
 
-        await tx.oAuthProvider.upsert({
-          where: { connectorId: updated.id },
-          create: {
-            connectorId: updated.id,
-            app: AppType.GMAIL,
-            accessToken: accessTokenEncrypted.encrypted,
-            accessTokenIv: accessTokenEncrypted.iv,
-            refreshToken: null,
-            refreshTokenIv: null,
-            tokenExpiresAt,
-            tokenRefreshedAt: new Date(),
-            oauthScopes: ["https://www.googleapis.com/auth/gmail.readonly"],
-            tokenScopes: ["https://www.googleapis.com/auth/gmail.readonly"],
-            tokenType: "Bearer",
-          },
-          update: {
-            accessToken: accessTokenEncrypted.encrypted,
-            accessTokenIv: accessTokenEncrypted.iv,
-            refreshToken: null,
-            refreshTokenIv: null,
-            tokenExpiresAt,
-            tokenRefreshedAt: new Date(),
-            oauthScopes: ["https://www.googleapis.com/auth/gmail.readonly"],
-            tokenScopes: ["https://www.googleapis.com/auth/gmail.readonly"],
-            tokenType: "Bearer",
-            updatedAt: new Date(),
-          },
+        await upsertOAuthProvider(tx, {
+          connectorId: updated.id,
+          app: AppType.GMAIL,
+          accessToken: tokenResult.accessToken,
+          refreshToken: null,
+          expiresAt: tokenExpiresAt,
+          scopes: ["https://www.googleapis.com/auth/gmail.readonly"],
+          tokenType: "Bearer",
         });
 
         await createDefaultSyncJobs(tx, updated.id);
@@ -136,18 +116,11 @@ export class GmailServiceAccountAuth implements IntegrationServiceAccountAuth {
 
       return { connector };
     } catch (error) {
-      await prisma.connector.update({
-        where: { id: connectorId },
-        data: {
-          status: ConnectorStatus.ERROR,
-          statusChangedAt: new Date(),
-          lastError:
-            error instanceof Error
-              ? error.message
-              : "Service account auth failed",
-          lastErrorAt: new Date(),
-        },
-      });
+      await setConnectorError(
+        prisma,
+        connectorId,
+        error instanceof Error ? error.message : "Service account auth failed"
+      );
 
       throw error;
     }

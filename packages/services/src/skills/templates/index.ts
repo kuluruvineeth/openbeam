@@ -1,3 +1,8 @@
+import type { Database } from "@openplane/db";
+import {
+  createMissionTemplateAgent,
+  createMissionTemplateTask,
+} from "@openplane/db";
 import type { MissionTemplate } from "@openplane/types/mission-control";
 import { accountingTemplates } from "./accounting";
 import { legalTemplates } from "./legal";
@@ -23,40 +28,39 @@ export function getTemplate(templateId: string): MissionTemplate | undefined {
 }
 
 export async function applyTemplate(
-  db: unknown,
+  db: Database,
   missionId: string,
-  template: MissionTemplate
+  template: MissionTemplate,
+  options: {
+    createdById: string;
+    agentIdsByName: Record<string, string>;
+  }
 ): Promise<void> {
-  const prisma = db as {
-    missionAgent: {
-      create: (args: { data: Record<string, unknown> }) => Promise<unknown>;
-    };
-    missionTask: {
-      create: (args: { data: Record<string, unknown> }) => Promise<unknown>;
-    };
-  };
-
   for (const agentDef of template.agents) {
-    await prisma.missionAgent.create({
-      data: {
-        missionId,
-        name: agentDef.name,
-        role: agentDef.role,
-        soulPrompt: agentDef.soulPrompt,
-      },
+    const agentId = options.agentIdsByName[agentDef.name];
+    if (!agentId) {
+      throw new Error(
+        `Missing agentId mapping for template agent '${agentDef.name}'`
+      );
+    }
+
+    await createMissionTemplateAgent(db, {
+      missionId,
+      agentId,
+      name: agentDef.name,
+      role: agentDef.role,
+      soulPrompt: agentDef.soulPrompt,
     });
   }
 
   for (const taskDef of template.tasks) {
-    await prisma.missionTask.create({
-      data: {
-        missionId,
-        title: taskDef.title,
-        description: taskDef.description,
-        priority: taskDef.priority,
-        status: "INBOX",
-        requestId: `${missionId}-${taskDef.title.toLowerCase().replace(/\s+/g, "-")}`,
-      },
+    await createMissionTemplateTask(db, {
+      missionId,
+      title: taskDef.title,
+      description: taskDef.description,
+      priority: taskDef.priority,
+      requestId: `${missionId}-${taskDef.title.toLowerCase().replace(/\s+/g, "-")}`,
+      createdById: options.createdById,
     });
   }
 }

@@ -2,6 +2,7 @@ import type { Database, Entity, EntityType } from "@openplane/db";
 import {
   findEntityByAlias,
   getAllEntitiesForResolution,
+  getEntityById,
   getEntityByNormalizedName,
   upsertEntity,
 } from "@openplane/db";
@@ -56,9 +57,7 @@ export async function resolveEntity(
 
   const fuzzyMatch = findBestFuzzyMatch(normalizedMention, filtered);
   if (fuzzyMatch && fuzzyMatch.score > 0.85) {
-    const fullEntity = await db.entity.findUnique({
-      where: { id: fuzzyMatch.entityId },
-    });
+    const fullEntity = await getEntityById(db, fuzzyMatch.entityId);
 
     if (fullEntity) {
       return {
@@ -144,7 +143,7 @@ async function fetchAndCacheEntity(
     return cached;
   }
 
-  const entity = await db.entity.findUnique({ where: { id: entityId } });
+  const entity = await getEntityById(db, entityId);
   if (entity) {
     cache.set(entityId, entity);
   }

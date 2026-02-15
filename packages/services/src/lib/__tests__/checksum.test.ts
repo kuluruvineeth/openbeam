@@ -207,7 +207,7 @@ describe("calculateDocumentChecksum - property-based tests", () => {
     );
   });
 
-  it("handles extreme values", { timeout: 15_000 }, () => {
+  it("handles extreme values", () => {
     fc.assert(
       fc.asyncProperty(
         fc.oneof(
@@ -225,5 +225,5 @@ describe("calculateDocumentChecksum - property-based tests", () => {
         }
       )
     );
-  });
+  }, 15_000);
 });

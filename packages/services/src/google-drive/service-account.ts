@@ -4,6 +4,9 @@ import prisma, {
   createDefaultSyncJobs,
   encryptIfConfigured,
   getConnectorWithCredentials,
+  setConnectorError,
+  updateConnector,
+  upsertOAuthProvider,
 } from "@openplane/db";
 import {
   GOOGLE_DRIVE_SERVICE_ACCOUNT_SCOPES,
@@ -73,7 +76,6 @@ export class GoogleDriveServiceAccountAuth
       });
 
       const encryptedCredentials = encryptIfConfigured(credentialsJson);
-      const accessTokenEncrypted = encryptIfConfigured(tokenResult.accessToken);
       const tokenExpiresAt = new Date(
         Date.now() + tokenResult.expiresIn * 1000
       );
@@ -82,54 +84,32 @@ export class GoogleDriveServiceAccountAuth
         const currentConfig =
           (existingConnector.config as ConnectorConfig) || {};
 
-        const updated = await tx.connector.update({
-          where: { id: connectorId },
-          data: {
-            status: ConnectorStatus.ACTIVE,
-            statusChangedAt: new Date(),
-            lastSyncedAt: null,
-            workspaceExternalId: tokenResult.projectId,
-            name: `Google Drive (${delegatedEmail})`,
-            encryptedCredentials: encryptedCredentials.encrypted,
-            credentialsIv: encryptedCredentials.iv,
-            config: {
-              ...currentConfig,
-              serviceAccountEmail: tokenResult.serviceAccountEmail,
-              delegatedEmail: tokenResult.delegatedUserEmail,
-              projectId: tokenResult.projectId,
-              service_account_file: undefined,
-              service_account_json: undefined,
-            },
+        const updated = await updateConnector(tx, connectorId, {
+          status: ConnectorStatus.ACTIVE,
+          statusChangedAt: new Date(),
+          lastSyncedAt: null,
+          workspaceExternalId: tokenResult.projectId,
+          name: `Google Drive (${delegatedEmail})`,
+          encryptedCredentials: encryptedCredentials.encrypted,
+          credentialsIv: encryptedCredentials.iv,
+          config: {
+            ...currentConfig,
+            serviceAccountEmail: tokenResult.serviceAccountEmail,
+            delegatedEmail: tokenResult.delegatedUserEmail,
+            projectId: tokenResult.projectId,
+            service_account_file: undefined,
+            service_account_json: undefined,
           },
         });
 
-        await tx.oAuthProvider.upsert({
-          where: { connectorId: updated.id },
-          create: {
-            connectorId: updated.id,
-            app: AppType.GOOGLE_DRIVE,
-            accessToken: accessTokenEncrypted.encrypted,
-            accessTokenIv: accessTokenEncrypted.iv,
-            refreshToken: null,
-            refreshTokenIv: null,
-            tokenExpiresAt,
-            tokenRefreshedAt: new Date(),
-            oauthScopes: GOOGLE_DRIVE_SERVICE_ACCOUNT_SCOPES,
-            tokenScopes: GOOGLE_DRIVE_SERVICE_ACCOUNT_SCOPES,
-            tokenType: "Bearer",
-          },
-          update: {
-            accessToken: accessTokenEncrypted.encrypted,
-            accessTokenIv: accessTokenEncrypted.iv,
-            refreshToken: null,
-            refreshTokenIv: null,
-            tokenExpiresAt,
-            tokenRefreshedAt: new Date(),
-            oauthScopes: GOOGLE_DRIVE_SERVICE_ACCOUNT_SCOPES,
-            tokenScopes: GOOGLE_DRIVE_SERVICE_ACCOUNT_SCOPES,
-            tokenType: "Bearer",
-            updatedAt: new Date(),
-          },
+        await upsertOAuthProvider(tx, {
+          connectorId: updated.id,
+          app: AppType.GOOGLE_DRIVE,
+          accessToken: tokenResult.accessToken,
+          refreshToken: null,
+          expiresAt: tokenExpiresAt,
+          scopes: GOOGLE_DRIVE_SERVICE_ACCOUNT_SCOPES,
+          tokenType: "Bearer",
         });
 
         await createDefaultSyncJobs(tx, updated.id);
@@ -139,18 +119,11 @@ export class GoogleDriveServiceAccountAuth
 
       return { connector };
     } catch (error) {
-      await prisma.connector.update({
-        where: { id: connectorId },
-        data: {
-          status: ConnectorStatus.ERROR,
-          statusChangedAt: new Date(),
-          lastError:
-            error instanceof Error
-              ? error.message
-              : "Service account auth failed",
-          lastErrorAt: new Date(),
-        },
-      });
+      await setConnectorError(
+        prisma,
+        connectorId,
+        error instanceof Error ? error.message : "Service account auth failed"
+      );
 
       throw error;
     }
