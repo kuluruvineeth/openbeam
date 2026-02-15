@@ -6,6 +6,15 @@ export {
   LlmAgentExecutor,
 } from "./agents";
 export type {
+  ChunkExecutionResult,
+  ChunkedAgentActivities,
+  ChunkedAgentExecutor,
+  ExecuteAgentStepChunkedInput,
+  ExecuteAgentStepChunkedOutput,
+  ExecuteParallelAgentStepsInput,
+  ExecuteParallelAgentStepsOutput,
+} from "./agents/chunked-types";
+export type {
   ExecuteAgentStepInput,
   ExecuteAgentStepOutput,
   FinalizeAgentSessionInput,

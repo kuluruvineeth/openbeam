@@ -1,16 +1,52 @@
+import { randomUUID } from "node:crypto";
 import type { Database } from "@openplane/db";
 import { publishMissionTimelineEvent } from "@openplane/redis";
+import {
+  CrossMissionDelegationRequestSchema,
+  CrossMissionSignalPayloadSchema,
+} from "@openplane/types/temporal/cross-mission";
+import {
+  type SpawnAgentRequest,
+  SpawnAgentRequestSchema,
+  SpawnAgentSignalPayloadSchema,
+  SpawnedAgentBlueprintSchema,
+  SpawnLimitsSchema,
+  SpawnRegistryEntrySchema,
+  type SpawnValidationResult,
+  SpawnValidationResultSchema,
+} from "@openplane/types/temporal/mission";
+import { getTemporalClient } from "../../client";
+import { crossMissionSignal, spawnAgentSignal } from "../../workflows/types";
+import { createDiscoveryActivities } from "./discovery";
+import {
+  fetchAgentInbox,
+  routeAgentMessage,
+  waitForAgentReply,
+} from "./messaging";
+import { createTeamKnowledgeActivities } from "./team-knowledge";
 import type {
+  BrowseInboxInput,
+  BrowseInboxOutput,
+  CheckReviewGatingInput,
+  CheckReviewGatingOutput,
   ClaimTaskInput,
   ClaimTaskOutput,
   CompleteTaskInput,
   CompleteTaskOutput,
   CreateRunInput,
   CreateRunOutput,
+  CreateSpawnedAgentInput,
+  CreateSpawnedAgentOutput,
   CreateTaskInput,
   CreateTaskOutput,
   FinalizeMissionInput,
+  GenerateSpawnedSoulPromptInput,
+  GenerateSpawnedSoulPromptOutput,
+  GetMissionAgentsInput,
+  GetMissionAgentsOutput,
   GetMissionStatsInput,
+  GetSpawnTreeInput,
+  GetSpawnTreeOutput,
   LoadMissionContextInput,
   LoadMissionContextOutput,
   LogActivityInput,
@@ -22,10 +58,17 @@ import type {
   ReadMemoryInput,
   RefreshQueueInput,
   RefreshQueueOutput,
+  RequestAgentSpawnInput,
+  RequestAgentSpawnOutput,
+  SelectReviewerInput,
+  SelectReviewerOutput,
   SendFeedbackInput,
   UpdateBudgetInput,
   UpdateBudgetOutput,
   UpdateRunInput,
+  ValidateAgentClaimInput,
+  ValidateAgentClaimOutput,
+  ValidateSpawnRequestInput,
   WriteMemoryInput,
 } from "./types";
 
@@ -106,6 +149,132 @@ function trimRunIdCache(
   }
 }
 
+const CAPABILITY_TOOL_MAP: Record<string, string[]> = {
+  research: ["mission_query_capabilities", "mission_send_message"],
+  planning: ["mission_query_capabilities", "mission_send_message"],
+  coordination: [
+    "mission_send_message",
+    "mission_wait_for_reply",
+    "mission_get_inbox",
+  ],
+  communication: [
+    "mission_send_message",
+    "mission_wait_for_reply",
+    "mission_get_inbox",
+  ],
+};
+
+const DEFAULT_SPAWN_TOOLS = [
+  "mission_send_message",
+  "mission_wait_for_reply",
+  "mission_get_inbox",
+  "mission_query_capabilities",
+];
+
+function normalizeCapability(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
+}
+
+function capitalize(value: string): string {
+  if (value.length === 0) {
+    return value;
+  }
+  return value.slice(0, 1).toUpperCase() + value.slice(1);
+}
+
+function toDisplayCapability(value: string): string {
+  return value
+    .split("_")
+    .filter((segment) => segment.length > 0)
+    .map(capitalize)
+    .join(" ");
+}
+
+function uniqueStrings(values: string[]): string[] {
+  return [...new Set(values.filter((value) => value.length > 0))];
+}
+
+function buildToolSet(
+  requiredCapabilities: string[],
+  suggestedTools: string[] | undefined
+): string[] {
+  if (suggestedTools && suggestedTools.length > 0) {
+    return uniqueStrings(suggestedTools);
+  }
+
+  const fromCapabilities = requiredCapabilities.flatMap(
+    (capability) => CAPABILITY_TOOL_MAP[normalizeCapability(capability)] ?? []
+  );
+
+  return uniqueStrings([...DEFAULT_SPAWN_TOOLS, ...fromCapabilities]);
+}
+
+function buildSpawnedPrompt(
+  name: string,
+  role: string,
+  request: SpawnAgentRequest
+): string {
+  const capabilities = request.requiredCapabilities
+    .map((capability) => toDisplayCapability(normalizeCapability(capability)))
+    .join(", ");
+  const contextSection = request.context
+    ? `\n\nAdditional context:\n${request.context}`
+    : "";
+  return [
+    `You are ${name}.`,
+    `Role: ${role}.`,
+    `Primary task: ${request.taskDescription}`,
+    `Required capabilities: ${capabilities}.`,
+    "You are a focused specialist agent. Stay within scope, report concise progress, and produce verifiable outputs.",
+    contextSection,
+  ]
+    .filter((segment) => segment.length > 0)
+    .join("\n");
+}
+
+async function resolveSpawnDepth(
+  db: Database,
+  missionId: string,
+  agentId: string
+): Promise<number> {
+  let depth = 0;
+  let currentAgentId = agentId;
+  const visited = new Set<string>();
+
+  while (true) {
+    if (visited.has(currentAgentId)) {
+      return depth;
+    }
+    visited.add(currentAgentId);
+
+    const currentAgent = await db.missionAgent.findFirst({
+      where: { missionId, id: currentAgentId },
+      select: { id: true, level: true },
+    });
+
+    if (!currentAgent || currentAgent.level !== "spawned") {
+      return depth;
+    }
+
+    depth += 1;
+
+    const seedTask = await db.missionTask.findFirst({
+      where: { missionId, assigneeId: currentAgent.id },
+      orderBy: { createdAt: "asc" },
+      select: { createdById: true },
+    });
+
+    if (!seedTask || seedTask.createdById === currentAgent.id) {
+      return depth;
+    }
+
+    currentAgentId = seedTask.createdById;
+  }
+}
+
 export function createMissionTimelinePublisher(
   db: Database,
   publishTimeline: MissionTimelineEventPublisher = publishMissionTimelineEvent
@@ -155,6 +324,8 @@ export function createMissionActivities(
   const { db } = deps;
   const publishTimelineEvent =
     deps.publishTimelineEvent ?? NOOP_TIMELINE_PUBLISHER;
+  const discoveryActivities = createDiscoveryActivities({ db });
+  const teamKnowledgeActivities = createTeamKnowledgeActivities({ db });
 
   return {
     async refreshQueue(input: RefreshQueueInput): Promise<RefreshQueueOutput> {
@@ -226,8 +397,35 @@ export function createMissionActivities(
       const assignedAgentIds = new Set<string>();
 
       for (const task of eligibleTasks.slice(0, slotsAvailable)) {
-        const bestAgent = idleAgents
-          .filter((a) => !assignedAgentIds.has(a.id))
+        const availableAgents = idleAgents.filter(
+          (agent) => !assignedAgentIds.has(agent.id)
+        );
+
+        if (availableAgents.length === 0) {
+          break;
+        }
+
+        if (task.assigneeId) {
+          const assignedAgent = availableAgents.find(
+            (agent) => agent.id === task.assigneeId
+          );
+          if (!assignedAgent) {
+            continue;
+          }
+
+          assignedAgentIds.add(assignedAgent.id);
+          dispatches.push({
+            agentId: assignedAgent.id,
+            agentName: assignedAgent.name,
+            taskId: task.id,
+            taskTitle: task.title,
+            soulPrompt: assignedAgent.soulPrompt,
+            tools: assignedAgent.tools,
+          });
+          continue;
+        }
+
+        const bestAgent = availableAgents
           .map((agent) => ({
             agent,
             score: scoreAgentForTask(agent, task),
@@ -237,7 +435,7 @@ export function createMissionActivities(
           )[0];
 
         if (!bestAgent) {
-          break;
+          continue;
         }
 
         assignedAgentIds.add(bestAgent.agent.id);
@@ -252,6 +450,109 @@ export function createMissionActivities(
       }
 
       return { dispatches };
+    },
+
+    async browseInbox(input: BrowseInboxInput): Promise<BrowseInboxOutput> {
+      const limit = Math.min(input.limit ?? 10, 20);
+
+      const completedDepIds = new Set<string>();
+      const inboxTasks = await db.missionTask.findMany({
+        where: {
+          missionId: input.missionId,
+          status: "INBOX",
+          assigneeId: null,
+        },
+        orderBy: [{ priority: "asc" }, { createdAt: "asc" }],
+        take: limit * 2,
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          priority: true,
+          requiredCapabilities: true,
+          dependsOn: true,
+          createdAt: true,
+        },
+      });
+
+      const tasksWithDeps = inboxTasks.filter((t) => t.dependsOn.length > 0);
+      if (tasksWithDeps.length > 0) {
+        const allDepIds = [
+          ...new Set(tasksWithDeps.flatMap((t) => t.dependsOn)),
+        ];
+        const doneTasks = await db.missionTask.findMany({
+          where: { id: { in: allDepIds }, status: "DONE" },
+          select: { id: true },
+        });
+        for (const t of doneTasks) {
+          completedDepIds.add(t.id);
+        }
+      }
+
+      const readyTasks = inboxTasks.filter((task) =>
+        task.dependsOn.every((depId) => completedDepIds.has(depId))
+      );
+
+      return {
+        tasks: readyTasks.slice(0, limit).map((task) => ({
+          id: task.id,
+          title: task.title,
+          description: task.description,
+          priority: task.priority as "P0" | "P1" | "P2" | "P3",
+          requiredCapabilities: task.requiredCapabilities,
+          dependsOn: task.dependsOn,
+          createdAt: task.createdAt.getTime(),
+        })),
+      };
+    },
+
+    async validateAgentClaim(
+      input: ValidateAgentClaimInput
+    ): Promise<ValidateAgentClaimOutput> {
+      if (
+        input.budgetCents !== undefined &&
+        input.consumedCents >= input.budgetCents
+      ) {
+        return { approved: false, reason: "Mission budget exhausted" };
+      }
+
+      if (input.currentRunningAgents >= input.maxConcurrentRuns) {
+        return {
+          approved: false,
+          reason: `Concurrency limit reached (${input.maxConcurrentRuns})`,
+        };
+      }
+
+      const task = await db.missionTask.findFirst({
+        where: {
+          id: input.taskId,
+          missionId: input.missionId,
+          status: "INBOX",
+          assigneeId: null,
+        },
+        select: { id: true },
+      });
+
+      if (!task) {
+        return {
+          approved: false,
+          reason: "Task not available for claiming",
+        };
+      }
+
+      const agent = await db.missionAgent.findFirst({
+        where: { id: input.agentId, missionId: input.missionId },
+        select: { id: true },
+      });
+
+      if (!agent) {
+        return {
+          approved: false,
+          reason: "Agent not found in mission roster",
+        };
+      }
+
+      return { approved: true, reason: "Claim approved" };
     },
 
     async claimTask(input: ClaimTaskInput): Promise<ClaimTaskOutput> {
@@ -557,6 +858,17 @@ export function createMissionActivities(
       };
     },
     async createMissionTask(input: CreateTaskInput): Promise<CreateTaskOutput> {
+      if (input.requestId) {
+        const existingTask = await db.missionTask.findUnique({
+          where: { requestId: input.requestId },
+          select: { id: true, missionId: true },
+        });
+
+        if (existingTask && existingTask.missionId === input.missionId) {
+          return { taskId: existingTask.id };
+        }
+      }
+
       const task = await db.missionTask.create({
         data: {
           missionId: input.missionId,
@@ -566,7 +878,7 @@ export function createMissionActivities(
           dependsOn: input.dependsOn ?? [],
           requiredCapabilities: input.requiredCapabilities ?? [],
           createdById: input.agentId,
-          requestId: `agent-${input.agentId}-${Date.now()}`,
+          requestId: input.requestId ?? `agent-${input.agentId}-${Date.now()}`,
         },
       });
 
@@ -574,10 +886,13 @@ export function createMissionActivities(
     },
 
     async sendFeedback(input: SendFeedbackInput): Promise<void> {
+      const isValidAgentRef =
+        input.fromAgentId && input.fromAgentId !== "system";
+
       await db.missionComment.create({
         data: {
           taskId: input.taskId,
-          fromAgentId: input.fromAgentId,
+          fromAgentId: isValidAgentRef ? input.fromAgentId : null,
           content: input.feedback,
           mentions: input.targetAgentId ? [input.targetAgentId] : [],
         },
@@ -590,6 +905,720 @@ export function createMissionActivities(
         });
       }
     },
+
+    registerMissionCapabilities(input): Promise<void> {
+      return discoveryActivities.registerMissionCapabilities(input);
+    },
+
+    discoverMissions(input) {
+      return discoveryActivities.discoverMissions(input);
+    },
+
+    async delegateTaskToMission(input) {
+      if (input.sourceMissionId === input.targetMissionId) {
+        return {
+          requestId: "",
+          accepted: false,
+          reason: "Source and target mission must be different",
+        };
+      }
+
+      const targetMission = await db.mission.findUnique({
+        where: { id: input.targetMissionId },
+        select: { id: true, teamId: true, status: true },
+      });
+
+      if (!targetMission) {
+        return {
+          requestId: "",
+          accepted: false,
+          reason: "Target mission not found",
+        };
+      }
+
+      if (targetMission.teamId !== input.teamId) {
+        return {
+          requestId: "",
+          accepted: false,
+          reason: "Target mission does not belong to team",
+        };
+      }
+
+      if (targetMission.status !== "ACTIVE") {
+        return {
+          requestId: "",
+          accepted: false,
+          reason: "Target mission is not active",
+        };
+      }
+
+      const requestId = randomUUID();
+      const delegation = CrossMissionDelegationRequestSchema.parse({
+        requestId,
+        sourceMissionId: input.sourceMissionId,
+        sourceTeamId: input.teamId,
+        taskTitle: input.taskTitle,
+        taskDescription: input.taskDescription,
+        requiredCapabilities: input.requiredCapabilities,
+        priority: input.priority,
+        timeoutMs: input.timeoutMs,
+        context: input.context,
+      });
+
+      const payload = CrossMissionSignalPayloadSchema.parse({
+        type: "delegation_request",
+        delegation,
+      });
+
+      try {
+        const client = await getTemporalClient();
+        const targetHandle = client.workflow.getHandle(
+          `mission:${input.targetMissionId}`
+        );
+        await targetHandle.signal(crossMissionSignal, payload);
+        return { requestId, accepted: true };
+      } catch {
+        return {
+          requestId,
+          accepted: false,
+          reason: "Delegation signal delivery failed",
+        };
+      }
+    },
+
+    queryTeamKnowledge(input) {
+      return teamKnowledgeActivities.queryTeamKnowledge(input);
+    },
+
+    storeTeamKnowledge(input) {
+      return teamKnowledgeActivities.storeTeamKnowledge(input);
+    },
+
+    async notifyLeaseGranted(input): Promise<void> {
+      const payload = CrossMissionSignalPayloadSchema.parse({
+        type: "agent_lease_granted",
+        lease: {
+          agentId: input.grant.agentId,
+          agentName: input.grant.agentName,
+          leasedToMissionId: input.missionId,
+          leaseExpiresAt: input.grant.leaseExpiresAt,
+          taskId: input.grant.requestId,
+        },
+      });
+
+      const client = await getTemporalClient();
+      const handle = client.workflow.getHandle(`mission:${input.missionId}`);
+      await handle.signal(crossMissionSignal, payload);
+    },
+
+    async notifyLeaseExpired(input): Promise<void> {
+      const payload = CrossMissionSignalPayloadSchema.parse({
+        type: "agent_lease_revoked",
+        agentId: input.agentId,
+        reason: "lease_expired",
+      });
+
+      const client = await getTemporalClient();
+      const handle = client.workflow.getHandle(`mission:${input.missionId}`);
+      await handle.signal(crossMissionSignal, payload);
+    },
+
+    async notifyLeaseDenied(input): Promise<void> {
+      const payload = CrossMissionSignalPayloadSchema.parse({
+        type: "agent_lease_denied",
+        requestId: input.requestId,
+        reason: input.reason,
+      });
+
+      const client = await getTemporalClient();
+      const handle = client.workflow.getHandle(`mission:${input.missionId}`);
+      await handle.signal(crossMissionSignal, payload);
+    },
+
+    async requestAgentSpawn(
+      input: RequestAgentSpawnInput
+    ): Promise<RequestAgentSpawnOutput> {
+      const request = SpawnAgentRequestSchema.parse({
+        requestingAgentId: input.requestingAgentId,
+        taskDescription: input.taskDescription,
+        requiredCapabilities: input.requiredCapabilities,
+        suggestedTools: input.suggestedTools,
+        priority: input.priority,
+        maxSteps: input.maxSteps,
+        budgetCentsLimit: input.budgetCentsLimit,
+        dependsOnTaskId: input.dependsOnTaskId,
+        context: input.context,
+      });
+      const payload = SpawnAgentSignalPayloadSchema.parse({
+        requestId: input.requestId,
+        request,
+      });
+
+      let delivered = false;
+      try {
+        const client = await getTemporalClient();
+        const handle = client.workflow.getHandle(
+          input.orchestratorWorkflowId ?? `mission:${input.missionId}`
+        );
+        await handle.signal(spawnAgentSignal, payload);
+        delivered = true;
+      } catch {
+        delivered = false;
+      }
+
+      return { requestId: input.requestId, delivered };
+    },
+
+    async getMissionAgents(
+      input: GetMissionAgentsInput
+    ): Promise<GetMissionAgentsOutput> {
+      const agents = await db.missionAgent.findMany({
+        where: { missionId: input.missionId },
+        orderBy: { sortOrder: "asc" },
+        select: {
+          id: true,
+          name: true,
+          role: true,
+          level: true,
+          capabilities: true,
+          tools: true,
+        },
+      });
+
+      return { agents };
+    },
+
+    async getSpawnTree(input: GetSpawnTreeInput): Promise<GetSpawnTreeOutput> {
+      const spawnedAgents = await db.missionAgent.findMany({
+        where: { missionId: input.missionId, level: "spawned" },
+        orderBy: [{ sortOrder: "asc" }],
+        select: {
+          id: true,
+          name: true,
+          capabilities: true,
+          sortOrder: true,
+        },
+      });
+
+      if (spawnedAgents.length === 0) {
+        return { entries: [] };
+      }
+
+      const agentIds = spawnedAgents.map((a) => a.id);
+
+      const [tasks, runs] = await Promise.all([
+        db.missionTask.findMany({
+          where: {
+            missionId: input.missionId,
+            assigneeId: { in: agentIds },
+          },
+          orderBy: { createdAt: "asc" },
+          select: {
+            id: true,
+            assigneeId: true,
+            createdById: true,
+            createdAt: true,
+          },
+        }),
+        db.missionRun.findMany({
+          where: {
+            missionId: input.missionId,
+            agentId: { in: agentIds },
+          },
+          orderBy: { createdAt: "desc" },
+          select: {
+            agentId: true,
+            status: true,
+          },
+        }),
+      ]);
+
+      const parentMap = new Map<string, string | null>();
+      const taskIdMap = new Map<string, string | null>();
+      const spawnTimeMap = new Map<string, number>();
+      for (const task of tasks) {
+        if (task.assigneeId && !parentMap.has(task.assigneeId)) {
+          parentMap.set(
+            task.assigneeId,
+            task.createdById !== task.assigneeId ? task.createdById : null
+          );
+          taskIdMap.set(task.assigneeId, task.id);
+          spawnTimeMap.set(task.assigneeId, task.createdAt.getTime());
+        }
+      }
+
+      const statusMap = new Map<string, string>();
+      for (const run of runs) {
+        if (!statusMap.has(run.agentId)) {
+          statusMap.set(run.agentId, run.status);
+        }
+      }
+
+      const depthCache = new Map<string, number>();
+      function resolveDepth(agentId: string): number {
+        const cached = depthCache.get(agentId);
+        if (cached !== undefined) {
+          return cached;
+        }
+        const parent = parentMap.get(agentId);
+        if (!(parent && agentIds.includes(parent))) {
+          depthCache.set(agentId, 1);
+          return 1;
+        }
+        const depth = resolveDepth(parent) + 1;
+        depthCache.set(agentId, depth);
+        return depth;
+      }
+
+      const entries = spawnedAgents.map((agent) => {
+        const runStatus = statusMap.get(agent.id);
+        let entryStatus: "pending" | "running" | "completed" | "failed" =
+          "pending";
+        if (runStatus === "RUNNING") {
+          entryStatus = "running";
+        } else if (runStatus === "COMPLETED") {
+          entryStatus = "completed";
+        } else if (runStatus === "FAILED" || runStatus === "TIMED_OUT") {
+          entryStatus = "failed";
+        }
+
+        return SpawnRegistryEntrySchema.parse({
+          agentId: agent.id,
+          agentName: agent.name,
+          parentAgentId: parentMap.get(agent.id) ?? null,
+          spawnDepth: resolveDepth(agent.id),
+          capabilities: agent.capabilities,
+          status: entryStatus,
+          spawnedAt: spawnTimeMap.get(agent.id) ?? Date.now(),
+          taskId: taskIdMap.get(agent.id) ?? null,
+        });
+      });
+
+      entries.sort((a, b) => a.spawnDepth - b.spawnDepth);
+
+      return { entries };
+    },
+
+    async validateSpawnRequest(
+      input: ValidateSpawnRequestInput
+    ): Promise<SpawnValidationResult> {
+      const request = SpawnAgentRequestSchema.parse(input.request);
+      const limits = SpawnLimitsSchema.parse(input.spawnLimits);
+      const normalizedRequiredCapabilities = request.requiredCapabilities.map(
+        (capability) => normalizeCapability(capability)
+      );
+
+      if (input.currentSpawnedAgentCount >= limits.maxSpawnedAgentsPerMission) {
+        return SpawnValidationResultSchema.parse({
+          approved: false,
+          reason: `Mission spawn limit reached (${limits.maxSpawnedAgentsPerMission})`,
+        });
+      }
+
+      const requester = await db.missionAgent.findFirst({
+        where: {
+          missionId: input.missionId,
+          id: request.requestingAgentId,
+        },
+        select: {
+          id: true,
+          level: true,
+        },
+      });
+
+      if (!requester) {
+        return SpawnValidationResultSchema.parse({
+          approved: false,
+          reason: "Requesting agent not found in mission roster",
+        });
+      }
+
+      const requesterDepth = await resolveSpawnDepth(
+        db,
+        input.missionId,
+        requester.id
+      );
+
+      const childDepth = requesterDepth + 1;
+      const HARD_DEPTH_CEILING = 2;
+
+      if (childDepth > limits.maxSpawnDepth + HARD_DEPTH_CEILING) {
+        return SpawnValidationResultSchema.parse({
+          approved: false,
+          reason: `Hard spawn depth ceiling reached (max: ${limits.maxSpawnDepth + HARD_DEPTH_CEILING})`,
+        });
+      }
+
+      if (
+        limits.requireApprovalAboveDepth !== undefined &&
+        childDepth > limits.requireApprovalAboveDepth
+      ) {
+        return SpawnValidationResultSchema.parse({
+          approved: false,
+          reason: `Depth ${childDepth} exceeds approval threshold (${limits.requireApprovalAboveDepth})`,
+        });
+      }
+
+      if (childDepth > limits.maxSpawnDepth && !request.justification) {
+        return SpawnValidationResultSchema.parse({
+          approved: false,
+          reason: `Spawn depth ${childDepth} exceeds limit (${limits.maxSpawnDepth}); provide justification for deeper spawning`,
+        });
+      }
+
+      const existingSpecialist = await db.missionAgent.findFirst({
+        where: {
+          missionId: input.missionId,
+          capabilities: { hasEvery: normalizedRequiredCapabilities },
+        },
+        select: { id: true, name: true },
+      });
+
+      if (existingSpecialist) {
+        return SpawnValidationResultSchema.parse({
+          approved: false,
+          reason: `Capability coverage already available in roster (${existingSpecialist.name})`,
+        });
+      }
+
+      const spawnActivities = await db.missionActivity.findMany({
+        where: { missionId: input.missionId, type: "agent_spawned" },
+        select: { metadata: true },
+      });
+
+      const spawnedByRequester = spawnActivities.filter((row) => {
+        const metadata = toRecord(row.metadata);
+        return metadata.parentAgentId === request.requestingAgentId;
+      }).length;
+
+      if (spawnedByRequester >= limits.maxSpawnedAgentsPerAgent) {
+        return SpawnValidationResultSchema.parse({
+          approved: false,
+          reason: `Requester spawn limit reached (${limits.maxSpawnedAgentsPerAgent})`,
+        });
+      }
+
+      const runningSpawnedCount = await db.missionRun.count({
+        where: {
+          missionId: input.missionId,
+          status: "RUNNING",
+          agent: { level: "spawned" },
+        },
+      });
+
+      if (runningSpawnedCount >= limits.maxConcurrentSpawned) {
+        return SpawnValidationResultSchema.parse({
+          approved: false,
+          reason: `Concurrent spawned limit reached (${limits.maxConcurrentSpawned})`,
+        });
+      }
+
+      const budgetRemaining =
+        input.budgetCents !== undefined
+          ? Math.max(0, input.budgetCents - input.consumedCents)
+          : undefined;
+
+      if (budgetRemaining !== undefined && budgetRemaining <= 0) {
+        return SpawnValidationResultSchema.parse({
+          approved: false,
+          reason: "No mission budget remaining",
+        });
+      }
+
+      const budgetCapFromPercentage =
+        budgetRemaining !== undefined
+          ? Math.floor((budgetRemaining * limits.spawnBudgetPercentage) / 100)
+          : request.budgetCentsLimit;
+
+      if (budgetCapFromPercentage < 1) {
+        return SpawnValidationResultSchema.parse({
+          approved: false,
+          reason: "Spawn budget allocation is below minimum threshold",
+        });
+      }
+
+      const adjustedBudgetCents = Math.min(
+        request.budgetCentsLimit,
+        budgetCapFromPercentage
+      );
+
+      const unknownCapabilities = request.requiredCapabilities.filter(
+        (capability) =>
+          CAPABILITY_TOOL_MAP[normalizeCapability(capability)] === undefined
+      );
+
+      return SpawnValidationResultSchema.parse({
+        approved: true,
+        reason: "Spawn request approved",
+        adjustedBudgetCents,
+        adjustedMaxSteps: request.maxSteps,
+        deniedCapabilities:
+          unknownCapabilities.length > 0 ? unknownCapabilities : undefined,
+      });
+    },
+
+    async generateSpawnedSoulPrompt(
+      input: GenerateSpawnedSoulPromptInput
+    ): Promise<GenerateSpawnedSoulPromptOutput> {
+      const request = SpawnAgentRequestSchema.parse(input.request);
+      const normalizedCapabilities = uniqueStrings(
+        request.requiredCapabilities.map((capability) =>
+          normalizeCapability(capability)
+        )
+      );
+      const primaryCapability = normalizedCapabilities[0] ?? "general";
+      const displayPrimary = toDisplayCapability(primaryCapability);
+      const name = `${displayPrimary} Specialist`;
+      const role = `Specialist for ${normalizedCapabilities
+        .map(toDisplayCapability)
+        .join(", ")}`;
+      const tools = buildToolSet(
+        normalizedCapabilities,
+        request.suggestedTools
+      );
+      const soulPrompt = buildSpawnedPrompt(name, role, {
+        ...request,
+        requiredCapabilities: normalizedCapabilities,
+      });
+
+      const blueprint = SpawnedAgentBlueprintSchema.parse({
+        name,
+        role,
+        soulPrompt,
+        tools,
+        capabilities: normalizedCapabilities,
+        maxSteps: request.maxSteps,
+        budgetCentsLimit: request.budgetCentsLimit,
+        parentAgentId: request.requestingAgentId,
+        spawnReason: request.taskDescription,
+      });
+
+      return await Promise.resolve({ blueprint });
+    },
+
+    async createSpawnedAgent(
+      input: CreateSpawnedAgentInput
+    ): Promise<CreateSpawnedAgentOutput> {
+      const request = SpawnAgentRequestSchema.parse(input.request);
+      const blueprint = SpawnedAgentBlueprintSchema.parse(input.blueprint);
+
+      const existingTask = await db.missionTask.findUnique({
+        where: { requestId: input.requestId },
+        select: { id: true, assigneeId: true },
+      });
+
+      if (existingTask) {
+        return {
+          missionAgentId: existingTask.assigneeId ?? existingTask.id,
+          taskId: existingTask.id,
+        };
+      }
+
+      const mission = await db.mission.findUnique({
+        where: { id: input.missionId },
+        select: {
+          id: true,
+          teamId: true,
+          createdById: true,
+        },
+      });
+
+      if (!mission) {
+        throw new Error(`Mission ${input.missionId} not found`);
+      }
+
+      const sortOrderAgg = await db.missionAgent.aggregate({
+        where: { missionId: input.missionId },
+        _max: { sortOrder: true },
+      });
+      const nextSortOrder = (sortOrderAgg._max.sortOrder ?? 0) + 1;
+
+      const backgroundAgent = await db.backgroundAgent.create({
+        data: {
+          teamId: mission.teamId,
+          userId: mission.createdById,
+          name: blueprint.name,
+          description: blueprint.role,
+          prompt: blueprint.soulPrompt,
+          preset: "general",
+        },
+        select: { id: true },
+      });
+
+      const missionAgent = await db.missionAgent.create({
+        data: {
+          missionId: input.missionId,
+          agentId: backgroundAgent.id,
+          name: blueprint.name,
+          role: blueprint.role,
+          soulPrompt: blueprint.soulPrompt,
+          level: "spawned",
+          sortOrder: nextSortOrder,
+          tools: blueprint.tools,
+          capabilities: blueprint.capabilities,
+        },
+        select: { id: true },
+      });
+
+      const taskDescription = request.context
+        ? `${request.taskDescription}\n\nContext:\n${request.context}`
+        : request.taskDescription;
+
+      const task = await db.missionTask.create({
+        data: {
+          missionId: input.missionId,
+          title: blueprint.spawnReason.slice(0, 180),
+          description: taskDescription,
+          status: "ASSIGNED",
+          priority: request.priority,
+          assigneeId: missionAgent.id,
+          requestId: input.requestId,
+          createdById: request.requestingAgentId,
+          dependsOn: request.dependsOnTaskId ? [request.dependsOnTaskId] : [],
+          requiredCapabilities: blueprint.capabilities,
+        },
+        select: { id: true },
+      });
+
+      return {
+        missionAgentId: missionAgent.id,
+        taskId: task.id,
+      };
+    },
+
+    async routeAgentMessage(input) {
+      const result = await routeAgentMessage(input);
+
+      await publishTimelineEvent({
+        missionId: input.missionId,
+        eventType: "agent_message_sent",
+        payload: {
+          messageId: result.messageId,
+          fromAgentId: input.senderId,
+          fromAgentName: input.senderName ?? input.senderId,
+          toAgentId: input.recipientId,
+          channel: input.kind === "broadcast" ? "broadcast" : "direct",
+          preview: input.subject,
+          content:
+            typeof input.body === "string"
+              ? input.body
+              : JSON.stringify(input.body),
+          replyToMessageId: input.replyToMessageId,
+        },
+      });
+
+      return result;
+    },
+    async selectReviewer(
+      input: SelectReviewerInput
+    ): Promise<SelectReviewerOutput> {
+      const agents = await db.missionAgent.findMany({
+        where: {
+          missionId: input.missionId,
+          id: { not: input.authorAgentId },
+        },
+        select: {
+          id: true,
+          name: true,
+          capabilities: true,
+        },
+      });
+
+      const scored = agents
+        .map((agent) => {
+          const capabilities = (agent.capabilities as string[]) ?? [];
+          const overlap = input.requiredCapabilities.filter((c) =>
+            capabilities.includes(c)
+          ).length;
+          const matchScore =
+            input.requiredCapabilities.length > 0
+              ? overlap / input.requiredCapabilities.length
+              : 0.5;
+          return { agent, matchScore };
+        })
+        .sort((a, b) => b.matchScore - a.matchScore);
+
+      const best = scored[0];
+      if (!best) {
+        throw new Error("No available reviewer agents");
+      }
+
+      return {
+        reviewerAgentId: best.agent.id,
+        reviewerAgentName: best.agent.name,
+        matchScore: best.matchScore,
+      };
+    },
+
+    async checkReviewGating(
+      input: CheckReviewGatingInput
+    ): Promise<CheckReviewGatingOutput> {
+      const { policy, requiredReviewers, highStakesPriorities } =
+        input.reviewGating;
+
+      if (policy === "none") {
+        return {
+          gated: false,
+          reason: "No review policy configured",
+          requiredReviewers: 0,
+          completedReviews: 0,
+        };
+      }
+
+      if (
+        policy === "peer_high_stakes" &&
+        !highStakesPriorities.includes(input.taskPriority as "P0" | "P1")
+      ) {
+        return {
+          gated: false,
+          reason: `Task priority ${input.taskPriority} does not require review`,
+          requiredReviewers: 0,
+          completedReviews: 0,
+        };
+      }
+
+      const memory = await db.missionMemory.findUnique({
+        where: {
+          missionId_agentId_key_scope: {
+            missionId: input.missionId,
+            agentId: "system",
+            key: `peer_reviews:${input.taskId}`,
+            scope: "mission",
+          },
+        },
+      });
+
+      const rawValue = memory?.value;
+      const reviews = Array.isArray(rawValue) ? rawValue : [];
+      const approvedReviews = reviews.filter(
+        (r) =>
+          r !== null &&
+          typeof r === "object" &&
+          !Array.isArray(r) &&
+          (r as Record<string, unknown>).verdict === "approve"
+      );
+
+      const needed = policy === "consensus" ? requiredReviewers : 1;
+
+      if (approvedReviews.length >= needed) {
+        return {
+          gated: false,
+          reason: `Review requirement met (${approvedReviews.length}/${needed} approvals)`,
+          requiredReviewers: needed,
+          completedReviews: approvedReviews.length,
+        };
+      }
+
+      return {
+        gated: true,
+        reason: `Awaiting ${needed - approvedReviews.length} more approval(s)`,
+        requiredReviewers: needed,
+        completedReviews: approvedReviews.length,
+      };
+    },
+
+    fetchAgentInbox,
+    waitForAgentReply,
   };
 }
 
@@ -606,4 +1635,18 @@ function scoreAgentForTask(
   return matches / required.length;
 }
 
+export {
+  createDefaultReflectionTextGenerator,
+  createReflectionActivities,
+} from "./reflection";
+export type {
+  CheckMissionHealthInput,
+  CriticReviewInput,
+  EscalateInput,
+  EvaluateProgressInput,
+  GenerateReplanInput,
+  NotifyDependencyFailureInput,
+  NotifyDependencyFailureOutput,
+  ReflectionActivities,
+} from "./reflection-types";
 export type { MissionActivities } from "./types";

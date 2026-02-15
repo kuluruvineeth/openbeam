@@ -1,3 +1,20 @@
+import type {
+  ReviewGatingConfig,
+  SpawnAgentRequest,
+  SpawnedAgentBlueprint,
+  SpawnLimits,
+  SpawnRegistryEntry,
+  SpawnValidationResult,
+} from "@openplane/types/temporal/mission";
+import type {
+  FetchInboxInput,
+  FetchInboxOutput,
+  RouteMessageInput,
+  RouteMessageOutput,
+  WaitForReplyActivityInput,
+  WaitForReplyActivityOutput,
+} from "./messaging";
+
 export interface RefreshQueueInput {
   missionId: string;
 }
@@ -19,6 +36,7 @@ export interface PlanDispatchInput {
     id: string;
     title: string;
     priority: string;
+    assigneeId?: string | null;
     requiredCapabilities?: string[];
   }>;
   maxConcurrentRuns: number;
@@ -183,10 +201,108 @@ export interface CreateTaskInput {
   priority?: "P0" | "P1" | "P2" | "P3";
   dependsOn?: string[];
   requiredCapabilities?: string[];
+  requestId?: string;
 }
 
 export interface CreateTaskOutput {
   taskId: string;
+}
+
+export interface RegisterMissionCapabilitiesInput {
+  missionId: string;
+  teamId: string;
+  capabilities: string[];
+  objective: string;
+  maxConcurrentRuns: number;
+}
+
+export interface DiscoverMissionsInput {
+  teamId: string;
+  requiredCapabilities: string[];
+  excludeMissionId: string;
+}
+
+export interface DiscoverMissionsOutput {
+  missions: Array<{
+    missionId: string;
+    objective: string;
+    capabilities: string[];
+    availableSlots: number;
+    matchScore: number;
+  }>;
+}
+
+export interface DelegateTaskToMissionInput {
+  sourceMissionId: string;
+  targetMissionId: string;
+  teamId: string;
+  taskTitle: string;
+  taskDescription: string;
+  requiredCapabilities: string[];
+  priority: "P0" | "P1" | "P2" | "P3";
+  timeoutMs: number;
+  context: Record<string, unknown>;
+}
+
+export interface DelegateTaskToMissionOutput {
+  requestId: string;
+  accepted: boolean;
+  reason?: string;
+}
+
+export interface QueryTeamKnowledgeInput {
+  teamId: string;
+  query: string;
+  categories?: string[];
+  minConfidence?: number;
+  limit?: number;
+  excludeMissionId?: string;
+}
+
+export interface QueryTeamKnowledgeOutput {
+  entries: Array<{
+    id: string;
+    content: string;
+    category: string;
+    confidence: number;
+    sources: string[];
+    createdByMissionId: string;
+  }>;
+}
+
+export interface StoreTeamKnowledgeInput {
+  teamId: string;
+  missionId: string;
+  content: string;
+  category: string;
+  sources: string[];
+  confidence: number;
+}
+
+export interface StoreTeamKnowledgeOutput {
+  knowledgeId: string;
+  deduplicated: boolean;
+}
+
+export interface NotifyLeaseGrantedInput {
+  missionId: string;
+  grant: {
+    requestId: string;
+    agentId: string;
+    agentName: string;
+    leaseExpiresAt: number;
+  };
+}
+
+export interface NotifyLeaseExpiredInput {
+  missionId: string;
+  agentId: string;
+}
+
+export interface NotifyLeaseDeniedInput {
+  missionId: string;
+  requestId: string;
+  reason: "timeout" | "quota_exceeded" | "no_match";
 }
 
 export interface SendFeedbackInput {
@@ -195,6 +311,144 @@ export interface SendFeedbackInput {
   feedback: string;
   targetAgentId?: string;
   reopen: boolean;
+}
+
+export interface RequestAgentSpawnInput {
+  missionId: string;
+  requestId: string;
+  requestingAgentId: string;
+  taskDescription: string;
+  requiredCapabilities: string[];
+  suggestedTools?: string[];
+  priority?: "P0" | "P1" | "P2" | "P3";
+  maxSteps?: number;
+  budgetCentsLimit?: number;
+  dependsOnTaskId?: string;
+  context?: string;
+  orchestratorWorkflowId?: string;
+}
+
+export interface RequestAgentSpawnOutput {
+  requestId: string;
+  delivered: boolean;
+}
+
+export interface GetSpawnTreeInput {
+  missionId: string;
+}
+
+export interface GetSpawnTreeOutput {
+  entries: SpawnRegistryEntry[];
+}
+
+export interface BrowseInboxInput {
+  missionId: string;
+  agentId: string;
+  capabilities?: string[];
+  limit?: number;
+}
+
+export interface BrowseInboxOutput {
+  tasks: Array<{
+    id: string;
+    title: string;
+    description: string | null;
+    priority: "P0" | "P1" | "P2" | "P3";
+    requiredCapabilities: string[];
+    dependsOn: string[];
+    createdAt: number;
+  }>;
+}
+
+export interface ValidateAgentClaimInput {
+  missionId: string;
+  agentId: string;
+  taskId: string;
+  currentRunningAgents: number;
+  maxConcurrentRuns: number;
+  consumedCents: number;
+  budgetCents?: number;
+}
+
+export interface ValidateAgentClaimOutput {
+  approved: boolean;
+  reason: string;
+}
+
+export interface MissionAgentDescriptor {
+  id: string;
+  name: string;
+  role: string;
+  level: string;
+  capabilities: string[];
+  tools: string[];
+}
+
+export interface GetMissionAgentsInput {
+  missionId: string;
+}
+
+export interface GetMissionAgentsOutput {
+  agents: MissionAgentDescriptor[];
+}
+
+export interface ValidateSpawnRequestInput {
+  missionId: string;
+  requestId: string;
+  request: SpawnAgentRequest;
+  currentSpawnedAgentCount: number;
+  spawnLimits: SpawnLimits;
+  consumedCents: number;
+  budgetCents?: number;
+}
+
+export interface GenerateSpawnedSoulPromptInput {
+  missionId: string;
+  requestId: string;
+  request: SpawnAgentRequest;
+}
+
+export interface GenerateSpawnedSoulPromptOutput {
+  blueprint: SpawnedAgentBlueprint;
+}
+
+export interface CreateSpawnedAgentInput {
+  missionId: string;
+  requestId: string;
+  request: SpawnAgentRequest;
+  blueprint: SpawnedAgentBlueprint;
+}
+
+export interface CreateSpawnedAgentOutput {
+  missionAgentId: string;
+  taskId: string;
+}
+
+export interface SelectReviewerInput {
+  missionId: string;
+  taskId: string;
+  authorAgentId: string;
+  requiredCapabilities: string[];
+}
+
+export interface SelectReviewerOutput {
+  reviewerAgentId: string;
+  reviewerAgentName: string;
+  matchScore: number;
+}
+
+export interface CheckReviewGatingInput {
+  missionId: string;
+  taskId: string;
+  taskPriority: "P0" | "P1" | "P2" | "P3";
+  reviewGating: ReviewGatingConfig;
+}
+
+export interface CheckReviewGatingOutput {
+  gated: boolean;
+  reason: string;
+  requiredReviewers: number;
+  completedReviews: number;
 }
 
 export interface MissionActivities {
@@ -216,4 +470,51 @@ export interface MissionActivities {
   finalizeMission(input: FinalizeMissionInput): Promise<void>;
   createMissionTask(input: CreateTaskInput): Promise<CreateTaskOutput>;
   sendFeedback(input: SendFeedbackInput): Promise<void>;
+  registerMissionCapabilities(
+    input: RegisterMissionCapabilitiesInput
+  ): Promise<void>;
+  discoverMissions(
+    input: DiscoverMissionsInput
+  ): Promise<DiscoverMissionsOutput>;
+  delegateTaskToMission(
+    input: DelegateTaskToMissionInput
+  ): Promise<DelegateTaskToMissionOutput>;
+  queryTeamKnowledge(
+    input: QueryTeamKnowledgeInput
+  ): Promise<QueryTeamKnowledgeOutput>;
+  storeTeamKnowledge(
+    input: StoreTeamKnowledgeInput
+  ): Promise<StoreTeamKnowledgeOutput>;
+  notifyLeaseGranted(input: NotifyLeaseGrantedInput): Promise<void>;
+  notifyLeaseExpired(input: NotifyLeaseExpiredInput): Promise<void>;
+  notifyLeaseDenied(input: NotifyLeaseDeniedInput): Promise<void>;
+  requestAgentSpawn(
+    input: RequestAgentSpawnInput
+  ): Promise<RequestAgentSpawnOutput>;
+  getMissionAgents(
+    input: GetMissionAgentsInput
+  ): Promise<GetMissionAgentsOutput>;
+  getSpawnTree(input: GetSpawnTreeInput): Promise<GetSpawnTreeOutput>;
+  validateSpawnRequest(
+    input: ValidateSpawnRequestInput
+  ): Promise<SpawnValidationResult>;
+  generateSpawnedSoulPrompt(
+    input: GenerateSpawnedSoulPromptInput
+  ): Promise<GenerateSpawnedSoulPromptOutput>;
+  createSpawnedAgent(
+    input: CreateSpawnedAgentInput
+  ): Promise<CreateSpawnedAgentOutput>;
+  routeAgentMessage(input: RouteMessageInput): Promise<RouteMessageOutput>;
+  fetchAgentInbox(input: FetchInboxInput): Promise<FetchInboxOutput>;
+  waitForAgentReply(
+    input: WaitForReplyActivityInput
+  ): Promise<WaitForReplyActivityOutput>;
+  browseInbox(input: BrowseInboxInput): Promise<BrowseInboxOutput>;
+  validateAgentClaim(
+    input: ValidateAgentClaimInput
+  ): Promise<ValidateAgentClaimOutput>;
+  selectReviewer(input: SelectReviewerInput): Promise<SelectReviewerOutput>;
+  checkReviewGating(
+    input: CheckReviewGatingInput
+  ): Promise<CheckReviewGatingOutput>;
 }
