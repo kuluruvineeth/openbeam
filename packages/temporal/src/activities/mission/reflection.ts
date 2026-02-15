@@ -510,7 +510,7 @@ Respond with a JSON object:
       });
 
       const reviews: PeerReview[] = Array.isArray(existing?.value)
-        ? (existing.value as PeerReview[])
+        ? (existing?.value as PeerReview[])
         : [];
 
       const alreadyReviewed = reviews.some(
@@ -558,7 +558,7 @@ Respond with a JSON object:
       });
 
       const reviews: PeerReview[] = Array.isArray(existing?.value)
-        ? (existing.value as PeerReview[])
+        ? (existing?.value as PeerReview[])
         : [];
 
       const consensus =

@@ -1,7 +1,4 @@
-import {
-  SHARD_THRESHOLD,
-  SpawnLimitsSchema,
-} from "@openplane/types/temporal/mission";
+import { SHARD_THRESHOLD } from "@openplane/types/temporal/mission";
 import type { AgentMessageEnvelope } from "@openplane/types/temporal/mission-messaging";
 import { beforeEach, describe, expect, it } from "vitest";
 import { resetAllMetrics, swarmMetrics } from "../config/metrics";
@@ -84,8 +81,6 @@ describe("Swarm chaos tests", () => {
     it("rejects spawn when budget is exhausted", () => {
       const budgetCents = 1000;
       const consumedCents = 1000;
-      const _limits = SpawnLimitsSchema.parse({});
-
       const budgetExhausted = consumedCents >= budgetCents;
       expect(budgetExhausted).toBe(true);
 
@@ -773,13 +768,11 @@ describe("Swarm chaos tests", () => {
       const CRASH_AT_STEP = 12;
 
       const checkpoints: ActivityCheckpoint[] = [];
-      let _currentStep = 0;
 
       for (let step = 0; step < TOTAL_STEPS; step++) {
         if (step === CRASH_AT_STEP) {
           break;
         }
-        _currentStep = step;
         checkpoints.push({
           step,
           state: { processed: step + 1 },

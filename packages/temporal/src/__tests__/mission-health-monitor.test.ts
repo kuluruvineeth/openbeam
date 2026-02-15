@@ -120,8 +120,8 @@ describe("mission-health-monitor", () => {
       expect(state.healthChecks).toHaveLength(1);
       expect(state.healthChecks[0]).toEqual({ missionId: "mission-1" });
       expect(state.signalsSent).toHaveLength(1);
-      expect(state.signalsSent[0].workflowId).toBe("orchestrator-1");
-      expect(state.signalsSent[0].snapshot).toBe(snapshot);
+      expect(state.signalsSent[0]?.workflowId).toBe("orchestrator-1");
+      expect(state.signalsSent[0]?.snapshot).toBe(snapshot);
     });
 
     it("uses default 30s interval when not specified", () => {
@@ -345,7 +345,7 @@ describe("mission-health-monitor", () => {
 
       const stalledAgents = snapshot.agents.filter((a) => a.status === "stuck");
       expect(stalledAgents).toHaveLength(1);
-      expect(stalledAgents[0].agentId).toBe("agent-1");
+      expect(stalledAgents[0]?.agentId).toBe("agent-1");
     });
 
     it("merges snapshot dep failures with pending dep failures", () => {
@@ -375,9 +375,9 @@ describe("mission-health-monitor", () => {
       ];
 
       expect(merged).toHaveLength(2);
-      expect(merged[0].failedTaskId).toBe("task-A");
-      expect(merged[1].failedTaskId).toBe("task-C");
-      expect(merged[1].reason).toBe("timeout");
+      expect(merged[0]?.failedTaskId).toBe("task-A");
+      expect(merged[1]?.failedTaskId).toBe("task-C");
+      expect(merged[1]?.reason).toBe("timeout");
     });
   });
 });

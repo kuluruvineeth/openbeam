@@ -77,38 +77,6 @@ function baseRequest(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function _mockDepthChain(
-  db: ReturnType<typeof createMockDb>,
-  depth: number
-): void {
-  let callIndex = 0;
-
-  db.missionAgent.findFirst.mockImplementation(
-    (args: { where: { id?: string } }) => {
-      const agentId = args.where.id;
-      if (!agentId) {
-        return Promise.resolve(null);
-      }
-
-      callIndex += 1;
-
-      if (callIndex === 1) {
-        return Promise.resolve({ id: agentId, level: "specialist" });
-      }
-
-      if (callIndex <= depth + 1) {
-        return Promise.resolve({ id: agentId, level: "spawned" });
-      }
-
-      return Promise.resolve({ id: agentId, level: "specialist" });
-    }
-  );
-
-  db.missionTask.findFirst.mockImplementation(() =>
-    Promise.resolve({ createdById: `parent-${callIndex}` })
-  );
-}
-
 describe("Adaptive Depth Limits (4.4)", () => {
   let db: ReturnType<typeof createMockDb>;
   let activities: MissionActivities;

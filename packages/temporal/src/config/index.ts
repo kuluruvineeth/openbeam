@@ -56,10 +56,6 @@ export function loadMissionWorkerConfig(): WorkerConfig {
 }
 
 export {
-  initMessagingMetricsBridge,
-  resetMessagingMetricsBridge,
-} from "./messaging-metrics-bridge";
-export {
   InMemoryCounter,
   InMemoryGauge,
   InMemoryHistogram,

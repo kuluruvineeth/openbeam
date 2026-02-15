@@ -1,5 +1,4 @@
-import type { Database } from "@openplane/db";
-import type { Prisma } from "@prisma/client";
+import type { Database, Prisma } from "@openplane/db";
 
 export interface MemorySearchInput {
   executionId: string;

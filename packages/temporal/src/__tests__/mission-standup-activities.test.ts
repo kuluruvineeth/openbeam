@@ -140,10 +140,10 @@ describe("synthesizeStandup", () => {
     });
 
     expect(summary.conflicts).toHaveLength(1);
-    expect(summary.conflicts[0].type).toBe("duplicate_work");
-    expect(summary.conflicts[0].agentIds).toEqual(["a1", "a2"]);
-    expect(summary.conflicts[0].description).toContain("Write docs");
-    expect(summary.conflicts[0].suggestedResolution).toBe(
+    expect(summary.conflicts[0]?.type).toBe("duplicate_work");
+    expect(summary.conflicts[0]?.agentIds).toEqual(["a1", "a2"]);
+    expect(summary.conflicts[0]?.description).toContain("Write docs");
+    expect(summary.conflicts[0]?.suggestedResolution).toBe(
       "Reassign one agent to different task"
     );
   });
@@ -259,8 +259,8 @@ describe("synthesizeStandup", () => {
     });
 
     expect(summary.conflicts).toHaveLength(2);
-    expect(summary.conflicts[0].agentIds).toEqual(["a1", "a2"]);
-    expect(summary.conflicts[1].agentIds).toEqual(["a3", "a4"]);
+    expect(summary.conflicts[0]?.agentIds).toEqual(["a1", "a2"]);
+    expect(summary.conflicts[1]?.agentIds).toEqual(["a3", "a4"]);
   });
 
   it("aggregates all three types of action items", async () => {

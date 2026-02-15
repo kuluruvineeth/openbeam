@@ -58,8 +58,6 @@ import {
 const MAX_SPAWNS_PER_ITERATION = 5;
 const MAX_CLAIMS_PER_ITERATION = 20;
 const MAX_REVIEWS_PER_ITERATION = 5;
-const _MAX_MESSAGES_PER_ITERATION = 50;
-
 function toDuration(value: string): Duration {
   return value as Duration;
 }

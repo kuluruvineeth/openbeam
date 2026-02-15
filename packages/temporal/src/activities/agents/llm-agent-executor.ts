@@ -21,10 +21,6 @@ const PRESET_TOOLS: Record<string, string[]> = {
 };
 
 const DEFAULT_MAX_STEPS_PER_EXECUTION = 10;
-const LLM_TIMEOUT_MS = parseTemporalDurationMs(
-  LLM_CALL_TIMEOUTS.startToCloseTimeout
-);
-
 const TEMPORAL_DURATION_REGEX = /^(\d+)\s*(ms|s|m|h)$/;
 
 function parseTemporalDurationMs(duration: string): number {
@@ -45,6 +41,10 @@ function parseTemporalDurationMs(duration: string): number {
   }
   return value * 60 * 60 * 1000;
 }
+
+const LLM_TIMEOUT_MS = parseTemporalDurationMs(
+  LLM_CALL_TIMEOUTS.startToCloseTimeout
+);
 
 export class LlmAgentExecutor implements AgentExecutor {
   async executeStep(
