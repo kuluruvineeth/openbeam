@@ -1,0 +1,50 @@
+version: "2"
+
+linters:
+  enable:
+    - gocritic
+    - misspell
+    - noctx
+    - prealloc
+    - revive
+  settings:
+    gocritic:
+      enabled-tags:
+        - diagnostic
+        - performance
+      disabled-checks:
+        - hugeParam
+        - rangeValCopy
+    revive:
+      rules:
+        - name: exported
+          disabled: true
+        - name: package-comments
+          disabled: true
+  exclusions:
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - revive
+        text: unused-parameter
+        path: _test\.go
+      - linters:
+          - revive
+        text: "should have comment.*or be unexported"
+      - linters:
+          - revive
+        text: "should have a package comment"
+      - linters:
+          - revive
+        text: "avoid package names that conflict"
+      - linters:
+          - revive
+        text: "avoid meaningless package names"
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0

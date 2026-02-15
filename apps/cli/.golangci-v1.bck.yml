@@ -1,0 +1,44 @@
+run:
+  timeout: 5m
+
+linters:
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - misspell
+    - revive
+    - gocritic
+    - prealloc
+    - noctx
+
+linters-settings:
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - performance
+    disabled-checks:
+      - hugeParam
+      - rangeValCopy
+  revive:
+    rules:
+      - name: exported
+        disabled: true
+      - name: package-comments
+        disabled: true
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  exclude:
+    - "should have comment or be unexported"
+    - "should have a package comment"
+    - "avoid package names that conflict"
+    - "avoid meaningless package names"
+  exclude-rules:
+    - linters:
+        - revive
+      text: "unused-parameter"
+      path: "_test\\.go"

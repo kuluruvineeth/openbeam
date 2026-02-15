@@ -1,0 +1,14 @@
+{
+  "name": "cli",
+  "private": true,
+  "scripts": {
+    "build": "mkdir -p dist && go build -o dist/openplane ./cmd/openplane && go build ./...",
+    "check-types": "go test -run '^$' ./...",
+    "lint": "GOTOOLCHAIN=go1.24.2 go run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.8 run",
+    "test": "go test ./...",
+    "test:e2e": "go test ./test/e2e -tags=e2e",
+    "generate": "go generate ./...",
+    "docs": "./scripts/gen-docs.sh",
+    "openapi:update": "./scripts/update-openapi.sh"
+  }
+}
