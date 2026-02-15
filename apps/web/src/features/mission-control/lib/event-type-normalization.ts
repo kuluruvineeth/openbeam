@@ -15,6 +15,13 @@ const EVENT_TYPE_ALIASES: Record<string, string> = {
   mission_failed: "mission.failed",
   mission_cancelled: "mission.cancelled",
   artifact_published: "artifact.published",
+  agent_spawned: "agent.spawned",
+  agent_message_sent: "agent.message_sent",
+  agent_message_received: "agent.message_received",
+  agent_replanned: "agent.replan",
+  agent_escalated: "agent.escalated",
+  agent_timeout_extended: "agent.timeout_extended",
+  agent_self_evaluated: "agent.reflection",
 };
 
 export function normalizeMissionEventType(eventType: string): string {

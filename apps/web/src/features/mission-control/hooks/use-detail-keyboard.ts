@@ -2,20 +2,11 @@
 
 import { useHotkeys } from "react-hotkeys-hook";
 
-const TAB_BY_INDEX: Record<number, string> = {
-  1: "timeline",
-  2: "agents",
-  3: "approvals",
-  4: "tasks",
-  5: "artifacts",
-  6: "memory",
-  7: "budget",
-  8: "ledger",
-};
-
 type UseDetailKeyboardOptions = {
   enabled: boolean;
-  onTabChange: (tab: string) => void;
+  onToggleLeft: () => void;
+  onToggleRight: () => void;
+  onDeselectAgent: () => void;
   onPauseResume: () => void;
   onCancel: () => void;
   onPrevMission: () => void;
@@ -24,20 +15,33 @@ type UseDetailKeyboardOptions = {
 
 export function useDetailKeyboard({
   enabled,
-  onTabChange,
+  onToggleLeft,
+  onToggleRight,
+  onDeselectAgent,
   onPauseResume,
   onCancel,
   onPrevMission,
   onNextMission,
 }: UseDetailKeyboardOptions) {
-  useHotkeys("1", () => onTabChange(TAB_BY_INDEX[1]), { enabled });
-  useHotkeys("2", () => onTabChange(TAB_BY_INDEX[2]), { enabled });
-  useHotkeys("3", () => onTabChange(TAB_BY_INDEX[3]), { enabled });
-  useHotkeys("4", () => onTabChange(TAB_BY_INDEX[4]), { enabled });
-  useHotkeys("5", () => onTabChange(TAB_BY_INDEX[5]), { enabled });
-  useHotkeys("6", () => onTabChange(TAB_BY_INDEX[6]), { enabled });
-  useHotkeys("7", () => onTabChange(TAB_BY_INDEX[7]), { enabled });
-  useHotkeys("8", () => onTabChange(TAB_BY_INDEX[8]), { enabled });
+  useHotkeys(
+    "mod+shift+b",
+    (e) => {
+      e.preventDefault();
+      onToggleLeft();
+    },
+    { enabled }
+  );
+
+  useHotkeys(
+    "mod+b",
+    (e) => {
+      e.preventDefault();
+      onToggleRight();
+    },
+    { enabled }
+  );
+
+  useHotkeys("escape", onDeselectAgent, { enabled });
 
   useHotkeys(
     "mod+p",

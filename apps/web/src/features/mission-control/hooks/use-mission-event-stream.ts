@@ -12,6 +12,7 @@ import { useMissionRuntimeStore } from "../stores/mission-runtime-store";
 type UseMissionEventStreamOptions = {
   missionId: string;
   runId: string;
+  agentName?: string;
   enabled?: boolean;
 };
 
@@ -46,15 +47,36 @@ function toEventLedgerItem(event: MissionEventPayload): MissionEventLedgerItem {
 export function useMissionEventStream({
   missionId,
   runId,
+  agentName,
   enabled = true,
 }: UseMissionEventStreamOptions): UseMissionEventStreamReturn {
   const subscriptionRef = useRef<{ unsubscribe: () => void } | null>(null);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rafIdRef = useRef<number | null>(null);
+  const pendingEventsRef = useRef<MissionEventLedgerItem[]>([]);
   const retryCountRef = useRef(0);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const ingestEvent = useMissionRuntimeStore((s) => s.ingestEvent);
+  const ingestBatch = useMissionRuntimeStore((s) => s.ingestBatch);
+
+  const flushPendingEvents = useCallback(() => {
+    const batch = pendingEventsRef.current.splice(0);
+    if (batch.length > 0) {
+      ingestBatch(runId, batch);
+    }
+    rafIdRef.current = null;
+  }, [ingestBatch, runId]);
+
+  const enqueueEvent = useCallback(
+    (payload: MissionEventPayload) => {
+      pendingEventsRef.current.push(toEventLedgerItem(payload));
+      if (rafIdRef.current === null) {
+        rafIdRef.current = window.requestAnimationFrame(flushPendingEvents);
+      }
+    },
+    [flushPendingEvents]
+  );
 
   const cleanup = useCallback(() => {
     subscriptionRef.current?.unsubscribe();
@@ -63,6 +85,11 @@ export function useMissionEventStream({
       clearTimeout(reconnectTimerRef.current);
       reconnectTimerRef.current = null;
     }
+    if (rafIdRef.current !== null) {
+      window.cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
+    }
+    pendingEventsRef.current = [];
   }, []);
 
   const connect = useCallback(() => {
@@ -72,32 +99,16 @@ export function useMissionEventStream({
       return;
     }
 
-    const client = getVanillaTRPCClient() as ReturnType<
-      typeof getVanillaTRPCClient
-    > & {
-      missionControl: {
-        onMissionEvent: {
-          subscribe: (
-            input: { missionId: string; runId: string },
-            opts: {
-              onData: (event: MissionEventPayload) => void;
-              onStarted: () => void;
-              onError: (err: unknown) => void;
-              onComplete: () => void;
-            }
-          ) => { unsubscribe: () => void };
-        };
-      };
-    };
+    const client = getVanillaTRPCClient();
 
     const sub = client.missionControl.onMissionEvent.subscribe(
-      { missionId, runId },
+      { missionId, runId, agentName },
       {
         onData(event: MissionEventPayload) {
           if (event.eventType === "connected") {
             return;
           }
-          ingestEvent(runId, toEventLedgerItem(event));
+          enqueueEvent(event);
           setError(null);
         },
         onStarted() {
@@ -121,7 +132,7 @@ export function useMissionEventStream({
     );
 
     subscriptionRef.current = sub;
-  }, [missionId, runId, enabled, ingestEvent, cleanup]);
+  }, [missionId, runId, agentName, enabled, enqueueEvent, cleanup]);
 
   useEffect(() => {
     connect();

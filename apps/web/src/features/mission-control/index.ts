@@ -56,12 +56,32 @@ export {
   ArtifactViewSwitch,
   artifactViewToggleVariants,
 } from "./components/artifact-view-switch";
+export {
+  KanbanAgentCard,
+  kanbanCardVariants,
+} from "./components/board/kanban-agent-card";
+export { KanbanDragOverlay } from "./components/board/kanban-drag-overlay";
+export {
+  columnHeaderVariants,
+  columnVariants,
+  KanbanStatusColumn,
+} from "./components/board/kanban-status-column";
+export {
+  kanbanFilterVariants,
+  MissionKanbanBoard,
+} from "./components/board/mission-kanban-board";
 export { BudgetAlert, budgetAlertVariants } from "./components/budget-alert";
 export {
   BudgetProgressBar,
   budgetBarVariants,
 } from "./components/budget-progress-bar";
 export { BurnRateChart } from "./components/burn-rate-chart";
+export {
+  AgentChatFeed,
+  commsChannelVariants,
+  reflectionScoreVariants,
+  statusLineVariants,
+} from "./components/chat/agent-chat-feed";
 export {
   MissionCreateContent,
   stepIndicatorVariants,
@@ -119,6 +139,7 @@ export { MissionArtifactPanel } from "./components/mission-artifact-panel";
 export { MissionBulkBar } from "./components/mission-bulk-bar";
 export { MissionCardGrid } from "./components/mission-card-grid";
 export { MissionCommandPalette } from "./components/mission-command-palette";
+export { MissionCommsFeed } from "./components/mission-comms-feed";
 export { MissionControlLayout } from "./components/mission-control-layout";
 export { MissionControlView } from "./components/mission-control-view";
 export { MissionCreateSheet } from "./components/mission-create-sheet";
@@ -138,6 +159,10 @@ export {
   budgetStatusVariants,
   MissionLedger,
 } from "./components/mission-ledger";
+export {
+  healthStatusVariants,
+  MissionReflectionPanel,
+} from "./components/mission-reflection-panel";
 export { MissionRunTable } from "./components/mission-run-table";
 export {
   type DashboardStats,
@@ -230,6 +255,20 @@ export {
   projectBudgetExhaustion,
 } from "./lib/budget-utils";
 export {
+  type ChatCommsItem,
+  type ChatEntry,
+  type ChatMessage,
+  type ChatProjectionInput,
+  type ChatReflectionItem,
+  type ChatStatusLine,
+  computeFingerprint,
+  createChatProjectionCache,
+  EVENT_MERGE_WINDOW_MS,
+  fingerprintsEqual,
+  type ProjectionFingerprint,
+  projectChatFeed,
+} from "./lib/chat-projection";
+export {
   EVENT_TYPE_CONFIG,
   HIDDEN_EVENT_TYPES,
   isActiveEvent,
@@ -259,11 +298,25 @@ export {
 } from "./stores/mission-list-store";
 export {
   useAgentBoard,
+  useAgentLane,
+  useAgentName,
+  useAgentNameMap,
+  useAgentStatusCounts,
+  useAllReflections,
   useApprovalQueue,
   useBudgetPercentage,
   useBudgetState,
+  useHealthSnapshot,
+  useMessageCount,
+  useMessages,
   useMissionEvents,
   useMissionRuntimeStore,
   usePendingApprovals,
+  useReflectingAgents,
+  useReflectionHistory,
+  useRunningAgentCount,
   useSelectedApprovalIds,
+  useSpawnEvents,
+  useSpawnedAgents,
+  useStuckAgents,
 } from "./stores/mission-runtime-store";

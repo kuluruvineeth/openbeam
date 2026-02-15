@@ -58,6 +58,9 @@ export function useMissionKeySequences({
   useHotkeys("a", () => handleSecondKey("agents"), {
     enabled: isAwaitingSecond,
   });
+  useHotkeys("c", () => handleSecondKey("comms"), {
+    enabled: isAwaitingSecond,
+  });
   useHotkeys("p", () => handleSecondKey("approvals"), {
     enabled: isAwaitingSecond,
   });
@@ -68,6 +71,9 @@ export function useMissionKeySequences({
     enabled: isAwaitingSecond,
   });
   useHotkeys("m", () => handleSecondKey("memory"), {
+    enabled: isAwaitingSecond,
+  });
+  useHotkeys("r", () => handleSecondKey("reflection"), {
     enabled: isAwaitingSecond,
   });
   useHotkeys("b", () => handleSecondKey("budget"), {

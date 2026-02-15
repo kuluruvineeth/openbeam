@@ -34,31 +34,15 @@ const MISSION_COMMANDS: CommandDefinition[] = [
 
 const TAB_COMMANDS: CommandDefinition[] = [
   {
-    id: "tab-timeline",
-    label: "Go to Timeline",
-    shortcut: "1",
+    id: "toggle-squad-panel",
+    label: "Toggle Squad Panel",
+    shortcut: "Cmd+Shift+B",
     group: "tabs",
   },
-  { id: "tab-agents", label: "Go to Agents", shortcut: "2", group: "tabs" },
   {
-    id: "tab-approvals",
-    label: "Go to Approvals",
-    shortcut: "3",
-    group: "tabs",
-  },
-  { id: "tab-tasks", label: "Go to Tasks", shortcut: "4", group: "tabs" },
-  {
-    id: "tab-artifacts",
-    label: "Go to Artifacts",
-    shortcut: "5",
-    group: "tabs",
-  },
-  { id: "tab-memory", label: "Go to Memory", shortcut: "6", group: "tabs" },
-  { id: "tab-budget", label: "Go to Budget", shortcut: "7", group: "tabs" },
-  {
-    id: "tab-ledger",
-    label: "Go to Event Ledger",
-    shortcut: "8",
+    id: "toggle-chat-panel",
+    label: "Toggle Chat Panel",
+    shortcut: "Cmd+B",
     group: "tabs",
   },
 ];
@@ -102,8 +86,12 @@ const SHORTCUT_GROUPS = [
   {
     title: "Mission Detail",
     shortcuts: [
-      { keys: ["1-8"], action: "Switch detail tab" },
+      { keys: ["Cmd", "B"], action: "Toggle chat panel" },
+      { keys: ["Cmd", "Shift", "B"], action: "Toggle squad panel" },
+      { keys: ["Esc"], action: "Deselect agent" },
       { keys: ["Cmd", "P"], action: "Pause/Resume mission" },
+      { keys: ["Cmd", "Shift", "S"], action: "Spawn agent" },
+      { keys: ["Cmd", "Shift", "E"], action: "Extend timeout tiers" },
       { keys: ["["], action: "Previous mission" },
       { keys: ["]"], action: "Next mission" },
     ],

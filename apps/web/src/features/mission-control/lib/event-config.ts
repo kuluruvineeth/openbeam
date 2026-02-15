@@ -133,7 +133,7 @@ export const EVENT_TYPE_CONFIG: Record<string, EventTypeConfig> = {
   },
   agent_step_completed: {
     icon: Icons.BotIcon,
-    summaryTemplate: "{agentName} — step {step}",
+    summaryTemplate: "{agentName} - step {step}",
     shimmerWhenActive: false,
     priority: "medium",
     expandable: true,
@@ -187,14 +187,208 @@ export const EVENT_TYPE_CONFIG: Record<string, EventTypeConfig> = {
     priority: "medium",
     expandable: true,
   },
+  "agent.spawned": {
+    icon: Icons.GitBranch,
+    summaryTemplate: "{agentName} spawned {childAgentName}",
+    shimmerWhenActive: false,
+    priority: "high",
+  },
+  agent_spawned: {
+    icon: Icons.GitBranch,
+    summaryTemplate: "{agentName} spawned {childAgentName}",
+    shimmerWhenActive: false,
+    priority: "high",
+  },
+  "agent.message_sent": {
+    icon: Icons.MessageSquare,
+    summaryTemplate: "{fromAgentName} messaged {toAgentName}",
+    shimmerWhenActive: false,
+    priority: "low",
+  },
+  agent_message_sent: {
+    icon: Icons.MessageSquare,
+    summaryTemplate: "{fromAgentName} messaged {toAgentName}",
+    shimmerWhenActive: false,
+    priority: "low",
+  },
+  "agent.message_received": {
+    icon: Icons.MessageSquare,
+    summaryTemplate: "{toAgentName} received a message",
+    shimmerWhenActive: false,
+    priority: "low",
+  },
+  agent_message_received: {
+    icon: Icons.MessageSquare,
+    summaryTemplate: "{toAgentName} received a message",
+    shimmerWhenActive: false,
+    priority: "low",
+  },
+  "agent.reflection": {
+    icon: Icons.BrainCircuit,
+    summaryTemplate: "{agentName} self-evaluated (score {score})",
+    shimmerWhenActive: true,
+    priority: "medium",
+  },
+  agent_self_evaluated: {
+    icon: Icons.BrainCircuit,
+    summaryTemplate: "{agentName} self-evaluated (score {progressScore})",
+    shimmerWhenActive: true,
+    priority: "medium",
+  },
+  "agent.replan": {
+    icon: Icons.RefreshCw,
+    summaryTemplate: "{agentName} replanning: {reason}",
+    shimmerWhenActive: false,
+    priority: "high",
+    expandable: true,
+  },
+  agent_replanned: {
+    icon: Icons.RefreshCw,
+    summaryTemplate: "{agentName} replanned strategy",
+    shimmerWhenActive: false,
+    priority: "high",
+    expandable: true,
+  },
+  "agent.escalated": {
+    icon: Icons.AlertTriangle,
+    summaryTemplate: "{agentName} escalated: {reason}",
+    shimmerWhenActive: false,
+    priority: "critical",
+    expandable: true,
+  },
+  agent_escalated: {
+    icon: Icons.AlertTriangle,
+    summaryTemplate: "{agentName} escalated task",
+    shimmerWhenActive: false,
+    priority: "critical",
+    expandable: true,
+  },
+  "agent.timeout_extended": {
+    icon: Icons.Timer,
+    summaryTemplate: "{agentName} timeout tier -> {tier}",
+    shimmerWhenActive: false,
+    priority: "medium",
+  },
+  agent_timeout_extended: {
+    icon: Icons.Timer,
+    summaryTemplate: "{agentName} timeout tier -> {tier}",
+    shimmerWhenActive: false,
+    priority: "medium",
+  },
+  "cross_mission.knowledge_imported": {
+    icon: Icons.Link,
+    summaryTemplate: "Knowledge imported from {linkedMissionName}",
+    shimmerWhenActive: false,
+    priority: "medium",
+    expandable: true,
+  },
+  "cross_mission.agent_shared": {
+    icon: Icons.Link,
+    summaryTemplate: "Agent shared with {linkedMissionName}",
+    shimmerWhenActive: false,
+    priority: "medium",
+  },
+  task_self_claimed: {
+    icon: Icons.Hand,
+    summaryTemplate: '{agentName} self-claimed "{taskTitle}"',
+    shimmerWhenActive: false,
+    priority: "medium",
+  },
+  agent_claim_rejected: {
+    icon: Icons.ShieldAlert,
+    summaryTemplate: "{agentName} claim rejected: {reason}",
+    shimmerWhenActive: false,
+    priority: "medium",
+  },
+  peer_review_requested: {
+    icon: Icons.Eye,
+    summaryTemplate: '{agentName} requested peer review for "{taskTitle}"',
+    shimmerWhenActive: true,
+    priority: "medium",
+  },
+  peer_review_submitted: {
+    icon: Icons.CheckSquare,
+    summaryTemplate: "{agentName} reviewed: {verdict} (score {qualityScore})",
+    shimmerWhenActive: false,
+    priority: "high",
+    expandable: true,
+  },
+  peer_review_consensus: {
+    icon: Icons.Scale,
+    summaryTemplate:
+      "Peer review consensus: {verdict} (avg {averageQualityScore})",
+    shimmerWhenActive: false,
+    priority: "high",
+    expandable: true,
+  },
+  reviewer_assigned: {
+    icon: Icons.UserCheck,
+    summaryTemplate: '{reviewerAgentName} assigned to review "{taskTitle}"',
+    shimmerWhenActive: false,
+    priority: "medium",
+  },
+  review_gating_enforced: {
+    icon: Icons.ShieldAlert,
+    summaryTemplate: '{agentName} task redirected to review: "{taskTitle}"',
+    shimmerWhenActive: true,
+    priority: "high",
+  },
+  review_timeout: {
+    icon: Icons.Timer,
+    summaryTemplate: 'Review expired for "{taskTitle}" ({reviewerAgentName})',
+    shimmerWhenActive: false,
+    priority: "high",
+  },
+  reviewer_assignment_failed: {
+    icon: Icons.AlertCircle,
+    summaryTemplate: 'No eligible reviewer found for "{taskTitle}"',
+    shimmerWhenActive: false,
+    priority: "high",
+  },
+  standup_round_started: {
+    icon: Icons.Users,
+    summaryTemplate:
+      "Standup round #{roundId} started — {activeAgentCount} agents",
+    shimmerWhenActive: true,
+    priority: "medium",
+  },
+  standup_summary: {
+    icon: Icons.Clipboard,
+    summaryTemplate:
+      "Standup: {overallHealth} — {reportCount} reported, {conflictCount} conflicts",
+    shimmerWhenActive: false,
+    priority: "high",
+    expandable: true,
+  },
+  "chain.progress": {
+    icon: Icons.Loader2,
+    summaryTemplate: "{agentName} chunk progress {current}/{total}",
+    shimmerWhenActive: true,
+    priority: "low",
+  },
 };
 
-export const HIDDEN_EVENT_TYPES = new Set(["heartbeat"]);
+export const HIDDEN_EVENT_TYPES = new Set([
+  "heartbeat",
+  "agent.message_received",
+  "agent_message_received",
+  "chain.progress",
+]);
 
 const ACTIVE_EVENT_TERMINALS: Record<string, string[]> = {
   agent_run_started: ["agent_run_completed", "agent_run_failed"],
   "run.started": ["run.completed", "run.failed"],
   "tool.started": ["tool.completed", "tool.failed"],
+  "agent.reflection": [],
+  agent_self_evaluated: [
+    "agent_replanned",
+    "agent_escalated",
+    "agent_run_completed",
+    "agent_run_failed",
+  ],
+  peer_review_requested: ["peer_review_submitted", "peer_review_consensus"],
+  review_gating_enforced: ["peer_review_consensus", "review_timeout"],
+  standup_round_started: ["standup_summary"],
 };
 
 export function isActiveEvent(
@@ -212,10 +406,14 @@ export function isActiveEvent(
     return false;
   }
 
+  if (terminals.length === 0) {
+    return true;
+  }
+
   return !events.some(
-    (e) =>
-      terminals.includes(e.eventType) &&
-      (!agentName || e.agentName === agentName)
+    (event) =>
+      terminals.includes(event.eventType) &&
+      (!agentName || event.agentName === agentName)
   );
 }
 

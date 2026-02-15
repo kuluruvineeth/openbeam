@@ -1,7 +1,12 @@
 import type { MissionAgentLaneState } from "@openplane/types/mission-control";
 import { sortAgentsForDisplay } from "./agent-display-order";
 
-export type SpecialistGroupKey = "running" | "blocked" | "done";
+export type SpecialistGroupKey =
+  | "running"
+  | "reflecting"
+  | "blocked"
+  | "spawned"
+  | "done";
 
 export type SpecialistSection = {
   key: SpecialistGroupKey;
@@ -15,7 +20,13 @@ export type AgentTreePartition = {
   specialists: MissionAgentLaneState[];
 };
 
-const GROUP_ORDER: SpecialistGroupKey[] = ["running", "blocked", "done"];
+const GROUP_ORDER: SpecialistGroupKey[] = [
+  "running",
+  "reflecting",
+  "blocked",
+  "spawned",
+  "done",
+];
 
 const GROUP_META: Record<
   SpecialistGroupKey,
@@ -25,9 +36,17 @@ const GROUP_META: Record<
     label: "Running",
     description: "Actively executing tasks",
   },
+  reflecting: {
+    label: "Reflecting",
+    description: "Evaluating progress",
+  },
   blocked: {
     label: "Blocked",
     description: "Waiting on approvals or recovery",
+  },
+  spawned: {
+    label: "Spawned",
+    description: "Dynamically created agents",
   },
   done: {
     label: "Done",
@@ -36,14 +55,25 @@ const GROUP_META: Record<
 };
 
 function resolveSpecialistGroup(
-  status: MissionAgentLaneState["status"]
+  agent: MissionAgentLaneState
 ): SpecialistGroupKey {
-  if (status === "running") {
-    return "running";
+  if (agent.isReflecting) {
+    return "reflecting";
   }
 
-  if (status === "blocked" || status === "failed") {
+  if (agent.status === "running") {
+    return agent.spawnedBy ? "spawned" : "running";
+  }
+
+  if (agent.status === "blocked" || agent.status === "failed") {
     return "blocked";
+  }
+
+  if (
+    agent.spawnedBy &&
+    (agent.status === "idle" || agent.status === "completed")
+  ) {
+    return "spawned";
   }
 
   return "done";
@@ -54,12 +84,14 @@ export function buildSpecialistSections(
 ): SpecialistSection[] {
   const grouped: Record<SpecialistGroupKey, MissionAgentLaneState[]> = {
     running: [],
+    reflecting: [],
     blocked: [],
+    spawned: [],
     done: [],
   };
 
   for (const agent of agents) {
-    grouped[resolveSpecialistGroup(agent.status)].push(agent);
+    grouped[resolveSpecialistGroup(agent)].push(agent);
   }
 
   return GROUP_ORDER.map((key) => ({
@@ -81,6 +113,7 @@ export function partitionAgentsForTree(
       leads.push(agent);
       continue;
     }
+
     specialists.push(agent);
   }
 

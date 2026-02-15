@@ -6,9 +6,11 @@ const DETAIL_TABS = [
   "timeline",
   "agents",
   "tasks",
+  "comms",
   "approvals",
   "artifacts",
   "memory",
+  "reflection",
   "budget",
 ] as const;
 
