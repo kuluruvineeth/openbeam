@@ -1,4 +1,5 @@
 import type { Database } from "@openplane/db";
+import type { Prisma } from "@prisma/client";
 
 export interface MemoryWriteInput {
   executionId: string;
@@ -26,11 +27,9 @@ export function createMemoryWriteNodeActivity(
   return async function memoryWriteNode(
     input: MemoryWriteInput
   ): Promise<MemoryWriteOutput> {
-    // biome-ignore lint/suspicious/noExplicitAny: Prisma delegate access for dynamic model
-    const db = deps.db as any;
     const missionId = input.missionId ?? input.executionId;
 
-    await db.missionMemory.upsert({
+    await deps.db.missionMemory.upsert({
       where: {
         missionId_agentId_key_scope: {
           missionId,
@@ -44,12 +43,10 @@ export function createMemoryWriteNodeActivity(
         agentId: input.agentId ?? "",
         key: input.key,
         scope: input.scope,
-        // biome-ignore lint/suspicious/noExplicitAny: Prisma JSON value
-        value: input.value as any,
+        value: input.value as Prisma.InputJsonValue,
       },
       update: {
-        // biome-ignore lint/suspicious/noExplicitAny: Prisma JSON value
-        value: input.value as any,
+        value: input.value as Prisma.InputJsonValue,
       },
     });
 

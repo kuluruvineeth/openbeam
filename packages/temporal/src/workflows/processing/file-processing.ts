@@ -6,6 +6,7 @@ import {
   executeChild,
   proxyActivities,
   setHandler,
+  workflowInfo,
 } from "@temporalio/workflow";
 import type { ConnectorFileActivities } from "../../activities/connectors/types";
 import type { DatabaseActivities } from "../../activities/database/types";
@@ -114,6 +115,7 @@ export async function fileProcessingWorkflow(
     workflowId: generateWorkflowId({
       type: "index",
       connectorId: input.connectorId,
+      timestamp: workflowInfo().unsafe.now(),
     }),
   });
 

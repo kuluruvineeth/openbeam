@@ -53,7 +53,7 @@ export async function analyticsExportWorkflow(
   const { teamId, exportType, startDate, endDate } = input;
 
   const isAllTeams = !teamId || teamId === "__all__";
-  const nowMs = Date.now();
+  const nowMs = workflowInfo().unsafe.now();
   const exportDate =
     exportType === "daily"
       ? getYesterdayDateFromTimestamp(nowMs)

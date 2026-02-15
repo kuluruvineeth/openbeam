@@ -1,4 +1,5 @@
 import type { Database } from "@openplane/db";
+import type { Prisma } from "@prisma/client";
 
 export interface MemorySearchInput {
   executionId: string;
@@ -32,12 +33,10 @@ export function createMemorySearchNodeActivity(
   return async function memorySearchNode(
     input: MemorySearchInput
   ): Promise<MemorySearchOutput> {
-    // biome-ignore lint/suspicious/noExplicitAny: Prisma delegate access for dynamic model
-    const db = deps.db as any;
     const limit = input.topK ?? 10;
     const missionId = input.missionId ?? input.executionId;
 
-    const where: Record<string, unknown> = {
+    const where: Prisma.MissionMemoryWhereInput = {
       missionId,
       key:
         input.mode === "prefix"
@@ -52,15 +51,14 @@ export function createMemorySearchNodeActivity(
       where.agentId = input.agentId;
     }
 
-    const records = await db.missionMemory.findMany({
+    const records = await deps.db.missionMemory.findMany({
       where,
       take: limit,
       orderBy: { updatedAt: "desc" },
     });
 
     return {
-      // biome-ignore lint/suspicious/noExplicitAny: Prisma dynamic model result
-      results: records.map((r: any) => ({
+      results: records.map((r) => ({
         key: r.key,
         value: r.value,
         scope: r.scope,

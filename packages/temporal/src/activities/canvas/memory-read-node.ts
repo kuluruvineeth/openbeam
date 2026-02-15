@@ -25,11 +25,9 @@ export function createMemoryReadNodeActivity(deps: MemoryReadNodeDependencies) {
   return async function memoryReadNode(
     input: MemoryReadInput
   ): Promise<MemoryReadOutput> {
-    // biome-ignore lint/suspicious/noExplicitAny: Prisma delegate access for dynamic model
-    const db = deps.db as any;
     const missionId = input.missionId ?? input.executionId;
 
-    const record = await db.missionMemory.findUnique({
+    const record = await deps.db.missionMemory.findUnique({
       where: {
         missionId_agentId_key_scope: {
           missionId,

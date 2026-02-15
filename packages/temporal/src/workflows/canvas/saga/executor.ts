@@ -1,3 +1,4 @@
+import { workflowInfo } from "@temporalio/workflow";
 import type {
   CompletedSagaStep,
   SagaConfig,
@@ -12,7 +13,7 @@ export class SagaExecutor {
   private readonly clock: () => number;
 
   constructor(config: SagaConfig = {}) {
-    this.clock = config.clock ?? (() => Date.now());
+    this.clock = config.clock ?? (() => workflowInfo().unsafe.now());
     this.state = {
       completedSteps: [],
       status: "pending",
