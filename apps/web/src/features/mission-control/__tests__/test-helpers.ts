@@ -40,6 +40,10 @@ export function createMockAgent(
     tokensUsed: 0,
     costCents: 0,
     recentToolCalls: [],
+    replanCount: 0,
+    isReflecting: false,
+    spawnDepth: 0,
+    crossMissionLinks: [],
     ...overrides,
   };
 }

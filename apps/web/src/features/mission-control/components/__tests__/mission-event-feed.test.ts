@@ -3,6 +3,7 @@ import type { MissionEventLedgerItem } from "@openplane/types/mission-control";
 import { createMockEvent } from "../../__tests__/test-helpers";
 import {
   buildStateSections,
+  buildTerminalIndex,
   classifyEventBucket,
   sortEventsByTimestampDesc,
 } from "../../lib/timeline-state";
@@ -36,8 +37,9 @@ describe("classifyEventBucket", () => {
       payload: { agentId: "agent-1" },
       agentName: "Agent 1",
     });
+    const index = buildTerminalIndex([started]);
 
-    expect(classifyEventBucket(started, [started], 2000)).toBe("running_now");
+    expect(classifyEventBucket(started, index, 2000)).toBe("running_now");
   });
 
   it("marks run.started with a terminal as earlier", () => {
@@ -55,10 +57,9 @@ describe("classifyEventBucket", () => {
       payload: { agentId: "agent-1" },
       agentName: "Agent 1",
     });
+    const index = buildTerminalIndex([completed, started]);
 
-    expect(classifyEventBucket(started, [completed, started], 2000)).toBe(
-      "earlier"
-    );
+    expect(classifyEventBucket(started, index, 2000)).toBe("earlier");
   });
 
   it("marks failed events as needs_attention", () => {
@@ -69,8 +70,9 @@ describe("classifyEventBucket", () => {
       payload: { agentId: "agent-1" },
       agentName: "Agent 1",
     });
+    const index = buildTerminalIndex([failed]);
 
-    expect(classifyEventBucket(failed, [failed], 3000)).toBe("needs_attention");
+    expect(classifyEventBucket(failed, index, 3000)).toBe("needs_attention");
   });
 
   it("does not mark stale dispatch events as running_now", () => {
@@ -82,8 +84,9 @@ describe("classifyEventBucket", () => {
       payload: { agentId: "agent-1", taskId: "task-1" },
       agentName: "Agent 1",
     });
+    const index = buildTerminalIndex([dispatched]);
 
-    expect(classifyEventBucket(dispatched, [dispatched], now)).toBe("earlier");
+    expect(classifyEventBucket(dispatched, index, now)).toBe("earlier");
   });
 
   it("marks recent dispatch events as running_now", () => {
@@ -95,10 +98,9 @@ describe("classifyEventBucket", () => {
       payload: { agentId: "agent-1", taskId: "task-1" },
       agentName: "Agent 1",
     });
+    const index = buildTerminalIndex([dispatched]);
 
-    expect(classifyEventBucket(dispatched, [dispatched], now)).toBe(
-      "running_now"
-    );
+    expect(classifyEventBucket(dispatched, index, now)).toBe("running_now");
   });
 
   it("does not mark dispatch as running after mission completion", () => {
@@ -115,10 +117,9 @@ describe("classifyEventBucket", () => {
       eventType: "mission.completed",
       timestamp: now - 10 * 1000,
     });
+    const index = buildTerminalIndex([missionCompleted, dispatched]);
 
-    expect(
-      classifyEventBucket(dispatched, [missionCompleted, dispatched], now)
-    ).toBe("earlier");
+    expect(classifyEventBucket(dispatched, index, now)).toBe("earlier");
   });
 
   it("does not keep run.started in running_now after mission terminal event", () => {
@@ -134,10 +135,9 @@ describe("classifyEventBucket", () => {
       eventType: "mission.completed",
       timestamp: 2000,
     });
+    const index = buildTerminalIndex([missionCompleted, started]);
 
-    expect(
-      classifyEventBucket(started, [missionCompleted, started], 2500)
-    ).toBe("earlier");
+    expect(classifyEventBucket(started, index, 2500)).toBe("earlier");
   });
 
   it("treats running events as earlier when mission is already settled", () => {
@@ -149,8 +149,9 @@ describe("classifyEventBucket", () => {
       payload: { agentId: "agent-1" },
       agentName: "Agent 1",
     });
+    const index = buildTerminalIndex([started]);
 
-    expect(classifyEventBucket(started, [started], now, true)).toBe("earlier");
+    expect(classifyEventBucket(started, index, now, true)).toBe("earlier");
   });
 });
 
@@ -159,6 +160,7 @@ describe("state sections", () => {
     const rows = [
       { bucket: "needs_attention" as const, id: "attention" },
       { bucket: "running_now" as const, id: "running" },
+      { bucket: "active_reflections" as const, id: "reflection" },
       { bucket: "recently_completed" as const, id: "completed" },
       { bucket: "earlier" as const, id: "earlier" },
     ];
@@ -166,6 +168,7 @@ describe("state sections", () => {
 
     expect(sections.map((section) => section.bucket)).toEqual([
       "running_now",
+      "active_reflections",
       "needs_attention",
       "recently_completed",
       "earlier",
@@ -176,6 +179,10 @@ describe("state sections", () => {
     ).toBe(1);
     expect(
       sections.find((section) => section.bucket === "running_now")?.rows.length
+    ).toBe(1);
+    expect(
+      sections.find((section) => section.bucket === "active_reflections")?.rows
+        .length
     ).toBe(1);
     expect(
       sections.find((section) => section.bucket === "recently_completed")?.rows

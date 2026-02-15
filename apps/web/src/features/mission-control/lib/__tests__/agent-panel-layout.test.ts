@@ -6,18 +6,34 @@ import {
 } from "../agent-panel-layout";
 
 describe("buildSpecialistSections", () => {
-  it("groups specialists into running, blocked, and done buckets", () => {
+  it("groups specialists into running, reflecting, blocked, spawned, and done buckets", () => {
     const sections = buildSpecialistSections([
       createMockAgent({ agentId: "a-running", status: "running" }),
+      createMockAgent({
+        agentId: "a-reflecting",
+        status: "running",
+        isReflecting: true,
+      }),
       createMockAgent({ agentId: "a-blocked", status: "blocked" }),
       createMockAgent({ agentId: "a-failed", status: "failed" }),
-      createMockAgent({ agentId: "a-completed", status: "completed" }),
+      createMockAgent({
+        agentId: "a-spawned",
+        status: "running",
+        spawnedBy: "a-running",
+      }),
+      createMockAgent({
+        agentId: "a-spawned-done",
+        status: "completed",
+        spawnedBy: "a-running",
+      }),
       createMockAgent({ agentId: "a-idle", status: "idle" }),
     ]);
 
     expect(sections.map((section) => section.key)).toEqual([
       "running",
+      "reflecting",
       "blocked",
+      "spawned",
       "done",
     ]);
 
@@ -25,11 +41,17 @@ describe("buildSpecialistSections", () => {
       "a-running",
     ]);
     expect(sections[1]?.agents.map((agent) => agent.agentId)).toEqual([
+      "a-reflecting",
+    ]);
+    expect(sections[2]?.agents.map((agent) => agent.agentId)).toEqual([
       "a-blocked",
       "a-failed",
     ]);
-    expect(sections[2]?.agents.map((agent) => agent.agentId)).toEqual([
-      "a-completed",
+    expect(sections[3]?.agents.map((agent) => agent.agentId)).toEqual([
+      "a-spawned",
+      "a-spawned-done",
+    ]);
+    expect(sections[4]?.agents.map((agent) => agent.agentId)).toEqual([
       "a-idle",
     ]);
   });
@@ -37,7 +59,7 @@ describe("buildSpecialistSections", () => {
   it("returns empty groups when specialists are absent", () => {
     const sections = buildSpecialistSections([]);
 
-    expect(sections).toHaveLength(3);
+    expect(sections).toHaveLength(5);
     expect(sections.every((section) => section.agents.length === 0)).toBe(true);
   });
 });

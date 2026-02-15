@@ -1,9 +1,14 @@
 import { beforeEach, describe, expect, it } from "bun:test";
-import type { MissionEventLedgerItem } from "@openplane/types/mission-control";
+import type {
+  MissionAgentLaneState,
+  MissionEventLedgerItem,
+} from "@openplane/types/mission-control";
 import {
   applyEventToAgentBoard,
   applyEventToApprovals,
   applyEventToBudget,
+  buildAgentNameIndex,
+  resolveEventAgentId,
 } from "../mission-runtime-store";
 
 function createEvent(
@@ -18,6 +23,26 @@ function createEvent(
     eventType: "run.started",
     summary: "Test event",
     timestamp: Date.now(),
+    ...overrides,
+  };
+}
+
+function createBoardAgent(
+  overrides: Partial<MissionAgentLaneState> = {}
+): MissionAgentLaneState {
+  return {
+    agentId: "agent-1",
+    agentName: "Agent",
+    role: "",
+    status: "idle",
+    stepsCompleted: 0,
+    tokensUsed: 0,
+    costCents: 0,
+    recentToolCalls: [],
+    replanCount: 0,
+    isReflecting: false,
+    spawnDepth: 0,
+    crossMissionLinks: [],
     ...overrides,
   };
 }
@@ -329,16 +354,12 @@ describe("applyEventToAgentBoard", () => {
 
   it("sets agent to completed on run.completed", () => {
     const initial = {
-      "agent-1": {
+      "agent-1": createBoardAgent({
         agentId: "agent-1",
         agentName: "Researcher",
-        role: "",
-        status: "running" as const,
+        status: "running",
         stepsCompleted: 2,
-        tokensUsed: 0,
-        costCents: 0,
-        recentToolCalls: [],
-      },
+      }),
     };
 
     const event = createEvent({
@@ -388,16 +409,10 @@ describe("applyEventToAgentBoard", () => {
   it("returns board unchanged when no agentId in payload", () => {
     const event = createEvent({ eventType: "run.started", payload: {} });
     const initial = {
-      "agent-1": {
+      "agent-1": createBoardAgent({
         agentId: "agent-1",
         agentName: "R",
-        role: "",
-        status: "idle" as const,
-        stepsCompleted: 0,
-        tokensUsed: 0,
-        costCents: 0,
-        recentToolCalls: [],
-      },
+      }),
     };
 
     const board = applyEventToAgentBoard(initial, event);
@@ -432,16 +447,11 @@ describe("applyEventToAgentBoard", () => {
 
   it("preserves existing role when event payload has no role", () => {
     const initial = {
-      "agent-1": {
+      "agent-1": createBoardAgent({
         agentId: "agent-1",
         agentName: "Lead",
         role: "coordinator",
-        status: "idle" as const,
-        stepsCompleted: 0,
-        tokensUsed: 0,
-        costCents: 0,
-        recentToolCalls: [],
-      },
+      }),
     };
 
     const event = createEvent({
@@ -456,16 +466,13 @@ describe("applyEventToAgentBoard", () => {
 
   it("uses agentName fallback when event payload has no agentId", () => {
     const initial = {
-      "agent-1": {
+      "agent-1": createBoardAgent({
         agentId: "agent-1",
         agentName: "Researcher",
         role: "specialist",
-        status: "running" as const,
+        status: "running",
         stepsCompleted: 1,
-        tokensUsed: 0,
-        costCents: 0,
-        recentToolCalls: [],
-      },
+      }),
     };
 
     const event = createEvent({
@@ -482,26 +489,18 @@ describe("applyEventToAgentBoard", () => {
 
   it("settles running agents when mission reaches terminal completion", () => {
     const initial = {
-      "agent-1": {
+      "agent-1": createBoardAgent({
         agentId: "agent-1",
         agentName: "Lead",
         role: "coordinator",
-        status: "running" as const,
-        stepsCompleted: 0,
-        tokensUsed: 0,
-        costCents: 0,
-        recentToolCalls: [],
-      },
-      "agent-2": {
+        status: "running",
+      }),
+      "agent-2": createBoardAgent({
         agentId: "agent-2",
         agentName: "Specialist",
         role: "specialist",
-        status: "blocked" as const,
-        stepsCompleted: 0,
-        tokensUsed: 0,
-        costCents: 0,
-        recentToolCalls: [],
-      },
+        status: "blocked",
+      }),
     };
 
     const board = applyEventToAgentBoard(
@@ -688,5 +687,500 @@ describe("applyEventToBudget", () => {
     const budget = applyEventToBudget(initialBudget, event);
 
     expect(budget).toBe(initialBudget);
+  });
+});
+
+describe("memory eviction", () => {
+  let store: typeof import("../mission-runtime-store").useMissionRuntimeStore;
+
+  beforeEach(async () => {
+    const mod = await import("../mission-runtime-store");
+    store = mod.useMissionRuntimeStore;
+    store.getState().resetAll();
+  });
+
+  it("keeps only last 5000 events when ingesting more", () => {
+    const events = Array.from({ length: 6000 }, (_, i) =>
+      createEvent({
+        sequence: i + 1,
+        timestamp: 1000 + i,
+        eventType: "agent_step_completed",
+        payload: { agentId: "agent-1", step: i + 1 },
+        agentName: "Test",
+      })
+    );
+
+    store.getState().ingestBatch("run-1", events);
+
+    const stored = store.getState().eventsByRun["run-1"] ?? [];
+    expect(stored.length).toBe(5000);
+    expect(stored[0].sequence).toBe(1001);
+    expect(stored.at(-1)?.sequence).toBe(6000);
+  });
+
+  it("sets evictionCursor to last evicted event sequence", () => {
+    const events = Array.from({ length: 6000 }, (_, i) =>
+      createEvent({
+        sequence: i + 1,
+        timestamp: 1000 + i,
+        eventType: "agent_step_completed",
+        payload: { agentId: "agent-1", step: i + 1 },
+        agentName: "Test",
+      })
+    );
+
+    store.getState().ingestBatch("run-1", events);
+
+    expect(store.getState().evictionCursor["run-1"]).toBe(1000);
+  });
+
+  it("does not evict when under limit", () => {
+    const events = Array.from({ length: 100 }, (_, i) =>
+      createEvent({
+        sequence: i + 1,
+        timestamp: 1000 + i,
+      })
+    );
+
+    store.getState().ingestBatch("run-1", events);
+
+    expect(store.getState().eventsByRun["run-1"]?.length).toBe(100);
+    expect(store.getState().evictionCursor["run-1"] ?? 0).toBe(0);
+  });
+
+  it("preserves derived state after eviction", () => {
+    const events: MissionEventLedgerItem[] = [
+      createEvent({
+        sequence: 1,
+        timestamp: 1000,
+        eventType: "budget.set",
+        payload: { budgetCents: 5000 },
+      }),
+      createEvent({
+        sequence: 2,
+        timestamp: 1001,
+        eventType: "cost.updated",
+        payload: { consumedCents: 100, agentId: "agent-1", costCents: 100 },
+      }),
+      ...Array.from({ length: 5500 }, (_, i) =>
+        createEvent({
+          sequence: i + 3,
+          timestamp: 1002 + i,
+          eventType: "agent_step_completed",
+          payload: { agentId: "agent-1", step: i + 1 },
+          agentName: "Test",
+        })
+      ),
+    ];
+
+    store.getState().ingestBatch("run-1", events);
+
+    expect(store.getState().budgetState.budgetCents).toBe(5000);
+    expect(store.getState().budgetState.consumedCents).toBe(100);
+    expect(store.getState().eventsByRun["run-1"]?.length).toBe(5000);
+  });
+
+  it("reset clears evictionCursor for the run", () => {
+    const events = Array.from({ length: 6000 }, (_, i) =>
+      createEvent({
+        sequence: i + 1,
+        timestamp: 1000 + i,
+      })
+    );
+
+    store.getState().ingestBatch("run-1", events);
+    expect(store.getState().evictionCursor["run-1"]).toBe(1000);
+
+    store.getState().reset("run-1");
+    expect(store.getState().evictionCursor["run-1"]).toBeUndefined();
+  });
+
+  it("useEvictionCursor returns 0 for unknown runs", () => {
+    expect(store.getState().evictionCursor["unknown-run"] ?? 0).toBe(0);
+  });
+
+  it("subsequent ingestBatch calls accumulate eviction correctly", () => {
+    const batch1 = Array.from({ length: 4000 }, (_, i) =>
+      createEvent({
+        sequence: i + 1,
+        timestamp: 1000 + i,
+        eventType: "agent_step_completed",
+        payload: { agentId: "agent-1" },
+        agentName: "Test",
+      })
+    );
+
+    store.getState().ingestBatch("run-1", batch1);
+    expect(store.getState().eventsByRun["run-1"]?.length).toBe(4000);
+
+    const batch2 = Array.from({ length: 2000 }, (_, i) =>
+      createEvent({
+        sequence: i + 4001,
+        timestamp: 5000 + i,
+        eventType: "agent_step_completed",
+        payload: { agentId: "agent-1" },
+        agentName: "Test",
+      })
+    );
+
+    store.getState().ingestBatch("run-1", batch2);
+    expect(store.getState().eventsByRun["run-1"]?.length).toBe(5000);
+    expect(store.getState().evictionCursor["run-1"]).toBe(1000);
+  });
+});
+
+describe("buildAgentNameIndex", () => {
+  it("maps normalized agent names to IDs", () => {
+    const board: Record<string, MissionAgentLaneState> = {
+      "agent-1": createBoardAgent({
+        agentId: "agent-1",
+        agentName: "Researcher",
+      }),
+      "agent-2": createBoardAgent({
+        agentId: "agent-2",
+        agentName: "Code Writer",
+      }),
+    };
+
+    const index = buildAgentNameIndex(board);
+
+    expect(index.researcher).toBe("agent-1");
+    expect(index["code writer"]).toBe("agent-2");
+  });
+
+  it("returns empty object for empty board", () => {
+    const index = buildAgentNameIndex({});
+    expect(Object.keys(index)).toHaveLength(0);
+  });
+
+  it("trims whitespace in agent names", () => {
+    const board: Record<string, MissionAgentLaneState> = {
+      "agent-1": createBoardAgent({
+        agentId: "agent-1",
+        agentName: "  Researcher  ",
+      }),
+    };
+
+    const index = buildAgentNameIndex(board);
+
+    expect(index.researcher).toBe("agent-1");
+  });
+});
+
+describe("resolveEventAgentId", () => {
+  it("returns payload agentId when present", () => {
+    const board: Record<string, MissionAgentLaneState> = {
+      "agent-1": createBoardAgent({
+        agentId: "agent-1",
+        agentName: "Researcher",
+      }),
+    };
+    const event = createEvent({ payload: { agentId: "agent-1" } });
+
+    const result = resolveEventAgentId(board, event);
+
+    expect(result).toBe("agent-1");
+  });
+
+  it("uses name index for O(1) lookup when provided", () => {
+    const board: Record<string, MissionAgentLaneState> = {
+      "agent-1": createBoardAgent({
+        agentId: "agent-1",
+        agentName: "Researcher",
+      }),
+      "agent-2": createBoardAgent({
+        agentId: "agent-2",
+        agentName: "Writer",
+      }),
+    };
+    const nameIndex = buildAgentNameIndex(board);
+    const event = createEvent({
+      agentName: "Researcher",
+      payload: {},
+    });
+
+    const result = resolveEventAgentId(board, event, nameIndex);
+
+    expect(result).toBe("agent-1");
+  });
+
+  it("falls back to linear scan when no index provided", () => {
+    const board: Record<string, MissionAgentLaneState> = {
+      "agent-1": createBoardAgent({
+        agentId: "agent-1",
+        agentName: "Researcher",
+      }),
+    };
+    const event = createEvent({
+      agentName: "Researcher",
+      payload: {},
+    });
+
+    const result = resolveEventAgentId(board, event);
+
+    expect(result).toBe("agent-1");
+  });
+
+  it("returns undefined for unknown agent name", () => {
+    const board: Record<string, MissionAgentLaneState> = {
+      "agent-1": createBoardAgent({
+        agentId: "agent-1",
+        agentName: "Researcher",
+      }),
+    };
+    const nameIndex = buildAgentNameIndex(board);
+    const event = createEvent({
+      agentName: "NonExistent",
+      payload: {},
+    });
+
+    const result = resolveEventAgentId(board, event, nameIndex);
+
+    expect(result).toBeUndefined();
+  });
+
+  it("handles case-insensitive matching", () => {
+    const board: Record<string, MissionAgentLaneState> = {
+      "agent-1": createBoardAgent({
+        agentId: "agent-1",
+        agentName: "Code Writer",
+      }),
+    };
+    const nameIndex = buildAgentNameIndex(board);
+    const event = createEvent({
+      agentName: "CODE WRITER",
+      payload: {},
+    });
+
+    const result = resolveEventAgentId(board, event, nameIndex);
+
+    expect(result).toBe("agent-1");
+  });
+});
+
+describe("agentNameIndex in store", () => {
+  let store: typeof import("../mission-runtime-store").useMissionRuntimeStore;
+
+  beforeEach(async () => {
+    const mod = await import("../mission-runtime-store");
+    store = mod.useMissionRuntimeStore;
+    store.getState().resetAll();
+  });
+
+  it("seedAgentBoard populates the name index", () => {
+    store.getState().seedAgentBoard([
+      { id: "agent-1", name: "Researcher", role: "research", status: "idle" },
+      { id: "agent-2", name: "Writer", role: "writing", status: "idle" },
+    ]);
+
+    const nameIndex = store.getState().agentNameIndex;
+    expect(nameIndex.researcher).toBe("agent-1");
+    expect(nameIndex.writer).toBe("agent-2");
+  });
+
+  it("ingestBatch updates index when spawn events add agents", () => {
+    store.getState().seedAgentBoard([
+      {
+        id: "agent-1",
+        name: "Coordinator",
+        role: "coord",
+        status: "running",
+      },
+    ]);
+
+    const spawnEvent = createEvent({
+      sequence: 1,
+      eventType: "agent.spawned",
+      payload: {
+        childAgentId: "spawned-1",
+        childAgentName: "Deep Researcher",
+        parentAgentId: "agent-1",
+        spawnDepth: 1,
+      },
+      agentName: "Deep Researcher",
+    });
+
+    store.getState().ingestBatch("run-1", [spawnEvent]);
+
+    const nameIndex = store.getState().agentNameIndex;
+    expect(nameIndex.coordinator).toBe("agent-1");
+    expect(nameIndex["deep researcher"]).toBe("spawned-1");
+  });
+
+  it("name index enables lookup for subsequent events", () => {
+    store
+      .getState()
+      .seedAgentBoard([
+        { id: "agent-1", name: "Researcher", role: "research", status: "idle" },
+      ]);
+
+    const events = [
+      createEvent({
+        sequence: 1,
+        eventType: "run.started",
+        agentName: "Researcher",
+        payload: {},
+      }),
+      createEvent({
+        sequence: 2,
+        eventType: "tool.started",
+        agentName: "Researcher",
+        payload: { toolName: "search", toolCallId: "tc-1" },
+      }),
+    ];
+
+    store.getState().ingestBatch("run-1", events);
+
+    const board = store.getState().agentBoardState;
+    expect(board["agent-1"]?.status).toBe("running");
+    expect(board["agent-1"]?.recentToolCalls).toHaveLength(1);
+  });
+});
+
+describe("granular selectors", () => {
+  let mod: typeof import("../mission-runtime-store");
+  let store: typeof import("../mission-runtime-store").useMissionRuntimeStore;
+
+  beforeEach(async () => {
+    mod = await import("../mission-runtime-store");
+    store = mod.useMissionRuntimeStore;
+    store.getState().resetAll();
+  });
+
+  it("useAgentLane returns single agent state", () => {
+    store.getState().seedAgentBoard([
+      {
+        id: "agent-1",
+        name: "Researcher",
+        role: "research",
+        status: "running",
+      },
+      { id: "agent-2", name: "Writer", role: "writing", status: "idle" },
+    ]);
+
+    const lane = store.getState().agentBoardState["agent-1"];
+    expect(lane?.agentName).toBe("Researcher");
+    expect(lane?.status).toBe("running");
+  });
+
+  it("useAgentLane returns undefined for missing agent", () => {
+    const lane = store.getState().agentBoardState.nonexistent;
+    expect(lane).toBeUndefined();
+  });
+
+  it("useAgentName returns agent name by ID", () => {
+    store
+      .getState()
+      .seedAgentBoard([
+        { id: "agent-1", name: "Researcher", role: "research", status: "idle" },
+      ]);
+
+    const name = store.getState().agentBoardState["agent-1"]?.agentName ?? null;
+    expect(name).toBe("Researcher");
+  });
+
+  it("useAgentName returns null for null agentId", () => {
+    const agentId: string | null = null;
+    const name = agentId
+      ? (store.getState().agentBoardState[agentId]?.agentName ?? null)
+      : null;
+    expect(name).toBeNull();
+  });
+
+  it("useAgentName returns null for unknown agentId", () => {
+    const name = store.getState().agentBoardState.unknown?.agentName ?? null;
+    expect(name).toBeNull();
+  });
+
+  it("useAgentStatusCounts aggregates statuses correctly", () => {
+    store.getState().seedAgentBoard([
+      { id: "a1", name: "A1", role: "r", status: "running" },
+      { id: "a2", name: "A2", role: "r", status: "running" },
+      { id: "a3", name: "A3", role: "r", status: "blocked" },
+      { id: "a4", name: "A4", role: "r", status: "completed" },
+      { id: "a5", name: "A5", role: "r", status: "failed" },
+      { id: "a6", name: "A6", role: "r", status: "idle" },
+    ]);
+
+    const board = store.getState().agentBoardState;
+    const agents = Object.values(board);
+    const total = agents.length;
+    const running = agents.filter((a) => a.status === "running").length;
+    const blocked = agents.filter((a) => a.status === "blocked").length;
+    const completed = agents.filter((a) => a.status === "completed").length;
+    const failed = agents.filter((a) => a.status === "failed").length;
+
+    expect(total).toBe(6);
+    expect(running).toBe(2);
+    expect(blocked).toBe(1);
+    expect(completed).toBe(1);
+    expect(failed).toBe(1);
+    expect(running + blocked).toBe(3);
+  });
+
+  it("useAgentStatusCounts returns zeros for empty board", () => {
+    const board = store.getState().agentBoardState;
+    expect(Object.keys(board)).toHaveLength(0);
+  });
+
+  it("useRunningAgentCount returns only running agents", () => {
+    store.getState().seedAgentBoard([
+      { id: "a1", name: "A1", role: "r", status: "running" },
+      { id: "a2", name: "A2", role: "r", status: "completed" },
+      { id: "a3", name: "A3", role: "r", status: "running" },
+      { id: "a4", name: "A4", role: "r", status: "idle" },
+    ]);
+
+    const board = store.getState().agentBoardState;
+    const count = Object.values(board).filter(
+      (a) => a.status === "running"
+    ).length;
+
+    expect(count).toBe(2);
+  });
+
+  it("useAgentNameMap returns name/role map", () => {
+    store.getState().seedAgentBoard([
+      { id: "a1", name: "Researcher", role: "research", status: "idle" },
+      { id: "a2", name: "Writer", role: "writing", status: "running" },
+    ]);
+
+    const board = store.getState().agentBoardState;
+    const nameMap: Record<string, { agentName: string; role?: string }> = {};
+    for (const [id, lane] of Object.entries(board)) {
+      nameMap[id] = { agentName: lane.agentName, role: lane.role };
+    }
+
+    expect(nameMap.a1?.agentName).toBe("Researcher");
+    expect(nameMap.a1?.role).toBe("research");
+    expect(nameMap.a2?.agentName).toBe("Writer");
+    expect(nameMap.a2?.role).toBe("writing");
+  });
+
+  it("useAgentNameMap excludes status and cost fields", () => {
+    store
+      .getState()
+      .seedAgentBoard([
+        { id: "a1", name: "Researcher", role: "research", status: "running" },
+      ]);
+
+    store.getState().ingestEvent(
+      "run-1",
+      createEvent({
+        sequence: 1,
+        eventType: "cost.updated",
+        payload: { consumedCents: 100, agentId: "a1", costCents: 100 },
+      })
+    );
+
+    const board = store.getState().agentBoardState;
+    const nameMap: Record<string, { agentName: string; role?: string }> = {};
+    for (const [id, lane] of Object.entries(board)) {
+      nameMap[id] = { agentName: lane.agentName, role: lane.role };
+    }
+
+    const entry = nameMap.a1;
+    expect(entry).toBeDefined();
+    expect(Object.keys(entry ?? {})).toEqual(["agentName", "role"]);
   });
 });
