@@ -24,6 +24,10 @@
         "--url",
         "redis://localhost:6379/0"
       ]
+    },
+    "excalidraw": {
+      "type": "http",
+      "url": "https://excalidraw-mcp-app.vercel.app/mcp"
     }
   }
 }

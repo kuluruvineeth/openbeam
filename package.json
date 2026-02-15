@@ -36,6 +36,7 @@
     "dev:native": "turbo -F native dev",
     "dev:web": "turbo -F web dev",
     "dev:server": "turbo -F server dev",
+    "dev:cli": "turbo -F cli build --continue",
     "db:push": "turbo -F @openplane/db db:push",
     "db:studio": "turbo -F @openplane/db db:studio",
     "db:generate": "turbo -F @openplane/db db:generate",
@@ -46,12 +47,16 @@
     "db:down": "turbo -F @openplane/db db:down",
     "test": "bun test ./apps/ ./packages/ai/ ./packages/api/ ./packages/db/ ./packages/redis/ ./packages/services/ ./packages/types/ ./packages/ui/ ./packages/vespa/",
     "test:temporal": "cd packages/temporal && bun run test",
-    "test:all": "bun run test && bun run test:temporal"
+    "test:all": "bun run test && bun run test:temporal",
+    "cli:build": "turbo -F cli build",
+    "cli:test": "turbo -F cli test",
+    "cli:lint": "turbo -F cli lint"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
+    "@excalidraw/excalidraw": "0.18.0",
     "@webbuf/blake3": "^3.5.0",
     "dotenv": "^17.2.2",
     "zod": "^4.1.11"
