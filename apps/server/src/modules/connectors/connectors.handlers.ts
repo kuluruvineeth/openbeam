@@ -1,5 +1,13 @@
 import type { RouteHandler } from "@hono/zod-openapi";
-import prisma, { SyncJobStatus, SyncTrigger } from "@openplane/db";
+import prisma from "@openplane/db";
+import {
+  ConnectorServiceError,
+  createManualConnectorSyncForTeam,
+  getConnectorSyncHistoryForTeam,
+  getConnectorSyncStatusForTeam,
+  pauseConnectorForTeam,
+  resumeConnectorForTeam,
+} from "@openplane/services/connectors";
 import { startConnectorSync } from "@openplane/temporal";
 import type { AuthEnv } from "@/middleware/auth";
 import { getTeamId } from "@/middleware/auth";
@@ -17,76 +25,44 @@ export const triggerSyncHandler: RouteHandler<
 > = async (c) => {
   const { id: connectorId } = c.req.valid("param");
   const { type } = c.req.valid("json");
+  const syncType = type === "INCREMENTAL" ? "INCREMENTAL" : "FULL";
 
-  const connector = await prisma.connector.findUnique({
-    where: { id: connectorId },
-    select: { id: true, status: true, teamId: true, app: true },
-  });
-
-  if (!connector) {
-    return c.json({ error: "Connector not found" }, 404);
-  }
-
-  const teamId = getTeamId(c);
-  if (!teamId) {
-    return c.json({ error: "team_id is required" }, 400);
-  }
-
-  if (connector.teamId !== teamId) {
-    return c.json({ error: "Forbidden" }, 403);
-  }
-
-  if (connector.status === "INACTIVE" || connector.status === "ERROR") {
-    return c.json(
-      { error: "Connector is not active. Check connector status." },
-      400
-    );
-  }
-
-  const syncJob = await prisma.syncJob.create({
-    data: {
+  try {
+    const teamId = getTeamId(c);
+    const syncRequest = await createManualConnectorSyncForTeam(prisma, {
       connectorId,
-      type: type === "INCREMENTAL" ? "INCREMENTAL" : "FULL",
+      teamId,
+      type: syncType,
+    });
+
+    const syncHandle = await startConnectorSync({
+      connectorId,
+      connectorType: syncRequest.connectorType,
+      syncType: syncRequest.syncType,
       trigger: "MANUAL",
-      status: SyncJobStatus.RUNNING,
-    },
-  });
+      requestId: syncRequest.syncHistoryId,
+      teamId: teamId ?? "",
+    });
 
-  const syncHistory = await prisma.syncHistory.create({
-    data: {
-      syncJobId: syncJob.id,
-      connectorId,
-      status: SyncJobStatus.RUNNING,
-      trigger: SyncTrigger.MANUAL,
-      startedAt: new Date(),
-    },
-  });
-
-  const connectorType = connector.app.toLowerCase().replace(/_/g, "-");
-  const syncHandle = await startConnectorSync({
-    connectorId,
-    connectorType,
-    syncType: type === "INCREMENTAL" ? "INCREMENTAL" : "FULL",
-    trigger: "MANUAL",
-    requestId: syncHistory.id,
-    teamId,
-  });
-
-  await prisma.connector.update({
-    where: { id: connectorId },
-    data: { status: "SYNCING" },
-  });
-
-  return c.json(
-    {
-      success: true,
-      syncJobId: syncHistory.id,
-      workflowId: syncHandle.workflowId,
-      type: type === "INCREMENTAL" ? "INCREMENTAL" : "FULL",
-      message: "Sync workflow started successfully",
-    },
-    200
-  );
+    return c.json(
+      {
+        success: true,
+        syncJobId: syncRequest.syncHistoryId,
+        workflowId: syncHandle.workflowId,
+        type: syncRequest.syncType,
+        message: "Sync workflow started successfully",
+      },
+      200
+    );
+  } catch (error) {
+    if (error instanceof ConnectorServiceError) {
+      if (error.code === "NOT_FOUND") {
+        return c.json({ error: error.message }, 404);
+      }
+      return c.json({ error: error.message }, 400);
+    }
+    throw error;
+  }
 };
 
 export const getSyncHistoryHandler: RouteHandler<
@@ -95,62 +71,35 @@ export const getSyncHistoryHandler: RouteHandler<
 > = async (c) => {
   const { id: connectorId } = c.req.valid("param");
   const { limit = 20, offset = 0 } = c.req.valid("query");
-
-  const connector = await prisma.connector.findUnique({
-    where: { id: connectorId },
-    select: { id: true, teamId: true },
-  });
-
-  if (!connector) {
-    return c.json({ error: "Connector not found" }, 404);
-  }
-
-  const teamId = getTeamId(c);
-  if (!teamId || connector.teamId !== teamId) {
-    return c.json({ error: "Connector not found" }, 404);
-  }
-
-  const [history, total] = await Promise.all([
-    prisma.syncHistory.findMany({
-      where: { connectorId },
-      orderBy: { startedAt: "desc" },
-      take: limit,
-      skip: offset,
-      select: {
-        id: true,
-        status: true,
-        dataAdded: true,
-        dataUpdated: true,
-        dataDeleted: true,
-        errorMessage: true,
-        summary: true,
-        startedAt: true,
-        finishedAt: true,
-        durationMs: true,
-      },
-    }),
-    prisma.syncHistory.count({
-      where: { connectorId },
-    }),
-  ]);
-
-  return c.json(
-    {
+  try {
+    const historyPage = await getConnectorSyncHistoryForTeam(prisma, {
       connectorId,
-      history: history.map((h) => ({
-        ...h,
-        startedAt: h.startedAt.toISOString(),
-        finishedAt: h.finishedAt?.toISOString() ?? null,
-      })),
-      pagination: {
-        total,
-        limit,
-        offset,
-        hasMore: offset + limit < total,
+      teamId: getTeamId(c),
+      limit,
+      offset,
+    });
+
+    return c.json(
+      {
+        connectorId,
+        history: historyPage.history.map((h) => ({
+          ...h,
+          startedAt: h.startedAt.toISOString(),
+          finishedAt: h.finishedAt?.toISOString() ?? null,
+        })),
+        pagination: historyPage.pagination,
       },
-    },
-    200
-  );
+      200
+    );
+  } catch (error) {
+    if (error instanceof ConnectorServiceError) {
+      if (error.code === "NOT_FOUND") {
+        return c.json({ error: error.message }, 404);
+      }
+      return c.json({ error: error.message }, 400);
+    }
+    throw error;
+  }
 };
 
 export const getSyncStatusHandler: RouteHandler<
@@ -158,69 +107,46 @@ export const getSyncStatusHandler: RouteHandler<
   AuthEnv
 > = async (c) => {
   const { id: connectorId } = c.req.valid("param");
+  try {
+    const syncStatus = await getConnectorSyncStatusForTeam(prisma, {
+      connectorId,
+      teamId: getTeamId(c),
+    });
 
-  const connector = await prisma.connector.findUnique({
-    where: { id: connectorId },
-    select: {
-      id: true,
-      status: true,
-      lastSyncedAt: true,
-      lastSyncStatus: true,
-      lastError: true,
-      lastErrorAt: true,
-      teamId: true,
-    },
-  });
-
-  if (!connector) {
-    return c.json({ error: "Connector not found" }, 404);
-  }
-
-  const teamId = getTeamId(c);
-  if (!teamId || connector.teamId !== teamId) {
-    return c.json({ error: "Connector not found" }, 404);
-  }
-
-  const latestSync = await prisma.syncHistory.findFirst({
-    where: { connectorId },
-    orderBy: { startedAt: "desc" },
-    select: {
-      id: true,
-      status: true,
-      dataAdded: true,
-      startedAt: true,
-      finishedAt: true,
-      errorMessage: true,
-    },
-  });
-
-  const indexedCount = await prisma.indexedDocument.count({
-    where: { connectorId },
-  });
-
-  return c.json(
-    {
-      connector: {
-        id: connector.id,
-        status: connector.status,
-        lastSyncedAt: connector.lastSyncedAt?.toISOString() ?? null,
-        lastSyncStatus: connector.lastSyncStatus,
-        lastError: connector.lastError,
-        lastErrorAt: connector.lastErrorAt?.toISOString() ?? null,
+    return c.json(
+      {
+        connector: {
+          id: syncStatus.connector.id,
+          status: syncStatus.connector.status,
+          lastSyncedAt:
+            syncStatus.connector.lastSyncedAt?.toISOString() ?? null,
+          lastSyncStatus: syncStatus.connector.lastSyncStatus,
+          lastError: syncStatus.connector.lastError,
+          lastErrorAt: syncStatus.connector.lastErrorAt?.toISOString() ?? null,
+        },
+        latestSync: syncStatus.latestSync
+          ? {
+              ...syncStatus.latestSync,
+              startedAt: syncStatus.latestSync.startedAt.toISOString(),
+              finishedAt:
+                syncStatus.latestSync.finishedAt?.toISOString() ?? null,
+            }
+          : null,
+        stats: {
+          totalIndexed: syncStatus.stats.totalIndexed,
+        },
       },
-      latestSync: latestSync
-        ? {
-            ...latestSync,
-            startedAt: latestSync.startedAt.toISOString(),
-            finishedAt: latestSync.finishedAt?.toISOString() ?? null,
-          }
-        : null,
-      stats: {
-        totalIndexed: indexedCount,
-      },
-    },
-    200
-  );
+      200
+    );
+  } catch (error) {
+    if (error instanceof ConnectorServiceError) {
+      if (error.code === "NOT_FOUND") {
+        return c.json({ error: error.message }, 404);
+      }
+      return c.json({ error: error.message }, 400);
+    }
+    throw error;
+  }
 };
 
 export const pauseConnectorHandler: RouteHandler<
@@ -228,37 +154,27 @@ export const pauseConnectorHandler: RouteHandler<
   AuthEnv
 > = async (c) => {
   const { id: connectorId } = c.req.valid("param");
-
-  const connector = await prisma.connector.findUnique({
-    where: { id: connectorId },
-    select: { id: true, status: true, teamId: true },
-  });
-
-  if (!connector) {
-    return c.json({ error: "Connector not found" }, 404);
+  try {
+    const result = await pauseConnectorForTeam(prisma, {
+      connectorId,
+      teamId: getTeamId(c),
+    });
+    return c.json(
+      {
+        success: result.success,
+        message: result.message,
+      },
+      200
+    );
+  } catch (error) {
+    if (error instanceof ConnectorServiceError) {
+      if (error.code === "NOT_FOUND") {
+        return c.json({ error: error.message }, 404);
+      }
+      return c.json({ error: error.message }, 400);
+    }
+    throw error;
   }
-
-  const teamId = getTeamId(c);
-  if (!teamId || connector.teamId !== teamId) {
-    return c.json({ error: "Connector not found" }, 404);
-  }
-
-  if (connector.status === "INACTIVE") {
-    return c.json({ message: "Connector is already inactive" }, 200);
-  }
-
-  await prisma.connector.update({
-    where: { id: connectorId },
-    data: { status: "INACTIVE" },
-  });
-
-  return c.json(
-    {
-      success: true,
-      message: "Connector set to inactive successfully",
-    },
-    200
-  );
 };
 
 export const resumeConnectorHandler: RouteHandler<
@@ -266,35 +182,25 @@ export const resumeConnectorHandler: RouteHandler<
   AuthEnv
 > = async (c) => {
   const { id: connectorId } = c.req.valid("param");
-
-  const connector = await prisma.connector.findUnique({
-    where: { id: connectorId },
-    select: { id: true, status: true, teamId: true },
-  });
-
-  if (!connector) {
-    return c.json({ error: "Connector not found" }, 404);
+  try {
+    const result = await resumeConnectorForTeam(prisma, {
+      connectorId,
+      teamId: getTeamId(c),
+    });
+    return c.json(
+      {
+        success: result.success,
+        message: result.message,
+      },
+      200
+    );
+  } catch (error) {
+    if (error instanceof ConnectorServiceError) {
+      if (error.code === "NOT_FOUND") {
+        return c.json({ error: error.message }, 404);
+      }
+      return c.json({ error: error.message }, 400);
+    }
+    throw error;
   }
-
-  const teamId = getTeamId(c);
-  if (!teamId || connector.teamId !== teamId) {
-    return c.json({ error: "Connector not found" }, 404);
-  }
-
-  if (connector.status === "ACTIVE") {
-    return c.json({ message: "Connector is already active" }, 200);
-  }
-
-  await prisma.connector.update({
-    where: { id: connectorId },
-    data: { status: "ACTIVE" },
-  });
-
-  return c.json(
-    {
-      success: true,
-      message: "Connector resumed successfully",
-    },
-    200
-  );
 };

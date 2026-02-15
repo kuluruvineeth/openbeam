@@ -1,4 +1,4 @@
-import prisma from "@openplane/db";
+import prisma, { countAllIndexedDocuments } from "@openplane/db";
 import client from "prom-client";
 import logger from "./utils/logger";
 
@@ -44,7 +44,7 @@ const documentsIndexedGauge = new client.Gauge({
 });
 
 const refreshDocumentsIndexedGauge = async () => {
-  const count = await prisma.indexedDocument.count();
+  const count = await countAllIndexedDocuments(prisma);
   documentsIndexedGauge.set(count);
 };
 

@@ -75,6 +75,10 @@ export const getSyncHistory = createRoute({
       content: { "application/json": { schema: errorSchema } },
       description: "Connector not found",
     },
+    400: {
+      content: { "application/json": { schema: errorSchema } },
+      description: "Bad Request",
+    },
   },
 });
 
@@ -99,6 +103,10 @@ export const getSyncStatus = createRoute({
     404: {
       content: { "application/json": { schema: errorSchema } },
       description: "Connector not found",
+    },
+    400: {
+      content: { "application/json": { schema: errorSchema } },
+      description: "Bad Request",
     },
   },
 });
@@ -125,6 +133,10 @@ export const pauseConnector = createRoute({
       content: { "application/json": { schema: errorSchema } },
       description: "Connector not found",
     },
+    400: {
+      content: { "application/json": { schema: errorSchema } },
+      description: "Bad Request",
+    },
   },
 });
 
@@ -149,6 +161,10 @@ export const resumeConnector = createRoute({
     404: {
       content: { "application/json": { schema: errorSchema } },
       description: "Connector not found",
+    },
+    400: {
+      content: { "application/json": { schema: errorSchema } },
+      description: "Bad Request",
     },
   },
 });

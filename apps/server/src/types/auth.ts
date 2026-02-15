@@ -5,6 +5,27 @@ export const API_SCOPES = {
 
   SEARCH_READ: "search:read",
   ANALYTICS_READ: "analytics:read",
+  TEAMS_READ: "teams:read",
+  TEAMS_WRITE: "teams:write",
+  APPS_READ: "apps:read",
+  APPS_WRITE: "apps:write",
+  RAG_READ: "rag:read",
+  RAG_WRITE: "rag:write",
+  KNOWLEDGE_READ: "knowledge:read",
+  PERMISSIONS_READ: "permissions:read",
+  PERMISSIONS_WRITE: "permissions:write",
+  MEDIA_READ: "media:read",
+  MEDIA_WRITE: "media:write",
+  AGENTS_READ: "agents:read",
+  AGENTS_WRITE: "agents:write",
+  MISSION_READ: "mission:read",
+  MISSION_WRITE: "mission:write",
+  MISSION_CONTROL: "mission:control",
+  CANVAS_READ: "canvas:read",
+  CANVAS_WRITE: "canvas:write",
+  CANVAS_EXECUTE: "canvas:execute",
+  RESEARCH_READ: "research:read",
+  RESEARCH_WRITE: "research:write",
   ADMIN_ALL: "admin:*",
 } as const;
 
@@ -88,6 +109,27 @@ export const SCOPE_METHOD_MAP: Record<string, string[]> = {
   [API_SCOPES.CONNECTORS_SYNC]: ["POST"],
   [API_SCOPES.SEARCH_READ]: ["GET"],
   [API_SCOPES.ANALYTICS_READ]: ["GET"],
+  [API_SCOPES.TEAMS_READ]: ["GET"],
+  [API_SCOPES.TEAMS_WRITE]: ["POST", "PATCH", "DELETE"],
+  [API_SCOPES.APPS_READ]: ["GET"],
+  [API_SCOPES.APPS_WRITE]: ["POST", "PATCH", "DELETE"],
+  [API_SCOPES.RAG_READ]: ["GET"],
+  [API_SCOPES.RAG_WRITE]: ["POST", "DELETE"],
+  [API_SCOPES.KNOWLEDGE_READ]: ["GET"],
+  [API_SCOPES.PERMISSIONS_READ]: ["GET"],
+  [API_SCOPES.PERMISSIONS_WRITE]: ["POST", "PATCH", "DELETE"],
+  [API_SCOPES.MEDIA_READ]: ["GET"],
+  [API_SCOPES.MEDIA_WRITE]: ["POST", "PATCH", "DELETE"],
+  [API_SCOPES.AGENTS_READ]: ["GET"],
+  [API_SCOPES.AGENTS_WRITE]: ["POST", "PATCH", "DELETE"],
+  [API_SCOPES.MISSION_READ]: ["GET"],
+  [API_SCOPES.MISSION_WRITE]: ["POST", "PATCH", "DELETE"],
+  [API_SCOPES.MISSION_CONTROL]: ["POST"],
+  [API_SCOPES.CANVAS_READ]: ["GET"],
+  [API_SCOPES.CANVAS_WRITE]: ["POST", "PATCH", "DELETE"],
+  [API_SCOPES.CANVAS_EXECUTE]: ["POST"],
+  [API_SCOPES.RESEARCH_READ]: ["GET"],
+  [API_SCOPES.RESEARCH_WRITE]: ["POST"],
   [API_SCOPES.ADMIN_ALL]: ["GET", "POST", "PUT", "PATCH", "DELETE"],
 };
 
@@ -113,6 +155,76 @@ export function getScopesForRoute(
 
   if (path.startsWith("/api/v1/analytics") && method === "GET") {
     return [API_SCOPES.ANALYTICS_READ];
+  }
+  if (path.startsWith("/api/v1/teams")) {
+    if (method === "GET") {
+      return [API_SCOPES.TEAMS_READ];
+    }
+    return [API_SCOPES.TEAMS_WRITE];
+  }
+  if (path.startsWith("/api/v1/apps")) {
+    if (method === "GET") {
+      return [API_SCOPES.APPS_READ];
+    }
+    return [API_SCOPES.APPS_WRITE];
+  }
+  if (path.startsWith("/api/v1/rag")) {
+    if (method === "GET") {
+      return [API_SCOPES.RAG_READ];
+    }
+    return [API_SCOPES.RAG_WRITE];
+  }
+  if (path.startsWith("/api/v1/knowledge") && method === "GET") {
+    return [API_SCOPES.KNOWLEDGE_READ];
+  }
+  if (path.startsWith("/api/v1/permissions")) {
+    if (method === "GET") {
+      return [API_SCOPES.PERMISSIONS_READ];
+    }
+    return [API_SCOPES.PERMISSIONS_WRITE];
+  }
+  if (path.startsWith("/api/v1/media")) {
+    if (method === "GET") {
+      return [API_SCOPES.MEDIA_READ];
+    }
+    return [API_SCOPES.MEDIA_WRITE];
+  }
+  if (path.startsWith("/api/v1/background-agents")) {
+    if (method === "GET") {
+      return [API_SCOPES.AGENTS_READ];
+    }
+    return [API_SCOPES.AGENTS_WRITE];
+  }
+  if (path.startsWith("/api/v1/missions")) {
+    if (method === "GET") {
+      return [API_SCOPES.MISSION_READ];
+    }
+    if (
+      path.includes("/start") ||
+      path.includes("/pause") ||
+      path.includes("/resume") ||
+      path.includes("/cancel") ||
+      path.includes("/agents/spawn") ||
+      path.includes("/broadcast")
+    ) {
+      return [API_SCOPES.MISSION_CONTROL];
+    }
+    return [API_SCOPES.MISSION_WRITE];
+  }
+  if (path.startsWith("/api/v1/canvas")) {
+    if (path.includes("/executions") && method === "POST") {
+      return [API_SCOPES.CANVAS_EXECUTE];
+    }
+    if (method === "GET") {
+      return [API_SCOPES.CANVAS_READ];
+    }
+    return [API_SCOPES.CANVAS_WRITE];
+  }
+  if (path.startsWith("/api/v1/research")) {
+    if (method === "GET") {
+      return [API_SCOPES.RESEARCH_READ];
+    }
+    return [API_SCOPES.RESEARCH_WRITE];
   }
 
   return null;

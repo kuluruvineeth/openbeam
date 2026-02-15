@@ -1,8 +1,18 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import type { AuthEnv } from "@/middleware/auth";
 import analytics from "@/modules/analytics/analytics.index";
+import apps from "@/modules/apps/apps.index";
+import backgroundAgents from "@/modules/background-agents/background-agents.index";
+import canvas from "@/modules/canvas/canvas.index";
 import connectors from "@/modules/connectors/connectors.index";
+import knowledge from "@/modules/knowledge/knowledge.index";
+import media from "@/modules/media/media.index";
+import missions from "@/modules/missions/missions.index";
+import permissions from "@/modules/permissions/permissions.index";
+import rag from "@/modules/rag/rag.index";
+import research from "@/modules/research/research.index";
 import search from "@/modules/search/search.index";
+import teams from "@/modules/teams/teams.index";
 import webhooks from "@/modules/webhooks/webhooks.index";
 
 const v1 = new OpenAPIHono<AuthEnv>();
@@ -10,8 +20,18 @@ const v1 = new OpenAPIHono<AuthEnv>();
 v1.get("/health", (c) => c.json({ status: "ok", version: "v1" }));
 
 v1.route("/analytics", analytics);
+v1.route("/apps", apps);
+v1.route("/background-agents", backgroundAgents);
+v1.route("/canvas", canvas);
 v1.route("/connectors", connectors);
+v1.route("/knowledge", knowledge);
+v1.route("/media", media);
+v1.route("/missions", missions);
+v1.route("/permissions", permissions);
+v1.route("/rag", rag);
+v1.route("/research", research);
 v1.route("/search", search);
+v1.route("/teams", teams);
 v1.route("/webhooks", webhooks);
 
 export default v1;
