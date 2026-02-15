@@ -7,7 +7,9 @@ import {
   type LlmAgentConfig,
 } from "@openplane/ai";
 import { Context } from "@temporalio/activity";
+import { LLM_CALL_TIMEOUTS } from "../../config/timeouts";
 import type { AgentArtifact } from "../../workflows/types";
+import type { ChunkExecutionResult, ExecuteChunkInput } from "./chunked-types";
 import type { AgentExecutor } from "./types";
 
 const PRESET_TOOLS: Record<string, string[]> = {
@@ -19,21 +21,47 @@ const PRESET_TOOLS: Record<string, string[]> = {
 };
 
 const DEFAULT_MAX_STEPS_PER_EXECUTION = 10;
+const LLM_TIMEOUT_MS = parseTemporalDurationMs(
+  LLM_CALL_TIMEOUTS.startToCloseTimeout
+);
+
+const TEMPORAL_DURATION_REGEX = /^(\d+)\s*(ms|s|m|h)$/;
+
+function parseTemporalDurationMs(duration: string): number {
+  const match = duration.match(TEMPORAL_DURATION_REGEX);
+  if (!match) {
+    return 5 * 60 * 1000;
+  }
+  const value = Number(match[1]);
+  const unit = match[2];
+  if (unit === "ms") {
+    return value;
+  }
+  if (unit === "s") {
+    return value * 1000;
+  }
+  if (unit === "m") {
+    return value * 60 * 1000;
+  }
+  return value * 60 * 60 * 1000;
+}
 
 export class LlmAgentExecutor implements AgentExecutor {
-  // biome-ignore lint/nursery/useMaxParams: implements AgentExecutor interface
   async executeStep(
-    sessionId: string,
-    agentType: string,
-    step: number,
-    previousArtifacts: AgentArtifact[],
-    context: Record<string, unknown>
+    ...args: [
+      sessionId: string,
+      agentType: string,
+      step: number,
+      previousArtifacts: AgentArtifact[],
+      context: Record<string, unknown>,
+    ]
   ): Promise<{
     artifacts: AgentArtifact[];
     complete: boolean;
     tokensUsed?: number;
     costCents?: number;
   }> {
+    const [sessionId, agentType, step, previousArtifacts, context] = args;
     const systemPrompt = (context.prompt as string) ?? "";
     const explicitTools = context.tools as string[] | undefined;
     const preset = explicitTools?.length
@@ -65,11 +93,17 @@ export class LlmAgentExecutor implements AgentExecutor {
       sessionId,
       state,
       conversationHistory,
+      metadata: {
+        missionId: context.missionId,
+        agentId: context.agentId,
+        runId: context.runId,
+        taskId: context.taskId,
+        agentName: context.agentName,
+      },
     };
 
     const prompt = this.buildStepPrompt(step, previousArtifacts, context);
 
-    const LLM_TIMEOUT_MS = 5 * 60 * 1000;
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), LLM_TIMEOUT_MS);
 
@@ -93,6 +127,11 @@ export class LlmAgentExecutor implements AgentExecutor {
       id: `${sessionId}-step-${step}`,
       type: "text",
       content,
+      summary:
+        textOutput ||
+        (toolCalls.length > 0
+          ? `Executed ${toolCalls.length} tool${toolCalls.length !== 1 ? "s" : ""}`
+          : undefined),
       createdAt: Date.now(),
     };
 
@@ -114,6 +153,35 @@ export class LlmAgentExecutor implements AgentExecutor {
       tokensUsed:
         result.totalTokens.inputTokens + result.totalTokens.outputTokens,
       costCents,
+    };
+  }
+
+  async executeChunk(input: ExecuteChunkInput): Promise<ChunkExecutionResult> {
+    const { sessionId, agentType, step, chunkIndex, previousOutput, context } =
+      input;
+    const accumulatedArtifacts = this.readAccumulatedArtifacts(context);
+    const result = await this.executeStep(
+      sessionId,
+      agentType,
+      step,
+      accumulatedArtifacts,
+      {
+        ...context,
+        chunkIndex,
+        previousChunkState: previousOutput?.intermediateState ?? null,
+      }
+    );
+
+    return {
+      artifacts: result.artifacts,
+      intermediateState: {
+        chunkIndex,
+        complete: result.complete,
+      },
+      tokensUsed: result.tokensUsed ?? 0,
+      costCents: result.costCents ?? 0,
+      complete: result.complete,
+      needsMoreChunks: !result.complete,
     };
   }
 
@@ -176,5 +244,16 @@ export class LlmAgentExecutor implements AgentExecutor {
     }
 
     return `Continue your task. Step ${step}.`;
+  }
+
+  private readAccumulatedArtifacts(
+    context: Record<string, unknown>
+  ): AgentArtifact[] {
+    const value = context.accumulatedArtifacts;
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return value as AgentArtifact[];
   }
 }

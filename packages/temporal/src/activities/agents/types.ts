@@ -1,4 +1,12 @@
 import type { AgentArtifact, AgentCheckpoint } from "../../workflows/types";
+import type {
+  ChunkExecutionResult,
+  ExecuteAgentStepChunkedInput,
+  ExecuteAgentStepChunkedOutput,
+  ExecuteChunkInput,
+  ExecuteParallelAgentStepsInput,
+  ExecuteParallelAgentStepsOutput,
+} from "./chunked-types";
 
 export interface AgentExecutor {
   executeStep(
@@ -12,7 +20,10 @@ export interface AgentExecutor {
     complete: boolean;
     tokensUsed?: number;
     costCents?: number;
+    waitingForReply?: string;
+    replyTimeoutMs?: number;
   }>;
+  executeChunk?(input: ExecuteChunkInput): Promise<ChunkExecutionResult>;
 }
 
 export interface ExecuteAgentStepInput {
@@ -29,6 +40,8 @@ export interface ExecuteAgentStepOutput {
   complete: boolean;
   tokensUsed: number;
   costCents: number;
+  waitingForReply?: string;
+  replyTimeoutMs?: number;
 }
 
 export interface FinalizeAgentSessionInput {
@@ -52,6 +65,12 @@ export interface AgentActivities {
   executeAgentStep(
     input: ExecuteAgentStepInput
   ): Promise<ExecuteAgentStepOutput>;
+  executeAgentStepChunked(
+    input: ExecuteAgentStepChunkedInput
+  ): Promise<ExecuteAgentStepChunkedOutput>;
+  executeParallelAgentSteps(
+    input: ExecuteParallelAgentStepsInput
+  ): Promise<ExecuteParallelAgentStepsOutput>;
   finalizeAgentSession(input: FinalizeAgentSessionInput): Promise<void>;
   loadAgentContext(
     input: LoadAgentContextInput

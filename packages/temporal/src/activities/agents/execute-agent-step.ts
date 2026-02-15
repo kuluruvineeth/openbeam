@@ -32,6 +32,8 @@ export function createExecuteAgentStepActivity(
       complete: result.complete,
       tokensUsed: result.tokensUsed ?? 0,
       costCents: result.costCents ?? 0,
+      waitingForReply: result.waitingForReply,
+      replyTimeoutMs: result.replyTimeoutMs,
     };
   };
 }
