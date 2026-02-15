@@ -1,4 +1,4 @@
-import type { Database } from "@openplane/db";
+import { type Database, findTeamBySlug } from "@openplane/db";
 import slugify from "@sindresorhus/slugify";
 
 export async function generateUniqueSlug(
@@ -7,24 +7,17 @@ export async function generateUniqueSlug(
 ): Promise<string> {
   const baseSlug = slugify(baseName);
 
-  const model = prisma.team;
-  const existing = await model.findUnique({
-    where: { slug: baseSlug },
-  });
+  const existing = await findTeamBySlug(prisma, baseSlug);
 
   if (!existing) {
     return baseSlug;
   }
-
-  // If slug exists, try with numeric suffix
+  const MAX_ATTEMPTS = 100;
   let counter = 1;
   let candidateSlug = `${baseSlug}-${counter}`;
 
-  // Keep incrementing until we find a unique slug
-  while (true) {
-    const existingItem = await model.findUnique({
-      where: { slug: candidateSlug },
-    });
+  while (counter <= MAX_ATTEMPTS) {
+    const existingItem = await findTeamBySlug(prisma, candidateSlug);
 
     if (!existingItem) {
       return candidateSlug;
@@ -33,4 +26,6 @@ export async function generateUniqueSlug(
     counter += 1;
     candidateSlug = `${baseSlug}-${counter}`;
   }
+
+  return `${baseSlug}-${crypto.randomUUID().slice(0, 8)}`;
 }

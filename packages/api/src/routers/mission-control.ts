@@ -31,6 +31,11 @@ import {
 import { logger } from "@openplane/services/lib/logger";
 import {
   cancelMission,
+  cancelSignal,
+  extendTimeoutSignal,
+  getAgentReflection,
+  getMissionHealth,
+  getTemporalClient,
   pauseMission,
   resumeMission,
   startMission,
@@ -41,6 +46,10 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter } from "../index";
 import { withActiveTeam } from "./apps/middleware";
+import {
+  selectActiveMissionRunIdForAgent,
+  shouldEmitEvent,
+} from "./mission-control.utils";
 
 const MissionStatusSchema = z.enum([
   "DRAFT",
@@ -78,6 +87,55 @@ const listActivitySchema = z.object({
 const listApprovalsSchema = z.object({
   missionId: z.string(),
   status: z.enum(["PENDING", "APPROVED", "REJECTED", "ESCALATED"]).optional(),
+});
+
+const SpawnAgentInputSchema = z.object({
+  missionId: z.string(),
+  name: z.string().min(1).max(100),
+  role: z.string().min(1).max(100),
+  tools: z.array(z.string()).default([]),
+  taskId: z.string().optional(),
+});
+
+const ExtendAgentTimeoutInputSchema = z.object({
+  missionId: z.string(),
+  agentId: z.string(),
+  requestedTier: z.enum(["quick", "standard", "extended", "marathon"]),
+});
+
+const BulkExtendTimeoutsInputSchema = z.object({
+  missionId: z.string(),
+});
+
+const BroadcastMessageInputSchema = z.object({
+  missionId: z.string(),
+  content: z.string().min(1).max(10_000),
+});
+
+const ForceReplanInputSchema = z.object({
+  missionId: z.string(),
+  agentId: z.string(),
+});
+
+const CancelAgentInputSchema = z.object({
+  missionId: z.string(),
+  agentId: z.string(),
+});
+
+const ListMessagesInputSchema = z.object({
+  missionId: z.string(),
+  cursor: z.string().optional(),
+  limit: z.number().min(1).max(100).default(50),
+});
+
+const GetHealthSnapshotInputSchema = z.object({
+  missionId: z.string(),
+});
+
+const GetReflectionHistoryInputSchema = z.object({
+  missionId: z.string(),
+  agentId: z.string(),
+  limit: z.number().min(1).max(100).default(20),
 });
 
 const ROLE_CAPABILITIES: Record<string, string[]> = {
@@ -178,6 +236,40 @@ function assertMutableStatus(status: string) {
   }
 }
 
+function assertMissionStatus(status: string, allowed: readonly string[]): void {
+  if (!allowed.includes(status)) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Cannot perform this action in ${status} status`,
+    });
+  }
+}
+
+function resolveMissionRunWorkflowId(
+  missionId: string,
+  runId: string,
+  workflowId: string | null
+): string {
+  if (workflowId && workflowId.length > 0) {
+    return workflowId;
+  }
+  return `mission-run:${missionId}:${runId}`;
+}
+
+function toOptionalString(value: unknown): string | undefined {
+  if (typeof value !== "string" || value.length === 0) {
+    return;
+  }
+  return value;
+}
+
+function toOptionalNumber(value: unknown): number | undefined {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return;
+  }
+  return value;
+}
+
 export const missionControlRouter = createTRPCRouter({
   getBoard: withActiveTeam
     .input(listMissionsSchema)
@@ -249,6 +341,200 @@ export const missionControlRouter = createTRPCRouter({
       return listMissionApprovals(ctx.prisma, input.missionId, {
         status: input.status,
       });
+    }),
+
+  listMessages: withActiveTeam
+    .input(ListMessagesInputSchema)
+    .query(async ({ ctx, input }) => {
+      await verifyMissionAccess(ctx.prisma, input.missionId, ctx.teamId);
+
+      const items = await getMissionActivity(ctx.prisma, {
+        missionId: input.missionId,
+        limit: input.limit + 25,
+        cursor: input.cursor,
+      });
+
+      const messageItems = items.filter((item) =>
+        [
+          "agent_message_sent",
+          "agent_message_received",
+          "agent.message_sent",
+          "agent.message_received",
+        ].includes(item.type)
+      );
+
+      const trimmed = messageItems.slice(0, input.limit);
+      const nextCursor =
+        messageItems.length > input.limit ? trimmed.at(-1)?.id : undefined;
+
+      return {
+        messages: trimmed.map((item) => {
+          const metadata = (item.metadata as Record<string, unknown>) ?? {};
+          const channel = toOptionalString(metadata.channel);
+          return {
+            messageId: toOptionalString(metadata.messageId) ?? item.id,
+            missionId: input.missionId,
+            fromAgentId: toOptionalString(metadata.fromAgentId) ?? "",
+            fromAgentName:
+              toOptionalString(metadata.fromAgentName) ??
+              toOptionalString(metadata.agentName) ??
+              "Agent",
+            toAgentId: toOptionalString(metadata.toAgentId) ?? null,
+            toAgentName: toOptionalString(metadata.toAgentName) ?? null,
+            channel:
+              channel === "broadcast" || channel === "cross_mission"
+                ? channel
+                : "direct",
+            contentPreview:
+              toOptionalString(metadata.preview) ??
+              toOptionalString(metadata.content) ??
+              item.message,
+            fullContent: toOptionalString(metadata.content),
+            replyToMessageId:
+              toOptionalString(metadata.replyToMessageId) ?? null,
+            sourceMissionId: toOptionalString(metadata.sourceMissionId),
+            sourceMissionName: toOptionalString(metadata.sourceMissionName),
+            timestamp: new Date(item.createdAt).getTime(),
+          };
+        }),
+        nextCursor,
+      };
+    }),
+
+  getHealthSnapshot: withActiveTeam
+    .input(GetHealthSnapshotInputSchema)
+    .query(async ({ ctx, input }) => {
+      await verifyMissionAccess(ctx.prisma, input.missionId, ctx.teamId);
+
+      const snapshot = await getMissionHealth(input.missionId);
+      if (!snapshot) {
+        return null;
+      }
+
+      const progressingCount = snapshot.agents.filter(
+        (agent) => agent.status === "progressing"
+      ).length;
+      const stuckCount = snapshot.agents.filter(
+        (agent) => agent.status === "stuck"
+      ).length;
+      const escalatedCount = snapshot.agents.filter(
+        (agent) => agent.status === "escalated"
+      ).length;
+
+      return {
+        missionId: snapshot.missionId,
+        totalAgents: snapshot.agents.length,
+        progressingCount,
+        stuckCount,
+        escalatedCount,
+        agents: snapshot.agents.map((agent) => ({
+          agentId: agent.agentId,
+          agentName: agent.agentId,
+          progressScore: agent.lastProgressScore,
+          replanCount: agent.replanCount,
+          healthStatus: agent.status,
+          recentScores: [agent.lastProgressScore],
+          stuckReason:
+            agent.status === "stuck" || agent.status === "escalated"
+              ? "No recent progress"
+              : null,
+          escalationReason:
+            agent.status === "escalated"
+              ? "Escalated by mission health monitor"
+              : null,
+        })),
+        failurePatterns: snapshot.failedDependencies.map((dependency) => ({
+          pattern: `Task ${dependency.failedTaskId} blocked dependencies`,
+          frequency: dependency.blockedTaskIds.length,
+          affectedAgents: dependency.blockedTaskIds,
+        })),
+        computedAt: snapshot.timestamp,
+      };
+    }),
+
+  getReflectionHistory: withActiveTeam
+    .input(GetReflectionHistoryInputSchema)
+    .query(async ({ ctx, input }) => {
+      await verifyMissionAccess(ctx.prisma, input.missionId, ctx.teamId);
+
+      const items = await getMissionActivity(ctx.prisma, {
+        missionId: input.missionId,
+        limit: Math.min(input.limit * 5, 200),
+      });
+
+      const filtered = items
+        .filter((item) => {
+          const metadata = (item.metadata as Record<string, unknown>) ?? {};
+          const metadataAgentId = toOptionalString(metadata.agentId);
+          return (
+            ["agent_self_evaluated", "agent_replanned"].includes(item.type) &&
+            (metadataAgentId === input.agentId ||
+              item.agentId === input.agentId)
+          );
+        })
+        .slice(0, input.limit);
+
+      const entries = filtered.map((item) => {
+        const metadata = (item.metadata as Record<string, unknown>) ?? {};
+        return {
+          entryId: item.id,
+          agentId: toOptionalString(metadata.agentId) ?? input.agentId,
+          agentName: toOptionalString(metadata.agentName) ?? "Agent",
+          stepNumber:
+            toOptionalNumber(metadata.stepNumber) ??
+            toOptionalNumber(metadata.step) ??
+            0,
+          score:
+            toOptionalNumber(metadata.score) ??
+            toOptionalNumber(metadata.progressScore) ??
+            0,
+          verbalMemory:
+            toOptionalString(metadata.verbalMemory) ??
+            toOptionalString(metadata.reasoning) ??
+            item.message,
+          timestamp: new Date(item.createdAt).getTime(),
+          triggeredReplan:
+            item.type === "agent_replanned" ||
+            Boolean(metadata.triggeredReplan),
+        };
+      });
+
+      const runningRuns = await listMissionRuns(ctx.prisma, input.missionId, {
+        status: "RUNNING",
+        limit: 200,
+        offset: 0,
+      });
+      const activeRunId = selectActiveMissionRunIdForAgent(
+        runningRuns,
+        input.agentId
+      );
+
+      if (!activeRunId) {
+        return entries;
+      }
+
+      const liveReflection = await getAgentReflection({
+        missionId: input.missionId,
+        runId: activeRunId,
+      });
+      if (!liveReflection) {
+        return entries;
+      }
+
+      const liveEntries = liveReflection.reflectionBuffer.map(
+        (entry, index) => ({
+          entryId: `live-${entry.step}-${index}`,
+          agentId: input.agentId,
+          agentName: "Agent",
+          stepNumber: entry.step,
+          score: entry.evaluation.progressScore,
+          verbalMemory: entry.evaluation.reasoning,
+          timestamp: entry.timestamp,
+          triggeredReplan: false,
+        })
+      );
+
+      return [...liveEntries, ...entries].slice(0, input.limit);
     }),
 
   listRuns: withActiveTeam
@@ -426,6 +712,409 @@ export const missionControlRouter = createTRPCRouter({
       });
 
       return { success: true };
+    }),
+
+  spawnAgent: withActiveTeam
+    .input(SpawnAgentInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const mission = await verifyMissionAccess(
+        ctx.prisma,
+        input.missionId,
+        ctx.teamId
+      );
+      assertMissionStatus(mission.status, ["ACTIVE"]);
+
+      const agent = await createMissionAgent(ctx.prisma, {
+        missionId: input.missionId,
+        name: input.name,
+        role: input.role,
+        soulPrompt: `You are ${input.name}, a ${input.role}.`,
+        level: "specialist",
+        tools: input.tools,
+        capabilities: deriveCapabilities(input.role),
+        teamId: ctx.teamId,
+        userId: ctx.session.user.id,
+      });
+
+      let taskId = input.taskId;
+      if (taskId) {
+        const task = await findMissionTask(ctx.prisma, taskId, input.missionId);
+        if (!task) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Task not found in this mission",
+          });
+        }
+
+        await updateMissionTask(ctx.prisma, taskId, {
+          assigneeId: agent.id,
+          status: "ASSIGNED",
+        });
+      } else {
+        const task = await createMissionTask(ctx.prisma, {
+          missionId: input.missionId,
+          title: `Delegated to ${input.name}`,
+          description: `Operator-spawned task for ${input.role}`,
+          priority: "P2",
+          assigneeId: agent.id,
+          dependsOn: [],
+          requiredCapabilities: deriveCapabilities(input.role),
+          requestId: crypto.randomUUID(),
+          createdById: ctx.session.user.id,
+        });
+        taskId = task.id;
+      }
+
+      const payload = {
+        childAgentId: agent.id,
+        childAgentName: input.name,
+        parentAgentId: ctx.session.user.id,
+        parentAgentName: "Operator",
+        spawnDepth: 0,
+        role: input.role,
+        taskId,
+      };
+
+      await logMissionActivity(ctx.prisma, {
+        missionId: input.missionId,
+        userId: ctx.session.user.id,
+        agentId: agent.id,
+        type: "agent_spawned",
+        message: `Operator spawned agent "${input.name}"`,
+        metadata: payload,
+      });
+
+      await publishMissionTimelineEventSafe({
+        missionId: input.missionId,
+        runId: mission.runId,
+        eventType: "agent_spawned",
+        payload,
+      });
+
+      if (mission.workflowId) {
+        await wakeMission(input.missionId, {
+          missionId: input.missionId,
+          reason: "manual",
+          metadata: {
+            action: "spawn_agent",
+            agentId: agent.id,
+            taskId,
+            requestedBy: ctx.session.user.id,
+          },
+        });
+      }
+
+      return { success: true, agentId: agent.id, taskId };
+    }),
+
+  extendAgentTimeout: withActiveTeam
+    .input(ExtendAgentTimeoutInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const mission = await verifyMissionAccess(
+        ctx.prisma,
+        input.missionId,
+        ctx.teamId
+      );
+      assertMissionStatus(mission.status, ["ACTIVE"]);
+
+      const agent = await findMissionAgent(
+        ctx.prisma,
+        input.agentId,
+        input.missionId
+      );
+      if (!agent) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Agent not found in this mission",
+        });
+      }
+
+      const runningRuns = await listMissionRuns(ctx.prisma, input.missionId, {
+        status: "RUNNING",
+        limit: 200,
+        offset: 0,
+      });
+      const run = runningRuns.find((item) => item.agentId === input.agentId);
+      if (!run) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "No active run found for this agent",
+        });
+      }
+
+      const client = await getTemporalClient();
+      const handle = client.workflow.getHandle(
+        resolveMissionRunWorkflowId(input.missionId, run.id, run.workflowId)
+      );
+      await handle.signal(extendTimeoutSignal, {
+        requestedTier: input.requestedTier,
+        reason: "operator_request",
+        requestedBy: ctx.session.user.id,
+      });
+
+      const payload = {
+        agentId: input.agentId,
+        tier: input.requestedTier,
+        requestedBy: ctx.session.user.id,
+      };
+
+      await logMissionActivity(ctx.prisma, {
+        missionId: input.missionId,
+        userId: ctx.session.user.id,
+        agentId: input.agentId,
+        type: "agent_timeout_extended",
+        message: `Timeout extended to ${input.requestedTier}`,
+        metadata: payload,
+      });
+
+      await publishMissionTimelineEventSafe({
+        missionId: input.missionId,
+        runId: mission.runId,
+        eventType: "agent_timeout_extended",
+        payload,
+      });
+
+      return { success: true };
+    }),
+
+  bulkExtendTimeouts: withActiveTeam
+    .input(BulkExtendTimeoutsInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const mission = await verifyMissionAccess(
+        ctx.prisma,
+        input.missionId,
+        ctx.teamId
+      );
+      assertMissionStatus(mission.status, ["ACTIVE"]);
+
+      const runningRuns = await listMissionRuns(ctx.prisma, input.missionId, {
+        status: "RUNNING",
+        limit: 500,
+        offset: 0,
+      });
+
+      const client = await getTemporalClient();
+      let signaled = 0;
+
+      for (const run of runningRuns) {
+        try {
+          const handle = client.workflow.getHandle(
+            resolveMissionRunWorkflowId(input.missionId, run.id, run.workflowId)
+          );
+          await handle.signal(extendTimeoutSignal, {
+            requestedTier: "extended",
+            reason: "operator_bulk_request",
+            requestedBy: ctx.session.user.id,
+          });
+          signaled += 1;
+
+          await publishMissionTimelineEventSafe({
+            missionId: input.missionId,
+            runId: mission.runId,
+            eventType: "agent_timeout_extended",
+            payload: {
+              agentId: run.agentId,
+              tier: "extended",
+              requestedBy: ctx.session.user.id,
+            },
+          });
+        } catch (error) {
+          logger.warn(
+            {
+              missionId: input.missionId,
+              runId: run.id,
+              agentId: run.agentId,
+              error: error instanceof Error ? error.message : String(error),
+            },
+            "Failed to bulk-extend timeout for run"
+          );
+        }
+      }
+
+      await logMissionActivity(ctx.prisma, {
+        missionId: input.missionId,
+        userId: ctx.session.user.id,
+        type: "agent_timeout_extended",
+        message: `Bulk timeout extension requested for ${signaled} active agent(s)`,
+        metadata: {
+          signaled,
+          requestedBy: ctx.session.user.id,
+        },
+      });
+
+      return { success: true, signaled };
+    }),
+
+  broadcastMessage: withActiveTeam
+    .input(BroadcastMessageInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const mission = await verifyMissionAccess(
+        ctx.prisma,
+        input.missionId,
+        ctx.teamId
+      );
+      assertMissionStatus(mission.status, ["ACTIVE"]);
+
+      const preview =
+        input.content.length > 180
+          ? `${input.content.slice(0, 180)}...`
+          : input.content;
+      const payload = {
+        messageId: crypto.randomUUID(),
+        fromAgentId: ctx.session.user.id,
+        fromAgentName: "Operator",
+        toAgentId: null,
+        toAgentName: "All agents",
+        channel: "broadcast",
+        preview,
+        content: input.content,
+      };
+
+      await logMissionActivity(ctx.prisma, {
+        missionId: input.missionId,
+        userId: ctx.session.user.id,
+        type: "agent_message_sent",
+        message: `Broadcast sent: ${preview}`,
+        metadata: payload,
+      });
+
+      await publishMissionTimelineEventSafe({
+        missionId: input.missionId,
+        runId: mission.runId,
+        eventType: "agent_message_sent",
+        payload,
+      });
+
+      await wakeMission(input.missionId, {
+        missionId: input.missionId,
+        reason: "mention",
+        metadata: {
+          action: "broadcast_message",
+          messageId: payload.messageId,
+          requestedBy: ctx.session.user.id,
+        },
+      });
+
+      return { success: true };
+    }),
+
+  forceReplan: withActiveTeam
+    .input(ForceReplanInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const mission = await verifyMissionAccess(
+        ctx.prisma,
+        input.missionId,
+        ctx.teamId
+      );
+      assertMissionStatus(mission.status, ["ACTIVE"]);
+
+      const agent = await findMissionAgent(
+        ctx.prisma,
+        input.agentId,
+        input.missionId
+      );
+      if (!agent) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Agent not found in this mission",
+        });
+      }
+
+      const payload = {
+        agentId: input.agentId,
+        reason: "Operator requested replan",
+        requestedBy: ctx.session.user.id,
+      };
+
+      await logMissionActivity(ctx.prisma, {
+        missionId: input.missionId,
+        userId: ctx.session.user.id,
+        agentId: input.agentId,
+        type: "agent_replanned",
+        message: "Operator requested replan",
+        metadata: payload,
+      });
+
+      await publishMissionTimelineEventSafe({
+        missionId: input.missionId,
+        runId: mission.runId,
+        eventType: "agent_replanned",
+        payload,
+      });
+
+      await wakeMission(input.missionId, {
+        missionId: input.missionId,
+        reason: "manual",
+        metadata: {
+          action: "force_replan",
+          agentId: input.agentId,
+          requestedBy: ctx.session.user.id,
+        },
+      });
+
+      return { success: true };
+    }),
+
+  cancelAgent: withActiveTeam
+    .input(CancelAgentInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const mission = await verifyMissionAccess(
+        ctx.prisma,
+        input.missionId,
+        ctx.teamId
+      );
+      assertMissionStatus(mission.status, ["ACTIVE"]);
+
+      const agent = await findMissionAgent(
+        ctx.prisma,
+        input.agentId,
+        input.missionId
+      );
+      if (!agent) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Agent not found in this mission",
+        });
+      }
+
+      const runningRuns = await listMissionRuns(ctx.prisma, input.missionId, {
+        status: "RUNNING",
+        limit: 200,
+        offset: 0,
+      });
+      const run = runningRuns.find((item) => item.agentId === input.agentId);
+
+      if (run) {
+        const client = await getTemporalClient();
+        const handle = client.workflow.getHandle(
+          resolveMissionRunWorkflowId(input.missionId, run.id, run.workflowId)
+        );
+        await handle.signal(cancelSignal);
+      }
+
+      const payload = {
+        agentId: input.agentId,
+        errorMessage: "Cancelled by operator",
+        requestedBy: ctx.session.user.id,
+      };
+
+      await logMissionActivity(ctx.prisma, {
+        missionId: input.missionId,
+        userId: ctx.session.user.id,
+        agentId: input.agentId,
+        type: "agent_cancelled",
+        message: "Agent cancelled by operator",
+        metadata: payload,
+      });
+
+      await publishMissionTimelineEventSafe({
+        missionId: input.missionId,
+        runId: mission.runId,
+        eventType: "run.failed",
+        payload,
+      });
+
+      return { success: true, cancelled: Boolean(run) };
     }),
 
   approveAction: withActiveTeam
@@ -842,6 +1531,8 @@ export const missionControlRouter = createTRPCRouter({
       z.object({
         missionId: z.string(),
         runId: z.string().optional(),
+        agentName: z.string().optional(),
+        since: z.number().optional(),
       })
     )
     .subscription(async function* ({
@@ -855,6 +1546,10 @@ export const missionControlRouter = createTRPCRouter({
         ctx.teamId
       );
       const resolvedRunId = input.runId ?? mission.runId ?? "";
+      const filter = {
+        agentName: input.agentName,
+        since: input.since,
+      };
 
       const queue: MissionEventPayload[] = [];
       let resolve: (() => void) | null = null;
@@ -863,8 +1558,10 @@ export const missionControlRouter = createTRPCRouter({
         input.missionId,
         resolvedRunId,
         (event) => {
-          queue.push(event);
-          resolve?.();
+          if (shouldEmitEvent(event, filter)) {
+            queue.push(event);
+            resolve?.();
+          }
         }
       );
 
