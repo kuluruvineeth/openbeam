@@ -124,6 +124,26 @@
       "types": "./dist/temporal/mission.d.ts",
       "default": "./src/temporal/mission.ts"
     },
+    "./temporal/mission-messaging": {
+      "types": "./dist/temporal/mission-messaging.d.ts",
+      "default": "./src/temporal/mission-messaging.ts"
+    },
+    "./temporal/mission-reflection": {
+      "types": "./dist/temporal/mission-reflection.d.ts",
+      "default": "./src/temporal/mission-reflection.ts"
+    },
+    "./temporal/agent-timeouts": {
+      "types": "./dist/temporal/agent-timeouts.d.ts",
+      "default": "./src/temporal/agent-timeouts.ts"
+    },
+    "./temporal/agent-heartbeat": {
+      "types": "./dist/temporal/agent-heartbeat.d.ts",
+      "default": "./src/temporal/agent-heartbeat.ts"
+    },
+    "./temporal/cross-mission": {
+      "types": "./dist/temporal/cross-mission.d.ts",
+      "default": "./src/temporal/cross-mission.ts"
+    },
     "./temporal/rate-limit": {
       "types": "./dist/temporal/rate-limit.d.ts",
       "default": "./src/temporal/rate-limit.ts"

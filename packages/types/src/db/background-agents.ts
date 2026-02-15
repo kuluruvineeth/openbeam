@@ -25,6 +25,7 @@ export const CreateBackgroundAgentDataSchema = z.object({
   description: z.string().optional(),
   prompt: z.string(),
   preset: z.string().optional(),
+  totalSteps: z.number().int().positive().optional(),
   sandboxType: SandboxTypeSchema.optional(),
   repositoryUrl: z.string().optional(),
   baseBranch: z.string().optional(),

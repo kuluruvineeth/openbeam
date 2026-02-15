@@ -36,6 +36,29 @@ export const ToolCallSummarySchema = z.object({
   durationMs: z.number().optional(),
 });
 
+export const TimeoutTierSchema = z.enum([
+  "quick",
+  "standard",
+  "extended",
+  "marathon",
+]);
+
+export const ChunkProgressSchema = z.object({
+  current: z.number(),
+  total: z.number(),
+});
+
+export const CrossMissionLinkSchema = z.object({
+  missionId: z.string(),
+  missionName: z.string(),
+  type: z.enum(["shared", "knowledge"]),
+});
+
+export const MessageCountSchema = z.object({
+  sent: z.number(),
+  received: z.number(),
+});
+
 export const MissionAgentLaneStateSchema = z.object({
   agentId: z.string(),
   agentName: z.string(),
@@ -51,6 +74,103 @@ export const MissionAgentLaneStateSchema = z.object({
   model: z.string().optional(),
   recentToolCalls: z.array(ToolCallSummarySchema).default([]),
   errorMessage: z.string().optional(),
+  timeoutTier: TimeoutTierSchema.optional(),
+  chunkProgress: ChunkProgressSchema.nullable().optional(),
+  reflectionScore: z.number().nullable().optional(),
+  replanCount: z.number().optional().default(0),
+  isReflecting: z.boolean().optional().default(false),
+  stuckReason: z.string().nullable().optional(),
+  spawnedBy: z.string().nullable().optional(),
+  spawnDepth: z.number().optional().default(0),
+  messageCount: MessageCountSchema.optional(),
+  crossMissionLinks: z.array(CrossMissionLinkSchema).optional().default([]),
+});
+
+export const AgentMessageItemSchema = z.object({
+  messageId: z.string(),
+  missionId: z.string(),
+  fromAgentId: z.string(),
+  fromAgentName: z.string(),
+  toAgentId: z.string().nullable(),
+  toAgentName: z.string().nullable(),
+  channel: z.enum(["direct", "broadcast", "cross_mission"]),
+  contentPreview: z.string(),
+  fullContent: z.string().optional(),
+  replyToMessageId: z.string().nullable().optional(),
+  sourceMissionId: z.string().optional(),
+  sourceMissionName: z.string().optional(),
+  timestamp: z.number(),
+});
+
+export const ReflectionHistoryEntrySchema = z.object({
+  entryId: z.string(),
+  agentId: z.string(),
+  agentName: z.string(),
+  stepNumber: z.number(),
+  score: z.number(),
+  verbalMemory: z.string(),
+  timestamp: z.number(),
+  triggeredReplan: z.boolean().optional().default(false),
+});
+
+export const AgentHealthStatusSchema = z.enum([
+  "progressing",
+  "slow",
+  "stuck",
+  "escalated",
+  "completed",
+  "failed",
+]);
+
+export const AgentHealthRowSchema = z.object({
+  agentId: z.string(),
+  agentName: z.string(),
+  progressScore: z.number().nullable(),
+  replanCount: z.number(),
+  healthStatus: AgentHealthStatusSchema,
+  recentScores: z.array(z.number()),
+  stuckReason: z.string().nullable(),
+  escalationReason: z.string().nullable(),
+});
+
+export const FailurePatternSchema = z.object({
+  pattern: z.string(),
+  frequency: z.number(),
+  affectedAgents: z.array(z.string()),
+});
+
+export const AgentHealthSummarySchema = z.object({
+  missionId: z.string(),
+  totalAgents: z.number(),
+  progressingCount: z.number(),
+  stuckCount: z.number(),
+  escalatedCount: z.number(),
+  agents: z.array(AgentHealthRowSchema),
+  failurePatterns: z.array(FailurePatternSchema),
+  computedAt: z.number(),
+});
+
+export const CrossMissionLinkItemSchema = z.object({
+  linkId: z.string(),
+  sourceMissionId: z.string(),
+  sourceMissionName: z.string(),
+  targetMissionId: z.string(),
+  targetMissionName: z.string(),
+  linkType: z.enum(["shared", "knowledge"]),
+  agentId: z.string().optional(),
+  agentName: z.string().optional(),
+  knowledgeKey: z.string().optional(),
+  timestamp: z.number(),
+});
+
+export const SpawnProvenanceRecordSchema = z.object({
+  childAgentId: z.string(),
+  childAgentName: z.string(),
+  parentAgentId: z.string(),
+  parentAgentName: z.string(),
+  spawnDepth: z.number(),
+  spawnReason: z.string().optional(),
+  timestamp: z.number(),
 });
 
 export const MissionEventLedgerItemSchema = z.object({
@@ -157,6 +277,20 @@ export type MissionActionDecision = z.infer<typeof MissionActionDecisionSchema>;
 export type MissionRunTableRow = z.infer<typeof MissionRunTableRowSchema>;
 export type MissionAgentLaneState = z.infer<typeof MissionAgentLaneStateSchema>;
 export type ToolCallSummary = z.infer<typeof ToolCallSummarySchema>;
+export type TimeoutTier = z.infer<typeof TimeoutTierSchema>;
+export type ChunkProgress = z.infer<typeof ChunkProgressSchema>;
+export type CrossMissionLink = z.infer<typeof CrossMissionLinkSchema>;
+export type MessageCount = z.infer<typeof MessageCountSchema>;
+export type AgentMessageItem = z.infer<typeof AgentMessageItemSchema>;
+export type ReflectionHistoryEntry = z.infer<
+  typeof ReflectionHistoryEntrySchema
+>;
+export type AgentHealthStatus = z.infer<typeof AgentHealthStatusSchema>;
+export type AgentHealthRow = z.infer<typeof AgentHealthRowSchema>;
+export type FailurePattern = z.infer<typeof FailurePatternSchema>;
+export type AgentHealthSummary = z.infer<typeof AgentHealthSummarySchema>;
+export type CrossMissionLinkItem = z.infer<typeof CrossMissionLinkItemSchema>;
+export type SpawnProvenanceRecord = z.infer<typeof SpawnProvenanceRecordSchema>;
 export type MissionEventLedgerItem = z.infer<
   typeof MissionEventLedgerItemSchema
 >;
