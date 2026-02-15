@@ -1,10 +1,13 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   BookOpen01Icon,
+  Cancel01Icon,
   FlowSquareIcon,
+  FullScreenIcon,
   GitBranchIcon,
   Mail01Icon,
   MessageIcon,
+  MinimizeScreenIcon,
   RocketIcon,
   SearchIcon,
   SettingsIcon,
@@ -45,4 +48,7 @@ export const Icons = {
   Settings: createIcon(SettingsIcon),
   Shield: createIcon(ShieldIcon),
   Rocket: createIcon(RocketIcon),
+  Close: createIcon(Cancel01Icon),
+  Fullscreen: createIcon(FullScreenIcon),
+  ExitFullscreen: createIcon(MinimizeScreenIcon),
 };

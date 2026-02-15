@@ -6,6 +6,7 @@ import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 import { TypeTable } from "fumadocs-ui/components/type-table";
 import defaultMdxComponents from "fumadocs-ui/mdx";
 import type { MDXComponents } from "mdx/types";
+import { ExcalidrawViewer } from "./components/mdx/excalidraw-viewer";
 import { Mermaid } from "./components/mdx/mermaid";
 
 export function getMDXComponents(components?: MDXComponents): MDXComponents {
@@ -14,6 +15,7 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     Accordion,
     Accordions,
     Callout,
+    ExcalidrawViewer,
     File,
     Files,
     Folder,
