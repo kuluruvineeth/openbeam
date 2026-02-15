@@ -91,6 +91,44 @@ export const AUDIT_RETRY_POLICY: RetryPolicy = {
   nonRetryableErrorTypes: [],
 };
 
+export const LLM_CALL_RETRY_POLICY: RetryPolicy = {
+  maximumAttempts: 4,
+  initialInterval: "2s",
+  backoffCoefficient: 2,
+  maximumInterval: "30s",
+  nonRetryableErrorTypes: [
+    "BUDGET_EXCEEDED",
+    "INVALID_PROMPT",
+    "CONTENT_FILTERED",
+  ],
+};
+
+export const AGENT_CHUNKED_RETRY_POLICY: RetryPolicy = {
+  initialInterval: "5s",
+  backoffCoefficient: 2,
+  maximumAttempts: 3,
+  maximumInterval: "2m",
+  nonRetryableErrorTypes: [
+    "BudgetExceededError",
+    "AuthorizationError",
+    "AgentConfigurationError",
+  ],
+};
+
+export const EXTERNAL_API_RETRY_POLICY: RetryPolicy = {
+  maximumAttempts: 5,
+  initialInterval: "1s",
+  backoffCoefficient: 3,
+  maximumInterval: "60s",
+  nonRetryableErrorTypes: [
+    "AuthorizationError",
+    "ConnectorNotFoundError",
+    "InvalidCredentialsError",
+    "UNAUTHORIZED",
+    "NOT_FOUND",
+  ],
+};
+
 export function getRetryPolicyForActivity(activityType: string): RetryPolicy {
   const mapping: Record<string, RetryPolicy> = {
     sync: SYNC_RETRY_POLICY,
@@ -103,6 +141,9 @@ export function getRetryPolicyForActivity(activityType: string): RetryPolicy {
     webhook: WEBHOOK_RETRY_POLICY,
     storage: STORAGE_RETRY_POLICY,
     database: DATABASE_RETRY_POLICY,
+    llm_call: LLM_CALL_RETRY_POLICY,
+    externalApi: EXTERNAL_API_RETRY_POLICY,
+    agentChunked: AGENT_CHUNKED_RETRY_POLICY,
     canvas: CANVAS_NODE_RETRY_POLICY,
     canvasUpdate: CANVAS_UPDATE_RETRY_POLICY,
     audit: AUDIT_RETRY_POLICY,

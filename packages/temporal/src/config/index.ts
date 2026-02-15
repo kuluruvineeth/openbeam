@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TASK_QUEUES } from "./task-queues";
 
 export const TemporalConfigSchema = z.object({
   address: z.string().default("localhost:7233"),
@@ -39,11 +40,42 @@ export function loadTemporalConfig(): TemporalConfig {
   });
 }
 
+export function loadMissionWorkerConfig(): WorkerConfig {
+  return WorkerConfigSchema.parse({
+    taskQueue: process.env.TEMPORAL_MISSION_TASK_QUEUE ?? TASK_QUEUES.MISSION,
+    maxConcurrentActivityTaskExecutions: process.env.TEMPORAL_MAX_ACTIVITIES
+      ? Number(process.env.TEMPORAL_MAX_ACTIVITIES)
+      : 10,
+    maxConcurrentWorkflowTaskExecutions: process.env.TEMPORAL_MAX_WORKFLOWS
+      ? Number(process.env.TEMPORAL_MAX_WORKFLOWS)
+      : 100,
+    maxCachedWorkflows: process.env.TEMPORAL_MAX_CACHED
+      ? Number(process.env.TEMPORAL_MAX_CACHED)
+      : 500,
+  });
+}
+
 export {
+  initMessagingMetricsBridge,
+  resetMessagingMetricsBridge,
+} from "./messaging-metrics-bridge";
+export {
+  InMemoryCounter,
+  InMemoryGauge,
+  InMemoryHistogram,
+  type MetricLabels,
+  resetAllMetrics,
+  snapshotMetrics,
+  swarmMetrics,
+} from "./metrics";
+export {
+  AGENT_CHUNKED_RETRY_POLICY,
   DATABASE_RETRY_POLICY,
   DEFAULT_RETRY_POLICY,
   ENGINE_RETRY_POLICY,
+  EXTERNAL_API_RETRY_POLICY,
   getRetryPolicyForActivity,
+  LLM_CALL_RETRY_POLICY,
   MEDIA_RETRY_POLICY,
   STORAGE_RETRY_POLICY,
   SYNC_RETRY_POLICY,
@@ -57,15 +89,23 @@ export {
 
 export {
   type ActivityTimeouts,
+  AGENT_EXTENDED_TIMEOUTS,
+  AGENT_MARATHON_TIMEOUTS,
+  AGENT_QUICK_TIMEOUTS,
+  AGENT_STANDARD_TIMEOUTS,
   AGENT_TIMEOUTS,
+  computeHeartbeatInterval,
+  computeHeartbeatIntervalMs,
   DATABASE_TIMEOUTS,
   DEFAULT_TIMEOUTS,
   ENGINE_CHUNK_TIMEOUTS,
   ENGINE_EMBED_TIMEOUTS,
   ENGINE_PARSE_TIMEOUTS,
   getTimeoutsForActivity,
+  LLM_CALL_TIMEOUTS,
   MEDIA_ANALYZE_TIMEOUTS,
   MEDIA_TRANSCODE_TIMEOUTS,
+  REFLECTION_TIMEOUTS,
   STORAGE_TIMEOUTS,
   SYNC_TIMEOUTS,
   WEBHOOK_TIMEOUTS,
