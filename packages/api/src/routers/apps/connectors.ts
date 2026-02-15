@@ -1,6 +1,7 @@
 import {
   findConnectorById,
   findConnectorByTeam,
+  getConnectorResourceWithTeamById,
   listConnectorResources,
   listConnectorsByTeam,
   listResourceDocuments,
@@ -249,10 +250,10 @@ export const connectorsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const resource = await ctx.prisma.connectorResource.findUnique({
-        where: { id: input.resourceId },
-        include: { connector: { select: { teamId: true } } },
-      });
+      const resource = await getConnectorResourceWithTeamById(
+        ctx.prisma,
+        input.resourceId
+      );
 
       if (!resource || resource.connector.teamId !== ctx.teamId) {
         throw new TRPCError({

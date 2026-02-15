@@ -1,3 +1,4 @@
+import { findConnectorById } from "@openplane/db";
 import { createTRPCRouter } from "../../index";
 import { verifyConnectorAccess, withActiveTeam } from "./middleware";
 import { getWebhookStatusSchema } from "./schemas";
@@ -7,14 +8,8 @@ export const webhooksRouter = createTRPCRouter({
     .input(getWebhookStatusSchema)
     .query(async ({ ctx, input }) => {
       await verifyConnectorAccess(ctx.prisma, input.connectorId, ctx.teamId);
-      const connectorDetails = await ctx.prisma.connector.findUnique({
-        where: { id: input.connectorId },
-        select: {
-          webhookConfig: true,
-        },
-      });
-
-      const webhookConfig = connectorDetails?.webhookConfig as
+      const connector = await findConnectorById(ctx.prisma, input.connectorId);
+      const webhookConfig = (connector?.webhookConfig ?? null) as
         | {
             enabled?: boolean;
             lastReceivedAt?: string;

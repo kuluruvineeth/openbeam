@@ -1,5 +1,7 @@
 import {
+  type Database,
   findIndexedFileForPreview,
+  findIndexedMediaById,
   findIndexedMediaForPreview,
 } from "@openplane/db";
 import { getStorageProvider, messagesService } from "@openplane/services";
@@ -76,10 +78,7 @@ export const filesRouter = createTRPCRouter({
       }
 
       if (parsed.type === "unknown") {
-        const media = await ctx.prisma.indexedMedia.findUnique({
-          where: { id: input.documentId },
-          select: { id: true },
-        });
+        const media = await findIndexedMediaById(ctx.prisma, input.documentId);
         if (media) {
           return await getMediaPreview(ctx, input.documentId, parsed);
         }
@@ -94,7 +93,7 @@ function isGoogleWorkspaceMimeType(mimeType: string): boolean {
 }
 
 async function getFilePreview(
-  ctx: { prisma: typeof import("@openplane/db").default; teamId: string },
+  ctx: { prisma: Database; teamId: string },
   documentId: string,
   parsed: { connectorId?: string; externalId?: string }
 ) {
@@ -110,8 +109,6 @@ async function getFilePreview(
       throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
     }
 
-    // Google Workspace files (Docs, Sheets, Slides) should use their webViewLink
-    // for preview via iframe, not the exported S3 content
     if (isGoogleWorkspaceMimeType(file.mimeType)) {
       const doc = await messagesService.getDocument({ documentId });
       if (!doc?.url) {
@@ -143,7 +140,6 @@ async function getFilePreview(
     };
   }
 
-  // Fall back to Vespa for external sources (e.g., Google Drive)
   const doc = await messagesService.getDocument({ documentId });
 
   if (!doc?.url) {
@@ -162,7 +158,7 @@ async function getFilePreview(
 }
 
 async function getMediaPreview(
-  ctx: { prisma: typeof import("@openplane/db").default; teamId: string },
+  ctx: { prisma: Database; teamId: string },
   documentId: string,
   parsed: { connectorId?: string; externalId?: string }
 ) {

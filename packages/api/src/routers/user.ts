@@ -1,4 +1,4 @@
-import { getUserById } from "@openplane/db/queries/users";
+import { getUserById } from "@openplane/db";
 import { protectedProcedure } from "..";
 import { createTRPCRouter } from "../index";
 

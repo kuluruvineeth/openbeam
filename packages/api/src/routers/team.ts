@@ -1,8 +1,11 @@
-import { createTeam } from "@openplane/db/mutations/teams";
 import {
+  createTeam,
+  getTeamMembership,
+  getUserById,
   listUserTeams,
   updateActiveTeamForUser,
-} from "@openplane/db/queries/teams";
+} from "@openplane/db";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "..";
 import { createTRPCRouter } from "../index";
@@ -55,31 +58,38 @@ export const teamRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
 
+      const membership = await getTeamMembership(
+        ctx.prisma,
+        userId,
+        input.teamId
+      );
+      if (!membership) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Not a member of this team",
+        });
+      }
+
       await updateActiveTeamForUser(ctx.prisma, userId, input.teamId);
 
       return { success: true };
     }),
 
   getUserRole: protectedProcedure.query(async ({ ctx }) => {
-    const user = await ctx.prisma.user.findUnique({
-      where: { id: ctx.session.user.id },
-      select: { teamId: true },
-    });
+    const user = await getUserById(ctx.prisma, ctx.session.user.id);
+    const teamId = user?.teamId ?? null;
 
-    if (!user?.teamId) {
+    if (!teamId) {
       return { role: null };
     }
 
-    const membership = await ctx.prisma.usersOnTeam.findUnique({
-      where: {
-        userId_teamId: {
-          userId: ctx.session.user.id,
-          teamId: user.teamId,
-        },
-      },
-      select: { role: true },
-    });
+    const membership = await getTeamMembership(
+      ctx.prisma,
+      ctx.session.user.id,
+      teamId
+    );
+    const role = membership?.role ?? null;
 
-    return { role: membership?.role ?? null };
+    return { role };
   }),
 });

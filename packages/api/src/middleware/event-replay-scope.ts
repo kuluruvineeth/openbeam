@@ -1,5 +1,5 @@
-import type { Database } from "@openplane/db";
 import {
+  type Database,
   listSessionEvents,
   listSessionEventsAfterSequence,
 } from "@openplane/db";

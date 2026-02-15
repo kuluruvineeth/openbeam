@@ -1,5 +1,4 @@
-import type { Database } from "@openplane/db";
-import { findSessionById } from "@openplane/db";
+import { type Database, findSessionById } from "@openplane/db";
 import { TRPCError } from "@trpc/server";
 
 type SessionOwnership = {

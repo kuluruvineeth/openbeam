@@ -1,5 +1,7 @@
 import {
   type Database,
+  getTeamMembership,
+  getUserById,
   type TeamRole,
   verifyConnectorOwnership,
 } from "@openplane/db";
@@ -24,12 +26,8 @@ const requireActiveTeam = t.middleware(async ({ ctx, next }) => {
     });
   }
 
-  const user = await ctx.prisma.user.findUnique({
-    where: { id: ctx.session.user.id },
-    select: { teamId: true },
-  });
-
-  const teamId = user?.teamId;
+  const user = await getUserById(ctx.prisma, ctx.session.user.id);
+  const teamId = user?.teamId ?? null;
 
   if (!teamId) {
     throw new TRPCError({
@@ -51,24 +49,21 @@ export const withActiveTeam = protectedProcedure.use(requireActiveTeam);
 
 const requireAdminRole = t.middleware(async ({ ctx, next }) => {
   const teamCtx = ctx as ContextWithTeam;
-  const membership = await ctx.prisma.usersOnTeam.findUnique({
-    where: {
-      userId_teamId: {
-        userId: teamCtx.session.user.id,
-        teamId: teamCtx.teamId,
-      },
-    },
-    select: { role: true },
-  });
+  const membership = await getTeamMembership(
+    ctx.prisma,
+    teamCtx.session.user.id,
+    teamCtx.teamId
+  );
+  const role = membership?.role ?? null;
 
-  if (!membership) {
+  if (!role) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "Not a member of this team",
     });
   }
 
-  if (membership.role === "MEMBER") {
+  if (role === "MEMBER") {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "Admin or Owner role required",
@@ -76,7 +71,7 @@ const requireAdminRole = t.middleware(async ({ ctx, next }) => {
   }
 
   return next({
-    ctx: { ...ctx, role: membership.role } as ContextWithRole,
+    ctx: { ...ctx, role } as ContextWithRole,
   });
 });
 

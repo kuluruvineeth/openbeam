@@ -70,14 +70,18 @@ export const personalizationRouter = createTRPCRouter({
   }),
 
   clearProfile: withActiveTeam.mutation(async ({ ctx }) => {
-    try {
+    const profile = await findUserSearchProfile(
+      ctx.prisma,
+      ctx.session.user.id,
+      ctx.teamId
+    );
+
+    if (profile) {
       await deleteUserSearchProfile(
         ctx.prisma,
         ctx.session.user.id,
         ctx.teamId
       );
-    } catch {
-      // Profile may not exist - that's fine
     }
 
     await cache.invalidateProfile(ctx.teamId, ctx.session.user.id);
@@ -96,7 +100,13 @@ export const personalizationRouter = createTRPCRouter({
       return [];
     }
 
-    const weights = profile.connectorWeights;
+    const weightsSchema = z.record(z.string(), z.number());
+    const parsed = weightsSchema.safeParse(profile.connectorWeights);
+    if (!parsed.success) {
+      return [];
+    }
+
+    const weights = parsed.data;
     const total = Object.values(weights).reduce((a, b) => a + b, 0);
 
     return Object.entries(weights)
@@ -121,9 +131,13 @@ export const personalizationRouter = createTRPCRouter({
         return [];
       }
 
-      const interactions = profile.authorInteractions;
+      const interactionsSchema = z.record(z.string(), z.number());
+      const parsed = interactionsSchema.safeParse(profile.authorInteractions);
+      if (!parsed.success) {
+        return [];
+      }
 
-      return Object.entries(interactions)
+      return Object.entries(parsed.data)
         .map(([authorId, count]) => ({ authorId, interactionCount: count }))
         .sort((a, b) => b.interactionCount - a.interactionCount)
         .slice(0, input.limit);
