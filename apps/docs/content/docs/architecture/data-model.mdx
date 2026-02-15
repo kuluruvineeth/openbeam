@@ -1,0 +1,24 @@
+---
+title: Data Model
+description: Entity-relationship diagram — 60+ models across 8 domains
+---
+
+The data model spans 19 Prisma schema files with 60+ models organized into 8 domains.
+
+<ExcalidrawViewer
+  src="/diagrams/excalidraw/er-diagram.excalidraw"
+  caption="Full ER diagram — all domains with cross-domain relationships"
+  height={800}
+/>
+
+## Domains
+
+| Domain | Key Models | Purpose |
+|--------|-----------|---------|
+| **Auth & Team** | User, Session, Team, ApiKey | Authentication, team management, API access |
+| **Integrations** | Connector, OAuthProvider, SyncJob, SyncHistory | OAuth flows, sync orchestration, indexing tracking |
+| **Knowledge** | Entity, EntityRelation, TopicCluster, TeamKnowledge | Knowledge graph, entity extraction, topic clustering |
+| **Search** | SearchExperiment, DocumentPermission, UserSearchProfile | Permission-aware search, A/B testing, personalization |
+| **Agent Canvas** | AgentCanvas, AgentCanvasExecution, BackgroundAgent | Visual agent builder, workflow execution |
+| **Mission Control** | Mission, MissionAgent, MissionTask, MissionRun | Multi-agent orchestration, task delegation |
+| **AI & Observability** | AIUsageLog, CompositionEvent, EmergencePattern | Usage tracking, emergent pattern detection |

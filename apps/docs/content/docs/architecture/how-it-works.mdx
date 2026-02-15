@@ -1,0 +1,55 @@
+---
+title: How It Works
+description: Connector sync and search request flows
+---
+
+## Connector Sync
+
+When you connect a data source, OpenPlane runs a Temporal workflow that fetches, transforms, and indexes your documents.
+
+<ExcalidrawViewer
+  src="/diagrams/excalidraw/flow-connector-sync.excalidraw"
+  caption="Temporal workflow: fetch batches → transform to GenericDocument → index in Vespa"
+  height={700}
+/>
+
+### Activity Chain
+
+1. **validateConnection** — Check connector status, token freshness
+2. **fetchBatch** — Call connector API with cursor, handle rate limits
+3. **transformBatch** — Convert to `GenericDocument` via connector transformer
+4. **indexDocuments** — Bulk feed to Vespa with heartbeat
+5. **completeSyncJob** — Update sync history with metrics
+
+### Error Handling
+
+| Error | Behavior |
+|-------|----------|
+| **Auth expired** | Non-retryable, mark connector `AUTH_EXPIRED` |
+| **Rate limited** | Retryable with backoff from `Retry-After` header |
+| **Transient failure** | Automatic retry with exponential backoff |
+
+Workflows use `continueAsNew` when history exceeds 10K events to prevent memory bloat.
+
+---
+
+## Search Request
+
+When a user searches, OpenPlane runs hybrid semantic + keyword search with permission filtering in under 200ms.
+
+<ExcalidrawViewer
+  src="/diagrams/excalidraw/flow-search-request.excalidraw"
+  caption="Hybrid search with permission filtering, personalization, and re-ranking"
+  height={650}
+/>
+
+### Latency Budget (200ms p99)
+
+| Stage | Budget | Operation |
+|-------|--------|-----------|
+| Query analysis | 10ms | Intent classification, entity extraction |
+| Permission resolution | 5ms | Pre-computed permission lookup |
+| Vespa hybrid search | 100ms | Semantic embedding + BM25 keyword |
+| Re-ranking | 50ms | LTR model scoring |
+| Personalization | 15ms | User profile weight application |
+| Response + buffer | 20ms | Serialization + network variance |

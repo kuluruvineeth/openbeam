@@ -1,0 +1,62 @@
+---
+title: Deployment
+description: Container topology, network boundaries, and scaling
+---
+
+<ExcalidrawViewer
+  src="/diagrams/excalidraw/deployment-topology.excalidraw"
+  caption="5 application containers, 5 infrastructure services, 3 network zones"
+  height={650}
+/>
+
+## Containers
+
+| Container | Port | Runtime | Health |
+|-----------|------|---------|--------|
+| **web** | `:3001` | Next.js (Node.js) | `/api/health` |
+| **server** | `:3000` | Hono (Node.js) | `/health` |
+| **worker** | — | Temporal Worker (Node.js) | Heartbeat |
+| **engine** | `:8000` / `:8001` | FastAPI (Python) | `/health` |
+| **docs** | `:4000` | Fumadocs (Node.js) | `/` |
+
+## Infrastructure
+
+| Service | Port | Purpose |
+|---------|------|---------|
+| **PostgreSQL** | `:5432` | Primary data store (60+ models) |
+| **Redis** | `:6379` | Cache, pub/sub, locks, rate limiting |
+| **Vespa** | `:8080` | Hybrid search, document indexing |
+| **Temporal** | `:7233` | Durable workflow orchestration |
+| **S3/R2** | `:443` | File and media storage |
+
+## Network Zones
+
+| Zone | Contains | Access |
+|------|----------|--------|
+| **Public** | web, docs | CDN / Load Balancer |
+| **API** | server | web (tRPC), external (webhooks) |
+| **Workers** | worker, engine | Temporal server, internal only |
+| **Data** | PostgreSQL, Redis, Vespa, S3 | API + Workers only |
+
+## Scaling
+
+| Component | Strategy | Trigger |
+|-----------|----------|---------|
+| web / server | Horizontal pod scaling | CPU / request count |
+| worker | Task-queue-based | Queue depth per task queue |
+| engine (CPU) | Request-based | Processing queue depth |
+| engine (GPU) | GPU utilization | GPU memory / queue |
+| Vespa | Add content nodes | Document count |
+| PostgreSQL | Read replicas | Query load |
+| Redis | Cluster mode | Memory / throughput |
+
+### Temporal Task Queues
+
+| Queue | Concurrency | Scale Factor |
+|-------|-------------|-------------|
+| `sync-queue` | High | Active connector count |
+| `mission-queue` | Medium | Active missions |
+| `processing-queue` | High | Document backlog |
+| `canvas-queue` | Medium | Active canvas runs |
+| `webhook-queue` | Burst | Webhook volume |
+| `scheduled-queue` | Low | Fixed schedule |

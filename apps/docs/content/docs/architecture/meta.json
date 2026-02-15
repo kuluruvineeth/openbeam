@@ -1,15 +1,5 @@
 {
   "title": "Architecture",
   "icon": "LayoutGrid",
-  "pages": [
-    "index",
-    "system-context",
-    "containers",
-    "...apps",
-    "...packages",
-    "...data-model",
-    "...flows",
-    "...deployment",
-    "tooling"
-  ]
+  "pages": ["index", "how-it-works", "data-model", "deployment"]
 }
