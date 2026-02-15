@@ -38,6 +38,7 @@ model Team {
   agentCanvasSessions   AgentCanvasSession[]
   workflowAuditLogs    WorkflowAuditLog[]
   missions             Mission[]
+  teamKnowledge        TeamKnowledge[]
 
   @@map("team")
 }
