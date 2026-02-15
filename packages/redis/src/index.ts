@@ -57,6 +57,29 @@ export {
   getSessionStreamMetricsContentType,
 } from "./observability/runtime-stream-metrics";
 export {
+  AGENT_MSG_RATE_LIMIT,
+  cleanupMissionStreams,
+  createAgentStreamConsumer,
+  DEDUP_TTL_SECONDS,
+  getAgentMessageHistory,
+  MessageDeduplicator,
+  MessageRateLimitError,
+  MessageRateLimiter,
+  PRIORITY_BATCH_SIZES,
+  PRIORITY_ORDER,
+  priorityStreamKey,
+  publishAgentMessage,
+  type RateLimitResult,
+  type RateLimitWindow,
+  type StreamConsumer,
+  type StreamConsumerOptions,
+} from "./pubsub/agent-messaging";
+export {
+  CLAIM_IDLE_MS,
+  DeadLetterProcessor,
+  MAX_DELIVERY_ATTEMPTS,
+} from "./pubsub/dead-letter";
+export {
   cleanupExecutionThrottleCache,
   createExecutionEventEmitter,
   createExecutionEventSubscriber,
@@ -72,6 +95,12 @@ export {
   type ProgressEmitterParams,
   publishJobProgress,
 } from "./pubsub/job-progress";
+export {
+  getMessagingMetricsHook,
+  type MessagingMetricsHook,
+  resetMessagingMetricsHook,
+  setMessagingMetricsHook,
+} from "./pubsub/messaging-metrics";
 export {
   cleanupMissionThrottleCache,
   createMissionEventEmitter,
