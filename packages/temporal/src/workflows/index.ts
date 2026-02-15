@@ -1,8 +1,19 @@
-export { backgroundAgentWorkflow } from "./agents/background-agent";
+export { backgroundAgentWorkflow } from "./agents/background-agent-unbounded";
+export {
+  type AgentChainProgress,
+  agentChainProgressQuery,
+  type ExtendTimeoutPayload,
+  extendTimeoutSignal,
+} from "./agents/signals";
 export { agentCanvasExecutionWorkflow } from "./canvas/canvas-execution";
-export { missionAgentRunWorkflow } from "./mission/mission-agent-run";
+export { missionAgentRunWorkflow } from "./mission/mission-agent-run-unbounded";
+export { missionHealthMonitorWorkflow } from "./mission/mission-health-monitor";
 export { missionLinearRunWorkflow } from "./mission/mission-linear-run";
 export { missionOrchestratorWorkflow } from "./mission/mission-orchestrator";
+export {
+  missionSubOrchestratorWorkflow,
+  sharedAgentPoolWorkflow,
+} from "./mission/shared-agent-pool";
 export { entityExtractionWorkflow } from "./processing/entity-extraction";
 export { fileProcessingWorkflow } from "./processing/file-processing";
 export { indexDocumentsWorkflow } from "./processing/index-documents";
@@ -60,13 +71,19 @@ export type {
   WebhookOutput,
 } from "./types";
 export {
+  agentReflectionQuery,
   artifactsQuery,
   cancelSignal,
   canvasApprovalSignal,
   canvasInputSignal,
+  dependencyFailureSignal,
+  healthUpdateSignal,
+  missionHealthQuery,
   pauseSignal,
   progressQuery,
   resumeSignal,
+  shardDispatchSignal,
+  shardMessageRouteSignal,
   updateConfigSignal,
 } from "./types";
 export { webhookHandlerWorkflow } from "./webhooks/webhook-handler";

@@ -3,12 +3,27 @@ import type {
   CanvasApprovalSignalPayload,
   CanvasInputSignalPayload,
 } from "@openplane/types/temporal";
+import type { CrossMissionSignalPayload } from "@openplane/types/temporal/cross-mission";
 import type {
+  AgentClaimTaskSignalPayload,
+  AgentCompletedPayload,
   LinearRunProgress,
   MissionCommandPayload,
   MissionRuntimeQueryResult,
   MissionWakePayload,
+  SpawnAgentSignalPayload,
 } from "@openplane/types/temporal/mission";
+import type {
+  AgentInboxDeliverySignal,
+  AgentMessageEnvelope,
+  OrchestratorRouteSignal,
+} from "@openplane/types/temporal/mission-messaging";
+import type {
+  DependencyFailurePayload,
+  MissionHealthSnapshot,
+  ReflectionEntry,
+  ReviewConsensus,
+} from "@openplane/types/temporal/mission-reflection";
 import { defineQuery, defineSignal } from "@temporalio/workflow";
 
 export interface CanvasExecutionQueryState {
@@ -129,6 +144,7 @@ export interface AgentArtifact {
   id: string;
   type: string;
   content: unknown;
+  summary?: string;
   createdAt: number;
 }
 
@@ -311,8 +327,55 @@ export const missionWakeSignal =
   defineSignal<[MissionWakePayload]>("missionWake");
 export const missionCommandSignal =
   defineSignal<[MissionCommandPayload]>("missionCommand");
+export const spawnAgentSignal =
+  defineSignal<[SpawnAgentSignalPayload]>("spawnAgent");
+export const crossMissionSignal =
+  defineSignal<[CrossMissionSignalPayload]>("crossMission");
+export const agentMessageRouteSignal =
+  defineSignal<[OrchestratorRouteSignal]>("agentMessageRoute");
+export const agentInboxDeliverySignal =
+  defineSignal<[AgentInboxDeliverySignal]>("agentInboxDelivery");
 export const missionRuntimeQuery =
   defineQuery<MissionRuntimeQueryResult>("missionRuntime");
+export const crossMissionPendingDelegationsQuery = defineQuery<
+  Array<{ requestId: string; taskTitle: string; sourceMissionId: string }>
+>("crossMissionPendingDelegations");
 export const linearRunProgressQuery =
   defineQuery<LinearRunProgress>("linearRunProgress");
 export const linearRunCancelSignal = defineSignal("linearRunCancel");
+export const agentCompletedSignal =
+  defineSignal<[AgentCompletedPayload]>("agentCompleted");
+export const agentClaimTaskSignal =
+  defineSignal<[AgentClaimTaskSignalPayload]>("agentClaimTask");
+
+export interface ShardDispatchPayload {
+  agentId: string;
+  agentName: string;
+  childWorkflowId: string;
+  taskId: string;
+  soulPrompt: string;
+  tools: string[] | undefined;
+  maxSteps: number;
+  budgetCentsLimit: number | undefined;
+  runId: string;
+  pendingMessages: AgentMessageEnvelope[];
+}
+
+export const shardDispatchSignal =
+  defineSignal<[ShardDispatchPayload]>("shardDispatch");
+export const shardMessageRouteSignal =
+  defineSignal<[{ envelope: AgentMessageEnvelope }]>("shardMessageRoute");
+export const peerReviewConsensusSignal = defineSignal<
+  [{ taskId: string; consensus: ReviewConsensus }]
+>("peerReviewConsensus");
+export const dependencyFailureSignal =
+  defineSignal<[DependencyFailurePayload]>("dependencyFailure");
+export const missionHealthQuery = defineQuery<MissionHealthSnapshot | null>(
+  "missionHealth"
+);
+export const healthUpdateSignal =
+  defineSignal<[MissionHealthSnapshot]>("healthUpdate");
+export const agentReflectionQuery = defineQuery<{
+  reflectionBuffer: ReflectionEntry[];
+  replanCount: number;
+} | null>("agentReflection");
