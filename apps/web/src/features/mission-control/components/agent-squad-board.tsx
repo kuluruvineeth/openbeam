@@ -9,6 +9,7 @@ import { cva } from "class-variance-authority";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { cn } from "@/lib/utils";
+import { useReflectionHistory } from "../stores/mission-runtime-store";
 import { AgentDetailDrawer } from "./agent-detail-drawer";
 import { AgentLane } from "./agent-lane";
 import { SquadHeader } from "./squad-header";
@@ -40,11 +41,16 @@ const filterChipVariants = cva(
 );
 
 type AgentSquadBoardProps = {
+  missionId: string;
   agents: Record<string, MissionAgentLaneState>;
   events?: MissionEventLedgerItem[];
 };
 
-export function AgentSquadBoard({ agents, events = [] }: AgentSquadBoardProps) {
+export function AgentSquadBoard({
+  missionId,
+  agents,
+  events = [],
+}: AgentSquadBoardProps) {
   const [statusFilter, setStatusFilter] = useState<AgentStatus | "all">("all");
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -143,6 +149,7 @@ export function AgentSquadBoard({ agents, events = [] }: AgentSquadBoardProps) {
   useHotkeys("f", cycleFilter, { enabled: !drawerOpen });
 
   const selectedAgent = selectedAgentId ? agents[selectedAgentId] : undefined;
+  const reflectionEntries = useReflectionHistory(selectedAgentId ?? "");
 
   if (agentList.length === 0) {
     return (
@@ -285,7 +292,9 @@ export function AgentSquadBoard({ agents, events = [] }: AgentSquadBoardProps) {
         agentId={selectedAgentId ?? ""}
         events={events}
         isOpen={drawerOpen}
+        missionId={missionId}
         onClose={handleCloseDrawer}
+        reflectionEntries={reflectionEntries}
       />
     </div>
   );

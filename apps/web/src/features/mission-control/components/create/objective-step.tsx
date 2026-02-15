@@ -1,6 +1,10 @@
 "use client";
 
 import {
+  SWARM_PRESETS,
+  type SwarmPresetId,
+} from "@openplane/types/temporal/mission";
+import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
@@ -68,11 +72,17 @@ export function ObjectiveStep() {
   const objective = useMissionCreationStore((s) => s.objective);
   const templateId = useMissionCreationStore((s) => s.templateId);
   const lane = useMissionCreationStore((s) => s.lane);
+  const swarmPresetId = useMissionCreationStore((s) => s.swarmPresetId);
   const budgetCents = useMissionCreationStore((s) => s.budgetCents);
+  const maxConcurrentRuns = useMissionCreationStore((s) => s.maxConcurrentRuns);
   const cronSchedule = useMissionCreationStore((s) => s.cronSchedule);
   const setObjective = useMissionCreationStore((s) => s.setObjective);
   const setLane = useMissionCreationStore((s) => s.setLane);
+  const setSwarmPreset = useMissionCreationStore((s) => s.setSwarmPreset);
   const setBudgetCents = useMissionCreationStore((s) => s.setBudgetCents);
+  const setMaxConcurrentRuns = useMissionCreationStore(
+    (s) => s.setMaxConcurrentRuns
+  );
   const setCronSchedule = useMissionCreationStore((s) => s.setCronSchedule);
   const applyTemplate = useMissionCreationStore((s) => s.applyTemplate);
 
@@ -179,6 +189,34 @@ export function ObjectiveStep() {
         <CollapsibleContent>
           <div className="flex flex-col gap-4 pt-2">
             <div className="flex flex-col gap-1.5">
+              <Label className="text-xs">Swarm Size</Label>
+              <div className="flex gap-1.5">
+                {(
+                  Object.values(
+                    SWARM_PRESETS
+                  ) as (typeof SWARM_PRESETS)[SwarmPresetId][]
+                ).map((preset) => (
+                  <button
+                    className={laneToggleVariants({
+                      active: swarmPresetId === preset.id,
+                    })}
+                    key={preset.id}
+                    onClick={() => setSwarmPreset(preset.id)}
+                    type="button"
+                  >
+                    <span className="font-medium">{preset.label}</span>
+                    <span className="text-[10px] text-muted-foreground">
+                      {preset.description}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground tabular-nums">
+                      ${(preset.budgetCents / 100).toFixed(0)} budget
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
               <Label className="text-xs">Execution Lane</Label>
               <div className="flex gap-1.5">
                 {LANE_OPTIONS.map((option) => (
@@ -225,7 +263,10 @@ export function ObjectiveStep() {
                 <Label className="text-xs" htmlFor="concurrency">
                   Max Concurrency
                 </Label>
-                <Select defaultValue="3">
+                <Select
+                  onValueChange={(v) => setMaxConcurrentRuns(Number(v))}
+                  value={String(maxConcurrentRuns)}
+                >
                   <SelectTrigger className="text-sm" id="concurrency">
                     <SelectValue />
                   </SelectTrigger>

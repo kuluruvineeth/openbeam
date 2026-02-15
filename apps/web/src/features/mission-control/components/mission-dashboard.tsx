@@ -84,7 +84,7 @@ export function MissionDashboard() {
 
   const handleRowClick = useCallback(
     (id: string) => {
-      const href = `/missions/${id}`;
+      const href = `/missions/${id}` as `/missions/${string}`;
       router.push(href);
     },
     [router]

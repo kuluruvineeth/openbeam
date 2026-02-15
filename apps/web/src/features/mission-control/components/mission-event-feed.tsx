@@ -2,6 +2,7 @@
 
 import type { MissionEventLedgerItem } from "@openplane/types/mission-control";
 import { Icons, Markdown, TextShimmer } from "@openplane/ui";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { cva } from "class-variance-authority";
 import { AnimatePresence, motion } from "motion/react";
 import {
@@ -24,6 +25,7 @@ import {
 import { formatTimelineTimestamp } from "../lib/time-display";
 import {
   buildStateSections,
+  buildTerminalIndex,
   classifyEventBucket,
   sortEventsByTimestampDesc,
   type TimelineStateBucket,
@@ -76,6 +78,7 @@ const rowVariants = cva("border-border/30 border-b border-l-2", {
   variants: {
     bucket: {
       running_now: "border-l-emerald-500/60",
+      active_reflections: "border-l-blue-400/60",
       needs_attention: "border-l-amber-500/70",
       recently_completed: "border-l-primary/40",
       earlier: "border-l-border/40",
@@ -114,6 +117,8 @@ function buildEventDisplayRows(
   referenceTimestamp: number,
   missionSettled: boolean
 ): MissionEventRowDisplay[] {
+  const index = buildTerminalIndex(allEvents);
+
   return events.map((event) => {
     const config = EVENT_TYPE_CONFIG[event.eventType];
 
@@ -126,7 +131,7 @@ function buildEventDisplayRows(
       priority: resolvePriority(event.eventType),
       bucket: classifyEventBucket(
         event,
-        allEvents,
+        index,
         referenceTimestamp,
         missionSettled
       ),
@@ -149,6 +154,18 @@ const EventRow = memo(function EventRowInner({ row, nowMs }: EventRowProps) {
   const Icon = config?.icon ?? Icons.Info;
   const canToggle = row.expandable && row.hasContent;
   const timestampDisplay = formatTimelineTimestamp(row.event.timestamp, nowMs);
+  const isSpawnEvent =
+    row.event.eventType === "agent.spawned" ||
+    row.event.eventType === "agent_spawned";
+  const isReplanEvent =
+    row.event.eventType === "agent.replan" ||
+    row.event.eventType === "agent_replanned";
+  const isEscalatedEvent =
+    row.event.eventType === "agent.escalated" ||
+    row.event.eventType === "agent_escalated";
+  const isReflectionEvent =
+    row.event.eventType === "agent.reflection" ||
+    row.event.eventType === "agent_self_evaluated";
 
   const handleClick = useCallback(() => {
     if (canToggle) {
@@ -157,12 +174,17 @@ const EventRow = memo(function EventRowInner({ row, nowMs }: EventRowProps) {
   }, [canToggle]);
 
   return (
-    <motion.li
-      animate={{ opacity: 1, y: 0 }}
-      className={rowVariants({ bucket: row.bucket })}
-      initial={{ opacity: 0, y: 4 }}
-      layout="position"
-      transition={{ duration: 0.15 }}
+    <div
+      className={cn(
+        rowVariants({ bucket: row.bucket }),
+        isSpawnEvent && "border-l-dashed border-l-primary/60 bg-primary/[0.02]",
+        isReplanEvent &&
+          "border-l-amber-500/70 bg-amber-500/[0.03] dark:bg-amber-500/[0.06]",
+        isEscalatedEvent &&
+          "border-l-destructive/80 bg-destructive/[0.04] dark:bg-destructive/[0.08]",
+        isReflectionEvent &&
+          "border-l-blue-400/60 bg-blue-400/[0.03] dark:bg-blue-400/[0.06]"
+      )}
     >
       <button
         aria-controls={canToggle ? detailsRegionId : undefined}
@@ -197,9 +219,21 @@ const EventRow = memo(function EventRowInner({ row, nowMs }: EventRowProps) {
               {row.summary}
             </p>
           )}
-          <p className="truncate text-muted-foreground text-xs">
-            {row.event.agentName ?? "System"}
-          </p>
+          <div className="flex items-center gap-1.5">
+            <p className="truncate text-muted-foreground text-xs">
+              {row.event.agentName ?? "System"}
+            </p>
+            {isSpawnEvent && (
+              <span className="rounded-sm border border-primary/25 bg-primary/10 px-1 py-0.5 text-[10px] text-primary">
+                New agent
+              </span>
+            )}
+            {isEscalatedEvent && (
+              <span className="rounded-sm border border-destructive/25 bg-destructive/10 px-1 py-0.5 text-[10px] text-destructive">
+                Escalated
+              </span>
+            )}
+          </div>
         </div>
         <span className="flex shrink-0 items-center gap-1">
           <time
@@ -249,28 +283,64 @@ const EventRow = memo(function EventRowInner({ row, nowMs }: EventRowProps) {
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.li>
+    </div>
   );
 });
 
 type RowListProps = {
   rows: MissionEventRowDisplay[];
   nowMs: number;
+  scrollRef: React.RefObject<HTMLDivElement | null>;
 };
 
-function ChronologicalView({ rows, nowMs }: RowListProps) {
+function ChronologicalView({ rows, nowMs, scrollRef }: RowListProps) {
+  const virtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => 56,
+    overscan: 15,
+  });
+
   return (
-    <ul className="m-0 flex list-none flex-col p-0">
-      <AnimatePresence initial={false}>
-        {rows.map((row) => (
-          <EventRow key={row.event.eventId} nowMs={nowMs} row={row} />
-        ))}
-      </AnimatePresence>
+    <ul
+      className="relative w-full list-none"
+      style={{ height: `${virtualizer.getTotalSize()}px` }}
+    >
+      {virtualizer.getVirtualItems().map((vi) => {
+        const row = rows[vi.index];
+        if (!row) {
+          return null;
+        }
+        return (
+          <li
+            className="absolute top-0 left-0 w-full"
+            data-index={vi.index}
+            key={row.event.eventId}
+            ref={virtualizer.measureElement}
+            style={{ transform: `translateY(${vi.start}px)` }}
+          >
+            <EventRow nowMs={nowMs} row={row} />
+          </li>
+        );
+      })}
     </ul>
   );
 }
 
-function StateView({ rows, nowMs }: RowListProps) {
+type StateFlatItem =
+  | {
+      kind: "header";
+      bucket: TimelineStateBucket;
+      label: string;
+      description: string;
+      count: number;
+    }
+  | { kind: "row"; row: MissionEventRowDisplay };
+
+const SECTION_HEADER_HEIGHT = 32;
+const EVENT_ROW_HEIGHT = 56;
+
+function StateView({ rows, nowMs, scrollRef }: RowListProps) {
   const sections = useMemo(() => buildStateSections(rows), [rows]);
   const [collapsedBuckets, setCollapsedBuckets] = useState<
     Set<TimelineStateBucket>
@@ -288,59 +358,94 @@ function StateView({ rows, nowMs }: RowListProps) {
     });
   }, []);
 
-  return (
-    <div className="flex flex-col gap-3 pb-2">
-      {sections
-        .filter((section) => section.rows.length > 0)
-        .map((section) => {
-          const sectionId = `timeline-section-${section.bucket}`;
-          const triggerId = `${sectionId}-trigger`;
+  const flatItems = useMemo(() => {
+    const items: StateFlatItem[] = [];
+    for (const section of sections) {
+      if (section.rows.length === 0) {
+        continue;
+      }
+      items.push({
+        kind: "header",
+        bucket: section.bucket,
+        label: section.label,
+        description: section.description,
+        count: section.rows.length,
+      });
+      if (!collapsedBuckets.has(section.bucket)) {
+        for (const row of section.rows) {
+          items.push({ kind: "row", row });
+        }
+      }
+    }
+    return items;
+  }, [sections, collapsedBuckets]);
 
+  const virtualizer = useVirtualizer({
+    count: flatItems.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: (index) =>
+      flatItems[index]?.kind === "header"
+        ? SECTION_HEADER_HEIGHT
+        : EVENT_ROW_HEIGHT,
+    overscan: 15,
+  });
+
+  return (
+    <div
+      className="relative w-full pb-2"
+      style={{ height: `${virtualizer.getTotalSize()}px` }}
+    >
+      {virtualizer.getVirtualItems().map((vi) => {
+        const item = flatItems[vi.index];
+        if (!item) {
+          return null;
+        }
+        if (item.kind === "header") {
           return (
-            <section key={section.bucket}>
+            <div
+              className="absolute top-0 left-0 w-full"
+              data-index={vi.index}
+              key={`header-${item.bucket}`}
+              ref={virtualizer.measureElement}
+              style={{ transform: `translateY(${vi.start}px)` }}
+            >
               <button
-                aria-controls={sectionId}
-                aria-expanded={!collapsedBuckets.has(section.bucket)}
+                aria-expanded={!collapsedBuckets.has(item.bucket)}
                 className="flex w-full items-center gap-2 px-2 py-1 text-left"
-                id={triggerId}
-                onClick={() => toggleBucket(section.bucket)}
+                onClick={() => toggleBucket(item.bucket)}
                 type="button"
               >
                 <Icons.ChevronDown
                   className={cn(
                     "transition-transform",
-                    collapsedBuckets.has(section.bucket) && "-rotate-90"
+                    collapsedBuckets.has(item.bucket) && "-rotate-90"
                   )}
                   size={12}
                 />
-                <span className="font-medium text-xs">{section.label}</span>
+                <span className="font-medium text-xs">{item.label}</span>
                 <span className="rounded-sm bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground tabular-nums">
-                  {section.rows.length}
+                  {item.count}
                 </span>
                 <span className="text-[10px] text-muted-foreground">
-                  {section.description}
+                  {item.description}
                 </span>
               </button>
-              {!collapsedBuckets.has(section.bucket) && (
-                <ul
-                  aria-labelledby={triggerId}
-                  className="m-0 flex list-none flex-col p-0"
-                  id={sectionId}
-                >
-                  <AnimatePresence initial={false}>
-                    {section.rows.map((row) => (
-                      <EventRow
-                        key={row.event.eventId}
-                        nowMs={nowMs}
-                        row={row}
-                      />
-                    ))}
-                  </AnimatePresence>
-                </ul>
-              )}
-            </section>
+            </div>
           );
-        })}
+        }
+
+        return (
+          <div
+            className="absolute top-0 left-0 w-full"
+            data-index={vi.index}
+            key={item.row.event.eventId}
+            ref={virtualizer.measureElement}
+            style={{ transform: `translateY(${vi.start}px)` }}
+          >
+            <EventRow nowMs={nowMs} row={item.row} />
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -382,9 +487,12 @@ export function MissionEventFeed({
   const sections = useMemo(() => buildStateSections(rows), [rows]);
   const runningCount =
     sections.find((s) => s.bucket === "running_now")?.rows.length ?? 0;
+  const reflectionCount =
+    sections.find((s) => s.bucket === "active_reflections")?.rows.length ?? 0;
   const attentionCount =
     sections.find((s) => s.bucket === "needs_attention")?.rows.length ?? 0;
-  const hasLiveSignal = runningCount > 0 || attentionCount > 0;
+  const hasLiveSignal =
+    runningCount > 0 || attentionCount > 0 || reflectionCount > 0;
   const latestEventTimestamp = rows[0]
     ? formatTimelineTimestamp(rows[0].event.timestamp, nowMs)
     : null;
@@ -450,7 +558,7 @@ export function MissionEventFeed({
     setNowMs(Date.now());
   }, [latestEventId]);
 
-  useHotkeys("mod+shift+b", scrollToLatest);
+  useHotkeys("mod+shift+j", scrollToLatest);
 
   return (
     <div className="flex h-full flex-col gap-2">
@@ -510,6 +618,11 @@ export function MissionEventFeed({
                     {runningCount} active
                   </span>
                 )}
+                {reflectionCount > 0 && (
+                  <span className="rounded-sm bg-blue-500/10 px-1.5 py-0.5 text-[10px] text-blue-600 tabular-nums dark:text-blue-400">
+                    {reflectionCount} reflecting
+                  </span>
+                )}
                 {attentionCount > 0 && (
                   <span className="rounded-sm bg-amber-500/10 px-1.5 py-0.5 text-[10px] text-amber-600 tabular-nums dark:text-amber-400">
                     {attentionCount} need attention
@@ -540,9 +653,9 @@ export function MissionEventFeed({
         )}
 
         {viewMode === "state" ? (
-          <StateView nowMs={nowMs} rows={rows} />
+          <StateView nowMs={nowMs} rows={rows} scrollRef={scrollRef} />
         ) : (
-          <ChronologicalView nowMs={nowMs} rows={rows} />
+          <ChronologicalView nowMs={nowMs} rows={rows} scrollRef={scrollRef} />
         )}
 
         {rows.length === 0 && (

@@ -22,8 +22,10 @@ import {
   type ArtifactSummary,
   MissionArtifactPanel,
 } from "./mission-artifact-panel";
+import { MissionCommsFeed } from "./mission-comms-feed";
 import { MissionEventFeed } from "./mission-event-feed";
 import { MissionLedger } from "./mission-ledger";
+import { MissionReflectionPanel } from "./mission-reflection-panel";
 import { TaskBoard } from "./task-board";
 
 const tabVariants = cva(
@@ -71,15 +73,18 @@ export function MissionDetailContent({
   useHotkeys("1", () => onTabChange("timeline"));
   useHotkeys("2", () => onTabChange("agents"));
   useHotkeys("3", () => onTabChange("tasks"));
-  useHotkeys("4", () => onTabChange("approvals"));
-  useHotkeys("5", () => onTabChange("artifacts"));
-  useHotkeys("6", () => onTabChange("memory"));
-  useHotkeys("7", () => onTabChange("budget"));
+  useHotkeys("4", () => onTabChange("comms"));
+  useHotkeys("5", () => onTabChange("approvals"));
+  useHotkeys("6", () => onTabChange("artifacts"));
+  useHotkeys("7", () => onTabChange("memory"));
+  useHotkeys("8", () => onTabChange("reflection"));
+  useHotkeys("9", () => onTabChange("budget"));
 
   const tabs: TabDefinition[] = [
     { id: "timeline", label: "Timeline", icon: <Icons.Clock size={14} /> },
     { id: "agents", label: "Agents", icon: <Icons.Users size={14} /> },
     { id: "tasks", label: "Tasks", icon: <Icons.Task size={14} /> },
+    { id: "comms", label: "Comms", icon: <Icons.MessageSquare size={14} /> },
     {
       id: "approvals",
       label: "Approvals",
@@ -87,6 +92,11 @@ export function MissionDetailContent({
     },
     { id: "artifacts", label: "Artifacts", icon: <Icons.File size={14} /> },
     { id: "memory", label: "Memory", icon: <Icons.Database size={14} /> },
+    {
+      id: "reflection",
+      label: "Reflection",
+      icon: <Icons.BrainCircuit size={14} />,
+    },
     { id: "budget", label: "Budget", icon: <Icons.Coins size={14} /> },
   ];
 
@@ -135,15 +145,19 @@ function TabContent({ activeTab, missionId, runId, agents }: TabContentProps) {
     case "timeline":
       return <TimelineTab runId={runId} />;
     case "agents":
-      return <AgentsTab runId={runId} />;
+      return <AgentsTab missionId={missionId} runId={runId} />;
     case "tasks":
       return <TaskBoard missionId={missionId} runId={runId} />;
+    case "comms":
+      return <MissionCommsFeed missionId={missionId} />;
     case "approvals":
       return <ApprovalsTab missionId={missionId} />;
     case "artifacts":
       return <ArtifactsTab missionId={missionId} runId={runId} />;
     case "memory":
       return <MemoryInspector agents={agents} missionId={missionId} />;
+    case "reflection":
+      return <MissionReflectionPanel missionId={missionId} />;
     case "budget":
       return <MissionLedger />;
     default:
@@ -156,10 +170,16 @@ function TimelineTab({ runId }: { runId: string }) {
   return <MissionEventFeed events={events} />;
 }
 
-function AgentsTab({ runId }: { runId: string }) {
+function AgentsTab({ missionId, runId }: { missionId: string; runId: string }) {
   const agentBoard = useAgentBoard();
   const events = useMissionEvents(runId);
-  return <AgentSquadBoard agents={agentBoard} events={events} />;
+  return (
+    <AgentSquadBoard
+      agents={agentBoard}
+      events={events}
+      missionId={missionId}
+    />
+  );
 }
 
 function ApprovalsTab({ missionId }: { missionId: string }) {

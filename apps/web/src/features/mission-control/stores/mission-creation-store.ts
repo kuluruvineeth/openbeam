@@ -1,6 +1,10 @@
 "use client";
 
 import type { MissionTemplate } from "@openplane/types/mission-control";
+import {
+  SWARM_PRESETS,
+  type SwarmPresetId,
+} from "@openplane/types/temporal/mission";
 import { create } from "zustand";
 
 type AgentDraft = {
@@ -24,7 +28,9 @@ type MissionCreationState = {
   objective: string;
   templateId: string | null;
   lane: "linear" | "autonomous" | "hybrid";
+  swarmPresetId: SwarmPresetId | null;
   budgetCents: number | null;
+  maxConcurrentRuns: number;
   cronSchedule: string | null;
   agents: AgentDraft[];
   tasks: TaskDraft[];
@@ -38,7 +44,9 @@ type MissionCreationActions = {
   setObjective: (objective: string) => void;
   setTemplateId: (id: string | null) => void;
   setLane: (lane: MissionCreationState["lane"]) => void;
+  setSwarmPreset: (id: SwarmPresetId) => void;
   setBudgetCents: (cents: number | null) => void;
+  setMaxConcurrentRuns: (n: number) => void;
   setCronSchedule: (cron: string | null) => void;
   addAgent: (agent: AgentDraft) => void;
   removeAgent: (index: number) => void;
@@ -59,7 +67,9 @@ const INITIAL_STATE: MissionCreationState = {
   objective: "",
   templateId: null,
   lane: "autonomous",
+  swarmPresetId: null,
   budgetCents: null,
+  maxConcurrentRuns: 3,
   cronSchedule: null,
   agents: [],
   tasks: [],
@@ -97,7 +107,18 @@ const useMissionCreationStore = create<MissionCreationStore>((set) => ({
 
   setLane: (lane) => set({ lane }),
 
+  setSwarmPreset: (id) => {
+    const preset = SWARM_PRESETS[id];
+    set({
+      swarmPresetId: id,
+      budgetCents: preset.budgetCents,
+      maxConcurrentRuns: preset.maxConcurrentRuns,
+    });
+  },
+
   setBudgetCents: (budgetCents) => set({ budgetCents }),
+
+  setMaxConcurrentRuns: (maxConcurrentRuns) => set({ maxConcurrentRuns }),
 
   setCronSchedule: (cronSchedule) => set({ cronSchedule }),
 
@@ -129,11 +150,25 @@ const useMissionCreationStore = create<MissionCreationStore>((set) => ({
       ),
     })),
 
-  applyTemplate: (template) =>
+  applyTemplate: (template) => {
+    const agentCount = template.agents.length;
+    let presetId: SwarmPresetId = "swarm";
+    if (agentCount <= 5) {
+      presetId = "small";
+    } else if (agentCount <= 25) {
+      presetId = "medium";
+    } else if (agentCount <= 100) {
+      presetId = "large";
+    }
+    const preset = SWARM_PRESETS[presetId];
+
     set({
       step: 3,
       templateId: template.id,
       objective: template.defaultObjective ?? template.description,
+      swarmPresetId: presetId,
+      budgetCents: preset.budgetCents,
+      maxConcurrentRuns: preset.maxConcurrentRuns,
       agents: template.agents.map((a) => ({
         name: a.name,
         role: a.role,
@@ -148,7 +183,8 @@ const useMissionCreationStore = create<MissionCreationStore>((set) => ({
         dependsOn: t.dependsOn ?? [],
         requiredCapabilities: t.requiredCapabilities ?? [],
       })),
-    }),
+    });
+  },
 
   clearTemplate: () =>
     set({

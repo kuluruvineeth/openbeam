@@ -203,7 +203,11 @@ function AgentsDrawerContent({
 
   return (
     <div className="flex flex-col gap-4 p-4">
-      <AgentSquadBoard agents={agentBoard} events={events} />
+      <AgentSquadBoard
+        agents={agentBoard}
+        events={events}
+        missionId={missionId}
+      />
       <div className="border-border/50 border-t pt-4 dark:border-[#1d1d1d]">
         <ApprovalQueuePanel onApprove={handleApprove} onReject={handleReject} />
       </div>

@@ -77,7 +77,7 @@ export function MissionCreateContent({ onClose }: MissionCreateContentProps) {
   const isLastStep = step === 3;
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex items-center gap-1 border-border/50 border-b px-4 py-2">
         {STEPS.map((s, index) => {
           const state = resolveStepState(index, step);
@@ -95,7 +95,7 @@ export function MissionCreateContent({ onClose }: MissionCreateContentProps) {
         })}
       </div>
 
-      <ScrollArea className="flex-1 px-4 py-4">
+      <ScrollArea className="min-h-0 flex-1 px-4 py-4">
         <StepBody step={step} />
       </ScrollArea>
 

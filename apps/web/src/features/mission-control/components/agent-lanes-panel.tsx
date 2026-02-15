@@ -4,24 +4,16 @@ import type {
   MissionAgentLaneState,
   MissionApprovalQueueItem,
 } from "@openplane/types/mission-control";
-import {
-  Button,
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-  ScrollArea,
-} from "@openplane/ui";
+import { Button, Icons } from "@openplane/ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { type ReactNode, useCallback, useMemo, useState } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { getVanillaTRPCClient, useTRPC } from "@/trpc/client";
 import {
   buildSpecialistSections,
   partitionAgentsForTree,
-  type SpecialistSection,
 } from "../lib/agent-panel-layout";
-import { summarizeAgentStatuses } from "../lib/agent-status-summary";
-import { formatCents } from "../lib/budget-utils";
 import { formatRelativeTimestamp } from "../lib/time-display";
 import {
   useAgentBoard,
@@ -32,43 +24,15 @@ type AgentLanesPanelProps = {
   missionId: string;
   selectedAgentId: string | null;
   onSelectAgent: (agentId: string | null) => void;
+  onCollapse?: () => void;
 };
 
-const STATUS_STYLES: Record<
-  MissionAgentLaneState["status"],
-  {
-    dotClass: string;
-    labelClass: string;
-    label: string;
-  }
-> = {
-  running: {
-    dotClass: "bg-emerald-500",
-    labelClass:
-      "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-    label: "Running",
-  },
-  blocked: {
-    dotClass: "bg-amber-500",
-    labelClass:
-      "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400",
-    label: "Blocked",
-  },
-  failed: {
-    dotClass: "bg-destructive",
-    labelClass: "border-destructive/25 bg-destructive/10 text-destructive",
-    label: "Failed",
-  },
-  completed: {
-    dotClass: "bg-primary/70",
-    labelClass: "border-border/60 bg-muted/40 text-muted-foreground",
-    label: "Done",
-  },
-  idle: {
-    dotClass: "bg-muted-foreground/50",
-    labelClass: "border-border/60 bg-muted/40 text-muted-foreground",
-    label: "Idle",
-  },
+const STATUS_DOT_CLASS: Record<MissionAgentLaneState["status"], string> = {
+  running: "bg-emerald-500",
+  blocked: "bg-amber-500",
+  failed: "bg-destructive",
+  completed: "bg-primary/70",
+  idle: "bg-muted-foreground/50",
 };
 
 function progressSummary(agent: MissionAgentLaneState): string {
@@ -76,17 +40,9 @@ function progressSummary(agent: MissionAgentLaneState): string {
     return `${agent.stepsCompleted}/${agent.totalSteps}`;
   }
   if (agent.stepsCompleted > 0) {
-    return `${agent.stepsCompleted} ${agent.stepsCompleted === 1 ? "step" : "steps"}`;
+    return `${agent.stepsCompleted}`;
   }
   return "--";
-}
-
-function latestTool(agent: MissionAgentLaneState): string {
-  const tool = agent.recentToolCalls.at(-1);
-  if (!tool) {
-    return "";
-  }
-  return tool.toolName;
 }
 
 function formatRelativeActivityLabel(
@@ -98,34 +54,6 @@ function formatRelativeActivityLabel(
   }
 
   return formatRelativeTimestamp(timestamp, nowMs);
-}
-
-function AgentMetricChip({
-  value,
-  tone = "neutral",
-}: {
-  value: string;
-  tone?: "neutral" | "active" | "blocked" | "critical";
-}) {
-  const toneClass: Record<NonNullable<typeof tone>, string> = {
-    active:
-      "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-    blocked:
-      "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400",
-    critical: "border-destructive/25 bg-destructive/10 text-destructive",
-    neutral: "border-border/60 bg-muted/40 text-muted-foreground",
-  };
-
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-sm border px-1.5 py-0.5 text-[10px] tabular-nums",
-        toneClass[tone]
-      )}
-    >
-      {value}
-    </span>
-  );
 }
 
 function TreeDisclosure({
@@ -190,8 +118,6 @@ function AgentTreeRow({
   onSelect,
   onApprove,
   onReject,
-  trailingLabel,
-  showStatusBadge = true,
 }: {
   agent: MissionAgentLaneState;
   depth: number;
@@ -201,20 +127,16 @@ function AgentTreeRow({
   onSelect: (id: string) => void;
   onApprove: (id: string) => void;
   onReject: (id: string) => void;
-  trailingLabel?: ReactNode;
-  showStatusBadge?: boolean;
 }) {
-  const style = STATUS_STYLES[agent.status];
+  const dotClass = STATUS_DOT_CLASS[agent.status];
   const updatedLabel = formatRelativeActivityLabel(agent.lastActivityAt, nowMs);
-  const secondaryLabel =
-    agent.currentTaskTitle ?? (agent.role || "No active task");
-  const toolLabel = latestTool(agent);
+  const taskLabel = agent.currentTaskTitle ?? (agent.role || "No active task");
   const updatedDateTime =
     typeof agent.lastActivityAt === "number"
       ? new Date(agent.lastActivityAt).toISOString()
       : null;
   const isSelected = selectedAgentId === agent.agentId;
-  const shouldShowStatusBadge = showStatusBadge || agent.status === "failed";
+  const progress = progressSummary(agent);
 
   return (
     <div
@@ -231,34 +153,19 @@ function AgentTreeRow({
         onClick={() => onSelect(agent.agentId)}
         type="button"
       >
-        <div className="flex items-center gap-2">
-          <span className={cn("h-1.5 w-1.5 rounded-full", style.dotClass)} />
-          <p className="truncate font-medium text-[12px]">{agent.agentName}</p>
-          {shouldShowStatusBadge && (
-            <span
-              className={cn(
-                "inline-flex items-center rounded-sm border px-1 py-0.5 text-[10px]",
-                style.labelClass
-              )}
-            >
-              {style.label}
-            </span>
-          )}
-          {trailingLabel}
-          <span className="ml-auto font-mono text-[10px] text-muted-foreground tabular-nums">
-            {progressSummary(agent)}
-          </span>
-          <span className="font-mono text-[10px] text-muted-foreground tabular-nums">
-            {formatCents(agent.costCents)}
+        <div className="flex items-center gap-1.5">
+          <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", dotClass)} />
+          <span className="truncate font-medium text-[12px]">
+            {agent.agentName}
           </span>
         </div>
-        <div className="mt-0.5 ml-3 flex items-center gap-2 pl-1.5 text-[10px] text-muted-foreground">
-          <span className="truncate">{secondaryLabel}</span>
-          {toolLabel.length > 0 && (
-            <span className="truncate">{toolLabel}</span>
+        <div className="mt-0.5 ml-3 flex items-center gap-1.5 text-[10px] text-muted-foreground">
+          <span className="truncate">{taskLabel}</span>
+          {progress !== "--" && (
+            <span className="shrink-0 font-mono tabular-nums">{progress}</span>
           )}
           {updatedLabel && updatedDateTime && (
-            <time className="shrink-0" dateTime={updatedDateTime}>
+            <time className="ml-auto shrink-0" dateTime={updatedDateTime}>
               {updatedLabel}
             </time>
           )}
@@ -276,78 +183,24 @@ function AgentTreeRow({
   );
 }
 
-function SpecialistSectionBranch({
-  section,
-  selectedAgentId,
-  approvalsByAgent,
-  nowMs,
-  onSelect,
-  onApprove,
-  onReject,
-}: {
-  section: SpecialistSection;
-  selectedAgentId: string | null;
-  approvalsByAgent: Map<string, MissionApprovalQueueItem>;
-  nowMs: number;
-  onSelect: (id: string) => void;
-  onApprove: (id: string) => void;
-  onReject: (id: string) => void;
-}) {
-  const defaultOpen = section.key !== "done";
-  const [open, setOpen] = useState(defaultOpen);
+type AgentFlatItem =
+  | {
+      kind: "section-header";
+      key: string;
+      label: string;
+      description: string;
+      count: number;
+    }
+  | { kind: "agent"; agent: MissionAgentLaneState; depth: number };
 
-  if (section.agents.length === 0) {
-    return null;
-  }
-
-  return (
-    <Collapsible onOpenChange={setOpen} open={open}>
-      <CollapsibleTrigger asChild>
-        <button
-          className="flex w-full items-center justify-between rounded-sm px-1 py-0.5 text-left transition-colors hover:bg-muted/30"
-          type="button"
-        >
-          <TreeDisclosure
-            count={section.agents.length}
-            label={section.label}
-            open={open}
-          />
-          <span className="truncate text-[10px] text-muted-foreground/80">
-            {section.description}
-          </span>
-        </button>
-      </CollapsibleTrigger>
-      <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
-        <div className="relative mt-1 ml-1 pl-3">
-          <div className="-translate-x-1 absolute top-0 bottom-1 left-0 w-px bg-border/55" />
-          <ul className="space-y-1">
-            {section.agents.map((agent) => (
-              <li className="relative" key={agent.agentId}>
-                <div className="-translate-y-1/2 -left-2 absolute top-1/2 h-px w-2 bg-border/55" />
-                <AgentTreeRow
-                  agent={agent}
-                  depth={0}
-                  nowMs={nowMs}
-                  onApprove={onApprove}
-                  onReject={onReject}
-                  onSelect={onSelect}
-                  pendingApproval={approvalsByAgent.get(agent.agentId)}
-                  selectedAgentId={selectedAgentId}
-                  showStatusBadge={false}
-                />
-              </li>
-            ))}
-          </ul>
-        </div>
-      </CollapsibleContent>
-    </Collapsible>
-  );
-}
+const AGENT_SECTION_HEADER_HEIGHT = 28;
+const AGENT_ROW_HEIGHT = 48;
 
 export function AgentLanesPanel({
   missionId,
   selectedAgentId,
   onSelectAgent,
+  onCollapse,
 }: AgentLanesPanelProps) {
   const agentBoard = useAgentBoard();
   const pendingApprovals = usePendingApprovals();
@@ -385,6 +238,7 @@ export function AgentLanesPanel({
     [rejectMutation]
   );
 
+  const parentRef = useRef<HTMLDivElement>(null);
   const nowMs = Date.now();
   const agents = useMemo(() => Object.values(agentBoard), [agentBoard]);
   const { leads, specialists } = useMemo(
@@ -395,17 +249,6 @@ export function AgentLanesPanel({
     () => buildSpecialistSections(specialists),
     [specialists]
   );
-  const overallCounts = useMemo(() => summarizeAgentStatuses(agents), [agents]);
-  const lastActivityAt = useMemo(
-    () =>
-      agents.reduce(
-        (latest, agent) => Math.max(latest, agent.lastActivityAt ?? 0),
-        0
-      ),
-    [agents]
-  );
-  const lastActivityLabel =
-    lastActivityAt > 0 ? formatRelativeTimestamp(lastActivityAt, nowMs) : null;
   const primaryLead = leads[0] ?? null;
   const additionalLeads = leads.slice(1);
 
@@ -424,57 +267,88 @@ export function AgentLanesPanel({
     [onSelectAgent, selectedAgentId]
   );
 
+  const [closedSections, setClosedSections] = useState<Set<string>>(
+    () => new Set(["done"])
+  );
+
+  const toggleSection = useCallback((key: string) => {
+    setClosedSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  }, []);
+
+  const flatSpecialists = useMemo(() => {
+    const items: AgentFlatItem[] = [];
+    for (const section of specialistSections) {
+      if (section.agents.length === 0) {
+        continue;
+      }
+      items.push({
+        kind: "section-header",
+        key: section.key,
+        label: section.label,
+        description: section.description,
+        count: section.agents.length,
+      });
+      if (!closedSections.has(section.key)) {
+        const isSpawned = section.key === "spawned";
+        for (const agent of section.agents) {
+          items.push({
+            kind: "agent",
+            agent,
+            depth: isSpawned ? (agent.spawnDepth ?? 0) : 0,
+          });
+        }
+      }
+    }
+    return items;
+  }, [specialistSections, closedSections]);
+
+  const virtualizer = useVirtualizer({
+    count: flatSpecialists.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: (index) =>
+      flatSpecialists[index]?.kind === "section-header"
+        ? AGENT_SECTION_HEADER_HEIGHT
+        : AGENT_ROW_HEIGHT,
+    overscan: 10,
+  });
+
   return (
     <div className="flex h-full flex-col">
       <div className="flex flex-wrap items-center gap-1.5 border-border/50 border-b px-3 py-2 dark:border-[#1d1d1d]">
+        {onCollapse && (
+          <button
+            aria-label="Collapse squad panel"
+            className="inline-flex items-center justify-center rounded-sm p-1 text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
+            onClick={onCollapse}
+            type="button"
+          >
+            <Icons.SidebarRight size={13} />
+          </button>
+        )}
         <span className="font-medium text-xs">Squad</span>
-        <AgentMetricChip value={`${agents.length} total`} />
-        {overallCounts.running > 0 && (
-          <AgentMetricChip
-            tone="active"
-            value={`${overallCounts.running} active`}
-          />
-        )}
-        {overallCounts.blocked + overallCounts.failed > 0 && (
-          <AgentMetricChip
-            tone="blocked"
-            value={`${overallCounts.blocked + overallCounts.failed} attention`}
-          />
-        )}
-        {pendingApprovals.length > 0 && (
-          <AgentMetricChip
-            tone="critical"
-            value={`${pendingApprovals.length} approvals`}
-          />
-        )}
-        {overallCounts.completed > 0 && (
-          <AgentMetricChip
-            tone="neutral"
-            value={`${overallCounts.completed} done`}
-          />
-        )}
-
-        {(lastActivityLabel || selectedAgentId) && (
-          <div className="ml-auto flex items-center gap-2">
-            {lastActivityLabel && (
-              <span className="text-[10px] text-muted-foreground">
-                Updated {lastActivityLabel}
-              </span>
-            )}
-            {selectedAgentId && (
-              <button
-                className="rounded-sm border border-border/60 px-1.5 py-0.5 text-[10px] text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground"
-                onClick={() => onSelectAgent(null)}
-                type="button"
-              >
-                Clear
-              </button>
-            )}
-          </div>
+        <span className="rounded-sm bg-muted px-1 py-0.5 font-mono text-[10px] tabular-nums">
+          {agents.length}
+        </span>
+        {selectedAgentId && (
+          <button
+            className="ml-auto rounded-sm border border-border/60 px-1.5 py-0.5 text-[10px] text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground"
+            onClick={() => onSelectAgent(null)}
+            type="button"
+          >
+            Clear
+          </button>
         )}
       </div>
 
-      <ScrollArea className="flex-1">
+      <div className="no-scrollbar flex-1 overflow-y-auto" ref={parentRef}>
         {agents.length === 0 && (
           <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
             <span className="text-sm">No agents assigned</span>
@@ -494,34 +368,74 @@ export function AgentLanesPanel({
                   onSelect={handleSelect}
                   pendingApproval={approvalsByAgent.get(primaryLead.agentId)}
                   selectedAgentId={selectedAgentId}
-                  trailingLabel={
-                    specialists.length > 0 ? (
-                      <span className="text-[10px] text-muted-foreground">
-                        orchestrating {specialists.length}
-                      </span>
-                    ) : undefined
-                  }
                 />
+              </div>
+            )}
 
-                {specialists.length > 0 && (
-                  <div className="relative mt-1 ml-3 pl-3">
-                    <div className="absolute top-0 bottom-1 left-0 w-px bg-border/60" />
-                    <div className="space-y-1">
-                      {specialistSections.map((section) => (
-                        <SpecialistSectionBranch
-                          approvalsByAgent={approvalsByAgent}
-                          key={section.key}
-                          nowMs={nowMs}
-                          onApprove={handleApprove}
-                          onReject={handleReject}
-                          onSelect={handleSelect}
-                          section={section}
-                          selectedAgentId={selectedAgentId}
-                        />
-                      ))}
+            {flatSpecialists.length > 0 && (
+              <div
+                className="relative"
+                style={{ height: `${virtualizer.getTotalSize()}px` }}
+              >
+                {virtualizer.getVirtualItems().map((vi) => {
+                  const item = flatSpecialists[vi.index];
+                  if (!item) {
+                    return null;
+                  }
+                  if (item.kind === "section-header") {
+                    return (
+                      <div
+                        className="absolute top-0 left-0 w-full"
+                        data-index={vi.index}
+                        key={`section-${item.key}`}
+                        ref={virtualizer.measureElement}
+                        style={{ transform: `translateY(${vi.start}px)` }}
+                      >
+                        <button
+                          aria-expanded={!closedSections.has(item.key)}
+                          className="flex w-full items-center justify-between rounded-sm px-1 py-0.5 text-left transition-colors hover:bg-muted/30"
+                          onClick={() => toggleSection(item.key)}
+                          type="button"
+                        >
+                          <TreeDisclosure
+                            count={item.count}
+                            label={item.label}
+                            open={!closedSections.has(item.key)}
+                          />
+                          <span className="truncate text-[10px] text-muted-foreground/80">
+                            {item.description}
+                          </span>
+                        </button>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div
+                      className="absolute top-0 left-0 w-full"
+                      data-index={vi.index}
+                      key={item.agent.agentId}
+                      ref={virtualizer.measureElement}
+                      style={{
+                        transform: `translateY(${vi.start}px)`,
+                        paddingLeft: `${item.depth * 12}px`,
+                      }}
+                    >
+                      <AgentTreeRow
+                        agent={item.agent}
+                        depth={0}
+                        nowMs={nowMs}
+                        onApprove={handleApprove}
+                        onReject={handleReject}
+                        onSelect={handleSelect}
+                        pendingApproval={approvalsByAgent.get(
+                          item.agent.agentId
+                        )}
+                        selectedAgentId={selectedAgentId}
+                      />
                     </div>
-                  </div>
-                )}
+                  );
+                })}
               </div>
             )}
 
@@ -547,31 +461,9 @@ export function AgentLanesPanel({
                 </div>
               </div>
             )}
-
-            {!primaryLead && specialists.length > 0 && (
-              <div className="rounded-sm border border-border/60 p-1.5">
-                <p className="mb-1 px-1 text-[10px] text-muted-foreground uppercase tracking-wider">
-                  Specialists
-                </p>
-                <div className="space-y-1">
-                  {specialistSections.map((section) => (
-                    <SpecialistSectionBranch
-                      approvalsByAgent={approvalsByAgent}
-                      key={section.key}
-                      nowMs={nowMs}
-                      onApprove={handleApprove}
-                      onReject={handleReject}
-                      onSelect={handleSelect}
-                      section={section}
-                      selectedAgentId={selectedAgentId}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         )}
-      </ScrollArea>
+      </div>
     </div>
   );
 }

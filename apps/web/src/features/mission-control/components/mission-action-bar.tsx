@@ -1,9 +1,17 @@
 "use client";
 
-import { Icons } from "@openplane/ui";
+import {
+  Button,
+  Icons,
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@openplane/ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { cva } from "class-variance-authority";
 import { useRouter } from "next/navigation";
+import { type ReactNode, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { toast } from "sonner";
 import { getVanillaTRPCClient, useTRPC } from "@/trpc/client";
@@ -24,15 +32,30 @@ const actionButtonVariants = cva(
           "border border-border/50 bg-muted text-muted-foreground hover:bg-muted/80",
         delete:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        spawn:
+          "border border-border/50 bg-transparent text-foreground hover:bg-muted/50",
+        extend_tiers:
+          "border border-border/50 bg-transparent text-foreground hover:bg-muted/50",
+        broadcast:
+          "border border-border/50 bg-transparent text-foreground hover:bg-muted/50",
       },
     },
   }
 );
 
 type ActionConfig = {
-  action: "start" | "pause" | "resume" | "cancel" | "archive" | "delete";
+  action:
+    | "start"
+    | "pause"
+    | "resume"
+    | "cancel"
+    | "archive"
+    | "delete"
+    | "spawn"
+    | "extend_tiers"
+    | "broadcast";
   label: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   handler: () => void;
   isPending: boolean;
 };
@@ -42,11 +65,23 @@ type MissionActionBarProps = {
   status: string;
 };
 
+type SpawnAgentInput = {
+  missionId: string;
+  name: string;
+  role: string;
+  tools: string[];
+  taskId?: string;
+};
+
 export function MissionActionBar({ missionId, status }: MissionActionBarProps) {
   const router = useRouter();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const missionActions = useMissionActions(missionId);
+
+  const [showSpawnDialog, setShowSpawnDialog] = useState(false);
+  const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
+  const [broadcastContent, setBroadcastContent] = useState("");
 
   const boardKey = trpc.missionControl.getBoard.queryOptions({}).queryKey;
 
@@ -57,11 +92,52 @@ export function MissionActionBar({ missionId, status }: MissionActionBarProps) {
       queryClient.invalidateQueries({ queryKey: boardKey });
       router.push("/missions");
     },
-    onError: (e: Error) =>
-      toast.error("Failed to delete", { description: e.message }),
+    onError: (error: Error) =>
+      toast.error("Failed to delete", { description: error.message }),
   });
 
-  const anyPending = missionActions.isLoading || deleteMutation.isPending;
+  const spawnMutation = useMutation({
+    mutationFn: (input: SpawnAgentInput) =>
+      getVanillaTRPCClient().missionControl.spawnAgent.mutate(input),
+    onSuccess: () => {
+      toast.success("Agent spawned");
+      setShowSpawnDialog(false);
+    },
+    onError: (error: Error) =>
+      toast.error("Failed to spawn agent", { description: error.message }),
+  });
+
+  const bulkExtendMutation = useMutation({
+    mutationFn: () =>
+      getVanillaTRPCClient().missionControl.bulkExtendTimeouts.mutate({
+        missionId,
+      }),
+    onSuccess: () => toast.success("Timeouts extended"),
+    onError: (error: Error) =>
+      toast.error("Failed to extend timeouts", { description: error.message }),
+  });
+
+  const broadcastMutation = useMutation({
+    mutationFn: (content: string) =>
+      getVanillaTRPCClient().missionControl.broadcastMessage.mutate({
+        missionId,
+        content,
+      }),
+    onSuccess: () => {
+      toast.success("Message broadcast to all agents");
+      setShowBroadcastDialog(false);
+      setBroadcastContent("");
+    },
+    onError: (error: Error) =>
+      toast.error("Failed to broadcast", { description: error.message }),
+  });
+
+  const anyPending =
+    missionActions.isLoading ||
+    deleteMutation.isPending ||
+    spawnMutation.isPending ||
+    bulkExtendMutation.isPending ||
+    broadcastMutation.isPending;
 
   const actions = getActionsForStatus(status, {
     start: {
@@ -95,8 +171,8 @@ export function MissionActionBar({ missionId, status }: MissionActionBarProps) {
 
   useHotkeys(
     "mod+p",
-    (e) => {
-      e.preventDefault();
+    (event) => {
+      event.preventDefault();
       if (isPausable) {
         missionActions.pause();
       }
@@ -110,8 +186,8 @@ export function MissionActionBar({ missionId, status }: MissionActionBarProps) {
 
   useHotkeys(
     "mod+shift+c",
-    (e) => {
-      e.preventDefault();
+    (event) => {
+      event.preventDefault();
       missionActions.cancel();
     },
     {
@@ -122,27 +198,138 @@ export function MissionActionBar({ missionId, status }: MissionActionBarProps) {
     [status, anyPending]
   );
 
+  useHotkeys(
+    "mod+shift+s",
+    (event) => {
+      event.preventDefault();
+      setShowSpawnDialog(true);
+    },
+    { enabled: status === "ACTIVE" && !anyPending },
+    [status, anyPending]
+  );
+
+  useHotkeys(
+    "mod+shift+e",
+    (event) => {
+      event.preventDefault();
+      bulkExtendMutation.mutate();
+    },
+    { enabled: status === "ACTIVE" && !anyPending },
+    [status, anyPending]
+  );
+
+  useHotkeys(
+    "mod+shift+b",
+    (event) => {
+      event.preventDefault();
+      setShowBroadcastDialog(true);
+    },
+    { enabled: status === "ACTIVE" && !anyPending },
+    [status, anyPending]
+  );
+
   if (actions.length === 0) {
     return null;
   }
 
   return (
-    <div className="flex items-center gap-2 border-border/50 border-t px-4 py-2.5 dark:border-[#1d1d1d]">
-      <div className="ml-auto flex items-center gap-2">
-        {actions.map((config) => (
-          <button
-            className={actionButtonVariants({ action: config.action })}
-            disabled={anyPending}
-            key={config.action}
-            onClick={config.handler}
-            type="button"
-          >
-            {config.icon}
-            {config.label}
-          </button>
-        ))}
+    <>
+      <div className="flex items-center gap-2 border-border/50 border-t px-4 py-2.5 dark:border-[#1d1d1d]">
+        {status === "ACTIVE" && (
+          <div className="flex items-center gap-1.5">
+            <button
+              className={actionButtonVariants({ action: "spawn" })}
+              disabled={anyPending}
+              onClick={() => setShowSpawnDialog(true)}
+              type="button"
+            >
+              <Icons.Plus size={14} />
+              Spawn
+            </button>
+            <button
+              className={actionButtonVariants({ action: "extend_tiers" })}
+              disabled={anyPending}
+              onClick={() => bulkExtendMutation.mutate()}
+              type="button"
+            >
+              <Icons.Timer size={14} />
+              Extend Tiers
+            </button>
+            <button
+              className={actionButtonVariants({ action: "broadcast" })}
+              disabled={anyPending}
+              onClick={() => setShowBroadcastDialog(true)}
+              type="button"
+            >
+              <Icons.MessageSquare size={14} />
+              Broadcast
+            </button>
+          </div>
+        )}
+
+        <div className="ml-auto flex items-center gap-2">
+          {actions.map((config) => (
+            <button
+              className={actionButtonVariants({ action: config.action })}
+              disabled={anyPending || config.isPending}
+              key={config.action}
+              onClick={config.handler}
+              type="button"
+            >
+              {config.icon}
+              {config.label}
+            </button>
+          ))}
+        </div>
       </div>
-    </div>
+
+      <Sheet onOpenChange={setShowSpawnDialog} open={showSpawnDialog}>
+        <SheetContent className="w-[360px] p-0 sm:max-w-[360px]" side="right">
+          <SheetHeader className="border-border/50 border-b px-4 py-3">
+            <SheetTitle className="text-base">Spawn Agent</SheetTitle>
+          </SheetHeader>
+          <SpawnAgentForm
+            isPending={spawnMutation.isPending}
+            onSubmit={(config) =>
+              spawnMutation.mutate({ missionId, ...config })
+            }
+          />
+        </SheetContent>
+      </Sheet>
+
+      <Sheet onOpenChange={setShowBroadcastDialog} open={showBroadcastDialog}>
+        <SheetContent className="w-[360px] p-0 sm:max-w-[360px]" side="right">
+          <SheetHeader className="border-border/50 border-b px-4 py-3">
+            <SheetTitle className="text-base">
+              Broadcast to All Agents
+            </SheetTitle>
+          </SheetHeader>
+          <div className="p-4">
+            <textarea
+              className="h-24 w-full resize-none rounded-sm border border-border/50 bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              onChange={(event) => setBroadcastContent(event.target.value)}
+              placeholder="Message to inject into all running agents..."
+              value={broadcastContent}
+            />
+            <div className="mt-3 flex justify-end">
+              <Button
+                disabled={
+                  broadcastContent.trim().length === 0 ||
+                  broadcastMutation.isPending
+                }
+                onClick={() =>
+                  broadcastMutation.mutate(broadcastContent.trim())
+                }
+                size="sm"
+              >
+                <Icons.ArrowRight size={14} />
+                Send
+              </Button>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+    </>
   );
 }
 
@@ -237,6 +424,94 @@ function getActionsForStatus(
     default:
       return [];
   }
+}
+
+type SpawnAgentFormProps = {
+  onSubmit: (input: {
+    name: string;
+    role: string;
+    tools: string[];
+    taskId?: string;
+  }) => void;
+  isPending: boolean;
+};
+
+function SpawnAgentForm({ onSubmit, isPending }: SpawnAgentFormProps) {
+  const [name, setName] = useState("");
+  const [role, setRole] = useState("");
+  const [tools, setTools] = useState("");
+  const [taskId, setTaskId] = useState("");
+
+  return (
+    <div className="space-y-3 p-4">
+      <div className="space-y-1">
+        <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
+          Name
+        </p>
+        <input
+          className="h-8 w-full rounded-sm border border-border/50 bg-background px-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+          onChange={(event) => setName(event.target.value)}
+          placeholder="Agent name"
+          value={name}
+        />
+      </div>
+      <div className="space-y-1">
+        <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
+          Role
+        </p>
+        <input
+          className="h-8 w-full rounded-sm border border-border/50 bg-background px-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+          onChange={(event) => setRole(event.target.value)}
+          placeholder="specialist"
+          value={role}
+        />
+      </div>
+      <div className="space-y-1">
+        <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
+          Tools
+        </p>
+        <input
+          className="h-8 w-full rounded-sm border border-border/50 bg-background px-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+          onChange={(event) => setTools(event.target.value)}
+          placeholder="search_hybrid, doc_get"
+          value={tools}
+        />
+      </div>
+      <div className="space-y-1">
+        <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
+          Task ID (optional)
+        </p>
+        <input
+          className="h-8 w-full rounded-sm border border-border/50 bg-background px-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+          onChange={(event) => setTaskId(event.target.value)}
+          placeholder="task identifier"
+          value={taskId}
+        />
+      </div>
+      <div className="flex justify-end">
+        <Button
+          disabled={
+            isPending || name.trim().length === 0 || role.trim().length === 0
+          }
+          onClick={() =>
+            onSubmit({
+              name: name.trim(),
+              role: role.trim(),
+              tools: tools
+                .split(",")
+                .map((tool) => tool.trim())
+                .filter((tool) => tool.length > 0),
+              taskId: taskId.trim().length > 0 ? taskId.trim() : undefined,
+            })
+          }
+          size="sm"
+        >
+          <Icons.Plus size={13} />
+          Spawn Agent
+        </Button>
+      </div>
+    </div>
+  );
 }
 
 export { actionButtonVariants };

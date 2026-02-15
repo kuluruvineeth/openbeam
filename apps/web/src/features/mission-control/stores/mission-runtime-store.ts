@@ -1,9 +1,13 @@
 "use client";
 
 import type {
+  AgentHealthSummary,
+  AgentMessageItem,
   MissionAgentLaneState,
   MissionApprovalQueueItem,
   MissionEventLedgerItem,
+  ReflectionHistoryEntry,
+  SpawnProvenanceRecord,
   ToolCallSummary,
 } from "@openplane/types/mission-control";
 import { create } from "zustand";
@@ -26,10 +30,16 @@ const INITIAL_BUDGET: BudgetState = {
 type MissionRuntimeState = {
   eventsByRun: Record<string, MissionEventLedgerItem[]>;
   resumeCursor: Record<string, number>;
+  evictionCursor: Record<string, number>;
   agentBoardState: Record<string, MissionAgentLaneState>;
+  agentNameIndex: Record<string, string>;
   approvalQueue: MissionApprovalQueueItem[];
   selectedApprovalIds: Set<string>;
   budgetState: BudgetState;
+  messagesByMission: Record<string, AgentMessageItem[]>;
+  reflectionHistory: Record<string, ReflectionHistoryEntry[]>;
+  healthSnapshot: AgentHealthSummary | null;
+  spawnEvents: SpawnProvenanceRecord[];
 };
 
 type AgentSeed = {
@@ -41,11 +51,13 @@ type AgentSeed = {
 
 type MissionRuntimeActions = {
   ingestEvent: (runId: string, event: MissionEventLedgerItem) => void;
+  ingestBatch: (runId: string, events: MissionEventLedgerItem[]) => void;
   replayFromCursor: (runId: string, events: MissionEventLedgerItem[]) => void;
   seedAgentBoard: (agents: AgentSeed[]) => void;
   getLastCursor: (runId: string) => number | undefined;
   reset: (runId: string) => void;
   resetAll: () => void;
+  setHealthSnapshot: (snapshot: AgentHealthSummary | null) => void;
   toggleApprovalSelection: (approvalId: string) => void;
   selectAllApprovals: () => void;
   clearApprovalSelection: () => void;
@@ -54,6 +66,9 @@ type MissionRuntimeActions = {
 type MissionRuntimeStore = MissionRuntimeState & MissionRuntimeActions;
 
 const MAX_RECENT_TOOL_CALLS = 5;
+const MAX_MESSAGES_PER_MISSION = 500;
+const MAX_REFLECTIONS_PER_AGENT = 50;
+const MAX_EVENTS_IN_MEMORY = 5000;
 
 const AGENT_STATUS_NORMALIZATION: Record<
   string,
@@ -85,23 +100,131 @@ const TERMINAL_STATUS_BY_EVENT_TYPE: Partial<
   "mission.cancelled": "idle",
 };
 
+const MESSAGE_EVENT_TYPES = new Set([
+  "agent.message_sent",
+  "agent.message_received",
+  "agent_message_sent",
+  "agent_message_received",
+]);
+
+const REFLECTION_EVENT_TYPES = new Set([
+  "agent.reflection",
+  "agent_self_evaluated",
+]);
+
+const REPLAN_EVENT_TYPES = new Set(["agent.replan", "agent_replanned"]);
+
+const ESCALATION_EVENT_TYPES = new Set(["agent.escalated", "agent_escalated"]);
+
+const SPAWN_EVENT_TYPES = new Set(["agent.spawned", "agent_spawned"]);
+
 function normalizeAgentStatus(status: string): MissionAgentLaneState["status"] {
   const normalized = status.trim().toLowerCase();
   return AGENT_STATUS_NORMALIZATION[normalized] ?? "idle";
 }
 
+function sortEventsChronologically(
+  events: MissionEventLedgerItem[]
+): MissionEventLedgerItem[] {
+  return [...events].sort(
+    (a, b) => a.timestamp - b.timestamp || a.sequence - b.sequence
+  );
+}
+
+function createDefaultAgent(
+  agentId: string,
+  agentName: string
+): MissionAgentLaneState {
+  return {
+    agentId,
+    agentName,
+    role: "",
+    status: "idle",
+    stepsCompleted: 0,
+    tokensUsed: 0,
+    costCents: 0,
+    recentToolCalls: [],
+    model: undefined,
+    errorMessage: undefined,
+    totalSteps: undefined,
+    timeoutTier: undefined,
+    chunkProgress: null,
+    reflectionScore: null,
+    replanCount: 0,
+    isReflecting: false,
+    stuckReason: null,
+    spawnedBy: null,
+    spawnDepth: 0,
+    messageCount: { sent: 0, received: 0 },
+    crossMissionLinks: [],
+  };
+}
+
+function updateToolCallStatus(
+  toolCalls: ToolCallSummary[],
+  toolCallId: string,
+  status: ToolCallSummary["status"],
+  timestamp: number
+): ToolCallSummary[] {
+  return toolCalls.map((tc) =>
+    tc.toolCallId === toolCallId
+      ? {
+          ...tc,
+          status,
+          durationMs: timestamp - tc.startedAt,
+        }
+      : tc
+  );
+}
+
+function toNonEmptyString(value: unknown): string | undefined {
+  if (typeof value === "string" && value.length > 0) {
+    return value;
+  }
+
+  return;
+}
+
+function toNumber(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value)
+    ? value
+    : undefined;
+}
+
+function toBoolean(value: unknown): boolean | undefined {
+  return typeof value === "boolean" ? value : undefined;
+}
+
+function buildAgentNameIndex(
+  board: Record<string, MissionAgentLaneState>
+): Record<string, string> {
+  const index: Record<string, string> = {};
+  for (const agent of Object.values(board)) {
+    const key = agent.agentName.trim().toLowerCase();
+    if (key) {
+      index[key] = agent.agentId;
+    }
+  }
+  return index;
+}
+
 function resolveEventAgentId(
   board: Record<string, MissionAgentLaneState>,
-  event: MissionEventLedgerItem
+  event: MissionEventLedgerItem,
+  nameIndex?: Record<string, string>
 ): string | undefined {
-  const payloadAgentId = event.payload?.agentId;
-  if (typeof payloadAgentId === "string" && payloadAgentId.length > 0) {
+  const payloadAgentId = toNonEmptyString(event.payload?.agentId);
+  if (payloadAgentId) {
     return payloadAgentId;
   }
 
   const normalizedAgentName = event.agentName?.trim().toLowerCase();
   if (!normalizedAgentName) {
     return;
+  }
+
+  if (nameIndex) {
+    return nameIndex[normalizedAgentName];
   }
 
   for (const agent of Object.values(board)) {
@@ -149,66 +272,112 @@ function applyTerminalEventToAgentBoard(
   return changed ? nextBoard : board;
 }
 
-function sortEventsChronologically(
-  events: MissionEventLedgerItem[]
-): MissionEventLedgerItem[] {
-  return [...events].sort(
-    (a, b) => a.timestamp - b.timestamp || a.sequence - b.sequence
-  );
-}
-
-function createDefaultAgent(
-  agentId: string,
-  agentName: string
-): MissionAgentLaneState {
-  return {
-    agentId,
-    agentName,
-    role: "",
-    status: "idle" as const,
-    stepsCompleted: 0,
-    tokensUsed: 0,
-    costCents: 0,
-    recentToolCalls: [],
-    model: undefined,
-    errorMessage: undefined,
-    totalSteps: undefined,
-  };
-}
-
-function updateToolCallStatus(
-  toolCalls: ToolCallSummary[],
-  toolCallId: string,
-  status: ToolCallSummary["status"],
-  timestamp: number
-): ToolCallSummary[] {
-  return toolCalls.map((tc) =>
-    tc.toolCallId === toolCallId
-      ? {
-          ...tc,
-          status,
-          durationMs: timestamp - tc.startedAt,
-        }
-      : tc
-  );
-}
-
 function applyEventToAgentBoard(
   board: Record<string, MissionAgentLaneState>,
-  event: MissionEventLedgerItem
+  event: MissionEventLedgerItem,
+  nameIndex?: Record<string, string>
 ): Record<string, MissionAgentLaneState> {
   const afterTerminal = applyTerminalEventToAgentBoard(board, event);
   if (afterTerminal !== board) {
     return afterTerminal;
   }
 
-  const agentId = resolveEventAgentId(board, event);
+  if (SPAWN_EVENT_TYPES.has(event.eventType)) {
+    const childId =
+      toNonEmptyString(event.payload?.childAgentId) ??
+      toNonEmptyString(event.payload?.spawnedAgentId) ??
+      resolveEventAgentId(board, event, nameIndex);
+
+    if (!childId) {
+      return board;
+    }
+
+    const childName =
+      toNonEmptyString(event.payload?.childAgentName) ??
+      event.agentName ??
+      childId;
+    const parentId = toNonEmptyString(event.payload?.parentAgentId) ?? null;
+    const depth = toNumber(event.payload?.spawnDepth) ?? 0;
+    const role = toNonEmptyString(event.payload?.role) ?? "";
+
+    if (nameIndex) {
+      const normalizedChildName = childName.trim().toLowerCase();
+      if (normalizedChildName) {
+        nameIndex[normalizedChildName] = childId;
+      }
+    }
+
+    return {
+      ...board,
+      [childId]: {
+        ...createDefaultAgent(childId, childName),
+        role,
+        status: "running",
+        spawnedBy: parentId,
+        spawnDepth: depth,
+        lastActivityAt: event.timestamp,
+      },
+    };
+  }
+
+  const agentId = resolveEventAgentId(board, event, nameIndex);
   if (!agentId) {
     return board;
   }
 
   const current =
     board[agentId] ?? createDefaultAgent(agentId, event.agentName ?? agentId);
+
+  if (REFLECTION_EVENT_TYPES.has(event.eventType)) {
+    const score =
+      toNumber(event.payload?.score) ??
+      toNumber(event.payload?.progressScore) ??
+      current.reflectionScore ??
+      null;
+    const isReflecting = toBoolean(event.payload?.isReflecting) ?? false;
+
+    return {
+      ...board,
+      [agentId]: {
+        ...current,
+        reflectionScore: score,
+        isReflecting,
+        lastActivityAt: event.timestamp,
+      },
+    };
+  }
+
+  if (REPLAN_EVENT_TYPES.has(event.eventType)) {
+    const reason =
+      toNonEmptyString(event.payload?.reason) ?? current.stuckReason ?? null;
+    const replanCount =
+      toNumber(event.payload?.replanCount) ?? current.replanCount + 1;
+
+    return {
+      ...board,
+      [agentId]: {
+        ...current,
+        replanCount,
+        stuckReason: reason,
+        isReflecting: false,
+        lastActivityAt: event.timestamp,
+      },
+    };
+  }
+
+  if (ESCALATION_EVENT_TYPES.has(event.eventType)) {
+    return {
+      ...board,
+      [agentId]: {
+        ...current,
+        status: "blocked",
+        stuckReason:
+          toNonEmptyString(event.payload?.reason) ?? current.stuckReason,
+        isReflecting: false,
+        lastActivityAt: event.timestamp,
+      },
+    };
+  }
 
   switch (event.eventType) {
     case "agent_dispatched":
@@ -217,12 +386,13 @@ function applyEventToAgentBoard(
         [agentId]: {
           ...current,
           status: "running",
-          role: (event.payload?.role as string) || current.role,
-          currentTaskId: event.payload?.taskId as string,
-          currentTaskTitle: event.payload?.taskTitle as string,
+          role: toNonEmptyString(event.payload?.role) ?? current.role,
+          currentTaskId: toNonEmptyString(event.payload?.taskId),
+          currentTaskTitle: toNonEmptyString(event.payload?.taskTitle),
           lastActivityAt: event.timestamp,
         },
       };
+
     case "agent_run_started":
     case "run.started":
       return {
@@ -230,16 +400,18 @@ function applyEventToAgentBoard(
         [agentId]: {
           ...current,
           status: "running",
-          role: (event.payload?.role as string) || current.role,
-          model: (event.payload?.model as string) ?? current.model,
+          role: toNonEmptyString(event.payload?.role) ?? current.role,
+          model: toNonEmptyString(event.payload?.model) ?? current.model,
+          isReflecting: false,
           lastActivityAt: event.timestamp,
         },
       };
+
     case "agent_run_completed":
     case "run.completed": {
-      const steps = (event.payload?.steps as number) ?? 0;
-      const tokens = (event.payload?.tokensUsed as number) ?? 0;
-      const cost = (event.payload?.costCents as number) ?? 0;
+      const steps = toNumber(event.payload?.steps) ?? 0;
+      const tokens = toNumber(event.payload?.tokensUsed) ?? 0;
+      const cost = toNumber(event.payload?.costCents) ?? 0;
       return {
         ...board,
         [agentId]: {
@@ -250,10 +422,13 @@ function applyEventToAgentBoard(
           costCents: cost || current.costCents,
           currentTaskId: undefined,
           currentTaskTitle: undefined,
+          isReflecting: false,
+          chunkProgress: null,
           lastActivityAt: event.timestamp,
         },
       };
     }
+
     case "agent_run_failed":
     case "run.failed":
       return {
@@ -262,33 +437,39 @@ function applyEventToAgentBoard(
           ...current,
           status: "failed",
           errorMessage:
-            (event.payload?.errorMessage as string) ??
-            (event.payload?.error as string) ??
+            toNonEmptyString(event.payload?.errorMessage) ??
+            toNonEmptyString(event.payload?.error) ??
             current.errorMessage,
+          isReflecting: false,
           lastActivityAt: event.timestamp,
         },
       };
+
     case "agent_step_completed": {
-      const stepTokens = (event.payload?.tokensUsed as number) ?? 0;
-      const stepCost = (event.payload?.costCents as number) ?? 0;
+      const stepTokens = toNumber(event.payload?.tokensUsed) ?? 0;
+      const stepCost = toNumber(event.payload?.costCents) ?? 0;
       return {
         ...board,
         [agentId]: {
           ...current,
           stepsCompleted:
-            (event.payload?.step as number) ?? current.stepsCompleted + 1,
+            toNumber(event.payload?.step) ?? current.stepsCompleted + 1,
           tokensUsed: current.tokensUsed + stepTokens,
           costCents: current.costCents + stepCost,
           lastActivityAt: event.timestamp,
         },
       };
     }
+
     case "tool.started": {
+      const toolCallId =
+        toNonEmptyString(event.payload?.toolCallId) ?? event.eventId;
+      const toolName = toNonEmptyString(event.payload?.toolName) ?? "unknown";
       const recentToolCalls = [
         ...current.recentToolCalls,
         {
-          toolCallId: event.payload?.toolCallId as string,
-          toolName: event.payload?.toolName as string,
+          toolCallId,
+          toolName,
           status: "running" as const,
           startedAt: event.timestamp,
         },
@@ -304,8 +485,9 @@ function applyEventToAgentBoard(
         },
       };
     }
+
     case "tool.completed": {
-      const toolCallId = event.payload?.toolCallId as string;
+      const toolCallId = toNonEmptyString(event.payload?.toolCallId) ?? "";
       return {
         ...board,
         [agentId]: {
@@ -321,35 +503,39 @@ function applyEventToAgentBoard(
         },
       };
     }
+
     case "tool.failed": {
-      const failedToolCallId = event.payload?.toolCallId as string;
+      const toolCallId = toNonEmptyString(event.payload?.toolCallId) ?? "";
       return {
         ...board,
         [agentId]: {
           ...current,
           recentToolCalls: updateToolCallStatus(
             current.recentToolCalls,
-            failedToolCallId,
+            toolCallId,
             "failed",
             event.timestamp
           ),
           errorMessage:
-            (event.payload?.errorMessage as string) ?? current.errorMessage,
+            toNonEmptyString(event.payload?.errorMessage) ??
+            current.errorMessage,
           lastActivityAt: event.timestamp,
         },
       };
     }
+
     case "task.claimed":
       return {
         ...board,
         [agentId]: {
           ...current,
           status: "running",
-          currentTaskId: event.payload?.taskId as string,
-          currentTaskTitle: event.payload?.taskTitle as string,
+          currentTaskId: toNonEmptyString(event.payload?.taskId),
+          currentTaskTitle: toNonEmptyString(event.payload?.taskTitle),
           lastActivityAt: event.timestamp,
         },
       };
+
     case "task.completed":
       return {
         ...board,
@@ -361,6 +547,7 @@ function applyEventToAgentBoard(
           lastActivityAt: event.timestamp,
         },
       };
+
     case "approval.requested":
     case "approval_requested":
       return {
@@ -371,6 +558,7 @@ function applyEventToAgentBoard(
           lastActivityAt: event.timestamp,
         },
       };
+
     case "approval.resolved":
     case "approval_resolved":
       return {
@@ -381,6 +569,100 @@ function applyEventToAgentBoard(
           lastActivityAt: event.timestamp,
         },
       };
+
+    case "agent.timeout_extended":
+    case "agent_timeout_extended": {
+      const tier = toNonEmptyString(event.payload?.tier) as
+        | MissionAgentLaneState["timeoutTier"]
+        | undefined;
+
+      return {
+        ...board,
+        [agentId]: {
+          ...current,
+          timeoutTier: tier ?? current.timeoutTier,
+          lastActivityAt: event.timestamp,
+        },
+      };
+    }
+
+    case "chain.progress": {
+      const chunkCurrent = toNumber(event.payload?.current) ?? 0;
+      const chunkTotal = toNumber(event.payload?.total) ?? 0;
+
+      return {
+        ...board,
+        [agentId]: {
+          ...current,
+          chunkProgress:
+            chunkTotal > 0
+              ? { current: chunkCurrent, total: chunkTotal }
+              : null,
+          lastActivityAt: event.timestamp,
+        },
+      };
+    }
+
+    case "agent.message_sent":
+    case "agent_message_sent": {
+      const messageCount = current.messageCount ?? { sent: 0, received: 0 };
+      return {
+        ...board,
+        [agentId]: {
+          ...current,
+          messageCount: {
+            ...messageCount,
+            sent: messageCount.sent + 1,
+          },
+          lastActivityAt: event.timestamp,
+        },
+      };
+    }
+
+    case "agent.message_received":
+    case "agent_message_received": {
+      const messageCount = current.messageCount ?? { sent: 0, received: 0 };
+      return {
+        ...board,
+        [agentId]: {
+          ...current,
+          messageCount: {
+            ...messageCount,
+            received: messageCount.received + 1,
+          },
+          lastActivityAt: event.timestamp,
+        },
+      };
+    }
+
+    case "cross_mission.knowledge_imported":
+    case "cross_mission.agent_shared": {
+      const missionId = toNonEmptyString(event.payload?.linkedMissionId) ?? "";
+      const missionName =
+        toNonEmptyString(event.payload?.linkedMissionName) ?? "";
+      const type: MissionAgentLaneState["crossMissionLinks"][number]["type"] =
+        event.eventType === "cross_mission.agent_shared"
+          ? "shared"
+          : "knowledge";
+      const crossMissionLinks = [
+        ...current.crossMissionLinks,
+        {
+          missionId,
+          missionName,
+          type,
+        },
+      ];
+
+      return {
+        ...board,
+        [agentId]: {
+          ...current,
+          crossMissionLinks,
+          lastActivityAt: event.timestamp,
+        },
+      };
+    }
+
     default:
       return board;
   }
@@ -397,23 +679,27 @@ function applyEventToApprovals(
     return [
       ...queue,
       {
-        approvalId: event.payload?.approvalId as string,
+        approvalId:
+          toNonEmptyString(event.payload?.approvalId) ?? event.eventId,
         missionId: event.missionId,
         runId: event.runId,
         agentName: event.agentName ?? "",
-        actionIntent: (event.payload?.intent as string) ?? "",
+        actionIntent: toNonEmptyString(event.payload?.intent) ?? "",
         riskLevel:
-          (event.payload?.riskLevel as MissionApprovalQueueItem["riskLevel"]) ??
-          "medium",
+          (toNonEmptyString(
+            event.payload?.riskLevel
+          ) as MissionApprovalQueueItem["riskLevel"]) ?? "medium",
         status: "pending",
         requestedAt: event.timestamp,
-        agentId: event.payload?.agentId as string | undefined,
-        toolName: event.payload?.toolName as string | undefined,
+        agentId: toNonEmptyString(event.payload?.agentId),
+        toolName: toNonEmptyString(event.payload?.toolName),
         toolParams: event.payload?.toolParams as
           | Record<string, unknown>
           | undefined,
-        riskFactors: event.payload?.riskFactors as string[] | undefined,
-        expiresAt: event.payload?.expiresAt as number | undefined,
+        riskFactors: Array.isArray(event.payload?.riskFactors)
+          ? (event.payload?.riskFactors as string[])
+          : undefined,
+        expiresAt: toNumber(event.payload?.expiresAt),
       },
     ];
   }
@@ -422,17 +708,17 @@ function applyEventToApprovals(
     event.eventType === "approval.resolved" ||
     event.eventType === "approval_resolved"
   ) {
-    const approvalId = event.payload?.approvalId as string;
+    const approvalId = toNonEmptyString(event.payload?.approvalId) ?? "";
     return queue.map((item) =>
       item.approvalId === approvalId
         ? {
             ...item,
-            status: (event.payload?.approved
+            status: (toBoolean(event.payload?.approved)
               ? "approved"
               : "rejected") as MissionApprovalQueueItem["status"],
             resolvedAt: event.timestamp,
-            resolvedById: event.payload?.resolvedById as string | undefined,
-            reason: event.payload?.reason as string | undefined,
+            resolvedById: toNonEmptyString(event.payload?.resolvedById),
+            reason: toNonEmptyString(event.payload?.reason),
           }
         : item
     );
@@ -446,12 +732,10 @@ function applyEventToBudget(
   event: MissionEventLedgerItem
 ): BudgetState {
   if (event.eventType === "cost.updated") {
-    const agentId = event.payload?.agentId as string | undefined;
-    const costCents = event.payload?.costCents as number | undefined;
-    const consumedCents = event.payload?.consumedCents as number | undefined;
-    const burnRate = event.payload?.burnRateCentsPerMinute as
-      | number
-      | undefined;
+    const agentId = toNonEmptyString(event.payload?.agentId);
+    const costCents = toNumber(event.payload?.costCents);
+    const consumedCents = toNumber(event.payload?.consumedCents);
+    const burnRate = toNumber(event.payload?.burnRateCentsPerMinute);
 
     return {
       ...budget,
@@ -467,20 +751,143 @@ function applyEventToBudget(
   if (event.eventType === "budget.set") {
     return {
       ...budget,
-      budgetCents: (event.payload?.budgetCents as number) ?? budget.budgetCents,
+      budgetCents: toNumber(event.payload?.budgetCents) ?? budget.budgetCents,
     };
   }
 
   return budget;
 }
 
+function applyEventToMessages(
+  messages: Record<string, AgentMessageItem[]>,
+  event: MissionEventLedgerItem
+): Record<string, AgentMessageItem[]> {
+  if (!MESSAGE_EVENT_TYPES.has(event.eventType)) {
+    return messages;
+  }
+
+  const missionId = event.missionId;
+  const existing = messages[missionId] ?? [];
+
+  const messageItem: AgentMessageItem = {
+    messageId: toNonEmptyString(event.payload?.messageId) ?? event.eventId,
+    missionId,
+    fromAgentId: toNonEmptyString(event.payload?.fromAgentId) ?? "",
+    fromAgentName:
+      toNonEmptyString(event.payload?.fromAgentName) ?? event.agentName ?? "",
+    toAgentId: toNonEmptyString(event.payload?.toAgentId) ?? null,
+    toAgentName: toNonEmptyString(event.payload?.toAgentName) ?? null,
+    channel:
+      (toNonEmptyString(
+        event.payload?.channel
+      ) as AgentMessageItem["channel"]) ?? "direct",
+    contentPreview: toNonEmptyString(event.payload?.preview) ?? event.summary,
+    fullContent: toNonEmptyString(event.payload?.content),
+    replyToMessageId: toNonEmptyString(event.payload?.replyToMessageId) ?? null,
+    sourceMissionId: toNonEmptyString(event.payload?.sourceMissionId),
+    sourceMissionName: toNonEmptyString(event.payload?.sourceMissionName),
+    timestamp: event.timestamp,
+  };
+
+  const deduped = existing.some(
+    (item) => item.messageId === messageItem.messageId
+  )
+    ? existing
+    : [...existing, messageItem];
+
+  return {
+    ...messages,
+    [missionId]: deduped.slice(-MAX_MESSAGES_PER_MISSION),
+  };
+}
+
+function applyEventToReflections(
+  history: Record<string, ReflectionHistoryEntry[]>,
+  event: MissionEventLedgerItem
+): Record<string, ReflectionHistoryEntry[]> {
+  if (!REFLECTION_EVENT_TYPES.has(event.eventType)) {
+    return history;
+  }
+
+  const agentId =
+    toNonEmptyString(event.payload?.agentId) ??
+    toNonEmptyString(event.payload?.agent) ??
+    "";
+  if (!agentId) {
+    return history;
+  }
+
+  const existing = history[agentId] ?? [];
+  const entry: ReflectionHistoryEntry = {
+    entryId: event.eventId,
+    agentId,
+    agentName: event.agentName ?? agentId,
+    stepNumber:
+      toNumber(event.payload?.stepNumber) ?? toNumber(event.payload?.step) ?? 0,
+    score:
+      toNumber(event.payload?.score) ??
+      toNumber(event.payload?.progressScore) ??
+      0,
+    verbalMemory:
+      toNonEmptyString(event.payload?.verbalMemory) ??
+      toNonEmptyString(event.payload?.reasoning) ??
+      event.summary,
+    timestamp: event.timestamp,
+    triggeredReplan: toBoolean(event.payload?.triggeredReplan) ?? false,
+  };
+
+  return {
+    ...history,
+    [agentId]: [...existing, entry].slice(-MAX_REFLECTIONS_PER_AGENT),
+  };
+}
+
+function applyEventToSpawns(
+  spawns: SpawnProvenanceRecord[],
+  event: MissionEventLedgerItem
+): SpawnProvenanceRecord[] {
+  if (!SPAWN_EVENT_TYPES.has(event.eventType)) {
+    return spawns;
+  }
+
+  const record: SpawnProvenanceRecord = {
+    childAgentId:
+      toNonEmptyString(event.payload?.childAgentId) ??
+      toNonEmptyString(event.payload?.spawnedAgentId) ??
+      "",
+    childAgentName:
+      toNonEmptyString(event.payload?.childAgentName) ?? event.agentName ?? "",
+    parentAgentId: toNonEmptyString(event.payload?.parentAgentId) ?? "",
+    parentAgentName: toNonEmptyString(event.payload?.parentAgentName) ?? "",
+    spawnDepth: toNumber(event.payload?.spawnDepth) ?? 0,
+    spawnReason: toNonEmptyString(event.payload?.spawnReason),
+    timestamp: event.timestamp,
+  };
+
+  if (record.childAgentId.length === 0) {
+    return spawns;
+  }
+
+  if (spawns.some((spawn) => spawn.childAgentId === record.childAgentId)) {
+    return spawns;
+  }
+
+  return [...spawns, record];
+}
+
 const INITIAL_STATE: MissionRuntimeState = {
   eventsByRun: {},
   resumeCursor: {},
+  evictionCursor: {},
   agentBoardState: {},
+  agentNameIndex: {},
   approvalQueue: [],
   selectedApprovalIds: new Set(),
   budgetState: INITIAL_BUDGET,
+  messagesByMission: {},
+  reflectionHistory: {},
+  healthSnapshot: null,
+  spawnEvents: [],
 };
 
 export const useMissionRuntimeStore = create<MissionRuntimeStore>(
@@ -488,33 +895,84 @@ export const useMissionRuntimeStore = create<MissionRuntimeStore>(
     ...INITIAL_STATE,
 
     ingestEvent: (runId, event) => {
-      const currentCursor = get().resumeCursor[runId] ?? 0;
-      const maxKnownTimestamp = (get().eventsByRun[runId] ?? []).reduce(
-        (max, e) => Math.max(max, e.timestamp),
-        0
-      );
-      if (
-        event.sequence <= currentCursor &&
-        event.timestamp <= maxKnownTimestamp
-      ) {
+      get().ingestBatch(runId, [event]);
+    },
+
+    ingestBatch: (runId, events) => {
+      if (events.length === 0) {
         return;
       }
 
       set((state) => {
+        const currentCursor = state.resumeCursor[runId] ?? 0;
+        const existingEvents = state.eventsByRun[runId] ?? [];
+        const maxKnownTimestamp = existingEvents.reduce(
+          (max, item) => Math.max(max, item.timestamp),
+          0
+        );
+
+        const newEvents = events.filter(
+          (event) =>
+            event.sequence > currentCursor ||
+            event.timestamp > maxKnownTimestamp
+        );
+
+        if (newEvents.length === 0) {
+          return state;
+        }
+
         const runEvents = sortEventsChronologically([
-          ...(state.eventsByRun[runId] ?? []),
-          event,
+          ...existingEvents,
+          ...newEvents,
         ]);
 
+        let board = { ...state.agentBoardState };
+        const nameIndex = { ...state.agentNameIndex };
+        let approvals = [...state.approvalQueue];
+        let budget = { ...state.budgetState };
+        let messages = { ...state.messagesByMission };
+        let reflections = { ...state.reflectionHistory };
+        let spawns = [...state.spawnEvents];
+
+        for (const event of newEvents) {
+          board = applyEventToAgentBoard(board, event, nameIndex);
+          approvals = applyEventToApprovals(approvals, event);
+          budget = applyEventToBudget(budget, event);
+          messages = applyEventToMessages(messages, event);
+          reflections = applyEventToReflections(reflections, event);
+          spawns = applyEventToSpawns(spawns, event);
+        }
+
+        let maxSequence = currentCursor;
+        for (const event of newEvents) {
+          if (event.sequence > maxSequence) {
+            maxSequence = event.sequence;
+          }
+        }
+
+        let evictionCursor = state.evictionCursor[runId] ?? 0;
+        let finalEvents = runEvents;
+        if (runEvents.length > MAX_EVENTS_IN_MEMORY) {
+          const evictCount = runEvents.length - MAX_EVENTS_IN_MEMORY;
+          const evictedSlice = runEvents.slice(0, evictCount);
+          evictionCursor = evictedSlice.at(-1)?.sequence ?? evictionCursor;
+          finalEvents = runEvents.slice(evictCount);
+        }
+
         return {
-          eventsByRun: { ...state.eventsByRun, [runId]: runEvents },
+          eventsByRun: { ...state.eventsByRun, [runId]: finalEvents },
           resumeCursor: {
             ...state.resumeCursor,
-            [runId]: Math.max(state.resumeCursor[runId] ?? 0, event.sequence),
+            [runId]: maxSequence,
           },
-          agentBoardState: applyEventToAgentBoard(state.agentBoardState, event),
-          approvalQueue: applyEventToApprovals(state.approvalQueue, event),
-          budgetState: applyEventToBudget(state.budgetState, event),
+          evictionCursor: { ...state.evictionCursor, [runId]: evictionCursor },
+          agentBoardState: board,
+          agentNameIndex: nameIndex,
+          approvalQueue: approvals,
+          budgetState: budget,
+          messagesByMission: messages,
+          reflectionHistory: reflections,
+          spawnEvents: spawns,
         };
       });
     },
@@ -523,28 +981,47 @@ export const useMissionRuntimeStore = create<MissionRuntimeStore>(
       set((state) => {
         const orderedEvents = sortEventsChronologically(events);
         let board = { ...state.agentBoardState };
+        const nameIndex = { ...state.agentNameIndex };
         let approvals = [...state.approvalQueue];
         let budget = { ...state.budgetState };
+        let messages = { ...state.messagesByMission };
+        let reflections = { ...state.reflectionHistory };
+        let spawns = [...state.spawnEvents];
 
         for (const event of orderedEvents) {
-          board = applyEventToAgentBoard(board, event);
+          board = applyEventToAgentBoard(board, event, nameIndex);
           approvals = applyEventToApprovals(approvals, event);
           budget = applyEventToBudget(budget, event);
+          messages = applyEventToMessages(messages, event);
+          reflections = applyEventToReflections(reflections, event);
+          spawns = applyEventToSpawns(spawns, event);
         }
 
         const maxSequence = orderedEvents.reduce(
           (max, event) => Math.max(max, event.sequence),
           0
         );
+
+        let evictionCursor = state.evictionCursor[runId] ?? 0;
+        let finalEvents = orderedEvents;
+        if (orderedEvents.length > MAX_EVENTS_IN_MEMORY) {
+          const evictCount = orderedEvents.length - MAX_EVENTS_IN_MEMORY;
+          const evictedSlice = orderedEvents.slice(0, evictCount);
+          evictionCursor = evictedSlice.at(-1)?.sequence ?? evictionCursor;
+          finalEvents = orderedEvents.slice(evictCount);
+        }
+
         return {
-          eventsByRun: { ...state.eventsByRun, [runId]: orderedEvents },
-          resumeCursor: {
-            ...state.resumeCursor,
-            [runId]: maxSequence,
-          },
+          eventsByRun: { ...state.eventsByRun, [runId]: finalEvents },
+          resumeCursor: { ...state.resumeCursor, [runId]: maxSequence },
+          evictionCursor: { ...state.evictionCursor, [runId]: evictionCursor },
           agentBoardState: board,
+          agentNameIndex: nameIndex,
           approvalQueue: approvals,
           budgetState: budget,
+          messagesByMission: messages,
+          reflectionHistory: reflections,
+          spawnEvents: spawns,
         };
       });
     },
@@ -552,18 +1029,23 @@ export const useMissionRuntimeStore = create<MissionRuntimeStore>(
     seedAgentBoard: (agents) => {
       set((state) => {
         const board = { ...state.agentBoardState };
+        const nameIndex = { ...state.agentNameIndex };
         for (const agent of agents) {
+          const normalizedName = agent.name.trim().toLowerCase();
           if (!board[agent.id]) {
             board[agent.id] = {
               ...createDefaultAgent(agent.id, agent.name),
               role: agent.role,
               status: normalizeAgentStatus(agent.status),
             };
+            if (normalizedName) {
+              nameIndex[normalizedName] = agent.id;
+            }
           } else if (!board[agent.id].role && agent.role) {
             board[agent.id] = { ...board[agent.id], role: agent.role };
           }
         }
-        return { agentBoardState: board };
+        return { agentBoardState: board, agentNameIndex: nameIndex };
       });
     },
 
@@ -571,13 +1053,25 @@ export const useMissionRuntimeStore = create<MissionRuntimeStore>(
 
     reset: (runId) => {
       set((state) => {
-        const { [runId]: _, ...rest } = state.eventsByRun;
-        const { [runId]: __, ...cursors } = state.resumeCursor;
-        return { eventsByRun: rest, resumeCursor: cursors };
+        const { [runId]: _removedEvents, ...restEvents } = state.eventsByRun;
+        const { [runId]: _removedCursor, ...restCursors } = state.resumeCursor;
+        const { [runId]: _removedEviction, ...restEviction } =
+          state.evictionCursor;
+        return {
+          eventsByRun: restEvents,
+          resumeCursor: restCursors,
+          evictionCursor: restEviction,
+        };
       });
     },
 
-    resetAll: () => set(INITIAL_STATE),
+    resetAll: () =>
+      set({
+        ...INITIAL_STATE,
+        selectedApprovalIds: new Set(),
+      }),
+
+    setHealthSnapshot: (snapshot) => set({ healthSnapshot: snapshot }),
 
     toggleApprovalSelection: (approvalId) => {
       set((state) => {
@@ -594,8 +1088,8 @@ export const useMissionRuntimeStore = create<MissionRuntimeStore>(
     selectAllApprovals: () => {
       set((state) => {
         const pendingIds = state.approvalQueue
-          .filter((a) => a.status === "pending")
-          .map((a) => a.approvalId);
+          .filter((approval) => approval.status === "pending")
+          .map((approval) => approval.approvalId);
         return { selectedApprovalIds: new Set(pendingIds) };
       });
     },
@@ -607,32 +1101,153 @@ export const useMissionRuntimeStore = create<MissionRuntimeStore>(
 );
 
 const EMPTY_EVENTS: MissionEventLedgerItem[] = [];
+const EMPTY_MESSAGES: AgentMessageItem[] = [];
+const EMPTY_REFLECTIONS: ReflectionHistoryEntry[] = [];
+const EMPTY_ALL_REFLECTIONS: ReflectionHistoryEntry[] = [];
+const EMPTY_SPAWNS: SpawnProvenanceRecord[] = [];
 
 export const useMissionEvents = (runId: string) =>
-  useMissionRuntimeStore((s) => s.eventsByRun[runId] ?? EMPTY_EVENTS);
+  useMissionRuntimeStore((state) => state.eventsByRun[runId] ?? EMPTY_EVENTS);
 
 export const useAgentBoard = () =>
-  useMissionRuntimeStore((s) => s.agentBoardState);
+  useMissionRuntimeStore(useShallow((state) => state.agentBoardState));
+
+export const useAgentLane = (agentId: string) =>
+  useMissionRuntimeStore((state) => state.agentBoardState[agentId]);
+
+export const useAgentName = (agentId: string | null) =>
+  useMissionRuntimeStore((state) =>
+    agentId ? (state.agentBoardState[agentId]?.agentName ?? null) : null
+  );
+
+export const useAgentStatusCounts = () =>
+  useMissionRuntimeStore(
+    useShallow((state) => {
+      const agents = Object.values(state.agentBoardState);
+      const total = agents.length;
+      const running = agents.filter((a) => a.status === "running").length;
+      const blocked = agents.filter((a) => a.status === "blocked").length;
+      const completed = agents.filter((a) => a.status === "completed").length;
+      const failed = agents.filter((a) => a.status === "failed").length;
+      return {
+        total,
+        active: running + blocked,
+        running,
+        blocked,
+        completed,
+        failed,
+      };
+    })
+  );
+
+export const useRunningAgentCount = () =>
+  useMissionRuntimeStore(
+    (state) =>
+      Object.values(state.agentBoardState).filter((a) => a.status === "running")
+        .length
+  );
+
+export const useAgentNameMap = () =>
+  useMissionRuntimeStore(
+    useShallow((state) => {
+      const result: Record<string, { agentName: string; role?: string }> = {};
+      for (const [id, lane] of Object.entries(state.agentBoardState)) {
+        result[id] = { agentName: lane.agentName, role: lane.role };
+      }
+      return result;
+    })
+  );
 
 export const useApprovalQueue = () =>
-  useMissionRuntimeStore((s) => s.approvalQueue);
+  useMissionRuntimeStore((state) => state.approvalQueue);
 
 export const usePendingApprovals = () =>
   useMissionRuntimeStore(
-    useShallow((s) => s.approvalQueue.filter((a) => a.status === "pending"))
+    useShallow((state) =>
+      state.approvalQueue.filter((approval) => approval.status === "pending")
+    )
   );
 
 export const useBudgetState = () =>
-  useMissionRuntimeStore((s) => s.budgetState);
+  useMissionRuntimeStore((state) => state.budgetState);
 
 export const useBudgetPercentage = () =>
-  useMissionRuntimeStore((s) =>
-    s.budgetState.budgetCents > 0
-      ? (s.budgetState.consumedCents / s.budgetState.budgetCents) * 100
+  useMissionRuntimeStore((state) =>
+    state.budgetState.budgetCents > 0
+      ? (state.budgetState.consumedCents / state.budgetState.budgetCents) * 100
       : 0
   );
 
-export const useSelectedApprovalIds = () =>
-  useMissionRuntimeStore((s) => s.selectedApprovalIds);
+export const useMessages = (missionId: string) =>
+  useMissionRuntimeStore(
+    (state) => state.messagesByMission[missionId] ?? EMPTY_MESSAGES
+  );
 
-export { applyEventToAgentBoard, applyEventToApprovals, applyEventToBudget };
+export const useReflectionHistory = (agentId: string) =>
+  useMissionRuntimeStore(
+    (state) => state.reflectionHistory[agentId] ?? EMPTY_REFLECTIONS
+  );
+
+export const useAllReflections = () =>
+  useMissionRuntimeStore(
+    useShallow((state) => {
+      const entries = Object.values(state.reflectionHistory).flat();
+      if (entries.length === 0) {
+        return EMPTY_ALL_REFLECTIONS;
+      }
+      return entries.sort((a, b) => a.timestamp - b.timestamp);
+    })
+  );
+
+export const useHealthSnapshot = () =>
+  useMissionRuntimeStore((state) => state.healthSnapshot);
+
+export const useSpawnEvents = () =>
+  useMissionRuntimeStore((state) => state.spawnEvents ?? EMPTY_SPAWNS);
+
+export const useSpawnedAgents = () =>
+  useMissionRuntimeStore(
+    useShallow((state) =>
+      Object.values(state.agentBoardState).filter(
+        (agent) => agent.spawnedBy !== null && agent.spawnedBy !== undefined
+      )
+    )
+  );
+
+export const useReflectingAgents = () =>
+  useMissionRuntimeStore(
+    useShallow((state) =>
+      Object.values(state.agentBoardState).filter((agent) => agent.isReflecting)
+    )
+  );
+
+export const useStuckAgents = () =>
+  useMissionRuntimeStore(
+    useShallow((state) =>
+      Object.values(state.agentBoardState).filter(
+        (agent) => agent.stuckReason !== null && agent.stuckReason !== undefined
+      )
+    )
+  );
+
+export const useMessageCount = (missionId: string) =>
+  useMissionRuntimeStore(
+    (state) => (state.messagesByMission[missionId] ?? []).length
+  );
+
+export const useSelectedApprovalIds = () =>
+  useMissionRuntimeStore((state) => state.selectedApprovalIds);
+
+export const useEvictionCursor = (runId: string) =>
+  useMissionRuntimeStore((state) => state.evictionCursor[runId] ?? 0);
+
+export {
+  applyEventToAgentBoard,
+  applyEventToApprovals,
+  applyEventToBudget,
+  applyEventToMessages,
+  applyEventToReflections,
+  applyEventToSpawns,
+  buildAgentNameIndex,
+  resolveEventAgentId,
+};

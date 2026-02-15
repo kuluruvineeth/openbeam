@@ -10,6 +10,9 @@ import { cn } from "@/lib/utils";
 import {
   buildAgentMetricTokens,
   formatAgentLastActivity,
+  reflectionScoreColor,
+  TIMEOUT_TIER_LABELS,
+  TIMEOUT_TIER_STYLES,
 } from "../lib/agent-lane-metrics";
 import { formatAbsoluteClockTime } from "../lib/time-display";
 import { AgentToolCallStrip } from "./agent-tool-call-strip";
@@ -66,12 +69,21 @@ const agentCardVariants = cva(
         true: "border-primary/50 bg-primary/[0.05] shadow-[inset_0_0_0_1px_rgba(59,130,246,0.22)] shadow-primary/5",
         false: "",
       },
+      reflecting: {
+        true: "ring-1 ring-blue-400/35",
+        false: "",
+      },
       level: {
         lead: "px-3 py-2.5",
         member: "px-2.5 py-2",
       },
     },
-    defaultVariants: { status: "idle", selected: false, level: "member" },
+    defaultVariants: {
+      status: "idle",
+      selected: false,
+      reflecting: false,
+      level: "member",
+    },
   }
 );
 
@@ -149,7 +161,12 @@ export function AgentLaneCard({
     <button
       aria-pressed={Boolean(isSelected)}
       className={cn(
-        agentCardVariants({ status: agent.status, selected: isSelected, level })
+        agentCardVariants({
+          status: agent.status,
+          selected: isSelected,
+          reflecting: agent.isReflecting ?? false,
+          level,
+        })
       )}
       onClick={() => onSelect?.(agent.agentId)}
       type="button"
@@ -247,6 +264,109 @@ export function AgentLaneCard({
           <span className="shrink-0 text-[10px] text-muted-foreground tabular-nums">
             {agent.stepsCompleted}/{agent.totalSteps}
           </span>
+        </div>
+      )}
+
+      {agent.chunkProgress && agent.chunkProgress.total > 0 && (
+        <div className="flex items-center gap-2 pl-4">
+          <div className="h-1 flex-1 overflow-hidden rounded-sm bg-muted">
+            <div
+              className="h-full rounded-sm bg-primary/50 transition-all duration-500"
+              style={{
+                width: `${Math.min(
+                  (agent.chunkProgress.current / agent.chunkProgress.total) *
+                    100,
+                  100
+                )}%`,
+              }}
+            />
+          </div>
+          <span className="shrink-0 font-mono text-[10px] text-muted-foreground tabular-nums">
+            {agent.chunkProgress.current}/{agent.chunkProgress.total}
+          </span>
+        </div>
+      )}
+
+      {(agent.reflectionScore !== null &&
+        agent.reflectionScore !== undefined) ||
+      agent.replanCount > 0 ? (
+        <div className="flex items-center gap-1.5 pl-4">
+          {agent.reflectionScore !== null &&
+            agent.reflectionScore !== undefined && (
+              <span
+                className={cn(
+                  "inline-flex items-center gap-0.5 rounded-sm border px-1 py-0.5 text-[10px] tabular-nums",
+                  reflectionScoreColor(agent.reflectionScore)
+                )}
+              >
+                <Icons.BrainCircuit size={9} />
+                {agent.reflectionScore.toFixed(2)}
+              </span>
+            )}
+          {agent.replanCount > 0 && (
+            <span className="inline-flex items-center rounded-sm border border-amber-500/30 bg-amber-500/10 px-1 py-0.5 text-[10px] text-amber-600 tabular-nums dark:text-amber-400">
+              R{agent.replanCount}
+            </span>
+          )}
+        </div>
+      ) : null}
+
+      {agent.spawnedBy && (
+        <div className="flex items-center gap-1.5 pl-4 text-[10px] text-muted-foreground">
+          <Icons.GitBranch
+            className="shrink-0 text-muted-foreground/60"
+            size={10}
+          />
+          <span className="truncate">
+            Spawned by{" "}
+            <span className="font-medium text-foreground">
+              {agent.spawnedBy}
+            </span>
+          </span>
+        </div>
+      )}
+
+      {agent.messageCount &&
+        (agent.messageCount.sent > 0 || agent.messageCount.received > 0) && (
+          <div className="flex items-center gap-1.5 pl-4 text-[10px] text-muted-foreground tabular-nums">
+            <Icons.MessageSquare
+              className="shrink-0 text-muted-foreground/60"
+              size={10}
+            />
+            <span>
+              {agent.messageCount.sent}
+              {" sent / "}
+              {agent.messageCount.received}
+              {" recv"}
+            </span>
+          </div>
+        )}
+
+      {agent.timeoutTier &&
+        (agent.timeoutTier === "extended" ||
+          agent.timeoutTier === "marathon") && (
+          <div className="flex items-center gap-1.5 pl-4">
+            <span
+              className={cn(
+                "inline-flex items-center gap-0.5 rounded-sm border px-1 py-0.5 text-[10px]",
+                TIMEOUT_TIER_STYLES[agent.timeoutTier]
+              )}
+            >
+              <Icons.Timer size={9} />
+              {TIMEOUT_TIER_LABELS[agent.timeoutTier]}
+            </span>
+          </div>
+        )}
+
+      {agent.stuckReason && agent.status !== "failed" && (
+        <div className="flex items-center gap-1.5 pl-4">
+          <Icons.AlertTriangle
+            className="shrink-0 text-amber-500/70"
+            size={10}
+          />
+          <p className="truncate text-[10px] text-amber-600 dark:text-amber-400">
+            {agent.stuckReason}
+          </p>
         </div>
       )}
 

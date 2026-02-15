@@ -42,7 +42,10 @@ type MissionControlViewProps = {
   runId: string;
 };
 
-export function MissionControlView({ runId }: MissionControlViewProps) {
+export function MissionControlView({
+  missionId,
+  runId,
+}: MissionControlViewProps) {
   const [activeTab, setActiveTab] = useState<TabId>("timeline");
   const events = useMissionRuntimeStore((s) => s.eventsByRun[runId] ?? []);
   const agentBoard = useMissionRuntimeStore((s) => s.agentBoardState);
@@ -102,7 +105,9 @@ export function MissionControlView({ runId }: MissionControlViewProps) {
 
       <div className="flex-1 overflow-y-auto p-3">
         {activeTab === "timeline" && <MissionEventFeed events={events} />}
-        {activeTab === "agents" && <AgentSquadBoard agents={agentBoard} />}
+        {activeTab === "agents" && (
+          <AgentSquadBoard agents={agentBoard} missionId={missionId} />
+        )}
         {activeTab === "approvals" && (
           <MissionApprovalDrawer
             approvals={approvals}

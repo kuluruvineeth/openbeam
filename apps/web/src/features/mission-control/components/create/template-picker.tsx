@@ -390,6 +390,262 @@ const MISSION_TEMPLATES: MissionTemplate[] = [
     ],
   },
   {
+    id: "rfp-response",
+    name: "Enterprise RFP Response",
+    description:
+      "Six-agent squad that parses RFP requirements, matches company capabilities, checks compliance, drafts responses, reviews quality, and produces a submission-ready document",
+    defaultObjective:
+      "Respond to the enterprise software RFP from Acme Corporation. Parse all requirements sections, match our platform capabilities to each requirement, verify compliance with their security and data handling standards (SOC 2 Type II, GDPR, HIPAA), develop competitive pricing, draft detailed responses for each section, and produce a polished, submission-ready RFP response document.",
+    vertical: "operations",
+    agents: [
+      {
+        name: "Requirements Analyst",
+        role: "specialist",
+        soulPrompt:
+          "You parse and decompose RFP documents into structured requirements. Extract mandatory vs optional requirements, identify evaluation criteria and weightings, flag ambiguous language, and organize requirements by section. Write structured findings to shared memory for downstream agents.",
+        tools: [
+          "search_hybrid",
+          "doc_get",
+          "doc_chunks",
+          "mission_write_memory",
+        ],
+        capabilities: ["research", "analysis"],
+      },
+      {
+        name: "Capability Matcher",
+        role: "specialist",
+        soulPrompt:
+          "You match company capabilities to RFP requirements. For each requirement, find relevant product documentation, case studies, and technical specifications that demonstrate compliance. Identify gaps where capabilities fall short and suggest mitigation strategies. Write match assessments to shared memory.",
+        tools: [
+          "search_hybrid",
+          "search_semantic",
+          "doc_get",
+          "mission_write_memory",
+        ],
+        capabilities: ["research", "analysis"],
+      },
+      {
+        name: "Compliance Reviewer",
+        role: "specialist",
+        soulPrompt:
+          "You review RFP compliance and legal requirements. Verify that proposed responses meet security standards (SOC 2 Type II, GDPR, HIPAA), data handling requirements, SLA commitments, and contractual terms. Flag risks and non-compliant areas. Write compliance assessments to shared memory.",
+        tools: [
+          "search_hybrid",
+          "doc_chunks",
+          "rag_verify",
+          "mission_write_memory",
+        ],
+        capabilities: ["research", "review"],
+      },
+      {
+        name: "Response Drafter",
+        role: "specialist",
+        soulPrompt:
+          "You draft polished RFP response sections. Read capability matches and compliance assessments from shared memory, then write clear, persuasive responses for each requirement section. Use concrete evidence, metrics, and case studies. Produce response sections as artifacts.",
+        tools: [
+          "rag_answer",
+          "mission_read_memory",
+          "mission_write_memory",
+          "mission_create_artifact",
+        ],
+        capabilities: ["writing", "synthesis"],
+      },
+      {
+        name: "Pricing Analyst",
+        role: "specialist",
+        soulPrompt:
+          "You analyze pricing and commercial terms in the RFP. Review pricing requirements, identify volume tiers and discount structures, assess competitor pricing benchmarks, and develop a competitive pricing proposal. Write pricing analysis to shared memory.",
+        tools: ["search_hybrid", "doc_get", "mission_write_memory"],
+        capabilities: ["research", "analysis"],
+      },
+      {
+        name: "Submission Lead",
+        role: "coordinator",
+        soulPrompt:
+          "You coordinate the final RFP submission. Read all response drafts, pricing proposals, and compliance assessments from shared memory. Review for consistency, completeness, and quality. Verify every requirement is addressed. Assemble the final submission document as a polished artifact ready for review and submission.",
+        tools: [
+          "rag_answer",
+          "rag_verify",
+          "mission_read_memory",
+          "mission_create_artifact",
+        ],
+        capabilities: ["coordination", "synthesis", "review"],
+      },
+    ],
+    tasks: [
+      {
+        title: "Parse RFP requirements",
+        description:
+          "Extract and categorize all requirements from the RFP document — mandatory vs optional, evaluation criteria, weightings, and submission deadlines",
+        priority: "P0",
+        requiredCapabilities: ["research", "analysis"],
+      },
+      {
+        title: "Match capabilities to requirements",
+        description:
+          "Map company products, features, and documentation to each RFP requirement — identify strengths, gaps, and mitigation strategies",
+        priority: "P0",
+        dependsOn: ["0"],
+        requiredCapabilities: ["research", "analysis"],
+      },
+      {
+        title: "Review compliance and legal requirements",
+        description:
+          "Verify compliance with security standards (SOC 2 Type II, GDPR, HIPAA), data handling policies, SLA requirements, and contractual terms",
+        priority: "P0",
+        dependsOn: ["0"],
+        requiredCapabilities: ["research", "review"],
+      },
+      {
+        title: "Analyze pricing and commercial terms",
+        description:
+          "Review pricing structure requirements, benchmark against competitors, and develop a competitive pricing proposal with volume tiers",
+        priority: "P0",
+        dependsOn: ["0"],
+        requiredCapabilities: ["research", "analysis"],
+      },
+      {
+        title: "Draft section responses",
+        description:
+          "Write detailed, persuasive responses for each RFP section using capability matches and compliance assessments as evidence",
+        priority: "P1",
+        dependsOn: ["1", "2"],
+        requiredCapabilities: ["writing", "synthesis"],
+      },
+      {
+        title: "Draft pricing proposal",
+        description:
+          "Produce a structured pricing proposal with licensing tiers, implementation costs, and support packages aligned to RFP requirements",
+        priority: "P1",
+        dependsOn: ["3"],
+        requiredCapabilities: ["writing", "synthesis"],
+      },
+      {
+        title: "Quality review and gap analysis",
+        description:
+          "Review all drafted sections and pricing for completeness, consistency, and quality — verify every requirement is addressed and flag remaining gaps",
+        priority: "P1",
+        dependsOn: ["4", "5"],
+        requiredCapabilities: ["review", "coordination"],
+      },
+      {
+        title: "Assemble final submission",
+        description:
+          "Compile all reviewed sections into a polished, submission-ready RFP response document with executive summary, table of contents, and appendices",
+        priority: "P1",
+        dependsOn: ["6"],
+        requiredCapabilities: ["coordination", "synthesis"],
+      },
+    ],
+  },
+  {
+    id: "incident-response",
+    name: "Incident Response",
+    description:
+      "Commander triages an incident, spawns specialist agents on demand, coordinates via messaging, and escalates when blocked",
+    defaultObjective:
+      "Investigate and resolve a production incident: API latency spike across all endpoints starting 14:32 UTC. Triage severity, analyze logs for root cause, assess user impact and blast radius, spawn additional specialists if needed, and produce a structured incident report with timeline, root cause, and remediation steps.",
+    vertical: "engineering",
+    agents: [
+      {
+        name: "Incident Commander",
+        role: "coordinator",
+        soulPrompt:
+          "You lead incident response. Triage severity, coordinate specialists, and drive toward root cause. Use mission_list_agents and mission_get_spawn_tree to track your team. Use mission_spawn_agent to bring in additional expertise (e.g., database specialist, network analyst) when existing agents lack the right capabilities — use mission_query_capabilities to decide. Send and receive messages to coordinate findings. Periodically evaluate progress with mission_evaluate_progress. If the team is stuck for more than two evaluation cycles, escalate with mission_escalate. Produce the final incident report as an artifact.",
+        tools: [
+          "search_hybrid",
+          "mission_write_memory",
+          "mission_read_memory",
+          "mission_create_artifact",
+          "mission_spawn_agent",
+          "mission_query_capabilities",
+          "mission_list_agents",
+          "mission_get_spawn_tree",
+          "mission_evaluate_progress",
+          "mission_escalate",
+          "mission_send_message",
+          "mission_get_inbox",
+        ],
+        capabilities: [
+          "coordination",
+          "triage",
+          "synthesis",
+          "spawning",
+          "messaging",
+        ],
+      },
+      {
+        name: "Log Analyst",
+        role: "specialist",
+        soulPrompt:
+          "You analyze application logs, traces, and error patterns to identify anomalies correlated with the incident timeline. Search for error spikes, timeout patterns, and upstream/downstream failures. Report findings to the Incident Commander via messaging and write detailed evidence to shared memory.",
+        tools: [
+          "search_hybrid",
+          "search_semantic",
+          "doc_chunks",
+          "mission_write_memory",
+          "mission_send_message",
+          "mission_get_inbox",
+        ],
+        capabilities: ["research", "analysis", "messaging"],
+      },
+      {
+        name: "Impact Assessor",
+        role: "specialist",
+        soulPrompt:
+          "You determine the blast radius and business impact of the incident. Identify affected services, user segments, SLA violations, and revenue impact. Classify severity (SEV1-SEV4) based on evidence. Report findings to the Incident Commander via messaging and write impact assessment to shared memory.",
+        tools: [
+          "search_hybrid",
+          "doc_get",
+          "rag_answer",
+          "mission_write_memory",
+          "mission_send_message",
+          "mission_get_inbox",
+        ],
+        capabilities: ["research", "analysis", "messaging"],
+      },
+    ],
+    tasks: [
+      {
+        title: "Triage incident",
+        description:
+          "Assess initial severity, identify affected systems, and establish an investigation timeline",
+        priority: "P0",
+        requiredCapabilities: ["triage"],
+      },
+      {
+        title: "Analyze logs and traces",
+        description:
+          "Search application logs for error patterns, latency anomalies, and upstream/downstream failure correlation within the incident window",
+        priority: "P0",
+        requiredCapabilities: ["research", "analysis"],
+      },
+      {
+        title: "Assess blast radius and impact",
+        description:
+          "Determine affected user segments, services, SLA violations, and classify overall severity",
+        priority: "P0",
+        requiredCapabilities: ["research", "analysis"],
+      },
+      {
+        title: "Correlate findings and identify root cause",
+        description:
+          "Combine log analysis and impact data to pinpoint the root cause — spawn additional specialists if domain expertise is needed",
+        priority: "P1",
+        dependsOn: ["1", "2"],
+        requiredCapabilities: ["coordination", "synthesis", "spawning"],
+      },
+      {
+        title: "Produce incident report",
+        description:
+          "Write a structured incident report with timeline, root cause, impact summary, remediation steps, and follow-up action items",
+        priority: "P1",
+        dependsOn: ["3"],
+        requiredCapabilities: ["coordination", "synthesis"],
+      },
+    ],
+  },
+  {
     id: "code-review",
     name: "Code Review",
     description:
