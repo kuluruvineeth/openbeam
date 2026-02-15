@@ -11,6 +11,7 @@ function createMockDb() {
   return {
     missionTask: {
       findMany: vi.fn(),
+      findFirst: vi.fn(),
       findUnique: vi.fn(),
       updateMany: vi.fn(),
       groupBy: vi.fn(),
@@ -20,6 +21,8 @@ function createMockDb() {
     missionAgent: {
       findMany: vi.fn(),
       findFirst: vi.fn(),
+      create: vi.fn(),
+      aggregate: vi.fn(),
     },
     missionRun: {
       findMany: vi.fn(),
@@ -33,6 +36,7 @@ function createMockDb() {
     },
     missionActivity: {
       create: vi.fn(),
+      findMany: vi.fn(),
     },
     missionMemory: {
       findUnique: vi.fn(),
@@ -42,6 +46,9 @@ function createMockDb() {
     mission: {
       update: vi.fn(),
       findUnique: vi.fn(),
+    },
+    backgroundAgent: {
+      create: vi.fn(),
     },
   };
 }
@@ -534,6 +541,46 @@ describe("Mission Activities", () => {
       });
 
       expect(result.dispatches[0]?.agentId).toBe("a2");
+    });
+
+    it("honors explicitly assigned tasks when assigned agent is idle", async () => {
+      db.missionRun.findMany.mockResolvedValue([]);
+      db.missionAgent.findMany.mockResolvedValue([
+        {
+          id: "a1",
+          name: "Agent A",
+          soulPrompt: "P",
+          sortOrder: 0,
+          capabilities: ["research"],
+          tools: [],
+        },
+        {
+          id: "a2",
+          name: "Agent B",
+          soulPrompt: "P",
+          sortOrder: 1,
+          capabilities: ["research"],
+          tools: [],
+        },
+      ]);
+
+      const result = await activities.planDispatch({
+        missionId: "m1",
+        pendingTasks: [
+          {
+            id: "t1",
+            title: "Assigned task",
+            priority: "P0",
+            assigneeId: "a2",
+            requiredCapabilities: ["research"],
+          },
+        ],
+        maxConcurrentRuns: 3,
+      });
+
+      expect(result.dispatches).toHaveLength(1);
+      expect(result.dispatches[0]?.agentId).toBe("a2");
+      expect(result.dispatches[0]?.taskId).toBe("t1");
     });
   });
 
@@ -1058,6 +1105,179 @@ describe("Mission Activities", () => {
         data: expect.objectContaining({
           mentions: ["a2"],
         }),
+      });
+    });
+  });
+
+  describe("spawn lifecycle activities", () => {
+    it("lists mission agents for capability queries", async () => {
+      db.missionAgent.findMany.mockResolvedValue([
+        {
+          id: "a1",
+          name: "Research Specialist",
+          role: "Research",
+          level: "specialist",
+          capabilities: ["research"],
+          tools: ["search_hybrid"],
+        },
+      ]);
+
+      const result = await activities.getMissionAgents({ missionId: "m1" });
+
+      expect(result.agents).toHaveLength(1);
+      expect(result.agents[0]?.id).toBe("a1");
+      expect(db.missionAgent.findMany).toHaveBeenCalledWith({
+        where: { missionId: "m1" },
+        orderBy: { sortOrder: "asc" },
+        select: {
+          id: true,
+          name: true,
+          role: true,
+          level: true,
+          capabilities: true,
+          tools: true,
+        },
+      });
+    });
+
+    it("approves valid spawn requests with adjusted budget", async () => {
+      db.missionAgent.findFirst
+        .mockResolvedValueOnce({
+          id: "a1",
+          level: "specialist",
+        })
+        .mockResolvedValueOnce(null);
+      db.missionActivity.findMany.mockResolvedValue([]);
+      db.missionRun.count.mockResolvedValue(0);
+
+      const result = await activities.validateSpawnRequest({
+        missionId: "m1",
+        requestId: "spawn-1",
+        request: {
+          requestingAgentId: "a1",
+          taskDescription:
+            "Collect external citations and summarize root cause",
+          requiredCapabilities: ["research"],
+          maxSteps: 12,
+          budgetCentsLimit: 60,
+          priority: "P1",
+        },
+        currentSpawnedAgentCount: 1,
+        spawnLimits: {
+          maxSpawnedAgentsPerMission: 10,
+          maxSpawnedAgentsPerAgent: 3,
+          maxSpawnDepth: 2,
+          maxConcurrentSpawned: 5,
+          spawnBudgetPercentage: 30,
+        },
+        consumedCents: 100,
+        budgetCents: 500,
+      });
+
+      expect(result.approved).toBe(true);
+      expect(result.adjustedBudgetCents).toBe(60);
+      expect(result.adjustedMaxSteps).toBe(12);
+    });
+
+    it("denies spawn when mission limit is reached", async () => {
+      const result = await activities.validateSpawnRequest({
+        missionId: "m1",
+        requestId: "spawn-2",
+        request: {
+          requestingAgentId: "a1",
+          taskDescription: "Analyze data quality anomalies for the new dataset",
+          requiredCapabilities: ["analysis"],
+          maxSteps: 10,
+          budgetCentsLimit: 50,
+          priority: "P2",
+        },
+        currentSpawnedAgentCount: 10,
+        spawnLimits: {
+          maxSpawnedAgentsPerMission: 10,
+          maxSpawnedAgentsPerAgent: 3,
+          maxSpawnDepth: 2,
+          maxConcurrentSpawned: 5,
+          spawnBudgetPercentage: 30,
+        },
+        consumedCents: 0,
+        budgetCents: 1000,
+      });
+
+      expect(result.approved).toBe(false);
+      expect(result.reason).toContain("Mission spawn limit reached");
+    });
+
+    it("generates blueprint with normalized capabilities and tools", async () => {
+      const result = await activities.generateSpawnedSoulPrompt({
+        missionId: "m1",
+        requestId: "spawn-3",
+        request: {
+          requestingAgentId: "a1",
+          taskDescription: "Prepare a structured writeup of findings",
+          requiredCapabilities: ["Writing", "Research"],
+          maxSteps: 9,
+          budgetCentsLimit: 40,
+          priority: "P2",
+        },
+      });
+
+      expect(result.blueprint.name).toContain("Writing");
+      expect(result.blueprint.capabilities).toEqual(["writing", "research"]);
+      expect(result.blueprint.tools).toContain("mission_query_capabilities");
+    });
+
+    it("creates spawned mission agent and assigned task", async () => {
+      db.mission.findUnique.mockResolvedValue({
+        id: "m1",
+        teamId: "team-1",
+        createdById: "user-1",
+      });
+      db.missionAgent.aggregate.mockResolvedValue({
+        _max: { sortOrder: 2 },
+      });
+      db.backgroundAgent.create.mockResolvedValue({ id: "bg-1" });
+      db.missionAgent.create.mockResolvedValue({ id: "mission-agent-1" });
+      db.missionTask.create.mockResolvedValue({ id: "task-1" });
+
+      const result = await activities.createSpawnedAgent({
+        missionId: "m1",
+        requestId: "spawn-4",
+        request: {
+          requestingAgentId: "a1",
+          taskDescription:
+            "Investigate source discrepancies and report root cause",
+          requiredCapabilities: ["research"],
+          maxSteps: 8,
+          budgetCentsLimit: 35,
+          priority: "P1",
+          dependsOnTaskId: "task-root",
+        },
+        blueprint: {
+          name: "Research Specialist",
+          role: "Specialist for research",
+          soulPrompt: "prompt",
+          tools: ["search_hybrid", "mission_send_message"],
+          capabilities: ["research"],
+          maxSteps: 8,
+          budgetCentsLimit: 35,
+          parentAgentId: "a1",
+          spawnReason: "Investigate source discrepancies and report root cause",
+        },
+      });
+
+      expect(result).toEqual({
+        missionAgentId: "mission-agent-1",
+        taskId: "task-1",
+      });
+      expect(db.missionTask.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          missionId: "m1",
+          status: "ASSIGNED",
+          assigneeId: "mission-agent-1",
+          requestId: "spawn-4",
+          dependsOn: ["task-root"],
+        }),
+        select: { id: true },
       });
     });
   });

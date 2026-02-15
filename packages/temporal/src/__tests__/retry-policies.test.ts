@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  AGENT_CHUNKED_RETRY_POLICY,
   AUDIT_RETRY_POLICY,
   CANVAS_NODE_RETRY_POLICY,
   CANVAS_UPDATE_RETRY_POLICY,
+  EXTERNAL_API_RETRY_POLICY,
   getRetryPolicyForActivity,
 } from "../config/retry-policies";
 
@@ -31,6 +33,32 @@ describe("canvas retry policies", () => {
   });
 });
 
+describe("EXTERNAL_API_RETRY_POLICY", () => {
+  it("has 5 attempts with 3x backoff", () => {
+    expect(EXTERNAL_API_RETRY_POLICY.maximumAttempts).toBe(5);
+    expect(EXTERNAL_API_RETRY_POLICY.backoffCoefficient).toBe(3);
+    expect(EXTERNAL_API_RETRY_POLICY.maximumInterval).toBe("60s");
+  });
+
+  it("includes auth and not-found as non-retryable", () => {
+    expect(EXTERNAL_API_RETRY_POLICY.nonRetryableErrorTypes).toContain(
+      "AuthorizationError"
+    );
+    expect(EXTERNAL_API_RETRY_POLICY.nonRetryableErrorTypes).toContain(
+      "UNAUTHORIZED"
+    );
+    expect(EXTERNAL_API_RETRY_POLICY.nonRetryableErrorTypes).toContain(
+      "NOT_FOUND"
+    );
+  });
+});
+
+describe("AGENT_CHUNKED_RETRY_POLICY update", () => {
+  it("has 3 maximum attempts", () => {
+    expect(AGENT_CHUNKED_RETRY_POLICY.maximumAttempts).toBe(3);
+  });
+});
+
 describe("getRetryPolicyForActivity", () => {
   it("returns CANVAS_NODE_RETRY_POLICY for canvas type", () => {
     expect(getRetryPolicyForActivity("canvas")).toBe(CANVAS_NODE_RETRY_POLICY);
@@ -44,6 +72,18 @@ describe("getRetryPolicyForActivity", () => {
 
   it("returns AUDIT_RETRY_POLICY for audit type", () => {
     expect(getRetryPolicyForActivity("audit")).toBe(AUDIT_RETRY_POLICY);
+  });
+
+  it("returns AGENT_CHUNKED_RETRY_POLICY for agentChunked type", () => {
+    expect(getRetryPolicyForActivity("agentChunked")).toBe(
+      AGENT_CHUNKED_RETRY_POLICY
+    );
+  });
+
+  it("returns EXTERNAL_API_RETRY_POLICY for externalApi type", () => {
+    expect(getRetryPolicyForActivity("externalApi")).toBe(
+      EXTERNAL_API_RETRY_POLICY
+    );
   });
 
   it("returns default policy for unknown activity types", () => {
@@ -64,6 +104,9 @@ describe("getRetryPolicyForActivity", () => {
       "webhook",
       "storage",
       "database",
+      "llm_call",
+      "externalApi",
+      "agentChunked",
       "canvas",
       "canvasUpdate",
       "audit",
