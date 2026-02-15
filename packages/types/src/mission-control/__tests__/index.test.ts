@@ -1,6 +1,9 @@
 import { describe, expect, it } from "bun:test";
 import {
+  AgentHealthSummarySchema,
+  AgentMessageItemSchema,
   CreateMissionFromPromptSchema,
+  CrossMissionLinkItemSchema,
   MissionActionDecisionSchema,
   MissionAgentLaneStateSchema,
   MissionApprovalQueueItemSchema,
@@ -11,6 +14,7 @@ import {
   MissionRunTableRowSchema,
   MissionRunVisibilitySchema,
   MissionTemplateSchema,
+  ReflectionHistoryEntrySchema,
   StartMissionRunSchema,
 } from "../index";
 
@@ -138,6 +142,15 @@ describe("MissionAgentLaneStateSchema", () => {
     });
     expect(result.currentTaskId).toBe("t-1");
     expect(result.currentTaskTitle).toBe("Research competitors");
+  });
+
+  it("applies defaults for section 7 extension fields", () => {
+    const result = MissionAgentLaneStateSchema.parse(validState);
+
+    expect(result.replanCount).toBe(0);
+    expect(result.isReflecting).toBe(false);
+    expect(result.spawnDepth).toBe(0);
+    expect(result.crossMissionLinks).toEqual([]);
   });
 
   it("rejects invalid status", () => {
@@ -317,8 +330,10 @@ describe("MissionTemplateSchema", () => {
 
   it("validates nested agent structure", () => {
     const result = MissionTemplateSchema.parse(validTemplate);
-    expect(result.agents[0].name).toBe("researcher");
-    expect(result.agents[0].tools).toEqual(["search_hybrid", "doc_get"]);
+    const firstAgent = result.agents[0];
+    expect(firstAgent).toBeDefined();
+    expect(firstAgent?.name).toBe("researcher");
+    expect(firstAgent?.tools).toEqual(["search_hybrid", "doc_get"]);
   });
 
   it("validates task priorities", () => {
@@ -327,7 +342,9 @@ describe("MissionTemplateSchema", () => {
         ...validTemplate,
         tasks: [{ ...validTemplate.tasks[0], priority }],
       });
-      expect(result.tasks[0].priority).toBe(priority);
+      const firstTask = result.tasks[0];
+      expect(firstTask).toBeDefined();
+      expect(firstTask?.priority).toBe(priority);
     }
   });
 
@@ -371,6 +388,92 @@ describe("MissionTemplateSchema", () => {
     });
     expect(result.agents).toHaveLength(2);
     expect(result.tasks).toHaveLength(2);
+  });
+});
+
+describe("AgentMessageItemSchema", () => {
+  it("parses message item payload", () => {
+    const result = AgentMessageItemSchema.parse({
+      messageId: "msg-1",
+      missionId: "m-1",
+      fromAgentId: "a-1",
+      fromAgentName: "Agent A",
+      toAgentId: "a-2",
+      toAgentName: "Agent B",
+      channel: "direct",
+      contentPreview: "Need status update",
+      timestamp: 1_700_000_000_000,
+    });
+
+    expect(result.channel).toBe("direct");
+    expect(result.fromAgentName).toBe("Agent A");
+  });
+});
+
+describe("ReflectionHistoryEntrySchema", () => {
+  it("applies default triggeredReplan flag", () => {
+    const result = ReflectionHistoryEntrySchema.parse({
+      entryId: "reflection-1",
+      agentId: "a-1",
+      agentName: "Agent A",
+      stepNumber: 3,
+      score: 0.25,
+      verbalMemory: "Current approach is not producing new artifacts",
+      timestamp: 1_700_000_000_000,
+    });
+
+    expect(result.triggeredReplan).toBe(false);
+  });
+});
+
+describe("AgentHealthSummarySchema", () => {
+  it("parses health summary with agents and patterns", () => {
+    const result = AgentHealthSummarySchema.parse({
+      missionId: "m-1",
+      totalAgents: 3,
+      progressingCount: 1,
+      stuckCount: 1,
+      escalatedCount: 1,
+      agents: [
+        {
+          agentId: "a-1",
+          agentName: "Agent A",
+          progressScore: 0.2,
+          replanCount: 2,
+          healthStatus: "stuck",
+          recentScores: [0.5, 0.3, 0.2],
+          stuckReason: "Repeated dead-end strategy",
+          escalationReason: null,
+        },
+      ],
+      failurePatterns: [
+        {
+          pattern: "Repeated broad search without narrowing constraints",
+          frequency: 2,
+          affectedAgents: ["a-1"],
+        },
+      ],
+      computedAt: 1_700_000_000_000,
+    });
+
+    expect(result.stuckCount).toBe(1);
+    expect(result.agents[0]?.healthStatus).toBe("stuck");
+  });
+});
+
+describe("CrossMissionLinkItemSchema", () => {
+  it("parses cross-mission link item", () => {
+    const result = CrossMissionLinkItemSchema.parse({
+      linkId: "link-1",
+      sourceMissionId: "m-src",
+      sourceMissionName: "Source",
+      targetMissionId: "m-dst",
+      targetMissionName: "Target",
+      linkType: "knowledge",
+      timestamp: 1_700_000_000_000,
+    });
+
+    expect(result.linkType).toBe("knowledge");
   });
 });
 
