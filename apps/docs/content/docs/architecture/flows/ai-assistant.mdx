@@ -1,0 +1,30 @@
+---
+title: AI Assistant
+description: Question → context assembly → ReAct loop → search → RAG → grounded response with citations
+---
+
+<ExcalidrawViewer
+  src="/diagrams/excalidraw/flow-ai-assistant.excalidraw"
+  caption="AI assistant flow — ReAct pattern with search tools, RAG grounding, and citation tracking"
+  height={650}
+/>
+
+## Flow
+
+1. **Query Analysis** — Intent classification, entity extraction
+2. **Context Assembly** — Conversation history, user profile, team context
+3. **ReAct Loop** (max 10 steps):
+   - **Think** — Analyze what's known, what's needed
+   - **Act** — Call tools (`search_hybrid`, `doc_get`, `rag_verify`)
+   - **Observe** — Process results, update state
+4. **Grounding** — Verify claims against source documents
+5. **Response** — Stream with `[n]` citation markers
+
+## Telemetry
+
+Every interaction produces a `RAGInteraction` record:
+- `retrievalMs`, `chunkingMs`, `generationMs`, `groundingMs`, `totalMs`
+- `retrievedDocs`, `usedChunks`, `citationCount`, `groundingScore`
+- `confidence` level
+
+Also recorded: `ConversationMessage` with `citations` JSON, `groundingScore`, token counts.

@@ -1,0 +1,53 @@
+---
+title: Containers
+description: L2 — Apps, shared packages, and infrastructure services
+---
+
+The container diagram shows the five application runtimes, their shared package dependencies, and the infrastructure services they connect to.
+
+<ExcalidrawViewer
+  src="/diagrams/excalidraw/apps-overview.excalidraw"
+  caption="L2 — Container diagram: 5 apps, 17 packages, 5 infrastructure services"
+  height={700}
+/>
+
+## Applications
+
+| App | Technology | Port | Responsibility |
+|-----|-----------|------|---------------|
+| **web** | Next.js 16, React 19 | `:3001` | Frontend SPA — search, chat, agents, mission control |
+| **server** | Hono, tRPC 11 | `:3002` | API gateway — auth, routing, middleware |
+| **worker** | Temporal SDK | gRPC | Background processing — sync, indexing, agents |
+| **engine** | Python FastAPI | `:8000`/`:8001` | ML — parsing, embeddings, entity extraction |
+| **docs** | Fumadocs | `:4000` | Documentation site |
+
+## Package Dependency Map
+
+<ExcalidrawViewer
+  src="/diagrams/excalidraw/packages-overview.excalidraw"
+  caption="L2 — Package dependency graph: 17 packages in 4 clusters"
+  height={700}
+/>
+
+### Dependency Direction
+
+Dependencies flow strictly downward:
+
+```
+apps/* → packages/api → packages/services → packages/db
+                ↓               ↓
+         packages/temporal  packages/vespa
+                ↓               ↓
+         packages/redis    packages/storage
+                ↓
+         packages/types  ← SINGLE SOURCE OF TRUTH
+```
+
+### Package Clusters
+
+| Cluster | Packages |
+|---------|----------|
+| **Platform** | types, config, ui, auth, api |
+| **Data Plane** | db, storage, redis, vespa |
+| **Workflows** | temporal |
+| **AI + Connectors** | ai, services, integrations, media |

@@ -1,0 +1,42 @@
+---
+title: "apps/worker"
+description: Temporal worker — task queues, workflows, and activity categories
+---
+
+<ExcalidrawViewer
+  src="/diagrams/excalidraw/app-worker.excalidraw"
+  caption="apps/worker component diagram — Temporal task queues and activity categories"
+  height={650}
+/>
+
+## Task Queues
+
+| Queue | Workflows | Purpose |
+|-------|-----------|---------|
+| **sync** | `connectorSyncWorkflow` | Full and incremental connector sync |
+| **processing** | `fileProcessingWorkflow`, `entityExtractionWorkflow`, `indexDocumentsWorkflow`, `mediaProcessingWorkflow` | Document parsing, entity extraction, Vespa indexing |
+| **canvas** | `agentCanvasExecutionWorkflow` | Agent canvas node execution |
+| **mission** | `missionOrchestratorWorkflow`, `missionAgentRunWorkflow`, `sharedAgentPoolWorkflow` | Multi-agent mission orchestration |
+| **scheduled** | `cleanupWorkflow`, `digestDeliveryWorkflow`, `emergenceDetectionWorkflow`, `ltrTrainingWorkflow`, `reembedWorkflow`, `knowledgeInferenceWorkflow` | Cron-based maintenance |
+| **webhooks** | `webhookHandlerWorkflow` | External webhook processing |
+| **agents** | `backgroundAgentWorkflow` | Long-running autonomous agents |
+
+## Activity Categories
+
+| Category | Activities |
+|----------|-----------|
+| **Connectors** | `fetchBatch`, `transformBatch`, `validateConnection` |
+| **Database** | `completeSyncJob`, `updateSyncProgress` |
+| **Vespa** | `bulkIndex`, `deduplicate` |
+| **Engine** | `parse`, `chunk`, `generateEmbeddings` |
+| **Storage** | `downloadFile`, `cleanupTempFile` |
+| **Agents** | `executeAgentStep`, `finalizeAgentSession` |
+| **Canvas** | `executeCanvasNode`, `executeLoopNode`, `executeParallelSplit/Map/Join` |
+| **Entities** | `extractEntities`, `saveEntities` |
+| **Media** | `processMedia` |
+| **Analytics** | `getTeamsWithUsage`, `exportToParquet` |
+| **Emergence** | `loadCompositionEvents`, `aggregatePatterns`, `findFormalizationCandidates` |
+| **LTR** | `countTrainingSamples`, `exportTrainingData`, `trainLtrModel` |
+| **Personalization** | `handleSearchEvent`, `handleClickEvent`, `handleFeedbackEvent` |
+| **Slack** | `generateDigest`, `deliverDigest` |
+| **Webhooks** | `processWebhookEvent`, `deleteDocuments` |

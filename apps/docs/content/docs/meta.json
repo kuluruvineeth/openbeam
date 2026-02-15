@@ -1,5 +1,5 @@
 {
   "title": "Documentation",
   "icon": "BookOpen",
-  "pages": ["getting-started", "connectors"]
+  "pages": ["getting-started", "architecture", "connectors"]
 }

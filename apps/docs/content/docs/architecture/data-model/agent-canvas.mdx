@@ -1,0 +1,31 @@
+---
+title: Agent Canvas
+description: AgentCanvas, AgentCanvasExecution, BackgroundAgent — visual agent orchestration
+---
+
+<ExcalidrawViewer
+  src="/diagrams/excalidraw/er-agent-canvas.excalidraw"
+  caption="Agent Canvas ER diagram — canvas → versions → executions → steps, sessions → events, background agents with checkpoints"
+  height={750}
+/>
+
+## Agent Canvas Models
+
+| Model | Key Fields | Purpose |
+|-------|-----------|---------|
+| `AgentCanvas` | nodes (Json), edges (Json), status (DRAFT/PUBLISHED/ARCHIVED), triggerType (MANUAL/SCHEDULE/WEBHOOK/EVENT) | Visual agent workflow definition |
+| `AgentCanvasVersion` | version (Int), nodes, edges, changelog | Immutable version snapshots |
+| `AgentCanvasExecution` | status (8 states), workflowId, currentNodeId, trace, tokenUsage | Workflow execution tracking |
+| `AgentCanvasExecutionStep` | nodeId, nodeType, input/output, latencyMs | Per-node execution record |
+| `AgentCanvasApproval` | status (PENDING/APPROVED/REJECTED/EXPIRED), requestMessage, escalation tracking | Human-in-the-loop gates |
+| `AgentCanvasTemplate` | category, requiredConnectors, requiredTools, variables | Reusable canvas blueprints |
+| `AgentCanvasSession` | title, status, lastEventSequence | Conversational canvas sessions |
+| `AgentCanvasSessionEvent` | eventType, source, visibility, payload | Ordered session event log |
+
+## Background Agent Models
+
+| Model | Key Fields | Purpose |
+|-------|-----------|---------|
+| `BackgroundAgent` | prompt, preset, status (9 states), sandboxType (E2B/DOCKER/LOCAL), progress, token/cost tracking | Long-running autonomous agents |
+| `BackgroundAgentCheckpoint` | version, state (JsonB), memorySnapshot, contextWindow | Agent state persistence |
+| `BackgroundAgentLog` | level, message, metadata | Structured agent logging |

@@ -1,0 +1,45 @@
+---
+title: Architecture Overview
+description: OpenPlane system architecture — enterprise search and AI assistant platform
+---
+
+OpenPlane is a modular enterprise search and AI platform built as a TypeScript monorepo. The architecture follows the C4 model: system context, containers, components, and code.
+
+<ExcalidrawViewer
+  src="/diagrams/excalidraw/system-context.excalidraw"
+  caption="L1 — System Context: OpenPlane and its external actors"
+  height={700}
+/>
+
+## Design Principles
+
+- **Unidirectional dependencies** — apps depend on packages, never the reverse
+- **Single source of truth** — `@openplane/types` owns all shared type definitions
+- **Durable execution** — Temporal workflows for all background processing
+- **Permission-aware search** — Sub-10ms query-time permission resolution
+- **Agent-native** — Every capability is a composable tool; agents are first-class
+
+## System Boundary
+
+| Boundary | Components | Protocol |
+|----------|-----------|----------|
+| **Frontend** | Next.js 16 (`:3001`) | HTTPS, WebSocket |
+| **API** | Hono + tRPC (`:3002`) | HTTPS, tRPC |
+| **Workers** | Temporal workers | gRPC to Temporal Server |
+| **Engine** | FastAPI CPU (`:8000`), GPU (`:8001`) | HTTP |
+| **Search** | Vespa (`:8080`, `:19071`) | HTTP |
+| **Database** | PostgreSQL (`:5432`) | TCP |
+| **Cache** | Redis (`:6379`) | TCP |
+| **Storage** | S3/R2 | HTTPS |
+
+## Navigation
+
+| Section | Description |
+|---------|-------------|
+| [System Context](/docs/architecture/system-context) | L1 — External actors, SaaS connectors, AI providers |
+| [Containers](/docs/architecture/containers) | L2 — Apps, infrastructure, network boundaries |
+| [Apps](/docs/architecture/apps) | L3 — Per-app component diagrams |
+| [Packages](/docs/architecture/packages) | L3 — Package internals and dependency map |
+| [Data Model](/docs/architecture/data-model) | L4 — Full ER diagrams from Prisma schemas |
+| [Runtime Flows](/docs/architecture/flows) | L5 — Sequence diagrams for key operations |
+| [Deployment](/docs/architecture/deployment) | L6 — Container topology and scaling |

@@ -20,7 +20,7 @@ flowchart TB
     end
 
     subgraph Processing
-        Worker[BullMQ Workers]
+        Worker[Temporal Worker]
         Engine[Python Engine]
     end
 
@@ -39,7 +39,7 @@ flowchart TB
     Server --> DB
     Server --> Redis
     Server --> Vespa
-    Redis --> Worker
+    Server --> Worker
     Worker --> Engine
     Worker --> Connectors
     Worker --> Vespa
@@ -53,7 +53,7 @@ flowchart TB
 |-------|------------|
 | Frontend | Next.js 16, React 19, TailwindCSS 4 |
 | API | Hono, tRPC 11 |
-| Workers | BullMQ |
+| Workers | Temporal |
 | ML Engine | FastAPI, Unstructured |
 | Search | Vespa |
 | AI | Vercel AI SDK (Claude, GPT, Gemini) |
@@ -68,7 +68,7 @@ flowchart TB
 apps/
 ├── web         # Next.js frontend
 ├── server      # Hono API + tRPC
-├── worker      # BullMQ job processors
+├── worker      # Temporal worker/runtime
 ├── engine      # Python ML/parsing service
 └── docs        # Documentation (Fumadocs)
 
@@ -92,7 +92,7 @@ sequenceDiagram
     participant U as User
     participant W as Web
     participant S as Server
-    participant Q as Queue
+    participant T as Temporal
     participant P as Worker
     participant E as Engine
     participant V as Vespa
@@ -104,9 +104,9 @@ sequenceDiagram
     S-->>W: Response
     W-->>U: Display
 
-    Note over Q,E: Background Sync
-    S->>Q: Trigger sync
-    Q->>P: Process job
+    Note over T,E: Background Sync
+    S->>T: Trigger sync workflow
+    T->>P: Execute activities
     P->>E: Parse documents
     E-->>P: Chunks
     P->>V: Index
@@ -124,5 +124,6 @@ sequenceDiagram
 
 <Cards>
   <Card title="Getting Started" href="/docs/getting-started" description="Deploy OpenPlane" />
+  <Card title="Architecture" href="/docs/architecture" description="System maps and runtime flows" />
   <Card title="Connectors" href="/docs/connectors" description="Connect your tools" />
 </Cards>

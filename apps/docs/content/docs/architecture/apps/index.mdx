@@ -1,0 +1,22 @@
+---
+title: Apps Overview
+description: L3 — Component diagrams for each application runtime
+---
+
+OpenPlane runs five application processes, each with a distinct responsibility.
+
+<ExcalidrawViewer
+  src="/diagrams/excalidraw/apps-overview.excalidraw"
+  caption="Applications with ports, technologies, and infrastructure connections"
+  height={600}
+/>
+
+## App Index
+
+| App | Stack | Port | Pages |
+|-----|-------|------|-------|
+| [web](/docs/architecture/apps/web) | Next.js 16, React 19, Zustand, nuqs | `:3001` | Feature modules |
+| [server](/docs/architecture/apps/server) | Hono, tRPC 11 | `:3002` | Routing and middleware |
+| [worker](/docs/architecture/apps/worker) | Temporal SDK | gRPC | Task queues and activities |
+| [engine](/docs/architecture/apps/engine) | Python FastAPI | `:8000`/`:8001` | ML pipelines |
+| [docs](/docs/architecture/apps/docs) | Fumadocs, MDX | `:4000` | Architecture documentation |

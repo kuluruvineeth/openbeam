@@ -1,0 +1,13 @@
+{
+  "title": "Data Model",
+  "pages": [
+    "index",
+    "auth-team",
+    "integrations-sync",
+    "knowledge",
+    "search-permissions",
+    "agent-canvas",
+    "mission-control",
+    "ai-observability"
+  ]
+}

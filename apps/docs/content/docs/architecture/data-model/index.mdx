@@ -1,0 +1,24 @@
+---
+title: Data Model
+description: L4 — Entity-relationship diagrams from Prisma schemas (60+ models)
+---
+
+The data model spans 19 Prisma schema files with 60+ models organized into 8 domains. Each domain diagram shows actual field names, types, relationships with cardinality, indices, and enums.
+
+<ExcalidrawViewer
+  src="/diagrams/excalidraw/er-diagram.excalidraw"
+  caption="Full ER overview — all domains with cross-domain relationships"
+  height={800}
+/>
+
+## Domains
+
+| Domain | Models | Schema Files | Diagram |
+|--------|--------|-------------|---------|
+| [Auth & Team](/docs/architecture/data-model/auth-team) | User, Session, Account, Team, UsersOnTeam, UserInvite, ApiKey | `auth.prisma`, `team.prisma`, `api-key.prisma` | 7 tables |
+| [Integrations & Sync](/docs/architecture/data-model/integrations-sync) | Connector, OAuthProvider, SyncJob, SyncHistory, IndexedDocument, + 12 more | `integrations.prisma`, `sync.prisma` | 17 tables |
+| [Knowledge Graph](/docs/architecture/data-model/knowledge) | Entity, EntityRelation, EntityMention, TopicCluster, DocumentChange, + 4 more | `knowledge.prisma`, `knowledge-changes.prisma`, `team-knowledge.prisma` | 9 tables |
+| [Search & Permissions](/docs/architecture/data-model/search-permissions) | SearchExperiment, DocumentPermission, UserSearchProfile, LTRModel, + 6 more | `search.prisma`, `permissions.prisma`, `saved-search.prisma` | 12 tables |
+| [Agent Canvas](/docs/architecture/data-model/agent-canvas) | AgentCanvas, AgentCanvasExecution, BackgroundAgent, + 8 more | `agent-canvas.prisma`, `background-agent.prisma` | 13 tables |
+| [Mission Control](/docs/architecture/data-model/mission-control) | Mission, MissionAgent, MissionTask, MissionRun, + 3 more | `mission-control.prisma` | 7 tables |
+| [AI & Observability](/docs/architecture/data-model/ai-observability) | AIUsageLog, CompositionEvent, EmergencePattern, Conversation, + 7 more | `ai-usage.prisma`, `agent-observability.prisma`, `conversation.prisma`, `workflow-audit.prisma` | 11 tables |

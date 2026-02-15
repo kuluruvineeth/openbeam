@@ -1,0 +1,42 @@
+---
+title: Data Plane Packages
+description: db, storage, redis, vespa — data storage, caching, and search
+---
+
+<ExcalidrawViewer
+  src="/diagrams/excalidraw/packages-data-plane.excalidraw"
+  caption="Data Plane packages — 19 Prisma schema files, Redis pub/sub, Vespa hybrid search, S3/R2 storage"
+  height={600}
+/>
+
+## @openplane/db
+
+PostgreSQL via Prisma ORM. 19 schema files, 60+ models across 8 domains.
+
+| Schema File | Models |
+|-------------|--------|
+| `auth.prisma` | User, Session, Account |
+| `team.prisma` | Team, UsersOnTeam, UserInvite, TeamMediaIndex |
+| `api-key.prisma` | ApiKey |
+| `integrations.prisma` | Connector, OAuthProvider, Tool, ExternalIdentity, ExternalGroup, ConnectorResource, SlackChannelConfig, + 3 more |
+| `sync.prisma` | SyncJob, SyncHistory, SyncCursor, IndexedDocument, SyncEvent, SyncDeadLetter, IndexedFile, IndexedChunk, IndexedMedia |
+| `knowledge.prisma` | Entity, EntityRelation, EntityMention, TopicCluster |
+| `permissions.prisma` | DocumentPermission, GroupMembership, ConnectorScope, PermissionSyncStatus |
+| `agent-canvas.prisma` | AgentCanvas, AgentCanvasVersion, AgentCanvasExecution, + 5 more |
+| `mission-control.prisma` | Mission, MissionAgent, MissionTask, MissionRun, MissionActivity, MissionMemory, MissionComment |
+| `search.prisma` | SearchExperiment, SearchImpression, SearchClick, UserSearchProfile, LTRModel |
+| `ai-usage.prisma` | AIUsageLog, AIUsageSummary, AICacheMetrics, AIToolUsage |
+| `agent-observability.prisma` | CompositionEvent, EmergencePattern, UserFeedback, AgentExecutionTrace |
+| `conversation.prisma` | Conversation, ConversationMessage, RAGInteraction |
+
+## @openplane/redis
+
+Redis client with pub/sub, distributed locks, rate limiting, and caching.
+
+## @openplane/vespa
+
+Vespa search client — hybrid search (semantic + BM25), document feeding, batch indexing.
+
+## @openplane/storage
+
+S3/R2-compatible object storage for files, media, and ML artifacts.

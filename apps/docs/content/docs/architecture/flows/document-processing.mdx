@@ -1,0 +1,29 @@
+---
+title: Document Processing
+description: Raw doc → engine parse → entities → chunks → embeddings → Vespa feed → permissions sync
+---
+
+<ExcalidrawViewer
+  src="/diagrams/excalidraw/flow-document-processing.excalidraw"
+  caption="Document processing pipeline — 4 Temporal workflows coordinating engine, Vespa, and permission systems"
+  height={650}
+/>
+
+## Pipeline Workflows
+
+| Stage | Workflow | Activities |
+|-------|----------|-----------|
+| **1. File Processing** | `fileProcessingWorkflow` | Download from S3/R2 → Engine parse → Engine chunk |
+| **2. Indexing** | `indexDocumentsWorkflow` | Generate embeddings → Vespa bulk feed |
+| **3. Entity Extraction** | `entityExtractionWorkflow` | Engine NER → Save entities + relations |
+| **4. Media Processing** | `mediaProcessingWorkflow` | Download → TwelveLabs index → Vespa feed |
+
+## Processing Status Tracking
+
+`IndexedFile.processingStatus`: PENDING → DOWNLOADING → DOWNLOADED → PARSING → PARSED → INDEXING → INDEXED
+
+`IndexedMedia.processingStatus`: PENDING → DOWNLOADING → DOWNLOADED → INDEXING_TWELVELABS → INDEXED_TWELVELABS → GENERATING_EMBEDDINGS → INDEXING_VESPA → INDEXED
+
+## Dead Letter Queue
+
+`SyncDeadLetter` captures failures with: `errorType` (validation, transform, index, permission), retry tracking, resolution status.

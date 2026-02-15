@@ -1,0 +1,55 @@
+---
+title: Deployment Topology
+description: Container placement, network topology, load balancers, ports, and protocols
+---
+
+<ExcalidrawViewer
+  src="/diagrams/excalidraw/deployment-topology.excalidraw"
+  caption="Deployment topology — 5 application containers, 5 infrastructure services, network boundaries"
+  height={650}
+/>
+
+## Application Containers
+
+| Container | Port | Runtime | Protocol | Health |
+|-----------|------|---------|----------|--------|
+| **web** | `:3001` | Next.js 16 (Node.js) | HTTP/HTTPS | `/api/health` |
+| **server** | `:3000` | Hono (Node.js) | HTTP/HTTPS | `/health` |
+| **worker** | — | Temporal Worker (Node.js) | gRPC to Temporal | Heartbeat |
+| **engine** | `:8000` (CPU) `:8001` (GPU) | FastAPI (Python) | HTTP | `/health` |
+| **docs** | `:4000` | Fumadocs (Node.js) | HTTP | `/` |
+
+## Infrastructure Services
+
+| Service | Port | Protocol | Persistence |
+|---------|------|----------|-------------|
+| **PostgreSQL** | `:5432` | TCP (libpq) | Disk (WAL) |
+| **Redis** | `:6379` | RESP | AOF + RDB |
+| **Vespa** | `:8080` (query) `:19071` (config) | HTTP | Content nodes |
+| **Temporal Server** | `:7233` (gRPC) `:8233` (UI) | gRPC | PostgreSQL backend |
+| **S3 / R2** | `:443` | HTTPS (S3 API) | Object storage |
+
+## Network Boundaries
+
+| Zone | Contains | Inbound |
+|------|----------|---------|
+| **Public** | web, docs | CDN / Load Balancer |
+| **API** | server | web (tRPC), external (webhooks) |
+| **Workers** | worker, engine | server (Temporal client), Temporal server |
+| **Data** | PostgreSQL, Redis, Vespa, S3 | API + Workers only |
+
+## Connection Map
+
+| From | To | Protocol | Purpose |
+|------|----|----------|---------|
+| web → server | tRPC over HTTP | API calls, mutations |
+| server → PostgreSQL | Prisma (libpq) | Data persistence |
+| server → Redis | ioredis (RESP) | Cache, pubsub, locks |
+| server → Temporal | `@temporalio/client` (gRPC) | Start workflows |
+| worker → Temporal | `@temporalio/worker` (gRPC) | Poll task queues |
+| worker → PostgreSQL | Prisma (libpq) | Activity data access |
+| worker → Redis | ioredis (RESP) | Cache, pubsub |
+| worker → Vespa | HTTP | Search, index, feed |
+| worker → engine | HTTP | Parse, chunk, embed |
+| worker → S3 | AWS SDK (HTTPS) | File storage |
+| engine → GPU | CUDA / Metal | Model inference |

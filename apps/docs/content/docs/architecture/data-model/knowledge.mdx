@@ -1,0 +1,33 @@
+---
+title: Knowledge Graph
+description: Entity, EntityRelation, EntityMention, TopicCluster — knowledge extraction and graph
+---
+
+<ExcalidrawViewer
+  src="/diagrams/excalidraw/er-knowledge.excalidraw"
+  caption="Knowledge Graph ER diagram — entities, relations, mentions, topics, and change tracking"
+  height={700}
+/>
+
+## Entity Types
+`PERSON`, `TEAM`, `PROJECT`, `TOPIC`, `TECHNOLOGY`, `LOCATION`, `ORGANIZATION`, `CHANNEL`, `REPOSITORY`
+
+## Relation Types
+`MEMBER_OF`, `REPORTS_TO`, `COLLABORATES_WITH`, `MENTIONS`, `EXPERT_IN`, `AUTHORED`, `MAINTAINS`, `OWNS`, `USES`, `RELATES_TO`, `CHILD_OF`, `WORKS_ON`
+
+## Models
+
+### Entity
+Knowledge graph node. Unique per `[teamId, type, normalizedName]`. Tracks expertise scores, document counts, mention counts. Supports embeddings for semantic similarity.
+
+### EntityRelation
+Weighted, directional edges between entities. Stores confidence scores and evidence (JSON array of source references).
+
+### TopicCluster
+Hierarchical topic organization with self-referential `parentId`. Embeddings for semantic clustering.
+
+### TeamKnowledge
+Cross-mission knowledge base. Content-hashed for deduplication. Tracks access patterns (count, last accessed) and mission provenance.
+
+### Change Tracking
+`DocumentChange` and `EntityChange` models track all modifications with source attribution (`CONNECTOR_SYNC`, `AGENT_ACTION`, `USER_FEEDBACK`, `INFERENCE_PIPELINE`).

@@ -1,0 +1,32 @@
+---
+title: "apps/server"
+description: Hono API gateway — tRPC mounting, middleware, OAuth callbacks
+---
+
+<ExcalidrawViewer
+  src="/diagrams/excalidraw/app-server.excalidraw"
+  caption="apps/server component diagram — Hono routing, tRPC, and middleware chain"
+  height={650}
+/>
+
+## Architecture
+
+The server is a Hono application that mounts tRPC routers and handles OAuth callbacks, webhooks, and health checks.
+
+## Middleware Chain
+
+| Order | Middleware | Purpose |
+|-------|-----------|---------|
+| 1 | CORS | Cross-origin request handling |
+| 2 | Rate Limiting | Per-user/IP request throttling |
+| 3 | Auth | Session validation via `@openplane/auth` |
+| 4 | tRPC | Type-safe API layer with SuperJSON |
+
+## Route Groups
+
+| Group | Path | Handler |
+|-------|------|---------|
+| **tRPC** | `/trpc/*` | All tRPC routers (search, connectors, sync, ai, canvas, mission) |
+| **OAuth** | `/auth/callback/:provider` | OAuth2 redirect handling |
+| **Webhooks** | `/webhooks/:provider` | Slack, GitHub, etc. webhook receivers |
+| **Health** | `/health` | Liveness and readiness probes |

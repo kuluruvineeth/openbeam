@@ -1,0 +1,108 @@
+---
+title: Documentation Tooling
+description: Excalidraw-first documentation workflow, MDX components, and diagram conventions
+---
+
+## Excalidraw-First Strategy
+
+All architecture diagrams use Excalidraw JSON files rendered by the `ExcalidrawViewer` component. No Mermaid, no draw.io, no Figma exports.
+
+### Why Excalidraw
+
+| Aspect | Excalidraw | Mermaid | draw.io |
+|--------|-----------|---------|---------|
+| **Interactivity** | Pan, zoom, select | Static render | Requires viewer |
+| **Version control** | JSON diff-friendly | Text diff | XML diff (noisy) |
+| **Dark mode** | Theme-aware rendering | CSS override | Manual |
+| **Programmatic** | JSON generation | DSL | XML generation |
+| **Aesthetics** | Hand-drawn feel | Generic | Corporate |
+
+### File Conventions
+
+| Convention | Value |
+|-----------|-------|
+| Location | `apps/docs/public/diagrams/excalidraw/` |
+| Extension | `.excalidraw` |
+| Format | JSON (`"type": "excalidraw", "version": 2`) |
+| Source | `"source": "claude"` |
+| Background | `"viewBackgroundColor": "transparent"` |
+| Grid | `"gridSize": 20` |
+
+### Naming Convention
+
+| Prefix | Level | Examples |
+|--------|-------|---------|
+| `system-` | L1 System Context | `system-context.excalidraw` |
+| `apps-` / `packages-` | L2 Containers | `apps-overview.excalidraw` |
+| `app-` / `packages-` | L3 Components | `app-web.excalidraw` |
+| `er-` | L4 Data Model | `er-auth-team.excalidraw` |
+| `flow-` | L5 Runtime Flows | `flow-search-request.excalidraw` |
+| `deployment-` | L6 Deployment | `deployment-topology.excalidraw` |
+
+## ExcalidrawViewer Component
+
+```tsx
+<ExcalidrawViewer
+  src="/diagrams/excalidraw/system-context.excalidraw"
+  caption="System context diagram"
+  height={600}
+/>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `src` | `string` | required | Path to `.excalidraw` JSON file |
+| `caption` | `string` | — | Figure caption below diagram |
+| `height` | `number` | `600` | Container height in pixels |
+
+### Features
+
+- **Theme-aware**: Automatically switches between light and dark mode
+- **Interactive**: Pan (drag), zoom (scroll/pinch), select elements
+- **View-only**: Read-only mode, no editing toolbar
+- **Lazy-loaded**: Dynamic import with no SSR (canvas-based rendering)
+
+## Color Palette
+
+All diagrams follow this consistent color mapping:
+
+| Domain | Stroke | Fill | Usage |
+|--------|--------|------|-------|
+| Apps | `#1971c2` | `#dbe4ff` | web, server, worker, engine, docs |
+| Data Stores | `#2f9e44` | `#d3f9d8` | PostgreSQL, Redis, Vespa, S3 |
+| Packages | `#e8590c` | `#fff4e6` | All shared packages |
+| AI / Agents | `#9c36b5` | `#f3d9fa` | AI tools, agents, LLMs |
+| External | `#868e96` | `#f1f3f5` | SaaS connectors, users, APIs |
+| Mission | `#d6336c` | `#fff0f6` | Missions, agents, tasks |
+| Temporal | `#1098ad` | `#c3fae8` | Workflows, activities, queues |
+| Arrows | `#343a40` | — | All connections |
+
+## Element Conventions
+
+| Property | Value | Rationale |
+|----------|-------|-----------|
+| `roughness` | `1` | Hand-drawn feel |
+| `fontFamily` | `1` (Virgil) | Labels |
+| `fontFamily` | `3` (Cascadia) | Code, tech names, fields |
+| `fontSize` | `20` / `16` / `14` / `11` | Title / Label / Secondary / Field |
+| `strokeWidth` | `2` / `1` | Primary / Secondary |
+| `roundness.type` | `3` (rectangles) / `2` (arrows) | Consistent rounding |
+
+## MDX Content Structure
+
+```
+docs/architecture/
+  meta.json           → Navigation order
+  index.mdx           → Hero overview
+  system-context.mdx  → L1 diagram + descriptions
+  containers.mdx      → L2 diagrams
+
+  apps/               → L3 per-app breakdowns
+  packages/           → L3 per-package breakdowns
+  data-model/         → L4 ER diagrams
+  flows/              → L5 runtime flows
+  deployment/         → L6 infrastructure
+  tooling.mdx         → This page
+```
+
+Each MDX page follows the pattern: diagram first, then tables with real data from the codebase.

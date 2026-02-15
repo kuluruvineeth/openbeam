@@ -1,0 +1,28 @@
+---
+title: Search Request
+description: Query → web → server → tRPC → Vespa hybrid search → re-ranking → streaming response
+---
+
+<ExcalidrawViewer
+  src="/diagrams/excalidraw/flow-search-request.excalidraw"
+  caption="Search request flow — hybrid search with permission filtering, personalization, and latency budgets"
+  height={650}
+/>
+
+## Latency Budget (200ms p99)
+
+| Stage | Budget | Operation |
+|-------|--------|-----------|
+| Query analysis | 10ms | Intent classification, entity extraction |
+| Permission resolution | 5ms | Pre-computed `DocumentPermission` lookup |
+| Vespa hybrid search | 100ms | Semantic (embedding) + BM25 keyword |
+| Re-ranking | 50ms | LTR model scoring |
+| Personalization | 15ms | `UserSearchProfile` weight application |
+| Response serialization | 10ms | JSON encoding |
+| Buffer | 10ms | Network variance |
+
+## Key Components
+
+- `SearchImpression` recorded for A/B experiment tracking
+- `SearchClick` tracked with position and dwell time
+- `UserSearchProfile` embeddings updated asynchronously via `profileUpdateWorkflow`

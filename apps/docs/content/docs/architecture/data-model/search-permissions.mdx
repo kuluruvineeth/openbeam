@@ -1,0 +1,32 @@
+---
+title: Search & Permissions
+description: SearchExperiment, DocumentPermission, UserSearchProfile, LTRModel — search quality and access control
+---
+
+<ExcalidrawViewer
+  src="/diagrams/excalidraw/er-search-permissions.excalidraw"
+  caption="Search & Permissions ER diagram — A/B experiments, permission pre-computation, personalization profiles, LTR training"
+  height={700}
+/>
+
+## Permission Model
+
+Pre-computed permissions for sub-10ms query-time resolution:
+
+| Model | Purpose |
+|-------|---------|
+| `DocumentPermission` | Per-document grants: `granteeType` (USER, GROUP, DOMAIN, ANYONE) × `role` (READER, COMMENTER, WRITER, OWNER) |
+| `GroupMembership` | User ↔ Group mapping with `groupType` (TEAM, DEPARTMENT, ROLE, CHANNEL, DRIVE, WORKSPACE, CUSTOM) |
+| `ConnectorScope` | Per-user connector access scopes, full access flag |
+| `PermissionSyncStatus` | Sync state per connector: totals for docs, permissions, groups, users |
+
+## Search Quality
+
+| Model | Purpose |
+|-------|---------|
+| `SearchExperiment` | A/B test definitions with control/treatment configs and traffic allocation |
+| `SearchImpression` | Query → result tracking with timing and RRF config |
+| `SearchClick` | Click-through with position and dwell time |
+| `UserSearchProfile` | Personalization: connector weights, author interactions, topic weights, embeddings |
+| `LTRModel` | Learning-to-rank model versions with training metrics and feature importance |
+| `SavedSearch` | User-pinned queries with filters |

@@ -1,0 +1,42 @@
+---
+title: AI & Observability
+description: AIUsageLog, CompositionEvent, EmergencePattern, Conversation — telemetry and emergence detection
+---
+
+<ExcalidrawViewer
+  src="/diagrams/excalidraw/er-ai-observability.excalidraw"
+  caption="AI & Observability ER diagram — usage tracking, composition events, emergence patterns, conversations, and feedback"
+  height={750}
+/>
+
+## AI Usage Tracking
+
+| Model | Purpose |
+|-------|---------|
+| `AIUsageLog` | Per-request telemetry: provider, model, tokens (input/output/cache/reasoning), cost breakdown, latency, feature attribution |
+| `AIUsageSummary` | Aggregated metrics by period (HOUR/DAY/WEEK/MONTH): cost by provider/model/workflow/user, latency percentiles (p50/p95/p99) |
+| `AICacheMetrics` | KV cache and tool cache hit rates, tokens saved, cost saved |
+| `AIToolUsage` | Per-tool call/success/failure counts and latency by period |
+
+## Emergence Detection
+
+| Model | Purpose |
+|-------|---------|
+| `CompositionEvent` | Captured tool sequences with signature hash, success flag, user satisfaction |
+| `EmergencePattern` | Aggregated patterns: frequency, success rate, latency stats. Status: OBSERVED → VALIDATED → FORMALIZED / REJECTED |
+| `UserFeedback` | HELPFUL, NOT_HELPFUL, CORRECTION, SUGGESTION — with prompt/response summaries |
+| `AgentExecutionTrace` | Hierarchical execution traces with tool calls, token counts, parent-child relationships |
+
+## Conversations
+
+| Model | Purpose |
+|-------|---------|
+| `Conversation` | Chat sessions with message count and rolling summary |
+| `ConversationMessage` | Individual messages with citations, grounding scores, confidence levels, latency metrics |
+| `RAGInteraction` | Detailed RAG pipeline telemetry: retrieval time, chunking time, generation time, grounding time, citation count |
+
+## Workflow Audit
+
+| Model | Purpose |
+|-------|---------|
+| `WorkflowAuditLog` | Temporal workflow lifecycle events: start, complete, fail, cancel — indexed by workflowId and action |

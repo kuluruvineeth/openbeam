@@ -1,0 +1,31 @@
+---
+title: Webhook Handling
+description: External webhook → signature verify → parse → Temporal dispatch → incremental sync → Redis pubsub
+---
+
+<ExcalidrawViewer
+  src="/diagrams/excalidraw/flow-webhook-handling.excalidraw"
+  caption="Webhook handling flow — signature verification, deduplication, and Temporal-dispatched incremental sync"
+  height={600}
+/>
+
+## Flow
+
+1. **Receive** — External provider sends POST to `/webhooks/:provider`
+2. **Verify** — HMAC-SHA256 signature check with `webhookSecret` (timing-safe)
+3. **Freshness** — Reject events older than 5 minutes
+4. **Dedup** — Redis `SETNX` with 24h TTL on event ID
+5. **Dispatch** — Start `webhookHandlerWorkflow` (Temporal)
+6. **Process** — `processWebhookEvent` activity: parse payload, determine affected documents
+7. **Sync** — Incremental sync of affected documents via `connectorSyncWorkflow`
+8. **Notify** — Redis pub/sub for real-time UI updates
+
+## Webhook Events (SyncEventType)
+
+`DOCUMENT_INDEXED`, `DOCUMENT_UPDATED`, `DOCUMENT_DELETED`, `DOCUMENT_SKIPPED`, `RATE_LIMITED`, `TOKEN_REFRESHED`, `ERROR`, `WARNING`
+
+## Security
+
+- `Connector.webhookSecret` — Per-connector secret
+- `Connector.webhookEnabled` — Must be explicitly enabled
+- Replay prevention via timestamp + event ID deduplication
