@@ -4,11 +4,20 @@ import { defineTool, success } from "../../builder";
 import { getMissionContext, getMissionServices } from "./memory";
 
 function extractTaskId(ctx: unknown): string {
-  const taskId = (ctx as Record<string, unknown>).taskId;
-  if (typeof taskId !== "string" || !taskId) {
-    throw new Error("Task context required: taskId must be present");
+  const root = (ctx as Record<string, unknown>) ?? {};
+  if (typeof root.taskId === "string" && root.taskId.length > 0) {
+    return root.taskId;
   }
-  return taskId;
+
+  const metadata = root.metadata;
+  if (metadata && typeof metadata === "object" && !Array.isArray(metadata)) {
+    const metadataTaskId = (metadata as Record<string, unknown>).taskId;
+    if (typeof metadataTaskId === "string" && metadataTaskId.length > 0) {
+      return metadataTaskId;
+    }
+  }
+
+  throw new Error("Task context required: taskId must be present");
 }
 
 export const missionCreateTask = defineTool({
@@ -84,10 +93,17 @@ export const missionSendFeedback = defineTool({
   },
 });
 
+interface TaskStatusResult {
+  updated: boolean;
+  gated?: boolean;
+  redirectedTo?: string;
+  reason?: string;
+}
+
 export const missionUpdateTaskStatus = defineTool({
   name: "mission_update_task_status",
   description:
-    "Update the status of the current task. Use this to signal progress, completion, or blockers during mission execution.",
+    "Update the status of the current task. Use this to signal progress, completion, or blockers during mission execution. When review gating is enabled, marking DONE may redirect to REVIEW.",
   category: "mission",
   stakes: "medium",
   reversibility: "easy",
@@ -103,13 +119,35 @@ export const missionUpdateTaskStatus = defineTool({
       .describe("Optional note explaining the status change"),
   }),
 
-  async execute(
-    params,
-    ctx
-  ): Promise<ToolExecutionResult<{ updated: boolean }>> {
+  async execute(params, ctx): Promise<ToolExecutionResult<TaskStatusResult>> {
     const services = getMissionServices();
     const mCtx = getMissionContext(ctx);
     const taskId = extractTaskId(ctx);
+
+    if (params.status === "DONE" && mCtx.reviewGating) {
+      const gatingCheck = await services.checkReviewGating({
+        missionId: mCtx.missionId,
+        taskId,
+        taskPriority: mCtx.taskPriority ?? "P2",
+        reviewGating: mCtx.reviewGating,
+      });
+
+      if (gatingCheck.gated) {
+        const result = await services.updateTaskStatus({
+          taskId,
+          status: "REVIEW",
+          agentId: mCtx.agentId,
+          note: `Review required: ${gatingCheck.reason} (${gatingCheck.completedReviews}/${gatingCheck.requiredReviewers} approvals)`,
+        });
+
+        return success({
+          updated: result.updated,
+          gated: true,
+          redirectedTo: "REVIEW",
+          reason: gatingCheck.reason,
+        });
+      }
+    }
 
     const result = await services.updateTaskStatus({
       taskId,

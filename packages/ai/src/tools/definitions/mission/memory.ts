@@ -1,4 +1,5 @@
 import type { ToolExecutionResult } from "@openplane/types/ai";
+import type { ReviewGatingConfig } from "@openplane/types/temporal/mission";
 import { z } from "zod";
 import { defineTool, failure, success } from "../../builder";
 
@@ -56,12 +57,59 @@ export interface MissionToolServices {
     targetAgentId?: string;
     reopen: boolean;
   }) => Promise<void>;
+  checkReviewGating: (input: {
+    missionId: string;
+    taskId: string;
+    taskPriority: "P0" | "P1" | "P2" | "P3";
+    reviewGating: ReviewGatingConfig;
+  }) => Promise<{
+    gated: boolean;
+    reason: string;
+    requiredReviewers: number;
+    completedReviews: number;
+  }>;
 }
 
 interface MissionToolContext {
   missionId: string;
   agentId: string;
   runId: string;
+  reviewGating?: ReviewGatingConfig;
+  taskPriority?: "P0" | "P1" | "P2" | "P3";
+}
+
+const VALID_PRIORITIES = new Set(["P0", "P1", "P2", "P3"]);
+
+function getStringValue(value: unknown): string | null {
+  if (typeof value === "string" && value.length > 0) {
+    return value;
+  }
+  return null;
+}
+
+function getMetadataValue(
+  ctx: Record<string, unknown>,
+  key: string
+): string | null {
+  const metadata = ctx.metadata;
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
+    return null;
+  }
+  return getStringValue((metadata as Record<string, unknown>)[key]);
+}
+
+function resolveContextValue(c: Record<string, unknown>, key: string): unknown {
+  if (c[key] !== undefined) {
+    return c[key];
+  }
+  if (
+    c.metadata &&
+    typeof c.metadata === "object" &&
+    !Array.isArray(c.metadata)
+  ) {
+    return (c.metadata as Record<string, unknown>)[key];
+  }
+  return;
 }
 
 let missionServices: MissionToolServices | null = null;
@@ -77,15 +125,52 @@ export function getMissionServices(): MissionToolServices {
   return missionServices;
 }
 
+export function getTeamIdFromContext(ctx: unknown): string {
+  const root = (ctx as Record<string, unknown>) ?? {};
+  if (typeof root.teamId === "string" && root.teamId.length > 0) {
+    return root.teamId;
+  }
+
+  const metadata = root.metadata;
+  if (metadata && typeof metadata === "object" && !Array.isArray(metadata)) {
+    const metadataTeamId = (metadata as Record<string, unknown>).teamId;
+    if (typeof metadataTeamId === "string" && metadataTeamId.length > 0) {
+      return metadataTeamId;
+    }
+  }
+
+  throw new Error("Team context required: teamId must be present");
+}
+
 export function getMissionContext(ctx: unknown): MissionToolContext {
   const c = ctx as Record<string, unknown>;
-  if (!(c.missionId && c.agentId && c.runId)) {
+  const missionId =
+    getStringValue(c.missionId) ?? getMetadataValue(c, "missionId");
+  const agentId = getStringValue(c.agentId) ?? getMetadataValue(c, "agentId");
+  const runId = getStringValue(c.runId) ?? getMetadataValue(c, "runId");
+
+  if (!(missionId && agentId && runId)) {
     throw new Error("Mission context required: missionId, agentId, runId");
   }
+
+  const rawGating = resolveContextValue(c, "reviewGating");
+  const rawPriority = resolveContextValue(c, "taskPriority");
+
   return {
-    missionId: c.missionId as string,
-    agentId: c.agentId as string,
-    runId: c.runId as string,
+    missionId,
+    agentId,
+    runId,
+    reviewGating:
+      rawGating &&
+      typeof rawGating === "object" &&
+      !Array.isArray(rawGating) &&
+      "policy" in rawGating
+        ? (rawGating as ReviewGatingConfig)
+        : undefined,
+    taskPriority:
+      typeof rawPriority === "string" && VALID_PRIORITIES.has(rawPriority)
+        ? (rawPriority as MissionToolContext["taskPriority"])
+        : undefined,
   };
 }
 
