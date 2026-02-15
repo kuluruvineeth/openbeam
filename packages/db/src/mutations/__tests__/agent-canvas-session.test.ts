@@ -222,9 +222,9 @@ describe("appendSessionEvents batch behavior", () => {
       createMockSessionEvent({ sequence: baseSequence + i + 1 })
     );
 
-    expect(events[0].sequence).toBe(6);
-    expect(events[1].sequence).toBe(7);
-    expect(events[2].sequence).toBe(8);
+    expect(events[0]?.sequence).toBe(6);
+    expect(events[1]?.sequence).toBe(7);
+    expect(events[2]?.sequence).toBe(8);
   });
 
   it("increments lastEventSequence by batch size", () => {

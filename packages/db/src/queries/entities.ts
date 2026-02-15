@@ -31,6 +31,21 @@ export function getEntityByExternalId(
   });
 }
 
+export function findEntityByTeamTypeAndExternalId(
+  db: Database,
+  teamId: string,
+  type: EntityType,
+  externalId: string
+) {
+  return db.entity.findFirst({
+    where: {
+      teamId,
+      type,
+      externalId,
+    },
+  });
+}
+
 export function findEntityByAlias(
   db: Database,
   teamId: string,
@@ -133,6 +148,23 @@ export function getEntityRelationById(db: Database, id: string) {
   });
 }
 
+export function getEntityRelationByFromToAndType(
+  db: Database,
+  fromEntityId: string,
+  toEntityId: string,
+  relationType: RelationType
+) {
+  return db.entityRelation.findUnique({
+    where: {
+      fromEntityId_toEntityId_relationType: {
+        fromEntityId,
+        toEntityId,
+        relationType,
+      },
+    },
+  });
+}
+
 export interface GetEntityRelationsOptions {
   entityId: string;
   direction?: "outgoing" | "incoming" | "both";
@@ -201,6 +233,26 @@ export function getExpertsForTopic(db: Database, topicId: string, limit = 10) {
     include: { fromEntity: true },
     orderBy: { weight: "desc" },
     take: limit,
+  });
+}
+
+export function listAllExpertiseRelationsByPerson(
+  db: Database,
+  personId: string
+) {
+  return db.entityRelation.findMany({
+    where: {
+      fromEntityId: personId,
+      relationType: "EXPERT_IN",
+    },
+    include: {
+      toEntity: {
+        select: {
+          id: true,
+          type: true,
+        },
+      },
+    },
   });
 }
 

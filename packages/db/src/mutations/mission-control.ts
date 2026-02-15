@@ -247,6 +247,51 @@ export function createMissionTask(
   });
 }
 
+export function createMissionTemplateAgent(
+  db: Pick<Database, "missionAgent">,
+  input: {
+    missionId: string;
+    agentId: string;
+    name: string;
+    role: string;
+    soulPrompt: string;
+  }
+) {
+  return db.missionAgent.create({
+    data: {
+      missionId: input.missionId,
+      agentId: input.agentId,
+      name: input.name,
+      role: input.role,
+      soulPrompt: input.soulPrompt,
+    },
+  });
+}
+
+export function createMissionTemplateTask(
+  db: Pick<Database, "missionTask">,
+  input: {
+    missionId: string;
+    title: string;
+    description?: string;
+    priority?: "P0" | "P1" | "P2" | "P3";
+    requestId: string;
+    createdById: string;
+  }
+) {
+  return db.missionTask.create({
+    data: {
+      missionId: input.missionId,
+      title: input.title,
+      description: input.description,
+      priority: input.priority ?? "P2",
+      status: "INBOX",
+      requestId: input.requestId,
+      createdById: input.createdById,
+    },
+  });
+}
+
 export function claimMissionTask(
   db: Database,
   taskId: string,

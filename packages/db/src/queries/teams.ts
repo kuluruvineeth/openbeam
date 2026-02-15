@@ -68,3 +68,58 @@ export const getTeamMembership = async (
     where: { userId_teamId: { userId, teamId } },
     select: { role: true },
   });
+
+export const resolveTeamWriteUserId = async (
+  db: Database,
+  teamId: string
+): Promise<string | null> => {
+  const adminMembership = await db.usersOnTeam.findFirst({
+    where: {
+      teamId,
+      role: {
+        in: ["OWNER", "ADMIN"],
+      },
+    },
+    select: {
+      userId: true,
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
+
+  if (adminMembership) {
+    return adminMembership.userId;
+  }
+
+  const anyMembership = await db.usersOnTeam.findFirst({
+    where: {
+      teamId,
+    },
+    select: {
+      userId: true,
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
+
+  return anyMembership?.userId ?? null;
+};
+
+export const getTeamSummaryById = async (db: Database, teamId: string) =>
+  db.team.findUnique({
+    where: { id: teamId },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      logo: true,
+    },
+  });
+
+export const findTeamBySlug = async (db: Database, slug: string) =>
+  db.team.findUnique({
+    where: { slug },
+    select: { id: true },
+  });

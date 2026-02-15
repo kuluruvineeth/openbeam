@@ -93,6 +93,9 @@ export const countIndexedDocuments = async (
   connectorId: string
 ): Promise<number> => db.indexedDocument.count({ where: { connectorId } });
 
+export const countAllIndexedDocuments = async (db: Database): Promise<number> =>
+  db.indexedDocument.count();
+
 export const queryDocuments = async (
   db: Database,
   params: DocumentQueryParams

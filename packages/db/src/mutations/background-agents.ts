@@ -23,6 +23,7 @@ export function createBackgroundAgent(
       description: data.description,
       prompt: data.prompt,
       preset: data.preset ?? "researcher",
+      totalSteps: data.totalSteps,
       sandboxType: data.sandboxType ?? "E2B",
       repositoryUrl: data.repositoryUrl,
       baseBranch: data.baseBranch,

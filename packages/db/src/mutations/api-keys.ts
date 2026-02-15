@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import argon2, { type Options as Argon2Options } from "argon2";
-import prisma from "../index";
+import type { Database } from "../index";
 
 const BASE62_ALPHABET =
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -53,7 +53,10 @@ export interface CreateApiKeyInput {
   expiresAt?: Date;
 }
 
-export async function createApiKey(input: CreateApiKeyInput): Promise<{
+export async function createApiKey(
+  db: Database,
+  input: CreateApiKeyInput
+): Promise<{
   id: string;
   key: string;
   prefix: string;
@@ -61,7 +64,7 @@ export async function createApiKey(input: CreateApiKeyInput): Promise<{
 }> {
   const { key, hash, prefix } = await generateApiKey();
 
-  const apiKey = await prisma.apiKey.create({
+  const apiKey = await db.apiKey.create({
     data: {
       teamId: input.teamId,
       name: input.name,
@@ -92,8 +95,8 @@ export interface ListApiKeysInput {
   teamId: string;
 }
 
-export function listApiKeys(input: ListApiKeysInput) {
-  return prisma.apiKey.findMany({
+export function listApiKeys(db: Database, input: ListApiKeysInput) {
+  return db.apiKey.findMany({
     where: {
       teamId: input.teamId,
     },
@@ -118,14 +121,19 @@ export interface RevokeApiKeyInput {
   teamId: string;
 }
 
-export function revokeApiKey(input: RevokeApiKeyInput) {
-  return prisma.apiKey.update({
+export async function revokeApiKey(
+  db: Database,
+  input: RevokeApiKeyInput
+): Promise<boolean> {
+  const result = await db.apiKey.updateMany({
     where: {
       id: input.id,
       teamId: input.teamId,
+      revoked: false,
     },
     data: {
       revoked: true,
     },
   });
+  return result.count > 0;
 }

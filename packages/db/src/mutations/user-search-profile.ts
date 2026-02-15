@@ -14,6 +14,19 @@ export interface CreateUserSearchProfileInput {
   topicWeights?: Record<string, number>;
 }
 
+type SearchEmbeddingBytes = NonNullable<UserSearchProfile["queryEmbedding"]>;
+
+function toPrismaBytes(
+  value: Uint8Array | undefined
+): SearchEmbeddingBytes | undefined {
+  if (!value) {
+    return;
+  }
+  return value.buffer instanceof ArrayBuffer
+    ? (value as SearchEmbeddingBytes)
+    : (new Uint8Array(value) as SearchEmbeddingBytes);
+}
+
 export async function createUserSearchProfile(
   db: Database,
   data: CreateUserSearchProfileInput
@@ -23,8 +36,8 @@ export async function createUserSearchProfile(
       userId: data.userId,
       teamId: data.teamId,
       department: data.department,
-      queryEmbedding: data.queryEmbedding,
-      docEmbedding: data.docEmbedding,
+      queryEmbedding: toPrismaBytes(data.queryEmbedding),
+      docEmbedding: toPrismaBytes(data.docEmbedding),
       recentQueries: data.recentQueries as object[] | undefined,
       recentClicks: data.recentClicks as object[] | undefined,
       connectorWeights: data.connectorWeights as object | undefined,
@@ -53,7 +66,7 @@ export async function updateQueryEmbedding(
       userId_teamId: { userId, teamId },
     },
     data: {
-      queryEmbedding: data.queryEmbedding,
+      queryEmbedding: toPrismaBytes(data.queryEmbedding),
       recentQueries: data.recentQueries as object[],
       embeddingVersion: { increment: 1 },
       lastEmbeddingAt: new Date(),
@@ -83,7 +96,7 @@ export async function updateDocEmbedding(
       userId_teamId: { userId, teamId },
     },
     data: {
-      docEmbedding: data.docEmbedding,
+      docEmbedding: toPrismaBytes(data.docEmbedding),
       recentClicks: data.recentClicks as object[],
       connectorWeights: data.connectorWeights as object,
       authorInteractions: data.authorInteractions as object,

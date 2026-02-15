@@ -203,6 +203,21 @@ export const getConnectorResourceById = async (
     where: { id: resourceId },
   });
 
+export const getConnectorResourceWithTeamById = async (
+  db: Database,
+  resourceId: string
+) =>
+  db.connectorResource.findUnique({
+    where: { id: resourceId },
+    include: {
+      connector: {
+        select: {
+          teamId: true,
+        },
+      },
+    },
+  });
+
 export const getConnectorResourceByExternalId = async (
   db: Database,
   connectorId: string,

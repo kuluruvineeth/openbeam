@@ -64,7 +64,7 @@ export const upsertConnector = async (
 };
 
 export const updateConnector = async (
-  db: Database,
+  db: Pick<Database, "connector">,
   id: string,
   data: Prisma.ConnectorUpdateInput
 ): Promise<Connector> =>

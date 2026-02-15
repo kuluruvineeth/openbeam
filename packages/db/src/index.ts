@@ -40,6 +40,7 @@ export * from "./mutations/accounts";
 export * from "./mutations/agent-canvas";
 export * from "./mutations/agent-canvas-session";
 export * from "./mutations/ai-usage";
+export * from "./mutations/api-keys";
 export * from "./mutations/audit-logs";
 export * from "./mutations/background-agents";
 export * from "./mutations/composition";

@@ -33,6 +33,47 @@ export const findConnectorByTeam = async (
     include: { oauthProvider: true },
   });
 
+export const findLatestActiveConnectorByTeamAndApp = async (
+  db: Database,
+  teamId: string,
+  app: AppType
+): Promise<Pick<Connector, "id" | "config"> | null> =>
+  db.connector.findFirst({
+    where: {
+      teamId,
+      app,
+      status: { in: ["ACTIVE", "SYNCING"] },
+    },
+    orderBy: { createdAt: "desc" },
+    select: { id: true, config: true },
+  });
+
+export const findActiveGmailConnectorByEmail = async (
+  db: Database,
+  emailAddress: string
+): Promise<{ id: string } | null> =>
+  db.connector.findFirst({
+    where: {
+      app: "GMAIL",
+      status: { in: ["ACTIVE", "SYNCING"] },
+      OR: [
+        {
+          config: {
+            path: ["userEmail"],
+            equals: emailAddress,
+          },
+        },
+        {
+          config: {
+            path: ["delegatedEmail"],
+            equals: emailAddress,
+          },
+        },
+      ],
+    },
+    select: { id: true },
+  });
+
 export const listConnectorsByTeam = async (
   db: Database,
   teamId: string
@@ -42,10 +83,6 @@ export const listConnectorsByTeam = async (
     include: { oauthProvider: true },
     orderBy: { createdAt: "desc" },
   });
-
-// Legacy alias for backward compatibility
-export const findConnectorByOrg = findConnectorByTeam;
-export const listConnectorsByOrg = listConnectorsByTeam;
 
 export const getConnectorWithCredentials = async (
   db: Database,
@@ -141,6 +178,23 @@ export const getConnectorIdsByTeam = async (
   db.connector.findMany({
     where: { teamId },
     select: { id: true },
+  });
+
+export const getConnectorIdsByTeamExcludingStatuses = async (
+  db: Database,
+  teamId: string,
+  statuses: ConnectorStatus[]
+): Promise<{ id: string }[]> =>
+  db.connector.findMany({
+    where: {
+      teamId,
+      status: {
+        notIn: statuses,
+      },
+    },
+    select: {
+      id: true,
+    },
   });
 
 export const getConnectorsNeedingRefresh = async (
