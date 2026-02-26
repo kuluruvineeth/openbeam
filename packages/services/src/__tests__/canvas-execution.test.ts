@@ -196,7 +196,12 @@ const fetchMock = mock((input: unknown, init?: RequestInit) => {
 
   return new Response("Not found", { status: 404 });
 });
-const originalFetch = globalThis.fetch;
+type GlobalThisWithFetch = typeof globalThis & {
+  fetch?: (...args: Parameters<typeof fetch>) => ReturnType<typeof fetch>;
+};
+
+const globalWithFetch = globalThis as GlobalThisWithFetch;
+const originalFetch = globalWithFetch.fetch;
 const chunkDocumentMock = mock(
   (
     text: string,
@@ -603,7 +608,7 @@ let executeCanvasNode: typeof import("../canvas").executeCanvasNode;
 let CanvasNodeExecutorNotFoundError: typeof import("../canvas").CanvasNodeExecutorNotFoundError;
 
 beforeAll(async () => {
-  globalThis.fetch = fetchMock as unknown as typeof fetch;
+  globalWithFetch.fetch = fetchMock as unknown as typeof fetch;
 
   const [
     { startExecutor },
@@ -725,7 +730,7 @@ beforeAll(async () => {
 
 afterAll(() => {
   if (originalFetch) {
-    globalThis.fetch = originalFetch;
+    globalWithFetch.fetch = originalFetch;
   }
 });
 

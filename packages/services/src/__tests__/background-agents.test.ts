@@ -168,7 +168,7 @@ describe("background agents service", () => {
       name: "Analyzer",
       prompt: "Analyze this",
       preset: "analyst",
-      sandboxType: "e2b",
+      sandboxType: "daytona",
     });
 
     expect(created.id).toBe("agent_2");
