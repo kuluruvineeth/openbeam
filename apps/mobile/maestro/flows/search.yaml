@@ -1,0 +1,8 @@
+appId: com.openplane.dev
+---
+- launchApp
+- tapOn: "Search"
+- tapOn:
+    id: "search-input"
+- inputText: "quarterly report"
+- assertVisible: "Search Results"

@@ -1,0 +1,20 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "moduleSuffixes": [".web", ".native", ""],
+    "paths": {
+      "@/*": ["./src/*"],
+      "@server/*": ["../daemon/src/*"],
+      "@server/server/*": ["../daemon/src/*"]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts",
+    "nativewind-env.d.ts",
+    "react-native-web.d.ts"
+  ]
+}

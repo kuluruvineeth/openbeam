@@ -1,0 +1,5 @@
+appId: com.openplane.dev
+---
+- launchApp
+- tapOn: "Connectors"
+- assertVisible: "Active"
