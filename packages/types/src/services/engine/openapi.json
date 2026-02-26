@@ -1,0 +1,2179 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "OpenPlane Engine CPU Service",
+    "description": "Document parsing, chunking, and LTR scoring",
+    "version": "0.2.0"
+  },
+  "paths": {
+    "/v1/health": {
+      "get": {
+        "tags": ["health"],
+        "summary": "Health",
+        "operationId": "health_v1_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ready": {
+      "get": {
+        "tags": ["health"],
+        "summary": "Ready",
+        "operationId": "ready_v1_ready_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadyResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/parse": {
+      "post": {
+        "tags": ["parse"],
+        "summary": "Parse Document",
+        "operationId": "parse_document_v1_parse_post",
+        "parameters": [
+          {
+            "name": "chunk",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Chunk"
+            }
+          },
+          {
+            "name": "max_chunk_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1500,
+              "title": "Max Chunk Size"
+            }
+          },
+          {
+            "name": "overlap",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 150,
+              "title": "Overlap"
+            }
+          },
+          {
+            "name": "strategy",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": ["fast", "hi_res", "ocr_only", "auto"],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Strategy"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_parse_document_v1_parse_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParseResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/parse/url": {
+      "post": {
+        "tags": ["parse"],
+        "summary": "Parse From Url",
+        "operationId": "parse_from_url_v1_parse_url_post",
+        "parameters": [
+          {
+            "name": "chunk",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Chunk"
+            }
+          },
+          {
+            "name": "max_chunk_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1500,
+              "title": "Max Chunk Size"
+            }
+          },
+          {
+            "name": "overlap",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 150,
+              "title": "Overlap"
+            }
+          },
+          {
+            "name": "strategy",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": ["fast", "hi_res", "ocr_only", "auto"],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Strategy"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParseUrlRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParseResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/chunk": {
+      "post": {
+        "tags": ["chunk"],
+        "summary": "Chunk Text",
+        "operationId": "chunk_text_v1_chunk_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChunkRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChunkResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/supported-types": {
+      "get": {
+        "tags": ["supported-types"],
+        "summary": "Get Supported Types",
+        "operationId": "get_supported_types_v1_supported_types_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupportedTypesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ltr": {
+      "post": {
+        "tags": ["ltr"],
+        "summary": "Score",
+        "operationId": "score_v1_ltr_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LTRRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LTRResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ltr/health": {
+      "get": {
+        "tags": ["ltr"],
+        "summary": "Health",
+        "operationId": "health_v1_ltr_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LTRHealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ltr/reload": {
+      "post": {
+        "tags": ["ltr"],
+        "summary": "Reload",
+        "operationId": "reload_v1_ltr_reload_post",
+        "parameters": [
+          {
+            "name": "version",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Version"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "title": "Response Reload V1 Ltr Reload Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ltr/train": {
+      "post": {
+        "tags": ["ltr"],
+        "summary": "Train",
+        "operationId": "train_v1_ltr_train_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrainingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/embeddings/query": {
+      "post": {
+        "tags": ["embeddings"],
+        "summary": "Embed Query",
+        "operationId": "embed_query_v1_embeddings_query_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SingleEmbeddingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SingleEmbeddingResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/embeddings/document": {
+      "post": {
+        "tags": ["embeddings"],
+        "summary": "Embed Document",
+        "operationId": "embed_document_v1_embeddings_document_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SingleEmbeddingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SingleEmbeddingResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/embeddings/batch": {
+      "post": {
+        "tags": ["embeddings"],
+        "summary": "Embed Batch",
+        "operationId": "embed_batch_v1_embeddings_batch_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchEmbeddingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchEmbeddingResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/embeddings/stats": {
+      "get": {
+        "tags": ["embeddings"],
+        "summary": "Get Cache Stats",
+        "operationId": "get_cache_stats_v1_embeddings_stats_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CacheStatsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/rerank": {
+      "post": {
+        "tags": ["rerank"],
+        "summary": "Rerank",
+        "operationId": "rerank_v1_rerank_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RerankRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RerankResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/rerank/stats": {
+      "get": {
+        "tags": ["rerank"],
+        "summary": "Stats",
+        "operationId": "stats_v1_rerank_stats_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RerankStatsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/entities/extract": {
+      "post": {
+        "tags": ["entities"],
+        "summary": "Extract Entities",
+        "operationId": "extract_entities_v1_entities_extract_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExtractRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtractResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/entities/extract/document": {
+      "post": {
+        "tags": ["entities"],
+        "summary": "Extract From Document",
+        "operationId": "extract_from_document_v1_entities_extract_document_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentExtractRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentExtractResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/entities/health": {
+      "get": {
+        "tags": ["entities"],
+        "summary": "Health",
+        "operationId": "health_v1_entities_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health V1 Entities Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/browser/task": {
+      "post": {
+        "tags": ["browser"],
+        "summary": "Run Browser Task",
+        "operationId": "run_browser_task_v1_browser_task_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BrowserTaskRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowserTaskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BatchEmbeddingRequest": {
+        "properties": {
+          "texts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Texts"
+          },
+          "mode": {
+            "type": "string",
+            "title": "Mode",
+            "default": "document"
+          },
+          "max_length": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Length"
+          }
+        },
+        "type": "object",
+        "required": ["texts"],
+        "title": "BatchEmbeddingRequest"
+      },
+      "BatchEmbeddingResponse": {
+        "properties": {
+          "embeddings": {
+            "items": {
+              "$ref": "#/components/schemas/SingleEmbeddingResponse"
+            },
+            "type": "array",
+            "title": "Embeddings"
+          }
+        },
+        "type": "object",
+        "required": ["embeddings"],
+        "title": "BatchEmbeddingResponse"
+      },
+      "Body_parse_document_v1_parse_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": ["file"],
+        "title": "Body_parse_document_v1_parse_post"
+      },
+      "BrowserActionResponse": {
+        "properties": {
+          "step": {
+            "type": "integer",
+            "title": "Step"
+          },
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "details": {
+            "type": "string",
+            "title": "Details"
+          }
+        },
+        "type": "object",
+        "required": ["step", "action", "details"],
+        "title": "BrowserActionResponse"
+      },
+      "BrowserTaskRequest": {
+        "properties": {
+          "task": {
+            "type": "string",
+            "maxLength": 5000,
+            "minLength": 1,
+            "title": "Task"
+          },
+          "start_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2048
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Url"
+          },
+          "max_steps": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Max Steps",
+            "default": 25
+          }
+        },
+        "type": "object",
+        "required": ["task"],
+        "title": "BrowserTaskRequest"
+      },
+      "BrowserTaskResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "extracted_content": {
+            "type": "string",
+            "title": "Extracted Content"
+          },
+          "actions": {
+            "items": {
+              "$ref": "#/components/schemas/BrowserActionResponse"
+            },
+            "type": "array",
+            "title": "Actions"
+          },
+          "screenshots": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Screenshots"
+          },
+          "final_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Final Url"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "extracted_content",
+          "actions",
+          "screenshots",
+          "final_url",
+          "error"
+        ],
+        "title": "BrowserTaskResponse"
+      },
+      "CacheStatsResponse": {
+        "properties": {
+          "memory": {
+            "type": "integer",
+            "title": "Memory"
+          },
+          "redis": {
+            "type": "integer",
+            "title": "Redis"
+          },
+          "disk": {
+            "type": "integer",
+            "title": "Disk"
+          },
+          "miss": {
+            "type": "integer",
+            "title": "Miss"
+          },
+          "hit_rate": {
+            "type": "number",
+            "title": "Hit Rate"
+          }
+        },
+        "type": "object",
+        "required": ["memory", "redis", "disk", "miss", "hit_rate"],
+        "title": "CacheStatsResponse"
+      },
+      "ChunkRequest": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "max_characters": {
+            "type": "integer",
+            "maximum": 10000.0,
+            "minimum": 100.0,
+            "title": "Max Characters",
+            "default": 1500
+          },
+          "overlap": {
+            "type": "integer",
+            "maximum": 500.0,
+            "minimum": 0.0,
+            "title": "Overlap",
+            "default": 150
+          }
+        },
+        "type": "object",
+        "required": ["text"],
+        "title": "ChunkRequest"
+      },
+      "ChunkResponse": {
+        "properties": {
+          "chunks": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentChunk"
+            },
+            "type": "array",
+            "title": "Chunks"
+          },
+          "total_chunks": {
+            "type": "integer",
+            "title": "Total Chunks"
+          },
+          "total_characters": {
+            "type": "integer",
+            "title": "Total Characters"
+          }
+        },
+        "type": "object",
+        "required": ["chunks", "total_chunks", "total_characters"],
+        "title": "ChunkResponse"
+      },
+      "ClickData": {
+        "properties": {
+          "doc_id": {
+            "type": "string",
+            "title": "Doc Id"
+          },
+          "position": {
+            "type": "integer",
+            "title": "Position"
+          },
+          "dwell_time_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dwell Time Ms"
+          },
+          "feedback_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feedback Type"
+          }
+        },
+        "type": "object",
+        "required": ["doc_id", "position"],
+        "title": "ClickData"
+      },
+      "DocumentChunk": {
+        "properties": {
+          "index": {
+            "type": "integer",
+            "title": "Index"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "metadata": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Metadata"
+          },
+          "page_number": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page Number"
+          },
+          "page_end": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page End"
+          }
+        },
+        "type": "object",
+        "required": ["index", "text"],
+        "title": "DocumentChunk"
+      },
+      "DocumentElement": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metadata"
+          },
+          "page_number": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page Number"
+          }
+        },
+        "type": "object",
+        "required": ["type", "text"],
+        "title": "DocumentElement"
+      },
+      "DocumentExtractRequest": {
+        "properties": {
+          "doc_id": {
+            "type": "string",
+            "title": "Doc Id"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          },
+          "author": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author"
+          },
+          "connector_metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Connector Metadata"
+          }
+        },
+        "type": "object",
+        "required": ["doc_id", "content"],
+        "title": "DocumentExtractRequest"
+      },
+      "DocumentExtractResponse": {
+        "properties": {
+          "doc_id": {
+            "type": "string",
+            "title": "Doc Id"
+          },
+          "entities": {
+            "items": {
+              "$ref": "#/components/schemas/ExtractedEntityResponse"
+            },
+            "type": "array",
+            "title": "Entities"
+          },
+          "entity_count": {
+            "type": "integer",
+            "title": "Entity Count"
+          }
+        },
+        "type": "object",
+        "required": ["doc_id", "entities", "entity_count"],
+        "title": "DocumentExtractResponse"
+      },
+      "DocumentFeatures": {
+        "properties": {
+          "doc_id": {
+            "type": "string",
+            "title": "Doc Id"
+          },
+          "bm25_title": {
+            "type": "number",
+            "title": "Bm25 Title",
+            "default": 0.0
+          },
+          "bm25_content": {
+            "type": "number",
+            "title": "Bm25 Content",
+            "default": 0.0
+          },
+          "dense_score": {
+            "type": "number",
+            "title": "Dense Score",
+            "default": 0.0
+          },
+          "sparse_score": {
+            "type": "number",
+            "title": "Sparse Score",
+            "default": 0.0
+          },
+          "rerank_score": {
+            "type": "number",
+            "title": "Rerank Score",
+            "default": 0.0
+          },
+          "recency_days": {
+            "type": "integer",
+            "title": "Recency Days",
+            "default": 0
+          },
+          "doc_length": {
+            "type": "integer",
+            "title": "Doc Length",
+            "default": 0
+          },
+          "title_length": {
+            "type": "integer",
+            "title": "Title Length",
+            "default": 0
+          },
+          "view_count": {
+            "type": "integer",
+            "title": "View Count",
+            "default": 0
+          },
+          "reaction_count": {
+            "type": "integer",
+            "title": "Reaction Count",
+            "default": 0
+          },
+          "reply_count": {
+            "type": "integer",
+            "title": "Reply Count",
+            "default": 0
+          },
+          "trending_score": {
+            "type": "number",
+            "title": "Trending Score",
+            "default": 0.0
+          },
+          "authority_score": {
+            "type": "number",
+            "title": "Authority Score",
+            "default": 0.0
+          },
+          "title_exact_match": {
+            "type": "boolean",
+            "title": "Title Exact Match",
+            "default": false
+          },
+          "title_partial_match": {
+            "type": "boolean",
+            "title": "Title Partial Match",
+            "default": false
+          },
+          "connector_type": {
+            "type": "string",
+            "title": "Connector Type",
+            "default": "unknown"
+          },
+          "document_type": {
+            "type": "string",
+            "title": "Document Type",
+            "default": "unknown"
+          },
+          "department_match": {
+            "type": "boolean",
+            "title": "Department Match",
+            "default": false
+          },
+          "author_interaction_count": {
+            "type": "integer",
+            "title": "Author Interaction Count",
+            "default": 0
+          },
+          "author_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author Id"
+          },
+          "author_expertise_score": {
+            "type": "number",
+            "title": "Author Expertise Score",
+            "default": 0.0
+          },
+          "author_topic_relevance": {
+            "type": "number",
+            "title": "Author Topic Relevance",
+            "default": 0.0
+          },
+          "entity_mention_count": {
+            "type": "integer",
+            "title": "Entity Mention Count",
+            "default": 0
+          },
+          "topic_cluster_match": {
+            "type": "number",
+            "title": "Topic Cluster Match",
+            "default": 0.0
+          }
+        },
+        "type": "object",
+        "required": ["doc_id"],
+        "title": "DocumentFeatures"
+      },
+      "ExtractRequest": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "threshold": {
+            "type": "number",
+            "title": "Threshold",
+            "default": 0.5
+          },
+          "labels": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Labels"
+          }
+        },
+        "type": "object",
+        "required": ["text"],
+        "title": "ExtractRequest"
+      },
+      "ExtractResponse": {
+        "properties": {
+          "entities": {
+            "items": {
+              "$ref": "#/components/schemas/ExtractedEntityResponse"
+            },
+            "type": "array",
+            "title": "Entities"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "elapsed_ms": {
+            "type": "number",
+            "title": "Elapsed Ms"
+          }
+        },
+        "type": "object",
+        "required": ["entities", "count", "elapsed_ms"],
+        "title": "ExtractResponse"
+      },
+      "ExtractedEntityResponse": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score"
+          },
+          "start": {
+            "type": "integer",
+            "title": "Start"
+          },
+          "end": {
+            "type": "integer",
+            "title": "End"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          }
+        },
+        "type": "object",
+        "required": ["text", "label", "score", "start", "end", "source"],
+        "title": "ExtractedEntityResponse"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": ["status", "version"],
+        "title": "HealthResponse"
+      },
+      "ImpressionData": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "query": {
+            "type": "string",
+            "title": "Query"
+          },
+          "result_doc_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Result Doc Ids"
+          },
+          "clicks": {
+            "items": {
+              "$ref": "#/components/schemas/ClickData"
+            },
+            "type": "array",
+            "title": "Clicks"
+          }
+        },
+        "type": "object",
+        "required": ["id", "query", "result_doc_ids", "clicks"],
+        "title": "ImpressionData"
+      },
+      "LTRHealthResponse": {
+        "properties": {
+          "ready": {
+            "type": "boolean",
+            "title": "Ready"
+          },
+          "model_version": {
+            "type": "string",
+            "title": "Model Version"
+          },
+          "feature_count": {
+            "type": "integer",
+            "title": "Feature Count"
+          }
+        },
+        "type": "object",
+        "required": ["ready", "model_version", "feature_count"],
+        "title": "LTRHealthResponse"
+      },
+      "LTRRequest": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Query"
+          },
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentFeatures"
+            },
+            "type": "array",
+            "maxItems": 200,
+            "minItems": 1,
+            "title": "Documents"
+          },
+          "user_context": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserContext"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "top_k": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Top K",
+            "default": 20
+          },
+          "model_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Version"
+          }
+        },
+        "type": "object",
+        "required": ["query", "documents"],
+        "title": "LTRRequest"
+      },
+      "LTRResponse": {
+        "properties": {
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/LTRResult"
+            },
+            "type": "array",
+            "title": "Results"
+          },
+          "elapsed_ms": {
+            "type": "number",
+            "title": "Elapsed Ms"
+          },
+          "model_version": {
+            "type": "string",
+            "title": "Model Version"
+          },
+          "feature_count": {
+            "type": "integer",
+            "title": "Feature Count"
+          }
+        },
+        "type": "object",
+        "required": ["results", "elapsed_ms", "model_version", "feature_count"],
+        "title": "LTRResponse"
+      },
+      "LTRResult": {
+        "properties": {
+          "doc_id": {
+            "type": "string",
+            "title": "Doc Id"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score"
+          },
+          "features": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Features"
+          }
+        },
+        "type": "object",
+        "required": ["doc_id", "score", "features"],
+        "title": "LTRResult"
+      },
+      "ParseResponse": {
+        "properties": {
+          "filename": {
+            "type": "string",
+            "title": "Filename"
+          },
+          "mime_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mime Type"
+          },
+          "elements": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentElement"
+            },
+            "type": "array",
+            "title": "Elements"
+          },
+          "chunks": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/DocumentChunk"
+                },
+                "type": "array"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chunks"
+          },
+          "metadata": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Metadata"
+          },
+          "text_length": {
+            "type": "integer",
+            "title": "Text Length"
+          },
+          "page_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "filename",
+          "mime_type",
+          "elements",
+          "metadata",
+          "text_length"
+        ],
+        "title": "ParseResponse"
+      },
+      "ParseUrlRequest": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "filename": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filename"
+          },
+          "strategy": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": ["fast", "hi_res", "ocr_only", "auto"]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Strategy"
+          }
+        },
+        "type": "object",
+        "required": ["url"],
+        "title": "ParseUrlRequest"
+      },
+      "ParserInfo": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "mimes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Mimes"
+          },
+          "extensions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Extensions"
+          }
+        },
+        "type": "object",
+        "required": ["name", "mimes", "extensions"],
+        "title": "ParserInfo"
+      },
+      "ReadyResponse": {
+        "properties": {
+          "ready": {
+            "type": "boolean",
+            "title": "Ready"
+          },
+          "checks": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "type": "object",
+            "title": "Checks"
+          }
+        },
+        "type": "object",
+        "required": ["ready", "checks"],
+        "title": "ReadyResponse"
+      },
+      "RerankDocument": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rank"
+          }
+        },
+        "type": "object",
+        "required": ["id", "content"],
+        "title": "RerankDocument"
+      },
+      "RerankRequest": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "title": "Query"
+          },
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/RerankDocument"
+            },
+            "type": "array",
+            "title": "Documents"
+          },
+          "top_k": {
+            "type": "integer",
+            "title": "Top K",
+            "default": 20
+          }
+        },
+        "type": "object",
+        "required": ["query", "documents"],
+        "title": "RerankRequest"
+      },
+      "RerankResponse": {
+        "properties": {
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/RerankResult"
+            },
+            "type": "array",
+            "title": "Results"
+          },
+          "elapsed_ms": {
+            "type": "number",
+            "title": "Elapsed Ms"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          }
+        },
+        "type": "object",
+        "required": ["results", "elapsed_ms", "model"],
+        "title": "RerankResponse"
+      },
+      "RerankResult": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score"
+          },
+          "original_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Original Score"
+          },
+          "original_rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Original Rank"
+          }
+        },
+        "type": "object",
+        "required": ["id", "score", "original_score", "original_rank"],
+        "title": "RerankResult"
+      },
+      "RerankStatsResponse": {
+        "properties": {
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "device": {
+            "type": "string",
+            "title": "Device"
+          },
+          "cache": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Cache"
+          }
+        },
+        "type": "object",
+        "required": ["model", "device", "cache"],
+        "title": "RerankStatsResponse"
+      },
+      "SingleEmbeddingRequest": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "max_length": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Length"
+          }
+        },
+        "type": "object",
+        "required": ["text"],
+        "title": "SingleEmbeddingRequest"
+      },
+      "SingleEmbeddingResponse": {
+        "properties": {
+          "dense": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Dense"
+          },
+          "sparse": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "number"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sparse"
+          }
+        },
+        "type": "object",
+        "required": ["dense", "sparse"],
+        "title": "SingleEmbeddingResponse"
+      },
+      "SupportedTypesResponse": {
+        "properties": {
+          "mimes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Mimes"
+          },
+          "extensions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Extensions"
+          },
+          "parsers": {
+            "items": {
+              "$ref": "#/components/schemas/ParserInfo"
+            },
+            "type": "array",
+            "title": "Parsers"
+          }
+        },
+        "type": "object",
+        "required": ["mimes", "extensions", "parsers"],
+        "title": "SupportedTypesResponse"
+      },
+      "TrainingRequest": {
+        "properties": {
+          "team_id": {
+            "type": "string",
+            "title": "Team Id"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "impressions": {
+            "items": {
+              "$ref": "#/components/schemas/ImpressionData"
+            },
+            "type": "array",
+            "title": "Impressions"
+          },
+          "features_by_doc": {
+            "additionalProperties": {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "type": "object"
+            },
+            "type": "object",
+            "title": "Features By Doc"
+          }
+        },
+        "type": "object",
+        "required": ["team_id", "version", "impressions", "features_by_doc"],
+        "title": "TrainingRequest"
+      },
+      "TrainingResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "title": "Success"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "model_path": {
+            "type": "string",
+            "title": "Model Path"
+          },
+          "metrics": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Metrics"
+          },
+          "feature_importance": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Feature Importance"
+          },
+          "training_time_seconds": {
+            "type": "number",
+            "title": "Training Time Seconds"
+          },
+          "num_queries": {
+            "type": "integer",
+            "title": "Num Queries"
+          },
+          "num_documents": {
+            "type": "integer",
+            "title": "Num Documents"
+          }
+        },
+        "type": "object",
+        "required": [
+          "success",
+          "version",
+          "model_path",
+          "metrics",
+          "feature_importance",
+          "training_time_seconds",
+          "num_queries",
+          "num_documents"
+        ],
+        "title": "TrainingResponse"
+      },
+      "UserContext": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "team_id": {
+            "type": "string",
+            "title": "Team Id"
+          },
+          "department": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Department"
+          },
+          "search_count": {
+            "type": "integer",
+            "title": "Search Count",
+            "default": 0
+          },
+          "click_count": {
+            "type": "integer",
+            "title": "Click Count",
+            "default": 0
+          },
+          "avg_dwell_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avg Dwell Ms"
+          },
+          "connector_weights": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Connector Weights"
+          },
+          "author_interactions": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Author Interactions"
+          }
+        },
+        "type": "object",
+        "required": ["user_id", "team_id"],
+        "title": "UserContext"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": ["loc", "msg", "type"],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
