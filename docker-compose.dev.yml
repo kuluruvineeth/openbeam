@@ -48,7 +48,6 @@ services:
       VESPA_URL: http://vespa:8080
       TEMPORAL_ADDRESS: temporal:7233
       CORS_ORIGIN: http://localhost:3001
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-super-secret-key}
       BETTER_AUTH_URL: http://localhost:3000
       JWT_SECRET: ${JWT_SECRET:-jwt-secret-key}
@@ -98,7 +97,6 @@ services:
       VESPA_URL: http://vespa:8080
       TEMPORAL_ADDRESS: temporal:7233
       ENGINE_URL: http://engine:8000
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
       GCS_ENDPOINT: http://minio:9000
       GCS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
       GCS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
@@ -138,6 +136,41 @@ services:
           path: ./apps/worker/package.json
     restart: unless-stopped
 
+  daemon-dev:
+    build:
+      context: .
+      dockerfile: apps/daemon/Dockerfile.dev
+    container_name: openplane-daemon-dev
+    environment:
+      NODE_ENV: development
+      OPENPLANE_HOME: /data
+      OPENPLANE_LOG: debug
+      OPENPLANE_LOG_FORMAT: pretty
+    ports:
+      - "6868:6868"
+    volumes:
+      - ./apps/daemon:/app/apps/daemon
+      - ./packages:/app/packages
+      - daemon-data:/data
+      - /app/node_modules
+      - /app/apps/daemon/node_modules
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./apps/daemon/src
+          target: /app/apps/daemon/src
+          ignore:
+            - node_modules/
+        - action: sync+restart
+          path: ./packages
+          target: /app/packages
+          ignore:
+            - node_modules/
+            - dist/
+        - action: rebuild
+          path: ./apps/daemon/package.json
+    restart: unless-stopped
+
   engine-dev:
     build:
       context: .
@@ -147,7 +180,6 @@ services:
       PYTHONUNBUFFERED: 1
       LOG_LEVEL: debug
       REDIS_URL: redis://redis:6379
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
     ports:
       - "8000:8000"
       - "8001:8001"
@@ -165,3 +197,6 @@ services:
         - action: rebuild
           path: ./apps/engine/pyproject.toml
     restart: unless-stopped
+
+volumes:
+  daemon-data:

@@ -1,0 +1,57 @@
+services:
+  # Bind infra ports to localhost; expose publicly via reverse proxy (e.g. Caddy).
+  postgres:
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+
+  redis:
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
+
+  vespa:
+    ports:
+      - "127.0.0.1:${VESPA_PORT:-8080}:8080"
+      - "127.0.0.1:${VESPA_METRICS_PORT:-19071}:19071"
+
+  minio:
+    ports:
+      - "127.0.0.1:${MINIO_PORT:-9000}:9000"
+      - "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001"
+
+  temporal:
+    ports:
+      - "127.0.0.1:${TEMPORAL_PORT:-7233}:7233"
+
+  temporal-ui:
+    ports:
+      - "127.0.0.1:${TEMPORAL_UI_PORT:-8233}:8080"
+
+  server:
+    ports:
+      - "127.0.0.1:${SERVER_PORT:-3000}:3000"
+    environment:
+      WEB_URL: ${WEB_URL}
+      SERVER_URL: ${SERVER_URL}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL}
+
+  web:
+    ports:
+      - "127.0.0.1:${WEB_PORT:-3001}:3001"
+    environment:
+      NEXT_PUBLIC_WEB_URL: ${NEXT_PUBLIC_WEB_URL}
+      NEXT_PUBLIC_SERVER_URL: ${NEXT_PUBLIC_SERVER_URL}
+      SERVER_INTERNAL_URL: ${SERVER_INTERNAL_URL}
+      NODE_OPTIONS: "--max-old-space-size=2048"
+
+  worker:
+    ports:
+      - "127.0.0.1:9091:9091"
+      - "127.0.0.1:9092:9092"
+
+  # apps/engine has Dockerfile.cpu and Dockerfile.gpu; default compose references Dockerfile.
+  engine:
+    build:
+      context: ./apps/engine
+      dockerfile: Dockerfile.cpu
+    ports:
+      - "127.0.0.1:${ENGINE_PORT:-8000}:8000"

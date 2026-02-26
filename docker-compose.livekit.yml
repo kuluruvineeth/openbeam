@@ -1,0 +1,52 @@
+services:
+  livekit:
+    image: livekit/livekit-server:latest
+    command: --config /etc/livekit.yaml --dev
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./livekit.yaml:/etc/livekit.yaml
+
+  caddy:
+    image: caddy:latest
+    network_mode: host
+    volumes:
+      - ./Caddyfile.voice:/etc/caddy/Caddyfile
+      - caddy-data:/data
+
+  livekit-redis:
+    image: redis:7-alpine
+    network_mode: host
+    command: redis-server --port 6380
+
+  voice-agent-dictation:
+    build:
+      context: ./apps/voice
+      dockerfile: Dockerfile.dictation
+    environment:
+      - LIVEKIT_URL=ws://localhost:7880
+      - LIVEKIT_API_KEY=${LIVEKIT_API_KEY}
+      - LIVEKIT_API_SECRET=${LIVEKIT_API_SECRET}
+      - DEEPGRAM_API_KEY=${DEEPGRAM_API_KEY}
+      - ENVIRONMENT=development
+    depends_on:
+      - livekit
+
+  voice-agent-action:
+    build:
+      context: ./apps/voice
+      dockerfile: Dockerfile.action
+    environment:
+      - LIVEKIT_URL=ws://localhost:7880
+      - LIVEKIT_API_KEY=${LIVEKIT_API_KEY}
+      - LIVEKIT_API_SECRET=${LIVEKIT_API_SECRET}
+      - DEEPGRAM_API_KEY=${DEEPGRAM_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - OPENPLANE_API_URL=http://host.docker.internal:3000/api/v1
+      - ENVIRONMENT=development
+    depends_on:
+      - livekit
+
+volumes:
+  caddy-data:
