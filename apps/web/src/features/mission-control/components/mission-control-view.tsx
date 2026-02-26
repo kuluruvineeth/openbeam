@@ -1,8 +1,14 @@
 "use client";
 
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { cva } from "class-variance-authority";
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
+import { getVanillaTRPCClient, useTRPC } from "@/trpc/client";
+import {
+  mapArtifactRunsToSummaries,
+  mapMissionEventsToArtifactSummaries,
+} from "../lib/artifact-summary";
 import {
   useApprovalQueue,
   useMissionRuntimeStore,
@@ -12,10 +18,7 @@ import { AgentSquadBoard } from "./agent-squad-board";
 import { MissionApprovalDrawer } from "./mission-approval-drawer";
 import { MissionArtifactPanel } from "./mission-artifact-panel";
 import { MissionEventFeed } from "./mission-event-feed";
-
-function noop() {
-  return;
-}
+import { MissionLedger } from "./mission-ledger";
 
 const tabVariants = cva(
   "rounded-sm px-3 py-1.5 font-medium text-sm transition-colors",
@@ -46,6 +49,8 @@ export function MissionControlView({
   missionId,
   runId,
 }: MissionControlViewProps) {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<TabId>("timeline");
   const events = useMissionRuntimeStore((s) => s.eventsByRun[runId] ?? []);
   const agentBoard = useMissionRuntimeStore((s) => s.agentBoardState);
@@ -59,6 +64,68 @@ export function MissionControlView({
   );
   const clearApprovalSelection = useMissionRuntimeStore(
     (s) => s.clearApprovalSelection
+  );
+  const { data: artifactRuns } = useQuery(
+    trpc.missionControl.listArtifacts.queryOptions({ missionId })
+  );
+
+  const artifacts = useMemo(() => {
+    const databaseArtifacts = mapArtifactRunsToSummaries(
+      (artifactRuns ?? []).map((run) => ({
+        runId: run.runId,
+        agentName: run.agentName,
+        createdAt: run.createdAt,
+        artifacts: run.artifacts as unknown[],
+      }))
+    );
+
+    if (databaseArtifacts.length > 0) {
+      return databaseArtifacts;
+    }
+
+    return mapMissionEventsToArtifactSummaries(events);
+  }, [artifactRuns, events]);
+
+  const approveMutation = useMutation({
+    mutationFn: ({
+      approvalId,
+      approved,
+      reason,
+    }: {
+      approvalId: string;
+      approved: boolean;
+      reason?: string;
+    }) =>
+      getVanillaTRPCClient().missionControl.resolveApproval.mutate({
+        missionId,
+        approvalId,
+        approved,
+        reason,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: trpc.missionControl.get.queryOptions({ missionId }).queryKey,
+      });
+    },
+  });
+
+  const handleApprove = useCallback(
+    (approvalId: string) =>
+      approveMutation.mutate({
+        approvalId,
+        approved: true,
+      }),
+    [approveMutation]
+  );
+
+  const handleReject = useCallback(
+    (approvalId: string, reason?: string) =>
+      approveMutation.mutate({
+        approvalId,
+        approved: false,
+        reason,
+      }),
+    [approveMutation]
   );
 
   useHotkeys("1", () => setActiveTab("timeline"));
@@ -111,16 +178,18 @@ export function MissionControlView({
         {activeTab === "approvals" && (
           <MissionApprovalDrawer
             approvals={approvals}
-            onApprove={noop}
+            onApprove={handleApprove}
             onClearSelection={clearApprovalSelection}
-            onReject={noop}
+            onReject={handleReject}
             onSelectAll={selectAllApprovals}
             onToggleSelect={toggleApprovalSelection}
             selectedIds={selectedApprovalIds}
           />
         )}
-        {activeTab === "artifacts" && <MissionArtifactPanel artifacts={[]} />}
-        {activeTab === "ledger" && <MissionEventFeed events={events} />}
+        {activeTab === "artifacts" && (
+          <MissionArtifactPanel artifacts={artifacts} />
+        )}
+        {activeTab === "ledger" && <MissionLedger />}
       </div>
     </div>
   );

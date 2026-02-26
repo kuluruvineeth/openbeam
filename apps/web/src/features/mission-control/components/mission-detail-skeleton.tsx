@@ -24,7 +24,10 @@ export function MissionDetailSkeleton() {
           </div>
           <div className="flex flex-col gap-2 p-2">
             {Array.from({ length: 4 }, (_, i) => (
-              <Skeleton className="h-10 w-full rounded-sm" key={i} />
+              <Skeleton
+                className="h-10 w-full rounded-sm"
+                key={`agent-skeleton-${i}`}
+              />
             ))}
           </div>
         </div>
@@ -38,7 +41,7 @@ export function MissionDetailSkeleton() {
             {Array.from({ length: 5 }, (_, i) => (
               <div
                 className="flex w-[220px] shrink-0 flex-col gap-1.5 rounded-sm border border-border/30 p-1.5"
-                key={i}
+                key={`lane-skeleton-${i}`}
               >
                 <Skeleton className="h-3 w-14 rounded-sm" />
                 <Skeleton className="h-8 w-full rounded-sm" />
@@ -54,7 +57,10 @@ export function MissionDetailSkeleton() {
           </div>
           <div className="flex flex-col gap-2 p-2">
             {Array.from({ length: 5 }, (_, i) => (
-              <Skeleton className="h-12 w-full rounded-sm" key={i} />
+              <Skeleton
+                className="h-12 w-full rounded-sm"
+                key={`event-skeleton-${i}`}
+              />
             ))}
           </div>
         </div>

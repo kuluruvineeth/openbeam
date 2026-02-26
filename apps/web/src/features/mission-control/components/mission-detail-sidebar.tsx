@@ -1,9 +1,11 @@
 "use client";
 
-import { Icons, Progress, ScrollArea } from "@openplane/ui";
-import { cn } from "@/lib/utils";
-import { computeBudgetThreshold, formatCents } from "../lib/budget-utils";
+import { Icons, ScrollArea } from "@openplane/ui";
+import { formatCents } from "../lib/budget-utils";
 import { AgentMiniCard } from "./agent-mini-card";
+import { BudgetPressureBar } from "./budget-pressure-bar";
+import { BudgetTierBadge } from "./budget-tier-badge";
+import { PaymentSummaryCard } from "./payment-summary-card";
 import { SidebarSection } from "./sidebar-section";
 import { StatusChip } from "./status-chip";
 
@@ -16,6 +18,7 @@ type Mission = {
   createdAt: Date;
   budgetCents: number | null;
   consumedCents: number;
+  budgetTier?: string;
 };
 
 type MissionStats = {
@@ -33,10 +36,19 @@ type MissionAgent = {
   status: string;
 };
 
+type PaymentSummary = {
+  totalReceipts: number;
+  totalAmountUsd: number;
+  verifiedCount: number;
+  failedCount: number;
+  pendingCount: number;
+};
+
 type MissionDetailSidebarProps = {
   mission: Mission;
   stats: MissionStats;
   agents: MissionAgent[];
+  paymentSummary?: PaymentSummary | null;
 };
 
 function formatLane(lane: string): string {
@@ -65,13 +77,9 @@ export function MissionDetailSidebar({
   mission,
   stats,
   agents,
+  paymentSummary,
 }: MissionDetailSidebarProps) {
   const budgetCents = mission.budgetCents ?? 0;
-  const budgetPercentage =
-    budgetCents > 0
-      ? Math.min((mission.consumedCents / budgetCents) * 100, 100)
-      : 0;
-  const threshold = computeBudgetThreshold(mission.consumedCents, budgetCents);
 
   return (
     <div className="flex w-60 shrink-0 flex-col border-border/50 border-r dark:border-[#1d1d1d] dark:bg-[#0c0c0c]">
@@ -93,32 +101,33 @@ export function MissionDetailSidebar({
         </SidebarSection>
 
         <SidebarSection title="Budget">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Consumed</span>
-              <span className="font-mono tabular-nums">
-                {formatCents(mission.consumedCents)}
-              </span>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground text-xs">Consumed</span>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-sm tabular-nums">
+                  {formatCents(mission.consumedCents)}
+                </span>
+                {mission.budgetTier && (
+                  <BudgetTierBadge tier={mission.budgetTier} />
+                )}
+              </div>
             </div>
             {budgetCents > 0 && (
-              <>
-                <Progress
-                  className={cn(
-                    "h-1.5",
-                    (threshold === "danger" || threshold === "exceeded") &&
-                      "[&>div]:bg-destructive",
-                    threshold === "warning" && "[&>div]:bg-amber-500"
-                  )}
-                  value={budgetPercentage}
-                />
-                <div className="flex items-center justify-between text-muted-foreground text-xs">
-                  <span>{Math.round(budgetPercentage)}%</span>
-                  <span>{formatCents(budgetCents)} budget</span>
-                </div>
-              </>
+              <BudgetPressureBar
+                budgetCents={budgetCents}
+                consumedCents={mission.consumedCents}
+                tier={mission.budgetTier}
+              />
             )}
           </div>
         </SidebarSection>
+
+        {paymentSummary !== undefined && (
+          <SidebarSection title="Payments">
+            <PaymentSummaryCard data={paymentSummary} />
+          </SidebarSection>
+        )}
 
         <SidebarSection count={agents.length} title="Agent Squad">
           <div className="space-y-1">

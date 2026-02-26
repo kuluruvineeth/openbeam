@@ -149,7 +149,10 @@ export function ReviewStep() {
         </span>
         <div className="flex flex-col gap-1.5">
           {agents.map((agent, index) => (
-            <div className="flex items-center gap-2 text-sm" key={index}>
+            <div
+              className="flex items-center gap-2 text-sm"
+              key={`agent-${index}`}
+            >
               <Icons.BotIcon
                 className="shrink-0 text-muted-foreground"
                 size={14}
@@ -174,7 +177,10 @@ export function ReviewStep() {
         </span>
         <div className="flex flex-col gap-1.5">
           {tasks.map((task, index) => (
-            <div className="flex items-center gap-2 text-sm" key={index}>
+            <div
+              className="flex items-center gap-2 text-sm"
+              key={`task-${index}`}
+            >
               <span
                 className={reviewPriorityVariants({
                   priority: task.priority,

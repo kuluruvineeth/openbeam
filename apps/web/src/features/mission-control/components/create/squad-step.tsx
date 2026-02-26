@@ -155,7 +155,7 @@ export function SquadStep() {
   return (
     <div className="flex flex-col gap-3">
       {indices.map((index) => (
-        <AgentCard index={index} key={index} />
+        <AgentCard index={index} key={`agent-card-${index}`} />
       ))}
 
       <Button

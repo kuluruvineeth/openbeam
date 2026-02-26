@@ -3,7 +3,8 @@
 import { AgentMarkdown, Icons, Markdown, ScrollArea } from "@openplane/ui";
 import { cva } from "class-variance-authority";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
+import { useNow } from "@/lib/hooks/use-now";
 import { cn } from "@/lib/utils";
 import {
   type ChatCommsItem,
@@ -74,8 +75,14 @@ const STATUS_KIND_ICONS: Record<ChatStatusLine["kind"], React.ReactNode> = {
   escalation: <Icons.AlertCircle className="text-amber-500/60" size={10} />,
 };
 
-function ChatMessageBubble({ message }: { message: ChatMessage }) {
-  const timestamp = formatTimelineTimestamp(message.timestamp, Date.now());
+function ChatMessageBubble({
+  message,
+  now,
+}: {
+  message: ChatMessage;
+  now: number;
+}) {
+  const timestamp = formatTimelineTimestamp(message.timestamp, now);
 
   return (
     <motion.div
@@ -115,8 +122,8 @@ function ChatMessageBubble({ message }: { message: ChatMessage }) {
   );
 }
 
-function ChatStatusRow({ line }: { line: ChatStatusLine }) {
-  const timestamp = formatTimelineTimestamp(line.timestamp, Date.now());
+function ChatStatusRow({ line, now }: { line: ChatStatusLine; now: number }) {
+  const timestamp = formatTimelineTimestamp(line.timestamp, now);
 
   return (
     <motion.div
@@ -138,8 +145,14 @@ function ChatStatusRow({ line }: { line: ChatStatusLine }) {
   );
 }
 
-function ChatCommsBroadcast({ comms }: { comms: ChatCommsItem }) {
-  const timestamp = formatTimelineTimestamp(comms.timestamp, Date.now());
+function ChatCommsBroadcast({
+  comms,
+  now,
+}: {
+  comms: ChatCommsItem;
+  now: number;
+}) {
+  const timestamp = formatTimelineTimestamp(comms.timestamp, now);
 
   return (
     <motion.div
@@ -179,8 +192,14 @@ function ChatCommsBroadcast({ comms }: { comms: ChatCommsItem }) {
   );
 }
 
-function ChatCommsMessage({ comms }: { comms: ChatCommsItem }) {
-  const timestamp = formatTimelineTimestamp(comms.timestamp, Date.now());
+function ChatCommsMessage({
+  comms,
+  now,
+}: {
+  comms: ChatCommsItem;
+  now: number;
+}) {
+  const timestamp = formatTimelineTimestamp(comms.timestamp, now);
   const isCrossMission = comms.channel === "cross_mission";
 
   return (
@@ -225,11 +244,11 @@ function ChatCommsMessage({ comms }: { comms: ChatCommsItem }) {
   );
 }
 
-function ChatCommsRow({ comms }: { comms: ChatCommsItem }) {
+function ChatCommsRow({ comms, now }: { comms: ChatCommsItem; now: number }) {
   if (comms.channel === "broadcast") {
-    return <ChatCommsBroadcast comms={comms} />;
+    return <ChatCommsBroadcast comms={comms} now={now} />;
   }
-  return <ChatCommsMessage comms={comms} />;
+  return <ChatCommsMessage comms={comms} now={now} />;
 }
 
 function reflectionSentiment(score: number, triggeredReplan: boolean) {
@@ -245,8 +264,14 @@ function reflectionSentiment(score: number, triggeredReplan: boolean) {
   return "warning" as const;
 }
 
-function ChatReflectionRow({ reflection }: { reflection: ChatReflectionItem }) {
-  const timestamp = formatTimelineTimestamp(reflection.timestamp, Date.now());
+function ChatReflectionRow({
+  reflection,
+  now,
+}: {
+  reflection: ChatReflectionItem;
+  now: number;
+}) {
+  const timestamp = formatTimelineTimestamp(reflection.timestamp, now);
   const sentiment = reflectionSentiment(
     reflection.score,
     reflection.triggeredReplan
@@ -305,14 +330,19 @@ export function AgentChatFeed({
   const reflections = useAllReflections();
   const bottomRef = useRef<HTMLDivElement>(null);
   const projectRef = useRef(createChatProjectionCache());
+  const now = useNow(60_000);
 
-  const entries = projectRef.current({
-    events,
-    messages,
-    reflections,
-    agentFilter: selectedAgentId,
-    agentBoard,
-  });
+  const entries = useMemo(
+    () =>
+      projectRef.current({
+        events,
+        messages,
+        reflections,
+        agentFilter: selectedAgentId,
+        agentBoard,
+      }),
+    [events, messages, reflections, selectedAgentId, agentBoard]
+  );
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -341,17 +371,34 @@ export function AgentChatFeed({
           {entries.map((entry) => {
             switch (entry.type) {
               case "status":
-                return <ChatStatusRow key={entry.data.id} line={entry.data} />;
+                return (
+                  <ChatStatusRow
+                    key={entry.data.id}
+                    line={entry.data}
+                    now={now}
+                  />
+                );
               case "message":
                 return (
-                  <ChatMessageBubble key={entry.data.id} message={entry.data} />
+                  <ChatMessageBubble
+                    key={entry.data.id}
+                    message={entry.data}
+                    now={now}
+                  />
                 );
               case "comms":
-                return <ChatCommsRow comms={entry.data} key={entry.data.id} />;
+                return (
+                  <ChatCommsRow
+                    comms={entry.data}
+                    key={entry.data.id}
+                    now={now}
+                  />
+                );
               case "reflection":
                 return (
                   <ChatReflectionRow
                     key={entry.data.id}
+                    now={now}
                     reflection={entry.data}
                   />
                 );

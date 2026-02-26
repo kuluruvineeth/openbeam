@@ -25,6 +25,7 @@ export {
 export { ApprovalBulkActionBar } from "./components/approval-bulk-action-bar";
 export { ApprovalDetailPanel } from "./components/approval-detail-panel";
 export { ApprovalListItem } from "./components/approval-list-item";
+export { ApprovalQueuePanel } from "./components/approval-queue-panel";
 export {
   ApprovalRiskBadge,
   riskBadgeVariants,
@@ -71,10 +72,16 @@ export {
   MissionKanbanBoard,
 } from "./components/board/mission-kanban-board";
 export { BudgetAlert, budgetAlertVariants } from "./components/budget-alert";
+export { BudgetPressureBar } from "./components/budget-pressure-bar";
 export {
   BudgetProgressBar,
   budgetBarVariants,
 } from "./components/budget-progress-bar";
+export {
+  type BudgetTier,
+  BudgetTierBadge,
+  budgetTierBadgeVariants,
+} from "./components/budget-tier-badge";
 export { BurnRateChart } from "./components/burn-rate-chart";
 export {
   AgentChatFeed,
@@ -125,11 +132,17 @@ export {
   kbdVariants,
 } from "./components/keyboard-shortcuts-dialog";
 export {
+  MemoryEditDialog,
+  scopeToggleVariants as memoryEditScopeToggleVariants,
+} from "./components/memory-edit-dialog";
+export {
   inspectorScopeToggleVariants,
   inspectorViewToggleVariants,
   MemoryInspector,
 } from "./components/memory-inspector";
 export { MemoryTable, scopeBadgeVariants } from "./components/memory-table";
+export { MemoryTimeline } from "./components/memory-timeline";
+export { MemoryValueDisplay } from "./components/memory-value-display";
 export {
   actionButtonVariants,
   MissionActionBar,
@@ -145,11 +158,16 @@ export { MissionControlView } from "./components/mission-control-view";
 export { MissionCreateSheet } from "./components/mission-create-sheet";
 export { MissionDashboard } from "./components/mission-dashboard";
 export {
+  MissionDetailContent,
+  tabVariants as missionDetailTabVariants,
+} from "./components/mission-detail-content";
+export {
   headerCostVariants,
   MissionDetailHeader,
 } from "./components/mission-detail-header";
 export { MissionDetailLoader } from "./components/mission-detail-loader";
 export { MissionDetailShell } from "./components/mission-detail-shell";
+export { MissionDetailSidebar } from "./components/mission-detail-sidebar";
 export { MissionDetailSkeleton } from "./components/mission-detail-skeleton";
 export { MissionDrawer } from "./components/mission-drawer";
 export { MissionEmptyState } from "./components/mission-empty-state";
@@ -165,6 +183,11 @@ export {
 } from "./components/mission-reflection-panel";
 export { MissionRunTable } from "./components/mission-run-table";
 export {
+  MissionStatusTabs,
+  type MissionStatusTabsProps,
+  STATUS_TABS,
+} from "./components/mission-status-tabs";
+export {
   type DashboardStats,
   MissionSummaryCards,
   type MissionSummaryCardsProps,
@@ -173,6 +196,8 @@ export {
   MissionToolbar,
   type MissionToolbarProps,
 } from "./components/mission-toolbar";
+export { MissionWorkspaceView } from "./components/mission-workspace-view";
+export { PaymentSummaryCard } from "./components/payment-summary-card";
 export { SidebarSection } from "./components/sidebar-section";
 export { SquadHeader } from "./components/squad-header";
 export {
@@ -194,11 +219,14 @@ export {
 export { MissionTableHeader } from "./components/table/mission-table-header";
 export { MissionTableSkeleton } from "./components/table/mission-table-skeleton";
 export { TaskBoard } from "./components/task-board";
+export { TaskBoardColumn } from "./components/task-board-column";
 export {
   priorityBadgeVariants,
   TaskCard,
   taskCardVariants,
 } from "./components/task-card";
+export { TaskDetailPanel } from "./components/task-detail-panel";
+export { TaskInlineCreate } from "./components/task-inline-create";
 export { TokenUsageChart } from "./components/token-usage-chart";
 export {
   APPROVAL_COMMANDS,
@@ -274,6 +302,18 @@ export {
   isActiveEvent,
   resolveTemplate,
 } from "./lib/event-config";
+export {
+  buildWorkspaceDashboardLayout,
+  buildWorkspacePipelineCards,
+  buildWorkspaceSkillInstallHref,
+  getWorkspacePrompt,
+  getWorkspaceSkillRecommendations,
+  summarizeWorkspace,
+  WORKSPACE_ACTION_PRESETS,
+  type WorkspaceActionPresetId,
+  type WorkspaceSkillRecommendation,
+  type WorkspaceSummary,
+} from "./lib/mission-workspace";
 export {
   groupTasksByStatus,
   type KanbanColumn,

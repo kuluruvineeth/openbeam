@@ -1,13 +1,13 @@
 "use client";
 
 import { Button, Icons } from "@openplane/ui";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { useCallback, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useAgentName } from "../stores/mission-runtime-store";
 import { AgentLanesPanel } from "./agent-lanes-panel";
-import { MissionKanbanBoard } from "./board/mission-kanban-board";
 import { AgentChatFeed } from "./chat/agent-chat-feed";
+import { MissionWorkspaceView } from "./mission-workspace-view";
 
 const LEFT_PANEL_WIDTH = 280;
 const RIGHT_PANEL_WIDTH = 420;
@@ -52,7 +52,7 @@ export function MissionControlLayout({
 
   return (
     <div className="flex h-full flex-1 overflow-hidden">
-      <motion.div
+      <m.div
         animate={{ width: leftCollapsed ? 0 : LEFT_PANEL_WIDTH }}
         className="shrink-0 overflow-hidden"
         transition={COLLAPSE_TRANSITION}
@@ -65,7 +65,7 @@ export function MissionControlLayout({
             selectedAgentId={selectedAgentId}
           />
         </div>
-      </motion.div>
+      </m.div>
 
       <div className="relative flex-1 overflow-hidden">
         {leftCollapsed && (
@@ -88,13 +88,15 @@ export function MissionControlLayout({
             <Icons.SidebarRight className="rotate-180" size={14} />
           </Button>
         )}
-        <MissionKanbanBoard
+        <MissionWorkspaceView
+          missionId={missionId}
           onSelectAgent={handleSelectAgent}
+          runId={runId}
           selectedAgentId={selectedAgentId}
         />
       </div>
 
-      <motion.div
+      <m.div
         animate={{ width: rightCollapsed ? 0 : RIGHT_PANEL_WIDTH }}
         className="shrink-0 overflow-hidden"
         transition={COLLAPSE_TRANSITION}
@@ -131,7 +133,7 @@ export function MissionControlLayout({
             </div>
           </div>
         </div>
-      </motion.div>
+      </m.div>
     </div>
   );
 }
