@@ -1,0 +1,27 @@
+{
+  "name": "@openplane/extension",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "build": "wxt build",
+    "zip": "wxt zip",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@openplane/api": "workspace:*",
+    "@openplane/types": "workspace:*",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@openplane/config": "workspace:*",
+    "@types/chrome": "^0.1.24",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "typescript": "catalog:",
+    "wxt": "^0.20.15"
+  }
+}

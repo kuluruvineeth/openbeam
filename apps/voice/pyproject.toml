@@ -1,0 +1,51 @@
+[project]
+name = "openplane-voice"
+version = "0.1.0"
+description = "OpenPlane Voice Agents — LiveKit-based dictation and action agents"
+requires-python = ">=3.12,<3.14"
+license = "MIT"
+
+dependencies = [
+    "livekit-agents[codecs]>=1.6.0",
+    "livekit-plugins-deepgram>=1.0.0",
+    "livekit-plugins-openai>=1.0.0",
+    "livekit-plugins-cartesia>=1.0.0",
+    "livekit-plugins-silero>=1.0.0",
+    "httpx>=0.28.0",
+    "structlog>=24.4.0",
+    "prometheus-client>=0.21.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.8.0",
+    "mypy>=1.13.0",
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+src = [".", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "C4", "UP", "ARG", "SIM", "RUF", "S", "ASYNC"]
+ignore = ["E501", "S101", "S104", "B008"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["common", "dictation", "action"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+addopts = ["-v", "--tb=short", "--strict-markers"]
