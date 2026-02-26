@@ -19,6 +19,7 @@ from engine.common.exceptions import (
 from engine.common.logging import configure_logging, get_logger
 from engine.common.metrics import (
     HTTP_REQUEST_DURATION,
+    HTTP_REQUESTS_IN_FLIGHT,
     HTTP_REQUESTS_TOTAL,
     MODEL_BATCH_SIZE,
     MODEL_INFERENCE_LATENCY,
@@ -27,6 +28,7 @@ from engine.common.metrics import (
 __all__ = [
     "HTTP_REQUESTS_TOTAL",
     "HTTP_REQUEST_DURATION",
+    "HTTP_REQUESTS_IN_FLIGHT",
     "MODEL_BATCH_SIZE",
     "MODEL_INFERENCE_LATENCY",
     "BaseServiceSettings",

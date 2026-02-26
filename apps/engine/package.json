@@ -1,0 +1,14 @@
+{
+  "name": "engine",
+  "private": true,
+  "scripts": {
+    "dev": "uv run engine-cpu",
+    "build": "echo 'Python engine — no JS build step'",
+    "check-types": "uv run mypy src",
+    "lint": "uv run ruff check src tests",
+    "test": "uv run pytest tests/ -v",
+    "test:coverage": "uv run pytest tests/ --cov=src/engine -v",
+    "format": "uv run ruff format src tests",
+    "openapi:export": "uv run python -c \"from engine.cpu_service.main import create_app; import json; print(json.dumps(create_app().openapi(), indent=2))\" > openapi.json"
+  }
+}

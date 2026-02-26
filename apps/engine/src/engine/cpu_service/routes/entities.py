@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 import time
+from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
+
+if TYPE_CHECKING:
+    from engine.entities import ExtractedEntity
 
 router = APIRouter()
 
@@ -43,7 +47,7 @@ class DocumentExtractResponse(BaseModel):
     entity_count: int
 
 
-def _get_extractor(request: Request):
+def _get_extractor(request: Request) -> Any:
     extractor = request.app.state.entity_extractor
     if extractor is None:
         raise HTTPException(
@@ -53,7 +57,7 @@ def _get_extractor(request: Request):
     return extractor
 
 
-def _to_response(entity) -> ExtractedEntityResponse:
+def _to_response(entity: ExtractedEntity) -> ExtractedEntityResponse:
     return ExtractedEntityResponse(
         text=entity.text,
         label=entity.label,
@@ -121,7 +125,7 @@ def extract_from_document(
 
 def _extract_from_metadata(
     metadata: dict[str, str | int | bool | None],
-) -> list:
+) -> list[ExtractedEntity]:
     from engine.entities import ExtractedEntity
 
     entities: list[ExtractedEntity] = []

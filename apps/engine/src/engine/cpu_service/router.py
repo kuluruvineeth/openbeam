@@ -3,6 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 
 from engine.cpu_service.routes import (
+    browser,
     chunk,
     embeddings,
     entities,
@@ -23,3 +24,4 @@ api_router.include_router(ltr.router, tags=["ltr"])
 api_router.include_router(embeddings.router, prefix="/embeddings", tags=["embeddings"])
 api_router.include_router(rerank.router, prefix="/rerank", tags=["rerank"])
 api_router.include_router(entities.router, prefix="/entities", tags=["entities"])
+api_router.include_router(browser.router, prefix="/browser", tags=["browser"])

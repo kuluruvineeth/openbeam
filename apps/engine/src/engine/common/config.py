@@ -83,6 +83,12 @@ class CPUServiceSettings(BaseServiceSettings):
 
     ltr_model_path: str | None = None
 
+    enable_browser: bool = False
+    browser_timeout_seconds: int = 120
+    browser_headless: bool = True
+    browser_max_steps: int = 50
+    browser_llm_model: str = "claude-sonnet-4-5-20250929"
+
     enable_ml: bool = False
     ml_device: Literal["auto", "cpu", "mps", "cuda"] = "auto"
     embedding_cache_size: int = 10_000
