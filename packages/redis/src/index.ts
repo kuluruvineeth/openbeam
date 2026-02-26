@@ -55,6 +55,7 @@ export { Fence, fence } from "./locks/fence";
 export {
   getSessionStreamMetrics,
   getSessionStreamMetricsContentType,
+  sessionStreamRegistry,
 } from "./observability/runtime-stream-metrics";
 export {
   AGENT_MSG_RATE_LIMIT,
