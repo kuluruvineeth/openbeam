@@ -12,6 +12,8 @@ export const ErrorCodeSchema = z.enum([
   "QUOTA_EXCEEDED",
   "NETWORK_ERROR",
   "INTERNAL_ERROR",
+  "PAYMENT_REQUIRED",
+  "BUDGET_EXCEEDED",
 ]);
 
 export type ErrorCode = z.infer<typeof ErrorCodeSchema>;
@@ -38,6 +40,7 @@ export const ToolCategorySchema = z.enum([
   "skills",
   "canvas",
   "mission",
+  "voice",
 ]);
 
 export type ToolCategory = z.infer<typeof ToolCategorySchema>;

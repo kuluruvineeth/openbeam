@@ -339,7 +339,14 @@ const WebhookConfigSchemaRef = z.object({
 
 const ConnectorEventTriggerConfigSchemaRef = z.object({
   connectorId: z.string().optional(),
-  connectorType: z.enum(["slack", "linear", "notion", "gmail", "google-drive"]),
+  connectorType: z.enum([
+    "slack",
+    "linear",
+    "notion",
+    "gmail",
+    "google-drive",
+    "github",
+  ]),
   eventId: z.string(),
   resourceId: z.string().optional(),
   resourceType: z.string().optional(),
