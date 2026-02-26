@@ -1,5 +1,8 @@
 import { PrismaClient } from "../prisma/generated/client";
-import { instrumentPrisma } from "./instrumentation";
+import {
+  instrumentPrisma,
+  logDatabaseInstrumentationError,
+} from "./instrumentation";
 
 export * from "../prisma/generated/client";
 
@@ -17,10 +20,7 @@ function createPrismaClient(): Database {
   try {
     return instrumentPrisma(client);
   } catch (error) {
-    console.error(
-      "Prisma instrumentation failed:",
-      error instanceof Error ? error.message : String(error)
-    );
+    logDatabaseInstrumentationError(error);
     return client;
   }
 }
@@ -55,6 +55,7 @@ export * from "./mutations/indexed-media";
 export * from "./mutations/knowledge-changes";
 export * from "./mutations/mission-control";
 export * from "./mutations/oauth";
+export * from "./mutations/payments";
 export * from "./mutations/permissions";
 export * from "./mutations/rag-interactions";
 export * from "./mutations/saved-search";
@@ -68,6 +69,7 @@ export * from "./mutations/team-media-index";
 export * from "./mutations/teams";
 export * from "./mutations/user-search-profile";
 export * from "./mutations/users";
+export * from "./mutations/voice";
 export * from "./mutations/workflow-audit";
 export * from "./queries/accounts";
 export * from "./queries/agent-canvas";
@@ -90,6 +92,7 @@ export * from "./queries/indexed-media";
 export * from "./queries/knowledge-changes";
 export * from "./queries/ltr";
 export * from "./queries/mission-control";
+export * from "./queries/payments";
 export * from "./queries/permissions";
 export * from "./queries/saved-search";
 export * from "./queries/search-experiments";
@@ -102,4 +105,5 @@ export * from "./queries/team-media-index";
 export * from "./queries/teams";
 export * from "./queries/user-search-profile";
 export * from "./queries/users";
+export * from "./queries/voice";
 export * from "./queries/workflow-audit";
