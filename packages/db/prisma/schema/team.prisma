@@ -40,6 +40,14 @@ model Team {
   missions             Mission[]
   teamKnowledge        TeamKnowledge[]
 
+  wallets          PaymentWallet[]
+  pricingPolicies  PaymentPricingPolicy[]
+  paymentReceipts  PaymentReceipt[]
+  ledgerEntries    PaymentLedgerEntry[]
+
+  voiceNotes    VoiceNote[]
+  voiceSessions VoiceSession[]
+
   @@map("team")
 }
 

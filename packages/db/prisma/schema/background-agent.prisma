@@ -13,7 +13,7 @@ model BackgroundAgent {
   currentStep String?
   totalSteps  Int?
 
-  sandboxType SandboxType @default(E2B)
+  sandboxType SandboxType @default(DAYTONA)
   sandboxId   String?
   sandboxUrl  String?
 
@@ -103,7 +103,6 @@ enum BackgroundAgentStatus {
 }
 
 enum SandboxType {
-  E2B
-  DOCKER
+  DAYTONA
   LOCAL
 }
