@@ -94,7 +94,7 @@ See [DEVELOPMENT.md](./DEVELOPMENT.md) for detailed setup guide.
 | Temporal UI | http://localhost:8233 |
 | MinIO Console | http://localhost:9001 |
 | Grafana | http://localhost:3002 |
-| Jaeger | http://localhost:16686 |
+| Loki | http://localhost:3100 |
 
 ## Docker
 
