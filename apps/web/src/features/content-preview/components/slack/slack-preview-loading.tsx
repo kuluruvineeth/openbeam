@@ -30,7 +30,10 @@ export function SlackPreviewLoading() {
         </div>
         <div className="space-y-3 border-foreground/10 border-l-2 pl-4">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div className="flex items-start gap-2.5" key={i}>
+            <div
+              className="flex items-start gap-2.5"
+              key={`thread-skeleton-${i}`}
+            >
               <Skeleton className="size-7 shrink-0 rounded" />
               <div className="min-w-0 flex-1 space-y-1.5">
                 <div className="flex items-center gap-2">

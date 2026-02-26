@@ -1,6 +1,7 @@
 "use client";
 
 import { Skeleton } from "@openplane/ui";
+import { useMemo } from "react";
 
 type PdfSkeletonProps = {
   count?: number;
@@ -14,7 +15,7 @@ export function PdfPagesSkeleton({
   return (
     <div className="flex h-full flex-col items-center gap-4 p-4 pt-8">
       {Array.from({ length: count }, (_, i) => (
-        <div className="relative w-full max-w-md" key={i}>
+        <div className="relative w-full max-w-md" key={`pdf-page-${i}`}>
           <Skeleton className="aspect-[1/1.4] w-full rounded-sm" />
           {showLines && (
             <div className="absolute inset-0 flex flex-col gap-2 p-6">
@@ -94,16 +95,22 @@ export function SpreadsheetSkeleton() {
       <div className="overflow-hidden rounded border border-border/50">
         <div className="flex border-border/50 border-b bg-muted/30">
           {Array.from({ length: 6 }, (_, idx) => (
-            <Skeleton className="h-8 flex-1 rounded-none" key={idx} />
+            <Skeleton
+              className="h-8 flex-1 rounded-none"
+              key={`header-${idx}`}
+            />
           ))}
         </div>
         {Array.from({ length: 10 }, (_, rowIdx) => (
           <div
             className="flex border-border/30 border-b last:border-b-0"
-            key={rowIdx}
+            key={`row-${rowIdx}`}
           >
             {[0, 1, 2, 3, 4, 5].map((colIdx) => (
-              <Skeleton className="h-7 flex-1 rounded-none" key={colIdx} />
+              <Skeleton
+                className="h-7 flex-1 rounded-none"
+                key={`cell-${colIdx}`}
+              />
             ))}
           </div>
         ))}
@@ -133,12 +140,12 @@ export function VideoSkeleton() {
       <div className="w-80 shrink-0 border-border/50 border-l">
         <div className="flex h-10 items-center gap-2 border-border/50 border-b px-2">
           {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton className="h-6 flex-1" key={i} />
+            <Skeleton className="h-6 flex-1" key={`tab-skeleton-${i}`} />
           ))}
         </div>
         <div className="flex flex-col gap-2 p-3">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div className="flex gap-3" key={i}>
+            <div className="flex gap-3" key={`comment-skeleton-${i}`}>
               <Skeleton className="size-6 shrink-0 rounded-full" />
               <div className="flex-1 space-y-1.5">
                 <Skeleton className="h-4 w-3/4" />
@@ -153,15 +160,24 @@ export function VideoSkeleton() {
 }
 
 export function AudioSkeleton() {
+  const barHeights = useMemo(
+    () =>
+      Array.from({ length: 40 }, (_, i) => {
+        const seed = ((i * 7 + 13) * 17) % 60;
+        return 20 + seed;
+      }),
+    []
+  );
+
   return (
     <div className="flex h-full">
       <div className="flex flex-1 flex-col items-center justify-center">
         <div className="flex h-24 items-end gap-[2px] px-8">
-          {Array.from({ length: 40 }).map((_, i) => (
+          {barHeights.map((height, i) => (
             <Skeleton
               className="w-[3px] rounded-[1px]"
-              key={i}
-              style={{ height: `${20 + Math.random() * 60}%` }}
+              key={`bar-${i}`}
+              style={{ height: `${height}%` }}
             />
           ))}
         </div>
@@ -175,12 +191,12 @@ export function AudioSkeleton() {
       <div className="w-80 shrink-0 border-border/50 border-l">
         <div className="flex h-9 items-center gap-2 border-border/50 border-b px-2">
           {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton className="h-5 flex-1" key={i} />
+            <Skeleton className="h-5 flex-1" key={`audio-tab-${i}`} />
           ))}
         </div>
         <div className="flex flex-col gap-2 p-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div className="flex gap-2.5" key={i}>
+            <div className="flex gap-2.5" key={`line-skeleton-${i}`}>
               <Skeleton className="h-3 w-8" />
               <Skeleton className="h-3 flex-1" />
             </div>

@@ -134,11 +134,11 @@ const TranscriptLine = forwardRef<HTMLButtonElement, TranscriptLineProps>(
         {formatTime(segment.start)}
       </span>
       <span className="text-[13px] text-foreground/80 leading-relaxed">
-        {segment.words.map((word, i) => (
+        {segment.words.map((word, _i) => (
           <TranscriptWord
             currentTime={currentTime}
             isLineActive={isActive}
-            key={i}
+            key={`word-${word.start}`}
             searchTerm={searchTerm}
             word={word}
           />
@@ -189,7 +189,7 @@ function TranscriptSkeleton() {
       {Array.from({ length: 8 }).map((_, i) => (
         <div
           className="flex gap-2.5 border-border/40 border-b px-3 py-2 last:border-b-0"
-          key={i}
+          key={`transcript-skeleton-${i}`}
         >
           <Skeleton className="h-3 w-7" />
           <Skeleton className="h-3 flex-1" />

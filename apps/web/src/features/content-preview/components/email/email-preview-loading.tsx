@@ -17,7 +17,10 @@ export function EmailPreviewLoading() {
       </div>
       <div className="min-h-0 flex-1 space-y-4 overflow-auto p-4">
         {Array.from({ length: 2 }).map((_, i) => (
-          <div className="space-y-3 border-border/40 border-b pb-4" key={i}>
+          <div
+            className="space-y-3 border-border/40 border-b pb-4"
+            key={`email-skeleton-${i}`}
+          >
             <div className="flex items-center gap-3">
               <Skeleton className="size-8 rounded-full" />
               <div className="space-y-1">

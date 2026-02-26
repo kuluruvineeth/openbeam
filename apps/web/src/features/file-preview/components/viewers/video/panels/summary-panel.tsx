@@ -77,7 +77,7 @@ function GistSection({
           <Skeleton className="h-3.5 w-14" />
           <div className="flex flex-wrap gap-1">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton className="h-5 w-14" key={i} />
+              <Skeleton className="h-5 w-14" key={`topic-skeleton-${i}`} />
             ))}
           </div>
         </div>
@@ -85,7 +85,7 @@ function GistSection({
           <Skeleton className="h-3.5 w-16" />
           <div className="flex flex-wrap gap-1">
             {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton className="h-5 w-12" key={i} />
+              <Skeleton className="h-5 w-12" key={`hashtag-skeleton-${i}`} />
             ))}
           </div>
         </div>
@@ -108,10 +108,10 @@ function GistSection({
             </h3>
           </div>
           <div className="flex flex-wrap gap-1">
-            {gist.topics.map((topic, i) => (
+            {gist.topics.map((topic) => (
               <span
                 className="bg-foreground/[0.05] px-2 py-0.5 text-[11px] text-foreground/70"
-                key={i}
+                key={topic}
               >
                 {topic}
               </span>
@@ -129,10 +129,10 @@ function GistSection({
             </h3>
           </div>
           <div className="flex flex-wrap gap-1">
-            {gist.hashtags.map((tag, i) => (
+            {gist.hashtags.map((tag) => (
               <span
                 className="bg-primary/10 px-2 py-0.5 text-[11px] text-primary"
-                key={i}
+                key={tag}
               >
                 #{tag}
               </span>
