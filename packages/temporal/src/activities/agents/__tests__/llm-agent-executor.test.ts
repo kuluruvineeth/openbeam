@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockExecute = vi.fn();
+const mockToolServices = vi.fn(() => ({}));
 
 vi.mock("@openplane/ai", () => ({
   createLlmAgent: vi.fn(() => ({
@@ -25,6 +26,12 @@ vi.mock("@temporalio/activity", () => ({
     current: () => ({
       heartbeat: vi.fn(),
     }),
+  },
+}));
+
+vi.mock("@openplane/ai/tools", () => ({
+  toolRegistry: {
+    getServices: mockToolServices,
   },
 }));
 
@@ -248,6 +255,31 @@ describe("LlmAgentExecutor", () => {
           name: "agent-analyst",
         })
       );
+    });
+
+    it("injects sandbox tool services when sandbox metadata is present", async () => {
+      mockExecute.mockResolvedValue(createSuccessResult("Done"));
+
+      await executor.executeStep("session-1", "mission", 1, [], {
+        sandboxId: "sandbox-1",
+        prompt: "Run diagnostics",
+      });
+
+      const call = mockExecute.mock.calls.at(-1);
+      const executionContext = call?.[1] as {
+        metadata?: Record<string, unknown>;
+      };
+      const metadata = executionContext.metadata ?? {};
+      const toolServices = metadata.toolServices as {
+        sandbox?: {
+          runCommand?: unknown;
+          executeCode?: unknown;
+        };
+      };
+
+      expect(metadata.sandboxId).toBe("sandbox-1");
+      expect(typeof toolServices.sandbox?.runCommand).toBe("function");
+      expect(typeof toolServices.sandbox?.executeCode).toBe("function");
     });
   });
 });

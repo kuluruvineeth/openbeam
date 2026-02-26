@@ -6,10 +6,17 @@ import {
   getConfig,
   type LlmAgentConfig,
 } from "@openplane/ai";
+import { type ToolServices, toolRegistry } from "@openplane/ai/tools";
+import {
+  getSandboxProvider,
+  type FileInfo as RuntimeFileInfo,
+  type Sandbox as RuntimeSandbox,
+} from "@openplane/sandbox";
 import { Context } from "@temporalio/activity";
 import { LLM_CALL_TIMEOUTS } from "../../config/timeouts";
 import type { AgentArtifact } from "../../workflows/types";
 import type { ChunkExecutionResult, ExecuteChunkInput } from "./chunked-types";
+import { resolveSandboxProviderOrder } from "./sandbox-provider";
 import type { AgentExecutor } from "./types";
 
 const PRESET_TOOLS: Record<string, string[]> = {
@@ -45,6 +52,19 @@ function parseTemporalDurationMs(duration: string): number {
 const LLM_TIMEOUT_MS = parseTemporalDurationMs(
   LLM_CALL_TIMEOUTS.startToCloseTimeout
 );
+
+type SandboxToolService = NonNullable<ToolServices["sandbox"]>;
+type SandboxToolRuntime = {
+  code: RuntimeSandbox["code"];
+  process: {
+    run: RuntimeSandbox["commands"]["run"];
+  };
+  files: {
+    read: RuntimeSandbox["files"]["read"];
+    write: RuntimeSandbox["files"]["write"];
+    list: RuntimeSandbox["files"]["list"];
+  };
+};
 
 export class LlmAgentExecutor implements AgentExecutor {
   async executeStep(
@@ -86,6 +106,7 @@ export class LlmAgentExecutor implements AgentExecutor {
       previousArtifacts,
       context.contextWindow as unknown[] | undefined
     );
+    const toolServices = this.resolveToolServices(context);
 
     const executionCtx: AgentExecutionContext = {
       teamId: (context.teamId as string) ?? "",
@@ -99,6 +120,9 @@ export class LlmAgentExecutor implements AgentExecutor {
         runId: context.runId,
         taskId: context.taskId,
         agentName: context.agentName,
+        sandboxId: context.sandboxId,
+        sandboxHost: context.sandboxHost,
+        toolServices,
       },
     };
 
@@ -255,5 +279,110 @@ export class LlmAgentExecutor implements AgentExecutor {
     }
 
     return value as AgentArtifact[];
+  }
+
+  private resolveToolServices(context: Record<string, unknown>): ToolServices {
+    const baseServices = toolRegistry.getServices();
+    const sandboxId = this.readContextString(context.sandboxId);
+    if (!sandboxId) {
+      return baseServices;
+    }
+
+    return {
+      ...baseServices,
+      sandbox: this.createSandboxToolService(sandboxId),
+    };
+  }
+
+  private readContextString(value: unknown): string | null {
+    if (typeof value !== "string") {
+      return null;
+    }
+
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+
+  private createSandboxToolService(sandboxId: string): SandboxToolService {
+    let cachedSandbox: SandboxToolRuntime | null = null;
+
+    const connect = async (): Promise<SandboxToolRuntime> => {
+      if (cachedSandbox) {
+        return cachedSandbox;
+      }
+
+      cachedSandbox = await this.connectSandbox(sandboxId);
+      return cachedSandbox;
+    };
+
+    return {
+      executeCode: async (code, language = "python") => {
+        const sandbox = await connect();
+        return sandbox.code.run(code, language);
+      },
+      runCommand: async (command, opts) => {
+        const sandbox = await connect();
+        return sandbox.process.run(command, {
+          cwd: opts?.cwd,
+          env: opts?.env,
+        });
+      },
+      readFile: async (path) => {
+        const sandbox = await connect();
+        return sandbox.files.read(path);
+      },
+      writeFile: async (path, content) => {
+        const sandbox = await connect();
+        await sandbox.files.write(path, content);
+      },
+      listFiles: async (path) => {
+        const sandbox = await connect();
+        const files = await sandbox.files.list(path);
+        return files.map((file: RuntimeFileInfo) => ({
+          path: file.path,
+          name: file.name,
+          isDirectory: file.isDirectory,
+          size: file.size,
+        }));
+      },
+    };
+  }
+
+  private toToolRuntime(sandbox: RuntimeSandbox): SandboxToolRuntime {
+    return {
+      code: sandbox.code,
+      process: {
+        run: sandbox.commands.run.bind(sandbox.commands),
+      },
+      files: {
+        read: sandbox.files.read.bind(sandbox.files),
+        write: sandbox.files.write.bind(sandbox.files),
+        list: sandbox.files.list.bind(sandbox.files),
+      },
+    };
+  }
+
+  private async connectSandbox(sandboxId: string): Promise<SandboxToolRuntime> {
+    const errors: string[] = [];
+
+    for (const providerType of resolveSandboxProviderOrder()) {
+      try {
+        const provider = await getSandboxProvider({ provider: providerType });
+        if (!(await provider.isAvailable())) {
+          errors.push(`${providerType}: unavailable`);
+          continue;
+        }
+
+        const sandbox = await provider.connect(sandboxId);
+        return this.toToolRuntime(sandbox);
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Unknown sandbox error";
+        errors.push(`${providerType}: ${message}`);
+      }
+    }
+
+    const detail = errors.length > 0 ? errors.join("; ") : "no providers";
+    throw new Error(`Unable to connect to sandbox ${sandboxId}: ${detail}`);
   }
 }

@@ -4,6 +4,8 @@ import {
   type AgentCompletedPayload,
   MissionAgentRunInputSchema,
   type MissionAgentRunOutput,
+  type SandboxConfig,
+  SandboxConfigSchema,
 } from "@openplane/types/temporal/mission";
 import type {
   AgentMessage,
@@ -21,6 +23,7 @@ import {
   setHandler,
   workflowInfo,
 } from "@temporalio/workflow";
+import type { SandboxLifecycleActivities } from "../../activities/agents/sandbox-lifecycle";
 import type { AgentActivities } from "../../activities/agents/types";
 import {
   buildPriorityComparator,
@@ -49,6 +52,14 @@ const STUCK_THRESHOLD = 0.3;
 const EVALUATION_INTERVAL = 2;
 const REFLECTION_BUFFER_CAPACITY = 3;
 
+const SANDBOX_TOOL_NAMES = [
+  "sandbox_execute_code",
+  "sandbox_run_command",
+  "sandbox_read_file",
+  "sandbox_write_file",
+  "sandbox_list_files",
+];
+
 function resolveAgentStatus(
   status: string
 ): "completed" | "cancelled" | "failed" {
@@ -71,6 +82,8 @@ function resolveTimeoutTier(tools?: string[]): TimeoutTier {
     "codebase_analyze",
     "multi_document_synthesis",
     "deep_research",
+    "sandbox_execute_code",
+    "sandbox_run_command",
   ]);
 
   for (const tool of tools) {
@@ -80,6 +93,23 @@ function resolveTimeoutTier(tools?: string[]): TimeoutTier {
   }
 
   return "standard";
+}
+
+function resolveSandboxConfig(
+  directConfig: SandboxConfig | undefined,
+  memory: Record<string, unknown>
+): SandboxConfig | undefined {
+  if (directConfig) {
+    return directConfig;
+  }
+
+  const fromMemory = memory["agent:sandbox_config"];
+  const parsed = SandboxConfigSchema.safeParse(fromMemory);
+  if (parsed.success) {
+    return parsed.data;
+  }
+
+  return;
 }
 
 function toDuration(value: string): Duration {
@@ -119,6 +149,17 @@ function createChunkedProxy(tier: TimeoutTier) {
     scheduleToCloseTimeout: toDuration(config.scheduleToCloseTimeout),
     heartbeatTimeout: toDuration(config.heartbeatTimeout),
     retry: AGENT_CHUNKED_RETRY_POLICY,
+  });
+}
+
+function createSandboxProxy() {
+  return proxyActivities<SandboxLifecycleActivities>({
+    startToCloseTimeout: "2m",
+    retry: {
+      maximumAttempts: 2,
+      initialInterval: "3s",
+      backoffCoefficient: 2,
+    },
   });
 }
 
@@ -194,7 +235,11 @@ export async function missionAgentRunWorkflow(
   const activities = createMissionProxy();
   const reflectionActivities = createReflectionProxy();
 
-  let currentTier = resolveTimeoutTier(input.tools);
+  let sandboxId: string | undefined;
+  let sandboxHost: string | undefined;
+  let effectiveTools = input.tools;
+
+  let currentTier = resolveTimeoutTier(effectiveTools);
   let pendingExtension: TimeoutTier | null = null;
   let isCancelled = false;
 
@@ -266,6 +311,25 @@ export async function missionAgentRunWorkflow(
   }));
 
   try {
+    const sandboxConfig = resolveSandboxConfig(
+      input.sandboxConfig,
+      context.memory
+    );
+    if (sandboxConfig) {
+      const sandboxProxy = createSandboxProxy();
+      const sandboxResult = await sandboxProxy.provisionSandbox({
+        teamId: input.teamId,
+        sandboxConfig,
+      });
+      sandboxId = sandboxResult.sandboxId;
+      sandboxHost = sandboxResult.host;
+      effectiveTools = [
+        ...new Set([...(input.tools ?? []), ...SANDBOX_TOOL_NAMES]),
+      ];
+      currentTier = resolveTimeoutTier(effectiveTools);
+      chainProgress.currentTier = currentTier;
+    }
+
     await activities.logActivity({
       missionId: input.missionId,
       type: "agent_run_started",
@@ -338,9 +402,11 @@ export async function missionAgentRunWorkflow(
         runId: input.runId,
         taskId: input.taskId,
         agentName: input.agentName,
-        tools: input.tools,
+        tools: effectiveTools,
         inboxMessages: pendingMessages,
         failurePatterns,
+        sandboxId,
+        sandboxHost,
         replanContext:
           replanCount > 0
             ? {
@@ -783,6 +849,15 @@ export async function missionAgentRunWorkflow(
   });
 
   chainProgress.status = isCancelled ? "cancelled" : "completed";
+
+  if (sandboxId) {
+    const sandboxProxy = createSandboxProxy();
+    await sandboxProxy
+      .destroySandbox({ sandboxId, teamId: input.teamId })
+      .catch(() => {
+        /* sandbox may already be destroyed */
+      });
+  }
 
   await signalAgentCompleted(input.missionId, {
     agentId: input.agentId,

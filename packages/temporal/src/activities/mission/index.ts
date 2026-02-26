@@ -6,6 +6,8 @@ import {
   CrossMissionSignalPayloadSchema,
 } from "@openplane/types/temporal/cross-mission";
 import {
+  type SandboxConfig,
+  SandboxConfigSchema,
   type SpawnAgentRequest,
   SpawnAgentRequestSchema,
   SpawnAgentSignalPayloadSchema,
@@ -380,6 +382,34 @@ export function createMissionActivities(
         orderBy: { sortOrder: "asc" },
       });
 
+      const sandboxConfigRows =
+        allAgents.length === 0
+          ? []
+          : await db.missionMemory.findMany({
+              where: {
+                missionId: input.missionId,
+                scope: "agent",
+                key: "sandbox_config",
+                agentId: { in: allAgents.map((agent) => agent.id) },
+              },
+              select: {
+                agentId: true,
+                value: true,
+              },
+            });
+
+      const sandboxConfigByAgentId = new Map<string, SandboxConfig>();
+      for (const row of sandboxConfigRows) {
+        if (!row.agentId) {
+          continue;
+        }
+        const parsed = SandboxConfigSchema.safeParse(row.value);
+        if (!parsed.success) {
+          continue;
+        }
+        sandboxConfigByAgentId.set(row.agentId, parsed.data);
+      }
+
       const idleAgents = allAgents.filter((a) => !busyIds.has(a.id));
 
       const runningCount = busyIds.size;
@@ -421,6 +451,7 @@ export function createMissionActivities(
             taskTitle: task.title,
             soulPrompt: assignedAgent.soulPrompt,
             tools: assignedAgent.tools,
+            sandboxConfig: sandboxConfigByAgentId.get(assignedAgent.id),
           });
           continue;
         }
@@ -446,6 +477,7 @@ export function createMissionActivities(
           taskTitle: task.title,
           soulPrompt: bestAgent.agent.soulPrompt,
           tools: bestAgent.agent.tools,
+          sandboxConfig: sandboxConfigByAgentId.get(bestAgent.agent.id),
         });
       }
 
@@ -1048,6 +1080,7 @@ export function createMissionActivities(
         budgetCentsLimit: input.budgetCentsLimit,
         dependsOnTaskId: input.dependsOnTaskId,
         context: input.context,
+        sandboxConfig: input.sandboxConfig,
       });
       const payload = SpawnAgentSignalPayloadSchema.parse({
         requestId: input.requestId,
@@ -1391,6 +1424,7 @@ export function createMissionActivities(
         budgetCentsLimit: request.budgetCentsLimit,
         parentAgentId: request.requestingAgentId,
         spawnReason: request.taskDescription,
+        sandboxConfig: request.sandboxConfig,
       });
 
       return await Promise.resolve({ blueprint });
@@ -1459,6 +1493,29 @@ export function createMissionActivities(
         },
         select: { id: true },
       });
+
+      if (blueprint.sandboxConfig) {
+        await db.missionMemory.upsert({
+          where: {
+            missionId_agentId_key_scope: {
+              missionId: input.missionId,
+              agentId: missionAgent.id,
+              key: "sandbox_config",
+              scope: "agent",
+            },
+          },
+          create: {
+            missionId: input.missionId,
+            agentId: missionAgent.id,
+            key: "sandbox_config",
+            scope: "agent",
+            value: blueprint.sandboxConfig as never,
+          },
+          update: {
+            value: blueprint.sandboxConfig as never,
+          },
+        });
+      }
 
       const taskDescription = request.context
         ? `${request.taskDescription}\n\nContext:\n${request.context}`

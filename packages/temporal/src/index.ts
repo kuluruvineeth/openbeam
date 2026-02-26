@@ -72,7 +72,10 @@ export {
 } from "./interceptors";
 export {
   type ClusterInfo,
+  canvasMetricsRegistry,
   checkHealth,
+  getCanvasMetrics,
+  getCanvasMetricsContentType,
   getClusterInfo,
   getRecentFailures,
   getRunningWorkflowsByType,

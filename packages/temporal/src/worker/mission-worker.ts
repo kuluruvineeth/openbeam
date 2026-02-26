@@ -17,13 +17,19 @@ import {
   setMissionMessagingServices,
   setMissionSpawnServices,
   setTeamKnowledgeServices,
+  toolRegistry,
 } from "@openplane/ai/tools";
 import type { Database } from "@openplane/db";
+import { createToolServices } from "@openplane/services";
 import type { Worker } from "@temporalio/worker";
 import {
   type AgentExecutor,
   createAgentActivities,
 } from "../activities/agents";
+import {
+  destroySandbox,
+  provisionSandbox,
+} from "../activities/agents/sandbox-lifecycle";
 import {
   createDefaultReflectionTextGenerator,
   createMissionActivities,
@@ -41,6 +47,8 @@ export interface MissionWorkerDependencies {
 export function createMissionWorker(
   deps: MissionWorkerDependencies
 ): Promise<Worker> {
+  toolRegistry.bindServices(createToolServices());
+
   const missionActivities = createMissionActivities({
     db: deps.db,
     publishTimelineEvent: createMissionTimelinePublisher(deps.db),
@@ -119,6 +127,8 @@ export function createMissionWorker(
       ...missionActivities,
       ...reflectionActivities,
       ...agentActivities,
+      provisionSandbox,
+      destroySandbox,
     } as Record<string, unknown>,
     maxConcurrentActivityTaskExecutions:
       workerConfig.maxConcurrentActivityTaskExecutions,

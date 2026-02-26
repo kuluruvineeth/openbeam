@@ -15,3 +15,9 @@ export {
   type WorkflowMetrics,
   type WorkflowTypeMetrics,
 } from "./metrics";
+
+export {
+  canvasMetricsRegistry,
+  getCanvasMetrics,
+  getCanvasMetricsContentType,
+} from "./prometheus";

@@ -26,6 +26,10 @@
       "types": "./dist/interceptors/index.d.ts",
       "default": "./src/interceptors/index.ts"
     },
+    "./observability": {
+      "types": "./src/observability/index.ts",
+      "default": "./src/observability/index.ts"
+    },
     "./testing": {
       "types": "./dist/testing/index.d.ts",
       "default": "./src/testing/index.ts"
@@ -54,6 +58,7 @@
     "@openplane/storage": "workspace:*",
     "@openplane/media": "workspace:*",
     "@openplane/redis": "workspace:*",
+    "@openplane/sandbox": "workspace:*",
     "@openplane/services": "workspace:*",
     "@duckdb/node-api": "^1.4.3-r.2",
     "@temporalio/client": "^1.12.2",

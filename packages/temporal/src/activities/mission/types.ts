@@ -1,5 +1,6 @@
 import type {
   ReviewGatingConfig,
+  SandboxConfig,
   SpawnAgentRequest,
   SpawnedAgentBlueprint,
   SpawnLimits,
@@ -49,6 +50,7 @@ export interface DispatchPlan {
   taskTitle: string;
   soulPrompt: string;
   tools: string[];
+  sandboxConfig?: SandboxConfig;
 }
 
 export interface PlanDispatchOutput {
@@ -325,6 +327,7 @@ export interface RequestAgentSpawnInput {
   budgetCentsLimit?: number;
   dependsOnTaskId?: string;
   context?: string;
+  sandboxConfig?: SandboxConfig;
   orchestratorWorkflowId?: string;
 }
 

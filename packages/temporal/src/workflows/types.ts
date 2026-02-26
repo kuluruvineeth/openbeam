@@ -11,6 +11,7 @@ import type {
   MissionCommandPayload,
   MissionRuntimeQueryResult,
   MissionWakePayload,
+  SandboxConfig,
   SpawnAgentSignalPayload,
 } from "@openplane/types/temporal/mission";
 import type {
@@ -359,6 +360,7 @@ export interface ShardDispatchPayload {
   budgetCentsLimit: number | undefined;
   runId: string;
   pendingMessages: AgentMessageEnvelope[];
+  sandboxConfig?: SandboxConfig;
 }
 
 export const shardDispatchSignal =

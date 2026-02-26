@@ -1,10 +1,13 @@
 import {
+  createGitHubClient,
   createGmailClient,
   createGoogleDriveClient,
   createLinearClient,
   createNotionClient,
   createSlackClient,
   getValidAccessToken,
+  githubFullSync,
+  githubIncrementalSync,
   linearFullSync,
   notionFullSync,
   fullSync as slackFullSync,
@@ -528,7 +531,109 @@ export function registerAllSyncFactories(): void {
   );
 
   registerSyncFactory("JIRA", createEmptySyncGenerator);
-  registerSyncFactory("GITHUB", createEmptySyncGenerator);
+
+  registerSyncFactory(
+    "GITHUB",
+    async function* (connectorId, connector, cursor) {
+      const accessToken = connector.oauthProvider?.accessToken;
+      if (!accessToken) {
+        throw ApplicationFailure.nonRetryable(
+          `No access token for GitHub connector ${connectorId}`,
+          "AuthorizationError"
+        );
+      }
+
+      const config = connector.config as Record<string, unknown> | null;
+      const organizationName =
+        (config?.organizationName as string) ??
+        (config?.organization_name as string) ??
+        "";
+      const syncPRs = config?.sync_prs !== false;
+      const syncDiscussions = config?.sync_discussions === true;
+      const syncCommits = config?.sync_commits === true;
+      const syncComments = config?.sync_comments !== false;
+      const lookbackDays = parseNumericConfig(config?.lookback_days);
+
+      logger.info(
+        {
+          connectorId,
+          organizationName,
+          syncPRs,
+          syncDiscussions,
+          syncCommits,
+          syncComments,
+          lookbackDays,
+          hasExistingCursor: !!cursor?.lastSyncTime,
+          rawConfig: config,
+        },
+        "GitHub sync config loaded"
+      );
+
+      const client = createGitHubClient({ connectorId, accessToken });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId,
+        organizationName,
+      };
+
+      const pendingResources: DiscoveredResourceRecord[] = [];
+
+      const useIncremental = cursor?.lastSyncTime && !cursor?.forceFullSync;
+
+      const syncGenerator = useIncremental
+        ? githubIncrementalSync(client, context, {
+            lastSyncTime: cursor.lastSyncTime as number,
+            batchSize: 100,
+            syncPRs,
+            syncDiscussions,
+            syncCommits,
+            syncComments,
+          })
+        : githubFullSync(client, context, {
+            batchSize: 100,
+            syncPRs,
+            syncDiscussions,
+            syncCommits,
+            syncComments,
+            lookbackDays,
+            // biome-ignore lint/suspicious/useAwait: callback signature requires Promise<void>
+            onReposDiscovered: async (repos) => {
+              for (const repo of repos) {
+                pendingResources.push({
+                  externalId: String(repo.id),
+                  resourceType: "repository",
+                  name: repo.full_name,
+                  isPublic: !repo.private,
+                  metadata: {
+                    description: repo.description,
+                    language: repo.language,
+                    stargazersCount: repo.stargazers_count,
+                  },
+                });
+              }
+            },
+          });
+
+      for await (const batch of syncGenerator) {
+        const resourcesToYield =
+          pendingResources.length > 0 ? [...pendingResources] : undefined;
+        if (resourcesToYield) {
+          pendingResources.length = 0;
+        }
+
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor,
+          hasMore: batch.hasMore,
+          discoveredResources: resourcesToYield,
+        };
+      }
+    }
+  );
+
   registerSyncFactory("CONFLUENCE", createEmptySyncGenerator);
   registerSyncFactory("ZENDESK", createEmptySyncGenerator);
 }
