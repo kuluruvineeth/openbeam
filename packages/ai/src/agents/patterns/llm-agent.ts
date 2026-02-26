@@ -648,6 +648,8 @@ export class LlmAgent extends BaseAgent {
       nodes: [],
       edges: [],
     };
+    const services =
+      this.extractToolServices(ctx.metadata) ?? toolRegistry.getServices();
 
     return {
       teamId: ctx.teamId,
@@ -656,10 +658,21 @@ export class LlmAgent extends BaseAgent {
       accessControl: ctx.accessControl,
       abortSignal: ctx.abortSignal,
       metadata: ctx.metadata,
-      services: toolRegistry.getServices(),
+      services,
       memory: ctx.memory,
       canvasState,
     };
+  }
+
+  private extractToolServices(
+    metadata: Record<string, unknown> | undefined
+  ): ToolContext["services"] | null {
+    const services = metadata?.toolServices;
+    if (!services || typeof services !== "object") {
+      return null;
+    }
+
+    return services as ToolContext["services"];
   }
 
   private extractCanvasState(

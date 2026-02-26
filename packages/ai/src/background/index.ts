@@ -22,11 +22,6 @@ export {
   executeInSandbox,
   validateCode,
 } from "./code-generation";
-export {
-  DockerSandboxProvider,
-  getDockerSandboxProvider,
-} from "./docker-sandbox";
-export { E2BSandboxProvider, getE2BSandboxProvider } from "./e2b-sandbox";
 export type {
   BackgroundAgentConfig,
   BackgroundAgentResult,

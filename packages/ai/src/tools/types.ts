@@ -82,6 +82,17 @@ export const ERROR_CODES: Record<
     retryable: true,
     defaultSuggestion: "Try again. If the issue persists, report it.",
   },
+  PAYMENT_REQUIRED: {
+    description: "Payment required to use this tool.",
+    retryable: false,
+    defaultSuggestion:
+      "Include a valid X-PAYMENT header with signed authorization.",
+  },
+  BUDGET_EXCEEDED: {
+    description: "Budget limit exceeded for this execution context.",
+    retryable: false,
+    defaultSuggestion: "Reduce scope or request additional budget allocation.",
+  },
 };
 
 export const PERMISSION_MODE_CONFIGS: Record<

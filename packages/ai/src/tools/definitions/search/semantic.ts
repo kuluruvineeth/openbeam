@@ -22,6 +22,7 @@ RETURNS: Documents ranked by semantic similarity to the query embedding. Higher 
   category: "search",
   deferLoading: false,
   searchKeywords: ["semantic", "meaning", "conceptual", "vector", "similar"],
+  pricing: { amount: "0.01", description: "Per semantic search" },
 
   parameters: z.object({
     query: z

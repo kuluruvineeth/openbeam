@@ -428,6 +428,58 @@ export interface UserPreferences {
   resultDisplayMode: "compact" | "detailed";
 }
 
+export interface WorkspaceField {
+  name: string;
+  type: string;
+  required: boolean;
+}
+
+export interface WorkspaceObjectSchema {
+  name: string;
+  description?: string;
+  fields: WorkspaceField[];
+  entryCount: number;
+  sampleData: Record<string, unknown>[];
+}
+
+export interface WorkspaceSchema {
+  teamId: string;
+  objects: WorkspaceObjectSchema[];
+}
+
+export interface GenerateWorkspaceSqlParams {
+  teamId: string;
+  question: string;
+  schema: WorkspaceSchema;
+}
+
+export interface GenerateWorkspaceSqlResult {
+  sql: string;
+  explanation: string;
+  referencedColumns: string[];
+  estimatedComplexity: "simple" | "moderate" | "complex";
+}
+
+export interface SandboxCodeExecutionResult {
+  success: boolean;
+  output: string;
+  error?: string;
+  logs: string[];
+  artifacts: Array<{
+    type: "file" | "image" | "chart";
+    path: string;
+    mimeType?: string;
+  }>;
+  durationMs: number;
+}
+
+export interface SandboxProcessResult {
+  exitCode: number;
+  stdout: string;
+  stderr: string;
+  durationMs: number;
+}
+
 export interface ToolServices {
   search: {
     hybrid: (params: SearchParams) => Promise<SearchResponse>;
@@ -628,6 +680,65 @@ export interface ToolServices {
     }) => Promise<TemplateInfo[]>;
     get: (id: string) => Promise<TemplateInfo | null>;
   };
+
+  sandbox?: {
+    executeCode: (
+      code: string,
+      language?: "python" | "javascript" | "bash"
+    ) => Promise<SandboxCodeExecutionResult>;
+    runCommand: (
+      command: string,
+      opts?: { cwd?: string; env?: Record<string, string> }
+    ) => Promise<SandboxProcessResult>;
+    readFile: (path: string) => Promise<string>;
+    writeFile: (path: string, content: string) => Promise<void>;
+    listFiles: (
+      path: string
+    ) => Promise<
+      Array<{ path: string; name: string; isDirectory: boolean; size: number }>
+    >;
+  };
+
+  workspace: {
+    getSchema: (teamId: string) => Promise<WorkspaceSchema>;
+    generateSql: (
+      params: GenerateWorkspaceSqlParams
+    ) => Promise<GenerateWorkspaceSqlResult>;
+  };
+
+  voice?: {
+    startDictation: (params: {
+      userId: string;
+      teamId: string;
+      targetField?: string;
+      language?: string;
+      formatting?: boolean;
+    }) => Promise<{ id: string; roomName: string }>;
+    startAction: (params: {
+      userId: string;
+      teamId: string;
+      initialQuery?: string;
+      conversational?: boolean;
+    }) => Promise<{ id: string; roomName: string }>;
+    createNote: (params: {
+      userId: string;
+      teamId: string;
+      title: string;
+      content: string;
+      durationSeconds?: number;
+    }) => Promise<{ id: string; title: string; createdAt: Date }>;
+    listNotes: (params: {
+      userId: string;
+      teamId: string;
+      limit?: number;
+    }) => Promise<Array<{ id: string; title: string; createdAt: Date }>>;
+    getNote: (params: { noteId: string; userId: string }) => Promise<{
+      id: string;
+      title: string;
+      content: string;
+      createdAt: Date;
+    } | null>;
+  };
 }
 
 export function createUnimplementedServices(): ToolServices {
@@ -715,6 +826,10 @@ export function createUnimplementedServices(): ToolServices {
     integrations: {
       listAvailable: notImplemented("integrations.listAvailable"),
       getCapabilities: notImplemented("integrations.getCapabilities"),
+    },
+    workspace: {
+      getSchema: notImplemented("workspace.getSchema"),
+      generateSql: notImplemented("workspace.generateSql"),
     },
   };
 }

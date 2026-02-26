@@ -132,10 +132,6 @@ export {
   createCheckpointService,
   createWorktreeManager,
   DatabaseCheckpointRepository,
-  DockerSandboxProvider,
-  E2BSandboxProvider,
-  getDockerSandboxProvider,
-  getE2BSandboxProvider,
   WorktreeManager,
 } from "./background";
 export type {

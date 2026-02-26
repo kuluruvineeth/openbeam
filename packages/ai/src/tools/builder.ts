@@ -7,6 +7,7 @@ import type {
   ToolCategory,
   ToolExecutionResult,
   ToolMetadata,
+  ToolPricing,
   ToolResultMetadata,
   ToolRiskProfile,
 } from "@openplane/types/ai";
@@ -39,6 +40,12 @@ interface ToolConfig<TParams extends z.ZodType, TResult> {
   stakes?: StakesLevel;
   reversibility?: ReversibilityLevel;
   approval?: ApprovalPattern;
+  pricing?: {
+    amount: string;
+    currency?: string;
+    network?: string;
+    description?: string;
+  };
 }
 
 export interface ToolDefinition<TParams extends z.ZodType, TResult> {
@@ -92,6 +99,15 @@ export function defineTool<TParams extends z.ZodType, TResult>(
       ? { stakes, reversibility, approval }
       : undefined;
 
+  const pricing: ToolPricing | undefined = config.pricing
+    ? {
+        amount: config.pricing.amount,
+        currency: config.pricing.currency ?? "USDC",
+        network: config.pricing.network ?? "eip155:84532",
+        description: config.pricing.description,
+      }
+    : undefined;
+
   const metadata: ToolMetadata = {
     name: config.name,
     description: config.description,
@@ -102,6 +118,7 @@ export function defineTool<TParams extends z.ZodType, TResult>(
     allowedCallers: config.allowedCallers ?? ["agent", "mcp"],
     cacheTtlMs: config.cacheTtlMs,
     riskProfile,
+    pricing,
   };
 
   const coreTool = tool({

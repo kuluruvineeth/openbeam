@@ -112,6 +112,7 @@ export const ragAnswerTool = defineTool({
   category: "rag",
   deferLoading: false,
   searchKeywords: ["answer", "question", "grounded", "citation", "evidence"],
+  pricing: { amount: "0.05", description: "Per RAG answer" },
   parameters: RagAnswerParamsSchema,
 
   async execute(params, ctx) {

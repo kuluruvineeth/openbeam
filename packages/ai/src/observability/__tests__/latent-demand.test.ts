@@ -43,11 +43,13 @@ describe("LatentDemandReasonSchema", () => {
     "capability_limit",
     "timeout",
     "unknown",
-  ];
+  ] as const;
 
-  it.each(validReasons)("validates %s reason", (reason) => {
-    expect(LatentDemandReasonSchema.parse(reason)).toBe(reason);
-  });
+  for (const reason of validReasons) {
+    it(`validates ${reason} reason`, () => {
+      expect(LatentDemandReasonSchema.parse(reason)).toBe(reason);
+    });
+  }
 
   it("throws on invalid reason", () => {
     expect(() => LatentDemandReasonSchema.parse("invalid_reason")).toThrow();

@@ -21,6 +21,7 @@ RETURNS: Ranked list of documents with relevance scores, snippets, and source me
   category: "search",
   deferLoading: false,
   searchKeywords: ["find", "search", "query", "lookup", "discover"],
+  pricing: { amount: "0.01", description: "Per search query" },
 
   parameters: z.object({
     query: z

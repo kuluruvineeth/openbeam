@@ -10,6 +10,11 @@ export {
   slackAnalystConfig,
 } from "./analyst";
 export {
+  BROWSER_AGENT_PROMPT,
+  browserAgent,
+  browserAgentConfig,
+} from "./browser";
+export {
   CODER_AGENT_PROMPT,
   coderAgent,
   coderAgentConfig,

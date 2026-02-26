@@ -1,3 +1,4 @@
+export * from "./browser";
 export * from "./canvas";
 export * from "./connectors";
 export * from "./context";
@@ -9,11 +10,16 @@ export * from "./memory";
 export * from "./overview";
 export * from "./preferences";
 export * from "./rag";
+export * from "./sandbox";
 export * from "./search";
 export * from "./storage";
 export * from "./system";
+export * from "./visualization";
+export * from "./voice";
+export * from "./workspace";
 
 import { toolSearchTool } from "../search";
+import { registerBrowserTools } from "./browser";
 import { registerCanvasTools } from "./canvas";
 import { registerConnectorTools } from "./connectors";
 import { registerContextTools } from "./context";
@@ -25,9 +31,13 @@ import { registerMemoryTools } from "./memory";
 import { registerOverviewTools } from "./overview";
 import { registerPreferencesTools } from "./preferences";
 import { registerRagTools } from "./rag";
+import { registerSandboxTools } from "./sandbox";
 import { registerSearchTools } from "./search";
 import { registerStorageTools } from "./storage";
 import { registerSystemTools } from "./system";
+import { registerVisualizationTools } from "./visualization";
+import { registerVoiceTools } from "./voice";
+import { registerWorkspaceTools } from "./workspace";
 
 let registered = false;
 
@@ -47,7 +57,12 @@ const TOOL_CATEGORIES: RegistrationEntry[] = [
   ["storage", registerStorageTools],
   ["media", registerMediaTools],
   ["integrations", registerIntegrationTools],
+  ["browser", registerBrowserTools],
   ["canvas", registerCanvasTools],
+  ["visualization", registerVisualizationTools],
+  ["voice", registerVoiceTools],
+  ["workspace", registerWorkspaceTools],
+  ["sandbox", registerSandboxTools],
 ];
 
 export function registerAllTools(): number {
