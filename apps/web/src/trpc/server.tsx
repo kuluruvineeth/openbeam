@@ -10,17 +10,16 @@ import {
 import { headers } from "next/headers";
 import { cache } from "react";
 import superjson from "superjson";
+import { internalServerUrl } from "@/lib/urls";
 import { makeQueryClient } from "@/trpc/query-client";
 
-// Stable per-request QueryClient (server only)
 export const getQueryClient = cache(makeQueryClient);
 
-// Server-side tRPC client that forwards user cookies to the API server
 const createServerClient = () =>
   createTRPCClient<AppRouter>({
     links: [
       httpBatchLink({
-        url: `${process.env.NEXT_PUBLIC_SERVER_URL}/trpc`,
+        url: `${internalServerUrl}/trpc`,
         transformer: superjson,
         async headers() {
           const headersList = await headers();
@@ -45,7 +44,6 @@ const createServerClient = () =>
 
 export const trpc = createTRPCOptionsProxy<AppRouter>({
   queryClient: getQueryClient,
-  // Pass the TRPC client instance, not the factory function
   client: createServerClient(),
 });
 

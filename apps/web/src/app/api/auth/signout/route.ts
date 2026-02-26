@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { serverUrl } from "@/lib/urls";
+import { internalServerUrl } from "@/lib/urls";
 
 const SESSION_COOKIE_NAME = "openplane-session";
 
@@ -10,12 +10,12 @@ export async function POST() {
 
   if (token) {
     try {
-      await fetch(`${serverUrl}/api/auth/signout`, {
+      await fetch(`${internalServerUrl}/api/auth/signout`, {
         method: "POST",
         headers: { Cookie: `${SESSION_COOKIE_NAME}=${token}` },
       });
-    } catch {
-      // Server signout failed, continue with local cookie deletion
+    } catch (_err) {
+      const _ignored = _err;
     }
   }
 

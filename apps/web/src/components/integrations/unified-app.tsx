@@ -116,8 +116,9 @@ export function UnifiedAppComponent({ app }: UnifiedAppProps) {
   });
 
   const revokeExternalAppMutation = {
-    // biome-ignore lint/suspicious/noExplicitAny: data type varies
-    mutate: (data: any) => console.log("Revoke external app", data),
+    mutate: (_data: { applicationId: string }) => {
+      toast.error("Revoking external apps is not yet supported");
+    },
     isPending: false,
   };
 

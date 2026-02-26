@@ -13,7 +13,7 @@ export function DataSourcesHeaderSkeleton() {
 
       <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-4">
         {[...new Array(4)].map((_, i) => (
-          <Card className="p-4" key={i}>
+          <Card className="p-4" key={`stat-card-${i}`}>
             <div className="flex items-center justify-between">
               <div>
                 <Skeleton className="h-3 w-24" />
@@ -42,7 +42,10 @@ export function DataSourcesTableSkeleton() {
         </div>
       </div>
       {[...new Array(5)].map((_, i) => (
-        <div className="border-b border-b-border p-4 last:border-b-0" key={i}>
+        <div
+          className="border-b border-b-border p-4 last:border-b-0"
+          key={`table-row-${i}`}
+        >
           <div className="flex items-center gap-4">
             <Skeleton className="h-4 w-4" />
             <div className="flex items-center gap-3">

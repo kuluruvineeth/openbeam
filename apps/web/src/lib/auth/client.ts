@@ -1,4 +1,4 @@
-import { serverUrl } from "@/lib/urls";
+import { publicServerUrl } from "@/lib/urls";
 
 export type SessionUser = {
   id: string;
@@ -12,7 +12,7 @@ export type Session = {
 };
 
 export function signIn(provider: string, callbackUrl?: string): void {
-  const url = new URL(`${serverUrl}/api/auth/signin/${provider}`);
+  const url = new URL(`${publicServerUrl}/api/auth/signin/${provider}`);
   url.searchParams.set("callbackUrl", callbackUrl || window.location.origin);
   window.location.href = url.toString();
 }

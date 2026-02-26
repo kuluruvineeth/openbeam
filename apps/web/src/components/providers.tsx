@@ -1,5 +1,6 @@
 "use client";
 
+import { domAnimation, LazyMotion } from "motion/react";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { HotkeysProvider } from "react-hotkeys-hook";
 import { JobProgressProvider } from "@/components/jobs/job-progress-provider";
@@ -18,7 +19,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       <HotkeysProvider>
         <TRPCReactProvider>
           <NuqsAdapter>
-            <JobProgressProvider>{children}</JobProgressProvider>
+            <LazyMotion features={domAnimation}>
+              <JobProgressProvider>{children}</JobProgressProvider>
+            </LazyMotion>
           </NuqsAdapter>
         </TRPCReactProvider>
       </HotkeysProvider>

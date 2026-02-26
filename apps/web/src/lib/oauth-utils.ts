@@ -8,7 +8,13 @@ export interface OAuthCallbackResponse {
   finalize_url?: string;
 }
 
-type IntegrationName = "slack" | "gmail" | "google-drive" | "notion" | "linear";
+type IntegrationName =
+  | "slack"
+  | "gmail"
+  | "google-drive"
+  | "notion"
+  | "linear"
+  | "github";
 
 const INTEGRATION_HANDLERS: Record<
   IntegrationName,
@@ -39,6 +45,11 @@ const INTEGRATION_HANDLERS: Record<
     }),
   linear: async (code: string, state: string) =>
     apiClient.post<OAuthCallbackResponse>("/integrations/linear/callback", {
+      code,
+      state,
+    }),
+  github: async (code: string, state: string) =>
+    apiClient.post<OAuthCallbackResponse>("/integrations/github/callback", {
       code,
       state,
     }),

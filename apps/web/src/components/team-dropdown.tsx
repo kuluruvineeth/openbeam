@@ -76,6 +76,8 @@ export function TeamDropdown({ isExpanded = false }: Props) {
     try {
       await changeTeamMutation.mutateAsync({ teamId });
       await queryClient.invalidateQueries();
+    } catch (error) {
+      console.error(error);
     } finally {
       setIsChangingTeam(false);
     }

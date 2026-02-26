@@ -114,7 +114,6 @@ const Item = ({
   const Icon = icons[item.path as keyof typeof icons];
   const pathname = usePathname();
   const hasChildren = item.children && item.children.length > 0;
-  // Children should be visible when: expanded sidebar AND this item is expanded
   const shouldShowChildren = isExpanded && isItemExpanded;
 
   const handleChevronClick = (e: React.MouseEvent) => {
@@ -211,6 +210,7 @@ type Props = {
 };
 
 export function MainMenu({ onSelect, isExpanded = false }: Props) {
+  "use no memo";
   const pathname = usePathname();
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
 

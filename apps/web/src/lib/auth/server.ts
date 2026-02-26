@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { cache } from "react";
-import { serverUrl } from "@/lib/urls";
+import { internalServerUrl } from "@/lib/urls";
 
 const SESSION_COOKIE_NAME = "openplane-session";
 
@@ -24,7 +24,7 @@ export const getAuth = cache(async (): Promise<AuthResult> => {
       return { user: null };
     }
 
-    const response = await fetch(`${serverUrl}/api/auth/session`, {
+    const response = await fetch(`${internalServerUrl}/api/auth/session`, {
       headers: { Cookie: `${SESSION_COOKIE_NAME}=${token}` },
       cache: "no-store",
     });

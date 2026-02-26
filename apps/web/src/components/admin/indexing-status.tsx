@@ -44,9 +44,13 @@ export function IndexingStatus() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const controller = new AbortController();
+
     const fetchHealth = async () => {
       try {
-        const response = await fetch("/api/health/system");
+        const response = await fetch("/api/health/system", {
+          signal: controller.signal,
+        });
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
         }
@@ -54,6 +58,9 @@ export function IndexingStatus() {
         setHealth(data);
         setError(null);
       } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") {
+          return;
+        }
         setError(err instanceof Error ? err.message : "Failed to fetch health");
       } finally {
         setLoading(false);
@@ -64,7 +71,10 @@ export function IndexingStatus() {
 
     const interval = setInterval(fetchHealth, POLLING_INTERVALS.SYSTEM_HEALTH);
 
-    return () => clearInterval(interval);
+    return () => {
+      controller.abort();
+      clearInterval(interval);
+    };
   }, []);
 
   if (loading) {
