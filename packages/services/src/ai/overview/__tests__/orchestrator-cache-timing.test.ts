@@ -76,10 +76,16 @@ mock.module("../../search/service", () => ({
 }));
 
 describe("generateOverview semantic cache hit timing", () => {
-  const originalPerformance = globalThis.performance;
+  type GlobalThisWithPerformance = typeof globalThis & {
+    performance?: {
+      now: () => number;
+    };
+  };
+  const globalWithPerformance = globalThis as GlobalThisWithPerformance;
+  const originalPerformance = globalWithPerformance.performance;
 
   afterEach(() => {
-    Object.defineProperty(globalThis, "performance", {
+    Object.defineProperty(globalWithPerformance, "performance", {
       value: originalPerformance,
       configurable: true,
     });
@@ -89,7 +95,7 @@ describe("generateOverview semantic cache hit timing", () => {
     const values = [1000, 1100, 1150, 1200];
     const nowMock = mock(() => values.shift() ?? 1200);
 
-    Object.defineProperty(globalThis, "performance", {
+    Object.defineProperty(globalWithPerformance, "performance", {
       value: { now: nowMock },
       configurable: true,
     });

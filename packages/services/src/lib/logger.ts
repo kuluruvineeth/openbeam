@@ -1,23 +1,57 @@
-import pino from "pino";
+import { createLogger } from "@openplane/observability";
+import type { Logger } from "pino";
 
-const isDevelopment = process.env.NODE_ENV !== "production";
+const REDACTED_VALUE = "[REDACTED]";
+const SENSITIVE_CONTEXT_KEYS = [
+  "authorization",
+  "cookie",
+  "password",
+  "token",
+  "secret",
+  "apikey",
+  "accesstoken",
+  "refreshtoken",
+] as const;
 
-export const logger = pino({
+function shouldRedactKey(key: string): boolean {
+  const normalized = key.toLowerCase();
+  return SENSITIVE_CONTEXT_KEYS.some((sensitiveKey) =>
+    normalized.includes(sensitiveKey)
+  );
+}
+
+function redactContext(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map((item) => redactContext(item));
+  }
+
+  if (!value || typeof value !== "object") {
+    return value;
+  }
+
+  if (value instanceof Error) {
+    return {
+      name: value.name,
+      message: value.message,
+      stack: value.stack,
+    };
+  }
+
+  const redacted: Record<string, unknown> = {};
+  for (const [key, nestedValue] of Object.entries(value)) {
+    redacted[key] = shouldRedactKey(key)
+      ? REDACTED_VALUE
+      : redactContext(nestedValue);
+  }
+
+  return redacted;
+}
+
+export const logger: Logger = createLogger({
+  service: "openplane-services",
+  env: process.env.NODE_ENV || "development",
   level: process.env.LOG_LEVEL || "info",
-  transport: isDevelopment
-    ? {
-        target: "pino-pretty",
-        options: {
-          colorize: true,
-          translateTime: "SYS:standard",
-          ignore: "pid,hostname",
-        },
-      }
-    : undefined,
-  base: {
-    service: "openplane-services",
-    env: process.env.NODE_ENV || "development",
-  },
+  version: process.env.APP_VERSION || "0.1.0",
 });
 
 export function createServiceLogger(context: {
@@ -25,8 +59,8 @@ export function createServiceLogger(context: {
   teamId?: string;
   connectorId?: string;
   [key: string]: unknown;
-}) {
-  return logger.child(context);
+}): Logger {
+  return logger.child(redactContext(context) as Record<string, unknown>);
 }
 
 export function logWithDuration(
@@ -36,7 +70,13 @@ export function logWithDuration(
   startTime: number
 ) {
   const duration = Date.now() - startTime;
-  logger[level]({ ...context, duration }, message);
+  logger[level](
+    redactContext({ ...context, duration_ms: duration }) as Record<
+      string,
+      unknown
+    >,
+    message
+  );
 }
 
 export function logError(
@@ -45,7 +85,7 @@ export function logError(
   context?: Record<string, unknown>
 ) {
   logger.error(
-    {
+    redactContext({
       ...context,
       error:
         error instanceof Error
@@ -55,7 +95,7 @@ export function logError(
               name: error.name,
             }
           : error,
-    },
+    }) as Record<string, unknown>,
     message
   );
 }

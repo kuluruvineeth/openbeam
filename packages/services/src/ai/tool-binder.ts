@@ -45,6 +45,12 @@ import { escapeYqlString, vespaClient } from "@openplane/vespa";
 import { mediaAIService } from "../media/service";
 import { searchService } from "../search";
 import { getStorageProvider } from "../storage";
+import {
+  generateWorkspaceSql as generateWorkspaceNl2Sql,
+  getTeamDuckDB,
+  listEntries,
+  listObjects,
+} from "../workspace";
 import { hybridSearch, keywordSearch, semanticSearch } from "./hybrid-search";
 import { ragAnswer } from "./rag";
 import { analyzeQuery, verifyGrounding } from "./rag/index";
@@ -1495,6 +1501,42 @@ Cite sources using [n] notation where n is the document number.`;
           authType: mapAuthType(app.auth.type),
           capabilities: app.features,
           documentTypes: app.streams.map((s) => s.name),
+        });
+      },
+    },
+
+    workspace: {
+      async getSchema(teamId: string) {
+        const db = await getTeamDuckDB(teamId);
+        const objects = await listObjects(db, teamId);
+        const objectSchemas = await Promise.all(
+          objects.map(async (obj) => {
+            const entries = await listEntries(db, obj.name, { limit: 3 });
+            return {
+              name: obj.name,
+              description: obj.description,
+              fields: obj.fields.map((field) => ({
+                name: field.name,
+                type: field.type,
+                required: field.required ?? false,
+              })),
+              entryCount: entries.total,
+              sampleData: entries.entries.map((entry) => entry.values),
+            };
+          })
+        );
+
+        return {
+          teamId,
+          objects: objectSchemas,
+        };
+      },
+
+      generateSql(params) {
+        return generateWorkspaceNl2Sql({
+          teamId: params.teamId,
+          question: params.question,
+          schema: params.schema,
         });
       },
     },
