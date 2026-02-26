@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "noEmit": true,
+    "lib": ["ES2022"],
+    "types": ["bun-types"]
+  },
+  "references": [
+    { "path": "packages/types" },
+    { "path": "packages/ai" },
+    { "path": "packages/api" },
+    { "path": "packages/auth" },
+    { "path": "packages/db" },
+    { "path": "packages/integrations" },
+    { "path": "packages/media" },
+    { "path": "packages/redis" },
+    { "path": "packages/services" },
+    { "path": "packages/storage" },
+    { "path": "packages/vespa" },
+    { "path": "packages/analytics" },
+    { "path": "apps/web" },
+    { "path": "apps/server" },
+    { "path": "apps/worker" },
+    { "path": "apps/docs" }
+  ],
+  "exclude": ["node_modules", "dist", "references"]
+}
