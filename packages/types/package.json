@@ -12,6 +12,10 @@
       "types": "./dist/ai/index.d.ts",
       "default": "./src/ai/index.ts"
     },
+    "./ai/budget": {
+      "types": "./dist/ai/budget.d.ts",
+      "default": "./src/ai/budget.ts"
+    },
     "./common": {
       "types": "./dist/common/index.d.ts",
       "default": "./src/common/index.ts"
@@ -167,6 +171,82 @@
     "./mission-control": {
       "types": "./dist/mission-control/index.d.ts",
       "default": "./src/mission-control/index.ts"
+    },
+    "./services/workspace": {
+      "types": "./dist/services/workspace/index.d.ts",
+      "default": "./src/services/workspace/index.ts"
+    },
+    "./services/voice": {
+      "types": "./dist/services/voice/index.d.ts",
+      "default": "./src/services/voice/index.ts"
+    },
+    "./services/extension": {
+      "types": "./dist/services/extension/index.d.ts",
+      "default": "./src/services/extension/index.ts"
+    },
+    "./services/extension/actions": {
+      "types": "./dist/services/extension/actions.d.ts",
+      "default": "./src/services/extension/actions.ts"
+    },
+    "./services/extension/messages": {
+      "types": "./dist/services/extension/messages.d.ts",
+      "default": "./src/services/extension/messages.ts"
+    },
+    "./services/extension/policy": {
+      "types": "./dist/services/extension/policy.d.ts",
+      "default": "./src/services/extension/policy.ts"
+    },
+    "./services/extension/rpc": {
+      "types": "./dist/services/extension/rpc.d.ts",
+      "default": "./src/services/extension/rpc.ts"
+    },
+    "./services/daemon": {
+      "types": "./dist/services/daemon/index.d.ts",
+      "default": "./src/services/daemon/index.ts"
+    },
+    "./services/daemon/messages": {
+      "types": "./dist/services/daemon/messages.d.ts",
+      "default": "./src/services/daemon/messages.ts"
+    },
+    "./services/daemon/lifecycle": {
+      "types": "./dist/services/daemon/lifecycle.d.ts",
+      "default": "./src/services/daemon/lifecycle.ts"
+    },
+    "./services/daemon/agent": {
+      "types": "./dist/services/daemon/agent.d.ts",
+      "default": "./src/services/daemon/agent.ts"
+    },
+    "./services/daemon/provider": {
+      "types": "./dist/services/daemon/provider.d.ts",
+      "default": "./src/services/daemon/provider.ts"
+    },
+    "./services/daemon/tools": {
+      "types": "./dist/services/daemon/tools.d.ts",
+      "default": "./src/services/daemon/tools.ts"
+    },
+    "./services/daemon/binary": {
+      "types": "./dist/services/daemon/binary.d.ts",
+      "default": "./src/services/daemon/binary.ts"
+    },
+    "./services/daemon/relay": {
+      "types": "./dist/services/daemon/relay.d.ts",
+      "default": "./src/services/daemon/relay.ts"
+    },
+    "./services/daemon/config": {
+      "types": "./dist/services/daemon/config.d.ts",
+      "default": "./src/services/daemon/config.ts"
+    },
+    "./services/daemon/speech": {
+      "types": "./dist/services/daemon/speech.d.ts",
+      "default": "./src/services/daemon/speech.ts"
+    },
+    "./services/daemon/terminal": {
+      "types": "./dist/services/daemon/terminal.d.ts",
+      "default": "./src/services/daemon/terminal.ts"
+    },
+    "./services/daemon/transport": {
+      "types": "./dist/services/daemon/transport.d.ts",
+      "default": "./src/services/daemon/transport.ts"
     }
   },
   "scripts": {
