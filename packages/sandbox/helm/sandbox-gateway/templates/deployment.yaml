@@ -1,0 +1,141 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sandbox-gateway.fullname" . }}
+  labels:
+    {{- include "sandbox-gateway.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "sandbox-gateway.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "sandbox-gateway.selectorLabels" . | nindent 8 }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "sandbox-gateway.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: sandbox-gateway
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+              protocol: TCP
+          env:
+            - name: PORT
+              value: {{ .Values.service.targetPort | quote }}
+            - name: SANDBOX_REQUIRE_TEAM_ID
+              value: {{ ternary "true" "false" .Values.gateway.requireTeamId | quote }}
+            - name: SANDBOX_DEFAULT_PROVIDER
+              value: {{ .Values.gateway.defaultProvider | quote }}
+            - name: SANDBOX_OWNERSHIP_STORE
+              value: {{ .Values.gateway.ownership.store | quote }}
+            - name: SANDBOX_OWNERSHIP_KEY_PREFIX
+              value: {{ .Values.gateway.ownership.keyPrefix | quote }}
+            - name: SANDBOX_OWNERSHIP_TTL_MS
+              value: {{ .Values.gateway.ownership.ttlMs | quote }}
+            - name: SANDBOX_RATE_LIMIT_ENABLED
+              value: {{ ternary "true" "false" .Values.gateway.rateLimit.enabled | quote }}
+            - name: SANDBOX_RATE_LIMIT_WINDOW_MS
+              value: {{ .Values.gateway.rateLimit.windowMs | quote }}
+            - name: SANDBOX_RATE_LIMIT_MAX_REQUESTS
+              value: {{ .Values.gateway.rateLimit.maxRequests | quote }}
+            - name: SANDBOX_RATE_LIMIT_MAX_EXEC_REQUESTS
+              value: {{ .Values.gateway.rateLimit.maxExecRequests | quote }}
+            - name: SANDBOX_RATE_LIMIT_MAX_MUTATION_REQUESTS
+              value: {{ .Values.gateway.rateLimit.maxMutationRequests | quote }}
+            - name: SANDBOX_RATE_LIMIT_STORE
+              value: {{ .Values.gateway.rateLimit.store | quote }}
+            - name: SANDBOX_RATE_LIMIT_KEY_PREFIX
+              value: {{ .Values.gateway.rateLimit.keyPrefix | quote }}
+            {{- if .Values.gateway.daytona.apiUrl }}
+            - name: DAYTONA_API_URL
+              value: {{ .Values.gateway.daytona.apiUrl | quote }}
+            {{- end }}
+            {{- if .Values.gateway.daytona.target }}
+            - name: DAYTONA_TARGET
+              value: {{ .Values.gateway.daytona.target | quote }}
+            {{- end }}
+            {{- if .Values.gateway.daytona.workspaceDir }}
+            - name: DAYTONA_WORKDIR
+              value: {{ .Values.gateway.daytona.workspaceDir | quote }}
+            {{- end }}
+            {{- if .Values.gateway.daytona.teamPrefix }}
+            - name: DAYTONA_TEAM_PREFIX
+              value: {{ .Values.gateway.daytona.teamPrefix | quote }}
+            {{- end }}
+            {{- if or .Values.gateway.token .Values.gateway.daytona.apiKey .Values.gateway.daytona.jwtToken .Values.gateway.daytona.organizationId .Values.gateway.redis.url }}
+            {{- if .Values.gateway.token }}
+            - name: SANDBOX_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "sandbox-gateway.fullname" . }}
+                  key: SANDBOX_API_TOKEN
+            {{- end }}
+            {{- if .Values.gateway.redis.url }}
+            - name: SANDBOX_REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "sandbox-gateway.fullname" . }}
+                  key: SANDBOX_REDIS_URL
+            {{- end }}
+            {{- if .Values.gateway.daytona.apiKey }}
+            - name: DAYTONA_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "sandbox-gateway.fullname" . }}
+                  key: DAYTONA_API_KEY
+            {{- end }}
+            {{- if .Values.gateway.daytona.jwtToken }}
+            - name: DAYTONA_JWT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "sandbox-gateway.fullname" . }}
+                  key: DAYTONA_JWT_TOKEN
+            {{- end }}
+            {{- if .Values.gateway.daytona.organizationId }}
+            - name: DAYTONA_ORGANIZATION_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "sandbox-gateway.fullname" . }}
+                  key: DAYTONA_ORGANIZATION_ID
+            {{- end }}
+            {{- end }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            timeoutSeconds: 3
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
