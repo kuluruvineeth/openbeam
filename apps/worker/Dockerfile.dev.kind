@@ -1,0 +1,7 @@
+FROM openplane/server-dev:latest
+
+WORKDIR /app/apps/worker
+
+EXPOSE 9091 9092
+
+CMD ["bun", "run", "--hot", "src/index.ts"]

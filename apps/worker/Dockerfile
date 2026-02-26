@@ -35,7 +35,7 @@ COPY --from=builder /app/apps/worker ./apps/worker
 RUN chown -R nodejs:nodejs /app
 WORKDIR /app/apps/worker
 USER nodejs
-EXPOSE 9091
+EXPOSE 9091 9092
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD bun run -e "fetch('http://localhost:9091/metrics').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"
+  CMD bun run -e "fetch('http://localhost:9092/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"
 CMD ["bun", "run", "dist/index.js"]

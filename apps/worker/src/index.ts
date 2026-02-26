@@ -1,4 +1,3 @@
-import "./instrumentation";
 import prisma from "@openplane/db";
 import { closeRedisClient } from "@openplane/redis";
 import { initializeAI } from "@openplane/services";
@@ -11,8 +10,13 @@ import {
   type WorkerType,
   waitForHealthy,
 } from "@openplane/temporal";
+import { SpanStatusCode, trace } from "@opentelemetry/api";
 import type { Worker } from "@temporalio/worker";
 import { startHealthServer, stopHealthServer } from "./health";
+import {
+  initializeInstrumentation,
+  shutdownInstrumentation,
+} from "./instrumentation";
 import { startMetricsServer, stopMetricsServer } from "./metrics";
 import logger from "./utils/logger";
 
@@ -41,41 +45,110 @@ const WORKER_CONCURRENCY: Record<WorkerType, number> = {
   knowledge: 5,
 };
 
+const startupTracer = trace.getTracer("openplane-worker.startup");
+const serviceLogger = logger.child({
+  service: "openplane-worker",
+  environment: process.env.NODE_ENV || "development",
+  version: process.env.APP_VERSION || "0.1.0",
+});
+
+async function runStartupPhase<T>(
+  phase:
+    | "waitForTemporal"
+    | "startWorkers"
+    | "registerSchedules"
+    | "startServers",
+  fn: () => Promise<T>
+): Promise<T> {
+  return await startupTracer.startActiveSpan(
+    `worker.startup.${phase}`,
+    async (span) => {
+      try {
+        const result = await fn();
+        span.setStatus({ code: SpanStatusCode.OK });
+        return result;
+      } catch (error) {
+        span.setStatus({
+          code: SpanStatusCode.ERROR,
+          message: error instanceof Error ? error.message : String(error),
+        });
+
+        if (error instanceof Error) {
+          span.recordException(error);
+        }
+
+        throw error;
+      } finally {
+        span.end();
+      }
+    }
+  );
+}
+
 class WorkerService {
   private readonly workers: Map<WorkerType, Worker> = new Map();
   private isShuttingDown = false;
 
   constructor() {
-    logger.info("Initializing OpenPlane Worker...");
+    serviceLogger.info("Initializing OpenPlane Worker...");
     initializeAI({ enableMetrics: true });
   }
 
   async start(): Promise<void> {
-    logger.info("Waiting for Temporal to be healthy...");
-    await waitForHealthy(undefined, { timeoutMs: 60_000, intervalMs: 2000 });
+    await startupTracer.startActiveSpan("worker.startup", async (span) => {
+      try {
+        serviceLogger.info("Waiting for Temporal to be healthy...");
+        await runStartupPhase("waitForTemporal", async () => {
+          await waitForHealthy(undefined, {
+            timeoutMs: 60_000,
+            intervalMs: 2000,
+          });
 
-    const health = await checkHealth();
-    logger.info({ health }, "Temporal health check passed");
+          const health = await checkHealth();
+          serviceLogger.info({ health }, "Temporal health check passed");
+        });
 
-    await this.startTemporalWorkers();
-    await this.registerTemporalSchedules();
-    await this.startServers();
+        await runStartupPhase("startWorkers", async () => {
+          await this.startTemporalWorkers();
+        });
+        await runStartupPhase("registerSchedules", async () => {
+          await this.registerTemporalSchedules();
+        });
+        await runStartupPhase("startServers", async () => {
+          await this.startServers();
+        });
 
-    logger.info("OpenPlane Worker started successfully");
-    logger.info(
-      {
-        components: {
-          temporalWorkers: Array.from(this.workers.keys()),
-          metricsServer: "running",
-          healthServer: "running",
-        },
-      },
-      "All worker components initialized"
-    );
+        serviceLogger.info("OpenPlane Worker started successfully");
+        serviceLogger.info(
+          {
+            components: {
+              temporalWorkers: Array.from(this.workers.keys()),
+              metricsServer: "running",
+              healthServer: "running",
+            },
+          },
+          "All worker components initialized"
+        );
+        span.setStatus({ code: SpanStatusCode.OK });
+      } catch (error) {
+        span.setStatus({
+          code: SpanStatusCode.ERROR,
+          message: error instanceof Error ? error.message : String(error),
+        });
+
+        if (error instanceof Error) {
+          span.recordException(error);
+        }
+
+        throw error;
+      } finally {
+        span.end();
+      }
+    });
   }
 
   private async startTemporalWorkers(): Promise<void> {
-    logger.info("Starting Temporal workers...");
+    serviceLogger.info("Starting Temporal workers...");
 
     const workerPromises = WORKER_TYPES.flatMap((workerType) => {
       const taskQueues = getTaskQueuesForWorkerType(workerType);
@@ -91,18 +164,21 @@ class WorkerService {
           const worker = await startWorker(options);
           const workerKey = `${workerType}:${taskQueue}` as WorkerType;
           this.workers.set(workerKey, worker);
-          logger.info({ workerType, taskQueue }, "Temporal worker created");
+          serviceLogger.info(
+            { workerType, taskQueue },
+            "Temporal worker created"
+          );
 
           worker.run().catch((error) => {
             if (!this.isShuttingDown) {
-              logger.error(
+              serviceLogger.error(
                 { error, workerType, taskQueue },
                 "Temporal worker crashed"
               );
             }
           });
         } catch (error) {
-          logger.error(
+          serviceLogger.error(
             { error, workerType, taskQueue },
             "Failed to start Temporal worker"
           );
@@ -112,7 +188,7 @@ class WorkerService {
     });
 
     await Promise.all(workerPromises);
-    logger.info(
+    serviceLogger.info(
       { workerCount: this.workers.size },
       "All Temporal workers started"
     );
@@ -125,74 +201,86 @@ class WorkerService {
   private async registerTemporalSchedules(): Promise<void> {
     try {
       await registerSchedules();
-      logger.info("Temporal schedules registered");
+      serviceLogger.info("Temporal schedules registered");
     } catch (error) {
-      logger.error({ error }, "Failed to register Temporal schedules");
+      serviceLogger.error({ error }, "Failed to register Temporal schedules");
     }
   }
 
   private async startServers(): Promise<void> {
     await startMetricsServer().catch((error) => {
-      logger.error({ error }, "Failed to start metrics server");
+      serviceLogger.error({ error }, "Failed to start metrics server");
     });
 
     await startHealthServer().catch((error) => {
-      logger.error({ error }, "Failed to start health server");
+      serviceLogger.error({ error }, "Failed to start health server");
     });
   }
 
   async shutdown(): Promise<void> {
-    logger.info("Shutting down OpenPlane Worker...");
+    serviceLogger.info("Shutting down OpenPlane Worker...");
     this.isShuttingDown = true;
 
-    logger.info("Stopping health and metrics servers...");
+    serviceLogger.info("Stopping health and metrics servers...");
     await Promise.all([stopMetricsServer(), stopHealthServer()]);
 
-    logger.info("Shutting down Temporal workers...");
+    serviceLogger.info("Shutting down Temporal workers...");
     for (const [workerType, worker] of this.workers.entries()) {
       try {
         worker.shutdown();
-        logger.info({ workerType }, "Temporal worker shutdown initiated");
+        serviceLogger.info(
+          { workerType },
+          "Temporal worker shutdown initiated"
+        );
       } catch (error) {
-        logger.error({ error, workerType }, "Error shutting down worker");
+        serviceLogger.error(
+          { error, workerType },
+          "Error shutting down worker"
+        );
       }
     }
 
-    logger.info("Closing database and cache connections...");
+    serviceLogger.info("Closing database and cache connections...");
     await Promise.all([
       prisma.$disconnect().catch((error) => {
-        logger.error({ error }, "Error disconnecting Prisma");
+        serviceLogger.error({ error }, "Error disconnecting Prisma");
       }),
       closeRedisClient().catch((error) => {
-        logger.error({ error }, "Error closing Redis connection");
+        serviceLogger.error({ error }, "Error closing Redis connection");
+      }),
+      shutdownInstrumentation().catch((error) => {
+        serviceLogger.error({ error }, "Error shutting down instrumentation");
       }),
     ]);
 
-    logger.info("OpenPlane Worker shut down successfully");
+    serviceLogger.info("OpenPlane Worker shut down successfully");
     process.exit(0);
   }
 }
 
 async function main() {
+  const tracingEnabled = initializeInstrumentation();
+  serviceLogger.info({ tracingEnabled }, "Worker instrumentation initialized");
+
   const workerService = new WorkerService();
 
   process.on("SIGTERM", async () => {
-    logger.info("SIGTERM received");
+    serviceLogger.info("SIGTERM received");
     await workerService.shutdown();
   });
 
   process.on("SIGINT", async () => {
-    logger.info("SIGINT received");
+    serviceLogger.info("SIGINT received");
     await workerService.shutdown();
   });
 
   process.on("uncaughtException", (error) => {
-    logger.error({ error }, "Uncaught exception");
+    serviceLogger.error({ error }, "Uncaught exception");
     process.exit(1);
   });
 
   process.on("unhandledRejection", (reason, promise) => {
-    logger.error({ reason, promise }, "Unhandled rejection");
+    serviceLogger.error({ reason, promise }, "Unhandled rejection");
     process.exit(1);
   });
 
@@ -200,6 +288,15 @@ async function main() {
 }
 
 main().catch((error) => {
-  logger.error({ error }, "Failed to start worker service");
-  process.exit(1);
+  serviceLogger.error({ error }, "Failed to start worker service");
+  shutdownInstrumentation()
+    .catch((shutdownError) => {
+      serviceLogger.error(
+        { error: shutdownError },
+        "Error shutting down instrumentation after startup failure"
+      );
+    })
+    .finally(() => {
+      process.exit(1);
+    });
 });
