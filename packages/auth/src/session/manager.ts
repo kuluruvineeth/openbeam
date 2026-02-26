@@ -116,12 +116,17 @@ export async function deleteUserSessions(
   await deleteSessionsByUserId(prisma, userId);
 }
 
+export interface OAuthUpsertResult {
+  userId: string;
+  teamId: string | null;
+}
+
 export async function upsertUserFromOAuth(
   prisma: Database,
   provider: string,
   userInfo: OAuthUserInfo,
   tokens: OAuthTokens
-): Promise<string> {
+): Promise<OAuthUpsertResult> {
   const existingUser = await getUserByEmail(prisma, userInfo.email);
 
   if (existingUser) {
@@ -142,7 +147,7 @@ export async function upsertUserFromOAuth(
       await updateUserImage(prisma, existingUser.id, userInfo.image);
     }
 
-    return existingUser.id;
+    return { userId: existingUser.id, teamId: existingUser.teamId };
   }
 
   const newUser = await createUser(prisma, {
@@ -165,13 +170,26 @@ export async function upsertUserFromOAuth(
     scope: tokens.scope,
   });
 
-  return newUser.id;
+  return { userId: newUser.id, teamId: newUser.teamId };
 }
 
 export function getSessionFromHeaders(headers: Headers): string | null {
   const cookieHeader = headers.get("cookie");
   const cookies = parseCookies(cookieHeader);
-  return cookies[SESSION_COOKIE_NAME] || null;
+  const cookieToken = cookies[SESSION_COOKIE_NAME];
+  if (cookieToken) {
+    return cookieToken;
+  }
+
+  const authHeader = headers.get("authorization");
+  if (authHeader?.startsWith("Bearer ")) {
+    const token = authHeader.slice(7).trim();
+    if (token && !token.startsWith("op_")) {
+      return token;
+    }
+  }
+
+  return null;
 }
 
 export function createSessionCookie(
