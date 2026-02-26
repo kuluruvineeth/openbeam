@@ -1,11 +1,10 @@
 import { z } from "zod";
 import type { LongTermMemory } from "../../../memory";
 import { defineTool, failure, success } from "../../builder";
-
-let memoryStore: LongTermMemory | null = null;
+import { getLongTermMemory, setLongTermMemory } from "./deps";
 
 export function setMemoryStore(store: LongTermMemory): void {
-  memoryStore = store;
+  setLongTermMemory(store);
 }
 
 export const searchMemoryTool = defineTool({
@@ -51,6 +50,7 @@ HOW TO USE:
   }),
 
   async execute(params, _ctx) {
+    const memoryStore = getLongTermMemory();
     if (!memoryStore) {
       return failure(
         "INVALID_STATE",

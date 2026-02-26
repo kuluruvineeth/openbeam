@@ -15,6 +15,12 @@ export interface VectorStore {
   ): Promise<VectorSearchResult[]>;
   delete(id: string): Promise<void>;
   get(id: string): Promise<VectorDocument | null>;
+  list(
+    limit: number,
+    offset: number,
+    filters?: Record<string, unknown>
+  ): Promise<VectorDocument[]>;
+  count(filters?: Record<string, unknown>): Promise<number>;
 }
 
 export interface VectorSearchResult {
@@ -150,17 +156,8 @@ export class InMemoryVectorStore implements VectorStore {
     const results: VectorSearchResult[] = [];
 
     for (const doc of this.documents.values()) {
-      if (filters) {
-        let match = true;
-        for (const [key, value] of Object.entries(filters)) {
-          if (doc.metadata[key] !== value) {
-            match = false;
-            break;
-          }
-        }
-        if (!match) {
-          continue;
-        }
+      if (filters && !this.matchesFilters(doc.metadata, filters)) {
+        continue;
       }
 
       const score = this.cosineSimilarity(query, doc.vector);
@@ -180,8 +177,59 @@ export class InMemoryVectorStore implements VectorStore {
     return Promise.resolve(this.documents.get(id) ?? null);
   }
 
+  list(
+    limit: number,
+    offset: number,
+    filters?: Record<string, unknown>
+  ): Promise<VectorDocument[]> {
+    const results: VectorDocument[] = [];
+    let skipped = 0;
+
+    for (const doc of this.documents.values()) {
+      if (filters && !this.matchesFilters(doc.metadata, filters)) {
+        continue;
+      }
+      if (skipped < offset) {
+        skipped += 1;
+        continue;
+      }
+      results.push(doc);
+      if (results.length >= limit) {
+        break;
+      }
+    }
+
+    return Promise.resolve(results);
+  }
+
+  count(filters?: Record<string, unknown>): Promise<number> {
+    if (!filters) {
+      return Promise.resolve(this.documents.size);
+    }
+
+    let total = 0;
+    for (const doc of this.documents.values()) {
+      if (this.matchesFilters(doc.metadata, filters)) {
+        total += 1;
+      }
+    }
+    return Promise.resolve(total);
+  }
+
   clear(): void {
     this.documents.clear();
+  }
+
+  private matchesFilters(
+    metadata: Record<string, unknown>,
+    filters: Record<string, unknown>
+  ): boolean {
+    for (const [key, value] of Object.entries(filters)) {
+      if (metadata[key] !== value) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private cosineSimilarity(a: number[], b: number[]): number {

@@ -1,6 +1,8 @@
 export type {
   ConsolidatedMemory,
   EpisodicEntry,
+  ImportanceLevel,
+  MatchType,
   MemoryConsolidatorOptions,
   MemoryEntry,
   MemoryMetadata,
@@ -8,9 +10,16 @@ export type {
   MemoryRetrievalResult,
   MemoryStoreOptions,
   MemoryType,
+  PersistentMemoryEntry,
+  PersistentMemorySearchOptions,
+  PersistentMemorySearchResult,
   ProceduralEntry,
   ScoredMemoryEntry,
   SemanticEntry,
+  SessionMemory,
+  SessionMessage,
+  SessionMessageRole,
+  SummarizationResult,
 } from "@openplane/types/ai";
 export type {
   Correction,
@@ -52,6 +61,17 @@ export type {
   MemoryScope,
 } from "./durable-store";
 export { createDurableMemoryStore } from "./durable-store";
+export type {
+  BatchEmbeddingOptions,
+  CachedEmbeddingProviderOptions,
+  EmbeddingCacheOptions,
+} from "./embeddings";
+export {
+  CachedEmbeddingProvider,
+  createCachedEmbeddingProvider,
+  EmbeddingCache,
+  embedBatch,
+} from "./embeddings";
 export type { EpisodicMemoryOptions } from "./episodic";
 export { createEpisodicMemory, EpisodicMemory } from "./episodic";
 export type {
@@ -70,10 +90,36 @@ export {
   LongTermMemoryStore,
   MockEmbeddingProvider,
 } from "./long-term";
+export type {
+  PersistentMemory,
+  PersistentMemoryStoreOptions,
+} from "./persistent";
+export {
+  createPersistentMemory,
+  PersistentMemoryStoreImpl,
+} from "./persistent";
 export type { ProceduralMemoryOptions } from "./procedural";
 export { createProceduralMemory, ProceduralMemory } from "./procedural";
+export type {
+  HybridSearchConfig,
+  HybridSearchDeps,
+  HybridSearchResult,
+} from "./search";
+export {
+  computeKeywordScore,
+  extractQueryTerms,
+  hybridSearch,
+} from "./search";
 export type { SemanticMemoryOptions } from "./semantic";
 export { createSemanticMemory, SemanticMemory } from "./semantic";
+export type {
+  SessionMemoryOptions,
+  SessionMemoryStore,
+} from "./session";
+export {
+  createSessionMemory,
+  SessionMemoryStoreImpl,
+} from "./session";
 export type {
   S3SpillClient,
   SessionState,
@@ -98,6 +144,14 @@ export {
   InMemoryShortTermClient,
   ShortTermMemoryStore,
 } from "./short-term";
+export type {
+  SummarizerDeps,
+  SummarizerOptions,
+} from "./summarizer";
+export {
+  progressiveSummarize,
+  summarizeMessages,
+} from "./summarizer";
 export type { MemoryStore } from "./types";
 export {
   DEFAULT_CONSOLIDATION_OPTIONS,

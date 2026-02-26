@@ -2,11 +2,10 @@ import type { ToolExecutionResult } from "@openplane/types/ai";
 import { z } from "zod";
 import type { SessionState } from "../../../memory/session-state";
 import { defineTool, failure, success } from "../../builder";
-
-let sessionStateStore: SessionState | null = null;
+import { getSessionState, setSessionStateDep } from "./deps";
 
 export function setSessionStateStore(store: SessionState): void {
-  sessionStateStore = store;
+  setSessionStateDep(store);
 }
 
 interface SessionStateResult {
@@ -80,6 +79,7 @@ Large values (>512KB) are automatically spilled to S3 for efficiency.`,
     params,
     _ctx
   ): Promise<ToolExecutionResult<SessionStateResult>> {
+    const sessionStateStore = getSessionState();
     if (!sessionStateStore) {
       return failure(
         "INVALID_STATE",
