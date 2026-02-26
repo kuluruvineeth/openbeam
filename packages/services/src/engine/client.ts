@@ -89,7 +89,8 @@ export class EngineClient {
     options: ParseOptions = {}
   ): Promise<ParseResponse> {
     const formData = new FormData();
-    formData.append("file", new Blob([file]), filename);
+    const blobBytes = new Uint8Array(file);
+    formData.append("file", new Blob([blobBytes]), filename);
 
     const params = new URLSearchParams();
     if (options.chunk !== undefined) {
