@@ -1,6 +1,6 @@
 # Monitoring
 
-Prometheus, Grafana, and Jaeger setup for OpenPlane.
+Prometheus, Grafana, Loki, and Promtail setup for OpenPlane.
 
 ## Quick Start
 
@@ -13,7 +13,7 @@ docker compose up -d
 
 - Prometheus: http://localhost:9090
 - Grafana: http://localhost:3002 (admin/admin)
-- Jaeger: http://localhost:16686
+- Loki: http://localhost:3100
 - Worker metrics: http://localhost:9091/metrics
 - Redis exporter: http://localhost:9121/metrics
 
@@ -34,11 +34,11 @@ curl http://localhost:9090/api/v1/targets | jq
 curl http://localhost:3000/metrics | grep search_queries_total
 curl http://localhost:9091/metrics | grep sync_jobs_total
 
-# Jaeger
-curl http://localhost:16686/api/services | jq
+# Loki labels
+curl http://localhost:3100/loki/api/v1/labels | jq
 ```
 
-**Generate traces:**
+**Generate logs:**
 
 ```bash
 for i in {1..5}; do
@@ -99,10 +99,11 @@ Example minimal dashboard JSON (`monitoring/grafana/dashboards/my-dashboard.json
 - Check targets: `curl http://localhost:9090/api/v1/targets`
 - Check logs: `docker compose logs server worker`
 
-**Traces not appearing?**
+**Logs not appearing in Grafana?**
 
-- Check OTLP endpoint: `echo $OTEL_EXPORTER_OTLP_ENDPOINT`
-- Verify instrumentation loaded first in index.ts
+- Check Loki health: `curl http://localhost:3100/ready`
+- Check Promtail logs: `docker compose -f docker-compose.infra.yml logs promtail`
+- Verify datasource: Grafana -> Connections -> Loki
 
 **Dashboards empty?**
 

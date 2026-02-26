@@ -22,8 +22,13 @@
   "links": [
     {
       "targetBlank": false,
+      "title": "OpenPlane Command Center",
+      "url": "/d/openplane-command-center/openplane-command-center?var-service=$service&var-env=$env&var-connector_type=$connector_type&var-status_code=$status_code"
+    },
+    {
+      "targetBlank": false,
       "title": "Logs Error Drilldown",
-      "url": "/d/logs-error-drilldown/logs-error-drilldown?var-service=$service&var-env=$env&var-level=error|warn&var-trace_id=.*&var-request_id=.*"
+      "url": "/d/logs-error-drilldown/logs-error-drilldown?var-service=$service&var-env=$env&var-level=error|warn&var-trace_id=.*&var-request_id=.*&var-connector_type=$connector_type&var-status_code=$status_code"
     }
   ],
   "liveNow": false,
@@ -36,7 +41,7 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "fixedColor": "#f59e0b",
+            "fixedColor": "green",
             "mode": "fixed"
           },
           "unit": "percentunit"
@@ -68,11 +73,11 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(http_request_duration_seconds_count{route!=\"/metrics\",status_code=~\"4..|5..\"}[5m])) / clamp_min(sum(rate(http_request_duration_seconds_count{route!=\"/metrics\"}[5m])), 1)",
+          "expr": "sum(rate(sync_jobs_total{worker_type=~\"$connector_type\",status=~\"success|completed\"}[5m])) / clamp_min(sum(rate(sync_jobs_total{worker_type=~\"$connector_type\"}[5m])), 1)",
           "refId": "A"
         }
       ],
-      "title": "HTTP Error Ratio",
+      "title": "Sync Success Ratio",
       "type": "stat"
     },
     {
@@ -86,7 +91,7 @@
             "fixedColor": "#ef4444",
             "mode": "fixed"
           },
-          "unit": "reqps"
+          "unit": "ops"
         },
         "overrides": []
       },
@@ -115,11 +120,11 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(http_request_duration_seconds_count{route!=\"/metrics\",status_code=~\"5..\"}[5m]))",
+          "expr": "sum(rate(sync_jobs_total{worker_type=~\"$connector_type\",status=~\"failed|error|retry\"}[5m]))",
           "refId": "A"
         }
       ],
-      "title": "5xx Request Rate",
+      "title": "Failure + Retry Rate",
       "type": "stat"
     },
     {
@@ -130,10 +135,10 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "fixedColor": "#3b82f6",
+            "fixedColor": "#f59e0b",
             "mode": "fixed"
           },
-          "unit": "reqps"
+          "unit": "none"
         },
         "overrides": []
       },
@@ -162,11 +167,11 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(application_errors_total[5m]))",
+          "expr": "sum(sync_queue_depth{worker_type=~\"$connector_type\"})",
           "refId": "A"
         }
       ],
-      "title": "Application Error Rate",
+      "title": "Queue Depth",
       "type": "stat"
     },
     {
@@ -177,10 +182,10 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "fixedColor": "#a855f7",
+            "fixedColor": "#3b82f6",
             "mode": "fixed"
           },
-          "unit": "reqps"
+          "unit": "s"
         },
         "overrides": []
       },
@@ -209,11 +214,11 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(index_errors_total{worker_type=~\"$connector_type\"}[5m]))",
+          "expr": "max(queue_processing_lag_seconds{worker_type=~\"$connector_type\"})",
           "refId": "A"
         }
       ],
-      "title": "Worker Index Error Rate",
+      "title": "Queue Processing Lag (max)",
       "type": "stat"
     },
     {
@@ -222,49 +227,24 @@
         "uid": "prometheus"
       },
       "gridPos": {
-        "h": 9,
+        "h": 8,
         "w": 12,
         "x": 0,
         "y": 5
       },
       "id": 5,
-      "links": [
-        {
-          "targetBlank": false,
-          "title": "Pivot to Logs",
-          "url": "/d/logs-error-drilldown/logs-error-drilldown?var-service=$service&var-env=$env&var-level=error|warn&var-trace_id=.*&var-request_id=.*"
-        }
-      ],
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(http_errors_total[5m])) by (error_type)",
-          "legendFormat": "http {{error_type}}",
+          "expr": "sum by (worker_type) (rate(sync_documents_total{worker_type=~\"$connector_type\",status=~\"success|completed\"}[5m]))",
+          "legendFormat": "{{worker_type}} docs/s",
           "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "sum(rate(application_errors_total[5m])) by (error_type)",
-          "legendFormat": "app {{error_type}}",
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "sum(rate(index_errors_total{worker_type=~\"$connector_type\"}[5m])) by (worker_type, status)",
-          "legendFormat": "worker {{worker_type}} {{status}}",
-          "refId": "C"
         }
       ],
-      "title": "Error Rate by Type",
+      "title": "Sync Throughput by Connector",
       "type": "timeseries"
     },
     {
@@ -273,7 +253,7 @@
         "uid": "prometheus"
       },
       "gridPos": {
-        "h": 9,
+        "h": 8,
         "w": 12,
         "x": 12,
         "y": 5
@@ -285,12 +265,12 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(http_request_duration_seconds_count{status_code=~\"$status_code\",route!=\"/metrics\"}[5m])) by (status_code)",
-          "legendFormat": "{{status_code}}",
+          "expr": "sum by (worker_type, status) (rate(sync_jobs_total{worker_type=~\"$connector_type\"}[5m]))",
+          "legendFormat": "{{worker_type}} {{status}}",
           "refId": "A"
         }
       ],
-      "title": "HTTP Status Code Error Trend",
+      "title": "Sync Jobs by Status",
       "type": "timeseries"
     },
     {
@@ -300,15 +280,15 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "reqps"
+          "unit": "s"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 9,
+        "h": 8,
         "w": 12,
         "x": 0,
-        "y": 14
+        "y": 13
       },
       "id": 7,
       "targets": [
@@ -317,30 +297,24 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "topk(20, sum(rate(http_errors_total[5m])) by (route, error_type, status_code))",
-          "format": "table",
+          "expr": "histogram_quantile(0.95, sum by (le, worker_type) (rate(sync_duration_seconds_bucket{worker_type=~\"$connector_type\"}[5m])))",
+          "legendFormat": "{{worker_type}} p95",
           "refId": "A"
         }
       ],
-      "title": "Top Failing Routes",
-      "type": "table"
+      "title": "Sync Duration p95",
+      "type": "timeseries"
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "reqps"
-        },
-        "overrides": []
-      },
       "gridPos": {
-        "h": 9,
+        "h": 8,
         "w": 12,
         "x": 12,
-        "y": 14
+        "y": 13
       },
       "id": 8,
       "targets": [
@@ -349,12 +323,62 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "topk(20, sum(rate(application_errors_total[5m])) by (error_code, error_type, endpoint))",
+          "expr": "sum by (worker_type) (rate(rate_limit_hits_total{worker_type=~\"$connector_type\"}[5m]))",
+          "legendFormat": "{{worker_type}} rate limit hits/s",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (worker_type) (rate(fence_conflicts_total{worker_type=~\"$connector_type\"}[5m]))",
+          "legendFormat": "{{worker_type}} fence conflicts/s",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (worker_type) (rate(sync_jobs_total{worker_type=~\"$connector_type\",status=~\"retry\"}[5m]))",
+          "legendFormat": "{{worker_type}} retries/s",
+          "refId": "C"
+        }
+      ],
+      "title": "Retry / Rate Limit / Fence Conflicts",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 21
+      },
+      "id": 9,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "topk(25, sum(rate(sync_jobs_total{worker_type=~\"$connector_type\",status=~\"failed|error|retry\"}[5m])) by (worker_type, task_queue, status))",
           "format": "table",
           "refId": "A"
         }
       ],
-      "title": "Application Error Signatures",
+      "title": "Top Failing Queues",
       "type": "table"
     },
     {
@@ -365,34 +389,8 @@
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 0,
-        "y": 23
-      },
-      "id": 9,
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "expr": "sum by (service) (count_over_time({service=~\"$service\",env=~\"$env\",level=~\"error|warn\"}[5m]))",
-          "legendFormat": "{{service}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Loki Error Volume by Service",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "loki"
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
         "x": 12,
-        "y": 23
+        "y": 21
       },
       "id": 10,
       "options": {
@@ -411,18 +409,18 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "{service=~\"$service\",env=~\"$env\",level=~\"error|warn\"} | json",
+          "expr": "{service=~\"$service\",env=~\"$env\",level=~\"error|warn\"} | json | connector_id=~\".+\"",
           "refId": "A"
         }
       ],
-      "title": "Recent Correlated Error Logs",
+      "title": "Connector Error Logs",
       "type": "logs"
     }
   ],
   "refresh": "10s",
   "schemaVersion": 16,
   "style": "dark",
-  "tags": ["openplane", "errors", "analysis"],
+  "tags": ["openplane", "connector", "sync", "operations"],
   "templating": {
     "list": [
       {
@@ -507,12 +505,12 @@
     ]
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-24h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "OpenPlane Error Analysis",
-  "uid": "error-analysis",
-  "version": 2
+  "title": "Connector Sync Operations",
+  "uid": "connector-sync-ops",
+  "version": 1
 }

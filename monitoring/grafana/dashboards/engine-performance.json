@@ -22,8 +22,13 @@
   "links": [
     {
       "targetBlank": false,
+      "title": "OpenPlane Command Center",
+      "url": "/d/openplane-command-center/openplane-command-center?var-service=$service&var-env=$env&var-connector_type=$connector_type&var-status_code=$status_code"
+    },
+    {
+      "targetBlank": false,
       "title": "Logs Error Drilldown",
-      "url": "/d/logs-error-drilldown/logs-error-drilldown?var-service=$service&var-env=$env&var-level=error|warn&var-trace_id=.*&var-request_id=.*"
+      "url": "/d/logs-error-drilldown/logs-error-drilldown?var-service=$service&var-env=$env&var-level=error|warn&var-trace_id=.*&var-request_id=.*&var-connector_type=$connector_type&var-status_code=$status_code"
     }
   ],
   "liveNow": false,
@@ -36,10 +41,10 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "fixedColor": "#f59e0b",
+            "fixedColor": "green",
             "mode": "fixed"
           },
-          "unit": "percentunit"
+          "unit": "reqps"
         },
         "overrides": []
       },
@@ -68,11 +73,11 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(http_request_duration_seconds_count{route!=\"/metrics\",status_code=~\"4..|5..\"}[5m])) / clamp_min(sum(rate(http_request_duration_seconds_count{route!=\"/metrics\"}[5m])), 1)",
+          "expr": "sum(rate(engine_http_requests_total{route!=\"/metrics\",status_code=~\"$status_code\"}[5m]))",
           "refId": "A"
         }
       ],
-      "title": "HTTP Error Ratio",
+      "title": "Engine Request Rate",
       "type": "stat"
     },
     {
@@ -86,7 +91,7 @@
             "fixedColor": "#ef4444",
             "mode": "fixed"
           },
-          "unit": "reqps"
+          "unit": "percentunit"
         },
         "overrides": []
       },
@@ -115,11 +120,11 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(http_request_duration_seconds_count{route!=\"/metrics\",status_code=~\"5..\"}[5m]))",
+          "expr": "sum(rate(engine_http_requests_total{route!=\"/metrics\",status_code=~\"5..\"}[5m])) / clamp_min(sum(rate(engine_http_requests_total{route!=\"/metrics\"}[5m])), 1)",
           "refId": "A"
         }
       ],
-      "title": "5xx Request Rate",
+      "title": "Engine 5xx Ratio",
       "type": "stat"
     },
     {
@@ -133,7 +138,7 @@
             "fixedColor": "#3b82f6",
             "mode": "fixed"
           },
-          "unit": "reqps"
+          "unit": "s"
         },
         "overrides": []
       },
@@ -162,11 +167,11 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(application_errors_total[5m]))",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(engine_http_request_duration_seconds_bucket{route!=\"/metrics\"}[5m])))",
           "refId": "A"
         }
       ],
-      "title": "Application Error Rate",
+      "title": "Engine Latency p95",
       "type": "stat"
     },
     {
@@ -180,7 +185,7 @@
             "fixedColor": "#a855f7",
             "mode": "fixed"
           },
-          "unit": "reqps"
+          "unit": "none"
         },
         "overrides": []
       },
@@ -209,11 +214,11 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(index_errors_total{worker_type=~\"$connector_type\"}[5m]))",
+          "expr": "sum(engine_http_requests_in_flight)",
           "refId": "A"
         }
       ],
-      "title": "Worker Index Error Rate",
+      "title": "In-Flight Requests",
       "type": "stat"
     },
     {
@@ -222,49 +227,24 @@
         "uid": "prometheus"
       },
       "gridPos": {
-        "h": 9,
+        "h": 8,
         "w": 12,
         "x": 0,
         "y": 5
       },
       "id": 5,
-      "links": [
-        {
-          "targetBlank": false,
-          "title": "Pivot to Logs",
-          "url": "/d/logs-error-drilldown/logs-error-drilldown?var-service=$service&var-env=$env&var-level=error|warn&var-trace_id=.*&var-request_id=.*"
-        }
-      ],
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(http_errors_total[5m])) by (error_type)",
-          "legendFormat": "http {{error_type}}",
+          "expr": "sum by (route) (rate(engine_http_requests_total{route!=\"/metrics\",status_code=~\"$status_code\"}[5m]))",
+          "legendFormat": "{{route}}",
           "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "sum(rate(application_errors_total[5m])) by (error_type)",
-          "legendFormat": "app {{error_type}}",
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "sum(rate(index_errors_total{worker_type=~\"$connector_type\"}[5m])) by (worker_type, status)",
-          "legendFormat": "worker {{worker_type}} {{status}}",
-          "refId": "C"
         }
       ],
-      "title": "Error Rate by Type",
+      "title": "Request Rate by Route",
       "type": "timeseries"
     },
     {
@@ -273,7 +253,7 @@
         "uid": "prometheus"
       },
       "gridPos": {
-        "h": 9,
+        "h": 8,
         "w": 12,
         "x": 12,
         "y": 5
@@ -285,12 +265,12 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(http_request_duration_seconds_count{status_code=~\"$status_code\",route!=\"/metrics\"}[5m])) by (status_code)",
+          "expr": "sum by (status_code) (rate(engine_http_requests_total{route!=\"/metrics\",status_code=~\"$status_code\"}[5m]))",
           "legendFormat": "{{status_code}}",
           "refId": "A"
         }
       ],
-      "title": "HTTP Status Code Error Trend",
+      "title": "Status Code Distribution",
       "type": "timeseries"
     },
     {
@@ -300,15 +280,15 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "reqps"
+          "unit": "s"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 9,
+        "h": 8,
         "w": 12,
         "x": 0,
-        "y": 14
+        "y": 13
       },
       "id": 7,
       "targets": [
@@ -317,13 +297,31 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "topk(20, sum(rate(http_errors_total[5m])) by (route, error_type, status_code))",
-          "format": "table",
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(engine_http_request_duration_seconds_bucket{route!=\"/metrics\"}[5m])))",
+          "legendFormat": "p50",
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(engine_http_request_duration_seconds_bucket{route!=\"/metrics\"}[5m])))",
+          "legendFormat": "p95",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(engine_http_request_duration_seconds_bucket{route!=\"/metrics\"}[5m])))",
+          "legendFormat": "p99",
+          "refId": "C"
         }
       ],
-      "title": "Top Failing Routes",
-      "type": "table"
+      "title": "Engine HTTP Latency Bands",
+      "type": "timeseries"
     },
     {
       "datasource": {
@@ -332,15 +330,15 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "reqps"
+          "unit": "s"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 9,
+        "h": 8,
         "w": 12,
         "x": 12,
-        "y": 14
+        "y": 13
       },
       "id": 8,
       "targets": [
@@ -349,38 +347,126 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "topk(20, sum(rate(application_errors_total[5m])) by (error_code, error_type, endpoint))",
-          "format": "table",
+          "expr": "histogram_quantile(0.95, sum by (le, operation) (rate(engine_model_inference_latency_seconds_bucket[5m])))",
+          "legendFormat": "{{operation}} p95",
           "refId": "A"
         }
       ],
-      "title": "Application Error Signatures",
-      "type": "table"
+      "title": "Model Inference p95 by Operation",
+      "type": "timeseries"
     },
     {
       "datasource": {
-        "type": "loki",
-        "uid": "loki"
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 23
+        "y": 21
       },
       "id": 9,
       "targets": [
         {
           "datasource": {
-            "type": "loki",
-            "uid": "loki"
+            "type": "prometheus",
+            "uid": "prometheus"
           },
-          "expr": "sum by (service) (count_over_time({service=~\"$service\",env=~\"$env\",level=~\"error|warn\"}[5m]))",
-          "legendFormat": "{{service}}",
+          "expr": "histogram_quantile(0.95, sum by (le, model) (rate(engine_model_batch_size_bucket[5m])))",
+          "legendFormat": "{{model}} p95 batch",
           "refId": "A"
         }
       ],
-      "title": "Loki Error Volume by Service",
+      "title": "Model Batch Size p95",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 21
+      },
+      "id": 10,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (file_type, status) (rate(engine_documents_parsed_total[5m]))",
+          "legendFormat": "{{file_type}} {{status}}",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (strategy) (rate(engine_chunks_created_total[5m]))",
+          "legendFormat": "chunks {{strategy}}",
+          "refId": "B"
+        }
+      ],
+      "title": "Parse and Chunk Throughput",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 29
+      },
+      "id": 11,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "histogram_quantile(0.95, sum by (le, endpoint) (rate(engine_gpu_service_latency_seconds_bucket[5m])))",
+          "legendFormat": "latency {{endpoint}} p95",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (endpoint, status) (rate(engine_gpu_service_calls_total[5m]))",
+          "legendFormat": "calls {{endpoint}} {{status}}",
+          "refId": "B"
+        }
+      ],
+      "title": "GPU Service Latency and Calls",
       "type": "timeseries"
     },
     {
@@ -392,9 +478,9 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 23
+        "y": 29
       },
-      "id": 10,
+      "id": 12,
       "options": {
         "dedupStrategy": "none",
         "enableLogDetails": true,
@@ -411,18 +497,18 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "{service=~\"$service\",env=~\"$env\",level=~\"error|warn\"} | json",
+          "expr": "{service=~\"$service\",env=~\"$env\",level=~\"error|warn\"} |~ \"engine|gpu|parse|embed|rerank\"",
           "refId": "A"
         }
       ],
-      "title": "Recent Correlated Error Logs",
+      "title": "Engine Error Logs",
       "type": "logs"
     }
   ],
   "refresh": "10s",
   "schemaVersion": 16,
   "style": "dark",
-  "tags": ["openplane", "errors", "analysis"],
+  "tags": ["openplane", "engine", "performance"],
   "templating": {
     "list": [
       {
@@ -494,25 +580,25 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(http_request_duration_seconds_count, status_code)",
+        "definition": "label_values(engine_http_requests_total, status_code)",
         "includeAll": true,
         "label": "Status Code",
         "multi": true,
         "name": "status_code",
         "options": [],
-        "query": "label_values(http_request_duration_seconds_count, status_code)",
+        "query": "label_values(engine_http_requests_total, status_code)",
         "refresh": 2,
         "type": "query"
       }
     ]
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-24h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "OpenPlane Error Analysis",
-  "uid": "error-analysis",
-  "version": 2
+  "title": "Engine Performance",
+  "uid": "engine-performance",
+  "version": 1
 }

@@ -1,127 +1,273 @@
 groups:
-  - name: openplane_alerts
+  - name: openplane_slo_alerts
     interval: 30s
     rules:
-      # Critical Alerts
-      - alert: HighErrorRate
-        expr: rate(http_request_duration_seconds_count{status_code=~"5.."}[5m]) > 0.1
-        for: 5m
+      - alert: APIAvailabilityErrorBudgetBurnCritical
+        expr: |
+          (
+            sum(rate(http_request_duration_seconds_count{route!="/metrics",status_code=~"5.."}[5m]))
+            /
+            clamp_min(sum(rate(http_request_duration_seconds_count{route!="/metrics"}[5m])), 1)
+          ) > (14.4 * 0.001)
+          and
+          (
+            sum(rate(http_request_duration_seconds_count{route!="/metrics",status_code=~"5.."}[1h]))
+            /
+            clamp_min(sum(rate(http_request_duration_seconds_count{route!="/metrics"}[1h])), 1)
+          ) > (14.4 * 0.001)
+        for: 2m
         labels:
           severity: critical
           component: server
         annotations:
-          summary: "High error rate detected"
-          description: "Error rate is {{ $value | humanize }} errors/sec for 5 minutes"
+          summary: "API availability error budget burn is critical"
+          impact: "Customer requests are failing and the 99.9% availability budget is burning rapidly."
+          runbook_url: "docs/observability/runbooks/high-error-rate.md"
+          owner: "platform-observability"
 
-      - alert: VespaDiskSaturation
-        expr: vespa_content_proton_resource_usage_disk_usage_ratio > 0.9
-        for: 5m
-        labels:
-          severity: critical
-          component: vespa
-        annotations:
-          summary: "Vespa disk usage critical"
-          description: "Vespa disk usage is {{ $value | humanizePercentage }}"
-
-      - alert: WorkerQueueBacklog
-        expr: sync_queue_depth{status="waiting"} > 1000
-        for: 10m
-        labels:
-          severity: critical
-          component: worker
-        annotations:
-          summary: "Worker queue backlog high"
-          description: "Sync queue has {{ $value }} waiting jobs"
-
-      - alert: VespaMemorySaturation
-        expr: vespa_content_proton_resource_usage_memory_usage_ratio > 0.9
-        for: 5m
-        labels:
-          severity: critical
-          component: vespa
-        annotations:
-          summary: "Vespa memory usage critical"
-          description: "Vespa memory usage is {{ $value | humanizePercentage }}"
-
-      # Warning Alerts
-      - alert: HighAPILatency
-        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
-        for: 5m
-        labels:
-          severity: warning
-          component: server
-        annotations:
-          summary: "High API latency"
-          description: "P95 latency is {{ $value | humanize }}s"
-
-      - alert: LowIndexThroughput
-        expr: rate(index_documents_total[5m]) < 10
+      - alert: APIAvailabilityErrorBudgetBurnWarning
+        expr: |
+          (
+            sum(rate(http_request_duration_seconds_count{route!="/metrics",status_code=~"5.."}[30m]))
+            /
+            clamp_min(sum(rate(http_request_duration_seconds_count{route!="/metrics"}[30m])), 1)
+          ) > (6 * 0.001)
+          and
+          (
+            sum(rate(http_request_duration_seconds_count{route!="/metrics",status_code=~"5.."}[6h]))
+            /
+            clamp_min(sum(rate(http_request_duration_seconds_count{route!="/metrics"}[6h])), 1)
+          ) > (6 * 0.001)
         for: 15m
         labels:
           severity: warning
-          component: worker
+          component: server
         annotations:
-          summary: "Low index throughput"
-          description: "Index throughput is {{ $value | humanize }} docs/sec"
+          summary: "API availability error budget burn is elevated"
+          impact: "Availability is degrading and the 99.9% objective is at risk during business hours."
+          runbook_url: "docs/observability/runbooks/high-error-rate.md"
+          owner: "platform-observability"
 
-      - alert: HighRateLimitUsage
-        expr: rate_limit_usage_ratio > 0.8
-        for: 10m
-        labels:
-          severity: warning
-          component: worker
-        annotations:
-          summary: "High rate limit usage"
-          description: "Rate limit usage is {{ $value | humanizePercentage }}"
-
-      - alert: RedisMemoryUsage
-        expr: redis_memory_used_bytes / (redis_memory_max_bytes > 0) > 0.8
-        for: 10m
-        labels:
-          severity: warning
-          component: redis
-        annotations:
-          summary: "Redis memory usage high"
-          description: "Redis memory usage is {{ $value | humanizePercentage }}"
-
-      - alert: HighSyncFailureRate
+      - alert: APILatencyErrorBudgetBurnCritical
         expr: |
           (
-            rate(sync_jobs_total{status="failed"}[5m]) /
-            rate(sync_jobs_total[5m])
-          ) > 0.1
+            1 - (
+              sum(rate(http_request_duration_seconds_bucket{route!="/metrics",le="1"}[5m]))
+              /
+              clamp_min(sum(rate(http_request_duration_seconds_count{route!="/metrics"}[5m])), 1)
+            )
+          ) > (14.4 * 0.01)
+          and
+          (
+            1 - (
+              sum(rate(http_request_duration_seconds_bucket{route!="/metrics",le="1"}[1h]))
+              /
+              clamp_min(sum(rate(http_request_duration_seconds_count{route!="/metrics"}[1h])), 1)
+            )
+          ) > (14.4 * 0.01)
+        for: 5m
+        labels:
+          severity: critical
+          component: server
+        annotations:
+          summary: "API latency SLO burn is critical"
+          impact: "Large portions of requests are slower than 1s and user-facing latency is severely degraded."
+          runbook_url: "docs/observability/runbooks/high-latency.md"
+          owner: "platform-observability"
+
+      - alert: APILatencyErrorBudgetBurnWarning
+        expr: |
+          (
+            1 - (
+              sum(rate(http_request_duration_seconds_bucket{route!="/metrics",le="1"}[30m]))
+              /
+              clamp_min(sum(rate(http_request_duration_seconds_count{route!="/metrics"}[30m])), 1)
+            )
+          ) > (6 * 0.01)
+          and
+          (
+            1 - (
+              sum(rate(http_request_duration_seconds_bucket{route!="/metrics",le="1"}[6h]))
+              /
+              clamp_min(sum(rate(http_request_duration_seconds_count{route!="/metrics"}[6h])), 1)
+            )
+          ) > (6 * 0.01)
+        for: 20m
+        labels:
+          severity: warning
+          component: server
+        annotations:
+          summary: "API latency SLO burn is elevated"
+          impact: "Latency is degrading and the long-window latency objective is at risk."
+          runbook_url: "docs/observability/runbooks/high-latency.md"
+          owner: "platform-observability"
+
+      - alert: ConnectorSyncFailureBurnCritical
+        expr: |
+          (
+            sum(rate(sync_jobs_total{status=~"failed|error"}[5m]))
+            /
+            clamp_min(sum(rate(sync_jobs_total[5m])), 1)
+          ) > (14.4 * 0.01)
+          and
+          (
+            sum(rate(sync_jobs_total{status=~"failed|error"}[1h]))
+            /
+            clamp_min(sum(rate(sync_jobs_total[1h])), 1)
+          ) > (14.4 * 0.01)
+        for: 5m
+        labels:
+          severity: critical
+          component: worker
+        annotations:
+          summary: "Connector sync failure budget burn is critical"
+          impact: "Connector sync operations are failing at a rate that risks customer data freshness."
+          runbook_url: "docs/observability/runbooks/worker-backlog.md"
+          owner: "integrations-platform"
+
+      - alert: ConnectorSyncFailureBurnWarning
+        expr: |
+          (
+            sum(rate(sync_jobs_total{status=~"failed|error"}[30m]))
+            /
+            clamp_min(sum(rate(sync_jobs_total[30m])), 1)
+          ) > (6 * 0.01)
+          and
+          (
+            sum(rate(sync_jobs_total{status=~"failed|error"}[6h]))
+            /
+            clamp_min(sum(rate(sync_jobs_total[6h])), 1)
+          ) > (6 * 0.01)
+        for: 20m
+        labels:
+          severity: warning
+          component: worker
+        annotations:
+          summary: "Connector sync failure budget burn is elevated"
+          impact: "Connector pipelines are degraded and may cause stale or incomplete indexed content."
+          runbook_url: "docs/observability/runbooks/worker-backlog.md"
+          owner: "integrations-platform"
+
+      - alert: WorkerQueueBacklogHigh
+        expr: |
+          sum(sync_queue_depth{status=~"waiting|queued"}) > 1000
+          or
+          max(queue_processing_lag_seconds) > 300
         for: 10m
         labels:
           severity: warning
           component: worker
         annotations:
-          summary: "High sync failure rate"
-          description: "Sync failure rate is {{ $value | humanizePercentage }}"
+          summary: "Worker queue backlog is high"
+          impact: "Sync and indexing jobs are delayed, increasing customer-visible staleness."
+          runbook_url: "docs/observability/runbooks/worker-backlog.md"
+          owner: "integrations-platform"
 
-      - alert: HighIndexFailureRate
-        expr: |
-          (
-            rate(index_jobs_total{status="failed"}[5m]) /
-            rate(index_jobs_total[5m])
-          ) > 0.1
+  - name: openplane_silence_alerts
+    interval: 30s
+    rules:
+      - alert: ServerMetricsAbsent
+        expr: absent(up{job="server"} == 1)
+        for: 5m
+        labels:
+          severity: critical
+          component: server
+        annotations:
+          summary: "Server metrics are absent"
+          impact: "API health is unknown because the server scrape target is missing or down."
+          runbook_url: "docs/observability/runbooks/high-error-rate.md"
+          owner: "platform-observability"
+
+      - alert: WorkerMetricsAbsent
+        expr: absent(up{job="worker"} == 1)
+        for: 5m
+        labels:
+          severity: critical
+          component: worker
+        annotations:
+          summary: "Worker metrics are absent"
+          impact: "Background sync/index processing health is unknown."
+          runbook_url: "docs/observability/runbooks/worker-backlog.md"
+          owner: "integrations-platform"
+
+      - alert: EngineMetricsAbsent
+        expr: absent(up{job="engine"} == 1)
+        for: 5m
+        labels:
+          severity: critical
+          component: engine
+        annotations:
+          summary: "Engine metrics are absent"
+          impact: "ML/embedding/re-ranking pipeline health is unknown."
+          runbook_url: "docs/observability/runbooks/high-latency.md"
+          owner: "platform-observability"
+
+      - alert: APIServicingMetricsAbsent
+        expr: absent(http_request_duration_seconds_count)
         for: 10m
         labels:
           severity: warning
-          component: worker
+          component: server
         annotations:
-          summary: "High index failure rate"
-          description: "Index failure rate is {{ $value | humanizePercentage }}"
+          summary: "HTTP servicing metrics are absent"
+          impact: "SLO burn-rate calculations are blind and alert reliability is reduced."
+          runbook_url: "docs/observability/runbooks/high-error-rate.md"
+          owner: "platform-observability"
 
-      - alert: VespaQueryErrorRate
+  - name: openplane_loki_alerts
+    interval: 30s
+    rules:
+      - alert: LokiMetricsAbsent
+        expr: absent(loki_build_info)
+        for: 10m
+        labels:
+          severity: critical
+          component: loki
+        annotations:
+          summary: "Loki metrics are absent"
+          impact: "Centralized log storage or scraping is unavailable; incident triage is impaired."
+          runbook_url: "docs/observability/runbooks/loki-ingestion-failure.md"
+          owner: "platform-observability"
+
+      - alert: PromtailMetricsAbsent
+        expr: absent(promtail_build_info)
+        for: 10m
+        labels:
+          severity: critical
+          component: promtail
+        annotations:
+          summary: "Promtail metrics are absent"
+          impact: "Log shipping health is unknown and new logs may not reach Loki."
+          runbook_url: "docs/observability/runbooks/loki-ingestion-failure.md"
+          owner: "platform-observability"
+
+      - alert: LokiIngestionStalled
         expr: |
           (
-            rate(vespa_container_http_request_uri_query_total{status=~"5.."}[5m]) /
-            rate(vespa_container_http_request_uri_query_total[5m])
-          ) > 0.05
+            sum(rate(http_request_duration_seconds_count{route!="/metrics"}[5m])) > 0.2
+          )
+          and
+          (
+            sum(rate(loki_distributor_bytes_received_total[5m])) < 1
+          )
+        for: 10m
+        labels:
+          severity: warning
+          component: loki
+        annotations:
+          summary: "Loki ingestion appears stalled"
+          impact: "API traffic exists but Loki is not receiving meaningful log volume."
+          runbook_url: "docs/observability/runbooks/loki-ingestion-failure.md"
+          owner: "platform-observability"
+
+      - alert: PromtailDroppingLogs
+        expr: increase(promtail_dropped_entries_total[15m]) > 0
         for: 5m
         labels:
           severity: warning
-          component: vespa
+          component: promtail
         annotations:
-          summary: "High Vespa query error rate"
-          description: "Vespa query error rate is {{ $value | humanizePercentage }}"
+          summary: "Promtail is dropping logs"
+          impact: "Some production logs are being discarded, reducing debugging fidelity."
+          runbook_url: "docs/observability/runbooks/loki-ingestion-failure.md"
+          owner: "platform-observability"
