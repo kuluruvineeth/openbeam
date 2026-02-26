@@ -1,9 +1,6 @@
 import { z } from "zod";
 import { ErrorCodeSchema, ToolCategorySchema } from "../common/errors";
 
-export { ErrorCodeSchema, ToolCategorySchema };
-export type { ErrorCode, ToolCategory } from "../common/errors";
-
 export const ToolErrorSchema = z.object({
   code: ErrorCodeSchema,
   message: z.string(),
@@ -54,6 +51,14 @@ export const WebPermissionConfigSchema = z.object({
 
 export type WebPermissionConfig = z.infer<typeof WebPermissionConfigSchema>;
 
+export const ToolBudgetContextSchema = z.object({
+  budgetTier: z.enum(["full", "economy", "critical", "stopped"]).optional(),
+  budgetRemainingCents: z.number().optional(),
+  budgetTotalCents: z.number().optional(),
+});
+
+export type ToolBudgetContext = z.infer<typeof ToolBudgetContextSchema>;
+
 export const ToolContextSchema = z.object({
   teamId: z.string(),
   userId: z.string(),
@@ -64,6 +69,7 @@ export const ToolContextSchema = z.object({
   correlationId: z.string().optional(),
   parentSpanId: z.string().optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
+  budget: ToolBudgetContextSchema.optional(),
 });
 
 export type ToolContextBase = z.infer<typeof ToolContextSchema>;
@@ -73,6 +79,13 @@ export const ToolResultMetadataSchema = z.object({
   tokenCount: z.number().int().nonnegative().optional(),
   source: z.string().optional(),
   cached: z.boolean().optional(),
+  cost: z
+    .object({
+      amount: z.string(),
+      currency: z.string(),
+      txHash: z.string().optional(),
+    })
+    .optional(),
 });
 
 export type ToolResultMetadata = z.infer<typeof ToolResultMetadataSchema>;
@@ -120,6 +133,15 @@ export const ToolRiskProfileSchema = z.object({
 
 export type ToolRiskProfile = z.infer<typeof ToolRiskProfileSchema>;
 
+export const ToolPricingSchema = z.object({
+  amount: z.string(),
+  currency: z.string().default("USDC"),
+  network: z.string().default("eip155:84532"),
+  description: z.string().optional(),
+});
+
+export type ToolPricing = z.infer<typeof ToolPricingSchema>;
+
 export const ToolMetadataSchema = z.object({
   name: z.string(),
   description: z.string(),
@@ -130,6 +152,7 @@ export const ToolMetadataSchema = z.object({
   allowedCallers: z.array(AllowedCallerSchema).optional(),
   cacheTtlMs: z.number().int().positive().optional(),
   riskProfile: ToolRiskProfileSchema.optional(),
+  pricing: ToolPricingSchema.optional(),
 });
 
 export type ToolMetadata = z.infer<typeof ToolMetadataSchema>;

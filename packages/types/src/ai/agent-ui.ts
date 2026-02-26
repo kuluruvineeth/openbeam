@@ -1,6 +1,6 @@
 import { z } from "zod";
+import { ToolCategorySchema } from "../common/errors";
 import { AgentEventSchema, ToolVisibilitySchema } from "./streaming";
-import { ToolCategorySchema } from "./tools";
 
 export const PartStateSchema = z.enum([
   "input-pending",

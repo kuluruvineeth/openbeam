@@ -143,3 +143,96 @@ export const MemoryConsolidatorOptionsSchema = z.object({
 export type MemoryConsolidatorOptions = z.infer<
   typeof MemoryConsolidatorOptionsSchema
 >;
+
+export const ImportanceLevelSchema = z.enum(["low", "medium", "high"]);
+
+export type ImportanceLevel = z.infer<typeof ImportanceLevelSchema>;
+
+export const MatchTypeSchema = z.enum(["semantic", "keyword", "hybrid"]);
+
+export type MatchType = z.infer<typeof MatchTypeSchema>;
+
+export const SessionMessageRoleSchema = z.enum([
+  "user",
+  "assistant",
+  "system",
+  "tool",
+]);
+
+export type SessionMessageRole = z.infer<typeof SessionMessageRoleSchema>;
+
+export const SessionMessageSchema = z.object({
+  role: SessionMessageRoleSchema,
+  content: z.string(),
+  timestamp: z.number(),
+  toolCalls: z.array(z.record(z.string(), z.unknown())).optional(),
+});
+
+export type SessionMessage = z.infer<typeof SessionMessageSchema>;
+
+export const SessionMemorySchema = z.object({
+  sessionId: z.string(),
+  teamId: z.string(),
+  messages: z.array(SessionMessageSchema),
+  summary: z.string().optional(),
+  createdAt: z.number(),
+  lastActivityAt: z.number(),
+});
+
+export type SessionMemory = z.infer<typeof SessionMemorySchema>;
+
+export const PersistentMemoryEntrySchema = z.object({
+  id: z.string(),
+  teamId: z.string(),
+  content: z.string(),
+  tags: z.array(z.string()),
+  source: z.string(),
+  importance: ImportanceLevelSchema,
+  embedding: z.array(z.number()).optional(),
+  createdAt: z.number(),
+  updatedAt: z.number(),
+  accessedAt: z.number(),
+  accessCount: z.number().int().nonnegative(),
+});
+
+export type PersistentMemoryEntry = z.infer<typeof PersistentMemoryEntrySchema>;
+
+export const PersistentMemorySearchResultSchema = z.object({
+  entry: PersistentMemoryEntrySchema,
+  relevanceScore: z.number(),
+  matchType: MatchTypeSchema,
+});
+
+export type PersistentMemorySearchResult = z.infer<
+  typeof PersistentMemorySearchResultSchema
+>;
+
+export const PersistentMemorySearchOptionsSchema = z.object({
+  query: z.string(),
+  teamId: z.string(),
+  tags: z.array(z.string()).optional(),
+  limit: z.number().int().positive().optional(),
+  minRelevance: z.number().min(0).max(1).optional(),
+  dateRange: z
+    .object({
+      start: z.number().optional(),
+      end: z.number().optional(),
+    })
+    .optional(),
+  semanticWeight: z.number().min(0).max(1).optional(),
+});
+
+export type PersistentMemorySearchOptions = z.infer<
+  typeof PersistentMemorySearchOptionsSchema
+>;
+
+export const SummarizationResultSchema = z.object({
+  summary: z.string(),
+  keyFacts: z.array(z.string()),
+  decisions: z.array(z.string()),
+  actionItems: z.array(z.string()),
+  messagesCovered: z.number().int().nonnegative(),
+  tokensSaved: z.number().int().nonnegative(),
+});
+
+export type SummarizationResult = z.infer<typeof SummarizationResultSchema>;
