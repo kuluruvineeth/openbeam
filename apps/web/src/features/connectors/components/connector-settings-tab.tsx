@@ -8,7 +8,7 @@ function SettingsSkeleton() {
   return (
     <div className="space-y-5">
       {Array.from({ length: 2 }).map((_, i) => (
-        <div key={i}>
+        <div key={`setting-skeleton-${i}`}>
           <Skeleton className="mb-2 h-3 w-20" />
           <Skeleton className="h-9 w-full" />
         </div>
