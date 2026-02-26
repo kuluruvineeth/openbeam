@@ -97,6 +97,7 @@ export function ExecutionInputForm({
   nodeId,
   config,
 }: ExecutionInputFormProps) {
+  "use no memo";
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const initialValues = useMemo(() => buildInitialValues(config), [config]);

@@ -26,6 +26,7 @@ export type ChatBoxProps = {
   userRole: UserRole;
   query: string;
   setQuery: (query: string) => void;
+  onSend?: (query: string) => void;
   isStreaming?: boolean;
   retryIsStreaming?: boolean;
   handleStop?: () => void;

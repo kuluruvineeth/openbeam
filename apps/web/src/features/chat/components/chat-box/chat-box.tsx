@@ -13,6 +13,34 @@ import { ChatToolbar } from "./chat-toolbar";
 import { FileAttachments } from "./file-attachments";
 import { ReferenceBox } from "./reference-box";
 
+function noop() {
+  /* intentional no-op */
+}
+
+type ReferenceBoxConfig = {
+  searchMode: "citations" | "global";
+  citations: Array<{
+    docId: string;
+    title: string;
+    url?: string;
+  }>;
+  globalResults: Array<{
+    docId: string;
+    title?: string;
+  }>;
+  selectedIndex: number;
+  searchTerm: string;
+  isLoading?: boolean;
+  error?: string | null;
+  onSearchTermChange?: (term: string) => void;
+  onSelectCitation?: (citation: {
+    docId: string;
+    title: string;
+    url?: string;
+  }) => void;
+  onSelectResult?: (result: { docId: string; title?: string }) => void;
+};
+
 type Props = ChatBoxProps & {
   agentName?: string | null;
   agentId?: string | null;
@@ -20,28 +48,16 @@ type Props = ChatBoxProps & {
   onFileRemove?: (id: string) => void;
   onAttachClick?: () => void;
   showReferenceBox?: boolean;
-  referenceBoxProps?: {
-    searchMode: "citations" | "global";
-    citations: Array<{
-      docId: string;
-      title: string;
-      url?: string;
-    }>;
-    globalResults: Array<{
-      docId: string;
-      title?: string;
-    }>;
-    selectedIndex: number;
-    searchTerm: string;
-    isLoading?: boolean;
-    error?: string | null;
-  };
+  referenceBoxProps?: ReferenceBoxConfig;
 };
+
+const EMPTY_FILES: SelectedFile[] = [];
 
 export function ChatBox({
   userRole,
   query,
   setQuery,
+  onSend,
   isStreaming = false,
   retryIsStreaming = false,
   handleStop,
@@ -49,7 +65,7 @@ export function ChatBox({
   isKnowledgeBaseChat = false,
   agentName,
   agentId,
-  selectedFiles = [],
+  selectedFiles = EMPTY_FILES,
   onFileRemove,
   onAttachClick,
   showReferenceBox = false,
@@ -97,8 +113,10 @@ export function ChatBox({
   const showAdvancedOptions = !hideButtons;
 
   const handleSend = () => {
-    // TODO: Implement send functionality
-    console.log("Send message:", query);
+    if (!query.trim()) {
+      return;
+    }
+    onSend?.(query);
   };
 
   const handleCapabilityChange = (capability: Capability) => {
@@ -139,15 +157,9 @@ export function ChatBox({
           globalResults={referenceBoxProps.globalResults}
           isLoading={referenceBoxProps.isLoading}
           isOpen={showReferenceBox}
-          onSearchTermChange={() => {
-            // TODO: Implement search term change
-          }}
-          onSelectCitation={() => {
-            // TODO: Implement citation selection
-          }}
-          onSelectResult={() => {
-            // TODO: Implement result selection
-          }}
+          onSearchTermChange={referenceBoxProps.onSearchTermChange ?? noop}
+          onSelectCitation={referenceBoxProps.onSelectCitation ?? noop}
+          onSelectResult={referenceBoxProps.onSelectResult ?? noop}
           searchMode={referenceBoxProps.searchMode}
           searchTerm={referenceBoxProps.searchTerm}
           selectedIndex={referenceBoxProps.selectedIndex}
@@ -175,12 +187,7 @@ export function ChatBox({
         {selectedFiles.length > 0 && (
           <FileAttachments
             files={selectedFiles}
-            onRemove={
-              onFileRemove ||
-              (() => {
-                // TODO: Implement file removal
-              })
-            }
+            onRemove={onFileRemove ?? noop}
           />
         )}
 

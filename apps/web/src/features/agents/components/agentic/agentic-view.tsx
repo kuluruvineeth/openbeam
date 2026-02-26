@@ -11,11 +11,12 @@ import { Button, Icons } from "@openplane/ui";
 import { TooltipProvider } from "@openplane/ui/components/tooltip";
 import { cn } from "@openplane/ui/utils";
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { parseAsString, parseAsStringLiteral, useQueryState } from "nuqs";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useShallow } from "zustand/react/shallow";
+import { useNow } from "@/lib/hooks/use-now";
 import { useTRPC } from "@/trpc/client";
 import { useCanvasKeyboard } from "../../hooks/use-canvas-keyboard";
 import { useCanvasPersistence } from "../../hooks/use-canvas-persistence";
@@ -142,6 +143,7 @@ function executionToListItem(
 }
 
 function AgenticViewContent({ agentId, className }: AgenticViewProps) {
+  "use no memo";
   const trpc = useTRPC();
   const { save } = useCanvasPersistence(agentId);
   const { collapsed, toggleCollapsed } = useChatPanelStore(
@@ -176,6 +178,7 @@ function AgenticViewContent({ agentId, className }: AgenticViewProps) {
 
   const [executionsOffset, setExecutionsOffset] = useState(0);
   const [dismissedLiveBanner, setDismissedLiveBanner] = useState(false);
+  const now = useNow();
 
   useCanvasKeyboard({ onSave: save });
 
@@ -327,7 +330,7 @@ function AgenticViewContent({ agentId, className }: AgenticViewProps) {
       events: [],
       startedAt: listExecution.startedAt
         ? new Date(listExecution.startedAt).getTime()
-        : Date.now(),
+        : now,
       completedAt: listExecution.completedAt
         ? new Date(listExecution.completedAt).getTime()
         : undefined,
@@ -340,7 +343,13 @@ function AgenticViewContent({ agentId, className }: AgenticViewProps) {
           totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0,
       },
     };
-  }, [selectedExecutionId, executions, executionDetailQuery.data, nodeNameMap]);
+  }, [
+    selectedExecutionId,
+    executions,
+    executionDetailQuery.data,
+    nodeNameMap,
+    now,
+  ]);
 
   return (
     <div className={cn("flex h-full flex-col", className)}>
@@ -356,7 +365,7 @@ function AgenticViewContent({ agentId, className }: AgenticViewProps) {
 
       {view === "canvas" ? (
         <div className="flex flex-1 overflow-hidden">
-          <motion.div
+          <m.div
             animate={{ width: collapsed ? 0 : 380 }}
             className="shrink-0 overflow-hidden"
             transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
@@ -368,7 +377,7 @@ function AgenticViewContent({ agentId, className }: AgenticViewProps) {
                 onCollapse={toggleCollapsed}
               />
             </div>
-          </motion.div>
+          </m.div>
           <div className="relative flex-1">
             {collapsed && (
               <Button

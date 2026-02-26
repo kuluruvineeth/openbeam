@@ -57,7 +57,10 @@ function SourcesSkeleton() {
   return (
     <div className="space-y-1 px-2">
       {Array.from({ length: 5 }).map((_, i) => (
-        <div className="flex h-9 items-center gap-2.5 px-3" key={i}>
+        <div
+          className="flex h-9 items-center gap-2.5 px-3"
+          key={`source-skeleton-${i}`}
+        >
           <Skeleton className="size-5 rounded" />
           <Skeleton className="h-3 flex-1" />
           <Skeleton className="h-3 w-8" />

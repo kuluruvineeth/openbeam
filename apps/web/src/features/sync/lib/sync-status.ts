@@ -148,7 +148,6 @@ export function getSyncHistoryStatusConfig(
   status: string | null | undefined,
   errorMessage?: string | null
 ): SyncStatusConfig {
-  //TODO: Check back later, If status is COMPLETED but there's an error message, show as PARTIAL
   if (status === "COMPLETED" && errorMessage) {
     return SYNC_HISTORY_STATUS_CONFIG.PARTIAL;
   }
