@@ -106,9 +106,9 @@ export function ExcalidrawViewer({
   const [fullscreen, setFullscreen] = useState(false);
 
   useEffect(() => {
-    let mounted = true;
+    const controller = new AbortController();
 
-    fetch(src)
+    fetch(src, { signal: controller.signal })
       .then((res) => {
         if (!res.ok) {
           throw new Error(`Failed to load ${src}: ${res.status}`);
@@ -116,18 +116,17 @@ export function ExcalidrawViewer({
         return res.json();
       })
       .then((json: ExcalidrawFile) => {
-        if (mounted) {
-          setData(json);
-        }
+        setData(json);
       })
       .catch((err: Error) => {
-        if (mounted) {
-          setError(err.message);
+        if (err.name === "AbortError") {
+          return;
         }
+        setError(err.message);
       });
 
     return () => {
-      mounted = false;
+      controller.abort();
     };
   }, [src]);
 
