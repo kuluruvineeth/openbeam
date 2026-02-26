@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: openplane
+  labels:
+    app: web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: web
+          image: openplane/web-dev:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-c", "bunx next dev --port=3001"]
+          ports:
+            - containerPort: 3001
+          envFrom:
+            - configMapRef:
+                name: openplane-env
+          env:
+            - name: NEXT_PUBLIC_WEB_URL
+              value: "http://localhost:3001"
+            - name: NEXT_PUBLIC_SERVER_URL
+              value: "http://server:3000"
+            - name: SERVER_INTERNAL_URL
+              value: "http://server:3000"
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size=4608"
+          startupProbe:
+            tcpSocket:
+              port: 3001
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 60
+            timeoutSeconds: 5
+          readinessProbe:
+            tcpSocket:
+              port: 3001
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: 3001
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 1Gi
+            limits:
+              cpu: "2"
+              memory: 6Gi

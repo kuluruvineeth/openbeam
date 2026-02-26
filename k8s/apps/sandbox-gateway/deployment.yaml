@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sandbox-gateway
+  namespace: openplane
+  labels:
+    app: sandbox-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sandbox-gateway
+  template:
+    metadata:
+      labels:
+        app: sandbox-gateway
+    spec:
+      containers:
+        - name: sandbox-gateway
+          image: openplane/sandbox-gateway:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3800
+          env:
+            - name: PORT
+              value: "3800"
+            - name: SANDBOX_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: sandbox-secrets
+                  key: SANDBOX_API_TOKEN
+            - name: SANDBOX_REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: sandbox-secrets
+                  key: SANDBOX_REDIS_URL
+                  optional: true
+            - name: DAYTONA_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sandbox-secrets
+                  key: DAYTONA_API_KEY
+                  optional: true
+            - name: DAYTONA_JWT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: sandbox-secrets
+                  key: DAYTONA_JWT_TOKEN
+                  optional: true
+            - name: DAYTONA_ORGANIZATION_ID
+              valueFrom:
+                secretKeyRef:
+                  name: sandbox-secrets
+                  key: DAYTONA_ORGANIZATION_ID
+                  optional: true
+          envFrom:
+            - configMapRef:
+                name: openplane-env
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 3800
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 30
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3800
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3800
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi

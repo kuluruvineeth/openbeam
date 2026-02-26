@@ -1,0 +1,106 @@
+{{- if .Values.services.server.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "openplane.serverName" . }}
+  labels:
+    {{- include "openplane.labels" . | nindent 4 }}
+    app.kubernetes.io/component: server
+spec:
+  replicas: {{ .Values.services.server.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "openplane.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: server
+  template:
+    metadata:
+      labels:
+        {{- include "openplane.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: server
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.services.server.initMigrations.enabled }}
+      initContainers:
+        - name: migrate
+          image: {{ printf "%s:%s" .Values.services.server.image.repository .Values.services.server.image.tag | quote }}
+          imagePullPolicy: {{ .Values.services.server.image.pullPolicy }}
+          command:
+            {{- toYaml .Values.services.server.initMigrations.command | nindent 12 }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "openplane.configMapName" . }}
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      {{- end }}
+      containers:
+        - name: server
+          image: {{ printf "%s:%s" .Values.services.server.image.repository .Values.services.server.image.tag | quote }}
+          imagePullPolicy: {{ .Values.services.server.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.services.server.service.targetPort }}
+              name: http
+          envFrom:
+            - configMapRef:
+                name: {{ include "openplane.configMapName" . }}
+          env:
+            - name: SANDBOX_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "openplane.sandboxSecretName" . }}
+                  key: SANDBOX_API_TOKEN
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "openplane.appSecretName" . }}
+                  key: JWT_SECRET
+            {{- with .Values.services.server.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          startupProbe:
+            httpGet:
+              path: {{ .Values.services.server.startupProbe.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.services.server.startupProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.services.server.startupProbe.periodSeconds }}
+            failureThreshold: {{ .Values.services.server.startupProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.services.server.startupProbe.timeoutSeconds }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.services.server.readinessProbe.path }}
+              port: http
+            periodSeconds: {{ .Values.services.server.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.services.server.readinessProbe.timeoutSeconds }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.services.server.livenessProbe.path }}
+              port: http
+            periodSeconds: {{ .Values.services.server.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.services.server.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.services.server.livenessProbe.failureThreshold }}
+          resources:
+            {{- toYaml .Values.services.server.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

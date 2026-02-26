@@ -1,0 +1,22 @@
+{{- if and .Values.services.engine.enabled .Values.services.engine.service.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "openplane.engineName" . }}
+  labels:
+    {{- include "openplane.labels" . | nindent 4 }}
+    app.kubernetes.io/component: engine
+spec:
+  type: {{ .Values.services.engine.service.type }}
+  selector:
+    {{- include "openplane.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: engine
+  ports:
+    - name: http
+      port: {{ .Values.services.engine.service.port }}
+      targetPort: {{ .Values.services.engine.service.targetPort }}
+      protocol: TCP
+      {{- if and (or (eq .Values.services.engine.service.type "NodePort") (eq .Values.services.engine.service.type "LoadBalancer")) .Values.services.engine.service.nodePort }}
+      nodePort: {{ .Values.services.engine.service.nodePort }}
+      {{- end }}
+{{- end }}

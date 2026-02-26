@@ -1,0 +1,23 @@
+{{- if and .Values.services.worker.enabled .Values.services.worker.service.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "openplane.workerName" . }}
+  labels:
+    {{- include "openplane.labels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
+spec:
+  type: {{ .Values.services.worker.service.type }}
+  selector:
+    {{- include "openplane.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
+  ports:
+    - name: metrics
+      port: {{ .Values.services.worker.service.metricsPort }}
+      targetPort: {{ .Values.services.worker.service.metricsPort }}
+      protocol: TCP
+    - name: health
+      port: {{ .Values.services.worker.service.healthPort }}
+      targetPort: {{ .Values.services.worker.service.healthPort }}
+      protocol: TCP
+{{- end }}

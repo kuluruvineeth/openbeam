@@ -1,0 +1,84 @@
+{{- if .Values.services.web.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "openplane.webName" . }}
+  labels:
+    {{- include "openplane.labels" . | nindent 4 }}
+    app.kubernetes.io/component: web
+spec:
+  replicas: {{ .Values.services.web.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "openplane.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: web
+  template:
+    metadata:
+      labels:
+        {{- include "openplane.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: web
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: web
+          image: {{ printf "%s:%s" .Values.services.web.image.repository .Values.services.web.image.tag | quote }}
+          imagePullPolicy: {{ .Values.services.web.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.services.web.service.targetPort }}
+              name: http
+          envFrom:
+            - configMapRef:
+                name: {{ include "openplane.configMapName" . }}
+          env:
+            - name: NEXT_PUBLIC_WEB_URL
+              value: {{ .Values.services.web.env.NEXT_PUBLIC_WEB_URL | quote }}
+            - name: NEXT_PUBLIC_SERVER_URL
+              value: {{ .Values.services.web.env.NEXT_PUBLIC_SERVER_URL | quote }}
+            - name: SERVER_INTERNAL_URL
+              value: {{ .Values.services.web.env.SERVER_INTERNAL_URL | quote }}
+            {{- with .Values.services.web.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          startupProbe:
+            httpGet:
+              path: {{ .Values.services.web.startupProbe.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.services.web.startupProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.services.web.startupProbe.periodSeconds }}
+            failureThreshold: {{ .Values.services.web.startupProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.services.web.startupProbe.timeoutSeconds }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.services.web.readinessProbe.path }}
+              port: http
+            periodSeconds: {{ .Values.services.web.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.services.web.readinessProbe.timeoutSeconds }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.services.web.livenessProbe.path }}
+              port: http
+            periodSeconds: {{ .Values.services.web.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.services.web.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.services.web.livenessProbe.failureThreshold }}
+          resources:
+            {{- toYaml .Values.services.web.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
