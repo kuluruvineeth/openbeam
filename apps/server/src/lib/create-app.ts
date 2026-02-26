@@ -1,13 +1,15 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
+import { createRequestContextMiddleware } from "@openplane/observability";
 import { cors } from "hono/cors";
-import { logger } from "hono/logger";
-import {
-  httpRequestDurationSeconds,
-  register as metricsRegister,
-} from "@/metrics";
+import { httpRequestDurationSeconds } from "@/metrics";
 import { apiKeyAuth } from "@/middleware/api-key";
 import type { AuthEnv } from "@/middleware/auth";
 import { sessionMiddleware } from "@/middleware/auth";
+import {
+  getMergedMetrics,
+  getMergedMetricsContentType,
+} from "@/observability/metrics-registry";
+import logger from "@/utils/logger";
 import { defaultHook } from "./default-hook";
 
 export function createApp() {
@@ -19,8 +21,13 @@ export function createApp() {
     defaultHook,
   });
 
-  // Middleware
-  app.use(logger());
+  app.use(
+    "*",
+    createRequestContextMiddleware({
+      requestIdHeader: "x-request-id",
+      skipPaths: ["/metrics"],
+    })
+  );
   const allowedOrigins = Array.from(
     new Set([
       webUrl,
@@ -35,12 +42,38 @@ export function createApp() {
     cors({
       origin: allowedOrigins,
       allowMethods: ["GET", "POST", "OPTIONS", "PATCH", "DELETE", "PUT"],
-      allowHeaders: ["Content-Type", "Authorization", "Cookie"],
+      allowHeaders: [
+        "Content-Type",
+        "Authorization",
+        "Cookie",
+        "X-Request-Id",
+        "x-request-id",
+        "x-openplane-team",
+      ],
       credentials: true,
     })
   );
 
-  // Metrics middleware
+  app.use("*", async (c, next) => {
+    const start = process.hrtime.bigint();
+    try {
+      await next();
+    } finally {
+      if (c.req.path !== "/metrics") {
+        const durationMs = Number(process.hrtime.bigint() - start) / 1_000_000;
+        logger.info(
+          {
+            method: c.req.method,
+            path: c.req.path,
+            status_code: c.res.status,
+            duration_ms: Number(durationMs.toFixed(2)),
+          },
+          "request_completed"
+        );
+      }
+    }
+  });
+
   app.use("*", async (c, next) => {
     const start = process.hrtime.bigint();
     try {
@@ -59,13 +92,11 @@ export function createApp() {
     }
   });
 
-  // Metrics endpoint
   app.get("/metrics", async (c) => {
-    c.header("Content-Type", metricsRegister.contentType);
-    return c.body(await metricsRegister.metrics());
+    c.header("Content-Type", getMergedMetricsContentType());
+    return c.body(await getMergedMetrics());
   });
 
-  // Auth middleware
   app.use("/api/*", apiKeyAuth);
   app.use("/api/*", sessionMiddleware);
   app.use("/integrations/*", apiKeyAuth);

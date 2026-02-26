@@ -195,6 +195,9 @@ export function getScopesForRoute(
     }
     return [API_SCOPES.AGENTS_WRITE];
   }
+  if (path.startsWith("/api/v1/extensions")) {
+    return [API_SCOPES.AGENTS_WRITE];
+  }
   if (path.startsWith("/api/v1/missions")) {
     if (method === "GET") {
       return [API_SCOPES.MISSION_READ];

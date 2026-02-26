@@ -12,7 +12,7 @@ export const backgroundAgentStatusSchema = z.enum([
   "TIMED_OUT",
 ]);
 
-export const sandboxTypeSchema = z.enum(["e2b", "docker", "local"]);
+export const sandboxTypeSchema = z.enum(["daytona", "local"]);
 
 export const agentIdParamsSchema = z.object({
   id: z.string().openapi({
@@ -37,7 +37,7 @@ export const createAgentBodySchema = z.object({
   preset: z
     .enum(["researcher", "coder", "analyst", "writer", "custom"])
     .default("researcher"),
-  sandboxType: sandboxTypeSchema.default("e2b"),
+  sandboxType: sandboxTypeSchema.default("daytona"),
   repositoryUrl: z.string().url().optional(),
   baseBranch: z.string().optional(),
   timeoutMs: z.number().int().positive().max(3_600_000).optional(),
