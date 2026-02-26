@@ -84,6 +84,8 @@ export const MissionAgentLaneStateSchema = z.object({
   spawnDepth: z.number().optional().default(0),
   messageCount: MessageCountSchema.optional(),
   crossMissionLinks: z.array(CrossMissionLinkSchema).optional().default([]),
+  sandboxSessionId: z.string().optional(),
+  sandboxExecutionCount: z.number().optional(),
 });
 
 export const AgentMessageItemSchema = z.object({

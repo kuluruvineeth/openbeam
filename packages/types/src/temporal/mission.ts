@@ -1,6 +1,22 @@
 import { z } from "zod";
+import {
+  BudgetThresholdsSchema,
+  BudgetTierSchema,
+  BudgetTierTransitionSchema,
+} from "../ai/budget";
 import { CrossMissionSignalPayloadSchema } from "./cross-mission";
 import { AgentMessageEnvelopeSchema } from "./mission-messaging";
+
+export const SandboxConfigSchema = z.object({
+  template: z.string().optional(),
+  timeout: z.number().int().positive().optional(),
+  memoryMb: z.number().int().positive().optional(),
+  cpuCores: z.number().int().positive().optional(),
+  internetAccess: z.boolean().optional(),
+  envVars: z.record(z.string(), z.string()).optional(),
+});
+
+export type SandboxConfig = z.infer<typeof SandboxConfigSchema>;
 
 export const SpawnAgentRequestSchema = z.object({
   requestingAgentId: z.string(),
@@ -13,6 +29,7 @@ export const SpawnAgentRequestSchema = z.object({
   dependsOnTaskId: z.string().optional(),
   context: z.string().max(4000).optional(),
   justification: z.string().max(500).optional(),
+  sandboxConfig: SandboxConfigSchema.optional(),
 });
 
 export type SpawnAgentRequest = z.infer<typeof SpawnAgentRequestSchema>;
@@ -37,6 +54,7 @@ export const SpawnedAgentBlueprintSchema = z.object({
   budgetCentsLimit: z.number().int(),
   parentAgentId: z.string(),
   spawnReason: z.string(),
+  sandboxConfig: SandboxConfigSchema.optional(),
 });
 
 export type SpawnedAgentBlueprint = z.infer<typeof SpawnedAgentBlueprintSchema>;
@@ -206,10 +224,14 @@ export const MissionOrchestratorInputSchema = z.object({
       pendingMessages: z.array(AgentMessageEnvelopeSchema).optional(),
       crossMissionEvents: z.array(CrossMissionSignalPayloadSchema).optional(),
       spawnTree: z.array(z.tuple([z.string(), z.string()])).optional(),
+      budgetTier: BudgetTierSchema.optional(),
+      tierTransitions: z.array(BudgetTierTransitionSchema).optional(),
     })
     .optional(),
   reviewGating: ReviewGatingConfigSchema.optional(),
   standupIntervalMin: z.number().int().positive().default(10).optional(),
+  budgetTier: BudgetTierSchema.optional(),
+  budgetThresholds: BudgetThresholdsSchema.optional(),
 });
 
 export type MissionOrchestratorInput = z.infer<
@@ -222,6 +244,8 @@ export const MissionOrchestratorOutputSchema = z.object({
   completedTasks: z.number(),
   consumedCents: z.number(),
   status: z.enum(["completed", "cancelled", "paused", "budget_exceeded"]),
+  currentBudgetTier: BudgetTierSchema.optional(),
+  tierTransitions: z.array(BudgetTierTransitionSchema).optional(),
 });
 
 export type MissionOrchestratorOutput = z.infer<
@@ -239,6 +263,7 @@ export const MissionAgentRunInputSchema = z.object({
   tools: z.array(z.string()).optional(),
   maxSteps: z.number().int().positive().default(20),
   budgetCentsLimit: z.number().int().min(1).max(10_000).optional(),
+  sandboxConfig: SandboxConfigSchema.optional(),
 });
 
 export type MissionAgentRunInput = z.infer<typeof MissionAgentRunInputSchema>;
@@ -285,6 +310,7 @@ export const MissionRuntimeQueryResultSchema = z.object({
   runningAgents: z.number(),
   lastDispatchAt: z.number().optional(),
   budgetRemaining: z.number().optional(),
+  budgetTier: BudgetTierSchema.optional(),
   dispatchedRuns: z.number(),
   completedTasks: z.number(),
 });
