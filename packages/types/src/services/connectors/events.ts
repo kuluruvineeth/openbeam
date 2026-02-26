@@ -1,4 +1,5 @@
 import type { ConnectorEventConfig, EventCategory } from "./common/events";
+import { GITHUB_EVENTS, type GitHubEventId } from "./github/events";
 import { GMAIL_EVENTS, type GmailEventId } from "./gmail/events";
 import {
   GOOGLE_DRIVE_EVENTS,
@@ -23,14 +24,16 @@ export type ConnectorType =
   | "linear"
   | "notion"
   | "gmail"
-  | "google-drive";
+  | "google-drive"
+  | "github";
 
 export type ConnectorEventId =
   | SlackEventId
   | LinearEventId
   | NotionEventId
   | GmailEventId
-  | GoogleDriveEventId;
+  | GoogleDriveEventId
+  | GitHubEventId;
 
 export type ConnectorEventIdMap = {
   slack: SlackEventId;
@@ -38,6 +41,7 @@ export type ConnectorEventIdMap = {
   notion: NotionEventId;
   gmail: GmailEventId;
   "google-drive": GoogleDriveEventId;
+  github: GitHubEventId;
 };
 
 export const CONNECTOR_EVENTS: Record<
@@ -49,6 +53,7 @@ export const CONNECTOR_EVENTS: Record<
   notion: NOTION_EVENTS,
   gmail: GMAIL_EVENTS,
   "google-drive": GOOGLE_DRIVE_EVENTS,
+  github: GITHUB_EVENTS,
 } as const;
 
 export const CONNECTOR_TYPES = Object.keys(CONNECTOR_EVENTS) as ConnectorType[];
@@ -94,6 +99,12 @@ export function getAllEventCategories(
   return [...categories];
 }
 
+export {
+  GITHUB_EVENT_IDS,
+  GITHUB_EVENTS,
+  type GitHubEventId,
+  GitHubEventIdSchema,
+} from "./github/events";
 export {
   GMAIL_EVENT_IDS,
   GMAIL_EVENTS,

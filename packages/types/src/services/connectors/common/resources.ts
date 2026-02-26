@@ -6,6 +6,7 @@ export const ConnectorTypeSchema = z.enum([
   "notion",
   "gmail",
   "google-drive",
+  "github",
 ]);
 
 export type ConnectorTypeForResources = z.infer<typeof ConnectorTypeSchema>;
@@ -16,6 +17,7 @@ export const CONNECTOR_RESOURCE_TYPES = {
   notion: ["database", "page", "workspace"] as const,
   gmail: ["label", "system_label"] as const,
   "google-drive": ["my_drive", "shared_drive"] as const,
+  github: ["repository", "organization"] as const,
 } as const;
 
 export type ConnectorResourceTypes = typeof CONNECTOR_RESOURCE_TYPES;
@@ -44,6 +46,8 @@ export function getResourceLabel(resourceType: string): string {
     system_label: "System Label",
     my_drive: "My Drive",
     shared_drive: "Shared Drive",
+    repository: "Repository",
+    organization: "Organization",
   };
   return labels[resourceType] ?? resourceType;
 }
@@ -63,6 +67,8 @@ export function getResourcePlaceholder(resourceType: string): string {
     system_label: "Select a system label...",
     my_drive: "Select My Drive...",
     shared_drive: "Select a shared drive...",
+    repository: "Select a repository...",
+    organization: "Select an organization...",
   };
   return placeholders[resourceType] ?? `Select a ${resourceType}...`;
 }
@@ -112,6 +118,14 @@ export const RESOURCE_REQUIREMENTS: Record<
   "file.updated": {
     requiresResource: false,
     resourceTypes: ["my_drive", "shared_drive"],
+  },
+  "issue.opened": {
+    requiresResource: false,
+    resourceTypes: ["repository", "organization"],
+  },
+  "pull_request.opened": {
+    requiresResource: false,
+    resourceTypes: ["repository", "organization"],
   },
 };
 
