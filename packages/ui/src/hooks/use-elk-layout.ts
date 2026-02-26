@@ -2,10 +2,35 @@
 
 import type { Edge, Node } from "@xyflow/react";
 import { useReactFlow } from "@xyflow/react";
-import ELK from "elkjs/lib/elk.bundled.js";
 import { useCallback } from "react";
 
-const elk = new ELK();
+type ElkNode = { id: string; x?: number; y?: number };
+type ElkLayoutResult = { children?: ElkNode[] };
+type ElkLayoutGraph = {
+  id: string;
+  layoutOptions: Record<string, string>;
+  children: Array<{ id: string; width: number; height: number }>;
+  edges: Array<{ id: string; sources: string[]; targets: string[] }>;
+};
+
+interface ElkEngine {
+  layout(graph: ElkLayoutGraph): Promise<ElkLayoutResult>;
+}
+
+type ElkConstructor = new () => ElkEngine;
+
+let elkPromise: Promise<ElkEngine> | null = null;
+
+function getElkEngine(): Promise<ElkEngine> {
+  if (!elkPromise) {
+    elkPromise = import("elkjs/lib/elk.bundled.js").then((module) => {
+      const Elk = module.default as unknown as ElkConstructor;
+      return new Elk();
+    });
+  }
+
+  return elkPromise;
+}
 
 const DEFAULT_NODE_WIDTH = 320;
 const DEFAULT_NODE_HEIGHT = 100;
@@ -22,7 +47,7 @@ export async function layoutWithELK(
   edges: Edge[],
   options: ELKLayoutOptions = {}
 ): Promise<{ nodes: Node[]; edges: Edge[] }> {
-  const graph = {
+  const graph: ElkLayoutGraph = {
     id: "root",
     layoutOptions: {
       "elk.algorithm": options.algorithm ?? "layered",
@@ -43,6 +68,7 @@ export async function layoutWithELK(
     })),
   };
 
+  const elk = await getElkEngine();
   const layout = await elk.layout(graph);
 
   return {

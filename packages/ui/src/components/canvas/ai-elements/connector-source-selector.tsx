@@ -134,6 +134,7 @@ export const ConnectorSourceSelector = memo(
       <Popover modal onOpenChange={setOpen} open={open}>
         <PopoverTrigger asChild>
           <Button
+            aria-controls="connector-source-list"
             aria-expanded={open}
             className="h-9 w-full justify-between font-normal"
             role="combobox"
@@ -162,7 +163,10 @@ export const ConnectorSourceSelector = memo(
         <PopoverContent align="start" className="w-[300px] p-0">
           <Command>
             <CommandInput placeholder="Search sources..." />
-            <CommandList className="no-scrollbar max-h-[280px]">
+            <CommandList
+              className="no-scrollbar max-h-[280px]"
+              id="connector-source-list"
+            >
               <CommandEmpty>No sources found.</CommandEmpty>
               <CommandGroup>
                 <CommandItem

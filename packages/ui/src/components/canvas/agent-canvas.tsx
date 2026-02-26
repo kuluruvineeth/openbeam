@@ -206,6 +206,9 @@ function hasEdgesChanged(external: Edge[], internal: Edge[]): boolean {
   return false;
 }
 
+const EMPTY_NODES: Node[] = [];
+const EMPTY_EDGES: Edge[] = [];
+
 export interface AgentCanvasProps {
   initialNodes?: Node[];
   initialEdges?: Edge[];
@@ -243,8 +246,8 @@ export interface AgentCanvasProps {
 }
 
 function AgentCanvasInner({
-  initialNodes = [],
-  initialEdges = [],
+  initialNodes = EMPTY_NODES,
+  initialEdges = EMPTY_EDGES,
   externalNodes,
   externalEdges,
   nodeStatusMap,

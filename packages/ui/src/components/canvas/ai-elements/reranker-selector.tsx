@@ -90,6 +90,7 @@ export const RerankerSelector = memo(
         <Popover modal onOpenChange={setOpen} open={open}>
           <PopoverTrigger asChild>
             <Button
+              aria-controls="reranker-selector-list"
               aria-expanded={open}
               className={cn(
                 "h-9 w-full justify-between font-normal",
@@ -133,7 +134,10 @@ export const RerankerSelector = memo(
                 placeholder="Search rerankers..."
                 value={search}
               />
-              <CommandList className="no-scrollbar max-h-[300px] overscroll-contain">
+              <CommandList
+                className="no-scrollbar max-h-[300px] overscroll-contain"
+                id="reranker-selector-list"
+              >
                 <CommandEmpty>No rerankers found.</CommandEmpty>
                 <CommandGroup>
                   {filteredModels.map((model) => {

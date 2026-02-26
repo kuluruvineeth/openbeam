@@ -255,13 +255,17 @@ function renderInlineMarkdown(text: string): React.ReactNode[] {
   return nodes;
 }
 
+function segmentKey(segment: ParsedSegment, index: number): string {
+  return `${segment.type}-${index}-${segment.content.slice(0, 32)}`;
+}
+
 function renderSegment(segment: ParsedSegment, index: number): React.ReactNode {
   switch (segment.type) {
     case "code-block":
       return (
         <pre
           className="overflow-x-auto rounded-md border bg-muted/50 p-3 font-mono text-xs"
-          key={index}
+          key={segmentKey(segment, index)}
         >
           <code>{segment.content}</code>
         </pre>
@@ -284,7 +288,10 @@ function renderSegment(segment: ParsedSegment, index: number): React.ReactNode {
         h6: "text-xs font-medium mt-1 mb-1",
       };
       return (
-        <HeadingTag className={headingClasses[HeadingTag]} key={index}>
+        <HeadingTag
+          className={headingClasses[HeadingTag]}
+          key={segmentKey(segment, index)}
+        >
           {renderInlineMarkdown(segment.content)}
         </HeadingTag>
       );
@@ -292,7 +299,7 @@ function renderSegment(segment: ParsedSegment, index: number): React.ReactNode {
 
     case "text":
       return (
-        <p className="leading-relaxed" key={index}>
+        <p className="leading-relaxed" key={segmentKey(segment, index)}>
           {renderInlineMarkdown(segment.content)}
         </p>
       );

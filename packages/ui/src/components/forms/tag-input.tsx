@@ -15,12 +15,14 @@ interface TagInputProps {
   className?: string;
 }
 
+const EMPTY_SUGGESTIONS: string[] = [];
+
 function TagInput({
   value,
   onChange,
   placeholder = "Add tag...",
   maxTags = 10,
-  suggestions = [],
+  suggestions = EMPTY_SUGGESTIONS,
   className,
 }: TagInputProps) {
   const [inputValue, setInputValue] = useState("");

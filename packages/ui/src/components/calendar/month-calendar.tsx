@@ -36,8 +36,10 @@ interface MonthCalendarProps {
   className?: string;
 }
 
+const EMPTY_EVENTS: CalendarEvent[] = [];
+
 function MonthCalendar({
-  events = [],
+  events = EMPTY_EVENTS,
   selectedDate,
   onDateSelect,
   onMonthChange,

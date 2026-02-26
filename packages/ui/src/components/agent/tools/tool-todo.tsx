@@ -124,7 +124,7 @@ const ToolTodo = forwardRef<HTMLDivElement, ToolTodoProps>(
             todoItemVariants({ itemStatus: todo.status }),
             todo.status === "completed" && "line-through opacity-60"
           )}
-          key={index}
+          key={`${todo.content.slice(0, 32)}-${index}`}
         >
           <div className="mt-0.5">{renderTodoIcon(todo.status)}</div>
           <span className="flex-1">

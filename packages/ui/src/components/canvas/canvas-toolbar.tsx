@@ -29,6 +29,8 @@ type CanvasTool =
   | "rectangle"
   | "eraser";
 
+const EMPTY_NODE_IDS: string[] = [];
+
 export interface CanvasToolbarProps {
   className?: string;
   selectedNodeIds?: string[];
@@ -84,7 +86,7 @@ function ToolButton({
 
 export const CanvasToolbar = memo(function CanvasToolbarComponent({
   className,
-  selectedNodeIds = [],
+  selectedNodeIds = EMPTY_NODE_IDS,
   canUndo = false,
   canRedo = false,
   isLocked = false,

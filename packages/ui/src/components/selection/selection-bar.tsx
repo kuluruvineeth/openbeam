@@ -44,6 +44,8 @@ interface SelectionBarProps extends VariantProps<typeof selectionBarVariants> {
   className?: string;
 }
 
+const EMPTY_ACTIONS: SelectionAction[] = [];
+
 export function SelectionBar({
   count,
   onClear,
@@ -53,7 +55,7 @@ export function SelectionBar({
   onDuplicate,
   onRun,
   onPause,
-  customActions = [],
+  customActions = EMPTY_ACTIONS,
   position,
   className,
 }: SelectionBarProps) {
