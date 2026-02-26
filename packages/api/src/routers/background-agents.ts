@@ -35,14 +35,16 @@ const BackgroundAgentStatusSchema = z.enum([
   "TIMED_OUT",
 ]);
 
-const SandboxTypeSchema = z.enum(["e2b", "docker", "local"]);
+const SandboxTypeSchema = z
+  .enum(["daytona", "local", "DAYTONA", "LOCAL"])
+  .transform((v) => v.toUpperCase() as "DAYTONA" | "LOCAL");
 
 const createAgentSchema = z.object({
   name: z.string().min(1).max(100),
   description: z.string().max(500).optional(),
   prompt: z.string().min(1).max(10_000),
   preset: BackgroundAgentPresetSchema.default("researcher"),
-  sandboxType: SandboxTypeSchema.default("e2b"),
+  sandboxType: SandboxTypeSchema.default("daytona"),
   repositoryUrl: z.string().url().optional(),
   baseBranch: z.string().optional(),
   maxSteps: z.number().int().positive().max(100).optional(),
@@ -149,10 +151,7 @@ export const backgroundAgentsRouter = createTRPCRouter({
         description: input.description,
         prompt: input.prompt,
         preset: input.preset,
-        sandboxType: input.sandboxType.toUpperCase() as
-          | "E2B"
-          | "DOCKER"
-          | "LOCAL",
+        sandboxType: input.sandboxType,
         repositoryUrl: input.repositoryUrl,
         baseBranch: input.baseBranch,
         timeoutMs: input.timeoutMs,

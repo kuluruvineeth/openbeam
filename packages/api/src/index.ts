@@ -40,3 +40,9 @@ const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
 const _protectedProcedure = t.procedure.use(enforceUserIsAuthed);
 export const protectedProcedure: typeof _protectedProcedure =
   _protectedProcedure;
+
+export {
+  apiStreamRegistry,
+  getApiStreamMetrics,
+  getApiStreamMetricsContentType,
+} from "./observability/runtime-stream-metrics";

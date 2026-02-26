@@ -40,6 +40,7 @@
     "dotenv": "catalog:",
     "hono": "catalog:",
     "jsonwebtoken": "^9.0.2",
+    "livekit-server-sdk": "^2.15.0",
     "prom-client": "^15.1.1",
     "superjson": "^2.2.5",
     "zod": "catalog:"

@@ -14,6 +14,7 @@ import { mediaRouter } from "./media";
 import { messagesRouter } from "./messages";
 import { missionControlRouter } from "./mission-control";
 import { overviewRouter } from "./overview";
+import { paymentsRouter } from "./payments";
 import { permissionsRouter } from "./permissions";
 import { personalizationRouter } from "./personalization";
 import { ragRouter } from "./rag";
@@ -21,6 +22,8 @@ import { researchRouter } from "./research";
 import { searchRouter } from "./search";
 import { teamRouter } from "./team";
 import { userRouter } from "./user";
+import { voiceRouter } from "./voice";
+import { workspaceRouter } from "./workspace";
 
 export const appRouter = createTRPCRouter({
   agentCanvas: agentCanvasRouter,
@@ -36,6 +39,7 @@ export const appRouter = createTRPCRouter({
   messages: messagesRouter,
   missionControl: missionControlRouter,
   overview: overviewRouter,
+  payments: paymentsRouter,
   permissions: permissionsRouter,
   personalization: personalizationRouter,
   rag: ragRouter,
@@ -43,6 +47,8 @@ export const appRouter = createTRPCRouter({
   search: searchRouter,
   team: teamRouter,
   user: userRouter,
+  voice: voiceRouter,
+  workspace: workspaceRouter,
 });
 
 export type AppRouter = typeof appRouter;
