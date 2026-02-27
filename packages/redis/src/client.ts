@@ -1,4 +1,5 @@
 import { createClient, type RedisClientType } from "redis";
+import { redisLogger } from "./lib/logger";
 
 type ParsedRedisConfig = {
   rawUrl: string;
@@ -70,7 +71,7 @@ export async function getRedisClient(): Promise<RedisClientType> {
         tls: redisConfig.isTls ? true : undefined,
         reconnectStrategy: (retries) => {
           if (retries > reconnectMaxRetries) {
-            console.error("Redis: Max reconnection attempts reached");
+            redisLogger.error("Redis: Max reconnection attempts reached");
             return new Error("Max reconnection attempts reached");
           }
 
@@ -80,19 +81,21 @@ export async function getRedisClient(): Promise<RedisClientType> {
     });
 
     redisClient.on("error", (err) => {
-      console.error("Redis Client Error:", err);
+      redisLogger.error("Redis client error", {
+        error: err instanceof Error ? err.message : String(err),
+      });
     });
 
     redisClient.on("connect", () => {
-      console.log("Redis: Connected");
+      redisLogger.info("Redis: Connected");
     });
 
     redisClient.on("reconnecting", () => {
-      console.log("Redis: Reconnecting...");
+      redisLogger.warn("Redis: Reconnecting...");
     });
 
     redisClient.on("ready", () => {
-      console.log("Redis: Ready to accept commands");
+      redisLogger.info("Redis: Ready to accept commands");
     });
 
     await redisClient.connect();
@@ -105,7 +108,7 @@ export async function closeRedisClient(): Promise<void> {
   if (redisClient) {
     await redisClient.quit();
     redisClient = null;
-    console.log("Redis: Connection closed");
+    redisLogger.info("Redis: Connection closed");
   }
 }
 

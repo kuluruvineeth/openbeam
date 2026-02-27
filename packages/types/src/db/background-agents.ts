@@ -14,7 +14,7 @@ export const BackgroundAgentStatusSchema = z.enum([
 
 export type BackgroundAgentStatus = z.infer<typeof BackgroundAgentStatusSchema>;
 
-export const SandboxTypeSchema = z.enum(["E2B", "DOCKER", "LOCAL"]);
+export const SandboxTypeSchema = z.enum(["DAYTONA", "LOCAL"]);
 
 export type SandboxType = z.infer<typeof SandboxTypeSchema>;
 

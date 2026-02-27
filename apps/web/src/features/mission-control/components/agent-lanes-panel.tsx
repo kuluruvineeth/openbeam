@@ -202,6 +202,7 @@ export function AgentLanesPanel({
   onSelectAgent,
   onCollapse,
 }: AgentLanesPanelProps) {
+  "use no memo";
   const agentBoard = useAgentBoard();
   const pendingApprovals = usePendingApprovals();
   const trpc = useTRPC();

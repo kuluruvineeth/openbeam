@@ -1,7 +1,7 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@openplane/ui";
-import { forwardRef } from "react";
+import { forwardRef, useMemo } from "react";
 
 import { Icons } from "@/components/icons";
 import { AppLogo } from "@/components/integrations/app-logo";
@@ -38,10 +38,9 @@ type SearchResultRowProps = {
 
 function RowIcon({ doc }: { doc: SearchResultDocument }) {
   const app = getConnectorApp(doc.connector_type);
-  const TypeIcon = getDocumentIcon(
-    doc.connector_type,
-    doc.document_type,
-    doc.mime_type
+  const TypeIcon = useMemo(
+    () => getDocumentIcon(doc.connector_type, doc.document_type, doc.mime_type),
+    [doc.connector_type, doc.document_type, doc.mime_type]
   );
 
   return (

@@ -28,6 +28,7 @@ RETURNS: Synthesized answer with citations mapping claims to source chunks. Each
   category: "rag",
   deferLoading: false,
   searchKeywords: ["synthesize", "answer", "generate", "combine", "chunks"],
+  pricing: { amount: "0.05", description: "Per RAG synthesis" },
 
   parameters: z.object({
     question: z

@@ -156,7 +156,7 @@ function LoadingStep() {
       <Skeleton className="h-12 w-full" />
       <div className="grid grid-cols-2 gap-2">
         {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton className="h-10 w-full" key={i} />
+          <Skeleton className="h-10 w-full" key={`tool-skeleton-${i}`} />
         ))}
       </div>
     </div>
@@ -179,9 +179,12 @@ export function AgentCreationSheet() {
   });
 
   useEffect(() => {
+    if (!isOpen) {
+      setHasInitialized(false);
+      return;
+    }
     if (isEditMode && agentData && !hasInitialized) {
       const { emoji, color } = parseIcon(agentData.icon);
-
       setFormData({
         name: agentData.name,
         description: agentData.description || "",
@@ -190,13 +193,7 @@ export function AgentCreationSheet() {
       });
       setHasInitialized(true);
     }
-  }, [isEditMode, agentData, hasInitialized]);
-
-  useEffect(() => {
-    if (!isOpen) {
-      setHasInitialized(false);
-    }
-  }, [isOpen]);
+  }, [isOpen, isEditMode, agentData, hasInitialized]);
 
   const updateFormData = (data: Partial<FormData>) => {
     setFormData((prev) => ({ ...prev, ...data }));

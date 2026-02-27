@@ -7,6 +7,7 @@ node_modules
 dist
 build
 *.tsbuildinfo
+apps/cli/openplane
 
 # Environment variables
 .env
@@ -100,3 +101,7 @@ specs/
 story/
 agents_engine_core/
 *.md
+!docs/observability/
+!docs/observability/*.md
+!docs/observability/runbooks/
+!docs/observability/runbooks/*.md

@@ -1,0 +1,3 @@
+export const NOTE_TITLE_MAX_LENGTH = 120;
+export const NOTE_CONTENT_PREVIEW_LENGTH = 80;
+export const NOTE_DEBOUNCE_SAVE_MS = 500;

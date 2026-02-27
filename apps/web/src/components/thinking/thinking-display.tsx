@@ -7,7 +7,7 @@ import {
   CollapsibleTrigger,
   TextShimmer,
 } from "@openplane/ui";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { memo, useEffect, useRef, useState } from "react";
 import { Icons } from "@/components/icons";
 import type { ThinkingState, ThinkingStep } from "@/lib/thinking-types";
@@ -26,9 +26,11 @@ type ThinkingDisplayProps = {
   autoCollapseDelay?: number;
 };
 
+const EMPTY_STEPS: ThinkingStep[] = [];
+
 function ThinkingDisplayInner({
   thinking,
-  steps = [],
+  steps = EMPTY_STEPS,
   statusMessage,
   thinkingMessage,
   className,
@@ -94,7 +96,7 @@ function ThinkingDisplayInner({
     const displayMessage = statusMessage ?? thinkingMessage ?? "Thinking";
     return (
       <div className={cn("flex items-center gap-2", className)}>
-        <motion.div
+        <m.div
           animate={{ rotate: 360 }}
           className="flex items-center justify-center"
           transition={{
@@ -104,7 +106,7 @@ function ThinkingDisplayInner({
           }}
         >
           <Icons.Spinner className="text-primary" size={14} />
-        </motion.div>
+        </m.div>
         <TextShimmer as="span" className="font-medium text-sm">
           {displayMessage}...
         </TextShimmer>
@@ -150,7 +152,7 @@ function ThinkingDisplayInner({
           variant="ghost"
         >
           {isThinkingActive ? (
-            <motion.div
+            <m.div
               animate={{ rotate: 360 }}
               className="flex items-center justify-center"
               transition={{
@@ -160,7 +162,7 @@ function ThinkingDisplayInner({
               }}
             >
               <Icons.Spinner className="text-primary" size={14} />
-            </motion.div>
+            </m.div>
           ) : (
             <Icons.SparklesIcon className="text-primary/70" size={14} />
           )}

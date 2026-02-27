@@ -24,7 +24,7 @@ export function createBackgroundAgent(
       prompt: data.prompt,
       preset: data.preset ?? "researcher",
       totalSteps: data.totalSteps,
-      sandboxType: data.sandboxType ?? "E2B",
+      sandboxType: data.sandboxType ?? "DAYTONA",
       repositoryUrl: data.repositoryUrl,
       baseBranch: data.baseBranch,
       maxRetries: data.maxRetries ?? 3,

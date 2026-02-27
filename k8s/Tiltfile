@@ -1,0 +1,300 @@
+config.define_bool("monitoring", usage="Enable Prometheus + Grafana + Loki")
+config.define_bool("voice", usage="Enable LiveKit + voice agents")
+cfg = config.parse()
+
+update_settings(max_parallel_updates=3, k8s_upsert_timeout_secs=120)
+
+def read_env_value_from_local_files(key):
+    data = str(local("cat ../.env ../.env.development 2>/dev/null || true", quiet=True))
+    prefix = key + "="
+    for raw_line in data.splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith(prefix):
+            value = line[len(prefix):].strip()
+            if len(value) >= 2 and ((value[0] == '"' and value[-1] == '"') or (value[0] == "'" and value[-1] == "'")):
+                value = value[1:-1]
+            return value
+    return ""
+
+hugeicons_token = os.getenv("HUGEICONS_PRO_AUTH_TOKEN", "")
+if not hugeicons_token:
+    hugeicons_token = read_env_value_from_local_files("HUGEICONS_PRO_AUTH_TOKEN")
+
+hugeicons_build_args = {}
+if hugeicons_token:
+    hugeicons_build_args["HUGEICONS_PRO_AUTH_TOKEN"] = hugeicons_token
+else:
+    print("HUGEICONS_PRO_AUTH_TOKEN is not set; web resource will be disabled by default.")
+
+# ─── Namespace & Shared Config ────────────────────────────
+k8s_yaml("infra/namespace.yaml")
+k8s_yaml("configmaps/env.yaml")
+k8s_yaml("configmaps/sandbox-secrets.yaml")
+
+# ─── Infrastructure ──────────────────────────────────────
+k8s_yaml([
+    "infra/postgres/pvc.yaml",
+    "infra/postgres/deployment.yaml",
+    "infra/postgres/service.yaml",
+])
+k8s_resource("postgres",
+    port_forwards="5432:5432",
+    labels=["infra"],
+)
+
+k8s_yaml([
+    "infra/redis/deployment.yaml",
+    "infra/redis/service.yaml",
+])
+k8s_resource("redis",
+    port_forwards="6379:6379",
+    labels=["infra"],
+)
+
+k8s_yaml([
+    "infra/vespa/statefulset.yaml",
+    "infra/vespa/service.yaml",
+])
+k8s_resource("vespa",
+    port_forwards=["8080:8080", "19071:19071"],
+    auto_init=False,
+    labels=["infra"],
+)
+
+k8s_yaml([
+    "infra/temporal/deployment.yaml",
+    "infra/temporal/service.yaml",
+])
+k8s_resource("temporal",
+    labels=["infra"],
+    resource_deps=["postgres"],
+)
+
+k8s_yaml("infra/temporal/temporal-ui.yaml")
+k8s_resource("temporal-ui",
+    port_forwards="8233:8080",
+    auto_init=False,
+    labels=["infra"],
+    resource_deps=["temporal"],
+)
+
+k8s_yaml([
+    "infra/minio/deployment.yaml",
+    "infra/minio/service.yaml",
+])
+k8s_resource("minio",
+    port_forwards=["9000:9000", "9001:9001"],
+    labels=["infra"],
+)
+
+k8s_yaml("infra/minio/init-job.yaml")
+k8s_resource("minio-init",
+    labels=["infra"],
+    resource_deps=["minio"],
+)
+
+# ─── Application Images ──────────────────────────────────
+
+_test_ignore = ["**/*.test.ts", "**/*.spec.ts", "**/__tests__/**", "**/*.tmp.*"]
+
+_app_manifests = [
+    "apps/cli/package.json",
+    "apps/docs/package.json",
+    "apps/engine/package.json",
+    "apps/sandbox-gateway/package.json",
+    "apps/server/package.json",
+    "apps/web/package.json",
+    "apps/worker/package.json",
+]
+
+_shared_only = _app_manifests + [
+    "packages",
+    "package.json",
+    "bun.lock",
+    "bun.lockb",
+    ".npmrc",
+    "tsconfig.json",
+]
+
+docker_build("openplane/server-dev", "..",
+    dockerfile="../apps/server/Dockerfile.dev",
+    build_args=hugeicons_build_args,
+    only=["apps/server"] + _shared_only,
+    ignore=_test_ignore,
+    live_update=[
+        sync("../apps/server/src", "/app/apps/server/src"),
+        sync("../packages", "/app/packages"),
+        run("cd /app && bun install --frozen-lockfile", trigger=["../apps/server/package.json", "../package.json"]),
+    ],
+)
+
+docker_build("openplane/web-dev", "..",
+    dockerfile="../apps/web/Dockerfile.dev",
+    build_args=hugeicons_build_args,
+    only=["apps/web"] + _shared_only,
+    ignore=_test_ignore,
+    live_update=[
+        sync("../apps/web/src", "/app/apps/web/src"),
+        sync("../packages", "/app/packages"),
+    ],
+)
+
+docker_build("openplane/worker-dev", "..",
+    dockerfile="../apps/worker/Dockerfile.dev",
+    build_args=hugeicons_build_args,
+    only=["apps/worker"] + _shared_only,
+    ignore=_test_ignore,
+    live_update=[
+        sync("../apps/worker/src", "/app/apps/worker/src"),
+        sync("../packages", "/app/packages"),
+        run("cd /app && bun install --frozen-lockfile", trigger=["../apps/worker/package.json", "../package.json"]),
+    ],
+)
+
+docker_build("openplane/engine-dev", "../apps/engine",
+    dockerfile="../apps/engine/Dockerfile.cpu",
+    live_update=[
+        sync("../apps/engine/src", "/app/src"),
+    ],
+)
+
+docker_build("openplane/sandbox-gateway", "..",
+    dockerfile="../apps/sandbox-gateway/Dockerfile.dev",
+    only=["apps/sandbox-gateway"] + _shared_only,
+    ignore=_test_ignore,
+    live_update=[
+        sync("../apps/sandbox-gateway/src", "/app/apps/sandbox-gateway/src"),
+        sync("../packages/sandbox/src", "/app/packages/sandbox/src"),
+    ],
+)
+
+# ─── Maintenance ──────────────────────────────────────────
+
+local_resource("docker-gc",
+    cmd="docker image prune -f && docker builder prune --keep-storage=5GB -f",
+    auto_init=False,
+    trigger_mode=TRIGGER_MODE_MANUAL,
+    labels=["maintenance"],
+)
+
+# ─── Application Deployments ─────────────────────────────
+
+k8s_yaml([
+    "apps/server/deployment.yaml",
+    "apps/server/service.yaml",
+])
+k8s_resource("server",
+    port_forwards="3000:3000",
+    labels=["apps"],
+    resource_deps=["postgres", "redis", "temporal"],
+)
+
+k8s_yaml([
+    "apps/web/deployment.yaml",
+    "apps/web/service.yaml",
+])
+k8s_resource("web",
+    port_forwards="3101:3001",
+    labels=["apps"],
+    auto_init=bool(hugeicons_token),
+    resource_deps=["server"],
+)
+
+k8s_yaml([
+    "apps/worker/deployment.yaml",
+    "apps/worker/service.yaml",
+])
+k8s_resource("worker",
+    port_forwards="9091:9091",
+    auto_init=False,
+    labels=["apps"],
+    resource_deps=["postgres", "redis", "vespa", "temporal", "sandbox-gateway"],
+)
+
+k8s_yaml([
+    "apps/engine/deployment.yaml",
+    "apps/engine/service.yaml",
+])
+k8s_resource("engine-cpu",
+    port_forwards="8000:8000",
+    auto_init=False,
+    labels=["apps"],
+    resource_deps=["redis"],
+)
+
+k8s_yaml([
+    "apps/sandbox-gateway/deployment.yaml",
+    "apps/sandbox-gateway/service.yaml",
+])
+k8s_resource("sandbox-gateway",
+    port_forwards="3800:3800",
+    auto_init=False,
+    labels=["apps"],
+    resource_deps=["redis"],
+)
+
+# ─── Vespa Deploy Job ────────────────────────────────────
+
+docker_build("openplane/vespa-deployer", "../packages/vespa",
+    dockerfile="../packages/vespa/Dockerfile.deployer",
+)
+
+k8s_yaml("infra/vespa/deploy-job.yaml")
+k8s_resource("vespa-deploy",
+    auto_init=False,
+    labels=["infra"],
+    resource_deps=["vespa"],
+)
+
+# ─── Voice (Optional) ────────────────────────────────────
+
+if cfg.get("voice", False):
+    k8s_yaml([
+        "infra/livekit/deployment.yaml",
+        "infra/livekit/service.yaml",
+        "infra/livekit/configmap.yaml",
+    ])
+    k8s_resource("livekit",
+        port_forwards="7880:7880",
+        labels=["voice"],
+    )
+
+    docker_build("openplane/voice", "../apps/voice",
+        dockerfile="../apps/voice/Dockerfile.action",
+        live_update=[
+            sync("../apps/voice", "/app"),
+        ],
+    )
+
+    k8s_yaml("apps/voice/deployment.yaml")
+    k8s_resource("voice-agent",
+        port_forwards="9092:9092",
+        labels=["voice"],
+        resource_deps=["livekit"],
+    )
+
+# ─── Monitoring (Optional) ───────────────────────────────
+
+if cfg.get("monitoring", False):
+    k8s_yaml([
+        "monitoring/prometheus/configmap.yaml",
+        "monitoring/prometheus/deployment.yaml",
+    ])
+    k8s_resource("prometheus",
+        port_forwards="9090:9090",
+        labels=["monitoring"],
+    )
+
+    k8s_yaml("monitoring/grafana/deployment.yaml")
+    k8s_resource("grafana",
+        port_forwards="3002:3000",
+        labels=["monitoring"],
+        resource_deps=["prometheus"],
+    )
+
+    k8s_yaml("monitoring/loki/deployment.yaml")
+    k8s_resource("loki",
+        labels=["monitoring"],
+    )

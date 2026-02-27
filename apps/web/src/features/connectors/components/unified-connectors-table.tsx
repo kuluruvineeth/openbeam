@@ -60,7 +60,7 @@ function TableSkeleton() {
       {Array.from({ length: 5 }).map((_, i) => (
         <div
           className="border-border/40 border-b px-3 py-2.5 last:border-b-0"
-          key={i}
+          key={`connector-row-${i}`}
         >
           <div className="flex items-center gap-4">
             <Skeleton className="size-3.5" />
@@ -117,7 +117,6 @@ export function UnifiedConnectorsTable({
     return <>{emptyState}</>;
   }
 
-  // No results for search
   if (searchQuery && filteredConnectors.length === 0) {
     return (
       <div className="flex h-[calc(100vh-400px)] flex-col items-center justify-center">

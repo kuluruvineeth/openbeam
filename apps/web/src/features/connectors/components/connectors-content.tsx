@@ -13,6 +13,5 @@ export function ConnectorsContent() {
     return <ConnectorsGrid />;
   }
 
-  // Default to "connected"
   return <ConnectorsTable />;
 }

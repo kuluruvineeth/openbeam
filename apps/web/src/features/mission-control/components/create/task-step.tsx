@@ -119,7 +119,7 @@ export function TaskStep() {
   return (
     <div className="flex flex-col gap-3">
       {tasks.map((task, index) => (
-        <TaskCardRow index={index} key={index} task={task} />
+        <TaskCardRow index={index} key={`task-card-${index}`} task={task} />
       ))}
 
       <Button

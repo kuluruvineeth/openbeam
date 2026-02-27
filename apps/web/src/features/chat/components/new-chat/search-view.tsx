@@ -19,7 +19,6 @@ export function SearchView() {
   const handleSearch = () => {
     if (query.trim()) {
       setHasSearched(true);
-      // TODO: Implement search functionality
     }
   };
 
@@ -27,23 +26,11 @@ export function SearchView() {
     <div className="w-full">
       <SearchBar
         autocompleteResults={autocompleteResults}
-        handleAnswer={() => {
-          // TODO: Implement answer logic
-        }}
         handleSearch={handleSearch}
         hasSearched={hasSearched}
         query={query}
-        setAutocompleteQuery={(q) => {
-          // TODO: Implement autocomplete query logic
-          setQuery(q);
-        }}
+        setAutocompleteQuery={setQuery}
         setAutocompleteResults={setAutocompleteResults}
-        setFilter={() => {
-          // TODO: Implement filter logic
-        }}
-        setOffset={() => {
-          // TODO: Implement offset logic
-        }}
         setQuery={setQuery}
       />
     </div>

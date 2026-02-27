@@ -46,10 +46,12 @@ type AgentSquadBoardProps = {
   events?: MissionEventLedgerItem[];
 };
 
+const EMPTY_EVENTS: MissionEventLedgerItem[] = [];
+
 export function AgentSquadBoard({
   missionId,
   agents,
-  events = [],
+  events = EMPTY_EVENTS,
 }: AgentSquadBoardProps) {
   const [statusFilter, setStatusFilter] = useState<AgentStatus | "all">("all");
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);

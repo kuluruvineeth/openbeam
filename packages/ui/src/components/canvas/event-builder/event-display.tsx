@@ -15,6 +15,7 @@ const CONNECTOR_LABELS: Record<ConnectorType, string> = {
   notion: "Notion",
   gmail: "Gmail",
   "google-drive": "Google Drive",
+  github: "GitHub",
 };
 
 interface EventDisplayProps {

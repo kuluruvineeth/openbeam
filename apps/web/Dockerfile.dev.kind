@@ -1,0 +1,7 @@
+FROM openplane/server-dev:latest
+
+WORKDIR /app/apps/web
+
+EXPOSE 3001
+
+CMD ["bun", "run", "dev"]

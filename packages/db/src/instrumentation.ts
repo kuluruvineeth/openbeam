@@ -1,7 +1,26 @@
-// TODO: Check back tracing after Bun supports OpenTelemetry
+import { createLogger } from "@openplane/observability";
 import { SpanStatusCode, trace } from "@opentelemetry/api";
 
 const tracer = trace.getTracer("openplane-prisma");
+const logger = createLogger({
+  service: "openplane-db",
+  env: process.env.NODE_ENV || "development",
+  level: process.env.LOG_LEVEL || "info",
+  version: process.env.APP_VERSION || "0.1.0",
+});
+const DB_SYSTEM = "postgresql";
+const DB_NAME = process.env.DATABASE_NAME || "openplane";
+const EXCLUDED_PRISMA_METHODS = new Set([
+  "$connect",
+  "$disconnect",
+  "$on",
+  "$transaction",
+  "$use",
+]);
+
+function coerceError(error: unknown): Error {
+  return error instanceof Error ? error : new Error(String(error));
+}
 
 function completeSpanSuccess(
   span: ReturnType<typeof tracer.startSpan>,
@@ -9,8 +28,8 @@ function completeSpanSuccess(
 ): void {
   const duration = Date.now() - startTime;
   span.setAttributes({
-    "db.duration_ms": duration,
-    "db.status": "success",
+    duration_ms: duration,
+    status: "success",
   });
   span.setStatus({ code: SpanStatusCode.OK });
   span.end();
@@ -23,15 +42,15 @@ function completeSpanError(
 ): void {
   const duration = Date.now() - startTime;
   span.setAttributes({
-    "db.duration_ms": duration,
-    "db.status": "error",
+    duration_ms: duration,
+    status: "error",
     "error.type": error instanceof Error ? error.constructor.name : "Unknown",
   });
   span.setStatus({
     code: SpanStatusCode.ERROR,
     message: error instanceof Error ? error.message : String(error),
   });
-  span.recordException(error as Error);
+  span.recordException(coerceError(error));
   span.end();
 }
 
@@ -63,37 +82,38 @@ function wrapOperation<T>(
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function instrumentPrisma<T>(prisma: T): T {
-  return new Proxy(prisma as object, {
-    // biome-ignore lint/suspicious/noExplicitAny: Proxy needs dynamic access
-    get(target: any, prop: string | symbol) {
-      const original = target[prop];
+export function instrumentPrisma<T extends object>(prisma: T): T {
+  return new Proxy(prisma, {
+    get(target, prop, receiver) {
+      const original = Reflect.get(target, prop, receiver);
 
       if (
+        typeof prop === "string" &&
         typeof original === "object" &&
         original !== null &&
-        !["$connect", "$disconnect", "$on", "$transaction", "$use"].includes(
-          prop as string
-        )
+        !EXCLUDED_PRISMA_METHODS.has(prop)
       ) {
-        return new Proxy(original as object, {
-          get(modelTarget, operationKey) {
-            const modelOperation =
-              modelTarget[operationKey as keyof typeof modelTarget];
+        const modelTarget = original as Record<PropertyKey, unknown>;
+        return new Proxy(modelTarget, {
+          get(modelProxyTarget, operationKey, modelReceiver) {
+            const modelOperation = Reflect.get(
+              modelProxyTarget,
+              operationKey,
+              modelReceiver
+            );
 
             if (typeof modelOperation === "function") {
               return (...operationArgs: unknown[]) => {
-                const modelName = prop as string;
-                const operationName = operationKey as string;
+                const modelName = prop;
+                const operationName = String(operationKey);
                 const spanName = `prisma.${modelName}.${operationName}`;
 
                 const span = tracer.startSpan(spanName, {
                   attributes: {
-                    "db.system": "postgresql",
-                    "db.name": process.env.DATABASE_NAME || "openplane",
+                    "db.system": DB_SYSTEM,
+                    "db.name": DB_NAME,
                     "db.operation": operationName,
-                    "db.prisma.model": modelName,
+                    "db.model": modelName,
                   },
                 });
 
@@ -101,12 +121,12 @@ export function instrumentPrisma<T>(prisma: T): T {
 
                 return wrapOperation(
                   span,
-                  () => {
-                    const modelMethod = modelOperation as (
-                      ...args: unknown[]
-                    ) => unknown;
-                    return modelMethod.apply(modelTarget, operationArgs);
-                  },
+                  () =>
+                    Reflect.apply(
+                      modelOperation as (...args: unknown[]) => unknown,
+                      modelProxyTarget,
+                      operationArgs
+                    ),
                   startTime
                 );
               };
@@ -117,13 +137,14 @@ export function instrumentPrisma<T>(prisma: T): T {
         });
       }
 
-      if (prop === "$transaction") {
-        return ((...transactionArgs: unknown[]) => {
+      if (prop === "$transaction" && typeof original === "function") {
+        return (...transactionArgs: unknown[]) => {
           const span = tracer.startSpan("prisma.transaction", {
             attributes: {
-              "db.system": "postgresql",
-              "db.name": process.env.DATABASE_NAME || "openplane",
+              "db.system": DB_SYSTEM,
+              "db.name": DB_NAME,
               "db.operation": "transaction",
+              "db.model": "transaction",
             },
           });
 
@@ -131,18 +152,34 @@ export function instrumentPrisma<T>(prisma: T): T {
 
           return wrapOperation(
             span,
-            () => {
-              const transactionMethod = original as (
-                ...args: unknown[]
-              ) => unknown;
-              return transactionMethod.apply(target, transactionArgs);
-            },
+            () =>
+              Reflect.apply(
+                original as (...args: unknown[]) => unknown,
+                target,
+                transactionArgs
+              ),
             startTime
           );
-        }) as typeof original;
+        };
       }
 
       return original;
     },
-  }) as T;
+  });
+}
+
+export function logDatabaseInstrumentationError(error: unknown): void {
+  logger.error(
+    {
+      error:
+        error instanceof Error
+          ? {
+              name: error.name,
+              message: error.message,
+              stack: error.stack,
+            }
+          : String(error),
+    },
+    "Prisma instrumentation failed"
+  );
 }

@@ -1,0 +1,371 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [
+    {
+      "targetBlank": false,
+      "title": "OpenPlane Command Center",
+      "url": "/d/openplane-command-center/openplane-command-center?var-service=$service&var-env=$env&var-connector_type=$connector_type&var-status_code=$status_code"
+    },
+    {
+      "targetBlank": false,
+      "title": "Error Analysis",
+      "url": "/d/error-analysis/error-analysis?var-service=$service&var-env=$env&var-connector_type=$connector_type&var-status_code=$status_code"
+    }
+  ],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "links": [
+        {
+          "targetBlank": false,
+          "title": "Filter by Trace and Request",
+          "url": "/d/logs-error-drilldown/logs-error-drilldown?var-service=$service&var-env=$env&var-level=$level&var-trace_id=$trace_id&var-request_id=$request_id&var-connector_type=$connector_type&var-status_code=$status_code"
+        }
+      ],
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum by (service) (count_over_time({service=~\"$service\",env=~\"$env\",level=~\"$level\"}[5m]))",
+          "legendFormat": "{{service}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Loki Error Rate by Service",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "links": [
+        {
+          "targetBlank": false,
+          "title": "Jump to Logs",
+          "url": "/d/logs-error-drilldown/logs-error-drilldown?var-service=$service&var-env=$env&var-level=$level&var-trace_id=.*&var-request_id=.*&var-connector_type=$connector_type&var-status_code=$status_code"
+        }
+      ],
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "topk(25, sum(rate(application_errors_total[5m])) by (error_type, error_code, endpoint))",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "title": "Error Rate by Signature",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "id": 3,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(rate(http_request_duration_seconds_count{route!=\"/metrics\",status_code=~\"$status_code\"}[5m])) by (status_code)",
+          "legendFormat": "{{status_code}}",
+          "refId": "A"
+        }
+      ],
+      "title": "HTTP Error Rate by Status Code",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "id": 4,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (worker_type, status) (rate(sync_jobs_total{worker_type=~\"$connector_type\",status=~\"failed|error|retry\"}[5m]))",
+          "legendFormat": "{{worker_type}} {{status}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Connector Sync Failure Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "links": [
+            {
+              "targetBlank": false,
+              "title": "Open Logs For This Correlation Key",
+              "url": "/d/logs-error-drilldown/logs-error-drilldown?var-service=$service&var-env=$env&var-level=$level&var-trace_id=${__field.labels.trace_id}&var-request_id=${__field.labels.request_id}&var-connector_type=$connector_type&var-status_code=$status_code"
+            }
+          ],
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "id": 5,
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "topk(100, sum by (trace_id, request_id, team_id, connector_id) (count_over_time({service=~\"$service\",env=~\"$env\",level=~\"$level\"} | json | trace_id=~\"$trace_id\" | request_id=~\"$request_id\" | label_format trace_id=\"{{.trace_id}}\",request_id=\"{{.request_id}}\",team_id=\"{{.team_id}}\",connector_id=\"{{.connector_id}}\" [30m])))",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "title": "Correlation Table (trace_id, request_id, team_id, connector_id)",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 24,
+        "x": 0,
+        "y": 25
+      },
+      "id": 6,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "{service=~\"$service\",env=~\"$env\",level=~\"$level\"} | json | trace_id=~\"$trace_id\" | request_id=~\"$request_id\"",
+          "refId": "A"
+        }
+      ],
+      "title": "Recent Error Logs (trace/request filtered)",
+      "type": "logs"
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 16,
+  "style": "dark",
+  "tags": ["openplane", "logs", "loki", "errors"],
+  "templating": {
+    "list": [
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "definition": "development,staging,production",
+        "includeAll": true,
+        "label": "Env",
+        "multi": true,
+        "name": "env",
+        "options": [],
+        "query": "development,staging,production",
+        "type": "custom"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "loki",
+          "uid": "loki"
+        },
+        "definition": "label_values({env=~\"$env\"}, service)",
+        "includeAll": true,
+        "label": "Service",
+        "multi": true,
+        "name": "service",
+        "options": [],
+        "query": "label_values({env=~\"$env\"}, service)",
+        "refresh": 2,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "error|warn",
+          "value": "error|warn"
+        },
+        "definition": "error|warn,info,debug",
+        "includeAll": true,
+        "label": "Level",
+        "multi": false,
+        "name": "level",
+        "options": [],
+        "query": "error|warn,info,debug",
+        "type": "custom"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": ".*",
+          "value": ".*"
+        },
+        "label": "Trace ID",
+        "name": "trace_id",
+        "options": [],
+        "query": ".*",
+        "type": "textbox"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": ".*",
+          "value": ".*"
+        },
+        "label": "Request ID",
+        "name": "request_id",
+        "options": [],
+        "query": ".*",
+        "type": "textbox"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "definition": "label_values(sync_jobs_total, worker_type)",
+        "includeAll": true,
+        "label": "Connector Type",
+        "multi": true,
+        "name": "connector_type",
+        "options": [],
+        "query": "label_values(sync_jobs_total, worker_type)",
+        "refresh": 2,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "definition": "label_values(http_request_duration_seconds_count, status_code)",
+        "includeAll": true,
+        "label": "Status Code",
+        "multi": true,
+        "name": "status_code",
+        "options": [],
+        "query": "label_values(http_request_duration_seconds_count, status_code)",
+        "refresh": 2,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Logs Error Drilldown",
+  "uid": "logs-error-drilldown",
+  "version": 1
+}

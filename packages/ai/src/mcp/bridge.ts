@@ -13,6 +13,12 @@ export interface MCPToolListItem {
   name: string;
   description: string;
   inputSchema: Record<string, unknown>;
+  pricing?: {
+    amount: string;
+    currency: string;
+    network: string;
+    description?: string;
+  };
 }
 
 export function convertZodToJsonSchema(
@@ -49,13 +55,24 @@ export function registeredToolToMCPListItem(
   const inputSchema = (coreTool as unknown as { inputSchema?: z.ZodTypeAny })
     .inputSchema;
 
-  return {
+  const item: MCPToolListItem = {
     name: metadata.name,
     description: metadata.description,
     inputSchema: inputSchema
       ? convertZodToJsonSchema(inputSchema as z.ZodTypeAny)
       : { type: "object" },
   };
+
+  if (metadata.pricing) {
+    item.pricing = {
+      amount: metadata.pricing.amount,
+      currency: metadata.pricing.currency,
+      network: metadata.pricing.network,
+      description: metadata.pricing.description,
+    };
+  }
+
+  return item;
 }
 
 export function mcpContextToToolContext(

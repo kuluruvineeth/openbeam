@@ -24,7 +24,7 @@ export function Autocomplete({ results, onSelect }: Props) {
           className={cn(
             "w-full justify-start rounded-none px-4 py-2 text-left"
           )}
-          key={index}
+          key={`${result.type}-${result.title ?? result.query_text ?? index}`}
           onClick={() => {
             onSelect(result);
           }}

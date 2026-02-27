@@ -1,3 +1,4 @@
+import { githubApp } from "./github/config";
 import { gmailApp } from "./gmail/config";
 import { googleDriveApp } from "./google-drive/config";
 import { linearApp } from "./linear/config";
@@ -5,9 +6,20 @@ import { notionApp } from "./notion/config";
 import { slackApp } from "./slack/config";
 import type { UnifiedApp } from "./types";
 
-export { gmailApp, googleDriveApp, linearApp, notionApp, slackApp };
+export { gmailApp, githubApp, googleDriveApp, linearApp, notionApp, slackApp };
 
-// Gmail exports
+export {
+  exchangeGitHubCode,
+  generateGitHubAuthUrl,
+  refreshGitHubToken,
+} from "./github/oauth";
+export type {
+  GitHubAuthResult,
+  GitHubEmail,
+  GitHubTokenResponse,
+  GitHubUser,
+} from "./github/types";
+
 export {
   exchangeGmailCode,
   generateGmailAuthUrl,
@@ -30,7 +42,7 @@ export type {
   RefreshGoogleTokenParams,
   RefreshGoogleTokenResult,
 } from "./google";
-// Shared Google OAuth
+
 export {
   exchangeGoogleCode,
   fetchGoogleUserInfo,
@@ -38,7 +50,7 @@ export {
   generateGoogleAuthUrl,
   refreshGoogleToken,
 } from "./google";
-// Google Drive exports
+
 export {
   exchangeGoogleDriveCode,
   generateGoogleDriveAuthUrl,
@@ -54,7 +66,7 @@ export type {
   GoogleDriveFile,
   GoogleDriveFolder,
 } from "./google-drive/types";
-// Linear exports
+
 export {
   exchangeLinearCode,
   generateLinearAuthUrl,
@@ -65,24 +77,25 @@ export type {
   LinearTokenResponse,
   LinearViewer,
 } from "./linear/types";
-// Notion exports
+
 export { exchangeNotionCode, generateNotionAuthUrl } from "./notion/oauth";
 export type { NotionAuthResult, NotionOAuthResponse } from "./notion/types";
-// Secrets
+
 export {
   createSecretRef,
   isSecretRef,
   resolveSecret,
   SecretResolutionError,
 } from "./secrets";
-// Slack exports
+
 export * from "./slack/oauth";
 export * from "./slack/types";
-// Common exports
+
 export * from "./types";
 
 export const appStore: UnifiedApp[] = [
   gmailApp,
+  githubApp,
   googleDriveApp,
   linearApp,
   notionApp,

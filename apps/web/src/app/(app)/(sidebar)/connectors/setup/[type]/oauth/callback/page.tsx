@@ -4,13 +4,31 @@ import { Button } from "@openplane/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { OAuthLoading } from "@/components/integrations/oauth-loading";
 import { handleOAuthAuthorizationResponse } from "@/lib/oauth-utils";
 import { useTRPC } from "@/trpc/client";
 
 export default function OAuthCallbackPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[60vh] w-full items-center justify-center p-4">
+          <OAuthLoading
+            integration=""
+            message="Loading..."
+            state="processing"
+          />
+        </div>
+      }
+    >
+      <OAuthCallbackContent />
+    </Suspense>
+  );
+}
+
+function OAuthCallbackContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const params = useParams();
@@ -82,8 +100,6 @@ export default function OAuthCallbackPage() {
     };
 
     processCallback().catch((e) => {
-      // TODO: Replace with structured logging service
-      console.error(e);
       setStatus("error");
       setMessage(e instanceof Error ? e.message : "Unknown error");
       toast.error("Connection Failed");

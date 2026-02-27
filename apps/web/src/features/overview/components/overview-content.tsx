@@ -219,11 +219,13 @@ function renderLine(
   );
 }
 
+const EMPTY_CITATIONS: OverviewCitation[] = [];
+
 function OverviewContentInner({
   content,
   isStreaming = false,
   className,
-  citations = [],
+  citations = EMPTY_CITATIONS,
   onCitationClick,
 }: OverviewContentProps) {
   const citationMap = useMemo(() => {

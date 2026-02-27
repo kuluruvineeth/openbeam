@@ -1,36 +1,27 @@
+import { startTracing, stopTracing } from "@openplane/observability";
 import { closeRedisClient } from "@openplane/redis";
-import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto";
-import { HttpInstrumentation } from "@opentelemetry/instrumentation-http";
-import { IORedisInstrumentation } from "@opentelemetry/instrumentation-ioredis";
-import { NodeSDK } from "@opentelemetry/sdk-node";
 import logger from "./utils/logger";
 
 const serviceName = "openplane-server";
 
-const otlpExporter = new OTLPTraceExporter({
-  url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || "http://localhost:4318",
-});
-
-const sdk = new NodeSDK({
+const tracingHandle = startTracing({
   serviceName,
-  traceExporter: otlpExporter,
-  instrumentations: [
-    new HttpInstrumentation({
-      ignoreIncomingRequestHook: (request) => {
-        const url = request.url || "";
-        return url.includes("/health") || url.includes("/metrics");
-      },
-    }),
-    new IORedisInstrumentation(),
-  ],
+  enabled: process.env.OTEL_ENABLED !== "false",
+  otlpEndpoint: process.env.OTEL_EXPORTER_OTLP_ENDPOINT,
+  ignoreIncomingPaths: ["/health", "/metrics"],
+  logger,
 });
-
-sdk.start();
 
 async function gracefulShutdown(): Promise<void> {
   logger.info("Starting graceful shutdown...");
 
-  await Promise.allSettled([sdk.shutdown(), closeRedisClient()]);
+  const shutdownTasks: Promise<unknown>[] = [closeRedisClient()];
+
+  if (tracingHandle.enabled) {
+    shutdownTasks.push(stopTracing(logger));
+  }
+
+  await Promise.allSettled(shutdownTasks);
 
   logger.info("Graceful shutdown complete");
 }
@@ -58,5 +49,3 @@ process.on("SIGINT", () => {
       process.exit(1);
     });
 });
-
-export default sdk;

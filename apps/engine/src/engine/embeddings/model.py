@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import sys
 import warnings
-from typing import TYPE_CHECKING, Literal, TypedDict
+from typing import TYPE_CHECKING, Any, Literal, TypedDict, cast
 
 import torch
 
@@ -46,18 +46,18 @@ class BGEM3:
 
         try:
             if backend == "flagembedding":
-                from FlagEmbedding import BGEM3FlagModel  # type: ignore[import-untyped]
+                from FlagEmbedding import BGEM3FlagModel
 
-                self._model = BGEM3FlagModel(
+                self._model = cast(Any, BGEM3FlagModel)(
                     self.MODEL_NAME,
                     use_fp16=device != "cpu",
                     device=device,
                 )
             else:
-                from transformers import AutoModel, AutoTokenizer  # type: ignore[import-untyped]  # noqa: I001
+                from transformers import AutoModel, AutoTokenizer  # noqa: I001
 
-                self._tokenizer = AutoTokenizer.from_pretrained(self.MODEL_NAME)
-                self._hf_model = AutoModel.from_pretrained(self.MODEL_NAME)
+                self._tokenizer = cast(Any, AutoTokenizer).from_pretrained(self.MODEL_NAME)
+                self._hf_model = cast(Any, AutoModel).from_pretrained(self.MODEL_NAME)
                 self._hf_model.eval()
                 self._hf_model.to(device)
 
@@ -84,7 +84,7 @@ class BGEM3:
     def _resolve_backend(self) -> Literal["flagembedding", "transformers"]:
         override = (os.environ.get("CPU_ML_BACKEND") or "auto").strip().lower()
         if override in {"flagembedding", "transformers"}:
-            return override  # type: ignore[return-value]
+            return cast(Literal["flagembedding", "transformers"], override)
 
         if sys.platform == "darwin":
             return "transformers"

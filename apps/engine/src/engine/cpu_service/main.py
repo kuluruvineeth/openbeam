@@ -17,6 +17,7 @@ import uvicorn
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from prometheus_client import make_asgi_app
 
 from engine.common.config import (
     CPUServiceSettings,
@@ -25,6 +26,7 @@ from engine.common.config import (
     get_security_settings,
 )
 from engine.common.logging import configure_logging, get_logger
+from engine.common.metrics_middleware import MetricsMiddleware
 from engine.common.security import (
     RateLimitExceeded,
     RequestIDMiddleware,
@@ -33,8 +35,11 @@ from engine.common.security import (
     audit_logger,
     get_client_ip,
 )
+from engine.common.tracing import configure_tracing
 from engine.cpu_service.lifespan import lifespan
 from engine.cpu_service.router import api_router
+
+CPU_SERVICE_NAME = "openplane-engine-cpu"
 
 logger = get_logger(__name__)
 
@@ -42,7 +47,7 @@ logger = get_logger(__name__)
 def create_app() -> FastAPI:
     settings = get_cpu_settings()
     security = get_security_settings()
-    configure_logging(settings)
+    configure_logging(settings, service_name=CPU_SERVICE_NAME)
 
     app = FastAPI(
         title="OpenPlane Engine CPU Service",
@@ -56,6 +61,8 @@ def create_app() -> FastAPI:
 
     _configure_exception_handlers(app)
     _configure_middleware(app, settings, security)
+    _configure_observability(app)
+    configure_tracing(app, settings, service_name=CPU_SERVICE_NAME)
 
     app.include_router(api_router, prefix="/v1")
     return app
@@ -85,6 +92,7 @@ def _configure_exception_handlers(app: FastAPI) -> None:
 def _configure_middleware(
     app: FastAPI, settings: CPUServiceSettings, security: SecuritySettings
 ) -> None:
+    app.add_middleware(MetricsMiddleware)
     app.add_middleware(RequestIDMiddleware)
     app.add_middleware(SecurityHeadersMiddleware)
 
@@ -94,14 +102,24 @@ def _configure_middleware(
         allow_origins=allowed_origins,
         allow_credentials=True,
         allow_methods=["GET", "POST"],
-        allow_headers=["X-API-Key", "X-Request-ID", "Content-Type"],
-        expose_headers=["X-Request-ID", "Retry-After"],
+        allow_headers=[
+            "X-API-Key",
+            "X-Request-ID",
+            "Content-Type",
+            "traceparent",
+            "tracestate",
+        ],
+        expose_headers=["X-Request-ID", "Retry-After", "traceparent", "tracestate"],
     )
+
+
+def _configure_observability(app: FastAPI) -> None:
+    app.mount("/metrics", make_asgi_app())
 
 
 def run() -> None:
     settings = get_cpu_settings()
-    configure_logging(settings)
+    configure_logging(settings, service_name=CPU_SERVICE_NAME)
 
     # Suppress a noisy Python 3.12+ shutdown warning that can be triggered by
     # third-party ML libraries using multiprocessing primitives.

@@ -84,6 +84,7 @@ const CONNECTOR_LABELS: Record<ConnectorType, string> = {
   notion: "Notion",
   gmail: "Gmail",
   "google-drive": "Google Drive",
+  github: "GitHub",
 };
 
 const CATEGORY_LABELS: Record<EventCategory, string> = {
@@ -151,6 +152,7 @@ const ConnectorCombobox = memo(function ConnectorComboboxInner({
     <Popover modal onOpenChange={setOpen} open={open}>
       <PopoverTrigger asChild>
         <Button
+          aria-controls="event-connector-list"
           aria-expanded={open}
           className="h-9 w-full justify-between font-normal"
           role="combobox"
@@ -186,7 +188,7 @@ const ConnectorCombobox = memo(function ConnectorComboboxInner({
       <PopoverContent align="start" className="w-[300px] p-0">
         <Command>
           <CommandInput placeholder="Search integrations..." />
-          <CommandList className="no-scrollbar">
+          <CommandList className="no-scrollbar" id="event-connector-list">
             <CommandEmpty>No integration found.</CommandEmpty>
             <CommandGroup>
               {allConnectorTypes.map((connectorType) => {
@@ -299,6 +301,7 @@ const ResourceCombobox = memo(function ResourceComboboxInner({
     <Popover modal onOpenChange={setOpen} open={open}>
       <PopoverTrigger asChild>
         <Button
+          aria-controls="event-resource-list"
           aria-expanded={open}
           className="h-9 w-full justify-between font-normal"
           disabled={loading || !onFetchResources}
@@ -327,7 +330,10 @@ const ResourceCombobox = memo(function ResourceComboboxInner({
           <CommandInput
             placeholder={`Search ${getResourceLabel(resourceType).toLowerCase()}s...`}
           />
-          <CommandList className="no-scrollbar max-h-[200px]">
+          <CommandList
+            className="no-scrollbar max-h-[200px]"
+            id="event-resource-list"
+          >
             {(() => {
               if (error) {
                 return (
@@ -407,6 +413,7 @@ const EventCombobox = memo(function EventComboboxInner({
     <Popover modal onOpenChange={setOpen} open={open}>
       <PopoverTrigger asChild>
         <Button
+          aria-controls="event-type-list"
           aria-expanded={open}
           className="h-9 w-full justify-between font-normal"
           role="combobox"
@@ -436,7 +443,10 @@ const EventCombobox = memo(function EventComboboxInner({
       <PopoverContent align="start" className="w-[350px] p-0">
         <Command>
           <CommandInput placeholder="Search events..." />
-          <CommandList className="no-scrollbar max-h-[300px]">
+          <CommandList
+            className="no-scrollbar max-h-[300px]"
+            id="event-type-list"
+          >
             <CommandEmpty>No event found.</CommandEmpty>
             {groupedEvents.map((group) => {
               const CategoryIcon = group.icon;

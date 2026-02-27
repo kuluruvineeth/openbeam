@@ -19,7 +19,13 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "links": [],
+  "links": [
+    {
+      "targetBlank": false,
+      "title": "Logs Error Drilldown",
+      "url": "/d/logs-error-drilldown/logs-error-drilldown?var-service=$service&var-env=$env&var-level=error|warn&var-trace_id=.*&var-request_id=.*"
+    }
+  ],
   "liveNow": false,
   "panels": [
     {
@@ -27,255 +33,390 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 1,
-      "title": "Error Rate by Type",
-      "type": "timeseries",
-      "targets": [
-        {
-          "expr": "sum(rate(http_errors_total[5m])) by (error_type)",
-          "legendFormat": "{{error_type}}",
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
-        },
-        {
-          "expr": "sum(rate(application_errors_total[5m])) by (error_type)",
-          "legendFormat": "{{error_type}} (app)",
-          "refId": "B",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
-        },
-        {
-          "expr": "sum(rate(index_errors_total[5m])) by (error_type)",
-          "legendFormat": "{{error_type}} (index)",
-          "refId": "C",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
-        }
-      ],
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
       "fieldConfig": {
         "defaults": {
-          "unit": "reqps",
-          "color": { "mode": "palette-classic" }
+          "color": {
+            "fixedColor": "#f59e0b",
+            "mode": "fixed"
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(rate(http_request_duration_seconds_count{route!=\"/metrics\",status_code=~\"4..|5..\"}[5m])) / clamp_min(sum(rate(http_request_duration_seconds_count{route!=\"/metrics\"}[5m])), 1)",
+          "refId": "A"
         }
-      }
+      ],
+      "title": "HTTP Error Ratio",
+      "type": "stat"
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#ef4444",
+            "mode": "fixed"
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 0
       },
       "id": 2,
-      "title": "Error Rate Trend",
-      "type": "timeseries",
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
       "targets": [
         {
-          "expr": "sum(rate(http_errors_total[5m]))",
-          "legendFormat": "HTTP Errors",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
-          }
-        },
-        {
-          "expr": "sum(rate(application_errors_total[5m]))",
-          "legendFormat": "Application Errors",
-          "refId": "B",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
+          },
+          "expr": "sum(rate(http_request_duration_seconds_count{route!=\"/metrics\",status_code=~\"5..\"}[5m]))",
+          "refId": "A"
         }
       ],
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "reqps",
-          "color": { "mode": "palette-classic" }
-        }
-      }
+      "title": "5xx Request Rate",
+      "type": "stat"
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#3b82f6",
+            "mode": "fixed"
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 0
       },
       "id": 3,
-      "title": "Error Distribution by Type",
-      "type": "piechart",
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
       "targets": [
         {
-          "expr": "sum(rate(http_errors_total[5m])) by (error_type)",
-          "legendFormat": "{{error_type}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
-          }
+          },
+          "expr": "sum(rate(application_errors_total[5m]))",
+          "refId": "A"
         }
       ],
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 8 },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" }
-        }
-      }
+      "title": "Application Error Rate",
+      "type": "stat"
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#a855f7",
+            "mode": "fixed"
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 0
       },
       "id": 4,
-      "title": "Top Error Sources",
-      "type": "table",
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
       "targets": [
         {
-          "expr": "topk(10, sum(rate(http_errors_total[5m])) by (route, error_type))",
-          "format": "table",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
-          }
+          },
+          "expr": "sum(rate(index_errors_total{worker_type=~\"$connector_type\"}[5m]))",
+          "refId": "A"
         }
       ],
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 8 },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "reqps",
-          "custom": {
-            "displayMode": "list",
-            "inspect": false
-          }
-        }
-      }
+      "title": "Worker Index Error Rate",
+      "type": "stat"
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 5
       },
       "id": 5,
-      "title": "Error Rate by Endpoint",
-      "type": "timeseries",
+      "links": [
+        {
+          "targetBlank": false,
+          "title": "Pivot to Logs",
+          "url": "/d/logs-error-drilldown/logs-error-drilldown?var-service=$service&var-env=$env&var-level=error|warn&var-trace_id=.*&var-request_id=.*"
+        }
+      ],
       "targets": [
         {
-          "expr": "sum(rate(http_errors_total[5m])) by (route, error_type)",
-          "legendFormat": "{{route}} - {{error_type}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
-          }
+          },
+          "expr": "sum(rate(http_errors_total[5m])) by (error_type)",
+          "legendFormat": "http {{error_type}}",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(rate(application_errors_total[5m])) by (error_type)",
+          "legendFormat": "app {{error_type}}",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(rate(index_errors_total{worker_type=~\"$connector_type\"}[5m])) by (worker_type, status)",
+          "legendFormat": "worker {{worker_type}} {{status}}",
+          "refId": "C"
         }
       ],
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 8 },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "reqps",
-          "color": { "mode": "palette-classic" }
-        }
-      }
+      "title": "Error Rate by Type",
+      "type": "timeseries"
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 5
       },
       "id": 6,
-      "title": "Index Errors by Connector",
-      "type": "timeseries",
       "targets": [
         {
-          "expr": "sum(rate(index_errors_total[5m])) by (connector_id, error_type)",
-          "legendFormat": "{{connector_id}} - {{error_type}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
-          }
+          },
+          "expr": "sum(rate(http_request_duration_seconds_count{status_code=~\"$status_code\",route!=\"/metrics\"}[5m])) by (status_code)",
+          "legendFormat": "{{status_code}}",
+          "refId": "A"
         }
       ],
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "reqps",
-          "color": { "mode": "palette-classic" }
-        }
-      }
+      "title": "HTTP Status Code Error Trend",
+      "type": "timeseries"
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 14
       },
       "id": 7,
-      "title": "HTTP Status Code Errors",
-      "type": "timeseries",
       "targets": [
         {
-          "expr": "sum(rate(http_request_duration_seconds_count{status_code=~\"[45]..\"}[5m])) by (status_code)",
-          "legendFormat": "{{status_code}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
-          }
+          },
+          "expr": "topk(20, sum(rate(http_errors_total[5m])) by (route, error_type, status_code))",
+          "format": "table",
+          "refId": "A"
         }
       ],
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "reqps",
-          "color": { "mode": "palette-classic" },
-          "thresholds": {
-            "steps": [
-              { "value": 0, "color": "green" },
-              { "value": 0.1, "color": "yellow" },
-              { "value": 1, "color": "red" }
-            ]
-          }
-        }
-      }
+      "title": "Top Failing Routes",
+      "type": "table"
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
       },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 14
+      },
       "id": 8,
-      "title": "Error Rate by Error Code",
-      "type": "table",
       "targets": [
         {
-          "expr": "topk(20, sum(rate(application_errors_total[5m])) by (error_code, error_type))",
-          "format": "table",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
-          }
+          },
+          "expr": "topk(20, sum(rate(application_errors_total[5m])) by (error_code, error_type, endpoint))",
+          "format": "table",
+          "refId": "A"
         }
       ],
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 24 },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "reqps",
-          "custom": {
-            "displayMode": "list",
-            "inspect": false
-          }
+      "title": "Application Error Signatures",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 23
+      },
+      "id": 9,
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum by (service) (count_over_time({service=~\"$service\",env=~\"$env\",level=~\"error|warn\"}[5m]))",
+          "legendFormat": "{{service}}",
+          "refId": "A"
         }
-      }
+      ],
+      "title": "Loki Error Volume by Service",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 23
+      },
+      "id": 10,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "{service=~\"$service\",env=~\"$env\",level=~\"error|warn\"} | json",
+          "refId": "A"
+        }
+      ],
+      "title": "Recent Correlated Error Logs",
+      "type": "logs"
     }
   ],
   "refresh": "10s",
@@ -283,7 +424,87 @@
   "style": "dark",
   "tags": ["openplane", "errors", "analysis"],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "loki",
+          "uid": "loki"
+        },
+        "definition": "label_values({env=~\"$env\"}, service)",
+        "includeAll": true,
+        "label": "Service",
+        "multi": true,
+        "name": "service",
+        "options": [],
+        "query": "label_values({env=~\"$env\"}, service)",
+        "refresh": 2,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "definition": "development,staging,production",
+        "includeAll": true,
+        "label": "Env",
+        "multi": true,
+        "name": "env",
+        "options": [],
+        "query": "development,staging,production",
+        "type": "custom"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "definition": "label_values(sync_jobs_total, worker_type)",
+        "includeAll": true,
+        "label": "Connector Type",
+        "multi": true,
+        "name": "connector_type",
+        "options": [],
+        "query": "label_values(sync_jobs_total, worker_type)",
+        "refresh": 2,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "definition": "label_values(http_request_duration_seconds_count, status_code)",
+        "includeAll": true,
+        "label": "Status Code",
+        "multi": true,
+        "name": "status_code",
+        "options": [],
+        "query": "label_values(http_request_duration_seconds_count, status_code)",
+        "refresh": 2,
+        "type": "query"
+      }
+    ]
   },
   "time": {
     "from": "now-6h",
@@ -293,5 +514,5 @@
   "timezone": "browser",
   "title": "OpenPlane Error Analysis",
   "uid": "error-analysis",
-  "version": 1
+  "version": 2
 }

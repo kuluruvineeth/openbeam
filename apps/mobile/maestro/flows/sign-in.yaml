@@ -1,0 +1,5 @@
+appId: com.openplane.dev
+---
+- launchApp
+- assertVisible: "Sign in"
+- tapOn: "Continue with Google"

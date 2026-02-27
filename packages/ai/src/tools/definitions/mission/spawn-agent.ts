@@ -1,5 +1,8 @@
 import type { ToolExecutionResult } from "@openplane/types/ai";
-import type { SpawnRegistryEntry } from "@openplane/types/temporal/mission";
+import type {
+  SandboxConfig,
+  SpawnRegistryEntry,
+} from "@openplane/types/temporal/mission";
 import { SpawnAgentRequestSchema } from "@openplane/types/temporal/mission";
 import { defineTool, failure, success } from "../../builder";
 import { getMissionContext } from "./memory";
@@ -17,6 +20,7 @@ export interface MissionSpawnServices {
     budgetCentsLimit?: number;
     dependsOnTaskId?: string;
     context?: string;
+    sandboxConfig?: SandboxConfig;
   }) => Promise<{ requestId: string; delivered: boolean }>;
   getMissionAgents: (input: { missionId: string }) => Promise<{
     agents: Array<{
@@ -93,6 +97,7 @@ export const missionSpawnAgent = defineTool({
       budgetCentsLimit: params.budgetCentsLimit,
       dependsOnTaskId: params.dependsOnTaskId,
       context: params.context,
+      sandboxConfig: params.sandboxConfig,
     });
 
     if (!result.delivered) {

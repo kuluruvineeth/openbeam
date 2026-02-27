@@ -1,7 +1,7 @@
 "use client";
 
 import { Checkbox } from "@openplane/ui";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Icons } from "@/components/icons";
 import type { PreviewType } from "@/features/file-preview";
 import { cn } from "@/lib/utils";
@@ -31,7 +31,10 @@ export function ResourceRow({
   onSelectDocument: (docId: string, previewType: PreviewType) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const Icon = getResourceIcon(resource.resourceType);
+  const Icon = useMemo(
+    () => getResourceIcon(resource.resourceType),
+    [resource.resourceType]
+  );
   const isPrivate = resource.resourceType.toLowerCase().includes("private");
   const hasDocuments = resource.documentCount > 0;
 

@@ -58,6 +58,7 @@ const CONNECTOR_LABELS: Record<ConnectorType, string> = {
   notion: "Notion",
   gmail: "Gmail",
   "google-drive": "Google Drive",
+  github: "GitHub",
 };
 
 const RESOURCE_LABELS: Record<string, string> = {
@@ -132,6 +133,8 @@ interface ConnectorConfigPanelProps {
   actionRegistries?: ConnectorActionsRegistry[];
 }
 
+const EMPTY_REGISTRIES: ConnectorActionsRegistry[] = [];
+
 export const ConnectorConfigPanel = memo(
   function ConnectorConfigPanelComponent({
     config,
@@ -139,7 +142,7 @@ export const ConnectorConfigPanel = memo(
     connectorLogos,
     connectors,
     onFetchResources,
-    actionRegistries = [],
+    actionRegistries = EMPTY_REGISTRIES,
   }: ConnectorConfigPanelProps) {
     const matchingAccounts = useMemo(
       () => (connectors ?? []).filter((c) => c.type === config.connectorType),
@@ -554,6 +557,7 @@ const ConnectorTypeSelector = memo(function ConnectorTypeSelectorComponent({
     <Popover modal onOpenChange={setOpen} open={open}>
       <PopoverTrigger asChild>
         <Button
+          aria-controls="connector-type-list"
           aria-expanded={open}
           className="h-9 w-full justify-between font-normal"
           role="combobox"
@@ -578,7 +582,10 @@ const ConnectorTypeSelector = memo(function ConnectorTypeSelectorComponent({
       <PopoverContent align="start" className="w-[280px] p-0">
         <Command>
           <CommandInput placeholder="Search connectors..." />
-          <CommandList className="no-scrollbar max-h-[260px]">
+          <CommandList
+            className="no-scrollbar max-h-[260px]"
+            id="connector-type-list"
+          >
             <CommandEmpty>No connectors found.</CommandEmpty>
             <CommandGroup>
               {CONNECTOR_TYPES.map((ct) => {
@@ -716,6 +723,7 @@ const ActionSelector = memo(function ActionSelectorComponent({
     <Popover modal onOpenChange={setOpen} open={open}>
       <PopoverTrigger asChild>
         <Button
+          aria-controls="connector-action-list"
           aria-expanded={open}
           className="h-9 w-full justify-between font-normal"
           role="combobox"
@@ -732,7 +740,10 @@ const ActionSelector = memo(function ActionSelectorComponent({
       <PopoverContent align="start" className="w-[320px] p-0">
         <Command>
           <CommandInput placeholder="Search actions..." />
-          <CommandList className="no-scrollbar max-h-[320px]">
+          <CommandList
+            className="no-scrollbar max-h-[320px]"
+            id="connector-action-list"
+          >
             <CommandEmpty>No actions found.</CommandEmpty>
             {groupEntries.map(([resource, groupActions], index) => (
               <div key={resource}>
@@ -1048,6 +1059,7 @@ const ResourceFieldSelector = memo(function ResourceFieldSelectorComponent({
     <Popover modal onOpenChange={setOpen} open={open}>
       <PopoverTrigger asChild>
         <Button
+          aria-controls="resource-field-list"
           aria-expanded={open}
           className="h-9 w-full justify-between font-normal"
           disabled={disabled}
@@ -1069,7 +1081,10 @@ const ResourceFieldSelector = memo(function ResourceFieldSelectorComponent({
       <PopoverContent align="start" className="w-[280px] p-0">
         <Command>
           <CommandInput placeholder={`Search ${resourceType}s...`} />
-          <CommandList className="no-scrollbar max-h-[260px]">
+          <CommandList
+            className="no-scrollbar max-h-[260px]"
+            id="resource-field-list"
+          >
             {loading ? (
               <div className="space-y-2 p-2">
                 <Skeleton className="h-8 w-full" />

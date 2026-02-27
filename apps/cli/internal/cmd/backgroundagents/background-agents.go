@@ -103,7 +103,7 @@ func newCreateCommand(provider shared.RuntimeProvider) *cobra.Command {
 	cmd.Flags().StringVar(&description, "description", "", "Agent description")
 	cmd.Flags().StringVar(&prompt, "prompt", "", "Agent prompt")
 	cmd.Flags().StringVar(&preset, "preset", "researcher", "Agent preset")
-	cmd.Flags().StringVar(&sandboxType, "sandbox-type", "e2b", "Sandbox type")
+	cmd.Flags().StringVar(&sandboxType, "sandbox-type", "daytona", "Sandbox type")
 	cmd.Flags().StringVar(&repositoryURL, "repository-url", "", "Repository URL")
 	cmd.Flags().StringVar(&baseBranch, "base-branch", "", "Base branch")
 	cmd.Flags().IntVar(&timeoutMs, "timeout-ms", 0, "Timeout in milliseconds")

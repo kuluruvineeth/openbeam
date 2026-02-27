@@ -52,7 +52,6 @@ export {
   SandboxTypeSchema,
   UsageIncrementSchema,
 } from "./background-agents";
-
 export type {
   ConnectorHealthInfo,
   DecryptedOAuthCredentials,
@@ -67,7 +66,6 @@ export {
   LastSyncInfoSchema,
   SyncHistoryEntrySchema,
 } from "./connectors";
-
 export type {
   AddConversationMessageData,
   ConversationListItem,
@@ -80,7 +78,6 @@ export {
   ConversationListOptionsSchema,
   CreateConversationDataSchema,
 } from "./conversations";
-
 export type {
   DocumentListItem,
   DocumentListResult,
@@ -99,6 +96,24 @@ export {
   SortOrderSchema,
   UpsertIndexedDocumentInputSchema,
 } from "./documents";
+export type {
+  CreatePaymentAttemptInput,
+  CreatePaymentLedgerEntryInput,
+  CreatePaymentReceiptInput,
+  CreatePaymentWalletInput,
+  PaymentSummary,
+  UpdatePaymentReceiptInput,
+  UpsertPaymentPricingPolicyInput,
+} from "./payments";
+export {
+  CreatePaymentAttemptInputSchema,
+  CreatePaymentLedgerEntryInputSchema,
+  CreatePaymentReceiptInputSchema,
+  CreatePaymentWalletInputSchema,
+  PaymentSummarySchema,
+  UpdatePaymentReceiptInputSchema,
+  UpsertPaymentPricingPolicyInputSchema,
+} from "./payments";
 
 export type {
   ConnectorSyncStatus,

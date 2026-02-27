@@ -219,6 +219,7 @@ export const ModelSelector = memo(
         <Popover modal onOpenChange={setOpen} open={open}>
           <PopoverTrigger asChild>
             <Button
+              aria-controls="model-selector-list"
               aria-expanded={open}
               className={cn(
                 "h-9 w-full justify-between font-normal",
@@ -254,7 +255,10 @@ export const ModelSelector = memo(
                 placeholder="Search models..."
                 value={search}
               />
-              <CommandList className="no-scrollbar max-h-[300px] overscroll-contain">
+              <CommandList
+                className="no-scrollbar max-h-[300px] overscroll-contain"
+                id="model-selector-list"
+              >
                 <CommandEmpty>No models found.</CommandEmpty>
                 {Array.from(filteredByProvider.entries()).map(
                   ([provider, providerModels]) => (

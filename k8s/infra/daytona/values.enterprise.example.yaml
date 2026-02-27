@@ -1,0 +1,77 @@
+# Enterprise baseline for Daytona chart when deployed as part of OpenPlane.
+# Copy and tailor per environment. Keep secrets in external secret manager.
+
+baseDomain: "daytona.example.com"
+
+services:
+  api:
+    ingress:
+      enabled: true
+      className: nginx
+      tls: true
+    env:
+      ENVIRONMENT: "production"
+      SKIP_USER_EMAIL_VERIFICATION: "false"
+
+  proxy:
+    ingress:
+      enabled: true
+      className: nginx
+      tls: true
+    env:
+      PROXY_PROTOCOL: "https"
+
+  sshGateway:
+    enabled: true
+    service:
+      type: LoadBalancer
+
+  runnermanager:
+    enabled: true
+    env:
+      ENVIRONMENT: "production"
+      PROVIDER_TYPE: "kubernetes"
+
+  runner:
+    enabled: true
+    env:
+      ENVIRONMENT: "production"
+      CONTAINER_RUNTIME: "containerd"
+      RESOURCE_LIMITS_DISABLED: "false"
+
+postgresql:
+  enabled: false
+
+externalDatabase:
+  host: "postgresql.example.internal"
+  port: 5432
+  name: "daytona"
+  user: "daytona"
+  existingSecret: "daytona-postgres"
+  enableTLS: true
+  allowSelfSignedCert: false
+
+redis:
+  enabled: false
+
+externalRedis:
+  host: "redis.example.internal"
+  port: 6379
+  tls: true
+  existingSecret: "daytona-redis"
+
+harbor:
+  enabled: true
+  expose:
+    type: ingress
+    tls:
+      enabled: true
+  externalURL: "https://harbor.daytona.example.com"
+  persistence:
+    enabled: true
+
+minio:
+  enabled: false
+
+dex:
+  enabled: false

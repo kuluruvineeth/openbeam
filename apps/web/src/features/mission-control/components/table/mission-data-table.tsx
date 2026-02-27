@@ -39,6 +39,7 @@ function MissionDataTable({
   isFetchingNextPage,
   onRowClick,
 }: MissionDataTableProps) {
+  "use no memo";
   const parentRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [focusedIndex, setFocusedIndex] = useState(0);

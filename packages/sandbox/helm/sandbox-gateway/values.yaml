@@ -1,0 +1,76 @@
+replicaCount: 1
+
+image:
+  repository: openplane/sandbox-gateway
+  tag: latest
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  fsGroup: 10001
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3800
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+gateway:
+  token: ""
+  requireTeamId: true
+  defaultProvider: daytona
+  redis:
+    url: ""
+  ownership:
+    store: memory
+    keyPrefix: openplane:sandbox:ownership
+    ttlMs: "604800000"
+  rateLimit:
+    enabled: true
+    windowMs: 60000
+    maxRequests: 240
+    maxExecRequests: 90
+    maxMutationRequests: 120
+    store: memory
+    keyPrefix: openplane:sandbox:ratelimit
+  daytona:
+    apiKey: ""
+    apiUrl: ""
+    target: ""
+    jwtToken: ""
+    organizationId: ""
+    workspaceDir: ""
+    teamPrefix: "op"

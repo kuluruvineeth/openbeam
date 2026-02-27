@@ -1,71 +1,95 @@
 # Contributing to OpenPlane
 
-Thank you for contributing to OpenPlane!
-
 ## Prerequisites
 
-- [Bun](https://bun.sh) 1.3.2+
-- [Docker](https://www.docker.com/) (optional)
-- [Git](https://git-scm.com/)
-
-## Development Setup
-
-### Option 1: Docker Compose (Recommended)
+Install [mise](https://mise.jdx.dev) for tool version management:
 
 ```bash
-git clone https://github.com/kuluruvineeth/openplane.git
-cd openplane
-cp .env.example .env
-docker-compose up -d
+curl https://mise.jdx.dev/install.sh | sh
+mise install
 ```
 
-### Option 2: Local Development
+This installs the exact versions of Bun, Node.js, Python, Go, and uv used by the project.
+
+## Setup
 
 ```bash
-bun install
-docker-compose up -d postgres
-bun run db:push
-bun run dev
+just install          # Install all language dependencies
+just db-start         # Start PostgreSQL + Redis
+just db-push          # Apply database schema
+just dev              # Start all services
 ```
 
 ## Development Workflow
 
-1. Create a branch: `git checkout -b feature/your-feature`
+```bash
+just check-all        # Lint + type check + test (all languages)
+just test             # Run all tests
+just check            # Lint only
+just check-types      # Type check only
+```
 
-2. Make changes
+### Per-Language Commands
 
-3. Run checks:
+| Language | Test | Lint | Type Check |
+|----------|------|------|------------|
+| TypeScript | `just test-ts` | `bun run check` | `bun x tsc --noEmit` |
+| Python | `just test-py` | `cd apps/engine && uv run ruff check src tests` | `cd apps/engine && uv run mypy src` |
+| Go | `just test-go` | `cd apps/cli && golangci-lint run` | `cd apps/cli && go vet ./...` |
 
-   ```bash
-   bun run check-types
-   bun x ultracite fix
-   bun run build
-   ```
+## Architecture
 
-4. Commit: `git commit -m "feat: your message"`
-5. Push and create a Pull Request
+```
+apps/web        Next.js frontend
+apps/server     Hono API server
+apps/worker     Temporal workers
+apps/engine     Python ML service (FastAPI)
+apps/cli        Go CLI (Cobra)
+packages/*      Shared TypeScript packages
+```
+
+See `.claude/rules/architecture.md` for dependency rules.
 
 ## Code Style
 
-- [Ultracite](https://github.com/ultracite/ultracite) for formatting
-- TypeScript strict mode
-- Follow existing patterns
+- **TypeScript**: Biome via Ultracite (`bun run check`)
+- **Python**: Ruff + mypy strict (`uv run ruff check`, `uv run mypy src`)
+- **Go**: golangci-lint
 
-## CI/CD
+## Package Manager
 
-All PRs automatically run:
+**Bun only.** Never use npm, pnpm, or yarn.
 
-- Linting and formatting checks
-- Type checking
-- Build verification
+```bash
+bun install           # Install dependencies
+bun add <pkg>         # Add dependency
+bun x <cmd>           # Run one-off command (not npx)
+```
 
-Only changed services are built and deployed, reducing CI time.
+## Commit Convention
+
+```
+<type>(<scope>): <subject>
+```
+
+**Types**: `feat`, `fix`, `docs`, `refactor`, `perf`, `test`, `chore`, `ci`
+
+**Scopes**: `web`, `server`, `worker`, `engine`, `cli`, `api`, `db`, `services`, `redis`, `temporal`, `vespa`, `ai`, `types`, `integrations`
+
+Examples: `feat(api): Add user search endpoint`, `fix(engine): Handle empty document input`
 
 ## Pull Requests
 
-- Keep changes focused
-- Ensure CI checks pass
-- Update documentation as needed
-- Request review from maintainers
+- Branch from `dev`
+- Keep PRs under 400 lines
+- All CI checks must pass
+- Squash merge to keep history clean
 
-Thank you for contributing! 🎉
+## Running Specific Services
+
+```bash
+just dev-web          # Web frontend only
+just dev-server       # API server only
+just dev-engine       # Python engine (CPU)
+just dev-cli          # Build CLI binary
+```

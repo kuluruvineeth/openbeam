@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: vespa
+  namespace: openplane
+  labels:
+    app: vespa
+spec:
+  replicas: 1
+  serviceName: vespa
+  selector:
+    matchLabels:
+      app: vespa
+  template:
+    metadata:
+      labels:
+        app: vespa
+    spec:
+      containers:
+        - name: vespa
+          image: vespaengine/vespa:8
+          env:
+            - name: VESPA_CONFIGSERVERS
+              value: "vespa-0.vespa.openplane.svc.cluster.local"
+            - name: VESPA_CONFIGSERVER_JVMARGS
+              value: "-Xms256m -Xmx1g"
+            - name: VESPA_IGNORE_NOT_ENOUGH_MEMORY
+              value: "true"
+          ports:
+            - containerPort: 8080
+              name: http
+            - containerPort: 19071
+              name: config
+          startupProbe:
+            httpGet:
+              path: /state/v1/health
+              port: 19071
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            failureThreshold: 180
+            timeoutSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /state/v1/health
+              port: 19071
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /state/v1/health
+              port: 19071
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 250m
+              memory: 1Gi
+            limits:
+              cpu: "1"
+              memory: 2Gi
+          volumeMounts:
+            - name: vespa-data
+              mountPath: /opt/vespa/var
+  volumeClaimTemplates:
+    - metadata:
+        name: vespa-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 10Gi

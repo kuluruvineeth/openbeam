@@ -1,3 +1,9 @@
+import type {
+  BudgetThresholds,
+  BudgetTier,
+  BudgetTierTransition,
+} from "@openplane/types/ai/budget";
+import { BudgetThresholdsSchema } from "@openplane/types/ai/budget";
 import type { CrossMissionSignalPayload } from "@openplane/types/temporal/cross-mission";
 import type { AgentCompletedPayload } from "@openplane/types/temporal/mission";
 import {
@@ -54,6 +60,7 @@ import {
   shardMessageRouteSignal,
   spawnAgentSignal,
 } from "../types";
+import { computeBudgetTier } from "./budget-utils";
 
 const MAX_SPAWNS_PER_ITERATION = 5;
 const MAX_CLAIMS_PER_ITERATION = 20;
@@ -103,6 +110,8 @@ interface OrchestratorState {
   lastDispatchAt: number | undefined;
   queueDepth: number;
   runningAgents: number;
+  budgetTier: BudgetTier;
+  tierTransitions: BudgetTierTransition[];
   wakeQueue: Array<{ reason: string; metadata?: Record<string, unknown> }>;
   spawnQueue: SpawnAgentSignalPayload[];
   claimQueue: AgentClaimTaskSignalPayload[];
@@ -1121,7 +1130,8 @@ async function maybeRunStandup(
 function computePerAgentBudgetCents(
   missionBudgetCents: number | undefined,
   consumedCents: number,
-  maxConcurrentRuns: number
+  maxConcurrentRuns: number,
+  budgetTier: BudgetTier = "full"
 ): number | undefined {
   if (missionBudgetCents === undefined) {
     return;
@@ -1130,16 +1140,39 @@ function computePerAgentBudgetCents(
   if (remainingCents <= 0) {
     return;
   }
-  return Math.max(
-    10,
-    Math.floor(remainingCents / Math.max(maxConcurrentRuns, 1))
-  );
+
+  const tierMultiplier: Record<BudgetTier, number> = {
+    full: 1.0,
+    economy: 0.6,
+    critical: 0.3,
+    stopped: 0,
+  };
+
+  const base = Math.floor(remainingCents / Math.max(maxConcurrentRuns, 1));
+  return Math.max(10, Math.floor(base * tierMultiplier[budgetTier]));
+}
+
+function effectiveMaxConcurrent(
+  maxConcurrentRuns: number,
+  budgetTier: BudgetTier
+): number {
+  if (budgetTier === "critical") {
+    return Math.min(maxConcurrentRuns, 1);
+  }
+  if (budgetTier === "economy") {
+    return Math.min(maxConcurrentRuns, 2);
+  }
+  return maxConcurrentRuns;
 }
 
 export async function missionOrchestratorWorkflow(
   rawInput: unknown
 ): Promise<MissionOrchestratorOutput> {
   const input = MissionOrchestratorInputSchema.parse(rawInput);
+
+  const budgetThresholds: BudgetThresholds = BudgetThresholdsSchema.parse(
+    input.budgetThresholds ?? {}
+  );
 
   const state: OrchestratorState = {
     status: "idle",
@@ -1150,6 +1183,16 @@ export async function missionOrchestratorWorkflow(
     lastDispatchAt: input.checkpoint?.lastDispatchAt,
     queueDepth: 0,
     runningAgents: 0,
+    budgetTier:
+      input.checkpoint?.budgetTier ??
+      (input.budgetCents !== undefined
+        ? computeBudgetTier(
+            input.checkpoint?.consumedCents ?? 0,
+            input.budgetCents,
+            budgetThresholds
+          )
+        : "full"),
+    tierTransitions: input.checkpoint?.tierTransitions ?? [],
     wakeQueue: [],
     spawnQueue: [],
     claimQueue: [],
@@ -1183,6 +1226,7 @@ export async function missionOrchestratorWorkflow(
       input.budgetCents !== undefined
         ? Math.max(0, input.budgetCents - state.consumedCents)
         : undefined,
+    budgetTier: input.budgetCents !== undefined ? state.budgetTier : undefined,
     dispatchedRuns: state.dispatchedRuns,
     completedTasks: state.completedTasks,
   }));
@@ -1424,28 +1468,56 @@ export async function missionOrchestratorWorkflow(
       maxConcurrentRuns: input.maxConcurrentRuns,
     });
 
-    if (
-      input.budgetCents !== undefined &&
-      state.consumedCents >= input.budgetCents
-    ) {
-      await activities.finalizeMission({
-        missionId: input.missionId,
-        status: "COMPLETED",
-      });
+    if (input.budgetCents !== undefined) {
+      const previousTier = state.budgetTier;
+      state.budgetTier = computeBudgetTier(
+        state.consumedCents,
+        input.budgetCents,
+        budgetThresholds
+      );
 
-      await activities.logActivity({
-        missionId: input.missionId,
-        type: "budget_exceeded",
-        message: `Budget limit reached: ${state.consumedCents}/${input.budgetCents} cents`,
-      });
+      if (state.budgetTier !== previousTier) {
+        state.tierTransitions.push({
+          tier: state.budgetTier,
+          at: workflowInfo().unsafe.now(),
+          consumedCents: state.consumedCents,
+        });
 
-      return {
-        missionId: input.missionId,
-        dispatchedRuns: state.dispatchedRuns,
-        completedTasks: state.completedTasks,
-        consumedCents: state.consumedCents,
-        status: "budget_exceeded",
-      };
+        await activities.logActivity({
+          missionId: input.missionId,
+          type: "budget_tier_transition",
+          message: `Budget tier ${previousTier} → ${state.budgetTier} (${state.consumedCents}/${input.budgetCents} cents)`,
+          metadata: {
+            previousTier,
+            newTier: state.budgetTier,
+            consumedCents: state.consumedCents,
+            budgetCents: input.budgetCents,
+          },
+        });
+      }
+
+      if (state.budgetTier === "stopped") {
+        await activities.finalizeMission({
+          missionId: input.missionId,
+          status: "COMPLETED",
+        });
+
+        await activities.logActivity({
+          missionId: input.missionId,
+          type: "budget_exceeded",
+          message: `Budget limit reached: ${state.consumedCents}/${input.budgetCents} cents`,
+        });
+
+        return {
+          missionId: input.missionId,
+          dispatchedRuns: state.dispatchedRuns,
+          completedTasks: state.completedTasks,
+          consumedCents: state.consumedCents,
+          status: "budget_exceeded",
+          currentBudgetTier: state.budgetTier,
+          tierTransitions: state.tierTransitions,
+        };
+      }
     }
 
     if (dynamicSpawnEnabled) {
@@ -1526,6 +1598,11 @@ export async function missionOrchestratorWorkflow(
       continue;
     }
 
+    const tierConcurrency = effectiveMaxConcurrent(
+      input.maxConcurrentRuns,
+      state.budgetTier
+    );
+
     const plan = await activities.planDispatch({
       missionId: input.missionId,
       pendingTasks: queue.tasks.map((t) => ({
@@ -1535,7 +1612,7 @@ export async function missionOrchestratorWorkflow(
         assigneeId: t.assigneeId,
         requiredCapabilities: t.requiredCapabilities,
       })),
-      maxConcurrentRuns: input.maxConcurrentRuns,
+      maxConcurrentRuns: tierConcurrency,
     });
 
     let dispatchedThisCycle = 0;
@@ -1561,7 +1638,8 @@ export async function missionOrchestratorWorkflow(
       const perAgentBudget = computePerAgentBudgetCents(
         input.budgetCents,
         state.consumedCents,
-        input.maxConcurrentRuns
+        tierConcurrency,
+        state.budgetTier
       );
 
       const pendingForAgent = state.pendingMessages.filter(
@@ -1599,6 +1677,7 @@ export async function missionOrchestratorWorkflow(
           budgetCentsLimit: perAgentBudget,
           runId,
           pendingMessages: pendingForAgent,
+          sandboxConfig: dispatch.sandboxConfig,
         };
 
         const shardHandle = getExternalWorkflowHandle(shardWorkflowId);
@@ -1620,6 +1699,7 @@ export async function missionOrchestratorWorkflow(
               tools: dispatch.tools,
               maxSteps: 20,
               budgetCentsLimit: perAgentBudget,
+              sandboxConfig: dispatch.sandboxConfig,
             },
           ],
         });
@@ -1710,6 +1790,8 @@ export async function missionOrchestratorWorkflow(
           pendingMessages: state.pendingMessages,
           crossMissionEvents: state.crossMissionEvents,
           spawnTree: [...state.spawnTree.entries()],
+          budgetTier: state.budgetTier,
+          tierTransitions: state.tierTransitions,
         },
       });
     }
@@ -1735,5 +1817,8 @@ export async function missionOrchestratorWorkflow(
     completedTasks: state.completedTasks,
     consumedCents: state.consumedCents,
     status: finalStatus,
+    currentBudgetTier: state.budgetTier,
+    tierTransitions:
+      state.tierTransitions.length > 0 ? state.tierTransitions : undefined,
   };
 }

@@ -1,0 +1,84 @@
+name: Sandbox K8s Smoke
+
+on:
+  pull_request:
+    branches: [dev, main]
+    paths:
+      - "apps/sandbox-gateway/**"
+      - "packages/sandbox/**"
+      - "k8s/infra/daytona/**"
+      - "k8s/charts/openplane/**"
+      - "scripts/sandbox/**"
+      - ".github/workflows/sandbox-k8s-smoke.yml"
+  push:
+    branches: [dev, main]
+    paths:
+      - "apps/sandbox-gateway/**"
+      - "packages/sandbox/**"
+      - "k8s/infra/daytona/**"
+      - "k8s/charts/openplane/**"
+      - "scripts/sandbox/**"
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.2"
+
+      - uses: azure/setup-kubectl@v4
+        with:
+          version: "v1.30.0"
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: "v3.15.3"
+
+      - name: Install kind
+        run: |
+          curl -fsSL -o kind https://kind.sigs.k8s.io/dl/v0.23.0/kind-linux-amd64
+          chmod +x kind
+          sudo mv kind /usr/local/bin/kind
+
+      - name: Validate Daytona Helm profile
+        run: |
+          helm repo add daytonaio https://charts.daytona.io
+          helm repo update daytonaio
+          helm template daytona daytonaio/daytona \
+            --namespace daytona \
+            -f k8s/infra/daytona/values.kind.yaml \
+            --set-string harbor.externalURL=http://daytona-harbor-core.daytona.svc.cluster.local \
+            --set-string services.runnermanager.env.SERVER_URL=http://daytona-api.daytona.svc.cluster.local:3000/api \
+            --set-string services.runner.env.DAYTONA_API_URL=http://daytona-api.daytona.svc.cluster.local:3000/api \
+            --set-string services.runner.env.SERVER_URL=http://daytona-api.daytona.svc.cluster.local:3000/api \
+            > /dev/null
+
+      - name: Validate OpenPlane umbrella chart
+        run: |
+          helm dependency build k8s/charts/openplane
+          helm lint k8s/charts/openplane
+          helm template openplane k8s/charts/openplane --namespace openplane > /dev/null
+
+      - name: Deploy sandbox gateway to kind
+        env:
+          SANDBOX_API_TOKEN: ci-sandbox-token
+          SANDBOX_DEFAULT_PROVIDER: local
+        run: scripts/sandbox/kind-up.sh
+
+      - name: Run sandbox smoke suite with tenant auth checks
+        env:
+          SANDBOX_API_TOKEN: ci-sandbox-token
+          SANDBOX_TEST_PROVIDER: local
+          SANDBOX_SMOKE_ASSERT_AUTHZ: "true"
+        run: scripts/sandbox/smoke-kind.sh
+
+      - name: Tear down kind cluster
+        if: always()
+        run: scripts/sandbox/kind-down.sh

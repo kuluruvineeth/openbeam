@@ -7,6 +7,7 @@ import {
 import { Button } from "@openplane/ui";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { Icons } from "@/components/icons";
 import { UnifiedAppComponent } from "@/components/integrations/unified-app";
 import { useAppsQuery } from "@/hooks/use-apps";
@@ -17,7 +18,7 @@ import {
   transformExternalApp,
 } from "@/lib/integrations";
 
-export function Integrations() {
+function IntegrationsContent() {
   const { data: user } = useUserQuery();
 
   const { data: serverApps } = useAppsQuery();
@@ -99,5 +100,13 @@ export function Integrations() {
         </li>
       ))}
     </ul>
+  );
+}
+
+export function Integrations() {
+  return (
+    <Suspense>
+      <IntegrationsContent />
+    </Suspense>
   );
 }

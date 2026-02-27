@@ -6,6 +6,7 @@ import type {
 } from "@openplane/types/mission-control";
 import { Button, Icons } from "@openplane/ui";
 import { cva } from "class-variance-authority";
+import { useNow } from "@/lib/hooks/use-now";
 import { cn } from "@/lib/utils";
 import {
   buildAgentMetricTokens,
@@ -137,7 +138,7 @@ export function AgentLaneCard({
       ? Math.min((agent.stepsCompleted / agent.totalSteps) * 100, 100)
       : null;
   const metricTokens = buildAgentMetricTokens(agent, progressPercent !== null);
-  const nowMs = Date.now();
+  const nowMs = useNow(1000);
   const lastActivityLabel = formatAgentLastActivity(
     agent.lastActivityAt,
     nowMs

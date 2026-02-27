@@ -294,6 +294,7 @@ type RowListProps = {
 };
 
 function ChronologicalView({ rows, nowMs, scrollRef }: RowListProps) {
+  "use no memo";
   const virtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => scrollRef.current,
@@ -341,6 +342,7 @@ const SECTION_HEADER_HEIGHT = 32;
 const EVENT_ROW_HEIGHT = 56;
 
 function StateView({ rows, nowMs, scrollRef }: RowListProps) {
+  "use no memo";
   const sections = useMemo(() => buildStateSections(rows), [rows]);
   const [collapsedBuckets, setCollapsedBuckets] = useState<
     Set<TimelineStateBucket>
@@ -454,6 +456,7 @@ export function MissionEventFeed({
   events,
   missionStatus,
 }: MissionEventFeedProps) {
+  "use no memo";
   const [viewMode, setViewMode] = useState<ViewMode>("state");
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isAtTop, setIsAtTop] = useState(true);

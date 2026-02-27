@@ -1,0 +1,47 @@
+name: Contract Validation
+
+on:
+  pull_request:
+    branches: [dev, main]
+    paths:
+      - 'packages/types/**'
+      - 'packages/ai/package.json'
+      - 'apps/engine/src/**'
+      - 'apps/server/src/modules/**'
+      - 'apps/cli/internal/openapi/**'
+      - 'scripts/validate-contracts.sh'
+      - 'openapi-ts.config.ts'
+  push:
+    branches: [dev, main]
+    paths:
+      - 'packages/types/**'
+      - 'apps/engine/src/**'
+
+jobs:
+  validate-contracts:
+    name: Validate Cross-Language Contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.2
+
+      - run: |
+          echo "@hugeicons-pro:registry=https://npm.hugeicons.com/" > .npmrc
+          echo "//npm.hugeicons.com/:_authToken=${{ secrets.HUGEICONS_PRO_AUTH_TOKEN }}" >> .npmrc
+
+      - run: bun install --frozen-lockfile
+
+      - uses: astral-sh/setup-uv@v4
+        with:
+          version: latest
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: cd apps/engine && uv sync --extra cpu --extra dev
+
+      - run: chmod +x scripts/validate-contracts.sh && ./scripts/validate-contracts.sh

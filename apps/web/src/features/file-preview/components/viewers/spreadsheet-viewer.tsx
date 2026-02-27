@@ -179,7 +179,7 @@ function SpreadsheetTable({ data }: SpreadsheetTableProps) {
             {Array.from({ length: colCount }, (_, i) => (
               <th
                 className="min-w-24 border border-border/50 bg-muted/90 px-2 py-1.5 text-left font-medium"
-                key={i}
+                key={`col-${i}`}
               >
                 {formatCellValue(headerRow[i])}
               </th>
@@ -188,7 +188,10 @@ function SpreadsheetTable({ data }: SpreadsheetTableProps) {
         </thead>
         <tbody>
           {bodyRows.map((row, rowIndex) => (
-            <tr className="transition-colors hover:bg-muted/30" key={rowIndex}>
+            <tr
+              className="transition-colors hover:bg-muted/30"
+              key={`row-${rowIndex}`}
+            >
               <td className="border border-border/30 bg-muted/20 px-2 py-1.5 text-center font-medium text-foreground/40 tabular-nums">
                 {rowIndex + 2}
               </td>
@@ -201,7 +204,7 @@ function SpreadsheetTable({ data }: SpreadsheetTableProps) {
                       "border border-border/30 px-2 py-1.5",
                       isNumeric && "text-right tabular-nums"
                     )}
-                    key={colIndex}
+                    key={`cell-${colIndex}`}
                   >
                     {formatCellValue(value)}
                   </td>

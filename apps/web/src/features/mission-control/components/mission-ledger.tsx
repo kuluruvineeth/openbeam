@@ -2,6 +2,7 @@
 
 import { cva } from "class-variance-authority";
 import { useMemo } from "react";
+import { useNow } from "@/lib/hooks/use-now";
 import {
   computeBudgetThreshold,
   formatBurnRate,
@@ -59,6 +60,8 @@ export function MissionLedger() {
     budget.budgetCents
   );
 
+  const now = useNow(1000);
+
   const exhaustionMs = useMemo(
     () =>
       projectBudgetExhaustion(
@@ -73,9 +76,9 @@ export function MissionLedger() {
     if (!exhaustionMs) {
       return null;
     }
-    const diff = exhaustionMs - Date.now();
+    const diff = exhaustionMs - now;
     return diff > 0 ? diff / 60_000 : 0;
-  }, [exhaustionMs]);
+  }, [exhaustionMs, now]);
 
   const agentBars = useMemo((): AgentCostBar[] => {
     const entries = Object.entries(budget.perAgentCosts);

@@ -19,8 +19,10 @@ import {
   setMissionMessagingServices,
   setMissionSpawnServices,
   setTeamKnowledgeServices,
+  toolRegistry,
 } from "@openplane/ai/tools";
 import prisma, { type Database } from "@openplane/db";
+import { createToolServices } from "@openplane/services";
 import {
   S3StorageProvider,
   type StorageConfig,
@@ -29,6 +31,10 @@ import {
 import { type VespaClient, vespaClient } from "@openplane/vespa";
 import { NativeConnection, Worker } from "@temporalio/worker";
 import { createAgentActivities, LlmAgentExecutor } from "../activities/agents";
+import {
+  destroySandbox,
+  provisionSandbox,
+} from "../activities/agents/sandbox-lifecycle";
 import * as analyticsActivities from "../activities/analytics";
 import { createCanvasExecutionActivities } from "../activities/canvas";
 import {
@@ -198,6 +204,8 @@ function loadActivitiesForWorkerType(
   workerType: WorkerType,
   deps: WorkerDependencies
 ): Record<string, unknown> {
+  toolRegistry.bindServices(createToolServices());
+
   const baseActivities = {
     ...createDatabaseActivities({ db: deps.db }),
     ...createStorageActivities({
@@ -341,6 +349,8 @@ function loadActivitiesForWorkerType(
           db: deps.db,
           executor: new LlmAgentExecutor(),
         }),
+        provisionSandbox,
+        destroySandbox,
       };
     }
 

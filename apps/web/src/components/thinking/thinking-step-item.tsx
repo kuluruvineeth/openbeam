@@ -1,7 +1,7 @@
 "use client";
 
 import { TextShimmer } from "@openplane/ui";
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { Icons } from "@/components/icons";
 import type { ThinkingStep } from "@/lib/thinking-types";
 import { formatThinkingDuration } from "@/lib/thinking-types";
@@ -29,7 +29,7 @@ type ThinkingStepItemProps = {
 };
 
 function ThinkingStepItemInner({ step, className }: ThinkingStepItemProps) {
-  const Icon = getStepIcon(step.name);
+  const Icon = useMemo(() => getStepIcon(step.name), [step.name]);
   const isActive = step.status === "active";
   const isCompleted = step.status === "completed";
 

@@ -6,14 +6,8 @@ export const errorSchema = z.object({
 });
 
 export const costBreakdownQuerySchema = z.object({
-  start_date: z.coerce.date().openapi({
-    description: "Start date for the analysis period",
-    example: "2024-01-01",
-  }),
-  end_date: z.coerce.date().openapi({
-    description: "End date for the analysis period",
-    example: "2024-01-31",
-  }),
+  start_date: z.coerce.date(),
+  end_date: z.coerce.date(),
   group_by: z
     .string()
     .optional()
@@ -25,12 +19,7 @@ export const costBreakdownQuerySchema = z.object({
           .filter(Boolean) as
           | ("provider" | "model" | "workflow" | "user" | "date")[]
           | undefined
-    )
-    .openapi({
-      description:
-        "Comma-separated list of dimensions to group by (provider, model, workflow, user, date)",
-      example: "date,model",
-    }),
+    ),
 });
 
 export const costBreakdownResultSchema = z.object({
@@ -54,18 +43,9 @@ export const costBreakdownResponseSchema = z.object({
 });
 
 export const usageTrendQuerySchema = z.object({
-  start_date: z.coerce.date().openapi({
-    description: "Start date for the trend analysis",
-    example: "2024-01-01",
-  }),
-  end_date: z.coerce.date().openapi({
-    description: "End date for the trend analysis",
-    example: "2024-01-31",
-  }),
-  granularity: z.enum(["hour", "day", "week"]).default("day").openapi({
-    description: "Time granularity for the trend",
-    example: "day",
-  }),
+  start_date: z.coerce.date(),
+  end_date: z.coerce.date(),
+  granularity: z.enum(["hour", "day", "week"]).default("day"),
 });
 
 export const usageTrendPointSchema = z.object({
@@ -86,22 +66,10 @@ export const usageTrendResponseSchema = z.object({
 });
 
 export const topCostDriversQuerySchema = z.object({
-  start_date: z.coerce.date().openapi({
-    description: "Start date for the analysis",
-    example: "2024-01-01",
-  }),
-  end_date: z.coerce.date().openapi({
-    description: "End date for the analysis",
-    example: "2024-01-31",
-  }),
-  dimension: z.enum(["model", "workflow", "user"]).openapi({
-    description: "Dimension to analyze",
-    example: "model",
-  }),
-  limit: z.coerce.number().min(1).max(100).default(10).openapi({
-    description: "Maximum number of results",
-    example: "10",
-  }),
+  start_date: z.coerce.date(),
+  end_date: z.coerce.date(),
+  dimension: z.enum(["model", "workflow", "user"]),
+  limit: z.coerce.number().min(1).max(100).default(10),
 });
 
 export const costDriverSchema = z.object({
@@ -122,12 +90,8 @@ export const topCostDriversResponseSchema = z.object({
 });
 
 export const spreadsheetSchemaRequestSchema = z.object({
-  document_id: z.string().openapi({
-    description: "The ID of the spreadsheet document",
-  }),
-  sheet: z.string().optional().openapi({
-    description: "Sheet name for Excel files (defaults to first sheet)",
-  }),
+  document_id: z.string(),
+  sheet: z.string().optional(),
 });
 
 export const spreadsheetColumnSchema = z.object({
@@ -148,12 +112,8 @@ export const spreadsheetSchemaResponseSchema = z.object({
 });
 
 export const spreadsheetSqlRequestSchema = z.object({
-  document_id: z.string().openapi({
-    description: "The ID of the spreadsheet document",
-  }),
-  question: z.string().openapi({
-    description: "Natural language question about the spreadsheet data",
-  }),
+  document_id: z.string(),
+  question: z.string(),
 });
 
 export const routingDecisionSchema = z.object({
@@ -172,33 +132,16 @@ export const spreadsheetSqlResponseSchema = z.object({
 });
 
 export const spreadsheetQueryRequestSchema = z.object({
-  document_id: z.string().openapi({
-    description: "The ID of the spreadsheet document",
-  }),
-  sql: z.string().openapi({
-    description: "The SQL query to execute",
-  }),
-  view_name: z.string().openapi({
-    description: "The view name from generate SQL",
-  }),
-  max_rows: z.coerce
-    .number()
-    .min(1)
-    .max(10_000)
-    .default(1000)
-    .optional()
-    .openapi({
-      description: "Maximum rows to return (default 1000, max 10000)",
-    }),
+  document_id: z.string(),
+  sql: z.string(),
+  view_name: z.string(),
+  max_rows: z.coerce.number().min(1).max(10_000).default(1000).optional(),
   timeout_ms: z.coerce
     .number()
     .min(1000)
     .max(30_000)
     .default(10_000)
-    .optional()
-    .openapi({
-      description: "Query timeout in milliseconds (default 10s, max 30s)",
-    }),
+    .optional(),
 });
 
 export const spreadsheetQueryResponseSchema = z.object({
@@ -211,9 +154,7 @@ export const spreadsheetQueryResponseSchema = z.object({
 });
 
 export const spreadsheetListRequestSchema = z.object({
-  limit: z.coerce.number().min(1).max(100).default(20).optional().openapi({
-    description: "Maximum number of spreadsheets to return",
-  }),
+  limit: z.coerce.number().min(1).max(100).default(20).optional(),
 });
 
 export const spreadsheetListItemSchema = z.object({

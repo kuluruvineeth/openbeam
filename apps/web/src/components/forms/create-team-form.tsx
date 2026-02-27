@@ -42,55 +42,23 @@ export function CreateTeamForm() {
 
   async function onSubmit(values: FormValues) {
     if (isFormLocked) {
-      console.warn("Team creation form submission blocked - form is locked", {
-        isFormLocked,
-        isLoading,
-        isSubmittedRef: isSubmittedRef.current,
-        formValues: values,
-      });
       return;
     }
-
-    const submissionId = `form_submission_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-    console.log(`[${submissionId}] Team creation form submission started`, {
-      teamName: values.name,
-      timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent,
-      url: window.location.href,
-    });
 
     setIsLoading(true);
 
     try {
-      const team = await createTeam({
-        name: values.name,
-      });
-
-      console.log(`[${submissionId}] Team creation form submission succeeded`, {
-        teamName: values.name,
-        teamId: team.id,
-        slug: team.slug,
-        timestamp: new Date().toISOString(),
-      });
+      await createTeam({ name: values.name });
 
       isSubmittedRef.current = true;
       await queryClient.invalidateQueries();
       await revalidateAfterTeamChange();
     } catch (error) {
       if (error instanceof Error && error.message === "NEXT_REDIRECT") {
-        console.log(
-          `[${submissionId}] Team creation completed successfully - redirecting to home`
-        );
         return;
       }
 
       isSubmittedRef.current = false;
-      console.error(`[${submissionId}] Team creation form submission failed`, {
-        error,
-        teamName: values.name,
-      });
-
       setIsLoading(false);
     }
   }

@@ -4,6 +4,7 @@ import type { AgentMessageItem } from "@openplane/types/mission-control";
 import { Icons, ScrollArea } from "@openplane/ui";
 import { cva } from "class-variance-authority";
 import { useCallback, useMemo, useState } from "react";
+import { useNow } from "@/lib/hooks/use-now";
 import { useMessages } from "../stores/mission-runtime-store";
 
 const messageBubbleVariants = cva("rounded-sm border px-2.5 py-1.5 text-xs", {
@@ -96,6 +97,7 @@ function MessageRow({ message, onFilterByAgent }: MessageRowProps) {
 export function MissionCommsFeed({ missionId }: MissionCommsFeedProps) {
   const messages = useMessages(missionId);
   const [filterAgent, setFilterAgent] = useState<string | null>(null);
+  const now = useNow(5000);
 
   const filteredMessages = useMemo(
     () =>
@@ -114,8 +116,7 @@ export function MissionCommsFeed({ missionId }: MissionCommsFeedProps) {
   }, []);
 
   const hasLiveFlow =
-    messages.length > 0 &&
-    Date.now() - (messages.at(-1)?.timestamp ?? 0) < 30_000;
+    messages.length > 0 && now - (messages.at(-1)?.timestamp ?? 0) < 30_000;
 
   return (
     <div className="flex h-full flex-col">

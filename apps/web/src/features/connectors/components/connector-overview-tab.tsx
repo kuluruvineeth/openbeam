@@ -28,7 +28,7 @@ function OverviewSkeleton() {
         </div>
         <div className="grid grid-cols-3 gap-4 border-border/50 border-y py-4">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i}>
+            <div key={`stat-skeleton-${i}`}>
               <Skeleton className="h-2.5 w-12" />
               <Skeleton className="mt-1.5 h-5 w-10" />
             </div>

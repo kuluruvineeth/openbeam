@@ -48,6 +48,7 @@ export enum AppType {
   GOOGLE_DRIVE = "GOOGLE_DRIVE",
   NOTION = "NOTION",
   LINEAR = "LINEAR",
+  GITHUB = "GITHUB",
 }
 
 export enum SyncMode {

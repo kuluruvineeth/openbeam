@@ -1,0 +1,623 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import { DictationStreamSender } from "@/dictation/dictation-stream-sender";
+import { useDictationAudioSource } from "@/hooks/use-dictation-audio-source";
+import { generateMessageId } from "@/types/stream";
+import { AttemptGuard } from "@/utils/attempt-guard";
+import { primeDictationNativeHelperAccessibilityContext } from "@/utils/dictation-native-helper-context-prime";
+import {
+  createDictationSystemAudioState,
+  muteSystemAudioForDictation,
+  restoreSystemAudioForDictation,
+} from "@/utils/dictation-system-audio";
+import {
+  type DictationStatus,
+  DURATION_TICK_MS,
+  PCM_DICTATION_FORMAT,
+  toError,
+  type UseDictationOptions,
+  type UseDictationResult,
+} from "./use-dictation.shared";
+
+export function useDictation(options: UseDictationOptions): UseDictationResult {
+  const {
+    client,
+    onTranscript,
+    onPartialTranscript,
+    onError,
+    onPermanentFailure,
+    canStart,
+    canConfirm,
+    autoStopWhenHidden,
+    enableDuration = false,
+    enableNativeHelperSystemAudioMute = false,
+    primeNativeHelperAccessibilityContextOnStart = false,
+  } = options;
+
+  const [isRecording, setIsRecording] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [partialTranscript, setPartialTranscript] = useState("");
+  const [duration, setDuration] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<DictationStatus>("idle");
+
+  const onTranscriptRef = useRef(onTranscript);
+  useEffect(() => {
+    onTranscriptRef.current = onTranscript;
+  }, [onTranscript]);
+
+  const onPartialTranscriptRef = useRef(onPartialTranscript);
+  useEffect(() => {
+    onPartialTranscriptRef.current = onPartialTranscript;
+  }, [onPartialTranscript]);
+
+  const onErrorRef = useRef(onError);
+  useEffect(() => {
+    onErrorRef.current = onError;
+  }, [onError]);
+
+  const onPermanentFailureRef = useRef(onPermanentFailure);
+  useEffect(() => {
+    onPermanentFailureRef.current = onPermanentFailure;
+  }, [onPermanentFailure]);
+
+  const isRecordingRef = useRef(isRecording);
+  useEffect(() => {
+    isRecordingRef.current = isRecording;
+  }, [isRecording]);
+
+  const isProcessingRef = useRef(isProcessing);
+  useEffect(() => {
+    isProcessingRef.current = isProcessing;
+  }, [isProcessing]);
+
+  // duration is used for UI only; no need to mirror into a ref.
+
+  const durationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
+    null
+  );
+  const attemptGuardRef = useRef(new AttemptGuard());
+  const actionGateRef = useRef<{
+    starting: boolean;
+    confirming: boolean;
+    cancelling: boolean;
+  }>({
+    starting: false,
+    confirming: false,
+    cancelling: false,
+  });
+
+  const senderRef = useRef<DictationStreamSender | null>(null);
+  if (!senderRef.current) {
+    senderRef.current = new DictationStreamSender({
+      client,
+      format: PCM_DICTATION_FORMAT,
+      createDictationId: generateMessageId,
+    });
+  }
+  useEffect(() => {
+    senderRef.current?.setClient(client);
+  }, [client]);
+
+  const stopDurationTracking = useCallback(() => {
+    if (durationIntervalRef.current) {
+      clearInterval(durationIntervalRef.current);
+      durationIntervalRef.current = null;
+    }
+  }, []);
+
+  const systemAudioStateRef = useRef(createDictationSystemAudioState());
+  const reportSystemAudioWarning = useCallback(
+    // biome-ignore lint/nursery/noShadow: intentional variable scoping
+    (message: string, error?: unknown) => {
+      if (error) {
+        console.warn(`[useDictation] ${message}`, error);
+        return;
+      }
+      console.warn(`[useDictation] ${message}`);
+    },
+    []
+  );
+
+  const muteSystemAudio = useCallback(
+    async (): Promise<boolean> =>
+      muteSystemAudioForDictation({
+        enabled: enableNativeHelperSystemAudioMute,
+        state: systemAudioStateRef.current,
+        client,
+        onWarn: reportSystemAudioWarning,
+      }),
+    [client, enableNativeHelperSystemAudioMute, reportSystemAudioWarning]
+  );
+
+  const restoreSystemAudio = useCallback(
+    async (): Promise<boolean> =>
+      restoreSystemAudioForDictation({
+        state: systemAudioStateRef.current,
+        client,
+        onWarn: reportSystemAudioWarning,
+      }),
+    [client, reportSystemAudioWarning]
+  );
+
+  const primeNativeHelperAccessibilityContext = useCallback((): void => {
+    // biome-ignore lint/complexity/noVoid: fire-and-forget async call
+    void primeDictationNativeHelperAccessibilityContext({
+      enabled: primeNativeHelperAccessibilityContextOnStart,
+      client,
+      // biome-ignore lint/nursery/noShadow: intentional variable scoping
+      onWarn: (message, error) => {
+        if (error) {
+          console.warn(`[useDictation] ${message}`, error);
+          return;
+        }
+        console.warn(`[useDictation] ${message}`);
+      },
+    });
+  }, [client, primeNativeHelperAccessibilityContextOnStart]);
+
+  const startDurationTracking = useCallback(() => {
+    if (!enableDuration) {
+      return;
+    }
+    if (durationIntervalRef.current) {
+      return;
+    }
+    durationIntervalRef.current = setInterval(() => {
+      setDuration((prev) => prev + 1);
+    }, DURATION_TICK_MS);
+  }, [enableDuration]);
+
+  useEffect(() => {
+    if (!enableDuration) {
+      stopDurationTracking();
+      setDuration(0);
+    }
+  }, [enableDuration, stopDurationTracking]);
+
+  const reportError = useCallback((err: unknown, context?: string) => {
+    const normalized = toError(err);
+    if (normalized.name === "AttemptCancelledError") {
+      return;
+    }
+    if (context) {
+      console.error(`[useDictation] ${context}`, normalized);
+    } else {
+      console.error("[useDictation]", normalized);
+    }
+    setError(normalized.message);
+    onErrorRef.current?.(normalized);
+  }, []);
+
+  const clearStreamingState = useCallback(() => {
+    senderRef.current?.clearAll();
+    setPartialTranscript("");
+  }, []);
+
+  const startNewStream = useCallback(async (reason: string) => {
+    await senderRef.current?.restartStream(reason);
+  }, []);
+
+  const ensureFinalTranscript = useCallback(
+    async (finalSeq: number): Promise<string> => {
+      const result = await senderRef.current?.finish(finalSeq);
+      return result.text;
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (!client) {
+      return;
+    }
+    return client.subscribeConnectionStatus((next) => {
+      if (next.status !== "connected") {
+        return;
+      }
+      if (isRecordingRef.current) {
+        // biome-ignore lint/complexity/noVoid: fire-and-forget async call
+        // biome-ignore lint/nursery/noShadow: intentional variable scoping
+        void startNewStream("reconnect").catch((error) => {
+          reportError(
+            error,
+            "Failed to restart dictation stream after reconnect"
+          );
+        });
+        return;
+      }
+
+      if (systemAudioStateRef.current.mutedByApp && !isProcessingRef.current) {
+        // biome-ignore lint/complexity/noVoid: fire-and-forget async call
+        void restoreSystemAudio();
+      }
+    });
+  }, [client, reportError, restoreSystemAudio, startNewStream]);
+
+  useEffect(() => {
+    if (!client) {
+      return;
+    }
+    return client.on("dictation_stream_partial", (message) => {
+      if (message.type !== "dictation_stream_partial") {
+        return;
+      }
+      const activeDictationId = senderRef.current?.getDictationId();
+      if (!activeDictationId) {
+        return;
+      }
+      if (message.payload.dictationId !== activeDictationId) {
+        return;
+      }
+      const next = message.payload.text ?? "";
+      setPartialTranscript(next);
+      onPartialTranscriptRef.current?.(next, {
+        requestId: generateMessageId(),
+      });
+    });
+  }, [client]);
+
+  const audio = useDictationAudioSource({
+    onPcmSegment: (audioData) => {
+      senderRef.current?.enqueueSegment(audioData);
+    },
+    onError: (err) => {
+      onErrorRef.current?.(err);
+    },
+  });
+  const audioStopRef = useRef(audio.stop);
+  useEffect(() => {
+    audioStopRef.current = audio.stop;
+  }, [audio.stop]);
+
+  const restoreSystemAudioRef = useRef(restoreSystemAudio);
+  useEffect(() => {
+    restoreSystemAudioRef.current = restoreSystemAudio;
+  }, [restoreSystemAudio]);
+
+  const handleStreamingTranscriptionSuccess = useCallback(
+    (text: string, requestId: string) => {
+      setIsProcessing(false);
+      isProcessingRef.current = false;
+      setPartialTranscript("");
+      setDuration(0);
+      setStatus("idle");
+
+      clearStreamingState();
+
+      const transcriptText = text.trim();
+      if (!transcriptText) {
+        return;
+      }
+      onTranscriptRef.current?.(transcriptText, { requestId });
+    },
+    [clearStreamingState]
+  );
+
+  const handleDictationFailure = useCallback(
+    (failure: unknown) => {
+      const normalized = toError(failure);
+      const failureId = generateMessageId();
+      setIsProcessing(false);
+      isProcessingRef.current = false;
+      isRecordingRef.current = false;
+      setIsRecording(false);
+
+      if (senderRef.current?.hasSegments()) {
+        setStatus("failed");
+        onPermanentFailureRef.current?.(normalized, { requestId: failureId });
+      } else {
+        setStatus("idle");
+      }
+
+      reportError(normalized, "Failed to complete dictation");
+    },
+    [reportError]
+  );
+
+  const startDictation = useCallback(async () => {
+    if (
+      actionGateRef.current.starting ||
+      actionGateRef.current.confirming ||
+      actionGateRef.current.cancelling
+    ) {
+      return;
+    }
+    if (isRecordingRef.current || isProcessingRef.current) {
+      return;
+    }
+    const startAllowed = canStart ? canStart() : true;
+    if (!startAllowed) {
+      return;
+    }
+
+    actionGateRef.current.starting = true;
+    setError(null);
+    setPartialTranscript("");
+    setDuration(0);
+    setIsProcessing(false);
+    setStatus("recording");
+    clearStreamingState();
+
+    try {
+      if (systemAudioStateRef.current.mutedByApp) {
+        await restoreSystemAudio();
+      }
+      primeNativeHelperAccessibilityContext();
+      await muteSystemAudio();
+      await audio.start();
+      if (client?.isConnected) {
+        await startNewStream("start");
+      }
+      isRecordingRef.current = true;
+      setIsRecording(true);
+      if (enableDuration) {
+        startDurationTracking();
+      }
+    } catch (err) {
+      await restoreSystemAudio();
+      await audio.stop().catch(() => {
+        /* intentional no-op */
+      });
+      stopDurationTracking();
+      isRecordingRef.current = false;
+      setIsRecording(false);
+      setStatus("idle");
+      reportError(err, "Failed to start dictation");
+    } finally {
+      actionGateRef.current.starting = false;
+    }
+  }, [
+    audio,
+    canStart,
+    clearStreamingState,
+    client,
+    enableDuration,
+    muteSystemAudio,
+    primeNativeHelperAccessibilityContext,
+    reportError,
+    restoreSystemAudio,
+    startDurationTracking,
+    startNewStream,
+    stopDurationTracking,
+  ]);
+
+  const cancelDictation = useCallback(async () => {
+    attemptGuardRef.current.cancel();
+    if (actionGateRef.current.cancelling) {
+      return;
+    }
+    if (!(isRecordingRef.current || isProcessingRef.current)) {
+      return;
+    }
+    actionGateRef.current.cancelling = true;
+    stopDurationTracking();
+    setDuration(0);
+    setError(null);
+
+    try {
+      try {
+        senderRef.current?.cancel();
+      } catch {
+        // no-op
+      }
+      await audio.stop();
+    } catch (err) {
+      reportError(err, "Failed to cancel dictation");
+    } finally {
+      await restoreSystemAudio();
+      isRecordingRef.current = false;
+      setIsRecording(false);
+      setIsProcessing(false);
+      isProcessingRef.current = false;
+      setStatus("idle");
+      clearStreamingState();
+      actionGateRef.current.cancelling = false;
+    }
+  }, [
+    audio,
+    clearStreamingState,
+    reportError,
+    restoreSystemAudio,
+    stopDurationTracking,
+  ]);
+
+  const confirmDictation = useCallback(async () => {
+    if (actionGateRef.current.confirming) {
+      return;
+    }
+    if (!isRecordingRef.current || isProcessingRef.current) {
+      return;
+    }
+    const confirmAllowed = canConfirm ? canConfirm() : true;
+    if (!confirmAllowed) {
+      return;
+    }
+
+    actionGateRef.current.confirming = true;
+    setError(null);
+    stopDurationTracking();
+    setIsProcessing(true);
+    isProcessingRef.current = true;
+
+    const attemptId = attemptGuardRef.current.next();
+
+    try {
+      await audio.stop();
+      await restoreSystemAudio();
+      attemptGuardRef.current.assertCurrent(attemptId);
+
+      setStatus("uploading");
+      isRecordingRef.current = false;
+      setIsRecording(false);
+
+      const finalSeq = senderRef.current?.getFinalSeq() ?? -1;
+      if (finalSeq < 0) {
+        handleStreamingTranscriptionSuccess("", generateMessageId());
+        return;
+      }
+
+      const transcriptText = await ensureFinalTranscript(finalSeq);
+      attemptGuardRef.current.assertCurrent(attemptId);
+      handleStreamingTranscriptionSuccess(transcriptText, generateMessageId());
+    } catch (err) {
+      await restoreSystemAudio();
+      if (err instanceof Error && err.name === "AttemptCancelledError") {
+        return;
+      }
+      handleDictationFailure(err);
+    } finally {
+      actionGateRef.current.confirming = false;
+    }
+  }, [
+    audio,
+    canConfirm,
+    handleDictationFailure,
+    handleStreamingTranscriptionSuccess,
+    stopDurationTracking,
+    ensureFinalTranscript,
+    restoreSystemAudio,
+  ]);
+
+  const retryFailedDictation = useCallback(async () => {
+    if (!senderRef.current?.hasSegments()) {
+      return;
+    }
+    setError(null);
+    setStatus("uploading");
+    setIsProcessing(true);
+    isProcessingRef.current = true;
+
+    try {
+      if (!client?.isConnected) {
+        throw new Error("Daemon client is disconnected");
+      }
+      senderRef.current.resetStreamForReplay();
+      const finalSeq = senderRef.current.getFinalSeq();
+      const text = await ensureFinalTranscript(finalSeq);
+      handleStreamingTranscriptionSuccess(text, generateMessageId());
+    } catch (err) {
+      if (err instanceof Error && err.name === "AttemptCancelledError") {
+        return;
+      }
+      handleDictationFailure(err);
+    }
+  }, [
+    client,
+    ensureFinalTranscript,
+    handleDictationFailure,
+    handleStreamingTranscriptionSuccess,
+  ]);
+
+  const discardFailedDictation = useCallback(() => {
+    // biome-ignore lint/complexity/noVoid: fire-and-forget async call
+    void restoreSystemAudio();
+    setIsProcessing(false);
+    isProcessingRef.current = false;
+    setDuration(0);
+    setStatus("idle");
+    setError(null);
+    clearStreamingState();
+  }, [clearStreamingState, restoreSystemAudio]);
+
+  const reset = useCallback(() => {
+    // biome-ignore lint/complexity/noVoid: fire-and-forget async call
+    void restoreSystemAudio();
+    setIsRecording(false);
+    isRecordingRef.current = false;
+    setIsProcessing(false);
+    isProcessingRef.current = false;
+    stopDurationTracking();
+    setDuration(0);
+    setError(null);
+    setStatus("idle");
+    clearStreamingState();
+  }, [clearStreamingState, restoreSystemAudio, stopDurationTracking]);
+
+  const cancelRef = useRef<(() => void) | null>(null);
+  useEffect(() => {
+    cancelRef.current = () => {
+      // biome-ignore lint/complexity/noVoid: fire-and-forget async call
+      void cancelDictation();
+    };
+  }, [cancelDictation]);
+
+  const visibilityRef = useRef<boolean | null>(
+    typeof autoStopWhenHidden?.isVisible === "boolean"
+      ? autoStopWhenHidden.isVisible
+      : null
+  );
+  useEffect(() => {
+    const nextVisible =
+      typeof autoStopWhenHidden?.isVisible === "boolean"
+        ? autoStopWhenHidden.isVisible
+        : null;
+    const prevVisible = visibilityRef.current;
+    visibilityRef.current = nextVisible;
+
+    if (prevVisible === true && nextVisible === false) {
+      attemptGuardRef.current.cancel();
+
+      if (isRecordingRef.current) {
+        cancelRef.current?.();
+        return;
+      }
+
+      if (isProcessingRef.current) {
+        // biome-ignore lint/complexity/noVoid: fire-and-forget async call
+        void restoreSystemAudio();
+        stopDurationTracking();
+        setDuration(0);
+        setIsProcessing(false);
+        isProcessingRef.current = false;
+        setError(null);
+        if (senderRef.current?.hasSegments()) {
+          setStatus("failed");
+        } else {
+          setStatus("idle");
+          clearStreamingState();
+        }
+      }
+    }
+  }, [
+    autoStopWhenHidden?.isVisible,
+    clearStreamingState,
+    restoreSystemAudio,
+    stopDurationTracking,
+  ]);
+
+  useEffect(() => {
+    const attemptGuard = attemptGuardRef.current;
+    return () => {
+      attemptGuard.cancel();
+      stopDurationTracking();
+      // biome-ignore lint/complexity/noVoid: fire-and-forget async call
+      void restoreSystemAudioRef.current();
+      // biome-ignore lint/complexity/noVoid: fire-and-forget async call
+      void audioStopRef.current().catch(() => {
+        /* intentional no-op */
+      });
+    };
+  }, [stopDurationTracking]);
+
+  return {
+    isRecording,
+    isProcessing,
+    partialTranscript,
+    volume: audio.volume,
+    duration,
+    error,
+    status,
+    startDictation,
+    cancelDictation,
+    confirmDictation,
+    retryFailedDictation,
+    discardFailedDictation,
+    reset,
+  };
+}
+
+export type {
+  DictationStatus,
+  UseDictationOptions,
+  UseDictationResult,
+} from "./use-dictation.shared";

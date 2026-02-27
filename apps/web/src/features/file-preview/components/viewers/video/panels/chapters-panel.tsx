@@ -122,7 +122,7 @@ function ChaptersSkeleton() {
       {Array.from({ length: 4 }).map((_, i) => (
         <div
           className="flex items-start gap-2.5 border-border/40 border-b px-3 py-2.5 last:border-b-0"
-          key={i}
+          key={`chapter-skeleton-${i}`}
         >
           <Skeleton className="size-5" />
           <div className="flex-1 space-y-1">

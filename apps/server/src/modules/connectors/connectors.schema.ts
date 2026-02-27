@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@hono/zod-openapi";
 
 export const connectorIdParamsSchema = z.object({
   id: z.string().openapi({
@@ -43,7 +43,7 @@ export const syncHistoryItemSchema = z.object({
   dataUpdated: z.number(),
   dataDeleted: z.number(),
   errorMessage: z.string().nullable(),
-  summary: z.any(), // JSON
+  summary: z.record(z.string(), z.unknown()).nullable(),
   startedAt: z.string().datetime(),
   finishedAt: z.string().datetime().nullable(),
   durationMs: z.number().nullable(),

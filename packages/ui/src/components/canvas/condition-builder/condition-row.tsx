@@ -34,9 +34,17 @@ interface ConditionRowProps {
   className?: string;
 }
 
+const EMPTY_SUGGESTIONS: string[] = [];
+
 export const ConditionRow = memo(
   forwardRef<HTMLDivElement, ConditionRowProps>(function ConditionRowComponent(
-    { condition, onChange, onDelete, fieldSuggestions = [], className },
+    {
+      condition,
+      onChange,
+      onDelete,
+      fieldSuggestions = EMPTY_SUGGESTIONS,
+      className,
+    },
     ref
   ) {
     const availableOperators = useMemo(

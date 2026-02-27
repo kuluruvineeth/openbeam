@@ -22,7 +22,8 @@
       "!**/.alchemy",
       "!**/.svelte-kit",
       "!**/wrangler.jsonc",
-      "!**/.source"
+      "!**/.source",
+      "!**/generated/**/*.gen.ts"
     ]
   },
   "linter": {

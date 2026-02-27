@@ -35,8 +35,10 @@ type Props = {
   setActiveQuery?: (query: string) => void;
 };
 
+const EMPTY_AUTOCOMPLETE_RESULTS: AutocompleteResult[] = [];
+
 export function SearchBar({
-  autocompleteResults = [],
+  autocompleteResults = EMPTY_AUTOCOMPLETE_RESULTS,
   setQuery,
   setAutocompleteResults,
   setAutocompleteQuery,

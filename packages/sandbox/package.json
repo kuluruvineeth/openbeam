@@ -1,0 +1,33 @@
+{
+  "name": "@openplane/sandbox",
+  "version": "0.0.1",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "types": "./src/*.ts",
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@openplane/types": "workspace:*",
+    "hono": "catalog:",
+    "zod": "catalog:"
+  },
+  "optionalDependencies": {
+    "@daytonaio/sdk": "^0.125.0",
+    "redis": "^5.10.0"
+  },
+  "devDependencies": {
+    "@openplane/config": "workspace:*",
+    "tsdown": "catalog:",
+    "typescript": "catalog:"
+  }
+}

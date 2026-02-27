@@ -2,6 +2,7 @@ import {
   type ConnectorType,
   normalizeToConnectorType,
 } from "@openplane/types/services/connectors/events";
+import { Logo as GitHubLogo } from "./github/assets/logo";
 import { Logo as GmailLogo } from "./gmail/assets/logo";
 import { Logo as GoogleDriveLogo } from "./google-drive/assets/logo";
 import { Logo as LinearLogo } from "./linear/assets/logo";
@@ -11,6 +12,7 @@ import { AppType, type LogoComponent } from "./types";
 
 export const appLogos: Record<string, LogoComponent> = {
   [AppType.GMAIL]: GmailLogo,
+  [AppType.GITHUB]: GitHubLogo,
   [AppType.GOOGLE_DRIVE]: GoogleDriveLogo,
   [AppType.LINEAR]: LinearLogo,
   [AppType.NOTION]: NotionLogo,

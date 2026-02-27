@@ -4,7 +4,7 @@ import os
 import sys
 import threading
 import warnings
-from typing import Literal
+from typing import Any, Literal, cast
 
 warnings.filterwarnings("ignore", message=".*resource_tracker.*leaked semaphore.*")
 
@@ -31,9 +31,9 @@ class CrossEncoderModel:
         self._model_name = model_name or self.MODEL_NAME
         self._device = self._resolve_device(device)
         self._backend = self._resolve_backend()
+        self._model: Any
+        self._tokenizer: Any = None
         self._model = self._load_model()
-
-        self._tokenizer = None
 
     def _resolve_device(self, device: str | None) -> str:
         override = (device or os.environ.get("CPU_ML_DEVICE") or "auto").strip().lower()
@@ -45,7 +45,7 @@ class CrossEncoderModel:
     def _resolve_backend(self) -> Literal["flagembedding", "transformers"]:
         override = (os.environ.get("CPU_ML_BACKEND") or "auto").strip().lower()
         if override in {"flagembedding", "transformers"}:
-            return override  # type: ignore[return-value]
+            return cast(Literal["flagembedding", "transformers"], override)
 
         # FlagEmbedding reranker has been observed to segfault on macOS/Python 3.12
         # in real server runs. Default to Transformers there unless overridden.
@@ -61,7 +61,7 @@ class CrossEncoderModel:
             return "mps"
         return "cpu"
 
-    def _load_model(self):
+    def _load_model(self) -> Any:
         logger.info(
             "loading_cross_encoder",
             model=self._model_name,
@@ -70,9 +70,9 @@ class CrossEncoderModel:
         )
         try:
             if self._backend == "flagembedding":
-                from FlagEmbedding import FlagReranker  # type: ignore[import-untyped]
+                from FlagEmbedding import FlagReranker
 
-                model = FlagReranker(
+                model = cast(Any, FlagReranker)(
                     self._model_name,
                     use_fp16=self._device != "cpu",
                     device=self._device,
@@ -80,10 +80,12 @@ class CrossEncoderModel:
                 self._tokenizer = None
                 return model
 
-            from transformers import AutoModelForSequenceClassification, AutoTokenizer  # type: ignore[import-untyped]
+            from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
-            self._tokenizer = AutoTokenizer.from_pretrained(self._model_name)
-            model = AutoModelForSequenceClassification.from_pretrained(self._model_name)
+            self._tokenizer = cast(Any, AutoTokenizer).from_pretrained(self._model_name)
+            model = cast(Any, AutoModelForSequenceClassification).from_pretrained(
+                self._model_name
+            )
             model.eval()
             model.to(self._device)
             logger.info(

@@ -115,6 +115,10 @@ function createMockServices(
       getChapters: createNotUsed,
       getHighlights: createNotUsed,
     },
+    workspace: {
+      getSchema: createNotUsed,
+      generateSql: createNotUsed,
+    },
   };
 }
 

@@ -29,6 +29,8 @@ interface AttachedFile {
   type: string;
 }
 
+const EMPTY_FILES: AttachedFile[] = [];
+
 type AgentInputProps = Omit<React.ComponentProps<"div">, "onSubmit"> &
   VariantProps<typeof agentInputVariants> & {
     placeholder?: string;
@@ -59,7 +61,7 @@ const AgentInput = forwardRef<HTMLDivElement, AgentInputProps>(
       disabled = false,
       showAttachments = false,
       onAttach,
-      attachedFiles = [],
+      attachedFiles = EMPTY_FILES,
       onRemoveFile,
       maxLength,
       ...props

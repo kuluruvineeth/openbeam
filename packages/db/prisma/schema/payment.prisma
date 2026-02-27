@@ -1,0 +1,145 @@
+enum WalletCustodyMode {
+  SELF_CUSTODY
+  MANAGED
+}
+
+enum WalletStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum PricingTargetType {
+  ROUTE
+  TOOL
+}
+
+enum PricingMode {
+  STATIC
+  DYNAMIC
+}
+
+enum PaymentVerificationResult {
+  VERIFIED
+  FAILED
+  PENDING
+}
+
+enum PaymentSettlementResult {
+  SETTLED
+  FAILED
+  PENDING
+}
+
+enum LedgerEntryType {
+  CREDIT
+  DEBIT
+  REFUND
+  FEE
+}
+
+enum PaymentAttemptStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+model PaymentWallet {
+  id          String             @id @default(cuid()) @map("_id")
+  teamId      String
+  team        Team               @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  chain       String
+  network     String
+  address     String
+  custodyMode WalletCustodyMode
+  status      WalletStatus       @default(ACTIVE)
+  isDefault   Boolean            @default(false)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@unique([teamId, chain, address])
+  @@index([teamId])
+  @@map("payment_wallet")
+}
+
+model PaymentPricingPolicy {
+  id          String            @id @default(cuid()) @map("_id")
+  teamId      String
+  team        Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  targetType  PricingTargetType
+  targetName  String
+  pricingMode PricingMode
+  amount      Float
+  currency    String            @default("USDC")
+  network     String            @default("eip155:84532")
+  description String?
+  isActive    Boolean           @default(true)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@unique([teamId, targetType, targetName])
+  @@index([teamId, isActive])
+  @@map("payment_pricing_policy")
+}
+
+model PaymentReceipt {
+  id                   String                    @id @default(cuid()) @map("_id")
+  teamId               String
+  team                 Team                      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  requestId            String                    @unique
+  payer                String
+  payTo                String
+  network              String
+  asset                String
+  amount               Float
+  verificationResult   PaymentVerificationResult @default(PENDING)
+  settlementResult     PaymentSettlementResult   @default(PENDING)
+  txHash               String?
+  facilitatorResponse  Json?
+  correlationId        String?
+  toolName             String?
+  routePath            String?
+  createdAt            DateTime                  @default(now())
+
+  ledgerEntries PaymentLedgerEntry[]
+  attempts      PaymentAttempt[]
+
+  @@index([teamId, createdAt])
+  @@index([requestId])
+  @@index([txHash])
+  @@map("payment_receipt")
+}
+
+model PaymentLedgerEntry {
+  id            String          @id @default(cuid()) @map("_id")
+  teamId        String
+  team          Team            @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  receiptId     String
+  receipt       PaymentReceipt  @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+  entryType     LedgerEntryType
+  amount        Float
+  currency      String
+  balanceBefore Float
+  balanceAfter  Float
+  description   String?
+  metadata      Json?
+  createdAt     DateTime        @default(now())
+
+  @@index([teamId, createdAt])
+  @@index([receiptId])
+  @@map("payment_ledger_entry")
+}
+
+model PaymentAttempt {
+  id                 String               @id @default(cuid()) @map("_id")
+  receiptId          String
+  receipt            PaymentReceipt       @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+  attemptNumber      Int
+  status             PaymentAttemptStatus @default(PENDING)
+  errorCode          String?
+  errorMessage       String?
+  facilitatorPayload Json?
+  createdAt          DateTime             @default(now())
+
+  @@index([receiptId])
+  @@map("payment_attempt")
+}

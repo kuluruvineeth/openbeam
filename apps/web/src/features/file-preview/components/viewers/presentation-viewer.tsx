@@ -77,8 +77,9 @@ export function PresentationViewer({
     loadPresentation();
 
     return () => {
-      if (thumbnailUrlRef.current) {
-        URL.revokeObjectURL(thumbnailUrlRef.current);
+      const thumbnailUrl = thumbnailUrlRef.current;
+      if (thumbnailUrl) {
+        URL.revokeObjectURL(thumbnailUrl);
       }
     };
   }, [loadPresentation]);

@@ -43,7 +43,6 @@ export default function ExcalidrawCanvas({
 }: ExcalidrawCanvasProps) {
   return (
     <Excalidraw
-      autoFocus={interactive}
       excalidrawAPI={(api) => {
         requestAnimationFrame(() => {
           api.scrollToContent(api.getSceneElements(), {

@@ -8,6 +8,7 @@ import { configureOpenAPI } from "@/lib/configure-open-api";
 import { createApp } from "@/lib/create-app";
 import authRouter from "@/modules/auth/auth.index";
 import { mapRoutes } from "@/routes/index";
+import logger from "@/utils/logger";
 
 initializeAI({ enableMetrics: true });
 
@@ -38,4 +39,7 @@ const server = Bun.serve({
   idleTimeout: 120,
 });
 
-console.log(`Server running on http://localhost:${server.port}`);
+logger.info(
+  { port: server.port },
+  `Server running on http://localhost:${server.port}`
+);

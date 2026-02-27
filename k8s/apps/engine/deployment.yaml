@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: engine-cpu
+  namespace: openplane
+  labels:
+    app: engine-cpu
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: engine-cpu
+  template:
+    metadata:
+      labels:
+        app: engine-cpu
+    spec:
+      containers:
+        - name: engine-cpu
+          image: openplane/engine-dev:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: CPU_PORT
+              value: "8000"
+            - name: CPU_DEBUG
+              value: "true"
+            - name: CPU_LOG_LEVEL
+              value: "DEBUG"
+            - name: CPU_ENVIRONMENT
+              value: "development"
+            - name: CPU_REDIS_URL
+              value: "redis://redis:6379"
+            - name: SECURITY_REQUIRE_AUTH
+              value: "false"
+            - name: CPU_WORKERS
+              value: "1"
+            - name: SCARF_NO_ANALYTICS
+              value: "true"
+            - name: DO_NOT_TRACK
+              value: "true"
+            - name: MPLCONFIGDIR
+              value: "/tmp/matplotlib"
+          startupProbe:
+            httpGet:
+              path: /v1/health
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 60
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /v1/health
+              port: 8000
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /v1/health
+              port: 8000
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi

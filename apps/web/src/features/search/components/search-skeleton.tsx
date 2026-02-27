@@ -35,7 +35,7 @@ export function SearchResultsSkeleton({ count = 8 }: { count?: number }) {
   return (
     <div>
       {Array.from({ length: count }).map((_, i) => (
-        <SearchResultRowSkeleton delay={i * 50} key={i} />
+        <SearchResultRowSkeleton delay={i * 50} key={`result-skeleton-${i}`} />
       ))}
     </div>
   );

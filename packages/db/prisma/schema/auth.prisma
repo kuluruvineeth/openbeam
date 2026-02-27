@@ -24,6 +24,10 @@ model User {
   agentCanvasApprovals   AgentCanvasApproval[]  @relation("AgentCanvasApprover")
   agentCanvasSessions    AgentCanvasSession[]   @relation("AgentCanvasSessionUser")
 
+  voiceNotes    VoiceNote[]
+  voiceSettings VoiceSettings?
+  voiceSessions VoiceSession[]
+
   @@unique([email])
   @@index([teamId])
   @@map("user")

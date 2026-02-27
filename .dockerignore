@@ -22,6 +22,8 @@ out/
 # Cache directories
 .cache/
 **/.cache/
+.mypy_cache/
+**/.mypy_cache/
 *.log
 logs/
 
@@ -66,6 +68,16 @@ docker-compose*.yml
 # Infrastructure and monitoring (not needed in app containers)
 infra/
 monitoring/
+references/
+
+# Python virtual environments
+.venv/
+**/.venv/
+**/__pycache__/
+*.pyc
+
+# Go build artifacts
+apps/cli/openplane
 
 # Development tools
 .husky/
@@ -73,3 +85,7 @@ lint-staged.config.js
 biome.json
 bts.jsonc
 bunfig.toml
+
+# K8s and Claude config
+k8s/
+.claude/

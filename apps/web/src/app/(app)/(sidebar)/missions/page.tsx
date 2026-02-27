@@ -17,7 +17,7 @@ function MissionDashboardSkeleton() {
       <Skeleton className="h-8 w-96" />
       <div className="grid grid-cols-4 gap-3">
         {Array.from({ length: 4 }, (_, i) => (
-          <Skeleton className="h-20" key={i} />
+          <Skeleton className="h-20" key={`mission-stat-${i}`} />
         ))}
       </div>
       <Skeleton className="h-96 w-full" />

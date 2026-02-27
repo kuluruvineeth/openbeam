@@ -1,3 +1,5 @@
+import { createLogger } from "@openplane/observability";
+
 type LogLevel = "debug" | "info" | "warn" | "error";
 
 interface LogContext {
@@ -36,54 +38,20 @@ interface LoggerConfig {
   defaultContext: LogContext;
 }
 
+const baseLogger = createLogger({
+  service: "openplane-analytics",
+  env: process.env.NODE_ENV || "development",
+  level: process.env.LOG_LEVEL || "info",
+  version: process.env.APP_VERSION || "0.1.0",
+});
+
 const defaultConfig: LoggerConfig = {
   minLevel: "info",
   transports: [],
   defaultContext: {},
 };
 
-let globalConfig = { ...defaultConfig };
-
-function consoleTransport(entry: LogEntry): void {
-  const logFn = console[entry.level] ?? console.log;
-  const { level, message, timestamp, context, error } = entry;
-
-  const logData: Record<string, unknown> = {
-    level,
-    message,
-    timestamp,
-    ...context,
-  };
-
-  if (error) {
-    logData.error = error;
-  }
-
-  if (process.env.NODE_ENV === "development") {
-    const prefix = `[${timestamp}] ${level.toUpperCase()}:`;
-    logFn(prefix, message, Object.keys(context).length > 0 ? context : "");
-    if (error?.stack) {
-      logFn(error.stack);
-    }
-  } else {
-    logFn(JSON.stringify(logData));
-  }
-}
-
-export function configureLogger(config: Partial<LoggerConfig>): void {
-  globalConfig = {
-    ...globalConfig,
-    ...config,
-    defaultContext: {
-      ...globalConfig.defaultContext,
-      ...config.defaultContext,
-    },
-  };
-}
-
-export function addLogTransport(transport: LogTransport): void {
-  globalConfig.transports.push(transport);
-}
+let globalConfig: LoggerConfig = { ...defaultConfig };
 
 function shouldLog(level: LogLevel): boolean {
   return LOG_LEVELS[level] >= LOG_LEVELS[globalConfig.minLevel];
@@ -112,53 +80,75 @@ function createLogEntry(
   };
 }
 
-function emit(entry: LogEntry): void {
+function writeToBaseLogger(entry: LogEntry): void {
+  const payload: Record<string, unknown> = {
+    ...entry.context,
+    timestamp: entry.timestamp,
+  };
+
+  if (entry.error) {
+    payload.error = entry.error;
+  }
+
+  if (entry.level === "debug") {
+    baseLogger.debug(payload, entry.message);
+    return;
+  }
+
+  if (entry.level === "info") {
+    baseLogger.info(payload, entry.message);
+    return;
+  }
+
+  if (entry.level === "warn") {
+    baseLogger.warn(payload, entry.message);
+    return;
+  }
+
+  baseLogger.error(payload, entry.message);
+}
+
+function writeToTransports(entry: LogEntry): void {
   for (const transport of globalConfig.transports) {
     try {
       transport(entry);
-    } catch {
-      consoleTransport(entry);
+    } catch (error) {
+      baseLogger.warn(
+        {
+          error:
+            error instanceof Error
+              ? {
+                  name: error.name,
+                  message: error.message,
+                  stack: error.stack,
+                }
+              : String(error),
+        },
+        "Analytics log transport failed"
+      );
     }
-  }
-
-  if (globalConfig.transports.length === 0) {
-    consoleTransport(entry);
   }
 }
 
-export const logger = {
-  debug(message: string, context?: LogContext): void {
-    if (!shouldLog("debug")) {
-      return;
-    }
-    emit(createLogEntry("debug", message, context));
-  },
+function emit(entry: LogEntry): void {
+  writeToBaseLogger(entry);
+  writeToTransports(entry);
+}
 
-  info(message: string, context?: LogContext): void {
-    if (!shouldLog("info")) {
-      return;
-    }
-    emit(createLogEntry("info", message, context));
-  },
+export function configureLogger(config: Partial<LoggerConfig>): void {
+  globalConfig = {
+    ...globalConfig,
+    ...config,
+    defaultContext: {
+      ...globalConfig.defaultContext,
+      ...config.defaultContext,
+    },
+  };
+}
 
-  warn(message: string, context?: LogContext): void {
-    if (!shouldLog("warn")) {
-      return;
-    }
-    emit(createLogEntry("warn", message, context));
-  },
-
-  error(message: string, error?: Error, context?: LogContext): void {
-    if (!shouldLog("error")) {
-      return;
-    }
-    emit(createLogEntry("error", message, context, error));
-  },
-
-  child(baseContext: LogContext): Logger {
-    return createChildLogger(baseContext);
-  },
-};
+export function addLogTransport(transport: LogTransport): void {
+  globalConfig.transports.push(transport);
+}
 
 interface Logger {
   debug(message: string, context?: LogContext): void;
@@ -188,6 +178,44 @@ function createChildLogger(baseContext: LogContext): Logger {
   };
 }
 
+export const logger: Logger = {
+  debug(message: string, context?: LogContext): void {
+    if (!shouldLog("debug")) {
+      return;
+    }
+
+    emit(createLogEntry("debug", message, context));
+  },
+
+  info(message: string, context?: LogContext): void {
+    if (!shouldLog("info")) {
+      return;
+    }
+
+    emit(createLogEntry("info", message, context));
+  },
+
+  warn(message: string, context?: LogContext): void {
+    if (!shouldLog("warn")) {
+      return;
+    }
+
+    emit(createLogEntry("warn", message, context));
+  },
+
+  error(message: string, error?: Error, context?: LogContext): void {
+    if (!shouldLog("error")) {
+      return;
+    }
+
+    emit(createLogEntry("error", message, context, error));
+  },
+
+  child(baseContext: LogContext): Logger {
+    return createChildLogger(baseContext);
+  },
+};
+
 export function createAILogger(options: {
   traceId: string;
   workflow: string;
@@ -199,7 +227,7 @@ export function createAILogger(options: {
     workflow: options.workflow,
     userId: options.userId,
     teamId: options.teamId,
-  });
+  }) as typeof logger;
 }
 
 export function createRAGLogger(options: {
@@ -212,7 +240,7 @@ export function createRAGLogger(options: {
     userId: options.userId,
     teamId: options.teamId,
     workflow: "rag",
-  });
+  }) as typeof logger;
 }
 
 export function logAIGeneration(options: {
@@ -236,9 +264,10 @@ export function logAIGeneration(options: {
 
   if (options.success) {
     logger.info("AI generation completed", context);
-  } else {
-    logger.error("AI generation failed", options.error, context);
+    return;
   }
+
+  logger.error("AI generation failed", options.error, context);
 }
 
 export function logToolCall(options: {
@@ -256,12 +285,13 @@ export function logToolCall(options: {
 
   if (options.success) {
     logger.debug("Tool call completed", context);
-  } else {
-    logger.warn("Tool call failed", {
-      ...context,
-      error: options.error?.message,
-    });
+    return;
   }
+
+  logger.warn("Tool call failed", {
+    ...context,
+    error: options.error?.message,
+  });
 }
 
 export function logRAGQuery(options: {

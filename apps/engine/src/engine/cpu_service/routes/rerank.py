@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
@@ -39,7 +41,7 @@ class RerankStatsResponse(BaseModel):
     cache: dict[str, int | float]
 
 
-def _get_service(request: Request):
+def _get_service(request: Request) -> Any:
     service = request.app.state.reranker_service
     if service is None:
         raise HTTPException(

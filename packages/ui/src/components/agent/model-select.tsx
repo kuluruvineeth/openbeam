@@ -152,6 +152,7 @@ export const ModelSelect = forwardRef<HTMLButtonElement, ModelSelectProps>(
       <Popover onOpenChange={setOpen} open={open}>
         <PopoverTrigger asChild>
           <Button
+            aria-controls="model-select-list"
             aria-expanded={open}
             aria-label="Select AI model"
             className={cn(
@@ -183,7 +184,7 @@ export const ModelSelect = forwardRef<HTMLButtonElement, ModelSelectProps>(
         >
           <Command>
             <CommandInput placeholder="Search models..." />
-            <CommandList>
+            <CommandList id="model-select-list">
               <CommandEmpty>No models found.</CommandEmpty>
               {groupedModels.map((group) => (
                 <CommandGroup

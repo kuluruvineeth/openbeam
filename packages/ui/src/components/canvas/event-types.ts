@@ -24,6 +24,7 @@ export const CONNECTOR_ICONS: ConnectorIconMap = {
   notion: Icons.Note,
   gmail: Icons.Mail,
   "google-drive": Icons.Folder,
+  github: Icons.GitBranch,
 };
 
 export type EventCategoryIconMap = {

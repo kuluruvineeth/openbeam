@@ -1,23 +1,10 @@
-import pino from "pino";
+import { createLogger } from "@openplane/observability";
 
-const isDevelopment = process.env.NODE_ENV !== "production";
-
-export const logger = pino({
+export const logger = createLogger({
+  service: "openplane-server",
+  env: process.env.NODE_ENV || "development",
   level: process.env.LOG_LEVEL || "info",
-  transport: isDevelopment
-    ? {
-        target: "pino-pretty",
-        options: {
-          colorize: true,
-          translateTime: "SYS:standard",
-          ignore: "pid,hostname",
-        },
-      }
-    : undefined,
-  base: {
-    service: "openplane-server",
-    env: process.env.NODE_ENV || "development",
-  },
+  version: process.env.APP_VERSION || "0.1.0",
 });
 
 export default logger;

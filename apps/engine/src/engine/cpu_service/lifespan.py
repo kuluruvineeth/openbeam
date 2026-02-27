@@ -45,6 +45,24 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     )
     app.state.gpu_client = gpu_client
 
+    browser_service = None
+    if settings.enable_browser:
+        logger.info("initializing_browser_service")
+        try:
+            from engine.browser.service import BrowserService
+
+            browser_service = BrowserService(settings)
+            await browser_service.initialize()
+        except ImportError as e:
+            logger.warning(
+                "browser_service_missing_deps",
+                error=str(e),
+                hint="Install browser deps: uv sync --extra browser",
+            )
+        except Exception as e:
+            logger.warning("browser_service_init_failed", error=str(e))
+    app.state.browser_service = browser_service
+
     embedding_service = None
     reranker_service = None
     entity_extractor = None
@@ -76,6 +94,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         gpu_service_url=settings.gpu_service_url,
         ltr_ready=ltr_service.is_ready,
         ltr_model_version=ltr_service.model_version if ltr_service.is_ready else None,
+        browser_enabled=settings.enable_browser,
+        browser_ready=browser_service is not None,
         ml_enabled=settings.enable_ml,
         embedding_ready=embedding_service is not None,
         reranker_ready=reranker_service is not None,
@@ -83,6 +103,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     )
 
     yield
+
+    if browser_service is not None:
+        await browser_service.close()
 
     if embedding_service is not None:
         from engine.embeddings.cache import EmbeddingCache
@@ -112,14 +135,16 @@ async def _init_ml_services(
         from engine.services.embedding import EmbeddingService
 
         cache_dir = settings.embedding_cache_dir or f"{settings.temp_dir}/embedding_cache"
-        model = BGEM3.get_instance(device=None if settings.ml_device == "auto" else settings.ml_device)
-        cache = EmbeddingCache(
+        embedding_model = BGEM3.get_instance(
+            device=None if settings.ml_device == "auto" else settings.ml_device
+        )
+        embedding_cache = EmbeddingCache(
             redis_client=redis_client,
             memory_size=settings.embedding_cache_size,
             disk_path=cache_dir,
         )
-        embedding_service = EmbeddingService(model=model, cache=cache)
-        logger.info("embedding_service_initialized", device=model.device)
+        embedding_service = EmbeddingService(model=embedding_model, cache=embedding_cache)
+        logger.info("embedding_service_initialized", device=embedding_model.device)
     except ModuleNotFoundError as e:
         logger.warning("embedding_service_missing_deps", error=str(e), hint=ml_hint)
     except Exception as e:
@@ -130,12 +155,12 @@ async def _init_ml_services(
         from engine.reranker.model import get_cross_encoder_model
         from engine.reranker.service import RerankerService
 
-        model = get_cross_encoder_model(
+        reranker_model = get_cross_encoder_model(
             device=None if settings.ml_device == "auto" else settings.ml_device
         )
-        cache = RerankCache(redis_client=redis_client)
-        reranker_service = RerankerService(model=model, cache=cache)
-        logger.info("reranker_service_initialized", device=model.device)
+        reranker_cache = RerankCache(redis_client=redis_client)
+        reranker_service = RerankerService(model=reranker_model, cache=reranker_cache)
+        logger.info("reranker_service_initialized", device=reranker_model.device)
     except ModuleNotFoundError as e:
         logger.warning("reranker_service_missing_deps", error=str(e), hint=ml_hint)
     except Exception as e:

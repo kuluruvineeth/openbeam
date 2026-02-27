@@ -60,11 +60,13 @@ function formatShortcut(shortcut: string): string {
     .replace(/\+/g, "");
 }
 
+const EMPTY_CONTEXT_COMMANDS: CommandDefinition[] = [];
+
 export function MissionCommandPalette({
   isOpen,
   onClose,
   onCommand,
-  contextCommands = [],
+  contextCommands = EMPTY_CONTEXT_COMMANDS,
   pendingApprovalCount = 0,
 }: MissionCommandPaletteProps) {
   const allCommands = [

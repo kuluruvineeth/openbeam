@@ -26,8 +26,7 @@ const CANCELLABLE_STATUSES = new Set<BackgroundAgentStatus>([
 ]);
 
 const SANDBOX_TYPE_MAP = {
-  e2b: "E2B",
-  docker: "DOCKER",
+  daytona: "DAYTONA",
   local: "LOCAL",
 } as const;
 

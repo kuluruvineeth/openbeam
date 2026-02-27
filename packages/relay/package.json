@@ -1,0 +1,40 @@
+{
+  "name": "@openplane/relay",
+  "version": "0.0.1",
+  "description": "Relay for bridging daemon and client connections",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./e2ee": {
+      "types": "./src/e2ee.ts",
+      "default": "./src/e2ee.ts"
+    },
+    "./cloudflare": {
+      "types": "./src/cloudflare-adapter.ts",
+      "default": "./src/cloudflare-adapter.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test",
+    "test:watch": "bun test --watch"
+  },
+  "dependencies": {
+    "base64-js": "^1.5.1",
+    "tweetnacl": "^1.0.3",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241230.0",
+    "@types/ws": "^8.18.0",
+    "tsdown": "catalog:",
+    "typescript": "catalog:"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}

@@ -40,7 +40,6 @@ services:
       VESPA_URL: http://vespa:8080
       NODE_ENV: ${NODE_ENV:-production}
       LOG_LEVEL: ${LOG_LEVEL:-info}
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
       APP_VERSION: ${APP_VERSION:-0.1.0}
       # Engine integration
       ENGINE_URL: http://engine:8000
@@ -63,8 +62,6 @@ services:
         condition: service_healthy
       vespa-deploy:
         condition: service_completed_successfully
-      jaeger:
-        condition: service_started
       engine:
         condition: service_healthy
       minio-init:
@@ -82,7 +79,6 @@ services:
       REDIS_URL: ${REDIS_URL:-redis://redis:6379}
       VESPA_URL: ${VESPA_URL:-http://vespa:8080}
       NODE_ENV: ${NODE_ENV:-production}
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
       APP_VERSION: ${APP_VERSION:-0.1.0}
       ADMIN_EMAILS: ${ADMIN_EMAILS:-}
     ports:
@@ -92,8 +88,6 @@ services:
         condition: service_healthy
       vespa-deploy:
         condition: service_completed_successfully
-      jaeger:
-        condition: service_started
     restart: unless-stopped
     healthcheck:
       test:

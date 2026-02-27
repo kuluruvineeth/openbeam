@@ -1,0 +1,555 @@
+import "@/styles/unistyles";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import { PortalProvider } from "@gorhom/portal";
+import { QueryClientProvider } from "@tanstack/react-query";
+import * as Linking from "expo-linking";
+import * as Notifications from "expo-notifications";
+import { Stack, usePathname, useRouter } from "expo-router";
+import { type ReactNode, useEffect, useMemo, useRef } from "react";
+import { ActivityIndicator, Platform, Text, View } from "react-native";
+import {
+  Gesture,
+  GestureDetector,
+  GestureHandlerRootView,
+} from "react-native-gesture-handler";
+import { KeyboardProvider } from "react-native-keyboard-controller";
+import {
+  Extrapolation,
+  interpolate,
+  runOnJS,
+  useSharedValue,
+} from "react-native-reanimated";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { UnistylesRuntime, useUnistyles } from "react-native-unistyles";
+import { CommandCenter } from "@/components/command-center";
+import { DictationBar } from "@/components/dictation";
+import { DictationNativeHelperController } from "@/components/dictation-native-helper-controller";
+import { DownloadToast } from "@/components/download-toast";
+import { KeyboardShortcutsDialog } from "@/components/keyboard-shortcuts-dialog";
+import { LeftSidebar } from "@/components/left-sidebar";
+import { MultiDaemonSessionHost } from "@/components/multi-daemon-session-host";
+import { RootErrorBoundary } from "@/components/root-error-boundary";
+import { getIsTauriMac } from "@/constants/layout";
+import { DaemonConnectionsProvider } from "@/contexts/daemon-connections-context";
+import {
+  DaemonRegistryProvider,
+  useDaemonRegistry,
+} from "@/contexts/daemon-registry-context";
+import {
+  HorizontalScrollProvider,
+  useHorizontalScrollOptional,
+} from "@/contexts/horizontal-scroll-context";
+import {
+  SidebarAnimationProvider,
+  useSidebarAnimation,
+} from "@/contexts/sidebar-animation-context";
+import { ToastProvider } from "@/contexts/toast-context";
+import { VoiceProvider } from "@/contexts/voice-context";
+import { useFaviconStatus } from "@/hooks/use-favicon-status";
+import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
+import { useAppSettings } from "@/hooks/use-settings";
+import { polyfillCrypto } from "@/polyfills/crypto";
+import { queryClient } from "@/query/query-client";
+import { usePanelStore } from "@/stores/panel-store";
+import { darkTheme } from "@/styles/theme";
+import {
+  buildHostAgentDraftRoute,
+  parseHostAgentRouteFromPathname,
+} from "@/utils/host-routes";
+import { buildNotificationRoute } from "@/utils/notification-routing";
+import {
+  ensureOsNotificationPermission,
+  WEB_NOTIFICATION_CLICK_EVENT,
+  type WebNotificationClickDetail,
+} from "@/utils/os-notifications";
+import { getTauri } from "@/utils/tauri";
+import { useTrafficLightPadding } from "@/utils/tauri-window";
+
+polyfillCrypto();
+const IS_DEV = Boolean((globalThis as { __DEV__?: boolean }).__DEV__);
+
+function logLeftSidebarOpenGesture(
+  event: string,
+  details: Record<string, unknown>
+): void {
+  if (!IS_DEV) {
+    return;
+  }
+  console.log(`[LeftSidebarOpenGesture] ${event}`, details);
+}
+
+function PushNotificationRouter() {
+  const router = useRouter();
+  const lastHandledIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (Platform.OS === "web") {
+      if (getTauri()) {
+        // biome-ignore lint/complexity/noVoid: fire-and-forget async call
+        void ensureOsNotificationPermission().then((granted) => {
+          console.log(
+            "[OSNotifications][Tauri] Startup permission preflight result:",
+            granted ? "granted" : "not-granted"
+          );
+        });
+      }
+
+      const target = globalThis as unknown as EventTarget;
+      const openFromWebClick = (event: Event) => {
+        const customEvent = event as CustomEvent<WebNotificationClickDetail>;
+        const route = buildNotificationRoute(customEvent.detail?.data);
+        event.preventDefault();
+        // biome-ignore lint/suspicious/noExplicitAny: Expo Router route type mismatch
+        router.push(route as any);
+      };
+
+      target.addEventListener(
+        WEB_NOTIFICATION_CLICK_EVENT,
+        openFromWebClick as EventListener
+      );
+      return () => {
+        target.removeEventListener(
+          WEB_NOTIFICATION_CLICK_EVENT,
+          openFromWebClick as EventListener
+        );
+      };
+    }
+
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        // When the app is open, don't show OS banners.
+        shouldShowAlert: false,
+        shouldShowBanner: false,
+        shouldShowList: false,
+        shouldPlaySound: false,
+        shouldSetBadge: false,
+      }),
+    });
+
+    const openFromResponse = (response: Notifications.NotificationResponse) => {
+      const identifier = response.notification.request.identifier;
+      if (lastHandledIdRef.current === identifier) {
+        return;
+      }
+      lastHandledIdRef.current = identifier;
+
+      const data = response.notification.request.content.data as
+        | Record<string, unknown>
+        | undefined;
+      // biome-ignore lint/suspicious/noExplicitAny: Expo Router route type mismatch
+      router.push(buildNotificationRoute(data) as any);
+    };
+
+    const subscription =
+      Notifications.addNotificationResponseReceivedListener(openFromResponse);
+
+    // biome-ignore lint/complexity/noVoid: fire-and-forget async call
+    void Notifications.getLastNotificationResponseAsync().then((response) => {
+      if (response) {
+        openFromResponse(response);
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [router]);
+
+  return null;
+}
+
+function QueryProvider({ children }: { children: ReactNode }) {
+  return (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+}
+
+interface AppContainerProps {
+  children: ReactNode;
+  selectedAgentId?: string;
+}
+
+function AppContainer({ children, selectedAgentId }: AppContainerProps) {
+  const { theme } = useUnistyles();
+  const { daemons } = useDaemonRegistry();
+  const mobileView = usePanelStore((state) => state.mobileView);
+  const desktopAgentListOpen = usePanelStore(
+    (state) => state.desktop.agentListOpen
+  );
+  const openAgentList = usePanelStore((state) => state.openAgentList);
+  const toggleAgentList = usePanelStore((state) => state.toggleAgentList);
+  const toggleFileExplorer = usePanelStore((state) => state.toggleFileExplorer);
+  const horizontalScroll = useHorizontalScrollOptional();
+
+  const isMobile =
+    UnistylesRuntime.breakpoint === "xs" ||
+    UnistylesRuntime.breakpoint === "sm";
+  const chromeEnabled = daemons.length > 0;
+  let isOpen = false;
+  if (chromeEnabled) {
+    isOpen = isMobile ? mobileView === "agent-list" : desktopAgentListOpen;
+  }
+  const openGestureEnabled =
+    chromeEnabled && isMobile && mobileView === "agent";
+
+  useKeyboardShortcuts({
+    enabled: chromeEnabled,
+    isMobile,
+    toggleAgentList,
+    selectedAgentId,
+    toggleFileExplorer,
+  });
+  const {
+    translateX,
+    backdropOpacity,
+    windowWidth,
+    animateToOpen,
+    animateToClose,
+    isGesturing,
+  } = useSidebarAnimation();
+
+  // Track initial touch position for manual activation
+  const touchStartX = useSharedValue(0);
+
+  // Open gesture: swipe right from anywhere to open sidebar (interactive drag)
+  // If any horizontal scroll is scrolled right, let the scroll view handle the gesture first
+  const openGesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .enabled(openGestureEnabled)
+        .manualActivation(true)
+        // Fail if 10px vertical movement happens first (allow vertical scroll)
+        .failOffsetY([-10, 10])
+        .onTouchesDown((event) => {
+          const touch = event.changedTouches[0];
+          if (touch) {
+            touchStartX.value = touch.absoluteX;
+          }
+        })
+        .onTouchesMove((event, stateManager) => {
+          const touch = event.changedTouches[0];
+          if (!touch || event.numberOfTouches !== 1) {
+            return;
+          }
+
+          const deltaX = touch.absoluteX - touchStartX.value;
+
+          // If horizontal scroll is scrolled right, fail so ScrollView handles it
+          if (horizontalScroll?.isAnyScrolledRight.value) {
+            stateManager.fail();
+            return;
+          }
+
+          // Activate after 15px rightward movement
+          if (deltaX > 15) {
+            stateManager.activate();
+          }
+        })
+        .onStart(() => {
+          isGesturing.value = true;
+          runOnJS(logLeftSidebarOpenGesture)("start", {
+            mobileView,
+            openGestureEnabled,
+          });
+        })
+        .onUpdate((event) => {
+          // Start from closed position (-windowWidth) and move towards 0
+          const newTranslateX = Math.min(0, -windowWidth + event.translationX);
+          translateX.value = newTranslateX;
+          backdropOpacity.value = interpolate(
+            newTranslateX,
+            [-windowWidth, 0],
+            [0, 1],
+            Extrapolation.CLAMP
+          );
+        })
+        .onEnd((event) => {
+          isGesturing.value = false;
+          // Open if dragged more than 1/3 of sidebar or fast swipe
+          const shouldOpen =
+            event.translationX > windowWidth / 3 || event.velocityX > 500;
+          runOnJS(logLeftSidebarOpenGesture)("end", {
+            translationX: event.translationX,
+            velocityX: event.velocityX,
+            shouldOpen,
+            mobileView,
+            openGestureEnabled,
+          });
+          if (shouldOpen) {
+            animateToOpen();
+            runOnJS(openAgentList)();
+          } else {
+            animateToClose();
+          }
+        })
+        .onFinalize(() => {
+          isGesturing.value = false;
+        }),
+    [
+      openGestureEnabled,
+      windowWidth,
+      translateX,
+      backdropOpacity,
+      animateToOpen,
+      animateToClose,
+      openAgentList,
+      mobileView,
+      isGesturing,
+      horizontalScroll?.isAnyScrolledRight,
+      touchStartX,
+    ]
+  );
+
+  // When sidebar is collapsed on desktop Tauri macOS, add left padding for traffic lights
+  const trafficLightPadding = useTrafficLightPadding();
+  const needsTrafficLightPadding = !(isMobile || isOpen) && getIsTauriMac();
+
+  const content = (
+    <View style={{ flex: 1, backgroundColor: theme.colors.surface0 }}>
+      <View style={{ flex: 1, flexDirection: "row" }}>
+        {!isMobile && chromeEnabled && (
+          <LeftSidebar selectedAgentId={selectedAgentId} />
+        )}
+        <View
+          style={{
+            flex: 1,
+            paddingLeft: needsTrafficLightPadding
+              ? trafficLightPadding.left
+              : 0,
+          }}
+        >
+          {children}
+        </View>
+      </View>
+      {isMobile && chromeEnabled && (
+        <LeftSidebar selectedAgentId={selectedAgentId} />
+      )}
+      <DictationBar />
+      <DownloadToast />
+      <CommandCenter />
+      <KeyboardShortcutsDialog />
+    </View>
+  );
+
+  if (!isMobile) {
+    return content;
+  }
+
+  return (
+    <GestureDetector gesture={openGesture} touchAction="pan-y">
+      {content}
+    </GestureDetector>
+  );
+}
+
+function ProvidersWrapper({ children }: { children: ReactNode }) {
+  const { settings, isLoading: settingsLoading } = useAppSettings();
+  const { isLoading: registryLoading, upsertDaemonFromOfferUrl } =
+    useDaemonRegistry();
+  const isLoading = settingsLoading || registryLoading;
+
+  // Apply theme setting on mount and when it changes
+  useEffect(() => {
+    if (isLoading) {
+      return;
+    }
+    if (settings.theme === "auto") {
+      UnistylesRuntime.setAdaptiveThemes(true);
+    } else {
+      UnistylesRuntime.setAdaptiveThemes(false);
+      UnistylesRuntime.setTheme(settings.theme);
+    }
+  }, [isLoading, settings.theme]);
+
+  if (isLoading) {
+    return <LoadingView />;
+  }
+
+  return (
+    <VoiceProvider>
+      <OfferLinkListener upsertDaemonFromOfferUrl={upsertDaemonFromOfferUrl} />
+      {children}
+    </VoiceProvider>
+  );
+}
+
+function OfferLinkListener({
+  upsertDaemonFromOfferUrl,
+}: {
+  upsertDaemonFromOfferUrl: (offerUrlOrFragment: string) => Promise<unknown>;
+}) {
+  const router = useRouter();
+
+  useEffect(() => {
+    let cancelled = false;
+    const handleUrl = (url: string | null) => {
+      if (!url) {
+        return;
+      }
+      if (!url.includes("#offer=")) {
+        return;
+      }
+      // biome-ignore lint/complexity/noVoid: fire-and-forget async call
+      void upsertDaemonFromOfferUrl(url)
+        .then((profile) => {
+          if (cancelled) {
+            return;
+          }
+          // biome-ignore lint/suspicious/noExplicitAny: untyped daemon profile from registry
+          const serverId = (profile as any)?.serverId;
+          if (typeof serverId !== "string" || !serverId) {
+            return;
+          }
+          // biome-ignore lint/suspicious/noExplicitAny: Expo Router route type mismatch
+          router.replace(buildHostAgentDraftRoute(serverId) as any);
+        })
+        .catch((error) => {
+          if (cancelled) {
+            return;
+          }
+          console.warn("[Linking] Failed to import pairing offer", error);
+        });
+    };
+
+    // biome-ignore lint/complexity/noVoid: fire-and-forget async call
+    void Linking.getInitialURL()
+      .then(handleUrl)
+      .catch(() => {
+        /* intentional no-op */
+      });
+
+    const subscription = Linking.addEventListener("url", (event) => {
+      handleUrl(event.url);
+    });
+
+    return () => {
+      cancelled = true;
+      subscription.remove();
+    };
+  }, [router, upsertDaemonFromOfferUrl]);
+
+  return null;
+}
+
+function AppWithSidebar({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  useFaviconStatus();
+
+  // Parse selectedAgentKey directly from pathname
+  // useLocalSearchParams doesn't update when navigating between same-pattern routes
+  const selectedAgentKey = useMemo(() => {
+    const match = parseHostAgentRouteFromPathname(pathname);
+    return match ? `${match.serverId}:${match.agentId}` : undefined;
+  }, [pathname]);
+
+  return (
+    <AppContainer selectedAgentId={selectedAgentKey}>{children}</AppContainer>
+  );
+}
+
+function LoadingView({ message }: { message?: string } = {}) {
+  return (
+    <View
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: darkTheme.colors.surface0,
+      }}
+    >
+      <ActivityIndicator color={darkTheme.colors.foreground} size="large" />
+      {message ? (
+        <Text
+          style={{
+            color: darkTheme.colors.foregroundMuted,
+            marginTop: 16,
+            fontSize: 14,
+          }}
+        >
+          {message}
+        </Text>
+      ) : null}
+    </View>
+  );
+}
+
+function _MissingDaemonView() {
+  return (
+    <View
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        padding: 24,
+        backgroundColor: darkTheme.colors.surface0,
+      }}
+    >
+      <ActivityIndicator color={darkTheme.colors.foreground} size="small" />
+      <Text
+        style={{
+          color: darkTheme.colors.foreground,
+          marginTop: 16,
+          textAlign: "center",
+        }}
+      >
+        No host configured. Open Settings to add a server URL.
+      </Text>
+    </View>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <RootErrorBoundary>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <PortalProvider>
+          <SafeAreaProvider>
+            <KeyboardProvider>
+              <BottomSheetModalProvider>
+                <QueryProvider>
+                  <DaemonRegistryProvider>
+                    <DaemonConnectionsProvider>
+                      <PushNotificationRouter />
+                      <MultiDaemonSessionHost />
+                      <ProvidersWrapper>
+                        <SidebarAnimationProvider>
+                          <HorizontalScrollProvider>
+                            <ToastProvider>
+                              <DictationNativeHelperController />
+                              <AppWithSidebar>
+                                <Stack
+                                  screenOptions={{
+                                    headerShown: false,
+                                    animation: "none",
+                                  }}
+                                >
+                                  <Stack.Screen name="index" />
+                                  <Stack.Screen
+                                    name="h/[serverId]/agent/[agentId]"
+                                    options={{ gestureEnabled: false }}
+                                  />
+                                  <Stack.Screen name="h/[serverId]/index" />
+                                  <Stack.Screen name="h/[serverId]/agent/index" />
+                                  <Stack.Screen name="h/[serverId]/agents" />
+                                  <Stack.Screen name="h/[serverId]/settings" />
+                                  <Stack.Screen name="h/[serverId]/notes/index" />
+                                  <Stack.Screen name="h/[serverId]/notes/[noteId]" />
+                                  <Stack.Screen name="pair-scan" />
+                                  <Stack.Screen name="demo" />
+                                </Stack>
+                              </AppWithSidebar>
+                            </ToastProvider>
+                          </HorizontalScrollProvider>
+                        </SidebarAnimationProvider>
+                      </ProvidersWrapper>
+                    </DaemonConnectionsProvider>
+                  </DaemonRegistryProvider>
+                </QueryProvider>
+              </BottomSheetModalProvider>
+            </KeyboardProvider>
+          </SafeAreaProvider>
+        </PortalProvider>
+      </GestureHandlerRootView>
+    </RootErrorBoundary>
+  );
+}

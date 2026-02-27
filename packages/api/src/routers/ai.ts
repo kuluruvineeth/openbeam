@@ -12,6 +12,7 @@ import { getTeamUsageSummary } from "@openplane/db";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter } from "../index";
+import { getExternalSkillsCatalog } from "./ai.skills-catalog";
 import { withActiveTeam } from "./apps/middleware";
 
 const ToolCategorySchema = z.enum([
@@ -54,6 +55,8 @@ const listToolsSchema = z.object({
 
 export const aiRouter = createTRPCRouter({
   skills: createTRPCRouter({
+    catalog: withActiveTeam.query(async () => getExternalSkillsCatalog()),
+
     list: withActiveTeam.query(() => {
       const skills = skillRegistry.getDiscoveryInfo();
       return {

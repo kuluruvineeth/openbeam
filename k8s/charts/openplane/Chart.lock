@@ -1,0 +1,9 @@
+dependencies:
+- name: sandbox-gateway
+  repository: file://../../../packages/sandbox/helm/sandbox-gateway
+  version: 0.1.0
+- name: daytona
+  repository: https://charts.daytona.io
+  version: 0.0.17
+digest: sha256:93717da75c3657329ef702e5b2c40668851f2b74ed7ac8abe5074f511e03e5b2
+generated: "2026-02-18T16:59:52.420231+05:30"

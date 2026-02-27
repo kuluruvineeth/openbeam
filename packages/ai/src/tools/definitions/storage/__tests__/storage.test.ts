@@ -116,6 +116,10 @@ function createMockServices(
       listAvailable: createNotUsed,
       getCapabilities: createNotUsed,
     },
+    workspace: {
+      getSchema: createNotUsed,
+      generateSql: createNotUsed,
+    },
   };
 }
 

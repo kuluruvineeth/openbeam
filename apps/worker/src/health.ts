@@ -3,7 +3,9 @@ import prisma from "@openplane/db";
 import { getRedisClient } from "@openplane/redis";
 import { vespaClient } from "@openplane/vespa";
 import { Hono } from "hono";
+import { Counter, Histogram } from "prom-client";
 import { workerConfig } from "./config";
+import { register } from "./metrics";
 import logger from "./utils/logger";
 
 interface HealthStatus {
@@ -20,40 +22,103 @@ interface HealthStatus {
 
 let healthServer: Server | null = null;
 const startTime = Date.now();
+const healthCheckDurationSeconds = new Histogram({
+  name: "worker_health_check_duration_seconds",
+  help: "Duration of worker dependency health checks in seconds",
+  labelNames: ["dependency", "status"],
+  buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2, 5],
+  registers: [register],
+});
+const healthCheckFailuresTotal = new Counter({
+  name: "worker_health_check_failures_total",
+  help: "Total failed worker dependency health checks",
+  labelNames: ["dependency"],
+  registers: [register],
+});
+const healthEndpointDurationSeconds = new Histogram({
+  name: "worker_health_endpoint_duration_seconds",
+  help: "Duration of worker health endpoint responses in seconds",
+  labelNames: ["endpoint", "status"],
+  buckets: [0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1],
+  registers: [register],
+});
+const healthEndpointFailuresTotal = new Counter({
+  name: "worker_health_endpoint_failures_total",
+  help: "Total failed worker health endpoint responses",
+  labelNames: ["endpoint"],
+  registers: [register],
+});
+
+type DependencyName = "redis" | "database" | "vespa";
+
+function observeHealthEndpoint(
+  endpoint: "/health/live" | "/health/ready" | "/health",
+  statusCode: number,
+  startedAt: bigint
+): void {
+  const status = statusCode >= 500 ? "failure" : "success";
+  const latencySeconds =
+    Number(process.hrtime.bigint() - startedAt) / 1_000_000_000;
+
+  healthEndpointDurationSeconds.observe({ endpoint, status }, latencySeconds);
+
+  if (statusCode >= 500) {
+    healthEndpointFailuresTotal.inc({ endpoint });
+  }
+}
+
+function observeDependencyCheck(
+  dependency: DependencyName,
+  status: "healthy" | "unhealthy",
+  startedAt: bigint
+): number {
+  const latency = Number(process.hrtime.bigint() - startedAt) / 1_000_000;
+  healthCheckDurationSeconds.observe({ dependency, status }, latency / 1000);
+
+  if (status === "unhealthy") {
+    healthCheckFailuresTotal.inc({ dependency });
+  }
+
+  return latency;
+}
 
 async function checkRedis(): Promise<{ status: string; latency?: number }> {
+  const startedAt = process.hrtime.bigint();
   try {
-    const start = Date.now();
     const client = await getRedisClient();
     await client.ping();
-    const latency = Date.now() - start;
+    const latency = observeDependencyCheck("redis", "healthy", startedAt);
     return { status: "healthy", latency };
   } catch (error) {
-    logger.error({ error }, "Redis health check failed");
+    observeDependencyCheck("redis", "unhealthy", startedAt);
+    logger.warn({ error }, "Redis health check failed");
     return { status: "unhealthy" };
   }
 }
 
 async function checkDatabase(): Promise<{ status: string; latency?: number }> {
+  const startedAt = process.hrtime.bigint();
   try {
-    const start = Date.now();
     await prisma.$queryRaw`SELECT 1`;
-    const latency = Date.now() - start;
+    const latency = observeDependencyCheck("database", "healthy", startedAt);
     return { status: "healthy", latency };
   } catch (error) {
-    logger.error({ error }, "Database health check failed");
+    observeDependencyCheck("database", "unhealthy", startedAt);
+    logger.warn({ error }, "Database health check failed");
     return { status: "unhealthy" };
   }
 }
 
 async function checkVespa(): Promise<{ status: string; latency?: number }> {
+  const startedAt = process.hrtime.bigint();
   try {
-    const start = Date.now();
     const isHealthy = await vespaClient.healthCheck();
-    const latency = Date.now() - start;
-    return { status: isHealthy ? "healthy" : "unhealthy", latency };
+    const status = isHealthy ? "healthy" : "unhealthy";
+    const latency = observeDependencyCheck("vespa", status, startedAt);
+    return { status, latency };
   } catch (error) {
-    logger.error({ error }, "Vespa health check failed");
+    observeDependencyCheck("vespa", "unhealthy", startedAt);
+    logger.warn({ error }, "Vespa health check failed");
     return { status: "unhealthy" };
   }
 }
@@ -105,19 +170,25 @@ export function startHealthServer(): Promise<void> {
     const app = new Hono();
 
     app.get("/health/live", (c) => {
+      const startedAt = process.hrtime.bigint();
       const health = liveness();
+      observeHealthEndpoint("/health/live", 200, startedAt);
       return c.json(health, 200);
     });
 
     app.get("/health/ready", async (c) => {
+      const startedAt = process.hrtime.bigint();
       const health = await readiness();
       const statusCode = health.status === "healthy" ? 200 : 503;
+      observeHealthEndpoint("/health/ready", statusCode, startedAt);
       return c.json(health, statusCode);
     });
 
     app.get("/health", async (c) => {
+      const startedAt = process.hrtime.bigint();
       const health = await readiness();
       const statusCode = health.status === "healthy" ? 200 : 503;
+      observeHealthEndpoint("/health", statusCode, startedAt);
       return c.json(health, statusCode);
     });
 

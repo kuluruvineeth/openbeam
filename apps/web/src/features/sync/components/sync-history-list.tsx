@@ -25,7 +25,10 @@ function HistorySkeleton() {
   return (
     <div className="space-y-1">
       {Array.from({ length: 4 }).map((_, i) => (
-        <div className="flex items-center gap-3 px-3 py-2.5" key={i}>
+        <div
+          className="flex items-center gap-3 px-3 py-2.5"
+          key={`history-skeleton-${i}`}
+        >
           <Skeleton className="h-5 w-14" />
           <Skeleton className="h-3 w-12" />
           <Skeleton className="h-3 w-16" />

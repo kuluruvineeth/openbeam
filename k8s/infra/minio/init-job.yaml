@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: minio-init
+  namespace: openplane
+  labels:
+    app: minio-init
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: minio-init
+    spec:
+      containers:
+        - name: mc
+          image: minio/mc:latest
+          command: ["sh", "-c"]
+          args:
+            - |
+              until mc alias set local http://minio:9000 minioadmin minioadmin; do
+                echo "Waiting for MinIO..."
+                sleep 3
+              done
+              mc mb --ignore-existing local/openplane-files
+              echo "Bucket created successfully"
+      restartPolicy: OnFailure

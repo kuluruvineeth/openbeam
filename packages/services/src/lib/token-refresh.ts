@@ -10,6 +10,7 @@ import prisma, {
   updateOAuthTokens,
 } from "@openplane/db";
 import {
+  refreshGitHubToken,
   refreshGmailToken,
   refreshGoogleDriveToken,
   refreshLinearToken,
@@ -94,6 +95,25 @@ export async function refreshConnectorToken(
           accessToken: linearResult.accessToken,
           expiresIn: linearResult.expiresIn,
           refreshToken: linearResult.refreshToken,
+        };
+        break;
+      }
+
+      case "GITHUB": {
+        const githubResult = await refreshGitHubToken({
+          clientId,
+          clientSecret,
+          refreshToken,
+        });
+
+        if (githubResult.expiresIn === undefined) {
+          throw new Error("GitHub token refresh did not return expiresIn");
+        }
+
+        newToken = {
+          accessToken: githubResult.accessToken,
+          expiresIn: githubResult.expiresIn,
+          refreshToken: githubResult.refreshToken,
         };
         break;
       }

@@ -36,8 +36,10 @@ interface WeekTimelineProps {
   className?: string;
 }
 
+const EMPTY_EVENTS: TimelineEvent[] = [];
+
 function WeekTimeline({
-  events = [],
+  events = EMPTY_EVENTS,
   currentDate,
   onDateChange,
   onEventClick,

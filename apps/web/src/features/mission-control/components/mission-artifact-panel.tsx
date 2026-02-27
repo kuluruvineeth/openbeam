@@ -2,6 +2,7 @@
 
 import { Badge, Icons, Markdown } from "@openplane/ui";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNow } from "@/lib/hooks/use-now";
 import { cn } from "@/lib/utils";
 import { useArtifactDownload } from "../hooks/use-artifact-download";
 import { formatContextualTimestamp } from "../lib/time-display";
@@ -102,6 +103,7 @@ export function MissionArtifactPanel({
   );
   const [copied, setCopied] = useState(false);
   const { download } = useArtifactDownload();
+  const now = useNow(60_000);
 
   useEffect(() => {
     if (artifacts.length === 0) {
@@ -217,10 +219,7 @@ export function MissionArtifactPanel({
                         <span className="truncate">{artifact.agentName}</span>
                         <span>•</span>
                         <time className="tabular-nums">
-                          {formatContextualTimestamp(
-                            artifact.createdAt,
-                            Date.now()
-                          )}
+                          {formatContextualTimestamp(artifact.createdAt, now)}
                         </time>
                       </div>
                     </div>
@@ -248,10 +247,7 @@ export function MissionArtifactPanel({
                   {STATUS_LABEL[selectedArtifact.status]}
                 </Badge>
                 <span className="ml-auto text-[11px] text-muted-foreground tabular-nums">
-                  {formatContextualTimestamp(
-                    selectedArtifact.createdAt,
-                    Date.now()
-                  )}
+                  {formatContextualTimestamp(selectedArtifact.createdAt, now)}
                 </span>
               </div>
 

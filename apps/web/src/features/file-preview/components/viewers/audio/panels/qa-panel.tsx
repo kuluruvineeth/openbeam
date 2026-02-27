@@ -119,10 +119,10 @@ function MessageBubble({
         <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
         {message.timestamps && message.timestamps.length > 0 && (
           <div className="mt-1.5 flex flex-wrap gap-1">
-            {message.timestamps.map((ts, i) => (
+            {message.timestamps.map((ts, _i) => (
               <button
                 className="bg-background/40 px-1.5 py-0.5 font-mono text-[10px] tabular-nums hover:bg-background/60"
-                key={i}
+                key={`ts-${ts}`}
                 onClick={() => onSeek(ts)}
                 type="button"
               >

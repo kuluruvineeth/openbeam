@@ -5,6 +5,7 @@ import {
   toolRegistry,
 } from "@openplane/ai";
 import type { Context } from "hono";
+import { paymentConfig } from "@/lib/payment-config";
 import type { AuthEnv } from "@/middleware/auth";
 import { getTeamId } from "@/middleware/auth";
 
@@ -33,18 +34,25 @@ function buildMCPContext(c: Context<AuthEnv>): MCPServerContext {
   };
 }
 
+let initPromise: Promise<void> | null = null;
+
 async function ensureInitialized(context: MCPServerContext): Promise<void> {
   if (mcpServer.isInitialized()) {
     return;
   }
 
-  const initRequest = createRequest("initialize", {
-    protocolVersion: "2024-11-05",
-    capabilities: { tools: true, resources: true, prompts: true },
-    clientInfo: { name: "openplane-http", version: "1.0.0" },
-  });
+  if (!initPromise) {
+    initPromise = (async () => {
+      const initRequest = createRequest("initialize", {
+        protocolVersion: "2024-11-05",
+        capabilities: { tools: true, resources: true, prompts: true },
+        clientInfo: { name: "openplane-http", version: "1.0.0" },
+      });
+      await mcpServer.handleRequest(initRequest, context);
+    })();
+  }
 
-  await mcpServer.handleRequest(initRequest, context);
+  await initPromise;
 }
 
 export async function listToolsHandler(c: Context<AuthEnv>) {
@@ -80,6 +88,33 @@ export async function callToolHandler(c: Context<AuthEnv>) {
 
   const name = c.req.param("name");
   const body = await c.req.json<{ arguments?: Record<string, unknown> }>();
+
+  if (paymentConfig.enabled) {
+    const toolMeta = toolRegistry.getMetadata(name);
+    const pricing = toolMeta?.pricing;
+
+    if (pricing) {
+      const paymentHeader = c.req.header("X-PAYMENT");
+
+      if (!paymentHeader) {
+        return c.json(
+          {
+            error: "Payment required",
+            paymentDetails: {
+              amount: pricing.amount,
+              currency: pricing.currency,
+              network: pricing.network,
+              payeeAddress: paymentConfig.payeeAddress,
+              facilitatorUrl: paymentConfig.facilitatorUrl,
+              description: pricing.description ?? `Payment for tool: ${name}`,
+            },
+          },
+          402
+        );
+      }
+    }
+  }
+
   const context = buildMCPContext(c);
   await ensureInitialized(context);
 

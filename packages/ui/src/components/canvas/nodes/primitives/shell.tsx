@@ -49,13 +49,15 @@ interface NodeShellProps {
   ariaDescribedBy?: string;
 }
 
+const EMPTY_HANDLES: NodeHandle[] = [];
+
 export const NodeShell = memo(
   forwardRef<HTMLDivElement, NodeShellProps>(function NodeShellComponent(
     {
       children,
       status = "idle",
       className,
-      handles = [],
+      handles = EMPTY_HANDLES,
       selected,
       categoryColor,
       error,

@@ -66,14 +66,23 @@ echo ""
 echo "🔧 Starting services..."
 echo ""
 
-docker-compose up -d
+docker compose up -d
 
 # Wait for services to be healthy
 echo ""
 echo "⏳ Waiting for services to be ready..."
 echo ""
 
-sleep 10
+echo "Waiting for Postgres to accept connections..."
+retries=0
+until docker compose exec -T postgres pg_isready -U postgres > /dev/null 2>&1; do
+  retries=$((retries + 1))
+  if [ "$retries" -ge 30 ]; then
+    echo -e "${RED}Postgres did not become ready in time${NC}"
+    break
+  fi
+  sleep 2
+done
 
 # Health checks
 echo "🏥 Running health checks..."
@@ -81,7 +90,7 @@ echo ""
 
 # Check Postgres
 echo -n "Checking Postgres... "
-if docker-compose exec -T postgres pg_isready -U postgres > /dev/null 2>&1; then
+if docker compose exec -T postgres pg_isready -U postgres > /dev/null 2>&1; then
     echo -e "${GREEN}✓${NC}"
 else
     echo -e "${RED}✗${NC}"
@@ -89,7 +98,7 @@ fi
 
 # Check Redis
 echo -n "Checking Redis... "
-if docker-compose exec -T redis redis-cli PING | grep -q "PONG"; then
+if docker compose exec -T redis redis-cli PING | grep -q "PONG"; then
     echo -e "${GREEN}✓${NC}"
 else
     echo -e "${RED}✗${NC}"
@@ -135,9 +144,9 @@ else
     echo -e "${YELLOW}⚠ Starting${NC}"
 fi
 
-# Check Jaeger
-echo -n "Checking Jaeger... "
-if curl -sf http://localhost:16686 > /dev/null 2>&1; then
+# Check Loki
+echo -n "Checking Loki... "
+if curl -sf http://localhost:3100/ready > /dev/null 2>&1; then
     echo -e "${GREEN}✓${NC}"
 else
     echo -e "${YELLOW}⚠ Starting${NC}"
@@ -153,12 +162,11 @@ echo "  • Docs:        http://localhost:4000"
 echo "  • BullBoard:   http://localhost:3000/admin/queues"
 echo "  • Grafana:     http://localhost:3002 (admin/admin)"
 echo "  • Prometheus:  http://localhost:9090"
-echo "  • Jaeger:      http://localhost:16686"
+echo "  • Loki:        http://localhost:3100"
 echo ""
 echo "📝 Logs:"
-echo "  docker-compose logs -f [service]"
+echo "  docker compose logs -f [service]"
 echo ""
 echo "🛑 Stop:"
-echo "  docker-compose down"
+echo "  docker compose down"
 echo ""
-

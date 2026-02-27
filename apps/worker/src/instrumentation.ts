@@ -1,53 +1,39 @@
 /**
- * OpenTelemetry Instrumentation for Worker
- * MUST be imported before any other modules to ensure proper instrumentation
+ * OpenTelemetry instrumentation for Worker.
+ * Initialized explicitly at worker startup.
  */
 
 import { config } from "dotenv";
 
 config();
 
-import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto";
-import { HttpInstrumentation } from "@opentelemetry/instrumentation-http";
-import { IORedisInstrumentation } from "@opentelemetry/instrumentation-ioredis";
-import { NodeSDK } from "@opentelemetry/sdk-node";
+import { startTracing, stopTracing } from "@openplane/observability";
 import logger from "./utils/logger";
 
-const serviceName = "openplane-worker";
+let initialized = false;
+let tracingEnabled = false;
 
-// Configure OTLP exporter (Jaeger)
-const otlpExporter = new OTLPTraceExporter({
-  url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || "http://localhost:4318",
-});
+export function initializeInstrumentation(): boolean {
+  if (initialized) {
+    return tracingEnabled;
+  }
 
-// Initialize OpenTelemetry SDK
-const sdk = new NodeSDK({
-  serviceName,
-  traceExporter: otlpExporter,
-  instrumentations: [
-    // HTTP instrumentation for outgoing requests (to connectors, Vespa)
-    new HttpInstrumentation({
-      ignoreIncomingRequestHook: (request) => {
-        // Don't trace health checks and metrics endpoints
-        const url = request.url || "";
-        return url.includes("/health") || url.includes("/metrics");
-      },
-    }),
-    new IORedisInstrumentation(),
-  ],
-});
+  tracingEnabled = startTracing({
+    serviceName: "openplane-worker",
+    enabled: process.env.OTEL_ENABLED !== "false",
+    otlpEndpoint: process.env.OTEL_EXPORTER_OTLP_ENDPOINT,
+    ignoreIncomingPaths: ["/health", "/metrics"],
+    logger,
+  }).enabled;
 
-// Start the SDK
-sdk.start();
+  initialized = true;
+  return tracingEnabled;
+}
 
-// Graceful shutdown
-process.on("SIGTERM", () => {
-  sdk
-    .shutdown()
-    .then(() => logger.info({}, "OpenTelemetry SDK shut down successfully"))
-    .catch((error) =>
-      logger.error({ error }, "Error shutting down OpenTelemetry SDK")
-    );
-});
+export function isTracingEnabled(): boolean {
+  return tracingEnabled;
+}
 
-export default sdk;
+export async function shutdownInstrumentation(): Promise<void> {
+  await stopTracing(logger);
+}

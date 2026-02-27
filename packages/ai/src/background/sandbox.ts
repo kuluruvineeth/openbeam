@@ -45,7 +45,7 @@ export interface CodeExecutionResult {
 
 export interface Sandbox {
   readonly id: string;
-  readonly type: "e2b" | "docker" | "local";
+  readonly type: "daytona" | "local";
 
   getInfo(): Promise<SandboxInfo>;
 
@@ -105,7 +105,7 @@ export interface Sandbox {
 
 export interface SandboxProvider {
   readonly name: string;
-  readonly type: "e2b" | "docker" | "local";
+  readonly type: "daytona" | "local";
 
   isAvailable(): Promise<boolean>;
 
@@ -116,4 +116,4 @@ export interface SandboxProvider {
   list(): Promise<SandboxInfo[]>;
 }
 
-export type SandboxType = "e2b" | "docker" | "local";
+export type SandboxType = "daytona" | "local";

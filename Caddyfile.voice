@@ -1,0 +1,7 @@
+voice.openplane.dev {
+    reverse_proxy localhost:7880
+}
+
+turn.openplane.dev {
+    reverse_proxy localhost:5349
+}

@@ -1,0 +1,123 @@
+baseDomain: "daytona.local"
+
+services:
+  api:
+    ingress:
+      enabled: false
+      tls: false
+    env:
+      ENVIRONMENT: "development"
+      SKIP_USER_EMAIL_VERIFICATION: "true"
+      DASHBOARD_URL: "http://localhost:3000/dashboard"
+      DASHBOARD_BASE_API_URL: "http://localhost:3000"
+      RUNNER_MANAGER_API_KEY: "openplane-runner-manager-key"
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+      limits:
+        cpu: "1"
+        memory: 1Gi
+
+  proxy:
+    ingress:
+      enabled: false
+      tls: false
+    env:
+      PROXY_PROTOCOL: "http"
+      PROXY_API_KEY: "openplane-proxy-key"
+    resources:
+      requests:
+        cpu: 100m
+        memory: 64Mi
+      limits:
+        cpu: 300m
+        memory: 256Mi
+
+  sshGateway:
+    enabled: false
+
+  runnermanager:
+    enabled: true
+    env:
+      ENVIRONMENT: "development"
+      PROVIDER_TYPE: "kubernetes"
+      LOG_LEVEL: "debug"
+      POD_WAIT_TIMEOUT: "600"
+      API_TOKEN: "openplane-runner-manager-key"
+      SYSTEM_API_TOKEN: "openplane-system-api-token"
+      API_KEY: "openplane-runner-api-key"
+      REGION_ID: "kind"
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+  runner:
+    enabled: true
+    env:
+      ENVIRONMENT: "development"
+      LOG_LEVEL: "debug"
+      CONTAINER_RUNTIME: "containerd"
+      RESOURCE_LIMITS_DISABLED: "true"
+      SSH_GATEWAY_ENABLE: "false"
+      API_TOKEN: "openplane-runner-api-key"
+      SYSTEM_API_TOKEN: "openplane-system-api-token"
+    dockerInstaller:
+      enabled: false
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: "2"
+        memory: 4Gi
+
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "pass"
+    username: "user"
+    password: "pass"
+    database: "daytona"
+  primary:
+    persistence:
+      enabled: false
+
+redis:
+  enabled: true
+  auth:
+    enabled: false
+  persistence:
+    enabled: false
+  replica:
+    replicaCount: 0
+
+harbor:
+  enabled: true
+  expose:
+    type: clusterIP
+    tls:
+      enabled: false
+  externalURL: "http://daytona-harbor-core.daytona.svc.cluster.local"
+  persistence:
+    enabled: false
+  trivy:
+    enabled: false
+
+minio:
+  enabled: false
+
+pgadmin4:
+  enabled: false
+
+dex:
+  enabled: true
+  ingress:
+    enabled: false
+    tls: false
+  persistence:
+    enabled: false

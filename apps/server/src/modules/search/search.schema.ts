@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@hono/zod-openapi";
 export const errorSchema = z.object({
   error: z.string(),
   details: z.string().optional(),
@@ -83,8 +83,10 @@ export const searchQuerySchema = z.object({
     }),
 });
 
+const searchDocumentSchema = z.record(z.string(), z.unknown());
+
 export const searchResponseSchema = z.object({
-  documents: z.array(z.any()),
+  documents: z.array(searchDocumentSchema),
   total: z.number(),
   limit: z.number(),
   offset: z.number(),
@@ -116,7 +118,7 @@ export const recentQuerySchema = z.object({
 });
 
 export const recentResponseSchema = z.object({
-  documents: z.array(z.any()),
+  documents: z.array(searchDocumentSchema),
   count: z.number(),
 });
 
@@ -133,7 +135,7 @@ export const threadIdParamsSchema = z.object({
 
 export const threadResponseSchema = z.object({
   threadId: z.string(),
-  documents: z.array(z.any()),
+  documents: z.array(searchDocumentSchema),
   count: z.number(),
 });
 
@@ -155,7 +157,7 @@ export const similarQuerySchema = z.object({
 
 export const similarResponseSchema = z.object({
   sourceDocumentId: z.string(),
-  similarDocuments: z.array(z.any()),
+  similarDocuments: z.array(searchDocumentSchema),
   count: z.number(),
 });
 
@@ -177,7 +179,7 @@ export const authorQuerySchema = z.object({
 
 export const authorResponseSchema = z.object({
   authorId: z.string(),
-  documents: z.array(z.any()),
+  documents: z.array(searchDocumentSchema),
   count: z.number(),
 });
 
@@ -227,7 +229,7 @@ export const mediaSearchQuerySchema = z.object({
 });
 
 export const mediaSearchResponseSchema = z.object({
-  media: z.array(z.any()),
+  media: z.array(searchDocumentSchema),
   total: z.number(),
   query: z.string(),
   ranking: z.string(),
@@ -284,8 +286,8 @@ export const unifiedSearchQuerySchema = z.object({
 });
 
 export const unifiedSearchResponseSchema = z.object({
-  documents: z.array(z.any()),
-  media: z.array(z.any()),
+  documents: z.array(searchDocumentSchema),
+  media: z.array(searchDocumentSchema),
   documentTotal: z.number(),
   mediaTotal: z.number(),
   total: z.number(),
@@ -375,7 +377,7 @@ export const hybridSearchQuerySchema = z.object({
 export const hybridSearchResponseSchema = z.object({
   documents: z.array(
     z.object({
-      document: z.any(),
+      document: searchDocumentSchema,
       score: z.number(),
       bm25Rank: z.number().optional(),
       denseRank: z.number().optional(),

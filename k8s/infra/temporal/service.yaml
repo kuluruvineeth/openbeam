@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: temporal
+  namespace: openplane
+spec:
+  selector:
+    app: temporal
+  ports:
+    - port: 7233
+      targetPort: 7233

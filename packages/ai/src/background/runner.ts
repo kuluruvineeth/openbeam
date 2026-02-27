@@ -1,3 +1,12 @@
+import { Buffer } from "node:buffer";
+import { readFile, writeFile } from "node:fs/promises";
+import {
+  getSandboxProvider as getRuntimeSandboxProvider,
+  type Sandbox as RuntimeSandbox,
+  type SandboxInfo as RuntimeSandboxInfo,
+  type SandboxProvider as RuntimeSandboxProvider,
+  type SandboxProviderType,
+} from "@openplane/sandbox";
 import {
   tool as aiTool,
   generateText,
@@ -10,8 +19,6 @@ import type {
   CheckpointService,
   ConversationMessage,
 } from "./checkpoint";
-import { getDockerSandboxProvider } from "./docker-sandbox";
-import { getE2BSandboxProvider } from "./e2b-sandbox";
 import type { Sandbox, SandboxConfig, SandboxProvider } from "./sandbox";
 import type { Worktree, WorktreeManager } from "./worktree";
 
@@ -34,7 +41,7 @@ export interface BackgroundAgentConfig {
   prompt: string;
   preset?: string;
   model: LanguageModel;
-  sandboxType?: "e2b" | "docker" | "local";
+  sandboxType?: "daytona" | "local";
   sandboxConfig?: SandboxConfig;
   worktreeManager?: WorktreeManager;
   checkpointService?: CheckpointService;
@@ -199,6 +206,140 @@ export class BackgroundAgentRunner {
     };
   }
 
+  private getSandboxProviderOrder(): SandboxProviderType[] {
+    if (this.config.sandboxType === "local") {
+      return ["local", "daytona"];
+    }
+    return ["daytona", "local"];
+  }
+
+  private normalizeTimeoutMs(timeout: number | undefined): number {
+    if (!(timeout && Number.isFinite(timeout)) || timeout <= 0) {
+      return 300_000;
+    }
+
+    if (timeout < 1000) {
+      return Math.round(timeout * 1000);
+    }
+
+    return Math.round(timeout);
+  }
+
+  private toRuntimeSandboxConfig(
+    providerType: SandboxProviderType,
+    config: SandboxConfig | undefined
+  ) {
+    return {
+      provider: providerType,
+      template: config?.template ?? "base",
+      timeout: this.normalizeTimeoutMs(config?.timeout),
+      memoryMb: config?.memoryMb ?? 1024,
+      cpuCores: config?.cpuCores ?? 1,
+      diskMb: 10_240,
+      internetAccess: config?.internetAccess ?? true,
+      envVars: config?.envVars,
+      teamId: this.config.teamId,
+    };
+  }
+
+  private toSandboxStatus(
+    status: RuntimeSandboxInfo["status"]
+  ): "running" | "stopped" | "error" {
+    if (status === "error") {
+      return "error";
+    }
+    if (status === "stopped" || status === "stopping") {
+      return "stopped";
+    }
+    return "running";
+  }
+
+  private toSandboxUrl(host: string | undefined): string | undefined {
+    if (!host) {
+      return;
+    }
+
+    if (host.includes("://")) {
+      return host;
+    }
+
+    return `http://${host}`;
+  }
+
+  private adaptSandbox(runtimeSandbox: RuntimeSandbox): Sandbox {
+    return {
+      id: runtimeSandbox.id,
+      type: runtimeSandbox.provider,
+      getInfo: async () => {
+        const info = await runtimeSandbox.getInfo();
+        return {
+          id: info.id,
+          status: this.toSandboxStatus(info.status),
+          startedAt: info.createdAt,
+          expiresAt: info.expiresAt,
+          url: this.toSandboxUrl(info.host),
+        };
+      },
+      setTimeout: async (timeoutMs) => {
+        await runtimeSandbox.setTimeout(timeoutMs);
+      },
+      kill: async () => {
+        await runtimeSandbox.destroy();
+      },
+      files: {
+        read: runtimeSandbox.files.read.bind(runtimeSandbox.files),
+        write: runtimeSandbox.files.write.bind(runtimeSandbox.files),
+        list: async (path) => runtimeSandbox.files.list(path),
+        remove: runtimeSandbox.files.remove.bind(runtimeSandbox.files),
+        exists: runtimeSandbox.files.exists.bind(runtimeSandbox.files),
+        mkdir: runtimeSandbox.files.mkdir.bind(runtimeSandbox.files),
+        upload: async (localPath, remotePath) => {
+          const data = await readFile(localPath);
+          await runtimeSandbox.files.writeBytes(remotePath, data);
+        },
+        download: async (remotePath, localPath) => {
+          const data = await runtimeSandbox.files.readBytes(remotePath);
+          await writeFile(localPath, Buffer.from(data));
+        },
+      },
+      process: {
+        run: runtimeSandbox.commands.run.bind(runtimeSandbox.commands),
+        start: runtimeSandbox.commands.start.bind(runtimeSandbox.commands),
+      },
+      code: runtimeSandbox.code,
+    };
+  }
+
+  private adaptProvider(provider: RuntimeSandboxProvider): SandboxProvider {
+    const providerName = provider.type === "daytona" ? "Daytona" : "Local";
+
+    return {
+      name: providerName,
+      type: provider.type,
+      isAvailable: () => provider.isAvailable(),
+      create: async (config) => {
+        const sandbox = await provider.create(
+          this.toRuntimeSandboxConfig(provider.type, config)
+        );
+        return this.adaptSandbox(sandbox);
+      },
+      connect: async (sandboxId) => {
+        const sandbox = await provider.connect(sandboxId);
+        return this.adaptSandbox(sandbox);
+      },
+      list: async () => {
+        const sandboxes = await provider.list(this.config.teamId);
+        return sandboxes.map((sandbox: RuntimeSandboxInfo) => ({
+          id: sandbox.id,
+          status: this.toSandboxStatus(sandbox.status),
+          startedAt: sandbox.createdAt,
+          expiresAt: sandbox.expiresAt,
+          url: this.toSandboxUrl(sandbox.host),
+        }));
+      },
+    };
+  }
+
   private async initialize(): Promise<void> {
     this.updateStatus("INITIALIZING");
     this.log("info", "Initializing background agent");
@@ -218,27 +359,17 @@ export class BackgroundAgentRunner {
   }
 
   private async getSandboxProvider(): Promise<SandboxProvider | null> {
-    const sandboxType = this.config.sandboxType ?? "e2b";
-
-    if (sandboxType === "e2b") {
+    for (const providerType of this.getSandboxProviderOrder()) {
       try {
-        const provider = getE2BSandboxProvider();
+        const provider = await getRuntimeSandboxProvider({
+          provider: providerType,
+        });
         if (await provider.isAvailable()) {
-          return provider;
+          return this.adaptProvider(provider);
         }
-      } catch {
-        this.log("warn", "E2B not available, falling back to Docker");
-      }
-    }
-
-    if (sandboxType === "docker" || sandboxType === "e2b") {
-      try {
-        const provider = getDockerSandboxProvider();
-        if (await provider.isAvailable()) {
-          return provider;
-        }
-      } catch {
-        this.log("warn", "Docker not available");
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        this.log("warn", `${providerType} provider not available: ${message}`);
       }
     }
 
@@ -297,8 +428,8 @@ export class BackgroundAgentRunner {
 
       const result = await this.executeStep();
 
-      this.totalInputTokens += result.usage?.totalTokens ?? 0;
-      this.totalOutputTokens += result.usage?.totalTokens ?? 0;
+      this.totalInputTokens += result.usage?.promptTokens ?? 0;
+      this.totalOutputTokens += result.usage?.completionTokens ?? 0;
 
       this.state.conversationHistory.push({
         role: "assistant",
@@ -557,16 +688,18 @@ export class BackgroundAgentRunner {
     if (this.sandbox) {
       try {
         await this.sandbox.kill();
-      } catch {
-        // Ignore cleanup errors
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        this.log("warn", `Sandbox cleanup failed: ${message}`);
       }
     }
 
     if (this.worktree && this.status === "FAILED") {
       try {
         await this.worktree.destroy();
-      } catch {
-        // Ignore cleanup errors
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        this.log("warn", `Worktree cleanup failed: ${message}`);
       }
     }
   }

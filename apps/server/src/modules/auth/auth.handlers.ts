@@ -82,7 +82,7 @@ export const callbackHandler: RouteHandler<typeof callbackRoute> = async (
 
   const tokens = await provider.exchangeCode(code, redirectUri);
   const userInfo = await provider.getUserInfo(tokens.accessToken);
-  const userId = await upsertUserFromOAuth(
+  const { userId, teamId } = await upsertUserFromOAuth(
     prisma,
     providerName,
     userInfo,
@@ -95,8 +95,15 @@ export const callbackHandler: RouteHandler<typeof callbackRoute> = async (
   const session = await createSession(prisma, userId, ipAddress, userAgent);
 
   const callbackUrl = new URL(state.callbackUrl);
-  callbackUrl.pathname = "/api/auth/callback";
+  const isHttpScheme =
+    callbackUrl.protocol === "https:" || callbackUrl.protocol === "http:";
+  if (isHttpScheme) {
+    callbackUrl.pathname = "/api/auth/callback";
+  }
   callbackUrl.searchParams.set("token", session.token);
+  if (teamId) {
+    callbackUrl.searchParams.set("team_id", teamId);
+  }
 
   return c.redirect(callbackUrl.toString());
 };
@@ -133,6 +140,7 @@ export const sessionHandler: RouteHandler<typeof sessionRoute> = async (c) => {
       email: session.user.email,
       name: session.user.name,
       image: session.user.image,
+      teamId: session.user.teamId,
     },
   });
 };

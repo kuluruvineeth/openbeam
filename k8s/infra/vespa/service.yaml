@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: vespa
+  namespace: openplane
+spec:
+  selector:
+    app: vespa
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+    - name: config
+      port: 19071
+      targetPort: 19071

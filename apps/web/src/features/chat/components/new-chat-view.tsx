@@ -24,7 +24,12 @@ type Props = {
   favoriteAgents?: FavoriteAgent[];
 };
 
-export function NewChatView({ agent, favoriteAgents = [] }: Props) {
+const EMPTY_FAVORITE_AGENTS: FavoriteAgent[] = [];
+
+export function NewChatView({
+  agent,
+  favoriteAgents = EMPTY_FAVORITE_AGENTS,
+}: Props) {
   const { tab, setTab } = useChatTab();
 
   useHotkeys(

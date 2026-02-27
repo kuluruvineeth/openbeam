@@ -109,6 +109,10 @@ function createContext(overrides?: Partial<ToolContext>): ToolContext {
         listAvailable: mock(() => Promise.reject(new Error("not used"))),
         getCapabilities: mock(() => Promise.reject(new Error("not used"))),
       },
+      workspace: {
+        getSchema: mock(() => Promise.reject(new Error("not used"))),
+        generateSql: mock(() => Promise.reject(new Error("not used"))),
+      },
     },
     ...overrides,
   };

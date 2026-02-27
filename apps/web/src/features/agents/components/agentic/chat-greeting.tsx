@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@openplane/ui/utils";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import Image from "next/image";
 import { useMemo } from "react";
 import { buildSuggestions } from "./chat-suggestions";
@@ -25,7 +25,7 @@ export function ChatGreeting({
         className
       )}
     >
-      <motion.div
+      <m.div
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-col items-center"
         initial={{ opacity: 0, y: 10 }}
@@ -57,7 +57,7 @@ export function ChatGreeting({
 
         <div className="flex w-full max-w-sm flex-col gap-2">
           {suggestions.map((suggestion, index) => (
-            <motion.button
+            <m.button
               animate={{ opacity: 1, y: 0 }}
               className={cn(
                 "group flex items-center gap-3 rounded-md border border-border/50 px-4 py-3 text-left transition-colors",
@@ -75,10 +75,10 @@ export function ChatGreeting({
               <span className="text-foreground text-sm">
                 {suggestion.label}
               </span>
-            </motion.button>
+            </m.button>
           ))}
         </div>
-      </motion.div>
+      </m.div>
     </div>
   );
 }

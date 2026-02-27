@@ -124,8 +124,6 @@ export class TwelveLabsClient {
       );
     }
 
-    // TODO: Switch to TwelveLabs webhook notifications for task completion
-    // to avoid long-running polling. See: https://docs.twelvelabs.io/docs/webhooks
     let taskStatus = await client.tasks.retrieve(task.id);
     while (
       taskStatus.status !== "ready" &&
