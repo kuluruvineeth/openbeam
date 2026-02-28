@@ -1,6 +1,6 @@
 import { z } from "zod";
-import type { AgentClient, AgentProvider } from "./agent.js";
-import type { LocalSpeechProviderConfig } from "./speech.js";
+import type { AgentClient, AgentProvider } from "./agent";
+import type { LocalSpeechProviderConfig } from "./speech";
 
 export const ListenTargetSchema = z.discriminatedUnion("type", [
   z.object({

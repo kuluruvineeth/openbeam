@@ -1,4 +1,4 @@
-import type { ToolCallTimelineItem } from "./agent.js";
+import type { ToolCallTimelineItem } from "./agent";
 
 export type ToolCallDisplayInput = Pick<
   ToolCallTimelineItem,

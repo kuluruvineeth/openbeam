@@ -11,14 +11,14 @@ import type {
   AgentUsage,
   ToolCallDetail,
   ToolCallTimelineItem,
-} from "./agent.js";
-import { AGENT_LIFECYCLE_STATUSES } from "./lifecycle.js";
+} from "./agent";
+import { AGENT_LIFECYCLE_STATUSES } from "./lifecycle";
 import {
   NativeHelperEventSchema,
   NativeHelperMethodSchemas,
   type NativeHelperRpcMethod,
-} from "./native-helper.js";
-import { AgentProviderSchema } from "./provider.js";
+} from "./native-helper";
+import { AgentProviderSchema } from "./provider";
 
 export const AgentStatusSchema = z.enum(AGENT_LIFECYCLE_STATUSES);
 

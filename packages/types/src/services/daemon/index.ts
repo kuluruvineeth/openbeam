@@ -1,5 +1,5 @@
-export * from "./agent.js";
-export * from "./binary.js";
+export * from "./agent";
+export * from "./binary";
 export {
   type AgentProviderRuntimeSettingsMap,
   type AllowedHostsConfig,
@@ -14,13 +14,13 @@ export {
   PidLockInfoSchema,
   parseListenString,
   type SpeechProviderConfig,
-} from "./config.js";
-export * from "./lifecycle.js";
-export * from "./messages.js";
-export * from "./native-helper.js";
-export * from "./provider.js";
-export * from "./relay.js";
-export * from "./speech.js";
-export * from "./terminal.js";
-export * from "./tools.js";
-export * from "./transport.js";
+} from "./config";
+export * from "./lifecycle";
+export * from "./messages";
+export * from "./native-helper";
+export * from "./provider";
+export * from "./relay";
+export * from "./speech";
+export * from "./terminal";
+export * from "./tools";
+export * from "./transport";
