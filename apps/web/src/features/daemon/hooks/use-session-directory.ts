@@ -41,8 +41,12 @@ export function useSessionForServer<T>(
     [baseSelector, selector]
   );
 
-  return useStoreWithEqualityFn(useSessionStore, derivedSelector, equalityFn) as
-    | SessionState
-    | null
-    | T;
+  type Result = SessionState | null | T;
+  return useStoreWithEqualityFn(
+    useSessionStore,
+    derivedSelector as (
+      state: ReturnType<typeof useSessionStore.getState>
+    ) => Result,
+    equalityFn as EqualityFn<Result>
+  ) as Result;
 }

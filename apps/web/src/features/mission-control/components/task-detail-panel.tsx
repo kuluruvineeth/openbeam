@@ -64,7 +64,7 @@ export function TaskDetailPanel({
       setTitle(task.title);
       setDescription(task.description);
     }
-  }, [task?.id, task.description, task]);
+  }, [task?.id, task?.description, task]);
 
   return (
     <Sheet onOpenChange={(open) => !open && onClose()} open={isOpen}>

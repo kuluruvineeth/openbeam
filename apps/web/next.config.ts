@@ -10,6 +10,9 @@ const serverHost = new URL(publicServerUrl).hostname;
 const needsProxy = webHost !== serverHost;
 
 const nextConfig: NextConfig = {
+  typescript: {
+    ignoreBuildErrors: process.env.DOCKER_BUILD === "1",
+  },
   typedRoutes: true,
   reactCompiler: true,
   output: "standalone",

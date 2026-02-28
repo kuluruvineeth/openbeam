@@ -10,10 +10,7 @@ import {
   type FieldPath,
   type FieldValues,
   FormProvider,
-  type UseFormReturn,
-  useForm,
   useFormContext,
-  useWatch,
 } from "react-hook-form";
 import { cn } from "../utils/cn";
 import { Label } from "./label";
@@ -149,12 +146,8 @@ function FormMessage({
   );
 }
 
-export type { UseFormReturn };
 export {
-  useForm,
-  useFormContext,
   useFormField,
-  useWatch,
   Form,
   FormItem,
   FormLabel,

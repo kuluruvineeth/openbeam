@@ -12,12 +12,6 @@ export function ConnectorsHeader() {
   const isSkillsTab = tab === "skills";
   const { data: connectorStats, isLoading: connectorsLoading } =
     useConnectorsStats();
-  const skillsStats: {
-    installedSkills: number;
-    totalSkills: number;
-    marketplaceSkills: number;
-  } | null = null;
-  const skillsLoading = false as const;
 
   return (
     <div className="mb-6">
@@ -31,7 +25,7 @@ export function ConnectorsHeader() {
 
       <div className="mt-4 flex items-center justify-between">
         <ConnectorsTabs />
-        {!(isSkillsTab || connectorsLoading) && connectorStats && (
+        {!connectorsLoading && connectorStats && (
           <div className="hidden items-center gap-6 md:flex">
             <Stat label="Connected" value={connectorStats.totalConnectors} />
             <Stat label="Active" value={connectorStats.activeConnectors} />
@@ -39,13 +33,6 @@ export function ConnectorsHeader() {
               label="Documents"
               value={connectorStats.totalDocuments.toLocaleString()}
             />
-          </div>
-        )}
-        {isSkillsTab && !skillsLoading && skillsStats && (
-          <div className="hidden items-center gap-6 md:flex">
-            <Stat label="Installed" value={skillsStats.installedSkills} />
-            <Stat label="Discovered" value={skillsStats.totalSkills} />
-            <Stat label="Marketplace" value={skillsStats.marketplaceSkills} />
           </div>
         )}
       </div>
