@@ -17,6 +17,7 @@ import {
   useFormContext,
   useWatch,
 } from "@openplane/ui";
+import type { HTMLAttributes } from "react";
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { cn } from "@/lib/utils";
@@ -106,7 +107,7 @@ function FileUploadField({
 
   return (
     <div
-      {...getRootProps()}
+      {...(getRootProps() as HTMLAttributes<HTMLDivElement>)}
       className={cn(
         "relative flex h-[100px] cursor-pointer flex-col items-center justify-center border border-dashed bg-background text-center transition-colors",
         isDragActive && "border-primary bg-primary/5",
