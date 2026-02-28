@@ -2,10 +2,7 @@
 
 import { useQueryState } from "nuqs";
 import { SearchField } from "@/components/search-field";
-import {
-  useConnectorsStats,
-  useSkillsStoreStats,
-} from "@/features/connectors/hooks";
+import { useConnectorsStats } from "@/features/connectors/hooks";
 import { ConnectorsTabs } from "./connectors-tabs";
 
 export function ConnectorsHeader() {
@@ -15,9 +12,12 @@ export function ConnectorsHeader() {
   const isSkillsTab = tab === "skills";
   const { data: connectorStats, isLoading: connectorsLoading } =
     useConnectorsStats();
-  const { data: skillsStats, isLoading: skillsLoading } = useSkillsStoreStats({
-    enabled: isSkillsTab,
-  });
+  const skillsStats: {
+    installedSkills: number;
+    totalSkills: number;
+    marketplaceSkills: number;
+  } | null = null;
+  const skillsLoading = false as const;
 
   return (
     <div className="mb-6">
