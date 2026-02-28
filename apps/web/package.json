@@ -30,6 +30,7 @@
     "@trpc/tanstack-react-query": "^11.5.0",
     "@xyflow/react": "^12.10.0",
     "babel-plugin-react-compiler": "^1.0.0",
+    "cmdk": "^1.1.1",
     "date-fns": "^4.1.0",
     "docx-preview": "^0.3.7",
     "dompurify": "^3.3.1",

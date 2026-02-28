@@ -11,5 +11,6 @@ export default defineConfig({
     "@openplane/redis",
     "@openplane/api",
     "@openplane/storage",
+    "@duckdb/node-bindings",
   ],
 });
