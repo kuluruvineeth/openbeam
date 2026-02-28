@@ -32,6 +32,13 @@ COPY --from=deps /app/bun.lock ./bun.lock
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/packages ./packages
 COPY --from=builder /app/apps/worker ./apps/worker
+RUN for dir in node_modules/@openplane/*/; do \
+      name=$(basename "$dir"); \
+      if [ -d "packages/$name" ]; then \
+        rm -rf "node_modules/@openplane/$name" && \
+        ln -s "../../packages/$name" "node_modules/@openplane/$name"; \
+      fi; \
+    done
 RUN chown -R nodejs:nodejs /app
 WORKDIR /app/apps/worker
 USER nodejs
