@@ -89,3 +89,21 @@ bunfig.toml
 # K8s and Claude config
 k8s/
 .claude/
+
+# Engine (Python service, has its own Dockerfile/context)
+apps/engine/.venv/
+apps/engine/.mypy_cache/
+apps/engine/.hypothesis/
+apps/engine/.pytest_cache/
+apps/engine/.ruff_cache/
+apps/engine/logs/
+apps/engine/k8s/
+
+# Other large artifacts
+*.tar
+*.tar.gz
+*.zip
+deployment_plan.md
+references/
+docs/
+.docker-build/

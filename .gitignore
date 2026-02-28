@@ -105,3 +105,4 @@ agents_engine_core/
 !docs/observability/*.md
 !docs/observability/runbooks/
 !docs/observability/runbooks/*.md
+.docker-build/

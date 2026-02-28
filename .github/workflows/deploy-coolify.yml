@@ -1,0 +1,289 @@
+name: Build & Deploy to Coolify
+
+on:
+  push:
+    branches: [dev, main]
+  workflow_dispatch:
+    inputs:
+      services:
+        description: 'Services to build (comma-separated or "all")'
+        required: true
+        default: "all"
+        type: string
+      rebuild_base:
+        description: 'Force rebuild base image'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: deploy-coolify-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/kuluruvineeth/openplane
+
+jobs:
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      has_changes: ${{ steps.set-matrix.outputs.has_changes }}
+      base_changed: ${{ steps.set-matrix.outputs.base_changed }}
+      image_tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set image tag
+        id: tag
+        run: echo "tag=${{ github.sha }}" >> $GITHUB_OUTPUT
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        if: github.event_name == 'push'
+        with:
+          filters: |
+            base:
+              - 'Dockerfile.base'
+            server:
+              - 'apps/server/**'
+              - 'packages/api/**'
+              - 'packages/auth/**'
+              - 'packages/db/**'
+              - 'packages/redis/**'
+              - 'apps/server/Dockerfile'
+              - 'package.json'
+              - 'bun.lock'
+            web:
+              - 'apps/web/**'
+              - 'packages/api/**'
+              - 'packages/auth/**'
+              - 'packages/db/**'
+              - 'packages/integrations/**'
+              - 'apps/web/Dockerfile'
+              - 'package.json'
+              - 'bun.lock'
+            worker:
+              - 'apps/worker/**'
+              - 'packages/redis/**'
+              - 'packages/db/**'
+              - 'packages/vespa/**'
+              - 'packages/temporal/**'
+              - 'apps/worker/Dockerfile'
+              - 'package.json'
+              - 'bun.lock'
+            engine:
+              - 'apps/engine/**'
+            configs:
+              - 'monitoring/**'
+              - 'temporal/dynamicconfig/**'
+              - 'packages/vespa/application/**'
+
+      - name: Build matrix
+        id: set-matrix
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            INPUT="${{ inputs.services }}"
+            if [[ "$INPUT" == "all" ]]; then
+              MATRIX='["server","web","worker","engine"]'
+            else
+              MATRIX=$(echo "[\"${INPUT//,/\",\"}\"]")
+            fi
+            echo "matrix={\"service\":$MATRIX}" >> $GITHUB_OUTPUT
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "base_changed=${{ inputs.rebuild_base }}" >> $GITHUB_OUTPUT
+          else
+            MATRIX="[]"
+            HAS_CHANGES="false"
+            BASE_CHANGED="${{ steps.filter.outputs.base }}"
+            [[ "${{ steps.filter.outputs.server }}" == "true" || "$BASE_CHANGED" == "true" ]] && MATRIX=$(echo "$MATRIX" | jq '. + ["server"]') && HAS_CHANGES="true"
+            [[ "${{ steps.filter.outputs.web }}" == "true" || "$BASE_CHANGED" == "true" ]] && MATRIX=$(echo "$MATRIX" | jq '. + ["web"]') && HAS_CHANGES="true"
+            [[ "${{ steps.filter.outputs.worker }}" == "true" || "$BASE_CHANGED" == "true" ]] && MATRIX=$(echo "$MATRIX" | jq '. + ["worker"]') && HAS_CHANGES="true"
+            [[ "${{ steps.filter.outputs.engine }}" == "true" ]] && MATRIX=$(echo "$MATRIX" | jq '. + ["engine"]') && HAS_CHANGES="true"
+            echo "matrix={\"service\":$(echo "$MATRIX" | jq -c .)}" >> $GITHUB_OUTPUT
+            echo "has_changes=$HAS_CHANGES" >> $GITHUB_OUTPUT
+            echo "base_changed=$BASE_CHANGED" >> $GITHUB_OUTPUT
+          fi
+
+  build-base:
+    name: Build Base Image
+    needs: changes
+    if: needs.changes.outputs.base_changed == 'true' || (github.event_name == 'workflow_dispatch' && inputs.rebuild_base)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push base image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile.base
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-base:latest
+            ${{ env.IMAGE_PREFIX }}-base:${{ needs.changes.outputs.image_tag }}
+          platforms: linux/amd64
+          cache-from: type=gha,scope=base
+          cache-to: type=gha,mode=max,scope=base
+          provenance: false
+
+  build:
+    name: Build ${{ matrix.service }}
+    needs: [changes, build-base]
+    if: |
+      always() &&
+      needs.changes.outputs.has_changes == 'true' &&
+      (needs.build-base.result == 'success' || needs.build-base.result == 'skipped')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.changes.outputs.matrix) }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure npm registry for HugeIcons Pro
+        run: |
+          echo "@hugeicons-pro:registry=https://npm.hugeicons.com/" > .npmrc
+          echo "//npm.hugeicons.com/:_authToken=${{ secrets.HUGEICONS_PRO_AUTH_TOKEN }}" >> .npmrc
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Determine Dockerfile
+        id: dockerfile
+        run: |
+          if [[ "${{ matrix.service }}" == "engine" ]]; then
+            echo "path=./apps/engine/Dockerfile.cpu" >> $GITHUB_OUTPUT
+            echo "context=./apps/engine" >> $GITHUB_OUTPUT
+          elif [[ -f "./apps/${{ matrix.service }}/Dockerfile" ]]; then
+            echo "path=./apps/${{ matrix.service }}/Dockerfile" >> $GITHUB_OUTPUT
+            echo "context=." >> $GITHUB_OUTPUT
+          else
+            echo "path=./Dockerfile.${{ matrix.service }}" >> $GITHUB_OUTPUT
+            echo "context=." >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ steps.dockerfile.outputs.context }}
+          file: ${{ steps.dockerfile.outputs.path }}
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-${{ matrix.service }}:${{ needs.changes.outputs.image_tag }}
+            ${{ env.IMAGE_PREFIX }}-${{ matrix.service }}:latest
+          platforms: linux/amd64
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
+          provenance: false
+          build-args: |
+            NEXT_PUBLIC_SERVER_URL=${{ vars.NEXT_PUBLIC_SERVER_URL || 'https://api.openplane.tech' }}
+            HUGEICONS_PRO_AUTH_TOKEN=${{ secrets.HUGEICONS_PRO_AUTH_TOKEN }}
+
+  deploy:
+    name: Deploy ${{ matrix.service }}
+    needs: [changes, build]
+    if: needs.build.result == 'success'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.changes.outputs.matrix) }}
+
+    steps:
+      - name: Trigger Coolify deploy
+        run: |
+          SERVICE=$(echo "${{ matrix.service }}" | tr '[:lower:]' '[:upper:]')
+          WEBHOOK_VAR="COOLIFY_WEBHOOK_${SERVICE}"
+          WEBHOOK="${!WEBHOOK_VAR:-${{ secrets.COOLIFY_WEBHOOK_INFRA }}}"
+
+          if [[ -z "$WEBHOOK" ]]; then
+            echo "::warning::No webhook configured for ${{ matrix.service }}. Skipping deploy."
+            exit 0
+          fi
+
+          echo "Triggering Coolify redeploy for ${{ matrix.service }}..."
+          HTTP_CODE=$(curl -s -o /tmp/response.txt -w '%{http_code}' \
+            --request GET "$WEBHOOK" \
+            --header "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}")
+
+          cat /tmp/response.txt
+          echo ""
+
+          if [[ "$HTTP_CODE" -ge 200 && "$HTTP_CODE" -lt 300 ]]; then
+            echo "Deploy triggered successfully (HTTP $HTTP_CODE)"
+          else
+            echo "::error::Deploy failed with HTTP $HTTP_CODE"
+            exit 1
+          fi
+
+  sync-configs:
+    name: Sync Config Files
+    needs: changes
+    if: >
+      github.event_name == 'push' &&
+      contains(needs.changes.outputs.matrix, 'configs') == false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check if configs changed
+        uses: dorny/paths-filter@v3
+        id: config-check
+        with:
+          filters: |
+            configs:
+              - 'monitoring/**'
+              - 'temporal/dynamicconfig/**'
+              - 'packages/vespa/application/**'
+
+      - name: Sync configs to server
+        if: steps.config-check.outputs.configs == 'true'
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.HETZNER_SSH_KEY }}
+          SERVER_IP: ${{ secrets.HETZNER_SERVER_IP }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$SERVER_IP" >> ~/.ssh/known_hosts 2>/dev/null
+
+          DATA="/mnt/openplane-data"
+
+          scp monitoring/prometheus/*.yml "root@$SERVER_IP:$DATA/configs/prometheus/"
+          scp monitoring/grafana/provisioning/datasources/datasource.yml "root@$SERVER_IP:$DATA/configs/grafana/provisioning/datasources/"
+          scp monitoring/grafana/provisioning/dashboards/dashboard.yml "root@$SERVER_IP:$DATA/configs/grafana/provisioning/dashboards/"
+          scp monitoring/grafana/dashboards/*.json "root@$SERVER_IP:$DATA/configs/grafana/dashboards/"
+          scp monitoring/loki/loki-config.yml "root@$SERVER_IP:$DATA/configs/loki/"
+          scp monitoring/promtail/promtail-config.yml "root@$SERVER_IP:$DATA/configs/promtail/"
+          scp temporal/dynamicconfig/development.yaml "root@$SERVER_IP:$DATA/configs/temporal/dynamicconfig/"
+
+          ssh "root@$SERVER_IP" 'docker restart openplane-prometheus openplane-grafana openplane-loki openplane-promtail 2>/dev/null || true'
+          echo "Config sync complete"
