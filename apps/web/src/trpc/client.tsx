@@ -13,7 +13,7 @@ import {
 } from "@trpc/client";
 import { createTRPCContext } from "@trpc/tanstack-react-query";
 import superjson from "superjson";
-import { trpcSubscriptionUrl, trpcUrl } from "@/lib/urls";
+import { ssrTrpcUrl, trpcSubscriptionUrl, trpcUrl } from "@/lib/urls";
 import { makeQueryClient } from "@/trpc/query-client";
 
 export const { TRPCProvider, useTRPC } = createTRPCContext<AppRouter>();
@@ -49,7 +49,7 @@ function createVanillaClient(): TRPCClient<AppRouter> {
           }),
         }),
         false: httpBatchLink({
-          url: trpcUrl,
+          url: isServer ? ssrTrpcUrl : trpcUrl,
           transformer: superjson,
           fetch: (url, opts) => fetch(url, { ...opts, credentials: "include" }),
         }),
