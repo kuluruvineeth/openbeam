@@ -214,6 +214,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Pull latest images on server
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.HETZNER_SSH_KEY }}
+          SERVER_IP: ${{ secrets.HETZNER_SERVER_IP }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$SERVER_IP" >> ~/.ssh/known_hosts 2>/dev/null
+
+          SERVICES="${{ join(fromJson(needs.changes.outputs.matrix).service, ' ') }}"
+          echo "Pulling latest images for: $SERVICES"
+          for svc in $SERVICES; do
+            echo "Pulling ghcr.io/kuluruvineeth/openplane-${svc}:latest..."
+            ssh -o ServerAliveInterval=30 "root@$SERVER_IP" \
+              "docker pull ghcr.io/kuluruvineeth/openplane-${svc}:latest" || true
+          done
+
       - name: Trigger Coolify deploy
         run: |
           echo "Triggering Coolify redeploy for apps compose stack..."
