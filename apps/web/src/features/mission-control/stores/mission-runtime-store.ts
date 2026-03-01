@@ -978,7 +978,13 @@ export const useMissionRuntimeStore = create<MissionRuntimeStore>(
     },
 
     replayFromCursor: (runId, events) => {
+      if (events.length === 0) {
+        return;
+      }
       set((state) => {
+        if ((state.eventsByRun[runId]?.length ?? 0) > 0) {
+          return state;
+        }
         const orderedEvents = sortEventsChronologically(events);
         let board = { ...state.agentBoardState };
         const nameIndex = { ...state.agentNameIndex };
@@ -1028,6 +1034,7 @@ export const useMissionRuntimeStore = create<MissionRuntimeStore>(
 
     seedAgentBoard: (agents) => {
       set((state) => {
+        let changed = false;
         const board = { ...state.agentBoardState };
         const nameIndex = { ...state.agentNameIndex };
         for (const agent of agents) {
@@ -1041,9 +1048,14 @@ export const useMissionRuntimeStore = create<MissionRuntimeStore>(
             if (normalizedName) {
               nameIndex[normalizedName] = agent.id;
             }
+            changed = true;
           } else if (!board[agent.id].role && agent.role) {
             board[agent.id] = { ...board[agent.id], role: agent.role };
+            changed = true;
           }
+        }
+        if (!changed) {
+          return state;
         }
         return { agentBoardState: board, agentNameIndex: nameIndex };
       });
@@ -1147,16 +1159,38 @@ export const useRunningAgentCount = () =>
         .length
   );
 
+const EMPTY_AGENT_NAME_MAP: Record<
+  string,
+  { agentName: string; role?: string }
+> = {};
+
+let _prevAgentNameMapKey = "";
+let _prevAgentNameMap = EMPTY_AGENT_NAME_MAP;
+
 export const useAgentNameMap = () =>
-  useMissionRuntimeStore(
-    useShallow((state) => {
-      const result: Record<string, { agentName: string; role?: string }> = {};
-      for (const [id, lane] of Object.entries(state.agentBoardState)) {
-        result[id] = { agentName: lane.agentName, role: lane.role };
-      }
-      return result;
-    })
-  );
+  useMissionRuntimeStore((state) => {
+    const board = state.agentBoardState;
+    const ids = Object.keys(board);
+    if (ids.length === 0) {
+      return EMPTY_AGENT_NAME_MAP;
+    }
+
+    const key = ids
+      .map((id) => `${id}:${board[id].agentName}:${board[id].role ?? ""}`)
+      .join("|");
+
+    if (key === _prevAgentNameMapKey) {
+      return _prevAgentNameMap;
+    }
+
+    const result: Record<string, { agentName: string; role?: string }> = {};
+    for (const id of ids) {
+      result[id] = { agentName: board[id].agentName, role: board[id].role };
+    }
+    _prevAgentNameMapKey = key;
+    _prevAgentNameMap = result;
+    return result;
+  });
 
 export const useApprovalQueue = () =>
   useMissionRuntimeStore((state) => state.approvalQueue);
@@ -1188,16 +1222,23 @@ export const useReflectionHistory = (agentId: string) =>
     (state) => state.reflectionHistory[agentId] ?? EMPTY_REFLECTIONS
   );
 
+let _prevReflectionCount = 0;
+let _prevAllReflections = EMPTY_ALL_REFLECTIONS;
+
 export const useAllReflections = () =>
-  useMissionRuntimeStore(
-    useShallow((state) => {
-      const entries = Object.values(state.reflectionHistory).flat();
-      if (entries.length === 0) {
-        return EMPTY_ALL_REFLECTIONS;
-      }
-      return entries.sort((a, b) => a.timestamp - b.timestamp);
-    })
-  );
+  useMissionRuntimeStore((state) => {
+    const entries = Object.values(state.reflectionHistory).flat();
+    if (entries.length === 0) {
+      return EMPTY_ALL_REFLECTIONS;
+    }
+    if (entries.length === _prevReflectionCount) {
+      return _prevAllReflections;
+    }
+
+    _prevReflectionCount = entries.length;
+    _prevAllReflections = entries.sort((a, b) => a.timestamp - b.timestamp);
+    return _prevAllReflections;
+  });
 
 export const useHealthSnapshot = () =>
   useMissionRuntimeStore((state) => state.healthSnapshot);

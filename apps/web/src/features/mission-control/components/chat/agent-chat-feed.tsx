@@ -3,7 +3,7 @@
 import { AgentMarkdown, Icons, Markdown, ScrollArea } from "@openplane/ui";
 import { cva } from "class-variance-authority";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo, useRef } from "react";
 import { useNow } from "@/lib/hooks/use-now";
 import { cn } from "@/lib/utils";
 import {
@@ -344,9 +344,13 @@ export function AgentChatFeed({
     [events, messages, reflections, selectedAgentId, agentBoard]
   );
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  });
+  const prevEntryCountRef = useRef(0);
+  if (entries.length !== prevEntryCountRef.current) {
+    prevEntryCountRef.current = entries.length;
+    queueMicrotask(() => {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    });
+  }
 
   if (entries.length === 0) {
     return (
