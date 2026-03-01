@@ -23,10 +23,6 @@ const nextConfig: NextConfig = {
   rewrites: needsProxy
     ? () => [
         {
-          source: "/api/trpc/:path*",
-          destination: `${internalServerUrl}/trpc/:path*`,
-        },
-        {
           source: "/integrations/:path*",
           destination: `${internalServerUrl}/integrations/:path*`,
         },
