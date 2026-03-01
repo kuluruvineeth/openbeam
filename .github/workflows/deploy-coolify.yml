@@ -208,29 +208,17 @@ jobs:
             HUGEICONS_PRO_AUTH_TOKEN=${{ secrets.HUGEICONS_PRO_AUTH_TOKEN }}
 
   deploy:
-    name: Deploy ${{ matrix.service }}
+    name: Deploy Apps Stack
     needs: [changes, build]
     if: needs.build.result == 'success'
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJson(needs.changes.outputs.matrix) }}
 
     steps:
       - name: Trigger Coolify deploy
         run: |
-          SERVICE=$(echo "${{ matrix.service }}" | tr '[:lower:]' '[:upper:]')
-          WEBHOOK_VAR="COOLIFY_WEBHOOK_${SERVICE}"
-          WEBHOOK="${!WEBHOOK_VAR:-${{ secrets.COOLIFY_WEBHOOK_INFRA }}}"
-
-          if [[ -z "$WEBHOOK" ]]; then
-            echo "::warning::No webhook configured for ${{ matrix.service }}. Skipping deploy."
-            exit 0
-          fi
-
-          echo "Triggering Coolify redeploy for ${{ matrix.service }}..."
+          echo "Triggering Coolify redeploy for apps compose stack..."
           HTTP_CODE=$(curl -s -o /tmp/response.txt -w '%{http_code}' \
-            --request GET "$WEBHOOK" \
+            --request GET "${{ secrets.COOLIFY_WEBHOOK_APPS }}" \
             --header "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}")
 
           cat /tmp/response.txt
