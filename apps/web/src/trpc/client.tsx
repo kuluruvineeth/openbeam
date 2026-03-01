@@ -31,6 +31,16 @@ function getQueryClient() {
   return browserQueryClient;
 }
 
+async function getSSRHeaders(): Promise<Record<string, string>> {
+  if (!isServer) {
+    return {};
+  }
+  const { headers } = await import("next/headers");
+  const headersList = await headers();
+  const cookie = headersList.get("cookie");
+  return cookie ? { cookie } : {};
+}
+
 function createVanillaClient(): TRPCClient<AppRouter> {
   return createTRPCClient<AppRouter>({
     links: [
@@ -51,6 +61,7 @@ function createVanillaClient(): TRPCClient<AppRouter> {
         false: httpBatchLink({
           url: isServer ? ssrTrpcUrl : trpcUrl,
           transformer: superjson,
+          headers: getSSRHeaders,
           fetch: (url, opts) => fetch(url, { ...opts, credentials: "include" }),
         }),
       }),

@@ -3,7 +3,7 @@ import { ErrorBoundary } from "next/dist/client/components/error-boundary";
 import { notFound } from "next/navigation";
 import { ErrorFallback } from "@/components/error-fallback";
 import { AgenticView } from "@/features/agents";
-import { HydrateClient } from "@/trpc/server";
+import { batchPrefetch, HydrateClient, trpc } from "@/trpc/server";
 
 interface AgentPageProps {
   params: Promise<{ id: string }>;
@@ -25,6 +25,12 @@ export default async function AgentPage({ params }: AgentPageProps) {
   if (!id) {
     notFound();
   }
+
+  batchPrefetch([
+    trpc.agentCanvas.get.queryOptions({ canvasId: id }),
+    trpc.agentCanvas.listExecutions.queryOptions({ canvasId: id }),
+    trpc.agentCanvas.listTools.queryOptions(),
+  ]);
 
   return (
     <HydrateClient>
