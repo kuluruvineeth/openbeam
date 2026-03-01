@@ -58,15 +58,13 @@ export function useMissionEventStream({
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const ingestBatch = useMissionRuntimeStore((s) => s.ingestBatch);
-
   const flushPendingEvents = useCallback(() => {
     const batch = pendingEventsRef.current.splice(0);
     if (batch.length > 0) {
-      ingestBatch(runId, batch);
+      useMissionRuntimeStore.getState().ingestBatch(runId, batch);
     }
     rafIdRef.current = null;
-  }, [ingestBatch, runId]);
+  }, [runId]);
 
   const enqueueEvent = useCallback(
     (payload: MissionEventPayload) => {

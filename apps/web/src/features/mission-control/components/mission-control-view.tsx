@@ -11,6 +11,7 @@ import {
 } from "../lib/artifact-summary";
 import {
   useApprovalQueue,
+  useMissionEvents,
   useMissionRuntimeStore,
   useSelectedApprovalIds,
 } from "../stores/mission-runtime-store";
@@ -52,7 +53,7 @@ export function MissionControlView({
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<TabId>("timeline");
-  const events = useMissionRuntimeStore((s) => s.eventsByRun[runId] ?? []);
+  const events = useMissionEvents(runId);
   const agentBoard = useMissionRuntimeStore((s) => s.agentBoardState);
   const approvals = useApprovalQueue();
   const selectedApprovalIds = useSelectedApprovalIds();
