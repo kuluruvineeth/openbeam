@@ -42,7 +42,7 @@
   "devDependencies": {
     "tsdown": "catalog:",
     "@openplane/config": "workspace:*",
-    "@temporalio/testing": "^1.12.2",
+    "@temporalio/testing": "~1.15.0",
     "@types/bun": "latest"
   },
   "peerDependencies": {
@@ -61,11 +61,11 @@
     "@openplane/types": "workspace:*",
     "@openplane/vespa": "workspace:*",
     "@opentelemetry/api": "^1.9.0",
-    "@temporalio/activity": "^1.12.2",
-    "@temporalio/client": "^1.12.2",
-    "@temporalio/common": "^1.12.2",
-    "@temporalio/worker": "^1.12.2",
-    "@temporalio/workflow": "^1.12.2",
+    "@temporalio/activity": "~1.15.0",
+    "@temporalio/client": "~1.15.0",
+    "@temporalio/common": "~1.15.0",
+    "@temporalio/worker": "~1.15.0",
+    "@temporalio/workflow": "~1.15.0",
     "generic-pool": "^3.9.0",
     "prom-client": "^15.1.3",
     "zod": "catalog:"
