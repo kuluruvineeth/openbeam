@@ -21,6 +21,7 @@ const icons: Record<string, () => React.ReactElement> = {
   "/": () => <Icons.Plus size={20} />,
   "/connectors": () => <Icons.ConnectorIcon size={20} />,
   "/search": () => <Icons.Search size={20} />,
+  "/agents": () => <Icons.Agents size={20} />,
 } as const;
 
 const items: MenuItems = [
@@ -35,6 +36,10 @@ const items: MenuItems = [
   {
     path: "/search",
     name: "Search",
+  },
+  {
+    path: "/agents",
+    name: "Agents",
   },
 ] as const;
 
