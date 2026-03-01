@@ -2,6 +2,7 @@
 
 import type { MissionEventLedgerItem } from "@openplane/types/mission-control";
 import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { useTRPC } from "@/trpc/client";
 import { normalizeMissionEventType } from "../lib/event-type-normalization";
 import { MissionDetailShell } from "./mission-detail-shell";
@@ -42,73 +43,86 @@ export function MissionDetailLoader({ missionId }: MissionDetailLoaderProps) {
     refetchInterval: activityRefetchInterval,
   });
 
-  if (missionLoading || activityLoading || !mission) {
+  const agents = useMemo(
+    () =>
+      (mission?.agents ?? []).map((a) => ({
+        id: a.id,
+        name: a.name,
+        role: a.role,
+        status: a.agent?.status ?? "IDLE",
+      })),
+    [mission?.agents]
+  );
+
+  const missionProps = useMemo(
+    () =>
+      mission
+        ? {
+            id: mission.id,
+            name: mission.name,
+            objective: mission.objective,
+            status: mission.status,
+            lane: "autonomous" as const,
+            runId: mission.runId ?? "",
+            workflowId: mission.workflowId,
+            budgetCents: mission.budgetCents,
+            consumedCents: mission.consumedCents,
+            maxConcurrentRuns: mission.maxConcurrentRuns,
+            createdAt: mission.createdAt,
+            updatedAt: mission.updatedAt,
+          }
+        : null,
+    [mission]
+  );
+
+  const initialActivity: MissionEventLedgerItem[] = useMemo(() => {
+    if (!(mission && activityData?.items)) {
+      return [];
+    }
+
+    const agentNameMap = new Map(agents.map((a) => [a.id, a.name]));
+    const runId = mission.runId ?? "";
+
+    return [...activityData.items]
+      .sort((a, b) => {
+        const timeDiff =
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        return timeDiff !== 0 ? timeDiff : a.id.localeCompare(b.id);
+      })
+      .map((item, index) => {
+        const eventType = normalizeMissionEventType(item.type);
+        const meta = (item.metadata as Record<string, unknown>) ?? {};
+        const agentName =
+          (meta.agentName as string | undefined) ??
+          (item.agentId ? agentNameMap.get(item.agentId) : undefined);
+
+        return {
+          eventId: item.id,
+          missionId,
+          runId,
+          lane: "autonomous" as const,
+          sequence: index + 1,
+          eventType,
+          agentName,
+          summary: item.message,
+          timestamp: new Date(item.createdAt).getTime(),
+          payload: {
+            ...meta,
+            ...(item.agentId ? { agentId: item.agentId } : {}),
+          },
+        };
+      });
+  }, [missionId, mission, activityData?.items, agents]);
+
+  if (missionLoading || activityLoading || !mission || !missionProps) {
     return <MissionDetailSkeleton />;
   }
-
-  const agents = (mission.agents ?? []).map((a) => ({
-    id: a.id,
-    name: a.name,
-    role: a.role,
-    status: a.agent?.status ?? "IDLE",
-  }));
-
-  const agentNameMap = new Map(agents.map((a) => [a.id, a.name]));
-
-  const sortedActivityItems = [...(activityData?.items ?? [])].sort((a, b) => {
-    const timeDiff =
-      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-    if (timeDiff !== 0) {
-      return timeDiff;
-    }
-
-    return a.id.localeCompare(b.id);
-  });
-
-  const initialActivity: MissionEventLedgerItem[] = sortedActivityItems.map(
-    (item, index) => {
-      const eventType = normalizeMissionEventType(item.type);
-      const meta = (item.metadata as Record<string, unknown>) ?? {};
-      const agentName =
-        (meta.agentName as string | undefined) ??
-        (item.agentId ? agentNameMap.get(item.agentId) : undefined);
-
-      return {
-        eventId: item.id,
-        missionId,
-        runId: mission.runId ?? "",
-        lane: "autonomous" as const,
-        sequence: index + 1,
-        eventType,
-        agentName,
-        summary: item.message,
-        timestamp: new Date(item.createdAt).getTime(),
-        payload: {
-          ...meta,
-          ...(item.agentId ? { agentId: item.agentId } : {}),
-        },
-      };
-    }
-  );
 
   return (
     <MissionDetailShell
       initialActivity={initialActivity}
       initialAgents={agents}
-      mission={{
-        id: mission.id,
-        name: mission.name,
-        objective: mission.objective,
-        status: mission.status,
-        lane: "autonomous",
-        runId: mission.runId ?? "",
-        workflowId: mission.workflowId,
-        budgetCents: mission.budgetCents,
-        consumedCents: mission.consumedCents,
-        maxConcurrentRuns: mission.maxConcurrentRuns,
-        createdAt: mission.createdAt,
-        updatedAt: mission.updatedAt,
-      }}
+      mission={missionProps}
     />
   );
 }
