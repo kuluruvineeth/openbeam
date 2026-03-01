@@ -72,3 +72,4 @@ async function proxy(req: NextRequest): Promise<Response> {
 
 export const GET = proxy;
 export const POST = proxy;
+export const dynamic = "force-dynamic";
