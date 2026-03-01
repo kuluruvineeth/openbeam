@@ -3,7 +3,8 @@ import {
   type ExecutionTrace,
   ParallelMapNodeConfigSchema,
 } from "@openplane/types/canvas";
-import { ApplicationFailure, sleep, workflowInfo } from "@temporalio/workflow";
+import { ApplicationFailure, sleep } from "@temporalio/workflow";
+import { currentTimestamp } from "../../temporal-utils";
 
 import {
   buildCompletedStep,
@@ -45,7 +46,7 @@ export interface ParallelMapResult {
 }
 
 function getTimestamp(): number {
-  return workflowInfo().unsafe.now();
+  return currentTimestamp();
 }
 
 type ParallelMapItemResult =

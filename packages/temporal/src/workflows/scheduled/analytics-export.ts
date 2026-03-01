@@ -10,6 +10,7 @@ import {
   workflowInfo,
 } from "@temporalio/workflow";
 import type { AnalyticsExportActivities } from "../../activities/analytics/types";
+import { currentTimestamp } from "../temporal-utils";
 import { progressQuery, type SyncState } from "../types";
 
 const analyticsActivities = proxyActivities<AnalyticsExportActivities>({
@@ -53,7 +54,7 @@ export async function analyticsExportWorkflow(
   const { teamId, exportType, startDate, endDate } = input;
 
   const isAllTeams = !teamId || teamId === "__all__";
-  const nowMs = workflowInfo().unsafe.now();
+  const nowMs = currentTimestamp();
   const exportDate =
     exportType === "daily"
       ? getYesterdayDateFromTimestamp(nowMs)

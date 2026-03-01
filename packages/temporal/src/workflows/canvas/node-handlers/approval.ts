@@ -1,7 +1,8 @@
 import type { ExecutionPlanNode } from "@openplane/types/canvas";
 import { ApprovalNodeConfigSchema } from "@openplane/types/canvas";
 import type { CanvasApprovalSignalPayload } from "@openplane/types/temporal";
-import { condition, workflowInfo } from "@temporalio/workflow";
+import { condition } from "@temporalio/workflow";
+import { currentTimestamp } from "../../temporal-utils";
 import {
   buildWaitingStep,
   updateTraceForInput,
@@ -13,7 +14,7 @@ import { resolveNodeConfig } from "../utils/type-guards";
 import type { NodeExecutionResult, NodeHandlerContext } from "./types";
 
 function getTimestamp(): number {
-  return workflowInfo().unsafe.now();
+  return currentTimestamp();
 }
 
 async function waitForApprovalResponse(params: {

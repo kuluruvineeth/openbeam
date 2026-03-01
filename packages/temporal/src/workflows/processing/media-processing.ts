@@ -6,12 +6,12 @@ import {
   executeChild,
   proxyActivities,
   setHandler,
-  workflowInfo,
 } from "@temporalio/workflow";
 import type { EngineActivities } from "../../activities/engine/types";
 import type { MediaActivities } from "../../activities/media/types";
 import type { StorageActivities } from "../../activities/storage/types";
 import { generateWorkflowId } from "../../utils/workflow-id";
+import { currentTimestamp } from "../temporal-utils";
 import { progressQuery, type SyncState } from "../types";
 import { indexDocumentsWorkflow } from "./index-documents";
 
@@ -101,7 +101,7 @@ export async function mediaProcessingWorkflow(
     workflowId: generateWorkflowId({
       type: "index",
       connectorId: input.connectorId,
-      timestamp: workflowInfo().unsafe.now(),
+      timestamp: currentTimestamp(),
     }),
   });
 

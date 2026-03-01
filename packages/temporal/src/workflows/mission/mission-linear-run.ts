@@ -2,12 +2,9 @@ import {
   MissionLinearRunInputSchema,
   type MissionLinearRunOutput,
 } from "@openplane/types/temporal/mission";
-import {
-  proxyActivities,
-  setHandler,
-  workflowInfo,
-} from "@temporalio/workflow";
+import { proxyActivities, setHandler } from "@temporalio/workflow";
 import type { MissionActivities } from "../../activities/mission/types";
+import { currentTimestamp } from "../temporal-utils";
 import { linearRunCancelSignal, linearRunProgressQuery } from "../types";
 
 const activities = proxyActivities<MissionActivities>({
@@ -116,7 +113,7 @@ export async function missionLinearRunWorkflow(
   await activities.updateRun({
     runId: input.runId,
     status: STATUS_MAP[status],
-    completedAt: workflowInfo().unsafe.now(),
+    completedAt: currentTimestamp(),
   });
 
   await activities.logActivity({

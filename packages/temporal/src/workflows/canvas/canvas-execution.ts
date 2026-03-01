@@ -39,9 +39,10 @@ import {
   startChild,
   workflowInfo,
 } from "@temporalio/workflow";
+import { currentTimestamp } from "../temporal-utils";
 
 function getTimestamp(): number {
-  return workflowInfo().unsafe.now();
+  return currentTimestamp();
 }
 
 import type { CanvasExecutionActivities } from "../../activities/canvas/types";

@@ -8,6 +8,7 @@ import {
   workflowInfo,
 } from "@temporalio/workflow";
 import type { LtrTrainingActivities } from "../../activities/ltr/types";
+import { currentTimestamp } from "../temporal-utils";
 
 const ltrActivities = proxyActivities<LtrTrainingActivities>({
   startToCloseTimeout: "10 minutes",
@@ -27,7 +28,7 @@ export async function ltrTrainingWorkflow(
   const input = LtrTrainingInputSchema.parse(rawInput);
   const { teamId, modelVersion, minSamples } = input;
 
-  const nowMs = workflowInfo().unsafe.now();
+  const nowMs = currentTimestamp();
   const thirtyDaysAgoMs = nowMs - 30 * 24 * 60 * 60 * 1000;
   const fromDate = new Date(thirtyDaysAgoMs).toISOString();
   const toDate = new Date(nowMs).toISOString();
@@ -87,8 +88,7 @@ export async function ltrTrainingWorkflow(
           : `batch-${workflowInfo().workflowId}`,
       samplesUsed: totalSamples,
       accuracy: 0,
-      deployedAt:
-        successfulModels > 0 ? workflowInfo().unsafe.now() : undefined,
+      deployedAt: successfulModels > 0 ? currentTimestamp() : undefined,
     };
   }
 
@@ -162,6 +162,6 @@ export async function ltrTrainingWorkflow(
     modelId,
     samplesUsed: impressions.length,
     accuracy,
-    deployedAt: workflowInfo().unsafe.now(),
+    deployedAt: currentTimestamp(),
   };
 }

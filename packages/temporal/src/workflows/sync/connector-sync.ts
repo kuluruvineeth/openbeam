@@ -19,6 +19,7 @@ import { TASK_QUEUES } from "../../config";
 import { generateWorkflowId } from "../../utils/workflow-id";
 import { indexDocumentsWorkflow } from "../processing/index-documents";
 import { processKnowledgeChangesWorkflow } from "../scheduled/knowledge-changes";
+import { currentTimestamp } from "../temporal-utils";
 import {
   cancelSignal,
   pauseSignal,
@@ -228,6 +229,7 @@ export async function connectorSyncWorkflow(
       state.errors += indexResult.errors;
       state.dataAdded += indexResult.dataAdded ?? 0;
       state.dataUpdated += indexResult.dataUpdated ?? 0;
+      state.dataDeleted += indexResult.dataDeleted ?? 0;
       state.cursor = batch.nextCursor;
 
       state.stage = "INDEXING";
@@ -288,7 +290,7 @@ export async function connectorSyncWorkflow(
     });
 
     state.stage = "FINALIZING";
-    const endTime = workflowInfo().unsafe.now();
+    const endTime = currentTimestamp();
     await syncProgressActivities.completeSyncJob({
       workflowId,
       connectorId: input.connectorId,
@@ -317,7 +319,7 @@ export async function connectorSyncWorkflow(
     state.stage = "FAILED";
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error during sync";
-    const endTime = workflowInfo().unsafe.now();
+    const endTime = currentTimestamp();
 
     await syncProgressActivities.completeSyncJob({
       workflowId,

@@ -8,9 +8,9 @@ import type {
   LoopState,
   ParallelJoinBranchResult,
 } from "@openplane/types/temporal";
-import { ApplicationFailure, workflowInfo } from "@temporalio/workflow";
-
+import { ApplicationFailure } from "@temporalio/workflow";
 import { isExecutionDataRef } from "../../../engine/claim-check-utils";
+import { currentTimestamp } from "../../temporal-utils";
 import {
   buildCompletedStep,
   updateTraceForInput,
@@ -57,7 +57,7 @@ export interface ParallelSplitResult {
 }
 
 function getTimestamp(): number {
-  return workflowInfo().unsafe.now();
+  return currentTimestamp();
 }
 
 export async function handleParallelSplitNode(

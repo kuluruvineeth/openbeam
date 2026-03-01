@@ -37,6 +37,7 @@ import {
   agentChainProgressQuery,
   extendTimeoutSignal,
 } from "../agents/signals";
+import { currentTimestamp } from "../temporal-utils";
 import type { AgentArtifact } from "../types";
 import {
   agentCompletedSignal,
@@ -252,7 +253,7 @@ export async function missionAgentRunWorkflow(
     totalCostCents: 0,
     elapsedMs: 0,
     status: "running",
-    lastHeartbeat: workflowInfo().unsafe.now(),
+    lastHeartbeat: currentTimestamp(),
   };
 
   setHandler(cancelSignal, () => {
@@ -274,7 +275,7 @@ export async function missionAgentRunWorkflow(
   setHandler(agentInboxDeliverySignal, (payload) => {
     const envelope: AgentMessageEnvelope = {
       ...payload.envelope,
-      deliveredAt: workflowInfo().unsafe.now(),
+      deliveredAt: currentTimestamp(),
     };
 
     if (envelope.message.kind === "reply" && envelope.message.correlationId) {
@@ -370,14 +371,14 @@ export async function missionAgentRunWorkflow(
 
       const pendingMessages = drainInbox(
         inbox,
-        workflowInfo().unsafe.now(),
+        currentTimestamp(),
         priorityComparator
       );
 
       if (pendingMessages.length > 0) {
         const inboxMemory = inboxToMemoryValue(
           pendingMessages,
-          workflowInfo().unsafe.now()
+          currentTimestamp()
         );
 
         await activities.writeMemory({
@@ -472,8 +473,8 @@ export async function missionAgentRunWorkflow(
       chainProgress.totalTokensUsed = tokensUsed;
       chainProgress.totalCostCents = costCents;
       chainProgress.elapsedMs =
-        workflowInfo().unsafe.now() - workflowInfo().startTime.getTime();
-      chainProgress.lastHeartbeat = workflowInfo().unsafe.now();
+        currentTimestamp() - workflowInfo().startTime.getTime();
+      chainProgress.lastHeartbeat = currentTimestamp();
 
       const displayContent =
         stepArtifacts[0]?.summary ??
@@ -593,7 +594,7 @@ export async function missionAgentRunWorkflow(
           evaluation,
           approach: activePrompt.slice(0, 200),
           outcome: preview,
-          timestamp: workflowInfo().unsafe.now(),
+          timestamp: currentTimestamp(),
         };
         reflectionBuffer.push(reflectionEntry);
         const trimmedBuffer = trimReflectionBuffer(reflectionBuffer);
@@ -797,7 +798,7 @@ export async function missionAgentRunWorkflow(
   await activities.updateRun({
     runId: input.runId,
     status: runStatus,
-    completedAt: workflowInfo().unsafe.now(),
+    completedAt: currentTimestamp(),
     tokensUsed,
     costCents,
     artifacts: allArtifacts,

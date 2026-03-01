@@ -41,6 +41,7 @@ import {
 } from "@temporalio/workflow";
 import type { ReflectionActivities } from "../../activities/mission/reflection-types";
 import type { MissionActivities } from "../../activities/mission/types";
+import { currentTimestamp } from "../temporal-utils";
 import {
   agentClaimTaskSignal,
   agentCompletedSignal,
@@ -506,7 +507,7 @@ async function refreshReviewQueue(
     missionId: input.missionId,
   });
 
-  const now = workflowInfo().unsafe.now();
+  const now = currentTimestamp();
   const timeoutMs = input.reviewGating.reviewTimeoutMin * 60_000;
 
   for (const task of queue.tasks) {
@@ -723,7 +724,7 @@ async function processCrossMissionEvents(
           category: event.category,
           summary: event.summary,
           sourceMissionId: event.sourceMissionId,
-          receivedAt: workflowInfo().unsafe.now(),
+          receivedAt: currentTimestamp(),
         },
         scope: "mission",
       });
@@ -769,7 +770,7 @@ async function processCrossMissionEvents(
         value: {
           requestId: event.requestId,
           reason: event.reason,
-          deniedAt: workflowInfo().unsafe.now(),
+          deniedAt: currentTimestamp(),
         },
         scope: "mission",
       });
@@ -791,7 +792,7 @@ async function processCrossMissionEvents(
       key: `agent:lease:${event.agentId}`,
       value: {
         agentId: event.agentId,
-        revokedAt: workflowInfo().unsafe.now(),
+        revokedAt: currentTimestamp(),
         reason: event.reason,
       },
       scope: "mission",
@@ -1022,7 +1023,7 @@ async function maybeRunStandup(
     return;
   }
 
-  const now = workflowInfo().unsafe.now();
+  const now = currentTimestamp();
   const intervalMs = input.standupIntervalMin * 60_000;
   if (state.lastStandupAt && now - state.lastStandupAt < intervalMs) {
     return;
@@ -1341,7 +1342,7 @@ export async function missionOrchestratorWorkflow(
   });
 
   setHandler(agentMessageRouteSignal, async (payload) => {
-    const now = workflowInfo().unsafe.now();
+    const now = currentTimestamp();
     const envelope: AgentMessageEnvelope = {
       ...payload.envelope,
       routedAt: now,
@@ -1447,7 +1448,7 @@ export async function missionOrchestratorWorkflow(
     }
 
     state.wakeQueue = [];
-    const now = workflowInfo().unsafe.now();
+    const now = currentTimestamp();
     state.pendingMessages = state.pendingMessages.filter(
       (envelope) =>
         !envelope.message.expiresAt || envelope.message.expiresAt > now
@@ -1479,7 +1480,7 @@ export async function missionOrchestratorWorkflow(
       if (state.budgetTier !== previousTier) {
         state.tierTransitions.push({
           tier: state.budgetTier,
-          at: workflowInfo().unsafe.now(),
+          at: currentTimestamp(),
           consumedCents: state.consumedCents,
         });
 
@@ -1646,7 +1647,7 @@ export async function missionOrchestratorWorkflow(
         (envelope) =>
           envelope.message.recipientId === dispatch.agentId &&
           (!envelope.message.expiresAt ||
-            envelope.message.expiresAt > workflowInfo().unsafe.now())
+            envelope.message.expiresAt > currentTimestamp())
       );
 
       if (pendingForAgent.length > 0) {
@@ -1722,7 +1723,7 @@ export async function missionOrchestratorWorkflow(
       await activities.updateRun({
         runId,
         status: "RUNNING",
-        startedAt: workflowInfo().unsafe.now(),
+        startedAt: currentTimestamp(),
       });
 
       await activities.logActivity({
@@ -1739,7 +1740,7 @@ export async function missionOrchestratorWorkflow(
       });
 
       state.dispatchedRuns += 1;
-      state.lastDispatchAt = workflowInfo().unsafe.now();
+      state.lastDispatchAt = currentTimestamp();
       dispatchedThisCycle += 1;
     }
 

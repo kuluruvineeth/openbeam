@@ -9,6 +9,7 @@ import {
   sleep,
   workflowInfo,
 } from "@temporalio/workflow";
+import { currentTimestamp } from "../../temporal-utils";
 
 import {
   buildCompletedStep,
@@ -49,7 +50,7 @@ export interface RetryResult {
 }
 
 function getTimestamp(): number {
-  return workflowInfo().unsafe.now();
+  return currentTimestamp();
 }
 
 export async function handleRetryNode(

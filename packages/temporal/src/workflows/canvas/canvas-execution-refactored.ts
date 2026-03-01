@@ -15,11 +15,11 @@ import {
   proxyActivities,
   workflowInfo,
 } from "@temporalio/workflow";
-
 import type { AuditActivities } from "../../activities/canvas/audit-activity";
 import type { LoadCanvasActivityInput } from "../../activities/canvas/load-canvas";
 import type { CanvasExecutionActivities } from "../../activities/canvas/types";
 import { compileCanvasPlan } from "../../engine/canvas-compiler";
+import { currentTimestamp } from "../temporal-utils";
 import { type ExecutePlanParams, executePlanNodes } from "./executor";
 import { setupQueryHandlers, setupSignalHandlers } from "./signals";
 import { createCheckpoint, restoreFromCheckpoint } from "./state";
@@ -36,7 +36,7 @@ import { enforceExecutionPlan, ensureSupportedNodes } from "./utils/validators";
 const HISTORY_LENGTH_THRESHOLD = 10_000;
 
 function getTimestamp(): number {
-  return workflowInfo().unsafe.now();
+  return currentTimestamp();
 }
 
 function shouldContinueAsNew(): boolean {

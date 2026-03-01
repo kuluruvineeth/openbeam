@@ -15,8 +15,8 @@ import {
   condition,
   workflowInfo,
 } from "@temporalio/workflow";
-
 import { SAFETY_CEILINGS } from "../../config/constants";
+import { currentTimestamp } from "../temporal-utils";
 
 import {
   handleParallelMapNode,
@@ -113,7 +113,7 @@ type RunExecutionResult = {
 };
 
 function getTimestamp(): number {
-  return workflowInfo().unsafe.now();
+  return currentTimestamp();
 }
 
 export async function executePlanNodes(

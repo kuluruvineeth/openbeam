@@ -18,6 +18,7 @@ import {
   startChild,
   workflowInfo,
 } from "@temporalio/workflow";
+import { currentTimestamp } from "../temporal-utils";
 import {
   agentCompletedSignal,
   agentInboxDeliverySignal,
@@ -356,7 +357,7 @@ export async function sharedAgentPoolWorkflow(input: {
     await condition(() => wake, LEASE_CHECK_INTERVAL_MS);
     wake = false;
 
-    const now = workflowInfo().unsafe.now();
+    const now = currentTimestamp();
 
     for (const agent of agents.values()) {
       if (

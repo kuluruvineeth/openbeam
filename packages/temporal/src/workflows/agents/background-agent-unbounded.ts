@@ -14,6 +14,7 @@ import {
 } from "@temporalio/workflow";
 import type { AgentActivities } from "../../activities/agents/types";
 import { AGENT_CHUNKED_RETRY_POLICY } from "../../config/retry-policies";
+import { currentTimestamp } from "../temporal-utils";
 import {
   type AgentState,
   agentProgressQuery,
@@ -98,7 +99,7 @@ export async function backgroundAgentWorkflow(
     totalCostCents: 0,
     elapsedMs: 0,
     status: "running",
-    lastHeartbeat: workflowInfo().unsafe.now(),
+    lastHeartbeat: currentTimestamp(),
   };
   let pendingExtension: TimeoutTier | null = null;
 
@@ -158,7 +159,7 @@ export async function backgroundAgentWorkflow(
       chainProgress.chunksCompletedInStep = stepResult.chunksExecuted;
       chainProgress.totalTokensUsed += stepResult.tokensUsed;
       chainProgress.totalCostCents += stepResult.costCents;
-      chainProgress.lastHeartbeat = workflowInfo().unsafe.now();
+      chainProgress.lastHeartbeat = currentTimestamp();
 
       if (stepResult.complete) {
         state.status = "completed";
@@ -193,7 +194,7 @@ export async function backgroundAgentWorkflow(
       state.lastCheckpoint = stepResult.checkpoint;
       chainProgress.totalTokensUsed += stepResult.tokensUsed;
       chainProgress.totalCostCents += stepResult.costCents;
-      chainProgress.lastHeartbeat = workflowInfo().unsafe.now();
+      chainProgress.lastHeartbeat = currentTimestamp();
 
       if (stepResult.complete) {
         state.status = "completed";
@@ -202,7 +203,7 @@ export async function backgroundAgentWorkflow(
     }
 
     chainProgress.elapsedMs =
-      workflowInfo().unsafe.now() - workflowInfo().startTime.getTime();
+      currentTimestamp() - workflowInfo().startTime.getTime();
 
     if (workflowInfo().historyLength > 5000) {
       return continueAsNew<typeof backgroundAgentWorkflow>({
