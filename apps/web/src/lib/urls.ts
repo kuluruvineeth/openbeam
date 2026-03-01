@@ -14,9 +14,7 @@ export const needsProxy = isCrossSite;
 export const baseUrl = needsProxy ? "" : publicServerUrl;
 export const trpcUrl = needsProxy ? "/api/trpc" : `${publicServerUrl}/trpc`;
 export const ssrTrpcUrl = `${internalServerUrl}/trpc`;
-export const trpcSubscriptionUrl = needsProxy
-  ? "/api/trpc"
-  : `${publicServerUrl}/trpc`;
+export const trpcSubscriptionUrl = `${publicServerUrl}/trpc`;
 
 export const serverUrl = publicServerUrl;
 
