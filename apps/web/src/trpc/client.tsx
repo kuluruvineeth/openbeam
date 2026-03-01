@@ -13,7 +13,7 @@ import {
 } from "@trpc/client";
 import { createTRPCContext } from "@trpc/tanstack-react-query";
 import superjson from "superjson";
-import { trpcUrl } from "@/lib/urls";
+import { trpcSubscriptionUrl, trpcUrl } from "@/lib/urls";
 import { makeQueryClient } from "@/trpc/query-client";
 
 export const { TRPCProvider, useTRPC } = createTRPCContext<AppRouter>();
@@ -42,7 +42,7 @@ function createVanillaClient(): TRPCClient<AppRouter> {
       splitLink({
         condition: (op) => op.type === "subscription",
         true: httpSubscriptionLink({
-          url: trpcUrl,
+          url: trpcSubscriptionUrl,
           transformer: superjson,
           eventSourceOptions: () => ({
             withCredentials: true,
