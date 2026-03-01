@@ -42,9 +42,6 @@ export function MissionDetailShell({
   initialAgents,
   initialActivity,
 }: MissionDetailShellProps) {
-  const replayFromCursor = useMissionRuntimeStore((s) => s.replayFromCursor);
-  const seedAgentBoard = useMissionRuntimeStore((s) => s.seedAgentBoard);
-  const resetAll = useMissionRuntimeStore((s) => s.resetAll);
   const { openDrawer, close } = useMissionDrawer();
   const prevMissionIdRef = useRef(mission.id);
   const isLiveMission =
@@ -57,23 +54,27 @@ export function MissionDetailShell({
   });
 
   useEffect(() => {
+    const store = useMissionRuntimeStore.getState();
+
     if (prevMissionIdRef.current !== mission.id) {
-      resetAll();
+      store.resetAll();
       prevMissionIdRef.current = mission.id;
     }
 
     if (initialAgents.length > 0) {
-      seedAgentBoard(initialAgents);
+      store.seedAgentBoard(initialAgents);
     }
-  }, [mission.id, initialAgents, seedAgentBoard, resetAll]);
+  }, [mission.id, initialAgents]);
 
   useEffect(() => {
     if (initialActivity.length > 0) {
-      replayFromCursor(mission.runId, initialActivity);
+      useMissionRuntimeStore
+        .getState()
+        .replayFromCursor(mission.runId, initialActivity);
     }
-  }, [mission.runId, initialActivity, replayFromCursor]);
+  }, [mission.runId, initialActivity]);
 
-  useEffect(() => () => resetAll(), [resetAll]);
+  useEffect(() => () => useMissionRuntimeStore.getState().resetAll(), []);
 
   return (
     <div className="flex h-full flex-col dark:bg-[#0c0c0c]">
