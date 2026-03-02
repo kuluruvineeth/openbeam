@@ -50,6 +50,7 @@ import * as emergenceActivities from "../activities/emergence";
 import { createEngineActivities } from "../activities/engine";
 import * as entitiesActivities from "../activities/entities";
 import {
+  createKnowledgeChangeActivities,
   createKnowledgeCleanupActivities,
   createKnowledgeInferenceActivities,
 } from "../activities/knowledge";
@@ -353,6 +354,18 @@ function loadActivitiesForWorkerType(
         destroySandbox,
       };
     }
+
+    case "knowledge":
+      return {
+        ...baseActivities,
+        ...createKnowledgeChangeActivities({
+          db: deps.db,
+          vespa: deps.vespa,
+          engineBaseUrl: process.env.ENGINE_URL ?? "http://localhost:8000",
+        }),
+        ...createKnowledgeInferenceActivities({ db: deps.db }),
+        ...createKnowledgeCleanupActivities({ db: deps.db }),
+      };
 
     default:
       return baseActivities;

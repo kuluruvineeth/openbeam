@@ -30,6 +30,7 @@ const WORKER_TYPES: WorkerType[] = [
   "maintenance",
   "scheduled",
   "mission",
+  "knowledge",
 ];
 
 const WORKER_CONCURRENCY: Record<WorkerType, number> = {
