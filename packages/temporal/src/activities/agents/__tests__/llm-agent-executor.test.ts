@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mockExecute = vi.fn();
-const mockToolServices = vi.fn(() => ({}));
+const { mockExecute, mockToolServices } = vi.hoisted(() => ({
+  mockExecute: vi.fn(),
+  mockToolServices: vi.fn(() => ({})),
+}));
 
 vi.mock("@openplane/ai", () => ({
   createLlmAgent: vi.fn(() => ({

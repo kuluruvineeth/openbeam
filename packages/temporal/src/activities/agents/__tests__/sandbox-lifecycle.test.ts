@@ -1,7 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+function clearEnv(name: string): void {
+  Reflect.deleteProperty(process.env, name);
+}
+
 function restoreEnv(name: string, value: string | undefined): void {
-  process.env[name] = value;
+  if (value === undefined) {
+    clearEnv(name);
+  } else {
+    process.env[name] = value;
+  }
 }
 
 const mockDaytonaProvider = {
@@ -54,10 +62,10 @@ describe("provisionSandbox", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     globalWithFetch.fetch = originalFetch;
-    process.env.SANDBOX_API_BASE_URL = undefined;
-    process.env.SANDBOX_API_TOKEN = undefined;
-    process.env.SANDBOX_API_PROVIDER = undefined;
-    process.env.SANDBOX_DEFAULT_PROVIDER = undefined;
+    clearEnv("SANDBOX_API_BASE_URL");
+    clearEnv("SANDBOX_API_TOKEN");
+    clearEnv("SANDBOX_API_PROVIDER");
+    clearEnv("SANDBOX_DEFAULT_PROVIDER");
   });
 
   afterEach(() => {
@@ -216,10 +224,10 @@ describe("destroySandbox", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     globalWithFetch.fetch = originalFetch;
-    process.env.SANDBOX_API_BASE_URL = undefined;
-    process.env.SANDBOX_API_TOKEN = undefined;
-    process.env.SANDBOX_API_PROVIDER = undefined;
-    process.env.SANDBOX_DEFAULT_PROVIDER = undefined;
+    clearEnv("SANDBOX_API_BASE_URL");
+    clearEnv("SANDBOX_API_TOKEN");
+    clearEnv("SANDBOX_API_PROVIDER");
+    clearEnv("SANDBOX_DEFAULT_PROVIDER");
   });
 
   afterEach(() => {
