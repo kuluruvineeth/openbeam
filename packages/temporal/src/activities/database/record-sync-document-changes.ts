@@ -1,12 +1,6 @@
 import type { Database } from "@openplane/db";
 import { createDocumentChanges } from "@openplane/db";
-
-export interface RecordSyncDocumentChangesInput {
-  connectorId: string;
-  documentIds: string[];
-  changeType: "CREATED" | "UPDATED";
-  syncHistoryId?: string;
-}
+import type { RecordSyncDocumentChangesInput } from "./types";
 
 export function createRecordSyncDocumentChangesActivity(deps: {
   db: Database;

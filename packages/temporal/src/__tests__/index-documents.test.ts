@@ -199,3 +199,100 @@ describe("indexDocumentsWorkflow", () => {
     expect(result.success).toBe(true);
   });
 });
+
+describe("indexDocumentsWorkflow - document change tracking", () => {
+  let env: TestWorkflowEnvironment;
+  let worker: Worker;
+  let runPromise: Promise<void>;
+  const recordedChanges: Array<{
+    connectorId: string;
+    documentIds: string[];
+    changeType: string;
+    syncHistoryId?: string;
+  }> = [];
+
+  beforeAll(async () => {
+    env = await TestWorkflowEnvironment.createTimeSkipping();
+
+    const dbActivities = createMockDatabaseActivities();
+    const activities = {
+      ...dbActivities,
+      ...createMockEngineActivities(),
+      ...createMockVespaActivities(),
+      recordSyncDocumentChanges: (input: {
+        connectorId: string;
+        documentIds: string[];
+        changeType: string;
+        syncHistoryId?: string;
+      }) => {
+        recordedChanges.push(input);
+        return Promise.resolve({ recorded: input.documentIds.length });
+      },
+    };
+
+    worker = await Worker.create({
+      connection: env.nativeConnection,
+      namespace: env.namespace,
+      taskQueue: "test-index-changes",
+      workflowsPath: WORKFLOWS_PATH,
+      activities,
+    });
+
+    runPromise = worker.run();
+  }, 180_000);
+
+  afterAll(async () => {
+    try {
+      worker?.shutdown();
+      await runPromise;
+    } finally {
+      await env?.teardown();
+    }
+  }, 180_000);
+
+  it("records DELETED document changes after deletion", async () => {
+    recordedChanges.length = 0;
+
+    const handle = await withTimeout(
+      env.client.workflow.start("indexDocumentsWorkflow", {
+        taskQueue: "test-index-changes",
+        workflowId: "test-delete-changes",
+        workflowExecutionTimeout: "120s",
+        workflowRunTimeout: "120s",
+        workflowTaskTimeout: "60s",
+        args: [
+          {
+            connectorId: "conn_456",
+            documents: [
+              {
+                id: "vespa_doc_1",
+                external_id: "ext_1",
+                metadata: { deleted: true },
+              },
+              {
+                id: "vespa_doc_2",
+                external_id: "ext_2",
+                metadata: { deleted: true },
+              },
+            ],
+            syncHistoryId: "sync_hist_1",
+          },
+        ],
+      }),
+      10_000,
+      "workflow start"
+    );
+
+    await withTimeout(handle.result(), 90_000, "workflow result");
+
+    const deleteChange = recordedChanges.find(
+      (c) => c.changeType === "DELETED"
+    );
+    expect(deleteChange).toBeDefined();
+    expect(deleteChange?.connectorId).toBe("conn_456");
+    expect(deleteChange?.documentIds).toEqual(
+      expect.arrayContaining(["vespa_doc_1", "vespa_doc_2"])
+    );
+    expect(deleteChange?.syncHistoryId).toBe("sync_hist_1");
+  });
+});

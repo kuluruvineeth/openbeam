@@ -140,6 +140,15 @@ export async function indexDocumentsWorkflow(
       });
       dataDeleted += deleteResult.deleted;
     }
+
+    if (documentIds.length > 0) {
+      await databaseActivities.recordSyncDocumentChanges({
+        connectorId: input.connectorId,
+        documentIds,
+        changeType: "DELETED",
+        syncHistoryId: input.syncHistoryId,
+      });
+    }
   }
 
   if (upsertDocuments.length === 0) {

@@ -113,6 +113,13 @@ export interface EmitSyncStartedInput {
   connectorName: string;
 }
 
+export interface RecordSyncDocumentChangesInput {
+  connectorId: string;
+  documentIds: string[];
+  changeType: "CREATED" | "UPDATED" | "DELETED";
+  syncHistoryId?: string;
+}
+
 export interface DatabaseActivities {
   loadConnector(connectorId: string): Promise<ConnectorRecord>;
   validateConnection(
@@ -145,6 +152,9 @@ export interface DatabaseActivities {
   upsertDiscoveredResources(
     input: UpsertDiscoveredResourcesInput
   ): Promise<{ upserted: number }>;
+  recordSyncDocumentChanges(
+    input: RecordSyncDocumentChangesInput
+  ): Promise<{ recorded: number }>;
 }
 
 export interface FilterUnchangedInput {

@@ -1,5 +1,6 @@
 import type { Database } from "@openplane/db";
 import {
+  createDocumentChanges,
   findIndexedDocumentsByExternalIds,
   updateSyncHistoryCounts,
   upsertIndexedDocumentsBatch,
@@ -26,6 +27,8 @@ export function createTrackIndexedDocumentsActivity(deps: { db: Database }) {
 
     let dataAdded = 0;
     let dataUpdated = 0;
+    const createdVespaIds: string[] = [];
+    const updatedVespaIds: string[] = [];
 
     const documentsToUpsert = input.documents.map((doc) => {
       const existing = existingDocs.get(doc.external_id);
@@ -33,8 +36,10 @@ export function createTrackIndexedDocumentsActivity(deps: { db: Database }) {
 
       if (!existing) {
         dataAdded += 1;
+        createdVespaIds.push(doc.id);
       } else if (existing.checksum !== newChecksum) {
         dataUpdated += 1;
+        updatedVespaIds.push(doc.id);
       }
 
       return {
@@ -63,6 +68,48 @@ export function createTrackIndexedDocumentsActivity(deps: { db: Database }) {
         dataAdded,
         dataUpdated
       );
+    }
+
+    if (createdVespaIds.length > 0 || updatedVespaIds.length > 0) {
+      const connector = await deps.db.connector.findUniqueOrThrow({
+        where: { id: input.connectorId },
+        select: { teamId: true },
+      });
+
+      const changes: Array<{
+        documentId: string;
+        changeType: "CREATED" | "UPDATED";
+        source: "CONNECTOR_SYNC";
+        metadata?: { syncHistoryId: string };
+      }> = [];
+
+      for (const vespaId of createdVespaIds) {
+        changes.push({
+          documentId: vespaId,
+          changeType: "CREATED",
+          source: "CONNECTOR_SYNC",
+          ...(input.syncHistoryId && {
+            metadata: { syncHistoryId: input.syncHistoryId },
+          }),
+        });
+      }
+
+      for (const vespaId of updatedVespaIds) {
+        changes.push({
+          documentId: vespaId,
+          changeType: "UPDATED",
+          source: "CONNECTOR_SYNC",
+          ...(input.syncHistoryId && {
+            metadata: { syncHistoryId: input.syncHistoryId },
+          }),
+        });
+      }
+
+      await createDocumentChanges(deps.db, {
+        teamId: connector.teamId,
+        connectorId: input.connectorId,
+        changes,
+      });
     }
 
     return { tracked: upserted, dataAdded, dataUpdated };

@@ -67,6 +67,8 @@ export function createMockDatabaseActivities() {
     deleteIndexedDocuments: async (input: { externalIds: unknown[] }) => ({
       deleted: input.externalIds.length,
     }),
+    recordSyncDocumentChanges: (input: { documentIds: unknown[] }) =>
+      Promise.resolve({ recorded: input.documentIds.length }),
   };
 }
 
