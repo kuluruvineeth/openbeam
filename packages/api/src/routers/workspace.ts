@@ -200,7 +200,7 @@ export const workspaceRouter = createTRPCRouter({
       );
 
       const { generateWorkspaceSql } = await import("@openplane/services");
-      return generateWorkspaceSql({
+      const result = await generateWorkspaceSql({
         teamId: ctx.teamId,
         question: input.question,
         schema: {
@@ -208,5 +208,6 @@ export const workspaceRouter = createTRPCRouter({
           objects: objectSchemas,
         },
       });
+      return { ...result };
     }),
 });
