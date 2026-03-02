@@ -325,11 +325,10 @@ export function UnifiedAppComponent({ app }: UnifiedAppProps) {
             ) : (
               <Tabs
                 className="w-full"
-                defaultValue="overview"
                 onValueChange={(val) =>
                   setParams({ settings: val === "settings" || null })
                 }
-                value={params.settings ? "settings" : undefined}
+                value={params.settings ? "settings" : "overview"}
               >
                 <TabsList className="grid w-full grid-cols-2 bg-secondary/40">
                   <TabsTrigger

@@ -164,11 +164,11 @@ function useConditionCheck(dependsOn: Condition | Condition[] | undefined) {
   const fieldNames = conditions.map((c) => c.field);
 
   const values = useWatch({
-    control: form.control,
+    control: form?.control,
     name: fieldNames.length > 0 ? fieldNames : ["_none_"],
   });
 
-  if (conditions.length === 0) {
+  if (!form || conditions.length === 0) {
     return true;
   }
 
@@ -189,9 +189,9 @@ function SettingsField({
   const [isFocused, setIsFocused] = useState(false);
   const shouldShow = useConditionCheck(setting.dependsOn);
 
-  useWatch({ control: form.control, name: setting.id });
+  useWatch({ control: form?.control, name: setting.id });
 
-  if (!shouldShow) {
+  if (!(form && shouldShow)) {
     return null;
   }
 
