@@ -11,6 +11,7 @@ import {
   type FieldValues,
   FormProvider,
   useFormContext,
+  useWatch,
 } from "react-hook-form";
 import { cn } from "../utils/cn";
 import { Label } from "./label";
@@ -148,6 +149,8 @@ function FormMessage({
 
 export {
   useFormField,
+  useFormContext,
+  useWatch,
   Form,
   FormItem,
   FormLabel,

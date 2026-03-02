@@ -515,7 +515,9 @@ export {
   FormItem,
   FormLabel,
   FormMessage,
+  useFormContext,
   useFormField,
+  useWatch,
 } from "./form";
 export type {
   ColorOption,
