@@ -38,6 +38,15 @@ export interface TrackIndexedDocumentsResult {
   dataUpdated: number;
 }
 
+export interface DeleteIndexedDocumentsInput {
+  connectorId: string;
+  externalIds: string[];
+}
+
+export interface DeleteIndexedDocumentsResult {
+  deleted: number;
+}
+
 export type SyncStage =
   | "INITIALIZING"
   | "FETCHING"
@@ -127,6 +136,9 @@ export interface DatabaseActivities {
   trackIndexedDocuments(
     input: TrackIndexedDocumentsInput
   ): Promise<TrackIndexedDocumentsResult>;
+  deleteIndexedDocuments(
+    input: DeleteIndexedDocumentsInput
+  ): Promise<DeleteIndexedDocumentsResult>;
   filterUnchangedDocuments(
     input: FilterUnchangedInput
   ): Promise<FilterUnchangedResult>;

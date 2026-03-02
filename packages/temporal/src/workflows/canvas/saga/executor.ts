@@ -7,13 +7,36 @@ import type {
   SagaStepDefinition,
 } from "./types";
 
+function getDefaultClock(): () => number {
+  return () => {
+    try {
+      const info = workflowInfo() as {
+        unsafe?: {
+          now?: () => number;
+        };
+      };
+
+      if (typeof info.unsafe?.now === "function") {
+        return info.unsafe.now();
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        return Date.now();
+      }
+      return Date.now();
+    }
+
+    return Date.now();
+  };
+}
+
 export class SagaExecutor {
   private readonly state: SagaExecutionState;
   private readonly config: SagaConfig;
   private readonly clock: () => number;
 
   constructor(config: SagaConfig = {}) {
-    this.clock = config.clock ?? (() => workflowInfo().unsafe.now());
+    this.clock = config.clock ?? getDefaultClock();
     this.state = {
       completedSteps: [],
       status: "pending",

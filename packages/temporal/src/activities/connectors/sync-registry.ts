@@ -8,12 +8,14 @@ import {
   getValidAccessToken,
   githubFullSync,
   githubIncrementalSync,
+  gmailIncrementalSync,
+  googleDriveIncrementalSync,
   linearFullSync,
+  linearIncrementalSync,
   notionFullSync,
-  fullSync as slackFullSync,
+  notionIncrementalSync,
+  incrementalSync as slackIncrementalSync,
 } from "@openplane/services";
-import { gmailIncrementalSync } from "@openplane/services/gmail/sync/incremental";
-import { fullSync as driveFullSync } from "@openplane/services/google-drive/sync/full";
 import { logger } from "@openplane/services/lib/logger";
 import type { GenericDocument } from "@openplane/vespa";
 import { ApplicationFailure } from "@temporalio/common";
@@ -42,6 +44,43 @@ function parseNumericConfig(
   return fallback;
 }
 
+function parseBooleanConfig(value: unknown): boolean | undefined {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  return;
+}
+
+function createDeleteMarker(params: {
+  documentId: string;
+  connectorId: string;
+  connectorType: string;
+  teamId: string;
+  workspaceId: string;
+  externalId: string;
+  documentType: string;
+}): GenericDocument {
+  return {
+    id: params.documentId,
+    connector_id: params.connectorId,
+    connector_type: params.connectorType,
+    team_id: params.teamId,
+    workspace_id: params.workspaceId,
+    external_id: params.externalId,
+    document_type: params.documentType,
+    title: "",
+    content: "",
+    created_at: 0,
+    updated_at: Date.now(),
+    is_public: false,
+    metadata: {
+      deleted: true,
+      deletedAt: Date.now(),
+    },
+  };
+}
+
 // biome-ignore lint/suspicious/useAwait: async required for AsyncGenerator type compatibility
 async function* createEmptySyncGenerator(): AsyncGenerator<SyncBatch> {
   yield { items: [], hasMore: false };
@@ -50,7 +89,7 @@ async function* createEmptySyncGenerator(): AsyncGenerator<SyncBatch> {
 export function registerAllSyncFactories(): void {
   registerSyncFactory(
     "LINEAR",
-    async function* (connectorId, connector, _cursor) {
+    async function* (connectorId, connector, cursor) {
       const accessToken = connector.oauthProvider?.accessToken;
       if (!accessToken) {
         throw ApplicationFailure.nonRetryable(
@@ -69,22 +108,32 @@ export function registerAllSyncFactories(): void {
       };
 
       const pendingResources: DiscoveredResourceRecord[] = [];
+      const lastSyncTime = parseNumericConfig(cursor?.lastSyncTime);
+      const forceFullSync = parseBooleanConfig(cursor?.forceFullSync) === true;
 
-      for await (const batch of linearFullSync(client, context, {
-        batchSize: 100,
-        // biome-ignore lint/suspicious/useAwait: callback signature requires Promise<void>
-        onTeamsDiscovered: async (teams) => {
-          for (const team of teams) {
-            pendingResources.push({
-              externalId: team.id,
-              resourceType: "team",
-              name: team.name,
-              isPublic: true,
-              metadata: {},
+      const syncGenerator =
+        !forceFullSync && typeof lastSyncTime === "number"
+          ? linearIncrementalSync(client, context, {
+              lastSyncTime,
+              batchSize: 100,
+            })
+          : linearFullSync(client, context, {
+              batchSize: 100,
+              // biome-ignore lint/suspicious/useAwait: callback signature requires Promise<void>
+              onTeamsDiscovered: async (teams) => {
+                for (const team of teams) {
+                  pendingResources.push({
+                    externalId: team.id,
+                    resourceType: "team",
+                    name: team.name,
+                    isPublic: true,
+                    metadata: {},
+                  });
+                }
+              },
             });
-          }
-        },
-      })) {
+
+      for await (const batch of syncGenerator) {
         const resourcesToYield =
           pendingResources.length > 0 ? [...pendingResources] : undefined;
         if (resourcesToYield) {
@@ -219,7 +268,7 @@ export function registerAllSyncFactories(): void {
 
   registerSyncFactory(
     "GOOGLE_DRIVE",
-    async function* (connectorId, connector, _cursor) {
+    async function* (connectorId, connector, cursor) {
       const accessToken = connector.oauthProvider?.accessToken;
       if (!accessToken) {
         throw ApplicationFailure.nonRetryable(
@@ -266,9 +315,12 @@ export function registerAllSyncFactories(): void {
       };
 
       const pendingResources: DiscoveredResourceRecord[] = [];
+      const pendingDeletedDocumentIds: string[] = [];
 
-      for await (const batch of driveFullSync(client, context, {
+      for await (const batch of googleDriveIncrementalSync(client, context, {
         batchSize: 100,
+        cursor,
+        forceFullSync: parseBooleanConfig(cursor?.forceFullSync) === true,
         includeSharedDrives,
         lookbackDays,
         indexMedia,
@@ -289,6 +341,10 @@ export function registerAllSyncFactories(): void {
               },
             });
           }
+        },
+        // biome-ignore lint/suspicious/useAwait: callback signature requires Promise<void>
+        onDocumentsRemoved: async (documentIds) => {
+          pendingDeletedDocumentIds.push(...documentIds);
         },
         // biome-ignore lint/suspicious/useAwait: callback signature requires Promise<void>
         onFilesDiscovered: async (files) => {
@@ -313,6 +369,135 @@ export function registerAllSyncFactories(): void {
           pendingResources.length = 0;
         }
 
+        const deletedItems = pendingDeletedDocumentIds.map((documentId) => {
+          const prefix = `${connector.id}_file_`;
+          const externalId = documentId.startsWith(prefix)
+            ? documentId.slice(prefix.length)
+            : documentId;
+
+          return createDeleteMarker({
+            documentId,
+            connectorId: connector.id,
+            connectorType: connector.type,
+            teamId: connector.teamId,
+            workspaceId: connector.workspaceExternalId,
+            externalId,
+            documentType: "file",
+          });
+        });
+        pendingDeletedDocumentIds.length = 0;
+
+        yield {
+          items: [...(batch.items as GenericDocument[]), ...deletedItems],
+          cursor: batch.cursor,
+          hasMore: batch.hasMore,
+          discoveredResources: resourcesToYield,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "SLACK",
+    async function* (connectorId, connector, cursor) {
+      const token = await getValidAccessToken(connectorId);
+      const client = createSlackClient({ token, connectorId });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId,
+      };
+
+      const config = connector.config as Record<string, unknown> | null;
+      const indexDms = config?.index_dms === true;
+      const indexGroupDms =
+        config?.index_group_dms === true ||
+        config?.federated_include_group_dms === true;
+      const syncFiles = config?.sync_files !== false;
+      const syncCanvases = config?.index_canvases !== false;
+      const syncClips = config?.index_clips !== false;
+      const syncBookmarks = config?.index_bookmarks !== false;
+
+      const disabledChannelIds = connector.disabledResourceIds
+        ? new Set(connector.disabledResourceIds)
+        : undefined;
+
+      logger.info(
+        {
+          connectorId,
+          indexDms,
+          indexGroupDms,
+          syncFiles,
+          syncCanvases,
+          syncClips,
+          syncBookmarks,
+          disabledChannelCount: disabledChannelIds?.size ?? 0,
+          rawConfig: config,
+        },
+        "Slack sync config loaded"
+      );
+
+      const pendingResources: DiscoveredResourceRecord[] = [];
+
+      for await (const batch of slackIncrementalSync(client, context, {
+        cursor,
+        forceFullSync: parseBooleanConfig(cursor?.forceFullSync) === true,
+        channelOptions: {
+          indexDms,
+          indexGroupDms,
+        },
+        disabledChannelIds,
+        syncFiles,
+        syncCanvases,
+        syncClips,
+        syncBookmarks,
+        // biome-ignore lint/suspicious/useAwait: callback signature requires Promise<void>
+        onChannelsDiscovered: async (channels) => {
+          for (const channel of channels) {
+            pendingResources.push({
+              externalId: channel.id,
+              resourceType: channel.is_private ? "private_channel" : "channel",
+              name: channel.name,
+              isPublic: !channel.is_private,
+              metadata: {
+                isArchived: channel.is_archived,
+                isGeneral: channel.is_general,
+                isShared: channel.is_shared,
+                creator: channel.creator,
+                numMembers: channel.num_members,
+                created: channel.created,
+              },
+            });
+          }
+        },
+        // biome-ignore lint/suspicious/useAwait: callback signature requires Promise<void>
+        onFilesDiscovered: async (files) => {
+          for (const file of files) {
+            pendingResources.push({
+              externalId: file.id,
+              resourceType: "file",
+              name: file.name,
+              metadata: {
+                mimeType: file.mimeType,
+                size: file.size,
+                permalink: file.permalink,
+                createdAt: file.createdAt,
+                userId: file.userId,
+                userName: file.userName,
+                sourceChannelId: file.sourceChannelId,
+              },
+            });
+          }
+        },
+      })) {
+        const resourcesToYield =
+          pendingResources.length > 0 ? [...pendingResources] : undefined;
+        if (resourcesToYield) {
+          pendingResources.length = 0;
+        }
+
         yield {
           items: batch.items as GenericDocument[],
           cursor: batch.cursor,
@@ -323,115 +508,9 @@ export function registerAllSyncFactories(): void {
     }
   );
 
-  registerSyncFactory("SLACK", async function* (connectorId, connector) {
-    const token = await getValidAccessToken(connectorId);
-    const client = createSlackClient({ token, connectorId });
-
-    const context = {
-      connectorId: connector.id,
-      connectorType: connector.type,
-      teamId: connector.teamId,
-      workspaceId: connector.workspaceExternalId,
-    };
-
-    const config = connector.config as Record<string, unknown> | null;
-    const indexDms = config?.index_dms === true;
-    const indexGroupDms =
-      config?.index_group_dms === true ||
-      config?.federated_include_group_dms === true;
-    const syncFiles = config?.sync_files !== false;
-    const syncCanvases = config?.index_canvases !== false;
-    const syncClips = config?.index_clips !== false;
-    const syncBookmarks = config?.index_bookmarks !== false;
-
-    const disabledChannelIds = connector.disabledResourceIds
-      ? new Set(connector.disabledResourceIds)
-      : undefined;
-
-    logger.info(
-      {
-        connectorId,
-        indexDms,
-        indexGroupDms,
-        syncFiles,
-        syncCanvases,
-        syncClips,
-        syncBookmarks,
-        disabledChannelCount: disabledChannelIds?.size ?? 0,
-        rawConfig: config,
-      },
-      "Slack sync config loaded"
-    );
-
-    const pendingResources: DiscoveredResourceRecord[] = [];
-
-    for await (const batch of slackFullSync(client, context, {
-      channelOptions: {
-        indexDms,
-        indexGroupDms,
-      },
-      disabledChannelIds,
-      syncFiles,
-      syncCanvases,
-      syncClips,
-      syncBookmarks,
-      // biome-ignore lint/suspicious/useAwait: callback signature requires Promise<void>
-      onChannelsDiscovered: async (channels) => {
-        for (const channel of channels) {
-          pendingResources.push({
-            externalId: channel.id,
-            resourceType: channel.is_private ? "private_channel" : "channel",
-            name: channel.name,
-            isPublic: !channel.is_private,
-            metadata: {
-              isArchived: channel.is_archived,
-              isGeneral: channel.is_general,
-              isShared: channel.is_shared,
-              creator: channel.creator,
-              numMembers: channel.num_members,
-              created: channel.created,
-            },
-          });
-        }
-      },
-      // biome-ignore lint/suspicious/useAwait: callback signature requires Promise<void>
-      onFilesDiscovered: async (files) => {
-        for (const file of files) {
-          pendingResources.push({
-            externalId: file.id,
-            resourceType: "file",
-            name: file.name,
-            metadata: {
-              mimeType: file.mimeType,
-              size: file.size,
-              permalink: file.permalink,
-              createdAt: file.createdAt,
-              userId: file.userId,
-              userName: file.userName,
-              sourceChannelId: file.sourceChannelId,
-            },
-          });
-        }
-      },
-    })) {
-      const resourcesToYield =
-        pendingResources.length > 0 ? [...pendingResources] : undefined;
-      if (resourcesToYield) {
-        pendingResources.length = 0;
-      }
-
-      yield {
-        items: batch.items as GenericDocument[],
-        cursor: batch.cursor,
-        hasMore: batch.hasMore,
-        discoveredResources: resourcesToYield,
-      };
-    }
-  });
-
   registerSyncFactory(
     "NOTION",
-    async function* (connectorId, connector, _cursor) {
+    async function* (connectorId, connector, cursor) {
       const accessToken = connector.oauthProvider?.accessToken;
       if (!accessToken) {
         throw ApplicationFailure.nonRetryable(
@@ -468,52 +547,106 @@ export function registerAllSyncFactories(): void {
       );
 
       const pendingResources: DiscoveredResourceRecord[] = [];
+      const useIncremental =
+        typeof parseNumericConfig(cursor?.lastSyncTime) === "number" &&
+        parseBooleanConfig(cursor?.forceFullSync) !== true;
 
-      for await (const batch of notionFullSync(client, context, {
-        batchSize: 5,
-        extractContent,
-        extractComments,
-        maxBlockDepth,
-        lookbackDays,
-        // biome-ignore lint/suspicious/useAwait: callback signature requires Promise<void>
-        onDatabasesDiscovered: async (databases) => {
-          for (const db of databases) {
-            pendingResources.push({
-              externalId: db.id,
-              resourceType: "database",
-              name: db.title?.[0]?.plain_text ?? "Untitled Database",
-              isPublic: !db.archived,
-              metadata: {
-                url: db.url,
-                createdTime: db.created_time,
-                lastEditedTime: db.last_edited_time,
-              },
-            });
-          }
-        },
-        // biome-ignore lint/suspicious/useAwait: callback signature requires Promise<void>
-        onPagesDiscovered: async (pages) => {
-          for (const page of pages) {
-            const titleProp = Object.values(page.properties).find(
-              (p) => (p as { type: string }).type === "title"
-            ) as { title?: Array<{ plain_text: string }> } | undefined;
-            const title = titleProp?.title?.[0]?.plain_text ?? "Untitled Page";
+      const syncGenerator = useIncremental
+        ? notionIncrementalSync(client, context, {
+            batchSize: 5,
+            cursor,
+            extractContent,
+            extractComments,
+            maxBlockDepth,
+            // biome-ignore lint/suspicious/useAwait: callback signature requires Promise<void>
+            onDatabasesDiscovered: async (databases) => {
+              for (const db of databases) {
+                pendingResources.push({
+                  externalId: db.id,
+                  resourceType: "database",
+                  name: db.title?.[0]?.plain_text ?? "Untitled Database",
+                  isPublic: !db.archived,
+                  metadata: {
+                    url: db.url,
+                    createdTime: db.created_time,
+                    lastEditedTime: db.last_edited_time,
+                  },
+                });
+              }
+            },
+            // biome-ignore lint/suspicious/useAwait: callback signature requires Promise<void>
+            onPagesDiscovered: async (pages) => {
+              for (const page of pages) {
+                const titleProp = Object.values(page.properties).find(
+                  (p) => (p as { type: string }).type === "title"
+                ) as { title?: Array<{ plain_text: string }> } | undefined;
+                const title =
+                  titleProp?.title?.[0]?.plain_text ?? "Untitled Page";
 
-            pendingResources.push({
-              externalId: page.id,
-              resourceType: "page",
-              name: title,
-              isPublic: !(page.archived || page.in_trash),
-              metadata: {
-                url: page.url,
-                createdTime: page.created_time,
-                lastEditedTime: page.last_edited_time,
-                parentType: page.parent.type,
-              },
-            });
-          }
-        },
-      })) {
+                pendingResources.push({
+                  externalId: page.id,
+                  resourceType: "page",
+                  name: title,
+                  isPublic: !(page.archived || page.in_trash),
+                  metadata: {
+                    url: page.url,
+                    createdTime: page.created_time,
+                    lastEditedTime: page.last_edited_time,
+                    parentType: page.parent.type,
+                  },
+                });
+              }
+            },
+          })
+        : notionFullSync(client, context, {
+            batchSize: 5,
+            cursor,
+            extractContent,
+            extractComments,
+            maxBlockDepth,
+            lookbackDays,
+            // biome-ignore lint/suspicious/useAwait: callback signature requires Promise<void>
+            onDatabasesDiscovered: async (databases) => {
+              for (const db of databases) {
+                pendingResources.push({
+                  externalId: db.id,
+                  resourceType: "database",
+                  name: db.title?.[0]?.plain_text ?? "Untitled Database",
+                  isPublic: !db.archived,
+                  metadata: {
+                    url: db.url,
+                    createdTime: db.created_time,
+                    lastEditedTime: db.last_edited_time,
+                  },
+                });
+              }
+            },
+            // biome-ignore lint/suspicious/useAwait: callback signature requires Promise<void>
+            onPagesDiscovered: async (pages) => {
+              for (const page of pages) {
+                const titleProp = Object.values(page.properties).find(
+                  (p) => (p as { type: string }).type === "title"
+                ) as { title?: Array<{ plain_text: string }> } | undefined;
+                const title =
+                  titleProp?.title?.[0]?.plain_text ?? "Untitled Page";
+
+                pendingResources.push({
+                  externalId: page.id,
+                  resourceType: "page",
+                  name: title,
+                  isPublic: !(page.archived || page.in_trash),
+                  metadata: {
+                    url: page.url,
+                    createdTime: page.created_time,
+                    lastEditedTime: page.last_edited_time,
+                    parentType: page.parent.type,
+                  },
+                });
+              }
+            },
+          });
+
+      for await (const batch of syncGenerator) {
         const resourcesToYield =
           pendingResources.length > 0 ? [...pendingResources] : undefined;
         if (resourcesToYield) {

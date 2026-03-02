@@ -2,16 +2,41 @@ import { fileURLToPath } from "node:url";
 import { TestWorkflowEnvironment } from "@temporalio/testing";
 import { Worker } from "@temporalio/worker";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { indexDocumentsWorkflow } from "../workflows/processing/index-documents";
 import {
   createMockDatabaseActivities,
   createMockEngineActivities,
   createMockVespaActivities,
 } from "./setup";
 
+const TASK_QUEUE = "test-index";
+const WORKFLOWS_PATH = fileURLToPath(
+  new URL("../workflows/processing/index-documents.ts", import.meta.url)
+);
+
+function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  label: string
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => {
+      reject(new Error(`${label} timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+  });
+
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    if (timer) {
+      clearTimeout(timer);
+    }
+  });
+}
+
 describe("indexDocumentsWorkflow", () => {
   let env: TestWorkflowEnvironment;
   let worker: Worker;
+  let runPromise: Promise<void>;
 
   beforeAll(async () => {
     env = await TestWorkflowEnvironment.createTimeSkipping();
@@ -24,32 +49,87 @@ describe("indexDocumentsWorkflow", () => {
 
     worker = await Worker.create({
       connection: env.nativeConnection,
-      taskQueue: "test-index",
-      workflowsPath: fileURLToPath(
-        new URL("../workflows/processing/index-documents.ts", import.meta.url)
-      ),
+      namespace: env.namespace,
+      taskQueue: TASK_QUEUE,
+      workflowsPath: WORKFLOWS_PATH,
       activities,
     });
 
-    worker.run();
-  });
+    runPromise = worker.run();
+  }, 180_000);
 
   afterAll(async () => {
-    await worker?.shutdown();
-    await env?.teardown();
-  });
+    try {
+      worker?.shutdown();
+      await runPromise;
+    } finally {
+      await env?.teardown();
+    }
+  }, 180_000);
+
+  async function executeIndexWorkflow(
+    workflowId: string,
+    input: {
+      connectorId: string;
+      documents: unknown[];
+      batchSize?: number;
+    }
+  ) {
+    const handle = await withTimeout(
+      env.client.workflow.start("indexDocumentsWorkflow", {
+        taskQueue: TASK_QUEUE,
+        workflowId,
+        workflowExecutionTimeout: "120s",
+        workflowRunTimeout: "120s",
+        workflowTaskTimeout: "60s",
+        args: [input],
+      }),
+      10_000,
+      "workflow start"
+    );
+
+    try {
+      return await withTimeout(handle.result(), 90_000, "workflow result");
+    } catch (error) {
+      const description = await handle.describe();
+      const status = description.status.name;
+      const historyLength =
+        description.raw.workflowExecutionInfo?.historyLength ?? 0;
+      const history = await handle.fetchHistory();
+      const lastEvents =
+        history.events?.slice(-6).map((event) => ({
+          type: event.eventType,
+          activityFailed: event.activityTaskFailedEventAttributes,
+          activityTimedOut: event.activityTaskTimedOutEventAttributes,
+          workflowTaskFailed: event.workflowTaskFailedEventAttributes,
+        })) ?? [];
+      await handle.terminate("Timed out waiting for workflow result");
+
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Unknown workflow result error";
+      throw new Error(
+        `${message} (status=${status}, historyLength=${historyLength}, lastEvents=${JSON.stringify(lastEvents)})`
+      );
+    }
+  }
 
   it("indexes documents successfully", async () => {
-    const result = await env.client.workflow.execute(indexDocumentsWorkflow, {
-      taskQueue: "test-index",
-      workflowId: "test-index-1",
-      args: [
+    const result = await executeIndexWorkflow("test-index-1", {
+      connectorId: "conn_123",
+      documents: [
         {
-          connectorId: "conn_123",
-          documents: [
-            { id: "doc1", title: "Doc 1", content: "content" },
-            { id: "doc2", title: "Doc 2", content: "content" },
-          ],
+          id: "doc1",
+          external_id: "ext-doc1",
+          title: "Doc 1",
+          content: "content",
+        },
+        {
+          id: "doc2",
+          external_id: "ext-doc2",
+          title: "Doc 2",
+          content: "content",
         },
       ],
     });
@@ -61,15 +141,9 @@ describe("indexDocumentsWorkflow", () => {
   });
 
   it("handles empty document array", async () => {
-    const result = await env.client.workflow.execute(indexDocumentsWorkflow, {
-      taskQueue: "test-index",
-      workflowId: "test-index-empty",
-      args: [
-        {
-          connectorId: "conn_123",
-          documents: [],
-        },
-      ],
+    const result = await executeIndexWorkflow("test-index-empty", {
+      connectorId: "conn_123",
+      documents: [],
     });
 
     expect(result.total).toBe(0);
@@ -80,20 +154,15 @@ describe("indexDocumentsWorkflow", () => {
   it("batches large document sets", async () => {
     const documents = Array.from({ length: 250 }, (_, i) => ({
       id: `doc_${i}`,
+      external_id: `ext_doc_${i}`,
       title: `Document ${i}`,
       content: "test content",
     }));
 
-    const result = await env.client.workflow.execute(indexDocumentsWorkflow, {
-      taskQueue: "test-index",
-      workflowId: "test-index-batch",
-      args: [
-        {
-          connectorId: "conn_123",
-          documents,
-          batchSize: 100,
-        },
-      ],
+    const result = await executeIndexWorkflow("test-index-batch", {
+      connectorId: "conn_123",
+      documents,
+      batchSize: 100,
     });
 
     expect(result.total).toBe(250);
@@ -101,20 +170,32 @@ describe("indexDocumentsWorkflow", () => {
   });
 
   it("deduplicates before indexing", async () => {
-    const result = await env.client.workflow.execute(indexDocumentsWorkflow, {
-      taskQueue: "test-index",
-      workflowId: "test-index-dedup",
-      args: [
-        {
-          connectorId: "conn_123",
-          documents: [
-            { id: "doc1", checksum: "abc123" },
-            { id: "doc2", checksum: "abc123" },
-          ],
-        },
+    const result = await executeIndexWorkflow("test-index-dedup", {
+      connectorId: "conn_123",
+      documents: [
+        { id: "doc1", external_id: "doc1", checksum: "abc123" },
+        { id: "doc2", external_id: "doc2", checksum: "abc123" },
       ],
     });
 
     expect(result.total).toBe(2);
+  });
+
+  it("handles deletion markers", async () => {
+    const result = await executeIndexWorkflow("test-index-delete", {
+      connectorId: "conn_123",
+      documents: [
+        {
+          id: "conn_123_email_msg_1",
+          external_id: "msg_1",
+          metadata: { deleted: true },
+        },
+      ],
+    });
+
+    expect(result.indexed).toBe(0);
+    expect(result.dataDeleted).toBe(1);
+    expect(result.errors).toBe(0);
+    expect(result.success).toBe(true);
   });
 });

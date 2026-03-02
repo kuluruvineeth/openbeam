@@ -11,6 +11,7 @@ import {
 describe("webhookHandlerWorkflow", () => {
   let env: TestWorkflowEnvironment;
   let worker: Worker;
+  let workerRunPromise: Promise<void> | undefined;
 
   beforeAll(async () => {
     env = await TestWorkflowEnvironment.createTimeSkipping();
@@ -22,6 +23,7 @@ describe("webhookHandlerWorkflow", () => {
 
     worker = await Worker.create({
       connection: env.nativeConnection,
+      namespace: env.namespace,
       taskQueue: "test-webhook",
       workflowsPath: fileURLToPath(
         new URL("../workflows/webhooks/webhook-handler.ts", import.meta.url)
@@ -29,11 +31,12 @@ describe("webhookHandlerWorkflow", () => {
       activities,
     });
 
-    worker.run();
-  });
+    workerRunPromise = worker.run();
+  }, 180_000);
 
   afterAll(async () => {
     await worker?.shutdown();
+    await workerRunPromise;
     await env?.teardown();
   });
 

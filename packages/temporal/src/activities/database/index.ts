@@ -2,6 +2,7 @@ import type { Database } from "@openplane/db";
 import { createSyncHistory, createSyncJobWithHistory } from "@openplane/db";
 import { createCleanupActivities } from "./cleanup";
 import { createCompleteSyncJobActivity } from "./complete-sync-job";
+import { createDeleteIndexedDocumentsActivity } from "./delete-indexed-documents";
 import { createEmitSyncStartedActivity } from "./emit-sync-started";
 import { createFilterUnchangedDocumentsActivity } from "./filter-unchanged-documents";
 import { createLoadConnectorActivity } from "./load-connector";
@@ -15,6 +16,8 @@ import type {
   CreateSyncHistoryInput,
   CreateSyncJobWithHistoryInput,
   DatabaseActivities,
+  DeleteIndexedDocumentsInput,
+  DeleteIndexedDocumentsResult,
   DiscoveredResource,
   EmitSyncStartedInput,
   TrackIndexedDocumentsInput,
@@ -43,6 +46,7 @@ export function createDatabaseActivities(
   const setConnectorError = createSetConnectorErrorActivity(deps);
   const setConnectorStatus = createSetConnectorStatusActivity(deps);
   const trackIndexedDocuments = createTrackIndexedDocumentsActivity(deps);
+  const deleteIndexedDocuments = createDeleteIndexedDocumentsActivity(deps);
   const filterUnchangedDocuments = createFilterUnchangedDocumentsActivity(deps);
   const upsertDiscoveredResources =
     createUpsertDiscoveredResourcesActivity(deps);
@@ -63,6 +67,7 @@ export function createDatabaseActivities(
     setConnectorError,
     setConnectorStatus,
     trackIndexedDocuments,
+    deleteIndexedDocuments,
     filterUnchangedDocuments,
     upsertDiscoveredResources,
   };
@@ -77,6 +82,8 @@ export {
 
 export type {
   CleanupActivities,
+  DeleteIndexedDocumentsInput,
+  DeleteIndexedDocumentsResult,
   CompleteSyncJobInput,
   ConnectorRecord,
   CreateSyncHistoryInput,

@@ -206,6 +206,7 @@ export interface IndexDocumentsOutput {
   skipped: number;
   dataAdded: number;
   dataUpdated: number;
+  dataDeleted: number;
   success: boolean;
 }
 

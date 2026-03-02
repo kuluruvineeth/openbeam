@@ -44,7 +44,7 @@ const createAgentSchema = z.object({
   description: z.string().max(500).optional(),
   prompt: z.string().min(1).max(10_000),
   preset: BackgroundAgentPresetSchema.default("researcher"),
-  sandboxType: SandboxTypeSchema.default("daytona"),
+  sandboxType: SandboxTypeSchema.default("DAYTONA"),
   repositoryUrl: z.string().url().optional(),
   baseBranch: z.string().optional(),
   maxSteps: z.number().int().positive().max(100).optional(),

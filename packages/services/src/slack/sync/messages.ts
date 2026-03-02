@@ -67,6 +67,14 @@ function buildChannelCursors(
   return { ...existing, [channelId]: timestamp };
 }
 
+function getChannelOldestTimestamp(
+  cursor: SyncCursor | undefined,
+  channelId: string
+): string | undefined {
+  const channelCursor = cursor?.channelCursors?.[channelId];
+  return channelCursor ?? cursor?.lastTimestamp;
+}
+
 interface ThreadProcessingContext {
   client: SlackClient;
   channel: SlackChannel;
@@ -133,9 +141,10 @@ export async function syncChannelMessages(
     userLookup,
     channelMembers,
   };
+  const oldestTimestamp = getChannelOldestTimestamp(cursor, channel.id);
 
-  const fetchOptions: FetchMessagesOptions = cursor?.lastTimestamp
-    ? { oldest: cursor.lastTimestamp }
+  const fetchOptions: FetchMessagesOptions = oldestTimestamp
+    ? { oldest: oldestTimestamp }
     : {};
 
   try {
@@ -162,7 +171,7 @@ export async function syncChannelMessages(
           channel,
           transformContext,
           transformOptions,
-          oldest: cursor?.lastTimestamp,
+          oldest: oldestTimestamp,
         };
         await processThreadReplies(threadCtx, message, state);
       }
@@ -244,13 +253,14 @@ export async function* syncChannelMessagesBatched(
     userLookup,
     channelMembers,
   };
-  const fetchOptions: FetchMessagesOptions = cursor?.lastTimestamp
-    ? { oldest: cursor.lastTimestamp }
+  const oldestTimestamp = getChannelOldestTimestamp(cursor, channel.id);
+  const fetchOptions: FetchMessagesOptions = oldestTimestamp
+    ? { oldest: oldestTimestamp }
     : {};
 
   let state: BatchState = {
     batch: [],
-    latestTimestamp: cursor?.lastTimestamp,
+    latestTimestamp: oldestTimestamp,
     stats: { processed: 0, skipped: 0, errors: 0 },
   };
 
@@ -274,6 +284,7 @@ export async function* syncChannelMessagesBatched(
         transformContext,
         transformOptions,
         cursor,
+        oldestTimestamp,
         batchSize,
       };
       const yieldedState = yield* processThreadRepliesBatched(
@@ -303,6 +314,7 @@ interface BatchedThreadContext {
   transformContext: MessageTransformContext;
   transformOptions?: MessageTransformOptions;
   cursor?: SyncCursor;
+  oldestTimestamp?: string;
   batchSize: number;
 }
 
@@ -318,7 +330,7 @@ async function* processThreadRepliesBatched(
       ctx.client,
       ctx.channel.id,
       message.ts,
-      { oldest: ctx.cursor?.lastTimestamp }
+      { oldest: ctx.oldestTimestamp }
     )) {
       const replyDoc = await transformMessage(
         reply,

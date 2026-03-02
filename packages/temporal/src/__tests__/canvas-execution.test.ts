@@ -461,6 +461,7 @@ const parallelMapCanvas = {
 describe("agentCanvasExecutionWorkflow", () => {
   let env: TestWorkflowEnvironment;
   let worker: Worker;
+  let workerRunPromise: Promise<void> | undefined;
 
   beforeAll(async () => {
     env = await TestWorkflowEnvironment.createTimeSkipping();
@@ -608,6 +609,7 @@ describe("agentCanvasExecutionWorkflow", () => {
 
     worker = await Worker.create({
       connection: env.nativeConnection,
+      namespace: env.namespace,
       taskQueue: "test-canvas",
       workflowsPath: fileURLToPath(
         new URL("../workflows/canvas/canvas-execution.ts", import.meta.url)
@@ -615,11 +617,12 @@ describe("agentCanvasExecutionWorkflow", () => {
       activities,
     });
 
-    worker.run();
-  });
+    workerRunPromise = worker.run();
+  }, 180_000);
 
   afterAll(async () => {
     await worker?.shutdown();
+    await workerRunPromise;
     await env?.teardown();
   });
 

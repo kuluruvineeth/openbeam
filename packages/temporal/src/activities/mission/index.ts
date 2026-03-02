@@ -399,7 +399,7 @@ export function createMissionActivities(
             });
 
       const sandboxConfigByAgentId = new Map<string, SandboxConfig>();
-      for (const row of sandboxConfigRows) {
+      for (const row of sandboxConfigRows ?? []) {
         if (!row.agentId) {
           continue;
         }

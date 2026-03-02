@@ -8,6 +8,19 @@ const mockDelete = vi.fn();
 const mockDescribe = vi.fn();
 const mockGetHandle = vi.fn();
 const mockConnectionClose = vi.fn();
+const mockScheduleClientConstructor = vi.fn();
+
+class MockScheduleClient {
+  create = mockCreate;
+  getHandle = mockGetHandle;
+  list = vi.fn(async function* () {
+    /* no-op */
+  });
+
+  constructor(...args: unknown[]) {
+    mockScheduleClientConstructor(...args);
+  }
+}
 
 vi.mock("../connection", () => ({
   createClientConnection: mockCreateClientConnection,
@@ -17,13 +30,7 @@ vi.mock("@temporalio/client", () => ({
   Connection: {
     connect: mockCreateClientConnection,
   },
-  ScheduleClient: vi.fn().mockImplementation(() => ({
-    create: mockCreate,
-    getHandle: mockGetHandle,
-    list: vi.fn(async function* () {
-      /* no-op */
-    }),
-  })),
+  ScheduleClient: MockScheduleClient,
 }));
 
 describe("registerSchedules", () => {
@@ -69,6 +76,10 @@ describe("registerSchedules", () => {
 
     expect(mockCreateClientConnection).toHaveBeenCalledWith({
       address: "temporal.test:7233",
+    });
+    expect(mockScheduleClientConstructor).toHaveBeenCalledWith({
+      connection: { close: mockConnectionClose },
+      namespace: "test-namespace",
     });
     expect(mockConnectionClose).toHaveBeenCalledOnce();
   });

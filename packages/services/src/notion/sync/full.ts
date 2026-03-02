@@ -109,6 +109,22 @@ export async function* fullSync(
       continue;
     }
 
+    if (database.archived || database.in_trash) {
+      documents.push(createDatabaseDeleteMarker(enrichedContext, database.id));
+      processed += 1;
+
+      if (documents.length >= batchSize) {
+        yield createBatch(documents, cursor, true, {
+          processed,
+          skipped,
+          errors,
+        });
+        documents = [];
+        onProgress?.({ processed, skipped, errors });
+      }
+      continue;
+    }
+
     try {
       const document = await transformDatabase(database, enrichedContext);
       documents.push(document);
@@ -189,7 +205,6 @@ export async function* fullSync(
 
     if (page.archived || page.in_trash) {
       skippedByArchived += 1;
-      skipped += 1;
       logger.debug(
         {
           pageId: page.id,
@@ -197,8 +212,25 @@ export async function* fullSync(
           archived: page.archived,
           inTrash: page.in_trash,
         },
-        "Page skipped - archived or in trash"
+        "Page archived or in trash - emitting delete marker"
       );
+
+      documents.push(createPageDeleteMarker(enrichedContext, page.id));
+      processed += 1;
+
+      if (documents.length >= batchSize) {
+        logger.info(
+          { batchSize: documents.length, processed, skipped, errors },
+          "Yielding batch"
+        );
+        yield createBatch(documents, cursor, true, {
+          processed,
+          skipped,
+          errors,
+        });
+        documents = [];
+        onProgress?.({ processed, skipped, errors });
+      }
       continue;
     }
 
@@ -321,5 +353,53 @@ function createBatch(
     cursor: { ...cursor },
     hasMore,
     stats,
+  };
+}
+
+function createPageDeleteMarker(
+  context: NotionTransformContext,
+  pageId: string
+): GenericDocument {
+  return {
+    id: `${context.connectorId}_page_${pageId}`,
+    connector_id: context.connectorId,
+    connector_type: context.connectorType,
+    team_id: context.teamId,
+    workspace_id: context.workspaceId,
+    external_id: pageId,
+    document_type: "page",
+    title: "",
+    content: "",
+    created_at: 0,
+    updated_at: Date.now(),
+    is_public: false,
+    metadata: {
+      deleted: true,
+      deletedAt: Date.now(),
+    },
+  };
+}
+
+function createDatabaseDeleteMarker(
+  context: NotionTransformContext,
+  databaseId: string
+): GenericDocument {
+  return {
+    id: `${context.connectorId}_database_${databaseId}`,
+    connector_id: context.connectorId,
+    connector_type: context.connectorType,
+    team_id: context.teamId,
+    workspace_id: context.workspaceId,
+    external_id: databaseId,
+    document_type: "database",
+    title: "",
+    content: "",
+    created_at: 0,
+    updated_at: Date.now(),
+    is_public: false,
+    metadata: {
+      deleted: true,
+      deletedAt: Date.now(),
+    },
   };
 }

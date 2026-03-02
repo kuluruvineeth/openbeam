@@ -128,7 +128,7 @@ export async function* historySync(
 
   if (deletedMessageIds.length > 0) {
     const deleteDocuments = deletedMessageIds.map((messageId) =>
-      createDeleteMarker(context.connectorId, messageId)
+      createDeleteMarker(context, messageId)
     );
     documents.push(...deleteDocuments);
   }
@@ -145,15 +145,15 @@ export async function* historySync(
 }
 
 function createDeleteMarker(
-  connectorId: string,
+  context: GmailTransformContext,
   messageId: string
 ): GenericDocument {
   return {
-    id: `${connectorId}_email_${messageId}`,
-    connector_id: connectorId,
-    connector_type: "gmail",
-    team_id: "",
-    workspace_id: "",
+    id: `${context.connectorId}_email_${messageId}`,
+    connector_id: context.connectorId,
+    connector_type: context.connectorType,
+    team_id: context.teamId,
+    workspace_id: context.workspaceId,
     external_id: messageId,
     document_type: "email",
     title: "",

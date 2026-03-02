@@ -59,8 +59,36 @@ export async function* googleDriveIncrementalSync(
   let totalProcessed = 0;
   let totalSkipped = 0;
   let totalErrors = 0;
+  let previousProcessed = 0;
+  let previousSkipped = 0;
+  let previousErrors = 0;
   let mediaQueued = 0;
   let finalCursor: GoogleDriveSyncCursor = cursor ?? {};
+
+  const updateTotalsFromBatch = (
+    batch: GoogleDriveSyncBatch<GenericDocument>
+  ) => {
+    const processedDelta =
+      batch.stats.processed >= previousProcessed
+        ? batch.stats.processed - previousProcessed
+        : batch.stats.processed;
+    const skippedDelta =
+      batch.stats.skipped >= previousSkipped
+        ? batch.stats.skipped - previousSkipped
+        : batch.stats.skipped;
+    const errorsDelta =
+      batch.stats.errors >= previousErrors
+        ? batch.stats.errors - previousErrors
+        : batch.stats.errors;
+
+    totalProcessed += processedDelta;
+    totalSkipped += skippedDelta;
+    totalErrors += errorsDelta;
+
+    previousProcessed = batch.stats.processed;
+    previousSkipped = batch.stats.skipped;
+    previousErrors = batch.stats.errors;
+  };
 
   const handleMediaDiscovered = async (media: DriveMediaInfo[]) => {
     if (onMediaDiscovered && media.length > 0) {
@@ -81,9 +109,7 @@ export async function* googleDriveIncrementalSync(
       onMediaDiscovered: handleMediaDiscovered,
       onFilesDiscovered,
     })) {
-      totalProcessed += batch.stats.processed;
-      totalSkipped += batch.stats.skipped;
-      totalErrors += batch.stats.errors;
+      updateTotalsFromBatch(batch);
       finalCursor = batch.cursor;
 
       yield batch;
@@ -98,9 +124,7 @@ export async function* googleDriveIncrementalSync(
         onMediaDiscovered: handleMediaDiscovered,
         onDocumentsRemoved,
       })) {
-        totalProcessed += batch.stats.processed;
-        totalSkipped += batch.stats.skipped;
-        totalErrors += batch.stats.errors;
+        updateTotalsFromBatch(batch);
         finalCursor = batch.cursor;
 
         yield batch;
@@ -122,9 +146,7 @@ export async function* googleDriveIncrementalSync(
           onMediaDiscovered: handleMediaDiscovered,
           onFilesDiscovered,
         })) {
-          totalProcessed += batch.stats.processed;
-          totalSkipped += batch.stats.skipped;
-          totalErrors += batch.stats.errors;
+          updateTotalsFromBatch(batch);
           finalCursor = batch.cursor;
 
           yield batch;

@@ -60,8 +60,12 @@ export function createMockDatabaseActivities() {
       skipped: 0,
     }),
     trackIndexedDocuments: async (input: { documents: unknown[] }) => ({
+      tracked: input.documents.length,
       dataAdded: input.documents.length,
       dataUpdated: 0,
+    }),
+    deleteIndexedDocuments: async (input: { externalIds: unknown[] }) => ({
+      deleted: input.externalIds.length,
     }),
   };
 }
@@ -79,7 +83,7 @@ export function createMockVespaActivities() {
       errors: [] as { docId: string; error: string }[],
     }),
     search: async () => ({ results: [], total: 0 }),
-    deleteDocuments: async () => ({ deleted: 0 }),
+    deleteDocuments: async () => ({ deleted: 0, failed: 0 }),
     deleteByConnector: async () => ({ deleted: 0 }),
     removeOrphanChunks: async () => ({ removed: 0 }),
   };

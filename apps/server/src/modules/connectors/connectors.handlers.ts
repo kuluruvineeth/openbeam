@@ -65,6 +65,7 @@ export const triggerSyncHandler: RouteHandler<
   }
 };
 
+// @ts-expect-error TS2589: RouteHandler instantiation is excessively deep on this generated route schema.
 export const getSyncHistoryHandler: RouteHandler<
   typeof getSyncHistory,
   AuthEnv

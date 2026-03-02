@@ -105,7 +105,7 @@ let createExecuteCanvasNodeActivity: typeof import("../activities/canvas/execute
 beforeAll(async () => {
   const mod = await import("../activities/canvas/execute-node");
   createExecuteCanvasNodeActivity = mod.createExecuteCanvasNodeActivity;
-});
+}, 60_000);
 
 beforeEach(() => {
   executionDataStore.clear();

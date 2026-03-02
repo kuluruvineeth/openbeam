@@ -88,6 +88,23 @@ export const deleteIndexedDocumentByExternalId = async (
     where: { connectorId, externalId },
   });
 
+export const deleteIndexedDocumentsByExternalIds = (
+  db: Database,
+  connectorId: string,
+  externalIds: string[]
+): Promise<{ count: number }> => {
+  if (externalIds.length === 0) {
+    return Promise.resolve({ count: 0 });
+  }
+
+  return db.indexedDocument.deleteMany({
+    where: {
+      connectorId,
+      externalId: { in: externalIds },
+    },
+  });
+};
+
 export const deleteStaleIndexedDocuments = async (
   db: Database,
   connectorId: string,

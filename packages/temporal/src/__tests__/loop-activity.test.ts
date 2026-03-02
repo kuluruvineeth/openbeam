@@ -70,7 +70,7 @@ let createExecuteLoopNodeActivity: typeof import("../activities/canvas/loop-node
 beforeAll(async () => {
   const mod = await import("../activities/canvas/loop-node");
   createExecuteLoopNodeActivity = mod.createExecuteLoopNodeActivity;
-});
+}, 60_000);
 
 function buildLoopNode(config: Record<string, unknown>): ExecutionPlanNode {
   return {

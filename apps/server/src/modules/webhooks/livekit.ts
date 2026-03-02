@@ -23,11 +23,6 @@ function verifyLiveKitSignature(
   }
 }
 
-function _extractSessionFromRoom(roomName: string): string | null {
-  const parts = roomName.split("-");
-  return parts.length >= 3 ? parts.slice(0, -1).join("-") : null;
-}
-
 livekitWebhook.post("/events", async (c) => {
   const webhookSecret = process.env.LIVEKIT_WEBHOOK_SECRET;
   if (!webhookSecret) {

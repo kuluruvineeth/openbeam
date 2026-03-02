@@ -41,14 +41,15 @@ async function resolveObjectByName(
   const objects = await db.query<{ id: string }>(
     `SELECT id FROM objects WHERE name = ${escapeSqlValue(objectName)}`
   );
-  if (objects.length === 0) {
+  const object = objects[0];
+  if (!object) {
     throw new WorkspaceDuckDBError(
       `Object '${objectName}' not found`,
       "OBJECT_NOT_FOUND",
       false
     );
   }
-  return objects[0]?.id;
+  return object.id;
 }
 
 export async function exportToCSV(

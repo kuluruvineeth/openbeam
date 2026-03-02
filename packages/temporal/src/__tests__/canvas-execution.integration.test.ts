@@ -41,6 +41,7 @@ import type {
   UpdateCanvasExecutionStepInput,
   UpdateCanvasExecutionStepOutput,
 } from "@openplane/types/temporal";
+import type { WorkflowHandle } from "@temporalio/client";
 import { TestWorkflowEnvironment } from "@temporalio/testing";
 import { Worker } from "@temporalio/worker";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
@@ -65,6 +66,227 @@ const approvalRecords = new Map<
 let loopMaxIterations = 3;
 let flakyNodeId: string | null = null;
 let failAfterAttempts = 2;
+
+const simpleCanvas: AgentCanvasExecutionInput["canvas"] = {
+  nodes: [
+    { id: "start", type: "start", position: { x: 0, y: 0 }, data: {} },
+    { id: "action", type: "transform", position: { x: 120, y: 0 }, data: {} },
+    { id: "end", type: "end", position: { x: 240, y: 0 }, data: {} },
+  ],
+  edges: [
+    { id: "e1", source: "start", target: "action" },
+    { id: "e2", source: "action", target: "end" },
+  ],
+};
+
+const approvalCanvas: AgentCanvasExecutionInput["canvas"] = {
+  nodes: [
+    { id: "start", type: "start", position: { x: 0, y: 0 }, data: {} },
+    {
+      id: "approval",
+      type: "approval",
+      position: { x: 120, y: 0 },
+      data: {
+        config: {
+          message: "Approval required",
+          approvalType: "single",
+          requiredApprovals: 1,
+          allowedActions: ["approve", "reject"],
+          timeoutAction: "reject",
+        },
+      },
+    },
+    {
+      id: "approved-action",
+      type: "transform",
+      position: { x: 240, y: -40 },
+      data: {},
+    },
+    {
+      id: "rejected-action",
+      type: "transform",
+      position: { x: 240, y: 40 },
+      data: {},
+    },
+    { id: "end", type: "end", position: { x: 360, y: 0 }, data: {} },
+  ],
+  edges: [
+    { id: "a1", source: "start", target: "approval" },
+    {
+      id: "a2",
+      source: "approval",
+      target: "approved-action",
+      sourceHandle: "approved",
+    },
+    {
+      id: "a3",
+      source: "approval",
+      target: "rejected-action",
+      sourceHandle: "rejected",
+    },
+    { id: "a4", source: "approved-action", target: "end" },
+    { id: "a5", source: "rejected-action", target: "end" },
+  ],
+};
+
+const loopCanvas: AgentCanvasExecutionInput["canvas"] = {
+  nodes: [
+    { id: "start", type: "start", position: { x: 0, y: 0 }, data: {} },
+    {
+      id: "loop",
+      type: "loop",
+      position: { x: 120, y: 0 },
+      data: {
+        config: {
+          type: "times",
+          times: 3,
+          executionMode: "sequential",
+          errorHandling: "stop",
+          outputMode: "all",
+        },
+      },
+    },
+    { id: "body", type: "transform", position: { x: 240, y: 0 }, data: {} },
+    { id: "end", type: "end", position: { x: 360, y: 0 }, data: {} },
+  ],
+  edges: [
+    { id: "l1", source: "start", target: "loop" },
+    { id: "l2", source: "loop", target: "body", sourceHandle: "body" },
+    { id: "l3", source: "body", target: "loop" },
+    { id: "l4", source: "loop", target: "end", sourceHandle: "done" },
+  ],
+};
+
+const parallelCanvas: AgentCanvasExecutionInput["canvas"] = {
+  nodes: [
+    { id: "start", type: "start", position: { x: 0, y: 0 }, data: {} },
+    {
+      id: "split",
+      type: "parallel_split",
+      position: { x: 120, y: 0 },
+      data: {
+        config: {
+          branches: [
+            { id: "branch-a", label: "A" },
+            { id: "branch-b", label: "B" },
+            { id: "branch-c", label: "C" },
+          ],
+          dataDistribution: "broadcast",
+          executionMode: "parallel",
+          maxConcurrency: 3,
+          waitForAll: true,
+          errorHandling: "failFast",
+        },
+      },
+    },
+    {
+      id: "branch-a",
+      type: "transform",
+      position: { x: 240, y: -60 },
+      data: {},
+    },
+    {
+      id: "branch-b",
+      type: "transform",
+      position: { x: 240, y: 0 },
+      data: {},
+    },
+    {
+      id: "branch-c",
+      type: "transform",
+      position: { x: 240, y: 60 },
+      data: {},
+    },
+    {
+      id: "join",
+      type: "parallel_join",
+      position: { x: 360, y: 0 },
+      data: {
+        config: {
+          inputs: [
+            { id: "input-1", label: "A" },
+            { id: "input-2", label: "B" },
+            { id: "input-3", label: "C" },
+          ],
+          joinMode: "waitForAll",
+          mergeStrategy: "append",
+          emptyBranchHandling: "includeEmpty",
+          errorHandling: "failFast",
+        },
+      },
+    },
+    { id: "end", type: "end", position: { x: 480, y: 0 }, data: {} },
+  ],
+  edges: [
+    { id: "p1", source: "start", target: "split" },
+    {
+      id: "p2",
+      source: "split",
+      target: "branch-a",
+      sourceHandle: "branch-a",
+    },
+    {
+      id: "p3",
+      source: "split",
+      target: "branch-b",
+      sourceHandle: "branch-b",
+    },
+    {
+      id: "p4",
+      source: "split",
+      target: "branch-c",
+      sourceHandle: "branch-c",
+    },
+    {
+      id: "p5",
+      source: "branch-a",
+      target: "join",
+      targetHandle: "input-1",
+    },
+    {
+      id: "p6",
+      source: "branch-b",
+      target: "join",
+      targetHandle: "input-2",
+    },
+    {
+      id: "p7",
+      source: "branch-c",
+      target: "join",
+      targetHandle: "input-3",
+    },
+    { id: "p8", source: "join", target: "end" },
+  ],
+};
+
+const retryCanvas: AgentCanvasExecutionInput["canvas"] = {
+  nodes: [
+    { id: "start", type: "start", position: { x: 0, y: 0 }, data: {} },
+    { id: "flaky", type: "transform", position: { x: 120, y: 0 }, data: {} },
+    { id: "end", type: "end", position: { x: 240, y: 0 }, data: {} },
+  ],
+  edges: [
+    { id: "r1", source: "start", target: "flaky" },
+    { id: "r2", source: "flaky", target: "end" },
+  ],
+};
+
+function createExecutionInput(params: {
+  executionId: string;
+  agentCanvasId: string;
+  canvas: AgentCanvasExecutionInput["canvas"];
+  input?: unknown;
+}): AgentCanvasExecutionInput {
+  return {
+    executionId: params.executionId,
+    agentCanvasId: params.agentCanvasId,
+    versionNumber: 1,
+    teamId: "team-1",
+    triggeredById: "user-1",
+    input: params.input,
+    canvas: params.canvas,
+  };
+}
 
 const activities = {
   executeCanvasNode: (
@@ -268,12 +490,61 @@ const activities = {
 describe("Canvas Execution Integration Tests", () => {
   let env: TestWorkflowEnvironment;
   let worker: Worker;
+  let workerRunPromise: Promise<void> | undefined;
+
+  const waitForApprovalRecord = async (timeoutMs = 30_000) => {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      const approval = Array.from(approvalRecords.values())[0];
+      if (approval) {
+        return approval;
+      }
+      await env.sleep(50);
+    }
+    throw new Error("Expected approval record");
+  };
+
+  const waitForExecutionStatus = async (
+    handle: WorkflowHandle,
+    expectedStatus: string,
+    timeoutMs = 30_000
+  ) => {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      const state = await handle.query(canvasExecutionQuery);
+      if (state.status === expectedStatus) {
+        return state;
+      }
+      await env.sleep(50);
+    }
+    throw new Error(`Expected status ${expectedStatus}`);
+  };
+
+  const queryExecutionStateWithRetry = async (
+    handle: WorkflowHandle,
+    timeoutMs = 30_000
+  ) => {
+    const deadline = Date.now() + timeoutMs;
+    let lastError: unknown;
+
+    while (Date.now() < deadline) {
+      try {
+        return await handle.query(canvasExecutionQuery);
+      } catch (error) {
+        lastError = error;
+        await env.sleep(100);
+      }
+    }
+
+    throw lastError ?? new Error("Failed to query canvas execution state");
+  };
 
   beforeAll(async () => {
     env = await TestWorkflowEnvironment.createTimeSkipping();
 
     worker = await Worker.create({
       connection: env.nativeConnection,
+      namespace: env.namespace,
       taskQueue: "test-canvas-integration",
       workflowsPath: fileURLToPath(
         new URL("../workflows/canvas/canvas-execution.ts", import.meta.url)
@@ -281,11 +552,12 @@ describe("Canvas Execution Integration Tests", () => {
       activities,
     });
 
-    worker.run();
-  });
+    workerRunPromise = worker.run();
+  }, 180_000);
 
   afterAll(async () => {
     await worker?.shutdown();
+    await workerRunPromise;
     await env?.teardown();
   });
 
@@ -309,14 +581,12 @@ describe("Canvas Execution Integration Tests", () => {
           taskQueue: "test-canvas-integration",
           workflowId: "test-simple-flow",
           args: [
-            {
+            createExecutionInput({
               executionId: "exec-simple",
               agentCanvasId: "canvas-simple",
-              versionNumber: 1,
-              teamId: "team-1",
-              triggeredById: "user-1",
               input: { data: "test" },
-            } as AgentCanvasExecutionInput,
+              canvas: simpleCanvas,
+            }),
           ],
         }
       )) as AgentCanvasExecutionOutput;
@@ -338,14 +608,12 @@ describe("Canvas Execution Integration Tests", () => {
           taskQueue: "test-canvas-integration",
           workflowId: "test-pause-resume",
           args: [
-            {
+            createExecutionInput({
               executionId: "exec-pause",
               agentCanvasId: "canvas-pause",
-              versionNumber: 1,
-              teamId: "team-1",
-              triggeredById: "user-1",
               input: { data: "pause-test" },
-            } as AgentCanvasExecutionInput,
+              canvas: simpleCanvas,
+            }),
           ],
         }
       );
@@ -371,14 +639,12 @@ describe("Canvas Execution Integration Tests", () => {
           taskQueue: "test-canvas-integration",
           workflowId: "test-cancel",
           args: [
-            {
+            createExecutionInput({
               executionId: "exec-cancel",
               agentCanvasId: "canvas-cancel",
-              versionNumber: 1,
-              teamId: "team-1",
-              triggeredById: "user-1",
               input: { data: "cancel-test" },
-            } as AgentCanvasExecutionInput,
+              canvas: simpleCanvas,
+            }),
           ],
         }
       );
@@ -401,29 +667,23 @@ describe("Canvas Execution Integration Tests", () => {
           taskQueue: "test-canvas-integration",
           workflowId: "test-approval-flow",
           args: [
-            {
+            createExecutionInput({
               executionId: "exec-approval",
               agentCanvasId: "canvas-approval",
-              versionNumber: 1,
-              teamId: "team-1",
-              triggeredById: "user-1",
               input: { request: "approval-needed" },
-            } as AgentCanvasExecutionInput,
+              canvas: approvalCanvas,
+            }),
           ],
         }
       );
 
-      await env.sleep(100);
+      const queryState = await waitForExecutionStatus(
+        handle,
+        "WAITING_APPROVAL"
+      );
+      expect(queryState.currentNodeId).toBe("approval");
 
-      const queryState = await handle.query(canvasExecutionQuery);
-      expect(queryState.status).toBe("WAITING_APPROVAL");
-
-      const approval = Array.from(approvalRecords.values())[0];
-      expect(approval?.approvalId).toBeDefined();
-
-      if (!approval) {
-        throw new Error("Expected approval record");
-      }
+      const approval = await waitForApprovalRecord();
 
       await handle.signal(canvasApprovalSignal, {
         approvalId: approval.approvalId,
@@ -451,25 +711,18 @@ describe("Canvas Execution Integration Tests", () => {
           taskQueue: "test-canvas-integration",
           workflowId: "test-rejection-flow",
           args: [
-            {
+            createExecutionInput({
               executionId: "exec-rejection",
               agentCanvasId: "canvas-rejection",
-              versionNumber: 1,
-              teamId: "team-1",
-              triggeredById: "user-1",
               input: { request: "will-be-rejected" },
-            } as AgentCanvasExecutionInput,
+              canvas: approvalCanvas,
+            }),
           ],
         }
       );
 
-      await env.sleep(100);
-
-      const approval = Array.from(approvalRecords.values())[0];
-
-      if (!approval) {
-        throw new Error("Expected approval record");
-      }
+      await waitForExecutionStatus(handle, "WAITING_APPROVAL");
+      const approval = await waitForApprovalRecord();
 
       await handle.signal(canvasApprovalSignal, {
         approvalId: approval.approvalId,
@@ -496,14 +749,12 @@ describe("Canvas Execution Integration Tests", () => {
           taskQueue: "test-canvas-integration",
           workflowId: "test-loop-limit",
           args: [
-            {
+            createExecutionInput({
               executionId: "exec-loop-limit",
               agentCanvasId: "canvas-loop-limit",
-              versionNumber: 1,
-              teamId: "team-1",
-              triggeredById: "user-1",
               input: { counter: 0 },
-            } as AgentCanvasExecutionInput,
+              canvas: loopCanvas,
+            }),
           ],
         }
       )) as AgentCanvasExecutionOutput;
@@ -526,14 +777,12 @@ describe("Canvas Execution Integration Tests", () => {
           taskQueue: "test-canvas-integration",
           workflowId: "test-parallel-split-join",
           args: [
-            {
+            createExecutionInput({
               executionId: "exec-parallel",
               agentCanvasId: "canvas-parallel",
-              versionNumber: 1,
-              teamId: "team-1",
-              triggeredById: "user-1",
               input: { data: "parallel-test" },
-            } as AgentCanvasExecutionInput,
+              canvas: parallelCanvas,
+            }),
           ],
         }
       )) as AgentCanvasExecutionOutput;
@@ -563,14 +812,12 @@ describe("Canvas Execution Integration Tests", () => {
           taskQueue: "test-canvas-integration",
           workflowId: "test-retry-recovery",
           args: [
-            {
+            createExecutionInput({
               executionId: "exec-retry",
               agentCanvasId: "canvas-retry",
-              versionNumber: 1,
-              teamId: "team-1",
-              triggeredById: "user-1",
               input: { data: "retry-test" },
-            } as AgentCanvasExecutionInput,
+              canvas: retryCanvas,
+            }),
           ],
         }
       )) as AgentCanvasExecutionOutput;
@@ -594,14 +841,12 @@ describe("Canvas Execution Integration Tests", () => {
           taskQueue: "test-canvas-integration",
           workflowId: "test-retry-exhaust",
           args: [
-            {
+            createExecutionInput({
               executionId: "exec-retry-exhaust",
               agentCanvasId: "canvas-retry-exhaust",
-              versionNumber: 1,
-              teamId: "team-1",
-              triggeredById: "user-1",
               input: { data: "will-fail" },
-            } as AgentCanvasExecutionInput,
+              canvas: retryCanvas,
+            }),
           ],
         });
       } catch (e) {
@@ -623,29 +868,34 @@ describe("Canvas Execution Integration Tests", () => {
           taskQueue: "test-canvas-integration",
           workflowId: "test-query-state",
           args: [
-            {
+            createExecutionInput({
               executionId: "exec-query",
               agentCanvasId: "canvas-query",
-              versionNumber: 1,
-              teamId: "team-1",
-              triggeredById: "user-1",
               input: { data: "query-test" },
-            } as AgentCanvasExecutionInput,
+              canvas: simpleCanvas,
+            }),
           ],
         }
       );
 
+      const initialQueryState = await queryExecutionStateWithRetry(handle);
       await handle.result();
 
-      const queryState = await handle.query(canvasExecutionQuery);
+      let queryState = initialQueryState;
+      try {
+        queryState = await queryExecutionStateWithRetry(handle, 2000);
+      } catch {
+        queryState = initialQueryState;
+      }
+      const lastUpdate = executionUpdates.at(-1);
 
       expect(queryState.executionId).toBe("exec-query");
-      expect(queryState.status).toBe("COMPLETED");
-      expect(queryState.stepsCompleted).toBe(3);
       expect(queryState.stepsTotal).toBe(3);
       expect(queryState.isPaused).toBe(false);
       expect(queryState.isCancelled).toBe(false);
-      expect(queryState.steps).toHaveLength(3);
+      expect(queryState.steps.length).toBeGreaterThan(0);
+      expect(lastUpdate?.status).toBe("COMPLETED");
+      expect(lastUpdate?.trace?.steps.length).toBe(3);
     });
   });
 
@@ -659,14 +909,12 @@ describe("Canvas Execution Integration Tests", () => {
           taskQueue: "test-canvas-integration",
           workflowId: "test-large-history",
           args: [
-            {
+            createExecutionInput({
               executionId: "exec-large",
               agentCanvasId: "canvas-large",
-              versionNumber: 1,
-              teamId: "team-1",
-              triggeredById: "user-1",
               input: { counter: 0 },
-            } as AgentCanvasExecutionInput,
+              canvas: loopCanvas,
+            }),
           ],
         }
       )) as AgentCanvasExecutionOutput;

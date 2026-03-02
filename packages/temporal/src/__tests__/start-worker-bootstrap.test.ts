@@ -10,6 +10,23 @@ const mockCreateEngineActivities = vi.fn();
 const mockCreateKnowledgeChangeActivities = vi.fn();
 const mockCreateKnowledgeInferenceActivities = vi.fn();
 const mockCreateKnowledgeCleanupActivities = vi.fn();
+const mockBindToolServices = vi.fn();
+const mockCreateToolServices = vi.fn(() => ({}));
+
+const mockMissionDelegateToMissionRegister = vi.fn();
+const mockMissionDiscoverMissionsRegister = vi.fn();
+const mockMissionEscalateRegister = vi.fn();
+const mockMissionEvaluateProgressRegister = vi.fn();
+const mockMissionGetInboxRegister = vi.fn();
+const mockMissionGetSpawnTreeRegister = vi.fn();
+const mockMissionListAgentsRegister = vi.fn();
+const mockMissionQueryCapabilitiesRegister = vi.fn();
+const mockMissionQueryTeamKnowledgeRegister = vi.fn();
+const mockMissionRequestReplanRegister = vi.fn();
+const mockMissionSendMessageRegister = vi.fn();
+const mockMissionSpawnAgentRegister = vi.fn();
+const mockMissionStoreTeamKnowledgeRegister = vi.fn();
+const mockMissionWaitForReplyRegister = vi.fn();
 
 vi.mock("../connection", () => ({
   createWorkerConnection: mockCreateWorkerConnection,
@@ -34,6 +51,38 @@ vi.mock("@openplane/storage", () => ({
 
 vi.mock("@openplane/vespa", () => ({
   vespaClient: {},
+}));
+
+vi.mock("@openplane/services", () => ({
+  createToolServices: mockCreateToolServices,
+}));
+
+vi.mock("@openplane/ai/tools", () => ({
+  missionDelegateToMission: { register: mockMissionDelegateToMissionRegister },
+  missionDiscoverMissions: { register: mockMissionDiscoverMissionsRegister },
+  missionEscalate: { register: mockMissionEscalateRegister },
+  missionEvaluateProgress: { register: mockMissionEvaluateProgressRegister },
+  missionGetInbox: { register: mockMissionGetInboxRegister },
+  missionGetSpawnTree: { register: mockMissionGetSpawnTreeRegister },
+  missionListAgents: { register: mockMissionListAgentsRegister },
+  missionQueryCapabilities: { register: mockMissionQueryCapabilitiesRegister },
+  missionQueryTeamKnowledge: {
+    register: mockMissionQueryTeamKnowledgeRegister,
+  },
+  missionRequestReplan: { register: mockMissionRequestReplanRegister },
+  missionSendMessage: { register: mockMissionSendMessageRegister },
+  missionSpawnAgent: { register: mockMissionSpawnAgentRegister },
+  missionStoreTeamKnowledge: {
+    register: mockMissionStoreTeamKnowledgeRegister,
+  },
+  missionWaitForReply: { register: mockMissionWaitForReplyRegister },
+  setMissionDelegationServices: vi.fn(),
+  setMissionMessagingServices: vi.fn(),
+  setMissionSpawnServices: vi.fn(),
+  setTeamKnowledgeServices: vi.fn(),
+  toolRegistry: {
+    bindServices: mockBindToolServices,
+  },
 }));
 
 vi.mock("../activities/database", () => ({
@@ -124,5 +173,7 @@ describe("startWorker bootstrap", () => {
         connection: { id: "connection" },
       })
     );
+    expect(mockCreateToolServices).toHaveBeenCalledOnce();
+    expect(mockBindToolServices).toHaveBeenCalledOnce();
   });
 });

@@ -136,7 +136,7 @@ export const voiceRouter = createTRPCRouter({
         language: input.language,
         formatting: input.formatting,
         formatStyle: input.formatStyle,
-        shortcuts: input.shortcuts as Record<string, unknown> | undefined,
+        shortcuts: input.shortcuts,
         vocabulary: input.vocabulary,
         widgetPosition: input.widgetPosition,
         widgetOpacity: input.widgetOpacity,

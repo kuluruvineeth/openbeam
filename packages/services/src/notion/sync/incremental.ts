@@ -80,8 +80,23 @@ export async function* incrementalSync(
     for (const pageId of affectedPageIds) {
       try {
         const page = await getPage(client, pageId);
-        if (!page || page.archived || page.in_trash) {
+        if (!page) {
           skipped += 1;
+          continue;
+        }
+
+        if (page.archived || page.in_trash) {
+          documents.push(createPageDeleteMarker(context, page.id));
+          processed += 1;
+          if (documents.length >= batchSize) {
+            yield createBatch(documents, cursor, true, {
+              processed,
+              skipped,
+              errors,
+            });
+            documents = [];
+            onProgress?.({ processed, skipped, errors });
+          }
           continue;
         }
 
@@ -120,8 +135,23 @@ export async function* incrementalSync(
     for (const databaseId of affectedDatabaseIds) {
       try {
         const database = await getDatabase(client, databaseId);
-        if (!database || database.archived || database.in_trash) {
+        if (!database) {
           skipped += 1;
+          continue;
+        }
+
+        if (database.archived || database.in_trash) {
+          documents.push(createDatabaseDeleteMarker(context, database.id));
+          processed += 1;
+          if (documents.length >= batchSize) {
+            yield createBatch(documents, cursor, true, {
+              processed,
+              skipped,
+              errors,
+            });
+            documents = [];
+            onProgress?.({ processed, skipped, errors });
+          }
           continue;
         }
 
@@ -163,7 +193,21 @@ export async function* incrementalSync(
       }
 
       if (item.archived || item.in_trash) {
-        skipped += 1;
+        if (item.object === "page") {
+          documents.push(createPageDeleteMarker(context, item.id));
+        } else {
+          documents.push(createDatabaseDeleteMarker(context, item.id));
+        }
+        processed += 1;
+        if (documents.length >= batchSize) {
+          yield createBatch(documents, cursor, true, {
+            processed,
+            skipped,
+            errors,
+          });
+          documents = [];
+          onProgress?.({ processed, skipped, errors });
+        }
         continue;
       }
 
@@ -274,5 +318,53 @@ function createBatch(
     cursor: { ...cursor },
     hasMore,
     stats,
+  };
+}
+
+function createPageDeleteMarker(
+  context: NotionTransformContext,
+  pageId: string
+): GenericDocument {
+  return {
+    id: `${context.connectorId}_page_${pageId}`,
+    connector_id: context.connectorId,
+    connector_type: context.connectorType,
+    team_id: context.teamId,
+    workspace_id: context.workspaceId,
+    external_id: pageId,
+    document_type: "page",
+    title: "",
+    content: "",
+    created_at: 0,
+    updated_at: Date.now(),
+    is_public: false,
+    metadata: {
+      deleted: true,
+      deletedAt: Date.now(),
+    },
+  };
+}
+
+function createDatabaseDeleteMarker(
+  context: NotionTransformContext,
+  databaseId: string
+): GenericDocument {
+  return {
+    id: `${context.connectorId}_database_${databaseId}`,
+    connector_id: context.connectorId,
+    connector_type: context.connectorType,
+    team_id: context.teamId,
+    workspace_id: context.workspaceId,
+    external_id: databaseId,
+    document_type: "database",
+    title: "",
+    content: "",
+    created_at: 0,
+    updated_at: Date.now(),
+    is_public: false,
+    metadata: {
+      deleted: true,
+      deletedAt: Date.now(),
+    },
   };
 }

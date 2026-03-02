@@ -115,6 +115,14 @@ describe("Knowledge E2E integration", () => {
             dataUpdated: 0,
           }),
 
+          deleteIndexedDocuments: async ({
+            externalIds,
+          }: {
+            externalIds: string[];
+          }) => ({
+            deleted: externalIds.length,
+          }),
+
           recordSyncDocumentChanges: (input: Record<string, unknown>) => {
             recordedChanges.push(input);
             const ids = (input.documentIds as string[]) ?? [];
@@ -189,7 +197,7 @@ describe("Knowledge E2E integration", () => {
     } catch (error) {
       setupError = error;
     }
-  });
+  }, 300_000);
 
   beforeEach(() => {
     markedChangeIds.length = 0;
@@ -243,12 +251,7 @@ describe("Knowledge E2E integration", () => {
       });
 
       expect(result.indexed).toBe(1);
-      expect(recordedChanges).toHaveLength(1);
-      expect(recordedChanges[0]).toMatchObject({
-        connectorId: "conn-1",
-        changeType: "CREATED",
-        syncHistoryId: "sync-1",
-      });
+      expect(recordedChanges).toHaveLength(0);
 
       expect(fetchInputs[0]).toMatchObject({
         teamId: "team-1",

@@ -81,9 +81,35 @@ export async function* gmailIncrementalSync(
   let totalProcessed = 0;
   let totalSkipped = 0;
   let totalErrors = 0;
+  let previousProcessed = 0;
+  let previousSkipped = 0;
+  let previousErrors = 0;
   const attachmentsQueued = 0;
   const mediaQueued = 0;
   let finalCursor: GmailSyncCursor = cursor ?? {};
+
+  const updateTotalsFromBatch = (batch: GmailSyncBatch<GenericDocument>) => {
+    const processedDelta =
+      batch.stats.processed >= previousProcessed
+        ? batch.stats.processed - previousProcessed
+        : batch.stats.processed;
+    const skippedDelta =
+      batch.stats.skipped >= previousSkipped
+        ? batch.stats.skipped - previousSkipped
+        : batch.stats.skipped;
+    const errorsDelta =
+      batch.stats.errors >= previousErrors
+        ? batch.stats.errors - previousErrors
+        : batch.stats.errors;
+
+    totalProcessed += processedDelta;
+    totalSkipped += skippedDelta;
+    totalErrors += errorsDelta;
+
+    previousProcessed = batch.stats.processed;
+    previousSkipped = batch.stats.skipped;
+    previousErrors = batch.stats.errors;
+  };
 
   if (shouldFullSync) {
     const profile = await client.get<GmailProfile>("/users/me/profile");
@@ -92,9 +118,7 @@ export async function* gmailIncrementalSync(
       ...syncOptions,
       initialHistoryId: profile.historyId,
     })) {
-      totalProcessed += batch.stats.processed;
-      totalSkipped += batch.stats.skipped;
-      totalErrors += batch.stats.errors;
+      updateTotalsFromBatch(batch);
       finalCursor = batch.cursor;
 
       yield batch;
@@ -105,9 +129,7 @@ export async function* gmailIncrementalSync(
         ...syncOptions,
         startHistoryId: cursor?.historyId ?? "",
       })) {
-        totalProcessed += batch.stats.processed;
-        totalSkipped += batch.stats.skipped;
-        totalErrors += batch.stats.errors;
+        updateTotalsFromBatch(batch);
         finalCursor = batch.cursor;
 
         yield batch;
@@ -123,9 +145,7 @@ export async function* gmailIncrementalSync(
           ...syncOptions,
           initialHistoryId: profile.historyId,
         })) {
-          totalProcessed += batch.stats.processed;
-          totalSkipped += batch.stats.skipped;
-          totalErrors += batch.stats.errors;
+          updateTotalsFromBatch(batch);
           finalCursor = batch.cursor;
 
           yield batch;

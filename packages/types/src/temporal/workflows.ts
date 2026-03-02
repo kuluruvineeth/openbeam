@@ -2,12 +2,14 @@ import { z } from "zod";
 import { ExecutionStatusSchema } from "../canvas/execution";
 import { CanvasStateSchema } from "../canvas/state";
 
-export const SyncCursorSchema = z.object({
-  pageToken: z.string().optional(),
-  historyId: z.string().optional(),
-  lastFullSync: z.number().optional(),
-  documentIds: z.array(z.string()).optional(),
-});
+export const SyncCursorSchema = z
+  .object({
+    pageToken: z.string().optional(),
+    historyId: z.string().optional(),
+    lastFullSync: z.number().optional(),
+    documentIds: z.array(z.string()).optional(),
+  })
+  .catchall(z.unknown());
 
 export type SyncCursor = z.infer<typeof SyncCursorSchema>;
 
@@ -184,6 +186,7 @@ export const IndexDocumentsOutputSchema = z.object({
   skipped: z.number().default(0),
   dataAdded: z.number().default(0),
   dataUpdated: z.number().default(0),
+  dataDeleted: z.number().default(0),
 });
 
 export type IndexDocumentsOutput = z.infer<typeof IndexDocumentsOutputSchema>;
