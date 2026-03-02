@@ -13,10 +13,26 @@ export interface ExtractEntitiesDependencies {
   engineBaseUrl: string;
 }
 
+interface EngineEntityRaw {
+  text: string;
+  label?: string;
+  type?: string;
+  score?: number;
+  confidence?: number;
+}
+
 interface EngineEntity {
   text: string;
   type: string;
   confidence: number;
+}
+
+function normalizeEngineEntity(raw: EngineEntityRaw): EngineEntity {
+  return {
+    text: raw.text,
+    type: raw.label ?? raw.type ?? "TOPIC",
+    confidence: raw.score ?? raw.confidence ?? 0,
+  };
 }
 
 const BATCH_SIZE = 50;
@@ -132,8 +148,8 @@ async function callEngineNer(
     return [];
   }
 
-  const data = (await response.json()) as { entities?: EngineEntity[] };
-  return data.entities ?? [];
+  const data = (await response.json()) as { entities?: EngineEntityRaw[] };
+  return (data.entities ?? []).map(normalizeEngineEntity);
 }
 
 async function resolveEntity(
@@ -222,5 +238,8 @@ function mapEntityType(
     event: "TOPIC",
   };
 
+  if (!engineType) {
+    return "TOPIC";
+  }
   return typeMap[engineType.toLowerCase()] ?? "TOPIC";
 }
