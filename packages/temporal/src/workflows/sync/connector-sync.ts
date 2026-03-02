@@ -271,7 +271,7 @@ export async function connectorSyncWorkflow(
     }
 
     const changeTypeMap = {
-      FULL: "full",
+      FULL: "full_rebuild",
       INCREMENTAL: "incremental",
       PERMISSIONS: "incremental",
     } as const;
