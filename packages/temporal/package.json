@@ -37,13 +37,17 @@
   },
   "scripts": {
     "build": "tsdown",
-    "check-types": "tsc -b"
+    "check-types": "tsc -b",
+    "test": "vitest run",
+    "test:integration": "vitest run -c vitest.integration.config.ts"
   },
   "devDependencies": {
     "tsdown": "catalog:",
     "@openplane/config": "workspace:*",
     "@temporalio/testing": "~1.15.0",
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "vitest": "^2.1.9",
+    "vite-tsconfig-paths": "^5.1.4"
   },
   "peerDependencies": {
     "typescript": "^5"
