@@ -102,7 +102,7 @@ describe("DeadLetterProcessor.reprocessDLQMessage", () => {
     expect(addCall[0]).toBe("agent-stream:m1:agent-b:normal");
     expect(addCall[1]).toBe("*");
 
-    const payload = JSON.parse((addCall[2] as Record<string, string>).data);
+    const payload = JSON.parse((addCall[2] as { data: string }).data);
     expect(payload.message.id).toBe("msg-1");
     expect(payload.message.senderId).toBe("agent-a");
   });

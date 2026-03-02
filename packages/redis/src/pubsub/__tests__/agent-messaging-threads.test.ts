@@ -14,8 +14,11 @@ const mockXAdd = mock(
   }
 );
 const mockExpire = mock(() => Promise.resolve(true));
-const mockXRange = mock(() =>
-  Promise.resolve([] as Array<{ id: string; message: Record<string, string> }>)
+const mockXRange = mock(
+  (
+    _key: string
+  ): Promise<Array<{ id: string; message: Record<string, string> }>> =>
+    Promise.resolve([])
 );
 const mockIncr = mock(() => Promise.resolve(1));
 
@@ -83,7 +86,7 @@ describe("threadRootId auto-population", () => {
     expect(mockXAdd).toHaveBeenCalledTimes(1);
     const call = mockXAdd.mock.calls[0] as unknown[];
     const data = JSON.parse(
-      (call[2] as Record<string, string>).data
+      (call[2] as { data: string }).data
     ) as AgentMessageEnvelope;
     expect(data.message.threadRootId).toBe("original-msg");
   });
@@ -102,7 +105,7 @@ describe("threadRootId auto-population", () => {
     expect(mockXAdd).toHaveBeenCalledTimes(1);
     const call = mockXAdd.mock.calls[0] as unknown[];
     const data = JSON.parse(
-      (call[2] as Record<string, string>).data
+      (call[2] as { data: string }).data
     ) as AgentMessageEnvelope;
     expect(data.message.threadRootId).toBe("root-msg");
   });
@@ -116,7 +119,7 @@ describe("threadRootId auto-population", () => {
 
     const call = mockXAdd.mock.calls[0] as unknown[];
     const data = JSON.parse(
-      (call[2] as Record<string, string>).data
+      (call[2] as { data: string }).data
     ) as AgentMessageEnvelope;
     expect(data.message.threadRootId).toBeUndefined();
   });

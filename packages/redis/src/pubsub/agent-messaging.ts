@@ -34,10 +34,16 @@ export type RateLimitResult = {
   counts: Record<RateLimitWindow, number>;
 };
 
-export class MessageRateLimiter {
-  private readonly limits: typeof AGENT_MSG_RATE_LIMIT;
+export type RateLimitConfig = {
+  maxPerSecond: number;
+  maxPerMinute: number;
+  maxPerMission: number;
+};
 
-  constructor(limits = AGENT_MSG_RATE_LIMIT) {
+export class MessageRateLimiter {
+  private readonly limits: RateLimitConfig;
+
+  constructor(limits: RateLimitConfig = AGENT_MSG_RATE_LIMIT) {
     this.limits = limits;
   }
 

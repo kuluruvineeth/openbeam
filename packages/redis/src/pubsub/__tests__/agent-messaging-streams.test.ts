@@ -15,19 +15,23 @@ const mockXAdd = mock(
 );
 const mockExpire = mock(() => Promise.resolve(true));
 const mockXGroupCreate = mock(() => Promise.resolve("OK"));
-const mockXReadGroup = mock(() =>
-  Promise.resolve(
-    null as
-      | null
-      | {
-          name: string;
-          messages: { id: string; message: Record<string, string> }[];
-        }[]
-  )
+const mockXReadGroup = mock(
+  (
+    _group: string,
+    _consumer: string,
+    _streams: { key: string }[]
+  ): Promise<
+    | null
+    | {
+        name: string;
+        messages: { id: string; message: Record<string, string> }[];
+      }[]
+  > => Promise.resolve(null)
 );
 const mockXAck = mock(() => Promise.resolve(1));
-const mockXRange = mock(() =>
-  Promise.resolve([] as { id: string; message: Record<string, string> }[])
+const mockXRange = mock(
+  (_key: string): Promise<{ id: string; message: Record<string, string> }[]> =>
+    Promise.resolve([])
 );
 
 const mockSet = mock(() => Promise.resolve("OK"));

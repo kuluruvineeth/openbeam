@@ -38,13 +38,21 @@ const mockSet = mock(() => Promise.resolve("OK"));
 const mockXGroupCreate = mock(() => Promise.resolve("OK"));
 const mockXReadGroup = mock(() => Promise.resolve(null));
 const mockXAck = mock(() => Promise.resolve(1));
-const mockXRange = mock(() =>
-  Promise.resolve([] as { id: string; message: Record<string, string> }[])
+const mockXRange = mock(
+  (_key: string): Promise<{ id: string; message: Record<string, string> }[]> =>
+    Promise.resolve([])
 );
-const mockXAutoClaim = mock(() =>
-  Promise.resolve({ messages: [], nextId: "0-0" })
+const mockXAutoClaim = mock(
+  (): Promise<{
+    nextId: string;
+    messages: ({ id: string; message: Record<string, string> } | null)[];
+  }> => Promise.resolve({ messages: [], nextId: "0-0" })
 );
-const mockXPendingRange = mock(() => Promise.resolve([]));
+const mockXPendingRange = mock(
+  (): Promise<
+    { id: string; deliveriesCounter: number; name: string; idle: number }[]
+  > => Promise.resolve([])
+);
 const mockXDel = mock(() => Promise.resolve(1));
 const mockXLen = mock(() => Promise.resolve(0));
 

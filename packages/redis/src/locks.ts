@@ -142,8 +142,12 @@ export class DistributedLock {
           }, autoExtendInterval)
         : null;
 
-    if (extendTimer?.unref) {
-      extendTimer.unref();
+    if (
+      extendTimer &&
+      typeof extendTimer === "object" &&
+      "unref" in extendTimer
+    ) {
+      (extendTimer as { unref: () => void }).unref();
     }
 
     let releaseFailed = false;

@@ -17,8 +17,11 @@ const mockExpire = mock(() => Promise.resolve(true));
 const mockXGroupCreate = mock(() => Promise.resolve("OK"));
 const mockXReadGroup = mock(() => Promise.resolve(null));
 const mockXAck = mock(() => Promise.resolve(1));
-const mockXRange = mock(() =>
-  Promise.resolve([] as Array<{ id: string; message: Record<string, string> }>)
+const mockXRange = mock(
+  (
+    _key: string
+  ): Promise<Array<{ id: string; message: Record<string, string> }>> =>
+    Promise.resolve([])
 );
 
 const mockSet = mock(() => Promise.resolve("OK"));

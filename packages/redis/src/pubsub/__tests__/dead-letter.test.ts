@@ -1,18 +1,22 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
 import type { AgentMessageEnvelope } from "@openplane/types/temporal/mission-messaging";
 
-const mockXAutoClaim = mock(() =>
-  Promise.resolve({ nextId: "0-0", messages: [], deletedMessages: [] })
+const mockXAutoClaim = mock(
+  (): Promise<{
+    nextId: string;
+    messages: ({ id: string; message: Record<string, string> } | null)[];
+    deletedMessages: string[];
+  }> => Promise.resolve({ nextId: "0-0", messages: [], deletedMessages: [] })
 );
-const mockXPendingRange = mock(() =>
-  Promise.resolve(
-    [] as {
+const mockXPendingRange = mock(
+  (): Promise<
+    {
       id: string;
       consumer: string;
       millisecondsSinceLastDelivery: number;
       deliveriesCounter: number;
     }[]
-  )
+  > => Promise.resolve([])
 );
 const mockXAdd = mock(() => Promise.resolve("1-0"));
 const mockExpire = mock(() => Promise.resolve(true));
