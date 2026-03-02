@@ -147,28 +147,31 @@ function FileUploadField({
   );
 }
 
-function useConditionCheck(dependsOn: Condition | Condition[] | undefined) {
-  const form = useFormContext();
+function normalizeConditions(
+  dependsOn: Condition | Condition[] | undefined
+): Condition[] {
+  if (!dependsOn) {
+    return [];
+  }
+  if (Array.isArray(dependsOn)) {
+    return dependsOn;
+  }
+  return [dependsOn];
+}
 
-  const getConditions = () => {
-    if (!dependsOn) {
-      return [];
-    }
-    if (Array.isArray(dependsOn)) {
-      return dependsOn;
-    }
-    return [dependsOn];
-  };
-  const conditions = getConditions();
-
+function useConditionCheck(
+  control: ReturnType<typeof useFormContext>["control"],
+  dependsOn: Condition | Condition[] | undefined
+) {
+  const conditions = normalizeConditions(dependsOn);
   const fieldNames = conditions.map((c) => c.field);
 
   const values = useWatch({
-    control: form?.control,
+    control,
     name: fieldNames.length > 0 ? fieldNames : ["_none_"],
   });
 
-  if (!form || conditions.length === 0) {
+  if (conditions.length === 0) {
     return true;
   }
 
@@ -186,12 +189,26 @@ function SettingsField({
   disabled?: boolean;
 }) {
   const form = useFormContext();
+  if (!form) {
+    return null;
+  }
+  return <SettingsFieldInner disabled={disabled} setting={setting} />;
+}
+
+function SettingsFieldInner({
+  setting,
+  disabled = false,
+}: {
+  setting: AppSettingsItem;
+  disabled?: boolean;
+}) {
+  const form = useFormContext();
   const [isFocused, setIsFocused] = useState(false);
-  const shouldShow = useConditionCheck(setting.dependsOn);
+  const shouldShow = useConditionCheck(form.control, setting.dependsOn);
 
-  useWatch({ control: form?.control, name: setting.id });
+  useWatch({ control: form.control, name: setting.id });
 
-  if (!(form && shouldShow)) {
+  if (!shouldShow) {
     return null;
   }
 
