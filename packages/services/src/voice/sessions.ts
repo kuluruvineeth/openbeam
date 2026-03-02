@@ -7,6 +7,7 @@ import {
   getVoiceSessionStats,
   listVoiceSessions,
   updateVoiceSession,
+  type VoiceSession,
 } from "@openplane/db";
 import type { VoiceRoomType } from "@openplane/types/services/voice";
 
@@ -15,7 +16,7 @@ export async function startSession(
   userId: string,
   teamId: string,
   room: { type: VoiceRoomType; name?: string }
-) {
+): Promise<VoiceSession> {
   const existing = await findActiveVoiceSession(db, userId, teamId);
   if (existing) {
     await updateVoiceSession(db, existing.id, {
@@ -40,22 +41,32 @@ export function completeSession(
     wordsSpoken: number;
     toolCalls: number;
   }
-) {
+): Promise<VoiceSession> {
   return endVoiceSession(db, sessionId, data);
 }
 
-export function failSession(db: Database, sessionId: string) {
+export function failSession(
+  db: Database,
+  sessionId: string
+): Promise<VoiceSession> {
   return updateVoiceSession(db, sessionId, {
     status: "error",
     endedAt: new Date(),
   });
 }
 
-export function getSession(db: Database, sessionId: string) {
+export function getSession(
+  db: Database,
+  sessionId: string
+): Promise<VoiceSession | null> {
   return findVoiceSessionById(db, sessionId);
 }
 
-export function getActiveSession(db: Database, userId: string, teamId: string) {
+export function getActiveSession(
+  db: Database,
+  userId: string,
+  teamId: string
+): Promise<VoiceSession | null> {
   return findActiveVoiceSession(db, userId, teamId);
 }
 
@@ -64,7 +75,7 @@ export function getSessionHistory(
   userId: string,
   teamId: string,
   options: { limit?: number; offset?: number } = {}
-) {
+): Promise<VoiceSession[]> {
   return listVoiceSessions(db, userId, teamId, options);
 }
 

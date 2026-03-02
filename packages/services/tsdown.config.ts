@@ -5,4 +5,5 @@ export default defineConfig({
   sourcemap: true,
   dts: true,
   clean: true,
+  external: ["@duckdb/node-api", "@duckdb/node-bindings"],
 });

@@ -1,7 +1,9 @@
 import {
   type Database,
   findVoiceSettings,
+  type Prisma,
   upsertVoiceSettings,
+  type VoiceSettings,
 } from "@openplane/db";
 import type { UpdateVoiceSettingsInput } from "@openplane/types/services/voice";
 
@@ -43,14 +45,14 @@ export function updateSettings(
   db: Database,
   userId: string,
   input: UpdateVoiceSettingsInput
-) {
+): Promise<VoiceSettings> {
   return upsertVoiceSettings(db, userId, {
     engine: input.engine,
     model: input.model,
     language: input.language,
     formatting: input.formatting,
     formatStyle: input.formatStyle,
-    shortcuts: input.shortcuts as Record<string, unknown> | undefined,
+    shortcuts: input.shortcuts as Prisma.InputJsonValue | undefined,
     vocabulary: input.vocabulary,
     widgetPosition: input.widgetPosition,
     widgetOpacity: input.widgetOpacity,

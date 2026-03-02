@@ -259,6 +259,7 @@
   },
   "devDependencies": {
     "@openplane/config": "workspace:*",
+    "@types/react": "^19",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "zod": "catalog:"

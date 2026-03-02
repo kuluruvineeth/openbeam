@@ -5,6 +5,7 @@ import {
   deleteVoiceNote,
   findVoiceNoteById,
   listVoiceNotes,
+  type VoiceNote,
 } from "@openplane/db";
 import type {
   CreateVoiceNoteInput,
@@ -16,7 +17,7 @@ export function createNote(
   userId: string,
   teamId: string,
   input: CreateVoiceNoteInput
-) {
+): Promise<VoiceNote> {
   return createVoiceNote(db, {
     userId,
     teamId,
@@ -33,7 +34,7 @@ export function getNote(
   noteId: string,
   userId: string,
   teamId: string
-) {
+): Promise<VoiceNote | null> {
   return findVoiceNoteById(db, noteId, userId, teamId);
 }
 
