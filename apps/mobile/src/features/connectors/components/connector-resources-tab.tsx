@@ -59,8 +59,7 @@ export function ConnectorResourcesTab({
       onPress={() => {}}
       onToggle={(enabled) =>
         toggleSync.mutate({
-          connectorId,
-          resourceExternalId: item.externalId,
+          resourceId: item.externalId,
           syncEnabled: enabled,
         })
       }

@@ -274,6 +274,9 @@ function buildFileContent(lineMap: Map<number, string>): string {
   const lineNumbers = Array.from(lineMap.keys()).sort((a, b) => a - b);
   const minLine = lineNumbers[0];
   const maxLine = lineNumbers.at(-1);
+  if (maxLine == null) {
+    return "";
+  }
 
   const lines: string[] = [];
   for (let i = minLine; i <= maxLine; i++) {

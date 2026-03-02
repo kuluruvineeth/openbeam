@@ -13,6 +13,7 @@ import {
   Upload,
 } from "lucide-react-native";
 import {
+  type ElementRef,
   memo,
   type ReactElement,
   useCallback,
@@ -33,10 +34,7 @@ import {
   Text,
   View,
 } from "react-native";
-import {
-  ScrollView,
-  type ScrollView as ScrollViewType,
-} from "react-native-gesture-handler";
+import { ScrollView } from "react-native-gesture-handler";
 import {
   StyleSheet,
   UnistylesRuntime,
@@ -426,7 +424,7 @@ function DiffFileBody({
   const [isAtLeftEdge, setIsAtLeftEdge] = useState(true);
   const horizontalScroll = useHorizontalScrollOptional();
   const scrollId = useId();
-  const scrollViewRef = useRef<ScrollViewType>(null);
+  const scrollViewRef = useRef<ElementRef<typeof ScrollView>>(null);
 
   // Get the close gesture ref from animation context (may not be available outside sidebar)
   // biome-ignore lint/suspicious/noExplicitAny: React Native type interop

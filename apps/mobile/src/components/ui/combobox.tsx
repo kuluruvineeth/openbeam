@@ -136,7 +136,6 @@ function SearchInput({
       <Search color={theme.colors.foregroundMuted} size={16} />
       <InputComponent
         autoCapitalize="none"
-        // @ts-expect-error - outlineStyle is web-only
         autoCorrect={false}
         onChangeText={onChangeText}
         onSubmitEditing={onSubmitEditing}
@@ -144,7 +143,7 @@ function SearchInput({
         placeholderTextColor={theme.colors.foregroundMuted}
         // biome-ignore lint/suspicious/noExplicitAny: React Native type interop
         ref={inputRef as any}
-        style={[styles.searchInput, IS_WEB && { outlineStyle: "none" }]}
+        style={styles.searchInput}
         value={value}
       />
     </View>

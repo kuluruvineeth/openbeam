@@ -146,8 +146,9 @@ export function QuestionFormCard({
   if (!questions) {
     return null;
   }
+  const activeQuestions = questions;
 
-  const allAnswered = questions.every((_, qIndex) => {
+  const allAnswered = activeQuestions.every((_, qIndex) => {
     const selected = selections[qIndex];
     const otherText = otherTexts[qIndex]?.trim();
     return (
@@ -158,8 +159,11 @@ export function QuestionFormCard({
   function handleSubmit() {
     setRespondingAction("submit");
     const answers: Record<string, string> = {};
-    for (let i = 0; i < questions?.length; i++) {
-      const q = questions?.[i];
+    for (let i = 0; i < activeQuestions.length; i++) {
+      const q = activeQuestions[i];
+      if (!q) {
+        continue;
+      }
       const selected = selections[i];
       const otherText = otherTexts[i]?.trim();
 
@@ -195,7 +199,7 @@ export function QuestionFormCard({
         },
       ]}
     >
-      {questions.map((q, qIndex) => {
+      {activeQuestions.map((q, qIndex) => {
         const selected = selections[qIndex] ?? new Set<number>();
         const otherText = otherTexts[qIndex] ?? "";
 

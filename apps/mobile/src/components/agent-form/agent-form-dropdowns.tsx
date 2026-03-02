@@ -201,22 +201,26 @@ export function SelectField({
   const _displayText = hasConcreteValue
     ? normalizedValue
     : normalizedPlaceholder || "Select...";
+  const webPressableProps =
+    Platform.OS === "web"
+      ? ({
+          onKeyDown: handleKeyDown,
+          tabIndex: 0,
+        } as const)
+      : {};
 
   return (
     <View style={styles.selectFieldContainer}>
       <Pressable
+        {...webPressableProps}
         accessibilityRole="button"
         disabled={disabled}
-        // @ts-expect-error - tabIndex is web-only
-        onKeyDown={handleKeyDown}
         onPress={onPress}
-        // @ts-expect-error - onKeyDown is web-only
         ref={controlRef}
         style={[
           styles.selectFieldControl,
           disabled && styles.selectFieldControlDisabled,
         ]}
-        tabIndex={0}
         testID={testID}
       >
         <View style={styles.selectFieldContent}>
@@ -497,23 +501,27 @@ export function FormSelectTrigger({
   const displayText = hasConcreteValue
     ? normalizedValue
     : normalizedPlaceholder || "Select...";
+  const webPressableProps =
+    Platform.OS === "web"
+      ? ({
+          onKeyDown: handleKeyDown,
+          tabIndex: 0,
+        } as const)
+      : {};
 
   return (
     <Pressable
+      {...webPressableProps}
       accessibilityRole="button"
       disabled={disabled}
-      onKeyDown={handleKeyDown}
-      // @ts-expect-error - tabIndex is web-only
       onPress={onPress}
       ref={controlRef}
-      // @ts-expect-error - onKeyDown is web-only
       style={[
         styles.compactSelectControl,
         !showLabel && styles.compactSelectControlInline,
         containerStyle,
         disabled && styles.compactSelectControlDisabled,
       ]}
-      tabIndex={0}
       testID={testID}
     >
       {icon ? <View style={styles.compactSelectLeading}>{icon}</View> : null}

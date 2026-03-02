@@ -18,7 +18,7 @@ describe("useAgentFormState", () => {
     it("does not inject a null serverId override when initialValues are present but serverId is absent", () => {
       const combined = __private__.combineInitialValues({}, null);
       expect(combined).toEqual({});
-      expect(Object.hasOwn(combined, "serverId")).toBe(false);
+      expect(Object.hasOwn(combined ?? {}, "serverId")).toBe(false);
     });
 
     it("injects serverId from options when provided", () => {
@@ -33,7 +33,7 @@ describe("useAgentFormState", () => {
         null
       );
       expect(combined).toEqual({ workingDir: "/repo" });
-      expect(Object.hasOwn(combined, "serverId")).toBe(false);
+      expect(Object.hasOwn(combined ?? {}, "serverId")).toBe(false);
     });
 
     it("respects an explicit serverId override (including null) over initialServerId", () => {

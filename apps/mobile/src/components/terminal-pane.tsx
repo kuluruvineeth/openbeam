@@ -1018,16 +1018,6 @@ export function TerminalPane({ serverId, cwd }: TerminalPaneProps) {
             <TerminalEmulator
               backgroundColor={theme.colors.background}
               cursorColor={theme.colors.foreground}
-              dom={{
-                style: { flex: 1 },
-                matchContents: false,
-                scrollEnabled: true,
-                nestedScrollEnabled: true,
-                overScrollMode: "never",
-                bounces: false,
-                automaticallyAdjustContentInsets: false,
-                contentInsetAdjustmentBehavior: "never",
-              }}
               focusRequestToken={focusRequestToken}
               foregroundColor={theme.colors.foreground}
               initialOutputText={selectedOutputSnapshot}

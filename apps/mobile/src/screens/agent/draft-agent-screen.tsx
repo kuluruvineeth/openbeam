@@ -1118,7 +1118,7 @@ function DraftAgentScreenContent({
     selectedServerId,
     selectedWorktreePath,
     workingDir,
-    machine.attempt.timestamp,
+    machine,
   ]);
   useEffect(() => {
     if (!isFocused) {

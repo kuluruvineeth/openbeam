@@ -144,7 +144,7 @@ export function useDictation(options: UseDictationOptions): UseDictationResult {
   const ensureFinalTranscript = useCallback(
     async (finalSeq: number): Promise<string> => {
       const result = await senderRef.current?.finish(finalSeq);
-      return result.text;
+      return result?.text ?? "";
     },
     []
   );

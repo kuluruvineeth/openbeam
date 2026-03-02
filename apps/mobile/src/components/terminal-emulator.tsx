@@ -1,13 +1,11 @@
 "use dom";
 
-import type { DOMProps } from "expo/dom";
 import { useEffect, useRef } from "react";
 import "@xterm/xterm/css/xterm.css";
 import { TerminalEmulatorRuntime } from "../terminal/runtime/terminal-emulator-runtime";
 import type { PendingTerminalModifiers } from "../utils/terminal-keys";
 
 interface TerminalEmulatorProps {
-  dom?: DOMProps;
   streamKey: string;
   initialOutputText: string;
   outputChunkText: string;

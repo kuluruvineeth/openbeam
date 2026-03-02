@@ -71,6 +71,7 @@ export function DraggableList<T>({
 
   const showRefreshControl =
     Boolean(onRefresh) && (!isDragging || Boolean(refreshing));
+  const waitForProps = waitFor ? ({ waitFor } as const) : {};
 
   return (
     <DraggableFlatList
@@ -100,9 +101,8 @@ export function DraggableList<T>({
       showsVerticalScrollIndicator={showsVerticalScrollIndicator}
       simultaneousHandlers={simultaneousHandlers}
       style={style}
-      // @ts-expect-error - waitFor is supported by RNGH FlatList but not typed in DraggableFlatList
       testID={testID}
-      waitFor={waitFor}
+      {...waitForProps}
     />
   );
 }

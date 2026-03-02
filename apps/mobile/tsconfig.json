@@ -2,11 +2,14 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
-    "moduleSuffixes": [".web", ".native", ""],
+    "skipLibCheck": true,
+    "moduleSuffixes": [".native", ""],
     "paths": {
       "@/*": ["./src/*"],
       "@server/*": ["../daemon/src/*"],
-      "@server/server/*": ["../daemon/src/*"]
+      "@server/server/*": ["../daemon/src/*"],
+      "expo-file-system": ["./expo-file-system"],
+      "expo-file-system/legacy": ["./expo-file-system-legacy"]
     }
   },
   "include": [

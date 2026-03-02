@@ -89,7 +89,9 @@ export function getInitials(name: string): string {
     return "";
   }
   if (parts.length === 1) {
-    return parts[0][0].toUpperCase();
+    return parts[0]?.[0]?.toUpperCase() ?? "";
   }
-  return (parts[0][0] + parts.at(-1)[0]).toUpperCase();
+  const firstInitial = parts[0]?.[0] ?? "";
+  const lastInitial = parts.at(-1)?.[0] ?? "";
+  return `${firstInitial}${lastInitial}`.toUpperCase();
 }
