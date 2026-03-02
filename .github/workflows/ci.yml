@@ -87,7 +87,7 @@ jobs:
         run: bun run db:generate
 
       - name: Type Check
-        run: turbo check-types --filter='!engine'
+        run: bun x turbo check-types --filter='!engine'
 
   mobile-check:
     name: Mobile Lint & Type Check
@@ -144,7 +144,7 @@ jobs:
       - run: bun install --frozen-lockfile
 
       - name: Build All Packages
-        run: turbo build --filter='!@openplane/desktop'
+        run: bun x turbo build --filter='!@openplane/desktop'
 
   test-typescript:
     name: Test (TypeScript)
