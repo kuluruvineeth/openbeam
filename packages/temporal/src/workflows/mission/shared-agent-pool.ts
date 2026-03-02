@@ -8,7 +8,6 @@ import {
   BROADCAST_RECIPIENT,
 } from "@openplane/types/temporal/mission-messaging";
 import {
-  condition,
   continueAsNew,
   defineQuery,
   defineSignal,
@@ -18,7 +17,7 @@ import {
   startChild,
   workflowInfo,
 } from "@temporalio/workflow";
-import { currentTimestamp } from "../temporal-utils";
+import { conditionWithTimeout, currentTimestamp } from "../temporal-utils";
 import {
   agentCompletedSignal,
   agentInboxDeliverySignal,
@@ -354,7 +353,7 @@ export async function sharedAgentPoolWorkflow(input: {
   });
 
   while (true) {
-    await condition(() => wake, LEASE_CHECK_INTERVAL_MS);
+    await conditionWithTimeout(() => wake, LEASE_CHECK_INTERVAL_MS);
     wake = false;
 
     const now = currentTimestamp();
@@ -507,7 +506,7 @@ export async function missionSubOrchestratorWorkflow(
   });
 
   while (true) {
-    await condition(() => wake, 30_000);
+    await conditionWithTimeout(() => wake, 30_000);
     wake = false;
 
     const currentDispatches = dispatchQueue;

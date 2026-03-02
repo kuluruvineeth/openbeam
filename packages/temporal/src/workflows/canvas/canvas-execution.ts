@@ -39,7 +39,7 @@ import {
   startChild,
   workflowInfo,
 } from "@temporalio/workflow";
-import { currentTimestamp } from "../temporal-utils";
+import { conditionWithTimeout, currentTimestamp } from "../temporal-utils";
 
 function getTimestamp(): number {
   return currentTimestamp();
@@ -3341,7 +3341,7 @@ async function executePlanNodes(params: {
     const hasResponse = () => approvalResponses.has(approvalParams.approvalId);
 
     if (approvalParams.timeoutMs && approvalParams.timeoutMs > 0) {
-      const signaled = await condition(
+      const signaled = await conditionWithTimeout(
         () => state.cancelled || hasResponse(),
         approvalParams.timeoutMs
       );
@@ -3508,7 +3508,7 @@ async function executePlanNodes(params: {
     const hasResponse = () => inputResponses.has(inputParams.nodeId);
 
     if (inputParams.timeoutMs && inputParams.timeoutMs > 0) {
-      const signaled = await condition(
+      const signaled = await conditionWithTimeout(
         () => state.cancelled || hasResponse(),
         inputParams.timeoutMs
       );

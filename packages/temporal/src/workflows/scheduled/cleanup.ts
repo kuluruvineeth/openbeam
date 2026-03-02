@@ -4,10 +4,11 @@ import {
   ConnectorCleanupInputSchema,
   type ConnectorCleanupOutput,
 } from "@openplane/types/temporal/workflows";
-import { condition, proxyActivities, setHandler } from "@temporalio/workflow";
+import { proxyActivities, setHandler } from "@temporalio/workflow";
 import type { CleanupActivities } from "../../activities/database/types";
 import type { StorageActivities } from "../../activities/storage/types";
 import type { VespaActivities } from "../../activities/vespa/types";
+import { conditionWithTimeout } from "../temporal-utils";
 import { cancelSignal, skipGracePeriodSignal } from "../types";
 
 const cleanupActivities = proxyActivities<CleanupActivities>({
@@ -91,7 +92,7 @@ export async function connectorCleanupWorkflow(
 
   const gracePeriodMs = GRACE_PERIOD_HOURS * 60 * 60 * 1000;
 
-  await condition(() => cancelled || skipGracePeriod, gracePeriodMs);
+  await conditionWithTimeout(() => cancelled || skipGracePeriod, gracePeriodMs);
 
   if (cancelled) {
     return { connectorId: input.connectorId, status: "cancelled" };

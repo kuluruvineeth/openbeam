@@ -2,7 +2,7 @@ import type { ExecutionPlanNode } from "@openplane/types/canvas";
 import { ApprovalNodeConfigSchema } from "@openplane/types/canvas";
 import type { CanvasApprovalSignalPayload } from "@openplane/types/temporal";
 import { condition } from "@temporalio/workflow";
-import { currentTimestamp } from "../../temporal-utils";
+import { conditionWithTimeout, currentTimestamp } from "../../temporal-utils";
 import {
   buildWaitingStep,
   updateTraceForInput,
@@ -30,7 +30,7 @@ async function waitForApprovalResponse(params: {
   const hasResponse = () => params.approvalResponses.has(params.approvalId);
 
   if (params.timeoutMs && params.timeoutMs > 0) {
-    const signaled = await condition(
+    const signaled = await conditionWithTimeout(
       () => params.isCancelled() || hasResponse(),
       params.timeoutMs
     );

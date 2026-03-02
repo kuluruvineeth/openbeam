@@ -6,7 +6,6 @@ import {
 } from "@openplane/types/temporal/workflows";
 import type { Duration } from "@temporalio/common";
 import {
-  condition,
   continueAsNew,
   proxyActivities,
   setHandler,
@@ -14,7 +13,7 @@ import {
 } from "@temporalio/workflow";
 import type { AgentActivities } from "../../activities/agents/types";
 import { AGENT_CHUNKED_RETRY_POLICY } from "../../config/retry-policies";
-import { currentTimestamp } from "../temporal-utils";
+import { conditionWithTimeout, currentTimestamp } from "../temporal-utils";
 import {
   type AgentState,
   agentProgressQuery,
@@ -168,7 +167,7 @@ export async function backgroundAgentWorkflow(
 
       if (stepResult.timedOut) {
         chainProgress.status = "waiting_extension";
-        const gotExtension = await condition(
+        const gotExtension = await conditionWithTimeout(
           () => pendingExtension !== null || state.status !== "running",
           60_000
         );

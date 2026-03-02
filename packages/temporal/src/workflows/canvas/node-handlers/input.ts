@@ -2,7 +2,7 @@ import type { ExecutionPlanNode } from "@openplane/types/canvas";
 import { InputNodeConfigSchema } from "@openplane/types/canvas";
 import type { CanvasInputSignalPayload } from "@openplane/types/temporal";
 import { condition } from "@temporalio/workflow";
-import { currentTimestamp } from "../../temporal-utils";
+import { conditionWithTimeout, currentTimestamp } from "../../temporal-utils";
 import {
   buildWaitingStep,
   updateTraceForInput,
@@ -30,7 +30,7 @@ async function waitForInputResponse(params: {
   const hasResponse = () => params.inputResponses.has(params.nodeId);
 
   if (params.timeoutMs && params.timeoutMs > 0) {
-    const signaled = await condition(
+    const signaled = await conditionWithTimeout(
       () => params.isCancelled() || hasResponse(),
       params.timeoutMs
     );

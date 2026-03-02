@@ -3,6 +3,7 @@ import type {
   CanvasInputSignalPayload,
 } from "@openplane/types/temporal";
 import { condition } from "@temporalio/workflow";
+import { conditionWithTimeout } from "../../temporal-utils";
 
 interface WaitForApprovalParams {
   approvalId: string;
@@ -23,7 +24,7 @@ export async function waitForApprovalResponse(
   const hasResponse = () => approvalResponses.has(params.approvalId);
 
   if (params.timeoutMs && params.timeoutMs > 0) {
-    const signaled = await condition(
+    const signaled = await conditionWithTimeout(
       () => cancelled || hasResponse(),
       params.timeoutMs
     );
@@ -65,7 +66,7 @@ export async function waitForInputResponse(
   const hasResponse = () => inputResponses.has(params.nodeId);
 
   if (params.timeoutMs && params.timeoutMs > 0) {
-    const signaled = await condition(
+    const signaled = await conditionWithTimeout(
       () => cancelled || hasResponse(),
       params.timeoutMs
     );

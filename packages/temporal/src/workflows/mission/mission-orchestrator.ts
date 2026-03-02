@@ -41,7 +41,7 @@ import {
 } from "@temporalio/workflow";
 import type { ReflectionActivities } from "../../activities/mission/reflection-types";
 import type { MissionActivities } from "../../activities/mission/types";
-import { currentTimestamp } from "../temporal-utils";
+import { conditionWithTimeout, currentTimestamp } from "../temporal-utils";
 import {
   agentClaimTaskSignal,
   agentCompletedSignal,
@@ -1066,7 +1066,7 @@ async function maybeRunStandup(
   const reports: StandupReport[] = [];
   const respondedAgentIds = new Set<string>();
 
-  await condition(() => {
+  await conditionWithTimeout(() => {
     const standupMessages = state.pendingMessages.filter(
       (env) =>
         env.message.subject === "standup_report" &&
@@ -1429,7 +1429,7 @@ export async function missionOrchestratorWorkflow(
   });
 
   while (state.status !== "cancelled" && state.status !== "completed") {
-    await condition(
+    await conditionWithTimeout(
       () =>
         state.wakeQueue.length > 0 ||
         state.status === "cancelled" ||

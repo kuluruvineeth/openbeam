@@ -17,7 +17,6 @@ import type {
 } from "@openplane/types/temporal/mission-reflection";
 import type { Duration } from "@temporalio/common";
 import {
-  condition,
   getExternalWorkflowHandle,
   proxyActivities,
   setHandler,
@@ -37,7 +36,7 @@ import {
   agentChainProgressQuery,
   extendTimeoutSignal,
 } from "../agents/signals";
-import { currentTimestamp } from "../temporal-utils";
+import { conditionWithTimeout, currentTimestamp } from "../temporal-utils";
 import type { AgentArtifact } from "../types";
 import {
   agentCompletedSignal,
@@ -530,7 +529,7 @@ export async function missionAgentRunWorkflow(
 
       if (stepWaitingForReply) {
         const correlationId = stepWaitingForReply;
-        const arrived = await condition(
+        const arrived = await conditionWithTimeout(
           () => replyIndex.has(correlationId) || isCancelled,
           stepReplyTimeoutMs ?? 30_000
         );
@@ -557,7 +556,7 @@ export async function missionAgentRunWorkflow(
 
       if (stepTimedOut) {
         chainProgress.status = "waiting_extension";
-        const gotExtension = await condition(
+        const gotExtension = await conditionWithTimeout(
           () => pendingExtension !== null || isCancelled,
           60_000
         );
