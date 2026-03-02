@@ -50,7 +50,7 @@ export const streamHandler: RouteHandler<typeof streamRoute, AuthEnv> = async (
 ) => {
   const input = c.req.valid("json");
 
-  let stream: Awaited<ReturnType<typeof streamRAGForActor>> | undefined;
+  let stream: Awaited<ReturnType<typeof streamRAGForActor>>;
   try {
     stream = await streamRAGForActor(prisma, {
       teamId: getTeamId(c),

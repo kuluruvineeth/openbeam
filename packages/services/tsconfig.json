@@ -8,6 +8,7 @@
     "composite": true,
     "strictNullChecks": true,
     "moduleResolution": "bundler",
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "lib": ["ESNext", "DOM"]
   }
 }

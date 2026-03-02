@@ -64,7 +64,7 @@ export class SessionMemoryStoreImpl implements SessionMemoryStore {
   }
 
   private async withMutex<T>(fn: () => Promise<T>): Promise<T> {
-    let release: () => void;
+    let release: (() => void) | undefined;
     const acquired = new Promise<void>((resolve) => {
       release = resolve;
     });

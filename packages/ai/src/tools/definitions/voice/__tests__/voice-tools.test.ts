@@ -318,7 +318,7 @@ describe("voice_note", () => {
       };
       expect(data.count).toBe(2);
       expect(data.notes).toHaveLength(2);
-      expect(data.notes[0].title).toBe("Note A");
+      expect(data.notes.at(0)?.title).toBe("Note A");
     });
 
     it("passes limit to service", async () => {

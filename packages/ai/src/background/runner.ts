@@ -428,8 +428,8 @@ export class BackgroundAgentRunner {
 
       const result = await this.executeStep();
 
-      this.totalInputTokens += result.usage?.promptTokens ?? 0;
-      this.totalOutputTokens += result.usage?.completionTokens ?? 0;
+      this.totalInputTokens += result.usage?.inputTokens ?? 0;
+      this.totalOutputTokens += result.usage?.outputTokens ?? 0;
 
       this.state.conversationHistory.push({
         role: "assistant",
