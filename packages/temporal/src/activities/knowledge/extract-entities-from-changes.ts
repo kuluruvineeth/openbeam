@@ -1,4 +1,4 @@
-import type { Database } from "@openplane/db";
+import type { Database, EntityType } from "@openplane/db";
 import type { VespaClient } from "@openplane/vespa";
 import { Context } from "@temporalio/activity";
 import type {
@@ -63,7 +63,12 @@ export function createExtractEntitiesFromChangesActivity(
       for (const documentId of batch) {
         const doc = await deps.db.indexedDocument.findFirst({
           where: { vespaId: documentId },
-          select: { title: true },
+          select: {
+            title: true,
+            connectorId: true,
+            metadata: true,
+            connector: { select: { type: true } },
+          },
         });
 
         const vespaDoc = await deps.vespa
@@ -71,19 +76,28 @@ export function createExtractEntitiesFromChangesActivity(
           .catch(() => null);
         const title = doc?.title ?? vespaDoc?.title ?? "";
         const content = vespaDoc?.content ?? vespaDoc?.content_plain ?? "";
-        const nerText = [title.trim(), content.trim()]
-          .filter(Boolean)
-          .join("\n\n");
-        if (!nerText) {
+        if (![title.trim(), content.trim()].some(Boolean)) {
           continue;
         }
 
-        const entities = await callEngineNer(
-          deps.engineBaseUrl,
+        const docMetadata = (doc?.metadata as Record<string, unknown>) ?? {};
+        const entities = await callEngineNer({
+          baseUrl: deps.engineBaseUrl,
           documentId,
           title,
-          content
-        );
+          content,
+          metadata: {
+            author: vespaDoc?.author_name as string | undefined,
+            authorEmail: vespaDoc?.author_email as string | undefined,
+            connectorType: doc?.connector?.type,
+            connectorMetadata: docMetadata,
+            assignees: (docMetadata.assignees as string[]) ?? undefined,
+            reviewers:
+              (docMetadata.requestedReviewers as string[]) ?? undefined,
+            labels:
+              (docMetadata.labels as Array<{ name: string }>) ?? undefined,
+          },
+        });
 
         for (const entity of entities) {
           const resolved = await resolveEntity(deps.db, input.teamId, entity);
@@ -127,22 +141,49 @@ export function createExtractEntitiesFromChangesActivity(
   };
 }
 
+interface EngineNerMetadata {
+  author?: string;
+  authorEmail?: string;
+  connectorType?: string;
+  connectorMetadata?: Record<string, unknown>;
+  participants?: string[];
+  assignees?: string[];
+  reviewers?: string[];
+  labels?: Array<{ name: string }>;
+}
+
+interface CallEngineNerParams {
+  baseUrl: string;
+  documentId: string;
+  title: string;
+  content: string;
+  metadata?: EngineNerMetadata;
+}
+
 async function callEngineNer(
-  baseUrl: string,
-  documentId: string,
-  title: string,
-  content: string
+  params: CallEngineNerParams
 ): Promise<EngineEntity[]> {
-  const response = await fetch(`${baseUrl}/v1/entities/extract/document`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      doc_id: documentId,
-      title,
-      content: content.slice(0, NER_MAX_CONTENT_LENGTH),
-    }),
-    signal: AbortSignal.timeout(30_000),
-  });
+  const response = await fetch(
+    `${params.baseUrl}/v1/entities/extract/document`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        doc_id: params.documentId,
+        title: params.title,
+        content: params.content.slice(0, NER_MAX_CONTENT_LENGTH),
+        author: params.metadata?.author,
+        author_email: params.metadata?.authorEmail,
+        connector_type: params.metadata?.connectorType,
+        connector_metadata: params.metadata?.connectorMetadata,
+        participants: params.metadata?.participants,
+        assignees: params.metadata?.assignees,
+        reviewers: params.metadata?.reviewers,
+        labels: params.metadata?.labels,
+      }),
+      signal: AbortSignal.timeout(30_000),
+    }
+  );
 
   if (!response.ok) {
     return [];
@@ -161,22 +202,42 @@ async function resolveEntity(
   const entityType = mapEntityType(entity.type);
 
   const existing = await db.entity.findFirst({
-    where: {
-      teamId,
-      type: entityType,
-      normalizedName,
-    },
+    where: { teamId, type: entityType, normalizedName },
     select: { id: true },
   });
 
   if (existing) {
     await db.entity.update({
       where: { id: existing.id },
-      data: {
-        lastActiveAt: new Date(),
-      },
+      data: { lastActiveAt: new Date() },
     });
     return existing;
+  }
+
+  if (entityType === "PERSON") {
+    const byAlias = await db.entity.findFirst({
+      where: { teamId, type: "PERSON", aliases: { has: normalizedName } },
+      select: { id: true },
+    });
+    if (byAlias) {
+      await db.entity.update({
+        where: { id: byAlias.id },
+        data: { lastActiveAt: new Date() },
+      });
+      return byAlias;
+    }
+  }
+
+  const aliases: string[] = [];
+  if (entityType === "PERSON" && normalizedName.includes("@")) {
+    const localPart = normalizedName.split("@")[0];
+    if (localPart) {
+      aliases.push(localPart);
+      const expanded = localPart.replace(/[._-]/g, " ").trim();
+      if (expanded !== localPart) {
+        aliases.push(expanded);
+      }
+    }
   }
 
   return db.entity.create({
@@ -185,6 +246,7 @@ async function resolveEntity(
       name: entity.text.trim(),
       normalizedName,
       type: entityType,
+      aliases,
       mentionCount: 0,
       documentCount: 0,
       lastActiveAt: new Date(),
@@ -192,54 +254,45 @@ async function resolveEntity(
   });
 }
 
-function mapEntityType(
-  engineType: string
-):
-  | "PERSON"
-  | "TEAM"
-  | "PROJECT"
-  | "TOPIC"
-  | "TECHNOLOGY"
-  | "LOCATION"
-  | "ORGANIZATION"
-  | "CHANNEL"
-  | "REPOSITORY" {
-  const typeMap: Record<
-    string,
-    | "PERSON"
-    | "TEAM"
-    | "PROJECT"
-    | "TOPIC"
-    | "TECHNOLOGY"
-    | "LOCATION"
-    | "ORGANIZATION"
-    | "CHANNEL"
-    | "REPOSITORY"
-  > = {
-    person: "PERSON",
-    per: "PERSON",
-    team: "TEAM",
-    group: "TEAM",
-    org: "ORGANIZATION",
-    organization: "ORGANIZATION",
-    company: "ORGANIZATION",
-    loc: "LOCATION",
-    location: "LOCATION",
-    gpe: "LOCATION",
-    product: "TECHNOLOGY",
-    technology: "TECHNOLOGY",
-    tech: "TECHNOLOGY",
-    project: "PROJECT",
-    repo: "REPOSITORY",
-    repository: "REPOSITORY",
-    channel: "CHANNEL",
-    slack_channel: "CHANNEL",
-    topic: "TOPIC",
-    event: "TOPIC",
-  };
+const ENTITY_TYPE_MAP: Record<string, EntityType> = {
+  person: "PERSON",
+  per: "PERSON",
+  team: "TEAM",
+  group: "TEAM",
+  org: "ORGANIZATION",
+  organization: "ORGANIZATION",
+  company: "ORGANIZATION",
+  loc: "LOCATION",
+  location: "LOCATION",
+  gpe: "LOCATION",
+  technology: "TECHNOLOGY",
+  tech: "TECHNOLOGY",
+  project: "PROJECT",
+  repo: "REPOSITORY",
+  repository: "REPOSITORY",
+  "code repository": "REPOSITORY",
+  channel: "CHANNEL",
+  slack_channel: "CHANNEL",
+  "communication channel": "CHANNEL",
+  topic: "TOPIC",
+  customer: "CUSTOMER",
+  account: "CUSTOMER",
+  client: "CUSTOMER",
+  product: "PRODUCT",
+  service: "PRODUCT",
+  event: "EVENT",
+  milestone: "EVENT",
+  release: "EVENT",
+  sprint: "EVENT",
+  deadline: "EVENT",
+  ticket: "TICKET",
+  issue: "TICKET",
+  incident: "TICKET",
+};
 
+function mapEntityType(engineType: string): EntityType {
   if (!engineType) {
     return "TOPIC";
   }
-  return typeMap[engineType.toLowerCase()] ?? "TOPIC";
+  return ENTITY_TYPE_MAP[engineType.toLowerCase()] ?? "TOPIC";
 }

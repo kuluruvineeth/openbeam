@@ -24,6 +24,7 @@ import { createExtractEntitiesFromChangesActivity } from "./extract-entities-fro
 import { createFetchUnprocessedChangesActivity } from "./fetch-unprocessed-changes";
 import { createInferRelationshipsActivity } from "./infer-relationships";
 import { createInvalidateEdgesActivity } from "./invalidate-edges";
+import { createLinkPersonIdentitiesActivity } from "./link-person-identities";
 import { createMarkChangesProcessedActivity } from "./mark-changes-processed";
 import { createPersistInferenceActivity } from "./persist-inference";
 import type {
@@ -94,6 +95,7 @@ export function createKnowledgeChangeActivities(
       db: deps.db,
     }),
     invalidateEdges: createInvalidateEdgesActivity({ db: deps.db }),
+    linkPersonIdentities: createLinkPersonIdentitiesActivity({ db: deps.db }),
   };
 }
 
@@ -148,6 +150,10 @@ export {
   type InvalidateEdgesDependencies,
 } from "./invalidate-edges";
 export {
+  createLinkPersonIdentitiesActivity,
+  type LinkPersonIdentitiesDependencies,
+} from "./link-person-identities";
+export {
   createMarkChangesProcessedActivity,
   type MarkChangesProcessedDependencies,
 } from "./mark-changes-processed";
@@ -167,6 +173,8 @@ export type {
   InvalidateEdgesOutput,
   KnowledgeChangeActivities,
   KnowledgeCleanupActivities,
+  LinkPersonIdentitiesInput,
+  LinkPersonIdentitiesOutput,
   MarkChangesProcessedInput,
   UpdateCoOccurrenceEdgesInput,
   UpdateCoOccurrenceEdgesOutput,

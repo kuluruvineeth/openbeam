@@ -62,6 +62,10 @@ export async function processKnowledgeChangesWorkflow(
         entityMentions: extractionResult.mentions,
       });
       edgesUpdated = edgeResult.edgesCreated + edgeResult.edgesUpdated;
+
+      await changeActivities.linkPersonIdentities({
+        teamId: input.teamId,
+      });
     }
   }
 

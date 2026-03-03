@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createCleanupKnowledgeChangesActivity } from "../activities/knowledge/cleanup";
 import { createInvalidateEdgesActivity } from "../activities/knowledge/invalidate-edges";
+import { createLinkPersonIdentitiesActivity } from "../activities/knowledge/link-person-identities";
 import { createUpdateCoOccurrenceEdgesActivity } from "../activities/knowledge/update-co-occurrence-edges";
 
 vi.mock("@temporalio/activity", () => ({
@@ -29,6 +30,7 @@ interface MockDb {
   entityMention: {
     findMany: ReturnType<typeof vi.fn>;
     createMany: ReturnType<typeof vi.fn>;
+    updateMany: ReturnType<typeof vi.fn>;
     count: ReturnType<typeof vi.fn>;
     groupBy: ReturnType<typeof vi.fn>;
     deleteMany: ReturnType<typeof vi.fn>;
@@ -42,8 +44,10 @@ interface MockDb {
   };
   entity: {
     findFirst: ReturnType<typeof vi.fn>;
+    findMany: ReturnType<typeof vi.fn>;
     create: ReturnType<typeof vi.fn>;
     update: ReturnType<typeof vi.fn>;
+    delete: ReturnType<typeof vi.fn>;
   };
   entityChange: {
     create: ReturnType<typeof vi.fn>;
@@ -64,6 +68,7 @@ function createMockDb(): MockDb {
     entityMention: {
       findMany: vi.fn().mockResolvedValue([]),
       createMany: vi.fn().mockResolvedValue({ count: 0 }),
+      updateMany: vi.fn().mockResolvedValue({ count: 0 }),
       count: vi.fn().mockResolvedValue(0),
       groupBy: vi.fn().mockResolvedValue([]),
       deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
@@ -77,8 +82,10 @@ function createMockDb(): MockDb {
     },
     entity: {
       findFirst: vi.fn().mockResolvedValue(null),
+      findMany: vi.fn().mockResolvedValue([]),
       create: vi.fn().mockResolvedValue({ id: "new-entity" }),
       update: vi.fn().mockResolvedValue({}),
+      delete: vi.fn().mockResolvedValue({}),
     },
     entityChange: {
       create: vi.fn().mockResolvedValue({}),
@@ -464,7 +471,12 @@ describe("extractEntitiesFromChanges activity", () => {
 
     expect(db.indexedDocument.findFirst).toHaveBeenCalledWith({
       where: { vespaId: "doc1" },
-      select: { title: true },
+      select: {
+        title: true,
+        connectorId: true,
+        metadata: true,
+        connector: { select: { type: true } },
+      },
     });
     expect(vespa.getDocument).toHaveBeenCalledWith("doc1");
     expect(result.entitiesUpdated).toBe(1);
@@ -596,5 +608,260 @@ describe("cleanupKnowledgeChanges activity", () => {
 
     expect(docCutoff.getTime()).toBeGreaterThan(entityCutoff.getTime());
     expect(activityCutoff.getTime()).toBeGreaterThan(docCutoff.getTime());
+  });
+});
+
+describe("resolveEntity alias resolution", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.stubGlobal("fetch", vi.fn());
+  });
+
+  it("resolves email entity to existing PERSON via alias lookup", async () => {
+    const db = createMockDb();
+    const vespa = createMockVespa();
+
+    vespa.getDocument.mockResolvedValue({
+      id: "doc1",
+      title: "Thread",
+      content: "Email from john.smith@acme.com",
+    });
+
+    db.entity.findFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ id: "existing-john" });
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            entities: [
+              { text: "john.smith@acme.com", type: "person", confidence: 0.95 },
+            ],
+          }),
+      })
+    );
+
+    const { createExtractEntitiesFromChangesActivity } = await import(
+      "../activities/knowledge/extract-entities-from-changes"
+    );
+    const activity = createExtractEntitiesFromChangesActivity({
+      db: db as never,
+      vespa: vespa as never,
+      engineBaseUrl: "http://engine:8000",
+    });
+
+    const result = await activity({ teamId: "team1", documentIds: ["doc1"] });
+
+    expect(result.mentions[0]?.entityId).toBe("existing-john");
+    expect(db.entity.create).not.toHaveBeenCalled();
+    expect(db.entity.update).toHaveBeenCalledWith({
+      where: { id: "existing-john" },
+      data: { lastActiveAt: expect.any(Date) },
+    });
+  });
+
+  it("creates email PERSON entity with auto-generated aliases", async () => {
+    const db = createMockDb();
+    const vespa = createMockVespa();
+
+    vespa.getDocument.mockResolvedValue({
+      id: "doc1",
+      title: "Thread",
+      content: "Email from jane.doe@acme.com",
+    });
+
+    db.entity.findFirst.mockResolvedValue(null);
+    db.entity.create.mockResolvedValue({ id: "new-jane" });
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            entities: [
+              { text: "jane.doe@acme.com", type: "person", confidence: 0.9 },
+            ],
+          }),
+      })
+    );
+
+    const { createExtractEntitiesFromChangesActivity } = await import(
+      "../activities/knowledge/extract-entities-from-changes"
+    );
+    const activity = createExtractEntitiesFromChangesActivity({
+      db: db as never,
+      vespa: vespa as never,
+      engineBaseUrl: "http://engine:8000",
+    });
+
+    await activity({ teamId: "team1", documentIds: ["doc1"] });
+
+    expect(db.entity.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        type: "PERSON",
+        normalizedName: "jane.doe@acme.com",
+        aliases: ["jane.doe", "jane doe"],
+      }),
+    });
+  });
+
+  it("creates non-email PERSON entity with empty aliases", async () => {
+    const db = createMockDb();
+    const vespa = createMockVespa();
+
+    vespa.getDocument.mockResolvedValue({
+      id: "doc1",
+      title: "Thread",
+      content: "Alice mentioned the bug",
+    });
+
+    db.entity.findFirst.mockResolvedValue(null);
+    db.entity.create.mockResolvedValue({ id: "new-alice" });
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            entities: [{ text: "Alice", type: "person", confidence: 0.9 }],
+          }),
+      })
+    );
+
+    const { createExtractEntitiesFromChangesActivity } = await import(
+      "../activities/knowledge/extract-entities-from-changes"
+    );
+    const activity = createExtractEntitiesFromChangesActivity({
+      db: db as never,
+      vespa: vespa as never,
+      engineBaseUrl: "http://engine:8000",
+    });
+
+    await activity({ teamId: "team1", documentIds: ["doc1"] });
+
+    expect(db.entity.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        type: "PERSON",
+        aliases: [],
+      }),
+    });
+  });
+});
+
+describe("linkPersonIdentities activity", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns zero merged when no persons share aliases", async () => {
+    const db = createMockDb();
+    db.entity.findMany.mockResolvedValue([
+      { id: "e1", normalizedName: "alice", aliases: [], mentionCount: 5 },
+      { id: "e2", normalizedName: "bob", aliases: [], mentionCount: 3 },
+    ]);
+
+    const activity = createLinkPersonIdentitiesActivity({ db: db as never });
+    const result = await activity({ teamId: "team1" });
+
+    expect(result.merged).toBe(0);
+    expect(db.entity.delete).not.toHaveBeenCalled();
+  });
+
+  it("merges persons that share an alias", async () => {
+    const db = createMockDb();
+    db.entity.findMany
+      .mockResolvedValueOnce([
+        {
+          id: "e1",
+          normalizedName: "john.smith@acme.com",
+          aliases: ["john.smith", "john smith"],
+          mentionCount: 10,
+        },
+        {
+          id: "e2",
+          normalizedName: "john smith",
+          aliases: [],
+          mentionCount: 3,
+        },
+      ])
+      .mockResolvedValueOnce([
+        {
+          id: "e1",
+          normalizedName: "john.smith@acme.com",
+          aliases: ["john.smith", "john smith"],
+          mentionCount: 10,
+        },
+        {
+          id: "e2",
+          normalizedName: "john smith",
+          aliases: [],
+          mentionCount: 3,
+        },
+      ]);
+
+    const activity = createLinkPersonIdentitiesActivity({ db: db as never });
+    const result = await activity({ teamId: "team1" });
+
+    expect(result.merged).toBe(1);
+    expect(db.entity.delete).toHaveBeenCalledWith({ where: { id: "e2" } });
+    expect(db.entityMention.updateMany).toHaveBeenCalledWith({
+      where: { entityId: "e2" },
+      data: { entityId: "e1" },
+    });
+    expect(db.entityRelation.updateMany).toHaveBeenCalledTimes(2);
+  });
+
+  it("keeps entity with highest mention count as primary", async () => {
+    const db = createMockDb();
+    db.entity.findMany
+      .mockResolvedValueOnce([
+        {
+          id: "e1",
+          normalizedName: "jsmith@acme.com",
+          aliases: ["jsmith"],
+          mentionCount: 2,
+        },
+        {
+          id: "e2",
+          normalizedName: "jsmith",
+          aliases: [],
+          mentionCount: 20,
+        },
+      ])
+      .mockResolvedValueOnce([
+        {
+          id: "e2",
+          normalizedName: "jsmith",
+          aliases: [],
+          mentionCount: 20,
+        },
+        {
+          id: "e1",
+          normalizedName: "jsmith@acme.com",
+          aliases: ["jsmith"],
+          mentionCount: 2,
+        },
+      ]);
+
+    const activity = createLinkPersonIdentitiesActivity({ db: db as never });
+    const result = await activity({ teamId: "team1" });
+
+    expect(result.merged).toBe(1);
+    expect(db.entity.delete).toHaveBeenCalledWith({ where: { id: "e1" } });
+  });
+
+  it("returns zero merged with empty team", async () => {
+    const db = createMockDb();
+    db.entity.findMany.mockResolvedValue([]);
+
+    const activity = createLinkPersonIdentitiesActivity({ db: db as never });
+    const result = await activity({ teamId: "team1" });
+
+    expect(result.merged).toBe(0);
   });
 });

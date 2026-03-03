@@ -6,6 +6,7 @@ const mockUpdateCoOccurrenceEdges = vi.fn();
 const mockMarkChangesProcessed = vi.fn();
 const mockCountUnprocessedChanges = vi.fn();
 const mockInvalidateEdges = vi.fn();
+const mockLinkPersonIdentities = vi.fn();
 const mockContinueAsNew = vi.fn();
 const mockExecuteChild = vi.fn();
 const mockFetchBatch = vi.fn();
@@ -26,6 +27,7 @@ vi.mock("@temporalio/workflow", () => {
     markChangesProcessed: mockMarkChangesProcessed,
     countUnprocessedChanges: mockCountUnprocessedChanges,
     invalidateEdges: mockInvalidateEdges,
+    linkPersonIdentities: mockLinkPersonIdentities,
     fetchBatch: mockFetchBatch,
     loadConnector: mockLoadConnector,
     validateConnection: mockValidateConnection,
@@ -88,6 +90,7 @@ describe("processKnowledgeChangesWorkflow", () => {
       edgesInvalidated: 0,
       mentionsRemoved: 0,
     });
+    mockLinkPersonIdentities.mockResolvedValue({ merged: 0 });
   });
 
   it("returns early when no unprocessed changes exist", async () => {
@@ -419,6 +422,66 @@ describe("processKnowledgeChangesWorkflow", () => {
 
     expect(mockContinueAsNew).not.toHaveBeenCalled();
     expect(result.processed).toBe(1);
+  });
+
+  it("calls linkPersonIdentities after edges when mentions exist", async () => {
+    const { processKnowledgeChangesWorkflow } = await import(
+      "../workflows/scheduled/knowledge-changes"
+    );
+
+    mockFetchUnprocessedChanges.mockResolvedValue([
+      makeChange({ id: "c1", changeType: "CREATED" }),
+    ]);
+    mockExtractEntitiesFromChanges.mockResolvedValue({
+      entitiesUpdated: 2,
+      mentions: [
+        {
+          entityId: "e1",
+          entityName: "Alice",
+          entityType: "PERSON",
+          documentId: "doc-1",
+          confidence: 0.9,
+        },
+      ],
+    });
+    mockUpdateCoOccurrenceEdges.mockResolvedValue({
+      edgesCreated: 1,
+      edgesUpdated: 0,
+    });
+    mockCountUnprocessedChanges.mockResolvedValue(0);
+
+    await processKnowledgeChangesWorkflow({
+      teamId: "team1",
+      connectorId: "conn-1",
+      changeType: "incremental",
+    });
+
+    expect(mockLinkPersonIdentities).toHaveBeenCalledWith({
+      teamId: "team1",
+    });
+  });
+
+  it("skips linkPersonIdentities when no mentions are produced", async () => {
+    const { processKnowledgeChangesWorkflow } = await import(
+      "../workflows/scheduled/knowledge-changes"
+    );
+
+    mockFetchUnprocessedChanges.mockResolvedValue([
+      makeChange({ id: "c1", changeType: "CREATED" }),
+    ]);
+    mockExtractEntitiesFromChanges.mockResolvedValue({
+      entitiesUpdated: 0,
+      mentions: [],
+    });
+    mockCountUnprocessedChanges.mockResolvedValue(0);
+
+    await processKnowledgeChangesWorkflow({
+      teamId: "team1",
+      connectorId: "conn-1",
+      changeType: "incremental",
+    });
+
+    expect(mockLinkPersonIdentities).not.toHaveBeenCalled();
   });
 });
 
