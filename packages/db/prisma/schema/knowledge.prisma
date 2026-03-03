@@ -8,6 +8,10 @@ enum EntityType {
   ORGANIZATION
   CHANNEL
   REPOSITORY
+  CUSTOMER
+  PRODUCT
+  EVENT
+  TICKET
 }
 
 enum RelationType {
@@ -23,6 +27,10 @@ enum RelationType {
   RELATES_TO
   CHILD_OF
   WORKS_ON
+  ASSIGNED_TO
+  CUSTOMER_OF
+  MILESTONE_FOR
+  FILED_IN
 }
 
 model Entity {
