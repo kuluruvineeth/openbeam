@@ -41,7 +41,7 @@ ml = [
     "transformers>=4.47.0",
     "FlagEmbedding>=1.2.0",
     "sentence-transformers>=3.3.0",
-    "gliner>=0.2.0",
+    "gliner>=0.2.20",
     "accelerate>=1.2.0",
 ]
 
@@ -51,7 +51,7 @@ gpu = [
     "transformers>=4.47.0",
     "FlagEmbedding>=1.2.0",
     "sentence-transformers>=3.3.0",
-    "gliner>=0.2.0",
+    "gliner>=0.2.20",
     "accelerate>=1.2.0",
 ]
 
@@ -61,7 +61,7 @@ gpu-modal = [
     "transformers>=4.47.0",
     "FlagEmbedding>=1.2.0",
     "sentence-transformers>=3.3.0",
-    "gliner>=0.2.0",
+    "gliner>=0.2.20",
 ]
 
 browser = [

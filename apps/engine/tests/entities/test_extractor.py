@@ -60,20 +60,24 @@ class TestDeviceSelection:
         ids=["cuda-available", "cuda-preferred-over-mps", "mps-fallback", "cpu-fallback"],
     )
     def test_device_selection(self, cuda_available, mps_available, expected_device):
-        with patch("torch.cuda.is_available", return_value=cuda_available):
-            with patch("torch.backends.mps.is_available", return_value=mps_available):
-                EntityExtractor._instance = None
-                extractor = EntityExtractor()
-                assert extractor.device == expected_device
+        with (
+            patch("torch.cuda.is_available", return_value=cuda_available),
+            patch("torch.backends.mps.is_available", return_value=mps_available),
+        ):
+            EntityExtractor._instance = None
+            extractor = EntityExtractor()
+            assert extractor.device == expected_device
 
 
 class TestRegexExtraction:
     @pytest.fixture
     def extractor(self):
         EntityExtractor._instance = None
-        with patch("torch.cuda.is_available", return_value=False):
-            with patch("torch.backends.mps.is_available", return_value=False):
-                return EntityExtractor()
+        with (
+            patch("torch.cuda.is_available", return_value=False),
+            patch("torch.backends.mps.is_available", return_value=False),
+        ):
+            return EntityExtractor()
 
     def test_extract_email(self, extractor):
         text = "Contact john@example.com for more info"
@@ -127,9 +131,11 @@ class TestDeduplication:
     @pytest.fixture
     def extractor(self):
         EntityExtractor._instance = None
-        with patch("torch.cuda.is_available", return_value=False):
-            with patch("torch.backends.mps.is_available", return_value=False):
-                return EntityExtractor()
+        with (
+            patch("torch.cuda.is_available", return_value=False),
+            patch("torch.backends.mps.is_available", return_value=False),
+        ):
+            return EntityExtractor()
 
     def test_empty_list_returns_empty(self, extractor):
         result = extractor._deduplicate([])
@@ -206,9 +212,11 @@ class TestExtract:
     @pytest.fixture
     def extractor(self):
         EntityExtractor._instance = None
-        with patch("torch.cuda.is_available", return_value=False):
-            with patch("torch.backends.mps.is_available", return_value=False):
-                return EntityExtractor()
+        with (
+            patch("torch.cuda.is_available", return_value=False),
+            patch("torch.backends.mps.is_available", return_value=False),
+        ):
+            return EntityExtractor()
 
     @pytest.mark.parametrize(
         "text",
@@ -226,57 +234,51 @@ class TestExtract:
         assert result == []
 
     @patch.object(EntityExtractor, "_extract_with_gliner")
-    @patch.object(EntityExtractor, "_extract_with_regex")
-    def test_extract_combines_sources(self, mock_regex, mock_gliner, extractor):
+    def test_extract_combines_sources(self, mock_gliner, extractor):
         mock_gliner.return_value = [
             ExtractedEntity("Acme Corp", "organization", 0.9, 0, 9, "gliner")
-        ]
-        mock_regex.return_value = [
-            ExtractedEntity("john@acme.com", "person", 1.0, 20, 33, "regex")
         ]
 
         result = extractor.extract("Acme Corp welcomes john@acme.com")
 
-        assert len(result) == 2
-        mock_gliner.assert_called_once()
-        mock_regex.assert_called_once()
+        assert any(e.text == "Acme Corp" for e in result)
+        assert any(e.source == "regex" for e in result)
 
     @patch.object(EntityExtractor, "_extract_with_gliner")
-    @patch.object(EntityExtractor, "_extract_with_regex")
-    def test_extract_truncates_long_text_for_gliner(
-        self, mock_regex, mock_gliner, extractor
-    ):
+    def test_preprocessor_cleans_noise(self, mock_gliner, extractor):
         mock_gliner.return_value = []
-        mock_regex.return_value = []
 
-        long_text = "a" * 10000
-        extractor.extract(long_text, max_length=4096)
+        text = "Deploy to mongodb://user:pass@host:27017/db by John Smith"
+        extractor.extract(text)
 
-        call_args = mock_gliner.call_args
-        assert len(call_args[0][0]) == 4096
+        call_text = mock_gliner.call_args[0][0]
+        assert "mongodb://" not in call_text
 
     @patch.object(EntityExtractor, "_extract_with_gliner")
-    @patch.object(EntityExtractor, "_extract_with_regex")
-    def test_extract_full_text_for_regex(self, mock_regex, mock_gliner, extractor):
-        mock_gliner.return_value = []
-        mock_regex.return_value = []
+    def test_validator_filters_false_positives(self, mock_gliner, extractor):
+        mock_gliner.return_value = [
+            ExtractedEntity("John Smith", "person", 0.9, 0, 10, "gliner"),
+            ExtractedEntity("the", "person", 0.6, 15, 18, "gliner"),
+        ]
 
-        long_text = "a" * 10000
-        extractor.extract(long_text, max_length=4096)
+        result = extractor.extract("John Smith said the thing")
 
-        call_args = mock_regex.call_args
-        assert len(call_args[0][0]) == 10000
+        texts = [e.text for e in result]
+        assert "John Smith" in texts
+        assert "the" not in texts
 
 
 class TestGlinerExtraction:
     @pytest.fixture
     def extractor(self):
         EntityExtractor._instance = None
-        with patch("torch.cuda.is_available", return_value=False):
-            with patch("torch.backends.mps.is_available", return_value=False):
-                ext = EntityExtractor()
-                ext._model = None
-                return ext
+        with (
+            patch("torch.cuda.is_available", return_value=False),
+            patch("torch.backends.mps.is_available", return_value=False),
+        ):
+            ext = EntityExtractor()
+            ext._model = None
+            return ext
 
     @pytest.fixture
     def mock_gliner_module(self):
@@ -288,7 +290,7 @@ class TestGlinerExtraction:
         return mock_gliner, mock_model
 
     def test_ensure_model_loads_once(self, extractor, mock_gliner_module):
-        mock_gliner, mock_model = mock_gliner_module
+        mock_gliner, _mock_model = mock_gliner_module
 
         import sys
 
@@ -299,7 +301,8 @@ class TestGlinerExtraction:
             extractor._ensure_model()
 
             mock_gliner.GLiNER.from_pretrained.assert_called_once_with(
-                EntityExtractor.MODEL_NAME
+                EntityExtractor.MODEL_NAME,
+                load_tokenizer=True,
             )
         finally:
             del sys.modules["gliner"]
@@ -366,7 +369,7 @@ class TestGlinerExtraction:
 
 class TestClassAttributes:
     def test_model_name(self):
-        assert EntityExtractor.MODEL_NAME == "urchade/gliner_medium-v2.1"
+        assert EntityExtractor.MODEL_NAME == "gliner-community/gliner_medium-v2.5"
 
     def test_gliner_labels(self):
         expected_labels = [
@@ -376,6 +379,13 @@ class TestClassAttributes:
             "technology",
             "location",
             "organization",
+            "topic",
+            "product",
+            "customer",
+            "event",
+            "ticket",
+            "code repository",
+            "communication channel",
         ]
         assert expected_labels == EntityExtractor.GLINER_LABELS
 
@@ -396,3 +406,58 @@ class TestClassAttributes:
         assert pattern.search("<@U12345678>")
         assert pattern.search("<@UABCDEFGH>")
         assert not pattern.search("@username")
+
+
+class TestPipelineIntegration:
+    @pytest.fixture
+    def extractor(self):
+        EntityExtractor._instance = None
+        with (
+            patch("torch.cuda.is_available", return_value=False),
+            patch("torch.backends.mps.is_available", return_value=False),
+        ):
+            return EntityExtractor()
+
+    @patch.object(EntityExtractor, "_extract_with_gliner")
+    def test_enterprise_noise_filtered_before_gliner(self, mock_gliner, extractor):
+        mock_gliner.return_value = []
+
+        text = (
+            "```python\nimport os\n```\n"
+            "mongodb://user:pass@host/db\n"
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.abc123\n"
+            "John Smith works at Acme"
+        )
+        extractor.extract(text)
+
+        call_text = mock_gliner.call_args[0][0]
+        assert "mongodb://" not in call_text
+        assert "import os" not in call_text
+        assert "eyJ" not in call_text
+        assert "John Smith" in call_text
+
+    @patch.object(EntityExtractor, "_extract_with_gliner")
+    def test_regex_runs_on_original_text(self, mock_gliner, extractor):
+        mock_gliner.return_value = []
+
+        text = "Email john@company.com for details"
+        result = extractor.extract(text)
+
+        email_entities = [e for e in result if e.text == "john@company.com"]
+        assert len(email_entities) == 1
+        assert email_entities[0].source == "regex"
+
+    @patch.object(EntityExtractor, "_extract_with_gliner")
+    def test_full_pipeline_end_to_end(self, mock_gliner, extractor):
+        mock_gliner.return_value = [
+            ExtractedEntity("Jane Doe", "person", 0.92, 0, 8, "gliner"),
+            ExtractedEntity("Linear", "technology", 0.87, 18, 24, "gliner"),
+        ]
+
+        text = "Jane Doe works at Linear. Email jane@linear.app for help."
+        result = extractor.extract(text)
+
+        texts = [e.text for e in result]
+        assert "Jane Doe" in texts
+        assert "Linear" in texts
+        assert "jane@linear.app" in texts

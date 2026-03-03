@@ -42,7 +42,13 @@ class DocumentExtractRequest(BaseModel):
     title: str = ""
     content: str = Field(..., min_length=1, max_length=100000)
     author: str | None = None
+    author_email: str | None = None
+    connector_type: str | None = None
     connector_metadata: dict[str, str | int | bool | None] | None = None
+    participants: list[str] | None = None
+    assignees: list[str] | None = None
+    reviewers: list[str] | None = None
+    labels: list[dict[str, str]] | None = None
 
 
 class DocumentExtractResponse(BaseModel):
