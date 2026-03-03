@@ -75,8 +75,9 @@ export function createExtractEntitiesFromChangesActivity(
           .getDocument(documentId)
           .catch(() => null);
         const title = doc?.title ?? vespaDoc?.title ?? "";
-        const content = vespaDoc?.content ?? vespaDoc?.content_plain ?? "";
-        if (![title.trim(), content.trim()].some(Boolean)) {
+        const rawContent = vespaDoc?.content ?? vespaDoc?.content_plain ?? "";
+        const content = rawContent || title;
+        if (!content.trim()) {
           continue;
         }
 
@@ -160,6 +161,22 @@ interface CallEngineNerParams {
   metadata?: EngineNerMetadata;
 }
 
+function flattenMetadata(
+  metadata: Record<string, unknown> | undefined
+): Record<string, string> | undefined {
+  if (!metadata) {
+    return;
+  }
+  const flat: Record<string, string> = {};
+  for (const [key, value] of Object.entries(metadata)) {
+    if (value == null) {
+      continue;
+    }
+    flat[key] = typeof value === "string" ? value : JSON.stringify(value);
+  }
+  return Object.keys(flat).length > 0 ? flat : undefined;
+}
+
 async function callEngineNer(
   params: CallEngineNerParams
 ): Promise<EngineEntity[]> {
@@ -175,7 +192,7 @@ async function callEngineNer(
         author: params.metadata?.author,
         author_email: params.metadata?.authorEmail,
         connector_type: params.metadata?.connectorType,
-        connector_metadata: params.metadata?.connectorMetadata,
+        connector_metadata: flattenMetadata(params.metadata?.connectorMetadata),
         participants: params.metadata?.participants,
         assignees: params.metadata?.assignees,
         reviewers: params.metadata?.reviewers,

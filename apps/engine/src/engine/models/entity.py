@@ -1,3 +1,5 @@
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -44,7 +46,7 @@ class DocumentExtractRequest(BaseModel):
     author: str | None = None
     author_email: str | None = None
     connector_type: str | None = None
-    connector_metadata: dict[str, str | int | bool | None] | None = None
+    connector_metadata: dict[str, Any] | None = None
     participants: list[str] | None = None
     assignees: list[str] | None = None
     reviewers: list[str] | None = None

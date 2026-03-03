@@ -651,9 +651,12 @@ export class VespaClient {
   }
 
   async getDocument(id: string): Promise<GenericDocument | null> {
-    const documentPath = `${this.documentApiUrl}/default/openplane_document/docid/${id}`;
+    const url = new URL(
+      `${this.documentApiUrl}/default/openplane_document/docid/${id}`
+    );
+    url.searchParams.set("fieldSet", "openplane_document:[document]");
 
-    const response = await fetch(documentPath, {
+    const response = await fetch(url.toString(), {
       method: "GET",
       signal: AbortSignal.timeout(10_000),
       // @ts-expect-error undici dispatcher type
@@ -671,8 +674,8 @@ export class VespaClient {
       );
     }
 
-    const result = (await response.json()) as { fields: GenericDocument };
-    return result.fields;
+    const result = (await response.json()) as { fields?: GenericDocument };
+    return result.fields ?? null;
   }
 
   async healthCheck(): Promise<boolean> {
