@@ -1,0 +1,35 @@
+{
+  "name": "gateway",
+  "main": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsdown",
+    "check-types": "tsc -b",
+    "dev": "bun run --hot src/index.ts",
+    "start": "bun run dist/index.js",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@openplane/db": "workspace:*",
+    "@openplane/redis": "workspace:*",
+    "@openplane/services": "workspace:*",
+    "@openplane/temporal": "workspace:*",
+    "@openplane/types": "workspace:*",
+    "@openplane/vespa": "workspace:*",
+    "hono": "catalog:",
+    "mqtt": "^5.10.0",
+    "aedes": "^1.0.0",
+    "sparkplug-payload": "^1.0.3",
+    "cbor-x": "^1.6.0",
+    "pino": "^10.1.0",
+    "pino-pretty": "^13.1.2",
+    "prom-client": "^15.1.1",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "typescript": "catalog:",
+    "@types/bun": "^1.2.6",
+    "tsdown": "catalog:",
+    "@openplane/config": "workspace:*"
+  }
+}
