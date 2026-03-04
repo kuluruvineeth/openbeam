@@ -48,6 +48,22 @@
       "types": "./dist/db/agent-canvas.d.ts",
       "default": "./src/db/agent-canvas.ts"
     },
+    "./physical": {
+      "types": "./dist/physical/index.d.ts",
+      "default": "./src/physical/index.ts"
+    },
+    "./physical/spatial": {
+      "types": "./dist/physical/spatial.d.ts",
+      "default": "./src/physical/spatial.ts"
+    },
+    "./physical/robot": {
+      "types": "./dist/physical/robot.d.ts",
+      "default": "./src/physical/robot.ts"
+    },
+    "./physical/digital-twin": {
+      "types": "./dist/physical/digital-twin.d.ts",
+      "default": "./src/physical/digital-twin.ts"
+    },
     "./services": {
       "types": "./dist/services/index.d.ts",
       "default": "./src/services/index.ts"
