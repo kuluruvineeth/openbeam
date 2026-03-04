@@ -3,10 +3,19 @@ import { gmailApp } from "./gmail/config";
 import { googleDriveApp } from "./google-drive/config";
 import { linearApp } from "./linear/config";
 import { notionApp } from "./notion/config";
+import { samsaraApp } from "./samsara/config";
 import { slackApp } from "./slack/config";
 import type { UnifiedApp } from "./types";
 
-export { gmailApp, githubApp, googleDriveApp, linearApp, notionApp, slackApp };
+export {
+  gmailApp,
+  githubApp,
+  googleDriveApp,
+  linearApp,
+  notionApp,
+  samsaraApp,
+  slackApp,
+};
 
 export {
   exchangeGitHubCode,
@@ -99,5 +108,6 @@ export const appStore: UnifiedApp[] = [
   googleDriveApp,
   linearApp,
   notionApp,
+  samsaraApp,
   slackApp,
 ];

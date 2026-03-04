@@ -111,6 +111,23 @@ export {
   warmKVCache,
   warmOverviewCache,
 } from "./ai/overview";
+export type { AwsIotClient } from "./aws-iot";
+export {
+  AwsIotApiError,
+  createAwsIotClient,
+  fullSync as awsIotFullSync,
+  incrementalSync as awsIotIncrementalSync,
+  transformThing as transformAwsIotThing,
+  transformThingGroup as transformAwsIotThingGroup,
+} from "./aws-iot";
+export type { AzureIotClient } from "./azure-iot";
+export {
+  AzureIotApiError,
+  createAzureIotClient,
+  fullSync as azureIotFullSync,
+  incrementalSync as azureIotIncrementalSync,
+  transformDevice as transformAzureIotDevice,
+} from "./azure-iot";
 export type {
   ChunkOptions,
   ChunkResponse,
@@ -396,6 +413,17 @@ export {
   updateQueryEmbedding,
   updateTopicAffinity,
 } from "./personalization";
+export type { SamsaraClient } from "./samsara";
+export {
+  createSamsaraClient,
+  fullSync as samsaraFullSync,
+  incrementalSync as samsaraIncrementalSync,
+  SamsaraApiError,
+  transformAlert as transformSamsaraAlert,
+  transformDriver as transformSamsaraDriver,
+  transformVehicle as transformSamsaraVehicle,
+  verifySamsaraWebhook,
+} from "./samsara";
 export type {
   AuthorFacet,
   AuthorFacetsParams,
@@ -690,6 +718,16 @@ export {
   updateStats,
   verifySlackSignature,
 } from "./slack";
+export type { SmartThingsClient } from "./smartthings";
+export {
+  createSmartThingsClient,
+  fullSync as smartThingsFullSync,
+  incrementalSync as smartThingsIncrementalSync,
+  SmartThingsApiError,
+  transformDevice as transformSmartThingsDevice,
+  transformLocation as transformSmartThingsLocation,
+  transformScene as transformSmartThingsScene,
+} from "./smartthings";
 export {
   getStorageProvider,
   resetStorageProvider,
@@ -725,6 +763,17 @@ export type {
   IntegrationServiceAccountAuth,
   ServiceAccountAuthContext,
 } from "./types";
+export type { VerkadaClient } from "./verkada";
+export {
+  createVerkadaClient,
+  fullSync as verkadaFullSync,
+  incrementalSync as verkadaIncrementalSync,
+  transformCamera as transformVerkadaCamera,
+  transformDoor as transformVerkadaDoor,
+  transformSensor as transformVerkadaSensor,
+  VerkadaApiError,
+  verifyVerkadaWebhook,
+} from "./verkada";
 export {
   completeSession,
   createNote,

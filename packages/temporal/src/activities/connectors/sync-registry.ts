@@ -1,10 +1,19 @@
 import {
+  awsIotFullSync,
+  awsIotIncrementalSync,
+  azureIotFullSync,
+  azureIotIncrementalSync,
+  createAwsIotClient,
+  createAzureIotClient,
   createGitHubClient,
   createGmailClient,
   createGoogleDriveClient,
   createLinearClient,
   createNotionClient,
+  createSamsaraClient,
   createSlackClient,
+  createSmartThingsClient,
+  createVerkadaClient,
   getValidAccessToken,
   githubFullSync,
   githubIncrementalSync,
@@ -14,7 +23,13 @@ import {
   linearIncrementalSync,
   notionFullSync,
   notionIncrementalSync,
+  samsaraFullSync,
+  samsaraIncrementalSync,
   incrementalSync as slackIncrementalSync,
+  smartThingsFullSync,
+  smartThingsIncrementalSync,
+  verkadaFullSync,
+  verkadaIncrementalSync,
 } from "@openplane/services";
 import { logger } from "@openplane/services/lib/logger";
 import type { GenericDocument } from "@openplane/vespa";
@@ -658,6 +673,309 @@ export function registerAllSyncFactories(): void {
           cursor: batch.cursor,
           hasMore: batch.hasMore,
           discoveredResources: resourcesToYield,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "SAMSARA",
+    async function* (connectorId, connector, cursor) {
+      const config = connector.config as Record<string, unknown> | null;
+      const apiToken = config?.api_token as string | undefined;
+      if (!apiToken) {
+        throw ApplicationFailure.nonRetryable(
+          `No API token for Samsara connector ${connectorId}`,
+          "AuthorizationError"
+        );
+      }
+
+      const region = ((config?.region as string) ?? "us") as "us" | "eu";
+      const apiVersion = (config?.api_version as string) ?? "2024-06-01";
+      const syncAlerts = config?.sync_alerts !== false;
+      const lookbackDays = parseNumericConfig(config?.lookback_days);
+
+      logger.info(
+        { connectorId, region, syncAlerts, lookbackDays },
+        "Samsara sync config loaded"
+      );
+
+      const client = createSamsaraClient({
+        connectorId,
+        apiToken,
+        region,
+        apiVersion,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId,
+        organizationId: (config?.organization_id as string) ?? undefined,
+        organizationName: (config?.organization_name as string) ?? undefined,
+        region,
+      };
+
+      const lastSyncTime = parseNumericConfig(cursor?.lastSyncTime);
+      const forceFullSync = parseBooleanConfig(cursor?.forceFullSync) === true;
+
+      const syncGenerator =
+        !forceFullSync && typeof lastSyncTime === "number"
+          ? samsaraIncrementalSync(client, context, {
+              cursor,
+              batchSize: 100,
+            })
+          : samsaraFullSync(client, context, {
+              batchSize: 100,
+              syncAlerts,
+              lookbackDays,
+            });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "VERKADA",
+    async function* (connectorId, connector, cursor) {
+      const config = connector.config as Record<string, unknown> | null;
+      const apiKey = config?.api_key as string | undefined;
+      if (!apiKey) {
+        throw ApplicationFailure.nonRetryable(
+          `No API key for Verkada connector ${connectorId}`,
+          "AuthorizationError"
+        );
+      }
+
+      const region = ((config?.region as string) ?? "us") as "us" | "eu" | "au";
+      const syncCameras = config?.sync_cameras !== false;
+      const syncDoors = config?.sync_doors !== false;
+      const syncSensors = config?.sync_sensors !== false;
+
+      logger.info(
+        { connectorId, region, syncCameras, syncDoors, syncSensors },
+        "Verkada sync config loaded"
+      );
+
+      const client = createVerkadaClient({
+        connectorId,
+        apiKey,
+        region,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: "VERKADA" as const,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId,
+        organizationId: (config?.organization_id as string) ?? "",
+        organizationName: (config?.organization_name as string) ?? "",
+        region,
+      };
+
+      const lastSyncTime = parseNumericConfig(cursor?.lastSyncTime);
+      const forceFullSync = parseBooleanConfig(cursor?.forceFullSync) === true;
+
+      const syncGenerator =
+        !forceFullSync && typeof lastSyncTime === "number"
+          ? verkadaIncrementalSync(client, context, { pageSize: 100 })
+          : verkadaFullSync(client, context, {
+              pageSize: 100,
+              syncCameras,
+              syncDoors,
+              syncSensors,
+            });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "AWS_IOT_CORE",
+    async function* (connectorId, connector, cursor) {
+      const config = connector.config as Record<string, unknown> | null;
+      const accessKeyId = config?.access_key_id as string | undefined;
+      const secretAccessKey = config?.secret_access_key as string | undefined;
+      if (!(accessKeyId && secretAccessKey)) {
+        throw ApplicationFailure.nonRetryable(
+          `No AWS credentials for AWS IoT Core connector ${connectorId}`,
+          "AuthorizationError"
+        );
+      }
+
+      const region = ((config?.region as string) ?? "us-east-1") as
+        | "us-east-1"
+        | "us-east-2"
+        | "us-west-1"
+        | "us-west-2"
+        | "eu-west-1"
+        | "eu-west-2"
+        | "eu-central-1"
+        | "ap-northeast-1"
+        | "ap-southeast-1"
+        | "ap-southeast-2";
+      const syncThingGroups = config?.sync_thing_groups !== false;
+      const syncShadows = config?.sync_shadows !== false;
+
+      logger.info(
+        { connectorId, region, syncThingGroups, syncShadows },
+        "AWS IoT Core sync config loaded"
+      );
+
+      const client = createAwsIotClient({
+        connectorId,
+        accessKeyId,
+        secretAccessKey,
+        region,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId,
+        region,
+        accountId: (config?.account_id as string) ?? undefined,
+      };
+
+      const lastSyncTime = parseNumericConfig(cursor?.lastSyncTime);
+      const forceFullSync = parseBooleanConfig(cursor?.forceFullSync) === true;
+
+      const syncGenerator =
+        !forceFullSync && typeof lastSyncTime === "number"
+          ? awsIotIncrementalSync(client, context, {
+              pageSize: 250,
+              syncShadows,
+            })
+          : awsIotFullSync(client, context, {
+              pageSize: 250,
+              syncThingGroups,
+              syncShadows,
+            });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "AZURE_IOT_HUB",
+    async function* (connectorId, connector, cursor) {
+      const config = connector.config as Record<string, unknown> | null;
+      const connectionString = config?.connection_string as string | undefined;
+      if (!connectionString) {
+        throw ApplicationFailure.nonRetryable(
+          `No connection string for Azure IoT Hub connector ${connectorId}`,
+          "AuthorizationError"
+        );
+      }
+
+      logger.info({ connectorId }, "Azure IoT Hub sync config loaded");
+
+      const client = createAzureIotClient({
+        connectorId,
+        connectionString,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId,
+        hubName: client.hubName,
+      };
+
+      const lastSyncTime = parseNumericConfig(cursor?.lastSyncTime);
+      const forceFullSync = parseBooleanConfig(cursor?.forceFullSync) === true;
+
+      const syncGenerator =
+        !forceFullSync && typeof lastSyncTime === "number"
+          ? azureIotIncrementalSync(client, context, {
+              pageSize: 100,
+              lastSyncTime,
+            })
+          : azureIotFullSync(client, context, {
+              pageSize: 100,
+            });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "SMARTTHINGS",
+    async function* (connectorId, connector, cursor) {
+      const config = connector.config as Record<string, unknown> | null;
+      const accessToken = config?.access_token as string | undefined;
+      if (!accessToken) {
+        throw ApplicationFailure.nonRetryable(
+          `No access token for SmartThings connector ${connectorId}`,
+          "AuthorizationError"
+        );
+      }
+
+      const syncScenes = config?.sync_scenes !== false;
+
+      logger.info(
+        { connectorId, syncScenes },
+        "SmartThings sync config loaded"
+      );
+
+      const client = createSmartThingsClient({
+        connectorId,
+        accessToken,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId,
+      };
+
+      const lastSyncTime = parseNumericConfig(cursor?.lastSyncTime);
+      const forceFullSync = parseBooleanConfig(cursor?.forceFullSync) === true;
+
+      const syncGenerator =
+        !forceFullSync && typeof lastSyncTime === "number"
+          ? smartThingsIncrementalSync(client, context, {
+              pageSize: 200,
+              syncScenes,
+            })
+          : smartThingsFullSync(client, context, {
+              pageSize: 200,
+              syncScenes,
+            });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
         };
       }
     }
