@@ -267,6 +267,46 @@
     "./services/daemon/transport": {
       "types": "./dist/services/daemon/transport.d.ts",
       "default": "./src/services/daemon/transport.ts"
+    },
+    "./edge": {
+      "types": "./dist/edge/index.d.ts",
+      "default": "./src/edge/index.ts"
+    },
+    "./edge/tiers": {
+      "types": "./dist/edge/tiers.d.ts",
+      "default": "./src/edge/tiers.ts"
+    },
+    "./edge/config": {
+      "types": "./dist/edge/config.d.ts",
+      "default": "./src/edge/config.ts"
+    },
+    "./edge/health": {
+      "types": "./dist/edge/health.d.ts",
+      "default": "./src/edge/health.ts"
+    },
+    "./edge/sync": {
+      "types": "./dist/edge/sync.d.ts",
+      "default": "./src/edge/sync.ts"
+    },
+    "./edge/scheduler": {
+      "types": "./dist/edge/scheduler.d.ts",
+      "default": "./src/edge/scheduler.ts"
+    },
+    "./edge/fleet": {
+      "types": "./dist/edge/fleet.d.ts",
+      "default": "./src/edge/fleet.ts"
+    },
+    "./edge/search": {
+      "types": "./dist/edge/search.d.ts",
+      "default": "./src/edge/search.ts"
+    },
+    "./edge/ai": {
+      "types": "./dist/edge/ai.d.ts",
+      "default": "./src/edge/ai.ts"
+    },
+    "./edge/queue": {
+      "types": "./dist/edge/queue.d.ts",
+      "default": "./src/edge/queue.ts"
     }
   },
   "scripts": {
