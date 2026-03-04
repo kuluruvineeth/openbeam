@@ -1,3 +1,7 @@
+export type { FeatureFlags } from "./config/feature-flags";
+export { getFeatureFlags } from "./config/feature-flags";
+export { EdgeConfigManager } from "./config/manager";
+export { HealthAggregator } from "./health/aggregator";
 export { MerkleTree } from "./merkle/tree";
 export { nextRun, parseCron } from "./scheduler/cron";
 export { EdgeTaskScheduler } from "./scheduler/scheduler";
@@ -7,3 +11,7 @@ export { openEdgeDatabase } from "./sqlite/connection";
 export { SQLiteKVStore } from "./sqlite/kv-store";
 export { SQLiteLock } from "./sqlite/lock";
 export { SQLitePubSub } from "./sqlite/pubsub";
+export { detectBandwidthPolicy } from "./sync/bandwidth-detector";
+export { CursorManager } from "./sync/cursor-manager";
+export { SyncEventProcessor } from "./sync/event-processor";
+export { StoreAndForwardQueue } from "./sync/store-and-forward";
