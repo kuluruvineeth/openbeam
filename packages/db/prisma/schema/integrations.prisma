@@ -121,6 +121,11 @@ enum AppType {
   BACNET
   THINGSBOARD
   NODERED
+
+  OMNIVERSE
+  MATTERPORT
+  VIAM
+  FHIR
 }
 
 enum ConnectorStatus {
