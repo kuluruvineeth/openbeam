@@ -1,15 +1,17 @@
 import type {
+  EdgeGenerateOptions,
   EdgeSLM,
   EdgeSLMResponse,
-  EdgeGenerateOptions,
 } from "@openplane/types/edge/ai";
 
+const WHITESPACE_RE = /\s+/;
+
 export class MockSLM implements EdgeSLM {
-  private responses: Map<string, string> = new Map();
-  private defaultResponse = "This is a mock response.";
+  private readonly responses: Map<string, string> = new Map();
+  private readonly defaultResponse: string;
   private available = true;
-  private latencyMs: number;
-  private _modelId: string;
+  private readonly latencyMs: number;
+  private readonly _modelId: string;
 
   constructor(options?: {
     modelId?: string;
@@ -17,7 +19,8 @@ export class MockSLM implements EdgeSLM {
     latencyMs?: number;
   }) {
     this._modelId = options?.modelId ?? "mock-slm";
-    if (options?.defaultResponse) this.defaultResponse = options.defaultResponse;
+    this.defaultResponse =
+      options?.defaultResponse ?? "This is a mock response.";
     this.latencyMs = options?.latencyMs ?? 10;
   }
 
@@ -31,7 +34,7 @@ export class MockSLM implements EdgeSLM {
 
   async generate(
     prompt: string,
-    _options?: Partial<EdgeGenerateOptions>,
+    _options?: Partial<EdgeGenerateOptions>
   ): Promise<EdgeSLMResponse> {
     if (!this.available) {
       throw new Error("Model is not available");
@@ -51,7 +54,7 @@ export class MockSLM implements EdgeSLM {
       }
     }
 
-    const words = text.split(/\s+/).length;
+    const words = text.split(WHITESPACE_RE).length;
     const tokensUsed = Math.ceil(words / 0.75);
 
     return {
@@ -62,8 +65,8 @@ export class MockSLM implements EdgeSLM {
     };
   }
 
-  async isAvailable(): Promise<boolean> {
-    return this.available;
+  isAvailable(): Promise<boolean> {
+    return Promise.resolve(this.available);
   }
 
   modelId(): string {

@@ -61,7 +61,9 @@ describe("MockSLM", () => {
     const slm = new MockSLM({ latencyMs: 0 });
     slm.setAvailable(false);
 
-    await expect(slm.generate("test")).rejects.toThrow("Model is not available");
+    await expect(slm.generate("test")).rejects.toThrow(
+      "Model is not available"
+    );
   });
 
   it("estimates token count from text", async () => {

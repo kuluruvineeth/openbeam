@@ -26,23 +26,15 @@ describe("MockEmbeddingModel", () => {
     const model = new MockEmbeddingModel();
     const v1 = await model.embed("hello");
     const v2 = await model.embed("goodbye");
-
-    let same = true;
-    for (let i = 0; i < v1.length; i += 1) {
-      if (v1[i] !== v2[i]) {
-        same = false;
-        break;
-      }
-    }
-    expect(same).toBe(false);
+    expect(Array.from(v1)).not.toEqual(Array.from(v2));
   });
 
   it("produces unit vectors (norm close to 1)", async () => {
     const model = new MockEmbeddingModel();
     const vector = await model.embed("normalize me");
     let norm = 0;
-    for (let i = 0; i < vector.length; i += 1) {
-      norm += vector[i] * vector[i];
+    for (const val of vector) {
+      norm += val * val;
     }
     norm = Math.sqrt(norm);
     expect(Math.abs(norm - 1)).toBeLessThan(0.001);
@@ -98,12 +90,12 @@ describe("MockEmbeddingModel", () => {
 
   it("handles very long strings", async () => {
     const model = new MockEmbeddingModel();
-    const longText = "a".repeat(10000);
+    const longText = "a".repeat(10_000);
     const vector = await model.embed(longText);
     expect(vector.length).toBe(384);
     let norm = 0;
-    for (let i = 0; i < vector.length; i += 1) {
-      norm += vector[i] * vector[i];
+    for (const val of vector) {
+      norm += val * val;
     }
     norm = Math.sqrt(norm);
     expect(Math.abs(norm - 1)).toBeLessThan(0.001);
