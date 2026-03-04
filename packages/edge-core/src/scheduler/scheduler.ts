@@ -202,11 +202,9 @@ export class EdgeTaskScheduler {
       return;
     }
 
+    const noop = Function.prototype as () => void;
     this.pollTimer = setInterval(() => {
-      this.tick().then(
-        () => undefined,
-        () => undefined
-      );
+      this.tick().then(noop, noop);
     }, pollIntervalMs);
   }
 
