@@ -598,6 +598,57 @@
         "typescript": "^5",
       },
     },
+    "packages/edge-ai": {
+      "name": "@openplane/edge-ai",
+      "version": "0.0.1",
+      "dependencies": {
+        "@openplane/edge-search": "workspace:*",
+        "@openplane/types": "workspace:*",
+      },
+      "devDependencies": {
+        "@openplane/config": "workspace:*",
+        "tsdown": "catalog:",
+        "typescript": "catalog:",
+        "zod": "catalog:",
+      },
+      "peerDependencies": {
+        "zod": "^4.0.0",
+      },
+    },
+    "packages/edge-core": {
+      "name": "@openplane/edge-core",
+      "version": "0.0.1",
+      "dependencies": {
+        "@openplane/types": "workspace:*",
+        "hash-wasm": "^4.12.0",
+      },
+      "devDependencies": {
+        "@openplane/config": "workspace:*",
+        "tsdown": "catalog:",
+        "typescript": "catalog:",
+        "zod": "catalog:",
+      },
+      "peerDependencies": {
+        "zod": "^4.0.0",
+      },
+    },
+    "packages/edge-search": {
+      "name": "@openplane/edge-search",
+      "version": "0.0.1",
+      "dependencies": {
+        "@openplane/edge-core": "workspace:*",
+        "@openplane/types": "workspace:*",
+      },
+      "devDependencies": {
+        "@openplane/config": "workspace:*",
+        "tsdown": "catalog:",
+        "typescript": "catalog:",
+        "zod": "catalog:",
+      },
+      "peerDependencies": {
+        "zod": "^4.0.0",
+      },
+    },
     "packages/integrations": {
       "name": "@openplane/integrations",
       "version": "0.0.1",
@@ -1956,6 +2007,12 @@
     "@openplane/db": ["@openplane/db@workspace:packages/db"],
 
     "@openplane/desktop": ["@openplane/desktop@workspace:apps/desktop"],
+
+    "@openplane/edge-ai": ["@openplane/edge-ai@workspace:packages/edge-ai"],
+
+    "@openplane/edge-core": ["@openplane/edge-core@workspace:packages/edge-core"],
+
+    "@openplane/edge-search": ["@openplane/edge-search@workspace:packages/edge-search"],
 
     "@openplane/extension": ["@openplane/extension@workspace:apps/extension"],
 
@@ -6654,6 +6711,12 @@
     "@openplane/db/dotenv": ["dotenv@17.3.1", "", {}, "sha512-IO8C/dzEb6O3F9/twg6ZLXz164a2fhTnEWb95H23Dm4OuN+92NmEAlTrupP9VW6Jm3sO26tQlqyvyi4CsnY9GA=="],
 
     "@openplane/db/zod": ["zod@4.2.1", "", {}, "sha512-0wZ1IRqGGhMP76gLqz8EyfBXKk0J2qo2+H3fi4mcUP/KtTocoX08nmIAHl1Z2kJIZbZee8KOpBCSNPRgauucjw=="],
+
+    "@openplane/edge-ai/zod": ["zod@4.2.1", "", {}, "sha512-0wZ1IRqGGhMP76gLqz8EyfBXKk0J2qo2+H3fi4mcUP/KtTocoX08nmIAHl1Z2kJIZbZee8KOpBCSNPRgauucjw=="],
+
+    "@openplane/edge-core/zod": ["zod@4.2.1", "", {}, "sha512-0wZ1IRqGGhMP76gLqz8EyfBXKk0J2qo2+H3fi4mcUP/KtTocoX08nmIAHl1Z2kJIZbZee8KOpBCSNPRgauucjw=="],
+
+    "@openplane/edge-search/zod": ["zod@4.2.1", "", {}, "sha512-0wZ1IRqGGhMP76gLqz8EyfBXKk0J2qo2+H3fi4mcUP/KtTocoX08nmIAHl1Z2kJIZbZee8KOpBCSNPRgauucjw=="],
 
     "@openplane/extension/zod": ["zod@4.2.1", "", {}, "sha512-0wZ1IRqGGhMP76gLqz8EyfBXKk0J2qo2+H3fi4mcUP/KtTocoX08nmIAHl1Z2kJIZbZee8KOpBCSNPRgauucjw=="],
 
