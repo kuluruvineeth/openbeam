@@ -1,20 +1,30 @@
+import { bacnetApp } from "./bacnet/config";
 import { githubApp } from "./github/config";
 import { gmailApp } from "./gmail/config";
 import { googleDriveApp } from "./google-drive/config";
 import { linearApp } from "./linear/config";
+import { mqttApp } from "./mqtt/config";
+import { noderedApp } from "./nodered/config";
 import { notionApp } from "./notion/config";
+import { opcuaApp } from "./opcua/config";
 import { samsaraApp } from "./samsara/config";
 import { slackApp } from "./slack/config";
+import { thingsboardApp } from "./thingsboard/config";
 import type { UnifiedApp } from "./types";
 
 export {
+  bacnetApp,
   gmailApp,
   githubApp,
   googleDriveApp,
   linearApp,
+  mqttApp,
+  noderedApp,
   notionApp,
+  opcuaApp,
   samsaraApp,
   slackApp,
+  thingsboardApp,
 };
 
 export {
@@ -110,4 +120,9 @@ export const appStore: UnifiedApp[] = [
   notionApp,
   samsaraApp,
   slackApp,
+  mqttApp,
+  opcuaApp,
+  bacnetApp,
+  thingsboardApp,
+  noderedApp,
 ];

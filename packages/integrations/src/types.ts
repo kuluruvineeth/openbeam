@@ -54,6 +54,11 @@ export enum AppType {
   AWS_IOT = "AWS_IOT",
   AZURE_IOT = "AZURE_IOT",
   SMARTTHINGS = "SMARTTHINGS",
+  MQTT = "MQTT",
+  OPCUA = "OPCUA",
+  BACNET = "BACNET",
+  THINGSBOARD = "THINGSBOARD",
+  NODERED = "NODERED",
 }
 
 export enum SyncMode {
