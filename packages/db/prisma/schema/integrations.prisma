@@ -115,6 +115,12 @@ enum AppType {
   AWS_IOT
   AZURE_IOT
   SMARTTHINGS
+
+  MQTT
+  OPCUA
+  BACNET
+  THINGSBOARD
+  NODERED
 }
 
 enum ConnectorStatus {
