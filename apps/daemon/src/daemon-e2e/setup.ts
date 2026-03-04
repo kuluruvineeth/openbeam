@@ -6,8 +6,8 @@ import { afterAll, beforeAll } from "vitest";
 import {
   createDaemonTestContext,
   type DaemonTestContext,
-} from "../test-utils/index.js";
-import { agentConfigs } from "./agent-configs.js";
+} from "../test-utils/index";
+import { agentConfigs } from "./agent-configs";
 
 // Re-export for backward compatibility - prefer using agentConfigs instead
 export const CODEX_TEST_MODEL = agentConfigs.codex.model;
@@ -22,7 +22,7 @@ export {
   allProviders,
   getAskModeConfig,
   getFullAccessConfig,
-} from "./agent-configs.js";
+} from "./agent-configs";
 
 export function tmpCwd(): string {
   return mkdtempSync(path.join(tmpdir(), "daemon-e2e-"));

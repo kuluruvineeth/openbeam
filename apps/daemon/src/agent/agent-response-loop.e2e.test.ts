@@ -17,11 +17,11 @@ import {
   test,
 } from "vitest";
 import { z } from "zod";
-import { AgentManager } from "./agent-manager.js";
-import { generateStructuredAgentResponse } from "./agent-response-loop.js";
-import { AgentStorage } from "./agent-storage.js";
-import { createAgentMcpServer } from "./mcp-server.js";
-import { createAllClients, shutdownProviders } from "./provider-registry.js";
+import { AgentManager } from "./agent-manager";
+import { generateStructuredAgentResponse } from "./agent-response-loop";
+import { AgentStorage } from "./agent-storage";
+import { createAgentMcpServer } from "./mcp-server";
+import { createAllClients, shutdownProviders } from "./provider-registry";
 
 const CODEX_TEST_MODEL = "gpt-5.1-codex-mini";
 const CODEX_TEST_THINKING_OPTION_ID = "low";

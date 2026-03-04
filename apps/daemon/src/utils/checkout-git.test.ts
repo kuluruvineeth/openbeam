@@ -23,9 +23,9 @@ import {
   mergeToBase,
   NotGitRepoError,
   pushCurrentBranch,
-} from "./checkout-git.js";
-import { createWorktree } from "./worktree.js";
-import { getOpenPlaneWorktreeMetadataPath } from "./worktree-metadata.js";
+} from "./checkout-git";
+import { createWorktree } from "./worktree";
+import { getOpenPlaneWorktreeMetadataPath } from "./worktree-metadata";
 
 function initRepo(): { tempDir: string; repoDir: string } {
   const tempDir = realpathSync(

@@ -10,7 +10,7 @@ import {
   TEST_THINKING_OPTION_ID,
   tmpCwd,
   waitForCondition,
-} from "./e2e-helpers.js";
+} from "./e2e-helpers";
 
 async function withTimeout<T>(options: {
   promise: Promise<T>;

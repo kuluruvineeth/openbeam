@@ -1,9 +1,9 @@
-import { createOpenPlaneDaemon } from "./bootstrap.js";
-import { loadConfig } from "./config.js";
-import { createRootLogger } from "./logger.js";
-import { resolveOpenPlaneHome } from "./openplane-home.js";
-import { loadPersistedConfig } from "./persisted-config.js";
-import { PidLockError } from "./pid-lock.js";
+import { createOpenPlaneDaemon } from "./bootstrap";
+import { loadConfig } from "./config";
+import { createRootLogger } from "./logger";
+import { resolveOpenPlaneHome } from "./openplane-home";
+import { loadPersistedConfig } from "./persisted-config";
+import { PidLockError } from "./pid-lock";
 
 async function main() {
   let openplaneHome: string;

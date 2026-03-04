@@ -1,9 +1,9 @@
-import type { AgentManager } from "./agent/agent-manager.js";
+import type { AgentManager } from "./agent/agent-manager";
 import type {
   AgentProvider,
   AgentSessionConfig,
-} from "./agent/agent-sdk-types.js";
-import type { AgentStorage, StoredAgentRecord } from "./agent/agent-storage.js";
+} from "./agent/agent-sdk-types";
+import type { AgentStorage, StoredAgentRecord } from "./agent/agent-storage";
 
 type LoggerLike = {
   child(bindings: Record<string, unknown>): LoggerLike;

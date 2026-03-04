@@ -1,4 +1,4 @@
-export { useTempClaudeConfigDir } from "./claude-config.js";
+export { useTempClaudeConfigDir } from "./claude-config";
 export {
   type CreateAgentOptions,
   DaemonClient,
@@ -6,12 +6,12 @@ export {
   type DaemonEvent,
   type DaemonEventHandler,
   type SendMessageOptions,
-} from "./daemon-client.js";
+} from "./daemon-client";
 export {
   createDaemonTestContext,
   type DaemonTestContext,
-} from "./daemon-test-context.js";
+} from "./daemon-test-context";
 export {
   createTestOpenPlaneDaemon,
   type TestOpenPlaneDaemon,
-} from "./openplane-daemon.js";
+} from "./openplane-daemon";

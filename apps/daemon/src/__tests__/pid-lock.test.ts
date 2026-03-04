@@ -9,7 +9,7 @@ import {
   isLocked,
   PidLockError,
   releasePidLock,
-} from "../pid-lock.js";
+} from "../pid-lock";
 
 function createTempDir(): string {
   const dir = join(

@@ -1,17 +1,17 @@
 import { describe, expect, test, vi } from "vitest";
 
-import type { ManagedAgent } from "./agent/agent-manager.js";
+import type { ManagedAgent } from "./agent/agent-manager";
 import type {
   AgentPermissionRequest,
   AgentSession,
   AgentSessionConfig,
-} from "./agent/agent-sdk-types.js";
-import type { StoredAgentRecord } from "./agent/agent-storage.js";
+} from "./agent/agent-sdk-types";
+import type { StoredAgentRecord } from "./agent/agent-storage";
 import {
   attachAgentStoragePersistence,
   buildConfigOverrides,
   buildSessionConfig,
-} from "./persistence-hooks.js";
+} from "./persistence-hooks";
 
 const testLogger = {
   child: () => testLogger,

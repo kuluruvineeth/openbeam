@@ -1,8 +1,8 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import type pino from "pino";
-import { resolveRecordingsDebugDir } from "../debug/recordings-debug.js";
-import { inferAudioExtension, sanitizeForFilename } from "./audio-utils.js";
+import { resolveRecordingsDebugDir } from "../debug/recordings-debug";
+import { inferAudioExtension, sanitizeForFilename } from "./audio-utils";
 
 const debugDir = resolveRecordingsDebugDir("TTS_DEBUG_AUDIO_DIR");
 let announced = false;

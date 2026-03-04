@@ -1,4 +1,4 @@
-import type { ConnectionRole, RelaySessionAttachment } from "./types.js";
+import type { ConnectionRole, RelaySessionAttachment } from "./types";
 
 type RelayProtocolVersion = "1" | "2";
 

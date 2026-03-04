@@ -4,8 +4,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, test, vi } from "vitest";
 
-import { createTestLogger } from "../test-utils/test-logger.js";
-import { AgentManager } from "./agent-manager.js";
+import { createTestLogger } from "../test-utils/test-logger";
+import { AgentManager } from "./agent-manager";
 import type {
   AgentClient,
   AgentPersistenceHandle,
@@ -13,8 +13,8 @@ import type {
   AgentSession,
   AgentSessionConfig,
   AgentStreamEvent,
-} from "./agent-sdk-types.js";
-import { AgentStorage } from "./agent-storage.js";
+} from "./agent-sdk-types";
+import { AgentStorage } from "./agent-storage";
 
 const TEST_CAPABILITIES = {
   supportsStreaming: false,

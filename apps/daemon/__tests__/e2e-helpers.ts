@@ -8,9 +8,9 @@ import type {
   SessionOutboundMessage,
 } from "@openplane/types/services/daemon/messages";
 import pino from "pino";
-import { createDaemon, type OpenPlaneDaemon } from "../src/bootstrap.js";
-import { DaemonClient } from "../src/client/daemon-client.js";
-import type { DaemonConfig } from "../src/config.js";
+import { createDaemon, type OpenPlaneDaemon } from "../src/bootstrap";
+import { DaemonClient } from "../src/client/daemon-client";
+import type { DaemonConfig } from "../src/config";
 
 const silentLogger = pino({ level: "silent" });
 

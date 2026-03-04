@@ -1,9 +1,9 @@
 import { Readable } from "node:stream";
 import pino from "pino";
 import { describe, expect, it } from "vitest";
-import type { SessionOutboundMessage } from "../messages.js";
-import type { TextToSpeechProvider } from "../speech/speech-provider.js";
-import { TTSManager } from "./tts-manager.js";
+import type { SessionOutboundMessage } from "../messages";
+import type { TextToSpeechProvider } from "../speech/speech-provider";
+import { TTSManager } from "./tts-manager";
 
 class FakeTts implements TextToSpeechProvider {
   // biome-ignore lint/suspicious/useAwait: async signature required by interface

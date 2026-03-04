@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   mapCodexRolloutToolCall,
   mapCodexToolCallFromThreadItem,
-} from "./tool-call-mapper.js";
+} from "./tool-call-mapper";
 
 function expectMapped<T>(item: T | null): T {
   // biome-ignore lint/suspicious/noMisplacedAssertion: assertion in test helper

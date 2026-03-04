@@ -1,6 +1,6 @@
-import type { JsonValue } from "../json-utils.js";
-import type { AgentSnapshotPayload } from "../messages.js";
-import type { ManagedAgent } from "./agent-manager.js";
+import type { JsonValue } from "../json-utils";
+import type { AgentSnapshotPayload } from "../messages";
+import type { ManagedAgent } from "./agent-manager";
 import type {
   AgentCapabilityFlags,
   AgentMetadata,
@@ -10,11 +10,11 @@ import type {
   AgentRuntimeInfo,
   AgentSessionConfig,
   AgentUsage,
-} from "./agent-sdk-types.js";
+} from "./agent-sdk-types";
 import type {
   SerializableAgentConfig,
   StoredAgentRecord,
-} from "./agent-storage.js";
+} from "./agent-storage";
 
 export type { ManagedAgent };
 

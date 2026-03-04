@@ -5,14 +5,14 @@ import type {
   AgentPersistenceHandle,
   AgentProvider,
   AgentSessionConfig,
-} from "../agent/agent-sdk-types.js";
-import { getAgentProviderDefinition } from "../agent/provider-manifest.js";
+} from "../agent/agent-sdk-types";
+import { getAgentProviderDefinition } from "../agent/provider-manifest";
 import {
   type NativeHelperMethodParams,
   type NativeHelperMethodResult,
   NativeHelperMethodSchemas,
   type NativeHelperRpcMethod,
-} from "../native-helper/protocol.js";
+} from "../native-helper/protocol";
 import {
   asUint8Array,
   BinaryMuxChannel,
@@ -21,8 +21,8 @@ import {
   encodeBinaryMuxFrame,
   TerminalBinaryFlags,
   TerminalBinaryMessageType,
-} from "../shared/binary-mux.js";
-import { isRelayClientWebSocketUrl } from "../shared/daemon-endpoints.js";
+} from "../shared/binary-mux";
+import { isRelayClientWebSocketUrl } from "../shared/daemon-endpoints";
 import type {
   AgentPermissionResolvedMessage,
   AgentSnapshotPayload,
@@ -60,7 +60,7 @@ import type {
   TerminalInput,
   TerminalOutput,
   ValidateBranchResponse,
-} from "../shared/messages.js";
+} from "../shared/messages";
 import {
   AgentCreatedStatusPayloadSchema,
   AgentCreateFailedStatusPayloadSchema,
@@ -69,15 +69,15 @@ import {
   RestartRequestedStatusPayloadSchema,
   SessionInboundMessageSchema,
   WSOutboundMessageSchema,
-} from "../shared/messages.js";
+} from "../shared/messages";
 import {
   encodeTerminalKeyInput,
   type TerminalKeyInput,
-} from "../shared/terminal-key-input.js";
+} from "../shared/terminal-key-input";
 import {
   type TerminalStreamChunk,
   TerminalStreamManager,
-} from "./daemon-client-terminal-stream-manager.js";
+} from "./daemon-client-terminal-stream-manager";
 import {
   createRelayE2eeTransportFactory,
   createWebSocketTransportFactory,
@@ -89,7 +89,7 @@ import {
   describeTransportError,
   encodeUtf8String,
   type WebSocketFactory,
-} from "./daemon-client-transport.js";
+} from "./daemon-client-transport";
 
 export interface Logger {
   debug(obj: object, msg?: string): void;
@@ -105,13 +105,13 @@ const consoleLogger: Logger = {
   error: (obj, msg) => console.error(msg, obj),
 };
 
-export type { TerminalStreamChunk } from "./daemon-client-terminal-stream-manager.js";
+export type { TerminalStreamChunk } from "./daemon-client-terminal-stream-manager";
 export type {
   DaemonTransport,
   DaemonTransportFactory,
   WebSocketFactory,
   WebSocketLike,
-} from "./daemon-client-transport.js";
+} from "./daemon-client-transport";
 
 export type ConnectionState =
   | { status: "idle" }

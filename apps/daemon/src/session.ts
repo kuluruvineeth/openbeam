@@ -9,14 +9,14 @@ import type { ToolSet } from "ai";
 import { experimental_createMCPClient } from "ai";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
-import { isOpenPlaneDictationDebugEnabled } from "./agent/recordings-debug.js";
-import { STTManager } from "./agent/stt-manager.js";
-import { maybePersistTtsDebugAudio } from "./agent/tts-debug.js";
-import { TTSManager } from "./agent/tts-manager.js";
+import { isOpenPlaneDictationDebugEnabled } from "./agent/recordings-debug";
+import { STTManager } from "./agent/stt-manager";
+import { maybePersistTtsDebugAudio } from "./agent/tts-debug";
+import { TTSManager } from "./agent/tts-manager";
 import {
   DictationStreamManager,
   type DictationStreamOutboundMessage,
-} from "./dictation/dictation-stream-manager.js";
+} from "./dictation/dictation-stream-manager";
 import {
   type AgentSnapshotPayload,
   type AttachTerminalStreamRequest,
@@ -42,32 +42,32 @@ import {
   type UnsubscribeCheckoutDiffRequest,
   type UnsubscribeTerminalRequest,
   type UnsubscribeTerminalsRequest,
-} from "./messages.js";
+} from "./messages";
 import {
   buildConfigOverrides,
   buildSessionConfig,
   extractTimestamps,
-} from "./persistence-hooks.js";
+} from "./persistence-hooks";
 import {
   BinaryMuxChannel,
   type BinaryMuxFrame,
   TerminalBinaryFlags,
   TerminalBinaryMessageType,
-} from "./shared/binary-mux.js";
+} from "./shared/binary-mux";
 import type {
   SpeechToTextProvider,
   TextToSpeechProvider,
-} from "./speech/speech-provider.js";
-import type { TerminalSession } from "./terminal/terminal.js";
+} from "./speech/speech-provider";
+import type { TerminalSession } from "./terminal/terminal";
 import type {
   TerminalManager,
   TerminalsChangedEvent,
-} from "./terminal/terminal-manager.js";
+} from "./terminal/terminal-manager";
 import type {
   VoiceCallerContext,
   VoiceMcpStdioConfig,
   VoiceSpeakHandler,
-} from "./voice-types.js";
+} from "./voice-types";
 
 export type AgentMcpTransportFactory = () => Promise<Transport>;
 
@@ -77,15 +77,15 @@ import type {
   AgentTimelineCursor,
   AgentTimelineFetchDirection,
   ManagedAgent,
-} from "./agent/agent-manager.js";
-import { scheduleAgentMetadataGeneration } from "./agent/agent-metadata-generator.js";
-import { toAgentPayload } from "./agent/agent-projections.js";
+} from "./agent/agent-manager";
+import { scheduleAgentMetadataGeneration } from "./agent/agent-metadata-generator";
+import { toAgentPayload } from "./agent/agent-projections";
 import {
   DEFAULT_STRUCTURED_GENERATION_PROVIDERS,
   generateStructuredAgentResponseWithFallback,
   StructuredAgentFallbackError,
   StructuredAgentResponseError,
-} from "./agent/agent-response-loop.js";
+} from "./agent/agent-response-loop";
 import type {
   AgentPermissionResponse,
   AgentPersistenceHandle,
@@ -96,47 +96,47 @@ import type {
   AgentSessionConfig,
   AgentStreamEvent,
   McpServerConfig,
-} from "./agent/agent-sdk-types.js";
-import type { AgentStorage, StoredAgentRecord } from "./agent/agent-storage.js";
-import type { AgentProviderRuntimeSettingsMap } from "./agent/provider-launch-config.js";
+} from "./agent/agent-sdk-types";
+import type { AgentStorage, StoredAgentRecord } from "./agent/agent-storage";
+import type { AgentProviderRuntimeSettingsMap } from "./agent/provider-launch-config";
 import {
   AGENT_PROVIDER_IDS,
   isValidAgentProvider,
-} from "./agent/provider-manifest.js";
-import { buildProviderRegistry } from "./agent/provider-registry.js";
+} from "./agent/provider-manifest";
+import { buildProviderRegistry } from "./agent/provider-registry";
 import {
   appendTimelineItemIfAgentKnown,
   emitLiveTimelineItemIfAgentKnown,
-} from "./agent/timeline-append.js";
+} from "./agent/timeline-append";
 import {
   projectTimelineRows,
   type TimelineProjectionMode,
-} from "./agent/timeline-projection.js";
-import type { DownloadTokenStore } from "./file-download/token-store.js";
+} from "./agent/timeline-projection";
+import type { DownloadTokenStore } from "./file-download/token-store";
 import {
   getDownloadableFileInfo,
   listDirectoryEntries,
   readExplorerFile,
-} from "./file-explorer/service.js";
+} from "./file-explorer/service";
 import {
   type NativeHelperBridge,
   NativeHelperResponseValidationError,
   NativeHelperRpcError,
   NativeHelperTimeoutError,
   NativeHelperUnavailableError,
-} from "./native-helper/native-helper-bridge.js";
-import type { PushTokenStore } from "./push/token-store.js";
-import type { Resolvable } from "./speech/provider-resolver.js";
+} from "./native-helper/native-helper-bridge";
+import type { PushTokenStore } from "./push/token-store";
+import type { Resolvable } from "./speech/provider-resolver";
 import {
   ensureLocalSpeechModels,
   getLocalSpeechModelDir,
   type LocalSpeechModelId,
   listLocalSpeechModels,
-} from "./speech/providers/local/models.js";
+} from "./speech/providers/local/models";
 import type {
   SpeechReadinessSnapshot,
   SpeechReadinessState,
-} from "./speech/speech-runtime.js";
+} from "./speech/speech-runtime";
 import {
   commitChanges,
   createPullRequest,
@@ -151,13 +151,13 @@ import {
   mergeToBase,
   NotGitRepoError,
   pushCurrentBranch,
-} from "./utils/checkout-git.js";
+} from "./utils/checkout-git";
 import {
   searchHomeDirectories,
   searchWorkspaceEntries,
-} from "./utils/directory-suggestions.js";
-import { expandTilde } from "./utils/path.js";
-import { getProjectIcon } from "./utils/project-icon.js";
+} from "./utils/directory-suggestions";
+import { expandTilde } from "./utils/path";
+import { getProjectIcon } from "./utils/project-icon";
 import {
   deleteOpenPlaneWorktree,
   isOpenPlaneOwnedWorktreeCwd,
@@ -166,17 +166,17 @@ import {
   slugify,
   validateBranchSlug,
   type WorktreeConfig,
-} from "./utils/worktree.js";
+} from "./utils/worktree";
 import {
   buildVoiceAgentMcpServerConfig,
   buildVoiceModeSystemPrompt,
   stripVoiceModeSystemPrompt,
-} from "./voice-config.js";
-import { isVoicePermissionAllowed } from "./voice-permission-policy.js";
+} from "./voice-config";
+import { isVoicePermissionAllowed } from "./voice-permission-policy";
 import {
   createAgentWorktree,
   runAsyncWorktreeBootstrap,
-} from "./worktree-bootstrap.js";
+} from "./worktree-bootstrap";
 
 const execAsync = promisify(exec);
 const READ_ONLY_GIT_ENV: NodeJS.ProcessEnv = {

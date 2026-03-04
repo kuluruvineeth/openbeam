@@ -4,7 +4,7 @@ import {
   extractTodos,
   stripCwdPrefix,
   stripShellWrapperPrefix,
-} from "./tool-call-parsers.js";
+} from "./tool-call-parsers";
 
 describe("tool-call-parsers utilities", () => {
   it("strips cwd prefixes", () => {

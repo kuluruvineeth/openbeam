@@ -3,9 +3,9 @@ import { mkdtempSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, test } from "vitest";
-import { agentConfigs } from "../../daemon-e2e/agent-configs.js";
-import { createTestLogger } from "../../test-utils/test-logger.js";
-import { CodexAppServerAgentClient } from "./codex-app-server-agent.js";
+import { agentConfigs } from "../../daemon-e2e/agent-configs";
+import { createTestLogger } from "../../test-utils/test-logger";
+import { CodexAppServerAgentClient } from "./codex-app-server-agent";
 
 const CODEX_TEST_MODEL = agentConfigs.codex.model;
 const CODEX_TEST_THINKING_OPTION_ID = agentConfigs.codex.thinkingOptionId;

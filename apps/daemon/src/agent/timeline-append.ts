@@ -1,5 +1,5 @@
-import type { AgentManager } from "./agent-manager.js";
-import type { AgentTimelineItem } from "./agent-sdk-types.js";
+import type { AgentManager } from "./agent-manager";
+import type { AgentTimelineItem } from "./agent-sdk-types";
 
 export interface AppendTimelineItemIfAgentKnownOptions {
   agentManager: AgentManager;

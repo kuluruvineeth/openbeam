@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { applySherpaLoaderEnv } from "../src/server/speech/providers/local/sherpa/sherpa-runtime-env.js";
-import { runSupervisor } from "./supervisor.js";
+import { applySherpaLoaderEnv } from "../src/server/speech/providers/local/sherpa/sherpa-runtime-env";
+import { runSupervisor } from "./supervisor";
 
 type DaemonRunnerConfig = {
   devMode: boolean;

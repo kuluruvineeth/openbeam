@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { resolveAgentModel } from "./model-resolver.js";
+import { resolveAgentModel } from "./model-resolver";
 
 vi.mock("./provider-registry.js", () => ({
   buildProviderRegistry: vi.fn(),
 }));
 
-import { buildProviderRegistry } from "./provider-registry.js";
+import { buildProviderRegistry } from "./provider-registry";
 
 const mockedBuildProviderRegistry = vi.mocked(buildProviderRegistry);
 const testLogger = { warn: vi.fn() } as any;

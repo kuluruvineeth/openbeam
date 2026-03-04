@@ -7,17 +7,14 @@ import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import {
   getAskModeConfig,
   getFullAccessConfig,
-} from "./daemon-e2e/agent-configs.js";
-import { parseServerInfoStatusPayload } from "./messages.js";
-import {
-  parsePcm16MonoWav,
-  wordSimilarity,
-} from "./test-utils/dictation-e2e.js";
+} from "./daemon-e2e/agent-configs";
+import { parseServerInfoStatusPayload } from "./messages";
+import { parsePcm16MonoWav, wordSimilarity } from "./test-utils/dictation-e2e";
 import {
   createDaemonTestContext,
   DaemonClient,
   type DaemonTestContext,
-} from "./test-utils/index.js";
+} from "./test-utils/index";
 
 const openaiApiKey = process.env.OPENAI_API_KEY ?? null;
 

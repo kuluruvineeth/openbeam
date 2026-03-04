@@ -11,14 +11,14 @@ import net from "node:net";
 import { basename, dirname, join, resolve, sep } from "node:path";
 import { promisify } from "node:util";
 import { createNameId } from "mnemonic-id";
-import { resolveOpenPlaneHome } from "../openplane-home.js";
+import { resolveOpenPlaneHome } from "../openplane-home";
 import {
   normalizeBaseRefName,
   readOpenPlaneWorktreeMetadata,
   readOpenPlaneWorktreeRuntimePort,
   writeOpenPlaneWorktreeMetadata,
   writeOpenPlaneWorktreeRuntimeMetadata,
-} from "./worktree-metadata.js";
+} from "./worktree-metadata";
 
 interface OpenPlaneConfig {
   worktree?: {

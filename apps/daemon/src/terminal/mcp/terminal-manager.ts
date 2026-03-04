@@ -19,7 +19,7 @@ import {
   sendKeys as tmuxSendKeys,
   sendText as tmuxSendText,
   waitForPaneActivityToSettle,
-} from "./tmux.js";
+} from "./tmux";
 
 export interface TerminalInfo {
   name: string;

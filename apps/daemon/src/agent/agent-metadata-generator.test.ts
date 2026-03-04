@@ -4,11 +4,11 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import pino from "pino";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
-import { createWorktree, validateBranchSlug } from "../utils/worktree.js";
-import { AgentManager } from "./agent-manager.js";
-import { generateAndApplyAgentMetadata } from "./agent-metadata-generator.js";
-import { AgentStorage } from "./agent-storage.js";
-import { createAllClients, shutdownProviders } from "./provider-registry.js";
+import { createWorktree, validateBranchSlug } from "../utils/worktree";
+import { AgentManager } from "./agent-manager";
+import { generateAndApplyAgentMetadata } from "./agent-metadata-generator";
+import { AgentStorage } from "./agent-storage";
+import { createAllClients, shutdownProviders } from "./provider-registry";
 
 const CODEX_TEST_MODEL = "gpt-5.1-codex-mini";
 const CODEX_TEST_THINKING_OPTION_ID = "low";

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { normalizeClaudeRuntimeModelId } from "./claude-agent.js";
+import { normalizeClaudeRuntimeModelId } from "./claude-agent";
 
 describe("normalizeClaudeRuntimeModelId", () => {
   const supportedModelIds = new Set(["default", "opus", "haiku"]);

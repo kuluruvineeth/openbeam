@@ -4,7 +4,7 @@ import type pino from "pino";
 import type {
   SpeechStreamResult,
   TextToSpeechProvider,
-} from "../../speech-provider.js";
+} from "../../speech-provider";
 
 export type { SpeechStreamResult };
 

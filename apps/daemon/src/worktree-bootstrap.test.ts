@@ -11,11 +11,11 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import type { AgentTimelineItem } from "./agent/agent-sdk-types.js";
+import type { AgentTimelineItem } from "./agent/agent-sdk-types";
 import {
   createAgentWorktree,
   runAsyncWorktreeBootstrap,
-} from "./worktree-bootstrap.js";
+} from "./worktree-bootstrap";
 
 describe("runAsyncWorktreeBootstrap", () => {
   let tempDir: string;

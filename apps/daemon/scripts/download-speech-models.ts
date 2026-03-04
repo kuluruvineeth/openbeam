@@ -1,11 +1,11 @@
-import { createRootLogger } from "../src/server/logger.js";
-import { resolveOpenPlaneHome } from "../src/server/openplane-home.js";
+import { createRootLogger } from "../src/server/logger";
+import { resolveOpenPlaneHome } from "../src/server/openplane-home";
 import {
   DEFAULT_LOCAL_STT_MODEL,
   DEFAULT_LOCAL_TTS_MODEL,
   ensureLocalSpeechModels,
   type LocalSpeechModelId,
-} from "../src/server/speech/providers/local/models.js";
+} from "../src/server/speech/providers/local/models";
 
 function parseArgs(argv: string[]): {
   modelsDir: string;

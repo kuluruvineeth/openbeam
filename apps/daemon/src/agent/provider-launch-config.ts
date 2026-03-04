@@ -2,8 +2,8 @@ import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { z } from "zod";
 
-import type { AgentProvider } from "./agent-sdk-types.js";
-import { AgentProviderSchema } from "./provider-manifest.js";
+import type { AgentProvider } from "./agent-sdk-types";
+import { AgentProviderSchema } from "./provider-manifest";
 
 const ProviderCommandDefaultSchema = z
   .object({

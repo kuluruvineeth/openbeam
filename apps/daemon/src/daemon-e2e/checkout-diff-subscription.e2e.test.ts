@@ -3,11 +3,11 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
-import type { SessionOutboundMessage } from "../messages.js";
+import type { SessionOutboundMessage } from "../messages";
 import {
   createDaemonTestContext,
   type DaemonTestContext,
-} from "../test-utils/index.js";
+} from "../test-utils/index";
 
 type CheckoutDiffUpdatePayload = Extract<
   SessionOutboundMessage,

@@ -5,13 +5,13 @@ import { join } from "node:path";
 import OpenAI from "openai";
 import type pino from "pino";
 import { v4 } from "uuid";
-import { inferAudioExtension } from "../../../agent/audio-utils.js";
+import { inferAudioExtension } from "../../../agent/audio-utils";
 import type {
   LogprobToken,
   SpeechToTextProvider,
   StreamingTranscriptionSession,
   TranscriptionResult,
-} from "../../speech-provider.js";
+} from "../../speech-provider";
 
 export type { LogprobToken, TranscriptionResult };
 

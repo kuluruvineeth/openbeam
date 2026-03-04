@@ -23,7 +23,7 @@ import {
   slugify,
   type WorktreeSetupCommandProgressEvent,
 } from "./worktree";
-import { getOpenPlaneWorktreeMetadataPath } from "./worktree-metadata.js";
+import { getOpenPlaneWorktreeMetadataPath } from "./worktree-metadata";
 
 describe("createWorktree", () => {
   let tempDir: string;

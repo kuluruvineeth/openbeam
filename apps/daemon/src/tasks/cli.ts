@@ -3,13 +3,13 @@ import { spawnSync } from "node:child_process";
 import { appendFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { Command } from "commander";
-import { resolvePackageVersion } from "../package-version.js";
+import { resolvePackageVersion } from "../package-version";
 import {
   buildSortedChildrenMap,
   computeExecutionOrder,
-} from "./execution-order.js";
-import { FileTaskStore } from "./task-store.js";
-import type { AgentType, Task } from "./types.js";
+} from "./execution-order";
+import { FileTaskStore } from "./task-store";
+import type { AgentType, Task } from "./types";
 
 const TASKS_DIR = resolve(process.cwd(), ".tasks");
 const store = new FileTaskStore(TASKS_DIR);

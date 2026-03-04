@@ -2,17 +2,17 @@ import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { Readable } from "node:stream";
 import type pino from "pino";
-import { Pcm16MonoResampler } from "../../../../agent/pcm16-resampler.js";
+import { Pcm16MonoResampler } from "../../../../agent/pcm16-resampler";
 import {
   chunkBuffer,
   float32ToPcm16le,
   parsePcm16MonoWav,
   pcm16leToFloat32,
-} from "../../../audio.js";
+} from "../../../audio";
 import type {
   SpeechStreamResult,
   TextToSpeechProvider,
-} from "../../../speech-provider.js";
+} from "../../../speech-provider";
 
 type OrtModule = typeof import("onnxruntime-node");
 type OrtSession = import("onnxruntime-node").InferenceSession;

@@ -8,11 +8,11 @@ import {
   decodeBinaryMuxFrame,
   encodeBinaryMuxFrame,
   TerminalBinaryMessageType,
-} from "../shared/binary-mux.js";
+} from "../shared/binary-mux";
 import {
   createDaemonTestContext,
   type DaemonTestContext,
-} from "../test-utils/index.js";
+} from "../test-utils/index";
 
 const decoder = new TextDecoder();
 

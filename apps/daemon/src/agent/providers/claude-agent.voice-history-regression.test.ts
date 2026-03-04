@@ -3,12 +3,12 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
-import { createTestLogger } from "../../test-utils/test-logger.js";
+import { createTestLogger } from "../../test-utils/test-logger";
 import type {
   AgentPersistenceHandle,
   AgentStreamEvent,
-} from "../agent-sdk-types.js";
-import { ClaudeAgentClient } from "./claude-agent.js";
+} from "../agent-sdk-types";
+import { ClaudeAgentClient } from "./claude-agent";
 
 const sdkMocks = vi.hoisted(() => ({
   query: vi.fn(),

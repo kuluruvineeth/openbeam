@@ -9,9 +9,9 @@
  */
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createTestLogger } from "../../test-utils/test-logger.js";
-import type { AgentSession, AgentSessionConfig } from "../agent-sdk-types.js";
-import { ClaudeAgentClient } from "./claude-agent.js";
+import { createTestLogger } from "../../test-utils/test-logger";
+import type { AgentSession, AgentSessionConfig } from "../agent-sdk-types";
+import { ClaudeAgentClient } from "./claude-agent";
 
 const hasClaudeCredentials =
   !!process.env.CLAUDE_CODE_OAUTH_TOKEN || !!process.env.ANTHROPIC_API_KEY;

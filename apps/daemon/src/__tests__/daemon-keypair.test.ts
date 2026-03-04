@@ -3,7 +3,7 @@ import { randomBytes } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { loadOrCreateDaemonKeyPair } from "../daemon-keypair.js";
+import { loadOrCreateDaemonKeyPair } from "../daemon-keypair";
 
 function createTempDir(): string {
   const dir = join(

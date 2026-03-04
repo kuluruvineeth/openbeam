@@ -1,7 +1,7 @@
 import { EventEmitter } from "node:events";
 import type pino from "pino";
 import WebSocket from "ws";
-import type { StreamingTranscriptionSession } from "../../speech-provider.js";
+import type { StreamingTranscriptionSession } from "../../speech-provider";
 
 type OpenAITurnDetection =
   | null

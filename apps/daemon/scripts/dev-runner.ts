@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
-import { runSupervisor } from "./supervisor.js";
+import { runSupervisor } from "./supervisor";
 
 dotenv.config({
   path: fileURLToPath(new URL("../.env", import.meta.url)),

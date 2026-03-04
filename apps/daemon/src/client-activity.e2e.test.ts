@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
-import type { AgentStreamEventPayload } from "./shared/messages.js";
-import { DaemonClient } from "./test-utils/daemon-client.js";
+import type { AgentStreamEventPayload } from "./shared/messages";
+import { DaemonClient } from "./test-utils/daemon-client";
 import {
   createTestOpenPlaneDaemon,
   type TestOpenPlaneDaemon,
-} from "./test-utils/openplane-daemon.js";
+} from "./test-utils/openplane-daemon";
 
 /**
  * Tests for client activity tracking and smart notifications.

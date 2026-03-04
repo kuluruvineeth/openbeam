@@ -2,11 +2,11 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
-import { getFullAccessConfig } from "../../daemon-e2e/agent-configs.js";
+import { getFullAccessConfig } from "../../daemon-e2e/agent-configs";
 import {
   createDaemonTestContext,
   type DaemonTestContext,
-} from "../../test-utils/index.js";
+} from "../../test-utils/index";
 
 function tmpDir(prefix: string): string {
   return mkdtempSync(path.join(tmpdir(), prefix));

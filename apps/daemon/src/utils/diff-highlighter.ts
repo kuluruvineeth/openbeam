@@ -4,7 +4,7 @@ import {
   type HighlightToken,
   highlightCode,
   isLanguageSupported,
-} from "./syntax-highlighter.js";
+} from "./syntax-highlighter";
 
 export interface DiffLine {
   type: "add" | "remove" | "context" | "header";

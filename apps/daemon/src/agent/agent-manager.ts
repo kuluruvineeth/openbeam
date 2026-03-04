@@ -6,7 +6,7 @@ import { z } from "zod";
 import {
   AGENT_LIFECYCLE_STATUSES,
   type AgentLifecycleStatus,
-} from "../shared/agent-lifecycle.js";
+} from "../shared/agent-lifecycle";
 
 import type {
   AgentCapabilityFlags,
@@ -28,9 +28,9 @@ import type {
   AgentUsage,
   ListPersistedAgentsOptions,
   PersistedAgentDescriptor,
-} from "./agent-sdk-types.js";
-import type { AgentStorage } from "./agent-storage.js";
-import { AGENT_PROVIDER_IDS } from "./provider-manifest.js";
+} from "./agent-sdk-types";
+import type { AgentStorage } from "./agent-storage";
+import { AGENT_PROVIDER_IDS } from "./provider-manifest";
 
 export { AGENT_LIFECYCLE_STATUSES, type AgentLifecycleStatus };
 

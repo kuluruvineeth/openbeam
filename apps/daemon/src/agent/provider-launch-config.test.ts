@@ -5,7 +5,7 @@ import {
   buildChildProcessEnv,
   type ProviderRuntimeSettings,
   resolveProviderCommandPrefix,
-} from "./provider-launch-config.js";
+} from "./provider-launch-config";
 
 describe("resolveProviderCommandPrefix", () => {
   test("uses resolved default command in default mode", () => {

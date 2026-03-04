@@ -1,5 +1,5 @@
-import type { ToolCallTimelineItem } from "../agent/agent-sdk-types.js";
-import { stripCwdPrefix } from "./path-utils.js";
+import type { ToolCallTimelineItem } from "../agent/agent-sdk-types";
+import { stripCwdPrefix } from "./path-utils";
 
 export type ToolCallDisplayInput = Pick<
   ToolCallTimelineItem,

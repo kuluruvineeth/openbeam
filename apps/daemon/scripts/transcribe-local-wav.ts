@@ -1,17 +1,17 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-import { STTManager } from "../src/server/agent/stt-manager.js";
-import { createRootLogger } from "../src/server/logger.js";
-import { resolveOpenPlaneHome } from "../src/server/openplane-home.js";
+import { STTManager } from "../src/server/agent/stt-manager";
+import { createRootLogger } from "../src/server/logger";
+import { resolveOpenPlaneHome } from "../src/server/openplane-home";
 import {
   DEFAULT_LOCAL_STT_MODEL,
   DEFAULT_LOCAL_TTS_MODEL,
   type LocalSttModelId,
   LocalSttModelIdSchema,
-} from "../src/server/speech/providers/local/models.js";
-import { initializeLocalSpeechServices } from "../src/server/speech/providers/local/runtime.js";
-import type { RequestedSpeechProviders } from "../src/server/speech/speech-types.js";
+} from "../src/server/speech/providers/local/models";
+import { initializeLocalSpeechServices } from "../src/server/speech/providers/local/runtime";
+import type { RequestedSpeechProviders } from "../src/server/speech/speech-types";
 
 type CliOptions = {
   wavPath: string;

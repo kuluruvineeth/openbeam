@@ -12,7 +12,7 @@
 
 import os from "node:os";
 import { WebSocket } from "ws";
-import { DaemonClient } from "../client/daemon-client.js";
+import { DaemonClient } from "../client/daemon-client";
 
 // Patch WebSocket to log all messages
 const OriginalWebSocket = WebSocket;

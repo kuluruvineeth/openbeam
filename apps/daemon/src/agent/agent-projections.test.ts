@@ -3,17 +3,17 @@ import { describe, expect, it } from "vitest";
 import {
   AGENT_LIFECYCLE_STATUSES,
   type AgentLifecycleStatus,
-} from "./agent-manager.js";
+} from "./agent-manager";
 import {
   type ManagedAgent,
   toAgentPayload,
   toStoredAgentRecord,
-} from "./agent-projections.js";
+} from "./agent-projections";
 import type {
   AgentPermissionRequest,
   AgentPersistenceHandle,
   AgentSessionConfig,
-} from "./agent-sdk-types.js";
+} from "./agent-sdk-types";
 
 type ManagedAgentOverrides = Omit<
   Partial<ManagedAgent>,

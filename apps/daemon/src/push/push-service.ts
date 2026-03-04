@@ -1,5 +1,5 @@
 import type pino from "pino";
-import type { PushTokenStore } from "./token-store.js";
+import type { PushTokenStore } from "./token-store";
 
 interface PushPayload {
   title: string;

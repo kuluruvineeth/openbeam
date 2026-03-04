@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { ToolCallDetail } from "../../agent-sdk-types.js";
+import type { ToolCallDetail } from "../../agent-sdk-types";
 import {
   ToolEditInputSchema,
   ToolEditOutputSchema,
@@ -17,7 +17,7 @@ import {
   toSearchToolDetail,
   toShellToolDetail,
   toWriteToolDetail,
-} from "../tool-call-detail-primitives.js";
+} from "../tool-call-detail-primitives";
 
 const OpencodeKnownToolDetailSchema = z.union([
   toolDetailBranchByToolName(

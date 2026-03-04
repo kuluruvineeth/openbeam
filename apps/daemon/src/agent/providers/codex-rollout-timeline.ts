@@ -4,8 +4,8 @@ import path from "node:path";
 import type { Logger } from "pino";
 import { z } from "zod";
 
-import type { AgentTimelineItem } from "../agent-sdk-types.js";
-import { mapCodexRolloutToolCall } from "./codex/tool-call-mapper.js";
+import type { AgentTimelineItem } from "../agent-sdk-types";
+import { mapCodexRolloutToolCall } from "./codex/tool-call-mapper";
 
 const MAX_ROLLOUT_SEARCH_DEPTH = 4;
 

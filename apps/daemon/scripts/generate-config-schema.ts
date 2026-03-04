@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { zodToJsonSchema } from "zod-to-json-schema";
-import { PersistedConfigSchema } from "../src/server/persisted-config.js";
+import { PersistedConfigSchema } from "../src/server/persisted-config";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

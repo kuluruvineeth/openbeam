@@ -7,7 +7,7 @@ import type {
   Task,
   TaskStatus,
   TaskStore,
-} from "./types.js";
+} from "./types";
 
 function generateId(): string {
   return randomBytes(4).toString("hex");

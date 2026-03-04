@@ -1,7 +1,7 @@
 import pino from "pino";
 import { describe, expect, it, vi } from "vitest";
-import type { AgentManager } from "./agent-manager.js";
-import { generateAndApplyAgentMetadata } from "./agent-metadata-generator.js";
+import type { AgentManager } from "./agent-manager";
+import { generateAndApplyAgentMetadata } from "./agent-metadata-generator";
 
 const logger = pino({ level: "silent" });
 

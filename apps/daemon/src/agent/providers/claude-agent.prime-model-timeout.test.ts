@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
-import { createTestLogger } from "../../test-utils/test-logger.js";
-import type { AgentStreamEvent } from "../agent-sdk-types.js";
-import { ClaudeAgentClient } from "./claude-agent.js";
+import { createTestLogger } from "../../test-utils/test-logger";
+import type { AgentStreamEvent } from "../agent-sdk-types";
+import { ClaudeAgentClient } from "./claude-agent";
 
 type QueryMock = {
   next: ReturnType<typeof vi.fn>;

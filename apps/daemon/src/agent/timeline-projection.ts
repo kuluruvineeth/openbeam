@@ -1,9 +1,9 @@
-import type { AgentTimelineRow } from "./agent-manager.js";
+import type { AgentTimelineRow } from "./agent-manager";
 import type {
   AgentProvider,
   AgentTimelineItem,
   ToolCallDetail,
-} from "./agent-sdk-types.js";
+} from "./agent-sdk-types";
 
 export type TimelineProjectionMode = "canonical" | "projected";
 

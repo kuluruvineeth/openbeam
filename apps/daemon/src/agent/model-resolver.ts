@@ -1,7 +1,7 @@
 import type { Logger } from "pino";
-import { expandTilde } from "../utils/path.js";
-import type { AgentProvider } from "./agent-sdk-types.js";
-import { buildProviderRegistry } from "./provider-registry.js";
+import { expandTilde } from "../utils/path";
+import type { AgentProvider } from "./agent-sdk-types";
+import { buildProviderRegistry } from "./provider-registry";
 
 type ResolveAgentModelOptions = {
   provider: AgentProvider;

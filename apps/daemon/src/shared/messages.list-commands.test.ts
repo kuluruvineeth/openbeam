@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { SessionInboundMessageSchema } from "./messages.js";
+import { SessionInboundMessageSchema } from "./messages";
 
 describe("list_commands_request schema", () => {
   test("accepts legacy agent-only payload", () => {

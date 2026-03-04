@@ -3,16 +3,16 @@ import type { Logger } from "pino";
 import type {
   SpeechToTextProvider,
   TextToSpeechProvider,
-} from "../../speech-provider.js";
-import type { RequestedSpeechProviders } from "../../speech-types.js";
+} from "../../speech-provider";
+import type { RequestedSpeechProviders } from "../../speech-types";
 import {
   DEFAULT_OPENAI_REALTIME_TRANSCRIPTION_MODEL,
   DEFAULT_OPENAI_TTS_MODEL,
   type OpenAiSpeechProviderConfig,
-} from "./config.js";
-import { OpenAIRealtimeTranscriptionSession } from "./realtime-transcription-session.js";
-import { OpenAISTT } from "./stt.js";
-import { OpenAITTS } from "./tts.js";
+} from "./config";
+import { OpenAIRealtimeTranscriptionSession } from "./realtime-transcription-session";
+import { OpenAISTT } from "./stt";
+import { OpenAITTS } from "./tts";
 
 type OpenAiCredentialState = {
   openaiSttApiKey: string | undefined;

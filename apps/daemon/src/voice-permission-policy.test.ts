@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 
-import type { AgentPermissionRequest } from "./agent/agent-sdk-types.js";
-import { isVoicePermissionAllowed } from "./voice-permission-policy.js";
+import type { AgentPermissionRequest } from "./agent/agent-sdk-types";
+import { isVoicePermissionAllowed } from "./voice-permission-policy";
 
 function buildRequest(
   partial: Partial<AgentPermissionRequest>

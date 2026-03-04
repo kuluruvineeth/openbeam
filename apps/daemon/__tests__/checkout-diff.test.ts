@@ -7,7 +7,7 @@ import {
   createDaemonTestContext,
   type DaemonTestContext,
   tmpCwd,
-} from "./e2e-helpers.js";
+} from "./e2e-helpers";
 
 type CheckoutDiffUpdatePayload = Extract<
   SessionOutboundMessage,

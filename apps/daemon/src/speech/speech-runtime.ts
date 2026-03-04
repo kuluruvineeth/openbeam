@@ -5,24 +5,24 @@ import type { Logger } from "pino";
 import type {
   OpenPlaneOpenAIConfig,
   OpenPlaneSpeechConfig,
-} from "../bootstrap.js";
-import type { LocalSpeechModelId } from "./providers/local/config.js";
+} from "../bootstrap";
+import type { LocalSpeechModelId } from "./providers/local/config";
 import {
   ensureLocalSpeechModels,
   getLocalSpeechModelDir,
   listLocalSpeechModels,
-} from "./providers/local/models.js";
-import { initializeLocalSpeechServices } from "./providers/local/runtime.js";
+} from "./providers/local/models";
+import { initializeLocalSpeechServices } from "./providers/local/runtime";
 import {
   getOpenAiSpeechAvailability,
   initializeOpenAiSpeechServices,
   validateOpenAiCredentialRequirements,
-} from "./providers/openai/runtime.js";
+} from "./providers/openai/runtime";
 import type {
   SpeechToTextProvider,
   TextToSpeechProvider,
-} from "./speech-provider.js";
-import type { RequestedSpeechProviders } from "./speech-types.js";
+} from "./speech-provider";
+import type { RequestedSpeechProviders } from "./speech-types";
 
 const SPEECH_RUNTIME_MONITOR_INTERVAL_MS = 3000;
 

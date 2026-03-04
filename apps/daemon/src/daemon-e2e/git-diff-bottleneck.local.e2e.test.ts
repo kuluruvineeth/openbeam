@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { performance } from "node:perf_hooks";
 import { describe, expect, test } from "vitest";
-import { createDaemonTestContext } from "../test-utils/index.js";
+import { createDaemonTestContext } from "../test-utils/index";
 
 const RUN = process.env.OPENPLANE_GIT_DIFF_BOTTLENECK_E2E === "1";
 const LARGE_CHANGESET_SIZE = Number.parseInt(

@@ -2,7 +2,7 @@ import { describe, expect, test, vi } from "vitest";
 import {
   type TerminalStreamChunk,
   TerminalStreamManager,
-} from "./daemon-client-terminal-stream-manager.js";
+} from "./daemon-client-terminal-stream-manager";
 
 function createChunk(input: {
   streamId: number;

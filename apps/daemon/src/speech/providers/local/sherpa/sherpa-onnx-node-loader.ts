@@ -6,7 +6,7 @@ import {
   applySherpaLoaderEnv,
   resolveSherpaLoaderEnv,
   sherpaPlatformPackageName,
-} from "./sherpa-runtime-env.js";
+} from "./sherpa-runtime-env";
 
 export type SherpaOnnxNodeModule = {
   OfflineRecognizer: new (

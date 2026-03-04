@@ -11,8 +11,8 @@ import { describe, expect, test } from "vitest";
 import {
   createOpenPlaneDaemon,
   type OpenPlaneDaemonConfig,
-} from "../bootstrap.js";
-import { createTestAgentClients } from "../test-utils/fake-agent-client.js";
+} from "../bootstrap";
+import { createTestAgentClients } from "../test-utils/fake-agent-client";
 
 type StructuredContent = { [key: string]: unknown };
 

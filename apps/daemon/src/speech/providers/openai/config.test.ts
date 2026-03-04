@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 
-import { PersistedConfigSchema } from "../../../persisted-config.js";
-import { resolveOpenAiSpeechConfig } from "./config.js";
+import { PersistedConfigSchema } from "../../../persisted-config";
+import { resolveOpenAiSpeechConfig } from "./config";
 
 describe("resolveOpenAiSpeechConfig", () => {
   test("treats empty OPENAI_API_KEY as unset", () => {

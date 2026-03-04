@@ -3,7 +3,7 @@ import {
   buildAgentAttentionNotificationPayload,
   findLatestAssistantMessageFromTimeline,
   findLatestPermissionRequest,
-} from "./agent-attention-notification.js";
+} from "./agent-attention-notification";
 
 describe("buildAgentAttentionNotificationPayload", () => {
   it("builds finished notifications from markdown assistant text", () => {

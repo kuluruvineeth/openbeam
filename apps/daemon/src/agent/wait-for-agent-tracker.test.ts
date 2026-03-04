@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestLogger } from "../test-utils/test-logger.js";
-import { WaitForAgentTracker } from "./wait-for-agent-tracker.js";
+import { createTestLogger } from "../test-utils/test-logger";
+import { WaitForAgentTracker } from "./wait-for-agent-tracker";
 
 describe("WaitForAgentTracker", () => {
   const logger = createTestLogger();

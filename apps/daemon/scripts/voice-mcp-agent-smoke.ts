@@ -5,20 +5,20 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import pino from "pino";
 
-import { AgentManager } from "../src/server/agent/agent-manager.js";
+import { AgentManager } from "../src/server/agent/agent-manager";
 import type {
   AgentProvider,
   AgentSessionConfig,
   AgentStreamEvent,
-} from "../src/server/agent/agent-sdk-types.js";
-import { AgentStorage } from "../src/server/agent/agent-storage.js";
-import { createAgentMcpServer } from "../src/server/agent/mcp-server.js";
+} from "../src/server/agent/agent-sdk-types";
+import { AgentStorage } from "../src/server/agent/agent-storage";
+import { createAgentMcpServer } from "../src/server/agent/mcp-server";
 import {
   buildProviderRegistry,
   shutdownProviders,
-} from "../src/server/agent/provider-registry.js";
-import { buildVoiceAgentMcpServerConfig } from "../src/server/session.js";
-import { createVoiceMcpSocketBridgeManager } from "../src/server/voice-mcp-bridge.js";
+} from "../src/server/agent/provider-registry";
+import { buildVoiceAgentMcpServerConfig } from "../src/server/session";
+import { createVoiceMcpSocketBridgeManager } from "../src/server/voice-mcp-bridge";
 
 type CliOptions = {
   provider: AgentProvider;

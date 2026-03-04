@@ -12,7 +12,7 @@ import {
   type DaemonTestContext,
   tmpCwd,
   waitForCondition,
-} from "./e2e-helpers.js";
+} from "./e2e-helpers";
 
 const decoder = new TextDecoder();
 

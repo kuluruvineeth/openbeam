@@ -5,7 +5,7 @@ import { describe, expect, test } from "vitest";
 import {
   resolveVoiceMcpBridgeFromRuntime,
   resolveVoiceMcpBridgeScriptPath,
-} from "./voice-mcp-bridge-command.js";
+} from "./voice-mcp-bridge-command";
 
 describe("resolveVoiceMcpBridgeFromRuntime", () => {
   const bootstrapModuleUrl = new URL(

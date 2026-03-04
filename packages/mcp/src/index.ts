@@ -8,9 +8,9 @@ import {
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import prisma from "@openplane/db";
-import { getPrismaSchema } from "./resources/schema.js";
-import { connectorTools, handleConnectorTool } from "./tools/connectors.js";
-import { handleStatsTool, statsTools } from "./tools/stats.js";
+import { getPrismaSchema } from "./resources/schema";
+import { connectorTools, handleConnectorTool } from "./tools/connectors";
+import { handleStatsTool, statsTools } from "./tools/stats";
 
 const server = new Server(
   {

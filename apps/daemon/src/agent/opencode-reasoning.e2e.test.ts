@@ -2,11 +2,11 @@ import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
-import type { AgentStreamEventPayload } from "../messages.js";
+import type { AgentStreamEventPayload } from "../messages";
 import {
   createDaemonTestContext,
   type DaemonTestContext,
-} from "../test-utils/index.js";
+} from "../test-utils/index";
 
 describe("OpenCode reasoning events (e2e)", () => {
   let ctx: DaemonTestContext;

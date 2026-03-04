@@ -6,7 +6,7 @@ import {
   SessionInboundMessageSchema,
   SessionOutboundMessageSchema,
   WSOutboundMessageSchema,
-} from "./messages.js";
+} from "./messages";
 
 describe("shared messages stream parsing", () => {
   it("parses representative fetch_agent_timeline_response payload", () => {

@@ -1,13 +1,13 @@
-import type { ManagedAgent } from "./agent/agent-manager.js";
-import { toAgentPayload } from "./agent/agent-projections.js";
-import type { AgentStreamEvent } from "./agent/agent-sdk-types.js";
+import type { ManagedAgent } from "./agent/agent-manager";
+import { toAgentPayload } from "./agent/agent-projections";
+import type { AgentStreamEvent } from "./agent/agent-sdk-types";
 import type {
   AgentSnapshotPayload,
   AgentStreamEventPayload,
-} from "./shared/messages.js";
-import { AgentStreamEventPayloadSchema as AgentStreamEventPayloadRuntimeSchema } from "./shared/messages.js";
+} from "./shared/messages";
+import { AgentStreamEventPayloadSchema as AgentStreamEventPayloadRuntimeSchema } from "./shared/messages";
 
-export * from "./shared/messages.js";
+export * from "./shared/messages";
 
 function validateStreamEventPayload(
   payload: unknown

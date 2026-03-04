@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { AgentTimelineItemPayloadSchema } from "./messages.js";
+import { AgentTimelineItemPayloadSchema } from "./messages";
 
 function canonicalBase() {
   return {

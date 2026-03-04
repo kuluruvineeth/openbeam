@@ -4,15 +4,15 @@ import os from "node:os";
 import path from "node:path";
 import { beforeAll, describe, expect, test } from "vitest";
 
-import { createTestLogger } from "../../test-utils/test-logger.js";
+import { createTestLogger } from "../../test-utils/test-logger";
 import type {
   AgentSessionConfig,
   AgentStreamEvent,
   AgentTimelineItem,
   AssistantMessageTimelineItem,
   ToolCallTimelineItem,
-} from "../agent-sdk-types.js";
-import { OpenCodeAgentClient } from "./opencode-agent.js";
+} from "../agent-sdk-types";
+import { OpenCodeAgentClient } from "./opencode-agent";
 
 function tmpCwd(): string {
   const dir = mkdtempSync(path.join(os.tmpdir(), "opencode-agent-test-"));

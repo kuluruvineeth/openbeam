@@ -4,7 +4,7 @@ import {
   buildVoiceAgentMcpServerConfig,
   buildVoiceModeSystemPrompt,
   stripVoiceModeSystemPrompt,
-} from "./voice-config.js";
+} from "./voice-config";
 
 describe("voice MCP stdio config", () => {
   test("builds stdio MCP config for voice agent", () => {

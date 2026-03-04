@@ -3,10 +3,10 @@ import type { Logger } from "pino";
 import {
   createConnectionOfferV2,
   encodeOfferToFragmentUrl,
-} from "./connection-offer.js";
-import { loadOrCreateDaemonKeyPair } from "./daemon-keypair.js";
-import { renderPairingQr } from "./pairing-qr.js";
-import { getOrCreateServerId } from "./server-id.js";
+} from "./connection-offer";
+import { loadOrCreateDaemonKeyPair } from "./daemon-keypair";
+import { renderPairingQr } from "./pairing-qr";
+import { getOrCreateServerId } from "./server-id";
 
 export type LocalPairingOffer = {
   relayEnabled: boolean;

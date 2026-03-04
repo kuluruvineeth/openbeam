@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { resolveLogConfig } from "./logger.js";
-import type { PersistedConfig } from "./persisted-config.js";
+import { resolveLogConfig } from "./logger";
+import type { PersistedConfig } from "./persisted-config";
 
 describe("resolveLogConfig", () => {
   const originalEnv = process.env;

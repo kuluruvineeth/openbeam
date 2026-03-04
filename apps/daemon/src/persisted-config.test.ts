@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { PersistedConfigSchema } from "./persisted-config.js";
+import { PersistedConfigSchema } from "./persisted-config";
 
 describe("PersistedConfigSchema agent provider runtime settings", () => {
   test("accepts provider command append args and env", () => {

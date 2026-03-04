@@ -5,7 +5,7 @@ import {
   parseDiff,
   reconstructNewFile,
   reconstructOldFile,
-} from "./diff-highlighter.js";
+} from "./diff-highlighter";
 
 const SIMPLE_DIFF = `diff --git a/example.ts b/example.ts
 index 1234567..abcdefg 100644

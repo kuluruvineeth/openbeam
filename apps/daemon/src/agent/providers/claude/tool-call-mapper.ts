@@ -1,8 +1,8 @@
 import { z } from "zod";
 
-import type { ToolCallTimelineItem } from "../../agent-sdk-types.js";
-import { isSpeakToolName } from "../../tool-name-normalization.js";
-import { deriveClaudeToolDetail } from "./tool-call-detail-parser.js";
+import type { ToolCallTimelineItem } from "../../agent-sdk-types";
+import { isSpeakToolName } from "../../tool-name-normalization";
+import { deriveClaudeToolDetail } from "./tool-call-detail-parser";
 
 type MapperParams = {
   callId?: string | null;

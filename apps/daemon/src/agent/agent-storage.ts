@@ -4,10 +4,10 @@ import path from "node:path";
 import type { Logger } from "pino";
 import { z } from "zod";
 
-import { AgentStatusSchema } from "../messages.js";
-import type { ManagedAgent } from "./agent-manager.js";
-import { toStoredAgentRecord } from "./agent-projections.js";
-import type { AgentSessionConfig } from "./agent-sdk-types.js";
+import { AgentStatusSchema } from "../messages";
+import type { ManagedAgent } from "./agent-manager";
+import { toStoredAgentRecord } from "./agent-projections";
+import type { AgentSessionConfig } from "./agent-sdk-types";
 
 const SERIALIZABLE_CONFIG_SCHEMA = z
   .object({

@@ -8,8 +8,8 @@ import {
   NativeHelperResponseValidationError,
   NativeHelperTimeoutError,
   NativeHelperUnavailableError,
-} from "./native-helper-bridge.js";
-import type { NativeHelperEvent } from "./protocol.js";
+} from "./native-helper-bridge";
+import type { NativeHelperEvent } from "./protocol";
 
 const tempDirs: string[] = [];
 

@@ -2,7 +2,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { FileTaskStore } from "./task-store.js";
+import { FileTaskStore } from "./task-store";
 
 describe("FileTaskStore", () => {
   let tempDir: string;

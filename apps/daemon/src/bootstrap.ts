@@ -43,48 +43,45 @@ function parseListenString(listen: string): ListenTarget {
   throw new Error(`Invalid listen string: ${listen}`);
 }
 
-import { AgentManager } from "./agent/agent-manager.js";
-import type { AgentClient, AgentProvider } from "./agent/agent-sdk-types.js";
-import { AgentStorage } from "./agent/agent-storage.js";
-import { createAgentMcpServer } from "./agent/mcp-server.js";
-import type { AgentProviderRuntimeSettingsMap } from "./agent/provider-launch-config.js";
-import {
-  createAllClients,
-  shutdownProviders,
-} from "./agent/provider-registry.js";
-import { type AllowedHostsConfig, isHostAllowed } from "./allowed-hosts.js";
+import { AgentManager } from "./agent/agent-manager";
+import type { AgentClient, AgentProvider } from "./agent/agent-sdk-types";
+import { AgentStorage } from "./agent/agent-storage";
+import { createAgentMcpServer } from "./agent/mcp-server";
+import type { AgentProviderRuntimeSettingsMap } from "./agent/provider-launch-config";
+import { createAllClients, shutdownProviders } from "./agent/provider-registry";
+import { type AllowedHostsConfig, isHostAllowed } from "./allowed-hosts";
 import {
   createConnectionOfferV2,
   encodeOfferToFragmentUrl,
-} from "./connection-offer.js";
-import { loadOrCreateDaemonKeyPair } from "./daemon-keypair.js";
-import { resolveDaemonVersion } from "./daemon-version.js";
-import { DownloadTokenStore } from "./file-download/token-store.js";
+} from "./connection-offer";
+import { loadOrCreateDaemonKeyPair } from "./daemon-keypair";
+import { resolveDaemonVersion } from "./daemon-version";
+import { DownloadTokenStore } from "./file-download/token-store";
 import {
   createNativeHelperBridge,
   type NativeHelperBridge,
-} from "./native-helper/native-helper-bridge.js";
-import { attachAgentStoragePersistence } from "./persistence-hooks.js";
-import { acquirePidLock, releasePidLock } from "./pid-lock.js";
+} from "./native-helper/native-helper-bridge";
+import { attachAgentStoragePersistence } from "./persistence-hooks";
+import { acquirePidLock, releasePidLock } from "./pid-lock";
 import {
   type RelayTransportController,
   startRelayTransport,
-} from "./relay-transport.js";
-import { getOrCreateServerId } from "./server-id.js";
-import type { LocalSpeechProviderConfig } from "./speech/providers/local/config.js";
-import type { OpenAiSpeechProviderConfig } from "./speech/providers/openai/config.js";
-import { initializeSpeechRuntime } from "./speech/speech-runtime.js";
-import type { RequestedSpeechProviders } from "./speech/speech-types.js";
+} from "./relay-transport";
+import { getOrCreateServerId } from "./server-id";
+import type { LocalSpeechProviderConfig } from "./speech/providers/local/config";
+import type { OpenAiSpeechProviderConfig } from "./speech/providers/openai/config";
+import { initializeSpeechRuntime } from "./speech/speech-runtime";
+import type { RequestedSpeechProviders } from "./speech/speech-types";
 import {
   createTerminalManager,
   type TerminalManager,
-} from "./terminal/terminal-manager.js";
+} from "./terminal/terminal-manager";
 import {
   createVoiceMcpSocketBridgeManager,
   type VoiceMcpSocketBridgeManager,
-} from "./voice-mcp-bridge.js";
-import { resolveVoiceMcpBridgeFromRuntime } from "./voice-mcp-bridge-command.js";
-import { VoiceAssistantWebSocketServer } from "./websocket-server.js";
+} from "./voice-mcp-bridge";
+import { resolveVoiceMcpBridgeFromRuntime } from "./voice-mcp-bridge-command";
+import { VoiceAssistantWebSocketServer } from "./websocket-server";
 
 type AgentMcpTransportMap = Map<string, StreamableHTTPServerTransport>;
 

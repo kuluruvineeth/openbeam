@@ -3,7 +3,7 @@ import {
   isHostAllowed,
   mergeAllowedHosts,
   parseAllowedHostsEnv,
-} from "./allowed-hosts.js";
+} from "./allowed-hosts";
 
 describe("allowed hosts (vite-style)", () => {
   it("allows localhost by default", () => {

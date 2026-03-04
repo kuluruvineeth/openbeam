@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { curateAgentActivity } from "./activity-curator.js";
-import type { AgentTimelineItem } from "./agent-sdk-types.js";
+import { curateAgentActivity } from "./activity-curator";
+import type { AgentTimelineItem } from "./agent-sdk-types";
 
 function toolCallItem(params: {
   callId: string;

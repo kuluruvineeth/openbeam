@@ -7,11 +7,11 @@ import type {
   DaemonTransport,
   DaemonTransportFactory,
   TransportLogger,
-} from "./daemon-client-transport-types.js";
+} from "./daemon-client-transport-types";
 import {
   extractRelayMessageData,
   normalizeTransportPayload,
-} from "./daemon-client-transport-utils.js";
+} from "./daemon-client-transport-utils";
 
 type OpenHandler = () => void;
 type CloseHandler = (event?: unknown) => void;

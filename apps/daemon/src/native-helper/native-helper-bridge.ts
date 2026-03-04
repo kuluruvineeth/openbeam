@@ -11,7 +11,7 @@ import {
   type NativeHelperRpcMethod,
   NativeHelperRpcRequestSchema,
   NativeHelperRpcResponseSchema,
-} from "./protocol.js";
+} from "./protocol";
 
 type PendingCall = {
   method: NativeHelperRpcMethod;

@@ -1,9 +1,9 @@
-import { DaemonClient } from "./daemon-client.js";
-import { createTestAgentClients } from "./fake-agent-client.js";
+import { DaemonClient } from "./daemon-client";
+import { createTestAgentClients } from "./fake-agent-client";
 import {
   createTestOpenPlaneDaemon,
   type TestOpenPlaneDaemon,
-} from "./openplane-daemon.js";
+} from "./openplane-daemon";
 
 export interface DaemonTestContext {
   daemon: TestOpenPlaneDaemon;

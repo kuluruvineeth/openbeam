@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import {
   createDaemonTestContext,
   type DaemonTestContext,
-} from "../../test-utils/index.js";
+} from "../../test-utils/index";
 
 describe("claude agent commands E2E", () => {
   let ctx: DaemonTestContext;

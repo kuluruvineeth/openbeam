@@ -4,19 +4,19 @@ import type {
   AgentModelDefinition,
   AgentProvider,
   ListModelsOptions,
-} from "./agent-sdk-types.js";
-import type { AgentProviderRuntimeSettingsMap } from "./provider-launch-config.js";
+} from "./agent-sdk-types";
+import type { AgentProviderRuntimeSettingsMap } from "./provider-launch-config";
 import {
   AGENT_PROVIDER_DEFINITIONS,
   type AgentProviderDefinition,
   getAgentProviderDefinition,
-} from "./provider-manifest.js";
-import { ClaudeAgentClient } from "./providers/claude-agent.js";
-import { CodexAppServerAgentClient } from "./providers/codex-app-server-agent.js";
+} from "./provider-manifest";
+import { ClaudeAgentClient } from "./providers/claude-agent";
+import { CodexAppServerAgentClient } from "./providers/codex-app-server-agent";
 import {
   OpenCodeAgentClient,
   OpenCodeServerManager,
-} from "./providers/opencode-agent.js";
+} from "./providers/opencode-agent";
 
 export type { AgentProviderDefinition };
 

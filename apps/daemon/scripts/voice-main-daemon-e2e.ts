@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import pino from "pino";
-import { OpenAITTS } from "../src/server/speech/providers/openai/tts.js";
-import { DaemonClient } from "../src/server/test-utils/daemon-client.js";
+import { OpenAITTS } from "../src/server/speech/providers/openai/tts";
+import { DaemonClient } from "../src/server/test-utils/daemon-client";
 
 type RoundTripResult = {
   voiceAgentId: string;

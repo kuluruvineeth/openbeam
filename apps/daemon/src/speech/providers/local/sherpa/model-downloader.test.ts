@@ -7,7 +7,7 @@ import { describe, expect, test, vi } from "vitest";
 import {
   ensureSherpaOnnxModel,
   getSherpaOnnxModelDir,
-} from "./model-downloader.js";
+} from "./model-downloader";
 
 function makeTmpDir(): string {
   return mkdtempSync(path.join(tmpdir(), "openplane-speech-models-"));

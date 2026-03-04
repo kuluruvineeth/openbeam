@@ -1,14 +1,14 @@
-export type { KeyPair, SharedKey } from "./crypto.js";
+export type { KeyPair, SharedKey } from "./crypto";
 export {
   exportPublicKey,
   exportSecretKey,
   generateKeyPair,
   importPublicKey,
   importSecretKey,
-} from "./crypto.js";
-export type { EncryptedChannelEvents, Transport } from "./encrypted-channel.js";
+} from "./crypto";
+export type { EncryptedChannelEvents, Transport } from "./encrypted-channel";
 export {
   createClientChannel,
   createDaemonChannel,
   EncryptedChannel,
-} from "./encrypted-channel.js";
+} from "./encrypted-channel";

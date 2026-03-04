@@ -4,12 +4,9 @@ import path from "node:path";
 import pino from "pino";
 import { describe, expect, test } from "vitest";
 
-import {
-  createOpenPlaneDaemon,
-  type OpenPlaneDaemonConfig,
-} from "./bootstrap.js";
-import { createTestAgentClients } from "./test-utils/fake-agent-client.js";
-import { createTestOpenPlaneDaemon } from "./test-utils/openplane-daemon.js";
+import { createOpenPlaneDaemon, type OpenPlaneDaemonConfig } from "./bootstrap";
+import { createTestAgentClients } from "./test-utils/fake-agent-client";
+import { createTestOpenPlaneDaemon } from "./test-utils/openplane-daemon";
 
 describe("openplane daemon bootstrap", () => {
   test("starts and serves health endpoint", async () => {

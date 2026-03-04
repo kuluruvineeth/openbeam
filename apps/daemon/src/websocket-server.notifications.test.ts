@@ -44,7 +44,7 @@ vi.mock("./push/push-service.js", () => ({
   },
 }));
 
-import { VoiceAssistantWebSocketServer } from "./websocket-server.js";
+import { VoiceAssistantWebSocketServer } from "./websocket-server";
 
 function createLogger() {
   const logger = {

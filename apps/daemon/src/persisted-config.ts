@@ -1,8 +1,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { z } from "zod";
-import { AgentProviderRuntimeSettingsMapSchema } from "./agent/provider-launch-config.js";
-import { AGENT_PROVIDER_IDS } from "./agent/provider-manifest.js";
+import { AgentProviderRuntimeSettingsMapSchema } from "./agent/provider-launch-config";
+import { AGENT_PROVIDER_IDS } from "./agent/provider-manifest";
 
 const LogConfigSchema = z
   .object({

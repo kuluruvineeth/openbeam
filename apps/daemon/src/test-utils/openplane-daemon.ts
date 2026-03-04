@@ -4,14 +4,14 @@ import os from "node:os";
 import path from "node:path";
 
 import pino from "pino";
-import type { AgentClient, AgentProvider } from "../agent/agent-sdk-types.js";
+import type { AgentClient, AgentProvider } from "../agent/agent-sdk-types";
 import {
   createOpenPlaneDaemon,
   type OpenPlaneDaemonConfig,
   type OpenPlaneOpenAIConfig,
   type OpenPlaneSpeechConfig,
-} from "../bootstrap.js";
-import { createTestAgentClients } from "./fake-agent-client.js";
+} from "../bootstrap";
+import { createTestAgentClients } from "./fake-agent-client";
 
 type TestOpenPlaneDaemonOptions = {
   downloadTokenTtlMs?: number;

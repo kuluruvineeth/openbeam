@@ -5,7 +5,7 @@ import {
   decodeBinaryMuxFrame,
   encodeBinaryMuxFrame,
   TerminalBinaryMessageType,
-} from "../shared/binary-mux.js";
+} from "../shared/binary-mux";
 import { DaemonClient, type DaemonTransport } from "./daemon-client";
 
 expectTypeOf<

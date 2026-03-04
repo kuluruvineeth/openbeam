@@ -24,40 +24,40 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { Logger } from "pino";
 import { z } from "zod";
-import { ensureValidJson } from "../json-utils.js";
+import { ensureValidJson } from "../json-utils";
 import {
   AgentPermissionRequestPayloadSchema,
   AgentPermissionResponseSchema,
   AgentSnapshotPayloadSchema,
   serializeAgentSnapshot,
-} from "../messages.js";
-import { expandUserPath } from "../path-utils.js";
-import type { TerminalManager } from "../terminal/terminal-manager.js";
-import type { WorktreeConfig } from "../utils/worktree.js";
+} from "../messages";
+import { expandUserPath } from "../path-utils";
+import type { TerminalManager } from "../terminal/terminal-manager";
+import type { WorktreeConfig } from "../utils/worktree";
 import {
   createAgentWorktree,
   runAsyncWorktreeBootstrap,
-} from "../worktree-bootstrap.js";
-import { curateAgentActivity } from "./activity-curator.js";
+} from "../worktree-bootstrap";
+import { curateAgentActivity } from "./activity-curator";
 import type {
   AgentManager,
   ManagedAgent,
   WaitForAgentResult,
-} from "./agent-manager.js";
-import { scheduleAgentMetadataGeneration } from "./agent-metadata-generator.js";
-import { toAgentPayload } from "./agent-projections.js";
+} from "./agent-manager";
+import { scheduleAgentMetadataGeneration } from "./agent-metadata-generator";
+import { toAgentPayload } from "./agent-projections";
 import type {
   AgentPermissionRequest,
   AgentPromptInput,
   AgentProvider,
-} from "./agent-sdk-types.js";
-import type { AgentStorage } from "./agent-storage.js";
-import { AGENT_PROVIDER_DEFINITIONS } from "./provider-registry.js";
+} from "./agent-sdk-types";
+import type { AgentStorage } from "./agent-storage";
+import { AGENT_PROVIDER_DEFINITIONS } from "./provider-registry";
 import {
   appendTimelineItemIfAgentKnown,
   emitLiveTimelineItemIfAgentKnown,
-} from "./timeline-append.js";
-import { WaitForAgentTracker } from "./wait-for-agent-tracker.js";
+} from "./timeline-append";
+import { WaitForAgentTracker } from "./wait-for-agent-tracker";
 
 export interface AgentManagementMcpOptions {
   agentManager: AgentManager;

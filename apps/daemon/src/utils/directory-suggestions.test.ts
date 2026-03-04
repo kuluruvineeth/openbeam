@@ -12,7 +12,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   searchHomeDirectories,
   searchWorkspaceEntries,
-} from "./directory-suggestions.js";
+} from "./directory-suggestions";
 
 describe("searchHomeDirectories", () => {
   let tempRoot: string;

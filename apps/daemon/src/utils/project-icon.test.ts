@@ -15,7 +15,7 @@ import {
   IGNORED_DIRS,
   MONOREPO_PACKAGE_DIRS,
   PRIORITY_DIRS,
-} from "./project-icon.js";
+} from "./project-icon";
 
 function createTempDir(): string {
   return realpathSync(mkdtempSync(join(tmpdir(), "project-icon-test-")));

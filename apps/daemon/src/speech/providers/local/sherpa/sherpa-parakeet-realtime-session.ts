@@ -1,8 +1,8 @@
 import { EventEmitter } from "node:events";
 import { v4 as uuidv4 } from "uuid";
-import { pcm16lePeakAbs, pcm16leToFloat32 } from "../../../audio.js";
-import type { StreamingTranscriptionSession } from "../../../speech-provider.js";
-import type { SherpaOfflineRecognizerEngine } from "./sherpa-offline-recognizer.js";
+import { pcm16lePeakAbs, pcm16leToFloat32 } from "../../../audio";
+import type { StreamingTranscriptionSession } from "../../../speech-provider";
+import type { SherpaOfflineRecognizerEngine } from "./sherpa-offline-recognizer";
 
 export class SherpaParakeetRealtimeTranscriptionSession
   extends EventEmitter

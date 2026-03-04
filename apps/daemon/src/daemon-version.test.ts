@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   DaemonVersionResolutionError,
   resolveDaemonVersion,
-} from "./daemon-version.js";
+} from "./daemon-version";
 
 const createdDirs: string[] = [];
 

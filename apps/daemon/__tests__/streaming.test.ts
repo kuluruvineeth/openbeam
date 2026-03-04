@@ -8,7 +8,7 @@ import {
   TEST_MODEL,
   TEST_THINKING_OPTION_ID,
   tmpCwd,
-} from "./e2e-helpers.js";
+} from "./e2e-helpers";
 
 describe("daemon E2E - streaming", () => {
   let ctx: DaemonTestContext;

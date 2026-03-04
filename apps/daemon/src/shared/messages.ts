@@ -11,14 +11,14 @@ import type {
   AgentUsage,
   ToolCallDetail,
   ToolCallTimelineItem,
-} from "../agent/agent-sdk-types.js";
-import { AgentProviderSchema } from "../agent/provider-manifest.js";
+} from "../agent/agent-sdk-types";
+import { AgentProviderSchema } from "../agent/provider-manifest";
 import {
   NativeHelperEventSchema,
   NativeHelperMethodSchemas,
   type NativeHelperRpcMethod,
-} from "../native-helper/protocol.js";
-import { AGENT_LIFECYCLE_STATUSES } from "./agent-lifecycle.js";
+} from "../native-helper/protocol";
+import { AGENT_LIFECYCLE_STATUSES } from "./agent-lifecycle";
 
 export const AgentStatusSchema = z.enum(AGENT_LIFECYCLE_STATUSES);
 

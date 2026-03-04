@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { AgentMode } from "./agent-sdk-types.js";
+import type { AgentMode } from "./agent-sdk-types";
 
 export interface AgentProviderDefinition {
   id: string;

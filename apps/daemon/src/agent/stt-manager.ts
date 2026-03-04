@@ -1,12 +1,12 @@
 import type pino from "pino";
-import { parsePcm16MonoWav, parsePcmRateFromFormat } from "../speech/audio.js";
-import { type Resolvable, toResolver } from "../speech/provider-resolver.js";
+import { parsePcm16MonoWav, parsePcmRateFromFormat } from "../speech/audio";
+import { type Resolvable, toResolver } from "../speech/provider-resolver";
 import type {
   SpeechToTextProvider,
   TranscriptionResult,
-} from "../speech/speech-provider.js";
-import { Pcm16MonoResampler } from "./pcm16-resampler.js";
-import { maybePersistDebugAudio } from "./stt-debug.js";
+} from "../speech/speech-provider";
+import { Pcm16MonoResampler } from "./pcm16-resampler";
+import { maybePersistDebugAudio } from "./stt-debug";
 
 interface TranscriptionMetadata {
   agentId?: string;

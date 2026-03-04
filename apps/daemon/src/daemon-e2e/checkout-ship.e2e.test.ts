@@ -13,8 +13,8 @@ import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import {
   createDaemonTestContext,
   type DaemonTestContext,
-} from "../test-utils/index.js";
-import { createWorktree } from "../utils/worktree.js";
+} from "../test-utils/index";
+import { createWorktree } from "../utils/worktree";
 
 const CODEX_TEST_MODEL = "gpt-5.1-codex-mini";
 const CODEX_TEST_THINKING_OPTION_ID = "low";

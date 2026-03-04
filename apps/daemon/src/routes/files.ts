@@ -3,7 +3,7 @@ import { stat } from "node:fs/promises";
 import { Hono } from "hono";
 import { stream } from "hono/streaming";
 import type pino from "pino";
-import type { DownloadTokenStore } from "../file-download/token-store.js";
+import type { DownloadTokenStore } from "../file-download/token-store";
 
 type FilesRouteOptions = {
   downloadTokenStore: DownloadTokenStore;

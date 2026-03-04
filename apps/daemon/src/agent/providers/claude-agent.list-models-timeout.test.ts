@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
-import { createTestLogger } from "../../test-utils/test-logger.js";
-import { ClaudeAgentClient } from "./claude-agent.js";
+import { createTestLogger } from "../../test-utils/test-logger";
+import { ClaudeAgentClient } from "./claude-agent";
 
 type QueryMock = {
   supportedModels: ReturnType<typeof vi.fn>;

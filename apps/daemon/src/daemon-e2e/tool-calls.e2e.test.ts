@@ -2,13 +2,13 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
-import type { AgentTimelineItem } from "../agent/agent-sdk-types.js";
-import type { SessionOutboundMessage } from "../messages.js";
+import type { AgentTimelineItem } from "../agent/agent-sdk-types";
+import type { SessionOutboundMessage } from "../messages";
 import {
   createDaemonTestContext,
   type DaemonTestContext,
-} from "../test-utils/index.js";
-import { createMessageCollector } from "../test-utils/message-collector.js";
+} from "../test-utils/index";
+import { createMessageCollector } from "../test-utils/message-collector";
 
 function tmpCwd(): string {
   return mkdtempSync(path.join(tmpdir(), "daemon-e2e-"));

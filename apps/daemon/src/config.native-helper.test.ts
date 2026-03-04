@@ -2,7 +2,7 @@ import { chmod, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
-import { loadConfig } from "./config.js";
+import { loadConfig } from "./config";
 
 const tempHomes: string[] = [];
 

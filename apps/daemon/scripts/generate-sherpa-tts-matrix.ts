@@ -1,23 +1,23 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-import { createRootLogger } from "../src/server/logger.js";
-import { resolveOpenPlaneHome } from "../src/server/openplane-home.js";
+import { createRootLogger } from "../src/server/logger";
+import { resolveOpenPlaneHome } from "../src/server/openplane-home";
 import {
   float32ToPcm16le,
   parsePcmRateFromFormat,
-} from "../src/server/speech/audio.js";
+} from "../src/server/speech/audio";
 import {
   ensureLocalSpeechModels,
   getLocalSpeechModelDir,
   type LocalTtsModelId,
-} from "../src/server/speech/providers/local/models.js";
-import { PocketTtsOnnxTTS } from "../src/server/speech/providers/local/pocket/pocket-tts-onnx.js";
+} from "../src/server/speech/providers/local/models";
+import { PocketTtsOnnxTTS } from "../src/server/speech/providers/local/pocket/pocket-tts-onnx";
 import {
   LOCAL_TTS_MODEL_IDS,
   LocalTtsModelIdSchema,
-} from "../src/server/speech/providers/local/sherpa/model-catalog.js";
-import { loadSherpaOnnxNode } from "../src/server/speech/providers/local/sherpa/sherpa-onnx-node-loader.js";
+} from "../src/server/speech/providers/local/sherpa/model-catalog";
+import { loadSherpaOnnxNode } from "../src/server/speech/providers/local/sherpa/sherpa-onnx-node-loader";
 
 const DEFAULT_SAMPLE_TEXT =
   "OpenPlane keeps your coding agents in your pocket, with fast local speech and reliable remote control.";

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 
-import type { AgentTimelineRow } from "./agent-manager.js";
-import { projectTimelineRows } from "./timeline-projection.js";
+import type { AgentTimelineRow } from "./agent-manager";
+import { projectTimelineRows } from "./timeline-projection";
 
 describe("projectTimelineRows", () => {
   test("merges adjacent assistant chunks in projected mode", () => {

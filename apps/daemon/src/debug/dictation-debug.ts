@@ -4,8 +4,8 @@ import type pino from "pino";
 import {
   inferAudioExtension,
   sanitizeForFilename,
-} from "../speech/audio-utils.js";
-import { resolveRecordingsDebugDir } from "./recordings-debug.js";
+} from "../speech/audio-utils";
+import { resolveRecordingsDebugDir } from "./recordings-debug";
 
 let announcedDir: string | null = null;
 

@@ -5,8 +5,8 @@ import net from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import pino from "pino";
-import { createDaemon, type OpenPlaneDaemon } from "../bootstrap.js";
-import type { DaemonConfig } from "../config.js";
+import { createDaemon, type OpenPlaneDaemon } from "../bootstrap";
+import type { DaemonConfig } from "../config";
 
 const silentLogger = pino({ level: "silent" });
 

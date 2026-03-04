@@ -1,12 +1,12 @@
 import { existsSync } from "node:fs";
 import { Readable } from "node:stream";
 import type pino from "pino";
-import { chunkBuffer, float32ToPcm16le } from "../../../audio.js";
+import { chunkBuffer, float32ToPcm16le } from "../../../audio";
 import type {
   SpeechStreamResult,
   TextToSpeechProvider,
-} from "../../../speech-provider.js";
-import { loadSherpaOnnxNode } from "./sherpa-onnx-node-loader.js";
+} from "../../../speech-provider";
+import { loadSherpaOnnxNode } from "./sherpa-onnx-node-loader";
 
 export type SherpaTtsPreset = "kokoro-en-v0_19" | "kitten-nano-en-v0_1-fp16";
 

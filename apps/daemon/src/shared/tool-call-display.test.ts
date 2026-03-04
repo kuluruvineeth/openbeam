@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildToolCallDisplayModel } from "./tool-call-display.js";
+import { buildToolCallDisplayModel } from "./tool-call-display";
 
 describe("shared tool-call display mapping", () => {
   it("builds summary from canonical detail", () => {

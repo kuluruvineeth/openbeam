@@ -13,7 +13,7 @@ import {
   createTerminal,
   ensureNodePtySpawnHelperExecutableForCurrentPlatform,
   type TerminalSession,
-} from "./terminal.js";
+} from "./terminal";
 
 // Extract text from a single row
 function getRowText(

@@ -1,11 +1,11 @@
 import type { Hono } from "hono";
 import type pino from "pino";
-import type { DaemonConfig } from "../config.js";
-import type { DaemonKeyPair } from "../daemon-keypair.js";
-import type { DownloadTokenStore } from "../file-download/token-store.js";
-import { createFilesRoutes } from "./files.js";
-import { createHealthRoutes } from "./health.js";
-import { createInfoRoutes } from "./info.js";
+import type { DaemonConfig } from "../config";
+import type { DaemonKeyPair } from "../daemon-keypair";
+import type { DownloadTokenStore } from "../file-download/token-store";
+import { createFilesRoutes } from "./files";
+import { createHealthRoutes } from "./health";
+import { createInfoRoutes } from "./info";
 
 export type RouteContext = {
   serverId: string;

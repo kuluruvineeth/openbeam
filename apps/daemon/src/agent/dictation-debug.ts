@@ -1,8 +1,8 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import type pino from "pino";
-import { inferAudioExtension, sanitizeForFilename } from "./audio-utils.js";
-import { resolveRecordingsDebugDir } from "./recordings-debug.js";
+import { inferAudioExtension, sanitizeForFilename } from "./audio-utils";
+import { resolveRecordingsDebugDir } from "./recordings-debug";
 
 let announcedDir: string | null = null;
 

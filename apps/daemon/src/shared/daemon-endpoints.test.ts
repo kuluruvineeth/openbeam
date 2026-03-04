@@ -4,7 +4,7 @@ import {
   buildRelayWebSocketUrl,
   CURRENT_RELAY_PROTOCOL_VERSION,
   normalizeRelayProtocolVersion,
-} from "./daemon-endpoints.js";
+} from "./daemon-endpoints";
 
 describe("relay websocket URL versioning", () => {
   test("defaults relay URLs to v2", () => {

@@ -1,14 +1,14 @@
 import { z } from "zod";
 
-import type { ToolCallTimelineItem } from "../../agent-sdk-types.js";
+import type { ToolCallTimelineItem } from "../../agent-sdk-types";
 import {
   extractCodexShellOutput,
   truncateDiffText,
-} from "../tool-call-mapper-utils.js";
+} from "../tool-call-mapper-utils";
 import {
   deriveCodexToolDetail,
   normalizeCodexFilePath,
-} from "./tool-call-detail-parser.js";
+} from "./tool-call-detail-parser";
 
 type CodexMapperOptions = { cwd?: string | null };
 

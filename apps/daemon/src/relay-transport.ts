@@ -8,8 +8,8 @@ import {
 } from "@openplane/relay/e2ee";
 import type pino from "pino";
 import WebSocket from "ws";
-import { buildRelayWebSocketUrl } from "./shared/daemon-endpoints.js";
-import type { ExternalSocketMetadata } from "./websocket-server.js";
+import { buildRelayWebSocketUrl } from "./shared/daemon-endpoints";
+import type { ExternalSocketMetadata } from "./websocket-server";
 
 type RelayTransportOptions = {
   logger: pino.Logger;

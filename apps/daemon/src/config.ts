@@ -1,16 +1,16 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { z } from "zod";
-import type { AgentProvider } from "./agent/agent-sdk-types.js";
-import { AgentProviderSchema } from "./agent/provider-manifest.js";
+import type { AgentProvider } from "./agent/agent-sdk-types";
+import { AgentProviderSchema } from "./agent/provider-manifest";
 import {
   type AllowedHostsConfig,
   mergeAllowedHosts,
   parseAllowedHostsEnv,
-} from "./allowed-hosts.js";
-import type { OpenPlaneDaemonConfig } from "./bootstrap.js";
-import { loadPersistedConfig } from "./persisted-config.js";
-import { resolveSpeechConfig } from "./speech/speech-config-resolver.js";
+} from "./allowed-hosts";
+import type { OpenPlaneDaemonConfig } from "./bootstrap";
+import { loadPersistedConfig } from "./persisted-config";
+import { resolveSpeechConfig } from "./speech/speech-config-resolver";
 
 const DEFAULT_PORT = 6767;
 const DEFAULT_RELAY_ENDPOINT = "relay.openplane.sh:443";

@@ -1,9 +1,9 @@
 import Ajv, { type Options as AjvOptions, type ErrorObject } from "ajv";
 import type { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
-import type { AgentManager } from "./agent-manager.js";
-import type { AgentProvider, AgentSessionConfig } from "./agent-sdk-types.js";
-import { getAgentProviderDefinition } from "./provider-manifest.js";
+import type { AgentManager } from "./agent-manager";
+import type { AgentProvider, AgentSessionConfig } from "./agent-sdk-types";
+import { getAgentProviderDefinition } from "./provider-manifest";
 
 export type JsonSchema = Record<string, unknown>;
 

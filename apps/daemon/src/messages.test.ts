@@ -1,11 +1,11 @@
 import { describe, expect, test } from "vitest";
 
-import type { AgentStreamEvent } from "./agent/agent-sdk-types.js";
+import type { AgentStreamEvent } from "./agent/agent-sdk-types";
 import {
   SessionInboundMessageSchema,
   SessionOutboundMessageSchema,
   serializeAgentStreamEvent,
-} from "./messages.js";
+} from "./messages";
 
 describe("serializeAgentStreamEvent", () => {
   test("preserves user_message text as-is", () => {

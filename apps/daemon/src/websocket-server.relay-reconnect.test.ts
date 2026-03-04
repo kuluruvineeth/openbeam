@@ -5,7 +5,7 @@ import {
   decodeBinaryMuxFrame,
   encodeBinaryMuxFrame,
   TerminalBinaryMessageType,
-} from "./shared/binary-mux.js";
+} from "./shared/binary-mux";
 
 const wsModuleMock = vi.hoisted(() => {
   class MockWebSocketServer {
@@ -75,8 +75,8 @@ vi.mock("./push/push-service.js", () => ({
   },
 }));
 
-import { parseServerInfoStatusPayload } from "./messages.js";
-import type { SpeechReadinessSnapshot } from "./speech/speech-runtime.js";
+import { parseServerInfoStatusPayload } from "./messages";
+import type { SpeechReadinessSnapshot } from "./speech/speech-runtime";
 import {
   type ExternalSocketMetadata,
   VoiceAssistantWebSocketServer,

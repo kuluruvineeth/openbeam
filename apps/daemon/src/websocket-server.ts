@@ -4,18 +4,18 @@ import { join } from "node:path";
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import type pino from "pino";
 import { WebSocketServer } from "ws";
-import type { AgentManager } from "./agent/agent-manager.js";
-import type { AgentProvider } from "./agent/agent-sdk-types.js";
-import type { AgentStorage } from "./agent/agent-storage.js";
-import type { AgentProviderRuntimeSettingsMap } from "./agent/provider-launch-config.js";
+import type { AgentManager } from "./agent/agent-manager";
+import type { AgentProvider } from "./agent/agent-sdk-types";
+import type { AgentStorage } from "./agent/agent-storage";
+import type { AgentProviderRuntimeSettingsMap } from "./agent/provider-launch-config";
 import {
   type ClientAttentionState,
   computeShouldNotifyClient,
   computeShouldSendPush,
-} from "./agent-attention-policy.js";
-import type { AllowedHostsConfig } from "./allowed-hosts.js";
-import { isHostAllowed } from "./allowed-hosts.js";
-import type { DownloadTokenStore } from "./file-download/token-store.js";
+} from "./agent-attention-policy";
+import type { AllowedHostsConfig } from "./allowed-hosts";
+import { isHostAllowed } from "./allowed-hosts";
+import type { DownloadTokenStore } from "./file-download/token-store";
 import {
   type ServerCapabilities,
   type ServerCapabilityState,
@@ -23,34 +23,34 @@ import {
   WSInboundMessageSchema,
   type WSOutboundMessage,
   wrapSessionMessage,
-} from "./messages.js";
-import type { NativeHelperBridge } from "./native-helper/native-helper-bridge.js";
-import { PushService } from "./push/push-service.js";
-import { PushTokenStore } from "./push/token-store.js";
-import { Session } from "./session.js";
+} from "./messages";
+import type { NativeHelperBridge } from "./native-helper/native-helper-bridge";
+import { PushService } from "./push/push-service";
+import { PushTokenStore } from "./push/token-store";
+import { Session } from "./session";
 import {
   buildAgentAttentionNotificationPayload,
   findLatestAssistantMessageFromTimeline,
   findLatestPermissionRequest,
-} from "./shared/agent-attention-notification.js";
+} from "./shared/agent-attention-notification";
 import {
   asUint8Array,
   decodeBinaryMuxFrame,
   encodeBinaryMuxFrame,
-} from "./shared/binary-mux.js";
-import type { Resolvable } from "./speech/provider-resolver.js";
-import type { LocalSpeechModelId } from "./speech/providers/local/models.js";
+} from "./shared/binary-mux";
+import type { Resolvable } from "./speech/provider-resolver";
+import type { LocalSpeechModelId } from "./speech/providers/local/models";
 import type {
   SpeechToTextProvider,
   TextToSpeechProvider,
-} from "./speech/speech-provider.js";
-import type { SpeechReadinessSnapshot } from "./speech/speech-runtime.js";
-import type { TerminalManager } from "./terminal/terminal-manager.js";
+} from "./speech/speech-provider";
+import type { SpeechReadinessSnapshot } from "./speech/speech-runtime";
+import type { TerminalManager } from "./terminal/terminal-manager";
 import type {
   VoiceCallerContext,
   VoiceMcpStdioConfig,
   VoiceSpeakHandler,
-} from "./voice-types.js";
+} from "./voice-types";
 
 export type AgentMcpTransportFactory = () => Promise<Transport>;
 export type ExternalSocketMetadata = {

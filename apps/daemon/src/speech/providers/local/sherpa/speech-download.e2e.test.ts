@@ -6,19 +6,19 @@ import { describe, expect, test } from "vitest";
 import {
   parsePcm16MonoWav,
   wordSimilarity,
-} from "../../../../test-utils/dictation-e2e.js";
-import { createDaemonTestContext } from "../../../../test-utils/index.js";
-import { PocketTtsOnnxTTS } from "../pocket/pocket-tts-onnx.js";
-import type { SherpaOnnxModelId } from "./model-catalog.js";
+} from "../../../../test-utils/dictation-e2e";
+import { createDaemonTestContext } from "../../../../test-utils/index";
+import { PocketTtsOnnxTTS } from "../pocket/pocket-tts-onnx";
+import type { SherpaOnnxModelId } from "./model-catalog";
 import {
   ensureSherpaOnnxModels,
   getSherpaOnnxModelDir,
-} from "./model-downloader.js";
-import { SherpaOfflineRecognizerEngine } from "./sherpa-offline-recognizer.js";
-import { SherpaOnlineRecognizerEngine } from "./sherpa-online-recognizer.js";
-import { SherpaOnnxParakeetSTT } from "./sherpa-parakeet-stt.js";
-import { SherpaOnnxSTT } from "./sherpa-stt.js";
-import { SherpaOnnxTTS } from "./sherpa-tts.js";
+} from "./model-downloader";
+import { SherpaOfflineRecognizerEngine } from "./sherpa-offline-recognizer";
+import { SherpaOnlineRecognizerEngine } from "./sherpa-online-recognizer";
+import { SherpaOnnxParakeetSTT } from "./sherpa-parakeet-stt";
+import { SherpaOnnxSTT } from "./sherpa-stt";
+import { SherpaOnnxTTS } from "./sherpa-tts";
 
 const RUN = process.env.OPENPLANE_SPEECH_E2E_DOWNLOAD === "1";
 const downloadTest = RUN ? test : test.skip;

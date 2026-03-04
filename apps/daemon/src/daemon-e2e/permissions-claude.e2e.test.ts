@@ -6,11 +6,11 @@ import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import {
   createDaemonTestContext,
   type DaemonTestContext,
-} from "../test-utils/index.js";
+} from "../test-utils/index";
 import {
   createMessageCollector,
   type MessageCollector,
-} from "../test-utils/message-collector.js";
+} from "../test-utils/message-collector";
 
 function tmpCwd(): string {
   return mkdtempSync(path.join(tmpdir(), "daemon-e2e-"));

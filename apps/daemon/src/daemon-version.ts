@@ -1,7 +1,7 @@
 import {
   PackageVersionResolutionError,
   resolvePackageVersion,
-} from "./package-version.js";
+} from "./package-version";
 
 const SERVER_PACKAGE_NAME = "daemon";
 

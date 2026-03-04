@@ -2,8 +2,8 @@ import path from "node:path";
 
 import { z } from "zod";
 
-import type { PersistedConfig } from "../../../persisted-config.js";
-import type { RequestedSpeechProviders } from "../../speech-types.js";
+import type { PersistedConfig } from "../../../persisted-config";
+import type { RequestedSpeechProviders } from "../../speech-types";
 import {
   DEFAULT_LOCAL_STT_MODEL,
   DEFAULT_LOCAL_TTS_MODEL,
@@ -12,7 +12,7 @@ import {
   LocalSttModelIdSchema,
   type LocalTtsModelId,
   LocalTtsModelIdSchema,
-} from "./models.js";
+} from "./models";
 
 export type LocalSpeechModelConfig = {
   dictationStt: LocalSttModelId;

@@ -4,15 +4,15 @@ import {
   createDictationDebugChunkWriter,
   type DictationDebugChunkWriter,
   maybePersistDictationDebugAudio,
-} from "../agent/dictation-debug.js";
-import { Pcm16MonoResampler } from "../agent/pcm16-resampler.js";
-import { isOpenPlaneDictationDebugEnabled } from "../agent/recordings-debug.js";
-import { parsePcmRateFromFormat, pcm16lePeakAbs } from "../speech/audio.js";
-import { type Resolvable, toResolver } from "../speech/provider-resolver.js";
+} from "../agent/dictation-debug";
+import { Pcm16MonoResampler } from "../agent/pcm16-resampler";
+import { isOpenPlaneDictationDebugEnabled } from "../agent/recordings-debug";
+import { parsePcmRateFromFormat, pcm16lePeakAbs } from "../speech/audio";
+import { type Resolvable, toResolver } from "../speech/provider-resolver";
 import type {
   SpeechToTextProvider,
   StreamingTranscriptionSession,
-} from "../speech/speech-provider.js";
+} from "../speech/speech-provider";
 
 const PCM_CHANNELS = 1;
 const PCM_BITS_PER_SAMPLE = 16;

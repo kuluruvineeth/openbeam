@@ -1,12 +1,12 @@
 import { z } from "zod";
 
-import type { ToolCallDetail } from "../agent-sdk-types.js";
+import type { ToolCallDetail } from "../agent-sdk-types";
 import {
   extractCodexShellOutput,
   flattenReadContent as flattenToolReadContent,
   nonEmptyString,
   truncateDiffText,
-} from "./tool-call-mapper-utils.js";
+} from "./tool-call-mapper-utils";
 
 export const CommandValueSchema = z.union([z.string(), z.array(z.string())]);
 

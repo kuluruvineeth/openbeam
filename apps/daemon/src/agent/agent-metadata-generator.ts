@@ -5,16 +5,16 @@ import {
   type CheckoutStatusResult,
   getCheckoutStatus,
   renameCurrentBranch,
-} from "../utils/checkout-git.js";
-import { validateBranchSlug } from "../utils/worktree.js";
-import type { AgentManager } from "./agent-manager.js";
+} from "../utils/checkout-git";
+import { validateBranchSlug } from "../utils/worktree";
+import type { AgentManager } from "./agent-manager";
 import {
   DEFAULT_STRUCTURED_GENERATION_PROVIDERS,
   generateStructuredAgentResponseWithFallback,
   StructuredAgentFallbackError,
   StructuredAgentResponseError,
-} from "./agent-response-loop.js";
-import type { AgentProvider } from "./agent-sdk-types.js";
+} from "./agent-response-loop";
+import type { AgentProvider } from "./agent-sdk-types";
 
 export type AgentMetadataGeneratorDeps = {
   generateStructuredAgentResponseWithFallback?: typeof generateStructuredAgentResponseWithFallback;

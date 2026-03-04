@@ -1,4 +1,4 @@
-import type { Task, TaskStore } from "./types.js";
+import type { Task, TaskStore } from "./types";
 
 function sortByPriorityThenCreated(a: Task, b: Task): number {
   if (a.priority !== undefined && b.priority === undefined) {

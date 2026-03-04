@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   buildSortedChildrenMap,
   computeExecutionOrder,
-} from "./execution-order.js";
-import type { Task, TaskStore } from "./types.js";
+} from "./execution-order";
+import type { Task, TaskStore } from "./types";
 
 /**
  * In-memory task store for testing

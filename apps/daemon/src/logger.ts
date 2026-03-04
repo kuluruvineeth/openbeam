@@ -1,5 +1,5 @@
 import pino from "pino";
-import type { PersistedConfig } from "./persisted-config.js";
+import type { PersistedConfig } from "./persisted-config";
 
 export type LogLevel = "trace" | "debug" | "info" | "warn" | "error" | "fatal";
 export type LogFormat = "pretty" | "json";

@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import type { AgentManager } from "./agent-manager.js";
+import type { AgentManager } from "./agent-manager";
 import {
   type AgentCaller,
   generateStructuredAgentResponseWithFallback,
   getStructuredAgentResponse,
   StructuredAgentFallbackError,
   StructuredAgentResponseError,
-} from "./agent-response-loop.js";
+} from "./agent-response-loop";
 
 function createScriptedCaller(responses: string[]) {
   const prompts: string[] = [];

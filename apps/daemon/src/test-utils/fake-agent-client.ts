@@ -20,8 +20,8 @@ import type {
   AgentStreamEvent,
   AgentUsage,
   ListModelsOptions,
-} from "../agent/agent-sdk-types.js";
-import { isLikelyExternalToolName } from "../agent/tool-name-normalization.js";
+} from "../agent/agent-sdk-types";
+import { isLikelyExternalToolName } from "../agent/tool-name-normalization";
 
 const TEST_CAPABILITIES: AgentCapabilityFlags = {
   supportsStreaming: true,

@@ -2,9 +2,9 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import pino from "pino";
-import { OpenAITTS } from "../src/server/speech/providers/openai/tts.js";
-import { DaemonClient } from "../src/server/test-utils/daemon-client.js";
-import { createTestOpenPlaneDaemon } from "../src/server/test-utils/openplane-daemon.js";
+import { OpenAITTS } from "../src/server/speech/providers/openai/tts";
+import { DaemonClient } from "../src/server/test-utils/daemon-client";
+import { createTestOpenPlaneDaemon } from "../src/server/test-utils/openplane-daemon";
 
 async function streamToBuffer(stream: AsyncIterable<unknown>): Promise<Buffer> {
   const chunks: Buffer[] = [];

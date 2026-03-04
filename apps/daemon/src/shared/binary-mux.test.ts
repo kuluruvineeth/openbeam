@@ -6,7 +6,7 @@ import {
   encodeBinaryMuxFrame,
   TerminalBinaryFlags,
   TerminalBinaryMessageType,
-} from "./binary-mux.js";
+} from "./binary-mux";
 
 describe("binary mux frame codec", () => {
   it("encodes and decodes round trip", () => {

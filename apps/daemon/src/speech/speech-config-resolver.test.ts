@@ -2,8 +2,8 @@ import path from "node:path";
 
 import { describe, expect, test } from "vitest";
 
-import { PersistedConfigSchema } from "../persisted-config.js";
-import { resolveSpeechConfig } from "./speech-config-resolver.js";
+import { PersistedConfigSchema } from "../persisted-config";
+import { resolveSpeechConfig } from "./speech-config-resolver";
 
 describe("resolveSpeechConfig", () => {
   test("resolves local-first defaults without env overrides", () => {

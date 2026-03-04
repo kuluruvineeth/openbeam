@@ -7,7 +7,7 @@ import {
   DaemonClient as SharedDaemonClient,
   type DaemonClientConfig as SharedDaemonClientConfig,
   type WebSocketLike,
-} from "../client/daemon-client.js";
+} from "../client/daemon-client";
 
 export type DaemonClientConfig = Omit<
   SharedDaemonClientConfig,

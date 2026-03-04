@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { mapOpencodeToolCall } from "./tool-call-mapper.js";
+import { mapOpencodeToolCall } from "./tool-call-mapper";
 
 function expectMapped<T>(item: T | null): T {
   // biome-ignore lint/suspicious/noMisplacedAssertion: assertion in test helper

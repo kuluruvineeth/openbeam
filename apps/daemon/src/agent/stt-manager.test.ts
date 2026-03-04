@@ -5,8 +5,8 @@ import type {
   SpeechToTextProvider,
   StreamingTranscriptionSession,
   TranscriptionResult,
-} from "../speech/speech-provider.js";
-import { STTManager } from "./stt-manager.js";
+} from "../speech/speech-provider";
+import { STTManager } from "./stt-manager";
 
 class FakeStt implements SpeechToTextProvider {
   // biome-ignore lint/style/useConsistentMemberAccessibility: class member accessibility

@@ -9,7 +9,7 @@ import type pino from "pino";
 import {
   getSherpaOnnxModelSpec,
   type SherpaOnnxModelId,
-} from "./model-catalog.js";
+} from "./model-catalog";
 
 export type EnsureSherpaOnnxModelOptions = {
   modelsDir: string;

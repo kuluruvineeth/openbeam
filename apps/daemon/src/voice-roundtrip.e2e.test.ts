@@ -4,13 +4,13 @@ import path from "node:path";
 import type { Readable } from "node:stream";
 import pino from "pino";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import { STTManager } from "./agent/stt-manager.js";
-import { OpenAISTT } from "./speech/providers/openai/stt.js";
-import { OpenAITTS } from "./speech/providers/openai/tts.js";
+import { STTManager } from "./agent/stt-manager";
+import { OpenAISTT } from "./speech/providers/openai/stt";
+import { OpenAITTS } from "./speech/providers/openai/tts";
 import {
   createDaemonTestContext,
   type DaemonTestContext,
-} from "./test-utils/index.js";
+} from "./test-utils/index";
 
 const openaiApiKey = process.env.OPENAI_API_KEY ?? null;
 const shouldRun =

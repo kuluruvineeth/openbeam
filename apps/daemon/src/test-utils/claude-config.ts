@@ -1,7 +1,7 @@
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { seedClaudeAuth } from "./claude-auth.js";
+import { seedClaudeAuth } from "./claude-auth";
 
 function isIgnorableCleanupError(error: unknown): boolean {
   if (!(error instanceof Error)) {

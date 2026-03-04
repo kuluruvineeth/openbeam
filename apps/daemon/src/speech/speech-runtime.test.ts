@@ -1,13 +1,13 @@
 import pino from "pino";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { OpenPlaneSpeechConfig } from "../bootstrap.js";
-import type { InitializedLocalSpeech } from "./providers/local/runtime.js";
+import type { OpenPlaneSpeechConfig } from "../bootstrap";
+import type { InitializedLocalSpeech } from "./providers/local/runtime";
 import type {
   SpeechToTextProvider,
   TextToSpeechProvider,
-} from "./speech-provider.js";
-import { initializeSpeechRuntime } from "./speech-runtime.js";
+} from "./speech-provider";
+import { initializeSpeechRuntime } from "./speech-runtime";
 
 const { initializeLocalSpeechServicesMock } = vi.hoisted(() => ({
   initializeLocalSpeechServicesMock:

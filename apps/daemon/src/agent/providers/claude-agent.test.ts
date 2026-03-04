@@ -14,24 +14,21 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import express from "express";
 import { afterAll, beforeAll, describe, expect, test, vi } from "vitest";
-import type { AgentStreamEventPayload } from "../../messages.js";
-import { useTempClaudeConfigDir } from "../../test-utils/claude-config.js";
-import { createTestLogger } from "../../test-utils/test-logger.js";
-import { curateAgentActivity } from "../activity-curator.js";
-import { AgentManager } from "../agent-manager.js";
+import type { AgentStreamEventPayload } from "../../messages";
+import { useTempClaudeConfigDir } from "../../test-utils/claude-config";
+import { createTestLogger } from "../../test-utils/test-logger";
+import { curateAgentActivity } from "../activity-curator";
+import { AgentManager } from "../agent-manager";
 import type {
   AgentPermissionRequest,
   AgentProvider,
   AgentSessionConfig,
   AgentStreamEvent,
   AgentTimelineItem,
-} from "../agent-sdk-types.js";
-import { AgentStorage } from "../agent-storage.js";
-import { createAgentMcpServer } from "../mcp-server.js";
-import {
-  ClaudeAgentClient,
-  convertClaudeHistoryEntry,
-} from "./claude-agent.js";
+} from "../agent-sdk-types";
+import { AgentStorage } from "../agent-storage";
+import { createAgentMcpServer } from "../mcp-server";
+import { ClaudeAgentClient, convertClaudeHistoryEntry } from "./claude-agent";
 
 const createHTTPServer = createServer;
 

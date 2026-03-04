@@ -11,7 +11,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   createTerminalManager,
   type TerminalManager,
-} from "./terminal-manager.js";
+} from "./terminal-manager";
 
 async function waitForCondition(
   predicate: () => boolean,

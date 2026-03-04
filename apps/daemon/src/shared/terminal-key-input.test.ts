@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { encodeTerminalKeyInput } from "./terminal-key-input.js";
+import { encodeTerminalKeyInput } from "./terminal-key-input";
 
 describe("encodeTerminalKeyInput", () => {
   it("encodes ctrl+b for tmux prefix", () => {

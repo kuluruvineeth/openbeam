@@ -3,14 +3,14 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
-import { createTestLogger } from "../test-utils/test-logger.js";
-import type { ManagedAgent } from "./agent-manager.js";
+import { createTestLogger } from "../test-utils/test-logger";
+import type { ManagedAgent } from "./agent-manager";
 import type {
   AgentPermissionRequest,
   AgentSession,
   AgentSessionConfig,
-} from "./agent-sdk-types.js";
-import { AgentStorage } from "./agent-storage.js";
+} from "./agent-sdk-types";
+import { AgentStorage } from "./agent-storage";
 
 type ManagedAgentOverrides = Omit<
   Partial<ManagedAgent>,

@@ -1,5 +1,5 @@
 import { resolve, sep } from "node:path";
-import { createTerminal, type TerminalSession } from "./terminal.js";
+import { createTerminal, type TerminalSession } from "./terminal";
 
 export interface TerminalListItem {
   id: string;

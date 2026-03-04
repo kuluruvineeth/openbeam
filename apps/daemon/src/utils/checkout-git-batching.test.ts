@@ -31,7 +31,7 @@ vi.mock("child_process", async () => {
   };
 });
 
-import { getCheckoutDiff } from "./checkout-git.js";
+import { getCheckoutDiff } from "./checkout-git";
 
 function initRepoWithTrackedChanges(fileCount: number): {
   tempDir: string;

@@ -4,8 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type {
   SpeechToTextProvider,
   StreamingTranscriptionSession,
-} from "../speech/speech-provider.js";
-import { DictationStreamManager } from "./dictation-stream-manager.js";
+} from "../speech/speech-provider";
+import { DictationStreamManager } from "./dictation-stream-manager";
 
 class FakeRealtimeSession
   extends EventEmitter

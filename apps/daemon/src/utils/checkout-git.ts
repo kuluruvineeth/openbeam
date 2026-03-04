@@ -3,10 +3,10 @@ import { realpathSync } from "node:fs";
 import { open as openFile, stat as statFile } from "node:fs/promises";
 import { basename, dirname, resolve } from "node:path";
 import { promisify } from "node:util";
-import type { ParsedDiffFile } from "./diff-highlighter.js";
-import { parseAndHighlightDiff } from "./diff-highlighter.js";
-import { isOpenPlaneOwnedWorktreeCwd } from "./worktree.js";
-import { requireOpenPlaneWorktreeBaseRefName } from "./worktree-metadata.js";
+import type { ParsedDiffFile } from "./diff-highlighter";
+import { parseAndHighlightDiff } from "./diff-highlighter";
+import { isOpenPlaneOwnedWorktreeCwd } from "./worktree";
+import { requireOpenPlaneWorktreeBaseRefName } from "./worktree-metadata";
 
 const execAsync = promisify(exec);
 const execFileAsync = promisify(execFile);

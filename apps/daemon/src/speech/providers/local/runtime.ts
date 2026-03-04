@@ -1,11 +1,11 @@
 import type { Logger } from "pino";
 
-import type { OpenPlaneSpeechConfig } from "../../../bootstrap.js";
+import type { OpenPlaneSpeechConfig } from "../../../bootstrap";
 import type {
   SpeechToTextProvider,
   TextToSpeechProvider,
-} from "../../speech-provider.js";
-import type { RequestedSpeechProviders } from "../../speech-types.js";
+} from "../../speech-provider";
+import type { RequestedSpeechProviders } from "../../speech-types";
 import {
   DEFAULT_LOCAL_STT_MODEL,
   DEFAULT_LOCAL_TTS_MODEL,
@@ -16,15 +16,15 @@ import {
   LocalSttModelIdSchema,
   type LocalTtsModelId,
   LocalTtsModelIdSchema,
-} from "./models.js";
-import { PocketTtsOnnxTTS } from "./pocket/pocket-tts-onnx.js";
-import { SherpaOfflineRecognizerEngine } from "./sherpa/sherpa-offline-recognizer.js";
-import { SherpaOnlineRecognizerEngine } from "./sherpa/sherpa-online-recognizer.js";
-import { SherpaParakeetRealtimeTranscriptionSession } from "./sherpa/sherpa-parakeet-realtime-session.js";
-import { SherpaOnnxParakeetSTT } from "./sherpa/sherpa-parakeet-stt.js";
-import { SherpaRealtimeTranscriptionSession } from "./sherpa/sherpa-realtime-session.js";
-import { SherpaOnnxSTT } from "./sherpa/sherpa-stt.js";
-import { SherpaOnnxTTS } from "./sherpa/sherpa-tts.js";
+} from "./models";
+import { PocketTtsOnnxTTS } from "./pocket/pocket-tts-onnx";
+import { SherpaOfflineRecognizerEngine } from "./sherpa/sherpa-offline-recognizer";
+import { SherpaOnlineRecognizerEngine } from "./sherpa/sherpa-online-recognizer";
+import { SherpaParakeetRealtimeTranscriptionSession } from "./sherpa/sherpa-parakeet-realtime-session";
+import { SherpaOnnxParakeetSTT } from "./sherpa/sherpa-parakeet-stt";
+import { SherpaRealtimeTranscriptionSession } from "./sherpa/sherpa-realtime-session";
+import { SherpaOnnxSTT } from "./sherpa/sherpa-stt";
+import { SherpaOnnxTTS } from "./sherpa/sherpa-tts";
 
 type LocalSttEngine =
   | { kind: "offline"; engine: SherpaOfflineRecognizerEngine }

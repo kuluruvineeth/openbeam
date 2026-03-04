@@ -1,14 +1,14 @@
 export {
   createEncryptedTransport,
   createRelayE2eeTransportFactory,
-} from "./daemon-client-relay-e2ee-transport.js";
+} from "./daemon-client-relay-e2ee-transport";
 export type {
   DaemonTransport,
   DaemonTransportFactory,
   TransportLogger,
   WebSocketFactory,
   WebSocketLike,
-} from "./daemon-client-transport-types.js";
+} from "./daemon-client-transport-types";
 export {
   decodeMessageData,
   describeTransportClose,
@@ -17,9 +17,9 @@ export {
   extractRelayMessageData,
   normalizeTransportPayload,
   safeRandomId,
-} from "./daemon-client-transport-utils.js";
+} from "./daemon-client-transport-utils";
 export {
   bindWsHandler,
   createWebSocketTransportFactory,
   defaultWebSocketFactory,
-} from "./daemon-client-websocket-transport.js";
+} from "./daemon-client-websocket-transport";

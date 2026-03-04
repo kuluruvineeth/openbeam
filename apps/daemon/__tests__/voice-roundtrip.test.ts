@@ -4,13 +4,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { Readable } from "node:stream";
 import pino from "pino";
-import { OpenAISTT } from "../src/speech/providers/openai/stt.js";
-import { OpenAITTS } from "../src/speech/providers/openai/tts.js";
-import { STTManager } from "../src/speech/stt-manager.js";
-import {
-  createDaemonTestContext,
-  type DaemonTestContext,
-} from "./e2e-helpers.js";
+import { OpenAISTT } from "../src/speech/providers/openai/stt";
+import { OpenAITTS } from "../src/speech/providers/openai/tts";
+import { STTManager } from "../src/speech/stt-manager";
+import { createDaemonTestContext, type DaemonTestContext } from "./e2e-helpers";
 
 const openaiApiKey = process.env.OPENAI_API_KEY ?? null;
 const shouldRun =

@@ -2,7 +2,7 @@
  * Shared agent configurations for e2e tests.
  * Enables running the same tests against Claude, Codex, and OpenCode providers.
  */
-import { isCommandAvailable } from "../agent/provider-launch-config.js";
+import { isCommandAvailable } from "../agent/provider-launch-config";
 
 export interface AgentTestConfig {
   provider: "claude" | "codex" | "opencode";

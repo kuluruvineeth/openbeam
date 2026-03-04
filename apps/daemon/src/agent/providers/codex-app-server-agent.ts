@@ -31,18 +31,18 @@ import type {
   McpServerConfig,
   PersistedAgentDescriptor,
   ToolCallTimelineItem,
-} from "../agent-sdk-types.js";
+} from "../agent-sdk-types";
 import {
   buildChildProcessEnv,
   isProviderCommandAvailable,
   type ProviderRuntimeSettings,
   resolveProviderCommandPrefix,
-} from "../provider-launch-config.js";
+} from "../provider-launch-config";
 import {
   mapCodexRolloutToolCall,
   mapCodexToolCallFromThreadItem,
-} from "./codex/tool-call-mapper.js";
-import { loadCodexPersistedTimeline } from "./codex-rollout-timeline.js";
+} from "./codex/tool-call-mapper";
+import { loadCodexPersistedTimeline } from "./codex-rollout-timeline";
 
 const DEFAULT_TIMEOUT_MS = 14 * 24 * 60 * 60 * 1000;
 const TURN_START_TIMEOUT_MS = 90 * 1000;

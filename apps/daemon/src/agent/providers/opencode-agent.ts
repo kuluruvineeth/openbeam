@@ -29,14 +29,14 @@ import type {
   ListPersistedAgentsOptions,
   McpServerConfig,
   PersistedAgentDescriptor,
-} from "../agent-sdk-types.js";
+} from "../agent-sdk-types";
 import {
   buildChildProcessEnv,
   isProviderCommandAvailable,
   type ProviderRuntimeSettings,
   resolveProviderCommandPrefix,
-} from "../provider-launch-config.js";
-import { mapOpencodeToolCall } from "./opencode/tool-call-mapper.js";
+} from "../provider-launch-config";
+import { mapOpencodeToolCall } from "./opencode/tool-call-mapper";
 
 const OPENCODE_CAPABILITIES: AgentCapabilityFlags = {
   supportsStreaming: true,

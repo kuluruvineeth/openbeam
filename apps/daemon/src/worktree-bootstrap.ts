@@ -1,8 +1,8 @@
 import type { Logger } from "pino";
 import { v4 as uuidv4 } from "uuid";
-import type { AgentTimelineItem } from "./agent/agent-sdk-types.js";
-import type { TerminalSession } from "./terminal/terminal.js";
-import type { TerminalManager } from "./terminal/terminal-manager.js";
+import type { AgentTimelineItem } from "./agent/agent-sdk-types";
+import type { TerminalSession } from "./terminal/terminal";
+import type { TerminalManager } from "./terminal/terminal-manager";
 import {
   createWorktree,
   getWorktreeTerminalSpecs,
@@ -12,7 +12,7 @@ import {
   type WorktreeRuntimeEnv,
   type WorktreeSetupCommandResult,
   WorktreeSetupError,
-} from "./utils/worktree.js";
+} from "./utils/worktree";
 
 export interface WorktreeBootstrapTerminalResult {
   name: string | null;

@@ -8,7 +8,7 @@ import pino from "pino";
 import { describe, expect, test } from "vitest";
 import { z } from "zod";
 
-import { createVoiceMcpSocketBridgeManager } from "./voice-mcp-bridge.js";
+import { createVoiceMcpSocketBridgeManager } from "./voice-mcp-bridge";
 
 describe("voice MCP bridge", () => {
   test("proxies stdio MCP bytes through per-agent unix socket bridge", async () => {

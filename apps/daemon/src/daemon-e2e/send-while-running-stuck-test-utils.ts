@@ -1,4 +1,4 @@
-import type { AgentSnapshotPayload } from "../messages.js";
+import type { AgentSnapshotPayload } from "../messages";
 
 export function applyAgentInputProcessingTransition(input: {
   snapshot: AgentSnapshotPayload;

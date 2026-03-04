@@ -7,7 +7,7 @@ import {
   describeTransportError,
   encodeUtf8String,
   extractRelayMessageData,
-} from "./daemon-client-transport.js";
+} from "./daemon-client-transport";
 
 const createClientChannelMock = vi.hoisted(() => vi.fn());
 

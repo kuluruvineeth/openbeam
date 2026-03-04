@@ -2,15 +2,15 @@ import { z } from "zod";
 import type {
   OpenPlaneOpenAIConfig,
   OpenPlaneSpeechConfig,
-} from "../bootstrap.js";
-import type { PersistedConfig } from "../persisted-config.js";
-import { resolveLocalSpeechConfig } from "./providers/local/config.js";
-import { resolveOpenAiSpeechConfig } from "./providers/openai/config.js";
+} from "../bootstrap";
+import type { PersistedConfig } from "../persisted-config";
+import { resolveLocalSpeechConfig } from "./providers/local/config";
+import { resolveOpenAiSpeechConfig } from "./providers/openai/config";
 import {
   type RequestedSpeechProvider,
   type RequestedSpeechProviders,
   SpeechProviderIdSchema,
-} from "./speech-types.js";
+} from "./speech-types";
 
 const OptionalSpeechProviderSchema = z
   .string()

@@ -13,7 +13,7 @@ import {
   loadPersistedConfig,
   type PersistedConfig,
   savePersistedConfig,
-} from "../persisted-config.js";
+} from "../persisted-config";
 
 function createTempDir(): string {
   const dir = join(

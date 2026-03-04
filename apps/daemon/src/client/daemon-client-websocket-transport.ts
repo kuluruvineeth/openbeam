@@ -2,7 +2,7 @@ import type {
   DaemonTransportFactory,
   WebSocketFactory,
   WebSocketLike,
-} from "./daemon-client-transport-types.js";
+} from "./daemon-client-transport-types";
 
 export function defaultWebSocketFactory(
   url: string,

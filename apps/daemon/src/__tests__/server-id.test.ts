@@ -3,7 +3,7 @@ import { randomBytes } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { getOrCreateServerId } from "../server-id.js";
+import { getOrCreateServerId } from "../server-id";
 
 function createTempDir(): string {
   const dir = join(

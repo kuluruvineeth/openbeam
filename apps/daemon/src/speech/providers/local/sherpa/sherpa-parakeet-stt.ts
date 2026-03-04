@@ -1,19 +1,19 @@
 import { EventEmitter } from "node:events";
 import type pino from "pino";
 import { v4 as uuidv4 } from "uuid";
-import { Pcm16MonoResampler } from "../../../../agent/pcm16-resampler.js";
+import { Pcm16MonoResampler } from "../../../../agent/pcm16-resampler";
 import {
   parsePcm16MonoWav,
   parsePcmRateFromFormat,
   pcm16lePeakAbs,
   pcm16leToFloat32,
-} from "../../../audio.js";
+} from "../../../audio";
 import type {
   SpeechToTextProvider,
   StreamingTranscriptionSession,
   TranscriptionResult,
-} from "../../../speech-provider.js";
-import type { SherpaOfflineRecognizerEngine } from "./sherpa-offline-recognizer.js";
+} from "../../../speech-provider";
+import type { SherpaOfflineRecognizerEngine } from "./sherpa-offline-recognizer";
 
 export type SherpaParakeetSttConfig = {
   engine: SherpaOfflineRecognizerEngine;

@@ -3,12 +3,12 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import pino from "pino";
 import { describe, expect, test } from "vitest";
-import { isCommandAvailable } from "../agent/provider-launch-config.js";
-import { CodexAppServerAgentClient } from "../agent/providers/codex-app-server-agent.js";
-import { DaemonClient } from "../test-utils/daemon-client.js";
-import { createTestOpenPlaneDaemon } from "../test-utils/openplane-daemon.js";
-import { getFullAccessConfig } from "./agent-configs.js";
-import { applyAgentInputProcessingTransition } from "./send-while-running-stuck-test-utils.js";
+import { isCommandAvailable } from "../agent/provider-launch-config";
+import { CodexAppServerAgentClient } from "../agent/providers/codex-app-server-agent";
+import { DaemonClient } from "../test-utils/daemon-client";
+import { createTestOpenPlaneDaemon } from "../test-utils/openplane-daemon";
+import { getFullAccessConfig } from "./agent-configs";
+import { applyAgentInputProcessingTransition } from "./send-while-running-stuck-test-utils";
 
 function tmpCwd(): string {
   return mkdtempSync(path.join(tmpdir(), "daemon-real-stuck-"));

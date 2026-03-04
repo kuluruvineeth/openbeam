@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import type pino from "pino";
 
-import { loadSherpaOnnxNode } from "./sherpa-onnx-node-loader.js";
+import { loadSherpaOnnxNode } from "./sherpa-onnx-node-loader";
 
 function assertFileExists(filePath: string, label: string): void {
   if (!existsSync(filePath)) {

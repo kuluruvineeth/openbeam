@@ -5,15 +5,15 @@ export {
   exportPublicKey,
   generateKeyPair,
   importPublicKey,
-} from "./crypto.js";
-export type { EncryptedChannelEvents, Transport } from "./encrypted-channel.js";
+} from "./crypto";
+export type { EncryptedChannelEvents, Transport } from "./encrypted-channel";
 
 export {
   createClientChannel,
   createDaemonChannel,
   EncryptedChannel,
-} from "./encrypted-channel.js";
+} from "./encrypted-channel";
 export type {
   ConnectionRole,
   RelaySessionAttachment,
-} from "./types.js";
+} from "./types";

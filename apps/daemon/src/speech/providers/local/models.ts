@@ -7,11 +7,11 @@ import {
   type LocalTtsModelId,
   LocalTtsModelIdSchema,
   listSherpaOnnxModels,
-} from "./sherpa/model-catalog.js";
+} from "./sherpa/model-catalog";
 import {
   ensureSherpaOnnxModels,
   getSherpaOnnxModelDir,
-} from "./sherpa/model-downloader.js";
+} from "./sherpa/model-downloader";
 
 export {
   DEFAULT_LOCAL_STT_MODEL,

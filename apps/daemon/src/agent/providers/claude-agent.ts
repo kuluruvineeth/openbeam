@@ -47,19 +47,19 @@ import type {
   ListPersistedAgentsOptions,
   McpServerConfig,
   PersistedAgentDescriptor,
-} from "../agent-sdk-types.js";
-import { getOrchestratorModeInstructions } from "../orchestrator-instructions.js";
+} from "../agent-sdk-types";
+import { getOrchestratorModeInstructions } from "../orchestrator-instructions";
 import {
   applyProviderEnv,
   isProviderCommandAvailable,
   type ProviderRuntimeSettings,
-} from "../provider-launch-config.js";
+} from "../provider-launch-config";
 import {
   mapClaudeCanceledToolCall,
   mapClaudeCompletedToolCall,
   mapClaudeFailedToolCall,
   mapClaudeRunningToolCall,
-} from "./claude/tool-call-mapper.js";
+} from "./claude/tool-call-mapper";
 
 const fsPromises = promises;
 

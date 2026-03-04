@@ -3,12 +3,12 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import pino from "pino";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import { getFullAccessConfig } from "./daemon-e2e/agent-configs.js";
-import { OpenAITTS } from "./speech/providers/openai/tts.js";
+import { getFullAccessConfig } from "./daemon-e2e/agent-configs";
+import { OpenAITTS } from "./speech/providers/openai/tts";
 import {
   createDaemonTestContext,
   type DaemonTestContext,
-} from "./test-utils/index.js";
+} from "./test-utils/index";
 
 const openaiApiKey = process.env.OPENAI_API_KEY ?? null;
 const shouldRun =

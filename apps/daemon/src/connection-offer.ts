@@ -3,7 +3,7 @@ import os from "node:os";
 import {
   type ConnectionOffer,
   ConnectionOfferV2Schema,
-} from "./shared/connection-offer.js";
+} from "./shared/connection-offer";
 
 type BuildOfferEndpointsArgs = {
   listenHost: string;

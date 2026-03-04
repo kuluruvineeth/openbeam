@@ -1,8 +1,8 @@
 import type { SessionOutboundMessage } from "@openplane/types/services/daemon/messages";
 import type pino from "pino";
 import { v4 as uuidv4 } from "uuid";
-import { type Resolvable, toResolver } from "./provider-resolver.js";
-import type { TextToSpeechProvider } from "./speech-provider.js";
+import { type Resolvable, toResolver } from "./provider-resolver";
+import type { TextToSpeechProvider } from "./speech-provider";
 
 interface PendingPlayback {
   resolve: () => void;

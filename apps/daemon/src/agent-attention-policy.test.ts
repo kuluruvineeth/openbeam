@@ -3,7 +3,7 @@ import {
   type ClientAttentionState,
   computeShouldNotifyClient,
   computeShouldSendPush,
-} from "./agent-attention-policy.js";
+} from "./agent-attention-policy";
 
 function state(overrides: Partial<ClientAttentionState>): ClientAttentionState {
   return {

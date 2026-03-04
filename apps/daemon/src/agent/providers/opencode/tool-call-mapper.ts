@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import type { ToolCallTimelineItem } from "../../agent-sdk-types.js";
-import { deriveOpencodeToolDetail } from "./tool-call-detail-parser.js";
+import type { ToolCallTimelineItem } from "../../agent-sdk-types";
+import { deriveOpencodeToolDetail } from "./tool-call-detail-parser";
 
 type OpencodeToolCallParams = {
   toolName: string;

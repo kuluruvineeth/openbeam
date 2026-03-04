@@ -1,6 +1,6 @@
-import { buildToolCallDisplayModel } from "../shared/tool-call-display.js";
-import type { AgentTimelineItem, ToolCallDetail } from "./agent-sdk-types.js";
-import { isLikelyExternalToolName } from "./tool-name-normalization.js";
+import { buildToolCallDisplayModel } from "../shared/tool-call-display";
+import type { AgentTimelineItem, ToolCallDetail } from "./agent-sdk-types";
+import { isLikelyExternalToolName } from "./tool-name-normalization";
 
 const DEFAULT_MAX_ITEMS = 40;
 const MAX_TOOL_INPUT_CHARS = 400;

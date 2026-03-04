@@ -1,7 +1,7 @@
 // CLI exports for @openplane/server
 
 // Agent activity curator for CLI logs
-export { curateAgentActivity } from "./agent/activity-curator.js";
+export { curateAgentActivity } from "./agent/activity-curator";
 export {
   type AgentCaller,
   DEFAULT_STRUCTURED_GENERATION_PROVIDERS,
@@ -15,7 +15,7 @@ export {
   type StructuredAgentResponseOptions,
   type StructuredGenerationAttempt,
   type StructuredGenerationProvider,
-} from "./agent/agent-response-loop.js";
+} from "./agent/agent-response-loop";
 // Agent SDK types for CLI commands
 export type {
   AgentCapabilityFlags,
@@ -23,42 +23,42 @@ export type {
   AgentPermissionRequest,
   AgentTimelineItem,
   AgentUsage,
-} from "./agent/agent-sdk-types.js";
+} from "./agent/agent-sdk-types";
 export {
   createOpenPlaneDaemon,
   type OpenPlaneDaemon,
   type OpenPlaneDaemonConfig,
-} from "./bootstrap.js";
+} from "./bootstrap";
 export {
   type ConnectionState,
   DaemonClient,
   type DaemonClientConfig,
   type DaemonEvent,
-} from "./client/daemon-client.js";
-export { type CliConfigOverrides, loadConfig } from "./config.js";
-export { createRootLogger, type LogFormat, type LogLevel } from "./logger.js";
-export { resolveOpenPlaneHome } from "./openplane-home.js";
+} from "./client/daemon-client";
+export { type CliConfigOverrides, loadConfig } from "./config";
+export { createRootLogger, type LogFormat, type LogLevel } from "./logger";
+export { resolveOpenPlaneHome } from "./openplane-home";
 export {
   generateLocalPairingOffer,
   type LocalPairingOffer,
-} from "./pairing-offer.js";
+} from "./pairing-offer";
 export {
   loadPersistedConfig,
   type PersistedConfig,
-} from "./persisted-config.js";
+} from "./persisted-config";
 // WebSocket message types for CLI streaming
 export type {
   AgentSnapshotPayload,
   AgentStreamEventPayload,
   AgentStreamMessage,
-} from "./shared/messages.js";
+} from "./shared/messages";
 export {
   ensureLocalSpeechModels,
   type LocalSpeechModelId,
   type LocalSttModelId,
   type LocalTtsModelId,
   listLocalSpeechModels,
-} from "./speech/providers/local/models.js";
+} from "./speech/providers/local/models";
 export {
   applySherpaLoaderEnv,
   resolveSherpaLoaderEnv,
@@ -67,4 +67,4 @@ export {
   sherpaLoaderEnvKey,
   sherpaPlatformArch,
   sherpaPlatformPackageName,
-} from "./speech/providers/local/sherpa/sherpa-runtime-env.js";
+} from "./speech/providers/local/sherpa/sherpa-runtime-env";

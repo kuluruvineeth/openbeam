@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import type pino from "pino";
 
-import { loadSherpaOnnx } from "./sherpa-onnx-loader.js";
+import { loadSherpaOnnx } from "./sherpa-onnx-loader";
 
 export type SherpaOnlineRecognizerModel =
   | {

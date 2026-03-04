@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { ensureValidJson } from "../../json-utils.js";
-import { TerminalManager } from "./terminal-manager.js";
+import { ensureValidJson } from "../../json-utils";
+import { TerminalManager } from "./terminal-manager";
 
 export interface TerminalMcpServerOptions {
   sessionName: string;

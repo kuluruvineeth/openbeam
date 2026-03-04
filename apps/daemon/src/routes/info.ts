@@ -1,6 +1,6 @@
 import { Hono } from "hono";
-import type { DaemonConfig } from "../config.js";
-import type { DaemonKeyPair } from "../daemon-keypair.js";
+import type { DaemonConfig } from "../config";
+import type { DaemonKeyPair } from "../daemon-keypair";
 
 type InfoRouteOptions = {
   serverId: string;

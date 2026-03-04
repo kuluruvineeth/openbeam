@@ -3,10 +3,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
-import { createTestLogger } from "../test-utils/test-logger.js";
-import type { AgentManager, ManagedAgent } from "./agent-manager.js";
-import type { AgentStorage } from "./agent-storage.js";
-import { createAgentMcpServer } from "./mcp-server.js";
+import { createTestLogger } from "../test-utils/test-logger";
+import type { AgentManager, ManagedAgent } from "./agent-manager";
+import type { AgentStorage } from "./agent-storage";
+import { createAgentMcpServer } from "./mcp-server";
 
 type TestDeps = {
   agentManager: AgentManager;

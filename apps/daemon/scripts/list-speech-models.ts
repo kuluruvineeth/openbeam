@@ -1,4 +1,4 @@
-import { listLocalSpeechModels } from "../src/server/speech/providers/local/models.js";
+import { listLocalSpeechModels } from "../src/server/speech/providers/local/models";
 
 const models = listLocalSpeechModels()
   .slice()

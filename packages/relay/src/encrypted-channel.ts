@@ -1,6 +1,6 @@
 /// <reference lib="dom" />
 
-import { arrayBufferToBase64, base64ToArrayBuffer } from "./base64.js";
+import { arrayBufferToBase64, base64ToArrayBuffer } from "./base64";
 import {
   decrypt,
   deriveSharedKey,
@@ -10,7 +10,7 @@ import {
   importPublicKey,
   type KeyPair,
   type SharedKey,
-} from "./crypto.js";
+} from "./crypto";
 
 export interface Transport {
   send(data: string | ArrayBuffer): void;
