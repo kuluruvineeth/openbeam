@@ -59,6 +59,10 @@ export enum AppType {
   BACNET = "BACNET",
   THINGSBOARD = "THINGSBOARD",
   NODERED = "NODERED",
+  OMNIVERSE = "OMNIVERSE",
+  MATTERPORT = "MATTERPORT",
+  VIAM = "VIAM",
+  FHIR = "FHIR",
 }
 
 export enum SyncMode {
