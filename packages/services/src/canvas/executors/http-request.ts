@@ -541,7 +541,7 @@ function buildRequestBody(params: {
         return;
       }
       setHeaderIfMissing(headers, "content-type", "application/octet-stream");
-      return payload;
+      return new Blob([payload as BlobPart]);
     }
     default:
       throw new Error("Unsupported body type");
