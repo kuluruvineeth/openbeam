@@ -47,6 +47,11 @@ export const AppTypeSchema = z.enum([
   "INTERCOM",
   "FRESHDESK",
   "SERVICENOW",
+  "SAMSARA",
+  "VERKADA",
+  "AWS_IOT",
+  "AZURE_IOT",
+  "SMARTTHINGS",
 ]);
 
 export type AppType = z.infer<typeof AppTypeSchema>;

@@ -17,6 +17,10 @@ export const DocumentTypeCategorySchema = z.enum([
   "page",
   "comment",
   "channel",
+  "device",
+  "alert",
+  "sensor",
+  "automation",
   "unknown",
 ]);
 

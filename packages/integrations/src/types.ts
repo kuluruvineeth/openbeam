@@ -49,6 +49,11 @@ export enum AppType {
   NOTION = "NOTION",
   LINEAR = "LINEAR",
   GITHUB = "GITHUB",
+  SAMSARA = "SAMSARA",
+  VERKADA = "VERKADA",
+  AWS_IOT = "AWS_IOT",
+  AZURE_IOT = "AZURE_IOT",
+  SMARTTHINGS = "SMARTTHINGS",
 }
 
 export enum SyncMode {
