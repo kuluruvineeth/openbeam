@@ -52,6 +52,11 @@ export const AppTypeSchema = z.enum([
   "AWS_IOT",
   "AZURE_IOT",
   "SMARTTHINGS",
+  "MQTT",
+  "OPCUA",
+  "BACNET",
+  "THINGSBOARD",
+  "NODERED",
 ]);
 
 export type AppType = z.infer<typeof AppTypeSchema>;

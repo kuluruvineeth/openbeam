@@ -72,6 +72,10 @@
       "types": "./dist/services/connectors/common/index.d.ts",
       "default": "./src/services/connectors/common/index.ts"
     },
+    "./services/connectors/common/industrial": {
+      "types": "./dist/services/connectors/common/industrial.d.ts",
+      "default": "./src/services/connectors/common/industrial.ts"
+    },
     "./services/ai": {
       "types": "./dist/services/ai/index.d.ts",
       "default": "./src/services/ai/index.ts"

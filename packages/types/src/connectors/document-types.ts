@@ -21,6 +21,14 @@ export const DocumentTypeCategorySchema = z.enum([
   "alert",
   "sensor",
   "automation",
+  "sensor_reading",
+  "device_state",
+  "production_metric",
+  "device_birth",
+  "schedule",
+  "trend_data",
+  "automation_flow",
+  "device_config",
   "unknown",
 ]);
 
