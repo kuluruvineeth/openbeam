@@ -52,7 +52,7 @@ describe("createExecuteAgentStepChunkedActivity", () => {
 
     const result = await activity({
       sessionId: "s1",
-      agentType: "mission",
+      agentType: "research",
       step: 1,
       previousArtifacts: [],
       context: { prompt: "test" },
@@ -100,7 +100,7 @@ describe("createExecuteAgentStepChunkedActivity", () => {
 
     const result = await activity({
       sessionId: "s1",
-      agentType: "mission",
+      agentType: "research",
       step: 1,
       previousArtifacts: [],
       context: { prompt: "test" },
@@ -112,7 +112,7 @@ describe("createExecuteAgentStepChunkedActivity", () => {
 
     expect(executeChunk).toHaveBeenCalledWith({
       sessionId: "s1",
-      agentType: "mission",
+      agentType: "research",
       step: 1,
       chunkIndex: 2,
       previousOutput: expect.objectContaining({ chunkIndex: 2 }),
@@ -151,7 +151,7 @@ describe("createExecuteParallelAgentStepsActivity", () => {
 
     const result = await activity({
       sessionId: "s1",
-      agentType: "mission",
+      agentType: "research",
       step: 1,
       branches: [
         { branchId: "left", context: {}, previousArtifacts: [] },

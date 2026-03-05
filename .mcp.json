@@ -28,6 +28,10 @@
     "excalidraw": {
       "type": "http",
       "url": "https://excalidraw-mcp-app.vercel.app/mcp"
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"]
     }
   }
 }

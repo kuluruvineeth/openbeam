@@ -12,7 +12,6 @@ import { jobsRouter } from "./jobs";
 import { knowledgeRouter } from "./knowledge";
 import { mediaRouter } from "./media";
 import { messagesRouter } from "./messages";
-import { missionControlRouter } from "./mission-control";
 import { overviewRouter } from "./overview";
 import { paymentsRouter } from "./payments";
 import { permissionsRouter } from "./permissions";
@@ -37,7 +36,6 @@ export const appRouter = createTRPCRouter({
   knowledge: knowledgeRouter,
   media: mediaRouter,
   messages: messagesRouter,
-  missionControl: missionControlRouter,
   overview: overviewRouter,
   payments: paymentsRouter,
   permissions: permissionsRouter,

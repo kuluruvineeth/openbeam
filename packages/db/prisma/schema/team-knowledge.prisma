@@ -1,35 +1,19 @@
 model TeamKnowledge {
-  id                 String   @id @default(cuid()) @map("_id")
-  teamId             String
-  team               Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  contentHash        String
-  content            String   @db.Text
-  category           String
-  sources            String[] @default([])
-  confidence         Float    @default(0.7)
-  accessCount        Int      @default(0)
-  createdByMissionId String
-  lastAccessedAt     DateTime @default(now())
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-
-  missionLinks TeamKnowledgeMissionLink[]
+  id             String   @id @default(cuid()) @map("_id")
+  teamId         String
+  team           Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  contentHash    String
+  content        String   @db.Text
+  category       String
+  sources        String[] @default([])
+  confidence     Float    @default(0.7)
+  accessCount    Int      @default(0)
+  lastAccessedAt DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   @@unique([teamId, contentHash])
   @@index([teamId, category, confidence(sort: Desc)])
   @@index([teamId, lastAccessedAt(sort: Desc)])
   @@map("team_knowledge")
-}
-
-model TeamKnowledgeMissionLink {
-  id          String   @id @default(cuid()) @map("_id")
-  knowledgeId String
-  missionId   String
-  accessedAt  DateTime @default(now())
-
-  knowledge TeamKnowledge @relation(fields: [knowledgeId], references: [id], onDelete: Cascade)
-
-  @@unique([knowledgeId, missionId])
-  @@index([missionId])
-  @@map("team_knowledge_mission_link")
 }

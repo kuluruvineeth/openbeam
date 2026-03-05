@@ -72,10 +72,16 @@ describe("LlmAgentExecutor", () => {
         createSuccessResult("Research findings here")
       );
 
-      const result = await executor.executeStep("session-1", "mission", 1, [], {
-        prompt: "Research quantum computing",
-        teamId: "team-1",
-      });
+      const result = await executor.executeStep(
+        "session-1",
+        "research",
+        1,
+        [],
+        {
+          prompt: "Research quantum computing",
+          teamId: "team-1",
+        }
+      );
 
       expect(result.artifacts).toHaveLength(1);
       expect(result.artifacts).toEqual([
@@ -93,9 +99,15 @@ describe("LlmAgentExecutor", () => {
     it("marks incomplete when tool calls are pending", async () => {
       mockExecute.mockResolvedValue(createSuccessResult("Searching...", true));
 
-      const result = await executor.executeStep("session-1", "mission", 1, [], {
-        prompt: "Research topic",
-      });
+      const result = await executor.executeStep(
+        "session-1",
+        "research",
+        1,
+        [],
+        {
+          prompt: "Research topic",
+        }
+      );
 
       expect(result.complete).toBe(false);
     });
@@ -152,9 +164,15 @@ describe("LlmAgentExecutor", () => {
         },
       ];
 
-      await executor.executeStep("session-1", "mission", 2, previousArtifacts, {
-        prompt: "Original prompt",
-      });
+      await executor.executeStep(
+        "session-1",
+        "research",
+        2,
+        previousArtifacts,
+        {
+          prompt: "Original prompt",
+        }
+      );
 
       expect(mockExecute).toHaveBeenCalledWith(
         "Continue from your previous output. Step 2.",
@@ -170,7 +188,7 @@ describe("LlmAgentExecutor", () => {
         { role: "assistant", content: "Hi there" },
       ];
 
-      await executor.executeStep("session-1", "mission", 1, [], {
+      await executor.executeStep("session-1", "research", 1, [], {
         prompt: "Continue",
         contextWindow,
         teamId: "team-1",
@@ -196,9 +214,15 @@ describe("LlmAgentExecutor", () => {
         },
       ];
 
-      await executor.executeStep("session-1", "mission", 2, previousArtifacts, {
-        prompt: "Do research",
-      });
+      await executor.executeStep(
+        "session-1",
+        "research",
+        2,
+        previousArtifacts,
+        {
+          prompt: "Do research",
+        }
+      );
 
       expect(mockExecute).toHaveBeenCalledWith(
         expect.any(String),
@@ -213,9 +237,15 @@ describe("LlmAgentExecutor", () => {
     it("falls back to 'No output' for non-string output", async () => {
       mockExecute.mockResolvedValue(createSuccessResult({ data: [1, 2, 3] }));
 
-      const result = await executor.executeStep("session-1", "mission", 1, [], {
-        prompt: "Get data",
-      });
+      const result = await executor.executeStep(
+        "session-1",
+        "research",
+        1,
+        [],
+        {
+          prompt: "Get data",
+        }
+      );
 
       expect(result.artifacts).toEqual([
         expect.objectContaining({ content: "No output" }),
@@ -225,7 +255,7 @@ describe("LlmAgentExecutor", () => {
     it("uses default prompt when none provided", async () => {
       mockExecute.mockResolvedValue(createSuccessResult("Output"));
 
-      await executor.executeStep("session-1", "mission", 1, [], {});
+      await executor.executeStep("session-1", "research", 1, [], {});
 
       expect(mockExecute).toHaveBeenCalledWith(
         "Begin your task.",
@@ -236,7 +266,7 @@ describe("LlmAgentExecutor", () => {
     it("sets agent name from context or generates default", async () => {
       mockExecute.mockResolvedValue(createSuccessResult("Done"));
 
-      await executor.executeStep("session-1", "mission", 1, [], {
+      await executor.executeStep("session-1", "research", 1, [], {
         agentName: "research-bot",
       });
 
@@ -262,7 +292,7 @@ describe("LlmAgentExecutor", () => {
     it("injects sandbox tool services when sandbox metadata is present", async () => {
       mockExecute.mockResolvedValue(createSuccessResult("Done"));
 
-      await executor.executeStep("session-1", "mission", 1, [], {
+      await executor.executeStep("session-1", "research", 1, [], {
         sandboxId: "sandbox-1",
         prompt: "Run diagnostics",
       });

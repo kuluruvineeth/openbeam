@@ -1,17 +1,6 @@
 import type { Database } from "@openplane/db";
 import type { LoadAgentContextInput } from "./types";
 
-interface DbWithMissionMemory {
-  missionMemory: {
-    findMany: (args: {
-      where: { agentId: string };
-      take: number;
-      orderBy: { updatedAt: string };
-      select: { key: true; value: true; scope: true };
-    }) => Promise<Array<{ key: string; value: unknown; scope: string }>>;
-  };
-}
-
 export interface LoadAgentContextDependencies {
   db: Database;
 }
@@ -20,14 +9,10 @@ interface LoadAgentContextOptions {
   maxMemoryKeys?: number;
 }
 
-const DEFAULT_MAX_MEMORY_KEYS = 50;
-
 export function createLoadAgentContextActivity(
   deps: LoadAgentContextDependencies,
-  options?: LoadAgentContextOptions
+  _options?: LoadAgentContextOptions
 ) {
-  const maxMemoryKeys = options?.maxMemoryKeys ?? DEFAULT_MAX_MEMORY_KEYS;
-
   return async function loadAgentContext(
     input: LoadAgentContextInput
   ): Promise<Record<string, unknown>> {
@@ -57,19 +42,6 @@ export function createLoadAgentContextActivity(
       (latestCheckpoint?.memorySnapshot as Record<string, unknown>) ?? {};
     const contextWindow = (latestCheckpoint?.contextWindow as unknown[]) ?? [];
 
-    const memoryEntries: Array<{ key: string; value: unknown; scope: string }> =
-      await (deps.db as unknown as DbWithMissionMemory).missionMemory.findMany({
-        where: { agentId: input.sessionId },
-        take: maxMemoryKeys,
-        orderBy: { updatedAt: "desc" },
-        select: { key: true, value: true, scope: true },
-      });
-
-    const workingMemory: Record<string, unknown> = {};
-    for (const entry of memoryEntries) {
-      workingMemory[entry.key] = entry.value;
-    }
-
     return {
       agentId: agent.id,
       agentName: agent.name,
@@ -82,7 +54,7 @@ export function createLoadAgentContextActivity(
       checkpointState,
       memorySnapshot,
       contextWindow,
-      workingMemory,
+      workingMemory: {},
     };
   };
 }

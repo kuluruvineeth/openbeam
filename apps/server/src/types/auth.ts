@@ -18,9 +18,6 @@ export const API_SCOPES = {
   MEDIA_WRITE: "media:write",
   AGENTS_READ: "agents:read",
   AGENTS_WRITE: "agents:write",
-  MISSION_READ: "mission:read",
-  MISSION_WRITE: "mission:write",
-  MISSION_CONTROL: "mission:control",
   CANVAS_READ: "canvas:read",
   CANVAS_WRITE: "canvas:write",
   CANVAS_EXECUTE: "canvas:execute",
@@ -122,9 +119,6 @@ export const SCOPE_METHOD_MAP: Record<string, string[]> = {
   [API_SCOPES.MEDIA_WRITE]: ["POST", "PATCH", "DELETE"],
   [API_SCOPES.AGENTS_READ]: ["GET"],
   [API_SCOPES.AGENTS_WRITE]: ["POST", "PATCH", "DELETE"],
-  [API_SCOPES.MISSION_READ]: ["GET"],
-  [API_SCOPES.MISSION_WRITE]: ["POST", "PATCH", "DELETE"],
-  [API_SCOPES.MISSION_CONTROL]: ["POST"],
   [API_SCOPES.CANVAS_READ]: ["GET"],
   [API_SCOPES.CANVAS_WRITE]: ["POST", "PATCH", "DELETE"],
   [API_SCOPES.CANVAS_EXECUTE]: ["POST"],
@@ -197,22 +191,6 @@ export function getScopesForRoute(
   }
   if (path.startsWith("/api/v1/extensions")) {
     return [API_SCOPES.AGENTS_WRITE];
-  }
-  if (path.startsWith("/api/v1/missions")) {
-    if (method === "GET") {
-      return [API_SCOPES.MISSION_READ];
-    }
-    if (
-      path.includes("/start") ||
-      path.includes("/pause") ||
-      path.includes("/resume") ||
-      path.includes("/cancel") ||
-      path.includes("/agents/spawn") ||
-      path.includes("/broadcast")
-    ) {
-      return [API_SCOPES.MISSION_CONTROL];
-    }
-    return [API_SCOPES.MISSION_WRITE];
   }
   if (path.startsWith("/api/v1/canvas")) {
     if (path.includes("/executions") && method === "POST") {

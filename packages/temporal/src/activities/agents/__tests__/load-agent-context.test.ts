@@ -9,9 +9,6 @@ function createMockDb() {
     backgroundAgentCheckpoint: {
       findFirst: vi.fn(),
     },
-    missionMemory: {
-      findMany: vi.fn(),
-    },
   };
 }
 
@@ -22,13 +19,16 @@ describe("loadAgentContext", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     db = createMockDb();
-    loadAgentContext = createLoadAgentContextActivity({ db: db as any });
+    loadAgentContext = createLoadAgentContextActivity({
+      db: db as unknown as Parameters<
+        typeof createLoadAgentContextActivity
+      >[0]["db"],
+    });
   });
 
   it("returns empty object when agent not found", async () => {
     db.backgroundAgent.findUnique.mockResolvedValue(null);
     db.backgroundAgentCheckpoint.findFirst.mockResolvedValue(null);
-    db.missionMemory.findMany.mockResolvedValue([]);
 
     const result = await loadAgentContext({ sessionId: "missing-agent" });
 
@@ -53,8 +53,6 @@ describe("loadAgentContext", () => {
       stepIndex: 3,
     });
 
-    db.missionMemory.findMany.mockResolvedValue([]);
-
     const result = await loadAgentContext({ sessionId: "agent-1" });
 
     expect(result).toEqual({
@@ -73,32 +71,6 @@ describe("loadAgentContext", () => {
     });
   });
 
-  it("loads working memory from missionMemory table", async () => {
-    db.backgroundAgent.findUnique.mockResolvedValue({
-      id: "agent-1",
-      name: "Bot",
-      prompt: "",
-      preset: "general",
-      teamId: "t1",
-      userId: "u1",
-      status: "RUNNING",
-    });
-
-    db.backgroundAgentCheckpoint.findFirst.mockResolvedValue(null);
-
-    db.missionMemory.findMany.mockResolvedValue([
-      { key: "task_state", value: { active: true }, scope: "agent" },
-      { key: "findings", value: ["item1", "item2"], scope: "mission" },
-    ]);
-
-    const result = await loadAgentContext({ sessionId: "agent-1" });
-
-    expect(result.workingMemory).toEqual({
-      task_state: { active: true },
-      findings: ["item1", "item2"],
-    });
-  });
-
   it("defaults checkpoint fields when no checkpoint exists", async () => {
     db.backgroundAgent.findUnique.mockResolvedValue({
       id: "agent-1",
@@ -111,7 +83,6 @@ describe("loadAgentContext", () => {
     });
 
     db.backgroundAgentCheckpoint.findFirst.mockResolvedValue(null);
-    db.missionMemory.findMany.mockResolvedValue([]);
 
     const result = await loadAgentContext({ sessionId: "agent-1" });
 
@@ -139,8 +110,6 @@ describe("loadAgentContext", () => {
       stepIndex: 5,
     });
 
-    db.missionMemory.findMany.mockResolvedValue([]);
-
     await loadAgentContext({ sessionId: "agent-1" });
 
     expect(db.backgroundAgentCheckpoint.findFirst).toHaveBeenCalledWith({
@@ -153,57 +122,6 @@ describe("loadAgentContext", () => {
         stepIndex: true,
       },
     });
-  });
-
-  it("respects maxMemoryKeys option", async () => {
-    db.backgroundAgent.findUnique.mockResolvedValue({
-      id: "agent-1",
-      name: "Bot",
-      prompt: "",
-      preset: "general",
-      teamId: "t1",
-      userId: "u1",
-      status: "RUNNING",
-    });
-
-    db.backgroundAgentCheckpoint.findFirst.mockResolvedValue(null);
-    db.missionMemory.findMany.mockResolvedValue([]);
-
-    const customLoader = createLoadAgentContextActivity(
-      { db: db as any },
-      { maxMemoryKeys: 10 }
-    );
-
-    await customLoader({ sessionId: "agent-1" });
-
-    expect(db.missionMemory.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        take: 10,
-      })
-    );
-  });
-
-  it("uses default maxMemoryKeys of 50", async () => {
-    db.backgroundAgent.findUnique.mockResolvedValue({
-      id: "agent-1",
-      name: "Bot",
-      prompt: "",
-      preset: "general",
-      teamId: "t1",
-      userId: "u1",
-      status: "RUNNING",
-    });
-
-    db.backgroundAgentCheckpoint.findFirst.mockResolvedValue(null);
-    db.missionMemory.findMany.mockResolvedValue([]);
-
-    await loadAgentContext({ sessionId: "agent-1" });
-
-    expect(db.missionMemory.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        take: 50,
-      })
-    );
   });
 
   it("runs agent and checkpoint queries in parallel", async () => {
@@ -228,7 +146,6 @@ describe("loadAgentContext", () => {
 
     db.backgroundAgent.findUnique.mockReturnValue(agentPromise);
     db.backgroundAgentCheckpoint.findFirst.mockReturnValue(checkpointPromise);
-    db.missionMemory.findMany.mockResolvedValue([]);
 
     const start = Date.now();
     await loadAgentContext({ sessionId: "a1" });

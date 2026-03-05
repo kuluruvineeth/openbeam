@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { TASK_QUEUES } from "./task-queues";
 
 export const TemporalConfigSchema = z.object({
   address: z.string().default("localhost:7233"),
@@ -26,28 +25,6 @@ export const WorkerConfigSchema = z.object({
 
 export type WorkerConfig = z.infer<typeof WorkerConfigSchema>;
 
-function parseWorkerEnvNumber(
-  value: string | undefined,
-  fallback: number
-): number {
-  if (value === undefined || value.length === 0 || value === "undefined") {
-    return fallback;
-  }
-
-  return Number(value);
-}
-
-function parseWorkerEnvString(
-  value: string | undefined,
-  fallback: string
-): string {
-  if (value === undefined || value.length === 0 || value === "undefined") {
-    return fallback;
-  }
-
-  return value;
-}
-
 export function loadTemporalConfig(): TemporalConfig {
   return TemporalConfigSchema.parse({
     address: process.env.TEMPORAL_ADDRESS,
@@ -62,27 +39,6 @@ export function loadTemporalConfig(): TemporalConfig {
   });
 }
 
-export function loadMissionWorkerConfig(): WorkerConfig {
-  return WorkerConfigSchema.parse({
-    taskQueue: parseWorkerEnvString(
-      process.env.TEMPORAL_MISSION_TASK_QUEUE,
-      TASK_QUEUES.MISSION
-    ),
-    maxConcurrentActivityTaskExecutions: parseWorkerEnvNumber(
-      process.env.TEMPORAL_MAX_ACTIVITIES,
-      10
-    ),
-    maxConcurrentWorkflowTaskExecutions: parseWorkerEnvNumber(
-      process.env.TEMPORAL_MAX_WORKFLOWS,
-      100
-    ),
-    maxCachedWorkflows: parseWorkerEnvNumber(
-      process.env.TEMPORAL_MAX_CACHED,
-      500
-    ),
-  });
-}
-
 export {
   InMemoryCounter,
   InMemoryGauge,
@@ -90,7 +46,6 @@ export {
   type MetricLabels,
   resetAllMetrics,
   snapshotMetrics,
-  swarmMetrics,
 } from "./metrics";
 export {
   AGENT_CHUNKED_RETRY_POLICY,

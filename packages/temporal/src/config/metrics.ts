@@ -114,76 +114,12 @@ export class InMemoryHistogram {
   }
 }
 
-export const swarmMetrics = {
-  agentsActive: new InMemoryGauge(
-    "mission_agents_active",
-    "Currently active agents"
-  ),
-  spawnTotal: new InMemoryCounter("mission_spawn_total", "Total agent spawns"),
-  spawnRejected: new InMemoryCounter(
-    "mission_spawn_rejected",
-    "Rejected spawn requests"
-  ),
-  messagesSent: new InMemoryCounter(
-    "mission_messages_sent",
-    "Total inter-agent messages"
-  ),
-  messageLatencyMs: new InMemoryHistogram(
-    "mission_message_latency_ms",
-    "Message delivery latency"
-  ),
-  llmCallDurationMs: new InMemoryHistogram(
-    "mission_llm_call_duration_ms",
-    "LLM call duration"
-  ),
-  llmCallErrors: new InMemoryCounter(
-    "mission_llm_call_errors",
-    "LLM call errors"
-  ),
-  budgetConsumedCents: new InMemoryGauge(
-    "mission_budget_consumed_cents",
-    "Budget consumed"
-  ),
-  reflectionScore: new InMemoryHistogram(
-    "mission_reflection_score",
-    "Agent reflection scores"
-  ),
-  heartbeatLag: new InMemoryHistogram(
-    "mission_heartbeat_lag_ms",
-    "Heartbeat timing deviation"
-  ),
-  messagesRateLimited: new InMemoryCounter(
-    "mission_messages_rate_limited",
-    "Rate-limited message attempts"
-  ),
-  messagesDeadLettered: new InMemoryCounter(
-    "mission_messages_dead_lettered",
-    "Messages moved to DLQ"
-  ),
-  messagesDeduplicated: new InMemoryCounter(
-    "mission_messages_deduplicated",
-    "Duplicate messages filtered"
-  ),
-  messagesReclaimed: new InMemoryCounter(
-    "mission_messages_reclaimed",
-    "Stale messages reclaimed"
-  ),
-  messagesReprocessed: new InMemoryCounter(
-    "mission_messages_reprocessed",
-    "DLQ messages reprocessed"
-  ),
-};
+const noop = Function.prototype as () => void;
 
 export function resetAllMetrics(): void {
-  for (const metric of Object.values(swarmMetrics)) {
-    metric.reset();
-  }
+  noop();
 }
 
 export function snapshotMetrics(): Record<string, unknown> {
-  const result: Record<string, unknown> = {};
-  for (const [key, metric] of Object.entries(swarmMetrics)) {
-    result[key] = metric.snapshot();
-  }
-  return result;
+  return {};
 }

@@ -1,13 +1,12 @@
-import type { Database, Prisma } from "@openplane/db";
+import type { Database } from "@openplane/db";
 
 export interface MemoryWriteInput {
   executionId: string;
   teamId: string;
-  missionId?: string;
   agentId?: string;
   key: string;
   value: unknown;
-  scope: "workflow" | "agent" | "mission" | "team";
+  scope: "workflow" | "agent" | "team";
 }
 
 export interface MemoryWriteOutput {
@@ -21,34 +20,15 @@ export interface MemoryWriteNodeDependencies {
 }
 
 export function createMemoryWriteNodeActivity(
-  deps: MemoryWriteNodeDependencies
+  _deps: MemoryWriteNodeDependencies
 ) {
-  return async function memoryWriteNode(
+  return function memoryWriteNode(
     input: MemoryWriteInput
   ): Promise<MemoryWriteOutput> {
-    const missionId = input.missionId ?? input.executionId;
-
-    await deps.db.missionMemory.upsert({
-      where: {
-        missionId_agentId_key_scope: {
-          missionId,
-          agentId: input.agentId ?? "",
-          key: input.key,
-          scope: input.scope,
-        },
-      },
-      create: {
-        missionId,
-        agentId: input.agentId ?? "",
-        key: input.key,
-        scope: input.scope,
-        value: input.value as Prisma.InputJsonValue,
-      },
-      update: {
-        value: input.value as Prisma.InputJsonValue,
-      },
+    return Promise.resolve({
+      key: input.key,
+      scope: input.scope,
+      written: false,
     });
-
-    return { key: input.key, scope: input.scope, written: true };
   };
 }

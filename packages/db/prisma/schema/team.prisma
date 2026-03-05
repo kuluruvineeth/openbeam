@@ -13,6 +13,13 @@ model Team {
   subscriptionTier   String @default("free")
   subscriptionStatus String @default("active")
 
+  budgetMonthlyCents               Int?
+  consumedMonthlyCents             Int?
+  issuePrefix                      String? @unique
+  issueCounter                     Int     @default(0)
+  requireBoardApprovalForNewAgents Boolean @default(false)
+  brandColor                       String?
+
   usersOnTeam            UsersOnTeam[]
   userInvites            UserInvite[]
   connectors             Connector[]
@@ -33,20 +40,48 @@ model Team {
   agentExecutionTraces AgentExecutionTrace[]
   savedSearches        SavedSearch[]
   shareLinks           ShareLink[]
-  agentCanvases         AgentCanvas[]
-  agentCanvasTemplates  AgentCanvasTemplate[]
-  agentCanvasSessions   AgentCanvasSession[]
+  agentCanvases        AgentCanvas[]
+  agentCanvasTemplates AgentCanvasTemplate[]
+  agentCanvasSessions  AgentCanvasSession[]
   workflowAuditLogs    WorkflowAuditLog[]
-  missions             Mission[]
   teamKnowledge        TeamKnowledge[]
 
-  wallets          PaymentWallet[]
-  pricingPolicies  PaymentPricingPolicy[]
-  paymentReceipts  PaymentReceipt[]
-  ledgerEntries    PaymentLedgerEntry[]
+  wallets         PaymentWallet[]
+  pricingPolicies PaymentPricingPolicy[]
+  paymentReceipts PaymentReceipt[]
+  ledgerEntries   PaymentLedgerEntry[]
 
   voiceNotes    VoiceNote[]
   voiceSessions VoiceSession[]
+
+  controlAgents                ControlAgent[]
+  controlAgentApiKeys          ControlAgentApiKey[]
+  controlAgentConfigRevisions  ControlAgentConfigRevision[]
+  controlAgentRuntimeStates    ControlAgentRuntimeState[]
+  controlAgentTaskSessions     ControlAgentTaskSession[]
+  controlAgentWakeupRequests   ControlAgentWakeupRequest[]
+  controlHeartbeatRuns         ControlHeartbeatRun[]
+  controlHeartbeatRunEvents    ControlHeartbeatRunEvent[]
+  controlAssets                ControlAsset[]
+  controlIssues                ControlIssue[]
+  controlIssueComments         ControlIssueComment[]
+  controlIssueAttachments      ControlIssueAttachment[]
+  controlIssueLabels           ControlIssueLabel[]
+  controlIssueLabelAssignments ControlIssueLabelAssignment[]
+  controlProjects              ControlProject[]
+  controlProjectWorkspaces     ControlProjectWorkspace[]
+  controlProjectGoals          ControlProjectGoal[]
+  controlGoals                 ControlGoal[]
+  controlApprovals             ControlApproval[]
+  controlApprovalComments      ControlApprovalComment[]
+  controlIssueApprovals        ControlIssueApproval[]
+  controlCostEvents            ControlCostEvent[]
+  controlActivityLogs          ControlActivityLog[]
+  controlTeamSecrets           ControlTeamSecret[]
+  controlCompanyMemberships    ControlCompanyMembership[]
+  controlAccessGrants          ControlAccessGrant[]
+  controlInvites               ControlInvite[]
+  controlJoinRequests          ControlJoinRequest[]
 
   @@map("team")
 }

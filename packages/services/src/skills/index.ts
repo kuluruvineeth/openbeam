@@ -26,10 +26,3 @@ export {
   type SecurityViolation,
   SecurityViolationSchema,
 } from "./security-check";
-
-export {
-  ALL_TEMPLATES,
-  applyTemplate,
-  getAvailableTemplates,
-  getTemplate,
-} from "./templates";

@@ -1,7 +1,7 @@
 export interface MessagingMetricsHook {
-  onPublished(missionId: string): void;
-  onRateLimited(missionId: string, senderId: string, window: string): void;
-  onDeduplicated(missionId: string, messageId: string): void;
+  onPublished(sessionId: string): void;
+  onRateLimited(sessionId: string, senderId: string, window: string): void;
+  onDeduplicated(sessionId: string, messageId: string): void;
   onDeadLettered(streamKey: string): void;
   onReclaimed(streamKey: string, count: number): void;
   onReprocessed(streamKey: string): void;

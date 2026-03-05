@@ -1,13 +1,13 @@
 import type { Database } from "@openplane/db";
 
-export type MemoryScope = "workflow" | "agent" | "mission" | "team";
+export type MemoryScope = "workflow" | "agent" | "session" | "team";
 
 export interface DurableMemoryEntry {
   key: string;
   value: unknown;
   scope: MemoryScope;
   agentId: string | null;
-  missionId: string;
+  sessionId: string;
 }
 
 export interface DurableMemorySearchOptions {
@@ -19,14 +19,14 @@ export interface DurableMemorySearchOptions {
 
 export interface DurableMemoryStore {
   get(
-    missionId: string,
+    sessionId: string,
     key: string,
     scope?: MemoryScope,
     agentId?: string
   ): Promise<unknown | null>;
 
   set(
-    missionId: string,
+    sessionId: string,
     key: string,
     value: unknown,
     scope?: MemoryScope,
@@ -34,102 +34,37 @@ export interface DurableMemoryStore {
   ): Promise<void>;
 
   delete(
-    missionId: string,
+    sessionId: string,
     key: string,
     scope?: MemoryScope,
     agentId?: string
   ): Promise<boolean>;
 
   search(
-    missionId: string,
+    sessionId: string,
     options?: DurableMemorySearchOptions
   ): Promise<DurableMemoryEntry[]>;
 }
 
-export function createDurableMemoryStore(db: Database): DurableMemoryStore {
+const noop = Function.prototype as () => void;
+
+export function createDurableMemoryStore(_db: Database): DurableMemoryStore {
   return {
-    async get(missionId, key, scope = "mission", agentId = "") {
-      const record = await db.missionMemory.findUnique({
-        where: {
-          missionId_agentId_key_scope: {
-            missionId,
-            agentId,
-            key,
-            scope,
-          },
-        },
-      });
-
-      return record?.value ?? null;
+    get() {
+      return Promise.resolve(null);
     },
 
-    // biome-ignore lint/nursery/useMaxParams: interface contract requires 5 parameters
-    async set(missionId, key, value, scope = "mission", agentId = "") {
-      await db.missionMemory.upsert({
-        where: {
-          missionId_agentId_key_scope: {
-            missionId,
-            agentId,
-            key,
-            scope,
-          },
-        },
-        create: {
-          missionId,
-          agentId,
-          key,
-          scope,
-          value: value as never,
-        },
-        update: {
-          value: value as never,
-        },
-      });
+    set() {
+      noop();
+      return Promise.resolve();
     },
 
-    async delete(missionId, key, scope = "mission", agentId = "") {
-      try {
-        await db.missionMemory.delete({
-          where: {
-            missionId_agentId_key_scope: {
-              missionId,
-              agentId,
-              key,
-              scope,
-            },
-          },
-        });
-        return true;
-      } catch {
-        return false;
-      }
+    delete() {
+      return Promise.resolve(false);
     },
 
-    async search(missionId, options = {}) {
-      const where: Record<string, unknown> = { missionId };
-      if (options.scope) {
-        where.scope = options.scope;
-      }
-      if (options.agentId) {
-        where.agentId = options.agentId;
-      }
-      if (options.prefix) {
-        where.key = { startsWith: options.prefix };
-      }
-
-      const records = await db.missionMemory.findMany({
-        where,
-        take: options.limit ?? 50,
-        orderBy: { updatedAt: "desc" },
-      });
-
-      return records.map((r) => ({
-        key: r.key,
-        value: r.value,
-        scope: r.scope as MemoryScope,
-        agentId: r.agentId,
-        missionId: r.missionId,
-      }));
+    search() {
+      return Promise.resolve([]);
     },
   };
 }

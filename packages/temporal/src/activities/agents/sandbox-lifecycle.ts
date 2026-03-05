@@ -1,9 +1,17 @@
 import type { SandboxConfig as RuntimeSandboxConfig } from "@openplane/sandbox";
-import type { SandboxConfig } from "@openplane/types/temporal/mission";
 import {
   getAvailableSandboxProviders,
   resolveAvailableSandboxProvider,
 } from "./sandbox-provider";
+
+interface SandboxConfig {
+  template?: string;
+  timeout?: number;
+  memoryMb?: number;
+  cpuCores?: number;
+  internetAccess?: boolean;
+  envVars?: Record<string, string>;
+}
 
 const TRAILING_SLASH_REGEX = /\/+$/;
 

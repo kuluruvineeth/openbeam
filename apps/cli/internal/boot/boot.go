@@ -19,7 +19,7 @@ import (
 	"github.com/openplane/openplane/apps/cli/internal/cmd/knowledge"
 	"github.com/openplane/openplane/apps/cli/internal/cmd/mcp"
 	"github.com/openplane/openplane/apps/cli/internal/cmd/media"
-	"github.com/openplane/openplane/apps/cli/internal/cmd/mission"
+
 	"github.com/openplane/openplane/apps/cli/internal/cmd/permissions"
 	"github.com/openplane/openplane/apps/cli/internal/cmd/plugin"
 	"github.com/openplane/openplane/apps/cli/internal/cmd/rag"
@@ -125,7 +125,6 @@ func NewRootCommand(ctx context.Context, in io.Reader, out io.Writer, errOut io.
 	agentCommand := agent.NewCommand(buildRuntime)
 	backgroundAgentsCommand := backgroundagents.NewCommand(buildRuntime)
 	canvasCommand := canvas.NewCommand(buildRuntime)
-	missionCommand := mission.NewCommand(buildRuntime)
 	ragCommand := rag.NewCommand(buildRuntime)
 	researchCommand := research.NewCommand(buildRuntime)
 	knowledgeCommand := knowledge.NewCommand(buildRuntime)
@@ -150,7 +149,6 @@ func NewRootCommand(ctx context.Context, in io.Reader, out io.Writer, errOut io.
 	agentCommand.GroupID = "agent"
 	backgroundAgentsCommand.GroupID = "agent"
 	canvasCommand.GroupID = "agent"
-	missionCommand.GroupID = "agent"
 	ragCommand.GroupID = "agent"
 	researchCommand.GroupID = "agent"
 	knowledgeCommand.GroupID = "agent"
@@ -173,7 +171,6 @@ func NewRootCommand(ctx context.Context, in io.Reader, out io.Writer, errOut io.
 	root.AddCommand(agentCommand)
 	root.AddCommand(backgroundAgentsCommand)
 	root.AddCommand(canvasCommand)
-	root.AddCommand(missionCommand)
 	root.AddCommand(ragCommand)
 	root.AddCommand(researchCommand)
 	root.AddCommand(knowledgeCommand)

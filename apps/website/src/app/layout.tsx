@@ -35,11 +35,11 @@ export const metadata: Metadata = {
     template: "%s | OpenBeam",
   },
   description:
-    "The open-source Glean alternative. Self-hosted enterprise AI search with 20 connectors, AI agents, and real-time sync.",
+    "The open-source Glean alternative. Self-hosted enterprise AI search with 20+ connectors, AI agents, and real-time sync.",
   openGraph: {
     title: "OpenBeam — Open-Source Enterprise AI Search",
     description:
-      "Self-hosted Glean alternative with 20 connectors, AI agents, and real-time sync. Own your data.",
+      "Self-hosted Glean alternative with 20+ connectors, AI agents, and real-time sync. Own your data.",
     url: "https://openbeam.work",
     siteName: "OpenBeam",
     locale: "en_US",
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "OpenBeam — Open-Source Enterprise AI Search",
-    description: "Self-hosted Glean alternative with 20 connectors",
+    description: "Self-hosted Glean alternative with 20+ connectors",
     images: ["/og.png"],
   },
   robots: {

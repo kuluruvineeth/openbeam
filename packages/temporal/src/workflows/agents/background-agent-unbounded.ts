@@ -32,7 +32,7 @@ function resolveTimeoutTier(agentType: string, override?: string): TimeoutTier {
     "quick-answer": "quick",
     research: "standard",
     "code-generation": "extended",
-    mission: "standard",
+
     "deep-analysis": "extended",
     "codebase-migration": "marathon",
   };

@@ -61,6 +61,7 @@ export type {
   MemoryScope,
 } from "./durable-store";
 export { createDurableMemoryStore } from "./durable-store";
+
 export type {
   BatchEmbeddingOptions,
   CachedEmbeddingProviderOptions,

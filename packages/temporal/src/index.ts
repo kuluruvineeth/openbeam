@@ -22,7 +22,6 @@ export {
   InMemoryCounter,
   InMemoryGauge,
   InMemoryHistogram,
-  loadMissionWorkerConfig,
   loadTemporalConfig,
   MEDIA_ANALYZE_TIMEOUTS,
   MEDIA_RETRY_POLICY,
@@ -34,7 +33,6 @@ export {
   SYNC_RETRY_POLICY,
   SYNC_TIMEOUTS,
   snapshotMetrics,
-  swarmMetrics,
   TASK_QUEUES,
   type TaskQueue,
   type TemporalConfig,
@@ -158,26 +156,6 @@ export {
   processMedia,
 } from "./triggers/media";
 export {
-  awaitMissionCompletion,
-  cancelLinearRun,
-  cancelMission,
-  createMissionHeartbeatSchedule,
-  deleteMissionHeartbeatSchedule,
-  getActiveMissionsForTeam,
-  getAgentReflection,
-  getLinearRunProgress,
-  getMissionHealth,
-  getMissionRuntime,
-  type MissionHandle,
-  pauseMission,
-  resumeMission,
-  type StartMissionOptions,
-  sendMissionCommand,
-  startLinearRun,
-  startMission,
-  wakeMission,
-} from "./triggers/mission";
-export {
   createDigestSchedule,
   createSyncSchedule,
   type DigestScheduleInfo,
@@ -260,7 +238,6 @@ export {
   createWorkerWithHandle,
   type WorkerHandle,
 } from "./worker/factory";
-export { createMissionWorker } from "./worker/mission-worker";
 export type { WorkerOptions, WorkerType } from "./worker/types";
 export {
   type AgentChainProgress,
@@ -269,9 +246,6 @@ export {
   extendTimeoutSignal,
 } from "./workflows/agents/signals";
 export {
-  agentReflectionQuery,
   type CanvasExecutionQueryState,
   canvasExecutionQuery,
-  dependencyFailureSignal,
-  missionHealthQuery,
 } from "./workflows/types";

@@ -40,36 +40,6 @@ export {
   registerSearchTools,
   resetToolRegistration,
 } from "./definitions";
-export type {
-  MissionDelegationServices,
-  MissionMessagingServices,
-  MissionPeerReviewServices,
-  MissionSpawnServices,
-  TeamKnowledgeServices,
-} from "./definitions/mission";
-export {
-  missionDelegateToMission,
-  missionDiscoverMissions,
-  missionEscalate,
-  missionEvaluateProgress,
-  missionGetInbox,
-  missionGetSpawnTree,
-  missionListAgents,
-  missionQueryCapabilities,
-  missionQueryTeamKnowledge,
-  missionRequestPeerReview,
-  missionRequestReplan,
-  missionSendMessage,
-  missionSpawnAgent,
-  missionStoreTeamKnowledge,
-  missionSubmitPeerReview,
-  missionWaitForReply,
-  setMissionDelegationServices,
-  setMissionMessagingServices,
-  setMissionPeerReviewServices,
-  setMissionSpawnServices,
-  setTeamKnowledgeServices,
-} from "./definitions/mission";
 export type { ToolExecutorConfig, ToolExecutorResult } from "./executor";
 export {
   createToolExecutor,
