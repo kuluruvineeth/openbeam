@@ -13,14 +13,19 @@ const FeaturesSection = dynamic(() =>
     (mod) => mod.FeaturesSection
   )
 );
-const ComparisonSection = dynamic(() =>
-  import("@/components/sections/comparison-section").then(
-    (mod) => mod.ComparisonSection
+const SurfacesSection = dynamic(() =>
+  import("@/components/sections/surfaces-section").then(
+    (mod) => mod.SurfacesSection
   )
 );
 const ConnectorsSection = dynamic(() =>
   import("@/components/sections/connectors-section").then(
     (mod) => mod.ConnectorsSection
+  )
+);
+const ComparisonSection = dynamic(() =>
+  import("@/components/sections/comparison-section").then(
+    (mod) => mod.ComparisonSection
   )
 );
 const CTASection = dynamic(() =>
@@ -44,9 +49,11 @@ export default function HomePage() {
       <Divider />
       <FeaturesSection />
       <Divider />
-      <ComparisonSection />
+      <SurfacesSection />
       <Divider />
       <ConnectorsSection />
+      <Divider />
+      <ComparisonSection />
       <Divider />
       <CTASection />
     </>
