@@ -10,33 +10,33 @@ import { cn } from "@/lib/cn";
 const FEATURES = [
   {
     title: "Search",
-    description: "Search across all connected tools in one place",
+    description: "Type once. Results from every tool.",
     href: "/#features",
   },
   {
-    title: "AI Agents",
-    description: "Multi-agent workflows that find answers and act",
+    title: "Agents",
+    description: "They find, verify, then act.",
     href: "/#features",
   },
   {
     title: "Connectors",
-    description: "20 integrations for Slack, Notion, GitHub, and more",
+    description: "Slack, GitHub, Notion — plus MQTT, OPC-UA, Samsara.",
     href: "/connectors/",
   },
   {
-    title: "Real-Time Sync",
-    description: "Full and incremental sync for always-current data",
+    title: "Live Sync",
+    description: "Never search yesterday's version.",
     href: "/#features",
   },
   {
     title: "Self-Hosted",
-    description: "Deploy on your infrastructure with Docker",
+    description: "Your servers. Your data. MIT licensed.",
     href: "https://docs.openbeam.work/self-hosting",
     external: true,
   },
   {
     title: "Open Source",
-    description: "MIT licensed. Read, extend, and customize freely",
+    description: "Read every line. Change any line.",
     href: "https://github.com/openbeam/openbeam",
     external: true,
   },
@@ -114,7 +114,7 @@ function SearchPreviewCard() {
           Enterprise Search
         </div>
         <div className="font-sans text-[10px] text-muted-foreground">
-          AI-powered with sources
+          Search once. Sources cited.
         </div>
       </div>
     </Link>
@@ -138,9 +138,9 @@ function DeployPreviewCard() {
         />
       </div>
       <div className="border-border border-t bg-background p-2.5">
-        <div className="font-sans text-foreground text-xs">AI Agents</div>
+        <div className="font-sans text-foreground text-xs">Agents</div>
         <div className="font-sans text-[10px] text-muted-foreground">
-          Multi-agent workflows
+          Tasks, not just answers.
         </div>
       </div>
     </Link>
@@ -151,8 +151,16 @@ export function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [isFeaturesOpen, setIsFeaturesOpen] = useState(false);
   const [isMobileFeaturesOpen, setIsMobileFeaturesOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const featuresTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
   const pathname = usePathname();
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     setIsOpen(false);
@@ -189,7 +197,10 @@ export function Header() {
             className={cn(
               "relative z-10 px-4 py-3 sm:px-6 lg:px-8 xl:py-4",
               "flex items-center justify-between",
-              "bg-background-semi-transparent backdrop-blur-md"
+              "transition-[background-color,backdrop-filter] duration-300",
+              isScrolled || isFeaturesOpen
+                ? "bg-background-semi-transparent backdrop-blur-md"
+                : "bg-transparent"
             )}
           >
             <Link
@@ -250,15 +261,7 @@ export function Header() {
               ))}
             </div>
 
-            <div className="hidden items-center gap-4 xl:flex">
-              <div className="border-border border-l pl-4">
-                <Link
-                  className="text-muted-foreground text-sm transition-colors hover:text-foreground"
-                  href="https://app.openbeam.work"
-                >
-                  Sign in
-                </Link>
-              </div>
+            <div className="hidden items-center xl:flex">
               <Link
                 className="bg-primary px-4 py-2 text-primary-foreground text-sm transition-colors hover:bg-primary/90"
                 href="https://docs.openbeam.work/quickstart"
@@ -413,14 +416,7 @@ export function Header() {
                 ))}
               </div>
 
-              <div className="mt-8 flex flex-col gap-4 border-border border-t pt-8">
-                <Link
-                  className="font-sans text-base text-muted-foreground transition-colors hover:text-foreground"
-                  href="https://app.openbeam.work"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Sign in
-                </Link>
+              <div className="mt-8 border-border border-t pt-8">
                 <Link
                   className="flex h-11 w-full items-center justify-center bg-primary px-5 text-primary-foreground text-sm transition-colors hover:bg-primary/90"
                   href="https://docs.openbeam.work/quickstart"
