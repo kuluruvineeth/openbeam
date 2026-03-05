@@ -24,12 +24,13 @@ Documents carry multiple embedding vectors. Different ranking profiles use diffe
 
 | Field | Type | Dimensions | Purpose |
 |-------|------|-----------|---------|
-| `content_embedding` | Dense | 768 or 1024 | Primary semantic search |
-| `title_embedding` | Dense | 768 or 1024 | Title-biased queries |
-| `title_embedding_v2` | Dense | 1024 | Updated title model |
-| `sparse_embedding` | Sparse (token map) | Variable | Learned sparse retrieval (SPLADE-style) |
-| `topic_embedding` | Dense | 768 | Topic-level similarity |
-| `department_affinity` | Dense | Variable | Personalized ranking per department |
+| `content_embedding` | Dense | x[1536] | Primary semantic search (v1) |
+| `title_embedding` | Dense | x[1536] | Title-biased queries (v1) |
+| `embedding` | Dense | x[1024] | Primary semantic search (v2) |
+| `title_embedding_v2` | Dense | x[1024] | Title-biased queries (v2) |
+| `sparse_embedding` | Sparse (token map) | token{} | Learned sparse retrieval (SPLADE-style) |
+| `topic_embedding` | Dense | x[256] | Topic-level similarity |
+| `department_affinity` | Dense | d[32] | Personalized ranking per department |
 
 Sparse embeddings are stored as Vespa `mapped<float>` tensors: `{token: weight, ...}`. They capture fine-grained term importance beyond raw frequency.
 

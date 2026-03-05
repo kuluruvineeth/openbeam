@@ -5,7 +5,7 @@ description: System design, package structure, and design principles behind Open
 
 # Architecture
 
-OpenPlane is a modular, TypeScript-first platform built as a Turborepo monorepo. It connects to 30+ data sources, syncs content through durable Temporal workflows, indexes everything in Vespa for hybrid search, and serves AI-powered answers grounded in your data.
+OpenPlane is a modular, TypeScript-first platform built as a Turborepo monorepo. It connects to 20+ data sources, syncs content through durable Temporal workflows, indexes everything in Vespa for hybrid search, and serves AI-powered answers grounded in your data.
 
 <ExcalidrawViewer
   src="/diagrams/excalidraw/system-context.excalidraw"
@@ -15,7 +15,7 @@ OpenPlane is a modular, TypeScript-first platform built as a Turborepo monorepo.
 
 ## How it works (summary)
 
-1. **Connect** -- OAuth or API key into Slack, Gmail, Notion, Linear, GitHub, MQTT, OPC-UA, and 30+ sources
+1. **Connect** -- OAuth or API key into Slack, Gmail, Notion, Linear, GitHub, MQTT, OPC-UA, and more
 2. **Sync** -- Temporal workflows fetch, transform, chunk, embed, and index documents into Vespa
 3. **Search** -- Hybrid BM25 + semantic search with permission-aware filtering in under 200ms
 4. **Answer** -- AI agents ground answers in your data with inline citations

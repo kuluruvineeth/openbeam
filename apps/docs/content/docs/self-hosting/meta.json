@@ -1,5 +1,12 @@
 {
   "title": "Self-Hosting",
   "icon": "Server",
-  "pages": ["index", "docker-compose", "configuration", "services"]
+  "pages": [
+    "index",
+    "docker-compose",
+    "configuration",
+    "services",
+    "monitoring",
+    "troubleshooting"
+  ]
 }

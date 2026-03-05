@@ -7,6 +7,9 @@
     "connectors",
     "search",
     "ai",
+    "api",
+    "edge",
+    "security",
     "cli",
     "self-hosting",
     "contributing"

@@ -21,49 +21,75 @@ Hybrid is the default and the right choice 90% of the time. It catches both exac
 
 Every connector normalizes its data into the `GenericDocument` schema before indexing. This is the universal format that makes cross-source search possible.
 
-```typescript
+```typescript title="packages/vespa/src/schemas.ts"
 interface GenericDocument {
   // Identity
   id: string;
   connector_id: string;
   connector_type: string;       // "slack", "notion", "github", "linear", ...
   team_id: string;
+  workspace_id: string;
   external_id: string;
   document_type: string;        // "message", "page", "issue", "file", "email"
 
   // Content
   title: string;
   content: string;
-  content_embedding?: number[]; // Dense vector (768 or 1024 dimensions)
-  title_embedding?: number[];
+  content_plain?: string;
+  content_html?: string;
+
+  // Embeddings (multiple vector representations)
+  content_embedding?: number[]; // x[1536] — primary dense vector
+  title_embedding?: number[];   // x[1536] — title dense vector
+  embedding?: number[];         // x[1024] — v2 dense vector
   sparse_embedding?: Record<string, number>; // Learned sparse weights
+  topic_embedding?: number[];   // x[256] — topic vector
 
   // Authorship
   author_name?: string;
   author_email?: string;
   contributor_ids?: string[];
+  assignee_ids?: string[];
 
   // Timestamps (Unix epoch ms)
   created_at: number;
   updated_at: number;
+  indexed_at?: number;
 
-  // Metadata
+  // Workflow
   status?: string;
   priority?: string;
   labels?: string[];
   url?: string;
 
+  // Document structure
+  parent_id?: string;
+  thread_id?: string;
+  chunk_index?: number;
+  total_chunks?: number;
+  section_title?: string;
+
   // Access control
   access_control?: string[];    // User/group IDs for permission filtering
   is_public: boolean;
+
+  // Engagement metrics
+  view_count?: number;
+  reaction_count?: number;
+  reply_count?: number;
 
   // Knowledge graph
   entity_ids?: string[];
   topics?: string[];
   authority_score?: number;
   quality_score?: number;
+  department_affinity?: number[]; // d[32] — personalization vector
+
+  metadata?: Record<string, unknown>;
 }
 ```
+
+The full schema has 100+ fields. Above shows the most commonly used. See `packages/vespa/src/schemas.ts` for the complete definition.
 
 OpenPlane indexes four document schemas in Vespa:
 
@@ -170,13 +196,17 @@ Ranking profiles for media: `meeting_search`, `screen_content`, `unified_text`, 
 For offline and air-gapped deployments, the edge runtime provides local search using SQLite FTS5 and in-process vector similarity. Same query interface, runs entirely on-device.
 
 ```typescript
-import { SearchEngine } from "@openplane/edge-search";
+import { EdgeSearchEngine, SQLiteFTS5Provider, InMemoryVectorProvider, SQLiteDocumentStore } from "@openplane/edge-search";
+import { openEdgeDatabase } from "@openplane/edge-core";
 
-const engine = new SearchEngine(db);
-const results = await engine.search("deployment checklist", {
-  mode: "hybrid",
-  limit: 10,
+const db = openEdgeDatabase("./edge.db");
+const engine = new EdgeSearchEngine({
+  fts: new SQLiteFTS5Provider(db),
+  vector: new InMemoryVectorProvider(),
+  store: new SQLiteDocumentStore(db),
 });
+
+const results = await engine.search({ query: "deployment checklist", limit: 10 });
 ```
 
 Documents sync incrementally via Merkle tree reconciliation when connectivity is available.

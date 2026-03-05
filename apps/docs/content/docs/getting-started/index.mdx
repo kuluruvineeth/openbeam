@@ -114,7 +114,24 @@ This starts:
 
 Open http://localhost:3001, create your account, and connect your first data source.
 
-## Step 6: Your first search
+## Step 6: Verify it works
+
+Before connecting data sources, confirm the platform is healthy:
+
+```bash
+# API server responds
+curl http://localhost:3000/
+
+# Vespa is indexing-ready
+curl http://localhost:8280/state/v1/health
+
+# Temporal UI shows namespaces
+open http://localhost:8233
+```
+
+All three should return successful responses. If any fail, check the [Troubleshooting](#troubleshooting) section below.
+
+## Step 7: Your first search
 
 1. Sign in at http://localhost:3001
 2. Go to **Settings > Connectors**
