@@ -22,7 +22,7 @@ export function GET() {
   const lines: string[] = [
     "# OpenPlane",
     "",
-    "> Open-source enterprise search and AI assistant platform. Connect 20+ data sources, index everything into a unified search engine (Vespa), and query with hybrid search (BM25 + dense vectors + sparse vectors). Built with TypeScript, Next.js, Hono, Temporal, and PostgreSQL.",
+    "> Open-source enterprise search and AI assistant platform. Connect 21 data sources, index everything into a unified search engine (Vespa), and query with hybrid search (BM25 + dense vectors + sparse vectors). Built with TypeScript, Next.js, Hono, Temporal, and PostgreSQL.",
     "",
     "## Overview",
     "",

@@ -91,9 +91,9 @@ Get a full deployment running in under 10 minutes.
 git clone https://github.com/kuluruvineeth/openplane.git
 cd openplane
 
-# 2. Create your environment file
-cp .env.example .env
-# Edit .env with your secrets (see Configuration page)
+# 2. Create your environment file from the template
+cp apps/server/.env.example .env
+# Edit .env with your secrets (see Configuration page for all variables)
 
 # 3. Create the data directory
 sudo mkdir -p /mnt/openplane-data

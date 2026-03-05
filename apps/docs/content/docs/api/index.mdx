@@ -79,14 +79,12 @@ All request and response bodies use `application/json`. tRPC uses SuperJSON for 
 
 ## Routers
 
-The tRPC API exposes 23 routers:
+The tRPC API exposes 23 top-level routers:
 
 | Router | Purpose |
 |--------|---------|
 | `search` | Document and media search |
-| `apps.connectors` | Connector management |
-| `apps.sync` | Sync status and triggers |
-| `apps.webhooks` | Webhook configuration |
+| `apps` | Connector management, sync triggers, webhook configuration |
 | `rag` | AI-powered Q&A with citations |
 | `agentCanvas` | Visual AI workflow builder |
 | `knowledge` | Knowledge graph and entity search |
