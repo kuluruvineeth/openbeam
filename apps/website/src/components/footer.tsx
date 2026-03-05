@@ -7,59 +7,23 @@ import { cn } from "@/lib/cn";
 
 const FOOTER_COLUMNS = [
   {
-    heading: "Features",
-    links: [
-      { label: "Search", href: "/#features" },
-      { label: "AI Agents", href: "/#features" },
-      { label: "Missions", href: "/#features" },
-      { label: "Connectors", href: "/connectors/" },
-      { label: "Real-Time Sync", href: "/#features" },
-      { label: "Video Search", href: "/#features" },
-    ],
-  },
-  {
     heading: "Product",
     links: [
+      { label: "Search", href: "/#features" },
+      { label: "Agents", href: "/#features" },
+      { label: "Connectors", href: "/connectors/" },
+      { label: "Live Sync", href: "/#features" },
       {
-        label: "Self-Hosting",
+        label: "Self-Hosted",
         href: "https://docs.openbeam.work/self-hosting",
       },
-      { label: "Docker", href: "https://hub.docker.com/r/openbeam/openbeam" },
-      { label: "Changelog", href: "/changelog/" },
-      { label: "Status", href: "https://status.openbeam.work" },
     ],
   },
   {
-    heading: "Compare",
-    links: [
-      { label: "vs Glean", href: "/compare/glean/" },
-      { label: "vs Onyx", href: "/compare/onyx/" },
-      { label: "vs Microsoft Copilot", href: "/compare/microsoft-copilot/" },
-      { label: "View all", href: "/compare/" },
-    ],
-  },
-  {
-    heading: "Company",
-    links: [
-      { label: "About", href: "/about/" },
-      { label: "Blog", href: "/blog/" },
-      {
-        label: "X / Twitter",
-        href: "https://twitter.com/openbeam",
-        external: true,
-      },
-      {
-        label: "LinkedIn",
-        href: "https://linkedin.com/company/openbeam",
-        external: true,
-      },
-    ],
-  },
-  {
-    heading: "Resources",
+    heading: "Developers",
     links: [
       { label: "Documentation", href: "https://docs.openbeam.work" },
-      { label: "API", href: "https://docs.openbeam.work/api" },
+      { label: "API Reference", href: "https://docs.openbeam.work/api" },
       {
         label: "GitHub",
         href: "https://github.com/openbeam/openbeam",
@@ -70,7 +34,21 @@ const FOOTER_COLUMNS = [
         href: "https://discord.gg/openbeam",
         external: true,
       },
-      { label: "Support", href: "/support/" },
+    ],
+  },
+  {
+    heading: "Company",
+    links: [
+      {
+        label: "X / Twitter",
+        href: "https://twitter.com/openbeam",
+        external: true,
+      },
+      {
+        label: "LinkedIn",
+        href: "https://linkedin.com/company/openbeam",
+        external: true,
+      },
     ],
   },
 ] as const;
@@ -89,7 +67,7 @@ export function Footer() {
 
       <div className="mx-auto max-w-[1400px] px-4 py-16 sm:px-8 sm:pb-56">
         <div className="grid grid-cols-1 gap-16 lg:grid-cols-2">
-          <div className="grid grid-cols-2 gap-x-8 gap-y-8 sm:grid-cols-3 sm:gap-x-8 sm:gap-y-12 md:grid-cols-5 lg:col-span-1">
+          <div className="grid grid-cols-2 gap-x-8 gap-y-8 sm:grid-cols-3 sm:gap-x-12 sm:gap-y-12 lg:col-span-1">
             {FOOTER_COLUMNS.map((col) => (
               <div className="space-y-3" key={col.heading}>
                 <h3 className="mb-4 font-sans text-foreground text-sm">
@@ -123,7 +101,7 @@ export function Footer() {
 
           <div className="flex flex-col items-start gap-6 lg:items-end lg:gap-10">
             <p className="text-left font-sans text-base text-foreground sm:text-xl lg:text-right">
-              Enterprise search that runs on your infrastructure.
+              Find anything. Depend on no one.
             </p>
 
             <button
@@ -156,30 +134,10 @@ export function Footer() {
           <div className="h-px w-full border-border border-t" />
         </div>
 
-        <div className="relative z-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <a
-            className="hidden items-center gap-2 transition-opacity hover:opacity-80 md:flex"
-            href="https://status.openbeam.work"
-          >
-            <span className="font-sans text-muted-foreground text-sm">
-              System status:
-            </span>
-            <span className="font-sans text-foreground text-sm">
-              Operational
-            </span>
-            <div className="relative flex items-center justify-center">
-              <div className="relative z-10 h-2 w-2 rounded-full bg-green-500" />
-              <div
-                className="absolute h-2 w-2 rounded-full bg-green-500"
-                style={{
-                  animation:
-                    "pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-                }}
-              />
-            </div>
-          </a>
+        <div className="relative z-10">
           <p className="font-sans text-muted-foreground text-sm">
-            &copy; {new Date().getFullYear()} OpenBeam. MIT License.
+            &copy; {new Date().getFullYear()} OpenBeam. MIT Licensed. Built in
+            the open.
           </p>
         </div>
       </div>
