@@ -1,0 +1,203 @@
+---
+title: Development Guide
+description: Local setup, testing, linting, and building OpenPlane
+---
+
+# Development Guide
+
+Detailed instructions for working with the OpenPlane codebase.
+
+## Local Setup
+
+### Install Dependencies
+
+OpenPlane uses **Bun** exclusively. Do not use npm, pnpm, or yarn.
+
+```bash
+bun install
+```
+
+### Infrastructure
+
+Start PostgreSQL, Redis, Vespa, and Temporal with Docker Compose:
+
+```bash
+docker compose up -d
+```
+
+### Database
+
+Push the Prisma schema to your local database:
+
+```bash
+bun run db:push
+```
+
+Open Prisma Studio to inspect data:
+
+```bash
+bun run db:studio
+```
+
+### Running Services
+
+```bash
+bun run dev          # All apps in parallel
+bun run dev:web      # Next.js frontend only (:3001)
+bun run dev:server   # Hono API server only
+```
+
+## Testing
+
+Tests are mandatory for all non-trivial changes.
+
+### Bun Tests
+
+Most packages use `bun:test`:
+
+```bash
+bun test                       # Run all tests
+bun test --watch               # Watch mode
+bun test packages/services/    # Tests in a specific package
+bun test path/to/file.test.ts  # Single file
+```
+
+Test files live in `__tests__/` directories adjacent to source files:
+
+```
+packages/services/src/linear/
+├── sync/
+│   ├── full.ts
+│   └── incremental.ts
+├── __tests__/
+│   ├── sync.test.ts
+│   └── transformers.test.ts
+```
+
+### Temporal Tests (Node.js + vitest)
+
+The Temporal SDK requires V8 APIs that Bun does not support. Temporal tests use vitest with Node.js:
+
+```bash
+cd packages/temporal
+bun run test              # Unit tests (vitest, 30s timeout)
+bun run test:integration  # Integration tests (vitest, 120s timeout)
+```
+
+Unit tests mock activities. Integration tests spin up a `TestWorkflowEnvironment` for end-to-end workflow execution.
+
+### What to Test
+
+| Change Type | Required Tests |
+|-------------|---------------|
+| New connector | Client, transformer, sync generator |
+| API endpoint | Request/response validation |
+| Temporal workflow | Workflow logic with mocked activities |
+| Database query | Query correctness |
+| UI component | Rendering, interaction |
+| Algorithm | Edge cases, boundary conditions |
+
+## Linting
+
+OpenPlane uses **Biome** via Ultracite for linting and formatting:
+
+```bash
+bun run check
+```
+
+This runs Biome across the entire monorepo. Fix all issues before committing.
+
+### Key Biome Rules
+
+| Rule | Detail |
+|------|--------|
+| No `++`/`--` | Use `+= 1` or `-= 1` |
+| No unnecessary `async` | Remove `async` if the function body has no `await` |
+| Literal keys preferred | `{ name: "x" }` not `{ "name": "x" }` |
+| Max 4 params per function | Use an options object for more |
+| No empty blocks | Use `const noop = Function.prototype as () => void` |
+| No variable shadowing | Rename callback params that shadow outer vars |
+
+## Building
+
+Build all packages and apps:
+
+```bash
+bun run build
+```
+
+Type-check without emitting files:
+
+```bash
+bun x tsc --noEmit
+```
+
+## Database Migrations
+
+### Creating a Migration
+
+```bash
+bun run db:migrate --name <migration-name>
+```
+
+### Applying Migrations
+
+```bash
+bunx prisma migrate deploy
+```
+
+### Resolving Migrations
+
+```bash
+bunx prisma migrate resolve --applied <migration-name>
+```
+
+## Package Dependency Rules
+
+Packages follow a strict dependency hierarchy. Inner packages must not import from outer packages.
+
+```
+apps/ (web, server, worker, daemon)
+  └── packages/api
+        ├── packages/services
+        │     ├── packages/db
+        │     ├── packages/vespa
+        │     ├── packages/redis
+        │     └── packages/storage
+        ├── packages/ai
+        ├── packages/temporal
+        └── packages/auth
+              └── packages/db
+
+packages/types  ← imported by ALL packages (no deps of its own)
+packages/integrations ← imported by services, server, web
+```
+
+Key rules:
+- `packages/types` has zero internal dependencies
+- `packages/db` never imports from `packages/services`
+- `packages/services` never imports from `apps/*`
+- Import types from `@openplane/types`, not from source packages
+
+## CLI Development (Go)
+
+The CLI lives in `apps/cli/` and uses Go 1.24 with Cobra:
+
+```bash
+cd apps/cli
+go build -o openplane ./cmd/openplane   # Build
+go test ./...                            # Test
+golangci-lint run                        # Lint
+goreleaser build --snapshot --clean      # Release build
+```
+
+## Pre-Commit Checklist
+
+Before every commit:
+
+```bash
+bun test              # Tests pass
+bun x tsc --noEmit    # Types check
+bun run check         # Lint clean
+bun run build         # Build succeeds
+```

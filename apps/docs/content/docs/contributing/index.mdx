@@ -1,0 +1,133 @@
+---
+title: Contributing
+description: How to contribute to OpenPlane
+---
+
+# Contributing to OpenPlane
+
+OpenPlane is an open-source enterprise search platform. This guide covers everything you need to start contributing.
+
+## Prerequisites
+
+| Tool | Version | Purpose |
+|------|---------|---------|
+| **Bun** | 1.3.2+ | Package manager and runtime |
+| **Node.js** | 20+ | Required for Temporal SDK tests |
+| **Docker** | Latest | PostgreSQL, Redis, Vespa, Temporal |
+| **Go** | 1.24+ | CLI development (optional) |
+
+## Development Setup
+
+```bash
+git clone https://github.com/openplane/openplane.git
+cd openplane
+bun install
+```
+
+Copy the environment file and configure your local services:
+
+```bash
+cp .env.example .env
+```
+
+Start infrastructure dependencies:
+
+```bash
+docker compose up -d
+```
+
+Push the database schema and start development:
+
+```bash
+bun run db:push
+bun run dev
+```
+
+## Monorepo Structure
+
+OpenPlane uses Turborepo with Bun workspaces. The codebase is split into **apps** (deployable services) and **packages** (shared libraries).
+
+### Apps
+
+| App | Port | Purpose |
+|-----|------|---------|
+| `apps/web` | 3001 | Next.js frontend |
+| `apps/server` | — | Hono API server |
+| `apps/worker` | — | Temporal workers |
+| `apps/engine` | 8000/8001 | Python ML service |
+| `apps/daemon` | — | Local headless daemon |
+| `apps/cli` | — | Go CLI |
+| `apps/docs` | 4000 | Documentation site |
+
+### Packages
+
+| Package | Purpose |
+|---------|---------|
+| `packages/types` | Shared type definitions (single source of truth) |
+| `packages/ai` | AI SDK providers, agents, tools |
+| `packages/api` | tRPC routers |
+| `packages/auth` | Authentication logic |
+| `packages/db` | Prisma schema and queries |
+| `packages/integrations` | OAuth configs, app definitions |
+| `packages/services` | Connector business logic |
+| `packages/temporal` | Temporal workflows and activities |
+| `packages/vespa` | Vespa search client |
+| `packages/redis` | Redis client and rate limiting |
+| `packages/storage` | S3/R2 storage |
+
+## Commit Conventions
+
+All commits follow the `type(scope): subject` format with imperative mood.
+
+```
+feat(github): add discussion sync
+fix(sync): handle rate limit retry
+refactor(services): extract pagination helper
+test(linear): add incremental sync tests
+chore(deps): update temporal sdk
+```
+
+| Type | Purpose |
+|------|---------|
+| `feat` | New feature |
+| `fix` | Bug fix |
+| `refactor` | Code restructuring without behavior change |
+| `test` | Adding or updating tests |
+| `chore` | Maintenance, dependency updates |
+| `docs` | Documentation changes |
+| `perf` | Performance improvement |
+
+## Testing Requirements
+
+Tests are mandatory for all non-trivial changes. Run the full suite before submitting:
+
+```bash
+bun test              # All tests
+bun test --watch      # Watch mode
+bun test <file>       # Single file
+```
+
+Temporal SDK tests require Node.js and use vitest:
+
+```bash
+cd packages/temporal
+bun run test              # Unit tests
+bun run test:integration  # Integration tests
+```
+
+Test files live in `__tests__/` directories next to source files.
+
+## What to Contribute
+
+| Area | Effort | Impact |
+|------|--------|--------|
+| **New connectors** | Medium | High |
+| **Bug fixes** | Low-Medium | High |
+| **Test coverage** | Low | Medium |
+| **Documentation** | Low | Medium |
+| **UI improvements** | Medium | High |
+| **Performance** | Medium-High | High |
+
+See the [Connector Development Guide](/docs/contributing/connectors) for the fastest way to make a high-impact contribution.
+
+See the [Development Guide](/docs/contributing/development) for local setup, testing, linting, and build details.

@@ -1,0 +1,275 @@
+---
+title: Building a Connector
+description: Step-by-step guide to adding a new connector to OpenPlane
+---
+
+# Building a Connector
+
+Every connector follows the same four-layer architecture. This guide walks through each layer using Linear as the reference implementation.
+
+## Architecture
+
+A connector spans four packages:
+
+| Layer | Package | Purpose |
+|-------|---------|---------|
+| **Types** | `packages/types/src/services/connectors/{name}.ts` | Zod schemas, sync cursors, transform contexts |
+| **Integration** | `packages/integrations/src/{name}/` | App definition, OAuth/auth config, logo |
+| **Services** | `packages/services/src/{name}/` | API client, sync generators, transformers |
+| **Temporal** | `packages/temporal/src/` | Workflow and activity wiring |
+
+## Step 1: Define Types
+
+All shared types go in the types package. Define Zod schemas for sync cursors, sync options, and transform contexts.
+
+**File:** `packages/types/src/services/connectors/{name}.ts`
+
+```typescript
+import { z } from "zod";
+
+export const ExampleSyncCursorSchema = z.object({
+  lastSyncTime: z.number().optional(),
+  pageToken: z.string().optional(),
+});
+
+export type ExampleSyncCursor = z.infer<typeof ExampleSyncCursorSchema>;
+
+export interface ExampleTransformContext {
+  connectorId: string;
+  connectorType: string;
+  teamId: string;
+  workspaceId: string;
+}
+```
+
+Add the sub-path export to `packages/types/package.json`:
+
+```json
+{
+  "exports": {
+    "./services/connectors/example": {
+      "types": "./dist/services/connectors/example.d.ts",
+      "default": "./src/services/connectors/example.ts"
+    }
+  }
+}
+```
+
+## Step 2: Integration Config
+
+Define the app metadata, auth method, streams, and settings.
+
+**File:** `packages/integrations/src/{name}/config.ts`
+
+From the Linear reference:
+
+```typescript
+import { AppType, AuthType, ConnectorType, SyncMode, type UnifiedApp } from "../types";
+
+export const linearApp: UnifiedApp = {
+  id: AppType.LINEAR,
+  name: "Linear",
+  category: "Project Management",
+  active: true,
+  logo: AppType.LINEAR,
+  short_description: "Search across issues, projects, and documents.",
+  description: "Connect Linear to search across issues, projects, ...",
+  connectorType: ConnectorType.SOURCE,
+
+  auth: {
+    type: AuthType.OAUTH2,
+    config: {
+      authUrl: "https://linear.app/oauth/authorize",
+      tokenUrl: "https://api.linear.app/oauth/token",
+      redirectPath: "/connectors/setup/linear/oauth/callback",
+      scopes: ["read", "write"],
+    },
+  },
+
+  streams: [
+    {
+      name: "issues",
+      label: "Issues",
+      description: "Linear issues with comments and attachments",
+      entityType: "resource",
+      dataPoints: ["Title", "Description", "State", "Priority", "Assignee"],
+      syncMode: SyncMode.REALTIME,
+      defaultInterval: 15,
+      supportsBackfill: true,
+    },
+    // ... additional streams
+  ],
+
+  settings: [
+    {
+      id: "client_id",
+      label: "Client ID",
+      type: "text",
+      required: true,
+      value: "",
+    },
+    // ... additional settings
+  ],
+};
+```
+
+For OAuth connectors, also create `oauth.ts` with token exchange functions. For API key connectors, use `AuthType.API_KEY` in the config.
+
+## Step 3: Service Implementation
+
+The service package contains the client, sync logic, and transformers.
+
+### Directory Structure
+
+```
+packages/services/src/{name}/
+├── index.ts           # Public exports
+├── auth.ts            # IntegrationAuth implementation
+├── client.ts          # API client with rate limiting
+├── types.ts           # Error classes
+├── api/
+│   └── *.ts           # Entity-specific API queries
+├── sync/
+│   ├── full.ts        # Full sync generator
+│   ├── incremental.ts # Delta sync generator
+│   └── utils.ts       # Pagination helpers
+├── transformers/
+│   └── *.ts           # Entity -> GenericDocument mappers
+└── push/              # Webhook handlers (optional)
+```
+
+### API Client
+
+Wrap the third-party API with rate limiting:
+
+```typescript
+import type { ExampleClientConfig } from "@openplane/types/services/connectors/example";
+
+export function createExampleClient(config: ExampleClientConfig) {
+  return {
+    async listEntities(params: { cursor?: string; pageSize?: number }) {
+      // Rate-limited API call
+    },
+  };
+}
+```
+
+### Full Sync Generator
+
+Yields batches of `GenericDocument` objects:
+
+```typescript
+import type { GenericDocument } from "@openplane/vespa";
+
+export async function* fullSync(
+  client: ExampleClient,
+  ctx: ExampleTransformContext,
+  options: ExampleSyncOptions
+): AsyncGenerator<SyncBatch> {
+  let cursor: string | undefined;
+
+  do {
+    const page = await client.listEntities({ cursor, pageSize: 100 });
+    const documents = page.items.map((item) => transformEntity(item, ctx));
+
+    yield {
+      items: documents,
+      cursor: { pageToken: page.nextCursor },
+      hasMore: page.hasMore,
+    };
+
+    cursor = page.nextCursor;
+  } while (cursor);
+}
+```
+
+### Incremental Sync
+
+Uses timestamps or change tokens to fetch only modified data:
+
+```typescript
+export async function* incrementalSync(
+  client: ExampleClient,
+  ctx: ExampleTransformContext,
+  options: ExampleSyncOptions
+): AsyncGenerator<SyncBatch> {
+  const since = options.cursor?.lastSyncTime;
+  // Fetch only entities modified since last sync
+}
+```
+
+### Transformer
+
+Maps third-party entities to the `GenericDocument` schema:
+
+```typescript
+import type { GenericDocument } from "@openplane/vespa";
+
+export function transformEntity(
+  entity: ExampleEntity,
+  ctx: ExampleTransformContext
+): GenericDocument {
+  return {
+    id: `${ctx.connectorId}_entity_${entity.id}`,
+    document_type: "entity",
+    title: entity.name,
+    content: entity.description ?? "",
+    url: entity.url,
+    created_at: entity.createdAt,
+    updated_at: entity.updatedAt,
+    author: entity.creator?.name,
+    connector_id: ctx.connectorId,
+    connector_type: ctx.connectorType,
+    team_id: ctx.teamId,
+    permissions: [],
+    metadata: {},
+  };
+}
+```
+
+## Step 4: Temporal Wiring
+
+The generic `connectorSyncWorkflow` in `packages/temporal/src/workflows/sync/connector-sync.ts` handles all connectors. You wire your connector by implementing the `fetchBatch` activity, which calls your sync generator and returns batches.
+
+The workflow handles:
+- Batch fetching via `fetchBatch` activity
+- Document indexing via `indexDocumentsWorkflow` child workflow
+- Progress tracking with signals and queries
+- `continueAsNew` when history exceeds 10,000 events
+- Pause, resume, and cancel signals
+
+## File Checklist
+
+| Step | File | Required |
+|------|------|----------|
+| 1 | `packages/types/src/services/connectors/{name}.ts` | Yes |
+| 2 | `packages/types/package.json` (add export) | Yes |
+| 3 | `packages/integrations/src/{name}/config.ts` | Yes |
+| 4 | `packages/integrations/src/{name}/oauth.ts` or auth config | Yes |
+| 5 | `packages/integrations/src/{name}/types.ts` | Yes |
+| 6 | `packages/services/src/{name}/client.ts` | Yes |
+| 7 | `packages/services/src/{name}/auth.ts` | Yes |
+| 8 | `packages/services/src/{name}/types.ts` (error classes) | Yes |
+| 9 | `packages/services/src/{name}/sync/full.ts` | Yes |
+| 10 | `packages/services/src/{name}/sync/incremental.ts` | Yes |
+| 11 | `packages/services/src/{name}/transformers/*.ts` | Yes |
+| 12 | `packages/services/src/{name}/index.ts` | Yes |
+| 13 | `apps/server/src/modules/integrations/{name}/` | Yes |
+| 14 | Logo in `packages/integrations/src/{name}/assets/` | Yes |
+| 15 | `packages/services/src/{name}/push/` (webhook handler) | If supported |
+
+## Validation
+
+Before submitting, run:
+
+```bash
+bun x tsc --noEmit     # Type check
+bun run check           # Lint with Biome
+bun test                # All tests
+bun run build           # Build all packages
+```
+
+Every connector must have tests in `packages/services/src/{name}/__tests__/`. At minimum:
+- Client unit tests (mocked HTTP responses)
+- Transformer tests (entity in, GenericDocument out)
+- Sync generator tests (pagination, cursor handling)
