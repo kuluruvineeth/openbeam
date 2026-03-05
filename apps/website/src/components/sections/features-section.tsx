@@ -1,4 +1,10 @@
+"use client";
+
+import { motion, useMotionTemplate, useMotionValue } from "motion/react";
+import { useCallback } from "react";
 import { cn } from "@/lib/cn";
+
+const EASE = [0.16, 1, 0.3, 1] as const;
 
 interface Feature {
   title: string;
@@ -10,44 +16,46 @@ interface Feature {
 
 const HERO_FEATURES: [Feature, Feature] = [
   {
-    title: "Enterprise Search",
+    title: "One query. Every tool.",
     description:
-      "Semantic + keyword hybrid search across every connected source. Find anything in milliseconds, not minutes.",
+      "Slack, Drive, Notion, GitHub, Linear, Gmail — hybrid semantic + keyword search. Results ranked by what you actually work on.",
     stat: "< 200ms",
-    statLabel: "p99 latency",
+    statLabel: "p99 across 20+ sources",
     icon: SearchIcon,
   },
   {
-    title: "AI Agents",
+    title: "Give it a task, not a query.",
     description:
-      "Autonomous agents with multi-step reasoning. Compose tools, delegate tasks, and take action across your stack.",
-    stat: "129+",
-    statLabel: "tools available",
+      "Multi-step agents that search, summarize, draft, and file tickets. Multi-source. Auditable.",
+    stat: "6",
+    statLabel: "agent patterns",
     icon: AgentIcon,
   },
 ];
 
 const MID_FEATURES: Feature[] = [
   {
-    title: "Mission Control",
+    title: "Pipelines, not prompts.",
     description:
-      "Multi-agent squads that orchestrate complex workflows. Parse RFPs, draft responses, triage tickets — autonomously.",
-    stat: "11",
-    statLabel: "agent patterns",
-    icon: MissionIcon,
+      "LLM, sequential, parallel, loop, generator-critic — six composable patterns. Build what Zapier can't.",
+    stat: "6",
+    statLabel: "composable patterns",
+    icon: WorkflowIcon,
   },
   {
-    title: "Connectors",
+    title: "Connect once. Search forever.",
     description:
-      "Gmail, Slack, Notion, GitHub, Linear, and more. Full and incremental sync keeps your index current.",
-    stat: "23",
-    statLabel: "integrations",
+      "Slack, Notion, Gmail, GitHub, Linear, Drive. Each connector: full sync, incremental sync, fault-tolerant. Or build your own.",
+    stat: "20+",
+    statLabel: "connectors",
     icon: ConnectorIcon,
   },
   {
-    title: "Real-Time Sync",
+    title: "Yesterday's index is useless.",
     description:
-      "Temporal-powered workflows for durable, exactly-once sync. Webhook triggers, cursor-based incremental updates.",
+      "Incremental sync catches every change. Full sync rebuilds from scratch. Temporal-backed — retries, idempotency, and fault tolerance built in.",
+    stat: "< 5min",
+    statLabel: "sync lag",
     icon: SyncIcon,
   },
 ];
@@ -55,22 +63,24 @@ const MID_FEATURES: Feature[] = [
 const SMALL_FEATURES: Feature[] = [
   {
     title: "Self-Hosted",
-    description: "Docker, one command. Your servers, your data.",
+    description: "One command. Your servers, your data, your rules.",
     icon: ServerIcon,
   },
   {
     title: "Edge AI",
-    description: "Local models, offline search, on-device RAG.",
+    description:
+      "SQLite-backed. Offline-capable. On-device RAG with local models.",
     icon: EdgeIcon,
   },
   {
     title: "Video Search",
-    description: "Transcription, frame analysis, temporal search.",
+    description:
+      "Find the moment. Transcription, frame analysis, timestamp-level results.",
     icon: VideoIcon,
   },
   {
     title: "Open Source",
-    description: "MIT licensed. No vendor lock-in, ever.",
+    description: "MIT licensed. Fork it, extend it, own it.",
     icon: CodeIcon,
   },
 ];
@@ -78,35 +88,63 @@ const SMALL_FEATURES: Feature[] = [
 function FeatureCard({
   feature,
   className,
+  index = 0,
 }: {
   feature: Feature;
   className?: string;
+  index?: number;
 }) {
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const glowBackground = useMotionTemplate`radial-gradient(300px circle at ${mouseX}px ${mouseY}px, hsl(var(--foreground) / 0.04), transparent 70%)`;
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      mouseX.set(e.clientX - rect.left);
+      mouseY.set(e.clientY - rect.top);
+    },
+    [mouseX, mouseY]
+  );
+
   return (
-    <div
+    <motion.div
       className={cn(
-        "group border border-border/50 bg-background p-5 transition-colors duration-200 hover:border-border sm:p-6",
+        "group relative overflow-hidden border border-border/40 bg-background p-5 transition-colors duration-200 hover:border-border sm:p-6",
         className
       )}
+      initial={{ opacity: 0, y: 16 }}
+      onMouseMove={handleMouseMove}
+      transition={{ delay: index * 0.06, duration: 0.5, ease: EASE }}
+      viewport={{ once: true, margin: "-60px" }}
+      whileInView={{ opacity: 1, y: 0 }}
     >
-      <div className="mb-4 flex h-10 w-10 items-center justify-center border border-border bg-card">
-        <feature.icon />
-      </div>
-      <h3 className="font-sans text-base text-foreground">{feature.title}</h3>
-      <p className="mt-1.5 font-sans text-muted-foreground text-sm leading-relaxed">
-        {feature.description}
-      </p>
-      {feature.stat && (
-        <div className="mt-4 border-border/50 border-t pt-4">
-          <span className="font-sans text-2xl text-foreground">
-            {feature.stat}
-          </span>
-          <span className="ml-2 font-sans text-muted-foreground text-xs tracking-wide">
-            {feature.statLabel}
-          </span>
+      <motion.div
+        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        style={{ background: glowBackground }}
+      />
+      <div className="relative">
+        <div className="mb-4 flex h-10 w-10 items-center justify-center border border-border bg-card">
+          <feature.icon />
         </div>
-      )}
-    </div>
+        <h3 className="font-medium font-sans text-base text-foreground">
+          {feature.title}
+        </h3>
+        <p className="mt-1.5 font-sans text-muted-foreground text-sm leading-relaxed">
+          {feature.description}
+        </p>
+        {feature.stat && (
+          <div className="mt-4 border-border/40 border-t pt-4">
+            <span className="font-medium font-sans text-2xl text-foreground">
+              {feature.stat}
+            </span>
+            <span className="ml-2 font-sans text-muted-foreground text-xs tracking-wide">
+              {feature.statLabel}
+            </span>
+          </div>
+        )}
+      </div>
+    </motion.div>
   );
 }
 
@@ -114,35 +152,59 @@ export function FeaturesSection() {
   return (
     <section className="bg-background py-16 lg:py-24" id="features">
       <div className="mx-auto max-w-[1400px] px-4">
-        <div className="mb-12 text-center">
-          <h2 className="font-serif text-2xl text-foreground">
-            Everything you need for enterprise search
+        <motion.div
+          className="mb-12 text-center"
+          initial={{ opacity: 0, y: 12 }}
+          transition={{ duration: 0.5, ease: EASE }}
+          viewport={{ once: true }}
+          whileInView={{ opacity: 1, y: 0 }}
+        >
+          <p className="mb-3 font-sans text-muted-foreground text-xs uppercase tracking-widest">
+            Features
+          </p>
+          <h2 className="font-serif text-2xl text-foreground sm:text-3xl">
+            The search your tools should have shipped
           </h2>
           <p className="mx-auto mt-3 hidden max-w-xl font-sans text-muted-foreground text-sm leading-relaxed sm:block">
-            Connect your tools, search across everything, and let AI agents
-            automate your workflows.
+            Connect once. Search everything. Agents close the loop.
           </p>
-        </div>
+        </motion.div>
 
         <div className="space-y-3 sm:space-y-4">
           <div className="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-12">
             <div className="lg:col-span-7">
-              <FeatureCard className="h-full" feature={HERO_FEATURES[0]} />
+              <FeatureCard
+                className="h-full"
+                feature={HERO_FEATURES[0]}
+                index={0}
+              />
             </div>
             <div className="lg:col-span-5">
-              <FeatureCard className="h-full" feature={HERO_FEATURES[1]} />
+              <FeatureCard
+                className="h-full"
+                feature={HERO_FEATURES[1]}
+                index={1}
+              />
             </div>
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
-            {MID_FEATURES.map((feature) => (
-              <FeatureCard feature={feature} key={feature.title} />
+            {MID_FEATURES.map((feature, i) => (
+              <FeatureCard
+                feature={feature}
+                index={i + 2}
+                key={feature.title}
+              />
             ))}
           </div>
 
           <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-            {SMALL_FEATURES.map((feature) => (
-              <FeatureCard feature={feature} key={feature.title} />
+            {SMALL_FEATURES.map((feature, i) => (
+              <FeatureCard
+                feature={feature}
+                index={i + 5}
+                key={feature.title}
+              />
             ))}
           </div>
         </div>
@@ -195,7 +257,7 @@ function AgentIcon() {
   );
 }
 
-function MissionIcon() {
+function WorkflowIcon() {
   return (
     <svg
       aria-hidden="true"
@@ -209,8 +271,11 @@ function MissionIcon() {
       viewBox="0 0 24 24"
       width="20"
     >
-      <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
-      <line x1="4" x2="4" y1="22" y2="15" />
+      <rect height="6" rx="1" width="6" x="3" y="3" />
+      <rect height="6" rx="1" width="6" x="15" y="3" />
+      <rect height="6" rx="1" width="6" x="9" y="15" />
+      <path d="M6 9v3a1 1 0 0 0 1 1h3" />
+      <path d="M18 9v3a1 1 0 0 1-1 1h-3" />
     </svg>
   );
 }

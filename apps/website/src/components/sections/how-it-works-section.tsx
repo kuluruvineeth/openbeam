@@ -6,47 +6,47 @@ import { cn } from "@/lib/cn";
 
 const features = [
   {
-    title: "Search across everything",
+    title: "Three commands, you're live",
     subtitle:
-      "Connect your tools and search across all your company's knowledge from a single place.",
-    mobileSubtitle: "Search all your company's knowledge from one place.",
+      "git clone, cd, docker compose up. Your servers, your network, your rules. MIT licensed. No SaaS bill. No data leaving your walls.",
+    mobileSubtitle: "Clone, compose up. Running on your hardware.",
+    media: { type: "component" as const, component: "docker" as const },
+  },
+  {
+    title: "Connect your tools",
+    subtitle:
+      "Slack, Notion, GitHub, Drive, Gmail, Linear — add a connector and every document becomes searchable.",
+    mobileSubtitle: "Add a connector. Every document becomes searchable.",
+    media: {
+      type: "video" as const,
+      src: "/images/examples/openplane_mission.mp4",
+      poster: "/images/examples/a16.png",
+    },
+  },
+  {
+    title: "Ask once. Find everywhere.",
+    subtitle:
+      "One query spans every connected tool. Hybrid semantic + keyword search returns ranked results in under 200ms.",
+    mobileSubtitle: "One query. Every tool. Under 200ms.",
     media: { type: "image" as const, src: "/images/examples/a9.png" },
   },
   {
-    title: "AI agents that take action",
+    title: "Search finds. Agents finish.",
     subtitle:
-      "100+ tools, multi-agent workflows. AI that doesn't just find answers — it acts on them.",
-    mobileSubtitle: "AI that finds answers and takes action.",
+      "Agents draft responses, triage tickets, summarize threads — multi-step, multi-source, auditable.",
+    mobileSubtitle: "Agents do the work, not just find it.",
     media: {
       type: "video" as const,
-      src: "/images/examples/openbeam_agents.mp4",
+      src: "/images/examples/openplane_agents.mp4",
       poster: "/images/examples/a17.png",
     },
   },
   {
-    title: "Missions that orchestrate work",
+    title: "Never stale.",
     subtitle:
-      "Multi-step workflows with squads of specialized agents. Parse RFPs, draft responses, match requirements — autonomously.",
-    mobileSubtitle: "Multi-agent squads that orchestrate complex work.",
-    media: {
-      type: "video" as const,
-      src: "/images/examples/openbeam_mission.mp4",
-      poster: "/images/examples/Screenshot 2026-02-12 at 10.22.23 PM.png",
-    },
-  },
-  {
-    title: "Always in sync, always current",
-    subtitle:
-      "Full and incremental sync keeps your search index fresh. Never search stale data again.",
-    mobileSubtitle: "Full and incremental sync keeps data fresh.",
+      "Incremental sync watches every connected tool. Edits, deletes, permission changes — reflected as they happen.",
+    mobileSubtitle: "Every change reflected live.",
     media: { type: "image" as const, src: "/images/examples/a14.png" },
-  },
-  {
-    title: "Your infrastructure, your data",
-    subtitle:
-      "Deploy on your own servers with Docker. No vendor lock-in, no data leaving your network.",
-    mobileSubtitle: "Deploy on your own servers, own your data.",
-    media: { type: "component" as const, component: "docker" as const },
   },
 ];
 
@@ -285,7 +285,7 @@ export function HowItWorksSection() {
       <div className="mx-auto max-w-[1400px] px-4">
         <div className="mb-10 lg:hidden">
           <h2 className="text-center font-serif text-2xl text-foreground">
-            How it works
+            From zero to search
           </h2>
         </div>
 
@@ -312,7 +312,7 @@ export function HowItWorksSection() {
           <div className="grid grid-cols-[340px_1fr] gap-12 xl:grid-cols-[380px_1fr] xl:gap-16">
             <div className="flex flex-col justify-center">
               <h2 className="mb-10 font-serif text-2xl text-foreground">
-                How it works
+                From zero to search
               </h2>
 
               <div className="flex flex-col">
