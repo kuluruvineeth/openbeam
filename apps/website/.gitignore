@@ -1,0 +1,7 @@
+.next/
+tsconfig.tsbuildinfo
+
+# Large media files — use CDN/R2 instead
+*.mp4
+public/images/examples/
+public/Screenshot*
