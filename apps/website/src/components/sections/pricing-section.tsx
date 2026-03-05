@@ -7,7 +7,7 @@ const PLANS = [
     period: "forever",
     description: "For teams getting started with enterprise search.",
     features: [
-      "All 25+ connectors",
+      "All 20+ connectors",
       "AI search",
       "AI agents",
       "Community support",
