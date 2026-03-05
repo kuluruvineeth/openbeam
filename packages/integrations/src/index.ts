@@ -104,20 +104,17 @@ export type {
   LinearTokenResponse,
   LinearViewer,
 } from "./linear/types";
-
+export { appLogos, connectorLogos } from "./logos";
 export { exchangeNotionCode, generateNotionAuthUrl } from "./notion/oauth";
 export type { NotionAuthResult, NotionOAuthResponse } from "./notion/types";
-
 export {
   createSecretRef,
   isSecretRef,
   resolveSecret,
   SecretResolutionError,
 } from "./secrets";
-
 export * from "./slack/oauth";
 export * from "./slack/types";
-
 export * from "./types";
 
 export const appStore: UnifiedApp[] = [
