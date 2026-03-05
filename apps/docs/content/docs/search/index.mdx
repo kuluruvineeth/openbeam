@@ -1,0 +1,129 @@
+---
+title: Search
+description: Hybrid search engine combining BM25 keyword matching, dense vector embeddings, and sparse vectors
+---
+
+# Search
+
+OpenPlane indexes content from every connected data source into a unified search engine. Documents from Slack, Gmail, Notion, Linear, GitHub, Google Drive, IoT platforms, and industrial protocols are all searchable through a single query interface.
+
+## What Gets Indexed
+
+Every connector transforms its data into a common `GenericDocument` schema before indexing. The schema captures:
+
+| Field Group | Examples |
+|-------------|---------|
+| Identity | `id`, `external_id`, `connector_type`, `document_type` |
+| Content | `title`, `content`, `content_plain`, `content_html` |
+| Embeddings | `content_embedding`, `title_embedding`, `sparse_embedding` |
+| Authorship | `author_name`, `author_email`, `contributor_ids` |
+| Hierarchy | `parent_id`, `thread_id`, `project_id`, `source_path` |
+| Metadata | `status`, `priority`, `labels`, `sprint`, `milestone` |
+| Timestamps | `created_at`, `updated_at`, `indexed_at`, `due_date` |
+| Access | `access_control`, `is_public` |
+| Structure | `chunk_index`, `total_chunks`, `section_title`, `page_number` |
+| Knowledge | `entity_ids`, `topics`, `authority_score`, `quality_score` |
+
+In addition to documents, OpenPlane indexes **media** (video/audio with segment-level transcripts and embeddings), **entities** (people, teams, projects), and **spreadsheets** (with column-level schema for SQL queries).
+
+## Search Capabilities
+
+### Hybrid Search
+
+The default search mode combines three ranking signals using Reciprocal Rank Fusion (RRF):
+
+- **BM25** -- keyword matching with term frequency and document length normalization
+- **Dense vectors** -- semantic similarity via embedding models (768 or 1024 dimensions)
+- **Sparse vectors** -- learned token-level weights for fine-grained relevance
+
+Default weights: BM25 `0.4`, dense `0.4`, sparse `0.2`. Adjustable per query.
+
+### Semantic Search
+
+Pure vector search for conceptual queries where exact keywords are unknown. Ranks by cosine similarity between the query embedding and document embeddings.
+
+### Keyword Search
+
+BM25-only ranking for exact matches, navigational queries, or when you need documents containing specific terms.
+
+### Multi-Ranking
+
+Execute the same query across multiple ranking strategies simultaneously and compare results. The engine identifies the best-performing strategy for each query.
+
+### Similar Documents
+
+Given a document ID, find semantically related content by comparing embedding vectors.
+
+## Permission-Aware Results
+
+Every search result is filtered through access controls before reaching the user. Documents carry an `access_control` array of user/group IDs. The search query injects the requesting user's permissions as a filter clause:
+
+```
+(is_public = true OR access_control contains "user_id" OR access_control contains "group_id")
+```
+
+Permission data is synced from source systems (Slack channel membership, Google Drive sharing, Notion workspace access) and cached for sub-millisecond evaluation at query time.
+
+## Ranking Profiles
+
+The search engine supports 20+ ranking profiles optimized for different scenarios:
+
+| Profile | Use Case |
+|---------|----------|
+| `hybrid` | General-purpose (default) |
+| `hybrid_v2` | Improved hybrid with sparse vectors |
+| `bm25` | Keyword-only matching |
+| `semantic` | Pure vector similarity |
+| `semantic_v2` | Updated embeddings |
+| `enterprise` | Weighted by authority + recency + engagement |
+| `enterprise_v2` | Production-optimized enterprise |
+| `recency` | Timestamp-biased ranking |
+| `hybrid_recency` | Hybrid with recency boost |
+| `authority` | Rank by document authority score |
+| `personalized` | Per-user department affinity |
+| `navigational` | Exact title/name matches |
+| `engagement` | View count and reaction signals |
+| `topic_search` | Topic embedding similarity |
+
+## Media Search
+
+Video and audio content is indexed with segment-level granularity:
+
+- Full transcript text (BM25-searchable)
+- Per-segment embeddings for temporal precision
+- Speaker identification
+- OCR text from screen content
+- Topic and keyword extraction
+
+Ranking profiles for media include `meeting_search`, `screen_content`, `unified_text`, and `engagement`.
+
+## Edge Search (Offline)
+
+The edge runtime provides search on devices without network access using SQLite:
+
+- **FTS5** -- Full-text search with BM25 ranking
+- **Vector search** -- Cosine similarity on locally-stored embeddings
+- **Hybrid fusion** -- Combined ranking matching the cloud behavior
+
+Documents sync incrementally via Merkle tree reconciliation. See [How It Works](/docs/search/how-it-works) for architecture details.
+
+## AI Tool Integration
+
+Search is exposed as agent tools through the AI framework:
+
+| Tool | Description |
+|------|-------------|
+| `search_hybrid` | Hybrid semantic + keyword search across all sources |
+| `search_semantic` | Pure vector search for conceptual queries |
+| `search_similar` | Find documents related to a known document |
+| `search_web` | Web search for external information |
+| `search_export` | Export search results |
+| `search_save` | Bookmark search results |
+| `scrape_page` | Fetch and parse a web page |
+
+These tools are available to all agent patterns (LLM, Sequential, Parallel, Generator-Critic) and via the MCP server for external AI clients.
+
+<Cards>
+  <Card title="How It Works" href="/docs/search/how-it-works" description="Vespa architecture, indexing pipeline, and query flow" />
+  <Card title="CLI Search Commands" href="/docs/cli/commands#search" description="Search from the command line" />
+</Cards>
