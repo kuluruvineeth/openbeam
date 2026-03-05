@@ -1,5 +1,27 @@
 {
   "title": "Connectors",
   "icon": "Connector",
-  "pages": ["index", "slack", "gmail", "google-drive", "notion", "linear"]
+  "pages": [
+    "index",
+    "slack",
+    "gmail",
+    "google-drive",
+    "notion",
+    "linear",
+    "github",
+    "samsara",
+    "aws-iot",
+    "azure-iot",
+    "smartthings",
+    "verkada",
+    "mqtt",
+    "opcua",
+    "bacnet",
+    "thingsboard",
+    "nodered",
+    "fhir",
+    "matterport",
+    "omniverse",
+    "viam"
+  ]
 }

@@ -1,0 +1,45 @@
+---
+title: Node-RED
+description: Connect Node-RED to OpenPlane for flow and automation search
+---
+
+# Node-RED
+
+Index flow definitions, node configurations, subflows, and automation logic from Node-RED instances via the Admin API.
+
+## What Gets Indexed
+
+| Entity | Description |
+|--------|-------------|
+| Flows | Flow name, node topology, connections, subflow references |
+| Node Configurations | Node type, properties, wiring |
+| Settings | Runtime version, installed palette modules |
+
+## Authentication
+
+Node-RED uses an **Admin API access token**. Generate one in your Node-RED instance's settings file or security configuration.
+
+## Sync
+
+| Mode | Supported |
+|------|-----------|
+| Full sync | Yes |
+| Incremental sync | Yes |
+| Real-time | No |
+
+Incremental sync uses flow revision tracking to detect changes since the last sync.
+
+## Setup
+
+1. Ensure your **Node-RED instance** has the Admin API enabled
+2. Generate or retrieve an access token from the Node-RED security settings
+3. In OpenPlane, add the Node-RED connector
+4. Enter the Node-RED base URL and access token
+5. Start the initial sync
+
+### Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Node-RED URL | — | Base URL of your Node-RED instance (required) |
+| Access Token | — | Admin API access token (required) |

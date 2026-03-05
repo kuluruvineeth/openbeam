@@ -1,0 +1,44 @@
+---
+title: SmartThings
+description: Connect Samsung SmartThings to OpenPlane for device and automation search
+---
+
+# SmartThings
+
+Index IoT devices, locations, rooms, and automation scenes from Samsung SmartThings using a Personal Access Token.
+
+## What Gets Indexed
+
+| Entity | Description |
+|--------|-------------|
+| Devices | Name, type, capabilities, health status, location, room |
+| Locations | Name, timezone, country, temperature scale |
+| Scenes | Name, associated location, last execution time |
+
+## Authentication
+
+SmartThings uses a **Personal Access Token (PAT)**. Generate one from the [SmartThings Developer Portal](https://account.smartthings.com/tokens).
+
+## Sync
+
+| Mode | Supported |
+|------|-----------|
+| Full sync | Yes |
+| Incremental sync | Yes |
+| Real-time | No |
+
+Incremental sync polls the SmartThings API for changes since the last sync timestamp.
+
+## Setup
+
+1. Go to the **SmartThings Developer Portal** and sign in
+2. Navigate to **Personal Access Tokens** and generate a new token
+3. In OpenPlane, add the SmartThings connector
+4. Paste the access token and start the initial sync
+
+### Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Personal Access Token | — | From SmartThings developer portal (required) |
+| Sync Scenes | On | Include automation scenes in search |

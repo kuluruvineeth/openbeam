@@ -1,0 +1,42 @@
+---
+title: Azure IoT Hub
+description: Connect Azure IoT Hub to OpenPlane for device and twin search
+---
+
+# Azure IoT Hub
+
+Index IoT devices with device twin state, tags, and connection status from Azure IoT Hub using a shared access connection string.
+
+## What Gets Indexed
+
+| Entity | Description |
+|--------|-------------|
+| Devices | Device ID, connection state, status, twin tags, reported properties, desired properties, last activity time |
+
+## Authentication
+
+Azure IoT Hub uses a **shared access connection string**. Retrieve it from the Azure Portal under **IoT Hub > Shared access policies** using the `registryRead` or `iothubowner` policy.
+
+## Sync
+
+| Mode | Supported |
+|------|-----------|
+| Full sync | Yes |
+| Incremental sync | Yes |
+| Real-time | No |
+
+The connector uses the IoT Hub Query API with SQL-like syntax to enumerate devices and fetch twin state. Incremental sync filters by last-activity timestamps.
+
+## Setup
+
+1. In the **Azure Portal**, navigate to your IoT Hub
+2. Go to **Shared access policies** and select a policy with registry read permissions
+3. Copy the **Connection string (primary key)**
+4. In OpenPlane, add the Azure IoT Hub connector
+5. Paste the connection string and start the initial sync
+
+### Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| IoT Hub Connection String | — | From Azure Portal (required) |

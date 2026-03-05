@@ -1,0 +1,46 @@
+---
+title: ThingsBoard
+description: Connect ThingsBoard to OpenPlane for IoT device and telemetry search
+---
+
+# ThingsBoard
+
+Index devices, telemetry time-series data, alarms, and dashboards from ThingsBoard IoT platform. Supports both Community and Professional editions via the REST API.
+
+## What Gets Indexed
+
+| Entity | Description |
+|--------|-------------|
+| Devices | Name, type, label, active status, attributes, telemetry keys |
+| Telemetry | Key-value time-series data points with timestamps |
+| Alarms | Alarm type, severity, status, originator device |
+| Dashboards | Dashboard name and metadata |
+
+## Authentication
+
+ThingsBoard uses **username/password** authentication against the REST API. Provide tenant administrator credentials -- the connector exchanges them for a JWT token automatically.
+
+## Sync
+
+| Mode | Supported |
+|------|-----------|
+| Full sync | Yes |
+| Incremental sync | Yes |
+| Real-time | No |
+
+Incremental sync uses server-side timestamps to fetch only entities modified since the last sync.
+
+## Setup
+
+1. Identify your **ThingsBoard instance** URL
+2. In OpenPlane, add the ThingsBoard connector
+3. Enter the base URL and tenant administrator credentials (email and password)
+4. Start the initial sync
+
+### Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| ThingsBoard URL | — | Base URL of your ThingsBoard instance (required) |
+| Username | — | Tenant administrator email (required) |
+| Password | — | Tenant administrator password (required) |

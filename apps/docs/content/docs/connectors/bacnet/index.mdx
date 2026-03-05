@@ -1,0 +1,47 @@
+---
+title: BACnet
+description: Connect BACnet/IP networks to OpenPlane for building automation search
+---
+
+# BACnet
+
+Discover BACnet/IP devices and index HVAC readings, schedules, and alarms from building automation networks with Change of Value (COV) subscriptions.
+
+## What Gets Indexed
+
+| Entity | Description |
+|--------|-------------|
+| BACnet Objects | Object type, present value, engineering units, status flags (analog/binary/multistate inputs and outputs) |
+| Schedules | Schedule name, effective period, weekly schedule definitions |
+| Alarms | Alarm type, source device, condition state |
+
+## Authentication
+
+BACnet/IP uses network-level access. No API keys or OAuth -- the connector communicates directly on the BACnet/IP UDP port (default 47808). Network access to the BACnet segment is the only requirement.
+
+## Sync
+
+| Mode | Supported |
+|------|-----------|
+| Full sync | Yes |
+| Incremental sync | Yes |
+| Real-time | Yes (COV subscriptions) |
+
+Full sync uses Who-Is broadcast for device discovery, then reads object lists and present values. Real-time updates use Change of Value (COV) subscriptions for monitored objects. Trend log extraction is supported for historical data.
+
+## Setup
+
+1. Ensure the OpenPlane host has **network access** to the BACnet/IP segment
+2. In OpenPlane, add the BACnet connector
+3. Configure the BACnet port (default 47808) and optionally specify a network interface
+4. Optionally list specific device IDs, or leave empty to discover all devices via Who-Is
+5. Start the initial sync
+
+### Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Network Interface | — | Network interface for BACnet/IP (e.g., `eth0`) |
+| BACnet Port | 47808 | BACnet/IP UDP port (required) |
+| Device IDs | — | Comma-separated device IDs, or empty to discover all |
+| Poll Interval | 30s | How often to poll object values |

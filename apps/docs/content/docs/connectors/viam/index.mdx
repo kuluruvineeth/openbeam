@@ -1,0 +1,51 @@
+---
+title: Viam Robotics
+description: Connect Viam to OpenPlane for robot fleet, sensor, and ML model search
+---
+
+# Viam Robotics
+
+Index robot fleet data, component configurations, aggregated sensor telemetry, camera captures with ML annotations, and ML model registry metadata from the Viam platform.
+
+## What Gets Indexed
+
+| Entity | Description |
+|--------|-------------|
+| Machines (Robots) | Name, status, components, location, organization |
+| Components | Component type (sensor, camera, motor, arm), configuration, capabilities |
+| Sensor Data | Time-windowed aggregations (5-min averages) with min/max/average values |
+| Camera Captures | Capture metadata, ML annotation tags, timestamps |
+| Locations | Location name, organization, associated machines |
+| ML Models | Model name, version, type, training metadata |
+
+## Authentication
+
+Viam uses **API key** authentication. Provide an API Key, API Key ID, and Organization ID from the Viam app dashboard.
+
+## Sync
+
+| Mode | Supported |
+|------|-----------|
+| Full sync | Yes |
+| Incremental sync | Yes |
+| Real-time | No |
+
+Incremental sync uses the Viam data client timestamps to fetch only new sensor data and captures since the last sync. Fleet and component metadata is re-synced periodically.
+
+## Setup
+
+1. Log in to the **Viam app** at [app.viam.com](https://app.viam.com)
+2. Navigate to your organization settings and generate an API key
+3. Copy the **API Key**, **API Key ID**, and **Organization ID**
+4. In OpenPlane, add the Viam connector
+5. Enter the credentials and start the initial sync
+
+### Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| API Key | — | Viam organization API key (required) |
+| API Key ID | — | Viam API key identifier (required) |
+| Organization ID | — | Viam organization identifier (required) |
+| Sensor Data Lookback | 24 hours | Hours of historical sensor data to sync |
+| Sync ML Models | Off | Index ML model registry metadata |

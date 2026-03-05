@@ -1,0 +1,51 @@
+---
+title: Matterport
+description: Connect Matterport to OpenPlane for 3D spatial scan and annotation search
+---
+
+# Matterport
+
+Index 3D spatial models, rooms, floor plans, sweeps, and Mattertag annotations from Matterport with spatial metadata for proximity-based search.
+
+## What Gets Indexed
+
+| Entity | Description |
+|--------|-------------|
+| Spaces (3D Models) | Name, address, total rooms, floors, area, spatial dimensions |
+| Rooms | Name, floor assignment, area, bounding box coordinates |
+| Floors | Floor number, area, room count, elevation |
+| Mattertags | Label, description, 3D position (x, y, z), attached media |
+| Sweeps | Position, rotation, neighboring sweeps, panorama data |
+
+## Authentication
+
+Matterport uses **API token** authentication. Provide both an API Token ID and API Token Secret, obtained from the Matterport developer portal.
+
+The connector communicates via the Matterport GraphQL API.
+
+## Sync
+
+| Mode | Supported |
+|------|-----------|
+| Full sync | Yes |
+| Incremental sync | Yes |
+| Real-time | No |
+
+Incremental sync uses model modification timestamps to fetch only spaces updated since the last sync.
+
+## Setup
+
+1. Create a **Matterport developer account** and generate API credentials
+2. In OpenPlane, add the Matterport connector
+3. Enter the API Token ID and API Token Secret
+4. Optionally list specific model IDs to sync, or leave empty to sync all accessible models
+5. Start the initial sync
+
+### Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| API Token ID | — | Matterport API token ID (required) |
+| API Token Secret | — | Matterport API token secret (required) |
+| Model IDs | — | Specific model IDs to sync (one per line), or empty for all |
+| Include Floor Plans | On | Index floor plan metadata and image links |

@@ -1,0 +1,51 @@
+---
+title: MQTT
+description: Connect MQTT brokers to OpenPlane for industrial IoT data search
+---
+
+# MQTT
+
+Subscribe to MQTT broker topics and index sensor readings, device states, alarms, and Sparkplug B birth certificates from any MQTT 3.1.1 or 5.0 broker.
+
+## What Gets Indexed
+
+| Entity | Description |
+|--------|-------------|
+| Sensor Readings | Value, min, max, average within a configurable aggregation window |
+| Device States | State changes decoded from JSON, Sparkplug B, or CBOR payloads |
+| Alarms | Severity, source device, timestamp |
+| Device Births | Sparkplug B NBIRTH/DBIRTH certificates with device metadata |
+
+## Authentication
+
+MQTT connector uses **broker credentials** (username/password) and optionally TLS/mTLS certificates. No OAuth flow -- the broker URL, port, and credentials are configured directly.
+
+## Sync
+
+| Mode | Supported |
+|------|-----------|
+| Full sync | Yes |
+| Incremental sync | Yes |
+| Real-time | Yes (subscription-based) |
+
+MQTT is inherently real-time. The connector subscribes to configured topic patterns and aggregates messages into time windows before indexing. Backfill is not supported since MQTT brokers do not retain historical messages by default.
+
+## Setup
+
+1. Identify your **MQTT broker** address (Mosquitto, EMQX, HiveMQ, or any MQTT 3.1.1/5.0 broker)
+2. In OpenPlane, add the MQTT connector
+3. Enter the broker URL, port, and optional credentials
+4. Define topic subscription patterns using MQTT wildcards (`+` for single level, `#` for multi-level)
+5. Select the payload format and start the sync
+
+### Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Broker URL | — | MQTT broker address with protocol prefix (required) |
+| Port | 8883 | Broker port (8883 for TLS, 1883 for plain) |
+| Username | — | Broker authentication username |
+| Password | — | Broker authentication password |
+| Topic Subscriptions | — | MQTT topic patterns, one per line (required) |
+| Payload Format | JSON | JSON, Sparkplug B, CBOR, or Raw |
+| Aggregation Window | 60s | Time window for sensor reading aggregation (0 to disable) |

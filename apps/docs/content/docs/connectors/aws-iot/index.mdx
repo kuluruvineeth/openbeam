@@ -1,0 +1,49 @@
+---
+title: AWS IoT Core
+description: Connect AWS IoT Core to OpenPlane for device and thing group search
+---
+
+# AWS IoT Core
+
+Index IoT things, device shadows, and thing groups from AWS IoT Core using IAM credentials with multi-region support.
+
+## What Gets Indexed
+
+| Entity | Description |
+|--------|-------------|
+| Things | Name, thing type, attributes, ARN, connectivity status, shadow state |
+| Thing Groups | Name, description, parent group, ARN, attributes |
+
+## Authentication
+
+AWS IoT Core uses **IAM access keys**. Provide an Access Key ID and Secret Access Key for an IAM user or role with IoT read permissions.
+
+Required IAM permissions: `iot:ListThings`, `iot:DescribeThing`, `iot:GetThingShadow`, `iot:ListThingGroups`, `iot:DescribeThingGroup`.
+
+## Sync
+
+| Mode | Supported |
+|------|-----------|
+| Full sync | Yes |
+| Incremental sync | Yes |
+| Real-time | No |
+
+Incremental sync uses the IoT registry API to detect changes since the last sync timestamp.
+
+## Setup
+
+1. In the **AWS IAM Console**, create an IAM user or role with IoT read permissions
+2. Generate an **Access Key ID** and **Secret Access Key**
+3. In OpenPlane, add the AWS IoT Core connector
+4. Enter the credentials and select the AWS region where your IoT resources are deployed
+5. Start the initial sync
+
+### Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| AWS Access Key ID | — | IAM access key with IoT read permissions (required) |
+| AWS Secret Access Key | — | Corresponding secret key (required) |
+| AWS Region | us-east-1 | Region of your IoT resources (required) |
+| Sync Thing Groups | On | Include thing groups in the search index |
+| Sync Device Shadows | On | Include device shadow state in thing documents |

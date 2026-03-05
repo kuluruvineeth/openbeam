@@ -1,0 +1,52 @@
+---
+title: OPC-UA
+description: Connect OPC-UA servers to OpenPlane for industrial automation data search
+---
+
+# OPC-UA
+
+Browse OPC-UA address spaces, subscribe to node value changes, and index historical data from industrial automation servers with X.509 certificate or username/password authentication.
+
+## What Gets Indexed
+
+| Entity | Description |
+|--------|-------------|
+| Node Values | NodeId, value, status code, source timestamp from subscriptions |
+| Alarms & Conditions | Alarm type, severity, source node, message text |
+
+## Authentication
+
+OPC-UA supports two authentication modes:
+
+- **Username/Password** -- standard credentials for the OPC-UA server
+- **Anonymous** -- leave username and password empty
+
+Security is configurable with modes (None, Sign, Sign & Encrypt) and policies (None, Basic256, Basic256Sha256, AES-128 SHA-256 RSA-OAEP).
+
+## Sync
+
+| Mode | Supported |
+|------|-----------|
+| Full sync | Yes |
+| Incremental sync | Yes |
+| Real-time | Yes (server-push subscriptions) |
+
+The connector browses the OPC-UA address space for full sync. For real-time data, it creates subscriptions that receive server-push notifications on value changes. Historical Data Access (HDA) is supported for backfill.
+
+## Setup
+
+1. Identify your **OPC-UA server** endpoint URL (e.g., `opc.tcp://server:4840`)
+2. In OpenPlane, add the OPC-UA connector
+3. Enter the endpoint URL, security mode, and security policy
+4. Provide credentials if required (username/password)
+5. Start the initial sync to browse the address space
+
+### Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Endpoint URL | — | OPC-UA server endpoint (required) |
+| Security Mode | Sign & Encrypt | None, Sign, or Sign & Encrypt |
+| Security Policy | Basic256Sha256 | Cryptographic policy for the connection |
+| Username | — | Server username (leave empty for anonymous) |
+| Password | — | Server password |
