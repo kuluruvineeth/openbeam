@@ -1,5 +1,14 @@
 {
   "title": "Documentation",
   "icon": "BookOpen",
-  "pages": ["getting-started", "architecture", "connectors"]
+  "pages": [
+    "getting-started",
+    "architecture",
+    "connectors",
+    "search",
+    "ai",
+    "cli",
+    "self-hosting",
+    "contributing"
+  ]
 }

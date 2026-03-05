@@ -1,9 +1,14 @@
 import { HugeiconsIcon, type HugeiconsIconProps } from "@hugeicons/react";
 import {
+  ArtificialIntelligence01Icon,
   BookOpen01Icon,
+  CommandLineIcon,
   FlowSquareIcon,
+  GitBranchIcon,
   Home01Icon,
   Rocket01Icon,
+  Search01Icon,
+  ServerStackIcon,
   Settings01Icon,
 } from "@hugeicons-pro/core-stroke-rounded";
 import { type InferPageType, loader } from "fumadocs-core/source";
@@ -21,11 +26,17 @@ type IconType = HugeiconsIconProps["icon"];
 
 const hugeIconMap: Record<string, IconType> = {
   BookOpen: BookOpen01Icon,
-  Home: Home01Icon,
+  Bot: ArtificialIntelligence01Icon,
   Connector: FlowSquareIcon,
   Connectors: FlowSquareIcon,
+  GitBranch: GitBranchIcon,
+  Home: Home01Icon,
+  LayoutGrid: FlowSquareIcon,
   Rocket: Rocket01Icon,
+  Search: Search01Icon,
+  Server: ServerStackIcon,
   Settings: Settings01Icon,
+  Terminal: CommandLineIcon,
 };
 
 const customIconMap: Record<

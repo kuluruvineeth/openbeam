@@ -3,43 +3,70 @@ title: Architecture
 description: How OpenPlane works — enterprise search and AI platform
 ---
 
-OpenPlane is an enterprise search and AI platform that connects to your company's SaaS tools, indexes everything, and makes it searchable with AI-powered answers.
+OpenPlane is an enterprise search and AI platform. It connects to SaaS tools, IoT devices, and industrial systems, indexes everything, and makes it searchable with AI-powered answers.
 
 <ExcalidrawViewer
   src="/diagrams/excalidraw/system-context.excalidraw"
-  caption="OpenPlane connects to 100+ SaaS tools, indexes documents via Temporal workflows, and serves search + AI answers"
+  caption="System context: connectors, sync pipeline, search, and AI agents"
   height={700}
 />
 
 ## How It Works
 
-1. **Connect** — OAuth into Slack, Gmail, Notion, Linear, Google Drive, and 100+ apps
-2. **Sync** — Temporal workflows fetch, transform, and index documents into Vespa
-3. **Search** — Hybrid semantic + keyword search with permission-aware filtering
-4. **Answer** — AI agents ground answers in your company's data with citations
+1. **Connect** — OAuth or API key into Slack, Gmail, Notion, Linear, GitHub, MQTT, OPC-UA, and 20+ sources
+2. **Sync** — Temporal workflows fetch, transform, chunk, embed, and index documents into Vespa
+3. **Search** — Hybrid BM25 + semantic search with permission-aware filtering
+4. **Answer** — AI agents ground answers in your data with citations
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|------------|
+| Language | TypeScript 5.8+, Zod 4, Go 1.24 (CLI) |
 | Frontend | Next.js 16, React 19, TailwindCSS 4 |
-| API | Hono, tRPC 11 |
+| API | Hono, tRPC 11, SuperJSON |
 | Orchestration | Temporal (durable workflows) |
-| Search | Vespa (hybrid semantic + keyword) |
+| Search | Vespa (hybrid BM25 + semantic vectors) |
 | Database | PostgreSQL + Prisma |
 | Cache | Redis |
-| AI | Vercel AI SDK, Claude, OpenAI embeddings |
+| AI | Vercel AI SDK (Claude, GPT, Gemini) |
 | Storage | S3/R2 |
+| Edge | SQLite (bun:sqlite), FTS5 + vector |
+| Linter | Biome |
 
 ## System Boundary
 
 | Component | Port | Purpose |
 |-----------|------|---------|
 | **web** | `:3001` | Next.js frontend |
-| **server** | `:3000` | Hono API server |
+| **server** | `:3000` | Hono API server (tRPC) |
 | **worker** | — | Temporal workers (sync, agents, processing) |
 | **engine** | `:8000` / `:8001` | Python ML service (CPU/GPU) |
+| **cli** | — | Go CLI (`openplane` command) |
+| **daemon** | — | Local headless agent/session orchestration |
+| **gateway** | — | IoT protocol gateway (MQTT, BACnet, OPC-UA) |
 | **docs** | `:4000` | Documentation site |
+
+## Packages
+
+| Package | Purpose |
+|---------|---------|
+| `@openplane/types` | Shared type definitions (single source of truth) |
+| `@openplane/ai` | Agents, tools, RAG pipeline |
+| `@openplane/api` | tRPC routers |
+| `@openplane/auth` | Authentication |
+| `@openplane/db` | Prisma schema, queries |
+| `@openplane/services` | Connector business logic |
+| `@openplane/temporal` | Workflows & activities |
+| `@openplane/vespa` | Search client & schemas |
+| `@openplane/redis` | Cache & rate limiting |
+| `@openplane/integrations` | OAuth configs, app definitions |
+| `@openplane/media` | Video processing (TwelveLabs) |
+| `@openplane/storage` | S3/R2 client |
+| `@openplane/mcp` | Model Context Protocol |
+| `@openplane/edge-core` | Edge SQLite storage & sync |
+| `@openplane/edge-search` | Edge hybrid search (FTS5 + vector) |
+| `@openplane/edge-ai` | Edge RAG, NER, query rewriting |
 
 ## Principles
 
@@ -47,3 +74,4 @@ OpenPlane is an enterprise search and AI platform that connects to your company'
 - **Single source of truth** — `@openplane/types` owns all shared types
 - **Durable execution** — Temporal workflows for all background processing
 - **Agent-native** — Every capability is a composable tool
+- **Edge-capable** — Search and AI run offline on SQLite

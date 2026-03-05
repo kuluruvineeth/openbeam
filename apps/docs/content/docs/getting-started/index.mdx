@@ -23,15 +23,17 @@ description: Deploy OpenPlane
     ```bash
     git clone https://github.com/kuluruvineeth/openplane.git
     cd openplane
-    cp .env.example .env
-    docker-compose up -d
+    docker compose up -d
     ```
+
+    Docker Compose starts all required services (PostgreSQL, Redis, Vespa, Temporal) automatically.
 
     **Services:**
     | Service | URL |
     |---------|-----|
     | Web | http://localhost:3001 |
     | API | http://localhost:3000 |
+    | ML Engine | http://localhost:8000 |
     | Docs | http://localhost:4000 |
   </Tab>
   <Tab value="Development">
@@ -49,10 +51,15 @@ description: Deploy OpenPlane
     # Start all services
     bun run dev
     ```
+
+    Development mode requires PostgreSQL, Redis, Vespa, and Temporal running separately.
+    See the [Self-Hosting guide](/docs/self-hosting) for infrastructure setup.
   </Tab>
 </Tabs>
 
 ## Environment
+
+Create a `.env` file in the project root:
 
 ```bash title=".env"
 # Database
@@ -84,6 +91,14 @@ AUTH_SECRET=generate-a-secret-key
     GOOGLE_CLIENT_ID=...
     GOOGLE_CLIENT_SECRET=...
 
+    # Linear
+    LINEAR_CLIENT_ID=...
+    LINEAR_CLIENT_SECRET=...
+
+    # GitHub
+    GITHUB_CLIENT_ID=...
+    GITHUB_CLIENT_SECRET=...
+
     # Storage (optional)
     S3_BUCKET=...
     S3_ACCESS_KEY_ID=...
@@ -105,14 +120,18 @@ AUTH_SECRET=generate-a-secret-key
 | `bun run dev` | Start all apps |
 | `bun run dev:web` | Web only |
 | `bun run dev:server` | Server only |
-| `bun run check` | Lint + format |
+| `bun run check` | Lint + format (Biome) |
 | `bun run build` | Build all |
 | `bun run db:push` | Push schema |
 | `bun run db:studio` | Prisma Studio |
+| `bun run db:migrate` | Run migrations |
+| `bun test` | Run tests |
 
 ## Next Steps
 
 <Cards>
-  <Card title="Slack" href="/docs/connectors/slack" description="Connect Slack workspace" />
-  <Card title="Gmail" href="/docs/connectors/gmail" description="Connect Gmail account" />
+  <Card title="Architecture" href="/docs/architecture" description="Understand the system design" />
+  <Card title="Connectors" href="/docs/connectors" description="Connect your first tool" />
+  <Card title="Self-Hosting" href="/docs/self-hosting" description="Deploy on your infrastructure" />
+  <Card title="AI & Agents" href="/docs/ai" description="Search assistant and agents" />
 </Cards>
