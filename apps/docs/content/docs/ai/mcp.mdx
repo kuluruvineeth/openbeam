@@ -288,7 +288,7 @@ if (isValidNotification(message)) {
 
 ## Architecture
 
-```
+```text
 External AI Client               OpenPlane
 ┌─────────────────┐             ┌──────────────────────────────┐
 │ Claude Desktop  │             │  MCPServer                   │
@@ -303,3 +303,9 @@ External AI Client               OpenPlane
 ```
 
 The `MCPToolBridge` automatically converts the internal `ToolRegistry` format to MCP-compatible tool definitions. When a tool is registered or unregistered in the registry, it is immediately reflected in MCP's `tools/list` response.
+
+<Cards>
+  <Card title="Tool Framework" href="/docs/ai/tools" description="Define tools that MCP exposes" />
+  <Card title="CLI" href="/docs/cli" description="CLI includes a built-in MCP server" />
+  <Card title="Agent Patterns" href="/docs/ai/agents" description="Agents that use these same tools" />
+</Cards>

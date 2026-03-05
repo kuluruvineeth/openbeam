@@ -421,7 +421,7 @@ interface ExecutionTrace {
 
 For a Sequential agent running three sub-agents, the trace tree looks like:
 
-```
+```text
 research-pipeline (sequential)
 ├── search (llm) - 2 tool calls, 1.2s
 ├── analyze (llm) - 3 tool calls, 2.4s
@@ -438,3 +438,9 @@ research-pipeline (sequential)
 | **Coordinator** | Query | Routed answer | Multi-domain routing by intent |
 | **Loop** | Query | Converged answer | Iterative refinement until quality threshold |
 | **Generator-Critic** | Spec | Quality-gated output | Self-reviewing content generation |
+
+<Cards>
+  <Card title="Tool Framework" href="/docs/ai/tools" description="Define typed tools with Zod schemas and risk profiles" />
+  <Card title="RAG Pipeline" href="/docs/ai/rag" description="Query analysis, grounding, and citation tracking" />
+  <Card title="MCP Server" href="/docs/ai/mcp" description="Expose tools to external AI clients" />
+</Cards>

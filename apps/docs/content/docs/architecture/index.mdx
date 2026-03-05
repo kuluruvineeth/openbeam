@@ -52,7 +52,7 @@ OpenPlane is a modular, TypeScript-first platform built as a Turborepo monorepo.
 
 All shared logic lives in packages. Apps are thin adapters that compose packages.
 
-```
+```text
 apps/
 ├── web           → @openplane/api, @openplane/auth, @openplane/ui
 ├── server        → @openplane/api, @openplane/services, @openplane/ai, @openplane/temporal
@@ -83,7 +83,7 @@ packages/
 
 Dependencies flow in one direction: apps import packages, packages import other packages, never the reverse.
 
-```
+```text
 apps/web ──────┐
 apps/server ───┼──> packages/api ──> packages/services ──> packages/db
 apps/worker ───┘         │                  │                  │

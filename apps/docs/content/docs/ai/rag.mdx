@@ -9,7 +9,7 @@ The RAG pipeline grounds LLM answers in source documents. It analyzes the query,
 
 ## Pipeline Stages
 
-```
+```text
 Query → Analyze → Rerank → Build Context → Generate → Ground → Respond
 ```
 
@@ -290,7 +290,7 @@ context documents.
 
 Source chunks are formatted with numbered references:
 
-```
+```text
 [1] API Documentation
 Our API rate limit is 100 requests per minute per API key.
 
@@ -336,3 +336,9 @@ The RAG pipeline is exposed as agent tools:
 | `rag_synthesize` | Synthesize information from multiple sources |
 
 These tools are used internally by the LLM agent when answering questions, and can be composed into larger workflows via Sequential or Parallel agents.
+
+<Cards>
+  <Card title="Agent Patterns" href="/docs/ai/agents" description="Orchestrate RAG tools in multi-step workflows" />
+  <Card title="Tool Framework" href="/docs/ai/tools" description="Define and register custom tools" />
+  <Card title="Search" href="/docs/search" description="How hybrid search retrieves documents for RAG" />
+</Cards>

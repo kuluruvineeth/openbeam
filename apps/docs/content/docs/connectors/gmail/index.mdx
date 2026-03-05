@@ -1,33 +1,40 @@
 ---
 title: Gmail
-description: Search emails, threads, and attachments
+description: Search emails, threads, and attachments from Gmail with optional real-time Pub/Sub sync
 ---
 
-# Gmail Connector
+# Gmail
 
-Index emails, threads, and attachments. Optional real-time sync via Pub/Sub.
+Index emails, threads, and attachments from Gmail. Supports OAuth 2.0 authentication, full and incremental sync, and optional real-time updates via Google Pub/Sub.
 
-<Cards>
-  <Card title="Setup" href="/docs/connectors/gmail/setup" />
-  <Card title="Features" href="/docs/connectors/gmail/features" />
-  <Card title="Troubleshooting" href="/docs/connectors/gmail/troubleshooting" />
-</Cards>
+## What Gets Indexed
 
-## What's Indexed
+| Content | Details |
+|---------|---------|
+| **Emails and threads** | Full-text search across grouped conversations |
+| **Attachments** | Text extraction from PDF, DOCX, and images via OCR |
+| **Labels** | Filter results by Gmail labels |
 
-- **Emails & threads** - Full-text search, grouped conversations
-- **Attachments** - Text extraction (PDF, DOCX, images via OCR)
-- **Labels** - Filter by Gmail labels
+## Authentication
+
+**Method:** OAuth 2.0
+
+**Scopes:** `gmail.readonly`, `contacts.readonly`
+
+Create OAuth credentials in the Google Cloud Console. Enable the Gmail API and People API for your project.
 
 ## Quick Start
 
-1. Create Google Cloud project with OAuth credentials
-2. Enable Gmail API and People API
-3. Configure OAuth redirect URI
-4. Connect in OpenPlane UI
+1. Create a Google Cloud project with OAuth credentials
+2. Enable the Gmail API and People API
+3. Configure the OAuth redirect URI to match your OpenPlane instance
+4. Connect Gmail in the OpenPlane UI and authorize
 
 <Cards>
-  <Card title="Google Cloud Setup" href="/docs/connectors/gmail/google-cloud-setup" />
-  <Card title="Pub/Sub Setup" href="/docs/connectors/gmail/pubsub-setup" />
-  <Card title="Configuration" href="/docs/connectors/gmail/configuration" />
+  <Card title="Setup" href="/docs/connectors/gmail/setup" description="Step-by-step OAuth and API configuration" />
+  <Card title="Google Cloud Setup" href="/docs/connectors/gmail/google-cloud-setup" description="Create project, enable APIs, configure consent screen" />
+  <Card title="Features" href="/docs/connectors/gmail/features" description="Indexed content types and search capabilities" />
+  <Card title="Pub/Sub Setup" href="/docs/connectors/gmail/pubsub-setup" description="Enable real-time sync via Google Pub/Sub" />
+  <Card title="Configuration" href="/docs/connectors/gmail/configuration" description="Sync intervals, label filters, and attachment settings" />
+  <Card title="Troubleshooting" href="/docs/connectors/gmail/troubleshooting" description="Common issues and fixes" />
 </Cards>

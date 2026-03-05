@@ -48,7 +48,7 @@ OpenPlane runs as Docker containers split into two compose files: infrastructure
 
 Two Docker networks separate infrastructure from application traffic:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────┐
 │  openplane (infrastructure network)                     │
 │                                                         │
@@ -254,7 +254,7 @@ All containers expose health checks. The compose files configure Docker health c
 
 The compose files enforce dependencies:
 
-```
+```text
 postgres → postgres-auth-fix → temporal → temporal-ui
                                     ↓
                               server → web
@@ -278,3 +278,9 @@ Pre-configured dashboards are provisioned automatically:
 | Infrastructure | CPU, memory, disk, network per container |
 
 Access Grafana at `http://localhost:3002` (default credentials: `admin`/`admin`).
+
+<Cards>
+  <Card title="Self-Hosting Guide" href="/docs/self-hosting" description="Production deployment on your own infrastructure" />
+  <Card title="Docker Compose" href="/docs/self-hosting/docker-compose" description="Step-by-step single-server deployment" />
+  <Card title="Configuration" href="/docs/self-hosting/configuration" description="All environment variables documented" />
+</Cards>

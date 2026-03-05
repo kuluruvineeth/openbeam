@@ -150,7 +150,7 @@ When a user searches, OpenPlane runs hybrid search combining keyword matching (B
 
 Permissions are pre-computed and synced from source systems into the `DocumentPermission` table. At query time, the user's permission group IDs are resolved in under 5ms and passed as a filter to Vespa. Users only see documents they can access in the original tool.
 
-```
+```text
 User → GroupMembership → permission_group_ids → Vespa filter
 ```
 
@@ -181,3 +181,9 @@ For multi-step workflows, the Agent Canvas provides a visual builder where users
 - Run on schedules or in response to events
 
 Agent executions are Temporal workflows, providing the same durability and visibility guarantees as sync workflows.
+
+<Cards>
+  <Card title="Data Model" href="/docs/architecture/data-model" description="60+ Prisma models across 8 domains" />
+  <Card title="Deployment" href="/docs/architecture/deployment" description="Container topology, network zones, and scaling" />
+  <Card title="RAG Pipeline" href="/docs/ai/rag" description="How search powers grounded AI answers" />
+</Cards>

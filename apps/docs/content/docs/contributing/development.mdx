@@ -26,7 +26,7 @@ bun --version  # Should be 1.3.2+
 ### Install Dependencies
 
 ```bash
-git clone https://github.com/openplane/openplane.git
+git clone https://github.com/kuluruvineeth/openplane.git
 cd openplane
 bun install
 ```
@@ -36,7 +36,7 @@ bun install
 PostgreSQL, Redis, Vespa, and Temporal run in Docker:
 
 ```bash
-docker compose up -d
+docker compose -f scripts/deploy/infra-hetzner-compose.yaml up -d
 ```
 
 ### Configure Environment
@@ -98,7 +98,7 @@ bun test path/to/file.test.ts  # Single file
 
 Test files live in `__tests__/` directories adjacent to source files:
 
-```
+```text
 packages/services/src/linear/
 ├── sync/
 │   ├── full.ts
@@ -220,7 +220,7 @@ Turborepo caches build outputs. Unchanged packages skip rebuilding.
 
 Packages follow a strict dependency hierarchy. Inner packages must not import from outer packages.
 
-```
+```text
 apps/ (web, server, worker, daemon)
   └── packages/api
         ├── packages/services
@@ -297,7 +297,12 @@ bun run build         # Build succeeds
 | Problem | Solution |
 |---------|---------|
 | `bun install` fails | Delete `node_modules` and `bun.lock`, re-run `bun install` |
-| Database connection refused | Verify Docker is running: `docker compose ps` |
+| Database connection refused | Verify Docker is running: `docker compose -f scripts/deploy/infra-hetzner-compose.yaml ps` |
 | Temporal tests fail with V8 error | Run with `bun run test` (uses vitest + Node.js), not `bun test` |
 | Port 3001 in use | Kill the existing process: `lsof -ti:3001 \| xargs kill` |
 | Type errors after `git pull` | Run `bun install` then `bun run build` to rebuild packages |
+
+<Cards>
+  <Card title="Contributing Overview" href="/docs/contributing" description="What to contribute, commit conventions, PR process" />
+  <Card title="Connector Development" href="/docs/contributing/connectors" description="Build a connector in 2-3 hours" />
+</Cards>

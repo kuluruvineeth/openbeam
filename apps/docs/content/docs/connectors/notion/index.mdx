@@ -1,32 +1,37 @@
 ---
 title: Notion
-description: Search pages, databases, and blocks
+description: Search pages, databases, and blocks from Notion with recursive content extraction
 ---
 
-# Notion Connector
+# Notion
 
-Index pages, databases, and blocks with recursive content extraction.
+Index pages, databases, and blocks from Notion with recursive content extraction. Supports OAuth 2.0 authentication and incremental sync.
 
-<Cards>
-  <Card title="Setup" href="/docs/connectors/notion/setup" />
-  <Card title="Features" href="/docs/connectors/notion/features" />
-  <Card title="Troubleshooting" href="/docs/connectors/notion/troubleshooting" />
-</Cards>
+## What Gets Indexed
 
-## What's Indexed
+| Content | Details |
+|---------|---------|
+| **Pages** | Full content with nested blocks recursively extracted |
+| **Databases** | Schema, properties, and all entries |
+| **Comments** | Page and block discussions |
 
-- **Pages** - Full content with nested blocks
-- **Databases** - Schema, properties, and entries
-- **Comments** - Page and block discussions
+## Authentication
+
+**Method:** OAuth 2.0
+
+Create a Notion integration at [notion.so/my-integrations](https://www.notion.so/my-integrations), enable OAuth, and add the redirect URI.
 
 ## Quick Start
 
-1. Create Notion integration at notion.so/my-integrations
-2. Enable OAuth and add redirect URI
-3. Connect in OpenPlane UI
-4. Select pages to share with integration
+1. Create a Notion integration at [notion.so/my-integrations](https://www.notion.so/my-integrations)
+2. Enable OAuth and configure the redirect URI
+3. Connect Notion in the OpenPlane UI
+4. Select pages and databases to share with the integration
 
 <Cards>
-  <Card title="Configuration" href="/docs/connectors/notion/configuration" />
-  <Card title="Sync Behavior" href="/docs/connectors/notion/sync" />
+  <Card title="Setup" href="/docs/connectors/notion/setup" description="Integration creation and authorization" />
+  <Card title="Features" href="/docs/connectors/notion/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/notion/configuration" description="Page selection, sync intervals, and settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/notion/sync" description="Full sync, incremental sync, and block extraction" />
+  <Card title="Troubleshooting" href="/docs/connectors/notion/troubleshooting" description="Common issues and fixes" />
 </Cards>

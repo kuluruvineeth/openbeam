@@ -1,33 +1,41 @@
 ---
 title: Linear
-description: Search issues, projects, documents, and cycles
+description: Search issues, projects, documents, and cycles from Linear with real-time webhook sync
 ---
 
-# Linear Connector
+# Linear
 
-Index issues, projects, documents, and cycles with real-time webhook sync.
+Index issues, projects, documents, and cycles from Linear. Supports OAuth 2.0 authentication, full and incremental sync, and real-time webhook updates.
 
-<Cards>
-  <Card title="Setup" href="/docs/connectors/linear/setup" />
-  <Card title="Features" href="/docs/connectors/linear/features" />
-  <Card title="Troubleshooting" href="/docs/connectors/linear/troubleshooting" />
-</Cards>
+## What Gets Indexed
 
-## What's Indexed
+| Content | Details |
+|---------|---------|
+| **Issues** | Title, description, comments, labels, state, assignee |
+| **Projects** | Name, description, status, milestones |
+| **Documents** | Wiki pages and project documentation |
+| **Cycles** | Sprint names, dates, progress |
 
-- **Issues** - Title, description, comments, labels, state
-- **Projects** - Name, description, status, milestones
-- **Documents** - Wiki pages and project documentation
-- **Cycles** - Sprint names, dates, progress
+## Authentication
+
+**Method:** OAuth 2.0
+
+**Scopes:** `read`, `write`
+
+Create an OAuth application at [linear.app/settings/api](https://linear.app/settings/api) and provide the Client ID and Client Secret.
 
 ## Quick Start
 
-1. Create Linear OAuth application at linear.app/settings/api
-2. Configure redirect URI and get credentials
-3. Add connector in OpenPlane with Client ID/Secret
-4. Authorize and start sync
+1. Create a Linear OAuth application at [linear.app/settings/api](https://linear.app/settings/api)
+2. Configure the redirect URI and copy your credentials
+3. Add the Linear connector in OpenPlane with Client ID and Secret
+4. Authorize and start the initial sync
 
 <Cards>
-  <Card title="Configuration" href="/docs/connectors/linear/configuration" />
-  <Card title="Sync Behavior" href="/docs/connectors/linear/sync" />
+  <Card title="Setup" href="/docs/connectors/linear/setup" description="OAuth application creation and authorization" />
+  <Card title="OAuth Setup" href="/docs/connectors/linear/oauth-setup" description="Detailed OAuth configuration steps" />
+  <Card title="Features" href="/docs/connectors/linear/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/linear/configuration" description="Sync intervals, team selection, and settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/linear/sync" description="Full sync, incremental sync, and webhook details" />
+  <Card title="Troubleshooting" href="/docs/connectors/linear/troubleshooting" description="Common issues and fixes" />
 </Cards>

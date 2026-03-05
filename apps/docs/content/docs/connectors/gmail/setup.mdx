@@ -29,7 +29,7 @@ description: Connect Gmail to OpenPlane
 2. Click **Create Credentials → OAuth client ID**
 3. Select **Web application**
 4. Add redirect URI:
-   ```
+   ```text
    https://your-domain.com/connectors/setup/gmail/oauth/callback
    ```
 5. Save Client ID and Client Secret
@@ -52,6 +52,6 @@ SERVER_URL=https://api.your-domain.com
 Initial sync runs in background. Large mailboxes may take 1+ hours.
 
 <Cards>
-  <Card title="Google Cloud Details" href="/docs/connectors/gmail/google-cloud-setup" />
-  <Card title="Real-time Sync" href="/docs/connectors/gmail/pubsub-setup" />
+  <Card title="Google Cloud Details" href="/docs/connectors/gmail/google-cloud-setup" description="API enablement, OAuth consent screen, and credentials" />
+  <Card title="Real-time Sync" href="/docs/connectors/gmail/pubsub-setup" description="Cloud Pub/Sub setup for instant email notifications" />
 </Cards>

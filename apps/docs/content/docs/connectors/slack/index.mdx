@@ -1,41 +1,49 @@
 ---
 title: Slack
-description: Search Slack messages, files, and canvases with AI assistance
+description: Search Slack messages, files, and canvases with real-time Event Subscriptions
 ---
 
-# Slack Connector
+# Slack
 
-Index messages, threads, files, canvases, and clips. Real-time sync via Event Subscriptions.
+Index messages, threads, files, canvases, and clips from Slack. Supports OAuth 2.0 authentication, real-time sync via Event Subscriptions, and interactive slash commands.
 
-<Cards>
-  <Card title="Setup" href="/docs/connectors/slack/setup" />
-  <Card title="Features" href="/docs/connectors/slack/features" />
-  <Card title="Troubleshooting" href="/docs/connectors/slack/troubleshooting" />
-</Cards>
+## What Gets Indexed
 
-## What's Indexed
+| Content | Details |
+|---------|---------|
+| **Messages and threads** | Full-text search with conversation context |
+| **Files** | Text extraction from PDF, DOCX, and images via OCR |
+| **Canvases** | Full content indexing |
+| **Clips** | Audio and video transcription |
 
-- **Messages & threads** - Full-text search with context
-- **Files** - Text extraction (PDF, DOCX, images via OCR)
-- **Canvases** - Full content indexing
-- **Clips** - Audio/video transcription
+## Authentication
+
+**Method:** OAuth 2.0
+
+Create a Slack app using the provided [manifest](/docs/connectors/slack/app-setup), then configure OAuth redirect URI and scopes.
 
 ## Quick Start
 
-1. Create Slack app using the [manifest](/docs/connectors/slack/app-setup)
-2. Set OAuth redirect URI and scopes
-3. Enable Event Subscriptions
-4. Connect in OpenPlane UI
+1. Create a Slack app using the [manifest](/docs/connectors/slack/app-setup)
+2. Set the OAuth redirect URI and required scopes
+3. Enable Event Subscriptions for real-time sync
+4. Connect Slack in the OpenPlane UI and authorize
 
 ## Interactive Features
 
-- `/openplane search <query>` - Search all content
-- `/openplane ask <question>` - AI-powered answers
-- `@OpenPlane` - Mention in any channel for contextual help
-- Message shortcuts - Summarize threads, save messages, find related
+| Command | Action |
+|---------|--------|
+| `/openplane search <query>` | Search all connected content |
+| `/openplane ask <question>` | AI-powered answers with citations |
+| `@OpenPlane` | Mention in any channel for contextual help |
+| Message shortcuts | Summarize threads, save messages, find related content |
 
 <Cards>
-  <Card title="OAuth Scopes" href="/docs/connectors/slack/oauth-scopes" />
-  <Card title="Configuration" href="/docs/connectors/slack/configuration" />
-  <Card title="Enterprise Grid" href="/docs/connectors/slack/enterprise" />
+  <Card title="Setup" href="/docs/connectors/slack/setup" description="Step-by-step app creation and authorization" />
+  <Card title="App Setup" href="/docs/connectors/slack/app-setup" description="Create and configure the Slack app" />
+  <Card title="Features" href="/docs/connectors/slack/features" description="Indexed content types and interactive features" />
+  <Card title="OAuth Scopes" href="/docs/connectors/slack/oauth-scopes" description="Required and optional permission scopes" />
+  <Card title="Configuration" href="/docs/connectors/slack/configuration" description="Channel selection, sync intervals, and settings" />
+  <Card title="Enterprise Grid" href="/docs/connectors/slack/enterprise" description="Multi-workspace support for Enterprise Grid" />
+  <Card title="Troubleshooting" href="/docs/connectors/slack/troubleshooting" description="Common issues and fixes" />
 </Cards>

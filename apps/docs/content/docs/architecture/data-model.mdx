@@ -43,7 +43,7 @@ Users authenticate via OAuth (Google) or email/password. Each user belongs to on
 
 ### Relationships
 
-```
+```text
 User ──1:N──> Session
 User ──1:N──> Account
 User ──M:N──> Team (via UsersOnTeam)
@@ -68,7 +68,7 @@ Connectors represent a connection to an external data source. Each connector has
 
 ### Connector status lifecycle
 
-```
+```text
 CONNECTING → ACTIVE → SYNCING → ACTIVE
                 ↓                  ↓
             PAUSED            ERROR / RATE_LIMITED / AUTH_EXPIRED
@@ -218,7 +218,7 @@ The agent canvas is a visual workflow builder where users compose multi-step AI 
 
 ### Execution status flow
 
-```
+```text
 PENDING → RUNNING → COMPLETED
               ↓           ↓
     WAITING_APPROVAL  FAILED / CANCELLED / TIMED_OUT
@@ -243,3 +243,9 @@ The domains are interconnected through foreign keys:
 | AgentCanvas | AgentCanvasExecution | `agentCanvasId` |
 | AIUsageLog | AgentExecutionTrace | `traceId` correlation |
 | SearchImpression | SearchClick | `impressionId` |
+
+<Cards>
+  <Card title="How It Works" href="/docs/architecture/how-it-works" description="End-to-end sync and search flow" />
+  <Card title="Deployment" href="/docs/architecture/deployment" description="Container topology and scaling" />
+  <Card title="Connectors" href="/docs/connectors" description="Data sources that populate these models" />
+</Cards>

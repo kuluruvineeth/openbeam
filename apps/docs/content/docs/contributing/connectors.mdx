@@ -20,14 +20,14 @@ A connector spans four packages. Each layer has a single responsibility:
 | **Services** | `packages/services/src/{name}/` | API client, sync generators, entity transformers |
 | **Temporal** | `packages/temporal/src/` | Wiring into the generic sync workflow |
 
-```
-packages/types/src/services/connectors/linear.ts     ← Zod schemas
-packages/integrations/src/linear/config.ts            ← App definition
-packages/services/src/linear/                         ← Business logic
-  ├── client.ts                                       ← API client
-  ├── sync/full.ts                                    ← Full sync generator
-  ├── sync/incremental.ts                             ← Delta sync generator
-  └── transformers/issue.ts                           ← Entity → GenericDocument
+```text
+packages/types/src/services/connectors/linear.ts     <- Zod schemas
+packages/integrations/src/linear/config.ts            <- App definition
+packages/services/src/linear/                         <- Business logic
+  ├── client.ts                                       <- API client
+  ├── sync/full.ts                                    <- Full sync generator
+  ├── sync/incremental.ts                             <- Delta sync generator
+  └── transformers/issue.ts                           <- Entity -> GenericDocument
 ```
 
 ## Step 1: Define Types
@@ -197,7 +197,7 @@ The service package contains all business logic: API client, sync generators, an
 
 ### Directory Structure
 
-```
+```text
 packages/services/src/{name}/
 ├── index.ts           # Public exports
 ├── auth.ts            # IntegrationAuth implementation
@@ -506,3 +506,9 @@ async function getAccessToken(connectorId: string): Promise<string> {
 | **MQTT** | Broker credentials | Medium | Real-time subscription model |
 
 Start by reading `packages/services/src/linear/` end-to-end. Then adapt the patterns for your target API.
+
+<Cards>
+  <Card title="Development Guide" href="/docs/contributing/development" description="Local setup, testing, linting, and build workflows" />
+  <Card title="Architecture" href="/docs/architecture" description="Package structure and dependency hierarchy" />
+  <Card title="Connectors Overview" href="/docs/connectors" description="All available connectors" />
+</Cards>

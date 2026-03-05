@@ -83,7 +83,7 @@ The `@openplane/vespa` package feeds documents to Vespa's Document API with:
 - Automatic retries with exponential backoff (2^attempt seconds, max 3 retries)
 - Metadata objects JSON-stringified before feed (Vespa stores them as `string` fields)
 
-```
+```text
 POST /document/v1/default/openplane_document/docid/{id}
 ```
 
@@ -183,7 +183,7 @@ Dot product between the query's learned sparse representation and the document's
 
 RRF combines ranked lists from multiple retrieval methods without requiring score calibration:
 
-```
+```text
 RRF_score(d) = sum( 1 / (k + rank_i(d)) )
 ```
 
@@ -264,3 +264,9 @@ The Vespa client emits structured metrics for observability:
 | `vespa.cache.hit` / `vespa.cache.miss` | Cache hit ratio |
 
 Query metrics include coverage status, match-phase degradation flags, and result counts. These feed into Prometheus for alerting on search quality regression.
+
+<Cards>
+  <Card title="Search Overview" href="/docs/search" description="Search modes, permissions, and ranking profiles" />
+  <Card title="RAG Pipeline" href="/docs/ai/rag" description="How search results power AI answers" />
+  <Card title="Connectors" href="/docs/connectors" description="Data sources feeding the search index" />
+</Cards>

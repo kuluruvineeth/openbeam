@@ -364,7 +364,7 @@ Log shipping agent. Reads Docker container logs and forwards them to Loki.
 
 ## Network Architecture
 
-```
+```text
                                 Internet
                                    |
                           [ Reverse Proxy ]
@@ -415,3 +415,8 @@ All infrastructure services communicate via Docker DNS names (e.g., `postgres`, 
 | Worker Health | 9092 | -- | Internal |
 | Worker Metrics | 9091 | -- | Internal |
 | Engine | 8000 | -- | Internal |
+
+<Cards>
+  <Card title="Docker Compose" href="/docs/self-hosting/docker-compose" description="Deployment steps for both compose files" />
+  <Card title="Configuration" href="/docs/self-hosting/configuration" description="All environment variables documented" />
+</Cards>

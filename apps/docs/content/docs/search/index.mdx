@@ -109,46 +109,46 @@ Vespa applies different ranking strategies depending on the query type.
 ## Using Search
 
 <Tabs items={["Agent Tool", "tRPC API", "CLI"]}>
-<Tab value="Agent Tool">
-```typescript
-import { toolRegistry } from "@openplane/ai";
+  <Tab value="Agent Tool">
+    ```typescript
+    import { toolRegistry } from "@openplane/ai";
 
-const result = await toolRegistry.runWithContext(
-  { teamId: "team_abc", userId: "user_123", services },
-  async () => {
-    const tool = toolRegistry.getTool("search_hybrid");
-    return tool.execute({
-      query: "API rate limiting documentation",
-      limit: 10,
-      filters: {
-        connectorTypes: ["notion", "confluence"],
-        dateRange: { start: "2025-01-01" },
-      },
+    const result = await toolRegistry.runWithContext(
+      { teamId: "team_abc", userId: "user_123", services },
+      async () => {
+        const tool = toolRegistry.getTool("search_hybrid");
+        return tool.execute({
+          query: "API rate limiting documentation",
+          limit: 10,
+          filters: {
+            connectorTypes: ["notion", "confluence"],
+            dateRange: { start: "2025-01-01" },
+          },
+        });
+      }
+    );
+    ```
+  </Tab>
+  <Tab value="tRPC API">
+    ```typescript
+    const results = await trpc.search.hybrid.query({
+      query: "Q3 revenue report",
+      teamId: session.teamId,
+      limit: 20,
+      connectorTypes: ["notion", "google-drive"],
     });
-  }
-);
-```
-</Tab>
-<Tab value="tRPC API">
-```typescript
-const results = await trpc.search.hybrid.query({
-  query: "Q3 revenue report",
-  teamId: session.teamId,
-  limit: 20,
-  connectorTypes: ["notion", "google-drive"],
-});
 
-for (const doc of results.documents) {
-  console.log(`${doc.title} (score: ${doc.relevanceScore})`);
-  console.log(`  ${doc.connectorType} | ${doc.url}`);
-}
-```
-</Tab>
-<Tab value="CLI">
-```bash
-openplane search "Q3 revenue report" --limit 10 --source notion,google-drive
-```
-</Tab>
+    for (const doc of results.documents) {
+      console.log(`${doc.title} (score: ${doc.relevanceScore})`);
+      console.log(`  ${doc.connectorType} | ${doc.url}`);
+    }
+    ```
+  </Tab>
+  <Tab value="CLI">
+    ```bash
+    openplane search query --query "Q3 revenue report" --limit 10 --connector-type notion --connector-type google-drive
+    ```
+  </Tab>
 </Tabs>
 
 ## Media Search

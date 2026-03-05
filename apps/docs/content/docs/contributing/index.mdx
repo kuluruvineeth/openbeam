@@ -23,7 +23,7 @@ Connectors are the highest-impact contribution you can make. Each one takes 2-3 
 Three commands to a running dev environment:
 
 ```bash
-git clone https://github.com/openplane/openplane.git
+git clone https://github.com/kuluruvineeth/openplane.git
 cd openplane
 bun install
 ```
@@ -32,7 +32,7 @@ Configure your local services:
 
 ```bash
 cp .env.example .env
-docker compose up -d
+docker compose -f scripts/deploy/infra-hetzner-compose.yaml up -d
 ```
 
 Push the database schema and start everything:
@@ -80,7 +80,7 @@ OpenPlane uses Turborepo with Bun workspaces. Everything is TypeScript except th
 
 All commits follow `type(scope): subject` in imperative mood. One-line subjects, no body needed.
 
-```
+```text
 feat(github): add discussion sync
 fix(sync): handle rate limit retry after header
 refactor(services): extract pagination helper
