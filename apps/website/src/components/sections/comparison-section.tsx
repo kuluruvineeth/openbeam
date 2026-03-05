@@ -1,4 +1,9 @@
+"use client";
+
+import { motion } from "motion/react";
 import { cn } from "@/lib/cn";
+
+const EASE = [0.16, 1, 0.3, 1] as const;
 
 type CellValue = true | false | "partial" | string;
 
@@ -6,7 +11,6 @@ interface FeatureRow {
   feature: string;
   openbeam: CellValue;
   glean: CellValue;
-  onyx: CellValue;
 }
 
 interface CategoryGroup {
@@ -16,106 +20,48 @@ interface CategoryGroup {
 
 const COMPARISON: CategoryGroup[] = [
   {
-    category: "Licensing & Deployment",
+    category: "Ownership",
     rows: [
-      { feature: "Open Source", openbeam: "MIT", glean: false, onyx: "AGPL" },
-      {
-        feature: "Self-Hosted",
-        openbeam: true,
-        glean: false,
-        onyx: true,
-      },
-      {
-        feature: "Pricing",
-        openbeam: "Free",
-        glean: "$50K+/yr",
-        onyx: "Free",
-      },
-      {
-        feature: "On-Premise Deployment",
-        openbeam: true,
-        glean: false,
-        onyx: true,
-      },
+      { feature: "License", openbeam: "MIT", glean: "Proprietary" },
+      { feature: "Self-Hosted", openbeam: true, glean: false },
+      { feature: "Data Sovereignty", openbeam: true, glean: false },
+      { feature: "Starting Cost", openbeam: "Free", glean: "$50K+/yr" },
     ],
   },
   {
-    category: "Search & Discovery",
+    category: "Search",
     rows: [
+      { feature: "Hybrid Search", openbeam: true, glean: true },
+      { feature: "Offline / Edge Search", openbeam: true, glean: false },
       {
-        feature: "Enterprise Search",
-        openbeam: true,
-        glean: true,
-        onyx: true,
-      },
-      { feature: "Video Search", openbeam: true, glean: false, onyx: false },
-      { feature: "Voice Search", openbeam: true, glean: false, onyx: false },
-      {
-        feature: "Edge / Local Search",
+        feature: "IoT & Industrial Data",
         openbeam: true,
         glean: false,
-        onyx: false,
       },
-      {
-        feature: "RAG Pipeline",
-        openbeam: true,
-        glean: true,
-        onyx: "partial",
-      },
+      { feature: "RAG Pipeline", openbeam: true, glean: true },
     ],
   },
   {
-    category: "AI & Agents",
+    category: "Intelligence",
     rows: [
+      { feature: "AI Assistant", openbeam: true, glean: true },
       {
-        feature: "AI Agent Tools",
-        openbeam: "129+",
-        glean: "Limited",
-        onyx: false,
+        feature: "Agent Framework",
+        openbeam: "Open SDK",
+        glean: "Proprietary",
       },
-      {
-        feature: "Agent Patterns",
-        openbeam: "11 types",
-        glean: "partial",
-        onyx: false,
-      },
-      {
-        feature: "Mission Control",
-        openbeam: true,
-        glean: false,
-        onyx: false,
-      },
-      {
-        feature: "Workflow Builder",
-        openbeam: true,
-        glean: false,
-        onyx: false,
-      },
+      { feature: "Custom Tool Building", openbeam: true, glean: "partial" },
+      { feature: "MCP Server", openbeam: true, glean: false },
     ],
   },
   {
-    category: "Platform",
+    category: "Reach",
     rows: [
-      {
-        feature: "Connectors",
-        openbeam: "23",
-        glean: "100+",
-        onyx: "30+",
-      },
-      {
-        feature: "Real-time Sync",
-        openbeam: true,
-        glean: true,
-        onyx: "partial",
-      },
-      { feature: "Mobile App", openbeam: true, glean: true, onyx: false },
-      { feature: "CLI", openbeam: true, glean: false, onyx: false },
-      {
-        feature: "Full API Access",
-        openbeam: true,
-        glean: "partial",
-        onyx: "partial",
-      },
+      { feature: "SaaS Connectors", openbeam: "20+", glean: "100+" },
+      { feature: "Industrial Connectors", openbeam: "10+", glean: false },
+      { feature: "Live Sync", openbeam: true, glean: true },
+      { feature: "CLI", openbeam: true, glean: false },
+      { feature: "Full API", openbeam: true, glean: true },
     ],
   },
 ];
@@ -203,18 +149,33 @@ export function ComparisonSection() {
   return (
     <section className="bg-background py-16 lg:py-24">
       <div className="mx-auto max-w-[1400px] px-4">
-        <div className="mb-12 text-center">
+        <motion.div
+          className="mb-12 text-center"
+          initial={{ opacity: 0, y: 12 }}
+          transition={{ duration: 0.5, ease: EASE }}
+          viewport={{ once: true }}
+          whileInView={{ opacity: 1, y: 0 }}
+        >
+          <p className="mb-3 font-sans text-muted-foreground text-xs uppercase tracking-widest">
+            Trade-offs
+          </p>
           <h2 className="font-serif text-2xl text-foreground">
-            How we compare
+            Same search. Different terms.
           </h2>
           <p className="mx-auto mt-3 max-w-lg font-sans text-muted-foreground text-sm leading-relaxed">
-            The only enterprise search platform that&apos;s fully open source,
-            self-hosted, and ships with a complete AI agent framework.
+            Enterprise search is a solved problem. The question is who holds the
+            keys.
           </p>
-        </div>
+        </motion.div>
 
-        <div className="scrollbar-hide mx-auto max-w-4xl overflow-x-auto">
-          <table className="w-full min-w-[600px] border-collapse font-sans text-sm">
+        <motion.div
+          className="scrollbar-hide mx-auto max-w-3xl overflow-x-auto"
+          initial={{ opacity: 0, y: 16 }}
+          transition={{ delay: 0.1, duration: 0.5, ease: EASE }}
+          viewport={{ once: true }}
+          whileInView={{ opacity: 1, y: 0 }}
+        >
+          <table className="w-full min-w-[480px] border-collapse font-sans text-sm">
             <thead>
               <tr>
                 <th className="sticky left-0 z-10 bg-background py-4 pr-6 text-left font-normal text-muted-foreground" />
@@ -222,11 +183,8 @@ export function ComparisonSection() {
                   <div className="absolute inset-x-0 top-0 h-0.5 bg-foreground" />
                   <span className="font-medium text-foreground">OpenBeam</span>
                 </th>
-                <th className="w-[140px] py-4 text-center font-normal text-muted-foreground">
+                <th className="w-[160px] py-4 text-center font-normal text-muted-foreground">
                   Glean
-                </th>
-                <th className="w-[140px] py-4 text-center font-normal text-muted-foreground">
-                  Onyx
                 </th>
               </tr>
             </thead>
@@ -236,7 +194,7 @@ export function ComparisonSection() {
                   <tr key={group.category}>
                     <td
                       className="sticky left-0 z-10 bg-background pt-8 pb-2 font-sans text-muted-foreground text-xs uppercase tracking-wide"
-                      colSpan={4}
+                      colSpan={3}
                     >
                       {group.category}
                     </td>
@@ -255,16 +213,13 @@ export function ComparisonSection() {
                       <td className="py-3 text-center">
                         <CellContent value={row.glean} />
                       </td>
-                      <td className="py-3 text-center">
-                        <CellContent value={row.onyx} />
-                      </td>
                     </tr>
                   ))}
                 </>
               ))}
             </tbody>
           </table>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
