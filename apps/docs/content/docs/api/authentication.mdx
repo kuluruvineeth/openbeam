@@ -1,0 +1,169 @@
+---
+title: Authentication
+description: Session-based, API key, and OAuth2 authentication methods for the OpenPlane API.
+---
+
+# Authentication
+
+OpenPlane supports three authentication methods. Every API request must include valid credentials -- unauthenticated requests receive a `401 Unauthorized` response.
+
+## Session-based authentication
+
+The web application uses cookie-based sessions. After signing in through the UI, the browser stores an `openplane-session` cookie that is sent automatically with every request.
+
+For server-side or headless clients, extract the session token and pass it as a Bearer token:
+
+<Tabs items={["TypeScript", "cURL"]}>
+  <Tab value="TypeScript">
+    ```typescript
+    const response = await fetch("http://localhost:3000/trpc/search.query", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer <session-token>",
+      },
+      body: JSON.stringify({
+        q: "quarterly report",
+        limit: 10,
+      }),
+    });
+    ```
+  </Tab>
+  <Tab value="cURL">
+    ```bash
+    curl -X POST http://localhost:3000/trpc/search.query \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer <session-token>" \
+      -d '{"q": "quarterly report", "limit": 10}'
+    ```
+  </Tab>
+</Tabs>
+
+### Session resolution
+
+The server resolves sessions in this order:
+
+1. Check for an existing `authContext` (set by API key middleware)
+2. Extract token from `Authorization: Bearer <token>` header or `openplane-session` cookie
+3. Validate the session against the database
+4. Resolve the user's active team
+
+If no valid session is found, the context is set to `{ type: "none" }` and protected endpoints will reject the request.
+
+## API key authentication
+
+API keys provide programmatic access without a browser session. They are scoped to a team and can be restricted to specific operations.
+
+### Key format
+
+```
+op_live_a1b2c3d4e5f6...
+```
+
+All API keys start with the `op_live_` prefix. Keys are hashed with Argon2 before storage -- the plaintext key is shown only once at creation time.
+
+### Usage
+
+<Tabs items={["TypeScript", "cURL"]}>
+  <Tab value="TypeScript">
+    ```typescript
+    const response = await fetch("http://localhost:3000/search", {
+      headers: {
+        Authorization: "Bearer op_live_a1b2c3d4e5f6...",
+      },
+    });
+    ```
+  </Tab>
+  <Tab value="cURL">
+    ```bash
+    curl http://localhost:3000/search?q=roadmap \
+      -H "Authorization: Bearer op_live_a1b2c3d4e5f6..."
+    ```
+  </Tab>
+</Tabs>
+
+### Scopes
+
+API keys can be scoped to limit access. When a request requires scopes the key does not have, the server returns `403 Forbidden` with the required scopes listed.
+
+```json
+{
+  "error": "Forbidden",
+  "message": "Required scopes: search:read, connectors:write",
+  "requiredScopes": ["search:read", "connectors:write"]
+}
+```
+
+## OAuth2 for connector integrations
+
+Connector integrations (Slack, Google, GitHub, etc.) use OAuth2 to obtain access tokens. This flow is handled by the server -- you do not need to implement OAuth2 yourself.
+
+### Flow
+
+1. User initiates connection from the web UI or via `apps.connectors.connect`
+2. Server redirects to the provider's authorization endpoint
+3. Provider redirects back with an authorization code
+4. Server exchanges the code for access and refresh tokens
+5. Tokens are encrypted and stored in the database
+6. Sync workflows use the stored tokens to fetch data
+
+Token refresh is handled automatically by the sync worker. If a refresh fails, the connector status transitions to `ERROR`.
+
+## Authorization middleware
+
+The tRPC API uses three middleware layers to enforce access control:
+
+| Middleware | Requirement | Used by |
+|------------|------------|---------|
+| `protectedProcedure` | Valid authenticated session | Base for all protected routes |
+| `withActiveTeam` | Authenticated user with an active team | Most endpoints |
+| `withAdminRole` | Team member with `ADMIN` or `OWNER` role | Destructive operations |
+
+### protectedProcedure
+
+Requires a valid session. Returns `UNAUTHORIZED` if no session exists.
+
+### withActiveTeam
+
+Extends `protectedProcedure`. Resolves the user's active `teamId` from the database. Returns `BAD_REQUEST` with "No active team" if the user has not joined a team.
+
+### withAdminRole
+
+Extends `withActiveTeam`. Checks the user's team membership role. Returns `FORBIDDEN` if the role is `MEMBER` (requires `ADMIN` or `OWNER`).
+
+```typescript
+// Example: disconnect requires admin
+apps.connectors.disconnect  // withAdminRole
+apps.connectors.list        // withActiveTeam (any member)
+```
+
+## Error responses
+
+### 401 Unauthorized
+
+Returned when no valid credentials are provided.
+
+```json
+{
+  "error": "Unauthorized",
+  "message": "Valid API key or session required. Use 'Authorization: Bearer op_xxx' header or session cookie."
+}
+```
+
+### 403 Forbidden
+
+Returned when the authenticated user lacks the required role or scopes.
+
+```json
+{
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "Admin or Owner role required"
+  }
+}
+```
+
+<Cards>
+  <Card title="Search API" href="/docs/api/search" description="Search endpoints that use these auth methods" />
+  <Card title="Error handling" href="/docs/api/errors" description="Full error code reference" />
+</Cards>

@@ -1,0 +1,512 @@
+---
+title: Search
+description: Document search, media search, hybrid RRF search, and facet endpoints.
+---
+
+# Search API
+
+Search is available through both the tRPC router (`search.*`) and REST endpoints (`GET /search/*`). Both layers share the same underlying search service backed by Vespa.
+
+All search endpoints require `withActiveTeam` authentication. Results are filtered by the user's access control IDs (team, user ID, email) so users only see documents they have permission to view.
+
+## tRPC procedures
+
+### search.query
+
+Main search across all indexed documents with filtering and ranking.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  q: string;                    // Search query (default: "")
+  connectorTypes?: string[];    // Filter by connector type (e.g. ["slack", "notion"])
+  documentTypes?: string[];     // Filter by document type (e.g. ["message", "page"])
+  sourceTypes?: string[];       // Filter by source type (e.g. ["channel", "folder"])
+  statuses?: string[];          // Filter by status (e.g. ["open", "in_progress"])
+  priorities?: string[];        // Filter by priority (e.g. ["high", "critical"])
+  labels?: string[];            // Filter by labels
+  connectorId?: string;         // Filter to a specific connector
+  authorId?: string;            // Filter by author
+  sourceId?: string;            // Filter by source (channel, folder, etc.)
+  fromDate?: number;            // Start timestamp (Unix epoch ms)
+  toDate?: number;              // End timestamp (Unix epoch ms)
+  limit: number;                // 1-100 (default: 20)
+  offset: number;               // Pagination offset (default: 0)
+  cursor?: number | null;       // Cursor-based pagination (takes precedence over offset)
+  ranking: "bm25" | "semantic" | "hybrid" | "recency" | "engagement";  // default: "hybrid"
+}
+```
+
+**Output:**
+
+```typescript
+{
+  documents: Document[];
+  total: number;
+  limit: number;
+  offset: number;
+  hasMore: boolean;
+  nextCursor?: number;
+  queryTime: number;            // Query execution time in ms
+  query: string;
+  ranking: string;
+}
+```
+
+<Tabs items={["TypeScript", "cURL"]}>
+  <Tab value="TypeScript">
+    ```typescript
+    const result = await trpc.search.query.query({
+      q: "quarterly report",
+      connectorTypes: ["notion", "google-drive"],
+      ranking: "hybrid",
+      limit: 10,
+    });
+    ```
+  </Tab>
+  <Tab value="cURL">
+    ```bash
+    curl "http://localhost:3000/search?q=quarterly+report&connector_type=notion,google-drive&ranking=hybrid&limit=10" \
+      -H "Authorization: Bearer op_live_..."
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+### search.hybrid
+
+Advanced hybrid search with Reciprocal Rank Fusion (RRF). Combines BM25, dense (BGE-M3), and sparse embeddings with configurable weights.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  q: string;                    // Search query (min 1 char)
+  mode: "bm25" | "semantic" | "hybrid" | "hybrid_v2" | "enterprise_v2";  // default: "hybrid_v2"
+  rrfK: number;                 // RRF k parameter, 1-100 (default: 60)
+  weightBm25: number;           // BM25 weight, 0-1 (default: 0.4)
+  weightDense: number;          // Dense embedding weight, 0-1 (default: 0.4)
+  weightSparse: number;         // Sparse embedding weight, 0-1 (default: 0.2)
+  connectorTypes?: string[];
+  documentTypes?: string[];
+  sourceIds?: string[];
+  authorIds?: string[];
+  fromDate?: number;
+  toDate?: number;
+  limit: number;                // 1-100 (default: 20)
+  offset: number;               // default: 0
+}
+```
+
+**Output:**
+
+```typescript
+{
+  documents: Array<{
+    document: Document;
+    score: number;
+    bm25Rank?: number;
+    denseRank?: number;
+    sparseRank?: number;
+    rrfScore?: number;
+  }>;
+  total: number;
+  timing: {
+    embeddingMs: number;
+    retrievalMs: number;
+    fusionMs: number;
+    totalMs: number;
+  };
+  metadata: {
+    mode: string;
+    modelVersion: string;
+    rrfK?: number;
+  };
+}
+```
+
+<Tabs items={["TypeScript", "cURL"]}>
+  <Tab value="TypeScript">
+    ```typescript
+    const result = await trpc.search.hybrid.query({
+      q: "deployment architecture",
+      mode: "hybrid_v2",
+      weightBm25: 0.3,
+      weightDense: 0.5,
+      weightSparse: 0.2,
+      limit: 20,
+    });
+
+    console.log(result.timing.totalMs); // e.g. 45
+    ```
+  </Tab>
+  <Tab value="cURL">
+    ```bash
+    curl "http://localhost:3000/search/hybrid?q=deployment+architecture&mode=hybrid_v2&weight_bm25=0.3&weight_dense=0.5&weight_sparse=0.2&limit=20" \
+      -H "Authorization: Bearer op_live_..."
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+### search.media
+
+Search across indexed video and audio content. Media results include transcript snippets and thumbnail URLs.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  q: string;                    // default: ""
+  connectorId?: string;
+  sourceId?: string;
+  fromDate?: number;
+  toDate?: number;
+  limit: number;                // 1-100 (default: 20)
+  offset: number;               // default: 0
+  cursor?: number | null;
+  ranking: "bm25" | "semantic" | "hybrid";  // default: "hybrid"
+}
+```
+
+**Output:**
+
+```typescript
+{
+  media: MediaResult[];
+  total: number;
+  limit: number;
+  offset: number;
+  hasMore: boolean;
+  nextCursor?: number;
+  queryTime: number;
+  query: string;
+  ranking: string;
+}
+```
+
+---
+
+### search.unified
+
+Combined document and media search in a single request. Supports reranking across both result types when using `hybrid_v2_rerank` ranking.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  q: string;                    // default: ""
+  includeDocuments: boolean;    // default: true
+  includeMedia: boolean;        // default: true
+  connectorTypes?: string[];
+  connectorId?: string;
+  documentTypes?: string[];
+  sourceTypes?: string[];
+  statuses?: string[];
+  priorities?: string[];
+  labels?: string[];
+  authorIds?: string[];
+  sourceId?: string;
+  fromDate?: number;
+  toDate?: number;
+  limit: number;                // 1-100 (default: 20)
+  offset: number;               // default: 0
+  cursor?: number | null;
+  ranking: "bm25" | "semantic" | "hybrid" | "hybrid_v2_rerank" | "recency" | "engagement";
+  mediaRanking: "bm25" | "semantic" | "hybrid";  // default: "hybrid"
+}
+```
+
+**Output:**
+
+```typescript
+{
+  items: Array<{
+    type: "document" | "media";
+    data: Document | MediaResult;
+    relevance: number;
+  }>;
+  documents: Document[];
+  media: MediaResult[];
+  documentTotal: number;
+  mediaTotal: number;
+  total: number;
+  limit: number;
+  offset: number;
+  hasMore: boolean;
+  nextCursor?: number;
+  queryTime: number;
+  query: string;
+  connectorFacets: Array<{
+    connectorType: string;
+    documentCount: number;
+  }>;
+}
+```
+
+<Callout type="info">
+  When `ranking` is set to `hybrid_v2_rerank`, documents and media are fetched in parallel, then cross-reranked together to produce a single relevance-ordered list in `items`.
+</Callout>
+
+---
+
+### search.recent
+
+Fetch recently created or updated documents within a time window.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  hours: number;  // 1-168 (default: 24, max 7 days)
+  limit: number;  // 1-100 (default: 20)
+}
+```
+
+**Output:**
+
+```typescript
+{
+  documents: Document[];
+  count: number;
+}
+```
+
+---
+
+### search.authors
+
+Get author facets showing who has contributed the most indexed documents.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  limit: number;  // 1-100 (default: 50)
+}
+```
+
+**Output:**
+
+```typescript
+{
+  authors: Array<{
+    id: string;
+    name: string;
+    email: string;
+    documentCount: number;
+  }>;
+}
+```
+
+---
+
+### search.connectorFacets
+
+Get document count breakdown by connector type. Optionally scoped to a search query.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  q?: string;  // Optional query to scope facets
+}
+```
+
+**Output:**
+
+```typescript
+{
+  connectors: Array<{
+    connectorType: string;
+    documentCount: number;
+  }>;
+}
+```
+
+---
+
+## REST endpoints
+
+The REST API is mounted under `/search` and documented with OpenAPI. These endpoints use the same search service as tRPC but accept query parameters instead of JSON input.
+
+### GET /search
+
+Search across all indexed documents.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `q` | string | `""` | Search query |
+| `connector_type` | string | -- | Comma-separated connector types |
+| `connector_id` | string | -- | Specific connector ID |
+| `document_type` | string | -- | Comma-separated: message, file, page, issue, task, comment, email, document, folder, ticket |
+| `source_type` | string | -- | Comma-separated: channel, folder, database, repository, board, space |
+| `status` | string | -- | Comma-separated: open, in_progress, done, closed, archived |
+| `priority` | string | -- | Comma-separated: critical, high, medium, low, none |
+| `label` | string | -- | Comma-separated labels |
+| `author_id` | string | -- | Author ID |
+| `source_id` | string | -- | Source ID |
+| `from_date` | number | -- | Unix epoch ms |
+| `to_date` | number | -- | Unix epoch ms |
+| `limit` | number | `20` | 1-100 |
+| `offset` | number | `0` | Pagination offset |
+| `ranking` | string | `"hybrid"` | bm25, semantic, hybrid, recency, engagement |
+
+```bash
+curl "http://localhost:3000/search?q=roadmap&connector_type=linear,notion&status=open&limit=10" \
+  -H "Authorization: Bearer op_live_..."
+```
+
+---
+
+### GET /search/recent
+
+Fetch recently updated documents.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `hours` | number | `24` | Look-back window (1-168) |
+| `limit` | number | `20` | 1-100 |
+
+---
+
+### GET /search/similar/\{documentId\}
+
+Find documents similar to a given document using vector similarity.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `documentId` | string (path) | -- | Source document ID |
+| `limit` | number | `10` | 1-50 |
+
+**Response:**
+
+```json
+{
+  "sourceDocumentId": "doc_abc123",
+  "similarDocuments": [...],
+  "count": 10
+}
+```
+
+---
+
+### GET /search/thread/\{threadId\}
+
+Get all messages in a conversation thread.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `threadId` | string (path) | Thread identifier (e.g. Slack thread timestamp) |
+
+**Response:**
+
+```json
+{
+  "threadId": "1234567890.123456",
+  "documents": [...],
+  "count": 15
+}
+```
+
+---
+
+### GET /search/hybrid
+
+Hybrid search with RRF fusion and detailed timing metadata.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `q` | string | -- | Search query (required) |
+| `mode` | string | `"hybrid_v2"` | bm25, semantic, hybrid, hybrid_v2, enterprise_v2 |
+| `rrf_k` | number | `60` | RRF k parameter (1-100) |
+| `weight_bm25` | number | `0.4` | BM25 weight (0-1) |
+| `weight_dense` | number | `0.4` | Dense embedding weight (0-1) |
+| `weight_sparse` | number | `0.2` | Sparse embedding weight (0-1) |
+| `connector_type` | string | -- | Comma-separated connector types |
+| `document_type` | string | -- | Comma-separated document types |
+| `source_id` | string | -- | Comma-separated source IDs |
+| `from_date` | number | -- | Unix epoch ms |
+| `to_date` | number | -- | Unix epoch ms |
+| `limit` | number | `20` | 1-100 |
+| `offset` | number | `0` | Pagination offset |
+
+---
+
+### GET /search/media
+
+Search indexed video and audio content.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `q` | string | -- | Search query (required) |
+| `connector_id` | string | -- | Connector ID filter |
+| `source_id` | string | -- | Source ID filter |
+| `media_type` | string | -- | meeting, presentation, tutorial, demo, interview, webinar, other |
+| `from_date` | number | -- | Unix epoch ms |
+| `to_date` | number | -- | Unix epoch ms |
+| `limit` | number | `20` | 1-100 |
+| `offset` | number | `0` | Pagination offset |
+| `ranking` | string | `"hybrid"` | bm25, semantic, hybrid, enterprise, engagement |
+
+---
+
+### GET /search/unified
+
+Combined document and media search.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `q` | string | -- | Search query (required) |
+| `include_documents` | boolean | `true` | Include documents |
+| `include_media` | boolean | `true` | Include media |
+| `connector_type` | string | -- | Comma-separated connector types |
+| `connector_id` | string | -- | Connector ID filter |
+| `document_type` | string | -- | Comma-separated document types |
+| `source_id` | string | -- | Source ID filter |
+| `from_date` | number | -- | Unix epoch ms |
+| `to_date` | number | -- | Unix epoch ms |
+| `limit` | number | `20` | 1-100 |
+| `offset` | number | `0` | Pagination offset |
+| `ranking` | string | `"hybrid"` | bm25, semantic, hybrid, recency, engagement |
+| `media_ranking` | string | `"hybrid"` | bm25, semantic, hybrid, enterprise, engagement |
+
+---
+
+### GET /search/author/\{authorId\}
+
+Get all documents by a specific author.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `authorId` | string (path) | -- | Author identifier |
+| `limit` | number | `50` | 1-100 |
+
+<Cards>
+  <Card title="Connectors API" href="/docs/api/connectors" description="Manage data source connections and trigger syncs" />
+  <Card title="AI API" href="/docs/api/ai" description="RAG queries, agent canvas, and knowledge graph" />
+</Cards>

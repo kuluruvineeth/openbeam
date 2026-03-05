@@ -1,0 +1,118 @@
+---
+title: API Reference
+description: Complete reference for OpenPlane's tRPC and REST APIs covering search, connectors, AI, and more.
+---
+
+# API Reference
+
+OpenPlane exposes two API layers. All data access is team-scoped and requires authentication.
+
+| Layer | Protocol | Use case |
+|-------|----------|----------|
+| **tRPC** | Type-safe RPC over HTTP | Frontend clients, TypeScript integrations |
+| **REST** | OpenAPI-documented HTTP | CLI, third-party integrations, cURL |
+
+## Base URL
+
+| Environment | URL |
+|-------------|-----|
+| Self-hosted | `http://localhost:3000` |
+| Cloud | `https://api.openplane.com` |
+
+The tRPC endpoint is mounted at `/trpc` (e.g. `http://localhost:3000/trpc/search.query`). REST endpoints are mounted at their respective paths (e.g. `/search`, `/auth`).
+
+## Authentication
+
+Every request must include one of:
+
+- **Session cookie** -- `openplane-session` set during browser login
+- **Bearer token** -- `Authorization: Bearer <session-token>` for session-based auth
+- **API key** -- `Authorization: Bearer op_live_...` for programmatic access
+
+See the [Authentication](/docs/api/authentication) page for details on each method.
+
+## Team scoping
+
+All data operations are scoped to the authenticated user's active team. The team is resolved from the session or API key -- there is no `teamId` parameter to pass. Switching teams requires updating the user's active team through the workspace settings.
+
+## Rate limiting
+
+Rate limits are enforced per authentication identity.
+
+| Scope | Limit | Window |
+|-------|-------|--------|
+| Authenticated user | 100 requests | 60 seconds |
+| API key | 100 requests | 60 seconds |
+| Canvas execution | 100 executions | 1 hour |
+
+When rate-limited, responses return `429 Too Many Requests` with a `Retry-After` header indicating seconds until the limit resets.
+
+## Pagination
+
+Two patterns are used depending on the endpoint:
+
+**Cursor-based (preferred):**
+
+```typescript
+// Request
+{ cursor?: number, limit: number }
+
+// Response
+{ items: T[], nextCursor?: number, hasMore: boolean }
+```
+
+**Offset-based:**
+
+```typescript
+// Request
+{ offset: number, limit: number }
+
+// Response
+{ items: T[], total: number, hasMore: boolean }
+```
+
+Most endpoints accept both `cursor` and `offset` -- when `cursor` is provided it takes precedence.
+
+## Content type
+
+All request and response bodies use `application/json`. tRPC uses SuperJSON for serialization, which preserves `Date`, `Map`, `Set`, and other JavaScript types over the wire.
+
+## Routers
+
+The tRPC API exposes 23 routers:
+
+| Router | Purpose |
+|--------|---------|
+| `search` | Document and media search |
+| `apps.connectors` | Connector management |
+| `apps.sync` | Sync status and triggers |
+| `apps.webhooks` | Webhook configuration |
+| `rag` | AI-powered Q&A with citations |
+| `agentCanvas` | Visual AI workflow builder |
+| `knowledge` | Knowledge graph and entity search |
+| `ai` | AI model configuration |
+| `user` | User profile and preferences |
+| `team` | Team management |
+| `workspace` | Workspace settings |
+| `analytics` | Usage analytics |
+| `media` | Video and audio management |
+| `files` | File uploads and downloads |
+| `permissions` | Access control |
+| `personalization` | Search personalization |
+| `messages` | Message management |
+| `overview` | Dashboard data |
+| `payments` | Billing and subscriptions |
+| `jobs` | Background job status |
+| `voice` | Voice search |
+| `research` | Deep research workflows |
+| `control` | Admin control plane |
+| `backgroundAgents` | Background agent management |
+| `connectorResources` | Connector resource management |
+
+<Cards>
+  <Card title="Authentication" href="/docs/api/authentication" description="Session, API key, and OAuth2 authentication flows" />
+  <Card title="Search" href="/docs/api/search" description="Document, media, and hybrid search endpoints" />
+  <Card title="Connectors" href="/docs/api/connectors" description="Manage data source connections and sync" />
+  <Card title="AI" href="/docs/api/ai" description="RAG, agent canvas, and knowledge graph" />
+  <Card title="Errors" href="/docs/api/errors" description="Error codes, rate limiting, and error handling" />
+</Cards>

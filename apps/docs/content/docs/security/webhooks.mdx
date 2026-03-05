@@ -1,0 +1,242 @@
+---
+title: Webhook Security
+description: HMAC-SHA256 signature verification, timing-safe comparison, replay attack prevention, and per-connector webhook formats.
+---
+
+# Webhook Security
+
+OpenPlane receives webhooks from connected services (Slack, GitHub, Samsara, etc.) to trigger real-time sync updates. Every inbound webhook is verified for authenticity and freshness before processing.
+
+## Verification Layers
+
+Three checks run on every inbound webhook, in order. If any check fails, the webhook is rejected with a `401` response.
+
+| Check | What It Verifies | Failure Mode |
+|-------|------------------|--------------|
+| **Signature** | Request body was signed by the expected service | Reject: invalid signature |
+| **Timing-safe comparison** | Comparison does not leak information via timing | N/A (implementation detail) |
+| **Timestamp** | Request is not a replay of an old webhook | Reject: timestamp outside 5-minute window |
+
+## HMAC-SHA256 Signature Verification
+
+Each webhook request includes a signature header computed by the sending service. OpenPlane recomputes the signature using the shared secret and compares the two values.
+
+### How It Works
+
+```text
+1. Sender computes: HMAC-SHA256(signing_secret, request_body) → signature
+2. Sender includes signature in HTTP header
+3. OpenPlane reads raw request body (before JSON parsing)
+4. OpenPlane computes: HMAC-SHA256(stored_secret, raw_body) → expected_signature
+5. Compare sender's signature with expected signature (timing-safe)
+6. If match → process webhook. If mismatch → reject with 401
+```
+
+<Callout type="warn">
+  The signature must be computed over the raw request body bytes, not the parsed JSON. Parsing and re-serializing the body can change whitespace, key ordering, or encoding, producing a different HMAC.
+</Callout>
+
+### Implementation
+
+```typescript
+import { createHmac, timingSafeEqual } from "node:crypto";
+
+function verifyWebhookSignature(
+  rawBody: string,
+  signature: string,
+  secret: string,
+  format: SignatureFormat
+): boolean {
+  const baseString = buildBaseString(rawBody, format);
+  const expected = createHmac("sha256", secret)
+    .update(baseString)
+    .digest("hex");
+
+  return safeCompare(
+    format.prefix + expected,
+    signature
+  );
+}
+
+function safeCompare(a: string, b: string): boolean {
+  const bufA = Buffer.from(a, "utf8");
+  const bufB = Buffer.from(b, "utf8");
+  if (bufA.length !== bufB.length) return false;
+  return timingSafeEqual(bufA, bufB);
+}
+```
+
+## Timing-Safe Comparison
+
+String comparison with `===` short-circuits: it returns `false` as soon as it finds the first differing character. An attacker can measure response times to determine how many leading characters of the signature are correct, then brute-force the rest character by character.
+
+`crypto.timingSafeEqual` compares all bytes regardless of where mismatches occur, making the comparison time constant.
+
+```text
+Unsafe (===):
+  "abc123" vs "abc456" → compare a,b,c,1≠4 → return false (4 comparisons)
+  "abc123" vs "xyz789" → compare a≠x → return false (1 comparison)
+  Timing difference reveals partial match information.
+
+Safe (timingSafeEqual):
+  "abc123" vs "abc456" → compare all 6 bytes → return false
+  "abc123" vs "xyz789" → compare all 6 bytes → return false
+  Same time regardless of match position.
+```
+
+## Replay Attack Prevention
+
+A valid webhook intercepted in transit could be replayed later. Timestamp validation prevents this.
+
+### How It Works
+
+```text
+1. Webhook includes a timestamp (Unix seconds) in the signed payload
+2. OpenPlane reads the timestamp from the request
+3. Compute: |current_time - webhook_timestamp|
+4. If difference > 300 seconds (5 minutes) → reject
+5. If within window → accept and process
+```
+
+The timestamp is part of the signed base string, so an attacker cannot modify it without invalidating the signature.
+
+```typescript
+const MAX_AGE_SECONDS = 300; // 5 minutes
+
+function validateTimestamp(timestamp: number): boolean {
+  const now = Math.floor(Date.now() / 1000);
+  return Math.abs(now - timestamp) <= MAX_AGE_SECONDS;
+}
+```
+
+<Callout type="info">
+  The 5-minute window accounts for clock skew between OpenPlane's server and the sending service. If your server's clock is significantly off, valid webhooks may be rejected. Use NTP to keep clocks synchronized.
+</Callout>
+
+## Per-Connector Signature Formats
+
+Each service signs webhooks differently. The base string (the input to HMAC-SHA256) varies by provider.
+
+### Slack
+
+```text
+Header:    X-Slack-Signature
+Timestamp: X-Slack-Request-Timestamp
+Base string: v0:{timestamp}:{raw_body}
+Signature format: v0={hex_digest}
+```
+
+```typescript
+// Slack base string construction
+const baseString = `v0:${timestamp}:${rawBody}`;
+const expected = `v0=${hmacSha256(secret, baseString)}`;
+```
+
+### Samsara
+
+```text
+Header:    X-Samsara-Signature
+Timestamp: X-Samsara-Timestamp (ISO 8601)
+Base string: v1:{timestamp}:{raw_body}
+Signature format: v1={hex_digest}
+```
+
+```typescript
+// Samsara base string construction
+const baseString = `v1:${timestamp}:${rawBody}`;
+const expected = `v1=${hmacSha256(secret, baseString)}`;
+```
+
+### GitHub
+
+```text
+Header:    X-Hub-Signature-256
+Timestamp: N/A (GitHub does not include timestamps)
+Base string: {raw_body}
+Signature format: sha256={hex_digest}
+```
+
+```typescript
+// GitHub base string construction
+const baseString = rawBody;
+const expected = `sha256=${hmacSha256(secret, baseString)}`;
+```
+
+<Callout type="info">
+  GitHub webhooks do not include a timestamp. Replay prevention relies on idempotent webhook processing -- the same delivery ID is not processed twice.
+</Callout>
+
+### Linear
+
+```text
+Header:    Linear-Signature
+Timestamp: N/A
+Base string: {raw_body}
+Signature format: {hex_digest}
+```
+
+### Signature Format Summary
+
+| Provider | Header | Timestamp Header | Base String | Signature Prefix |
+|----------|--------|-----------------|-------------|------------------|
+| Slack | `X-Slack-Signature` | `X-Slack-Request-Timestamp` | `v0:{ts}:{body}` | `v0=` |
+| Samsara | `X-Samsara-Signature` | `X-Samsara-Timestamp` | `v1:{ts}:{body}` | `v1=` |
+| GitHub | `X-Hub-Signature-256` | -- | `{body}` | `sha256=` |
+| Linear | `Linear-Signature` | -- | `{body}` | (none) |
+
+## Rate Limiting on Webhook Endpoints
+
+Webhook endpoints are rate-limited to prevent abuse. A misbehaving or compromised third-party service sending excessive webhooks will not overload the system.
+
+| Limit | Value | Scope |
+|-------|-------|-------|
+| Default | 100 requests/minute | Per team |
+| Burst | 20 requests/second | Per endpoint |
+
+Requests exceeding the rate limit receive a `429 Too Many Requests` response. Most webhook providers will retry with exponential backoff when they receive a 429.
+
+### Connector-Specific Rate Limits
+
+Connector sync operations that call third-party APIs are independently rate-limited using Redis sliding windows:
+
+| Connector | Rate Limit | Burst |
+|-----------|-----------|-------|
+| Slack | 50/min | 10 |
+| Notion | 30/min | 5 |
+| Google Drive | 100/min | 20 |
+| GitHub | 60/min | 15 |
+| Samsara | 40/min | 8 |
+
+When a rate limit is hit, the connector uses exponential backoff with jitter:
+
+```typescript
+// Backoff with jitter
+const baseDelay = Math.min(1000 * Math.pow(2, attempt), 30000);
+const jitter = Math.random() * baseDelay * 0.5;
+const delay = baseDelay + jitter;
+```
+
+## Webhook Processing Architecture
+
+Verified webhooks are processed through Temporal workflows for durability:
+
+```text
+1. Webhook received at /api/webhooks/{connector}
+2. Signature verified, timestamp validated
+3. Event enqueued to Temporal workflow
+4. Temporal activity processes the event (fetch updated data, re-index)
+5. If activity fails → Temporal retries with backoff
+6. Webhook endpoint returns 200 immediately (async processing)
+```
+
+The webhook endpoint returns `200 OK` after signature verification, before the event is fully processed. This prevents the sending service from timing out while OpenPlane processes the update.
+
+<Callout type="warn">
+  Webhook signing secrets are encrypted at rest using AES-256-GCM (see the [Encryption](/docs/security/encryption) page). They are decrypted only in memory during signature verification and never logged.
+</Callout>
+
+<Cards>
+  <Card title="Encryption" href="/docs/security/encryption" description="How webhook signing secrets are encrypted at rest." />
+  <Card title="Authentication" href="/docs/security/authentication" description="Session and API key auth for the webhook management endpoints." />
+  <Card title="Connectors" href="/docs/connectors" description="Connector-specific webhook configuration and setup guides." />
+</Cards>

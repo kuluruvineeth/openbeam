@@ -1,0 +1,237 @@
+---
+title: Authentication
+description: Session-based auth, API keys with Argon2 hashing, and OAuth2 flows for users and connectors.
+---
+
+# Authentication
+
+OpenPlane supports three authentication methods: session-based auth for browser users, API keys for programmatic access, and OAuth2 for both user login and connector authorization.
+
+## Session-Based Auth
+
+Browser users authenticate through OAuth2 (Google) and receive a session cookie. Sessions are stored server-side in PostgreSQL -- the cookie contains only an opaque token, never user data.
+
+### Session Flow
+
+```text
+1. User clicks "Sign in with Google"
+2. Server generates state parameter + PKCE code verifier
+3. User redirects to Google OAuth consent
+4. Google redirects back with authorization code
+5. Server exchanges code for tokens (with PKCE verification)
+6. Server creates/updates user record
+7. Server generates 32-byte random session token
+8. Token stored in PostgreSQL (hashed), cookie sent to browser
+9. Subsequent requests include cookie → server validates against DB
+```
+
+### Token Format
+
+Session tokens are 32 bytes of cryptographically random data, hex-encoded to 64 characters. They are generated using Node.js `crypto.randomBytes()`.
+
+```typescript
+import { randomBytes } from "node:crypto";
+
+const token = randomBytes(32).toString("hex");
+// e.g., "a3f8c1d2e4b5..."  (64 hex characters)
+```
+
+### Cookie Configuration
+
+| Property | Value | Purpose |
+|----------|-------|---------|
+| `name` | `openplane-session` | Session identifier |
+| `httpOnly` | `true` | Prevents JavaScript access (XSS mitigation) |
+| `secure` | `true` | Cookie only sent over HTTPS |
+| `sameSite` | `lax` | Protects against CSRF while allowing top-level navigations |
+| `domain` | Auto-derived from `COOKIE_DOMAIN` | Supports cross-origin deployments |
+| `maxAge` | 7 days | Session duration |
+
+<Callout type="warn">
+  The `secure` flag means sessions will not work over plain HTTP. Always deploy with TLS in production.
+</Callout>
+
+### Session Lifecycle
+
+Sessions expire after 7 days from creation. There is no sliding expiration -- after 7 days, the user must re-authenticate. On logout, the session record is deleted from PostgreSQL and the cookie is cleared.
+
+```text
+Create:  POST /auth/google/callback → session row inserted
+Validate: Every request → session token checked against DB
+Destroy: POST /auth/logout → session row deleted, cookie cleared
+Expire:  After 7 days → DB cleanup job removes expired sessions
+```
+
+## API Key Auth
+
+API keys provide programmatic access for scripts, CI pipelines, and external integrations. Keys are scoped to specific resources and actions.
+
+### Key Format
+
+API keys follow a predictable prefix format for identification without database lookups:
+
+```text
+op_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+│  │    │
+│  │    └── 32 random bytes (hex-encoded)
+│  └─────── environment: "live" or "test"
+└────────── prefix: "op" (OpenPlane)
+```
+
+The full key is shown once at creation time and never stored in plaintext. Only the prefix (`op_live_`) and an Argon2 hash of the full key are persisted.
+
+### Storage and Lookup
+
+```text
+1. User creates API key → full key shown once
+2. Server stores: { prefix: "op_live_", hash: argon2(fullKey), scopes: [...] }
+3. On request: extract prefix → find candidate rows → argon2.verify(fullKey, hash)
+```
+
+Prefix-based lookup narrows the search to a small set of candidates before running the expensive Argon2 verification. This avoids scanning every key hash in the database.
+
+### Scopes
+
+Scopes follow the pattern `resource:action` where both parts are lowercase alphanumeric. The wildcard `*` matches any action on a resource.
+
+```text
+Pattern: ^[a-z]+:[a-z*]+$
+
+Examples:
+  search:read        → Read-only search access
+  connectors:*       → Full connector management
+  documents:read     → Read document content
+  team:admin         → Team administration
+```
+
+API requests are validated against the key's scopes before processing. A request requiring `connectors:write` will fail if the key only has `connectors:read`.
+
+### Timing-Safe Comparison
+
+All key comparisons use constant-time algorithms to prevent timing attacks:
+
+```typescript
+import { timingSafeEqual } from "node:crypto";
+
+function safeCompare(a: string, b: string): boolean {
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return timingSafeEqual(bufA, bufB);
+}
+```
+
+<Callout type="warn">
+  Never compare secrets with `===`. JavaScript string comparison short-circuits on the first differing character, leaking information about partial matches through response timing.
+</Callout>
+
+### API Key Best Practices
+
+| Practice | Reason |
+|----------|--------|
+| Use minimum required scopes | Limits blast radius if key is compromised |
+| Rotate keys periodically | Reduces window of exposure |
+| Store keys in secret managers | Never commit to version control |
+| Use `test` keys for development | Isolates test traffic from production data |
+| Monitor key usage | Detect anomalous access patterns |
+
+## OAuth2 for User Login
+
+User authentication uses Google OAuth 2.0 with PKCE (Proof Key for Code Exchange) for security against authorization code interception.
+
+### PKCE Flow
+
+```text
+1. Server generates code_verifier (random 43-128 chars)
+2. Server computes code_challenge = base64url(SHA256(code_verifier))
+3. Redirect to Google with code_challenge and state parameter
+4. Google authenticates user, redirects back with authorization code
+5. Server exchanges code + code_verifier for tokens
+6. Google verifies SHA256(code_verifier) matches original code_challenge
+7. Server receives access_token and id_token
+```
+
+PKCE prevents an attacker who intercepts the authorization code from exchanging it for tokens, because they would not have the `code_verifier`.
+
+### State Parameter
+
+The `state` parameter is a random value tied to the user's session. It prevents CSRF attacks on the OAuth callback endpoint:
+
+```typescript
+import { randomBytes } from "node:crypto";
+
+const state = randomBytes(32).toString("hex");
+// Stored server-side, verified on callback
+```
+
+If the `state` in the callback does not match the stored value, the request is rejected.
+
+## OAuth2 for Connectors
+
+Connectors use OAuth2 to obtain access tokens for third-party APIs. Each connector defines its own OAuth configuration in `packages/integrations/`.
+
+### Connector OAuth Flow
+
+```text
+1. User initiates connector setup in UI
+2. Server redirects to third-party OAuth consent (Slack, Notion, etc.)
+3. User grants access, third-party redirects back with code
+4. Server exchanges code for access_token + refresh_token
+5. Tokens encrypted with AES-256-GCM and stored in PostgreSQL
+6. Connector uses decrypted tokens for API calls during sync
+```
+
+### Token Refresh
+
+OAuth tokens expire. The refresh flow runs transparently during sync operations:
+
+```text
+1. Sync activity attempts API call
+2. Receives 401 Unauthorized
+3. Uses stored refresh_token to obtain new access_token
+4. Encrypts and stores new tokens
+5. Retries the original API call
+```
+
+<Callout type="info">
+  Token refresh is handled at the activity level in Temporal workflows. If a refresh fails (e.g., user revoked access), the sync job fails with a clear error and the connector status is updated to `DISCONNECTED`.
+</Callout>
+
+### Per-Connector OAuth Configuration
+
+Each connector specifies its OAuth requirements in `packages/integrations/`:
+
+```typescript
+{
+  authType: "oauth2",
+  authorizationUrl: "https://slack.com/oauth/v2/authorize",
+  tokenUrl: "https://slack.com/api/oauth.v2.access",
+  scopes: ["channels:read", "channels:history", "users:read"],
+  pkce: false,  // Slack does not support PKCE
+}
+```
+
+| Field | Purpose |
+|-------|---------|
+| `authorizationUrl` | Where to redirect the user for consent |
+| `tokenUrl` | Endpoint for code-to-token exchange |
+| `scopes` | Permissions requested from the third-party |
+| `pkce` | Whether the provider supports PKCE |
+
+## Authentication Middleware
+
+Every API request passes through authentication middleware that determines the auth method and validates credentials:
+
+```text
+1. Check for Authorization header (Bearer token → API key)
+2. Check for openplane-session cookie (→ session auth)
+3. No credentials → 401 Unauthorized
+```
+
+The middleware attaches the authenticated user's `userId` and `teamId` to the request context. All downstream handlers use these values for authorization checks.
+
+<Cards>
+  <Card title="Authorization" href="/docs/security/authorization" description="How authenticated users are authorized to access resources." />
+  <Card title="Encryption" href="/docs/security/encryption" description="How OAuth tokens and credentials are encrypted at rest." />
+  <Card title="Configuration" href="/docs/self-hosting/configuration" description="Environment variables for auth providers and cookie settings." />
+</Cards>

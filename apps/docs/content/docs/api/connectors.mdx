@@ -1,0 +1,431 @@
+---
+title: Connectors
+description: Manage data source connections, sync workflows, and webhook configuration.
+---
+
+# Connectors API
+
+The connectors API manages connections to external data sources. It covers listing available apps, connecting and disconnecting sources, triggering syncs, and monitoring sync history.
+
+All connector endpoints are nested under the `apps` tRPC router: `apps.connectors.*`, `apps.sync.*`, and `apps.webhooks.*`.
+
+## Connector management
+
+### apps.connectors.list
+
+List all available apps with their installation status for the current team.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:** None
+
+**Output:**
+
+```typescript
+Array<{
+  id: string;                   // App identifier (e.g. "slack", "notion")
+  name: string;                 // Display name
+  description: string;
+  category: string;
+  installed: boolean;           // Whether the connector is active
+  connectorId?: string;         // ID if installed
+  status?: string;              // ACTIVE, INACTIVE, ERROR, PAUSED, DELETING
+  settings: AppSetting[];       // Available configuration options
+  userSettings?: Record<string, unknown>;  // Current configuration values
+}>
+```
+
+<Tabs items={["TypeScript", "cURL"]}>
+  <Tab value="TypeScript">
+    ```typescript
+    const apps = await trpc.apps.connectors.list.query();
+    const installed = apps.filter((app) => app.installed);
+    ```
+  </Tab>
+  <Tab value="cURL">
+    ```bash
+    curl -X POST http://localhost:3000/trpc/apps.connectors.list \
+      -H "Authorization: Bearer op_live_..."
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+### apps.connectors.get
+
+Get detailed information about a specific app or connector.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  appId: string;  // App identifier or connector ID
+}
+```
+
+**Output:**
+
+```typescript
+{
+  id: string;
+  app: string;
+  status: string;
+  teamId: string;
+  config: Record<string, unknown>;
+  oauthProvider?: {
+    accessToken: string;
+    refreshToken: string;
+    expiresAt: Date;
+  };
+  definition: UnifiedApp;       // Full app definition with settings, OAuth config
+}
+```
+
+Throws `NOT_FOUND` if the connector does not exist or belongs to a different team.
+
+---
+
+### apps.connectors.connect
+
+Create a new connector or update an existing one for the current team.
+
+**Type:** `mutation`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  appId: AppType;               // e.g. "SLACK", "NOTION", "GMAIL"
+  workspaceExternalId: string;  // External workspace/org identifier
+  name: string;                 // Display name for this connection
+  type: ConnectorType;          // e.g. "OAUTH", "API_KEY", "WEBHOOK"
+  authType: AuthType;           // e.g. "OAUTH2", "API_KEY", "PAT"
+  config?: Record<string, unknown>;  // App-specific configuration
+}
+```
+
+**Output:** The created or updated connector record.
+
+<Tabs items={["TypeScript", "cURL"]}>
+  <Tab value="TypeScript">
+    ```typescript
+    const connector = await trpc.apps.connectors.connect.mutate({
+      appId: "SLACK",
+      workspaceExternalId: "T01ABC123",
+      name: "Engineering Slack",
+      type: "OAUTH",
+      authType: "OAUTH2",
+    });
+    ```
+  </Tab>
+  <Tab value="cURL">
+    ```bash
+    curl -X POST http://localhost:3000/trpc/apps.connectors.connect \
+      -H "Authorization: Bearer op_live_..." \
+      -H "Content-Type: application/json" \
+      -d '{
+        "appId": "SLACK",
+        "workspaceExternalId": "T01ABC123",
+        "name": "Engineering Slack",
+        "type": "OAUTH",
+        "authType": "OAUTH2"
+      }'
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+### apps.connectors.disconnect
+
+Soft-delete a connector and schedule cleanup of its indexed data. Requires admin or owner role.
+
+**Type:** `mutation`
+**Auth:** `withAdminRole`
+
+**Input:**
+
+```typescript
+{
+  appId: string;  // Connector ID to disconnect
+}
+```
+
+The connector enters a `DELETING` state with a grace period. During the grace period, the connector can be restored using `apps.connectors.restore`.
+
+---
+
+### apps.connectors.restore
+
+Cancel a pending deletion and restore a connector. Only works during the grace period.
+
+**Type:** `mutation`
+**Auth:** `withAdminRole`
+
+**Input:**
+
+```typescript
+{
+  appId: string;  // Connector ID to restore
+}
+```
+
+Throws `BAD_REQUEST` if the connector is not in `DELETING` status or the grace period has expired.
+
+---
+
+### apps.connectors.pause
+
+Pause sync for a connector. No new sync workflows will be started until resumed.
+
+**Type:** `mutation`
+**Auth:** `withAdminRole`
+
+**Input:**
+
+```typescript
+{
+  connectorId: string;
+}
+```
+
+---
+
+### apps.connectors.resume
+
+Resume sync for a previously paused connector.
+
+**Type:** `mutation`
+**Auth:** `withAdminRole`
+
+**Input:**
+
+```typescript
+{
+  connectorId: string;
+}
+```
+
+---
+
+### apps.connectors.updateSettings
+
+Update connector-specific configuration (e.g. which channels to sync, exclusion patterns).
+
+**Type:** `mutation`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  appId: string;                       // Connector ID
+  config: Record<string, unknown>;     // New configuration values
+}
+```
+
+---
+
+### apps.connectors.getResources
+
+List resources (channels, folders, repositories, etc.) for a connector. Supports pagination and search.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  connectorId: string;
+  search?: string;      // Filter resources by name
+  cursor?: string;      // Cursor for pagination
+  limit: number;        // 1-100 (default: 50)
+}
+```
+
+---
+
+### apps.connectors.toggleResourceSync
+
+Enable or disable sync for a specific resource within a connector.
+
+**Type:** `mutation`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  resourceId: string;
+  syncEnabled: boolean;
+}
+```
+
+---
+
+## Sync management
+
+### apps.sync.getStatus
+
+Get the current sync status for a connector.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  connectorId: string;
+}
+```
+
+**Output:** Current sync status including last sync time, document counts, and error details if any.
+
+---
+
+### apps.sync.getHistory
+
+Get sync history for a connector with pagination.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  connectorId: string;
+  limit: number;          // 1-100 (default: 20)
+  cursor?: number | null; // Cursor (takes precedence over offset)
+  offset: number;         // default: 0
+}
+```
+
+**Output:**
+
+```typescript
+{
+  history: SyncHistoryEntry[];
+  pagination: {
+    total: number;
+    hasMore: boolean;
+  };
+  nextCursor?: number;
+}
+```
+
+---
+
+### apps.sync.trigger
+
+Manually trigger a sync workflow. The connector must be in `ACTIVE` status.
+
+**Type:** `mutation`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  connectorId: string;
+  type: "FULL" | "INCREMENTAL";  // default: "INCREMENTAL"
+}
+```
+
+**Output:**
+
+```typescript
+{
+  success: boolean;
+  workflowId: string;    // Temporal workflow ID
+  runId: string;          // Temporal run ID
+  type: string;
+  message: string;
+}
+```
+
+<Tabs items={["TypeScript", "cURL"]}>
+  <Tab value="TypeScript">
+    ```typescript
+    const sync = await trpc.apps.sync.trigger.mutate({
+      connectorId: "conn_abc123",
+      type: "FULL",
+    });
+
+    console.log(sync.workflowId); // Track in Temporal UI
+    ```
+  </Tab>
+  <Tab value="cURL">
+    ```bash
+    curl -X POST http://localhost:3000/trpc/apps.sync.trigger \
+      -H "Authorization: Bearer op_live_..." \
+      -H "Content-Type: application/json" \
+      -d '{"connectorId": "conn_abc123", "type": "FULL"}'
+    ```
+  </Tab>
+</Tabs>
+
+<Callout type="warn">
+  Full syncs re-index all documents from the source and can take significant time for large data sources. Use incremental syncs for routine updates.
+</Callout>
+
+---
+
+### apps.sync.updateSettings
+
+Update sync frequency settings for a connector.
+
+**Type:** `mutation`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  connectorId: string;
+  fullSyncIntervalMs?: number;         // Minimum 60,000 (1 minute)
+  incrementalSyncIntervalMs?: number;  // Minimum 60,000 (1 minute)
+}
+```
+
+---
+
+## Webhooks
+
+### apps.webhooks.getStatus
+
+Check the webhook configuration status for a connector.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  connectorId: string;
+}
+```
+
+**Output:**
+
+```typescript
+{
+  enabled: boolean;
+  lastReceivedAt: Date | null;
+  configured: boolean;
+}
+```
+
+<Cards>
+  <Card title="Search API" href="/docs/api/search" description="Search documents indexed by these connectors" />
+  <Card title="AI API" href="/docs/api/ai" description="Ask questions grounded in connector data" />
+</Cards>

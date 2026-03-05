@@ -1,0 +1,254 @@
+---
+title: Errors
+description: Error codes, rate limiting behavior, and best practices for handling API errors.
+---
+
+# Error handling
+
+OpenPlane uses standard tRPC error codes for the RPC layer and HTTP status codes for the REST layer. Both layers return structured error responses.
+
+## tRPC error format
+
+tRPC errors are returned as JSON-RPC error responses:
+
+```json
+{
+  "error": {
+    "message": "Connector not found or unauthorized",
+    "code": -32004,
+    "data": {
+      "code": "NOT_FOUND",
+      "httpStatus": 404,
+      "path": "apps.connectors.get"
+    }
+  }
+}
+```
+
+## REST error format
+
+REST endpoints return a simpler structure:
+
+```json
+{
+  "error": "Unauthorized",
+  "message": "Valid API key or session required. Use 'Authorization: Bearer op_xxx' header or session cookie."
+}
+```
+
+For validation errors, a `details` field may be included:
+
+```json
+{
+  "error": "Bad Request",
+  "details": "Invalid input: q must be at least 1 character"
+}
+```
+
+## Error codes
+
+| tRPC Code | HTTP Status | When it occurs |
+|-----------|-------------|----------------|
+| `UNAUTHORIZED` | 401 | No valid session or API key |
+| `FORBIDDEN` | 403 | Insufficient role or scopes |
+| `NOT_FOUND` | 404 | Resource does not exist or user lacks access |
+| `BAD_REQUEST` | 400 | Invalid input, missing required fields, or invalid state transition |
+| `TOO_MANY_REQUESTS` | 429 | Rate limit exceeded |
+| `INTERNAL_SERVER_ERROR` | 500 | Unexpected server error |
+
+### UNAUTHORIZED (401)
+
+The request has no valid credentials. Check that:
+
+- The `Authorization` header is present and correctly formatted
+- The session token or API key has not expired
+- The cookie domain matches the API server
+
+```json
+{
+  "error": {
+    "message": "Authentication required",
+    "data": { "code": "UNAUTHORIZED", "httpStatus": 401 }
+  }
+}
+```
+
+### FORBIDDEN (403)
+
+The authenticated user lacks permission for the requested operation. Common causes:
+
+- Attempting a destructive operation (disconnect, delete, publish) without `ADMIN` or `OWNER` role
+- API key missing required scopes
+- Accessing a resource that belongs to a different team
+
+```json
+{
+  "error": {
+    "message": "Admin or Owner role required",
+    "data": { "code": "FORBIDDEN", "httpStatus": 403 }
+  }
+}
+```
+
+For scope-based rejections:
+
+```json
+{
+  "error": "Forbidden",
+  "message": "Required scopes: search:read, connectors:write",
+  "requiredScopes": ["search:read", "connectors:write"]
+}
+```
+
+### NOT_FOUND (404)
+
+The requested resource does not exist or the user does not have access. OpenPlane returns the same error for both cases to avoid leaking information about resource existence.
+
+```json
+{
+  "error": {
+    "message": "Connector not found or unauthorized",
+    "data": { "code": "NOT_FOUND", "httpStatus": 404 }
+  }
+}
+```
+
+### BAD_REQUEST (400)
+
+The input is invalid or the operation cannot be performed in the current state. Examples:
+
+- Triggering sync on an `INACTIVE` or `ERROR` connector
+- Executing an unpublished canvas
+- Restoring a connector after the grace period has expired
+- No active team for the authenticated user
+
+```json
+{
+  "error": {
+    "message": "Connector is not active. Check connector status.",
+    "data": { "code": "BAD_REQUEST", "httpStatus": 400 }
+  }
+}
+```
+
+### TOO_MANY_REQUESTS (429)
+
+Rate limit exceeded. The response includes a `Retry-After` header.
+
+```json
+{
+  "error": {
+    "message": "Rate limit exceeded. Maximum 100 executions per hour.",
+    "data": { "code": "TOO_MANY_REQUESTS", "httpStatus": 429 }
+  }
+}
+```
+
+**Rate limit headers:**
+
+| Header | Description |
+|--------|-------------|
+| `Retry-After` | Seconds until the rate limit resets |
+
+### INTERNAL_SERVER_ERROR (500)
+
+An unexpected error occurred. These are logged server-side. The response does not include internal details.
+
+```json
+{
+  "error": {
+    "message": "Canvas version contains invalid data",
+    "data": { "code": "INTERNAL_SERVER_ERROR", "httpStatus": 500 }
+  }
+}
+```
+
+## Rate limiting
+
+Rate limits are enforced per authentication identity (user ID for sessions, key ID for API keys). Unauthenticated requests are rate-limited by IP.
+
+| Scope | Limit | Window |
+|-------|-------|--------|
+| General API | 100 requests | 60 seconds |
+| Canvas execution | 100 executions | 1 hour |
+
+When a rate limit is exceeded:
+
+1. The server returns `429 Too Many Requests`
+2. The `Retry-After` header indicates when to retry
+3. The error message describes which limit was hit
+
+## Client-side error handling
+
+### TypeScript (tRPC client)
+
+```typescript
+import { TRPCClientError } from "@trpc/client";
+import type { AppRouter } from "@openplane/api";
+
+try {
+  const result = await trpc.apps.sync.trigger.mutate({
+    connectorId: "conn_abc",
+    type: "FULL",
+  });
+} catch (error) {
+  if (error instanceof TRPCClientError<AppRouter>) {
+    switch (error.data?.code) {
+      case "NOT_FOUND":
+        // Connector does not exist
+        break;
+      case "BAD_REQUEST":
+        // Connector not active
+        break;
+      case "FORBIDDEN":
+        // Insufficient permissions
+        break;
+      case "TOO_MANY_REQUESTS":
+        // Rate limited -- retry later
+        break;
+    }
+  }
+}
+```
+
+### REST (fetch)
+
+```typescript
+const response = await fetch("http://localhost:3000/search?q=test", {
+  headers: { Authorization: "Bearer op_live_..." },
+});
+
+if (!response.ok) {
+  const body = await response.json();
+
+  switch (response.status) {
+    case 401:
+      // Re-authenticate
+      break;
+    case 403:
+      // Show permission error
+      break;
+    case 429: {
+      const retryAfter = response.headers.get("Retry-After");
+      // Wait and retry
+      break;
+    }
+    default:
+      // Unexpected error
+      console.error(body.error);
+  }
+}
+```
+
+## Best practices
+
+1. **Check `hasMore` before paginating** -- do not assume a next page exists based on result count alone.
+2. **Respect `Retry-After`** -- implement exponential backoff when rate-limited rather than retrying immediately.
+3. **Handle NOT_FOUND gracefully** -- resources may be deleted between list and detail requests.
+4. **Use specific error codes** -- match on `error.data.code` (tRPC) or `response.status` (REST) rather than parsing error messages.
+5. **Do not retry 400/403 errors** -- these indicate a client-side issue that needs to be fixed, not retried.
+
+<Cards>
+  <Card title="Authentication" href="/docs/api/authentication" description="Auth methods and how 401/403 errors are triggered" />
+  <Card title="API overview" href="/docs/api" description="Rate limits, pagination, and base URL" />
+</Cards>

@@ -1,0 +1,218 @@
+---
+title: Authorization
+description: Team-based RBAC, mandatory team scoping, document permission sync, and search-time access filtering.
+---
+
+# Authorization
+
+Authentication answers "who are you?" -- authorization answers "what can you access?" OpenPlane enforces authorization at two levels: team-level RBAC for platform operations and document-level permissions for search results.
+
+## Team-Based RBAC
+
+Every user belongs to one or more teams. Each team membership carries a role that determines what operations the user can perform.
+
+### Roles
+
+| Role | Description |
+|------|-------------|
+| **OWNER** | Full control. Can delete the team, manage billing, transfer ownership. |
+| **ADMIN** | Can manage connectors, API keys, team settings, and members. Cannot delete the team. |
+| **MEMBER** | Can search, use AI features, and view connected data. Cannot manage connectors or team settings. |
+
+### Permission Matrix
+
+| Operation | OWNER | ADMIN | MEMBER |
+|-----------|-------|-------|--------|
+| Search documents | Yes | Yes | Yes |
+| Use AI agents | Yes | Yes | Yes |
+| View connector status | Yes | Yes | Yes |
+| Create connectors | Yes | Yes | No |
+| Delete connectors | Yes | Yes | No |
+| Manage API keys | Yes | Yes | No |
+| Invite members | Yes | Yes | No |
+| Remove members | Yes | Yes | No |
+| Change member roles | Yes | Yes | No |
+| Edit team settings | Yes | Yes | No |
+| Delete team | Yes | No | No |
+| Transfer ownership | Yes | No | No |
+
+### Mandatory Team Scoping
+
+Every database query is scoped to the authenticated user's `teamId`. This is enforced at the data access layer -- there is no way to query across teams.
+
+```typescript
+// Every query includes teamId as a mandatory filter
+const connectors = await db.connector.findMany({
+  where: { teamId: ctx.teamId },
+});
+
+const documents = await searchService.search({
+  query: params.query,
+  teamId: ctx.teamId,  // Cannot be omitted
+  accessControlIds: ctx.accessControlIds,
+});
+```
+
+<Callout type="warn">
+  Team scoping is not optional. The type system enforces that `teamId` is present on every query function. Code that attempts to query without `teamId` will not compile.
+</Callout>
+
+### Role Checks
+
+Sensitive operations verify the user's role before proceeding:
+
+```typescript
+function requireRole(ctx: RequestContext, minimumRole: "OWNER" | "ADMIN") {
+  const membership = await db.teamMembership.findUnique({
+    where: {
+      userId_teamId: { userId: ctx.userId, teamId: ctx.teamId },
+    },
+  });
+
+  if (!membership) throw new UnauthorizedError("Not a team member");
+
+  const roleHierarchy = { OWNER: 3, ADMIN: 2, MEMBER: 1 };
+  if (roleHierarchy[membership.role] < roleHierarchy[minimumRole]) {
+    throw new ForbiddenError("Insufficient permissions");
+  }
+}
+```
+
+## Document Permissions
+
+Search results are filtered against document-level permissions synced from source systems. A user only sees documents they have access to in the original tool (Slack, Notion, Google Drive, etc.).
+
+### Permission Model
+
+The `DocumentPermission` table stores access grants for indexed documents:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `documentId` | `string` | The indexed document ID |
+| `granteeType` | `enum` | `USER`, `GROUP`, `DOMAIN`, `ANYONE` |
+| `granteeId` | `string` | Identifier of the grantee (email, group ID, domain) |
+| `role` | `string` | Permission level from the source system (`read`, `write`, `admin`) |
+| `expiresAt` | `datetime?` | Optional expiration for time-limited grants |
+
+### Grantee Types
+
+| Type | Meaning | Example |
+|------|---------|---------|
+| `USER` | A specific user | `user:jane@company.com` |
+| `GROUP` | A group or channel | `group:engineering`, `channel:C01ABCDEF` |
+| `DOMAIN` | An entire domain | `domain:company.com` |
+| `ANYONE` | Public access | `anyone:` |
+
+### Permission Sync
+
+Permissions are synced from source systems during connector sync operations. Each connector maps its native permission model to the `DocumentPermission` schema:
+
+```text
+Google Drive: "reader" role on file → DocumentPermission { granteeType: USER, role: "read" }
+Slack:        channel membership → DocumentPermission { granteeType: GROUP, granteeId: "channel:C01..." }
+Notion:       workspace member → DocumentPermission { granteeType: DOMAIN, granteeId: "domain:company.com" }
+```
+
+Permissions are refreshed on every incremental sync. If a user loses access in the source system, the corresponding `DocumentPermission` row is removed, and subsequent searches will exclude that document.
+
+### Group Membership
+
+The `GroupMembership` table resolves group-based permissions to individual users:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `userId` | `string` | The user's ID |
+| `groupId` | `string` | The group identifier (matches `granteeId` in DocumentPermission) |
+| `connectorId` | `string` | Which connector this membership came from |
+
+When a user searches, their access control IDs include their direct user ID and all group IDs they belong to:
+
+```typescript
+const accessControlIds = [
+  `user:${user.email}`,
+  ...userGroups.map(g => `group:${g.groupId}`),
+  `domain:${user.emailDomain}`,
+];
+```
+
+### Connector Scope
+
+The `ConnectorScope` table defines what subset of a source system a connector is authorized to sync. This is set during connector configuration and limits the sync perimeter:
+
+```text
+Slack connector: scoped to channels #general, #engineering, #product
+Drive connector: scoped to shared drive "Engineering Docs"
+```
+
+Only documents within the connector's scope are synced and indexed. Documents outside the scope are never fetched, even if the OAuth token has access to them.
+
+## Search-Time Permission Filtering
+
+Permission filtering happens at the search engine level (Vespa), not in application code. This means unauthorized documents are excluded before ranking, not after.
+
+### How It Works
+
+Every document in Vespa carries an `access_control` field -- an array of access control IDs that have permission to view the document.
+
+```text
+Document: "Q3 Revenue Report"
+access_control: ["user:jane@co.com", "group:finance", "domain:co.com"]
+```
+
+At query time, the user's access control IDs are injected as filter clauses:
+
+```sql
+SELECT * FROM openplane_document
+WHERE team_id CONTAINS "team_abc"
+  AND (title CONTAINS "revenue" OR content CONTAINS "revenue")
+  AND (
+    is_public = true
+    OR access_control CONTAINS "user:jane@co.com"
+    OR access_control CONTAINS "group:finance"
+    OR access_control CONTAINS "domain:co.com"
+  )
+```
+
+<Callout type="info">
+  Permission filtering runs on Vespa content nodes during the matching phase. Documents that fail the access control filter are never scored, ranked, or returned. This means there is no performance penalty proportional to the number of unauthorized documents.
+</Callout>
+
+### Public Documents
+
+Documents marked `is_public = true` bypass access control checks. This is used for:
+
+- Publicly shared Google Docs
+- Public Notion pages
+- Open Slack channels (depending on workspace settings)
+
+The `is_public` flag is set by the connector's transformer based on the source system's sharing settings.
+
+## Admin-Only Operations
+
+Certain operations are restricted to OWNER and ADMIN roles and include additional safeguards:
+
+| Operation | Safeguard |
+|-----------|-----------|
+| Delete connector | Triggers document cleanup in Vespa |
+| Reset API key | Old key immediately invalidated |
+| Remove team member | User's sessions deleted, access revoked |
+| Change connector scope | Triggers re-sync to update indexed documents |
+| Export team data | Logged for audit purposes |
+
+## Permission Caching
+
+To avoid querying the database on every search request, permission data is cached:
+
+| Cache | TTL | Storage |
+|-------|-----|---------|
+| User group memberships | 5 minutes | Application memory |
+| Connector scopes | 10 minutes | Redis |
+| Team membership/role | 5 minutes | Application memory |
+
+Cache invalidation happens immediately on write operations (role change, group membership update). The TTL is a fallback for consistency in distributed deployments.
+
+<Cards>
+  <Card title="Authentication" href="/docs/security/authentication" description="How users and API clients prove their identity." />
+  <Card title="Encryption" href="/docs/security/encryption" description="How credentials and tokens are protected at rest." />
+  <Card title="How Search Works" href="/docs/search/how-it-works" description="Full search pipeline including permission filtering in Vespa." />
+</Cards>

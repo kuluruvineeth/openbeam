@@ -1,0 +1,110 @@
+---
+title: Security
+description: Defense-in-depth security architecture covering authentication, authorization, encryption, rate limiting, and webhook verification.
+---
+
+# Security
+
+OpenPlane handles sensitive enterprise data from 20+ connected systems. Every layer is designed to prevent unauthorized access, protect credentials at rest, and enforce permission boundaries inherited from source systems.
+
+## Defense-in-Depth Layers
+
+Security is not a single gate. Five layers work together so that a failure in one layer does not compromise the system.
+
+| Layer | Mechanism | What It Protects |
+|-------|-----------|------------------|
+| **Authentication** | Session tokens, API keys, OAuth2 | Identity verification at the edge |
+| **Authorization** | Team-based RBAC, document permissions | Resource access after identity is confirmed |
+| **Encryption** | AES-256-GCM at rest, TLS in transit | Credentials, tokens, and data on disk and wire |
+| **Rate Limiting** | Redis sliding window, per-connector quotas | API abuse, credential stuffing, sync overload |
+| **Webhook Verification** | HMAC-SHA256, timestamp validation | Inbound data integrity from third-party services |
+
+```text
+Request
+  │
+  ▼
+┌──────────────┐    ┌──────────────┐    ┌──────────────┐    ┌──────────────┐
+│  Auth Layer  │───▶│  RBAC Layer  │───▶│  Rate Limit  │───▶│  Business    │
+│  (identity)  │    │  (access)    │    │  (throttle)  │    │  Logic       │
+└──────────────┘    └──────────────┘    └──────────────┘    └──────────────┘
+       │                    │                   │                    │
+       ▼                    ▼                   ▼                    ▼
+  Sessions DB         Permission DB        Redis Counters     Encrypted Storage
+  (PostgreSQL)        (PostgreSQL)         (Sliding Window)   (AES-256-GCM)
+```
+
+## Threat Model
+
+OpenPlane operates in a multi-tenant enterprise environment where teams connect sensitive data sources. The primary threats addressed:
+
+| Threat | Mitigation |
+|--------|-----------|
+| Credential theft | AES-256-GCM encryption, never logged or exposed via API |
+| Session hijacking | httpOnly + secure cookies, 7-day expiration, server-side validation |
+| API key compromise | Argon2 hashing, prefix-based lookup without exposing full key |
+| Cross-tenant data access | Mandatory `teamId` scoping on every database query |
+| Permission drift | Periodic permission sync from source systems |
+| Webhook spoofing | HMAC-SHA256 signatures with timing-safe comparison |
+| Replay attacks | Timestamp validation with 5-minute window on webhooks |
+| Credential stuffing | Sliding window rate limits with exponential backoff |
+
+## Compliance Considerations
+
+Self-hosted OpenPlane gives you full control over data residency and processing. No data leaves your network.
+
+| Framework | How OpenPlane Helps |
+|-----------|---------------------|
+| **SOC 2** | Encryption at rest and in transit, RBAC, audit-ready session management |
+| **GDPR** | All data stays on your infrastructure, no third-party data processing |
+| **HIPAA** | AES-256-GCM encryption, access control enforcement, no external telemetry |
+| **ISO 27001** | Defense-in-depth architecture, key management, rate limiting |
+
+<Callout type="warn">
+  Compliance depends on your deployment configuration. OpenPlane provides the mechanisms listed above -- you are responsible for configuring them correctly and maintaining your infrastructure.
+</Callout>
+
+## Self-Hosted Security Checklist
+
+Before deploying to production, verify each item.
+
+### Secrets
+
+- [ ] `ENCRYPTION_KEY` generated with `openssl rand -hex 32` (64 hex characters = 32 bytes)
+- [ ] `JWT_SECRET` generated with `openssl rand -hex 32`
+- [ ] Unique secrets per environment (dev, staging, production)
+- [ ] `.env` file excluded from version control
+- [ ] Default database passwords changed from `postgres:postgres`
+- [ ] MinIO root password changed from default
+
+### Network
+
+- [ ] Infrastructure ports bound to `127.0.0.1` only (PostgreSQL, Redis, Vespa, Temporal)
+- [ ] TLS termination configured on the reverse proxy
+- [ ] `COOKIE_DOMAIN` set to your deployment domain
+- [ ] `WEB_URL` and `SERVER_URL` use HTTPS
+- [ ] CORS configured to accept only your frontend origin
+
+### Authentication
+
+- [ ] At least one OAuth provider configured (Google OAuth)
+- [ ] OAuth redirect URIs restricted to your domain
+- [ ] API key creation limited to OWNER and ADMIN roles
+
+### Database
+
+- [ ] PostgreSQL `max_connections` set appropriately for your load
+- [ ] Database backups configured and tested
+- [ ] Connection string uses SSL in production
+
+### Monitoring
+
+- [ ] Failed authentication attempts logged
+- [ ] Rate limit hits visible in metrics
+- [ ] Connector sync errors surfaced in Grafana dashboards
+
+<Cards>
+  <Card title="Authentication" href="/docs/security/authentication" description="Sessions, API keys, and OAuth2 flows for users and connectors." />
+  <Card title="Authorization" href="/docs/security/authorization" description="Team-based RBAC, document permissions, and search-time filtering." />
+  <Card title="Encryption" href="/docs/security/encryption" description="AES-256-GCM at rest, cookie security, and transport encryption." />
+  <Card title="Webhooks" href="/docs/security/webhooks" description="HMAC-SHA256 verification, replay prevention, and per-connector formats." />
+</Cards>

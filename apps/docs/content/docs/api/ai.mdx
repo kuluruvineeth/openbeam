@@ -1,0 +1,691 @@
+---
+title: AI
+description: RAG queries with citations, agent canvas workflows, and knowledge graph endpoints.
+---
+
+# AI API
+
+The AI API covers three domains: RAG (retrieval-augmented generation) for grounded answers, the Agent Canvas for visual AI workflows, and the Knowledge Graph for entity and expertise search.
+
+## RAG (rag.*)
+
+### rag.ask
+
+Submit a question and receive a grounded answer with citations from indexed documents.
+
+**Type:** `mutation`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  query: string;                // 1-2000 characters
+  conversationId?: string;      // Continue an existing conversation
+  modelId?: string;             // Override the default model
+  temperature?: number;         // 0-2 (default: model default)
+  includeMedia: boolean;        // Include media in search (default: true)
+  sourceId?: string;            // Restrict to a specific source
+}
+```
+
+**Output:**
+
+```typescript
+{
+  answer: string;               // The generated answer
+  citations: Array<{
+    documentId: string;
+    title: string;
+    snippet: string;
+    url?: string;
+    connectorType: string;
+    relevanceScore: number;
+  }>;
+  grounding: {
+    score: number;              // 0-1 confidence that the answer is grounded
+    sourceCount: number;
+    retrievalStrategy: string;
+  };
+  conversationId: string;       // Use to continue the conversation
+  usage: {
+    inputTokens: number;
+    outputTokens: number;
+    model: string;
+  };
+  timing: {
+    retrievalMs: number;
+    generationMs: number;
+    totalMs: number;
+  };
+}
+```
+
+<Tabs items={["TypeScript", "cURL"]}>
+  <Tab value="TypeScript">
+    ```typescript
+    const response = await trpc.rag.ask.mutate({
+      query: "What was decided in last week's architecture review?",
+    });
+
+    console.log(response.answer);
+    console.log(`Grounding: ${response.grounding.score}`);
+    console.log(`Citations: ${response.citations.length} sources`);
+    ```
+  </Tab>
+  <Tab value="cURL">
+    ```bash
+    curl -X POST http://localhost:3000/trpc/rag.ask \
+      -H "Authorization: Bearer op_live_..." \
+      -H "Content-Type: application/json" \
+      -d '{"query": "What was decided in last week'\''s architecture review?"}'
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+### rag.stream
+
+Stream a RAG response token by token. Uses tRPC subscriptions (Server-Sent Events).
+
+**Type:** `subscription`
+**Auth:** `withActiveTeam`
+
+**Input:** Same as `rag.ask`.
+
+**Yields:** Stream chunks including partial text, citation events, and completion signals.
+
+<Tabs items={["TypeScript"]}>
+  <Tab value="TypeScript">
+    ```typescript
+    const subscription = trpc.rag.stream.subscribe(
+      { query: "Summarize the Q4 roadmap" },
+      {
+        onData(chunk) {
+          process.stdout.write(chunk.text ?? "");
+        },
+        onComplete() {
+          console.log("\nDone");
+        },
+      }
+    );
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+### rag.createConversation
+
+Create a new conversation. Returns an ID to use with `rag.ask` for multi-turn conversations.
+
+**Type:** `mutation`
+**Auth:** `withActiveTeam`
+
+**Input:** None
+
+**Output:**
+
+```typescript
+{
+  id: string;
+}
+```
+
+---
+
+### rag.listConversations
+
+List conversations for the current user.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  status: "active" | "archived";  // default: "active"
+  limit: number;                  // 1-100 (default: 20)
+  offset: number;                 // default: 0
+}
+```
+
+**Output:**
+
+```typescript
+{
+  conversations: Conversation[];
+  total: number;
+  hasMore: boolean;
+  nextOffset?: number;
+}
+```
+
+---
+
+### rag.getConversation
+
+Get a conversation with all its messages.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  id: string;
+}
+```
+
+**Output:**
+
+```typescript
+{
+  id: string;
+  title: string;
+  summary: string;
+  messageCount: number;
+  messages: Array<{
+    id: string;
+    role: string;
+    content: string;
+    citations: unknown;
+    groundingScore: number;
+    confidence: number;
+    createdAt: Date;
+  }>;
+  createdAt: Date;
+  updatedAt: Date;
+} | null
+```
+
+---
+
+### rag.archiveConversation
+
+Archive a conversation. Archived conversations are excluded from the default list view.
+
+**Type:** `mutation`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  id: string;
+}
+```
+
+---
+
+### rag.deleteConversation
+
+Permanently delete a conversation and all its messages.
+
+**Type:** `mutation`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  id: string;
+}
+```
+
+---
+
+### rag.submitFeedback
+
+Submit feedback on a RAG response to improve future answers.
+
+**Type:** `mutation`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  interactionId: string;
+  feedbackType: "helpful" | "not_helpful" | "incorrect" | "incomplete";
+  feedbackNote?: string;  // Up to 1000 characters
+}
+```
+
+**Output:**
+
+```typescript
+{
+  success: boolean;
+}
+```
+
+---
+
+## Agent Canvas (agentCanvas.*)
+
+The Agent Canvas is a visual builder for multi-step AI workflows. Canvases contain nodes (agents, tools, conditions) connected by edges that define execution flow.
+
+### agentCanvas.list
+
+List canvases for the current team.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  status?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+  limit: number;          // default: 20
+  offset: number;         // default: 0
+  cursor?: number | null;
+}
+```
+
+**Output:**
+
+```typescript
+{
+  items: AgentCanvas[];
+  total: number;
+  hasMore: boolean;
+  nextOffset?: number;
+  nextCursor?: number;
+}
+```
+
+---
+
+### agentCanvas.get
+
+Get a single canvas by ID.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  canvasId: string;
+}
+```
+
+---
+
+### agentCanvas.create
+
+Create a new canvas.
+
+**Type:** `mutation`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  name: string;
+  description?: string;
+  icon?: string;
+  nodes?: unknown[];
+  edges?: unknown[];
+  viewport?: unknown;
+  settings?: unknown;
+  triggerType?: string;
+  triggerConfig?: unknown;
+}
+```
+
+---
+
+### agentCanvas.update
+
+Update an existing canvas.
+
+**Type:** `mutation`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  canvasId: string;
+  name?: string;
+  description?: string;
+  icon?: string;
+  nodes?: unknown[];
+  edges?: unknown[];
+  viewport?: unknown;
+  settings?: unknown;
+  triggerType?: string;
+  triggerConfig?: unknown;
+}
+```
+
+---
+
+### agentCanvas.publish
+
+Publish a canvas, creating a versioned snapshot. Only published canvases can be executed. Requires admin or owner role.
+
+**Type:** `mutation`
+**Auth:** `withAdminRole`
+
+**Input:**
+
+```typescript
+{
+  canvasId: string;
+  changelog?: string;
+}
+```
+
+---
+
+### agentCanvas.delete
+
+Permanently delete a canvas. Requires admin or owner role.
+
+**Type:** `mutation`
+**Auth:** `withAdminRole`
+
+**Input:**
+
+```typescript
+{
+  canvasId: string;
+}
+```
+
+---
+
+### agentCanvas.duplicate
+
+Duplicate an existing canvas.
+
+**Type:** `mutation`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  canvasId: string;
+  name?: string;
+}
+```
+
+---
+
+### agentCanvas.createExecution
+
+Execute a published canvas. Starts a Temporal workflow and returns the execution record. Rate-limited to 100 executions per hour per team.
+
+**Type:** `mutation`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  canvasId: string;
+  input?: unknown;              // Input data for the workflow
+  triggerSource?: string;       // e.g. "manual", "api", "schedule"
+  sessionId?: string;           // Bind to a UI session for real-time events
+  turnId?: string;
+}
+```
+
+**Output:** The created execution record including `id`, `status`, and Temporal workflow metadata.
+
+<Callout type="warn">
+  Only published canvases can be executed. Draft canvases must be published first using `agentCanvas.publish`.
+</Callout>
+
+---
+
+### agentCanvas.getExecution
+
+Get the status and details of a canvas execution.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  executionId: string;
+}
+```
+
+---
+
+### agentCanvas.listExecutions
+
+List executions for a canvas.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  canvasId: string;
+  status?: string;
+  limit: number;
+  offset: number;
+}
+```
+
+---
+
+### agentCanvas.onExecutionEvent
+
+Subscribe to real-time execution events via Server-Sent Events. Yields events until the execution completes, fails, or is cancelled.
+
+**Type:** `subscription`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  executionId: string;
+}
+```
+
+**Yields:**
+
+```typescript
+ExecutionEvent  // { type: "connected" | "node.started" | "node.completed" | "execution.completed" | "execution.failed" | ... }
+```
+
+---
+
+## Knowledge Graph (knowledge.*)
+
+The Knowledge Graph stores entities (people, teams, projects, topics, technologies) and their relationships extracted from indexed documents.
+
+### knowledge.searchEntities
+
+Search for entities by name.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  query: string;                                    // 1-100 characters
+  type?: "PERSON" | "TEAM" | "PROJECT" | "TOPIC"
+       | "TECHNOLOGY" | "LOCATION" | "ORGANIZATION"
+       | "CHANNEL" | "REPOSITORY";
+  limit: number;                                    // 1-50 (default: 10)
+}
+```
+
+---
+
+### knowledge.getEntity
+
+Get a single entity by ID.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  id: string;
+}
+```
+
+---
+
+### knowledge.listEntities
+
+List entities with optional type filtering and cursor pagination.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  type?: EntityType;
+  cursor?: string;
+  limit: number;          // 1-100 (default: 20)
+}
+```
+
+---
+
+### knowledge.getKnowledgePanel
+
+Get a comprehensive panel for an entity including relationships, expertise, and recent mentions.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  entityId: string;
+}
+```
+
+**Output:**
+
+```typescript
+{
+  entity: Entity;
+  relations: EntityRelation[];
+  expertise: Array<{              // Only for PERSON entities
+    topic: Entity;
+    score: number;
+  }>;
+  recentMentions: EntityMention[];
+}
+```
+
+<Tabs items={["TypeScript"]}>
+  <Tab value="TypeScript">
+    ```typescript
+    const panel = await trpc.knowledge.getKnowledgePanel.query({
+      entityId: "ent_abc123",
+    });
+
+    console.log(`Entity: ${panel.entity.name}`);
+    console.log(`Relations: ${panel.relations.length}`);
+    console.log(`Top expertise: ${panel.expertise[0]?.topic.name}`);
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+### knowledge.getExperts
+
+Find people with expertise on a given topic. Returns a ranked list sorted by expertise score.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  topicId: string;
+  limit: number;  // 1-50 (default: 10)
+}
+```
+
+**Output:**
+
+```typescript
+Array<{
+  person: Entity;
+  score: number;
+}>
+```
+
+---
+
+### knowledge.getExpertise
+
+Get the topics a person has expertise in. Only works for `PERSON` type entities.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  personId: string;
+  limit: number;  // 1-50 (default: 20)
+}
+```
+
+**Output:**
+
+```typescript
+Array<{
+  topic: Entity;
+  score: number;
+}>
+```
+
+---
+
+### knowledge.getRelations
+
+Get relationships for an entity (incoming, outgoing, or both).
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  entityId: string;
+  direction: "outgoing" | "incoming" | "both";  // default: "both"
+}
+```
+
+<Cards>
+  <Card title="Search API" href="/docs/api/search" description="Search the documents that power RAG answers" />
+  <Card title="Error handling" href="/docs/api/errors" description="Handle errors from AI endpoints" />
+</Cards>
