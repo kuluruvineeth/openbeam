@@ -1,41 +1,133 @@
 ---
 title: How It Works
-description: Connector sync and search request flows
+description: End-to-end data flow from connecting a source to answering a search query, with Temporal workflows, hybrid search, and AI grounding.
 ---
 
-## Connector Sync
+# How it works
 
-When you connect a data source, OpenPlane runs a Temporal workflow that fetches, transforms, and indexes your documents.
+OpenPlane follows a five-stage pipeline: **Connect** → **Sync** → **Index** → **Search** → **Answer**. Each stage is designed for durability, correctness, and speed.
+
+## Stage 1: Connect
+
+A user connects a data source through the web UI or CLI. OpenPlane supports OAuth 2.0 (for SaaS tools like Slack, Gmail, Notion) and API key/token authentication (for infrastructure like MQTT, OPC-UA, AWS IoT).
+
+When a connector is created:
+
+1. OAuth flow completes and tokens are encrypted at rest (`encryptedCredentials` in the Connector model)
+2. A `Connector` record is created in PostgreSQL with status `CONNECTING`
+3. The server registers available resources (channels, folders, repositories) as `ConnectorResource` records
+4. A Temporal sync workflow is triggered for the initial full sync
+
+```typescript title="packages/services/src/{connector}/index.ts"
+// Each connector implements the sync generator pattern
+export async function* fullSync(
+  client: ConnectorClient,
+  ctx: TransformContext,
+  options: SyncOptions
+): AsyncGenerator<SyncBatch> {
+  let cursor: string | undefined;
+  do {
+    const page = await client.fetchPage(cursor);
+    const documents = page.items.map((item) => transform(item, ctx));
+    yield { documents, cursor: page.nextCursor };
+    cursor = page.nextCursor;
+  } while (cursor);
+}
+```
+
+## Stage 2: Sync
+
+All sync work runs as Temporal workflows. Temporal provides durable execution: if the worker crashes mid-sync, the workflow resumes from the last checkpoint.
 
 <ExcalidrawViewer
   src="/diagrams/excalidraw/flow-connector-sync.excalidraw"
-  caption="Temporal workflow: fetch batches → transform to GenericDocument → index in Vespa"
+  caption="Temporal workflow: validate → fetch batches → transform → index → complete"
   height={700}
 />
 
-### Activity Chain
+### Activity chain
 
-1. **validateConnection** — Check connector status, token freshness
-2. **fetchBatch** — Call connector API with cursor, handle rate limits
-3. **transformBatch** — Convert to `GenericDocument` via connector transformer
-4. **indexDocuments** — Bulk feed to Vespa with heartbeat
-5. **completeSyncJob** — Update sync history with metrics
+| Step | Activity | What happens |
+|------|----------|-------------|
+| 1 | `validateConnection` | Verify connector status, check token freshness, refresh if expired |
+| 2 | `fetchBatch` | Call the connector API with a cursor, handle pagination and rate limits |
+| 3 | `transformBatch` | Convert API responses to `GenericDocument` format via the connector's transformer |
+| 4 | `indexDocuments` | Bulk feed documents to Vespa with chunking and embedding generation |
+| 5 | `completeSyncJob` | Update `SyncHistory` with metrics (docs added, updated, deleted, timing) |
 
-### Error Handling
+### Fencing protocol
 
-| Error | Behavior |
-|-------|----------|
-| **Auth expired** | Non-retryable, mark connector `AUTH_EXPIRED` |
+To prevent stale writes when multiple sync workflows run concurrently, every sync acquires a monotonic fence token before writing:
+
+```typescript
+const fenceToken = await fence.acquireFence(connectorId);
+try {
+  await indexDocuments(batch, fenceToken);
+} finally {
+  await fence.releaseFence(connectorId, fenceToken);
+}
+```
+
+### Error handling
+
+| Error type | Behavior |
+|------------|----------|
+| **Auth expired** | Non-retryable. Connector marked `AUTH_EXPIRED`, user notified |
 | **Rate limited** | Retryable with backoff from `Retry-After` header |
-| **Transient failure** | Automatic retry with exponential backoff |
+| **Transient failure** | Automatic retry with exponential backoff (up to 3 retries) |
+| **Permanent failure** | Document sent to `SyncDeadLetter` for manual review |
 
-Workflows use `continueAsNew` when history exceeds 10K events to prevent memory bloat.
+### History management
 
----
+Temporal workflows accumulate event history. To prevent memory bloat, sync workflows call `continueAsNew` when history exceeds 10,000 events, carrying forward only the cursor and sync state.
 
-## Search Request
+### Incremental sync
 
-When a user searches, OpenPlane runs hybrid semantic + keyword search with permission filtering in under 200ms.
+After the initial full sync, subsequent syncs are incremental. The `SyncCursor` model stores per-resource cursors (timestamps, API cursors, or sync tokens) so only changed documents are fetched.
+
+| Cursor type | Used by | Example |
+|-------------|---------|---------|
+| `timestamp` | Gmail, Slack | `lastSyncedAt: 2024-01-15T10:30:00Z` |
+| `cursor` | Notion, Linear | `next_cursor: abc123` |
+| `sync_token` | Google Drive | `startPageToken: 456` |
+
+## Stage 3: Index
+
+Documents are indexed into Vespa as `GenericDocument` records. This is the universal schema that all connectors produce:
+
+```typescript title="packages/vespa/src/types.ts"
+interface GenericDocument {
+  doc_id: string;          // Unique ID (connectorId:externalId)
+  title: string;
+  body: string;            // Full text content
+  chunks: string[];        // Chunked text for embedding
+  embeddings: number[][];  // Vector embeddings per chunk
+  app: string;             // Source app (slack, gmail, notion)
+  entity_type: string;     // Document type (message, file, page)
+  author: string;
+  created_at: number;      // Unix timestamp
+  updated_at: number;
+  url: string;
+  metadata: Record<string, string>;
+  permission_group_ids: string[];  // For permission filtering
+}
+```
+
+### Processing pipeline
+
+For files (PDFs, DOCX, XLSX), the worker sends them through the Python engine for text extraction:
+
+1. **Download** -- File fetched from source and stored in S3/MinIO
+2. **Parse** -- Python engine extracts text (Unstructured library)
+3. **Chunk** -- Text split into overlapping chunks (512 tokens, 64 token overlap)
+4. **Embed** -- Each chunk gets a vector embedding
+5. **Index** -- Chunks indexed in Vespa with metadata
+
+The `IndexedFile` model tracks processing status through states: `PENDING` → `DOWNLOADING` → `PARSING` → `INDEXING` → `INDEXED`.
+
+## Stage 4: Search
+
+When a user searches, OpenPlane runs hybrid search combining keyword matching (BM25) and semantic similarity (vector search) in a single Vespa query.
 
 <ExcalidrawViewer
   src="/diagrams/excalidraw/flow-search-request.excalidraw"
@@ -43,13 +135,49 @@ When a user searches, OpenPlane runs hybrid semantic + keyword search with permi
   height={650}
 />
 
-### Latency Budget (200ms p99)
+### Latency budget (200ms p99)
 
 | Stage | Budget | Operation |
 |-------|--------|-----------|
 | Query analysis | 10ms | Intent classification, entity extraction |
-| Permission resolution | 5ms | Pre-computed permission lookup |
-| Vespa hybrid search | 100ms | Semantic embedding + BM25 keyword |
-| Re-ranking | 50ms | LTR model scoring |
+| Permission resolution | 5ms | Pre-computed permission group lookup |
+| Vespa hybrid search | 100ms | Parallel BM25 + semantic vector query |
+| Re-ranking | 50ms | LTR model scoring (trained on click data) |
 | Personalization | 15ms | User profile weight application |
-| Response + buffer | 20ms | Serialization + network variance |
+| Response + buffer | 20ms | Serialization, network variance |
+
+### Permission filtering
+
+Permissions are pre-computed and synced from source systems into the `DocumentPermission` table. At query time, the user's permission group IDs are resolved in under 5ms and passed as a filter to Vespa. Users only see documents they can access in the original tool.
+
+```
+User → GroupMembership → permission_group_ids → Vespa filter
+```
+
+### Search quality feedback loop
+
+Every search impression is logged (`SearchImpression`), and clicks are tracked (`SearchClick`) with dwell time. This data trains the LTR (Learning to Rank) re-ranking model per team, which improves result quality over time.
+
+## Stage 5: Answer
+
+For AI-powered answers, the search results become context for a RAG (Retrieval-Augmented Generation) pipeline:
+
+1. **Retrieve** -- Top-k documents from hybrid search (same as Stage 4)
+2. **Chunk selection** -- Most relevant chunks selected based on query similarity
+3. **Ground** -- LLM generates an answer using only retrieved chunks as context
+4. **Cite** -- Response includes inline citations linking back to source documents
+5. **Verify** -- Grounding score computed to measure answer faithfulness
+
+The AI pipeline uses the Vercel AI SDK with support for Claude, GPT, and Gemini. Each interaction is tracked in `RAGInteraction` with token counts, latency, and grounding scores.
+
+### Agent canvas
+
+For multi-step workflows, the Agent Canvas provides a visual builder where users compose agents from tools. Agents can:
+
+- Search across connected sources
+- Analyze and summarize documents
+- Execute multi-step reasoning chains
+- Request human approval before taking actions
+- Run on schedules or in response to events
+
+Agent executions are Temporal workflows, providing the same durability and visibility guarantees as sync workflows.

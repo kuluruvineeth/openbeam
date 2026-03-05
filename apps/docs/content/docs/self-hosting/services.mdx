@@ -1,386 +1,417 @@
 ---
 title: Infrastructure Services
-description: Setup, configuration, and tuning for PostgreSQL, Redis, Vespa, Temporal, and MinIO.
+description: Setup, tuning, health checks, and troubleshooting for PostgreSQL, Redis, Vespa, Temporal, and MinIO.
 ---
 
 # Infrastructure Services
 
-This page covers each infrastructure service -- how it's configured in the Docker Compose stack, what to tune, and how to verify it's working.
+All infrastructure services are defined in `scripts/deploy/infra-hetzner-compose.yaml`. They communicate over the `openplane` Docker network and bind ports to `127.0.0.1` only -- never exposed directly to the internet.
 
-All services are defined in `scripts/deploy/infra-hetzner-compose.yaml` and communicate over the `openplane` Docker network.
+---
 
 ## PostgreSQL
 
-**Image:** `postgres:16-alpine`
-**Port:** 5432 (bound to 127.0.0.1)
-**Volume:** `/mnt/openplane-data/postgres`
-
-PostgreSQL stores all application data: users, teams, connectors, sync history, and OAuth tokens.
+Primary relational database. Stores users, teams, connectors, OAuth tokens, sync history, and all application state.
 
 ### Configuration
 
-The compose file passes tuning parameters directly via the `command` field:
+| Setting | Value | Notes |
+|---------|-------|-------|
+| Image | `postgres:16-alpine` | |
+| Port | `5432` (localhost only) | |
+| Memory limit | 2 GB | |
+| CPU limit | 1.0 | |
+| Data volume | `/mnt/openplane-data/postgres` | |
+
+### Tuning Parameters
+
+The compose file passes these tuning flags optimized for a dedicated 2 GB instance:
 
 | Parameter | Value | Purpose |
 |-----------|-------|---------|
-| `shared_buffers` | 512 MB | Shared memory for caching |
-| `effective_cache_size` | 1536 MB | Query planner cost estimate |
+| `shared_buffers` | 512 MB | Shared memory for caching (25% of RAM) |
+| `effective_cache_size` | 1536 MB | Planner hint for OS cache (75% of RAM) |
 | `maintenance_work_mem` | 128 MB | Memory for VACUUM, CREATE INDEX |
-| `work_mem` | 8 MB | Per-sort/hash operation |
-| `max_connections` | 100 | Connection limit |
+| `work_mem` | 8 MB | Per-sort/hash memory |
+| `max_connections` | 100 | Connection pool ceiling |
 | `wal_buffers` | 16 MB | WAL write buffer |
-| `max_wal_size` | 1 GB | WAL segment limit before checkpoint |
-| `random_page_cost` | 1.1 | Tuned for SSD storage |
-| `effective_io_concurrency` | 200 | Concurrent I/O for SSD |
-| `log_min_duration_statement` | 1000 ms | Log slow queries |
-
-These values are tuned for a 2 GB container memory limit on SSD storage. Adjust `shared_buffers` and `effective_cache_size` if you increase the memory limit.
-
-### Migrations
-
-Database migrations run automatically when the server container starts. The server's entrypoint calls `scripts/migrate.sh`, which:
-
-1. Runs `prisma generate` to ensure the client is up to date
-2. Checks for baseline issues (existing schema without migration history)
-3. Runs `prisma migrate deploy` (safe for production, never resets data)
-
-To run migrations manually:
-
-```bash
-docker run --rm --network openplane \
-  -e DATABASE_URL="postgresql://postgres:PASSWORD@postgres:5432/openplane" \
-  ghcr.io/kuluruvineeth/openplane-server:latest \
-  bun run db:push
-```
+| `checkpoint_completion_target` | 0.9 | Spread checkpoint writes |
+| `random_page_cost` | 1.1 | Tuned for SSD |
+| `effective_io_concurrency` | 200 | Tuned for SSD |
+| `max_wal_size` | 1 GB | WAL size before checkpoint |
+| `min_wal_size` | 80 MB | Minimum WAL retention |
+| `log_min_duration_statement` | 1000 | Log queries > 1 second |
 
 ### Health Check
 
 ```bash
-docker exec postgres pg_isready -U postgres
+pg_isready -U postgres
 ```
+
+Interval: 10s, timeout: 5s, retries: 5.
+
+### Scaling Notes
+
+For larger deployments (500+ users, millions of documents):
+
+- Increase `shared_buffers` to 25% of total server RAM
+- Increase `max_connections` if you run multiple worker instances
+- Consider connection pooling with PgBouncer
+- Enable `pg_stat_statements` for query performance analysis
+- Set up streaming replication for read replicas
+
+### Troubleshooting
+
+<Accordions>
+  <Accordion title="Connection refused">
+    Check if PostgreSQL has finished starting: `docker logs postgres`. The `postgres-auth-fix` init container must complete before Temporal can connect. Verify with `docker compose -f scripts/deploy/infra-hetzner-compose.yaml ps`.
+  </Accordion>
+  <Accordion title="Slow queries">
+    Queries taking longer than 1 second are logged automatically. Check with `docker logs postgres 2>&1 | grep duration`. Consider adding indexes or increasing `work_mem` for complex aggregations.
+  </Accordion>
+  <Accordion title="Disk space">
+    Monitor with `docker exec postgres df -h /var/lib/postgresql/data`. Run `VACUUM ANALYZE` to reclaim space from deleted rows.
+  </Accordion>
+</Accordions>
 
 ---
 
 ## Redis
 
-**Image:** `redis:8.4.0-alpine`
-**Port:** 6379 (bound to 127.0.0.1)
-**Volume:** `/mnt/openplane-data/redis`
-
-Redis handles caching, rate limiting, and job coordination.
+In-memory data store used for caching, rate limiting, job queues, and pub/sub messaging.
 
 ### Configuration
 
-```
-redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy noeviction
-```
-
-| Setting | Value | Purpose |
-|---------|-------|---------|
-| `appendonly` | yes | AOF persistence (durability) |
-| `maxmemory` | 512 MB | Memory limit |
-| `maxmemory-policy` | noeviction | Return errors on writes when full (prevents silent data loss) |
-
-The `noeviction` policy ensures rate limit counters and job state are never silently dropped. If Redis hits the memory limit, write operations return errors rather than evicting keys.
-
-### Monitoring
-
-A Redis exporter (`oliver006/redis_exporter`) runs alongside for Prometheus metrics on port 9121. It tracks key patterns like `ratelimit:*` and `jobSchedulerKeys:*`.
+| Setting | Value | Notes |
+|---------|-------|-------|
+| Image | `redis:8.4.0-alpine` | |
+| Port | `6379` (localhost only) | |
+| Memory limit | 512 MB | |
+| CPU limit | 0.5 | |
+| Data volume | `/mnt/openplane-data/redis` | |
+| Persistence | AOF (`appendonly yes`) | |
+| Max memory | 512 MB | |
+| Eviction policy | `noeviction` | Errors on OOM instead of dropping keys |
 
 ### Health Check
 
 ```bash
-docker exec openplane-redis redis-cli ping
-# Expected: PONG
+redis-cli ping
 ```
+
+Interval: 10s, timeout: 3s, retries: 5.
+
+### Why noeviction
+
+The `noeviction` policy is intentional. OpenPlane uses Redis for rate limiting counters and job state that must not be silently dropped. If Redis runs out of memory, the application surfaces an error rather than silently losing data.
+
+### Monitoring
+
+A Redis exporter (`oliver006/redis_exporter:v1.58.0-alpine`) is included in the compose file. It exposes metrics at `localhost:9121` for Prometheus scraping, including:
+
+- Memory usage
+- Connected clients
+- Key counts (filtered to `ratelimit:*` and `jobSchedulerKeys:*`)
+- Command statistics
+
+### Troubleshooting
+
+<Accordions>
+  <Accordion title="OOM errors">
+    If you see `OOM command not allowed`, Redis has hit the 512 MB limit. Check key counts with `docker exec openplane-redis redis-cli info keyspace`. Consider increasing `--maxmemory` or debugging key growth.
+  </Accordion>
+  <Accordion title="High latency">
+    Run `docker exec openplane-redis redis-cli --latency` to measure baseline latency. Check if AOF rewriting is causing I/O contention with `docker exec openplane-redis redis-cli info persistence`.
+  </Accordion>
+</Accordions>
 
 ---
 
 ## Vespa
 
-**Image:** `vespaengine/vespa:8`
-**Ports:** 8080 (feed/query), 19071 (config)
-**Volume:** `/mnt/openplane-data/vespa`
-**Memory:** 4 GB reserved
+Hybrid search engine combining BM25 text search with vector similarity search. Vespa is the most resource-intensive infrastructure service.
 
-Vespa powers all search functionality -- hybrid search combining BM25 text matching with vector similarity.
+### Configuration
 
-### Initial Setup
-
-Vespa takes ~2 minutes to start on first boot. After it's healthy, the search schema must be deployed:
-
-```bash
-cd packages/vespa
-sh deploy.sh localhost 19071
-```
-
-The infrastructure compose file includes a `vespa-deploy` init container that handles this automatically. It:
-
-1. Waits for Vespa's config server to be healthy on port 19071
-2. Zips the application package from `/mnt/openplane-data/configs/vespa-application/`
-3. Deploys via the Vespa config API
-
-### Application Package
-
-The Vespa application is at `packages/vespa/application/` and contains:
-
-| File | Purpose |
-|------|---------|
-| `services.xml` | Container and content cluster configuration |
-| `hosts.xml` | Host definitions |
-| `schemas/` | Document schemas for search |
-| `search/` | Query profiles and ranking expressions |
-| `validation-overrides.xml` | Schema change overrides |
-
-### Schema Updates
-
-When search schemas change, redeploy the application:
-
-```bash
-# Copy updated schemas
-cp -r packages/vespa/application /mnt/openplane-data/configs/vespa-application/
-cp packages/vespa/deploy.sh /mnt/openplane-data/configs/vespa-application/
-
-# Deploy
-cd /mnt/openplane-data/configs/vespa-application
-sh deploy.sh vespa 19071
-```
-
-Or use the sync script:
-
-```bash
-scripts/deploy/sync-configs.sh <SERVER_IP>
-```
-
-### Kernel Requirement
-
-Vespa requires elevated `vm.max_map_count`:
-
-```bash
-sudo sysctl -w vm.max_map_count=262144
-```
-
-Without this, Vespa will fail to start with memory mapping errors.
-
-### Monitoring
-
-A JSON exporter scrapes Vespa metrics for Prometheus. It runs on port 9116 (mapped from 7979 inside the container).
+| Setting | Value | Notes |
+|---------|-------|-------|
+| Image | `vespaengine/vespa:8` | |
+| Ports | `8080` (query), `19071` (config) | Mapped to `8280` and `19071` on localhost |
+| Memory limit | 4 GB | |
+| Memory reservation | 4 GB | Guaranteed allocation |
+| CPU limit | 2.0 | |
+| Data volume | `/mnt/openplane-data/vespa` | |
 
 ### Health Check
 
 ```bash
-# Config server
 curl -f http://localhost:19071/state/v1/health
-
-# Query endpoint
-curl -f http://localhost:8280/state/v1/health
 ```
 
-<Callout type="warn">
-The infrastructure compose maps Vespa's port 8080 to host port 8280 to avoid conflicts. Application services connect via Docker DNS on the internal port 8080 (`http://vespa:8080`).
-</Callout>
+Interval: 30s, timeout: 10s, start period: 120s, retries: 5.
 
-### Scaling
+The 120-second start period accounts for Vespa's JVM initialization time. Vespa is not ready to serve queries until the config server and content nodes are fully bootstrapped.
 
-For larger deployments:
+### Application Deployment
 
-| Documents | Recommended Memory | Notes |
-|-----------|-------------------|-------|
-| < 100k | 4 GB | Default |
-| 100k - 1M | 8 GB | Increase container limit |
-| 1M+ | 16 GB+ | Consider dedicated Vespa cluster |
+The `vespa-deploy` init container automatically deploys the Vespa application package after the service is healthy:
+
+1. Waits for Vespa to be healthy
+2. Zips the application package from `/mnt/openplane-data/configs/vespa-application`
+3. Deploys it to the config server at port 19071
+
+### Monitoring
+
+A JSON exporter (`quay.io/prometheuscommunity/json-exporter`) scrapes Vespa metrics and exposes them as Prometheus metrics at `localhost:9116`.
+
+### Scaling Notes
+
+Vespa benefits more from memory and disk speed than CPU:
+
+- 4 GB is the minimum for production. 8+ GB recommended for large document sets.
+- Use NVMe SSDs for the data volume. Vespa memory-maps files and depends on fast page cache fills.
+- For horizontal scaling, Vespa supports multi-node clusters. See the [Vespa documentation](https://docs.vespa.ai/) for cluster configuration.
+
+### Troubleshooting
+
+<Accordions>
+  <Accordion title="Vespa not starting">
+    Vespa requires 4 GB of memory. If the container is killed by the OOM killer, increase Docker's memory limit. Check with `docker inspect openplane-vespa | grep -i oom`.
+  </Accordion>
+  <Accordion title="Slow search queries">
+    Check Vespa metrics at `http://localhost:8280/state/v1/metrics`. High `content.proton.documentdb.matching.query_latency` indicates insufficient memory for query caching.
+  </Accordion>
+  <Accordion title="Deployment fails">
+    Check the deploy init container logs: `docker logs openplane-vespa-deploy`. Common issues include malformed schema files or version incompatibilities.
+  </Accordion>
+  <Accordion title="Disk full">
+    Vespa stops accepting writes at 90% disk usage (`VESPA_DISK_FULL_PERCENT`). Free disk space or expand the volume.
+  </Accordion>
+</Accordions>
 
 ---
 
 ## Temporal
 
-**Image:** `temporalio/auto-setup:1.29.2`
-**Port:** 7233 (gRPC, bound to 127.0.0.1)
-
-Temporal orchestrates all background workflows: connector syncs, document indexing, entity extraction, and scheduled jobs.
+Workflow orchestration engine. Manages connector sync schedules, retry logic, and long-running background tasks.
 
 ### Configuration
 
-Temporal uses PostgreSQL as its persistence store. The `auto-setup` image handles schema creation automatically on first boot.
+| Setting | Value | Notes |
+|---------|-------|-------|
+| Image | `temporalio/auto-setup:1.29.2` | Auto-creates schemas on first start |
+| Port | `7233` (localhost only) | gRPC endpoint |
+| Memory limit | 1 GB | |
+| CPU limit | 1.0 | |
+| Backend | PostgreSQL | Shares the same PostgreSQL instance |
 
-| Variable | Value | Purpose |
-|----------|-------|---------|
-| `DB` | `postgres12` | Database type |
-| `POSTGRES_SEEDS` | `postgres` | PostgreSQL host (Docker DNS) |
-| `POSTGRES_USER` | From `.env` | Shared with app database |
-| `POSTGRES_PWD` | From `.env` | Shared with app database |
-| `SKIP_SCHEMA_SETUP` | `false` | Auto-create Temporal tables |
+### Dependencies
 
-Dynamic configuration is mounted from `/mnt/openplane-data/configs/temporal/dynamicconfig/development.yaml`. The source file is at `temporal/dynamicconfig/development.yaml` in the repository.
+Temporal requires PostgreSQL with the correct auth configuration. The `postgres-auth-fix` init container ensures MD5 password hashing is set before Temporal starts.
+
+Startup order: PostgreSQL -> postgres-auth-fix -> Temporal.
+
+### Health Check
+
+```bash
+temporal operator cluster health --address localhost:7233
+```
+
+Interval: 30s, timeout: 10s, start period: 180s, retries: 10.
+
+The 180-second start period accounts for schema creation on first boot. Subsequent restarts are faster.
 
 ### Temporal UI
 
-The infrastructure stack includes the Temporal web UI on port 8233:
-
-```
-http://localhost:8233
-```
-
-Use it to inspect running workflows, view execution history, and debug failed syncs.
+The Temporal UI (`temporalio/ui:2.44.1`) provides a web dashboard at `localhost:8233` for inspecting workflows, activities, and schedules. It connects to Temporal via `temporal:7233`.
 
 ### Admin Tools
 
-A `temporal-admin-tools` container runs alongside for CLI access:
+A Temporal admin tools container (`temporalio/admin-tools:1.29`) is available for debugging. Access it with:
 
 ```bash
-docker exec -it openplane-temporal-admin temporal workflow list
-docker exec -it openplane-temporal-admin temporal workflow describe -w <workflow-id>
+docker exec -it openplane-temporal-admin tctl namespace list
+docker exec -it openplane-temporal-admin tctl workflow list
 ```
 
-### Startup Time
+### Troubleshooting
 
-Temporal takes up to 3 minutes on first startup while it:
-
-1. Connects to PostgreSQL
-2. Creates the `temporal` and `temporal_visibility` databases
-3. Runs schema migrations
-4. Starts the frontend, matching, history, and worker services
-
-The health check has a 180-second start period to accommodate this.
-
-### Health Check
-
-```bash
-docker exec openplane-temporal temporal operator cluster health --address localhost:7233
-```
+<Accordions>
+  <Accordion title="Temporal cannot connect to PostgreSQL">
+    Verify PostgreSQL is healthy and the `postgres-auth-fix` container completed successfully: `docker logs postgres-auth-fix`. Temporal requires MD5 password encryption, which the init container configures.
+  </Accordion>
+  <Accordion title="Workflows stuck in running state">
+    Check the Temporal UI at `http://localhost:8233`. A workflow stuck in running state usually means the worker process crashed. Check worker logs: `docker logs openplane-worker`.
+  </Accordion>
+  <Accordion title="Schema creation failed">
+    On first start, `auto-setup` creates Temporal tables in PostgreSQL. If this fails, check `docker logs openplane-temporal`. Common cause: PostgreSQL not ready yet. Restart the Temporal container.
+  </Accordion>
+</Accordions>
 
 ---
 
-## MinIO (Object Storage)
+## MinIO
 
-**Image:** `minio/minio:latest`
-**Ports:** 9000 (API), 9001 (Console)
-**Volume:** `/mnt/openplane-data/minio`
+S3-compatible object storage for file uploads, document attachments, and media files.
 
-MinIO provides S3-compatible object storage for file uploads, document attachments, and video processing.
+### Configuration
 
-### Initial Setup
+| Setting | Value | Notes |
+|---------|-------|-------|
+| Image | `minio/minio:latest` | |
+| Ports | `9000` (API), `9001` (console) | Localhost only |
+| Memory limit | 512 MB | |
+| CPU limit | 0.5 | |
+| Data volume | `/mnt/openplane-data/minio` | |
 
-The `minio-init` container creates the default bucket on first startup:
+### Initialization
 
-```bash
-mc alias set myminio http://minio:9000 $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD
-mc mb --ignore-existing myminio/openplane-files
-```
+The `minio-init` container runs on first start to:
 
-### Console Access
-
-The MinIO web console is available at `http://localhost:9001`. Log in with `MINIO_ROOT_USER` and `MINIO_ROOT_PASSWORD`.
-
-### Using AWS S3 or Cloudflare R2 Instead
-
-MinIO is the default for self-hosted deployments, but you can use any S3-compatible storage:
-
-<Tabs items={["AWS S3", "Cloudflare R2"]}>
-  <Tab value="AWS S3">
-    ```bash
-    GCS_ENDPOINT=https://s3.us-east-1.amazonaws.com
-    GCS_ACCESS_KEY_ID=AKIA...
-    GCS_SECRET_ACCESS_KEY=...
-    GCS_BUCKET=your-bucket-name
-    GCS_REGION=us-east-1
-    ```
-
-    Remove the MinIO service from the infrastructure compose file if using S3 directly.
-  </Tab>
-  <Tab value="Cloudflare R2">
-    ```bash
-    GCS_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com
-    GCS_ACCESS_KEY_ID=...
-    GCS_SECRET_ACCESS_KEY=...
-    GCS_BUCKET=your-bucket-name
-    GCS_REGION=auto
-    ```
-  </Tab>
-</Tabs>
+1. Set up the MinIO CLI alias
+2. Create the default bucket (`openplane-files`)
+3. Configure CORS for browser-based uploads
 
 ### Health Check
 
 ```bash
-docker exec openplane-minio mc ready local
+mc ready local
 ```
+
+Interval: 10s, timeout: 5s, retries: 5.
+
+### Console Access
+
+The MinIO console is available at `http://localhost:9001`. Login with `MINIO_ROOT_USER` and `MINIO_ROOT_PASSWORD`.
+
+### Using External S3
+
+To use AWS S3 or another S3-compatible service instead of MinIO:
+
+1. Remove the `minio` and `minio-init` services from the compose file
+2. Set `GCS_ENDPOINT` to your S3 endpoint (e.g., `https://s3.amazonaws.com`)
+3. Set `GCS_ACCESS_KEY_ID` and `GCS_SECRET_ACCESS_KEY` to your IAM credentials
+4. Set `GCS_BUCKET` to your bucket name
+5. Set `GCS_REGION` to your bucket's region
+
+### Troubleshooting
+
+<Accordions>
+  <Accordion title="Upload failures">
+    Check CORS configuration. The `minio-init` container sets `cors_allow_origin="*"`. If you restricted this, ensure your web frontend's origin is included. After changing CORS, restart the MinIO container.
+  </Accordion>
+  <Accordion title="Bucket not found">
+    The `minio-init` container creates the bucket on first start. If it failed, run it manually: `docker exec openplane-minio mc mb myminio/openplane-files --ignore-existing`.
+  </Accordion>
+</Accordions>
 
 ---
 
 ## Monitoring Stack
 
-The monitoring stack is optional but included in the infrastructure compose file.
+The monitoring stack is optional but recommended for production deployments.
 
 ### Prometheus
 
-**Image:** `prom/prometheus:latest`
-**Port:** 9090
-**Retention:** 30 days
+Scrapes metrics from all services on a 15-30 second interval. Retains data for 30 days.
 
-Prometheus scrapes metrics from the worker (port 9091), Redis exporter (port 9121), and Vespa exporter (port 9116).
+| Setting | Value |
+|---------|-------|
+| Image | `prom/prometheus:latest` |
+| Port | `9090` (localhost only) |
+| Memory limit | 512 MB |
+| Retention | 30 days |
+| Config | `/mnt/openplane-data/configs/prometheus/prometheus.yml` |
 
-Configuration files:
-
-| File | Source | Purpose |
-|------|--------|---------|
-| `prometheus.yml` | `monitoring/prometheus/` | Scrape targets and global config |
-| `alerts.yml` | `monitoring/prometheus/` | Alert rules |
-| `recording-rules.yml` | `monitoring/prometheus/` | Pre-computed metrics |
+Health check: `http://localhost:9090/-/healthy`
 
 ### Grafana
 
-**Image:** `grafana/grafana:latest`
-**Port:** 3002
-**Default login:** `admin` / `admin` (change via `GRAFANA_USER` and `GRAFANA_PASSWORD`)
+Dashboards and alerting. Pre-provisioned with data sources and dashboards.
 
-Grafana is pre-provisioned with Prometheus and Loki as data sources. Dashboards are auto-loaded from `/mnt/openplane-data/configs/grafana/dashboards/`.
+| Setting | Value |
+|---------|-------|
+| Image | `grafana/grafana:latest` |
+| Port | `3002` (localhost only) |
+| Memory limit | 256 MB |
+| Data volume | `/mnt/openplane-data/grafana` |
+| Default credentials | `admin` / `admin` (change in `.env`) |
 
-### Loki + Promtail
+Health check: `http://localhost:3000/api/health` (internal port 3000, mapped to 3002)
 
-**Loki image:** `grafana/loki:2.9.10` (port 3100)
-**Promtail image:** `grafana/promtail:2.9.10`
+### Loki
 
-Promtail ships Docker container logs to Loki. It reads from `/var/lib/docker/containers/` and labels logs by container name.
+Log aggregation backend. Collects logs from all containers via Promtail.
 
-Query logs in Grafana:
+| Setting | Value |
+|---------|-------|
+| Image | `grafana/loki:2.9.10` |
+| Port | `3100` (localhost only) |
+| Memory limit | 256 MB |
+| Data volume | `/mnt/openplane-data/loki` |
 
-```text
-{container_name="openplane-worker"} |= "error"
-{container_name="openplane-server"} | json | level="error"
-```
+### Promtail
+
+Log shipping agent. Reads Docker container logs and forwards them to Loki.
+
+| Setting | Value |
+|---------|-------|
+| Image | `grafana/promtail:2.9.10` |
+| Memory limit | 128 MB |
+| Mounts | Docker socket (read-only), container logs (read-only) |
 
 ---
 
 ## Network Architecture
 
-All services share the `openplane` Docker network. The infrastructure compose creates it:
-
-```yaml
-networks:
-  default:
-    name: openplane
+```
+                                Internet
+                                   |
+                          [ Reverse Proxy ]
+                          (Caddy / Nginx)
+                           /            \
+                    :3001 /              \ :3000
+                         /                \
+              ┌─────────┐                  ┌─────────┐
+              │   Web   │                  │ Server  │
+              └────┬────┘                  └────┬────┘
+                   │      openplane-apps        │
+              ─────┼────────────────────────────┼─────
+                   │       openplane            │
+          ┌────────┼────────────────────────────┼────────┐
+          │        │                            │        │
+     ┌────┴───┐ ┌──┴──┐ ┌──────┐ ┌────────┐ ┌──┴──┐    │
+     │Worker  │ │Redis│ │Vespa │ │Temporal│ │MinIO│    │
+     └────────┘ └─────┘ └──────┘ └────────┘ └─────┘    │
+          │        │        │         │         │        │
+          │   ┌────┴────┐   │    ┌────┴────┐    │        │
+          │   │Postgres │   │    │Temporal │    │        │
+          │   │         │   │    │  UI     │    │        │
+          │   └─────────┘   │    └─────────┘    │        │
+          └──────────────────────────────────────┘
 ```
 
-The apps compose references it as external:
+All infrastructure services communicate via Docker DNS names (e.g., `postgres`, `redis`, `vespa`). No IP addresses are hardcoded.
 
-```yaml
-networks:
-  openplane:
-    external: true
-```
+### Port Summary
 
-Internal DNS resolution (container name to IP) allows services to reference each other by name:
-
-| DNS Name | Service |
-|----------|---------|
-| `postgres` | PostgreSQL |
-| `redis` | Redis |
-| `vespa` | Vespa |
-| `temporal` | Temporal |
-| `minio` | MinIO |
-| `server` | API server |
-| `web` | Frontend |
-| `worker` | Worker |
-| `engine-cpu` | ML engine |
-
-Infrastructure ports are bound to `127.0.0.1` to prevent external access. Only the web and server ports should be exposed publicly (via a reverse proxy with TLS).
+| Service | Internal Port | External Port | Binding |
+|---------|--------------|---------------|---------|
+| Server | 3000 | 3000 | `0.0.0.0` |
+| Web | 3001 | 3001 | `0.0.0.0` |
+| PostgreSQL | 5432 | 5432 | `127.0.0.1` |
+| Redis | 6379 | 6379 | `127.0.0.1` |
+| Vespa (query) | 8080 | 8280 | `127.0.0.1` |
+| Vespa (config) | 19071 | 19071 | `127.0.0.1` |
+| MinIO (API) | 9000 | 9000 | `127.0.0.1` |
+| MinIO (console) | 9001 | 9001 | `127.0.0.1` |
+| Temporal | 7233 | 7233 | `127.0.0.1` |
+| Temporal UI | 8080 | 8233 | `127.0.0.1` |
+| Prometheus | 9090 | 9090 | `127.0.0.1` |
+| Grafana | 3000 | 3002 | `127.0.0.1` |
+| Loki | 3100 | 3100 | `127.0.0.1` |
+| Redis Exporter | 9121 | 9121 | `127.0.0.1` |
+| Vespa Exporter | 7979 | 9116 | `127.0.0.1` |
+| Worker Health | 9092 | -- | Internal |
+| Worker Metrics | 9091 | -- | Internal |
+| Engine | 8000 | -- | Internal |

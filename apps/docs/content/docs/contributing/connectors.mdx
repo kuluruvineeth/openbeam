@@ -1,32 +1,45 @@
 ---
 title: Building a Connector
-description: Step-by-step guide to adding a new connector to OpenPlane
+description: Ship a new connector in 2-3 hours -- the definitive guide
 ---
 
 # Building a Connector
 
-Every connector follows the same four-layer architecture. This guide walks through each layer using Linear as the reference implementation.
+Every connector follows the same four-layer architecture. This guide walks you through each layer using the Linear connector as the reference implementation.
+
+By the end, you will have a production-ready connector that syncs data from a third-party API into OpenPlane's search index.
 
 ## Architecture
 
-A connector spans four packages:
+A connector spans four packages. Each layer has a single responsibility:
 
-| Layer | Package | Purpose |
-|-------|---------|---------|
-| **Types** | `packages/types/src/services/connectors/{name}.ts` | Zod schemas, sync cursors, transform contexts |
-| **Integration** | `packages/integrations/src/{name}/` | App definition, OAuth/auth config, logo |
-| **Services** | `packages/services/src/{name}/` | API client, sync generators, transformers |
-| **Temporal** | `packages/temporal/src/` | Workflow and activity wiring |
+| Layer | Package | What it does |
+|-------|---------|-------------|
+| **Types** | `packages/types/src/services/connectors/{name}.ts` | Zod schemas for sync cursors, transform contexts, API types |
+| **Integration** | `packages/integrations/src/{name}/` | App definition, auth config, data streams, settings, logo |
+| **Services** | `packages/services/src/{name}/` | API client, sync generators, entity transformers |
+| **Temporal** | `packages/temporal/src/` | Wiring into the generic sync workflow |
+
+```
+packages/types/src/services/connectors/linear.ts     ← Zod schemas
+packages/integrations/src/linear/config.ts            ← App definition
+packages/services/src/linear/                         ← Business logic
+  ├── client.ts                                       ← API client
+  ├── sync/full.ts                                    ← Full sync generator
+  ├── sync/incremental.ts                             ← Delta sync generator
+  └── transformers/issue.ts                           ← Entity → GenericDocument
+```
 
 ## Step 1: Define Types
 
-All shared types go in the types package. Define Zod schemas for sync cursors, sync options, and transform contexts.
+All shared types live in `packages/types`. Define Zod schemas for your sync cursor, sync options, and transform context.
 
 **File:** `packages/types/src/services/connectors/{name}.ts`
 
 ```typescript
 import { z } from "zod";
 
+// Sync cursor tracks progress across sync runs
 export const ExampleSyncCursorSchema = z.object({
   lastSyncTime: z.number().optional(),
   pageToken: z.string().optional(),
@@ -34,15 +47,35 @@ export const ExampleSyncCursorSchema = z.object({
 
 export type ExampleSyncCursor = z.infer<typeof ExampleSyncCursorSchema>;
 
+// Sync options configure sync behavior
+export interface ExampleSyncOptions {
+  cursor?: ExampleSyncCursor;
+  batchSize?: number;
+  forceFullSync?: boolean;
+}
+
+// Transform context provides connector metadata to transformers
 export interface ExampleTransformContext {
   connectorId: string;
   connectorType: string;
   teamId: string;
   workspaceId: string;
 }
+
+// API entity types
+export const ExampleEntitySchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  url: z.string(),
+});
+
+export type ExampleEntity = z.infer<typeof ExampleEntitySchema>;
 ```
 
-Add the sub-path export to `packages/types/package.json`:
+Then add the sub-path export to `packages/types/package.json`:
 
 ```json
 {
@@ -55,16 +88,26 @@ Add the sub-path export to `packages/types/package.json`:
 }
 ```
 
+<Callout type="info">
+The types package is the single source of truth. Never define shared types in the services or integrations packages.
+</Callout>
+
 ## Step 2: Integration Config
 
-Define the app metadata, auth method, streams, and settings.
+Define the app metadata, authentication method, data streams, and user-facing settings.
 
 **File:** `packages/integrations/src/{name}/config.ts`
 
-From the Linear reference:
+Here is the actual Linear config (abbreviated) as reference:
 
 ```typescript
-import { AppType, AuthType, ConnectorType, SyncMode, type UnifiedApp } from "../types";
+import {
+  AppType,
+  AuthType,
+  ConnectorType,
+  SyncMode,
+  type UnifiedApp,
+} from "../types";
 
 export const linearApp: UnifiedApp = {
   id: AppType.LINEAR,
@@ -73,7 +116,8 @@ export const linearApp: UnifiedApp = {
   active: true,
   logo: AppType.LINEAR,
   short_description: "Search across issues, projects, and documents.",
-  description: "Connect Linear to search across issues, projects, ...",
+  description:
+    "Connect Linear to search across issues, projects, documents, and cycles.",
   connectorType: ConnectorType.SOURCE,
 
   auth: {
@@ -97,27 +141,59 @@ export const linearApp: UnifiedApp = {
       defaultInterval: 15,
       supportsBackfill: true,
     },
-    // ... additional streams
+    {
+      name: "projects",
+      label: "Projects",
+      description: "Linear projects and their status",
+      entityType: "resource",
+      dataPoints: ["Name", "Description", "Status", "Lead", "Members"],
+      syncMode: SyncMode.PERIODIC,
+      defaultInterval: 30,
+      supportsBackfill: true,
+    },
   ],
 
   settings: [
     {
       id: "client_id",
       label: "Client ID",
+      description: "From Linear OAuth application settings",
       type: "text",
       required: true,
       value: "",
     },
-    // ... additional settings
+    {
+      id: "client_secret",
+      label: "Client Secret",
+      type: "password",
+      required: true,
+      value: "",
+    },
   ],
 };
 ```
 
-For OAuth connectors, also create `oauth.ts` with token exchange functions. For API key connectors, use `AuthType.API_KEY` in the config.
+### Auth Types
+
+| Auth Type | When to use | Config |
+|-----------|------------|--------|
+| `AuthType.OAUTH2` | SaaS apps (Linear, GitHub, Slack) | `authUrl`, `tokenUrl`, `scopes` |
+| `AuthType.API_KEY` | API key/token services (Samsara, Matterport) | `headerName`, `documentationUrl` |
+| `AuthType.SERVICE_ACCOUNT` | Service accounts (Google Workspace) | Service account config |
+
+For OAuth connectors, also create `oauth.ts` with token exchange functions (`generateAuthUrl`, `exchangeCode`, `refreshToken`).
+
+### Sync Modes
+
+| Mode | Constant | Behavior |
+|------|----------|----------|
+| Real-time | `SyncMode.REALTIME` | Webhook-driven instant updates |
+| Periodic | `SyncMode.PERIODIC` | Scheduled interval-based sync |
+| On-demand | `SyncMode.ON_DEMAND` | Manual trigger only |
 
 ## Step 3: Service Implementation
 
-The service package contains the client, sync logic, and transformers.
+The service package contains all business logic: API client, sync generators, and entity transformers.
 
 ### Directory Structure
 
@@ -126,66 +202,134 @@ packages/services/src/{name}/
 ├── index.ts           # Public exports
 ├── auth.ts            # IntegrationAuth implementation
 ├── client.ts          # API client with rate limiting
-├── types.ts           # Error classes
+├── types.ts           # Error classes (ConnectorApiError)
 ├── api/
-│   └── *.ts           # Entity-specific API queries
+│   ├── index.ts       # Barrel export
+│   └── entities.ts    # API query functions
 ├── sync/
+│   ├── index.ts       # Barrel export
 │   ├── full.ts        # Full sync generator
 │   ├── incremental.ts # Delta sync generator
-│   └── utils.ts       # Pagination helpers
+│   └── utils.ts       # Batch helpers
 ├── transformers/
-│   └── *.ts           # Entity -> GenericDocument mappers
-└── push/              # Webhook handlers (optional)
+│   ├── index.ts       # Barrel export
+│   └── entity.ts      # Entity → GenericDocument
+└── push/              # Webhook handler (if supported)
+    └── notification-handler.ts
 ```
 
 ### API Client
 
-Wrap the third-party API with rate limiting:
+Wrap the third-party API with rate limiting and error handling. From the actual Linear client:
 
 ```typescript
-import type { ExampleClientConfig } from "@openplane/types/services/connectors/example";
+// packages/services/src/linear/client.ts
+import { type RateLimitConfig, rateLimiter } from "@openplane/redis";
+import type { LinearClientConfig } from "@openplane/types/services/connectors/linear";
 
-export function createExampleClient(config: ExampleClientConfig) {
+const DEFAULT_RATE_LIMITS: RateLimitConfig = {
+  requestsPerMinute: 50,
+  requestsPerHour: 1500,
+  burstLimit: 20,
+};
+
+export function createLinearClient(config: LinearClientConfig): LinearClient {
+  const { connectorId, accessToken, rateLimitConfig = DEFAULT_RATE_LIMITS } = config;
+
+  async function checkRateLimit(): Promise<void> {
+    const { allowed } = await rateLimiter.checkConnectorRateLimit(
+      connectorId,
+      "linear",
+      rateLimitConfig as RateLimitConfig
+    );
+    if (!allowed) {
+      const quotaAvailable = await rateLimiter.waitForQuota(
+        connectorId, "linear", rateLimitConfig as RateLimitConfig, 5
+      );
+      if (!quotaAvailable) {
+        throw new LinearApiError({
+          message: "Rate limit exceeded",
+          code: "RATELIMITED",
+          retryable: true,
+          retryAfter: 60,
+        });
+      }
+    }
+  }
+
   return {
-    async listEntities(params: { cursor?: string; pageSize?: number }) {
-      // Rate-limited API call
-    },
+    connectorId,
+    query: executeGraphQL,
+    mutation: executeGraphQL,
+    getRateLimitState,
+    healthCheck,
   };
 }
 ```
 
 ### Full Sync Generator
 
-Yields batches of `GenericDocument` objects:
+The core sync pattern: an async generator that yields batches of `GenericDocument` objects. From the actual Linear full sync:
 
 ```typescript
+// packages/services/src/linear/sync/full.ts
+import type {
+  LinearSyncBatch,
+  LinearSyncCursor,
+  LinearTransformContext,
+} from "@openplane/types/services/connectors/linear";
 import type { GenericDocument } from "@openplane/vespa";
 
 export async function* fullSync(
-  client: ExampleClient,
-  ctx: ExampleTransformContext,
-  options: ExampleSyncOptions
-): AsyncGenerator<SyncBatch> {
-  let cursor: string | undefined;
+  client: LinearClient,
+  context: LinearTransformContext,
+  options: FullSyncOptions = {}
+): AsyncGenerator<LinearSyncBatch<GenericDocument>, void, undefined> {
+  const { batchSize = 50, syncComments = true } = options;
 
-  do {
-    const page = await client.listEntities({ cursor, pageSize: 100 });
-    const documents = page.items.map((item) => transformEntity(item, ctx));
+  const userLookup = await createUserLookup(client);
+  const enrichedContext = { ...context, userLookup };
+  const cursor: LinearSyncCursor = { lastSyncTime: Date.now(), syncedTeams: [] };
+  const state: SyncState = { documents: [], processed: 0, skipped: 0, errors: 0 };
 
-    yield {
-      items: documents,
-      cursor: { pageToken: page.nextCursor },
-      hasMore: page.hasMore,
-    };
+  for await (const team of getAllTeams(client)) {
+    cursor.syncedTeams?.push(team.id);
 
-    cursor = page.nextCursor;
-  } while (cursor);
+    for await (const issue of getAllTeamIssues(client, team.id)) {
+      if (issue.archivedAt) {
+        state.skipped += 1;
+        continue;
+      }
+
+      const comments = syncComments
+        ? await collectIssueComments(client, issue.id)
+        : [];
+      const document = await transformIssue(issue, enrichedContext, { comments });
+      state.documents.push(document);
+      state.processed += 1;
+
+      if (state.documents.length >= batchSize) {
+        yield createSyncBatch(state.documents, cursor, true, state);
+        state.documents = [];
+      }
+    }
+  }
+
+  if (state.documents.length > 0) {
+    yield createSyncBatch(state.documents, cursor, false, state);
+  }
 }
 ```
 
+Key patterns:
+- **Async generator** (`async function*`) enables streaming batches to the indexer
+- **Cursor tracking** persists progress across sync runs
+- **Batch yielding** controls memory usage -- yield every `batchSize` documents
+- **Skip logic** filters archived or stale entities
+
 ### Incremental Sync
 
-Uses timestamps or change tokens to fetch only modified data:
+Uses timestamps or change tokens to fetch only modified data since the last sync:
 
 ```typescript
 export async function* incrementalSync(
@@ -194,82 +338,171 @@ export async function* incrementalSync(
   options: ExampleSyncOptions
 ): AsyncGenerator<SyncBatch> {
   const since = options.cursor?.lastSyncTime;
-  // Fetch only entities modified since last sync
+  const entities = await client.listEntities({ updatedSince: since });
+
+  for (const entity of entities) {
+    const document = transformEntity(entity, ctx);
+    yield { items: [document], cursor: { lastSyncTime: Date.now() }, hasMore: false };
+  }
 }
 ```
 
 ### Transformer
 
-Maps third-party entities to the `GenericDocument` schema:
+Maps a third-party entity to OpenPlane's `GenericDocument` schema. From the actual Linear issue transformer:
 
 ```typescript
+// packages/services/src/linear/transformers/issue.ts
+import type { LinearIssue, LinearTransformContext } from "@openplane/types/services/connectors/linear";
 import type { GenericDocument } from "@openplane/vespa";
 
-export function transformEntity(
-  entity: ExampleEntity,
-  ctx: ExampleTransformContext
-): GenericDocument {
+export async function transformIssue(
+  issue: LinearIssue,
+  context: LinearTransformContext,
+  options: IssueTransformOptions = {}
+): Promise<GenericDocument> {
+  const title = `${issue.identifier}: ${issue.title}`;
+  const content = buildIssueContent(issue, options);
+  const checksum = await calculateDocumentChecksum({ title, content });
+
   return {
-    id: `${ctx.connectorId}_entity_${entity.id}`,
-    document_type: "entity",
-    title: entity.name,
-    content: entity.description ?? "",
-    url: entity.url,
-    created_at: entity.createdAt,
-    updated_at: entity.updatedAt,
-    author: entity.creator?.name,
-    connector_id: ctx.connectorId,
-    connector_type: ctx.connectorType,
-    team_id: ctx.teamId,
-    permissions: [],
-    metadata: {},
+    id: `${context.connectorId}_issue_${issue.id}`,
+    connector_id: context.connectorId,
+    connector_type: context.connectorType,
+    team_id: context.teamId,
+    workspace_id: context.workspaceId,
+    external_id: issue.id,
+    document_type: "issue",
+    title,
+    content,
+    author_name: issue.creator?.displayName,
+    created_at: new Date(issue.createdAt).getTime(),
+    updated_at: new Date(issue.updatedAt).getTime(),
+    url: issue.url,
+    is_public: false,
+    access_control: [`team:${context.teamId}`],
+    metadata: buildIssueMetadata(issue, options),
+    checksum,
   };
 }
 ```
 
+Transformer rules:
+- `id` format: `{connectorId}_{documentType}_{externalId}`
+- `content` should be a searchable text blob with all relevant fields
+- `metadata` contains structured data for filtering and display
+- Always set `connector_id`, `connector_type`, `team_id`, `workspace_id`
+
 ## Step 4: Temporal Wiring
 
-The generic `connectorSyncWorkflow` in `packages/temporal/src/workflows/sync/connector-sync.ts` handles all connectors. You wire your connector by implementing the `fetchBatch` activity, which calls your sync generator and returns batches.
+The generic `connectorSyncWorkflow` in `packages/temporal/src/workflows/sync/connector-sync.ts` handles all connectors. Wire your connector by implementing the `fetchBatch` activity.
 
 The workflow handles:
-- Batch fetching via `fetchBatch` activity
-- Document indexing via `indexDocumentsWorkflow` child workflow
+- Batch fetching via the `fetchBatch` activity
+- Document indexing via the `indexDocumentsWorkflow` child workflow
 - Progress tracking with signals and queries
 - `continueAsNew` when history exceeds 10,000 events
 - Pause, resume, and cancel signals
 
+Register your connector in the sync registry at `packages/temporal/src/activities/connectors/sync-registry.ts` so the generic workflow can find it.
+
 ## File Checklist
 
-| Step | File | Required |
-|------|------|----------|
+| # | File | Required |
+|---|------|----------|
 | 1 | `packages/types/src/services/connectors/{name}.ts` | Yes |
-| 2 | `packages/types/package.json` (add export) | Yes |
+| 2 | `packages/types/package.json` -- add sub-path export | Yes |
 | 3 | `packages/integrations/src/{name}/config.ts` | Yes |
 | 4 | `packages/integrations/src/{name}/oauth.ts` or auth config | Yes |
 | 5 | `packages/integrations/src/{name}/types.ts` | Yes |
-| 6 | `packages/services/src/{name}/client.ts` | Yes |
-| 7 | `packages/services/src/{name}/auth.ts` | Yes |
-| 8 | `packages/services/src/{name}/types.ts` (error classes) | Yes |
-| 9 | `packages/services/src/{name}/sync/full.ts` | Yes |
-| 10 | `packages/services/src/{name}/sync/incremental.ts` | Yes |
-| 11 | `packages/services/src/{name}/transformers/*.ts` | Yes |
-| 12 | `packages/services/src/{name}/index.ts` | Yes |
-| 13 | `apps/server/src/modules/integrations/{name}/` | Yes |
-| 14 | Logo in `packages/integrations/src/{name}/assets/` | Yes |
-| 15 | `packages/services/src/{name}/push/` (webhook handler) | If supported |
+| 6 | `packages/integrations/src/index.ts` -- add to `appStore` | Yes |
+| 7 | `packages/services/src/{name}/client.ts` | Yes |
+| 8 | `packages/services/src/{name}/auth.ts` | Yes |
+| 9 | `packages/services/src/{name}/types.ts` -- error classes | Yes |
+| 10 | `packages/services/src/{name}/api/*.ts` | Yes |
+| 11 | `packages/services/src/{name}/sync/full.ts` | Yes |
+| 12 | `packages/services/src/{name}/sync/incremental.ts` | Yes |
+| 13 | `packages/services/src/{name}/transformers/*.ts` | Yes |
+| 14 | `packages/services/src/{name}/index.ts` | Yes |
+| 15 | `apps/server/src/modules/integrations/{name}/` | Yes |
+| 16 | Logo in `packages/integrations/src/{name}/assets/` | Yes |
+| 17 | `packages/services/src/{name}/push/` | If webhooks supported |
+
+## Testing Your Connector
+
+Every connector needs tests in `packages/services/src/{name}/__tests__/`. At minimum:
+
+| Test | What to verify |
+|------|---------------|
+| **Client tests** | Mocked HTTP responses, error handling, rate limiting |
+| **Transformer tests** | Entity input produces correct `GenericDocument` output |
+| **Sync generator tests** | Pagination, cursor handling, batch yielding |
+
+```bash
+bun test packages/services/src/{name}/
+```
 
 ## Validation
 
-Before submitting, run:
+Before submitting your PR, run:
 
 ```bash
 bun x tsc --noEmit     # Type check
-bun run check           # Lint with Biome
-bun test                # All tests
-bun run build           # Build all packages
+bun run check           # Biome lint
+bun test                # All tests pass
+bun run build           # Build succeeds
 ```
 
-Every connector must have tests in `packages/services/src/{name}/__tests__/`. At minimum:
-- Client unit tests (mocked HTTP responses)
-- Transformer tests (entity in, GenericDocument out)
-- Sync generator tests (pagination, cursor handling)
+## Common Patterns
+
+### Pagination Helper
+
+```typescript
+async function* paginate<T>(
+  fetcher: (cursor?: string) => Promise<{ data: T[]; nextCursor?: string }>
+): AsyncGenerator<T[]> {
+  let cursor: string | undefined;
+  do {
+    const response = await fetcher(cursor);
+    yield response.data;
+    cursor = response.nextCursor;
+  } while (cursor);
+}
+```
+
+### User Lookup Cache
+
+```typescript
+export function createUserLookup(users: User[]): UserLookup {
+  const map = new Map(users.map((u) => [u.id, u]));
+  return {
+    get: (id: string) => map.get(id),
+    getName: (id: string) => map.get(id)?.name,
+  };
+}
+```
+
+### Token Refresh (OAuth)
+
+```typescript
+async function getAccessToken(connectorId: string): Promise<string> {
+  const oauth = await getOAuthProvider(connectorId);
+  if (isTokenExpired(oauth)) {
+    const refreshed = await refreshToken(oauth);
+    await updateOAuthProvider(connectorId, refreshed);
+    return refreshed.accessToken;
+  }
+  return oauth.accessToken;
+}
+```
+
+## Reference Implementations
+
+| Connector | Auth | Complexity | Best for learning |
+|-----------|------|-----------|-------------------|
+| **Linear** | OAuth 2.0 | Medium | Full reference: GraphQL, comments, projects |
+| **GitHub** | OAuth 2.0 | Medium | REST API, multiple entity types |
+| **Samsara** | API Key | Low-Medium | Simple REST, feed cursors |
+| **MQTT** | Broker credentials | Medium | Real-time subscription model |
+
+Start by reading `packages/services/src/linear/` end-to-end. Then adapt the patterns for your target API.

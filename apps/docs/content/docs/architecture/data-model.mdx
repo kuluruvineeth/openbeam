@@ -1,9 +1,11 @@
 ---
 title: Data Model
-description: Entity-relationship diagram — 60+ models across 8 domains
+description: 60+ Prisma models across 8 domains covering auth, integrations, sync, knowledge, search, AI, agents, and payments.
 ---
 
-The data model spans 19 Prisma schema files with 60+ models organized into 8 domains.
+# Data model
+
+The data model spans 21 Prisma schema files with 60+ models organized into 8 domains. PostgreSQL is the primary store. Vespa handles search indexes. All schemas live in `packages/db/prisma/schema/`.
 
 <ExcalidrawViewer
   src="/diagrams/excalidraw/er-diagram.excalidraw"
@@ -11,14 +13,233 @@ The data model spans 19 Prisma schema files with 60+ models organized into 8 dom
   height={800}
 />
 
-## Domains
+## Domain overview
 
-| Domain | Key Models | Purpose |
-|--------|-----------|---------|
-| **Auth & Team** | User, Session, Team, ApiKey | Authentication, team management, API access |
-| **Integrations** | Connector, OAuthProvider, SyncJob, SyncHistory | OAuth flows, sync orchestration, indexing tracking |
-| **Knowledge** | Entity, EntityRelation, TopicCluster, TeamKnowledge | Knowledge graph, entity extraction, topic clustering |
-| **Search** | SearchExperiment, DocumentPermission, UserSearchProfile | Permission-aware search, A/B testing, personalization |
-| **Agent Canvas** | AgentCanvas, AgentCanvasExecution, BackgroundAgent | Visual agent builder, workflow execution |
-| **Mission Control** | Mission, MissionAgent, MissionTask, MissionRun | Multi-agent orchestration, task delegation |
-| **AI & Observability** | AIUsageLog, CompositionEvent, EmergencePattern | Usage tracking, emergent pattern detection |
+| Domain | Schema files | Key models | Purpose |
+|--------|-------------|------------|---------|
+| **Auth & Teams** | `auth.prisma`, `team.prisma`, `api-key.prisma` | User, Team, Session, Account, ApiKey | Authentication, team management, API access |
+| **Integrations** | `integrations.prisma` | Connector, OAuthProvider, Tool, Workspace | OAuth flows, connector lifecycle, tool registry |
+| **Sync** | `sync.prisma` | SyncJob, SyncHistory, SyncCursor, IndexedDocument, IndexedFile | Workflow orchestration, document tracking, file processing |
+| **Permissions** | `permissions.prisma` | DocumentPermission, GroupMembership, ConnectorScope | Query-time permission filtering |
+| **Knowledge** | `knowledge.prisma`, `team-knowledge.prisma` | Entity, EntityRelation, TopicCluster | Knowledge graph, entity extraction, topic clustering |
+| **Search** | `search.prisma` | SearchExperiment, SearchImpression, UserSearchProfile, LTRModel | Search quality, A/B testing, personalization |
+| **AI & Observability** | `ai-usage.prisma`, `agent-observability.prisma`, `conversation.prisma` | AIUsageLog, CompositionEvent, EmergencePattern, Conversation | Usage tracking, cost accounting, emergent pattern detection |
+| **Agent Canvas** | `agent-canvas.prisma`, `background-agent.prisma` | AgentCanvas, AgentCanvasExecution, AgentCanvasSession | Visual agent builder, workflow execution, sessions |
+
+---
+
+## Auth & Teams
+
+Users authenticate via OAuth (Google) or email/password. Each user belongs to one or more teams. Teams own all connectors, documents, and agents.
+
+| Model | Key fields | Purpose |
+|-------|-----------|---------|
+| **User** | `id`, `email`, `name`, `teamId` | Authenticated user |
+| **Session** | `token`, `expiresAt`, `userId` | Active login session |
+| **Account** | `providerId`, `accountId`, `accessToken` | OAuth provider link (Google, GitHub) |
+| **Team** | `slug`, `subscriptionTier`, `maxConnectors` | Organization/workspace |
+| **UsersOnTeam** | `userId`, `teamId`, `role` | Team membership with role (OWNER, ADMIN, MEMBER) |
+| **ApiKey** | `key`, `teamId`, `scopes` | Programmatic API access |
+
+### Relationships
+
+```
+User ──1:N──> Session
+User ──1:N──> Account
+User ──M:N──> Team (via UsersOnTeam)
+Team ──1:N──> Connector
+Team ──1:N──> ApiKey
+```
+
+---
+
+## Integrations
+
+Connectors represent a connection to an external data source. Each connector has an auth method, sync configuration, and health tracking.
+
+| Model | Key fields | Purpose |
+|-------|-----------|---------|
+| **Connector** | `app`, `authType`, `status`, `healthScore` | Connection to an external source |
+| **OAuthProvider** | `accessToken`, `refreshToken`, `tokenExpiresAt` | OAuth credentials (encrypted at rest) |
+| **Tool** | `toolName`, `toolSchema`, `enabled` | AI-accessible action on a connector |
+| **Workspace** | `externalId`, `domain`, `teamId` | External workspace identity (e.g., Slack workspace) |
+| **ConnectorResource** | `resourceType`, `syncEnabled`, `documentCount` | Individual resource within a connector (channel, folder, repo) |
+| **ExternalIdentity** | `externalId`, `email`, `userId` | User identity mapping between OpenPlane and source |
+
+### Connector status lifecycle
+
+```
+CONNECTING → ACTIVE → SYNCING → ACTIVE
+                ↓                  ↓
+            PAUSED            ERROR / RATE_LIMITED / AUTH_EXPIRED
+                ↓
+            DELETING
+```
+
+### Supported auth types
+
+| AuthType | Used by |
+|----------|---------|
+| `OAUTH2` | Slack, Gmail, Google Drive, Notion, Linear, GitHub |
+| `API_KEY` | Samsara, Verkada, SmartThings, ThingsBoard |
+| `TOKEN` | MQTT, OPC-UA |
+| `SERVICE_ACCOUNT` | AWS IoT, Azure IoT |
+
+### Supported app types
+
+129 app types defined in the `AppType` enum spanning communication (Slack, Teams, Discord), email (Gmail, Outlook), storage (Drive, OneDrive, Dropbox), code (GitHub, GitLab, Bitbucket), CRM (Salesforce, HubSpot), IoT (Samsara, MQTT, OPC-UA), and more.
+
+---
+
+## Sync
+
+The sync domain tracks every sync execution, from job scheduling through document indexing. All sync work is orchestrated by Temporal workflows.
+
+| Model | Key fields | Purpose |
+|-------|-----------|---------|
+| **SyncJob** | `type`, `status`, `trigger`, `fenceToken`, `progress` | Scheduled or triggered sync execution |
+| **SyncHistory** | `documentsAdded`, `documentsUpdated`, `durationMs` | Historical record of a completed sync run |
+| **SyncCursor** | `resource`, `cursor`, `cursorType` | Pagination state for incremental sync |
+| **SyncEvent** | `eventType`, `message`, `documentId` | Fine-grained sync event log |
+| **SyncDeadLetter** | `errorType`, `rawData`, `retryCount` | Failed documents for manual review |
+| **IndexedDocument** | `vespaId`, `externalId`, `documentType`, `checksum` | Document tracking (links Postgres to Vespa) |
+| **IndexedFile** | `fileName`, `mimeType`, `processingStatus`, `storageKey` | File processing pipeline tracking |
+| **IndexedChunk** | `fileId`, `chunkIndex`, `vespaId` | Individual file chunks in Vespa |
+| **IndexedMedia** | `mediaType`, `twelveLabsAssetId`, `durationSeconds` | Video/audio processing tracking |
+
+### Sync job types and triggers
+
+| SyncCategory | Purpose |
+|-------------|---------|
+| `FULL` | Complete re-sync of all documents |
+| `INCREMENTAL` | Only changed documents since last cursor |
+| `DELTA` | Lightweight check for recent changes |
+| `REPAIR` | Re-index documents with mismatched checksums |
+| `PERMISSIONS` | Sync permissions only (no content) |
+
+| SyncTrigger | When |
+|-------------|------|
+| `SCHEDULED` | Cron-based schedule (e.g., every 6 hours) |
+| `MANUAL` | User-triggered from UI or API |
+| `WEBHOOK` | Source system pushed a change notification |
+| `REALTIME` | Live event stream (Slack Events API, MQTT) |
+| `RETRY` | Automatic retry of a failed sync |
+
+---
+
+## Permissions
+
+Permissions are pre-computed and cached for sub-10ms query-time resolution. The source systems (Google, Slack, etc.) remain the source of truth.
+
+| Model | Key fields | Purpose |
+|-------|-----------|---------|
+| **DocumentPermission** | `documentId`, `granteeType`, `granteeId`, `role` | Per-document access control |
+| **GroupMembership** | `userId`, `groupId`, `groupType`, `source` | User-to-group mappings from source systems |
+| **ConnectorScope** | `connectorId`, `userId`, `resourceScopes` | User-level connector access scopes |
+| **PermissionSyncStatus** | `connectorId`, `totalPermissions`, `status` | Permission sync health per connector |
+
+### Grantee types
+
+| PermissionGranteeType | Meaning |
+|----------------------|---------|
+| `USER` | Specific user by ID |
+| `GROUP` | Team, department, or channel |
+| `DOMAIN` | Entire email domain (e.g., `@company.com`) |
+| `ANYONE` | Publicly accessible |
+
+---
+
+## Knowledge
+
+The knowledge graph captures entities, relationships, and topics extracted from indexed documents. Entity extraction runs as a background Temporal activity.
+
+| Model | Key fields | Purpose |
+|-------|-----------|---------|
+| **Entity** | `type`, `name`, `expertiseScore`, `documentCount` | Named entity (person, project, technology, topic) |
+| **EntityRelation** | `fromEntityId`, `toEntityId`, `relationType`, `weight` | Relationship between entities with confidence score |
+| **EntityMention** | `entityId`, `documentId`, `mentionText`, `confidence` | Where an entity appears in a document |
+| **TopicCluster** | `name`, `parentId`, `documentCount`, `embedding` | Hierarchical topic grouping |
+
+### Entity types
+
+`PERSON`, `TEAM`, `PROJECT`, `TOPIC`, `TECHNOLOGY`, `LOCATION`, `ORGANIZATION`, `CHANNEL`, `REPOSITORY`, `CUSTOMER`, `PRODUCT`, `EVENT`, `TICKET`
+
+### Relation types
+
+`MEMBER_OF`, `REPORTS_TO`, `COLLABORATES_WITH`, `EXPERT_IN`, `AUTHORED`, `MAINTAINS`, `OWNS`, `USES`, `WORKS_ON`, `ASSIGNED_TO`
+
+---
+
+## Search
+
+Search quality is measured through impressions, clicks, and dwell time. A/B testing and learn-to-rank models improve results over time.
+
+| Model | Key fields | Purpose |
+|-------|-----------|---------|
+| **SearchExperiment** | `trafficPercent`, `controlConfig`, `treatmentConfig` | A/B test for search ranking changes |
+| **SearchImpression** | `query`, `resultDocIds`, `timing` | Logged search with results |
+| **SearchClick** | `docId`, `position`, `dwellTimeMs` | Click on a search result with engagement |
+| **UserSearchProfile** | `connectorWeights`, `topicWeights`, `queryEmbedding` | Per-user personalization model |
+| **LTRModel** | `storagePath`, `metrics`, `featureImportance` | Trained learn-to-rank model |
+
+---
+
+## AI & Observability
+
+AI usage is tracked at the token level for cost accounting. Agent tool compositions are logged to detect emergent patterns.
+
+| Model | Key fields | Purpose |
+|-------|-----------|---------|
+| **AIUsageLog** | `provider`, `model`, `inputTokens`, `totalCostUsd` | Per-request AI cost tracking |
+| **AIUsageSummary** | `periodStart`, `costByProvider`, `avgLatencyMs` | Aggregated usage by period |
+| **Conversation** | `userId`, `messageCount`, `summary` | Chat conversation thread |
+| **ConversationMessage** | `role`, `content`, `citations`, `groundingScore` | Individual message with RAG metadata |
+| **RAGInteraction** | `query`, `retrievedDocs`, `groundingScore`, `totalMs` | RAG pipeline telemetry |
+| **CompositionEvent** | `toolSequence`, `success`, `latencyMs` | Agent tool call composition |
+| **EmergencePattern** | `toolSequence`, `frequency`, `successRate` | Detected emergent tool patterns |
+| **AgentExecutionTrace** | `agentName`, `toolCalls`, `latencyMs` | Full agent execution trace |
+| **UserFeedback** | `type`, `rating`, `comment`, `correction` | User feedback on AI responses |
+
+---
+
+## Agent Canvas
+
+The agent canvas is a visual workflow builder where users compose multi-step AI agents.
+
+| Model | Key fields | Purpose |
+|-------|-----------|---------|
+| **AgentCanvas** | `nodes`, `edges`, `status`, `triggerType` | Workflow definition (DAG of nodes and edges) |
+| **AgentCanvasVersion** | `version`, `nodes`, `edges`, `changelog` | Version history of a canvas |
+| **AgentCanvasExecution** | `workflowId`, `status`, `input`, `output`, `tokenUsage` | Single execution of a canvas (Temporal workflow) |
+| **AgentCanvasExecutionStep** | `nodeId`, `nodeType`, `status`, `latencyMs` | Per-node execution result |
+| **AgentCanvasApproval** | `nodeId`, `status`, `requestMessage` | Human-in-the-loop approval gate |
+| **AgentCanvasSession** | `userId`, `title`, `lastEventSequence` | Conversational session for interactive canvases |
+| **AgentCanvasTemplate** | `category`, `requiredConnectors`, `requiredTools` | Reusable canvas templates |
+
+### Execution status flow
+
+```
+PENDING → RUNNING → COMPLETED
+              ↓           ↓
+    WAITING_APPROVAL  FAILED / CANCELLED / TIMED_OUT
+              ↓
+    WAITING_INPUT
+```
+
+---
+
+## Cross-domain relationships
+
+The domains are interconnected through foreign keys:
+
+| From | To | Through |
+|------|----|---------|
+| Team | Connector | `teamId` on Connector |
+| Connector | SyncJob | `connectorId` on SyncJob |
+| Connector | IndexedDocument | `connectorId` on IndexedDocument |
+| IndexedDocument | DocumentPermission | `documentId` |
+| User | GroupMembership | `userId` |
+| Entity | EntityMention | `entityId` + `documentId` (links to IndexedDocument) |
+| AgentCanvas | AgentCanvasExecution | `agentCanvasId` |
+| AIUsageLog | AgentExecutionTrace | `traceId` correlation |
+| SearchImpression | SearchClick | `impressionId` |

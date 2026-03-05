@@ -1,63 +1,50 @@
 ---
 title: Getting Started
-description: Deploy OpenPlane
+description: Clone, configure, and run your first search query in under 5 minutes.
 ---
 
-# Getting Started
+# Get running in 5 minutes
 
-## Requirements
+Clone the repo, start the infrastructure, and run your first search query.
 
-| Component | Version |
-|-----------|---------|
-| Bun | 1.3+ |
-| Python | 3.12+ |
-| Docker | Latest |
-| PostgreSQL | 14+ |
-| Redis | 7+ |
-| Vespa | 8+ |
+## Prerequisites
 
-## Quick Start
+| Tool | Version | Check |
+|------|---------|-------|
+| **Bun** | 1.3.2+ | `bun --version` |
+| **Docker** | 24+ | `docker --version` |
+| **Docker Compose** | v2+ | `docker compose version` |
+| **Git** | 2.x | `git --version` |
 
-<Tabs items={["Docker", "Development"]}>
-  <Tab value="Docker">
-    ```bash
-    git clone https://github.com/kuluruvineeth/openplane.git
-    cd openplane
-    docker compose up -d
-    ```
+<Callout type="info">
+  Python 3.12+ and Go 1.24+ are only needed if you plan to work on the ML engine or CLI. The core platform runs entirely on Bun and Docker.
+</Callout>
 
-    Docker Compose starts all required services (PostgreSQL, Redis, Vespa, Temporal) automatically.
+## Step 1: Clone and install
 
-    **Services:**
-    | Service | URL |
-    |---------|-----|
-    | Web | http://localhost:3001 |
-    | API | http://localhost:3000 |
-    | ML Engine | http://localhost:8000 |
-    | Docs | http://localhost:4000 |
-  </Tab>
-  <Tab value="Development">
-    ```bash
-    git clone https://github.com/kuluruvineeth/openplane.git
-    cd openplane
+```bash
+git clone https://github.com/kuluruvineeth/openplane.git
+cd openplane
+bun install
+```
 
-    # Install dependencies
-    bun install
-    cd apps/engine && uv sync && cd ../..
+## Step 2: Start infrastructure
 
-    # Setup database
-    bun run db:push
+Start PostgreSQL, Redis, Vespa, and Temporal with the provided Docker Compose file:
 
-    # Start all services
-    bun run dev
-    ```
+```bash
+docker compose -f scripts/deploy/infra-hetzner-compose.yaml up -d
+```
 
-    Development mode requires PostgreSQL, Redis, Vespa, and Temporal running separately.
-    See the [Self-Hosting guide](/docs/self-hosting) for infrastructure setup.
-  </Tab>
-</Tabs>
+Wait for all services to become healthy:
 
-## Environment
+```bash
+docker compose -f scripts/deploy/infra-hetzner-compose.yaml ps
+```
+
+Every service should show `healthy` status. Vespa takes the longest (up to 2 minutes on first start).
+
+## Step 3: Configure environment
 
 Create a `.env` file in the project root:
 
@@ -69,27 +56,110 @@ DATABASE_URL=postgresql://postgres:postgres@localhost:5432/openplane
 REDIS_URL=redis://localhost:6379
 
 # Search
-VESPA_URL=http://localhost:8080
+VESPA_URL=http://localhost:8280
 
-# AI (at least one required)
-OPENAI_API_KEY=sk-...
-ANTHROPIC_API_KEY=sk-ant-...
+# Temporal
+TEMPORAL_ADDRESS=localhost:7233
 
 # Auth
-AUTH_SECRET=generate-a-secret-key
+BETTER_AUTH_SECRET=generate-a-32-char-secret-here
+BETTER_AUTH_URL=http://localhost:3000
+JWT_SECRET=generate-another-secret-here
+
+# Encryption (for connector credentials)
+ENCRYPTION_KEY=generate-a-32-byte-hex-key
+
+# AI (at least one required for AI features)
+OPENAI_API_KEY=sk-...
+# ANTHROPIC_API_KEY=sk-ant-...
+# GOOGLE_AI_API_KEY=...
+
+# Google OAuth (for Gmail, Drive, Calendar connectors)
+GOOGLE_CLIENT_ID=your-client-id
+GOOGLE_CLIENT_SECRET=your-client-secret
+
+# Frontend
+NEXT_PUBLIC_WEB_URL=http://localhost:3001
+NEXT_PUBLIC_SERVER_URL=http://localhost:3000
+CORS_ORIGIN=http://localhost:3001
+COOKIE_DOMAIN=localhost
+```
+
+<Callout type="warn">
+  AI features require at least one LLM API key. Search and sync work without one, but answers and agents need a configured provider.
+</Callout>
+
+## Step 4: Set up the database
+
+Push the Prisma schema to PostgreSQL:
+
+```bash
+bun run db:push
+```
+
+## Step 5: Start all services
+
+```bash
+bun run dev
+```
+
+This starts:
+
+| Service | URL | Purpose |
+|---------|-----|---------|
+| **Web** | http://localhost:3001 | Frontend application |
+| **Server** | http://localhost:3000 | API server |
+| **Worker** | (background) | Temporal sync workers |
+| **Docs** | http://localhost:4000 | Documentation site |
+
+Open http://localhost:3001, create your account, and connect your first data source.
+
+## Step 6: Your first search
+
+1. Sign in at http://localhost:3001
+2. Go to **Settings > Connectors**
+3. Connect a source (Slack, Gmail, or Notion are fastest to set up)
+4. Wait for the initial sync to complete (watch progress on the connector page)
+5. Search across your connected data from the home page
+
+## Useful commands
+
+| Command | Purpose |
+|---------|---------|
+| `bun run dev` | Start all apps (web, server, worker, docs) |
+| `bun run dev:web` | Start web frontend only |
+| `bun run dev:server` | Start API server only |
+| `bun run check` | Lint and format with Biome |
+| `bun run build` | Build all packages and apps |
+| `bun run db:push` | Push Prisma schema to database |
+| `bun run db:studio` | Open Prisma Studio (database GUI) |
+| `bun run db:migrate` | Run database migrations |
+| `bun test` | Run all tests |
+
+## Start individual services
+
+If you only need to work on a specific part:
+
+```bash
+# Frontend only (requires server to be running)
+bun run dev:web
+
+# Server only
+bun run dev:server
+
+# Python ML engine (requires uv)
+cd apps/engine && uv sync && uv run python -m src.engine.main
 ```
 
 <Accordions>
-  <Accordion title="Connector Credentials">
-    ```bash
+  <Accordion title="Connector credentials">
+    Each connector needs its own OAuth app or API key. Add these to your `.env` as you connect sources:
+
+    ```bash title=".env"
     # Slack
     SLACK_CLIENT_ID=...
     SLACK_CLIENT_SECRET=...
     SLACK_SIGNING_SECRET=...
-
-    # Google (Gmail, Drive)
-    GOOGLE_CLIENT_ID=...
-    GOOGLE_CLIENT_SECRET=...
 
     # Linear
     LINEAR_CLIENT_ID=...
@@ -99,39 +169,73 @@ AUTH_SECRET=generate-a-secret-key
     GITHUB_CLIENT_ID=...
     GITHUB_CLIENT_SECRET=...
 
-    # Storage (optional)
-    S3_BUCKET=...
-    S3_ACCESS_KEY_ID=...
-    S3_SECRET_ACCESS_KEY=...
+    # Storage (for file processing)
+    GCS_ENDPOINT=http://localhost:9000
+    GCS_ACCESS_KEY_ID=openplane-minio
+    GCS_SECRET_ACCESS_KEY=minioadmin
+    GCS_BUCKET=openplane-files
+    GCS_REGION=us-east-1
     ```
   </Accordion>
-  <Accordion title="Video Processing">
+  <Accordion title="Infrastructure ports">
+    These are the internal infrastructure ports from the Docker Compose setup:
+
+    | Service | Port | Notes |
+    |---------|------|-------|
+    | PostgreSQL | `5432` | Default postgres credentials |
+    | Redis | `6379` | No auth in development |
+    | Vespa | `8280` (feed), `19071` (config) | Takes ~2 min to start |
+    | Temporal | `7233` | Workflow engine |
+    | Temporal UI | `8233` | Workflow dashboard |
+    | MinIO | `9000` (API), `9001` (console) | S3-compatible storage |
+    | Grafana | `3002` | Monitoring dashboards |
+    | Prometheus | `9090` | Metrics collection |
+  </Accordion>
+</Accordions>
+
+## Troubleshooting
+
+<Accordions>
+  <Accordion title="Vespa fails to start or stays unhealthy">
+    Vespa requires at least 4 GB of memory allocated to Docker. Check your Docker Desktop settings and increase memory if needed. On first start, Vespa can take up to 3 minutes. Check logs with:
+
     ```bash
-    # TwelveLabs (optional)
-    TWELVELABS_API_KEY=...
+    docker logs openplane-vespa
+    ```
+  </Accordion>
+  <Accordion title="Database connection refused">
+    Ensure PostgreSQL is running and healthy:
+
+    ```bash
+    docker compose -f scripts/deploy/infra-hetzner-compose.yaml ps postgres
+    ```
+
+    The `DATABASE_URL` in your `.env` must match the credentials in the compose file. Default is `postgresql://postgres:postgres@localhost:5432/openplane`.
+  </Accordion>
+  <Accordion title="Temporal worker fails to connect">
+    The Temporal server needs to be fully initialized before workers can connect. Check that the Temporal container is healthy:
+
+    ```bash
+    docker compose -f scripts/deploy/infra-hetzner-compose.yaml ps temporal
+    ```
+
+    Temporal depends on PostgreSQL, so if Postgres is unhealthy, Temporal will not start.
+  </Accordion>
+  <Accordion title="bun install fails or is slow">
+    Make sure you are using Bun 1.3.2 or later. Check with `bun --version`. If you have a stale lockfile, remove `node_modules` and `bun.lock`, then reinstall:
+
+    ```bash
+    rm -rf node_modules bun.lock
+    bun install
     ```
   </Accordion>
 </Accordions>
 
-## Commands
-
-| Command | Description |
-|---------|-------------|
-| `bun run dev` | Start all apps |
-| `bun run dev:web` | Web only |
-| `bun run dev:server` | Server only |
-| `bun run check` | Lint + format (Biome) |
-| `bun run build` | Build all |
-| `bun run db:push` | Push schema |
-| `bun run db:studio` | Prisma Studio |
-| `bun run db:migrate` | Run migrations |
-| `bun test` | Run tests |
-
-## Next Steps
+## What's next
 
 <Cards>
-  <Card title="Architecture" href="/docs/architecture" description="Understand the system design" />
-  <Card title="Connectors" href="/docs/connectors" description="Connect your first tool" />
-  <Card title="Self-Hosting" href="/docs/self-hosting" description="Deploy on your infrastructure" />
-  <Card title="AI & Agents" href="/docs/ai" description="Search assistant and agents" />
+  <Card title="Architecture" href="/docs/architecture" description="Understand the system design and how components fit together" />
+  <Card title="Connectors" href="/docs/connectors" description="Set up OAuth and connect your first data source" />
+  <Card title="Self-Hosting" href="/docs/self-hosting" description="Deploy to production on your own infrastructure" />
+  <Card title="AI & Agents" href="/docs/ai" description="Configure AI providers and build agent workflows" />
 </Cards>

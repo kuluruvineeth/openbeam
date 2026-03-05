@@ -1,62 +1,280 @@
 ---
 title: Deployment
-description: Container topology, network boundaries, and scaling
+description: Container topology, network architecture, resource requirements, and scaling guide for small to large deployments.
 ---
+
+# Deployment
+
+OpenPlane runs as Docker containers split into two compose files: infrastructure services and application services. This separation lets you scale and update apps independently from data stores.
 
 <ExcalidrawViewer
   src="/diagrams/excalidraw/deployment-topology.excalidraw"
-  caption="5 application containers, 5 infrastructure services, 3 network zones"
+  caption="Container topology with network zones and resource limits"
   height={650}
 />
 
-## Containers
+## Container topology
 
-| Container | Port | Runtime | Health |
-|-----------|------|---------|--------|
-| **web** | `:3001` | Next.js (Node.js) | `/api/health` |
-| **server** | `:3000` | Hono (Node.js) | `/health` |
-| **worker** | — | Temporal Worker (Node.js) | Heartbeat |
-| **engine** | `:8000` / `:8001` | FastAPI (Python) | `/health` |
-| **docs** | `:4000` | Fumadocs (Node.js) | `/` |
+### Application containers
 
-## Infrastructure
+| Container | Image | Port | Runtime | Health check |
+|-----------|-------|------|---------|-------------|
+| **server** | `openplane-server` | `:3000` | Hono on Bun | `GET /` |
+| **web** | `openplane-web` | `:3001` | Next.js 16 | `GET /` |
+| **worker** | `openplane-worker` | `:9092` (health), `:9091` (metrics) | Temporal Worker on Node.js | `GET /health` |
+| **engine-cpu** | `openplane-engine` | `:8000` | FastAPI on Python | `GET /v1/health` |
 
-| Service | Port | Purpose |
-|---------|------|---------|
-| **PostgreSQL** | `:5432` | Primary data store (60+ models) |
-| **Redis** | `:6379` | Cache, pub/sub, locks, rate limiting |
-| **Vespa** | `:8080` | Hybrid search, document indexing |
-| **Temporal** | `:7233` | Durable workflow orchestration |
-| **S3/R2** | `:443` | File and media storage |
+### Infrastructure containers
 
-## Network Zones
+| Container | Image | Port | Purpose | Resource limit |
+|-----------|-------|------|---------|---------------|
+| **postgres** | `postgres:16-alpine` | `:5432` | Primary data store | 2 GB RAM, 1 CPU |
+| **redis** | `redis:8.4.0-alpine` | `:6379` | Cache, locks, rate limiting | 512 MB RAM |
+| **vespa** | `vespaengine/vespa:8` | `:8280` (feed), `:19071` (config) | Hybrid search engine | 4 GB RAM, 2 CPU |
+| **temporal** | `temporalio/auto-setup:1.29.2` | `:7233` | Workflow orchestration | 1 GB RAM, 1 CPU |
+| **minio** | `minio/minio` | `:9000` (API), `:9001` (console) | S3-compatible storage | 512 MB RAM |
 
-| Zone | Contains | Access |
-|------|----------|--------|
-| **Public** | web, docs | CDN / Load Balancer |
-| **API** | server | web (tRPC), external (webhooks) |
-| **Workers** | worker, engine | Temporal server, internal only |
-| **Data** | PostgreSQL, Redis, Vespa, S3 | API + Workers only |
+### Observability containers
 
-## Scaling
+| Container | Image | Port | Purpose | Resource limit |
+|-----------|-------|------|---------|---------------|
+| **prometheus** | `prom/prometheus` | `:9090` | Metrics collection | 512 MB RAM |
+| **grafana** | `grafana/grafana` | `:3002` | Dashboards and alerting | 256 MB RAM |
+| **loki** | `grafana/loki:2.9.10` | `:3100` | Log aggregation | 256 MB RAM |
+| **promtail** | `grafana/promtail:2.9.10` | -- | Log shipping to Loki | 128 MB RAM |
+| **temporal-ui** | `temporalio/ui:2.44.1` | `:8233` | Workflow dashboard | 256 MB RAM |
 
-| Component | Strategy | Trigger |
-|-----------|----------|---------|
-| web / server | Horizontal pod scaling | CPU / request count |
-| worker | Task-queue-based | Queue depth per task queue |
-| engine (CPU) | Request-based | Processing queue depth |
-| engine (GPU) | GPU utilization | GPU memory / queue |
-| Vespa | Add content nodes | Document count |
-| PostgreSQL | Read replicas | Query load |
-| Redis | Cluster mode | Memory / throughput |
+## Network architecture
 
-### Temporal Task Queues
+Two Docker networks separate infrastructure from application traffic:
 
-| Queue | Concurrency | Scale Factor |
-|-------|-------------|-------------|
-| `sync-queue` | High | Active connector count |
-| `mission-queue` | Medium | Active missions |
-| `processing-queue` | High | Document backlog |
-| `canvas-queue` | Medium | Active canvas runs |
-| `webhook-queue` | Burst | Webhook volume |
-| `scheduled-queue` | Low | Fixed schedule |
+```
+┌─────────────────────────────────────────────────────────┐
+│  openplane (infrastructure network)                     │
+│                                                         │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐  │
+│  │ postgres │ │  redis   │ │  vespa   │ │ temporal │  │
+│  │  :5432   │ │  :6379   │ │  :8280   │ │  :7233   │  │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘  │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐               │
+│  │  minio   │ │  loki    │ │prometheus│               │
+│  │  :9000   │ │  :3100   │ │  :9090   │               │
+│  └──────────┘ └──────────┘ └──────────┘               │
+└──────────────────────┬──────────────────────────────────┘
+                       │
+┌──────────────────────┼──────────────────────────────────┐
+│  openplane-apps      │ (application network)            │
+│                      │                                  │
+│  ┌──────────┐ ┌──────┴───┐ ┌──────────┐ ┌──────────┐  │
+│  │   web    │ │  server  │ │  worker  │ │ engine   │  │
+│  │  :3001   │ │  :3000   │ │ internal │ │  :8000   │  │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘  │
+└─────────────────────────────────────────────────────────┘
+```
+
+Application containers join both networks. They reach infrastructure services by container name on the `openplane` network (e.g., `redis:6379`, `temporal:7233`). Infrastructure ports are bound to `127.0.0.1` only, keeping them off the public interface.
+
+### Internal DNS resolution
+
+| Service reference | Resolves to |
+|-------------------|-------------|
+| `postgres:5432` | PostgreSQL primary |
+| `redis:6379` | Redis server |
+| `vespa:8080` | Vespa content node |
+| `temporal:7233` | Temporal server |
+| `minio:9000` | MinIO S3 API |
+| `engine-cpu:8000` | Python ML engine |
+| `server:3000` | API server (used by web for SSR) |
+| `loki:3100` | Log aggregation |
+
+## Compose files
+
+| File | Contains | When to use |
+|------|----------|-------------|
+| `scripts/deploy/infra-hetzner-compose.yaml` | PostgreSQL, Redis, Vespa, Temporal, MinIO, Prometheus, Grafana, Loki | Infrastructure setup (run once, rarely changes) |
+| `scripts/deploy/apps-compose.yaml` | server, web, worker, engine-cpu | Application deployment (updated on each release) |
+
+### Start infrastructure
+
+```bash
+docker compose -f scripts/deploy/infra-hetzner-compose.yaml up -d
+```
+
+### Start applications
+
+```bash
+docker compose -f scripts/deploy/apps-compose.yaml up -d
+```
+
+## Environment variables
+
+Application containers receive configuration through environment variables. Key variables by service:
+
+<Tabs items={["Server", "Web", "Worker", "Engine"]}>
+  <Tab value="Server">
+    ```bash
+    PORT=3000
+    DATABASE_URL=postgresql://...
+    REDIS_URL=redis://redis:6379
+    VESPA_URL=http://vespa:8080
+    TEMPORAL_ADDRESS=temporal:7233
+    ENGINE_URL=http://engine-cpu:8000
+    JWT_SECRET=...
+    ENCRYPTION_KEY=...
+    GOOGLE_CLIENT_ID=...
+    GOOGLE_CLIENT_SECRET=...
+    OPENAI_API_KEY=...
+    ANTHROPIC_API_KEY=...
+    ```
+  </Tab>
+  <Tab value="Web">
+    ```bash
+    PORT=3001
+    NEXT_PUBLIC_SERVER_URL=https://api.yourdomain.com
+    NEXT_PUBLIC_WEB_URL=https://app.yourdomain.com
+    SERVER_INTERNAL_URL=http://server:3000
+    ```
+  </Tab>
+  <Tab value="Worker">
+    ```bash
+    DATABASE_URL=postgresql://...
+    REDIS_URL=redis://redis:6379
+    VESPA_URL=http://vespa:8080
+    TEMPORAL_ADDRESS=temporal:7233
+    ENGINE_URL=http://engine-cpu:8000
+    ENCRYPTION_KEY=...
+    OPENAI_API_KEY=...
+    HEALTH_PORT=9092
+    METRICS_PORT=9091
+    ```
+  </Tab>
+  <Tab value="Engine">
+    ```bash
+    CPU_PORT=8000
+    CPU_WORKERS=4
+    REDIS_URL=redis://redis:6379
+    LOG_LEVEL=INFO
+    ```
+  </Tab>
+</Tabs>
+
+## Resource requirements
+
+### Minimum (small team, < 100K documents)
+
+| Component | CPU | RAM | Disk |
+|-----------|-----|-----|------|
+| PostgreSQL | 1 core | 2 GB | 20 GB SSD |
+| Redis | 0.5 core | 512 MB | -- |
+| Vespa | 2 cores | 4 GB | 50 GB SSD |
+| Temporal | 1 core | 1 GB | 5 GB (shared with Postgres) |
+| Server | 1 core | 1 GB | -- |
+| Web | 1 core | 1 GB | -- |
+| Worker | 2 cores | 2 GB | -- |
+| Engine | 2 cores | 2 GB | -- |
+| **Total** | **10.5 cores** | **14.5 GB** | **75 GB** |
+
+A single 16 GB / 8 vCPU machine (e.g., Hetzner CPX41, AWS m6i.2xlarge) runs the entire stack comfortably.
+
+### Medium (100-500 users, 1M documents)
+
+| Component | CPU | RAM | Disk | Instances |
+|-----------|-----|-----|------|-----------|
+| PostgreSQL | 2 cores | 4 GB | 100 GB SSD | 1 primary + 1 read replica |
+| Redis | 1 core | 1 GB | -- | 1 |
+| Vespa | 4 cores | 8 GB | 200 GB SSD | 2 content nodes |
+| Temporal | 2 cores | 2 GB | -- | 1 |
+| Server | 2 cores | 2 GB | -- | 2 instances |
+| Web | 2 cores | 2 GB | -- | 2 instances |
+| Worker | 4 cores | 4 GB | -- | 2 instances |
+| Engine | 4 cores | 4 GB | -- | 2 instances |
+
+### Large (500+ users, 10M+ documents)
+
+| Component | Scaling strategy |
+|-----------|-----------------|
+| PostgreSQL | Primary + read replicas, connection pooling (PgBouncer) |
+| Redis | Redis Cluster with 3+ nodes |
+| Vespa | Horizontal content node scaling, separate admin/config nodes |
+| Temporal | Dedicated Temporal cluster with multiple frontend/history/matching services |
+| Server | Horizontal scaling behind load balancer |
+| Worker | Scale by task queue depth (Temporal handles partitioning) |
+| Engine | Separate CPU and GPU pools for different workloads |
+
+## Scaling strategies
+
+### Temporal task queues
+
+Workers listen on specialized task queues. Scale each independently based on workload:
+
+| Queue | Concurrency | Scale trigger |
+|-------|-------------|--------------|
+| `sync-queue` | High | Active connector count, sync backlog |
+| `processing-queue` | High | Document processing backlog |
+| `canvas-queue` | Medium | Active agent canvas executions |
+| `webhook-queue` | Burst | Incoming webhook volume |
+
+### Vespa scaling
+
+Vespa scales by adding content nodes. Each node holds a partition of the document corpus.
+
+```bash
+# Check current document count
+curl http://localhost:8280/document/v1/openplane/generic_document/docid/?cluster=openplane_content&wantedDocumentCount=0
+```
+
+Add content nodes when:
+- Document count exceeds 5M per node
+- Query latency p99 exceeds 150ms
+- Feed latency exceeds 50ms
+
+### Database scaling
+
+PostgreSQL handles most workloads with a single node. Add read replicas when:
+- Query load exceeds 1000 QPS
+- Replication lag is acceptable (< 100ms) for read operations
+- Prisma read replica support is configured via `DATABASE_READ_URL`
+
+## Health monitoring
+
+All containers expose health checks. The compose files configure Docker health checks that orchestrate startup ordering.
+
+| Check | Endpoint | Expected |
+|-------|----------|----------|
+| Server | `http://localhost:3000/` | 200 OK |
+| Web | `http://localhost:3001/` | 200 OK |
+| Worker | `http://localhost:9092/health` | 200 OK |
+| Engine | `http://localhost:8000/v1/health` | 200 OK |
+| PostgreSQL | `pg_isready` | exit 0 |
+| Redis | `redis-cli ping` | PONG |
+| Vespa | `http://localhost:19071/state/v1/health` | 200 OK |
+| Temporal | `temporal operator cluster health` | SERVING |
+
+### Startup order
+
+The compose files enforce dependencies:
+
+```
+postgres → postgres-auth-fix → temporal → temporal-ui
+                                    ↓
+                              server → web
+                                    ↓
+                                 worker
+minio → minio-init
+vespa → vespa-deploy → vespa-exporter → prometheus → grafana
+redis → redis-exporter
+loki → promtail
+```
+
+### Grafana dashboards
+
+Pre-configured dashboards are provisioned automatically:
+
+| Dashboard | Metrics |
+|-----------|---------|
+| Connector Health | Sync success rate, document counts, error rates per connector |
+| Search Performance | Query latency (p50/p95/p99), throughput, result quality |
+| AI Usage | Token consumption, cost by provider/model, cache hit rates |
+| Infrastructure | CPU, memory, disk, network per container |
+
+Access Grafana at `http://localhost:3002` (default credentials: `admin`/`admin`).

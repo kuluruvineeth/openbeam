@@ -1,37 +1,39 @@
 ---
 title: Matterport
-description: Connect Matterport to OpenPlane for 3D spatial scan and annotation search
+description: Index 3D spatial scans, rooms, floors, and annotations from Matterport spaces
 ---
 
 # Matterport
 
-Index 3D spatial models, rooms, floor plans, sweeps, and Mattertag annotations from Matterport with spatial metadata for proximity-based search.
+Index 3D spatial models with room-level precision from Matterport. Search across spaces, rooms, floor plans, and Mattertag annotations with spatial metadata for proximity-based retrieval.
 
-## What Gets Indexed
-
-| Entity | Description |
-|--------|-------------|
-| Spaces (3D Models) | Name, address, total rooms, floors, area, spatial dimensions |
-| Rooms | Name, floor assignment, area, bounding box coordinates |
-| Floors | Floor number, area, room count, elevation |
-| Mattertags | Label, description, 3D position (x, y, z), attached media |
-| Sweeps | Position, rotation, neighboring sweeps, panorama data |
+Matterport brings physical spaces into your search index. Find rooms by name, search annotations by label, and discover spatial relationships across buildings and floors.
 
 ## Authentication
 
-Matterport uses **API token** authentication. Provide both an API Token ID and API Token Secret, obtained from the Matterport developer portal.
+**Method:** API Token (Token ID + Secret)
 
-The connector communicates via the Matterport GraphQL API.
+Provide both an API Token ID and API Token Secret from the Matterport developer portal. The connector communicates via the Matterport GraphQL API.
 
-## Sync
+[Matterport API docs](https://support.matterport.com/s/article/Getting-Started-with-The-API)
 
-| Mode | Supported |
-|------|-----------|
-| Full sync | Yes |
-| Incremental sync | Yes |
-| Real-time | No |
+## Data Streams
 
-Incremental sync uses model modification timestamps to fetch only spaces updated since the last sync.
+| Stream | Description | Sync Mode | Interval |
+|--------|-------------|-----------|----------|
+| **3D Spaces** | Matterport 3D models with rooms, floors, area, and spatial metadata | Periodic | 60 min |
+| **Mattertags** | Spatial annotations with 3D positions (x, y, z) and attached media content | Periodic | 60 min |
+
+Both streams support full backfill.
+
+### Indexed Entity Details
+
+| Entity | Fields |
+|--------|--------|
+| **Spaces** | Name, address, total rooms, floors, area, spatial dimensions |
+| **Rooms** | Name, floor assignment, area, bounding box coordinates |
+| **Floors** | Floor number, area, room count, elevation |
+| **Mattertags** | Label, description, 3D position, attached media (images, links) |
 
 ## Setup
 
@@ -41,11 +43,29 @@ Incremental sync uses model modification timestamps to fetch only spaces updated
 4. Optionally list specific model IDs to sync, or leave empty to sync all accessible models
 5. Start the initial sync
 
-### Settings
+## Configuration
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| API Token ID | — | Matterport API token ID (required) |
-| API Token Secret | — | Matterport API token secret (required) |
-| Model IDs | — | Specific model IDs to sync (one per line), or empty for all |
+| API Token ID | -- | Matterport API token ID (required) |
+| API Token Secret | -- | Matterport API token secret (required) |
+| Model IDs | -- | Specific model IDs to sync (one per line), or empty for all |
 | Include Floor Plans | On | Index floor plan metadata and image links |
+
+## Sync Details
+
+**Full sync** queries the Matterport GraphQL API for all accessible models. For each model, the connector fetches the room breakdown, floor plan data, sweep positions, and Mattertag annotations.
+
+**Incremental sync** uses model modification timestamps to fetch only spaces updated since the last sync run. This includes new annotations, room changes, and model republications.
+
+**Spatial metadata** is preserved in document metadata, enabling proximity-based search. Each room and annotation includes its 3D position relative to the model origin, which can be used for spatial queries like "annotations near the lobby" or "rooms on the second floor".
+
+**Floor plans** are indexed with room boundaries and image links. This provides a 2D view alongside the 3D model data.
+
+## Related Connectors
+
+<Cards>
+  <Card title="NVIDIA Omniverse" href="/docs/connectors/omniverse" description="Industrial digital twins and USD scenes" />
+  <Card title="Viam Robotics" href="/docs/connectors/viam" description="Robot fleet operating in physical spaces" />
+  <Card title="BACnet" href="/docs/connectors/bacnet" description="Building automation systems in scanned spaces" />
+</Cards>

@@ -1,132 +1,106 @@
 ---
 title: How It Works
-description: Vespa architecture, indexing pipeline, query flow, and edge search internals
+description: Vespa architecture, indexing pipeline, query flow, ranking mechanics, and edge search internals.
 ---
 
-# How It Works
+# How Search Works
 
-OpenPlane search is built on [Vespa](https://vespa.ai), an open-source serving engine designed for real-time search and ranking at scale. This page covers the indexing pipeline, query flow, ranking mechanics, and edge deployment.
-
-## Architecture Overview
-
-```mermaid
-flowchart LR
-    subgraph Sources
-        S1[Slack]
-        S2[Gmail]
-        S3[Notion]
-        S4[Linear]
-        S5[GitHub]
-    end
-
-    subgraph Processing
-        W[Temporal Worker]
-        E[Python Engine]
-    end
-
-    subgraph Vespa
-        D[openplane_document]
-        M[media_document]
-        EN[entity]
-        SP[spreadsheet_document]
-    end
-
-    subgraph Query
-        API[Hono API]
-        ACL[Permission Filter]
-    end
-
-    Sources --> W
-    W --> E
-    E --> W
-    W --> Vespa
-    API --> ACL --> Vespa
-```
+OpenPlane search is built on [Vespa](https://vespa.ai), an open-source serving engine for real-time search and ranking at scale. This page covers the full path from raw data to ranked results.
 
 ## Vespa Document Schemas
 
-Vespa stores four document types, each with dedicated schemas:
+Vespa stores four document types. Each has a dedicated schema optimized for its content.
 
-| Schema | Purpose | Key Fields |
-|--------|---------|------------|
-| `openplane_document` | Text documents (messages, pages, issues, emails, files) | `content`, `content_embedding`, `title_embedding`, `sparse_embedding`, `access_control` |
-| `media_document` | Video and audio with segment-level data | `transcript`, `segment_embeddings`, `segment_timestamps`, `media_keywords` |
-| `entity` | People, teams, projects from knowledge graph | `name`, `email`, `entity_type`, `metadata` |
-| `spreadsheet_document` | Structured tabular data | `column_names`, `column_types`, `content_summary`, `is_queryable` |
+| Schema | Purpose | Records |
+|--------|---------|---------|
+| `openplane_document` | Text content (messages, pages, issues, files, emails) | Bulk of the index |
+| `media_document` | Video and audio with segment-level transcripts | Meeting recordings, screen captures |
+| `entity` | People, teams, projects from the knowledge graph | Cross-referenced from documents |
+| `spreadsheet_document` | Structured tabular data with column schemas | Sheets, CSVs, database exports |
 
-### Embedding Fields
+### Embedding Fields per Document
 
-Documents carry multiple embedding vectors for different ranking strategies:
+Documents carry multiple embedding vectors. Different ranking profiles use different vectors.
 
-| Field | Dimensions | Usage |
-|-------|-----------|-------|
-| `content_embedding` | 768 or 1024 | Primary semantic search |
-| `title_embedding` | 768 or 1024 | Title-biased queries |
-| `title_embedding_v2` | 1024 | Updated title embeddings |
-| `sparse_embedding` | Variable (token map) | Learned sparse retrieval |
-| `topic_embedding` | 768 | Topic-level similarity |
-| `department_affinity` | Variable | Personalized ranking |
+| Field | Type | Dimensions | Purpose |
+|-------|------|-----------|---------|
+| `content_embedding` | Dense | 768 or 1024 | Primary semantic search |
+| `title_embedding` | Dense | 768 or 1024 | Title-biased queries |
+| `title_embedding_v2` | Dense | 1024 | Updated title model |
+| `sparse_embedding` | Sparse (token map) | Variable | Learned sparse retrieval (SPLADE-style) |
+| `topic_embedding` | Dense | 768 | Topic-level similarity |
+| `department_affinity` | Dense | Variable | Personalized ranking per department |
 
-Sparse embeddings use a token-to-weight map format, stored as Vespa's `mapped<float>` tensor.
+Sparse embeddings are stored as Vespa `mapped<float>` tensors: `{token: weight, ...}`. They capture fine-grained term importance beyond raw frequency.
 
 ## Indexing Pipeline
 
-The journey from raw data to searchable content follows this path:
+Every document passes through four stages before it becomes searchable.
 
-### 1. Connector Fetch
+### Stage 1: Connector Fetch
 
-Temporal workflows drive full and incremental syncs. Each connector implements an async generator that yields batches of documents:
+Temporal workflows drive full and incremental syncs. Each connector implements async generators that yield document batches:
 
+```typescript
+export async function* fullSync(
+  client: SlackClient,
+  ctx: SlackTransformContext
+): AsyncGenerator<SyncBatch> {
+  for await (const channel of client.listChannels()) {
+    const messages = await client.getMessages(channel.id);
+    yield {
+      documents: messages.map(msg => transform(msg, ctx)),
+      cursor: { channelId: channel.id, timestamp: Date.now() },
+    };
+  }
+}
 ```
-connector.fullSync() → AsyncGenerator<SyncBatch>
-connector.incrementalSync(cursor) → AsyncGenerator<SyncBatch>
-```
 
-### 2. Transform
+### Stage 2: Transform
 
-Connector-specific transformers convert raw API responses into the `GenericDocument` schema. Every document gets:
+Connector-specific transformers convert API responses into `GenericDocument`. Every document gets:
 
-- A deterministic `id` based on connector ID + external ID
+- A deterministic `id` from `connectorId + externalId`
 - Normalized timestamps (Unix milliseconds)
 - Extracted author metadata
-- Access control lists from the source system
+- Access control lists mirroring the source system
 
-### 3. Embedding Generation
+### Stage 3: Embedding Generation
 
-The Python engine (`apps/engine`) generates embeddings for each document:
+The Python engine (`apps/engine`) generates embeddings:
 
-- **Dense embeddings** via sentence-transformers or OpenAI
+- **Dense embeddings** via sentence-transformers or OpenAI embedding models
 - **Sparse embeddings** via SPLADE or similar learned sparse models
 - **Title embeddings** separately for navigational queries
 
-Chunked documents (long pages, PDFs) are split and each chunk gets its own embedding while maintaining `parent_doc_id` references.
+Long documents (pages, PDFs) are chunked. Each chunk gets its own embedding while maintaining `parent_doc_id` and `chunk_index` references back to the parent.
 
-### 4. Vespa Feed
+### Stage 4: Vespa Feed
 
-The `@openplane/vespa` package feeds documents to Vespa's Document API:
+The `@openplane/vespa` package feeds documents to Vespa's Document API with:
 
-- Batch feeding with configurable concurrency (default: 10 parallel)
-- Automatic retries on transient errors (ECONNRESET, socket errors)
-- Exponential backoff (2^attempt seconds, max 3 retries)
-- Async feed mode for large-volume imports
+- Batch feeding with configurable concurrency (default: 10 parallel requests)
+- Automatic retries with exponential backoff (2^attempt seconds, max 3 retries)
+- Metadata objects JSON-stringified before feed (Vespa stores them as `string` fields)
 
 ```
 POST /document/v1/default/openplane_document/docid/{id}
 ```
 
-Metadata objects are JSON-stringified before feeding (Vespa stores them as `string` fields).
-
 ## Query Flow
 
-### 1. User Request
+A search request passes through five stages.
 
-A search request arrives via the tRPC API or CLI:
+### 1. Request
+
+A query arrives via the tRPC API, CLI, or agent tool:
 
 ```typescript
 {
   query: "Q3 revenue report",
   teamId: "team_abc",
   connectorTypes: ["notion", "google-drive"],
+  accessControlIds: ["user:jane", "group:finance"],
   limit: 20,
   rankingProfile: "hybrid"
 }
@@ -139,67 +113,71 @@ The query builder generates Vespa's YQL (Yahoo Query Language):
 ```sql
 SELECT * FROM openplane_document
 WHERE team_id CONTAINS "team_abc"
-  AND (connector_type CONTAINS "notion" OR connector_type CONTAINS "google-drive")
-  AND (title CONTAINS "Q3 revenue report" OR content CONTAINS "Q3 revenue report")
+  AND (connector_type CONTAINS "notion"
+       OR connector_type CONTAINS "google-drive")
+  AND (title CONTAINS "Q3 revenue report"
+       OR content CONTAINS "Q3 revenue report")
 ```
 
 ### 3. Permission Filtering
 
-Access control IDs for the requesting user are injected into the query:
+Access control IDs are injected as filter clauses. This filtering happens at the Vespa content node level, before ranking, so unauthorized documents never enter the result set.
 
 ```sql
 AND (is_public = true
-  OR access_control CONTAINS "user_123"
-  OR access_control CONTAINS "group_engineering")
+  OR access_control CONTAINS "user:jane"
+  OR access_control CONTAINS "group:finance")
 ```
-
-This filter evaluates at the Vespa content node level, before ranking, so unauthorized documents never enter the result set.
 
 ### 4. Ranking
 
-Vespa applies the selected ranking profile. For `hybrid`, the flow is:
+Vespa applies the selected ranking profile. For `hybrid`, the process is:
 
-1. **First phase**: BM25 scoring on `title` and `content` fields with `title` boosted 2x
-2. **Second phase**: Dense vector cosine similarity between query embedding and `content_embedding`
-3. **Fusion**: Reciprocal Rank Fusion combines BM25 rank and vector rank with configurable weights
+1. **First phase** -- BM25 scoring on `title` (2x weight) and `content` fields
+2. **Second phase** -- Dense vector cosine similarity between query embedding and `content_embedding`
+3. **Fusion** -- Reciprocal Rank Fusion merges the two ranked lists
 
-For `hybrid_v2`, sparse vector matching is added as a third signal.
+For `hybrid_v2`, sparse vector dot product is added as a third signal before fusion.
 
 ### 5. Response
 
-The Vespa response includes coverage metadata used for query health monitoring:
+Vespa returns results with coverage metadata:
 
 ```typescript
-{
-  root: {
-    fields: { totalCount: 142 },
-    coverage: {
-      full: true,
-      degraded: { "match-phase": false, timeout: false }
-    },
-    children: [
-      { id: "doc_1", relevance: 0.89, fields: { ... } },
-      { id: "doc_2", relevance: 0.84, fields: { ... } }
-    ]
-  }
+interface RankedSearchResult {
+  hits: Array<{
+    id: string;
+    relevance: number;
+    document: GenericDocument;
+  }>;
+  pagination: {
+    totalResults: number;
+    currentPage: number;
+    totalPages: number;
+    hasNextPage: boolean;
+  };
+  metrics: {
+    latencyMs: number;
+    coverage: { full: boolean; timeout: boolean };
+    resultCount: number;
+  };
+  rankingProfile: DocumentRankingProfile;
 }
 ```
-
-The client transforms this into a `RankedSearchResult` with pagination metadata (current page, total pages, next/previous offsets).
 
 ## Ranking Deep Dive
 
 ### BM25
 
-Classic probabilistic ranking. Vespa computes per-field BM25 scores with default parameters k1=1.2, b=0.75. The title field carries a higher weight than content for navigational queries.
+Classic probabilistic ranking with parameters k1=1.2, b=0.75. Vespa computes per-field BM25 scores. The `title` field carries higher weight than `content` for navigational queries.
 
 ### Dense Vector Similarity
 
-Cosine similarity between the query embedding and document embeddings. Vespa uses HNSW (Hierarchical Navigable Small World) indexing for approximate nearest neighbor search, giving sub-linear query time even with millions of documents.
+Cosine similarity between query embedding and document embedding. Vespa uses HNSW (Hierarchical Navigable Small World) indexing for approximate nearest neighbor search, giving sub-linear query time even with millions of documents.
 
 ### Sparse Vector Matching
 
-Dot product between the query's learned sparse representation and the document's sparse embedding. Sparse vectors capture fine-grained term importance beyond raw frequency. The embedding is stored as a `mapped<float>` tensor in Vespa: `{token: weight, ...}`.
+Dot product between the query's learned sparse representation and the document's sparse embedding. Sparse vectors capture term importance signals that raw BM25 frequency misses -- they are trained to identify which tokens matter most for relevance.
 
 ### Reciprocal Rank Fusion (RRF)
 
@@ -209,24 +187,23 @@ RRF combines ranked lists from multiple retrieval methods without requiring scor
 RRF_score(d) = sum( 1 / (k + rank_i(d)) )
 ```
 
-Where `k` is a constant (default 60) and `rank_i(d)` is the rank of document `d` in the i-th ranking. Higher `k` reduces the impact of top-ranked outliers.
+`k` is a constant (default 60). `rank_i(d)` is the rank of document `d` in the i-th retrieval list. Higher `k` reduces the impact of top-ranked outliers. This approach works because it only depends on rank ordering, not raw scores -- so BM25 scores and cosine similarities merge cleanly.
 
 ### Authority and Engagement Signals
 
-For `enterprise` ranking profiles, additional signals are layered:
+Enterprise ranking profiles layer additional signals on top of text relevance:
 
-| Signal | Source |
-|--------|--------|
-| `authority_score` | Computed from inbound links, canonical status, source tier |
-| `quality_score` | Content quality heuristics (length, structure, freshness) |
-| `trending_score` | Recent access frequency |
-| `view_count` | Cumulative views |
-| `reaction_count` | Likes, upvotes, emoji reactions |
-| `inbound_links_count` | Cross-references from other documents |
+| Signal | Source | Used In |
+|--------|--------|---------|
+| `authority_score` | Inbound links, canonical status, source tier | `enterprise`, `authority` |
+| `quality_score` | Content quality heuristics (length, structure, freshness) | `enterprise`, `enterprise_v2` |
+| `trending_score` | Recent access frequency | `engagement`, `recent_activity` |
+| `view_count` | Cumulative views | `engagement` |
+| `reaction_count` | Likes, upvotes, emoji reactions | `engagement` |
+| `inbound_links_count` | Cross-references from other documents | `authority` |
+| `department_affinity` | Vector encoding of department relevance | `personalized` |
 
-## Performance
-
-### Targets
+## Performance Budgets
 
 | Metric | Target |
 |--------|--------|
@@ -234,81 +211,56 @@ For `enterprise` ranking profiles, additional signals are layered:
 | Search p99 | < 200ms |
 | Embedding generation | < 100ms per document |
 | Feed throughput | 100+ documents/second |
+| Query timeout | 5 seconds (returns partial results on timeout) |
 
 ### Connection Pooling
 
-The Vespa client uses undici connection pooling (10 connections, keep-alive 30s) to minimize TCP overhead. Vector queries use POST (body contains embedding tensors), while simple keyword queries use GET with query parameters.
+The Vespa client uses undici connection pooling (10 connections, 30s keep-alive) to minimize TCP overhead. Vector queries use POST (body contains embedding tensors), simple keyword queries use GET.
 
 ### Caching
 
-An optional LRU cache (max 1000 entries, 30s TTL) sits in front of the Vespa client. Cache keys are derived from YQL, ranking profile, pagination, and a hash prefix of the query embedding. Cache is disabled by default and intended for read-heavy workloads with stable queries.
-
-### Query Timeout
-
-Default timeout is 5 seconds. Vespa returns partial results with `coverage.degraded.timeout = true` if the timeout fires before full evaluation. The client reports this in `QueryMetrics`.
+An optional LRU cache (max 1000 entries, 30s TTL) sits in front of the Vespa client. Cache keys are derived from YQL + ranking profile + pagination + embedding hash prefix. Disabled by default.
 
 ## Edge Search Architecture
 
-The edge runtime (`@openplane/edge-search`) provides offline search using SQLite:
+The edge runtime (`@openplane/edge-search`) provides offline search using SQLite.
 
 ### FTS5 (Full-Text Search)
 
-SQLite's FTS5 extension provides BM25 keyword search:
-
-- Tokenized `title` and `content` fields
-- BM25 ranking with the same conceptual model as Vespa
-- Prefix queries and phrase matching supported
+SQLite's FTS5 extension provides BM25 keyword search with tokenized `title` and `content` fields. Supports prefix queries and phrase matching.
 
 ### Vector Search
 
 Embedding vectors stored as BLOBs in SQLite. Cosine similarity computed in application code:
 
-- Linear scan for small datasets (< 10K documents)
+- Linear scan for datasets under 10K documents
 - Partitioned scan by connector type for larger sets
 - Quantized embeddings (float16) to reduce storage
 
 ### Hybrid Fusion
 
-RRF combines FTS5 BM25 scores and vector similarity scores, mirroring the cloud search behavior so users get consistent results regardless of connectivity.
+RRF combines FTS5 BM25 scores and vector similarity scores, mirroring cloud search behavior so users get consistent results regardless of connectivity.
 
-### Sync
+### Sync Protocol
 
-Documents replicate from the cloud index to edge via Merkle tree reconciliation:
+Documents replicate from cloud to edge via Merkle tree reconciliation:
 
-1. Server and edge compute Merkle roots over document checksums
+1. Server and edge compute Merkle roots over document checksums (BLAKE3)
 2. Tree comparison identifies divergent subtrees
 3. Only changed documents transfer over the sync channel
 4. Incremental sync runs periodically; full reconciliation on first connect
 
-## Multi-Ranking Strategy
-
-The `searchWithMultipleRankings` function executes the same query against multiple ranking profiles in parallel:
-
-```typescript
-const result = await searchWithMultipleRankings({
-  query: "deployment process",
-  teamId: "team_abc",
-  strategies: ["keyword", "semantic", "hybrid", "authority"],
-  embeddings: { query: queryEmbedding },
-});
-
-// result.bestStrategy = "hybrid"
-// result.aggregatedHits = deduplicated, best-score-wins merge
-```
-
-This powers the ranking profile selector in the UI and provides data for A/B testing search quality.
-
 ## Monitoring
 
-The Vespa client emits structured metrics for every query:
+The Vespa client emits structured metrics for observability:
 
 | Metric | Description |
 |--------|-------------|
 | `vespa.query.latency_ms` | End-to-end query time |
-| `vespa.query.degraded` | Whether results are partial |
-| `vespa.query.error` | Query errors |
+| `vespa.query.degraded` | Whether results are partial (timeout or match-phase) |
+| `vespa.query.error` | Query error count |
 | `vespa.feed.latency_ms` | Document feed time |
-| `vespa.feed.error` | Feed errors |
+| `vespa.feed.error` | Feed error count |
 | `vespa.cache.hit` / `vespa.cache.miss` | Cache hit ratio |
 
-Query metrics include coverage (full/partial), match phase degradation, and result count. These feed into Prometheus for alerting on search quality degradation.
+Query metrics include coverage status, match-phase degradation flags, and result counts. These feed into Prometheus for alerting on search quality regression.

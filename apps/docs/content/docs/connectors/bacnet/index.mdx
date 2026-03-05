@@ -1,47 +1,63 @@
 ---
 title: BACnet
-description: Connect BACnet/IP networks to OpenPlane for building automation search
+description: Discover BACnet devices and index HVAC readings, schedules, and alarms
 ---
 
 # BACnet
 
-Discover BACnet/IP devices and index HVAC readings, schedules, and alarms from building automation networks with Change of Value (COV) subscriptions.
+Discover BACnet/IP devices on your network and index HVAC readings, schedules, and alarms from building automation systems. The connector supports Who-Is device discovery, object polling, Change of Value (COV) subscriptions, and trend log extraction.
 
-## What Gets Indexed
-
-| Entity | Description |
-|--------|-------------|
-| BACnet Objects | Object type, present value, engineering units, status flags (analog/binary/multistate inputs and outputs) |
-| Schedules | Schedule name, effective period, weekly schedule definitions |
-| Alarms | Alarm type, source device, condition state |
+BACnet is the standard protocol for building management systems. This connector makes temperature setpoints, occupancy schedules, and equipment alarms searchable.
 
 ## Authentication
 
-BACnet/IP uses network-level access. No API keys or OAuth -- the connector communicates directly on the BACnet/IP UDP port (default 47808). Network access to the BACnet segment is the only requirement.
+**Method:** Network Access
 
-## Sync
+BACnet/IP uses network-level access. No API keys or OAuth -- the connector communicates directly on the BACnet/IP UDP port (default 47808). The OpenPlane host must have network connectivity to the BACnet/IP segment.
 
-| Mode | Supported |
-|------|-----------|
-| Full sync | Yes |
-| Incremental sync | Yes |
-| Real-time | Yes (COV subscriptions) |
+## Data Streams
 
-Full sync uses Who-Is broadcast for device discovery, then reads object lists and present values. Real-time updates use Change of Value (COV) subscriptions for monitored objects. Trend log extraction is supported for historical data.
+| Stream | Description | Sync Mode | Interval |
+|--------|-------------|-----------|----------|
+| **BACnet Objects** | Polled values from analog, binary, and multistate inputs/outputs (object type, value, units, status flags) | Real-time | 30s polling |
+| **Schedules** | HVAC and lighting schedule definitions (name, effective period, weekly schedule) | Periodic | 60 min |
+
+Backfill is not available for real-time object values. Trend log data extraction provides historical context.
 
 ## Setup
 
 1. Ensure the OpenPlane host has **network access** to the BACnet/IP segment
 2. In OpenPlane, add the BACnet connector
 3. Configure the BACnet port (default 47808) and optionally specify a network interface
-4. Optionally list specific device IDs, or leave empty to discover all devices via Who-Is
+4. Optionally list specific device IDs, or leave empty to discover all devices via Who-Is broadcast
 5. Start the initial sync
 
-### Settings
+## Configuration
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| Network Interface | — | Network interface for BACnet/IP (e.g., `eth0`) |
+| Network Interface | -- | Network interface for BACnet/IP (e.g., `eth0`) |
 | BACnet Port | 47808 | BACnet/IP UDP port (required) |
-| Device IDs | — | Comma-separated device IDs, or empty to discover all |
-| Poll Interval | 30s | How often to poll object values |
+| Device IDs | -- | Comma-separated device IDs, or empty to discover all |
+| Poll Interval | 30s | How often to poll device object values |
+
+## Sync Details
+
+**Device discovery** uses the BACnet Who-Is broadcast to find all devices on the network. Each device's object list is enumerated to identify available data points.
+
+**Object polling** reads present values from analog inputs (temperatures, pressures), analog outputs (setpoints), binary inputs (occupancy, switches), and multistate objects (mode selectors). Values are indexed with their engineering units and status flags.
+
+**COV subscriptions** register for Change of Value notifications on monitored objects. The BACnet device pushes updates when values change beyond a configurable deadband, providing near-real-time data without continuous polling.
+
+**Schedule objects** contain weekly schedules and exception schedules for HVAC and lighting systems. These are indexed as structured documents with day/time programming.
+
+**Trend logs** contain historical recordings of object values. The connector extracts trend log data to backfill historical readings.
+
+## Related Connectors
+
+<Cards>
+  <Card title="OPC-UA" href="/docs/connectors/opcua" description="Industrial automation protocol" />
+  <Card title="MQTT" href="/docs/connectors/mqtt" description="MQTT broker subscriptions" />
+  <Card title="ThingsBoard" href="/docs/connectors/thingsboard" description="IoT platform for device management" />
+  <Card title="Verkada" href="/docs/connectors/verkada" description="Physical security and environmental sensors" />
+</Cards>

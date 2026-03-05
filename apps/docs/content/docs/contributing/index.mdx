@@ -1,22 +1,26 @@
 ---
 title: Contributing
-description: How to contribute to OpenPlane
+description: Ship connectors, fix bugs, and help build the open-source alternative to Glean
 ---
 
 # Contributing to OpenPlane
 
-OpenPlane is an open-source enterprise search platform. This guide covers everything you need to start contributing.
+OpenPlane grows through community connectors. Every connector you build makes enterprise search better for thousands of teams.
+
+Connectors are the highest-impact contribution you can make. Each one takes 2-3 hours and immediately unlocks a new data source for every OpenPlane user.
 
 ## Prerequisites
 
-| Tool | Version | Purpose |
+| Tool | Version | Install |
 |------|---------|---------|
-| **Bun** | 1.3.2+ | Package manager and runtime |
+| **Bun** | 1.3.2+ | `curl -fsSL https://bun.sh/install \| bash` |
 | **Node.js** | 20+ | Required for Temporal SDK tests |
 | **Docker** | Latest | PostgreSQL, Redis, Vespa, Temporal |
-| **Go** | 1.24+ | CLI development (optional) |
+| **Go** | 1.24+ | CLI development only |
 
-## Development Setup
+## Quickstart
+
+Three commands to a running dev environment:
 
 ```bash
 git clone https://github.com/openplane/openplane.git
@@ -24,82 +28,81 @@ cd openplane
 bun install
 ```
 
-Copy the environment file and configure your local services:
+Configure your local services:
 
 ```bash
 cp .env.example .env
-```
-
-Start infrastructure dependencies:
-
-```bash
 docker compose up -d
 ```
 
-Push the database schema and start development:
+Push the database schema and start everything:
 
 ```bash
 bun run db:push
 bun run dev
 ```
 
-## Monorepo Structure
+The web app runs at `http://localhost:3001`.
 
-OpenPlane uses Turborepo with Bun workspaces. The codebase is split into **apps** (deployable services) and **packages** (shared libraries).
+## Monorepo Map
+
+OpenPlane uses Turborepo with Bun workspaces. Everything is TypeScript except the CLI (Go) and the ML engine (Python).
 
 ### Apps
 
-| App | Port | Purpose |
-|-----|------|---------|
+| App | Port | What it does |
+|-----|------|-------------|
 | `apps/web` | 3001 | Next.js frontend |
-| `apps/server` | — | Hono API server |
-| `apps/worker` | — | Temporal workers |
-| `apps/engine` | 8000/8001 | Python ML service |
-| `apps/daemon` | — | Local headless daemon |
-| `apps/cli` | — | Go CLI |
+| `apps/server` | -- | Hono API server |
+| `apps/worker` | -- | Temporal workflow workers |
+| `apps/engine` | 8000/8001 | Python ML service (CPU/GPU) |
+| `apps/daemon` | -- | Local headless daemon for agent orchestration |
+| `apps/cli` | -- | Go CLI (`openplane` command) |
 | `apps/docs` | 4000 | Documentation site |
 
 ### Packages
 
 | Package | Purpose |
 |---------|---------|
-| `packages/types` | Shared type definitions (single source of truth) |
-| `packages/ai` | AI SDK providers, agents, tools |
+| `packages/types` | Shared type definitions -- single source of truth |
+| `packages/ai` | AI SDK providers, agents, tools, RAG |
 | `packages/api` | tRPC routers |
 | `packages/auth` | Authentication logic |
 | `packages/db` | Prisma schema and queries |
-| `packages/integrations` | OAuth configs, app definitions |
-| `packages/services` | Connector business logic |
+| `packages/integrations` | Connector configs, OAuth, logos |
+| `packages/services` | Connector business logic (sync, transform) |
 | `packages/temporal` | Temporal workflows and activities |
 | `packages/vespa` | Vespa search client |
-| `packages/redis` | Redis client and rate limiting |
+| `packages/redis` | Redis client, rate limiting, cache |
 | `packages/storage` | S3/R2 storage |
 
 ## Commit Conventions
 
-All commits follow the `type(scope): subject` format with imperative mood.
+All commits follow `type(scope): subject` in imperative mood. One-line subjects, no body needed.
 
 ```
 feat(github): add discussion sync
-fix(sync): handle rate limit retry
+fix(sync): handle rate limit retry after header
 refactor(services): extract pagination helper
-test(linear): add incremental sync tests
-chore(deps): update temporal sdk
+test(linear): add incremental sync edge cases
+chore(deps): update temporal sdk to 1.11
+docs(connectors): add FHIR setup guide
+perf(vespa): batch embedding requests
 ```
 
-| Type | Purpose |
-|------|---------|
-| `feat` | New feature |
+| Type | When to use |
+|------|-------------|
+| `feat` | New feature or capability |
 | `fix` | Bug fix |
-| `refactor` | Code restructuring without behavior change |
+| `refactor` | Code restructuring, no behavior change |
 | `test` | Adding or updating tests |
 | `chore` | Maintenance, dependency updates |
 | `docs` | Documentation changes |
 | `perf` | Performance improvement |
 
-## Testing Requirements
+## Testing
 
-Tests are mandatory for all non-trivial changes. Run the full suite before submitting:
+Tests are mandatory for all non-trivial changes. Run the full suite before submitting a PR:
 
 ```bash
 bun test              # All tests
@@ -111,23 +114,45 @@ Temporal SDK tests require Node.js and use vitest:
 
 ```bash
 cd packages/temporal
-bun run test              # Unit tests
-bun run test:integration  # Integration tests
+bun run test              # Unit tests (vitest, 30s timeout)
+bun run test:integration  # Integration tests (vitest, 120s timeout)
 ```
 
 Test files live in `__tests__/` directories next to source files.
 
 ## What to Contribute
 
-| Area | Effort | Impact |
-|------|--------|--------|
-| **New connectors** | Medium | High |
-| **Bug fixes** | Low-Medium | High |
-| **Test coverage** | Low | Medium |
-| **Documentation** | Low | Medium |
-| **UI improvements** | Medium | High |
-| **Performance** | Medium-High | High |
+| Area | Effort | Impact | Start here |
+|------|--------|--------|-----------|
+| **New connectors** | 2-3 hours | Very high | [Connector guide](/docs/contributing/connectors) |
+| **Bug fixes** | 1-4 hours | High | GitHub issues labeled `bug` |
+| **Test coverage** | 1-2 hours | Medium | Find untested code paths |
+| **Documentation** | 30 min-2 hours | Medium | Improve connector docs |
+| **UI improvements** | 2-6 hours | High | GitHub issues labeled `ui` |
+| **Performance** | 4-8 hours | High | Profiling and optimization |
 
-See the [Connector Development Guide](/docs/contributing/connectors) for the fastest way to make a high-impact contribution.
+## Pre-Commit Checklist
 
-See the [Development Guide](/docs/contributing/development) for local setup, testing, linting, and build details.
+Every PR must pass these checks:
+
+```bash
+bun test              # Tests pass
+bun x tsc --noEmit    # Types check
+bun run check         # Biome lint clean
+bun run build         # Build succeeds
+```
+
+## Pull Request Process
+
+1. Fork the repository and create a feature branch from `dev`
+2. Make your changes with tests
+3. Run the pre-commit checklist above
+4. Open a PR against `dev` with a clear description
+5. Address review feedback
+
+## Next Steps
+
+<Cards>
+  <Card title="Connector Development Guide" href="/docs/contributing/connectors" description="Build a connector in 2-3 hours -- the highest-impact contribution" />
+  <Card title="Development Guide" href="/docs/contributing/development" description="Local setup, testing, linting, database, and build details" />
+</Cards>

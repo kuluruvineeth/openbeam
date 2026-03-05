@@ -1,32 +1,18 @@
 ---
 title: MCP Server
-description: Model Context Protocol server exposing OpenPlane tools, resources, and prompts to external AI clients
+description: Model Context Protocol server exposing OpenPlane tools, resources, and prompts to external AI clients.
 ---
 
 # MCP Server
 
-OpenPlane implements a [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) server that exposes its tool registry, resources, and prompt templates to external AI clients like Claude Desktop, Cursor, or any MCP-compatible application.
+OpenPlane implements a [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) server that exposes its tools, resources, and prompt templates to external AI clients. Any MCP-compatible application -- Claude Desktop, Cursor, Windsurf, or custom clients -- can search your organization's knowledge base, retrieve documents, and run analyses through OpenPlane.
 
-## Overview
-
-The MCP server bridges OpenPlane's internal tool system with the MCP specification (JSON-RPC 2.0). It automatically converts registered tools into MCP-compatible definitions, handles capability negotiation, and manages request routing.
-
-```
-┌─────────────────────────┐         ┌────────────────────────┐
-│  External AI Client      │         │  OpenPlane MCP Server   │
-│  (Claude Desktop, etc.)  │  MCP    │                        │
-│                          │◄───────►│  Tools (from registry)  │
-│  tools/list              │         │  Resources (docs, etc.) │
-│  tools/call              │         │  Prompts (templates)    │
-│  resources/read          │         │                        │
-│  prompts/get             │         │  MCPToolBridge          │
-└─────────────────────────┘         └────────────────────────┘
-```
-
-## Creating the Server
+## Server Setup
 
 ```typescript
 import { createMCPServer, toolRegistry } from "@openplane/ai";
+import { registerDefaultPrompts } from "@openplane/ai/mcp/prompts";
+import { getDefaultResourceDefinitions, getDefaultResourceTemplates } from "@openplane/ai/mcp/resources";
 
 const server = createMCPServer(toolRegistry, {
   name: "openplane",
@@ -39,256 +25,204 @@ const server = createMCPServer(toolRegistry, {
     sampling: false,
   },
 });
+
+// Register resources
+const resources = server.getResourceRegistry();
+for (const def of getDefaultResourceDefinitions()) {
+  resources.register(def, resourceHandler);
+}
+for (const template of getDefaultResourceTemplates()) {
+  resources.registerTemplate(template, templateHandler);
+}
+
+// Register prompt templates
+registerDefaultPrompts(server.getPromptRegistry());
 ```
 
-## Capabilities
+## Protocol
 
-The server supports three primary MCP capabilities:
-
-| Capability | Description |
-|------------|-------------|
-| **Tools** | All registered tools from the `toolRegistry`, filtered by `allowedCallers: ["mcp"]` |
-| **Resources** | Document resources, connector status, team profiles, search results |
-| **Prompts** | Pre-built prompt templates for enterprise search, analysis, and summarization |
-
-Capabilities are negotiated during the `initialize` handshake. The server only enables capabilities that both sides support.
-
-## Request Handling
-
-The server routes JSON-RPC 2.0 requests to the appropriate handler:
-
-```typescript
-// Handle incoming MCP requests
-const response = await server.handleRequest(request, {
-  teamId: "team_123",
-  userId: "user_456",
-});
-
-// Handle notifications (no response expected)
-server.handleNotification(notification, context);
-```
-
-### Supported Methods
+The MCP server uses JSON-RPC 2.0 over stdio or HTTP. It handles the full MCP lifecycle:
 
 | Method | Description |
 |--------|-------------|
 | `initialize` | Capability negotiation and handshake |
-| `initialized` | Client confirms initialization |
-| `ping` | Health check (returns `{ pong: true }`) |
+| `ping` | Health check |
 | `tools/list` | List all available tools with schemas |
-| `tools/call` | Execute a tool by name with arguments |
-| `resources/list` | List available resources |
-| `resources/templates/list` | List resource URI templates |
-| `resources/read` | Read a resource by URI |
-| `prompts/list` | List available prompts |
-| `prompts/get` | Get a prompt by name with arguments |
+| `tools/call` | Execute a tool with arguments |
+| `resources/list` | List static resources |
+| `resources/templates/list` | List URI-templated resources |
+| `resources/read` | Read a specific resource by URI |
+| `prompts/list` | List available prompt templates |
+| `prompts/get` | Get a rendered prompt with arguments |
 
-## Tool Bridge
+## Tools
 
-The `MCPToolBridge` converts OpenPlane's internal tool definitions to MCP format:
+Every tool registered in the `toolRegistry` with `allowedCallers: ["mcp"]` (the default) is automatically exposed via MCP. The `MCPToolBridge` converts Zod schemas to JSON Schema and wraps execution results.
+
+### Available Tools
+
+All [search](/docs/ai/tools#tool-categories), [RAG](/docs/ai/rag), [document](/docs/ai/tools#tool-categories), and [connector](/docs/ai/tools#tool-categories) tools are available via MCP. Key tools:
+
+| Tool | Category | Description |
+|------|----------|-------------|
+| `search_hybrid` | search | Hybrid semantic + keyword search across all sources |
+| `search_semantic` | search | Pure vector similarity search |
+| `search_similar` | search | Find documents similar to a given document |
+| `search_web` | search | Web search for external information |
+| `doc_get` | documents | Retrieve a document by ID |
+| `doc_list` | documents | List documents with filters |
+| `doc_chunks` | documents | Get chunks of a document |
+| `rag_answer` | rag | Generate grounded answer with citations |
+| `rag_analyze` | rag | Analyze a query's intent and entities |
+| `rag_verify` | rag | Verify claims against source material |
+| `connector_list` | connectors | List connected data sources |
+| `connector_status` | connectors | Check connector sync status |
+| `connector_sync` | connectors | Trigger a sync for a connector |
+
+### Tool Execution
+
+When an MCP client calls a tool, the bridge:
+
+1. Validates the tool exists and allows MCP callers
+2. Converts the MCP context to a `ToolContext` with team/user identity
+3. Executes the tool via the Vercel AI SDK's tool execution layer
+4. Converts the `ToolExecutionResult` to MCP format
 
 ```typescript
-import { MCPToolBridge, toolRegistry } from "@openplane/ai";
+// MCP request
+{
+  "jsonrpc": "2.0",
+  "id": "1",
+  "method": "tools/call",
+  "params": {
+    "name": "search_hybrid",
+    "arguments": { "query": "deployment process", "limit": 5 }
+  }
+}
 
-const bridge = new MCPToolBridge(toolRegistry);
-
-// List tools in MCP format
-const tools = bridge.listTools();
-// Returns: Array<{ name, description, inputSchema, pricing? }>
-
-// Execute a tool
-const result = await bridge.executeTool(
-  { name: "search_hybrid", arguments: { query: "API docs", limit: 10 } },
-  mcpContext
-);
+// MCP response
+{
+  "jsonrpc": "2.0",
+  "id": "1",
+  "result": {
+    "content": [{ "type": "text", "text": "{\"results\": [...], \"totalCount\": 42}" }],
+    "isError": false
+  }
+}
 ```
 
-### Schema Conversion
+### Priced Tools
 
-Zod schemas are automatically converted to JSON Schema for MCP compatibility:
-
-```typescript
-import { convertZodToJsonSchema } from "@openplane/ai";
-
-// Zod 4's toJSONSchema() is used when available
-const jsonSchema = convertZodToJsonSchema(zodSchema);
-```
-
-### Context Mapping
-
-MCP server context is mapped to OpenPlane's `ToolContext`:
+Tools with pricing metadata include cost information in their MCP listing:
 
 ```typescript
-import { mcpContextToToolContext } from "@openplane/ai";
-
-const toolContext = mcpContextToToolContext(mcpServerContext, services);
-// Maps teamId, userId, accessControl from MCP context
+{
+  name: "search_hybrid",
+  description: "...",
+  inputSchema: { ... },
+  pricing: {
+    amount: "0.01",
+    currency: "USDC",
+    network: "eip155:84532",
+    description: "Per search query"
+  }
+}
 ```
 
 ## Resources
 
-Resources expose OpenPlane data to MCP clients for context grounding.
+MCP resources give AI clients read access to OpenPlane data without tool calls.
 
-### Built-in Resources
+### Static Resources
 
-```typescript
-import {
-  defineUserContextResource,
-  defineTeamProfileResource,
-  defineConnectorsResource,
-  defineRecentDocumentsResource,
-} from "@openplane/ai";
-```
+| URI | Name | Description |
+|-----|------|-------------|
+| `openplane://connectors` | Connected Sources | All active data source integrations |
+| `openplane://documents/recent` | Recent Documents | Documents indexed in the last 24 hours |
+| `openplane://team/profile` | Team Profile | Team settings and configuration |
+| `openplane://user/context` | User Context | Current user permissions and preferences |
 
-| Resource | URI | Description |
-|----------|-----|-------------|
-| User Context | `openplane://user/context` | Current user preferences and activity |
-| Team Profile | `openplane://team/profile` | Team configuration and settings |
-| Connectors | `openplane://connectors` | List of connected data sources with status |
-| Recent Documents | `openplane://documents/recent` | Recently accessed documents |
-| Team Stats | `openplane://team/stats` | Team usage and activity statistics |
-| Memory Stats | `openplane://memory/stats` | Agent memory statistics |
+### URI Templates
 
-### Resource Templates
+| Template | Name | Description |
+|----------|------|-------------|
+| `openplane://documents/{documentId}` | Document | Full content of a document by ID |
+| `openplane://search/{queryId}` | Search Results | Cached search results for a query ID |
 
-URI templates for parameterized resource access:
+### Reading Resources
 
 ```typescript
-import {
-  defineDocumentResourceTemplate,
-  defineSearchResultsResourceTemplate,
-  defineConnectorResourceTemplate,
-  defineConnectorSyncHistoryTemplate,
-} from "@openplane/ai";
-```
+// MCP request
+{
+  "jsonrpc": "2.0",
+  "id": "2",
+  "method": "resources/read",
+  "params": { "uri": "openplane://connectors" }
+}
 
-| Template | URI Pattern | Description |
-|----------|-------------|-------------|
-| Document | `openplane://documents/{id}` | Read a specific document |
-| Search Results | `openplane://search/{query}` | Execute a search query |
-| Connector | `openplane://connectors/{id}` | Connector details and config |
-| Sync History | `openplane://connectors/{id}/sync-history` | Connector sync history |
-
-### Custom Resources
-
-Register additional resources:
-
-```typescript
-const resourceRegistry = server.getResourceRegistry();
-
-resourceRegistry.register({
-  uri: "openplane://custom/dashboard",
-  name: "Dashboard Data",
-  description: "Current dashboard metrics",
-  mimeType: "application/json",
-  handler: async (uri, context) => ({
-    contents: [{
-      uri,
-      mimeType: "application/json",
-      text: JSON.stringify(await getDashboardData(context.teamId)),
-    }],
-  }),
-});
+// Response contains the resource content
+{
+  "jsonrpc": "2.0",
+  "id": "2",
+  "result": {
+    "contents": [{
+      "uri": "openplane://connectors",
+      "text": "[{\"id\": \"conn_1\", \"type\": \"slack\", \"status\": \"active\"}]",
+      "mimeType": "application/json"
+    }]
+  }
+}
 ```
 
 ## Prompts
 
-Pre-built prompt templates for common enterprise tasks.
-
-### Built-in Prompts
-
-```typescript
-import {
-  defineEnterpriseSearchPrompt,
-  defineDocumentSummaryPrompt,
-  defineAnalyzeDocumentsPrompt,
-  defineAnswerQuestionPrompt,
-  defineExplainConnectorPrompt,
-  defineFindExpertPrompt,
-} from "@openplane/ai";
-```
+MCP prompts provide pre-built prompt templates that AI clients can use to structure interactions with OpenPlane.
 
 | Prompt | Arguments | Description |
 |--------|-----------|-------------|
-| `enterprise_search` | `query` | Search across connected sources with citations |
-| `document_summary` | `documentId`, `style?` | Summarize a specific document |
-| `analyze_documents` | `query`, `documentIds` | Analyze multiple documents |
-| `answer_question` | `question`, `context?` | Answer a question with RAG |
-| `explain_connector` | `connectorType` | Explain a connector's capabilities |
-| `find_expert` | `topic` | Find team members knowledgeable about a topic |
+| `enterprise-search` | `query` (required), `sources`, `limit` | Search across all connected data sources |
+| `document-summary` | `documentId` (required), `length` | Summarize a document (brief/standard/detailed) |
+| `answer-question` | `question` (required), `context` | Answer a question with citations from the knowledge base |
+| `analyze-documents` | `documentIds` (required), `analysisType` | Analyze documents for themes, entities, timeline, or comparison |
+| `explain-connector` | `connectorType` (required) | Explain a connector's capabilities and data sync behavior |
+| `find-expert` | `topic` (required) | Find team members with expertise in a topic |
 
-### Custom Prompts
-
-Register custom prompts:
+### Using Prompts
 
 ```typescript
-const promptRegistry = server.getPromptRegistry();
+// MCP request
+{
+  "jsonrpc": "2.0",
+  "id": "3",
+  "method": "prompts/get",
+  "params": {
+    "name": "answer-question",
+    "arguments": {
+      "question": "What is our deployment process?",
+      "context": "Looking for the staging deployment specifically"
+    }
+  }
+}
 
-promptRegistry.register({
-  name: "weekly_report",
-  description: "Generate a weekly activity report",
-  arguments: [
-    { name: "startDate", description: "Report start date (ISO)", required: true },
-    { name: "endDate", description: "Report end date (ISO)", required: false },
-  ],
-  handler: async (args, context) => ({
-    messages: [
-      {
-        role: "user",
-        content: {
-          type: "text",
-          text: `Generate a weekly activity report for ${args.startDate} to ${args.endDate ?? "now"}.`,
-        },
-      },
-    ],
-  }),
-});
-```
-
-## Error Handling
-
-MCP errors follow the JSON-RPC 2.0 error spec:
-
-| Code | Name | Description |
-|------|------|-------------|
-| `-32700` | Parse Error | Invalid JSON |
-| `-32600` | Invalid Request | Malformed request |
-| `-32601` | Method Not Found | Unknown method |
-| `-32602` | Invalid Params | Invalid method parameters |
-| `-32603` | Internal Error | Server-side error |
-| `-32001` | Tool Not Found | Requested tool does not exist |
-| `-32002` | Resource Not Found | Requested resource does not exist |
-| `-32003` | Prompt Not Found | Requested prompt does not exist |
-
-## Message Utilities
-
-Helper functions for building and parsing MCP messages:
-
-```typescript
-import {
-  createRequest,
-  createNotification,
-  isValidRequest,
-  isValidNotification,
-  parseMessage,
-} from "@openplane/ai";
-
-// Build a request
-const request = createRequest("tools/call", {
-  name: "search_hybrid",
-  arguments: { query: "API docs" },
-});
-
-// Parse incoming JSON
-const message = parseMessage(jsonString);
-if (isValidRequest(message)) {
-  const response = await server.handleRequest(message, context);
+// Response contains rendered prompt messages
+{
+  "jsonrpc": "2.0",
+  "id": "3",
+  "result": {
+    "messages": [{
+      "role": "user",
+      "content": {
+        "type": "text",
+        "text": "Answer this question using the enterprise knowledge base: \"What is our deployment process?\" Additional context: Looking for the staging deployment specifically. Cite specific documents as sources."
+      }
+    }]
+  }
 }
 ```
 
-## Connecting Claude Desktop
+## Claude Desktop Integration
 
-To connect OpenPlane as an MCP server in Claude Desktop, add to your Claude Desktop configuration:
+Add OpenPlane as an MCP server in Claude Desktop's configuration:
 
 ```json
 {
@@ -297,12 +231,75 @@ To connect OpenPlane as an MCP server in Claude Desktop, add to your Claude Desk
       "command": "openplane",
       "args": ["mcp", "serve"],
       "env": {
-        "OPENPLANE_API_URL": "http://localhost:3000",
-        "OPENPLANE_API_KEY": "your-api-key"
+        "OPENPLANE_API_URL": "https://your-instance.openplane.dev",
+        "OPENPLANE_API_KEY": "op_key_..."
       }
     }
   }
 }
 ```
 
-The OpenPlane CLI (`apps/cli`) includes a built-in `mcp serve` command that starts an MCP server over stdio, making it compatible with any MCP client that supports the stdio transport.
+Once configured, Claude Desktop can:
+
+- Search your organization's documents with `search_hybrid`
+- Read specific documents with `doc_get`
+- Answer questions grounded in your knowledge base with `rag_answer`
+- List connected data sources with `connector_list`
+- Use prompt templates for structured interactions
+
+## Custom MCP Clients
+
+Any MCP-compatible client can connect to the OpenPlane server. The server handles:
+
+- **Capability negotiation** -- Clients declare which capabilities they support, and the server intersects with its own capabilities
+- **Request routing** -- Dispatches to the appropriate handler (tools, resources, or prompts)
+- **Error classification** -- Maps internal errors to MCP error codes
+
+```typescript
+import { parseMessage, isValidRequest, isValidNotification } from "@openplane/ai/mcp";
+
+const message = parseMessage(jsonString);
+
+if (isValidRequest(message)) {
+  const response = await server.handleRequest(message, {
+    teamId: "team_123",
+    userId: "user_456",
+  });
+  send(JSON.stringify(response));
+}
+
+if (isValidNotification(message)) {
+  server.handleNotification(message, context);
+}
+```
+
+### MCP Error Codes
+
+| Code | Name | Description |
+|------|------|-------------|
+| `-32700` | Parse error | Invalid JSON |
+| `-32600` | Invalid request | Missing required fields |
+| `-32601` | Method not found | Unknown MCP method |
+| `-32602` | Invalid params | Invalid method parameters |
+| `-32603` | Internal error | Server-side error |
+| `-32001` | Tool not found | Requested tool does not exist |
+| `-32002` | Resource not found | Requested resource does not exist |
+| `-32003` | Prompt not found | Requested prompt does not exist |
+
+## Architecture
+
+```
+External AI Client               OpenPlane
+┌─────────────────┐             ┌──────────────────────────────┐
+│ Claude Desktop  │             │  MCPServer                   │
+│ Cursor          │  JSON-RPC   │  ├── MCPToolBridge            │
+│ Custom Client   │◄───────────►│  │   └── ToolRegistry        │
+│                 │   2.0       │  ├── ResourceRegistry         │
+│ tools/call      │             │  │   ├── Static resources     │
+│ resources/read  │             │  │   └── URI templates         │
+│ prompts/get     │             │  └── PromptRegistry           │
+└─────────────────┘             │      └── 6 prompt templates   │
+                                └──────────────────────────────┘
+```
+
+The `MCPToolBridge` automatically converts the internal `ToolRegistry` format to MCP-compatible tool definitions. When a tool is registered or unregistered in the registry, it is immediately reflected in MCP's `tools/list` response.

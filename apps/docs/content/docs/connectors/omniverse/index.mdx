@@ -1,50 +1,84 @@
 ---
 title: NVIDIA Omniverse
-description: Connect NVIDIA Omniverse to OpenPlane for digital twin and USD scene search
+description: Index digital twin data from NVIDIA Omniverse USD scenes and Nucleus
 ---
 
 # NVIDIA Omniverse
 
-Index industrial digital twin data from OpenUSD scenes stored in Omniverse Nucleus. Search across equipment, zones, sensors, and annotations with spatial metadata and scene hierarchy preservation.
+Index industrial digital twin data from OpenUSD scenes stored in Omniverse Nucleus. Search across equipment, zones, sensors, and annotations with full spatial metadata, scene hierarchy preservation, and natural language queries via the USD Search API.
 
-## What Gets Indexed
-
-| Entity | Description |
-|--------|-------------|
-| Assets (Equipment) | Name, prim type, spatial transform, bounding box, USD properties |
-| Zones | Zone name, spatial bounds, contained assets |
-| Sensors | Sensor name, position, associated readings |
-| Annotations | Note text, 3D position, linked prim path |
+Omniverse brings your digital twin into the search index. Find equipment by name, locate sensors by zone, and query spatial relationships across factory floors and warehouses.
 
 ## Authentication
 
-Omniverse uses **API token** authentication for Nucleus server access and the USD Search API.
+**Method:** API Token
 
-## Sync
+Provide an Omniverse API token for Nucleus server access. The same token is used for the optional USD Search API.
 
-| Mode | Supported |
-|------|-----------|
-| Full sync | Yes |
-| Incremental sync | Yes |
-| Real-time | No |
+[Omniverse API token docs](https://docs.omniverse.nvidia.com/nucleus/latest/config-and-info/api_tokens.html)
 
-Full sync traverses the OpenUSD scene graph from configured stage paths, extracting prims and their properties. Incremental sync uses the Nucleus file system watch to detect modified USD stages. An optional USD Search API integration enables natural language queries against the scene.
+## Data Streams
+
+| Stream | Description | Sync Mode | Interval |
+|--------|-------------|-----------|----------|
+| **Digital Twin Assets** | Equipment, zones, sensors, and annotations extracted from USD scenes (name, type, position, properties, hierarchy) | Periodic | 60 min |
+| **Twin State Changes** | Real-time state changes from digital twin simulations (node, property, value, timestamp) | Real-time | 60s |
+
+Digital twin assets support full backfill. State changes are real-time only.
+
+### Document Types
+
+| Type | What gets indexed |
+|------|-----------------|
+| **Asset (Equipment)** | Prim name, type, spatial transform, bounding box, USD properties |
+| **Zone** | Zone name, spatial bounds, contained assets |
+| **Sensor** | Sensor name, position, associated readings |
+| **Annotation** | Note text, 3D position, linked prim path |
 
 ## Setup
 
-1. Ensure your **Omniverse Nucleus server** is accessible
+1. Ensure your **Omniverse Nucleus server** is accessible from the OpenPlane host
 2. Generate an API token from the Nucleus admin panel
 3. In OpenPlane, add the Omniverse connector
 4. Enter the Nucleus server URL, API token, and USD stage paths to index
-5. Optionally configure the USD Search API URL for natural language query support
+5. Optionally configure the USD Search API URL for natural language queries
 6. Start the initial sync
 
-### Settings
+## Configuration
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| Nucleus Server URL | — | Omniverse Nucleus server address (required) |
-| API Token | — | API token for Nucleus and USD Search API access (required) |
-| USD Stage Paths | — | Paths to USD stages to index, one per line (required) |
-| USD Search API URL | — | URL of the USD Search API service (optional) |
+| Nucleus Server URL | -- | Omniverse Nucleus server address (required) |
+| API Token | -- | API token for Nucleus and USD Search API (required) |
+| USD Stage Paths | -- | Paths to USD stages to index, one per line (required) |
+| USD Search API URL | -- | URL of the USD Search API service (optional) |
 | Scene Depth Limit | 0 (unlimited) | Maximum depth for scene graph traversal |
+
+### USD Stage Path Format
+
+```
+/Projects/Factory/main.usd
+/Projects/Warehouse/scene.usd
+```
+
+## Sync Details
+
+**Full sync** traverses the OpenUSD scene graph from the configured stage paths. Each prim (primitive) is evaluated for its type and properties. Equipment prims become asset documents, spatial groupings become zones, and measurement prims become sensor documents.
+
+**Scene hierarchy** is preserved through parent-child relationships in document metadata. A pump located in Zone-A on Floor-2 retains that hierarchical context in the search index.
+
+**Spatial metadata** includes transforms (position, rotation, scale) and bounding boxes for each indexed prim. This enables spatial queries like "equipment within 10 meters of Sensor-42".
+
+**Nucleus file watch** detects modified USD stages for incremental sync. When a stage file changes on the Nucleus server, only the affected stage is re-traversed.
+
+**USD Search API** integration (optional) enables natural language queries against the scene. Queries like "red valve on the north wall" are routed through the USD Search API for spatial-semantic matching.
+
+**Prim type filtering** lets you control which prim types are indexed. By default, all prims down to the depth limit are processed.
+
+## Related Connectors
+
+<Cards>
+  <Card title="Matterport" href="/docs/connectors/matterport" description="3D spatial scans and room-level indexing" />
+  <Card title="Viam Robotics" href="/docs/connectors/viam" description="Robot fleet operating in digital twin environments" />
+  <Card title="OPC-UA" href="/docs/connectors/opcua" description="Industrial automation data feeding digital twins" />
+</Cards>

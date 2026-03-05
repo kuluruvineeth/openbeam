@@ -1,36 +1,42 @@
 ---
 title: Viam Robotics
-description: Connect Viam to OpenPlane for robot fleet, sensor, and ML model search
+description: Index robot fleet data, sensor readings, and ML models from Viam
 ---
 
 # Viam Robotics
 
-Index robot fleet data, component configurations, aggregated sensor telemetry, camera captures with ML annotations, and ML model registry metadata from the Viam platform.
+Index robot fleet telemetry, component configurations, sensor data, camera captures with ML annotations, and ML model registry metadata from the Viam platform. The connector supports fleet-wide search across machines, locations, and organizations with time-windowed sensor aggregation.
 
-## What Gets Indexed
-
-| Entity | Description |
-|--------|-------------|
-| Machines (Robots) | Name, status, components, location, organization |
-| Components | Component type (sensor, camera, motor, arm), configuration, capabilities |
-| Sensor Data | Time-windowed aggregations (5-min averages) with min/max/average values |
-| Camera Captures | Capture metadata, ML annotation tags, timestamps |
-| Locations | Location name, organization, associated machines |
-| ML Models | Model name, version, type, training metadata |
+Viam brings your robot fleet into the search index. Find machines by status, search sensor readings by component, and discover ML models by training metadata.
 
 ## Authentication
 
-Viam uses **API key** authentication. Provide an API Key, API Key ID, and Organization ID from the Viam app dashboard.
+**Method:** API Key
 
-## Sync
+Provide an API Key, API Key ID, and Organization ID from the Viam app dashboard at [app.viam.com](https://app.viam.com).
 
-| Mode | Supported |
-|------|-----------|
-| Full sync | Yes |
-| Incremental sync | Yes |
-| Real-time | No |
+[Viam documentation](https://docs.viam.com/)
 
-Incremental sync uses the Viam data client timestamps to fetch only new sensor data and captures since the last sync. Fleet and component metadata is re-synced periodically.
+## Data Streams
+
+| Stream | Description | Sync Mode | Interval |
+|--------|-------------|-----------|----------|
+| **Robot Fleet** | Machines, components, and locations across the organization (name, status, components, location) | Periodic | 5 min |
+| **Sensor Telemetry** | Aggregated sensor readings with time-windowed summaries -- 5-minute averages with min/max values (component, value, min, max, average) | Periodic | 5 min |
+| **Camera Captures** | Image capture metadata with ML annotation tags and timestamps (camera, tags, annotations, timestamp) | Periodic | 10 min |
+
+All streams support full backfill.
+
+### Indexed Entity Details
+
+| Entity | Fields |
+|--------|--------|
+| **Machines** | Name, status, components, location, organization |
+| **Components** | Type (sensor, camera, motor, arm), configuration, capabilities |
+| **Sensor Data** | Time-windowed aggregations (5-min averages) with min/max/average |
+| **Camera Captures** | Capture metadata, ML annotation tags, timestamps |
+| **Locations** | Location name, organization, associated machines |
+| **ML Models** | Model name, version, type, training metadata |
 
 ## Setup
 
@@ -40,12 +46,35 @@ Incremental sync uses the Viam data client timestamps to fetch only new sensor d
 4. In OpenPlane, add the Viam connector
 5. Enter the credentials and start the initial sync
 
-### Settings
+## Configuration
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| API Key | — | Viam organization API key (required) |
-| API Key ID | — | Viam API key identifier (required) |
-| Organization ID | — | Viam organization identifier (required) |
+| API Key | -- | Viam organization API key (required) |
+| API Key ID | -- | Viam API key identifier (required) |
+| Organization ID | -- | Viam organization identifier (required) |
 | Sensor Data Lookback | 24 hours | Hours of historical sensor data to sync |
 | Sync ML Models | Off | Index ML model registry metadata |
+
+## Sync Details
+
+**Full sync** discovers all machines across all locations in the organization. For each machine, the connector fetches component configurations, recent sensor data (up to the lookback window), and camera capture metadata.
+
+**Incremental sync** uses the Viam data client timestamps to fetch only new sensor data and camera captures since the last sync. Fleet and component metadata is re-synced on every run to capture status changes and configuration updates.
+
+**Sensor aggregation** groups raw sensor readings into 5-minute windows. Each window produces a document with the component name, average value, minimum, maximum, and reading count. This reduces index size while preserving useful summary data.
+
+**Camera captures** include ML annotation tags from Viam's data management pipeline. Images processed through Viam ML models carry classification labels, detection bounding boxes, and confidence scores as searchable metadata.
+
+**ML models** (when enabled) index the model registry with model name, version, type (classification, detection, segmentation), and training metadata.
+
+**Action logs** capture command audit trails -- what actions were sent to which robots and when. This is useful for operational review and debugging.
+
+## Related Connectors
+
+<Cards>
+  <Card title="NVIDIA Omniverse" href="/docs/connectors/omniverse" description="Digital twin environments for robot simulation" />
+  <Card title="Matterport" href="/docs/connectors/matterport" description="3D spatial scans of robot operating environments" />
+  <Card title="FHIR Healthcare" href="/docs/connectors/fhir" description="Medical device data from healthcare robots" />
+  <Card title="Samsara" href="/docs/connectors/samsara" description="Fleet management for mobile robots and vehicles" />
+</Cards>

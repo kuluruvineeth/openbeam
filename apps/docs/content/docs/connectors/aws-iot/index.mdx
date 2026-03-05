@@ -1,49 +1,72 @@
 ---
 title: AWS IoT Core
-description: Connect AWS IoT Core to OpenPlane for device and thing group search
+description: Search across IoT things, device shadows, and thing groups from AWS IoT Core
 ---
 
 # AWS IoT Core
 
-Index IoT things, device shadows, and thing groups from AWS IoT Core using IAM credentials with multi-region support.
+Index IoT things, device shadows, and thing groups from the AWS IoT Core registry. The connector uses IAM access keys and supports multi-region deployments.
 
-## What Gets Indexed
-
-| Entity | Description |
-|--------|-------------|
-| Things | Name, thing type, attributes, ARN, connectivity status, shadow state |
-| Thing Groups | Name, description, parent group, ARN, attributes |
+AWS IoT Core gives you searchable access to your entire device fleet -- thing attributes, shadow state (reported and desired), and organizational grouping.
 
 ## Authentication
 
-AWS IoT Core uses **IAM access keys**. Provide an Access Key ID and Secret Access Key for an IAM user or role with IoT read permissions.
+**Method:** IAM Access Keys
 
-Required IAM permissions: `iot:ListThings`, `iot:DescribeThing`, `iot:GetThingShadow`, `iot:ListThingGroups`, `iot:DescribeThingGroup`.
+Provide an AWS Access Key ID and Secret Access Key for an IAM user or role with IoT read permissions.
 
-## Sync
+Required IAM permissions:
+- `iot:ListThings`
+- `iot:DescribeThing`
+- `iot:GetThingShadow`
+- `iot:ListThingGroups`
+- `iot:DescribeThingGroup`
 
-| Mode | Supported |
-|------|-----------|
-| Full sync | Yes |
-| Incremental sync | Yes |
-| Real-time | No |
+[AWS IoT security docs](https://docs.aws.amazon.com/iot/latest/developerguide/security-iam.html)
 
-Incremental sync uses the IoT registry API to detect changes since the last sync timestamp.
+## Data Streams
+
+| Stream | Description | Sync Mode | Interval |
+|--------|-------------|-----------|----------|
+| **Things** | Name, thing type, attributes, ARN, connectivity, shadow state | Periodic | 30 min |
+| **Thing Groups** | Name, description, parent group, ARN, attributes | Periodic | 60 min |
+
+Both streams support full backfill.
 
 ## Setup
 
-1. In the **AWS IAM Console**, create an IAM user or role with IoT read permissions
+1. In the **AWS IAM Console**, create an IAM user or role with the permissions listed above
 2. Generate an **Access Key ID** and **Secret Access Key**
 3. In OpenPlane, add the AWS IoT Core connector
 4. Enter the credentials and select the AWS region where your IoT resources are deployed
 5. Start the initial sync
 
-### Settings
+## Configuration
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| AWS Access Key ID | — | IAM access key with IoT read permissions (required) |
-| AWS Secret Access Key | — | Corresponding secret key (required) |
-| AWS Region | us-east-1 | Region of your IoT resources (required) |
+| AWS Access Key ID | -- | IAM access key with IoT read permissions (required) |
+| AWS Secret Access Key | -- | Corresponding secret key (required) |
+| AWS Region | us-east-1 | Region where your IoT resources are deployed (required) |
 | Sync Thing Groups | On | Include thing groups in the search index |
 | Sync Device Shadows | On | Include device shadow state in thing documents |
+
+### Supported Regions
+
+US East (N. Virginia), US East (Ohio), US West (N. California), US West (Oregon), EU (Ireland), EU (London), EU (Frankfurt), Asia Pacific (Tokyo), Asia Pacific (Singapore), Asia Pacific (Sydney).
+
+## Sync Details
+
+**Full sync** lists all things in the registry and fetches their attributes, shadow state, and group memberships.
+
+**Incremental sync** uses the IoT registry API to detect changes since the last sync timestamp.
+
+Device shadows are embedded into thing documents when the "Sync Device Shadows" setting is enabled, making reported and desired state searchable alongside thing metadata.
+
+## Related Connectors
+
+<Cards>
+  <Card title="Azure IoT Hub" href="/docs/connectors/azure-iot" description="Microsoft's cloud IoT platform" />
+  <Card title="SmartThings" href="/docs/connectors/smartthings" description="Samsung consumer IoT devices" />
+  <Card title="MQTT" href="/docs/connectors/mqtt" description="Direct MQTT broker subscriptions" />
+</Cards>

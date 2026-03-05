@@ -1,109 +1,123 @@
 ---
-title: Self-Hosting Overview
-description: Deploy OpenPlane on your own infrastructure with full control over data and configuration.
+title: Self-Hosting
+description: Run OpenPlane on your own infrastructure. Full control, your data, no vendor lock-in.
 ---
 
 # Self-Hosting
 
-OpenPlane is MIT-licensed and designed to run on your infrastructure. No vendor lock-in, no data leaving your network.
+OpenPlane is MIT-licensed and designed to run on your infrastructure. Your data never leaves your network. No phone-home telemetry, no feature gates.
 
 ## Why Self-Host
 
-- **Data sovereignty** -- Your documents, search indices, and AI interactions stay on your servers.
-- **No usage limits** -- No per-seat pricing, no API call caps. Scale to your needs.
-- **Network isolation** -- Run behind your firewall. No external calls except to connectors you explicitly enable.
-- **Customization** -- Tune PostgreSQL, Vespa, and Temporal to your workload. Swap MinIO for S3 or R2.
+| Reason | Details |
+|--------|---------|
+| **Data sovereignty** | All indexed content, embeddings, and AI interactions stay on your servers |
+| **Compliance** | Meet SOC 2, HIPAA, GDPR requirements without third-party data processing |
+| **Customization** | Modify, extend, and integrate with internal systems |
+| **Cost control** | No per-seat pricing. Scale on your own hardware |
+| **Air-gapped environments** | Deploy in networks with no internet access |
 
 ## Architecture
 
-OpenPlane runs as a set of containerized services connected via a shared Docker network.
+OpenPlane consists of 4 application services and 5 infrastructure services.
 
-**Application services** (your code):
+### Application Services
 
-| Service | Image | Port | Purpose |
-|---------|-------|------|---------|
-| **web** | `openplane-web` | 3001 | Next.js frontend |
-| **server** | `openplane-server` | 3000 | Hono API server |
-| **worker** | `openplane-worker` | 9091/9092 | Temporal worker (sync, indexing) |
-| **engine** | `openplane-engine` | 8000 | Python ML service (parsing, chunking, LTR) |
+| Service | Image | Port | Memory | CPUs | Purpose |
+|---------|-------|------|--------|------|---------|
+| **Server** | `openplane-server` | 3000 | 1 GB | 1.0 | Hono API server, OAuth, webhooks |
+| **Web** | `openplane-web` | 3001 | 1 GB | 1.0 | Next.js frontend |
+| **Worker** | `openplane-worker` | 9092 (health) | 2 GB | 2.0 | Temporal workflows, sync jobs |
+| **Engine** | `openplane-engine` | 8000 | 2 GB | 2.0 | Python ML service, embeddings |
 
-**Infrastructure services** (third-party):
+### Infrastructure Services
 
-| Service | Image | Port | Purpose |
-|---------|-------|------|---------|
-| **PostgreSQL** | `postgres:16-alpine` | 5432 | Primary database |
-| **Redis** | `redis:8.4.0-alpine` | 6379 | Cache, rate limiting, queues |
-| **Vespa** | `vespaengine/vespa:8` | 8080/19071 | Search engine (hybrid search) |
-| **Temporal** | `temporalio/auto-setup` | 7233 | Workflow orchestration |
-| **MinIO** | `minio/minio` | 9000/9001 | Object storage (S3-compatible) |
+| Service | Image | Port | Memory | CPUs | Purpose |
+|---------|-------|------|--------|------|---------|
+| **PostgreSQL** | `postgres:16-alpine` | 5432 | 2 GB | 1.0 | Primary database |
+| **Redis** | `redis:8.4.0-alpine` | 6379 | 512 MB | 0.5 | Cache, queues, rate limiting |
+| **Vespa** | `vespaengine/vespa:8` | 8080, 19071 | 4 GB | 2.0 | Search engine (hybrid BM25 + vector) |
+| **Temporal** | `temporalio/auto-setup:1.29.2` | 7233 | 1 GB | 1.0 | Workflow orchestration |
+| **MinIO** | `minio/minio` | 9000, 9001 | 512 MB | 0.5 | S3-compatible object storage |
 
-**Optional monitoring stack:**
+### Monitoring Stack (optional)
 
-| Service | Port | Purpose |
-|---------|------|---------|
-| Prometheus | 9090 | Metrics collection |
-| Grafana | 3002 | Dashboards |
-| Loki | 3100 | Log aggregation |
-| Promtail | -- | Log shipping |
+| Service | Purpose |
+|---------|---------|
+| Prometheus | Metrics collection |
+| Grafana | Dashboards and alerting |
+| Loki + Promtail | Log aggregation |
+| Redis Exporter | Redis metrics |
+| Vespa Exporter | Search metrics |
 
 ## Hardware Requirements
 
-Minimum for a small team (< 50 users, < 10 connectors):
+### Minimum (small team, < 50 users)
 
-| Resource | Minimum | Recommended |
-|----------|---------|-------------|
-| CPU | 4 cores | 8 cores |
-| RAM | 12 GB | 16 GB |
-| Disk | 40 GB SSD | 100 GB SSD |
-| OS | Ubuntu 22.04+ | Ubuntu 24.04 LTS |
+| Resource | Specification |
+|----------|---------------|
+| CPU | 4 cores |
+| RAM | 16 GB |
+| Disk | 100 GB SSD |
+| OS | Linux (Ubuntu 22.04+ recommended) |
 
-Memory breakdown from production compose limits:
+### Recommended (medium team, 50-500 users)
 
-| Service | Memory Limit |
-|---------|-------------|
-| Vespa | 4 GB (reserved) |
-| PostgreSQL | 2 GB |
-| Engine (CPU) | 2 GB |
-| Worker | 2 GB |
-| Server | 1 GB |
-| Web | 1 GB |
-| Redis | 512 MB |
-| MinIO | 512 MB |
-| Monitoring stack | ~1 GB total |
+| Resource | Specification |
+|----------|---------------|
+| CPU | 8 cores |
+| RAM | 32 GB |
+| Disk | 500 GB NVMe SSD |
+| OS | Linux (Ubuntu 22.04+ recommended) |
 
-<Callout type="info">
-Vespa is the most resource-intensive service. It reserves 4 GB for search indexing and query processing. For larger deployments (100k+ documents), increase Vespa memory to 8-16 GB.
-</Callout>
+These estimates are derived from the Docker Compose resource limits: PostgreSQL (2 GB), Vespa (4 GB), Worker (2 GB), Engine (2 GB), and the remaining services sharing the rest. Vespa is the most memory-intensive service and benefits from fast disk I/O.
 
-## Deployment Options
+## Deployment Methods
 
 <Cards>
-  <Card
-    title="Docker Compose"
-    href="/docs/self-hosting/docker-compose"
-    description="Single-server deployment with two compose files. Start here."
-  />
-  <Card
-    title="Configuration"
-    href="/docs/self-hosting/configuration"
-    description="Environment variables reference for all services."
-  />
-  <Card
-    title="Infrastructure Services"
-    href="/docs/self-hosting/services"
-    description="Setup and tuning for PostgreSQL, Redis, Vespa, Temporal, and MinIO."
-  />
+  <Card title="Docker Compose" href="/docs/self-hosting/docker-compose" description="Single-server deployment using two compose files. Best for getting started." />
+  <Card title="Configuration" href="/docs/self-hosting/configuration" description="Every environment variable, grouped by purpose." />
+  <Card title="Infrastructure Services" href="/docs/self-hosting/services" description="Deep dive into PostgreSQL, Redis, Vespa, Temporal, and MinIO." />
 </Cards>
 
-## Kernel Tuning
+## Quick Start
 
-Vespa requires elevated `vm.max_map_count`. Set this before starting services:
+Get a full deployment running in under 10 minutes.
 
 ```bash
-sudo sysctl -w vm.max_map_count=262144
-sudo sysctl -w fs.file-max=1048576
+# 1. Clone the repository
+git clone https://github.com/kuluruvineeth/openplane.git
+cd openplane
 
-# Persist across reboots
-echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
-echo "fs.file-max=1048576" | sudo tee -a /etc/sysctl.conf
+# 2. Create your environment file
+cp .env.example .env
+# Edit .env with your secrets (see Configuration page)
+
+# 3. Create the data directory
+sudo mkdir -p /mnt/openplane-data
+
+# 4. Start infrastructure services
+docker compose -f scripts/deploy/infra-hetzner-compose.yaml up -d
+
+# 5. Wait for infrastructure to be healthy (~2-3 minutes)
+docker compose -f scripts/deploy/infra-hetzner-compose.yaml ps
+
+# 6. Start application services
+docker compose -f scripts/deploy/apps-compose.yaml up -d
+
+# 7. Verify everything is running
+docker compose -f scripts/deploy/apps-compose.yaml ps
 ```
+
+Open `http://your-server:3001` to access the web interface.
+
+## Network Architecture
+
+The deployment uses two Docker networks:
+
+| Network | Purpose | Services |
+|---------|---------|----------|
+| `openplane` | Infrastructure services | PostgreSQL, Redis, Vespa, Temporal, MinIO |
+| `openplane-apps` | Application services | Server, Web, Worker, Engine |
+
+Application services join both networks so they can reach infrastructure via Docker DNS (e.g., `redis:6379`, `vespa:8080`). All infrastructure ports are bound to `127.0.0.1` only -- they are not exposed to the public internet.

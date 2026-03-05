@@ -1,33 +1,30 @@
 ---
 title: Node-RED
-description: Connect Node-RED to OpenPlane for flow and automation search
+description: Search across Node-RED flows, node configurations, and automation logic
 ---
 
 # Node-RED
 
-Index flow definitions, node configurations, subflows, and automation logic from Node-RED instances via the Admin API.
+Index flow definitions, node configurations, subflows, and automation logic from Node-RED instances via the Admin API. The connector makes your IoT integration logic searchable so you can find how data moves between systems.
 
-## What Gets Indexed
-
-| Entity | Description |
-|--------|-------------|
-| Flows | Flow name, node topology, connections, subflow references |
-| Node Configurations | Node type, properties, wiring |
-| Settings | Runtime version, installed palette modules |
+Node-RED is a flow-based programming tool for wiring IoT devices, APIs, and online services. This connector indexes the automation logic itself -- not the data flowing through it.
 
 ## Authentication
 
-Node-RED uses an **Admin API access token**. Generate one in your Node-RED instance's settings file or security configuration.
+**Method:** Admin API Access Token
 
-## Sync
+Generate an access token in your Node-RED instance's security configuration or settings file.
 
-| Mode | Supported |
-|------|-----------|
-| Full sync | Yes |
-| Incremental sync | Yes |
-| Real-time | No |
+[Node-RED Admin API docs](https://nodered.org/docs/api/admin/)
 
-Incremental sync uses flow revision tracking to detect changes since the last sync.
+## Data Streams
+
+| Stream | Description | Sync Mode | Interval |
+|--------|-------------|-----------|----------|
+| **Flows** | Flow definitions with node configurations, connections, and subflow references | Periodic | 5 min |
+| **Settings** | Runtime version, installed palette modules, configuration | Periodic | 60 min |
+
+Both streams support full backfill.
 
 ## Setup
 
@@ -37,9 +34,29 @@ Incremental sync uses flow revision tracking to detect changes since the last sy
 4. Enter the Node-RED base URL and access token
 5. Start the initial sync
 
-### Settings
+## Configuration
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| Node-RED URL | — | Base URL of your Node-RED instance (required) |
-| Access Token | — | Admin API access token (required) |
+| Node-RED URL | -- | Base URL of your Node-RED instance (required) |
+| Access Token | -- | Admin API access token (required) |
+
+## Sync Details
+
+**Full sync** fetches all flow definitions from the Node-RED Admin API. Each flow is decomposed into its constituent nodes, and the topology (wiring between nodes) is preserved as searchable metadata.
+
+**Incremental sync** uses flow revision tracking to detect changes since the last sync. Only flows with new revisions are re-indexed.
+
+**Flow documents** include the flow name, node types present (e.g., `mqtt in`, `http request`, `function`), connection topology, and any subflow references. This lets you search for flows by the protocols or services they connect.
+
+**Node configuration** documents capture individual node settings like MQTT broker addresses, HTTP endpoints, and function code. Sensitive credentials are excluded.
+
+**Subflows** are indexed as reusable flow components with their input/output definitions and internal node structure.
+
+## Related Connectors
+
+<Cards>
+  <Card title="MQTT" href="/docs/connectors/mqtt" description="MQTT broker topic subscriptions" />
+  <Card title="ThingsBoard" href="/docs/connectors/thingsboard" description="IoT platform with rule engine" />
+  <Card title="OPC-UA" href="/docs/connectors/opcua" description="Industrial automation data" />
+</Cards>

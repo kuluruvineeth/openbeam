@@ -1,9 +1,11 @@
 ---
 title: Architecture
-description: How OpenPlane works — enterprise search and AI platform
+description: System design, package structure, and design principles behind OpenPlane.
 ---
 
-OpenPlane is an enterprise search and AI platform. It connects to SaaS tools, IoT devices, and industrial systems, indexes everything, and makes it searchable with AI-powered answers.
+# Architecture
+
+OpenPlane is a modular, TypeScript-first platform built as a Turborepo monorepo. It connects to 30+ data sources, syncs content through durable Temporal workflows, indexes everything in Vespa for hybrid search, and serves AI-powered answers grounded in your data.
 
 <ExcalidrawViewer
   src="/diagrams/excalidraw/system-context.excalidraw"
@@ -11,67 +13,102 @@ OpenPlane is an enterprise search and AI platform. It connects to SaaS tools, Io
   height={700}
 />
 
-## How It Works
+## How it works (summary)
 
-1. **Connect** — OAuth or API key into Slack, Gmail, Notion, Linear, GitHub, MQTT, OPC-UA, and 20+ sources
-2. **Sync** — Temporal workflows fetch, transform, chunk, embed, and index documents into Vespa
-3. **Search** — Hybrid BM25 + semantic search with permission-aware filtering
-4. **Answer** — AI agents ground answers in your data with citations
+1. **Connect** -- OAuth or API key into Slack, Gmail, Notion, Linear, GitHub, MQTT, OPC-UA, and 30+ sources
+2. **Sync** -- Temporal workflows fetch, transform, chunk, embed, and index documents into Vespa
+3. **Search** -- Hybrid BM25 + semantic search with permission-aware filtering in under 200ms
+4. **Answer** -- AI agents ground answers in your data with inline citations
 
-## Tech Stack
+<Cards>
+  <Card title="How it works" href="/docs/architecture/how-it-works" description="End-to-end sync and search flows with latency budgets" />
+  <Card title="Data model" href="/docs/architecture/data-model" description="60+ Prisma models across 8 domains" />
+  <Card title="Deployment" href="/docs/architecture/deployment" description="Container topology, network zones, and scaling" />
+</Cards>
 
-| Layer | Technology |
-|-------|------------|
-| Language | TypeScript 5.8+, Zod 4, Go 1.24 (CLI) |
-| Frontend | Next.js 16, React 19, TailwindCSS 4 |
-| API | Hono, tRPC 11, SuperJSON |
-| Orchestration | Temporal (durable workflows) |
-| Search | Vespa (hybrid BM25 + semantic vectors) |
-| Database | PostgreSQL + Prisma |
-| Cache | Redis |
-| AI | Vercel AI SDK (Claude, GPT, Gemini) |
-| Storage | S3/R2 |
-| Edge | SQLite (bun:sqlite), FTS5 + vector |
-| Linter | Biome |
+## App services
 
-## System Boundary
+| App | Port | Runtime | Purpose |
+|-----|------|---------|---------|
+| **web** | `:3001` | Next.js 16 / React 19 | Frontend application |
+| **server** | `:3000` | Hono + tRPC 11 | API server, auth, webhooks |
+| **worker** | -- | Temporal Worker (Node.js) | Sync workflows, document processing, agent execution |
+| **engine** | `:8000` | FastAPI (Python) | Document parsing, embeddings, NER |
+| **cli** | -- | Go 1.24 / Cobra | `openplane` command-line tool |
+| **daemon** | -- | Bun (headless) | Local agent orchestration, session management |
+| **docs** | `:4000` | Fumadocs | Documentation site |
 
-| Component | Port | Purpose |
-|-----------|------|---------|
-| **web** | `:3001` | Next.js frontend |
-| **server** | `:3000` | Hono API server (tRPC) |
-| **worker** | — | Temporal workers (sync, agents, processing) |
-| **engine** | `:8000` / `:8001` | Python ML service (CPU/GPU) |
-| **cli** | — | Go CLI (`openplane` command) |
-| **daemon** | — | Local headless agent/session orchestration |
-| **gateway** | — | IoT protocol gateway (MQTT, BACnet, OPC-UA) |
-| **docs** | `:4000` | Documentation site |
+## Infrastructure
 
-## Packages
+| Service | Port | Purpose |
+|---------|------|---------|
+| **PostgreSQL** | `:5432` | Primary data store (60+ models, Prisma ORM) |
+| **Redis** | `:6379` | Cache, pub/sub, rate limiting, distributed locks |
+| **Vespa** | `:8080` | Hybrid search engine (BM25 + semantic vectors) |
+| **Temporal** | `:7233` | Durable workflow orchestration for syncs and agents |
+| **S3/MinIO** | `:9000` | File and media storage |
 
-| Package | Purpose |
-|---------|---------|
-| `@openplane/types` | Shared type definitions (single source of truth) |
-| `@openplane/ai` | Agents, tools, RAG pipeline |
-| `@openplane/api` | tRPC routers |
-| `@openplane/auth` | Authentication |
-| `@openplane/db` | Prisma schema, queries |
-| `@openplane/services` | Connector business logic |
-| `@openplane/temporal` | Workflows & activities |
-| `@openplane/vespa` | Search client & schemas |
-| `@openplane/redis` | Cache & rate limiting |
-| `@openplane/integrations` | OAuth configs, app definitions |
-| `@openplane/media` | Video processing (TwelveLabs) |
-| `@openplane/storage` | S3/R2 client |
-| `@openplane/mcp` | Model Context Protocol |
-| `@openplane/edge-core` | Edge SQLite storage & sync |
-| `@openplane/edge-search` | Edge hybrid search (FTS5 + vector) |
-| `@openplane/edge-ai` | Edge RAG, NER, query rewriting |
+## Package map
 
-## Principles
+All shared logic lives in packages. Apps are thin adapters that compose packages.
 
-- **Unidirectional dependencies** — Apps depend on packages, never the reverse
-- **Single source of truth** — `@openplane/types` owns all shared types
-- **Durable execution** — Temporal workflows for all background processing
-- **Agent-native** — Every capability is a composable tool
-- **Edge-capable** — Search and AI run offline on SQLite
+```
+apps/
+├── web           → @openplane/api, @openplane/auth, @openplane/ui
+├── server        → @openplane/api, @openplane/services, @openplane/ai, @openplane/temporal
+├── worker        → @openplane/temporal, @openplane/services, @openplane/vespa, @openplane/ai
+├── engine        → standalone Python service
+├── cli           → standalone Go binary
+└── daemon        → @openplane/types (protocol contracts)
+
+packages/
+├── types         ← SINGLE SOURCE OF TRUTH for all shared types
+├── ai            → agents, tools, RAG pipeline, MCP
+├── api           → tRPC routers (consumed by web + server)
+├── auth          → authentication (better-auth)
+├── db            → Prisma schema, typed queries
+├── services      → connector business logic (one dir per connector)
+├── temporal      → workflow definitions + activity implementations
+├── vespa         → search client, schema, GenericDocument
+├── redis         → cache client, rate limiting, locks
+├── integrations  → OAuth configs, app definitions, logos
+├── media         → video processing (TwelveLabs)
+├── storage       → S3/R2 client
+├── edge-core     → SQLite storage, sync protocol, task scheduler
+├── edge-search   → FTS5 + vector hybrid search (offline)
+└── edge-ai       → edge RAG, NER, query rewriting (offline)
+```
+
+## Dependency direction
+
+Dependencies flow in one direction: apps import packages, packages import other packages, never the reverse.
+
+```
+apps/web ──────┐
+apps/server ───┼──> packages/api ──> packages/services ──> packages/db
+apps/worker ───┘         │                  │                  │
+                         │                  │                  │
+                         v                  v                  │
+                  packages/temporal  packages/vespa            │
+                         │                  │                  │
+                         v                  │                  │
+                  packages/redis            │                  │
+                         │                  │                  │
+                         └──────────┬───────┴──────────────────┘
+                                    v
+                           packages/types   ← SINGLE SOURCE OF TRUTH
+```
+
+Circular dependencies are bugs. Run `bun run check:circular` to detect them.
+
+## Design principles
+
+**Durable execution over fire-and-forget.** Every background job runs as a Temporal workflow with automatic retries, checkpointing, and visibility. No cron jobs, no Bull queues, no lost work.
+
+**Permission-aware by default.** Search results are filtered against pre-computed permission tables synced from source systems. Users only see documents they have access to in the original tool.
+
+**Connector isolation.** Each connector is a self-contained plugin in `packages/services/src/{name}/` with its own client, transformer, rate limiter, and tests. No cross-connector imports.
+
+**Agent-native.** Every platform capability is exposed as a composable tool. Agents use the same APIs as the UI. New workflows emerge from prompts, not code.
+
+**Edge-capable.** The edge runtime (`edge-core`, `edge-search`, `edge-ai`) provides offline search and AI on SQLite for air-gapped environments. Merkle-tree-based sync keeps edge nodes consistent with the cloud.

@@ -1,48 +1,55 @@
 ---
-title: Tools
-description: Typed tool definitions, registration, and execution for agents and MCP
+title: Tool Framework
+description: Typed tool definitions with Zod schemas, risk profiles, permission controls, and the global tool registry.
 ---
 
-# Tools
+# Tool Framework
 
-Tools are atomic capabilities that agents invoke to interact with the outside world. Every tool is defined with a Zod schema, registered in the global `toolRegistry`, and made available to both agents and external MCP clients.
+Tools are atomic capabilities that agents invoke to interact with the world. Every tool is defined with a Zod schema, registered in the global `toolRegistry`, and made available to both agents and external MCP clients.
 
 ## Defining a Tool
 
-Use `defineTool()` from `@openplane/ai`:
+Use `defineTool()` to create a typed, self-registering tool:
 
 ```typescript
 import { defineTool, success, failure, z } from "@openplane/ai";
 
 export const searchHybridTool = defineTool({
   name: "search_hybrid",
-  description: `Search across all connected enterprise data sources using hybrid semantic + keyword search.
+  description: `Search across all connected enterprise data sources using hybrid
+semantic + keyword search.
 
 USE THIS WHEN:
-- User asks a general question requiring information from the knowledge base
+- User asks a question requiring information from the knowledge base
 - Query contains specific keywords, names, or exact phrases
+- Research tasks requiring comprehensive results
 
 DO NOT USE WHEN:
 - User wants conceptually similar documents (use search_semantic)
-- User needs to read a specific known document (use doc_get)
+- User needs a specific known document (use doc_get)
 
 RETURNS: Ranked list of documents with relevance scores, snippets, and source metadata.`,
+
   category: "search",
   parameters: z.object({
     query: z.string().min(1).describe("The search query"),
-    limit: z.number().min(1).max(100).optional().default(10),
+    limit: z.number().min(1).max(100).optional().default(10)
+      .describe("Max results (1-100)"),
     filters: z.object({
-      connectorTypes: z.array(z.string()).optional(),
+      connectorTypes: z.array(z.string()).optional()
+        .describe("Filter by source: 'slack', 'notion', 'github', etc."),
       dateRange: z.object({
-        start: z.string().optional(),
-        end: z.string().optional(),
+        start: z.string().optional().describe("ISO 8601 date"),
+        end: z.string().optional().describe("ISO 8601 date"),
       }).optional(),
+      authors: z.array(z.string()).optional()
+        .describe("Filter by author name or email"),
     }).optional(),
   }),
 
   async execute(params, ctx) {
     if (!ctx.teamId) {
-      return failure("UNAUTHORIZED", "Team context required for search");
+      return failure("UNAUTHORIZED", "Team context required");
     }
 
     const result = await ctx.services.search.hybrid({
@@ -53,53 +60,62 @@ RETURNS: Ranked list of documents with relevance scores, snippets, and source me
       accessControlIds: ctx.accessControl,
     });
 
-    return success(
-      {
-        results: result.documents.map((doc) => ({
-          id: doc.id,
-          title: doc.title,
-          snippet: doc.content?.slice(0, 300),
-          score: doc.relevanceScore,
-          source: doc.connectorType,
-          url: doc.url,
-        })),
-        totalCount: result.total,
-        query: params.query,
-      },
-      { latencyMs: result.queryTime, source: "vespa" }
-    );
+    return success({
+      results: result.documents.map(doc => ({
+        id: doc.id,
+        title: doc.title,
+        snippet: doc.content?.slice(0, 300),
+        score: doc.relevanceScore,
+        source: doc.connectorType,
+        url: doc.url,
+      })),
+      totalCount: result.total,
+    }, { latencyMs: result.queryTime, source: "vespa" });
   },
 });
 
-// Register in the global registry
 searchHybridTool.register();
 ```
 
-## Tool Config
+## `defineTool()` API Reference
 
-`defineTool()` accepts these configuration fields:
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | `string` | Yes | Unique tool identifier. Convention: `verb_noun` (e.g., `search_hybrid`). |
+| `description` | `string` | Yes | What the tool does. Include USE/DON'T USE/RETURNS sections for agent guidance. |
+| `category` | `ToolCategory` | Yes | One of 14 categories (see table below). |
+| `parameters` | `z.ZodType` | Yes | Zod schema for input validation. Field `.describe()` is critical for agents. |
+| `execute` | `(params, ctx) => ToolExecutionResult` | Yes | The implementation. Receives validated params and `ToolContext`. |
+| `deferLoading` | `boolean` | No | If `true`, tool is not loaded by default -- agents must request it explicitly. |
+| `searchKeywords` | `string[]` | No | Additional keywords for tool discovery search. |
+| `requiredPermissions` | `string[]` | No | Permission IDs the user must have to use this tool. |
+| `allowedCallers` | `AllowedCaller[]` | No | Who can invoke: `"agent"`, `"mcp"`, `"ui"`. Default: `["agent", "mcp"]`. |
+| `cacheTtlMs` | `number` | No | Cache TTL for results. |
+| `cacheKeyFn` | `(params) => string` | No | Custom cache key function. |
+| `stakes` | `StakesLevel` | No | `"low"`, `"medium"`, `"high"`. Affects approval requirements. |
+| `reversibility` | `ReversibilityLevel` | No | `"easy"`, `"hard"`, `"irreversible"`. Affects approval requirements. |
+| `approval` | `ApprovalPattern` | No | Override auto-derived approval pattern. |
+| `pricing` | `object` | No | Per-invocation pricing for paid tools. |
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `name` | `string` | Unique identifier (snake_case) |
-| `description` | `string` | LLM-facing description with USE/DON'T USE guidance |
-| `category` | `ToolCategory` | Grouping for filtering and permissions |
-| `parameters` | `z.ZodType` | Zod schema for input validation |
-| `execute` | `(params, ctx) => Result` | Execution function |
-| `deferLoading` | `boolean` | If true, tool is hidden until explicitly requested |
-| `searchKeywords` | `string[]` | Extra keywords for tool search |
-| `requiredPermissions` | `string[]` | Permissions the caller must have |
-| `allowedCallers` | `AllowedCaller[]` | `"agent"`, `"mcp"`, or both |
-| `cacheTtlMs` | `number` | Response cache duration |
-| `cacheKeyFn` | `(params) => string` | Custom cache key derivation |
-| `stakes` | `StakesLevel` | `"low"`, `"medium"`, `"high"` |
-| `reversibility` | `ReversibilityLevel` | `"easy"`, `"hard"`, `"irreversible"` |
-| `approval` | `ApprovalPattern` | Override auto-derived approval pattern |
-| `pricing` | `object` | Per-call cost metadata |
+## Result Helpers
 
-## Result Types
+Every tool must return a `ToolExecutionResult`. Use the `success()` and `failure()` helpers:
 
-Tools return `ToolExecutionResult<T>`:
+```typescript
+// Success with data and metadata
+return success(data, { latencyMs: 42, source: "vespa" });
+
+// Failure with error code
+return failure("NOT_FOUND", "Document not found");
+
+// Failure with options
+return failure("RATE_LIMITED", "Too many requests", {
+  retryable: true,
+  suggestion: "Wait 30 seconds and try again",
+});
+```
+
+**Result shape:**
 
 ```typescript
 interface ToolExecutionResult<T> {
@@ -120,225 +136,230 @@ interface ToolExecutionResult<T> {
 }
 ```
 
-Use the `success()` and `failure()` helpers:
+## Error Codes
 
-```typescript
-// Successful result
-return success(data, { latencyMs: 42, source: "vespa" });
+| Code | Description | Retryable |
+|------|-------------|-----------|
+| `RATE_LIMITED` | API rate limit exceeded | Yes |
+| `UNAUTHORIZED` | Authentication failed or insufficient permissions | No |
+| `FORBIDDEN` | Access forbidden for this operation | No |
+| `NOT_FOUND` | Requested resource not found | No |
+| `TIMEOUT` | Operation timed out | Yes |
+| `INVALID_INPUT` | Input parameters are invalid | No |
+| `INVALID_STATE` | Operation not valid in current state | No |
+| `PROVIDER_ERROR` | External service error | Yes |
+| `QUOTA_EXCEEDED` | Usage quota exceeded | No |
+| `NETWORK_ERROR` | Network connectivity error | Yes |
+| `INTERNAL_ERROR` | Unexpected internal error | Yes |
+| `PAYMENT_REQUIRED` | Payment required for this tool | No |
+| `BUDGET_EXCEEDED` | Budget limit exceeded | No |
 
-// Error result
-return failure("NOT_FOUND", "Document not found", {
-  retryable: false,
-  suggestion: "Verify the document ID or search for alternatives.",
-});
-```
+## Tool Categories
 
-### Error Codes
-
-| Code | Retryable | Description |
-|------|-----------|-------------|
-| `RATE_LIMITED` | Yes | API rate limit exceeded |
-| `UNAUTHORIZED` | No | Authentication failed |
-| `FORBIDDEN` | No | Insufficient permissions |
-| `NOT_FOUND` | No | Resource not found |
-| `TIMEOUT` | Yes | Operation timed out |
-| `INVALID_INPUT` | No | Invalid parameters |
-| `INVALID_STATE` | No | Operation not valid in current state |
-| `PROVIDER_ERROR` | Yes | External service error |
-| `QUOTA_EXCEEDED` | No | Usage quota exceeded |
-| `NETWORK_ERROR` | Yes | Network connectivity issue |
-| `INTERNAL_ERROR` | Yes | Unexpected internal error |
-| `PAYMENT_REQUIRED` | No | Payment needed |
-| `BUDGET_EXCEEDED` | No | Budget limit reached |
-
-## Tool Context
-
-Every tool execution receives a `ToolContext`:
-
-```typescript
-interface ToolContext {
-  teamId: string;
-  userId: string;
-  sessionId?: string;
-  accessControl?: string[];
-  abortSignal?: AbortSignal;
-  metadata?: Record<string, unknown>;
-  services: ToolServices;
-  memory?: MemoryAccess;
-  canvasState?: CanvasStateAccess;
-}
-```
-
-`services` provides access to search, database, storage, and other backend services. The agent's `LlmAgent` automatically builds and injects the context before tool execution.
-
-## Risk Profiles
-
-Tools declare their risk level, and the system derives an approval pattern:
-
-```
-            easy          hard          irreversible
-low         auto          quick-confirm explicit
-medium      quick-confirm suggest-apply explicit
-high        suggest-apply explicit      explicit
-```
-
-```typescript
-defineTool({
-  name: "connector_sync",
-  stakes: "medium",
-  reversibility: "hard",
-  // Derived: approval = "suggest-apply"
-  // ...
-});
-```
-
-| Approval Pattern | Behavior |
-|------------------|----------|
-| `auto` | Execute without confirmation |
-| `quick-confirm` | Brief confirmation prompt |
-| `suggest-apply` | Show plan, wait for approval |
-| `explicit` | Full approval flow required |
+| Category | Description | Example Tools |
+|----------|-------------|---------------|
+| `search` | Search across data sources | `search_hybrid`, `search_semantic`, `search_similar` |
+| `rag` | Retrieval-augmented generation | `rag_answer`, `rag_analyze`, `rag_verify`, `rag_synthesize` |
+| `documents` | Document operations | `doc_get`, `doc_list`, `doc_chunks`, `doc_share` |
+| `connectors` | Connector management | `connector_list`, `connector_sync`, `connector_status` |
+| `data` | Data queries and analysis | `data_query` |
+| `media` | Media processing | Video/audio analysis tools |
+| `browser` | Web browsing | Page scraping, web search |
+| `canvas` | Canvas manipulation | Node/edge operations |
+| `voice` | Voice interaction | Speech-to-text, text-to-speech |
+| `action` | Side-effect actions | External API calls |
+| `analysis` | Data analysis | Statistical analysis, trend detection |
+| `integration` | Third-party integrations | Integration-specific operations |
+| `system` | System operations | Health checks, configuration |
+| `skills` | Composite skill tools | Multi-step skill execution |
 
 ## Tool Registry
 
-The `toolRegistry` singleton manages all registered tools:
+The `toolRegistry` singleton manages all registered tools and provides contextual access.
+
+### Registration
 
 ```typescript
 import { toolRegistry } from "@openplane/ai";
 
-// Registration
-toolRegistry.register(metadata, coreTool);
+// Tools self-register via .register()
+searchHybridTool.register();
 
-// Lookup
-const tool = toolRegistry.getTool("search_hybrid");
-const metadata = toolRegistry.getMetadata("search_hybrid");
-
-// Filtering
-const searchTools = toolRegistry.getByCategory("search");
-const allTools = toolRegistry.getAllTools();
-const alwaysLoaded = toolRegistry.getAlwaysLoadedTools();
-
-// Permission-aware filtering
-const contextualTools = toolRegistry.getContextualTools(toolContext);
-
-// Search by name/description/keywords
-const results = await toolRegistry.search({ query: "find documents", limit: 5 });
-
-// Multi-execution
-const results = await toolRegistry.multiExecute({
-  tools: ["search_hybrid", "doc_get"],
-  inputs: [{ query: "API docs" }, { documentId: "doc_123" }],
-  ctx: toolContext,
-  parallel: true,
-  maxConcurrency: 5,
-});
+// Or register manually
+toolRegistry.register(metadata, coreTool, cacheKeyFn);
 ```
 
-### Bulk Registration
-
-Use `registerAllTools()` to register all built-in tool categories at once:
+### Retrieving Tools
 
 ```typescript
-import { registerAllTools } from "@openplane/ai/tools/definitions";
+// Single tool
+const tool = toolRegistry.getTool("search_hybrid");
 
-const failedCount = registerAllTools();
-// Returns 0 if all categories registered, or the count of failures
+// All tools as Record<string, AISDKTool>
+const allTools = toolRegistry.getAllTools();
+
+// By category
+const searchTools = toolRegistry.getByCategory("search");
+
+// By multiple categories
+const readTools = toolRegistry.getByCategoryTools(["search", "rag", "documents"]);
+
+// Contextual (respecting permissions and deferred loading)
+const tools = toolRegistry.getContextualTools(context);
+
+// With explicit mask (loaded deferred tools, disabled tools)
+const tools = toolRegistry.getToolsWithMask(context, {
+  loaded: ["connector_sync"],
+  disabled: ["doc_delete"],
+});
 ```
 
 ### Context Management
 
-The registry uses `AsyncLocalStorage` to propagate `ToolContext` to tool execution:
+Tools access execution context (team, user, permissions) through `AsyncLocalStorage`:
 
 ```typescript
-// Set context for the current async scope
-toolRegistry.setCurrentContext(ctx);
-
-// Or run a function with context
-toolRegistry.runWithContext(ctx, () => {
-  // Tools called here receive this context
-});
+// Run tools within a context
+const result = await toolRegistry.runWithContextAsync(
+  {
+    teamId: "team_123",
+    userId: "user_456",
+    accessControl: ["group:engineering"],
+    services: boundServices,
+  },
+  async () => {
+    // Tools called here receive this context automatically
+    return someToolExecution();
+  }
+);
 ```
 
-### Execution Hooks
+### Tool Search
 
-Observe tool executions globally:
+Find tools by keyword when you don't know the exact name:
+
+```typescript
+const results = await toolRegistry.search({
+  query: "find documents",
+  category: "search",
+  limit: 5,
+});
+// Returns ToolMetadata[] ranked by relevance
+```
+
+### Multi-Execution
+
+Execute multiple tools in parallel or sequentially:
+
+```typescript
+const result = await toolRegistry.multiExecute({
+  tools: ["search_hybrid", "search_semantic"],
+  inputs: [
+    { query: "deployment guide", limit: 5 },
+    { query: "deployment guide", limit: 5 },
+  ],
+  ctx: toolContext,
+  parallel: true,
+  maxConcurrency: 5,
+});
+// result.results: ToolExecutionResult[]
+// result.totalLatencyMs: number
+// result.parallelized: boolean
+```
+
+### Execution Callbacks
+
+Monitor tool executions for observability:
 
 ```typescript
 const unsubscribe = toolRegistry.onExecute((tool, params, result, durationMs) => {
-  console.log(`${tool.metadata.name}: ${durationMs}ms`);
+  metrics.recordToolCall(tool.metadata.name, durationMs);
 });
 ```
 
-## Tool Categories
+## Risk Profiles and Approval
 
-Tools are organized into 19 categories, each in a separate directory under `packages/ai/src/tools/definitions/`:
+Tools can declare their risk level. The approval pattern is auto-derived from `stakes` and `reversibility`:
 
-| Category | Directory | Key Tools |
-|----------|-----------|-----------|
-| **search** | `search/` | `search_hybrid`, `search_semantic`, `search_similar`, `search_web` |
-| **rag** | `rag/` | `rag_answer`, `rag_analyze`, `rag_verify`, `rag_synthesize`, `rag_ground` |
-| **documents** | `documents/` | `doc_get`, `doc_list`, `doc_chunks`, `doc_export`, `doc_share` |
-| **connectors** | `connectors/` | `connector_list`, `connector_sync`, `connector_status`, `connector_pause` |
-| **data** | `data/` | `data_query` |
-| **context** | `context/` | Context-related tools |
-| **memory** | `memory/` | Memory read/write tools |
-| **overview** | `overview/` | Overview and summary tools |
-| **preferences** | `preferences/` | User preferences tools |
-| **system** | `system/` | System status tools |
-| **storage** | `storage/` | File storage operations |
-| **media** | `media/` | Media processing tools |
-| **integrations** | `integrations/` | Third-party integration actions |
-| **browser** | `browser/` | Web navigation and scraping |
-| **canvas** | `canvas/` | Agent canvas operations |
-| **visualization** | `visualization/` | Data visualization generation |
-| **voice** | `voice/` | Voice/audio processing |
-| **workspace** | `workspace/` | Workspace management |
-| **sandbox** | `sandbox/` | Code execution sandbox |
-
-### Deferred Loading
-
-Tools marked with `deferLoading: true` are hidden from agents by default. They must be explicitly requested (by name) or discovered via `toolRegistry.search()`:
+| Stakes / Reversibility | Easy | Hard | Irreversible |
+|------------------------|------|------|-------------|
+| **Low** | `auto` | `quick-confirm` | `explicit` |
+| **Medium** | `quick-confirm` | `suggest-apply` | `explicit` |
+| **High** | `suggest-apply` | `explicit` | `explicit` |
 
 ```typescript
-defineTool({
-  name: "sandbox_execute",
+const deleteTool = defineTool({
+  name: "doc_delete",
+  description: "Delete a document permanently",
+  category: "documents",
+  stakes: "high",
+  reversibility: "irreversible",
+  // Auto-derives approval: "explicit"
+  parameters: z.object({ documentId: z.string() }),
+  execute: async (params, ctx) => { /* ... */ },
+});
+```
+
+**Approval patterns:**
+
+| Pattern | Behavior |
+|---------|----------|
+| `auto` | Executes without confirmation |
+| `quick-confirm` | One-click confirmation dialog |
+| `suggest-apply` | Shows plan, user approves or edits |
+| `explicit` | Full review with detailed explanation |
+
+## Permission Modes
+
+Four permission modes control which tool categories are available:
+
+| Mode | Allowed Categories | Can Write | Can Execute |
+|------|-------------------|-----------|-------------|
+| `default` | search, rag, documents, data, analysis | No | No |
+| `readOnly` | search, rag, documents, data | No | No |
+| `elevated` | All categories | Yes | Yes |
+| `plan` | search, rag, documents, data, analysis | No | No |
+
+## Deferred Loading
+
+Tools marked with `deferLoading: true` are not loaded into the agent's tool set by default. This keeps the tool count manageable for the LLM. Agents discover and load deferred tools on demand:
+
+```typescript
+const specializedTool = defineTool({
+  name: "connector_sync",
   deferLoading: true,
-  searchKeywords: ["run", "execute", "code", "script"],
+  searchKeywords: ["sync", "refresh", "update"],
   // ...
 });
 ```
 
-## Writing Tool Descriptions
+## Creating Custom Tools
 
-Good tool descriptions are the single most important factor in agent effectiveness. Follow these patterns:
+To add a new tool:
 
-<Callout type="info">
-The description is what the LLM reads to decide when and how to use your tool. Write it as guidance for the model, not as API documentation for humans.
-</Callout>
-
-```typescript
-// Structure: What it does + WHEN to use + WHEN NOT to use + WHAT it returns
-description: `Search across all connected enterprise data sources using hybrid search.
-
-USE THIS WHEN:
-- User asks a factual question requiring knowledge base lookup
-- Query contains specific keywords, names, or exact phrases
-- Research tasks requiring comprehensive results
-
-DO NOT USE WHEN:
-- User wants conceptually similar documents (use search_semantic)
-- User needs a specific known document (use doc_get)
-
-RETURNS: Ranked documents with relevance scores, snippets, and source metadata.`
-```
-
-Parameter descriptions should include examples and constraints:
+1. Create the file in `packages/ai/src/tools/definitions/{category}/`
+2. Define the tool with `defineTool()`
+3. Export and re-export from the category's `index.ts`
+4. Call `.register()` at module load time
 
 ```typescript
-query: z.string().describe(
-  "The search query. Supports natural language, keywords, and exact phrases in quotes. Examples: 'Q3 revenue', '\"API documentation\"'"
-),
-limit: z.number().min(1).max(100).optional().default(10).describe(
-  "Max results (1-100). Use 5-10 for focused queries, 20-50 for research."
-),
+// packages/ai/src/tools/definitions/search/my-tool.ts
+import { defineTool, success, z } from "../../builder";
+
+export const mySearchTool = defineTool({
+  name: "search_custom",
+  description: "Custom search with special ranking",
+  category: "search",
+  parameters: z.object({
+    query: z.string().describe("Search query"),
+  }),
+  async execute(params, ctx) {
+    const results = await ctx.services.search.custom(params.query, ctx.teamId);
+    return success(results);
+  },
+});
+
+mySearchTool.register();
 ```
+
+The tool is immediately available to agents and MCP clients after registration.

@@ -1,154 +1,109 @@
 ---
-title: Documentation
-description: Open source enterprise search and AI assistant platform
+title: OpenPlane
+description: Open source enterprise search and AI assistant. Connect every tool your team uses, search everything in one place, get AI-powered answers grounded in your data.
 ---
 
-# OpenPlane
+# Search everything your team knows
 
-Open source enterprise search and AI assistant. Self-hosted alternative to Glean.
+OpenPlane connects to your SaaS tools, indexes every document, message, and file, and gives your team instant AI-powered answers with citations. Open source alternative to Glean.
 
-## Architecture
+<Cards>
+  <Card title="Get started in 5 minutes" href="/docs/getting-started" description="Clone, configure, and run your first search query" />
+  <Card title="Architecture" href="/docs/architecture" description="System design, data flow, and deployment topology" />
+  <Card title="Connectors" href="/docs/connectors" description="Connect Slack, Gmail, Notion, GitHub, and 30+ sources" />
+  <Card title="AI & Agents" href="/docs/ai" description="RAG pipeline, agent canvas, and tool orchestration" />
+  <Card title="Self-Hosting" href="/docs/self-hosting" description="Deploy on your own infrastructure with Docker Compose" />
+  <Card title="CLI Reference" href="/docs/cli" description="Command-line interface for search, sync, and admin" />
+</Cards>
 
-```mermaid
-flowchart TB
-    subgraph Clients
-        Web[Web UI]
-        CLI[Go CLI]
-        Daemon[Local Daemon]
-    end
+## What you can do
 
-    subgraph API["API Layer"]
-        Server[Hono + tRPC]
-    end
+| Capability | How it works |
+|------------|-------------|
+| **Unified search** | Hybrid BM25 + semantic search across all connected sources in under 200ms |
+| **AI answers** | Grounded responses with citations from your actual documents |
+| **30+ connectors** | Slack, Gmail, Google Drive, Notion, Linear, GitHub, Jira, Confluence, MQTT, OPC-UA, and more |
+| **Permission-aware** | Results respect source permissions. Users only see what they have access to |
+| **Agent canvas** | Visual builder for multi-step AI workflows with human-in-the-loop approvals |
+| **Edge runtime** | Offline-capable search and AI on SQLite for air-gapped environments |
 
-    subgraph Processing
-        Worker[Temporal Worker]
-        Engine[Python Engine]
-    end
+## System at a glance
 
-    subgraph Storage
-        DB[(PostgreSQL)]
-        Redis[(Redis)]
-        Vespa[(Vespa)]
-        S3[(S3/R2)]
-    end
-
-    subgraph Edge["Edge Runtime"]
-        EdgeCore[SQLite + Sync]
-        EdgeSearch[FTS5 + Vector]
-        EdgeAI[Local RAG]
-    end
-
-    subgraph Connectors
-        SaaS[Slack, Gmail, Notion, Linear, GitHub]
-        IoT[Samsara, AWS IoT, Azure IoT]
-        Industrial[MQTT, OPC-UA, BACnet]
-        Physical[FHIR, Matterport, Viam]
-    end
-
-    Web --> Server
-    CLI --> Server
-    Daemon --> Server
-    Server --> DB & Redis & Vespa & Worker
-    Worker --> Engine & Connectors & Vespa & S3
-    EdgeCore --> EdgeSearch --> EdgeAI
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Clients                                                    │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
+│  │  Web UI  │  │   CLI    │  │  Daemon  │  │  Slack   │   │
+│  │  :3001   │  │   Go     │  │  Local   │  │   Bot    │   │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘   │
+│       └──────────────┴─────────────┴──────────────┘         │
+│                            │                                │
+│  ┌─────────────────────────▼──────────────────────────┐     │
+│  │  API Server (Hono + tRPC)              :3000       │     │
+│  └─────┬───────────────┬───────────────┬──────────────┘     │
+│        │               │               │                    │
+│  ┌─────▼─────┐  ┌──────▼──────┐  ┌────▼────────┐          │
+│  │ PostgreSQL│  │    Vespa    │  │   Temporal  │          │
+│  │   :5432   │  │    :8080    │  │    :7233    │          │
+│  └───────────┘  └─────────────┘  └──────┬──────┘          │
+│                                         │                   │
+│  ┌──────────────────────────────────────▼──────────────┐   │
+│  │  Worker                                              │   │
+│  │  Sync workflows · Document processing · Agent runs   │   │
+│  └─────┬──────────────────────────────────┬─────────────┘   │
+│        │                                  │                 │
+│  ┌─────▼─────┐                     ┌──────▼──────┐         │
+│  │  Engine   │                     │  Connectors │         │
+│  │  Python   │                     │  30+ APIs   │         │
+│  │  :8000    │                     │  OAuth/Keys │         │
+│  └───────────┘                     └─────────────┘         │
+│                                                             │
+│  ┌────────────┐  ┌────────────┐                            │
+│  │   Redis    │  │  S3/MinIO  │                            │
+│  │   :6379    │  │   :9000    │                            │
+│  └────────────┘  └────────────┘                            │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-## Stack
+## Tech stack
 
 | Layer | Technology |
 |-------|------------|
 | Language | TypeScript 5.8+, Zod 4 |
-| Frontend | Next.js 16, React 19, TailwindCSS 4 |
+| Frontend | Next.js 16, React 19, TailwindCSS 4, shadcn/ui |
 | API | Hono, tRPC 11, SuperJSON |
-| Workers | Temporal |
-| ML Engine | FastAPI, Unstructured |
-| Search | Vespa (BM25 + semantic) |
+| Orchestration | Temporal (durable workflows) |
+| Search | Vespa (hybrid BM25 + semantic vectors) |
+| Database | PostgreSQL 16 + Prisma |
+| Cache | Redis 8 |
 | AI | Vercel AI SDK (Claude, GPT, Gemini) |
-| Database | PostgreSQL, Prisma |
-| Cache/Queue | Redis |
-| Storage | S3/R2 |
+| Storage | S3/R2/MinIO |
+| ML Engine | Python, FastAPI, Unstructured |
 | CLI | Go 1.24, Cobra |
-| Edge | SQLite (bun:sqlite), FTS5 |
+| Edge | SQLite (bun:sqlite), FTS5, vector search |
+| Monorepo | Turborepo + bun workspaces |
 | Linter | Biome (via Ultracite) |
-
-## Project Structure
-
-```
-apps/
-├── web         # Next.js frontend (:3001)
-├── server      # Hono API + tRPC (:3000)
-├── worker      # Temporal worker
-├── engine      # Python ML service (:8000)
-├── cli         # Go CLI (openplane command)
-├── daemon      # Local headless agent daemon
-├── gateway     # IoT protocol gateway
-└── docs        # Documentation (:4000)
-
-packages/
-├── types       # Shared type definitions (single source of truth)
-├── ai          # Agents, tools, RAG pipeline
-├── api         # tRPC routers
-├── auth        # Authentication
-├── db          # Prisma schema, queries
-├── services    # Connector business logic
-├── temporal    # Workflows & activities
-├── redis       # Cache & rate limiting
-├── vespa       # Search client & schemas
-├── media       # Video processing
-├── storage     # S3/R2 client
-├── integrations # OAuth configs, app definitions
-├── mcp         # Model Context Protocol
-├── edge-core   # Edge SQLite storage & sync
-├── edge-search # Edge hybrid search (FTS5 + vector)
-└── edge-ai     # Edge RAG, NER, query rewriting
-```
-
-## Data Flow
-
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant W as Web
-    participant S as Server
-    participant T as Temporal
-    participant P as Worker
-    participant E as Engine
-    participant V as Vespa
-
-    U->>W: Search query
-    W->>S: tRPC request
-    S->>V: Hybrid search (BM25 + semantic)
-    V-->>S: Permission-filtered results
-    S-->>W: Response
-    W-->>U: Display
-
-    Note over T,E: Background Sync
-    S->>T: Trigger sync workflow
-    T->>P: Execute activities
-    P->>E: Parse documents
-    E-->>P: Chunks + embeddings
-    P->>V: Index
-```
 
 ## Connectors
 
-| Category | Connectors | Status |
-|----------|-----------|--------|
-| Communication | Slack | Available |
-| Email | Gmail | Available |
-| Storage | Google Drive | Available |
-| Productivity | Notion, Linear | Available |
-| Code | GitHub | Available |
-| IoT | Samsara, AWS IoT, Azure IoT, SmartThings, Verkada | Available |
-| Industrial | MQTT, OPC-UA, BACnet, ThingsBoard, Node-RED | Available |
-| Physical AI | FHIR, Matterport, Omniverse, Viam | Available |
+| Category | Sources |
+|----------|---------|
+| Communication | Slack, Microsoft Teams, Discord |
+| Email | Gmail, Outlook |
+| Cloud Storage | Google Drive, OneDrive, SharePoint, Dropbox, Box |
+| Knowledge | Notion, Confluence, Coda |
+| Project Management | Jira, Linear, Asana, Trello, ClickUp, Monday, Basecamp |
+| Code | GitHub, GitLab, Bitbucket |
+| CRM | Salesforce, HubSpot, Pipedrive |
+| Support | Zendesk, Intercom, Freshdesk, ServiceNow |
+| IoT | Samsara, AWS IoT, Azure IoT, SmartThings, Verkada |
+| Industrial | MQTT, OPC-UA, BACnet, ThingsBoard, Node-RED |
+| Physical AI | FHIR, Matterport, Omniverse, Viam |
+
+## Deep dives
 
 <Cards>
-  <Card title="Getting Started" href="/docs/getting-started" description="Deploy OpenPlane in minutes" />
-  <Card title="Architecture" href="/docs/architecture" description="System design and runtime flows" />
-  <Card title="Connectors" href="/docs/connectors" description="Connect your tools" />
-  <Card title="Self-Hosting" href="/docs/self-hosting" description="Deploy on your infrastructure" />
-  <Card title="AI & Agents" href="/docs/ai" description="Search assistant and agent framework" />
-  <Card title="CLI" href="/docs/cli" description="Command-line interface" />
+  <Card title="How it works" href="/docs/architecture/how-it-works" description="End-to-end flow from connect to answer" />
+  <Card title="Data model" href="/docs/architecture/data-model" description="60+ models across 8 domains" />
+  <Card title="Deployment" href="/docs/architecture/deployment" description="Container topology and scaling guide" />
 </Cards>

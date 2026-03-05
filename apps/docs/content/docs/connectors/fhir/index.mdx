@@ -1,75 +1,97 @@
 ---
 title: FHIR Healthcare
-description: Connect FHIR R4/R5 servers to OpenPlane for de-identified clinical data search
+description: Index de-identified clinical data from FHIR R4/R5 servers with HIPAA compliance
 ---
 
 # FHIR Healthcare
 
-Index de-identified clinical data from FHIR-compliant healthcare systems (Epic, Cerner, HAPI FHIR, Medplum) with mandatory PHI de-identification and HIPAA-compliant data pipelines.
+Index de-identified clinical data from any FHIR-compliant healthcare system -- Epic, Cerner, HAPI FHIR, Medplum. The connector supports SMART on FHIR authentication, Bulk Data Export for full sync, R5 topic-based Subscriptions for incremental updates, and mandatory PHI de-identification.
 
-## What Gets Indexed
-
-All data is de-identified using the Safe Harbor method before indexing.
-
-| Entity | Description |
-|--------|-------------|
-| Observations | Vital signs, lab results, clinical measurements |
-| Encounters | Visit type, date, status, service provider |
-| Conditions | Diagnosis code, clinical status, verification |
-| Procedures | Procedure code, status, performed date |
-| Devices | Device type, manufacturer, status, location |
-| Device Metrics | Calibration data, measurement readings |
-| Diagnostic Reports | Report type, status, results, conclusion |
-| Document References | Document type, content, authoring date |
-| Medications | Medication code, dosage, route |
-| Patients | De-identified demographic data |
+All data passes through the Safe Harbor de-identification pipeline before indexing. This connector is designed for HIPAA-compliant clinical data search.
 
 ## Authentication
 
-FHIR uses **SMART on FHIR backend services** authentication (JWT-based). The connector signs a JWT assertion with a private key and exchanges it for an access token at the FHIR server's token endpoint.
+**Method:** SMART on FHIR Backend Services (JWT)
+
+The connector uses the SMART on FHIR backend services flow: it signs a JWT assertion with a private key and exchanges it for an access token at the FHIR server's token endpoint.
 
 Required credentials:
 - **Client ID** from your SMART on FHIR application registration
-- **RSA/EC Private Key (PEM)** for JWT signing
+- **RSA or EC Private Key (PEM)** for JWT assertion signing
 
-## Sync
+[SMART on FHIR docs](https://docs.smarthealthit.org/)
 
-| Mode | Supported |
-|------|-----------|
-| Full sync | Yes (via Bulk Data Export) |
-| Incremental sync | Yes (via R5 Subscriptions or `_lastUpdated` filter) |
-| Real-time | No |
+## Data Streams
 
-Full sync uses the FHIR Bulk Data Export (`$export`) operation for efficient retrieval of large datasets. Incremental sync uses R5 topic-based Subscriptions when available, falling back to `_lastUpdated` query filters.
+| Stream | Description | Sync Mode | Interval |
+|--------|-------------|-----------|----------|
+| **Clinical Data** | De-identified observations, encounters, conditions, procedures, diagnostic reports, document references, medications | Periodic | 60 min |
+| **Medical Devices** | Device type, manufacturer, status, location, calibration data | Periodic | 60 min |
+
+Both streams support full backfill via FHIR Bulk Data Export.
+
+### Supported FHIR Resource Types
+
+| Resource | What gets indexed |
+|----------|-----------------|
+| Patient | De-identified demographics (age range, gender) |
+| Observation | Vital signs, lab results, clinical measurements |
+| Encounter | Visit type, date, status, service provider |
+| Condition | Diagnosis code, clinical status, verification |
+| Procedure | Procedure code, status, performed date |
+| Device | Device type, manufacturer, status, location |
+| DeviceMetric | Calibration data, measurement readings |
+| DiagnosticReport | Report type, status, results, conclusion |
+| DocumentReference | Document type, content, authoring date |
+| MedicationRequest | Medication code, dosage, route |
 
 ## PHI De-identification
 
-De-identification is **mandatory** and enabled by default. The connector implements the Safe Harbor method, removing all 18 HIPAA identifier categories:
+De-identification is **mandatory** and enabled by default. The connector implements the HIPAA Safe Harbor method, stripping all 18 identifier categories before any data enters the search index:
 
-- Names, dates (except year), addresses, phone numbers, email addresses
+- Names, geographic data smaller than state, dates (except year), phone numbers, email addresses
 - Social Security numbers, medical record numbers, health plan beneficiary numbers
 - Account numbers, certificate/license numbers, vehicle identifiers
-- Device identifiers, URLs, IP addresses, biometric identifiers
-- Full-face photographs, any other unique identifying number
+- Device identifiers, URLs, IP addresses, biometric identifiers, full-face photographs
+- Any other unique identifying number, characteristic, or code
 
-Consent-aware search filtering uses FHIR Consent resources to restrict access based on patient consent status.
+<Callout type="warn">
+Disabling PHI de-identification removes HIPAA compliance. Only disable in development environments with synthetic data.
+</Callout>
+
+**Consent-aware search** uses FHIR Consent resources to restrict access based on patient consent status. Documents linked to patients without active consent are excluded from search results.
 
 ## Setup
 
 1. Register a **SMART on FHIR backend services** application with your FHIR server
-2. Generate an RSA or EC key pair for JWT signing
+2. Generate an RSA or EC key pair for JWT assertion signing
 3. In OpenPlane, add the FHIR connector
 4. Enter the FHIR server URL, FHIR version (R4 or R5), Client ID, and private key
 5. Optionally configure which resource types to sync
 6. Start the initial sync
 
-### Settings
+## Configuration
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| FHIR Server URL | — | Base URL of the FHIR server (required) |
+| FHIR Server URL | -- | Base URL of the FHIR server (required) |
 | FHIR Version | R4 | R4 (4.0.1) or R5 (5.0.0) |
-| Client ID | — | SMART on FHIR application client ID (required) |
-| Private Key (PEM) | — | RSA/EC private key for JWT signing (required) |
+| Client ID | -- | SMART on FHIR application client ID (required) |
+| Private Key (PEM) | -- | RSA/EC private key for JWT signing (required) |
 | PHI De-identification | On | Safe Harbor de-identification (required for HIPAA) |
-| Resource Types | Patient, Observation, Device, Encounter, Condition | FHIR resource types to sync |
+| Resource Types | Patient, Observation, Device, Encounter, Condition | FHIR resource types to sync (one per line) |
+
+## Sync Details
+
+**Full sync** uses the FHIR Bulk Data Export (`$export`) operation. This is an asynchronous operation: the connector kicks off the export, polls for completion, then downloads and processes the NDJSON output files. Bulk Export is the most efficient way to retrieve large clinical datasets.
+
+**Incremental sync** uses R5 topic-based Subscriptions when the server supports them. The connector registers for notifications on resource changes and processes updates as they arrive. On R4 servers or when subscriptions are unavailable, the connector falls back to querying with `_lastUpdated` filters.
+
+All data passes through the de-identification pipeline before indexing, regardless of sync mode.
+
+## Related Connectors
+
+<Cards>
+  <Card title="Viam Robotics" href="/docs/connectors/viam" description="Robot fleet and medical device telemetry" />
+  <Card title="Matterport" href="/docs/connectors/matterport" description="3D spatial scans of healthcare facilities" />
+</Cards>

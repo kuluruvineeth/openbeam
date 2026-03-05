@@ -1,44 +1,58 @@
 ---
 title: SmartThings
-description: Connect Samsung SmartThings to OpenPlane for device and automation search
+description: Search across Samsung SmartThings devices, locations, and automation scenes
 ---
 
 # SmartThings
 
-Index IoT devices, locations, rooms, and automation scenes from Samsung SmartThings using a Personal Access Token.
+Index IoT devices, locations, rooms, and automation scenes from Samsung SmartThings. The connector uses a Personal Access Token and provides device capability, health status, and component-level detail.
 
-## What Gets Indexed
-
-| Entity | Description |
-|--------|-------------|
-| Devices | Name, type, capabilities, health status, location, room |
-| Locations | Name, timezone, country, temperature scale |
-| Scenes | Name, associated location, last execution time |
+SmartThings brings consumer and commercial IoT devices into your search index -- lights, sensors, locks, thermostats, and the automations that control them.
 
 ## Authentication
 
-SmartThings uses a **Personal Access Token (PAT)**. Generate one from the [SmartThings Developer Portal](https://account.smartthings.com/tokens).
+**Method:** Personal Access Token (PAT)
 
-## Sync
+Generate a token from the [SmartThings Developer Portal](https://account.smartthings.com/tokens). The token requires device and location read permissions.
 
-| Mode | Supported |
-|------|-----------|
-| Full sync | Yes |
-| Incremental sync | Yes |
-| Real-time | No |
+[SmartThings authorization docs](https://developer.smartthings.com/docs/getting-started/authorization-and-permissions)
 
-Incremental sync polls the SmartThings API for changes since the last sync timestamp.
+## Data Streams
+
+| Stream | Description | Sync Mode | Interval |
+|--------|-------------|-----------|----------|
+| **Devices** | Name, type, capabilities, health status, location, room | Periodic | 15 min |
+| **Locations** | Name, timezone, country, temperature scale | Periodic | 60 min |
+| **Scenes** | Name, associated location, last execution time | Periodic | 60 min |
+
+All streams support full backfill.
 
 ## Setup
 
-1. Go to the **SmartThings Developer Portal** and sign in
+1. Go to the **SmartThings Developer Portal** and sign in with your Samsung account
 2. Navigate to **Personal Access Tokens** and generate a new token
 3. In OpenPlane, add the SmartThings connector
 4. Paste the access token and start the initial sync
 
-### Settings
+## Configuration
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| Personal Access Token | — | From SmartThings developer portal (required) |
+| Personal Access Token | -- | From SmartThings developer portal (required) |
 | Sync Scenes | On | Include automation scenes in search |
+
+## Sync Details
+
+**Full sync** fetches all devices across all locations, along with their capabilities, component details, and health status. Locations and scenes are synced separately.
+
+**Incremental sync** polls the SmartThings API for changes since the last sync timestamp. Devices with updated capabilities or health status are re-indexed.
+
+Device capabilities (e.g., `temperatureMeasurement`, `switch`, `motionSensor`) are indexed as searchable metadata, allowing queries like "devices with temperature capability in Office".
+
+## Related Connectors
+
+<Cards>
+  <Card title="Samsara" href="/docs/connectors/samsara" description="Fleet and industrial IoT sensors" />
+  <Card title="BACnet" href="/docs/connectors/bacnet" description="Building automation HVAC systems" />
+  <Card title="ThingsBoard" href="/docs/connectors/thingsboard" description="Open-source IoT platform" />
+</Cards>

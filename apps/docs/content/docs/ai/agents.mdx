@@ -1,13 +1,13 @@
 ---
-title: Agents
-description: Composable agent patterns for orchestrating LLM-powered workflows
+title: Agent Patterns
+description: Six composable agent patterns for orchestrating LLM-powered workflows with streaming, state management, and execution tracing.
 ---
 
-# Agents
+# Agent Patterns
 
-Agents orchestrate LLM calls, tool invocations, and sub-agent delegation into coherent workflows. OpenPlane provides six composable patterns and a library of pre-built specialized agents.
+Agents orchestrate LLM calls, tool invocations, and sub-agent delegation into coherent workflows. OpenPlane provides six composable patterns that can be nested arbitrarily.
 
-## Core Interfaces
+## Core Interface
 
 Every agent implements `ExecutableAgent`:
 
@@ -19,23 +19,29 @@ interface ExecutableAgent {
 }
 ```
 
-Execution context carries team/user identity, state, memory, and abort signals:
+### Execution Context
+
+The context carries identity, state, memory, and control signals:
 
 ```typescript
 interface AgentExecutionContext {
   teamId: string;
   userId: string;
   sessionId?: string;
-  state: AgentState;
-  memory?: MemoryAccess;
-  abortSignal?: AbortSignal;
-  parentTrace?: ExecutionTrace;
-  accessControl?: string[];
+  state: AgentState;                         // Shared key-value state
+  memory?: MemoryAccess;                     // Learned facts, corrections
+  abortSignal?: AbortSignal;                 // Cancellation
+  parentTrace?: ExecutionTrace;              // Trace tree
+  accessControl?: string[];                  // Permission IDs
   conversationHistory?: ConversationMessage[];
+  canvasState?: CanvasStateSnapshot;
+  metadata?: Record<string, unknown>;
 }
 ```
 
-Results include the output, updated state, a full execution trace, token counts, and duration:
+### Execution Result
+
+Every execution returns output, updated state, a full trace tree, token counts, and duration:
 
 ```typescript
 interface AgentExecutionResult {
@@ -50,67 +56,69 @@ interface AgentExecutionResult {
 
 ## Agent State
 
-Agents share state through a key-value `AgentState`. Each agent reads from `inputRefs` and writes to `outputKey`:
+Agents share data through `AgentState` -- a key-value map with full history tracking. Each agent reads from `inputRefs` and writes to `outputKey`.
 
 ```typescript
-import { createEmptyState, getStateValue, setStateValue } from "@openplane/ai";
+import { createEmptyState } from "@openplane/ai";
 
 const state = createEmptyState();
-// state.values: Map<string, unknown>
-// state.history: AgentStateSnapshot[]
+// state.values: Map<string, unknown>    -- current values
+// state.history: AgentStateSnapshot[]   -- full audit trail
 ```
 
-Sub-agents in Sequential or Parallel patterns automatically pass outputs through state, enabling pipeline data flow without manual wiring.
+Sub-agents in Sequential or Parallel patterns automatically pass outputs through state. No manual wiring needed.
 
-## Patterns
+## Pattern Reference
 
 ### LLM Agent
 
-Single LLM call with optional tool access. The workhorse pattern for most tasks.
+Single LLM call with tool access. The workhorse pattern for most tasks. Implements the ReAct loop: think, act (call tool), observe (read result), repeat.
+
+**When to use:** Single-turn tasks, tool-augmented Q&A, search, document analysis.
 
 ```typescript
-import { createLlmAgent, createEmptyState } from "@openplane/ai";
+import { createLlmAgent } from "@openplane/ai";
 
-const searchAgent = createLlmAgent({
+const researchAgent = createLlmAgent({
   type: "llm",
-  name: "search",
-  description: "Search across enterprise data",
-  systemPrompt: "You are a search assistant. Use tools to find relevant information.",
-  tools: ["search_hybrid", "doc_get"],
+  name: "research",
+  description: "Research agent with search capabilities",
+  systemPrompt: `You are a research assistant. Search for information,
+    read documents, and provide grounded answers with citations.`,
+  tools: ["search_hybrid", "doc_get", "rag_answer"],
   maxSteps: 10,
   model: {
     providerId: "anthropic",
     modelId: "claude-sonnet-4-20250514",
     temperature: 0.3,
+    thinking: { enabled: true, thinkingLevel: "medium" },
   },
 });
 
-const result = await searchAgent.execute("Find the API docs", {
-  teamId: "team_123",
-  userId: "user_456",
-  state: createEmptyState(),
-});
+const result = await researchAgent.execute(
+  "What is our current deployment process?",
+  { teamId: "team_1", userId: "user_1", state: createEmptyState() }
+);
 ```
 
-The LLM agent resolves tools from the `toolRegistry` by name. Use `["*"]` to grant access to all non-deferred tools.
+**Config:**
 
-Extended thinking is supported per-provider:
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `tools` | `string[]` | `undefined` | Tool names from registry. `["*"]` for all tools. |
+| `maxSteps` | `number` | `10` | Max tool-call rounds before stopping |
+| `systemPrompt` | `string` | `undefined` | System prompt for the LLM |
+| `model.providerId` | `ProviderId` | Auto-detected | `"anthropic"`, `"openai"`, `"google"` |
+| `model.temperature` | `number` | Provider default | Sampling temperature |
+| `model.thinking` | `ThinkingConfig` | Disabled | Extended thinking / chain-of-thought |
 
-```typescript
-createLlmAgent({
-  type: "llm",
-  name: "deep-thinker",
-  model: {
-    providerId: "anthropic",
-    thinking: { enabled: true, thinkingLevel: "high" },
-  },
-  // ...
-});
-```
+---
 
 ### Sequential Agent
 
-Pipeline: output of each sub-agent becomes input to the next.
+Pipeline execution: A's output becomes B's input, then B's output becomes C's input. Each sub-agent runs to completion before the next begins.
+
+**When to use:** Multi-step pipelines, research-then-synthesize, extract-transform-load.
 
 ```typescript
 import { createSequentialAgent, createLlmAgent } from "@openplane/ai";
@@ -123,228 +131,277 @@ const pipeline = createSequentialAgent({
       type: "llm",
       name: "search",
       tools: ["search_hybrid"],
-      systemPrompt: "Search for relevant documents.",
+      systemPrompt: "Search for documents about the user's topic. Return raw results.",
       maxSteps: 5,
     },
     {
       type: "llm",
       name: "analyze",
-      tools: ["rag_analyze"],
-      systemPrompt: "Analyze the search results and synthesize findings.",
-      maxSteps: 3,
+      tools: ["doc_get", "doc_chunks"],
+      systemPrompt: "Read and analyze the documents from the search results.",
+      maxSteps: 5,
     },
     {
       type: "llm",
-      name: "summarize",
-      systemPrompt: "Write a concise summary of the analysis.",
+      name: "synthesize",
+      systemPrompt: "Synthesize the analysis into a clear, cited answer.",
       maxSteps: 1,
     },
   ],
 });
 ```
 
+**Data flow:** `input → search → analyze → synthesize → output`
+
+---
+
 ### Parallel Agent
 
-Runs sub-agents concurrently, then aggregates results.
+Concurrent execution of sub-agents on the same input. Results are aggregated using a configurable strategy.
+
+**When to use:** Multiple independent analyses, fan-out queries, multi-source research.
 
 ```typescript
 import { createParallelAgent } from "@openplane/ai";
 
-const multiSource = createParallelAgent({
+const multiSourceResearch = createParallelAgent({
   type: "parallel",
-  name: "multi-source-search",
+  name: "multi-source",
   subAgents: [
-    { type: "llm", name: "slack-search", tools: ["search_hybrid"], systemPrompt: "Search Slack." },
-    { type: "llm", name: "notion-search", tools: ["search_hybrid"], systemPrompt: "Search Notion." },
-    { type: "llm", name: "drive-search", tools: ["search_hybrid"], systemPrompt: "Search Drive." },
+    { type: "llm", name: "slack-search", tools: ["search_hybrid"],
+      systemPrompt: "Search Slack for relevant discussions." },
+    { type: "llm", name: "docs-search", tools: ["search_hybrid"],
+      systemPrompt: "Search documentation for relevant pages." },
+    { type: "llm", name: "code-search", tools: ["search_hybrid"],
+      systemPrompt: "Search code repositories for implementations." },
   ],
   aggregator: { strategy: "merge" },
 });
 ```
 
-Aggregation strategies:
+**Aggregation strategies:**
 
 | Strategy | Behavior |
 |----------|----------|
-| `merge` | Combine outputs into `{ [agentName]: output }` (default) |
-| `concat` | Join string outputs with separators |
-| `first` | Return the first sub-agent's output |
-| `custom` | Return raw array for custom post-processing |
+| `merge` | Each sub-agent's output stored under its `outputKey` or `name` |
+| `concat` | String outputs joined with `\n\n---\n\n` separators |
+| `first` | Returns only the first sub-agent's output |
+| `custom` | Returns the raw output array for custom processing |
+
+---
 
 ### Coordinator Agent
 
-Routes input to the best-matching sub-agent based on conditions.
+Routes input to the most appropriate sub-agent based on condition matching. Acts as a dispatcher.
+
+**When to use:** Multi-domain assistants, intent-based routing, tiered processing.
 
 ```typescript
 import { createCoordinatorAgent } from "@openplane/ai";
 
 const router = createCoordinatorAgent({
   type: "coordinator",
-  name: "intent-router",
+  name: "query-router",
   subAgents: [
     {
-      type: "llm",
-      name: "code-agent",
+      type: "llm", name: "code-agent",
       matchCondition: "contains:code",
-      tools: ["search_hybrid", "doc_get"],
-      systemPrompt: "Answer code-related questions.",
+      tools: ["search_hybrid"], systemPrompt: "Help with code questions.",
     },
     {
-      type: "llm",
-      name: "analytics-agent",
-      matchCondition: "contains:metrics",
-      tools: ["search_hybrid", "data_query"],
-      systemPrompt: "Answer analytics questions.",
+      type: "llm", name: "hr-agent",
+      matchCondition: "contains:policy",
+      tools: ["search_hybrid"], systemPrompt: "Help with HR policy questions.",
     },
     {
-      type: "llm",
-      name: "general-agent",
-      tools: ["search_hybrid"],
-      systemPrompt: "Answer general questions.",
+      type: "llm", name: "general-agent",
+      tools: ["search_hybrid"], systemPrompt: "General assistant.",
     },
   ],
   defaultAgent: "general-agent",
 });
 ```
 
-Match condition syntax:
+**Match conditions:**
 
-| Pattern | Example | Matches When |
-|---------|---------|-------------|
-| `contains:term` | `contains:code` | Input contains "code" |
-| `startsWith:prefix` | `startsWith:how to` | Input starts with "how to" |
-| `matches:regex` | `matches:\\d+ errors` | Input matches regex |
-| `type:value` | `type:search` | Input object has `type === "search"` |
+| Syntax | Example | Behavior |
+|--------|---------|----------|
+| `contains:term` | `contains:code` | Input includes the term |
+| `startsWith:prefix` | `startsWith:help` | Input starts with the prefix |
+| `matches:regex` | `matches:^(bug\|error)` | Input matches the regex |
+| `type:value` | `type:code_review` | Input object has `{type: "code_review"}` |
+
+---
 
 ### Loop Agent
 
-Repeats sub-agents until a stop condition is met or `maxIterations` is reached.
+Iterates sub-agents until a stop condition is met or max iterations reached.
+
+**When to use:** Iterative refinement, polling, convergence-based workflows.
 
 ```typescript
 import { createLoopAgent } from "@openplane/ai";
 
-const refinementLoop = createLoopAgent({
+const iterativeResearch = createLoopAgent({
   type: "loop",
-  name: "iterative-refinement",
+  name: "deep-research",
   subAgents: [
-    { type: "llm", name: "draft", systemPrompt: "Write or refine the draft." },
-    { type: "llm", name: "review", systemPrompt: "Review and suggest improvements." },
+    {
+      type: "llm", name: "researcher",
+      tools: ["search_hybrid", "doc_get"],
+      systemPrompt: "Research the topic. Set done=true when you have comprehensive coverage.",
+    },
   ],
-  maxIterations: 3,
+  maxIterations: 5,
   stopCondition: {
     type: "expression",
-    expression: "output.quality >= 0.8",
+    expression: "output.done === true",
   },
 });
 ```
 
-Stop condition types:
+**Stop conditions:**
 
-| Type | Behavior |
-|------|----------|
-| `expression` | Evaluate against output (`output.done === true`, `output.quality >= 0.8`) |
-| `tool` | Stop when a specific tool returns `shouldStop: true` |
-| `callback` | Reserved for custom stop logic |
+| Type | Config | Stops When |
+|------|--------|------------|
+| `expression` | `expression: "output.done === true"` | Output object has `{done: true}` |
+| `expression` | `expression: "output.quality >= 0.8"` | Quality score threshold met |
+| `expression` | `expression: "iteration >= 3"` | Fixed iteration count |
+| `tool` | `toolName: "finish"` | Agent calls the named tool |
+
+Default max iterations: 10.
+
+---
 
 ### Generator-Critic Agent
 
-Generate-then-critique loop with quality gating.
+Generate-then-critique loop. A generator agent produces output, a critic agent evaluates it. If the critique fails, the generator receives feedback and tries again.
+
+**When to use:** Quality-gated content, self-improving outputs, review workflows.
 
 ```typescript
 import { createGeneratorCriticAgent } from "@openplane/ai";
 
-const qualityWriter = createGeneratorCriticAgent({
-  name: "quality-writer",
+const writer = createGeneratorCriticAgent({
+  name: "document-writer",
   generator: {
     type: "llm",
     name: "writer",
-    systemPrompt: "Write a high-quality document based on the input.",
-    maxSteps: 3,
+    systemPrompt: "Write a clear, well-structured document based on the input.",
+    maxSteps: 1,
   },
   critic: {
     type: "llm",
-    name: "critic",
-    systemPrompt: `Evaluate the draft. Respond with JSON:
-    { "passed": boolean, "score": 0-1, "feedback": "..." }`,
+    name: "reviewer",
+    systemPrompt: `Review the document for accuracy, clarity, and completeness.
+      Return JSON: { "passed": boolean, "score": 0-1, "feedback": "..." }`,
     maxSteps: 1,
   },
   maxIterations: 3,
   qualityThreshold: 0.8,
 });
+
+const result = await writer.execute("Write onboarding documentation for new engineers", ctx);
+// result.output = { draft, critique, iterations, passed }
 ```
 
-The critic's output is parsed automatically. Supported formats:
-- String `"PASS"` or `"PASS: reason"`
-- Object `{ passed: boolean, score?: number, feedback?: string }`
-- Object `{ verdict: "PASS" | "FAIL", feedback?: string }`
-- Object `{ score: number }` (compared against `qualityThreshold`)
-
-The final output includes the draft, critique, iteration count, and pass/fail status.
-
-## Specialized Agents
-
-Pre-built agents for common workflows, located in `packages/ai/src/agents/specialized/`:
-
-| Agent | Pattern | Tools | Purpose |
-|-------|---------|-------|---------|
-| `researchAgent` | LLM | `search_hybrid`, `doc_get`, `rag_answer` | Information gathering with citations |
-| `deepResearchAgent` | Sequential | search + analysis + synthesis | Multi-step research pipeline |
-| `analystAgent` | LLM | `search_hybrid`, `data_query` | Data analysis and insights |
-| `multiSourceAnalystAgent` | Parallel | source-specific search | Cross-source analysis |
-| `coderAgent` | LLM | `search_hybrid`, `doc_get`, `sandbox_execute` | Code generation and explanation |
-| `codeWithReviewAgent` | Generator-Critic | code + review | Code with quality review loop |
-| `writerAgent` | LLM | `search_hybrid`, `doc_get` | Content generation |
-| `qualityWriterAgent` | Generator-Critic | write + critique | Iterative quality writing |
-| `browserAgent` | LLM | `browser_navigate`, `browser_screenshot` | Web browsing and scraping |
-
-Usage:
+**Output shape:**
 
 ```typescript
-import { researchAgent, deepResearchAgent, qualityWriterAgent } from "@openplane/ai";
-
-// researchAgent is an LlmAgent instance, ready to execute
-const result = await researchAgent.execute("What is our deployment process?", ctx);
-
-// deepResearchAgent runs a multi-step pipeline
-const deepResult = await deepResearchAgent.execute("Compare our auth systems", ctx);
+interface GeneratorCriticOutput {
+  draft: unknown;        // Final generated content
+  critique: {
+    passed: boolean;     // Whether quality gate was met
+    score?: number;      // 0-1 quality score
+    feedback?: string;   // Critique feedback
+  };
+  iterations: number;    // How many rounds ran
+  passed: boolean;       // Whether the final output passed
+}
 ```
+
+The critic can return its verdict as:
+- A string: `"PASS"` or `"PASS: looks good"` to pass, anything else is feedback
+- An object with `{ passed: boolean, score?, feedback? }`
+- An object with `{ score: number }` (compared against `qualityThreshold`)
+- An object with `{ verdict: "PASS" | "FAIL" }`
 
 ## Streaming
 
-All agents support streaming via `AsyncGenerator<AgentStreamChunk>`:
+All patterns support streaming via the `stream()` method. Stream chunks carry type information for progressive UI rendering.
 
 ```typescript
-const agent = createLlmAgent({ type: "llm", name: "chat", tools: ["search_hybrid"] });
-
-for await (const chunk of agent.stream("Find recent incidents", ctx)) {
+for await (const chunk of agent.stream(input, ctx)) {
   switch (chunk.type) {
     case "text":
-      process.stdout.write(chunk.content ?? "");
+      process.stdout.write(chunk.content);
       break;
     case "thinking":
-      // Extended thinking content (when enabled)
+      console.log(`[thinking] ${chunk.content}`);
       break;
     case "tool-call":
-      console.log(`Calling: ${chunk.toolName}`);
+      console.log(`Calling ${chunk.toolName}...`);
       break;
     case "tool-result":
-      console.log(`Result from: ${chunk.toolName}`);
+      console.log(`${chunk.toolName} returned`);
       break;
     case "step":
-      // Sub-agent step completion
+      console.log(`Step: ${chunk.content}`);
       break;
     case "done":
-      console.log(`Finished: ${chunk.result?.durationMs}ms`);
+      console.log(`Finished in ${chunk.result.durationMs}ms`);
       break;
   }
 }
 ```
 
-For nested agents (Sequential, Parallel, Loop), stream chunks include the agent path in `agentName` (e.g., `pipeline/search`, `loop[2]/critic`).
+**Stream chunk types:**
+
+| Type | Fields | Description |
+|------|--------|-------------|
+| `text` | `content` | Text delta from the LLM |
+| `thinking` | `content` | Extended thinking / reasoning content |
+| `tool-call` | `toolName`, `toolInput`, `toolCallId` | Agent is invoking a tool |
+| `tool-result` | `toolName`, `toolOutput`, `toolCallId` | Tool returned a result |
+| `step` | `content`, `step` | Sub-agent completed a step |
+| `done` | `result` | Agent finished, full result available |
+
+For composite agents (Sequential, Parallel), chunk `agentName` is prefixed with the parent: `"pipeline/search"`, `"multi-source/slack-search"`. Loop agents include the iteration: `"deep-research[2]/researcher"`.
+
+## Extended Thinking
+
+LLM agents support extended thinking for complex reasoning tasks. Configure per-provider:
+
+```typescript
+const agent = createLlmAgent({
+  type: "llm",
+  name: "analyst",
+  model: {
+    providerId: "anthropic",
+    modelId: "claude-sonnet-4-20250514",
+    thinking: {
+      enabled: true,
+      thinkingLevel: "high",    // "minimal" | "low" | "medium" | "high"
+      includeThoughts: true,    // Include reasoning in stream chunks
+    },
+  },
+  tools: ["search_hybrid"],
+  maxSteps: 10,
+});
+```
+
+Thinking budget by provider and level:
+
+| Level | Anthropic (tokens) | OpenAI (effort) | Google Gemini 2.5 (tokens) |
+|-------|--------------------|-----------------|---------------------------|
+| `minimal` | 2,048 | low | 1,024 |
+| `low` | 4,096 | low | 4,096 |
+| `medium` | 8,192 | medium | 8,192 |
+| `high` | 16,384 | high | 16,384 |
 
 ## Execution Traces
 
-Every agent execution produces a tree of `ExecutionTrace` nodes:
+Every agent execution produces a trace tree. Traces capture timing, token usage, tool calls, and status for observability.
 
 ```typescript
 interface ExecutionTrace {
@@ -356,73 +413,28 @@ interface ExecutionTrace {
   input?: unknown;
   output?: unknown;
   error?: string;
-  children: ExecutionTrace[];
+  children: ExecutionTrace[];   // Sub-agent traces
   tokenUsage?: { inputTokens: number; outputTokens: number };
   toolCalls?: ToolCallRecord[];
 }
 ```
 
-Use `aggregateTokens()` and `calculateDuration()` to compute totals across nested traces.
+For a Sequential agent running three sub-agents, the trace tree looks like:
 
-## Composite Agent Builder
-
-For complex multi-pattern compositions, use the `composite` builder object:
-
-```typescript
-import { composite } from "@openplane/ai";
-
-// Build a sequential pipeline with nested parallel search
-const config = composite.sequential(
-  "research-pipeline",
-  [
-    composite.parallel(
-      "multi-search",
-      [
-        composite.llm("slack-search", {
-          tools: ["search_hybrid"],
-          systemPrompt: "Search Slack for relevant messages.",
-        }),
-        composite.llm("notion-search", {
-          tools: ["search_hybrid"],
-          systemPrompt: "Search Notion for relevant documents.",
-        }),
-      ],
-      { aggregator: { strategy: "merge" } }
-    ),
-    composite.llm("analyzer", {
-      tools: ["rag_analyze"],
-      systemPrompt: "Analyze and synthesize the search results.",
-    }),
-  ]
-);
+```
+research-pipeline (sequential)
+├── search (llm) - 2 tool calls, 1.2s
+├── analyze (llm) - 3 tool calls, 2.4s
+└── synthesize (llm) - 0 tool calls, 0.8s
 ```
 
-Pre-built composite patterns:
+## Pattern Selection Guide
 
-```typescript
-import {
-  createResearchPipeline,
-  createEnterpriseRAG,
-  createIntentRouter,
-  createValidatedGenerator,
-  createApprovalGatedAgent,
-  createCustomerSupportSystem,
-} from "@openplane/ai";
-
-// Research pipeline with parallel source search + analysis
-const pipeline = createResearchPipeline({
-  name: "my-research",
-  sources: [
-    { name: "slack", connectorType: "slack" },
-    { name: "notion", connectorType: "notion" },
-  ],
-  analysisPrompt: "Synthesize findings across all sources.",
-});
-
-// Enterprise RAG with grounding verification
-const rag = createEnterpriseRAG({
-  name: "grounded-rag",
-  sources: [{ name: "docs", connectorType: "confluence" }],
-  groundingPrompt: "Verify all claims against source documents.",
-});
-```
+| Pattern | Input | Output | Use When |
+|---------|-------|--------|----------|
+| **LLM** | Query | Answer | Single-turn tasks with optional tool use |
+| **Sequential** | Query | Refined answer | Multi-step pipeline (search, analyze, synthesize) |
+| **Parallel** | Query | Aggregated answers | Independent analyses of the same input |
+| **Coordinator** | Query | Routed answer | Multi-domain routing by intent |
+| **Loop** | Query | Converged answer | Iterative refinement until quality threshold |
+| **Generator-Critic** | Spec | Quality-gated output | Self-reviewing content generation |

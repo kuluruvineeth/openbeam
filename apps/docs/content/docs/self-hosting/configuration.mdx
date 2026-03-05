@@ -1,206 +1,218 @@
 ---
 title: Configuration Reference
-description: Environment variables for all OpenPlane services, grouped by category.
+description: Every environment variable for OpenPlane services, grouped by purpose with defaults and requirements.
 ---
 
 # Configuration Reference
 
-All configuration is done through environment variables. This page documents every variable used across the application services.
+All configuration is done through environment variables set in the `.env` file or directly in the compose files. Variables marked **required** must be set before deployment.
 
 <Callout type="warn">
-Never commit secrets to version control. Use a `.env` file or your deployment platform's secret management.
+  Never commit `.env` files to version control. They contain secrets that grant full access to your deployment.
 </Callout>
 
-## Generating Secrets
+## Security
+
+These secrets protect authentication tokens, encrypted credentials, and session integrity. Generate unique values for each deployment.
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `JWT_SECRET` | Yes | -- | Secret for signing JWT tokens. Generate with `openssl rand -hex 32` |
+| `ENCRYPTION_KEY` | Yes | -- | Key for encrypting OAuth tokens at rest. Generate with `openssl rand -hex 32` |
+| `COOKIE_DOMAIN` | Yes | -- | Domain for auth cookies (e.g., `.example.com`) |
 
 ```bash
-# JWT_SECRET and ENCRYPTION_KEY (64-char hex strings)
-openssl rand -hex 32
+# Generate secure values
+JWT_SECRET=$(openssl rand -hex 32)
+ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
-
-## Database
-
-| Variable | Required | Default | Used By | Description |
-|----------|----------|---------|---------|-------------|
-| `DATABASE_URL` | Yes | -- | server, worker | PostgreSQL connection string |
-| `POSTGRES_DB` | No | `openplane` | infra compose | Database name |
-| `POSTGRES_USER` | No | `postgres` | infra compose | Database user |
-| `POSTGRES_PASSWORD` | Yes | `postgres` | infra compose | Database password |
-
-Connection string format:
-
-```
-postgresql://<user>:<password>@<host>:5432/<database>
-```
-
-Within Docker, use `postgres` as the host (Docker DNS). For external PostgreSQL, use the full hostname.
-
-## Redis
-
-| Variable | Required | Default | Used By | Description |
-|----------|----------|---------|---------|-------------|
-| `REDIS_URL` | Yes | `redis://localhost:6379` | server, worker, engine | Redis connection URL |
-
-Within Docker, use `redis://redis:6379`.
-
-## Search (Vespa)
-
-| Variable | Required | Default | Used By | Description |
-|----------|----------|---------|---------|-------------|
-| `VESPA_URL` | Yes | `http://localhost:8080` | server, worker | Vespa query/feed endpoint |
-
-Within Docker, use `http://vespa:8080`.
-
-## Workflow Engine (Temporal)
-
-| Variable | Required | Default | Used By | Description |
-|----------|----------|---------|---------|-------------|
-| `TEMPORAL_ADDRESS` | Yes | `localhost:7233` | server, worker | Temporal gRPC endpoint |
-| `TEMPORAL_NAMESPACE` | No | `default` | server, worker | Temporal namespace |
-
-Within Docker, use `temporal:7233`.
-
-## Authentication
-
-| Variable | Required | Default | Used By | Description |
-|----------|----------|---------|---------|-------------|
-| `JWT_SECRET` | Yes | -- | server, worker | 64-char hex string for JWT signing |
-| `ENCRYPTION_KEY` | Yes | -- | server, worker | 64-char hex string for encrypting OAuth tokens at rest |
-| `GOOGLE_CLIENT_ID` | Yes | -- | server | Google OAuth 2.0 client ID |
-| `GOOGLE_CLIENT_SECRET` | Yes | -- | server | Google OAuth 2.0 client secret |
-| `COOKIE_DOMAIN` | No | -- | server | Cookie domain for auth (e.g., `.yourdomain.com`) |
 
 ## URLs
 
-| Variable | Required | Default | Used By | Description |
-|----------|----------|---------|---------|-------------|
-| `WEB_URL` | Yes | -- | server | Public URL of the web frontend |
-| `SERVER_URL` | Yes | -- | server | Public URL of the API server |
-| `WEB_APP_URL` | No | Same as `WEB_URL` | server | Alias for web URL |
-| `NEXT_PUBLIC_SERVER_URL` | Yes | `http://localhost:3000` | web | API URL (baked at build time) |
-| `NEXT_PUBLIC_WEB_URL` | No | -- | web | Web URL (baked at build time) |
-| `SERVER_INTERNAL_URL` | No | -- | web | Internal server URL for SSR (bypasses public internet) |
-| `CORS_ORIGIN` | No | `http://localhost:3001` | server | Allowed CORS origin |
+Define where your services are accessible. These are used for OAuth redirects, CORS, and internal service communication.
 
-<Callout type="info">
-`NEXT_PUBLIC_*` variables are embedded at build time in the Next.js frontend. If you build the Docker image yourself, pass these as build args. The pre-built GHCR images have default values baked in.
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `WEB_URL` | Yes | -- | Public URL for the web frontend (e.g., `https://app.example.com`) |
+| `SERVER_URL` | Yes | -- | Public URL for the API server (e.g., `https://api.example.com`) |
+| `WEB_APP_URL` | No | Same as `WEB_URL` | Override for the web app URL (used in emails, notifications) |
+
+## Database
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `DATABASE_URL` | Yes | -- | PostgreSQL connection string |
+| `POSTGRES_DB` | No | `openplane` | Database name (infra compose) |
+| `POSTGRES_USER` | No | `postgres` | Database user (infra compose) |
+| `POSTGRES_PASSWORD` | No | `postgres` | Database password (infra compose) |
+
+The `DATABASE_URL` format: `postgresql://user:password@host:port/database`
+
+For the Docker Compose deployment, the default connection string is:
+
+```bash
+DATABASE_URL=postgresql://postgres:postgres@postgres:5432/openplane
+```
+
+<Callout type="warn">
+  Change the default PostgreSQL password in production. The default `postgres:postgres` is only acceptable for local development.
 </Callout>
 
-## Object Storage (S3-Compatible)
+## Redis
 
-OpenPlane uses S3-compatible storage for file uploads. Works with MinIO, AWS S3, Cloudflare R2, or any S3-compatible service.
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `REDIS_URL` | Yes | `redis://redis:6379` | Redis connection URL |
 
-| Variable | Required | Default | Used By | Description |
-|----------|----------|---------|---------|-------------|
-| `GCS_ENDPOINT` | Yes | `http://localhost:9000` | server, worker | S3 endpoint URL |
-| `GCS_ACCESS_KEY_ID` | Yes | -- | server, worker | S3 access key |
-| `GCS_SECRET_ACCESS_KEY` | Yes | -- | server, worker | S3 secret key |
-| `GCS_BUCKET` | Yes | `openplane-files` | server, worker | Bucket name |
-| `GCS_REGION` | No | `us-east-1` | server, worker | S3 region |
-| `GCS_PUBLIC_ENDPOINT` | No | -- | server, worker | Public-facing storage URL (for webhooks that need file access) |
+In the Docker Compose deployment, the app services connect to Redis via Docker DNS at `redis://redis:6379`.
 
-Within Docker with MinIO, use `http://minio:9000` as the endpoint.
+## Search (Vespa)
 
-For MinIO infrastructure setup:
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `VESPA_URL` | Yes | `http://vespa:8080` | Vespa query endpoint |
+| `VESPA_CONFIGSERVERS` | No | `vespa` | Vespa config server hostname (infra compose) |
+| `VESPA_DISK_FULL_PERCENT` | No | `90` | Disk usage threshold before Vespa stops accepting writes |
 
-| Variable | Required | Default | Used By | Description |
-|----------|----------|---------|---------|-------------|
-| `MINIO_ROOT_USER` | No | `openplane-minio` | infra compose | MinIO admin username |
-| `MINIO_ROOT_PASSWORD` | Yes | -- | infra compose | MinIO admin password |
-| `S3_BUCKET` | No | `openplane-files` | infra compose | Bucket created by init container |
+## Workflow Engine (Temporal)
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `TEMPORAL_ADDRESS` | Yes | `temporal:7233` | Temporal gRPC endpoint |
+| `DYNAMIC_CONFIG_FILE_PATH` | No | `/etc/temporal/config/dynamicconfig/development.yaml` | Path to Temporal dynamic config |
+
+Temporal uses PostgreSQL as its persistence backend. It connects using the same `POSTGRES_USER` and `POSTGRES_PASSWORD` variables.
+
+## Object Storage (MinIO / S3)
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `GCS_ENDPOINT` | Yes | `http://minio:9000` | S3-compatible endpoint URL |
+| `GCS_ACCESS_KEY_ID` | Yes | -- | S3 access key |
+| `GCS_SECRET_ACCESS_KEY` | Yes | -- | S3 secret key |
+| `GCS_BUCKET` | Yes | `openplane-files` | Bucket name for file storage |
+| `GCS_REGION` | No | `us-east-1` | S3 region |
+| `GCS_PUBLIC_ENDPOINT` | No | -- | Public URL for file access (e.g., `https://storage.example.com`) |
+| `MINIO_ROOT_USER` | No | `openplane-minio` | MinIO admin username (infra compose) |
+| `MINIO_ROOT_PASSWORD` | No | `minioadmin` | MinIO admin password (infra compose) |
+| `MINIO_SERVER_URL` | No | `http://localhost:9000` | MinIO server URL for console |
+| `MINIO_BROWSER_REDIRECT_URL` | No | `http://localhost:9001` | MinIO browser console URL |
+| `S3_BUCKET` | No | `openplane-files` | Bucket name for minio-init container |
+
+## Authentication Providers
+
+At least one OAuth provider must be configured for user login.
+
+### Google OAuth
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `GOOGLE_CLIENT_ID` | Yes | -- | Google OAuth 2.0 client ID |
+| `GOOGLE_CLIENT_SECRET` | Yes | -- | Google OAuth 2.0 client secret |
+
+Set up credentials at [Google Cloud Console](https://console.cloud.google.com/apis/credentials). Configure the authorized redirect URI as `{SERVER_URL}/auth/google/callback`.
 
 ## AI Providers
 
-At least one AI provider key is required for search and agent features.
+Configure one or more AI providers for RAG, agents, and embeddings. At least one provider is required.
 
-| Variable | Required | Default | Used By | Description |
-|----------|----------|---------|---------|-------------|
-| `OPENAI_API_KEY` | No | -- | server, worker | OpenAI API key |
-| `OPENAI_BASE_URL` | No | `https://api.openai.com/v1` | server, worker | OpenAI-compatible base URL |
-| `OPENAI_ORGANIZATION` | No | -- | server, worker | OpenAI org ID |
-| `ANTHROPIC_API_KEY` | No | -- | server, worker | Anthropic API key |
-| `GOOGLE_AI_API_KEY` | No | -- | server, worker | Google AI (Gemini) API key |
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `OPENAI_API_KEY` | Conditional | -- | OpenAI API key |
+| `OPENAI_BASE_URL` | No | -- | Custom OpenAI-compatible endpoint |
+| `OPENAI_ORGANIZATION` | No | -- | OpenAI organization ID |
+| `ANTHROPIC_API_KEY` | Conditional | -- | Anthropic API key |
+| `GOOGLE_AI_API_KEY` | Conditional | -- | Google AI (Gemini) API key |
 
-## ML Engine
-
-| Variable | Required | Default | Used By | Description |
-|----------|----------|---------|---------|-------------|
-| `ENGINE_URL` | Yes | `http://localhost:8000` | server, worker | Engine CPU service URL |
-| `ENVIRONMENT` | No | `development` | engine | `development`, `staging`, `production` |
-| `CPU_PORT` | No | `8000` | engine | Engine listen port |
-| `CPU_WORKERS` | No | `4` | engine | Uvicorn worker count |
-| `SECURITY_REQUIRE_AUTH` | No | `true` | engine | Enable API key auth on engine |
-
-Within Docker, use `http://engine-cpu:8000` (production compose) or `http://engine:8000` (dev compose).
+<Callout type="info">
+  At least one AI provider API key is required. OpenAI is recommended as the default provider for embeddings.
+</Callout>
 
 ## Media Processing
 
-| Variable | Required | Default | Used By | Description |
-|----------|----------|---------|---------|-------------|
-| `TWELVELABS_API_KEY` | No | -- | server, worker | TwelveLabs video processing API key |
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `TWELVELABS_API_KEY` | No | -- | TwelveLabs API key for video understanding |
 
-## Voice (LiveKit)
+## ML Engine
 
-| Variable | Required | Default | Used By | Description |
-|----------|----------|---------|---------|-------------|
-| `LIVEKIT_API_KEY` | No | -- | server | LiveKit API key |
-| `LIVEKIT_API_SECRET` | No | -- | server | LiveKit API secret |
-| `LIVEKIT_WS_URL` | No | -- | server | LiveKit WebSocket URL |
-| `NEXT_PUBLIC_LIVEKIT_WS_URL` | No | -- | web | LiveKit WebSocket URL (client-side) |
-| `LIVEKIT_WEBHOOK_SECRET` | No | -- | server | LiveKit webhook signing secret |
-| `DEEPGRAM_API_KEY` | No | -- | server | Deepgram speech-to-text API key |
-| `CARTESIA_API_KEY` | No | -- | server | Cartesia text-to-speech API key |
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `ENGINE_URL` | Yes | `http://engine-cpu:8000` | ML engine endpoint |
+| `CPU_PORT` | No | `8000` | Engine CPU service port |
+| `CPU_WORKERS` | No | `4` | Number of engine worker processes |
+| `LOG_LEVEL` | No | `INFO` | Engine log level |
+| `ENVIRONMENT` | No | `production` | Engine environment |
+| `SECURITY_REQUIRE_AUTH` | No | `false` | Require auth for engine endpoints |
+
+## Application Services
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `NODE_ENV` | No | `production` | Node.js environment |
+| `PORT` | No | `3000` (server), `3001` (web) | Service port |
+| `HOSTNAME` | No | `0.0.0.0` (web) | Bind address |
+| `SERVER_INTERNAL_URL` | No | `http://server:3000` | Internal URL for web-to-server communication |
+| `HEALTH_PORT` | No | `9092` | Worker health check port |
+| `METRICS_PORT` | No | `9091` | Worker Prometheus metrics port |
 
 ## Webhooks
 
-| Variable | Required | Default | Used By | Description |
-|----------|----------|---------|---------|-------------|
-| `PUBSUB_AUDIENCE` | No | -- | server | Gmail push notification audience URL |
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `PUBSUB_AUDIENCE` | No | -- | Google Pub/Sub audience for push subscription verification |
 
-Set to your public server URL + webhook path, e.g., `https://api.yourdomain.com/api/v1/webhooks/gmail/push`.
+## Monitoring
 
-## Telemetry & Logging
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `GRAFANA_USER` | No | `admin` | Grafana admin username |
+| `GRAFANA_PASSWORD` | No | `admin` | Grafana admin password |
+| `GF_SECURITY_ADMIN_USER` | No | `admin` | Same as `GRAFANA_USER` (Grafana env var) |
+| `GF_SECURITY_ADMIN_PASSWORD` | No | `admin` | Same as `GRAFANA_PASSWORD` (Grafana env var) |
+| `GF_USERS_ALLOW_SIGN_UP` | No | `false` | Allow Grafana self-registration |
+| `GF_SERVER_ROOT_URL` | No | `http://localhost:3002` | Grafana public URL |
 
-| Variable | Required | Default | Used By | Description |
-|----------|----------|---------|---------|-------------|
-| `LOG_LEVEL` | No | `info` | all | `debug`, `info`, `warning`, `error` |
-| `NODE_ENV` | No | `production` | all TS services | `development` or `production` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | No | -- | server, worker | OpenTelemetry collector endpoint |
+## Example .env File
 
-## Monitoring (Infrastructure)
+A complete example for a production deployment:
 
-| Variable | Required | Default | Used By | Description |
-|----------|----------|---------|---------|-------------|
-| `GRAFANA_USER` | No | `admin` | infra compose | Grafana admin username |
-| `GRAFANA_PASSWORD` | No | `admin` | infra compose | Grafana admin password |
+```bash
+# Security
+JWT_SECRET=your_64_char_hex_string_here
+ENCRYPTION_KEY=your_64_char_hex_string_here
+COOKIE_DOMAIN=.example.com
 
-## Worker-Specific
+# URLs
+WEB_URL=https://app.example.com
+SERVER_URL=https://api.example.com
 
-| Variable | Required | Default | Used By | Description |
-|----------|----------|---------|---------|-------------|
-| `HEALTH_PORT` | No | `9092` | worker | Health check endpoint port |
-| `METRICS_PORT` | No | `9091` | worker | Prometheus metrics endpoint port |
+# Database
+DATABASE_URL=postgresql://postgres:a_strong_password_here@postgres:5432/openplane
+POSTGRES_PASSWORD=a_strong_password_here
 
-## Port Reference
+# Object Storage
+GCS_ENDPOINT=http://minio:9000
+GCS_ACCESS_KEY_ID=openplane-minio
+GCS_SECRET_ACCESS_KEY=a_strong_minio_password_here
+GCS_BUCKET=openplane-files
+GCS_REGION=us-east-1
+GCS_PUBLIC_ENDPOINT=https://storage.example.com
+MINIO_ROOT_USER=openplane-minio
+MINIO_ROOT_PASSWORD=a_strong_minio_password_here
 
-All ports in one place:
+# Auth
+GOOGLE_CLIENT_ID=123456789.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-xxxxxxxxxxxxxxxxxxxx
 
-| Port | Service | Protocol | Exposure |
-|------|---------|----------|----------|
-| 3000 | Server (API) | HTTP | Public |
-| 3001 | Web (Frontend) | HTTP | Public |
-| 3002 | Grafana | HTTP | Internal |
-| 3100 | Loki | HTTP | Internal |
-| 4000 | Docs | HTTP | Public |
-| 5432 | PostgreSQL | TCP | Internal |
-| 6379 | Redis | TCP | Internal |
-| 7233 | Temporal (gRPC) | gRPC | Internal |
-| 8000 | Engine CPU | HTTP | Internal |
-| 8080 | Vespa (feed/query) | HTTP | Internal |
-| 8233 | Temporal UI | HTTP | Internal |
-| 9000 | MinIO API | HTTP | Internal |
-| 9001 | MinIO Console | HTTP | Internal |
-| 9071 | Vespa Config | HTTP | Internal |
-| 9090 | Prometheus | HTTP | Internal |
-| 9091 | Worker Metrics | HTTP | Internal |
-| 9092 | Worker Health | HTTP | Internal |
+# AI
+OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxx
+ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxxxxxxxxxxxx
+
+# Monitoring
+GRAFANA_PASSWORD=a_strong_grafana_password_here
+```
+
+<Callout type="info">
+  Generate unique secrets for every deployment. Reusing secrets across environments is a security risk.
+</Callout>

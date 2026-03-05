@@ -1,80 +1,111 @@
 ---
 title: Connectors
-description: Connect workplace tools to OpenPlane for unified search
+description: 20+ connectors for SaaS, IoT, industrial protocols, and physical AI platforms
 ---
 
 # Connectors
 
-20+ connectors across SaaS, IoT, industrial protocols, and physical AI platforms.
+OpenPlane connects to your tools and indexes their data for unified search. Each connector handles authentication, full sync, incremental sync, and (where supported) real-time webhook updates.
 
-## SaaS Connectors
+## SaaS
+
+Production-ready connectors for workplace SaaS tools.
 
 <Cards>
-  <Card title="Slack" href="/docs/connectors/slack" description="Messages, files, channels, threads" />
+  <Card title="GitHub" href="/docs/connectors/github" description="Repositories, issues, pull requests, releases" />
   <Card title="Gmail" href="/docs/connectors/gmail" description="Emails, threads, attachments" />
   <Card title="Google Drive" href="/docs/connectors/google-drive" description="Docs, sheets, slides, files" />
   <Card title="Notion" href="/docs/connectors/notion" description="Pages, databases, blocks" />
-  <Card title="Linear" href="/docs/connectors/linear" description="Issues, projects, comments" />
-  <Card title="GitHub" href="/docs/connectors/github" description="Repos, issues, PRs, code" />
+  <Card title="Linear" href="/docs/connectors/linear" description="Issues, projects, documents, cycles" />
+  <Card title="Slack" href="/docs/connectors/slack" description="Messages, channels, files, threads" />
 </Cards>
 
-## IoT Connectors
+## IoT
+
+Connectors for fleet management, cloud IoT platforms, and physical security.
 
 <Cards>
-  <Card title="Samsara" href="/docs/connectors/samsara" description="Fleet, sensors, industrial IoT" />
-  <Card title="AWS IoT" href="/docs/connectors/aws-iot" description="AWS IoT Core devices and telemetry" />
-  <Card title="Azure IoT" href="/docs/connectors/azure-iot" description="Azure IoT Hub devices and twins" />
-  <Card title="SmartThings" href="/docs/connectors/smartthings" description="Samsung SmartThings devices" />
-  <Card title="Verkada" href="/docs/connectors/verkada" description="Cameras, sensors, access control" />
+  <Card title="Samsara" href="/docs/connectors/samsara" description="Fleet vehicles, drivers, sensors, alerts" />
+  <Card title="AWS IoT Core" href="/docs/connectors/aws-iot" description="IoT things, device shadows, thing groups" />
+  <Card title="Azure IoT Hub" href="/docs/connectors/azure-iot" description="Devices, device twins, connection state" />
+  <Card title="SmartThings" href="/docs/connectors/smartthings" description="Devices, locations, scenes" />
+  <Card title="Verkada" href="/docs/connectors/verkada" description="Cameras, access control, environmental sensors" />
 </Cards>
 
-## Industrial Protocol Connectors
+## Industrial Protocols
+
+Direct protocol connectors for manufacturing, building automation, and industrial IoT.
 
 <Cards>
-  <Card title="MQTT" href="/docs/connectors/mqtt" description="MQTT broker topics and messages" />
-  <Card title="OPC-UA" href="/docs/connectors/opcua" description="OPC Unified Architecture nodes" />
-  <Card title="BACnet" href="/docs/connectors/bacnet" description="Building automation devices" />
-  <Card title="ThingsBoard" href="/docs/connectors/thingsboard" description="ThingsBoard platform entities" />
-  <Card title="Node-RED" href="/docs/connectors/nodered" description="Node-RED flows and configurations" />
+  <Card title="MQTT" href="/docs/connectors/mqtt" description="Broker topics, Sparkplug B, sensor telemetry" />
+  <Card title="OPC-UA" href="/docs/connectors/opcua" description="Address space browsing, node subscriptions, HDA" />
+  <Card title="BACnet" href="/docs/connectors/bacnet" description="HVAC readings, schedules, COV subscriptions" />
+  <Card title="ThingsBoard" href="/docs/connectors/thingsboard" description="Devices, telemetry, alarms, dashboards" />
+  <Card title="Node-RED" href="/docs/connectors/nodered" description="Flows, node configurations, automation logic" />
 </Cards>
 
-## Physical AI Connectors
+## Physical AI and Spatial
+
+Connectors for healthcare, 3D spatial data, digital twins, and robotics.
 
 <Cards>
-  <Card title="FHIR" href="/docs/connectors/fhir" description="Healthcare data (HL7 FHIR R4)" />
-  <Card title="Matterport" href="/docs/connectors/matterport" description="3D spatial scans and models" />
-  <Card title="Omniverse" href="/docs/connectors/omniverse" description="NVIDIA Omniverse scenes and assets" />
-  <Card title="Viam" href="/docs/connectors/viam" description="Robotics platforms and components" />
+  <Card title="FHIR Healthcare" href="/docs/connectors/fhir" description="De-identified clinical data, HIPAA-compliant" />
+  <Card title="Matterport" href="/docs/connectors/matterport" description="3D spatial scans, rooms, Mattertag annotations" />
+  <Card title="NVIDIA Omniverse" href="/docs/connectors/omniverse" description="Digital twins, USD scenes, spatial metadata" />
+  <Card title="Viam Robotics" href="/docs/connectors/viam" description="Robot fleet, sensor telemetry, camera captures" />
 </Cards>
+
+## Connector Reference
+
+| Connector | Category | Auth Method | Sync Modes | Status |
+|-----------|----------|-------------|------------|--------|
+| [GitHub](/docs/connectors/github) | SaaS | OAuth 2.0 | Full, Incremental, Webhooks | Active |
+| [Gmail](/docs/connectors/gmail) | SaaS | OAuth 2.0 | Full, Incremental, Pub/Sub | Active |
+| [Google Drive](/docs/connectors/google-drive) | SaaS | OAuth 2.0 | Full, Incremental | Active |
+| [Notion](/docs/connectors/notion) | SaaS | OAuth 2.0 | Full, Incremental | Active |
+| [Linear](/docs/connectors/linear) | SaaS | OAuth 2.0 | Full, Incremental, Webhooks | Active |
+| [Slack](/docs/connectors/slack) | SaaS | OAuth 2.0 | Full, Incremental, Events | Active |
+| [Samsara](/docs/connectors/samsara) | IoT | API Key | Full, Incremental, Webhooks | Active |
+| [AWS IoT Core](/docs/connectors/aws-iot) | IoT | IAM Keys | Full, Incremental | Active |
+| [Azure IoT Hub](/docs/connectors/azure-iot) | IoT | Connection String | Full, Incremental | Active |
+| [SmartThings](/docs/connectors/smartthings) | IoT | PAT | Full, Incremental | Active |
+| [Verkada](/docs/connectors/verkada) | IoT | API Key | Full, Incremental, Webhooks | Active |
+| [MQTT](/docs/connectors/mqtt) | Industrial | Broker Credentials | Real-time Subscription | Active |
+| [OPC-UA](/docs/connectors/opcua) | Industrial | Username/Certificate | Full, Subscriptions, HDA | Active |
+| [BACnet](/docs/connectors/bacnet) | Industrial | Network Access | Full, COV Subscriptions | Active |
+| [ThingsBoard](/docs/connectors/thingsboard) | IoT Platform | Username/Password | Full, Incremental | Active |
+| [Node-RED](/docs/connectors/nodered) | Automation | Access Token | Full, Incremental | Active |
+| [FHIR](/docs/connectors/fhir) | Healthcare | SMART on FHIR (JWT) | Full (Bulk Export), Incremental | Active |
+| [Matterport](/docs/connectors/matterport) | Spatial | API Token | Full, Incremental | Active |
+| [Omniverse](/docs/connectors/omniverse) | Digital Twin | API Token | Full, Incremental | Active |
+| [Viam](/docs/connectors/viam) | Robotics | API Key | Full, Incremental | Active |
 
 ## How Connectors Work
 
-```mermaid
-flowchart LR
-    A[Authenticate] --> B[Full Sync]
-    B --> C[Index & Embed]
-    C --> D[Incremental Sync]
-    D --> C
-    D -.-> E[Real-time]
-    E -.-> C
-```
+Every connector follows the same lifecycle:
 
-| Phase | Description |
+| Phase | What happens |
 |-------|-------------|
-| **Authenticate** | OAuth or API key with minimal required scopes |
-| **Full Sync** | Complete index of historical content |
-| **Index & Embed** | Parse, chunk, generate embeddings, store in Vespa |
-| **Incremental Sync** | Scheduled sync of new and modified content |
+| **Authenticate** | OAuth flow or API key configuration with minimal required scopes |
+| **Full Sync** | Complete index of all historical content from the source |
+| **Index and Embed** | Parse, chunk, generate embeddings, store in Vespa |
+| **Incremental Sync** | Scheduled sync fetches only new and modified content |
 | **Real-time** | Webhook-driven instant updates (connector-specific) |
 
-## Sync Modes
+### Sync Modes
 
 | Mode | Trigger | Availability |
 |------|---------|-------------|
-| Full | First connect, manual re-index | All connectors |
-| Incremental | Scheduled (configurable interval) | All connectors |
-| Real-time | Webhooks | Slack, Gmail (Pub/Sub), Linear |
+| Full | First connect or manual re-index | All connectors |
+| Incremental | Scheduled interval (configurable) | All connectors |
+| Real-time | Webhooks, subscriptions, or Pub/Sub | Select connectors |
 
-## Building a Connector
+All sync jobs are orchestrated by Temporal workflows with durable execution, automatic retries, and progress tracking.
 
-See the [Connector Development Guide](/docs/contributing/connectors) for instructions on adding new connectors.
+## Build Your Own
+
+Missing a connector? The fastest way to contribute to OpenPlane is to build one.
+
+<Cards>
+  <Card title="Connector Development Guide" href="/docs/contributing/connectors" description="Ship a new connector in 2-3 hours with the four-layer architecture" />
+</Cards>

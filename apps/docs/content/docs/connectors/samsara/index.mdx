@@ -1,52 +1,64 @@
 ---
 title: Samsara
-description: Connect Samsara to OpenPlane for fleet and IoT sensor search
+description: Search across fleet vehicles, drivers, sensors, and alerts from Samsara
 ---
 
 # Samsara
 
-Index fleet vehicles, drivers, alerts, and environmental sensors from Samsara with API key authentication and webhook-driven real-time updates.
+Index fleet vehicles, GPS locations, driver activity, sensor readings, and operational alerts from Samsara. The connector uses API key authentication and supports real-time webhook updates with incremental sync via feed cursor endpoints.
 
-## What Gets Indexed
-
-| Entity | Description |
-|--------|-------------|
-| Vehicles | Name, VIN, GPS location, speed, fuel level, engine state, odometer |
-| Drivers | Name, phone, license info, tags, status |
-| Alerts | Type, severity, associated vehicle/driver, location |
-| Sensors | Name, type, value, unit, gateway device |
+Samsara is the primary fleet management connector -- it brings vehicle telemetry, driver safety data, and environmental sensors into your search index.
 
 ## Authentication
 
-Samsara uses **API key** authentication. Generate a token from your Samsara dashboard under **Settings > API Tokens**.
+**Method:** API Key
 
-The token is sent via the `Authorization` header with a `Bearer` prefix.
+Generate a token from your Samsara dashboard under **Settings** > **API Tokens**. The token is sent via the `Authorization` header with a `Bearer` prefix.
 
-## Sync
+[Samsara authentication docs](https://developers.samsara.com/docs/authentication)
 
-| Mode | Supported |
-|------|-----------|
-| Full sync | Yes |
-| Incremental sync | Yes |
-| Real-time (webhooks) | Yes |
+## Data Streams
 
-Incremental sync uses Samsara's feed cursor endpoints to fetch only changed entities. Vehicles and alerts support real-time webhook delivery.
+| Stream | Description | Sync Mode | Interval |
+|--------|-------------|-----------|----------|
+| **Vehicles** | Name, VIN, GPS location, speed, fuel level, engine state, odometer | Real-time | 15 min |
+| **Drivers** | Name, phone, license info, tags, status | Periodic | 60 min |
+| **Alerts** | Type, severity, associated vehicle/driver, location | Real-time | 5 min |
+| **Sensors** | Name, type, value, unit, gateway device | Periodic | 15 min |
+
+All streams support full backfill.
 
 ## Setup
 
 1. Log in to the **Samsara Dashboard**
-2. Navigate to **Settings > API Tokens** and create a new token with read permissions
+2. Navigate to **Settings** > **API Tokens** and create a new token with read permissions
 3. In OpenPlane, add the Samsara connector
 4. Paste the API token and select your data center region (US or EU)
 5. Start the initial sync
 
-### Settings
+## Configuration
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| API Token | — | Samsara API token (required) |
+| API Token | -- | Samsara API token (required) |
 | Region | US | US or EU data center |
 | Sync Alerts | On | Include fleet alerts in search |
 | Sync Sensors | On | Include environmental sensor data |
 | Real-time Updates | On | Enable webhook-driven instant updates |
 | API Version | 2024-06-01 | Samsara API version (pin for stability) |
+
+## Sync Details
+
+**Full sync** fetches all vehicles, drivers, alerts, and sensors from the Samsara API.
+
+**Incremental sync** uses Samsara's feed cursor endpoints to fetch only entities that changed since the last sync. This is highly efficient for large fleets.
+
+**Webhooks** deliver real-time updates for vehicles and alerts. Enable the "Real-time Updates" setting to receive instant notifications.
+
+## Related Connectors
+
+<Cards>
+  <Card title="MQTT" href="/docs/connectors/mqtt" description="Direct broker subscriptions for industrial IoT" />
+  <Card title="AWS IoT Core" href="/docs/connectors/aws-iot" description="Cloud IoT device management" />
+  <Card title="Verkada" href="/docs/connectors/verkada" description="Physical security cameras and sensors" />
+</Cards>

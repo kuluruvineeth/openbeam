@@ -1,31 +1,34 @@
 ---
 title: Azure IoT Hub
-description: Connect Azure IoT Hub to OpenPlane for device and twin search
+description: Search across IoT devices and device twins from Azure IoT Hub
 ---
 
 # Azure IoT Hub
 
-Index IoT devices with device twin state, tags, and connection status from Azure IoT Hub using a shared access connection string.
+Index IoT devices with device twin state, tags, and connection status from Azure IoT Hub. The connector uses a shared access connection string and queries devices using the IoT Hub SQL-like query API.
 
-## What Gets Indexed
-
-| Entity | Description |
-|--------|-------------|
-| Devices | Device ID, connection state, status, twin tags, reported properties, desired properties, last activity time |
+Azure IoT Hub integration makes your entire device fleet searchable -- twin tags, reported properties, desired properties, and connection state.
 
 ## Authentication
 
-Azure IoT Hub uses a **shared access connection string**. Retrieve it from the Azure Portal under **IoT Hub > Shared access policies** using the `registryRead` or `iothubowner` policy.
+**Method:** Shared Access Connection String
 
-## Sync
+Retrieve the connection string from the Azure Portal under **IoT Hub** > **Shared access policies**. Use the `registryRead` or `iothubowner` policy.
 
-| Mode | Supported |
-|------|-----------|
-| Full sync | Yes |
-| Incremental sync | Yes |
-| Real-time | No |
+Connection string format:
+```
+HostName=myhub.azure-devices.net;SharedAccessKeyName=...;SharedAccessKey=...
+```
 
-The connector uses the IoT Hub Query API with SQL-like syntax to enumerate devices and fetch twin state. Incremental sync filters by last-activity timestamps.
+[Azure IoT Hub authentication docs](https://learn.microsoft.com/en-us/azure/iot-hub/authenticate-authorize-sas)
+
+## Data Streams
+
+| Stream | Description | Sync Mode | Interval |
+|--------|-------------|-----------|----------|
+| **Devices** | Device ID, connection state, status, twin tags, reported properties, desired properties, last activity | Periodic | 30 min |
+
+Supports full backfill.
 
 ## Setup
 
@@ -35,8 +38,27 @@ The connector uses the IoT Hub Query API with SQL-like syntax to enumerate devic
 4. In OpenPlane, add the Azure IoT Hub connector
 5. Paste the connection string and start the initial sync
 
-### Settings
+## Configuration
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| IoT Hub Connection String | — | From Azure Portal (required) |
+| IoT Hub Connection String | -- | From Azure Portal shared access policies (required) |
+
+## Sync Details
+
+**Full sync** uses the IoT Hub Query API to enumerate all registered devices and fetch their twin state, including tags, reported properties, and desired properties.
+
+**Incremental sync** filters by `lastActivityTime` to fetch only devices with recent activity since the last sync.
+
+The SQL-like query language enables efficient filtering during sync:
+```sql
+SELECT * FROM devices WHERE lastActivityTime > '2024-01-01T00:00:00Z'
+```
+
+## Related Connectors
+
+<Cards>
+  <Card title="AWS IoT Core" href="/docs/connectors/aws-iot" description="Amazon's cloud IoT platform" />
+  <Card title="ThingsBoard" href="/docs/connectors/thingsboard" description="Open-source IoT platform" />
+  <Card title="OPC-UA" href="/docs/connectors/opcua" description="Industrial automation protocol" />
+</Cards>

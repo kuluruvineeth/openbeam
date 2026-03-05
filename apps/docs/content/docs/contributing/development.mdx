@@ -1,50 +1,84 @@
 ---
 title: Development Guide
-description: Local setup, testing, linting, and building OpenPlane
+description: Local setup, testing, linting, database, and build workflows for OpenPlane
 ---
 
 # Development Guide
 
-Detailed instructions for working with the OpenPlane codebase.
+Everything you need to work on the OpenPlane codebase locally.
 
 ## Local Setup
 
-### Install Dependencies
+### Install Bun
 
-OpenPlane uses **Bun** exclusively. Do not use npm, pnpm, or yarn.
+OpenPlane uses **Bun** exclusively as its package manager and runtime. Do not use npm, pnpm, or yarn.
 
 ```bash
+curl -fsSL https://bun.sh/install | bash
+```
+
+Verify:
+
+```bash
+bun --version  # Should be 1.3.2+
+```
+
+### Install Dependencies
+
+```bash
+git clone https://github.com/openplane/openplane.git
+cd openplane
 bun install
 ```
 
-### Infrastructure
+### Start Infrastructure
 
-Start PostgreSQL, Redis, Vespa, and Temporal with Docker Compose:
+PostgreSQL, Redis, Vespa, and Temporal run in Docker:
 
 ```bash
 docker compose up -d
 ```
 
-### Database
+### Configure Environment
 
-Push the Prisma schema to your local database:
+```bash
+cp .env.example .env
+```
+
+Edit `.env` with your local service URLs. The defaults work with the Docker Compose setup.
+
+### Initialize Database
+
+Push the Prisma schema to your local PostgreSQL:
 
 ```bash
 bun run db:push
 ```
 
-Open Prisma Studio to inspect data:
+### Start Development
 
 ```bash
-bun run db:studio
+bun run dev
 ```
 
-### Running Services
+This starts all apps in parallel using Turborepo.
+
+## Running Individual Apps
+
+Run only the services you need:
+
+| Command | What it starts | Port |
+|---------|---------------|------|
+| `bun run dev` | All apps in parallel | -- |
+| `bun run dev:web` | Next.js frontend | 3001 |
+| `bun run dev:server` | Hono API server | -- |
+| `bun run dev:docs` | Documentation site | 4000 |
+
+For individual apps not covered by root scripts:
 
 ```bash
-bun run dev          # All apps in parallel
-bun run dev:web      # Next.js frontend only (:3001)
-bun run dev:server   # Hono API server only
+cd apps/worker && bun run dev
+cd apps/engine && python -m uvicorn main:app --reload
 ```
 
 ## Testing
@@ -69,14 +103,14 @@ packages/services/src/linear/
 ├── sync/
 │   ├── full.ts
 │   └── incremental.ts
-├── __tests__/
-│   ├── sync.test.ts
-│   └── transformers.test.ts
+└── __tests__/
+    ├── sync.test.ts
+    └── transformers.test.ts
 ```
 
 ### Temporal Tests (Node.js + vitest)
 
-The Temporal SDK requires V8 APIs that Bun does not support. Temporal tests use vitest with Node.js:
+The Temporal SDK requires V8 APIs (`v8.promiseHooks.createHook`) that Bun does not support. Temporal tests use vitest with Node.js:
 
 ```bash
 cd packages/temporal
@@ -84,20 +118,27 @@ bun run test              # Unit tests (vitest, 30s timeout)
 bun run test:integration  # Integration tests (vitest, 120s timeout)
 ```
 
-Unit tests mock activities. Integration tests spin up a `TestWorkflowEnvironment` for end-to-end workflow execution.
+Unit tests mock activities. Integration tests spin up a real `TestWorkflowEnvironment` for end-to-end workflow execution.
 
 ### What to Test
 
-| Change Type | Required Tests |
+| Change type | Required tests |
 |-------------|---------------|
 | New connector | Client, transformer, sync generator |
 | API endpoint | Request/response validation |
 | Temporal workflow | Workflow logic with mocked activities |
-| Database query | Query correctness |
-| UI component | Rendering, interaction |
+| Database query | Query correctness with test data |
+| UI component | Rendering, user interaction |
 | Algorithm | Edge cases, boundary conditions |
 
-## Linting
+### Test Conventions
+
+- Test file names: `*.test.ts` for unit tests, `*.integration.test.ts` for integration tests
+- Use `describe` blocks to group related tests
+- Test behavior, not implementation
+- Mock external APIs at the HTTP boundary
+
+## Linting and Formatting
 
 OpenPlane uses **Biome** via Ultracite for linting and formatting:
 
@@ -107,16 +148,57 @@ bun run check
 
 This runs Biome across the entire monorepo. Fix all issues before committing.
 
-### Key Biome Rules
+### Biome Rules
 
-| Rule | Detail |
-|------|--------|
-| No `++`/`--` | Use `+= 1` or `-= 1` |
+| Rule | What it means |
+|------|--------------|
+| No `++`/`--` | Use `+= 1` or `-= 1` instead |
 | No unnecessary `async` | Remove `async` if the function body has no `await` |
 | Literal keys preferred | `{ name: "x" }` not `{ "name": "x" }` |
 | Max 4 params per function | Use an options object for more |
 | No empty blocks | Use `const noop = Function.prototype as () => void` |
-| No variable shadowing | Rename callback params that shadow outer vars |
+| No variable shadowing | Rename callback params that shadow outer variables |
+
+### Import Conventions
+
+- `.js` import specifiers in `.ts` files are valid for Node/Bun ESM targets (`apps/daemon`, `apps/server`, `apps/worker`)
+- Never import `.ts`/`.tsx` directly in runtime code
+- For Expo/Metro-facing code, use extensionless relative imports (`./foo`)
+
+## Database
+
+### Prisma Commands
+
+| Command | Purpose |
+|---------|---------|
+| `bun run db:push` | Push schema to database (development) |
+| `bun run db:studio` | Open Prisma Studio browser UI |
+| `bun run db:migrate --name <name>` | Create a new migration |
+| `bunx prisma migrate deploy` | Apply migrations (production) |
+| `bunx prisma migrate resolve --applied <name>` | Resolve a migration |
+
+### Database Access Pattern
+
+All database operations go through `@openplane/db` functions. Never use Prisma directly in services:
+
+```typescript
+// Correct: use db package functions
+import { findConnectorById, updateConnector } from "@openplane/db";
+
+// Wrong: direct Prisma access
+import prisma from "@openplane/db";
+await prisma.connector.update({ ... });
+```
+
+All db functions take `db: Database` as the first parameter:
+
+```typescript
+export const findConnectorById = async (
+  db: Database,
+  id: string
+): Promise<Connector | null> =>
+  db.connector.findUnique({ where: { id } });
+```
 
 ## Building
 
@@ -132,25 +214,7 @@ Type-check without emitting files:
 bun x tsc --noEmit
 ```
 
-## Database Migrations
-
-### Creating a Migration
-
-```bash
-bun run db:migrate --name <migration-name>
-```
-
-### Applying Migrations
-
-```bash
-bunx prisma migrate deploy
-```
-
-### Resolving Migrations
-
-```bash
-bunx prisma migrate resolve --applied <migration-name>
-```
+Turborepo caches build outputs. Unchanged packages skip rebuilding.
 
 ## Package Dependency Rules
 
@@ -173,15 +237,15 @@ packages/types  ← imported by ALL packages (no deps of its own)
 packages/integrations ← imported by services, server, web
 ```
 
-Key rules:
+Rules:
 - `packages/types` has zero internal dependencies
 - `packages/db` never imports from `packages/services`
 - `packages/services` never imports from `apps/*`
-- Import types from `@openplane/types`, not from source packages
+- Import shared types from `@openplane/types`, not from source packages
 
 ## CLI Development (Go)
 
-The CLI lives in `apps/cli/` and uses Go 1.24 with Cobra:
+The Go CLI lives in `apps/cli/` and uses Go 1.24 with Cobra:
 
 ```bash
 cd apps/cli
@@ -190,6 +254,32 @@ go test ./...                            # Test
 golangci-lint run                        # Lint
 goreleaser build --snapshot --clean      # Release build
 ```
+
+CLI structure:
+
+| Directory | Purpose |
+|-----------|---------|
+| `apps/cli/cmd/openplane/` | Entry point |
+| `apps/cli/internal/cmd/` | Command implementations |
+| `apps/cli/internal/auth/` | Auth store |
+| `apps/cli/internal/config/` | Config management |
+| `apps/cli/internal/api/` | HTTP client |
+| `apps/cli/internal/mcp/` | MCP server |
+| `apps/cli/internal/plugin/` | Plugin system |
+
+## IDE Setup
+
+### VS Code
+
+Recommended extensions:
+- **Biome** -- linting and formatting
+- **Prisma** -- schema syntax highlighting
+- **Tailwind CSS IntelliSense** -- class autocomplete
+- **Go** -- for CLI development
+
+### Turborepo Extension
+
+The Turborepo VS Code extension provides task visualization and quick commands from the sidebar.
 
 ## Pre-Commit Checklist
 
@@ -201,3 +291,13 @@ bun x tsc --noEmit    # Types check
 bun run check         # Lint clean
 bun run build         # Build succeeds
 ```
+
+## Troubleshooting
+
+| Problem | Solution |
+|---------|---------|
+| `bun install` fails | Delete `node_modules` and `bun.lock`, re-run `bun install` |
+| Database connection refused | Verify Docker is running: `docker compose ps` |
+| Temporal tests fail with V8 error | Run with `bun run test` (uses vitest + Node.js), not `bun test` |
+| Port 3001 in use | Kill the existing process: `lsof -ti:3001 \| xargs kill` |
+| Type errors after `git pull` | Run `bun install` then `bun run build` to rebuild packages |

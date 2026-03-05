@@ -1,114 +1,111 @@
 ---
 title: AI & Agents
-description: Agent-native architecture for enterprise search, RAG, and autonomous workflows
+description: Every capability is a tool. Every tool is composable. Agents are first-class citizens.
 ---
 
 # AI & Agents
 
-OpenPlane is built as an agent-native platform. Every capability is a tool, every tool is composable, and agents are first-class citizens that orchestrate complex workflows autonomously.
+OpenPlane is built agent-native. Every capability -- search, document retrieval, connector management, data analysis -- is a tool. Tools compose into agents. Agents orchestrate complex workflows autonomously. New capabilities emerge from prompts, not code.
 
-## Core Principles
+## The Five Principles
 
-| Principle | Description |
-|-----------|-------------|
-| **Parity** | Whatever users do in UI, agents achieve through tools |
-| **Granularity** | Tools are atomic primitives; judgment lives in agents |
-| **Composability** | New features emerge from prompts, not code |
-| **Emergence** | Agents accomplish unanticipated tasks by composing tools |
-| **Improvement** | Apps improve through context accumulation, not deploys |
+| Principle | What It Means |
+|-----------|---------------|
+| **Parity** | Whatever users do in the UI, agents achieve through tools. No capability is human-only. |
+| **Granularity** | Tools are atomic primitives. Judgment lives in agents, not tools. |
+| **Composability** | New features emerge from prompt composition, not new code. |
+| **Emergence** | Agents accomplish unanticipated tasks by combining tools in novel ways. |
+| **Improvement** | The platform improves through context accumulation, not deploys. |
 
 ## Architecture
 
 ```
 packages/ai/src/
-├── agents/           # Agent orchestration patterns
-│   ├── patterns/     # LLM, Sequential, Parallel, Coordinator, Loop, GeneratorCritic
-│   ├── specialized/  # Pre-built agents (research, analyst, coder, writer, browser)
-│   ├── base.ts       # BaseAgent, ExecutableAgent interface
-│   ├── config.ts     # Agent configuration types
-│   ├── runner.ts     # Agent runner utilities
-│   └── session.ts    # Session management
-├── tools/            # Tool definition & registry
-│   ├── definitions/  # 19 tool categories (search, rag, documents, connectors, ...)
-│   ├── builder.ts    # defineTool() function
-│   └── registry.ts   # ToolRegistry singleton
-├── rag/              # RAG engine & grounding
-│   ├── engine.ts     # RAGEngine with answer() and stream()
-│   ├── query-analyzer.ts  # Intent classification, entity extraction
-│   ├── grounding.ts  # Claim verification, evidence mapping
-│   └── prompts.ts    # RAG prompt templates
-├── mcp/              # Model Context Protocol server
-│   ├── server.ts     # MCPServer with JSON-RPC 2.0
-│   ├── bridge.ts     # Tool registry to MCP adapter
-│   ├── resources.ts  # MCP resources (documents, connectors, search)
-│   └── prompts.ts    # MCP prompt templates
-├── memory/           # Agent memory (learned facts, corrections, history)
-├── context/          # Context orchestration and CONTEXT.md builder
-├── completion/       # LLM completion service
-├── embeddings/       # Embedding models
-└── providers/        # Multi-provider registry (Anthropic, OpenAI, Google)
+├── agents/              # Agent orchestration
+│   ├── patterns/        # LLM, Sequential, Parallel, Coordinator, Loop, Generator-Critic
+│   ├── specialized/     # Pre-built agents (research, analyst, coder, writer, browser)
+│   ├── base.ts          # BaseAgent, ExecutableAgent interface
+│   ├── config.ts        # AgentConfig, AgentState, ExecutionTrace types
+│   ├── runner.ts        # Agent runner utilities
+│   ├── session.ts       # Session management
+│   └── memory.ts        # Agent memory (facts, corrections, history)
+├── tools/               # Tool system
+│   ├── definitions/     # 14 tool categories
+│   │   ├── search/      # search_hybrid, search_semantic, search_similar, ...
+│   │   ├── rag/         # rag_answer, rag_analyze, rag_verify, ...
+│   │   ├── documents/   # doc_get, doc_list, doc_chunks, ...
+│   │   ├── connectors/  # connector_list, connector_sync, connector_status, ...
+│   │   ├── canvas/      # Canvas manipulation tools
+│   │   ├── browser/     # Web browsing tools
+│   │   ├── media/       # Media processing tools
+│   │   ├── data/        # Data query tools
+│   │   ├── memory/      # Memory management tools
+│   │   ├── voice/       # Voice interaction tools
+│   │   └── ...          # workspace, storage, system, visualization, ...
+│   ├── builder.ts       # defineTool() function
+│   ├── registry.ts      # ToolRegistry singleton
+│   └── types.ts         # ToolContext, error codes, permission modes
+├── rag/                 # RAG pipeline
+│   ├── engine.ts        # RAGEngine with answer() and stream()
+│   ├── query-analyzer.ts # Intent classification, entity extraction
+│   ├── grounding.ts     # Claim verification, confidence scoring
+│   └── prompts.ts       # XML-structured prompt templates
+├── mcp/                 # Model Context Protocol
+│   ├── server.ts        # MCPServer (JSON-RPC 2.0)
+│   ├── bridge.ts        # ToolRegistry → MCP adapter
+│   ├── resources.ts     # MCP resources (documents, connectors, search)
+│   └── prompts.ts       # MCP prompt templates
+├── context/             # Context orchestration and CONTEXT.md builder
+├── completion/          # LLM completion service (multi-provider)
+├── embeddings/          # Embedding model abstraction
+├── memory/              # Persistent memory (learned facts, corrections)
+├── observability/       # Composition tracking, emergence detection
+└── providers/           # Provider registry (Anthropic, OpenAI, Google)
 ```
-
-## Key Capabilities
-
-<Cards>
-  <Card title="Agent Patterns" href="/docs/ai/agents">
-    Six composable patterns: LLM, Sequential, Parallel, Coordinator, Loop, and Generator-Critic.
-    Pre-built specialized agents for research, analysis, coding, and writing.
-  </Card>
-  <Card title="Tool Framework" href="/docs/ai/tools">
-    Typed tool definitions with Zod schemas, automatic registration, permission controls,
-    risk profiles, and execution observability across 19 categories.
-  </Card>
-  <Card title="RAG Pipeline" href="/docs/ai/rag">
-    Query analysis, entity extraction, temporal context detection, chunk reranking,
-    grounded answer generation with citation tracking and confidence scoring.
-  </Card>
-  <Card title="MCP Server" href="/docs/ai/mcp">
-    Model Context Protocol server exposing all tools, resources, and prompts
-    to external AI clients like Claude Desktop.
-  </Card>
-</Cards>
 
 ## Quick Start
 
+Create an agent with search capabilities in 10 lines:
+
 ```typescript
-import {
-  createLlmAgent,
-  createEmptyState,
-  toolRegistry,
-} from "@openplane/ai";
+import { createLlmAgent, createEmptyState } from "@openplane/ai";
 
-// Register tools
-import { registerAllTools } from "@openplane/ai/tools/definitions";
-registerAllTools();
-
-// Create an agent with search capabilities
 const agent = createLlmAgent({
   type: "llm",
   name: "search-assistant",
-  description: "Enterprise search assistant",
-  systemPrompt: "You are an enterprise search assistant. Use tools to find relevant information.",
+  systemPrompt: "You are an enterprise search assistant. Use tools to find information.",
   tools: ["search_hybrid", "doc_get", "rag_answer"],
   maxSteps: 10,
 });
 
-// Execute
 const result = await agent.execute("Find our Q3 revenue report", {
   teamId: "team_123",
   userId: "user_456",
   state: createEmptyState(),
 });
 
-console.log(result.output);
-console.log(result.totalTokens);
-console.log(result.durationMs);
+console.log(result.output);        // The agent's response
+console.log(result.totalTokens);   // { inputTokens: 2340, outputTokens: 512 }
+console.log(result.durationMs);    // 1847
+console.log(result.trace);         // Full execution trace with tool calls
 ```
+
+The agent receives the user's query, searches for relevant documents using `search_hybrid`, retrieves full content with `doc_get`, generates a grounded answer via `rag_answer`, and returns the result with citations.
+
+## Key Capabilities
+
+<Cards>
+  <Card title="Agent Patterns" href="/docs/ai/agents" description="Six composable patterns: LLM, Sequential, Parallel, Coordinator, Loop, Generator-Critic. Pre-built specialized agents." />
+  <Card title="Tool Framework" href="/docs/ai/tools" description="Typed tool definitions with Zod schemas, risk profiles, permission controls, and execution observability." />
+  <Card title="RAG Pipeline" href="/docs/ai/rag" description="Query analysis, chunk reranking, grounded answers with citation tracking and confidence scoring." />
+  <Card title="MCP Server" href="/docs/ai/mcp" description="Model Context Protocol server exposing tools, resources, and prompts to external AI clients." />
+</Cards>
 
 ## Built With
 
-| Dependency | Purpose |
-|------------|---------|
-| [Vercel AI SDK](https://sdk.vercel.ai/) | `generateText`, `streamText`, tool execution, model abstraction |
-| [Zod](https://zod.dev/) | Tool parameter schemas, runtime validation |
-| Multi-provider | Anthropic, OpenAI, Google via unified registry |
+| Dependency | Role |
+|------------|------|
+| [Vercel AI SDK](https://sdk.vercel.ai) | `generateText`, `streamText`, tool execution, model abstraction |
+| [Zod](https://zod.dev) | Tool parameter schemas, runtime validation |
+| Multi-provider registry | Anthropic Claude, OpenAI GPT, Google Gemini via unified API |
+| [Temporal](https://temporal.io) | Durable execution for long-running agent workflows |

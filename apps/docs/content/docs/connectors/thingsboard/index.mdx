@@ -1,46 +1,62 @@
 ---
 title: ThingsBoard
-description: Connect ThingsBoard to OpenPlane for IoT device and telemetry search
+description: Search across devices, telemetry, alarms, and dashboards from ThingsBoard
 ---
 
 # ThingsBoard
 
-Index devices, telemetry time-series data, alarms, and dashboards from ThingsBoard IoT platform. Supports both Community and Professional editions via the REST API.
+Index devices, telemetry time-series data, alarms, and dashboard metadata from the ThingsBoard IoT platform. The connector supports both Community and Professional editions via the ThingsBoard REST API.
 
-## What Gets Indexed
-
-| Entity | Description |
-|--------|-------------|
-| Devices | Name, type, label, active status, attributes, telemetry keys |
-| Telemetry | Key-value time-series data points with timestamps |
-| Alarms | Alarm type, severity, status, originator device |
-| Dashboards | Dashboard name and metadata |
+ThingsBoard is a popular open-source IoT platform. This connector brings your device inventory, sensor readings, alarm history, and dashboard configurations into unified search.
 
 ## Authentication
 
-ThingsBoard uses **username/password** authentication against the REST API. Provide tenant administrator credentials -- the connector exchanges them for a JWT token automatically.
+**Method:** Username/Password
 
-## Sync
+Provide tenant administrator credentials (email and password). The connector exchanges them for a JWT token automatically and handles token refresh.
 
-| Mode | Supported |
-|------|-----------|
-| Full sync | Yes |
-| Incremental sync | Yes |
-| Real-time | No |
+[ThingsBoard REST API docs](https://thingsboard.io/docs/reference/rest-api/)
 
-Incremental sync uses server-side timestamps to fetch only entities modified since the last sync.
+## Data Streams
+
+| Stream | Description | Sync Mode | Interval |
+|--------|-------------|-----------|----------|
+| **Devices** | Name, type, label, active status, attributes, telemetry keys | Periodic | 5 min |
+| **Telemetry** | Key-value time-series data points with timestamps | Periodic | 60s |
+| **Alarms** | Alarm type, severity, status (active/acknowledged/cleared), originator device | Periodic | 60s |
+
+All streams support full backfill.
 
 ## Setup
 
-1. Identify your **ThingsBoard instance** URL
+1. Identify your **ThingsBoard instance** URL (e.g., `https://thingsboard.example.com`)
 2. In OpenPlane, add the ThingsBoard connector
 3. Enter the base URL and tenant administrator credentials (email and password)
 4. Start the initial sync
 
-### Settings
+## Configuration
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| ThingsBoard URL | — | Base URL of your ThingsBoard instance (required) |
-| Username | — | Tenant administrator email (required) |
-| Password | — | Tenant administrator password (required) |
+| ThingsBoard URL | -- | Base URL of your ThingsBoard instance (required) |
+| Username | -- | Tenant administrator email (required) |
+| Password | -- | Tenant administrator password (required) |
+
+## Sync Details
+
+**Full sync** fetches all devices from the device inventory, along with their server-side and shared attributes, latest telemetry keys, and active alarms. Dashboard metadata is also indexed.
+
+**Incremental sync** uses server-side timestamps to fetch only entities modified since the last sync. This covers new devices, updated attributes, recent telemetry, and alarm state changes.
+
+**Telemetry data** is indexed as time-series documents with key, value, and timestamp. Multiple telemetry keys for the same device are grouped into a single document per time window.
+
+**Alarms** include the full lifecycle: active, acknowledged, and cleared states. Each alarm references its originator device and alarm type.
+
+## Related Connectors
+
+<Cards>
+  <Card title="MQTT" href="/docs/connectors/mqtt" description="Direct MQTT broker subscriptions" />
+  <Card title="OPC-UA" href="/docs/connectors/opcua" description="Industrial automation protocol" />
+  <Card title="Node-RED" href="/docs/connectors/nodered" description="Flow-based automation and integration" />
+  <Card title="AWS IoT Core" href="/docs/connectors/aws-iot" description="AWS cloud IoT platform" />
+</Cards>

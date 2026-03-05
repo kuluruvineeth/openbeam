@@ -1,129 +1,204 @@
 ---
 title: Search
-description: Hybrid search engine combining BM25 keyword matching, dense vector embeddings, and sparse vectors
+description: One query, every data source. Permission-aware enterprise search across all your connected tools.
 ---
 
 # Search
 
-OpenPlane indexes content from every connected data source into a unified search engine. Documents from Slack, Gmail, Notion, Linear, GitHub, Google Drive, IoT platforms, and industrial protocols are all searchable through a single query interface.
+One query searches everything. Slack messages, Notion pages, GitHub PRs, Linear issues, Google Drive files, meeting recordings, spreadsheets -- OpenPlane unifies them all into a single search interface, ranked by relevance and filtered by access controls.
+
+## Three Search Modes
+
+| Mode | When to Use | How It Works |
+|------|-------------|--------------|
+| **Hybrid** | General queries (default) | RRF fusion of BM25 keyword matching + dense vector similarity + sparse embeddings |
+| **Semantic** | Conceptual queries without exact terms | Pure vector cosine similarity. Finds documents by meaning. |
+| **Keyword** | Exact names, error codes, quoted phrases | BM25 text matching with term frequency normalization |
+
+Hybrid is the default and the right choice 90% of the time. It catches both exact keyword matches and semantically related content, then merges the ranked lists using Reciprocal Rank Fusion.
 
 ## What Gets Indexed
 
-Every connector transforms its data into a common `GenericDocument` schema before indexing. The schema captures:
+Every connector normalizes its data into the `GenericDocument` schema before indexing. This is the universal format that makes cross-source search possible.
 
-| Field Group | Examples |
-|-------------|---------|
-| Identity | `id`, `external_id`, `connector_type`, `document_type` |
-| Content | `title`, `content`, `content_plain`, `content_html` |
-| Embeddings | `content_embedding`, `title_embedding`, `sparse_embedding` |
-| Authorship | `author_name`, `author_email`, `contributor_ids` |
-| Hierarchy | `parent_id`, `thread_id`, `project_id`, `source_path` |
-| Metadata | `status`, `priority`, `labels`, `sprint`, `milestone` |
-| Timestamps | `created_at`, `updated_at`, `indexed_at`, `due_date` |
-| Access | `access_control`, `is_public` |
-| Structure | `chunk_index`, `total_chunks`, `section_title`, `page_number` |
-| Knowledge | `entity_ids`, `topics`, `authority_score`, `quality_score` |
+```typescript
+interface GenericDocument {
+  // Identity
+  id: string;
+  connector_id: string;
+  connector_type: string;       // "slack", "notion", "github", "linear", ...
+  team_id: string;
+  external_id: string;
+  document_type: string;        // "message", "page", "issue", "file", "email"
 
-In addition to documents, OpenPlane indexes **media** (video/audio with segment-level transcripts and embeddings), **entities** (people, teams, projects), and **spreadsheets** (with column-level schema for SQL queries).
+  // Content
+  title: string;
+  content: string;
+  content_embedding?: number[]; // Dense vector (768 or 1024 dimensions)
+  title_embedding?: number[];
+  sparse_embedding?: Record<string, number>; // Learned sparse weights
 
-## Search Capabilities
+  // Authorship
+  author_name?: string;
+  author_email?: string;
+  contributor_ids?: string[];
 
-### Hybrid Search
+  // Timestamps (Unix epoch ms)
+  created_at: number;
+  updated_at: number;
 
-The default search mode combines three ranking signals using Reciprocal Rank Fusion (RRF):
+  // Metadata
+  status?: string;
+  priority?: string;
+  labels?: string[];
+  url?: string;
 
-- **BM25** -- keyword matching with term frequency and document length normalization
-- **Dense vectors** -- semantic similarity via embedding models (768 or 1024 dimensions)
-- **Sparse vectors** -- learned token-level weights for fine-grained relevance
+  // Access control
+  access_control?: string[];    // User/group IDs for permission filtering
+  is_public: boolean;
 
-Default weights: BM25 `0.4`, dense `0.4`, sparse `0.2`. Adjustable per query.
+  // Knowledge graph
+  entity_ids?: string[];
+  topics?: string[];
+  authority_score?: number;
+  quality_score?: number;
+}
+```
 
-### Semantic Search
+OpenPlane indexes four document schemas in Vespa:
 
-Pure vector search for conceptual queries where exact keywords are unknown. Ranks by cosine similarity between the query embedding and document embeddings.
-
-### Keyword Search
-
-BM25-only ranking for exact matches, navigational queries, or when you need documents containing specific terms.
-
-### Multi-Ranking
-
-Execute the same query across multiple ranking strategies simultaneously and compare results. The engine identifies the best-performing strategy for each query.
-
-### Similar Documents
-
-Given a document ID, find semantically related content by comparing embedding vectors.
+| Schema | Content Type | Key Fields |
+|--------|-------------|------------|
+| `openplane_document` | Text (messages, pages, issues, files, emails) | `content`, `content_embedding`, `sparse_embedding`, `access_control` |
+| `media_document` | Video and audio (meetings, recordings) | `transcript`, `segment_embeddings`, `duration_seconds`, `segment_timestamps` |
+| `spreadsheet_document` | Tabular data (sheets, CSVs) | `column_names`, `column_types`, `row_count`, `is_queryable` |
+| `entity` | People, teams, projects | `entity_type`, `name`, `email` |
 
 ## Permission-Aware Results
 
-Every search result is filtered through access controls before reaching the user. Documents carry an `access_control` array of user/group IDs. The search query injects the requesting user's permissions as a filter clause:
+Every result is filtered by access controls before it reaches the user. Documents the user cannot access never appear in results -- they are excluded at the Vespa content node level, before ranking even begins.
 
-```
-(is_public = true OR access_control contains "user_id" OR access_control contains "group_id")
-```
+When a document is indexed, its `access_control` field captures the user and group identifiers from the source system (Slack channel membership, Google Drive sharing, Notion workspace access). At query time, the user's IDs are matched against this field:
 
-Permission data is synced from source systems (Slack channel membership, Google Drive sharing, Notion workspace access) and cached for sub-millisecond evaluation at query time.
+```sql
+AND (is_public = true
+  OR access_control CONTAINS "user:jane"
+  OR access_control CONTAINS "group:finance")
+```
 
 ## Ranking Profiles
 
-The search engine supports 20+ ranking profiles optimized for different scenarios:
+Vespa applies different ranking strategies depending on the query type.
 
 | Profile | Use Case |
 |---------|----------|
-| `hybrid` | General-purpose (default) |
-| `hybrid_v2` | Improved hybrid with sparse vectors |
-| `bm25` | Keyword-only matching |
-| `semantic` | Pure vector similarity |
-| `semantic_v2` | Updated embeddings |
-| `enterprise` | Weighted by authority + recency + engagement |
-| `enterprise_v2` | Production-optimized enterprise |
-| `recency` | Timestamp-biased ranking |
-| `hybrid_recency` | Hybrid with recency boost |
-| `authority` | Rank by document authority score |
-| `personalized` | Per-user department affinity |
-| `navigational` | Exact title/name matches |
-| `engagement` | View count and reaction signals |
-| `topic_search` | Topic embedding similarity |
+| `hybrid` | General-purpose search (default) |
+| `hybrid_v2` | Enhanced hybrid with sparse embedding signals |
+| `semantic` | Pure vector similarity for conceptual queries |
+| `bm25` | Keyword-only matching for exact terms |
+| `enterprise` | Hybrid + authority score + recency boost |
+| `enterprise_v2` | Production enterprise with sparse vectors |
+| `recency` | Prioritizes recently updated documents |
+| `hybrid_recency` | Hybrid ranking with time decay |
+| `navigational` | Finding a specific known document by title |
+| `personalized` | Boosts results matching user department affinity |
+| `authority` | Ranks by inbound links, quality score, source tier |
+| `topic_search` | Topic-level vector similarity |
+| `engagement` | View count, reactions, access frequency |
+
+## Using Search
+
+<Tabs items={["Agent Tool", "tRPC API", "CLI"]}>
+<Tab value="Agent Tool">
+```typescript
+import { toolRegistry } from "@openplane/ai";
+
+const result = await toolRegistry.runWithContext(
+  { teamId: "team_abc", userId: "user_123", services },
+  async () => {
+    const tool = toolRegistry.getTool("search_hybrid");
+    return tool.execute({
+      query: "API rate limiting documentation",
+      limit: 10,
+      filters: {
+        connectorTypes: ["notion", "confluence"],
+        dateRange: { start: "2025-01-01" },
+      },
+    });
+  }
+);
+```
+</Tab>
+<Tab value="tRPC API">
+```typescript
+const results = await trpc.search.hybrid.query({
+  query: "Q3 revenue report",
+  teamId: session.teamId,
+  limit: 20,
+  connectorTypes: ["notion", "google-drive"],
+});
+
+for (const doc of results.documents) {
+  console.log(`${doc.title} (score: ${doc.relevanceScore})`);
+  console.log(`  ${doc.connectorType} | ${doc.url}`);
+}
+```
+</Tab>
+<Tab value="CLI">
+```bash
+openplane search "Q3 revenue report" --limit 10 --source notion,google-drive
+```
+</Tab>
+</Tabs>
 
 ## Media Search
 
-Video and audio content is indexed with segment-level granularity:
+Video and audio content is indexed with segment-level granularity. You can search meeting transcripts, find the exact moment someone discussed a topic, or discover screen content via OCR.
 
-- Full transcript text (BM25-searchable)
-- Per-segment embeddings for temporal precision
-- Speaker identification
-- OCR text from screen content
-- Topic and keyword extraction
+| Signal | Description |
+|--------|-------------|
+| `transcript` | Full transcript text, BM25-searchable |
+| `segment_embeddings` | Per-segment vectors for temporal precision |
+| `segment_speakers` | Speaker identification per segment |
+| `segment_ocr_text` | OCR from screen recordings |
+| `media_keywords` | Extracted topic keywords |
 
-Ranking profiles for media include `meeting_search`, `screen_content`, `unified_text`, and `engagement`.
+Ranking profiles for media: `meeting_search`, `screen_content`, `unified_text`, `engagement`.
 
-## Edge Search (Offline)
+## Edge Search
 
-The edge runtime provides search on devices without network access using SQLite:
+For offline and air-gapped deployments, the edge runtime provides local search using SQLite FTS5 and in-process vector similarity. Same query interface, runs entirely on-device.
 
-- **FTS5** -- Full-text search with BM25 ranking
-- **Vector search** -- Cosine similarity on locally-stored embeddings
-- **Hybrid fusion** -- Combined ranking matching the cloud behavior
+```typescript
+import { SearchEngine } from "@openplane/edge-search";
 
-Documents sync incrementally via Merkle tree reconciliation. See [How It Works](/docs/search/how-it-works) for architecture details.
+const engine = new SearchEngine(db);
+const results = await engine.search("deployment checklist", {
+  mode: "hybrid",
+  limit: 10,
+});
+```
 
-## AI Tool Integration
+Documents sync incrementally via Merkle tree reconciliation when connectivity is available.
 
-Search is exposed as agent tools through the AI framework:
+## Search Tools for Agents
+
+All search capabilities are exposed as agent tools:
 
 | Tool | Description |
 |------|-------------|
 | `search_hybrid` | Hybrid semantic + keyword search across all sources |
 | `search_semantic` | Pure vector search for conceptual queries |
-| `search_similar` | Find documents related to a known document |
+| `search_similar` | Find documents related to a known document by ID |
 | `search_web` | Web search for external information |
-| `search_export` | Export search results |
-| `search_save` | Bookmark search results |
+| `search_export` | Export search results in structured format |
+| `search_save` | Bookmark search results for later |
 | `scrape_page` | Fetch and parse a web page |
 
-These tools are available to all agent patterns (LLM, Sequential, Parallel, Generator-Critic) and via the MCP server for external AI clients.
+These tools are available to all agent patterns and via the [MCP server](/docs/ai/mcp) for external AI clients.
 
 <Cards>
-  <Card title="How It Works" href="/docs/search/how-it-works" description="Vespa architecture, indexing pipeline, and query flow" />
-  <Card title="CLI Search Commands" href="/docs/cli/commands#search" description="Search from the command line" />
+  <Card title="How It Works" href="/docs/search/how-it-works" description="Vespa internals, indexing pipeline, ranking, and query flow." />
+  <Card title="AI Tools" href="/docs/ai/tools" description="Full tool framework reference." />
+  <Card title="RAG Pipeline" href="/docs/ai/rag" description="How search powers grounded AI answers." />
 </Cards>

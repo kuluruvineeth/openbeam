@@ -1,72 +1,58 @@
 ---
 title: Command Reference
-description: Complete reference for all openplane CLI commands, flags, and usage examples
+description: Complete reference for every openplane CLI command, organized by resource.
 ---
 
 # Command Reference
 
-The CLI is organized into command groups. Mutation commands (create, delete, sync, pause) require `--yes` in non-interactive mode.
+Every command follows the pattern `openplane <resource> <action> [flags]`. Mutation commands (create, delete, sync) require `--yes` in non-interactive mode.
+
+---
 
 ## search
 
-Search indexed content across all connected data sources.
+Search across all indexed content. 8 subcommands covering text search, hybrid retrieval, media, and author-based queries.
 
 ### search query
 
-Search documents with filters and ranking.
+Search documents with filters across connector types, date ranges, labels, and ranking strategies.
 
 ```bash
-openplane search query -q "quarterly report" --connector-type slack,notion --limit 10
+openplane search query --query "deployment checklist" --limit 10
 ```
 
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
-| `-q`, `--query` | string | | Search query text |
-| `--connector-type` | string[] | | Filter by connector type |
+| `--query`, `-q` | string | | Search query text |
+| `--connector-type` | string[] | | Filter by connector type (repeatable) |
 | `--connector-id` | string | | Filter by connector ID |
-| `--document-type` | string[] | | Filter by document type |
-| `--source-type` | string[] | | Filter by source type |
-| `--status` | string[] | | Filter by status |
-| `--priority` | string[] | | Filter by priority |
-| `--label` | string[] | | Filter by label |
+| `--document-type` | string[] | | Filter by document type (repeatable) |
+| `--source-type` | string[] | | Filter by source type (repeatable) |
+| `--status` | string[] | | Filter by status (repeatable) |
+| `--priority` | string[] | | Filter by priority level (repeatable) |
+| `--label` | string[] | | Filter by label (repeatable) |
 | `--author-id` | string | | Filter by author ID |
 | `--source-id` | string | | Filter by source ID |
 | `--from-date` | int64 | `0` | Filter results after this timestamp |
 | `--to-date` | int64 | `0` | Filter results before this timestamp |
 | `--limit` | int | `20` | Maximum results to return |
-| `--offset` | int | `0` | Pagination offset |
+| `--offset` | int | `0` | Results offset for pagination |
 | `--ranking` | string | `hybrid` | Ranking strategy |
 
-### search hybrid
-
-Hybrid search with explicit control over BM25, dense, and sparse vector weights.
-
 ```bash
-openplane search hybrid -q "deployment process" --weight-bm25 0.3 --weight-dense 0.5 --weight-sparse 0.2
-```
+# Search Slack messages from a specific connector
+openplane search query -q "launch plan" --connector-type slack --limit 5
 
-| Flag | Type | Default | Description |
-|------|------|---------|-------------|
-| `-q`, `--query` | string | | Search query text |
-| `--mode` | string | `hybrid_v2` | Hybrid search mode |
-| `--rrf-k` | int | `60` | RRF constant k parameter |
-| `--weight-bm25` | float64 | `0.4` | BM25 ranking weight |
-| `--weight-dense` | float64 | `0.4` | Dense vector ranking weight |
-| `--weight-sparse` | float64 | `0.2` | Sparse vector ranking weight |
-| `--connector-type` | string[] | | Filter by connector type |
-| `--document-type` | string[] | | Filter by document type |
-| `--source-id` | string[] | | Filter by source ID |
-| `--from-date` | int64 | `0` | Filter after timestamp |
-| `--to-date` | int64 | `0` | Filter before timestamp |
-| `--limit` | int | `20` | Maximum results |
-| `--offset` | int | `0` | Pagination offset |
+# Search with date range
+openplane search query -q "Q4 report" --from-date 1696118400 --to-date 1704067200
+```
 
 ### search recent
 
-Retrieve recently indexed documents.
+Get recently indexed documents.
 
 ```bash
-openplane search recent --hours 48 --limit 10
+openplane search recent --hours 12 --limit 50
 ```
 
 | Flag | Type | Default | Description |
@@ -74,12 +60,24 @@ openplane search recent --hours 48 --limit 10
 | `--hours` | int | `24` | Lookback window in hours |
 | `--limit` | int | `20` | Maximum results |
 
+### search thread
+
+Retrieve all messages in a thread.
+
+```bash
+openplane search thread --thread-id "thr_abc123"
+```
+
+| Flag | Type | Default | Required |
+|------|------|---------|----------|
+| `--thread-id` | string | | Yes |
+
 ### search similar
 
 Find documents similar to a given document.
 
 ```bash
-openplane search similar --document-id "doc_abc123" --limit 5
+openplane search similar --document-id "doc_xyz" --limit 5
 ```
 
 | Flag | Type | Default | Required |
@@ -87,24 +85,12 @@ openplane search similar --document-id "doc_abc123" --limit 5
 | `--document-id` | string | | Yes |
 | `--limit` | int | `10` | No |
 
-### search thread
-
-Retrieve messages within a thread.
-
-```bash
-openplane search thread --thread-id "thread_xyz"
-```
-
-| Flag | Type | Required |
-|------|------|----------|
-| `--thread-id` | string | Yes |
-
 ### search author
 
-Get documents by a specific author.
+Get all documents by a specific author.
 
 ```bash
-openplane search author --author-id "user_123" --limit 20
+openplane search author --author-id "usr_abc" --limit 25
 ```
 
 | Flag | Type | Default | Required |
@@ -114,78 +100,102 @@ openplane search author --author-id "user_123" --limit 20
 
 ### search media
 
-Search media content (video, audio).
+Search indexed media (video, audio) with type-specific filters.
 
 ```bash
-openplane search media -q "product demo" --media-type video
+openplane search media -q "product demo" --media-type video --limit 10
 ```
 
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
-| `-q`, `--query` | string | | Search query text |
+| `--query`, `-q` | string | | Search query text |
 | `--connector-id` | string | | Filter by connector ID |
 | `--source-id` | string | | Filter by source ID |
 | `--media-type` | string | | Filter by media type |
-| `--from-date` | int64 | `0` | Filter after timestamp |
-| `--to-date` | int64 | `0` | Filter before timestamp |
+| `--from-date` | int64 | `0` | Start timestamp |
+| `--to-date` | int64 | `0` | End timestamp |
 | `--limit` | int | `20` | Maximum results |
 | `--offset` | int | `0` | Pagination offset |
 | `--ranking` | string | `hybrid` | Ranking strategy |
 
 ### search unified
 
-Combined document and media search in a single request.
+Search across both documents and media in a single request.
 
 ```bash
-openplane search unified -q "standup notes" --include-documents --include-media
+openplane search unified -q "architecture overview" --include-media --include-documents
 ```
 
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
-| `-q`, `--query` | string | | Search query text |
+| `--query`, `-q` | string | | Search query text |
 | `--include-documents` | bool | `true` | Include documents |
 | `--include-media` | bool | `true` | Include media |
 | `--connector-type` | string[] | | Filter by connector type |
 | `--connector-id` | string | | Filter by connector ID |
 | `--document-type` | string[] | | Filter by document type |
 | `--source-id` | string | | Filter by source ID |
-| `--from-date` | int64 | `0` | Filter after timestamp |
-| `--to-date` | int64 | `0` | Filter before timestamp |
+| `--from-date` | int64 | `0` | Start timestamp |
+| `--to-date` | int64 | `0` | End timestamp |
 | `--limit` | int | `20` | Maximum results |
 | `--offset` | int | `0` | Pagination offset |
 | `--ranking` | string | `hybrid` | Document ranking strategy |
 | `--media-ranking` | string | `hybrid` | Media ranking strategy |
 
+### search hybrid
+
+Advanced hybrid search with configurable RRF (Reciprocal Rank Fusion) weights for BM25, dense, and sparse retrieval.
+
+```bash
+openplane search hybrid -q "machine learning pipeline" --weight-bm25 0.3 --weight-dense 0.5 --weight-sparse 0.2
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--query`, `-q` | string | | Search query text |
+| `--mode` | string | `hybrid_v2` | Hybrid search mode |
+| `--rrf-k` | int | `60` | RRF constant k parameter |
+| `--weight-bm25` | float64 | `0.4` | BM25 ranking weight |
+| `--weight-dense` | float64 | `0.4` | Dense vector ranking weight |
+| `--weight-sparse` | float64 | `0.2` | Sparse vector ranking weight |
+| `--connector-type` | string[] | | Filter by connector type |
+| `--document-type` | string[] | | Filter by document type |
+| `--source-id` | string[] | | Filter by source ID |
+| `--from-date` | int64 | `0` | Start timestamp |
+| `--to-date` | int64 | `0` | End timestamp |
+| `--limit` | int | `20` | Maximum results |
+| `--offset` | int | `0` | Pagination offset |
+
 ---
 
 ## auth
 
-Authentication and API key management.
+Manage API keys, check auth status, and handle the credential lifecycle.
 
 ### auth login
 
-Store an API key for the active profile.
+Store an API key for the active profile. Verifies the key against the server by default.
 
 ```bash
-openplane auth login --api-key "op_..."
+openplane auth login --api-key "op_your_key_here"
 ```
 
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
 | `--api-key` | string | | API key value |
-| `--skip-verify` | bool | `false` | Skip server-side verification |
+| `--skip-verify` | bool | `false` | Skip server verification |
 
 ### auth logout
 
-Remove the API key for the active profile.
+Remove the stored API key for the active profile.
 
 ```bash
-openplane auth logout --yes
+openplane auth logout
 ```
 
 ### auth status
 
-Show authentication status for the active profile.
+Show current authentication status.
 
 ```bash
 openplane auth status --verify
@@ -193,7 +203,7 @@ openplane auth status --verify
 
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
-| `--verify` | bool | `false` | Verify key against server |
+| `--verify` | bool | `false` | Verify the key against the server |
 
 ### auth token print
 
@@ -206,7 +216,7 @@ openplane auth token print --redact=false
 
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
-| `--redact` | bool | `true` | Redact token output |
+| `--redact` | bool | `true` | Redact the token output |
 
 ### auth key list
 
@@ -216,43 +226,43 @@ List API keys for a team.
 openplane auth key list --team-id "team_abc"
 ```
 
-| Flag | Type | Description |
-|------|------|-------------|
-| `--team-id` | string | Team identifier (defaults to active profile team) |
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--team-id` | string | | Team identifier (defaults to active profile team) |
 
 ### auth key create
 
-Create an API key.
+Create a new API key.
 
 ```bash
-openplane auth key create --name "CI Pipeline" --scope read:search --scope write:connectors --yes
+openplane auth key create --name "CI Pipeline" --scope read:search --scope write:connectors
 ```
 
-| Flag | Type | Required | Description |
-|------|------|----------|-------------|
-| `--name` | string | Yes | API key name |
-| `--team-id` | string | No | Team identifier |
-| `--scope` | string[] | No | Scope values |
-| `--expires-at` | string | No | Expiration in RFC3339 format |
+| Flag | Type | Default | Required |
+|------|------|---------|----------|
+| `--name` | string | | Yes |
+| `--team-id` | string | | No (uses profile team) |
+| `--scope` | string[] | | No (repeatable) |
+| `--expires-at` | string | | No (RFC3339 format) |
 
 ### auth key revoke
 
-Revoke an API key.
+Revoke an existing API key.
 
 ```bash
-openplane auth key revoke --id "key_abc" --yes
+openplane auth key revoke --id "key_abc123" --yes
 ```
 
-| Flag | Type | Required | Description |
-|------|------|----------|-------------|
-| `--id` | string | Yes | API key identifier |
-| `--team-id` | string | No | Team identifier |
+| Flag | Type | Default | Required |
+|------|------|---------|----------|
+| `--id` | string | | Yes |
+| `--team-id` | string | | No |
 
 ---
 
 ## connectors
 
-Manage data source connectors: list, connect, sync, pause, and disconnect.
+Manage connector installations, trigger syncs, and view sync history. 12 subcommands.
 
 ### connectors list
 
@@ -264,15 +274,15 @@ openplane connectors list
 
 ### connectors get
 
-Get details for a specific connector.
+Get detailed information about a connector.
 
 ```bash
-openplane connectors get --id "conn_abc"
+openplane connectors get --id "conn_abc123"
 ```
 
-| Flag | Type | Required |
-|------|------|----------|
-| `--id` | string | Yes |
+| Flag | Type | Default | Required |
+|------|------|---------|----------|
+| `--id` | string | | Yes |
 
 ### connectors connect
 
@@ -280,39 +290,50 @@ Create a new connector installation.
 
 ```bash
 openplane connectors connect \
-  --app-id "slack" \
-  --workspace-external-id "T0123456" \
-  --name "Engineering Slack" \
-  --type SOURCE \
+  --app-id "gmail" \
+  --workspace-external-id "ws_123" \
+  --name "Company Gmail" \
   --auth-type OAUTH2 \
   --yes
 ```
 
-| Flag | Type | Default | Required | Description |
-|------|------|---------|----------|-------------|
-| `--app-id` | string | | Yes | Connector app ID |
-| `--workspace-external-id` | string | | Yes | Workspace external ID |
-| `--name` | string | | Yes | Display name |
-| `--type` | string | `SOURCE` | No | Connector type |
-| `--auth-type` | string | `OAUTH2` | No | Authentication type |
-| `--config` | string | `{}` | No | Config JSON object |
+| Flag | Type | Default | Required |
+|------|------|---------|----------|
+| `--app-id` | string | | Yes |
+| `--workspace-external-id` | string | | Yes |
+| `--name` | string | | Yes |
+| `--type` | string | `SOURCE` | No |
+| `--auth-type` | string | `OAUTH2` | No |
+| `--config` | string | `{}` | No (JSON object) |
 
 ### connectors update
 
 Update connector settings.
 
 ```bash
-openplane connectors update --id "conn_abc" --config '{"syncInterval": 3600}' --yes
+openplane connectors update --id "conn_abc" --config '{"syncInterval":"1h"}' --yes
 ```
 
-| Flag | Type | Required |
-|------|------|----------|
-| `--id` | string | Yes |
-| `--config` | string | No |
+| Flag | Type | Default | Required |
+|------|------|---------|----------|
+| `--id` | string | | Yes |
+| `--config` | string | `{}` | No (JSON object) |
+
+### connectors disconnect
+
+Schedule a connector for disconnection.
+
+```bash
+openplane connectors disconnect --id "conn_abc" --yes
+```
+
+| Flag | Type | Default | Required |
+|------|------|---------|----------|
+| `--id` | string | | Yes |
 
 ### connectors sync
 
-Trigger a sync on a connector.
+Trigger a sync for a connector.
 
 ```bash
 openplane connectors sync --id "conn_abc" --type FULL --yes
@@ -325,61 +346,64 @@ openplane connectors sync --id "conn_abc" --type FULL --yes
 
 ### connectors status
 
-Get the current sync status.
+Get the current sync status of a connector.
 
 ```bash
 openplane connectors status --id "conn_abc"
 ```
 
+| Flag | Type | Default | Required |
+|------|------|---------|----------|
+| `--id` | string | | Yes |
+
 ### connectors history
 
-View sync history with pagination.
+Get sync history for a connector.
 
 ```bash
 openplane connectors history --id "conn_abc" --limit 10
 ```
 
-| Flag | Type | Default |
-|------|------|---------|
-| `--id` | string | (required) |
-| `--limit` | int | `20` |
-| `--offset` | int | `0` |
+| Flag | Type | Default | Required |
+|------|------|---------|----------|
+| `--id` | string | | Yes |
+| `--limit` | int | `20` | No |
+| `--offset` | int | `0` | No |
 
-### connectors pause / resume
+### connectors pause
 
-Pause or resume a connector.
+Pause a running connector.
 
 ```bash
 openplane connectors pause --id "conn_abc" --yes
-openplane connectors resume --id "conn_abc" --yes
 ```
 
-### connectors disconnect
+### connectors resume
 
-Schedule a connector for disconnection.
+Resume a paused connector.
 
 ```bash
-openplane connectors disconnect --id "conn_abc" --yes
+openplane connectors resume --id "conn_abc" --yes
 ```
 
 ### connectors resources
 
-List resources (channels, repositories, folders) for a connector.
+List resources available for a connector (channels, repos, drives, etc.).
 
 ```bash
 openplane connectors resources --id "conn_abc" --search "engineering" --limit 50
 ```
 
-| Flag | Type | Default |
-|------|------|---------|
-| `--id` | string | (required) |
-| `--search` | string | |
-| `--cursor` | string | |
-| `--limit` | int | `50` |
+| Flag | Type | Default | Required |
+|------|------|---------|----------|
+| `--id` | string | | Yes |
+| `--search` | string | | No |
+| `--cursor` | string | | No |
+| `--limit` | int | `50` | No |
 
 ### connectors resource-sync
 
-Toggle sync for a specific resource.
+Toggle syncing for a specific resource.
 
 ```bash
 openplane connectors resource-sync --resource-id "res_abc" --enabled=true --yes
@@ -398,29 +422,29 @@ Execute AI agents and stream their responses.
 
 ### agent run
 
-Execute an agent request and return the complete result.
+Execute an agent request and receive the complete result.
 
 ```bash
-openplane agent run -p "Summarize our Q3 performance" --agent-type rag
+openplane agent run --prompt "Find all documents about our pricing strategy" --agent-type rag
 ```
 
 | Flag | Type | Default | Required |
 |------|------|---------|----------|
-| `-p`, `--prompt` | string | | Yes |
+| `--prompt`, `-p` | string | | Yes |
 | `--agent-type` | string | `rag` | No |
 | `--max-steps` | int | `10` | No |
 
 ### agent stream
 
-Stream agent execution events via SSE.
+Stream agent events in real-time via SSE.
 
 ```bash
-openplane agent stream -p "What changed in the API this week?" --output ndjson
+openplane agent stream --prompt "Analyze our competitor landscape" --max-steps 15
 ```
 
 | Flag | Type | Default | Required |
 |------|------|---------|----------|
-| `-p`, `--prompt` | string | | Yes |
+| `--prompt`, `-p` | string | | Yes |
 | `--agent-type` | string | `rag` | No |
 | `--max-steps` | int | `10` | No |
 
@@ -428,19 +452,19 @@ openplane agent stream -p "What changed in the API this week?" --output ndjson
 
 ## rag
 
-RAG (Retrieval-Augmented Generation) workflows.
+Retrieval-Augmented Generation workflows. Ask questions, stream answers, and manage conversations.
 
 ### rag ask
 
-Ask a question and get a grounded answer with citations.
+Ask a question grounded in your indexed data.
 
 ```bash
-openplane rag ask -q "What is our SLA for enterprise customers?"
+openplane rag ask --query "What were the key decisions from the last board meeting?"
 ```
 
 | Flag | Type | Default | Required |
 |------|------|---------|----------|
-| `-q`, `--query` | string | | Yes |
+| `--query`, `-q` | string | | Yes |
 | `--conversation-id` | string | | No |
 | `--model-id` | string | | No |
 | `--temperature` | float64 | `0` | No |
@@ -449,37 +473,100 @@ openplane rag ask -q "What is our SLA for enterprise customers?"
 
 ### rag stream
 
-Stream a RAG response via SSE.
+Stream a RAG response token by token.
 
 ```bash
-openplane rag stream -q "How does our auth system work?" --output ndjson
+openplane rag stream --query "Explain our authentication architecture"
 ```
 
-Accepts the same flags as `rag ask`.
+Flags are identical to `rag ask`.
 
-### rag conversations
+### rag conversations create
 
-Manage RAG conversation sessions.
+Create a new conversation for multi-turn RAG.
 
 ```bash
-# Create a conversation
 openplane rag conversations create --yes
+```
 
-# List conversations
-openplane rag conversations list --status active
+### rag conversations list
 
-# Get conversation details
+List existing conversations.
+
+```bash
+openplane rag conversations list --status active --limit 10
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--status` | string | `active` | Conversation status |
+| `--limit` | int | `20` | Page size |
+| `--offset` | int | `0` | Pagination offset |
+
+### rag conversations get
+
+Get conversation details and message history.
+
+```bash
 openplane rag conversations get --id "conv_abc"
+```
 
-# Delete a conversation
+### rag conversations delete
+
+Delete a conversation.
+
+```bash
 openplane rag conversations delete --id "conv_abc" --yes
+```
+
+---
+
+## research
+
+Orchestrate long-running research workflows powered by AI agents.
+
+### research start
+
+Start a research workflow with a prompt.
+
+```bash
+openplane research start --prompt "Analyze our market position vs Glean" --yes
+```
+
+| Flag | Type | Default | Required |
+|------|------|---------|----------|
+| `--prompt` | string | | Yes |
+| `--max-steps` | int | | No |
+
+### research progress
+
+Check progress of a running research workflow.
+
+```bash
+openplane research progress --workflow-id "wf_abc123"
+```
+
+### research artifacts
+
+Retrieve artifacts produced by a research workflow.
+
+```bash
+openplane research artifacts --workflow-id "wf_abc123"
+```
+
+### research cancel
+
+Cancel a running research workflow.
+
+```bash
+openplane research cancel --workflow-id "wf_abc123" --yes
 ```
 
 ---
 
 ## canvas
 
-Manage agent canvas workflows (visual agent orchestration).
+Manage agent canvases -- visual agent workflow orchestration. Create, publish, and execute multi-step agent pipelines.
 
 ### canvas list
 
@@ -487,80 +574,108 @@ Manage agent canvas workflows (visual agent orchestration).
 openplane canvas list --status published --limit 10
 ```
 
-| Flag | Type | Default |
-|------|------|---------|
-| `--status` | string | |
-| `--limit` | int | `20` |
-| `--offset` | int | `0` |
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--status` | string | | Canvas status filter |
+| `--limit` | int | `20` | Page size |
+| `--offset` | int | `0` | Pagination offset |
 
 ### canvas create
 
 ```bash
-openplane canvas create --name "Research Pipeline" --nodes '[]' --edges '[]' --yes
+openplane canvas create --name "Lead Qualification" --nodes '[...]' --edges '[...]' --yes
 ```
 
-| Flag | Type | Required | Description |
-|------|------|----------|-------------|
-| `--name` | string | Yes | Canvas name |
-| `--description` | string | No | Description |
-| `--icon` | string | No | Icon identifier |
-| `--nodes` | string | No | Nodes JSON array |
-| `--edges` | string | No | Edges JSON array |
-| `--viewport` | string | No | Viewport JSON |
-| `--settings` | string | No | Settings JSON |
-| `--trigger-type` | string | No | Trigger type |
-| `--trigger-config` | string | No | Trigger config JSON |
+| Flag | Type | Default | Required |
+|------|------|---------|----------|
+| `--name` | string | | Yes |
+| `--description` | string | | No |
+| `--icon` | string | | No |
+| `--nodes` | string | `[]` | No (JSON array) |
+| `--edges` | string | `[]` | No (JSON array) |
+| `--viewport` | string | | No (JSON object) |
+| `--settings` | string | | No (JSON object) |
+| `--trigger-type` | string | | No |
+| `--trigger-config` | string | | No (JSON object) |
 
-### canvas get / update / delete
+### canvas get
 
 ```bash
-openplane canvas get --id "canvas_abc"
-openplane canvas update --id "canvas_abc" --name "Updated Pipeline" --yes
-openplane canvas delete --id "canvas_abc" --yes
+openplane canvas get --id "cnv_abc"
+```
+
+### canvas update
+
+```bash
+openplane canvas update --id "cnv_abc" --name "Updated Name" --yes
+```
+
+Flags are identical to `canvas create`, plus `--id` (required).
+
+### canvas delete
+
+```bash
+openplane canvas delete --id "cnv_abc" --yes
 ```
 
 ### canvas publish
 
-Publish a canvas version with optional changelog.
+Publish a canvas version.
 
 ```bash
-openplane canvas publish --id "canvas_abc" --changelog "Added error handling step" --yes
+openplane canvas publish --id "cnv_abc" --changelog "Added retry logic" --yes
 ```
+
+| Flag | Type | Default | Required |
+|------|------|---------|----------|
+| `--id` | string | | Yes |
+| `--changelog` | string | | No |
 
 ### canvas executions
 
 List executions for a canvas.
 
 ```bash
-openplane canvas executions --id "canvas_abc" --status completed
+openplane canvas executions --id "cnv_abc" --status completed --limit 10
 ```
 
 ### canvas execute
 
-Create a new canvas execution.
+Trigger a new canvas execution.
 
 ```bash
-openplane canvas execute --id "canvas_abc" --input '{"query": "test"}' --yes
+openplane canvas execute --id "cnv_abc" --input '{"query":"analyze pipeline"}' --yes
 ```
 
-| Flag | Type | Description |
-|------|------|-------------|
-| `--id` | string | Canvas identifier (required) |
-| `--input` | string | Input JSON object |
-| `--trigger-source` | string | Trigger source |
-| `--session-id` | string | Session identifier |
-| `--turn-id` | string | Turn identifier |
+| Flag | Type | Default | Required |
+|------|------|---------|----------|
+| `--id` | string | | Yes |
+| `--input` | string | | No (JSON object) |
+| `--trigger-source` | string | | No |
+| `--session-id` | string | | No |
+| `--turn-id` | string | | No |
 
 ---
 
 ## background-agents
 
-Manage long-running autonomous agents.
+Manage long-running background agents for autonomous task execution.
 
-### background-agents list / get
+### background-agents list
 
 ```bash
-openplane background-agents list --status running
+openplane background-agents list --status running --limit 10
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--status` | string | | Agent status filter |
+| `--limit` | int | `20` | Page size |
+| `--offset` | int | `0` | Pagination offset |
+
+### background-agents get
+
+```bash
 openplane background-agents get --id "ba_abc"
 ```
 
@@ -568,8 +683,8 @@ openplane background-agents get --id "ba_abc"
 
 ```bash
 openplane background-agents create \
-  --name "Nightly Research" \
-  --prompt "Monitor competitor releases and summarize changes" \
+  --name "Code Reviewer" \
+  --prompt "Review all PRs for security issues" \
   --preset researcher \
   --sandbox-type daytona \
   --yes
@@ -586,26 +701,45 @@ openplane background-agents create \
 | `--base-branch` | string | | No |
 | `--timeout-ms` | int | `0` | No |
 
-### background-agents pause / resume / cancel / delete
+### background-agents pause
 
 ```bash
 openplane background-agents pause --id "ba_abc" --yes
-openplane background-agents resume --id "ba_abc" --yes
+```
+
+### background-agents resume
+
+```bash
 openplane background-agents resume --id "ba_abc" --from-checkpoint 3 --yes
+```
+
+| Flag | Type | Default | Required |
+|------|------|---------|----------|
+| `--id` | string | | Yes |
+| `--from-checkpoint` | int | `0` | No |
+
+### background-agents cancel
+
+```bash
 openplane background-agents cancel --id "ba_abc" --yes
+```
+
+### background-agents delete
+
+```bash
 openplane background-agents delete --id "ba_abc" --yes
 ```
 
 ### background-agents logs
 
-View or follow agent logs.
+View and follow agent execution logs.
 
 ```bash
-# Fetch logs
-openplane background-agents logs --id "ba_abc" --level error --limit 50
+# Get recent logs
+openplane background-agents logs --id "ba_abc" --limit 100
 
-# Follow logs (poll every 2s)
-openplane background-agents logs --id "ba_abc" --follow --interval 5s
+# Follow logs in real-time
+openplane background-agents logs --id "ba_abc" --follow --interval 1s
 ```
 
 | Flag | Type | Default | Description |
@@ -614,332 +748,611 @@ openplane background-agents logs --id "ba_abc" --follow --interval 5s
 | `--level` | string | | Log level filter |
 | `--limit` | int | `100` | Page size |
 | `--offset` | int | `0` | Pagination offset |
-| `--follow` | bool | `false` | Follow logs |
+| `--follow` | bool | `false` | Follow logs in real-time |
 | `--interval` | duration | `2s` | Follow poll interval |
-
----
-
-## research
-
-Orchestrate multi-step research workflows.
-
-### research start
-
-```bash
-openplane research start --prompt "Analyze our competitors' pricing strategies" --yes
-```
-
-| Flag | Type | Required |
-|------|------|----------|
-| `--prompt` | string | Yes |
-| `--max-steps` | int | No |
-
-### research progress
-
-```bash
-openplane research progress --workflow-id "wf_abc"
-```
-
-### research artifacts
-
-```bash
-openplane research artifacts --workflow-id "wf_abc"
-```
-
-### research cancel
-
-```bash
-openplane research cancel --workflow-id "wf_abc" --yes
-```
 
 ---
 
 ## knowledge
 
-Query the knowledge graph: entities, relations, experts, and knowledge panels.
+Query the knowledge graph -- entities, relations, topics, and expertise.
 
-### knowledge list / search / get
+### knowledge list
 
 ```bash
 openplane knowledge list --type person --limit 20
-openplane knowledge search -q "machine learning" --type topic
-openplane knowledge get --id "entity_abc"
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--type` | string | | Entity type filter |
+| `--cursor` | string | | Pagination cursor |
+| `--limit` | int | `20` | Page size |
+
+### knowledge search
+
+```bash
+openplane knowledge search --query "machine learning" --type topic
+```
+
+| Flag | Type | Default | Required |
+|------|------|---------|----------|
+| `--query`, `-q` | string | | Yes |
+| `--type` | string | | No |
+| `--limit` | int | `10` | No |
+
+### knowledge get
+
+```bash
+openplane knowledge get --id "ent_abc"
 ```
 
 ### knowledge relations
 
+Get entity relationships.
+
 ```bash
-openplane knowledge relations --id "entity_abc" --direction both
+openplane knowledge relations --id "ent_abc" --direction both
 ```
 
-| Flag | Type | Default |
-|------|------|---------|
-| `--id` | string | (required) |
-| `--direction` | string | `both` |
+| Flag | Type | Default | Required |
+|------|------|---------|----------|
+| `--id` | string | | Yes |
+| `--direction` | string | `both` | No |
 
 ### knowledge panel
 
 Get a rich knowledge panel for an entity.
 
 ```bash
-openplane knowledge panel --id "entity_abc"
+openplane knowledge panel --id "ent_abc"
 ```
 
-### knowledge experts / expertise
+### knowledge experts
+
+Find subject matter experts for a topic.
 
 ```bash
-# Find experts on a topic
 openplane knowledge experts --topic-id "topic_ml" --limit 5
+```
 
-# Get a person's areas of expertise
-openplane knowledge expertise --person-id "person_abc"
+| Flag | Type | Default | Required |
+|------|------|---------|----------|
+| `--topic-id` | string | | Yes |
+| `--limit` | int | `10` | No |
+
+### knowledge expertise
+
+Get a person's areas of expertise.
+
+```bash
+openplane knowledge expertise --person-id "person_abc" --limit 10
+```
+
+| Flag | Type | Default | Required |
+|------|------|---------|----------|
+| `--person-id` | string | | Yes |
+| `--limit` | int | `10` | No |
+
+---
+
+## media
+
+Deep operations on indexed media -- transcripts, chapters, highlights, and Q&A.
+
+### media chapters
+
+```bash
+openplane media chapters --vespa-id "vid_abc"
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--vespa-id` | string | | Vespa document ID (required) |
+| `--force-refresh` | bool | `false` | Regenerate content |
+
+### media highlights
+
+```bash
+openplane media highlights --vespa-id "vid_abc"
+```
+
+### media transcript
+
+```bash
+openplane media transcript --vespa-id "vid_abc"
+```
+
+### media summary
+
+```bash
+openplane media summary --vespa-id "vid_abc"
+```
+
+### media metadata
+
+```bash
+openplane media metadata --vespa-id "vid_abc"
+```
+
+### media regenerate
+
+Regenerate derived content for a media item.
+
+```bash
+openplane media regenerate --vespa-id "vid_abc" --content-type chapters --content-type highlights --yes
+```
+
+| Flag | Type | Default | Required |
+|------|------|---------|----------|
+| `--vespa-id` | string | | Yes |
+| `--content-type` | string[] | | Yes (repeatable) |
+
+### media ask
+
+Ask a question about a specific media item.
+
+```bash
+openplane media ask --media-id "vid_abc" --question "What was discussed at timestamp 5:30?"
+```
+
+| Flag | Type | Default | Required |
+|------|------|---------|----------|
+| `--media-id` | string | | Yes |
+| `--question` | string | | Yes |
+
+---
+
+## teams
+
+Manage teams and roles.
+
+### teams list
+
+```bash
+openplane teams list
+```
+
+### teams create
+
+```bash
+openplane teams create --name "Engineering" --slug "engineering" --yes
+```
+
+| Flag | Type | Default | Required |
+|------|------|---------|----------|
+| `--name` | string | | Yes |
+| `--slug` | string | | Yes |
+
+### teams switch
+
+Switch the active team.
+
+```bash
+openplane teams switch --id "team_abc" --yes
+```
+
+### teams role
+
+Get your role for a specific team.
+
+```bash
+openplane teams role --id "team_abc"
 ```
 
 ---
 
 ## permissions
 
-Manage document permissions, access controls, and cache.
+Manage permission sync, caches, and access controls.
+
+### permissions sync-status
 
 ```bash
-# Permission sync status
 openplane permissions sync-status --connector-id "conn_abc"
+```
+
+### permissions sync-statuses
+
+```bash
 openplane permissions sync-statuses
+```
 
-# Current user permissions
-openplane permissions me
+### permissions invalidate
 
-# Document permissions
-openplane permissions document --document-id "doc_abc"
+Invalidate the permission cache.
 
-# User group memberships and scopes
-openplane permissions groups --user-id "user_abc"
-openplane permissions scopes --user-id "user_abc"
-
-# Team-wide stats
-openplane permissions stats
-
-# Invalidate permission cache
+```bash
 openplane permissions invalidate --scope all --yes
-openplane permissions invalidate --scope user --user-id "user_abc" --yes
+openplane permissions invalidate --scope user --user-id "usr_abc" --yes
 openplane permissions invalidate --scope connector --connector-id "conn_abc" --yes
 ```
 
----
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--scope` | string | `all` | Invalidation scope: `user`, `connector`, `all` |
+| `--user-id` | string | | User identifier |
+| `--connector-id` | string | | Connector identifier |
 
-## media
+### permissions me
 
-Deep media operations: transcripts, chapters, highlights, and Q&A.
+Get your current permission set.
 
 ```bash
-# Retrieve derived content
-openplane media chapters --vespa-id "media_abc"
-openplane media highlights --vespa-id "media_abc"
-openplane media transcript --vespa-id "media_abc"
-openplane media summary --vespa-id "media_abc"
-openplane media metadata --vespa-id "media_abc"
+openplane permissions me
+```
 
-# Force regeneration
-openplane media chapters --vespa-id "media_abc" --force-refresh
+### permissions document
 
-# Regenerate specific content types
-openplane media regenerate --vespa-id "media_abc" --content-type chapters,highlights --yes
+Get permission details for a document.
 
-# Ask a question about a media item
-openplane media ask --media-id "media_abc" --question "What decisions were made?"
+```bash
+openplane permissions document --document-id "doc_abc"
+```
+
+### permissions groups
+
+Get user group memberships.
+
+```bash
+openplane permissions groups --user-id "usr_abc"
+```
+
+### permissions scopes
+
+Get user connector scopes.
+
+```bash
+openplane permissions scopes --user-id "usr_abc"
+```
+
+### permissions stats
+
+Get team-wide permission statistics.
+
+```bash
+openplane permissions stats
 ```
 
 ---
 
 ## analytics
 
-Cost breakdown, usage trends, and spreadsheet analytics.
+Cost tracking, usage trends, and spreadsheet analytics.
 
 ### analytics cost-breakdown
 
 ```bash
-openplane analytics cost-breakdown --start-date 2026-01-01 --end-date 2026-01-31 --group-by model,team
+openplane analytics cost-breakdown --start-date 2025-01-01 --end-date 2025-01-31 --group-by model
 ```
+
+| Flag | Type | Default | Required |
+|------|------|---------|----------|
+| `--start-date` | string | | Yes (ISO 8601) |
+| `--end-date` | string | | Yes (ISO 8601) |
+| `--group-by` | string[] | | No (repeatable) |
 
 ### analytics usage-trend
 
 ```bash
-openplane analytics usage-trend --start-date 2026-01-01 --end-date 2026-03-01 --granularity week
+openplane analytics usage-trend --start-date 2025-01-01 --end-date 2025-03-01 --granularity week
 ```
 
-| Flag | Type | Default |
-|------|------|---------|
-| `--start-date` | string | (required) |
-| `--end-date` | string | (required) |
-| `--granularity` | string | `day` |
+| Flag | Type | Default | Required |
+|------|------|---------|----------|
+| `--start-date` | string | | Yes |
+| `--end-date` | string | | Yes |
+| `--granularity` | string | `day` | No (`hour`, `day`, `week`, `month`) |
 
 ### analytics top-cost-drivers
 
 ```bash
-openplane analytics top-cost-drivers --start-date 2026-01-01 --end-date 2026-01-31 --dimension model --limit 5
+openplane analytics top-cost-drivers --start-date 2025-01-01 --end-date 2025-01-31 --dimension model --limit 5
 ```
 
-### analytics spreadsheets
+| Flag | Type | Default | Required |
+|------|------|---------|----------|
+| `--start-date` | string | | Yes |
+| `--end-date` | string | | Yes |
+| `--dimension` | string | `model` | No |
+| `--limit` | int | `10` | No |
 
-Structured data analysis for indexed spreadsheets.
+### analytics spreadsheets list
 
 ```bash
-# List indexed spreadsheets
-openplane analytics spreadsheets list
-
-# Get schema
-openplane analytics spreadsheets schema --document-id "doc_abc"
-
-# Natural language to SQL
-openplane analytics spreadsheets generate-sql --document-id "doc_abc" --question "What is the average deal size?"
-
-# Execute SQL
-openplane analytics spreadsheets query --document-id "doc_abc" --sql "SELECT AVG(amount) FROM deals" --view-name deals_view
+openplane analytics spreadsheets list --limit 20
 ```
+
+### analytics spreadsheets schema
+
+```bash
+openplane analytics spreadsheets schema --document-id "doc_abc" --sheet "Sheet1"
+```
+
+### analytics spreadsheets generate-sql
+
+Generate SQL from a natural language question about a spreadsheet.
+
+```bash
+openplane analytics spreadsheets generate-sql \
+  --document-id "doc_abc" \
+  --question "What is the total revenue by region?"
+```
+
+### analytics spreadsheets query
+
+Execute a SQL query against a spreadsheet.
+
+```bash
+openplane analytics spreadsheets query \
+  --document-id "doc_abc" \
+  --sql "SELECT region, SUM(revenue) FROM data GROUP BY region" \
+  --view-name "revenue_view" \
+  --max-rows 500
+```
+
+| Flag | Type | Default | Required |
+|------|------|---------|----------|
+| `--document-id` | string | | Yes |
+| `--sql` | string | | Yes |
+| `--view-name` | string | | Yes |
+| `--max-rows` | int | `1000` | No |
+| `--timeout-ms` | int | `10000` | No |
 
 ---
 
 ## integrations
 
-OAuth and service account authentication flows.
+OAuth and service account authentication flows for connectors.
 
 ### integrations oauth-start
 
+Start an OAuth authorization flow.
+
 ```bash
-openplane integrations oauth-start --integration slack --connector-id "conn_abc"
+openplane integrations oauth-start --integration gmail --connector-id "conn_abc"
 ```
 
-| Flag | Type | Required |
-|------|------|----------|
-| `--integration` | string | Yes |
-| `--connector-id` | string | Yes |
-| `--workspace-id` | string | No |
-| `--redirect-url` | string | No |
-
-Supported integrations: `gmail`, `google-drive`, `linear`, `notion`, `slack`.
+| Flag | Type | Default | Required |
+|------|------|---------|----------|
+| `--integration` | string | | Yes (`gmail`, `google-drive`, `linear`, `notion`, `slack`) |
+| `--connector-id` | string | | Yes |
+| `--workspace-id` | string | | No |
+| `--redirect-url` | string | | No |
 
 ### integrations oauth-callback
 
+Complete an OAuth flow with the authorization code.
+
 ```bash
-openplane integrations oauth-callback --integration slack --code "auth_code" --state "state_token" --yes
+openplane integrations oauth-callback \
+  --integration gmail \
+  --code "auth_code_here" \
+  --state "state_param" \
+  --yes
 ```
 
 ### integrations service-account-auth
 
-Authenticate a Google service account connector (Gmail or Google Drive).
+Authenticate a Google service account connector.
 
 ```bash
 openplane integrations service-account-auth \
   --integration gmail \
   --connector-id "conn_abc" \
-  --credentials '{"type": "service_account", ...}' \
-  --delegated-email admin@example.com \
+  --credentials '{"type":"service_account",...}' \
+  --delegated-email "admin@company.com" \
   --yes
 ```
 
----
-
-## teams
-
-Team management.
-
-```bash
-# List teams
-openplane teams list
-
-# Create a team
-openplane teams create --name "Engineering" --slug engineering --yes
-
-# Switch active team
-openplane teams switch --id "team_abc" --yes
-
-# Get role for a team
-openplane teams role --id "team_abc"
-```
+| Flag | Type | Default | Required |
+|------|------|---------|----------|
+| `--integration` | string | | Yes (`gmail` or `google-drive`) |
+| `--connector-id` | string | | Yes |
+| `--credentials` | string | | No (service account JSON) |
+| `--delegated-email` | string | | No |
 
 ---
 
 ## mcp
 
-Model Context Protocol server and tool inspection.
+Model Context Protocol server and API exploration.
 
 ### mcp serve
 
-Start a JSON-RPC 2.0 MCP server over stdin/stdout. Designed for AI tool integration (Claude, GPT, etc.).
+Start the MCP JSON-RPC server over stdin/stdout.
 
 ```bash
 openplane mcp serve
 ```
 
-Supported MCP methods: `initialize`, `tools/list`, `tools/call`, `resources/list`, `resources/read`, `prompts/list`, `prompts/get`.
+### mcp tools list
 
-### mcp tools list / call
+List all available MCP tools.
 
 ```bash
 openplane mcp tools list
-openplane mcp tools call --name search_hybrid --args '{"query": "test"}'
 ```
 
-### mcp resources list / read
+### mcp tools call
+
+Call an MCP tool by name with JSON arguments.
+
+```bash
+openplane mcp tools call --name "search_hybrid" --args '{"query":"test"}'
+```
+
+| Flag | Type | Default | Required |
+|------|------|---------|----------|
+| `--name` | string | | Yes |
+| `--args` | string | `{}` | No |
+
+### mcp resources list
 
 ```bash
 openplane mcp resources list
-openplane mcp resources read --uri "openplane://documents/doc_abc"
 ```
 
-### mcp prompts list / get
+### mcp resources read
+
+```bash
+openplane mcp resources read --uri "openplane://connectors/list"
+```
+
+### mcp prompts list
 
 ```bash
 openplane mcp prompts list
-openplane mcp prompts get --name research --args '{"topic": "AI"}'
+```
+
+### mcp prompts get
+
+```bash
+openplane mcp prompts get --name "search_prompt" --args '{"query":"test"}'
 ```
 
 ---
 
 ## config
 
-Profile configuration management.
+Manage CLI profiles and settings.
+
+### config show
+
+Show the active profile configuration.
 
 ```bash
 openplane config show
-openplane config set --host https://openplane.example.com --team my-team --timeout 60s
-openplane config use staging
-openplane config profiles
 ```
 
-See the [CLI overview](/docs/cli) for full configuration details.
+### config set
+
+Set values on the active profile.
+
+```bash
+openplane config set --host https://openplane.example.com --team "team_abc" --timeout 60s
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--host` | string | | API server URL |
+| `--team` | string | | Default team identifier |
+| `--output` | string | | Output format (`table`, `json`, `yaml`, `ndjson`) |
+| `--color` | string | | Color mode (`auto`, `always`, `never`) |
+| `--timeout` | string | | Request timeout (e.g., `30s`, `2m`) |
+
+### config use
+
+Switch the active profile.
+
+```bash
+openplane config use production
+```
+
+### config profiles
+
+List all available profiles.
+
+```bash
+openplane config profiles
+```
 
 ---
 
 ## daemon
 
-Manage the local OpenPlane daemon for agent sessions, speech, and provider configuration.
+Manage the local OpenPlane daemon process.
+
+### daemon start
 
 ```bash
 openplane daemon start
-openplane daemon stop
-openplane daemon status
-openplane daemon restart
-openplane daemon pair
-openplane daemon local-daemon
 ```
 
-Sub-command groups: `daemon agent`, `daemon permit`, `daemon provider`, `daemon speech`, `daemon worktree`.
+### daemon stop
+
+```bash
+openplane daemon stop
+```
+
+### daemon status
+
+```bash
+openplane daemon status
+```
+
+### daemon restart
+
+```bash
+openplane daemon restart
+```
+
+### daemon pair
+
+Pair the local daemon with a remote OpenPlane instance.
+
+```bash
+openplane daemon pair --host https://openplane.example.com
+```
+
+The daemon also includes subcommands for managing agent sessions, permissions, AI providers, speech processing, and worktrees. Run `openplane daemon --help` for the full list.
+
+---
+
+## plugin
+
+Manage CLI plugins.
+
+### plugin list
+
+List discovered plugins from all search directories.
+
+```bash
+openplane plugin list
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--search-dir` | string[] | | Override search directories |
+
+### plugin install
+
+Install a plugin binary from a local path.
+
+```bash
+openplane plugin install --name my-tool --source ./my-tool-binary --yes
+```
+
+| Flag | Type | Default | Required |
+|------|------|---------|----------|
+| `--name` | string | | Yes |
+| `--source` | string | | Yes |
+| `--dir` | string | | No (target directory) |
+
+### plugin run
+
+Run a plugin command directly.
+
+```bash
+openplane plugin run my-tool --arg1 value
+```
 
 ---
 
 ## version
 
+Print the CLI version, commit hash, build date, and Go version.
+
 ```bash
 openplane version
-# 0.1.0 (commit=abc1234 date=2026-03-01 go=go1.24 darwin/arm64)
+# 0.1.0 (commit=abc1234 date=2025-02-15 go=go1.24.2 darwin/arm64)
 ```
 
 ---
 
 ## completion
 
-Generate shell completion scripts. See [Shell Completion](#shell-completion) in the CLI overview.
+Generate shell completion scripts.
 
 ```bash
 openplane completion bash
@@ -948,20 +1361,4 @@ openplane completion fish
 openplane completion powershell
 ```
 
----
-
-## plugin
-
-Manage CLI plugins.
-
-```bash
-openplane plugin list
-openplane plugin install --name my-tool --source ./binary --yes
-openplane plugin run my-tool --arg value
-```
-
-| Subcommand | Description |
-|------------|-------------|
-| `list` | List discovered plugins |
-| `install` | Install from local path |
-| `run` | Execute a plugin by name |
+See the [CLI overview](/docs/cli) for setup instructions per shell.

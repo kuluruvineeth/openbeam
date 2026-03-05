@@ -1,323 +1,333 @@
 ---
 title: Docker Compose Deployment
-description: Deploy OpenPlane on a single server using Docker Compose with two stack files.
+description: Step-by-step guide to deploy OpenPlane on a single server using Docker Compose.
 ---
 
 # Docker Compose Deployment
 
 OpenPlane uses two compose files that form a complete deployment:
 
-| File | Purpose |
-|------|---------|
-| `scripts/deploy/infra-hetzner-compose.yaml` | Infrastructure: PostgreSQL, Redis, Vespa, Temporal, MinIO, monitoring |
-| `scripts/deploy/apps-compose.yaml` | Applications: server, web, worker, engine |
+| File | Purpose | Services |
+|------|---------|----------|
+| `scripts/deploy/infra-hetzner-compose.yaml` | Infrastructure layer | PostgreSQL, Redis, Vespa, Temporal, MinIO, monitoring |
+| `scripts/deploy/apps-compose.yaml` | Application layer | Server, Web, Worker, Engine |
 
-Both stacks communicate over a shared `openplane` Docker network.
+Infrastructure starts first. Applications depend on infrastructure being healthy before they launch.
 
 ## Prerequisites
 
-- Docker Engine 24+ with Compose V2
-- 16 GB RAM minimum (see [hardware requirements](/docs/self-hosting#hardware-requirements))
-- A data directory with sufficient disk space
-- Kernel tuning applied (see below)
+| Requirement | Version | Notes |
+|-------------|---------|-------|
+| Docker Engine | 24.0+ | `docker --version` |
+| Docker Compose | v2.20+ | `docker compose version` |
+| Server | 8+ cores, 32 GB RAM | See [hardware requirements](/docs/self-hosting#hardware-requirements) |
+| Domain | Required for HTTPS | Point DNS A record to your server IP |
+| Disk | 100+ GB SSD | Mounted at `/mnt/openplane-data` |
 
-```bash
-# Verify Docker
-docker compose version
-
-# Kernel settings (required for Vespa)
-sudo sysctl -w vm.max_map_count=262144
-sudo sysctl -w fs.file-max=1048576
-```
-
-## Step 1: Clone the Repository
+## Step 1: Clone and Configure
 
 ```bash
 git clone https://github.com/kuluruvineeth/openplane.git
 cd openplane
 ```
 
-## Step 2: Prepare Data Directories
-
-The infrastructure compose file expects volumes at `/mnt/openplane-data/`. Create the directory structure:
+Create your environment file:
 
 ```bash
-DATA_DIR="/mnt/openplane-data"
-sudo mkdir -p "$DATA_DIR"/{postgres,redis,vespa,minio,prometheus,grafana,loki}
-
-# Set ownership for each service
-sudo chown -R 70:70    "$DATA_DIR/postgres"
-sudo chown -R 999:999  "$DATA_DIR/redis"
-sudo chown -R 1000:1000 "$DATA_DIR/vespa"
-sudo chown -R 1000:1000 "$DATA_DIR/minio"
-sudo chown -R 65534:65534 "$DATA_DIR/prometheus"
-sudo chown -R 472:472  "$DATA_DIR/grafana"
-sudo chown -R 10001:10001 "$DATA_DIR/loki"
+cp .env.example .env
 ```
 
-<Callout type="info">
-On Hetzner, the `scripts/deploy/bootstrap.sh` script automates this entire setup including volume detection, directory creation, config copying, and kernel tuning. Run it on a fresh server:
+At minimum, set these values in `.env`:
 
 ```bash
-ssh root@<SERVER_IP> 'bash -s' < scripts/deploy/bootstrap.sh
-```
-</Callout>
+# Security (REQUIRED - generate unique values)
+JWT_SECRET=$(openssl rand -hex 32)
+ENCRYPTION_KEY=$(openssl rand -hex 32)
 
-## Step 3: Copy Configuration Files
+# URLs (REQUIRED - match your domain)
+WEB_URL=https://app.example.com
+SERVER_URL=https://api.example.com
+COOKIE_DOMAIN=.example.com
 
-The infrastructure services need config files mounted as volumes:
+# Database
+DATABASE_URL=postgresql://postgres:postgres@postgres:5432/openplane
 
-```bash
-DATA_DIR="/mnt/openplane-data"
+# Auth provider (at least one required)
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
 
-# Prometheus
-mkdir -p "$DATA_DIR/configs/prometheus"
-cp monitoring/prometheus/prometheus.yml "$DATA_DIR/configs/prometheus/"
-cp monitoring/prometheus/alerts.yml "$DATA_DIR/configs/prometheus/"
-cp monitoring/prometheus/recording-rules.yml "$DATA_DIR/configs/prometheus/"
-cp monitoring/prometheus/vespa-exporter.yml "$DATA_DIR/configs/prometheus/"
-
-# Grafana
-mkdir -p "$DATA_DIR/configs/grafana/provisioning/datasources"
-mkdir -p "$DATA_DIR/configs/grafana/provisioning/dashboards"
-mkdir -p "$DATA_DIR/configs/grafana/dashboards"
-cp monitoring/grafana/provisioning/datasources/datasource.yml "$DATA_DIR/configs/grafana/provisioning/datasources/"
-cp monitoring/grafana/provisioning/dashboards/dashboard.yml "$DATA_DIR/configs/grafana/provisioning/dashboards/"
-cp monitoring/grafana/dashboards/*.json "$DATA_DIR/configs/grafana/dashboards/" 2>/dev/null
-
-# Loki + Promtail
-mkdir -p "$DATA_DIR/configs/loki" "$DATA_DIR/configs/promtail"
-cp monitoring/loki/loki-config.yml "$DATA_DIR/configs/loki/"
-cp monitoring/promtail/promtail-config.yml "$DATA_DIR/configs/promtail/"
-
-# Temporal
-mkdir -p "$DATA_DIR/configs/temporal/dynamicconfig"
-cp temporal/dynamicconfig/development.yaml "$DATA_DIR/configs/temporal/dynamicconfig/"
-
-# Vespa application (search schemas)
-cp -r packages/vespa/application "$DATA_DIR/configs/vespa-application"
-cp packages/vespa/deploy.sh "$DATA_DIR/configs/vespa-application/"
-```
-
-## Step 4: Create Environment File
-
-Create a `.env` file in the project root for Docker Compose variable substitution:
-
-```bash title=".env"
-# PostgreSQL
-POSTGRES_DB=openplane
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=CHANGE_ME_STRONG_PASSWORD
-
-# Database URL (used by app services)
-DATABASE_URL=postgresql://postgres:CHANGE_ME_STRONG_PASSWORD@postgres:5432/openplane
-
-# MinIO
-MINIO_ROOT_USER=openplane-minio
-MINIO_ROOT_PASSWORD=CHANGE_ME_MINIO_PASSWORD
-S3_BUCKET=openplane-files
-
-# Auth (generate with: openssl rand -hex 32)
-JWT_SECRET=CHANGE_ME_64_CHAR_HEX
-ENCRYPTION_KEY=CHANGE_ME_64_CHAR_HEX
-
-# URLs
-WEB_URL=https://app.yourdomain.com
-SERVER_URL=https://api.yourdomain.com
-COOKIE_DOMAIN=.yourdomain.com
-
-# Google OAuth
-GOOGLE_CLIENT_ID=your-client-id
-GOOGLE_CLIENT_SECRET=your-client-secret
-
-# AI Keys (at least one required)
-OPENAI_API_KEY=sk-...
-ANTHROPIC_API_KEY=sk-ant-...
-
-# Storage
-GCS_ENDPOINT=http://minio:9000
+# Object storage
 GCS_ACCESS_KEY_ID=openplane-minio
-GCS_SECRET_ACCESS_KEY=CHANGE_ME_MINIO_PASSWORD
+GCS_SECRET_ACCESS_KEY=minioadmin
 GCS_BUCKET=openplane-files
 GCS_REGION=us-east-1
+GCS_PUBLIC_ENDPOINT=https://storage.example.com
 
-# Monitoring (optional)
-GRAFANA_USER=admin
-GRAFANA_PASSWORD=CHANGE_ME_GRAFANA_PASSWORD
+# AI (at least one required)
+OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-Generate secrets:
+See the [Configuration Reference](/docs/self-hosting/configuration) for all available variables.
+
+## Step 2: Prepare Data Directory
+
+Create the data directory and required config subdirectories:
 
 ```bash
-openssl rand -hex 32  # Use for JWT_SECRET
-openssl rand -hex 32  # Use for ENCRYPTION_KEY
+sudo mkdir -p /mnt/openplane-data/{postgres,redis,vespa,minio,grafana,prometheus,loki}
+sudo mkdir -p /mnt/openplane-data/configs/{temporal/dynamicconfig,prometheus,grafana/provisioning,grafana/dashboards,promtail,loki,vespa-application}
 ```
 
-## Step 5: Start Infrastructure
+<Callout type="warn">
+  The data directory must be on a fast disk (SSD or NVMe). Vespa and PostgreSQL performance depends heavily on disk I/O speed.
+</Callout>
+
+### Temporal Dynamic Config
+
+Create a minimal dynamic config file:
+
+```bash
+cat > /mnt/openplane-data/configs/temporal/dynamicconfig/development.yaml << 'EOF'
+{}
+EOF
+```
+
+### Loki Config
+
+```bash
+cat > /mnt/openplane-data/configs/loki/loki-config.yml << 'EOF'
+auth_enabled: false
+server:
+  http_listen_port: 3100
+common:
+  path_prefix: /loki
+  storage:
+    filesystem:
+      chunks_directory: /loki/chunks
+      rules_directory: /loki/rules
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+schema_config:
+  configs:
+    - from: 2020-10-24
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+EOF
+```
+
+## Step 3: Start Infrastructure
 
 ```bash
 docker compose -f scripts/deploy/infra-hetzner-compose.yaml up -d
 ```
 
-This starts PostgreSQL, Redis, Vespa, Temporal, MinIO, and the monitoring stack. The startup order is managed by health checks and dependencies:
-
-1. PostgreSQL starts first
-2. `postgres-auth-fix` runs a one-time password hash fix
-3. Temporal starts after PostgreSQL is healthy
-4. Vespa starts independently (takes ~2 minutes for initial startup)
-5. `vespa-deploy` deploys the search schema after Vespa is healthy
-6. `minio-init` creates the default bucket
-
-Wait for all services to be healthy:
+Watch the startup progress. Vespa takes the longest (2-3 minutes to become healthy).
 
 ```bash
 docker compose -f scripts/deploy/infra-hetzner-compose.yaml ps
 ```
 
-All core services should show `healthy` status. The init containers (`postgres-auth-fix`, `vespa-deploy`, `minio-init`) will show `exited (0)`.
+Wait until all services show `healthy` status. The `postgres-auth-fix`, `minio-init`, and `vespa-deploy` containers are one-shot tasks -- they run once and exit.
 
-## Step 6: Start Application Services
+| Service | Health Check | Expected Startup |
+|---------|-------------|-----------------|
+| PostgreSQL | `pg_isready` | ~10 seconds |
+| Redis | `redis-cli ping` | ~5 seconds |
+| Vespa | HTTP `/state/v1/health` | ~2-3 minutes |
+| MinIO | `mc ready local` | ~10 seconds |
+| Temporal | `temporal operator cluster health` | ~3 minutes (waits for PostgreSQL) |
+
+## Step 4: Start Applications
 
 ```bash
 docker compose -f scripts/deploy/apps-compose.yaml up -d
 ```
 
-The application stack starts:
-
-1. **engine-cpu** -- No app dependencies, starts immediately
-2. **server** -- Runs database migrations on startup, then starts the API
-3. **worker** -- Connects to Temporal and begins processing workflows
-4. **web** -- Starts after the server is healthy
-
-## Step 7: Verify
-
-Check that all services are running:
+Applications depend on infrastructure via the shared `openplane` Docker network. The server starts first, then web and worker launch after the server is healthy.
 
 ```bash
-# Infrastructure
-docker compose -f scripts/deploy/infra-hetzner-compose.yaml ps
+# Watch logs during first startup
+docker compose -f scripts/deploy/apps-compose.yaml logs -f
 
-# Applications
+# Check health
 docker compose -f scripts/deploy/apps-compose.yaml ps
 ```
 
-Test the health endpoints:
+## Step 5: Verify Deployment
+
+Run through this checklist to confirm everything is working.
 
 ```bash
-curl http://localhost:3000/health    # Server
-curl http://localhost:3001           # Web
-curl http://localhost:9092/health    # Worker
-curl http://localhost:8000/v1/health # Engine
+# API server responds
+curl -s http://localhost:3000/ | head -c 100
+
+# Web frontend loads
+curl -s -o /dev/null -w "%{http_code}" http://localhost:3001/
+
+# Worker health check
+curl -s http://localhost:9092/health
+
+# Engine health check
+curl -s http://localhost:8000/v1/health
 ```
 
-## Service URLs
+## Reverse Proxy and SSL
 
-| Service | URL | Access |
-|---------|-----|--------|
-| Web (frontend) | `http://localhost:3001` | Public |
-| API (server) | `http://localhost:3000` | Public |
-| Temporal UI | `http://localhost:8233` | Internal |
-| MinIO Console | `http://localhost:9001` | Internal |
-| Grafana | `http://localhost:3002` | Internal |
-| Prometheus | `http://localhost:9090` | Internal |
+<Callout type="info">
+  All infrastructure ports bind to 127.0.0.1 by default. Application ports (3000, 3001) are exposed publicly. Use a reverse proxy to add HTTPS.
+</Callout>
 
-## Health Checks
+### Caddy (Recommended)
 
-Every service includes a Docker health check:
-
-| Service | Endpoint | Interval | Start Period |
-|---------|----------|----------|-------------|
-| PostgreSQL | `pg_isready` | 10s | -- |
-| Redis | `redis-cli ping` | 10s | -- |
-| Vespa | `GET /state/v1/health` on :19071 | 30s | 120s |
-| Temporal | `temporal operator cluster health` | 30s | 180s |
-| MinIO | `mc ready local` | 10s | -- |
-| Server | `GET /health` on :3000 | 15s | 30s |
-| Web | `GET /` on :3001 | 15s | 30s |
-| Worker | `GET /health` on :9092 | 15s | 60s |
-| Engine | `GET /v1/health` on :8000 | 15s | 30s |
-
-## Upgrading
-
-Pull new images and restart:
+Caddy handles automatic HTTPS with Let's Encrypt certificates.
 
 ```bash
-# Applications
+sudo apt install caddy
+```
+
+```bash
+# /etc/caddy/Caddyfile
+app.example.com {
+    reverse_proxy localhost:3001
+}
+
+api.example.com {
+    reverse_proxy localhost:3000
+}
+
+storage.example.com {
+    reverse_proxy localhost:9000
+}
+```
+
+```bash
+sudo systemctl reload caddy
+```
+
+### Nginx Alternative
+
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name app.example.com;
+
+    ssl_certificate /etc/letsencrypt/live/app.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/app.example.com/privkey.pem;
+
+    location / {
+        proxy_pass http://localhost:3001;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+server {
+    listen 443 ssl http2;
+    server_name api.example.com;
+
+    ssl_certificate /etc/letsencrypt/live/api.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/api.example.com/privkey.pem;
+
+    client_max_body_size 100M;
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+## Updating
+
+Pull new images and restart services with zero-downtime rolling updates.
+
+```bash
+# Pull latest images
 docker compose -f scripts/deploy/apps-compose.yaml pull
+
+# Restart with new images
 docker compose -f scripts/deploy/apps-compose.yaml up -d
 
-# Infrastructure (less frequent)
-docker compose -f scripts/deploy/infra-hetzner-compose.yaml pull
-docker compose -f scripts/deploy/infra-hetzner-compose.yaml up -d
+# Verify health
+docker compose -f scripts/deploy/apps-compose.yaml ps
 ```
 
-Database migrations run automatically when the server container starts (via `scripts/migrate.sh`). The migration script uses `prisma migrate deploy`, which is safe for production and will never reset data.
+For infrastructure updates (major version bumps), stop and restart the infrastructure stack. Back up your data first.
 
-## Updating Configs
+## Backup Strategy
 
-After changing monitoring configs, Vespa schemas, or Temporal dynamic config:
+### PostgreSQL
 
 ```bash
-# Re-sync configs to the data directory
-scripts/deploy/sync-configs.sh <SERVER_IP>
+# Full dump
+docker exec postgres pg_dump -U postgres openplane > backup_$(date +%Y%m%d).sql
 
-# Restart affected containers
-docker restart openplane-prometheus openplane-grafana openplane-loki openplane-promtail
+# Automated daily backups via cron
+0 3 * * * docker exec postgres pg_dump -U postgres openplane | gzip > /backups/openplane_$(date +\%Y\%m\%d).sql.gz
 ```
 
-## Troubleshooting
+### Vespa
 
-<Accordions>
-  <Accordion title="Container cannot reach infrastructure services">
-    Verify the container is on the `openplane` network:
+Vespa stores data in `/mnt/openplane-data/vespa`. Back up this directory during a maintenance window.
 
-    ```bash
-    docker inspect <container-id> | grep -A 5 Networks
-    ```
+```bash
+# Stop vespa, copy data, restart
+docker compose -f scripts/deploy/infra-hetzner-compose.yaml stop vespa
+rsync -av /mnt/openplane-data/vespa/ /backups/vespa_$(date +%Y%m%d)/
+docker compose -f scripts/deploy/infra-hetzner-compose.yaml start vespa
+```
 
-    Both compose files must share the same network. The infrastructure stack creates the `openplane` network, and the apps stack references it as `external: true`.
-  </Accordion>
-  <Accordion title="Temporal connection refused">
-    Use Docker DNS names, not `localhost`. The worker and server connect to Temporal via `temporal:7233` on the Docker network.
+### MinIO
 
-    Check that Temporal is healthy:
+```bash
+# Use mc (MinIO Client) for bucket backups
+docker exec openplane-minio mc mirror myminio/openplane-files /backups/minio/
+```
 
-    ```bash
-    docker logs openplane-temporal --tail 50
-    ```
+### Redis
 
-    Temporal takes up to 3 minutes on first startup while it runs schema setup against PostgreSQL.
-  </Accordion>
-  <Accordion title="Vespa deploy fails">
-    Vespa needs ~2 minutes to initialize. The `vespa-deploy` init container waits for health before deploying schemas. Check its logs:
+Redis uses AOF persistence. The data directory at `/mnt/openplane-data/redis` can be backed up directly.
 
-    ```bash
-    docker logs openplane-vespa-deploy
-    ```
+## Stopping Everything
 
-    To manually redeploy Vespa schemas:
+```bash
+# Stop applications first
+docker compose -f scripts/deploy/apps-compose.yaml down
 
-    ```bash
-    cd packages/vespa
-    sh deploy.sh localhost 19071
-    ```
-  </Accordion>
-  <Accordion title="Database authentication fails">
-    The infrastructure stack uses md5 password authentication. The `postgres-auth-fix` init container re-hashes the password on startup. If auth fails, verify the `DATABASE_URL` password matches `POSTGRES_PASSWORD` in your `.env` file.
-  </Accordion>
-  <Accordion title="MinIO bucket not created">
-    The `minio-init` container creates the bucket on first startup. If it failed:
+# Stop infrastructure
+docker compose -f scripts/deploy/infra-hetzner-compose.yaml down
+```
 
-    ```bash
-    docker logs openplane-minio-init
-    ```
+<Callout type="warn">
+  Using `down -v` will delete Docker volumes. Data stored in `/mnt/openplane-data` is not affected since it uses bind mounts.
+</Callout>
 
-    To manually create it:
+## Post-Deployment Checklist
 
-    ```bash
-    docker run --rm --network openplane minio/mc \
-      alias set myminio http://minio:9000 $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD && \
-      mc mb --ignore-existing myminio/openplane-files
-    ```
-  </Accordion>
-</Accordions>
+- [ ] API server responds at `https://api.example.com`
+- [ ] Web frontend loads at `https://app.example.com`
+- [ ] Google OAuth login works
+- [ ] First connector can be installed and synced
+- [ ] Search returns results after sync completes
+- [ ] RAG answers reference synced documents
+- [ ] Temporal UI accessible at `http://localhost:8233` (internal only)
+- [ ] Grafana dashboards loading at `http://localhost:3002` (internal only)
+- [ ] SSL certificates are valid and auto-renewing
+- [ ] Backup cron jobs are scheduled
+
+<Cards>
+  <Card title="Configuration Reference" href="/docs/self-hosting/configuration" description="All environment variables documented." />
+  <Card title="Infrastructure Services" href="/docs/self-hosting/services" description="Per-service tuning and troubleshooting." />
+</Cards>

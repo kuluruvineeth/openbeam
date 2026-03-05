@@ -1,11 +1,13 @@
 ---
 title: CLI
-description: Command-line interface for interacting with OpenPlane from the terminal
+description: Full API access from your terminal. Search, sync, query AI — all from the command line.
 ---
 
 # CLI
 
-The `openplane` CLI is a statically-compiled Go binary that gives full access to the OpenPlane API from the terminal. Built with Cobra, it supports multiple output formats, JQ filtering, profiles, and an MCP server for AI tool integration.
+The `openplane` CLI is a statically-compiled Go binary that wraps the entire OpenPlane API. Search your indexed content, trigger syncs, run AI agents, manage connectors, and serve an MCP endpoint for AI tool integration — all without leaving the terminal.
+
+Built with Cobra, Go 1.24, zero CGO dependencies. Ships as a single binary for every major platform.
 
 ## Installation
 
@@ -15,12 +17,11 @@ The `openplane` CLI is a statically-compiled Go binary that gives full access to
     go install github.com/openplane/openplane/apps/cli/cmd/openplane@latest
     ```
 
-    Requires Go 1.24+.
+    Requires Go 1.24 or later.
   </Tab>
   <Tab value="Binary Download">
-    Download pre-built binaries from the [Releases](https://github.com/kuluruvineeth/openplane/releases) page.
+    Download a pre-built binary from the [Releases](https://github.com/kuluruvineeth/openplane/releases) page.
 
-    Available platforms:
     | OS | Architecture |
     |----|-------------|
     | macOS | amd64, arm64 |
@@ -33,6 +34,11 @@ The `openplane` CLI is a statically-compiled Go binary that gives full access to
     chmod +x openplane
     sudo mv openplane /usr/local/bin/
     ```
+
+    ```bash
+    # Windows
+    # Unzip openplane_windows_amd64.zip and add to PATH
+    ```
   </Tab>
   <Tab value="Build from Source">
     ```bash
@@ -41,45 +47,73 @@ The `openplane` CLI is a statically-compiled Go binary that gives full access to
     go build -o openplane ./cmd/openplane
     sudo mv openplane /usr/local/bin/
     ```
-
-    Release builds use GoReleaser with `CGO_ENABLED=0` for fully static binaries.
   </Tab>
 </Tabs>
 
+Verify the installation:
+
+```bash
+openplane version
+```
+
+## Quick Start
+
+From zero to first search result in three commands:
+
+```bash
+# 1. Store your API key
+openplane auth login --api-key "op_your_api_key_here"
+
+# 2. Search across all connected sources
+openplane search query --query "quarterly revenue report"
+
+# 3. Ask the AI assistant
+openplane rag ask --query "Summarize our Q4 OKR progress"
+```
+
 ## Authentication
 
-The CLI resolves API credentials through a three-tier chain:
+The CLI resolves credentials through a three-tier chain. The first source that returns a value wins.
 
-1. `OPENPLANE_API_KEY` environment variable
-2. OS keyring (macOS Keychain, GNOME Keyring, Windows Credential Manager)
-3. File-based fallback at `~/.config/openplane/secrets.yaml` (permissions `0600`)
+| Priority | Source | Details |
+|----------|--------|---------|
+| 1 | Environment variable | `OPENPLANE_API_KEY` |
+| 2 | OS keyring | macOS Keychain, GNOME Keyring, Windows Credential Manager |
+| 3 | File store | `~/.config/openplane/secrets.yaml` (permissions `0600`) |
 
-### Login
-
-```bash
-# Store an API key for the active profile
-openplane auth login --api-key "op_..."
-
-# Skip server-side verification
-openplane auth login --api-key "op_..." --skip-verify
-```
-
-The `login` command verifies the key against the server, stores it in the OS keyring (with file fallback), and updates the profile config.
-
-### Check status
+### Storing credentials
 
 ```bash
+# Store and verify against the server
+openplane auth login --api-key "op_your_key"
+
+# Store without server verification
+openplane auth login --api-key "op_your_key" --skip-verify
+
+# Check current auth status
 openplane auth status
 
-# Verify the key against the server
+# Verify the stored key is still valid
 openplane auth status --verify
+
+# Remove stored credentials
+openplane auth logout
 ```
 
-## Configuration
+### Environment variable override
 
-Config lives at `$XDG_CONFIG_HOME/openplane/config.yaml` (defaults to `~/.config/openplane/config.yaml`).
+For CI/CD or scripting, set the environment variable directly. It takes precedence over all other sources.
 
-```yaml title="config.yaml"
+```bash
+export OPENPLANE_API_KEY="op_your_key"
+openplane search query --query "deployment checklist"
+```
+
+## Profiles
+
+Profiles let you maintain separate configurations for different environments (production, staging, local development). Config lives at `~/.config/openplane/config.yaml`.
+
+```yaml
 current_profile: default
 profiles:
   default:
@@ -88,158 +122,233 @@ profiles:
     output: ""
     color: auto
     timeout: 30s
-    api_key_ref: default:api_key
+    api_key_ref: default
+  production:
+    host: https://openplane.example.com
+    team: "team_abc123"
+    color: auto
+    timeout: 30s
+    api_key_ref: production
 ```
 
-### Resolution order
-
-Every setting resolves through: **CLI flag > environment variable > profile value > default**.
-
-| Setting | Flag | Env Var | Default |
-|---------|------|---------|---------|
-| Host | `--host` | `OPENPLANE_HOST` | `http://localhost:3000` |
-| Team | `--team` | `OPENPLANE_TEAM` | (none) |
-| API Key | -- | `OPENPLANE_API_KEY` | keyring/file |
-| Output | `--output` | -- | `table` (TTY) / `json` (pipe) |
-| Color | `--color` | `NO_COLOR` | `auto` |
-| Timeout | `--timeout` | -- | `30s` |
-
-### Profiles
-
-Profiles let you target different environments:
+### Managing profiles
 
 ```bash
 # Show active profile
 openplane config show
 
-# Switch profile
-openplane config use staging
-
-# Set values on active profile
-openplane config set --host https://openplane.example.com --team my-team
-
 # List all profiles
 openplane config profiles
+
+# Switch active profile
+openplane config use production
+
+# Set a value on the active profile
+openplane config set --host https://openplane.example.com
+openplane config set --team "team_abc123"
+openplane config set --timeout 60s
 ```
+
+### Resolution chain
+
+Every setting follows the same precedence: CLI flag, then environment variable, then profile value, then default.
+
+| Setting | Flag | Env Var | Default |
+|---------|------|---------|---------|
+| API host | `--host` | `OPENPLANE_HOST` | `http://localhost:3000` |
+| Team | `--team` | `OPENPLANE_TEAM` | (none) |
+| API Key | -- | `OPENPLANE_API_KEY` | keyring/file store |
+| Output format | `--output` | -- | `table` (TTY) / `json` (pipe) |
+| Color | `--color` | `NO_COLOR` | `auto` |
+| Timeout | `--timeout` | -- | `30s` |
 
 ## Output Formats
 
-| Format | Flag | Description |
+The CLI auto-detects your context. Interactive terminal gets human-readable tables. Piped output defaults to JSON for machine consumption.
+
+| Format | Flag | When to Use |
 |--------|------|-------------|
-| `table` | `--output table` | Human-readable tables (default in TTY) |
-| `json` | `--output json` | Machine-readable JSON (default when piped) |
-| `yaml` | `--output yaml` | YAML output |
-| `ndjson` | `--output ndjson` | Newline-delimited JSON for streaming |
+| `table` | `--output table` | Interactive use (default in TTY) |
+| `json` | `--output json` | Scripts, jq piping (default when piped) |
+| `yaml` | `--output yaml` | Config files, readability |
+| `ndjson` | `--output ndjson` | Streaming, log aggregation |
 
 ### Post-processing
 
+Transform output inline without external tools.
+
 ```bash
-# JQ expression
-openplane search query -q "roadmap" --jq '.results[].title'
+# JQ expression — filter and reshape JSON
+openplane search query --query "roadmap" --jq '.items[].title'
 
-# Go template
-openplane connectors list --template '{{range .items}}{{.name}} ({{.type}}){{"\n"}}{{end}}'
+# Go template — format individual fields
+openplane connectors list --template '{{.name}} ({{.type}})'
 
-# Raw response body
-openplane search query -q "test" --raw
+# Raw — emit the unprocessed response body
+openplane search query --query "test" --raw
 ```
 
-## Quick Usage
+### Piping examples
 
 ```bash
-# Search across all connectors
-openplane search query -q "quarterly revenue report"
+# Count search results
+openplane search query --query "onboarding" --jq '.items | length'
 
-# Hybrid search with tuning
-openplane search hybrid -q "onboarding process" --weight-bm25 0.3 --weight-dense 0.5
+# Extract connector IDs for scripting
+openplane connectors list --jq '.items[].id' | while read id; do
+  openplane connectors status --id "$id"
+done
 
-# List connectors
-openplane connectors list
-
-# Trigger a full sync
-openplane connectors sync --id <connector-id> --type FULL --yes
-
-# Ask a question via RAG
-openplane rag ask -q "What is our refund policy?"
-
-# Stream agent responses
-openplane agent stream -p "Summarize last week's engineering updates"
-
-# Start MCP server for AI tool integration
-openplane mcp serve
+# Export to file
+openplane search query --query "architecture" --output json > results.json
 ```
 
 ## Global Flags
 
-These flags apply to every command:
+These flags are available on every command.
 
 | Flag | Short | Default | Description |
 |------|-------|---------|-------------|
-| `--profile` | | `default` | Config profile name |
+| `--profile` | | `default` | Config profile to use |
 | `--host` | | `localhost:3000` | API base URL |
 | `--team` | | (none) | Team identifier |
-| `--output` | | `auto` | Output format |
+| `--output` | | `auto` | Output format: `table`, `json`, `yaml`, `ndjson` |
 | `--jq` | | (none) | JQ filter expression |
-| `--template` | | (none) | Go template |
-| `--raw` | | `false` | Emit raw response |
-| `--color` | | `auto` | Color mode (`auto`, `always`, `never`) |
+| `--template` | | (none) | Go template string |
+| `--raw` | | `false` | Emit raw response body |
+| `--color` | | `auto` | Color mode: `auto`, `always`, `never` |
 | `--no-color` | | `false` | Disable colors |
 | `--timeout` | | `30s` | Request timeout |
-| `--trace` | | `false` | HTTP tracing |
+| `--trace` | | `false` | Print HTTP request/response traces |
 | `--non-interactive` | | `false` | Disable interactive prompts |
-| `--yes` | `-y` | `false` | Auto-confirm mutations |
-| `--debug` | | `false` | Debug output |
+| `--yes` | `-y` | `false` | Auto-confirm destructive operations |
+| `--debug` | | `false` | Enable debug output |
 
 ## Shell Completion
 
+Generate completion scripts for your shell and source them in your profile.
+
+<Tabs items={["Bash", "Zsh", "Fish", "PowerShell"]}>
+  <Tab value="Bash">
+    ```bash
+    openplane completion bash > /etc/bash_completion.d/openplane
+    # Or for the current user only:
+    openplane completion bash >> ~/.bashrc
+    ```
+  </Tab>
+  <Tab value="Zsh">
+    ```bash
+    openplane completion zsh > "${fpath[1]}/_openplane"
+    # Then reload: exec zsh
+    ```
+  </Tab>
+  <Tab value="Fish">
+    ```bash
+    openplane completion fish > ~/.config/fish/completions/openplane.fish
+    ```
+  </Tab>
+  <Tab value="PowerShell">
+    ```powershell
+    openplane completion powershell | Out-String | Invoke-Expression
+    ```
+  </Tab>
+</Tabs>
+
+## MCP Server
+
+The CLI includes a built-in Model Context Protocol server for AI tool integration. It bridges JSON-RPC 2.0 over stdin/stdout to the OpenPlane HTTP API.
+
 ```bash
-# Bash
-openplane completion bash > /etc/bash_completion.d/openplane
-
-# Zsh
-openplane completion zsh > "${fpath[1]}/_openplane"
-
-# Fish
-openplane completion fish > ~/.config/fish/completions/openplane.fish
-
-# PowerShell
-openplane completion powershell | Out-String | Invoke-Expression
+openplane mcp serve
 ```
 
-## Plugins
+This exposes all OpenPlane capabilities as MCP tools, resources, and prompts. AI editors and agents can use the full search, RAG, and connector APIs through the standard MCP protocol.
 
-The CLI supports PATH-based plugins. Any executable named `openplane-<name>` in `$XDG_CONFIG_HOME/openplane/plugins/`, `$OPENPLANE_PLUGIN_PATH`, or `$PATH` is discovered automatically.
+Supported JSON-RPC methods:
+
+| Method | Description |
+|--------|-------------|
+| `initialize` | Server handshake |
+| `tools/list` | List available tools |
+| `tools/call` | Execute a tool |
+| `resources/list` | List resources |
+| `resources/read` | Read a resource |
+| `prompts/list` | List prompts |
+| `prompts/get` | Retrieve a prompt |
+
+## Plugin System
+
+Extend the CLI with external binaries. Any executable named `openplane-{name}` discovered on your PATH becomes a subcommand.
 
 ```bash
 # List discovered plugins
 openplane plugin list
 
-# Install from local path
+# Install a plugin from a local binary
 openplane plugin install --name my-tool --source ./my-tool-binary
 
-# Run directly (auto-dispatched)
-openplane my-tool --flag value
+# Run a plugin directly
+openplane my-tool [args...]
 ```
 
-Unknown commands are dispatched to matching plugins automatically.
+### Discovery order
+
+1. `$XDG_CONFIG_HOME/openplane/plugins/`
+2. Directories in `OPENPLANE_PLUGIN_PATH`
+3. System `$PATH`
+
+Plugins receive stdin, stdout, and stderr forwarded from the parent process. Unknown commands are automatically dispatched to matching plugins.
+
+## Daemon
+
+The CLI can manage a local headless daemon for agent orchestration, speech processing, and worktree management.
+
+```bash
+# Start the daemon
+openplane daemon start
+
+# Check daemon status
+openplane daemon status
+
+# Stop the daemon
+openplane daemon stop
+
+# Pair with a remote instance
+openplane daemon pair --host https://openplane.example.com
+```
 
 ## Exit Codes
 
-| Code | Meaning |
-|------|---------|
-| 0 | Success |
-| 1 | Unknown error |
-| 2 | Invalid input / usage |
-| 3 | Authentication required |
-| 4 | Permission denied |
-| 5 | Resource not found |
-| 6 | Resource conflict |
-| 7 | Rate limit exceeded |
-| 9 | Request timed out |
-| 10 | Network connectivity error |
-| 11 | Server error (5xx) |
+Every exit code has a specific meaning for scripting and automation.
+
+| Code | Meaning | Example |
+|------|---------|---------|
+| `0` | Success | Command completed |
+| `1` | Unknown error | Unclassified failure |
+| `2` | Usage error | Invalid flags, bad input |
+| `3` | Auth error | Missing or expired API key |
+| `4` | Forbidden | Insufficient permissions |
+| `5` | Not found | Resource does not exist |
+| `6` | Conflict | Resource already exists |
+| `7` | Rate limited | Too many requests |
+| `9` | Timeout | Request exceeded deadline |
+| `10` | Network error | Cannot reach server |
+| `11` | Server error | 5xx from API |
+
+## HTTP Client Details
+
+Every request includes these headers automatically.
+
+| Header | Value |
+|--------|-------|
+| `Authorization` | `Bearer {api_key}` |
+| `X-Request-ID` | `opcli-{random}-{sequence}` |
+| `X-Openplane-Team` | Team identifier (when set) |
+| `User-Agent` | `openplane-cli/0.1.0` |
+| `Accept` | `application/json` |
+| `Content-Type` | `application/json` (when body present) |
 
 <Cards>
-  <Card title="Command Reference" href="/docs/cli/commands" description="Full list of commands, subcommands, and flags" />
-  <Card title="Getting Started" href="/docs/getting-started" description="Setup and deploy OpenPlane" />
+  <Card title="Command Reference" href="/docs/cli/commands" description="Complete reference for every command, flag, and subcommand." />
+  <Card title="Self-Hosting" href="/docs/self-hosting" description="Deploy OpenPlane on your own infrastructure." />
 </Cards>

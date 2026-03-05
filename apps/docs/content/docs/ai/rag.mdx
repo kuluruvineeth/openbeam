@@ -1,47 +1,25 @@
 ---
 title: RAG Pipeline
-description: Retrieval-augmented generation with query analysis, grounding, and citation tracking
+description: Retrieval-augmented generation with query analysis, grounding, citation tracking, and streaming.
 ---
 
 # RAG Pipeline
 
-The RAG (Retrieval-Augmented Generation) pipeline grounds LLM answers in source documents. It handles query analysis, chunk reranking, answer generation, citation extraction, and claim verification.
+The RAG pipeline grounds LLM answers in source documents. It analyzes the query, reranks retrieved chunks, generates answers with citations, and verifies every factual claim against the source material.
 
-## Architecture
+## Pipeline Stages
 
 ```
-User Query
-    │
-    ▼
-┌──────────────────┐
-│  Query Analyzer   │  Intent classification, entity extraction,
-│                    │  temporal context, keyword extraction
-└────────┬─────────┘
-         │
-         ▼
-┌──────────────────┐
-│  Chunk Reranking  │  Score and reorder retrieved chunks
-│                    │  by relevance to the analyzed query
-└────────┬─────────┘
-         │
-         ▼
-┌──────────────────┐
-│  Context Builder  │  Build prompt context with citation map,
-│                    │  token budget management
-└────────┬─────────┘
-         │
-         ▼
-┌──────────────────┐
-│  LLM Generation   │  Generate answer with source citations
-│                    │  using CompletionService
-└────────┬─────────┘
-         │
-         ▼
-┌──────────────────┐
-│  Grounding        │  Verify claims against source chunks,
-│  Verification     │  compute confidence scores
-└──────────────────┘
+Query → Analyze → Rerank → Build Context → Generate → Ground → Respond
 ```
+
+| Stage | What Happens | Latency |
+|-------|-------------|---------|
+| **Analyze** | Classify intent, extract entities, detect temporal context | < 5ms |
+| **Rerank** | Score and reorder chunks by relevance to the analyzed query | < 10ms |
+| **Build Context** | Assemble prompt with citation map and token budget | < 5ms |
+| **Generate** | Stream answer from LLM with inline citations | 500-3000ms |
+| **Ground** | Verify each claim against source chunks, compute confidence | < 20ms |
 
 ## Quick Start
 
@@ -49,49 +27,46 @@ User Query
 import { answerWithRAG, streamRAGAnswer } from "@openplane/ai";
 import type { RAGChunk } from "@openplane/types/ai";
 
+// Chunks from search results
 const chunks: RAGChunk[] = [
   {
     id: "chunk_1",
-    content: "OpenPlane uses Vespa for hybrid search combining BM25 and vector similarity.",
-    documentId: "doc_architecture",
-    documentTitle: "Architecture Overview",
-    documentUrl: "https://docs.openplane.dev/architecture",
-    relevanceScore: 0.92,
+    content: "Our API rate limit is 100 requests per minute per API key.",
+    documentId: "doc_api_docs",
+    documentTitle: "API Documentation",
+    documentUrl: "https://docs.example.com/api",
+    score: 0.92,
   },
-  // ... more chunks from search
+  {
+    id: "chunk_2",
+    content: "Rate limiting uses a sliding window algorithm with per-key tracking.",
+    documentId: "doc_architecture",
+    documentTitle: "Architecture Guide",
+    documentUrl: "https://docs.example.com/arch",
+    score: 0.85,
+  },
 ];
 
-// Non-streaming
-const response = await answerWithRAG("How does search work?", chunks);
-console.log(response.answer);
-console.log(response.citations);
-console.log(response.confidence); // "high" | "medium" | "low" | "uncertain"
+// One-shot answer
+const response = await answerWithRAG("What is our API rate limit?", chunks);
+console.log(response.answer);      // "The API rate limit is 100 requests..."
+console.log(response.citations);   // [{documentId, chunkId, text, relevanceScore}]
+console.log(response.confidence);  // "high"
+console.log(response.grounding);   // {overallScore: 0.95, claims: [...]}
 
-// Streaming
-for await (const event of streamRAGAnswer("How does search work?", chunks)) {
+// Streaming answer
+for await (const event of streamRAGAnswer("What is our API rate limit?", chunks)) {
   switch (event.type) {
-    case "analysis":
-      // Query analysis complete
-      break;
-    case "text":
-      process.stdout.write(event.content ?? "");
-      break;
-    case "citation":
-      // Individual citation emitted
-      break;
-    case "grounding":
-      // Grounding warning (if confidence is low)
-      break;
-    case "done":
-      // Final usage stats
-      break;
+    case "analysis":  console.log("Query analyzed:", event.analysis.intent); break;
+    case "text":      process.stdout.write(event.content); break;
+    case "citation":  console.log("Citation:", event.citation); break;
+    case "grounding": console.log("Grounding warning:", event.grounding); break;
+    case "done":      console.log("Tokens used:", event.usage); break;
   }
 }
 ```
 
-## RAG Engine
-
-The `RAGEngine` class orchestrates the full pipeline:
+## RAGEngine Configuration
 
 ```typescript
 import { RAGEngine } from "@openplane/ai";
@@ -101,90 +76,49 @@ const engine = new RAGEngine({
   modelId: "claude-sonnet-4-20250514",
   temperature: 0.3,
   enableGrounding: true,
+  groundingThreshold: 0.3,
   rerankingOptions: {
     maxChunks: 10,
-    minRelevance: 0.3,
+    minScore: 0.1,
   },
 });
 
-const response = await engine.answer({
-  query: "What is our deployment process?",
-  chunks: retrievedChunks,
-  conversationContext: {
-    conversationId: "conv_123",
-    turns: previousTurns,
-    summary: null,
-    entities: new Map(),
-    topicShift: false,
-  },
-});
+// Create a variant with different config
+const fastEngine = engine.withConfig({ temperature: 0.1 });
 ```
 
-### RAG Response
-
-```typescript
-interface RAGResponse {
-  answer: string;
-  citations: RAGCitation[];
-  grounding: GroundingResult | null;
-  usage: RAGTokenUsage;
-  timing: RAGTiming;
-  confidence: GroundingConfidence;
-  followUpQuestions: string[];
-}
-```
-
-### Configuration
-
-```typescript
-interface RAGEngineConfig {
-  providerId?: ProviderId;    // LLM provider
-  modelId?: string;           // Model for generation
-  temperature?: number;       // Default: 0.3
-  enableGrounding?: boolean;  // Default: true
-  groundingThreshold?: number;
-  maxContextTokens?: number;
-  maxChunks?: number;
-  rerankingOptions?: {
-    maxChunks?: number;
-    minRelevance?: number;
-  };
-}
-```
-
-Create a customized engine with `withConfig()`:
-
-```typescript
-const strictEngine = engine.withConfig({
-  temperature: 0.1,
-  enableGrounding: true,
-  groundingThreshold: 0.5,
-});
-```
+| Config | Type | Default | Description |
+|--------|------|---------|-------------|
+| `providerId` | `ProviderId` | Auto-detected | LLM provider |
+| `modelId` | `string` | Default chat model | Model to use for generation |
+| `temperature` | `number` | `0.3` | Low temperature for factual accuracy |
+| `enableGrounding` | `boolean` | `true` | Enable claim verification |
+| `groundingThreshold` | `number` | `0.3` | Minimum overlap score for a claim to be "supported" |
+| `rerankingOptions` | `object` | `{}` | Chunk reranking parameters |
 
 ## Query Analyzer
 
-The query analyzer (`packages/ai/src/rag/query-analyzer.ts`) classifies intent, extracts entities, detects temporal references, and decomposes compound queries. This runs entirely on the client side without an LLM call.
+The query analyzer classifies intent, extracts entities, detects temporal context, and decomposes complex queries -- all without an LLM call. It runs in under 5ms using pattern matching and heuristics.
 
 ```typescript
 import { analyzeQuery } from "@openplane/ai";
 
-const analysis = analyzeQuery("What changes did the engineering team make last month?");
+const analysis = analyzeQuery("What did John work on last quarter?");
 ```
 
-### Query Analysis Result
+**Output:**
 
 ```typescript
 interface QueryAnalysis {
   originalQuery: string;
   normalizedQuery: string;
-  intent: QueryIntent;
-  subQueries: string[];
-  entities: ExtractedEntity[];
-  temporalContext: TemporalContext | null;
-  requiresContext: boolean;
-  confidence: number;
-  keywords: string[];
+  intent: QueryIntent;         // "question" | "definition" | "comparison" | "howto" | ...
+  subQueries: string[];        // Decomposed sub-queries
+  entities: ExtractedEntity[]; // People, products, technologies, dates
+  temporalContext: TemporalContext | null;  // Date ranges from "last quarter", etc.
+  requiresContext: boolean;    // Needs conversation history
+  confidence: number;          // 0-1 analysis confidence
+  keywords: string[];          // Key terms minus stopwords
 }
 ```
 
@@ -192,37 +126,38 @@ interface QueryAnalysis {
 
 | Intent | Triggers | Example |
 |--------|----------|---------|
-| `question` | Starts with what/why/how/when/where/who | "What is the deploy process?" |
-| `definition` | "what is", "define", "meaning of" | "What is a connector?" |
-| `comparison` | "vs", "compare", "difference between" | "Redis vs Memcached" |
-| `howto` | "how to", "steps to", "guide to" | "How to add a connector?" |
-| `command` | "show me", "find", "list", "get" | "Show me recent incidents" |
-| `search` | General keyword queries | "Q3 revenue report" |
-| `followup` | Pronouns, "also", "tell me more" | "What about their pricing?" |
-| `clarification` | "I meant", "actually", "no," | "No, I meant the staging deploy" |
+| `question` | Starts with what/why/how/when/where/who, or ends with `?` | "What is our deployment process?" |
+| `definition` | "what is", "define", "meaning of" | "What is a service mesh?" |
+| `comparison` | "compare", "vs", "difference between" | "Kubernetes vs Docker" |
+| `howto` | "how to", "steps to", "guide to" | "How to set up CI/CD" |
+| `command` | "show me", "find", "list", "get" | "Show me recent PRs" |
+| `search` | No question pattern detected | "Q3 revenue report" |
+| `followup` | Contains pronouns referencing conversation context | "Tell me more about it" |
+| `clarification` | "I meant", "actually", "to clarify" | "I meant the staging deployment" |
 
 ### Entity Extraction
 
-Recognized entity types with pattern matching:
+Entities are extracted using pattern matching against known categories:
 
-| Type | Examples |
-|------|---------|
-| `technology` | kubernetes, react, typescript, python, aws, docker |
-| `product` | github, jira, notion, slack, linear, figma |
-| `organization` | google, microsoft, anthropic, stripe |
-| `person` | @mentions (`@john`) |
-| `date` | Q1 2024, January 2025 |
+| Entity Type | Examples |
+|-------------|---------|
+| `person` | `@alice`, proper names |
+| `technology` | kubernetes, react, typescript, postgresql, redis |
+| `product` | github, slack, notion, linear, jira |
+| `organization` | google, anthropic, stripe, cloudflare |
+| `date` | Q3 2024, January 2025 |
 
-### Temporal Context
+### Temporal Context Detection
 
-Automatic date range extraction:
+The analyzer extracts date ranges from natural language:
 
-```typescript
-// "last 7 days" → { type: "relative", start: <7 days ago>, end: <now> }
-// "this quarter" → { type: "relative", start: <quarter start>, end: <now> }
-// "yesterday" → { type: "relative", start: <yesterday>, end: <yesterday> }
-// "after March 2024" → { type: "absolute", start: <2024-03-01> }
-```
+| Pattern | Extracted Range |
+|---------|----------------|
+| "last 3 days" | 3 days ago → now |
+| "this quarter" | Quarter start → now |
+| "yesterday" | Yesterday → yesterday |
+| "since January 2025" | Jan 1, 2025 → now |
+| "before March 2025" | Beginning → Mar 1, 2025 |
 
 ### Conversation Context
 
@@ -232,57 +167,62 @@ For multi-turn conversations, the analyzer resolves pronouns and detects topic s
 import { buildConversationContext, enrichQueryWithContext } from "@openplane/ai";
 
 const conversationCtx = buildConversationContext("conv_123", turns);
-const analysis = analyzeQuery("What about their pricing?", conversationCtx);
+const analysis = analyzeQuery("Tell me more about it", conversationCtx);
 const enrichedQuery = enrichQueryWithContext(analysis, conversationCtx);
-// Pronouns like "their" get replaced with entities from prior turns
+// Pronouns replaced with entities from conversation history
 ```
 
-## Grounding & Verification
+## Grounding Verification
 
-The grounding system verifies that generated answers are supported by source chunks.
+After the LLM generates an answer, the grounding system verifies every factual claim against the source chunks.
 
 ```typescript
-import { verifyGrounding, shouldWarnAboutGrounding, formatGroundingWarning } from "@openplane/ai";
+import { verifyGrounding } from "@openplane/ai";
 
-const grounding = verifyGrounding(answer, chunks, 0.3);
-
-console.log(grounding.overallScore);     // 0.0 - 1.0
-console.log(grounding.confidence);       // "high" | "medium" | "low" | "uncertain"
-console.log(grounding.unsupportedClaims); // Claims without source evidence
-console.log(grounding.claims);           // Per-claim verification details
+const grounding = verifyGrounding(answer, chunks, threshold);
 ```
 
-### How Grounding Works
+**How it works:**
 
-1. **Claim extraction**: Split the answer into factual sentences, filtering out opinions and instructions
-2. **Index building**: Build an inverted index of significant terms and bigrams from source chunks
-3. **Claim verification**: For each claim, find candidate chunks by term overlap, then compute a support score
-4. **Confidence scoring**: Aggregate per-claim scores into an overall confidence level
+1. **Extract claims** -- Sentences containing factual patterns (verbs like "is", "provides", "requires") are identified as claims. Questions, opinions ("I think"), and instructions ("you should") are filtered out.
 
-### Claim Verification
+2. **Build chunk index** -- Source chunks are tokenized into a term-to-chunk inverted index with bigram support for phrase matching.
+
+3. **Verify each claim** -- Each claim's significant terms are matched against the chunk index. An overlap score (0-1) measures how well the claim is supported.
+
+4. **Compute confidence** -- Overall confidence derived from the proportion of supported claims and their individual confidence scores.
+
+**Grounding result:**
 
 ```typescript
+interface GroundingResult {
+  claims: ClaimVerification[];   // Per-claim verification
+  overallScore: number;          // 0-1 proportion of supported claims
+  confidence: GroundingConfidence; // "high" | "medium" | "low" | "uncertain"
+  unsupportedClaims: string[];   // Claims without evidence
+}
+
 interface ClaimVerification {
   claim: string;
   supported: boolean;
   evidenceChunkId: string | null;
   evidenceSnippet: string | null;
-  confidence: number;
+  confidence: number;           // 0-1
 }
 ```
 
-### Confidence Levels
+**Confidence thresholds:**
 
-| Level | Criteria |
-|-------|----------|
-| `high` | Overall score >= 0.8, average claim confidence >= 0.6 |
-| `medium` | Overall score >= 0.5, average claim confidence >= 0.4 |
-| `low` | Overall score >= 0.3 |
-| `uncertain` | Overall score < 0.3 |
+| Confidence | Overall Score | Avg Claim Confidence |
+|------------|--------------|---------------------|
+| `high` | >= 0.8 | >= 0.6 |
+| `medium` | >= 0.5 | >= 0.4 |
+| `low` | >= 0.3 | Any |
+| `uncertain` | < 0.3 | Any |
 
-### Refusal Detection
+### Refusal Handling
 
-When grounding is too low, the system can generate appropriate refusal messages:
+When grounding is too weak, the system can refuse to answer rather than hallucinate:
 
 ```typescript
 import { checkForRefusal } from "@openplane/ai";
@@ -290,59 +230,109 @@ import { checkForRefusal } from "@openplane/ai";
 const refusal = checkForRefusal(groundingResult, chunks);
 if (refusal) {
   // refusal.type: "noSources" | "lowConfidence" | "mixedGrounding" | "outOfScope"
-  // refusal.message: Human-readable explanation
-  // refusal.suggestedAction: What the user should do instead
+  // refusal.message: User-facing explanation
+  // refusal.suggestedAction: What the user should try instead
 }
 ```
 
-### Grounded Answers
+## Streaming Events
 
-Combine answer, chunks, and grounding into a complete result:
+The streaming API emits typed events for progressive UI rendering:
 
-```typescript
-import { createGroundedAnswer } from "@openplane/ai";
+| Event Type | Fields | When |
+|------------|--------|------|
+| `analysis` | `analysis: QueryAnalysis` | Query analyzed |
+| `retrieval` | (none) | Chunks reranked |
+| `context` | (none) | Prompt context built |
+| `text` | `content: string` | LLM text delta |
+| `citation` | `citation: Citation` | Citation extracted from text |
+| `grounding` | `grounding: GroundingResult` | Grounding warning (only if issues found) |
+| `done` | `usage: RAGTokenUsage` | Generation complete |
 
-const grounded = createGroundedAnswer(answer, chunks, groundingResult);
-// grounded.answer: The generated text
-// grounded.citations: Deduplicated citations with evidence
-// grounded.groundingScore: 0.0 - 1.0
-// grounded.confidence: Numeric confidence
-// grounded.ungroundedClaims: Claims without evidence
-// grounded.suggestedFollowUp: Search suggestion for unverified claims
-```
-
-## Query Router
-
-Route queries to the optimal retrieval backend:
+**Token usage:**
 
 ```typescript
-import { routeQuery, shouldUseVespa, shouldUseDuckDB } from "@openplane/ai";
-
-const decision = routeQuery(analysis, routingContext);
-// decision.route: "vespa" | "duckdb" | "hybrid"
-// decision.explanation: Why this route was chosen
-
-if (shouldUseDuckDB(analysis)) {
-  // Route to structured data query
-}
-
-if (shouldUseVespa(analysis)) {
-  // Route to Vespa hybrid search
+interface RAGTokenUsage {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
 }
 ```
 
-## Timing
+## Prompt Templates
 
-The RAG response includes detailed timing breakdowns:
+The RAG system uses XML-structured prompts for clear instruction boundaries.
+
+### System Prompt
+
+```xml
+<instructions>
+You are an enterprise search assistant. Answer questions using ONLY the provided
+context documents.
+
+<rules>
+1. Answer from context only. If information is insufficient, say so clearly
+2. Cite sources using [N] notation where N corresponds to the document number
+3. Be concise and direct. Prefer bullet points for lists
+4. Never fabricate information not present in the context
+5. If asked about something outside the context, acknowledge the limitation
+6. When uncertain, express your confidence level
+</rules>
+</instructions>
+
+<output_format>
+<answer>Your response here, with inline citations [1], [2], etc.</answer>
+<confidence>high|medium|low</confidence>
+</output_format>
+```
+
+### Context Injection
+
+Source chunks are formatted with numbered references:
+
+```
+[1] API Documentation
+Our API rate limit is 100 requests per minute per API key.
+
+[2] Architecture Guide
+Rate limiting uses a sliding window algorithm with per-key tracking.
+```
+
+The citation map tracks `[N]` references back to source documents for extraction from the LLM's response.
+
+## RAG Response Shape
 
 ```typescript
+interface RAGResponse {
+  answer: string;                    // Generated answer with [N] citations
+  citations: Citation[];             // Extracted citation references
+  grounding: GroundingResult | null; // Claim verification results
+  usage: RAGTokenUsage;              // Token counts
+  timing: RAGTiming;                 // Per-stage latency breakdown
+  confidence: GroundingConfidence;   // Overall confidence
+  followUpQuestions: string[];       // Suggested follow-up questions
+}
+
 interface RAGTiming {
-  analysisMs: number;    // Query analysis
-  retrievalMs: number;   // Document retrieval
-  rerankingMs: number;   // Chunk reranking
-  generationMs: number;  // LLM generation
-  groundingMs: number;   // Grounding verification
-  totalMs: number;       // End-to-end
-  firstTokenMs: number | null; // Time to first token (streaming)
+  analysisMs: number;
+  retrievalMs: number;
+  rerankingMs: number;
+  generationMs: number;
+  groundingMs: number;
+  totalMs: number;
+  firstTokenMs: number | null;     // Time to first token (streaming)
 }
 ```
+
+## Agent Tools
+
+The RAG pipeline is exposed as agent tools:
+
+| Tool | Description |
+|------|-------------|
+| `rag_answer` | Generate a grounded answer with citations |
+| `rag_analyze` | Analyze a query without generating an answer |
+| `rag_verify` | Verify claims in existing text against source chunks |
+| `rag_synthesize` | Synthesize information from multiple sources |
+
+These tools are used internally by the LLM agent when answering questions, and can be composed into larger workflows via Sequential or Parallel agents.

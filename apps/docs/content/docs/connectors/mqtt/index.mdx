@@ -1,51 +1,89 @@
 ---
 title: MQTT
-description: Connect MQTT brokers to OpenPlane for industrial IoT data search
+description: Subscribe to MQTT broker topics and index sensor readings, device states, and alarms
 ---
 
 # MQTT
 
-Subscribe to MQTT broker topics and index sensor readings, device states, alarms, and Sparkplug B birth certificates from any MQTT 3.1.1 or 5.0 broker.
+Subscribe to any MQTT broker (Mosquitto, EMQX, HiveMQ) and index sensor telemetry, device state changes, alarms, and Sparkplug B birth certificates. The connector supports MQTT 3.1.1 and 5.0, TLS/mTLS, and configurable time-window aggregation.
 
-## What Gets Indexed
-
-| Entity | Description |
-|--------|-------------|
-| Sensor Readings | Value, min, max, average within a configurable aggregation window |
-| Device States | State changes decoded from JSON, Sparkplug B, or CBOR payloads |
-| Alarms | Severity, source device, timestamp |
-| Device Births | Sparkplug B NBIRTH/DBIRTH certificates with device metadata |
+MQTT is the standard messaging protocol for industrial IoT. This connector turns raw MQTT messages into searchable documents with ISA-95 hierarchy enrichment from topic paths.
 
 ## Authentication
 
-MQTT connector uses **broker credentials** (username/password) and optionally TLS/mTLS certificates. No OAuth flow -- the broker URL, port, and credentials are configured directly.
+**Method:** Broker Credentials
 
-## Sync
+Provide the broker URL, port, and optional username/password. For secure connections, use `mqtts://` with TLS or configure mTLS certificates.
 
-| Mode | Supported |
-|------|-----------|
-| Full sync | Yes |
-| Incremental sync | Yes |
-| Real-time | Yes (subscription-based) |
+No OAuth flow -- credentials are configured directly in the connector settings.
 
-MQTT is inherently real-time. The connector subscribes to configured topic patterns and aggregates messages into time windows before indexing. Backfill is not supported since MQTT brokers do not retain historical messages by default.
+## Data Streams
+
+| Stream | Description | Sync Mode | Interval |
+|--------|-------------|-----------|----------|
+| **Sensor Telemetry** | Real-time sensor readings aggregated into configurable time windows (value, min, max, average, unit) | Real-time | 60s aggregation |
+| **Device Events** | State changes, alarms, birth/death certificates (type, severity, device, timestamp) | Real-time | Instant |
+
+MQTT is inherently real-time. Backfill is not supported since standard MQTT brokers do not retain historical messages.
 
 ## Setup
 
 1. Identify your **MQTT broker** address (Mosquitto, EMQX, HiveMQ, or any MQTT 3.1.1/5.0 broker)
 2. In OpenPlane, add the MQTT connector
 3. Enter the broker URL, port, and optional credentials
-4. Define topic subscription patterns using MQTT wildcards (`+` for single level, `#` for multi-level)
+4. Define topic subscription patterns using MQTT wildcards
 5. Select the payload format and start the sync
 
-### Settings
+### Topic Wildcards
+
+| Wildcard | Meaning | Example |
+|----------|---------|---------|
+| `+` | Single level | `plant/+/sensors/temperature` |
+| `#` | Multi-level | `plant/floor1/#` |
+
+Example subscriptions:
+```
+plant/+/sensors/#
+factory/line1/+/status
+spBv1.0/+/DDATA/#
+```
+
+## Configuration
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| Broker URL | — | MQTT broker address with protocol prefix (required) |
+| Broker URL | -- | MQTT broker address with protocol prefix (required) |
 | Port | 8883 | Broker port (8883 for TLS, 1883 for plain) |
-| Username | — | Broker authentication username |
-| Password | — | Broker authentication password |
-| Topic Subscriptions | — | MQTT topic patterns, one per line (required) |
+| Username | -- | Broker authentication username |
+| Password | -- | Broker authentication password |
+| Topic Subscriptions | -- | MQTT topic patterns, one per line (required) |
 | Payload Format | JSON | JSON, Sparkplug B, CBOR, or Raw |
 | Aggregation Window | 60s | Time window for sensor reading aggregation (0 to disable) |
+
+### Payload Formats
+
+| Format | When to use |
+|--------|------------|
+| **JSON** | Standard JSON payloads from most IoT devices |
+| **Sparkplug B** | Industrial IoT with NBIRTH, DBIRTH, NDATA, DDATA messages |
+| **CBOR** | Binary-efficient encoding for constrained devices |
+| **Raw** | Unstructured payloads indexed as plain text |
+
+## Sync Details
+
+The MQTT connector maintains a persistent subscription to configured topics. Incoming messages are decoded based on the selected payload format and classified as sensor readings, state changes, or alarms.
+
+**Sensor readings** are aggregated into configurable time windows (default 60 seconds). Each window produces a document with min, max, average, and latest values.
+
+**Sparkplug B** payloads are decoded automatically. NBIRTH and DBIRTH messages create device documents with metadata. NDATA and DDATA messages are treated as telemetry.
+
+**ISA-95 hierarchy** is extracted from topic paths. A topic like `plant/floor1/line2/sensor/temperature` produces metadata with `plant`, `floor`, `line`, and `sensor` levels.
+
+## Related Connectors
+
+<Cards>
+  <Card title="OPC-UA" href="/docs/connectors/opcua" description="Industrial automation address space browsing" />
+  <Card title="BACnet" href="/docs/connectors/bacnet" description="Building automation protocol" />
+  <Card title="ThingsBoard" href="/docs/connectors/thingsboard" description="IoT platform with MQTT ingestion" />
+  <Card title="Node-RED" href="/docs/connectors/nodered" description="Flow-based automation with MQTT nodes" />
+</Cards>

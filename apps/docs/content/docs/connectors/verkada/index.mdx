@@ -1,49 +1,67 @@
 ---
 title: Verkada
-description: Connect Verkada to OpenPlane for camera, sensor, and access control search
+description: Search across cameras, access control, and environmental sensors from Verkada
 ---
 
 # Verkada
 
-Index cameras, door access controllers, and environmental sensors from the Verkada physical security platform with API key authentication and webhook support.
+Index cameras, door access controllers, and environmental sensors from the Verkada physical security platform. The connector uses API key authentication with multi-region support for US, EU, and AU deployments.
 
-## What Gets Indexed
-
-| Entity | Description |
-|--------|-------------|
-| Cameras | Name, model, status, site, firmware version |
-| Doors | Name, status, lock state, site, access events |
-| Sensors | Name, type, readings (temperature, humidity, air quality) |
+Verkada brings physical security infrastructure into your search index -- camera status, door lock states, access events, and environmental readings like temperature, humidity, and air quality.
 
 ## Authentication
 
-Verkada uses **API key** authentication. Generate an API key from the Verkada Command dashboard.
+**Method:** API Key
 
-Multi-region support is available for US, EU, and AU deployments.
+Generate an API key from the Verkada Command dashboard. The connector supports three regional endpoints:
 
-## Sync
+| Region | API Base |
+|--------|----------|
+| US | `https://api.verkada.com` |
+| EU | `https://api.eu.verkada.com` |
+| AU | `https://api.au.verkada.com` |
 
-| Mode | Supported |
-|------|-----------|
-| Full sync | Yes |
-| Incremental sync | Yes |
-| Real-time (webhooks) | Yes |
+[Verkada API docs](https://apidocs.verkada.com)
 
-Incremental sync uses `lastSyncTime` timestamps to fetch only modified devices. Webhooks provide real-time event delivery.
+## Data Streams
+
+| Stream | Description | Sync Mode | Interval |
+|--------|-------------|-----------|----------|
+| **Cameras** | Name, model, status, site, firmware version | Periodic | 30 min |
+| **Doors** | Name, status, lock state, site, access events | Periodic | 30 min |
+| **Sensors** | Name, type, readings (temperature, humidity, air quality) | Periodic | 30 min |
+
+All streams support full backfill. Webhooks provide real-time event delivery.
 
 ## Setup
 
 1. Log in to **Verkada Command**
 2. Navigate to the API settings and generate an API key
 3. In OpenPlane, add the Verkada connector
-4. Enter the API key, select your region, and start the initial sync
+4. Enter the API key, select your deployment region, and start the initial sync
 
-### Settings
+## Configuration
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| API Key | — | Verkada API key (required) |
+| API Key | -- | Verkada API key (required) |
 | Region | US | US, EU, or AU deployment |
 | Sync Cameras | On | Include cameras in search |
 | Sync Doors | On | Include door controllers in search |
 | Sync Sensors | On | Include environmental sensors in search |
+
+## Sync Details
+
+**Full sync** fetches all cameras, door controllers, and environmental sensors across all sites in your Verkada organization.
+
+**Incremental sync** uses `lastSyncTime` timestamps to fetch only devices modified since the last sync run. This includes status changes, firmware updates, and new access events.
+
+**Webhooks** provide real-time event delivery for access events, camera alerts, and sensor threshold violations.
+
+## Related Connectors
+
+<Cards>
+  <Card title="Samsara" href="/docs/connectors/samsara" description="Fleet vehicles and industrial IoT sensors" />
+  <Card title="BACnet" href="/docs/connectors/bacnet" description="Building automation and HVAC systems" />
+  <Card title="SmartThings" href="/docs/connectors/smartthings" description="Consumer IoT devices and scenes" />
+</Cards>
