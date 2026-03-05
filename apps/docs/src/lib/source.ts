@@ -15,11 +15,26 @@ import { type InferPageType, loader } from "fumadocs-core/source";
 import { createElement, type ReactElement } from "react";
 import { docs } from "@/.source";
 import {
+  AwsIotIcon,
+  AzureIotIcon,
+  BACnetIcon,
+  FHIRIcon,
+  GitHubIcon,
   GmailIcon,
   GoogleDriveIcon,
   LinearIcon,
+  MatterportIcon,
+  MQTTIcon,
+  NodeREDIcon,
   NotionIcon,
+  OmniverseIcon,
+  OPCUAIcon,
+  SamsaraIcon,
   SlackIcon,
+  SmartThingsIcon,
+  ThingsBoardIcon,
+  VerkadaIcon,
+  ViamIcon,
 } from "@/components/connector-icons";
 
 type IconType = HugeiconsIconProps["icon"];
@@ -48,6 +63,21 @@ const customIconMap: Record<
   GoogleDrive: GoogleDriveIcon,
   Notion: NotionIcon,
   Linear: LinearIcon,
+  GitHub: GitHubIcon,
+  Samsara: SamsaraIcon,
+  MQTT: MQTTIcon,
+  OPCUA: OPCUAIcon,
+  BACnet: BACnetIcon,
+  ThingsBoard: ThingsBoardIcon,
+  NodeRED: NodeREDIcon,
+  FHIR: FHIRIcon,
+  Matterport: MatterportIcon,
+  Omniverse: OmniverseIcon,
+  Viam: ViamIcon,
+  AwsIot: AwsIotIcon,
+  AzureIot: AzureIotIcon,
+  SmartThings: SmartThingsIcon,
+  Verkada: VerkadaIcon,
 };
 
 export const source = loader({
