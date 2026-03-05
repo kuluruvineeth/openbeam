@@ -1,0 +1,598 @@
+---
+title: Monitoring & Observability
+description: Prometheus metrics, Grafana dashboards, Loki log aggregation, and alerting for self-hosted OpenPlane deployments.
+---
+
+# Monitoring & Observability
+
+OpenPlane ships a full observability stack built on three pillars: **metrics** (Prometheus), **dashboards** (Grafana), and **logs** (Loki + Promtail). The monitoring stack is optional but strongly recommended for production deployments.
+
+## Architecture Overview
+
+```text
+┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐
+│   Server     │  │   Worker    │  │   Engine    │  │    Vespa    │
+│  :3000       │  │  :9091      │  │  :8000      │  │  :19071     │
+└──────┬───────┘  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘
+       │                 │                │                │
+       └────────┬────────┴────────┬───────┘                │
+                │                 │                        │
+           ┌────▼─────────────────▼────────────────────────▼────┐
+           │                  Prometheus                         │
+           │              :9090  (scrape)                        │
+           └────────────────────┬───────────────────────────────┘
+                                │
+           ┌────────────────────▼───────────────────────────────┐
+           │                   Grafana                           │
+           │                :3002  (dashboards)                  │
+           └────────────────────┬───────────────────────────────┘
+                                │
+           ┌────────────────────▼───────────────────────────────┐
+           │                    Loki                             │
+           │              :3100  (log storage)                   │
+           └────────────────────▲───────────────────────────────┘
+                                │
+           ┌────────────────────┴───────────────────────────────┐
+           │                  Promtail                           │
+           │            (Docker log shipper)                     │
+           └────────────────────────────────────────────────────┘
+```
+
+---
+
+## Prometheus
+
+Prometheus scrapes metrics from all OpenPlane services and evaluates alert rules using an SLO burn-rate approach.
+
+### Configuration
+
+| Setting | Value |
+|---------|-------|
+| Image | `prom/prometheus:latest` |
+| Port | `9090` (localhost only) |
+| Memory limit | 512 MB |
+| Retention | 30 days |
+| Global scrape interval | 15s |
+| Evaluation interval | 15s |
+| Config path | `/mnt/openplane-data/configs/prometheus/prometheus.yml` |
+
+### Scrape Targets
+
+Prometheus collects metrics from every service in the stack. The `server` job uses a faster 5-second interval for tighter SLO alerting.
+
+| Job | Target | Interval | Labels |
+|-----|--------|----------|--------|
+| `vespa` | `vespa:19071` | 15s | `service=vespa, component=search-engine` |
+| `vespa-json-exporter` | `vespa-exporter:7979` | 15s | `service=vespa, component=json-exporter` |
+| `prometheus` | `localhost:9090` | 15s | Self-monitoring |
+| `server` | `server:3000` | 5s | `service=server, component=api` |
+| `worker` | `worker:9091` | 15s | `service=worker, component=background-processor` |
+| `engine` | `engine:8000` | 15s | `service=engine, component=ml-service` |
+| `redis-exporter` | `redis-exporter:9121` | 15s | `service=redis, component=cache-queue` |
+| `voice-agents` | `voice-agent-*:9092` | 15s | `service=voice, component=livekit-agents` |
+| `loki` | `loki:3100` | 15s | `service=loki, component=log-store` |
+| `promtail` | `promtail:9080` | 15s | `service=promtail, component=log-shipper` |
+
+### Recording Rules
+
+Recording rules pre-compute expensive queries on a 30-second interval. These power dashboard panels and alert expressions without re-evaluating raw histograms on every query.
+
+| Rule | Expression | Purpose |
+|------|-----------|---------|
+| `openplane:http_request_rate_5m` | `sum(rate(http_request_duration_seconds_count[5m]))` | Total request throughput |
+| `openplane:http_error_rate_5m` | 5xx count / total count (5m window) | Error percentage |
+| `openplane:http_latency_p95_5m` | `histogram_quantile(0.95, ...)` over 5m | 95th percentile latency |
+
+### Alert Rules
+
+OpenPlane uses SLO burn-rate alerting, not simple threshold alerts. This approach detects when error budgets are being consumed too quickly, reducing noise while catching real incidents early.
+
+#### How Burn-Rate Alerting Works
+
+An SLO defines an error budget over a period. For example, 99.9% availability over 30 days allows 43.2 minutes of downtime. A **burn rate** of 1x means consuming that budget at exactly the expected rate. A burn rate of 14.4x means you will exhaust the entire 30-day budget in roughly 2 days.
+
+Each alert uses two time windows (a short window for sensitivity, a long window to confirm the trend is sustained):
+
+| Severity | Short Window | Long Window | Burn Rate | Meaning |
+|----------|-------------|-------------|-----------|---------|
+| Critical | 5 min | 1 hour | 14.4x | Budget exhausted in ~2 days |
+| Warning | 30 min | 6 hours | 6x | Budget exhausted in ~5 days |
+
+#### SLO Alert Rules
+
+| Alert | SLO | Component | Description |
+|-------|-----|-----------|-------------|
+| `APIAvailabilityErrorBudgetBurnCritical` | 99.9% availability | server | 5xx error rate burning budget at 14.4x |
+| `APIAvailabilityErrorBudgetBurnWarning` | 99.9% availability | server | 5xx error rate burning budget at 6x |
+| `APILatencyErrorBudgetBurnCritical` | p99 < 1s | server | Latency exceeding 1s at 14.4x burn rate |
+| `APILatencyErrorBudgetBurnWarning` | p99 < 1s | server | Latency exceeding 1s at 6x burn rate |
+| `ConnectorSyncFailureBurnCritical` | 99% success | worker | Sync failures burning budget at 14.4x |
+| `ConnectorSyncFailureBurnWarning` | 99% success | worker | Sync failures burning budget at 6x |
+
+#### Infrastructure Alert Rules
+
+| Alert | Condition | Severity | Description |
+|-------|-----------|----------|-------------|
+| `WorkerQueueBacklogHigh` | Queue depth > 1000 OR processing lag > 300s | Warning | Sync and indexing jobs are delayed |
+| `ServerMetricsAbsent` | Server target missing for 5 min | Critical | API health is unknown |
+| `WorkerMetricsAbsent` | Worker target missing for 5 min | Critical | Background processing health unknown |
+| `EngineMetricsAbsent` | Engine target missing for 5 min | Critical | ML pipeline health unknown |
+| `APIServicingMetricsAbsent` | No HTTP metrics for 10 min | Warning | SLO calculations are blind |
+
+#### Log Pipeline Alert Rules
+
+| Alert | Condition | Severity | Description |
+|-------|-----------|----------|-------------|
+| `LokiMetricsAbsent` | Loki build info missing for 10 min | Critical | Log storage unavailable |
+| `PromtailMetricsAbsent` | Promtail build info missing for 10 min | Critical | Log shipping stopped |
+| `LokiIngestionStalled` | API traffic exists but Loki receives no data | Warning | Logs not reaching storage |
+| `PromtailDroppingLogs` | Dropped entries increasing | Warning | Some logs are being discarded |
+
+### Verifying Prometheus
+
+```bash
+# Check Prometheus is running
+curl -s http://localhost:9090/-/healthy
+
+# View active targets
+curl -s http://localhost:9090/api/v1/targets | jq '.data.activeTargets[] | {job: .labels.job, health: .health}'
+
+# Check firing alerts
+curl -s http://localhost:9090/api/v1/alerts | jq '.data.alerts[] | select(.state=="firing")'
+
+# Query a recording rule
+curl -s 'http://localhost:9090/api/v1/query?query=openplane:http_request_rate_5m'
+```
+
+---
+
+## Grafana Dashboards
+
+Grafana is pre-provisioned with two data sources (Prometheus and Loki) and 10 dashboards covering every layer of the platform.
+
+### Access
+
+| Setting | Value |
+|---------|-------|
+| URL | `http://localhost:3002` |
+| Default username | `admin` |
+| Default password | `admin` (change via `GRAFANA_PASSWORD` env var) |
+
+<Callout type="warn">
+  Change the default Grafana password before exposing the port to any network. Set `GRAFANA_PASSWORD` in your `.env` file.
+</Callout>
+
+### Available Dashboards
+
+All dashboards are provisioned from `/mnt/openplane-data/configs/grafana/dashboards/` and appear in the **OpenPlane** folder inside Grafana.
+
+| Dashboard | File | Purpose |
+|-----------|------|---------|
+| **Command Center** | `openplane-command-center.json` | Top-level overview of all services, request rates, error rates |
+| **Platform SLO Overview** | `platform-slo-overview.json` | SLO burn rates, error budgets, availability over time |
+| **API Endpoints** | `api-endpoints.json` | Per-route latency, throughput, error rates |
+| **Worker Performance** | `worker-performance.json` | Sync/index job rates, queue depths, durations |
+| **Connector Sync Ops** | `connector-sync-ops.json` | Per-connector sync status, document throughput, failures |
+| **Database Performance** | `database-performance.json` | PostgreSQL query latency, connections, lock contention |
+| **Engine Performance** | `engine-performance.json` | ML inference latency, embedding throughput |
+| **Vespa Overview** | `vespa-overview.json` | Search latency, document counts, memory utilization |
+| **Error Analysis** | `error-analysis.json` | Error classification, 5xx breakdown, retry patterns |
+| **Logs & Error Drilldown** | `logs-error-drilldown.json` | Loki-powered log search with error filtering |
+
+### Key Dashboards Walkthrough
+
+<Accordions>
+  <Accordion title="Command Center">
+    The primary dashboard for day-to-day operations. Panels include:
+
+    - **Service health matrix** -- Up/down status for all scrape targets
+    - **Request rate** -- Total HTTP requests per second across the API server
+    - **Error rate** -- 5xx percentage with SLO threshold line
+    - **p95 latency** -- API response time trend
+    - **Sync job throughput** -- Documents synced per minute
+    - **Queue depth** -- Current sync and index queue sizes
+
+    Start here when investigating any operational issue. Drill into specific dashboards from the links in each panel.
+  </Accordion>
+  <Accordion title="Platform SLO Overview">
+    Tracks the three core SLOs:
+
+    - **API Availability** (99.9%) -- Current burn rate, remaining error budget, budget consumption trend
+    - **API Latency** (p99 < 1s) -- Latency budget burn rate with fast/slow window comparison
+    - **Connector Sync Success** (99%) -- Sync failure rate and budget remaining
+
+    Each SLO panel shows a traffic light indicator (green/yellow/red) based on the current burn rate. The budget trend line shows whether you are on track to meet or miss the SLO by the end of the period.
+  </Accordion>
+  <Accordion title="Connector Sync Ops">
+    Operational view of all connector sync activity:
+
+    - **Active syncs** -- Currently running sync workflows
+    - **Documents per connector** -- Throughput broken down by connector type
+    - **Failure rate per connector** -- Identifies problematic connectors
+    - **Sync duration histogram** -- Helps spot connectors that are slowing down
+    - **Rate limit usage** -- Shows how close each connector is to API rate limits
+    - **Webhook delivery** -- Incoming webhook events and duplicate rates
+  </Accordion>
+</Accordions>
+
+### Adding Custom Dashboards
+
+Place any Grafana dashboard JSON file in `/mnt/openplane-data/configs/grafana/dashboards/`. Grafana polls this directory every 10 seconds and auto-imports new dashboards into the OpenPlane folder.
+
+```bash
+# Export a dashboard you built in the Grafana UI
+curl -s -H "Authorization: Bearer $GRAFANA_API_KEY" \
+  http://localhost:3002/api/dashboards/uid/YOUR_DASHBOARD_UID \
+  | jq '.dashboard' > /mnt/openplane-data/configs/grafana/dashboards/my-custom.json
+```
+
+---
+
+## Loki + Promtail Log Aggregation
+
+Loki stores logs from all containers. Promtail ships them from Docker to Loki with structured labels for filtering.
+
+### How Logs Flow
+
+```text
+Docker containers → stdout/stderr
+        ↓
+    Promtail (Docker SD, reads container logs)
+        ↓
+    JSON parsing (extracts level, service, trace_id, request_id)
+        ↓
+    Label attachment (container, service, compose_service, stream, env)
+        ↓
+    Loki (:3100/loki/api/v1/push)
+        ↓
+    TSDB index + filesystem chunks
+        ↓
+    Grafana queries via LogQL
+```
+
+### Loki Configuration
+
+| Setting | Value |
+|---------|-------|
+| Image | `grafana/loki:2.9.10` |
+| Port | `3100` |
+| Memory limit | 256 MB |
+| Storage | TSDB index + filesystem chunks |
+| Retention | 336 hours (14 days) |
+| Reject old samples | Older than 168 hours (7 days) |
+| Compaction interval | 10 minutes |
+| Replication factor | 1 (single-node) |
+
+### Promtail Configuration
+
+| Setting | Value |
+|---------|-------|
+| Image | `grafana/promtail:2.9.10` |
+| Memory limit | 128 MB |
+| Discovery | Docker service discovery (5s refresh) |
+| Mounts | Docker socket (read-only), container log directory (read-only) |
+
+### Label Extraction
+
+Promtail extracts labels from two sources: Docker metadata and JSON log fields.
+
+**From Docker metadata (relabeling):**
+
+| Label | Source | Example |
+|-------|--------|---------|
+| `container` | Container name (stripped `/` prefix) | `openplane-server` |
+| `service` | Container name (stripped `openplane-` prefix) | `server` |
+| `compose_service` | Docker Compose service label | `server` |
+| `stream` | Container log stream | `stdout` |
+| `env` | Static label | `development` |
+
+**From JSON log body (pipeline stages):**
+
+| Label | JSON Field | Example |
+|-------|-----------|---------|
+| `level` | `level` | `info`, `warn`, `error` |
+| `service` | `service` | `openplane-worker` |
+| `env` | `env` | `production` |
+
+Fields `trace_id` and `request_id` are extracted from JSON but kept as indexed fields for filtering, not promoted to labels (to avoid high cardinality).
+
+### Querying Logs in Grafana
+
+Open the **Explore** view in Grafana, select the **Loki** data source, and use LogQL queries:
+
+```text
+# All errors from the worker
+{service="worker"} |= "error" | json | level="error"
+
+# Server logs for a specific trace
+{container="openplane-server"} | json | trace_id="abc123"
+
+# Sync failures in the last hour
+{service="worker"} | json | level="error" |= "sync" | line_format "{{.message}}"
+
+# Rate of errors per service
+sum by (service) (rate({service=~".+"} | json | level="error" [5m]))
+```
+
+### Retention and Storage
+
+Loki retains logs for 14 days. The compactor runs every 10 minutes to merge small index files and enforce the retention policy. Storage is on the local filesystem at `/mnt/openplane-data/loki`.
+
+To change retention, update `limits_config.retention_period` in the Loki config:
+
+```yaml
+limits_config:
+  retention_period: 720h  # 30 days
+```
+
+<Callout type="warn">
+  Increasing retention increases disk usage. Monitor `/mnt/openplane-data/loki` disk consumption. At typical log volumes, expect 1-5 GB per day.
+</Callout>
+
+---
+
+## Worker Metrics Reference
+
+The worker exposes Prometheus metrics on port `9091` at `/metrics`. These cover every stage of the sync and indexing pipeline.
+
+### Sync Metrics
+
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `sync_jobs_total` | Counter | `worker_type`, `task_queue`, `status` | Total sync jobs processed |
+| `sync_documents_total` | Counter | `worker_type`, `task_queue`, `status` | Total documents synced |
+| `sync_duration_seconds` | Histogram | `worker_type`, `task_queue`, `status` | Sync job duration (buckets: 1s to 600s) |
+| `sync_queue_depth` | Gauge | `worker_type`, `task_queue`, `status` | Current jobs in sync queue |
+
+### Index Metrics
+
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `index_jobs_total` | Counter | `worker_type`, `task_queue`, `status` | Total index jobs processed |
+| `index_documents_total` | Counter | `worker_type`, `task_queue`, `status` | Total documents indexed |
+| `index_duration_seconds` | Histogram | `worker_type`, `task_queue`, `status` | Index job duration (buckets: 0.1s to 30s) |
+| `index_queue_depth` | Gauge | `worker_type`, `task_queue`, `status` | Current jobs in index queue |
+| `index_throughput_docs_per_second` | Gauge | `worker_type`, `task_queue` | Indexing throughput |
+| `index_errors_total` | Counter | `worker_type`, `task_queue`, `status` | Total indexing errors |
+
+### Rate Limiting Metrics
+
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `rate_limit_hits_total` | Counter | `worker_type`, `task_queue`, `status` | Rate limit events hit |
+| `rate_limit_waits_seconds` | Histogram | `worker_type`, `task_queue`, `status` | Time spent waiting for quota (buckets: 0.1s to 60s) |
+| `rate_limit_usage_ratio` | Gauge | `worker_type`, `task_queue`, `status` | Current rate limit usage (0 to 1) |
+
+### Webhook Metrics
+
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `webhook_events_total` | Counter | `worker_type`, `task_queue`, `status` | Incoming webhook events |
+| `webhook_duplicates_total` | Counter | `worker_type`, `task_queue`, `status` | Duplicate webhook events filtered |
+
+### Fence and Checksum Metrics
+
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `fence_conflicts_total` | Counter | `worker_type`, `task_queue`, `status` | Duplicate execution attempts blocked |
+| `fence_acquisitions_total` | Counter | `worker_type`, `task_queue`, `status` | Fence token acquisitions |
+| `checksum_skip_rate` | Gauge | `worker_type`, `task_queue`, `status` | Percentage of unchanged documents skipped |
+| `checksum_skips_total` | Counter | `worker_type`, `task_queue`, `status` | Total documents skipped (unchanged) |
+
+### Cleanup and Queue Metrics
+
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `cleanup_documents_total` | Counter | `worker_type`, `task_queue`, `status` | Documents cleaned up |
+| `cleanup_duration_seconds` | Histogram | `worker_type`, `task_queue`, `status` | Cleanup job duration (buckets: 10s to 1800s) |
+| `queue_processing_lag_seconds` | Gauge | `worker_type`, `task_queue`, `status` | Time between job creation and processing |
+| `scheduled_jobs_total` | Gauge | `worker_type`, `task_queue`, `status` | Active scheduled jobs |
+
+### Connection Metrics
+
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `redis_connections_total` | Gauge | `worker_type`, `status` | Total Redis connections |
+| `redis_connection_status` | Gauge | `worker_type`, `status` | Redis connected (1) or disconnected (0) |
+
+### Health Check Endpoints
+
+The worker runs a health server on port `9092` with three endpoints:
+
+| Endpoint | Method | Checks | Success | Failure |
+|----------|--------|--------|---------|---------|
+| `/health/live` | GET | None (process alive) | `200` with `{"status":"healthy"}` | N/A |
+| `/health/ready` | GET | Redis PING, Database `SELECT 1`, Vespa health | `200` with check details | `503` with failed checks |
+| `/health` | GET | Same as `/health/ready` | `200` | `503` |
+
+The readiness response includes per-dependency latency:
+
+```json
+{
+  "status": "healthy",
+  "timestamp": "2025-03-05T12:00:00.000Z",
+  "uptime": 86400,
+  "checks": {
+    "redis": { "status": "healthy", "latency": 0.5 },
+    "database": { "status": "healthy", "latency": 1.2 },
+    "vespa": { "status": "healthy", "latency": 3.8 }
+  }
+}
+```
+
+Health check metrics:
+
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `worker_health_check_duration_seconds` | Histogram | `dependency`, `status` | Dependency check latency |
+| `worker_health_check_failures_total` | Counter | `dependency` | Failed dependency checks |
+| `worker_health_endpoint_duration_seconds` | Histogram | `endpoint`, `status` | Health endpoint response time |
+| `worker_health_endpoint_failures_total` | Counter | `endpoint` | Failed health endpoint responses |
+
+---
+
+## Key Metrics to Watch
+
+Not all metrics are equally important. These are the ones that matter most for day-to-day operations.
+
+### Availability and Latency
+
+| What to Watch | Metric / Query | Why |
+|---------------|---------------|-----|
+| Request rate | `openplane:http_request_rate_5m` | Baseline for capacity planning |
+| Error rate | `openplane:http_error_rate_5m` | Primary availability signal |
+| p95 latency | `openplane:http_latency_p95_5m` | User-facing performance |
+| SLO burn rate | Alert rule expressions | Early warning before budget exhaustion |
+
+### Sync Pipeline Health
+
+| What to Watch | Metric / Query | Why |
+|---------------|---------------|-----|
+| Sync queue depth | `sync_queue_depth` | Backlog indicator |
+| Processing lag | `queue_processing_lag_seconds` | Freshness of indexed content |
+| Sync duration trend | `sync_duration_seconds` (p95) | Detect slowing connectors |
+| Rate limit usage | `rate_limit_usage_ratio` | Predict throttling before it happens |
+| Checksum skip rate | `checksum_skip_rate` | High skip rate means efficient incremental syncs |
+
+### Infrastructure
+
+| What to Watch | Metric / Query | Why |
+|---------------|---------------|-----|
+| Scrape target health | `up` metric per job | Detect services that stopped exposing metrics |
+| Redis connection status | `redis_connection_status` | Worker cannot function without Redis |
+| Worker health checks | `worker_health_check_failures_total` | Dependency degradation |
+| Loki ingestion rate | `rate(loki_distributor_bytes_received_total[5m])` | Verify logs are flowing |
+
+---
+
+## Alerting Best Practices
+
+<Accordions>
+  <Accordion title="Use burn rates, not raw thresholds">
+    A 1% error rate might be fine during low traffic but devastating during peak hours. Burn-rate alerts account for the relationship between error rate and traffic volume, firing only when the error budget is being consumed at a dangerous pace.
+  </Accordion>
+  <Accordion title="Dual-window confirmation reduces noise">
+    Every SLO alert requires both windows to exceed the threshold simultaneously. The short window (5 min or 30 min) detects the spike. The long window (1 hour or 6 hours) confirms it is not a transient blip. This eliminates most false positives.
+  </Accordion>
+  <Accordion title="Page on critical, ticket on warning">
+    Critical alerts (14.4x burn rate) mean budget will be exhausted in about 2 days -- page the on-call engineer. Warning alerts (6x burn rate) mean budget is at risk over 5 days -- create a ticket for next business day.
+  </Accordion>
+  <Accordion title="Absence alerts are essential">
+    The `*MetricsAbsent` alerts catch scenarios where a service crashed or Prometheus lost connectivity. Without these, SLO alerts would silently stop evaluating and you would have no visibility.
+  </Accordion>
+  <Accordion title="Integrate with external alerting">
+    To send alerts to PagerDuty, Slack, or email, configure an Alertmanager instance. Uncomment the `alerting` section in `prometheus.yml` and deploy Alertmanager:
+
+    ```yaml
+    alerting:
+      alertmanagers:
+        - static_configs:
+            - targets: ["alertmanager:9093"]
+    ```
+
+    Then configure Alertmanager with your notification channels. See the [Alertmanager documentation](https://prometheus.io/docs/alerting/latest/alertmanager/) for receiver configuration.
+  </Accordion>
+</Accordions>
+
+---
+
+## Latency Budgets
+
+These are the performance targets that SLO alerts enforce. Use them when evaluating query performance or capacity changes.
+
+| Operation | p50 Target | p99 Target |
+|-----------|------------|------------|
+| Single tool call | < 100ms | < 500ms |
+| Search composition | < 500ms | < 2s |
+| RAG answer | < 2s | < 5s |
+| Multi-step agent | < 10s | < 30s |
+| API responses (general) | -- | < 500ms |
+| Worker jobs per document | -- | < 30s |
+
+---
+
+## Troubleshooting Monitoring Issues
+
+<Accordions>
+  <Accordion title="Prometheus shows targets as DOWN">
+    Check that the service is running and exposing its metrics endpoint:
+
+    ```bash
+    # Verify the service is running
+    docker ps | grep openplane-worker
+
+    # Test the metrics endpoint directly
+    docker exec openplane-worker curl -s http://localhost:9091/metrics | head -5
+
+    # Check Prometheus target page for error details
+    curl -s http://localhost:9090/api/v1/targets | jq '.data.activeTargets[] | select(.health=="down")'
+    ```
+
+    Common causes: the service crashed, the metrics port is not configured, or a Docker network issue prevents Prometheus from reaching the target.
+  </Accordion>
+  <Accordion title="Grafana dashboards show No Data">
+    Verify the Prometheus data source is configured and reachable:
+
+    ```bash
+    # Test Prometheus from Grafana's perspective
+    docker exec openplane-grafana curl -s http://prometheus:9090/api/v1/query?query=up
+
+    # Check data source provisioning
+    docker exec openplane-grafana cat /etc/grafana/provisioning/datasources/datasource.yml
+    ```
+
+    If the data source is healthy but panels still show no data, the metrics may not exist yet. Some metrics (like sync counters) only appear after the first sync job runs.
+  </Accordion>
+  <Accordion title="Loki not receiving logs">
+    Follow the pipeline from Promtail to Loki:
+
+    ```bash
+    # Check Promtail is running and discovering containers
+    curl -s http://localhost:9080/targets | head -20
+
+    # Check Promtail metrics for dropped entries
+    curl -s http://localhost:9080/metrics | grep promtail_dropped
+
+    # Test Loki is accepting pushes
+    curl -s http://localhost:3100/ready
+
+    # Query Loki directly
+    curl -s 'http://localhost:3100/loki/api/v1/query_range?query={service=~".%2B"}&limit=5'
+    ```
+
+    Common causes: Promtail cannot read the Docker socket (permissions), Loki is not healthy, or the Promtail config file is not mounted correctly.
+  </Accordion>
+  <Accordion title="Prometheus running out of disk">
+    Check current TSDB storage usage:
+
+    ```bash
+    docker exec openplane-prometheus df -h /prometheus
+    ```
+
+    Reduce retention or increase disk allocation:
+
+    ```bash
+    # In the compose file, change the retention flag
+    --storage.tsdb.retention.time=15d  # Down from 30d
+    ```
+
+    Alternatively, reduce scrape frequency for high-cardinality targets.
+  </Accordion>
+  <Accordion title="Alert rules not evaluating">
+    Verify that rule files are loaded:
+
+    ```bash
+    # List loaded rules
+    curl -s http://localhost:9090/api/v1/rules | jq '.data.groups[].name'
+
+    # Check for rule evaluation errors
+    curl -s http://localhost:9090/api/v1/rules | jq '.data.groups[].rules[] | select(.health=="err")'
+    ```
+
+    If rules are missing, verify the config mount includes `alerts.yml` and `recording-rules.yml`:
+
+    ```bash
+    docker exec openplane-prometheus ls /etc/prometheus/
+    ```
+  </Accordion>
+</Accordions>

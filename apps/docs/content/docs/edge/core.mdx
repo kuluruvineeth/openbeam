@@ -1,0 +1,494 @@
+---
+title: Core Infrastructure
+description: SQLite foundation, config management, task scheduling, Merkle tree sync, and health monitoring for edge nodes.
+---
+
+# Core Infrastructure
+
+`@openplane/edge-core` provides the foundational infrastructure every edge node needs. SQLite for storage, config management for tier-aware behavior, a task scheduler with cron and retry, Merkle tree sync for cloud reconciliation, and health aggregation for fleet monitoring.
+
+```typescript
+import {
+  openEdgeDatabase,
+  EdgeConfigManager,
+  getFeatureFlags,
+  EdgeTaskScheduler,
+  MerkleTree,
+  CursorManager,
+  StoreAndForwardQueue,
+  detectBandwidthPolicy,
+  HealthAggregator,
+  SQLiteCache,
+  SQLiteKVStore,
+  SQLitePubSub,
+  SQLiteLock,
+} from "@openplane/edge-core";
+```
+
+## SQLite Foundation
+
+All edge data lives in a single SQLite database running in WAL (Write-Ahead Logging) mode for concurrent read access.
+
+```typescript
+import { openEdgeDatabase } from "@openplane/edge-core";
+
+const db = openEdgeDatabase("./data/edge.db");
+```
+
+`openEdgeDatabase` configures the database with production-ready pragmas:
+
+| Pragma | Value | Purpose |
+|--------|-------|---------|
+| `journal_mode` | `WAL` | Concurrent readers, single writer |
+| `foreign_keys` | `ON` | Referential integrity |
+| `busy_timeout` | `5000` | Wait 5s on lock contention |
+| `synchronous` | `NORMAL` | Balance durability and speed |
+
+For tests, use an in-memory database:
+
+```typescript
+import { Database } from "bun:sqlite";
+
+const db = new Database(":memory:");
+db.exec("PRAGMA journal_mode = WAL");
+```
+
+## Config Manager
+
+`EdgeConfigManager` persists node configuration to SQLite and notifies listeners on changes.
+
+```typescript
+import { EdgeConfigManager } from "@openplane/edge-core";
+
+const config = new EdgeConfigManager(db);
+```
+
+<Tabs items={["Load", "Save", "Update", "Listen"]}>
+  <Tab value="Load">
+    Load config with tier-based defaults. Stored values override defaults.
+
+    ```typescript
+    const edgeConfig = config.load("node-001", "performance");
+
+    console.log(edgeConfig.tier);                  // "performance"
+    console.log(edgeConfig.syncPolicy.mode);       // "incremental"
+    console.log(edgeConfig.searchConfig.ftsEnabled); // true
+    console.log(edgeConfig.slmConfig.modelId);     // "phi-3-mini"
+    ```
+  </Tab>
+  <Tab value="Save">
+    Persist a full config. Validates with Zod before writing.
+
+    ```typescript
+    config.save({
+      nodeId: "node-001",
+      tier: "performance",
+      syncPolicy: { mode: "incremental", intervalMs: 60_000, batchSize: 50, maxRetries: 5, offlineQueueMaxMb: 200 },
+      searchConfig: { ftsEnabled: true, vectorEnabled: true, hybridAlpha: 0.6, maxResults: 50, snippetLength: 200, ftsProvider: "sqlite_fts5", vectorProvider: "in_memory" },
+      slmConfig: { enabled: true, modelId: "phi-3-mini", maxTokens: 512, temperature: 0.3, contextWindowTokens: 4096, runtime: "llama_cpp" },
+      flConfig: { enabled: false, aggregationStrategy: "fedavg", localEpochs: 5, privacyBudgetEpsilon: 1.0 },
+      dataDir: "./data",
+      logLevel: "info",
+      maxDbSizeMb: 2048,
+    });
+    ```
+  </Tab>
+  <Tab value="Update">
+    Partial update. Merges with existing config.
+
+    ```typescript
+    const updated = config.update("node-001", {
+      syncPolicy: { mode: "full", intervalMs: 30_000, batchSize: 200, maxRetries: 3, offlineQueueMaxMb: 100 },
+      logLevel: "debug",
+    });
+    ```
+  </Tab>
+  <Tab value="Listen">
+    React to config changes in real time.
+
+    ```typescript
+    const unsubscribe = config.onReload((newConfig) => {
+      console.log(`Config reloaded: tier=${newConfig.tier}`);
+      if (newConfig.searchConfig.vectorEnabled) {
+        initializeVectorProvider();
+      }
+    });
+
+    // Later: stop listening
+    unsubscribe();
+    ```
+  </Tab>
+</Tabs>
+
+### EdgeConfig Schema
+
+The full config shape, defined in `@openplane/types/edge/config`:
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `nodeId` | `string` | required | Unique node identifier |
+| `tier` | `EdgeTier` | required | Hardware tier |
+| `syncPolicy` | `SyncPolicy` | incremental, 5min, batch 100 | Sync behavior |
+| `searchConfig` | `SearchConfig` | FTS on, vector off, alpha 0.5 | Search settings |
+| `slmConfig` | `SlmConfig` | disabled, phi-3-mini, mock runtime | SLM settings |
+| `flConfig` | `FlConfig` | disabled, fedavg | Federated learning settings |
+| `dataDir` | `string` | `"./data"` | Data directory |
+| `logLevel` | `string` | `"info"` | Log level |
+| `maxDbSizeMb` | `number` | `1024` | Max database size |
+
+## Feature Flags
+
+Feature flags are determined by tier. No runtime toggle -- the hardware tier dictates capabilities.
+
+```typescript
+import { getFeatureFlags } from "@openplane/edge-core";
+
+const flags = getFeatureFlags("performance");
+
+flags.fts;            // true
+flags.vector;         // true
+flags.slm;            // true
+flags.rag;            // true
+flags.conversational; // true
+flags.ner;            // true
+flags.fl;             // false (enterprise only)
+```
+
+| Flag | sensor_gateway | standard | performance | enterprise |
+|------|:-:|:-:|:-:|:-:|
+| `fts` | Y | Y | Y | Y |
+| `vector` | - | Y | Y | Y |
+| `slm` | - | - | Y | Y |
+| `rag` | - | - | Y | Y |
+| `conversational` | - | - | Y | Y |
+| `ner` | - | - | Y | Y |
+| `fl` | - | - | - | Y |
+
+## Task Scheduler
+
+SQLite-backed task queue with priority ordering, cron scheduling, exponential backoff retry, and dead letter queue.
+
+```typescript
+import { EdgeTaskScheduler } from "@openplane/edge-core";
+
+const scheduler = new EdgeTaskScheduler(db);
+```
+
+### Enqueue and Process
+
+```typescript
+scheduler.registerHandler("sync-connector", async (payload) => {
+  const connectorId = payload.connectorId as string;
+  await runIncrementalSync(connectorId);
+});
+
+const taskId = scheduler.enqueue("sync-connector", { connectorId: "slack-001" }, {
+  priority: 1,       // 0=critical, 1=high, 2=normal, 3=low
+  maxAttempts: 5,
+});
+
+scheduler.start(1000); // Poll every 1s
+
+// Manual processing
+const task = scheduler.dequeue();
+if (task) {
+  try {
+    await processTask(task);
+    scheduler.complete(task.id);
+  } catch (err) {
+    scheduler.fail(task.id, err.message);
+  }
+}
+```
+
+### Cron Scheduling
+
+```typescript
+scheduler.schedule("daily-reindex", "0 2 * * *", { scope: "all" });
+
+scheduler.schedule("hourly-health", "0 * * * *", {});
+
+scheduler.schedule("weekday-sync", "30 9 * * 1-5", { connectorId: "jira-001" });
+```
+
+Cron expressions use standard 5-field format: `minute hour day-of-month month day-of-week`. When a cron task completes, the next occurrence is automatically enqueued.
+
+### Retry with Exponential Backoff
+
+Failed tasks retry with configurable backoff:
+
+```typescript
+scheduler.enqueue("fragile-task", { url: "https://api.example.com" }, {
+  maxAttempts: 5,
+  retryPolicy: {
+    baseDelayMs: 1000,
+    maxDelayMs: 60_000,
+    backoffMultiplier: 2,
+    jitterFactor: 0.1,
+  },
+});
+```
+
+After `maxAttempts` failures, tasks move to the dead letter queue:
+
+```typescript
+const deadLetters = scheduler.getDeadLetterQueue();
+for (const item of deadLetters) {
+  console.log(`${item.name} failed ${item.attempts}x: ${item.error}`);
+}
+```
+
+### Task Management
+
+```typescript
+const task = scheduler.getTask(taskId);
+
+const pendingTasks = scheduler.listTasks("pending");
+const allTasks = scheduler.listTasks();
+
+scheduler.stop();
+```
+
+## Merkle Tree
+
+BLAKE3-based Merkle tree for efficient sync reconciliation. Compare two trees to find exactly which documents differ.
+
+```typescript
+import { MerkleTree } from "@openplane/edge-core";
+
+const local = new MerkleTree();
+local.insert("doc-1", "checksum-abc");
+local.insert("doc-2", "checksum-def");
+local.insert("doc-3", "checksum-ghi");
+
+const root = await local.getRoot();
+```
+
+### Diff Two Trees
+
+```typescript
+const remote = new MerkleTree();
+remote.insert("doc-1", "checksum-abc");  // same
+remote.insert("doc-2", "checksum-xyz");  // different checksum
+remote.insert("doc-4", "checksum-jkl");  // new on remote
+
+const differences = local.diff(remote);
+// ["doc-2", "doc-3", "doc-4"]
+// doc-2: checksum changed, doc-3: missing on remote, doc-4: missing on local
+```
+
+### Proof and Verification
+
+Generate inclusion proofs for individual keys and verify against a known root:
+
+```typescript
+const proof = await local.getProof("doc-1");
+const isValid = await MerkleTree.verify("doc-1", "checksum-abc", proof, root);
+// true
+```
+
+### Serialize and Deserialize
+
+```typescript
+const serialized = await local.serialize();
+// { entries: [["doc-1", "checksum-abc"], ...], root: "a1b2c3..." }
+
+const restored = MerkleTree.deserialize(serialized);
+```
+
+## Cursor Manager
+
+Track per-connector sync progress. Persisted to SQLite so sync resumes after restarts.
+
+```typescript
+import { CursorManager } from "@openplane/edge-core";
+
+const cursors = new CursorManager(db);
+
+cursors.saveCursor({
+  connectorId: "slack-001",
+  lastEventId: "evt-12345",
+  lastTimestamp: Date.now(),
+  merkleRoot: await tree.getRoot(),
+  fullSyncCompleted: true,
+  version: 3,
+});
+
+const cursor = cursors.getCursor("slack-001");
+
+const isStale = cursors.isStale("slack-001", 3_600_000); // stale after 1 hour
+
+const allCursors = cursors.listCursors();
+
+cursors.deleteCursor("slack-001");
+```
+
+## Store-and-Forward Queue
+
+Priority queue for outbound events. Events queue locally when offline and drain when connectivity returns.
+
+```typescript
+import { StoreAndForwardQueue } from "@openplane/edge-core";
+
+const queue = new StoreAndForwardQueue(db, 100); // 100 MB max
+```
+
+<Tabs items={["Enqueue", "Dequeue", "Stats", "Evict"]}>
+  <Tab value="Enqueue">
+    ```typescript
+    const eventId = queue.enqueue(
+      "document_indexed",
+      { documentId: "doc-1", connectorId: "confluence" },
+      "high"  // priority: "critical" | "high" | "normal" | "low"
+    );
+    ```
+  </Tab>
+  <Tab value="Dequeue">
+    ```typescript
+    const events = queue.dequeue(10); // up to 10 events, priority-ordered
+
+    for (const event of events) {
+      try {
+        await sendToCloud(event);
+        queue.markSent(event.id);
+      } catch (err) {
+        queue.markFailed(event.id, err.message);
+      }
+    }
+    ```
+  </Tab>
+  <Tab value="Stats">
+    ```typescript
+    const stats = queue.getStats();
+
+    console.log(`Total: ${stats.totalEvents}`);
+    console.log(`Pending: ${stats.pendingEvents}`);
+    console.log(`Failed: ${stats.failedEvents}`);
+    console.log(`Size: ${(stats.totalSizeBytes / 1024 / 1024).toFixed(1)} MB / ${(stats.maxSizeBytes / 1024 / 1024).toFixed(0)} MB`);
+    ```
+  </Tab>
+  <Tab value="Evict">
+    Remove expired events and evict lowest-priority events when over size limit.
+
+    ```typescript
+    const evicted = queue.evict();
+    console.log(`Evicted ${evicted} events`);
+
+    queue.clear(); // remove all events
+    ```
+  </Tab>
+</Tabs>
+
+## Bandwidth Detection
+
+Automatically determine sync strategy based on measured network bandwidth.
+
+```typescript
+import { detectBandwidthPolicy } from "@openplane/edge-core";
+
+const policy = detectBandwidthPolicy(estimatedKbps);
+
+console.log(policy.syncMode);          // "full" | "incremental" | "metadata_only" | "manual"
+console.log(policy.maxBatchSizeKb);    // batch size limit
+console.log(policy.compressionEnabled); // whether to compress payloads
+```
+
+| Bandwidth | Sync Mode | Max Batch | Compression |
+|-----------|-----------|-----------|:-----------:|
+| >= 10,000 Kbps | `full` | 10 MB | No |
+| >= 1,000 Kbps | `incremental` | 2 MB | Yes |
+| >= 100 Kbps | `metadata_only` | 512 KB | Yes |
+| < 100 Kbps | `manual` | 128 KB | Yes |
+
+## SQLite Utilities
+
+### Cache
+
+LRU cache with TTL, max entries, and max size enforcement.
+
+```typescript
+import { SQLiteCache } from "@openplane/edge-core";
+
+const cache = new SQLiteCache(db, {
+  tableName: "search_cache",
+  maxEntries: 10_000,
+  maxSizeMb: 50,
+  defaultTtlMs: 300_000, // 5 minutes
+});
+
+cache.set("query:deployment", JSON.stringify(results), 60_000);
+const cached = cache.get("query:deployment");
+cache.delete("query:deployment");
+
+const stats = cache.stats(); // { entries: number, sizeMb: number }
+```
+
+### KV Store
+
+Key-value store with optional TTL per key.
+
+```typescript
+import { SQLiteKVStore } from "@openplane/edge-core";
+
+const kv = new SQLiteKVStore(db, "app_state");
+
+kv.set("last_sync", Date.now().toString());
+kv.set("temp_token", "abc123", 3_600_000); // 1 hour TTL
+
+const value = kv.get("last_sync");
+const exists = kv.has("last_sync");
+const keys = kv.keys("sync_"); // prefix search
+
+kv.delete("temp_token");
+kv.evictExpired();
+kv.clear();
+```
+
+### PubSub
+
+In-process publish/subscribe for decoupled component communication.
+
+```typescript
+import { SQLitePubSub } from "@openplane/edge-core";
+
+const pubsub = new SQLitePubSub();
+
+pubsub.subscribe("document:indexed", (message) => {
+  const { documentId } = message as { documentId: string };
+  updateSearchIndex(documentId);
+});
+
+const delivered = pubsub.publish("document:indexed", { documentId: "doc-1" });
+// delivered === 1 (number of subscribers notified)
+
+pubsub.unsubscribe("document:indexed"); // remove all handlers
+pubsub.channels(); // list active channels
+```
+
+### Distributed Lock
+
+SQLite-backed advisory locks with TTL. Prevents concurrent operations on the same resource.
+
+```typescript
+import { SQLiteLock } from "@openplane/edge-core";
+
+const locks = new SQLiteLock(db);
+
+const acquired = locks.acquire("sync:slack-001", "worker-1", 30_000); // 30s TTL
+if (acquired) {
+  try {
+    await performSync();
+  } finally {
+    locks.release("sync:slack-001", "worker-1");
+  }
+}
+
+locks.isLocked("sync:slack-001"); // true/false
+locks.forceRelease("sync:slack-001"); // override holder check
+```
+
+<Cards>
+  <Card title="Search Engine" href="/docs/edge/search" description="FTS5, vector similarity, hybrid ranking built on this foundation." />
+  <Card title="Edge AI" href="/docs/edge/ai" description="RAG pipeline and NER using the core infrastructure." />
+  <Card title="Deployment" href="/docs/edge/deployment" description="Hardware requirements and fleet management." />
+</Cards>

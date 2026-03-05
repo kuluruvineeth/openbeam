@@ -1,0 +1,512 @@
+---
+title: Deployment
+description: Hardware requirements, installation, configuration patterns, sync setup, and fleet management for edge nodes.
+---
+
+# Deployment
+
+This guide covers deploying OpenPlane edge nodes across different hardware profiles. From a Raspberry Pi running keyword search to an enterprise GPU node with full AI capabilities.
+
+## Hardware Requirements
+
+| Tier | Device Examples | CPU | RAM | Storage | GPU |
+|------|----------------|-----|-----|---------|-----|
+| `sensor_gateway` | Raspberry Pi 3/4, ESP32 gateways | 1+ core | 256 MB+ | 1 GB+ | None |
+| `standard` | Raspberry Pi 4 (4GB), Intel NUC | 2+ cores | 2 GB+ | 8 GB+ | None |
+| `performance` | Intel NUC i7, Jetson Orin Nano | 4+ cores | 8 GB+ | 32 GB+ | Optional |
+| `enterprise` | Jetson Orin, x86 workstation | 8+ cores | 32 GB+ | 128 GB+ | Recommended |
+
+### Supported Platforms
+
+| Platform | Architecture | Typical Hardware |
+|----------|-------------|-----------------|
+| `raspberry_pi` | ARM64 | Raspberry Pi 3/4/5 |
+| `jetson_nano` | ARM64 | NVIDIA Jetson Nano |
+| `jetson_orin` | ARM64 | NVIDIA Jetson Orin |
+| `intel_nuc` | x86_64 | Intel NUC 11/12/13 |
+| `generic_x86` | x86_64 | Any x86_64 system |
+| `generic_arm64` | ARM64 | Any ARM64 system |
+| `custom` | Any | Custom hardware |
+
+## Installation
+
+<Tabs items={["Bun Runtime", "Docker"]}>
+  <Tab value="Bun Runtime">
+    ```bash
+    curl -fsSL https://bun.sh/install | bash
+
+    bun add @openplane/edge-core @openplane/edge-search @openplane/edge-ai @openplane/types
+    ```
+  </Tab>
+  <Tab value="Docker">
+    ```dockerfile
+    FROM oven/bun:1.3-alpine
+
+    WORKDIR /app
+    COPY package.json bun.lock ./
+    RUN bun install --frozen-lockfile
+
+    COPY . .
+
+    ENV EDGE_NODE_ID=node-001
+    ENV EDGE_TIER=standard
+    ENV EDGE_DATA_DIR=/data
+
+    VOLUME /data
+    CMD ["bun", "run", "start"]
+    ```
+  </Tab>
+</Tabs>
+
+## Configuration Patterns
+
+### Lightweight Gateway (sensor_gateway)
+
+Minimal deployment for constrained hardware. FTS only, metadata sync, small queue.
+
+```typescript
+import { openEdgeDatabase, EdgeConfigManager } from "@openplane/edge-core";
+import { EdgeSearchEngine, SQLiteFTS5Provider, SQLiteDocumentStore } from "@openplane/edge-search";
+
+const db = openEdgeDatabase("/data/edge.db");
+const config = new EdgeConfigManager(db);
+
+config.save({
+  nodeId: "gateway-001",
+  tier: "sensor_gateway",
+  syncPolicy: {
+    mode: "metadata_only",
+    intervalMs: 600_000,        // sync every 10 minutes
+    batchSize: 25,
+    maxRetries: 2,
+    offlineQueueMaxMb: 10,      // 10 MB queue limit
+  },
+  searchConfig: {
+    ftsEnabled: true,
+    vectorEnabled: false,
+    hybridAlpha: 0,
+    maxResults: 20,
+    snippetLength: 100,
+    ftsProvider: "sqlite_fts5",
+    vectorProvider: "in_memory",
+  },
+  slmConfig: {
+    enabled: false,
+    modelId: "phi-3-mini",
+    maxTokens: 512,
+    temperature: 0.3,
+    contextWindowTokens: 4096,
+    runtime: "mock",
+  },
+  flConfig: {
+    enabled: false,
+    aggregationStrategy: "fedavg",
+    localEpochs: 5,
+    privacyBudgetEpsilon: 1.0,
+  },
+  dataDir: "/data",
+  logLevel: "warn",
+  maxDbSizeMb: 256,
+});
+
+const fts = new SQLiteFTS5Provider(db);
+const store = new SQLiteDocumentStore(db);
+const engine = new EdgeSearchEngine({ fts, store });
+```
+
+### Standard Search Node
+
+Full-text and vector search without AI generation.
+
+```typescript
+import { openEdgeDatabase, EdgeConfigManager, getFeatureFlags } from "@openplane/edge-core";
+import { EdgeSearchEngine, SQLiteFTS5Provider, InMemoryVectorProvider, SQLiteDocumentStore } from "@openplane/edge-search";
+
+const db = openEdgeDatabase("/data/edge.db");
+const config = new EdgeConfigManager(db);
+
+config.save({
+  nodeId: "search-001",
+  tier: "standard",
+  syncPolicy: {
+    mode: "incremental",
+    intervalMs: 300_000,
+    batchSize: 100,
+    maxRetries: 3,
+    offlineQueueMaxMb: 100,
+  },
+  searchConfig: {
+    ftsEnabled: true,
+    vectorEnabled: true,
+    hybridAlpha: 0.5,
+    maxResults: 50,
+    snippetLength: 200,
+    ftsProvider: "sqlite_fts5",
+    vectorProvider: "in_memory",
+  },
+  slmConfig: {
+    enabled: false,
+    modelId: "phi-3-mini",
+    maxTokens: 512,
+    temperature: 0.3,
+    contextWindowTokens: 4096,
+    runtime: "mock",
+  },
+  flConfig: {
+    enabled: false,
+    aggregationStrategy: "fedavg",
+    localEpochs: 5,
+    privacyBudgetEpsilon: 1.0,
+  },
+  dataDir: "/data",
+  logLevel: "info",
+  maxDbSizeMb: 1024,
+});
+
+const flags = getFeatureFlags("standard");
+const engine = new EdgeSearchEngine({
+  fts: new SQLiteFTS5Provider(db),
+  vector: flags.vector ? new InMemoryVectorProvider() : undefined,
+  store: new SQLiteDocumentStore(db),
+});
+```
+
+### Full AI Node (enterprise)
+
+All capabilities enabled: search, RAG, NER, conversational AI.
+
+```typescript
+import { openEdgeDatabase, EdgeConfigManager, EdgeTaskScheduler, HealthAggregator, getFeatureFlags } from "@openplane/edge-core";
+import { EdgeSearchEngine, SQLiteFTS5Provider, InMemoryVectorProvider, SQLiteDocumentStore } from "@openplane/edge-search";
+import { EdgeRAGPipeline, QueryClassifier, QueryRewriter, EdgeNER, MockSLM, MockEmbeddingModel } from "@openplane/edge-ai";
+
+const db = openEdgeDatabase("/data/edge.db");
+const config = new EdgeConfigManager(db);
+
+config.save({
+  nodeId: "enterprise-001",
+  tier: "enterprise",
+  syncPolicy: {
+    mode: "full",
+    intervalMs: 60_000,
+    batchSize: 500,
+    maxRetries: 5,
+    offlineQueueMaxMb: 500,
+  },
+  searchConfig: {
+    ftsEnabled: true,
+    vectorEnabled: true,
+    hybridAlpha: 0.6,
+    maxResults: 100,
+    snippetLength: 300,
+    ftsProvider: "sqlite_fts5",
+    vectorProvider: "in_memory",
+  },
+  slmConfig: {
+    enabled: true,
+    modelId: "phi-3-mini",
+    maxTokens: 1024,
+    temperature: 0.3,
+    contextWindowTokens: 8192,
+    runtime: "llama_cpp",         // or "tensorrt" for GPU nodes
+  },
+  flConfig: {
+    enabled: true,
+    aggregationStrategy: "fedavg",
+    localEpochs: 10,
+    privacyBudgetEpsilon: 0.5,
+  },
+  dataDir: "/data",
+  logLevel: "info",
+  maxDbSizeMb: 8192,
+});
+
+const flags = getFeatureFlags("enterprise");
+
+const engine = new EdgeSearchEngine({
+  fts: new SQLiteFTS5Provider(db),
+  vector: new InMemoryVectorProvider(),
+  store: new SQLiteDocumentStore(db),
+});
+
+// Replace MockSLM with LlamaCppSLM or TensorRTSLM for production
+const slm = new MockSLM();
+const embedding = new MockEmbeddingModel();
+
+const rag = new EdgeRAGPipeline({ slm, embedding, searchEngine: engine, maxContextDocuments: 10 });
+const classifier = new QueryClassifier(slm);
+const rewriter = new QueryRewriter(slm);
+const ner = new EdgeNER(slm);
+
+const scheduler = new EdgeTaskScheduler(db);
+
+scheduler.registerHandler("incremental-sync", async (payload) => {
+  await runSync(payload.connectorId as string);
+});
+scheduler.schedule("incremental-sync", "*/5 * * * *", { connectorId: "all" });
+scheduler.start();
+```
+
+<Callout type="info">
+Replace `MockSLM` and `MockEmbeddingModel` with real implementations for production deployments. See the [Edge AI page](/docs/edge/ai) for llama.cpp and TensorRT integration examples.
+</Callout>
+
+## Sync Setup
+
+Edge nodes sync with the cloud when connectivity is available. Sync uses Merkle tree reconciliation to minimize data transfer.
+
+### Merkle Tree Reconciliation
+
+```text
+┌────────────┐                    ┌────────────┐
+│  Edge Node │                    │   Cloud    │
+│            │                    │            │
+│  Merkle    │── getRoot() ─────► │  Merkle    │
+│  Tree      │◄── getRoot() ──── │  Tree      │
+│            │                    │            │
+│  (roots    │── diff(remote) ──► │            │
+│   differ?) │                    │            │
+│            │◄── send changes ── │            │
+│            │── send changes ──► │            │
+└────────────┘                    └────────────┘
+```
+
+```typescript
+import { MerkleTree, CursorManager, detectBandwidthPolicy } from "@openplane/edge-core";
+
+const localTree = new MerkleTree();
+const cursors = new CursorManager(db);
+
+async function syncWithCloud(remoteTree: MerkleTree) {
+  const localRoot = await localTree.getRoot();
+  const remoteRoot = await remoteTree.getRoot();
+
+  if (localRoot === remoteRoot) {
+    return; // already in sync
+  }
+
+  const diffKeys = localTree.diff(remoteTree);
+
+  const policy = detectBandwidthPolicy(measuredBandwidthKbps);
+
+  for (const key of diffKeys) {
+    if (policy.syncMode === "metadata_only") {
+      await syncMetadataOnly(key);
+    } else {
+      await syncFullDocument(key);
+    }
+  }
+
+  cursors.saveCursor({
+    connectorId: "cloud",
+    lastTimestamp: Date.now(),
+    merkleRoot: await localTree.getRoot(),
+    fullSyncCompleted: true,
+    version: (cursors.getCursor("cloud")?.version ?? 0) + 1,
+  });
+}
+```
+
+### Bandwidth-Aware Sync
+
+The sync mode degrades automatically based on measured bandwidth:
+
+| Bandwidth | Mode | Behavior |
+|-----------|------|----------|
+| >= 10 Mbps | `full` | Full document sync with content and embeddings |
+| >= 1 Mbps | `incremental` | Changed documents only, compressed payloads |
+| >= 100 Kbps | `metadata_only` | Titles, checksums, and metadata only |
+| < 100 Kbps | `manual` | User-initiated sync only |
+
+### Store-and-Forward
+
+Events generated while offline queue locally and drain when connectivity returns:
+
+```typescript
+import { StoreAndForwardQueue } from "@openplane/edge-core";
+
+const queue = new StoreAndForwardQueue(db, 100); // 100 MB max
+
+queue.enqueue("document_updated", { documentId: "doc-1", checksum: "abc" }, "normal");
+
+// When online, drain the queue
+const events = queue.dequeue(50);
+for (const event of events) {
+  try {
+    await sendToCloud(event);
+    queue.markSent(event.id);
+  } catch {
+    queue.markFailed(event.id, "connection timeout");
+  }
+}
+```
+
+## Health Monitoring
+
+`HealthAggregator` collects health metrics from all subsystems into a single report.
+
+```typescript
+import { HealthAggregator } from "@openplane/edge-core";
+
+const health = new HealthAggregator("node-001");
+
+health.registerCheck("database", async () => {
+  const start = performance.now();
+  db.query("SELECT 1").get();
+  return {
+    name: "database",
+    status: "healthy",
+    latencyMs: performance.now() - start,
+    lastCheckedAt: Date.now(),
+  };
+});
+
+health.registerCheck("search", async () => {
+  const stats = await engine.stats();
+  return {
+    name: "search",
+    status: stats.ftsDocuments > 0 ? "healthy" : "degraded",
+    message: `${stats.ftsDocuments} FTS docs, ${stats.vectorDocuments} vector docs`,
+    lastCheckedAt: Date.now(),
+  };
+});
+
+health.setHardwareMetrics({
+  cpuUsagePercent: 45,
+  ramUsedMb: 3200,
+  ramTotalMb: 8192,
+  storageUsedMb: 12_000,
+  storageTotalMb: 65_536,
+  uptimeSeconds: 86_400,
+});
+
+health.setSearchMetrics({
+  totalDocuments: 15_000,
+  indexSizeMb: 120,
+  avgQueryLatencyMs: 12,
+  queriesPerMinute: 45,
+});
+
+health.setSyncMetrics({
+  lastSyncAt: Date.now() - 300_000,
+  pendingEvents: 12,
+  failedEvents: 0,
+  outboundQueueSizeMb: 0.5,
+});
+
+const report = await health.collect();
+```
+
+### Health Report Structure
+
+```typescript
+interface EdgeHealthReport {
+  nodeId: string;
+  timestamp: number;
+  overallStatus: "healthy" | "degraded" | "unhealthy" | "unknown";
+  hardware: {
+    cpuUsagePercent: number;
+    ramUsedMb: number;
+    ramTotalMb: number;
+    storageUsedMb: number;
+    storageTotalMb: number;
+    gpuUsagePercent?: number;
+    gpuMemoryUsedMb?: number;
+    temperatureCelsius?: number;
+    uptimeSeconds: number;
+  };
+  services: Array<{
+    name: string;
+    status: "healthy" | "degraded" | "unhealthy" | "unknown";
+    latencyMs?: number;
+    message?: string;
+    lastCheckedAt: number;
+  }>;
+  search: {
+    totalDocuments: number;
+    indexSizeMb: number;
+    avgQueryLatencyMs: number;
+    queriesPerMinute: number;
+  };
+  sync: {
+    lastSyncAt?: number;
+    pendingEvents: number;
+    failedEvents: number;
+    outboundQueueSizeMb: number;
+    syncLagMs?: number;
+  };
+}
+```
+
+Overall status is computed from service checks: any `unhealthy` check makes the node unhealthy, any `degraded` check makes it degraded, otherwise healthy. No checks returns `unknown`.
+
+## Fleet Management
+
+The fleet management types define the contract for managing multiple edge nodes from a central control plane.
+
+### Node Registration
+
+```typescript
+import type { NodeRegistration, FleetOverview } from "@openplane/types/edge/fleet";
+
+const registration: NodeRegistration = {
+  nodeId: "node-001",
+  name: "Factory Floor Alpha",
+  tier: "performance",
+  capabilities: {
+    cpuCores: 4,
+    ramMb: 8192,
+    storageMb: 65_536,
+    hasGpu: false,
+    platform: "intel_nuc",
+  },
+  status: "healthy",
+  version: "1.2.0",
+  registeredAt: Date.now(),
+  lastHeartbeatAt: Date.now(),
+  tags: { location: "building-a", floor: "2" },
+  location: "building-a-floor-2",
+};
+```
+
+### Fleet Overview
+
+```typescript
+interface FleetOverview {
+  totalNodes: number;
+  healthyNodes: number;
+  degradedNodes: number;
+  unhealthyNodes: number;
+  tierDistribution: Record<string, number>;  // { "standard": 5, "performance": 3, "enterprise": 1 }
+  activeDeployments: number;
+  totalDocuments: number;
+  lastUpdatedAt: number;
+}
+```
+
+### Rolling Deployments
+
+```typescript
+import type { Deployment } from "@openplane/types/edge/fleet";
+
+const deployment: Deployment = {
+  id: "deploy-001",
+  version: "1.3.0",
+  status: "deploying",
+  targetNodes: ["node-001", "node-002", "node-003"],
+  completedNodes: ["node-001"],
+  failedNodes: [],
+  startedAt: Date.now(),
+};
+```
+
+<Callout type="info">
+The `FleetManager` interface defines the full API: `registerNode`, `deregisterNode`, `heartbeat`, `listNodes`, `getNode`, `getOverview`, `deploy`, `getDeployment`. Implement this interface to integrate with your fleet management solution.
+</Callout>
+
+<Cards>
+  <Card title="Core Infrastructure" href="/docs/edge/core" description="SQLite, config, scheduling, and sync primitives." />
+  <Card title="Search Engine" href="/docs/edge/search" description="FTS5, vector similarity, and hybrid ranking." />
+  <Card title="Edge AI" href="/docs/edge/ai" description="RAG pipeline, query classification, and NER." />
+  <Card title="Self-Hosting" href="/docs/self-hosting" description="Cloud deployment guide for the main OpenPlane platform." />
+</Cards>

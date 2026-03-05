@@ -1,4 +1,10 @@
 {
   "title": "Security",
-  "pages": ["index", "authentication", "authorization", "encryption", "webhooks"]
+  "pages": [
+    "index",
+    "authentication",
+    "authorization",
+    "encryption",
+    "webhooks"
+  ]
 }

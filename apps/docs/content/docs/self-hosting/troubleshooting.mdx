@@ -1,0 +1,747 @@
+---
+title: Troubleshooting
+description: Diagnose and resolve common issues with self-hosted OpenPlane deployments, from startup failures to performance degradation.
+---
+
+# Troubleshooting
+
+This guide covers the most common issues encountered when running OpenPlane on your own infrastructure, organized by symptom category. For monitoring-specific issues (Prometheus targets down, Grafana dashboards blank), see the [Monitoring & Observability](/docs/self-hosting/monitoring) page.
+
+---
+
+## Common Startup Issues
+
+<Accordions>
+  <Accordion title="Temporal fails to start: cannot connect to PostgreSQL">
+    **Symptom:** The Temporal container restarts repeatedly with connection errors to PostgreSQL.
+
+    **Cause:** Temporal starts before PostgreSQL is ready to accept connections, or the `postgres-auth-fix` init container did not complete. Temporal requires MD5 password encryption, which the init container configures.
+
+    **Fix:**
+
+    ```bash
+    # Check if postgres-auth-fix completed
+    docker ps -a | grep postgres-auth-fix
+
+    # If it shows "Exited (0)", it succeeded. If not:
+    docker logs postgres-auth-fix
+
+    # Verify PostgreSQL is healthy
+    docker exec openplane-postgres pg_isready -U postgres
+
+    # Restart Temporal after PostgreSQL is confirmed healthy
+    docker compose -f scripts/deploy/infra-hetzner-compose.yaml restart temporal
+    ```
+
+    If the auth-fix container failed, PostgreSQL may need its `pg_hba.conf` manually updated to use `md5` instead of `scram-sha-256` for the Temporal connection.
+  </Accordion>
+  <Accordion title="Vespa OOM killed on startup">
+    **Symptom:** The Vespa container starts, then gets killed by the Linux OOM killer within 1-2 minutes. `docker inspect openplane-vespa | grep OOMKilled` shows `true`.
+
+    **Cause:** Vespa requires a minimum of 4 GB of memory for its JVM and content node. Docker or the host system does not have enough available memory.
+
+    **Fix:**
+
+    ```bash
+    # Check available memory on the host
+    free -h
+
+    # Check Docker's memory limit
+    docker info | grep "Total Memory"
+
+    # Verify the container's memory limit
+    docker inspect openplane-vespa --format '{{.HostConfig.Memory}}'
+    ```
+
+    Ensure the host has at least 16 GB of total RAM for the full stack. If running on a smaller machine, consider stopping non-essential services (monitoring stack, Temporal UI) to free memory.
+
+    On Docker Desktop (Mac/Windows), increase Docker's memory allocation in **Settings > Resources > Memory** to at least 12 GB.
+  </Accordion>
+  <Accordion title="Vespa health check fails for 2+ minutes">
+    **Symptom:** `docker compose ps` shows Vespa as `starting` or `unhealthy` for several minutes after container creation.
+
+    **Cause:** This is normal. Vespa has a 120-second health check start period to account for JVM initialization and content node bootstrapping. The config server at port 19071 takes 60-90 seconds to respond.
+
+    **Fix:** Wait up to 3 minutes. Monitor progress:
+
+    ```bash
+    # Watch Vespa logs for startup progress
+    docker logs -f openplane-vespa 2>&1 | grep -E "started|ready|error"
+
+    # Check the config server directly
+    curl -s http://localhost:19071/state/v1/health
+    ```
+
+    If Vespa does not become healthy after 5 minutes, check for disk space issues or insufficient memory.
+  </Accordion>
+  <Accordion title="Temporal schema creation hangs on first boot">
+    **Symptom:** On the first deployment, the Temporal container logs show `Initializing schema` and does not progress for more than 5 minutes.
+
+    **Cause:** The `temporalio/auto-setup` image creates database schemas on first start. This requires a working PostgreSQL connection and can be slow on under-provisioned disks.
+
+    **Fix:**
+
+    ```bash
+    # Check Temporal logs for schema progress
+    docker logs openplane-temporal 2>&1 | tail -30
+
+    # Verify PostgreSQL is accepting connections
+    docker exec openplane-postgres psql -U postgres -c "SELECT 1;"
+
+    # Check PostgreSQL load
+    docker exec openplane-postgres psql -U postgres -c "SELECT * FROM pg_stat_activity WHERE state = 'active';"
+    ```
+
+    If schema creation is truly stuck, restart the Temporal container. The auto-setup process is idempotent and will resume where it left off.
+  </Accordion>
+  <Accordion title="Worker cannot connect to Temporal">
+    **Symptom:** The worker container logs show `Failed to connect to Temporal` or `gRPC connection refused` errors.
+
+    **Cause:** The worker started before Temporal was ready, or the `TEMPORAL_ADDRESS` environment variable is misconfigured.
+
+    **Fix:**
+
+    ```bash
+    # Verify Temporal is healthy
+    docker exec openplane-temporal-admin tctl cluster health
+
+    # Check the worker's Temporal address configuration
+    docker exec openplane-worker printenv TEMPORAL_ADDRESS
+    # Should be: temporal:7233
+
+    # Restart the worker
+    docker compose -f scripts/deploy/apps-compose.yaml restart worker
+    ```
+  </Accordion>
+  <Accordion title="Web frontend shows a blank page or 502">
+    **Symptom:** Navigating to `http://localhost:3001` returns a blank page, a Next.js error page, or a 502 from the reverse proxy.
+
+    **Cause:** The web container depends on the server being healthy. If the server is not running or not reachable at `SERVER_INTERNAL_URL`, the frontend cannot load API data.
+
+    **Fix:**
+
+    ```bash
+    # Check all application services
+    docker compose -f scripts/deploy/apps-compose.yaml ps
+
+    # Verify server health
+    curl -s http://localhost:3000/
+
+    # Check web container logs for errors
+    docker logs openplane-web 2>&1 | tail -20
+
+    # Verify internal connectivity
+    docker exec openplane-web curl -s http://server:3000/
+    ```
+  </Accordion>
+</Accordions>
+
+---
+
+## Connectivity Problems
+
+<Accordions>
+  <Accordion title="Service cannot reach another service by hostname">
+    **Symptom:** Container logs show `ECONNREFUSED` or DNS resolution errors when connecting to another service (e.g., `redis`, `vespa`, `temporal`).
+
+    **Cause:** The containers are not on the same Docker network, or the target service has not started yet.
+
+    **Fix:**
+
+    ```bash
+    # Check which networks a container belongs to
+    docker inspect openplane-worker --format '{{json .NetworkSettings.Networks}}' | jq 'keys'
+
+    # The worker should be on both "openplane" and "openplane-apps"
+    # Infrastructure services should be on "openplane"
+
+    # Test DNS resolution from inside the container
+    docker exec openplane-worker getent hosts redis
+    docker exec openplane-worker getent hosts vespa
+
+    # If DNS fails, verify the network exists
+    docker network ls | grep openplane
+    ```
+
+    If the networks do not exist, recreate them by restarting the infrastructure stack:
+
+    ```bash
+    docker compose -f scripts/deploy/infra-hetzner-compose.yaml down
+    docker compose -f scripts/deploy/infra-hetzner-compose.yaml up -d
+    ```
+  </Accordion>
+  <Accordion title="Application cannot reach infrastructure after restart">
+    **Symptom:** After restarting infrastructure services, application services lose connectivity and show connection errors.
+
+    **Cause:** Docker Compose `down` removes the network. When infrastructure restarts, it creates a new network with the same name but different ID. Application containers still reference the old network.
+
+    **Fix:** Restart application services after infrastructure restarts:
+
+    ```bash
+    docker compose -f scripts/deploy/apps-compose.yaml restart
+    ```
+
+    For zero-downtime infrastructure maintenance, use `restart` instead of `down` + `up`:
+
+    ```bash
+    docker compose -f scripts/deploy/infra-hetzner-compose.yaml restart redis
+    ```
+  </Accordion>
+  <Accordion title="Vespa query port not reachable">
+    **Symptom:** The server logs show connection errors to `vespa:8080`, but `vespa:19071` (config) is healthy.
+
+    **Cause:** The Vespa query port (8080) takes longer to become available than the config port (19071). The content node must finish loading documents before serving queries.
+
+    **Fix:**
+
+    ```bash
+    # Check Vespa content node status
+    curl -s http://localhost:19071/state/v1/health | jq '.status'
+
+    # Check if the application is deployed
+    curl -s http://localhost:19071/application/v2/tenant/default/application/default
+
+    # Wait for the content node to finish loading
+    docker logs openplane-vespa 2>&1 | grep "content"
+    ```
+  </Accordion>
+</Accordions>
+
+---
+
+## Performance Issues
+
+<Accordions>
+  <Accordion title="Search queries are slow (> 500ms)">
+    **Cause candidates:** Vespa memory pressure, large document sets without sufficient resources, or network latency between the server and Vespa.
+
+    **Diagnosis:**
+
+    ```bash
+    # Check Vespa query latency directly
+    curl -s -o /dev/null -w "%{time_total}" \
+      'http://localhost:8280/search/?yql=select+*+from+sources+*+where+true&hits=10'
+
+    # Check Vespa memory usage
+    docker stats openplane-vespa --no-stream
+
+    # Check Vespa metrics for query performance
+    curl -s http://localhost:19071/prometheus/v1/values | grep query_latency
+
+    # Check if Grafana shows a pattern (Vespa Overview dashboard)
+    ```
+
+    **Fixes:**
+    - Increase Vespa memory to 8 GB if currently at 4 GB
+    - Ensure the data volume is on NVMe SSD
+    - Check if a specific query pattern is causing full scans (examine Vespa query logs)
+  </Accordion>
+  <Accordion title="Sync jobs are falling behind (queue backlog growing)">
+    **Cause candidates:** Rate limiting from third-party APIs, worker under-provisioned, too many connectors syncing simultaneously.
+
+    **Diagnosis:**
+
+    ```bash
+    # Check current queue depths
+    curl -s http://localhost:9091/metrics | grep sync_queue_depth
+
+    # Check processing lag
+    curl -s http://localhost:9091/metrics | grep queue_processing_lag
+
+    # Check rate limit usage
+    curl -s http://localhost:9091/metrics | grep rate_limit_usage_ratio
+
+    # Check active Temporal workflows
+    docker exec openplane-temporal-admin tctl workflow list --status running
+    ```
+
+    **Fixes:**
+    - If rate limits are high (> 0.8), reduce sync frequency or add request spacing
+    - If the worker is CPU-bound, increase the worker container CPU limit
+    - Stagger connector sync schedules to avoid thundering herd
+  </Accordion>
+  <Accordion title="Database queries are slow">
+    **Diagnosis:**
+
+    ```bash
+    # Check for slow queries (logged at > 1s by default)
+    docker logs openplane-postgres 2>&1 | grep duration
+
+    # Check active queries and locks
+    docker exec openplane-postgres psql -U postgres -d openplane -c "
+      SELECT pid, now() - query_start AS duration, query
+      FROM pg_stat_activity
+      WHERE state = 'active' AND query NOT LIKE '%pg_stat%'
+      ORDER BY duration DESC
+      LIMIT 10;
+    "
+
+    # Check for lock contention
+    docker exec openplane-postgres psql -U postgres -d openplane -c "
+      SELECT blocked.pid, blocked.query, blocking.pid AS blocking_pid, blocking.query AS blocking_query
+      FROM pg_stat_activity blocked
+      JOIN pg_locks bl ON bl.pid = blocked.pid
+      JOIN pg_locks bbl ON bbl.locktype = bl.locktype AND bbl.relation = bl.relation AND bbl.pid != bl.pid
+      JOIN pg_stat_activity blocking ON bbl.pid = blocking.pid
+      WHERE NOT bl.granted;
+    "
+
+    # Run VACUUM ANALYZE to update statistics
+    docker exec openplane-postgres psql -U postgres -d openplane -c "VACUUM ANALYZE;"
+    ```
+
+    **Fixes:**
+    - Run `VACUUM ANALYZE` to update planner statistics
+    - Increase `work_mem` for complex queries
+    - Check if connection count is near the `max_connections` limit (100 default)
+  </Accordion>
+  <Accordion title="Engine (ML service) is slow">
+    **Diagnosis:**
+
+    ```bash
+    # Check engine health and response time
+    time curl -s http://localhost:8000/v1/health
+
+    # Check engine metrics
+    curl -s http://localhost:8000/metrics | grep -E "request_duration|model_inference"
+
+    # Check container resource usage
+    docker stats openplane-engine --no-stream
+    ```
+
+    **Fixes:**
+    - Increase engine CPU allocation (embedding computation is CPU-intensive)
+    - Increase `CPU_WORKERS` environment variable for more parallel inference
+    - Verify the engine is not swapping (memory usage near limit)
+  </Accordion>
+</Accordions>
+
+---
+
+## Disk Space Management
+
+Disk usage grows over time from database WAL files, Vespa document storage, Loki log chunks, and Prometheus TSDB blocks.
+
+### Checking Disk Usage
+
+```bash
+# Overall disk usage for the data directory
+du -sh /mnt/openplane-data/*/
+
+# Expected output (typical production deployment):
+# 2.1G  /mnt/openplane-data/postgres
+# 156M  /mnt/openplane-data/redis
+# 8.4G  /mnt/openplane-data/vespa
+# 42M   /mnt/openplane-data/minio
+# 1.2G  /mnt/openplane-data/loki
+# 890M  /mnt/openplane-data/prometheus
+# 52M   /mnt/openplane-data/grafana
+```
+
+### Reclaiming Space
+
+<Tabs groupId="reclaim">
+  <Tab value="PostgreSQL" label="PostgreSQL">
+    ```bash
+    # Reclaim space from deleted rows
+    docker exec openplane-postgres psql -U postgres -d openplane -c "VACUUM FULL;"
+
+    # Check database size
+    docker exec openplane-postgres psql -U postgres -d openplane -c "
+      SELECT pg_size_pretty(pg_database_size('openplane'));
+    "
+
+    # Find largest tables
+    docker exec openplane-postgres psql -U postgres -d openplane -c "
+      SELECT relname, pg_size_pretty(pg_total_relation_size(relid))
+      FROM pg_catalog.pg_statio_user_tables
+      ORDER BY pg_total_relation_size(relid) DESC
+      LIMIT 10;
+    "
+    ```
+  </Tab>
+  <Tab value="Vespa" label="Vespa">
+    ```bash
+    # Check Vespa disk usage
+    docker exec openplane-vespa du -sh /opt/vespa/var/
+
+    # Vespa stops accepting writes at 90% disk usage (VESPA_DISK_FULL_PERCENT)
+    # Free disk space or expand the volume before hitting this threshold
+    ```
+  </Tab>
+  <Tab value="Loki" label="Loki">
+    ```bash
+    # Check Loki storage
+    du -sh /mnt/openplane-data/loki/
+
+    # Loki compactor enforces retention automatically (default: 14 days)
+    # To force immediate compaction:
+    curl -s -X POST http://localhost:3100/compactor/ring/forget
+    ```
+
+    Reduce retention by editing the Loki config:
+
+    ```yaml
+    limits_config:
+      retention_period: 168h  # 7 days instead of 14
+    ```
+  </Tab>
+  <Tab value="Prometheus" label="Prometheus">
+    ```bash
+    # Check Prometheus TSDB size
+    docker exec openplane-prometheus du -sh /prometheus/
+
+    # Reduce retention (default: 30 days)
+    # Edit the compose file: --storage.tsdb.retention.time=15d
+
+    # Force TSDB cleanup
+    curl -s -X POST http://localhost:9090/-/quit  # Restart triggers compaction
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## Memory Issues
+
+<Accordions>
+  <Accordion title="Redis OOM errors">
+    **Symptom:** Application logs show `OOM command not allowed when used memory > 'maxmemory'`.
+
+    **Cause:** Redis has reached its 512 MB memory limit. The `noeviction` policy intentionally returns errors instead of silently dropping keys.
+
+    **Diagnosis:**
+
+    ```bash
+    # Check Redis memory usage
+    docker exec openplane-redis redis-cli info memory | grep -E "used_memory_human|maxmemory_human"
+
+    # Check key counts by pattern
+    docker exec openplane-redis redis-cli info keyspace
+
+    # Find large keys
+    docker exec openplane-redis redis-cli --bigkeys
+    ```
+
+    **Fixes:**
+    - Increase `--maxmemory` in the Redis startup command (compose file)
+    - Investigate key growth: rate limiter keys should expire, job state should be cleaned up
+    - Check for a stuck job that is accumulating state
+  </Accordion>
+  <Accordion title="Vespa out of memory">
+    **Symptom:** Vespa container restarts or search queries return 503 errors. Docker stats show Vespa at or near the memory limit.
+
+    **Fix:**
+
+    ```bash
+    # Check container memory usage
+    docker stats openplane-vespa --no-stream
+
+    # Increase memory limit in the compose file
+    # Change: mem_limit: 4g → mem_limit: 8g
+    # Change: mem_reservation: 4g → mem_reservation: 8g
+
+    # Restart Vespa (data is persisted on disk)
+    docker compose -f scripts/deploy/infra-hetzner-compose.yaml restart vespa
+    ```
+
+    Vespa memory usage scales with the number of documents and the size of the vector index. Plan for roughly 1 GB per 500,000 documents with 768-dimension embeddings.
+  </Accordion>
+  <Accordion title="Worker running out of memory during large syncs">
+    **Symptom:** Worker container is killed during sync of a large connector (e.g., Google Drive with 100k+ documents).
+
+    **Fix:**
+
+    ```bash
+    # Check worker memory usage
+    docker stats openplane-worker --no-stream
+
+    # Increase worker memory limit in the compose file
+    # Change: mem_limit: 2g → mem_limit: 4g
+
+    docker compose -f scripts/deploy/apps-compose.yaml restart worker
+    ```
+
+    Large syncs should use Temporal's `continueAsNew` pattern to reset workflow history and prevent memory accumulation. If a specific connector consistently causes OOM, check its batch size configuration.
+  </Accordion>
+</Accordions>
+
+---
+
+## Log Investigation Workflow
+
+When investigating an incident, follow this workflow to narrow down the root cause using Grafana and Loki.
+
+### Step 1: Identify the Timeframe
+
+Open the **Command Center** dashboard in Grafana. Look for spikes in error rate or latency. Note the exact time range.
+
+### Step 2: Check Service Health
+
+```bash
+# Quick health check of all services
+docker compose -f scripts/deploy/infra-hetzner-compose.yaml ps
+docker compose -f scripts/deploy/apps-compose.yaml ps
+```
+
+### Step 3: Query Logs in Grafana
+
+Open **Explore** in Grafana, select the **Loki** data source, and set the time range from Step 1.
+
+```text
+# Find all errors in the timeframe
+{service=~".+"} | json | level="error"
+
+# Narrow to a specific service
+{container="openplane-server"} | json | level="error"
+
+# Search for a specific error message
+{service=~".+"} |= "ConnectorNotFoundError"
+
+# Correlate by trace ID (if you found one in the error logs)
+{service=~".+"} | json | trace_id="abc123def456"
+
+# Count errors by service
+sum by (container) (count_over_time({service=~".+"} | json | level="error" [1m]))
+```
+
+### Step 4: Check Worker-Specific Logs
+
+For sync or indexing issues:
+
+```text
+# Sync failures
+{container="openplane-worker"} | json | level="error" |= "sync"
+
+# Specific connector issues
+{container="openplane-worker"} |= "linear" | json | level=~"error|warn"
+
+# Rate limit events
+{container="openplane-worker"} |= "rate_limit"
+```
+
+### Step 5: Check Temporal Workflows
+
+```bash
+# List failed workflows in the last hour
+docker exec openplane-temporal-admin tctl workflow list \
+  --status failed \
+  --earliest_time "$(date -d '1 hour ago' -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -v-1H -u +%Y-%m-%dT%H:%M:%SZ)"
+
+# Get details of a failed workflow
+docker exec openplane-temporal-admin tctl workflow show \
+  --workflow_id "sync:connector_id_here"
+```
+
+### Step 6: Check Metrics for Context
+
+In Grafana, open the relevant dashboard (Worker Performance for sync issues, API Endpoints for request failures) and compare the incident timeframe against the preceding period.
+
+---
+
+## Health Check Reference
+
+A complete reference of all health check endpoints across the deployment.
+
+| Service | Endpoint | Method | Port | Expected Response | Timeout |
+|---------|----------|--------|------|-------------------|---------|
+| **Server** | `/` | GET | 3000 | `200 OK` | 5s |
+| **Web** | `/` | GET | 3001 | `200 OK` | 5s |
+| **Worker** (liveness) | `/health/live` | GET | 9092 | `200` `{"status":"healthy"}` | 5s |
+| **Worker** (readiness) | `/health/ready` | GET | 9092 | `200` with dependency checks | 10s |
+| **Worker** (full) | `/health` | GET | 9092 | `200` with dependency checks | 10s |
+| **Engine** | `/v1/health` | GET | 8000 | `200 OK` | 5s |
+| **PostgreSQL** | `pg_isready -U postgres` | CLI | 5432 | Exit code 0 | 5s |
+| **Redis** | `redis-cli ping` | CLI | 6379 | `PONG` | 3s |
+| **Vespa** | `/state/v1/health` | GET | 19071 | `200` `{"status":"up"}` | 10s |
+| **Temporal** | `tctl cluster health` | CLI | 7233 | `SERVING` | 10s |
+| **MinIO** | `mc ready local` | CLI | 9000 | Exit code 0 | 5s |
+| **Prometheus** | `/-/healthy` | GET | 9090 | `200 OK` | 5s |
+| **Grafana** | `/api/health` | GET | 3002 | `200` `{"database":"ok"}` | 5s |
+| **Loki** | `/ready` | GET | 3100 | `200 ready` | 5s |
+
+### Quick Health Check Script
+
+```bash
+#!/bin/bash
+echo "=== Infrastructure ==="
+echo -n "PostgreSQL: "; docker exec openplane-postgres pg_isready -U postgres 2>&1 | tail -1
+echo -n "Redis:      "; docker exec openplane-redis redis-cli ping
+echo -n "Vespa:      "; curl -sf http://localhost:19071/state/v1/health | jq -r '.status.code' 2>/dev/null || echo "UNHEALTHY"
+echo -n "Temporal:   "; docker exec openplane-temporal-admin tctl cluster health --address temporal:7233 2>&1 | tail -1
+echo -n "MinIO:      "; curl -sf http://localhost:9000/minio/health/live > /dev/null && echo "OK" || echo "UNHEALTHY"
+
+echo ""
+echo "=== Applications ==="
+echo -n "Server:     "; curl -sf http://localhost:3000/ > /dev/null && echo "OK" || echo "UNHEALTHY"
+echo -n "Web:        "; curl -sf -o /dev/null -w "%{http_code}" http://localhost:3001/
+echo ""
+echo -n "Worker:     "; curl -sf http://localhost:9092/health | jq -r '.status' 2>/dev/null || echo "UNHEALTHY"
+echo -n "Engine:     "; curl -sf http://localhost:8000/v1/health > /dev/null && echo "OK" || echo "UNHEALTHY"
+
+echo ""
+echo "=== Monitoring ==="
+echo -n "Prometheus: "; curl -sf http://localhost:9090/-/healthy > /dev/null && echo "OK" || echo "UNHEALTHY"
+echo -n "Grafana:    "; curl -sf http://localhost:3002/api/health | jq -r '.database' 2>/dev/null || echo "UNHEALTHY"
+echo -n "Loki:       "; curl -sf http://localhost:3100/ready > /dev/null && echo "OK" || echo "UNHEALTHY"
+```
+
+---
+
+## Container Restart Procedures
+
+### Restarting a Single Service
+
+Use `restart` to keep the container, volumes, and network connections intact:
+
+```bash
+# Restart a single infrastructure service
+docker compose -f scripts/deploy/infra-hetzner-compose.yaml restart redis
+
+# Restart a single application service
+docker compose -f scripts/deploy/apps-compose.yaml restart worker
+```
+
+### Restarting All Application Services
+
+```bash
+docker compose -f scripts/deploy/apps-compose.yaml restart
+```
+
+### Restarting Everything (Full Stack)
+
+<Callout type="warn">
+  Restart application services after infrastructure is healthy. Restarting everything simultaneously can cause cascading connection failures.
+</Callout>
+
+```bash
+# 1. Restart infrastructure
+docker compose -f scripts/deploy/infra-hetzner-compose.yaml restart
+
+# 2. Wait for infrastructure health checks to pass (1-3 minutes)
+watch docker compose -f scripts/deploy/infra-hetzner-compose.yaml ps
+
+# 3. Restart applications
+docker compose -f scripts/deploy/apps-compose.yaml restart
+```
+
+### Recreating a Container (Pull New Image)
+
+```bash
+# Pull the latest image and recreate just one service
+docker compose -f scripts/deploy/apps-compose.yaml pull worker
+docker compose -f scripts/deploy/apps-compose.yaml up -d worker
+```
+
+### Nuclear Option (Full Teardown and Rebuild)
+
+<Callout type="warn">
+  This stops all containers and removes networks. Data in `/mnt/openplane-data` is preserved because it uses bind mounts, not Docker volumes. Do not add the `-v` flag.
+</Callout>
+
+```bash
+docker compose -f scripts/deploy/apps-compose.yaml down
+docker compose -f scripts/deploy/infra-hetzner-compose.yaml down
+
+docker compose -f scripts/deploy/infra-hetzner-compose.yaml up -d
+# Wait for healthy...
+docker compose -f scripts/deploy/apps-compose.yaml up -d
+```
+
+---
+
+## Data Recovery
+
+### PostgreSQL Backup and Restore
+
+**Create a backup:**
+
+```bash
+# Full SQL dump
+docker exec openplane-postgres pg_dump -U postgres openplane > backup_$(date +%Y%m%d_%H%M%S).sql
+
+# Compressed backup
+docker exec openplane-postgres pg_dump -U postgres openplane | gzip > backup_$(date +%Y%m%d_%H%M%S).sql.gz
+
+# Custom format (supports parallel restore)
+docker exec openplane-postgres pg_dump -U postgres -Fc openplane > backup_$(date +%Y%m%d_%H%M%S).dump
+```
+
+**Restore from backup:**
+
+```bash
+# Stop application services first
+docker compose -f scripts/deploy/apps-compose.yaml down
+
+# Restore from SQL dump
+docker exec -i openplane-postgres psql -U postgres openplane < backup_20250305_120000.sql
+
+# Restore from custom format
+docker exec -i openplane-postgres pg_restore -U postgres -d openplane --clean backup_20250305_120000.dump
+
+# Restart applications
+docker compose -f scripts/deploy/apps-compose.yaml up -d
+```
+
+**Point-in-time recovery is not available** with the default deployment. For production environments with strict RPO requirements, configure PostgreSQL WAL archiving to an external location.
+
+### Vespa Reindexing
+
+If the Vespa index becomes corrupted or you need to rebuild it from scratch:
+
+```bash
+# 1. Stop the worker (prevent new writes)
+docker compose -f scripts/deploy/apps-compose.yaml stop worker
+
+# 2. Delete all Vespa documents (nuclear option)
+curl -X DELETE 'http://localhost:8280/document/v1/?cluster=openplane&selection=true'
+
+# 3. Restart the worker
+docker compose -f scripts/deploy/apps-compose.yaml start worker
+
+# 4. Trigger full re-sync for all connectors
+# This is done through the UI: Connectors → each connector → Re-sync
+# Or via the Temporal UI at http://localhost:8233
+```
+
+Full re-sync will re-fetch all documents from connected sources and re-index them. Duration depends on the number of connectors and documents.
+
+### Redis Recovery
+
+Redis uses AOF (Append Only File) persistence. If Redis state becomes corrupted:
+
+```bash
+# 1. Stop Redis
+docker compose -f scripts/deploy/infra-hetzner-compose.yaml stop redis
+
+# 2. Check the AOF file for corruption
+docker run --rm -v /mnt/openplane-data/redis:/data redis:8.4.0-alpine \
+  redis-check-aof --fix /data/appendonlydir/appendonly.aof.1.incr.aof
+
+# 3. Start Redis
+docker compose -f scripts/deploy/infra-hetzner-compose.yaml start redis
+```
+
+If Redis data is unrecoverable, you can safely delete it and restart. Rate limit counters and job state will reset. Active sync jobs may restart from the beginning.
+
+```bash
+# Nuclear option: delete Redis data
+docker compose -f scripts/deploy/infra-hetzner-compose.yaml stop redis
+rm -rf /mnt/openplane-data/redis/*
+docker compose -f scripts/deploy/infra-hetzner-compose.yaml start redis
+```
+
+---
+
+## Still Stuck?
+
+If this guide does not resolve your issue:
+
+1. **Check container logs** for the service that is failing: `docker logs openplane-<service> --tail 100`
+2. **Search Loki** for correlated errors across services using trace IDs
+3. **Check the Temporal UI** at `http://localhost:8233` for stuck or failed workflows
+4. **Open a GitHub issue** at [github.com/kuluruvineeth/openplane/issues](https://github.com/kuluruvineeth/openplane/issues) with:
+   - The error message or symptom
+   - Relevant container logs
+   - Output of `docker compose ps` for both compose files
+   - Host OS and Docker version

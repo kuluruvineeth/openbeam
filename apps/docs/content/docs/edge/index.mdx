@@ -1,0 +1,152 @@
+---
+title: Edge Runtime
+description: Offline-capable search and AI for air-gapped, disconnected, and latency-sensitive environments. No cloud required.
+---
+
+# Edge Runtime
+
+OpenPlane's edge runtime brings enterprise search and AI to environments where cloud connectivity is unavailable, unreliable, or prohibited. Factory floors, remote sites, classified networks, mobile field operations -- the edge runtime runs entirely on-device with zero external dependencies.
+
+Three packages, one SQLite database, no cloud required.
+
+## Architecture
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│                      Edge Node                               │
+│                                                              │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
+│  │  edge-core   │  │ edge-search  │  │   edge-ai    │      │
+│  │              │  │              │  │              │      │
+│  │  SQLite WAL  │  │  FTS5 + BM25 │  │  RAG Pipeline│      │
+│  │  Config Mgr  │◄─┤  Vector Sim  │◄─┤  Query Class │      │
+│  │  Scheduler   │  │  Hybrid Rank │  │  NER Extract │      │
+│  │  Merkle Sync │  │  Doc Store   │  │  SLM Infer   │      │
+│  │  Health Agg  │  │              │  │              │      │
+│  └──────┬───────┘  └──────────────┘  └──────────────┘      │
+│         │                                                    │
+│         ▼                                                    │
+│  ┌──────────────────────────────────────────────────┐       │
+│  │              SQLite (WAL mode)                    │       │
+│  │  Documents │ FTS5 Index │ Config │ Tasks │ Queue  │       │
+│  └──────────────────────────────────────────────────┘       │
+│         │                                                    │
+│         ▼  (when connectivity available)                     │
+│  ┌──────────────┐                                           │
+│  │ Merkle Tree  │──► Cloud Sync (bandwidth-aware)           │
+│  │ Reconcile    │                                           │
+│  └──────────────┘                                           │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Packages
+
+| Package | Purpose | Key Dependencies |
+|---------|---------|-----------------|
+| [`@openplane/edge-core`](/docs/edge/core) | SQLite foundation, config, scheduling, sync, health | `bun:sqlite`, `hash-wasm` (BLAKE3) |
+| [`@openplane/edge-search`](/docs/edge/search) | Full-text search, vector similarity, hybrid ranking | `@openplane/edge-core` |
+| [`@openplane/edge-ai`](/docs/edge/ai) | RAG pipeline, query classification, NER | `@openplane/edge-search` |
+
+Types are defined in `@openplane/types/edge/*` and shared across all three packages.
+
+## Hardware Tiers
+
+The edge runtime adapts to four hardware tiers. Feature availability scales with resources.
+
+| Tier | RAM | Cores | Storage | Features |
+|------|-----|-------|---------|----------|
+| `sensor_gateway` | 256 MB+ | 1+ | 1 GB+ | FTS only |
+| `standard` | 2 GB+ | 2+ | 8 GB+ | FTS + vector similarity |
+| `performance` | 8 GB+ | 4+ | 32 GB+ | FTS + vector + SLM + RAG + conversational + NER |
+| `enterprise` | 32 GB+ | 8+ | 128 GB+ | Everything + federated learning |
+
+Tier detection is automatic based on hardware capabilities:
+
+```typescript
+import { detectTier } from "@openplane/types/edge/tiers";
+
+const tier = detectTier({
+  cpuCores: 4,
+  ramMb: 8192,
+  storageMb: 65_536,
+  hasGpu: false,
+  platform: "intel_nuc",
+});
+// tier === "performance"
+```
+
+### Feature Matrix
+
+| Feature | sensor_gateway | standard | performance | enterprise |
+|---------|:-:|:-:|:-:|:-:|
+| Full-text search (FTS5) | Y | Y | Y | Y |
+| Vector similarity | - | Y | Y | Y |
+| Hybrid ranking | - | Y | Y | Y |
+| SLM inference | - | - | Y | Y |
+| RAG pipeline | - | - | Y | Y |
+| Conversational | - | - | Y | Y |
+| Named entity recognition | - | - | Y | Y |
+| Federated learning | - | - | - | Y |
+
+## Quick Start
+
+Full setup with search and AI in one file:
+
+```typescript
+import { openEdgeDatabase, EdgeConfigManager, getFeatureFlags, EdgeTaskScheduler, HealthAggregator } from "@openplane/edge-core";
+import { EdgeSearchEngine, SQLiteFTS5Provider, InMemoryVectorProvider, SQLiteDocumentStore } from "@openplane/edge-search";
+import { EdgeRAGPipeline, MockSLM, MockEmbeddingModel } from "@openplane/edge-ai";
+
+const db = openEdgeDatabase("./edge-data/main.db");
+
+const config = new EdgeConfigManager(db);
+const edgeConfig = config.load("node-001", "performance");
+const flags = getFeatureFlags(edgeConfig.tier);
+
+const fts = new SQLiteFTS5Provider(db);
+const vector = flags.vector ? new InMemoryVectorProvider() : undefined;
+const store = new SQLiteDocumentStore(db);
+
+const searchEngine = new EdgeSearchEngine({ fts, vector, store });
+
+await searchEngine.indexDocument({
+  documentId: "doc-1",
+  connectorId: "confluence",
+  title: "Deployment Runbook",
+  content: "Step 1: Verify health checks pass before proceeding...",
+  createdAt: Date.now(),
+  updatedAt: Date.now(),
+});
+
+const results = await searchEngine.search({ query: "deployment health checks", limit: 5 });
+
+if (flags.rag) {
+  const slm = new MockSLM();
+  const embedding = new MockEmbeddingModel();
+  const rag = new EdgeRAGPipeline({ slm, embedding, searchEngine });
+  const answer = await rag.query("How do I verify health checks?");
+  console.log(answer.answer);
+  console.log(`Sources: ${answer.sources.length}, Latency: ${answer.latencyMs}ms`);
+}
+```
+
+<Callout type="info">
+Replace `MockSLM` and `MockEmbeddingModel` with real implementations (llama.cpp, TensorRT) for production. The mock implementations are for testing and development.
+</Callout>
+
+## Design Decisions
+
+| Decision | Rationale |
+|----------|-----------|
+| SQLite with WAL mode | Concurrent reads, single-writer, zero-config, runs everywhere |
+| In-memory vectors | No external vector DB needed. Fast cosine similarity for edge-scale datasets (10K-100K docs) |
+| BLAKE3 for Merkle trees | Fastest cryptographic hash. 4x faster than SHA-256 on commodity hardware |
+| Bandwidth-aware sync | Auto-degrades: full -> incremental -> metadata_only -> manual based on measured bandwidth |
+| Zod schemas for all types | Runtime validation at package boundaries. Types are the contract. |
+
+<Cards>
+  <Card title="Core Infrastructure" href="/docs/edge/core" description="SQLite, config, scheduling, Merkle sync, health monitoring." />
+  <Card title="Search Engine" href="/docs/edge/search" description="FTS5, vector similarity, hybrid ranking, document store." />
+  <Card title="Edge AI" href="/docs/edge/ai" description="RAG pipeline, query classification, NER, prompt templates." />
+  <Card title="Deployment" href="/docs/edge/deployment" description="Hardware requirements, installation, fleet management." />
+</Cards>

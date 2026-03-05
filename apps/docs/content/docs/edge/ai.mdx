@@ -1,0 +1,493 @@
+---
+title: Edge AI
+description: RAG pipeline, query classification, named entity recognition, and prompt templates running on-device with small language models.
+---
+
+# Edge AI
+
+`@openplane/edge-ai` brings AI capabilities to edge nodes. A RAG pipeline that searches local documents and generates grounded answers. A query classifier that determines user intent. A query rewriter that improves search recall. Named entity recognition that extracts structured data from text. All running on-device with small language models.
+
+```typescript
+import {
+  EdgeRAGPipeline,
+  QueryClassifier,
+  QueryRewriter,
+  EdgeNER,
+  MockSLM,
+  MockEmbeddingModel,
+  EDGE_RAG_PROMPT,
+  EDGE_NER_PROMPT,
+  EDGE_QUERY_CLASSIFY_PROMPT,
+  EDGE_QUERY_REWRITE_PROMPT,
+  EDGE_SUMMARIZE_PROMPT,
+  formatPrompt,
+  parseNERResponse,
+  parseQueryClassification,
+} from "@openplane/edge-ai";
+```
+
+## RAG Pipeline
+
+`EdgeRAGPipeline` combines search and generation. It embeds the user query, searches the local index, assembles context from top results, and generates an answer with source citations.
+
+```typescript
+import { EdgeRAGPipeline, MockSLM, MockEmbeddingModel } from "@openplane/edge-ai";
+import { EdgeSearchEngine, SQLiteFTS5Provider, InMemoryVectorProvider, SQLiteDocumentStore } from "@openplane/edge-search";
+import { openEdgeDatabase } from "@openplane/edge-core";
+
+const db = openEdgeDatabase("./edge.db");
+const searchEngine = new EdgeSearchEngine({
+  fts: new SQLiteFTS5Provider(db),
+  vector: new InMemoryVectorProvider(),
+  store: new SQLiteDocumentStore(db),
+});
+
+const rag = new EdgeRAGPipeline({
+  slm: new MockSLM(),
+  embedding: new MockEmbeddingModel(),
+  searchEngine,
+  maxContextDocuments: 5,  // top-k documents for context (default: 5)
+});
+
+const response = await rag.query("How do I roll back a failed deployment?");
+
+console.log(response.answer);
+console.log(`Sources: ${response.sources.length}`);
+console.log(`Tokens used: ${response.tokensUsed}`);
+console.log(`Search: ${response.searchLatencyMs.toFixed(0)}ms`);
+console.log(`Generation: ${response.generationLatencyMs.toFixed(0)}ms`);
+console.log(`Total: ${response.latencyMs.toFixed(0)}ms`);
+```
+
+### RAG Response Shape
+
+```typescript
+interface EdgeRAGResponse {
+  answer: string;                // generated answer text
+  sources: Array<{
+    documentId: string;
+    title: string;
+    snippet: string;
+    score: number;
+  }>;
+  queryRewrite?: string;         // rewritten query (if applicable)
+  tokensUsed: number;
+  latencyMs: number;             // total end-to-end
+  searchLatencyMs: number;       // search phase only
+  generationLatencyMs: number;   // SLM generation only
+}
+```
+
+### Pipeline Flow
+
+```text
+User Query
+    │
+    ▼
+┌──────────────┐
+│  Embed Query │  (EdgeEmbeddingModel)
+└──────┬───────┘
+       ▼
+┌──────────────┐
+│ Hybrid Search│  (EdgeSearchEngine)
+└──────┬───────┘
+       ▼
+┌──────────────┐
+│  Assemble    │  Format top-k documents into context
+│  Context     │  "[1] Title\nSnippet\n\n[2] Title\nSnippet"
+└──────┬───────┘
+       ▼
+┌──────────────┐
+│  Generate    │  (EdgeSLM with EDGE_RAG_PROMPT)
+│  Answer      │
+└──────┬───────┘
+       ▼
+EdgeRAGResponse with answer + sources + timing
+```
+
+## Query Classifier
+
+Determines the intent behind a user query. Useful for routing -- search queries go to the search engine, conversational queries go to the SLM directly, navigation queries resolve to a specific document.
+
+```typescript
+import { QueryClassifier, MockSLM } from "@openplane/edge-ai";
+
+const classifier = new QueryClassifier(new MockSLM());
+const classification = await classifier.classify("show me the Q3 revenue report");
+```
+
+### Classification Result
+
+```typescript
+interface QueryClassification {
+  intent: "search" | "question" | "navigation" | "command" | "conversation";
+  confidence: number;           // 0.0 to 1.0
+  entities: NEREntity[];        // extracted entities
+  suggestedRewrite?: string;    // improved query
+}
+```
+
+| Intent | Example | Routing |
+|--------|---------|---------|
+| `search` | "kubernetes deployment docs" | Full search pipeline |
+| `question` | "How do I configure monitoring?" | RAG pipeline |
+| `navigation` | "open the deployment runbook" | Direct document lookup |
+| `command` | "sync all connectors" | Action handler |
+| `conversation` | "thanks, that was helpful" | SLM response |
+
+If parsing fails, the classifier returns a fallback with `intent: "search"` and `confidence: 0.5`.
+
+## Query Rewriter
+
+Improves search recall by expanding abbreviations, adding synonyms, and clarifying ambiguous terms.
+
+```typescript
+import { QueryRewriter, MockSLM } from "@openplane/edge-ai";
+
+const rewriter = new QueryRewriter(new MockSLM());
+
+const rewritten = await rewriter.rewrite("k8s deploy docs");
+// "kubernetes deployment documentation"
+
+const rewritten2 = await rewriter.rewrite("Q3 rev report");
+// "third quarter revenue report"
+```
+
+The rewriter returns the original query if the SLM produces an empty response.
+
+## Named Entity Recognition
+
+Extract structured entities from text using an SLM.
+
+```typescript
+import { EdgeNER, MockSLM } from "@openplane/edge-ai";
+
+const ner = new EdgeNER(new MockSLM());
+
+const entities = await ner.extract(
+  "Jane Smith from Acme Corp presented the Q3 results in New York on December 15th."
+);
+
+for (const entity of entities) {
+  console.log(`${entity.text} [${entity.label}] (${entity.confidence.toFixed(2)}) at ${entity.start}-${entity.end}`);
+}
+```
+
+### Entity Labels
+
+| Label | Examples |
+|-------|---------|
+| `PERSON` | Jane Smith, John Doe |
+| `ORGANIZATION` | Acme Corp, Google, Engineering Team |
+| `LOCATION` | New York, Building 42, EU Region |
+| `DATE` | December 15th, Q3 2025, last week |
+| `PRODUCT` | OpenPlane, Kubernetes, iPhone |
+| `EVENT` | Q3 Review, Sprint Planning, All-Hands |
+| `DOCUMENT` | Deployment Runbook, Q3 Report |
+
+### NEREntity Shape
+
+```typescript
+interface NEREntity {
+  text: string;       // extracted text span
+  label: string;      // entity type
+  start: number;      // character offset start
+  end: number;        // character offset end
+  confidence: number; // 0.0 to 1.0
+}
+```
+
+## Prompt Templates
+
+Pre-built templates for all AI operations. Use `formatPrompt` to inject variables.
+
+```typescript
+import { EDGE_RAG_PROMPT, EDGE_NER_PROMPT, formatPrompt } from "@openplane/edge-ai";
+
+const prompt = formatPrompt(EDGE_RAG_PROMPT, {
+  context: "[1] Deployment Guide\nStep 1: Verify health...",
+  query: "How do I verify health checks?",
+});
+```
+
+### Available Templates
+
+| Template | Variables | Purpose |
+|----------|-----------|---------|
+| `EDGE_RAG_PROMPT` | `{context}`, `{query}` | Answer grounded in context documents |
+| `EDGE_NER_PROMPT` | `{text}` | Extract named entities as JSON |
+| `EDGE_QUERY_CLASSIFY_PROMPT` | `{query}` | Classify intent + extract entities |
+| `EDGE_QUERY_REWRITE_PROMPT` | `{query}` | Expand abbreviations, add synonyms |
+| `EDGE_SUMMARIZE_PROMPT` | `{text}` | Concise 2-3 sentence summary |
+
+### Custom Templates
+
+```typescript
+const CUSTOM_TEMPLATE = `Given the following documents, extract all action items.
+
+Documents:
+{documents}
+
+Return a JSON array of objects with fields: action, assignee, deadline.
+Return ONLY valid JSON:`;
+
+const prompt = formatPrompt(CUSTOM_TEMPLATE, {
+  documents: documentText,
+});
+
+const response = await slm.generate(prompt);
+```
+
+## SLM and Embedding Interfaces
+
+Edge AI components accept any implementation of the `EdgeSLM` and `EdgeEmbeddingModel` interfaces.
+
+### EdgeSLM Interface
+
+```typescript
+interface EdgeSLM {
+  generate(prompt: string, options?: Partial<EdgeGenerateOptions>): Promise<EdgeSLMResponse>;
+  isAvailable(): Promise<boolean>;
+  modelId(): string;
+}
+
+interface EdgeGenerateOptions {
+  maxTokens: number;      // default: 512
+  temperature: number;    // default: 0.3
+  stopSequences?: string[];
+  systemPrompt?: string;
+}
+
+interface EdgeSLMResponse {
+  text: string;
+  tokensUsed: number;
+  latencyMs: number;
+  truncated: boolean;
+}
+```
+
+### EdgeEmbeddingModel Interface
+
+```typescript
+interface EdgeEmbeddingModel {
+  embed(text: string): Promise<Float32Array>;
+  embedBatch(texts: string[]): Promise<Float32Array[]>;
+  dimensions(): number;
+  modelId(): string;
+  isAvailable(): Promise<boolean>;
+}
+```
+
+## Mock Implementations
+
+For testing and development, use the built-in mocks that require no GPU or model files.
+
+### MockSLM
+
+```typescript
+import { MockSLM } from "@openplane/edge-ai";
+
+const slm = new MockSLM({
+  modelId: "test-model",
+  defaultResponse: "Default answer for testing.",
+  latencyMs: 10,
+});
+
+slm.setResponse("deployment", "Use kubectl apply to deploy.");
+slm.setResponse("rollback", "Use kubectl rollout undo to rollback.");
+
+const response = await slm.generate("How do I handle deployment?");
+// response.text === "Use kubectl apply to deploy."
+
+slm.setAvailable(false);
+// subsequent calls throw "Model is not available"
+```
+
+`setResponse` matches if the prompt *contains* the key string. First match wins.
+
+### MockEmbeddingModel
+
+```typescript
+import { MockEmbeddingModel } from "@openplane/edge-ai";
+
+const embedding = new MockEmbeddingModel({
+  dimensions: 384,
+  modelId: "test-embedding",
+});
+
+const vector = await embedding.embed("deployment guide");
+// Float32Array(384) — deterministic hash-based vector, L2-normalized
+
+const vectors = await embedding.embedBatch(["doc 1", "doc 2", "doc 3"]);
+// Float32Array[] — one per input
+
+embedding.dimensions(); // 384
+embedding.modelId();    // "test-embedding"
+```
+
+The mock produces deterministic, L2-normalized vectors from a hash function. Identical inputs always produce identical vectors.
+
+## Real SLM Integration
+
+Replace mocks with real model runtimes for production.
+
+<Tabs items={["llama.cpp", "TensorRT"]}>
+  <Tab value="llama.cpp">
+    ```typescript
+    import type { EdgeSLM, EdgeSLMResponse, EdgeGenerateOptions } from "@openplane/types/edge/ai";
+
+    class LlamaCppSLM implements EdgeSLM {
+      private readonly serverUrl: string;
+
+      constructor(serverUrl = "http://localhost:8080") {
+        this.serverUrl = serverUrl;
+      }
+
+      async generate(prompt: string, options?: Partial<EdgeGenerateOptions>): Promise<EdgeSLMResponse> {
+        const start = performance.now();
+        const response = await fetch(`${this.serverUrl}/completion`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            prompt,
+            n_predict: options?.maxTokens ?? 512,
+            temperature: options?.temperature ?? 0.3,
+            stop: options?.stopSequences,
+          }),
+        });
+        const data = await response.json();
+        return {
+          text: data.content,
+          tokensUsed: data.tokens_predicted,
+          latencyMs: performance.now() - start,
+          truncated: data.stopped_limit ?? false,
+        };
+      }
+
+      async isAvailable(): Promise<boolean> {
+        try {
+          const res = await fetch(`${this.serverUrl}/health`);
+          return res.ok;
+        } catch {
+          return false;
+        }
+      }
+
+      modelId(): string {
+        return "llama-cpp";
+      }
+    }
+    ```
+  </Tab>
+  <Tab value="TensorRT">
+    ```typescript
+    import type { EdgeSLM, EdgeSLMResponse, EdgeGenerateOptions } from "@openplane/types/edge/ai";
+
+    class TensorRTSLM implements EdgeSLM {
+      private readonly serverUrl: string;
+
+      constructor(serverUrl = "http://localhost:8081") {
+        this.serverUrl = serverUrl;
+      }
+
+      async generate(prompt: string, options?: Partial<EdgeGenerateOptions>): Promise<EdgeSLMResponse> {
+        const start = performance.now();
+        const response = await fetch(`${this.serverUrl}/v1/completions`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            prompt,
+            max_tokens: options?.maxTokens ?? 512,
+            temperature: options?.temperature ?? 0.3,
+            stop: options?.stopSequences,
+          }),
+        });
+        const data = await response.json();
+        const choice = data.choices[0];
+        return {
+          text: choice.text,
+          tokensUsed: data.usage.completion_tokens,
+          latencyMs: performance.now() - start,
+          truncated: choice.finish_reason === "length",
+        };
+      }
+
+      async isAvailable(): Promise<boolean> {
+        try {
+          const res = await fetch(`${this.serverUrl}/health`);
+          return res.ok;
+        } catch {
+          return false;
+        }
+      }
+
+      modelId(): string {
+        return "tensorrt-llm";
+      }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+<Callout type="info">
+The `EdgeSLM` and `EdgeEmbeddingModel` interfaces are defined in `@openplane/types/edge/ai`. Any class implementing these interfaces works with the RAG pipeline, query classifier, rewriter, and NER.
+</Callout>
+
+## Combining Components
+
+A full AI-enhanced search pipeline:
+
+```typescript
+import { openEdgeDatabase, getFeatureFlags } from "@openplane/edge-core";
+import { EdgeSearchEngine, SQLiteFTS5Provider, InMemoryVectorProvider, SQLiteDocumentStore } from "@openplane/edge-search";
+import { EdgeRAGPipeline, QueryClassifier, QueryRewriter, EdgeNER, MockSLM, MockEmbeddingModel } from "@openplane/edge-ai";
+
+const db = openEdgeDatabase("./edge.db");
+const flags = getFeatureFlags("performance");
+
+const searchEngine = new EdgeSearchEngine({
+  fts: new SQLiteFTS5Provider(db),
+  vector: flags.vector ? new InMemoryVectorProvider() : undefined,
+  store: new SQLiteDocumentStore(db),
+});
+
+const slm = new MockSLM();
+const embedding = new MockEmbeddingModel();
+
+const classifier = new QueryClassifier(slm);
+const rewriter = new QueryRewriter(slm);
+const ner = new EdgeNER(slm);
+const rag = new EdgeRAGPipeline({ slm, embedding, searchEngine });
+
+async function handleQuery(userQuery: string) {
+  const classification = await classifier.classify(userQuery);
+
+  switch (classification.intent) {
+    case "search": {
+      const rewritten = await rewriter.rewrite(userQuery);
+      const queryVector = await embedding.embed(rewritten);
+      return searchEngine.search({ query: rewritten, limit: 10 }, queryVector);
+    }
+    case "question": {
+      return rag.query(userQuery);
+    }
+    case "navigation": {
+      return searchEngine.search({ query: userQuery, limit: 1 });
+    }
+    case "command": {
+      const entities = await ner.extract(userQuery);
+      return { intent: "command", entities };
+    }
+    case "conversation": {
+      const response = await slm.generate(userQuery);
+      return { answer: response.text };
+    }
+  }
+}
+```
+
+<Cards>
+  <Card title="Search Engine" href="/docs/edge/search" description="FTS5 and vector search that powers the RAG pipeline." />
+  <Card title="Core Infrastructure" href="/docs/edge/core" description="SQLite foundation and config management." />
+  <Card title="Cloud AI" href="/docs/ai" description="Full cloud AI with agents, tools, and MCP." />
+</Cards>
