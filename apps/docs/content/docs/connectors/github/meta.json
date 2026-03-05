@@ -1,5 +1,14 @@
 {
   "title": "GitHub",
   "icon": "GitHub",
-  "pages": ["index"]
+  "pages": [
+    "index",
+    "setup",
+    "oauth-scopes",
+    "configuration",
+    "features",
+    "sync",
+    "webhooks",
+    "troubleshooting"
+  ]
 }

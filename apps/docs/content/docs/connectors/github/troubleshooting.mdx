@@ -1,0 +1,226 @@
+---
+title: Troubleshooting
+description: Common GitHub connector issues and how to fix them.
+---
+
+# Troubleshooting
+
+## OAuth Errors
+
+<Accordions>
+  <Accordion title="redirect_uri_mismatch">
+    The authorization callback URL registered in your GitHub OAuth App does not match the URL OpenPlane is using.
+
+    **Fix:**
+    1. Go to [github.com/settings/developers](https://github.com/settings/developers)
+    2. Select your OAuth App
+    3. Verify the **Authorization callback URL** matches exactly: `http://localhost:3000/api/auth/callback/github` (or your deployed domain)
+    4. Check for trailing slashes, protocol mismatches (`http` vs `https`), and port differences
+  </Accordion>
+
+  <Accordion title="access_denied">
+    The user clicked **Deny** on the OAuth authorization screen, or the GitHub account lacks permission to authorize the app for the target organization.
+
+    **Fix:**
+    - Re-initiate the connection and click **Authorize**
+    - For organization repos, the org admin may need to approve the OAuth App under **Organization Settings** then **Third-party access**
+  </Accordion>
+
+  <Accordion title="insufficient_scope">
+    The existing token does not have all required scopes. This happens when scopes were added to the OAuth App after the user originally authorized.
+
+    **Fix:**
+    1. Disconnect the GitHub connector in OpenPlane
+    2. Reconnect -- the new authorization will request the updated scope set
+    3. Verify scopes with: `curl -I -H "Authorization: Bearer TOKEN" https://api.github.com/rate_limit`
+  </Accordion>
+
+  <Accordion title="bad_verification_code">
+    The authorization code has expired (codes are valid for 10 minutes) or was already exchanged.
+
+    **Fix:**
+    - Retry the OAuth flow from the beginning
+    - Ensure no browser extensions or proxies are intercepting the callback
+  </Accordion>
+</Accordions>
+
+## Rate Limit Issues
+
+<Accordions>
+  <Accordion title="429 Too Many Requests">
+    GitHub's API rate limit has been exceeded for this token.
+
+    **Fix:**
+    1. Check remaining quota: `curl -H "Authorization: Bearer TOKEN" https://api.github.com/rate_limit`
+    2. The `rate.remaining` field shows how many requests are left
+    3. `rate.reset` shows the Unix timestamp when the limit resets
+    4. OpenPlane automatically backs off and retries -- no manual action needed unless the connector is in **Error** state
+
+    <Callout type="info">
+      If other applications share this GitHub token, they consume from the same 5,000 requests/hour budget. Consider creating a dedicated token for OpenPlane.
+    </Callout>
+  </Accordion>
+
+  <Accordion title="Secondary rate limit (abuse detection)">
+    GitHub's abuse detection has flagged rapid requests. This is separate from the primary rate limit.
+
+    **Fix:**
+    - The connector automatically handles this with exponential backoff
+    - If persistent, reduce `requestsPerMinute` in [configuration](/docs/connectors/github/configuration) from 80 to 40
+    - Avoid running full resyncs during peak usage hours
+  </Accordion>
+</Accordions>
+
+## Missing Data
+
+<Accordions>
+  <Accordion title="Private repositories not appearing">
+    The OAuth token may not have the `repo` scope, or the repositories are in an organization that has not approved the OAuth App.
+
+    **Fix:**
+    1. Verify `include_private_repos` is enabled in [configuration](/docs/connectors/github/configuration)
+    2. Check the token has the `repo` scope (see [OAuth Scopes](/docs/connectors/github/oauth-scopes))
+    3. For organization repos, ask an org admin to approve the app under **Organization Settings** then **Third-party access** then **OAuth Application Policy**
+  </Accordion>
+
+  <Accordion title="Organization repositories not appearing">
+    The user may not have the `read:org` scope, or the organization restricts third-party app access.
+
+    **Fix:**
+    1. Verify `include_org_repos` is enabled
+    2. Check the token has `read:org` scope
+    3. If the org uses OAuth App restrictions, the app must be approved by an admin
+  </Accordion>
+
+  <Accordion title="Discussions not indexed">
+    Discussions sync is disabled by default.
+
+    **Fix:**
+    1. Enable `syncDiscussions` in [configuration](/docs/connectors/github/configuration)
+    2. Trigger a full resync
+    3. Note: Discussions use the GraphQL API with a separate rate limit
+  </Accordion>
+
+  <Accordion title="Commits not indexed">
+    Commit sync is disabled by default.
+
+    **Fix:**
+    1. Enable `syncCommits` in [configuration](/docs/connectors/github/configuration)
+    2. Set `lookback_days` to limit how far back to sync (commit history can be very large)
+    3. Trigger a full resync
+  </Accordion>
+
+  <Accordion title="Comments not appearing">
+    Comments are indexed alongside their parent issue or PR, not as standalone documents.
+
+    **Fix:**
+    1. Verify `syncComments` is enabled (default: true)
+    2. Search for the comment text -- it appears in the parent issue/PR result
+    3. If comments were recently added, wait for the next incremental sync (15 min)
+  </Accordion>
+</Accordions>
+
+## Sync Issues
+
+<Accordions>
+  <Accordion title="Sync stuck or running for hours">
+    Large organizations with hundreds of repositories and tens of thousands of issues take proportionally longer.
+
+    **Fix:**
+    1. Check the current sync stage in **Settings** then **Connectors** then **GitHub** then **Sync Status**
+    2. If stuck on a specific repository, that repo may have unusually large data (100k+ issues)
+    3. Rate limiting can slow sync -- check if remaining API quota is depleted
+    4. Set `lookback_days` to limit historical depth
+    5. Disable `syncComments`, `syncDiscussions`, or `syncCommits` to reduce API calls
+  </Accordion>
+
+  <Accordion title="Sync completes but some data is missing">
+    Individual entity errors during sync do not halt the process. Check error counts.
+
+    **Fix:**
+    1. View sync history for error counts (`processed`, `skipped`, `errors`)
+    2. Check server logs for specific error messages
+    3. Common causes: deleted repos (404), permission changes mid-sync (403), API timeouts
+    4. A subsequent incremental sync typically picks up missed entities
+  </Accordion>
+
+  <Accordion title="Incremental sync not picking up changes">
+    The `lastSyncTime` cursor may be ahead of the actual last successful sync.
+
+    **Fix:**
+    - Trigger a full resync to reset the cursor
+    - Verify the server clock is synchronized (NTP)
+  </Accordion>
+</Accordions>
+
+## Token Issues
+
+<Accordions>
+  <Accordion title="Token expired or revoked">
+    If the OAuth App has token expiration enabled, tokens expire after 8 hours. If a user revokes the app, the token is invalidated immediately.
+
+    **Fix:**
+    1. OpenPlane handles token refresh automatically using the refresh token
+    2. If the refresh token is also invalid, disconnect and reconnect the connector
+    3. Check if the OAuth App was removed from **GitHub Settings** then **Applications** then **Authorized OAuth Apps**
+  </Accordion>
+
+  <Accordion title="UNAUTHORIZED errors in logs">
+    The stored access token is invalid.
+
+    **Fix:**
+    1. The connector marks itself as **Error** and stops retrying auth failures
+    2. Disconnect the connector in OpenPlane
+    3. Reconnect to generate fresh tokens
+    4. Verify the OAuth App still exists in GitHub Developer Settings
+  </Accordion>
+</Accordions>
+
+## Search Issues
+
+<Accordions>
+  <Accordion title="Empty search results after connecting">
+    The initial sync may still be running.
+
+    **Fix:**
+    1. Check connector status -- if **Syncing**, wait for completion
+    2. First results appear after the first batch (50 documents) is indexed
+    3. Full index availability depends on total sync duration
+  </Accordion>
+
+  <Accordion title="Stale or outdated results">
+    The search index reflects the state at the last sync time.
+
+    **Fix:**
+    - Check when the last successful sync completed
+    - Trigger a manual sync for immediate updates
+    - Enable [webhooks](/docs/connectors/github/webhooks) for near-real-time updates
+  </Accordion>
+</Accordions>
+
+## Debug Checklist
+
+```bash
+# Check token scopes
+curl -I -H "Authorization: Bearer TOKEN" \
+  https://api.github.com/rate_limit 2>/dev/null | grep x-oauth-scopes
+
+# Check rate limit status
+curl -H "Authorization: Bearer TOKEN" \
+  https://api.github.com/rate_limit
+
+# Test repo access
+curl -H "Authorization: Bearer TOKEN" \
+  https://api.github.com/user/repos?per_page=5
+
+# Check webhook deliveries
+# Go to GitHub repo/org Settings > Webhooks > Recent Deliveries
+```
+
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openplane/issues) with the connector status, error messages, and relevant log output.
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/github/setup" description="Reconnect or reconfigure the connector" />
+  <Card title="OAuth Scopes" href="/docs/connectors/github/oauth-scopes" description="Verify required permissions" />
+  <Card title="Configuration" href="/docs/connectors/github/configuration" description="Adjust rate limits and sync settings" />
+</Cards>

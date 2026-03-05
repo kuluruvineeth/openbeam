@@ -1,0 +1,109 @@
+---
+title: Configuration
+description: All GitHub connector settings and their defaults.
+---
+
+# Configuration
+
+## Connection Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `client_id` | string | -- | GitHub OAuth App client ID (required) |
+| `client_secret` | string | -- | GitHub OAuth App client secret (required) |
+| `webhook_secret` | string | -- | Secret for validating [webhook signatures](/docs/connectors/github/webhooks) |
+
+## Repository Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `include_private_repos` | boolean | `true` | Index private repositories accessible to the OAuth token |
+| `include_org_repos` | boolean | `true` | Include repositories from organizations the user belongs to |
+| `lookback_days` | number | unlimited | How far back to sync issues, PRs, and commits. Leave empty for full history |
+
+## Sync Feature Flags
+
+Control which data streams are synced per connector instance.
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `syncComments` | boolean | `true` | Sync issue and PR comments alongside their parent entities |
+| `syncPRs` | boolean | `true` | Sync pull requests, reviews, and review comments |
+| `syncDiscussions` | boolean | `false` | Sync GitHub Discussions (requires GraphQL API) |
+| `syncCommits` | boolean | `false` | Sync commit messages and metadata |
+
+<Callout type="info">
+  Discussions and commits are disabled by default because they significantly increase sync duration and API quota consumption. Enable them only if your team actively searches these data types.
+</Callout>
+
+## Batch Size
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `batchSize` | number | `50` | Documents per batch sent to the indexer. Higher values use more memory but reduce round trips |
+
+Batch size affects memory usage during sync. For organizations with very large issues (10k+ character bodies), reduce to `25`. For repositories with many small issues, increase to `100`.
+
+## Rate Limit Settings
+
+The GitHub client enforces rate limits to stay within GitHub API quotas.
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `requestsPerMinute` | `80` | REST API requests per minute |
+| `requestsPerHour` | `4500` | REST API requests per hour (GitHub allows 5000, buffer of 500 for other tools) |
+| `burstLimit` | `30` | Maximum concurrent in-flight requests |
+
+<Callout type="warn">
+  GitHub's primary rate limit is 5,000 requests per hour for authenticated users. OpenPlane defaults to 4,500 to leave headroom for other tools hitting the same token. If you see rate limit errors, check whether other applications share this token.
+</Callout>
+
+### GraphQL Rate Limits
+
+Discussions sync uses the GitHub GraphQL API, which has a separate point-based rate limit of 5,000 points per hour. A single discussion query costs approximately 1-3 points depending on requested fields.
+
+## Sync Schedule
+
+| Stream | Default Interval | Description |
+|--------|-----------------|-------------|
+| Repositories | 30 min | Repository metadata, readme, topics |
+| Issues | 15 min | Issues with labels, assignees, comments |
+| Pull Requests | 15 min | PRs with reviews, review comments |
+| Releases | 60 min | Release tags, notes, publish dates |
+
+Intervals are measured from the end of the previous sync run. If a sync takes 5 minutes and the interval is 15 minutes, the next sync starts 10 minutes after completion.
+
+## Repository Filtering
+
+Filter which repositories are synced using the `repoFilter` option:
+
+```json
+{
+  "repoFilter": ["org/repo-a", "org/repo-b"]
+}
+```
+
+When set, only the listed repositories are synced. When empty (default), all accessible repositories are synced.
+
+## Example Configuration
+
+```json
+{
+  "client_id": "Iv1.abc123",
+  "client_secret": "...",
+  "include_private_repos": true,
+  "include_org_repos": true,
+  "lookback_days": 365,
+  "syncComments": true,
+  "syncPRs": true,
+  "syncDiscussions": true,
+  "syncCommits": false,
+  "batchSize": 50,
+  "webhook_secret": "whsec_..."
+}
+```
+
+<Cards>
+  <Card title="Features" href="/docs/connectors/github/features" description="What data gets indexed and search capabilities" />
+  <Card title="Sync Behavior" href="/docs/connectors/github/sync" description="Full sync, incremental sync, and error recovery" />
+</Cards>

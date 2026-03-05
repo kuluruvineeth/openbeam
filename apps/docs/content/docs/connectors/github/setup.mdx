@@ -1,0 +1,91 @@
+---
+title: Setup
+description: Connect GitHub to OpenPlane in under 5 minutes.
+---
+
+# GitHub Quick Start
+
+## Prerequisites
+
+- GitHub account with **admin access** to the target organization or repositories
+- OpenPlane instance running (local or deployed)
+
+## 1. Create a GitHub OAuth App
+
+<Tabs items={["OAuth App", "GitHub App"]}>
+  <Tab value="OAuth App">
+    1. Go to [github.com/settings/developers](https://github.com/settings/developers)
+    2. Click **OAuth Apps** then **New OAuth App**
+    3. Fill in the application form:
+
+    | Field | Value |
+    |-------|-------|
+    | Application name | `OpenPlane` |
+    | Homepage URL | `http://localhost:3001` (or your domain) |
+    | Authorization callback URL | `http://localhost:3000/api/auth/callback/github` |
+
+    4. Click **Register application**
+  </Tab>
+  <Tab value="GitHub App">
+    GitHub App support provides fine-grained permissions and installation-level access. Use this for organization-wide deployments.
+
+    1. Go to **Settings** then **Developer settings** then **GitHub Apps** then **New GitHub App**
+    2. Set the callback URL to `http://localhost:3000/api/auth/callback/github`
+    3. Enable the permissions listed in [OAuth Scopes](/docs/connectors/github/oauth-scopes)
+    4. Install the app on your organization
+
+    <Callout type="info">
+      GitHub App auth is recommended for organizations with 50+ repositories. OAuth Apps are simpler for personal accounts and small teams.
+    </Callout>
+  </Tab>
+</Tabs>
+
+## 2. Copy Credentials
+
+From **Settings** then **OAuth Apps** then your app, copy:
+
+- **Client ID**
+- **Client Secret** (click **Generate a new client secret**)
+
+## 3. Configure Environment
+
+```bash
+GITHUB_CLIENT_ID=your-client-id
+GITHUB_CLIENT_SECRET=your-client-secret
+```
+
+Or add them directly in the OpenPlane UI.
+
+## 4. Connect in OpenPlane
+
+1. Go to **Settings** then **Connectors** then **Add Connector**
+2. Select **GitHub**
+3. Enter the Client ID and Client Secret
+4. Click **Connect** and authorize the application
+5. Select which repositories and organizations to index
+
+## 5. Verify
+
+1. Connector status shows **Active**
+2. First sync begins automatically
+3. Search for a recent issue or pull request title
+
+<Callout type="warn">
+  Initial sync duration depends on repository count and history depth. A typical organization with 50 repositories and 10k issues takes 15-30 minutes. Monitor progress in **Settings** then **Connectors** then **GitHub** then **Sync Status**.
+</Callout>
+
+## Common Pitfalls
+
+<Callout type="error">
+  **Callback URL mismatch** is the most common setup error. The authorization callback URL in GitHub must match your OpenPlane instance exactly, including protocol (`http` vs `https`) and port.
+</Callout>
+
+<Callout type="info">
+  If you're behind a reverse proxy, use the external-facing URL for both the homepage and callback URLs.
+</Callout>
+
+<Cards>
+  <Card title="OAuth Scopes" href="/docs/connectors/github/oauth-scopes" description="Required permissions and what each scope enables" />
+  <Card title="Configuration" href="/docs/connectors/github/configuration" description="All connector settings and their defaults" />
+  <Card title="Troubleshooting" href="/docs/connectors/github/troubleshooting" description="Common issues and fixes" />
+</Cards>

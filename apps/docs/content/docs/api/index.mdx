@@ -31,6 +31,56 @@ Every request must include one of:
 
 See the [Authentication](/docs/api/authentication) page for details on each method.
 
+## Try it
+
+Test the API with these ready-to-use commands. Replace `op_live_...` with your API key from Settings → API Keys.
+
+<Tabs items={["Search", "Connectors", "RAG", "Health"]}>
+<Tab value="Search">
+
+```bash
+curl -X POST http://localhost:3000/search \
+  -H "Authorization: Bearer op_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{"query": "quarterly revenue report", "limit": 5}'
+```
+
+</Tab>
+<Tab value="Connectors">
+
+```bash
+# List all connectors
+curl http://localhost:3000/trpc/apps.list \
+  -H "Authorization: Bearer op_live_..."
+
+# Trigger a sync
+curl -X POST http://localhost:3000/trpc/apps.triggerSync \
+  -H "Authorization: Bearer op_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{"json": {"connectorId": "conn_..."}}'
+```
+
+</Tab>
+<Tab value="RAG">
+
+```bash
+curl -X POST http://localhost:3000/api/ai/chat \
+  -H "Authorization: Bearer op_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{"messages": [{"role": "user", "content": "What were the key decisions from last sprint?"}]}'
+```
+
+</Tab>
+<Tab value="Health">
+
+```bash
+# No auth required
+curl http://localhost:3000/health
+```
+
+</Tab>
+</Tabs>
+
 ## Team scoping
 
 All data operations are scoped to the authenticated user's active team. The team is resolved from the session or API key -- there is no `teamId` parameter to pass. Switching teams requires updating the user's active team through the workspace settings.

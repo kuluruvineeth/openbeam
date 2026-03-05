@@ -1,0 +1,97 @@
+---
+title: OAuth Scopes
+description: GitHub OAuth scopes required by OpenPlane and what each enables.
+---
+
+# OAuth Scopes
+
+OpenPlane requests four scopes during the OAuth authorization flow. Each scope controls access to specific GitHub resources.
+
+## Required Scopes
+
+| Scope | Purpose | Data Accessed |
+|-------|---------|---------------|
+| `read:user` | Read user profile information | Username, avatar, bio |
+| `user:email` | Read primary email address | Used for identity mapping |
+| `repo` | Full repository access (public + private) | Issues, PRs, commits, releases, discussions |
+| `read:org` | Read organization membership | Organization repos, team membership |
+
+The `repo` scope is the broadest. It grants read access to all repositories the authenticating user can access, including private repositories.
+
+## What Each Scope Enables
+
+### `read:user`
+
+Fetches the authenticated user's GitHub profile. Used to display who connected the integration and to resolve user references in issues and pull requests.
+
+### `user:email`
+
+Fetches the user's verified email addresses. OpenPlane uses the primary email for identity matching across connectors (linking GitHub activity to Slack messages, for example).
+
+### `repo`
+
+Grants read access to:
+- Repository metadata (name, description, topics, visibility)
+- Issues and issue comments
+- Pull requests, reviews, and review comments
+- Commits and commit messages
+- Releases and release notes
+- Discussions (via GraphQL API)
+- README and file contents
+
+<Callout type="info">
+  The `repo` scope includes both public and private repositories. To exclude private repos, disable **Include Private Repositories** in [configuration](/docs/connectors/github/configuration).
+</Callout>
+
+### `read:org`
+
+Reads the user's organization memberships. This allows OpenPlane to discover and index repositories from organizations the user belongs to, not just personal repositories.
+
+## Optional Scopes
+
+These scopes are not requested by default but can be added for enhanced features:
+
+| Scope | Purpose |
+|-------|---------|
+| `admin:repo_hook` | Create and manage repository webhooks for [real-time updates](/docs/connectors/github/webhooks) |
+| `read:discussion` | Explicit discussion access (covered by `repo` for most cases) |
+
+## Verifying Current Scopes
+
+Check which scopes your token has:
+
+```bash
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+  https://api.github.com/rate_limit \
+  -I 2>/dev/null | grep x-oauth-scopes
+```
+
+The `x-oauth-scopes` header lists all granted scopes.
+
+## Scope Errors
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `insufficient_scope` | Token lacks a required scope | Disconnect and reconnect to re-authorize with all scopes |
+| `redirect_uri_mismatch` | Callback URL does not match the registered OAuth App | Update the callback URL in GitHub Developer Settings to match your OpenPlane instance |
+| `bad_verification_code` | Authorization code expired or already used | Retry the OAuth flow from the beginning |
+| `access_denied` | User denied the authorization request | Re-initiate and click **Authorize** |
+
+<Callout type="warn">
+  Changing scopes on an existing OAuth App requires users to re-authorize. Existing tokens retain their original scope set until the user disconnects and reconnects.
+</Callout>
+
+## Token Lifecycle
+
+GitHub OAuth tokens issued via OAuth Apps do not expire by default. If the OAuth App has **token expiration** enabled:
+
+- Access tokens expire after 8 hours
+- Refresh tokens are issued alongside access tokens
+- OpenPlane handles token refresh automatically via `refreshGitHubToken`
+
+Check your app's settings under **Optional features** then **Token expiration** to see if expiration is enabled.
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/github/setup" description="Connect GitHub to OpenPlane in 5 minutes" />
+  <Card title="Configuration" href="/docs/connectors/github/configuration" description="Connector settings and sync options" />
+</Cards>

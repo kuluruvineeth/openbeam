@@ -1,0 +1,127 @@
+---
+title: Webhooks
+description: Real-time updates from GitHub via webhooks.
+---
+
+# Webhooks
+
+GitHub webhooks push events to OpenPlane when issues, pull requests, discussions, or releases change. This supplements the periodic polling sync with near-instant updates.
+
+<Callout type="info">
+  Webhook-based push sync is infrastructure-ready. The notification handler, signature verification, and event routing are implemented. Incremental polling remains the primary sync mechanism. Webhooks provide supplemental real-time awareness for supported event types.
+</Callout>
+
+## Endpoint URL
+
+```
+https://your-server.com/api/v1/webhooks/github/{connectorId}
+```
+
+Replace `{connectorId}` with your GitHub connector's ID, visible in **Settings** then **Connectors** then **GitHub**.
+
+## Supported Events
+
+| GitHub Event | Entity Type | Actions Handled |
+|-------------|-------------|-----------------|
+| `issues` | Issue | `opened`, `closed`, `reopened`, `edited`, `deleted` |
+| `pull_request` | Pull Request | `opened`, `closed`, `merged`, `edited`, `deleted` |
+| `discussion` | Discussion | `created`, `edited`, `deleted`, `answered` |
+| `push` | Commit | `received` (head commit) |
+| `release` | Release | `published` |
+
+### Event to Document Mapping
+
+When a webhook fires:
+- `opened`, `created`, `edited`, `reopened`, `merged`, `published` trigger an **upsert** (re-index the entity)
+- `closed`, `deleted` trigger a **delete** (remove from index)
+
+## Configuration
+
+### 1. Set a Webhook Secret
+
+In OpenPlane, go to **Settings** then **Connectors** then **GitHub** and set a **Webhook Secret**. This secret is used to verify that incoming requests originate from GitHub.
+
+### 2. Create the Webhook in GitHub
+
+<Tabs items={["Repository", "Organization"]}>
+  <Tab value="Repository">
+    1. Go to your repository then **Settings** then **Webhooks** then **Add webhook**
+    2. Configure:
+
+    | Field | Value |
+    |-------|-------|
+    | Payload URL | `https://your-server.com/api/v1/webhooks/github/{connectorId}` |
+    | Content type | `application/json` |
+    | Secret | Same value set in OpenPlane |
+    | Events | Select **Let me select individual events** |
+
+    3. Check: **Issues**, **Pull requests**, **Discussions**, **Pushes**, **Releases**
+    4. Click **Add webhook**
+  </Tab>
+  <Tab value="Organization">
+    1. Go to your organization then **Settings** then **Webhooks** then **Add webhook**
+    2. Use the same configuration as repository webhooks
+    3. Organization webhooks receive events from all repositories in the org
+
+    <Callout type="info">
+      Organization webhooks require organization admin access. They are the recommended approach for teams with many repositories.
+    </Callout>
+  </Tab>
+</Tabs>
+
+## Signature Verification
+
+Every incoming webhook request is verified using HMAC-SHA256.
+
+1. GitHub computes `sha256=HMAC(webhook_secret, request_body)` and sends it in the `X-Hub-Signature-256` header
+2. OpenPlane recomputes the signature using the stored webhook secret
+3. The signatures are compared using constant-time comparison (`crypto.timingSafeEqual`)
+4. Requests with invalid or missing signatures are rejected with `401`
+
+```
+X-Hub-Signature-256: sha256=abc123...
+X-GitHub-Delivery: unique-delivery-id
+X-GitHub-Event: issues
+```
+
+<Callout type="warn">
+  The webhook secret must match exactly between GitHub and OpenPlane. If you rotate the secret in one place, update it in the other immediately to avoid rejected deliveries.
+</Callout>
+
+## Delivery Headers
+
+| Header | Description |
+|--------|-------------|
+| `X-Hub-Signature-256` | HMAC-SHA256 signature of the payload |
+| `X-GitHub-Delivery` | Unique ID for the delivery (for deduplication) |
+| `X-GitHub-Event` | Event type (`issues`, `pull_request`, etc.) |
+
+## Timestamp Validation
+
+Webhook payloads are validated for freshness. Events older than 5 minutes are rejected to prevent replay attacks.
+
+## Webhook vs Polling
+
+| Aspect | Webhook | Polling |
+|--------|---------|---------|
+| Latency | Seconds | 15-60 minutes |
+| Reliability | Depends on network/uptime | Self-healing on schedule |
+| Coverage | Supported event types only | All data streams |
+| Setup | Requires public HTTPS endpoint | Works out of the box |
+
+For production deployments, enable both. Webhooks handle real-time updates; polling catches anything webhooks miss (network outages, unsupported event types, historical backfill).
+
+## Troubleshooting
+
+| Issue | Fix |
+|-------|-----|
+| Webhook returns 401 | Verify webhook secret matches in both GitHub and OpenPlane |
+| Events not arriving | Check **Recent Deliveries** tab in GitHub webhook settings |
+| Duplicate processing | Normal -- deduplication by entity ID prevents duplicate documents |
+| Webhook delivery failed | GitHub retries failed deliveries automatically; check endpoint accessibility |
+
+<Cards>
+  <Card title="Sync Behavior" href="/docs/connectors/github/sync" description="Polling-based full and incremental sync" />
+  <Card title="Configuration" href="/docs/connectors/github/configuration" description="Webhook secret and sync settings" />
+  <Card title="Troubleshooting" href="/docs/connectors/github/troubleshooting" description="Full troubleshooting guide" />
+</Cards>

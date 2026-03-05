@@ -1,0 +1,157 @@
+---
+title: Sync
+description: How GitHub full and incremental sync works, rate limiting, and recovery.
+---
+
+# Sync Behavior
+
+## Sync Types
+
+| Type | Trigger | Duration |
+|------|---------|----------|
+| **Full** | First connection, manual resync, `forceFullSync` flag | Minutes to hours |
+| **Incremental** | Scheduled (every 15 min for issues/PRs) | Seconds to minutes |
+| **Webhook** | Real-time events (when [configured](/docs/connectors/github/webhooks)) | Instant |
+
+## Full Sync Process
+
+Full sync runs when a connector is first connected or when manually triggered.
+
+```
+1. Load user lookup       Build user profile cache for the organization
+2. Discover repositories  Enumerate all accessible repos via REST API
+3. Per repository:
+   a. Transform repo      Index repository metadata + README
+   b. Sync issues         Paginate all issues, fetch comments per issue
+   c. Sync PRs            Paginate all PRs, fetch reviews + review comments
+   d. Sync discussions    (if enabled) Query via GraphQL API
+   e. Sync commits        (if enabled) Paginate commit history
+4. Yield batches          Documents sent to indexer in batches of 50
+```
+
+### Progress Stages
+
+The connector reports progress through named stages:
+
+| Stage | Description |
+|-------|-------------|
+| `Loading user data` | Building user lookup from org members |
+| `Discovering repositories` | Enumerating accessible repos |
+| `Syncing repository: {owner/repo}` | Indexing repo metadata |
+| `Syncing issues: {owner/repo}` | Processing issues for a repo |
+| `Syncing pull requests: {owner/repo}` | Processing PRs for a repo |
+| `Syncing discussions: {owner/repo}` | Processing discussions |
+| `Syncing commits: {owner/repo}` | Processing commit history |
+
+## Incremental Sync
+
+Incremental sync fetches only entities modified since the last successful sync.
+
+```
+1. Load user lookup
+2. Discover repositories
+3. Per repository:
+   a. Fetch issues updated since lastSyncTime
+   b. Fetch PRs updated since lastSyncTime
+   c. Fetch discussions updated since lastSyncTime (if enabled)
+   d. Fetch commits since lastSyncTime (if enabled)
+4. Yield batches
+```
+
+The `lastSyncTime` is stored in the sync cursor as a Unix timestamp in milliseconds.
+
+### Cursor Format
+
+```json
+{
+  "lastSyncTime": 1709654400000,
+  "syncedRepos": ["org/repo-a", "org/repo-b"],
+  "repoTimestamps": {
+    "org/repo-a": 1709654400000,
+    "org/repo-b": 1709650800000
+  }
+}
+```
+
+| Field | Purpose |
+|-------|---------|
+| `lastSyncTime` | Unix ms timestamp of when sync started |
+| `syncedRepos` | List of repos processed in last sync |
+| `repoTimestamps` | Per-repo last sync times for fine-grained tracking |
+
+## Rate Limit Handling
+
+GitHub enforces per-token rate limits. The connector handles them at two levels.
+
+### Application-Level Throttling
+
+Before each API call, the client checks the internal rate limiter (Redis-backed):
+
+| Limit | Value |
+|-------|-------|
+| Requests per minute | 80 |
+| Requests per hour | 4,500 |
+| Burst limit | 30 concurrent |
+
+When the internal limit is hit, the client waits up to 5 attempts for quota to become available before throwing a `RATE_LIMITED` error.
+
+### GitHub API-Level Throttling
+
+When GitHub returns `429 Too Many Requests` or a `403` with a rate limit message:
+
+1. Parse `Retry-After` header (seconds to wait)
+2. If no `Retry-After`, parse `x-ratelimit-reset` header (Unix timestamp)
+3. Sleep for the computed duration
+4. Retry the request (up to 3 attempts with exponential backoff)
+
+Base retry delay is 1 second, doubling each attempt with random jitter, capped at 30 seconds.
+
+## Error Classification
+
+| Status | Error Code | Retryable | Behavior |
+|--------|-----------|-----------|----------|
+| 401 | `UNAUTHORIZED` | No | Stop sync, mark connector as errored |
+| 403 | `FORBIDDEN` | No | Skip resource, log warning |
+| 403 (rate limit) | `RATE_LIMITED` | Yes | Backoff and retry |
+| 404 | `NOT_FOUND` | No | Skip resource (repo may have been deleted) |
+| 422 | `VALIDATION_ERROR` | No | Log and skip |
+| 429 | `RATE_LIMITED` | Yes | Backoff and retry |
+| 5xx | `INTERNAL_SERVER_ERROR` | Yes | Backoff and retry (up to 3 attempts) |
+
+Non-retryable errors on individual entities do not halt the entire sync. The sync continues with the next entity and increments the error counter.
+
+## Sync Status
+
+| Status | Meaning |
+|--------|---------|
+| **Active** | Synced successfully, watching for next schedule |
+| **Syncing** | Sync in progress |
+| **Error** | Last sync failed, check error details |
+| **Rate Limited** | Paused, auto-resumes when quota resets |
+| **Paused** | Manually paused by user |
+
+## Manual Controls
+
+- **Full Resync**: **Settings** then **Connectors** then **GitHub** then **Actions** then **Full Resync** -- resyncs all data from scratch, replacing existing documents
+- **Pause/Resume**: Temporarily stop sync processing
+- **Disconnect**: Remove connector and all indexed documents
+
+<Callout type="info">
+  A full resync does not delete existing documents first. New documents overwrite existing ones by ID. Documents from deleted repositories are cleaned up during the next full sync when they are no longer returned by the API.
+</Callout>
+
+## Estimating Sync Duration
+
+| Organization Size | Repos | Issues + PRs | Estimated Full Sync |
+|-------------------|-------|-------------|---------------------|
+| Small | 1-20 | < 1,000 | 2-5 minutes |
+| Medium | 20-100 | 1,000-10,000 | 15-45 minutes |
+| Large | 100-500 | 10,000-100,000 | 1-4 hours |
+
+Comments, discussions, and commits each add approximately 30-50% to sync duration when enabled.
+
+<Cards>
+  <Card title="Configuration" href="/docs/connectors/github/configuration" description="Rate limit settings and sync feature flags" />
+  <Card title="Webhooks" href="/docs/connectors/github/webhooks" description="Real-time updates via GitHub webhooks" />
+  <Card title="Troubleshooting" href="/docs/connectors/github/troubleshooting" description="Sync stuck, rate limit issues, and recovery" />
+</Cards>

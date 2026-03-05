@@ -1,0 +1,93 @@
+---
+title: Glossary
+description: Key terms and concepts used throughout OpenPlane documentation.
+---
+
+# Glossary
+
+Reference for key terms and concepts used across the OpenPlane platform. Terms are grouped by domain.
+
+## Search & Ranking
+
+**Hybrid Search** — Search combining BM25 keyword matching, dense vector similarity, and sparse embeddings via Reciprocal Rank Fusion. The default retrieval strategy in OpenPlane.
+
+**BM25** — Probabilistic ranking algorithm (k1=1.2, b=0.75) scoring documents on term frequency and field length. First-phase retrieval in Vespa.
+
+**Reciprocal Rank Fusion (RRF)** — Position-based fusion merging multiple ranked lists: `score(d) = Σ 1/(k + rank_i(d))`, k=60. Works without score calibration.
+
+**HNSW** — Hierarchical Navigable Small World graph for approximate nearest neighbor search in Vespa. Sub-linear query time.
+
+**Sparse Embedding** — Learned token-weight map (SPLADE-style) capturing term importance beyond raw frequency. Stored as Vespa mapped tensors.
+
+**Dense Embedding** — Fixed-dimension vector (1536-dim v1, 1024-dim v2) for semantic similarity via cosine distance.
+
+**Ranking Profile** — Named Vespa configuration (hybrid, authority, engagement, personalized) defining retrieval phases and signal weights.
+
+**First Phase / Second Phase** — Vespa's two-stage ranking: BM25 on all matches, then vector similarity on top candidates.
+
+**Authority Score** — Quality signal from inbound links, canonical status, and source tier.
+
+**Content Node** — Vespa cluster node storing indexes and executing queries.
+
+**YQL** — Yahoo Query Language for constructing Vespa search requests.
+
+**Coverage** — Whether results came from all Vespa content nodes (full) or a subset (degraded).
+
+**GenericDocument** — Universal document schema all connectors transform into for Vespa indexing.
+
+**Department Affinity** — Dense vector encoding departmental relevance for personalized ranking.
+
+**Quality Score** — Heuristic signal from document length, structure, and freshness.
+
+## Sync & Connectors
+
+**Connector** — Integration that authenticates with a third-party service, fetches data, and transforms it to GenericDocument format.
+
+**Full Sync** — Complete re-sync of all documents from a connector, starting from scratch.
+
+**Incremental Sync** — Sync of only changed documents since last sync using a stored cursor.
+
+**SyncBatch** — Yielded batch from a connector's async generator containing documents and a pagination cursor.
+
+**SyncCursor** — Stored pagination state (timestamp, API cursor, or sync token) for resuming incremental syncs.
+
+**Fence Token** — Monotonic token preventing stale writes when concurrent sync workflows target the same connector.
+
+**Transform Context** — Team ID, connector ID, and metadata passed to transformers for correct document attribution.
+
+**Temporal Workflow** — Durable execution unit orchestrating sync pipeline with automatic checkpointing and retry.
+
+**Activity** — A single retryable operation within a Temporal workflow (validate, fetch, transform, index).
+
+**continueAsNew** — Temporal pattern resetting workflow history at 10K events to prevent memory bloat.
+
+## AI & RAG
+
+**RAG Pipeline** — Retrieval-Augmented Generation: analyze query, retrieve, rerank, generate, ground, respond.
+
+**Grounding** — Verification that LLM claims are supported by source documents. Produces a 0-1 confidence score.
+
+**Query Intent** — Classified user intent (question, comparison, howto, search, command, followup) for routing queries.
+
+**Entity Extraction** — Identification of named entities (person, org, technology, date) in queries or documents.
+
+**Agent Canvas** — Visual workflow builder for multi-step AI tasks with human-in-the-loop approvals.
+
+**Tool** — Atomic AI capability (search, get document, list connectors) composable by agents.
+
+## Edge
+
+**Edge Tier** — Hardware classification (sensor_gateway, standard, enterprise) determining available features on edge devices.
+
+**FTS5** — SQLite's full-text search extension for BM25 keyword search on edge devices.
+
+**Merkle Tree Reconciliation** — BLAKE3 checksum tree identifying changed documents for efficient cloud-to-edge sync.
+
+**Store-and-Forward Queue** — Priority queue buffering events when offline, replaying when connectivity returns.
+
+---
+
+<Cards>
+  <Card title="Architecture" href="/docs/architecture" description="System design and how components connect" />
+  <Card title="Search: How It Works" href="/docs/search/how-it-works" description="Deep dive into the hybrid search pipeline" />
+</Cards>

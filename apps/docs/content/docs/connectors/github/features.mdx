@@ -1,0 +1,142 @@
+---
+title: Features
+description: What GitHub data gets indexed, search operators, and limitations.
+---
+
+# Features
+
+## Data Streams
+
+| Stream | Entity Type | Sync Mode | Interval | Default |
+|--------|-------------|-----------|----------|---------|
+| Repositories | `resource` | Periodic | 30 min | Enabled |
+| Issues | `activity` | Periodic | 15 min | Enabled |
+| Pull Requests | `activity` | Periodic | 15 min | Enabled |
+| Releases | `resource` | Periodic | 60 min | Enabled |
+| Discussions | `activity` | Periodic | 15 min | Disabled |
+| Commits | `activity` | Periodic | 15 min | Disabled |
+
+All streams support full backfill.
+
+## Indexed Fields per Stream
+
+### Repositories
+
+| Field | Indexed | Searchable |
+|-------|---------|------------|
+| Name | Yes | Yes |
+| Description | Yes | Yes |
+| README content | Yes | Yes |
+| Default branch | Yes | Filter |
+| Topics / tags | Yes | Filter |
+| Visibility (public/private) | Yes | Filter |
+| Language | Yes | Filter |
+| Stars, forks, open issues count | Yes | Sort |
+
+### Issues
+
+| Field | Indexed | Searchable |
+|-------|---------|------------|
+| Title | Yes | Yes |
+| Body (markdown) | Yes | Yes |
+| State (open/closed) | Yes | Filter |
+| Labels | Yes | Filter |
+| Assignees | Yes | Filter |
+| Milestone | Yes | Filter |
+| Comments (when enabled) | Yes | Yes |
+| Author | Yes | Filter |
+| Created/updated timestamps | Yes | Sort, filter |
+
+### Pull Requests
+
+| Field | Indexed | Searchable |
+|-------|---------|------------|
+| Title | Yes | Yes |
+| Body (markdown) | Yes | Yes |
+| State (open/closed/merged) | Yes | Filter |
+| Draft status | Yes | Filter |
+| Labels | Yes | Filter |
+| Assignees, reviewers | Yes | Filter |
+| Review status (approved, changes requested) | Yes | Filter |
+| Review comments (when enabled) | Yes | Yes |
+| Additions, deletions, changed files | Yes | Sort |
+| Head/base branch | Yes | Filter |
+
+### Discussions
+
+| Field | Indexed | Searchable |
+|-------|---------|------------|
+| Title | Yes | Yes |
+| Body | Yes | Yes |
+| Category | Yes | Filter |
+| Author | Yes | Filter |
+| Accepted answer | Yes | Yes |
+| Comment count | Yes | Sort |
+
+### Commits
+
+| Field | Indexed | Searchable |
+|-------|---------|------------|
+| Commit message | Yes | Yes |
+| Author name/email | Yes | Filter |
+| SHA | Yes | Exact match |
+| Additions, deletions | Yes | Sort |
+
+## Search Operators
+
+Use these operators in the OpenPlane search bar to filter GitHub results:
+
+| Operator | Example | Description |
+|----------|---------|-------------|
+| `repo:` | `repo:openplane/core` | Filter by repository |
+| `author:` | `author:octocat` | Filter by author login |
+| `state:` | `state:open` | Filter by state (open, closed, merged) |
+| `label:` | `label:bug` | Filter by label name |
+| `type:` | `type:issue` | Filter by document type (issue, pull_request, repository, discussion, release) |
+| `is:` | `is:draft` | Filter by boolean attribute (draft, private, merged) |
+
+Operators can be combined: `repo:openplane/core state:open label:bug`
+
+## Content Processing
+
+| Content Type | Processing |
+|-------------|------------|
+| Markdown (issue/PR bodies, READMEs) | Parsed, links preserved, code blocks indexed |
+| Code snippets in issues | Indexed with language detection |
+| Commit messages | Full text indexed |
+| Release notes | Markdown parsed |
+| Image references | URLs extracted, alt text indexed |
+| Binary files | Not indexed |
+
+## Document Types in Search Results
+
+Each synced entity maps to a document type in search results:
+
+| GitHub Entity | Document Type | Icon |
+|---------------|---------------|------|
+| Repository | `repository` | FolderGit2 |
+| Issue | `issue` | CircleDot |
+| Pull Request | `pull_request` | GitPullRequest |
+| Discussion | `discussion` | MessageSquare |
+| Release | `release` | Package |
+| Commit | `commit` | GitCommit |
+
+## Limitations
+
+| Limitation | Detail |
+|-----------|--------|
+| REST API rate limit | 5,000 requests/hour per authenticated user |
+| GraphQL rate limit | 5,000 points/hour (discussions use GraphQL) |
+| Maximum issue/PR body size | 65,535 characters (GitHub limit) |
+| Binary files | Not indexed (images, PDFs, archives) |
+| GitHub Enterprise | OAuth App auth only; GitHub App support planned |
+| Nested comments | Thread depth is flattened to a single level |
+| Wiki pages | Not currently synced (planned) |
+| GitHub Actions logs | Not indexed |
+| Gists | Not indexed |
+
+<Cards>
+  <Card title="Sync Behavior" href="/docs/connectors/github/sync" description="How full and incremental sync works" />
+  <Card title="Configuration" href="/docs/connectors/github/configuration" description="Enable or disable specific data streams" />
+  <Card title="Troubleshooting" href="/docs/connectors/github/troubleshooting" description="Missing data and permission issues" />
+</Cards>
