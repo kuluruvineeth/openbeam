@@ -1,0 +1,109 @@
+---
+title: Self-Hosting Overview
+description: Deploy OpenPlane on your own infrastructure with full control over data and configuration.
+---
+
+# Self-Hosting
+
+OpenPlane is MIT-licensed and designed to run on your infrastructure. No vendor lock-in, no data leaving your network.
+
+## Why Self-Host
+
+- **Data sovereignty** -- Your documents, search indices, and AI interactions stay on your servers.
+- **No usage limits** -- No per-seat pricing, no API call caps. Scale to your needs.
+- **Network isolation** -- Run behind your firewall. No external calls except to connectors you explicitly enable.
+- **Customization** -- Tune PostgreSQL, Vespa, and Temporal to your workload. Swap MinIO for S3 or R2.
+
+## Architecture
+
+OpenPlane runs as a set of containerized services connected via a shared Docker network.
+
+**Application services** (your code):
+
+| Service | Image | Port | Purpose |
+|---------|-------|------|---------|
+| **web** | `openplane-web` | 3001 | Next.js frontend |
+| **server** | `openplane-server` | 3000 | Hono API server |
+| **worker** | `openplane-worker` | 9091/9092 | Temporal worker (sync, indexing) |
+| **engine** | `openplane-engine` | 8000 | Python ML service (parsing, chunking, LTR) |
+
+**Infrastructure services** (third-party):
+
+| Service | Image | Port | Purpose |
+|---------|-------|------|---------|
+| **PostgreSQL** | `postgres:16-alpine` | 5432 | Primary database |
+| **Redis** | `redis:8.4.0-alpine` | 6379 | Cache, rate limiting, queues |
+| **Vespa** | `vespaengine/vespa:8` | 8080/19071 | Search engine (hybrid search) |
+| **Temporal** | `temporalio/auto-setup` | 7233 | Workflow orchestration |
+| **MinIO** | `minio/minio` | 9000/9001 | Object storage (S3-compatible) |
+
+**Optional monitoring stack:**
+
+| Service | Port | Purpose |
+|---------|------|---------|
+| Prometheus | 9090 | Metrics collection |
+| Grafana | 3002 | Dashboards |
+| Loki | 3100 | Log aggregation |
+| Promtail | -- | Log shipping |
+
+## Hardware Requirements
+
+Minimum for a small team (< 50 users, < 10 connectors):
+
+| Resource | Minimum | Recommended |
+|----------|---------|-------------|
+| CPU | 4 cores | 8 cores |
+| RAM | 12 GB | 16 GB |
+| Disk | 40 GB SSD | 100 GB SSD |
+| OS | Ubuntu 22.04+ | Ubuntu 24.04 LTS |
+
+Memory breakdown from production compose limits:
+
+| Service | Memory Limit |
+|---------|-------------|
+| Vespa | 4 GB (reserved) |
+| PostgreSQL | 2 GB |
+| Engine (CPU) | 2 GB |
+| Worker | 2 GB |
+| Server | 1 GB |
+| Web | 1 GB |
+| Redis | 512 MB |
+| MinIO | 512 MB |
+| Monitoring stack | ~1 GB total |
+
+<Callout type="info">
+Vespa is the most resource-intensive service. It reserves 4 GB for search indexing and query processing. For larger deployments (100k+ documents), increase Vespa memory to 8-16 GB.
+</Callout>
+
+## Deployment Options
+
+<Cards>
+  <Card
+    title="Docker Compose"
+    href="/docs/self-hosting/docker-compose"
+    description="Single-server deployment with two compose files. Start here."
+  />
+  <Card
+    title="Configuration"
+    href="/docs/self-hosting/configuration"
+    description="Environment variables reference for all services."
+  />
+  <Card
+    title="Infrastructure Services"
+    href="/docs/self-hosting/services"
+    description="Setup and tuning for PostgreSQL, Redis, Vespa, Temporal, and MinIO."
+  />
+</Cards>
+
+## Kernel Tuning
+
+Vespa requires elevated `vm.max_map_count`. Set this before starting services:
+
+```bash
+sudo sysctl -w vm.max_map_count=262144
+sudo sysctl -w fs.file-max=1048576
+
+# Persist across reboots
+echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
+echo "fs.file-max=1048576" | sudo tee -a /etc/sysctl.conf
+```
