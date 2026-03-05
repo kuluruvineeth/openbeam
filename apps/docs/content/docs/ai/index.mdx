@@ -1,0 +1,114 @@
+---
+title: AI & Agents
+description: Agent-native architecture for enterprise search, RAG, and autonomous workflows
+---
+
+# AI & Agents
+
+OpenPlane is built as an agent-native platform. Every capability is a tool, every tool is composable, and agents are first-class citizens that orchestrate complex workflows autonomously.
+
+## Core Principles
+
+| Principle | Description |
+|-----------|-------------|
+| **Parity** | Whatever users do in UI, agents achieve through tools |
+| **Granularity** | Tools are atomic primitives; judgment lives in agents |
+| **Composability** | New features emerge from prompts, not code |
+| **Emergence** | Agents accomplish unanticipated tasks by composing tools |
+| **Improvement** | Apps improve through context accumulation, not deploys |
+
+## Architecture
+
+```
+packages/ai/src/
+├── agents/           # Agent orchestration patterns
+│   ├── patterns/     # LLM, Sequential, Parallel, Coordinator, Loop, GeneratorCritic
+│   ├── specialized/  # Pre-built agents (research, analyst, coder, writer, browser)
+│   ├── base.ts       # BaseAgent, ExecutableAgent interface
+│   ├── config.ts     # Agent configuration types
+│   ├── runner.ts     # Agent runner utilities
+│   └── session.ts    # Session management
+├── tools/            # Tool definition & registry
+│   ├── definitions/  # 19 tool categories (search, rag, documents, connectors, ...)
+│   ├── builder.ts    # defineTool() function
+│   └── registry.ts   # ToolRegistry singleton
+├── rag/              # RAG engine & grounding
+│   ├── engine.ts     # RAGEngine with answer() and stream()
+│   ├── query-analyzer.ts  # Intent classification, entity extraction
+│   ├── grounding.ts  # Claim verification, evidence mapping
+│   └── prompts.ts    # RAG prompt templates
+├── mcp/              # Model Context Protocol server
+│   ├── server.ts     # MCPServer with JSON-RPC 2.0
+│   ├── bridge.ts     # Tool registry to MCP adapter
+│   ├── resources.ts  # MCP resources (documents, connectors, search)
+│   └── prompts.ts    # MCP prompt templates
+├── memory/           # Agent memory (learned facts, corrections, history)
+├── context/          # Context orchestration and CONTEXT.md builder
+├── completion/       # LLM completion service
+├── embeddings/       # Embedding models
+└── providers/        # Multi-provider registry (Anthropic, OpenAI, Google)
+```
+
+## Key Capabilities
+
+<Cards>
+  <Card title="Agent Patterns" href="/docs/ai/agents">
+    Six composable patterns: LLM, Sequential, Parallel, Coordinator, Loop, and Generator-Critic.
+    Pre-built specialized agents for research, analysis, coding, and writing.
+  </Card>
+  <Card title="Tool Framework" href="/docs/ai/tools">
+    Typed tool definitions with Zod schemas, automatic registration, permission controls,
+    risk profiles, and execution observability across 19 categories.
+  </Card>
+  <Card title="RAG Pipeline" href="/docs/ai/rag">
+    Query analysis, entity extraction, temporal context detection, chunk reranking,
+    grounded answer generation with citation tracking and confidence scoring.
+  </Card>
+  <Card title="MCP Server" href="/docs/ai/mcp">
+    Model Context Protocol server exposing all tools, resources, and prompts
+    to external AI clients like Claude Desktop.
+  </Card>
+</Cards>
+
+## Quick Start
+
+```typescript
+import {
+  createLlmAgent,
+  createEmptyState,
+  toolRegistry,
+} from "@openplane/ai";
+
+// Register tools
+import { registerAllTools } from "@openplane/ai/tools/definitions";
+registerAllTools();
+
+// Create an agent with search capabilities
+const agent = createLlmAgent({
+  type: "llm",
+  name: "search-assistant",
+  description: "Enterprise search assistant",
+  systemPrompt: "You are an enterprise search assistant. Use tools to find relevant information.",
+  tools: ["search_hybrid", "doc_get", "rag_answer"],
+  maxSteps: 10,
+});
+
+// Execute
+const result = await agent.execute("Find our Q3 revenue report", {
+  teamId: "team_123",
+  userId: "user_456",
+  state: createEmptyState(),
+});
+
+console.log(result.output);
+console.log(result.totalTokens);
+console.log(result.durationMs);
+```
+
+## Built With
+
+| Dependency | Purpose |
+|------------|---------|
+| [Vercel AI SDK](https://sdk.vercel.ai/) | `generateText`, `streamText`, tool execution, model abstraction |
+| [Zod](https://zod.dev/) | Tool parameter schemas, runtime validation |
+| Multi-provider | Anthropic, OpenAI, Google via unified registry |

@@ -1,0 +1,428 @@
+---
+title: Agents
+description: Composable agent patterns for orchestrating LLM-powered workflows
+---
+
+# Agents
+
+Agents orchestrate LLM calls, tool invocations, and sub-agent delegation into coherent workflows. OpenPlane provides six composable patterns and a library of pre-built specialized agents.
+
+## Core Interfaces
+
+Every agent implements `ExecutableAgent`:
+
+```typescript
+interface ExecutableAgent {
+  readonly config: AgentConfig;
+  execute(input: unknown, ctx: AgentExecutionContext): Promise<AgentExecutionResult>;
+  stream?(input: unknown, ctx: AgentExecutionContext): AsyncGenerator<AgentStreamChunk>;
+}
+```
+
+Execution context carries team/user identity, state, memory, and abort signals:
+
+```typescript
+interface AgentExecutionContext {
+  teamId: string;
+  userId: string;
+  sessionId?: string;
+  state: AgentState;
+  memory?: MemoryAccess;
+  abortSignal?: AbortSignal;
+  parentTrace?: ExecutionTrace;
+  accessControl?: string[];
+  conversationHistory?: ConversationMessage[];
+}
+```
+
+Results include the output, updated state, a full execution trace, token counts, and duration:
+
+```typescript
+interface AgentExecutionResult {
+  output: unknown;
+  state: AgentState;
+  trace: ExecutionTrace;
+  finishReason: FinishReason;
+  totalTokens: { inputTokens: number; outputTokens: number };
+  durationMs: number;
+}
+```
+
+## Agent State
+
+Agents share state through a key-value `AgentState`. Each agent reads from `inputRefs` and writes to `outputKey`:
+
+```typescript
+import { createEmptyState, getStateValue, setStateValue } from "@openplane/ai";
+
+const state = createEmptyState();
+// state.values: Map<string, unknown>
+// state.history: AgentStateSnapshot[]
+```
+
+Sub-agents in Sequential or Parallel patterns automatically pass outputs through state, enabling pipeline data flow without manual wiring.
+
+## Patterns
+
+### LLM Agent
+
+Single LLM call with optional tool access. The workhorse pattern for most tasks.
+
+```typescript
+import { createLlmAgent, createEmptyState } from "@openplane/ai";
+
+const searchAgent = createLlmAgent({
+  type: "llm",
+  name: "search",
+  description: "Search across enterprise data",
+  systemPrompt: "You are a search assistant. Use tools to find relevant information.",
+  tools: ["search_hybrid", "doc_get"],
+  maxSteps: 10,
+  model: {
+    providerId: "anthropic",
+    modelId: "claude-sonnet-4-20250514",
+    temperature: 0.3,
+  },
+});
+
+const result = await searchAgent.execute("Find the API docs", {
+  teamId: "team_123",
+  userId: "user_456",
+  state: createEmptyState(),
+});
+```
+
+The LLM agent resolves tools from the `toolRegistry` by name. Use `["*"]` to grant access to all non-deferred tools.
+
+Extended thinking is supported per-provider:
+
+```typescript
+createLlmAgent({
+  type: "llm",
+  name: "deep-thinker",
+  model: {
+    providerId: "anthropic",
+    thinking: { enabled: true, thinkingLevel: "high" },
+  },
+  // ...
+});
+```
+
+### Sequential Agent
+
+Pipeline: output of each sub-agent becomes input to the next.
+
+```typescript
+import { createSequentialAgent, createLlmAgent } from "@openplane/ai";
+
+const pipeline = createSequentialAgent({
+  type: "sequential",
+  name: "research-pipeline",
+  subAgents: [
+    {
+      type: "llm",
+      name: "search",
+      tools: ["search_hybrid"],
+      systemPrompt: "Search for relevant documents.",
+      maxSteps: 5,
+    },
+    {
+      type: "llm",
+      name: "analyze",
+      tools: ["rag_analyze"],
+      systemPrompt: "Analyze the search results and synthesize findings.",
+      maxSteps: 3,
+    },
+    {
+      type: "llm",
+      name: "summarize",
+      systemPrompt: "Write a concise summary of the analysis.",
+      maxSteps: 1,
+    },
+  ],
+});
+```
+
+### Parallel Agent
+
+Runs sub-agents concurrently, then aggregates results.
+
+```typescript
+import { createParallelAgent } from "@openplane/ai";
+
+const multiSource = createParallelAgent({
+  type: "parallel",
+  name: "multi-source-search",
+  subAgents: [
+    { type: "llm", name: "slack-search", tools: ["search_hybrid"], systemPrompt: "Search Slack." },
+    { type: "llm", name: "notion-search", tools: ["search_hybrid"], systemPrompt: "Search Notion." },
+    { type: "llm", name: "drive-search", tools: ["search_hybrid"], systemPrompt: "Search Drive." },
+  ],
+  aggregator: { strategy: "merge" },
+});
+```
+
+Aggregation strategies:
+
+| Strategy | Behavior |
+|----------|----------|
+| `merge` | Combine outputs into `{ [agentName]: output }` (default) |
+| `concat` | Join string outputs with separators |
+| `first` | Return the first sub-agent's output |
+| `custom` | Return raw array for custom post-processing |
+
+### Coordinator Agent
+
+Routes input to the best-matching sub-agent based on conditions.
+
+```typescript
+import { createCoordinatorAgent } from "@openplane/ai";
+
+const router = createCoordinatorAgent({
+  type: "coordinator",
+  name: "intent-router",
+  subAgents: [
+    {
+      type: "llm",
+      name: "code-agent",
+      matchCondition: "contains:code",
+      tools: ["search_hybrid", "doc_get"],
+      systemPrompt: "Answer code-related questions.",
+    },
+    {
+      type: "llm",
+      name: "analytics-agent",
+      matchCondition: "contains:metrics",
+      tools: ["search_hybrid", "data_query"],
+      systemPrompt: "Answer analytics questions.",
+    },
+    {
+      type: "llm",
+      name: "general-agent",
+      tools: ["search_hybrid"],
+      systemPrompt: "Answer general questions.",
+    },
+  ],
+  defaultAgent: "general-agent",
+});
+```
+
+Match condition syntax:
+
+| Pattern | Example | Matches When |
+|---------|---------|-------------|
+| `contains:term` | `contains:code` | Input contains "code" |
+| `startsWith:prefix` | `startsWith:how to` | Input starts with "how to" |
+| `matches:regex` | `matches:\\d+ errors` | Input matches regex |
+| `type:value` | `type:search` | Input object has `type === "search"` |
+
+### Loop Agent
+
+Repeats sub-agents until a stop condition is met or `maxIterations` is reached.
+
+```typescript
+import { createLoopAgent } from "@openplane/ai";
+
+const refinementLoop = createLoopAgent({
+  type: "loop",
+  name: "iterative-refinement",
+  subAgents: [
+    { type: "llm", name: "draft", systemPrompt: "Write or refine the draft." },
+    { type: "llm", name: "review", systemPrompt: "Review and suggest improvements." },
+  ],
+  maxIterations: 3,
+  stopCondition: {
+    type: "expression",
+    expression: "output.quality >= 0.8",
+  },
+});
+```
+
+Stop condition types:
+
+| Type | Behavior |
+|------|----------|
+| `expression` | Evaluate against output (`output.done === true`, `output.quality >= 0.8`) |
+| `tool` | Stop when a specific tool returns `shouldStop: true` |
+| `callback` | Reserved for custom stop logic |
+
+### Generator-Critic Agent
+
+Generate-then-critique loop with quality gating.
+
+```typescript
+import { createGeneratorCriticAgent } from "@openplane/ai";
+
+const qualityWriter = createGeneratorCriticAgent({
+  name: "quality-writer",
+  generator: {
+    type: "llm",
+    name: "writer",
+    systemPrompt: "Write a high-quality document based on the input.",
+    maxSteps: 3,
+  },
+  critic: {
+    type: "llm",
+    name: "critic",
+    systemPrompt: `Evaluate the draft. Respond with JSON:
+    { "passed": boolean, "score": 0-1, "feedback": "..." }`,
+    maxSteps: 1,
+  },
+  maxIterations: 3,
+  qualityThreshold: 0.8,
+});
+```
+
+The critic's output is parsed automatically. Supported formats:
+- String `"PASS"` or `"PASS: reason"`
+- Object `{ passed: boolean, score?: number, feedback?: string }`
+- Object `{ verdict: "PASS" | "FAIL", feedback?: string }`
+- Object `{ score: number }` (compared against `qualityThreshold`)
+
+The final output includes the draft, critique, iteration count, and pass/fail status.
+
+## Specialized Agents
+
+Pre-built agents for common workflows, located in `packages/ai/src/agents/specialized/`:
+
+| Agent | Pattern | Tools | Purpose |
+|-------|---------|-------|---------|
+| `researchAgent` | LLM | `search_hybrid`, `doc_get`, `rag_answer` | Information gathering with citations |
+| `deepResearchAgent` | Sequential | search + analysis + synthesis | Multi-step research pipeline |
+| `analystAgent` | LLM | `search_hybrid`, `data_query` | Data analysis and insights |
+| `multiSourceAnalystAgent` | Parallel | source-specific search | Cross-source analysis |
+| `coderAgent` | LLM | `search_hybrid`, `doc_get`, `sandbox_execute` | Code generation and explanation |
+| `codeWithReviewAgent` | Generator-Critic | code + review | Code with quality review loop |
+| `writerAgent` | LLM | `search_hybrid`, `doc_get` | Content generation |
+| `qualityWriterAgent` | Generator-Critic | write + critique | Iterative quality writing |
+| `browserAgent` | LLM | `browser_navigate`, `browser_screenshot` | Web browsing and scraping |
+
+Usage:
+
+```typescript
+import { researchAgent, deepResearchAgent, qualityWriterAgent } from "@openplane/ai";
+
+// researchAgent is an LlmAgent instance, ready to execute
+const result = await researchAgent.execute("What is our deployment process?", ctx);
+
+// deepResearchAgent runs a multi-step pipeline
+const deepResult = await deepResearchAgent.execute("Compare our auth systems", ctx);
+```
+
+## Streaming
+
+All agents support streaming via `AsyncGenerator<AgentStreamChunk>`:
+
+```typescript
+const agent = createLlmAgent({ type: "llm", name: "chat", tools: ["search_hybrid"] });
+
+for await (const chunk of agent.stream("Find recent incidents", ctx)) {
+  switch (chunk.type) {
+    case "text":
+      process.stdout.write(chunk.content ?? "");
+      break;
+    case "thinking":
+      // Extended thinking content (when enabled)
+      break;
+    case "tool-call":
+      console.log(`Calling: ${chunk.toolName}`);
+      break;
+    case "tool-result":
+      console.log(`Result from: ${chunk.toolName}`);
+      break;
+    case "step":
+      // Sub-agent step completion
+      break;
+    case "done":
+      console.log(`Finished: ${chunk.result?.durationMs}ms`);
+      break;
+  }
+}
+```
+
+For nested agents (Sequential, Parallel, Loop), stream chunks include the agent path in `agentName` (e.g., `pipeline/search`, `loop[2]/critic`).
+
+## Execution Traces
+
+Every agent execution produces a tree of `ExecutionTrace` nodes:
+
+```typescript
+interface ExecutionTrace {
+  agentName: string;
+  type: AgentType;
+  startTime: number;
+  endTime?: number;
+  status: "running" | "completed" | "failed" | "skipped";
+  input?: unknown;
+  output?: unknown;
+  error?: string;
+  children: ExecutionTrace[];
+  tokenUsage?: { inputTokens: number; outputTokens: number };
+  toolCalls?: ToolCallRecord[];
+}
+```
+
+Use `aggregateTokens()` and `calculateDuration()` to compute totals across nested traces.
+
+## Composite Agent Builder
+
+For complex multi-pattern compositions, use the `composite` builder object:
+
+```typescript
+import { composite } from "@openplane/ai";
+
+// Build a sequential pipeline with nested parallel search
+const config = composite.sequential(
+  "research-pipeline",
+  [
+    composite.parallel(
+      "multi-search",
+      [
+        composite.llm("slack-search", {
+          tools: ["search_hybrid"],
+          systemPrompt: "Search Slack for relevant messages.",
+        }),
+        composite.llm("notion-search", {
+          tools: ["search_hybrid"],
+          systemPrompt: "Search Notion for relevant documents.",
+        }),
+      ],
+      { aggregator: { strategy: "merge" } }
+    ),
+    composite.llm("analyzer", {
+      tools: ["rag_analyze"],
+      systemPrompt: "Analyze and synthesize the search results.",
+    }),
+  ]
+);
+```
+
+Pre-built composite patterns:
+
+```typescript
+import {
+  createResearchPipeline,
+  createEnterpriseRAG,
+  createIntentRouter,
+  createValidatedGenerator,
+  createApprovalGatedAgent,
+  createCustomerSupportSystem,
+} from "@openplane/ai";
+
+// Research pipeline with parallel source search + analysis
+const pipeline = createResearchPipeline({
+  name: "my-research",
+  sources: [
+    { name: "slack", connectorType: "slack" },
+    { name: "notion", connectorType: "notion" },
+  ],
+  analysisPrompt: "Synthesize findings across all sources.",
+});
+
+// Enterprise RAG with grounding verification
+const rag = createEnterpriseRAG({
+  name: "grounded-rag",
+  sources: [{ name: "docs", connectorType: "confluence" }],
+  groundingPrompt: "Verify all claims against source documents.",
+});
+```

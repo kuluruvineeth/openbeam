@@ -1,0 +1,344 @@
+---
+title: Tools
+description: Typed tool definitions, registration, and execution for agents and MCP
+---
+
+# Tools
+
+Tools are atomic capabilities that agents invoke to interact with the outside world. Every tool is defined with a Zod schema, registered in the global `toolRegistry`, and made available to both agents and external MCP clients.
+
+## Defining a Tool
+
+Use `defineTool()` from `@openplane/ai`:
+
+```typescript
+import { defineTool, success, failure, z } from "@openplane/ai";
+
+export const searchHybridTool = defineTool({
+  name: "search_hybrid",
+  description: `Search across all connected enterprise data sources using hybrid semantic + keyword search.
+
+USE THIS WHEN:
+- User asks a general question requiring information from the knowledge base
+- Query contains specific keywords, names, or exact phrases
+
+DO NOT USE WHEN:
+- User wants conceptually similar documents (use search_semantic)
+- User needs to read a specific known document (use doc_get)
+
+RETURNS: Ranked list of documents with relevance scores, snippets, and source metadata.`,
+  category: "search",
+  parameters: z.object({
+    query: z.string().min(1).describe("The search query"),
+    limit: z.number().min(1).max(100).optional().default(10),
+    filters: z.object({
+      connectorTypes: z.array(z.string()).optional(),
+      dateRange: z.object({
+        start: z.string().optional(),
+        end: z.string().optional(),
+      }).optional(),
+    }).optional(),
+  }),
+
+  async execute(params, ctx) {
+    if (!ctx.teamId) {
+      return failure("UNAUTHORIZED", "Team context required for search");
+    }
+
+    const result = await ctx.services.search.hybrid({
+      query: params.query,
+      teamId: ctx.teamId,
+      limit: params.limit,
+      connectorTypes: params.filters?.connectorTypes,
+      accessControlIds: ctx.accessControl,
+    });
+
+    return success(
+      {
+        results: result.documents.map((doc) => ({
+          id: doc.id,
+          title: doc.title,
+          snippet: doc.content?.slice(0, 300),
+          score: doc.relevanceScore,
+          source: doc.connectorType,
+          url: doc.url,
+        })),
+        totalCount: result.total,
+        query: params.query,
+      },
+      { latencyMs: result.queryTime, source: "vespa" }
+    );
+  },
+});
+
+// Register in the global registry
+searchHybridTool.register();
+```
+
+## Tool Config
+
+`defineTool()` accepts these configuration fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | `string` | Unique identifier (snake_case) |
+| `description` | `string` | LLM-facing description with USE/DON'T USE guidance |
+| `category` | `ToolCategory` | Grouping for filtering and permissions |
+| `parameters` | `z.ZodType` | Zod schema for input validation |
+| `execute` | `(params, ctx) => Result` | Execution function |
+| `deferLoading` | `boolean` | If true, tool is hidden until explicitly requested |
+| `searchKeywords` | `string[]` | Extra keywords for tool search |
+| `requiredPermissions` | `string[]` | Permissions the caller must have |
+| `allowedCallers` | `AllowedCaller[]` | `"agent"`, `"mcp"`, or both |
+| `cacheTtlMs` | `number` | Response cache duration |
+| `cacheKeyFn` | `(params) => string` | Custom cache key derivation |
+| `stakes` | `StakesLevel` | `"low"`, `"medium"`, `"high"` |
+| `reversibility` | `ReversibilityLevel` | `"easy"`, `"hard"`, `"irreversible"` |
+| `approval` | `ApprovalPattern` | Override auto-derived approval pattern |
+| `pricing` | `object` | Per-call cost metadata |
+
+## Result Types
+
+Tools return `ToolExecutionResult<T>`:
+
+```typescript
+interface ToolExecutionResult<T> {
+  success: boolean;
+  data?: T;
+  error?: {
+    code: ErrorCode;
+    message: string;
+    retryable: boolean;
+    suggestion?: string;
+    details?: Record<string, unknown>;
+  };
+  metadata?: {
+    latencyMs: number;
+    source?: string;
+    tokenCount?: number;
+  };
+}
+```
+
+Use the `success()` and `failure()` helpers:
+
+```typescript
+// Successful result
+return success(data, { latencyMs: 42, source: "vespa" });
+
+// Error result
+return failure("NOT_FOUND", "Document not found", {
+  retryable: false,
+  suggestion: "Verify the document ID or search for alternatives.",
+});
+```
+
+### Error Codes
+
+| Code | Retryable | Description |
+|------|-----------|-------------|
+| `RATE_LIMITED` | Yes | API rate limit exceeded |
+| `UNAUTHORIZED` | No | Authentication failed |
+| `FORBIDDEN` | No | Insufficient permissions |
+| `NOT_FOUND` | No | Resource not found |
+| `TIMEOUT` | Yes | Operation timed out |
+| `INVALID_INPUT` | No | Invalid parameters |
+| `INVALID_STATE` | No | Operation not valid in current state |
+| `PROVIDER_ERROR` | Yes | External service error |
+| `QUOTA_EXCEEDED` | No | Usage quota exceeded |
+| `NETWORK_ERROR` | Yes | Network connectivity issue |
+| `INTERNAL_ERROR` | Yes | Unexpected internal error |
+| `PAYMENT_REQUIRED` | No | Payment needed |
+| `BUDGET_EXCEEDED` | No | Budget limit reached |
+
+## Tool Context
+
+Every tool execution receives a `ToolContext`:
+
+```typescript
+interface ToolContext {
+  teamId: string;
+  userId: string;
+  sessionId?: string;
+  accessControl?: string[];
+  abortSignal?: AbortSignal;
+  metadata?: Record<string, unknown>;
+  services: ToolServices;
+  memory?: MemoryAccess;
+  canvasState?: CanvasStateAccess;
+}
+```
+
+`services` provides access to search, database, storage, and other backend services. The agent's `LlmAgent` automatically builds and injects the context before tool execution.
+
+## Risk Profiles
+
+Tools declare their risk level, and the system derives an approval pattern:
+
+```
+            easy          hard          irreversible
+low         auto          quick-confirm explicit
+medium      quick-confirm suggest-apply explicit
+high        suggest-apply explicit      explicit
+```
+
+```typescript
+defineTool({
+  name: "connector_sync",
+  stakes: "medium",
+  reversibility: "hard",
+  // Derived: approval = "suggest-apply"
+  // ...
+});
+```
+
+| Approval Pattern | Behavior |
+|------------------|----------|
+| `auto` | Execute without confirmation |
+| `quick-confirm` | Brief confirmation prompt |
+| `suggest-apply` | Show plan, wait for approval |
+| `explicit` | Full approval flow required |
+
+## Tool Registry
+
+The `toolRegistry` singleton manages all registered tools:
+
+```typescript
+import { toolRegistry } from "@openplane/ai";
+
+// Registration
+toolRegistry.register(metadata, coreTool);
+
+// Lookup
+const tool = toolRegistry.getTool("search_hybrid");
+const metadata = toolRegistry.getMetadata("search_hybrid");
+
+// Filtering
+const searchTools = toolRegistry.getByCategory("search");
+const allTools = toolRegistry.getAllTools();
+const alwaysLoaded = toolRegistry.getAlwaysLoadedTools();
+
+// Permission-aware filtering
+const contextualTools = toolRegistry.getContextualTools(toolContext);
+
+// Search by name/description/keywords
+const results = await toolRegistry.search({ query: "find documents", limit: 5 });
+
+// Multi-execution
+const results = await toolRegistry.multiExecute({
+  tools: ["search_hybrid", "doc_get"],
+  inputs: [{ query: "API docs" }, { documentId: "doc_123" }],
+  ctx: toolContext,
+  parallel: true,
+  maxConcurrency: 5,
+});
+```
+
+### Bulk Registration
+
+Use `registerAllTools()` to register all built-in tool categories at once:
+
+```typescript
+import { registerAllTools } from "@openplane/ai/tools/definitions";
+
+const failedCount = registerAllTools();
+// Returns 0 if all categories registered, or the count of failures
+```
+
+### Context Management
+
+The registry uses `AsyncLocalStorage` to propagate `ToolContext` to tool execution:
+
+```typescript
+// Set context for the current async scope
+toolRegistry.setCurrentContext(ctx);
+
+// Or run a function with context
+toolRegistry.runWithContext(ctx, () => {
+  // Tools called here receive this context
+});
+```
+
+### Execution Hooks
+
+Observe tool executions globally:
+
+```typescript
+const unsubscribe = toolRegistry.onExecute((tool, params, result, durationMs) => {
+  console.log(`${tool.metadata.name}: ${durationMs}ms`);
+});
+```
+
+## Tool Categories
+
+Tools are organized into 19 categories, each in a separate directory under `packages/ai/src/tools/definitions/`:
+
+| Category | Directory | Key Tools |
+|----------|-----------|-----------|
+| **search** | `search/` | `search_hybrid`, `search_semantic`, `search_similar`, `search_web` |
+| **rag** | `rag/` | `rag_answer`, `rag_analyze`, `rag_verify`, `rag_synthesize`, `rag_ground` |
+| **documents** | `documents/` | `doc_get`, `doc_list`, `doc_chunks`, `doc_export`, `doc_share` |
+| **connectors** | `connectors/` | `connector_list`, `connector_sync`, `connector_status`, `connector_pause` |
+| **data** | `data/` | `data_query` |
+| **context** | `context/` | Context-related tools |
+| **memory** | `memory/` | Memory read/write tools |
+| **overview** | `overview/` | Overview and summary tools |
+| **preferences** | `preferences/` | User preferences tools |
+| **system** | `system/` | System status tools |
+| **storage** | `storage/` | File storage operations |
+| **media** | `media/` | Media processing tools |
+| **integrations** | `integrations/` | Third-party integration actions |
+| **browser** | `browser/` | Web navigation and scraping |
+| **canvas** | `canvas/` | Agent canvas operations |
+| **visualization** | `visualization/` | Data visualization generation |
+| **voice** | `voice/` | Voice/audio processing |
+| **workspace** | `workspace/` | Workspace management |
+| **sandbox** | `sandbox/` | Code execution sandbox |
+
+### Deferred Loading
+
+Tools marked with `deferLoading: true` are hidden from agents by default. They must be explicitly requested (by name) or discovered via `toolRegistry.search()`:
+
+```typescript
+defineTool({
+  name: "sandbox_execute",
+  deferLoading: true,
+  searchKeywords: ["run", "execute", "code", "script"],
+  // ...
+});
+```
+
+## Writing Tool Descriptions
+
+Good tool descriptions are the single most important factor in agent effectiveness. Follow these patterns:
+
+<Callout type="info">
+The description is what the LLM reads to decide when and how to use your tool. Write it as guidance for the model, not as API documentation for humans.
+</Callout>
+
+```typescript
+// Structure: What it does + WHEN to use + WHEN NOT to use + WHAT it returns
+description: `Search across all connected enterprise data sources using hybrid search.
+
+USE THIS WHEN:
+- User asks a factual question requiring knowledge base lookup
+- Query contains specific keywords, names, or exact phrases
+- Research tasks requiring comprehensive results
+
+DO NOT USE WHEN:
+- User wants conceptually similar documents (use search_semantic)
+- User needs a specific known document (use doc_get)
+
+RETURNS: Ranked documents with relevance scores, snippets, and source metadata.`
+```
+
+Parameter descriptions should include examples and constraints:
+
+```typescript
+query: z.string().describe(
+  "The search query. Supports natural language, keywords, and exact phrases in quotes. Examples: 'Q3 revenue', '\"API documentation\"'"
+),
+limit: z.number().min(1).max(100).optional().default(10).describe(
+  "Max results (1-100). Use 5-10 for focused queries, 20-50 for research."
+),
+```
