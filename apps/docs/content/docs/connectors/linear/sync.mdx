@@ -33,8 +33,8 @@ description: How Linear data is synced
 
 | Quota | Limit |
 |-------|-------|
-| Requests per hour | ~1500 |
-| Complexity budget | Shared across operations |
+| Complexity budget | ~1,800 points per hour (varies by query) |
+| Request concurrency | 1 concurrent request per connector |
 
 OpenPlane handles limits with exponential backoff and request queuing.
 
@@ -67,5 +67,5 @@ Headers:
 |-------|-----|
 | Sync stuck | Rate limited - wait for reset |
 | Issues missing | Check team membership |
-| Comments empty | Enable `sync_comments` setting |
+| Comments empty | Verify `sync_comments` is enabled (on by default) |
 | Slow sync | Large workspace - normal |

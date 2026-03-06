@@ -85,7 +85,7 @@ Disabling PHI de-identification removes HIPAA compliance. Only disable in develo
 
 **Full sync** uses the FHIR Bulk Data Export (`$export`) operation. This is an asynchronous operation: the connector kicks off the export, polls for completion, then downloads and processes the NDJSON output files. Bulk Export is the most efficient way to retrieve large clinical datasets.
 
-**Incremental sync** uses R5 topic-based Subscriptions when the server supports them. The connector registers for notifications on resource changes and processes updates as they arrive. On R4 servers or when subscriptions are unavailable, the connector falls back to querying with `_lastUpdated` filters.
+**Incremental sync** queries resources with `_lastUpdated` filters to fetch only records modified since the last sync. This works on all FHIR R4 and R5 servers. On R5 servers that support topic-based Subscriptions, the connector can additionally register for real-time change notifications to reduce polling latency.
 
 All data passes through the de-identification pipeline before indexing, regardless of sync mode.
 

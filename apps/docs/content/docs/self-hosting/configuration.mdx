@@ -17,12 +17,15 @@ These secrets protect authentication tokens, encrypted credentials, and session 
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
+| `BETTER_AUTH_SECRET` | Yes | -- | Primary auth secret used by Better Auth for session signing. Generate with `openssl rand -hex 32` |
+| `BETTER_AUTH_URL` | Yes | -- | Base URL of the API server (must match `SERVER_URL`). Used by Better Auth for callback resolution |
 | `JWT_SECRET` | Yes | -- | Secret for signing JWT tokens. Generate with `openssl rand -hex 32` |
 | `ENCRYPTION_KEY` | Yes | -- | Key for encrypting OAuth tokens at rest. Generate with `openssl rand -hex 32` |
 | `COOKIE_DOMAIN` | Yes | -- | Domain for auth cookies (e.g., `.example.com`) |
 
 ```bash
 # Generate secure values
+BETTER_AUTH_SECRET=$(openssl rand -hex 32)
 JWT_SECRET=$(openssl rand -hex 32)
 ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
@@ -179,6 +182,8 @@ A complete example for a production deployment:
 
 ```bash
 # Security
+BETTER_AUTH_SECRET=your_64_char_hex_string_here
+BETTER_AUTH_URL=https://api.example.com
 JWT_SECRET=your_64_char_hex_string_here
 ENCRYPTION_KEY=your_64_char_hex_string_here
 COOKIE_DOMAIN=.example.com

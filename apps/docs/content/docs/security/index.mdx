@@ -69,8 +69,9 @@ Before deploying to production, verify each item.
 
 ### Secrets
 
-- [ ] `ENCRYPTION_KEY` generated with `openssl rand -hex 32` (64 hex characters = 32 bytes)
-- [ ] `JWT_SECRET` generated with `openssl rand -hex 32`
+- [ ] [`BETTER_AUTH_SECRET`](/docs/self-hosting/configuration#security) generated with `openssl rand -hex 32`
+- [ ] [`ENCRYPTION_KEY`](/docs/self-hosting/configuration#security) generated with `openssl rand -hex 32` (64 hex characters = 32 bytes)
+- [ ] [`JWT_SECRET`](/docs/self-hosting/configuration#security) generated with `openssl rand -hex 32`
 - [ ] Unique secrets per environment (dev, staging, production)
 - [ ] `.env` file excluded from version control
 - [ ] Default database passwords changed from `postgres:postgres`
@@ -80,8 +81,8 @@ Before deploying to production, verify each item.
 
 - [ ] Infrastructure ports bound to `127.0.0.1` only (PostgreSQL, Redis, Vespa, Temporal)
 - [ ] TLS termination configured on the reverse proxy
-- [ ] `COOKIE_DOMAIN` set to your deployment domain
-- [ ] `WEB_URL` and `SERVER_URL` use HTTPS
+- [ ] [`COOKIE_DOMAIN`](/docs/self-hosting/configuration#security) set to your deployment domain
+- [ ] [`WEB_URL` and `SERVER_URL`](/docs/self-hosting/configuration#urls) use HTTPS
 - [ ] CORS configured to accept only your frontend origin
 
 ### Authentication
