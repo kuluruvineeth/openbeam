@@ -5,7 +5,7 @@ description: RAG queries with citations, agent canvas workflows, and knowledge g
 
 # AI API
 
-The AI API covers three domains: RAG (retrieval-augmented generation) for grounded answers, the Agent Canvas for visual AI workflows, and the Knowledge Graph for entity and expertise search.
+The AI API covers four domains: RAG (retrieval-augmented generation) for grounded answers, the Agent Canvas for visual AI workflows, the Knowledge Graph for entity and expertise search, and the AI registry for skills, tools, and usage tracking.
 
 ## RAG (rag.*)
 
@@ -685,7 +685,144 @@ Get relationships for an entity (incoming, outgoing, or both).
 }
 ```
 
+## AI Registry (ai.*)
+
+The `ai` router provides access to the skills marketplace, tool registry, and usage tracking. All procedures require `withActiveTeam` authentication.
+
+### Skills (ai.skills.*)
+
+| Procedure | Type | Description |
+|-----------|------|-------------|
+| `ai.skills.catalog` | Query | Fetch the external skills marketplace catalog (skills.sh + clawhub.ai, 60s cache) |
+| `ai.skills.list` | Query | List all locally registered skills with discovery metadata |
+| `ai.skills.get` | Query | Get full metadata for a skill by name |
+| `ai.skills.load` | Mutation | Load a skill into the registry, optionally injecting into agent context |
+| `ai.skills.loadByKeyword` | Mutation | Load all skills matching a keyword |
+| `ai.skills.loadByCategory` | Mutation | Load all skills in a category |
+| `ai.skills.unload` | Mutation | Unload a currently loaded skill |
+| `ai.skills.getInstructions` | Query | Get the full instruction text for a loaded skill |
+| `ai.skills.getAllLoadedInstructions` | Query | Get concatenated instructions for all loaded skills |
+
+#### ai.skills.load
+
+**Input:**
+
+```typescript
+{
+  name: string;                    // 1-100 characters
+  injectIntoContext?: boolean;     // Inject into agent context (default: false)
+}
+```
+
+**Output:**
+
+```typescript
+{
+  name: string;
+  enabledTools: string[];
+  instructions: string;           // Truncated to 500 characters
+}
+```
+
+---
+
+### Tools (ai.tools.*)
+
+| Procedure | Type | Description |
+|-----------|------|-------------|
+| `ai.tools.list` | Query | List all registered tools, optionally filtered by category |
+| `ai.tools.get` | Query | Get metadata for a single tool by name |
+| `ai.tools.listBySkill` | Query | List tools enabled by currently loaded skills |
+| `ai.tools.categories` | Query | Get tool counts grouped by category |
+
+#### ai.tools.list
+
+**Input:**
+
+```typescript
+{
+  category?: "search" | "rag" | "documents" | "connectors" | "data"
+           | "media" | "browser" | "action" | "analysis"
+           | "integration" | "system" | "skills";
+  includeDeferred?: boolean;       // Include deferred-loading tools (default: false)
+}
+```
+
+**Output:**
+
+```typescript
+{
+  tools: Array<{
+    name: string;
+    description: string;
+    category: string;
+    requiredPermissions: string[];
+    deferLoading: boolean;
+  }>;
+  total: number;
+}
+```
+
+---
+
+### Usage (ai.usage.*)
+
+| Procedure | Type | Description |
+|-----------|------|-------------|
+| `ai.usage.getSummary` | Query | Get team AI usage summary over a date range |
+| `ai.usage.getDaily` | Query | Get team AI usage for the last N days (1-90, default: 30) |
+
+#### ai.usage.getSummary
+
+**Input:**
+
+```typescript
+{
+  startDate: string;               // ISO 8601 datetime
+  endDate: string;                 // ISO 8601 datetime
+}
+```
+
+---
+
+### ai.info
+
+Dashboard snapshot of the AI registry state. Returns tool counts by category and skill loading status.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:** None
+
+**Output:**
+
+```typescript
+{
+  tools: {
+    total: number;
+    byCategory: Record<string, number>;
+  };
+  skills: {
+    total: number;
+    loaded: number;
+  };
+}
+```
+
+<Tabs items={["TypeScript"]}>
+  <Tab value="TypeScript">
+    ```typescript
+    const info = await trpc.ai.info.query();
+    console.log(`${info.tools.total} tools, ${info.skills.loaded}/${info.skills.total} skills loaded`);
+
+    const catalog = await trpc.ai.skills.catalog.query();
+    console.log(`${catalog.skills.length} skills in marketplace`);
+    ```
+  </Tab>
+</Tabs>
+
 <Cards>
   <Card title="Search API" href="/docs/api/search" description="Search the documents that power RAG answers" />
+  <Card title="Agents API" href="/docs/api/agents" description="Background agents, canvas execution, and knowledge graph" />
   <Card title="Error handling" href="/docs/api/errors" description="Handle errors from AI endpoints" />
 </Cards>
