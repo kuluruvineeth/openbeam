@@ -1,0 +1,26 @@
+---
+title: Configuration
+description: Matterport connector settings reference.
+---
+
+# Configuration
+
+## Authentication
+
+| Setting | Type | Required | Default | Description |
+|---------|------|----------|---------|-------------|
+| `api_token_id` | string | Yes | -- | Matterport API Token ID |
+| `api_token_secret` | string | Yes | -- | Matterport API Token Secret |
+
+## Content Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `model_ids` | string[] | -- | Specific model IDs to sync (empty for all accessible) |
+| `include_floor_plans` | boolean | `true` | Index floor plan metadata and images |
+| `include_point_cloud` | boolean | `false` | Include point cloud data (increases sync time) |
+| `mattertagDepth` | enum | `full` | Annotation detail level: `metadata` or `full` |
+
+<Callout type="info">
+  Leave `model_ids` empty to sync all models accessible to the API account. Specify individual model IDs to reduce sync scope for large portfolios.
+</Callout>

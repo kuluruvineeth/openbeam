@@ -1,5 +1,12 @@
 {
   "title": "Matterport",
   "icon": "Matterport",
-  "pages": ["index", "setup", "troubleshooting"]
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "sync",
+    "configuration",
+    "troubleshooting"
+  ]
 }

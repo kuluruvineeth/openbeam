@@ -1,0 +1,49 @@
+---
+title: Sync Behavior
+description: How Viam data is synced to OpenPlane.
+---
+
+# Sync Behavior
+
+## Sync Types
+
+| Type | Trigger | Duration |
+|------|---------|----------|
+| **Full** | First connection, manual resync | 2-15 min (depends on fleet size) |
+| **Incremental** | Scheduled (5-min default) | Seconds to minutes |
+
+## Full Sync Process
+
+1. **Discover**: List all locations in the organization
+2. **Machines**: Enumerate machines per location with component details
+3. **Sensor Data**: Fetch readings within the lookback window
+4. **Camera Captures**: Fetch capture metadata with ML annotations
+5. **ML Models**: Query model registry (if enabled)
+6. **Action Logs**: Fetch command audit history
+7. **Transform**: Convert to searchable documents with aggregation
+
+## Cursor Format
+
+```json
+{
+  "lastSyncTimestamp": "2026-03-06T00:00:00Z",
+  "lastMachineSync": {
+    "machine_abc": "2026-03-06T00:00:00Z",
+    "machine_def": "2026-03-05T23:00:00Z"
+  },
+  "dataQueryCursor": "cursor_abc123"
+}
+```
+
+Each machine tracks its own sync timestamp for independent progress.
+
+## Incremental Sync
+
+- **Fleet metadata**: Re-synced every run to capture status changes
+- **Sensor data**: Only new readings since last cursor
+- **Camera captures**: Only new captures since last sync
+- **ML models**: Full refresh (small dataset)
+
+## Sensor Data Window
+
+The lookback window (default: 24 hours) controls how much historical sensor data is fetched on initial sync. Reduce this to speed up initial sync for large fleets.

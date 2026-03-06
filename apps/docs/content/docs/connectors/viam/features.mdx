@@ -1,0 +1,55 @@
+---
+title: Features
+description: Viam Robotics connector capabilities and indexed data.
+---
+
+# Viam Features
+
+## Content Types
+
+| Type | Fields Indexed |
+|------|----------------|
+| Machines | Name, status, components, location, organization |
+| Components | Type (sensor, camera, motor, arm), configuration, capabilities |
+| Sensor Data | Time-windowed aggregations (5-min averages) with min/max |
+| Camera Captures | Capture metadata, ML annotation tags, timestamps |
+| Locations | Location name, organization, associated machines |
+| ML Models | Model name, version, type, training metadata |
+| Action Logs | Command audit trails, target machine, timestamp |
+
+## Component Types
+
+| Type | Indexed Data |
+|------|-------------|
+| Sensor | Readings with time-windowed aggregation |
+| Camera | Capture metadata, ML annotations |
+| Motor | Configuration, status |
+| Arm | Joint positions, configuration |
+| Gripper | State, force readings |
+| Board | GPIO pin configurations |
+
+## Sensor Aggregation
+
+Raw sensor readings are grouped into 5-minute windows:
+- Average value
+- Minimum reading
+- Maximum reading
+- Reading count
+
+This reduces index size while preserving statistical summaries for search.
+
+## ML Annotations
+
+Camera captures processed through Viam ML models include:
+- Classification labels with confidence scores
+- Detection bounding boxes
+- Segmentation masks (as metadata)
+
+## Limitations
+
+| Limit | Value |
+|-------|-------|
+| API rate limit | 120 req/min |
+| Auth | Organization-scoped API key required |
+| Sensor lookback | Configurable (default: 24 hours) |
+| ML models | Disabled by default (opt-in) |

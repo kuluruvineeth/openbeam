@@ -1,5 +1,12 @@
 {
   "title": "BACnet",
   "icon": "BACnet",
-  "pages": ["index", "setup", "features", "sync", "configuration", "troubleshooting"]
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "sync",
+    "configuration",
+    "troubleshooting"
+  ]
 }

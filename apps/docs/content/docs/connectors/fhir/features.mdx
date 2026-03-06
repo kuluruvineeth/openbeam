@@ -1,0 +1,53 @@
+---
+title: Features
+description: FHIR connector capabilities and indexed data.
+---
+
+# FHIR Features
+
+## Supported Resource Types
+
+| Resource | Indexed Fields |
+|----------|----------------|
+| Patient | De-identified demographics (age range, gender) |
+| Observation | Vital signs, lab results, value, units, reference range |
+| Encounter | Visit type, date, status, service provider |
+| Condition | Diagnosis code (ICD-10/SNOMED), clinical status |
+| Procedure | Procedure code, status, performed date |
+| Device | Device type, manufacturer, status, location |
+| DeviceMetric | Calibration data, measurement readings |
+| DiagnosticReport | Report type, status, results, conclusion |
+| DocumentReference | Document type, content, authoring date |
+| MedicationRequest | Medication code, dosage, route |
+| Practitioner | Specialty, qualification, organization |
+| Organization | Name, type, address, telecom |
+
+## PHI De-identification
+
+All data passes through the HIPAA Safe Harbor pipeline before indexing. The 18 identifier categories are stripped:
+
+| Category | Examples |
+|----------|---------|
+| Direct identifiers | Names, SSNs, medical record numbers |
+| Geographic | Addresses smaller than state level |
+| Dates | Exact dates (year preserved) |
+| Contact | Phone, fax, email |
+| Digital | URLs, IP addresses, device IDs |
+| Biometric | Fingerprints, photos |
+
+<Callout type="warn">
+  Disabling de-identification removes HIPAA compliance. Only disable in development environments with synthetic data.
+</Callout>
+
+## Consent-Aware Search
+
+FHIR Consent resources restrict access based on patient consent status. Documents linked to patients without active consent are excluded from search results.
+
+## Limitations
+
+| Limit | Value |
+|-------|-------|
+| Rate limit | 60 req/min (configurable per FHIR server) |
+| FHIR versions | R4 (4.0.1), R5 (5.0.0) |
+| Auth | SMART on FHIR backend services only |
+| Bulk Export | Requires server support for $export |

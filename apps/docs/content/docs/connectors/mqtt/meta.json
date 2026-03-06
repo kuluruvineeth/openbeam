@@ -1,5 +1,12 @@
 {
   "title": "MQTT",
   "icon": "MQTT",
-  "pages": ["index", "setup", "features", "sync", "configuration", "troubleshooting"]
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "sync",
+    "configuration",
+    "troubleshooting"
+  ]
 }

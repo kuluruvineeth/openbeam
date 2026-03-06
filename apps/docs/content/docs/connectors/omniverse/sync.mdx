@@ -1,0 +1,50 @@
+---
+title: Sync Behavior
+description: How Omniverse data is synced to OpenPlane.
+---
+
+# Sync Behavior
+
+## Sync Types
+
+| Type | Trigger | Description |
+|------|---------|-------------|
+| **Full** | First connection, manual resync | Traverse USD scene graph |
+| **Incremental** | Nucleus file watch | Re-traverse modified stages |
+| **Real-time** | Simulation events | State changes from digital twin |
+
+## Full Sync Process
+
+1. **Connect**: Authenticate with Nucleus server
+2. **Load Stages**: Open configured USD stage paths
+3. **Traverse**: Walk the scene graph from root prim
+4. **Classify**: Identify equipment, zones, sensors, annotations
+5. **Extract Spatial**: Compute transforms and bounding boxes
+6. **Transform**: Convert to searchable documents
+
+## Cursor Format
+
+```json
+{
+  "lastSyncTimestamp": "2026-03-06T00:00:00Z",
+  "lastModifiedVersion": 42,
+  "scannedStages": ["/Projects/Factory/main.usd"],
+  "currentStageIndex": 0
+}
+```
+
+## Nucleus File Watch
+
+The connector monitors Nucleus for stage file changes. When a USD stage is modified, only that stage is re-traversed. Unchanged stages are skipped.
+
+## Scene Graph Traversal
+
+Traversal depth is configurable:
+- `0` (default): Unlimited -- traverse the entire scene graph
+- `1-N`: Limit to N levels from root prim
+
+Large scenes benefit from depth limiting during initial setup to verify configuration before committing to full traversal.
+
+## State Changes
+
+Real-time state changes from digital twin simulations (property changes, sensor updates) are indexed as time-series documents with the source node, property name, value, and timestamp.

@@ -1,0 +1,48 @@
+---
+title: Features
+description: NVIDIA Omniverse connector capabilities and indexed data.
+---
+
+# Omniverse Features
+
+## Content Types
+
+| Type | Fields Indexed |
+|------|----------------|
+| Equipment | Prim name, type, position, rotation, scale, bounding box, USD properties |
+| Zones | Zone name, spatial bounds, contained assets |
+| Sensors | Sensor name, position, associated readings |
+| Annotations | Note text, 3D position, linked prim path |
+| State Changes | Node, property, value, timestamp |
+
+## Prim Types
+
+| USD Prim Type | How It's Indexed |
+|---------------|-----------------|
+| Xform | Spatial transform (position, rotation, scale) |
+| Mesh | Geometry metadata, bounding box |
+| Camera | Camera parameters, position, FOV |
+| Light | Light type, intensity, color |
+| Material | Material properties, textures |
+| Scope | Logical grouping node |
+| SkelRoot | Skeletal animation root |
+
+## Spatial Search
+
+All indexed prims include spatial metadata (transform, bounding box), enabling:
+- "equipment within 10 meters of Sensor-42"
+- "assets on Floor 2, Zone A"
+- "red valve on the north wall" (via USD Search API)
+
+## USD Search API
+
+Optional natural language spatial queries powered by the NVIDIA USD Search API. Queries are routed through the search service for semantic-spatial matching.
+
+## Limitations
+
+| Limit | Value |
+|-------|-------|
+| Protocol | Nucleus server required |
+| Scene size | Large scenes (100K+ prims) may slow initial sync |
+| Depth limit | Configurable (default: unlimited) |
+| File types | OpenUSD (.usd, .usda, .usdc, .usdz) |

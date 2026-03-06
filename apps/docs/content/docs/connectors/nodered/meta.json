@@ -1,5 +1,12 @@
 {
   "title": "Node-RED",
   "icon": "NodeRED",
-  "pages": ["index", "setup", "features", "sync", "configuration", "troubleshooting"]
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "sync",
+    "configuration",
+    "troubleshooting"
+  ]
 }

@@ -1,0 +1,38 @@
+---
+title: Configuration
+description: Viam Robotics connector settings reference.
+---
+
+# Configuration
+
+## Authentication
+
+| Setting | Type | Required | Default | Description |
+|---------|------|----------|---------|-------------|
+| `api_key` | string | Yes | -- | Organization API key |
+| `api_key_id` | string | Yes | -- | API key identifier |
+| `organization_id` | string | Yes | -- | Viam organization ID |
+
+## Content Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `sync_sensor_data` | boolean | `true` | Include sensor readings |
+| `sensor_data_lookback_hours` | number | `24` | Historical lookback window in hours |
+| `sync_action_logs` | boolean | `true` | Include command audit logs |
+| `sync_ml_models` | boolean | `false` | Include ML model registry metadata |
+
+## Filtering
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `location_ids` | string[] | -- | Specific locations to sync (empty for all) |
+| `machine_ids` | string[] | -- | Specific machines to sync (empty for all) |
+
+<Callout type="warn">
+  Use an organization-scoped API key. Machine-scoped keys only access a single robot and will miss fleet-wide data.
+</Callout>
+
+<Callout type="info">
+  ML model sync is disabled by default. Enable `sync_ml_models` to index the Viam model registry with model name, version, type, and training metadata.
+</Callout>

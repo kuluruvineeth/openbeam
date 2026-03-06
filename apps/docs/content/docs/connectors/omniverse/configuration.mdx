@@ -1,0 +1,40 @@
+---
+title: Configuration
+description: NVIDIA Omniverse connector settings reference.
+---
+
+# Configuration
+
+## Connection
+
+| Setting | Type | Required | Default | Description |
+|---------|------|----------|---------|-------------|
+| `nucleus_url` | string | Yes | -- | Omniverse Nucleus server URL |
+| `api_token` | string | Yes | -- | API token for Nucleus access |
+
+## Content Settings
+
+| Setting | Type | Required | Default | Description |
+|---------|------|----------|---------|-------------|
+| `stage_paths` | string[] | Yes | -- | USD stage paths to index (one per line) |
+| `usd_search_url` | string | No | -- | USD Search API URL (optional) |
+| `depth_limit` | number | No | `0` | Scene graph traversal depth (0 = unlimited) |
+| `include_inactive` | boolean | No | `false` | Include inactive prims |
+
+## Filtering
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `primTypeFilters` | string[] | -- | Filter by prim type (Xform, Mesh, Camera, Light, etc.) |
+| `spatialBoundsFilter` | object | -- | Filter by spatial bounds (min/max xyz) |
+
+## Stage Path Format
+
+```text
+/Projects/Factory/main.usd
+/Projects/Warehouse/scene.usd
+```
+
+<Callout type="warn">
+  Start with a single small stage to verify configuration. Large stages (100K+ prims) can take several minutes on initial sync.
+</Callout>

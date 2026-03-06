@@ -1,0 +1,47 @@
+---
+title: Sync Behavior
+description: How Matterport data is synced to OpenPlane.
+---
+
+# Sync Behavior
+
+## Sync Types
+
+| Type | Trigger | Duration |
+|------|---------|----------|
+| **Full** | First connection, manual resync | 1-15 min (depends on model count) |
+| **Incremental** | Scheduled (60-min default) | Seconds |
+
+## Full Sync Process
+
+1. **Query Models**: GraphQL query for all accessible Matterport models
+2. **Per-Model Detail**: Fetch rooms, floors, sweeps, and Mattertags for each model
+3. **Spatial Metadata**: Extract 3D positions and bounding boxes
+4. **Transform**: Convert to searchable documents with spatial metadata
+
+## Cursor Format
+
+```json
+{
+  "lastSyncTimestamp": "2026-03-06T00:00:00Z",
+  "lastModelModified": {
+    "model_abc": "2026-03-05T12:00:00Z",
+    "model_def": "2026-03-04T08:00:00Z"
+  },
+  "processedModelIds": ["model_abc", "model_def"]
+}
+```
+
+Each model tracks its own modification timestamp for incremental sync.
+
+## Incremental Sync
+
+Uses per-model modification timestamps to fetch only updated spaces. A model is re-synced when:
+- New Mattertags are added
+- Room segmentation is updated
+- The model is republished
+- Floor plans are regenerated
+
+## Rate Limiting
+
+The Matterport GraphQL API limits to approximately 50 requests/minute. The connector spaces requests automatically. Large portfolios (100+ models) may take longer on initial sync.

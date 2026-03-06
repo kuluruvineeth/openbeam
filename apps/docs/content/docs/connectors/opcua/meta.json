@@ -1,5 +1,12 @@
 {
   "title": "OPC-UA",
   "icon": "OPCUA",
-  "pages": ["index", "setup", "features", "sync", "configuration", "troubleshooting"]
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "sync",
+    "configuration",
+    "troubleshooting"
+  ]
 }

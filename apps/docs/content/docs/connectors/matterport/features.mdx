@@ -1,0 +1,44 @@
+---
+title: Features
+description: Matterport connector capabilities and indexed data.
+---
+
+# Matterport Features
+
+## Content Types
+
+| Type | Fields Indexed |
+|------|----------------|
+| Spaces | Name, address, total rooms, floors, area, spatial dimensions |
+| Rooms | Name, floor assignment, area, bounding box coordinates |
+| Floors | Floor number, area, room count, elevation |
+| Mattertags | Label, description, 3D position (x, y, z), attached media |
+| Sweeps | Camera position, rotation, floor/room association |
+
+## Spatial Search
+
+Documents include 3D position metadata, enabling proximity-based queries:
+- "annotations near the lobby"
+- "rooms on the second floor"
+- "sensors within 10 meters of the entrance"
+
+## Metadata
+
+| Field | Searchable | Filterable |
+|-------|------------|------------|
+| Space name | Yes | Yes |
+| Room name | Yes | Yes |
+| Floor number | No | Yes |
+| Mattertag label | Yes | Yes |
+| Area (sq ft/m) | No | Yes |
+| Position (x,y,z) | No | No |
+
+## Limitations
+
+| Limit | Value |
+|-------|-------|
+| API rate limit | 50 req/min |
+| Auth | Token ID + Secret (Basic) |
+| API | GraphQL |
+| Room segmentation | Requires Matterport AI processing |
+| Point cloud | Optional (increases sync time) |

@@ -1,0 +1,59 @@
+---
+title: Sync Behavior
+description: How FHIR data is synced to OpenPlane.
+---
+
+# Sync Behavior
+
+## Sync Types
+
+| Type | Trigger | Description |
+|------|---------|-------------|
+| **Full** | First connection, manual resync | Bulk Data Export ($export) |
+| **Incremental** | Scheduled | `_lastUpdated` filters (R4/R5) |
+| **Real-time** | R5 subscriptions | Topic-based push notifications |
+
+## Full Sync — Bulk Data Export
+
+1. **Kick off**: POST `/$export` to initiate async export
+2. **Poll**: Check export status until complete
+3. **Download**: Fetch NDJSON output files
+4. **De-identify**: Strip PHI via Safe Harbor pipeline
+5. **Index**: Store de-identified documents
+
+<Callout type="info">
+  Bulk Data Export is an asynchronous operation. Large datasets (100,000+ resources) may take 10-30 minutes to export.
+</Callout>
+
+## Incremental Sync
+
+Queries resources with `_lastUpdated` filters to fetch only records modified since the last sync. This works on all FHIR R4 and R5 servers.
+
+On R5 servers with topic-based Subscription support, the connector can additionally register for real-time notifications.
+
+## Cursor Format
+
+```json
+{
+  "lastSyncTimestamp": "2026-03-06T00:00:00Z",
+  "lastTransactionTime": "2026-03-06T00:00:00Z",
+  "bulkExportJobId": "job_abc123",
+  "subscriptionIds": ["sub_def456"],
+  "resourceTypeProgress": {
+    "Patient": "2026-03-06T00:00:00Z",
+    "Observation": "2026-03-05T23:00:00Z"
+  }
+}
+```
+
+Each resource type tracks its own progress independently.
+
+## SMART on FHIR Authentication
+
+1. Sign JWT assertion with private key
+2. Exchange JWT for access token at token endpoint
+3. Tokens refreshed automatically before expiration
+
+## De-identification Pipeline
+
+All data passes through de-identification regardless of sync mode. The pipeline runs before any data enters the search index.

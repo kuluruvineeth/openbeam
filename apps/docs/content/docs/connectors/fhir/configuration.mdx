@@ -1,0 +1,40 @@
+---
+title: Configuration
+description: FHIR connector settings reference.
+---
+
+# Configuration
+
+## Connection
+
+| Setting | Type | Required | Default | Description |
+|---------|------|----------|---------|-------------|
+| `fhir_base_url` | string | Yes | -- | FHIR server base URL |
+| `fhir_version` | enum | Yes | `R4` | `R4` (4.0.1) or `R5` (5.0.0) |
+
+## Authentication
+
+| Setting | Type | Required | Default | Description |
+|---------|------|----------|---------|-------------|
+| `client_id` | string | Yes | -- | SMART on FHIR application client ID |
+| `private_key` | string | Yes | -- | RSA/EC private key PEM for JWT signing |
+
+## Content Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `deidentify` | boolean | `true` | HIPAA Safe Harbor de-identification |
+| `resource_types` | string[] | Patient, Observation, Device, Encounter, Condition | FHIR resource types to sync |
+
+<Callout type="error">
+  Setting `deidentify` to `false` means PHI will be indexed in plain text. Only use this in development environments with synthetic data.
+</Callout>
+
+## Server Compatibility
+
+| Server | R4 | R5 | Bulk Export | Subscriptions |
+|--------|----|----|------------|---------------|
+| Epic | Yes | Partial | Yes | No |
+| Cerner | Yes | Partial | Yes | No |
+| HAPI FHIR | Yes | Yes | Yes | Yes |
+| Medplum | Yes | Yes | Yes | Yes |
