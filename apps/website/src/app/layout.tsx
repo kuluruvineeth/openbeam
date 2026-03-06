@@ -2,8 +2,6 @@ import { GeistMono } from "geist/font/mono";
 import type { Metadata } from "next";
 import { Hedvig_Letters_Sans, Hedvig_Letters_Serif } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
-import { Footer } from "@/components/footer";
-import { Header } from "@/components/header";
 import { ThemeProvider } from "@/components/theme-provider";
 import { cn } from "@/lib/cn";
 import "@/styles/globals.css";
@@ -100,11 +98,7 @@ export default function RootLayout({
             disableTransitionOnChange
             enableSystem
           >
-            <Header />
-            <main className="overflow-hidden md:overflow-visible">
-              {children}
-            </main>
-            <Footer />
+            {children}
           </ThemeProvider>
         </NuqsAdapter>
       </body>
