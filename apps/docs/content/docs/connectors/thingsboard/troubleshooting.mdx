@@ -1,0 +1,114 @@
+---
+title: Troubleshooting
+description: Common ThingsBoard connector issues and fixes.
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+<Accordions>
+  <Accordion title="401 Unauthorized — Invalid credentials">
+    The email or password is incorrect, or the account has been disabled.
+
+    **Fix:**
+    1. Verify the credentials work by logging in to the ThingsBoard web UI directly
+    2. Ensure you are using a **tenant administrator** account, not a system administrator
+    3. If the instance uses SSO/LDAP, create a local tenant admin account for the integration
+  </Accordion>
+
+  <Accordion title="JWT token refresh failures">
+    The connector cannot refresh its authentication token.
+
+    **Fix:**
+    1. This typically indicates the password was changed or the account was deactivated
+    2. Update the connector credentials in OpenPlane
+    3. Check ThingsBoard audit logs for account-related events
+  </Accordion>
+</Accordions>
+
+## Missing Data
+
+<Accordions>
+  <Accordion title="No devices found after sync">
+    The tenant may have no devices, or the account lacks device visibility.
+
+    **Fix:**
+    1. Log in to ThingsBoard and verify devices exist under the tenant
+    2. Check that the connector account has the **TENANT_ADMIN** role
+    3. Customer-scoped accounts only see devices assigned to that customer
+  </Accordion>
+
+  <Accordion title="Telemetry data missing or incomplete">
+    Telemetry is time-scoped. The connector fetches recent telemetry, not the full historical archive.
+
+    **Fix:**
+    1. The initial sync captures the latest telemetry values for each key
+    2. Historical telemetry beyond the sync window is not retroactively fetched
+    3. Verify telemetry is being pushed to ThingsBoard by checking the device's telemetry tab
+  </Accordion>
+
+  <Accordion title="Alarms not syncing">
+    Only alarms visible to the tenant administrator are synced.
+
+    **Fix:**
+    1. Verify active alarms exist in the ThingsBoard alarm dashboard
+    2. Cleared alarms are synced with their final state -- they do not disappear from the index
+    3. Check that alarm rules are configured on the relevant device profiles
+  </Accordion>
+</Accordions>
+
+## Connectivity Issues
+
+<Accordions>
+  <Accordion title="Connection refused to ThingsBoard URL">
+    The ThingsBoard instance is unreachable from the OpenPlane host.
+
+    **Fix:**
+    1. Verify the URL is correct and includes the protocol (`https://` or `http://`)
+    2. Test connectivity: `curl -I https://thingsboard.yourcompany.com`
+    3. Check firewall rules between OpenPlane and the ThingsBoard instance
+    4. If using ThingsBoard Cloud, ensure no IP restrictions are in place
+  </Accordion>
+
+  <Accordion title="SSL certificate errors">
+    Self-signed certificates on the ThingsBoard instance cause TLS verification failures.
+
+    **Fix:**
+    1. Install a valid TLS certificate on the ThingsBoard instance
+    2. If using a self-signed cert, add it to the OpenPlane host's trust store
+  </Accordion>
+</Accordions>
+
+## Sync Issues
+
+<Accordions>
+  <Accordion title="Sync slow for large device fleets">
+    ThingsBoard instances with thousands of devices can take time to fully enumerate.
+
+    **Fix:**
+    1. The connector paginates device requests (100 per page by default)
+    2. Initial sync duration scales linearly with device count
+    3. Subsequent incremental syncs only fetch modified entities
+  </Accordion>
+</Accordions>
+
+## Debug Checklist
+
+```bash
+# Test authentication
+curl -X POST https://thingsboard.yourcompany.com/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username": "admin@example.com", "password": "your_password"}'
+
+# Verify device count (use token from above)
+curl -H "X-Authorization: Bearer YOUR_JWT_TOKEN" \
+  "https://thingsboard.yourcompany.com/api/tenant/devices?pageSize=1&page=0"
+```
+
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openplane/issues) with the connector status, ThingsBoard version, and error messages.
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/thingsboard/setup" description="Reconnect or reconfigure the connector" />
+  <Card title="MQTT" href="/docs/connectors/mqtt" description="Direct MQTT broker subscriptions" />
+</Cards>

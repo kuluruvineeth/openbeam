@@ -1,0 +1,63 @@
+---
+title: Setup
+description: Connect BACnet devices to OpenPlane via network discovery.
+---
+
+# BACnet Setup
+
+## Prerequisites
+
+- BACnet/IP devices on an accessible network segment
+- Network route from the OpenPlane host to the BACnet/IP network
+- UDP port 47808 open between OpenPlane and BACnet devices
+
+## 1. Verify Network Connectivity
+
+BACnet/IP communicates over UDP. Ensure the OpenPlane host can reach the BACnet network segment:
+
+```bash
+# Test UDP connectivity to the BACnet port
+nc -u -z BACNET_DEVICE_IP 47808
+```
+
+<Callout type="warn">
+  BACnet/IP uses broadcast discovery (Who-Is). If OpenPlane is on a different subnet, you must either configure a BBMD (BACnet Broadcast Management Device) or specify device IPs manually.
+</Callout>
+
+## 2. Add the Connector in OpenPlane
+
+1. Go to **Settings** > **Connectors** > **Add Connector**
+2. Select **BACnet**
+3. Configure the connection settings
+
+## 3. Configure Network Settings
+
+| Setting | Value |
+|---------|-------|
+| **Network Interface** | The interface connected to the BACnet segment (e.g., `eth0`) |
+| **BACnet Port** | `47808` (default) or custom port if your network uses a non-standard port |
+| **Device IDs** | Leave empty for auto-discovery, or list specific device instance numbers |
+
+## 4. Start Discovery and Sync
+
+1. Click **Connect** to start device discovery
+2. The connector broadcasts a Who-Is message and waits for I-Am responses
+3. Discovered devices are enumerated for their object lists
+4. Object values are polled and indexed
+
+<Callout type="info">
+  Device discovery can take 30-60 seconds depending on network size. Devices behind routers may require additional time or manual ID entry.
+</Callout>
+
+## What Gets Indexed
+
+| Entity | Searchable Fields |
+|--------|-------------------|
+| BACnet Objects | Object type, name, present value, units, status flags, device association |
+| Schedules | Schedule name, effective period, weekly programming, exception events |
+
+<Cards>
+  <Card title="Troubleshooting" href="/docs/connectors/bacnet/troubleshooting" description="Network issues, device discovery failures, and polling errors" />
+  <Card title="OPC-UA" href="/docs/connectors/opcua" description="Industrial automation protocol" />
+  <Card title="ThingsBoard" href="/docs/connectors/thingsboard" description="IoT platform with device management" />
+</Cards>

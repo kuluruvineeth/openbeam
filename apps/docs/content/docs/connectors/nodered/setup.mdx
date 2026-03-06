@@ -1,0 +1,71 @@
+---
+title: Setup
+description: Connect Node-RED to OpenPlane with an Admin API access token.
+---
+
+# Node-RED Setup
+
+## Prerequisites
+
+- Node-RED instance with the Admin API enabled
+- Admin API access token or user credentials
+- OpenPlane instance running
+
+## 1. Enable the Admin API
+
+The Node-RED Admin API must be enabled in your instance. Check your `settings.js` file:
+
+```javascript
+// settings.js
+module.exports = {
+  adminAuth: {
+    type: "credentials",
+    users: [{
+      username: "admin",
+      password: "$2b$08$...",  // bcrypt hash
+      permissions: "*"
+    }]
+  }
+}
+```
+
+<Callout type="warn">
+  If `httpAdminRoot` is set to `false` in your settings, the Admin API is disabled and the connector cannot access flow data. Set it to a path (default is `/`) to enable it.
+</Callout>
+
+## 2. Generate an Access Token
+
+If your Node-RED instance uses token-based authentication:
+
+1. POST to `http://your-nodered:1880/auth/token` with credentials
+2. Copy the returned `access_token`
+
+If your instance uses no authentication (development setups), skip this step and leave the token field empty in OpenPlane.
+
+## 3. Add the Connector in OpenPlane
+
+1. Go to **Settings** > **Connectors** > **Add Connector**
+2. Select **Node-RED**
+3. Enter the Node-RED base URL (e.g., `http://nodered.internal:1880`)
+4. Enter the access token if required
+
+## 4. Start Sync and Verify
+
+1. Click **Connect** to save the configuration
+2. The connector fetches all flow definitions from the Admin API
+3. Verify flows appear in search within a minute
+
+## What Gets Indexed
+
+| Entity | Searchable Fields |
+|--------|-------------------|
+| Flows | Flow name, node types present, connection topology, subflow references |
+| Nodes | Node type, configuration, connected nodes, embedded function code |
+| Subflows | Subflow name, input/output definitions, internal structure |
+| Settings | Node-RED version, installed palette modules |
+
+<Cards>
+  <Card title="Troubleshooting" href="/docs/connectors/nodered/troubleshooting" description="API access, authentication, and missing flows" />
+  <Card title="MQTT" href="/docs/connectors/mqtt" description="MQTT broker subscriptions" />
+  <Card title="ThingsBoard" href="/docs/connectors/thingsboard" description="IoT platform with rule engine" />
+</Cards>

@@ -1,0 +1,61 @@
+---
+title: Setup
+description: Connect ThingsBoard to OpenPlane with tenant credentials.
+---
+
+# ThingsBoard Setup
+
+## Prerequisites
+
+- ThingsBoard instance (Community or Professional edition)
+- Tenant administrator account (email and password)
+- OpenPlane instance running
+
+## 1. Identify Your ThingsBoard Instance
+
+Locate your ThingsBoard instance URL. Common patterns:
+
+| Deployment | URL |
+|-----------|-----|
+| Self-hosted | `https://thingsboard.yourcompany.com` |
+| ThingsBoard Cloud | `https://thingsboard.cloud` |
+| Local development | `http://localhost:8080` |
+
+## 2. Verify Admin Credentials
+
+The connector requires **tenant administrator** credentials. System administrator accounts will not work -- they operate at a different scope.
+
+<Callout type="warn">
+  The connector authenticates using the `/api/auth/login` endpoint. If your ThingsBoard instance uses SSO or LDAP, create a local tenant admin account for the integration.
+</Callout>
+
+## 3. Add the Connector in OpenPlane
+
+1. Go to **Settings** > **Connectors** > **Add Connector**
+2. Select **ThingsBoard**
+3. Enter the ThingsBoard URL, email, and password
+
+## 4. Start Sync and Verify
+
+1. Click **Connect** to save the configuration
+2. The connector exchanges credentials for a JWT token automatically
+3. The initial full sync begins, fetching devices, telemetry, and alarms
+4. Verify devices appear in search within a few minutes
+
+<Callout type="info">
+  Token refresh is handled automatically. The connector re-authenticates when the JWT expires without requiring manual intervention.
+</Callout>
+
+## What Gets Indexed
+
+| Entity | Searchable Fields |
+|--------|-------------------|
+| Devices | Name, type, label, active status, attributes, telemetry keys |
+| Telemetry | Key, value, timestamp, associated device |
+| Alarms | Alarm type, severity, status, originator device, message |
+
+<Cards>
+  <Card title="Troubleshooting" href="/docs/connectors/thingsboard/troubleshooting" description="Authentication failures, missing telemetry, and alarm sync" />
+  <Card title="MQTT" href="/docs/connectors/mqtt" description="Direct MQTT broker subscriptions" />
+  <Card title="Node-RED" href="/docs/connectors/nodered" description="Flow-based IoT automation" />
+</Cards>

@@ -1,5 +1,5 @@
 {
   "title": "Node-RED",
   "icon": "NodeRED",
-  "pages": ["index"]
+  "pages": ["index", "setup", "troubleshooting"]
 }

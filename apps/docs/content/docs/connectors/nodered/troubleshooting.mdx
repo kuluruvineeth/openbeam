@@ -1,0 +1,109 @@
+---
+title: Troubleshooting
+description: Common Node-RED connector issues and fixes.
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+<Accordions>
+  <Accordion title="401 Unauthorized — Invalid or expired token">
+    The Admin API access token is invalid or has expired.
+
+    **Fix:**
+    1. Re-authenticate against the Node-RED instance to get a fresh token
+    2. POST to `http://your-nodered:1880/auth/token` with valid credentials
+    3. Update the connector configuration with the new token
+  </Accordion>
+
+  <Accordion title="Admin API returns 404">
+    The Admin API may be disabled or mounted at a non-default path.
+
+    **Fix:**
+    1. Check the `httpAdminRoot` setting in Node-RED's `settings.js`
+    2. If set to `false`, the Admin API is disabled -- enable it by setting a path
+    3. If set to a custom path (e.g., `/admin`), update the connector URL to include it
+  </Accordion>
+</Accordions>
+
+## Missing Data
+
+<Accordions>
+  <Accordion title="No flows found after sync">
+    The Node-RED instance may have no deployed flows, or the Admin API is returning an empty response.
+
+    **Fix:**
+    1. Open the Node-RED editor and verify flows exist
+    2. Ensure flows are **deployed** -- undeployed flows may not appear in the Admin API
+    3. Check the connector URL matches the Node-RED instance
+  </Accordion>
+
+  <Accordion title="Subflows not indexed">
+    Subflows are separate from main flows in the Admin API response.
+
+    **Fix:**
+    1. Subflows should be indexed automatically alongside flows
+    2. Verify subflows are deployed
+    3. Trigger a full resync to re-fetch all flow definitions
+  </Accordion>
+
+  <Accordion title="Function node code not searchable">
+    Embedded JavaScript code within function nodes should be indexed as part of the node configuration.
+
+    **Fix:**
+    1. Function code is extracted from the node's `func` property
+    2. If code is missing, the flow may not have been re-deployed after adding the function
+    3. Trigger a full resync after deploying flow changes
+  </Accordion>
+</Accordions>
+
+## Connectivity Issues
+
+<Accordions>
+  <Accordion title="Connection refused">
+    The Node-RED instance is unreachable from the OpenPlane host.
+
+    **Fix:**
+    1. Verify the URL is correct (default port is `1880`)
+    2. Test connectivity: `curl http://your-nodered:1880/`
+    3. Check firewall rules between OpenPlane and the Node-RED instance
+    4. If Node-RED is behind a reverse proxy, ensure the Admin API path is proxied
+  </Accordion>
+</Accordions>
+
+## Sync Issues
+
+<Accordions>
+  <Accordion title="Incremental sync not detecting changes">
+    Flow revision tracking may not reflect all changes.
+
+    **Fix:**
+    1. Some Node-RED versions do not expose revision metadata reliably
+    2. Use periodic full resync (every 60 minutes by default) to catch all changes
+    3. Deploy flows after making changes to ensure the Admin API reflects the latest state
+  </Accordion>
+</Accordions>
+
+## Debug Checklist
+
+```bash
+# Test Admin API access
+curl http://your-nodered:1880/flows \
+  -H "Authorization: Bearer YOUR_TOKEN"
+
+# Check Node-RED version
+curl http://your-nodered:1880/settings \
+  -H "Authorization: Bearer YOUR_TOKEN"
+
+# List installed nodes
+curl http://your-nodered:1880/nodes \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openplane/issues) with the connector status, Node-RED version, and error messages.
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/nodered/setup" description="Reconnect or reconfigure the connector" />
+  <Card title="MQTT" href="/docs/connectors/mqtt" description="MQTT broker subscriptions" />
+</Cards>

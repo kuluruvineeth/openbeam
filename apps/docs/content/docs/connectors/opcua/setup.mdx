@@ -1,0 +1,110 @@
+---
+title: Setup
+description: Connect an OPC-UA server to OpenPlane to index industrial automation data.
+---
+
+# OPC-UA Setup
+
+## Prerequisites
+
+- OPC-UA server running and accessible from the OpenPlane host
+- Server endpoint URL (e.g., `opc.tcp://server:4840`)
+- Credentials if the server requires authentication
+
+## 1. Identify the OPC-UA Server Endpoint
+
+Find your server's endpoint URL. Common OPC-UA servers:
+
+| Server | Default Endpoint | Typical Use |
+|--------|-----------------|-------------|
+| Kepware | `opc.tcp://host:49320` | Multi-protocol gateway |
+| Unified Automation | `opc.tcp://host:4840` | Reference implementation |
+| Prosys Simulation | `opc.tcp://host:53530/OPCUA/SimulationServer` | Testing and development |
+| Siemens S7 (via gateway) | `opc.tcp://host:4840` | PLC data access |
+| Ignition | `opc.tcp://host:62541/discovery` | SCADA platform |
+
+<Callout type="info">
+  The endpoint URL must be reachable from the OpenPlane host. For servers behind NAT or in isolated OT networks, configure a network bridge or VPN.
+</Callout>
+
+## 2. Determine Security Configuration
+
+OPC-UA has two independent security settings: **mode** (what protection) and **policy** (which algorithms).
+
+<Tabs items={["No Security", "Sign Only", "Sign and Encrypt"]}>
+  <Tab value="No Security">
+    Use for development or trusted isolated networks only.
+
+    ```text
+    Security Mode:   None
+    Security Policy: None
+    ```
+
+    <Callout type="error">
+      Security Mode: None transmits all data including credentials in plaintext. Never use in production.
+    </Callout>
+  </Tab>
+  <Tab value="Sign Only">
+    Messages are signed for integrity but not encrypted. Use when confidentiality is handled at the network layer (VPN, air-gapped network).
+
+    ```text
+    Security Mode:   Sign
+    Security Policy: Basic256Sha256
+    ```
+  </Tab>
+  <Tab value="Sign and Encrypt">
+    Full message signing and encryption. Recommended for all production deployments.
+
+    ```text
+    Security Mode:   Sign and Encrypt
+    Security Policy: Basic256Sha256
+    ```
+
+    The connector generates a self-signed X.509 application certificate on first connection. Some servers require you to trust this certificate before communication succeeds.
+  </Tab>
+</Tabs>
+
+## 3. Add the OPC-UA Connector in OpenPlane
+
+1. Go to **Settings** > **Connectors** > **Add Connector**
+2. Select **OPC-UA**
+3. Enter the endpoint URL
+4. Select the security mode and policy
+5. Provide username and password if required (leave empty for anonymous access)
+
+## 4. Trust the Client Certificate (If Required)
+
+When using Sign or Sign and Encrypt modes, the OPC-UA server may reject the connector's certificate on first connection.
+
+**Fix:**
+1. Check the server's rejected certificates folder (varies by server software)
+2. Move the OpenPlane certificate from the rejected folder to the trusted folder
+3. Retry the connection in OpenPlane
+
+| Server | Rejected Certs Location |
+|--------|------------------------|
+| Kepware | `C:\ProgramData\Kepware\KEPServerEX\V6\UA\Certs\rejected` |
+| Unified Automation | `/opt/uaserver/pkiserver/rejected/certs/` |
+| Prosys | Check server GUI under **Certificates** tab |
+
+## 5. Start Sync and Browse the Address Space
+
+Click **Connect** to begin. The connector browses the address space starting from the root node, discovering all variable nodes and their current values.
+
+<Callout type="warn">
+  Default browse depth is 5 levels. For deep namespace hierarchies (e.g., Siemens S7 with nested function blocks), increase the browse depth in connector settings. Large address spaces (10,000+ nodes) may take several minutes for the initial browse.
+</Callout>
+
+## What Gets Indexed
+
+| Document Type | Content |
+|---------------|---------|
+| Node values | NodeId, display name, value, data type, source timestamp, status code |
+| Alarms | Alarm type, severity, source node, message, active state |
+| Companion spec metadata | MTConnect machine state, PackML unit mode, PLCopen axis status |
+
+<Cards>
+  <Card title="Troubleshooting" href="/docs/connectors/opcua/troubleshooting" description="Security, browsing, and session issues" />
+  <Card title="MQTT" href="/docs/connectors/mqtt" description="MQTT broker topic subscriptions" />
+  <Card title="BACnet" href="/docs/connectors/bacnet" description="Building automation protocol" />
+</Cards>

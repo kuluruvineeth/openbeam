@@ -1,0 +1,112 @@
+---
+title: Troubleshooting
+description: Common BACnet connector issues and fixes.
+---
+
+# Troubleshooting
+
+## Network Issues
+
+<Accordions>
+  <Accordion title="No devices discovered">
+    The Who-Is broadcast is not reaching BACnet devices, or devices are not responding.
+
+    **Fix:**
+    1. Verify the OpenPlane host has network access to the BACnet/IP segment
+    2. Check that UDP port **47808** is open in both directions
+    3. If OpenPlane is on a different subnet, BACnet broadcasts will not cross routers without a BBMD
+    4. Try specifying device IDs manually instead of relying on auto-discovery
+  </Accordion>
+
+  <Accordion title="Devices discovered but cannot read objects">
+    The connector finds devices via Who-Is but cannot enumerate or read their objects.
+
+    **Fix:**
+    1. Some BACnet devices require the connecting client to be registered as a known peer
+    2. Check the device's access control lists (ACLs)
+    3. Verify the connector is using the correct network interface
+    4. Try reading a single known object ID to isolate the issue
+  </Accordion>
+
+  <Accordion title="Connection timeout errors">
+    UDP packets are being lost or blocked by a firewall.
+
+    **Fix:**
+    1. Test UDP connectivity: `nc -u -z DEVICE_IP 47808`
+    2. Check firewall rules on both the OpenPlane host and the BACnet network
+    3. Increase the connector's response timeout if devices are on a slow network
+  </Accordion>
+</Accordions>
+
+## Missing Data
+
+<Accordions>
+  <Accordion title="Some objects show 'unknown' values">
+    The object's present value cannot be read. This typically means the object is out-of-service or the value type is not supported.
+
+    **Fix:**
+    1. Check the object's status flags -- an out-of-service flag prevents reading
+    2. Proprietary object types may not be supported
+    3. Verify the object is listed in the device's protocol implementation conformance statement (PICS)
+  </Accordion>
+
+  <Accordion title="Schedules not appearing">
+    Schedule objects may not be present on all devices, or the device may not support the Schedule object type.
+
+    **Fix:**
+    1. Not all BACnet devices implement schedule objects -- this is optional in the standard
+    2. Verify schedule objects exist by checking the device's object list
+    3. Some controllers store schedules as proprietary objects not visible through standard BACnet reads
+  </Accordion>
+
+  <Accordion title="COV subscriptions not working">
+    Change of Value subscriptions require device support and network reliability.
+
+    **Fix:**
+    1. Not all BACnet devices support COV subscriptions -- the connector falls back to polling
+    2. COV subscriptions may time out if the device restarts -- the connector re-subscribes automatically
+    3. Check connector logs for COV subscription rejection messages
+  </Accordion>
+</Accordions>
+
+## Sync Issues
+
+<Accordions>
+  <Accordion title="Discovery takes too long">
+    Large BACnet networks with hundreds of devices can slow down the Who-Is process.
+
+    **Fix:**
+    1. Specify device IDs manually to skip broadcast discovery
+    2. Reduce the discovery timeout if you know exactly how many devices exist
+    3. Segment discovery by network interface if devices span multiple subnets
+  </Accordion>
+
+  <Accordion title="Polling causing network congestion">
+    Frequent polling of many objects can generate significant BACnet traffic.
+
+    **Fix:**
+    1. Increase the poll interval from 30s to 60s or higher
+    2. Reduce the number of monitored objects by specifying object filters
+    3. Use COV subscriptions where supported to reduce polling traffic
+  </Accordion>
+</Accordions>
+
+## Debug Checklist
+
+```bash
+# Verify UDP port is reachable
+nc -u -z BACNET_DEVICE_IP 47808
+
+# Check if the network interface is correct
+ip addr show | grep -E "inet.*eth"
+
+# Verify no firewall blocking UDP 47808
+sudo iptables -L -n | grep 47808
+```
+
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openplane/issues) with the connector status, network topology, and device vendor information.
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/bacnet/setup" description="Reconnect or reconfigure the connector" />
+  <Card title="OPC-UA" href="/docs/connectors/opcua" description="Industrial automation protocol" />
+</Cards>

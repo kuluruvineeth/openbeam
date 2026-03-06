@@ -1,0 +1,131 @@
+---
+title: Setup
+description: Connect an MQTT broker to OpenPlane for real-time sensor data indexing.
+---
+
+# MQTT Setup
+
+## Prerequisites
+
+- MQTT broker running (Mosquitto, EMQX, HiveMQ, or any MQTT 3.1.1/5.0 broker)
+- Broker address and port accessible from the OpenPlane host
+- Optional: username/password or TLS certificates for secure connections
+
+## 1. Identify Your MQTT Broker
+
+Determine the broker software and connection details. Common brokers:
+
+| Broker | Default Port (Plain) | Default Port (TLS) | Notes |
+|--------|---------------------|--------------------:|-------|
+| Mosquitto | 1883 | 8883 | Most common open-source broker |
+| EMQX | 1883 | 8883 | Enterprise-grade, supports millions of connections |
+| HiveMQ | 1883 | 8883 | Cloud-native, Kubernetes-ready |
+| AWS IoT Core | -- | 8883 | TLS required, uses X.509 certificates |
+| Azure Event Grid | -- | 8883 | MQTT v5 support |
+
+## 2. Note Broker Address and Port
+
+Your broker address includes the protocol prefix:
+
+| Protocol | URL Format | Security |
+|----------|-----------|----------|
+| Plain TCP | `mqtt://broker.example.com:1883` | None |
+| TLS | `mqtts://broker.example.com:8883` | Server certificate validation |
+| WebSocket | `ws://broker.example.com:9001` | None |
+| Secure WebSocket | `wss://broker.example.com:9443` | TLS |
+
+## 3. Add the MQTT Connector in OpenPlane
+
+1. Go to **Settings** > **Connectors** > **Add Connector**
+2. Select **MQTT**
+3. Enter the broker URL with protocol prefix
+4. Provide username and password if your broker requires authentication
+
+<Tabs items={["Plain TCP", "TLS", "Mutual TLS (mTLS)"]}>
+  <Tab value="Plain TCP">
+    Use `mqtt://` for unencrypted connections on port 1883. Suitable for local development or isolated networks.
+
+    ```text
+    Broker URL: mqtt://192.168.1.100:1883
+    Username:   (optional)
+    Password:   (optional)
+    ```
+
+    <Callout type="warn">
+      Plain TCP sends credentials and payloads unencrypted. Use TLS for any production deployment or network that crosses trust boundaries.
+    </Callout>
+  </Tab>
+  <Tab value="TLS">
+    Use `mqtts://` for TLS-encrypted connections on port 8883. The connector validates the server certificate against the system CA bundle.
+
+    ```text
+    Broker URL: mqtts://broker.example.com:8883
+    Username:   device-reader
+    Password:   ********
+    ```
+
+    If your broker uses a self-signed certificate, upload the CA certificate in the connector settings.
+  </Tab>
+  <Tab value="Mutual TLS (mTLS)">
+    For mutual TLS, provide both the client certificate and client key in addition to the CA certificate. The broker authenticates the client via its certificate.
+
+    ```text
+    Broker URL:         mqtts://broker.example.com:8883
+    CA Certificate:     /path/to/ca.crt
+    Client Certificate: /path/to/client.crt
+    Client Key:         /path/to/client.key
+    ```
+
+    <Callout type="info">
+      When using mTLS, username/password fields are typically left empty. The client certificate serves as the identity.
+    </Callout>
+  </Tab>
+</Tabs>
+
+## 4. Define Topic Subscription Patterns
+
+Enter one or more MQTT topic patterns using standard wildcards:
+
+| Wildcard | Matches | Example |
+|----------|---------|---------|
+| `+` | Exactly one level | `plant/+/sensors/temperature` |
+| `#` | Zero or more levels | `factory/line1/#` |
+
+Common subscription patterns:
+
+```text
+plant/+/sensors/#          All sensors across all plant areas
+factory/+/+/status         Status from any line and machine
+building/floor+/hvac/#     HVAC data from all floors
+```
+
+<Callout type="warn">
+  For Sparkplug B environments, subscribe to `spBv1.0/+/DDATA/#` for device data and `spBv1.0/+/DBIRTH/#` for device birth certificates. The connector decodes Sparkplug B protobuf payloads automatically.
+</Callout>
+
+## 5. Select Payload Format and Start Sync
+
+Choose the payload format matching your devices:
+
+| Format | Use When |
+|--------|----------|
+| **JSON** | Devices publish `{"temperature": 22.5, "unit": "C"}` |
+| **Sparkplug B** | Industrial IoT with NBIRTH/DBIRTH/NDATA/DDATA topics |
+| **CBOR** | Binary-efficient encoding from constrained devices |
+| **Raw** | Non-structured payloads indexed as plain text |
+
+Click **Connect** to start the subscription. Messages begin indexing immediately as they arrive on subscribed topics.
+
+## What Gets Indexed
+
+| Document Type | Content |
+|---------------|---------|
+| Sensor readings | Aggregated min/max/avg/latest values per time window |
+| Device events | State changes, alarms, birth/death certificates |
+| ISA-95 metadata | Hierarchy extracted from topic paths (plant, area, line, device) |
+
+<Cards>
+  <Card title="Troubleshooting" href="/docs/connectors/mqtt/troubleshooting" description="Connection, TLS, and message issues" />
+  <Card title="OPC-UA" href="/docs/connectors/opcua" description="Industrial automation address space browsing" />
+  <Card title="ThingsBoard" href="/docs/connectors/thingsboard" description="IoT platform with MQTT ingestion" />
+</Cards>

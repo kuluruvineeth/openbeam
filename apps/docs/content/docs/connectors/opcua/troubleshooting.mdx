@@ -1,0 +1,130 @@
+---
+title: Troubleshooting
+description: Common OPC-UA connector issues and fixes.
+---
+
+# Troubleshooting
+
+## Connection Errors
+
+<Accordions>
+  <Accordion title="Connection refused to OPC-UA endpoint">
+    The OPC-UA server is unreachable or the endpoint URL is incorrect.
+
+    **Fix:**
+    1. Verify the endpoint URL format: `opc.tcp://server:4840`
+    2. Test TCP connectivity: `nc -z server 4840`
+    3. Check that the OPC-UA server process is running
+    4. Verify firewall rules allow TCP traffic on the configured port
+  </Accordion>
+
+  <Accordion title="Security policy negotiation failed">
+    The connector and server cannot agree on a security mode or policy.
+
+    **Fix:**
+    1. Check the server's supported security policies
+    2. In OpenPlane, select a policy the server supports
+    3. For testing, try **None/None** first, then upgrade to Sign and Encrypt + Basic256Sha256
+
+    | Policy | Compatibility |
+    |--------|--------------|
+    | None | Universal but insecure |
+    | Basic256Sha256 | Recommended, widely supported |
+    | AES-128 SHA-256 RSA-OAEP | Strongest, newer servers only |
+  </Accordion>
+
+  <Accordion title="Certificate rejected by server">
+    The server requires the client's X.509 certificate to be trusted.
+
+    **Fix:**
+    1. Export the connector's client certificate
+    2. Import it into the OPC-UA server's trusted certificates store
+    3. Restart the OPC-UA server to reload the trust list
+    4. Some servers have an auto-accept mode for development -- do not use this in production
+  </Accordion>
+</Accordions>
+
+## Authentication Errors
+
+<Accordions>
+  <Accordion title="BadIdentityTokenRejected">
+    The username/password combination is invalid.
+
+    **Fix:**
+    1. Verify credentials against the OPC-UA server's user database
+    2. Check for case sensitivity in both username and password
+    3. Try anonymous access (leave credentials empty) if the server supports it
+  </Accordion>
+</Accordions>
+
+## Missing Data
+
+<Accordions>
+  <Accordion title="Address space browse returns no nodes">
+    The server's address space may be empty, or browse permissions are restricted.
+
+    **Fix:**
+    1. Use an OPC-UA client (e.g., UaExpert) to browse the server manually
+    2. Some servers restrict browsing by user role -- use an admin account
+    3. Check the server's node access restrictions
+  </Accordion>
+
+  <Accordion title="Node values showing StatusCode errors">
+    OPC-UA nodes may return status codes instead of values when they are in an error state.
+
+    **Fix:**
+    1. Common status codes: `Bad_NodeIdUnknown`, `Bad_NotReadable`, `Bad_UserAccessDenied`
+    2. `Bad_NotReadable` indicates the node exists but the current user cannot read it
+    3. `Bad_UserAccessDenied` requires elevated permissions
+    4. These nodes are skipped during indexing -- this is expected behavior
+  </Accordion>
+
+  <Accordion title="Historical data not available">
+    Not all OPC-UA servers support Historical Data Access (HDA).
+
+    **Fix:**
+    1. HDA requires the server to implement the HistoryRead service
+    2. Check if the target nodes have the `Historizing` attribute set to `true`
+    3. If the server does not support HDA, the connector indexes only current values
+  </Accordion>
+</Accordions>
+
+## Sync Issues
+
+<Accordions>
+  <Accordion title="Subscriptions dropping intermittently">
+    OPC-UA monitored item subscriptions may time out or be dropped by the server.
+
+    **Fix:**
+    1. The connector automatically re-subscribes when a subscription is dropped
+    2. Check the server's maximum subscription count -- some servers limit concurrent subscriptions
+    3. Reduce the number of monitored nodes if the server is resource-constrained
+  </Accordion>
+
+  <Accordion title="Companion specification nodes not enriched">
+    MTConnect, PackML, or PLCopen metadata enrichment requires recognized node structures.
+
+    **Fix:**
+    1. Verify the server implements the companion specification correctly
+    2. The connector recognizes standard namespace URIs for these specifications
+    3. Custom or modified specifications may not be auto-detected
+  </Accordion>
+</Accordions>
+
+## Debug Checklist
+
+```bash
+# Test TCP connectivity to OPC-UA server
+nc -z server 4840
+
+# Test with an OPC-UA client (if available)
+# UaExpert, Prosys OPC-UA Browser, or similar
+```
+
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openplane/issues) with the connector status, OPC-UA server vendor, and security configuration.
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/opcua/setup" description="Reconnect or reconfigure the connector" />
+  <Card title="MQTT" href="/docs/connectors/mqtt" description="MQTT broker subscriptions" />
+  <Card title="BACnet" href="/docs/connectors/bacnet" description="Building automation protocol" />
+</Cards>
