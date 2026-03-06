@@ -1,0 +1,142 @@
+---
+title: Troubleshooting
+description: Common SmartThings connector issues and fixes.
+---
+
+# Troubleshooting
+
+## Token Errors
+
+<Accordions>
+  <Accordion title="401 Unauthorized — Invalid PAT">
+    The Personal Access Token is missing, malformed, or has been revoked.
+
+    **Fix:**
+    1. Go to [my.smartthings.com/advanced](https://my.smartthings.com/advanced) > **Personal Access Tokens**
+    2. Verify the token still appears in the list (if not, it was revoked or deleted)
+    3. Generate a new token with the required scopes: **Devices** (read), **Locations** (read), **Scenes** (read)
+    4. Update the connector in OpenPlane with the new token
+  </Accordion>
+
+  <Accordion title="403 Forbidden — Insufficient scopes">
+    The token was created without all required scopes. SmartThings scopes cannot be modified after creation.
+
+    **Fix:**
+    1. Delete the existing token in the SmartThings developer portal
+    2. Generate a new token with **Devices**, **Locations**, and **Scenes** scopes selected
+    3. Update the connector in OpenPlane with the new token
+    4. Trigger a full resync
+  </Accordion>
+
+  <Accordion title="Token suddenly stops working">
+    SmartThings PATs do not expire, but they can be invalidated by:
+    - Manual revocation in the developer portal
+    - Samsung account password change
+    - Samsung account deletion
+
+    **Fix:**
+    - Generate a new token and update the connector
+  </Accordion>
+</Accordions>
+
+## Missing Devices
+
+<Accordions>
+  <Accordion title="Devices from one location missing">
+    In multi-location setups, devices are scoped to specific locations. The connector syncs all locations the token has access to.
+
+    **Fix:**
+    1. Verify the Samsung account has access to all intended locations
+    2. In the SmartThings app, check that the missing devices are assigned to a location visible to your account
+    3. Shared locations may require the owner to grant explicit access
+    4. Trigger a full resync after verifying access
+  </Accordion>
+
+  <Accordion title="Recently added devices not appearing">
+    New devices added after the last sync are picked up on the next incremental sync cycle (default: 15 minutes for devices).
+
+    **Fix:**
+    - Wait for the next incremental sync, or trigger a manual sync
+    - Verify the device appears in the SmartThings app first
+    - Devices in setup/pairing mode may not appear in the API until pairing completes
+  </Accordion>
+
+  <Accordion title="Device shows but capabilities are empty">
+    Some device types report no capabilities via the API, or the device handler is custom.
+
+    **Fix:**
+    - This is a SmartThings API limitation for certain legacy device handlers
+    - Cloud-connected and Edge-driver devices report capabilities correctly
+    - Custom Groovy device handlers may not expose capabilities via the REST API
+  </Accordion>
+</Accordions>
+
+## Rate Limits
+
+<Accordions>
+  <Accordion title="429 Too Many Requests">
+    SmartThings enforces a rate limit of approximately **50 requests per minute** per token.
+
+    **Symptoms:**
+    - Sync slows down or pauses
+    - `429` responses in connector logs
+    - Health status fetch for many devices triggers throttling
+
+    **Fix:**
+    1. The connector automatically backs off and retries
+    2. For setups with 500+ devices, the initial sync may take 5-10 minutes due to per-device health checks
+    3. Subsequent incremental syncs are lighter and rarely hit limits
+    4. Do not use the same PAT in other integrations to avoid shared quota consumption
+
+    <Callout type="info">
+      Device health and capability status are fetched per-device. This is the most API-intensive operation and the primary source of rate limit pressure.
+    </Callout>
+  </Accordion>
+</Accordions>
+
+## Scene Sync
+
+<Accordions>
+  <Accordion title="Scenes not appearing in search">
+    The Sync Scenes toggle may be disabled, or the token lacks the Scenes scope.
+
+    **Fix:**
+    1. In OpenPlane, verify **Sync Scenes** is enabled in the connector settings
+    2. Verify the PAT was created with the **Scenes** scope
+    3. If the scope is missing, generate a new token with Scenes included
+    4. Trigger a full resync after updating the token
+  </Accordion>
+
+  <Accordion title="Scene count mismatch with SmartThings app">
+    The SmartThings API may not expose all scene types. Automations (SmartApps) are separate from Scenes.
+
+    **Fix:**
+    - The connector indexes **Scenes** only, not SmartApp automations
+    - Scenes created in the "Scenes" tab of the SmartThings app are synced
+    - Automations created in the "Automations" tab are a different entity type not currently synced
+  </Accordion>
+</Accordions>
+
+## Debug Checklist
+
+```bash
+# Test PAT validity
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+  https://api.smartthings.com/v1/devices?limit=5
+
+# List locations
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+  https://api.smartthings.com/v1/locations
+
+# List scenes
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+  https://api.smartthings.com/v1/scenes
+```
+
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openplane/issues) with the connector status, number of devices/locations, and error messages.
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/smartthings/setup" description="Reconnect or reconfigure the connector" />
+  <Card title="Samsara" href="/docs/connectors/samsara" description="Fleet vehicles and industrial IoT" />
+  <Card title="Verkada" href="/docs/connectors/verkada" description="Physical security cameras and sensors" />
+</Cards>

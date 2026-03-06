@@ -1,0 +1,150 @@
+---
+title: Troubleshooting
+description: Common Samsara connector issues and fixes.
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+<Accordions>
+  <Accordion title="401 Unauthorized — Invalid API token">
+    The API token is missing, malformed, or has been revoked.
+
+    **Fix:**
+    1. In Samsara Dashboard, go to **Settings** > **API Tokens**
+    2. Verify the token still exists and has not been revoked
+    3. If revoked, generate a new token and update the connector in OpenPlane
+    4. Ensure the token is pasted without leading/trailing whitespace
+  </Accordion>
+
+  <Accordion title="403 Forbidden — Insufficient permissions">
+    The API token does not have read access to the requested data stream.
+
+    **Fix:**
+    1. Check which data streams are failing in the sync status
+    2. In Samsara, verify the token has **Read** permissions for Vehicles, Drivers, Alerts, and Sensors
+    3. If permissions were changed, the existing token must be regenerated -- permission edits are not retroactive on some Samsara plans
+  </Accordion>
+
+  <Accordion title="Token expired">
+    Samsara API tokens do not expire by default, but organization admins can revoke them at any time.
+
+    **Fix:**
+    - Generate a new token in the Samsara Dashboard
+    - Update the connector configuration in OpenPlane with the new token
+  </Accordion>
+</Accordions>
+
+## Rate Limits
+
+<Accordions>
+  <Accordion title="429 Too Many Requests">
+    Samsara enforces rate limits of **600 requests per minute** and **36,000 requests per hour**.
+
+    **Symptoms:**
+    - Sync progress stalls temporarily
+    - Connector logs show `429` status codes
+    - Sync duration increases significantly
+
+    **Fix:**
+    1. The connector automatically backs off and retries -- no manual action needed
+    2. If other integrations share the same API token, they consume from the same budget
+    3. Consider creating a dedicated token for OpenPlane
+
+    <Callout type="info">
+      Rate limit headers (`X-RateLimit-Remaining`, `X-RateLimit-Reset`) are tracked automatically. The connector throttles requests before hitting the limit.
+    </Callout>
+  </Accordion>
+
+  <Accordion title="Sync taking much longer than expected">
+    Large fleets (10,000+ vehicles) combined with all data streams enabled can approach rate limits during full sync.
+
+    **Fix:**
+    - Disable data streams you do not need (e.g., turn off Sensors if not relevant)
+    - Schedule full resyncs during off-peak hours
+    - Incremental syncs are unaffected -- they only fetch changed entities
+  </Accordion>
+</Accordions>
+
+## Missing Data
+
+<Accordions>
+  <Accordion title="No vehicles appear after sync">
+    Most commonly a region mismatch.
+
+    **Fix:**
+    1. Check whether your Samsara organization uses the **US** or **EU** data center
+    2. In OpenPlane, verify the connector region matches: US = `api.samsara.com`, EU = `api.eu.samsara.com`
+    3. The wrong region returns empty results rather than an error
+  </Accordion>
+
+  <Accordion title="Sensors not appearing">
+    The Sync Sensors toggle may be off, or the API token lacks sensor read permissions.
+
+    **Fix:**
+    1. In OpenPlane, check that **Sync Sensors** is enabled in the connector settings
+    2. Verify the API token has sensor read permissions in the Samsara Dashboard
+    3. Trigger a full resync after enabling the setting
+  </Accordion>
+
+  <Accordion title="Alerts missing or incomplete">
+    Alerts are time-sensitive. The connector syncs active and recent alerts, not the full historical archive.
+
+    **Fix:**
+    1. Verify **Sync Alerts** is enabled
+    2. The initial sync captures alerts from the past 30 days
+    3. Incremental sync captures new alerts as they arrive via the feed cursor
+  </Accordion>
+</Accordions>
+
+## Sync Issues
+
+<Accordions>
+  <Accordion title="Initial sync slow for large fleets">
+    Full sync iterates all entities using paginated feed cursor endpoints. Duration scales linearly with fleet size.
+
+    **Estimated times:**
+    | Fleet Size | Approximate Duration |
+    |-----------|---------------------|
+    | < 500 vehicles | 2-5 minutes |
+    | 500-5,000 | 5-15 minutes |
+    | 5,000-20,000 | 15-30 minutes |
+    | 20,000+ | 30-60 minutes |
+
+    Subsequent incremental syncs process only changed entities and complete in seconds.
+  </Accordion>
+
+  <Accordion title="Feed cursor returning stale data">
+    The Samsara feed cursor may occasionally return entities that have not actually changed.
+
+    **Fix:**
+    - This is a known Samsara API behavior and does not cause data issues
+    - The connector deduplicates and only re-indexes entities with actual changes
+    - If data appears outdated, trigger a full resync to reset the cursor
+  </Accordion>
+</Accordions>
+
+## Debug Checklist
+
+```bash
+# Test API token validity
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+  https://api.samsara.com/fleet/vehicles
+
+# Check rate limit status (inspect response headers)
+curl -I -H "Authorization: Bearer YOUR_TOKEN" \
+  https://api.samsara.com/fleet/vehicles
+
+# Test EU endpoint
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+  https://api.eu.samsara.com/fleet/vehicles
+```
+
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openplane/issues) with the connector status, error messages, and API response headers.
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/samsara/setup" description="Reconnect or reconfigure the connector" />
+  <Card title="AWS IoT Core" href="/docs/connectors/aws-iot" description="Cloud IoT device management" />
+  <Card title="Verkada" href="/docs/connectors/verkada" description="Physical security cameras and sensors" />
+</Cards>

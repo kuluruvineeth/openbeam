@@ -1,0 +1,133 @@
+---
+title: Troubleshooting
+description: Common AWS IoT Core connector issues and fixes.
+---
+
+# Troubleshooting
+
+## IAM Permission Errors
+
+<Accordions>
+  <Accordion title="403 AccessDeniedException — Missing iot:* actions">
+    The IAM user or role does not have the required IoT permissions.
+
+    **Fix:**
+    1. In the [IAM Console](https://console.aws.amazon.com/iam/), find the user attached to the connector
+    2. Verify the policy includes all five required actions: `iot:ListThings`, `iot:DescribeThing`, `iot:GetThingShadow`, `iot:ListThingGroups`, `iot:DescribeThingGroup`
+    3. Check the `Resource` field -- if scoped to specific ARNs, ensure they cover the things you expect to sync
+    4. Policy changes take effect immediately; trigger a resync
+  </Accordion>
+
+  <Accordion title="InvalidSignatureException — Credential mismatch">
+    The Access Key ID and Secret Access Key do not match, or the Secret Access Key was copied incorrectly.
+
+    **Fix:**
+    1. Verify the Access Key ID is active in **IAM** > **Users** > **Security credentials**
+    2. If the Secret Access Key was lost, delete the key pair and create a new one
+    3. Check for trailing whitespace or newlines in the pasted credentials
+  </Accordion>
+
+  <Accordion title="Trust policy issues with assumed roles">
+    If using an IAM role (not user), the trust policy must allow the OpenPlane service to assume it.
+
+    **Fix:**
+    - Use an IAM user with direct access keys for the simplest setup
+    - If using a role, verify the trust policy includes the correct principal and external ID
+  </Accordion>
+</Accordions>
+
+## Region Mismatch
+
+<Accordions>
+  <Accordion title="Things exist but nothing syncs">
+    IoT things are registered in a specific AWS region. The connector only queries the configured region.
+
+    **Fix:**
+    1. In the AWS Console, go to **IoT Core** and note which region is selected in the top navigation bar
+    2. In OpenPlane, verify the connector region matches exactly
+    3. If your things span multiple regions, add a separate connector instance per region
+
+    <Callout type="info">
+      AWS IoT Core registries are region-scoped. There is no global listing API. Each region must be synced independently.
+    </Callout>
+  </Accordion>
+
+  <Accordion title="Endpoint resolution failure">
+    The connector constructs endpoints as `iot.REGION.amazonaws.com`. An invalid region code causes DNS resolution failure.
+
+    **Fix:**
+    - Use standard region codes: `us-east-1`, `eu-west-1`, `ap-northeast-1`, etc.
+    - GovCloud and China regions are not currently supported
+  </Accordion>
+</Accordions>
+
+## Shadow Access Issues
+
+<Accordions>
+  <Accordion title="Device shadows not appearing in search results">
+    Shadow data requires the `iot:GetThingShadow` permission and uses a separate data plane endpoint.
+
+    **Fix:**
+    1. Verify the IAM policy includes `iot:GetThingShadow`
+    2. Confirm **Sync Device Shadows** is enabled in connector settings
+    3. Not all things have shadows -- only things with an active shadow document are indexed with shadow state
+    4. The data plane endpoint (`data-ats.iot.REGION.amazonaws.com`) must be reachable from the OpenPlane server
+  </Accordion>
+
+  <Accordion title="Shadow fetch timeouts">
+    Individual shadow fetches may time out if the data plane endpoint is slow or the shadow document is very large.
+
+    **Fix:**
+    - The connector retries failed shadow fetches up to 3 times with exponential backoff
+    - Things with unreachable shadows are still indexed with their registry attributes
+    - Check network connectivity to `data-ats.iot.REGION.amazonaws.com`
+  </Accordion>
+</Accordions>
+
+## Rate Limits
+
+<Accordions>
+  <Accordion title="ThrottlingException — 429 responses">
+    AWS IoT Core enforces per-account rate limits. The default is approximately **300 requests per minute** for registry operations.
+
+    **Symptoms:**
+    - Sync progress pauses with throttling errors in logs
+    - `ThrottlingException` in server logs
+    - Sync duration increases for large registries
+
+    **Fix:**
+    1. The connector automatically backs off and retries throttled requests
+    2. For registries with 10,000+ things, the initial sync may take 10-20 minutes due to throttling
+    3. Request a [service quota increase](https://console.aws.amazon.com/servicequotas/) for IoT Core API rate limits if needed
+    4. Incremental syncs are much lighter and rarely hit limits
+  </Accordion>
+</Accordions>
+
+## Debug Checklist
+
+```bash
+# Test IAM credentials
+aws iot list-things --max-results 5 \
+  --region us-east-1
+
+# Check specific thing
+aws iot describe-thing --thing-name "my-device" \
+  --region us-east-1
+
+# Test shadow access
+aws iot-data get-thing-shadow --thing-name "my-device" \
+  --region us-east-1 /dev/stdout
+
+# Verify IAM permissions
+aws iam simulate-principal-policy \
+  --policy-source-arn arn:aws:iam::ACCOUNT:user/openplane-iot-readonly \
+  --action-names iot:ListThings iot:GetThingShadow
+```
+
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openplane/issues) with the connector status, AWS region, and error messages from the sync log.
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/aws-iot/setup" description="Reconnect or reconfigure the connector" />
+  <Card title="Azure IoT Hub" href="/docs/connectors/azure-iot" description="Microsoft's cloud IoT platform" />
+  <Card title="Samsara" href="/docs/connectors/samsara" description="Fleet vehicles and industrial IoT" />
+</Cards>

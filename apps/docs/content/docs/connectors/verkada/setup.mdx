@@ -1,0 +1,68 @@
+---
+title: Setup
+description: Connect Verkada to OpenPlane with an API key.
+---
+
+# Verkada Setup
+
+## Prerequisites
+
+- Verkada Command account with admin access
+- OpenPlane instance running
+
+## 1. Log In to Verkada Command
+
+Go to [command.verkada.com](https://command.verkada.com) and sign in with your organization credentials.
+
+## 2. Generate an API Key
+
+1. Navigate to **Admin** > **Integrations** > **API Keys**
+2. Click **Add API Key**
+3. Name the key (e.g., `OpenPlane Integration`)
+4. Grant read access to Cameras, Access Control, and Environmental Sensors
+
+<Callout type="warn">
+  The API key must have read permissions for all device categories you want to search. Missing permissions cause silent data gaps -- devices from restricted categories simply do not appear.
+</Callout>
+
+5. Copy the API key immediately -- it is only shown once
+
+## 3. Add the Connector in OpenPlane
+
+1. Go to **Settings** > **Connectors** > **Add Connector**
+2. Select **Verkada**
+3. Paste the API key
+
+## 4. Select Your Region
+
+Verkada operates three regional deployments. Select the one matching your organization:
+
+| Region | API Base URL |
+|--------|-------------|
+| US (default) | `https://api.verkada.com` |
+| EU | `https://api.eu.verkada.com` |
+| AU | `https://api.au.verkada.com` |
+
+<Callout type="error">
+  Selecting the wrong region returns empty results, not an error. If devices exist but nothing syncs, check the region setting first.
+</Callout>
+
+## 5. Start Sync and Verify
+
+1. Click **Connect** to save the configuration
+2. The initial full sync begins automatically
+3. Verify cameras and sensors appear in search within a few minutes
+
+## What Gets Indexed
+
+| Entity | Searchable Fields |
+|--------|-------------------|
+| Cameras | Name, model, status, site, firmware version, last online timestamp |
+| Doors | Name, lock state, site, recent access events |
+| Sensors | Name, type, current readings (temperature, humidity, air quality), site |
+
+<Cards>
+  <Card title="Troubleshooting" href="/docs/connectors/verkada/troubleshooting" description="API key issues, region mismatches, and missing devices" />
+  <Card title="Samsara" href="/docs/connectors/samsara" description="Fleet vehicles and industrial IoT" />
+  <Card title="BACnet" href="/docs/connectors/bacnet" description="Building automation and HVAC" />
+</Cards>

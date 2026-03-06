@@ -1,0 +1,111 @@
+---
+title: Setup
+description: Connect AWS IoT Core to OpenPlane with IAM credentials.
+---
+
+# AWS IoT Core Setup
+
+## Prerequisites
+
+- AWS account with IAM admin access
+- IoT things registered in your AWS IoT Core registry
+- OpenPlane instance running
+
+## 1. Create an IAM User
+
+1. Go to the [IAM Console](https://console.aws.amazon.com/iam/)
+2. Navigate to **Users** > **Create user**
+3. Name the user (e.g., `openplane-iot-readonly`)
+4. Select **Attach policies directly**
+
+## 2. Attach IoT Read Permissions
+
+Create a custom policy with the minimum required permissions:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "iot:ListThings",
+        "iot:DescribeThing",
+        "iot:GetThingShadow",
+        "iot:ListThingGroups",
+        "iot:DescribeThingGroup"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+```
+
+<Callout type="warn">
+  Scope the `Resource` field to specific thing ARNs if your security policy requires least-privilege access. Using `*` grants read access to all things in the account.
+</Callout>
+
+## 3. Generate Access Keys
+
+1. Select the newly created IAM user
+2. Go to **Security credentials** > **Access keys** > **Create access key**
+3. Select **Third-party service** as the use case
+4. Copy both the **Access Key ID** and **Secret Access Key**
+
+<Callout type="error">
+  The Secret Access Key is only shown once. Store it securely. If lost, you must create a new access key pair.
+</Callout>
+
+## 4. Add the Connector in OpenPlane
+
+1. Go to **Settings** > **Connectors** > **Add Connector**
+2. Select **AWS IoT Core**
+3. Enter the **Access Key ID** and **Secret Access Key**
+4. Select the **AWS Region** where your IoT things are deployed
+
+<Callout type="info">
+  Both the control plane endpoint (`iot.REGION.amazonaws.com`) and data plane endpoint (`data-ats.iot.REGION.amazonaws.com`) are used. The control plane lists and describes things; the data plane fetches device shadows.
+</Callout>
+
+## 5. Select Region
+
+Choose the region matching your IoT deployment:
+
+<Tabs items={["US Regions", "EU Regions", "APAC Regions"]}>
+  <Tab value="US Regions">
+    | Region | Code |
+    |--------|------|
+    | US East (N. Virginia) | `us-east-1` |
+    | US East (Ohio) | `us-east-2` |
+    | US West (N. California) | `us-west-1` |
+    | US West (Oregon) | `us-west-2` |
+  </Tab>
+  <Tab value="EU Regions">
+    | Region | Code |
+    |--------|------|
+    | EU (Ireland) | `eu-west-1` |
+    | EU (London) | `eu-west-2` |
+    | EU (Frankfurt) | `eu-central-1` |
+  </Tab>
+  <Tab value="APAC Regions">
+    | Region | Code |
+    |--------|------|
+    | Asia Pacific (Tokyo) | `ap-northeast-1` |
+    | Asia Pacific (Singapore) | `ap-southeast-1` |
+    | Asia Pacific (Sydney) | `ap-southeast-2` |
+  </Tab>
+</Tabs>
+
+## 6. Start Sync and Verify
+
+1. Click **Connect** to save the configuration
+2. The initial full sync begins automatically
+3. Verify things and thing groups appear in search
+
+Initial sync fetches all things with their attributes and shadow state. Duration depends on registry size -- 1,000 things typically complete in under 2 minutes.
+
+<Cards>
+  <Card title="Troubleshooting" href="/docs/connectors/aws-iot/troubleshooting" description="IAM errors, region mismatches, and shadow access" />
+  <Card title="Azure IoT Hub" href="/docs/connectors/azure-iot" description="Microsoft's cloud IoT platform" />
+  <Card title="SmartThings" href="/docs/connectors/smartthings" description="Samsung consumer IoT devices" />
+</Cards>

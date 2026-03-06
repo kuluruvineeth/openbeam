@@ -1,0 +1,77 @@
+---
+title: Setup
+description: Connect Samsara to OpenPlane with an API token.
+---
+
+# Samsara Setup
+
+## Prerequisites
+
+- Samsara account with admin or API access
+- OpenPlane instance running
+
+## 1. Log In to Samsara Dashboard
+
+Go to [cloud.samsara.com](https://cloud.samsara.com) and sign in with your organization credentials.
+
+## 2. Create an API Token
+
+1. Navigate to **Settings** > **API Tokens**
+2. Click **Create API Token**
+3. Name the token (e.g., `OpenPlane Integration`)
+4. Grant **Read** permissions for all relevant data streams
+
+<Callout type="warn">
+  The API token must have read access to **Vehicles**, **Drivers**, **Alerts**, and **Sensors**. Tokens without these permissions will cause partial sync failures with 403 errors.
+</Callout>
+
+5. Copy the generated token immediately -- it is only shown once
+
+## 3. Add the Connector in OpenPlane
+
+1. Go to **Settings** > **Connectors** > **Add Connector**
+2. Select **Samsara**
+3. Paste the API token into the **API Token** field
+
+## 4. Select Your Region
+
+Samsara operates two regional data centers. Select the one matching your organization:
+
+| Region | API Base URL |
+|--------|-------------|
+| US (default) | `https://api.samsara.com` |
+| EU | `https://api.eu.samsara.com` |
+
+<Callout type="error">
+  Using the wrong region returns empty results, not an error. If your fleet exists but no vehicles appear after sync, check the region setting first.
+</Callout>
+
+## 5. Start Sync and Verify
+
+1. Click **Connect** to save the configuration
+2. The initial full sync begins automatically
+3. Verify vehicles appear in search within a few minutes
+
+<Tabs items={["Small Fleet", "Large Fleet"]}>
+  <Tab value="Small Fleet">
+    Fleets under 500 vehicles complete initial sync in under 5 minutes. All four data streams (vehicles, drivers, alerts, sensors) sync in parallel.
+  </Tab>
+  <Tab value="Large Fleet">
+    Fleets with 5,000+ vehicles may take 15-30 minutes for the initial sync. The connector uses Samsara's feed cursor pagination to avoid hitting rate limits. Subsequent incremental syncs are fast regardless of fleet size.
+  </Tab>
+</Tabs>
+
+## What Gets Indexed
+
+| Entity | Searchable Fields |
+|--------|-------------------|
+| Vehicles | Name, VIN, GPS coordinates, speed, fuel level, engine state, odometer |
+| Drivers | Name, phone, license number, tags, active status |
+| Alerts | Alert type, severity, associated vehicle/driver, location, timestamp |
+| Sensors | Sensor name, type, current value, unit, gateway device |
+
+<Cards>
+  <Card title="Troubleshooting" href="/docs/connectors/samsara/troubleshooting" description="Rate limits, region mismatches, and missing data" />
+  <Card title="AWS IoT Core" href="/docs/connectors/aws-iot" description="Cloud IoT device management" />
+  <Card title="Verkada" href="/docs/connectors/verkada" description="Physical security cameras and sensors" />
+</Cards>

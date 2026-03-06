@@ -1,5 +1,5 @@
 {
   "title": "Samsara",
   "icon": "Samsara",
-  "pages": ["index"]
+  "pages": ["index", "setup", "troubleshooting"]
 }

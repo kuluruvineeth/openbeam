@@ -1,0 +1,90 @@
+---
+title: Setup
+description: Connect Azure IoT Hub to OpenPlane with a shared access connection string.
+---
+
+# Azure IoT Hub Setup
+
+## Prerequisites
+
+- Azure account with access to an IoT Hub instance
+- IoT Hub shared access policy with registry read permissions
+- OpenPlane instance running
+
+## 1. Navigate to IoT Hub
+
+1. Go to the [Azure Portal](https://portal.azure.com)
+2. Open your **IoT Hub** resource
+3. In the left sidebar, select **Shared access policies**
+
+## 2. Select or Create a Policy
+
+Choose an existing policy or create a new one with the required permissions:
+
+| Permission | Required | Purpose |
+|-----------|----------|---------|
+| **Registry read** | Yes | List and describe devices |
+| **Service connect** | Yes | Read device twins (tags, reported/desired properties) |
+| Registry write | No | Not needed -- OpenPlane is read-only |
+| Device connect | No | Not needed -- OpenPlane does not act as a device |
+
+<Callout type="warn">
+  The `iothubowner` policy has all permissions but is overly broad. Create a dedicated policy with only **Registry read** and **Service connect** for least-privilege access.
+</Callout>
+
+## 3. Copy the Connection String
+
+1. Select your policy
+2. Copy the **Primary connection string**
+
+The format is:
+```text
+HostName=your-hub.azure-devices.net;SharedAccessKeyName=openplane;SharedAccessKey=BASE64KEY=
+```
+
+<Callout type="info">
+  SAS tokens are auto-generated from the connection string with a 60-minute TTL and 5-minute refresh buffer. You never need to manually create or rotate SAS tokens.
+</Callout>
+
+## 4. Add the Connector in OpenPlane
+
+1. Go to **Settings** > **Connectors** > **Add Connector**
+2. Select **Azure IoT Hub**
+3. Paste the **Connection String** into the configuration field
+4. Click **Connect**
+
+## 5. Start Sync and Verify
+
+1. The initial full sync begins automatically after connecting
+2. Verify devices appear in search results within a few minutes
+
+<Tabs items={["Small Hub", "Large Hub"]}>
+  <Tab value="Small Hub">
+    IoT Hubs with fewer than 1,000 devices complete initial sync in under 2 minutes. Device twins are fetched in batches using the IoT Hub query API.
+  </Tab>
+  <Tab value="Large Hub">
+    IoT Hubs with 10,000+ devices may take 10-20 minutes due to the conservative rate limit (15 requests per minute for REST API). The connector respects Azure's throttling and retries automatically.
+  </Tab>
+</Tabs>
+
+## What Gets Indexed
+
+Each device document includes:
+
+| Field | Description |
+|-------|-------------|
+| Device ID | Unique identifier in the IoT Hub |
+| Connection state | Connected or Disconnected |
+| Status | Enabled or Disabled |
+| Twin tags | Custom key-value metadata set by the solution backend |
+| Reported properties | State reported by the device |
+| Desired properties | State requested by the solution backend |
+| Last activity time | Timestamp of last device communication |
+
+All twin fields are searchable, allowing queries like "devices with tag environment=production" or "devices reporting firmware version 2.1".
+
+<Cards>
+  <Card title="Troubleshooting" href="/docs/connectors/azure-iot/troubleshooting" description="Connection string errors, rate limits, and missing devices" />
+  <Card title="AWS IoT Core" href="/docs/connectors/aws-iot" description="Amazon's cloud IoT platform" />
+  <Card title="ThingsBoard" href="/docs/connectors/thingsboard" description="Open-source IoT platform" />
+</Cards>

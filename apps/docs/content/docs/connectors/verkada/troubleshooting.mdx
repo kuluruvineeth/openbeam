@@ -1,0 +1,114 @@
+---
+title: Troubleshooting
+description: Common Verkada connector issues and fixes.
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+<Accordions>
+  <Accordion title="401 Unauthorized — Invalid API key">
+    The API key is missing, malformed, or has been revoked.
+
+    **Fix:**
+    1. In Verkada Command, go to **Admin** > **Integrations** > **API Keys**
+    2. Verify the key still exists and has not been revoked
+    3. If revoked, generate a new key and update the connector in OpenPlane
+    4. Ensure the key is pasted without leading/trailing whitespace
+  </Accordion>
+
+  <Accordion title="403 Forbidden — Insufficient permissions">
+    The API key does not have read access to one or more device categories.
+
+    **Fix:**
+    1. Check which device categories are failing in the sync status
+    2. In Verkada Command, verify the key has read permissions for Cameras, Access Control, and Environmental Sensors
+    3. Generate a new key if permissions cannot be modified on the existing one
+  </Accordion>
+</Accordions>
+
+## Region Issues
+
+<Accordions>
+  <Accordion title="No devices found after sync">
+    Most commonly a region mismatch. Verkada operates three regional deployments that are completely separate.
+
+    **Fix:**
+    1. Verify which region your organization uses: **US**, **EU**, or **AU**
+    2. In OpenPlane, confirm the connector region matches
+    3. The wrong region returns empty results rather than an error
+
+    | Region | API Base |
+    |--------|----------|
+    | US | `api.verkada.com` |
+    | EU | `api.eu.verkada.com` |
+    | AU | `api.au.verkada.com` |
+  </Accordion>
+</Accordions>
+
+## Missing Data
+
+<Accordions>
+  <Accordion title="Cameras appear but doors or sensors do not">
+    The API key may lack permissions for specific device categories, or those categories are disabled in the connector settings.
+
+    **Fix:**
+    1. In OpenPlane, verify **Sync Doors** and **Sync Sensors** toggles are enabled
+    2. In Verkada Command, verify the API key has access to Access Control and Environmental Sensors
+    3. Trigger a full resync after adjusting settings
+  </Accordion>
+
+  <Accordion title="Devices from specific sites missing">
+    The API key may be scoped to specific sites rather than the full organization.
+
+    **Fix:**
+    1. In Verkada Command, check if the API key has organization-wide access or is restricted to certain sites
+    2. Generate an organization-scoped key if needed
+  </Accordion>
+</Accordions>
+
+## Sync Issues
+
+<Accordions>
+  <Accordion title="Sync completes but device count seems low">
+    Verkada API pagination may be hitting limits, or some devices are offline.
+
+    **Fix:**
+    1. Compare the synced device count against the Verkada Command dashboard total
+    2. Offline devices are still indexed but may have stale metadata
+    3. Trigger a full resync to recrawl all devices
+  </Accordion>
+
+  <Accordion title="Webhook events not processing">
+    Verkada webhooks require endpoint accessibility and proper configuration.
+
+    **Fix:**
+    1. Verify the webhook endpoint URL is reachable from the internet
+    2. Check that the webhook is registered in Verkada Command
+    3. Review connector logs for webhook signature validation failures
+  </Accordion>
+</Accordions>
+
+## Debug Checklist
+
+```bash
+# Test API key validity (US region)
+curl -H "x-api-key: YOUR_API_KEY" \
+  https://api.verkada.com/cameras/v1/devices
+
+# Test EU region
+curl -H "x-api-key: YOUR_API_KEY" \
+  https://api.eu.verkada.com/cameras/v1/devices
+
+# Test AU region
+curl -H "x-api-key: YOUR_API_KEY" \
+  https://api.au.verkada.com/cameras/v1/devices
+```
+
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openplane/issues) with the connector status, error messages, and API response headers.
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/verkada/setup" description="Reconnect or reconfigure the connector" />
+  <Card title="Samsara" href="/docs/connectors/samsara" description="Fleet vehicles and industrial IoT" />
+</Cards>

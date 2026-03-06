@@ -1,0 +1,140 @@
+---
+title: Troubleshooting
+description: Common Azure IoT Hub connector issues and fixes.
+---
+
+# Troubleshooting
+
+## Connection String Errors
+
+<Accordions>
+  <Accordion title="Invalid connection string format">
+    The connection string must contain exactly three fields: `HostName`, `SharedAccessKeyName`, and `SharedAccessKey`.
+
+    **Fix:**
+    1. Verify the format: `HostName=XXX;SharedAccessKeyName=XXX;SharedAccessKey=XXX`
+    2. Check for missing semicolons or truncated values (the SharedAccessKey ends with `=`)
+    3. Do not include `DeviceId` -- that is a device-level connection string, not a service-level one
+    4. Re-copy from **Azure Portal** > **IoT Hub** > **Shared access policies** > **Primary connection string**
+  </Accordion>
+
+  <Accordion title="401 Unauthorized — SAS token rejected">
+    The SharedAccessKey is invalid or the policy has been deleted.
+
+    **Fix:**
+    1. In Azure Portal, verify the policy named in `SharedAccessKeyName` still exists
+    2. Regenerate the primary key if compromised: **IoT Hub** > **Shared access policies** > **Regenerate primary key**
+    3. Copy the new connection string and update the connector in OpenPlane
+    4. SAS tokens are auto-generated from the key -- if the key changes, existing tokens are invalidated immediately
+  </Accordion>
+
+  <Accordion title="HostName resolution failure">
+    The IoT Hub hostname in the connection string cannot be resolved via DNS.
+
+    **Fix:**
+    - Verify the IoT Hub still exists in Azure (not deleted or moved)
+    - Check that `HostName` matches exactly: `your-hub.azure-devices.net`
+    - If using a private endpoint, ensure the OpenPlane server can reach it
+  </Accordion>
+</Accordions>
+
+## Rate Limits
+
+<Accordions>
+  <Accordion title="429 Throttled — Slow sync progress">
+    Azure IoT Hub enforces a rate limit of approximately **15 requests per minute** for REST API calls on standard tiers. This is the most conservative rate limit among the IoT connectors.
+
+    **Symptoms:**
+    - Sync progress is very slow for large device registries
+    - `429 Too Many Requests` in connector logs
+    - Estimated sync time exceeds 30 minutes
+
+    **Fix:**
+    1. The connector automatically respects `Retry-After` headers and backs off
+    2. For IoT Hubs with 10,000+ devices, initial sync may take 20-40 minutes
+    3. Upgrading to a higher IoT Hub tier increases rate limits
+    4. Incremental syncs are much faster -- they query only devices with recent `lastActivityTime`
+
+    <Callout type="info">
+      The batch query API (`SELECT * FROM devices`) retrieves up to 100 devices per request, minimizing the number of API calls needed.
+    </Callout>
+  </Accordion>
+</Accordions>
+
+## Missing Devices
+
+<Accordions>
+  <Accordion title="Devices not appearing after sync">
+    The shared access policy may lack the required permissions.
+
+    **Fix:**
+    1. Verify the policy has **Registry read** permission (required to list devices)
+    2. In Azure Portal: **IoT Hub** > **Shared access policies** > select your policy > check **Registry read** is checked
+    3. If the policy was changed, re-copy the connection string and reconnect
+  </Accordion>
+
+  <Accordion title="Device twins missing tags or properties">
+    Twin data requires **Service connect** permission on the shared access policy.
+
+    **Fix:**
+    1. Verify the policy has **Service connect** permission
+    2. Tags, reported properties, and desired properties all require this permission
+    3. Without it, devices are indexed with basic metadata only (device ID, status, connection state)
+    4. After adding the permission, trigger a full resync
+  </Accordion>
+
+  <Accordion title="Disabled devices not appearing">
+    By default, the connector indexes all devices including disabled ones.
+
+    **Fix:**
+    - Disabled devices should appear with `status: disabled` in the search index
+    - If they do not appear, check that the IoT Hub query API returns them: `SELECT * FROM devices WHERE status = 'disabled'`
+    - Trigger a full resync to re-enumerate all devices
+  </Accordion>
+</Accordions>
+
+## Sync Issues
+
+<Accordions>
+  <Accordion title="Incremental sync not detecting changes">
+    Incremental sync filters by `lastActivityTime`. Devices that receive twin updates but have no direct activity may not trigger this timestamp.
+
+    **Fix:**
+    - Trigger a full resync to capture all current state
+    - Twin-only changes (tags, desired properties set by the backend) may not update `lastActivityTime`
+    - Full resyncs are recommended on a weekly schedule for IoT Hubs with frequent twin changes
+  </Accordion>
+
+  <Accordion title="Sync stuck in running state">
+    Network connectivity issues or Azure service outages can cause the sync to stall.
+
+    **Fix:**
+    1. Check [Azure Status](https://status.azure.com/) for IoT Hub outages
+    2. Verify network connectivity from the OpenPlane server to `*.azure-devices.net`
+    3. Cancel the stuck sync and retry
+    4. Check server logs for specific HTTP error codes
+  </Accordion>
+</Accordions>
+
+## Debug Checklist
+
+```bash
+# Test connection string (requires Azure CLI)
+az iot hub device-identity list \
+  --hub-name your-hub --top 5
+
+# Query devices with the REST API
+curl -H "Authorization: SharedAccessSignature ..." \
+  "https://your-hub.azure-devices.net/devices?top=5&api-version=2021-04-12"
+
+# Check IoT Hub metrics in Azure Portal
+# IoT Hub > Metrics > Connected devices, Telemetry messages sent
+```
+
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openplane/issues) with the connector status, IoT Hub tier, device count, and error messages.
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/azure-iot/setup" description="Reconnect or reconfigure the connector" />
+  <Card title="AWS IoT Core" href="/docs/connectors/aws-iot" description="Amazon's cloud IoT platform" />
+  <Card title="SmartThings" href="/docs/connectors/smartthings" description="Samsung consumer IoT devices" />
+</Cards>

@@ -1,5 +1,5 @@
 {
   "title": "AWS IoT",
   "icon": "AwsIot",
-  "pages": ["index"]
+  "pages": ["index", "setup", "troubleshooting"]
 }

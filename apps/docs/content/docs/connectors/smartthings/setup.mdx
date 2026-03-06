@@ -1,0 +1,76 @@
+---
+title: Setup
+description: Connect SmartThings to OpenPlane with a Personal Access Token.
+---
+
+# SmartThings Setup
+
+## Prerequisites
+
+- Samsung account with SmartThings devices registered
+- OpenPlane instance running
+
+## 1. Open the SmartThings Developer Portal
+
+Go to [my.smartthings.com/advanced](https://my.smartthings.com/advanced) and sign in with your Samsung account.
+
+## 2. Generate a Personal Access Token
+
+1. Navigate to **Personal Access Tokens**
+2. Click **Generate New Token**
+3. Name the token (e.g., `OpenPlane Integration`)
+4. Select the required scopes:
+
+| Scope | Required | Purpose |
+|-------|----------|---------|
+| **Devices** (read) | Yes | List and describe devices, capabilities, health |
+| **Locations** (read) | Yes | List locations and rooms |
+| **Scenes** (read) | Optional | List automation scenes |
+
+5. Click **Generate Token**
+6. Copy the token immediately
+
+<Callout type="warn">
+  The token is only displayed once. If you lose it, you must generate a new one. SmartThings PATs do not expire but can be revoked at any time from the developer portal.
+</Callout>
+
+## 3. Add the Connector in OpenPlane
+
+1. Go to **Settings** > **Connectors** > **Add Connector**
+2. Select **SmartThings**
+3. Paste the **Personal Access Token**
+4. Click **Connect**
+
+## 4. Start Sync and Verify
+
+1. The initial full sync begins automatically
+2. Verify devices appear in search results within a few minutes
+
+<Tabs items={["Single Location", "Multi-Location"]}>
+  <Tab value="Single Location">
+    A typical home setup with 20-50 devices completes initial sync in under 1 minute. All devices, the location, rooms, and scenes are synced in parallel.
+  </Tab>
+  <Tab value="Multi-Location">
+    Multi-location setups (home, office, vacation property) sync all locations and their devices. Each location is enumerated independently. A setup with 3 locations and 150 total devices completes in 2-3 minutes.
+  </Tab>
+</Tabs>
+
+## What Gets Indexed
+
+| Entity | Searchable Fields |
+|--------|-------------------|
+| Devices | Name, type, capabilities, components, health status, location, room |
+| Locations | Name, timezone, country, temperature scale, latitude/longitude |
+| Scenes | Name, associated location, last execution time |
+
+Device capabilities (e.g., `temperatureMeasurement`, `switch`, `motionSensor`, `lock`) are indexed as searchable metadata, enabling queries like "motion sensors in the Office" or "devices with temperature capability".
+
+<Callout type="info">
+  Each device's component-level detail is indexed. Multi-component devices (e.g., a thermostat with temperature sensor + HVAC control) have all components searchable as a single document.
+</Callout>
+
+<Cards>
+  <Card title="Troubleshooting" href="/docs/connectors/smartthings/troubleshooting" description="Token errors, missing devices, and rate limits" />
+  <Card title="Samsara" href="/docs/connectors/samsara" description="Fleet vehicles and industrial IoT" />
+  <Card title="BACnet" href="/docs/connectors/bacnet" description="Building automation and HVAC systems" />
+</Cards>
