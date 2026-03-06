@@ -1,0 +1,168 @@
+---
+title: OAuth Scopes
+description: Google Drive OAuth scopes and permissions.
+---
+
+# OAuth Scopes
+
+OpenPlane requests four scopes during the Google Drive OAuth flow. All scopes are read-only. No write, delete, or share permissions are requested.
+
+## Required Scopes
+
+| Scope | Purpose | Data Accessed |
+|-------|---------|---------------|
+| `drive.readonly` | Read file content and metadata | Documents, spreadsheets, presentations, PDFs, images, videos |
+| `drive.metadata.readonly` | Read file metadata without content | File names, MIME types, sizes, permissions, folder structure |
+| `userinfo.email` | Read primary email address | Used for identity mapping across connectors |
+| `userinfo.profile` | Read user profile | Display name and avatar for the connected account |
+
+## What Each Scope Enables
+
+### `drive.readonly`
+
+Grants read access to all files the authenticating user can access:
+
+- Google Docs, Sheets, and Slides (exported as text)
+- PDFs, Word documents, Excel files (content extracted)
+- Images (metadata indexed, OCR if enabled)
+- Video and audio files (transcribed via TwelveLabs if enabled)
+- Files in My Drive, Shared with Me, and Shared Drives
+
+This is the primary scope. Without it, OpenPlane cannot read file content for indexing.
+
+### `drive.metadata.readonly`
+
+Reads file metadata independently of content:
+
+- File name, MIME type, size, and creation date
+- Last modified time and modifying user
+- Parent folder hierarchy
+- Permission lists (used for access-control filtering in search results)
+- Shared Drive membership
+
+<Callout type="info">
+  The `drive.metadata.readonly` scope enables permission-aware search. OpenPlane indexes file permissions so search results respect the querying user's access level.
+</Callout>
+
+### `userinfo.email`
+
+Fetches the authenticated user's primary email address. Used for:
+
+- Identifying which account connected the integration
+- Cross-connector identity resolution (linking Drive activity to Slack, GitHub, etc.)
+
+### `userinfo.profile`
+
+Fetches the user's display name and profile picture. Used to show who connected the integration in the OpenPlane settings UI.
+
+## Add Scopes
+
+In **APIs & Services > OAuth consent screen > Scopes**, add:
+
+```text
+https://www.googleapis.com/auth/drive.readonly
+https://www.googleapis.com/auth/drive.metadata.readonly
+https://www.googleapis.com/auth/userinfo.email
+https://www.googleapis.com/auth/userinfo.profile
+```
+
+## Consent Screen Configuration
+
+### 1. Create OAuth Consent Screen
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Navigate to **APIs & Services > OAuth consent screen**
+3. Select user type:
+   - **Internal** -- Google Workspace users in your organization only (no verification required)
+   - **External** -- Any Google account (requires verification for production)
+
+### 2. App Information
+
+Fill in the required fields:
+
+| Field | Value |
+|-------|-------|
+| App name | Your organization name or "OpenPlane" |
+| User support email | Your support email address |
+| App logo | Optional |
+| App home page | Your OpenPlane instance URL |
+| Privacy policy | Required for External apps |
+| Terms of service | Required for External apps |
+
+### 3. Authorized Domains
+
+Add your OpenPlane instance domain (e.g., `your-domain.com`). This must match the domain in your redirect URI.
+
+## Google Verification
+
+The `drive.readonly` and `drive.metadata.readonly` scopes are classified as **Restricted** by Google:
+
+| Mode | Limit | Requirements |
+|------|-------|--------------|
+| Testing | 100 test users | Add users manually in consent screen settings |
+| Production | Unlimited | Google verification + optional security assessment |
+
+### Verification Requirements
+
+For production use (more than 100 users), Google requires:
+
+- Privacy policy URL (must be on an authorized domain)
+- Application homepage URL
+- Video recording demonstrating the OAuth flow and data usage
+- Written explanation of why each scope is needed
+- CASA Tier 2 security assessment (for restricted scopes)
+
+<Callout type="warn">
+  Verification for restricted scopes (like `drive.readonly`) typically takes 4-6 weeks. Google Workspace admins using Internal app type can skip verification entirely.
+</Callout>
+
+### Google Workspace Shortcut
+
+If all users are within a single Google Workspace organization:
+
+1. Select **Internal** as the user type
+2. No verification required
+3. No test user limit
+4. All organization members can authorize immediately
+
+## Service Account Scopes
+
+When using a Service Account with domain-wide delegation instead of OAuth, the same scopes must be granted in the Google Workspace Admin Console:
+
+1. Go to **Admin Console > Security > API Controls > Domain-wide Delegation**
+2. Add the Service Account client ID
+3. Grant the following scopes:
+   ```text
+   https://www.googleapis.com/auth/drive.readonly
+   https://www.googleapis.com/auth/drive.metadata.readonly
+   ```
+
+User info scopes are not needed for Service Accounts since the admin email is configured directly.
+
+## Scope Errors
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `insufficient_scope` | Token lacks a required scope | Disconnect and reconnect to re-authorize |
+| `access_denied` | User denied the consent screen | Re-initiate OAuth and click **Allow** |
+| `redirect_uri_mismatch` | Callback URL does not match credentials | Update redirect URI in Google Cloud Console credentials |
+| `invalid_grant` | Authorization code expired, already used, or refresh token revoked | Retry the OAuth flow |
+| `deleted_client` | OAuth client was deleted in Google Cloud | Create new OAuth credentials |
+
+<Callout type="info">
+  Adding or removing scopes on existing OAuth credentials requires users to re-authorize. Existing tokens retain their original scope set.
+</Callout>
+
+## Token Lifecycle
+
+Google Drive OAuth tokens follow the standard Google token lifecycle:
+
+- Access tokens expire after 1 hour
+- Refresh tokens are issued on first authorization (when `access_type=offline` is set)
+- OpenPlane handles token refresh automatically via `refreshGoogleDriveToken`
+- Refresh tokens can be revoked by the user in [Google Account permissions](https://myaccount.google.com/permissions)
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/google-drive/setup" description="Connect Google Drive to OpenPlane" />
+  <Card title="Configuration" href="/docs/connectors/google-drive/configuration" description="Content, sync, and authentication settings" />
+</Cards>

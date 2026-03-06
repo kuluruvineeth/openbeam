@@ -4,6 +4,7 @@
   "pages": [
     "index",
     "setup",
+    "oauth-setup",
     "features",
     "configuration",
     "sync",

@@ -1,0 +1,123 @@
+---
+title: OAuth Setup
+description: Notion integration setup and permissions.
+---
+
+# OAuth Setup
+
+Notion uses OAuth 2.0 with capability-based permissions instead of granular scopes. Access is controlled through integration capabilities and page-level sharing.
+
+## Create a Notion Integration
+
+1. Go to [notion.so/my-integrations](https://www.notion.so/my-integrations)
+2. Click **+ New integration**
+3. Enter a name (e.g., "OpenPlane")
+4. Select the workspace to connect
+5. Click **Submit**
+
+## Enable Public Distribution
+
+By default, integrations are internal (single workspace). To use OAuth:
+
+1. Open your integration and go to the **Distribution** tab
+2. Toggle **Public integration** to enabled
+3. Fill in required company information:
+   - Company name
+   - Website URL
+   - Privacy policy URL
+   - Terms of use URL (optional)
+4. Add the redirect URI:
+   ```text
+   https://your-domain.com/connectors/setup/notion/oauth/callback
+   ```
+5. Click **Save changes**
+
+<Callout type="info">
+  The redirect URI must match your OpenPlane instance exactly. Mismatches cause `redirect_uri_mismatch` errors during authorization.
+</Callout>
+
+## Required Capabilities
+
+In the **Capabilities** tab, enable the following:
+
+| Capability | Required | Purpose |
+|------------|----------|---------|
+| Read content | Yes | Read pages, databases, and block content |
+| Read comments | Yes | Index comments on pages and blocks |
+| Insert content | No | Required only if using write-back actions |
+| Update content | No | Required only if using write-back actions |
+| No user information | -- | Default, no user data beyond owner |
+| User information without email | -- | Resolve page authors by name |
+| User information with email | Recommended | Identity matching across connectors |
+
+OpenPlane requires **Read content** and **Read comments** at minimum. Select **User information with email** to enable cross-connector identity resolution (linking Notion activity to Slack, GitHub, etc.).
+
+## Credentials
+
+From the **Secrets** tab, copy:
+
+- **OAuth client ID** -- passed as `client_id` during authorization
+- **OAuth client secret** -- used server-side to exchange the authorization code
+
+<Callout type="warn">
+  The client secret is shown only once. Store it securely. If lost, you must regenerate it, which invalidates all existing tokens.
+</Callout>
+
+## Page Access Model
+
+Notion integrations can only access pages explicitly shared with them. This is a fundamental difference from connectors like Gmail or Google Drive where OAuth grants access to all data matching the requested scopes.
+
+### How Sharing Works
+
+1. User authorizes the integration via OAuth
+2. During authorization, Notion prompts the user to select pages
+3. Only selected pages (and their children) are accessible
+4. Additional pages can be shared later via the **Share** menu on any page
+
+### Expanding Access
+
+To share more pages after initial setup:
+
+1. Open any Notion page
+2. Click **Share** in the top right
+3. Search for and select your integration name
+4. The integration can now access that page and all child pages
+
+<Callout type="info">
+  Sharing a top-level page automatically grants access to all nested pages and databases within it. Share workspace-level pages for broad coverage.
+</Callout>
+
+## Token Lifecycle
+
+Notion OAuth tokens do not expire and do not require refresh. Each token is scoped to:
+
+- A single workspace
+- The pages shared with the integration
+- The capabilities configured on the integration
+
+If capabilities are changed on the integration, existing tokens inherit the updated permissions without re-authorization.
+
+## Authorization Errors
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `invalid_client` | Client ID or secret is incorrect | Verify credentials from the Secrets tab |
+| `redirect_uri_mismatch` | Callback URL does not match registered URI | Update the redirect URI in Distribution settings |
+| `invalid_grant` | Authorization code expired or already used | Retry the OAuth flow |
+| `unauthorized` | Token revoked or integration deleted | Reconnect the integration |
+
+## Internal vs Public Integrations
+
+| Feature | Internal | Public (OAuth) |
+|---------|----------|----------------|
+| Authentication | Bearer token (single workspace) | OAuth 2.0 flow |
+| Distribution | Same workspace only | Any Notion workspace |
+| Page access | Must be shared manually | User selects during OAuth |
+| Token management | Static token from settings | OAuth code exchange |
+
+OpenPlane uses **public integrations** with OAuth to support connecting any workspace without manual token management.
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/notion/setup" description="Connect Notion to OpenPlane" />
+  <Card title="Configuration" href="/docs/connectors/notion/configuration" description="Content extraction, sync intervals, and page access" />
+</Cards>
