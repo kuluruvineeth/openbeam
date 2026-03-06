@@ -78,6 +78,13 @@ jobs:
               - 'bun.lock'
             engine:
               - 'apps/engine/**'
+            website:
+              - 'apps/website/**'
+              - 'packages/ui/**'
+              - 'packages/integrations/**'
+              - 'apps/website/Dockerfile'
+              - 'package.json'
+              - 'bun.lock'
             configs:
               - 'monitoring/**'
               - 'temporal/dynamicconfig/**'
@@ -89,7 +96,7 @@ jobs:
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             INPUT="${{ inputs.services }}"
             if [[ "$INPUT" == "all" ]]; then
-              MATRIX='["server","web","worker","engine"]'
+              MATRIX='["server","web","worker","engine","website"]'
             else
               MATRIX=$(echo "[\"${INPUT//,/\",\"}\"]")
             fi
@@ -104,6 +111,7 @@ jobs:
             [[ "${{ steps.filter.outputs.web }}" == "true" || "$BASE_CHANGED" == "true" ]] && MATRIX=$(echo "$MATRIX" | jq '. + ["web"]') && HAS_CHANGES="true"
             [[ "${{ steps.filter.outputs.worker }}" == "true" || "$BASE_CHANGED" == "true" ]] && MATRIX=$(echo "$MATRIX" | jq '. + ["worker"]') && HAS_CHANGES="true"
             [[ "${{ steps.filter.outputs.engine }}" == "true" ]] && MATRIX=$(echo "$MATRIX" | jq '. + ["engine"]') && HAS_CHANGES="true"
+            [[ "${{ steps.filter.outputs.website }}" == "true" || "$BASE_CHANGED" == "true" ]] && MATRIX=$(echo "$MATRIX" | jq '. + ["website"]') && HAS_CHANGES="true"
             echo "matrix={\"service\":$(echo "$MATRIX" | jq -c .)}" >> $GITHUB_OUTPUT
             echo "has_changes=$HAS_CHANGES" >> $GITHUB_OUTPUT
             echo "base_changed=$BASE_CHANGED" >> $GITHUB_OUTPUT
