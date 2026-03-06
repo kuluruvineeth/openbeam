@@ -1,4 +1,15 @@
 {
   "title": "API Reference",
-  "pages": ["index", "authentication", "search", "connectors", "ai", "errors"]
+  "pages": [
+    "index",
+    "authentication",
+    "search",
+    "connectors",
+    "ai",
+    "agents",
+    "media-files",
+    "users-teams",
+    "operations",
+    "errors"
+  ]
 }

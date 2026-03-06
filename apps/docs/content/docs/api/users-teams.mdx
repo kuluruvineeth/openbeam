@@ -1,0 +1,324 @@
+---
+title: Users & Teams
+description: User profiles, team management, and workspace operations.
+---
+
+# Users & Teams API
+
+These routers manage user profiles, team membership, and the workspace data engine (DuckDB-backed structured data with SQL access).
+
+## User (user.*)
+
+The user router provides access to the authenticated user's profile.
+
+| Procedure | Type | Description |
+|-----------|------|-------------|
+| `user.me` | Query | Get the current authenticated user's profile |
+
+### user.me
+
+Returns the full user record for the authenticated session.
+
+**Type:** `query`
+**Auth:** `protectedProcedure`
+
+**Input:** None
+
+**Output:** The user record including `id`, `name`, `email`, `image`, `teamId`, `createdAt`, and `updatedAt`.
+
+<Tabs items={["TypeScript", "cURL"]}>
+  <Tab value="TypeScript">
+    ```typescript
+    const user = await trpc.user.me.query();
+    console.log(user.name, user.email);
+    ```
+  </Tab>
+  <Tab value="cURL">
+    ```bash
+    curl -X POST http://localhost:3000/trpc/user.me \
+      -H "Authorization: Bearer op_live_..."
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## Team (team.*)
+
+The team router handles team creation, listing, switching, and role resolution. All procedures require authentication.
+
+| Procedure | Type | Description |
+|-----------|------|-------------|
+| `team.generateSlug` | Mutation | Generate a unique URL slug from a team name |
+| `team.create` | Mutation | Create a new team and assign the current user as owner |
+| `team.list` | Query | List all teams the current user belongs to |
+| `team.switch` | Mutation | Switch the user's active team |
+| `team.getUserRole` | Query | Get the current user's role in their active team |
+
+### team.generateSlug
+
+Generate a unique, URL-safe slug from a team name. Handles deduplication automatically.
+
+**Type:** `mutation`
+**Auth:** `protectedProcedure`
+
+**Input:**
+
+```typescript
+{
+  name: string;  // Team name (min 1 character)
+}
+```
+
+**Output:**
+
+```typescript
+{
+  slug: string;  // Generated unique slug
+}
+```
+
+---
+
+### team.create
+
+Create a new team. The authenticated user becomes the team owner.
+
+**Type:** `mutation`
+**Auth:** `protectedProcedure`
+
+**Input:**
+
+```typescript
+{
+  name: string;  // Team name (min 1 character)
+  slug: string;  // URL slug (min 1 character, use team.generateSlug)
+}
+```
+
+**Output:** The created team record.
+
+---
+
+### team.list
+
+List all teams the current user is a member of.
+
+**Type:** `query`
+**Auth:** `protectedProcedure`
+
+**Input:** None
+
+**Output:** Array of team records with membership details.
+
+---
+
+### team.switch
+
+Switch the current user's active team. The user must be a member of the target team.
+
+**Type:** `mutation`
+**Auth:** `protectedProcedure`
+
+**Input:**
+
+```typescript
+{
+  teamId: string;  // Target team ID
+}
+```
+
+**Output:**
+
+```typescript
+{
+  success: boolean;
+}
+```
+
+Throws `FORBIDDEN` if the user is not a member of the specified team.
+
+---
+
+### team.getUserRole
+
+Get the current user's role in their active team.
+
+**Type:** `query`
+**Auth:** `protectedProcedure`
+
+**Input:** None
+
+**Output:**
+
+```typescript
+{
+  role: "OWNER" | "ADMIN" | "MEMBER" | null;
+}
+```
+
+Returns `null` if the user has no active team.
+
+---
+
+## Workspace (workspace.*)
+
+The workspace router provides a structured data engine backed by DuckDB. Teams can define custom objects (tables), create entries, import data, and query with SQL or natural language.
+
+All workspace procedures require `withActiveTeam` authentication.
+
+| Procedure | Type | Description |
+|-----------|------|-------------|
+| `workspace.query` | Query | Execute a read-only SQL query against team data |
+| `workspace.listObjects` | Query | List all workspace objects (tables) for the team |
+| `workspace.getObject` | Query | Get a workspace object by name |
+| `workspace.createObject` | Mutation | Create a new workspace object with field definitions |
+| `workspace.listEntries` | Query | List entries (rows) in a workspace object |
+| `workspace.createEntry` | Mutation | Create a new entry in a workspace object |
+| `workspace.updateEntry` | Mutation | Update field values for an existing entry |
+| `workspace.importData` | Mutation | Bulk import data from CSV or JSON |
+| `workspace.nl2sql` | Query | Convert a natural language question to SQL and execute it |
+
+### workspace.query
+
+Execute a read-only SQL query against the team's workspace data.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  sql: string;                   // SQL query (min 1 character)
+  maxRows?: number;              // 1-10,000 (default: 100)
+  timeoutMs?: number;            // 1,000-30,000 (default: 10,000)
+}
+```
+
+<Tabs items={["TypeScript", "cURL"]}>
+  <Tab value="TypeScript">
+    ```typescript
+    const result = await trpc.workspace.query.query({
+      sql: "SELECT name, COUNT(*) as count FROM customers GROUP BY name",
+      maxRows: 50,
+    });
+    ```
+  </Tab>
+  <Tab value="cURL">
+    ```bash
+    curl -X POST http://localhost:3000/trpc/workspace.query \
+      -H "Authorization: Bearer op_live_..." \
+      -H "Content-Type: application/json" \
+      -d '{"sql": "SELECT * FROM customers LIMIT 10"}'
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+### workspace.listObjects
+
+List all workspace objects defined for the current team.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:** None
+
+---
+
+### workspace.getObject
+
+Get a workspace object by name. Throws `NOT_FOUND` if the object does not exist.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  name: string;  // Object name
+}
+```
+
+---
+
+### workspace.createObject
+
+Create a new workspace object with typed field definitions.
+
+**Type:** `mutation`
+**Auth:** `withActiveTeam`
+
+**Input:** Validated by `CreateObjectInputSchema` from `@openplane/types/services/workspace`.
+
+---
+
+### workspace.listEntries
+
+List entries in a workspace object with pagination and sorting.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  objectName: string;                        // Object name
+  limit?: number;                            // 1-1,000 (default: 50)
+  offset?: number;                           // default: 0
+  orderBy?: string;                          // Field name to sort by
+  orderDir?: "ASC" | "DESC";                 // Sort direction
+}
+```
+
+---
+
+### workspace.importData
+
+Bulk import records from CSV or JSON format.
+
+**Type:** `mutation`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  objectName: string;                        // Target object name
+  format: "csv" | "json";                    // Data format
+  data: string;                              // Raw data string
+  columnMapping?: Record<string, string>;    // Map source columns to object fields
+  createMissingFields?: boolean;             // Auto-create fields not in schema (default: false)
+  skipInvalidRows?: boolean;                 // Skip rows that fail validation (default: true)
+  batchSize?: number;                        // 1-10,000 (default: 100)
+}
+```
+
+---
+
+### workspace.nl2sql
+
+Convert a natural language question into SQL, execute it, and return results. Uses LLM generation with the team's object schemas and sample data as context.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  question: string;              // Natural language question
+  objectName?: string;           // Restrict to a specific object
+}
+```
+
+Throws `NOT_FOUND` if the specified object or no objects exist.
+
+<Cards>
+  <Card title="Authentication" href="/docs/api/authentication" description="Session, API key, and OAuth2 authentication methods" />
+  <Card title="AI API" href="/docs/api/ai" description="RAG queries, agent canvas, and knowledge graph" />
+</Cards>

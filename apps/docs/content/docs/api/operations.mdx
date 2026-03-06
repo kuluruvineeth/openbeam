@@ -1,0 +1,443 @@
+---
+title: Operations
+description: Analytics, permissions, personalization, payments, jobs, messages, overview, connector resources, control plane, and research endpoints.
+---
+
+# Operations API
+
+These routers cover platform operations: search analytics, access control, user personalization, billing, background jobs, document threading, AI overview generation, connector resource management, the control plane, and research.
+
+## Analytics (analytics.*)
+
+The analytics router records search impressions, clicks, dwell time, and feedback. This data drives search relevance tuning and A/B experiment analysis. All procedures require `withActiveTeam` authentication.
+
+| Procedure | Type | Description |
+|-----------|------|-------------|
+| `analytics.recordImpression` | Mutation | Record a search results impression with timing and RRF config |
+| `analytics.recordClick` | Mutation | Record a click on a search result |
+| `analytics.updateDwellTime` | Mutation | Update dwell time for a previously recorded click |
+| `analytics.submitFeedback` | Mutation | Submit helpful/not helpful feedback on a search result |
+
+### analytics.recordImpression
+
+Record a search impression with result document IDs, timing breakdown, and optional experiment metadata.
+
+**Type:** `mutation`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  query: string;                 // 1-1,000 characters
+  resultDocIds: string[];        // 1-100 document IDs
+  mode: string;                  // Search mode used
+  experimentId?: string;         // A/B experiment ID
+  variant?: "control" | "treatment";
+  timing: {
+    embeddingMs: number;
+    retrievalMs: number;
+    fusionMs: number;
+    rerankMs?: number;
+    ltrMs?: number;
+    totalMs: number;
+  };
+  rrfConfig?: {
+    k: number;
+    weights: { bm25: number; dense: number; sparse: number };
+  };
+}
+```
+
+**Output:**
+
+```typescript
+{
+  impressionId: string;
+}
+```
+
+<Tabs items={["TypeScript"]}>
+  <Tab value="TypeScript">
+    ```typescript
+    const { impressionId } = await trpc.analytics.recordImpression.mutate({
+      query: "deployment guide",
+      resultDocIds: ["doc_1", "doc_2", "doc_3"],
+      mode: "hybrid_v2",
+      timing: {
+        embeddingMs: 12,
+        retrievalMs: 35,
+        fusionMs: 3,
+        totalMs: 50,
+      },
+    });
+
+    await trpc.analytics.recordClick.mutate({
+      impressionId,
+      docId: "doc_1",
+      position: 0,
+    });
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## Permissions (permissions.*)
+
+The permissions router manages document-level access control, permission sync status, and cache invalidation. Combines `withActiveTeam` and `withAdminRole` authentication depending on the procedure.
+
+| Procedure | Type | Auth | Description |
+|-----------|------|------|-------------|
+| `permissions.getSyncStatus` | Query | Team | Get permission sync status for a connector |
+| `permissions.listSyncStatuses` | Query | Team | List permission sync statuses for all connectors |
+| `permissions.invalidateCache` | Mutation | Admin | Invalidate permission cache by user, connector, or all |
+| `permissions.getMyPermissions` | Query | Team | Get resolved permissions for the current user |
+| `permissions.getDocumentPermissions` | Query | Team | Get access control list for a document |
+| `permissions.getUserGroups` | Query | Team | Get group memberships for a user |
+| `permissions.getUserConnectorScopes` | Query | Team | Get connector-level scopes for a user |
+| `permissions.getStats` | Query | Admin | Get team-wide permission statistics |
+
+### permissions.invalidateCache
+
+Invalidate the permission cache. Scope controls whether to invalidate for a specific user, a specific connector, or the entire team.
+
+**Type:** `mutation`
+**Auth:** `withAdminRole`
+
+**Input:**
+
+```typescript
+{
+  scope: "user" | "connector" | "all";
+  userId?: string;               // Required when scope is "user"
+  connectorId?: string;          // Required when scope is "connector"
+}
+```
+
+**Output:**
+
+```typescript
+{
+  invalidated: boolean;
+}
+```
+
+---
+
+### permissions.getMyPermissions
+
+Get the fully resolved permission set for the current user, including team role, connector access, and document-level permissions.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:** None
+
+---
+
+## Personalization (personalization.*)
+
+The personalization router manages user search profiles, topic affinities, and connector preferences. Profiles are built from search behavior and can be manually tuned. All procedures require `withActiveTeam` authentication.
+
+| Procedure | Type | Description |
+|-----------|------|-------------|
+| `personalization.getMyProfile` | Query | Get the current user's personalization profile |
+| `personalization.updatePreferences` | Mutation | Update personalization toggle and department |
+| `personalization.refreshTopicAffinity` | Mutation | Recalculate topic affinity from recent search behavior |
+| `personalization.clearProfile` | Mutation | Delete the user's search profile and clear cache |
+| `personalization.getConnectorStats` | Query | Get connector usage weights for the current user |
+| `personalization.getTopAuthors` | Query | Get most-interacted-with authors |
+
+### personalization.getMyProfile
+
+Get the current user's personalization profile including search statistics, connector preferences, topic interests, and embedding status.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:** None
+
+**Output:**
+
+```typescript
+{
+  userId: string;
+  teamId: string;
+  department: string | null;
+  searchCount: number;
+  clickCount: number;
+  avgDwellMs: number;
+  connectorPreferences: Record<string, number>;
+  topicInterests: Record<string, number>;
+  hasEmbeddings: boolean;
+  isNewUser: boolean;
+  personalizationEnabled: boolean;
+  source: string;
+}
+```
+
+---
+
+### personalization.getTopAuthors
+
+Get the authors the current user has interacted with most frequently, ranked by interaction count.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  limit?: number;                // 1-50 (default: 10)
+}
+```
+
+**Output:**
+
+```typescript
+Array<{
+  authorId: string;
+  interactionCount: number;
+}>
+```
+
+---
+
+## Payments (payments.*)
+
+The payments router provides billing data including wallet balances, ledger entries, receipts, and pricing policies. All procedures require `withActiveTeam` authentication.
+
+| Procedure | Type | Description |
+|-----------|------|-------------|
+| `payments.listWallets` | Query | List all wallets for the current team |
+| `payments.ledgerBalance` | Query | Get the current ledger balance |
+| `payments.summary` | Query | Get payment summary with optional time filter |
+| `payments.listReceipts` | Query | List payment receipts with cursor pagination |
+| `payments.getReceipt` | Query | Get a single receipt by request ID |
+| `payments.pricingPolicies` | Query | Get active pricing policies for the team |
+
+### payments.listReceipts
+
+List payment receipts for the current team with optional tool name filtering.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  cursor?: string;
+  limit?: number;                // 1-100 (default: 20)
+  toolName?: string;             // Filter by tool name
+}
+```
+
+---
+
+### payments.getReceipt
+
+Get a single payment receipt by request ID. Throws `NOT_FOUND` if the receipt does not exist and `FORBIDDEN` if it belongs to a different team.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  requestId: string;
+}
+```
+
+---
+
+## Jobs (jobs.*)
+
+The jobs router provides real-time job progress tracking via Server-Sent Events.
+
+| Procedure | Type | Description |
+|-----------|------|-------------|
+| `jobs.onProgress` | Subscription | Subscribe to real-time job progress events for the team |
+
+### jobs.onProgress
+
+Subscribe to job progress events for the current team. Yields `JobProgress` events from a Redis pub/sub channel until the connection is closed.
+
+**Type:** `subscription`
+**Auth:** `withActiveTeam`
+
+**Input:** None
+
+**Yields:** `JobProgress` events containing job ID, status, progress percentage, and metadata.
+
+---
+
+## Messages (messages.*)
+
+The messages router retrieves full document content and conversation threads from indexed data. All procedures require `withActiveTeam` authentication.
+
+| Procedure | Type | Description |
+|-----------|------|-------------|
+| `messages.getDocument` | Query | Get a document by its Vespa ID |
+| `messages.getEmailThread` | Query | Get a full email thread by thread ID and connector |
+| `messages.getSlackThread` | Query | Get a Slack thread by parent message ID and connector |
+
+### messages.getEmailThread
+
+Get all messages in an email thread.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  threadId: string;              // Email thread identifier
+  connectorId: string;          // Connector that indexed the thread
+}
+```
+
+Throws `NOT_FOUND` if the thread cannot be located.
+
+---
+
+### messages.getSlackThread
+
+Get all replies in a Slack thread.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  parentId: string;              // Parent message ID (Slack timestamp)
+  connectorId: string;          // Connector that indexed the messages
+}
+```
+
+Throws `NOT_FOUND` if the parent message cannot be located.
+
+---
+
+## Overview (overview.*)
+
+The overview router provides AI-powered research summaries streamed in real time.
+
+| Procedure | Type | Description |
+|-----------|------|-------------|
+| `overview.stream` | Subscription | Stream an AI-generated overview grounded in indexed documents |
+
+### overview.stream
+
+Generate a comprehensive AI overview for a query, streamed token by token. Uses agent orchestration with fan-out search across multiple sources.
+
+**Type:** `subscription`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  query: string;                 // 1-2,000 characters
+  maxSources?: number;           // 1-20 (default: 8)
+  enableFanout?: boolean;        // Enable multi-source fan-out (default: true)
+  modelId?: string;              // Override the default model
+  temperature?: number;          // 0-2
+}
+```
+
+**Yields:** Stream chunks with partial text, citation events, and completion signals.
+
+---
+
+## Connector Resources (connectorResources.*)
+
+The connector resources router provides access to the individual resources (channels, folders, repositories, boards) within a connector. All procedures require `withActiveTeam` authentication and verify connector ownership.
+
+| Procedure | Type | Description |
+|-----------|------|-------------|
+| `connectorResources.list` | Query | List resources for a connector with search and pagination |
+| `connectorResources.listByType` | Query | List resources filtered by type and sync status |
+| `connectorResources.listEnabled` | Query | List only sync-enabled resources |
+| `connectorResources.getTypes` | Query | Get available resource types for a connector |
+| `connectorResources.get` | Query | Get a single resource by ID |
+
+### connectorResources.list
+
+List resources for a connector with optional search filtering and cursor pagination.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  connectorId: string;
+  search?: string;               // Filter by resource name
+  cursor?: string;               // Pagination cursor
+  limit?: number;                // 1-100 (default: 50)
+}
+```
+
+---
+
+## Control Plane (control.*)
+
+The control plane router is a composite router with 13 sub-routers managing the agent governance layer. It covers access control, activity logs, adapter configuration, agent lifecycle, approval workflows, cost tracking, dashboards, goals, heartbeat monitoring, issue tracking, project management, real-time events, and secrets.
+
+| Sub-router | Description |
+|------------|-------------|
+| `control.access` | Team invites, join requests, and member permission management |
+| `control.activity` | Activity log queries filtered by entity type and ID |
+| `control.adapters` | Adapter type listing, config documentation, and environment testing |
+| `control.agents` | Full agent lifecycle: create, update, activate, pause, resume, terminate, API keys, config revisions, org chart |
+| `control.approvals` | Approval workflows: create, list, approve, reject, request revision, comments |
+| `control.costs` | Cost event tracking, agent-level cost breakdown, budget management |
+| `control.dashboard` | Dashboard summary, sidebar badges, recent activity |
+| `control.goals` | Goal CRUD and progress tracking |
+| `control.heartbeats` | Heartbeat run listing, run details, and run event history |
+| `control.issues` | Issue CRUD, comments, labels, checkout/release, ancestor traversal |
+| `control.projects` | Project CRUD, workspace linking, goal linking, archival |
+| `control.realtime` | Real-time control events via Server-Sent Events subscription |
+| `control.secrets` | Secret management: list, create, rotate |
+
+<Tabs items={["TypeScript"]}>
+  <Tab value="TypeScript">
+    ```typescript
+    const summary = await trpc.control.dashboard.summary.query();
+    const agents = await trpc.control.agents.list.query({ limit: 10 });
+    const issues = await trpc.control.issues.list.query({
+      status: "open",
+      limit: 20,
+    });
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## Research (research.*)
+
+<Callout type="warn">
+  All research procedures are placeholders and return `METHOD_NOT_SUPPORTED`. This router is reserved for future deep research workflows.
+</Callout>
+
+| Procedure | Type | Description |
+|-----------|------|-------------|
+| `research.start` | Mutation | Start a research workflow |
+| `research.progress` | Query | Get progress of a running research workflow |
+| `research.artifacts` | Query | Get artifacts produced by a research workflow |
+| `research.cancel` | Mutation | Cancel a running research workflow |
+
+<Cards>
+  <Card title="Connectors API" href="/docs/api/connectors" description="Manage data source connections and sync workflows" />
+  <Card title="Agents API" href="/docs/api/agents" description="Background agents, canvas workflows, and knowledge graph" />
+  <Card title="Error handling" href="/docs/api/errors" description="Error codes and retry strategies" />
+</Cards>

@@ -1,0 +1,341 @@
+---
+title: Agents
+description: Background agent orchestration, visual canvas workflows, and knowledge graph.
+---
+
+# Agents API
+
+These routers cover the three pillars of OpenPlane's agent system: background agents for long-running autonomous tasks, the agent canvas for visual workflow building, and the knowledge graph for entity and expertise discovery.
+
+## Background Agents (backgroundAgents.*)
+
+Background agents are long-running autonomous tasks that execute in sandboxed environments (Daytona or local). They support checkpointing, pause/resume, and structured logging. All procedures require `withActiveTeam` authentication.
+
+| Procedure | Type | Description |
+|-----------|------|-------------|
+| `backgroundAgents.list` | Query | List background agents with status filtering and pagination |
+| `backgroundAgents.get` | Query | Get a single background agent by ID |
+| `backgroundAgents.getCheckpoints` | Query | Get checkpoint history for an agent |
+| `backgroundAgents.getLogs` | Query | Get structured logs for an agent |
+| `backgroundAgents.create` | Mutation | Create and start a new background agent |
+| `backgroundAgents.cancel` | Mutation | Cancel a running or pending agent |
+| `backgroundAgents.pause` | Mutation | Pause a running agent |
+| `backgroundAgents.resume` | Mutation | Resume a paused agent, optionally from a checkpoint |
+| `backgroundAgents.delete` | Mutation | Permanently delete an agent and its artifacts |
+
+### backgroundAgents.list
+
+List background agents for the current team with optional status filtering and cursor pagination.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  status?: "PENDING" | "INITIALIZING" | "RUNNING" | "PAUSED"
+         | "AWAITING_INPUT" | "COMPLETED" | "FAILED"
+         | "CANCELLED" | "TIMED_OUT";
+  cursor?: string;               // Offset-based cursor
+  limit?: number;                // 1-100 (default: 20)
+}
+```
+
+**Output:**
+
+```typescript
+{
+  items: BackgroundAgent[];
+  total: number;
+  nextCursor?: string;
+  hasMore: boolean;
+}
+```
+
+---
+
+### backgroundAgents.create
+
+Create and start a new background agent. The agent runs in a sandboxed environment and executes the provided prompt autonomously.
+
+**Type:** `mutation`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  name: string;                  // 1-100 characters
+  description?: string;         // Up to 500 characters
+  prompt: string;                // Task prompt, 1-10,000 characters
+  preset?: "researcher" | "coder" | "analyst" | "writer" | "custom";  // default: "researcher"
+  sandboxType?: "DAYTONA" | "LOCAL";  // default: "DAYTONA"
+  repositoryUrl?: string;       // Git repository URL for coder preset
+  baseBranch?: string;          // Base branch for repository operations
+  maxSteps?: number;            // 1-100
+  timeoutMs?: number;           // Max 3,600,000 (1 hour)
+}
+```
+
+**Output:** The created background agent record.
+
+<Tabs items={["TypeScript", "cURL"]}>
+  <Tab value="TypeScript">
+    ```typescript
+    const agent = await trpc.backgroundAgents.create.mutate({
+      name: "Research competitor pricing",
+      prompt: "Analyze competitor pricing models from indexed sales documents",
+      preset: "researcher",
+      sandboxType: "DAYTONA",
+    });
+
+    console.log(agent.id, agent.status);
+    ```
+  </Tab>
+  <Tab value="cURL">
+    ```bash
+    curl -X POST http://localhost:3000/trpc/backgroundAgents.create \
+      -H "Authorization: Bearer op_live_..." \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "Research competitor pricing",
+        "prompt": "Analyze competitor pricing models from indexed sales documents",
+        "preset": "researcher"
+      }'
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+### backgroundAgents.cancel
+
+Cancel a background agent. Only agents in `PENDING`, `INITIALIZING`, `RUNNING`, `PAUSED`, or `AWAITING_INPUT` status can be cancelled.
+
+**Type:** `mutation`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  agentId: string;  // UUID
+}
+```
+
+Throws `BAD_REQUEST` if the agent is already in a terminal status (`COMPLETED`, `FAILED`, `CANCELLED`, `TIMED_OUT`).
+
+---
+
+### backgroundAgents.resume
+
+Resume a paused background agent, optionally from a specific checkpoint.
+
+**Type:** `mutation`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  agentId: string;               // UUID
+  fromCheckpoint?: number;       // Checkpoint index to resume from
+}
+```
+
+Throws `BAD_REQUEST` if the agent is not in `PAUSED` status.
+
+---
+
+### backgroundAgents.getLogs
+
+Get structured logs for an agent with optional level filtering.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  agentId: string;               // UUID
+  level?: "debug" | "info" | "warn" | "error";
+  limit?: number;                // 1-500 (default: 100)
+  offset?: number;               // default: 0
+}
+```
+
+---
+
+## Agent Canvas (agentCanvas.*)
+
+The Agent Canvas is a visual builder for multi-step AI workflows. Canvases contain nodes (agents, tools, conditions) connected by edges that define execution flow. The router is organized into five sub-domains: CRUD, execution, interaction, sessions, and builder.
+
+<Callout type="info">
+  For detailed input/output schemas on canvas CRUD and execution procedures, see the [AI API reference](/docs/api/ai) which covers `agentCanvas.list`, `agentCanvas.get`, `agentCanvas.create`, `agentCanvas.update`, `agentCanvas.publish`, `agentCanvas.delete`, `agentCanvas.duplicate`, `agentCanvas.createExecution`, `agentCanvas.getExecution`, `agentCanvas.listExecutions`, and `agentCanvas.onExecutionEvent`.
+</Callout>
+
+### Canvas CRUD
+
+| Procedure | Type | Description |
+|-----------|------|-------------|
+| `agentCanvas.list` | Query | List canvases with status filtering and pagination |
+| `agentCanvas.get` | Query | Get a single canvas by ID |
+| `agentCanvas.create` | Mutation | Create a new canvas |
+| `agentCanvas.update` | Mutation | Update canvas name, nodes, edges, or settings |
+| `agentCanvas.publish` | Mutation | Publish a canvas with a versioned snapshot (admin) |
+| `agentCanvas.archive` | Mutation | Archive a canvas (admin) |
+| `agentCanvas.delete` | Mutation | Permanently delete a canvas (admin) |
+| `agentCanvas.duplicate` | Mutation | Duplicate an existing canvas |
+| `agentCanvas.listTemplates` | Query | List available canvas templates |
+
+### Execution
+
+| Procedure | Type | Description |
+|-----------|------|-------------|
+| `agentCanvas.listExecutions` | Query | List executions for a canvas |
+| `agentCanvas.getExecution` | Query | Get execution status and details |
+| `agentCanvas.getExecutionCanvas` | Query | Get the canvas snapshot used for an execution |
+| `agentCanvas.createExecution` | Mutation | Execute a published canvas via Temporal |
+| `agentCanvas.onExecutionEvent` | Subscription | Subscribe to real-time execution events (SSE) |
+
+### Interaction
+
+| Procedure | Type | Description |
+|-----------|------|-------------|
+| `agentCanvas.getPendingApproval` | Query | Get a pending human-in-the-loop approval |
+| `agentCanvas.listPendingApprovals` | Query | List all pending approvals for the team |
+| `agentCanvas.respondToApproval` | Mutation | Approve or reject a pending approval |
+| `agentCanvas.submitInput` | Mutation | Submit user input to a waiting execution node |
+
+### Sessions
+
+| Procedure | Type | Description |
+|-----------|------|-------------|
+| `agentCanvas.getOrCreateSession` | Mutation | Get or create a canvas interaction session |
+| `agentCanvas.createSession` | Mutation | Create a new canvas session |
+| `agentCanvas.archiveSession` | Mutation | Archive a session |
+| `agentCanvas.listSessions` | Query | List sessions for a canvas |
+| `agentCanvas.getSessionEvents` | Query | Get events for a session |
+
+### Builder
+
+| Procedure | Type | Description |
+|-----------|------|-------------|
+| `agentCanvas.listTools` | Query | List all available tools for canvas nodes |
+| `agentCanvas.getToolParameters` | Query | Get parameter schema for a specific tool |
+| `agentCanvas.buildCanvas` | Mutation | AI-assisted canvas generation from a prompt |
+| `agentCanvas.onSessionEvent` | Subscription | Subscribe to builder session events |
+
+---
+
+## Knowledge Graph (knowledge.*)
+
+The Knowledge Graph stores entities (people, teams, projects, topics, technologies) and their relationships extracted from indexed documents. All procedures require `withActiveTeam` authentication.
+
+| Procedure | Type | Description |
+|-----------|------|-------------|
+| `knowledge.getEntity` | Query | Get a single entity by ID |
+| `knowledge.listEntities` | Query | List entities with type filtering and cursor pagination |
+| `knowledge.searchEntities` | Query | Search entities by name with type filtering |
+| `knowledge.getRelations` | Query | Get relationships for an entity (incoming, outgoing, or both) |
+| `knowledge.getExperts` | Query | Find people with expertise on a topic |
+| `knowledge.getExpertise` | Query | Get topics a person has expertise in |
+| `knowledge.getKnowledgePanel` | Query | Get a comprehensive panel with relations, expertise, and mentions |
+
+### knowledge.searchEntities
+
+Search for entities by name with optional type filtering.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  query: string;                 // 1-100 characters
+  type?: "PERSON" | "TEAM" | "PROJECT" | "TOPIC"
+       | "TECHNOLOGY" | "LOCATION" | "ORGANIZATION"
+       | "CHANNEL" | "REPOSITORY";
+  limit?: number;                // 1-50 (default: 10)
+}
+```
+
+---
+
+### knowledge.getExperts
+
+Find people with expertise on a given topic. Returns a ranked list sorted by expertise score.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  topicId: string;
+  limit?: number;                // 1-50 (default: 10)
+}
+```
+
+**Output:**
+
+```typescript
+Array<{
+  person: Entity;
+  score: number;
+}>
+```
+
+---
+
+### knowledge.getKnowledgePanel
+
+Get a comprehensive panel for an entity including its relationships, expertise areas (for `PERSON` entities), and recent document mentions.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  entityId: string;
+}
+```
+
+**Output:**
+
+```typescript
+{
+  entity: Entity;
+  relations: EntityRelation[];
+  expertise: Array<{
+    topic: Entity;
+    score: number;
+  }>;
+  recentMentions: EntityMention[];
+}
+```
+
+<Tabs items={["TypeScript"]}>
+  <Tab value="TypeScript">
+    ```typescript
+    const panel = await trpc.knowledge.getKnowledgePanel.query({
+      entityId: "ent_abc123",
+    });
+
+    console.log(`Entity: ${panel.entity.name}`);
+    console.log(`Relations: ${panel.relations.length}`);
+    console.log(`Top expertise: ${panel.expertise[0]?.topic.name}`);
+    ```
+  </Tab>
+</Tabs>
+
+<Cards>
+  <Card title="AI API" href="/docs/api/ai" description="RAG queries and canvas execution details" />
+  <Card title="Search API" href="/docs/api/search" description="Search the documents that power the knowledge graph" />
+</Cards>

@@ -1,0 +1,385 @@
+---
+title: Media & Files
+description: Video/audio metadata, file previews, and voice dictation endpoints.
+---
+
+# Media & Files API
+
+These routers handle media content analysis (chapters, highlights, transcripts), file preview URLs, and the voice dictation system (LiveKit-backed sessions and notes).
+
+## Media (media.*)
+
+The media router provides access to AI-generated metadata for indexed video and audio content. All procedures require `withActiveTeam` authentication.
+
+| Procedure | Type | Description |
+|-----------|------|-------------|
+| `media.getChapters` | Query | Get auto-generated chapter markers for a media asset |
+| `media.getHighlights` | Query | Get key highlights extracted from a media asset |
+| `media.getTranscript` | Query | Get transcript segments with timestamps |
+| `media.getSummary` | Query | Get an AI-generated summary of the media content |
+| `media.getMetadata` | Query | Get full metadata for a media asset |
+| `media.regenerate` | Mutation | Regenerate specific content types for a media asset |
+| `media.ask` | Mutation | Ask a natural language question about a media asset |
+
+### media.getChapters
+
+Get auto-generated chapter markers for a media asset.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  vespaId: string;               // Vespa document ID for the media asset
+  forceRefresh?: boolean;        // Bypass cache and regenerate (default: false)
+}
+```
+
+**Output:**
+
+```typescript
+{
+  chapters: Chapter[];
+}
+```
+
+---
+
+### media.getHighlights
+
+Get key moments and highlights extracted from a media asset.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  vespaId: string;
+  forceRefresh?: boolean;        // default: false
+}
+```
+
+**Output:**
+
+```typescript
+{
+  highlights: Highlight[];
+}
+```
+
+---
+
+### media.getTranscript
+
+Get transcript segments with timestamps.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  vespaId: string;
+  forceRefresh?: boolean;        // default: false
+}
+```
+
+**Output:**
+
+```typescript
+{
+  segments: TranscriptSegment[];
+}
+```
+
+---
+
+### media.getSummary
+
+Get an AI-generated summary of the media content.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  vespaId: string;
+  forceRefresh?: boolean;        // default: false
+}
+```
+
+**Output:**
+
+```typescript
+{
+  summary: MediaSummary;
+}
+```
+
+---
+
+### media.getMetadata
+
+Get full metadata for a media asset including duration, resolution, and processing status.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  vespaId: string;
+}
+```
+
+---
+
+### media.regenerate
+
+Regenerate specific content types for a media asset. Useful when the underlying media has been updated or when initial processing produced incomplete results.
+
+**Type:** `mutation`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  vespaId: string;
+  contentTypes: Array<"chapters" | "highlights" | "summary" | "transcript">;  // min 1
+}
+```
+
+---
+
+### media.ask
+
+Ask a natural language question about a specific media asset and receive an AI-generated answer grounded in its content.
+
+**Type:** `mutation`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  mediaId: string;               // Media asset ID
+  question: string;              // Natural language question
+}
+```
+
+<Tabs items={["TypeScript"]}>
+  <Tab value="TypeScript">
+    ```typescript
+    const result = await trpc.media.ask.mutate({
+      mediaId: "media_abc123",
+      question: "What were the key decisions made in this meeting?",
+    });
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## Files (files.*)
+
+The files router generates signed preview URLs for indexed documents and media. It handles file type detection, Google Workspace redirects, and storage provider URL signing.
+
+| Procedure | Type | Description |
+|-----------|------|-------------|
+| `files.getPreviewUrl` | Query | Get a signed preview URL for a document or media file |
+
+### files.getPreviewUrl
+
+Get a signed URL to preview a document or media file. Automatically detects the document type (file vs. media) from the ID prefix and returns the appropriate preview data.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  documentId: string;            // Document ID (supports chunk-, file-, video_, media_ prefixes)
+}
+```
+
+**Output:**
+
+```typescript
+{
+  url: string;                   // Signed preview URL (1-hour expiry)
+  fileName: string;
+  mimeType: string;
+  fileSize: number | null;
+  pageCount: number | null;
+  isExternal?: boolean;          // True for Google Workspace files
+  externalUrl?: string;          // Original URL for external files
+  isMedia?: boolean;             // True for video/audio files
+  mediaType?: string;            // Media type classification
+}
+```
+
+<Tabs items={["TypeScript", "cURL"]}>
+  <Tab value="TypeScript">
+    ```typescript
+    const preview = await trpc.files.getPreviewUrl.query({
+      documentId: "file-conn123-doc456",
+    });
+
+    if (preview.isExternal) {
+      window.open(preview.externalUrl, "_blank");
+    } else {
+      renderPreview(preview.url, preview.mimeType);
+    }
+    ```
+  </Tab>
+  <Tab value="cURL">
+    ```bash
+    curl -X POST http://localhost:3000/trpc/files.getPreviewUrl \
+      -H "Authorization: Bearer op_live_..." \
+      -H "Content-Type: application/json" \
+      -d '{"documentId": "file-conn123-doc456"}'
+    ```
+  </Tab>
+</Tabs>
+
+Throws `NOT_FOUND` if the file or media cannot be located. Throws `FORBIDDEN` if the file belongs to a different team.
+
+---
+
+## Voice (voice.*)
+
+The voice router manages the dictation and voice notes system. It covers note CRUD, user settings, LiveKit session management, and usage statistics. All procedures require `withActiveTeam` authentication.
+
+| Procedure | Type | Description |
+|-----------|------|-------------|
+| `voice.listNotes` | Query | List voice notes with search and cursor pagination |
+| `voice.getNote` | Query | Get a single voice note by ID |
+| `voice.createNote` | Mutation | Create a new voice note from transcribed text |
+| `voice.deleteNote` | Mutation | Delete a voice note |
+| `voice.getSettings` | Query | Get voice settings for the current user |
+| `voice.updateSettings` | Mutation | Update voice engine, model, and UI preferences |
+| `voice.getToken` | Mutation | Generate a LiveKit room token for a voice session |
+| `voice.getActiveSession` | Query | Get the current active voice session |
+| `voice.endSession` | Mutation | End a voice session with usage metrics |
+| `voice.listSessions` | Query | List past voice sessions with pagination |
+| `voice.getStats` | Query | Get aggregated voice usage statistics |
+
+### voice.listNotes
+
+List voice notes for the current user with optional search filtering and cursor pagination.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  limit?: number;                // Pagination limit
+  cursor?: string;               // Cursor for next page
+  search?: string;               // Full-text search filter
+}
+```
+
+**Output:**
+
+```typescript
+{
+  notes: VoiceNote[];
+  total: number;
+  nextCursor?: string;
+}
+```
+
+---
+
+### voice.getToken
+
+Generate a LiveKit room token to start a voice session. Creates a session record and returns connection details.
+
+**Type:** `mutation`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  roomType: "dictation" | "action" | "voice_notes";
+}
+```
+
+**Output:**
+
+```typescript
+{
+  token: string;                 // LiveKit JWT (1-hour TTL)
+  wsUrl: string;                 // LiveKit WebSocket URL
+  sessionId: string;             // Session record ID
+  roomName: string;              // Generated room name
+}
+```
+
+Throws `INTERNAL_SERVER_ERROR` if LiveKit is not configured (missing `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`, or `LIVEKIT_WS_URL`).
+
+---
+
+### voice.endSession
+
+End an active voice session and record usage metrics.
+
+**Type:** `mutation`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  sessionId: string;
+  duration: number;              // Session duration in ms (min: 0)
+  wordsSpoken: number;           // Word count (min: 0)
+  toolCalls: number;             // Tool invocations during session (min: 0)
+}
+```
+
+---
+
+### voice.getStats
+
+Get aggregated voice usage statistics for the current user over a time window.
+
+**Type:** `query`
+**Auth:** `withActiveTeam`
+
+**Input:**
+
+```typescript
+{
+  since?: Date;                  // Start of window (default: 30 days ago)
+}
+```
+
+**Output:**
+
+```typescript
+{
+  sessionCount: number;
+  totalDuration: number;
+  totalWordsSpoken: number;
+  totalToolCalls: number;
+}
+```
+
+<Cards>
+  <Card title="Search API" href="/docs/api/search" description="Search documents and media across all connectors" />
+  <Card title="AI API" href="/docs/api/ai" description="RAG queries grounded in indexed content" />
+</Cards>
