@@ -1,0 +1,41 @@
+---
+title: Configuration
+description: OPC-UA connector settings reference.
+---
+
+# Configuration
+
+## Connection
+
+| Setting | Type | Required | Default | Description |
+|---------|------|----------|---------|-------------|
+| `endpoint_url` | string | Yes | -- | OPC-UA endpoint (e.g., `opc.tcp://server:4840`) |
+| `security_mode` | enum | Yes | `SignAndEncrypt` | `None`, `Sign`, or `SignAndEncrypt` |
+| `security_policy` | enum | Yes | `Basic256Sha256` | `None`, `Basic256`, `Basic256Sha256`, `Aes128_Sha256_RsaOaep` |
+
+## Authentication
+
+| Setting | Type | Required | Default | Description |
+|---------|------|----------|---------|-------------|
+| `username` | string | No | -- | Server username (empty for anonymous) |
+| `password` | string | No | -- | Server password |
+
+## Certificates (mTLS)
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `client_cert` | string | -- | Client certificate PEM |
+| `client_key` | string | -- | Client private key PEM |
+| `trusted_certs` | string[] | -- | Trusted server certificates PEM |
+
+## Timeouts
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `keep_alive_interval` | number | `10000` | Keep alive in milliseconds |
+| `connection_timeout` | number | `30000` | Connection timeout in milliseconds |
+| `request_timeout` | number | `60000` | Request timeout in milliseconds |
+
+<Callout type="warn">
+  When using Sign and Encrypt mode, the connector's client certificate must be imported into the OPC-UA server's trusted certificates store.
+</Callout>

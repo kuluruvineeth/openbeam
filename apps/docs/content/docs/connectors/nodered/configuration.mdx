@@ -1,0 +1,29 @@
+---
+title: Configuration
+description: Node-RED connector settings reference.
+---
+
+# Configuration
+
+## Connection
+
+| Setting | Type | Required | Default | Description |
+|---------|------|----------|---------|-------------|
+| `base_url` | string | Yes | -- | Node-RED instance URL (e.g., `http://nodered:1880`) |
+| `access_token` | string | Conditional | -- | Admin API access token (required if auth is enabled) |
+
+## Admin API Requirements
+
+The Node-RED Admin API must be accessible. Check your `settings.js`:
+
+```javascript
+// Admin API is enabled when httpAdminRoot is a path (default: "/")
+httpAdminRoot: "/",
+
+// Admin API is DISABLED when set to false
+httpAdminRoot: false,  // Connector will not work
+```
+
+<Callout type="warn">
+  If `httpAdminRoot` is set to a custom path (e.g., `/admin`), append it to the base URL: `http://nodered:1880/admin`
+</Callout>

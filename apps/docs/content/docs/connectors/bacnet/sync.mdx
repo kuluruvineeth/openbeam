@@ -1,0 +1,52 @@
+---
+title: Sync Behavior
+description: How BACnet data is synced to OpenPlane.
+---
+
+# Sync Behavior
+
+## Sync Modes
+
+| Mode | Description |
+|------|-------------|
+| **Discovery** | Who-Is broadcast to find devices |
+| **Polling** | Periodic object value reads |
+| **COV** | Change-of-Value push notifications |
+| **Trend logs** | Historical data extraction |
+
+## Discovery Process
+
+1. **Who-Is**: Broadcast on UDP port 47808 (configurable timeout: 5s default)
+2. **I-Am**: Devices respond with instance ID and capabilities
+3. **Object List**: Enumerate each device's object list
+4. **Initial Read**: Read present values for all discovered objects
+
+## Cursor Format
+
+```json
+{
+  "lastSyncTime": "2026-03-06T00:00:00Z",
+  "discoveredDevices": [100, 200, 300],
+  "subscribedObjects": ["100:AI:1", "100:AO:2"]
+}
+```
+
+## COV Subscriptions
+
+The connector registers for Change of Value notifications on monitored objects. The BACnet device pushes updates when values change beyond a configurable deadband.
+
+| Parameter | Default |
+|-----------|---------|
+| COV lifetime | 300 seconds |
+| Auto-resubscribe | Yes |
+| Fallback | Poll on COV rejection |
+
+## Polling
+
+For devices that do not support COV, the connector falls back to periodic polling.
+
+| Parameter | Default |
+|-----------|---------|
+| Poll interval | 30 seconds |
+| Read timeout | 3,000ms |
+| Discovery timeout | 5,000ms |

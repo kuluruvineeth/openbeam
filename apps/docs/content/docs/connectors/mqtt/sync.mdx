@@ -1,0 +1,51 @@
+---
+title: Sync Behavior
+description: How MQTT data is synced to OpenPlane.
+---
+
+# Sync Behavior
+
+## Real-Time Streaming
+
+MQTT is a streaming connector — it maintains a persistent connection to the broker and indexes messages as they arrive. There is no traditional full/incremental sync cycle.
+
+## Connection Lifecycle
+
+1. **Connect**: Establish connection to the MQTT broker
+2. **Subscribe**: Subscribe to configured topic patterns
+3. **Receive**: Process incoming messages in real-time
+4. **Aggregate**: Buffer readings into time windows
+5. **Index**: Flush aggregated documents to the search index
+
+## Topic Subscription
+
+Topic patterns support MQTT wildcards:
+
+| Pattern | Matches |
+|---------|---------|
+| `sensors/+/temperature` | Any single-level device ID |
+| `factory/#` | All topics under `factory/` |
+| `devices/+/+/status` | Two variable levels |
+
+## Sparkplug B Support
+
+When payload format is set to `sparkplug_b`, the connector decodes Sparkplug B protocol buffers:
+
+| Message Type | Purpose |
+|-------------|---------|
+| NBIRTH | Node birth certificate (initial state) |
+| DBIRTH | Device birth certificate |
+| NDATA | Node data update |
+| DDATA | Device data update |
+| STATE | Application state |
+
+## Aggregation
+
+Telemetry readings within the configured window (default: 60s) are aggregated into a single document per topic. This reduces index size while preserving statistical summaries.
+
+## Reconnection
+
+The connector automatically reconnects on connection loss with configurable retry:
+- Reconnect period: 5,000ms (default)
+- Keep alive: 60s
+- Session expiry: 3,600s

@@ -1,0 +1,40 @@
+---
+title: Sync Behavior
+description: How Azure IoT Hub data is synced to OpenPlane.
+---
+
+# Sync Behavior
+
+## Sync Types
+
+| Type | Trigger | Duration |
+|------|---------|----------|
+| **Full** | First connection, manual resync | Minutes (scales with device count) |
+| **Incremental** | Scheduled | Seconds |
+
+## Full Sync Process
+
+1. **Query Devices**: SQL-like IoT Hub Query API (`SELECT * FROM devices`)
+2. **Fetch Twins**: Device twin state (reported + desired) with tags
+3. **Transform**: Convert to searchable documents
+
+## Cursor Format
+
+```json
+{
+  "lastSyncTime": "2026-03-06T00:00:00Z",
+  "continuationToken": "continuation_abc123"
+}
+```
+
+## Authentication
+
+The connector uses the IoT Hub connection string to generate SAS tokens automatically. Tokens have a 60-minute TTL and are refreshed 5 minutes before expiration.
+
+<Callout type="info">
+  The connection string must include `RegistryRead` and `ServiceConnect` permissions. The `iothubowner` shared access policy includes both.
+</Callout>
+
+## Incremental Sync
+
+Uses `lastSyncTime` timestamps to query only devices modified since the last run. Twin-only changes (property updates without device metadata changes) may require a full resync to detect.

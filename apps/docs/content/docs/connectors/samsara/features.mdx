@@ -1,0 +1,51 @@
+---
+title: Features
+description: Samsara connector capabilities and indexed data.
+---
+
+# Samsara Features
+
+## Content Types
+
+| Type | Fields Indexed |
+|------|----------------|
+| Vehicles | Name, VIN, GPS coordinates, speed, fuel level, engine state, odometer |
+| Drivers | Name, phone, license number, tags, active status |
+| Alerts | Alert type, severity, associated vehicle/driver, location, timestamp |
+| Sensors | Sensor name, type, current value, unit, gateway device |
+
+## Metadata
+
+| Field | Searchable | Filterable |
+|-------|------------|------------|
+| Vehicle name | Yes | Yes |
+| Driver name | Yes | Yes |
+| Alert type | Yes | Yes |
+| Alert severity | Yes | Yes |
+| Sensor type | Yes | Yes |
+| Location (GPS) | No | Yes |
+| Speed | No | Yes |
+| Fuel level | No | Yes |
+
+## Search Operators
+
+- `type:vehicle` — Filter to vehicles only
+- `type:alert severity:critical` — Critical alerts
+- `driver:"John Smith"` — Exact driver match
+
+## Sync Modes
+
+| Mode | Trigger | Latency |
+|------|---------|---------|
+| Full | First sync, manual resync | 2-30 minutes |
+| Incremental | Scheduled (feed cursor) | Seconds |
+| Real-time | Webhooks | Near-instant |
+
+## Limitations
+
+| Limit | Value |
+|-------|-------|
+| API rate limit | 600 req/min, 36,000 req/hour |
+| Page size | 512 records per API page |
+| Batch size | 50 documents per sync batch |
+| Historical alerts | Last 30 days on initial sync |

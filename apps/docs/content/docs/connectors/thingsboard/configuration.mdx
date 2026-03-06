@@ -1,0 +1,31 @@
+---
+title: Configuration
+description: ThingsBoard connector settings reference.
+---
+
+# Configuration
+
+## Authentication
+
+| Setting | Type | Required | Default | Description |
+|---------|------|----------|---------|-------------|
+| `base_url` | string | Yes | -- | ThingsBoard instance URL |
+| `username` | string | Yes | -- | Tenant administrator email |
+| `password` | string | Yes | -- | Administrator password |
+
+## Content Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `syncTelemetry` | boolean | `true` | Include time-series data |
+| `syncAlarms` | boolean | `true` | Include alarm history |
+| `syncDashboards` | boolean | `true` | Include dashboard metadata |
+| `telemetryLookbackHours` | number | `24` | Hours of historical telemetry to sync |
+
+<Callout type="warn">
+  Use a tenant administrator account, not a system administrator. System admin accounts operate at a different scope and will not see tenant devices.
+</Callout>
+
+<Callout type="info">
+  If your ThingsBoard instance uses SSO or LDAP, create a local tenant admin account for the OpenPlane integration.
+</Callout>

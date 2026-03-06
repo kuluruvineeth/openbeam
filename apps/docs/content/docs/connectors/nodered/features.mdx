@@ -1,0 +1,44 @@
+---
+title: Features
+description: Node-RED connector capabilities and indexed data.
+---
+
+# Node-RED Features
+
+## Content Types
+
+| Type | Fields Indexed |
+|------|----------------|
+| Flows | Flow name, node types, connection topology, subflow references |
+| Nodes | Node type, configuration, connected nodes, function code |
+| Subflows | Subflow name, inputs/outputs, internal structure |
+| Settings | Runtime version, palette modules, enabled nodes |
+
+## Search Examples
+
+- `type:flow mqtt` — Flows containing MQTT nodes
+- `type:node function` — Function nodes with embedded code
+- `"http request"` — Flows using HTTP request nodes
+- `subflow:"Data Transform"` — Subflows by name
+
+## What Gets Indexed
+
+The connector indexes the automation logic itself, not the data flowing through it. This includes:
+- Flow definitions and their node composition
+- Node configuration (broker URLs, HTTP endpoints, etc.)
+- Function node JavaScript code
+- Subflow structure and reusable components
+- Installed palette modules and versions
+
+<Callout type="info">
+  Sensitive credentials (passwords, API keys) in node configurations are excluded from indexing. Only non-sensitive settings like URLs and topic patterns are indexed.
+</Callout>
+
+## Limitations
+
+| Limit | Value |
+|-------|-------|
+| API | Admin API required (httpAdminRoot must not be false) |
+| Auth | Token-based or open access |
+| Real-time | No webhook support (relies on polling) |
+| Undeployed flows | May not appear in API responses |

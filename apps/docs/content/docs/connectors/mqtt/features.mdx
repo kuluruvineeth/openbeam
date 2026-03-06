@@ -1,0 +1,48 @@
+---
+title: Features
+description: MQTT connector capabilities and indexed data.
+---
+
+# MQTT Features
+
+## Content Types
+
+| Type | Fields Indexed |
+|------|----------------|
+| Telemetry | Topic, payload key, value, unit, min, max, average, timestamp |
+| Events | Topic, event type, severity, message, timestamp |
+| Sparkplug B | Node/device birth/data, metric name, value, type, timestamp |
+
+## Payload Formats
+
+| Format | Description |
+|--------|-------------|
+| **JSON** | Standard JSON payloads with automatic field extraction |
+| **Sparkplug B** | NBIRTH, DBIRTH, NDATA, DDATA, NCMD, DCMD, STATE messages |
+| **CBOR** | Compact binary format decoded to key-value pairs |
+| **Raw** | Binary data stored as base64 with topic metadata |
+
+## Time-Series Aggregation
+
+Telemetry readings are aggregated into configurable time windows. Each window produces a document with:
+- Average value over the window
+- Minimum and maximum readings
+- Reading count
+- Engineering units (when provided)
+
+## QoS Levels
+
+| QoS | Delivery | Use Case |
+|-----|----------|----------|
+| 0 | At most once | High-frequency sensor data |
+| 1 | At least once | Standard telemetry (default) |
+| 2 | Exactly once | Critical commands and alarms |
+
+## Limitations
+
+| Limit | Value |
+|-------|-------|
+| Connection | Persistent (long-lived) |
+| Topic wildcards | `+` (single level), `#` (multi-level) |
+| Payload size | Limited by broker configuration |
+| Aggregation window | Configurable (default: 60 seconds) |

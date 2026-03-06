@@ -1,0 +1,43 @@
+---
+title: Features
+description: BACnet connector capabilities and indexed data.
+---
+
+# BACnet Features
+
+## Content Types
+
+| Type | Fields Indexed |
+|------|----------------|
+| Objects | Object type, name, present value, units, status flags, device |
+| Schedules | Schedule name, effective period, weekly schedule, exceptions |
+| Trend Logs | Historical readings with timestamps |
+
+## Object Types
+
+| BACnet Object | Indexed Fields |
+|--------------|----------------|
+| Analog Input | Value, engineering units (degrees F, PSI, etc.), status flags |
+| Analog Output | Setpoint value, units, override status |
+| Binary Input | State (on/off), active text, inactive text |
+| Binary Output | Commanded state, polarity |
+| Multistate Input | State text, number of states |
+| Schedule | Weekly schedule, exception schedule |
+| Trend Log | Buffer size, record count, total records |
+
+## Discovery Methods
+
+| Method | Description |
+|--------|-------------|
+| Who-Is broadcast | Automatic device discovery on the local subnet |
+| Manual device IDs | Specify known device instance numbers |
+| BBMD | Cross-subnet discovery via BACnet Broadcast Management Device |
+
+## Limitations
+
+| Limit | Value |
+|-------|-------|
+| Protocol | BACnet/IP only (no MS/TP) |
+| Discovery | Broadcast limited to local subnet without BBMD |
+| COV support | Device-dependent (fallback to polling) |
+| Historical data | Requires device trend log support |

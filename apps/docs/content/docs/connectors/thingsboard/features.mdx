@@ -1,0 +1,52 @@
+---
+title: Features
+description: ThingsBoard connector capabilities and indexed data.
+---
+
+# ThingsBoard Features
+
+## Content Types
+
+| Type | Fields Indexed |
+|------|----------------|
+| Devices | Name, type, label, creation time, server/shared attributes |
+| Telemetry | Key, value, timestamp, associated device |
+| Alarms | Type, severity, status, originator device, message, timestamps |
+
+## Alarm Severities
+
+| Severity | Description |
+|----------|-------------|
+| CRITICAL | System-impacting alarms |
+| MAJOR | Service degradation |
+| MINOR | Non-critical issues |
+| WARNING | Advisory notifications |
+
+## Metadata
+
+| Field | Searchable | Filterable |
+|-------|------------|------------|
+| Device name | Yes | Yes |
+| Device type | Yes | Yes |
+| Alarm type | Yes | Yes |
+| Alarm severity | No | Yes |
+| Alarm status | No | Yes |
+| Telemetry key | Yes | Yes |
+
+## Editions
+
+| Feature | Community | Professional |
+|---------|-----------|-------------|
+| Device registry | Yes | Yes |
+| Telemetry | Yes | Yes |
+| Alarms | Yes | Yes |
+| Dashboards | Yes | Yes |
+| Rate limits | None | Yes |
+
+## Limitations
+
+| Limit | Value |
+|-------|-------|
+| Auth method | Username/password only (no SSO) |
+| Account scope | Tenant administrator required |
+| Telemetry | Recent values only (not full history) |

@@ -1,0 +1,44 @@
+---
+title: Configuration
+description: AWS IoT Core connector settings reference.
+---
+
+# Configuration
+
+## Authentication
+
+| Setting | Type | Required | Default | Description |
+|---------|------|----------|---------|-------------|
+| `access_key_id` | string | Yes | -- | IAM access key with IoT read permissions |
+| `secret_access_key` | string | Yes | -- | Corresponding IAM secret key |
+| `region` | enum | Yes | -- | AWS region (e.g., `us-east-1`) |
+
+## Content Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `sync_thing_groups` | boolean | `true` | Include thing groups in search |
+| `sync_shadows` | boolean | `true` | Include device shadow state |
+
+## Required IAM Permissions
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": [
+      "iot:ListThings",
+      "iot:DescribeThing",
+      "iot:GetThingShadow",
+      "iot:ListThingGroups",
+      "iot:DescribeThingGroup"
+    ],
+    "Resource": "*"
+  }]
+}
+```
+
+<Callout type="warn">
+  Use a dedicated IAM user with read-only permissions. Never use root credentials or broad `iot:*` access.
+</Callout>

@@ -1,0 +1,65 @@
+---
+title: Sync Behavior
+description: How Samsara data is synced to OpenPlane.
+---
+
+# Sync Behavior
+
+## Sync Types
+
+| Type | Trigger | Duration |
+|------|---------|----------|
+| **Full** | First connection, manual resync | 2-30 min (scales with fleet size) |
+| **Incremental** | Scheduled | Seconds (feed cursor) |
+| **Real-time** | Webhooks | Near-instant |
+
+## Full Sync Process
+
+1. **Vehicles**: Paginated fetch from `/fleet/vehicles` (512 per page)
+2. **Drivers**: Paginated fetch from `/fleet/drivers`
+3. **Alerts**: Recent alerts from `/fleet/alerts` (last 30 days)
+4. **Sensors**: Environmental sensor readings per gateway
+5. **Transform**: Convert all entities to searchable documents (50 per batch)
+
+## Incremental Sync
+
+Uses Samsara's feed cursor endpoints (`/fleet/vehicles/stats/feed`) to track changes since the last sync. Only modified entities are re-indexed.
+
+## Cursor Format
+
+```json
+{
+  "lastSyncTime": "2026-03-06T00:00:00Z",
+  "vehicleFeedCursor": "cursor_abc123",
+  "locationFeedCursor": "cursor_def456",
+  "alertsCursor": "cursor_ghi789",
+  "driversCursor": "cursor_jkl012",
+  "sensorsCursor": "cursor_mno345"
+}
+```
+
+Each data stream maintains its own cursor for independent progress tracking.
+
+## Rate Limits
+
+| Quota | Limit |
+|-------|-------|
+| Requests per minute | 600 |
+| Requests per hour | 36,000 |
+| Burst limit | 100 concurrent |
+
+The connector tracks `X-RateLimit-Remaining` headers and throttles before hitting limits. Rate-limited requests (429) are retried with exponential backoff.
+
+## Duration Estimates
+
+| Fleet Size | Full Sync | Incremental |
+|-----------|-----------|-------------|
+| < 500 vehicles | 2-5 min | < 10s |
+| 500-5,000 | 5-15 min | < 30s |
+| 5,000-20,000 | 15-30 min | < 1 min |
+
+## Webhooks
+
+Webhook endpoint: `POST /webhooks/samsara/events/{connectorId}`
+
+Events: vehicle updates, alert triggers, sensor threshold violations. Signatures verified with HMAC-SHA256.

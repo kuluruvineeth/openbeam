@@ -1,0 +1,45 @@
+---
+title: Sync Behavior
+description: How Node-RED data is synced to OpenPlane.
+---
+
+# Sync Behavior
+
+## Sync Types
+
+| Type | Trigger | Duration |
+|------|---------|----------|
+| **Full** | First connection, manual resync | Less than 1 minute |
+| **Incremental** | Scheduled (5-min default) | Seconds |
+
+## Full Sync Process
+
+1. **Fetch Flows**: GET `/flows` returns all flow definitions as JSON
+2. **Decompose**: Extract individual flows, nodes, and subflows
+3. **Enrich**: Identify node types, extract function code, map topology
+4. **Fetch Settings**: GET `/settings` for runtime metadata
+5. **Transform**: Convert to searchable documents
+
+## Cursor Format
+
+```json
+{
+  "lastSyncTime": "2026-03-06T00:00:00Z",
+  "lastFlowRevision": "abc123def456"
+}
+```
+
+## Incremental Sync
+
+Tracks the flow revision from the Admin API. When the revision changes (indicating a deploy), the connector re-fetches all flows and re-indexes only those with changes.
+
+<Callout type="info">
+  Some Node-RED versions do not expose revision metadata reliably. The connector defaults to periodic full refresh (every 5 minutes) to catch all changes.
+</Callout>
+
+## What Triggers a Revision Change
+
+- Deploying flows from the editor
+- Importing new flows
+- Installing or removing palette nodes
+- Modifying flow configuration via the Admin API

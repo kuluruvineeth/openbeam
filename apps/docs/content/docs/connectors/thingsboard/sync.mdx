@@ -1,0 +1,44 @@
+---
+title: Sync Behavior
+description: How ThingsBoard data is synced to OpenPlane.
+---
+
+# Sync Behavior
+
+## Sync Types
+
+| Type | Trigger | Duration |
+|------|---------|----------|
+| **Full** | First connection, manual resync | Minutes (scales with device count) |
+| **Incremental** | Scheduled | Seconds |
+
+## Full Sync Process
+
+1. **Authenticate**: Exchange credentials for JWT token via `/api/auth/login`
+2. **Devices**: Paginated device list (100 per page)
+3. **Attributes**: Server-side and shared attributes per device
+4. **Telemetry**: Latest telemetry values per device
+5. **Alarms**: Active, acknowledged, and cleared alarms
+6. **Transform**: Convert to searchable documents
+
+## Cursor Format
+
+```json
+{
+  "lastSyncTime": "2026-03-06T00:00:00Z",
+  "devicePageLink": "page=2&pageSize=100",
+  "telemetryKeys": { "device_1": ["temperature", "humidity"] },
+  "lastAlarmTime": 1709683200000
+}
+```
+
+## Authentication
+
+The connector exchanges email/password for a JWT token at `/api/auth/login`. Tokens are refreshed automatically before expiration. No manual token management is needed.
+
+## Incremental Sync
+
+Uses server-side timestamps to fetch only modified entities:
+- Devices with updated attributes
+- New telemetry data points
+- Alarm state changes (active to acknowledged to cleared)

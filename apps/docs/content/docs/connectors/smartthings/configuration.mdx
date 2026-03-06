@@ -1,0 +1,32 @@
+---
+title: Configuration
+description: SmartThings connector settings reference.
+---
+
+# Configuration
+
+## Authentication
+
+| Setting | Type | Required | Default | Description |
+|---------|------|----------|---------|-------------|
+| `access_token` | string | Yes | -- | Personal Access Token from SmartThings developer portal |
+
+## Content Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `sync_scenes` | boolean | `true` | Include automation scenes in search |
+
+## Required Token Scopes
+
+Generate a PAT at [my.smartthings.com/advanced](https://my.smartthings.com/advanced/tokens) with these scopes:
+
+| Scope | Purpose |
+|-------|---------|
+| `r:devices:*` | Read all devices |
+| `r:locations:*` | Read all locations |
+| `r:scenes:*` | Read automation scenes |
+
+<Callout type="info">
+  SmartThings PATs do not expire. If the token is invalidated (e.g., password change on the Samsung account), generate a new one.
+</Callout>

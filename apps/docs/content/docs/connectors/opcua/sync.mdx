@@ -1,0 +1,48 @@
+---
+title: Sync Behavior
+description: How OPC-UA data is synced to OpenPlane.
+---
+
+# Sync Behavior
+
+## Sync Types
+
+| Type | Trigger | Description |
+|------|---------|-------------|
+| **Full** | First connection, manual resync | Browse address space from root |
+| **Subscriptions** | Continuous | Server-push value changes |
+| **Historical** | On demand | HDA backfill from historian nodes |
+
+## Full Sync Process
+
+1. **Browse**: Traverse the address space from the root node
+2. **Read**: Current values for all discovered variable nodes
+3. **Metadata**: Node attributes (display name, data type, description)
+4. **Transform**: Convert to searchable documents
+
+## Cursor Format
+
+```json
+{
+  "lastSyncTime": "2026-03-06T00:00:00Z",
+  "lastBrowseTime": "2026-03-05T00:00:00Z",
+  "browsedNodeIds": ["ns=2;s=Temperature", "ns=2;s=Pressure"],
+  "subscribedNodeIds": ["ns=2;s=Temperature"]
+}
+```
+
+## Subscriptions
+
+The connector creates OPC-UA monitored items for variable nodes. The server pushes value changes automatically. Dropped subscriptions are re-established on reconnection.
+
+## Historical Data Access (HDA)
+
+For nodes with `Historizing: true`, the connector can backfill historical values. The server must implement the HistoryRead service. Not all OPC-UA servers support HDA.
+
+## Session Management
+
+| Parameter | Default |
+|-----------|---------|
+| Keep alive interval | 10,000ms |
+| Connection timeout | 30,000ms |
+| Request timeout | 60,000ms |

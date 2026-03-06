@@ -1,0 +1,33 @@
+---
+title: Features
+description: SmartThings connector capabilities and indexed data.
+---
+
+# SmartThings Features
+
+## Content Types
+
+| Type | Fields Indexed |
+|------|----------------|
+| Devices | Name, type, capabilities, health status, location, room |
+| Locations | Name, timezone, country, temperature scale |
+| Scenes | Scene name, location, last executed timestamp |
+
+## Metadata
+
+| Field | Searchable | Filterable |
+|-------|------------|------------|
+| Device name | Yes | Yes |
+| Device type | Yes | Yes |
+| Capability | Yes | Yes |
+| Location | Yes | Yes |
+| Room | Yes | Yes |
+| Health status | No | Yes |
+
+## Limitations
+
+| Limit | Value |
+|-------|-------|
+| API rate limit | 50 req/min |
+| Token expiration | Tokens do not expire (PAT) |
+| Multi-location | Supported (syncs all accessible locations) |

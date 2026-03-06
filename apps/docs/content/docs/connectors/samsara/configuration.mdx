@@ -1,0 +1,47 @@
+---
+title: Configuration
+description: Samsara connector settings reference.
+---
+
+# Configuration
+
+## Authentication
+
+| Setting | Type | Required | Default | Description |
+|---------|------|----------|---------|-------------|
+| `api_token` | string | Yes | -- | Samsara API token from the dashboard |
+| `region` | enum | Yes | `us` | API region: `us` or `eu` |
+
+## Content Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `sync_alerts` | boolean | `true` | Include fleet alerts in search |
+| `sync_sensors` | boolean | `true` | Include environmental sensor data |
+| `enable_webhooks` | boolean | `true` | Enable real-time event delivery |
+
+## Advanced
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `api_version` | string | `2024-06-01` | Samsara API version (date-based) |
+
+## Region Endpoints
+
+| Region | API Base URL |
+|--------|-------------|
+| US | `https://api.samsara.com` |
+| EU | `https://api.eu.samsara.com` |
+
+<Callout type="warn">
+  The wrong region returns empty results rather than an error. Verify your organization's region in the Samsara dashboard.
+</Callout>
+
+## Resync Triggers
+
+| Change | Required Action |
+|--------|----------------|
+| Enable/disable alerts | Incremental sync |
+| Enable/disable sensors | Full resync |
+| Change region | Full resync |
+| Webhook reconnect | None (automatic) |

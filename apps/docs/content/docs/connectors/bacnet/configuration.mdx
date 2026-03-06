@@ -1,0 +1,33 @@
+---
+title: Configuration
+description: BACnet connector settings reference.
+---
+
+# Configuration
+
+## Network
+
+| Setting | Type | Required | Default | Description |
+|---------|------|----------|---------|-------------|
+| `interface` | string | No | `0.0.0.0` | Network interface for BACnet/IP |
+| `port` | number | Yes | `47808` | BACnet/IP UDP port |
+| `broadcastAddress` | string | No | `255.255.255.255` | Broadcast address for discovery |
+
+## Discovery
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `device_ids` | string | -- | Comma-separated device IDs (empty for auto-discovery) |
+| `discoveryTimeout` | number | `5000` | Discovery timeout in milliseconds |
+
+## Polling
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `poll_interval` | number | `30` | Object polling interval in seconds |
+| `readTimeout` | number | `3000` | Property read timeout in milliseconds |
+| `covLifetime` | number | `300` | COV subscription lifetime in seconds |
+
+<Callout type="warn">
+  BACnet/IP uses UDP broadcast for discovery. If OpenPlane is on a different subnet from BACnet devices, configure a BBMD or specify device IDs manually.
+</Callout>

@@ -1,0 +1,41 @@
+---
+title: Sync Behavior
+description: How SmartThings data is synced to OpenPlane.
+---
+
+# Sync Behavior
+
+## Sync Types
+
+| Type | Trigger | Duration |
+|------|---------|----------|
+| **Full** | First connection, manual resync | 1-5 minutes |
+| **Incremental** | Scheduled | Seconds |
+
+## Full Sync Process
+
+1. **Locations**: Fetch all accessible locations
+2. **Devices**: Paginated device list per location with capability details
+3. **Scenes**: Automation scenes per location
+4. **Transform**: Convert to searchable documents with component-level indexing
+
+## Cursor Format
+
+```json
+{
+  "lastSyncTime": "2026-03-06T00:00:00Z",
+  "page": 1
+}
+```
+
+## Rate Limits
+
+| Quota | Limit |
+|-------|-------|
+| Requests per minute | 50 |
+
+The connector spaces requests to stay under the 50 req/min limit. Large smart home setups (100+ devices) may take several minutes.
+
+## Component-Level Indexing
+
+SmartThings devices can have multiple components (e.g., a thermostat with temperature sensor, humidity sensor, and HVAC mode). Each component's capabilities are indexed as separate searchable fields.

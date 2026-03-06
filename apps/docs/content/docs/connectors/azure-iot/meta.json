@@ -1,5 +1,12 @@
 {
   "title": "Azure IoT",
   "icon": "AzureIot",
-  "pages": ["index", "setup", "troubleshooting"]
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "sync",
+    "configuration",
+    "troubleshooting"
+  ]
 }

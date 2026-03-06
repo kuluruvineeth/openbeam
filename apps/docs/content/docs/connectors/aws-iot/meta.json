@@ -1,5 +1,12 @@
 {
   "title": "AWS IoT",
   "icon": "AwsIot",
-  "pages": ["index", "setup", "troubleshooting"]
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "sync",
+    "configuration",
+    "troubleshooting"
+  ]
 }

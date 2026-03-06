@@ -1,0 +1,45 @@
+---
+title: Configuration
+description: MQTT connector settings reference.
+---
+
+# Configuration
+
+## Connection
+
+| Setting | Type | Required | Default | Description |
+|---------|------|----------|---------|-------------|
+| `broker_url` | string | Yes | -- | Broker URL (mqtt://, mqtts://, ws://, wss://) |
+| `port` | number | Yes | -- | Broker port (1883 plain, 8883 TLS) |
+| `username` | string | No | -- | Authentication username |
+| `password` | string | No | -- | Authentication password |
+
+## Subscriptions
+
+| Setting | Type | Required | Default | Description |
+|---------|------|----------|---------|-------------|
+| `topics` | string[] | Yes | -- | Topic patterns (one per line, supports + and # wildcards) |
+| `payload_format` | enum | Yes | `json` | `json`, `sparkplug_b`, `cbor`, or `raw` |
+| `aggregation_window` | number | No | `60` | Time window in seconds for telemetry aggregation |
+
+## TLS
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `ca_cert` | string | -- | CA certificate PEM for server verification |
+| `client_cert` | string | -- | Client certificate PEM for mTLS |
+| `client_key` | string | -- | Client private key PEM for mTLS |
+
+## Protocol
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `mqtt_version` | enum | `3.1.1` | MQTT protocol version: `3.1.1` or `5.0` |
+| `clean_start` | boolean | `true` | Start with a clean session |
+| `keep_alive` | number | `60` | Keep alive interval in seconds |
+| `reconnect_period` | number | `5000` | Reconnect delay in milliseconds |
+| `connect_timeout` | number | `30000` | Connection timeout in milliseconds |
+
+<Callout type="warn">
+  For Sparkplug B, topics must follow the `spBv1.0/group_id/message_type/edge_node_id/[device_id]` pattern. Non-Sparkplug messages on these topics are discarded.
+</Callout>

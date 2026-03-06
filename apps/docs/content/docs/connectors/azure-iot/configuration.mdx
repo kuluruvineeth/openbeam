@@ -1,0 +1,36 @@
+---
+title: Configuration
+description: Azure IoT Hub connector settings reference.
+---
+
+# Configuration
+
+## Authentication
+
+| Setting | Type | Required | Default | Description |
+|---------|------|----------|---------|-------------|
+| `connection_string` | string | Yes | -- | IoT Hub connection string with RegistryRead + ServiceConnect |
+
+## Connection String Format
+
+```text
+HostName=your-hub.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=base64key
+```
+
+## Required Permissions
+
+| Policy | Permission | Purpose |
+|--------|-----------|---------|
+| `RegistryRead` | Required | Read device registry |
+| `ServiceConnect` | Required | Query device twins |
+
+<Callout type="warn">
+  The `device` policy is insufficient. Use `iothubowner` or a custom policy with both `RegistryRead` and `ServiceConnect`.
+</Callout>
+
+## Resync Triggers
+
+| Change | Required Action |
+|--------|----------------|
+| Connection string rotated | Update connector, automatic resync |
+| Twin-only property changes | Full resync (not detected incrementally) |

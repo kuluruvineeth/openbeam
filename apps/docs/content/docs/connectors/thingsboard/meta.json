@@ -1,5 +1,5 @@
 {
   "title": "ThingsBoard",
   "icon": "ThingsBoard",
-  "pages": ["index", "setup", "troubleshooting"]
+  "pages": ["index", "setup", "features", "sync", "configuration", "troubleshooting"]
 }

@@ -1,0 +1,43 @@
+---
+title: Features
+description: OPC-UA connector capabilities and indexed data.
+---
+
+# OPC-UA Features
+
+## Content Types
+
+| Type | Fields Indexed |
+|------|----------------|
+| Node Values | NodeId, display name, value, data type, status code, source timestamp |
+| Alarms | Alarm type, severity, source node, message, active state |
+
+## Companion Specifications
+
+The connector recognizes industry-standard OPC-UA companion specifications and enriches documents with domain-specific metadata:
+
+| Specification | Enrichment |
+|--------------|------------|
+| MTConnect | Machine state, tool wear, cycle count |
+| PackML | Packaging machine states, modes |
+| PLCopen | Motion controller states |
+| Euromap | Injection molding machine data |
+| AutoID | RFID and barcode reader data |
+| MDIS | Subsea and marine equipment |
+
+## Security Modes
+
+| Mode | Protection |
+|------|-----------|
+| None | No security (development only) |
+| Sign | Message integrity |
+| Sign and Encrypt | Integrity + confidentiality (recommended) |
+
+## Limitations
+
+| Limit | Value |
+|-------|-------|
+| Connection | Persistent TCP session |
+| Subscriptions | Limited by server capacity |
+| Historical data | Requires server HDA support |
+| Browse depth | Configurable (default: unlimited) |

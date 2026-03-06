@@ -1,0 +1,39 @@
+---
+title: Configuration
+description: Verkada connector settings reference.
+---
+
+# Configuration
+
+## Authentication
+
+| Setting | Type | Required | Default | Description |
+|---------|------|----------|---------|-------------|
+| `apiKey` | string | Yes | -- | Verkada Command API key |
+| `region` | enum | Yes | `us` | Deployment region: `us`, `eu`, or `au` |
+
+## Content Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `syncCameras` | boolean | `true` | Include cameras in search |
+| `syncDoors` | boolean | `true` | Include access control doors |
+| `syncSensors` | boolean | `true` | Include environmental sensors |
+
+## Advanced
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `pageSize` | number | `100` | Devices per API page (1-200) |
+
+## Region Endpoints
+
+| Region | API Base URL |
+|--------|-------------|
+| US | `https://api.verkada.com` |
+| EU | `https://api.eu.verkada.com` |
+| AU | `https://api.au.verkada.com` |
+
+<Callout type="error">
+  Selecting the wrong region returns empty results, not an error. Verify your organization's region in Verkada Command before configuring.
+</Callout>

@@ -1,0 +1,49 @@
+---
+title: Sync Behavior
+description: How AWS IoT Core data is synced to OpenPlane.
+---
+
+# Sync Behavior
+
+## Sync Types
+
+| Type | Trigger | Duration |
+|------|---------|----------|
+| **Full** | First connection, manual resync | Minutes (scales with thing count) |
+| **Incremental** | Scheduled | Seconds |
+
+## Full Sync Process
+
+1. **List Things**: Paginated fetch (250 per page) from AWS IoT registry
+2. **Describe Things**: Fetch attributes and connectivity for each thing
+3. **Get Shadows**: Retrieve device shadow state for each thing
+4. **List Thing Groups**: Paginated fetch of thing group hierarchy
+5. **Transform**: Convert to searchable documents
+
+## Cursor Format
+
+```json
+{
+  "lastSyncTime": "2026-03-06T00:00:00Z",
+  "thingsToken": "pagination_token_abc",
+  "thingGroupsToken": "pagination_token_def"
+}
+```
+
+## Rate Limits
+
+| Quota | Limit |
+|-------|-------|
+| Requests per minute | 300 |
+| Requests per hour | 10,000 |
+| Burst limit | 10 concurrent |
+
+AWS IoT control plane APIs have separate rate limits from data plane APIs. The connector uses control plane APIs for registry and shadow operations.
+
+<Callout type="info">
+  Rate limits vary by AWS region. The connector uses exponential backoff on throttling (ThrottlingException).
+</Callout>
+
+## Supported Regions
+
+`us-east-1`, `us-west-2`, `eu-west-1`, `eu-central-1`, `ap-northeast-1`, `ap-southeast-1`, `ap-southeast-2`, `ap-south-1`, `ca-central-1`, `sa-east-1`

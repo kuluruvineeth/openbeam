@@ -1,0 +1,53 @@
+---
+title: Sync Behavior
+description: How Verkada data is synced to OpenPlane.
+---
+
+# Sync Behavior
+
+## Sync Types
+
+| Type | Trigger | Duration |
+|------|---------|----------|
+| **Full** | First connection, manual resync | 2-10 minutes |
+| **Incremental** | Scheduled (30-min default) | Seconds |
+| **Real-time** | Webhooks | Near-instant |
+
+## Full Sync Process
+
+1. **Token Exchange**: API key exchanged for access token (25-min TTL)
+2. **Cameras**: Paginated fetch (100 per page) from cameras API
+3. **Doors**: Access control devices from doors API
+4. **Sensors**: Environmental sensors from sensors API
+5. **Transform**: Convert to searchable documents
+
+## Cursor Format
+
+```json
+{
+  "lastSyncTime": "2026-03-06T00:00:00Z",
+  "lastFullSync": "2026-03-05T00:00:00Z",
+  "forceFullSync": false
+}
+```
+
+## Token Management
+
+Verkada uses a two-step authentication flow:
+1. API key is sent via `POST /token` to get an access token
+2. Access token has a 25-minute TTL
+3. The connector caches and auto-refreshes tokens before expiry
+
+## Rate Limits
+
+| Quota | Limit |
+|-------|-------|
+| Requests per minute | 300 |
+| Requests per hour | 18,000 |
+| Burst limit | 50 concurrent |
+
+## Webhooks
+
+Webhook endpoint: `POST /webhooks/verkada/events/{connectorId}`
+
+Events: access events, camera alerts, sensor threshold violations.

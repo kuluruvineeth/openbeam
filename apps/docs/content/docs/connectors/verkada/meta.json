@@ -1,5 +1,12 @@
 {
   "title": "Verkada",
   "icon": "Verkada",
-  "pages": ["index", "setup", "troubleshooting"]
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "sync",
+    "configuration",
+    "troubleshooting"
+  ]
 }

@@ -1,0 +1,43 @@
+---
+title: Features
+description: Verkada connector capabilities and indexed data.
+---
+
+# Verkada Features
+
+## Content Types
+
+| Type | Fields Indexed |
+|------|----------------|
+| Cameras | Name, model, status, site, firmware version, last online |
+| Doors | Name, lock state, site, recent access events |
+| Sensors | Name, type, readings (temperature, humidity, air quality), site |
+
+## Metadata
+
+| Field | Searchable | Filterable |
+|-------|------------|------------|
+| Device name | Yes | Yes |
+| Site | Yes | Yes |
+| Device type | No | Yes |
+| Status | No | Yes |
+| Model | Yes | No |
+| Firmware version | No | Yes |
+
+## Sync Modes
+
+| Mode | Trigger | Latency |
+|------|---------|---------|
+| Full | First sync, manual resync | 2-10 minutes |
+| Incremental | Scheduled (30-min intervals) | Seconds |
+| Real-time | Webhooks | Near-instant |
+
+## Limitations
+
+| Limit | Value |
+|-------|-------|
+| API rate limit | 300 req/min, 18,000 req/hour |
+| Burst limit | 50 concurrent |
+| Page size | 100 devices per page (max 200) |
+| Token TTL | 25 minutes (auto-refreshed) |
+| Regions | US, EU, AU |

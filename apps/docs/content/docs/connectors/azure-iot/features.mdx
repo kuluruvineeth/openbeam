@@ -1,0 +1,32 @@
+---
+title: Features
+description: Azure IoT Hub connector capabilities and indexed data.
+---
+
+# Azure IoT Hub Features
+
+## Content Types
+
+| Type | Fields Indexed |
+|------|----------------|
+| Devices | Device ID, connection state, status, authentication type, last activity |
+| Device Twins | Tags, reported properties, desired properties, version |
+
+## Metadata
+
+| Field | Searchable | Filterable |
+|-------|------------|------------|
+| Device ID | Yes | Yes |
+| Connection state | No | Yes |
+| Status | No | Yes |
+| Twin tags | Yes | Yes |
+| Reported properties | Yes | No |
+| Last activity | No | Yes |
+
+## Limitations
+
+| Limit | Value |
+|-------|-------|
+| Rate limit | 15 req/min (most conservative IoT connector) |
+| Query page size | 100 devices per page |
+| Twin properties | Limited to 32 KB per twin |
