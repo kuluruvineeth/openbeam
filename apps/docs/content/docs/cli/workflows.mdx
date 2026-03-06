@@ -1,0 +1,258 @@
+---
+title: Workflows
+description: Common CLI recipes for search, sync, AI, and automation.
+---
+
+# CLI Workflows
+
+Practical recipes for everyday tasks. Each workflow shows the full command sequence from start to finish.
+
+## Search Workflows
+
+### Find and filter documents
+
+```bash
+# Search across all sources
+openplane search query --query "quarterly revenue report"
+
+# Filter by connector type
+openplane search query --query "API docs" --connector-type notion --connector-type confluence
+
+# Search with a specific ranking profile
+openplane search query --query "deployment checklist" --ranking enterprise_v2
+
+# Search recent content
+openplane search recent --days 7
+
+# Find similar documents
+openplane search similar --id "doc_abc123"
+
+# Search media (video transcripts, recordings)
+openplane search media --query "product roadmap discussion"
+```
+
+### Process search results
+
+```bash
+# Extract just titles
+openplane search query --query "onboarding" --jq '.items[].title'
+
+# Count results
+openplane search query --query "API" --jq '.items | length'
+
+# Export to JSON file
+openplane search query --query "architecture" --output json > results.json
+
+# Format with Go templates
+openplane search query --query "bugs" --template '\{{.title}} (\{{.connectorType}})'
+```
+
+## Connector Management
+
+### Set up a new connector
+
+```bash
+# List available connectors
+openplane connectors list
+
+# Connect with OAuth2 (opens browser for auth flow)
+openplane connectors connect --type slack
+
+# Connect with API key
+openplane connectors connect --type samsara --api-key "samsara_api_xxxx"
+
+# Check connector status
+openplane connectors status --id "conn_abc123"
+```
+
+### Sync operations
+
+```bash
+# Trigger full sync
+openplane connectors sync --id "conn_abc123" --mode full
+
+# Trigger incremental sync
+openplane connectors sync --id "conn_abc123" --mode incremental
+
+# View sync history
+openplane connectors history --id "conn_abc123" --limit 5
+
+# Pause and resume sync
+openplane connectors pause --id "conn_abc123"
+openplane connectors resume --id "conn_abc123"
+```
+
+### Resource-level control
+
+```bash
+# List available resources (channels, repos, etc.)
+openplane connectors resources --id "conn_abc123"
+
+# Enable/disable specific resources
+openplane connectors resource-sync --id "conn_abc123" --resource "channel_general" --enabled true
+```
+
+## AI Workflows
+
+### Ask questions with RAG
+
+```bash
+# One-shot question grounded in your data
+openplane rag ask --query "What were the Q3 OKR results?"
+
+# Stream the answer token by token
+openplane rag stream --query "Summarize the deployment runbook"
+
+# Multi-turn conversation
+openplane rag conversations create --name "Q3 Review"
+openplane rag ask --conversation "conv_abc" --query "What was revenue?"
+openplane rag ask --conversation "conv_abc" --query "How does that compare to Q2?"
+
+# List and manage conversations
+openplane rag conversations list
+openplane rag conversations delete --id "conv_abc"
+```
+
+### Run agents
+
+```bash
+# Execute an agent
+openplane agent run --agent "research" --input "Find all docs about auth flow"
+
+# Stream agent events (SSE)
+openplane agent stream --agent "research" --input "Analyze API usage patterns"
+```
+
+### Background agents
+
+```bash
+# Create an autonomous background agent
+openplane background-agents create --name "weekly-report" --agent "research" --schedule "0 9 * * 1"
+
+# Monitor running agents
+openplane background-agents list
+openplane background-agents logs --id "ba_abc123" --follow
+
+# Pause and resume
+openplane background-agents pause --id "ba_abc123"
+openplane background-agents resume --id "ba_abc123"
+```
+
+## Knowledge Graph
+
+```bash
+# Search entities (people, teams, projects)
+openplane knowledge search --query "frontend team"
+
+# Get entity details
+openplane knowledge get --id "entity_abc123"
+
+# Find subject matter experts
+openplane knowledge experts --topic "kubernetes"
+
+# View entity relationships
+openplane knowledge relations --id "entity_abc123"
+```
+
+## MCP Integration
+
+Use the CLI as an MCP server for AI editors and external agents.
+
+```bash
+# Start MCP server (stdin/stdout JSON-RPC 2.0)
+openplane mcp serve
+
+# List available MCP tools
+openplane mcp tools list
+
+# Call a tool directly (useful for testing)
+openplane mcp tools call --name "search_hybrid" --args '\{"query": "test"\}'
+```
+
+### Configure in AI editors
+
+Add to your editor's MCP configuration:
+
+```json
+{
+  "mcpServers": {
+    "openplane": {
+      "command": "openplane",
+      "args": ["mcp", "serve"]
+    }
+  }
+}
+```
+
+## Automation Recipes
+
+### Monitor connector health
+
+```bash
+# Check all connectors, alert on errors
+openplane connectors list --output json | \
+  openplane --jq '[.items[] | select(.status == "error")] | length' | \
+  xargs -I {} test {} -eq 0 || echo "ALERT: Connectors in error state"
+```
+
+### Batch operations with scripting
+
+```bash
+# Trigger incremental sync on all active connectors
+openplane connectors list --jq '.items[] | select(.status == "active") | .id' | \
+  while read id; do
+    openplane connectors sync --id "$id" --mode incremental
+  done
+```
+
+### CI/CD integration
+
+```bash
+# In CI: verify search index health before deploy
+export OPENPLANE_API_KEY="$CI_OPENPLANE_KEY"
+export OPENPLANE_HOST="https://openplane.internal"
+
+# Search for deployment docs (exit 1 if none found)
+count=$(openplane search query --query "deployment runbook" --jq '.items | length')
+if [ "$count" -eq 0 ]; then
+  echo "No deployment docs found — check connector sync"
+  exit 1
+fi
+```
+
+## Environment Setup
+
+### Multiple environments
+
+```bash
+# Set up production profile
+openplane config set --host https://openplane.example.com
+openplane auth login --api-key "op_prod_key"
+
+# Set up staging profile
+openplane config use staging
+openplane config set --host https://staging.openplane.example.com
+openplane auth login --api-key "op_staging_key"
+
+# Switch between environments
+openplane config use production
+openplane config use staging
+
+# List all profiles
+openplane config profiles
+```
+
+### Debug API calls
+
+```bash
+# Trace HTTP requests and responses
+openplane search query --query "test" --trace
+
+# Enable debug output
+openplane search query --query "test" --debug
+```
+
+<Cards>
+  <Card title="Command Reference" href="/docs/cli/commands" description="Every command, flag, and subcommand." />
+  <Card title="CLI Overview" href="/docs/cli" description="Installation, authentication, and output formats." />
+</Cards>

@@ -1,0 +1,167 @@
+---
+title: Configuration
+description: Ranking profiles, filters, query parameters, and tuning options for OpenPlane search.
+---
+
+# Search Configuration
+
+## Ranking Profiles
+
+Select a ranking profile to control how results are scored. Pass `rankingProfile` in the search request or use the `--ranking` flag in the CLI.
+
+| Profile | Signals | Best For |
+|---------|---------|----------|
+| `hybrid` | BM25 + dense cosine | General search (default) |
+| `hybrid_v2` | BM25 + dense + sparse | General search with learned sparse signals |
+| `semantic` | Dense cosine similarity only | Conceptual queries without exact keywords |
+| `bm25` | BM25 keyword matching only | Exact terms, error codes, identifiers |
+| `enterprise` | Hybrid + authority + recency | Production enterprise search |
+| `enterprise_v2` | Enterprise + sparse vectors | Enhanced production search |
+| `recency` | Time-decay weighting | Recent updates, latest changes |
+| `hybrid_recency` | Hybrid + time decay | General search biased toward freshness |
+| `navigational` | Title-biased BM25 + dense | Finding a specific known document |
+| `personalized` | Hybrid + department affinity | Per-user relevance |
+| `authority` | Inbound links + quality + source tier | High-authority content |
+| `topic_search` | Topic vector similarity | Topic-level exploration |
+| `engagement` | Views, reactions, access frequency | Popular content |
+
+### Choosing a Profile
+
+<Tabs items={["tRPC API", "CLI", "Agent Tool"]}>
+  <Tab value="tRPC API">
+    ```typescript
+    const results = await trpc.search.hybrid.query({
+      query: "deployment checklist",
+      teamId: session.teamId,
+      rankingProfile: "enterprise_v2",
+      limit: 20,
+    });
+    ```
+  </Tab>
+  <Tab value="CLI">
+    ```bash
+    openplane search query --query "deployment checklist" --ranking enterprise_v2
+    ```
+  </Tab>
+  <Tab value="Agent Tool">
+    ```typescript
+    const tool = toolRegistry.getTool("search_hybrid");
+    const result = await tool.execute({
+      query: "deployment checklist",
+      rankingProfile: "enterprise_v2",
+    });
+    ```
+  </Tab>
+</Tabs>
+
+## Filters
+
+Narrow results before ranking. Filters are applied at the Vespa content node level, which means excluded documents never enter the ranking pipeline.
+
+| Filter | Type | Description |
+|--------|------|-------------|
+| `connectorTypes` | string[] | Restrict to specific connector types (`slack`, `notion`, `github`, etc.) |
+| `documentTypes` | string[] | Restrict to document types (`message`, `page`, `issue`, `file`, `email`) |
+| `dateRange.start` | string | ISO 8601 date — exclude documents created before this date |
+| `dateRange.end` | string | ISO 8601 date — exclude documents created after this date |
+| `authors` | string[] | Filter by author email or ID |
+| `labels` | string[] | Filter by document labels |
+| `connectorIds` | string[] | Restrict to specific connector instances |
+
+```typescript
+const results = await trpc.search.hybrid.query({
+  query: "API documentation",
+  teamId: session.teamId,
+  filters: {
+    connectorTypes: ["notion", "confluence"],
+    documentTypes: ["page"],
+    dateRange: { start: "2025-06-01" },
+    labels: ["engineering", "api"],
+  },
+});
+```
+
+## Query Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `query` | string | -- | Search query text (required) |
+| `teamId` | string | -- | Team scope (required, auto-injected from session) |
+| `limit` | number | `10` | Maximum results to return (1-100) |
+| `offset` | number | `0` | Pagination offset |
+| `rankingProfile` | string | `hybrid` | Ranking profile to use |
+| `filters` | object | -- | Filter constraints (see above) |
+| `includeChunks` | boolean | `false` | Include document chunks in results |
+| `includeHighlights` | boolean | `true` | Include text highlights with match markers |
+
+## Embedding Models
+
+OpenPlane supports multiple embedding models. The active model determines vector dimensions.
+
+| Model | Dimensions | Usage |
+|-------|-----------|-------|
+| OpenAI `text-embedding-3-large` | 1536 | Default dense embeddings (v1) |
+| OpenAI `text-embedding-3-small` | 1024 | Dense embeddings (v2) |
+| Sentence Transformers | 256-1024 | Self-hosted via engine |
+
+Configure the embedding model via the `OPENAI_API_KEY` environment variable (for OpenAI models) or `ENGINE_URL` (for self-hosted models).
+
+## Performance Tuning
+
+### Vespa Configuration
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `VESPA_URL` | `http://vespa:8080` | Vespa query endpoint |
+| `VESPA_DISK_FULL_PERCENT` | `90` | Stop accepting writes at this disk usage |
+
+### Connection Pool
+
+The Vespa client uses undici connection pooling:
+
+| Parameter | Value |
+|-----------|-------|
+| Pool connections | 10 |
+| Keep-alive timeout | 30 seconds |
+| Vector queries | POST (body contains embedding tensors) |
+| Keyword queries | GET |
+
+### Query Cache
+
+An optional LRU cache sits in front of the Vespa client.
+
+| Parameter | Default |
+|-----------|---------|
+| Max entries | 1000 |
+| TTL | 30 seconds |
+| Enabled | No (opt-in) |
+
+Cache keys are derived from the YQL query, ranking profile, pagination parameters, and embedding hash prefix. Enable caching for read-heavy workloads with stable query patterns.
+
+### Timeouts
+
+| Operation | Timeout |
+|-----------|---------|
+| Query | 5 seconds (returns partial results on timeout) |
+| Feed (per document) | 30 seconds |
+| Batch feed | 5 minutes |
+
+## Monitoring
+
+Search metrics are exported to Prometheus.
+
+| Metric | Description |
+|--------|-------------|
+| `vespa.query.latency_ms` | End-to-end query time |
+| `vespa.query.degraded` | Partial results (timeout or match-phase) |
+| `vespa.query.error` | Query error count |
+| `vespa.feed.latency_ms` | Document feed time |
+| `vespa.cache.hit` / `vespa.cache.miss` | Cache hit ratio |
+
+Set up alerts for `vespa.query.degraded > 0` and `vespa.query.latency_ms p99 > 200ms` to catch search quality regressions.
+
+<Cards>
+  <Card title="How It Works" href="/docs/search/how-it-works" description="Vespa internals, ranking mechanics, and edge search." />
+  <Card title="Search Overview" href="/docs/search" description="Search modes, permissions, and agent tools." />
+  <Card title="Self-Hosting" href="/docs/self-hosting/configuration" description="Environment variables for Vespa and search." />
+</Cards>
