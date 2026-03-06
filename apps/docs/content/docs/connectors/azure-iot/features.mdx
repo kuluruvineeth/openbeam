@@ -23,6 +23,21 @@ description: Azure IoT Hub connector capabilities and indexed data.
 | Reported properties | Yes | No |
 | Last activity | No | Yes |
 
+## Sync Modes
+
+| Mode | Trigger | Latency |
+|------|---------|---------|
+| Full | First sync, manual | Minutes |
+| Incremental | Scheduled | 15 min |
+
+## AI Capabilities
+
+- Semantic search across all indexed devices and device twins
+- Question answering about device fleet status and twin property configurations
+- Device fleet health analysis from connection state patterns and activity timestamps
+- Twin drift detection between reported and desired properties across the device registry
+- Connectivity pattern analysis to surface devices with frequent disconnects or stale activity
+
 ## Limitations
 
 | Limit | Value |

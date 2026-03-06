@@ -24,6 +24,21 @@ description: AWS IoT Core connector capabilities and indexed data.
 | Group name | Yes | Yes |
 | ARN | No | Yes |
 
+## Sync Modes
+
+| Mode | Trigger | Latency |
+|------|---------|---------|
+| Full | First sync, manual | Minutes |
+| Incremental | Scheduled | 15 min |
+
+## AI Capabilities
+
+- Semantic search across all indexed things, thing groups, and device shadows
+- Question answering about device fleet configuration and connectivity status
+- Device fleet health analysis from connectivity patterns and shadow state aggregation
+- Shadow drift detection between reported and desired states across thing groups
+- Connectivity pattern analysis to identify unreliable devices and network issues
+
 ## Limitations
 
 | Limit | Value |
