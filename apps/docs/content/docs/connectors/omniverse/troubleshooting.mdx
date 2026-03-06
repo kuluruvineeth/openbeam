@@ -1,0 +1,96 @@
+---
+title: Troubleshooting
+description: Common NVIDIA Omniverse connector issues and fixes.
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+<Accordions>
+  <Accordion title="401 Unauthorized — Invalid API token">
+    The Nucleus API token is invalid or has been revoked.
+
+    **Fix:**
+    1. In the Nucleus Admin Console, verify the API token exists
+    2. Generate a new token if needed and update the connector in OpenPlane
+    3. Ensure the token has read access to the target USD stage paths
+  </Accordion>
+</Accordions>
+
+## Connectivity Issues
+
+<Accordions>
+  <Accordion title="Cannot connect to Nucleus server">
+    The Nucleus server is unreachable from the OpenPlane host.
+
+    **Fix:**
+    1. Verify the Nucleus server URL is correct
+    2. Test network connectivity to the Nucleus server
+    3. Check firewall rules -- Nucleus typically uses port 3009 or 3019
+    4. Verify the Nucleus service is running on the target host
+  </Accordion>
+</Accordions>
+
+## Missing Data
+
+<Accordions>
+  <Accordion title="No assets indexed from USD stage">
+    The stage path may be incorrect, or the stage contains no indexable prims.
+
+    **Fix:**
+    1. Verify the USD stage path exists on the Nucleus server
+    2. Open the stage in Omniverse USD Composer to confirm it contains prims
+    3. Check the scene depth limit -- a limit of `1` only indexes root-level prims
+    4. Set depth limit to `0` (unlimited) to traverse the full scene graph
+  </Accordion>
+
+  <Accordion title="Spatial metadata missing from documents">
+    Prims without transform data (Xform) may not have spatial metadata.
+
+    **Fix:**
+    1. Only prims with `UsdGeom.Xformable` properties generate spatial metadata
+    2. Abstract grouping prims may lack transforms
+    3. This is expected behavior -- non-spatial prims are still indexed by name and properties
+  </Accordion>
+</Accordions>
+
+## Sync Issues
+
+<Accordions>
+  <Accordion title="Initial sync takes very long">
+    Large USD stages with 100,000+ prims require significant traversal time.
+
+    **Fix:**
+    1. Start with smaller stages to verify configuration
+    2. Use the scene depth limit to restrict traversal depth
+    3. Subsequent incremental syncs only process modified stages
+  </Accordion>
+
+  <Accordion title="USD Search API queries failing">
+    The optional USD Search API may be misconfigured or unreachable.
+
+    **Fix:**
+    1. Verify the USD Search API URL is correct
+    2. Test the API endpoint directly with a curl request
+    3. The USD Search API is optional -- search still works through OpenPlane's standard search without it
+  </Accordion>
+</Accordions>
+
+## Debug Checklist
+
+```bash
+# Test Nucleus server connectivity
+curl https://nucleus-server:3009/health
+
+# Verify USD stage exists
+# Use Omniverse USD Composer or Navigator to browse the Nucleus file system
+```
+
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openplane/issues) with the connector status, Nucleus version, and USD stage details.
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/omniverse/setup" description="Reconnect or reconfigure the connector" />
+  <Card title="Matterport" href="/docs/connectors/matterport" description="3D spatial scans" />
+  <Card title="Viam" href="/docs/connectors/viam" description="Robot fleet management" />
+</Cards>

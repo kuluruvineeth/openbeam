@@ -1,0 +1,99 @@
+---
+title: Troubleshooting
+description: Common Viam Robotics connector issues and fixes.
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+<Accordions>
+  <Accordion title="401 Unauthorized — Invalid API key">
+    The API Key, API Key ID, or Organization ID is incorrect.
+
+    **Fix:**
+    1. In the Viam app at [app.viam.com](https://app.viam.com), verify the API key exists
+    2. Confirm all three fields match: API Key, API Key ID, and Organization ID
+    3. If the key was regenerated, update all three values in OpenPlane
+  </Accordion>
+
+  <Accordion title="Machine-scoped key shows limited data">
+    A machine-scoped API key only sees a single robot, not the full fleet.
+
+    **Fix:**
+    1. Generate an **organization-scoped** API key instead
+    2. Organization keys have visibility across all locations and machines
+    3. Update the connector with the new organization-scoped key
+  </Accordion>
+</Accordions>
+
+## Missing Data
+
+<Accordions>
+  <Accordion title="No machines found after sync">
+    The organization may have no active machines, or the API key scope is too narrow.
+
+    **Fix:**
+    1. Log in to [app.viam.com](https://app.viam.com) and verify machines exist
+    2. Check that machines are in the same organization as the API key
+    3. Ensure the Organization ID in the connector matches the target organization
+  </Accordion>
+
+  <Accordion title="Sensor data missing or incomplete">
+    Sensor data requires active data collection on the machine and the lookback window determines how much history is fetched.
+
+    **Fix:**
+    1. Verify data management is configured on the target machines in Viam
+    2. Increase the **Sensor Data Lookback** setting to capture more history
+    3. Machines that are offline do not push telemetry -- data gaps correspond to downtime
+  </Accordion>
+
+  <Accordion title="Camera captures not appearing">
+    Camera capture indexing requires the machine to have a camera component with data management enabled.
+
+    **Fix:**
+    1. Verify the machine has a camera component configured
+    2. Check that data capture is enabled for the camera in the machine's configuration
+    3. Camera captures with ML annotations require an ML model service running on the machine
+  </Accordion>
+
+  <Accordion title="ML models not indexed">
+    The ML model sync is disabled by default.
+
+    **Fix:**
+    1. In OpenPlane, enable **Sync ML Models** in the connector settings
+    2. Trigger a full resync after enabling the setting
+    3. Verify ML models exist in the Viam model registry for your organization
+  </Accordion>
+</Accordions>
+
+## Sync Issues
+
+<Accordions>
+  <Accordion title="Sync slow for large fleets">
+    Organizations with hundreds of machines across many locations can take time to fully enumerate.
+
+    **Fix:**
+    1. The connector paginates location and machine requests
+    2. Initial sync duration scales with the number of machines and sensor data volume
+    3. Reduce the sensor data lookback window to speed up initial sync
+    4. Subsequent incremental syncs are faster
+  </Accordion>
+</Accordions>
+
+## Debug Checklist
+
+```bash
+# Test API key validity
+curl -H "key_id: YOUR_KEY_ID" \
+  -H "key: YOUR_API_KEY" \
+  https://app.viam.com/api/json1/organizations/YOUR_ORG_ID
+```
+
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openplane/issues) with the connector status, Viam organization details, and error messages.
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/viam/setup" description="Reconnect or reconfigure the connector" />
+  <Card title="Omniverse" href="/docs/connectors/omniverse" description="Digital twin environments" />
+  <Card title="Matterport" href="/docs/connectors/matterport" description="3D spatial scans" />
+</Cards>

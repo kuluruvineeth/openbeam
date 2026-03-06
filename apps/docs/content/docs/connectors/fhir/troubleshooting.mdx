@@ -1,0 +1,193 @@
+---
+title: Troubleshooting
+description: Common FHIR connector issues and how to fix them.
+---
+
+# Troubleshooting
+
+## JWT Authentication Errors
+
+<Accordions>
+  <Accordion title="invalid_client or invalid_grant">
+    The JWT assertion is rejected by the FHIR server's token endpoint.
+
+    **Fix:**
+    1. Verify the private key is in PEM format (begins with `-----BEGIN RSA PRIVATE KEY-----` or `-----BEGIN EC PRIVATE KEY-----`)
+    2. Confirm the public key registered with the FHIR server matches the private key in OpenPlane
+    3. Check that the `iss` claim matches the Client ID exactly
+    4. Verify the token endpoint URL is correct: `curl https://your-server/.well-known/smart-configuration | jq .token_endpoint`
+  </Accordion>
+
+  <Accordion title="Key format not supported">
+    The FHIR server does not accept the key type or encoding.
+
+    **Fix:**
+    - Epic requires RSA keys (2048-bit minimum). EC keys are not supported on all Epic endpoints
+    - Ensure the PEM file contains the full key including header/footer lines
+    - Convert PKCS#8 to PKCS#1 if needed: `openssl rsa -in pkcs8.pem -out pkcs1.pem`
+  </Accordion>
+
+  <Accordion title="JWT expired or not yet valid">
+    Clock skew between the OpenPlane host and the FHIR server.
+
+    **Fix:**
+    - Synchronize the system clock with NTP: `ntpdate pool.ntp.org`
+    - The connector issues JWTs with a 5-minute validity window. Clock drift beyond 2 minutes causes failures
+  </Accordion>
+</Accordions>
+
+## Scope and Permission Errors
+
+<Accordions>
+  <Accordion title="insufficient_scope (403)">
+    The backend service application does not have the required FHIR scopes.
+
+    **Fix:**
+    1. Backend services require `system/*.read` scope (or specific resource scopes like `system/Patient.read`)
+    2. Re-register the application with the correct scope set
+    3. Some servers require explicit approval from an administrator after scope changes
+
+    <Callout type="info">
+      The `system/` prefix is required for backend services. `user/` and `patient/` scopes are for user-facing apps and do not work with JWT client credentials.
+    </Callout>
+  </Accordion>
+
+  <Accordion title="Access denied to specific resource types">
+    The application has scopes for some resources but not others.
+
+    **Fix:**
+    - Check which resource types are authorized in the FHIR server's app registration
+    - Remove unauthorized resource types from the connector's Resource Types configuration
+    - Request additional scopes from the FHIR server administrator
+  </Accordion>
+</Accordions>
+
+## De-identification Issues
+
+<Accordions>
+  <Accordion title="Expected data missing from search results">
+    The Safe Harbor de-identification pipeline strips all 18 HIPAA identifier categories. Data that appears missing may have been correctly removed.
+
+    **Stripped identifiers include:**
+    - Patient names, exact addresses (below state level), exact dates (except year)
+    - Phone numbers, email addresses, SSNs, medical record numbers
+    - Device serial numbers, URLs, IP addresses, biometric identifiers
+
+    **Fix:**
+    - This is expected behavior for HIPAA compliance
+    - Search by clinical codes (ICD-10, SNOMED), observation values, or device types instead of patient identifiers
+    - If you need patient-level linking, use the de-identified reference tokens preserved in metadata
+  </Accordion>
+
+  <Accordion title="Consent-based filtering removing records">
+    FHIR Consent resources are controlling access. Records linked to patients without active consent are excluded.
+
+    **Fix:**
+    1. Check Consent resources on the FHIR server for the affected patients
+    2. Verify consent status is `active` (not `rejected`, `inactive`, or `entered-in-error`)
+    3. The connector respects `deny` provisions -- if a Consent resource denies access to a category, those records are excluded
+  </Accordion>
+</Accordions>
+
+## Bulk Data Export Issues
+
+<Accordions>
+  <Accordion title="Export stuck in processing">
+    The FHIR server's `$export` operation is taking longer than expected.
+
+    **Fix:**
+    1. Check the export status directly: `curl -H "Authorization: Bearer TOKEN" CONTENT_LOCATION_URL`
+    2. Large datasets (1M+ resources) can take hours on some servers
+    3. Reduce the resource types in the connector configuration to export less data
+    4. Contact the FHIR server administrator -- some servers have export queue limits
+
+    <Callout type="info">
+      The connector polls the export status endpoint every 30 seconds. The `X-Progress` header shows completion percentage on servers that support it.
+    </Callout>
+  </Accordion>
+
+  <Accordion title="Export timeout">
+    The export did not complete within the connector's timeout window.
+
+    **Fix:**
+    - The default timeout is 4 hours for bulk export operations
+    - Reduce the number of resource types to export smaller datasets
+    - Split the sync across multiple connector instances, each handling different resource types
+    - Verify the FHIR server is not under heavy load
+  </Accordion>
+
+  <Accordion title="NDJSON parse errors">
+    The exported data contains malformed NDJSON lines.
+
+    **Fix:**
+    - This is a server-side issue -- the FHIR server produced invalid output
+    - The connector skips malformed lines and logs warnings
+    - Check the FHIR server's export implementation for known bugs
+    - Report the issue to the FHIR server vendor
+  </Accordion>
+</Accordions>
+
+## R4 vs R5 Differences
+
+<Accordions>
+  <Accordion title="Subscriptions not working on R4">
+    R5 topic-based Subscriptions are not available on R4 servers. The connector falls back to `_lastUpdated` polling automatically.
+
+    **Fix:**
+    - No action needed -- the fallback is automatic
+    - R4 incremental sync uses `_lastUpdated` query parameters and runs on the configured interval (default 60 min)
+    - To confirm your server version: `curl https://your-server/metadata | jq .fhirVersion`
+  </Accordion>
+
+  <Accordion title="Resource schema differences between R4 and R5">
+    Some resources have structural changes between FHIR versions.
+
+    **Fix:**
+    - Verify the FHIR Version setting matches your server
+    - The connector handles both schemas, but mismatched versions cause transformation errors
+    - Check server capability statement: `curl https://your-server/metadata`
+  </Accordion>
+</Accordions>
+
+## Rate Limits
+
+<Accordions>
+  <Accordion title="429 Too Many Requests">
+    The FHIR server's rate limit has been exceeded.
+
+    **Fix:**
+    1. Default rate limit is 60 requests/minute -- hospital servers may enforce lower limits
+    2. The connector backs off automatically on 429 responses
+    3. If persistent, contact the FHIR server administrator for rate limit details
+    4. Reduce the number of resource types to lower request volume
+
+    <Callout type="warn">
+      Some EHR systems enforce undocumented rate limits that are stricter during business hours. If sync fails during the day but succeeds overnight, schedule full syncs for off-peak hours.
+    </Callout>
+  </Accordion>
+</Accordions>
+
+## Debug Checklist
+
+```bash
+# Verify SMART configuration
+curl https://your-fhir-server/.well-known/smart-configuration | jq .
+
+# Check server capability statement
+curl https://your-fhir-server/metadata | jq '{fhirVersion, status}'
+
+# Test token exchange manually
+curl -X POST TOKEN_ENDPOINT \
+  -d "grant_type=client_credentials&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer&client_assertion=JWT&scope=system/*.read"
+
+# Verify bulk export support
+curl https://your-fhir-server/metadata | jq '.rest[0].operation[] | select(.name=="export")'
+```
+
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openplane/issues) with the FHIR server type, version, error messages, and relevant log output.
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/fhir/setup" description="Reconnect or reconfigure the FHIR connector" />
+  <Card title="Viam Robotics" href="/docs/connectors/viam" description="Medical device telemetry from robotic systems" />
+  <Card title="Matterport" href="/docs/connectors/matterport" description="3D scans of healthcare facilities" />
+</Cards>

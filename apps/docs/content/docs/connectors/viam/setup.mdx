@@ -1,0 +1,65 @@
+---
+title: Setup
+description: Connect Viam Robotics to OpenPlane with an organization API key.
+---
+
+# Viam Setup
+
+## Prerequisites
+
+- Viam account with an active organization
+- Organization-level API key
+- OpenPlane instance running
+
+## 1. Log In to Viam
+
+Go to [app.viam.com](https://app.viam.com) and sign in with your account.
+
+## 2. Generate an API Key
+
+1. Navigate to your organization settings
+2. Go to the **API Keys** section
+3. Click **Generate Key**
+4. Copy three values:
+   - **API Key** (the secret)
+   - **API Key ID** (the identifier)
+   - **Organization ID** (from the organization settings page)
+
+<Callout type="warn">
+  The API key must be organization-scoped, not machine-scoped. Machine-scoped keys only access a single robot and will miss fleet-wide data.
+</Callout>
+
+## 3. Add the Connector in OpenPlane
+
+1. Go to **Settings** > **Connectors** > **Add Connector**
+2. Select **Viam**
+3. Enter the API Key, API Key ID, and Organization ID
+
+## 4. Configure Sync Options
+
+| Setting | Recommendation |
+|---------|---------------|
+| **Sensor Data Lookback** | Start with 24 hours. Increase after verifying sync performance |
+| **Sync ML Models** | Enable if you use Viam's ML model registry |
+
+## 5. Start Sync and Verify
+
+1. Click **Connect** to save the configuration
+2. The connector discovers all machines across all locations
+3. Verify robot fleet data appears in search within a few minutes
+
+## What Gets Indexed
+
+| Entity | Searchable Fields |
+|--------|-------------------|
+| Machines | Name, status, components, location, organization |
+| Components | Type, configuration, capabilities |
+| Sensor Data | Time-windowed aggregations (5-min averages) with min/max |
+| Camera Captures | Capture metadata, ML annotation tags, timestamps |
+| ML Models | Model name, version, type, training metadata |
+
+<Cards>
+  <Card title="Troubleshooting" href="/docs/connectors/viam/troubleshooting" description="API key scope, missing machines, and sensor data gaps" />
+  <Card title="Omniverse" href="/docs/connectors/omniverse" description="Digital twin environments" />
+  <Card title="Matterport" href="/docs/connectors/matterport" description="3D spatial scans" />
+</Cards>

@@ -1,0 +1,92 @@
+---
+title: Setup
+description: Connect Matterport to OpenPlane with a GraphQL API token.
+---
+
+# Matterport Setup
+
+## Prerequisites
+
+- Matterport account with API access (Enterprise or Developer plan)
+- At least one published 3D model
+- OpenPlane instance running
+
+## 1. Log In to Matterport
+
+Go to [my.matterport.com](https://my.matterport.com) and sign in with your organization credentials.
+
+## 2. Create an API Token
+
+1. Navigate to **Settings** > **Developer Tools** > **API Access**
+2. Click **Create Token**
+3. Name the token (e.g., `OpenPlane Integration`)
+4. Grant **Read** permissions
+
+<Callout type="info">
+  The Matterport API uses GraphQL. All queries go to `https://api.matterport.com/api/models/graph`. The Token ID and Secret are sent as Basic auth credentials with every request.
+</Callout>
+
+## 3. Copy Token Credentials
+
+Note both values immediately -- the Token Secret is only shown once:
+
+| Credential | Format |
+|------------|--------|
+| Token ID | UUID (e.g., `a1b2c3d4-...`) |
+| Token Secret | Long alphanumeric string |
+
+## 4. Add the Connector in OpenPlane
+
+1. Go to **Settings** > **Connectors** > **Add Connector**
+2. Select **Matterport**
+3. Enter the **Token ID** and **Token Secret**
+
+## 5. Select Models to Sync
+
+<Tabs items={["All Models", "Specific Models"]}>
+  <Tab value="All Models">
+    Leave the **Model IDs** field empty. The connector discovers and syncs every model accessible to the API token. This is the recommended approach for most deployments.
+  </Tab>
+  <Tab value="Specific Models">
+    Enter one Model ID per line to sync only selected spaces. Find Model IDs in the Matterport URL: `https://my.matterport.com/show/?m=MODEL_ID`
+
+    ```text
+    SxQL3iGyoHo
+    abc123xyz
+    ```
+
+    Use this when you have hundreds of models but only need a subset indexed.
+  </Tab>
+</Tabs>
+
+## 6. Start Sync and Verify
+
+1. Click **Connect** to save the configuration
+2. The initial full sync queries all selected models via the GraphQL API
+3. Verify 3D spaces, rooms, and Mattertag annotations appear in search
+
+<Tabs items={["Small Library", "Large Library"]}>
+  <Tab value="Small Library">
+    Libraries under 50 models complete initial sync in under 5 minutes. Spaces, rooms, floors, and Mattertags sync in parallel per model.
+  </Tab>
+  <Tab value="Large Library">
+    Libraries with 500+ models may take 20-40 minutes due to rate limiting (50 req/min). The connector uses cursor-based pagination. Subsequent incremental syncs only fetch models modified since the last run.
+  </Tab>
+</Tabs>
+
+## What Gets Indexed
+
+| Entity | Searchable Fields |
+|--------|-------------------|
+| Spaces | Name, address, total rooms, floors, area, spatial dimensions |
+| Rooms | Name, floor assignment, area, bounding box coordinates |
+| Floors | Floor number, area, room count, elevation |
+| Mattertags | Label, description, 3D position (x, y, z), attached media |
+
+Spatial metadata is preserved in document metadata, enabling proximity-based queries like "annotations near the lobby" or "rooms on the second floor".
+
+<Cards>
+  <Card title="Troubleshooting" href="/docs/connectors/matterport/troubleshooting" description="Auth errors, missing models, and rate limit issues" />
+  <Card title="NVIDIA Omniverse" href="/docs/connectors/omniverse" description="Industrial digital twins and USD scenes" />
+  <Card title="BACnet" href="/docs/connectors/bacnet" description="Building automation in scanned spaces" />
+</Cards>

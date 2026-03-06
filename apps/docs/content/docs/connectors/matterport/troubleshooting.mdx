@@ -1,0 +1,100 @@
+---
+title: Troubleshooting
+description: Common Matterport connector issues and fixes.
+---
+
+# Troubleshooting
+
+## Authentication Errors
+
+<Accordions>
+  <Accordion title="401 Unauthorized — Invalid API credentials">
+    The Token ID or Token Secret is incorrect or has expired.
+
+    **Fix:**
+    1. In the Matterport developer portal, verify the API credentials
+    2. Check that both the Token ID and Token Secret are provided
+    3. Regenerate credentials if they have been compromised or expired
+  </Accordion>
+
+  <Accordion title="403 Forbidden — Insufficient API access">
+    The API account does not have access to the requested models.
+
+    **Fix:**
+    1. Verify the API account has access to the target Matterport spaces
+    2. Models shared via link may not be accessible through the API
+    3. The API account must be a member of the organization that owns the models
+  </Accordion>
+</Accordions>
+
+## Missing Data
+
+<Accordions>
+  <Accordion title="No spaces found after sync">
+    The API account may not have access to any Matterport models, or specific model IDs are configured but invalid.
+
+    **Fix:**
+    1. If model IDs are specified, verify they are correct and accessible
+    2. Leave the model IDs field empty to sync all accessible models
+    3. Verify the API account has models shared with it in the Matterport portal
+  </Accordion>
+
+  <Accordion title="Rooms or floors missing from a space">
+    Not all Matterport scans have room segmentation or floor plan data.
+
+    **Fix:**
+    1. Room segmentation requires the model to be processed by Matterport's AI
+    2. Older models or unprocessed models may lack room data
+    3. Floor plan generation is a separate step in the Matterport workflow
+    4. Check the model in the Matterport web viewer to confirm room/floor data exists
+  </Accordion>
+
+  <Accordion title="Mattertags not appearing">
+    Mattertag annotations may not exist on the target models, or they may have been created after the last sync.
+
+    **Fix:**
+    1. Open the model in the Matterport viewer and verify Mattertags exist
+    2. Trigger a full resync to pick up recently added annotations
+    3. Mattertags created by collaborators are only visible if the API account has access
+  </Accordion>
+</Accordions>
+
+## Sync Issues
+
+<Accordions>
+  <Accordion title="Sync slow for organizations with many models">
+    The GraphQL API is queried per-model for detailed data. Large portfolios take longer.
+
+    **Fix:**
+    1. Specify only the model IDs you need instead of syncing all models
+    2. Initial sync fetches full spatial data for each model
+    3. Incremental syncs only process models modified since the last run
+  </Accordion>
+
+  <Accordion title="GraphQL rate limiting">
+    The Matterport API has rate limits on GraphQL queries.
+
+    **Fix:**
+    1. The connector automatically handles rate limiting with backoff
+    2. If syncing many models simultaneously, the connector spaces requests to avoid limits
+    3. Rate-limited requests are retried automatically
+  </Accordion>
+</Accordions>
+
+## Debug Checklist
+
+```bash
+# Test API credentials (GraphQL)
+curl -X POST https://api.matterport.com/api/models/graph \
+  -H "Content-Type: application/json" \
+  -u "TOKEN_ID:TOKEN_SECRET" \
+  -d '{"query": "{ models { results { id name } } }"}'
+```
+
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openplane/issues) with the connector status, Matterport plan type, and error messages.
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/matterport/setup" description="Reconnect or reconfigure the connector" />
+  <Card title="Omniverse" href="/docs/connectors/omniverse" description="Digital twin environments" />
+  <Card title="Viam" href="/docs/connectors/viam" description="Robot fleet management" />
+</Cards>

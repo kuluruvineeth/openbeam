@@ -1,5 +1,5 @@
 {
   "title": "FHIR",
   "icon": "FHIR",
-  "pages": ["index"]
+  "pages": ["index", "setup", "troubleshooting"]
 }

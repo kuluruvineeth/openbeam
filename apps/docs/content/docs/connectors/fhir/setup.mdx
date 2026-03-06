@@ -1,0 +1,125 @@
+---
+title: Setup
+description: Connect a FHIR server to OpenPlane with SMART on FHIR backend services authentication.
+---
+
+# FHIR Setup
+
+## Prerequisites
+
+- FHIR server (Epic, Cerner, HAPI FHIR, Medplum) with SMART on FHIR backend services enabled
+- Admin access to register a backend service application
+- OpenPlane instance running
+
+## 1. Register a Backend Service Application
+
+Register a new application with your FHIR server's SMART on FHIR endpoint. The exact steps vary by vendor:
+
+<Tabs items={["Epic", "Cerner", "HAPI FHIR"]}>
+  <Tab value="Epic">
+    1. Go to [fhir.epic.com](https://fhir.epic.com) and sign in
+    2. Navigate to **Build Apps** and create a new **Backend System** app
+    3. Select the FHIR resources your app needs (Patient, Observation, Device, etc.)
+    4. Upload your public key (see Step 2) during registration
+    5. Note the **Client ID** and **Token Endpoint URL**
+  </Tab>
+  <Tab value="Cerner">
+    1. Go to the [Cerner Developer Portal](https://code.cerner.com)
+    2. Create a new **System Account** application
+    3. Select `system/*.read` as the requested scope
+    4. Register your JWKS endpoint or upload the public key
+    5. Note the **Client ID** and **Token Endpoint URL**
+  </Tab>
+  <Tab value="HAPI FHIR">
+    1. Access your HAPI FHIR admin console
+    2. Navigate to **SMART Configuration** and register a new client
+    3. Set the grant type to `client_credentials`
+    4. Register the public key via the JWKS endpoint
+    5. Note the **Client ID** assigned by the server
+  </Tab>
+</Tabs>
+
+## 2. Generate a Key Pair for JWT Signing
+
+The connector signs JWT assertions with a private key. Generate an RSA or EC key pair:
+
+```bash
+# RSA (2048-bit minimum, 4096 recommended)
+openssl genrsa -out fhir-private.pem 4096
+openssl rsa -in fhir-private.pem -pubout -out fhir-public.pem
+
+# EC (P-384 curve)
+openssl ecparam -genkey -name secp384r1 -noout -out fhir-private.pem
+openssl ec -in fhir-private.pem -pubout -out fhir-public.pem
+```
+
+<Callout type="info">
+  Keep the private key secure. It never leaves your OpenPlane instance -- the connector uses it locally to sign JWT assertions exchanged for short-lived access tokens.
+</Callout>
+
+## 3. Register the Public Key with the FHIR Server
+
+Upload `fhir-public.pem` to the FHIR server's JWKS endpoint, or host it at a URL the FHIR server can reach. The server uses it to verify JWT assertions from the connector.
+
+## 4. Note the Token Endpoint URL
+
+Find the token endpoint from the FHIR server's `.well-known/smart-configuration`:
+
+```bash
+curl https://your-fhir-server/.well-known/smart-configuration | jq .token_endpoint
+```
+
+## 5. Add the Connector in OpenPlane
+
+1. Go to **Settings** > **Connectors** > **Add Connector**
+2. Select **FHIR Healthcare**
+3. Enter the following:
+
+| Field | Value |
+|-------|-------|
+| FHIR Server URL | `https://your-fhir-server/fhir` |
+| Client ID | From Step 1 |
+| Private Key (PEM) | Contents of `fhir-private.pem` |
+
+## 6. Select FHIR Version and Resource Types
+
+| Setting | Options |
+|---------|---------|
+| FHIR Version | **R4** (4.0.1) or **R5** (5.0.0) |
+| Resource Types | Patient, Observation, Encounter, Condition, Procedure, Device, DeviceMetric, DiagnosticReport, DocumentReference, MedicationRequest |
+
+<Callout type="info">
+  R5 enables topic-based Subscriptions for real-time incremental sync. R4 falls back to `_lastUpdated` polling.
+</Callout>
+
+## 7. Start Sync and Verify
+
+1. Click **Connect** to save the configuration
+2. The initial full sync uses FHIR Bulk Data Export (`$export`)
+3. Verify de-identified records appear in search results
+
+<Callout type="warn">
+  PHI de-identification is enabled by default and REQUIRED for HIPAA compliance. Disabling it removes all HIPAA protections. Only disable in development environments with synthetic data.
+</Callout>
+
+<Callout type="info">
+  The connector uses FHIR Bulk Data Export (`$export`) for efficient large-scale sync. This is an asynchronous server-side operation -- initial sync time depends on the FHIR server's export speed, not the connector.
+</Callout>
+
+## What Gets Indexed
+
+All data passes through the Safe Harbor de-identification pipeline before indexing. The 18 HIPAA identifier categories are stripped from every record.
+
+| Resource | Searchable Fields (after de-identification) |
+|----------|----------------------------------------------|
+| Patient | Age range, gender, general region |
+| Observation | Vital signs, lab results, clinical measurements |
+| Encounter | Visit type, date, status, service provider |
+| Condition | Diagnosis code, clinical status, verification |
+| Device | Device type, manufacturer, status, location |
+
+<Cards>
+  <Card title="Troubleshooting" href="/docs/connectors/fhir/troubleshooting" description="JWT errors, scope issues, and bulk export debugging" />
+  <Card title="Viam Robotics" href="/docs/connectors/viam" description="Medical device telemetry from robotic systems" />
+  <Card title="Matterport" href="/docs/connectors/matterport" description="3D spatial scans of healthcare facilities" />
+</Cards>

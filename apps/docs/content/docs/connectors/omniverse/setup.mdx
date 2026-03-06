@@ -1,0 +1,63 @@
+---
+title: Setup
+description: Connect NVIDIA Omniverse to OpenPlane with a Nucleus API token.
+---
+
+# Omniverse Setup
+
+## Prerequisites
+
+- NVIDIA Omniverse Nucleus server accessible from the OpenPlane host
+- Nucleus API token with read access to target USD stages
+- OpenPlane instance running
+
+## 1. Generate an API Token
+
+1. Open the **Nucleus Admin Console**
+2. Navigate to **API Tokens**
+3. Create a new token with read access to the USD stages you want to index
+4. Copy the token
+
+## 2. Identify USD Stage Paths
+
+List the USD stages to index. Paths follow the Nucleus file system format:
+
+```text
+/Projects/Factory/main.usd
+/Projects/Warehouse/scene.usd
+```
+
+<Callout type="warn">
+  The connector traverses the full scene graph for each stage. Large stages (100,000+ prims) can take several minutes on initial sync. Start with smaller stages to verify the configuration.
+</Callout>
+
+## 3. Add the Connector in OpenPlane
+
+1. Go to **Settings** > **Connectors** > **Add Connector**
+2. Select **Omniverse**
+3. Enter the Nucleus server URL, API token, and USD stage paths
+
+## 4. Configure Optional USD Search API
+
+If you have the NVIDIA USD Search API deployed, enter its URL to enable natural language spatial queries (e.g., "red valve on the north wall").
+
+## 5. Start Sync and Verify
+
+1. Click **Connect** to save the configuration
+2. The connector traverses each USD stage and indexes equipment, zones, sensors, and annotations
+3. Verify digital twin assets appear in search
+
+## What Gets Indexed
+
+| Entity | Searchable Fields |
+|--------|-------------------|
+| Equipment | Prim name, type, position, rotation, scale, bounding box, USD properties |
+| Zones | Zone name, spatial bounds, contained assets |
+| Sensors | Sensor name, position, associated readings |
+| Annotations | Note text, 3D position, linked prim path |
+
+<Cards>
+  <Card title="Troubleshooting" href="/docs/connectors/omniverse/troubleshooting" description="Nucleus connectivity, USD parsing, and scene traversal" />
+  <Card title="Matterport" href="/docs/connectors/matterport" description="3D spatial scans" />
+  <Card title="Viam" href="/docs/connectors/viam" description="Robot fleet management" />
+</Cards>
