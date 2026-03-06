@@ -5,8 +5,8 @@
     "index",
     "setup",
     "oauth-scopes",
-    "configuration",
     "features",
+    "configuration",
     "sync",
     "webhooks",
     "troubleshooting"

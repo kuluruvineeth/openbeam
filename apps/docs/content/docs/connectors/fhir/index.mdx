@@ -44,6 +44,8 @@ Both streams support full backfill via FHIR Bulk Data Export.
 | DiagnosticReport | Report type, status, results, conclusion |
 | DocumentReference | Document type, content, authoring date |
 | MedicationRequest | Medication code, dosage, route |
+| Practitioner | Specialty, qualification, organization |
+| Organization | Name, type, address, telecom |
 
 ## PHI De-identification
 
@@ -79,7 +81,7 @@ Disabling PHI de-identification removes HIPAA compliance. Only disable in develo
 | Client ID | -- | SMART on FHIR application client ID (required) |
 | Private Key (PEM) | -- | RSA/EC private key for JWT signing (required) |
 | PHI De-identification | On | Safe Harbor de-identification (required for HIPAA) |
-| Resource Types | Patient, Observation, Device, Encounter, Condition | FHIR resource types to sync (one per line) |
+| Resource Types | All 12 supported types | FHIR resource types to sync (one per line). See [Features](/docs/connectors/fhir/features) for the full list |
 
 ## Sync Details
 
