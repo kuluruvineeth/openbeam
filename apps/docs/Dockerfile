@@ -29,6 +29,7 @@ RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 COPY --from=builder --chown=nextjs:nodejs /app/apps/docs/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/docs/.next/static ./apps/docs/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/docs/public ./apps/docs/public
 USER nextjs
 EXPOSE 4000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
