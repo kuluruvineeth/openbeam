@@ -4,73 +4,43 @@
   <img src="apps/website/public/logo_dark.png" alt="OpenBeam" width="64" />
 </a>
 
-<h3>Intelligence for the Physical World</h3>
+<h3>OpenBeam</h3>
 
-<p>Open source platform that unifies enterprise knowledge (Slack, GitHub, Notion, Gmail) with physical operations data (IoT sensors, industrial protocols, robotics telemetry) into one searchable, agent-ready layer. One query across sensors and SaaS. Answers in 200ms.</p>
+<p>The open source Glean alternative for the physical world</p>
 
-<br />
-
-<a href="https://openbeam.work">Website</a> · <a href="https://docs.openbeam.work">Docs</a> · <a href="https://openbeam.work/pitch">Pitch Deck</a> · <a href="https://github.com/kuluruvineeth/openbeam/issues">Issues</a> · <a href="https://cal.com/kuluruvineeth/30min">Book a Demo</a>
+<a href="https://openbeam.work">Website</a> · <a href="https://docs.openbeam.work">Docs</a> · <a href="https://github.com/kuluruvineeth/openbeam/issues">Issues</a>
 
 <br />
-<br />
 
+[![GitHub Stars](https://img.shields.io/github/stars/kuluruvineeth/openbeam?style=social)](https://github.com/kuluruvineeth/openbeam)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
-[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Next.js](https://img.shields.io/badge/Next.js_16-000000?style=flat&logo=next.js&logoColor=white)](https://nextjs.org/)
-[![Bun](https://img.shields.io/badge/Bun-000000?style=flat&logo=bun&logoColor=white)](https://bun.sh/)
+[![Last Commit](https://img.shields.io/github/last-commit/kuluruvineeth/openbeam)](https://github.com/kuluruvineeth/openbeam/commits/dev)
+[![Contributors](https://img.shields.io/github/contributors/kuluruvineeth/openbeam)](https://github.com/kuluruvineeth/openbeam/graphs/contributors)
 
 </div>
 
 <br />
 
 <div align="center">
-  <img src="apps/website/public/hero-screenshot.png" alt="OpenBeam Dashboard" width="90%" />
+  <img src="apps/website/public/hero-screenshot.png" alt="OpenBeam — enterprise search across SaaS and IoT" width="90%" />
 </div>
 
 <br />
 
-## The Problem
+Enterprise knowledge is trapped in silos. Digital tools (Slack, GitHub, Notion, Gmail) don't talk to physical systems (IoT sensors, industrial protocols, camera feeds). **OpenBeam unifies both into one searchable, agent-ready layer.** One query across sensors and SaaS. Answers in 200ms. Runs on your servers.
 
-Enterprise knowledge is split across two worlds that don't talk to each other:
+Glean proved the digital half at a $7.2B valuation. Nobody has built the physical half. We're building both.
 
-- **Digital** — Slack threads, GitHub PRs, Google Docs, Notion wikis, Linear tickets, Gmail threads
-- **Physical** — IoT sensor streams, OPC-UA telemetry, BACnet readings, MQTT feeds, camera systems, fleet data
+## Features
 
-A factory engineer asks why Line 3 tripped last night. The answer lives in an OPC-UA sensor spike, a Slack thread from night shift, and an equipment manual in Confluence. Today, that takes hours of tab-switching. With OpenBeam, it takes one query and 200ms.
-
-**Glean proved the digital half at a $7.2B valuation. Nobody has built the physical half. We're building both.**
-
-## What OpenBeam Does
-
-### Three Layers
-
-```
-┌─────────────────────────────────────────────────────┐
-│                  AI Agent Layer                      │
-│   Tool-use agents that search, reason, and act      │
-│   across your entire knowledge graph                 │
-├─────────────────────────────────────────────────────┤
-│               Search & RAG Layer                     │
-│   Hybrid search (BM25 + HNSW vectors), sub-200ms   │
-│   Permission-aware, grounded citations               │
-├─────────────────────────────────────────────────────┤
-│              Connector Layer                          │
-│   25+ connectors: SaaS, IoT, industrial protocols   │
-│   Real-time sync, webhooks, incremental updates      │
-└─────────────────────────────────────────────────────┘
-```
-
-### Key Capabilities
-
-- **Unified Search** — Hybrid semantic + keyword search across all connected sources with sub-200ms p99 latency
-- **AI Agents** — Build agents that search, analyze, and take action across your entire knowledge base with 100+ composable tools
-- **Physical + Digital** — The only platform that bridges SaaS tools and physical operations data in one query
+- **Unified Search** — Hybrid semantic + keyword search across all connected sources, sub-200ms p99 latency
+- **AI Agents** — Tool-use agents that search, analyze, and act across your entire knowledge base with 100+ composable tools
+- **Physical + Digital** — The only platform bridging SaaS tools and physical operations data in one query
 - **25+ Connectors** — Gmail, Slack, GitHub, Google Drive, Notion, Linear, MQTT, OPC-UA, BACnet, AWS IoT, and growing
 - **RAG Pipeline** — Grounded AI answers with citation and source attribution
 - **Real-time Sync** — Webhooks and incremental sync keep your index fresh
 - **Permission-Aware** — Respects source permissions — users only see what they have access to
-- **Self-Hostable** — Deploy on your own infrastructure. Your data never leaves your servers
+- **Self-Hostable** — Deploy on your infrastructure with Docker Compose. Your data never leaves your servers
 - **Edge Ready** — Offline-capable edge deployment with SQLite, local search, and sync protocol
 
 ## Connectors
@@ -122,30 +92,24 @@ A factory engineer asks why Line 3 tripped last night. The answer lives in an OP
 </tr>
 </table>
 
-## Architecture
+## Quick Start
 
+```bash
+git clone https://github.com/kuluruvineeth/openbeam.git
+cd openbeam
+make setup    # Install deps, start infra, setup database
+make apps     # Start all apps with hot reload
 ```
-                    ┌─────────────┐
-                    │   Web App   │  Next.js 16 / React 19
-                    └──────┬──────┘
-                           │
-                    ┌──────┴──────┐
-                    │  API Server │  Hono + tRPC
-                    └──────┬──────┘
-                           │
-         ┌─────────────────┼─────────────────┐
-         │                 │                 │
-  ┌──────┴──────┐   ┌─────┴─────┐   ┌──────┴──────┐
-  │   Workers   │   │  Search   │   │  AI Engine  │
-  │  (Temporal) │   │  (Vespa)  │   │  (Python)   │
-  └──────┬──────┘   └───────────┘   └─────────────┘
-         │
-  ┌──────┼──────────┐
-  │      │          │
-┌─┴──┐ ┌─┴───┐ ┌───┴──┐
-│ PG │ │Redis│ │  S3  │
-└────┘ └─────┘ └──────┘
+
+Open [http://localhost:3001](http://localhost:3001) and you're in.
+
+### Self-Hosting with Docker
+
+```bash
+docker compose -f docker-compose.infra.yml -f docker-compose.yml up -d
 ```
+
+See the [Self-Hosting Guide](https://docs.openbeam.work/docs/self-hosting) for configuration, TLS, monitoring, and scaling.
 
 ## Tech Stack
 
@@ -162,40 +126,12 @@ A factory engineer asks why Line 3 tripped last night. The answer lives in an OP
 | **Cache/Queue** | Redis |
 | **Storage** | S3 / MinIO |
 | **Auth** | Better Auth |
-| **CLI** | Go 1.24, Cobra, MCP server |
+| **CLI** | Go 1.24, Cobra |
 | **Mobile** | React Native (Expo) |
 | **Desktop** | Tauri |
 | **Observability** | Prometheus, Grafana, Loki |
 
-## Getting Started
-
-### Prerequisites
-
-- [Bun](https://bun.sh/) >= 1.3.2
-- [Docker](https://www.docker.com/) (for infrastructure services)
-- [Go](https://go.dev/) >= 1.24 (for CLI, optional)
-
-### Quick Start
-
-```bash
-git clone https://github.com/kuluruvineeth/openbeam.git
-cd openbeam
-make setup    # Install deps, start infra, setup database
-make apps     # Start all apps with hot reload
-```
-
-Open [http://localhost:3001](http://localhost:3001) and you're in.
-
-### Self-Hosting with Docker
-
-```bash
-# Production deployment
-docker compose -f docker-compose.infra.yml -f docker-compose.yml up -d
-```
-
-See the [Self-Hosting Guide](https://docs.openbeam.work/docs/self-hosting) for configuration, TLS, monitoring, and scaling.
-
-## Project Structure
+## Architecture
 
 ```
 apps/
@@ -221,7 +157,7 @@ packages/
 ├── integrations/ # OAuth configs, app registry
 ├── services/     # Connector business logic
 ├── temporal/     # Workflows & activities
-├── types/        # Shared TypeScript types (single source of truth)
+├── types/        # Shared TypeScript types
 ├── vespa/        # Vespa search client
 ├── redis/        # Redis utilities
 ├── storage/      # S3/R2 client
@@ -252,19 +188,6 @@ bun test          # Run tests
 | Grafana | [localhost:3002](http://localhost:3002) |
 | MinIO Console | [localhost:9001](http://localhost:9001) |
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full development guide.
-
-## Deployment
-
-OpenBeam runs on any Linux server with Docker. Reference deployment:
-
-- **Server**: Hetzner CPX41 (8 vCPU, 16GB RAM)
-- **Orchestration**: Coolify + Docker Compose
-- **Proxy**: Traefik with auto-TLS
-- **Monitoring**: Prometheus + Grafana + Loki
-
-See the [Deployment Guide](https://docs.openbeam.work/docs/architecture/deployment) for detailed instructions.
-
 ## Roadmap
 
 - [x] Hybrid search (semantic + keyword, sub-200ms)
@@ -291,32 +214,29 @@ See the [Deployment Guide](https://docs.openbeam.work/docs/architecture/deployme
 
 Enterprise search touches your most sensitive data — every message, document, sensor reading, and credential. You should be able to read every line of code that processes it.
 
-OpenBeam is AGPL-3.0 licensed. Self-host it, audit it, extend it. No vendor lock-in. No data leaving your network.
+AGPL-3.0 licensed. Self-host it, audit it, extend it. No vendor lock-in. No data leaving your network.
 
 ## Contributing
 
-We welcome contributions of all kinds. See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+We welcome contributions. See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/openbeam.git
 cd openbeam
-make setup
-make apps
+make setup && make apps
 ```
 
-**Good first issues**: Check the [`good first issue`](https://github.com/kuluruvineeth/openbeam/labels/good%20first%20issue) label.
+Check the [`good first issue`](https://github.com/kuluruvineeth/openbeam/labels/good%20first%20issue) label to get started.
 
 ## License
 
-OpenBeam is open source under the [GNU Affero General Public License v3.0 (AGPL-3.0)](./LICENSE).
+[GNU Affero General Public License v3.0 (AGPL-3.0)](./LICENSE)
 
 ---
 
 <div align="center">
 
 <strong>Built by <a href="https://github.com/kuluruvineeth">@kuluruvineeth</a></strong>
-
-<br />
 
 <a href="https://openbeam.work">Website</a> · <a href="https://docs.openbeam.work">Docs</a> · <a href="https://openbeam.work/pitch">Pitch Deck</a> · <a href="https://cal.com/kuluruvineeth/30min">Book a Demo</a>
 
