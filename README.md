@@ -1,7 +1,7 @@
 <div align="center">
 
 <a href="https://openbeam.work">
-  <img src="apps/web/public/assets/github-banner.png" alt="OpenBeam" />
+  <img src="apps/website/public/logo_dark.png" alt="OpenBeam" width="64" />
 </a>
 
 <h3>Intelligence for the Physical World</h3>
