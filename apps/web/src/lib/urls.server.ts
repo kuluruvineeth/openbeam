@@ -1,5 +1,3 @@
-import "server-only";
-
 import { env } from "@/env";
 import { publicServerUrl } from "./urls";
 
