@@ -2,6 +2,7 @@ import { GeistMono } from "geist/font/mono";
 import type { Metadata } from "next";
 import { Hedvig_Letters_Sans, Hedvig_Letters_Serif } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { AnalyticsProvider } from "@/components/analytics-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { cn } from "@/lib/cn";
 import "@/styles/globals.css";
@@ -91,16 +92,18 @@ export default function RootLayout({
           "overflow-x-hidden bg-background font-sans antialiased"
         )}
       >
-        <NuqsAdapter>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            disableTransitionOnChange
-            enableSystem
-          >
-            {children}
-          </ThemeProvider>
-        </NuqsAdapter>
+        <AnalyticsProvider>
+          <NuqsAdapter>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              disableTransitionOnChange
+              enableSystem
+            >
+              {children}
+            </ThemeProvider>
+          </NuqsAdapter>
+        </AnalyticsProvider>
       </body>
     </html>
   );

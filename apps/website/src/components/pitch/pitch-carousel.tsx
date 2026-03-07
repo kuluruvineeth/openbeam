@@ -1,7 +1,8 @@
 "use client";
 
 import useEmblaCarousel from "embla-carousel-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { analytics } from "@/lib/analytics";
 import { CarouselToolbar } from "./carousel-toolbar";
 import { SectionBusiness } from "./sections/section-business";
 import { SectionClose } from "./sections/section-close";
@@ -39,6 +40,25 @@ const SLIDES = [
   SectionClose,
 ] as const;
 
+const SLIDE_NAMES = [
+  "Title",
+  "Problem",
+  "Why Now",
+  "Solution",
+  "Demo: Search",
+  "Demo: Physical AI",
+  "Demo: Agents",
+  "Moat",
+  "Market",
+  "Competition",
+  "Business Model",
+  "Go-to-Market",
+  "Financials",
+  "Vision",
+  "Team",
+  "Close",
+];
+
 export function PitchCarousel() {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     axis: "x",
@@ -53,13 +73,24 @@ export function PitchCarousel() {
   const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
   const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
 
+  const viewedSlides = useRef(new Set<number>());
+
   const onSelect = useCallback(() => {
     if (!emblaApi) {
       return;
     }
-    setSelectedIndex(emblaApi.selectedScrollSnap());
+    const index = emblaApi.selectedScrollSnap();
+    setSelectedIndex(index);
     setCanScrollPrev(emblaApi.canScrollPrev());
     setCanScrollNext(emblaApi.canScrollNext());
+
+    if (!viewedSlides.current.has(index)) {
+      viewedSlides.current.add(index);
+      analytics.pitchSlideViewed(index + 1, SLIDE_NAMES[index] ?? "Unknown");
+      if (index === SLIDES.length - 1) {
+        analytics.pitchDeckCompleted(SLIDES.length);
+      }
+    }
   }, [emblaApi]);
 
   useEffect(() => {

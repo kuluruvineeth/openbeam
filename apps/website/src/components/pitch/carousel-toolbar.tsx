@@ -2,6 +2,7 @@
 
 import { motion } from "motion/react";
 import { useHotkeys } from "react-hotkeys-hook";
+import { analytics } from "@/lib/analytics";
 import { cn } from "@/lib/cn";
 
 function ChevronLeft({ className }: { className?: string }) {
@@ -119,6 +120,7 @@ export function CarouselToolbar({
         <a
           className="rounded-sm px-3 py-1 font-mono text-muted-foreground text-xs transition-colors hover:bg-foreground/5 hover:text-foreground"
           href="https://cal.com/kuluruvineeth/30min"
+          onClick={() => analytics.bookMeetingClicked("pitch_toolbar")}
           rel="noopener noreferrer"
           target="_blank"
         >

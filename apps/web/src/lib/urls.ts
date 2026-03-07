@@ -1,9 +1,8 @@
-export const webUrl =
-  process.env.NEXT_PUBLIC_WEB_URL || "http://localhost:3001";
-export const publicServerUrl =
-  process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000";
-export const internalServerUrl =
-  process.env.SERVER_INTERNAL_URL || publicServerUrl;
+import { env } from "@/env";
+
+export const webUrl = env.NEXT_PUBLIC_WEB_URL;
+export const publicServerUrl = env.NEXT_PUBLIC_SERVER_URL;
+export const internalServerUrl = env.SERVER_INTERNAL_URL || publicServerUrl;
 
 const webHost = new URL(webUrl).hostname;
 const serverHost = new URL(publicServerUrl).hostname;

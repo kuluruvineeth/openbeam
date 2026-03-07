@@ -1,3 +1,4 @@
+import { env } from "@/env";
 import type { AgentState, VoiceMode } from "./types";
 
 export const HOLD_THRESHOLD_MS = 300;
@@ -11,8 +12,7 @@ export const STATE_LABELS: Record<AgentState, string> = {
   speaking: "Speaking",
 };
 
-export const LIVEKIT_WS_URL =
-  process.env.NEXT_PUBLIC_LIVEKIT_WS_URL ?? "ws://localhost:7880";
+export const LIVEKIT_WS_URL = env.NEXT_PUBLIC_LIVEKIT_WS_URL;
 
 export const MODE_ACCENT: Record<Exclude<VoiceMode, "idle">, string> = {
   dictation: "#10b981",

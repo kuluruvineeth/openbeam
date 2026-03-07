@@ -14,6 +14,7 @@
     "@hono/zod-openapi": "^1.1.5",
     "@hono/zod-validator": "^0.4.3",
     "@openbeam/ai": "workspace:*",
+    "@t3-oss/env-core": "^0.13.10",
     "@openbeam/analytics": "workspace:*",
     "@openbeam/api": "workspace:*",
     "@openbeam/auth": "workspace:*",

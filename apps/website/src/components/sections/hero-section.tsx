@@ -3,6 +3,7 @@
 import { motion } from "motion/react";
 import Image from "next/image";
 import { useState } from "react";
+import { analytics } from "@/lib/analytics";
 import { cn } from "@/lib/cn";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -111,12 +112,14 @@ export function HeroSection() {
                 <a
                   className="flex h-12 items-center justify-center bg-primary px-8 font-sans text-primary-foreground text-sm transition-colors hover:bg-primary/90"
                   href="https://docs.openbeam.work/quickstart"
+                  onClick={() => analytics.ctaClicked("get_started", "hero")}
                 >
                   Get started — free
                 </a>
                 <a
                   className="flex h-12 items-center justify-center gap-2 border border-border bg-background px-6 font-sans text-foreground text-sm transition-colors hover:bg-secondary"
                   href="https://github.com/kuluruvineeth/openbeam"
+                  onClick={() => analytics.githubLinkClicked("hero")}
                   rel="noopener noreferrer"
                   target="_blank"
                 >

@@ -1,3 +1,4 @@
+import { DocsAnalyticsProvider } from "@/components/analytics-provider";
 import { RootProvider } from "fumadocs-ui/provider/next";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
@@ -24,7 +25,9 @@ export default function Layout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
     >
       <body className="flex min-h-screen flex-col font-sans antialiased">
-        <RootProvider>{children}</RootProvider>
+        <DocsAnalyticsProvider>
+          <RootProvider>{children}</RootProvider>
+        </DocsAnalyticsProvider>
       </body>
     </html>
   );
