@@ -304,6 +304,8 @@ jobs:
           build-args: |
             NEXT_PUBLIC_SERVER_URL=${{ env.NEXT_PUBLIC_SERVER_URL }}
             HUGEICONS_PRO_AUTH_TOKEN=${{ secrets.HUGEICONS_PRO_AUTH_TOKEN }}
+            NEXT_PUBLIC_POSTHOG_KEY=${{ vars.NEXT_PUBLIC_POSTHOG_KEY }}
+            NEXT_PUBLIC_POSTHOG_HOST=${{ vars.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com' }}
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.28.0

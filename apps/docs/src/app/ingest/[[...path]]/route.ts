@@ -31,7 +31,8 @@ async function proxy(request: NextRequest, { path }: { path?: string[] }) {
   }
   headers.set("host", url.host);
 
-  const body = request.method === "POST" ? await request.text() : undefined;
+  const body =
+    request.method === "POST" ? await request.arrayBuffer() : undefined;
 
   try {
     const response = await fetch(url.toString(), {

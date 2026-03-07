@@ -85,6 +85,11 @@ jobs:
               - 'apps/website/Dockerfile'
               - 'package.json'
               - 'bun.lock'
+            docs:
+              - 'apps/docs/**'
+              - 'apps/docs/Dockerfile'
+              - 'package.json'
+              - 'bun.lock'
             configs:
               - 'monitoring/**'
               - 'temporal/dynamicconfig/**'
@@ -96,7 +101,7 @@ jobs:
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             INPUT="${{ inputs.services }}"
             if [[ "$INPUT" == "all" ]]; then
-              MATRIX='["server","web","worker","engine","website"]'
+              MATRIX='["server","web","worker","engine","website","docs"]'
             else
               MATRIX=$(echo "[\"${INPUT//,/\",\"}\"]")
             fi
@@ -112,6 +117,7 @@ jobs:
             [[ "${{ steps.filter.outputs.worker }}" == "true" || "$BASE_CHANGED" == "true" ]] && MATRIX=$(echo "$MATRIX" | jq '. + ["worker"]') && HAS_CHANGES="true"
             [[ "${{ steps.filter.outputs.engine }}" == "true" ]] && MATRIX=$(echo "$MATRIX" | jq '. + ["engine"]') && HAS_CHANGES="true"
             [[ "${{ steps.filter.outputs.website }}" == "true" || "$BASE_CHANGED" == "true" ]] && MATRIX=$(echo "$MATRIX" | jq '. + ["website"]') && HAS_CHANGES="true"
+            [[ "${{ steps.filter.outputs.docs }}" == "true" || "$BASE_CHANGED" == "true" ]] && MATRIX=$(echo "$MATRIX" | jq '. + ["docs"]') && HAS_CHANGES="true"
             echo "matrix={\"service\":$(echo "$MATRIX" | jq -c .)}" >> $GITHUB_OUTPUT
             echo "has_changes=$HAS_CHANGES" >> $GITHUB_OUTPUT
             echo "base_changed=$BASE_CHANGED" >> $GITHUB_OUTPUT
@@ -260,6 +266,43 @@ jobs:
             echo "::error::Deploy failed with HTTP $HTTP_CODE"
             exit 1
           fi
+
+      - name: Redeploy standalone containers (website, docs)
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.HETZNER_SSH_KEY }}
+          SERVER_IP: ${{ secrets.HETZNER_SERVER_IP }}
+        run: |
+          SERVICES="${{ join(fromJson(needs.changes.outputs.matrix).service, ' ') }}"
+          STANDALONE=""
+          [[ "$SERVICES" == *"website"* ]] && STANDALONE="$STANDALONE website"
+          [[ "$SERVICES" == *"docs"* ]] && STANDALONE="$STANDALONE docs"
+
+          if [[ -z "$STANDALONE" ]]; then
+            echo "No standalone containers to redeploy"
+            exit 0
+          fi
+
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$SERVER_IP" >> ~/.ssh/known_hosts 2>/dev/null
+
+          for svc in $STANDALONE; do
+            echo "Redeploying openbeam-${svc}..."
+            ssh -o ServerAliveInterval=30 "root@$SERVER_IP" bash -s <<DEPLOY_EOF
+              CONTAINER="openbeam-${svc}"
+              IMAGE="ghcr.io/kuluruvineeth/openbeam-${svc}:latest"
+
+              # Capture existing labels and network
+              LABELS=\$(docker inspect "\$CONTAINER" --format '{{range \$k, \$v := .Config.Labels}}--label {{printf "%s=%s" \$k \$v}} {{end}}' 2>/dev/null)
+              NETWORK=\$(docker inspect "\$CONTAINER" --format '{{range \$k, \$v := .NetworkSettings.Networks}}{{printf "%s" \$k}}{{end}}' 2>/dev/null || echo "openbeam-apps")
+
+              docker stop "\$CONTAINER" 2>/dev/null || true
+              docker rm "\$CONTAINER" 2>/dev/null || true
+              docker run -d --name "\$CONTAINER" --network "\$NETWORK" --restart unless-stopped \$LABELS "\$IMAGE"
+              echo "Redeployed \$CONTAINER"
+          DEPLOY_EOF
+          done
 
   sync-configs:
     name: Sync Config Files
