@@ -15,7 +15,7 @@ const FOOTER_COLUMNS = [
       { label: "Live Sync", href: "/#features" },
       {
         label: "Self-Hosted",
-        href: "https://docs.openbeam.work/self-hosting",
+        href: "https://docs.openbeam.work/docs/self-hosting",
       },
     ],
   },
@@ -23,7 +23,7 @@ const FOOTER_COLUMNS = [
     heading: "Developers",
     links: [
       { label: "Documentation", href: "https://docs.openbeam.work" },
-      { label: "API Reference", href: "https://docs.openbeam.work/api" },
+      { label: "API Reference", href: "https://docs.openbeam.work/docs/api" },
       {
         label: "GitHub",
         href: "https://github.com/kuluruvineeth/openbeam",
@@ -33,6 +33,7 @@ const FOOTER_COLUMNS = [
         label: "Discord",
         href: "https://discord.gg/openbeam",
         external: true,
+        soon: true,
       },
     ],
   },
@@ -41,12 +42,12 @@ const FOOTER_COLUMNS = [
     links: [
       {
         label: "X / Twitter",
-        href: "https://twitter.com/openbeam",
+        href: "https://x.com/kuluruvineeth",
         external: true,
       },
       {
         label: "LinkedIn",
-        href: "https://linkedin.com/company/openbeam",
+        href: "https://linkedin.com/in/kuluruvineeth",
         external: true,
       },
     ],
@@ -81,6 +82,20 @@ export function Footer() {
                         : link.href.startsWith("http") &&
                           !link.href.includes("openbeam.work") &&
                           !link.href.includes("docs.openbeam.work");
+                    const isSoon = "soon" in link && link.soon;
+                    if (isSoon) {
+                      return (
+                        <span
+                          className="flex items-center gap-1.5 font-sans text-muted-foreground/50 text-sm"
+                          key={link.label}
+                        >
+                          {link.label}
+                          <span className="rounded-sm bg-muted px-1 py-0.5 text-[10px] text-muted-foreground leading-none">
+                            Soon
+                          </span>
+                        </span>
+                      );
+                    }
                     return (
                       <Link
                         className="block font-sans text-muted-foreground text-sm transition-colors hover:text-foreground"
@@ -149,7 +164,7 @@ export function Footer() {
         )}
       >
         <h1
-          className="select-none whitespace-nowrap font-sans text-[56px] leading-none min-[480px]:text-[80px] sm:text-[340px]"
+          className="select-none whitespace-nowrap font-sans text-[56px] leading-none sm:text-[340px] min-[480px]:text-[80px]"
           style={{
             WebkitTextStroke: "1.5px hsl(var(--muted-foreground) / 0.6)",
             color: "transparent",
