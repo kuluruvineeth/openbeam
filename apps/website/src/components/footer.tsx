@@ -149,7 +149,7 @@ export function Footer() {
         )}
       >
         <h1
-          className="select-none font-sans text-[120px] leading-none sm:text-[340px]"
+          className="select-none whitespace-nowrap font-sans text-[56px] leading-none min-[480px]:text-[80px] sm:text-[340px]"
           style={{
             WebkitTextStroke: "1.5px hsl(var(--muted-foreground) / 0.6)",
             color: "transparent",

@@ -75,7 +75,7 @@ export function CarouselToolbar({
   return (
     <motion.div
       animate={{ opacity: 1, y: 0 }}
-      className="-translate-x-1/2 fixed bottom-8 left-1/2 z-50"
+      className="-translate-x-1/2 fixed bottom-4 left-1/2 z-50 sm:bottom-8"
       initial={{ opacity: 0, y: 20 }}
       transition={{ duration: 0.5, delay: 0.8 }}
     >
@@ -118,7 +118,9 @@ export function CarouselToolbar({
 
         <a
           className="rounded-sm px-3 py-1 font-mono text-muted-foreground text-xs transition-colors hover:bg-foreground/5 hover:text-foreground"
-          href="mailto:hello@openbeam.work"
+          href="https://cal.com/kuluruvineeth/30min"
+          rel="noopener noreferrer"
+          target="_blank"
         >
           Book a meeting
         </a>
