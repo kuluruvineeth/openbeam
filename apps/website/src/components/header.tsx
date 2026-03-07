@@ -44,6 +44,8 @@ const FEATURES = [
 
 const NAV_ITEMS = [
   { label: "Connectors", href: "/connectors/" },
+  { label: "Pitch", href: "/pitch/" },
+  { label: "Memo", href: "/memo/" },
   { label: "Docs", href: "https://docs.openbeam.work", external: true },
   {
     label: "GitHub",
