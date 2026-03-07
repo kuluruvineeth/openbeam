@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { internalServerUrl } from "@/lib/urls";
+import { internalServerUrl } from "@/lib/urls.server";
 
 const PROXY_HEADERS_SKIP = new Set([
   "host",

@@ -10,7 +10,7 @@ import {
 import { headers } from "next/headers";
 import { cache } from "react";
 import superjson from "superjson";
-import { internalServerUrl } from "@/lib/urls";
+import { internalServerUrl } from "@/lib/urls.server";
 import { makeQueryClient } from "@/trpc/query-client";
 
 export const getQueryClient = cache(makeQueryClient);

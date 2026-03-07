@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { internalServerUrl } from "@/lib/urls";
+import { internalServerUrl } from "@/lib/urls.server";
 
 const SESSION_COOKIE_NAME = "openbeam-session";
 
