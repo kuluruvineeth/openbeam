@@ -1,4 +1,5 @@
 import dynamic from "next/dynamic";
+import { SectionTracker } from "@/components/section-tracker";
 
 const HeroSection = dynamic(() =>
   import("@/components/sections/hero-section").then((mod) => mod.HeroSection)
@@ -43,19 +44,29 @@ function Divider() {
 export default function HomePage() {
   return (
     <>
-      <HeroSection />
+      <SectionTracker eventName="hero_viewed">
+        <HeroSection />
+      </SectionTracker>
       <Divider />
-      <HowItWorksSection />
+      <SectionTracker eventName="how_it_works_viewed">
+        <HowItWorksSection />
+      </SectionTracker>
       <Divider />
-      <FeaturesSection />
+      <SectionTracker eventName="features_viewed">
+        <FeaturesSection />
+      </SectionTracker>
       <Divider />
       <SurfacesSection />
       <Divider />
-      <ConnectorsSection />
+      <SectionTracker eventName="connectors_viewed">
+        <ConnectorsSection />
+      </SectionTracker>
       <Divider />
       <ComparisonSection />
       <Divider />
-      <CTASection />
+      <SectionTracker eventName="pricing_viewed">
+        <CTASection />
+      </SectionTracker>
     </>
   );
 }

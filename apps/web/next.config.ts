@@ -20,14 +20,31 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [{ protocol: "https", hostname: "**" }],
   },
-  rewrites: needsProxy
-    ? () => [
-        {
-          source: "/integrations/:path*",
-          destination: `${internalServerUrl}/integrations/:path*`,
-        },
-      ]
-    : undefined,
+  rewrites: async () => ({
+    beforeFiles: [
+      {
+        source: "/ingest/static/:path*",
+        destination: "https://us-assets.i.posthog.com/static/:path*",
+      },
+      {
+        source: "/ingest/:path*",
+        destination: "https://us.i.posthog.com/:path*",
+      },
+      {
+        source: "/ingest/decide",
+        destination: "https://us.i.posthog.com/decide",
+      },
+    ],
+    afterFiles: needsProxy
+      ? [
+          {
+            source: "/integrations/:path*",
+            destination: `${internalServerUrl}/integrations/:path*`,
+          },
+        ]
+      : [],
+    fallback: [],
+  }),
 };
 
 export default nextConfig;

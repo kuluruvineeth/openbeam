@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ConnectorLogo } from "@/components/connector-logo";
 import type { WebsiteConnector } from "@/data/connectors";
 import {
@@ -10,6 +10,7 @@ import {
   getCategoryName,
   getGroupForCategory,
 } from "@/data/connectors";
+import { analytics } from "@/lib/analytics";
 import { cn } from "@/lib/cn";
 
 interface Props {
@@ -19,9 +20,25 @@ interface Props {
 const TABS = ["Overview", "Data Streams", "Setup"] as const;
 type Tab = (typeof TABS)[number];
 
+const visitedConnectors: string[] = [];
+
 export function ConnectorDetailPage({ connector }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>("Overview");
   const categoryName = getCategoryName(connector.category);
+
+  useEffect(() => {
+    analytics.connectorPageViewed(connector.name);
+
+    if (!visitedConnectors.includes(connector.name)) {
+      visitedConnectors.push(connector.name);
+    }
+
+    if (visitedConnectors.length >= 2) {
+      analytics.connectorExplored(visitedConnectors.length, [
+        ...visitedConnectors,
+      ]);
+    }
+  }, [connector.name]);
 
   const relatedConnectors = connectors
     .filter((c) => c.category === connector.category && c.id !== connector.id)
@@ -149,6 +166,9 @@ export function ConnectorDetailPage({ connector }: Props) {
                 <a
                   className="flex w-full items-center justify-center bg-primary px-6 py-3 font-sans text-primary-foreground text-sm transition-colors hover:bg-primary/90"
                   href="https://docs.openbeam.work/quickstart"
+                  onClick={() =>
+                    analytics.selfHostDocsClicked(`connector-${connector.name}`)
+                  }
                 >
                   Deploy your instance
                 </a>
@@ -325,6 +345,9 @@ function SetupTab({ connector }: { connector: WebsiteConnector }) {
       <a
         className="flex w-full items-center justify-center bg-foreground px-6 py-3 font-sans text-background text-sm transition-opacity hover:opacity-90"
         href="https://docs.openbeam.work/quickstart"
+        onClick={() =>
+          analytics.selfHostDocsClicked(`connector-${connector.name}-setup`)
+        }
       >
         Deploy OpenBeam
       </a>

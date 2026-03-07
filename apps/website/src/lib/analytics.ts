@@ -1,7 +1,9 @@
 import posthog from "posthog-js";
 
 function capture(event: string, properties?: Record<string, unknown>) {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined") {
+    return;
+  }
   posthog.capture(event, properties);
 }
 
@@ -27,15 +29,59 @@ export const analytics = {
 
   pricingViewed: (plan?: string) => capture("pricing_viewed", { plan }),
 
-  docsLinkClicked: (from: string) =>
-    capture("docs_link_clicked", { from }),
+  docsLinkClicked: (from: string) => capture("docs_link_clicked", { from }),
 
-  githubLinkClicked: (from: string) =>
-    capture("github_link_clicked", { from }),
+  githubLinkClicked: (from: string) => capture("github_link_clicked", { from }),
 
   bookMeetingClicked: (from: string) =>
     capture("book_meeting_clicked", { from }),
 
   comparisonViewed: (competitor: string) =>
     capture("comparison_viewed", { competitor }),
+
+  docsClicked: (from: string, destination: string) =>
+    capture("docs_clicked", { from, destination }),
+
+  connectorExplored: (connectorCount: number, connectors: string[]) =>
+    capture("connector_explored", {
+      connector_count: connectorCount,
+      connectors,
+    }),
+
+  sectionViewed: (section: string, properties?: Record<string, unknown>) =>
+    capture("section_viewed", { section, ...properties }),
+
+  selfHostDocsClicked: (from: string) =>
+    capture("self_host_docs_clicked", { from }),
+
+  enterpriseInterest: (from: string) =>
+    capture("enterprise_interest", { from }),
+
+  shareClicked: (content: string, method: string) =>
+    capture("share_clicked", { content, method }),
+
+  captureUtm: (params: {
+    utm_source?: string;
+    utm_medium?: string;
+    utm_campaign?: string;
+    utm_content?: string;
+    utm_term?: string;
+    referrer?: string;
+  }) => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const filtered = Object.fromEntries(
+      Object.entries(params).filter(([, v]) => v)
+    );
+
+    if (Object.keys(filtered).length === 0) {
+      return;
+    }
+
+    posthog.register(filtered);
+    posthog.setPersonPropertiesForFlags(filtered);
+    capture("utm_captured", filtered);
+  },
 };

@@ -1,3 +1,6 @@
+"use client";
+
+import { analytics } from "@/lib/analytics";
 import { cn } from "@/lib/cn";
 
 const PLANS = [
@@ -116,6 +119,12 @@ export function PricingSection() {
                     : "border border-border bg-background text-foreground hover:bg-secondary"
                 )}
                 href={plan.ctaHref}
+                onClick={() => {
+                  analytics.ctaClicked(plan.cta, `pricing-${plan.name}`);
+                  if (plan.name === "Enterprise") {
+                    analytics.enterpriseInterest("pricing-section");
+                  }
+                }}
               >
                 {plan.cta}
               </a>

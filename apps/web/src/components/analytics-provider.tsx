@@ -5,12 +5,6 @@ import posthog from "posthog-js";
 import { PostHogProvider, usePostHog } from "posthog-js/react";
 import { Suspense, useEffect } from "react";
 import { env } from "@/env";
-import { CodeCopyTracker } from "./code-copy-tracker";
-import { ExternalLinkTracker } from "./external-link-tracker";
-import { ReadingTimeTracker } from "./reading-time-tracker";
-import { ScrollDepthTracker } from "./scroll-depth-tracker";
-import { SearchTracker } from "./search-tracker";
-import { SidebarNavTracker } from "./sidebar-nav-tracker";
 
 const POSTHOG_KEY = env.NEXT_PUBLIC_POSTHOG_KEY;
 const POSTHOG_HOST = env.NEXT_PUBLIC_POSTHOG_HOST;
@@ -19,15 +13,19 @@ if (typeof window !== "undefined" && POSTHOG_KEY) {
   posthog.init(POSTHOG_KEY, {
     api_host: "/ingest",
     ui_host: POSTHOG_HOST,
-    person_profiles: "identified_only",
+    person_profiles: "always",
     capture_pageview: false,
     capture_pageleave: true,
     autocapture: {
-      dom_event_allowlist: ["click"],
-      element_allowlist: ["a", "button"],
+      dom_event_allowlist: ["click", "submit"],
+      element_allowlist: ["a", "button", "form", "input", "select"],
       css_selector_allowlist: ["[data-ph-capture]"],
     },
-    disable_session_recording: true,
+    disable_session_recording: false,
+    session_recording: {
+      maskAllInputs: true,
+      maskTextSelector: "[data-ph-mask]",
+    },
     loaded: (ph) => {
       if (process.env.NODE_ENV === "development") {
         ph.debug();
@@ -50,20 +48,13 @@ function PageviewTracker() {
       ? `${pathname}?${searchParams.toString()}`
       : pathname;
 
-    ph.capture("$pageview", {
-      $current_url: url,
-      doc_section: pathname.split("/").filter(Boolean)[1] ?? "home",
-    });
+    ph.capture("$pageview", { $current_url: url });
   }, [pathname, searchParams, ph]);
 
   return null;
 }
 
-export function DocsAnalyticsProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   if (!POSTHOG_KEY) {
     return <>{children}</>;
   }
@@ -73,12 +64,6 @@ export function DocsAnalyticsProvider({
       <Suspense fallback={null}>
         <PageviewTracker />
       </Suspense>
-      <ScrollDepthTracker />
-      <ReadingTimeTracker />
-      <CodeCopyTracker />
-      <ExternalLinkTracker />
-      <SidebarNavTracker />
-      <SearchTracker />
       {children}
     </PostHogProvider>
   );

@@ -1,9 +1,10 @@
 "use client";
 
+import { usePathname, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import { PostHogProvider, usePostHog } from "posthog-js/react";
-import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useEffect } from "react";
+import { UtmTracker } from "@/components/utm-tracker";
 import { env } from "@/env";
 
 const POSTHOG_KEY = env.NEXT_PUBLIC_POSTHOG_KEY;
@@ -40,7 +41,9 @@ function PageviewTracker() {
   const ph = usePostHog();
 
   useEffect(() => {
-    if (!pathname || !ph) return;
+    if (!(pathname && ph)) {
+      return;
+    }
 
     const url = searchParams?.size
       ? `${pathname}?${searchParams.toString()}`
@@ -61,6 +64,7 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
     <PostHogProvider client={posthog}>
       <Suspense fallback={null}>
         <PageviewTracker />
+        <UtmTracker />
       </Suspense>
       {children}
     </PostHogProvider>

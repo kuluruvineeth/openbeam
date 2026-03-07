@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "@openbeam/ui/styles/globals.css";
 import localFont from "next/font/local";
+import { AnalyticsProvider } from "@/components/analytics-provider";
 import Providers from "@/components/providers";
 
 const geistSans = Geist({
@@ -43,7 +44,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${F37Stout.variable} antialiased`}
       >
-        <Providers>{children}</Providers>
+        <AnalyticsProvider>
+          <Providers>{children}</Providers>
+        </AnalyticsProvider>
       </body>
     </html>
   );
