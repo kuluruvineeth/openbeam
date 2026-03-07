@@ -212,8 +212,8 @@ jobs:
           cache-to: type=gha,mode=max,scope=${{ matrix.service }}
           provenance: false
           build-args: |
-            NEXT_PUBLIC_SERVER_URL=${{ vars.NEXT_PUBLIC_SERVER_URL || 'https://api.openbeam.tech' }}
-            NEXT_PUBLIC_WEB_URL=${{ vars.NEXT_PUBLIC_WEB_URL || 'https://app.openbeam.tech' }}
+            NEXT_PUBLIC_SERVER_URL=${{ vars.NEXT_PUBLIC_SERVER_URL || 'https://api.openbeam.work' }}
+            NEXT_PUBLIC_WEB_URL=${{ vars.NEXT_PUBLIC_WEB_URL || 'https://app.openbeam.work' }}
             SERVER_INTERNAL_URL=http://server:3000
             HUGEICONS_PRO_AUTH_TOKEN=${{ secrets.HUGEICONS_PRO_AUTH_TOKEN }}
 
