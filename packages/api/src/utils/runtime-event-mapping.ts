@@ -1,10 +1,10 @@
-import type { CanvasStreamEvent } from "@openplane/ai";
-import { appendSessionEvent } from "@openplane/db";
-import { publishSessionRuntimeEvent } from "@openplane/redis";
+import type { CanvasStreamEvent } from "@openbeam/ai";
+import { appendSessionEvent } from "@openbeam/db";
+import { publishSessionRuntimeEvent } from "@openbeam/redis";
 import type {
   RuntimeEvent,
   RuntimeEventPayload,
-} from "@openplane/types/canvas/runtime-events";
+} from "@openbeam/types/canvas/runtime-events";
 
 type Database = Parameters<typeof appendSessionEvent>[0];
 

@@ -211,7 +211,7 @@ function ensureDefaultMetrics(): void {
   collectDefaultMetrics({
     register,
     labels: {
-      service: "openplane-worker",
+      service: "openbeam-worker",
     },
   });
   defaultMetricsCollected = true;

@@ -3,7 +3,7 @@ import type {
   EdgeDocumentListOptions,
   EdgeDocumentRecord,
   EdgeDocumentStore,
-} from "@openplane/types/edge/search";
+} from "@openbeam/types/edge/search";
 
 export class SQLiteDocumentStore implements EdgeDocumentStore {
   private readonly db: Database;

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@openplane/ui";
+import { Button } from "@openbeam/ui";
 import { useRouter } from "next/navigation";
 
 export function ErrorFallback() {

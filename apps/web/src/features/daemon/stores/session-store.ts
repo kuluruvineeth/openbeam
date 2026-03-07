@@ -9,11 +9,11 @@ import type {
   AgentProvider,
   AgentRuntimeInfo,
   AgentUsage,
-} from "@openplane/types/services/daemon";
+} from "@openbeam/types/services/daemon";
 import type {
   ProjectPlacementPayload,
   ServerCapabilities,
-} from "@openplane/types/services/daemon/messages";
+} from "@openbeam/types/services/daemon/messages";
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import type {

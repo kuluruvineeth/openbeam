@@ -1,6 +1,6 @@
 "use client";
 
-import type { ConnectionIntent } from "@openplane/types/canvas";
+import type { ConnectionIntent } from "@openbeam/types/canvas";
 import type { Node } from "@xyflow/react";
 import { useReactFlow } from "@xyflow/react";
 import { useCallback, useState } from "react";

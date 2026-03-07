@@ -1,5 +1,5 @@
 {
-  "name": "@openplane/orchestrations",
+  "name": "@openbeam/orchestrations",
   "version": "0.0.1",
   "type": "module",
   "exports": {
@@ -19,13 +19,13 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@openplane/db": "workspace:*",
-    "@openplane/temporal": "workspace:*",
-    "@openplane/types": "workspace:*",
+    "@openbeam/db": "workspace:*",
+    "@openbeam/temporal": "workspace:*",
+    "@openbeam/types": "workspace:*",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@openplane/config": "workspace:*",
+    "@openbeam/config": "workspace:*",
     "tsdown": "catalog:"
   },
   "peerDependencies": {

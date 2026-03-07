@@ -94,7 +94,7 @@ describe("EdgeRAGResponseSchema", () => {
 describe("NEREntitySchema", () => {
   it("parses valid entity", () => {
     const entity = NEREntitySchema.parse({
-      text: "OpenPlane",
+      text: "OpenBeam",
       label: "ORGANIZATION",
       start: 0,
       end: 9,

@@ -1,7 +1,7 @@
 "use client";
 
-import { appStore } from "@openplane/integrations";
-import { Checkbox, TableCell, TableRow } from "@openplane/ui";
+import { appStore } from "@openbeam/integrations";
+import { Checkbox, TableCell, TableRow } from "@openbeam/ui";
 import { formatDistanceToNow } from "date-fns";
 import { useState } from "react";
 import { AppLogo } from "@/components/integrations/app-logo";

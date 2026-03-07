@@ -1,7 +1,7 @@
 import pino from "pino";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { OpenPlaneSpeechConfig } from "../bootstrap";
+import type { OpenBeamSpeechConfig } from "../bootstrap";
 import type { InitializedLocalSpeech } from "./providers/local/runtime";
 import type {
   SpeechToTextProvider,
@@ -62,8 +62,8 @@ function createStubTts(id: string): TextToSpeechProvider {
 }
 
 function createSpeechConfig(
-  providers: OpenPlaneSpeechConfig["providers"]
-): OpenPlaneSpeechConfig {
+  providers: OpenBeamSpeechConfig["providers"]
+): OpenBeamSpeechConfig {
   return { providers };
 }
 

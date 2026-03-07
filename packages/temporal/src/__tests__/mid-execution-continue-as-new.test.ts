@@ -3,8 +3,8 @@ import type {
   ExecutionPlanNode,
   ExecutionTrace,
   StrictAgentCanvasEdge,
-} from "@openplane/types/canvas";
-import type { AgentCanvasExecutionInput } from "@openplane/types/temporal/workflows";
+} from "@openbeam/types/canvas";
+import type { AgentCanvasExecutionInput } from "@openbeam/types/temporal/workflows";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { mockWorkflowInfo } = vi.hoisted(() => ({

@@ -9,7 +9,7 @@ module "redis" {
   source = "../../modules/redis"
 
   project_id   = var.project_id
-  project_name = "openplane"
+  project_name = "openbeam"
   environment  = "prod"
   region       = "us-central1"
   network_id   = module.networking.network_id

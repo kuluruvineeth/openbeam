@@ -20,7 +20,7 @@ export const fhirApp: UnifiedApp = {
   installed: false,
   type: "official",
   connectorType: ConnectorType.SOURCE,
-  developerName: "OpenPlane",
+  developerName: "OpenBeam",
   website: "https://hl7.org/fhir/",
 
   searchDisplay: {

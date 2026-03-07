@@ -3,7 +3,7 @@ import {
   SessionMemorySchema,
   type SessionMessage,
   type SessionMessageRole,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import type { ShortTermMemoryClient } from "./short-term";
 
 const TWENTY_FOUR_HOURS_SECONDS = 86_400;

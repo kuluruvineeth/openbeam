@@ -5,7 +5,7 @@ import type {
   QueryAnalysis,
   QueryIntent,
   TemporalContext,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import type { ConversationContext } from "./types";
 
 const WHITESPACE = /\s+/;

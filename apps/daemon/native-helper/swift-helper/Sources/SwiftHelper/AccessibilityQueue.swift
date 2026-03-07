@@ -4,7 +4,7 @@ class AccessibilityQueue {
     static let shared = AccessibilityQueue()
 
     private let queue = DispatchQueue(
-        label: "com.openplane.accessibility",
+        label: "com.openbeam.accessibility",
         qos: .userInitiated,
         attributes: [],
         autoreleaseFrequency: .workItem

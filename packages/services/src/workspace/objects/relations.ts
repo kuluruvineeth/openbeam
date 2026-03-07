@@ -1,4 +1,4 @@
-import type { WorkspaceRelation } from "@openplane/types/services/workspace";
+import type { WorkspaceRelation } from "@openbeam/types/services/workspace";
 import type { WorkspaceDuckDB } from "../duckdb/client";
 import { escapeSqlValue } from "../duckdb/query";
 import { getObjectsByIds, resolveDisplayField } from "./definitions";

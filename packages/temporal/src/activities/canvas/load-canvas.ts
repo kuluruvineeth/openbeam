@@ -1,5 +1,5 @@
-import type { Database } from "@openplane/db";
-import type { CanvasState } from "@openplane/types/canvas";
+import type { Database } from "@openbeam/db";
+import type { CanvasState } from "@openbeam/types/canvas";
 import { ApplicationFailure } from "@temporalio/activity";
 
 export interface LoadCanvasActivityInput {

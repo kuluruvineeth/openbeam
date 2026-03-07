@@ -1,12 +1,12 @@
-import prisma, { findSlackConnectorByTeamId } from "@openplane/db";
-import { rateLimiter } from "@openplane/redis";
+import prisma, { findSlackConnectorByTeamId } from "@openbeam/db";
+import { rateLimiter } from "@openbeam/redis";
 import {
   extractChannelId,
   extractTeamId,
   extractTriggerId,
   extractUserId,
   parseInteractivityPayload,
-} from "@openplane/services";
+} from "@openbeam/services";
 import type { Context } from "hono";
 import { Hono } from "hono";
 import logger from "../../utils/logger";

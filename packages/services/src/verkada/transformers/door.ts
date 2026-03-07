@@ -1,5 +1,5 @@
-import type { VerkadaTransformContext } from "@openplane/types/services/connectors/verkada";
-import type { GenericDocument } from "@openplane/vespa";
+import type { VerkadaTransformContext } from "@openbeam/types/services/connectors/verkada";
+import type { GenericDocument } from "@openbeam/vespa";
 import { calculateDocumentChecksum } from "../../lib/checksum";
 
 export interface VerkadaDoor {

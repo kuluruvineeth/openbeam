@@ -3,7 +3,7 @@ import type { AgentDirectoryEntry } from "../types";
 const ACTIVE_GRACE_PERIOD_MS = 2 * 24 * 60 * 60 * 1000;
 const MAX_INACTIVE_PER_PROJECT = 5;
 
-const WORKTREE_PATTERN = /\.openplane\/worktrees\/([^/]+)\/(.*)/;
+const WORKTREE_PATTERN = /\.openbeam\/worktrees\/([^/]+)\/(.*)/;
 const GIT_SUFFIX_PATTERN = /\.git$/;
 const HTTP_PREFIX_PATTERN = /^https?:\/\//;
 const GIT_PREFIX_PATTERN = /^git@/;

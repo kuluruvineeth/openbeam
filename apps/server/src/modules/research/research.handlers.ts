@@ -1,12 +1,12 @@
 import type { RouteHandler } from "@hono/zod-openapi";
-import prisma from "@openplane/db";
+import prisma from "@openbeam/db";
 import {
   BackgroundAgentsServiceError,
   cancelResearchWorkflowForTeam,
   getResearchArtifactsForTeam,
   getResearchProgressForTeam,
   startResearchWorkflowForTeam,
-} from "@openplane/services/background-agents";
+} from "@openbeam/services/background-agents";
 import type { AuthEnv } from "@/middleware/auth";
 import { getTeamId } from "@/middleware/auth";
 import type {

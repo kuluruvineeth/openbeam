@@ -1,9 +1,9 @@
 import prisma, {
   AppType,
   findLatestActiveConnectorByTeamAndApp,
-} from "@openplane/db";
-import type { NotifyChannel } from "@openplane/types/canvas";
-import { NotifyNodeConfigSchema } from "@openplane/types/canvas";
+} from "@openbeam/db";
+import type { NotifyChannel } from "@openbeam/types/canvas";
+import { NotifyNodeConfigSchema } from "@openbeam/types/canvas";
 import jmespath from "jmespath";
 import mustache from "mustache";
 import { sendEmail } from "../../gmail/actions/send-email";

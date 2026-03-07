@@ -1,8 +1,8 @@
 import type {
   SlackChannel,
   TransformContext,
-} from "@openplane/types/services/connectors/slack";
-import type { Entity, JsonObject } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/slack";
+import type { Entity, JsonObject } from "@openbeam/vespa";
 
 export interface ChannelTransformContext extends TransformContext {
   members?: string[];

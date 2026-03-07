@@ -1,9 +1,9 @@
-name = "openplane-relay"
+name = "openbeam-relay"
 main = "src/cloudflare-adapter.ts"
 compatibility_date = "2024-12-01"
 
 routes = [
-  { pattern = "relay.openplane.tech", custom_domain = true }
+  { pattern = "relay.openbeam.work", custom_domain = true }
 ]
 
 [observability]

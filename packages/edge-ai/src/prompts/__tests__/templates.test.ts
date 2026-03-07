@@ -73,10 +73,10 @@ describe("prompt templates", () => {
   it("RAG prompt can be formatted with context and query", () => {
     const result = formatPrompt(EDGE_RAG_PROMPT, {
       context: "[1] Doc Title\nSome content",
-      query: "What is OpenPlane?",
+      query: "What is OpenBeam?",
     });
     expect(result).toContain("[1] Doc Title");
-    expect(result).toContain("What is OpenPlane?");
+    expect(result).toContain("What is OpenBeam?");
     expect(result).not.toContain("{context}");
     expect(result).not.toContain("{query}");
   });

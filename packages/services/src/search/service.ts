@@ -1,4 +1,4 @@
-import { getConfig as getAIConfig, getBGEM3Provider } from "@openplane/ai";
+import { getConfig as getAIConfig, getBGEM3Provider } from "@openbeam/ai";
 import {
   buildMediaVectorQueryFeatures,
   buildVectorQueryFeatures,
@@ -9,7 +9,7 @@ import {
   type QueryParams,
   type SearchResult as VespaSearchResult,
   vespaClient,
-} from "@openplane/vespa";
+} from "@openbeam/vespa";
 import { getOrGenerateEmbedding } from "../ai/embedding-cache";
 import { logger } from "../lib/logger";
 import type {
@@ -253,7 +253,7 @@ export class SearchService {
   async searchThread(params: ThreadSearchParams): Promise<GenericDocument[]> {
     const { threadId, teamId, accessControlIds } = params;
 
-    const yql = `select * from openplane_document where thread_id contains "${escapeYqlString(
+    const yql = `select * from openbeam_document where thread_id contains "${escapeYqlString(
       threadId
     )}" and team_id contains "${escapeYqlString(
       teamId
@@ -284,7 +284,7 @@ export class SearchService {
       throw new Error("Document not accessible");
     }
 
-    const yql = `select * from openplane_document where ({targetHits:${limit * 2}}nearestNeighbor(content_embedding, query_embedding)) and team_id contains "${escapeYqlString(
+    const yql = `select * from openbeam_document where ({targetHits:${limit * 2}}nearestNeighbor(content_embedding, query_embedding)) and team_id contains "${escapeYqlString(
       teamId
     )}" and ${this.buildAccessControlClause(accessControlIds)} and id != "${escapeYqlString(documentId)}"`;
 
@@ -306,7 +306,7 @@ export class SearchService {
     const { teamId, hours = 24, limit = 20, accessControlIds } = params;
     const fromDate = Date.now() - hours * 60 * 60 * 1000;
 
-    const yql = `select * from openplane_document where team_id contains "${escapeYqlString(
+    const yql = `select * from openbeam_document where team_id contains "${escapeYqlString(
       teamId
     )}" and created_at >= ${fromDate} and ${this.buildAccessControlClause(
       accessControlIds
@@ -324,7 +324,7 @@ export class SearchService {
   async searchByAuthor(params: AuthorSearchParams): Promise<GenericDocument[]> {
     const { authorId, teamId, limit = 50, accessControlIds } = params;
 
-    const yql = `select * from openplane_document where author_id contains "${escapeYqlString(
+    const yql = `select * from openbeam_document where author_id contains "${escapeYqlString(
       authorId
     )}" and team_id contains "${escapeYqlString(
       teamId
@@ -344,7 +344,7 @@ export class SearchService {
   async getAuthorFacets(params: AuthorFacetsParams): Promise<AuthorFacet[]> {
     const { teamId, accessControlIds, limit = 50 } = params;
 
-    const yql = `select author_id, author_name, author_email, author_avatar_url from openplane_document where team_id contains "${escapeYqlString(
+    const yql = `select author_id, author_name, author_email, author_avatar_url from openbeam_document where team_id contains "${escapeYqlString(
       teamId
     )}" and ${this.buildAccessControlClause(
       accessControlIds
@@ -400,7 +400,7 @@ export class SearchService {
   ): Promise<ConnectorFacet[]> {
     const { teamId, accessControlIds } = params;
 
-    const documentYql = `select connector_type from openplane_document where team_id contains "${escapeYqlString(
+    const documentYql = `select connector_type from openbeam_document where team_id contains "${escapeYqlString(
       teamId
     )}" and ${this.buildAccessControlClause(
       accessControlIds
@@ -542,7 +542,7 @@ export class SearchService {
     conditions.push(this.buildAccessControlClause(params.accessControlIds));
 
     const whereClause = conditions.join(" and ");
-    return `select * from openplane_document where ${whereClause}`;
+    return `select * from openbeam_document where ${whereClause}`;
   }
 
   private buildAccessControlClause(accessControlIds?: string[]): string {
@@ -827,7 +827,7 @@ export class SearchService {
         return null;
       }
 
-      const { TwelveLabsClient } = await import("@openplane/media");
+      const { TwelveLabsClient } = await import("@openbeam/media");
       const client = new TwelveLabsClient();
       const embedding = await client.embedText(query);
       logger.debug(
@@ -916,7 +916,7 @@ export class SearchService {
       .map((id) => `id contains "${escapeYqlString(id)}"`)
       .join(" or ");
 
-    const yql = `select * from openplane_document where team_id contains "${escapeYqlString(params.teamId)}" and (${idConditions})`;
+    const yql = `select * from openbeam_document where team_id contains "${escapeYqlString(params.teamId)}" and (${idConditions})`;
 
     try {
       const result = await vespaClient.query({

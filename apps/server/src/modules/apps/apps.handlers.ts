@@ -1,5 +1,5 @@
 import type { RouteHandler } from "@hono/zod-openapi";
-import prisma from "@openplane/db";
+import prisma from "@openbeam/db";
 import {
   AppsServiceError,
   createConnectorForTeam,
@@ -9,8 +9,8 @@ import {
   listConnectorsForTeam,
   updateConnectorConfigForTeam,
   updateConnectorResourceForTeam,
-} from "@openplane/services/apps";
-import { runConnectorCleanup } from "@openplane/temporal";
+} from "@openbeam/services/apps";
+import { runConnectorCleanup } from "@openbeam/temporal";
 import type { AuthEnv } from "@/middleware/auth";
 import { getTeamId } from "@/middleware/auth";
 import type {

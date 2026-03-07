@@ -1,4 +1,4 @@
-import type { GenericDocument, VespaClient } from "@openplane/vespa";
+import type { GenericDocument, VespaClient } from "@openbeam/vespa";
 import type {
   DeleteDocumentsInput,
   RemoveOrphanChunksInput,
@@ -6,11 +6,11 @@ import type {
 } from "./types";
 
 function buildChunkSelection(connectorId: string): string {
-  const base = "openplane_document.is_chunk==true";
+  const base = "openbeam_document.is_chunk==true";
   if (!connectorId) {
     return base;
   }
-  return `${base} and openplane_document.connector_id=="${connectorId}"`;
+  return `${base} and openbeam_document.connector_id=="${connectorId}"`;
 }
 
 async function checkOrphanStatus(
@@ -51,9 +51,9 @@ export function createRemoveOrphanChunksActivity(
     const BATCH_DELETE_THRESHOLD = 100;
 
     const documentIterator = vespa.visitDocuments<GenericDocument>({
-      schema: "openplane_document",
+      schema: "openbeam_document",
       selection: buildChunkSelection(input.connectorId),
-      fieldSet: "openplane_document:id,parent_doc_id",
+      fieldSet: "openbeam_document:id,parent_doc_id",
       wantedDocumentCount: 1000,
     });
 

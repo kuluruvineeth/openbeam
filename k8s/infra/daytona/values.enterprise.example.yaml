@@ -1,4 +1,4 @@
-# Enterprise baseline for Daytona chart when deployed as part of OpenPlane.
+# Enterprise baseline for Daytona chart when deployed as part of OpenBeam.
 # Copy and tailor per environment. Keep secrets in external secret manager.
 
 baseDomain: "daytona.example.com"

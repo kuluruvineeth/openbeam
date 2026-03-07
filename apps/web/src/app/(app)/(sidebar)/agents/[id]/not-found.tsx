@@ -1,4 +1,4 @@
-import { Button, Icons } from "@openplane/ui";
+import { Button, Icons } from "@openbeam/ui";
 import Link from "next/link";
 
 export default function AgentNotFound() {

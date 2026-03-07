@@ -17,7 +17,7 @@ app.get("/metrics", metricsEndpoint(adapters, gatewayStartTime));
 
 app.get("/", (c) =>
   c.json({
-    service: "openplane-gateway",
+    service: "openbeam-gateway",
     version: "0.1.0",
     protocols: ["mqtt", "opcua", "bacnet"],
     adapters: adapters.size,

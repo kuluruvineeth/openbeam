@@ -1,4 +1,4 @@
-import type { RetryNodeConfig } from "@openplane/types/canvas";
+import type { RetryNodeConfig } from "@openbeam/types/canvas";
 
 const HASH_MODULO = 2_147_483_647;
 const HASH_MULTIPLIER = 31;

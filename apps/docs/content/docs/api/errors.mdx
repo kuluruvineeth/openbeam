@@ -5,7 +5,7 @@ description: Error codes, rate limiting behavior, and best practices for handlin
 
 # Error handling
 
-OpenPlane uses standard tRPC error codes for the RPC layer and HTTP status codes for the REST layer. Both layers return structured error responses.
+OpenBeam uses standard tRPC error codes for the RPC layer and HTTP status codes for the REST layer. Both layers return structured error responses.
 
 ## tRPC error format
 
@@ -102,7 +102,7 @@ For scope-based rejections:
 
 ### NOT_FOUND (404)
 
-The requested resource does not exist or the user does not have access. OpenPlane returns the same error for both cases to avoid leaking information about resource existence.
+The requested resource does not exist or the user does not have access. OpenBeam returns the same error for both cases to avoid leaking information about resource existence.
 
 ```json
 {
@@ -184,7 +184,7 @@ When a rate limit is exceeded:
 
 ```typescript
 import { TRPCClientError } from "@trpc/client";
-import type { AppRouter } from "@openplane/api";
+import type { AppRouter } from "@openbeam/api";
 
 try {
   const result = await trpc.apps.sync.trigger.mutate({

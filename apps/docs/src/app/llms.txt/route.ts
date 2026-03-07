@@ -4,7 +4,7 @@ export const revalidate = false;
 
 export function GET() {
   const pages = source.getPages();
-  const baseUrl = "https://openplane.com/docs";
+  const baseUrl = "https://openbeam.com/docs";
 
   const sections: Record<string, { title: string; url: string }[]> = {};
 
@@ -20,13 +20,13 @@ export function GET() {
   }
 
   const lines: string[] = [
-    "# OpenPlane",
+    "# OpenBeam",
     "",
     "> Open-source enterprise search and AI assistant platform. Connect 20 data sources, index everything into a unified search engine (Vespa), and query with hybrid search (BM25 + dense vectors + sparse vectors). Built with TypeScript, Next.js, Hono, Temporal, and PostgreSQL.",
     "",
     "## Overview",
     "",
-    "OpenPlane indexes content from SaaS tools (Slack, Gmail, Notion, GitHub, Linear, Google Drive), IoT platforms (Samsara, MQTT, OPC-UA), and industrial systems into a single searchable knowledge base. It provides:",
+    "OpenBeam indexes content from SaaS tools (Slack, Gmail, Notion, GitHub, Linear, Google Drive), IoT platforms (Samsara, MQTT, OPC-UA), and industrial systems into a single searchable knowledge base. It provides:",
     "",
     "- Hybrid search combining keyword matching, semantic similarity, and sparse vectors",
     "- Permission-aware results filtered by source system access controls",
@@ -91,7 +91,7 @@ export function GET() {
   lines.push("## API");
   lines.push("");
   lines.push(
-    "- Base URL: `http://localhost:3000` (self-hosted) or `https://api.openplane.com`"
+    "- Base URL: `http://localhost:3000` (self-hosted) or `https://api.openbeam.com`"
   );
   lines.push("- Authentication: Bearer token via `Authorization` header");
   lines.push(
@@ -100,12 +100,12 @@ export function GET() {
   lines.push("- Connector management: tRPC routers at `/api/trpc/connector.*`");
   lines.push("- AI chat: `POST /api/ai/chat` with streaming SSE responses");
   lines.push(
-    "- MCP server: `openplane mcp serve` exposes tools via JSON-RPC 2.0"
+    "- MCP server: `openbeam mcp serve` exposes tools via JSON-RPC 2.0"
   );
   lines.push("");
   lines.push("## Full Documentation");
   lines.push("");
-  lines.push("- [Full text of all docs](https://openplane.com/llms-full.txt)");
+  lines.push("- [Full text of all docs](https://openbeam.com/llms-full.txt)");
   lines.push("");
 
   return new Response(lines.join("\n"), {

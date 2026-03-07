@@ -1,6 +1,6 @@
 ---
 title: Setup
-description: Connect BACnet devices to OpenPlane via network discovery.
+description: Connect BACnet devices to OpenBeam via network discovery.
 ---
 
 # BACnet Setup
@@ -8,12 +8,12 @@ description: Connect BACnet devices to OpenPlane via network discovery.
 ## Prerequisites
 
 - BACnet/IP devices on an accessible network segment
-- Network route from the OpenPlane host to the BACnet/IP network
-- UDP port 47808 open between OpenPlane and BACnet devices
+- Network route from the OpenBeam host to the BACnet/IP network
+- UDP port 47808 open between OpenBeam and BACnet devices
 
 ## 1. Verify Network Connectivity
 
-BACnet/IP communicates over UDP. Ensure the OpenPlane host can reach the BACnet network segment:
+BACnet/IP communicates over UDP. Ensure the OpenBeam host can reach the BACnet network segment:
 
 ```bash
 # Test UDP connectivity to the BACnet port
@@ -21,10 +21,10 @@ nc -u -z BACNET_DEVICE_IP 47808
 ```
 
 <Callout type="warn">
-  BACnet/IP uses broadcast discovery (Who-Is). If OpenPlane is on a different subnet, you must either configure a BBMD (BACnet Broadcast Management Device) or specify device IPs manually.
+  BACnet/IP uses broadcast discovery (Who-Is). If OpenBeam is on a different subnet, you must either configure a BBMD (BACnet Broadcast Management Device) or specify device IPs manually.
 </Callout>
 
-## 2. Add the Connector in OpenPlane
+## 2. Add the Connector in OpenBeam
 
 1. Go to **Settings** > **Connectors** > **Add Connector**
 2. Select **BACnet**

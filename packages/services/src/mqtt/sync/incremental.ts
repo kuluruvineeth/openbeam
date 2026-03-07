@@ -1,8 +1,8 @@
 import type {
   MqttSyncCursor,
   MqttTransformContext,
-} from "@openplane/types/services/connectors/mqtt";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/mqtt";
+import type { GenericDocument } from "@openbeam/vespa";
 import type { MqttConnectorClient } from "../client";
 import { transformMessages } from "../transformers/message";
 import { createSyncBatch, type MqttSyncBatch } from "./utils";

@@ -1,4 +1,4 @@
-import { Button } from "@openplane/ui";
+import { Button } from "@openbeam/ui";
 import { cn } from "@/lib/utils";
 
 type AutocompleteResult = {

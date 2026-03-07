@@ -6,15 +6,15 @@ import {
   decodeBinaryMuxFrame,
   encodeBinaryMuxFrame,
   isLikelyBinaryMuxFrame,
-} from "@openplane/types/services/daemon";
+} from "@openbeam/types/services/daemon";
 import type {
   WSInboundMessage,
   WSOutboundMessage,
-} from "@openplane/types/services/daemon/messages";
+} from "@openbeam/types/services/daemon/messages";
 import {
   WSInboundMessageSchema,
   WSOutboundMessageSchema,
-} from "@openplane/types/services/daemon/messages";
+} from "@openbeam/types/services/daemon/messages";
 
 export type DecodedMessage =
   | { kind: "json"; message: WSInboundMessage | WSOutboundMessage }

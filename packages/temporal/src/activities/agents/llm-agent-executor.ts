@@ -5,13 +5,13 @@ import {
   createLlmAgent,
   getConfig,
   type LlmAgentConfig,
-} from "@openplane/ai";
-import { type ToolServices, toolRegistry } from "@openplane/ai/tools";
+} from "@openbeam/ai";
+import { type ToolServices, toolRegistry } from "@openbeam/ai/tools";
 import {
   getSandboxProvider,
   type FileInfo as RuntimeFileInfo,
   type Sandbox as RuntimeSandbox,
-} from "@openplane/sandbox";
+} from "@openbeam/sandbox";
 import { Context } from "@temporalio/activity";
 import { LLM_CALL_TIMEOUTS } from "../../config/timeouts";
 import type { AgentArtifact } from "../../workflows/types";
@@ -115,7 +115,6 @@ export class LlmAgentExecutor implements AgentExecutor {
       state,
       conversationHistory,
       metadata: {
-        missionId: context.missionId,
         agentId: context.agentId,
         runId: context.runId,
         taskId: context.taskId,

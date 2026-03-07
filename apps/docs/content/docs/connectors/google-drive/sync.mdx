@@ -22,13 +22,13 @@ description: How Google Drive data is synced
 
 ## Changes API
 
-Drive tracks changes via page tokens. OpenPlane stores the last token and fetches only changes.
+Drive tracks changes via page tokens. OpenBeam stores the last token and fetches only changes.
 
-Page tokens expire after ~7 days. If expired, OpenPlane auto-triggers full sync.
+Page tokens expire after ~7 days. If expired, OpenBeam auto-triggers full sync.
 
 ## Watch Management
 
-Push notification watches expire after 7 days. OpenPlane auto-renews 1 day before expiration.
+Push notification watches expire after 7 days. OpenBeam auto-renews 1 day before expiration.
 
 See [Real-time Sync](/docs/connectors/google-drive/real-time-sync) for details.
 
@@ -39,7 +39,7 @@ See [Real-time Sync](/docs/connectors/google-drive/real-time-sync) for details.
 | Per user | 100 requests/minute |
 | Batch requests | 100 per batch |
 
-OpenPlane handles limits with exponential backoff.
+OpenBeam handles limits with exponential backoff.
 
 ## Controls
 

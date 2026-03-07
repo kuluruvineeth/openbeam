@@ -4,7 +4,7 @@ import type {
   EntityType,
   ExtractionField,
   ExtractionTemplate,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { memo, useCallback, useState } from "react";
 import { AnimatedSizeContainer } from "../../animated-size-container";
 import { Button } from "../../button";

@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile.dev
-    container_name: openplane-web-dev
+    container_name: openbeam-web-dev
     environment:
       NODE_ENV: development
       NEXT_PUBLIC_SERVER_URL: http://localhost:3000
@@ -40,10 +40,10 @@ services:
     build:
       context: .
       dockerfile: apps/server/Dockerfile.dev
-    container_name: openplane-server-dev
+    container_name: openbeam-server-dev
     environment:
       NODE_ENV: development
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/openplane
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/openbeam
       REDIS_URL: redis://redis:6379
       VESPA_URL: http://vespa:8080
       TEMPORAL_ADDRESS: temporal:7233
@@ -89,10 +89,10 @@ services:
     build:
       context: .
       dockerfile: apps/worker/Dockerfile.dev
-    container_name: openplane-worker-dev
+    container_name: openbeam-worker-dev
     environment:
       NODE_ENV: development
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/openplane
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/openbeam
       REDIS_URL: redis://redis:6379
       VESPA_URL: http://vespa:8080
       TEMPORAL_ADDRESS: temporal:7233
@@ -100,7 +100,7 @@ services:
       GCS_ENDPOINT: http://minio:9000
       GCS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
       GCS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
-      GCS_BUCKET: ${S3_BUCKET:-openplane-files}
+      GCS_BUCKET: ${S3_BUCKET:-openbeam-files}
       LOG_LEVEL: debug
     ports:
       - "9091:9091"
@@ -140,12 +140,12 @@ services:
     build:
       context: .
       dockerfile: apps/daemon/Dockerfile.dev
-    container_name: openplane-daemon-dev
+    container_name: openbeam-daemon-dev
     environment:
       NODE_ENV: development
-      OPENPLANE_HOME: /data
-      OPENPLANE_LOG: debug
-      OPENPLANE_LOG_FORMAT: pretty
+      OPENBEAM_HOME: /data
+      OPENBEAM_LOG: debug
+      OPENBEAM_LOG_FORMAT: pretty
     ports:
       - "6868:6868"
     volumes:
@@ -175,7 +175,7 @@ services:
     build:
       context: .
       dockerfile: apps/engine/Dockerfile.dev
-    container_name: openplane-engine-dev
+    container_name: openbeam-engine-dev
     environment:
       PYTHONUNBUFFERED: 1
       LOG_LEVEL: debug

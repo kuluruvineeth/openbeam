@@ -3,8 +3,8 @@ import {
   findIndexedFileForPreview,
   findIndexedMediaById,
   findIndexedMediaForPreview,
-} from "@openplane/db";
-import { getStorageProvider, messagesService } from "@openplane/services";
+} from "@openbeam/db";
+import { getStorageProvider, messagesService } from "@openbeam/services";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter } from "../index";

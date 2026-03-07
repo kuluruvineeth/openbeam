@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "bun:test";
-import type { MCPServerContext } from "@openplane/types/ai";
+import type { MCPServerContext } from "@openbeam/types/ai";
 import {
   createJsonContent,
   createResourceContent,
@@ -44,7 +44,7 @@ describe("ResourceRegistry", () => {
 
       const resources = registry.list();
       expect(resources).toHaveLength(1);
-      expect(resources[0]?.uri).toBe("openplane://connectors");
+      expect(resources[0]?.uri).toBe("openbeam://connectors");
       expect(resources[0]?.name).toBe("Connected Sources");
     });
 
@@ -70,7 +70,7 @@ describe("ResourceRegistry", () => {
 
       const [resource] = registry.list();
       expect(resource).toMatchObject({
-        uri: "openplane://connectors",
+        uri: "openbeam://connectors",
         name: "Connected Sources",
         description: "List of all active data source integrations for the team",
         mimeType: "application/json",
@@ -88,7 +88,7 @@ describe("ResourceRegistry", () => {
       const templates = registry.listTemplates();
       expect(templates).toHaveLength(1);
       expect(templates[0]?.uriTemplate).toBe(
-        "openplane://documents/{documentId}"
+        "openbeam://documents/{documentId}"
       );
     });
 
@@ -116,7 +116,7 @@ describe("ResourceRegistry", () => {
       registry.register(defineConnectorsResource(), handler);
 
       const result = await registry.read(
-        "openplane://connectors",
+        "openbeam://connectors",
         createTestContext()
       );
       expect(result?.contents).toEqual(expectedContents);
@@ -136,7 +136,7 @@ describe("ResourceRegistry", () => {
       registry.registerTemplate(defineDocumentResourceTemplate(), handler);
 
       const result = await registry.read(
-        "openplane://documents/doc_123",
+        "openbeam://documents/doc_123",
         createTestContext()
       );
       expect(result?.contents[0]?.text).toContain("doc_123");
@@ -144,7 +144,7 @@ describe("ResourceRegistry", () => {
 
     it("returns null for unregistered URI", async () => {
       const result = await registry.read(
-        "openplane://unknown",
+        "openbeam://unknown",
         createTestContext()
       );
       expect(result).toBeNull();
@@ -160,7 +160,7 @@ describe("ResourceRegistry", () => {
       registry.register(defineConnectorsResource(), handler);
 
       const context = createTestContext({ teamId: "team_specific" });
-      await registry.read("openplane://connectors", context);
+      await registry.read("openbeam://connectors", context);
 
       expect(receivedContext).toMatchObject({ teamId: "team_specific" });
     });
@@ -179,7 +179,7 @@ describe("ResourceRegistry", () => {
 
       registry.register(
         {
-          uri: "openplane://documents/recent",
+          uri: "openbeam://documents/recent",
           name: "Recent",
           description: "Recent docs",
         },
@@ -191,7 +191,7 @@ describe("ResourceRegistry", () => {
       );
 
       const result = await registry.read(
-        "openplane://documents/recent",
+        "openbeam://documents/recent",
         createTestContext()
       );
       expect(result?.contents[0]?.text).toBe("static");
@@ -203,27 +203,27 @@ describe("ResourceRegistry", () => {
       registry.register(defineConnectorsResource(), async () => ({
         contents: [],
       }));
-      expect(registry.has("openplane://connectors")).toBe(true);
+      expect(registry.has("openbeam://connectors")).toBe(true);
     });
 
     it("returns true for matching template URI", () => {
       registry.registerTemplate(defineDocumentResourceTemplate(), async () => ({
         contents: [],
       }));
-      expect(registry.has("openplane://documents/doc_123")).toBe(true);
-      expect(registry.has("openplane://documents/any_id")).toBe(true);
+      expect(registry.has("openbeam://documents/doc_123")).toBe(true);
+      expect(registry.has("openbeam://documents/any_id")).toBe(true);
     });
 
     it("returns false for unregistered URI", () => {
-      expect(registry.has("openplane://unknown")).toBe(false);
+      expect(registry.has("openbeam://unknown")).toBe(false);
     });
 
     it("returns false for non-matching template URI", () => {
       registry.registerTemplate(defineDocumentResourceTemplate(), async () => ({
         contents: [],
       }));
-      expect(registry.has("openplane://documents")).toBe(false);
-      expect(registry.has("openplane://documents/a/b")).toBe(false);
+      expect(registry.has("openbeam://documents")).toBe(false);
+      expect(registry.has("openbeam://documents/a/b")).toBe(false);
     });
   });
 
@@ -249,7 +249,7 @@ describe("ResourceRegistry", () => {
       registry.clear();
 
       expect(registry.listTemplates()).toHaveLength(0);
-      expect(registry.has("openplane://documents/doc_123")).toBe(false);
+      expect(registry.has("openbeam://documents/doc_123")).toBe(false);
     });
   });
 });
@@ -264,32 +264,32 @@ describe("URI Template Matching", () => {
   it("matches single parameter templates", () => {
     registry.registerTemplate(
       {
-        uriTemplate: "openplane://items/{itemId}",
+        uriTemplate: "openbeam://items/{itemId}",
         name: "Item",
         description: "An item",
       },
       async () => ({ contents: [] })
     );
 
-    expect(registry.has("openplane://items/123")).toBe(true);
-    expect(registry.has("openplane://items/abc-def")).toBe(true);
-    expect(registry.has("openplane://items")).toBe(false);
-    expect(registry.has("openplane://items/123/sub")).toBe(false);
+    expect(registry.has("openbeam://items/123")).toBe(true);
+    expect(registry.has("openbeam://items/abc-def")).toBe(true);
+    expect(registry.has("openbeam://items")).toBe(false);
+    expect(registry.has("openbeam://items/123/sub")).toBe(false);
   });
 
   it("matches multi-parameter templates", () => {
     registry.registerTemplate(
       {
-        uriTemplate: "openplane://teams/{teamId}/docs/{docId}",
+        uriTemplate: "openbeam://teams/{teamId}/docs/{docId}",
         name: "Team Doc",
         description: "A team document",
       },
       async () => ({ contents: [] })
     );
 
-    expect(registry.has("openplane://teams/t1/docs/d1")).toBe(true);
-    expect(registry.has("openplane://teams/t1/docs")).toBe(false);
-    expect(registry.has("openplane://teams/t1")).toBe(false);
+    expect(registry.has("openbeam://teams/t1/docs/d1")).toBe(true);
+    expect(registry.has("openbeam://teams/t1/docs")).toBe(false);
+    expect(registry.has("openbeam://teams/t1")).toBe(false);
   });
 
   it("distinguishes between different templates", async () => {
@@ -297,7 +297,7 @@ describe("URI Template Matching", () => {
 
     registry.registerTemplate(
       {
-        uriTemplate: "openplane://a/{id}",
+        uriTemplate: "openbeam://a/{id}",
         name: "A",
         description: "Template A",
       },
@@ -308,7 +308,7 @@ describe("URI Template Matching", () => {
     );
     registry.registerTemplate(
       {
-        uriTemplate: "openplane://b/{id}",
+        uriTemplate: "openbeam://b/{id}",
         name: "B",
         description: "Template B",
       },
@@ -318,10 +318,10 @@ describe("URI Template Matching", () => {
       }
     );
 
-    await registry.read("openplane://a/123", createTestContext());
+    await registry.read("openbeam://a/123", createTestContext());
     expect(calledTemplate as unknown as string).toBe("a");
 
-    await registry.read("openplane://b/456", createTestContext());
+    await registry.read("openbeam://b/456", createTestContext());
     expect(calledTemplate as unknown as string).toBe("b");
   });
 });
@@ -329,8 +329,8 @@ describe("URI Template Matching", () => {
 describe("extractUriParam", () => {
   it("extracts single parameter", () => {
     const result = extractUriParam(
-      "openplane://documents/doc_123",
-      "openplane://documents/{documentId}",
+      "openbeam://documents/doc_123",
+      "openbeam://documents/{documentId}",
       "documentId"
     );
     expect(result).toBe("doc_123");
@@ -338,15 +338,15 @@ describe("extractUriParam", () => {
 
   it("extracts from multi-parameter template", () => {
     const teamId = extractUriParam(
-      "openplane://teams/team_1/docs/doc_2",
-      "openplane://teams/{teamId}/docs/{docId}",
+      "openbeam://teams/team_1/docs/doc_2",
+      "openbeam://teams/{teamId}/docs/{docId}",
       "teamId"
     );
     expect(teamId).toBe("team_1");
 
     const docId = extractUriParam(
-      "openplane://teams/team_1/docs/doc_2",
-      "openplane://teams/{teamId}/docs/{docId}",
+      "openbeam://teams/team_1/docs/doc_2",
+      "openbeam://teams/{teamId}/docs/{docId}",
       "docId"
     );
     expect(docId).toBe("doc_2");
@@ -354,8 +354,8 @@ describe("extractUriParam", () => {
 
   it("returns null for non-matching URI", () => {
     const result = extractUriParam(
-      "openplane://other/path",
-      "openplane://documents/{documentId}",
+      "openbeam://other/path",
+      "openbeam://documents/{documentId}",
       "documentId"
     );
     expect(result).toBeNull();
@@ -363,8 +363,8 @@ describe("extractUriParam", () => {
 
   it("returns null for non-existent parameter", () => {
     const result = extractUriParam(
-      "openplane://documents/doc_123",
-      "openplane://documents/{documentId}",
+      "openbeam://documents/doc_123",
+      "openbeam://documents/{documentId}",
       "otherId"
     );
     expect(result).toBeNull();
@@ -397,10 +397,10 @@ describe("Content Helpers", () => {
 
   describe("createResourceContent", () => {
     it("creates resource content with required fields", () => {
-      const content = createResourceContent("openplane://test", "content text");
+      const content = createResourceContent("openbeam://test", "content text");
       expect(content).toEqual({
         type: "resource",
-        uri: "openplane://test",
+        uri: "openbeam://test",
         text: "content text",
         mimeType: undefined,
       });
@@ -408,7 +408,7 @@ describe("Content Helpers", () => {
 
     it("includes optional mimeType", () => {
       const content = createResourceContent(
-        "openplane://test",
+        "openbeam://test",
         "content",
         "application/json"
       );
@@ -420,35 +420,35 @@ describe("Content Helpers", () => {
 describe("Resource Definition Factories", () => {
   it("defineConnectorsResource creates valid definition", () => {
     const def = defineConnectorsResource();
-    expect(def.uri).toBe("openplane://connectors");
+    expect(def.uri).toBe("openbeam://connectors");
     expect(def.name).toBe("Connected Sources");
     expect(def.mimeType).toBe("application/json");
   });
 
   it("defineDocumentResourceTemplate creates valid template", () => {
     const template = defineDocumentResourceTemplate();
-    expect(template.uriTemplate).toBe("openplane://documents/{documentId}");
+    expect(template.uriTemplate).toBe("openbeam://documents/{documentId}");
     expect(template.name).toBe("Document");
   });
 
   it("defineRecentDocumentsResource creates valid definition", () => {
     const def = defineRecentDocumentsResource();
-    expect(def.uri).toBe("openplane://documents/recent");
+    expect(def.uri).toBe("openbeam://documents/recent");
   });
 
   it("defineSearchResultsResourceTemplate creates valid template", () => {
     const template = defineSearchResultsResourceTemplate();
-    expect(template.uriTemplate).toBe("openplane://search/{queryId}");
+    expect(template.uriTemplate).toBe("openbeam://search/{queryId}");
   });
 
   it("defineTeamProfileResource creates valid definition", () => {
     const def = defineTeamProfileResource();
-    expect(def.uri).toBe("openplane://team/profile");
+    expect(def.uri).toBe("openbeam://team/profile");
   });
 
   it("defineUserContextResource creates valid definition", () => {
     const def = defineUserContextResource();
-    expect(def.uri).toBe("openplane://user/context");
+    expect(def.uri).toBe("openbeam://user/context");
   });
 });
 
@@ -458,10 +458,10 @@ describe("getDefaultResourceDefinitions", () => {
     expect(definitions).toHaveLength(4);
 
     const uris = definitions.map((d) => d.uri);
-    expect(uris).toContain("openplane://connectors");
-    expect(uris).toContain("openplane://documents/recent");
-    expect(uris).toContain("openplane://team/profile");
-    expect(uris).toContain("openplane://user/context");
+    expect(uris).toContain("openbeam://connectors");
+    expect(uris).toContain("openbeam://documents/recent");
+    expect(uris).toContain("openbeam://team/profile");
+    expect(uris).toContain("openbeam://user/context");
   });
 });
 
@@ -471,8 +471,8 @@ describe("getDefaultResourceTemplates", () => {
     expect(templates).toHaveLength(2);
 
     const uriTemplates = templates.map((t) => t.uriTemplate);
-    expect(uriTemplates).toContain("openplane://documents/{documentId}");
-    expect(uriTemplates).toContain("openplane://search/{queryId}");
+    expect(uriTemplates).toContain("openbeam://documents/{documentId}");
+    expect(uriTemplates).toContain("openbeam://search/{queryId}");
   });
 });
 

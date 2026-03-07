@@ -7,7 +7,7 @@ import type {
   QueryBatchMode,
   QueryOutputFormat,
   QueryParameter,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { forwardRef, memo, useCallback, useMemo } from "react";
 import { AnimatedSizeContainer } from "../../../animated-size-container";
 import { Icons } from "../../../icons";

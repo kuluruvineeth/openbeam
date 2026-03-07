@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@openplane/ui";
+import { Button } from "@openbeam/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";

@@ -1,5 +1,5 @@
-import type { Database } from "@openplane/db";
-import { getSyncCursor, upsertSyncCursor } from "@openplane/db";
+import type { Database } from "@openbeam/db";
+import { getSyncCursor, upsertSyncCursor } from "@openbeam/db";
 import type { GetSyncCursorResult } from "./types";
 
 export const DEFAULT_SYNC_RESOURCE = "messages";

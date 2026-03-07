@@ -2,7 +2,7 @@ import type { RouteHandler } from "@hono/zod-openapi";
 import {
   ExtensionServiceError,
   submitExtensionChatForTeam,
-} from "@openplane/services/extension-api";
+} from "@openbeam/services/extension-api";
 import type { AuthEnv } from "@/middleware/auth";
 import { getTeamId } from "@/middleware/auth";
 import type { submitExtensionChatRoute } from "./extensions.routes";

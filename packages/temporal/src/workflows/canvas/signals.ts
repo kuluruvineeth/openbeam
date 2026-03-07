@@ -1,10 +1,10 @@
-import type { ExecutionPlan, ExecutionTrace } from "@openplane/types/canvas";
+import type { ExecutionPlan, ExecutionTrace } from "@openbeam/types/canvas";
 import {
   type CanvasApprovalSignalPayload,
   CanvasApprovalSignalPayloadSchema,
   type CanvasInputSignalPayload,
   CanvasInputSignalPayloadSchema,
-} from "@openplane/types/temporal";
+} from "@openbeam/types/temporal";
 import { patched, setHandler } from "@temporalio/workflow";
 import { SAFETY_CEILINGS } from "../../config/constants";
 import {

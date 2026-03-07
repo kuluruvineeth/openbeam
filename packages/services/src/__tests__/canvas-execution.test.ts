@@ -13,7 +13,7 @@ import type {
   ExtractionResult,
   RagExecutionResult,
   SummarizeExecutionResult,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 
 setDefaultTimeout(30_000);
 
@@ -286,7 +286,7 @@ const toolRegistryMock = {
 
 const rerankMock = mock(() => Promise.resolve(null));
 
-mock.module("@openplane/ai", () => ({
+mock.module("@openbeam/ai", () => ({
   CompletionService: MockCompletionService,
   EmbeddingService: MockEmbeddingService,
   composeAgents: (name: string, agents: unknown[]) => ({
@@ -357,7 +357,7 @@ mock.module("@openplane/ai", () => ({
   embedQueryWithCache: mock(() => Promise.resolve([])),
 }));
 
-mock.module("@openplane/ai/agents", () => ({
+mock.module("@openbeam/ai/agents", () => ({
   researchAgentConfig: { type: "llm", name: "research" },
   deepResearchAgentConfig: {
     type: "loop",
@@ -393,11 +393,11 @@ mock.module("ai", () => ({
   generateImage: generateImageMock,
 }));
 
-mock.module("@openplane/integrations/connector-actions", () => ({
+mock.module("@openbeam/integrations/connector-actions", () => ({
   ALL_CONNECTOR_ACTION_REGISTRIES: [connectorRegistry],
 }));
 
-mock.module("@openplane/db", () => ({
+mock.module("@openbeam/db", () => ({
   __esModule: true,
   default: {},
   AppType: {
@@ -448,7 +448,7 @@ mock.module("@openplane/db", () => ({
     }),
 }));
 
-mock.module("@openplane/redis", () => {
+mock.module("@openbeam/redis", () => {
   const cacheStub = {
     get: () => Promise.resolve(null),
     set: () => Promise.resolve(),
@@ -872,8 +872,8 @@ describe("executeCanvasNode", () => {
   });
 
   it("executes database query node", async () => {
-    const previous = process.env.OPENPLANE_CANVAS_DB_CONNECTIONS;
-    process.env.OPENPLANE_CANVAS_DB_CONNECTIONS = JSON.stringify({
+    const previous = process.env.OPENBEAM_CANVAS_DB_CONNECTIONS;
+    process.env.OPENBEAM_CANVAS_DB_CONNECTIONS = JSON.stringify({
       primary: {
         url: "postgres://user:pass@localhost:5432/app",
         engine: "postgresql",
@@ -925,13 +925,13 @@ describe("executeCanvasNode", () => {
       expect(selectCall?.[0]).toBe("SELECT * FROM users WHERE id = $1");
       expect(selectCall?.[1]).toEqual([42]);
     } finally {
-      restoreEnv("OPENPLANE_CANVAS_DB_CONNECTIONS", previous);
+      restoreEnv("OPENBEAM_CANVAS_DB_CONNECTIONS", previous);
     }
   });
 
   it("rejects write query when read only", async () => {
-    const previous = process.env.OPENPLANE_CANVAS_DB_CONNECTIONS;
-    process.env.OPENPLANE_CANVAS_DB_CONNECTIONS = JSON.stringify({
+    const previous = process.env.OPENBEAM_CANVAS_DB_CONNECTIONS;
+    process.env.OPENBEAM_CANVAS_DB_CONNECTIONS = JSON.stringify({
       primary: {
         url: "postgres://user:pass@localhost:5432/app",
         engine: "postgresql",
@@ -969,7 +969,7 @@ describe("executeCanvasNode", () => {
         })
       ).rejects.toThrow("Read-only");
     } finally {
-      restoreEnv("OPENPLANE_CANVAS_DB_CONNECTIONS", previous);
+      restoreEnv("OPENBEAM_CANVAS_DB_CONNECTIONS", previous);
     }
   });
 
@@ -1596,7 +1596,7 @@ describe("executeCanvasNode", () => {
 
     const result = await executeCanvasNode({
       node,
-      input: { topic: "OpenPlane" },
+      input: { topic: "OpenBeam" },
     });
 
     expect(result).toBe("agent reply");
@@ -1633,7 +1633,7 @@ describe("executeCanvasNode", () => {
     completeMock.mockImplementationOnce(() =>
       Promise.resolve({
         content:
-          '{"summary":"Summary text","key_points":["Point A"],"action_items":[{"task":"Do X"}],"entities":[{"text":"OpenPlane","type":"org","count":1}]}',
+          '{"summary":"Summary text","key_points":["Point A"],"action_items":[{"task":"Do X"}],"entities":[{"text":"OpenBeam","type":"org","count":1}]}',
         role: "assistant",
         finishReason: "stop",
         usage: { inputTokens: 5, outputTokens: 7, totalTokens: 12 },

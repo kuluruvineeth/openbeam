@@ -11,7 +11,7 @@ set -euo pipefail
 #   scripts/deploy/sync-configs.sh 89.167.109.172
 
 SERVER="${1:?Usage: sync-configs.sh <SERVER_IP>}"
-DATA_DIR="/mnt/openplane-data"
+DATA_DIR="/mnt/openbeam-data"
 SSH="ssh -o StrictHostKeyChecking=accept-new root@$SERVER"
 SCP="scp -o StrictHostKeyChecking=accept-new"
 
@@ -47,4 +47,4 @@ $SCP -r packages/vespa/application "root@$SERVER:$DATA_DIR/configs/vespa-applica
 
 log "Config sync complete."
 log "Restart affected containers if needed:"
-log "  ssh root@$SERVER 'docker restart openplane-prometheus openplane-grafana openplane-loki openplane-promtail'"
+log "  ssh root@$SERVER 'docker restart openbeam-prometheus openbeam-grafana openbeam-loki openbeam-promtail'"

@@ -1,4 +1,4 @@
-import type { WorkspaceExportConfig } from "@openplane/types/services/workspace";
+import type { WorkspaceExportConfig } from "@openbeam/types/services/workspace";
 import type { WorkspaceDuckDB } from "./client";
 import { WorkspaceDuckDBError } from "./client";
 import {

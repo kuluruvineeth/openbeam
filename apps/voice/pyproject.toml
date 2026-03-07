@@ -1,7 +1,7 @@
 [project]
-name = "openplane-voice"
+name = "openbeam-voice"
 version = "0.1.0"
-description = "OpenPlane Voice Agents — LiveKit-based dictation and action agents"
+description = "OpenBeam Voice Agents — LiveKit-based dictation and action agents"
 requires-python = ">=3.12,<3.14"
 license = "MIT"
 

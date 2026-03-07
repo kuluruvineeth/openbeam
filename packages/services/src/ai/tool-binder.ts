@@ -21,12 +21,12 @@ import type {
   UnifiedSearchParams,
   UnifiedSearchResponse,
   VirtualFileInfo,
-} from "@openplane/ai";
-import { CompletionService } from "@openplane/ai";
+} from "@openbeam/ai";
+import { CompletionService } from "@openbeam/ai";
 import {
   type AnalyticsService,
   createAnalyticsService,
-} from "@openplane/analytics";
+} from "@openbeam/analytics";
 import prisma, {
   countConnectorSyncHistoryEntries,
   createSavedSearch,
@@ -39,9 +39,9 @@ import prisma, {
   triggerSync,
   updateConnector,
   upsertUserProfilePreferences,
-} from "@openplane/db";
-import { appStore } from "@openplane/integrations";
-import { escapeYqlString, vespaClient } from "@openplane/vespa";
+} from "@openbeam/db";
+import { appStore } from "@openbeam/integrations";
+import { escapeYqlString, vespaClient } from "@openbeam/vespa";
 import { mediaAIService } from "../media/service";
 import { searchService } from "../search";
 import { getStorageProvider } from "../storage";
@@ -837,7 +837,7 @@ Cite sources using [n] notation where n is the document number.`;
         const limit = params.limit || 20;
         const offset = params.offset || 0;
 
-        const yql = `select id, title, url, connector_type, document_type, author_name, source_name, created_at, updated_at, team_id from openplane_document where ${conditions.join(" and ")} order by ${sortField} ${sortOrder} limit ${limit} offset ${offset}`;
+        const yql = `select id, title, url, connector_type, document_type, author_name, source_name, created_at, updated_at, team_id from openbeam_document where ${conditions.join(" and ")} order by ${sortField} ${sortOrder} limit ${limit} offset ${offset}`;
 
         const result = await vespaClient.query({
           yql,
@@ -1145,7 +1145,7 @@ Cite sources using [n] notation where n is the document number.`;
       async getCapabilities(teamId: string) {
         const connectors = await listConnectorsByTeam(prisma, teamId);
 
-        const totalCountYql = `select id from openplane_document where team_id contains "${escapeYqlString(teamId)}" limit 0`;
+        const totalCountYql = `select id from openbeam_document where team_id contains "${escapeYqlString(teamId)}" limit 0`;
         const totalCountResult = await vespaClient.query({
           yql: totalCountYql,
           hits: 0,
@@ -1155,7 +1155,7 @@ Cite sources using [n] notation where n is the document number.`;
 
         const connectorCounts = await Promise.all(
           connectors.map(async (c) => {
-            const countYql = `select id from openplane_document where connector_id contains "${escapeYqlString(c.id)}" limit 0`;
+            const countYql = `select id from openbeam_document where connector_id contains "${escapeYqlString(c.id)}" limit 0`;
             const result = await vespaClient.query({ yql: countYql, hits: 0 });
             return {
               connectorId: c.id,

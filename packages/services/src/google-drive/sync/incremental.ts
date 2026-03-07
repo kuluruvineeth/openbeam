@@ -4,8 +4,8 @@ import type {
   GoogleDriveSyncCursor,
   GoogleDriveSyncOptions,
   GoogleDriveTransformContext,
-} from "@openplane/types/services/connectors/google-drive";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/google-drive";
+import type { GenericDocument } from "@openbeam/vespa";
 import type { ConnectorFileInfo } from "../../files/types";
 import type { GoogleDriveClient } from "../client";
 import { GoogleDriveApiError, GoogleDriveErrorCodes } from "../types";

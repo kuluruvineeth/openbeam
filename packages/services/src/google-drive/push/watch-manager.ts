@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { getRedisClient } from "@openplane/redis";
+import { getRedisClient } from "@openbeam/redis";
 import { logger } from "../../lib/logger";
 import { getStartPageToken } from "../api/changes";
 import {

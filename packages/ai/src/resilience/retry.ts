@@ -1,4 +1,4 @@
-import type { ClassifiedError, RetryConfig } from "@openplane/types/ai";
+import type { ClassifiedError, RetryConfig } from "@openbeam/types/ai";
 import { classifyError } from "./errors";
 import { DEFAULT_RETRY_CONFIG } from "./types";
 

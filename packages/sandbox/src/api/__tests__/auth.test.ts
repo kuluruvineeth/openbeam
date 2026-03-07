@@ -68,7 +68,7 @@ describe("sandbox auth middleware", () => {
     const response = await app.request("http://localhost/secure", {
       headers: {
         authorization: "Bearer secret-token",
-        "x-openplane-team-id": "team-enterprise",
+        "x-openbeam-team-id": "team-enterprise",
       },
     });
 

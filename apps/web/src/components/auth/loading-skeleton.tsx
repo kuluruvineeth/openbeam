@@ -1,4 +1,4 @@
-import { Skeleton } from "@openplane/ui";
+import { Skeleton } from "@openbeam/ui";
 
 export function AuthLayoutSkeleton() {
   return (

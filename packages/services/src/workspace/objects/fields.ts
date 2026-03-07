@@ -1,8 +1,8 @@
 import type {
   FieldType,
   WorkspaceFieldDefinition,
-} from "@openplane/types/services/workspace";
-import { FIELD_TYPES } from "@openplane/types/services/workspace";
+} from "@openbeam/types/services/workspace";
+import { FIELD_TYPES } from "@openbeam/types/services/workspace";
 import type { WorkspaceDuckDB } from "../duckdb/client";
 import { WorkspaceDuckDBError } from "../duckdb/client";
 import { escapeSqlValue } from "../duckdb/query";

@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import {
   type GitHubWebhookPayload,
   GitHubWebhookPayloadSchema,
-} from "@openplane/types/services/connectors/github";
+} from "@openbeam/types/services/connectors/github";
 import { logger } from "../../lib/logger";
 
 export interface GitHubWebhookRequest {

@@ -14,7 +14,7 @@ export const slackApp: UnifiedApp = {
   logo: AppType.SLACK,
   short_description: "Search across messages, channels, and users.",
   description:
-    "Connect your Slack workspace to enable AI-powered search across all your team's conversations, files, and knowledge. OpenPlane indexes your data securely and respects all privacy controls you configure.",
+    "Connect your Slack workspace to enable AI-powered search across all your team's conversations, files, and knowledge. OpenBeam indexes your data securely and respects all privacy controls you configure.",
   images: [],
   installed: false,
   type: "official",
@@ -162,7 +162,7 @@ export const slackApp: UnifiedApp = {
       id: "index_private_channels",
       label: "Index Private Channels",
       description:
-        "Allow OpenPlane to index messages in private channels where the OpenPlane bot is added.",
+        "Allow OpenBeam to index messages in private channels where the OpenBeam bot is added.",
       type: "switch",
       required: false,
       value: false,
@@ -171,7 +171,7 @@ export const slackApp: UnifiedApp = {
       id: "index_dms",
       label: "Index Direct Messages",
       description:
-        "Allow indexing of Direct Messages (DMs) where the OpenPlane bot is added. Users must explicitly invite the bot.",
+        "Allow indexing of Direct Messages (DMs) where the OpenBeam bot is added. Users must explicitly invite the bot.",
       type: "switch",
       required: false,
       value: false,
@@ -180,16 +180,16 @@ export const slackApp: UnifiedApp = {
       id: "index_group_dms",
       label: "Index Group Direct Messages",
       description:
-        "Allow indexing of Group DMs (multi-person direct messages) where the OpenPlane bot is added.",
+        "Allow indexing of Group DMs (multi-person direct messages) where the OpenBeam bot is added.",
       type: "switch",
       required: false,
       value: false,
     },
     {
       id: "bot_enabled",
-      label: "Enable OpenPlane Bot",
+      label: "Enable OpenBeam Bot",
       description:
-        "Allow the OpenPlane bot to respond to questions directly in Slack channels.",
+        "Allow the OpenBeam bot to respond to questions directly in Slack channels.",
       type: "switch",
       required: false,
       value: true,
@@ -208,7 +208,7 @@ export const slackApp: UnifiedApp = {
       id: "sync_mode",
       label: "Sync Strategy",
       description:
-        "Choose how OpenPlane accesses data. 'Real-time' uses events (faster). 'Federated' uses Slack Search API (no storage, slower).",
+        "Choose how OpenBeam accesses data. 'Real-time' uses events (faster). 'Federated' uses Slack Search API (no storage, slower).",
       type: "select",
       required: true,
       value: "realtime",

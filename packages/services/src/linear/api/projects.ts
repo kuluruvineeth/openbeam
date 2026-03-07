@@ -3,7 +3,7 @@ import {
   type LinearPageInfo,
   type LinearProject,
   LinearProjectSchema,
-} from "@openplane/types/services/connectors/linear";
+} from "@openbeam/types/services/connectors/linear";
 import type { LinearClient } from "../client";
 
 const PROJECT_FRAGMENT = `

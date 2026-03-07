@@ -1,6 +1,6 @@
 "use client";
 
-import type { HttpBodyType } from "@openplane/types/canvas";
+import type { HttpBodyType } from "@openbeam/types/canvas";
 import { forwardRef, memo, useCallback } from "react";
 import { ToggleGroup, ToggleGroupItem } from "../../toggle-group";
 

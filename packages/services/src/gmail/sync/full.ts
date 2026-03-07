@@ -5,8 +5,8 @@ import type {
   GmailSyncCursor,
   GmailThread,
   GmailTransformContext,
-} from "@openplane/types/services/connectors/gmail";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/gmail";
+import type { GenericDocument } from "@openbeam/vespa";
 import { logger } from "../../lib/logger";
 import { extractAllAttachments, extractAllMedia } from "../api/attachments";
 import { buildLabelQuery, type LabelLookup } from "../api/labels";

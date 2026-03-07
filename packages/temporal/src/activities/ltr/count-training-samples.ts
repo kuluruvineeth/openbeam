@@ -1,4 +1,4 @@
-import db, { countTrainingSamples as countSamples } from "@openplane/db";
+import db, { countTrainingSamples as countSamples } from "@openbeam/db";
 import type {
   CountTrainingSamplesInput,
   CountTrainingSamplesOutput,

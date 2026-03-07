@@ -1,12 +1,12 @@
 import type {
   ExtensionActionExecution,
   ExtensionActionProposal,
-} from "@openplane/types/services/extension/actions";
+} from "@openbeam/types/services/extension/actions";
 import {
   ExtensionInboundMessageSchema,
   ExtensionOutboundMessageSchema,
   type ExtensionRuntimeMessage,
-} from "@openplane/types/services/extension/messages";
+} from "@openbeam/types/services/extension/messages";
 import { useReducer } from "react";
 import { browser } from "wxt/browser";
 import {
@@ -232,9 +232,7 @@ export function App() {
         minHeight: "100vh",
       }}
     >
-      <h1 style={{ margin: 0, fontSize: "16px", fontWeight: 600 }}>
-        OpenPlane
-      </h1>
+      <h1 style={{ margin: 0, fontSize: "16px", fontWeight: 600 }}>OpenBeam</h1>
       <p style={{ margin: "6px 0 12px", fontSize: "12px", color: "#4b5563" }}>
         {state.status}
       </p>
@@ -259,7 +257,7 @@ export function App() {
           onChange={(event) =>
             dispatch({ type: "set_prompt", prompt: event.target.value })
           }
-          placeholder="Ask OpenPlane to inspect this page..."
+          placeholder="Ask OpenBeam to inspect this page..."
           style={{
             width: "100%",
             minHeight: "84px",

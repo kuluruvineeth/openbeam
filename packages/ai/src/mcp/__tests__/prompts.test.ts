@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "bun:test";
-import type { MCPServerContext } from "@openplane/types/ai";
+import type { MCPServerContext } from "@openbeam/types/ai";
 import {
   buildAnalysisPromptMessages,
   buildAnswerPromptMessages,

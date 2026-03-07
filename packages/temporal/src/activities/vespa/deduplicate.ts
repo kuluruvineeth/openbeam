@@ -1,4 +1,4 @@
-import type { GenericDocument } from "@openplane/vespa";
+import type { GenericDocument } from "@openbeam/vespa";
 import type { DeduplicateInput } from "./types";
 
 export function createDeduplicateActivity() {

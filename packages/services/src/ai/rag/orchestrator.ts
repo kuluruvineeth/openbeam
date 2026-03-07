@@ -1,8 +1,8 @@
-import { type ChatMessage, streamCompletion } from "@openplane/ai";
-import type { Database } from "@openplane/db";
-import { createRAGInteraction } from "@openplane/db";
-import { getRAGCache, hashQuery } from "@openplane/redis";
-import type { GenericDocument } from "@openplane/vespa";
+import { type ChatMessage, streamCompletion } from "@openbeam/ai";
+import type { Database } from "@openbeam/db";
+import { createRAGInteraction } from "@openbeam/db";
+import { getRAGCache, hashQuery } from "@openbeam/redis";
+import type { GenericDocument } from "@openbeam/vespa";
 import { logger } from "../../lib/logger";
 import { searchService } from "../../search/service";
 import {

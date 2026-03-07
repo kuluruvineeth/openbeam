@@ -30,7 +30,7 @@ describe("createLogger", () => {
   it("binds request context fields", () => {
     const { destination, lines } = createBufferingDestination();
     const logger = createLogger({
-      service: "openplane-observability-test",
+      service: "openbeam-observability-test",
       env: "production",
       version: "test",
       level: "info",
@@ -54,7 +54,7 @@ describe("createLogger", () => {
 
     const log = parseLastLog(lines);
 
-    expect(log.service).toBe("openplane-observability-test");
+    expect(log.service).toBe("openbeam-observability-test");
     expect(log.request_id).toBe("req-logger-1");
     expect(log.route).toBe("/api/v1/test");
     expect(log.status_code).toBe(200);
@@ -63,7 +63,7 @@ describe("createLogger", () => {
   it("redacts sensitive payload fields", () => {
     const { destination, lines } = createBufferingDestination();
     const logger = createLogger({
-      service: "openplane-observability-test",
+      service: "openbeam-observability-test",
       env: "production",
       version: "test",
       level: "info",
@@ -92,7 +92,7 @@ describe("createLogger", () => {
   it("applies context with withLogContext helper", () => {
     const { destination, lines } = createBufferingDestination();
     const logger = createLogger({
-      service: "openplane-observability-test",
+      service: "openbeam-observability-test",
       env: "production",
       version: "test",
       level: "info",

@@ -1,6 +1,6 @@
 "use client";
 
-import type { TimelineData } from "@openplane/types/canvas/timeline";
+import type { TimelineData } from "@openbeam/types/canvas/timeline";
 import { cva, type VariantProps } from "class-variance-authority";
 import { forwardRef, memo, useCallback } from "react";
 import {

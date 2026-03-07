@@ -1,12 +1,12 @@
 import {
   type ExtensionActionExecution,
   ExtensionActionExecutionSchema,
-} from "@openplane/types/services/extension/actions";
+} from "@openbeam/types/services/extension/actions";
 import {
   ExtensionInboundMessageSchema,
   type ExtensionOutboundMessage,
   ExtensionOutboundMessageSchema,
-} from "@openplane/types/services/extension/messages";
+} from "@openbeam/types/services/extension/messages";
 import { browser } from "wxt/browser";
 import { defineBackground } from "wxt/utils/define-background";
 import { submitExtensionChatRpc } from "../src/lib/server-client";
@@ -106,7 +106,7 @@ async function handleMessage(
         const messageText =
           error instanceof Error
             ? error.message
-            : "Failed to reach OpenPlane server";
+            : "Failed to reach OpenBeam server";
 
         return createErrorResponse(requestId, messageText, "internal_error");
       }

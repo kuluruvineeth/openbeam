@@ -1,5 +1,5 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
-import { createGoogleProvider, oauthManager } from "@openplane/auth";
+import { createGoogleProvider, oauthManager } from "@openbeam/auth";
 import {
   callbackHandler,
   sessionHandler,

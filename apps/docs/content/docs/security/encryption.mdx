@@ -5,7 +5,7 @@ description: AES-256-GCM encryption at rest for credentials, key management, coo
 
 # Encryption
 
-OpenPlane encrypts sensitive data at rest using AES-256-GCM and enforces TLS for data in transit. This page covers what gets encrypted, how keys are managed, and the security properties of each mechanism.
+OpenBeam encrypts sensitive data at rest using AES-256-GCM and enforces TLS for data in transit. This page covers what gets encrypted, how keys are managed, and the security properties of each mechanism.
 
 ## What Gets Encrypted
 
@@ -136,7 +136,7 @@ If the key is missing or malformed (not 64 hex characters), the server refuses t
 
 ### Key Rotation
 
-OpenPlane does not currently support automatic key rotation. To rotate the encryption key:
+OpenBeam does not currently support automatic key rotation. To rotate the encryption key:
 
 1. Take a database backup
 2. Write a migration script that decrypts all credentials with the old key and re-encrypts with the new key

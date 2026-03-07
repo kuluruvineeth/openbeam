@@ -1,4 +1,4 @@
-import { Skeleton } from "@openplane/ui/components/skeleton";
+import { Skeleton } from "@openbeam/ui/components/skeleton";
 
 export default function AgentLoading() {
   return (

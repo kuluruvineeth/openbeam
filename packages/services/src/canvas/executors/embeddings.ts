@@ -1,12 +1,12 @@
-import { EmbeddingService } from "@openplane/ai";
+import { EmbeddingService } from "@openbeam/ai";
 import {
   type Embedding,
   type EmbeddingModel,
   getEmbeddingModel,
   type ProviderId,
   ProviderIdSchema,
-} from "@openplane/types/ai";
-import { EmbeddingsNodeConfigSchema } from "@openplane/types/canvas";
+} from "@openbeam/types/ai";
+import { EmbeddingsNodeConfigSchema } from "@openbeam/types/canvas";
 import { CanvasNodeExecutionError } from "../errors";
 import { resolveNodeConfig } from "../node-config";
 import type { CanvasNodeExecutor } from "../types";

@@ -28,7 +28,7 @@ const { getConnectorForSyncMock, getDecryptedOAuthCredentialsMock } =
     getDecryptedOAuthCredentialsMock: vi.fn(),
   }));
 
-vi.mock("@openplane/db", () => ({
+vi.mock("@openbeam/db", () => ({
   getConnectorForSync: getConnectorForSyncMock,
   getDecryptedOAuthCredentials: getDecryptedOAuthCredentialsMock,
 }));

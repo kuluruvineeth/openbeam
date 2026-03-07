@@ -1,7 +1,7 @@
 "use client";
 
-import { formatDurationPrecise, Icons } from "@openplane/ui";
-import { cn } from "@openplane/ui/utils";
+import { formatDurationPrecise, Icons } from "@openbeam/ui";
+import { cn } from "@openbeam/ui/utils";
 import { AnimatePresence, motion } from "motion/react";
 import { forwardRef, useEffect, useState } from "react";
 

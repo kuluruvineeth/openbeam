@@ -1,6 +1,6 @@
 "use client";
 
-import type { NodeCategory } from "@openplane/types/canvas";
+import type { NodeCategory } from "@openbeam/types/canvas";
 import { MiniMap } from "@xyflow/react";
 import { memo, useCallback } from "react";
 import { cn } from "../../utils";

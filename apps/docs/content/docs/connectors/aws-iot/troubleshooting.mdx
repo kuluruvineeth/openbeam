@@ -28,7 +28,7 @@ description: Common AWS IoT Core connector issues and fixes.
   </Accordion>
 
   <Accordion title="Trust policy issues with assumed roles">
-    If using an IAM role (not user), the trust policy must allow the OpenPlane service to assume it.
+    If using an IAM role (not user), the trust policy must allow the OpenBeam service to assume it.
 
     **Fix:**
     - Use an IAM user with direct access keys for the simplest setup
@@ -44,7 +44,7 @@ description: Common AWS IoT Core connector issues and fixes.
 
     **Fix:**
     1. In the AWS Console, go to **IoT Core** and note which region is selected in the top navigation bar
-    2. In OpenPlane, verify the connector region matches exactly
+    2. In OpenBeam, verify the connector region matches exactly
     3. If your things span multiple regions, add a separate connector instance per region
 
     <Callout type="info">
@@ -71,7 +71,7 @@ description: Common AWS IoT Core connector issues and fixes.
     1. Verify the IAM policy includes `iot:GetThingShadow`
     2. Confirm **Sync Device Shadows** is enabled in connector settings
     3. Not all things have shadows -- only things with an active shadow document are indexed with shadow state
-    4. The data plane endpoint (`data-ats.iot.REGION.amazonaws.com`) must be reachable from the OpenPlane server
+    4. The data plane endpoint (`data-ats.iot.REGION.amazonaws.com`) must be reachable from the OpenBeam server
   </Accordion>
 
   <Accordion title="Shadow fetch timeouts">
@@ -120,11 +120,11 @@ aws iot-data get-thing-shadow --thing-name "my-device" \
 
 # Verify IAM permissions
 aws iam simulate-principal-policy \
-  --policy-source-arn arn:aws:iam::ACCOUNT:user/openplane-iot-readonly \
+  --policy-source-arn arn:aws:iam::ACCOUNT:user/openbeam-iot-readonly \
   --action-names iot:ListThings iot:GetThingShadow
 ```
 
-Still stuck? [Open an issue](https://github.com/kuluruvineeth/openplane/issues) with the connector status, AWS region, and error messages from the sync log.
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openbeam/issues) with the connector status, AWS region, and error messages from the sync log.
 
 <Cards>
   <Card title="Setup" href="/docs/connectors/aws-iot/setup" description="Reconnect or reconfigure the connector" />

@@ -1,6 +1,6 @@
 "use client";
 
-import type { ApprovalSeverity } from "@openplane/types/canvas";
+import type { ApprovalSeverity } from "@openbeam/types/canvas";
 import { memo, useCallback } from "react";
 import { cn } from "../../../utils";
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<query-profile id="enterprise-search" type="openplane">
+<query-profile id="enterprise-search" type="openbeam">
   <field name="maxHits">50</field>
   <field name="timeout">10.0</field>
   <field name="ranking.profile">enterprise_optimized</field>

@@ -1,5 +1,5 @@
-import type { InputNodeConfig } from "@openplane/types/canvas";
-import { InputNodeConfigSchema } from "@openplane/types/canvas";
+import type { InputNodeConfig } from "@openbeam/types/canvas";
+import { InputNodeConfigSchema } from "@openbeam/types/canvas";
 
 type ExecutionStepLike = {
   status: string;

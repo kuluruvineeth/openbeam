@@ -1,6 +1,6 @@
 "use client";
 
-import { Skeleton } from "@openplane/ui";
+import { Skeleton } from "@openbeam/ui";
 import type { InfiniteData } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useInView } from "react-intersection-observer";

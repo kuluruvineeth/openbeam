@@ -1,4 +1,4 @@
-import type { EdgeEmbeddingModel } from "@openplane/types/edge/ai";
+import type { EdgeEmbeddingModel } from "@openbeam/types/edge/ai";
 
 export class MockEmbeddingModel implements EdgeEmbeddingModel {
   private readonly _dimensions: number;

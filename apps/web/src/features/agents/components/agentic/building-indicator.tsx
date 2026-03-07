@@ -1,7 +1,7 @@
 "use client";
 
-import { Icons } from "@openplane/ui";
-import { cn } from "@openplane/ui/utils";
+import { Icons } from "@openbeam/ui";
+import { cn } from "@openbeam/ui/utils";
 
 interface BuildingIndicatorProps {
   pendingCount?: number;

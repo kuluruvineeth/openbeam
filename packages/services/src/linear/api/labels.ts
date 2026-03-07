@@ -1,4 +1,4 @@
-import type { LinearLabel } from "@openplane/types/services/connectors/linear";
+import type { LinearLabel } from "@openbeam/types/services/connectors/linear";
 import type { LinearClient } from "../client";
 
 const LABELS_QUERY = `

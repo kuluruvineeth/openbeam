@@ -20,7 +20,7 @@ export const viamApp: UnifiedApp = {
   installed: false,
   type: "official",
   connectorType: ConnectorType.SOURCE,
-  developerName: "OpenPlane",
+  developerName: "OpenBeam",
   website: "https://www.viam.com",
 
   searchDisplay: {

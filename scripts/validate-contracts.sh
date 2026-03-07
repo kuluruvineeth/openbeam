@@ -46,7 +46,7 @@ fi
 
 echo ""
 echo "[2/4] Checking CLI OpenAPI spec freshness..."
-CLI_SPEC="${ROOT_DIR}/apps/cli/internal/openapi/openplane.openapi.json"
+CLI_SPEC="${ROOT_DIR}/apps/cli/internal/openapi/openbeam.openapi.json"
 CLI_SPEC_SHA="${CLI_SPEC}.sha256"
 
 if [ -f "${CLI_SPEC}" ]; then
@@ -96,15 +96,15 @@ if (exp && exp.types) console.log(exp.types);
     fi
 }
 
-check_types_export "packages/types" "@openplane/types" "."
-check_types_export "packages/types" "@openplane/types" "./ai"
-check_types_export "packages/types" "@openplane/types" "./db"
-check_types_export "packages/types" "@openplane/types" "./services"
-check_types_export "packages/services" "@openplane/services" "./engine/generated"
-check_types_export "packages/ai" "@openplane/ai" "."
-check_types_export "packages/ai" "@openplane/ai" "./tools"
-check_types_export "packages/ai" "@openplane/ai" "./agents"
-check_types_export "packages/ai" "@openplane/ai" "./providers"
+check_types_export "packages/types" "@openbeam/types" "."
+check_types_export "packages/types" "@openbeam/types" "./ai"
+check_types_export "packages/types" "@openbeam/types" "./db"
+check_types_export "packages/types" "@openbeam/types" "./services"
+check_types_export "packages/services" "@openbeam/services" "./engine/generated"
+check_types_export "packages/ai" "@openbeam/ai" "."
+check_types_export "packages/ai" "@openbeam/ai" "./tools"
+check_types_export "packages/ai" "@openbeam/ai" "./agents"
+check_types_export "packages/ai" "@openbeam/ai" "./providers"
 
 if [ "${ERRORS}" -eq 0 ]; then
     echo "  OK: Package exports point to dist/ for types."
@@ -116,11 +116,11 @@ cd "${ROOT_DIR}"
 if command -v bun > /dev/null 2>&1; then
     CIRCULAR_OUTPUT=$(bun x madge --circular --extensions ts packages/types/src/index.ts 2>&1) || true
     if echo "${CIRCULAR_OUTPUT}" | grep -q "Found [1-9]"; then
-        echo "  FAIL: Circular dependencies detected in @openplane/types:"
+        echo "  FAIL: Circular dependencies detected in @openbeam/types:"
         echo "${CIRCULAR_OUTPUT}" | head -20
         ERRORS=$((ERRORS + 1))
     else
-        echo "  OK: No circular dependencies in @openplane/types."
+        echo "  OK: No circular dependencies in @openbeam/types."
     fi
 else
     echo "  WARN: bun not available, skipping circular dependency check."

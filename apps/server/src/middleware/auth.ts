@@ -2,8 +2,8 @@ import {
   createCookieConfig,
   getSessionFromHeaders,
   validateSession,
-} from "@openplane/auth";
-import prisma, { getUserById } from "@openplane/db";
+} from "@openbeam/auth";
+import prisma, { getUserById } from "@openbeam/db";
 import { createMiddleware } from "hono/factory";
 import type { AuthContext } from "../types/auth";
 import {

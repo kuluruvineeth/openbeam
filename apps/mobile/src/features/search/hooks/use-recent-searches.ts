@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useState } from "react";
 
-const STORAGE_KEY = "openplane:recent-searches";
+const STORAGE_KEY = "openbeam:recent-searches";
 const MAX_RECENT = 10;
 
 export function useRecentSearches() {

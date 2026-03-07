@@ -1,4 +1,4 @@
-import type { ExecutionPlanNode } from "@openplane/types/canvas";
+import type { ExecutionPlanNode } from "@openbeam/types/canvas";
 
 export const RETRY_FORBIDDEN_TARGET_TYPES = new Set([
   "start",

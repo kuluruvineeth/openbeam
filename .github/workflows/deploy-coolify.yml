@@ -22,7 +22,7 @@ concurrency:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_PREFIX: ghcr.io/kuluruvineeth/openplane
+  IMAGE_PREFIX: ghcr.io/kuluruvineeth/openbeam
 
 jobs:
   changes:
@@ -212,8 +212,8 @@ jobs:
           cache-to: type=gha,mode=max,scope=${{ matrix.service }}
           provenance: false
           build-args: |
-            NEXT_PUBLIC_SERVER_URL=${{ vars.NEXT_PUBLIC_SERVER_URL || 'https://api.openplane.tech' }}
-            NEXT_PUBLIC_WEB_URL=${{ vars.NEXT_PUBLIC_WEB_URL || 'https://app.openplane.tech' }}
+            NEXT_PUBLIC_SERVER_URL=${{ vars.NEXT_PUBLIC_SERVER_URL || 'https://api.openbeam.tech' }}
+            NEXT_PUBLIC_WEB_URL=${{ vars.NEXT_PUBLIC_WEB_URL || 'https://app.openbeam.tech' }}
             SERVER_INTERNAL_URL=http://server:3000
             HUGEICONS_PRO_AUTH_TOKEN=${{ secrets.HUGEICONS_PRO_AUTH_TOKEN }}
 
@@ -237,9 +237,9 @@ jobs:
           SERVICES="${{ join(fromJson(needs.changes.outputs.matrix).service, ' ') }}"
           echo "Pulling latest images for: $SERVICES"
           for svc in $SERVICES; do
-            echo "Pulling ghcr.io/kuluruvineeth/openplane-${svc}:latest..."
+            echo "Pulling ghcr.io/kuluruvineeth/openbeam-${svc}:latest..."
             ssh -o ServerAliveInterval=30 "root@$SERVER_IP" \
-              "docker pull ghcr.io/kuluruvineeth/openplane-${svc}:latest" || true
+              "docker pull ghcr.io/kuluruvineeth/openbeam-${svc}:latest" || true
           done
 
       - name: Trigger Coolify deploy
@@ -290,7 +290,7 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H "$SERVER_IP" >> ~/.ssh/known_hosts 2>/dev/null
 
-          DATA="/mnt/openplane-data"
+          DATA="/mnt/openbeam-data"
 
           scp monitoring/prometheus/*.yml "root@$SERVER_IP:$DATA/configs/prometheus/"
           scp monitoring/grafana/provisioning/datasources/datasource.yml "root@$SERVER_IP:$DATA/configs/grafana/provisioning/datasources/"
@@ -300,5 +300,5 @@ jobs:
           scp monitoring/promtail/promtail-config.yml "root@$SERVER_IP:$DATA/configs/promtail/"
           scp temporal/dynamicconfig/development.yaml "root@$SERVER_IP:$DATA/configs/temporal/dynamicconfig/"
 
-          ssh "root@$SERVER_IP" 'docker restart openplane-prometheus openplane-grafana openplane-loki openplane-promtail 2>/dev/null || true'
+          ssh "root@$SERVER_IP" 'docker restart openbeam-prometheus openbeam-grafana openbeam-loki openbeam-promtail 2>/dev/null || true'
           echo "Config sync complete"

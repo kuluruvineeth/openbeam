@@ -3,7 +3,7 @@ import {
   GitHubCommentSchema,
   type GitHubIssue,
   GitHubIssueSchema,
-} from "@openplane/types/services/connectors/github";
+} from "@openbeam/types/services/connectors/github";
 import type { GitHubClient } from "../client";
 
 export async function getRepoIssues(

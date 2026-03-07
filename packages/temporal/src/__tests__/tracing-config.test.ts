@@ -81,7 +81,7 @@ describe("loadTracingConfig", () => {
 
     const config = loadTracingConfig();
 
-    expect(config.serviceName).toBe("openplane-worker");
+    expect(config.serviceName).toBe("openbeam-worker");
     expect(config.serviceVersion).toBe("1.0.0");
     expect(config.environment).toBe("development");
     expect(config.otlpEndpoint).toBeUndefined();

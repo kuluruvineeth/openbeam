@@ -32,11 +32,9 @@ export function resolveSelectedAgentForNewAgent(input: {
   );
 }
 
-function inferMainRepoRootFromOpenPlaneWorktreePath(
-  cwd: string
-): string | null {
+function inferMainRepoRootFromOpenBeamWorktreePath(cwd: string): string | null {
   const normalizedPath = cwd.replace(/\\/g, "/");
-  const marker = "/.openplane/worktrees";
+  const marker = "/.openbeam/worktrees";
   const markerIndex = normalizedPath.indexOf(marker);
   if (markerIndex <= 0) {
     return null;
@@ -55,14 +53,14 @@ export function resolveNewAgentWorkingDir(
   cwd: string,
   checkout: CheckoutStatusPayload | null
 ): string {
-  const explicitMainRepoRoot = checkout?.isOpenPlaneOwnedWorktree
+  const explicitMainRepoRoot = checkout?.isOpenBeamOwnedWorktree
     ? checkout.mainRepoRoot?.trim() || null
     : null;
   if (explicitMainRepoRoot) {
     return explicitMainRepoRoot;
   }
 
-  return inferMainRepoRootFromOpenPlaneWorktreePath(cwd) ?? cwd;
+  return inferMainRepoRootFromOpenBeamWorktreePath(cwd) ?? cwd;
 }
 export function buildNewAgentRoute(
   serverId: string,

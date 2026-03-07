@@ -5,7 +5,7 @@ import type {
   TimelineFilter,
   TimelineSort,
   TimelineStep as TimelineStepType,
-} from "@openplane/types/canvas/timeline";
+} from "@openbeam/types/canvas/timeline";
 import { cva, type VariantProps } from "class-variance-authority";
 import { forwardRef, useMemo } from "react";
 import { cn } from "../../utils/cn";

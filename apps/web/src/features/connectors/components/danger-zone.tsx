@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
   Separator,
-} from "@openplane/ui";
+} from "@openbeam/ui";
 import { format } from "date-fns";
 import { SubmitButton } from "@/components/submit-button";
 import {

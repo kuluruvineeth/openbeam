@@ -1,6 +1,6 @@
 "use client";
 
-import { createLocalStorageAdapter } from "@openplane/ui";
+import { createLocalStorageAdapter } from "@openbeam/ui";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { DEFAULT_COLUMNS } from "../constants";
@@ -106,7 +106,7 @@ export const usePipelineStore = create<PipelineStore>()(
         }),
     }),
     {
-      name: "openplane-pipeline",
+      name: "openbeam-pipeline",
       storage: createJSONStorage(() => {
         const adapter = createLocalStorageAdapter();
         return {

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "bun:test";
-import type { SpatialAnnotation } from "@openplane/types/canvas";
+import type { SpatialAnnotation } from "@openbeam/types/canvas";
 import { useAnnotationStore } from "../annotation-store";
 
 function createAnnotation(

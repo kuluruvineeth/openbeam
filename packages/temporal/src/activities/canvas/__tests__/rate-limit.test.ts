@@ -6,7 +6,7 @@ const { mockCheckLimit, mockGetUsage } = vi.hoisted(() => ({
   mockGetUsage: vi.fn(() => Promise.resolve(50)),
 }));
 
-vi.mock("@openplane/redis", () => ({
+vi.mock("@openbeam/redis", () => ({
   rateLimiter: {
     checkLimit: mockCheckLimit,
     getUsage: mockGetUsage,

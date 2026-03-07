@@ -1,4 +1,4 @@
-import type { Database } from "@openplane/db";
+import type { Database } from "@openbeam/db";
 import {
   completeSyncHistory,
   failSyncHistory,
@@ -6,8 +6,8 @@ import {
   updateConnectorSyncError,
   updateConnectorSyncSuccess,
   upsertSyncCursor,
-} from "@openplane/db";
-import { publishJobProgress } from "@openplane/redis";
+} from "@openbeam/db";
+import { publishJobProgress } from "@openbeam/redis";
 import { ApplicationFailure } from "@temporalio/common";
 import type { CompleteSyncJobInput } from "./types";
 

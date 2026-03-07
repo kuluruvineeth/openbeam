@@ -5,7 +5,7 @@ description: Google Drive OAuth scopes and permissions.
 
 # OAuth Scopes
 
-OpenPlane requests four scopes during the Google Drive OAuth flow. All scopes are read-only. No write, delete, or share permissions are requested.
+OpenBeam requests four scopes during the Google Drive OAuth flow. All scopes are read-only. No write, delete, or share permissions are requested.
 
 ## Required Scopes
 
@@ -28,7 +28,7 @@ Grants read access to all files the authenticating user can access:
 - Video and audio files (transcribed via TwelveLabs if enabled)
 - Files in My Drive, Shared with Me, and Shared Drives
 
-This is the primary scope. Without it, OpenPlane cannot read file content for indexing.
+This is the primary scope. Without it, OpenBeam cannot read file content for indexing.
 
 ### `drive.metadata.readonly`
 
@@ -41,7 +41,7 @@ Reads file metadata independently of content:
 - Shared Drive membership
 
 <Callout type="info">
-  The `drive.metadata.readonly` scope enables permission-aware search. OpenPlane indexes file permissions so search results respect the querying user's access level.
+  The `drive.metadata.readonly` scope enables permission-aware search. OpenBeam indexes file permissions so search results respect the querying user's access level.
 </Callout>
 
 ### `userinfo.email`
@@ -53,7 +53,7 @@ Fetches the authenticated user's primary email address. Used for:
 
 ### `userinfo.profile`
 
-Fetches the user's display name and profile picture. Used to show who connected the integration in the OpenPlane settings UI.
+Fetches the user's display name and profile picture. Used to show who connected the integration in the OpenBeam settings UI.
 
 ## Add Scopes
 
@@ -82,16 +82,16 @@ Fill in the required fields:
 
 | Field | Value |
 |-------|-------|
-| App name | Your organization name or "OpenPlane" |
+| App name | Your organization name or "OpenBeam" |
 | User support email | Your support email address |
 | App logo | Optional |
-| App home page | Your OpenPlane instance URL |
+| App home page | Your OpenBeam instance URL |
 | Privacy policy | Required for External apps |
 | Terms of service | Required for External apps |
 
 ### 3. Authorized Domains
 
-Add your OpenPlane instance domain (e.g., `your-domain.com`). This must match the domain in your redirect URI.
+Add your OpenBeam instance domain (e.g., `your-domain.com`). This must match the domain in your redirect URI.
 
 ## Google Verification
 
@@ -159,10 +159,10 @@ Google Drive OAuth tokens follow the standard Google token lifecycle:
 
 - Access tokens expire after 1 hour
 - Refresh tokens are issued on first authorization (when `access_type=offline` is set)
-- OpenPlane handles token refresh automatically via `refreshGoogleDriveToken`
+- OpenBeam handles token refresh automatically via `refreshGoogleDriveToken`
 - Refresh tokens can be revoked by the user in [Google Account permissions](https://myaccount.google.com/permissions)
 
 <Cards>
-  <Card title="Setup" href="/docs/connectors/google-drive/setup" description="Connect Google Drive to OpenPlane" />
+  <Card title="Setup" href="/docs/connectors/google-drive/setup" description="Connect Google Drive to OpenBeam" />
   <Card title="Configuration" href="/docs/connectors/google-drive/configuration" description="Content, sync, and authentication settings" />
 </Cards>

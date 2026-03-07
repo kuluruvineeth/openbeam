@@ -1,7 +1,7 @@
 import type {
   FhirResource,
   HipaaSafeHarborIdentifier,
-} from "@openplane/types/services/connectors/fhir";
+} from "@openbeam/types/services/connectors/fhir";
 
 export interface DeidentificationResult {
   deidentified: Record<string, unknown>;

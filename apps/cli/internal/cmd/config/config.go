@@ -7,10 +7,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/openplane/openplane/apps/cli/internal/api"
-	"github.com/openplane/openplane/apps/cli/internal/cmd/shared"
-	"github.com/openplane/openplane/apps/cli/internal/errs"
-	"github.com/openplane/openplane/apps/cli/internal/output"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/api"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/shared"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/errs"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/output"
 )
 
 func NewCommand(provider shared.RuntimeProvider) *cobra.Command {

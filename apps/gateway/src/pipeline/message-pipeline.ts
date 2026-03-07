@@ -2,9 +2,9 @@ import type {
   AggregationConfig,
   IndustrialTransformContext,
   TimeSeriesWindow,
-} from "@openplane/types/services/connectors/common/industrial";
-import type { InternalMessage } from "@openplane/types/services/connectors/mqtt";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/common/industrial";
+import type { InternalMessage } from "@openbeam/types/services/connectors/mqtt";
+import type { GenericDocument } from "@openbeam/vespa";
 import logger from "../logger";
 import { MessageAggregator } from "./aggregator";
 import { DocumentBatcher } from "./batcher";

@@ -3,7 +3,7 @@ import type {
   AgentCanvasNode,
   NodeStatus,
   RuntimeEvent,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 
 const DEFAULT_POSITION = { x: 0, y: 0 };
 

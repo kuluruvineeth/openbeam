@@ -1,6 +1,6 @@
 import { Database } from "bun:sqlite";
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import type { SyncEvent } from "@openplane/types/edge/sync";
+import type { SyncEvent } from "@openbeam/types/edge/sync";
 import { SyncEventProcessor } from "../event-processor";
 
 function createSyncEvent(overrides: Partial<SyncEvent> = {}): SyncEvent {

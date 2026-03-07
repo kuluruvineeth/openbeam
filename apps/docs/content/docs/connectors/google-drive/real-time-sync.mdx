@@ -14,10 +14,10 @@ Google Drive supports push notifications via webhooks. When files change, Google
 
 ```mermaid
 sequenceDiagram
-    participant Worker as OpenPlane Worker
+    participant Worker as OpenBeam Worker
     participant Redis as Redis
     participant Google as Google Drive API
-    participant Server as OpenPlane Server
+    participant Server as OpenBeam Server
 
     Note over Worker,Google: 1. Watch Setup (during sync)
     Worker->>Redis: Check existing watch state
@@ -146,7 +146,7 @@ Each key has a TTL of 8 days (slightly longer than Google's 7-day watch expirati
 sequenceDiagram
     participant Gmail as Gmail API
     participant PubSub as Cloud Pub/Sub
-    participant Server as OpenPlane Server
+    participant Server as OpenBeam Server
     participant Redis as Redis
 
     Gmail->>PubSub: Publish notification
@@ -160,7 +160,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant Drive as Drive API
-    participant Server as OpenPlane Server
+    participant Server as OpenBeam Server
     participant Redis as Redis
 
     Drive->>Server: POST /webhooks/google-drive/push

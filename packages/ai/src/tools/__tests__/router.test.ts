@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
-import type { ToolMetadata } from "@openplane/types/ai";
+import type { ToolMetadata } from "@openbeam/types/ai";
 
 import { createCompositionTracker } from "../../observability/composition";
 import { toolRegistry } from "../registry";

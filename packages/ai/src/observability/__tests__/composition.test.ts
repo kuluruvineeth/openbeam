@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
 
-mock.module("@openplane/db", () => ({
+mock.module("@openbeam/db", () => ({
   default: {},
   createCompositionEventWithPattern: mock(() =>
     Promise.resolve({ eventId: "evt_123", patternFrequency: 5 })

@@ -26,7 +26,7 @@ export function deriveBranchLabel(
 
 /**
  * Derives the project path to display for an agent.
- * If inside a OpenPlane worktree, shows just the worktree-relative path.
+ * If inside a OpenBeam worktree, shows just the worktree-relative path.
  * Otherwise uses the repo root or cwd.
  */
 export function deriveProjectPath(
@@ -34,7 +34,7 @@ export function deriveProjectPath(
   checkout: CheckoutStatusPayload | null
 ): string {
   const basePath = checkout?.isGit ? (checkout.repoRoot ?? cwd) : cwd;
-  const worktreeMarker = ".openplane/worktrees/";
+  const worktreeMarker = ".openbeam/worktrees/";
   const idx = basePath.indexOf(worktreeMarker);
   if (idx !== -1) {
     const afterMarker = basePath.slice(idx + worktreeMarker.length);

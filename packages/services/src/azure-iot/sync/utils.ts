@@ -1,8 +1,8 @@
 import type {
   AzureIotSyncBatch,
   AzureIotSyncCursor,
-} from "@openplane/types/services/connectors/azure-iot";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/azure-iot";
+import type { GenericDocument } from "@openbeam/vespa";
 
 export function createSyncBatch(
   items: GenericDocument[],

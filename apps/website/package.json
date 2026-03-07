@@ -1,5 +1,5 @@
 {
-  "name": "@openplane/website",
+  "name": "@openbeam/website",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,8 +11,8 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
-    "@openplane/integrations": "workspace:*",
-    "@openplane/ui": "workspace:*",
+    "@openbeam/integrations": "workspace:*",
+    "@openbeam/ui": "workspace:*",
     "clsx": "^2.1.1",
     "embla-carousel-react": "^8.6.0",
     "geist": "^1.3.1",

@@ -1,10 +1,10 @@
-import { type RateLimitConfig, rateLimiter } from "@openplane/redis";
+import { type RateLimitConfig, rateLimiter } from "@openbeam/redis";
 import {
   NOTION_API_BASE,
   NOTION_API_VERSION,
   type NotionClientConfig,
   type NotionRateLimitState,
-} from "@openplane/types/services/connectors/notion";
+} from "@openbeam/types/services/connectors/notion";
 import { logger } from "../lib/logger";
 import { getValidAccessToken } from "../lib/token-refresh";
 import { NotionApiError, NotionErrorCodes } from "./types";

@@ -7,14 +7,14 @@ export function baseOptions(): BaseLayoutProps {
       title: (
         <div className="flex items-center gap-2">
           <Image
-            alt="OpenPlane"
+            alt="OpenBeam"
             className="dark:hidden"
             height={24}
             src="/assets/logo.png"
             width={24}
           />
           <Image
-            alt="OpenPlane"
+            alt="OpenBeam"
             className="hidden dark:block"
             height={24}
             src="/assets/logo_dark.png"
@@ -26,7 +26,7 @@ export function baseOptions(): BaseLayoutProps {
               fontSize: "1.125rem",
             }}
           >
-            OpenPlane
+            OpenBeam
           </span>
         </div>
       ),
@@ -35,10 +35,10 @@ export function baseOptions(): BaseLayoutProps {
     links: [
       {
         text: "GitHub",
-        url: "https://github.com/kuluruvineeth/openplane",
+        url: "https://github.com/kuluruvineeth/openbeam",
         external: true,
       },
     ],
-    githubUrl: "https://github.com/kuluruvineeth/openplane",
+    githubUrl: "https://github.com/kuluruvineeth/openbeam",
   };
 }

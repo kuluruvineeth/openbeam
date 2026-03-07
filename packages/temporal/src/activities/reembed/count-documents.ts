@@ -1,5 +1,5 @@
-import type { GenericDocument } from "@openplane/vespa";
-import { escapeYqlString, vespaClient } from "@openplane/vespa";
+import type { GenericDocument } from "@openbeam/vespa";
+import { escapeYqlString, vespaClient } from "@openbeam/vespa";
 import type {
   CountDocumentsNeedingEmbeddingInput,
   CountDocumentsNeedingEmbeddingOutput,
@@ -12,9 +12,9 @@ export async function countDocumentsNeedingEmbedding(
 
   if (input.teamId) {
     const escapedTeamId = escapeYqlString(input.teamId);
-    yql = `select id from openplane_document where team_id contains "${escapedTeamId}" and !(embedding_version = 2)`;
+    yql = `select id from openbeam_document where team_id contains "${escapedTeamId}" and !(embedding_version = 2)`;
   } else {
-    yql = "select id from openplane_document where !(embedding_version = 2)";
+    yql = "select id from openbeam_document where !(embedding_version = 2)";
   }
 
   const result = await vespaClient.query<GenericDocument>({

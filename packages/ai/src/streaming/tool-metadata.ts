@@ -1,4 +1,4 @@
-import type { AgentStatus, ToolVisibility } from "@openplane/types/ai";
+import type { AgentStatus, ToolVisibility } from "@openbeam/types/ai";
 
 export interface ToolMetadata {
   displayName: string;

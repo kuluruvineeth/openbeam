@@ -1,8 +1,8 @@
 import type {
   NodeRedSyncBatch,
   NodeRedSyncCursor,
-} from "@openplane/types/services/connectors/nodered";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/nodered";
+import type { GenericDocument } from "@openbeam/vespa";
 
 export function createSyncBatch(
   items: GenericDocument[],

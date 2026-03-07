@@ -1,4 +1,4 @@
-import { Button, type ButtonProps, cn, Spinner } from "@openplane/ui";
+import { Button, type ButtonProps, cn, Spinner } from "@openbeam/ui";
 
 export function SubmitButton({
   children,

@@ -1,4 +1,4 @@
-import type { Database } from "@openplane/db";
+import type { Database } from "@openbeam/db";
 import type {
   AggregateMentionsInput,
   AggregateMentionsOutput,
@@ -12,8 +12,8 @@ import type {
   InferRelationshipsOutput,
   PersistInferenceInput,
   PersistInferenceOutput,
-} from "@openplane/types/temporal/activities/knowledge";
-import type { VespaClient } from "@openplane/vespa";
+} from "@openbeam/types/temporal/activities/knowledge";
+import type { VespaClient } from "@openbeam/vespa";
 import { createAggregateMentionsActivity } from "./aggregate-mentions";
 import { createCleanupKnowledgeChangesActivity } from "./cleanup";
 import { createComputeExpertiseActivity } from "./compute-expertise";

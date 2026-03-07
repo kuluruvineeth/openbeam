@@ -6,11 +6,11 @@ import {
   findVoiceNoteById,
   listVoiceNotes,
   type VoiceNote,
-} from "@openplane/db";
+} from "@openbeam/db";
 import type {
   CreateVoiceNoteInput,
   ListVoiceNotesInput,
-} from "@openplane/types/services/voice";
+} from "@openbeam/types/services/voice";
 
 export function createNote(
   db: Database,

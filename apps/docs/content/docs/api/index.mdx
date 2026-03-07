@@ -1,11 +1,11 @@
 ---
 title: API Reference
-description: Complete reference for OpenPlane's tRPC and REST APIs covering search, connectors, AI, and more.
+description: Complete reference for OpenBeam's tRPC and REST APIs covering search, connectors, AI, and more.
 ---
 
 # API Reference
 
-OpenPlane exposes two API layers. All data access is team-scoped and requires authentication.
+OpenBeam exposes two API layers. All data access is team-scoped and requires authentication.
 
 | Layer | Protocol | Use case |
 |-------|----------|----------|
@@ -17,7 +17,7 @@ OpenPlane exposes two API layers. All data access is team-scoped and requires au
 | Environment | URL |
 |-------------|-----|
 | Self-hosted | `http://localhost:3000` |
-| Cloud | `https://api.openplane.com` |
+| Cloud | `https://api.openbeam.com` |
 
 The tRPC endpoint is mounted at `/trpc` (e.g. `http://localhost:3000/trpc/search.query`). REST endpoints are mounted at their respective paths (e.g. `/search`, `/auth`).
 
@@ -25,7 +25,7 @@ The tRPC endpoint is mounted at `/trpc` (e.g. `http://localhost:3000/trpc/search
 
 Every request must include one of:
 
-- **Session cookie** -- `openplane-session` set during browser login
+- **Session cookie** -- `openbeam-session` set during browser login
 - **Bearer token** -- `Authorization: Bearer <session-token>` for session-based auth
 - **API key** -- `Authorization: Bearer op_live_...` for programmatic access
 

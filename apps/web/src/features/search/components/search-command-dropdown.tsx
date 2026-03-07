@@ -1,6 +1,6 @@
 "use client";
 
-import { Skeleton } from "@openplane/ui";
+import { Skeleton } from "@openbeam/ui";
 import { Command as CommandPrimitive } from "cmdk";
 import { Icons } from "@/components/icons";
 import type { UnifiedSearchItem } from "../types";

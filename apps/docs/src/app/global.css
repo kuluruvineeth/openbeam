@@ -22,11 +22,11 @@
   --color-fd-accent-foreground: oklch(20.5% 0 0);
   --color-fd-ring: oklch(70.8% 0 0);
 
-  --color-openplane-pink: oklch(75% 0.15 330);
-  --color-openplane-yellow: oklch(85% 0.14 85);
-  --color-openplane-blue: oklch(65% 0.18 250);
-  --color-openplane-orange: oklch(70% 0.16 45);
-  --color-openplane-green: oklch(72% 0.14 160);
+  --color-openbeam-pink: oklch(75% 0.15 330);
+  --color-openbeam-yellow: oklch(85% 0.14 85);
+  --color-openbeam-blue: oklch(65% 0.18 250);
+  --color-openbeam-orange: oklch(70% 0.16 45);
+  --color-openbeam-green: oklch(72% 0.14 160);
 
   --radius-sm: 0.125rem;
   --radius-md: 0.25rem;
@@ -51,11 +51,11 @@
   --color-fd-accent: oklch(26.9% 0 0);
   --color-fd-accent-foreground: oklch(98.5% 0 0);
 
-  --color-openplane-pink: oklch(80% 0.12 330);
-  --color-openplane-yellow: oklch(88% 0.12 85);
-  --color-openplane-blue: oklch(75% 0.14 250);
-  --color-openplane-orange: oklch(75% 0.14 45);
-  --color-openplane-green: oklch(78% 0.12 160);
+  --color-openbeam-pink: oklch(80% 0.12 330);
+  --color-openbeam-yellow: oklch(88% 0.12 85);
+  --color-openbeam-blue: oklch(75% 0.14 250);
+  --color-openbeam-orange: oklch(75% 0.14 45);
+  --color-openbeam-green: oklch(78% 0.12 160);
 }
 
 body {

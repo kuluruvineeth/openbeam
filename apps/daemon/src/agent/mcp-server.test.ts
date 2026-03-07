@@ -199,7 +199,7 @@ describe("create_agent MCP tool", () => {
 
   it("allows caller agents to override cwd and applies caller context labels", async () => {
     const { agentManager, agentStorage, spies } = createTestDeps();
-    const baseDir = await mkdtemp(join(tmpdir(), "openplane-mcp-test-"));
+    const baseDir = await mkdtemp(join(tmpdir(), "openbeam-mcp-test-"));
     const subdir = join(baseDir, "subdir");
     await mkdir(subdir, { recursive: true });
     spies.agentManager.getAgent.mockReturnValue({

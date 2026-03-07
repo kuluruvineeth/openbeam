@@ -1,7 +1,7 @@
-import type { RouterOutputs } from "@openplane/api/routers/index";
-import type { AgentCanvasNode } from "@openplane/types/canvas";
-import { Alert, AlertDescription, AlertTitle } from "@openplane/ui";
-import { Skeleton } from "@openplane/ui/components/skeleton";
+import type { RouterOutputs } from "@openbeam/api/routers/index";
+import type { AgentCanvasNode } from "@openbeam/types/canvas";
+import { Alert, AlertDescription, AlertTitle } from "@openbeam/ui";
+import { Skeleton } from "@openbeam/ui/components/skeleton";
 import { useMemo } from "react";
 import { ExecutionApprovalForm } from "../executions/execution-approval-form";
 import { resolveApprovalNodeConfig } from "../executions/execution-approval-utils";

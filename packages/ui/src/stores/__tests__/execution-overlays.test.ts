@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import type { ExecutionTrace, StepExecution } from "@openplane/types/canvas";
+import type { ExecutionTrace, StepExecution } from "@openbeam/types/canvas";
 import { deriveExecutionOverlays } from "../use-execution-overlays";
 
 function createExecution(

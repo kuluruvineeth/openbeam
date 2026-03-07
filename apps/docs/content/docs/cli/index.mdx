@@ -5,7 +5,7 @@ description: Full API access from your terminal. Search, sync, query AI — all 
 
 # CLI
 
-The `openplane` CLI is a statically-compiled Go binary that wraps the entire OpenPlane API. Search your indexed content, trigger syncs, run AI agents, manage connectors, and serve an MCP endpoint for AI tool integration — all without leaving the terminal.
+The `openbeam` CLI is a statically-compiled Go binary that wraps the entire OpenBeam API. Search your indexed content, trigger syncs, run AI agents, manage connectors, and serve an MCP endpoint for AI tool integration — all without leaving the terminal.
 
 Built with Cobra, Go 1.24, zero CGO dependencies. Ships as a single binary for every major platform.
 
@@ -14,13 +14,13 @@ Built with Cobra, Go 1.24, zero CGO dependencies. Ships as a single binary for e
 <Tabs items={["Go Install", "Binary Download", "Build from Source"]}>
   <Tab value="Go Install">
     ```bash
-    go install github.com/kuluruvineeth/openplane/apps/cli/cmd/openplane@latest
+    go install github.com/kuluruvineeth/openbeam/apps/cli/cmd/openbeam@latest
     ```
 
     Requires Go 1.24 or later.
   </Tab>
   <Tab value="Binary Download">
-    Download a pre-built binary from the [Releases](https://github.com/kuluruvineeth/openplane/releases) page.
+    Download a pre-built binary from the [Releases](https://github.com/kuluruvineeth/openbeam/releases) page.
 
     | OS | Architecture |
     |----|-------------|
@@ -30,22 +30,22 @@ Built with Cobra, Go 1.24, zero CGO dependencies. Ships as a single binary for e
 
     ```bash
     # macOS / Linux
-    tar -xzf openplane_darwin_arm64.tar.gz
-    chmod +x openplane
-    sudo mv openplane /usr/local/bin/
+    tar -xzf openbeam_darwin_arm64.tar.gz
+    chmod +x openbeam
+    sudo mv openbeam /usr/local/bin/
     ```
 
     ```bash
     # Windows
-    # Unzip openplane_windows_amd64.zip and add to PATH
+    # Unzip openbeam_windows_amd64.zip and add to PATH
     ```
   </Tab>
   <Tab value="Build from Source">
     ```bash
-    git clone https://github.com/kuluruvineeth/openplane.git
-    cd openplane/apps/cli
-    go build -o openplane ./cmd/openplane
-    sudo mv openplane /usr/local/bin/
+    git clone https://github.com/kuluruvineeth/openbeam.git
+    cd openbeam/apps/cli
+    go build -o openbeam ./cmd/openbeam
+    sudo mv openbeam /usr/local/bin/
     ```
   </Tab>
 </Tabs>
@@ -53,7 +53,7 @@ Built with Cobra, Go 1.24, zero CGO dependencies. Ships as a single binary for e
 Verify the installation:
 
 ```bash
-openplane version
+openbeam version
 ```
 
 ## Quick Start
@@ -62,13 +62,13 @@ From zero to first search result in three commands:
 
 ```bash
 # 1. Store your API key
-openplane auth login --api-key "op_your_api_key_here"
+openbeam auth login --api-key "op_your_api_key_here"
 
 # 2. Search across all connected sources
-openplane search query --query "quarterly revenue report"
+openbeam search query --query "quarterly revenue report"
 
 # 3. Ask the AI assistant
-openplane rag ask --query "Summarize our Q4 OKR progress"
+openbeam rag ask --query "Summarize our Q4 OKR progress"
 ```
 
 ## Authentication
@@ -77,27 +77,27 @@ The CLI resolves credentials through a three-tier chain. The first source that r
 
 | Priority | Source | Details |
 |----------|--------|---------|
-| 1 | Environment variable | `OPENPLANE_API_KEY` |
+| 1 | Environment variable | `OPENBEAM_API_KEY` |
 | 2 | OS keyring | macOS Keychain, GNOME Keyring, Windows Credential Manager |
-| 3 | File store | `~/.config/openplane/secrets.yaml` (permissions `0600`) |
+| 3 | File store | `~/.config/openbeam/secrets.yaml` (permissions `0600`) |
 
 ### Storing credentials
 
 ```bash
 # Store and verify against the server
-openplane auth login --api-key "op_your_key"
+openbeam auth login --api-key "op_your_key"
 
 # Store without server verification
-openplane auth login --api-key "op_your_key" --skip-verify
+openbeam auth login --api-key "op_your_key" --skip-verify
 
 # Check current auth status
-openplane auth status
+openbeam auth status
 
 # Verify the stored key is still valid
-openplane auth status --verify
+openbeam auth status --verify
 
 # Remove stored credentials
-openplane auth logout
+openbeam auth logout
 ```
 
 ### Environment variable override
@@ -105,13 +105,13 @@ openplane auth logout
 For CI/CD or scripting, set the environment variable directly. It takes precedence over all other sources.
 
 ```bash
-export OPENPLANE_API_KEY="op_your_key"
-openplane search query --query "deployment checklist"
+export OPENBEAM_API_KEY="op_your_key"
+openbeam search query --query "deployment checklist"
 ```
 
 ## Profiles
 
-Profiles let you maintain separate configurations for different environments (production, staging, local development). Config lives at `~/.config/openplane/config.yaml`.
+Profiles let you maintain separate configurations for different environments (production, staging, local development). Config lives at `~/.config/openbeam/config.yaml`.
 
 ```yaml
 current_profile: default
@@ -124,7 +124,7 @@ profiles:
     timeout: 30s
     api_key_ref: default
   production:
-    host: https://openplane.example.com
+    host: https://openbeam.example.com
     team: "team_abc123"
     color: auto
     timeout: 30s
@@ -135,18 +135,18 @@ profiles:
 
 ```bash
 # Show active profile
-openplane config show
+openbeam config show
 
 # List all profiles
-openplane config profiles
+openbeam config profiles
 
 # Switch active profile
-openplane config use production
+openbeam config use production
 
 # Set a value on the active profile
-openplane config set --host https://openplane.example.com
-openplane config set --team "team_abc123"
-openplane config set --timeout 60s
+openbeam config set --host https://openbeam.example.com
+openbeam config set --team "team_abc123"
+openbeam config set --timeout 60s
 ```
 
 ### Resolution chain
@@ -155,9 +155,9 @@ Every setting follows the same precedence: CLI flag, then environment variable, 
 
 | Setting | Flag | Env Var | Default |
 |---------|------|---------|---------|
-| API host | `--host` | `OPENPLANE_HOST` | `http://localhost:3000` |
-| Team | `--team` | `OPENPLANE_TEAM` | (none) |
-| API Key | -- | `OPENPLANE_API_KEY` | keyring/file store |
+| API host | `--host` | `OPENBEAM_HOST` | `http://localhost:3000` |
+| Team | `--team` | `OPENBEAM_TEAM` | (none) |
+| API Key | -- | `OPENBEAM_API_KEY` | keyring/file store |
 | Output format | `--output` | -- | `table` (TTY) / `json` (pipe) |
 | Color | `--color` | `NO_COLOR` | `auto` |
 | Timeout | `--timeout` | -- | `30s` |
@@ -179,28 +179,28 @@ Transform output inline without external tools.
 
 ```bash
 # JQ expression — filter and reshape JSON
-openplane search query --query "roadmap" --jq '.items[].title'
+openbeam search query --query "roadmap" --jq '.items[].title'
 
 # Go template — format individual fields
-openplane connectors list --template '{{.name}} ({{.type}})'
+openbeam connectors list --template '{{.name}} ({{.type}})'
 
 # Raw — emit the unprocessed response body
-openplane search query --query "test" --raw
+openbeam search query --query "test" --raw
 ```
 
 ### Piping examples
 
 ```bash
 # Count search results
-openplane search query --query "onboarding" --jq '.items | length'
+openbeam search query --query "onboarding" --jq '.items | length'
 
 # Extract connector IDs for scripting
-openplane connectors list --jq '.items[].id' | while read id; do
-  openplane connectors status --id "$id"
+openbeam connectors list --jq '.items[].id' | while read id; do
+  openbeam connectors status --id "$id"
 done
 
 # Export to file
-openplane search query --query "architecture" --output json > results.json
+openbeam search query --query "architecture" --output json > results.json
 ```
 
 ## Global Flags
@@ -231,38 +231,38 @@ Generate completion scripts for your shell and source them in your profile.
 <Tabs items={["Bash", "Zsh", "Fish", "PowerShell"]}>
   <Tab value="Bash">
     ```bash
-    openplane completion bash > /etc/bash_completion.d/openplane
+    openbeam completion bash > /etc/bash_completion.d/openbeam
     # Or for the current user only:
-    openplane completion bash >> ~/.bashrc
+    openbeam completion bash >> ~/.bashrc
     ```
   </Tab>
   <Tab value="Zsh">
     ```bash
-    openplane completion zsh > "${fpath[1]}/_openplane"
+    openbeam completion zsh > "${fpath[1]}/_openbeam"
     # Then reload: exec zsh
     ```
   </Tab>
   <Tab value="Fish">
     ```bash
-    openplane completion fish > ~/.config/fish/completions/openplane.fish
+    openbeam completion fish > ~/.config/fish/completions/openbeam.fish
     ```
   </Tab>
   <Tab value="PowerShell">
     ```powershell
-    openplane completion powershell | Out-String | Invoke-Expression
+    openbeam completion powershell | Out-String | Invoke-Expression
     ```
   </Tab>
 </Tabs>
 
 ## MCP Server
 
-The CLI includes a built-in Model Context Protocol server for AI tool integration. It bridges JSON-RPC 2.0 over stdin/stdout to the OpenPlane HTTP API.
+The CLI includes a built-in Model Context Protocol server for AI tool integration. It bridges JSON-RPC 2.0 over stdin/stdout to the OpenBeam HTTP API.
 
 ```bash
-openplane mcp serve
+openbeam mcp serve
 ```
 
-This exposes all OpenPlane capabilities as MCP tools, resources, and prompts. AI editors and agents can use the full search, RAG, and connector APIs through the standard MCP protocol.
+This exposes all OpenBeam capabilities as MCP tools, resources, and prompts. AI editors and agents can use the full search, RAG, and connector APIs through the standard MCP protocol.
 
 Supported JSON-RPC methods:
 
@@ -278,23 +278,23 @@ Supported JSON-RPC methods:
 
 ## Plugin System
 
-Extend the CLI with external binaries. Any executable named `openplane-{name}` discovered on your PATH becomes a subcommand.
+Extend the CLI with external binaries. Any executable named `openbeam-{name}` discovered on your PATH becomes a subcommand.
 
 ```bash
 # List discovered plugins
-openplane plugin list
+openbeam plugin list
 
 # Install a plugin from a local binary
-openplane plugin install --name my-tool --source ./my-tool-binary
+openbeam plugin install --name my-tool --source ./my-tool-binary
 
 # Run a plugin directly
-openplane my-tool [args...]
+openbeam my-tool [args...]
 ```
 
 ### Discovery order
 
-1. `$XDG_CONFIG_HOME/openplane/plugins/`
-2. Directories in `OPENPLANE_PLUGIN_PATH`
+1. `$XDG_CONFIG_HOME/openbeam/plugins/`
+2. Directories in `OPENBEAM_PLUGIN_PATH`
 3. System `$PATH`
 
 Plugins receive stdin, stdout, and stderr forwarded from the parent process. Unknown commands are automatically dispatched to matching plugins.
@@ -305,16 +305,16 @@ The CLI can manage a local headless daemon for agent orchestration, speech proce
 
 ```bash
 # Start the daemon
-openplane daemon start
+openbeam daemon start
 
 # Check daemon status
-openplane daemon status
+openbeam daemon status
 
 # Stop the daemon
-openplane daemon stop
+openbeam daemon stop
 
 # Pair with a remote instance
-openplane daemon pair --host https://openplane.example.com
+openbeam daemon pair --host https://openbeam.example.com
 ```
 
 ## Exit Codes
@@ -343,12 +343,12 @@ Every request includes these headers automatically.
 |--------|-------|
 | `Authorization` | `Bearer {api_key}` |
 | `X-Request-ID` | `opcli-{random}-{sequence}` |
-| `X-Openplane-Team` | Team identifier (when set) |
-| `User-Agent` | `openplane-cli/0.1.0` |
+| `X-Openbeam-Team` | Team identifier (when set) |
+| `User-Agent` | `openbeam-cli/0.1.0` |
 | `Accept` | `application/json` |
 | `Content-Type` | `application/json` (when body present) |
 
 <Cards>
   <Card title="Command Reference" href="/docs/cli/commands" description="Complete reference for every command, flag, and subcommand." />
-  <Card title="Self-Hosting" href="/docs/self-hosting" description="Deploy OpenPlane on your own infrastructure." />
+  <Card title="Self-Hosting" href="/docs/self-hosting" description="Deploy OpenBeam on your own infrastructure." />
 </Cards>

@@ -62,15 +62,15 @@ const createMockSearchResult = <T = GenericDocument>(
     children: items.map((item, index) => ({
       id: `hit-${index}`,
       relevance: 1.0 - index * 0.1,
-      source: "openplane_document",
+      source: "openbeam_document",
       fields: item,
     })),
   },
 });
 
 const createMockFeedResponse = (id: string): FeedResponse => ({
-  pathId: `/document/v1/default/openplane_document/docid/${id}`,
-  id: `id:default:openplane_document::${id}`,
+  pathId: `/document/v1/default/openbeam_document/docid/${id}`,
+  id: `id:default:openbeam_document::${id}`,
 });
 
 describe("VespaClient", () => {
@@ -284,7 +284,7 @@ describe("VespaClient", () => {
       );
 
       const result = await client.query({
-        yql: "select * from openplane_document where true limit 10",
+        yql: "select * from openbeam_document where true limit 10",
       });
 
       expect(result.root.children?.length).toBe(1);
@@ -306,7 +306,7 @@ describe("VespaClient", () => {
       });
 
       await client.query({
-        yql: "select * from openplane_document where true limit 10",
+        yql: "select * from openbeam_document where true limit 10",
         query_embedding: {
           type: "tensor<float>(x[1536])",
           values: new Array(1536).fill(0.1),
@@ -347,7 +347,7 @@ describe("VespaClient", () => {
       );
 
       const { result, metrics } = await client.queryWithMetrics({
-        yql: "select * from openplane_document where true limit 10",
+        yql: "select * from openbeam_document where true limit 10",
       });
 
       expect(result.root.children?.length).toBe(1);
@@ -377,7 +377,7 @@ describe("VespaClient", () => {
       );
 
       const { metrics } = await client.queryWithMetrics({
-        yql: "select * from openplane_document where true limit 10",
+        yql: "select * from openbeam_document where true limit 10",
       });
 
       expect(metrics.coverage.full).toBe(false);
@@ -588,7 +588,7 @@ describe("VespaClient", () => {
 
       const result = await client.deleteByConnectorId(
         "conn-123",
-        "openplane_document"
+        "openbeam_document"
       );
 
       expect(result.deleted).toBe(10);
@@ -606,7 +606,7 @@ describe("VespaClient", () => {
 
       const result = await client.deleteByConnectorId(
         "conn-123",
-        "openplane_document"
+        "openbeam_document"
       );
 
       expect(result.deleted).toBe(0);

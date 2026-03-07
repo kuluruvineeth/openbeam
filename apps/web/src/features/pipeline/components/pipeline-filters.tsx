@@ -1,6 +1,6 @@
 "use client";
 
-import { cn, Icons, Input } from "@openplane/ui";
+import { cn, Icons, Input } from "@openbeam/ui";
 import { useCallback, useMemo } from "react";
 import {
   extractUniqueAssignees,

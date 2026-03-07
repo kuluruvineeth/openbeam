@@ -14,7 +14,7 @@ description: Common Viam Robotics connector issues and fixes.
     **Fix:**
     1. In the Viam app at [app.viam.com](https://app.viam.com), verify the API key exists
     2. Confirm all three fields match: API Key, API Key ID, and Organization ID
-    3. If the key was regenerated, update all three values in OpenPlane
+    3. If the key was regenerated, update all three values in OpenBeam
   </Accordion>
 
   <Accordion title="Machine-scoped key shows limited data">
@@ -61,7 +61,7 @@ description: Common Viam Robotics connector issues and fixes.
     The ML model sync is disabled by default.
 
     **Fix:**
-    1. In OpenPlane, enable **Sync ML Models** in the connector settings
+    1. In OpenBeam, enable **Sync ML Models** in the connector settings
     2. Trigger a full resync after enabling the setting
     3. Verify ML models exist in the Viam model registry for your organization
   </Accordion>
@@ -90,7 +90,7 @@ curl -H "key_id: YOUR_KEY_ID" \
   https://app.viam.com/api/json1/organizations/YOUR_ORG_ID
 ```
 
-Still stuck? [Open an issue](https://github.com/kuluruvineeth/openplane/issues) with the connector status, Viam organization details, and error messages.
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openbeam/issues) with the connector status, Viam organization details, and error messages.
 
 <Cards>
   <Card title="Setup" href="/docs/connectors/viam/setup" description="Reconnect or reconfigure the connector" />

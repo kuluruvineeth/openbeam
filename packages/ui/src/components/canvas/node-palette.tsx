@@ -1,6 +1,6 @@
 "use client";
 
-import type { NodeCategory } from "@openplane/types/canvas";
+import type { NodeCategory } from "@openbeam/types/canvas";
 import type { DragEvent, KeyboardEvent, ReactNode } from "react";
 import { memo, useCallback, useMemo, useState } from "react";
 import {

@@ -5,6 +5,6 @@ func NewDefaultStore() (Store, error) {
 	if err != nil {
 		return nil, err
 	}
-	keyringStore := NewKeyringStore("openplane-cli")
+	keyringStore := NewKeyringStore("openbeam-cli")
 	return NewCompositeStore(keyringStore, fileStore), nil
 }

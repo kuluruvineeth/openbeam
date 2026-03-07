@@ -18,7 +18,7 @@ func DefaultDir() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(configDir, "openplane", "plugins"), nil
+	return filepath.Join(configDir, "openbeam", "plugins"), nil
 }
 
 func SearchDirs() ([]string, error) {
@@ -29,7 +29,7 @@ func SearchDirs() ([]string, error) {
 	}
 	dirs = append(dirs, defaultDir)
 
-	for _, item := range filepath.SplitList(os.Getenv("OPENPLANE_PLUGIN_PATH")) {
+	for _, item := range filepath.SplitList(os.Getenv("OPENBEAM_PLUGIN_PATH")) {
 		if trimmed := strings.TrimSpace(item); trimmed != "" {
 			dirs = append(dirs, trimmed)
 		}

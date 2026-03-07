@@ -630,7 +630,7 @@
   "refresh": "10s",
   "schemaVersion": 38,
   "style": "dark",
-  "tags": ["vespa", "search", "openplane"],
+  "tags": ["vespa", "search", "openbeam"],
   "templating": {
     "list": []
   },

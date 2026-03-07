@@ -1,8 +1,8 @@
-import type { Database } from "@openplane/db";
+import type { Database } from "@openbeam/db";
 import {
   PersistInferenceInputSchema,
   type PersistInferenceOutput,
-} from "@openplane/types/temporal/activities/knowledge";
+} from "@openbeam/types/temporal/activities/knowledge";
 
 export interface PersistInferenceDependencies {
   db: Database;

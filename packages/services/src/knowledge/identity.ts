@@ -1,11 +1,11 @@
-import type { Database, Entity, EntityType } from "@openplane/db";
+import type { Database, Entity, EntityType } from "@openbeam/db";
 import {
   findEntityByAlias,
   getAllEntitiesForResolution,
   getEntityById,
   getEntityByNormalizedName,
   upsertEntity,
-} from "@openplane/db";
+} from "@openbeam/db";
 
 export interface ResolvedEntity {
   entity: Entity;

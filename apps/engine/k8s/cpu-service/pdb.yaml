@@ -2,7 +2,7 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: engine-cpu
-  namespace: openplane-engine
+  namespace: openbeam-engine
   labels:
     app.kubernetes.io/name: engine-cpu
     app.kubernetes.io/component: cpu-service

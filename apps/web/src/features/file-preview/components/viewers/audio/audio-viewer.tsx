@@ -1,6 +1,6 @@
 "use client";
 
-import { TooltipProvider } from "@openplane/ui";
+import { TooltipProvider } from "@openbeam/ui";
 import { useCallback, useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import {

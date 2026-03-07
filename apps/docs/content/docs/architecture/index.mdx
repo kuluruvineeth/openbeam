@@ -1,11 +1,11 @@
 ---
 title: Architecture
-description: System design, package structure, and design principles behind OpenPlane.
+description: System design, package structure, and design principles behind OpenBeam.
 ---
 
 # Architecture
 
-OpenPlane is a modular, TypeScript-first platform built as a Turborepo monorepo. It connects to 20 data sources, syncs content through durable Temporal workflows, indexes everything in Vespa for hybrid search, and serves AI-powered answers grounded in your data.
+OpenBeam is a modular, TypeScript-first platform built as a Turborepo monorepo. It connects to 20 data sources, syncs content through durable Temporal workflows, indexes everything in Vespa for hybrid search, and serves AI-powered answers grounded in your data.
 
 <ExcalidrawViewer
   src="/diagrams/excalidraw/system-context.excalidraw"
@@ -34,7 +34,7 @@ OpenPlane is a modular, TypeScript-first platform built as a Turborepo monorepo.
 | **server** | `:3000` | Hono + tRPC 11 | API server, auth, webhooks |
 | **worker** | -- | Temporal Worker (Node.js) | Sync workflows, document processing, agent execution |
 | **engine** | `:8000` | FastAPI (Python) | Document parsing, embeddings, NER |
-| **cli** | -- | Go 1.24 / Cobra | `openplane` command-line tool |
+| **cli** | -- | Go 1.24 / Cobra | `openbeam` command-line tool |
 | **daemon** | -- | Bun (headless) | Local agent orchestration, session management |
 | **docs** | `:4000` | Fumadocs | Documentation site |
 
@@ -54,12 +54,12 @@ All shared logic lives in packages. Apps are thin adapters that compose packages
 
 ```text
 apps/
-├── web           → @openplane/api, @openplane/auth, @openplane/ui
-├── server        → @openplane/api, @openplane/services, @openplane/ai, @openplane/temporal
-├── worker        → @openplane/temporal, @openplane/services, @openplane/vespa, @openplane/ai
+├── web           → @openbeam/api, @openbeam/auth, @openbeam/ui
+├── server        → @openbeam/api, @openbeam/services, @openbeam/ai, @openbeam/temporal
+├── worker        → @openbeam/temporal, @openbeam/services, @openbeam/vespa, @openbeam/ai
 ├── engine        → standalone Python service
 ├── cli           → standalone Go binary
-└── daemon        → @openplane/types (protocol contracts)
+└── daemon        → @openbeam/types (protocol contracts)
 
 packages/
 ├── types         ← SINGLE SOURCE OF TRUTH for all shared types

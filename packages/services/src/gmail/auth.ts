@@ -6,20 +6,20 @@ import prisma, {
   getConnectorWithCredentials,
   setConnectorError,
   upsertOAuthProvider,
-} from "@openplane/db";
+} from "@openbeam/db";
 import {
   AuthType,
   exchangeGmailCode,
   generateGmailAuthUrl,
   gmailApp,
   parseOAuthCredentialsFile,
-} from "@openplane/integrations";
+} from "@openbeam/integrations";
 import type {
   AuthCompleteContext,
   AuthStartContext,
   ConnectorResult,
   IntegrationAuth,
-} from "@openplane/types/services";
+} from "@openbeam/types/services";
 import { createOAuthState, verifyOAuthState } from "../lib/oauth-state";
 
 type GmailConfig = {

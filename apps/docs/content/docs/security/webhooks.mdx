@@ -5,7 +5,7 @@ description: HMAC-SHA256 signature verification, timing-safe comparison, replay 
 
 # Webhook Security
 
-OpenPlane receives webhooks from connected services (Slack, GitHub, Samsara, etc.) to trigger real-time sync updates. Every inbound webhook is verified for authenticity and freshness before processing.
+OpenBeam receives webhooks from connected services (Slack, GitHub, Samsara, etc.) to trigger real-time sync updates. Every inbound webhook is verified for authenticity and freshness before processing.
 
 ## Verification Layers
 
@@ -19,15 +19,15 @@ Three checks run on every inbound webhook, in order. If any check fails, the web
 
 ## HMAC-SHA256 Signature Verification
 
-Each webhook request includes a signature header computed by the sending service. OpenPlane recomputes the signature using the shared secret and compares the two values.
+Each webhook request includes a signature header computed by the sending service. OpenBeam recomputes the signature using the shared secret and compares the two values.
 
 ### How It Works
 
 ```text
 1. Sender computes: HMAC-SHA256(signing_secret, request_body) → signature
 2. Sender includes signature in HTTP header
-3. OpenPlane reads raw request body (before JSON parsing)
-4. OpenPlane computes: HMAC-SHA256(stored_secret, raw_body) → expected_signature
+3. OpenBeam reads raw request body (before JSON parsing)
+4. OpenBeam computes: HMAC-SHA256(stored_secret, raw_body) → expected_signature
 5. Compare sender's signature with expected signature (timing-safe)
 6. If match → process webhook. If mismatch → reject with 401
 ```
@@ -92,7 +92,7 @@ A valid webhook intercepted in transit could be replayed later. Timestamp valida
 
 ```text
 1. Webhook includes a timestamp (Unix seconds) in the signed payload
-2. OpenPlane reads the timestamp from the request
+2. OpenBeam reads the timestamp from the request
 3. Compute: |current_time - webhook_timestamp|
 4. If difference > 300 seconds (5 minutes) → reject
 5. If within window → accept and process
@@ -110,7 +110,7 @@ function validateTimestamp(timestamp: number): boolean {
 ```
 
 <Callout type="info">
-  The 5-minute window accounts for clock skew between OpenPlane's server and the sending service. If your server's clock is significantly off, valid webhooks may be rejected. Use NTP to keep clocks synchronized.
+  The 5-minute window accounts for clock skew between OpenBeam's server and the sending service. If your server's clock is significantly off, valid webhooks may be rejected. Use NTP to keep clocks synchronized.
 </Callout>
 
 ## Per-Connector Signature Formats
@@ -229,7 +229,7 @@ Verified webhooks are processed through Temporal workflows for durability:
 6. Webhook endpoint returns 200 immediately (async processing)
 ```
 
-The webhook endpoint returns `200 OK` after signature verification, before the event is fully processed. This prevents the sending service from timing out while OpenPlane processes the update.
+The webhook endpoint returns `200 OK` after signature verification, before the event is fully processed. This prevents the sending service from timing out while OpenBeam processes the update.
 
 <Callout type="warn">
   Webhook signing secrets are encrypted at rest using AES-256-GCM (see the [Encryption](/docs/security/encryption) page). They are decrypted only in memory during signature verification and never logged.

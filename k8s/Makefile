@@ -1,5 +1,5 @@
-CLUSTER_NAME := openplane-dev
-NAMESPACE := openplane
+CLUSTER_NAME := openbeam-dev
+NAMESPACE := openbeam
 
 .PHONY: cluster-up cluster-down dev dev-full dev-voice dev-all clean status logs db-shell redis-shell
 
@@ -56,7 +56,7 @@ logs-temporal:
 	kubectl logs -n $(NAMESPACE) -l app=temporal -f --tail=100
 
 db-shell:
-	kubectl exec -n $(NAMESPACE) -it deploy/postgres -- psql -U postgres openplane
+	kubectl exec -n $(NAMESPACE) -it deploy/postgres -- psql -U postgres openbeam
 
 redis-shell:
 	kubectl exec -n $(NAMESPACE) -it deploy/redis -- redis-cli

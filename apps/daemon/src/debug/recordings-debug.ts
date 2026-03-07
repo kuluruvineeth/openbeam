@@ -10,8 +10,8 @@ function isTruthyEnv(value: string | undefined): boolean {
   );
 }
 
-export function isOpenPlaneDictationDebugEnabled(): boolean {
-  return isTruthyEnv(process.env.OPENPLANE_DICTATION_DEBUG);
+export function isOpenBeamDictationDebugEnabled(): boolean {
+  return isTruthyEnv(process.env.OPENBEAM_DICTATION_DEBUG);
 }
 
 export function resolveRecordingsDebugDir(
@@ -22,7 +22,7 @@ export function resolveRecordingsDebugDir(
     return resolve(explicit.trim());
   }
 
-  if (!isOpenPlaneDictationDebugEnabled()) {
+  if (!isOpenBeamDictationDebugEnabled()) {
     return null;
   }
 

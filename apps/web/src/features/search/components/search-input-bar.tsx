@@ -1,6 +1,6 @@
 "use client";
 
-import { Input } from "@openplane/ui";
+import { Input } from "@openbeam/ui";
 import { Icons } from "@/components/icons";
 
 type Props = {

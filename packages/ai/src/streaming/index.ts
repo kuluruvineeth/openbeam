@@ -11,12 +11,12 @@ export type {
   ToolCallEvent,
   ToolResultEvent,
   ToolVisibility,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 export {
   AgentEventTypeSchema,
   AgentStatusSchema,
   ToolVisibilitySchema,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 
 export * from "./adapters";
 

@@ -3,9 +3,9 @@ import type {
   ExecutionPlanNode,
   ExecutionTrace,
   StrictAgentCanvasEdge,
-} from "@openplane/types/canvas";
-import type { ExecutionPolicy } from "@openplane/types/services/policy";
-import type { AgentCanvasExecutionInput } from "@openplane/types/temporal/workflows";
+} from "@openbeam/types/canvas";
+import type { ExecutionPolicy } from "@openbeam/types/services/policy";
+import type { AgentCanvasExecutionInput } from "@openbeam/types/temporal/workflows";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const POLICY_BUDGET_DURATION_RE = /duration budget|budget.*duration/i;

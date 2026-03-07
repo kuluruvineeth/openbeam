@@ -1,8 +1,8 @@
 import type {
   GitHubSyncBatch,
   GitHubSyncCursor,
-} from "@openplane/types/services/connectors/github";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/github";
+import type { GenericDocument } from "@openbeam/vespa";
 
 export function createSyncBatch(
   items: GenericDocument[],

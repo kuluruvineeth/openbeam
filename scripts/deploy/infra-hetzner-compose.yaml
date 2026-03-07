@@ -1,0 +1,434 @@
+services:
+  postgres:
+    image: 'postgres:16-alpine'
+    container_name: postgres
+    environment:
+      POSTGRES_DB: '${POSTGRES_DB:-openbeam}'
+      POSTGRES_USER: '${POSTGRES_USER:-postgres}'
+      POSTGRES_PASSWORD: '${POSTGRES_PASSWORD:-postgres}'
+      POSTGRES_HOST_AUTH_METHOD: md5
+    ports:
+      - '127.0.0.1:5432:5432'
+    volumes:
+      - '/mnt/openbeam-data/postgres:/var/lib/postgresql/data'
+    command: >-
+      postgres
+      -c shared_buffers=512MB
+      -c effective_cache_size=1536MB
+      -c maintenance_work_mem=128MB
+      -c work_mem=8MB
+      -c max_connections=100
+      -c wal_buffers=16MB
+      -c checkpoint_completion_target=0.9
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+      -c max_wal_size=1GB
+      -c min_wal_size=80MB
+      -c log_min_duration_statement=1000
+      -c ssl=off
+      -c password_encryption=md5
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - 'pg_isready -U ${POSTGRES_USER:-postgres}'
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+    networks:
+      - default
+
+  redis:
+    image: 'redis:8.4.0-alpine'
+    container_name: openbeam-redis
+    ports:
+      - '127.0.0.1:6379:6379'
+    volumes:
+      - '/mnt/openbeam-data/redis:/data'
+    command: 'redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy noeviction'
+    healthcheck:
+      test:
+        - CMD
+        - redis-cli
+        - ping
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+    networks:
+      - default
+
+  vespa:
+    image: 'vespaengine/vespa:8'
+    container_name: openbeam-vespa
+    hostname: vespa
+    ports:
+      - '127.0.0.1:8280:8080'
+      - '127.0.0.1:19071:19071'
+    volumes:
+      - '/mnt/openbeam-data/vespa:/opt/vespa/var'
+    environment:
+      VESPA_CONFIGSERVERS: vespa
+      VESPA_DISK_FULL_PERCENT: 90
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - '-f'
+        - 'http://localhost:19071/state/v1/health'
+      interval: 30s
+      timeout: 10s
+      start_period: 120s
+      retries: 5
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+        reservations:
+          memory: 4G
+    networks:
+      - default
+
+  minio:
+    image: 'minio/minio:latest'
+    container_name: openbeam-minio
+    environment:
+      MINIO_ROOT_USER: '${MINIO_ROOT_USER:-openbeam-minio}'
+      MINIO_ROOT_PASSWORD: '${MINIO_ROOT_PASSWORD:-minioadmin}'
+      MINIO_API_CORS_ALLOW_ORIGIN: '*'
+      MINIO_SERVER_URL: '${MINIO_SERVER_URL:-http://localhost:9000}'
+      MINIO_BROWSER_REDIRECT_URL: '${MINIO_BROWSER_REDIRECT_URL:-http://localhost:9001}'
+    command: 'server /data --console-address ":9001"'
+    ports:
+      - '127.0.0.1:9000:9000'
+      - '127.0.0.1:9001:9001'
+    volumes:
+      - '/mnt/openbeam-data/minio:/data'
+    healthcheck:
+      test:
+        - CMD
+        - mc
+        - ready
+        - local
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+    networks:
+      - default
+
+  loki:
+    image: 'grafana/loki:2.9.10'
+    container_name: openbeam-loki
+    command:
+      - '-config.file=/etc/loki/local-config.yaml'
+    ports:
+      - '127.0.0.1:3100:3100'
+    volumes:
+      - '/mnt/openbeam-data/configs/loki/loki-config.yml:/etc/loki/local-config.yaml:ro'
+      - '/mnt/openbeam-data/loki:/loki'
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - '--quiet'
+        - '--tries=1'
+        - '--spider'
+        - 'http://localhost:3100/ready'
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+
+  postgres-auth-fix:
+    image: 'postgres:16-alpine'
+    container_name: postgres-auth-fix
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: '${POSTGRES_PASSWORD:-postgres}'
+    command:
+      - sh
+      - -c
+      - |
+        psql -h postgres -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-openbeam} -c "SET password_encryption = 'md5'; ALTER USER ${POSTGRES_USER:-postgres} WITH PASSWORD '${POSTGRES_PASSWORD:-postgres}';"
+        psql -h postgres -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-openbeam} -c "SELECT LEFT(rolpassword, 5) FROM pg_authid WHERE rolname='${POSTGRES_USER:-postgres}';"
+        echo 'Password re-hashed as md5'
+    restart: 'no'
+    networks:
+      - default
+
+  temporal:
+    image: 'temporalio/auto-setup:1.29.2'
+    container_name: openbeam-temporal
+    environment:
+      DB: postgres12
+      DB_PORT: 5432
+      POSTGRES_USER: '${POSTGRES_USER:-postgres}'
+      POSTGRES_PWD: '${POSTGRES_PASSWORD:-postgres}'
+      POSTGRES_SEEDS: postgres
+      DYNAMIC_CONFIG_FILE_PATH: /etc/temporal/config/dynamicconfig/development.yaml
+      ENABLE_ES: 'false'
+      SKIP_SCHEMA_SETUP: 'false'
+      BIND_ON_IP: 0.0.0.0
+    ports:
+      - '127.0.0.1:7233:7233'
+    volumes:
+      - '/mnt/openbeam-data/configs/temporal/dynamicconfig:/etc/temporal/config/dynamicconfig:ro'
+    depends_on:
+      postgres-auth-fix:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - 'temporal operator cluster health --address localhost:7233'
+      interval: 30s
+      timeout: 10s
+      start_period: 180s
+      retries: 10
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+    networks:
+      - default
+
+  redis-exporter:
+    image: 'oliver006/redis_exporter:v1.58.0-alpine'
+    container_name: openbeam-redis-exporter
+    environment:
+      REDIS_ADDR: 'redis:6379'
+      REDIS_EXPORTER_CHECK_KEYS: 'ratelimit:*,jobSchedulerKeys:*'
+    ports:
+      - '127.0.0.1:9121:9121'
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: '0.1'
+
+  vespa-exporter:
+    image: 'quay.io/prometheuscommunity/json-exporter:latest'
+    container_name: openbeam-vespa-exporter
+    command:
+      - '--config.file=/etc/json-exporter/config.yml'
+    ports:
+      - '127.0.0.1:9116:7979'
+    volumes:
+      - '/mnt/openbeam-data/configs/prometheus/vespa-exporter.yml:/etc/json-exporter/config.yml:ro'
+    depends_on:
+      - vespa
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - '--quiet'
+        - '--tries=1'
+        - '--spider'
+        - 'http://localhost:7979/metrics'
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: '0.1'
+
+  promtail:
+    image: 'grafana/promtail:2.9.10'
+    container_name: openbeam-promtail
+    command:
+      - '-config.file=/etc/promtail/config.yml'
+    volumes:
+      - '/mnt/openbeam-data/configs/promtail/promtail-config.yml:/etc/promtail/config.yml:ro'
+      - '/var/run/docker.sock:/var/run/docker.sock'
+      - '/var/lib/docker/containers:/var/lib/docker/containers:ro'
+    depends_on:
+      - loki
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.1'
+
+  minio-init:
+    image: 'minio/mc:latest'
+    container_name: openbeam-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: '${MINIO_ROOT_USER:-openbeam-minio}'
+      MINIO_ROOT_PASSWORD: '${MINIO_ROOT_PASSWORD:-minioadmin}'
+      S3_BUCKET: '${S3_BUCKET:-openbeam-files}'
+    entrypoint:
+      - /bin/sh
+      - '-c'
+      - |
+        mc alias set myminio http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD}
+        mc mb --ignore-existing myminio/${S3_BUCKET}
+        echo 'Setting global CORS policy...'
+        mc admin config set myminio api cors_allow_origin="*"
+        echo 'Bucket initialized with CORS (restart minio container to apply)'
+    restart: 'no'
+
+  temporal-ui:
+    image: 'temporalio/ui:2.44.1'
+    container_name: openbeam-temporal-ui
+    environment:
+      TEMPORAL_ADDRESS: 'temporal:7233'
+      TEMPORAL_CORS_ORIGINS: 'http://localhost:3000,http://localhost:3001'
+    ports:
+      - '127.0.0.1:8233:8080'
+    depends_on:
+      temporal:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+
+  temporal-admin-tools:
+    image: 'temporalio/admin-tools:1.29'
+    container_name: openbeam-temporal-admin
+    environment:
+      TEMPORAL_ADDRESS: 'temporal:7233'
+    depends_on:
+      temporal:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+
+  vespa-deploy:
+    image: 'alpine:latest'
+    container_name: openbeam-vespa-deploy
+    volumes:
+      - '/mnt/openbeam-data/configs/vespa-application:/vespa:ro'
+    depends_on:
+      vespa:
+        condition: service_healthy
+    command: |
+      sh -c "
+        apk add --no-cache curl zip &&
+        echo 'Waiting for Vespa to be ready...' &&
+        sleep 10 &&
+        cd /vespa &&
+        sh ./deploy.sh vespa 19071 &&
+        echo 'Vespa application deployed successfully'
+      "
+    restart: 'no'
+
+  prometheus:
+    image: 'prom/prometheus:latest'
+    container_name: openbeam-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    ports:
+      - '127.0.0.1:9090:9090'
+    volumes:
+      - '/mnt/openbeam-data/configs/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro'
+      - '/mnt/openbeam-data/configs/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro'
+      - '/mnt/openbeam-data/configs/prometheus/recording-rules.yml:/etc/prometheus/recording-rules.yml:ro'
+      - '/mnt/openbeam-data/prometheus:/prometheus'
+    restart: unless-stopped
+    depends_on:
+      - vespa-exporter
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - '--quiet'
+        - '--tries=1'
+        - '--spider'
+        - 'http://localhost:9090/-/healthy'
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.25'
+
+  grafana:
+    image: 'grafana/grafana:latest'
+    container_name: openbeam-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: '${GRAFANA_USER:-admin}'
+      GF_SECURITY_ADMIN_PASSWORD: '${GRAFANA_PASSWORD:-admin}'
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+      GF_SERVER_ROOT_URL: 'http://localhost:3002'
+    ports:
+      - '127.0.0.1:3002:3000'
+    volumes:
+      - '/mnt/openbeam-data/grafana:/var/lib/grafana'
+      - '/mnt/openbeam-data/configs/grafana/provisioning:/etc/grafana/provisioning:ro'
+      - '/mnt/openbeam-data/configs/grafana/dashboards:/etc/grafana/dashboards:ro'
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+      - loki
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - '--quiet'
+        - '--tries=1'
+        - '--spider'
+        - 'http://localhost:3000/api/health'
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+
+networks:
+  default:
+    name: openbeam

@@ -1,5 +1,5 @@
 {
-  "name": "@openplane/api",
+  "name": "@openbeam/api",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -16,7 +16,7 @@
     "check-types": "tsc -b"
   },
   "devDependencies": {
-    "@openplane/config": "workspace:*",
+    "@openbeam/config": "workspace:*",
     "@types/jsonwebtoken": "^9.0.10",
     "tsdown": "catalog:"
   },
@@ -24,16 +24,16 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@openplane/ai": "workspace:*",
-    "@openplane/auth": "workspace:*",
-    "@openplane/db": "workspace:*",
-    "@openplane/integrations": "workspace:*",
-    "@openplane/orchestrations": "workspace:*",
-    "@openplane/redis": "workspace:*",
-    "@openplane/services": "workspace:*",
-    "@openplane/storage": "workspace:*",
-    "@openplane/temporal": "workspace:*",
-    "@openplane/types": "workspace:*",
+    "@openbeam/ai": "workspace:*",
+    "@openbeam/auth": "workspace:*",
+    "@openbeam/db": "workspace:*",
+    "@openbeam/integrations": "workspace:*",
+    "@openbeam/orchestrations": "workspace:*",
+    "@openbeam/redis": "workspace:*",
+    "@openbeam/services": "workspace:*",
+    "@openbeam/storage": "workspace:*",
+    "@openbeam/temporal": "workspace:*",
+    "@openbeam/types": "workspace:*",
     "@sindresorhus/slugify": "^3.0.0",
     "@trpc/client": "catalog:",
     "@trpc/server": "catalog:",

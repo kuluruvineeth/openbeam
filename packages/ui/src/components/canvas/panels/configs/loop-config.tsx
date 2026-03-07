@@ -5,7 +5,7 @@ import type {
   LoopExecutionMode,
   LoopNodeConfig,
   LoopOutputMode,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { forwardRef, memo, useEffect, useMemo } from "react";
 import { AnimatedSizeContainer } from "../../../animated-size-container";
 import { Icons } from "../../../icons";

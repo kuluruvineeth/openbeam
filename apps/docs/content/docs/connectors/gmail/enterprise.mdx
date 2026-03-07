@@ -19,7 +19,7 @@ Access all mailboxes without individual consent.
 ### 1. Create Service Account
 
 1. Go to [Google Cloud IAM](https://console.cloud.google.com/iam-admin/serviceaccounts)
-2. Create service account: `openplane-gmail`
+2. Create service account: `openbeam-gmail`
 3. Create JSON key, download securely
 
 ### 2. Enable Delegation
@@ -38,7 +38,7 @@ Access all mailboxes without individual consent.
 ### 4. Configure
 
 ```bash
-GOOGLE_SERVICE_ACCOUNT_EMAIL=openplane-gmail@your-project.iam.gserviceaccount.com
+GOOGLE_SERVICE_ACCOUNT_EMAIL=openbeam-gmail@your-project.iam.gserviceaccount.com
 GOOGLE_SERVICE_ACCOUNT_KEY_PATH=/path/to/key.json
 GOOGLE_WORKSPACE_DOMAIN=your-company.com
 ```

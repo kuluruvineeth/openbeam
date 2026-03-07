@@ -1,6 +1,6 @@
 # Metric Catalog
 
-This catalog lists core production metrics currently expected in OpenPlane telemetry.
+This catalog lists core production metrics currently expected in OpenBeam telemetry.
 
 ## API Server
 - `http_request_duration_seconds` (histogram)
@@ -54,14 +54,14 @@ This catalog lists core production metrics currently expected in OpenPlane telem
   - purpose: GPU-side dependency latency
 
 ## Recording Rules
-- `openplane:http_request_rate_5m`
-- `openplane:http_error_rate_5m`
-- `openplane:http_latency_p95_5m`
+- `openbeam:http_request_rate_5m`
+- `openbeam:http_error_rate_5m`
+- `openbeam:http_latency_p95_5m`
 
 ## Dashboards Using This Catalog
-- `OpenPlane Command Center`
+- `OpenBeam Command Center`
 - `Platform SLO Overview`
-- `OpenPlane Error Analysis`
+- `OpenBeam Error Analysis`
 - `Logs Error Drilldown`
 - `Connector Sync Operations`
 - `Engine Performance`

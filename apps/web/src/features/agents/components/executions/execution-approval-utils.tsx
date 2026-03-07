@@ -1,5 +1,5 @@
-import type { ApprovalNodeConfig } from "@openplane/types/canvas";
-import { ApprovalNodeConfigSchema } from "@openplane/types/canvas";
+import type { ApprovalNodeConfig } from "@openbeam/types/canvas";
+import { ApprovalNodeConfigSchema } from "@openbeam/types/canvas";
 
 type ExecutionStepLike = {
   status: string;

@@ -1,6 +1,7 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { paymentConfig } from "@/lib/payment-config";
 import type { AuthEnv } from "@/middleware/auth";
+import agentControl from "@/modules/agent-control/agent-control.index";
 import analytics from "@/modules/analytics/analytics.index";
 import apps from "@/modules/apps/apps.index";
 import backgroundAgents from "@/modules/background-agents/background-agents.index";
@@ -21,6 +22,7 @@ const v1 = new OpenAPIHono<AuthEnv>();
 
 v1.get("/health", (c) => c.json({ status: "ok", version: "v1" }));
 
+v1.route("/agent-control", agentControl);
 v1.route("/analytics", analytics);
 v1.route("/apps", apps);
 v1.route("/background-agents", backgroundAgents);

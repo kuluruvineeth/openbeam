@@ -1,4 +1,4 @@
-import type { JsonObject, MediaDocument, MediaType } from "@openplane/vespa";
+import type { JsonObject, MediaDocument, MediaType } from "@openbeam/vespa";
 import { MediaEmbeddingService } from "../processing/embedder";
 import type {
   MediaDocumentMetadata,

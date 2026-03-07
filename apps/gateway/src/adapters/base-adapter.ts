@@ -2,8 +2,8 @@ import type {
   AdapterMetrics,
   AggregationConfig,
   ConnectionState,
-} from "@openplane/types/services/connectors/common/industrial";
-import type { InternalMessage } from "@openplane/types/services/connectors/mqtt";
+} from "@openbeam/types/services/connectors/common/industrial";
+import type { InternalMessage } from "@openbeam/types/services/connectors/mqtt";
 
 export interface SubscriptionConfig {
   topic: string;

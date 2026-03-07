@@ -1,11 +1,11 @@
-import type { Database } from "@openplane/db";
+import type { Database } from "@openbeam/db";
 import {
   getImpressionById,
   recordSearchClick,
   recordSearchImpression,
   updateSearchClickDwellTime,
   updateSearchClickFeedback,
-} from "@openplane/db";
+} from "@openbeam/db";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter } from "../index";

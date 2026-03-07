@@ -4,7 +4,7 @@ import type {
   GroundingConfidence,
   GroundingResult,
   RAGChunk,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import type { Citation } from "./types";
 
 export type RefusalType =

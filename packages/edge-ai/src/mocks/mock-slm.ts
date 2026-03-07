@@ -2,7 +2,7 @@ import type {
   EdgeGenerateOptions,
   EdgeSLM,
   EdgeSLMResponse,
-} from "@openplane/types/edge/ai";
+} from "@openbeam/types/edge/ai";
 
 const WHITESPACE_RE = /\s+/;
 

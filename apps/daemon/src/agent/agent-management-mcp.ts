@@ -3,7 +3,7 @@
  *
  * Purpose: Managing agents from the UI/voice assistant LLM
  * Transport: In-memory (runs in-process with the voice assistant LLM)
- * Server name: "openplane-agent-management"
+ * Server name: "openbeam-agent-management"
  *
  * Tools:
  * - create_agent
@@ -63,7 +63,7 @@ export interface AgentManagementMcpOptions {
   agentManager: AgentManager;
   agentStorage: AgentStorage;
   terminalManager?: TerminalManager | null;
-  openplaneHome?: string;
+  openbeamHome?: string;
   logger: Logger;
 }
 
@@ -227,7 +227,7 @@ export async function createAgentManagementMcpServer(
   const waitTracker = new WaitForAgentTracker(logger);
 
   const server = new McpServer({
-    name: "openplane-agent-management",
+    name: "openbeam-agent-management",
     version: "1.0.0",
   });
 
@@ -335,7 +335,7 @@ export async function createAgentManagementMcpServer(
           cwd: resolvedCwd,
           baseBranch,
           worktreeSlug: worktreeName,
-          openplaneHome: options.openplaneHome,
+          openbeamHome: options.openbeamHome,
         });
         resolvedCwd = worktree.worktreePath;
         worktreeConfig = worktree;
@@ -380,7 +380,7 @@ export async function createAgentManagementMcpServer(
           cwd: snapshot.cwd,
           initialPrompt: trimmedPrompt,
           explicitTitle: normalizedTitle ?? undefined,
-          openplaneHome: options.openplaneHome,
+          openbeamHome: options.openbeamHome,
           logger: childLogger,
         });
 

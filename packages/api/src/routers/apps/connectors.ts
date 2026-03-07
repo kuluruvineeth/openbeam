@@ -13,17 +13,13 @@ import {
   updateConnectorConfig,
   updateConnectorResourceSync,
   upsertConnector,
-} from "@openplane/db";
-import type {
-  AppType,
-  SettingValue,
-  UnifiedApp,
-} from "@openplane/integrations";
-import { appStore } from "@openplane/integrations";
+} from "@openbeam/db";
+import type { AppType, SettingValue, UnifiedApp } from "@openbeam/integrations";
+import { appStore } from "@openbeam/integrations";
 import {
   cancelConnectorCleanup,
   runConnectorCleanup,
-} from "@openplane/temporal";
+} from "@openbeam/temporal";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter } from "../../index";

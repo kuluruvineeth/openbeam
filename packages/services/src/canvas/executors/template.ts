@@ -1,4 +1,4 @@
-import { TemplateNodeConfigSchema } from "@openplane/types/canvas";
+import { TemplateNodeConfigSchema } from "@openbeam/types/canvas";
 import ejs from "ejs";
 import Handlebars from "handlebars";
 import mustache from "mustache";

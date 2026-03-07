@@ -2,7 +2,7 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { ClassifyCategory } from "@openplane/types/canvas";
+import type { ClassifyCategory } from "@openbeam/types/canvas";
 import { memo, useCallback, useState } from "react";
 import { cn } from "../../../utils";
 import { Badge } from "../../badge";

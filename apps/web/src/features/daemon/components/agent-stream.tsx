@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@openplane/ui";
+import { cn } from "@openbeam/ui";
 import { useMemo } from "react";
 import { useAgentStreamItems } from "../hooks/use-agent-snapshot";
 import { useAgentTimeline } from "../hooks/use-agent-timeline";

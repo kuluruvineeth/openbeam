@@ -1,6 +1,6 @@
 ---
 title: Setup
-description: Connect an MQTT broker to OpenPlane for real-time sensor data indexing.
+description: Connect an MQTT broker to OpenBeam for real-time sensor data indexing.
 ---
 
 # MQTT Setup
@@ -8,7 +8,7 @@ description: Connect an MQTT broker to OpenPlane for real-time sensor data index
 ## Prerequisites
 
 - MQTT broker running (Mosquitto, EMQX, HiveMQ, or any MQTT 3.1.1/5.0 broker)
-- Broker address and port accessible from the OpenPlane host
+- Broker address and port accessible from the OpenBeam host
 - Optional: username/password or TLS certificates for secure connections
 
 ## 1. Identify Your MQTT Broker
@@ -34,7 +34,7 @@ Your broker address includes the protocol prefix:
 | WebSocket | `ws://broker.example.com:9001` | None |
 | Secure WebSocket | `wss://broker.example.com:9443` | TLS |
 
-## 3. Add the MQTT Connector in OpenPlane
+## 3. Add the MQTT Connector in OpenBeam
 
 1. Go to **Settings** > **Connectors** > **Add Connector**
 2. Select **MQTT**

@@ -1,15 +1,15 @@
-import type { Database } from "@openplane/db";
+import type { Database } from "@openbeam/db";
 import {
   createAgentCanvasExecution,
   updateAgentCanvasExecution,
-} from "@openplane/db";
-import { startCanvasExecution } from "@openplane/temporal";
+} from "@openbeam/db";
+import { startCanvasExecution } from "@openbeam/temporal";
 import {
   AgentCanvasEdgeSchema,
   AgentCanvasNodeSchema,
   type CanvasState,
   ViewportSchema,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { z } from "zod";
 
 type AgentCanvasExecution = Awaited<

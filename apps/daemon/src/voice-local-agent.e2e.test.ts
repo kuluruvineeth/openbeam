@@ -12,7 +12,7 @@ import {
 
 const openaiApiKey = process.env.OPENAI_API_KEY ?? null;
 const shouldRun =
-  process.env.OPENPLANE_VOICE_LOCAL_AGENT_E2E === "1" &&
+  process.env.OPENBEAM_VOICE_LOCAL_AGENT_E2E === "1" &&
   Boolean(openaiApiKey) &&
   !process.env.CI;
 

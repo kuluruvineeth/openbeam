@@ -1,8 +1,8 @@
-import type { NEREntity, QueryClassification } from "@openplane/types/edge/ai";
+import type { NEREntity, QueryClassification } from "@openbeam/types/edge/ai";
 import {
   NEREntitySchema,
   QueryClassificationSchema,
-} from "@openplane/types/edge/ai";
+} from "@openbeam/types/edge/ai";
 
 const JSON_ARRAY_RE = /\[[\s\S]*\]/;
 const JSON_OBJECT_RE = /\{[\s\S]*\}/;

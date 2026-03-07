@@ -2,9 +2,9 @@ FROM oven/bun:1.3.2 AS pruner
 WORKDIR /app
 RUN bun add -g turbo@2.5.4
 COPY . .
-RUN turbo prune @openplane/website --docker
+RUN turbo prune @openbeam/website --docker
 
-FROM ghcr.io/kuluruvineeth/openplane-base:latest AS deps
+FROM ghcr.io/kuluruvineeth/openbeam-base:latest AS deps
 WORKDIR /app
 COPY --from=pruner /app/out/full/ .
 ARG HUGEICONS_PRO_AUTH_TOKEN
@@ -18,7 +18,7 @@ FROM deps AS builder
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1 \
     DOCKER_BUILD=1
-RUN bun run --filter=@openplane/website build
+RUN bun run --filter=@openbeam/website build
 
 FROM oven/bun:1.3.2 AS runner
 WORKDIR /app

@@ -11,15 +11,15 @@ from telemetry import TOOL_CALLS, VoiceMetricsCollector
 
 logger = get_logger("voice.action")
 
-OPENPLANE_API_BASE = os.getenv("OPENPLANE_API_URL", "http://localhost:3000/api/v1")
+OPENBEAM_API_BASE = os.getenv("OPENBEAM_API_URL", "http://localhost:3000/api/v1")
 
 _shared_http = httpx.AsyncClient(
-    base_url=OPENPLANE_API_BASE,
+    base_url=OPENBEAM_API_BASE,
     timeout=30.0,
 )
 
 ACTION_INSTRUCTIONS = """<role>
-You are OpenPlane's voice action agent. You execute tasks across the platform
+You are OpenBeam's voice action agent. You execute tasks across the platform
 using voice commands. You have access to search, connectors, documents, and
 workspace tools.
 </role>

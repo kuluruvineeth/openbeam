@@ -1,4 +1,4 @@
-import { Icons } from "@openplane/ui";
+import { Icons } from "@openbeam/ui";
 
 export default function Loader() {
   return (

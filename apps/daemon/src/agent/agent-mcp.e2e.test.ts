@@ -8,10 +8,7 @@ import { experimental_createMCPClient } from "ai";
 import pino from "pino";
 import { describe, expect, test } from "vitest";
 
-import {
-  createOpenPlaneDaemon,
-  type OpenPlaneDaemonConfig,
-} from "../bootstrap";
+import { createOpenBeamDaemon, type OpenBeamDaemonConfig } from "../bootstrap";
 import { createTestAgentClients } from "../test-utils/fake-agent-client";
 
 type StructuredContent = { [key: string]: unknown };
@@ -136,30 +133,28 @@ async function waitForAgentCompletion(options: {
 
 describe("agent MCP end-to-end (offline)", () => {
   test("create_agent runs initial prompt and affects filesystem", async () => {
-    const openplaneHome = await mkdtemp(
-      path.join(os.tmpdir(), "openplane-home-")
+    const openbeamHome = await mkdtemp(
+      path.join(os.tmpdir(), "openbeam-home-")
     );
-    const staticDir = await mkdtemp(
-      path.join(os.tmpdir(), "openplane-static-")
-    );
+    const staticDir = await mkdtemp(path.join(os.tmpdir(), "openbeam-static-"));
     const agentCwd = await mkdtemp(
-      path.join(os.tmpdir(), "openplane-agent-cwd-")
+      path.join(os.tmpdir(), "openbeam-agent-cwd-")
     );
     const port = await getAvailablePort();
 
-    const daemonConfig: OpenPlaneDaemonConfig = {
+    const daemonConfig: OpenBeamDaemonConfig = {
       listen: `127.0.0.1:${port}`,
-      openplaneHome,
+      openbeamHome,
       corsAllowedOrigins: [],
       allowedHosts: true,
       mcpEnabled: true,
       staticDir,
       mcpDebug: false,
       agentClients: createTestAgentClients(),
-      agentStoragePath: path.join(openplaneHome, "agents"),
+      agentStoragePath: path.join(openbeamHome, "agents"),
     };
 
-    const daemon = await createOpenPlaneDaemon(
+    const daemon = await createOpenBeamDaemon(
       daemonConfig,
       pino({ level: "silent" })
     );
@@ -214,37 +209,35 @@ describe("agent MCP end-to-end (offline)", () => {
       }
       await client.close();
       await daemon.stop();
-      await rm(openplaneHome, { recursive: true, force: true });
+      await rm(openbeamHome, { recursive: true, force: true });
       await rm(staticDir, { recursive: true, force: true });
       await rm(agentCwd, { recursive: true, force: true });
     }
   }, 30_000);
 
   test("create_agent with worktree is async and boots terminals only after setup success", async () => {
-    const openplaneHome = await mkdtemp(
-      path.join(os.tmpdir(), "openplane-home-")
+    const openbeamHome = await mkdtemp(
+      path.join(os.tmpdir(), "openbeam-home-")
     );
-    const staticDir = await mkdtemp(
-      path.join(os.tmpdir(), "openplane-static-")
-    );
+    const staticDir = await mkdtemp(path.join(os.tmpdir(), "openbeam-static-"));
     const repoRoot = await mkdtemp(
-      path.join(os.tmpdir(), "openplane-worktree-repo-")
+      path.join(os.tmpdir(), "openbeam-worktree-repo-")
     );
     const port = await getAvailablePort();
 
-    const daemonConfig: OpenPlaneDaemonConfig = {
+    const daemonConfig: OpenBeamDaemonConfig = {
       listen: `127.0.0.1:${port}`,
-      openplaneHome,
+      openbeamHome,
       corsAllowedOrigins: [],
       allowedHosts: true,
       mcpEnabled: true,
       staticDir,
       mcpDebug: false,
       agentClients: createTestAgentClients(),
-      agentStoragePath: path.join(openplaneHome, "agents"),
+      agentStoragePath: path.join(openbeamHome, "agents"),
     };
 
-    const daemon = await createOpenPlaneDaemon(
+    const daemon = await createOpenBeamDaemon(
       daemonConfig,
       pino({ level: "silent" })
     );
@@ -274,9 +267,9 @@ describe("agent MCP end-to-end (offline)", () => {
       });
 
       const setupCommand =
-        'while [ ! -f "$OPENPLANE_WORKTREE_PATH/allow-setup" ]; do sleep 0.05; done; echo "done" > "$OPENPLANE_WORKTREE_PATH/setup-done.txt"';
+        'while [ ! -f "$OPENBEAM_WORKTREE_PATH/allow-setup" ]; do sleep 0.05; done; echo "done" > "$OPENBEAM_WORKTREE_PATH/setup-done.txt"';
       await writeFile(
-        path.join(repoRoot, "openplane.json"),
+        path.join(repoRoot, "openbeam.json"),
         JSON.stringify({
           worktree: {
             setup: [setupCommand],
@@ -291,7 +284,7 @@ describe("agent MCP end-to-end (offline)", () => {
         }),
         "utf8"
       );
-      execSync("git add openplane.json", { cwd: repoRoot, stdio: "pipe" });
+      execSync("git add openbeam.json", { cwd: repoRoot, stdio: "pipe" });
       execSync("git -c commit.gpgsign=false commit -m 'add worktree config'", {
         cwd: repoRoot,
         stdio: "pipe",
@@ -341,7 +334,7 @@ describe("agent MCP end-to-end (offline)", () => {
       }
       await client.close();
       await daemon.stop();
-      await rm(openplaneHome, { recursive: true, force: true });
+      await rm(openbeamHome, { recursive: true, force: true });
       await rm(staticDir, { recursive: true, force: true });
       await rm(repoRoot, { recursive: true, force: true });
     }

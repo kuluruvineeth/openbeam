@@ -7,7 +7,7 @@ import db, {
   type EvidenceItem,
   type UpsertEntityInput,
   type UpsertEntityRelationInput,
-} from "@openplane/db";
+} from "@openbeam/db";
 import type {
   ExtractedEntity,
   SaveEntitiesInput,

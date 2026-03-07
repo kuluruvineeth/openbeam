@@ -1,5 +1,5 @@
-import type { Database, EntityType } from "@openplane/db";
-import type { VespaClient } from "@openplane/vespa";
+import type { Database, EntityType } from "@openbeam/db";
+import type { VespaClient } from "@openbeam/vespa";
 import { Context } from "@temporalio/activity";
 import type {
   EntityMention,

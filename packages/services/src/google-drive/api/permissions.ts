@@ -1,7 +1,7 @@
 import {
   type DrivePermission,
   DrivePermissionSchema,
-} from "@openplane/types/services/connectors/google-drive";
+} from "@openbeam/types/services/connectors/google-drive";
 import { z } from "zod";
 import type { GoogleDriveClient } from "../client";
 

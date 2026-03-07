@@ -1,6 +1,6 @@
 "use client";
 
-import type { UnifiedApp } from "@openplane/integrations";
+import type { UnifiedApp } from "@openbeam/integrations";
 import {
   Button,
   SheetHeader,
@@ -9,7 +9,7 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@openplane/ui";
+} from "@openbeam/ui";
 import { formatDistanceToNow } from "date-fns";
 import { AppLogo } from "@/components/integrations/app-logo";
 import { cn } from "@/lib/utils";

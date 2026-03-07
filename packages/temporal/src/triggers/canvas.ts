@@ -1,12 +1,12 @@
-import type { CanvasState } from "@openplane/types/canvas";
+import type { CanvasState } from "@openbeam/types/canvas";
 import type {
   CanvasApprovalSignalPayload,
   CanvasInputSignalPayload,
-} from "@openplane/types/temporal";
+} from "@openbeam/types/temporal";
 import type {
   AgentCanvasExecutionInput,
   AgentCanvasExecutionOutput,
-} from "@openplane/types/temporal/workflows";
+} from "@openbeam/types/temporal/workflows";
 import {
   WorkflowExecutionAlreadyStartedError,
   WorkflowNotFoundError,

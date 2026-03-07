@@ -8,7 +8,7 @@ import {
   OPERATOR_NEEDS_SECOND_VALUE,
   OPERATOR_NEEDS_VALUE,
   type SingleCondition,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { memo, useCallback, useMemo } from "react";
 import { cn } from "../../../../utils";
 import { CodeEditor } from "../../../code-editor";

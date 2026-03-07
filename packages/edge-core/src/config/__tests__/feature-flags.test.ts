@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { EdgeTier } from "@openplane/types/edge/tiers";
+import type { EdgeTier } from "@openbeam/types/edge/tiers";
 import { type FeatureFlags, getFeatureFlags } from "../feature-flags";
 
 describe("getFeatureFlags", () => {

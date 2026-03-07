@@ -1,5 +1,5 @@
-import type { StorageProvider } from "@openplane/storage";
-import type { VespaClient } from "@openplane/vespa";
+import type { StorageProvider } from "@openbeam/storage";
+import type { VespaClient } from "@openbeam/vespa";
 import type { Worker } from "@temporalio/worker";
 import {
   createEngineActivities,

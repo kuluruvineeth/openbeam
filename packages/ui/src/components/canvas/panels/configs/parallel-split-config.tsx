@@ -6,7 +6,7 @@ import type {
   ParallelSplitErrorHandling,
   ParallelSplitExecutionMode,
   ParallelSplitNodeConfig,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { forwardRef, memo, useCallback, useEffect, useMemo } from "react";
 import { cn } from "../../../../utils";
 import { AnimatedSizeContainer } from "../../../animated-size-container";

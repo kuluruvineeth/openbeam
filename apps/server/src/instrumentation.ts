@@ -1,8 +1,8 @@
-import { startTracing, stopTracing } from "@openplane/observability";
-import { closeRedisClient } from "@openplane/redis";
+import { startTracing, stopTracing } from "@openbeam/observability";
+import { closeRedisClient } from "@openbeam/redis";
 import logger from "./utils/logger";
 
-const serviceName = "openplane-server";
+const serviceName = "openbeam-server";
 
 const tracingHandle = startTracing({
   serviceName,

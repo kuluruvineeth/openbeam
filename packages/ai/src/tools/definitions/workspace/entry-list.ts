@@ -59,7 +59,7 @@ RETURNS: Paginated list of entries with field values, total count, and paginatio
     const startTime = performance.now();
 
     const { getTeamDuckDB, initializeEAVSchema, listEntries } = await import(
-      "@openplane/services"
+      "@openbeam/services"
     );
 
     const db = await getTeamDuckDB(ctx.teamId);

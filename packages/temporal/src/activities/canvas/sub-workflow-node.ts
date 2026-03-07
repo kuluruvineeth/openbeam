@@ -1,22 +1,22 @@
-import type { Database } from "@openplane/db";
+import type { Database } from "@openbeam/db";
 import {
   createAgentCanvasExecution,
   findAgentCanvasById,
   findAgentCanvasVersion,
   listAgentCanvasVersions,
-} from "@openplane/db";
-import { evaluateExpression } from "@openplane/services/canvas/expression";
-import { resolveNodeConfig } from "@openplane/services/canvas/node-config";
+} from "@openbeam/db";
+import { evaluateExpression } from "@openbeam/services/canvas/expression";
+import { resolveNodeConfig } from "@openbeam/services/canvas/node-config";
 import {
   CanvasStateSchema,
   SubWorkflowNodeConfigSchema,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import type {
   PrepareSubWorkflowExecutionInput,
   PrepareSubWorkflowExecutionOutput,
   ResolveSubWorkflowOutput,
   ResolveSubWorkflowOutputInput,
-} from "@openplane/types/temporal";
+} from "@openbeam/types/temporal";
 
 const VARIABLE_REF = /{{\s*([^}]+)\s*}}/;
 

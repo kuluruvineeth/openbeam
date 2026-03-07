@@ -6,7 +6,7 @@ import type {
   TokenUsage,
   ToolCallInfo,
   ToolResult,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import {
   generateText,
   type ModelMessage,

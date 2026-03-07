@@ -3,11 +3,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mockAppendSessionEvent = vi.fn();
 const mockPublishSessionRuntimeEvent = vi.fn();
 
-vi.mock("@openplane/db", () => ({
+vi.mock("@openbeam/db", () => ({
   appendSessionEvent: (...args: unknown[]) => mockAppendSessionEvent(...args),
 }));
 
-vi.mock("@openplane/redis", () => ({
+vi.mock("@openbeam/redis", () => ({
   publishSessionRuntimeEvent: (...args: unknown[]) =>
     mockPublishSessionRuntimeEvent(...args),
 }));

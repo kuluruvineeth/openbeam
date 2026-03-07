@@ -1,12 +1,12 @@
 import prisma, {
   findSlackConnectorByTeamId,
   getDecryptedOAuthCredentials,
-} from "@openplane/db";
+} from "@openbeam/db";
 import {
   createSlackClient,
   getAllChannels,
   verifySlackSignature,
-} from "@openplane/services";
+} from "@openbeam/services";
 import { Hono } from "hono";
 import logger from "../../utils/logger";
 

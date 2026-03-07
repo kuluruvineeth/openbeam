@@ -2,7 +2,7 @@ import type {
   CanvasNodeType,
   ExecutionContext,
   ExecutionPlanNode,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 
 export function createExecutionContext(
   overrides: Partial<ExecutionContext> = {}

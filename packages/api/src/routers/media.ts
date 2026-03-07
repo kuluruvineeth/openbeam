@@ -1,4 +1,4 @@
-import { mediaAIService, mediaMetadataService } from "@openplane/services";
+import { mediaAIService, mediaMetadataService } from "@openbeam/services";
 import { z } from "zod";
 import { createTRPCRouter } from "../index";
 import { withActiveTeam } from "./apps/middleware";

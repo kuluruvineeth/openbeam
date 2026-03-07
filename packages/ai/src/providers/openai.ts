@@ -2,11 +2,11 @@ import { createOpenAI } from "@ai-sdk/openai";
 import type {
   ChatModelDefinition,
   EmbeddingModelDefinition,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import {
   getChatModelsByProvider,
   getEmbeddingModelsByProvider,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import type { EmbeddingModel, LanguageModel } from "ai";
 import { getConfig } from "../config";
 import type { AIProvider } from "./types";

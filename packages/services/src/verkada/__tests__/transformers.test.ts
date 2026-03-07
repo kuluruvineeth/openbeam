@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import type { VerkadaTransformContext } from "@openplane/types/services/connectors/verkada";
+import type { VerkadaTransformContext } from "@openbeam/types/services/connectors/verkada";
 import type { VerkadaCamera } from "../transformers/camera";
 import { transformCamera, transformCameras } from "../transformers/camera";
 import type { VerkadaDoor } from "../transformers/door";

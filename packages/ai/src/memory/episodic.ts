@@ -5,7 +5,7 @@ import type {
   MemoryRetrievalResult,
   MemoryStoreOptions,
   ScoredMemoryEntry,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import type { MemoryStore } from "./types";
 import { DEFAULT_MEMORY_OPTIONS } from "./types";
 

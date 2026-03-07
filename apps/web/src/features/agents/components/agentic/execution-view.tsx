@@ -1,13 +1,13 @@
 "use client";
 
-import type { ExecutionListItem } from "@openplane/types/canvas/execution-ui";
-import type { TimelineData } from "@openplane/types/canvas/timeline";
+import type { ExecutionListItem } from "@openbeam/types/canvas/execution-ui";
+import type { TimelineData } from "@openbeam/types/canvas/timeline";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "@openplane/ui";
-import { cn } from "@openplane/ui/utils";
+} from "@openbeam/ui";
+import { cn } from "@openbeam/ui/utils";
 import { forwardRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { ExecutionDetailView } from "./execution-detail-view";

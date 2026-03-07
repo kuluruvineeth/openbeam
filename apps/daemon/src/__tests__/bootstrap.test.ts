@@ -5,7 +5,7 @@ import net from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import pino from "pino";
-import { createDaemon, type OpenPlaneDaemon } from "../bootstrap";
+import { createDaemon, type OpenBeamDaemon } from "../bootstrap";
 import type { DaemonConfig } from "../config";
 
 const silentLogger = pino({ level: "silent" });
@@ -30,7 +30,7 @@ async function getAvailablePort(): Promise<number> {
 function createTempDir(): string {
   const dir = join(
     tmpdir(),
-    `openplane-boot-test-${randomBytes(8).toString("hex")}`
+    `openbeam-boot-test-${randomBytes(8).toString("hex")}`
   );
   mkdirSync(dir, { recursive: true });
   return dir;
@@ -55,7 +55,7 @@ function createTestConfig(daemonHome: string, port: number): DaemonConfig {
 
 describe("createDaemon", () => {
   const tempDirs: string[] = [];
-  const daemons: OpenPlaneDaemon[] = [];
+  const daemons: OpenBeamDaemon[] = [];
 
   afterEach(async () => {
     for (const daemon of daemons) {

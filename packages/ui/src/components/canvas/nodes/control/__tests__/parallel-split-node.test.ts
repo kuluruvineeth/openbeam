@@ -2,7 +2,7 @@ import { describe, expect, it } from "bun:test";
 import {
   ParallelSplitBranchSchema,
   ParallelSplitNodeConfigSchema,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { createParallelSplitNodeData } from "../parallel-split-node";
 
 describe("createParallelSplitNodeData", () => {

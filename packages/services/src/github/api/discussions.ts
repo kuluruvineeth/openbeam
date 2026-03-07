@@ -1,7 +1,7 @@
 import {
   type GitHubDiscussion,
   GitHubDiscussionSchema,
-} from "@openplane/types/services/connectors/github";
+} from "@openbeam/types/services/connectors/github";
 import type { GitHubClient } from "../client";
 
 const DISCUSSIONS_QUERY = `

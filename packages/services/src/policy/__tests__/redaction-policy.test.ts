@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import type { RuntimeEventPayload } from "@openplane/types/canvas/runtime-events";
+import type { RuntimeEventPayload } from "@openbeam/types/canvas/runtime-events";
 import { redactToolPayload, shouldRedactTool } from "../redaction-policy";
 
 describe("shouldRedactTool", () => {

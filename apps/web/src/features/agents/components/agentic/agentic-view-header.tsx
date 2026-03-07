@@ -1,9 +1,9 @@
 "use client";
 
-import { Icons, useBuilderStatus } from "@openplane/ui";
-import { Button } from "@openplane/ui/components/button";
-import { Skeleton } from "@openplane/ui/components/skeleton";
-import { cn } from "@openplane/ui/utils";
+import { Icons, useBuilderStatus } from "@openbeam/ui";
+import { Button } from "@openbeam/ui/components/button";
+import { Skeleton } from "@openbeam/ui/components/skeleton";
+import { cn } from "@openbeam/ui/utils";
 import {
   useMutation,
   useQueryClient,

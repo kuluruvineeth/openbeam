@@ -1,8 +1,8 @@
 import type {
   AzureIotSyncBatch,
   AzureIotTransformContext,
-} from "@openplane/types/services/connectors/azure-iot";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/azure-iot";
+import type { GenericDocument } from "@openbeam/vespa";
 import type { AzureIotClient } from "../client";
 import { transformDevices } from "../transformers/device";
 import { createSyncBatch } from "./utils";

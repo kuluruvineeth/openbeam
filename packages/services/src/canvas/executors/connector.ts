@@ -1,7 +1,7 @@
 import {
   type ConnectorActionNodeConfig,
   ConnectorNodeConfigSchema,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { resolveNodeConfig } from "../node-config";
 import type { CanvasNodeExecutor } from "../types";
 import { connectorActionExecutor } from "./connector-action";

@@ -1,5 +1,5 @@
-import type { Embedding } from "@openplane/ai";
-import type { GenericDocument } from "@openplane/vespa";
+import type { Embedding } from "@openbeam/ai";
+import type { GenericDocument } from "@openbeam/vespa";
 
 export interface HybridSearchParams {
   query: string;

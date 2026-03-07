@@ -1,5 +1,5 @@
 import type { RouteHandler } from "@hono/zod-openapi";
-import prisma from "@openplane/db";
+import prisma from "@openbeam/db";
 import {
   getDocumentPermissionsForTeam,
   getMyPermissionsForTeam,
@@ -10,7 +10,7 @@ import {
   invalidatePermissionsCacheForTeam,
   listPermissionSyncStatusesForTeam,
   PermissionsServiceError,
-} from "@openplane/services/permissions-api";
+} from "@openbeam/services/permissions-api";
 import type { AuthEnv } from "@/middleware/auth";
 import { getTeamId } from "@/middleware/auth";
 import type {

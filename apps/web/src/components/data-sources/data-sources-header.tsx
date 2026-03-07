@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Card } from "@openplane/ui";
+import { Button, Card } from "@openbeam/ui";
 import Link from "next/link";
 import { Icons } from "@/components/icons";
 import { useDataSourcesStats } from "@/hooks/use-data-sources";

@@ -1,6 +1,6 @@
 "use client";
 
-import { cn, Input, Switch } from "@openplane/ui";
+import { cn, Input, Switch } from "@openbeam/ui";
 import { cva } from "class-variance-authority";
 import { useCallback } from "react";
 import type { ChartConfig, ChartType } from "../types";

@@ -1,4 +1,4 @@
-import { ConditionNodeConfigSchema } from "@openplane/types/canvas";
+import { ConditionNodeConfigSchema } from "@openbeam/types/canvas";
 import { selectConditionBranch } from "../conditions";
 import { CanvasNodeExecutionError } from "../errors";
 import { evaluateFunctionBody } from "../expression";

@@ -1,9 +1,9 @@
 apiVersion: 1
 
 providers:
-  - name: "OpenPlane Dashboards"
+  - name: "OpenBeam Dashboards"
     orgId: 1
-    folder: "OpenPlane"
+    folder: "OpenBeam"
     type: file
     disableDeletion: false
     updateIntervalSeconds: 10

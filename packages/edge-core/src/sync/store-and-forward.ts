@@ -3,7 +3,7 @@ import type {
   OutboundEvent,
   OutboundEventPriority,
   QueueStats,
-} from "@openplane/types/edge/queue";
+} from "@openbeam/types/edge/queue";
 
 const PRIORITY_TO_NUMBER: Record<OutboundEventPriority, number> = {
   critical: 0,

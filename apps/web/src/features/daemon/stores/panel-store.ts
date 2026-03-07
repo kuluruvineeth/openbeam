@@ -213,7 +213,7 @@ export const usePanelStore = create<PanelState>()(
         }),
     }),
     {
-      name: "openplane-daemon-panel",
+      name: "openbeam-daemon-panel",
       version: 2,
       storage: createJSONStorage(() => localStorage),
       migrate: (persistedState, version) => {

@@ -1,4 +1,4 @@
-import type { SandboxConfig as RuntimeSandboxConfig } from "@openplane/sandbox";
+import type { SandboxConfig as RuntimeSandboxConfig } from "@openbeam/sandbox";
 import {
   getAvailableSandboxProviders,
   resolveAvailableSandboxProvider,
@@ -54,7 +54,7 @@ function getSandboxApiProviderQuery(): string {
 function buildGatewayHeaders(teamId: string): Record<string, string> {
   const headers: Record<string, string> = {
     "content-type": "application/json",
-    "x-openplane-team-id": teamId,
+    "x-openbeam-team-id": teamId,
   };
 
   const token = process.env.SANDBOX_API_TOKEN?.trim();

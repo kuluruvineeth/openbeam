@@ -1,5 +1,5 @@
-import type { RuntimeEvent } from "@openplane/types/canvas/runtime-events";
-import { RuntimeEventSchema } from "@openplane/types/canvas/runtime-events";
+import type { RuntimeEvent } from "@openbeam/types/canvas/runtime-events";
+import { RuntimeEventSchema } from "@openbeam/types/canvas/runtime-events";
 import { LRUCache } from "lru-cache";
 import type { RedisClientType } from "redis";
 import { getRedisClient } from "../client";

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@openplane/ui";
+import { Button } from "@openbeam/ui";
 import {
   ENABLE_THINKING_MOCK,
   getMockThinkingProps,
@@ -28,8 +28,8 @@ function ThinkingDemoStatic() {
   const { thinking, steps } = getMockThinkingProps();
 
   return (
-    <div className="border border-openplane-blue/30 border-dashed bg-openplane-blue/5 p-4">
-      <div className="mb-2 font-mono text-[10px] text-openplane-blue">
+    <div className="border border-openbeam-blue/30 border-dashed bg-openbeam-blue/5 p-4">
+      <div className="mb-2 font-mono text-[10px] text-openbeam-blue">
         [DEV] Static Thinking Demo
       </div>
       <ThinkingDisplay steps={steps} thinking={thinking} />
@@ -41,9 +41,9 @@ function ThinkingDemoAnimated() {
   const { thinking, steps, phase, start, reset } = useMockThinking();
 
   return (
-    <div className="border border-openplane-blue/30 border-dashed bg-openplane-blue/5 p-4">
+    <div className="border border-openbeam-blue/30 border-dashed bg-openbeam-blue/5 p-4">
       <div className="mb-3 flex items-center justify-between">
-        <div className="font-mono text-[10px] text-openplane-blue">
+        <div className="font-mono text-[10px] text-openbeam-blue">
           [DEV] Animated Thinking Demo — Phase: {phase}
         </div>
         <div className="flex gap-2">

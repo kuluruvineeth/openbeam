@@ -4,7 +4,7 @@ import {
   BinaryMuxChannel,
   type BinaryMuxFrame,
   TerminalBinaryMessageType,
-} from "@openplane/types/services/daemon";
+} from "@openbeam/types/services/daemon";
 
 export type BinaryFrameHandler = (frame: BinaryMuxFrame) => void;
 

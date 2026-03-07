@@ -1,6 +1,6 @@
 "use client";
 
-import type { GeneratedImage } from "@openplane/types/canvas";
+import type { GeneratedImage } from "@openbeam/types/canvas";
 import { forwardRef, memo, useCallback, useState } from "react";
 import { cn } from "../../../utils";
 import { Button } from "../../button";

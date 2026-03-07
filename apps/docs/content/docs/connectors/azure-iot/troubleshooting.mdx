@@ -24,7 +24,7 @@ description: Common Azure IoT Hub connector issues and fixes.
     **Fix:**
     1. In Azure Portal, verify the policy named in `SharedAccessKeyName` still exists
     2. Regenerate the primary key if compromised: **IoT Hub** > **Shared access policies** > **Regenerate primary key**
-    3. Copy the new connection string and update the connector in OpenPlane
+    3. Copy the new connection string and update the connector in OpenBeam
     4. SAS tokens are auto-generated from the key -- if the key changes, existing tokens are invalidated immediately
   </Accordion>
 
@@ -34,7 +34,7 @@ description: Common Azure IoT Hub connector issues and fixes.
     **Fix:**
     - Verify the IoT Hub still exists in Azure (not deleted or moved)
     - Check that `HostName` matches exactly: `your-hub.azure-devices.net`
-    - If using a private endpoint, ensure the OpenPlane server can reach it
+    - If using a private endpoint, ensure the OpenBeam server can reach it
   </Accordion>
 </Accordions>
 
@@ -110,7 +110,7 @@ description: Common Azure IoT Hub connector issues and fixes.
 
     **Fix:**
     1. Check [Azure Status](https://status.azure.com/) for IoT Hub outages
-    2. Verify network connectivity from the OpenPlane server to `*.azure-devices.net`
+    2. Verify network connectivity from the OpenBeam server to `*.azure-devices.net`
     3. Cancel the stuck sync and retry
     4. Check server logs for specific HTTP error codes
   </Accordion>
@@ -131,7 +131,7 @@ curl -H "Authorization: SharedAccessSignature ..." \
 # IoT Hub > Metrics > Connected devices, Telemetry messages sent
 ```
 
-Still stuck? [Open an issue](https://github.com/kuluruvineeth/openplane/issues) with the connector status, IoT Hub tier, device count, and error messages.
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openbeam/issues) with the connector status, IoT Hub tier, device count, and error messages.
 
 <Cards>
   <Card title="Setup" href="/docs/connectors/azure-iot/setup" description="Reconnect or reconfigure the connector" />

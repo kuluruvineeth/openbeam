@@ -38,7 +38,7 @@ describe("codex agent commands E2E", () => {
         "argument-hint: NAME=<name>",
         "---",
         "",
-        "Say hello to $NAME and then output exactly OPENPLANE_OK.",
+        "Say hello to $NAME and then output exactly OPENBEAM_OK.",
         "",
       ].join("\n"),
       "utf8"
@@ -53,7 +53,7 @@ describe("codex agent commands E2E", () => {
         "user-invocable: true",
         "---",
         "",
-        "When invoked, respond with exactly OPENPLANE_SKILL_OK.",
+        "When invoked, respond with exactly OPENBEAM_SKILL_OK.",
         "",
       ].join("\n"),
       "utf8"
@@ -100,7 +100,7 @@ describe("codex agent commands E2E", () => {
 
     const promptsDir = path.join(codexHome, "prompts");
     mkdirSync(promptsDir, { recursive: true });
-    const promptPath = path.join(promptsDir, "openplane-test-sayok.md");
+    const promptPath = path.join(promptsDir, "openbeam-test-sayok.md");
     writeFileSync(
       promptPath,
       [
@@ -109,7 +109,7 @@ describe("codex agent commands E2E", () => {
         "argument-hint: NAME=<name>",
         "---",
         "",
-        "Output exactly: OPENPLANE_OK $NAME",
+        "Output exactly: OPENBEAM_OK $NAME",
         "",
       ].join("\n"),
       "utf8"
@@ -123,12 +123,12 @@ describe("codex agent commands E2E", () => {
 
     await ctx.client.sendMessage(
       agent.id,
-      "/prompts:openplane-test-sayok NAME=world"
+      "/prompts:openbeam-test-sayok NAME=world"
     );
     const state = await ctx.client.waitForFinish(agent.id, 30_000);
 
     expect(state.status).toBe("idle");
-    expect(state.lastMessage).toContain("OPENPLANE_OK");
+    expect(state.lastMessage).toContain("OPENBEAM_OK");
 
     rmSync(promptPath, { force: true });
   }, 30_000);
@@ -139,13 +139,13 @@ describe("codex agent commands E2E", () => {
     const promptsDir = path.join(codexHome, "prompts");
     mkdirSync(promptsDir, { recursive: true });
     writeFileSync(
-      path.join(promptsDir, "openplane-test-sayok.md"),
+      path.join(promptsDir, "openbeam-test-sayok.md"),
       [
         "---",
         "description: Say OK",
         "---",
         "",
-        "Output exactly: OPENPLANE_OK",
+        "Output exactly: OPENBEAM_OK",
         "",
       ].join("\n"),
       "utf8"
@@ -161,12 +161,12 @@ describe("codex agent commands E2E", () => {
 
       await ctx.client.sendMessage(
         agent.id,
-        "/prompts:openplane-test-sayok NAME=world"
+        "/prompts:openbeam-test-sayok NAME=world"
       );
       const state = await ctx.client.waitForFinish(agent.id, 30_000);
 
       expect(state.status).toBe("idle");
-      expect(state.lastMessage).toContain("OPENPLANE_OK openplane-test-sayok");
+      expect(state.lastMessage).toContain("OPENBEAM_OK openbeam-test-sayok");
     } finally {
       if (prevCodexHome === undefined) {
         process.env.CODEX_HOME = undefined;
@@ -193,7 +193,7 @@ describe("codex agent commands E2E", () => {
 
     expect(state.status).toBe("idle");
     expect(state.lastMessage).toContain(token);
-    expect(state.lastMessage).not.toContain("OPENPLANE_SKILL_OK");
+    expect(state.lastMessage).not.toContain("OPENBEAM_SKILL_OK");
   }, 30_000);
 
   test("returns error for non-existent agent", async () => {

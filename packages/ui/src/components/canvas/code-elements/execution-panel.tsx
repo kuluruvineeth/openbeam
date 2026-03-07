@@ -3,7 +3,7 @@
 import type {
   CodeExecutionResult,
   ConsoleLogEntry,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { memo, useMemo } from "react";
 import { cn } from "../../../utils";
 import { Badge } from "../../badge";

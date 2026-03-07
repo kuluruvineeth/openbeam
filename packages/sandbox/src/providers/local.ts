@@ -86,7 +86,7 @@ export class LocalSandboxProvider implements SandboxProvider {
 
   async create(config: SandboxConfig): Promise<Sandbox> {
     const sandboxId = randomUUID();
-    const workspaceRoot = await mkdtemp(join(tmpdir(), "openplane-sandbox-"));
+    const workspaceRoot = await mkdtemp(join(tmpdir(), "openbeam-sandbox-"));
 
     const sandbox = new LocalSandbox({
       id: sandboxId,

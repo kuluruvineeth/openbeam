@@ -36,12 +36,12 @@ const RESOURCE_ICON_MAP = new Map<string, IconComponent>([
 
 const DOC_TYPE_CONFIG: Record<string, { icon: IconComponent; style: string }> =
   {
-    message: { icon: Icons.Messages, style: "text-openplane-blue" },
-    page: { icon: Icons.FileTextIcon, style: "text-openplane-orange" },
-    image: { icon: Icons.FileImageIcon, style: "text-openplane-pink" },
-    file: { icon: Icons.FileIcon, style: "text-openplane-green" },
-    video: { icon: Icons.Video, style: "text-openplane-purple" },
-    audio: { icon: Icons.FileAudio, style: "text-openplane-yellow" },
+    message: { icon: Icons.Messages, style: "text-openbeam-blue" },
+    page: { icon: Icons.FileTextIcon, style: "text-openbeam-orange" },
+    image: { icon: Icons.FileImageIcon, style: "text-openbeam-pink" },
+    file: { icon: Icons.FileIcon, style: "text-openbeam-green" },
+    video: { icon: Icons.Video, style: "text-openbeam-purple" },
+    audio: { icon: Icons.FileAudio, style: "text-openbeam-yellow" },
     application: { icon: Icons.FileIcon, style: "text-foreground/40" },
     text: { icon: Icons.FileTextIcon, style: "text-foreground/40" },
   };

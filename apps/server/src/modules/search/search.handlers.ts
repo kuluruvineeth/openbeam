@@ -1,5 +1,5 @@
 import type { RouteHandler } from "@hono/zod-openapi";
-import { hybridSearchOrchestrator } from "@openplane/services";
+import { hybridSearchOrchestrator } from "@openbeam/services";
 import { searchQueriesCounter } from "@/metrics";
 import type { AuthEnv } from "@/middleware/auth";
 import { getTeamId } from "@/middleware/auth";

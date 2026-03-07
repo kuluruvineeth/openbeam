@@ -1,5 +1,5 @@
 import { createRootLogger } from "../src/server/logger";
-import { resolveOpenPlaneHome } from "../src/server/openplane-home";
+import { resolveOpenBeamHome } from "../src/server/openbeam-home";
 import {
   DEFAULT_LOCAL_STT_MODEL,
   DEFAULT_LOCAL_TTS_MODEL,
@@ -11,10 +11,10 @@ function parseArgs(argv: string[]): {
   modelsDir: string;
   modelIds: LocalSpeechModelId[];
 } {
-  const home = resolveOpenPlaneHome();
+  const home = resolveOpenBeamHome();
   // biome-ignore lint/nursery/noShadow: intentional variable scoping
   let modelsDir =
-    process.env.OPENPLANE_LOCAL_MODELS_DIR || `${home}/models/local-speech`;
+    process.env.OPENBEAM_LOCAL_MODELS_DIR || `${home}/models/local-speech`;
   // biome-ignore lint/nursery/noShadow: intentional variable scoping
   const modelIds: LocalSpeechModelId[] = [];
 
@@ -38,9 +38,9 @@ function parseArgs(argv: string[]): {
   }
 
   if (modelIds.length === 0) {
-    const stt = (process.env.OPENPLANE_LOCAL_STT_MODEL ||
+    const stt = (process.env.OPENBEAM_LOCAL_STT_MODEL ||
       DEFAULT_LOCAL_STT_MODEL) as LocalSpeechModelId;
-    const tts = (process.env.OPENPLANE_LOCAL_TTS_MODEL ||
+    const tts = (process.env.OPENBEAM_LOCAL_TTS_MODEL ||
       DEFAULT_LOCAL_TTS_MODEL) as LocalSpeechModelId;
     modelIds.push(stt, tts);
   }

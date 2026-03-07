@@ -2,8 +2,8 @@ import {
   type Embedding,
   getConfig as getAIConfig,
   getBGEM3Provider,
-} from "@openplane/ai";
-import { buildVectorQueryFeatures, vespaClient } from "@openplane/vespa";
+} from "@openbeam/ai";
+import { buildVectorQueryFeatures, vespaClient } from "@openbeam/vespa";
 import { getOrGenerateEmbedding } from "./embedding-cache";
 import type {
   HybridSearchParams,
@@ -98,7 +98,7 @@ export async function hybridSearch(
     conditions.push("is_public = true");
   }
 
-  const yql = `select * from openplane_document where ${conditions.join(" and ")} limit ${limit} offset ${offset}`;
+  const yql = `select * from openbeam_document where ${conditions.join(" and ")} limit ${limit} offset ${offset}`;
 
   const vectorFeatures = buildVectorQueryFeatures(queryEmbedding);
 
@@ -198,7 +198,7 @@ export async function keywordSearch(
     conditions.push("is_public = true");
   }
 
-  const yql = `select * from openplane_document where ${conditions.join(" and ")} limit ${limit} offset ${offset}`;
+  const yql = `select * from openbeam_document where ${conditions.join(" and ")} limit ${limit} offset ${offset}`;
 
   const result = await vespaClient.query({
     yql,

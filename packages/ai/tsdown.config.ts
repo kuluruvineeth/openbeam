@@ -12,5 +12,5 @@ export default defineConfig({
   format: ["esm"],
   dts: true,
   clean: true,
-  external: [/^@openplane\//],
+  external: [/^@openbeam\//],
 });

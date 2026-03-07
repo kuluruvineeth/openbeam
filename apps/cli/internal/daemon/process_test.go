@@ -30,7 +30,7 @@ func TestResolveDaemonHome(t *testing.T) {
 	})
 
 	t.Run("env fallback", func(t *testing.T) {
-		t.Setenv("OPENPLANE_DAEMON_HOME", "/env/path")
+		t.Setenv("OPENBEAM_DAEMON_HOME", "/env/path")
 		result := ResolveDaemonHome("")
 		if result != "/env/path" {
 			t.Errorf("expected /env/path, got %s", result)
@@ -38,7 +38,7 @@ func TestResolveDaemonHome(t *testing.T) {
 	})
 
 	t.Run("default fallback", func(t *testing.T) {
-		t.Setenv("OPENPLANE_DAEMON_HOME", "")
+		t.Setenv("OPENBEAM_DAEMON_HOME", "")
 		result := ResolveDaemonHome("")
 		if result == "" {
 			t.Fatal("expected non-empty default")
@@ -55,7 +55,7 @@ func TestResolveListen(t *testing.T) {
 	})
 
 	t.Run("env fallback", func(t *testing.T) {
-		t.Setenv("OPENPLANE_LISTEN", "0.0.0.0:7777")
+		t.Setenv("OPENBEAM_LISTEN", "0.0.0.0:7777")
 		result := ResolveListen("")
 		if result != "0.0.0.0:7777" {
 			t.Errorf("expected 0.0.0.0:7777, got %s", result)
@@ -63,7 +63,7 @@ func TestResolveListen(t *testing.T) {
 	})
 
 	t.Run("default", func(t *testing.T) {
-		t.Setenv("OPENPLANE_LISTEN", "")
+		t.Setenv("OPENBEAM_LISTEN", "")
 		result := ResolveListen("")
 		if result != DefaultListen {
 			t.Errorf("expected %s, got %s", DefaultListen, result)
@@ -228,7 +228,7 @@ func TestFormatListenAddress(t *testing.T) {
 		{"127.0.0.1:6868", "127.0.0.1:6868"},
 		{"0.0.0.0:8080", "0.0.0.0:8080"},
 		{"localhost:6868", "localhost:6868"},
-		{"/tmp/openplane.sock", "/tmp/openplane.sock"},
+		{"/tmp/openbeam.sock", "/tmp/openbeam.sock"},
 		{"6868", "127.0.0.1:6868"},
 	}
 

@@ -46,28 +46,28 @@ export interface LatentDemandSummary {
 }
 
 const latentDemandTotal = new Counter({
-  name: "openplane_ai_latent_demand_total",
+  name: "openbeam_ai_latent_demand_total",
   help: "Total unfulfilled agent requests",
   labelNames: ["team_id", "reason"] as const,
   registers: [aiMetricsRegistry],
 });
 
 const latentDemandByCategory = new Counter({
-  name: "openplane_ai_latent_demand_by_category_total",
+  name: "openbeam_ai_latent_demand_by_category_total",
   help: "Unfulfilled requests by query category",
   labelNames: ["team_id", "category", "reason"] as const,
   registers: [aiMetricsRegistry],
 });
 
 const suggestedCapabilityFrequency = new Counter({
-  name: "openplane_ai_suggested_capability_frequency_total",
+  name: "openbeam_ai_suggested_capability_frequency_total",
   help: "Frequency of suggested capabilities",
   labelNames: ["capability"] as const,
   registers: [aiMetricsRegistry],
 });
 
 const partialProgressHistogram = new Histogram({
-  name: "openplane_ai_latent_demand_partial_progress",
+  name: "openbeam_ai_latent_demand_partial_progress",
   help: "Partial progress achieved before failure",
   labelNames: ["reason"] as const,
   buckets: [0, 0.1, 0.25, 0.5, 0.75, 0.9, 1.0],

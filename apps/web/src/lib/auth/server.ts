@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { cache } from "react";
 import { internalServerUrl } from "@/lib/urls";
 
-const SESSION_COOKIE_NAME = "openplane-session";
+const SESSION_COOKIE_NAME = "openbeam-session";
 
 export interface SessionUser {
   id: string;

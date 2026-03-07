@@ -3,10 +3,10 @@ package runtime
 import (
 	"io"
 
-	"github.com/openplane/openplane/apps/cli/internal/api"
-	"github.com/openplane/openplane/apps/cli/internal/auth"
-	"github.com/openplane/openplane/apps/cli/internal/config"
-	"github.com/openplane/openplane/apps/cli/internal/output"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/api"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/auth"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/config"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/output"
 )
 
 const InvalidFD = ^uintptr(0)

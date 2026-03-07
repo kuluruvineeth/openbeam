@@ -1,4 +1,4 @@
-import type { NodeCategory } from "@openplane/types/canvas";
+import type { NodeCategory } from "@openbeam/types/canvas";
 
 export const CATEGORY_COLORS: Record<NodeCategory, string> = {
   control: "hsl(220 70% 50%)",

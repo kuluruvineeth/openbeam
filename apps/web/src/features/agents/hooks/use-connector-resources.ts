@@ -1,6 +1,6 @@
 "use client";
 
-import type { ResourceInfo } from "@openplane/ui/components/event-builder";
+import type { ResourceInfo } from "@openbeam/ui/components/event-builder";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { useTRPC } from "@/trpc/client";

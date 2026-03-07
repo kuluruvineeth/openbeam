@@ -1,5 +1,5 @@
 import type { RouteHandler } from "@hono/zod-openapi";
-import prisma from "@openplane/db";
+import prisma from "@openbeam/db";
 import {
   getExpertsForTopicForTeam,
   getKnowledgeEntityForTeam,
@@ -9,7 +9,7 @@ import {
   KnowledgeServiceError,
   listKnowledgeEntitiesForTeam,
   searchKnowledgeEntitiesForTeam,
-} from "@openplane/services/knowledge-api";
+} from "@openbeam/services/knowledge-api";
 import type { AuthEnv } from "@/middleware/auth";
 import { getTeamId } from "@/middleware/auth";
 import type {

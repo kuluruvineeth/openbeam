@@ -5,7 +5,7 @@ import type {
   ApprovalNodeConfig,
   ApprovalSeverity,
   Approver,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { memo, useCallback } from "react";
 import { AnimatedSizeContainer } from "../../animated-size-container";
 import { Checkbox } from "../../checkbox";

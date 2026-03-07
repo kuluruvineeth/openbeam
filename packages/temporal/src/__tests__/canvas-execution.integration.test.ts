@@ -40,7 +40,7 @@ import type {
   UpdateCanvasExecutionInput,
   UpdateCanvasExecutionStepInput,
   UpdateCanvasExecutionStepOutput,
-} from "@openplane/types/temporal";
+} from "@openbeam/types/temporal";
 import type { WorkflowHandle } from "@temporalio/client";
 import { TestWorkflowEnvironment } from "@temporalio/testing";
 import { Worker } from "@temporalio/worker";

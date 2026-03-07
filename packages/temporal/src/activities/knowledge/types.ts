@@ -1,4 +1,4 @@
-import type { DocumentChange } from "@openplane/db";
+import type { DocumentChange } from "@openbeam/db";
 
 export interface FetchUnprocessedChangesInput {
   teamId: string;

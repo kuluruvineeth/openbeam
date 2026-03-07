@@ -5,7 +5,7 @@ import type {
   TriggerWebhookSyncResult,
   UpdateSyncSettingsInput,
   UpdateSyncSettingsResult,
-} from "@openplane/types/db";
+} from "@openbeam/types/db";
 import { type Database, SyncJobStatus, SyncTrigger } from "../index";
 
 export const triggerSync = async (

@@ -1,7 +1,7 @@
 import {
   GOOGLE_WORKSPACE_MIME_TYPES,
   isGoogleWorkspaceType,
-} from "@openplane/types/services/connectors/google-drive";
+} from "@openbeam/types/services/connectors/google-drive";
 import type { GoogleDriveClient } from "../client";
 
 export const EXPORT_MIME_TYPES = {

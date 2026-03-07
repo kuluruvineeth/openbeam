@@ -1,11 +1,11 @@
 ---
 title: OAuth Scopes
-description: GitHub OAuth scopes required by OpenPlane and what each enables.
+description: GitHub OAuth scopes required by OpenBeam and what each enables.
 ---
 
 # OAuth Scopes
 
-OpenPlane requests four scopes during the OAuth authorization flow. Each scope controls access to specific GitHub resources.
+OpenBeam requests four scopes during the OAuth authorization flow. Each scope controls access to specific GitHub resources.
 
 ## Required Scopes
 
@@ -26,7 +26,7 @@ Fetches the authenticated user's GitHub profile. Used to display who connected t
 
 ### `user:email`
 
-Fetches the user's verified email addresses. OpenPlane uses the primary email for identity matching across connectors (linking GitHub activity to Slack messages, for example).
+Fetches the user's verified email addresses. OpenBeam uses the primary email for identity matching across connectors (linking GitHub activity to Slack messages, for example).
 
 ### `repo`
 
@@ -45,7 +45,7 @@ Grants read access to:
 
 ### `read:org`
 
-Reads the user's organization memberships. This allows OpenPlane to discover and index repositories from organizations the user belongs to, not just personal repositories.
+Reads the user's organization memberships. This allows OpenBeam to discover and index repositories from organizations the user belongs to, not just personal repositories.
 
 ## Optional Scopes
 
@@ -73,7 +73,7 @@ The `x-oauth-scopes` header lists all granted scopes.
 | Error | Cause | Fix |
 |-------|-------|-----|
 | `insufficient_scope` | Token lacks a required scope | Disconnect and reconnect to re-authorize with all scopes |
-| `redirect_uri_mismatch` | Callback URL does not match the registered OAuth App | Update the callback URL in GitHub Developer Settings to match your OpenPlane instance |
+| `redirect_uri_mismatch` | Callback URL does not match the registered OAuth App | Update the callback URL in GitHub Developer Settings to match your OpenBeam instance |
 | `bad_verification_code` | Authorization code expired or already used | Retry the OAuth flow from the beginning |
 | `access_denied` | User denied the authorization request | Re-initiate and click **Authorize** |
 
@@ -87,11 +87,11 @@ GitHub OAuth tokens issued via OAuth Apps do not expire by default. If the OAuth
 
 - Access tokens expire after 8 hours
 - Refresh tokens are issued alongside access tokens
-- OpenPlane handles token refresh automatically via `refreshGitHubToken`
+- OpenBeam handles token refresh automatically via `refreshGitHubToken`
 
 Check your app's settings under **Optional features** then **Token expiration** to see if expiration is enabled.
 
 <Cards>
-  <Card title="Setup" href="/docs/connectors/github/setup" description="Connect GitHub to OpenPlane in 5 minutes" />
+  <Card title="Setup" href="/docs/connectors/github/setup" description="Connect GitHub to OpenBeam in 5 minutes" />
   <Card title="Configuration" href="/docs/connectors/github/configuration" description="Connector settings and sync options" />
 </Cards>

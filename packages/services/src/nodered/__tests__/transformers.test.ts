@@ -4,7 +4,7 @@ import type {
   NodeRedNode,
   NodeRedNodeType,
   NodeRedTransformContext,
-} from "@openplane/types/services/connectors/nodered";
+} from "@openbeam/types/services/connectors/nodered";
 import { transformFlow, transformFlows } from "../transformers/flow";
 import {
   transformNodeType,

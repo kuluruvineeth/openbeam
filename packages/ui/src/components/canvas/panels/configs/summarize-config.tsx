@@ -1,6 +1,6 @@
 "use client";
 
-import type { SummarizeNodeConfig } from "@openplane/types/canvas";
+import type { SummarizeNodeConfig } from "@openbeam/types/canvas";
 import { forwardRef, memo } from "react";
 import {
   AdvancedSection,

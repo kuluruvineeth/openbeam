@@ -31,7 +31,7 @@ import type { ActivityInboundCallsInterceptor } from "@temporalio/worker";
 import { z } from "zod";
 
 const TracingConfigSchema = z.object({
-  serviceName: z.string().default("openplane-worker"),
+  serviceName: z.string().default("openbeam-worker"),
   serviceVersion: z.string().default("1.0.0"),
   environment: z
     .enum(["development", "staging", "production"])
@@ -49,7 +49,7 @@ let isInitialized = false;
 
 export function loadTracingConfig(): TracingConfig {
   return TracingConfigSchema.parse({
-    serviceName: process.env.OTEL_SERVICE_NAME ?? "openplane-worker",
+    serviceName: process.env.OTEL_SERVICE_NAME ?? "openbeam-worker",
     serviceVersion: process.env.OTEL_SERVICE_VERSION ?? "1.0.0",
     environment: process.env.NODE_ENV ?? "development",
     otlpEndpoint: process.env.OTEL_EXPORTER_OTLP_ENDPOINT,
@@ -120,7 +120,7 @@ export function getTracerProvider(): NodeTracerProvider | null {
   return tracerProvider;
 }
 
-export function getTracer(name = "@openplane/temporal") {
+export function getTracer(name = "@openbeam/temporal") {
   return trace.getTracer(name);
 }
 

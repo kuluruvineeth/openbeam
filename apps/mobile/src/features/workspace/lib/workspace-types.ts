@@ -3,7 +3,7 @@ import type {
   WorkspaceEntry,
   WorkspaceObjectDefinition,
   WorkspaceQueryResult,
-} from "@openplane/types/services/workspace";
+} from "@openbeam/types/services/workspace";
 
 export type WorkspaceViewMode = "table" | "list" | "kanban";
 

@@ -26,7 +26,7 @@ const FOOTER_COLUMNS = [
       { label: "API Reference", href: "https://docs.openbeam.work/api" },
       {
         label: "GitHub",
-        href: "https://github.com/openbeam/openbeam",
+        href: "https://github.com/kuluruvineeth/openbeam",
         external: true,
       },
       {

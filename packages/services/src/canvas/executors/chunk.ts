@@ -1,5 +1,5 @@
-import { chunkDocument, type TextChunk } from "@openplane/ai";
-import { ChunkNodeConfigSchema } from "@openplane/types/canvas";
+import { chunkDocument, type TextChunk } from "@openbeam/ai";
+import { ChunkNodeConfigSchema } from "@openbeam/types/canvas";
 import { CanvasNodeExecutionError } from "../errors";
 import { resolveNodeConfig } from "../node-config";
 import type { CanvasNodeExecutor } from "../types";

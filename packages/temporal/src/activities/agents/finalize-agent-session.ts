@@ -2,7 +2,7 @@ import {
   type BackgroundAgentStatus,
   type Database,
   updateBackgroundAgentStatus,
-} from "@openplane/db";
+} from "@openbeam/db";
 import type { FinalizeAgentSessionInput } from "./types";
 
 export interface FinalizeAgentSessionDependencies {

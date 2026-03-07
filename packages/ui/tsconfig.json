@@ -1,5 +1,5 @@
 {
-  "extends": "@openplane/config/tsconfig.base.json",
+  "extends": "@openbeam/config/tsconfig.base.json",
   "compilerOptions": {
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "rootDir": "src",

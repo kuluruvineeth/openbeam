@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { getOrCreateServerId } from "./server-id";
 
 function tmpHome(): string {
-  return mkdtempSync(path.join(tmpdir(), "openplane-server-id-"));
+  return mkdtempSync(path.join(tmpdir(), "openbeam-server-id-"));
 }
 
 describe("getOrCreateServerId", () => {
@@ -14,7 +14,7 @@ describe("getOrCreateServerId", () => {
 
   beforeEach(() => {
     process.env = { ...originalEnv };
-    process.env.OPENPLANE_SERVER_ID = undefined;
+    process.env.OPENBEAM_SERVER_ID = undefined;
     home = tmpHome();
   });
 
@@ -23,7 +23,7 @@ describe("getOrCreateServerId", () => {
     rmSync(home, { recursive: true, force: true });
   });
 
-  it("creates and persists a stable id per OPENPLANE_HOME", () => {
+  it("creates and persists a stable id per OPENBEAM_HOME", () => {
     const first = getOrCreateServerId(home);
     const second = getOrCreateServerId(home);
     expect(first).toBe(second);
@@ -34,8 +34,8 @@ describe("getOrCreateServerId", () => {
     expect(readFileSync(idPath, "utf8").trim()).toBe(first);
   });
 
-  it("respects and persists OPENPLANE_SERVER_ID override", () => {
-    process.env.OPENPLANE_SERVER_ID = "test-daemon-id";
+  it("respects and persists OPENBEAM_SERVER_ID override", () => {
+    process.env.OPENBEAM_SERVER_ID = "test-daemon-id";
     const id = getOrCreateServerId(home);
     expect(id).toBe("test-daemon-id");
 

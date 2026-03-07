@@ -1,4 +1,4 @@
-import { createLogger } from "@openplane/observability";
+import { createLogger } from "@openbeam/observability";
 
 type LogLevel = "debug" | "info" | "warn" | "error";
 
@@ -39,7 +39,7 @@ interface LoggerConfig {
 }
 
 const baseLogger = createLogger({
-  service: "openplane-analytics",
+  service: "openbeam-analytics",
   env: process.env.NODE_ENV || "development",
   level: process.env.LOG_LEVEL || "info",
   version: process.env.APP_VERSION || "0.1.0",

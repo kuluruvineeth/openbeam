@@ -10,7 +10,7 @@ services:
       SKIP_USER_EMAIL_VERIFICATION: "true"
       DASHBOARD_URL: "http://localhost:3000/dashboard"
       DASHBOARD_BASE_API_URL: "http://localhost:3000"
-      RUNNER_MANAGER_API_KEY: "openplane-runner-manager-key"
+      RUNNER_MANAGER_API_KEY: "openbeam-runner-manager-key"
     resources:
       requests:
         cpu: 200m
@@ -25,7 +25,7 @@ services:
       tls: false
     env:
       PROXY_PROTOCOL: "http"
-      PROXY_API_KEY: "openplane-proxy-key"
+      PROXY_API_KEY: "openbeam-proxy-key"
     resources:
       requests:
         cpu: 100m
@@ -44,9 +44,9 @@ services:
       PROVIDER_TYPE: "kubernetes"
       LOG_LEVEL: "debug"
       POD_WAIT_TIMEOUT: "600"
-      API_TOKEN: "openplane-runner-manager-key"
-      SYSTEM_API_TOKEN: "openplane-system-api-token"
-      API_KEY: "openplane-runner-api-key"
+      API_TOKEN: "openbeam-runner-manager-key"
+      SYSTEM_API_TOKEN: "openbeam-system-api-token"
+      API_KEY: "openbeam-runner-api-key"
       REGION_ID: "kind"
     resources:
       requests:
@@ -64,8 +64,8 @@ services:
       CONTAINER_RUNTIME: "containerd"
       RESOURCE_LIMITS_DISABLED: "true"
       SSH_GATEWAY_ENABLE: "false"
-      API_TOKEN: "openplane-runner-api-key"
-      SYSTEM_API_TOKEN: "openplane-system-api-token"
+      API_TOKEN: "openbeam-runner-api-key"
+      SYSTEM_API_TOKEN: "openbeam-system-api-token"
     dockerInstaller:
       enabled: false
     resources:

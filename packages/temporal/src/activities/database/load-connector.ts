@@ -1,9 +1,9 @@
-import type { Database } from "@openplane/db";
+import type { Database } from "@openbeam/db";
 import {
   getConnectorById,
   getDecryptedOAuthCredentials,
   getDisabledResourceExternalIds,
-} from "@openplane/db";
+} from "@openbeam/db";
 import type { ConnectorRecord } from "./types";
 
 function parseConnectorConfig(config: unknown): Record<string, unknown> {

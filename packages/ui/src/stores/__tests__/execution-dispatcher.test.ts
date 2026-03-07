@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "bun:test";
-import type { ExecutionEvent } from "@openplane/types/canvas";
+import type { ExecutionEvent } from "@openbeam/types/canvas";
 import { dispatchExecutionEvent } from "../execution-dispatcher";
 import { useExecutionStore } from "../execution-store";
 

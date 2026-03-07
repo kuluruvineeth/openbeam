@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import type { WorkspaceFieldDefinition } from "@openplane/types/services/workspace";
+import type { WorkspaceFieldDefinition } from "@openbeam/types/services/workspace";
 import {
   isValidFieldType,
   validateEntryValues,

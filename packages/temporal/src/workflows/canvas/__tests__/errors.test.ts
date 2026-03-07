@@ -1,7 +1,7 @@
 import type {
   RetryNodeConfig,
   TryCatchNodeConfig,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { ApplicationFailure } from "@temporalio/common";
 import { describe, expect, it } from "vitest";
 import {

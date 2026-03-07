@@ -1,4 +1,4 @@
-import { FilterNodeConfigSchema } from "@openplane/types/canvas";
+import { FilterNodeConfigSchema } from "@openbeam/types/canvas";
 import { evaluateConditions } from "../conditions";
 import { CanvasNodeExecutionError } from "../errors";
 import { evaluateExpression } from "../expression";

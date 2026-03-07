@@ -247,7 +247,7 @@ export async function rankedSearch<T = GenericDocument>(
     .filter(Boolean)
     .join(" and ");
 
-  const yql = `select * from openplane_document where ${whereClause}`;
+  const yql = `select * from openbeam_document where ${whereClause}`;
 
   const embeddingInputs = buildEmbeddingInputs(params.embeddings);
 
@@ -313,7 +313,7 @@ export async function findSimilarDocuments(
       ? ` and !(${params.excludeIds.map((id) => `id = "${escapeYqlString(id)}"`).join(" or ")})`
       : "";
 
-  const yql = `select * from openplane_document where team_id contains "${escapeYqlString(params.teamId)}"${excludeClause}`;
+  const yql = `select * from openbeam_document where team_id contains "${escapeYqlString(params.teamId)}"${excludeClause}`;
 
   const queryParams: QueryParams = {
     yql,

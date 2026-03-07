@@ -11,7 +11,7 @@ Notion uses OAuth 2.0 with capability-based permissions instead of granular scop
 
 1. Go to [notion.so/my-integrations](https://www.notion.so/my-integrations)
 2. Click **+ New integration**
-3. Enter a name (e.g., "OpenPlane")
+3. Enter a name (e.g., "OpenBeam")
 4. Select the workspace to connect
 5. Click **Submit**
 
@@ -33,7 +33,7 @@ By default, integrations are internal (single workspace). To use OAuth:
 5. Click **Save changes**
 
 <Callout type="info">
-  The redirect URI must match your OpenPlane instance exactly. Mismatches cause `redirect_uri_mismatch` errors during authorization.
+  The redirect URI must match your OpenBeam instance exactly. Mismatches cause `redirect_uri_mismatch` errors during authorization.
 </Callout>
 
 ## Required Capabilities
@@ -50,7 +50,7 @@ In the **Capabilities** tab, enable the following:
 | User information without email | -- | Resolve page authors by name |
 | User information with email | Recommended | Identity matching across connectors |
 
-OpenPlane requires **Read content** and **Read comments** at minimum. Select **User information with email** to enable cross-connector identity resolution (linking Notion activity to Slack, GitHub, etc.).
+OpenBeam requires **Read content** and **Read comments** at minimum. Select **User information with email** to enable cross-connector identity resolution (linking Notion activity to Slack, GitHub, etc.).
 
 ## Credentials
 
@@ -115,9 +115,9 @@ If capabilities are changed on the integration, existing tokens inherit the upda
 | Page access | Must be shared manually | User selects during OAuth |
 | Token management | Static token from settings | OAuth code exchange |
 
-OpenPlane uses **public integrations** with OAuth to support connecting any workspace without manual token management.
+OpenBeam uses **public integrations** with OAuth to support connecting any workspace without manual token management.
 
 <Cards>
-  <Card title="Setup" href="/docs/connectors/notion/setup" description="Connect Notion to OpenPlane" />
+  <Card title="Setup" href="/docs/connectors/notion/setup" description="Connect Notion to OpenBeam" />
   <Card title="Configuration" href="/docs/connectors/notion/configuration" description="Content extraction, sync intervals, and page access" />
 </Cards>

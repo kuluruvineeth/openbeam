@@ -1,7 +1,7 @@
 import type {
   MqttConnectionConfig,
   MqttSubscription,
-} from "@openplane/types/services/connectors/mqtt";
+} from "@openbeam/types/services/connectors/mqtt";
 import { logger } from "../lib/logger";
 import { MqttConnectorError } from "./types";
 

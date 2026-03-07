@@ -1,4 +1,4 @@
-import type { NodeCategory } from "@openplane/types/canvas";
+import type { NodeCategory } from "@openbeam/types/canvas";
 
 export const SHAPE_CLIP_PATHS: Record<NodeCategory, string> = {
   ai: "inset(0)",

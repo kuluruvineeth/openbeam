@@ -15,7 +15,7 @@ const findSimilarMock = mock(() =>
   })
 );
 
-mock.module("@openplane/ai", () => ({
+mock.module("@openbeam/ai", () => ({
   embedQueryWithCache: embedQueryWithCacheMock,
   embedQuery: mock(() => Promise.resolve([0.1, 0.2])),
   getConfig: () => ({
@@ -53,7 +53,7 @@ mock.module("@openplane/ai", () => ({
   estimateTokens: () => 0,
 }));
 
-mock.module("@openplane/redis", () => ({
+mock.module("@openbeam/redis", () => ({
   Cache: () => {
     /* mock */
   },

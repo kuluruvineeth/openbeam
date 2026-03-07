@@ -1,7 +1,7 @@
 import {
   type ExecutionDataRef,
   ExecutionDataRefSchema,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 
 export interface ClaimCheckMetadata {
   nodeId?: string;

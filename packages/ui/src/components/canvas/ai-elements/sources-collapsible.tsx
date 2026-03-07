@@ -1,6 +1,6 @@
 "use client";
 
-import type { Citation } from "@openplane/types/canvas";
+import type { Citation } from "@openbeam/types/canvas";
 import { cva } from "class-variance-authority";
 import { forwardRef, memo, useState } from "react";
 import { cn } from "../../../utils";

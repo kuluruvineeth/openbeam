@@ -1,6 +1,6 @@
 "use client";
 
-import { DEFAULT_CHAT_MODEL } from "@openplane/types/ai";
+import { DEFAULT_CHAT_MODEL } from "@openbeam/types/ai";
 import { create, type StateCreator } from "zustand";
 import {
   createJSONStorage,
@@ -274,7 +274,7 @@ function resolveStorageAdapter(
 function createAgentStore(config: AgentStoreConfig = {}) {
   const {
     storage = "localStorage",
-    storageKey = "openplane-agent-store",
+    storageKey = "openbeam-agent-store",
     onRehydrateStorage,
   } = config;
 

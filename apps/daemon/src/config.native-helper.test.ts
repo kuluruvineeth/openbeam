@@ -6,9 +6,9 @@ import { loadConfig } from "./config";
 
 const tempHomes: string[] = [];
 
-async function createOpenPlaneHome(config?: unknown): Promise<string> {
+async function createOpenBeamHome(config?: unknown): Promise<string> {
   const dir = await mkdtemp(
-    path.join(os.tmpdir(), "openplane-config-native-helper-")
+    path.join(os.tmpdir(), "openbeam-config-native-helper-")
   );
   tempHomes.push(dir);
 
@@ -51,7 +51,7 @@ afterEach(async () => {
 
 describe("loadConfig native helper", () => {
   test("defaults native helper config to disabled", async () => {
-    const home = await createOpenPlaneHome();
+    const home = await createOpenBeamHome();
     const config = loadConfig(home, { env: {} });
 
     expect(config.nativeHelper?.enabled).toBe(false);
@@ -61,12 +61,12 @@ describe("loadConfig native helper", () => {
   });
 
   test("loads persisted native helper config", async () => {
-    const home = await createOpenPlaneHome({
+    const home = await createOpenBeamHome({
       version: 1,
       daemon: {
         nativeHelper: {
           enabled: true,
-          command: "/opt/openplane/native-helper",
+          command: "/opt/openbeam/native-helper",
           args: ["--verbose", "--capture-shortcuts"],
           rpcTimeoutMs: 9000,
         },
@@ -75,7 +75,7 @@ describe("loadConfig native helper", () => {
 
     const config = loadConfig(home, { env: {} });
     expect(config.nativeHelper?.enabled).toBe(true);
-    expect(config.nativeHelper?.command).toBe("/opt/openplane/native-helper");
+    expect(config.nativeHelper?.command).toBe("/opt/openbeam/native-helper");
     expect(config.nativeHelper?.args).toEqual([
       "--verbose",
       "--capture-shortcuts",
@@ -84,7 +84,7 @@ describe("loadConfig native helper", () => {
   });
 
   test("allows env overrides for native helper config", async () => {
-    const home = await createOpenPlaneHome({
+    const home = await createOpenBeamHome({
       version: 1,
       daemon: {
         nativeHelper: {
@@ -98,10 +98,10 @@ describe("loadConfig native helper", () => {
 
     const config = loadConfig(home, {
       env: {
-        OPENPLANE_NATIVE_HELPER_ENABLED: "1",
-        OPENPLANE_NATIVE_HELPER_COMMAND: "/tmp/helper",
-        OPENPLANE_NATIVE_HELPER_ARGS: '["--port","9876"]',
-        OPENPLANE_NATIVE_HELPER_RPC_TIMEOUT_MS: "14000",
+        OPENBEAM_NATIVE_HELPER_ENABLED: "1",
+        OPENBEAM_NATIVE_HELPER_COMMAND: "/tmp/helper",
+        OPENBEAM_NATIVE_HELPER_ARGS: '["--port","9876"]',
+        OPENBEAM_NATIVE_HELPER_RPC_TIMEOUT_MS: "14000",
       },
     });
 
@@ -112,7 +112,7 @@ describe("loadConfig native helper", () => {
   });
 
   test("auto-enables native helper when default binary is installed", async () => {
-    const home = await createOpenPlaneHome();
+    const home = await createOpenBeamHome();
     const helperPath = await installMockNativeHelper(home);
 
     const config = loadConfig(home, { env: {} });
@@ -121,7 +121,7 @@ describe("loadConfig native helper", () => {
   });
 
   test("respects persisted disable even when default binary is installed", async () => {
-    const home = await createOpenPlaneHome({
+    const home = await createOpenBeamHome({
       version: 1,
       daemon: {
         nativeHelper: {

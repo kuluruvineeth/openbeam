@@ -1,6 +1,6 @@
 # Monitoring
 
-Prometheus, Grafana, Loki, and Promtail setup for OpenPlane.
+Prometheus, Grafana, Loki, and Promtail setup for OpenBeam.
 
 ## Quick Start
 
@@ -49,7 +49,7 @@ wait
 
 ## Dashboards
 
-- **OpenPlane Command Center** - Business metrics and API health
+- **OpenBeam Command Center** - Business metrics and API health
 - **Vespa Overview** - Resource usage, query performance, indexing stats
 - **Worker Performance** - Sync/index jobs, queue depths, rate limits
 

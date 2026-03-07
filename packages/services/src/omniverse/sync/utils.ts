@@ -1,8 +1,8 @@
 import type {
   OmniverseSyncBatch,
   OmniverseSyncCursor,
-} from "@openplane/types/services/connectors/omniverse";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/omniverse";
+import type { GenericDocument } from "@openbeam/vespa";
 
 export function createSyncBatch(
   items: GenericDocument[],

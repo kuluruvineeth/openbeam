@@ -1,4 +1,4 @@
-import type { BackgroundAgentStatus } from "@openplane/types/db";
+import type { BackgroundAgentStatus } from "@openbeam/types/db";
 import type { Database } from "../index";
 
 function buildStatusFilter(

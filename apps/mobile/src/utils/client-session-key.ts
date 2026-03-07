@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const CLIENT_SESSION_KEY_STORAGE_KEY = "@openplane:client-session-key-v1";
+const CLIENT_SESSION_KEY_STORAGE_KEY = "@openbeam:client-session-key-v1";
 
 let cachedClientSessionKey: string | null = null;
 let inFlightClientSessionKey: Promise<string> | null = null;

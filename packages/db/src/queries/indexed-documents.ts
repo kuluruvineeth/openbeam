@@ -2,7 +2,7 @@ import type {
   DocumentListResult,
   DocumentQueryParams,
   DocumentsByTypeCount,
-} from "@openplane/types/db";
+} from "@openbeam/types/db";
 import type { IndexedDocument } from "../../prisma/generated/client";
 import type { Database } from "../index";
 

@@ -2,7 +2,7 @@ import type {
   CanvasNodeType,
   CanvasState,
   ExecutionPlanNode,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 
 export function createBaseNode(
   type: CanvasNodeType,

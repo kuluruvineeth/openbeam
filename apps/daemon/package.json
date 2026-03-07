@@ -1,7 +1,7 @@
 {
   "name": "daemon",
   "version": "0.1.0",
-  "description": "OpenPlane local daemon (OpenPlane parity runtime)",
+  "description": "OpenBeam local daemon (OpenBeam parity runtime)",
   "type": "module",
   "scripts": {
     "dev": "NODE_ENV=development bun x tsx scripts/dev-runner.ts",
@@ -32,8 +32,8 @@
     "@lezer/python": "^1.1.18",
     "@modelcontextprotocol/sdk": "^1.20.1",
     "@opencode-ai/sdk": "^1.1.12",
-    "@openplane/relay": "workspace:*",
-    "@openplane/types": "workspace:*",
+    "@openbeam/relay": "workspace:*",
+    "@openbeam/types": "workspace:*",
     "@sctg/sentencepiece-js": "^1.1.0",
     "@xterm/headless": "^6.0.0",
     "ai": "5.0.78",
@@ -62,7 +62,7 @@
     "zod-to-json-schema": "^3.25.1"
   },
   "devDependencies": {
-    "@openplane/config": "workspace:*",
+    "@openbeam/config": "workspace:*",
     "@playwright/test": "^1.56.1",
     "@types/express": "^4.17.20",
     "@types/node": "^22.0.0",

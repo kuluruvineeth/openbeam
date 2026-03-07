@@ -3,8 +3,8 @@ import {
   getSyncHistory,
   getSyncStatus,
   updateSyncSettings as updateSyncSettingsDb,
-} from "@openplane/db";
-import { startConnectorSync } from "@openplane/temporal";
+} from "@openbeam/db";
+import { startConnectorSync } from "@openbeam/temporal";
 import { TRPCError } from "@trpc/server";
 import { createTRPCRouter } from "../../index";
 import { verifyConnectorAccess, withActiveTeam } from "./middleware";

@@ -1,5 +1,5 @@
-import db from "@openplane/db";
-import { updateDocEmbedding } from "@openplane/services/personalization/embeddings";
+import db from "@openbeam/db";
+import { updateDocEmbedding } from "@openbeam/services/personalization/embeddings";
 import type { HandleClickEventInput, HandleClickEventOutput } from "./types";
 
 export async function handleClickEvent(

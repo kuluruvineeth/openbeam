@@ -141,11 +141,11 @@ const CODE_URL_PATTERNS = [
   /github\.dev/,
 ] as const;
 
-const OPENPLANE_BUNDLE_HINTS = ["openplane"] as const;
+const OPENBEAM_BUNDLE_HINTS = ["openbeam"] as const;
 
-const OPENPLANE_URL_PATTERNS = [
-  /(?:^|:\/\/)app\.openplane\.dev(?:\/|$)/,
-  /(?:^|:\/\/)openplane\.dev(?:\/|$)/,
+const OPENBEAM_URL_PATTERNS = [
+  /(?:^|:\/\/)app\.openbeam\.dev(?:\/|$)/,
+  /(?:^|:\/\/)openbeam\.dev(?:\/|$)/,
   /^tauri:\/\/localhost(?:\/|$)/,
   /localhost:1420/,
   /127\.0\.0\.1:1420/,
@@ -195,24 +195,24 @@ function matchesAnyPattern(
   return patterns.some((pattern) => pattern.test(value));
 }
 
-function isOpenPlaneBundleIdentifier(bundleIdentifier: string): boolean {
-  return stringContainsAny(bundleIdentifier, OPENPLANE_BUNDLE_HINTS);
+function isOpenBeamBundleIdentifier(bundleIdentifier: string): boolean {
+  return stringContainsAny(bundleIdentifier, OPENBEAM_BUNDLE_HINTS);
 }
 
-function isOpenPlaneWindowUrl(windowUrl: string): boolean {
-  return matchesAnyPattern(windowUrl, OPENPLANE_URL_PATTERNS);
+function isOpenBeamWindowUrl(windowUrl: string): boolean {
+  return matchesAnyPattern(windowUrl, OPENBEAM_URL_PATTERNS);
 }
 
-function isLikelyOpenPlaneContext(
+function isLikelyOpenBeamContext(
   context: DictationAccessibilityContext
 ): boolean {
   const bundleId = context.bundleIdentifier?.toLowerCase().trim() ?? "";
-  if (bundleId && isOpenPlaneBundleIdentifier(bundleId)) {
+  if (bundleId && isOpenBeamBundleIdentifier(bundleId)) {
     return true;
   }
 
   const url = context.windowUrl?.toLowerCase().trim() ?? "";
-  if (url && isOpenPlaneWindowUrl(url)) {
+  if (url && isOpenBeamWindowUrl(url)) {
     return true;
   }
 
@@ -270,7 +270,7 @@ export function shouldAutoPasteDictationToFocusedApp(
   if (!context) {
     return false;
   }
-  if (isLikelyOpenPlaneContext(context)) {
+  if (isLikelyOpenBeamContext(context)) {
     return false;
   }
 

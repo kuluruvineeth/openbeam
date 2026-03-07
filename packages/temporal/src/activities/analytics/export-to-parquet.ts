@@ -4,7 +4,7 @@ import * as path from "node:path";
 import {
   escapeSqlStringLiteral,
   getAnalyticsStorage,
-} from "@openplane/analytics/duckdb";
+} from "@openbeam/analytics/duckdb";
 import type { ExportToParquetInput, ExportToParquetOutput } from "./types";
 
 export async function exportToParquet(

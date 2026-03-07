@@ -1,7 +1,7 @@
-import type { Database } from "@openplane/db";
-import { findIndexedDocumentsByExternalIds } from "@openplane/db";
-import { BloomFilter } from "@openplane/services/lib/bloom-filter";
-import type { GenericDocument } from "@openplane/vespa";
+import type { Database } from "@openbeam/db";
+import { findIndexedDocumentsByExternalIds } from "@openbeam/db";
+import { BloomFilter } from "@openbeam/services/lib/bloom-filter";
+import type { GenericDocument } from "@openbeam/vespa";
 
 export interface FilterUnchangedInput {
   documents: GenericDocument[];

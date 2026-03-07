@@ -13,28 +13,28 @@ import { dirname, join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   createWorktree,
-  deleteOpenPlaneWorktree,
+  deleteOpenBeamWorktree,
   deriveWorktreeProjectHash,
   getWorktreeTerminalSpecs,
-  isOpenPlaneOwnedWorktreeCwd,
-  listOpenPlaneWorktrees,
+  isOpenBeamOwnedWorktreeCwd,
+  listOpenBeamWorktrees,
   resolveWorktreeRuntimeEnv,
   runWorktreeSetupCommands,
   slugify,
   type WorktreeSetupCommandProgressEvent,
 } from "./worktree";
-import { getOpenPlaneWorktreeMetadataPath } from "./worktree-metadata";
+import { getOpenBeamWorktreeMetadataPath } from "./worktree-metadata";
 
 describe("createWorktree", () => {
   let tempDir: string;
   let repoDir: string;
-  let openplaneHome: string;
+  let openbeamHome: string;
 
   beforeEach(() => {
     // Use realpathSync to resolve symlinks (e.g., /var -> /private/var on macOS)
     tempDir = realpathSync(mkdtempSync(join(tmpdir(), "worktree-test-")));
     repoDir = join(tempDir, "test-repo");
-    openplaneHome = join(tempDir, "openplane-home");
+    openbeamHome = join(tempDir, "openbeam-home");
 
     // Create a git repo with an initial commit
     execSync(`mkdir -p ${repoDir}`);
@@ -59,26 +59,26 @@ describe("createWorktree", () => {
       cwd: repoDir,
       baseBranch: "main",
       worktreeSlug: "hello-world",
-      openplaneHome,
+      openbeamHome,
     });
 
     expect(result.worktreePath).toBe(
-      join(openplaneHome, "worktrees", projectHash, "hello-world")
+      join(openbeamHome, "worktrees", projectHash, "hello-world")
     );
     expect(existsSync(result.worktreePath)).toBe(true);
     expect(existsSync(join(result.worktreePath, "file.txt"))).toBe(true);
-    const metadataPath = getOpenPlaneWorktreeMetadataPath(result.worktreePath);
+    const metadataPath = getOpenBeamWorktreeMetadataPath(result.worktreePath);
     expect(existsSync(metadataPath)).toBe(true);
     const metadata = JSON.parse(readFileSync(metadataPath, "utf8"));
     expect(metadata).toMatchObject({ version: 1, baseRefName: "main" });
   });
 
-  it("detects openplane-owned worktrees across realpath differences (macOS /var vs /private/var)", async () => {
+  it("detects openbeam-owned worktrees across realpath differences (macOS /var vs /private/var)", async () => {
     // Intentionally create repo using the non-realpath tmpdir() variant (often /var/... on macOS).
     const varTempDir = mkdtempSync(join(tmpdir(), "worktree-realpath-test-"));
     const privateTempDir = realpathSync(varTempDir);
     const varRepoDir = join(varTempDir, "test-repo");
-    const varOpenPlaneHome = join(varTempDir, "openplane-home");
+    const varOpenBeamHome = join(varTempDir, "openbeam-home");
     execSync(`mkdir -p ${varRepoDir}`);
     execSync("git init -b main", { cwd: varRepoDir });
     execSync("git config user.email 'test@test.com'", { cwd: varRepoDir });
@@ -94,38 +94,38 @@ describe("createWorktree", () => {
       cwd: varRepoDir,
       baseBranch: "main",
       worktreeSlug: "realpath-test",
-      openplaneHome: varOpenPlaneHome,
+      openbeamHome: varOpenBeamHome,
     });
 
     const projectHash = await deriveWorktreeProjectHash(varRepoDir);
     const privateWorktreePath = join(
       privateTempDir,
-      "openplane-home",
+      "openbeam-home",
       "worktrees",
       projectHash,
       "realpath-test"
     );
     expect(existsSync(privateWorktreePath)).toBe(true);
 
-    const ownership = await isOpenPlaneOwnedWorktreeCwd(privateWorktreePath, {
-      openplaneHome: varOpenPlaneHome,
+    const ownership = await isOpenBeamOwnedWorktreeCwd(privateWorktreePath, {
+      openbeamHome: varOpenBeamHome,
     });
     expect(ownership.allowed).toBe(true);
 
     rmSync(varTempDir, { recursive: true, force: true });
   });
 
-  it("reports repoRoot as the repository root for openplane-owned worktrees", async () => {
+  it("reports repoRoot as the repository root for openbeam-owned worktrees", async () => {
     const result = await createWorktree({
       branchName: "main",
       cwd: repoDir,
       baseBranch: "main",
       worktreeSlug: "repo-root-check",
-      openplaneHome,
+      openbeamHome,
     });
 
-    const ownership = await isOpenPlaneOwnedWorktreeCwd(result.worktreePath, {
-      openplaneHome,
+    const ownership = await isOpenBeamOwnedWorktreeCwd(result.worktreePath, {
+      openbeamHome,
     });
     expect(ownership.allowed).toBe(true);
     expect(ownership.repoRoot).toBe(repoDir);
@@ -135,8 +135,8 @@ describe("createWorktree", () => {
     const nonGitDir = join(tempDir, "not-a-repo");
     execSync(`mkdir -p ${nonGitDir}`);
 
-    const ownership = await isOpenPlaneOwnedWorktreeCwd(nonGitDir, {
-      openplaneHome,
+    const ownership = await isOpenBeamOwnedWorktreeCwd(nonGitDir, {
+      openbeamHome,
     });
 
     expect(ownership.allowed).toBe(false);
@@ -150,18 +150,18 @@ describe("createWorktree", () => {
       cwd: repoDir,
       baseBranch: "main",
       worktreeSlug: "my-feature",
-      openplaneHome,
+      openbeamHome,
     });
 
     expect(result.worktreePath).toBe(
-      join(openplaneHome, "worktrees", projectHash, "my-feature")
+      join(openbeamHome, "worktrees", projectHash, "my-feature")
     );
     expect(existsSync(result.worktreePath)).toBe(true);
 
     // Verify branch was created
     const branches = execSync("git branch", { cwd: repoDir }).toString();
     expect(branches).toContain("feature-branch");
-    const metadataPath = getOpenPlaneWorktreeMetadataPath(result.worktreePath);
+    const metadataPath = getOpenBeamWorktreeMetadataPath(result.worktreePath);
     const metadata = JSON.parse(readFileSync(metadataPath, "utf8"));
     expect(metadata).toMatchObject({ version: 1, baseRefName: "main" });
   });
@@ -187,12 +187,12 @@ describe("createWorktree", () => {
       cwd: repoDir,
       baseBranch: "main",
       worktreeSlug: "hello",
-      openplaneHome,
+      openbeamHome,
     });
 
     // Should create branch "hello-1" since "hello" exists
     expect(result.worktreePath).toBe(
-      join(openplaneHome, "worktrees", projectHash, "hello")
+      join(openbeamHome, "worktrees", projectHash, "hello")
     );
     expect(existsSync(result.worktreePath)).toBe(true);
 
@@ -210,7 +210,7 @@ describe("createWorktree", () => {
       cwd: repoDir,
       baseBranch: "main",
       worktreeSlug: "hello",
-      openplaneHome,
+      openbeamHome,
     });
 
     expect(existsSync(result.worktreePath)).toBe(true);
@@ -219,25 +219,25 @@ describe("createWorktree", () => {
     expect(branches).toContain("hello-2");
   });
 
-  it("runs setup commands from openplane.json", async () => {
-    // Create openplane.json with setup commands
-    const openplaneConfig = {
+  it("runs setup commands from openbeam.json", async () => {
+    // Create openbeam.json with setup commands
+    const openbeamConfig = {
       worktree: {
         setup: [
-          'echo "source=$OPENPLANE_SOURCE_CHECKOUT_PATH" > setup.log',
-          'echo "root_alias=$OPENPLANE_ROOT_PATH" >> setup.log',
-          'echo "worktree=$OPENPLANE_WORKTREE_PATH" >> setup.log',
-          'echo "branch=$OPENPLANE_BRANCH_NAME" >> setup.log',
-          'echo "port=$OPENPLANE_WORKTREE_PORT" >> setup.log',
+          'echo "source=$OPENBEAM_SOURCE_CHECKOUT_PATH" > setup.log',
+          'echo "root_alias=$OPENBEAM_ROOT_PATH" >> setup.log',
+          'echo "worktree=$OPENBEAM_WORKTREE_PATH" >> setup.log',
+          'echo "branch=$OPENBEAM_BRANCH_NAME" >> setup.log',
+          'echo "port=$OPENBEAM_WORKTREE_PORT" >> setup.log',
         ],
       },
     };
     writeFileSync(
-      join(repoDir, "openplane.json"),
-      JSON.stringify(openplaneConfig)
+      join(repoDir, "openbeam.json"),
+      JSON.stringify(openbeamConfig)
     );
     execSync(
-      "git add openplane.json && git -c commit.gpgsign=false commit -m 'add openplane.json'",
+      "git add openbeam.json && git -c commit.gpgsign=false commit -m 'add openbeam.json'",
       { cwd: repoDir }
     );
 
@@ -246,7 +246,7 @@ describe("createWorktree", () => {
       cwd: repoDir,
       baseBranch: "main",
       worktreeSlug: "setup-test",
-      openplaneHome,
+      openbeamHome,
     });
 
     expect(existsSync(result.worktreePath)).toBe(true);
@@ -270,17 +270,17 @@ describe("createWorktree", () => {
   });
 
   it("does not run setup commands when runSetup=false", async () => {
-    const openplaneConfig = {
+    const openbeamConfig = {
       worktree: {
         setup: ['echo "setup ran" > setup.log'],
       },
     };
     writeFileSync(
-      join(repoDir, "openplane.json"),
-      JSON.stringify(openplaneConfig)
+      join(repoDir, "openbeam.json"),
+      JSON.stringify(openbeamConfig)
     );
     execSync(
-      "git add openplane.json && git -c commit.gpgsign=false commit -m 'add openplane.json'",
+      "git add openbeam.json && git -c commit.gpgsign=false commit -m 'add openbeam.json'",
       { cwd: repoDir }
     );
 
@@ -290,7 +290,7 @@ describe("createWorktree", () => {
       baseBranch: "main",
       worktreeSlug: "no-setup-test",
       runSetup: false,
-      openplaneHome,
+      openbeamHome,
     });
 
     expect(existsSync(result.worktreePath)).toBe(true);
@@ -298,17 +298,17 @@ describe("createWorktree", () => {
   });
 
   it("streams setup command progress events while commands are executing", async () => {
-    const openplaneConfig = {
+    const openbeamConfig = {
       worktree: {
         setup: ['echo "first line"; echo "second line" 1>&2'],
       },
     };
     writeFileSync(
-      join(repoDir, "openplane.json"),
-      JSON.stringify(openplaneConfig)
+      join(repoDir, "openbeam.json"),
+      JSON.stringify(openbeamConfig)
     );
     execSync(
-      "git add openplane.json && git -c commit.gpgsign=false commit -m 'add streaming setup'",
+      "git add openbeam.json && git -c commit.gpgsign=false commit -m 'add streaming setup'",
       { cwd: repoDir }
     );
 
@@ -339,7 +339,7 @@ describe("createWorktree", () => {
       baseBranch: "main",
       worktreeSlug: "runtime-env-port-reuse",
       runSetup: false,
-      openplaneHome,
+      openbeamHome,
     });
 
     const first = await resolveWorktreeRuntimeEnv({
@@ -351,7 +351,7 @@ describe("createWorktree", () => {
       branchName: result.branchName,
     });
 
-    expect(second.OPENPLANE_WORKTREE_PORT).toBe(first.OPENPLANE_WORKTREE_PORT);
+    expect(second.OPENBEAM_WORKTREE_PORT).toBe(first.OPENBEAM_WORKTREE_PORT);
   });
 
   it("fails runtime env resolution when persisted port is in use", async () => {
@@ -361,14 +361,14 @@ describe("createWorktree", () => {
       baseBranch: "main",
       worktreeSlug: "runtime-env-port-conflict",
       runSetup: false,
-      openplaneHome,
+      openbeamHome,
     });
 
     const env = await resolveWorktreeRuntimeEnv({
       worktreePath: result.worktreePath,
       branchName: result.branchName,
     });
-    const port = Number(env.OPENPLANE_WORKTREE_PORT);
+    const port = Number(env.OPENBEAM_WORKTREE_PORT);
 
     const server = net.createServer();
     await new Promise<void>((resolve, reject) => {
@@ -395,23 +395,23 @@ describe("createWorktree", () => {
   });
 
   it("cleans up worktree if setup command fails", async () => {
-    // Create openplane.json with failing setup command
-    const openplaneConfig = {
+    // Create openbeam.json with failing setup command
+    const openbeamConfig = {
       worktree: {
         setup: ["exit 1"],
       },
     };
     writeFileSync(
-      join(repoDir, "openplane.json"),
-      JSON.stringify(openplaneConfig)
+      join(repoDir, "openbeam.json"),
+      JSON.stringify(openbeamConfig)
     );
     execSync(
-      "git add openplane.json && git -c commit.gpgsign=false commit -m 'add openplane.json'",
+      "git add openbeam.json && git -c commit.gpgsign=false commit -m 'add openbeam.json'",
       { cwd: repoDir }
     );
 
     const expectedWorktreePath = join(
-      openplaneHome,
+      openbeamHome,
       "worktrees",
       "test-repo",
       "fail-test"
@@ -423,7 +423,7 @@ describe("createWorktree", () => {
         cwd: repoDir,
         baseBranch: "main",
         worktreeSlug: "fail-test",
-        openplaneHome,
+        openbeamHome,
       })
     ).rejects.toThrow("Worktree setup command failed");
 
@@ -432,8 +432,8 @@ describe("createWorktree", () => {
   });
 
   // biome-ignore lint/suspicious/useAwait: async signature required by interface
-  it("reads worktree terminal specs from openplane.json with optional name", async () => {
-    const openplaneConfig = {
+  it("reads worktree terminal specs from openbeam.json with optional name", async () => {
+    const openbeamConfig = {
       worktree: {
         terminals: [
           { name: "Dev Server", command: "npm run dev" },
@@ -442,8 +442,8 @@ describe("createWorktree", () => {
       },
     };
     writeFileSync(
-      join(repoDir, "openplane.json"),
-      JSON.stringify(openplaneConfig)
+      join(repoDir, "openbeam.json"),
+      JSON.stringify(openbeamConfig)
     );
 
     expect(getWorktreeTerminalSpecs(repoDir)).toEqual([
@@ -454,7 +454,7 @@ describe("createWorktree", () => {
 
   // biome-ignore lint/suspicious/useAwait: async signature required by interface
   it("filters invalid worktree terminal specs", async () => {
-    const openplaneConfig = {
+    const openbeamConfig = {
       worktree: {
         terminals: [
           null,
@@ -466,8 +466,8 @@ describe("createWorktree", () => {
       },
     };
     writeFileSync(
-      join(repoDir, "openplane.json"),
-      JSON.stringify(openplaneConfig)
+      join(repoDir, "openbeam.json"),
+      JSON.stringify(openbeamConfig)
     );
 
     expect(getWorktreeTerminalSpecs(repoDir)).toEqual([
@@ -477,17 +477,17 @@ describe("createWorktree", () => {
   });
 });
 
-describe("openplane worktree manager", () => {
+describe("openbeam worktree manager", () => {
   let tempDir: string;
   let repoDir: string;
-  let openplaneHome: string;
+  let openbeamHome: string;
 
   beforeEach(() => {
     tempDir = realpathSync(
       mkdtempSync(join(tmpdir(), "worktree-manager-test-"))
     );
     repoDir = join(tempDir, "test-repo");
-    openplaneHome = join(tempDir, "openplane-home");
+    openbeamHome = join(tempDir, "openbeam-home");
 
     execSync(`mkdir -p ${repoDir}`);
     execSync("git init -b main", { cwd: repoDir });
@@ -525,14 +525,14 @@ describe("openplane worktree manager", () => {
       cwd: repoA,
       baseBranch: "main",
       worktreeSlug: "alpha",
-      openplaneHome,
+      openbeamHome,
     });
     const fromRepoB = await createWorktree({
       branchName: "main",
       cwd: repoB,
       baseBranch: "main",
       worktreeSlug: "alpha",
-      openplaneHome,
+      openbeamHome,
     });
 
     expect(dirname(fromRepoA.worktreePath)).not.toBe(
@@ -541,13 +541,13 @@ describe("openplane worktree manager", () => {
     expect(fromRepoA.worktreePath.endsWith("alpha-1")).toBe(false);
     expect(fromRepoB.worktreePath.endsWith("alpha-1")).toBe(false);
 
-    const repoAWorktrees = await listOpenPlaneWorktrees({
+    const repoAWorktrees = await listOpenBeamWorktrees({
       cwd: repoA,
-      openplaneHome,
+      openbeamHome,
     });
-    const repoBWorktrees = await listOpenPlaneWorktrees({
+    const repoBWorktrees = await listOpenBeamWorktrees({
       cwd: repoB,
-      openplaneHome,
+      openbeamHome,
     });
 
     expect(repoAWorktrees.map((entry) => entry.path)).toEqual([
@@ -558,90 +558,90 @@ describe("openplane worktree manager", () => {
     ]);
   });
 
-  it("lists and deletes openplane worktrees under ~/.openplane/worktrees/{hash}", async () => {
+  it("lists and deletes openbeam worktrees under ~/.openbeam/worktrees/{hash}", async () => {
     const first = await createWorktree({
       branchName: "main",
       cwd: repoDir,
       baseBranch: "main",
       worktreeSlug: "alpha",
-      openplaneHome,
+      openbeamHome,
     });
     const second = await createWorktree({
       branchName: "main",
       cwd: repoDir,
       baseBranch: "main",
       worktreeSlug: "beta",
-      openplaneHome,
+      openbeamHome,
     });
 
-    const worktrees = await listOpenPlaneWorktrees({
+    const worktrees = await listOpenBeamWorktrees({
       cwd: repoDir,
-      openplaneHome,
+      openbeamHome,
     });
     const paths = worktrees.map((worktree) => worktree.path).sort();
     expect(paths).toEqual([first.worktreePath, second.worktreePath].sort());
 
-    await deleteOpenPlaneWorktree({
+    await deleteOpenBeamWorktree({
       cwd: repoDir,
       worktreePath: first.worktreePath,
-      openplaneHome,
+      openbeamHome,
     });
     expect(existsSync(first.worktreePath)).toBe(false);
 
-    const remaining = await listOpenPlaneWorktrees({
+    const remaining = await listOpenBeamWorktrees({
       cwd: repoDir,
-      openplaneHome,
+      openbeamHome,
     });
     expect(remaining.map((worktree) => worktree.path)).toEqual([
       second.worktreePath,
     ]);
   });
 
-  it("deletes a openplane worktree even when given a subdirectory path", async () => {
+  it("deletes a openbeam worktree even when given a subdirectory path", async () => {
     const created = await createWorktree({
       branchName: "main",
       cwd: repoDir,
       baseBranch: "main",
       worktreeSlug: "alpha",
-      openplaneHome,
+      openbeamHome,
     });
 
     const nestedDir = join(created.worktreePath, "nested", "dir");
     execSync(`mkdir -p ${nestedDir}`);
 
-    await deleteOpenPlaneWorktree({
+    await deleteOpenBeamWorktree({
       cwd: repoDir,
       worktreePath: nestedDir,
-      openplaneHome,
+      openbeamHome,
     });
     expect(existsSync(created.worktreePath)).toBe(false);
 
-    const remaining = await listOpenPlaneWorktrees({
+    const remaining = await listOpenBeamWorktrees({
       cwd: repoDir,
-      openplaneHome,
+      openbeamHome,
     });
     expect(
       remaining.some((worktree) => worktree.path === created.worktreePath)
     ).toBe(false);
   });
 
-  it("runs destroy commands from openplane.json before deleting a worktree", async () => {
-    const openplaneConfig = {
+  it("runs destroy commands from openbeam.json before deleting a worktree", async () => {
+    const openbeamConfig = {
       worktree: {
         destroy: [
-          'echo "source=$OPENPLANE_SOURCE_CHECKOUT_PATH" > "$OPENPLANE_SOURCE_CHECKOUT_PATH/destroy.log"',
-          'echo "root_alias=$OPENPLANE_ROOT_PATH" >> "$OPENPLANE_SOURCE_CHECKOUT_PATH/destroy.log"',
-          'echo "worktree=$OPENPLANE_WORKTREE_PATH" >> "$OPENPLANE_SOURCE_CHECKOUT_PATH/destroy.log"',
-          'echo "branch=$OPENPLANE_BRANCH_NAME" >> "$OPENPLANE_SOURCE_CHECKOUT_PATH/destroy.log"',
+          'echo "source=$OPENBEAM_SOURCE_CHECKOUT_PATH" > "$OPENBEAM_SOURCE_CHECKOUT_PATH/destroy.log"',
+          'echo "root_alias=$OPENBEAM_ROOT_PATH" >> "$OPENBEAM_SOURCE_CHECKOUT_PATH/destroy.log"',
+          'echo "worktree=$OPENBEAM_WORKTREE_PATH" >> "$OPENBEAM_SOURCE_CHECKOUT_PATH/destroy.log"',
+          'echo "branch=$OPENBEAM_BRANCH_NAME" >> "$OPENBEAM_SOURCE_CHECKOUT_PATH/destroy.log"',
         ],
       },
     };
     writeFileSync(
-      join(repoDir, "openplane.json"),
-      JSON.stringify(openplaneConfig)
+      join(repoDir, "openbeam.json"),
+      JSON.stringify(openbeamConfig)
     );
     execSync(
-      "git add openplane.json && git -c commit.gpgsign=false commit -m 'add destroy commands'",
+      "git add openbeam.json && git -c commit.gpgsign=false commit -m 'add destroy commands'",
       { cwd: repoDir }
     );
 
@@ -650,13 +650,13 @@ describe("openplane worktree manager", () => {
       cwd: repoDir,
       baseBranch: "main",
       worktreeSlug: "destroy-test",
-      openplaneHome,
+      openbeamHome,
     });
 
-    await deleteOpenPlaneWorktree({
+    await deleteOpenBeamWorktree({
       cwd: repoDir,
       worktreePath: created.worktreePath,
-      openplaneHome,
+      openbeamHome,
     });
     expect(existsSync(created.worktreePath)).toBe(false);
 
@@ -668,20 +668,20 @@ describe("openplane worktree manager", () => {
   });
 
   it("does not remove worktree when a destroy command fails", async () => {
-    const openplaneConfig = {
+    const openbeamConfig = {
       worktree: {
         destroy: [
-          'echo "started" > "$OPENPLANE_SOURCE_CHECKOUT_PATH/destroy-start.log"',
+          'echo "started" > "$OPENBEAM_SOURCE_CHECKOUT_PATH/destroy-start.log"',
           "echo boom 1>&2; exit 9",
         ],
       },
     };
     writeFileSync(
-      join(repoDir, "openplane.json"),
-      JSON.stringify(openplaneConfig)
+      join(repoDir, "openbeam.json"),
+      JSON.stringify(openbeamConfig)
     );
     execSync(
-      "git add openplane.json && git -c commit.gpgsign=false commit -m 'add failing destroy commands'",
+      "git add openbeam.json && git -c commit.gpgsign=false commit -m 'add failing destroy commands'",
       { cwd: repoDir }
     );
 
@@ -690,14 +690,14 @@ describe("openplane worktree manager", () => {
       cwd: repoDir,
       baseBranch: "main",
       worktreeSlug: "destroy-failure-test",
-      openplaneHome,
+      openbeamHome,
     });
 
     await expect(
-      deleteOpenPlaneWorktree({
+      deleteOpenBeamWorktree({
         cwd: repoDir,
         worktreePath: created.worktreePath,
-        openplaneHome,
+        openbeamHome,
       })
     ).rejects.toThrow("Worktree destroy command failed");
 

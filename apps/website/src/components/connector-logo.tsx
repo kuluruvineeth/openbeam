@@ -1,4 +1,4 @@
-import { appLogos } from "@openplane/integrations/logos";
+import { appLogos } from "@openbeam/integrations/logos";
 import { cn } from "@/lib/cn";
 
 interface ConnectorLogoProps {

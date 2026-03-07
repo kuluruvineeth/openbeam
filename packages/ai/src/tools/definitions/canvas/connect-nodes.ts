@@ -1,4 +1,4 @@
-import type { CanvasOperation } from "@openplane/types/canvas";
+import type { CanvasOperation } from "@openbeam/types/canvas";
 import { z } from "zod";
 import { defineTool, failure, success } from "../../builder";
 

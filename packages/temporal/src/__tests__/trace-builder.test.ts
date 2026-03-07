@@ -1,7 +1,4 @@
-import type {
-  ExecutionPlanNode,
-  ExecutionTrace,
-} from "@openplane/types/canvas";
+import type { ExecutionPlanNode, ExecutionTrace } from "@openbeam/types/canvas";
 import { describe, expect, it } from "vitest";
 import {
   buildCompletedStep,

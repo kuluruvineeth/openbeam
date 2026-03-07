@@ -1,5 +1,5 @@
-import type { Database } from "@openplane/db";
-import { createSyncHistory, recordBatchProgress } from "@openplane/db";
+import type { Database } from "@openbeam/db";
+import { createSyncHistory, recordBatchProgress } from "@openbeam/db";
 
 export function createSyncHistoryRecord(
   db: Database,

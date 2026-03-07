@@ -6,8 +6,8 @@ import type {
   ViamSyncBatch,
   ViamSyncCursor,
   ViamTransformContext,
-} from "@openplane/types/services/connectors/viam";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/viam";
+import type { GenericDocument } from "@openbeam/vespa";
 import { logger } from "../../lib/logger";
 import type { ViamClient } from "../client";
 import { transformComponent } from "../transformers/component";

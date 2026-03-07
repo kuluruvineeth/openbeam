@@ -11,15 +11,15 @@ import {
   InferRelationshipsOutputSchema,
   PersistInferenceInputSchema,
   PersistInferenceOutputSchema,
-} from "@openplane/types/temporal/activities/knowledge";
+} from "@openbeam/types/temporal/activities/knowledge";
 import {
   ProcessKnowledgeChangesInputSchema,
   ProcessKnowledgeChangesOutputSchema,
-} from "@openplane/types/temporal/workflows/knowledge-changes";
+} from "@openbeam/types/temporal/workflows/knowledge-changes";
 import {
   KnowledgeInferenceInputSchema,
   KnowledgeInferenceOutputSchema,
-} from "@openplane/types/temporal/workflows/knowledge-inference";
+} from "@openbeam/types/temporal/workflows/knowledge-inference";
 import { describe, expect, it } from "vitest";
 
 describe("KnowledgeInferenceInput schema", () => {

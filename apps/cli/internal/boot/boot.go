@@ -6,30 +6,31 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/openplane/openplane/apps/cli/internal/cmd/agent"
-	"github.com/openplane/openplane/apps/cli/internal/cmd/analytics"
-	authcmd "github.com/openplane/openplane/apps/cli/internal/cmd/auth"
-	"github.com/openplane/openplane/apps/cli/internal/cmd/backgroundagents"
-	"github.com/openplane/openplane/apps/cli/internal/cmd/canvas"
-	"github.com/openplane/openplane/apps/cli/internal/cmd/completion"
-	configcmd "github.com/openplane/openplane/apps/cli/internal/cmd/config"
-	daemoncmd "github.com/openplane/openplane/apps/cli/internal/cmd/daemon"
-	"github.com/openplane/openplane/apps/cli/internal/cmd/connectors"
-	"github.com/openplane/openplane/apps/cli/internal/cmd/integrations"
-	"github.com/openplane/openplane/apps/cli/internal/cmd/knowledge"
-	"github.com/openplane/openplane/apps/cli/internal/cmd/mcp"
-	"github.com/openplane/openplane/apps/cli/internal/cmd/media"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/agent"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/analytics"
+	authcmd "github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/auth"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/backgroundagents"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/canvas"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/completion"
+	configcmd "github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/config"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/control"
+	daemoncmd "github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/daemon"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/connectors"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/integrations"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/knowledge"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/mcp"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/media"
 
-	"github.com/openplane/openplane/apps/cli/internal/cmd/permissions"
-	"github.com/openplane/openplane/apps/cli/internal/cmd/plugin"
-	"github.com/openplane/openplane/apps/cli/internal/cmd/rag"
-	"github.com/openplane/openplane/apps/cli/internal/cmd/research"
-	"github.com/openplane/openplane/apps/cli/internal/cmd/search"
-	"github.com/openplane/openplane/apps/cli/internal/cmd/teams"
-	"github.com/openplane/openplane/apps/cli/internal/cmd/version"
-	"github.com/openplane/openplane/apps/cli/internal/errs"
-	"github.com/openplane/openplane/apps/cli/internal/exitcode"
-	"github.com/openplane/openplane/apps/cli/internal/runtime"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/permissions"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/plugin"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/rag"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/research"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/search"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/teams"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/version"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/errs"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/exitcode"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/runtime"
 )
 
 type rootFlags struct {
@@ -79,8 +80,8 @@ func NewRootCommand(ctx context.Context, in io.Reader, out io.Writer, errOut io.
 	}
 
 	root := &cobra.Command{
-		Use:           "openplane",
-		Short:         "OpenPlane CLI",
+		Use:           "openbeam",
+		Short:         "OpenBeam CLI",
 		SilenceErrors: true,
 		SilenceUsage:  true,
 	}
@@ -131,6 +132,7 @@ func NewRootCommand(ctx context.Context, in io.Reader, out io.Writer, errOut io.
 	permissionsCommand := permissions.NewCommand(buildRuntime)
 	mediaCommand := media.NewCommand(buildRuntime)
 	mcpCommand := mcp.NewCommand(buildRuntime)
+	controlCommand := control.NewCommand(buildRuntime)
 
 	pluginCommand := plugin.NewCommand(buildRuntime)
 
@@ -155,6 +157,7 @@ func NewRootCommand(ctx context.Context, in io.Reader, out io.Writer, errOut io.
 	permissionsCommand.GroupID = "agent"
 	mediaCommand.GroupID = "agent"
 	mcpCommand.GroupID = "agent"
+	controlCommand.GroupID = "agent"
 
 	pluginCommand.GroupID = "ext"
 
@@ -177,6 +180,7 @@ func NewRootCommand(ctx context.Context, in io.Reader, out io.Writer, errOut io.
 	root.AddCommand(permissionsCommand)
 	root.AddCommand(mediaCommand)
 	root.AddCommand(mcpCommand)
+	root.AddCommand(controlCommand)
 	root.AddCommand(pluginCommand)
 
 	return root, nil

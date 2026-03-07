@@ -1,8 +1,8 @@
 import type {
   NotionDatabase,
   NotionTransformContext,
-} from "@openplane/types/services/connectors/notion";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/notion";
+import type { GenericDocument } from "@openbeam/vespa";
 import { calculateDocumentChecksum } from "../utils/checksum";
 import {
   extractDatabaseDescription,

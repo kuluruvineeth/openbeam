@@ -1,6 +1,6 @@
 "use client";
 
-import { cn, Icons } from "@openplane/ui";
+import { cn, Icons } from "@openbeam/ui";
 import { cva } from "class-variance-authority";
 import {
   calculateTrendPercent,

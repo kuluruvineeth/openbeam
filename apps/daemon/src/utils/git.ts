@@ -16,7 +16,7 @@ export interface CheckoutStatusResult {
 }
 
 export type CheckoutContext = {
-  openplaneHome?: string;
+  openbeamHome?: string;
 };
 
 export async function getCheckoutStatus(
@@ -42,7 +42,7 @@ export async function getCheckoutStatus(
 
     const isDaemonOwnedWorktree = await checkIsDaemonOwnedWorktree(
       cwd,
-      context?.openplaneHome
+      context?.openbeamHome
     );
 
     return { isGit: true, repoRoot, currentBranch, isDaemonOwnedWorktree };
@@ -58,7 +58,7 @@ export async function getCheckoutStatus(
 
 async function checkIsDaemonOwnedWorktree(
   cwd: string,
-  _openplaneHome?: string
+  _openbeamHome?: string
 ): Promise<boolean> {
   try {
     const { stdout } = await execAsync("git rev-parse --git-common-dir", {

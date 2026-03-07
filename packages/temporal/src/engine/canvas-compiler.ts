@@ -13,7 +13,7 @@ import {
   StrictAgentCanvasEdgeSchema,
   type StrictAgentCanvasNode,
   StrictAgentCanvasNodeSchema,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 
 const DEFAULT_EDGE_TYPE = "data";
 const ORPHAN_EXCLUSIONS = new Set<CanvasNodeType>(["annotation"]);

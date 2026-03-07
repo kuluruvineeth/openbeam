@@ -5,7 +5,7 @@ import type {
   ThingsboardDevice,
   ThingsboardPageData,
   ThingsboardTransformContext,
-} from "@openplane/types/services/connectors/thingsboard";
+} from "@openbeam/types/services/connectors/thingsboard";
 import type { ThingsboardClient } from "../client";
 import { fullSync } from "../sync/full";
 

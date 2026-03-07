@@ -128,6 +128,7 @@ export {
   incrementalSync as azureIotIncrementalSync,
   transformDevice as transformAzureIotDevice,
 } from "./azure-iot";
+export * from "./control";
 export type {
   ChunkOptions,
   ChunkResponse,

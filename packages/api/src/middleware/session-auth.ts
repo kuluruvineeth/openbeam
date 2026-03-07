@@ -1,4 +1,4 @@
-import { type Database, findSessionById } from "@openplane/db";
+import { type Database, findSessionById } from "@openbeam/db";
 import { TRPCError } from "@trpc/server";
 
 type SessionOwnership = {

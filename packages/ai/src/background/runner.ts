@@ -6,7 +6,7 @@ import {
   type SandboxInfo as RuntimeSandboxInfo,
   type SandboxProvider as RuntimeSandboxProvider,
   type SandboxProviderType,
-} from "@openplane/sandbox";
+} from "@openbeam/sandbox";
 import {
   tool as aiTool,
   generateText,

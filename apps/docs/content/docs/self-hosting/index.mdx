@@ -1,11 +1,11 @@
 ---
 title: Self-Hosting
-description: Run OpenPlane on your own infrastructure. Full control, your data, no vendor lock-in.
+description: Run OpenBeam on your own infrastructure. Full control, your data, no vendor lock-in.
 ---
 
 # Self-Hosting
 
-OpenPlane is MIT-licensed and designed to run on your infrastructure. Your data never leaves your network. No phone-home telemetry, no feature gates.
+OpenBeam is MIT-licensed and designed to run on your infrastructure. Your data never leaves your network. No phone-home telemetry, no feature gates.
 
 ## Why Self-Host
 
@@ -19,16 +19,16 @@ OpenPlane is MIT-licensed and designed to run on your infrastructure. Your data 
 
 ## Architecture
 
-OpenPlane consists of 4 application services and 5 infrastructure services.
+OpenBeam consists of 4 application services and 5 infrastructure services.
 
 ### Application Services
 
 | Service | Image | Port | Memory | CPUs | Purpose |
 |---------|-------|------|--------|------|---------|
-| **Server** | `openplane-server` | 3000 | 1 GB | 1.0 | Hono API server, OAuth, webhooks |
-| **Web** | `openplane-web` | 3001 | 1 GB | 1.0 | Next.js frontend |
-| **Worker** | `openplane-worker` | 9092 (health) | 2 GB | 2.0 | Temporal workflows, sync jobs |
-| **Engine** | `openplane-engine` | 8000 | 2 GB | 2.0 | Python ML service, embeddings |
+| **Server** | `openbeam-server` | 3000 | 1 GB | 1.0 | Hono API server, OAuth, webhooks |
+| **Web** | `openbeam-web` | 3001 | 1 GB | 1.0 | Next.js frontend |
+| **Worker** | `openbeam-worker` | 9092 (health) | 2 GB | 2.0 | Temporal workflows, sync jobs |
+| **Engine** | `openbeam-engine` | 8000 | 2 GB | 2.0 | Python ML service, embeddings |
 
 ### Infrastructure Services
 
@@ -88,15 +88,15 @@ Get a full deployment running in under 10 minutes.
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/kuluruvineeth/openplane.git
-cd openplane
+git clone https://github.com/kuluruvineeth/openbeam.git
+cd openbeam
 
 # 2. Create your environment file from the template
 cp apps/server/.env.example .env
 # Edit .env with your secrets (see Configuration page for all variables)
 
 # 3. Create the data directory
-sudo mkdir -p /mnt/openplane-data
+sudo mkdir -p /mnt/openbeam-data
 
 # 4. Start infrastructure services
 docker compose -f scripts/deploy/infra-hetzner-compose.yaml up -d
@@ -119,7 +119,7 @@ The deployment uses two Docker networks:
 
 | Network | Purpose | Services |
 |---------|---------|----------|
-| `openplane` | Infrastructure services | PostgreSQL, Redis, Vespa, Temporal, MinIO |
-| `openplane-apps` | Application services | Server, Web, Worker, Engine |
+| `openbeam` | Infrastructure services | PostgreSQL, Redis, Vespa, Temporal, MinIO |
+| `openbeam-apps` | Application services | Server, Web, Worker, Engine |
 
 Application services join both networks so they can reach infrastructure via Docker DNS (e.g., `redis:6379`, `vespa:8080`). All infrastructure ports are bound to `127.0.0.1` only -- they are not exposed to the public internet.

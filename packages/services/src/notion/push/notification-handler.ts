@@ -2,7 +2,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import {
   type NotionWebhookPayload,
   NotionWebhookPayloadSchema,
-} from "@openplane/types/services/connectors/notion";
+} from "@openbeam/types/services/connectors/notion";
 import { logger } from "../../lib/logger";
 import { getAllActiveWatches, type NotionWatchState } from "./watch-manager";
 

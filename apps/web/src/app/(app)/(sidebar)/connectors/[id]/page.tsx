@@ -15,7 +15,7 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   return {
-    title: `Connector ${id} | OpenPlane`,
+    title: `Connector ${id} | OpenBeam`,
     description: "View connector details and manage sync settings",
   };
 }

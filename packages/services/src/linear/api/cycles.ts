@@ -3,7 +3,7 @@ import {
   type LinearCycle,
   LinearCycleSchema,
   type LinearPageInfo,
-} from "@openplane/types/services/connectors/linear";
+} from "@openbeam/types/services/connectors/linear";
 import type { LinearClient } from "../client";
 
 const CYCLE_FRAGMENT = `

@@ -2,7 +2,7 @@ import type {
   CreateObjectInput,
   UpdateObjectInput,
   WorkspaceObjectDefinition,
-} from "@openplane/types/services/workspace";
+} from "@openbeam/types/services/workspace";
 import type { WorkspaceDuckDB } from "../duckdb/client";
 import { WorkspaceDuckDBError } from "../duckdb/client";
 import { escapeSqlValue } from "../duckdb/query";

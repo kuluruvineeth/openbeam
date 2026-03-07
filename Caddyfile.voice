@@ -1,7 +1,7 @@
-voice.openplane.dev {
+voice.openbeam.dev {
     reverse_proxy localhost:7880
 }
 
-turn.openplane.dev {
+turn.openbeam.dev {
     reverse_proxy localhost:5349
 }

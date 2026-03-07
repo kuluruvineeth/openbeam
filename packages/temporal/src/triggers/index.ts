@@ -35,6 +35,20 @@ export {
   runDailyCleanup,
 } from "./cleanup";
 export {
+  getReaperStatus,
+  getSchedulerStatus,
+  getTimerStatus,
+  pauseControlTimer,
+  type ReaperStatus,
+  resumeControlTimer,
+  type SchedulerStatus,
+  startControlReaper,
+  startControlScheduler,
+  startControlTimer,
+  stopControlTimer,
+  type TimerStatus,
+} from "./control";
+export {
   awaitFileProcessingResult,
   type FileHandle,
   getActiveFileProcessingJobs,
@@ -48,14 +62,12 @@ export {
   type IndexHandle,
   indexDocuments,
 } from "./indexing";
-
 export {
   awaitMediaResult,
   type MediaHandle,
   type ProcessMediaOptions,
   processMedia,
 } from "./media";
-
 export {
   createDigestSchedule,
   createSyncSchedule,
@@ -76,7 +88,6 @@ export {
   updateDigestSchedule,
   updateSyncSchedule,
 } from "./schedules";
-
 export {
   awaitSyncCompletion,
   cancelAllSyncsForConnector,
@@ -92,7 +103,6 @@ export {
   type SyncType,
   startConnectorSync,
 } from "./sync";
-
 export {
   awaitWebhookResult,
   type ProcessWebhookOptions,

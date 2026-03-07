@@ -7,13 +7,13 @@ const metricBadgeVariants = cva(
     variants: {
       color: {
         green:
-          "border-openplane-green/20 bg-openplane-green/5 text-openplane-green",
-        blue: "border-openplane-blue/20 bg-openplane-blue/5 text-openplane-blue",
+          "border-openbeam-green/20 bg-openbeam-green/5 text-openbeam-green",
+        blue: "border-openbeam-blue/20 bg-openbeam-blue/5 text-openbeam-blue",
         red: "border-destructive/20 bg-destructive/5 text-destructive",
         orange:
-          "border-openplane-orange/20 bg-openplane-orange/5 text-openplane-orange",
+          "border-openbeam-orange/20 bg-openbeam-orange/5 text-openbeam-orange",
         purple:
-          "border-openplane-purple/20 bg-openplane-purple/5 text-openplane-purple",
+          "border-openbeam-purple/20 bg-openbeam-purple/5 text-openbeam-purple",
       },
       variant: {
         default: "flex-col text-center",

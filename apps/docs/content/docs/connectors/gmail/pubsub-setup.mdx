@@ -13,7 +13,7 @@ Enable real-time email sync. New emails appear in seconds instead of minutes.
 ## Prerequisites
 
 - Cloud Pub/Sub API enabled
-- OpenPlane server accessible via HTTPS
+- OpenBeam server accessible via HTTPS
 - Valid SSL certificate
 
 ## 1. Create Topic
@@ -66,14 +66,14 @@ Note the full name: `projects/YOUR-PROJECT-ID/topics/gmail-notifications`
      --push-auth-token-audience=https://your-server.com/api/v1/webhooks/gmail/push
    ```
 
-3. Set environment variable on OpenPlane server:
+3. Set environment variable on OpenBeam server:
    ```bash
    PUBSUB_AUDIENCE=https://your-server.com/api/v1/webhooks/gmail/push
    ```
 
 The audience URL must match exactly between the subscription and environment variable.
 
-## 5. Configure OpenPlane
+## 5. Configure OpenBeam
 
 1. Go to **Settings → Connectors → Gmail**
 2. Enable **Real-time sync**

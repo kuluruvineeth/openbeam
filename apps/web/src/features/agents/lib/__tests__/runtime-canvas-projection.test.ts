@@ -3,7 +3,7 @@ import type {
   AgentCanvasNode,
   NodeStatus,
   RuntimeEvent,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import {
   applyRuntimeCanvasOperation,
   buildExecutionOverlayFromRuntime,

@@ -3,7 +3,7 @@ import {
   CodeNodeConfigSchema,
   type CodeVariableType,
   type OutputField,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { CanvasNodeExecutionError } from "../errors";
 import { resolveNodeConfig } from "../node-config";
 import type { CanvasNodeExecutor } from "../types";

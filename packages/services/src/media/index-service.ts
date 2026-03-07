@@ -2,8 +2,8 @@ import prisma, {
   createTeamMediaIndex,
   deleteTeamMediaIndex,
   findTeamMediaIndex,
-} from "@openplane/db";
-import { TwelveLabsClient } from "@openplane/media";
+} from "@openbeam/db";
+import { TwelveLabsClient } from "@openbeam/media";
 
 export class MediaIndexService {
   private readonly client: TwelveLabsClient;
@@ -19,7 +19,7 @@ export class MediaIndexService {
       return existing.twelveLabsIndexId;
     }
 
-    const indexName = `openplane_${teamId}`;
+    const indexName = `openbeam_${teamId}`;
     const twelveLabsIndexId = await this.client.createIndex(indexName, {
       models: [
         { modelName: "marengo3.0", modelOptions: ["visual", "audio"] },

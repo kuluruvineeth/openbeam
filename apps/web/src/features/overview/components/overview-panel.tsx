@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@openplane/ui";
+import { Button } from "@openbeam/ui";
 import { AnimatePresence, motion } from "motion/react";
 import { memo, useCallback, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";

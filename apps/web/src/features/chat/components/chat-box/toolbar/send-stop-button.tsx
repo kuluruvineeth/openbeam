@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Tooltip, TooltipContent, TooltipTrigger } from "@openplane/ui";
+import { Button, Tooltip, TooltipContent, TooltipTrigger } from "@openbeam/ui";
 import { Icons } from "@/components/icons";
 
 type Props = {

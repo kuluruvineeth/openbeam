@@ -11,8 +11,8 @@ import {
   DropdownMenuTrigger,
   Icons,
   Input,
-} from "@openplane/ui";
-import { cn } from "@openplane/ui/utils";
+} from "@openbeam/ui";
+import { cn } from "@openbeam/ui/utils";
 import { type AgentStatus, useAgentFilters } from "../hooks/use-agent-filters";
 import { FilterList } from "./filter-list";
 

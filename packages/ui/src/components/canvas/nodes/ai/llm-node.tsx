@@ -1,13 +1,13 @@
 "use client";
 
-import { DEFAULT_CHAT_MODEL, getChatModel } from "@openplane/types/ai";
+import { DEFAULT_CHAT_MODEL, getChatModel } from "@openbeam/types/ai";
 import type {
   Citation,
   LlmNodeConfig,
   NodeStatus,
   Port,
   TokenUsage,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
 import { forwardRef, memo, useCallback, useMemo } from "react";

@@ -1,10 +1,10 @@
 import type {
   IndustrialTransformContext,
   TimeSeriesWindow,
-} from "@openplane/types/services/connectors/common/industrial";
-import { IndustrialDocumentType } from "@openplane/types/services/connectors/common/industrial";
-import type { InternalMessage } from "@openplane/types/services/connectors/mqtt";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/common/industrial";
+import { IndustrialDocumentType } from "@openbeam/types/services/connectors/common/industrial";
+import type { InternalMessage } from "@openbeam/types/services/connectors/mqtt";
+import type { GenericDocument } from "@openbeam/vespa";
 import { buildIsa95Metadata, buildIsa95Path, parseIsa95Path } from "./isa95";
 
 export function transformTimeSeriesWindow(

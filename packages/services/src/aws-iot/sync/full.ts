@@ -1,8 +1,8 @@
 import type {
   AwsIotSyncBatch,
   AwsIotTransformContext,
-} from "@openplane/types/services/connectors/aws-iot";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/aws-iot";
+import type { GenericDocument } from "@openbeam/vespa";
 import type { AwsIotClient } from "../client";
 import { type ThingWithShadow, transformThings } from "../transformers/thing";
 import { transformThingGroups } from "../transformers/thing-group";

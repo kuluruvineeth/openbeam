@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@openplane/ui";
+import { Button } from "@openbeam/ui";
 import { Icons } from "@/components/icons";
 import type { FileType, SelectedFile } from "@/features/chat/types";
 

@@ -10,7 +10,7 @@ import {
 } from "./model-downloader";
 
 function makeTmpDir(): string {
-  return mkdtempSync(path.join(tmpdir(), "openplane-speech-models-"));
+  return mkdtempSync(path.join(tmpdir(), "openbeam-speech-models-"));
 }
 
 const logger = pino({ level: "silent" });

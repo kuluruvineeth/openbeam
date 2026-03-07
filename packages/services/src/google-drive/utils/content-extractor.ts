@@ -1,7 +1,7 @@
 import {
   type DriveFile,
   GOOGLE_WORKSPACE_MIME_TYPES,
-} from "@openplane/types/services/connectors/google-drive";
+} from "@openbeam/types/services/connectors/google-drive";
 import { exportFileAsText } from "../api/export";
 import type { GoogleDriveClient } from "../client";
 import { isTextExtractable } from "./mime-types";

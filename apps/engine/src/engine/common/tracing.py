@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 logger = get_logger(__name__)
 
-OTEL_SERVICE_NAME = "openplane-engine"
+OTEL_SERVICE_NAME = "openbeam-engine"
 
 
 def configure_tracing(

@@ -1,7 +1,7 @@
 {
-  "name": "@openplane/types",
+  "name": "@openbeam/types",
   "version": "0.1.0",
-  "description": "Shared types and Zod schemas for OpenPlane",
+  "description": "Shared types and Zod schemas for OpenBeam",
   "type": "module",
   "exports": {
     ".": {
@@ -144,18 +144,6 @@
       "types": "./dist/temporal/workflows.d.ts",
       "default": "./src/temporal/workflows.ts"
     },
-    "./temporal/mission": {
-      "types": "./dist/temporal/mission.d.ts",
-      "default": "./src/temporal/mission.ts"
-    },
-    "./temporal/mission-messaging": {
-      "types": "./dist/temporal/mission-messaging.d.ts",
-      "default": "./src/temporal/mission-messaging.ts"
-    },
-    "./temporal/mission-reflection": {
-      "types": "./dist/temporal/mission-reflection.d.ts",
-      "default": "./src/temporal/mission-reflection.ts"
-    },
     "./temporal/agent-timeouts": {
       "types": "./dist/temporal/agent-timeouts.d.ts",
       "default": "./src/temporal/agent-timeouts.ts"
@@ -163,10 +151,6 @@
     "./temporal/agent-heartbeat": {
       "types": "./dist/temporal/agent-heartbeat.d.ts",
       "default": "./src/temporal/agent-heartbeat.ts"
-    },
-    "./temporal/cross-mission": {
-      "types": "./dist/temporal/cross-mission.d.ts",
-      "default": "./src/temporal/cross-mission.ts"
     },
     "./temporal/rate-limit": {
       "types": "./dist/temporal/rate-limit.d.ts",
@@ -187,10 +171,6 @@
     "./services/eval": {
       "types": "./dist/services/eval.d.ts",
       "default": "./src/services/eval.ts"
-    },
-    "./mission-control": {
-      "types": "./dist/mission-control/index.d.ts",
-      "default": "./src/mission-control/index.ts"
     },
     "./services/workspace": {
       "types": "./dist/services/workspace/index.d.ts",
@@ -307,6 +287,106 @@
     "./edge/queue": {
       "types": "./dist/edge/queue.d.ts",
       "default": "./src/edge/queue.ts"
+    },
+    "./control": {
+      "types": "./dist/control/index.d.ts",
+      "default": "./src/control/index.ts"
+    },
+    "./control/agents": {
+      "types": "./dist/control/agents.d.ts",
+      "default": "./src/control/agents.ts"
+    },
+    "./control/runtime": {
+      "types": "./dist/control/runtime.d.ts",
+      "default": "./src/control/runtime.ts"
+    },
+    "./control/heartbeat": {
+      "types": "./dist/control/heartbeat.d.ts",
+      "default": "./src/control/heartbeat.ts"
+    },
+    "./control/adapters": {
+      "types": "./dist/control/adapters.d.ts",
+      "default": "./src/control/adapters.ts"
+    },
+    "./control/issues": {
+      "types": "./dist/control/issues.d.ts",
+      "default": "./src/control/issues.ts"
+    },
+    "./control/projects": {
+      "types": "./dist/control/projects.d.ts",
+      "default": "./src/control/projects.ts"
+    },
+    "./control/goals": {
+      "types": "./dist/control/goals.d.ts",
+      "default": "./src/control/goals.ts"
+    },
+    "./control/approvals": {
+      "types": "./dist/control/approvals.d.ts",
+      "default": "./src/control/approvals.ts"
+    },
+    "./control/costs": {
+      "types": "./dist/control/costs.d.ts",
+      "default": "./src/control/costs.ts"
+    },
+    "./control/activity": {
+      "types": "./dist/control/activity.d.ts",
+      "default": "./src/control/activity.ts"
+    },
+    "./control/secrets": {
+      "types": "./dist/control/secrets.d.ts",
+      "default": "./src/control/secrets.ts"
+    },
+    "./control/access": {
+      "types": "./dist/control/access.d.ts",
+      "default": "./src/control/access.ts"
+    },
+    "./control/assets": {
+      "types": "./dist/control/assets.d.ts",
+      "default": "./src/control/assets.ts"
+    },
+    "./control/dashboard": {
+      "types": "./dist/control/dashboard.d.ts",
+      "default": "./src/control/dashboard.ts"
+    },
+    "./control/config": {
+      "types": "./dist/control/config.d.ts",
+      "default": "./src/control/config.ts"
+    },
+    "./control/validators": {
+      "types": "./dist/control/validators/index.d.ts",
+      "default": "./src/control/validators/index.ts"
+    },
+    "./control/validators/agents": {
+      "types": "./dist/control/validators/agents.d.ts",
+      "default": "./src/control/validators/agents.ts"
+    },
+    "./control/validators/issues": {
+      "types": "./dist/control/validators/issues.d.ts",
+      "default": "./src/control/validators/issues.ts"
+    },
+    "./control/validators/projects": {
+      "types": "./dist/control/validators/projects.d.ts",
+      "default": "./src/control/validators/projects.ts"
+    },
+    "./control/validators/goals": {
+      "types": "./dist/control/validators/goals.d.ts",
+      "default": "./src/control/validators/goals.ts"
+    },
+    "./control/validators/approvals": {
+      "types": "./dist/control/validators/approvals.d.ts",
+      "default": "./src/control/validators/approvals.ts"
+    },
+    "./control/validators/costs": {
+      "types": "./dist/control/validators/costs.d.ts",
+      "default": "./src/control/validators/costs.ts"
+    },
+    "./control/validators/secrets": {
+      "types": "./dist/control/validators/secrets.d.ts",
+      "default": "./src/control/validators/secrets.ts"
+    },
+    "./control/validators/access": {
+      "types": "./dist/control/validators/access.d.ts",
+      "default": "./src/control/validators/access.ts"
     }
   },
   "scripts": {
@@ -318,7 +398,7 @@
     "zod": "^4.0.0"
   },
   "devDependencies": {
-    "@openplane/config": "workspace:*",
+    "@openbeam/config": "workspace:*",
     "@types/react": "^19",
     "tsdown": "catalog:",
     "typescript": "catalog:",

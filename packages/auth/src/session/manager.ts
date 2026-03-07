@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import type { Database } from "@openplane/db";
+import type { Database } from "@openbeam/db";
 import {
   createUser,
   createSession as dbCreateSession,
@@ -9,7 +9,7 @@ import {
   getUserByEmail,
   updateUserImage,
   upsertAccount,
-} from "@openplane/db";
+} from "@openbeam/db";
 import type { OAuthTokens, OAuthUserInfo } from "../oauth/types";
 import {
   type CookieConfig,

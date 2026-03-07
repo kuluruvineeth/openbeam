@@ -11,7 +11,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@openplane/ui";
+} from "@openbeam/ui";
 import { Icons } from "@/components/icons";
 import type { AudioTab } from "@/lib/audio-types";
 import { cn } from "@/lib/utils";

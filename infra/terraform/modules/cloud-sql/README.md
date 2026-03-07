@@ -9,7 +9,7 @@ module "cloud_sql" {
   source = "../../modules/cloud-sql"
 
   project_id                = var.project_id
-  project_name              = "openplane"
+  project_name              = "openbeam"
   environment               = "prod"
   region                    = "us-central1"
   network_id                = module.networking.network_id
@@ -20,8 +20,8 @@ module "cloud_sql" {
   disk_size             = 100
   disk_autoresize_limit = 500
 
-  database_name = "openplane"
-  database_user = "openplane"
+  database_name = "openbeam"
+  database_user = "openbeam"
 }
 ```
 
@@ -48,11 +48,11 @@ disk_size          = 100
 **Backup:**
 
 ```bash
-gcloud sql backups create --instance=openplane-db-prod-xxxx
+gcloud sql backups create --instance=openbeam-db-prod-xxxx
 ```
 
 **Restore:**
 
 ```bash
-gcloud sql backups restore BACKUP_ID --backup-instance=openplane-db-prod-xxxx
+gcloud sql backups restore BACKUP_ID --backup-instance=openbeam-db-prod-xxxx
 ```

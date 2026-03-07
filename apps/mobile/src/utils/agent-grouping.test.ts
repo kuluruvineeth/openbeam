@@ -38,12 +38,12 @@ describe("deriveRemoteProjectKey", () => {
 describe("groupAgents", () => {
   it("groups active agents by remote URL when available", () => {
     const agents = [
-      makeAgent({ id: "a1", cwd: "/Users/me/dev/openplane" }),
-      makeAgent({ id: "a2", cwd: "/Users/me/dev/openplane-fix/worktree" }),
+      makeAgent({ id: "a1", cwd: "/Users/me/dev/openbeam" }),
+      makeAgent({ id: "a2", cwd: "/Users/me/dev/openbeam-fix/worktree" }),
     ];
 
     const { activeGroups } = groupAgents(agents, {
-      getRemoteUrl: () => "git@github.com:getopenplane/openplane.git",
+      getRemoteUrl: () => "git@github.com:getopenbeam/openbeam.git",
     });
 
     expect(activeGroups).toHaveLength(1);
@@ -55,8 +55,8 @@ describe("groupAgents", () => {
 
   it("falls back to cwd grouping when remote URL is unavailable", () => {
     const agents = [
-      makeAgent({ id: "a1", cwd: "/Users/me/dev/openplane" }),
-      makeAgent({ id: "a2", cwd: "/Users/me/dev/openplane-fix/worktree" }),
+      makeAgent({ id: "a1", cwd: "/Users/me/dev/openbeam" }),
+      makeAgent({ id: "a2", cwd: "/Users/me/dev/openbeam-fix/worktree" }),
     ];
 
     const { activeGroups } = groupAgents(agents, {

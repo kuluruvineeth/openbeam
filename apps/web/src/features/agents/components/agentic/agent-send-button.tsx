@@ -1,13 +1,13 @@
 "use client";
 
-import { Icons } from "@openplane/ui";
-import { Button } from "@openplane/ui/components/button";
+import { Icons } from "@openbeam/ui";
+import { Button } from "@openbeam/ui/components/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@openplane/ui/components/tooltip";
-import { cn } from "@openplane/ui/utils";
+} from "@openbeam/ui/components/tooltip";
+import { cn } from "@openbeam/ui/utils";
 
 interface AgentSendButtonProps {
   isStreaming?: boolean;

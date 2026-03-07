@@ -1,4 +1,4 @@
-import type { StorageObject, StorageProvider } from "@openplane/storage";
+import type { StorageObject, StorageProvider } from "@openbeam/storage";
 import type { DeleteByPrefixInput, DeleteFilesInput } from "./types";
 
 export interface DeleteActivityDependencies {

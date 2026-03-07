@@ -6,7 +6,7 @@ import type {
   ResilienceProviderConfig,
   ResilienceTokenUsage,
   RetryConfig,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 
 export type ErrorCode = ResilienceErrorCode;
 export type TokenUsage = ResilienceTokenUsage;

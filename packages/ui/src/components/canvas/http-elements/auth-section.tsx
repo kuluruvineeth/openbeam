@@ -1,6 +1,6 @@
 "use client";
 
-import type { HttpAuthConfig, HttpAuthType } from "@openplane/types/canvas";
+import type { HttpAuthConfig, HttpAuthType } from "@openbeam/types/canvas";
 import { forwardRef, memo, useCallback, useState } from "react";
 import { AnimatedSizeContainer } from "../../animated-size-container";
 import { Icons } from "../../icons";

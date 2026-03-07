@@ -1,5 +1,5 @@
-import type { Database } from "@openplane/db";
-import { findConnectorById } from "@openplane/db";
+import type { Database } from "@openbeam/db";
+import { findConnectorById } from "@openbeam/db";
 
 export interface LoadConnectorDependencies {
   db: Database;

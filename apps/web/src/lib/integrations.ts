@@ -3,7 +3,7 @@ import {
   AuthType,
   ConnectorType,
   type UnifiedApp,
-} from "@openplane/integrations";
+} from "@openbeam/integrations";
 import { z } from "zod/v3";
 
 export type ExternalApp = {

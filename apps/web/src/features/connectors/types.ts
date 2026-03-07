@@ -1,4 +1,4 @@
-import type { UnifiedApp } from "@openplane/integrations";
+import type { UnifiedApp } from "@openbeam/integrations";
 
 export type ConnectorDetail = {
   id: string;

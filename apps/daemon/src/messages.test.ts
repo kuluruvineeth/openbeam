@@ -14,7 +14,7 @@ describe("serializeAgentStreamEvent", () => {
       provider: "claude",
       item: {
         type: "user_message",
-        text: "<openplane-instructions>\nX\n</openplane-instructions>\n\nHello",
+        text: "<openbeam-instructions>\nX\n</openbeam-instructions>\n\nHello",
         messageId: "m1",
       },
     };
@@ -69,7 +69,7 @@ describe("serializeAgentStreamEvent", () => {
       item: {
         type: "tool_call",
         callId: "call_unknown",
-        name: "openplane_voice.speak",
+        name: "openbeam_voice.speak",
         status: "completed",
         detail: {
           type: "unknown",

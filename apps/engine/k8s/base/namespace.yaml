@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: openplane-engine
+  name: openbeam-engine
   labels:
-    app.kubernetes.io/name: openplane-engine
-    app.kubernetes.io/part-of: openplane
+    app.kubernetes.io/name: openbeam-engine
+    app.kubernetes.io/part-of: openbeam
     pod-security.kubernetes.io/enforce: restricted
     pod-security.kubernetes.io/enforce-version: latest
     pod-security.kubernetes.io/audit: restricted

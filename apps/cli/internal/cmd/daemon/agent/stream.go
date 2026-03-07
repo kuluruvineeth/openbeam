@@ -8,8 +8,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	daemonlib "github.com/openplane/openplane/apps/cli/internal/daemon"
-	"github.com/openplane/openplane/apps/cli/internal/errs"
+	daemonlib "github.com/kuluruvineeth/openbeam/apps/cli/internal/daemon"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/errs"
 )
 
 func streamTimeline(cmd *cobra.Command, client *daemonlib.Client, daemonHome string, agentID string, filter string) error {

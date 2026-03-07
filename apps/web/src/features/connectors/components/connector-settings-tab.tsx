@@ -1,6 +1,6 @@
 "use client";
 
-import { Skeleton } from "@openplane/ui";
+import { Skeleton } from "@openbeam/ui";
 import { SyncSettingsForm, useSyncStatus } from "@/features/sync";
 import { DangerZone } from "./danger-zone";
 

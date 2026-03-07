@@ -1,6 +1,6 @@
 "use client";
 
-import type { TemplateVariable } from "@openplane/types/canvas";
+import type { TemplateVariable } from "@openbeam/types/canvas";
 import { memo, useCallback } from "react";
 import { cn } from "../../../utils";
 import { Badge } from "../../badge";

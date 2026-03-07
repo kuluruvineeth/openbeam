@@ -1,12 +1,12 @@
-import { rateLimiter } from "@openplane/redis";
+import { rateLimiter } from "@openbeam/redis";
 import {
   getDriveWatchStateForConnector,
   handleGoogleDriveNotification,
   isExpiredDriveNotification,
   parseGoogleDriveNotification,
   validateDriveNotificationSignature,
-} from "@openplane/services";
-import { startConnectorSync } from "@openplane/temporal";
+} from "@openbeam/services";
+import { startConnectorSync } from "@openbeam/temporal";
 import { Hono } from "hono";
 import logger from "../../utils/logger";
 

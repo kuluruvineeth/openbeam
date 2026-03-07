@@ -1,7 +1,7 @@
 import { Database } from "bun:sqlite";
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import type { EdgeConfig } from "@openplane/types/edge/config";
-import { EdgeConfigSchema } from "@openplane/types/edge/config";
+import type { EdgeConfig } from "@openbeam/types/edge/config";
+import { EdgeConfigSchema } from "@openbeam/types/edge/config";
 import { EdgeConfigManager } from "../manager";
 
 describe("EdgeConfigManager", () => {

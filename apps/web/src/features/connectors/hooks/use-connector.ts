@@ -1,6 +1,6 @@
 "use client";
 
-import { useDebounce } from "@openplane/ui";
+import { useDebounce } from "@openbeam/ui";
 import {
   keepPreviousData,
   useInfiniteQuery,

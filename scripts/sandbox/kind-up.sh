@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CLUSTER_NAME="${KIND_CLUSTER_NAME:-openplane-sandbox}"
-NAMESPACE="${SANDBOX_NAMESPACE:-openplane-sandbox}"
+CLUSTER_NAME="${KIND_CLUSTER_NAME:-openbeam-sandbox}"
+NAMESPACE="${SANDBOX_NAMESPACE:-openbeam-sandbox}"
 RELEASE_NAME="${SANDBOX_HELM_RELEASE:-sandbox-gateway}"
-IMAGE="${SANDBOX_GATEWAY_IMAGE:-openplane/sandbox-gateway:local}"
+IMAGE="${SANDBOX_GATEWAY_IMAGE:-openbeam/sandbox-gateway:local}"
 TOKEN="${SANDBOX_API_TOKEN:-dev-sandbox-token}"
 PROVIDER="${SANDBOX_DEFAULT_PROVIDER:-daytona}"
 HELM_DAYTONA_API_KEY="${SANDBOX_DAYTONA_API_KEY:-${DAYTONA_API_KEY:-}}"

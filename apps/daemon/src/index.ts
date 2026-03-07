@@ -1,20 +1,20 @@
-import { createOpenPlaneDaemon } from "./bootstrap";
+import { createOpenBeamDaemon } from "./bootstrap";
 import { loadConfig } from "./config";
 import { createRootLogger } from "./logger";
-import { resolveOpenPlaneHome } from "./openplane-home";
+import { resolveOpenBeamHome } from "./openbeam-home";
 import { loadPersistedConfig } from "./persisted-config";
 import { PidLockError } from "./pid-lock";
 
 async function main() {
-  let openplaneHome: string;
+  let openbeamHome: string;
   let logger: ReturnType<typeof createRootLogger>;
   let config: ReturnType<typeof loadConfig>;
 
   try {
-    openplaneHome = resolveOpenPlaneHome();
-    const persistedConfig = loadPersistedConfig(openplaneHome);
+    openbeamHome = resolveOpenBeamHome();
+    const persistedConfig = loadPersistedConfig(openbeamHome);
     logger = createRootLogger(persistedConfig);
-    config = loadConfig(openplaneHome);
+    config = loadConfig(openbeamHome);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     process.stderr.write(`${message}\n`);
@@ -31,7 +31,7 @@ async function main() {
   // biome-ignore lint/suspicious/noEvolvingTypes: type narrows through function
   let daemon;
   try {
-    daemon = await createOpenPlaneDaemon(config, logger);
+    daemon = await createOpenBeamDaemon(config, logger);
   } catch (err) {
     if (err instanceof PidLockError) {
       logger.error({ pid: err.existingLock?.pid }, err.message);
@@ -83,7 +83,7 @@ async function main() {
 }
 
 main().catch((err) => {
-  if (process.env.OPENPLANE_DEBUG === "1") {
+  if (process.env.OPENBEAM_DEBUG === "1") {
     process.stderr.write(
       `${err instanceof Error ? (err.stack ?? err.message) : String(err)}\n`
     );

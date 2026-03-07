@@ -29,9 +29,9 @@ jobs:
         id: env
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "INSTANCE_NAME=openplane-vespa-prod" >> $GITHUB_OUTPUT
+            echo "INSTANCE_NAME=openbeam-vespa-prod" >> $GITHUB_OUTPUT
           else
-            echo "INSTANCE_NAME=openplane-vespa-dev" >> $GITHUB_OUTPUT
+            echo "INSTANCE_NAME=openbeam-vespa-dev" >> $GITHUB_OUTPUT
           fi
 
       - name: Authenticate to Google Cloud

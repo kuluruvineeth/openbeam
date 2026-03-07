@@ -1,8 +1,8 @@
 import type {
   ThingsboardSyncBatch,
   ThingsboardTransformContext,
-} from "@openplane/types/services/connectors/thingsboard";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/thingsboard";
+import type { GenericDocument } from "@openbeam/vespa";
 import type { ThingsboardClient } from "../client";
 import { transformAlarms } from "../transformers/alarm";
 import { transformDashboards } from "../transformers/dashboard";

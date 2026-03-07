@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/openplane/openplane/apps/cli/internal/errs"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/errs"
 )
 
 func TestRequestJSON_Headers(t *testing.T) {
@@ -57,7 +57,7 @@ func TestRequestJSON_Headers(t *testing.T) {
 			wantTeam:   false,
 		},
 		{
-			name:       "empty team omits X-Openplane-Team",
+			name:       "empty team omits X-Openbeam-Team",
 			token:      "tok_123",
 			team:       "",
 			body:       nil,
@@ -101,8 +101,8 @@ func TestRequestJSON_Headers(t *testing.T) {
 				t.Fatalf("Accept header = %q, want %q", got, tt.wantAccept)
 			}
 
-			if got := captured.Get("User-Agent"); got != "openplane-cli/0.1.0" {
-				t.Fatalf("User-Agent = %q, want %q", got, "openplane-cli/0.1.0")
+			if got := captured.Get("User-Agent"); got != "openbeam-cli/0.1.0" {
+				t.Fatalf("User-Agent = %q, want %q", got, "openbeam-cli/0.1.0")
 			}
 
 			if got := captured.Get("X-Request-ID"); got == "" {
@@ -130,12 +130,12 @@ func TestRequestJSON_Headers(t *testing.T) {
 			}
 
 			if tt.wantTeam {
-				if got := captured.Get("X-Openplane-Team"); got != tt.team {
-					t.Fatalf("X-Openplane-Team = %q, want %q", got, tt.team)
+				if got := captured.Get("X-Openbeam-Team"); got != tt.team {
+					t.Fatalf("X-Openbeam-Team = %q, want %q", got, tt.team)
 				}
 			} else {
-				if got := captured.Get("X-Openplane-Team"); got != "" {
-					t.Fatalf("X-Openplane-Team should be absent, got %q", got)
+				if got := captured.Get("X-Openbeam-Team"); got != "" {
+					t.Fatalf("X-Openbeam-Team should be absent, got %q", got)
 				}
 			}
 		})
@@ -689,7 +689,7 @@ func TestSetTeam_TrimsWhitespace(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var capturedTeam string
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				capturedTeam = r.Header.Get("X-Openplane-Team")
+				capturedTeam = r.Header.Get("X-Openbeam-Team")
 				w.Header().Set("Content-Type", "application/json")
 				_, _ = w.Write([]byte(`{}`))
 			}))
@@ -986,8 +986,8 @@ func TestStreamSSE_SetsCorrectHeaders(t *testing.T) {
 	if got := captured.Get("Authorization"); got != "Bearer tok_abc" {
 		t.Fatalf("Authorization = %q, want Bearer tok_abc", got)
 	}
-	if got := captured.Get("X-Openplane-Team"); got != "team_xyz" {
-		t.Fatalf("X-Openplane-Team = %q, want team_xyz", got)
+	if got := captured.Get("X-Openbeam-Team"); got != "team_xyz" {
+		t.Fatalf("X-Openbeam-Team = %q, want team_xyz", got)
 	}
 	if got := captured.Get("X-Request-ID"); got == "" {
 		t.Fatal("X-Request-ID missing")

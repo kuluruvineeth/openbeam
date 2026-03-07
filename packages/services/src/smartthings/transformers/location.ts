@@ -1,5 +1,5 @@
-import type { SmartThingsTransformContext } from "@openplane/types/services/connectors/smartthings";
-import type { GenericDocument } from "@openplane/vespa";
+import type { SmartThingsTransformContext } from "@openbeam/types/services/connectors/smartthings";
+import type { GenericDocument } from "@openbeam/vespa";
 import { calculateDocumentChecksum } from "../../lib/checksum";
 import type { SmartThingsLocation, SmartThingsRoom } from "../client";
 

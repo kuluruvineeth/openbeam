@@ -3,7 +3,7 @@ import type {
   ConditionGroup,
   ConditionOperator,
   SingleCondition,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 
 type ConditionValue = string | number | boolean | null | undefined;
 

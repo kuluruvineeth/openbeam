@@ -11,7 +11,7 @@ async function createTempDir(prefix: string): Promise<string> {
 
 describe("file explorer service", () => {
   it("lists directory entries even when a dangling symlink exists", async () => {
-    const root = await createTempDir("openplane-file-explorer-");
+    const root = await createTempDir("openbeam-file-explorer-");
 
     try {
       await mkdir(path.join(root, "packages", "server"), { recursive: true });

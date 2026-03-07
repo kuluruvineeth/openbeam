@@ -1,8 +1,8 @@
 "use client";
 
-import type { AgentCanvasSettings } from "@openplane/types/canvas";
-import { Badge } from "@openplane/ui/components/badge";
-import { cn } from "@openplane/ui/utils";
+import type { AgentCanvasSettings } from "@openbeam/types/canvas";
+import { Badge } from "@openbeam/ui/components/badge";
+import { cn } from "@openbeam/ui/utils";
 import Link from "next/link";
 import { useMemo } from "react";
 import { AgentCapabilityBadges } from "./agent-capability-badges";

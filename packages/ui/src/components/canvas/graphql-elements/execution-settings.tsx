@@ -1,6 +1,6 @@
 "use client";
 
-import type { GraphqlQueryNodeConfig } from "@openplane/types/canvas";
+import type { GraphqlQueryNodeConfig } from "@openbeam/types/canvas";
 import { forwardRef, memo, useCallback, useMemo } from "react";
 import { Input } from "../../input";
 import { Slider } from "../../slider";

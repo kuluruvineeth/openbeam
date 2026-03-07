@@ -1,5 +1,5 @@
-import type { IndexDocumentsOutput } from "@openplane/types/temporal/workflows";
-import type { GenericDocument } from "@openplane/vespa";
+import type { IndexDocumentsOutput } from "@openbeam/types/temporal/workflows";
+import type { GenericDocument } from "@openbeam/vespa";
 import { proxyActivities } from "@temporalio/workflow";
 import { z } from "zod";
 import type { DatabaseActivities } from "../../activities/database/types";

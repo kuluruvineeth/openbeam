@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "bun:test";
-import type { ToolMetadata } from "@openplane/types/ai";
+import type { ToolMetadata } from "@openbeam/types/ai";
 import {
   checkWebPermission,
   createAccessControlHook,

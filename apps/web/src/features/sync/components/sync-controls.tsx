@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
   Separator,
-} from "@openplane/ui";
+} from "@openbeam/ui";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Icons } from "@/components/icons";

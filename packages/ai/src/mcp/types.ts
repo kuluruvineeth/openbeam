@@ -4,7 +4,7 @@ import type {
   MCPResourceReadResult,
   MCPServerContext,
   MCPToolResult,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import type { z } from "zod";
 
 export interface MCPToolDefinition {

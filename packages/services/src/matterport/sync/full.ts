@@ -3,8 +3,8 @@ import type {
   MatterportSyncBatch,
   MatterportSyncCursor,
   MatterportTransformContext,
-} from "@openplane/types/services/connectors/matterport";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/matterport";
+import type { GenericDocument } from "@openbeam/vespa";
 import { logger } from "../../lib/logger";
 import {
   GET_MODEL_DETAILS_QUERY,

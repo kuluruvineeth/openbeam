@@ -2,9 +2,9 @@ import type {
   BacnetObject,
   BacnetObjectType,
   BacnetTransformContext,
-} from "@openplane/types/services/connectors/bacnet";
-import { BacnetObjectType as ObjectTypes } from "@openplane/types/services/connectors/bacnet";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/bacnet";
+import { BacnetObjectType as ObjectTypes } from "@openbeam/types/services/connectors/bacnet";
+import type { GenericDocument } from "@openbeam/vespa";
 import { calculateDocumentChecksum } from "../../lib/checksum";
 
 const OBJECT_TYPE_NAMES: Record<number, string> = {

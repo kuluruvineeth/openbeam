@@ -1,8 +1,8 @@
 import type {
   OpcUaNode,
   OpcUaTransformContext,
-} from "@openplane/types/services/connectors/opcua";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/opcua";
+import type { GenericDocument } from "@openbeam/vespa";
 import { calculateDocumentChecksum } from "../../lib/checksum";
 
 const NODE_CLASS_NAMES: Record<number, string> = {

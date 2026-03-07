@@ -1,4 +1,4 @@
-import type { FhirConsentDirective } from "@openplane/types/services/connectors/fhir";
+import type { FhirConsentDirective } from "@openbeam/types/services/connectors/fhir";
 
 export function buildAccessControl(
   teamId: string,

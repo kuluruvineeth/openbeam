@@ -1,6 +1,6 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@openplane/ui";
+import { Avatar, AvatarFallback, AvatarImage } from "@openbeam/ui";
 import { forwardRef, useMemo } from "react";
 
 import { Icons } from "@/components/icons";

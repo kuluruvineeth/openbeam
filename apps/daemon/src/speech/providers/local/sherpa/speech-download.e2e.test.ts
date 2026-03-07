@@ -20,13 +20,13 @@ import { SherpaOnnxParakeetSTT } from "./sherpa-parakeet-stt";
 import { SherpaOnnxSTT } from "./sherpa-stt";
 import { SherpaOnnxTTS } from "./sherpa-tts";
 
-const RUN = process.env.OPENPLANE_SPEECH_E2E_DOWNLOAD === "1";
+const RUN = process.env.OPENBEAM_SPEECH_E2E_DOWNLOAD === "1";
 const downloadTest = RUN ? test : test.skip;
 
 type ModelSet = "zipformer-kitten" | "parakeet-pocket";
 
 function getModelSet(): ModelSet {
-  const raw = (process.env.OPENPLANE_SPEECH_E2E_MODEL_SET ?? "parakeet-pocket")
+  const raw = (process.env.OPENBEAM_SPEECH_E2E_MODEL_SET ?? "parakeet-pocket")
     .trim()
     .toLowerCase();
   if (raw === "zipformer-kitten" || raw === "zipformer") {
@@ -35,7 +35,7 @@ function getModelSet(): ModelSet {
   if (raw === "parakeet-pocket" || raw === "parakeet") {
     return "parakeet-pocket";
   }
-  throw new Error(`Unknown OPENPLANE_SPEECH_E2E_MODEL_SET: ${raw}`);
+  throw new Error(`Unknown OPENBEAM_SPEECH_E2E_MODEL_SET: ${raw}`);
 }
 
 // biome-ignore lint/suspicious/useAwait: async signature required by interface
@@ -127,12 +127,12 @@ describe("speech models (download E2E)", () => {
       const logger = pino({ level: "silent" });
       const set = getModelSet();
 
-      const openplaneHomeRoot = mkdtempSync(
-        path.join(tmpdir(), "openplane-speech-download-")
+      const openbeamHomeRoot = mkdtempSync(
+        path.join(tmpdir(), "openbeam-speech-download-")
       );
       const modelsDir = path.join(
-        openplaneHomeRoot,
-        ".openplane",
+        openbeamHomeRoot,
+        ".openbeam",
         "models",
         "local-speech"
       );
@@ -152,7 +152,7 @@ describe("speech models (download E2E)", () => {
       });
 
       const ctx = await createDaemonTestContext({
-        openplaneHomeRoot,
+        openbeamHomeRoot,
         dictationFinalTimeoutMs: 8000,
         speech: {
           providers: {

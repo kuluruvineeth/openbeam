@@ -1,6 +1,6 @@
 "use client";
 
-import type { HttpResponseHandling } from "@openplane/types/canvas";
+import type { HttpResponseHandling } from "@openbeam/types/canvas";
 import { forwardRef, memo, useCallback } from "react";
 import { AnimatedSizeContainer } from "../../animated-size-container";
 import { Input } from "../../input";

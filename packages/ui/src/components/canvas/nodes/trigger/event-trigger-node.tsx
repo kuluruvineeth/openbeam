@@ -4,7 +4,7 @@ import type {
   NodeStatus,
   Port,
   TriggerEventNodeConfig,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
 import { forwardRef, memo, useMemo } from "react";

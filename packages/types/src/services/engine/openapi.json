@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "OpenPlane Engine CPU Service",
+    "title": "OpenBeam Engine CPU Service",
     "description": "Document parsing, chunking, and LTR scoring",
     "version": "0.2.0"
   },

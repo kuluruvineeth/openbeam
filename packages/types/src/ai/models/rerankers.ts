@@ -1,10 +1,10 @@
 import type { RerankerModel } from "./types";
 
-export const OPENPLANE_RERANKER_MODELS: RerankerModel[] = [
+export const OPENBEAM_RERANKER_MODELS: RerankerModel[] = [
   {
     id: "bge-reranker-v2-m3",
     name: "BGE Reranker v2 M3",
-    provider: "openplane",
+    provider: "openbeam",
     maxDocuments: 100,
     supportsMultilingual: true,
     isLocal: true,
@@ -43,7 +43,7 @@ export const JINA_RERANKER_MODELS: RerankerModel[] = [
 ];
 
 export const RERANKER_MODELS: RerankerModel[] = [
-  ...OPENPLANE_RERANKER_MODELS,
+  ...OPENBEAM_RERANKER_MODELS,
   ...COHERE_RERANKER_MODELS,
   ...JINA_RERANKER_MODELS,
 ];

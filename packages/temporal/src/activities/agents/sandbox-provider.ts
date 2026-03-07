@@ -2,7 +2,7 @@ import {
   getSandboxProvider,
   type SandboxProvider,
   type SandboxProviderType,
-} from "@openplane/sandbox";
+} from "@openbeam/sandbox";
 
 const SANDBOX_PROVIDER_PRIORITY: readonly SandboxProviderType[] = [
   "daytona",

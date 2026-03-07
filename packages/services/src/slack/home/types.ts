@@ -117,8 +117,8 @@ export const DEFAULT_QUICK_ACTIONS: QuickAction[] = [
 ];
 
 export const TIPS = [
-  "Use `/openplane search <query>` to search from anywhere",
-  "@mention OpenPlane in any channel to ask questions",
+  "Use `/openbeam search <query>` to search from anywhere",
+  "@mention OpenBeam in any channel to ask questions",
   "Save important items by using message shortcuts",
   "Set up a daily digest to stay informed",
 ] as const;

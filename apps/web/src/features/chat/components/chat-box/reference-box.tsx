@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Input } from "@openplane/ui";
+import { Button, Input } from "@openbeam/ui";
 import { Icons } from "@/components/icons";
 import { cn } from "@/lib/utils";
 

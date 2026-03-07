@@ -110,7 +110,7 @@ export function getDefaultProviderType(): SandboxProviderType {
 }
 
 export function extractAuthToken(c: Context): string | undefined {
-  const explicit = c.req.header("x-openplane-sandbox-token");
+  const explicit = c.req.header("x-openbeam-sandbox-token");
   if (explicit) {
     return explicit;
   }

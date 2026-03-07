@@ -1,4 +1,4 @@
-import type { NotionPage } from "@openplane/types/services/connectors/notion";
+import type { NotionPage } from "@openbeam/types/services/connectors/notion";
 import type { NotionClient } from "../client";
 
 export async function getPage(

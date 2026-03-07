@@ -274,7 +274,7 @@
   "refresh": "10s",
   "schemaVersion": 16,
   "style": "dark",
-  "tags": ["openplane", "database", "postgresql", "prisma"],
+  "tags": ["openbeam", "database", "postgresql", "prisma"],
   "templating": {
     "list": []
   },
@@ -284,7 +284,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "OpenPlane Database Performance",
+  "title": "OpenBeam Database Performance",
   "uid": "database-performance",
   "version": 1
 }

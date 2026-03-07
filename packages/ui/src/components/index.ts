@@ -356,6 +356,7 @@ export {
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
+  useCarousel,
 } from "./carousel";
 export { Checkbox } from "./checkbox";
 export type { CodeEditorProps } from "./code-editor";

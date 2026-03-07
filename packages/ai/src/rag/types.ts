@@ -7,7 +7,7 @@ import type {
   RAGCitationSimple,
   RAGConfig,
   RerankingOptions,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 
 export type Citation = RAGCitationSimple;
 

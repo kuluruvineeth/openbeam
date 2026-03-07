@@ -4,7 +4,7 @@ import {
   getUserById,
   type TeamRole,
   verifyConnectorOwnership,
-} from "@openplane/db";
+} from "@openbeam/db";
 import { TRPCError } from "@trpc/server";
 import type { TRPCContext } from "../../context";
 import { protectedProcedure, t } from "../../index";

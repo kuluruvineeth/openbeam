@@ -55,7 +55,7 @@ export function useBiometricLock() {
     }
 
     const result = await LocalAuthentication.authenticateAsync({
-      promptMessage: "Unlock OpenPlane",
+      promptMessage: "Unlock OpenBeam",
       cancelLabel: "Cancel",
       disableDeviceFallback: false,
     });

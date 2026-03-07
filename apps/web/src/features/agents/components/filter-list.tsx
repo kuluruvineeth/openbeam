@@ -1,6 +1,6 @@
 "use client";
 
-import { Badge, Button, Icons } from "@openplane/ui";
+import { Badge, Button, Icons } from "@openbeam/ui";
 
 type Filter = {
   id: string;

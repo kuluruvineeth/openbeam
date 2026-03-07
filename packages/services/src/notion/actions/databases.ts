@@ -1,7 +1,7 @@
 import type {
   NotionDatabase,
   NotionPage,
-} from "@openplane/types/services/connectors/notion";
+} from "@openbeam/types/services/connectors/notion";
 import {
   getDatabase as apiGetDatabase,
   queryDatabase as apiQueryDatabase,

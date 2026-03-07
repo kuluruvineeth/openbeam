@@ -1,6 +1,6 @@
 "use client";
 
-import type { AppRouter } from "@openplane/api/routers/index";
+import type { AppRouter } from "@openbeam/api/routers/index";
 import { isServer, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import {

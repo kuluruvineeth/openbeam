@@ -14,15 +14,15 @@ describe("project-placement", () => {
     expect(placement.checkout.isGit).toBe(false);
   });
 
-  it("normalizes openplane worktree paths into the parent repo key", () => {
+  it("normalizes openbeam worktree paths into the parent repo key", () => {
     const placement = deriveProjectPlacementFromCwd(
-      "/Users/test/repo/.openplane/worktrees/feature-x"
+      "/Users/test/repo/.openbeam/worktrees/feature-x"
     );
 
     expect(placement.projectKey).toBe("/Users/test/repo");
     expect(placement.projectName).toBe("repo");
     expect(placement.checkout.cwd).toBe(
-      "/Users/test/repo/.openplane/worktrees/feature-x"
+      "/Users/test/repo/.openbeam/worktrees/feature-x"
     );
   });
 
@@ -35,7 +35,7 @@ describe("project-placement", () => {
         isGit: true as const,
         currentBranch: "main",
         remoteUrl: "https://github.com/acme/repo.git",
-        isOpenPlaneOwnedWorktree: false as const,
+        isOpenBeamOwnedWorktree: false as const,
         mainRepoRoot: null,
       },
     };

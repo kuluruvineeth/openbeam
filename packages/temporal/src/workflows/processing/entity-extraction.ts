@@ -1,7 +1,7 @@
 import {
   EntityExtractionInputSchema,
   type EntityExtractionOutput,
-} from "@openplane/types/temporal/workflows";
+} from "@openbeam/types/temporal/workflows";
 import { proxyActivities, setHandler } from "@temporalio/workflow";
 import type { EntityExtractionActivities } from "../../activities/entities/types";
 import { progressQuery, type SyncState } from "../types";

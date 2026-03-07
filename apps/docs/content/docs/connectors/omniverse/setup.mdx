@@ -1,15 +1,15 @@
 ---
 title: Setup
-description: Connect NVIDIA Omniverse to OpenPlane with a Nucleus API token.
+description: Connect NVIDIA Omniverse to OpenBeam with a Nucleus API token.
 ---
 
 # Omniverse Setup
 
 ## Prerequisites
 
-- NVIDIA Omniverse Nucleus server accessible from the OpenPlane host
+- NVIDIA Omniverse Nucleus server accessible from the OpenBeam host
 - Nucleus API token with read access to target USD stages
-- OpenPlane instance running
+- OpenBeam instance running
 
 ## 1. Generate an API Token
 
@@ -31,7 +31,7 @@ List the USD stages to index. Paths follow the Nucleus file system format:
   The connector traverses the full scene graph for each stage. Large stages (100,000+ prims) can take several minutes on initial sync. Start with smaller stages to verify the configuration.
 </Callout>
 
-## 3. Add the Connector in OpenPlane
+## 3. Add the Connector in OpenBeam
 
 1. Go to **Settings** > **Connectors** > **Add Connector**
 2. Select **Omniverse**

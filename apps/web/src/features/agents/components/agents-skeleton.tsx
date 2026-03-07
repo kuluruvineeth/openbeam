@@ -1,7 +1,7 @@
 "use client";
 
-import { Skeleton } from "@openplane/ui/components/skeleton";
-import { cn } from "@openplane/ui/utils";
+import { Skeleton } from "@openbeam/ui/components/skeleton";
+import { cn } from "@openbeam/ui/utils";
 
 function AgentItemSkeleton({ small }: { small?: boolean }) {
   return (

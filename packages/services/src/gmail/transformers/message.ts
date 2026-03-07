@@ -1,8 +1,8 @@
 import type {
   GmailMessage,
   GmailTransformContext,
-} from "@openplane/types/services/connectors/gmail";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/gmail";
+import type { GenericDocument } from "@openbeam/vespa";
 import { calculateDocumentChecksum } from "../../lib/checksum";
 import type { LabelLookup } from "../api/labels";
 import {

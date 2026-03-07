@@ -1,6 +1,6 @@
 "use client";
 
-import type { CanvasSession } from "@openplane/types/canvas/session";
+import type { CanvasSession } from "@openbeam/types/canvas/session";
 import { useCallback } from "react";
 import { useAgenticRuntimeStore } from "../stores/agentic-runtime-store";
 import { useAgenticRuntimeStream } from "./use-agentic-runtime-stream";

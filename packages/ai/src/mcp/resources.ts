@@ -6,7 +6,7 @@ import type {
   MCPResourceTemplate,
   MCPServerContext,
   MCPTextContent,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 
 export type ResourceHandler = (
   uri: string,
@@ -186,7 +186,7 @@ export interface SearchResultResourceData {
 
 export function defineConnectorsResource(): MCPResourceDefinition {
   return {
-    uri: "openplane://connectors",
+    uri: "openbeam://connectors",
     name: "Connected Sources",
     description: "List of all active data source integrations for the team",
     mimeType: "application/json",
@@ -195,7 +195,7 @@ export function defineConnectorsResource(): MCPResourceDefinition {
 
 export function defineDocumentResourceTemplate(): MCPResourceTemplate {
   return {
-    uriTemplate: "openplane://documents/{documentId}",
+    uriTemplate: "openbeam://documents/{documentId}",
     name: "Document",
     description: "Full content of a specific document by ID",
     mimeType: "application/json",
@@ -204,7 +204,7 @@ export function defineDocumentResourceTemplate(): MCPResourceTemplate {
 
 export function defineRecentDocumentsResource(): MCPResourceDefinition {
   return {
-    uri: "openplane://documents/recent",
+    uri: "openbeam://documents/recent",
     name: "Recent Documents",
     description: "Documents indexed in the last 24 hours",
     mimeType: "application/json",
@@ -213,7 +213,7 @@ export function defineRecentDocumentsResource(): MCPResourceDefinition {
 
 export function defineSearchResultsResourceTemplate(): MCPResourceTemplate {
   return {
-    uriTemplate: "openplane://search/{queryId}",
+    uriTemplate: "openbeam://search/{queryId}",
     name: "Search Results",
     description: "Cached search results for a specific query ID",
     mimeType: "application/json",
@@ -222,7 +222,7 @@ export function defineSearchResultsResourceTemplate(): MCPResourceTemplate {
 
 export function defineTeamProfileResource(): MCPResourceDefinition {
   return {
-    uri: "openplane://team/profile",
+    uri: "openbeam://team/profile",
     name: "Team Profile",
     description: "Current team information and settings",
     mimeType: "application/json",
@@ -231,7 +231,7 @@ export function defineTeamProfileResource(): MCPResourceDefinition {
 
 export function defineUserContextResource(): MCPResourceDefinition {
   return {
-    uri: "openplane://user/context",
+    uri: "openbeam://user/context",
     name: "User Context",
     description: "Current user context including permissions and preferences",
     mimeType: "application/json",

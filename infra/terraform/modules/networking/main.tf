@@ -12,7 +12,7 @@ resource "google_compute_network" "vpc" {
   name                    = "${var.project_name}-vpc-${var.environment}"
   auto_create_subnetworks = false
   routing_mode            = "REGIONAL"
-  description             = "VPC network for OpenPlane ${var.environment} environment"
+  description             = "VPC network for OpenBeam ${var.environment} environment"
 }
 
 resource "google_compute_subnetwork" "cloud_run" {

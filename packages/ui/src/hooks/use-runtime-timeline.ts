@@ -1,17 +1,17 @@
 "use client";
 
-import type { ExecutionStatus } from "@openplane/types/canvas/execution";
+import type { ExecutionStatus } from "@openbeam/types/canvas/execution";
 import type {
   RuntimeEvent,
   RuntimeEventPayload,
-} from "@openplane/types/canvas/runtime-events";
+} from "@openbeam/types/canvas/runtime-events";
 import type {
   TimelineData,
   TimelineEvent,
   TimelineEventType,
   TimelineStep,
   TimelineStepStatus,
-} from "@openplane/types/canvas/timeline";
+} from "@openbeam/types/canvas/timeline";
 import { useMemo } from "react";
 
 type ToolCallStartPayload = Extract<

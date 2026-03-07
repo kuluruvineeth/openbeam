@@ -1,4 +1,4 @@
-import { getConfig } from "@openplane/ai";
+import { getConfig } from "@openbeam/ai";
 import { z } from "zod";
 import type {
   DocumentFeatures,

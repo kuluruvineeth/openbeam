@@ -6,7 +6,7 @@ import type {
   TemplatePreset,
   TemplateSyntax,
   TemplateVariable,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { cn } from "../../../utils";
 import { AnimatedSizeContainer } from "../../animated-size-container";

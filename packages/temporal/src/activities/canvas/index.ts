@@ -1,4 +1,4 @@
-import type { Database } from "@openplane/db";
+import type { Database } from "@openbeam/db";
 import { createCanvasApprovalActivity } from "./approval-node";
 import { createExecuteCanvasNodeActivity } from "./execute-node";
 import {
@@ -104,5 +104,5 @@ export type {
   UpdateCanvasExecutionInput,
   UpdateCanvasExecutionStepInput,
   UpdateCanvasExecutionStepOutput,
-} from "@openplane/types/temporal";
+} from "@openbeam/types/temporal";
 export type { CanvasExecutionActivities } from "./types";

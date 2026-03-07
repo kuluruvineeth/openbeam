@@ -1,7 +1,7 @@
 import {
   LtrTrainingInputSchema,
   type LtrTrainingOutput,
-} from "@openplane/types/temporal/workflows";
+} from "@openbeam/types/temporal/workflows";
 import {
   executeChild,
   proxyActivities,

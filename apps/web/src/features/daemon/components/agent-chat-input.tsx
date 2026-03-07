@@ -1,7 +1,7 @@
 "use client";
 
-import { Icons } from "@openplane/ui";
-import { Button } from "@openplane/ui/components/button";
+import { Icons } from "@openbeam/ui";
+import { Button } from "@openbeam/ui/components/button";
 import {
   type KeyboardEvent,
   useCallback,

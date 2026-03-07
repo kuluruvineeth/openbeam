@@ -43,7 +43,7 @@ function WebRespectfulStyleReset() {
     <style
       // biome-ignore lint/security/noDangerouslySetInnerHtml: HTML template for Expo web
       dangerouslySetInnerHTML={{ __html: webEcosystemStyles }}
-      id="openplane-web-ecosystem"
+      id="openbeam-web-ecosystem"
     />
   );
 }

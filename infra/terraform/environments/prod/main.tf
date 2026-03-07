@@ -14,7 +14,7 @@ terraform {
   }
 
   backend "gcs" {
-    bucket = "openplane-prod-terraform-state"
+    bucket = "openbeam-prod-terraform-state"
     prefix = "terraform/state/prod"
   }
 }
@@ -32,7 +32,7 @@ provider "google" {
 
 locals {
   environment  = "prod"
-  project_name = "openplane"
+  project_name = "openbeam"
   
   server_sa = google_service_account.server.email
   worker_sa = google_service_account.worker.email
@@ -40,10 +40,10 @@ locals {
   docs_sa   = google_service_account.docs.email
   vespa_sa  = google_service_account.vespa.email
 
-  server_image = "ghcr.io/${var.github_org}/openplane-server:${var.image_tag}"
-  worker_image = "ghcr.io/${var.github_org}/openplane-worker:${var.image_tag}"
-  web_image    = "ghcr.io/${var.github_org}/openplane-web:${var.image_tag}"
-  docs_image   = "ghcr.io/${var.github_org}/openplane-docs:${var.image_tag}"
+  server_image = "ghcr.io/${var.github_org}/openbeam-server:${var.image_tag}"
+  worker_image = "ghcr.io/${var.github_org}/openbeam-worker:${var.image_tag}"
+  web_image    = "ghcr.io/${var.github_org}/openbeam-web:${var.image_tag}"
+  docs_image   = "ghcr.io/${var.github_org}/openbeam-docs:${var.image_tag}"
 }
 
 module "networking" {
@@ -61,35 +61,35 @@ module "networking" {
 
 resource "google_service_account" "server" {
   account_id   = "${local.project_name}-server-${local.environment}"
-  display_name = "OpenPlane Server (${local.environment})"
-  description  = "Service account for OpenPlane API server"
+  display_name = "OpenBeam Server (${local.environment})"
+  description  = "Service account for OpenBeam API server"
   project      = var.project_id
 }
 
 resource "google_service_account" "worker" {
   account_id   = "${local.project_name}-worker-${local.environment}"
-  display_name = "OpenPlane Worker (${local.environment})"
-  description  = "Service account for OpenPlane background worker"
+  display_name = "OpenBeam Worker (${local.environment})"
+  description  = "Service account for OpenBeam background worker"
   project      = var.project_id
 }
 
 resource "google_service_account" "web" {
   account_id   = "${local.project_name}-web-${local.environment}"
-  display_name = "OpenPlane Web (${local.environment})"
-  description  = "Service account for OpenPlane web frontend"
+  display_name = "OpenBeam Web (${local.environment})"
+  description  = "Service account for OpenBeam web frontend"
   project      = var.project_id
 }
 
 resource "google_service_account" "docs" {
   account_id   = "${local.project_name}-docs-${local.environment}"
-  display_name = "OpenPlane Docs (${local.environment})"
-  description  = "Service account for OpenPlane documentation site"
+  display_name = "OpenBeam Docs (${local.environment})"
+  description  = "Service account for OpenBeam documentation site"
   project      = var.project_id
 }
 
 resource "google_service_account" "vespa" {
   account_id   = "${local.project_name}-vespa-${local.environment}"
-  display_name = "OpenPlane Vespa (${local.environment})"
+  display_name = "OpenBeam Vespa (${local.environment})"
   description  = "Service account for Vespa search engine VM"
   project      = var.project_id
 }

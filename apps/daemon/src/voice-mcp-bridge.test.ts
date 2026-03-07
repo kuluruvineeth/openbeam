@@ -13,7 +13,7 @@ import { createVoiceMcpSocketBridgeManager } from "./voice-mcp-bridge";
 describe("voice MCP bridge", () => {
   test("proxies stdio MCP bytes through per-agent unix socket bridge", async () => {
     const tmpRoot = await mkdtemp(
-      path.join(os.tmpdir(), "openplane-voice-mcp-bridge-")
+      path.join(os.tmpdir(), "openbeam-voice-mcp-bridge-")
     );
     const callerAgentId = "voice-agent-bridge-test";
 

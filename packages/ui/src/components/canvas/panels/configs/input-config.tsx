@@ -1,6 +1,6 @@
 "use client";
 
-import type { InputNodeConfig } from "@openplane/types/canvas";
+import type { InputNodeConfig } from "@openbeam/types/canvas";
 import { memo } from "react";
 import {
   FieldsSection,

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/openplane/openplane/apps/cli/internal/runtime"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/runtime"
 )
 
 type RuntimeProvider func() (*runtime.Runtime, error)

@@ -1,4 +1,4 @@
-import db, { updateLTRModel, updateLTRModelStatus } from "@openplane/db";
+import db, { updateLTRModel, updateLTRModelStatus } from "@openbeam/db";
 import type { UpdateLtrModelInput, UpdateLtrModelOutput } from "./types";
 
 export async function updateLtrModel(

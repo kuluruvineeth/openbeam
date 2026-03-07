@@ -20,7 +20,7 @@ export const bacnetApp: UnifiedApp = {
   installed: false,
   type: "official",
   connectorType: ConnectorType.SOURCE,
-  developerName: "OpenPlane",
+  developerName: "OpenBeam",
   website: "https://www.bacnet.org",
 
   searchDisplay: {

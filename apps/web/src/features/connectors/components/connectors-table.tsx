@@ -1,6 +1,6 @@
 "use client";
 
-import { Skeleton } from "@openplane/ui";
+import { Skeleton } from "@openbeam/ui";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { useConnectors } from "@/features/connectors/hooks";

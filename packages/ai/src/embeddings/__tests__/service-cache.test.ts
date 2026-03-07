@@ -53,7 +53,7 @@ describe("EmbeddingService cache integration", () => {
 
   beforeEach(() => {
     mockCache = new MockEmbeddingCache();
-    mock.module("@openplane/redis", () => ({
+    mock.module("@openbeam/redis", () => ({
       getEmbeddingCache: () => mockCache,
     }));
 

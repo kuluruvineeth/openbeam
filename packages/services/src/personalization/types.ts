@@ -1,4 +1,4 @@
-export type { RecentClick, RecentQuery } from "@openplane/db";
+export type { RecentClick, RecentQuery } from "@openbeam/db";
 
 export interface PersonalizationContext {
   userId: string;

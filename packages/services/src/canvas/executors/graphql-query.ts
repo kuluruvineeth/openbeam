@@ -3,7 +3,7 @@ import {
   GraphqlQueryNodeConfigSchema,
   type HttpAuthConfig,
   type KeyValuePair,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { CanvasNodeExecutionError } from "../errors";
 import { resolveNodeConfig } from "../node-config";
 import type { CanvasNodeExecutor } from "../types";

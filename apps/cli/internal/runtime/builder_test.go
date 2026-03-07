@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/openplane/openplane/apps/cli/internal/output"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/output"
 )
 
 func TestResolveTimeout(t *testing.T) {

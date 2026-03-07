@@ -18,13 +18,13 @@ import {
 } from "@/utils/daemon-endpoints";
 import { probeConnection } from "@/utils/test-daemon-connection";
 
-const REGISTRY_STORAGE_KEY = "@openplane:daemon-registry";
+const REGISTRY_STORAGE_KEY = "@openbeam:daemon-registry";
 const DAEMON_REGISTRY_QUERY_KEY = ["daemon-registry"];
 const DEFAULT_LOCALHOST_ENDPOINT = "localhost:6767";
 const DEFAULT_LOCALHOST_BOOTSTRAP_KEY =
-  "@openplane:default-localhost-bootstrap-v1";
+  "@openbeam:default-localhost-bootstrap-v1";
 const DEFAULT_LOCALHOST_BOOTSTRAP_TIMEOUT_MS = 2500;
-const E2E_STORAGE_KEY = "@openplane:e2e";
+const E2E_STORAGE_KEY = "@openbeam:e2e";
 
 export type DirectHostConnection = {
   id: string;

@@ -257,29 +257,29 @@ describe("AgentManager", () => {
       cwd: workdir,
       systemPrompt: "new prompt",
       mcpServers: {
-        openplane: {
+        openbeam: {
           type: "stdio",
           command: "node",
-          args: ["/tmp/mcp-bridge.mjs", "--socket", "/tmp/openplane.sock"],
+          args: ["/tmp/mcp-bridge.mjs", "--socket", "/tmp/openbeam.sock"],
         },
       },
     });
 
     expect(resumed.config.systemPrompt).toBe("new prompt");
     expect(resumed.config.mcpServers).toEqual({
-      openplane: {
+      openbeam: {
         type: "stdio",
         command: "node",
-        args: ["/tmp/mcp-bridge.mjs", "--socket", "/tmp/openplane.sock"],
+        args: ["/tmp/mcp-bridge.mjs", "--socket", "/tmp/openbeam.sock"],
       },
     });
     expect(client.lastResumeOverrides).toMatchObject({
       systemPrompt: "new prompt",
       mcpServers: {
-        openplane: {
+        openbeam: {
           type: "stdio",
           command: "node",
-          args: ["/tmp/mcp-bridge.mjs", "--socket", "/tmp/openplane.sock"],
+          args: ["/tmp/mcp-bridge.mjs", "--socket", "/tmp/openbeam.sock"],
         },
       },
     });

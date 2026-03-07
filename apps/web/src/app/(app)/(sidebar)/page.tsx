@@ -5,7 +5,7 @@ import { NewChatView } from "@/features/chat/components/new-chat-view";
 import { batchPrefetch, HydrateClient, trpc } from "@/trpc/server";
 
 export const metadata: Metadata = {
-  title: "New Chat | OpenPlane",
+  title: "New Chat | OpenBeam",
   description: "Start a new chat conversation",
 };
 

@@ -4,7 +4,7 @@ import type {
   ConditionGroup as ConditionGroupType,
   ConditionLogic,
   SingleCondition,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { forwardRef, memo, useCallback } from "react";
 import { cn } from "../../../utils";
 import { Button } from "../../button";

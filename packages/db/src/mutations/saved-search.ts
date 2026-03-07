@@ -1,7 +1,7 @@
 import type {
   CreateSavedSearchInput,
   UpdateSavedSearchInput,
-} from "@openplane/types";
+} from "@openbeam/types";
 import type { Prisma, SavedSearch } from "../../prisma/generated/client";
 import type { Database } from "../index";
 

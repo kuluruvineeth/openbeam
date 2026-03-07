@@ -1,5 +1,5 @@
 {
-  "name": "@openplane/integrations",
+  "name": "@openbeam/integrations",
   "version": "0.0.1",
   "type": "module",
   "exports": {
@@ -22,7 +22,7 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@openplane/config": "workspace:*",
+    "@openbeam/config": "workspace:*",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "react": "catalog:",
@@ -33,7 +33,7 @@
     "react": "*"
   },
   "dependencies": {
-    "@openplane/types": "workspace:*",
+    "@openbeam/types": "workspace:*",
     "zod": "^4.1.12"
   }
 }

@@ -2,8 +2,8 @@ import type {
   SlackChannel,
   SlackSyncBatch as SyncBatch,
   TransformContext,
-} from "@openplane/types/services/connectors/slack";
-import type { Entity } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/slack";
+import type { Entity } from "@openbeam/vespa";
 import {
   buildChannelMemberMap,
   getAccessibleChannels,

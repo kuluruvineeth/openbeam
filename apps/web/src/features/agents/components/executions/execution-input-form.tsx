@@ -1,19 +1,19 @@
 "use client";
 
-import type { InputField, InputNodeConfig } from "@openplane/types/canvas";
-import { Checkbox } from "@openplane/ui/components/checkbox";
-import { Input } from "@openplane/ui/components/input";
-import { Label } from "@openplane/ui/components/label";
+import type { InputField, InputNodeConfig } from "@openbeam/types/canvas";
+import { Checkbox } from "@openbeam/ui/components/checkbox";
+import { Input } from "@openbeam/ui/components/input";
+import { Label } from "@openbeam/ui/components/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@openplane/ui/components/select";
-import { Switch } from "@openplane/ui/components/switch";
-import { Textarea } from "@openplane/ui/components/textarea";
-import { cn } from "@openplane/ui/utils";
+} from "@openbeam/ui/components/select";
+import { Switch } from "@openbeam/ui/components/switch";
+import { Textarea } from "@openbeam/ui/components/textarea";
+import { cn } from "@openbeam/ui/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   type FormEvent,

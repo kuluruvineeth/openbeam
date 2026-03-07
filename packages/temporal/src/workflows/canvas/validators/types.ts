@@ -1,4 +1,4 @@
-import type { ExecutionPlan, ExecutionPlanNode } from "@openplane/types/canvas";
+import type { ExecutionPlan, ExecutionPlanNode } from "@openbeam/types/canvas";
 
 export type PlanValidationContext = {
   nodesById: Map<string, ExecutionPlanNode>;

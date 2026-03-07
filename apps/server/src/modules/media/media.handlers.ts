@@ -1,5 +1,5 @@
 import type { RouteHandler } from "@hono/zod-openapi";
-import { mediaAIService, mediaMetadataService } from "@openplane/services";
+import { mediaAIService, mediaMetadataService } from "@openbeam/services";
 import type { AuthEnv } from "@/middleware/auth";
 import type {
   askRoute,

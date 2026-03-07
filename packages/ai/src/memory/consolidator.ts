@@ -6,7 +6,7 @@ import type {
   ProceduralEntry,
   ScoredMemoryEntry,
   SemanticEntry,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import {
   createEpisodicMemory,
   type EpisodicMemory,

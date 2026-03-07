@@ -16,7 +16,7 @@ export function SignInScreen() {
           <View style={styles.logoContainer}>
             <Text style={styles.logoText}>O</Text>
           </View>
-          <Text style={styles.title}>OpenPlane</Text>
+          <Text style={styles.title}>OpenBeam</Text>
           <Text muted style={styles.subtitle}>
             Enterprise search and AI assistant
           </Text>

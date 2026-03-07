@@ -4,7 +4,7 @@ import type {
   AgentConfig as BaseAgentConfig,
   AgentContext as BaseAgentContext,
   StepFinishEvent,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import type { FinishReason as AISDKFinishReason } from "ai";
 
 export type { AISDKFinishReason };

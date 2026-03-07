@@ -68,19 +68,19 @@ variable "vespa_version" {
 }
 
 variable "server_domain" {
-  description = "Custom domain for server (e.g., api.openplane.tech)"
+  description = "Custom domain for server (e.g., api.openbeam.work)"
   type        = string
   default     = ""
 }
 
 variable "web_domain" {
-  description = "Custom domain for web (e.g., dev.openplane.tech)"
+  description = "Custom domain for web (e.g., dev.openbeam.work)"
   type        = string
   default     = ""
 }
 
 variable "cookie_domain" {
-  description = "Cookie domain for auth (e.g., .openplane.tech for all subdomains)"
+  description = "Cookie domain for auth (e.g., .openbeam.work for all subdomains)"
   type        = string
   default     = ""
 }

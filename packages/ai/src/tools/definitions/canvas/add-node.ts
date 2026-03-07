@@ -1,5 +1,5 @@
-import type { CanvasOperation } from "@openplane/types/canvas";
-import { CanvasNodeTypeSchema } from "@openplane/types/canvas";
+import type { CanvasOperation } from "@openbeam/types/canvas";
+import { CanvasNodeTypeSchema } from "@openbeam/types/canvas";
 import { z } from "zod";
 import { defineTool, success } from "../../builder";
 

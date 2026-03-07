@@ -13,7 +13,7 @@ vi.mock("@temporalio/activity", () => ({
   },
 }));
 
-vi.mock("@openplane/db", () => ({
+vi.mock("@openbeam/db", () => ({
   fetchUnprocessedChanges: vi.fn(),
   countUnprocessedChanges: vi.fn(),
   markChangesProcessed: vi.fn(),
@@ -112,7 +112,7 @@ function createMockVespa(): MockVespa {
 
 describe("fetchUnprocessedChanges activity", () => {
   it("delegates to scoped db query with connector/sync filters", async () => {
-    const { fetchUnprocessedChanges } = await import("@openplane/db");
+    const { fetchUnprocessedChanges } = await import("@openbeam/db");
     const mockFetch = vi.mocked(fetchUnprocessedChanges);
     const db = createMockDb();
 
@@ -146,7 +146,7 @@ describe("fetchUnprocessedChanges activity", () => {
   });
 
   it("respects custom limit parameter", async () => {
-    const { fetchUnprocessedChanges } = await import("@openplane/db");
+    const { fetchUnprocessedChanges } = await import("@openbeam/db");
     const mockFetch = vi.mocked(fetchUnprocessedChanges);
     const db = createMockDb();
     mockFetch.mockResolvedValue([]);
@@ -176,7 +176,7 @@ describe("fetchUnprocessedChanges activity", () => {
 
 describe("countUnprocessedChanges activity", () => {
   it("delegates to scoped db count query", async () => {
-    const { countUnprocessedChanges } = await import("@openplane/db");
+    const { countUnprocessedChanges } = await import("@openbeam/db");
     const mockCount = vi.mocked(countUnprocessedChanges);
     mockCount.mockResolvedValue(42);
     const db = createMockDb();
@@ -202,7 +202,7 @@ describe("countUnprocessedChanges activity", () => {
 
 describe("markChangesProcessed activity", () => {
   it("delegates to db mutation with change IDs", async () => {
-    const { markChangesProcessed } = await import("@openplane/db");
+    const { markChangesProcessed } = await import("@openbeam/db");
     const mockMark = vi.mocked(markChangesProcessed);
     mockMark.mockResolvedValue({ count: 2 });
     const db = createMockDb();
@@ -238,7 +238,7 @@ describe("invalidateEdges activity", () => {
 
   it("sets confidence to 0 on edges and deletes mentions exactly once", async () => {
     const db = createMockDb();
-    const { createEntityChange } = await import("@openplane/db");
+    const { createEntityChange } = await import("@openbeam/db");
 
     db.entityMention.findMany.mockResolvedValue([{ id: "m1", entityId: "e1" }]);
     db.entityMention.count.mockResolvedValue(0);
@@ -365,7 +365,7 @@ describe("updateCoOccurrenceEdges activity", () => {
 
   it("updates existing edge with deterministic weight instead of increment", async () => {
     const db = createMockDb();
-    const { createEntityChange } = await import("@openplane/db");
+    const { createEntityChange } = await import("@openbeam/db");
     db.$queryRaw.mockResolvedValue([{ co_count: BigInt(7) }]);
 
     db.entityRelation.findFirst.mockResolvedValue({
@@ -442,7 +442,7 @@ describe("extractEntitiesFromChanges activity", () => {
     vespa.getDocument.mockResolvedValue({
       id: "doc1",
       title: "Alice joins Project Alpha",
-      content: "Alice joined OpenPlane to work on search ranking.",
+      content: "Alice joined OpenBeam to work on search ranking.",
     });
 
     db.entity.findFirst.mockResolvedValue(null);
@@ -501,7 +501,7 @@ describe("extractEntitiesFromChanges activity", () => {
       doc_id: "doc1",
       title: "Alice joins Project Alpha",
     });
-    expect(String(fetchBody.content)).toContain("OpenPlane");
+    expect(String(fetchBody.content)).toContain("OpenBeam");
 
     expect(db.entityMention.createMany).toHaveBeenCalledWith({
       data: [

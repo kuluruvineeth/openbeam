@@ -8,4 +8,4 @@ export type {
   MediaSegment,
   ProcessedMedia,
   TwelveLabsConfig,
-} from "@openplane/types/media";
+} from "@openbeam/types/media";

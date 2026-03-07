@@ -4,8 +4,8 @@ import type {
   LinearSyncCursor,
   LinearSyncOptions,
   LinearTransformContext,
-} from "@openplane/types/services/connectors/linear";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/linear";
+import type { GenericDocument } from "@openbeam/vespa";
 import { logger } from "../../lib/logger";
 import { getAllDocuments } from "../api/documents";
 import { getAllIssueComments, getAllTeamIssues } from "../api/issues";

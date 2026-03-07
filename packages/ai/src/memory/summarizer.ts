@@ -1,4 +1,4 @@
-import type { SessionMessage, SummarizationResult } from "@openplane/types/ai";
+import type { SessionMessage, SummarizationResult } from "@openbeam/types/ai";
 
 const DEFAULT_MAX_MESSAGES_PER_SUMMARY = 50;
 const DEFAULT_TOKEN_ESTIMATOR = (text: string) => Math.ceil(text.length / 4);

@@ -1,8 +1,8 @@
 import type {
   ThingsboardDashboard,
   ThingsboardTransformContext,
-} from "@openplane/types/services/connectors/thingsboard";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/thingsboard";
+import type { GenericDocument } from "@openbeam/vespa";
 import { calculateDocumentChecksum } from "../../lib/checksum";
 
 function buildDashboardContent(dashboard: ThingsboardDashboard): string {

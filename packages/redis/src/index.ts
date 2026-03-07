@@ -58,6 +58,14 @@ export {
   sessionStreamRegistry,
 } from "./observability/runtime-stream-metrics";
 export {
+  type ControlEvent,
+  ControlEventSchema,
+  cleanupControlThrottleCache,
+  createControlEventEmitter,
+  createControlEventSubscriber,
+  publishControlEvent,
+} from "./pubsub/control-events";
+export {
   cleanupExecutionThrottleCache,
   createExecutionEventEmitter,
   createExecutionEventSubscriber,
@@ -85,7 +93,12 @@ export {
   publishSessionRuntimeEvent,
 } from "./pubsub/session-events";
 export type { RateLimitConfig } from "./rate-limiter";
-export { DEFAULT_RATE_LIMITS, RateLimiter, rateLimiter } from "./rate-limiter";
+export {
+  AGENT_RATE_LIMITS,
+  DEFAULT_RATE_LIMITS,
+  RateLimiter,
+  rateLimiter,
+} from "./rate-limiter";
 export {
   cacheSidebarContext,
   deleteSidebarContext,

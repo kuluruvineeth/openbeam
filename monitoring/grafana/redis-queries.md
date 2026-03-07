@@ -115,7 +115,7 @@ redis_blocked_clients
 
 ## How to Add Panels
 
-1. Go to **OpenPlane Command Center** dashboard
+1. Go to **OpenBeam Command Center** dashboard
 2. Click **⚙️ Settings** (top right)
 3. Click **Variables** (if needed)
 4. Go back and click **Add** > **Visualization**

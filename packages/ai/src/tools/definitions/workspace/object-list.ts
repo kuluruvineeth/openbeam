@@ -35,7 +35,7 @@ RETURNS: List of objects with their names, descriptions, field counts, and defau
     const startTime = performance.now();
 
     const { getTeamDuckDB, initializeEAVSchema, listObjects } = await import(
-      "@openplane/services"
+      "@openbeam/services"
     );
 
     const db = await getTeamDuckDB(ctx.teamId);

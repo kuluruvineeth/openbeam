@@ -5,7 +5,7 @@ import type {
   MemoryScope,
   MemoryType,
   MemoryWriteNodeConfig,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { cva } from "class-variance-authority";
 import { memo, useCallback, useMemo } from "react";
 import { AnimatedSizeContainer } from "../../../animated-size-container";

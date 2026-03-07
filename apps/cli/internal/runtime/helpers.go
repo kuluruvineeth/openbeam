@@ -5,16 +5,16 @@ import (
 	"io"
 	"strings"
 
-	"github.com/openplane/openplane/apps/cli/internal/api"
-	"github.com/openplane/openplane/apps/cli/internal/errs"
-	"github.com/openplane/openplane/apps/cli/internal/output"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/api"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/errs"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/output"
 )
 
 func (r *Runtime) RequireAPIKey() error {
 	if r.APIKey != "" {
 		return nil
 	}
-	return errs.New(errs.KindAuth, "no API key configured, run openplane auth login or set OPENPLANE_API_KEY", nil)
+	return errs.New(errs.KindAuth, "no API key configured, run openbeam auth login or set OPENBEAM_API_KEY", nil)
 }
 
 func (r *Runtime) RequireYesForNonInteractive() error {

@@ -1,7 +1,7 @@
 "use client";
 
-import type { ChatModel } from "@openplane/types/ai";
-import { CHAT_MODELS } from "@openplane/types/ai";
+import type { ChatModel } from "@openbeam/types/ai";
+import { CHAT_MODELS } from "@openbeam/types/ai";
 import { cva, type VariantProps } from "class-variance-authority";
 import { forwardRef, useMemo, useState } from "react";
 import { cn } from "../../utils/cn";
@@ -72,7 +72,7 @@ const PROVIDER_NAMES: Record<ModelProviderId, string> = {
   twelvelabs: "TwelveLabs",
   cohere: "Cohere",
   voyage: "Voyage",
-  openplane: "OpenPlane",
+  openbeam: "OpenBeam",
   elevenlabs: "ElevenLabs",
   cartesia: "Cartesia",
   playht: "PlayHT",

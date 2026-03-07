@@ -2,11 +2,11 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: canvas-worker-hpa
-  namespace: openplane
+  namespace: openbeam
   labels:
     app.kubernetes.io/name: canvas-worker
     app.kubernetes.io/component: temporal-worker
-    app.kubernetes.io/part-of: openplane
+    app.kubernetes.io/part-of: openbeam
   annotations:
     kubernetes.io/description: "Fallback HPA for canvas worker when KEDA is unavailable"
 spec:
@@ -55,11 +55,11 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: sync-worker-hpa
-  namespace: openplane
+  namespace: openbeam
   labels:
     app.kubernetes.io/name: sync-worker
     app.kubernetes.io/component: temporal-worker
-    app.kubernetes.io/part-of: openplane
+    app.kubernetes.io/part-of: openbeam
   annotations:
     kubernetes.io/description: "Fallback HPA for sync worker when KEDA is unavailable"
 spec:
@@ -108,11 +108,11 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: agent-worker-hpa
-  namespace: openplane
+  namespace: openbeam
   labels:
     app.kubernetes.io/name: agent-worker
     app.kubernetes.io/component: temporal-worker
-    app.kubernetes.io/part-of: openplane
+    app.kubernetes.io/part-of: openbeam
   annotations:
     kubernetes.io/description: "Fallback HPA for agent worker when KEDA is unavailable"
 spec:

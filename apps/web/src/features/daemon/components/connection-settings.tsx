@@ -1,8 +1,8 @@
 "use client";
 
-import { Icons } from "@openplane/ui";
-import { Button } from "@openplane/ui/components/button";
-import { Input } from "@openplane/ui/components/input";
+import { Icons } from "@openbeam/ui";
+import { Button } from "@openbeam/ui/components/button";
+import { Input } from "@openbeam/ui/components/input";
 import { cva } from "class-variance-authority";
 import { useCallback, useState } from "react";
 import { DAEMON_DEFAULT_PORT } from "../constants";

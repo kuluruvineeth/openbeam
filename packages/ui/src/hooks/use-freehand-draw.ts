@@ -1,6 +1,6 @@
 "use client";
 
-import type { SpatialAnnotation } from "@openplane/types/canvas";
+import type { SpatialAnnotation } from "@openbeam/types/canvas";
 import { useReactFlow } from "@xyflow/react";
 import { getStroke } from "perfect-freehand";
 import { useCallback, useRef, useState } from "react";

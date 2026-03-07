@@ -557,7 +557,7 @@ describe("Codex app-server provider (integration)", () => {
           model: CODEX_TEST_MODEL,
           thinkingOptionId: CODEX_TEST_THINKING_OPTION_ID,
           mcpServers: {
-            openplane_test: {
+            openbeam_test: {
               type: "stdio",
               command: process.execPath,
               args: [mcpScriptPath],
@@ -567,7 +567,7 @@ describe("Codex app-server provider (integration)", () => {
 
         const result = await session.run(
           [
-            "You must call the MCP tool named openplane_test.echo exactly once.",
+            "You must call the MCP tool named openbeam_test.echo exactly once.",
             `Call it with text: ${token}`,
             "Do not use shell or any non-MCP tools.",
             "After the tool call, respond with exactly the tool output text.",
@@ -585,7 +585,7 @@ describe("Codex app-server provider (integration)", () => {
           Extract<AgentTimelineItem, { type: "tool_call" }>
         >();
         for (const call of toolCalls) {
-          if (call.name !== "openplane_test.echo") {
+          if (call.name !== "openbeam_test.echo") {
             continue;
           }
           const key = String(
@@ -598,17 +598,17 @@ describe("Codex app-server provider (integration)", () => {
         }
 
         // Hard assertion: exactly one distinct call of the exact MCP tool.
-        expect(toolNames.every((name) => name === "openplane_test.echo")).toBe(
+        expect(toolNames.every((name) => name === "openbeam_test.echo")).toBe(
           true
         );
         expect(distinctMcpCalls.size).toBe(1);
         // biome-ignore lint/style/noNonNullAssertion: value guaranteed to be set
         const mcpToolCall = Array.from(distinctMcpCalls.values())[0]!;
-        expect(mcpToolCall.name).toBe("openplane_test.echo");
+        expect(mcpToolCall.name).toBe("openbeam_test.echo");
         expect(mcpToolCall.status).toBe("completed");
 
         // Hard assertion: no non-MCP tools in this run.
-        expect(toolNames.every((name) => name === "openplane_test.echo")).toBe(
+        expect(toolNames.every((name) => name === "openbeam_test.echo")).toBe(
           true
         );
         expect(
@@ -640,7 +640,7 @@ describe("Codex app-server provider (integration)", () => {
       const promptsDir = path.join(codexHome, "prompts");
       const promptPath = path.join(promptsDir, "test.md");
       const cwd = tmpCwd("codex-cmd-");
-      const token = `OPENPLANE_PROMPT_TOKEN_${Date.now()}`;
+      const token = `OPENBEAM_PROMPT_TOKEN_${Date.now()}`;
 
       mkdirSync(promptsDir, { recursive: true });
       writeFileSync(
@@ -696,7 +696,7 @@ describe("Codex app-server provider (integration)", () => {
       const promptsDir = path.join(codexHome, "prompts");
       const promptPath = path.join(promptsDir, "stream-test.md");
       const cwd = tmpCwd("codex-cmd-stream-");
-      const token = `OPENPLANE_STREAM_TOKEN_${Date.now()}`;
+      const token = `OPENBEAM_STREAM_TOKEN_${Date.now()}`;
 
       mkdirSync(promptsDir, { recursive: true });
       writeFileSync(
@@ -1397,7 +1397,7 @@ describe("Codex app-server provider (integration)", () => {
           }
         );
 
-        const marker = "OPENPLANE_COMMAND_DEDUPE_CHECK_4D0E96C8";
+        const marker = "OPENBEAM_COMMAND_DEDUPE_CHECK_4D0E96C8";
         const shellCalls: Array<{
           callId: string;
           status: string;

@@ -1,7 +1,7 @@
 "use client";
 
-import { Icons } from "@openplane/ui";
-import { Button } from "@openplane/ui/components/button";
+import { Icons } from "@openbeam/ui";
+import { Button } from "@openbeam/ui/components/button";
 import { useEffect, useRef } from "react";
 import { MAX_CONTENT_WIDTH } from "../constants";
 import {
@@ -143,10 +143,10 @@ export function AgentDetailScreen({
 
   useEffect(() => {
     if (agent?.title) {
-      document.title = `${agent.title} — OpenPlane`;
+      document.title = `${agent.title} — OpenBeam`;
     }
     return () => {
-      document.title = "OpenPlane";
+      document.title = "OpenBeam";
     };
   }, [agent?.title]);
 

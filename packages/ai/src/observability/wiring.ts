@@ -1,4 +1,4 @@
-import type { ToolExecutionResult } from "@openplane/types/ai";
+import type { ToolExecutionResult } from "@openbeam/types/ai";
 import { toolRegistry } from "../tools/registry";
 import {
   type CompositionTracker,

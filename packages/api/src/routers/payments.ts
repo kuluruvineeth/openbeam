@@ -5,7 +5,7 @@ import {
   getTeamPaymentSummary,
   getTeamWallets,
   listPaymentReceipts,
-} from "@openplane/db";
+} from "@openbeam/db";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter } from "../index";

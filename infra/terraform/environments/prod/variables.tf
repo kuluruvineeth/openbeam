@@ -80,13 +80,13 @@ variable "cloud_sql_disk_autoresize_limit" {
 variable "database_name" {
   description = "Database name"
   type        = string
-  default     = "openplane"
+  default     = "openbeam"
 }
 
 variable "database_user" {
   description = "Database user name"
   type        = string
-  default     = "openplane"
+  default     = "openbeam"
 }
 
 variable "redis_tier" {
@@ -197,19 +197,19 @@ variable "encryption_key" {
 
 
 variable "server_domain" {
-  description = "Custom domain for server (e.g., api.openplane.tech)"
+  description = "Custom domain for server (e.g., api.openbeam.work)"
   type        = string
   default     = ""
 }
 
 variable "web_domain" {
-  description = "Custom domain for web (e.g., app.openplane.tech)"
+  description = "Custom domain for web (e.g., app.openbeam.work)"
   type        = string
   default     = ""
 }
 
 variable "cookie_domain" {
-  description = "Cookie domain for auth (e.g., .openplane.tech for all subdomains)"
+  description = "Cookie domain for auth (e.g., .openbeam.work for all subdomains)"
   type        = string
   default     = ""
 }
@@ -241,6 +241,6 @@ variable "openai_organization" {
 variable "cors_origins" {
   description = "Allowed CORS origins for file preview (your web app domains)"
   type        = list(string)
-  default     = ["https://app.openplane.tech", "https://openplane.tech"]
+  default     = ["https://app.openbeam.work", "https://openbeam.work"]
 }
 

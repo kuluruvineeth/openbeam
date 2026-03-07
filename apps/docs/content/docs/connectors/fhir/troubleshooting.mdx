@@ -13,7 +13,7 @@ description: Common FHIR connector issues and how to fix them.
 
     **Fix:**
     1. Verify the private key is in PEM format (begins with `-----BEGIN RSA PRIVATE KEY-----` or `-----BEGIN EC PRIVATE KEY-----`)
-    2. Confirm the public key registered with the FHIR server matches the private key in OpenPlane
+    2. Confirm the public key registered with the FHIR server matches the private key in OpenBeam
     3. Check that the `iss` claim matches the Client ID exactly
     4. Verify the token endpoint URL is correct: `curl https://your-server/.well-known/smart-configuration | jq .token_endpoint`
   </Accordion>
@@ -28,7 +28,7 @@ description: Common FHIR connector issues and how to fix them.
   </Accordion>
 
   <Accordion title="JWT expired or not yet valid">
-    Clock skew between the OpenPlane host and the FHIR server.
+    Clock skew between the OpenBeam host and the FHIR server.
 
     **Fix:**
     - Synchronize the system clock with NTP: `ntpdate pool.ntp.org`
@@ -184,7 +184,7 @@ curl -X POST TOKEN_ENDPOINT \
 curl https://your-fhir-server/metadata | jq '.rest[0].operation[] | select(.name=="export")'
 ```
 
-Still stuck? [Open an issue](https://github.com/kuluruvineeth/openplane/issues) with the FHIR server type, version, error messages, and relevant log output.
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openbeam/issues) with the FHIR server type, version, error messages, and relevant log output.
 
 <Cards>
   <Card title="Setup" href="/docs/connectors/fhir/setup" description="Reconnect or reconfigure the FHIR connector" />

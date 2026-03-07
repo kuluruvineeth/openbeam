@@ -6,6 +6,6 @@ export type {
   StorageObject,
   StorageProvider,
   UploadOptions,
-} from "@openplane/types/storage";
+} from "@openbeam/types/storage";
 
-export { StorageConfigSchema } from "@openplane/types/storage";
+export { StorageConfigSchema } from "@openbeam/types/storage";

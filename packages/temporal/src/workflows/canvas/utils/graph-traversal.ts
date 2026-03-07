@@ -1,4 +1,4 @@
-import type { ExecutionPlanNode } from "@openplane/types/canvas";
+import type { ExecutionPlanNode } from "@openbeam/types/canvas";
 
 export type NodeVisitor<T> = (node: ExecutionPlanNode, depth: number) => T;
 

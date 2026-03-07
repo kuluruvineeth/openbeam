@@ -3,14 +3,14 @@
 <plist version="1.0">
   <dict>
     <key>CFBundleIdentifier</key>
-    <string>dev.openplane.desktop</string>
+    <string>dev.openbeam.desktop</string>
     <key>CFBundleName</key>
-    <string>OpenPlane</string>
+    <string>OpenBeam</string>
     <key>CFBundleShortVersionString</key>
     <string>0.1.0</string>
     <key>CFBundleVersion</key>
     <string>0.1.0</string>
     <key>NSMicrophoneUsageDescription</key>
-    <string>OpenPlane needs access to your microphone for voice dictation and voice mode.</string>
+    <string>OpenBeam needs access to your microphone for voice dictation and voice mode.</string>
   </dict>
 </plist>

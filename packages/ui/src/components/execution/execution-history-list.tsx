@@ -1,11 +1,11 @@
 "use client";
 
-import type { ExecutionStatus } from "@openplane/types/canvas/execution";
+import type { ExecutionStatus } from "@openbeam/types/canvas/execution";
 import type {
   ExecutionHistoryFilter,
   ExecutionHistorySort,
   ExecutionListItem,
-} from "@openplane/types/canvas/execution-ui";
+} from "@openbeam/types/canvas/execution-ui";
 import { cva, type VariantProps } from "class-variance-authority";
 import { forwardRef, useMemo, useState } from "react";
 import { cn } from "../../utils/cn";

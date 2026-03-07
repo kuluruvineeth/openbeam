@@ -1,4 +1,4 @@
-import type { Database } from "@openplane/db";
+import type { Database } from "@openbeam/db";
 import {
   createPaymentLedgerEntry,
   createPaymentReceipt,
@@ -15,12 +15,12 @@ import {
   updatePaymentReceipt,
   updatePaymentWalletStatus,
   upsertPaymentPricingPolicy,
-} from "@openplane/db";
+} from "@openbeam/db";
 import type {
   CreatePaymentReceiptInput,
   CreatePaymentWalletInput,
   UpsertPaymentPricingPolicyInput,
-} from "@openplane/types/db";
+} from "@openbeam/types/db";
 import { createServiceLogger } from "../lib/logger";
 
 const log = createServiceLogger({ service: "payments" });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import type { AzureIotTransformContext } from "@openplane/types/services/connectors/azure-iot";
+import type { AzureIotTransformContext } from "@openbeam/types/services/connectors/azure-iot";
 import type { AzureIotTwin } from "../client";
 import { transformDevice, transformDevices } from "../transformers/device";
 

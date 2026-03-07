@@ -4,7 +4,7 @@ import prisma, {
   recordSearchClick,
   recordSearchImpression,
   upsertUserSearchProfile,
-} from "@openplane/db";
+} from "@openbeam/db";
 import type { UserContext } from "../ltr/types";
 import type {
   HybridSearchRequest,

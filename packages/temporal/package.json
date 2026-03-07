@@ -1,5 +1,5 @@
 {
-  "name": "@openplane/temporal",
+  "name": "@openbeam/temporal",
   "type": "module",
   "exports": {
     ".": {
@@ -43,7 +43,7 @@
   },
   "devDependencies": {
     "tsdown": "catalog:",
-    "@openplane/config": "workspace:*",
+    "@openbeam/config": "workspace:*",
     "@temporalio/testing": "~1.15.0",
     "@types/bun": "latest",
     "vitest": "^2.1.9",
@@ -54,16 +54,16 @@
   },
   "dependencies": {
     "@duckdb/node-api": "^1.4.3-r.2",
-    "@openplane/ai": "workspace:*",
-    "@openplane/analytics": "workspace:*",
-    "@openplane/db": "workspace:*",
-    "@openplane/media": "workspace:*",
-    "@openplane/redis": "workspace:*",
-    "@openplane/sandbox": "workspace:*",
-    "@openplane/services": "workspace:*",
-    "@openplane/storage": "workspace:*",
-    "@openplane/types": "workspace:*",
-    "@openplane/vespa": "workspace:*",
+    "@openbeam/ai": "workspace:*",
+    "@openbeam/analytics": "workspace:*",
+    "@openbeam/db": "workspace:*",
+    "@openbeam/media": "workspace:*",
+    "@openbeam/redis": "workspace:*",
+    "@openbeam/sandbox": "workspace:*",
+    "@openbeam/services": "workspace:*",
+    "@openbeam/storage": "workspace:*",
+    "@openbeam/types": "workspace:*",
+    "@openbeam/vespa": "workspace:*",
     "@opentelemetry/api": "^1.9.0",
     "@temporalio/activity": "~1.15.0",
     "@temporalio/client": "~1.15.0",

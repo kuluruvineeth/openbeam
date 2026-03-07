@@ -20,7 +20,7 @@ export type {
   SessionMessage,
   SessionMessageRole,
   SummarizationResult,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 export type {
   Correction,
   HistoryItem,

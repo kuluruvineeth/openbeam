@@ -6,7 +6,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
   TextShimmer,
-} from "@openplane/ui";
+} from "@openbeam/ui";
 import { m } from "motion/react";
 import { memo, useEffect, useRef, useState } from "react";
 import { Icons } from "@/components/icons";

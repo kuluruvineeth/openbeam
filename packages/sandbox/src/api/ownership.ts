@@ -59,7 +59,7 @@ class InMemorySandboxOwnershipStore implements SandboxOwnershipStore {
   }
 }
 
-const DEFAULT_OWNERSHIP_KEY_PREFIX = "openplane:sandbox:ownership";
+const DEFAULT_OWNERSHIP_KEY_PREFIX = "openbeam:sandbox:ownership";
 const DEFAULT_OWNERSHIP_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 function parsePositiveInt(value: string | undefined, fallback: number): number {

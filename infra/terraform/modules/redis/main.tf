@@ -10,7 +10,7 @@ terraform {
 
 resource "google_redis_instance" "redis" {
   name               = "${var.project_name}-redis-${var.environment}"
-  display_name       = "OpenPlane Redis ${var.environment}"
+  display_name       = "OpenBeam Redis ${var.environment}"
   tier               = var.tier
   memory_size_gb     = var.memory_size_gb
   region             = var.region

@@ -10,7 +10,7 @@ import type {
   StreamChunk,
   TokenUsage,
   ToolCall,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import { generateText, type ModelMessage, streamText } from "ai";
 import { getConfig } from "../config";
 import { registry } from "../providers/registry";

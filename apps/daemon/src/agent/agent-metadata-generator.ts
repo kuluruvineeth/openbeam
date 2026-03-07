@@ -30,7 +30,7 @@ export type AgentMetadataGenerationOptions = {
   preferredModel?: string;
   initialPrompt?: string | null;
   explicitTitle?: string | null;
-  openplaneHome?: string;
+  openbeamHome?: string;
   logger: Logger;
   deps?: AgentMetadataGeneratorDeps;
 };
@@ -47,17 +47,17 @@ function hasExplicitTitle(title?: string | null): boolean {
 
 async function canRenameBranch(
   cwd: string,
-  openplaneHome: string | undefined,
+  openbeamHome: string | undefined,
   getCheckoutStatusImpl: typeof getCheckoutStatus
 ): Promise<boolean> {
   let status: CheckoutStatusResult;
   try {
-    status = await getCheckoutStatusImpl(cwd, { openplaneHome });
+    status = await getCheckoutStatusImpl(cwd, { openbeamHome });
   } catch {
     return false;
   }
 
-  if (!(status.isGit && status.isOpenPlaneOwnedWorktree)) {
+  if (!(status.isGit && status.isOpenBeamOwnedWorktree)) {
     return false;
   }
 
@@ -72,7 +72,7 @@ async function canRenameBranch(
 export async function determineAgentMetadataNeeds(
   options: Pick<
     AgentMetadataGenerationOptions,
-    "initialPrompt" | "explicitTitle" | "cwd" | "openplaneHome" | "deps"
+    "initialPrompt" | "explicitTitle" | "cwd" | "openbeamHome" | "deps"
   >
 ): Promise<AgentMetadataNeeds> {
   const prompt = options.initialPrompt?.trim();
@@ -85,7 +85,7 @@ export async function determineAgentMetadataNeeds(
     options.deps?.getCheckoutStatus ?? getCheckoutStatus;
   const needsBranch = await canRenameBranch(
     options.cwd,
-    options.openplaneHome,
+    options.openbeamHome,
     getCheckoutStatusImpl
   );
 
@@ -256,7 +256,7 @@ export async function generateAndApplyAgentMetadata(
     let status: CheckoutStatusResult;
     try {
       status = await getCheckoutStatusImpl(options.cwd, {
-        openplaneHome: options.openplaneHome,
+        openbeamHome: options.openbeamHome,
       });
     } catch (error) {
       options.logger.warn(
@@ -267,7 +267,7 @@ export async function generateAndApplyAgentMetadata(
     }
 
     if (
-      !(status.isGit && status.isOpenPlaneOwnedWorktree && status.currentBranch)
+      !(status.isGit && status.isOpenBeamOwnedWorktree && status.currentBranch)
     ) {
       return;
     }

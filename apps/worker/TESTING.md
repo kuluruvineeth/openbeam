@@ -36,7 +36,7 @@ bun test -t "rate limit"
 
 **DATABASE_URL not found?**
 ```bash
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/openplane" bun test
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/openbeam" bun test
 ```
 
 **Redis connection error?**

@@ -1,14 +1,14 @@
 import type { RouteHandler } from "@hono/zod-openapi";
-import { CompletionService, routeQuery } from "@openplane/ai";
+import { CompletionService, routeQuery } from "@openbeam/ai";
 import {
   createAnalyticsService,
   getCostBreakdown,
   getTopCostDrivers,
   getUsageTrend,
-} from "@openplane/analytics/duckdb";
-import { getStorageProvider } from "@openplane/services";
-import type { SpreadsheetDocument } from "@openplane/vespa";
-import { vespaClient } from "@openplane/vespa";
+} from "@openbeam/analytics/duckdb";
+import { getStorageProvider } from "@openbeam/services";
+import type { SpreadsheetDocument } from "@openbeam/vespa";
+import { vespaClient } from "@openbeam/vespa";
 import type { AuthEnv } from "@/middleware/auth";
 import { getTeamId } from "@/middleware/auth";
 import type {

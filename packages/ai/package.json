@@ -1,7 +1,7 @@
 {
-  "name": "@openplane/ai",
+  "name": "@openbeam/ai",
   "version": "0.1.0",
-  "description": "Pure AI package for OpenPlane - model-agnostic providers, embeddings, completions, and agents",
+  "description": "Pure AI package for OpenBeam - model-agnostic providers, embeddings, completions, and agents",
   "type": "module",
   "exports": {
     ".": {
@@ -42,10 +42,10 @@
     "@ai-sdk/azure": "^3.0.2",
     "@ai-sdk/google": "^3.0.2",
     "@ai-sdk/openai": "^3.0.2",
-    "@openplane/db": "workspace:*",
-    "@openplane/redis": "workspace:*",
-    "@openplane/sandbox": "workspace:*",
-    "@openplane/types": "workspace:*",
+    "@openbeam/db": "workspace:*",
+    "@openbeam/redis": "workspace:*",
+    "@openbeam/sandbox": "workspace:*",
+    "@openbeam/types": "workspace:*",
     "ai": "^6.0.6",
     "exa-js": "^2.3.0",
     "fuse.js": "^7.1.0",
@@ -56,7 +56,7 @@
     "zod-to-json-schema": "^3.25.1"
   },
   "devDependencies": {
-    "@openplane/config": "workspace:*",
+    "@openbeam/config": "workspace:*",
     "tsdown": "^0.15.12",
     "typescript": "^5.9.3"
   },

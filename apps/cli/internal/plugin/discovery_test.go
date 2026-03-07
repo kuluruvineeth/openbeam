@@ -10,7 +10,7 @@ import (
 func TestLookupHonorsDirectoryPrecedence(t *testing.T) {
 	firstDir := t.TempDir()
 	secondDir := t.TempDir()
-	filename := ExecutableName("openplane", "demo")
+	filename := ExecutableName("openbeam", "demo")
 
 	firstPath := filepath.Join(firstDir, filename)
 	secondPath := filepath.Join(secondDir, filename)
@@ -21,7 +21,7 @@ func TestLookupHonorsDirectoryPrecedence(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	candidate, found, err := Lookup("openplane", "demo", []string{firstDir, secondDir})
+	candidate, found, err := Lookup("openbeam", "demo", []string{firstDir, secondDir})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -41,7 +41,7 @@ func TestInstallLocalCreatesDiscoverablePlugin(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	result, err := InstallLocal("openplane", "Data-Export", sourcePath, installDir)
+	result, err := InstallLocal("openbeam", "Data-Export", sourcePath, installDir)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -50,11 +50,11 @@ func TestInstallLocalCreatesDiscoverablePlugin(t *testing.T) {
 	if result.Name != expectedName {
 		t.Fatalf("unexpected plugin name: %s", result.Name)
 	}
-	if filepath.Base(result.Path) != ExecutableName("openplane", expectedName) {
+	if filepath.Base(result.Path) != ExecutableName("openbeam", expectedName) {
 		t.Fatalf("unexpected target binary: %s", result.Path)
 	}
 
-	candidate, found, err := Lookup("openplane", expectedName, []string{installDir})
+	candidate, found, err := Lookup("openbeam", expectedName, []string{installDir})
 	if err != nil {
 		t.Fatal(err)
 	}

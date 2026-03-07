@@ -1,11 +1,11 @@
-import prisma, { createSlackFeedback } from "@openplane/db";
+import prisma, { createSlackFeedback } from "@openbeam/db";
 import {
   cacheAssistantResponse,
   getAssistantResponse,
   getAssistantResponseKey,
   getSidebarContext,
   getSidebarContextKey,
-} from "@openplane/redis";
+} from "@openbeam/redis";
 import {
   buildResponseBlocks,
   buildSharedResponseBlocks,
@@ -17,7 +17,7 @@ import {
   searchService,
   setThreadStatus,
   truncateForSlack,
-} from "@openplane/services";
+} from "@openbeam/services";
 import logger from "../../utils/logger";
 import type {
   BlockActionPayload,

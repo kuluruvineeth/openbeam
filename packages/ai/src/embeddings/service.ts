@@ -1,4 +1,4 @@
-import { getEmbeddingCache } from "@openplane/redis";
+import { getEmbeddingCache } from "@openbeam/redis";
 import type {
   BatchEmbeddingResult,
   CachedBatchEmbeddingResult,
@@ -11,7 +11,7 @@ import type {
   EmbeddingOptions,
   EmbeddingResult,
   SimilarityResult,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import { embed, embedMany } from "ai";
 import { getConfig, type ProviderId } from "../config";
 import { getBGEM3Provider } from "../providers/bge-m3";

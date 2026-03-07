@@ -1,5 +1,5 @@
-import type { Database } from "@openplane/db";
-import type { VespaClient } from "@openplane/vespa";
+import type { Database } from "@openbeam/db";
+import type { VespaClient } from "@openbeam/vespa";
 import type { Worker } from "@temporalio/worker";
 import { createWebhookActivities } from "../activities";
 import { TASK_QUEUES } from "../config";

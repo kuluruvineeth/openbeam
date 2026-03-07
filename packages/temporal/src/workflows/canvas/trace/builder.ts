@@ -4,7 +4,7 @@ import type {
   ExecutionStatus,
   ExecutionTrace,
   StepExecution,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 
 function isExecutionDataRef(value: unknown): value is ExecutionDataRef {
   return (

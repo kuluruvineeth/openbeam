@@ -1,10 +1,10 @@
-import type { AppType, Database } from "@openplane/db";
+import type { AppType, Database } from "@openbeam/db";
 import {
   ConnectorStatus,
   findConnectorById,
   getConnectorIdsByTeamExcludingStatuses,
   getDecryptedOAuthCredentials,
-} from "@openplane/db";
+} from "@openbeam/db";
 import { z } from "zod";
 import { normalizeApiError } from "../errors";
 

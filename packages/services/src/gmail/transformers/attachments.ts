@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import type {
   GmailAttachmentInfo,
   GmailMediaInfo,
-} from "@openplane/types/services/connectors/gmail";
+} from "@openbeam/types/services/connectors/gmail";
 import type { ConnectorFileInfo, ConnectorMediaInfo } from "../../files";
 
 function createSafeAttachmentId(

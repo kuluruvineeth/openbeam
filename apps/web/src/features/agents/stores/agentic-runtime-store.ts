@@ -1,6 +1,6 @@
 "use client";
 
-import type { RuntimeEvent } from "@openplane/types/canvas/runtime-events";
+import type { RuntimeEvent } from "@openbeam/types/canvas/runtime-events";
 import { create } from "zustand";
 
 type ConnectionStatus = "idle" | "connecting" | "connected" | "error";

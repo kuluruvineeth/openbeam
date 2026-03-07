@@ -1,10 +1,10 @@
-import { type RateLimitConfig, rateLimiter } from "@openplane/redis";
+import { type RateLimitConfig, rateLimiter } from "@openbeam/redis";
 import {
   GITHUB_API_URL,
   GITHUB_GRAPHQL_URL,
   type GitHubClientConfig,
   type GitHubRateLimitState,
-} from "@openplane/types/services/connectors/github";
+} from "@openbeam/types/services/connectors/github";
 import { logger } from "../lib/logger";
 import { getValidAccessToken } from "../lib/token-refresh";
 import { GitHubApiError, GitHubErrorCodes } from "./types";

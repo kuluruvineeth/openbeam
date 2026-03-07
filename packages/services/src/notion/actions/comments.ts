@@ -1,4 +1,4 @@
-import type { NotionComment } from "@openplane/types/services/connectors/notion";
+import type { NotionComment } from "@openbeam/types/services/connectors/notion";
 import {
   createBlockComment as apiCreateBlockComment,
   createPageComment as apiCreatePageComment,

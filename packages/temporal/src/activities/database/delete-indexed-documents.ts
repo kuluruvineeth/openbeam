@@ -1,5 +1,5 @@
-import type { Database } from "@openplane/db";
-import { deleteIndexedDocumentByExternalId } from "@openplane/db";
+import type { Database } from "@openbeam/db";
+import { deleteIndexedDocumentByExternalId } from "@openbeam/db";
 import type {
   DeleteIndexedDocumentsInput,
   DeleteIndexedDocumentsResult,

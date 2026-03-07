@@ -6,7 +6,7 @@ import type {
   GraphqlQueryNodeConfig,
   HttpAuthConfig,
   KeyValuePair,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { forwardRef, memo, useCallback, useMemo } from "react";
 import { Icons } from "../../../icons";
 import { Input } from "../../../input";

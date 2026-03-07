@@ -3,7 +3,7 @@
 import type {
   AnnotationColor,
   AnnotationNodeConfig,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { NodeResizer, useReactFlow } from "@xyflow/react";
 import {

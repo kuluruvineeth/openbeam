@@ -1,4 +1,4 @@
-import type { EpisodicEntry, SemanticEntry } from "@openplane/types/ai";
+import type { EpisodicEntry, SemanticEntry } from "@openbeam/types/ai";
 import type { MemoryConsolidator } from "./consolidator";
 
 const ORIGINAL_PATTERN = /When asked about "([^"]+)"/;

@@ -4,7 +4,7 @@ import type {
   ParameterBinding,
   ToolNodeConfig,
   ToolRetryConfig,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { forwardRef, memo, useCallback, useMemo } from "react";
 import { Icons } from "../../../icons";
 import { Input } from "../../../input";

@@ -115,10 +115,8 @@ describe("shared messages stream parsing", () => {
     const responseParsed = SessionOutboundMessageSchema.safeParse({
       type: "directory_suggestions_response",
       payload: {
-        directories: ["/Users/test/projects/openplane"],
-        entries: [
-          { path: "/Users/test/projects/openplane", kind: "directory" },
-        ],
+        directories: ["/Users/test/projects/openbeam"],
+        entries: [{ path: "/Users/test/projects/openbeam", kind: "directory" }],
         error: null,
         requestId: "req-dir-1",
       },

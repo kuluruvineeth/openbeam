@@ -1,5 +1,9 @@
-import type { Database } from "@openplane/db";
+import type { Database } from "@openbeam/db";
 import type { ChunkExecutionResult, ExecuteChunkInput } from "./chunked-types";
+import { createControlExecuteActivity } from "./control-execute";
+import { createControlLifecycleActivities } from "./control-lifecycle";
+import { createControlNotificationActivities } from "./control-notifications";
+import { createControlTaskActivities } from "./control-tasks";
 import { createExecuteAgentStepActivity } from "./execute-agent-step";
 import { createExecuteAgentStepChunkedActivity } from "./execute-agent-step-chunked";
 import { createExecuteParallelAgentStepsActivity } from "./execute-parallel-agent-steps";
@@ -95,6 +99,21 @@ export function createAgentActivities(
   };
 }
 
+export interface ControlPlaneActivityDependencies {
+  db: Database;
+}
+
+export function createControlPlaneActivities(
+  deps: ControlPlaneActivityDependencies
+) {
+  return {
+    ...createControlLifecycleActivities(deps),
+    executeAdapter: createControlExecuteActivity(deps),
+    ...createControlNotificationActivities(deps),
+    ...createControlTaskActivities(deps),
+  };
+}
+
 export { LlmAgentExecutor } from "./llm-agent-executor";
 export type { AgentActivities, AgentExecutor };
 export type {
@@ -106,6 +125,7 @@ export type {
   ExecuteParallelAgentStepsInput,
   ExecuteParallelAgentStepsOutput,
 } from "./chunked-types";
+export type { ControlPlaneActivities } from "./control-types";
 export type {
   ExecuteAgentStepInput,
   ExecuteAgentStepOutput,

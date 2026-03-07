@@ -11,7 +11,7 @@ import type {
   RAGTiming,
   RAGTokenUsage,
   RerankingOptions,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import { CompletionService } from "../completion";
 import { buildContext, getCitationsFromText, rerankChunks } from "./context";
 import { shouldWarnAboutGrounding, verifyGrounding } from "./grounding";

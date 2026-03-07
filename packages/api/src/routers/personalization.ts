@@ -2,10 +2,10 @@ import {
   deleteUserSearchProfile,
   findUserSearchProfile,
   upsertUserProfilePreferences,
-} from "@openplane/db";
-import { getUserProfileCache } from "@openplane/redis";
-import { resolveUserProfile } from "@openplane/services/personalization/resolver";
-import { updateTopicAffinity } from "@openplane/services/personalization/topic-affinity";
+} from "@openbeam/db";
+import { getUserProfileCache } from "@openbeam/redis";
+import { resolveUserProfile } from "@openbeam/services/personalization/resolver";
+import { updateTopicAffinity } from "@openbeam/services/personalization/topic-affinity";
 import { z } from "zod";
 import { createTRPCRouter } from "../index";
 import { withActiveTeam } from "./apps/middleware";

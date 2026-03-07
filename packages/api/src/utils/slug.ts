@@ -1,4 +1,4 @@
-import { type Database, findTeamBySlug } from "@openplane/db";
+import { type Database, findTeamBySlug } from "@openbeam/db";
 import slugify from "@sindresorhus/slugify";
 
 export async function generateUniqueSlug(

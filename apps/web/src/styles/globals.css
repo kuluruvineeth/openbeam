@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "@openplane/ui/styles/globals.css";
+@import "@openbeam/ui/styles/globals.css";
 
 @source "../../../../packages/ui/src/**/*.tsx";
 

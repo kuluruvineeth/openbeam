@@ -49,7 +49,7 @@ const ANSI_ESCAPE_REGEX =
   // biome-ignore lint/suspicious/noControlCharactersInRegex: necessary for this context
   /\u001B[[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g;
 
-const EXIT_CODE_MARKER = "__OPENPLANE_EXIT_CODE__:";
+const EXIT_CODE_MARKER = "__OPENBEAM_EXIT_CODE__:";
 
 function stripAnsiSequences(value: string): string {
   if (!value) {

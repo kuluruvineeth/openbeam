@@ -1,11 +1,11 @@
 {
-  "name": "@openplane/mcp",
+  "name": "@openbeam/mcp",
   "version": "1.0.0",
-  "description": "MCP server for OpenPlane database access via Claude Code",
+  "description": "MCP server for OpenBeam database access via Claude Code",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "openplane-mcp": "./dist/index.js"
+    "openbeam-mcp": "./dist/index.js"
   },
   "scripts": {
     "build": "tsdown",
@@ -16,16 +16,16 @@
     "mcp",
     "claude",
     "database",
-    "openplane"
+    "openbeam"
   ],
   "license": "ISC",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
-    "@openplane/db": "workspace:*",
+    "@openbeam/db": "workspace:*",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@openplane/config": "workspace:*",
+    "@openbeam/config": "workspace:*",
     "tsdown": "catalog:",
     "tsx": "^4.19.0",
     "typescript": "^5.8.2"

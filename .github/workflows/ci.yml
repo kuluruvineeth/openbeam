@@ -144,7 +144,7 @@ jobs:
       - run: bun install --frozen-lockfile
 
       - name: Build All Packages
-        run: bun x turbo build --filter='!@openplane/desktop'
+        run: bun x turbo build --filter='!@openbeam/desktop'
 
   test-typescript:
     name: Test (TypeScript)
@@ -387,7 +387,7 @@ jobs:
             } from "./packages/observability/src/index.ts";
 
             const logger = createLogger({
-              service: "openplane-contract",
+              service: "openbeam-contract",
               env: "production",
               version: "ci",
             });

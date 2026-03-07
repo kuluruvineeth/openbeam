@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import type { RuntimeEvent } from "@openplane/types/canvas/runtime-events";
+import type { RuntimeEvent } from "@openbeam/types/canvas/runtime-events";
 import { projectRuntimeEventsToMessages } from "../use-runtime-agent-messages";
 import { projectRuntimeEventsToTimeline } from "../use-runtime-timeline";
 

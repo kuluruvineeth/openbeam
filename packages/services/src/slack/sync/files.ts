@@ -1,7 +1,7 @@
 import type {
   SlackFile,
   TransformContext,
-} from "@openplane/types/services/connectors/slack";
+} from "@openbeam/types/services/connectors/slack";
 import type { ConnectorFileInfo } from "../../files";
 import {
   filterSupportedFiles,

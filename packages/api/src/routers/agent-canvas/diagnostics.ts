@@ -1,4 +1,4 @@
-import { logger } from "@openplane/services/lib/logger";
+import { logger } from "@openbeam/services/lib/logger";
 
 export type BuildStreamDiagnostics = {
   startedAt: number;

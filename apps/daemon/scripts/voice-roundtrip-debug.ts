@@ -4,7 +4,7 @@ import path from "node:path";
 import pino from "pino";
 import { OpenAITTS } from "../src/server/speech/providers/openai/tts";
 import { DaemonClient } from "../src/server/test-utils/daemon-client";
-import { createTestOpenPlaneDaemon } from "../src/server/test-utils/openplane-daemon";
+import { createTestOpenBeamDaemon } from "../src/server/test-utils/openbeam-daemon";
 
 async function streamToBuffer(stream: AsyncIterable<unknown>): Promise<Buffer> {
   const chunks: Buffer[] = [];
@@ -22,8 +22,8 @@ async function main(): Promise<void> {
     throw new Error("OPENAI_API_KEY is required");
   }
 
-  const logger = pino({ level: process.env.OPENPLANE_LOG_LEVEL ?? "info" });
-  const daemon = await createTestOpenPlaneDaemon({
+  const logger = pino({ level: process.env.OPENBEAM_LOG_LEVEL ?? "info" });
+  const daemon = await createTestOpenBeamDaemon({
     logger,
     agentClients: {},
     openai: { apiKey },

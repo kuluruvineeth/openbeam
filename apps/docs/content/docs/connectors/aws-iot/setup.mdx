@@ -1,6 +1,6 @@
 ---
 title: Setup
-description: Connect AWS IoT Core to OpenPlane with IAM credentials.
+description: Connect AWS IoT Core to OpenBeam with IAM credentials.
 ---
 
 # AWS IoT Core Setup
@@ -9,13 +9,13 @@ description: Connect AWS IoT Core to OpenPlane with IAM credentials.
 
 - AWS account with IAM admin access
 - IoT things registered in your AWS IoT Core registry
-- OpenPlane instance running
+- OpenBeam instance running
 
 ## 1. Create an IAM User
 
 1. Go to the [IAM Console](https://console.aws.amazon.com/iam/)
 2. Navigate to **Users** > **Create user**
-3. Name the user (e.g., `openplane-iot-readonly`)
+3. Name the user (e.g., `openbeam-iot-readonly`)
 4. Select **Attach policies directly**
 
 ## 2. Attach IoT Read Permissions
@@ -56,7 +56,7 @@ Create a custom policy with the minimum required permissions:
   The Secret Access Key is only shown once. Store it securely. If lost, you must create a new access key pair.
 </Callout>
 
-## 4. Add the Connector in OpenPlane
+## 4. Add the Connector in OpenBeam
 
 1. Go to **Settings** > **Connectors** > **Add Connector**
 2. Select **AWS IoT Core**

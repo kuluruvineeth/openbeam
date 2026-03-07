@@ -1,13 +1,13 @@
 "use client";
 
-import { DEFAULT_IMAGE_MODEL_ID, getImageModel } from "@openplane/types/ai";
+import { DEFAULT_IMAGE_MODEL_ID, getImageModel } from "@openbeam/types/ai";
 import type {
   GeneratedImage,
   ImageNodeConfig,
   NodeStatus,
   Port,
   TokenUsage,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
 import { forwardRef, memo, useCallback, useMemo } from "react";

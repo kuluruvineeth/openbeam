@@ -1,8 +1,8 @@
-import type { Database } from "@openplane/db";
+import type { Database } from "@openbeam/db";
 import type {
   ExecutionContext,
   ExecutionPlanNode,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockDb = {} as Database;
@@ -12,7 +12,7 @@ const mockCreateAgentCanvasExecution = vi.fn();
 const mockFindAgentCanvasVersion = vi.fn();
 const mockListAgentCanvasVersions = vi.fn();
 
-vi.mock("@openplane/db", () => ({
+vi.mock("@openbeam/db", () => ({
   findAgentCanvasById: mockFindAgentCanvasById,
   createAgentCanvasExecution: mockCreateAgentCanvasExecution,
   findAgentCanvasVersion: mockFindAgentCanvasVersion,
@@ -23,11 +23,11 @@ vi.mock("../activities/canvas/utils/auth", () => ({
   verifyExecutionOwnership: vi.fn(),
 }));
 
-vi.mock("@openplane/services/canvas/expression", () => ({
+vi.mock("@openbeam/services/canvas/expression", () => ({
   evaluateExpression: vi.fn((params: { data: unknown }) => params.data),
 }));
 
-vi.mock("@openplane/services/canvas/node-config", () => ({
+vi.mock("@openbeam/services/canvas/node-config", () => ({
   resolveNodeConfig: vi.fn((data: { config: unknown }) => data.config),
 }));
 

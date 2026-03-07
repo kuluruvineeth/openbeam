@@ -1,6 +1,6 @@
 "use client";
 
-import { Label, Slider } from "@openplane/ui";
+import { Label, Slider } from "@openbeam/ui";
 import { cn } from "@/lib/utils";
 
 type RrfSliderProps = {

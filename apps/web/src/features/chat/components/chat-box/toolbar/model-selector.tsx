@@ -10,7 +10,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@openplane/ui";
+} from "@openbeam/ui";
 import { useMemo } from "react";
 import { Icons } from "@/components/icons";
 

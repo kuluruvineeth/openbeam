@@ -1,7 +1,7 @@
 import type {
   NotionBlock,
   NotionBlockChildrenResponse,
-} from "@openplane/types/services/connectors/notion";
+} from "@openbeam/types/services/connectors/notion";
 import type { NotionClient } from "../client";
 
 const MAX_BLOCK_DEPTH = 10;

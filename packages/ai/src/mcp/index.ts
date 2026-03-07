@@ -33,7 +33,7 @@ export type {
   ResourcesReadParams,
   ToolsCallParams,
   ToolsListResult,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 export {
   type CreateAgentResourceServicesOptions,
   createAgentResourceServices,

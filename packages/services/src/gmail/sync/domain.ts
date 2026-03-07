@@ -1,15 +1,15 @@
-import prisma, { decryptIfEncrypted, getConnectorForSync } from "@openplane/db";
+import prisma, { decryptIfEncrypted, getConnectorForSync } from "@openbeam/db";
 import {
   getServiceAccountToken,
   parseServiceAccountCredentials,
-} from "@openplane/integrations";
+} from "@openbeam/integrations";
 import type {
   GmailAttachmentInfo,
   GmailMediaInfo,
   GmailSyncBatch,
   GmailTransformContext,
-} from "@openplane/types/services/connectors/gmail";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/gmail";
+import type { GenericDocument } from "@openbeam/vespa";
 import { logger } from "../../lib/logger";
 import { createGmailClient, type GmailClient } from "../client";
 import {

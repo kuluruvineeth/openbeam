@@ -1,9 +1,9 @@
-import { type RateLimitConfig, rateLimiter } from "@openplane/redis";
+import { type RateLimitConfig, rateLimiter } from "@openbeam/redis";
 import {
   LINEAR_API_URL,
   type LinearClientConfig,
   type LinearRateLimitState,
-} from "@openplane/types/services/connectors/linear";
+} from "@openbeam/types/services/connectors/linear";
 import { logger } from "../lib/logger";
 import { getValidAccessToken } from "../lib/token-refresh";
 import { LinearApiError, LinearErrorCodes } from "./types";

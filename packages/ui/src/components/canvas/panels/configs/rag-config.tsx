@@ -1,7 +1,7 @@
 "use client";
 
-import type { RagNodeConfig } from "@openplane/types/canvas";
-import type { ConnectorType } from "@openplane/types/services/connectors/events";
+import type { RagNodeConfig } from "@openbeam/types/canvas";
+import type { ConnectorType } from "@openbeam/types/services/connectors/events";
 import type { ComponentType } from "react";
 import { forwardRef, memo } from "react";
 import type { ConnectorSource } from "../../ai-elements";

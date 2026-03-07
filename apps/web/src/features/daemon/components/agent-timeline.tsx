@@ -1,7 +1,7 @@
 "use client";
 
-import { cn, Icons } from "@openplane/ui";
-import { Button } from "@openplane/ui/components/button";
+import { cn, Icons } from "@openbeam/ui";
+import { Button } from "@openbeam/ui/components/button";
 import { useCallback, useEffect, useRef } from "react";
 import { MAX_CONTENT_WIDTH } from "../constants";
 import type { StreamItem, TaskEntry } from "../types";

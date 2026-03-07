@@ -3,7 +3,7 @@ import {
   type ExecutionPlanNode,
   ParallelJoinNodeConfigSchema,
   ParallelSplitNodeConfigSchema,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 
 import {
   type EdgeResolutionResult,

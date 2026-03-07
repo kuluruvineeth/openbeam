@@ -1,15 +1,15 @@
 "use client";
 
-import type { ExecutionStatus } from "@openplane/types/canvas/execution";
-import type { ExecutionListItem } from "@openplane/types/canvas/execution-ui";
+import type { ExecutionStatus } from "@openbeam/types/canvas/execution";
+import type { ExecutionListItem } from "@openbeam/types/canvas/execution-ui";
 import type {
   TimelineData,
   TimelineStep,
   TimelineStepStatus,
-} from "@openplane/types/canvas/timeline";
-import { Button, Icons } from "@openplane/ui";
-import { TooltipProvider } from "@openplane/ui/components/tooltip";
-import { cn } from "@openplane/ui/utils";
+} from "@openbeam/types/canvas/timeline";
+import { Button, Icons } from "@openbeam/ui";
+import { TooltipProvider } from "@openbeam/ui/components/tooltip";
+import { cn } from "@openbeam/ui/utils";
 import { useQuery } from "@tanstack/react-query";
 import { m } from "motion/react";
 import { parseAsString, parseAsStringLiteral, useQueryState } from "nuqs";

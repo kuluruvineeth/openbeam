@@ -1,5 +1,5 @@
 CUSTOM_KEYWORDS: list[tuple[str, float]] = [
-    ("OpenPlane", 3.0),
+    ("OpenBeam", 3.0),
     ("connector", 2.0),
     ("Vespa", 2.5),
     ("tRPC", 3.0),

@@ -1,6 +1,6 @@
 "use client";
 
-import type { SpatialAnnotation } from "@openplane/types/canvas";
+import type { SpatialAnnotation } from "@openbeam/types/canvas";
 import { useStore } from "@xyflow/react";
 import { memo, type ReactElement } from "react";
 import { useAnnotations } from "../../stores/annotation-store";

@@ -4,7 +4,7 @@ import type {
   VoiceEngine,
   VoiceFormatStyle,
   WidgetPosition,
-} from "@openplane/types/services/voice";
+} from "@openbeam/types/services/voice";
 import {
   Button,
   Icons,
@@ -17,7 +17,7 @@ import {
   SelectValue,
   Skeleton,
   Switch,
-} from "@openplane/ui";
+} from "@openbeam/ui";
 import { useCallback, useEffect, useState } from "react";
 import {
   useUpdateVoiceSettings,
@@ -264,7 +264,7 @@ export function VoiceSettings() {
               setVocabulary(e.target.value);
               markDirty();
             }}
-            placeholder="OpenPlane, tRPC, Vespa, ..."
+            placeholder="OpenBeam, tRPC, Vespa, ..."
             value={vocabulary}
           />
           <p className="mt-1 text-muted-foreground text-xs">

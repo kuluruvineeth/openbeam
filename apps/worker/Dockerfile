@@ -2,9 +2,9 @@ FROM oven/bun:1.3.2 AS pruner
 WORKDIR /app
 RUN bun add -g turbo@2.5.4
 COPY . .
-RUN turbo prune @openplane/worker --docker
+RUN turbo prune @openbeam/worker --docker
 
-FROM ghcr.io/kuluruvineeth/openplane-base:latest AS deps
+FROM ghcr.io/kuluruvineeth/openbeam-base:latest AS deps
 WORKDIR /app
 COPY --from=pruner /app/out/full/ .
 ARG HUGEICONS_PRO_AUTH_TOKEN
@@ -20,7 +20,7 @@ RUN cd packages/db && bun run db:generate
 
 FROM prisma AS builder
 WORKDIR /app
-RUN bun run --filter=@openplane/worker build
+RUN bun run --filter=@openbeam/worker build
 
 FROM oven/bun:1.3.2 AS runner
 WORKDIR /app
@@ -32,11 +32,11 @@ COPY --from=deps /app/bun.lock ./bun.lock
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/packages ./packages
 COPY --from=builder /app/apps/worker ./apps/worker
-RUN mkdir -p apps/worker/node_modules/@openplane && \
+RUN mkdir -p apps/worker/node_modules/@openbeam && \
     for pkg in packages/*/; do \
       name=$(basename "$pkg"); \
-      rm -rf "apps/worker/node_modules/@openplane/$name" && \
-      ln -s "../../../../packages/$name" "apps/worker/node_modules/@openplane/$name"; \
+      rm -rf "apps/worker/node_modules/@openbeam/$name" && \
+      ln -s "../../../../packages/$name" "apps/worker/node_modules/@openbeam/$name"; \
     done
 RUN chown -R nodejs:nodejs /app
 WORKDIR /app/apps/worker

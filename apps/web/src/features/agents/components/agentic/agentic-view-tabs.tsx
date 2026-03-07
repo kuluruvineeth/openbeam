@@ -1,12 +1,12 @@
 "use client";
 
-import { Icons } from "@openplane/ui";
+import { Icons } from "@openbeam/ui";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@openplane/ui/components/tooltip";
-import { cn } from "@openplane/ui/utils";
+} from "@openbeam/ui/components/tooltip";
+import { cn } from "@openbeam/ui/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import { useHotkeys } from "react-hotkeys-hook";
 

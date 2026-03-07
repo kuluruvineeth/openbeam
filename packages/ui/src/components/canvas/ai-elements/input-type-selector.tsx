@@ -1,6 +1,6 @@
 "use client";
 
-import type { InputFieldType } from "@openplane/types/canvas";
+import type { InputFieldType } from "@openbeam/types/canvas";
 import { memo, useCallback } from "react";
 import { cn } from "../../../utils";
 import { Icons } from "../../icons";

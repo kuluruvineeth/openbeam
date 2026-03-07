@@ -1,4 +1,4 @@
-import { Button } from "@openplane/ui";
+import { Button } from "@openbeam/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ClientOnly } from "@/components/client-only";
@@ -8,7 +8,7 @@ import { UserMenu } from "@/components/user-menu";
 import { HydrateClient } from "@/trpc/server";
 
 export const metadata: Metadata = {
-  title: "Teams | OpenPlane",
+  title: "Teams | OpenBeam",
   description: "Manage your teams",
 };
 

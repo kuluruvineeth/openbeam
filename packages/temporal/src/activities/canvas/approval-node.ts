@@ -1,9 +1,9 @@
-import type { Database } from "@openplane/db";
-import { createAgentCanvasApproval } from "@openplane/db";
+import type { Database } from "@openbeam/db";
+import { createAgentCanvasApproval } from "@openbeam/db";
 import type {
   CreateCanvasApprovalInput,
   CreateCanvasApprovalOutput,
-} from "@openplane/types/temporal";
+} from "@openbeam/types/temporal";
 import { emitRuntimeEvent } from "./runtime-event-emitter";
 
 export interface CanvasApprovalDependencies {

@@ -1,5 +1,5 @@
-import type { BandwidthPolicy } from "@openplane/types/edge/sync";
-import { BANDWIDTH_THRESHOLDS } from "@openplane/types/edge/sync";
+import type { BandwidthPolicy } from "@openbeam/types/edge/sync";
+import { BANDWIDTH_THRESHOLDS } from "@openbeam/types/edge/sync";
 
 export function detectBandwidthPolicy(estimatedKbps: number): BandwidthPolicy {
   if (estimatedKbps >= BANDWIDTH_THRESHOLDS.full) {

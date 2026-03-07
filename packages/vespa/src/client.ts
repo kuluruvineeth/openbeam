@@ -135,7 +135,7 @@ export class VespaClient {
   }
 
   async feedDocument(doc: GenericDocument, retries = 3): Promise<FeedResponse> {
-    const documentPath = `${this.documentApiUrl}/default/openplane_document/docid/${doc.id}`;
+    const documentPath = `${this.documentApiUrl}/default/openbeam_document/docid/${doc.id}`;
 
     const docForVespa: VespaGenericDocumentForFeed = {
       ...doc,
@@ -409,7 +409,7 @@ export class VespaClient {
 
   async *visitDocuments<T = GenericDocument>(options: {
     schema?:
-      | "openplane_document"
+      | "openbeam_document"
       | "media_document"
       | "entity"
       | "spreadsheet_document";
@@ -419,7 +419,7 @@ export class VespaClient {
     slices?: number;
     sliceId?: number;
   }): AsyncGenerator<T[], void, undefined> {
-    const schema = options.schema ?? "openplane_document";
+    const schema = options.schema ?? "openbeam_document";
     const params = new URLSearchParams();
 
     if (options.selection) {
@@ -476,7 +476,7 @@ export class VespaClient {
   async feedDocumentAsync(
     doc: GenericDocument
   ): Promise<{ operationId: string }> {
-    const documentPath = `${this.documentApiUrl}/default/openplane_document/docid/${doc.id}?asynchronous=true`;
+    const documentPath = `${this.documentApiUrl}/default/openbeam_document/docid/${doc.id}?asynchronous=true`;
 
     const docForVespa: VespaGenericDocumentForFeed = {
       ...doc,
@@ -536,7 +536,7 @@ export class VespaClient {
   }
 
   async deleteDocument(id: string): Promise<void> {
-    const documentPath = `${this.documentApiUrl}/default/openplane_document/docid/${id}`;
+    const documentPath = `${this.documentApiUrl}/default/openbeam_document/docid/${id}`;
 
     const response = await fetch(documentPath, {
       method: "DELETE",
@@ -557,7 +557,7 @@ export class VespaClient {
     id: string,
     fields: Partial<GenericDocument>
   ): Promise<FeedResponse> {
-    const documentPath = `${this.documentApiUrl}/default/openplane_document/docid/${id}`;
+    const documentPath = `${this.documentApiUrl}/default/openbeam_document/docid/${id}`;
 
     const response = await fetch(documentPath, {
       method: "PUT",
@@ -584,7 +584,7 @@ export class VespaClient {
     id: string,
     fields: Record<string, unknown>
   ): Promise<FeedResponse> {
-    const documentPath = `${this.documentApiUrl}/default/openplane_document/docid/${id}`;
+    const documentPath = `${this.documentApiUrl}/default/openbeam_document/docid/${id}`;
 
     const updateFields: Record<string, { assign: unknown }> = {};
     for (const [key, value] of Object.entries(fields)) {
@@ -652,9 +652,9 @@ export class VespaClient {
 
   async getDocument(id: string): Promise<GenericDocument | null> {
     const url = new URL(
-      `${this.documentApiUrl}/default/openplane_document/docid/${id}`
+      `${this.documentApiUrl}/default/openbeam_document/docid/${id}`
     );
-    url.searchParams.set("fieldSet", "openplane_document:[document]");
+    url.searchParams.set("fieldSet", "openbeam_document:[document]");
 
     const response = await fetch(url.toString(), {
       method: "GET",
@@ -713,7 +713,7 @@ export class VespaClient {
       if (status.containerUp) {
         const startTime = performance.now();
         const searchResponse = await fetch(
-          `${this.searchApiUrl}?yql=select%20*%20from%20openplane_document%20where%20true%20limit%201`,
+          `${this.searchApiUrl}?yql=select%20*%20from%20openbeam_document%20where%20true%20limit%201`,
           {
             signal: AbortSignal.timeout(5000),
             // @ts-expect-error undici dispatcher type
@@ -739,7 +739,7 @@ export class VespaClient {
 
   async deleteByConnectorId(
     connectorId: string,
-    schema: "openplane_document" | "media_document" | "entity"
+    schema: "openbeam_document" | "media_document" | "entity"
   ): Promise<{ deleted: number }> {
     const selection = `${schema}.connector_id=="${connectorId}"`;
     const url = `${this.documentApiUrl}/default/${schema}/docid?selection=${encodeURIComponent(selection)}&cluster=content`;
@@ -1205,7 +1205,7 @@ export class VespaClient {
     connectorId: string,
     options?: { hits?: number }
   ): Promise<SearchResult<T>> {
-    const yql = `select * from openplane_document where thread_id contains "${escapeYqlString(threadId)}" and connector_id contains "${escapeYqlString(connectorId)}" order by created_at asc`;
+    const yql = `select * from openbeam_document where thread_id contains "${escapeYqlString(threadId)}" and connector_id contains "${escapeYqlString(connectorId)}" order by created_at asc`;
 
     return await this.query<T>({
       yql,
@@ -1218,7 +1218,7 @@ export class VespaClient {
     connectorId: string,
     options?: { hits?: number }
   ): Promise<SearchResult<T>> {
-    const yql = `select * from openplane_document where parent_id contains "${escapeYqlString(parentId)}" and connector_id contains "${escapeYqlString(connectorId)}" order by created_at asc`;
+    const yql = `select * from openbeam_document where parent_id contains "${escapeYqlString(parentId)}" and connector_id contains "${escapeYqlString(connectorId)}" order by created_at asc`;
 
     return await this.query<T>({
       yql,
@@ -1233,7 +1233,7 @@ export class VespaClient {
     action: "add" | "remove"
   ): Promise<{ updated: number }> {
     const sourceIdFilter = `${connectorId}_${channelId}`;
-    const baseYql = `select id, access_control from openplane_document where source_id contains "${escapeYqlString(sourceIdFilter)}"`;
+    const baseYql = `select id, access_control from openbeam_document where source_id contains "${escapeYqlString(sourceIdFilter)}"`;
 
     let updated = 0;
     let offset = 0;

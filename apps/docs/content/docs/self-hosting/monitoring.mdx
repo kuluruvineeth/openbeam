@@ -1,11 +1,11 @@
 ---
 title: Monitoring & Observability
-description: Prometheus metrics, Grafana dashboards, Loki log aggregation, and alerting for self-hosted OpenPlane deployments.
+description: Prometheus metrics, Grafana dashboards, Loki log aggregation, and alerting for self-hosted OpenBeam deployments.
 ---
 
 # Monitoring & Observability
 
-OpenPlane ships a full observability stack built on three pillars: **metrics** (Prometheus), **dashboards** (Grafana), and **logs** (Loki + Promtail). The monitoring stack is optional but strongly recommended for production deployments.
+OpenBeam ships a full observability stack built on three pillars: **metrics** (Prometheus), **dashboards** (Grafana), and **logs** (Loki + Promtail). The monitoring stack is optional but strongly recommended for production deployments.
 
 ## Architecture Overview
 
@@ -42,7 +42,7 @@ OpenPlane ships a full observability stack built on three pillars: **metrics** (
 
 ## Prometheus
 
-Prometheus scrapes metrics from all OpenPlane services and evaluates alert rules using an SLO burn-rate approach.
+Prometheus scrapes metrics from all OpenBeam services and evaluates alert rules using an SLO burn-rate approach.
 
 ### Configuration
 
@@ -54,7 +54,7 @@ Prometheus scrapes metrics from all OpenPlane services and evaluates alert rules
 | Retention | 30 days |
 | Global scrape interval | 15s |
 | Evaluation interval | 15s |
-| Config path | `/mnt/openplane-data/configs/prometheus/prometheus.yml` |
+| Config path | `/mnt/openbeam-data/configs/prometheus/prometheus.yml` |
 
 ### Scrape Targets
 
@@ -79,13 +79,13 @@ Recording rules pre-compute expensive queries on a 30-second interval. These pow
 
 | Rule | Expression | Purpose |
 |------|-----------|---------|
-| `openplane:http_request_rate_5m` | `sum(rate(http_request_duration_seconds_count[5m]))` | Total request throughput |
-| `openplane:http_error_rate_5m` | 5xx count / total count (5m window) | Error percentage |
-| `openplane:http_latency_p95_5m` | `histogram_quantile(0.95, ...)` over 5m | 95th percentile latency |
+| `openbeam:http_request_rate_5m` | `sum(rate(http_request_duration_seconds_count[5m]))` | Total request throughput |
+| `openbeam:http_error_rate_5m` | 5xx count / total count (5m window) | Error percentage |
+| `openbeam:http_latency_p95_5m` | `histogram_quantile(0.95, ...)` over 5m | 95th percentile latency |
 
 ### Alert Rules
 
-OpenPlane uses SLO burn-rate alerting, not simple threshold alerts. This approach detects when error budgets are being consumed too quickly, reducing noise while catching real incidents early.
+OpenBeam uses SLO burn-rate alerting, not simple threshold alerts. This approach detects when error budgets are being consumed too quickly, reducing noise while catching real incidents early.
 
 #### How Burn-Rate Alerting Works
 
@@ -141,7 +141,7 @@ curl -s http://localhost:9090/api/v1/targets | jq '.data.activeTargets[] | {job:
 curl -s http://localhost:9090/api/v1/alerts | jq '.data.alerts[] | select(.state=="firing")'
 
 # Query a recording rule
-curl -s 'http://localhost:9090/api/v1/query?query=openplane:http_request_rate_5m'
+curl -s 'http://localhost:9090/api/v1/query?query=openbeam:http_request_rate_5m'
 ```
 
 ---
@@ -164,11 +164,11 @@ Grafana is pre-provisioned with two data sources (Prometheus and Loki) and 10 da
 
 ### Available Dashboards
 
-All dashboards are provisioned from `/mnt/openplane-data/configs/grafana/dashboards/` and appear in the **OpenPlane** folder inside Grafana.
+All dashboards are provisioned from `/mnt/openbeam-data/configs/grafana/dashboards/` and appear in the **OpenBeam** folder inside Grafana.
 
 | Dashboard | File | Purpose |
 |-----------|------|---------|
-| **Command Center** | `openplane-command-center.json` | Top-level overview of all services, request rates, error rates |
+| **Command Center** | `openbeam-command-center.json` | Top-level overview of all services, request rates, error rates |
 | **Platform SLO Overview** | `platform-slo-overview.json` | SLO burn rates, error budgets, availability over time |
 | **API Endpoints** | `api-endpoints.json` | Per-route latency, throughput, error rates |
 | **Worker Performance** | `worker-performance.json` | Sync/index job rates, queue depths, durations |
@@ -217,13 +217,13 @@ All dashboards are provisioned from `/mnt/openplane-data/configs/grafana/dashboa
 
 ### Adding Custom Dashboards
 
-Place any Grafana dashboard JSON file in `/mnt/openplane-data/configs/grafana/dashboards/`. Grafana polls this directory every 10 seconds and auto-imports new dashboards into the OpenPlane folder.
+Place any Grafana dashboard JSON file in `/mnt/openbeam-data/configs/grafana/dashboards/`. Grafana polls this directory every 10 seconds and auto-imports new dashboards into the OpenBeam folder.
 
 ```bash
 # Export a dashboard you built in the Grafana UI
 curl -s -H "Authorization: Bearer $GRAFANA_API_KEY" \
   http://localhost:3002/api/dashboards/uid/YOUR_DASHBOARD_UID \
-  | jq '.dashboard' > /mnt/openplane-data/configs/grafana/dashboards/my-custom.json
+  | jq '.dashboard' > /mnt/openbeam-data/configs/grafana/dashboards/my-custom.json
 ```
 
 ---
@@ -280,8 +280,8 @@ Promtail extracts labels from two sources: Docker metadata and JSON log fields.
 
 | Label | Source | Example |
 |-------|--------|---------|
-| `container` | Container name (stripped `/` prefix) | `openplane-server` |
-| `service` | Container name (stripped `openplane-` prefix) | `server` |
+| `container` | Container name (stripped `/` prefix) | `openbeam-server` |
+| `service` | Container name (stripped `openbeam-` prefix) | `server` |
 | `compose_service` | Docker Compose service label | `server` |
 | `stream` | Container log stream | `stdout` |
 | `env` | Static label | `development` |
@@ -291,7 +291,7 @@ Promtail extracts labels from two sources: Docker metadata and JSON log fields.
 | Label | JSON Field | Example |
 |-------|-----------|---------|
 | `level` | `level` | `info`, `warn`, `error` |
-| `service` | `service` | `openplane-worker` |
+| `service` | `service` | `openbeam-worker` |
 | `env` | `env` | `production` |
 
 Fields `trace_id` and `request_id` are extracted from JSON but kept as indexed fields for filtering, not promoted to labels (to avoid high cardinality).
@@ -305,7 +305,7 @@ Open the **Explore** view in Grafana, select the **Loki** data source, and use L
 {service="worker"} |= "error" | json | level="error"
 
 # Server logs for a specific trace
-{container="openplane-server"} | json | trace_id="abc123"
+{container="openbeam-server"} | json | trace_id="abc123"
 
 # Sync failures in the last hour
 {service="worker"} | json | level="error" |= "sync" | line_format "{{.message}}"
@@ -316,7 +316,7 @@ sum by (service) (rate({service=~".+"} | json | level="error" [5m]))
 
 ### Retention and Storage
 
-Loki retains logs for 14 days. The compactor runs every 10 minutes to merge small index files and enforce the retention policy. Storage is on the local filesystem at `/mnt/openplane-data/loki`.
+Loki retains logs for 14 days. The compactor runs every 10 minutes to merge small index files and enforce the retention policy. Storage is on the local filesystem at `/mnt/openbeam-data/loki`.
 
 To change retention, update `limits_config.retention_period` in the Loki config:
 
@@ -326,7 +326,7 @@ limits_config:
 ```
 
 <Callout type="warn">
-  Increasing retention increases disk usage. Monitor `/mnt/openplane-data/loki` disk consumption. At typical log volumes, expect 1-5 GB per day.
+  Increasing retention increases disk usage. Monitor `/mnt/openbeam-data/loki` disk consumption. At typical log volumes, expect 1-5 GB per day.
 </Callout>
 
 ---
@@ -439,9 +439,9 @@ Not all metrics are equally important. These are the ones that matter most for d
 
 | What to Watch | Metric / Query | Why |
 |---------------|---------------|-----|
-| Request rate | `openplane:http_request_rate_5m` | Baseline for capacity planning |
-| Error rate | `openplane:http_error_rate_5m` | Primary availability signal |
-| p95 latency | `openplane:http_latency_p95_5m` | User-facing performance |
+| Request rate | `openbeam:http_request_rate_5m` | Baseline for capacity planning |
+| Error rate | `openbeam:http_error_rate_5m` | Primary availability signal |
+| p95 latency | `openbeam:http_latency_p95_5m` | User-facing performance |
 | SLO burn rate | Alert rule expressions | Early warning before budget exhaustion |
 
 ### Sync Pipeline Health
@@ -519,10 +519,10 @@ These are the performance targets that SLO alerts enforce. Use them when evaluat
 
     ```bash
     # Verify the service is running
-    docker ps | grep openplane-worker
+    docker ps | grep openbeam-worker
 
     # Test the metrics endpoint directly
-    docker exec openplane-worker curl -s http://localhost:9091/metrics | head -5
+    docker exec openbeam-worker curl -s http://localhost:9091/metrics | head -5
 
     # Check Prometheus target page for error details
     curl -s http://localhost:9090/api/v1/targets | jq '.data.activeTargets[] | select(.health=="down")'
@@ -535,10 +535,10 @@ These are the performance targets that SLO alerts enforce. Use them when evaluat
 
     ```bash
     # Test Prometheus from Grafana's perspective
-    docker exec openplane-grafana curl -s http://prometheus:9090/api/v1/query?query=up
+    docker exec openbeam-grafana curl -s http://prometheus:9090/api/v1/query?query=up
 
     # Check data source provisioning
-    docker exec openplane-grafana cat /etc/grafana/provisioning/datasources/datasource.yml
+    docker exec openbeam-grafana cat /etc/grafana/provisioning/datasources/datasource.yml
     ```
 
     If the data source is healthy but panels still show no data, the metrics may not exist yet. Some metrics (like sync counters) only appear after the first sync job runs.
@@ -566,7 +566,7 @@ These are the performance targets that SLO alerts enforce. Use them when evaluat
     Check current TSDB storage usage:
 
     ```bash
-    docker exec openplane-prometheus df -h /prometheus
+    docker exec openbeam-prometheus df -h /prometheus
     ```
 
     Reduce retention or increase disk allocation:
@@ -592,7 +592,7 @@ These are the performance targets that SLO alerts enforce. Use them when evaluat
     If rules are missing, verify the config mount includes `alerts.yml` and `recording-rules.yml`:
 
     ```bash
-    docker exec openplane-prometheus ls /etc/prometheus/
+    docker exec openbeam-prometheus ls /etc/prometheus/
     ```
   </Accordion>
 </Accordions>

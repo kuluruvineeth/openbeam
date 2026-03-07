@@ -1,4 +1,4 @@
-import type { GenericDocument } from "@openplane/vespa";
+import type { GenericDocument } from "@openbeam/vespa";
 import type { RetrievalResult, SearchFilters } from "../types";
 import {
   buildAccessControlClause,
@@ -103,7 +103,7 @@ export async function retrieveGlobalSorted(
     buildAccessControlClause(accessControlIds),
   ].filter(Boolean);
 
-  const yql = `select id from openplane_document where ${conditions.join(" and ")} limit ${limit}`;
+  const yql = `select id from openbeam_document where ${conditions.join(" and ")} limit ${limit}`;
 
   const result = await queryGlobalSorted({
     yql,
@@ -157,7 +157,7 @@ export async function retrieveGlobalSortedV2(
     buildAccessControlClause(accessControlIds),
   ].filter(Boolean);
 
-  const yql = `select id from openplane_document where ${conditions.join(" and ")} limit ${limit}`;
+  const yql = `select id from openbeam_document where ${conditions.join(" and ")} limit ${limit}`;
 
   const result = await queryGlobalSorted({
     yql,

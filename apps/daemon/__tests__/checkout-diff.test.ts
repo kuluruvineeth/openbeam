@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { execSync } from "node:child_process";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import type { SessionOutboundMessage } from "@openplane/types/services/daemon/messages";
+import type { SessionOutboundMessage } from "@openbeam/types/services/daemon/messages";
 import {
   createDaemonTestContext,
   type DaemonTestContext,

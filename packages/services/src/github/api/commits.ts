@@ -1,7 +1,7 @@
 import {
   type GitHubCommit,
   GitHubCommitSchema,
-} from "@openplane/types/services/connectors/github";
+} from "@openbeam/types/services/connectors/github";
 import type { GitHubClient } from "../client";
 
 const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;

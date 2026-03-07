@@ -20,7 +20,7 @@ export const opcuaApp: UnifiedApp = {
   installed: false,
   type: "official",
   connectorType: ConnectorType.SOURCE,
-  developerName: "OpenPlane",
+  developerName: "OpenBeam",
   website: "https://opcfoundation.org",
 
   searchDisplay: {

@@ -5,7 +5,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/openplane/openplane/apps/cli/internal/runtime"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/runtime"
 )
 
 func TestQueryFromMapAndLists(t *testing.T) {

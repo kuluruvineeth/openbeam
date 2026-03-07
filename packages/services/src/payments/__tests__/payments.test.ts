@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
-import type { CreatePaymentReceiptInput } from "@openplane/types/db";
+import type { CreatePaymentReceiptInput } from "@openbeam/types/db";
 
 const mockCreatePaymentReceipt = mock(() =>
   Promise.resolve({ id: "receipt_1", teamId: "team_1" })
@@ -19,7 +19,7 @@ const mockUpsertPaymentPricingPolicy = mock(() =>
   Promise.resolve({ id: "policy_1" })
 );
 
-mock.module("@openplane/db", () => ({
+mock.module("@openbeam/db", () => ({
   createPaymentReceipt: mockCreatePaymentReceipt,
   createPaymentLedgerEntry: mockCreatePaymentLedgerEntry,
   getTeamLedgerBalance: mockGetTeamLedgerBalance,

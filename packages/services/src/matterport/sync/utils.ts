@@ -1,8 +1,8 @@
 import type {
   MatterportSyncBatch,
   MatterportSyncCursor,
-} from "@openplane/types/services/connectors/matterport";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/matterport";
+import type { GenericDocument } from "@openbeam/vespa";
 
 export function createSyncBatch(
   items: GenericDocument[],

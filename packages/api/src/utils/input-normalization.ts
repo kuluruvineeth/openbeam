@@ -1,4 +1,4 @@
-import type { InputNodeConfig } from "@openplane/types/canvas";
+import type { InputNodeConfig } from "@openbeam/types/canvas";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_PATTERN_INPUT_LENGTH = 10_000;

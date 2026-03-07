@@ -9,7 +9,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@openplane/ui";
+} from "@openbeam/ui";
 import { useMemo, useState } from "react";
 import { Icons } from "@/components/icons";
 import { BulkActionsToolbar } from "./bulk-actions-toolbar";

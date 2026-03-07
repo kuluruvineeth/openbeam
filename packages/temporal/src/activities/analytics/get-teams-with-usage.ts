@@ -1,4 +1,4 @@
-import db, { getTeamsWithAIUsageForDate } from "@openplane/db";
+import db, { getTeamsWithAIUsageForDate } from "@openbeam/db";
 import type { GetTeamsWithUsageInput, GetTeamsWithUsageOutput } from "./types";
 
 export async function getTeamsWithUsage(

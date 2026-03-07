@@ -5,7 +5,7 @@ import type {
   AgentCanvasNode,
   SelectionState,
   Viewport,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { temporal } from "zundo";
 import { create, type StateCreator } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";

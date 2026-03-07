@@ -1,16 +1,20 @@
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { toolRegistry } from "@openplane/ai/tools";
-import prisma, { type Database } from "@openplane/db";
-import { createToolServices } from "@openplane/services";
+import { toolRegistry } from "@openbeam/ai/tools";
+import prisma, { type Database } from "@openbeam/db";
+import { createToolServices } from "@openbeam/services";
 import {
   S3StorageProvider,
   type StorageConfig,
   type StorageProvider,
-} from "@openplane/storage";
-import { type VespaClient, vespaClient } from "@openplane/vespa";
+} from "@openbeam/storage";
+import { type VespaClient, vespaClient } from "@openbeam/vespa";
 import { NativeConnection, Worker } from "@temporalio/worker";
-import { createAgentActivities, LlmAgentExecutor } from "../activities/agents";
+import {
+  createAgentActivities,
+  createControlPlaneActivities,
+  LlmAgentExecutor,
+} from "../activities/agents";
 import * as analyticsActivities from "../activities/analytics";
 import { createCanvasExecutionActivities } from "../activities/canvas";
 import {
@@ -51,7 +55,7 @@ interface WorkerDependencies {
 
 function loadStorageConfig(): StorageConfig {
   return {
-    bucket: process.env.GCS_BUCKET ?? "openplane-files",
+    bucket: process.env.GCS_BUCKET ?? "openbeam-files",
     region: process.env.GCS_REGION ?? "us-central1",
     endpoint: process.env.GCS_ENDPOINT,
     publicEndpoint: process.env.GCS_PUBLIC_ENDPOINT,
@@ -154,7 +158,7 @@ export async function startWorker(
     namespace,
     taskQueue: finalTaskQueue,
     workflowsPath: join(__dirname, "../workflows"),
-    activities: loadActivitiesForWorkerType(workerType, deps),
+    activities: await loadActivitiesForWorkerType(workerType, deps),
     maxConcurrentActivityTaskExecutions: maxConcurrentActivities,
     maxConcurrentWorkflowTaskExecutions: maxConcurrentWorkflows,
   });
@@ -162,10 +166,10 @@ export async function startWorker(
   return worker;
 }
 
-function loadActivitiesForWorkerType(
+async function loadActivitiesForWorkerType(
   workerType: WorkerType,
   deps: WorkerDependencies
-): Record<string, unknown> {
+): Promise<Record<string, unknown>> {
   toolRegistry.bindServices(createToolServices());
 
   const baseActivities = {
@@ -222,14 +226,36 @@ function loadActivitiesForWorkerType(
         ...createVespaActivities({ vespa: deps.vespa }),
       };
 
-    case "agent":
+    case "agent": {
+      const { registerAdapter } = await import(
+        "@openbeam/services/control/adapters/registry"
+      );
+      const { httpAdapter } = await import(
+        "@openbeam/services/control/adapters/http/index"
+      );
+      const { processAdapter } = await import(
+        "@openbeam/services/control/adapters/process/index"
+      );
+      const { claudeLocalAdapter } = await import(
+        "@openbeam/services/control/adapters/claude-local/index"
+      );
+      const { codexLocalAdapter } = await import(
+        "@openbeam/services/control/adapters/codex-local/index"
+      );
+      registerAdapter(httpAdapter);
+      registerAdapter(processAdapter);
+      registerAdapter(claudeLocalAdapter);
+      registerAdapter(codexLocalAdapter);
+
       return {
         ...baseActivities,
         ...createAgentActivities({
           db: deps.db,
           executor: new LlmAgentExecutor(),
         }),
+        ...createControlPlaneActivities({ db: deps.db }),
       };
+    }
 
     case "canvas":
       return {

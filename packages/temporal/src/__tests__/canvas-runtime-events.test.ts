@@ -10,7 +10,7 @@ import {
   RuntimeEventSchema,
   SessionResumedPayloadSchema,
   SessionStartedPayloadSchema,
-} from "@openplane/types/canvas/runtime-events";
+} from "@openbeam/types/canvas/runtime-events";
 import { describe, expect, it } from "vitest";
 
 describe("RuntimeEvent Schema Validation", () => {

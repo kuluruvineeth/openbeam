@@ -4,7 +4,7 @@ import { CreateTeamForm } from "@/components/forms/create-team-form";
 import { Icons } from "@/components/icons";
 
 export const metadata: Metadata = {
-  title: "Create Team | OpenPlane",
+  title: "Create Team | OpenBeam",
   description: "Create a new team",
 };
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { DEFAULT_CHAT_MODEL } from "@openplane/types/ai";
+import { DEFAULT_CHAT_MODEL } from "@openbeam/types/ai";
 import {
   AgentMessageList,
   Button,
@@ -18,8 +18,8 @@ import {
   PromptInputTools,
   usePromptInputAttachments,
   usePromptInputText,
-} from "@openplane/ui";
-import { cn } from "@openplane/ui/utils";
+} from "@openbeam/ui";
+import { cn } from "@openbeam/ui/utils";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useConnectors } from "@/features/connectors";
 import { AGENTIC_RUNTIME_STREAM_V2 } from "@/lib/feature-flags";

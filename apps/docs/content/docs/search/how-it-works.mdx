@@ -5,7 +5,7 @@ description: Vespa architecture, indexing pipeline, query flow, ranking mechanic
 
 # How Search Works
 
-OpenPlane search is built on [Vespa](https://vespa.ai), an open-source serving engine for real-time search and ranking at scale. This page covers the full path from raw data to ranked results.
+OpenBeam search is built on [Vespa](https://vespa.ai), an open-source serving engine for real-time search and ranking at scale. This page covers the full path from raw data to ranked results.
 
 ## Vespa Document Schemas
 
@@ -13,7 +13,7 @@ Vespa stores four document types. Each has a dedicated schema optimized for its 
 
 | Schema | Purpose | Records |
 |--------|---------|---------|
-| `openplane_document` | Text content (messages, pages, issues, files, emails) | Bulk of the index |
+| `openbeam_document` | Text content (messages, pages, issues, files, emails) | Bulk of the index |
 | `media_document` | Video and audio with segment-level transcripts | Meeting recordings, screen captures |
 | `entity` | People, teams, projects from the knowledge graph | Cross-referenced from documents |
 | `spreadsheet_document` | Structured tabular data with column schemas | Sheets, CSVs, database exports |
@@ -78,14 +78,14 @@ Long documents (pages, PDFs) are chunked. Each chunk gets its own embedding whil
 
 ### Stage 4: Vespa Feed
 
-The `@openplane/vespa` package feeds documents to Vespa's Document API with:
+The `@openbeam/vespa` package feeds documents to Vespa's Document API with:
 
 - Batch feeding with configurable concurrency (default: 10 parallel requests)
 - Automatic retries with exponential backoff (2^attempt seconds, max 3 retries)
 - Metadata objects JSON-stringified before feed (Vespa stores them as `string` fields)
 
 ```text
-POST /document/v1/default/openplane_document/docid/{id}
+POST /document/v1/default/openbeam_document/docid/{id}
 ```
 
 ## Query Flow
@@ -112,7 +112,7 @@ A query arrives via the tRPC API, CLI, or agent tool:
 The query builder generates Vespa's YQL (Yahoo Query Language):
 
 ```sql
-SELECT * FROM openplane_document
+SELECT * FROM openbeam_document
 WHERE team_id CONTAINS "team_abc"
   AND (connector_type CONTAINS "notion"
        OR connector_type CONTAINS "google-drive")
@@ -224,7 +224,7 @@ An optional LRU cache (max 1000 entries, 30s TTL) sits in front of the Vespa cli
 
 ## Edge Search Architecture
 
-The edge runtime (`@openplane/edge-search`) provides offline search using SQLite.
+The edge runtime (`@openbeam/edge-search`) provides offline search using SQLite.
 
 ### FTS5 (Full-Text Search)
 

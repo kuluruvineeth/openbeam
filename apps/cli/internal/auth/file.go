@@ -21,7 +21,7 @@ func DefaultFilePath() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(base, "openplane", "secrets.yaml"), nil
+	return filepath.Join(base, "openbeam", "secrets.yaml"), nil
 }
 
 func NewFileStore(path string) (*FileStore, error) {

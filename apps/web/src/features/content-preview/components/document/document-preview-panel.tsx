@@ -7,14 +7,14 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@openplane/ui";
+} from "@openbeam/ui";
 import { useQuery } from "@tanstack/react-query";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Icons } from "@/components/icons";
 import { Markdown } from "@/components/ui/markdown";
 import { useTRPC } from "@/trpc/client";
 
-// Types mirror SerializedBlock/SerializedRichText from @openplane/services
+// Types mirror SerializedBlock/SerializedRichText from @openbeam/services
 interface SerializedRichText {
   text: string;
   href?: string;

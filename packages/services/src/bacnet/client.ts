@@ -2,7 +2,7 @@ import type {
   BacnetConnectionConfig,
   BacnetDevice,
   BacnetObject,
-} from "@openplane/types/services/connectors/bacnet";
+} from "@openbeam/types/services/connectors/bacnet";
 import { logger } from "../lib/logger";
 import { BacnetApiError } from "./types";
 

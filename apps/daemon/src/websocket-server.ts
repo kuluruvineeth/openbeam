@@ -193,7 +193,7 @@ export class VoiceAssistantWebSocketServer {
   private readonly agentManager: AgentManager;
   private readonly agentStorage: AgentStorage;
   private readonly downloadTokenStore: DownloadTokenStore;
-  private readonly openplaneHome: string;
+  private readonly openbeamHome: string;
   private readonly pushTokenStore: PushTokenStore;
   private readonly pushService: PushService;
   private readonly createAgentMcpTransport: AgentMcpTransportFactory;
@@ -232,7 +232,7 @@ export class VoiceAssistantWebSocketServer {
     agentManager: AgentManager,
     agentStorage: AgentStorage,
     downloadTokenStore: DownloadTokenStore,
-    openplaneHome: string,
+    openbeamHome: string,
     createAgentMcpTransport: AgentMcpTransportFactory,
     wsConfig: WebSocketServerConfig,
     speech?: {
@@ -272,7 +272,7 @@ export class VoiceAssistantWebSocketServer {
     this.agentManager = agentManager;
     this.agentStorage = agentStorage;
     this.downloadTokenStore = downloadTokenStore;
-    this.openplaneHome = openplaneHome;
+    this.openbeamHome = openbeamHome;
     this.createAgentMcpTransport = createAgentMcpTransport;
     this.stt = speech?.stt ?? null;
     this.tts = speech?.tts ?? null;
@@ -288,7 +288,7 @@ export class VoiceAssistantWebSocketServer {
     const pushLogger = this.logger.child({ module: "push" });
     this.pushTokenStore = new PushTokenStore(
       pushLogger,
-      join(openplaneHome, "push-tokens.json")
+      join(openbeamHome, "push-tokens.json")
     );
     this.pushService = new PushService(pushLogger, this.pushTokenStore);
 
@@ -555,7 +555,7 @@ export class VoiceAssistantWebSocketServer {
       logger: connectionLogger.child({ module: "session" }),
       downloadTokenStore: this.downloadTokenStore,
       pushTokenStore: this.pushTokenStore,
-      openplaneHome: this.openplaneHome,
+      openbeamHome: this.openbeamHome,
       agentManager: this.agentManager,
       agentStorage: this.agentStorage,
       createAgentMcpTransport: this.createAgentMcpTransport,

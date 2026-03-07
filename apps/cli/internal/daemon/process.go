@@ -19,7 +19,7 @@ const (
 	DefaultHost    = "127.0.0.1"
 	DefaultPort    = 6868
 	DefaultListen  = "127.0.0.1:6868"
-	PidFileName    = "openplane.pid"
+	PidFileName    = "openbeam.pid"
 	DaemonBinName  = "daemon"
 	HealthTimeout  = 3 * time.Second
 	StartupTimeout = 10 * time.Second
@@ -53,16 +53,16 @@ type DaemonState struct {
 func DefaultHome() string {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return filepath.Join(os.TempDir(), ".openplane")
+		return filepath.Join(os.TempDir(), ".openbeam")
 	}
-	return filepath.Join(home, ".openplane")
+	return filepath.Join(home, ".openbeam")
 }
 
 func ResolveDaemonHome(explicit string) string {
 	if explicit != "" {
 		return explicit
 	}
-	if env := os.Getenv("OPENPLANE_DAEMON_HOME"); env != "" {
+	if env := os.Getenv("OPENBEAM_DAEMON_HOME"); env != "" {
 		return env
 	}
 	return DefaultHome()
@@ -72,7 +72,7 @@ func ResolveListen(explicit string) string {
 	if explicit != "" {
 		return explicit
 	}
-	if env := os.Getenv("OPENPLANE_LISTEN"); env != "" {
+	if env := os.Getenv("OPENBEAM_LISTEN"); env != "" {
 		return env
 	}
 	return DefaultListen
@@ -204,7 +204,7 @@ func findDaemonEntry() string {
 	if gopath == "" {
 		gopath = filepath.Join(home, "go")
 	}
-	srcPath := filepath.Join(gopath, "src", "github.com", "openplane", "openplane", "apps", "daemon", "src", "index.ts")
+	srcPath := filepath.Join(gopath, "src", "github.com", "openbeam", "openbeam", "apps", "daemon", "src", "index.ts")
 	if _, err := os.Stat(srcPath); err == nil {
 		return srcPath
 	}
@@ -215,8 +215,8 @@ func findDaemonEntry() string {
 func buildDaemonEnv(daemonHome string, listen string) []string {
 	env := os.Environ()
 	env = append(env,
-		"OPENPLANE_DAEMON_HOME="+daemonHome,
-		"OPENPLANE_LISTEN="+listen,
+		"OPENBEAM_DAEMON_HOME="+daemonHome,
+		"OPENBEAM_LISTEN="+listen,
 	)
 	return env
 }

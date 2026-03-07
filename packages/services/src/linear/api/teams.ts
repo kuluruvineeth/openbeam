@@ -2,7 +2,7 @@ import {
   LinearConnectionSchema,
   type LinearTeam,
   LinearTeamSchema,
-} from "@openplane/types/services/connectors/linear";
+} from "@openbeam/types/services/connectors/linear";
 import type { LinearClient } from "../client";
 
 const TEAMS_QUERY = `

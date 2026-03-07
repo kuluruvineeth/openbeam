@@ -1,4 +1,4 @@
-# Contributing to OpenPlane
+# Contributing to OpenBeam
 
 ## Prerequisites
 

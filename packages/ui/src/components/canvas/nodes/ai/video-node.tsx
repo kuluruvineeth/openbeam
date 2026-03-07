@@ -1,13 +1,13 @@
 "use client";
 
-import { getVideoModel } from "@openplane/types/ai";
+import { getVideoModel } from "@openbeam/types/ai";
 import type {
   GeneratedVideo,
   NodeStatus,
   Port,
   TokenUsage,
   VideoNodeConfig,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
 import { forwardRef, memo, useCallback, useMemo } from "react";

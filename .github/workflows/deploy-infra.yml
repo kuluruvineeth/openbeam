@@ -67,7 +67,7 @@ jobs:
       - id: resolve_image_tag
         run: |
           IMAGE_TAG="${{ github.sha }}"
-          BASE_IMAGE="us-central1-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/openplane-repo/openplane-server"
+          BASE_IMAGE="us-central1-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/openbeam-repo/openbeam-server"
 
           echo "Resolving image tag (commit: ${IMAGE_TAG})"
 

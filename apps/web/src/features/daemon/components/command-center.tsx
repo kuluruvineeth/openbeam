@@ -1,6 +1,6 @@
 "use client";
 
-import { cn, Icons } from "@openplane/ui";
+import { cn, Icons } from "@openbeam/ui";
 import { useEffect, useRef } from "react";
 import {
   type CommandCenterItem,

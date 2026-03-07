@@ -4,7 +4,7 @@ import type {
   FallbackChainConfig,
   ResilienceMetrics,
   RetryConfig,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import { circuitBreakerRegistry } from "./circuit-breaker";
 import { classifyError } from "./errors";
 import { type FallbackOptions, withFallback } from "./fallback";

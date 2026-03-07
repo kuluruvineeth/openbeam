@@ -1,5 +1,5 @@
 {
-  "name": "@openplane/vespa",
+  "name": "@openbeam/vespa",
   "version": "0.0.1",
   "type": "module",
   "exports": {
@@ -16,8 +16,8 @@
     "build": "tsdown"
   },
   "dependencies": {
-    "@openplane/config": "workspace:*",
-    "@openplane/types": "workspace:*",
+    "@openbeam/config": "workspace:*",
+    "@openbeam/types": "workspace:*",
     "lru-cache": "^11.2.4",
     "undici": "^7.2.0"
   },

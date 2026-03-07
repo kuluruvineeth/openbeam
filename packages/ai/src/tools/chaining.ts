@@ -1,4 +1,4 @@
-import type { ToolExecutionResult } from "@openplane/types/ai";
+import type { ToolExecutionResult } from "@openbeam/types/ai";
 import { toolRegistry } from "./registry";
 import type { ToolContext, ToolExecutionOptions } from "./types";
 

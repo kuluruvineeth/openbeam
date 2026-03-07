@@ -1,5 +1,5 @@
-import type { ChunkCheckpoint } from "@openplane/types/temporal/agent-heartbeat";
-import { TIMEOUT_TIERS } from "@openplane/types/temporal/agent-timeouts";
+import type { ChunkCheckpoint } from "@openbeam/types/temporal/agent-heartbeat";
+import { TIMEOUT_TIERS } from "@openbeam/types/temporal/agent-timeouts";
 import { Context } from "@temporalio/activity";
 import type { AgentCheckpoint } from "../../workflows/types";
 import type {

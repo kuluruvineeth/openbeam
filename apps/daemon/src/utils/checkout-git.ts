@@ -5,8 +5,8 @@ import { basename, dirname, resolve } from "node:path";
 import { promisify } from "node:util";
 import type { ParsedDiffFile } from "./diff-highlighter";
 import { parseAndHighlightDiff } from "./diff-highlighter";
-import { isOpenPlaneOwnedWorktreeCwd } from "./worktree";
-import { requireOpenPlaneWorktreeBaseRefName } from "./worktree-metadata";
+import { isOpenBeamOwnedWorktreeCwd } from "./worktree";
+import { requireOpenBeamWorktreeBaseRefName } from "./worktree-metadata";
 
 const execAsync = promisify(exec);
 const execFileAsync = promisify(execFile);
@@ -491,7 +491,7 @@ export interface CheckoutStatus {
   isGit: false;
 }
 
-export type CheckoutStatusGitNonOpenPlane = {
+export type CheckoutStatusGitNonOpenBeam = {
   isGit: true;
   repoRoot: string;
   currentBranch: string | null;
@@ -502,10 +502,10 @@ export type CheckoutStatusGitNonOpenPlane = {
   behindOfOrigin: number | null;
   hasRemote: boolean;
   remoteUrl: string | null;
-  isOpenPlaneOwnedWorktree: false;
+  isOpenBeamOwnedWorktree: false;
 };
 
-export type CheckoutStatusGitOpenPlane = {
+export type CheckoutStatusGitOpenBeam = {
   isGit: true;
   repoRoot: string;
   mainRepoRoot: string;
@@ -517,12 +517,12 @@ export type CheckoutStatusGitOpenPlane = {
   behindOfOrigin: number | null;
   hasRemote: boolean;
   remoteUrl: string | null;
-  isOpenPlaneOwnedWorktree: true;
+  isOpenBeamOwnedWorktree: true;
 };
 
 export type CheckoutStatusGit =
-  | CheckoutStatusGitNonOpenPlane
-  | CheckoutStatusGitOpenPlane;
+  | CheckoutStatusGitNonOpenBeam
+  | CheckoutStatusGitOpenBeam;
 
 export type CheckoutStatusResult = CheckoutStatus | CheckoutStatusGit;
 
@@ -530,30 +530,30 @@ export type CheckoutStatusLiteNotGit = {
   isGit: false;
   currentBranch: null;
   remoteUrl: null;
-  isOpenPlaneOwnedWorktree: false;
+  isOpenBeamOwnedWorktree: false;
   mainRepoRoot: null;
 };
 
-export type CheckoutStatusLiteGitNonOpenPlane = {
+export type CheckoutStatusLiteGitNonOpenBeam = {
   isGit: true;
   currentBranch: string | null;
   remoteUrl: string | null;
-  isOpenPlaneOwnedWorktree: false;
+  isOpenBeamOwnedWorktree: false;
   mainRepoRoot: null;
 };
 
-export type CheckoutStatusLiteGitOpenPlane = {
+export type CheckoutStatusLiteGitOpenBeam = {
   isGit: true;
   currentBranch: string | null;
   remoteUrl: string | null;
-  isOpenPlaneOwnedWorktree: true;
+  isOpenBeamOwnedWorktree: true;
   mainRepoRoot: string;
 };
 
 export type CheckoutStatusLiteResult =
   | CheckoutStatusLiteNotGit
-  | CheckoutStatusLiteGitNonOpenPlane
-  | CheckoutStatusLiteGitOpenPlane;
+  | CheckoutStatusLiteGitNonOpenBeam
+  | CheckoutStatusLiteGitOpenBeam;
 
 export interface CheckoutDiffResult {
   diff: string;
@@ -578,7 +578,7 @@ export interface MergeFromBaseOptions {
 }
 
 export type CheckoutContext = {
-  openplaneHome?: string;
+  openbeamHome?: string;
 };
 
 function isGitError(error: unknown): boolean {
@@ -643,10 +643,10 @@ async function getMainRepoRoot(cwd: string): Promise<string> {
     }
   );
   const worktrees = parseWorktreeList(worktreeOut);
-  const nonBareNonOpenPlane = worktrees.filter(
-    (wt) => !(wt.isBare || wt.path.includes("/.openplane/worktrees/"))
+  const nonBareNonOpenBeam = worktrees.filter(
+    (wt) => !(wt.isBare || wt.path.includes("/.openbeam/worktrees/"))
   );
-  const childrenOfBareRepo = nonBareNonOpenPlane.filter((wt) =>
+  const childrenOfBareRepo = nonBareNonOpenBeam.filter((wt) =>
     wt.path.startsWith(`${normalized}/`)
   );
   const mainChild = childrenOfBareRepo.find(
@@ -655,7 +655,7 @@ async function getMainRepoRoot(cwd: string): Promise<string> {
   return (
     mainChild?.path ??
     childrenOfBareRepo[0]?.path ??
-    nonBareNonOpenPlane[0]?.path ??
+    nonBareNonOpenBeam[0]?.path ??
     normalized
   );
 }
@@ -733,8 +733,8 @@ export async function renameCurrentBranch(
 }
 
 type ConfiguredBaseRefForCwd =
-  | { baseRef: null; isOpenPlaneOwnedWorktree: false }
-  | { baseRef: string; isOpenPlaneOwnedWorktree: true };
+  | { baseRef: null; isOpenBeamOwnedWorktree: false }
+  | { baseRef: string; isOpenBeamOwnedWorktree: true };
 
 async function getConfiguredBaseRefForCwd(
   cwd: string,
@@ -743,20 +743,20 @@ async function getConfiguredBaseRefForCwd(
   // Fast-path reject: non-worktree paths do not need expensive ownership checks.
   // biome-ignore lint/performance/useTopLevelRegex: scoped regex acceptable here
   if (!/[\\/]worktrees[\\/]/.test(cwd)) {
-    return { baseRef: null, isOpenPlaneOwnedWorktree: false };
+    return { baseRef: null, isOpenBeamOwnedWorktree: false };
   }
 
-  const ownership = await isOpenPlaneOwnedWorktreeCwd(cwd, {
-    openplaneHome: context?.openplaneHome,
+  const ownership = await isOpenBeamOwnedWorktreeCwd(cwd, {
+    openbeamHome: context?.openbeamHome,
   });
   if (!ownership.allowed) {
-    return { baseRef: null, isOpenPlaneOwnedWorktree: false };
+    return { baseRef: null, isOpenBeamOwnedWorktree: false };
   }
 
   const worktreeRoot = (await getWorktreeRoot(cwd)) ?? cwd;
   return {
-    baseRef: requireOpenPlaneWorktreeBaseRefName(worktreeRoot),
-    isOpenPlaneOwnedWorktree: true,
+    baseRef: requireOpenBeamWorktreeBaseRefName(worktreeRoot),
+    isOpenBeamOwnedWorktree: true,
   };
 }
 
@@ -1135,7 +1135,7 @@ export async function getCheckoutStatus(
       : Promise.resolve(null),
   ]);
 
-  if (configured.isOpenPlaneOwnedWorktree) {
+  if (configured.isOpenBeamOwnedWorktree) {
     const mainRepoRoot = await getMainRepoRoot(cwd);
     return {
       isGit: true,
@@ -1149,7 +1149,7 @@ export async function getCheckoutStatus(
       behindOfOrigin,
       hasRemote,
       remoteUrl,
-      isOpenPlaneOwnedWorktree: true,
+      isOpenBeamOwnedWorktree: true,
     };
   }
 
@@ -1164,7 +1164,7 @@ export async function getCheckoutStatus(
     behindOfOrigin,
     hasRemote,
     remoteUrl,
-    isOpenPlaneOwnedWorktree: false,
+    isOpenBeamOwnedWorktree: false,
   };
 }
 
@@ -1178,17 +1178,17 @@ export async function getCheckoutStatusLite(
       isGit: false,
       currentBranch: null,
       remoteUrl: null,
-      isOpenPlaneOwnedWorktree: false,
+      isOpenBeamOwnedWorktree: false,
       mainRepoRoot: null,
     };
   }
 
-  if (inspected.configured.isOpenPlaneOwnedWorktree) {
+  if (inspected.configured.isOpenBeamOwnedWorktree) {
     return {
       isGit: true,
       currentBranch: inspected.currentBranch,
       remoteUrl: inspected.remoteUrl,
-      isOpenPlaneOwnedWorktree: true,
+      isOpenBeamOwnedWorktree: true,
       mainRepoRoot: await getMainRepoRoot(cwd),
     };
   }
@@ -1197,7 +1197,7 @@ export async function getCheckoutStatusLite(
     isGit: true,
     currentBranch: inspected.currentBranch,
     remoteUrl: inspected.remoteUrl,
-    isOpenPlaneOwnedWorktree: false,
+    isOpenBeamOwnedWorktree: false,
     mainRepoRoot: null,
   };
 }
@@ -1221,7 +1221,7 @@ export async function getCheckoutDiff(
       return { diff: "" };
     }
     if (
-      configured.isOpenPlaneOwnedWorktree &&
+      configured.isOpenBeamOwnedWorktree &&
       compare.baseRef &&
       compare.baseRef !== baseRef
     ) {
@@ -1476,7 +1476,7 @@ export async function mergeToBase(
     throw new Error("Unable to determine base branch for merge");
   }
   if (
-    configured.isOpenPlaneOwnedWorktree &&
+    configured.isOpenBeamOwnedWorktree &&
     options.baseRef &&
     options.baseRef !== baseRef
   ) {
@@ -1608,7 +1608,7 @@ export async function mergeFromBase(
     throw new Error("Unable to determine base branch for merge");
   }
   if (
-    configured.isOpenPlaneOwnedWorktree &&
+    configured.isOpenBeamOwnedWorktree &&
     options.baseRef &&
     options.baseRef !== baseRef
   ) {
@@ -1886,7 +1886,7 @@ export async function createPullRequest(
   }
   const normalizedBase = normalizeLocalBranchRefName(base);
   if (
-    configured.isOpenPlaneOwnedWorktree &&
+    configured.isOpenBeamOwnedWorktree &&
     options.base &&
     options.base !== base
   ) {

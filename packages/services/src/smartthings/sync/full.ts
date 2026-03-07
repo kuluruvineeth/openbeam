@@ -1,8 +1,8 @@
 import type {
   SmartThingsSyncBatch,
   SmartThingsTransformContext,
-} from "@openplane/types/services/connectors/smartthings";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/smartthings";
+import type { GenericDocument } from "@openbeam/vespa";
 import type { SmartThingsClient, SmartThingsRoom } from "../client";
 import { transformDevices } from "../transformers/device";
 import { transformLocations } from "../transformers/location";

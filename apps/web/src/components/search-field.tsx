@@ -1,6 +1,6 @@
 "use client";
 
-import { Input } from "@openplane/ui";
+import { Input } from "@openbeam/ui";
 import { useQueryState } from "nuqs";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Icons } from "@/components/icons";

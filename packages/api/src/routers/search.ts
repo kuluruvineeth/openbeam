@@ -8,7 +8,7 @@ import {
   type SearchRanking,
   SIGNED_URL_EXPIRY_SECONDS,
   searchService,
-} from "@openplane/services";
+} from "@openbeam/services";
 import { z } from "zod";
 import { createTRPCRouter } from "../index";
 import { withActiveTeam } from "./apps/middleware";

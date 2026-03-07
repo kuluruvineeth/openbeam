@@ -2,7 +2,7 @@ import {
   type ExecutionPlanNode,
   type ExecutionTrace,
   RetryNodeConfigSchema,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import {
   ApplicationFailure,
   condition,

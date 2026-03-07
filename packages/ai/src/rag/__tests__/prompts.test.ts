@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import type { QueryAnalysis, QueryIntent } from "@openplane/types/ai";
+import type { QueryAnalysis, QueryIntent } from "@openbeam/types/ai";
 import {
   buildEntityExtractionPrompt,
   buildGroundingVerificationPrompt,

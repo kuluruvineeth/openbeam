@@ -3,8 +3,8 @@
 import {
   appStore as appStoreApps,
   type SettingValue,
-} from "@openplane/integrations";
-import { Button } from "@openplane/ui";
+} from "@openbeam/integrations";
+import { Button } from "@openbeam/ui";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";

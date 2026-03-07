@@ -3,8 +3,8 @@ import prisma, {
   getConnectorWithCredentials,
   getOAuthProvider,
   verifyConnectorOwnership,
-} from "@openplane/db";
-import { ALL_CONNECTOR_ACTION_REGISTRIES } from "@openplane/integrations/connector-actions";
+} from "@openbeam/db";
+import { ALL_CONNECTOR_ACTION_REGISTRIES } from "@openbeam/integrations/connector-actions";
 import type {
   ConnectorActionDefinition,
   ConnectorActionError,
@@ -12,19 +12,19 @@ import type {
   ConnectorActionInput,
   ConnectorActionNodeConfig,
   RetryConfig,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import {
   ConnectorActionExecuteResultSchema,
   ConnectorActionNodeConfigSchema,
-} from "@openplane/types/canvas";
-import { normalizeToConnectorType } from "@openplane/types/services/connectors/events";
-import type { GmailListMessagesResponse } from "@openplane/types/services/connectors/gmail";
-import { GmailListMessagesResponseSchema } from "@openplane/types/services/connectors/gmail";
+} from "@openbeam/types/canvas";
+import { normalizeToConnectorType } from "@openbeam/types/services/connectors/events";
+import type { GmailListMessagesResponse } from "@openbeam/types/services/connectors/gmail";
+import { GmailListMessagesResponseSchema } from "@openbeam/types/services/connectors/gmail";
 import {
   type DriveFile,
   DriveFileListResponseSchema,
   DriveFileSchema,
-} from "@openplane/types/services/connectors/google-drive";
+} from "@openbeam/types/services/connectors/google-drive";
 import jmespath from "jmespath";
 import {
   getActionDefinition,
@@ -1357,7 +1357,7 @@ async function uploadGoogleDriveFile(params: {
   content: string;
 }): Promise<DriveFile> {
   const accessToken = await getValidAccessToken(params.connectorId);
-  const boundary = `openplane_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+  const boundary = `openbeam_${Date.now()}_${Math.random().toString(16).slice(2)}`;
   const metadata: Record<string, unknown> = {
     name: params.name,
     mimeType: params.mimeType,

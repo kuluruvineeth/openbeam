@@ -14,31 +14,31 @@ describe("getNamespace", () => {
   it("returns production namespace for production environment", () => {
     vi.stubEnv("TEMPORAL_NAMESPACE", "");
     vi.stubEnv("NODE_ENV", "production");
-    expect(getNamespace()).toBe("openplane-prod");
+    expect(getNamespace()).toBe("openbeam-prod");
   });
 
   it("returns staging namespace for staging environment", () => {
     vi.stubEnv("TEMPORAL_NAMESPACE", "");
     vi.stubEnv("NODE_ENV", "staging");
-    expect(getNamespace()).toBe("openplane-staging");
+    expect(getNamespace()).toBe("openbeam-staging");
   });
 
   it("returns test namespace for test environment", () => {
     vi.stubEnv("TEMPORAL_NAMESPACE", "");
     vi.stubEnv("NODE_ENV", "test");
-    expect(getNamespace()).toBe("openplane-test");
+    expect(getNamespace()).toBe("openbeam-test");
   });
 
   it("returns development namespace by default", () => {
     vi.stubEnv("TEMPORAL_NAMESPACE", "");
     vi.stubEnv("NODE_ENV", "development");
-    expect(getNamespace()).toBe("openplane-dev");
+    expect(getNamespace()).toBe("openbeam-dev");
   });
 
   it("returns development namespace for unknown NODE_ENV", () => {
     vi.stubEnv("TEMPORAL_NAMESPACE", "");
     vi.stubEnv("NODE_ENV", "unknown");
-    expect(getNamespace()).toBe("openplane-dev");
+    expect(getNamespace()).toBe("openbeam-dev");
   });
 
   it("prefers TEMPORAL_NAMESPACE over NODE_ENV-derived namespace", () => {

@@ -1,7 +1,7 @@
 import type {
   CanvasApprovalSignalPayload,
   CanvasInputSignalPayload,
-} from "@openplane/types/temporal";
+} from "@openbeam/types/temporal";
 import { condition } from "@temporalio/workflow";
 import { conditionWithTimeout } from "../../temporal-utils";
 

@@ -1,8 +1,8 @@
 import type {
   VerkadaSyncBatch,
   VerkadaSyncCursor,
-} from "@openplane/types/services/connectors/verkada";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/verkada";
+import type { GenericDocument } from "@openbeam/vespa";
 
 export function createSyncBatch(
   items: GenericDocument[],

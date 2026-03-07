@@ -1,6 +1,6 @@
 "use client";
 
-import type { CanvasSession } from "@openplane/types/canvas/session";
+import type { CanvasSession } from "@openbeam/types/canvas/session";
 import { useMutation } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
 import { useTRPC } from "@/trpc/client";

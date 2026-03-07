@@ -3,11 +3,11 @@ import type {
   ModelPricing,
   UsageEvent,
   UsageSummaryResult,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import {
   calculateModelCost,
   getModelPricing as getCentralizedPricing,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 
 const DEFAULT_PRICING: ModelPricing = { inputPer1M: 1.0, outputPer1M: 5.0 };
 

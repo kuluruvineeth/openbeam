@@ -275,7 +275,7 @@ export const WebhookBuilder = memo(
       {
         value,
         onChange,
-        baseUrl = "https://api.openplane.io/webhooks",
+        baseUrl = "https://api.openbeam.io/webhooks",
         className,
       },
       ref

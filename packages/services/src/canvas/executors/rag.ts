@@ -1,11 +1,11 @@
-import { completeWithContext, estimateTokens } from "@openplane/ai";
-import type { Citation, CompletionContext } from "@openplane/types/ai";
+import { completeWithContext, estimateTokens } from "@openbeam/ai";
+import type { Citation, CompletionContext } from "@openbeam/types/ai";
 import {
   type ExecutionContext,
   type RagExecutionResult,
   RagNodeConfigSchema,
-} from "@openplane/types/canvas";
-import type { GenericDocument, MediaDocument } from "@openplane/vespa";
+} from "@openbeam/types/canvas";
+import type { GenericDocument, MediaDocument } from "@openbeam/vespa";
 import {
   extractChunksFromDocuments,
   rerankChunks,

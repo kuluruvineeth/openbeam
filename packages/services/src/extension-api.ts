@@ -1,7 +1,7 @@
-import type { ExtensionActionProposal } from "@openplane/types/services/extension/actions";
-import { ExtensionActionProposalSchema } from "@openplane/types/services/extension/actions";
-import type { ExtensionChatSubmitResponse } from "@openplane/types/services/extension/rpc";
-import { ExtensionChatSubmitResponseSchema } from "@openplane/types/services/extension/rpc";
+import type { ExtensionActionProposal } from "@openbeam/types/services/extension/actions";
+import { ExtensionActionProposalSchema } from "@openbeam/types/services/extension/actions";
+import type { ExtensionChatSubmitResponse } from "@openbeam/types/services/extension/rpc";
+import { ExtensionChatSubmitResponseSchema } from "@openbeam/types/services/extension/rpc";
 
 export type ExtensionServiceErrorCode =
   | "MISSING_TEAM"

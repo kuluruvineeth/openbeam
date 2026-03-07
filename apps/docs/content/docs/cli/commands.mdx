@@ -1,11 +1,11 @@
 ---
 title: Command Reference
-description: Complete reference for every openplane CLI command, organized by resource.
+description: Complete reference for every openbeam CLI command, organized by resource.
 ---
 
 # Command Reference
 
-Every command follows the pattern `openplane <resource> <action> [flags]`. Mutation commands (create, delete, sync) require `--yes` in non-interactive mode.
+Every command follows the pattern `openbeam <resource> <action> [flags]`. Mutation commands (create, delete, sync) require `--yes` in non-interactive mode.
 
 ---
 
@@ -18,7 +18,7 @@ Search across all indexed content. 8 subcommands covering text search, hybrid re
 Search documents with filters across connector types, date ranges, labels, and ranking strategies.
 
 ```bash
-openplane search query --query "deployment checklist" --limit 10
+openbeam search query --query "deployment checklist" --limit 10
 ```
 
 | Flag | Type | Default | Description |
@@ -41,10 +41,10 @@ openplane search query --query "deployment checklist" --limit 10
 
 ```bash
 # Search Slack messages from a specific connector
-openplane search query -q "launch plan" --connector-type slack --limit 5
+openbeam search query -q "launch plan" --connector-type slack --limit 5
 
 # Search with date range
-openplane search query -q "Q4 report" --from-date 1696118400 --to-date 1704067200
+openbeam search query -q "Q4 report" --from-date 1696118400 --to-date 1704067200
 ```
 
 ### search recent
@@ -52,7 +52,7 @@ openplane search query -q "Q4 report" --from-date 1696118400 --to-date 170406720
 Get recently indexed documents.
 
 ```bash
-openplane search recent --hours 12 --limit 50
+openbeam search recent --hours 12 --limit 50
 ```
 
 | Flag | Type | Default | Description |
@@ -65,7 +65,7 @@ openplane search recent --hours 12 --limit 50
 Retrieve all messages in a thread.
 
 ```bash
-openplane search thread --thread-id "thr_abc123"
+openbeam search thread --thread-id "thr_abc123"
 ```
 
 | Flag | Type | Default | Required |
@@ -77,7 +77,7 @@ openplane search thread --thread-id "thr_abc123"
 Find documents similar to a given document.
 
 ```bash
-openplane search similar --document-id "doc_xyz" --limit 5
+openbeam search similar --document-id "doc_xyz" --limit 5
 ```
 
 | Flag | Type | Default | Required |
@@ -90,7 +90,7 @@ openplane search similar --document-id "doc_xyz" --limit 5
 Get all documents by a specific author.
 
 ```bash
-openplane search author --author-id "usr_abc" --limit 25
+openbeam search author --author-id "usr_abc" --limit 25
 ```
 
 | Flag | Type | Default | Required |
@@ -103,7 +103,7 @@ openplane search author --author-id "usr_abc" --limit 25
 Search indexed media (video, audio) with type-specific filters.
 
 ```bash
-openplane search media -q "product demo" --media-type video --limit 10
+openbeam search media -q "product demo" --media-type video --limit 10
 ```
 
 | Flag | Type | Default | Description |
@@ -123,7 +123,7 @@ openplane search media -q "product demo" --media-type video --limit 10
 Search across both documents and media in a single request.
 
 ```bash
-openplane search unified -q "architecture overview" --include-media --include-documents
+openbeam search unified -q "architecture overview" --include-media --include-documents
 ```
 
 | Flag | Type | Default | Description |
@@ -147,7 +147,7 @@ openplane search unified -q "architecture overview" --include-media --include-do
 Advanced hybrid search with configurable RRF (Reciprocal Rank Fusion) weights for BM25, dense, and sparse retrieval.
 
 ```bash
-openplane search hybrid -q "machine learning pipeline" --weight-bm25 0.3 --weight-dense 0.5 --weight-sparse 0.2
+openbeam search hybrid -q "machine learning pipeline" --weight-bm25 0.3 --weight-dense 0.5 --weight-sparse 0.2
 ```
 
 | Flag | Type | Default | Description |
@@ -177,7 +177,7 @@ Manage API keys, check auth status, and handle the credential lifecycle.
 Store an API key for the active profile. Verifies the key against the server by default.
 
 ```bash
-openplane auth login --api-key "op_your_key_here"
+openbeam auth login --api-key "op_your_key_here"
 ```
 
 | Flag | Type | Default | Description |
@@ -190,7 +190,7 @@ openplane auth login --api-key "op_your_key_here"
 Remove the stored API key for the active profile.
 
 ```bash
-openplane auth logout
+openbeam auth logout
 ```
 
 ### auth status
@@ -198,7 +198,7 @@ openplane auth logout
 Show current authentication status.
 
 ```bash
-openplane auth status --verify
+openbeam auth status --verify
 ```
 
 | Flag | Type | Default | Description |
@@ -210,8 +210,8 @@ openplane auth status --verify
 Print the active API key (redacted by default).
 
 ```bash
-openplane auth token print
-openplane auth token print --redact=false
+openbeam auth token print
+openbeam auth token print --redact=false
 ```
 
 | Flag | Type | Default | Description |
@@ -223,7 +223,7 @@ openplane auth token print --redact=false
 List API keys for a team.
 
 ```bash
-openplane auth key list --team-id "team_abc"
+openbeam auth key list --team-id "team_abc"
 ```
 
 | Flag | Type | Default | Description |
@@ -235,7 +235,7 @@ openplane auth key list --team-id "team_abc"
 Create a new API key.
 
 ```bash
-openplane auth key create --name "CI Pipeline" --scope read:search --scope write:connectors
+openbeam auth key create --name "CI Pipeline" --scope read:search --scope write:connectors
 ```
 
 | Flag | Type | Default | Required |
@@ -250,7 +250,7 @@ openplane auth key create --name "CI Pipeline" --scope read:search --scope write
 Revoke an existing API key.
 
 ```bash
-openplane auth key revoke --id "key_abc123" --yes
+openbeam auth key revoke --id "key_abc123" --yes
 ```
 
 | Flag | Type | Default | Required |
@@ -269,7 +269,7 @@ Manage connector installations, trigger syncs, and view sync history. 12 subcomm
 List all connector apps and their installation status.
 
 ```bash
-openplane connectors list
+openbeam connectors list
 ```
 
 ### connectors get
@@ -277,7 +277,7 @@ openplane connectors list
 Get detailed information about a connector.
 
 ```bash
-openplane connectors get --id "conn_abc123"
+openbeam connectors get --id "conn_abc123"
 ```
 
 | Flag | Type | Default | Required |
@@ -289,7 +289,7 @@ openplane connectors get --id "conn_abc123"
 Create a new connector installation.
 
 ```bash
-openplane connectors connect \
+openbeam connectors connect \
   --app-id "gmail" \
   --workspace-external-id "ws_123" \
   --name "Company Gmail" \
@@ -311,7 +311,7 @@ openplane connectors connect \
 Update connector settings.
 
 ```bash
-openplane connectors update --id "conn_abc" --config '{"syncInterval":"1h"}' --yes
+openbeam connectors update --id "conn_abc" --config '{"syncInterval":"1h"}' --yes
 ```
 
 | Flag | Type | Default | Required |
@@ -324,7 +324,7 @@ openplane connectors update --id "conn_abc" --config '{"syncInterval":"1h"}' --y
 Schedule a connector for disconnection.
 
 ```bash
-openplane connectors disconnect --id "conn_abc" --yes
+openbeam connectors disconnect --id "conn_abc" --yes
 ```
 
 | Flag | Type | Default | Required |
@@ -336,7 +336,7 @@ openplane connectors disconnect --id "conn_abc" --yes
 Trigger a sync for a connector.
 
 ```bash
-openplane connectors sync --id "conn_abc" --type FULL --yes
+openbeam connectors sync --id "conn_abc" --type FULL --yes
 ```
 
 | Flag | Type | Default | Required |
@@ -349,7 +349,7 @@ openplane connectors sync --id "conn_abc" --type FULL --yes
 Get the current sync status of a connector.
 
 ```bash
-openplane connectors status --id "conn_abc"
+openbeam connectors status --id "conn_abc"
 ```
 
 | Flag | Type | Default | Required |
@@ -361,7 +361,7 @@ openplane connectors status --id "conn_abc"
 Get sync history for a connector.
 
 ```bash
-openplane connectors history --id "conn_abc" --limit 10
+openbeam connectors history --id "conn_abc" --limit 10
 ```
 
 | Flag | Type | Default | Required |
@@ -375,7 +375,7 @@ openplane connectors history --id "conn_abc" --limit 10
 Pause a running connector.
 
 ```bash
-openplane connectors pause --id "conn_abc" --yes
+openbeam connectors pause --id "conn_abc" --yes
 ```
 
 ### connectors resume
@@ -383,7 +383,7 @@ openplane connectors pause --id "conn_abc" --yes
 Resume a paused connector.
 
 ```bash
-openplane connectors resume --id "conn_abc" --yes
+openbeam connectors resume --id "conn_abc" --yes
 ```
 
 ### connectors resources
@@ -391,7 +391,7 @@ openplane connectors resume --id "conn_abc" --yes
 List resources available for a connector (channels, repos, drives, etc.).
 
 ```bash
-openplane connectors resources --id "conn_abc" --search "engineering" --limit 50
+openbeam connectors resources --id "conn_abc" --search "engineering" --limit 50
 ```
 
 | Flag | Type | Default | Required |
@@ -406,7 +406,7 @@ openplane connectors resources --id "conn_abc" --search "engineering" --limit 50
 Toggle syncing for a specific resource.
 
 ```bash
-openplane connectors resource-sync --resource-id "res_abc" --enabled=true --yes
+openbeam connectors resource-sync --resource-id "res_abc" --enabled=true --yes
 ```
 
 | Flag | Type | Default | Required |
@@ -425,7 +425,7 @@ Execute AI agents and stream their responses.
 Execute an agent request and receive the complete result.
 
 ```bash
-openplane agent run --prompt "Find all documents about our pricing strategy" --agent-type rag
+openbeam agent run --prompt "Find all documents about our pricing strategy" --agent-type rag
 ```
 
 | Flag | Type | Default | Required |
@@ -439,7 +439,7 @@ openplane agent run --prompt "Find all documents about our pricing strategy" --a
 Stream agent events in real-time via SSE.
 
 ```bash
-openplane agent stream --prompt "Analyze our competitor landscape" --max-steps 15
+openbeam agent stream --prompt "Analyze our competitor landscape" --max-steps 15
 ```
 
 | Flag | Type | Default | Required |
@@ -459,7 +459,7 @@ Retrieval-Augmented Generation workflows. Ask questions, stream answers, and man
 Ask a question grounded in your indexed data.
 
 ```bash
-openplane rag ask --query "What were the key decisions from the last board meeting?"
+openbeam rag ask --query "What were the key decisions from the last board meeting?"
 ```
 
 | Flag | Type | Default | Required |
@@ -476,7 +476,7 @@ openplane rag ask --query "What were the key decisions from the last board meeti
 Stream a RAG response token by token.
 
 ```bash
-openplane rag stream --query "Explain our authentication architecture"
+openbeam rag stream --query "Explain our authentication architecture"
 ```
 
 Flags are identical to `rag ask`.
@@ -486,7 +486,7 @@ Flags are identical to `rag ask`.
 Create a new conversation for multi-turn RAG.
 
 ```bash
-openplane rag conversations create --yes
+openbeam rag conversations create --yes
 ```
 
 ### rag conversations list
@@ -494,7 +494,7 @@ openplane rag conversations create --yes
 List existing conversations.
 
 ```bash
-openplane rag conversations list --status active --limit 10
+openbeam rag conversations list --status active --limit 10
 ```
 
 | Flag | Type | Default | Description |
@@ -508,7 +508,7 @@ openplane rag conversations list --status active --limit 10
 Get conversation details and message history.
 
 ```bash
-openplane rag conversations get --id "conv_abc"
+openbeam rag conversations get --id "conv_abc"
 ```
 
 ### rag conversations delete
@@ -516,7 +516,7 @@ openplane rag conversations get --id "conv_abc"
 Delete a conversation.
 
 ```bash
-openplane rag conversations delete --id "conv_abc" --yes
+openbeam rag conversations delete --id "conv_abc" --yes
 ```
 
 ---
@@ -530,7 +530,7 @@ Orchestrate long-running research workflows powered by AI agents.
 Start a research workflow with a prompt.
 
 ```bash
-openplane research start --prompt "Analyze our market position vs Glean" --yes
+openbeam research start --prompt "Analyze our market position vs Glean" --yes
 ```
 
 | Flag | Type | Default | Required |
@@ -543,7 +543,7 @@ openplane research start --prompt "Analyze our market position vs Glean" --yes
 Check progress of a running research workflow.
 
 ```bash
-openplane research progress --workflow-id "wf_abc123"
+openbeam research progress --workflow-id "wf_abc123"
 ```
 
 ### research artifacts
@@ -551,7 +551,7 @@ openplane research progress --workflow-id "wf_abc123"
 Retrieve artifacts produced by a research workflow.
 
 ```bash
-openplane research artifacts --workflow-id "wf_abc123"
+openbeam research artifacts --workflow-id "wf_abc123"
 ```
 
 ### research cancel
@@ -559,7 +559,7 @@ openplane research artifacts --workflow-id "wf_abc123"
 Cancel a running research workflow.
 
 ```bash
-openplane research cancel --workflow-id "wf_abc123" --yes
+openbeam research cancel --workflow-id "wf_abc123" --yes
 ```
 
 ---
@@ -571,7 +571,7 @@ Manage agent canvases -- visual agent workflow orchestration. Create, publish, a
 ### canvas list
 
 ```bash
-openplane canvas list --status published --limit 10
+openbeam canvas list --status published --limit 10
 ```
 
 | Flag | Type | Default | Description |
@@ -583,7 +583,7 @@ openplane canvas list --status published --limit 10
 ### canvas create
 
 ```bash
-openplane canvas create --name "Lead Qualification" --nodes '[...]' --edges '[...]' --yes
+openbeam canvas create --name "Lead Qualification" --nodes '[...]' --edges '[...]' --yes
 ```
 
 | Flag | Type | Default | Required |
@@ -601,13 +601,13 @@ openplane canvas create --name "Lead Qualification" --nodes '[...]' --edges '[..
 ### canvas get
 
 ```bash
-openplane canvas get --id "cnv_abc"
+openbeam canvas get --id "cnv_abc"
 ```
 
 ### canvas update
 
 ```bash
-openplane canvas update --id "cnv_abc" --name "Updated Name" --yes
+openbeam canvas update --id "cnv_abc" --name "Updated Name" --yes
 ```
 
 Flags are identical to `canvas create`, plus `--id` (required).
@@ -615,7 +615,7 @@ Flags are identical to `canvas create`, plus `--id` (required).
 ### canvas delete
 
 ```bash
-openplane canvas delete --id "cnv_abc" --yes
+openbeam canvas delete --id "cnv_abc" --yes
 ```
 
 ### canvas publish
@@ -623,7 +623,7 @@ openplane canvas delete --id "cnv_abc" --yes
 Publish a canvas version.
 
 ```bash
-openplane canvas publish --id "cnv_abc" --changelog "Added retry logic" --yes
+openbeam canvas publish --id "cnv_abc" --changelog "Added retry logic" --yes
 ```
 
 | Flag | Type | Default | Required |
@@ -636,7 +636,7 @@ openplane canvas publish --id "cnv_abc" --changelog "Added retry logic" --yes
 List executions for a canvas.
 
 ```bash
-openplane canvas executions --id "cnv_abc" --status completed --limit 10
+openbeam canvas executions --id "cnv_abc" --status completed --limit 10
 ```
 
 ### canvas execute
@@ -644,7 +644,7 @@ openplane canvas executions --id "cnv_abc" --status completed --limit 10
 Trigger a new canvas execution.
 
 ```bash
-openplane canvas execute --id "cnv_abc" --input '{"query":"analyze pipeline"}' --yes
+openbeam canvas execute --id "cnv_abc" --input '{"query":"analyze pipeline"}' --yes
 ```
 
 | Flag | Type | Default | Required |
@@ -664,7 +664,7 @@ Manage long-running background agents for autonomous task execution.
 ### background-agents list
 
 ```bash
-openplane background-agents list --status running --limit 10
+openbeam background-agents list --status running --limit 10
 ```
 
 | Flag | Type | Default | Description |
@@ -676,13 +676,13 @@ openplane background-agents list --status running --limit 10
 ### background-agents get
 
 ```bash
-openplane background-agents get --id "ba_abc"
+openbeam background-agents get --id "ba_abc"
 ```
 
 ### background-agents create
 
 ```bash
-openplane background-agents create \
+openbeam background-agents create \
   --name "Code Reviewer" \
   --prompt "Review all PRs for security issues" \
   --preset researcher \
@@ -704,13 +704,13 @@ openplane background-agents create \
 ### background-agents pause
 
 ```bash
-openplane background-agents pause --id "ba_abc" --yes
+openbeam background-agents pause --id "ba_abc" --yes
 ```
 
 ### background-agents resume
 
 ```bash
-openplane background-agents resume --id "ba_abc" --from-checkpoint 3 --yes
+openbeam background-agents resume --id "ba_abc" --from-checkpoint 3 --yes
 ```
 
 | Flag | Type | Default | Required |
@@ -721,13 +721,13 @@ openplane background-agents resume --id "ba_abc" --from-checkpoint 3 --yes
 ### background-agents cancel
 
 ```bash
-openplane background-agents cancel --id "ba_abc" --yes
+openbeam background-agents cancel --id "ba_abc" --yes
 ```
 
 ### background-agents delete
 
 ```bash
-openplane background-agents delete --id "ba_abc" --yes
+openbeam background-agents delete --id "ba_abc" --yes
 ```
 
 ### background-agents logs
@@ -736,10 +736,10 @@ View and follow agent execution logs.
 
 ```bash
 # Get recent logs
-openplane background-agents logs --id "ba_abc" --limit 100
+openbeam background-agents logs --id "ba_abc" --limit 100
 
 # Follow logs in real-time
-openplane background-agents logs --id "ba_abc" --follow --interval 1s
+openbeam background-agents logs --id "ba_abc" --follow --interval 1s
 ```
 
 | Flag | Type | Default | Description |
@@ -760,7 +760,7 @@ Query the knowledge graph -- entities, relations, topics, and expertise.
 ### knowledge list
 
 ```bash
-openplane knowledge list --type person --limit 20
+openbeam knowledge list --type person --limit 20
 ```
 
 | Flag | Type | Default | Description |
@@ -772,7 +772,7 @@ openplane knowledge list --type person --limit 20
 ### knowledge search
 
 ```bash
-openplane knowledge search --query "machine learning" --type topic
+openbeam knowledge search --query "machine learning" --type topic
 ```
 
 | Flag | Type | Default | Required |
@@ -784,7 +784,7 @@ openplane knowledge search --query "machine learning" --type topic
 ### knowledge get
 
 ```bash
-openplane knowledge get --id "ent_abc"
+openbeam knowledge get --id "ent_abc"
 ```
 
 ### knowledge relations
@@ -792,7 +792,7 @@ openplane knowledge get --id "ent_abc"
 Get entity relationships.
 
 ```bash
-openplane knowledge relations --id "ent_abc" --direction both
+openbeam knowledge relations --id "ent_abc" --direction both
 ```
 
 | Flag | Type | Default | Required |
@@ -805,7 +805,7 @@ openplane knowledge relations --id "ent_abc" --direction both
 Get a rich knowledge panel for an entity.
 
 ```bash
-openplane knowledge panel --id "ent_abc"
+openbeam knowledge panel --id "ent_abc"
 ```
 
 ### knowledge experts
@@ -813,7 +813,7 @@ openplane knowledge panel --id "ent_abc"
 Find subject matter experts for a topic.
 
 ```bash
-openplane knowledge experts --topic-id "topic_ml" --limit 5
+openbeam knowledge experts --topic-id "topic_ml" --limit 5
 ```
 
 | Flag | Type | Default | Required |
@@ -826,7 +826,7 @@ openplane knowledge experts --topic-id "topic_ml" --limit 5
 Get a person's areas of expertise.
 
 ```bash
-openplane knowledge expertise --person-id "person_abc" --limit 10
+openbeam knowledge expertise --person-id "person_abc" --limit 10
 ```
 
 | Flag | Type | Default | Required |
@@ -843,7 +843,7 @@ Deep operations on indexed media -- transcripts, chapters, highlights, and Q&A.
 ### media chapters
 
 ```bash
-openplane media chapters --vespa-id "vid_abc"
+openbeam media chapters --vespa-id "vid_abc"
 ```
 
 | Flag | Type | Default | Description |
@@ -854,25 +854,25 @@ openplane media chapters --vespa-id "vid_abc"
 ### media highlights
 
 ```bash
-openplane media highlights --vespa-id "vid_abc"
+openbeam media highlights --vespa-id "vid_abc"
 ```
 
 ### media transcript
 
 ```bash
-openplane media transcript --vespa-id "vid_abc"
+openbeam media transcript --vespa-id "vid_abc"
 ```
 
 ### media summary
 
 ```bash
-openplane media summary --vespa-id "vid_abc"
+openbeam media summary --vespa-id "vid_abc"
 ```
 
 ### media metadata
 
 ```bash
-openplane media metadata --vespa-id "vid_abc"
+openbeam media metadata --vespa-id "vid_abc"
 ```
 
 ### media regenerate
@@ -880,7 +880,7 @@ openplane media metadata --vespa-id "vid_abc"
 Regenerate derived content for a media item.
 
 ```bash
-openplane media regenerate --vespa-id "vid_abc" --content-type chapters --content-type highlights --yes
+openbeam media regenerate --vespa-id "vid_abc" --content-type chapters --content-type highlights --yes
 ```
 
 | Flag | Type | Default | Required |
@@ -893,7 +893,7 @@ openplane media regenerate --vespa-id "vid_abc" --content-type chapters --conten
 Ask a question about a specific media item.
 
 ```bash
-openplane media ask --media-id "vid_abc" --question "What was discussed at timestamp 5:30?"
+openbeam media ask --media-id "vid_abc" --question "What was discussed at timestamp 5:30?"
 ```
 
 | Flag | Type | Default | Required |
@@ -910,13 +910,13 @@ Manage teams and roles.
 ### teams list
 
 ```bash
-openplane teams list
+openbeam teams list
 ```
 
 ### teams create
 
 ```bash
-openplane teams create --name "Engineering" --slug "engineering" --yes
+openbeam teams create --name "Engineering" --slug "engineering" --yes
 ```
 
 | Flag | Type | Default | Required |
@@ -929,7 +929,7 @@ openplane teams create --name "Engineering" --slug "engineering" --yes
 Switch the active team.
 
 ```bash
-openplane teams switch --id "team_abc" --yes
+openbeam teams switch --id "team_abc" --yes
 ```
 
 ### teams role
@@ -937,7 +937,7 @@ openplane teams switch --id "team_abc" --yes
 Get your role for a specific team.
 
 ```bash
-openplane teams role --id "team_abc"
+openbeam teams role --id "team_abc"
 ```
 
 ---
@@ -949,13 +949,13 @@ Manage permission sync, caches, and access controls.
 ### permissions sync-status
 
 ```bash
-openplane permissions sync-status --connector-id "conn_abc"
+openbeam permissions sync-status --connector-id "conn_abc"
 ```
 
 ### permissions sync-statuses
 
 ```bash
-openplane permissions sync-statuses
+openbeam permissions sync-statuses
 ```
 
 ### permissions invalidate
@@ -963,9 +963,9 @@ openplane permissions sync-statuses
 Invalidate the permission cache.
 
 ```bash
-openplane permissions invalidate --scope all --yes
-openplane permissions invalidate --scope user --user-id "usr_abc" --yes
-openplane permissions invalidate --scope connector --connector-id "conn_abc" --yes
+openbeam permissions invalidate --scope all --yes
+openbeam permissions invalidate --scope user --user-id "usr_abc" --yes
+openbeam permissions invalidate --scope connector --connector-id "conn_abc" --yes
 ```
 
 | Flag | Type | Default | Description |
@@ -979,7 +979,7 @@ openplane permissions invalidate --scope connector --connector-id "conn_abc" --y
 Get your current permission set.
 
 ```bash
-openplane permissions me
+openbeam permissions me
 ```
 
 ### permissions document
@@ -987,7 +987,7 @@ openplane permissions me
 Get permission details for a document.
 
 ```bash
-openplane permissions document --document-id "doc_abc"
+openbeam permissions document --document-id "doc_abc"
 ```
 
 ### permissions groups
@@ -995,7 +995,7 @@ openplane permissions document --document-id "doc_abc"
 Get user group memberships.
 
 ```bash
-openplane permissions groups --user-id "usr_abc"
+openbeam permissions groups --user-id "usr_abc"
 ```
 
 ### permissions scopes
@@ -1003,7 +1003,7 @@ openplane permissions groups --user-id "usr_abc"
 Get user connector scopes.
 
 ```bash
-openplane permissions scopes --user-id "usr_abc"
+openbeam permissions scopes --user-id "usr_abc"
 ```
 
 ### permissions stats
@@ -1011,7 +1011,7 @@ openplane permissions scopes --user-id "usr_abc"
 Get team-wide permission statistics.
 
 ```bash
-openplane permissions stats
+openbeam permissions stats
 ```
 
 ---
@@ -1023,7 +1023,7 @@ Cost tracking, usage trends, and spreadsheet analytics.
 ### analytics cost-breakdown
 
 ```bash
-openplane analytics cost-breakdown --start-date 2025-01-01 --end-date 2025-01-31 --group-by model
+openbeam analytics cost-breakdown --start-date 2025-01-01 --end-date 2025-01-31 --group-by model
 ```
 
 | Flag | Type | Default | Required |
@@ -1035,7 +1035,7 @@ openplane analytics cost-breakdown --start-date 2025-01-01 --end-date 2025-01-31
 ### analytics usage-trend
 
 ```bash
-openplane analytics usage-trend --start-date 2025-01-01 --end-date 2025-03-01 --granularity week
+openbeam analytics usage-trend --start-date 2025-01-01 --end-date 2025-03-01 --granularity week
 ```
 
 | Flag | Type | Default | Required |
@@ -1047,7 +1047,7 @@ openplane analytics usage-trend --start-date 2025-01-01 --end-date 2025-03-01 --
 ### analytics top-cost-drivers
 
 ```bash
-openplane analytics top-cost-drivers --start-date 2025-01-01 --end-date 2025-01-31 --dimension model --limit 5
+openbeam analytics top-cost-drivers --start-date 2025-01-01 --end-date 2025-01-31 --dimension model --limit 5
 ```
 
 | Flag | Type | Default | Required |
@@ -1060,13 +1060,13 @@ openplane analytics top-cost-drivers --start-date 2025-01-01 --end-date 2025-01-
 ### analytics spreadsheets list
 
 ```bash
-openplane analytics spreadsheets list --limit 20
+openbeam analytics spreadsheets list --limit 20
 ```
 
 ### analytics spreadsheets schema
 
 ```bash
-openplane analytics spreadsheets schema --document-id "doc_abc" --sheet "Sheet1"
+openbeam analytics spreadsheets schema --document-id "doc_abc" --sheet "Sheet1"
 ```
 
 ### analytics spreadsheets generate-sql
@@ -1074,7 +1074,7 @@ openplane analytics spreadsheets schema --document-id "doc_abc" --sheet "Sheet1"
 Generate SQL from a natural language question about a spreadsheet.
 
 ```bash
-openplane analytics spreadsheets generate-sql \
+openbeam analytics spreadsheets generate-sql \
   --document-id "doc_abc" \
   --question "What is the total revenue by region?"
 ```
@@ -1084,7 +1084,7 @@ openplane analytics spreadsheets generate-sql \
 Execute a SQL query against a spreadsheet.
 
 ```bash
-openplane analytics spreadsheets query \
+openbeam analytics spreadsheets query \
   --document-id "doc_abc" \
   --sql "SELECT region, SUM(revenue) FROM data GROUP BY region" \
   --view-name "revenue_view" \
@@ -1110,7 +1110,7 @@ OAuth and service account authentication flows for connectors.
 Start an OAuth authorization flow.
 
 ```bash
-openplane integrations oauth-start --integration gmail --connector-id "conn_abc"
+openbeam integrations oauth-start --integration gmail --connector-id "conn_abc"
 ```
 
 | Flag | Type | Default | Required |
@@ -1125,7 +1125,7 @@ openplane integrations oauth-start --integration gmail --connector-id "conn_abc"
 Complete an OAuth flow with the authorization code.
 
 ```bash
-openplane integrations oauth-callback \
+openbeam integrations oauth-callback \
   --integration gmail \
   --code "auth_code_here" \
   --state "state_param" \
@@ -1137,7 +1137,7 @@ openplane integrations oauth-callback \
 Authenticate a Google service account connector.
 
 ```bash
-openplane integrations service-account-auth \
+openbeam integrations service-account-auth \
   --integration gmail \
   --connector-id "conn_abc" \
   --credentials '{"type":"service_account",...}' \
@@ -1163,7 +1163,7 @@ Model Context Protocol server and API exploration.
 Start the MCP JSON-RPC server over stdin/stdout.
 
 ```bash
-openplane mcp serve
+openbeam mcp serve
 ```
 
 ### mcp tools list
@@ -1171,7 +1171,7 @@ openplane mcp serve
 List all available MCP tools.
 
 ```bash
-openplane mcp tools list
+openbeam mcp tools list
 ```
 
 ### mcp tools call
@@ -1179,7 +1179,7 @@ openplane mcp tools list
 Call an MCP tool by name with JSON arguments.
 
 ```bash
-openplane mcp tools call --name "search_hybrid" --args '{"query":"test"}'
+openbeam mcp tools call --name "search_hybrid" --args '{"query":"test"}'
 ```
 
 | Flag | Type | Default | Required |
@@ -1190,25 +1190,25 @@ openplane mcp tools call --name "search_hybrid" --args '{"query":"test"}'
 ### mcp resources list
 
 ```bash
-openplane mcp resources list
+openbeam mcp resources list
 ```
 
 ### mcp resources read
 
 ```bash
-openplane mcp resources read --uri "openplane://connectors/list"
+openbeam mcp resources read --uri "openbeam://connectors/list"
 ```
 
 ### mcp prompts list
 
 ```bash
-openplane mcp prompts list
+openbeam mcp prompts list
 ```
 
 ### mcp prompts get
 
 ```bash
-openplane mcp prompts get --name "search_prompt" --args '{"query":"test"}'
+openbeam mcp prompts get --name "search_prompt" --args '{"query":"test"}'
 ```
 
 ---
@@ -1222,7 +1222,7 @@ Manage CLI profiles and settings.
 Show the active profile configuration.
 
 ```bash
-openplane config show
+openbeam config show
 ```
 
 ### config set
@@ -1230,7 +1230,7 @@ openplane config show
 Set values on the active profile.
 
 ```bash
-openplane config set --host https://openplane.example.com --team "team_abc" --timeout 60s
+openbeam config set --host https://openbeam.example.com --team "team_abc" --timeout 60s
 ```
 
 | Flag | Type | Default | Description |
@@ -1246,7 +1246,7 @@ openplane config set --host https://openplane.example.com --team "team_abc" --ti
 Switch the active profile.
 
 ```bash
-openplane config use production
+openbeam config use production
 ```
 
 ### config profiles
@@ -1254,48 +1254,48 @@ openplane config use production
 List all available profiles.
 
 ```bash
-openplane config profiles
+openbeam config profiles
 ```
 
 ---
 
 ## daemon
 
-Manage the local OpenPlane daemon process.
+Manage the local OpenBeam daemon process.
 
 ### daemon start
 
 ```bash
-openplane daemon start
+openbeam daemon start
 ```
 
 ### daemon stop
 
 ```bash
-openplane daemon stop
+openbeam daemon stop
 ```
 
 ### daemon status
 
 ```bash
-openplane daemon status
+openbeam daemon status
 ```
 
 ### daemon restart
 
 ```bash
-openplane daemon restart
+openbeam daemon restart
 ```
 
 ### daemon pair
 
-Pair the local daemon with a remote OpenPlane instance.
+Pair the local daemon with a remote OpenBeam instance.
 
 ```bash
-openplane daemon pair --host https://openplane.example.com
+openbeam daemon pair --host https://openbeam.example.com
 ```
 
-The daemon also includes subcommands for managing agent sessions, permissions, AI providers, speech processing, and worktrees. Run `openplane daemon --help` for the full list.
+The daemon also includes subcommands for managing agent sessions, permissions, AI providers, speech processing, and worktrees. Run `openbeam daemon --help` for the full list.
 
 ---
 
@@ -1308,7 +1308,7 @@ Manage CLI plugins.
 List discovered plugins from all search directories.
 
 ```bash
-openplane plugin list
+openbeam plugin list
 ```
 
 | Flag | Type | Default | Description |
@@ -1320,7 +1320,7 @@ openplane plugin list
 Install a plugin binary from a local path.
 
 ```bash
-openplane plugin install --name my-tool --source ./my-tool-binary --yes
+openbeam plugin install --name my-tool --source ./my-tool-binary --yes
 ```
 
 | Flag | Type | Default | Required |
@@ -1334,7 +1334,7 @@ openplane plugin install --name my-tool --source ./my-tool-binary --yes
 Run a plugin command directly.
 
 ```bash
-openplane plugin run my-tool --arg1 value
+openbeam plugin run my-tool --arg1 value
 ```
 
 ---
@@ -1344,7 +1344,7 @@ openplane plugin run my-tool --arg1 value
 Print the CLI version, commit hash, build date, and Go version.
 
 ```bash
-openplane version
+openbeam version
 # 0.1.0 (commit=abc1234 date=2025-02-15 go=go1.24.2 darwin/arm64)
 ```
 
@@ -1355,10 +1355,10 @@ openplane version
 Generate shell completion scripts.
 
 ```bash
-openplane completion bash
-openplane completion zsh
-openplane completion fish
-openplane completion powershell
+openbeam completion bash
+openbeam completion zsh
+openbeam completion fish
+openbeam completion powershell
 ```
 
 See the [CLI overview](/docs/cli) for setup instructions per shell.

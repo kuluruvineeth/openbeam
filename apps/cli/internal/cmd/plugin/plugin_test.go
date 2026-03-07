@@ -3,8 +3,8 @@ package plugin
 import (
 	"testing"
 
-	"github.com/openplane/openplane/apps/cli/internal/cmd/shared"
-	"github.com/openplane/openplane/apps/cli/internal/runtime"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/shared"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/runtime"
 )
 
 func nopProvider() shared.RuntimeProvider {
@@ -66,7 +66,7 @@ func TestListCommandFlags(t *testing.T) {
 }
 
 func TestPluginPrefix(t *testing.T) {
-	if pluginPrefix != "openplane" {
-		t.Errorf("pluginPrefix = %q, want openplane", pluginPrefix)
+	if pluginPrefix != "openbeam" {
+		t.Errorf("pluginPrefix = %q, want openbeam", pluginPrefix)
 	}
 }

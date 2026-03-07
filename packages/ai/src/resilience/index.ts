@@ -12,7 +12,7 @@ export type {
   ResilienceProviderConfig,
   RetryConfig,
   UsageRecord,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 export type {
   CircuitBreakerListener,
   CircuitBreakerResult,

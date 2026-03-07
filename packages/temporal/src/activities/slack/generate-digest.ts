@@ -1,4 +1,4 @@
-import { generateDailyDigest } from "@openplane/services";
+import { generateDailyDigest } from "@openbeam/services";
 import type { DigestGenerationInput, DigestGenerationOutput } from "./types";
 
 export async function generateDigest(

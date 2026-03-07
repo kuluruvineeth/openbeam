@@ -58,9 +58,9 @@ export interface OnboardingDropoffEvent {
 }
 
 const STORAGE_KEYS = {
-  signupTime: "openplane_signup_time",
-  lastStepTime: "openplane_last_step_time",
-  completedSteps: "openplane_completed_steps",
+  signupTime: "openbeam_signup_time",
+  lastStepTime: "openbeam_last_step_time",
+  completedSteps: "openbeam_completed_steps",
 } as const;
 
 function getStorageValue(key: string): string | null {

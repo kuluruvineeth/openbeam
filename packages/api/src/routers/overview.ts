@@ -1,7 +1,7 @@
 import {
   getAgentOverviewOrchestrator,
   type OverviewRequest,
-} from "@openplane/services";
+} from "@openbeam/services";
 import { z } from "zod";
 import { createTRPCRouter } from "../index";
 import { withActiveTeam } from "./apps/middleware";

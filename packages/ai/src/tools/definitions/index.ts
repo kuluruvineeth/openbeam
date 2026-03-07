@@ -2,6 +2,7 @@ export * from "./browser";
 export * from "./canvas";
 export * from "./connectors";
 export * from "./context";
+export * from "./control";
 export * from "./data";
 export * from "./documents";
 export * from "./integrations";
@@ -23,6 +24,7 @@ import { registerBrowserTools } from "./browser";
 import { registerCanvasTools } from "./canvas";
 import { registerConnectorTools } from "./connectors";
 import { registerContextTools } from "./context";
+import { registerControlTools } from "./control";
 import { registerDataTools } from "./data";
 import { registerDocumentTools } from "./documents";
 import { registerIntegrationTools } from "./integrations";
@@ -48,6 +50,7 @@ const TOOL_CATEGORIES: RegistrationEntry[] = [
   ["rag", registerRagTools],
   ["documents", registerDocumentTools],
   ["connectors", registerConnectorTools],
+  ["control", registerControlTools],
   ["data", registerDataTools],
   ["context", registerContextTools],
   ["memory", registerMemoryTools],

@@ -1,5 +1,5 @@
-import type { Database } from "@openplane/db";
-import type { GenericDocument } from "@openplane/vespa";
+import type { Database } from "@openbeam/db";
+import type { GenericDocument } from "@openbeam/vespa";
 import { heartbeat } from "@temporalio/activity";
 import { ApplicationFailure } from "@temporalio/common";
 import type { SyncCursor } from "../../workflows/types";

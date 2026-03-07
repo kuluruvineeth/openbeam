@@ -3,14 +3,14 @@ import {
   createRequest,
   type MCPServerContext,
   toolRegistry,
-} from "@openplane/ai";
+} from "@openbeam/ai";
 import type { Context } from "hono";
 import { paymentConfig } from "@/lib/payment-config";
 import type { AuthEnv } from "@/middleware/auth";
 import { getTeamId } from "@/middleware/auth";
 
 const mcpServer = createMCPServer(toolRegistry, {
-  name: "openplane-mcp",
+  name: "openbeam-mcp",
   version: "1.0.0",
   capabilities: {
     tools: true,
@@ -46,7 +46,7 @@ async function ensureInitialized(context: MCPServerContext): Promise<void> {
       const initRequest = createRequest("initialize", {
         protocolVersion: "2024-11-05",
         capabilities: { tools: true, resources: true, prompts: true },
-        clientInfo: { name: "openplane-http", version: "1.0.0" },
+        clientInfo: { name: "openbeam-http", version: "1.0.0" },
       });
       await mcpServer.handleRequest(initRequest, context);
     })();

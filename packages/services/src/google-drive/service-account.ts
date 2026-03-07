@@ -7,16 +7,16 @@ import prisma, {
   setConnectorError,
   updateConnector,
   upsertOAuthProvider,
-} from "@openplane/db";
+} from "@openbeam/db";
 import {
   GOOGLE_DRIVE_SERVICE_ACCOUNT_SCOPES,
   getGoogleDriveServiceAccountToken,
   parseServiceAccountCredentials,
-} from "@openplane/integrations";
+} from "@openbeam/integrations";
 import type {
   ConnectorResult,
   IntegrationServiceAccountAuth,
-} from "@openplane/types/services";
+} from "@openbeam/types/services";
 
 type ConnectorConfig = {
   service_account_file?: string;

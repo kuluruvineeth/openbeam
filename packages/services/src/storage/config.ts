@@ -1,10 +1,10 @@
-import { S3StorageProvider, type StorageConfig } from "@openplane/storage";
+import { S3StorageProvider, type StorageConfig } from "@openbeam/storage";
 
 export const SIGNED_URL_EXPIRY_SECONDS = 3600;
 
 function loadConfig(): StorageConfig {
   return {
-    bucket: process.env.GCS_BUCKET ?? "openplane-files",
+    bucket: process.env.GCS_BUCKET ?? "openbeam-files",
     region: process.env.GCS_REGION ?? "us-central1",
     endpoint: process.env.GCS_ENDPOINT,
     publicEndpoint: process.env.GCS_PUBLIC_ENDPOINT,

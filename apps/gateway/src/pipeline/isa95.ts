@@ -1,5 +1,5 @@
-import type { Isa95Context } from "@openplane/types/services/connectors/common/industrial";
-import { Isa95LevelNames } from "@openplane/types/services/connectors/common/industrial";
+import type { Isa95Context } from "@openbeam/types/services/connectors/common/industrial";
+import { Isa95LevelNames } from "@openbeam/types/services/connectors/common/industrial";
 
 export function parseIsa95Path(topicOrPath: string): Isa95Context {
   const segments = topicOrPath.split("/").filter(Boolean);

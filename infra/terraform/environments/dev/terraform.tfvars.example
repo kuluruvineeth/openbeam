@@ -1,4 +1,4 @@
-project_id = "openplane-dev"
+project_id = "openbeam-dev"
 region     = "us-central1"
 zone       = "us-central1-a"
 
@@ -12,9 +12,9 @@ encryption_key = ""
 github_org = "kuluruvineeth"
 image_tag  = "latest"
 
-server_domain = "api.openplane.tech"
-web_domain    = "dev.openplane.tech"
-cookie_domain = ".openplane.tech"
+server_domain = "api.openbeam.work"
+web_domain    = "dev.openbeam.work"
+cookie_domain = ".openbeam.work"
 
 openai_api_key      = "sk-proj-your-openai-api-key"
 openai_base_url     = "https://api.openai.com/v1"

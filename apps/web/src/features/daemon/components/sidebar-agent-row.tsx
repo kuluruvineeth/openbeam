@@ -1,6 +1,6 @@
 "use client";
 
-import { cn, Icons } from "@openplane/ui";
+import { cn, Icons } from "@openbeam/ui";
 import { useCallback, useState } from "react";
 import type { SidebarAgentListEntry } from "../hooks/use-sidebar-agents-list";
 import { shortenPath } from "../lib/shorten-path";

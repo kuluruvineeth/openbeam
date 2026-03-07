@@ -9,8 +9,8 @@ import {
   listAgentCanvasVersions,
   publishAgentCanvas,
   updateAgentCanvas,
-} from "@openplane/db";
-import { type CanvasState, CanvasStateSchema } from "@openplane/types/canvas";
+} from "@openbeam/db";
+import { type CanvasState, CanvasStateSchema } from "@openbeam/types/canvas";
 import type { ApiAccessAuthContext } from "./api-access";
 import {
   createResolveTeamId,

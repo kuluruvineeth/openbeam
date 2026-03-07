@@ -7,7 +7,7 @@ node_modules
 dist
 build
 *.tsbuildinfo
-apps/cli/openplane
+apps/cli/openbeam
 
 # Environment variables
 .env

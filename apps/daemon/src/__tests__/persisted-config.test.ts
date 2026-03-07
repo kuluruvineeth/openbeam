@@ -18,7 +18,7 @@ import {
 function createTempDir(): string {
   const dir = join(
     tmpdir(),
-    `openplane-cfg-test-${randomBytes(8).toString("hex")}`
+    `openbeam-cfg-test-${randomBytes(8).toString("hex")}`
   );
   mkdirSync(dir, { recursive: true });
   return dir;

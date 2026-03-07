@@ -13,7 +13,7 @@ BACnet is the standard protocol for building management systems. This connector 
 
 **Method:** Network Access
 
-BACnet/IP uses network-level access. No API keys or OAuth -- the connector communicates directly on the BACnet/IP UDP port (default 47808). The OpenPlane host must have network connectivity to the BACnet/IP segment.
+BACnet/IP uses network-level access. No API keys or OAuth -- the connector communicates directly on the BACnet/IP UDP port (default 47808). The OpenBeam host must have network connectivity to the BACnet/IP segment.
 
 ## Data Streams
 
@@ -26,8 +26,8 @@ Backfill is not available for real-time object values. Trend log data extraction
 
 ## Setup
 
-1. Ensure the OpenPlane host has **network access** to the BACnet/IP segment
-2. In OpenPlane, add the BACnet connector
+1. Ensure the OpenBeam host has **network access** to the BACnet/IP segment
+2. In OpenBeam, add the BACnet connector
 3. Configure the BACnet port (default 47808) and optionally specify a network interface
 4. Optionally list specific device IDs, or leave empty to discover all devices via Who-Is broadcast
 5. Start the initial sync

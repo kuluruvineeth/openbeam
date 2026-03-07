@@ -19,7 +19,7 @@ const MOCK_SEARCH_RESULT = {
       {
         id: "doc1",
         relevance: 0.95,
-        source: "openplane_document",
+        source: "openbeam_document",
         fields: {
           id: "doc1",
           title: "Test Document",
@@ -151,7 +151,7 @@ describe("VespaClient", () => {
       globalThis.fetch = fetchMock;
 
       const result = await client.query({
-        yql: "select * from openplane_document where true",
+        yql: "select * from openbeam_document where true",
         hits: 10,
       });
 
@@ -171,7 +171,7 @@ describe("VespaClient", () => {
       globalThis.fetch = fetchMock;
 
       const result = await client.query({
-        yql: "select * from openplane_document where true",
+        yql: "select * from openbeam_document where true",
         hits: 10,
         query_embedding: {
           type: "tensor<float>(x[1536])",
@@ -195,7 +195,7 @@ describe("VespaClient", () => {
       );
 
       await expect(
-        client.query({ yql: "select * from openplane_document where true" })
+        client.query({ yql: "select * from openbeam_document where true" })
       ).rejects.toThrow("Vespa query error");
 
       globalThis.fetch = originalFetch;
@@ -212,7 +212,7 @@ describe("VespaClient", () => {
       );
 
       const { result, metrics } = await client.queryWithMetrics({
-        yql: "select * from openplane_document where true",
+        yql: "select * from openbeam_document where true",
       });
 
       expect(result.root.children).toHaveLength(1);
@@ -236,9 +236,9 @@ describe("VespaClient", () => {
       );
 
       const results = await client.queryBatch([
-        { yql: "select * from openplane_document where true", hits: 5 },
-        { yql: "select * from openplane_document where true", hits: 10 },
-        { yql: "select * from openplane_document where true", hits: 15 },
+        { yql: "select * from openbeam_document where true", hits: 5 },
+        { yql: "select * from openbeam_document where true", hits: 10 },
+        { yql: "select * from openbeam_document where true", hits: 15 },
       ]);
 
       expect(results).toHaveLength(3);
@@ -548,7 +548,7 @@ describe("VespaClient", () => {
       });
 
       const params = {
-        yql: "select * from openplane_document where true",
+        yql: "select * from openbeam_document where true",
         hits: 10,
       };
 
@@ -574,7 +574,7 @@ describe("VespaClient", () => {
       });
 
       const params = {
-        yql: "select * from openplane_document where true",
+        yql: "select * from openbeam_document where true",
         hits: 10,
       };
 
@@ -601,13 +601,13 @@ describe("VespaClient", () => {
       });
 
       await cachedClient.queryCached({
-        yql: "select * from openplane_document where id='1'",
+        yql: "select * from openbeam_document where id='1'",
       });
       await cachedClient.queryCached({
-        yql: "select * from openplane_document where id='2'",
+        yql: "select * from openbeam_document where id='2'",
       });
       await cachedClient.queryCached({
-        yql: "select * from openplane_document where id='1'",
+        yql: "select * from openbeam_document where id='1'",
       });
 
       expect(fetchCallCount).toBe(2);

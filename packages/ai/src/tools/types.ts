@@ -11,7 +11,7 @@ import type {
   ToolExecutionResult,
   ToolMetadata,
   ToolRiskProfile,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import type { Tool, ToolExecutionOptions } from "ai";
 import type { z } from "zod";
 import type { MemoryAccess } from "../memory/access";
@@ -19,7 +19,7 @@ import type { ToolServices } from "./services";
 
 export type { ToolExecutionOptions };
 
-export type { ErrorCode } from "@openplane/types/ai";
+export type { ErrorCode } from "@openbeam/types/ai";
 
 export const ERROR_CODES: Record<
   ErrorCode,

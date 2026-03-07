@@ -1,7 +1,7 @@
 import {
   type CheckRateLimitOutput,
   DEFAULT_CANVAS_EXECUTION_RATE_LIMIT,
-} from "@openplane/types/temporal";
+} from "@openbeam/types/temporal";
 import { ApplicationFailure, proxyActivities } from "@temporalio/workflow";
 
 import type { RateLimitActivities } from "../../../activities/canvas/rate-limit";

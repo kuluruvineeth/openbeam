@@ -1,8 +1,8 @@
-import { type RateLimitConfig, rateLimiter } from "@openplane/redis";
+import { type RateLimitConfig, rateLimiter } from "@openbeam/redis";
 import type {
   AwsIotClientConfig,
   AwsIotRegion,
-} from "@openplane/types/services/connectors/aws-iot";
+} from "@openbeam/types/services/connectors/aws-iot";
 import { logger } from "../lib/logger";
 import { AwsIotApiError } from "./types";
 

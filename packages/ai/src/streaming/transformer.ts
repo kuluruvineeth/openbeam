@@ -1,4 +1,4 @@
-import type { AgentEvent, ToolVisibility } from "@openplane/types/ai";
+import type { AgentEvent, ToolVisibility } from "@openbeam/types/ai";
 import {
   done,
   error,

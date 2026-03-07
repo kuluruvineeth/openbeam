@@ -39,7 +39,7 @@ from engine.common.tracing import configure_tracing
 from engine.cpu_service.lifespan import lifespan
 from engine.cpu_service.router import api_router
 
-CPU_SERVICE_NAME = "openplane-engine-cpu"
+CPU_SERVICE_NAME = "openbeam-engine-cpu"
 
 logger = get_logger(__name__)
 
@@ -50,7 +50,7 @@ def create_app() -> FastAPI:
     configure_logging(settings, service_name=CPU_SERVICE_NAME)
 
     app = FastAPI(
-        title="OpenPlane Engine CPU Service",
+        title="OpenBeam Engine CPU Service",
         description="Document parsing, chunking, and LTR scoring",
         version="0.2.0",
         lifespan=lifespan,

@@ -1,12 +1,12 @@
 import { describe, expect, it, mock } from "bun:test";
 
-mock.module("@openplane/db", () => ({
+mock.module("@openbeam/db", () => ({
   findVoiceSettings: mock(() => Promise.resolve(null)),
   upsertVoiceSettings: mock(() => Promise.resolve({})),
 }));
 
 const { getSettings } = await import("../settings");
-const { findVoiceSettings } = await import("@openplane/db");
+const { findVoiceSettings } = await import("@openbeam/db");
 
 describe("getSettings", () => {
   it("returns defaults when no settings exist", async () => {
@@ -34,7 +34,7 @@ describe("getSettings", () => {
       formatting: false,
       formatStyle: "off",
       shortcuts: {},
-      vocabulary: ["OpenPlane"],
+      vocabulary: ["OpenBeam"],
       widgetPosition: "top-right",
       widgetOpacity: 0.5,
       autoHide: true,

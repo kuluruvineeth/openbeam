@@ -1,4 +1,4 @@
-import { getRedisClient } from "@openplane/redis";
+import { getRedisClient } from "@openbeam/redis";
 
 const WATCH_STATE_PREFIX = "notion:watch:";
 const WATCH_EXPIRY_BUFFER = 3600;

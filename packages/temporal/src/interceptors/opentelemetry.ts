@@ -18,7 +18,7 @@ export interface OpenTelemetryConfig {
   enabled?: boolean;
 }
 
-const TRACER_NAME = "@openplane/temporal";
+const TRACER_NAME = "@openbeam/temporal";
 
 export function createOpenTelemetryInterceptors(config: OpenTelemetryConfig): {
   activityInbound: ActivityInboundCallsInterceptor;

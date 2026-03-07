@@ -7,7 +7,11 @@ export type WorkflowType =
   | "agent"
   | "canvas"
   | "cleanup"
-  | "maintenance";
+  | "maintenance"
+  | "heartbeat"
+  | "scheduler"
+  | "timer"
+  | "reaper";
 
 export interface WorkflowIdOptions {
   type: WorkflowType;
@@ -16,6 +20,8 @@ export interface WorkflowIdOptions {
   agentId?: string;
   sessionId?: string;
   executionId?: string;
+  teamId?: string;
+  runId?: string;
   timestamp?: number;
 }
 
@@ -100,6 +106,40 @@ function generateCleanupWorkflowId(
   return `cleanup:${connectorId}`;
 }
 
+function generateHeartbeatWorkflowId(
+  agentId: string | undefined,
+  runId: string | undefined
+): string {
+  if (!agentId) {
+    throw new Error("agentId required for heartbeat");
+  }
+  if (!runId) {
+    throw new Error("runId required for heartbeat");
+  }
+  return `heartbeat:${agentId}:${runId}`;
+}
+
+function generateSchedulerWorkflowId(teamId: string | undefined): string {
+  if (!teamId) {
+    throw new Error("teamId required for scheduler");
+  }
+  return `scheduler:${teamId}`;
+}
+
+function generateTimerWorkflowId(agentId: string | undefined): string {
+  if (!agentId) {
+    throw new Error("agentId required for timer");
+  }
+  return `timer:${agentId}`;
+}
+
+function generateReaperWorkflowId(teamId: string | undefined): string {
+  if (!teamId) {
+    throw new Error("teamId required for reaper");
+  }
+  return `reaper:${teamId}`;
+}
+
 const WORKFLOW_ID_GENERATORS: Record<
   WorkflowType,
   (options: WorkflowIdOptions, _ts: number) => string
@@ -113,6 +153,10 @@ const WORKFLOW_ID_GENERATORS: Record<
   canvas: (o, _ts) => generateCanvasWorkflowId(o.executionId, _ts),
   cleanup: (o, _ts) => generateCleanupWorkflowId(o.connectorId, _ts),
   maintenance: (_, ts) => `maintenance:${ts}`,
+  heartbeat: (o) => generateHeartbeatWorkflowId(o.agentId, o.runId),
+  scheduler: (o) => generateSchedulerWorkflowId(o.teamId),
+  timer: (o) => generateTimerWorkflowId(o.agentId),
+  reaper: (o) => generateReaperWorkflowId(o.teamId),
 };
 
 export function generateWorkflowId(options: WorkflowIdOptions): string {

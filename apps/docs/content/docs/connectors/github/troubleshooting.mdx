@@ -9,7 +9,7 @@ description: Common GitHub connector issues and how to fix them.
 
 <Accordions>
   <Accordion title="redirect_uri_mismatch">
-    The authorization callback URL registered in your GitHub OAuth App does not match the URL OpenPlane is using.
+    The authorization callback URL registered in your GitHub OAuth App does not match the URL OpenBeam is using.
 
     **Fix:**
     1. Go to [github.com/settings/developers](https://github.com/settings/developers)
@@ -30,7 +30,7 @@ description: Common GitHub connector issues and how to fix them.
     The existing token does not have all required scopes. This happens when scopes were added to the OAuth App after the user originally authorized.
 
     **Fix:**
-    1. Disconnect the GitHub connector in OpenPlane
+    1. Disconnect the GitHub connector in OpenBeam
     2. Reconnect -- the new authorization will request the updated scope set
     3. Verify scopes with: `curl -I -H "Authorization: Bearer TOKEN" https://api.github.com/rate_limit`
   </Accordion>
@@ -54,10 +54,10 @@ description: Common GitHub connector issues and how to fix them.
     1. Check remaining quota: `curl -H "Authorization: Bearer TOKEN" https://api.github.com/rate_limit`
     2. The `rate.remaining` field shows how many requests are left
     3. `rate.reset` shows the Unix timestamp when the limit resets
-    4. OpenPlane automatically backs off and retries -- no manual action needed unless the connector is in **Error** state
+    4. OpenBeam automatically backs off and retries -- no manual action needed unless the connector is in **Error** state
 
     <Callout type="info">
-      If other applications share this GitHub token, they consume from the same 5,000 requests/hour budget. Consider creating a dedicated token for OpenPlane.
+      If other applications share this GitHub token, they consume from the same 5,000 requests/hour budget. Consider creating a dedicated token for OpenBeam.
     </Callout>
   </Accordion>
 
@@ -160,7 +160,7 @@ description: Common GitHub connector issues and how to fix them.
     If the OAuth App has token expiration enabled, tokens expire after 8 hours. If a user revokes the app, the token is invalidated immediately.
 
     **Fix:**
-    1. OpenPlane handles token refresh automatically using the refresh token
+    1. OpenBeam handles token refresh automatically using the refresh token
     2. If the refresh token is also invalid, disconnect and reconnect the connector
     3. Check if the OAuth App was removed from **GitHub Settings** then **Applications** then **Authorized OAuth Apps**
   </Accordion>
@@ -170,7 +170,7 @@ description: Common GitHub connector issues and how to fix them.
 
     **Fix:**
     1. The connector marks itself as **Error** and stops retrying auth failures
-    2. Disconnect the connector in OpenPlane
+    2. Disconnect the connector in OpenBeam
     3. Reconnect to generate fresh tokens
     4. Verify the OAuth App still exists in GitHub Developer Settings
   </Accordion>
@@ -217,7 +217,7 @@ curl -H "Authorization: Bearer TOKEN" \
 # Go to GitHub repo/org Settings > Webhooks > Recent Deliveries
 ```
 
-Still stuck? [Open an issue](https://github.com/kuluruvineeth/openplane/issues) with the connector status, error messages, and relevant log output.
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openbeam/issues) with the connector status, error messages, and relevant log output.
 
 <Cards>
   <Card title="Setup" href="/docs/connectors/github/setup" description="Reconnect or reconfigure the connector" />

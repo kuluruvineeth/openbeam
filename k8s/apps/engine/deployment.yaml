@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: engine-cpu
-  namespace: openplane
+  namespace: openbeam
   labels:
     app: engine-cpu
 spec:
@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: engine-cpu
-          image: openplane/engine-dev:latest
+          image: openbeam/engine-dev:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000

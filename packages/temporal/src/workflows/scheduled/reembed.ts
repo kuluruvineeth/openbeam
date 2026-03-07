@@ -1,7 +1,7 @@
 import {
   ReembedInputSchema,
   type ReembedOutput,
-} from "@openplane/types/temporal/workflows";
+} from "@openbeam/types/temporal/workflows";
 import {
   continueAsNew,
   proxyActivities,

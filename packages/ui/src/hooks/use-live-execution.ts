@@ -1,6 +1,6 @@
 "use client";
 
-import type { TimelineData } from "@openplane/types/canvas/timeline";
+import type { TimelineData } from "@openbeam/types/canvas/timeline";
 import { useCallback, useEffect } from "react";
 import type { ConnectionStatus } from "./use-execution-stream";
 import { useExecutionStream } from "./use-execution-stream";

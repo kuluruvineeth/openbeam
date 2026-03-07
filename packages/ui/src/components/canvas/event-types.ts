@@ -4,14 +4,14 @@ import type {
   ConnectorEventConfig,
   ConnectorType,
   EventCategory,
-} from "@openplane/types/services/connectors/events";
+} from "@openbeam/types/services/connectors/events";
 import {
   CONNECTOR_EVENTS,
   getAllEventCategories,
   getConnectorEvent,
   getConnectorEvents,
   getEventsByCategory,
-} from "@openplane/types/services/connectors/events";
+} from "@openbeam/types/services/connectors/events";
 import { Icons } from "../icons";
 
 export type ConnectorIconMap = {

@@ -1,4 +1,4 @@
-import type { AgentEvent } from "@openplane/types/ai";
+import type { AgentEvent } from "@openbeam/types/ai";
 import type { AgentStreamChunk } from "../../agents/base";
 import {
   type AgentStreamAdapterOptions,

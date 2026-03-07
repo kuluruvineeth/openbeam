@@ -1,7 +1,7 @@
-import prisma, { findIndexedMediaByVespaId } from "@openplane/db";
-import { TwelveLabsClient } from "@openplane/media";
-import type { MediaDocument } from "@openplane/vespa";
-import { vespaClient } from "@openplane/vespa";
+import prisma, { findIndexedMediaByVespaId } from "@openbeam/db";
+import { TwelveLabsClient } from "@openbeam/media";
+import type { MediaDocument } from "@openbeam/vespa";
+import { vespaClient } from "@openbeam/vespa";
 import type {
   ServiceMediaChapter,
   ServiceMediaHighlight,

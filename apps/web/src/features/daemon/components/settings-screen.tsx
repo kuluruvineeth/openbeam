@@ -1,7 +1,7 @@
 "use client";
 
-import { cn, Icons } from "@openplane/ui";
-import { Button } from "@openplane/ui/components/button";
+import { cn, Icons } from "@openbeam/ui";
+import { Button } from "@openbeam/ui/components/button";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { HEADER_INNER_HEIGHT } from "../constants";
@@ -130,7 +130,7 @@ export function SettingsScreen() {
               About
             </h2>
             <div className="rounded-md border border-border/40 px-3 py-2.5 text-muted-foreground text-sm">
-              OpenPlane Daemon
+              OpenBeam Daemon
             </div>
           </section>
         </div>

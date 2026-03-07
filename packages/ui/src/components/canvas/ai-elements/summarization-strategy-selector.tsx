@@ -1,6 +1,6 @@
 "use client";
 
-import type { SummarizationStrategy } from "@openplane/types/canvas";
+import type { SummarizationStrategy } from "@openbeam/types/canvas";
 import { memo, useCallback } from "react";
 import { cn } from "../../../utils";
 import { Icons } from "../../icons";

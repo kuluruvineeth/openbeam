@@ -1,7 +1,7 @@
 import {
   type ConnectorType,
   normalizeToConnectorType,
-} from "@openplane/types/services/connectors/events";
+} from "@openbeam/types/services/connectors/events";
 import { Logo as BACnetLogo } from "./bacnet/assets/logo";
 import { Logo as FHIRLogo } from "./fhir/assets/logo";
 import { Logo as GitHubLogo } from "./github/assets/logo";

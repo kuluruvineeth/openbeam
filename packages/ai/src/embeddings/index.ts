@@ -13,7 +13,7 @@ export type {
   ProviderId,
   SimilarityResult,
   TextChunk,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 export {
   chunkDocument,
   DEFAULT_CHUNKING_CONFIG,

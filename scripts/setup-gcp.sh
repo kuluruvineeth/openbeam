@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# OpenPlane GCP Setup (Automated)
+# OpenBeam GCP Setup (Automated)
 # Usage: ./setup-gcp.sh <project-id> <billing-account-id> [env]
 
 if [ $# -lt 2 ]; then
@@ -20,7 +20,7 @@ echo "🚀 Setting up GCP project: $PROJECT_ID ($ENVIRONMENT)"
 
 # 1. Create Project & Link Billing
 echo "📦 Creating project..."
-gcloud projects create "$PROJECT_ID" --name="OpenPlane $ENVIRONMENT" || true
+gcloud projects create "$PROJECT_ID" --name="OpenBeam $ENVIRONMENT" || true
 gcloud billing projects link "$PROJECT_ID" --billing-account="$BILLING_ACCOUNT"
 gcloud config set project "$PROJECT_ID"
 

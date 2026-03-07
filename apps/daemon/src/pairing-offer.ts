@@ -15,7 +15,7 @@ export type LocalPairingOffer = {
 };
 
 export async function generateLocalPairingOffer(args: {
-  openplaneHome: string;
+  openbeamHome: string;
   relayEnabled?: boolean;
   relayEndpoint?: string;
   relayPublicEndpoint?: string;
@@ -32,14 +32,14 @@ export async function generateLocalPairingOffer(args: {
     };
   }
 
-  const relayEndpoint = args.relayEndpoint ?? "relay.openplane.sh:443";
+  const relayEndpoint = args.relayEndpoint ?? "relay.openbeam.sh:443";
   const relayPublicEndpoint = args.relayPublicEndpoint ?? relayEndpoint;
-  const appBaseUrl = args.appBaseUrl ?? "https://app.openplane.sh";
-  const serverId = getOrCreateServerId(args.openplaneHome, {
+  const appBaseUrl = args.appBaseUrl ?? "https://app.openbeam.sh";
+  const serverId = getOrCreateServerId(args.openbeamHome, {
     logger: args.logger,
   });
   const daemonKeyPair = await loadOrCreateDaemonKeyPair(
-    args.openplaneHome,
+    args.openbeamHome,
     args.logger
   );
   const offer = await createConnectionOfferV2({

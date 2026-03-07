@@ -1,6 +1,6 @@
 ---
 title: Configuration
-description: Ranking profiles, filters, query parameters, and tuning options for OpenPlane search.
+description: Ranking profiles, filters, query parameters, and tuning options for OpenBeam search.
 ---
 
 # Search Configuration
@@ -40,7 +40,7 @@ Select a ranking profile to control how results are scored. Pass `rankingProfile
   </Tab>
   <Tab value="CLI">
     ```bash
-    openplane search query --query "deployment checklist" --ranking enterprise_v2
+    openbeam search query --query "deployment checklist" --ranking enterprise_v2
     ```
   </Tab>
   <Tab value="Agent Tool">
@@ -96,7 +96,7 @@ const results = await trpc.search.hybrid.query({
 
 ## Embedding Models
 
-OpenPlane supports multiple embedding models. The active model determines vector dimensions.
+OpenBeam supports multiple embedding models. The active model determines vector dimensions.
 
 | Model | Dimensions | Usage |
 |-------|-----------|-------|

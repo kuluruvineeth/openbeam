@@ -1,4 +1,4 @@
-import type { VespaClient } from "@openplane/vespa";
+import type { VespaClient } from "@openbeam/vespa";
 import type { DeleteDocumentsInput } from "./types";
 
 export interface DeleteDocumentsDependencies {

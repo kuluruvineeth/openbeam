@@ -3,7 +3,7 @@ package api
 import (
 	"encoding/json"
 
-	"github.com/openplane/openplane/apps/cli/internal/errs"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/errs"
 )
 
 func marshalBody(body any) ([]byte, error) {

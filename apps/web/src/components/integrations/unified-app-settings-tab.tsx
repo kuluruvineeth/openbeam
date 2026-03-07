@@ -1,7 +1,7 @@
 "use client";
 
-import type { UnifiedApp } from "@openplane/integrations";
-import { Form, TabsContent } from "@openplane/ui";
+import type { UnifiedApp } from "@openbeam/integrations";
+import { Form, TabsContent } from "@openbeam/ui";
 import type { UseFormReturn } from "react-hook-form";
 import { AppSettings } from "@/components/integrations/app-settings";
 

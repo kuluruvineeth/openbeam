@@ -76,7 +76,7 @@ export function SectionTitle() {
           initial={{ opacity: 0 }}
           transition={{ duration: 0.5, delay: 0.6 }}
         >
-          Solo founder &middot; 25+ connectors &middot; 100+ AI tools
+          Solo builder &middot; 25+ connectors &middot; 100+ AI tools
         </motion.p>
       </div>
     </section>

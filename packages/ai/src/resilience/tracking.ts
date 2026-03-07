@@ -3,8 +3,8 @@ import type {
   ModelUsageSummary,
   ProviderUsageSummary,
   UsageRecord,
-} from "@openplane/types/ai";
-import { calculateModelCost, getModelPricing } from "@openplane/types/ai";
+} from "@openbeam/types/ai";
+import { calculateModelCost, getModelPricing } from "@openbeam/types/ai";
 import type { ErrorCode, TokenUsage, UsageSummary } from "./types";
 
 export interface ModelPricing {

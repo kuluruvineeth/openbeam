@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
-import type { Embedding } from "@openplane/ai";
-import { cache } from "@openplane/redis";
+import type { Embedding } from "@openbeam/ai";
+import { cache } from "@openbeam/redis";
 import { logger } from "../lib/logger";
 import type { CachedEmbedding } from "./types";
 

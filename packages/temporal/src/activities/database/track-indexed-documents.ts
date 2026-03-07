@@ -1,10 +1,10 @@
-import type { Database } from "@openplane/db";
+import type { Database } from "@openbeam/db";
 import {
   createDocumentChanges,
   findIndexedDocumentsByExternalIds,
   updateSyncHistoryCounts,
   upsertIndexedDocumentsBatch,
-} from "@openplane/db";
+} from "@openbeam/db";
 import type {
   TrackIndexedDocumentsInput,
   TrackIndexedDocumentsResult,

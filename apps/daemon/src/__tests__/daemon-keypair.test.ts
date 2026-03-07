@@ -8,7 +8,7 @@ import { loadOrCreateDaemonKeyPair } from "../daemon-keypair";
 function createTempDir(): string {
   const dir = join(
     tmpdir(),
-    `openplane-kp-test-${randomBytes(8).toString("hex")}`
+    `openbeam-kp-test-${randomBytes(8).toString("hex")}`
   );
   mkdirSync(dir, { recursive: true });
   return dir;

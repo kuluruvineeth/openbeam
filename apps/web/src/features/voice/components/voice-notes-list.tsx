@@ -1,6 +1,6 @@
 "use client";
 
-import { Input } from "@openplane/ui";
+import { Input } from "@openbeam/ui";
 import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
 import { Icons } from "@/components/icons";

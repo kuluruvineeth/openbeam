@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: livekit
-  namespace: openplane
+  namespace: openbeam
   labels:
     app: livekit
 spec:

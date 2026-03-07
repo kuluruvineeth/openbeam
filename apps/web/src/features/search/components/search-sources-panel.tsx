@@ -1,7 +1,7 @@
 "use client";
 
-import { appStore } from "@openplane/integrations";
-import { Button, ScrollArea, Skeleton } from "@openplane/ui";
+import { appStore } from "@openbeam/integrations";
+import { Button, ScrollArea, Skeleton } from "@openbeam/ui";
 import { useMemo } from "react";
 import { Icons } from "@/components/icons";
 import { AppLogo } from "@/components/integrations/app-logo";

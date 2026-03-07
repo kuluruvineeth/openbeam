@@ -3,7 +3,7 @@ import type {
   MCPServerContext,
   MCPToolCall,
   MCPToolResult,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import type { z } from "zod";
 import type { ToolRegistry } from "../tools/registry";
 import type { RegisteredTool, ToolContext } from "../tools/types";

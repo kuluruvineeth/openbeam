@@ -1,9 +1,9 @@
 import type {
   OmniverseTransformContext,
   ParsedPrim,
-} from "@openplane/types/services/connectors/omniverse";
-import { OmniverseDocumentType } from "@openplane/types/services/connectors/omniverse";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/omniverse";
+import { OmniverseDocumentType } from "@openbeam/types/services/connectors/omniverse";
+import type { GenericDocument } from "@openbeam/vespa";
 import { calculateDocumentChecksum } from "../../lib/checksum";
 
 export interface PrimTransformParams {

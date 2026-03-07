@@ -1,6 +1,6 @@
 ---
 title: Setup
-description: Connect Azure IoT Hub to OpenPlane with a shared access connection string.
+description: Connect Azure IoT Hub to OpenBeam with a shared access connection string.
 ---
 
 # Azure IoT Hub Setup
@@ -9,7 +9,7 @@ description: Connect Azure IoT Hub to OpenPlane with a shared access connection 
 
 - Azure account with access to an IoT Hub instance
 - IoT Hub shared access policy with registry read permissions
-- OpenPlane instance running
+- OpenBeam instance running
 
 ## 1. Navigate to IoT Hub
 
@@ -25,8 +25,8 @@ Choose an existing policy or create a new one with the required permissions:
 |-----------|----------|---------|
 | **Registry read** | Yes | List and describe devices |
 | **Service connect** | Yes | Read device twins (tags, reported/desired properties) |
-| Registry write | No | Not needed -- OpenPlane is read-only |
-| Device connect | No | Not needed -- OpenPlane does not act as a device |
+| Registry write | No | Not needed -- OpenBeam is read-only |
+| Device connect | No | Not needed -- OpenBeam does not act as a device |
 
 <Callout type="warn">
   The `iothubowner` policy has all permissions but is overly broad. Create a dedicated policy with only **Registry read** and **Service connect** for least-privilege access.
@@ -39,14 +39,14 @@ Choose an existing policy or create a new one with the required permissions:
 
 The format is:
 ```text
-HostName=your-hub.azure-devices.net;SharedAccessKeyName=openplane;SharedAccessKey=BASE64KEY=
+HostName=your-hub.azure-devices.net;SharedAccessKeyName=openbeam;SharedAccessKey=BASE64KEY=
 ```
 
 <Callout type="info">
   SAS tokens are auto-generated from the connection string with a 60-minute TTL and 5-minute refresh buffer. You never need to manually create or rotate SAS tokens.
 </Callout>
 
-## 4. Add the Connector in OpenPlane
+## 4. Add the Connector in OpenBeam
 
 1. Go to **Settings** > **Connectors** > **Add Connector**
 2. Select **Azure IoT Hub**

@@ -21,11 +21,11 @@ function tmpCwd(prefix: string): string {
 
 function initGitRepo(repoDir: string): void {
   execSync("git init -b main", { cwd: repoDir, stdio: "pipe" });
-  execSync("git config user.email 'openplane-test@example.com'", {
+  execSync("git config user.email 'openbeam-test@example.com'", {
     cwd: repoDir,
     stdio: "pipe",
   });
-  execSync("git config user.name 'OpenPlane Test'", {
+  execSync("git config user.name 'OpenBeam Test'", {
     cwd: repoDir,
     stdio: "pipe",
   });
@@ -42,7 +42,7 @@ function initGitRepo(repoDir: string): void {
   () => {
     const logger = pino({ level: "silent" });
     let repoDir: string;
-    let openplaneHome: string;
+    let openbeamHome: string;
     let storagePath: string;
     let manager: AgentManager;
     let storage: AgentStorage;
@@ -52,8 +52,8 @@ function initGitRepo(repoDir: string): void {
     beforeEach(() => {
       repoDir = tmpCwd("metadata-repo-");
       initGitRepo(repoDir);
-      openplaneHome = tmpCwd("metadata-openplane-home-");
-      storagePath = path.join(openplaneHome, "agents");
+      openbeamHome = tmpCwd("metadata-openbeam-home-");
+      storagePath = path.join(openbeamHome, "agents");
       storage = new AgentStorage(storagePath, logger);
       manager = new AgentManager({
         clients: createAllClients(logger),
@@ -69,7 +69,7 @@ function initGitRepo(repoDir: string): void {
       process.env.CODEX_SESSION_DIR = previousCodexSessionDir;
       await shutdownProviders(logger);
       rmSync(repoDir, { recursive: true, force: true });
-      rmSync(openplaneHome, { recursive: true, force: true });
+      rmSync(openbeamHome, { recursive: true, force: true });
       rmSync(codexSessionDir, { recursive: true, force: true });
     }, 60_000);
 
@@ -92,7 +92,7 @@ function initGitRepo(repoDir: string): void {
         cwd: repoDir,
         initialPrompt: "Use the exact title 'Metadata Title E2E'.",
         explicitTitle: null,
-        openplaneHome,
+        openbeamHome,
         logger,
       });
 
@@ -110,7 +110,7 @@ function initGitRepo(repoDir: string): void {
         cwd: repoDir,
         baseBranch: "main",
         worktreeSlug,
-        openplaneHome,
+        openbeamHome,
       });
 
       const agent = await manager.createAgent(
@@ -131,7 +131,7 @@ function initGitRepo(repoDir: string): void {
         cwd: worktree.worktreePath,
         initialPrompt: "Use the exact branch 'feat/metadata-worktree'.",
         explicitTitle: "Explicit Title",
-        openplaneHome,
+        openbeamHome,
         logger,
       });
 

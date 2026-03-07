@@ -1,4 +1,4 @@
-import type { ProjectPlacementPayload } from "@openplane/types/services/daemon/messages";
+import type { ProjectPlacementPayload } from "@openbeam/types/services/daemon/messages";
 import { deriveProjectKey, deriveProjectName } from "./agent-grouping";
 
 function normalizeWorkingDirectory(cwd: string): string {

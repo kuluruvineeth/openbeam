@@ -1,6 +1,10 @@
-import type { Database } from "@openplane/db";
+import type { Database } from "@openbeam/db";
 import type { Worker } from "@temporalio/worker";
-import { type AgentExecutor, createAgentActivities } from "../activities";
+import {
+  type AgentExecutor,
+  createAgentActivities,
+  createControlPlaneActivities,
+} from "../activities";
 import { TASK_QUEUES } from "../config";
 import { createWorker, type WorkerOptions } from "./factory";
 
@@ -16,11 +20,15 @@ export function createAgentWorker(
     db: deps.db,
     executor: deps.executor,
   });
+  const controlActivities = createControlPlaneActivities({ db: deps.db });
 
   const options: WorkerOptions = {
     taskQueue: TASK_QUEUES.AGENTS,
     workflowsPath: new URL("../workflows/index.js", import.meta.url).pathname,
-    activities: { ...agentActivities } as Record<string, unknown>,
+    activities: { ...agentActivities, ...controlActivities } as Record<
+      string,
+      unknown
+    >,
     maxConcurrentActivityTaskExecutions: 10,
   };
 

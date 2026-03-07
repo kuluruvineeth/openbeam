@@ -32,8 +32,8 @@ function isPidRunning(pid: number): boolean {
   }
 }
 
-function getPidFilePath(openplaneHome: string): string {
-  return join(openplaneHome, "openplane.pid");
+function getPidFilePath(openbeamHome: string): string {
+  return join(openbeamHome, "openbeam.pid");
 }
 
 function resolveLockOwnerPid(): number {
@@ -48,14 +48,14 @@ function resolveLockOwnerPid(): number {
 }
 
 export async function acquirePidLock(
-  openplaneHome: string,
+  openbeamHome: string,
   sockPath: string
 ): Promise<void> {
-  const pidPath = getPidFilePath(openplaneHome);
+  const pidPath = getPidFilePath(openbeamHome);
 
-  // Ensure openplaneHome directory exists
-  if (!existsSync(openplaneHome)) {
-    await mkdir(openplaneHome, { recursive: true });
+  // Ensure openbeamHome directory exists
+  if (!existsSync(openbeamHome)) {
+    await mkdir(openbeamHome, { recursive: true });
   }
 
   // Try to read existing lock
@@ -76,7 +76,7 @@ export async function acquirePidLock(
       }
 
       throw new PidLockError(
-        `Another OpenPlane daemon is already running (PID ${existingLock.pid}, started ${existingLock.startedAt})`,
+        `Another OpenBeam daemon is already running (PID ${existingLock.pid}, started ${existingLock.startedAt})`,
         existingLock
       );
     }
@@ -108,7 +108,7 @@ export async function acquirePidLock(
         const content = await readFile(pidPath, "utf-8");
         const raceLock = JSON.parse(content) as PidLockInfo;
         throw new PidLockError(
-          `Another OpenPlane daemon is already running (PID ${raceLock.pid})`,
+          `Another OpenBeam daemon is already running (PID ${raceLock.pid})`,
           raceLock
         );
       } catch (innerErr) {
@@ -126,8 +126,8 @@ export async function acquirePidLock(
   }
 }
 
-export async function releasePidLock(openplaneHome: string): Promise<void> {
-  const pidPath = getPidFilePath(openplaneHome);
+export async function releasePidLock(openbeamHome: string): Promise<void> {
+  const pidPath = getPidFilePath(openbeamHome);
   const lockOwnerPid = resolveLockOwnerPid();
   try {
     // Only remove if it's our lock
@@ -142,9 +142,9 @@ export async function releasePidLock(openplaneHome: string): Promise<void> {
 }
 
 export async function getPidLockInfo(
-  openplaneHome: string
+  openbeamHome: string
 ): Promise<PidLockInfo | null> {
-  const pidPath = getPidFilePath(openplaneHome);
+  const pidPath = getPidFilePath(openbeamHome);
   try {
     const content = await readFile(pidPath, "utf-8");
     return JSON.parse(content) as PidLockInfo;
@@ -154,9 +154,9 @@ export async function getPidLockInfo(
 }
 
 export async function isLocked(
-  openplaneHome: string
+  openbeamHome: string
 ): Promise<{ locked: boolean; info?: PidLockInfo }> {
-  const info = await getPidLockInfo(openplaneHome);
+  const info = await getPidLockInfo(openbeamHome);
   if (!info) {
     return { locked: false };
   }

@@ -36,8 +36,8 @@ import type {
   TemplateNodeConfig,
   ToolNodeConfig,
   VideoNodeConfig,
-} from "@openplane/types/canvas";
-import type { ConnectorType } from "@openplane/types/services/connectors/events";
+} from "@openbeam/types/canvas";
+import type { ConnectorType } from "@openbeam/types/services/connectors/events";
 import type { ComponentType } from "react";
 import { forwardRef, memo, useCallback } from "react";
 import { Input } from "../../input";

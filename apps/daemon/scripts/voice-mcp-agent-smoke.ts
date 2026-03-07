@@ -79,10 +79,10 @@ async function main(): Promise<void> {
   const scriptDir = path.dirname(fileURLToPath(import.meta.url));
   const serverDir = path.resolve(scriptDir, "..");
   const tmpRoot = await mkdtemp(
-    path.join(os.tmpdir(), "openplane-voice-mcp-smoke-")
+    path.join(os.tmpdir(), "openbeam-voice-mcp-smoke-")
   );
-  const openplaneHome = path.join(tmpRoot, ".openplane");
-  const storageDir = path.join(openplaneHome, "agents");
+  const openbeamHome = path.join(tmpRoot, ".openbeam");
+  const storageDir = path.join(openbeamHome, "agents");
   const voiceBridgeRuntimeDir = path.join(tmpRoot, "voice-mcp");
   const voiceWorkspace = path.join(tmpRoot, "voice-agent-workspace");
   await mkdir(voiceWorkspace, { recursive: true });
@@ -118,7 +118,7 @@ async function main(): Promise<void> {
       createAgentMcpServer({
         agentManager,
         agentStorage,
-        openplaneHome,
+        openbeamHome,
         callerAgentId,
         enableVoiceTools: false,
         resolveSpeakHandler,
@@ -143,12 +143,12 @@ async function main(): Promise<void> {
     modeId: "default",
     ...(opts.model ? { model: opts.model } : {}),
     mcpServers: {
-      openplane: buildVoiceAgentMcpServerConfig({
+      openbeam: buildVoiceAgentMcpServerConfig({
         command: process.execPath,
         baseArgs: [bridgeScriptPath],
         socketPath,
         env: {
-          OPENPLANE_HOME: openplaneHome,
+          OPENBEAM_HOME: openbeamHome,
         },
       }),
     },

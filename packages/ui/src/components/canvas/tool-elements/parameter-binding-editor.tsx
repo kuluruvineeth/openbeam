@@ -3,7 +3,7 @@
 import type {
   ParameterBinding,
   ParameterBindingMode,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { forwardRef, memo, useCallback, useMemo } from "react";
 import { Input } from "../../input";
 import { Switch } from "../../switch";

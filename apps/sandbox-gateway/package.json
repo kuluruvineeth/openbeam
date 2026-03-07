@@ -9,11 +9,11 @@
     "start": "bun run dist/index.js"
   },
   "dependencies": {
-    "@openplane/sandbox": "workspace:*",
+    "@openbeam/sandbox": "workspace:*",
     "dotenv": "catalog:"
   },
   "devDependencies": {
-    "@openplane/config": "workspace:*",
+    "@openbeam/config": "workspace:*",
     "@types/bun": "^1.2.6",
     "tsdown": "catalog:",
     "typescript": "catalog:"

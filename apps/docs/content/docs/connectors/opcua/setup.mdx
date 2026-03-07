@@ -1,13 +1,13 @@
 ---
 title: Setup
-description: Connect an OPC-UA server to OpenPlane to index industrial automation data.
+description: Connect an OPC-UA server to OpenBeam to index industrial automation data.
 ---
 
 # OPC-UA Setup
 
 ## Prerequisites
 
-- OPC-UA server running and accessible from the OpenPlane host
+- OPC-UA server running and accessible from the OpenBeam host
 - Server endpoint URL (e.g., `opc.tcp://server:4840`)
 - Credentials if the server requires authentication
 
@@ -24,7 +24,7 @@ Find your server's endpoint URL. Common OPC-UA servers:
 | Ignition | `opc.tcp://host:62541/discovery` | SCADA platform |
 
 <Callout type="info">
-  The endpoint URL must be reachable from the OpenPlane host. For servers behind NAT or in isolated OT networks, configure a network bridge or VPN.
+  The endpoint URL must be reachable from the OpenBeam host. For servers behind NAT or in isolated OT networks, configure a network bridge or VPN.
 </Callout>
 
 ## 2. Determine Security Configuration
@@ -64,7 +64,7 @@ OPC-UA has two independent security settings: **mode** (what protection) and **p
   </Tab>
 </Tabs>
 
-## 3. Add the OPC-UA Connector in OpenPlane
+## 3. Add the OPC-UA Connector in OpenBeam
 
 1. Go to **Settings** > **Connectors** > **Add Connector**
 2. Select **OPC-UA**
@@ -78,8 +78,8 @@ When using Sign or Sign and Encrypt modes, the OPC-UA server may reject the conn
 
 **Fix:**
 1. Check the server's rejected certificates folder (varies by server software)
-2. Move the OpenPlane certificate from the rejected folder to the trusted folder
-3. Retry the connection in OpenPlane
+2. Move the OpenBeam certificate from the rejected folder to the trusted folder
+3. Retry the connection in OpenBeam
 
 | Server | Rejected Certs Location |
 |--------|------------------------|

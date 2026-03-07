@@ -3,7 +3,7 @@ import type {
   UpsertAICacheMetricsInput,
   UpsertAIToolUsageInput,
   UpsertAIUsageSummaryInput,
-} from "@openplane/types/db";
+} from "@openbeam/types/db";
 import type {
   AICacheMetrics,
   AIToolUsage,

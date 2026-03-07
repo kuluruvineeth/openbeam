@@ -1,7 +1,7 @@
 "use client";
 
-import type { StartNodeConfig } from "@openplane/types/canvas";
-import type { ConnectorType } from "@openplane/types/services/connectors/events";
+import type { StartNodeConfig } from "@openbeam/types/canvas";
+import type { ConnectorType } from "@openbeam/types/services/connectors/events";
 import type { ComponentType } from "react";
 import { forwardRef, memo, useMemo } from "react";
 import { AnimatedSizeContainer } from "../../../animated-size-container";

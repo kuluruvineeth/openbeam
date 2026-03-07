@@ -1,6 +1,6 @@
 ---
 title: Setup
-description: Connect a FHIR server to OpenPlane with SMART on FHIR backend services authentication.
+description: Connect a FHIR server to OpenBeam with SMART on FHIR backend services authentication.
 ---
 
 # FHIR Setup
@@ -9,7 +9,7 @@ description: Connect a FHIR server to OpenPlane with SMART on FHIR backend servi
 
 - FHIR server (Epic, Cerner, HAPI FHIR, Medplum) with SMART on FHIR backend services enabled
 - Admin access to register a backend service application
-- OpenPlane instance running
+- OpenBeam instance running
 
 ## 1. Register a Backend Service Application
 
@@ -54,7 +54,7 @@ openssl ec -in fhir-private.pem -pubout -out fhir-public.pem
 ```
 
 <Callout type="info">
-  Keep the private key secure. It never leaves your OpenPlane instance -- the connector uses it locally to sign JWT assertions exchanged for short-lived access tokens.
+  Keep the private key secure. It never leaves your OpenBeam instance -- the connector uses it locally to sign JWT assertions exchanged for short-lived access tokens.
 </Callout>
 
 ## 3. Register the Public Key with the FHIR Server
@@ -69,7 +69,7 @@ Find the token endpoint from the FHIR server's `.well-known/smart-configuration`
 curl https://your-fhir-server/.well-known/smart-configuration | jq .token_endpoint
 ```
 
-## 5. Add the Connector in OpenPlane
+## 5. Add the Connector in OpenBeam
 
 1. Go to **Settings** > **Connectors** > **Add Connector**
 2. Select **FHIR Healthcare**

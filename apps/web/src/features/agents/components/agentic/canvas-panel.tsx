@@ -1,18 +1,18 @@
 "use client";
 
-import type { RouterOutputs } from "@openplane/api/routers/index";
-import { ALL_CONNECTOR_ACTION_REGISTRIES } from "@openplane/integrations/connector-actions";
-import { connectorLogos } from "@openplane/integrations/logos";
+import type { RouterOutputs } from "@openbeam/api/routers/index";
+import { ALL_CONNECTOR_ACTION_REGISTRIES } from "@openbeam/integrations/connector-actions";
+import { connectorLogos } from "@openbeam/integrations/logos";
 import type {
   AgentCanvasEdge,
   AgentCanvasNode,
   CanvasNodeType,
   NodeStatus,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import {
   type ConnectorType,
   normalizeToConnectorType,
-} from "@openplane/types/services/connectors/events";
+} from "@openbeam/types/services/connectors/events";
 import {
   AgentCanvas,
   CanvasHistoryControls,
@@ -24,17 +24,17 @@ import {
   useIsActionPanelDocked,
   usePendingOperationCount,
   useSetActionPanelDocked,
-} from "@openplane/ui";
-import type { ConnectorInfo } from "@openplane/ui/components/event-builder";
-import { Icons } from "@openplane/ui/components/icons";
+} from "@openbeam/ui";
+import type { ConnectorInfo } from "@openbeam/ui/components/event-builder";
+import { Icons } from "@openbeam/ui/components/icons";
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "@openplane/ui/components/sheet";
-import { cn } from "@openplane/ui/utils";
+} from "@openbeam/ui/components/sheet";
+import { cn } from "@openbeam/ui/utils";
 import { useQuery } from "@tanstack/react-query";
 import type { Edge, Node } from "@xyflow/react";
 import { Suspense, useCallback, useMemo, useState } from "react";

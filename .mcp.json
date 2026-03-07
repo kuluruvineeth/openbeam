@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "openplane": {
+    "openbeam": {
       "command": "bun",
       "args": ["run", "packages/mcp/src/index.ts"],
       "env": {
@@ -12,7 +12,7 @@
       "args": [
         "postgres-mcp",
         "--access-mode=restricted",
-        "postgresql://postgres:postgres@localhost:5432/openplane"
+        "postgresql://postgres:postgres@localhost:5432/openbeam"
       ]
     },
     "redis": {

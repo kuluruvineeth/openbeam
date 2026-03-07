@@ -10,9 +10,6 @@ function createMockDb() {
     backgroundAgentCheckpoint: {
       findFirst: vi.fn((): unknown => null),
     },
-    missionMemory: {
-      findMany: vi.fn((): unknown[] => []),
-    },
   };
 }
 
@@ -50,9 +47,6 @@ describe("loadAgentContext", () => {
       contextWindow: [{ role: "user", content: "hello" }],
       stepIndex: 2,
     });
-    db.missionMemory.findMany.mockResolvedValue([
-      { key: "finding-1", value: "data", scope: "task" },
-    ]);
 
     const activity = createLoadAgentContextActivity({ db: db as never });
     const result = await activity({ sessionId: "session-1" });
@@ -69,7 +63,7 @@ describe("loadAgentContext", () => {
       checkpointState: { step: 2, progress: 0.5 },
       memorySnapshot: { key1: "val1" },
       contextWindow: [{ role: "user", content: "hello" }],
-      workingMemory: { "finding-1": "data" },
+      workingMemory: {},
     });
   });
 

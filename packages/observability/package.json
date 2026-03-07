@@ -1,5 +1,5 @@
 {
-  "name": "@openplane/observability",
+  "name": "@openbeam/observability",
   "version": "0.0.1",
   "type": "module",
   "exports": {
@@ -33,7 +33,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@openplane/config": "workspace:*",
+    "@openbeam/config": "workspace:*",
     "tsdown": "catalog:",
     "typescript": "catalog:"
   }

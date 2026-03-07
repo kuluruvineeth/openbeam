@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/openplane/openplane/apps/cli/internal/exitcode"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/exitcode"
 )
 
 func TestNew(t *testing.T) {

@@ -3,8 +3,8 @@ import type {
   SlackSyncBatch as SyncBatch,
   SyncCursor,
   TransformContext,
-} from "@openplane/types/services/connectors/slack";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/slack";
+import type { GenericDocument } from "@openbeam/vespa";
 import type { ConnectorFileInfo } from "../../files";
 import type { SlackClient } from "../client";
 import { type BookmarkSyncOptions, syncBookmarksBatched } from "./bookmarks";

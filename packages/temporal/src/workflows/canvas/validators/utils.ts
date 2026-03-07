@@ -2,7 +2,7 @@ import type {
   ConditionNodeConfig,
   ExecutionPlan,
   ExecutionPlanNode,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 
 export function validateNodeExists(
   nodesById: Map<string, ExecutionPlanNode>,

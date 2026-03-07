@@ -8,7 +8,7 @@ export type {
   ToolUsageData,
   UsageEvent,
   UsageSummaryResult,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 export type { UsageLogCreateData, UsageLogRepository } from "./attribution";
 export {
   CostAttributionService,

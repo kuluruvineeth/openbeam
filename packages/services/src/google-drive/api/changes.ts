@@ -4,7 +4,7 @@ import {
   DriveChangesListResponseSchema,
   type DriveStartPageTokenResponse,
   DriveStartPageTokenResponseSchema,
-} from "@openplane/types/services/connectors/google-drive";
+} from "@openbeam/types/services/connectors/google-drive";
 import type { GoogleDriveClient } from "../client";
 
 const DEFAULT_CHANGE_FIELDS = [

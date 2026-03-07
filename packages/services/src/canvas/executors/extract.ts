@@ -1,10 +1,10 @@
-import { complete } from "@openplane/ai";
+import { complete } from "@openbeam/ai";
 import {
   type CompletionOptions,
   getChatModel,
   type ProviderId,
   ProviderIdSchema,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import {
   type ExtractedValue,
   type ExtractionField,
@@ -16,7 +16,7 @@ import {
   type FieldValidation,
   type NerEntity,
   NerEntitySchema,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { z } from "zod";
 import { CanvasNodeExecutionError } from "../errors";
 import { resolveNodeConfig } from "../node-config";

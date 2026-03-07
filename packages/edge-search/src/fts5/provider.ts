@@ -1,5 +1,5 @@
 import type { Database } from "bun:sqlite";
-import type { FTSProvider } from "@openplane/types/edge/search";
+import type { FTSProvider } from "@openbeam/types/edge/search";
 
 export class SQLiteFTS5Provider implements FTSProvider {
   private readonly db: Database;

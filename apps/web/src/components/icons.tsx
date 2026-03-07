@@ -1,4 +1,4 @@
-import { Icons as BaseIcons } from "@openplane/ui";
+import { Icons as BaseIcons } from "@openbeam/ui";
 import Image from "next/image";
 
 type LogoProps = {
@@ -14,7 +14,7 @@ export const Icons = {
       style={{ width: size, height: size }}
     >
       <Image
-        alt="OpenPlane Logo"
+        alt="OpenBeam Logo"
         className="dark:hidden"
         height={size}
         src="/assets/logo.png"
@@ -22,7 +22,7 @@ export const Icons = {
         width={size}
       />
       <Image
-        alt="OpenPlane Logo"
+        alt="OpenBeam Logo"
         className="hidden dark:block"
         height={size}
         src="/assets/logo_dark.png"
@@ -37,7 +37,7 @@ export const Icons = {
       style={{ width: size, height: size }}
     >
       <Image
-        alt="OpenPlane Logo"
+        alt="OpenBeam Logo"
         className="dark:hidden"
         height={size}
         src="/assets/logo.png"
@@ -45,7 +45,7 @@ export const Icons = {
         width={size}
       />
       <Image
-        alt="OpenPlane Logo"
+        alt="OpenBeam Logo"
         className="hidden dark:block"
         height={size}
         src="/assets/logo_dark.png"

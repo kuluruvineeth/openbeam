@@ -1,4 +1,4 @@
-import { type RateLimitConfig, rateLimiter } from "@openplane/redis";
+import { type RateLimitConfig, rateLimiter } from "@openbeam/redis";
 import type {
   ThingsboardAlarm,
   ThingsboardAttribute,
@@ -7,7 +7,7 @@ import type {
   ThingsboardDevice,
   ThingsboardPageData,
   ThingsboardTelemetryValue,
-} from "@openplane/types/services/connectors/thingsboard";
+} from "@openbeam/types/services/connectors/thingsboard";
 import { logger } from "../lib/logger";
 import { ThingsboardApiError } from "./types";
 

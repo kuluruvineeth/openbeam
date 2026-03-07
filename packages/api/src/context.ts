@@ -2,8 +2,8 @@ import {
   type AuthSession,
   getSessionFromHeaders,
   validateSession,
-} from "@openplane/auth";
-import { connectDb, type Database } from "@openplane/db";
+} from "@openbeam/auth";
+import { connectDb, type Database } from "@openbeam/db";
 import type { Context as HonoContext } from "hono";
 
 export type TRPCContext = {

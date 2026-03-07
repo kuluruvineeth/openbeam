@@ -2,7 +2,7 @@ import type { RouteHandler } from "@hono/zod-openapi";
 import {
   GoogleDriveAuth,
   GoogleDriveServiceAccountAuth,
-} from "@openplane/services";
+} from "@openbeam/services";
 import type { AuthEnv } from "@/middleware/auth";
 import { getTeamId } from "@/middleware/auth";
 import logger from "@/utils/logger";

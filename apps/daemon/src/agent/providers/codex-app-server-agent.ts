@@ -47,7 +47,7 @@ import { loadCodexPersistedTimeline } from "./codex-rollout-timeline";
 const DEFAULT_TIMEOUT_MS = 14 * 24 * 60 * 60 * 1000;
 const TURN_START_TIMEOUT_MS = 90 * 1000;
 const CODEX_PROVIDER = "codex" as const;
-const CODEX_IMAGE_ATTACHMENT_DIR = "openplane-attachments";
+const CODEX_IMAGE_ATTACHMENT_DIR = "openbeam-attachments";
 
 const CODEX_APP_SERVER_CAPABILITIES: AgentCapabilityFlags = {
   supportsStreaming: true,
@@ -2157,8 +2157,8 @@ class CodexAppServerAgentSession implements AgentSession {
 
     await this.client.request("initialize", {
       clientInfo: {
-        name: "openplane",
-        title: "OpenPlane",
+        name: "openbeam",
+        title: "OpenBeam",
         version: "0.0.0",
       },
     });
@@ -3629,7 +3629,7 @@ export class CodexAppServerAgentClient implements AgentClient {
 
     try {
       await client.request("initialize", {
-        clientInfo: { name: "openplane", title: "OpenPlane", version: "0.0.0" },
+        clientInfo: { name: "openbeam", title: "OpenBeam", version: "0.0.0" },
       });
       client.notify("initialized", {});
 
@@ -3711,8 +3711,8 @@ export class CodexAppServerAgentClient implements AgentClient {
     try {
       await client.request("initialize", {
         clientInfo: {
-          name: "openplane",
-          title: "OpenPlane",
+          name: "openbeam",
+          title: "OpenBeam",
           version: "0.0.0",
         },
       });

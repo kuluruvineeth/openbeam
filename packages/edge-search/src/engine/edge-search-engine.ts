@@ -6,7 +6,7 @@ import type {
   EdgeSearchResult,
   FTSProvider,
   VectorProvider,
-} from "@openplane/types/edge/search";
+} from "@openbeam/types/edge/search";
 import { hybridRank } from "../ranker/hybrid";
 
 type EdgeSearchEngineConfig = {

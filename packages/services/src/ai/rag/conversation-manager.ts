@@ -1,5 +1,5 @@
-import { estimateTokens, streamCompletion } from "@openplane/ai";
-import type { Database } from "@openplane/db";
+import { estimateTokens, streamCompletion } from "@openbeam/ai";
+import type { Database } from "@openbeam/db";
 import {
   addConversationMessage,
   createConversation,
@@ -7,7 +7,7 @@ import {
   getRecentMessages,
   updateConversationSummary,
   updateConversationTitle,
-} from "@openplane/db";
+} from "@openbeam/db";
 import type {
   ConversationContext,
   ConversationMessage,

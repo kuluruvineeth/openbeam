@@ -51,7 +51,7 @@ export const useDraftStore = create<DraftStore>()(
       },
     }),
     {
-      name: "openplane-daemon-drafts",
+      name: "openbeam-daemon-drafts",
       storage: createJSONStorage(() => localStorage),
     }
   )

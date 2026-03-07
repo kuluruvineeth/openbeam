@@ -4,7 +4,7 @@ RUN bun add -g turbo@2.5.4
 COPY . .
 RUN turbo prune server --docker
 
-FROM ghcr.io/kuluruvineeth/openplane-base:latest AS deps
+FROM ghcr.io/kuluruvineeth/openbeam-base:latest AS deps
 WORKDIR /app
 COPY --from=pruner /app/out/full/ .
 ARG HUGEICONS_PRO_AUTH_TOKEN
@@ -33,11 +33,11 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/packages ./packages
 COPY --from=builder /app/apps/server ./apps/server
 COPY scripts/migrate.sh ./scripts/migrate.sh
-RUN mkdir -p apps/server/node_modules/@openplane && \
+RUN mkdir -p apps/server/node_modules/@openbeam && \
     for pkg in packages/*/; do \
       name=$(basename "$pkg"); \
-      rm -rf "apps/server/node_modules/@openplane/$name" && \
-      ln -s "../../../../packages/$name" "apps/server/node_modules/@openplane/$name"; \
+      rm -rf "apps/server/node_modules/@openbeam/$name" && \
+      ln -s "../../../../packages/$name" "apps/server/node_modules/@openbeam/$name"; \
     done
 RUN chmod +x ./scripts/migrate.sh && chown -R nodejs:nodejs /app
 WORKDIR /app/apps/server

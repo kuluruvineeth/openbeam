@@ -128,7 +128,7 @@ export function WelcomeScreen({ onHostAdded }: WelcomeScreenProps) {
       <View style={styles.logoBadge}>
         <Text style={styles.logoGlyph}>O</Text>
       </View>
-      <Text style={styles.title}>Welcome to OpenPlane</Text>
+      <Text style={styles.title}>Welcome to OpenBeam</Text>
       <Text style={styles.subtitle}>Add a host to start.</Text>
 
       <View style={styles.actions}>

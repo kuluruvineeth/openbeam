@@ -1,6 +1,6 @@
 "use client";
 
-import type { RuntimeEvent } from "@openplane/types/canvas/runtime-events";
+import type { RuntimeEvent } from "@openbeam/types/canvas/runtime-events";
 import { useMemo } from "react";
 import type { MessageData } from "../components/agent/agent-message-list";
 import type { AgentEvent } from "./use-event-grouping";

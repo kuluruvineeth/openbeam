@@ -36,11 +36,11 @@ const testWithGitHubCliAuth = hasGitHubCliAuth() ? test : test.skip;
 
 function initGitRepo(repoDir: string): void {
   execSync("git init -b main", { cwd: repoDir, stdio: "pipe" });
-  execSync("git config user.email 'openplane-test@example.com'", {
+  execSync("git config user.email 'openbeam-test@example.com'", {
     cwd: repoDir,
     stdio: "pipe",
   });
-  execSync("git config user.name 'OpenPlane Test'", {
+  execSync("git config user.name 'OpenBeam Test'", {
     cwd: repoDir,
     stdio: "pipe",
   });
@@ -54,7 +54,7 @@ function initGitRepo(repoDir: string): void {
 
 function createTempRepoName(): string {
   const rand = Math.random().toString(16).slice(2, 8);
-  return `openplane-checkout-ship-${Date.now()}-${rand}`;
+  return `openbeam-checkout-ship-${Date.now()}-${rand}`;
 }
 
 function getGhLogin(): string {
@@ -125,7 +125,7 @@ describe("daemon checkout ship loop", () => {
           cwd: repoDir,
           baseBranch: "main",
           worktreeSlug: "ship-loop",
-          openplaneHome: ctx.daemon.openplaneHome,
+          openbeamHome: ctx.daemon.openbeamHome,
         });
 
         const agent = await ctx.client.createAgent({
@@ -143,7 +143,7 @@ describe("daemon checkout ship loop", () => {
         // biome-ignore lint/suspicious/noMisplacedAssertion: assertion in test helper
         expect(status.isGit).toBe(true);
         // biome-ignore lint/suspicious/noMisplacedAssertion: assertion in test helper
-        expect(status.isOpenPlaneOwnedWorktree).toBe(true);
+        expect(status.isOpenBeamOwnedWorktree).toBe(true);
         // biome-ignore lint/suspicious/noMisplacedAssertion: assertion in test helper
         expect(realpathSync(status.repoRoot)).toBe(
           realpathSync(worktree.worktreePath)
@@ -280,7 +280,7 @@ describe("daemon checkout ship loop", () => {
         // biome-ignore lint/suspicious/noMisplacedAssertion: assertion in test helper
         expect(baseDiffAfterMerge.files.length).toBe(0);
 
-        const worktreeList = await ctx.client.getOpenPlaneWorktreeList({
+        const worktreeList = await ctx.client.getOpenBeamWorktreeList({
           cwd: repoDir,
         });
         // biome-ignore lint/suspicious/noMisplacedAssertion: assertion in test helper
@@ -294,7 +294,7 @@ describe("daemon checkout ship loop", () => {
           )
         ).toBe(true);
 
-        const archiveResult = await ctx.client.archiveOpenPlaneWorktree({
+        const archiveResult = await ctx.client.archiveOpenBeamWorktree({
           worktreePath: worktree.worktreePath,
         });
         // biome-ignore lint/suspicious/noMisplacedAssertion: assertion in test helper
@@ -302,7 +302,7 @@ describe("daemon checkout ship loop", () => {
         // biome-ignore lint/suspicious/noMisplacedAssertion: assertion in test helper
         expect(archiveResult.success).toBe(true);
 
-        const worktreeListAfter = await ctx.client.getOpenPlaneWorktreeList({
+        const worktreeListAfter = await ctx.client.getOpenBeamWorktreeList({
           cwd: repoDir,
         });
         // biome-ignore lint/suspicious/noMisplacedAssertion: assertion in test helper
@@ -351,7 +351,7 @@ describe("daemon checkout ship loop", () => {
         cwd: repoDir,
         baseBranch: "main",
         worktreeSlug: "merge-from-base",
-        openplaneHome: ctx.daemon.openplaneHome,
+        openbeamHome: ctx.daemon.openbeamHome,
       });
 
       const agent = await ctx.client.createAgent({

@@ -36,8 +36,8 @@ const createMockDocument = (
 });
 
 const createMockFeedResponse = (id: string): FeedResponse => ({
-  pathId: `/document/v1/default/openplane_document/docid/${id}`,
-  id: `id:default:openplane_document::${id}`,
+  pathId: `/document/v1/default/openbeam_document/docid/${id}`,
+  id: `id:default:openbeam_document::${id}`,
 });
 
 describe("VespaBatcher", () => {

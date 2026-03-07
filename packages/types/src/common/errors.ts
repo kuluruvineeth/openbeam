@@ -40,6 +40,7 @@ export const ToolCategorySchema = z.enum([
   "skills",
   "canvas",
   "voice",
+  "control",
 ]);
 
 export type ToolCategory = z.infer<typeof ToolCategorySchema>;

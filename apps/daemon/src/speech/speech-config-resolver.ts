@@ -1,8 +1,5 @@
 import { z } from "zod";
-import type {
-  OpenPlaneOpenAIConfig,
-  OpenPlaneSpeechConfig,
-} from "../bootstrap";
+import type { OpenBeamOpenAIConfig, OpenBeamSpeechConfig } from "../bootstrap";
 import type { PersistedConfig } from "../persisted-config";
 import { resolveLocalSpeechConfig } from "./providers/local/config";
 import { resolveOpenAiSpeechConfig } from "./providers/openai/config";
@@ -59,22 +56,22 @@ function resolveRequestedSpeechProviders(params: {
   });
 
   const dictationSttProviderFromConfig =
-    params.env.OPENPLANE_DICTATION_STT_PROVIDER ??
+    params.env.OPENBEAM_DICTATION_STT_PROVIDER ??
     params.persisted.features?.dictation?.stt?.provider;
   const voiceSttProviderFromConfig =
-    params.env.OPENPLANE_VOICE_STT_PROVIDER ??
+    params.env.OPENBEAM_VOICE_STT_PROVIDER ??
     params.persisted.features?.voiceMode?.stt?.provider;
   const voiceTtsProviderFromConfig =
-    params.env.OPENPLANE_VOICE_TTS_PROVIDER ??
+    params.env.OPENBEAM_VOICE_TTS_PROVIDER ??
     params.persisted.features?.voiceMode?.tts?.provider;
   const dictationEnabled =
     OptionalBooleanFlagSchema.parse(
-      params.env.OPENPLANE_DICTATION_ENABLED ??
+      params.env.OPENBEAM_DICTATION_ENABLED ??
         params.persisted.features?.dictation?.enabled
     ) ?? true;
   const voiceModeEnabled =
     OptionalBooleanFlagSchema.parse(
-      params.env.OPENPLANE_VOICE_MODE_ENABLED ??
+      params.env.OPENBEAM_VOICE_MODE_ENABLED ??
         params.persisted.features?.voiceMode?.enabled
     ) ?? true;
 
@@ -104,12 +101,12 @@ function resolveRequestedSpeechProviders(params: {
 }
 
 export function resolveSpeechConfig(params: {
-  openplaneHome: string;
+  openbeamHome: string;
   env: NodeJS.ProcessEnv;
   persisted: PersistedConfig;
 }): {
-  openai: OpenPlaneOpenAIConfig | undefined;
-  speech: OpenPlaneSpeechConfig;
+  openai: OpenBeamOpenAIConfig | undefined;
+  speech: OpenBeamSpeechConfig;
 } {
   const providers = resolveRequestedSpeechProviders({
     env: params.env,
@@ -117,7 +114,7 @@ export function resolveSpeechConfig(params: {
   });
 
   const local = resolveLocalSpeechConfig({
-    openplaneHome: params.openplaneHome,
+    openbeamHome: params.openbeamHome,
     env: params.env,
     persisted: params.persisted,
     providers,

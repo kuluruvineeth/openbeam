@@ -1,4 +1,4 @@
-FROM openplane/server-dev:latest
+FROM openbeam/server-dev:latest
 
 WORKDIR /app/apps/worker
 

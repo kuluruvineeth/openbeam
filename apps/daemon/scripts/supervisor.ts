@@ -1,7 +1,7 @@
 import { type ChildProcess, fork } from "node:child_process";
 
 type RestartMessage = {
-  type: "openplane:restart";
+  type: "openbeam:restart";
   reason?: string;
 };
 
@@ -28,7 +28,7 @@ function isRestartMessage(msg: unknown): msg is RestartMessage {
     typeof msg === "object" &&
     msg !== null &&
     "type" in msg &&
-    (msg as { type?: unknown }).type === "openplane:restart"
+    (msg as { type?: unknown }).type === "openbeam:restart"
   );
 }
 

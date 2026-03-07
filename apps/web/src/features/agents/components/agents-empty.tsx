@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Icons } from "@openplane/ui";
+import { Button, Icons } from "@openbeam/ui";
 
 type EmptyStateProps = {
   title: string;

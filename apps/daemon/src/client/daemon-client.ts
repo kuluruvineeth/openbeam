@@ -49,8 +49,8 @@ import type {
   ListCommandsResponse,
   ListProviderModelsResponseMessage,
   ListTerminalsResponse,
-  OpenPlaneWorktreeArchiveResponse,
-  OpenPlaneWorktreeListResponse,
+  OpenBeamWorktreeArchiveResponse,
+  OpenBeamWorktreeListResponse,
   ProjectIconResponse,
   SessionInboundMessage,
   SessionOutboundMessage,
@@ -212,9 +212,9 @@ type CheckoutPrStatusPayload = CheckoutPrStatusResponse["payload"];
 type ValidateBranchPayload = ValidateBranchResponse["payload"];
 type BranchSuggestionsPayload = BranchSuggestionsResponse["payload"];
 type DirectorySuggestionsPayload = DirectorySuggestionsResponse["payload"];
-type OpenPlaneWorktreeListPayload = OpenPlaneWorktreeListResponse["payload"];
-type OpenPlaneWorktreeArchivePayload =
-  OpenPlaneWorktreeArchiveResponse["payload"];
+type OpenBeamWorktreeListPayload = OpenBeamWorktreeListResponse["payload"];
+type OpenBeamWorktreeArchivePayload =
+  OpenBeamWorktreeArchiveResponse["payload"];
 type FileExplorerPayload = FileExplorerResponse["payload"];
 type FileDownloadTokenPayload = FileDownloadTokenResponse["payload"];
 type ListProviderModelsPayload = ListProviderModelsResponseMessage["payload"];
@@ -2306,36 +2306,36 @@ export class DaemonClient {
   }
 
   // biome-ignore lint/suspicious/useAwait: async signature required by interface
-  async getOpenPlaneWorktreeList(
+  async getOpenBeamWorktreeList(
     input: { cwd?: string; repoRoot?: string },
     requestId?: string
-  ): Promise<OpenPlaneWorktreeListPayload> {
+  ): Promise<OpenBeamWorktreeListPayload> {
     return this.sendCorrelatedSessionRequest({
       requestId,
       message: {
-        type: "openplane_worktree_list_request",
+        type: "openbeam_worktree_list_request",
         cwd: input.cwd,
         repoRoot: input.repoRoot,
       },
-      responseType: "openplane_worktree_list_response",
+      responseType: "openbeam_worktree_list_response",
       timeout: 60_000,
     });
   }
 
   // biome-ignore lint/suspicious/useAwait: async signature required by interface
-  async archiveOpenPlaneWorktree(
+  async archiveOpenBeamWorktree(
     input: { worktreePath?: string; repoRoot?: string; branchName?: string },
     requestId?: string
-  ): Promise<OpenPlaneWorktreeArchivePayload> {
+  ): Promise<OpenBeamWorktreeArchivePayload> {
     return this.sendCorrelatedSessionRequest({
       requestId,
       message: {
-        type: "openplane_worktree_archive_request",
+        type: "openbeam_worktree_archive_request",
         worktreePath: input.worktreePath,
         repoRoot: input.repoRoot,
         branchName: input.branchName,
       },
-      responseType: "openplane_worktree_archive_response",
+      responseType: "openbeam_worktree_archive_response",
       timeout: 20_000,
     });
   }

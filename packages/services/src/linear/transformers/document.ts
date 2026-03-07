@@ -1,8 +1,8 @@
 import type {
   LinearDocument,
   LinearTransformContext,
-} from "@openplane/types/services/connectors/linear";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/linear";
+import type { GenericDocument } from "@openbeam/vespa";
 import { calculateDocumentChecksum } from "../../lib/checksum";
 
 function buildDocumentId(connectorId: string, documentId: string): string {

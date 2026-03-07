@@ -1,7 +1,7 @@
 "use client";
 
-import type { StepExecution } from "@openplane/types/canvas";
-import type { ExecutionEvent } from "@openplane/types/canvas/execution-events";
+import type { StepExecution } from "@openbeam/types/canvas";
+import type { ExecutionEvent } from "@openbeam/types/canvas/execution-events";
 import { useCallback, useEffect, useRef } from "react";
 import { useExecutionStore } from "../stores/execution-store";
 import {

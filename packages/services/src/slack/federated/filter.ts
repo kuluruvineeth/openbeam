@@ -1,7 +1,7 @@
 import type {
   SlackChannel,
   SlackSearchMatch,
-} from "@openplane/types/services/connectors/slack";
+} from "@openbeam/types/services/connectors/slack";
 
 export interface ChannelFilterConfig {
   include?: string[];

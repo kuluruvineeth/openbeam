@@ -5,7 +5,7 @@ import type {
   MCPPromptMessage,
   MCPPromptResult,
   MCPServerContext,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 
 export type PromptHandler = (
   args: Record<string, string>,

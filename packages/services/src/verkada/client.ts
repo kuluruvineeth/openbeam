@@ -1,10 +1,10 @@
-import { type RateLimitConfig, rateLimiter } from "@openplane/redis";
+import { type RateLimitConfig, rateLimiter } from "@openbeam/redis";
 import {
   VERKADA_API_BASE_AU,
   VERKADA_API_BASE_EU,
   VERKADA_API_BASE_US,
   type VerkadaClientConfig,
-} from "@openplane/types/services/connectors/verkada";
+} from "@openbeam/types/services/connectors/verkada";
 import { logger } from "../lib/logger";
 import { VerkadaApiError } from "./types";
 

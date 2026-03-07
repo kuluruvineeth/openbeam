@@ -1,5 +1,5 @@
-import type { GenericDocument } from "@openplane/vespa";
-import { escapeYqlString, vespaClient } from "@openplane/vespa";
+import type { GenericDocument } from "@openbeam/vespa";
+import { escapeYqlString, vespaClient } from "@openbeam/vespa";
 import type {
   DocumentToReembed,
   FetchDocumentsForReembedInput,
@@ -13,10 +13,10 @@ export async function fetchDocumentsForReembed(
 
   if (input.teamId) {
     const escapedTeamId = escapeYqlString(input.teamId);
-    yql = `select id, content, title from openplane_document where team_id contains "${escapedTeamId}" and !(embedding_version = 2)`;
+    yql = `select id, content, title from openbeam_document where team_id contains "${escapedTeamId}" and !(embedding_version = 2)`;
   } else {
     yql =
-      "select id, content, title from openplane_document where !(embedding_version = 2)";
+      "select id, content, title from openbeam_document where !(embedding_version = 2)";
   }
 
   const result = await vespaClient.query<GenericDocument>({

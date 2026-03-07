@@ -1,4 +1,4 @@
-import type { ToolCategory, ToolMetadata } from "@openplane/types/ai";
+import type { ToolCategory, ToolMetadata } from "@openbeam/types/ai";
 
 import type { CompositionTracker } from "../observability/composition";
 import { toolRegistry } from "./registry";
@@ -40,6 +40,7 @@ const CATEGORY_PRIORITY: Record<ToolCategory, number> = {
   skills: 0,
   canvas: 0,
   voice: 2,
+  control: 3,
 };
 
 export class ToolRouter {

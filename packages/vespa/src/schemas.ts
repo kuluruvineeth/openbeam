@@ -3,11 +3,11 @@ export type {
   JsonObject,
   JsonPrimitive,
   JsonValue,
-} from "@openplane/types/common";
+} from "@openbeam/types/common";
 
-export type { MediaType } from "@openplane/types/media";
+export type { MediaType } from "@openbeam/types/media";
 
-import type { JsonObject, MediaType } from "@openplane/types";
+import type { JsonObject, MediaType } from "@openbeam/types";
 
 export interface GenericDocument {
   id: string;

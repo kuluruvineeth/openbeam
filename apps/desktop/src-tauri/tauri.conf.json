@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "OpenPlane",
+  "productName": "OpenBeam",
   "version": "0.1.0",
-  "identifier": "dev.openplane.desktop",
+  "identifier": "dev.openbeam.desktop",
   "build": {
     "frontendDist": "../../mobile/dist",
     "devUrl": "http://localhost:8081"
@@ -11,7 +11,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "OpenPlane",
+        "title": "OpenBeam",
         "width": 1200,
         "height": 800,
         "minWidth": 800,

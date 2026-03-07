@@ -1,4 +1,4 @@
-import type { RetryNodeConfig } from "@openplane/types/canvas";
+import type { RetryNodeConfig } from "@openbeam/types/canvas";
 import { describe, expect, it } from "vitest";
 import {
   hashSeed,

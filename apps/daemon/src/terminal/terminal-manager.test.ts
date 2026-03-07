@@ -144,7 +144,7 @@ describe("TerminalManager", () => {
 
         manager.registerCwdEnv({
           cwd,
-          env: { OPENPLANE_WORKTREE_PORT: "45678" },
+          env: { OPENBEAM_WORKTREE_PORT: "45678" },
         });
         const session = await manager.createTerminal({ cwd });
         for (
@@ -154,7 +154,7 @@ describe("TerminalManager", () => {
         ) {
           session.send({
             type: "input",
-            data: `printf '%s' "$OPENPLANE_WORKTREE_PORT" > ${JSON.stringify(markerPath)}\r`,
+            data: `printf '%s' "$OPENBEAM_WORKTREE_PORT" > ${JSON.stringify(markerPath)}\r`,
           });
           await new Promise((resolve) => setTimeout(resolve, 100));
         }
@@ -177,7 +177,7 @@ describe("TerminalManager", () => {
 
         manager.registerCwdEnv({
           cwd: rootCwd,
-          env: { OPENPLANE_WORKTREE_PORT: "45679" },
+          env: { OPENBEAM_WORKTREE_PORT: "45679" },
         });
         const session = await manager.createTerminal({ cwd: subdirCwd });
         for (
@@ -187,7 +187,7 @@ describe("TerminalManager", () => {
         ) {
           session.send({
             type: "input",
-            data: `printf '%s' "$OPENPLANE_WORKTREE_PORT" > ${JSON.stringify(markerPath)}\r`,
+            data: `printf '%s' "$OPENBEAM_WORKTREE_PORT" > ${JSON.stringify(markerPath)}\r`,
           });
           await new Promise((resolve) => setTimeout(resolve, 100));
         }

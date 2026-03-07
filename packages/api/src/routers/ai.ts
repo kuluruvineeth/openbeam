@@ -2,13 +2,9 @@ import type {
   RegisteredTool,
   SkillDiscoveryInfo,
   SkillLoadResult,
-} from "@openplane/ai";
-import {
-  SkillCategorySchema,
-  skillRegistry,
-  toolRegistry,
-} from "@openplane/ai";
-import { getTeamUsageSummary } from "@openplane/db";
+} from "@openbeam/ai";
+import { SkillCategorySchema, skillRegistry, toolRegistry } from "@openbeam/ai";
+import { getTeamUsageSummary } from "@openbeam/db";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter } from "../index";

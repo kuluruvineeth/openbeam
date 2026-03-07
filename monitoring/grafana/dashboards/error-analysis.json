@@ -422,7 +422,7 @@
   "refresh": "10s",
   "schemaVersion": 16,
   "style": "dark",
-  "tags": ["openplane", "errors", "analysis"],
+  "tags": ["openbeam", "errors", "analysis"],
   "templating": {
     "list": [
       {
@@ -512,7 +512,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "OpenPlane Error Analysis",
+  "title": "OpenBeam Error Analysis",
   "uid": "error-analysis",
   "version": 2
 }

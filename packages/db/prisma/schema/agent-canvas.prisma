@@ -103,7 +103,7 @@ model AgentCanvasExecution {
   error  String?
 
   currentNodeId String?
-  trace         Json     @default("{}")
+  trace         Json    @default("{}")
 
   tokenUsage Json?
   latencyMs  Int?

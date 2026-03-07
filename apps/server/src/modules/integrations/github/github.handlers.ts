@@ -1,5 +1,5 @@
 import type { RouteHandler } from "@hono/zod-openapi";
-import { GitHubAuth } from "@openplane/services";
+import { GitHubAuth } from "@openbeam/services";
 import type { AuthEnv } from "@/middleware/auth";
 import { getTeamId } from "@/middleware/auth";
 import logger from "@/utils/logger";

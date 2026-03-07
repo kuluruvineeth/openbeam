@@ -1,8 +1,8 @@
-import { aiMetricsRegistry } from "@openplane/ai";
-import { apiStreamRegistry } from "@openplane/api/observability/runtime-stream-metrics";
-import { sessionStreamRegistry } from "@openplane/redis";
-import { getOverviewRegistry } from "@openplane/services";
-import { canvasMetricsRegistry } from "@openplane/temporal/observability";
+import { aiMetricsRegistry } from "@openbeam/ai";
+import { apiStreamRegistry } from "@openbeam/api/observability/runtime-stream-metrics";
+import { sessionStreamRegistry } from "@openbeam/redis";
+import { getOverviewRegistry } from "@openbeam/services";
+import { canvasMetricsRegistry } from "@openbeam/temporal/observability";
 import { Registry } from "prom-client";
 import { register as serverMetricsRegistry } from "@/metrics";
 import logger from "@/utils/logger";

@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: server
-  namespace: openplane
+  namespace: openbeam
   labels:
     app: server
 spec:
@@ -17,12 +17,12 @@ spec:
     spec:
       initContainers:
         - name: migrate
-          image: openplane/server-dev:latest
+          image: openbeam/server-dev:latest
           imagePullPolicy: IfNotPresent
           command: ["sh", "-c", "cd /app/packages/db && bunx prisma generate && bunx prisma migrate deploy"]
           envFrom:
             - configMapRef:
-                name: openplane-env
+                name: openbeam-env
           resources:
             requests:
               cpu: 50m
@@ -32,13 +32,13 @@ spec:
               memory: 512Mi
       containers:
         - name: server
-          image: openplane/server-dev:latest
+          image: openbeam/server-dev:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
           envFrom:
             - configMapRef:
-                name: openplane-env
+                name: openbeam-env
           env:
             - name: SANDBOX_API_TOKEN
               valueFrom:

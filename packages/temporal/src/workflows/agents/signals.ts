@@ -1,4 +1,4 @@
-import type { TimeoutTier } from "@openplane/types/temporal/agent-timeouts";
+import type { TimeoutTier } from "@openbeam/types/temporal/agent-timeouts";
 import { defineQuery, defineSignal } from "@temporalio/workflow";
 
 export const extendTimeoutSignal =

@@ -5,7 +5,7 @@ import type {
   NotifyFormat,
   NotifyNodeConfig,
   NotifyPriority,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { memo, useCallback } from "react";
 import { cn } from "../../../utils";
 import { AnimatedSizeContainer } from "../../animated-size-container";

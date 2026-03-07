@@ -15,8 +15,8 @@ describe("buildNewAgentRoute", () => {
   });
 
   it("encodes the working directory query parameter", () => {
-    expect(buildNewAgentRoute("srv-1", "/Users/me/dev/openplane")).toBe(
-      "/h/srv-1/agent?workingDir=%2FUsers%2Fme%2Fdev%2Fopenplane"
+    expect(buildNewAgentRoute("srv-1", "/Users/me/dev/openbeam")).toBe(
+      "/h/srv-1/agent?workingDir=%2FUsers%2Fme%2Fdev%2Fopenbeam"
     );
   });
 
@@ -35,23 +35,23 @@ describe("buildNewAgentRoute", () => {
   it("preserves workingDir when adding newNoteAt option", () => {
     expect(
       buildNewAgentRoute("srv-1", {
-        workingDir: "/Users/me/dev/openplane",
+        workingDir: "/Users/me/dev/openbeam",
         newNoteAt: "1700000000000",
       })
     ).toBe(
-      "/h/srv-1/agent?workingDir=%2FUsers%2Fme%2Fdev%2Fopenplane&newNoteAt=1700000000000"
+      "/h/srv-1/agent?workingDir=%2FUsers%2Fme%2Fdev%2Fopenbeam&newNoteAt=1700000000000"
     );
   });
 
   it("preserves all route options when opening auto-dictate new note", () => {
     expect(
       buildNewAgentRoute("srv-1", {
-        workingDir: "/Users/me/dev/openplane",
+        workingDir: "/Users/me/dev/openbeam",
         newNoteAt: "1700000000000",
         autoDictateAt: "1700000000000",
       })
     ).toBe(
-      "/h/srv-1/agent?workingDir=%2FUsers%2Fme%2Fdev%2Fopenplane&newNoteAt=1700000000000&autoDictateAt=1700000000000"
+      "/h/srv-1/agent?workingDir=%2FUsers%2Fme%2Fdev%2Fopenbeam&newNoteAt=1700000000000&autoDictateAt=1700000000000"
     );
   });
 });
@@ -63,27 +63,27 @@ describe("resolveNewAgentWorkingDir", () => {
 
   it("falls back to repo root when checkout metadata is unavailable", () => {
     expect(
-      resolveNewAgentWorkingDir("/repo/.openplane/worktrees/feature", null)
+      resolveNewAgentWorkingDir("/repo/.openbeam/worktrees/feature", null)
     ).toBe("/repo");
   });
 
-  it("supports windows-style openplane worktree paths without checkout metadata", () => {
+  it("supports windows-style openbeam worktree paths without checkout metadata", () => {
     expect(
       resolveNewAgentWorkingDir(
-        "C:\\Users\\me\\repo\\.openplane\\worktrees\\feature",
+        "C:\\Users\\me\\repo\\.openbeam\\worktrees\\feature",
         null
       )
     ).toBe("C:\\Users\\me\\repo");
   });
 
-  it("returns the main repo root for openplane-owned worktrees", () => {
+  it("returns the main repo root for openbeam-owned worktrees", () => {
     const checkout = {
-      isOpenPlaneOwnedWorktree: true,
+      isOpenBeamOwnedWorktree: true,
       mainRepoRoot: "/repo/main",
     } as CheckoutStatusPayload;
 
     expect(
-      resolveNewAgentWorkingDir("/repo/.openplane/worktrees/feature", checkout)
+      resolveNewAgentWorkingDir("/repo/.openbeam/worktrees/feature", checkout)
     ).toBe("/repo/main");
   });
 });

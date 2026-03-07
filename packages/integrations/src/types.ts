@@ -3,14 +3,14 @@ export type {
   AuthType as AuthTypeEnum,
   ConnectorType as ConnectorTypeEnum,
   SyncMode as SyncModeEnum,
-} from "@openplane/types/connectors";
+} from "@openbeam/types/connectors";
 export {
   AppTypeSchema,
   AuthTypeSchema,
   ConnectorTypeSchema,
   DocumentTypeCategorySchema,
   SyncModeSchema,
-} from "@openplane/types/connectors";
+} from "@openbeam/types/connectors";
 export type {
   ApiKeyConfig,
   AppSettingsItem,
@@ -27,7 +27,7 @@ export type {
   SettingValue,
   StreamDefinition,
   UnifiedApp,
-} from "@openplane/types/integrations";
+} from "@openbeam/types/integrations";
 
 export enum ConnectorType {
   SOURCE = "SOURCE",

@@ -3,7 +3,7 @@ import type {
   MCPResourceDefinition,
   MCPResourceReadResult,
   MCPResourceTemplate,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import {
   defineConnectorsResource,
   defineDocumentResourceTemplate,
@@ -134,7 +134,7 @@ export interface AgentResourceServices {
 
 export function defineTeamStatsResource(): MCPResourceDefinition {
   return {
-    uri: "openplane://team/stats",
+    uri: "openbeam://team/stats",
     name: "Team Statistics",
     description: "Current team usage statistics and metrics",
     mimeType: "application/json",
@@ -143,7 +143,7 @@ export function defineTeamStatsResource(): MCPResourceDefinition {
 
 export function defineMemoryStatsResource(): MCPResourceDefinition {
   return {
-    uri: "openplane://memory/stats",
+    uri: "openbeam://memory/stats",
     name: "Memory Statistics",
     description:
       "Agent memory store statistics (episodic, semantic, procedural)",
@@ -153,7 +153,7 @@ export function defineMemoryStatsResource(): MCPResourceDefinition {
 
 export function defineConnectorResourceTemplate(): MCPResourceTemplate {
   return {
-    uriTemplate: "openplane://connectors/{connectorId}",
+    uriTemplate: "openbeam://connectors/{connectorId}",
     name: "Connector Details",
     description: "Detailed information about a specific connector",
     mimeType: "application/json",
@@ -162,7 +162,7 @@ export function defineConnectorResourceTemplate(): MCPResourceTemplate {
 
 export function defineConnectorSyncHistoryTemplate(): MCPResourceTemplate {
   return {
-    uriTemplate: "openplane://connectors/{connectorId}/history",
+    uriTemplate: "openbeam://connectors/{connectorId}/history",
     name: "Connector Sync History",
     description: "Recent sync history for a specific connector",
     mimeType: "application/json",
@@ -490,11 +490,11 @@ export function createConnectorHistoryHandler(
   };
 }
 
-const DOCUMENT_URI_REGEX = /^openplane:\/\/documents\/([^/]+)$/;
-const SEARCH_URI_REGEX = /^openplane:\/\/search\/([^/]+)$/;
-const CONNECTOR_URI_REGEX = /^openplane:\/\/connectors\/([^/]+)$/;
+const DOCUMENT_URI_REGEX = /^openbeam:\/\/documents\/([^/]+)$/;
+const SEARCH_URI_REGEX = /^openbeam:\/\/search\/([^/]+)$/;
+const CONNECTOR_URI_REGEX = /^openbeam:\/\/connectors\/([^/]+)$/;
 const CONNECTOR_HISTORY_URI_REGEX =
-  /^openplane:\/\/connectors\/([^/]+)\/history$/;
+  /^openbeam:\/\/connectors\/([^/]+)\/history$/;
 
 function extractDocumentId(uri: string): string | null {
   const match = uri.match(DOCUMENT_URI_REGEX);

@@ -1,7 +1,7 @@
 import {
   ProfileUpdateInputSchema,
   type ProfileUpdateOutput,
-} from "@openplane/types/temporal/workflows";
+} from "@openbeam/types/temporal/workflows";
 import { proxyActivities } from "@temporalio/workflow";
 import type { ProfileUpdateActivities } from "../../activities/personalization/types";
 

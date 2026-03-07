@@ -5,7 +5,7 @@ import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
-import { Button, TooltipProvider } from "@openplane/ui";
+import { Button, TooltipProvider } from "@openbeam/ui";
 import { Icons } from "@/components/icons";
 import {
   clearHighlights,

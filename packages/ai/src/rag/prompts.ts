@@ -2,7 +2,7 @@ import type {
   ExtractedEntity,
   QueryAnalysis,
   TemporalContext,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 
 export interface PromptContext {
   query: QueryAnalysis;

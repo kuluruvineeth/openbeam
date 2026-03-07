@@ -2,7 +2,7 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: engine-gpu
-  namespace: openplane-engine
+  namespace: openbeam-engine
   labels:
     app.kubernetes.io/name: engine-gpu
     app.kubernetes.io/component: gpu-service

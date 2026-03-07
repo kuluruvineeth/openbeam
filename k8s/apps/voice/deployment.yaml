@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: voice-agent
-  namespace: openplane
+  namespace: openbeam
   labels:
     app: voice-agent
 spec:
@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: voice-agent
-          image: openplane/voice
+          image: openbeam/voice
           ports:
             - containerPort: 9092
               name: metrics
@@ -67,7 +67,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: voice-agent
-  namespace: openplane
+  namespace: openbeam
 spec:
   selector:
     app: voice-agent

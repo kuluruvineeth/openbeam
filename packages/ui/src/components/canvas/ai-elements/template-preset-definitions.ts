@@ -2,7 +2,7 @@ import type {
   TemplateNodeConfig,
   TemplatePreset,
   TemplateVariable,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 
 interface PresetDefinition {
   id: TemplatePreset;

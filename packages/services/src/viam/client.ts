@@ -1,5 +1,5 @@
-import { type RateLimitConfig, rateLimiter } from "@openplane/redis";
-import type { ViamClientConfig } from "@openplane/types/services/connectors/viam";
+import { type RateLimitConfig, rateLimiter } from "@openbeam/redis";
+import type { ViamClientConfig } from "@openbeam/types/services/connectors/viam";
 import { logger } from "../lib/logger";
 import { ViamApiError } from "./types";
 

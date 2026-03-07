@@ -9,7 +9,7 @@ export const ProviderIdSchema = z.enum([
   "twelvelabs",
   "cohere",
   "voyage",
-  "openplane",
+  "openbeam",
   "elevenlabs",
   "cartesia",
   "playht",

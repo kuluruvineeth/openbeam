@@ -51,8 +51,8 @@ describe("terminal-emulator-runtime", () => {
   const originalWindow = (globalThis as { window?: unknown }).window;
 
   beforeEach(() => {
-    (globalThis as { window?: { __openplaneTerminal?: unknown } }).window = {
-      __openplaneTerminal: undefined,
+    (globalThis as { window?: { __openbeamTerminal?: unknown } }).window = {
+      __openbeamTerminal: undefined,
     };
   });
 

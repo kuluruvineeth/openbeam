@@ -1,4 +1,4 @@
-import type { ToolExecutionResult } from "@openplane/types/ai";
+import type { ToolExecutionResult } from "@openbeam/types/ai";
 import { z } from "zod";
 import type { SessionState } from "../../../memory/session-state";
 import { defineTool, failure, success } from "../../builder";

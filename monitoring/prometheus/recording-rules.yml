@@ -1,17 +1,17 @@
 groups:
-  - name: openplane_recording_rules
+  - name: openbeam_recording_rules
     interval: 30s
     rules:
-      - record: openplane:http_request_rate_5m
+      - record: openbeam:http_request_rate_5m
         expr: sum(rate(http_request_duration_seconds_count[5m]))
 
-      - record: openplane:http_error_rate_5m
+      - record: openbeam:http_error_rate_5m
         expr: |
           sum(rate(http_request_duration_seconds_count{status_code=~"5.."}[5m]))
           /
           clamp_min(sum(rate(http_request_duration_seconds_count[5m])), 1)
 
-      - record: openplane:http_latency_p95_5m
+      - record: openbeam:http_latency_p95_5m
         expr: |
           histogram_quantile(
             0.95,

@@ -12,12 +12,12 @@ function main() {
   const repoRoot = path.resolve(__dirname, "../../..");
   const outPath = path.join(
     repoRoot,
-    "packages/website/public/schemas/openplane.config.v1.json"
+    "packages/website/public/schemas/openbeam.config.v1.json"
   );
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
 
   const schema = zodToJsonSchema(PersistedConfigSchema, {
-    name: "OpenPlaneConfigV1",
+    name: "OpenBeamConfigV1",
   });
 
   fs.writeFileSync(outPath, `${JSON.stringify(schema, null, 2)}\n`, "utf8");

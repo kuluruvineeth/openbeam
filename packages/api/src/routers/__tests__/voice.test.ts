@@ -16,9 +16,9 @@ const dbProxy = new Proxy(
   }
 );
 
-mock.module("@openplane/db", () => dbProxy);
-mock.module("@openplane/services", () => dbProxy);
-mock.module("@openplane/redis", () => ({
+mock.module("@openbeam/db", () => dbProxy);
+mock.module("@openbeam/services", () => dbProxy);
+mock.module("@openbeam/redis", () => ({
   default: {},
   rateLimiter: { checkConnectorRateLimit: noopFn },
   redis: {},

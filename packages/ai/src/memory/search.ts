@@ -1,4 +1,4 @@
-import type { PersistentMemorySearchOptions } from "@openplane/types/ai";
+import type { PersistentMemorySearchOptions } from "@openbeam/types/ai";
 import type {
   EmbeddingProvider,
   VectorSearchResult,

@@ -37,9 +37,9 @@ type MarkdownComponents = {
 const markdownVariants = cva("", {
   variants: {
     variant: {
-      default: "prose-openplane",
-      compact: "prose-openplane-compact",
-      agent: "prose-openplane-agent",
+      default: "prose-openbeam",
+      compact: "prose-openbeam-compact",
+      agent: "prose-openbeam-agent",
     },
     size: {
       sm: "[&_li]:text-xs [&_p]:text-xs [&_td]:text-xs [&_th]:text-xs",

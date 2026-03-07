@@ -2,7 +2,7 @@ import {
   type ExecutionPlanNode,
   type ExecutionTrace,
   TryCatchNodeConfigSchema,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { ApplicationFailure } from "@temporalio/workflow";
 import { currentTimestamp } from "../../temporal-utils";
 

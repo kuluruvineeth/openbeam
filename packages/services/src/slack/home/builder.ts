@@ -252,7 +252,7 @@ function buildFooter(): KnownBlock[] {
       elements: [
         {
           type: "mrkdwn",
-          text: `<${getAppUrl()}|Open OpenPlane> · <${getHelpUrl()}|Help & Support>`,
+          text: `<${getAppUrl()}|Open OpenBeam> · <${getHelpUrl()}|Help & Support>`,
         },
       ],
     },
@@ -612,7 +612,7 @@ function getScopeLabel(scope: string): string {
 }
 
 function getAppUrl(): string {
-  return process.env.WEB_APP_URL ?? "https://app.openplane.com";
+  return process.env.WEB_APP_URL ?? "https://app.openbeam.com";
 }
 
 function getHelpUrl(): string {

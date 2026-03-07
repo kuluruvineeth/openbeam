@@ -2,7 +2,7 @@ import Foundation
 
 enum StdoutWriter {
     private static let queue = DispatchQueue(
-        label: "com.openplane.swifthelper.stdout",
+        label: "com.openbeam.swifthelper.stdout",
         qos: .userInteractive
     )
 

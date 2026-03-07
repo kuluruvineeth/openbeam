@@ -3,12 +3,12 @@ import { type ChildProcess, spawn } from "node:child_process";
 import net from "node:net";
 import path from "node:path";
 import { Writable } from "node:stream";
-import { createClientChannel, type Transport } from "@openplane/relay/e2ee";
+import { createClientChannel, type Transport } from "@openbeam/relay/e2ee";
 import pino from "pino";
 import { describe, expect, test } from "vitest";
 import WebSocket from "ws";
 import { buildRelayWebSocketUrl } from "../shared/daemon-endpoints";
-import { createTestOpenPlaneDaemon } from "../test-utils/openplane-daemon";
+import { createTestOpenBeamDaemon } from "../test-utils/openbeam-daemon";
 
 const nodeMajor = Number((process.versions.node ?? "0").split(".")[0] ?? "0");
 const shouldRunRelayE2e = process.env.FORCE_RELAY_E2E === "1" || nodeMajor < 25;
@@ -210,12 +210,12 @@ async function waitForRelayWebSocketReady(
     };
 
     test("daemon connects to relay and client ping/pong works through relay", async () => {
-      process.env.OPENPLANE_PRIMARY_LAN_IP = "192.168.1.12";
+      process.env.OPENBEAM_PRIMARY_LAN_IP = "192.168.1.12";
 
       const { logger, lines } = createCapturingLogger();
       await startRelay();
 
-      const daemon = await createTestOpenPlaneDaemon({
+      const daemon = await createTestOpenBeamDaemon({
         listen: "127.0.0.1",
         logger,
         relayEnabled: true,
@@ -317,12 +317,12 @@ async function waitForRelayWebSocketReady(
     }, 90_000);
 
     test("daemon keeps relay socket open while idle (no handshake timeout loop)", async () => {
-      process.env.OPENPLANE_PRIMARY_LAN_IP = "192.168.1.12";
+      process.env.OPENBEAM_PRIMARY_LAN_IP = "192.168.1.12";
 
       const { logger, lines } = createCapturingLogger();
       await startRelay();
 
-      const daemon = await createTestOpenPlaneDaemon({
+      const daemon = await createTestOpenBeamDaemon({
         listen: "127.0.0.1",
         logger,
         relayEnabled: true,

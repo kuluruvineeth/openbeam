@@ -8,7 +8,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@openplane/ui";
+} from "@openbeam/ui";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 

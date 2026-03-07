@@ -37,7 +37,7 @@ const FEATURES = [
   {
     title: "Open Source",
     description: "Read every line. Change any line.",
-    href: "https://github.com/openbeam/openbeam",
+    href: "https://github.com/kuluruvineeth/openbeam",
     external: true,
   },
 ];
@@ -49,7 +49,7 @@ const NAV_ITEMS = [
   { label: "Docs", href: "https://docs.openbeam.work", external: true },
   {
     label: "GitHub",
-    href: "https://github.com/openbeam/openbeam",
+    href: "https://github.com/kuluruvineeth/openbeam",
     external: true,
     icon: "star" as const,
   },

@@ -1,5 +1,5 @@
 {
-  "extends": "@openplane/config/tsconfig.base.json",
+  "extends": "@openbeam/config/tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src"

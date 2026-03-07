@@ -38,7 +38,7 @@ description: Common MQTT connector issues and how to fix them.
     Two clients using the same Client ID causes the broker to disconnect one.
 
     **Fix:**
-    - OpenPlane generates a unique Client ID per connector instance. If you see disconnection loops, check that no other client is using the same ID
+    - OpenBeam generates a unique Client ID per connector instance. If you see disconnection loops, check that no other client is using the same ID
     - Increase the broker's `keepalive` interval if the connector is behind a NAT with aggressive timeout
   </Accordion>
 </Accordions>
@@ -112,7 +112,7 @@ description: Common MQTT connector issues and how to fix them.
     **Fix:**
     1. Verify devices publish compliant Sparkplug B payloads using the [Sparkplug B specification](https://sparkplug.eclipse.org/)
     2. Check the topic namespace follows `spBv1.0/{group_id}/{message_type}/{edge_node_id}/{device_id}`
-    3. Use a Sparkplug-aware MQTT client to validate payloads before connecting to OpenPlane
+    3. Use a Sparkplug-aware MQTT client to validate payloads before connecting to OpenBeam
   </Accordion>
 
   <Accordion title="Missing DBIRTH/NBIRTH messages">
@@ -166,7 +166,7 @@ openssl s_client -connect broker-host:8883 -brief
 openssl s_client -connect broker-host:8883 2>/dev/null | openssl x509 -noout -dates
 ```
 
-Still stuck? [Open an issue](https://github.com/kuluruvineeth/openplane/issues) with the broker type, connection settings (redact credentials), and error messages.
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openbeam/issues) with the broker type, connection settings (redact credentials), and error messages.
 
 <Cards>
   <Card title="Setup" href="/docs/connectors/mqtt/setup" description="Reconfigure broker connection and topics" />

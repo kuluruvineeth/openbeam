@@ -1,8 +1,8 @@
-import { type RateLimitConfig, rateLimiter } from "@openplane/redis";
+import { type RateLimitConfig, rateLimiter } from "@openbeam/redis";
 import type {
   RateLimitState,
   SlackClientConfig,
-} from "@openplane/types/services/connectors/slack";
+} from "@openbeam/types/services/connectors/slack";
 import { LogLevel, WebClient, type WebClientOptions } from "@slack/web-api";
 import { logger } from "../lib/logger";
 import { SlackApiError, SlackErrorCodes } from "./types";

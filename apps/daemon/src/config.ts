@@ -8,13 +8,13 @@ import {
   mergeAllowedHosts,
   parseAllowedHostsEnv,
 } from "./allowed-hosts";
-import type { OpenPlaneDaemonConfig } from "./bootstrap";
+import type { OpenBeamDaemonConfig } from "./bootstrap";
 import { loadPersistedConfig } from "./persisted-config";
 import { resolveSpeechConfig } from "./speech/speech-config-resolver";
 
 const DEFAULT_PORT = 6767;
-const DEFAULT_RELAY_ENDPOINT = "relay.openplane.sh:443";
-const DEFAULT_APP_BASE_URL = "https://app.openplane.sh";
+const DEFAULT_RELAY_ENDPOINT = "relay.openbeam.sh:443";
+const DEFAULT_APP_BASE_URL = "https://app.openbeam.sh";
 const DEFAULT_NATIVE_HELPER_RPC_TIMEOUT_MS = 5000;
 
 function getDefaultListen(): string {
@@ -27,11 +27,11 @@ function getDefaultNativeHelperBinaryName(platform: NodeJS.Platform): string {
 }
 
 function resolveDefaultNativeHelperCommand(
-  openplaneHome: string,
+  openbeamHome: string,
   platform: NodeJS.Platform = process.platform
 ): string | null {
   const candidate = path.join(
-    openplaneHome,
+    openbeamHome,
     "bin",
     getDefaultNativeHelperBinaryName(platform)
   );
@@ -129,35 +129,35 @@ function parseNativeHelperArgs(
 }
 
 export function loadConfig(
-  openplaneHome: string,
+  openbeamHome: string,
   options?: {
     env?: NodeJS.ProcessEnv;
     cli?: CliConfigOverrides;
   }
-): OpenPlaneDaemonConfig {
+): OpenBeamDaemonConfig {
   const env = options?.env ?? process.env;
-  const persisted = loadPersistedConfig(openplaneHome);
+  const persisted = loadPersistedConfig(openbeamHome);
 
-  // OPENPLANE_LISTEN can be:
+  // OPENBEAM_LISTEN can be:
   // - host:port (TCP)
   // - /path/to/socket (Unix socket)
   // - unix:///path/to/socket (Unix socket)
   // Default is TCP at 127.0.0.1:6767
   const listen =
     options?.cli?.listen ??
-    env.OPENPLANE_LISTEN ??
+    env.OPENBEAM_LISTEN ??
     persisted.daemon?.listen ??
     getDefaultListen();
 
-  const envCorsOrigins = env.OPENPLANE_CORS_ORIGINS
-    ? env.OPENPLANE_CORS_ORIGINS.split(",").map((s) => s.trim())
+  const envCorsOrigins = env.OPENBEAM_CORS_ORIGINS
+    ? env.OPENBEAM_CORS_ORIGINS.split(",").map((s) => s.trim())
     : [];
 
   const persistedCorsOrigins = persisted.daemon?.cors?.allowedOrigins ?? [];
 
   const allowedHosts = mergeAllowedHosts([
     persisted.daemon?.allowedHosts,
-    parseAllowedHostsEnv(env.OPENPLANE_ALLOWED_HOSTS),
+    parseAllowedHostsEnv(env.OPENBEAM_ALLOWED_HOSTS),
     options?.cli?.allowedHosts,
   ]);
 
@@ -168,49 +168,47 @@ export function loadConfig(
     options?.cli?.relayEnabled ?? persisted.daemon?.relay?.enabled ?? true;
 
   const relayEndpoint =
-    env.OPENPLANE_RELAY_ENDPOINT ??
+    env.OPENBEAM_RELAY_ENDPOINT ??
     persisted.daemon?.relay?.endpoint ??
     DEFAULT_RELAY_ENDPOINT;
 
   const relayPublicEndpoint =
-    env.OPENPLANE_RELAY_PUBLIC_ENDPOINT ??
+    env.OPENBEAM_RELAY_PUBLIC_ENDPOINT ??
     persisted.daemon?.relay?.publicEndpoint ??
     relayEndpoint;
 
   const persistedNativeHelper = persisted.daemon?.nativeHelper;
   const defaultNativeHelperCommand =
-    resolveDefaultNativeHelperCommand(openplaneHome);
+    resolveDefaultNativeHelperCommand(openbeamHome);
   const nativeHelperEnabled =
     options?.cli?.nativeHelperEnabled ??
-    parseBooleanEnv(env.OPENPLANE_NATIVE_HELPER_ENABLED) ??
+    parseBooleanEnv(env.OPENBEAM_NATIVE_HELPER_ENABLED) ??
     persistedNativeHelper?.enabled ??
     defaultNativeHelperCommand !== null;
   const nativeHelperCommand =
-    normalizeOptionalString(env.OPENPLANE_NATIVE_HELPER_COMMAND) ??
+    normalizeOptionalString(env.OPENBEAM_NATIVE_HELPER_COMMAND) ??
     normalizeOptionalString(persistedNativeHelper?.command) ??
     defaultNativeHelperCommand;
   const nativeHelperArgs =
-    parseNativeHelperArgs(env.OPENPLANE_NATIVE_HELPER_ARGS) ??
+    parseNativeHelperArgs(env.OPENBEAM_NATIVE_HELPER_ARGS) ??
     persistedNativeHelper?.args ??
     [];
   const nativeHelperRpcTimeoutMs =
-    parsePositiveInteger(env.OPENPLANE_NATIVE_HELPER_RPC_TIMEOUT_MS) ??
+    parsePositiveInteger(env.OPENBEAM_NATIVE_HELPER_RPC_TIMEOUT_MS) ??
     parsePositiveInteger(persistedNativeHelper?.rpcTimeoutMs) ??
     DEFAULT_NATIVE_HELPER_RPC_TIMEOUT_MS;
 
   const appBaseUrl =
-    env.OPENPLANE_APP_BASE_URL ??
-    persisted.app?.baseUrl ??
-    DEFAULT_APP_BASE_URL;
+    env.OPENBEAM_APP_BASE_URL ?? persisted.app?.baseUrl ?? DEFAULT_APP_BASE_URL;
 
   const { openai, speech } = resolveSpeechConfig({
-    openplaneHome,
+    openbeamHome,
     env,
     persisted,
   });
 
   const envVoiceLlmProvider = parseOptionalVoiceLlmProvider(
-    env.OPENPLANE_VOICE_LLM_PROVIDER
+    env.OPENBEAM_VOICE_LLM_PROVIDER
   );
   const persistedVoiceLlmProvider = parseOptionalVoiceLlmProvider(
     persisted.features?.voiceMode?.llm?.provider
@@ -223,7 +221,7 @@ export function loadConfig(
 
   return {
     listen,
-    openplaneHome,
+    openbeamHome,
     corsAllowedOrigins: Array.from(
       new Set(
         [...persistedCorsOrigins, ...envCorsOrigins].filter((s) => s.length > 0)
@@ -232,7 +230,7 @@ export function loadConfig(
     allowedHosts,
     mcpEnabled,
     mcpDebug: env.MCP_DEBUG === "1",
-    agentStoragePath: path.join(openplaneHome, "agents"),
+    agentStoragePath: path.join(openbeamHome, "agents"),
     staticDir: "public",
     agentClients: {},
     relayEnabled,

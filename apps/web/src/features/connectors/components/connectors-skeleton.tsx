@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, Skeleton } from "@openplane/ui";
+import { Card, Skeleton } from "@openbeam/ui";
 
 export function ConnectorsPageSkeleton() {
   return (

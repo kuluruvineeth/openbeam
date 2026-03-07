@@ -55,7 +55,7 @@ export type DaemonSpeechConfig = {
 
 export type DaemonConfig = {
   listen: string;
-  openplaneHome: string;
+  openbeamHome: string;
   corsAllowedOrigins: string[];
   allowedHosts?: AllowedHostsConfig;
   mcpEnabled?: boolean;

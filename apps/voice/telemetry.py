@@ -11,43 +11,43 @@ from prometheus_client import (
 voice_registry = CollectorRegistry()
 
 SESSION_DURATION = Histogram(
-    "openplane_voice_session_duration_seconds",
+    "openbeam_voice_session_duration_seconds",
     "Voice session duration",
     ["room_type", "status"],
     registry=voice_registry,
 )
 STT_LATENCY = Histogram(
-    "openplane_voice_stt_latency_seconds",
+    "openbeam_voice_stt_latency_seconds",
     "Speech-to-text latency",
     ["provider", "model"],
     registry=voice_registry,
 )
 TTS_LATENCY = Histogram(
-    "openplane_voice_tts_latency_seconds",
+    "openbeam_voice_tts_latency_seconds",
     "Text-to-speech latency",
     ["provider", "model"],
     registry=voice_registry,
 )
 LLM_TTFT = Histogram(
-    "openplane_voice_llm_ttft_seconds",
+    "openbeam_voice_llm_ttft_seconds",
     "LLM time to first token",
     ["model"],
     registry=voice_registry,
 )
 TOOL_CALLS = Counter(
-    "openplane_voice_tool_calls_total",
+    "openbeam_voice_tool_calls_total",
     "Voice agent tool calls",
     ["tool_name", "status"],
     registry=voice_registry,
 )
 ACTIVE_SESSIONS = Gauge(
-    "openplane_voice_sessions_active",
+    "openbeam_voice_sessions_active",
     "Active voice sessions",
     ["room_type"],
     registry=voice_registry,
 )
 INTERRUPTIONS = Counter(
-    "openplane_voice_interruptions_total",
+    "openbeam_voice_interruptions_total",
     "Voice agent interruptions",
     ["room_type"],
     registry=voice_registry,

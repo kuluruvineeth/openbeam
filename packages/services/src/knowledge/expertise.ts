@@ -1,4 +1,4 @@
-import type { Database, Entity } from "@openplane/db";
+import type { Database, Entity } from "@openbeam/db";
 import {
   type EvidenceItem,
   getEntityRelationByFromToAndType,
@@ -7,7 +7,7 @@ import {
   listAllExpertiseRelationsByPerson,
   updateEntity,
   upsertEntityRelation,
-} from "@openplane/db";
+} from "@openbeam/db";
 
 export interface ExpertiseUpdate {
   personId: string;

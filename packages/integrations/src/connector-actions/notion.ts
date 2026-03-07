@@ -1,4 +1,4 @@
-import type { ConnectorActionsRegistry } from "@openplane/types/canvas";
+import type { ConnectorActionsRegistry } from "@openbeam/types/canvas";
 
 export const notionActionsRegistry: ConnectorActionsRegistry = {
   connectorType: "notion",

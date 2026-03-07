@@ -67,7 +67,7 @@ RETURNS: Import summary with total rows, imported count, skipped count, and any 
     const startTime = performance.now();
 
     const { getTeamDuckDB, initializeEAVSchema, importCSV, importJSON } =
-      await import("@openplane/services");
+      await import("@openbeam/services");
 
     const db = await getTeamDuckDB(ctx.teamId);
     await initializeEAVSchema(db);

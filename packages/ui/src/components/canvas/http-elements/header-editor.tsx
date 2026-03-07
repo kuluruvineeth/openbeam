@@ -1,6 +1,6 @@
 "use client";
 
-import type { KeyValuePair } from "@openplane/types/canvas";
+import type { KeyValuePair } from "@openbeam/types/canvas";
 import { forwardRef, memo } from "react";
 import { KeyValueEditor } from "./key-value-editor";
 

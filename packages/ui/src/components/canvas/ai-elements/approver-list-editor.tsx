@@ -1,6 +1,6 @@
 "use client";
 
-import type { Approver } from "@openplane/types/canvas";
+import type { Approver } from "@openbeam/types/canvas";
 import { memo, useCallback, useState } from "react";
 import { cn } from "../../../utils";
 import { getInitials } from "../../../utils/format";

@@ -2,7 +2,7 @@ import {
   type GmailHistoryListResponse,
   GmailHistoryListResponseSchema,
   type GmailHistoryRecord,
-} from "@openplane/types/services/connectors/gmail";
+} from "@openbeam/types/services/connectors/gmail";
 import type { GmailClient } from "../client";
 import { GmailApiError, GmailErrorCodes } from "../types";
 

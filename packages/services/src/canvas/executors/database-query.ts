@@ -6,7 +6,7 @@ import {
   DatabaseQueryNodeConfigSchema,
   type QueryOutputFormat,
   type QueryParameter,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import type { Pool as MySqlPool, PoolConnection } from "mysql2/promise";
 import { createPool } from "mysql2/promise";
 import { type QueryResult as PgQueryResult, Pool, type PoolClient } from "pg";
@@ -44,8 +44,8 @@ type DatabaseQueryOutput = {
   error?: string;
 };
 
-const CONNECTIONS_ENV = "OPENPLANE_CANVAS_DB_CONNECTIONS";
-const CONNECTION_ENV_PREFIX = "OPENPLANE_CANVAS_DB_CONNECTION_";
+const CONNECTIONS_ENV = "OPENBEAM_CANVAS_DB_CONNECTIONS";
+const CONNECTION_ENV_PREFIX = "OPENBEAM_CANVAS_DB_CONNECTION_";
 const SUPPORTED_ENGINES = new Set<DatabaseEngine>([
   "postgresql",
   "mysql",

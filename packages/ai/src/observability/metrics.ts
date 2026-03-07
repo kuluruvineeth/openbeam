@@ -1,59 +1,59 @@
 import type {
   MetricsRecordParams,
   ToolMetricsParams,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import { Counter, Gauge, Histogram, Registry } from "prom-client";
 
 export const TOOL_METRICS = {
-  callsPerTask: "openplane_ai_tool_calls_per_task",
-  successRate: "openplane_ai_tool_success_rate",
-  retryRate: "openplane_ai_tool_retry_rate",
-  avgLatencyMs: "openplane_ai_tool_avg_latency_ms",
+  callsPerTask: "openbeam_ai_tool_calls_per_task",
+  successRate: "openbeam_ai_tool_success_rate",
+  retryRate: "openbeam_ai_tool_retry_rate",
+  avgLatencyMs: "openbeam_ai_tool_avg_latency_ms",
 } as const;
 
 export const AGENT_METRICS = {
-  taskCompletionRate: "openplane_ai_agent_task_completion_rate",
-  verificationPassRate: "openplane_ai_agent_verification_pass_rate",
-  iterationsToCompletion: "openplane_ai_agent_iterations_to_completion",
-  avgStepsPerTask: "openplane_ai_agent_avg_steps_per_task",
+  taskCompletionRate: "openbeam_ai_agent_task_completion_rate",
+  verificationPassRate: "openbeam_ai_agent_verification_pass_rate",
+  iterationsToCompletion: "openbeam_ai_agent_iterations_to_completion",
+  avgStepsPerTask: "openbeam_ai_agent_avg_steps_per_task",
 } as const;
 
 export const RAG_METRICS = {
-  groundingScore: "openplane_ai_rag_grounding_score",
-  citationCoverage: "openplane_ai_rag_citation_coverage",
-  refusalRate: "openplane_ai_rag_refusal_rate",
-  avgRelevanceScore: "openplane_ai_rag_avg_relevance_score",
+  groundingScore: "openbeam_ai_rag_grounding_score",
+  citationCoverage: "openbeam_ai_rag_citation_coverage",
+  refusalRate: "openbeam_ai_rag_refusal_rate",
+  avgRelevanceScore: "openbeam_ai_rag_avg_relevance_score",
 } as const;
 
 export const aiMetricsRegistry = new Registry();
 
 aiMetricsRegistry.setDefaultLabels({
-  app: "openplane",
+  app: "openbeam",
 });
 
 const requestsTotal = new Counter({
-  name: "openplane_ai_requests_total",
+  name: "openbeam_ai_requests_total",
   help: "Total AI requests",
   labelNames: ["provider", "model", "status", "workflow"] as const,
   registers: [aiMetricsRegistry],
 });
 
 const tokensTotal = new Counter({
-  name: "openplane_ai_tokens_total",
+  name: "openbeam_ai_tokens_total",
   help: "Total tokens processed",
   labelNames: ["provider", "model", "type"] as const,
   registers: [aiMetricsRegistry],
 });
 
 const costUsd = new Counter({
-  name: "openplane_ai_cost_usd_total",
+  name: "openbeam_ai_cost_usd_total",
   help: "Total AI cost in USD",
   labelNames: ["provider", "model", "team_id"] as const,
   registers: [aiMetricsRegistry],
 });
 
 const latencyMs = new Histogram({
-  name: "openplane_ai_latency_ms",
+  name: "openbeam_ai_latency_ms",
   help: "AI request latency in milliseconds",
   labelNames: ["provider", "model", "workflow"] as const,
   buckets: [50, 100, 250, 500, 1000, 2500, 5000, 10_000, 30_000],
@@ -61,7 +61,7 @@ const latencyMs = new Histogram({
 });
 
 const firstTokenLatencyMs = new Histogram({
-  name: "openplane_ai_first_token_latency_ms",
+  name: "openbeam_ai_first_token_latency_ms",
   help: "Time to first token in milliseconds",
   labelNames: ["provider", "model"] as const,
   buckets: [50, 100, 250, 500, 1000, 2500, 5000],
@@ -69,21 +69,21 @@ const firstTokenLatencyMs = new Histogram({
 });
 
 const cacheHitRate = new Gauge({
-  name: "openplane_ai_cache_hit_rate",
+  name: "openbeam_ai_cache_hit_rate",
   help: "KV cache hit rate",
   labelNames: ["team_id"] as const,
   registers: [aiMetricsRegistry],
 });
 
 const toolCallsTotal = new Counter({
-  name: "openplane_ai_tool_calls_total",
+  name: "openbeam_ai_tool_calls_total",
   help: "Total tool calls",
   labelNames: ["tool", "category", "status"] as const,
   registers: [aiMetricsRegistry],
 });
 
 const toolLatencyMs = new Histogram({
-  name: "openplane_ai_tool_latency_ms",
+  name: "openbeam_ai_tool_latency_ms",
   help: "Tool execution latency in milliseconds",
   labelNames: ["tool", "category"] as const,
   buckets: [10, 25, 50, 100, 250, 500, 1000, 2500],
@@ -91,21 +91,21 @@ const toolLatencyMs = new Histogram({
 });
 
 const circuitBreakerState = new Gauge({
-  name: "openplane_ai_circuit_breaker_state",
+  name: "openbeam_ai_circuit_breaker_state",
   help: "Circuit breaker state (0=closed, 0.5=half-open, 1=open)",
   labelNames: ["provider"] as const,
   registers: [aiMetricsRegistry],
 });
 
 const activeBackgroundAgents = new Gauge({
-  name: "openplane_ai_background_agents_active",
+  name: "openbeam_ai_background_agents_active",
   help: "Number of active background agents",
   labelNames: ["team_id", "preset"] as const,
   registers: [aiMetricsRegistry],
 });
 
 const backgroundAgentDurationMs = new Histogram({
-  name: "openplane_ai_background_agent_duration_ms",
+  name: "openbeam_ai_background_agent_duration_ms",
   help: "Background agent total duration in milliseconds",
   labelNames: ["preset", "status"] as const,
   buckets: [60_000, 300_000, 600_000, 1_800_000, 3_600_000],
@@ -113,7 +113,7 @@ const backgroundAgentDurationMs = new Histogram({
 });
 
 const skillLoadTime = new Histogram({
-  name: "openplane_ai_skill_load_time_ms",
+  name: "openbeam_ai_skill_load_time_ms",
   help: "Skill loading time in milliseconds",
   labelNames: ["skill_name", "category"] as const,
   buckets: [10, 25, 50, 100, 250, 500],
@@ -121,14 +121,14 @@ const skillLoadTime = new Histogram({
 });
 
 const loadedSkillsCount = new Gauge({
-  name: "openplane_ai_loaded_skills_count",
+  name: "openbeam_ai_loaded_skills_count",
   help: "Number of currently loaded skills",
   labelNames: ["team_id"] as const,
   registers: [aiMetricsRegistry],
 });
 
 const groundingScore = new Histogram({
-  name: "openplane_ai_grounding_score",
+  name: "openbeam_ai_grounding_score",
   help: "RAG answer grounding scores",
   labelNames: ["confidence", "team_id"] as const,
   buckets: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
@@ -136,14 +136,14 @@ const groundingScore = new Histogram({
 });
 
 const ungroundedClaimsTotal = new Counter({
-  name: "openplane_ai_ungrounded_claims_total",
+  name: "openbeam_ai_ungrounded_claims_total",
   help: "Total ungrounded claims detected",
   labelNames: ["team_id", "severity"] as const,
   registers: [aiMetricsRegistry],
 });
 
 const groundingChecksTotal = new Counter({
-  name: "openplane_ai_grounding_checks_total",
+  name: "openbeam_ai_grounding_checks_total",
   help: "Total grounding verification checks",
   labelNames: ["team_id", "result"] as const,
   registers: [aiMetricsRegistry],
@@ -216,14 +216,14 @@ const ragAvgRelevanceScore = new Gauge({
 });
 
 const compositionsLogged = new Counter({
-  name: "openplane_ai_compositions_logged_total",
+  name: "openbeam_ai_compositions_logged_total",
   help: "Total composition events logged",
   labelNames: ["success", "tool_count"] as const,
   registers: [aiMetricsRegistry],
 });
 
 const emergencePatternsDetected = new Counter({
-  name: "openplane_ai_emergence_patterns_detected_total",
+  name: "openbeam_ai_emergence_patterns_detected_total",
   help: "Total emergence patterns detected",
   labelNames: ["status"] as const,
   registers: [aiMetricsRegistry],

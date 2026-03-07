@@ -4,7 +4,7 @@ import type {
   TimelineFilter,
   TimelineStepStatus,
   TimelineViewMode,
-} from "@openplane/types/canvas/timeline";
+} from "@openbeam/types/canvas/timeline";
 import { forwardRef } from "react";
 import { cn } from "../../utils/cn";
 import { Button } from "../button";

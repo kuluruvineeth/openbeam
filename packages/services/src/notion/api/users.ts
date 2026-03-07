@@ -1,7 +1,7 @@
 import type {
   NotionUser,
   NotionUserLookup,
-} from "@openplane/types/services/connectors/notion";
+} from "@openbeam/types/services/connectors/notion";
 import type { NotionClient } from "../client";
 
 interface UsersListResponse {

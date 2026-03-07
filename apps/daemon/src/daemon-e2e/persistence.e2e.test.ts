@@ -91,14 +91,14 @@ describe("daemon E2E - persistence", () => {
 
   test("timeline survives daemon restart", async () => {
     const cwd = tmpCwd();
-    const openplaneHomeRoot = mkdtempSync(
-      path.join(tmpdir(), "openplane-home-root-")
+    const openbeamHomeRoot = mkdtempSync(
+      path.join(tmpdir(), "openbeam-home-root-")
     );
     try {
       // Start daemon with a stable on-disk home so "restart" can observe persisted timeline.
       await ctx.cleanup();
       ctx = await createDaemonTestContext({
-        openplaneHomeRoot,
+        openbeamHomeRoot,
         cleanup: false,
       });
       unsubscribe?.();
@@ -126,7 +126,7 @@ describe("daemon E2E - persistence", () => {
 
       await ctx.cleanup();
       ctx = await createDaemonTestContext({
-        openplaneHomeRoot,
+        openbeamHomeRoot,
         cleanup: false,
       });
       unsubscribe?.();
@@ -149,7 +149,7 @@ describe("daemon E2E - persistence", () => {
       await ctx.cleanup();
       cleaned = true;
       rmSync(cwd, { recursive: true, force: true });
-      rmSync(openplaneHomeRoot, { recursive: true, force: true });
+      rmSync(openbeamHomeRoot, { recursive: true, force: true });
     }
   }, 30_000);
 });

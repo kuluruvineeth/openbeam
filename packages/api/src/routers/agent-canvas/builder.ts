@@ -5,20 +5,20 @@ import {
   streamCanvasBuilder,
   toolRegistry,
   toToolPickerItems,
-} from "@openplane/ai";
+} from "@openbeam/ai";
 import {
   listSessionEvents,
   listSessionEventsAfterSequence,
   updateSessionTitle,
-} from "@openplane/db";
+} from "@openbeam/db";
 import {
   cleanupSessionThrottleCache,
   createSessionRuntimeEventSubscriber,
   rateLimiter,
-} from "@openplane/redis";
-import { logger } from "@openplane/services/lib/logger";
-import { redactToolPayload } from "@openplane/services/policy/redaction-policy";
-import type { RuntimeEvent } from "@openplane/types/canvas/runtime-events";
+} from "@openbeam/redis";
+import { logger } from "@openbeam/services/lib/logger";
+import { redactToolPayload } from "@openbeam/services/policy/redaction-policy";
+import type { RuntimeEvent } from "@openbeam/types/canvas/runtime-events";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { verifySessionOwnership } from "../../middleware/session-auth";

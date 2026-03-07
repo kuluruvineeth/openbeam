@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import type { ErrorCode, ToolExecutionResult } from "@openplane/types/ai";
+import type { ErrorCode, ToolExecutionResult } from "@openbeam/types/ai";
 import {
   createErrorResult,
   createSuccessResult,

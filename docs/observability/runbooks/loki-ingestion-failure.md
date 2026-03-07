@@ -25,7 +25,7 @@ docker compose -f docker-compose.infra.yml logs --tail=300 promtail loki
 3. Verify Grafana Loki datasource connectivity.
 4. Run Loki API smoke query:
 ```bash
-curl -G -s "http://localhost:3100/loki/api/v1/query" --data-urlencode 'query=count_over_time({service=~"openplane-.*"}[5m])'
+curl -G -s "http://localhost:3100/loki/api/v1/query" --data-urlencode 'query=count_over_time({service=~"openbeam-.*"}[5m])'
 ```
 
 ## Diagnosis Checklist

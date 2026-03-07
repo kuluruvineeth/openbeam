@@ -3,7 +3,7 @@ services:
     build:
       context: ./apps/engine
       dockerfile: Dockerfile
-    container_name: openplane-engine
+    container_name: openbeam-engine
     environment:
       DEBUG: "true"
       ENVIRONMENT: development
@@ -12,7 +12,7 @@ services:
       S3_ENDPOINT: http://minio:9000
       S3_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
       S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
-      S3_BUCKET: ${S3_BUCKET:-openplane-files}
+      S3_BUCKET: ${S3_BUCKET:-openbeam-files}
       S3_REGION: us-east-1
     ports:
       - "${ENGINE_PORT:-8000}:8000"
@@ -33,9 +33,9 @@ services:
     build:
       context: .
       dockerfile: apps/worker/Dockerfile
-    container_name: openplane-worker
+    container_name: openbeam-worker
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/openplane}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/openbeam}
       REDIS_URL: redis://redis:6379
       VESPA_URL: http://vespa:8080
       NODE_ENV: ${NODE_ENV:-production}
@@ -48,7 +48,7 @@ services:
       # GCS_PUBLIC_ENDPOINT: Set to a publicly accessible URL (e.g., ngrok) for TwelveLabs video indexing
       GCS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
       GCS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
-      GCS_BUCKET: ${S3_BUCKET:-openplane-files}
+      GCS_BUCKET: ${S3_BUCKET:-openbeam-files}
       GCS_REGION: us-east-1
     ports:
       - "9091:9091" # Metrics
@@ -72,9 +72,9 @@ services:
     build:
       context: .
       dockerfile: apps/server/Dockerfile
-    container_name: openplane-server
+    container_name: openbeam-server
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/openplane}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/openbeam}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3001}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379}
       VESPA_URL: ${VESPA_URL:-http://vespa:8080}
@@ -113,7 +113,7 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
-    container_name: openplane-web
+    container_name: openbeam-web
     environment:
       NEXT_PUBLIC_SERVER_URL: ${NEXT_PUBLIC_SERVER_URL:-http://localhost:3000}
       NODE_ENV: ${NODE_ENV:-production}
@@ -140,7 +140,7 @@ services:
     build:
       context: .
       dockerfile: apps/docs/Dockerfile
-    container_name: openplane-docs
+    container_name: openbeam-docs
     environment:
       NODE_ENV: ${NODE_ENV:-production}
     ports:

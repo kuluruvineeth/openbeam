@@ -3,8 +3,8 @@ import type {
   AgentPermissionRequest,
   AgentProvider,
   ToolCallDetail,
-} from "@openplane/types/services/daemon";
-import type { AgentStreamEventPayload } from "@openplane/types/services/daemon/messages";
+} from "@openbeam/types/services/daemon";
+import type { AgentStreamEventPayload } from "@openbeam/types/services/daemon/messages";
 
 export type StreamItem =
   | UserMessageItem

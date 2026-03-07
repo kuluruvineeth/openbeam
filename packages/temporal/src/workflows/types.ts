@@ -1,8 +1,8 @@
-import type { ExecutionTrace } from "@openplane/types/canvas";
+import type { ExecutionTrace } from "@openbeam/types/canvas";
 import type {
   CanvasApprovalSignalPayload,
   CanvasInputSignalPayload,
-} from "@openplane/types/temporal";
+} from "@openbeam/types/temporal";
 import { defineQuery, defineSignal } from "@temporalio/workflow";
 
 export interface CanvasExecutionQueryState {

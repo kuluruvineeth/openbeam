@@ -15,7 +15,7 @@ import type {
   ResourcesReadParams,
   ToolsCallParams,
   ToolsListResult,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import type { ToolRegistry } from "../tools/registry";
 import { MCPToolBridge } from "./bridge";
 import { PromptRegistry } from "./prompts";

@@ -5,15 +5,15 @@ import {
   embedQueryWithCache,
   registerAllBuiltinTools,
   toolRegistry,
-} from "@openplane/ai";
+} from "@openbeam/ai";
 import {
   type AgentEvent,
   adaptAgentStream,
   StreamTimeoutError,
   withTimeout,
-} from "@openplane/ai/streaming";
-import { registerAllTools } from "@openplane/ai/tools";
-import { getSemanticCache } from "@openplane/redis";
+} from "@openbeam/ai/streaming";
+import { registerAllTools } from "@openbeam/ai/tools";
+import { getSemanticCache } from "@openbeam/redis";
 import { logger as baseLogger } from "../../lib/logger";
 import { createToolServices } from "../tool-binder";
 import {

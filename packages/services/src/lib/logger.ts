@@ -1,4 +1,4 @@
-import { createLogger } from "@openplane/observability";
+import { createLogger } from "@openbeam/observability";
 import type { Logger } from "pino";
 
 const REDACTED_VALUE = "[REDACTED]";
@@ -48,7 +48,7 @@ function redactContext(value: unknown): unknown {
 }
 
 export const logger: Logger = createLogger({
-  service: "openplane-services",
+  service: "openbeam-services",
   env: process.env.NODE_ENV || "development",
   level: process.env.LOG_LEVEL || "info",
   version: process.env.APP_VERSION || "0.1.0",

@@ -1,5 +1,5 @@
 {
-  "name": "@openplane/sandbox",
+  "name": "@openbeam/sandbox",
   "version": "0.0.1",
   "type": "module",
   "exports": {
@@ -17,7 +17,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@openplane/types": "workspace:*",
+    "@openbeam/types": "workspace:*",
     "hono": "catalog:",
     "zod": "catalog:"
   },
@@ -26,7 +26,7 @@
     "redis": "^5.10.0"
   },
   "devDependencies": {
-    "@openplane/config": "workspace:*",
+    "@openbeam/config": "workspace:*",
     "tsdown": "catalog:",
     "typescript": "catalog:"
   }

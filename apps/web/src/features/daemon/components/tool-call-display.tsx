@@ -1,7 +1,7 @@
 "use client";
 
-import { buildToolCallDisplayModel } from "@openplane/types/services/daemon";
-import { cn, Icons } from "@openplane/ui";
+import { buildToolCallDisplayModel } from "@openbeam/types/services/daemon";
+import { cn, Icons } from "@openbeam/ui";
 import { cva } from "class-variance-authority";
 import { useCallback, useMemo, useState } from "react";
 import { buildLineDiff, parseUnifiedDiff } from "../lib/tool-call-parsers";

@@ -1,6 +1,6 @@
 "use client";
 
-import type { TimelineStep as TimelineStepType } from "@openplane/types/canvas/timeline";
+import type { TimelineStep as TimelineStepType } from "@openbeam/types/canvas/timeline";
 import { forwardRef, useMemo } from "react";
 import { cn } from "../../utils/cn";
 import { formatDurationPrecise } from "../../utils/format";

@@ -5,7 +5,7 @@ description: Six composable agent patterns for orchestrating LLM-powered workflo
 
 # Agent Patterns
 
-Agents orchestrate LLM calls, tool invocations, and sub-agent delegation into coherent workflows. OpenPlane provides six composable patterns that can be nested arbitrarily.
+Agents orchestrate LLM calls, tool invocations, and sub-agent delegation into coherent workflows. OpenBeam provides six composable patterns that can be nested arbitrarily.
 
 ## Core Interface
 
@@ -59,7 +59,7 @@ interface AgentExecutionResult {
 Agents share data through `AgentState` -- a key-value map with full history tracking. Each agent reads from `inputRefs` and writes to `outputKey`.
 
 ```typescript
-import { createEmptyState } from "@openplane/ai";
+import { createEmptyState } from "@openbeam/ai";
 
 const state = createEmptyState();
 // state.values: Map<string, unknown>    -- current values
@@ -77,7 +77,7 @@ Single LLM call with tool access. The workhorse pattern for most tasks. Implemen
 **When to use:** Single-turn tasks, tool-augmented Q&A, search, document analysis.
 
 ```typescript
-import { createLlmAgent } from "@openplane/ai";
+import { createLlmAgent } from "@openbeam/ai";
 
 const researchAgent = createLlmAgent({
   type: "llm",
@@ -121,7 +121,7 @@ Pipeline execution: A's output becomes B's input, then B's output becomes C's in
 **When to use:** Multi-step pipelines, research-then-synthesize, extract-transform-load.
 
 ```typescript
-import { createSequentialAgent, createLlmAgent } from "@openplane/ai";
+import { createSequentialAgent, createLlmAgent } from "@openbeam/ai";
 
 const pipeline = createSequentialAgent({
   type: "sequential",
@@ -162,7 +162,7 @@ Concurrent execution of sub-agents on the same input. Results are aggregated usi
 **When to use:** Multiple independent analyses, fan-out queries, multi-source research.
 
 ```typescript
-import { createParallelAgent } from "@openplane/ai";
+import { createParallelAgent } from "@openbeam/ai";
 
 const multiSourceResearch = createParallelAgent({
   type: "parallel",
@@ -197,7 +197,7 @@ Routes input to the most appropriate sub-agent based on condition matching. Acts
 **When to use:** Multi-domain assistants, intent-based routing, tiered processing.
 
 ```typescript
-import { createCoordinatorAgent } from "@openplane/ai";
+import { createCoordinatorAgent } from "@openbeam/ai";
 
 const router = createCoordinatorAgent({
   type: "coordinator",
@@ -240,7 +240,7 @@ Iterates sub-agents until a stop condition is met or max iterations reached.
 **When to use:** Iterative refinement, polling, convergence-based workflows.
 
 ```typescript
-import { createLoopAgent } from "@openplane/ai";
+import { createLoopAgent } from "@openbeam/ai";
 
 const iterativeResearch = createLoopAgent({
   type: "loop",
@@ -280,7 +280,7 @@ Generate-then-critique loop. A generator agent produces output, a critic agent e
 **When to use:** Quality-gated content, self-improving outputs, review workflows.
 
 ```typescript
-import { createGeneratorCriticAgent } from "@openplane/ai";
+import { createGeneratorCriticAgent } from "@openbeam/ai";
 
 const writer = createGeneratorCriticAgent({
   name: "document-writer",

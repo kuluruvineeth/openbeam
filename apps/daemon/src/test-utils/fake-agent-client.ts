@@ -249,7 +249,7 @@ class FakeAgentSession implements AgentSession {
     this.memoryMarker = memoryMarker ?? null;
     this.historyPath = path.join(
       tmpdir(),
-      "openplane-fake-provider-history",
+      "openbeam-fake-provider-history",
       this.providerName,
       `${this.id}.jsonl`
     );
@@ -715,17 +715,17 @@ class FakeAgentSession implements AgentSession {
     if (this.providerName === "codex" && fullName.startsWith("prompts:")) {
       const promptId = fullName.slice("prompts:".length);
       return {
-        text: `OPENPLANE_OK ${args ?? ""}`.trim(),
+        text: `OPENBEAM_OK ${args ?? ""}`.trim(),
         timeline: [
-          { type: "assistant_message", text: `OPENPLANE_OK ${promptId}` },
+          { type: "assistant_message", text: `OPENBEAM_OK ${promptId}` },
         ],
         usage: { inputTokens: 1, outputTokens: 1 },
       };
     }
 
     return {
-      text: "OPENPLANE_SKILL_OK",
-      timeline: [{ type: "assistant_message", text: "OPENPLANE_SKILL_OK" }],
+      text: "OPENBEAM_SKILL_OK",
+      timeline: [{ type: "assistant_message", text: "OPENBEAM_SKILL_OK" }],
       usage: { inputTokens: 1, outputTokens: 1 },
     };
   }

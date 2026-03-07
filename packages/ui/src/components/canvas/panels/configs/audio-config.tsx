@@ -1,6 +1,6 @@
 "use client";
 
-import type { AudioNodeConfig } from "@openplane/types/canvas";
+import type { AudioNodeConfig } from "@openbeam/types/canvas";
 import { forwardRef, memo } from "react";
 import { Icons } from "../../../icons";
 import {

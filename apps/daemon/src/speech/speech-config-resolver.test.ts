@@ -7,12 +7,12 @@ import { resolveSpeechConfig } from "./speech-config-resolver";
 
 describe("resolveSpeechConfig", () => {
   test("resolves local-first defaults without env overrides", () => {
-    const openplaneHome = "/tmp/openplane-home";
+    const openbeamHome = "/tmp/openbeam-home";
     const persisted = PersistedConfigSchema.parse({});
     const env = {} as NodeJS.ProcessEnv;
 
     const result = resolveSpeechConfig({
-      openplaneHome,
+      openbeamHome,
       env,
       persisted,
     });
@@ -34,7 +34,7 @@ describe("resolveSpeechConfig", () => {
       enabled: true,
     });
     expect(result.speech.local).toEqual({
-      modelsDir: path.join(openplaneHome, "models", "local-speech"),
+      modelsDir: path.join(openbeamHome, "models", "local-speech"),
       models: {
         dictationStt: "parakeet-tdt-0.6b-v2-int8",
         voiceStt: "parakeet-tdt-0.6b-v2-int8",
@@ -64,20 +64,20 @@ describe("resolveSpeechConfig", () => {
       },
     });
     const env = {
-      OPENPLANE_DICTATION_LOCAL_STT_MODEL: "zipformer",
-      OPENPLANE_VOICE_LOCAL_STT_MODEL: "parakeet",
-      OPENPLANE_VOICE_LOCAL_TTS_MODEL: "kitten",
-      OPENPLANE_VOICE_LOCAL_TTS_SPEAKER_ID: "5",
-      OPENPLANE_VOICE_LOCAL_TTS_SPEED: "1.35",
-      OPENPLANE_LOCAL_MODELS_DIR: "/tmp/models",
+      OPENBEAM_DICTATION_LOCAL_STT_MODEL: "zipformer",
+      OPENBEAM_VOICE_LOCAL_STT_MODEL: "parakeet",
+      OPENBEAM_VOICE_LOCAL_TTS_MODEL: "kitten",
+      OPENBEAM_VOICE_LOCAL_TTS_SPEAKER_ID: "5",
+      OPENBEAM_VOICE_LOCAL_TTS_SPEED: "1.35",
+      OPENBEAM_LOCAL_MODELS_DIR: "/tmp/models",
       OPENAI_API_KEY: "env-key",
-      OPENPLANE_VOICE_STT_PROVIDER: "openai",
-      OPENPLANE_DICTATION_STT_PROVIDER: "local",
-      OPENPLANE_VOICE_TTS_PROVIDER: "local",
+      OPENBEAM_VOICE_STT_PROVIDER: "openai",
+      OPENBEAM_DICTATION_STT_PROVIDER: "local",
+      OPENBEAM_VOICE_TTS_PROVIDER: "local",
     } as NodeJS.ProcessEnv;
 
     const result = resolveSpeechConfig({
-      openplaneHome: "/tmp/openplane-home",
+      openbeamHome: "/tmp/openbeam-home",
       env,
       persisted,
     });
@@ -125,12 +125,12 @@ describe("resolveSpeechConfig", () => {
   test("ignores deprecated shared local model env vars", () => {
     const persisted = PersistedConfigSchema.parse({});
     const env = {
-      OPENPLANE_LOCAL_STT_MODEL: "zipformer-bilingual-zh-en-2023-02-20",
-      OPENPLANE_LOCAL_TTS_MODEL: "kitten-nano-en-v0_1-fp16",
+      OPENBEAM_LOCAL_STT_MODEL: "zipformer-bilingual-zh-en-2023-02-20",
+      OPENBEAM_LOCAL_TTS_MODEL: "kitten-nano-en-v0_1-fp16",
     } as NodeJS.ProcessEnv;
 
     const result = resolveSpeechConfig({
-      openplaneHome: "/tmp/openplane-home",
+      openbeamHome: "/tmp/openbeam-home",
       env,
       persisted,
     });
@@ -154,7 +154,7 @@ describe("resolveSpeechConfig", () => {
     });
 
     const result = resolveSpeechConfig({
-      openplaneHome: "/tmp/openplane-home",
+      openbeamHome: "/tmp/openbeam-home",
       env: {} as NodeJS.ProcessEnv,
       persisted,
     });

@@ -12,7 +12,7 @@ Tools are atomic capabilities that agents invoke to interact with the world. Eve
 Use `defineTool()` to create a typed, self-registering tool:
 
 ```typescript
-import { defineTool, success, failure, z } from "@openplane/ai";
+import { defineTool, success, failure, z } from "@openbeam/ai";
 
 export const searchHybridTool = defineTool({
   name: "search_hybrid",
@@ -180,7 +180,7 @@ The `toolRegistry` singleton manages all registered tools and provides contextua
 ### Registration
 
 ```typescript
-import { toolRegistry } from "@openplane/ai";
+import { toolRegistry } from "@openbeam/ai";
 
 // Tools self-register via .register()
 searchHybridTool.register();

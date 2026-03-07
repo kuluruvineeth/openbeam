@@ -10,7 +10,7 @@ import type {
   AgentStreamEvent,
   AgentTimelineItem,
   AgentUsage,
-} from "@openplane/types/services/daemon";
+} from "@openbeam/types/services/daemon";
 
 export type AgentTimelineRow = {
   seq: number;

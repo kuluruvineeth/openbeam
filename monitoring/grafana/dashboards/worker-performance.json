@@ -290,7 +290,7 @@
   "refresh": "10s",
   "schemaVersion": 16,
   "style": "dark",
-  "tags": ["openplane", "worker", "sync", "index"],
+  "tags": ["openbeam", "worker", "sync", "index"],
   "templating": {
     "list": []
   },
@@ -300,7 +300,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "OpenPlane Worker Performance",
+  "title": "OpenBeam Worker Performance",
   "uid": "worker-performance",
   "version": 1
 }

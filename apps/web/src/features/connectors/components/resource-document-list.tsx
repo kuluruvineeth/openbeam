@@ -1,6 +1,6 @@
 "use client";
 
-import { Input, Skeleton } from "@openplane/ui";
+import { Input, Skeleton } from "@openbeam/ui";
 import { formatDistanceToNow } from "date-fns";
 import { useState } from "react";
 import { Icons } from "@/components/icons";

@@ -2,9 +2,9 @@ export type {
   SyncHistoryStatus,
   SyncSummary,
   SyncType,
-} from "@openplane/types/sync";
+} from "@openbeam/types/sync";
 
-import type { SyncType } from "@openplane/types/sync";
+import type { SyncType } from "@openbeam/types/sync";
 
 export interface ServiceCreateSyncHistoryInput {
   connectorId: string;

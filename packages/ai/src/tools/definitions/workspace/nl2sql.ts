@@ -64,7 +64,7 @@ EXAMPLE FLOW:
     }
 
     const { getTeamDuckDB, initializeEAVSchema, listObjects, listEntries } =
-      await import("@openplane/services");
+      await import("@openbeam/services");
 
     const db = await getTeamDuckDB(ctx.teamId);
     await initializeEAVSchema(db);

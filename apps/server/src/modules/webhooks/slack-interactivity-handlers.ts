@@ -2,8 +2,8 @@ import prisma, {
   findSlackChannelConfig,
   upsertSlackChannelConfig,
   upsertSlackDigestSubscription,
-} from "@openplane/db";
-import { createStateStore } from "@openplane/redis";
+} from "@openbeam/db";
+import { createStateStore } from "@openbeam/redis";
 import {
   extractSettingsFromSubmission,
   handleSaveSettings,
@@ -13,7 +13,7 @@ import {
   routeCommand,
   SHORTCUT_CALLBACK_IDS,
   SIDEBAR_CALLBACK_IDS,
-} from "@openplane/services";
+} from "@openbeam/services";
 import type { Context } from "hono";
 import logger from "../../utils/logger";
 import {
@@ -265,14 +265,14 @@ export async function handleMessageShortcut(
   try {
     const client = await getSlackClient(ctx.connectorId, ctx.teamId);
 
-    if (callbackId === SHORTCUT_CALLBACK_IDS.SAVE_TO_OPENPLANE) {
+    if (callbackId === SHORTCUT_CALLBACK_IDS.SAVE_TO_OPENBEAM) {
       logger.info(
         {
           connectorId: ctx.connectorId,
           teamId: ctx.teamId,
           userId: ctx.userId,
         },
-        "Processing save to OpenPlane shortcut"
+        "Processing save to OpenBeam shortcut"
       );
       const result = await handleSaveShortcut(client, payload, {
         saveStore: createSaveStore(ctx.teamId),
@@ -282,7 +282,7 @@ export async function handleMessageShortcut(
         await client.call("chat.postEphemeral", {
           channel: ctx.userId,
           user: ctx.userId,
-          text: "✅ Message saved to OpenPlane!",
+          text: "✅ Message saved to OpenBeam!",
         });
       } else if (result.error) {
         await client.call("chat.postEphemeral", {

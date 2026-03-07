@@ -4,8 +4,8 @@ import {
   findUserSearchProfile,
   listAllExpertiseRelationsByPerson,
   updateTopicWeights,
-} from "@openplane/db";
-import { getUserProfileCache } from "@openplane/redis";
+} from "@openbeam/db";
+import { getUserProfileCache } from "@openbeam/redis";
 
 interface TopicAffinityContext {
   db: Database;

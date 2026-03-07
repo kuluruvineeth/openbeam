@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/openplane/openplane/apps/cli/internal/exitcode"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/exitcode"
 )
 
 func ExitCode(err error) exitcode.Code {

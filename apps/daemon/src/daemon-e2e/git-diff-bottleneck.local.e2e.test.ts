@@ -6,14 +6,14 @@ import { performance } from "node:perf_hooks";
 import { describe, expect, test } from "vitest";
 import { createDaemonTestContext } from "../test-utils/index";
 
-const RUN = process.env.OPENPLANE_GIT_DIFF_BOTTLENECK_E2E === "1";
+const RUN = process.env.OPENBEAM_GIT_DIFF_BOTTLENECK_E2E === "1";
 const LARGE_CHANGESET_SIZE = Number.parseInt(
-  process.env.OPENPLANE_GIT_DIFF_BOTTLENECK_FILE_COUNT ?? "1200",
+  process.env.OPENBEAM_GIT_DIFF_BOTTLENECK_FILE_COUNT ?? "1200",
   10
 );
 
 function tmpRepo(): string {
-  return mkdtempSync(path.join(tmpdir(), "openplane-git-diff-bottleneck-"));
+  return mkdtempSync(path.join(tmpdir(), "openbeam-git-diff-bottleneck-"));
 }
 
 function initGitRepo(cwd: string): void {

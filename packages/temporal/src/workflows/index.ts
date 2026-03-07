@@ -1,4 +1,36 @@
 export { backgroundAgentWorkflow } from "./agents/background-agent-unbounded";
+export type {
+  HeartbeatWorkflowInput,
+  HeartbeatWorkflowState,
+} from "./agents/control-heartbeat";
+export {
+  cancelHeartbeatSignal,
+  controlHeartbeatWorkflow,
+  heartbeatStateQuery,
+} from "./agents/control-heartbeat";
+export type {
+  ReaperStatus,
+  ReaperWorkflowInput,
+} from "./agents/control-reaper";
+export {
+  controlReaperWorkflow,
+  reaperStatusQuery,
+} from "./agents/control-reaper";
+export type {
+  SchedulerStatus,
+  SchedulerWorkflowInput,
+} from "./agents/control-scheduler";
+export {
+  controlSchedulerWorkflow,
+  schedulerStatusQuery,
+} from "./agents/control-scheduler";
+export type { TimerStatus, TimerWorkflowInput } from "./agents/control-timer";
+export {
+  controlTimerWorkflow,
+  pauseTimerSignal,
+  resumeTimerSignal,
+  timerStatusQuery,
+} from "./agents/control-timer";
 export {
   type AgentChainProgress,
   agentChainProgressQuery,

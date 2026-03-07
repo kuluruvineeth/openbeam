@@ -1,4 +1,4 @@
-import type { ExecutionPlan, ExecutionPlanNode } from "@openplane/types/canvas";
+import type { ExecutionPlan, ExecutionPlanNode } from "@openbeam/types/canvas";
 
 import { buildAdjacency, getExecutableNodes } from "./graph";
 import { bfsTraverse } from "./graph-traversal";

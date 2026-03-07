@@ -1,4 +1,4 @@
-import type { VectorProvider } from "@openplane/types/edge/search";
+import type { VectorProvider } from "@openbeam/types/edge/search";
 
 function cosineSimilarity(a: Float32Array, b: Float32Array): number {
   let dotProduct = 0;

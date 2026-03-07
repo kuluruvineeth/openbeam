@@ -1,8 +1,8 @@
 "use client";
 
-import type { ExecutionTrace, StepExecution } from "@openplane/types/canvas";
-import type { NodeExecutionOverlay } from "@openplane/types/canvas/execution-ui";
-import type { TimelineStepStatus } from "@openplane/types/canvas/timeline";
+import type { ExecutionTrace, StepExecution } from "@openbeam/types/canvas";
+import type { NodeExecutionOverlay } from "@openbeam/types/canvas/execution-ui";
+import type { TimelineStepStatus } from "@openbeam/types/canvas/timeline";
 import { useMemo } from "react";
 
 function mapExecutionStatusToTimeline(

@@ -1,6 +1,6 @@
 "use client";
 
-import type { Citation } from "@openplane/types/canvas";
+import type { Citation } from "@openbeam/types/canvas";
 import { memo } from "react";
 import { cn } from "../../../utils";
 import { Icons } from "../../icons";

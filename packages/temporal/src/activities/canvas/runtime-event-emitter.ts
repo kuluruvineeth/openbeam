@@ -1,11 +1,11 @@
-import type { Database } from "@openplane/db";
-import { appendSessionEvent } from "@openplane/db";
-import { publishSessionRuntimeEvent } from "@openplane/redis";
-import { redactToolPayload } from "@openplane/services/policy/redaction-policy";
+import type { Database } from "@openbeam/db";
+import { appendSessionEvent } from "@openbeam/db";
+import { publishSessionRuntimeEvent } from "@openbeam/redis";
+import { redactToolPayload } from "@openbeam/services/policy/redaction-policy";
 import type {
   RuntimeEvent,
   RuntimeEventPayload,
-} from "@openplane/types/canvas/runtime-events";
+} from "@openbeam/types/canvas/runtime-events";
 import {
   recordRuntimeEventEmission,
   recordRuntimeEventPersistFailure,

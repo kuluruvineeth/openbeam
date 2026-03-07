@@ -3,7 +3,7 @@ import type {
   ConditionBranch,
   ConditionGroup,
   SingleCondition,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import {
   evaluateBranch,
   evaluateBranches,

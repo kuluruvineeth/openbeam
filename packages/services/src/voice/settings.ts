@@ -4,8 +4,8 @@ import {
   type Prisma,
   upsertVoiceSettings,
   type VoiceSettings,
-} from "@openplane/db";
-import type { UpdateVoiceSettingsInput } from "@openplane/types/services/voice";
+} from "@openbeam/db";
+import type { UpdateVoiceSettingsInput } from "@openbeam/types/services/voice";
 
 const DEFAULTS = {
   engine: "cloud",

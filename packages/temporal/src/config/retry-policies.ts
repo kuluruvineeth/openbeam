@@ -115,6 +115,26 @@ export const AGENT_CHUNKED_RETRY_POLICY: RetryPolicy = {
   ],
 };
 
+export const AGENT_LIFECYCLE_RETRY_POLICY: RetryPolicy = {
+  initialInterval: "200ms",
+  backoffCoefficient: 2,
+  maximumAttempts: 5,
+  maximumInterval: "5s",
+  nonRetryableErrorTypes: ["AgentNotFoundError", "AgentTerminatedError"],
+};
+
+export const ADAPTER_EXECUTE_RETRY_POLICY: RetryPolicy = {
+  initialInterval: "5s",
+  backoffCoefficient: 2,
+  maximumAttempts: 3,
+  maximumInterval: "2m",
+  nonRetryableErrorTypes: [
+    "BudgetExceededError",
+    "AgentTerminatedError",
+    "AdapterConfigError",
+  ],
+};
+
 export const EXTERNAL_API_RETRY_POLICY: RetryPolicy = {
   maximumAttempts: 5,
   initialInterval: "1s",
@@ -144,6 +164,8 @@ export function getRetryPolicyForActivity(activityType: string): RetryPolicy {
     llm_call: LLM_CALL_RETRY_POLICY,
     externalApi: EXTERNAL_API_RETRY_POLICY,
     agentChunked: AGENT_CHUNKED_RETRY_POLICY,
+    agentLifecycle: AGENT_LIFECYCLE_RETRY_POLICY,
+    adapterExecute: ADAPTER_EXECUTE_RETRY_POLICY,
     canvas: CANVAS_NODE_RETRY_POLICY,
     canvasUpdate: CANVAS_UPDATE_RETRY_POLICY,
     audit: AUDIT_RETRY_POLICY,

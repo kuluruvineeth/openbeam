@@ -1,17 +1,17 @@
-name: openplane
+name: openbeam
 
 services:
   postgres:
     image: postgres
-    container_name: openplane-postgres
+    container_name: openbeam-postgres
     environment:
-      POSTGRES_DB: openplane
+      POSTGRES_DB: openbeam
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
     volumes:
-      - openplane_postgres_data:/var/lib/postgresql
+      - openbeam_postgres_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -20,4 +20,4 @@ services:
     restart: unless-stopped
 
 volumes:
-  openplane_postgres_data:
+  openbeam_postgres_data:

@@ -1,4 +1,4 @@
-import type { ToolMetadata } from "@openplane/types/ai";
+import type { ToolMetadata } from "@openbeam/types/ai";
 import { asSchema, type FlexibleSchema } from "ai";
 import type { ToolRegistry } from "./registry";
 

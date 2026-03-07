@@ -1,6 +1,6 @@
 "use client";
 
-import type { EntityType } from "@openplane/types/canvas";
+import type { EntityType } from "@openbeam/types/canvas";
 import { memo, useCallback, useMemo } from "react";
 import { cn } from "../../../utils";
 import { Button } from "../../button";

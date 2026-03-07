@@ -5,7 +5,7 @@ description: RAG pipeline, query classification, named entity recognition, and p
 
 # Edge AI
 
-`@openplane/edge-ai` brings AI capabilities to edge nodes. A RAG pipeline that searches local documents and generates grounded answers. A query classifier that determines user intent. A query rewriter that improves search recall. Named entity recognition that extracts structured data from text. All running on-device with small language models.
+`@openbeam/edge-ai` brings AI capabilities to edge nodes. A RAG pipeline that searches local documents and generates grounded answers. A query classifier that determines user intent. A query rewriter that improves search recall. Named entity recognition that extracts structured data from text. All running on-device with small language models.
 
 ```typescript
 import {
@@ -23,7 +23,7 @@ import {
   formatPrompt,
   parseNERResponse,
   parseQueryClassification,
-} from "@openplane/edge-ai";
+} from "@openbeam/edge-ai";
 ```
 
 ## RAG Pipeline
@@ -31,9 +31,9 @@ import {
 `EdgeRAGPipeline` combines search and generation. It embeds the user query, searches the local index, assembles context from top results, and generates an answer with source citations.
 
 ```typescript
-import { EdgeRAGPipeline, MockSLM, MockEmbeddingModel } from "@openplane/edge-ai";
-import { EdgeSearchEngine, SQLiteFTS5Provider, InMemoryVectorProvider, SQLiteDocumentStore } from "@openplane/edge-search";
-import { openEdgeDatabase } from "@openplane/edge-core";
+import { EdgeRAGPipeline, MockSLM, MockEmbeddingModel } from "@openbeam/edge-ai";
+import { EdgeSearchEngine, SQLiteFTS5Provider, InMemoryVectorProvider, SQLiteDocumentStore } from "@openbeam/edge-search";
+import { openEdgeDatabase } from "@openbeam/edge-core";
 
 const db = openEdgeDatabase("./edge.db");
 const searchEngine = new EdgeSearchEngine({
@@ -110,7 +110,7 @@ EdgeRAGResponse with answer + sources + timing
 Determines the intent behind a user query. Useful for routing -- search queries go to the search engine, conversational queries go to the SLM directly, navigation queries resolve to a specific document.
 
 ```typescript
-import { QueryClassifier, MockSLM } from "@openplane/edge-ai";
+import { QueryClassifier, MockSLM } from "@openbeam/edge-ai";
 
 const classifier = new QueryClassifier(new MockSLM());
 const classification = await classifier.classify("show me the Q3 revenue report");
@@ -142,7 +142,7 @@ If parsing fails, the classifier returns a fallback with `intent: "search"` and 
 Improves search recall by expanding abbreviations, adding synonyms, and clarifying ambiguous terms.
 
 ```typescript
-import { QueryRewriter, MockSLM } from "@openplane/edge-ai";
+import { QueryRewriter, MockSLM } from "@openbeam/edge-ai";
 
 const rewriter = new QueryRewriter(new MockSLM());
 
@@ -160,7 +160,7 @@ The rewriter returns the original query if the SLM produces an empty response.
 Extract structured entities from text using an SLM.
 
 ```typescript
-import { EdgeNER, MockSLM } from "@openplane/edge-ai";
+import { EdgeNER, MockSLM } from "@openbeam/edge-ai";
 
 const ner = new EdgeNER(new MockSLM());
 
@@ -181,7 +181,7 @@ for (const entity of entities) {
 | `ORGANIZATION` | Acme Corp, Google, Engineering Team |
 | `LOCATION` | New York, Building 42, EU Region |
 | `DATE` | December 15th, Q3 2025, last week |
-| `PRODUCT` | OpenPlane, Kubernetes, iPhone |
+| `PRODUCT` | OpenBeam, Kubernetes, iPhone |
 | `EVENT` | Q3 Review, Sprint Planning, All-Hands |
 | `DOCUMENT` | Deployment Runbook, Q3 Report |
 
@@ -202,7 +202,7 @@ interface NEREntity {
 Pre-built templates for all AI operations. Use `formatPrompt` to inject variables.
 
 ```typescript
-import { EDGE_RAG_PROMPT, EDGE_NER_PROMPT, formatPrompt } from "@openplane/edge-ai";
+import { EDGE_RAG_PROMPT, EDGE_NER_PROMPT, formatPrompt } from "@openbeam/edge-ai";
 
 const prompt = formatPrompt(EDGE_RAG_PROMPT, {
   context: "[1] Deployment Guide\nStep 1: Verify health...",
@@ -285,7 +285,7 @@ For testing and development, use the built-in mocks that require no GPU or model
 ### MockSLM
 
 ```typescript
-import { MockSLM } from "@openplane/edge-ai";
+import { MockSLM } from "@openbeam/edge-ai";
 
 const slm = new MockSLM({
   modelId: "test-model",
@@ -308,7 +308,7 @@ slm.setAvailable(false);
 ### MockEmbeddingModel
 
 ```typescript
-import { MockEmbeddingModel } from "@openplane/edge-ai";
+import { MockEmbeddingModel } from "@openbeam/edge-ai";
 
 const embedding = new MockEmbeddingModel({
   dimensions: 384,
@@ -334,7 +334,7 @@ Replace mocks with real model runtimes for production.
 <Tabs items={["llama.cpp", "TensorRT"]}>
   <Tab value="llama.cpp">
     ```typescript
-    import type { EdgeSLM, EdgeSLMResponse, EdgeGenerateOptions } from "@openplane/types/edge/ai";
+    import type { EdgeSLM, EdgeSLMResponse, EdgeGenerateOptions } from "@openbeam/types/edge/ai";
 
     class LlamaCppSLM implements EdgeSLM {
       private readonly serverUrl: string;
@@ -381,7 +381,7 @@ Replace mocks with real model runtimes for production.
   </Tab>
   <Tab value="TensorRT">
     ```typescript
-    import type { EdgeSLM, EdgeSLMResponse, EdgeGenerateOptions } from "@openplane/types/edge/ai";
+    import type { EdgeSLM, EdgeSLMResponse, EdgeGenerateOptions } from "@openbeam/types/edge/ai";
 
     class TensorRTSLM implements EdgeSLM {
       private readonly serverUrl: string;
@@ -430,7 +430,7 @@ Replace mocks with real model runtimes for production.
 </Tabs>
 
 <Callout type="info">
-The `EdgeSLM` and `EdgeEmbeddingModel` interfaces are defined in `@openplane/types/edge/ai`. Any class implementing these interfaces works with the RAG pipeline, query classifier, rewriter, and NER.
+The `EdgeSLM` and `EdgeEmbeddingModel` interfaces are defined in `@openbeam/types/edge/ai`. Any class implementing these interfaces works with the RAG pipeline, query classifier, rewriter, and NER.
 </Callout>
 
 ## Combining Components
@@ -438,9 +438,9 @@ The `EdgeSLM` and `EdgeEmbeddingModel` interfaces are defined in `@openplane/typ
 A full AI-enhanced search pipeline:
 
 ```typescript
-import { openEdgeDatabase, getFeatureFlags } from "@openplane/edge-core";
-import { EdgeSearchEngine, SQLiteFTS5Provider, InMemoryVectorProvider, SQLiteDocumentStore } from "@openplane/edge-search";
-import { EdgeRAGPipeline, QueryClassifier, QueryRewriter, EdgeNER, MockSLM, MockEmbeddingModel } from "@openplane/edge-ai";
+import { openEdgeDatabase, getFeatureFlags } from "@openbeam/edge-core";
+import { EdgeSearchEngine, SQLiteFTS5Provider, InMemoryVectorProvider, SQLiteDocumentStore } from "@openbeam/edge-search";
+import { EdgeRAGPipeline, QueryClassifier, QueryRewriter, EdgeNER, MockSLM, MockEmbeddingModel } from "@openbeam/edge-ai";
 
 const db = openEdgeDatabase("./edge.db");
 const flags = getFeatureFlags("performance");

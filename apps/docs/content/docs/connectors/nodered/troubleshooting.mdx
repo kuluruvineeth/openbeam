@@ -62,12 +62,12 @@ description: Common Node-RED connector issues and fixes.
 
 <Accordions>
   <Accordion title="Connection refused">
-    The Node-RED instance is unreachable from the OpenPlane host.
+    The Node-RED instance is unreachable from the OpenBeam host.
 
     **Fix:**
     1. Verify the URL is correct (default port is `1880`)
     2. Test connectivity: `curl http://your-nodered:1880/`
-    3. Check firewall rules between OpenPlane and the Node-RED instance
+    3. Check firewall rules between OpenBeam and the Node-RED instance
     4. If Node-RED is behind a reverse proxy, ensure the Admin API path is proxied
   </Accordion>
 </Accordions>
@@ -101,7 +101,7 @@ curl http://your-nodered:1880/nodes \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
-Still stuck? [Open an issue](https://github.com/kuluruvineeth/openplane/issues) with the connector status, Node-RED version, and error messages.
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openbeam/issues) with the connector status, Node-RED version, and error messages.
 
 <Cards>
   <Card title="Setup" href="/docs/connectors/nodered/setup" description="Reconnect or reconfigure the connector" />

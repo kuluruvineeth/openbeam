@@ -3,7 +3,7 @@
 import type {
   QueryParameter,
   QueryParameterType,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { forwardRef, memo, useCallback } from "react";
 import { Icons } from "../../icons";
 import { Input } from "../../input";

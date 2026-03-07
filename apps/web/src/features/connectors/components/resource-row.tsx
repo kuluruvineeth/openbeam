@@ -1,6 +1,6 @@
 "use client";
 
-import { Checkbox } from "@openplane/ui";
+import { Checkbox } from "@openbeam/ui";
 import { useMemo, useState } from "react";
 import { Icons } from "@/components/icons";
 import type { PreviewType } from "@/features/file-preview";

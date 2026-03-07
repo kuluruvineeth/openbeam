@@ -1,12 +1,12 @@
 "use client";
 
-import type { ExecutionEvent } from "@openplane/types/canvas/execution-events";
+import type { ExecutionEvent } from "@openbeam/types/canvas/execution-events";
 import type {
   TimelineData,
   TimelineEvent,
   TimelineStep,
   TimelineStepStatus,
-} from "@openplane/types/canvas/timeline";
+} from "@openbeam/types/canvas/timeline";
 import { useCallback, useMemo, useReducer } from "react";
 
 type StepStatusMap = Record<string, TimelineStep>;

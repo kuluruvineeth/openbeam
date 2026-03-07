@@ -15,7 +15,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import type { OutputField } from "@openplane/types/canvas";
+import type { OutputField } from "@openbeam/types/canvas";
 import { memo, useCallback, useMemo } from "react";
 import { cn } from "../../../utils";
 import { Button } from "../../button";

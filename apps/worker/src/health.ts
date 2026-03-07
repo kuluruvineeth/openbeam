@@ -1,7 +1,7 @@
 import { createServer, type Server } from "node:http";
-import prisma from "@openplane/db";
-import { getRedisClient } from "@openplane/redis";
-import { vespaClient } from "@openplane/vespa";
+import prisma from "@openbeam/db";
+import { getRedisClient } from "@openbeam/redis";
+import { vespaClient } from "@openbeam/vespa";
 import { Hono } from "hono";
 import { Counter, Histogram } from "prom-client";
 import { workerConfig } from "./config";

@@ -8,9 +8,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/openplane/openplane/apps/cli/internal/api"
-	"github.com/openplane/openplane/apps/cli/internal/cmd/shared"
-	"github.com/openplane/openplane/apps/cli/internal/errs"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/api"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/shared"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/errs"
 )
 
 func NewCommand(provider shared.RuntimeProvider) *cobra.Command {
@@ -124,7 +124,7 @@ func newStatusCommand(provider shared.RuntimeProvider) *cobra.Command {
 			}
 			source := "none"
 			hasKey := false
-			if os.Getenv("OPENPLANE_API_KEY") != "" {
+			if os.Getenv("OPENBEAM_API_KEY") != "" {
 				hasKey = true
 				source = "env"
 			} else if rt.Profile.APIKeyRef != "" {
@@ -175,7 +175,7 @@ func newTokenPrintCommand(provider shared.RuntimeProvider) *cobra.Command {
 
 			source := "none"
 			token := ""
-			if envValue := os.Getenv("OPENPLANE_API_KEY"); envValue != "" {
+			if envValue := os.Getenv("OPENBEAM_API_KEY"); envValue != "" {
 				source = "env"
 				token = envValue
 			} else if rt.Profile.APIKeyRef != "" && rt.APIKey != "" {

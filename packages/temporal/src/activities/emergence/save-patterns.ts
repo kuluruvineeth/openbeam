@@ -1,4 +1,4 @@
-import db, { updateEmergencePatternStatus } from "@openplane/db";
+import db, { updateEmergencePatternStatus } from "@openbeam/db";
 import type { SavePatternsInput, SavePatternsOutput } from "./types";
 
 export async function savePatterns(

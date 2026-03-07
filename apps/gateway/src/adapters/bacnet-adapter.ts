@@ -1,8 +1,8 @@
-import type { BacnetConnectionConfig } from "@openplane/types/services/connectors/bacnet";
+import type { BacnetConnectionConfig } from "@openbeam/types/services/connectors/bacnet";
 import type {
   AdapterMetrics,
   ConnectionState,
-} from "@openplane/types/services/connectors/common/industrial";
+} from "@openbeam/types/services/connectors/common/industrial";
 import logger from "../logger";
 import {
   type AdapterConfig,

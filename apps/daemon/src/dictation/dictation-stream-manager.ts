@@ -6,7 +6,7 @@ import {
   maybePersistDictationDebugAudio,
 } from "../agent/dictation-debug";
 import { Pcm16MonoResampler } from "../agent/pcm16-resampler";
-import { isOpenPlaneDictationDebugEnabled } from "../agent/recordings-debug";
+import { isOpenBeamDictationDebugEnabled } from "../agent/recordings-debug";
 import { parsePcmRateFromFormat, pcm16lePeakAbs } from "../speech/audio";
 import { type Resolvable, toResolver } from "../speech/provider-resolver";
 import type {
@@ -23,7 +23,7 @@ const DICTATION_FINAL_TIMEOUT_PER_PENDING_SEGMENT_MS = 15 * 1000;
 const DICTATION_FINAL_TIMEOUT_PER_PENDING_AUDIO_SECOND_MS = 1500;
 const DICTATION_FINAL_TIMEOUT_PER_MISSING_SEQ_MS = 250;
 const DICTATION_SILENCE_PEAK_THRESHOLD = Number.parseInt(
-  process.env.OPENPLANE_DICTATION_SILENCE_PEAK_THRESHOLD ?? "300",
+  process.env.OPENBEAM_DICTATION_SILENCE_PEAK_THRESHOLD ?? "300",
   10
 );
 
@@ -163,7 +163,7 @@ export class DictationStreamManager {
     this.autoCommitSeconds =
       params.autoCommitSeconds ??
       parseNonNegativeNumber(
-        process.env.OPENPLANE_DICTATION_AUTO_COMMIT_SECONDS
+        process.env.OPENBEAM_DICTATION_AUTO_COMMIT_SECONDS
       ) ??
       DEFAULT_DICTATION_AUTO_COMMIT_SECONDS;
   }
@@ -190,7 +190,7 @@ export class DictationStreamManager {
     }
 
     const transcriptionPrompt =
-      process.env.OPENPLANE_DICTATION_TRANSCRIPTION_PROMPT ??
+      process.env.OPENBEAM_DICTATION_TRANSCRIPTION_PROMPT ??
       "Transcribe only what the speaker says. Do not add words. Preserve punctuation and casing. If the audio is silence or non-speech noise, return an empty transcript.";
 
     let stt: ReturnType<SpeechToTextProvider["createSession"]>;
@@ -541,7 +541,7 @@ export class DictationStreamManager {
   private async maybePersistDictationStreamAudio(
     dictationId: string
   ): Promise<string | null> {
-    if (!isOpenPlaneDictationDebugEnabled()) {
+    if (!isOpenBeamDictationDebugEnabled()) {
       return null;
     }
 

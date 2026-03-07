@@ -1,6 +1,6 @@
 "use client";
 
-import { TextShimmer } from "@openplane/ui";
+import { TextShimmer } from "@openbeam/ui";
 import { memo, useMemo } from "react";
 import { Icons } from "@/components/icons";
 import type { ThinkingStep } from "@/lib/thinking-types";

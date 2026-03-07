@@ -1,7 +1,7 @@
 import {
   cacheAssistantResponse,
   getAssistantResponseKey,
-} from "@openplane/redis";
+} from "@openbeam/redis";
 import { ragAnswer } from "../../ai/rag";
 import { buildResponseBlocks } from "../assistant/response-builder";
 import type { SlashCommandPayload } from "../interactivity/types";
@@ -16,7 +16,7 @@ export async function handleAskCommand(
   if (!question) {
     return {
       response_type: "ephemeral",
-      text: "Please provide a question.\nUsage: `/openplane ask <question>`",
+      text: "Please provide a question.\nUsage: `/openbeam ask <question>`",
     };
   }
 

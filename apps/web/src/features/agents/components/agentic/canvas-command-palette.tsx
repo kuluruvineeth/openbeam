@@ -1,11 +1,11 @@
 "use client";
 
-import type { NodeCategory } from "@openplane/types/canvas";
+import type { NodeCategory } from "@openbeam/types/canvas";
 import {
   CATEGORY_LABELS,
   getNodesByCategory,
   type NodeRegistryEntry,
-} from "@openplane/ui";
+} from "@openbeam/ui";
 import {
   CommandDialog,
   CommandEmpty,
@@ -13,7 +13,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@openplane/ui/components/command";
+} from "@openbeam/ui/components/command";
 import { useCallback, useMemo } from "react";
 
 interface CanvasCommandPaletteProps {

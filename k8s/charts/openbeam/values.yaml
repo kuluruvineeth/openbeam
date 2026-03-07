@@ -1,0 +1,284 @@
+nameOverride: ""
+fullnameOverride: ""
+
+imagePullSecrets: []
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+configMap:
+  create: true
+
+env:
+  DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/openbeam"
+  REDIS_URL: "redis://redis:6379"
+  VESPA_URL: "http://vespa:8080"
+  TEMPORAL_ADDRESS: "temporal:7233"
+  ENGINE_URL: "http://engine-cpu:8000"
+  GCS_ENDPOINT: "http://minio:9000"
+  GCS_ACCESS_KEY_ID: "minioadmin"
+  GCS_SECRET_ACCESS_KEY: "minioadmin"
+  GCS_BUCKET: "openbeam-files"
+  GCS_FORCE_PATH_STYLE: "true"
+  NODE_ENV: "development"
+  LOG_LEVEL: "debug"
+  WEB_URL: "http://localhost:3101"
+  SERVER_URL: "http://localhost:3000"
+  CORS_ORIGIN: "http://localhost:3101"
+  SANDBOX_API_BASE_URL: "http://sandbox-gateway"
+  SANDBOX_DEFAULT_PROVIDER: "daytona"
+  SANDBOX_REQUIRE_TEAM_ID: "true"
+  SANDBOX_RATE_LIMIT_ENABLED: "true"
+  SANDBOX_RATE_LIMIT_WINDOW_MS: "60000"
+  SANDBOX_RATE_LIMIT_MAX_REQUESTS: "240"
+  SANDBOX_RATE_LIMIT_MAX_EXEC_REQUESTS: "90"
+  SANDBOX_RATE_LIMIT_MAX_MUTATION_REQUESTS: "120"
+  SANDBOX_RATE_LIMIT_STORE: "memory"
+  SANDBOX_RATE_LIMIT_KEY_PREFIX: "openbeam:sandbox:ratelimit"
+  SANDBOX_OWNERSHIP_STORE: "memory"
+  SANDBOX_OWNERSHIP_KEY_PREFIX: "openbeam:sandbox:ownership"
+  SANDBOX_OWNERSHIP_TTL_MS: "604800000"
+  SANDBOX_API_PROVIDER: "daytona"
+  DAYTONA_API_URL: ""
+  DAYTONA_TARGET: ""
+  DAYTONA_WORKDIR: "/home/daytona"
+  DAYTONA_TEAM_PREFIX: "op"
+
+appSecret:
+  create: true
+  name: app-secrets
+  jwtSecret: "jwt-secret-key-dev-only"
+  livekitApiKey: "devkey"
+  livekitApiSecret: "devsecret"
+
+sandboxSecret:
+  create: true
+  name: sandbox-secrets
+  token: "dev-sandbox-token"
+  redisUrl: ""
+  daytonaApiKey: ""
+  daytonaJwtToken: ""
+  daytonaOrganizationId: ""
+
+services:
+  server:
+    enabled: true
+    replicaCount: 1
+    image:
+      repository: openbeam/server-dev
+      tag: latest
+      pullPolicy: IfNotPresent
+    service:
+      enabled: true
+      type: ClusterIP
+      port: 3000
+      targetPort: 3000
+      nodePort: null
+    initMigrations:
+      enabled: true
+      command:
+        - sh
+        - -c
+        - cd /app/packages/db && bunx prisma generate && bunx prisma migrate deploy
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: "1"
+        memory: 1Gi
+    startupProbe:
+      path: /api/health
+      initialDelaySeconds: 10
+      periodSeconds: 5
+      failureThreshold: 60
+      timeoutSeconds: 5
+    readinessProbe:
+      path: /api/health
+      periodSeconds: 10
+      timeoutSeconds: 5
+    livenessProbe:
+      path: /api/health
+      periodSeconds: 30
+      timeoutSeconds: 5
+      failureThreshold: 3
+    extraEnv: []
+
+  web:
+    enabled: true
+    replicaCount: 1
+    image:
+      repository: openbeam/web-dev
+      tag: latest
+      pullPolicy: IfNotPresent
+    service:
+      enabled: true
+      type: ClusterIP
+      port: 3001
+      targetPort: 3001
+      nodePort: null
+    env:
+      NEXT_PUBLIC_WEB_URL: "http://localhost:3101"
+      NEXT_PUBLIC_SERVER_URL: "http://localhost:3000"
+      SERVER_INTERNAL_URL: "http://server:3000"
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: "1"
+        memory: 1Gi
+    startupProbe:
+      path: /
+      initialDelaySeconds: 15
+      periodSeconds: 5
+      failureThreshold: 60
+      timeoutSeconds: 5
+    readinessProbe:
+      path: /
+      periodSeconds: 10
+      timeoutSeconds: 5
+    livenessProbe:
+      path: /
+      periodSeconds: 30
+      timeoutSeconds: 5
+      failureThreshold: 3
+    extraEnv: []
+
+  worker:
+    enabled: true
+    replicaCount: 1
+    image:
+      repository: openbeam/worker-dev
+      tag: latest
+      pullPolicy: IfNotPresent
+    service:
+      enabled: true
+      type: ClusterIP
+      metricsPort: 9091
+      healthPort: 9092
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: "2"
+        memory: 2Gi
+    startupProbe:
+      path: /health/live
+      initialDelaySeconds: 10
+      periodSeconds: 5
+      failureThreshold: 60
+      timeoutSeconds: 5
+    readinessProbe:
+      path: /health/ready
+      periodSeconds: 10
+      timeoutSeconds: 5
+    livenessProbe:
+      path: /health/live
+      periodSeconds: 30
+      timeoutSeconds: 5
+      failureThreshold: 3
+    extraEnv: []
+
+  engine:
+    enabled: true
+    replicaCount: 1
+    image:
+      repository: openbeam/engine-dev
+      tag: latest
+      pullPolicy: IfNotPresent
+    service:
+      enabled: true
+      type: ClusterIP
+      port: 8000
+      targetPort: 8000
+      nodePort: null
+    env:
+      CPU_PORT: "8000"
+      CPU_DEBUG: "true"
+      CPU_LOG_LEVEL: "DEBUG"
+      CPU_ENVIRONMENT: "development"
+      CPU_REDIS_URL: "redis://redis:6379"
+      SECURITY_REQUIRE_AUTH: "false"
+      CPU_WORKERS: "1"
+      SCARF_NO_ANALYTICS: "true"
+      DO_NOT_TRACK: "true"
+      MPLCONFIGDIR: "/tmp/matplotlib"
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: "2"
+        memory: 2Gi
+    startupProbe:
+      path: /v1/health
+      initialDelaySeconds: 15
+      periodSeconds: 10
+      failureThreshold: 60
+      timeoutSeconds: 5
+    readinessProbe:
+      path: /v1/health
+      periodSeconds: 10
+      timeoutSeconds: 5
+    livenessProbe:
+      path: /v1/health
+      periodSeconds: 30
+      timeoutSeconds: 5
+      failureThreshold: 3
+    extraEnv: []
+
+sandboxGateway:
+  enabled: true
+  fullnameOverride: sandbox-gateway
+  image:
+    repository: openbeam/sandbox-gateway
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 3800
+  gateway:
+    token: dev-sandbox-token
+    requireTeamId: true
+    defaultProvider: daytona
+    redis:
+      url: ""
+    ownership:
+      store: memory
+      keyPrefix: openbeam:sandbox:ownership
+      ttlMs: "604800000"
+    rateLimit:
+      enabled: true
+      windowMs: 60000
+      maxRequests: 240
+      maxExecRequests: 90
+      maxMutationRequests: 120
+      store: memory
+      keyPrefix: openbeam:sandbox:ratelimit
+    daytona:
+      apiKey: ""
+      apiUrl: ""
+      target: ""
+      jwtToken: ""
+      organizationId: ""
+      workspaceDir: "/home/daytona"
+      teamPrefix: "op"
+
+daytona:
+  enabled: false
+  fullnameOverride: daytona
+  services:
+    api:
+      ingress:
+        enabled: false
+        tls: false
+    proxy:
+      ingress:
+        enabled: false
+        tls: false
+    sshGateway:
+      enabled: false

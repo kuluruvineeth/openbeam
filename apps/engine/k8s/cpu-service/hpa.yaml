@@ -2,7 +2,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: engine-cpu
-  namespace: openplane-engine
+  namespace: openbeam-engine
   labels:
     app.kubernetes.io/name: engine-cpu
     app.kubernetes.io/component: cpu-service

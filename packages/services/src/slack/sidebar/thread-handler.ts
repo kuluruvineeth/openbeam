@@ -1,4 +1,4 @@
-import { cacheSidebarContext, getSidebarContextKey } from "@openplane/redis";
+import { cacheSidebarContext, getSidebarContextKey } from "@openbeam/redis";
 import type { SlackClient } from "../client";
 import type {
   AssistantThreadContextChangedEvent,
@@ -117,7 +117,7 @@ export async function handleAssistantThreadStarted(
 
   await setThreadStatus(client, threadContext, "");
 
-  const title = channelInfo.name ? `#${channelInfo.name}` : "OpenPlane";
+  const title = channelInfo.name ? `#${channelInfo.name}` : "OpenBeam";
   await setThreadTitle(client, threadContext, title);
 }
 
@@ -167,6 +167,6 @@ export async function handleAssistantContextChanged(
   const prompts = getContextualPrompts(sidebarContext);
   await setSuggestedPrompts(client, threadContext, prompts);
 
-  const title = channelInfo.name ? `#${channelInfo.name}` : "OpenPlane";
+  const title = channelInfo.name ? `#${channelInfo.name}` : "OpenBeam";
   await setThreadTitle(client, threadContext, title);
 }

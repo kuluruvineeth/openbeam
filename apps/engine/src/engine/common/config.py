@@ -26,7 +26,7 @@ class SecuritySettings(BaseSettings):
     audit_enabled: bool = True
 
     allowed_origins: list[str] = Field(
-        default_factory=lambda: ["https://app.openplane.com"]
+        default_factory=lambda: ["https://app.openbeam.com"]
     )
 
 

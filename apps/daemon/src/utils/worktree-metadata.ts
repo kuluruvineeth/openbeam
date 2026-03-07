@@ -2,12 +2,12 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { isAbsolute, join, resolve } from "node:path";
 import { z } from "zod";
 
-const OpenPlaneWorktreeMetadataV1Schema = z.object({
+const OpenBeamWorktreeMetadataV1Schema = z.object({
   version: z.literal(1),
   baseRefName: z.string().min(1),
 });
 
-const OpenPlaneWorktreeMetadataV2Schema = z.object({
+const OpenBeamWorktreeMetadataV2Schema = z.object({
   version: z.literal(2),
   baseRefName: z.string().min(1),
   runtime: z
@@ -17,13 +17,13 @@ const OpenPlaneWorktreeMetadataV2Schema = z.object({
     .optional(),
 });
 
-const OpenPlaneWorktreeMetadataSchema = z.union([
-  OpenPlaneWorktreeMetadataV1Schema,
-  OpenPlaneWorktreeMetadataV2Schema,
+const OpenBeamWorktreeMetadataSchema = z.union([
+  OpenBeamWorktreeMetadataV1Schema,
+  OpenBeamWorktreeMetadataV2Schema,
 ]);
 
-export type OpenPlaneWorktreeMetadata = z.infer<
-  typeof OpenPlaneWorktreeMetadataSchema
+export type OpenBeamWorktreeMetadata = z.infer<
+  typeof OpenBeamWorktreeMetadataSchema
 >;
 
 function getGitDirForWorktreeRoot(worktreeRoot: string): string {
@@ -49,9 +49,9 @@ function getGitDirForWorktreeRoot(worktreeRoot: string): string {
   return gitPath;
 }
 
-export function getOpenPlaneWorktreeMetadataPath(worktreeRoot: string): string {
+export function getOpenBeamWorktreeMetadataPath(worktreeRoot: string): string {
   const gitDir = getGitDirForWorktreeRoot(worktreeRoot);
-  return join(gitDir, "openplane", "worktree.json");
+  return join(gitDir, "openbeam", "worktree.json");
 }
 
 export function normalizeBaseRefName(input: string): string {
@@ -65,7 +65,7 @@ export function normalizeBaseRefName(input: string): string {
   return trimmed;
 }
 
-export function writeOpenPlaneWorktreeMetadata(
+export function writeOpenBeamWorktreeMetadata(
   worktreeRoot: string,
   options: { baseRefName: string }
 ): void {
@@ -81,15 +81,15 @@ export function writeOpenPlaneWorktreeMetadata(
     throw new Error(`Invalid base branch: ${baseRefName}`);
   }
 
-  const metadataPath = getOpenPlaneWorktreeMetadataPath(worktreeRoot);
-  mkdirSync(join(getGitDirForWorktreeRoot(worktreeRoot), "openplane"), {
+  const metadataPath = getOpenBeamWorktreeMetadataPath(worktreeRoot);
+  mkdirSync(join(getGitDirForWorktreeRoot(worktreeRoot), "openbeam"), {
     recursive: true,
   });
-  const metadata: OpenPlaneWorktreeMetadata = { version: 1, baseRefName };
+  const metadata: OpenBeamWorktreeMetadata = { version: 1, baseRefName };
   writeFileSync(metadataPath, `${JSON.stringify(metadata, null, 2)}\n`, "utf8");
 }
 
-export function writeOpenPlaneWorktreeRuntimeMetadata(
+export function writeOpenBeamWorktreeRuntimeMetadata(
   worktreeRoot: string,
   options: { worktreePort: number }
 ): void {
@@ -97,18 +97,18 @@ export function writeOpenPlaneWorktreeRuntimeMetadata(
     throw new Error(`Invalid worktree runtime port: ${options.worktreePort}`);
   }
 
-  const current = readOpenPlaneWorktreeMetadata(worktreeRoot);
+  const current = readOpenBeamWorktreeMetadata(worktreeRoot);
   if (!current) {
     throw new Error(
       "Cannot persist worktree runtime metadata: missing base metadata"
     );
   }
 
-  const metadataPath = getOpenPlaneWorktreeMetadataPath(worktreeRoot);
-  mkdirSync(join(getGitDirForWorktreeRoot(worktreeRoot), "openplane"), {
+  const metadataPath = getOpenBeamWorktreeMetadataPath(worktreeRoot);
+  mkdirSync(join(getGitDirForWorktreeRoot(worktreeRoot), "openbeam"), {
     recursive: true,
   });
-  const next: OpenPlaneWorktreeMetadata = {
+  const next: OpenBeamWorktreeMetadata = {
     version: 2,
     baseRefName: current.baseRefName,
     runtime: {
@@ -118,34 +118,32 @@ export function writeOpenPlaneWorktreeRuntimeMetadata(
   writeFileSync(metadataPath, `${JSON.stringify(next, null, 2)}\n`, "utf8");
 }
 
-export function readOpenPlaneWorktreeMetadata(
+export function readOpenBeamWorktreeMetadata(
   worktreeRoot: string
-): OpenPlaneWorktreeMetadata | null {
-  const metadataPath = getOpenPlaneWorktreeMetadataPath(worktreeRoot);
+): OpenBeamWorktreeMetadata | null {
+  const metadataPath = getOpenBeamWorktreeMetadataPath(worktreeRoot);
   if (!existsSync(metadataPath)) {
     return null;
   }
   const parsed = JSON.parse(readFileSync(metadataPath, "utf8"));
-  return OpenPlaneWorktreeMetadataSchema.parse(parsed);
+  return OpenBeamWorktreeMetadataSchema.parse(parsed);
 }
 
-export function requireOpenPlaneWorktreeBaseRefName(
+export function requireOpenBeamWorktreeBaseRefName(
   worktreeRoot: string
 ): string {
-  const metadataPath = getOpenPlaneWorktreeMetadataPath(worktreeRoot);
-  const metadata = readOpenPlaneWorktreeMetadata(worktreeRoot);
+  const metadataPath = getOpenBeamWorktreeMetadataPath(worktreeRoot);
+  const metadata = readOpenBeamWorktreeMetadata(worktreeRoot);
   if (!metadata) {
-    throw new Error(
-      `Missing OpenPlane worktree base metadata: ${metadataPath}`
-    );
+    throw new Error(`Missing OpenBeam worktree base metadata: ${metadataPath}`);
   }
   return metadata.baseRefName;
 }
 
-export function readOpenPlaneWorktreeRuntimePort(
+export function readOpenBeamWorktreeRuntimePort(
   worktreeRoot: string
 ): number | null {
-  const metadata = readOpenPlaneWorktreeMetadata(worktreeRoot);
+  const metadata = readOpenBeamWorktreeMetadata(worktreeRoot);
   if (!metadata) {
     return null;
   }

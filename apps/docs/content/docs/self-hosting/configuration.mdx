@@ -1,6 +1,6 @@
 ---
 title: Configuration Reference
-description: Every environment variable for OpenPlane services, grouped by purpose with defaults and requirements.
+description: Every environment variable for OpenBeam services, grouped by purpose with defaults and requirements.
 ---
 
 # Configuration Reference
@@ -45,7 +45,7 @@ Define where your services are accessible. These are used for OAuth redirects, C
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `DATABASE_URL` | Yes | -- | PostgreSQL connection string |
-| `POSTGRES_DB` | No | `openplane` | Database name (infra compose) |
+| `POSTGRES_DB` | No | `openbeam` | Database name (infra compose) |
 | `POSTGRES_USER` | No | `postgres` | Database user (infra compose) |
 | `POSTGRES_PASSWORD` | No | `postgres` | Database password (infra compose) |
 
@@ -54,7 +54,7 @@ The `DATABASE_URL` format: `postgresql://user:password@host:port/database`
 For the Docker Compose deployment, the default connection string is:
 
 ```bash
-DATABASE_URL=postgresql://postgres:postgres@postgres:5432/openplane
+DATABASE_URL=postgresql://postgres:postgres@postgres:5432/openbeam
 ```
 
 <Callout type="warn">
@@ -93,14 +93,14 @@ Temporal uses PostgreSQL as its persistence backend. It connects using the same 
 | `GCS_ENDPOINT` | Yes | `http://minio:9000` | S3-compatible endpoint URL |
 | `GCS_ACCESS_KEY_ID` | Yes | -- | S3 access key |
 | `GCS_SECRET_ACCESS_KEY` | Yes | -- | S3 secret key |
-| `GCS_BUCKET` | Yes | `openplane-files` | Bucket name for file storage |
+| `GCS_BUCKET` | Yes | `openbeam-files` | Bucket name for file storage |
 | `GCS_REGION` | No | `us-east-1` | S3 region |
 | `GCS_PUBLIC_ENDPOINT` | No | -- | Public URL for file access (e.g., `https://storage.example.com`) |
-| `MINIO_ROOT_USER` | No | `openplane-minio` | MinIO admin username (infra compose) |
+| `MINIO_ROOT_USER` | No | `openbeam-minio` | MinIO admin username (infra compose) |
 | `MINIO_ROOT_PASSWORD` | No | `minioadmin` | MinIO admin password (infra compose) |
 | `MINIO_SERVER_URL` | No | `http://localhost:9000` | MinIO server URL for console |
 | `MINIO_BROWSER_REDIRECT_URL` | No | `http://localhost:9001` | MinIO browser console URL |
-| `S3_BUCKET` | No | `openplane-files` | Bucket name for minio-init container |
+| `S3_BUCKET` | No | `openbeam-files` | Bucket name for minio-init container |
 
 ## Authentication Providers
 
@@ -193,17 +193,17 @@ WEB_URL=https://app.example.com
 SERVER_URL=https://api.example.com
 
 # Database
-DATABASE_URL=postgresql://postgres:a_strong_password_here@postgres:5432/openplane
+DATABASE_URL=postgresql://postgres:a_strong_password_here@postgres:5432/openbeam
 POSTGRES_PASSWORD=a_strong_password_here
 
 # Object Storage
 GCS_ENDPOINT=http://minio:9000
-GCS_ACCESS_KEY_ID=openplane-minio
+GCS_ACCESS_KEY_ID=openbeam-minio
 GCS_SECRET_ACCESS_KEY=a_strong_minio_password_here
-GCS_BUCKET=openplane-files
+GCS_BUCKET=openbeam-files
 GCS_REGION=us-east-1
 GCS_PUBLIC_ENDPOINT=https://storage.example.com
-MINIO_ROOT_USER=openplane-minio
+MINIO_ROOT_USER=openbeam-minio
 MINIO_ROOT_PASSWORD=a_strong_minio_password_here
 
 # Auth

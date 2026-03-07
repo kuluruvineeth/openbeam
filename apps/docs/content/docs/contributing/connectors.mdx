@@ -7,7 +7,7 @@ description: Ship a new connector in 2-3 hours -- the definitive guide
 
 Every connector follows the same four-layer architecture. This guide walks you through each layer using the Linear connector as the reference implementation.
 
-By the end, you will have a production-ready connector that syncs data from a third-party API into OpenPlane's search index.
+By the end, you will have a production-ready connector that syncs data from a third-party API into OpenBeam's search index.
 
 ## Architecture
 
@@ -224,8 +224,8 @@ Wrap the third-party API with rate limiting and error handling. From the actual 
 
 ```typescript
 // packages/services/src/linear/client.ts
-import { type RateLimitConfig, rateLimiter } from "@openplane/redis";
-import type { LinearClientConfig } from "@openplane/types/services/connectors/linear";
+import { type RateLimitConfig, rateLimiter } from "@openbeam/redis";
+import type { LinearClientConfig } from "@openbeam/types/services/connectors/linear";
 
 const DEFAULT_RATE_LIMITS: RateLimitConfig = {
   requestsPerMinute: 50,
@@ -277,8 +277,8 @@ import type {
   LinearSyncBatch,
   LinearSyncCursor,
   LinearTransformContext,
-} from "@openplane/types/services/connectors/linear";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/linear";
+import type { GenericDocument } from "@openbeam/vespa";
 
 export async function* fullSync(
   client: LinearClient,
@@ -349,12 +349,12 @@ export async function* incrementalSync(
 
 ### Transformer
 
-Maps a third-party entity to OpenPlane's `GenericDocument` schema. From the actual Linear issue transformer:
+Maps a third-party entity to OpenBeam's `GenericDocument` schema. From the actual Linear issue transformer:
 
 ```typescript
 // packages/services/src/linear/transformers/issue.ts
-import type { LinearIssue, LinearTransformContext } from "@openplane/types/services/connectors/linear";
-import type { GenericDocument } from "@openplane/vespa";
+import type { LinearIssue, LinearTransformContext } from "@openbeam/types/services/connectors/linear";
+import type { GenericDocument } from "@openbeam/vespa";
 
 export async function transformIssue(
   issue: LinearIssue,

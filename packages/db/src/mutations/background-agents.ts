@@ -4,7 +4,7 @@ import type {
   CreateBackgroundAgentData,
   LogEntry,
   UsageIncrement,
-} from "@openplane/types/db";
+} from "@openbeam/types/db";
 import type { Database } from "../index";
 
 export function createBackgroundAgent(

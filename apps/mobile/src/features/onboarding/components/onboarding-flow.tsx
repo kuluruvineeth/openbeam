@@ -29,7 +29,7 @@ type OnboardingStep = {
 const STEPS: OnboardingStep[] = [
   {
     id: "welcome",
-    title: "Welcome to OpenPlane",
+    title: "Welcome to OpenBeam",
     description:
       "Your AI-powered workspace for search, knowledge, and voice. Let's get you set up in under a minute.",
     icon: Sparkles,
@@ -38,7 +38,7 @@ const STEPS: OnboardingStep[] = [
     id: "microphone",
     title: "Microphone Access",
     description:
-      "OpenPlane uses your microphone for voice dictation and transcription. Grant access to unlock voice features.",
+      "OpenBeam uses your microphone for voice dictation and transcription. Grant access to unlock voice features.",
     icon: Mic,
     action: {
       label: "Grant Access",
@@ -69,7 +69,7 @@ const STEPS: OnboardingStep[] = [
     id: "voice-test",
     title: "Test Your Voice",
     description:
-      "Tap the button below and say something. You'll see your words appear in real-time as OpenPlane transcribes your voice.",
+      "Tap the button below and say something. You'll see your words appear in real-time as OpenBeam transcribes your voice.",
     icon: Radio,
   },
   {

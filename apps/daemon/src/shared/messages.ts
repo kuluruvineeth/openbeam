@@ -848,15 +848,15 @@ export const DirectorySuggestionsRequestSchema = z.object({
   requestId: z.string(),
 });
 
-export const OpenPlaneWorktreeListRequestSchema = z.object({
-  type: z.literal("openplane_worktree_list_request"),
+export const OpenBeamWorktreeListRequestSchema = z.object({
+  type: z.literal("openbeam_worktree_list_request"),
   cwd: z.string().optional(),
   repoRoot: z.string().optional(),
   requestId: z.string(),
 });
 
-export const OpenPlaneWorktreeArchiveRequestSchema = z.object({
-  type: z.literal("openplane_worktree_archive_request"),
+export const OpenBeamWorktreeArchiveRequestSchema = z.object({
+  type: z.literal("openbeam_worktree_archive_request"),
   worktreePath: z.string().optional(),
   repoRoot: z.string().optional(),
   branchName: z.string().optional(),
@@ -1171,8 +1171,8 @@ export const SessionInboundMessageSchema = z.discriminatedUnion("type", [
   ValidateBranchRequestSchema,
   BranchSuggestionsRequestSchema,
   DirectorySuggestionsRequestSchema,
-  OpenPlaneWorktreeListRequestSchema,
-  OpenPlaneWorktreeArchiveRequestSchema,
+  OpenBeamWorktreeListRequestSchema,
+  OpenBeamWorktreeArchiveRequestSchema,
   FileExplorerRequestSchema,
   ProjectIconRequestSchema,
   FileDownloadTokenRequestSchema,
@@ -1462,32 +1462,32 @@ export const ProjectCheckoutLiteNotGitPayloadSchema = z.object({
   isGit: z.literal(false),
   currentBranch: z.null(),
   remoteUrl: z.null(),
-  isOpenPlaneOwnedWorktree: z.literal(false),
+  isOpenBeamOwnedWorktree: z.literal(false),
   mainRepoRoot: z.null(),
 });
 
-export const ProjectCheckoutLiteGitNonOpenPlanePayloadSchema = z.object({
+export const ProjectCheckoutLiteGitNonOpenBeamPayloadSchema = z.object({
   cwd: z.string(),
   isGit: z.literal(true),
   currentBranch: z.string().nullable(),
   remoteUrl: z.string().nullable(),
-  isOpenPlaneOwnedWorktree: z.literal(false),
+  isOpenBeamOwnedWorktree: z.literal(false),
   mainRepoRoot: z.null(),
 });
 
-export const ProjectCheckoutLiteGitOpenPlanePayloadSchema = z.object({
+export const ProjectCheckoutLiteGitOpenBeamPayloadSchema = z.object({
   cwd: z.string(),
   isGit: z.literal(true),
   currentBranch: z.string().nullable(),
   remoteUrl: z.string().nullable(),
-  isOpenPlaneOwnedWorktree: z.literal(true),
+  isOpenBeamOwnedWorktree: z.literal(true),
   mainRepoRoot: z.string(),
 });
 
 export const ProjectCheckoutLitePayloadSchema = z.union([
   ProjectCheckoutLiteNotGitPayloadSchema,
-  ProjectCheckoutLiteGitNonOpenPlanePayloadSchema,
-  ProjectCheckoutLiteGitOpenPlanePayloadSchema,
+  ProjectCheckoutLiteGitNonOpenBeamPayloadSchema,
+  ProjectCheckoutLiteGitOpenBeamPayloadSchema,
 ]);
 
 export const ProjectPlacementPayloadSchema = z.object({
@@ -1675,7 +1675,7 @@ const CheckoutStatusCommonSchema = z.object({
 
 const CheckoutStatusNotGitSchema = CheckoutStatusCommonSchema.extend({
   isGit: z.literal(false),
-  isOpenPlaneOwnedWorktree: z.literal(false),
+  isOpenBeamOwnedWorktree: z.literal(false),
   repoRoot: z.null(),
   currentBranch: z.null(),
   isDirty: z.null(),
@@ -1687,9 +1687,9 @@ const CheckoutStatusNotGitSchema = CheckoutStatusCommonSchema.extend({
   remoteUrl: z.null(),
 });
 
-const CheckoutStatusGitNonOpenPlaneSchema = CheckoutStatusCommonSchema.extend({
+const CheckoutStatusGitNonOpenBeamSchema = CheckoutStatusCommonSchema.extend({
   isGit: z.literal(true),
-  isOpenPlaneOwnedWorktree: z.literal(false),
+  isOpenBeamOwnedWorktree: z.literal(false),
   repoRoot: z.string(),
   currentBranch: z.string().nullable(),
   isDirty: z.boolean(),
@@ -1701,9 +1701,9 @@ const CheckoutStatusGitNonOpenPlaneSchema = CheckoutStatusCommonSchema.extend({
   remoteUrl: z.string().nullable(),
 });
 
-const CheckoutStatusGitOpenPlaneSchema = CheckoutStatusCommonSchema.extend({
+const CheckoutStatusGitOpenBeamSchema = CheckoutStatusCommonSchema.extend({
   isGit: z.literal(true),
-  isOpenPlaneOwnedWorktree: z.literal(true),
+  isOpenBeamOwnedWorktree: z.literal(true),
   repoRoot: z.string(),
   mainRepoRoot: z.string(),
   currentBranch: z.string().nullable(),
@@ -1720,8 +1720,8 @@ export const CheckoutStatusResponseSchema = z.object({
   type: z.literal("checkout_status_response"),
   payload: z.union([
     CheckoutStatusNotGitSchema,
-    CheckoutStatusGitNonOpenPlaneSchema,
-    CheckoutStatusGitOpenPlaneSchema,
+    CheckoutStatusGitNonOpenBeamSchema,
+    CheckoutStatusGitOpenBeamSchema,
   ]),
 });
 
@@ -1853,23 +1853,23 @@ export const DirectorySuggestionsResponseSchema = z.object({
   }),
 });
 
-const OpenPlaneWorktreeSchema = z.object({
+const OpenBeamWorktreeSchema = z.object({
   worktreePath: z.string(),
   branchName: z.string().nullable().optional(),
   head: z.string().nullable().optional(),
 });
 
-export const OpenPlaneWorktreeListResponseSchema = z.object({
-  type: z.literal("openplane_worktree_list_response"),
+export const OpenBeamWorktreeListResponseSchema = z.object({
+  type: z.literal("openbeam_worktree_list_response"),
   payload: z.object({
-    worktrees: z.array(OpenPlaneWorktreeSchema),
+    worktrees: z.array(OpenBeamWorktreeSchema),
     error: CheckoutErrorSchema.nullable(),
     requestId: z.string(),
   }),
 });
 
-export const OpenPlaneWorktreeArchiveResponseSchema = z.object({
-  type: z.literal("openplane_worktree_archive_response"),
+export const OpenBeamWorktreeArchiveResponseSchema = z.object({
+  type: z.literal("openbeam_worktree_archive_response"),
   payload: z.object({
     success: z.boolean(),
     removedAgents: z.array(z.string()).optional(),
@@ -2164,8 +2164,8 @@ export const SessionOutboundMessageSchema = z.discriminatedUnion("type", [
   ValidateBranchResponseSchema,
   BranchSuggestionsResponseSchema,
   DirectorySuggestionsResponseSchema,
-  OpenPlaneWorktreeListResponseSchema,
-  OpenPlaneWorktreeArchiveResponseSchema,
+  OpenBeamWorktreeListResponseSchema,
+  OpenBeamWorktreeArchiveResponseSchema,
   FileExplorerResponseSchema,
   ProjectIconResponseSchema,
   FileDownloadTokenResponseSchema,
@@ -2380,17 +2380,17 @@ export type DirectorySuggestionsRequest = z.infer<
 export type DirectorySuggestionsResponse = z.infer<
   typeof DirectorySuggestionsResponseSchema
 >;
-export type OpenPlaneWorktreeListRequest = z.infer<
-  typeof OpenPlaneWorktreeListRequestSchema
+export type OpenBeamWorktreeListRequest = z.infer<
+  typeof OpenBeamWorktreeListRequestSchema
 >;
-export type OpenPlaneWorktreeListResponse = z.infer<
-  typeof OpenPlaneWorktreeListResponseSchema
+export type OpenBeamWorktreeListResponse = z.infer<
+  typeof OpenBeamWorktreeListResponseSchema
 >;
-export type OpenPlaneWorktreeArchiveRequest = z.infer<
-  typeof OpenPlaneWorktreeArchiveRequestSchema
+export type OpenBeamWorktreeArchiveRequest = z.infer<
+  typeof OpenBeamWorktreeArchiveRequestSchema
 >;
-export type OpenPlaneWorktreeArchiveResponse = z.infer<
-  typeof OpenPlaneWorktreeArchiveResponseSchema
+export type OpenBeamWorktreeArchiveResponse = z.infer<
+  typeof OpenBeamWorktreeArchiveResponseSchema
 >;
 export type FileExplorerRequest = z.infer<typeof FileExplorerRequestSchema>;
 export type FileExplorerResponse = z.infer<typeof FileExplorerResponseSchema>;

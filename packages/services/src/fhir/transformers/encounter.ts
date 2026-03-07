@@ -1,8 +1,8 @@
 import type {
   FhirEncounter,
   FhirTransformContext,
-} from "@openplane/types/services/connectors/fhir";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/fhir";
+import type { GenericDocument } from "@openbeam/vespa";
 import { calculateDocumentChecksum } from "../../lib/checksum";
 import { buildAccessControl } from "../phi/consent";
 import { deidentifyResource } from "../phi/safe-harbor";

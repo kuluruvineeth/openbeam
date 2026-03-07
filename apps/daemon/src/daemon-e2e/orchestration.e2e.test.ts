@@ -1,7 +1,7 @@
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import type { SessionOutboundMessage } from "@openplane/types/services/daemon/messages";
+import type { SessionOutboundMessage } from "@openbeam/types/services/daemon/messages";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import {
   createDaemonTestContext,

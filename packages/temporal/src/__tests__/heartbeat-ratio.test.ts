@@ -1,4 +1,4 @@
-import { TIMEOUT_TIERS } from "@openplane/types/temporal/agent-timeouts";
+import { TIMEOUT_TIERS } from "@openbeam/types/temporal/agent-timeouts";
 import { describe, expect, it } from "vitest";
 import {
   computeHeartbeatInterval,

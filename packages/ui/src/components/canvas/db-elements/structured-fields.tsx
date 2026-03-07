@@ -1,6 +1,6 @@
 "use client";
 
-import type { DatabaseOperation } from "@openplane/types/canvas";
+import type { DatabaseOperation } from "@openbeam/types/canvas";
 import { forwardRef, memo, useCallback } from "react";
 import { Icons } from "../../icons";
 import { Input } from "../../input";

@@ -1,5 +1,5 @@
-import type { Database } from "@openplane/db";
-import { createEntityChange } from "@openplane/db";
+import type { Database } from "@openbeam/db";
+import { createEntityChange } from "@openbeam/db";
 import type { InvalidateEdgesInput, InvalidateEdgesOutput } from "./types";
 
 export interface InvalidateEdgesDependencies {

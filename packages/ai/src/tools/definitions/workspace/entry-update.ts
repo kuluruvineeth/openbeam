@@ -41,7 +41,7 @@ RETURNS: The updated entry with all current field values.`,
     const startTime = performance.now();
 
     const { getTeamDuckDB, initializeEAVSchema, updateEntry } = await import(
-      "@openplane/services"
+      "@openbeam/services"
     );
 
     const db = await getTeamDuckDB(ctx.teamId);

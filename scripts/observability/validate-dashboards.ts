@@ -17,7 +17,7 @@ interface GrafanaDashboard {
 const dashboardsDir = resolve(process.cwd(), "monitoring/grafana/dashboards");
 
 const requiredDashboards = [
-  "openplane-command-center",
+  "openbeam-command-center",
   "error-analysis",
   "platform-slo-overview",
   "logs-error-drilldown",
@@ -26,7 +26,7 @@ const requiredDashboards = [
 ];
 
 const requiredVariablesByUid: Record<string, string[]> = {
-  "openplane-command-center": [
+  "openbeam-command-center": [
     "service",
     "env",
     "connector_type",

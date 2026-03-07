@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import type { SamsaraTransformContext } from "@openplane/types/services/connectors/samsara";
+import type { SamsaraTransformContext } from "@openbeam/types/services/connectors/samsara";
 import type { SamsaraAlert } from "../transformers/alert";
 import { transformAlert, transformAlerts } from "../transformers/alert";
 import type { SamsaraDriver } from "../transformers/driver";

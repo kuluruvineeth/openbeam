@@ -43,7 +43,7 @@ services:
       - DEEPGRAM_API_KEY=${DEEPGRAM_API_KEY}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-      - OPENPLANE_API_URL=http://host.docker.internal:3000/api/v1
+      - OPENBEAM_API_URL=http://host.docker.internal:3000/api/v1
       - ENVIRONMENT=development
     depends_on:
       - livekit

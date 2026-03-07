@@ -1,4 +1,4 @@
-import type { RuntimeEventPayload } from "@openplane/types/canvas/runtime-events";
+import type { RuntimeEventPayload } from "@openbeam/types/canvas/runtime-events";
 
 const SENSITIVE_TOOL_NAMES = new Set([
   "connector_oauth_refresh",

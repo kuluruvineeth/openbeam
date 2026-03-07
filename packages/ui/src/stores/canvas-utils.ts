@@ -1,4 +1,4 @@
-import type { AgentCanvasNode } from "@openplane/types/canvas";
+import type { AgentCanvasNode } from "@openbeam/types/canvas";
 
 const DEFAULT_X = 240;
 const DEFAULT_Y = 120;

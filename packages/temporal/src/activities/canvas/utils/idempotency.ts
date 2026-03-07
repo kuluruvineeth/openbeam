@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { getRedisClient } from "@openplane/redis";
+import { getRedisClient } from "@openbeam/redis";
 
 const IDEMPOTENCY_KEY_PREFIX = "activity:idempotency";
 const DEFAULT_TTL_MS = 24 * 60 * 60 * 1000;

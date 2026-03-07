@@ -1,6 +1,6 @@
 "use client";
 
-import type { VideoNodeConfig } from "@openplane/types/canvas";
+import type { VideoNodeConfig } from "@openbeam/types/canvas";
 import { forwardRef, memo } from "react";
 import { Icons } from "../../../icons";
 import { Input } from "../../../input";

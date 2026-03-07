@@ -167,7 +167,7 @@ export function SyncStatusCard({
           />
         )}
         {syncStatus?.webhookStatus?.enabled && (
-          <div className="flex items-center gap-2 text-[11px] text-openplane-green">
+          <div className="flex items-center gap-2 text-[11px] text-openbeam-green">
             <Icons.Webhook size={12} />
             <span>Real-time active</span>
           </div>

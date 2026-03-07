@@ -11,7 +11,7 @@ import type {
   FhirPatient,
   FhirProcedure,
   FhirTransformContext,
-} from "@openplane/types/services/connectors/fhir";
+} from "@openbeam/types/services/connectors/fhir";
 import { transformCondition } from "../transformers/condition";
 import { transformDevice } from "../transformers/device";
 import { transformDeviceMetric } from "../transformers/device-metric";

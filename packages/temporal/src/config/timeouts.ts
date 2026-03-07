@@ -83,6 +83,20 @@ export const AGENT_MARATHON_TIMEOUTS: ActivityTimeouts = {
   heartbeatTimeout: "10m",
 };
 
+export const AGENT_LIFECYCLE_TIMEOUTS: ActivityTimeouts = {
+  startToCloseTimeout: "30s",
+};
+
+export const AGENT_SCHEDULER_TIMEOUTS: ActivityTimeouts = {
+  startToCloseTimeout: "2m",
+  heartbeatTimeout: "30s",
+};
+
+export const AGENT_REAPER_TIMEOUTS: ActivityTimeouts = {
+  startToCloseTimeout: "5m",
+  heartbeatTimeout: "1m",
+};
+
 export const LLM_CALL_TIMEOUTS: ActivityTimeouts = {
   startToCloseTimeout: "3m",
   heartbeatTimeout: "45s",
@@ -149,6 +163,9 @@ export function getTimeoutsForActivity(activityType: string): ActivityTimeouts {
     database: DATABASE_TIMEOUTS,
     webhook: WEBHOOK_TIMEOUTS,
     agent: AGENT_TIMEOUTS,
+    agentLifecycle: AGENT_LIFECYCLE_TIMEOUTS,
+    agentScheduler: AGENT_SCHEDULER_TIMEOUTS,
+    agentReaper: AGENT_REAPER_TIMEOUTS,
     llm_call: LLM_CALL_TIMEOUTS,
     reflection: REFLECTION_TIMEOUTS,
   };

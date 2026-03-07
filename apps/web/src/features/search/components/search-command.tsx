@@ -1,6 +1,6 @@
 "use client";
 
-import { Input } from "@openplane/ui";
+import { Input } from "@openbeam/ui";
 import { Command as CommandPrimitive } from "cmdk";
 import { useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";

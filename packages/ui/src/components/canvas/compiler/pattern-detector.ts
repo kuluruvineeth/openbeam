@@ -1,4 +1,4 @@
-import type { BaseNodeData } from "@openplane/types/canvas";
+import type { BaseNodeData } from "@openbeam/types/canvas";
 import type { Edge, Node } from "@xyflow/react";
 
 export type DetectedPattern =

@@ -1,7 +1,7 @@
 "use client";
 
-import { Badge } from "@openplane/ui/components/badge";
-import { Skeleton } from "@openplane/ui/components/skeleton";
+import { Badge } from "@openbeam/ui/components/badge";
+import { Skeleton } from "@openbeam/ui/components/skeleton";
 
 type AgentTag = {
   id: string;

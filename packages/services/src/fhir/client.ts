@@ -1,8 +1,8 @@
-import { type RateLimitConfig, rateLimiter } from "@openplane/redis";
+import { type RateLimitConfig, rateLimiter } from "@openbeam/redis";
 import type {
   FhirClientConfig,
   FhirResource,
-} from "@openplane/types/services/connectors/fhir";
+} from "@openbeam/types/services/connectors/fhir";
 import { logger } from "../lib/logger";
 import { FhirApiError } from "./types";
 

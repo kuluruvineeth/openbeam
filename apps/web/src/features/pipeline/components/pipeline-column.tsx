@@ -1,7 +1,7 @@
 "use client";
 
 import { useDroppable } from "@dnd-kit/core";
-import { cn } from "@openplane/ui";
+import { cn } from "@openbeam/ui";
 import { cva, type VariantProps } from "class-variance-authority";
 import { COLUMN_WIDTH } from "../constants";
 import type {

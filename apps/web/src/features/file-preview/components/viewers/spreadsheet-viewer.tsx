@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, TooltipProvider } from "@openplane/ui";
+import { Button, TooltipProvider } from "@openbeam/ui";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { read, utils, type WorkBook } from "xlsx";
 import { Icons } from "@/components/icons";

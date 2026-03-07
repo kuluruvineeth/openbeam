@@ -1,4 +1,4 @@
-import type { ExecutionPlan } from "@openplane/types/canvas";
+import type { ExecutionPlan } from "@openbeam/types/canvas";
 import { describe, expect, it, vi } from "vitest";
 
 const UNSUPPORTED_NODE_RE = /Unsupported node types.*completely_unknown_type/;

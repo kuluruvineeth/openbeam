@@ -159,11 +159,11 @@ async function runVoiceRoundTrip(params: {
 
 async function main(): Promise<void> {
   const daemonUrl =
-    process.env.OPENPLANE_DAEMON_URL ??
+    process.env.OPENBEAM_DAEMON_URL ??
     // biome-ignore lint/performance/useTopLevelRegex: scoped regex acceptable here
     "ws://localhost:6767".replace(/^ws/, "http");
   const timeoutMs = Number(
-    process.env.OPENPLANE_VOICE_E2E_TIMEOUT_MS ?? "120000"
+    process.env.OPENBEAM_VOICE_E2E_TIMEOUT_MS ?? "120000"
   );
   const voiceAgentId = randomUUID();
 

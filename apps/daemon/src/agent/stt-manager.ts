@@ -19,7 +19,7 @@ const DEFAULT_BATCH_COMMIT_EVERY_SECONDS = 15;
 const BATCH_FINAL_TIMEOUT_MS = 120_000;
 
 function resolveBatchCommitEverySeconds(): number {
-  const fromEnv = process.env.OPENPLANE_STT_BATCH_COMMIT_EVERY_SECONDS;
+  const fromEnv = process.env.OPENBEAM_STT_BATCH_COMMIT_EVERY_SECONDS;
   if (!fromEnv) {
     return DEFAULT_BATCH_COMMIT_EVERY_SECONDS;
   }

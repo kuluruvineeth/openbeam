@@ -1,8 +1,8 @@
 import type {
   BacnetSyncBatch,
   BacnetTransformContext,
-} from "@openplane/types/services/connectors/bacnet";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/bacnet";
+import type { GenericDocument } from "@openbeam/vespa";
 import { logger } from "../../lib/logger";
 import type { BacnetClient } from "../client";
 import { transformDevices } from "../transformers/device";

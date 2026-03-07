@@ -9,7 +9,7 @@ import { ClaudeAgentClient } from "../agent/providers/claude-agent";
 import { CodexAppServerAgentClient } from "../agent/providers/codex-app-server-agent";
 import { OpenCodeAgentClient } from "../agent/providers/opencode-agent";
 import { DaemonClient } from "../test-utils/daemon-client";
-import { createTestOpenPlaneDaemon } from "../test-utils/openplane-daemon";
+import { createTestOpenBeamDaemon } from "../test-utils/openbeam-daemon";
 import {
   type AgentProvider,
   allProviders,
@@ -522,7 +522,7 @@ describe.each(allProviders)(
       async () => {
         const logger = pino({ level: "silent" });
         const cwd = tmpCwd();
-        const daemon = await createTestOpenPlaneDaemon({
+        const daemon = await createTestOpenBeamDaemon({
           agentClients: {
             [provider]: createRealAgentClient(provider, logger),
           } as Partial<Record<AgentProvider, AgentClient>>,
@@ -564,7 +564,7 @@ describe.each(allProviders)(
       async () => {
         const logger = pino({ level: "silent" });
         const cwd = tmpCwd();
-        const daemon = await createTestOpenPlaneDaemon({
+        const daemon = await createTestOpenBeamDaemon({
           agentClients: {
             [provider]: createRealAgentClient(provider, logger),
           } as Partial<Record<AgentProvider, AgentClient>>,

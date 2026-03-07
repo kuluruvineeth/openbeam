@@ -5,7 +5,7 @@ import {
   type EncryptedChannel,
   type KeyPair,
   type Transport as RelayTransport,
-} from "@openplane/relay/e2ee";
+} from "@openbeam/relay/e2ee";
 import type pino from "pino";
 import WebSocket from "ws";
 import { buildRelayWebSocketUrl } from "./shared/daemon-endpoints";

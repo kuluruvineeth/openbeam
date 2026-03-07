@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: sandbox-gateway
-  namespace: openplane
+  namespace: openbeam
   labels:
     app: sandbox-gateway
 spec:
@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: sandbox-gateway
-          image: openplane/sandbox-gateway:latest
+          image: openbeam/sandbox-gateway:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3800
@@ -55,7 +55,7 @@ spec:
                   optional: true
           envFrom:
             - configMapRef:
-                name: openplane-env
+                name: openbeam-env
           startupProbe:
             httpGet:
               path: /health

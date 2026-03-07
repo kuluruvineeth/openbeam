@@ -1,8 +1,8 @@
 import type {
   VerkadaSyncBatch,
   VerkadaTransformContext,
-} from "@openplane/types/services/connectors/verkada";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/verkada";
+import type { GenericDocument } from "@openbeam/vespa";
 import type { VerkadaClient } from "../client";
 import type { VerkadaCamera } from "../transformers/camera";
 import { transformCameras } from "../transformers/camera";

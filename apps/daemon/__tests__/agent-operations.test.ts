@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { rmSync } from "node:fs";
-import type { SessionOutboundMessage } from "@openplane/types/services/daemon/messages";
+import type { SessionOutboundMessage } from "@openbeam/types/services/daemon/messages";
 import {
   createDaemonTestContext,
   type DaemonTestContext,

@@ -166,14 +166,14 @@ const DEFAULT_PERSISTED_CONFIG: PersistedConfig = PersistedConfigSchema.parse({
   daemon: {
     listen: "127.0.0.1:6767",
     cors: {
-      allowedOrigins: ["https://app.openplane.sh"],
+      allowedOrigins: ["https://app.openbeam.sh"],
     },
     relay: {
       enabled: true,
     },
   },
   app: {
-    baseUrl: "https://app.openplane.sh",
+    baseUrl: "https://app.openbeam.sh",
   },
 });
 
@@ -183,8 +183,8 @@ type LoggerLike = {
   info(...args: any[]): void;
 };
 
-function getConfigPath(openplaneHome: string): string {
-  return path.join(openplaneHome, CONFIG_FILENAME);
+function getConfigPath(openbeamHome: string): string {
+  return path.join(openbeamHome, CONFIG_FILENAME);
 }
 
 function getLogger(logger: LoggerLike | undefined): LoggerLike | undefined {
@@ -220,11 +220,11 @@ function stripDeprecatedLocalSpeechConfigFields(parsed: unknown): unknown {
 }
 
 export function loadPersistedConfig(
-  openplaneHome: string,
+  openbeamHome: string,
   logger?: LoggerLike
 ): PersistedConfig {
   const log = getLogger(logger);
-  const configPath = getConfigPath(openplaneHome);
+  const configPath = getConfigPath(openbeamHome);
 
   if (!existsSync(configPath)) {
     try {
@@ -272,12 +272,12 @@ export function loadPersistedConfig(
 }
 
 export function savePersistedConfig(
-  openplaneHome: string,
+  openbeamHome: string,
   config: PersistedConfig,
   logger?: LoggerLike
 ): void {
   const log = getLogger(logger);
-  const configPath = getConfigPath(openplaneHome);
+  const configPath = getConfigPath(openbeamHome);
 
   const result = PersistedConfigSchema.safeParse(config);
   if (!result.success) {

@@ -3,7 +3,7 @@ import db, {
   createCompositionEventWithPattern,
   getEmergingPatterns as dbGetEmergingPatterns,
   type GetEmergingPatternsOptions,
-} from "@openplane/db";
+} from "@openbeam/db";
 import { z } from "zod";
 import { aiMetrics } from "./metrics";
 

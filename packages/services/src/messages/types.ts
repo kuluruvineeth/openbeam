@@ -1,4 +1,4 @@
-import type { GenericDocument, JsonObject } from "@openplane/vespa";
+import type { GenericDocument, JsonObject } from "@openbeam/vespa";
 
 export type GetDocumentParams = {
   documentId: string;

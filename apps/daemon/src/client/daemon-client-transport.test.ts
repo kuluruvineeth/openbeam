@@ -11,7 +11,7 @@ import {
 
 const createClientChannelMock = vi.hoisted(() => vi.fn());
 
-vi.mock("@openplane/relay/e2ee", () => ({
+vi.mock("@openbeam/relay/e2ee", () => ({
   createClientChannel: createClientChannelMock,
 }));
 

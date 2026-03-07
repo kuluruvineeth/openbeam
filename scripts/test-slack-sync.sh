@@ -2,13 +2,13 @@
 
 # Test Slack sync flow
 # Usage: ./scripts/test-slack-sync.sh <CONNECTOR_ID> [SERVER_URL]
-# Requires: OPENPLANE_API_KEY environment variable
+# Requires: OPENBEAM_API_KEY environment variable
 
 set -e
 
 CONNECTOR_ID="${1:-}"
 SERVER_URL="${2:-http://localhost:3000}"
-API_KEY="${OPENPLANE_API_KEY:-}"
+API_KEY="${OPENBEAM_API_KEY:-}"
 
 if [ -z "$CONNECTOR_ID" ]; then
   echo "Usage: $0 <CONNECTOR_ID> [SERVER_URL]"
@@ -17,8 +17,8 @@ if [ -z "$CONNECTOR_ID" ]; then
 fi
 
 if [ -z "$API_KEY" ]; then
-  echo "Error: OPENPLANE_API_KEY environment variable required"
-  echo "Set it with: export OPENPLANE_API_KEY='op_xxx'"
+  echo "Error: OPENBEAM_API_KEY environment variable required"
+  echo "Set it with: export OPENBEAM_API_KEY='op_xxx'"
   exit 1
 fi
 

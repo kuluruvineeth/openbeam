@@ -44,7 +44,7 @@ RETURNS: The created entry ID and values.`,
     const startTime = performance.now();
 
     const { getTeamDuckDB, initializeEAVSchema, getObject, createEntry } =
-      await import("@openplane/services");
+      await import("@openbeam/services");
 
     const db = await getTeamDuckDB(ctx.teamId);
     await initializeEAVSchema(db);

@@ -1,5 +1,5 @@
-import type { AwsIotTransformContext } from "@openplane/types/services/connectors/aws-iot";
-import type { GenericDocument } from "@openplane/vespa";
+import type { AwsIotTransformContext } from "@openbeam/types/services/connectors/aws-iot";
+import type { GenericDocument } from "@openbeam/vespa";
 import { calculateDocumentChecksum } from "../../lib/checksum";
 import type { AwsIotShadow, AwsIotThingDetail } from "../client";
 

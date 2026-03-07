@@ -1,4 +1,4 @@
-import type { Database } from "@openplane/db";
+import type { Database } from "@openbeam/db";
 import {
   completeSyncHistory,
   createSyncHistory,
@@ -10,7 +10,7 @@ import {
   updateSyncHistoryStatus,
   updateSyncJobFenceToken,
   updateSyncJobNextRun,
-} from "@openplane/db";
+} from "@openbeam/db";
 import type {
   CreateSyncHistoryResult,
   ServiceCreateSyncHistoryInput,

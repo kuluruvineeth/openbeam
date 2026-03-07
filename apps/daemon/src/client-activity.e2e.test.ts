@@ -2,9 +2,9 @@ import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import type { AgentStreamEventPayload } from "./shared/messages";
 import { DaemonClient } from "./test-utils/daemon-client";
 import {
-  createTestOpenPlaneDaemon,
-  type TestOpenPlaneDaemon,
-} from "./test-utils/openplane-daemon";
+  createTestOpenBeamDaemon,
+  type TestOpenBeamDaemon,
+} from "./test-utils/openbeam-daemon";
 
 /**
  * Tests for client activity tracking and smart notifications.
@@ -26,12 +26,12 @@ import {
  * - appVisible: whether the app/tab is in foreground
  */
 describe("client activity tracking", () => {
-  let daemon: TestOpenPlaneDaemon;
+  let daemon: TestOpenBeamDaemon;
   let client1: DaemonClient;
   let client2: DaemonClient;
 
   beforeEach(async () => {
-    daemon = await createTestOpenPlaneDaemon();
+    daemon = await createTestOpenBeamDaemon();
   });
 
   afterEach(async () => {

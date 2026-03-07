@@ -1,4 +1,4 @@
-import type { AIUsageLogForExport } from "@openplane/types/db";
+import type { AIUsageLogForExport } from "@openbeam/types/db";
 
 export type { AIUsageLogForExport };
 

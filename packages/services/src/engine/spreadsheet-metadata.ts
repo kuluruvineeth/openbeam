@@ -1,4 +1,4 @@
-import type { JsonObject } from "@openplane/vespa";
+import type { JsonObject } from "@openbeam/vespa";
 
 export interface SpreadsheetColumnMetadata {
   name: string;

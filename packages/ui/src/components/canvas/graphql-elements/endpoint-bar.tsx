@@ -1,6 +1,6 @@
 "use client";
 
-import type { GraphqlMethod } from "@openplane/types/canvas";
+import type { GraphqlMethod } from "@openbeam/types/canvas";
 import { forwardRef, memo, useCallback } from "react";
 import { Input } from "../../input";
 import { ToggleGroup, ToggleGroupItem } from "../../toggle-group";

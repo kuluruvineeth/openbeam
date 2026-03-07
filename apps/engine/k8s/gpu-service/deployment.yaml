@@ -2,11 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: engine-gpu
-  namespace: openplane-engine
+  namespace: openbeam-engine
   labels:
     app.kubernetes.io/name: engine-gpu
     app.kubernetes.io/component: gpu-service
-    app.kubernetes.io/part-of: openplane
+    app.kubernetes.io/part-of: openbeam
   annotations:
     kubernetes.io/description: "GPU service for embeddings, reranking, and entity extraction via Ray Serve"
 spec:
@@ -42,7 +42,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: engine-gpu
-          image: openplane/engine-gpu:latest
+          image: openbeam/engine-gpu:latest
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

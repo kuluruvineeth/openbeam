@@ -2,15 +2,15 @@ import {
   buildExtensionRpcUrl,
   extensionRpcContract,
   parseExtensionChatSubmitResponse,
-} from "@openplane/api/extension-rpc";
-import type { ExtensionChatSubmitRequest } from "@openplane/types/services/extension/rpc";
-import { ExtensionChatSubmitRequestSchema } from "@openplane/types/services/extension/rpc";
+} from "@openbeam/api/extension-rpc";
+import type { ExtensionChatSubmitRequest } from "@openbeam/types/services/extension/rpc";
+import { ExtensionChatSubmitRequestSchema } from "@openbeam/types/services/extension/rpc";
 import { browser } from "wxt/browser";
 
-const DEFAULT_OPENPLANE_SERVER_URL = "http://localhost:3000";
+const DEFAULT_OPENBEAM_SERVER_URL = "http://localhost:3000";
 const STORAGE_KEYS = {
-  serverUrl: "openplane.serverUrl",
-  apiToken: "openplane.apiToken",
+  serverUrl: "openbeam.serverUrl",
+  apiToken: "openbeam.apiToken",
 } as const;
 
 export class ExtensionRpcClientError extends Error {
@@ -49,7 +49,7 @@ async function getServerConfig(): Promise<{
   const serverUrl =
     typeof serverUrlRaw === "string" && serverUrlRaw.trim().length > 0
       ? serverUrlRaw.trim()
-      : DEFAULT_OPENPLANE_SERVER_URL;
+      : DEFAULT_OPENBEAM_SERVER_URL;
 
   const apiToken =
     typeof apiTokenRaw === "string" && apiTokenRaw.trim().length > 0
@@ -105,7 +105,7 @@ export async function submitExtensionChatRpc(input: unknown) {
 
       throw new ExtensionRpcClientError(
         "http_error",
-        `OpenPlane server request failed (${response.status})`
+        `OpenBeam server request failed (${response.status})`
       );
     }
 
@@ -117,7 +117,7 @@ export async function submitExtensionChatRpc(input: unknown) {
 
     throw new ExtensionRpcClientError(
       "network_error",
-      "Unable to reach OpenPlane server"
+      "Unable to reach OpenBeam server"
     );
   } finally {
     clearTimeout(timeout);

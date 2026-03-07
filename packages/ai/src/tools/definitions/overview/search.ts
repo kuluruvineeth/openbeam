@@ -1,4 +1,4 @@
-import { getSearchCache } from "@openplane/redis";
+import { getSearchCache } from "@openbeam/redis";
 import { z } from "zod";
 import { defineTool, failure, success } from "../../builder";
 

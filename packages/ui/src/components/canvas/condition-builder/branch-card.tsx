@@ -3,8 +3,8 @@
 import type {
   ConditionBranch,
   ConditionGroup as ConditionGroupType,
-} from "@openplane/types/canvas";
-import { BRANCH_COLORS } from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
+import { BRANCH_COLORS } from "@openbeam/types/canvas";
 import { forwardRef, memo, useCallback, useState } from "react";
 import { cn } from "../../../utils";
 import { Button } from "../../button";

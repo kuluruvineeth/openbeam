@@ -7,7 +7,7 @@ import {
   type GmailPart,
   isMediaType,
   isSupportedAttachment,
-} from "@openplane/types/services/connectors/gmail";
+} from "@openbeam/types/services/connectors/gmail";
 import type { GmailClient } from "../client";
 
 const EMAIL_BRACKET_REGEX = /<([^>]+)>/;

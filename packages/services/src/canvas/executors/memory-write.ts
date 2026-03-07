@@ -1,10 +1,10 @@
-import { createMemoryConsolidator, EmbeddingService } from "@openplane/ai";
-import type { MemoryMetadata } from "@openplane/types/ai";
+import { createMemoryConsolidator, EmbeddingService } from "@openbeam/ai";
+import type { MemoryMetadata } from "@openbeam/types/ai";
 import {
   type MemoryEncoding,
   type MemoryType,
   MemoryWriteNodeConfigSchema,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { CanvasNodeExecutionError } from "../errors";
 import {
   getMemoryEntry,

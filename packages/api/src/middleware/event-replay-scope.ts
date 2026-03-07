@@ -2,7 +2,7 @@ import {
   type Database,
   listSessionEvents,
   listSessionEventsAfterSequence,
-} from "@openplane/db";
+} from "@openbeam/db";
 import { TRPCError } from "@trpc/server";
 import { verifySessionOwnership } from "./session-auth";
 

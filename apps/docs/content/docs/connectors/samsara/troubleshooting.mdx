@@ -14,7 +14,7 @@ description: Common Samsara connector issues and fixes.
     **Fix:**
     1. In Samsara Dashboard, go to **Settings** > **API Tokens**
     2. Verify the token still exists and has not been revoked
-    3. If revoked, generate a new token and update the connector in OpenPlane
+    3. If revoked, generate a new token and update the connector in OpenBeam
     4. Ensure the token is pasted without leading/trailing whitespace
   </Accordion>
 
@@ -32,7 +32,7 @@ description: Common Samsara connector issues and fixes.
 
     **Fix:**
     - Generate a new token in the Samsara Dashboard
-    - Update the connector configuration in OpenPlane with the new token
+    - Update the connector configuration in OpenBeam with the new token
   </Accordion>
 </Accordions>
 
@@ -50,7 +50,7 @@ description: Common Samsara connector issues and fixes.
     **Fix:**
     1. The connector automatically backs off and retries -- no manual action needed
     2. If other integrations share the same API token, they consume from the same budget
-    3. Consider creating a dedicated token for OpenPlane
+    3. Consider creating a dedicated token for OpenBeam
 
     <Callout type="info">
       Rate limit headers (`X-RateLimit-Remaining`, `X-RateLimit-Reset`) are tracked automatically. The connector throttles requests before hitting the limit.
@@ -75,7 +75,7 @@ description: Common Samsara connector issues and fixes.
 
     **Fix:**
     1. Check whether your Samsara organization uses the **US** or **EU** data center
-    2. In OpenPlane, verify the connector region matches: US = `api.samsara.com`, EU = `api.eu.samsara.com`
+    2. In OpenBeam, verify the connector region matches: US = `api.samsara.com`, EU = `api.eu.samsara.com`
     3. The wrong region returns empty results rather than an error
   </Accordion>
 
@@ -83,7 +83,7 @@ description: Common Samsara connector issues and fixes.
     The Sync Sensors toggle may be off, or the API token lacks sensor read permissions.
 
     **Fix:**
-    1. In OpenPlane, check that **Sync Sensors** is enabled in the connector settings
+    1. In OpenBeam, check that **Sync Sensors** is enabled in the connector settings
     2. Verify the API token has sensor read permissions in the Samsara Dashboard
     3. Trigger a full resync after enabling the setting
   </Accordion>
@@ -141,7 +141,7 @@ curl -H "Authorization: Bearer YOUR_TOKEN" \
   https://api.eu.samsara.com/fleet/vehicles
 ```
 
-Still stuck? [Open an issue](https://github.com/kuluruvineeth/openplane/issues) with the connector status, error messages, and API response headers.
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openbeam/issues) with the connector status, error messages, and API response headers.
 
 <Cards>
   <Card title="Setup" href="/docs/connectors/samsara/setup" description="Reconnect or reconfigure the connector" />

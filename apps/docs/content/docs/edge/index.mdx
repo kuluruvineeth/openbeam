@@ -5,7 +5,7 @@ description: Offline-capable search and AI for air-gapped, disconnected, and lat
 
 # Edge Runtime
 
-OpenPlane's edge runtime brings enterprise search and AI to environments where cloud connectivity is unavailable, unreliable, or prohibited. Factory floors, remote sites, classified networks, mobile field operations -- the edge runtime runs entirely on-device with zero external dependencies.
+OpenBeam's edge runtime brings enterprise search and AI to environments where cloud connectivity is unavailable, unreliable, or prohibited. Factory floors, remote sites, classified networks, mobile field operations -- the edge runtime runs entirely on-device with zero external dependencies.
 
 Three packages, one SQLite database, no cloud required.
 
@@ -43,11 +43,11 @@ Three packages, one SQLite database, no cloud required.
 
 | Package | Purpose | Key Dependencies |
 |---------|---------|-----------------|
-| [`@openplane/edge-core`](/docs/edge/core) | SQLite foundation, config, scheduling, sync, health | `bun:sqlite`, `hash-wasm` (BLAKE3) |
-| [`@openplane/edge-search`](/docs/edge/search) | Full-text search, vector similarity, hybrid ranking | `@openplane/edge-core` |
-| [`@openplane/edge-ai`](/docs/edge/ai) | RAG pipeline, query classification, NER | `@openplane/edge-search` |
+| [`@openbeam/edge-core`](/docs/edge/core) | SQLite foundation, config, scheduling, sync, health | `bun:sqlite`, `hash-wasm` (BLAKE3) |
+| [`@openbeam/edge-search`](/docs/edge/search) | Full-text search, vector similarity, hybrid ranking | `@openbeam/edge-core` |
+| [`@openbeam/edge-ai`](/docs/edge/ai) | RAG pipeline, query classification, NER | `@openbeam/edge-search` |
 
-Types are defined in `@openplane/types/edge/*` and shared across all three packages.
+Types are defined in `@openbeam/types/edge/*` and shared across all three packages.
 
 ## Hardware Tiers
 
@@ -63,7 +63,7 @@ The edge runtime adapts to four hardware tiers. Feature availability scales with
 Tier detection is automatic based on hardware capabilities:
 
 ```typescript
-import { detectTier } from "@openplane/types/edge/tiers";
+import { detectTier } from "@openbeam/types/edge/tiers";
 
 const tier = detectTier({
   cpuCores: 4,
@@ -93,9 +93,9 @@ const tier = detectTier({
 Full setup with search and AI in one file:
 
 ```typescript
-import { openEdgeDatabase, EdgeConfigManager, getFeatureFlags, EdgeTaskScheduler, HealthAggregator } from "@openplane/edge-core";
-import { EdgeSearchEngine, SQLiteFTS5Provider, InMemoryVectorProvider, SQLiteDocumentStore } from "@openplane/edge-search";
-import { EdgeRAGPipeline, MockSLM, MockEmbeddingModel } from "@openplane/edge-ai";
+import { openEdgeDatabase, EdgeConfigManager, getFeatureFlags, EdgeTaskScheduler, HealthAggregator } from "@openbeam/edge-core";
+import { EdgeSearchEngine, SQLiteFTS5Provider, InMemoryVectorProvider, SQLiteDocumentStore } from "@openbeam/edge-search";
+import { EdgeRAGPipeline, MockSLM, MockEmbeddingModel } from "@openbeam/edge-ai";
 
 const db = openEdgeDatabase("./edge-data/main.db");
 

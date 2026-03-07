@@ -15,7 +15,7 @@ const tempDirs: string[] = [];
 
 async function createHelperScript(source: string): Promise<string> {
   const dir = await mkdtemp(
-    path.join(os.tmpdir(), "openplane-native-helper-test-")
+    path.join(os.tmpdir(), "openbeam-native-helper-test-")
   );
   tempDirs.push(dir);
 

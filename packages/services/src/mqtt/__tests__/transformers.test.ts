@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import type { MqttTransformContext } from "@openplane/types/services/connectors/mqtt";
+import type { MqttTransformContext } from "@openbeam/types/services/connectors/mqtt";
 import { transformMessage, transformMessages } from "../transformers/message";
 
 interface MqttMessageInput {

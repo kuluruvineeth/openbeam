@@ -1,6 +1,6 @@
 "use client";
 
-import { Icons } from "@openplane/ui";
+import { Icons } from "@openbeam/ui";
 import { formatDistanceToNow } from "date-fns";
 import { getSyncHistoryStatusConfig } from "../lib/sync-status";
 import { parseSyncSummary, type SyncHistoryEntry } from "../lib/sync-types";
@@ -46,13 +46,13 @@ export function SyncHistoryItem({ entry }: { entry: SyncHistoryEntry }) {
         </span>
         <div className="flex items-center gap-2 font-mono text-[10px]">
           {(entry.documentsAdded ?? entry.dataAdded ?? 0) > 0 && (
-            <span className="flex items-center gap-1 text-openplane-green">
+            <span className="flex items-center gap-1 text-openbeam-green">
               <Icons.Plus size={10} />
               {entry.documentsAdded ?? entry.dataAdded}
             </span>
           )}
           {(entry.documentsUpdated ?? entry.dataUpdated ?? 0) > 0 && (
-            <span className="flex items-center gap-1 text-openplane-blue">
+            <span className="flex items-center gap-1 text-openbeam-blue">
               <Icons.RefreshCw size={10} />
               {entry.documentsUpdated ?? entry.dataUpdated}
             </span>
@@ -68,13 +68,13 @@ export function SyncHistoryItem({ entry }: { entry: SyncHistoryEntry }) {
           (entry.mediaDiscovered ?? summary.mediaQueued ?? 0) > 0) && (
           <div className="flex items-center gap-1.5 rounded-sm border border-border/40 bg-foreground/[0.02] px-1.5 py-0.5">
             {(entry.filesDiscovered ?? summary.filesQueued ?? 0) > 0 && (
-              <span className="flex items-center gap-0.5 font-mono text-[9px] text-openplane-orange">
+              <span className="flex items-center gap-0.5 font-mono text-[9px] text-openbeam-orange">
                 <Icons.FileText size={9} />
                 {entry.filesDiscovered ?? summary.filesQueued}
               </span>
             )}
             {(entry.mediaDiscovered ?? summary.mediaQueued ?? 0) > 0 && (
-              <span className="flex items-center gap-0.5 font-mono text-[9px] text-openplane-purple">
+              <span className="flex items-center gap-0.5 font-mono text-[9px] text-openbeam-purple">
                 <Icons.Image size={9} />
                 {entry.mediaDiscovered ?? summary.mediaQueued}
               </span>

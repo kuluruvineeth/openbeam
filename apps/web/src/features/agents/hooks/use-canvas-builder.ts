@@ -5,13 +5,13 @@ import type {
   AgentCanvasEdge,
   AgentCanvasNode,
   CanvasOperation,
-} from "@openplane/types/canvas";
-import type { RuntimeEvent } from "@openplane/types/canvas/runtime-events";
+} from "@openbeam/types/canvas";
+import type { RuntimeEvent } from "@openbeam/types/canvas/runtime-events";
 import {
   useCanvasBuilderStore,
   useCanvasStore,
   useExecutionStore,
-} from "@openplane/ui";
+} from "@openbeam/ui";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getVanillaTRPCClient } from "@/trpc/client";
 import { projectRuntimeEventsToMessages } from "../lib/runtime-message-projection";

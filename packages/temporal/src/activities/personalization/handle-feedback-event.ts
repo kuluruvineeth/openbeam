@@ -1,7 +1,7 @@
 import db, {
   findUserSearchProfile,
   updateConnectorWeights,
-} from "@openplane/db";
+} from "@openbeam/db";
 import type {
   HandleFeedbackEventInput,
   HandleFeedbackEventOutput,

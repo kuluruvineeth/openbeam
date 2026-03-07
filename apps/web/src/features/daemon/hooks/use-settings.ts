@@ -2,7 +2,7 @@
 
 import { useCallback, useSyncExternalStore } from "react";
 
-const STORAGE_KEY = "openplane-daemon-settings";
+const STORAGE_KEY = "openbeam-daemon-settings";
 
 export interface AppSettings {
   theme: "dark" | "light" | "auto";

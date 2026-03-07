@@ -1,5 +1,5 @@
-import type { SamsaraTransformContext } from "@openplane/types/services/connectors/samsara";
-import type { GenericDocument } from "@openplane/vespa";
+import type { SamsaraTransformContext } from "@openbeam/types/services/connectors/samsara";
+import type { GenericDocument } from "@openbeam/vespa";
 import { calculateDocumentChecksum } from "../../lib/checksum";
 
 export interface SamsaraAlert {

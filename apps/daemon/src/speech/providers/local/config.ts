@@ -83,13 +83,13 @@ function shouldIncludeLocalProviderConfig(params: {
 
   return (
     localRequestedByFeature ||
-    params.env.OPENPLANE_LOCAL_MODELS_DIR !== undefined ||
+    params.env.OPENBEAM_LOCAL_MODELS_DIR !== undefined ||
     params.persisted.providers?.local?.modelsDir !== undefined
   );
 }
 
 export function resolveLocalSpeechConfig(params: {
-  openplaneHome: string;
+  openbeamHome: string;
   env: NodeJS.ProcessEnv;
   persisted: PersistedConfig;
   providers: RequestedSpeechProviders;
@@ -99,11 +99,11 @@ export function resolveLocalSpeechConfig(params: {
   const parsed = LocalSpeechResolutionSchema.parse({
     includeProviderConfig,
     modelsDir:
-      params.env.OPENPLANE_LOCAL_MODELS_DIR ??
+      params.env.OPENBEAM_LOCAL_MODELS_DIR ??
       params.persisted.providers?.local?.modelsDir ??
-      path.join(params.openplaneHome, DEFAULT_LOCAL_MODELS_SUBDIR),
+      path.join(params.openbeamHome, DEFAULT_LOCAL_MODELS_SUBDIR),
     dictationLocalSttModel:
-      params.env.OPENPLANE_DICTATION_LOCAL_STT_MODEL ??
+      params.env.OPENBEAM_DICTATION_LOCAL_STT_MODEL ??
       persistedLocalFeatureModel(
         params.providers.dictationStt.provider,
         params.providers.dictationStt.enabled,
@@ -111,7 +111,7 @@ export function resolveLocalSpeechConfig(params: {
       ) ??
       DEFAULT_LOCAL_STT_MODEL,
     voiceLocalSttModel:
-      params.env.OPENPLANE_VOICE_LOCAL_STT_MODEL ??
+      params.env.OPENBEAM_VOICE_LOCAL_STT_MODEL ??
       persistedLocalFeatureModel(
         params.providers.voiceStt.provider,
         params.providers.voiceStt.enabled,
@@ -119,7 +119,7 @@ export function resolveLocalSpeechConfig(params: {
       ) ??
       DEFAULT_LOCAL_STT_MODEL,
     voiceLocalTtsModel:
-      params.env.OPENPLANE_VOICE_LOCAL_TTS_MODEL ??
+      params.env.OPENBEAM_VOICE_LOCAL_TTS_MODEL ??
       persistedLocalFeatureModel(
         params.providers.voiceTts.provider,
         params.providers.voiceTts.enabled,
@@ -127,10 +127,10 @@ export function resolveLocalSpeechConfig(params: {
       ) ??
       DEFAULT_LOCAL_TTS_MODEL,
     voiceLocalTtsSpeakerId:
-      params.env.OPENPLANE_VOICE_LOCAL_TTS_SPEAKER_ID ??
+      params.env.OPENBEAM_VOICE_LOCAL_TTS_SPEAKER_ID ??
       params.persisted.features?.voiceMode?.tts?.speakerId,
     voiceLocalTtsSpeed:
-      params.env.OPENPLANE_VOICE_LOCAL_TTS_SPEED ??
+      params.env.OPENBEAM_VOICE_LOCAL_TTS_SPEED ??
       params.persisted.features?.voiceMode?.tts?.speed,
   });
 

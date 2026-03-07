@@ -1,8 +1,8 @@
-import type { Database } from "@openplane/db";
+import type { Database } from "@openbeam/db";
 import {
   DetectPatternsInputSchema,
   type DetectPatternsOutput,
-} from "@openplane/types/temporal/activities/knowledge";
+} from "@openbeam/types/temporal/activities/knowledge";
 import { Context } from "@temporalio/activity";
 
 const MIN_CLUSTER_SIZE = 3;

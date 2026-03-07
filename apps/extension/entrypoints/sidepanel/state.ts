@@ -1,7 +1,7 @@
 import type {
   ExtensionActionExecution,
   ExtensionActionProposal,
-} from "@openplane/types/services/extension/actions";
+} from "@openbeam/types/services/extension/actions";
 
 export interface ActionQueueItem {
   proposal: ExtensionActionProposal;

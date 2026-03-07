@@ -62,13 +62,13 @@ variable "disk_autoresize_limit" {
 variable "database_name" {
   description = "Database name"
   type        = string
-  default     = "openplane"
+  default     = "openbeam"
 }
 
 variable "database_user" {
   description = "Database user name"
   type        = string
-  default     = "openplane"
+  default     = "openbeam"
 }
 
 variable "database_password" {

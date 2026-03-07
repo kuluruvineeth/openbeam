@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@openplane/ui";
+import { Button } from "@openbeam/ui";
 import { useQueryState } from "nuqs";
 import { cn } from "@/lib/utils";
 

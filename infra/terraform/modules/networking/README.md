@@ -8,7 +8,7 @@ VPC with Direct VPC Egress for Cloud Run.
 module "networking" {
   source = "../../modules/networking"
 
-  project_name            = "openplane"
+  project_name            = "openbeam"
   environment             = "prod"
   region                  = "us-central1"
   cloud_run_subnet_cidr   = "10.0.0.0/24"

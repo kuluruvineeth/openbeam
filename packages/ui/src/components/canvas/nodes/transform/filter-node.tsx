@@ -7,7 +7,7 @@ import {
   OPERATOR_NEEDS_SECOND_VALUE,
   OPERATOR_NEEDS_VALUE,
   type Port,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
 import { forwardRef, memo, useMemo } from "react";

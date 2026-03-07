@@ -1,7 +1,7 @@
 {
-  "name": "@openplane/analytics",
+  "name": "@openbeam/analytics",
   "version": "0.1.0",
-  "description": "Centralized product analytics for OpenPlane - PostHog integration, event tracking, feature flags, and enterprise search metrics",
+  "description": "Centralized product analytics for OpenBeam - PostHog integration, event tracking, feature flags, and enterprise search metrics",
   "type": "module",
   "exports": {
     ".": {
@@ -74,14 +74,14 @@
     "posthog-node": "^5.18.1",
     "@posthog/ai": "^1.0.0",
     "@duckdb/node-api": "^1.4.3-r.2",
-    "@openplane/observability": "workspace:*",
-    "@openplane/storage": "workspace:*",
-    "@openplane/types": "workspace:*",
+    "@openbeam/observability": "workspace:*",
+    "@openbeam/storage": "workspace:*",
+    "@openbeam/types": "workspace:*",
     "node-sql-parser": "^5.3.8",
     "zod": "^4.1.13"
   },
   "devDependencies": {
-    "@openplane/config": "workspace:*",
+    "@openbeam/config": "workspace:*",
     "@types/react": "^19.0.0",
     "hono": "^4.6.15",
     "next": "^15.3.0",
@@ -96,7 +96,7 @@
     "hono": "^4",
     "@trpc/server": "^11",
     "@ai-sdk/provider": "^1",
-    "@openplane/db": "workspace:*"
+    "@openbeam/db": "workspace:*"
   },
   "peerDependenciesMeta": {
     "react": {
@@ -114,7 +114,7 @@
     "@ai-sdk/provider": {
       "optional": true
     },
-    "@openplane/db": {
+    "@openbeam/db": {
       "optional": true
     }
   }

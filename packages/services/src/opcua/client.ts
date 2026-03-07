@@ -1,7 +1,7 @@
 import type {
   OpcUaConnectionConfig,
   OpcUaNode,
-} from "@openplane/types/services/connectors/opcua";
+} from "@openbeam/types/services/connectors/opcua";
 import { logger } from "../lib/logger";
 import { OpcUaApiError } from "./types";
 
@@ -101,7 +101,7 @@ export function createOpcUaClient(config: OpcUaConnectionConfig): OpcUaClient {
       lib.SecurityPolicy[security?.securityPolicy ?? "None"] ?? "None";
 
     client = lib.OPCUAClient.create({
-      applicationName: config.applicationName ?? "OpenPlane Gateway",
+      applicationName: config.applicationName ?? "OpenBeam Gateway",
       connectionStrategy: {
         initialDelay: 1000,
         maxRetry: 3,

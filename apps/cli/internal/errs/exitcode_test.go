@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/openplane/openplane/apps/cli/internal/exitcode"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/exitcode"
 )
 
 func TestExitCode(t *testing.T) {

@@ -1,6 +1,6 @@
-import type { ConnectorStatus, SyncJobStatus } from "@openplane/db";
-import type { CheckStatus, HealthStatus } from "@openplane/services";
-import type { GenericDocument } from "@openplane/vespa";
+import type { ConnectorStatus, SyncJobStatus } from "@openbeam/db";
+import type { CheckStatus, HealthStatus } from "@openbeam/services";
+import type { GenericDocument } from "@openbeam/vespa";
 import type { ConnectorRecord } from "../connectors/types";
 
 export type { ConnectorRecord };

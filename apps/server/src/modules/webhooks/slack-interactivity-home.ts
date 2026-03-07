@@ -1,8 +1,8 @@
 import prisma, {
   findSlackDigestSubscription,
   listConnectorsByTeam,
-} from "@openplane/db";
-import { createStateStore } from "@openplane/redis";
+} from "@openbeam/db";
+import { createStateStore } from "@openbeam/redis";
 import {
   buildDigestConfigModal,
   buildUnifiedSearchResultBlocks,
@@ -13,7 +13,7 @@ import {
   handleRemoveSavedItem,
   refreshHomeTab,
   searchService,
-} from "@openplane/services";
+} from "@openbeam/services";
 import logger from "../../utils/logger";
 import type {
   HandlerContext,
@@ -182,7 +182,7 @@ async function showConnectorsMessage(
   client: SlackClient,
   ctx: HandlerContext
 ): Promise<void> {
-  const appUrl = process.env.WEB_APP_URL ?? "https://app.openplane.com";
+  const appUrl = process.env.WEB_APP_URL ?? "https://app.openbeam.com";
   const connectors = await listConnectorsByTeam(prisma, ctx.teamId);
 
   const blocks: Array<{

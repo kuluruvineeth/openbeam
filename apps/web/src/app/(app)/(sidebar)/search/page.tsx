@@ -7,7 +7,7 @@ import { SearchPageSkeleton } from "@/features/search/components/search-skeleton
 import { HydrateClient } from "@/trpc/server";
 
 export const metadata: Metadata = {
-  title: "Search | OpenPlane",
+  title: "Search | OpenBeam",
   description: "Search across all your connected apps and data sources",
 };
 

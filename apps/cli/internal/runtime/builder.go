@@ -8,11 +8,11 @@ import (
 
 	"golang.org/x/term"
 
-	"github.com/openplane/openplane/apps/cli/internal/api"
-	"github.com/openplane/openplane/apps/cli/internal/auth"
-	"github.com/openplane/openplane/apps/cli/internal/config"
-	"github.com/openplane/openplane/apps/cli/internal/errs"
-	"github.com/openplane/openplane/apps/cli/internal/output"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/api"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/auth"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/config"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/errs"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/output"
 )
 
 type Builder struct {
@@ -32,12 +32,12 @@ func (b *Builder) Build(options GlobalOptions) (*Runtime, error) {
 
 	if options.Host != "" {
 		profile.Host = options.Host
-	} else if host := strings.TrimSpace(os.Getenv("OPENPLANE_HOST")); host != "" {
+	} else if host := strings.TrimSpace(os.Getenv("OPENBEAM_HOST")); host != "" {
 		profile.Host = host
 	}
 	if options.Team != "" {
 		profile.Team = options.Team
-	} else if team := strings.TrimSpace(os.Getenv("OPENPLANE_TEAM")); team != "" {
+	} else if team := strings.TrimSpace(os.Getenv("OPENBEAM_TEAM")); team != "" {
 		profile.Team = team
 	}
 	profile.Color = resolveColor(options.Color, profile.Color, options.NoColor)
@@ -113,7 +113,7 @@ func (b *Builder) Build(options GlobalOptions) (*Runtime, error) {
 }
 
 func resolveAPIKey(store auth.Store, profile config.Profile) (string, error) {
-	if fromEnv := os.Getenv("OPENPLANE_API_KEY"); fromEnv != "" {
+	if fromEnv := os.Getenv("OPENBEAM_API_KEY"); fromEnv != "" {
 		return fromEnv, nil
 	}
 	if profile.APIKeyRef == "" {

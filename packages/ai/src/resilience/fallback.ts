@@ -1,4 +1,4 @@
-import type { ClassifiedError, FallbackChainConfig } from "@openplane/types/ai";
+import type { ClassifiedError, FallbackChainConfig } from "@openbeam/types/ai";
 import { classifyError } from "./errors";
 import type { ProviderConfig } from "./types";
 import { FAILOVER_ERROR_CODES } from "./types";

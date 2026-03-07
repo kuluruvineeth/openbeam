@@ -6,7 +6,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
   Skeleton,
-} from "@openplane/ui";
+} from "@openbeam/ui";
 import { useQuery } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { Icons } from "@/components/icons";

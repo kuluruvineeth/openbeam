@@ -118,7 +118,7 @@ _shared_only = _app_manifests + [
     "tsconfig.json",
 ]
 
-docker_build("openplane/server-dev", "..",
+docker_build("openbeam/server-dev", "..",
     dockerfile="../apps/server/Dockerfile.dev",
     build_args=hugeicons_build_args,
     only=["apps/server"] + _shared_only,
@@ -130,7 +130,7 @@ docker_build("openplane/server-dev", "..",
     ],
 )
 
-docker_build("openplane/web-dev", "..",
+docker_build("openbeam/web-dev", "..",
     dockerfile="../apps/web/Dockerfile.dev",
     build_args=hugeicons_build_args,
     only=["apps/web"] + _shared_only,
@@ -141,7 +141,7 @@ docker_build("openplane/web-dev", "..",
     ],
 )
 
-docker_build("openplane/worker-dev", "..",
+docker_build("openbeam/worker-dev", "..",
     dockerfile="../apps/worker/Dockerfile.dev",
     build_args=hugeicons_build_args,
     only=["apps/worker"] + _shared_only,
@@ -153,14 +153,14 @@ docker_build("openplane/worker-dev", "..",
     ],
 )
 
-docker_build("openplane/engine-dev", "../apps/engine",
+docker_build("openbeam/engine-dev", "../apps/engine",
     dockerfile="../apps/engine/Dockerfile.cpu",
     live_update=[
         sync("../apps/engine/src", "/app/src"),
     ],
 )
 
-docker_build("openplane/sandbox-gateway", "..",
+docker_build("openbeam/sandbox-gateway", "..",
     dockerfile="../apps/sandbox-gateway/Dockerfile.dev",
     only=["apps/sandbox-gateway"] + _shared_only,
     ignore=_test_ignore,
@@ -237,7 +237,7 @@ k8s_resource("sandbox-gateway",
 
 # ─── Vespa Deploy Job ────────────────────────────────────
 
-docker_build("openplane/vespa-deployer", "../packages/vespa",
+docker_build("openbeam/vespa-deployer", "../packages/vespa",
     dockerfile="../packages/vespa/Dockerfile.deployer",
 )
 
@@ -261,7 +261,7 @@ if cfg.get("voice", False):
         labels=["voice"],
     )
 
-    docker_build("openplane/voice", "../apps/voice",
+    docker_build("openbeam/voice", "../apps/voice",
         dockerfile="../apps/voice/Dockerfile.action",
         live_update=[
             sync("../apps/voice", "/app"),

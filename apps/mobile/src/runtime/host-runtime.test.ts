@@ -109,9 +109,9 @@ function makeHost(input?: Partial<HostProfile>): HostProfile {
     endpoint: "lan:6767",
   };
   const relay: HostConnection = {
-    id: "relay:relay.openplane.sh:443",
+    id: "relay:relay.openbeam.sh:443",
     type: "relay",
-    relayEndpoint: "relay.openplane.sh:443",
+    relayEndpoint: "relay.openbeam.sh:443",
     daemonPublicKeyB64: "pk_test",
   };
 
@@ -239,7 +239,7 @@ describe("HostRuntimeController", () => {
     const clients: FakeDaemonClient[] = [];
     const latencies: Record<string, number | Error> = {
       "direct:lan:6767": 82,
-      "relay:relay.openplane.sh:443": 18,
+      "relay:relay.openbeam.sh:443": 18,
     };
     const controller = new HostRuntimeController({
       host,
@@ -249,7 +249,7 @@ describe("HostRuntimeController", () => {
     await controller.start({ autoProbe: false });
 
     const snapshot = controller.getSnapshot();
-    expect(snapshot.activeConnectionId).toBe("relay:relay.openplane.sh:443");
+    expect(snapshot.activeConnectionId).toBe("relay:relay.openbeam.sh:443");
     expect(snapshot.connectionStatus).toBe("online");
     expect(clients).toHaveLength(1);
     expect(clients[0]?.connectCalls).toBe(1);
@@ -260,7 +260,7 @@ describe("HostRuntimeController", () => {
     const clients: FakeDaemonClient[] = [];
     const latencies: Record<string, number | Error> = {
       "direct:lan:6767": 15,
-      "relay:relay.openplane.sh:443": 55,
+      "relay:relay.openbeam.sh:443": 55,
     };
     const controller = new HostRuntimeController({
       host,
@@ -272,11 +272,11 @@ describe("HostRuntimeController", () => {
     expect(clients).toHaveLength(1);
 
     latencies["direct:lan:6767"] = new Error("direct unavailable");
-    latencies["relay:relay.openplane.sh:443"] = 42;
+    latencies["relay:relay.openbeam.sh:443"] = 42;
     await controller.runProbeCycleNow();
 
     const snapshot = controller.getSnapshot();
-    expect(snapshot.activeConnectionId).toBe("relay:relay.openplane.sh:443");
+    expect(snapshot.activeConnectionId).toBe("relay:relay.openbeam.sh:443");
     expect(snapshot.connectionStatus).toBe("online");
     expect(clients).toHaveLength(2);
     expect(clients[0]?.closeCalls).toBe(1);
@@ -287,7 +287,7 @@ describe("HostRuntimeController", () => {
     const clients: FakeDaemonClient[] = [];
     const latencies: Record<string, number | Error> = {
       "direct:lan:6767": 15,
-      "relay:relay.openplane.sh:443": 60,
+      "relay:relay.openbeam.sh:443": 60,
     };
     const controller = new HostRuntimeController({
       host,
@@ -298,7 +298,7 @@ describe("HostRuntimeController", () => {
     expect(controller.getSnapshot().activeConnectionId).toBe("direct:lan:6767");
 
     latencies["direct:lan:6767"] = 95;
-    latencies["relay:relay.openplane.sh:443"] = 30;
+    latencies["relay:relay.openbeam.sh:443"] = 30;
     await controller.runProbeCycleNow();
     expect(controller.getSnapshot().activeConnectionId).toBe("direct:lan:6767");
 
@@ -307,7 +307,7 @@ describe("HostRuntimeController", () => {
 
     await controller.runProbeCycleNow();
     expect(controller.getSnapshot().activeConnectionId).toBe(
-      "relay:relay.openplane.sh:443"
+      "relay:relay.openbeam.sh:443"
     );
     expect(clients).toHaveLength(2);
   });
@@ -317,7 +317,7 @@ describe("HostRuntimeController", () => {
     const clients: FakeDaemonClient[] = [];
     const latencies: Record<string, number | Error> = {
       "direct:lan:6767": 15,
-      "relay:relay.openplane.sh:443": 80,
+      "relay:relay.openbeam.sh:443": 80,
     };
     const controller = new HostRuntimeController({
       host,
@@ -328,17 +328,17 @@ describe("HostRuntimeController", () => {
     expect(controller.getSnapshot().activeConnectionId).toBe("direct:lan:6767");
 
     latencies["direct:lan:6767"] = 100;
-    latencies["relay:relay.openplane.sh:443"] = 20;
+    latencies["relay:relay.openbeam.sh:443"] = 20;
     await controller.runProbeCycleNow();
     expect(controller.getSnapshot().activeConnectionId).toBe("direct:lan:6767");
 
     latencies["direct:lan:6767"] = 20;
-    latencies["relay:relay.openplane.sh:443"] = 90;
+    latencies["relay:relay.openbeam.sh:443"] = 90;
     await controller.runProbeCycleNow();
     expect(controller.getSnapshot().activeConnectionId).toBe("direct:lan:6767");
 
     latencies["direct:lan:6767"] = 100;
-    latencies["relay:relay.openplane.sh:443"] = 20;
+    latencies["relay:relay.openbeam.sh:443"] = 20;
     await controller.runProbeCycleNow();
     expect(controller.getSnapshot().activeConnectionId).toBe("direct:lan:6767");
 
@@ -347,7 +347,7 @@ describe("HostRuntimeController", () => {
 
     await controller.runProbeCycleNow();
     expect(controller.getSnapshot().activeConnectionId).toBe(
-      "relay:relay.openplane.sh:443"
+      "relay:relay.openbeam.sh:443"
     );
   });
 
@@ -356,7 +356,7 @@ describe("HostRuntimeController", () => {
     const clients: FakeDaemonClient[] = [];
     const latencies: Record<string, number | Error> = {
       "direct:lan:6767": 12,
-      "relay:relay.openplane.sh:443": 65,
+      "relay:relay.openbeam.sh:443": 65,
     };
     const controller = new HostRuntimeController({
       host,
@@ -428,7 +428,7 @@ describe("HostRuntimeController", () => {
     const clients: FakeDaemonClient[] = [];
     const latencies: Record<string, number | Error> = {
       "direct:lan:6767": 12,
-      "relay:relay.openplane.sh:443": 65,
+      "relay:relay.openbeam.sh:443": 65,
     };
     const controller = new HostRuntimeController({
       host,
@@ -448,7 +448,7 @@ describe("HostRuntimeController", () => {
     const clients: FakeDaemonClient[] = [];
     const latencies: Record<string, number | Error> = {
       "direct:lan:6767": 12,
-      "relay:relay.openplane.sh:443": 65,
+      "relay:relay.openbeam.sh:443": 65,
     };
     const controller = new HostRuntimeController({
       host,
@@ -477,7 +477,7 @@ describe("HostRuntimeController", () => {
     const clients: FakeDaemonClient[] = [];
     const latencies: Record<string, number | Error> = {
       "direct:lan:6767": 12,
-      "relay:relay.openplane.sh:443": 65,
+      "relay:relay.openbeam.sh:443": 65,
     };
     const controller = new HostRuntimeController({
       host,
@@ -499,7 +499,7 @@ describe("HostRuntimeController", () => {
     const clients: FakeDaemonClient[] = [];
     const latencies: Record<string, number | Error> = {
       "direct:lan:6767": 12,
-      "relay:relay.openplane.sh:443": 65,
+      "relay:relay.openbeam.sh:443": 65,
     };
     const controller = new HostRuntimeController({
       host,
@@ -532,9 +532,9 @@ describe("HostRuntimeController", () => {
           endpoint: "lan:6767",
         },
         {
-          id: "relay:relay.openplane.sh:443",
+          id: "relay:relay.openbeam.sh:443",
           type: "relay",
-          relayEndpoint: "relay.openplane.sh:443",
+          relayEndpoint: "relay.openbeam.sh:443",
           daemonPublicKeyB64: "pk_test",
         },
       ],
@@ -593,11 +593,11 @@ describe("HostRuntimeController", () => {
       controller as unknown as {
         switchToConnection: (input: { connectionId: string }) => Promise<void>;
       }
-    ).switchToConnection({ connectionId: "relay:relay.openplane.sh:443" });
+    ).switchToConnection({ connectionId: "relay:relay.openbeam.sh:443" });
     await waitUntil(() => {
       const snapshot = controller.getSnapshot();
       return (
-        snapshot.activeConnectionId === "relay:relay.openplane.sh:443" &&
+        snapshot.activeConnectionId === "relay:relay.openbeam.sh:443" &&
         snapshot.connectionStatus === "online"
       );
     });
@@ -606,7 +606,7 @@ describe("HostRuntimeController", () => {
     await Promise.allSettled([switchDirect, switchRelay]);
 
     const snapshot = controller.getSnapshot();
-    expect(snapshot.activeConnectionId).toBe("relay:relay.openplane.sh:443");
+    expect(snapshot.activeConnectionId).toBe("relay:relay.openbeam.sh:443");
     expect(snapshot.connectionStatus).toBe("online");
     expect(snapshot.lastError).toBeNull();
     expect(createdClients).toHaveLength(2);

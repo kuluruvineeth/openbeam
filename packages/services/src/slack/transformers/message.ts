@@ -2,8 +2,8 @@ import type {
   SlackChannel,
   SlackMessage,
   TransformContext,
-} from "@openplane/types/services/connectors/slack";
-import type { GenericDocument, JsonArray, JsonObject } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/slack";
+import type { GenericDocument, JsonArray, JsonObject } from "@openbeam/vespa";
 import { calculateDocumentChecksum } from "../../lib/checksum";
 import { slackTsToMs } from "../api/messages";
 import type { UserLookup } from "../api/users";

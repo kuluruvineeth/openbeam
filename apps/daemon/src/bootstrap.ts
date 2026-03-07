@@ -92,7 +92,7 @@ function resolveVoiceMcpBridgeCommand(logger: Logger): {
   const decision = resolveVoiceMcpBridgeFromRuntime({
     bootstrapModuleUrl: import.meta.url,
     execPath: process.execPath,
-    explicitScriptPath: process.env.OPENPLANE_MCP_STDIO_SOCKET_BRIDGE_SCRIPT,
+    explicitScriptPath: process.env.OPENBEAM_MCP_STDIO_SOCKET_BRIDGE_SCRIPT,
   });
   logger.info(
     {
@@ -105,17 +105,17 @@ function resolveVoiceMcpBridgeCommand(logger: Logger): {
   return decision.resolved;
 }
 
-export type OpenPlaneOpenAIConfig = OpenAiSpeechProviderConfig;
-export type OpenPlaneLocalSpeechConfig = LocalSpeechProviderConfig;
+export type OpenBeamOpenAIConfig = OpenAiSpeechProviderConfig;
+export type OpenBeamLocalSpeechConfig = LocalSpeechProviderConfig;
 
-export type OpenPlaneSpeechConfig = {
+export type OpenBeamSpeechConfig = {
   providers: RequestedSpeechProviders;
-  local?: OpenPlaneLocalSpeechConfig;
+  local?: OpenBeamLocalSpeechConfig;
 };
 
-export type OpenPlaneDaemonConfig = {
+export type OpenBeamDaemonConfig = {
   listen: string;
-  openplaneHome: string;
+  openbeamHome: string;
   corsAllowedOrigins: string[];
   allowedHosts?: AllowedHostsConfig;
   mcpEnabled?: boolean;
@@ -133,8 +133,8 @@ export type OpenPlaneDaemonConfig = {
     rpcTimeoutMs: number;
   };
   appBaseUrl?: string;
-  openai?: OpenPlaneOpenAIConfig;
-  speech?: OpenPlaneSpeechConfig;
+  openai?: OpenBeamOpenAIConfig;
+  speech?: OpenBeamSpeechConfig;
   voiceLlmProvider?: AgentProvider | null;
   voiceLlmProviderExplicit?: boolean;
   voiceLlmModel?: string | null;
@@ -143,8 +143,8 @@ export type OpenPlaneDaemonConfig = {
   agentProviderSettings?: AgentProviderRuntimeSettingsMap;
 };
 
-export interface OpenPlaneDaemon {
-  config: OpenPlaneDaemonConfig;
+export interface OpenBeamDaemon {
+  config: OpenBeamDaemonConfig;
   agentManager: AgentManager;
   agentStorage: AgentStorage;
   terminalManager: TerminalManager;
@@ -152,20 +152,20 @@ export interface OpenPlaneDaemon {
   stop(): Promise<void>;
 }
 
-export async function createOpenPlaneDaemon(
-  config: OpenPlaneDaemonConfig,
+export async function createOpenBeamDaemon(
+  config: OpenBeamDaemonConfig,
   rootLogger: Logger
-): Promise<OpenPlaneDaemon> {
+): Promise<OpenBeamDaemon> {
   const logger = rootLogger.child({ module: "bootstrap" });
   const daemonVersion = resolveDaemonVersion(import.meta.url);
 
   // Acquire PID lock before expensive bootstrap work so duplicate starts fail immediately.
-  await acquirePidLock(config.openplaneHome, config.listen);
+  await acquirePidLock(config.openbeamHome, config.listen);
 
   try {
-    const serverId = getOrCreateServerId(config.openplaneHome, { logger });
+    const serverId = getOrCreateServerId(config.openbeamHome, { logger });
     const daemonKeyPair = await loadOrCreateDaemonKeyPair(
-      config.openplaneHome,
+      config.openbeamHome,
       logger
     );
     let relayTransport: RelayTransportController | null = null;
@@ -333,7 +333,7 @@ export async function createOpenPlaneDaemon(
           agentManager,
           agentStorage,
           terminalManager,
-          openplaneHome: config.openplaneHome,
+          openbeamHome: config.openbeamHome,
           enableVoiceTools: false,
           resolveSpeakHandler: (callerAgentId) =>
             wsServer?.resolveVoiceSpeakHandler(callerAgentId) ?? null,
@@ -360,7 +360,7 @@ export async function createOpenPlaneDaemon(
           agentManager,
           agentStorage,
           terminalManager,
-          openplaneHome: config.openplaneHome,
+          openbeamHome: config.openbeamHome,
           callerAgentId,
           enableVoiceTools: false,
           resolveSpeakHandler: (agentId) =>
@@ -484,7 +484,7 @@ export async function createOpenPlaneDaemon(
     }
 
     const voiceMcpSocketDir = path.join(
-      config.openplaneHome,
+      config.openbeamHome,
       "runtime",
       "voice-mcp"
     );
@@ -497,7 +497,7 @@ export async function createOpenPlaneDaemon(
           agentManager,
           agentStorage,
           terminalManager,
-          openplaneHome: config.openplaneHome,
+          openbeamHome: config.openbeamHome,
           callerAgentId,
           voiceOnly: true,
           resolveSpeakHandler: (agentId) =>
@@ -522,7 +522,7 @@ export async function createOpenPlaneDaemon(
           defaultTimeoutMs: nativeHelperConfig.rpcTimeoutMs,
           env: {
             ...process.env,
-            OPENPLANE_HOME: config.openplaneHome,
+            OPENBEAM_HOME: config.openbeamHome,
           },
         });
       }
@@ -549,7 +549,7 @@ export async function createOpenPlaneDaemon(
       agentManager,
       agentStorage,
       downloadTokenStore,
-      config.openplaneHome,
+      config.openbeamHome,
       createInMemoryAgentMcpTransport,
       { allowedOrigins, allowedHosts: config.allowedHosts },
       { stt: resolveVoiceStt, tts: resolveVoiceTts },
@@ -559,7 +559,7 @@ export async function createOpenPlaneDaemon(
           command: voiceMcpBridgeCommand.command,
           baseArgs: [...voiceMcpBridgeCommand.baseArgs],
           env: {
-            OPENPLANE_HOME: config.openplaneHome,
+            OPENBEAM_HOME: config.openbeamHome,
           },
         },
         ensureVoiceMcpSocketForAgent: (agentId) =>
@@ -614,11 +614,10 @@ export async function createOpenPlaneDaemon(
 
               const relayEnabled = config.relayEnabled ?? true;
               const relayEndpoint =
-                config.relayEndpoint ?? "relay.openplane.sh:443";
+                config.relayEndpoint ?? "relay.openbeam.sh:443";
               const relayPublicEndpoint =
                 config.relayPublicEndpoint ?? relayEndpoint;
-              const appBaseUrl =
-                config.appBaseUrl ?? "https://app.openplane.sh";
+              const appBaseUrl = config.appBaseUrl ?? "https://app.openbeam.sh";
 
               if (relayEnabled) {
                 const offer = await createConnectionOfferV2({
@@ -707,7 +706,7 @@ export async function createOpenPlaneDaemon(
         unlinkSync(listenTarget.path);
       }
       // Release PID lock
-      await releasePidLock(config.openplaneHome);
+      await releasePidLock(config.openbeamHome);
     };
 
     return {
@@ -720,7 +719,7 @@ export async function createOpenPlaneDaemon(
     };
   } catch (err) {
     // biome-ignore lint/suspicious/noEmptyBlockStatements: intentional no-op
-    await releasePidLock(config.openplaneHome).catch(() => {});
+    await releasePidLock(config.openbeamHome).catch(() => {});
     throw err;
   }
 }

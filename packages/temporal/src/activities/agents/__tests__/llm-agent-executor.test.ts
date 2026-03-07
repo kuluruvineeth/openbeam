@@ -5,7 +5,7 @@ const { mockExecute, mockToolServices } = vi.hoisted(() => ({
   mockToolServices: vi.fn(() => ({})),
 }));
 
-vi.mock("@openplane/ai", () => ({
+vi.mock("@openbeam/ai", () => ({
   createLlmAgent: vi.fn(() => ({
     execute: mockExecute,
   })),
@@ -31,13 +31,13 @@ vi.mock("@temporalio/activity", () => ({
   },
 }));
 
-vi.mock("@openplane/ai/tools", () => ({
+vi.mock("@openbeam/ai/tools", () => ({
   toolRegistry: {
     getServices: mockToolServices,
   },
 }));
 
-import { createLlmAgent } from "@openplane/ai";
+import { createLlmAgent } from "@openbeam/ai";
 import { LlmAgentExecutor } from "../llm-agent-executor";
 
 function createSuccessResult(output: string | unknown, hasToolCalls = false) {

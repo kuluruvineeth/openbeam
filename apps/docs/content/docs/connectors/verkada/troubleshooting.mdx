@@ -14,7 +14,7 @@ description: Common Verkada connector issues and fixes.
     **Fix:**
     1. In Verkada Command, go to **Admin** > **Integrations** > **API Keys**
     2. Verify the key still exists and has not been revoked
-    3. If revoked, generate a new key and update the connector in OpenPlane
+    3. If revoked, generate a new key and update the connector in OpenBeam
     4. Ensure the key is pasted without leading/trailing whitespace
   </Accordion>
 
@@ -36,7 +36,7 @@ description: Common Verkada connector issues and fixes.
 
     **Fix:**
     1. Verify which region your organization uses: **US**, **EU**, or **AU**
-    2. In OpenPlane, confirm the connector region matches
+    2. In OpenBeam, confirm the connector region matches
     3. The wrong region returns empty results rather than an error
 
     | Region | API Base |
@@ -54,7 +54,7 @@ description: Common Verkada connector issues and fixes.
     The API key may lack permissions for specific device categories, or those categories are disabled in the connector settings.
 
     **Fix:**
-    1. In OpenPlane, verify **Sync Doors** and **Sync Sensors** toggles are enabled
+    1. In OpenBeam, verify **Sync Doors** and **Sync Sensors** toggles are enabled
     2. In Verkada Command, verify the API key has access to Access Control and Environmental Sensors
     3. Trigger a full resync after adjusting settings
   </Accordion>
@@ -106,7 +106,7 @@ curl -H "x-api-key: YOUR_API_KEY" \
   https://api.au.verkada.com/cameras/v1/devices
 ```
 
-Still stuck? [Open an issue](https://github.com/kuluruvineeth/openplane/issues) with the connector status, error messages, and API response headers.
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openbeam/issues) with the connector status, error messages, and API response headers.
 
 <Cards>
   <Card title="Setup" href="/docs/connectors/verkada/setup" description="Reconnect or reconfigure the connector" />

@@ -1,5 +1,5 @@
-import { estimateTokens } from "@openplane/ai";
-import type { GenericDocument } from "@openplane/vespa";
+import { estimateTokens } from "@openbeam/ai";
+import type { GenericDocument } from "@openbeam/vespa";
 import type { ChunkExtractionOptions, RAGChunk } from "./types";
 
 const DEFAULT_CHUNK_OPTIONS: ChunkExtractionOptions = {

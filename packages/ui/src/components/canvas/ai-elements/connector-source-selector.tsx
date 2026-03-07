@@ -1,6 +1,6 @@
 "use client";
 
-import type { ConnectorType } from "@openplane/types/services/connectors/events";
+import type { ConnectorType } from "@openbeam/types/services/connectors/events";
 import { memo, useCallback, useMemo, useState } from "react";
 import { cn } from "../../../utils/cn";
 import { Badge } from "../../badge";

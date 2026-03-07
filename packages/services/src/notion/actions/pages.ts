@@ -1,4 +1,4 @@
-import type { NotionPage } from "@openplane/types/services/connectors/notion";
+import type { NotionPage } from "@openbeam/types/services/connectors/notion";
 import {
   archivePage as apiArchivePage,
   createPage as apiCreatePage,

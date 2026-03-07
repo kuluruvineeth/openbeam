@@ -5,7 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@openplane/ui/components/dialog";
+} from "@openbeam/ui/components/dialog";
 import { useMemo } from "react";
 import { formatShortcut, type ShortcutKey } from "../lib/format-shortcut";
 import { useKeyboardShortcutsStore } from "../stores/keyboard-shortcuts-store";

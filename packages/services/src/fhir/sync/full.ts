@@ -14,8 +14,8 @@ import type {
   FhirSyncBatch,
   FhirSyncCursor,
   FhirTransformContext,
-} from "@openplane/types/services/connectors/fhir";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/fhir";
+import type { GenericDocument } from "@openbeam/vespa";
 import { logger } from "../../lib/logger";
 import type { FhirClient } from "../client";
 import { transformCondition } from "../transformers/condition";

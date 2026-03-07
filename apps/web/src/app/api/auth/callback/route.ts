@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-const SESSION_COOKIE_NAME = "openplane-session";
+const SESSION_COOKIE_NAME = "openbeam-session";
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7;
 
 export async function GET(request: Request) {

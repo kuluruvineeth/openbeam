@@ -1,9 +1,9 @@
-import type { TimeoutTier } from "@openplane/types/temporal/agent-timeouts";
-import { TIMEOUT_TIERS } from "@openplane/types/temporal/agent-timeouts";
+import type { TimeoutTier } from "@openbeam/types/temporal/agent-timeouts";
+import { TIMEOUT_TIERS } from "@openbeam/types/temporal/agent-timeouts";
 import {
   BackgroundAgentInputSchema,
   type BackgroundAgentOutput,
-} from "@openplane/types/temporal/workflows";
+} from "@openbeam/types/temporal/workflows";
 import type { Duration } from "@temporalio/common";
 import {
   continueAsNew,

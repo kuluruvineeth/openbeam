@@ -1,9 +1,9 @@
-import type { Database } from "@openplane/db";
+import type { Database } from "@openbeam/db";
 import {
   getConnectorResourceWithTeamById,
   getTeamMembership,
   resolveTeamWriteUserId,
-} from "@openplane/db";
+} from "@openbeam/db";
 
 export type ApiAccessAuthContext =
   | {
@@ -14,6 +14,11 @@ export type ApiAccessAuthContext =
   | {
       type: "apiKey";
       apiKeyId?: string;
+    }
+  | {
+      type: "agent";
+      agentId: string;
+      teamId: string;
     }
   | {
       type: "none";

@@ -15,7 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   Icons,
-} from "@openplane/ui";
+} from "@openbeam/ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type MouseEvent, useState } from "react";
 import { toast } from "sonner";

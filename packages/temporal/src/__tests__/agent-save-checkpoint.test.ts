@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mockGetCheckpoints = vi.fn((..._args: unknown[]): unknown[] => []);
 const mockCreateCheckpoint = vi.fn((..._args: unknown[]): unknown => null);
 
-vi.mock("@openplane/db", () => ({
+vi.mock("@openbeam/db", () => ({
   getBackgroundAgentCheckpoints: (...args: unknown[]) =>
     mockGetCheckpoints(...args),
   createBackgroundAgentCheckpoint: (...args: unknown[]) =>

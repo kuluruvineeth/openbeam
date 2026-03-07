@@ -1,4 +1,4 @@
-import type { Entity, EntityRelation, EntityType } from "@openplane/db";
+import type { Entity, EntityRelation, EntityType } from "@openbeam/db";
 import {
   type Database,
   getEntityById,
@@ -8,7 +8,7 @@ import {
   getExpertsForTopic,
   listEntities,
   searchEntities,
-} from "@openplane/db";
+} from "@openbeam/db";
 import { createResolveTeamId } from "./lib/service-errors";
 
 export type KnowledgeServiceErrorCode = "MISSING_TEAM" | "NOT_FOUND";

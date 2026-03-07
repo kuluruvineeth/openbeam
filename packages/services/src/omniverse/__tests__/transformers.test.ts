@@ -2,7 +2,7 @@ import { describe, expect, it } from "bun:test";
 import type {
   OmniverseTransformContext,
   ParsedPrim,
-} from "@openplane/types/services/connectors/omniverse";
+} from "@openbeam/types/services/connectors/omniverse";
 import {
   type PrimTransformParams,
   transformPrim,

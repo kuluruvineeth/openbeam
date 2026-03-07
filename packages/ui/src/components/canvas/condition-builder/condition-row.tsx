@@ -4,14 +4,14 @@ import type {
   ConditionDataType,
   ConditionOperator,
   SingleCondition,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import {
   DATA_TYPE_LABELS,
   OPERATOR_LABELS,
   OPERATOR_NEEDS_SECOND_VALUE,
   OPERATOR_NEEDS_VALUE,
   OPERATORS_BY_TYPE,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { forwardRef, memo, useCallback, useMemo } from "react";
 import { cn } from "../../../utils";
 import { CompactDatePicker } from "../../date-picker";

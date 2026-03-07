@@ -1,6 +1,6 @@
 import type { RouteHandler } from "@hono/zod-openapi";
-import prisma from "@openplane/db";
-import { createExecutionAndStartCanvasWorkflow } from "@openplane/orchestrations";
+import prisma from "@openbeam/db";
+import { createExecutionAndStartCanvasWorkflow } from "@openbeam/orchestrations";
 import {
   CanvasServiceError,
   createCanvasForTeam,
@@ -11,7 +11,7 @@ import {
   listCanvasForTeam,
   publishCanvasForTeam,
   updateCanvasForTeam,
-} from "@openplane/services/canvas-api";
+} from "@openbeam/services/canvas-api";
 import type { AuthEnv } from "@/middleware/auth";
 import { getTeamId } from "@/middleware/auth";
 import type {

@@ -4,19 +4,19 @@ import {
   getConfig,
   registerAllTools,
   toolRegistry,
-} from "@openplane/ai";
+} from "@openbeam/ai";
 import type {
   ChatMessage,
   ToolContextBase,
   ToolExecutionResult,
-} from "@openplane/types/ai";
-import { ToolContextSchema } from "@openplane/types/ai";
+} from "@openbeam/types/ai";
+import { ToolContextSchema } from "@openbeam/types/ai";
 import {
   ParameterBindingSchema,
   type ToolNodeConfig,
   ToolNodeConfigSchema,
   type ToolRetryConfig,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import jmespath from "jmespath";
 import { CanvasNodeExecutionError } from "../errors";
 import { resolveNodeConfig } from "../node-config";

@@ -1,5 +1,5 @@
-import type { Database } from "@openplane/db";
-import { logger } from "@openplane/services/lib/logger";
+import type { Database } from "@openbeam/db";
+import { logger } from "@openbeam/services/lib/logger";
 import { ApplicationFailure } from "@temporalio/common";
 
 export async function verifyExecutionOwnership(

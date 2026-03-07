@@ -5,11 +5,11 @@ description: End-to-end data flow from connecting a source to answering a search
 
 # How it works
 
-OpenPlane follows a five-stage pipeline: **Connect** → **Sync** → **Index** → **Search** → **Answer**. Each stage is designed for durability, correctness, and speed.
+OpenBeam follows a five-stage pipeline: **Connect** → **Sync** → **Index** → **Search** → **Answer**. Each stage is designed for durability, correctness, and speed.
 
 ## Stage 1: Connect
 
-A user connects a data source through the web UI or CLI. OpenPlane supports OAuth 2.0 (for SaaS tools like Slack, Gmail, Notion) and API key/token authentication (for infrastructure like MQTT, OPC-UA, AWS IoT).
+A user connects a data source through the web UI or CLI. OpenBeam supports OAuth 2.0 (for SaaS tools like Slack, Gmail, Notion) and API key/token authentication (for infrastructure like MQTT, OPC-UA, AWS IoT).
 
 When a connector is created:
 
@@ -144,7 +144,7 @@ The `IndexedFile` model tracks processing status through states: `PENDING` → `
 
 ## Stage 4: Search
 
-When a user searches, OpenPlane runs hybrid search combining keyword matching (BM25) and semantic similarity (vector search) in a single Vespa query.
+When a user searches, OpenBeam runs hybrid search combining keyword matching (BM25) and semantic similarity (vector search) in a single Vespa query.
 
 <ExcalidrawViewer
   src="/diagrams/excalidraw/flow-search-request.excalidraw"

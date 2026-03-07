@@ -2,8 +2,8 @@ import { describe, expect, it } from "bun:test";
 import type {
   BacnetObject,
   BacnetTransformContext,
-} from "@openplane/types/services/connectors/bacnet";
-import { BacnetObjectType } from "@openplane/types/services/connectors/bacnet";
+} from "@openbeam/types/services/connectors/bacnet";
+import { BacnetObjectType } from "@openbeam/types/services/connectors/bacnet";
 import { transformObject, transformObjects } from "../transformers/object";
 
 const baseContext: BacnetTransformContext = {

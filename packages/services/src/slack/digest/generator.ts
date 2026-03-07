@@ -130,8 +130,8 @@ export function buildDigestBlocks(
       elements: [
         {
           type: "button",
-          text: { type: "plain_text", text: "Open OpenPlane", emoji: true },
-          url: process.env.WEB_APP_URL ?? "https://app.openplane.com",
+          text: { type: "plain_text", text: "Open OpenBeam", emoji: true },
+          url: process.env.WEB_APP_URL ?? "https://app.openbeam.com",
           action_id: "open_app",
         },
         {

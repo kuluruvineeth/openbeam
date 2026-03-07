@@ -110,7 +110,7 @@ RETURNS: The created object definition with its fields, ID, and metadata.`,
     const startTime = performance.now();
 
     const { getTeamDuckDB, initializeEAVSchema, createObject } = await import(
-      "@openplane/services"
+      "@openbeam/services"
     );
 
     const db = await getTeamDuckDB(ctx.teamId);

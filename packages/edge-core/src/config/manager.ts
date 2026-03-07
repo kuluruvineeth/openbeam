@@ -1,7 +1,7 @@
 import type { Database } from "bun:sqlite";
-import type { EdgeConfig } from "@openplane/types/edge/config";
-import { EdgeConfigSchema } from "@openplane/types/edge/config";
-import type { EdgeTier } from "@openplane/types/edge/tiers";
+import type { EdgeConfig } from "@openbeam/types/edge/config";
+import { EdgeConfigSchema } from "@openbeam/types/edge/config";
+import type { EdgeTier } from "@openbeam/types/edge/tiers";
 
 const EDGE_CONFIG_DDL = `
   CREATE TABLE IF NOT EXISTS edge_config (

@@ -2,7 +2,7 @@ import {
   type ExecutionPlanNode,
   type ExecutionTrace,
   ParallelMapNodeConfigSchema,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { ApplicationFailure, sleep } from "@temporalio/workflow";
 import { currentTimestamp } from "../../temporal-utils";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { closestCorners, DndContext, DragOverlay } from "@dnd-kit/core";
-import { cn } from "@openplane/ui";
+import { cn } from "@openbeam/ui";
 import { useCallback, useMemo } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { COLUMN_WIDTH } from "../constants";

@@ -137,7 +137,7 @@ describe("relay-transport control lifecycle", () => {
       logger: logger as any,
       // biome-ignore lint/suspicious/noEmptyBlockStatements: intentional no-op
       attachSocket: async () => {},
-      relayEndpoint: "relay.openplane.sh:443",
+      relayEndpoint: "relay.openbeam.sh:443",
       serverId: "srv_test",
     });
     controllers.push(controller);
@@ -160,7 +160,7 @@ describe("relay-transport control lifecycle", () => {
       logger: logger as any,
       // biome-ignore lint/suspicious/noEmptyBlockStatements: intentional no-op
       attachSocket: async () => {},
-      relayEndpoint: "relay.openplane.sh:443",
+      relayEndpoint: "relay.openbeam.sh:443",
       serverId: "srv_test",
     });
     controllers.push(controller);
@@ -185,7 +185,7 @@ describe("relay-transport control lifecycle", () => {
       logger: logger as any,
       // biome-ignore lint/suspicious/noEmptyBlockStatements: intentional no-op
       attachSocket: async () => {},
-      relayEndpoint: "relay.openplane.sh:443",
+      relayEndpoint: "relay.openbeam.sh:443",
       serverId: "srv_test",
     });
     controllers.push(controller);
@@ -209,7 +209,7 @@ describe("relay-transport control lifecycle", () => {
     const controller = startRelayTransport({
       logger: logger as any,
       attachSocket,
-      relayEndpoint: "relay.openplane.sh:443",
+      relayEndpoint: "relay.openbeam.sh:443",
       serverId: "srv_test",
     });
     controllers.push(controller);

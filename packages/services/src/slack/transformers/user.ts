@@ -1,8 +1,8 @@
 import type {
   SlackUser,
   TransformContext,
-} from "@openplane/types/services/connectors/slack";
-import type { Entity, JsonObject, JsonValue } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/slack";
+import type { Entity, JsonObject, JsonValue } from "@openbeam/vespa";
 
 export function transformUser(
   user: SlackUser,

@@ -1,6 +1,6 @@
 ---
 title: App Manifest
-description: Slack app manifest for OpenPlane
+description: Slack app manifest for OpenBeam
 ---
 
 # Slack App Manifest
@@ -21,7 +21,7 @@ Replace `your-domain.com` with your actual domain.
 
 ```yaml
 display_information:
-  name: OpenPlane
+  name: OpenBeam
   description: AI-powered search from your knowledge base
   background_color: "#1a1a2e"
 
@@ -31,22 +31,22 @@ features:
     messages_tab_enabled: true
     messages_tab_read_only_enabled: false
   bot_user:
-    display_name: OpenPlane
+    display_name: OpenBeam
     always_online: true
   shortcuts:
     - name: Search with Context
       type: message
       callback_id: search_context
       description: Find related information using this message
-    - name: Search OpenPlane
+    - name: Search OpenBeam
       type: global
       callback_id: global_search
       description: Search all connected data sources
-    - name: Ask OpenPlane
+    - name: Ask OpenBeam
       type: global
       callback_id: global_ask
       description: Ask a question
-    - name: Save to OpenPlane
+    - name: Save to OpenBeam
       type: message
       callback_id: save_message
       description: Save this message
@@ -59,13 +59,13 @@ features:
       callback_id: summarize_thread
       description: AI summary of this thread
   slash_commands:
-    - command: /openplane
+    - command: /openbeam
       url: https://your-domain.com/api/v1/webhooks/slack/interactivity
       description: Search and ask questions
       usage_hint: "[search|ask|configure|digest|help] [query]"
       should_escape: false
   assistant_view:
-    assistant_description: OpenPlane Assistant
+    assistant_description: OpenBeam Assistant
     suggested_prompts: []
 
 oauth_config:

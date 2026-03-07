@@ -5,7 +5,7 @@ import {
   deleteConversation,
   findConversationWithMessages,
   listConversations,
-} from "@openplane/db";
+} from "@openbeam/db";
 import {
   type ConversationContext,
   getConversationManager,

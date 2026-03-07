@@ -1,6 +1,6 @@
 "use client";
 
-import { Badge } from "@openplane/ui/components/badge";
+import { Badge } from "@openbeam/ui/components/badge";
 import {
   Table,
   TableBody,
@@ -8,7 +8,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@openplane/ui/components/table";
+} from "@openbeam/ui/components/table";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";

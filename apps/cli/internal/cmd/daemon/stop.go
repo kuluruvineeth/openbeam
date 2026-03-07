@@ -5,8 +5,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	daemonlib "github.com/openplane/openplane/apps/cli/internal/daemon"
-	"github.com/openplane/openplane/apps/cli/internal/errs"
+	daemonlib "github.com/kuluruvineeth/openbeam/apps/cli/internal/daemon"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/errs"
 )
 
 func newStopCommand() *cobra.Command {

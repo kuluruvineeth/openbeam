@@ -1,4 +1,4 @@
-import prisma, { getSearchClicks, getSearchImpressions } from "@openplane/db";
+import prisma, { getSearchClicks, getSearchImpressions } from "@openbeam/db";
 import {
   calculateMetrics,
   type ImpressionData,

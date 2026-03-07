@@ -10,7 +10,7 @@ import {
 import { batchPrefetch, HydrateClient, trpc } from "@/trpc/server";
 
 export const metadata: Metadata = {
-  title: "Connectors | OpenPlane",
+  title: "Connectors | OpenBeam",
   description: "Manage your connectors and data sources",
 };
 

@@ -10,7 +10,7 @@ export function handleHelpCommand(
     blocks: [
       {
         type: "header",
-        text: { type: "plain_text", text: "OpenPlane Commands", emoji: true },
+        text: { type: "plain_text", text: "OpenBeam Commands", emoji: true },
       },
       {
         type: "section",
@@ -27,11 +27,11 @@ export function handleHelpCommand(
           text: [
             "*Available Commands:*",
             "",
-            "`/openplane <query>` - Quick search",
-            "`/openplane search <query>` - Search across all data",
-            "`/openplane ask <question>` - Get an AI-powered answer",
-            "`/openplane configure` - Configure OpenPlane for this channel",
-            "`/openplane help` - Show this help message",
+            "`/openbeam <query>` - Quick search",
+            "`/openbeam search <query>` - Search across all data",
+            "`/openbeam ask <question>` - Get an AI-powered answer",
+            "`/openbeam configure` - Configure OpenBeam for this channel",
+            "`/openbeam help` - Show this help message",
           ].join("\n"),
         },
       },
@@ -41,7 +41,7 @@ export function handleHelpCommand(
         elements: [
           {
             type: "mrkdwn",
-            text: "💡 *Tip:* You can also @mention OpenPlane in any channel to ask questions directly.",
+            text: "💡 *Tip:* You can also @mention OpenBeam in any channel to ask questions directly.",
           },
         ],
       },

@@ -1,4 +1,4 @@
-// CLI exports for @openplane/server
+// CLI exports for @openbeam/server
 
 // Agent activity curator for CLI logs
 export { curateAgentActivity } from "./agent/activity-curator";
@@ -25,9 +25,9 @@ export type {
   AgentUsage,
 } from "./agent/agent-sdk-types";
 export {
-  createOpenPlaneDaemon,
-  type OpenPlaneDaemon,
-  type OpenPlaneDaemonConfig,
+  createOpenBeamDaemon,
+  type OpenBeamDaemon,
+  type OpenBeamDaemonConfig,
 } from "./bootstrap";
 export {
   type ConnectionState,
@@ -37,7 +37,7 @@ export {
 } from "./client/daemon-client";
 export { type CliConfigOverrides, loadConfig } from "./config";
 export { createRootLogger, type LogFormat, type LogLevel } from "./logger";
-export { resolveOpenPlaneHome } from "./openplane-home";
+export { resolveOpenBeamHome } from "./openbeam-home";
 export {
   generateLocalPairingOffer,
   type LocalPairingOffer,

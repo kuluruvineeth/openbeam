@@ -1,4 +1,4 @@
-import type { AgentEvent, AgentStatus } from "@openplane/types/ai";
+import type { AgentEvent, AgentStatus } from "@openbeam/types/ai";
 
 export interface StreamTiming {
   startTime: number;

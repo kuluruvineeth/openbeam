@@ -1,4 +1,4 @@
-import type { ExecutionEvent } from "@openplane/types/canvas";
+import type { ExecutionEvent } from "@openbeam/types/canvas";
 import { useExecutionStore } from "./execution-store";
 
 export function dispatchExecutionEvent(event: ExecutionEvent): void {

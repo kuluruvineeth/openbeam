@@ -5,22 +5,22 @@ describe("buildWorkingDirectorySuggestions", () => {
   it("returns de-duplicated recommendations when query is empty", () => {
     const results = buildWorkingDirectorySuggestions({
       recommendedPaths: [
-        "/Users/me/projects/openplane",
-        "/Users/me/projects/openplane",
+        "/Users/me/projects/openbeam",
+        "/Users/me/projects/openbeam",
       ],
       serverPaths: ["/Users/me/projects/playground"],
       query: "",
     });
 
-    expect(results).toEqual(["/Users/me/projects/openplane"]);
+    expect(results).toEqual(["/Users/me/projects/openbeam"]);
   });
 
   it("prioritizes matching recommended directories before server matches", () => {
     const results = buildWorkingDirectorySuggestions({
-      recommendedPaths: ["/Users/me/projects/openplane", "/Users/me/documents"],
+      recommendedPaths: ["/Users/me/projects/openbeam", "/Users/me/documents"],
       serverPaths: [
         "/Users/me/projects/playground",
-        "/Users/me/projects/openplane",
+        "/Users/me/projects/openbeam",
         "/Users/me/projects/planbook",
       ],
       query: "pla",
@@ -36,7 +36,7 @@ describe("buildWorkingDirectorySuggestions", () => {
     const results = buildWorkingDirectorySuggestions({
       recommendedPaths: [
         "/Users/me/projects/playground",
-        "/Users/me/projects/openplane",
+        "/Users/me/projects/openbeam",
       ],
       serverPaths: [
         "/Users/me/projects/planbook",
@@ -53,13 +53,13 @@ describe("buildWorkingDirectorySuggestions", () => {
 
   it("treats '~' as an active query and includes server suggestions", () => {
     const results = buildWorkingDirectorySuggestions({
-      recommendedPaths: ["/Users/me/projects/openplane"],
+      recommendedPaths: ["/Users/me/projects/openbeam"],
       serverPaths: ["/Users/me/documents", "/Users/me/projects"],
       query: "~",
     });
 
     expect(results).toEqual([
-      "/Users/me/projects/openplane",
+      "/Users/me/projects/openbeam",
       "/Users/me/documents",
       "/Users/me/projects",
     ]);

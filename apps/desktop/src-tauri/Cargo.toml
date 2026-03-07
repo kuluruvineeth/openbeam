@@ -1,8 +1,8 @@
 [package]
-name = "openplane-desktop"
+name = "openbeam-desktop"
 version = "0.1.0"
-description = "OpenPlane Desktop"
-authors = ["OpenPlane"]
+description = "OpenBeam Desktop"
+authors = ["OpenBeam"]
 license = "AGPL-3.0"
 edition = "2021"
 rust-version = "1.77.2"
@@ -10,11 +10,11 @@ rust-version = "1.77.2"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
-name = "openplane_lib"
+name = "openbeam_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [[bin]]
-name = "OpenPlane"
+name = "OpenBeam"
 path = "src/main.rs"
 
 [build-dependencies]

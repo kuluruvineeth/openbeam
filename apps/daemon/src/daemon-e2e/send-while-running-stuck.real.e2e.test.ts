@@ -6,7 +6,7 @@ import { describe, expect, test } from "vitest";
 import { isCommandAvailable } from "../agent/provider-launch-config";
 import { CodexAppServerAgentClient } from "../agent/providers/codex-app-server-agent";
 import { DaemonClient } from "../test-utils/daemon-client";
-import { createTestOpenPlaneDaemon } from "../test-utils/openplane-daemon";
+import { createTestOpenBeamDaemon } from "../test-utils/openbeam-daemon";
 import { getFullAccessConfig } from "./agent-configs";
 import { applyAgentInputProcessingTransition } from "./send-while-running-stuck-test-utils";
 
@@ -20,7 +20,7 @@ describe("daemon E2E (real codex) - send while running recovery", () => {
     async () => {
       const logger = pino({ level: "silent" });
       const cwd = tmpCwd();
-      const daemon = await createTestOpenPlaneDaemon({
+      const daemon = await createTestOpenBeamDaemon({
         agentClients: { codex: new CodexAppServerAgentClient(logger) },
         logger,
       });

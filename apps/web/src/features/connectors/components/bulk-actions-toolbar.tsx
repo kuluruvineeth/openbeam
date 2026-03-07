@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Card } from "@openplane/ui";
+import { Button, Card } from "@openbeam/ui";
 import { toast } from "sonner";
 import { Icons } from "@/components/icons";
 import { useTriggerSync } from "@/features/sync";

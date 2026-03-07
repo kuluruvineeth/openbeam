@@ -2,7 +2,7 @@ import type {
   CanvasNodeType,
   ExecutionContext,
   ExecutionPlanNode,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@temporalio/activity", () => ({
@@ -20,7 +20,7 @@ const executionDataStore = new Map<
 let executionDataCounter = 0;
 let stepCounter = 0;
 
-vi.mock("@openplane/db", () => ({
+vi.mock("@openbeam/db", () => ({
   createAgentCanvasExecutionData: vi.fn(
     (
       _db: unknown,
@@ -94,7 +94,7 @@ const {
   };
 });
 
-vi.mock("@openplane/services/canvas", () => ({
+vi.mock("@openbeam/services/canvas", () => ({
   executeCanvasNode: executeCanvasNodeServiceMock,
   CanvasNodeExecutorNotFoundError: MockCanvasNodeExecutorNotFoundError,
   CanvasNodeExecutionError: MockCanvasNodeExecutionError,

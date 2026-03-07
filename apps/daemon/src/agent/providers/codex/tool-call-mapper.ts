@@ -101,7 +101,7 @@ const CodexSearchToolNameSchema = z.union([
   z.literal("search"),
   z.literal("web_search"),
 ]);
-const CodexSpeakToolNameSchema = z.literal("openplane.speak");
+const CodexSpeakToolNameSchema = z.literal("openbeam.speak");
 
 const CodexToolKindSchema = z.enum([
   "shell",

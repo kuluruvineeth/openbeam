@@ -1,4 +1,4 @@
-import type { RuntimeEvent } from "@openplane/types/canvas/runtime-events";
+import type { RuntimeEvent } from "@openbeam/types/canvas/runtime-events";
 
 const CANVAS_TOOL_PREFIX = "canvas_";
 

@@ -1,4 +1,4 @@
-import type { Connector, User } from "@openplane/db";
+import type { Connector, User } from "@openbeam/db";
 
 export type ConnectorResult = {
   connector: Connector;

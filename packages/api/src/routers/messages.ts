@@ -1,4 +1,4 @@
-import { messagesService } from "@openplane/services";
+import { messagesService } from "@openbeam/services";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter } from "../index";

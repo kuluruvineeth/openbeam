@@ -1,6 +1,6 @@
 "use client";
 
-import type { InputField, InputNodeConfig } from "@openplane/types/canvas";
+import type { InputField, InputNodeConfig } from "@openbeam/types/canvas";
 import { memo, useCallback } from "react";
 import { AnimatedSizeContainer } from "../../animated-size-container";
 import { Icons } from "../../icons";

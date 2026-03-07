@@ -3,7 +3,7 @@ package completion
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/openplane/openplane/apps/cli/internal/errs"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/errs"
 )
 
 func NewCommand(root *cobra.Command) *cobra.Command {

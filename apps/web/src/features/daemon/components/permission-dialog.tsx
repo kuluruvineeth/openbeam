@@ -3,9 +3,9 @@
 import type {
   AgentPermissionRequest,
   AgentPermissionResponse,
-} from "@openplane/types/services/daemon";
-import { Icons } from "@openplane/ui";
-import { Button } from "@openplane/ui/components/button";
+} from "@openbeam/types/services/daemon";
+import { Icons } from "@openbeam/ui";
+import { Button } from "@openbeam/ui/components/button";
 import { cva } from "class-variance-authority";
 import { useCallback, useState } from "react";
 import type { DaemonClient } from "../lib/daemon-client";

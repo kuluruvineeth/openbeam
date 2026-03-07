@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, TooltipProvider } from "@openplane/ui";
+import { Button, TooltipProvider } from "@openbeam/ui";
 import { renderAsync } from "docx-preview";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Icons } from "@/components/icons";

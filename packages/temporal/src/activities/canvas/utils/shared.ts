@@ -1,12 +1,12 @@
-import type { Database } from "@openplane/db";
+import type { Database } from "@openbeam/db";
 import {
   createAgentCanvasExecutionStep,
   updateAgentCanvasExecutionStep,
-} from "@openplane/db";
+} from "@openbeam/db";
 import type {
   ExecutionDataRef,
   ExecutionPlanNode,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import {
   createDbClaimCheckStore,
   isExecutionDataRef,

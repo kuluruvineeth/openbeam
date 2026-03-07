@@ -1,5 +1,5 @@
-import { type RateLimitConfig, rateLimiter } from "@openplane/redis";
-import type { SmartThingsClientConfig } from "@openplane/types/services/connectors/smartthings";
+import { type RateLimitConfig, rateLimiter } from "@openbeam/redis";
+import type { SmartThingsClientConfig } from "@openbeam/types/services/connectors/smartthings";
 import { logger } from "../lib/logger";
 import { SmartThingsApiError } from "./types";
 

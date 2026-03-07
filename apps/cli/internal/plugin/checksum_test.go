@@ -83,7 +83,7 @@ func TestLoadManifestMissing(t *testing.T) {
 
 func TestRecordAndVerifyValid(t *testing.T) {
 	dir := t.TempDir()
-	path := filepath.Join(dir, "openplane-test")
+	path := filepath.Join(dir, "openbeam-test")
 	if err := os.WriteFile(path, []byte("binary content"), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -97,7 +97,7 @@ func TestRecordAndVerifyValid(t *testing.T) {
 
 func TestVerifyInstalledTampered(t *testing.T) {
 	dir := t.TempDir()
-	path := filepath.Join(dir, "openplane-test")
+	path := filepath.Join(dir, "openbeam-test")
 	if err := os.WriteFile(path, []byte("original"), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -119,7 +119,7 @@ func TestVerifyInstalledTampered(t *testing.T) {
 func TestVerifyInstalledSkipsPathPlugins(t *testing.T) {
 	installDir := t.TempDir()
 	otherDir := t.TempDir()
-	path := filepath.Join(otherDir, "openplane-test")
+	path := filepath.Join(otherDir, "openbeam-test")
 	if err := os.WriteFile(path, []byte("content"), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -130,7 +130,7 @@ func TestVerifyInstalledSkipsPathPlugins(t *testing.T) {
 
 func TestVerifyInstalledNoManifestEntry(t *testing.T) {
 	dir := t.TempDir()
-	path := filepath.Join(dir, "openplane-test")
+	path := filepath.Join(dir, "openbeam-test")
 	if err := os.WriteFile(path, []byte("content"), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -163,7 +163,7 @@ func TestInstallRecordsChecksum(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	result, err := InstallLocal("openplane", "checksum-test", sourcePath, installDir)
+	result, err := InstallLocal("openbeam", "checksum-test", sourcePath, installDir)
 	if err != nil {
 		t.Fatal(err)
 	}

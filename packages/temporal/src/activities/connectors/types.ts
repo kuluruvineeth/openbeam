@@ -1,4 +1,4 @@
-import type { ConnectorStatus } from "@openplane/db";
+import type { ConnectorStatus } from "@openbeam/db";
 import type { SyncCursor } from "../../workflows/types";
 
 export interface ConnectorRecord {

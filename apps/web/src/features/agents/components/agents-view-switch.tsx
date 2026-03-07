@@ -1,7 +1,7 @@
 "use client";
 
-import { Button, Icons } from "@openplane/ui";
-import { cn } from "@openplane/ui/utils";
+import { Button, Icons } from "@openbeam/ui";
+import { cn } from "@openbeam/ui/utils";
 import { useAgentParams } from "../hooks/use-agent-params";
 
 export function AgentsViewSwitch() {

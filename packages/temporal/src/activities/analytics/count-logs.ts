@@ -1,4 +1,4 @@
-import db, { countAIUsageLogsForDate } from "@openplane/db";
+import db, { countAIUsageLogsForDate } from "@openbeam/db";
 import type {
   CountLogsForExportInput,
   CountLogsForExportOutput,

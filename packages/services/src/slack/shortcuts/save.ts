@@ -59,7 +59,7 @@ export async function handleSaveShortcut(
 
   return {
     success: true,
-    message: "Message saved to OpenPlane!",
+    message: "Message saved to OpenBeam!",
     data: savedData,
   };
 }
@@ -93,7 +93,7 @@ export function buildSaveConfirmationModal(context: MessageContext): View {
     }),
     title: {
       type: "plain_text",
-      text: "Save to OpenPlane",
+      text: "Save to OpenBeam",
     },
     submit: {
       type: "plain_text",
@@ -163,7 +163,7 @@ export function buildSaveSuccessBlocks(data: SavedMessageData): KnownBlock[] {
       type: "section",
       text: {
         type: "mrkdwn",
-        text: "✅ *Message saved to OpenPlane*",
+        text: "✅ *Message saved to OpenBeam*",
       },
     },
     {
@@ -180,10 +180,10 @@ export function buildSaveSuccessBlocks(data: SavedMessageData): KnownBlock[] {
           type: "button",
           text: {
             type: "plain_text",
-            text: "View in OpenPlane",
+            text: "View in OpenBeam",
             emoji: true,
           },
-          url: getOpenPlaneUrl(data.id),
+          url: getOpenBeamUrl(data.id),
           action_id: "view_saved",
         },
         {
@@ -242,7 +242,7 @@ function truncate(text: string, maxLength: number): string {
   return `${text.slice(0, maxLength - 3)}...`;
 }
 
-function getOpenPlaneUrl(itemId: string): string {
-  const baseUrl = process.env.WEB_APP_URL ?? "https://app.openplane.com";
+function getOpenBeamUrl(itemId: string): string {
+  const baseUrl = process.env.WEB_APP_URL ?? "https://app.openbeam.com";
   return `${baseUrl}/saved/${itemId}`;
 }

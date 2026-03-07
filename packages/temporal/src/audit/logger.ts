@@ -1,4 +1,4 @@
-import type { Database, Prisma } from "@openplane/db";
+import type { Database, Prisma } from "@openbeam/db";
 import type {
   AgentAuditEvent,
   WorkflowAuditEvent,

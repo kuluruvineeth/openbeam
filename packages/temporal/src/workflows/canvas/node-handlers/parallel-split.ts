@@ -3,11 +3,11 @@ import {
   type ExecutionTrace,
   ParallelJoinNodeConfigSchema,
   ParallelSplitNodeConfigSchema,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import type {
   LoopState,
   ParallelJoinBranchResult,
-} from "@openplane/types/temporal";
+} from "@openbeam/types/temporal";
 import { ApplicationFailure } from "@temporalio/workflow";
 import { isExecutionDataRef } from "../../../engine/claim-check-utils";
 import { currentTimestamp } from "../../temporal-utils";

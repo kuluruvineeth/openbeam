@@ -8,13 +8,13 @@ import prisma, {
   recordRefreshFailure,
   updateConnector,
   updateOAuthTokens,
-} from "@openplane/db";
+} from "@openbeam/db";
 import {
   refreshGitHubToken,
   refreshGmailToken,
   refreshGoogleDriveToken,
   refreshLinearToken,
-} from "@openplane/integrations";
+} from "@openbeam/integrations";
 
 export async function refreshConnectorToken(
   connectorId: string

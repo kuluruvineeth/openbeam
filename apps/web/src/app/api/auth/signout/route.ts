@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { internalServerUrl } from "@/lib/urls";
 
-const SESSION_COOKIE_NAME = "openplane-session";
+const SESSION_COOKIE_NAME = "openbeam-session";
 
 export async function POST() {
   const cookieStore = await cookies();

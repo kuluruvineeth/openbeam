@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useState } from "react";
 
-const STORAGE_KEY = "@openplane:recent-paths";
+const STORAGE_KEY = "@openbeam:recent-paths";
 const MAX_RECENT_PATHS = 3;
 
 export interface UseRecentPathsReturn {

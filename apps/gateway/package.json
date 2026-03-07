@@ -10,12 +10,12 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@openplane/db": "workspace:*",
-    "@openplane/redis": "workspace:*",
-    "@openplane/services": "workspace:*",
-    "@openplane/temporal": "workspace:*",
-    "@openplane/types": "workspace:*",
-    "@openplane/vespa": "workspace:*",
+    "@openbeam/db": "workspace:*",
+    "@openbeam/redis": "workspace:*",
+    "@openbeam/services": "workspace:*",
+    "@openbeam/temporal": "workspace:*",
+    "@openbeam/types": "workspace:*",
+    "@openbeam/vespa": "workspace:*",
     "hono": "catalog:",
     "mqtt": "^5.10.0",
     "aedes": "^1.0.0",
@@ -30,6 +30,6 @@
     "typescript": "catalog:",
     "@types/bun": "^1.2.6",
     "tsdown": "catalog:",
-    "@openplane/config": "workspace:*"
+    "@openbeam/config": "workspace:*"
   }
 }

@@ -1,8 +1,8 @@
-import type { Database } from "@openplane/db";
+import type { Database } from "@openbeam/db";
 import {
   ComputeExpertiseInputSchema,
   type ComputeExpertiseOutput,
-} from "@openplane/types/temporal/activities/knowledge";
+} from "@openbeam/types/temporal/activities/knowledge";
 import { Context } from "@temporalio/activity";
 
 export interface ComputeExpertiseDependencies {

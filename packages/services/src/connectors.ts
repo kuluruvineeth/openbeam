@@ -6,7 +6,7 @@ import {
   resumeConnector,
   triggerSync,
   verifyConnectorOwnership,
-} from "@openplane/db";
+} from "@openbeam/db";
 import { createResolveTeamId } from "./lib/service-errors";
 
 export type ConnectorSyncType = "FULL" | "INCREMENTAL";

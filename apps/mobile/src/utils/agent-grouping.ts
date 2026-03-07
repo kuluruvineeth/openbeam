@@ -6,10 +6,10 @@ import type { AggregatedAgent } from "@/hooks/use-aggregated-agents";
  * For regular repos/directories, returns the cwd.
  */
 export function deriveProjectKey(cwd: string): string {
-  const worktreeMarker = ".openplane/worktrees/";
+  const worktreeMarker = ".openbeam/worktrees/";
   const idx = cwd.indexOf(worktreeMarker);
   if (idx !== -1) {
-    // Return parent repo path (before .openplane/worktrees/)
+    // Return parent repo path (before .openbeam/worktrees/)
     // biome-ignore lint/performance/useTopLevelRegex: scoped regex acceptable here
     return cwd.slice(0, idx).replace(/\/$/, "");
   }

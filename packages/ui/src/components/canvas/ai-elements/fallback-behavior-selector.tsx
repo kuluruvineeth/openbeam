@@ -1,6 +1,6 @@
 "use client";
 
-import type { FallbackBehavior } from "@openplane/types/canvas";
+import type { FallbackBehavior } from "@openbeam/types/canvas";
 import { memo, useCallback } from "react";
 import { cn } from "../../../utils";
 import { Icons } from "../../icons";

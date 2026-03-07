@@ -1,11 +1,11 @@
-import { findAgentCanvasById, findAgentCanvasVersion } from "@openplane/db";
-import { submitCanvasInput } from "@openplane/temporal";
+import { findAgentCanvasById, findAgentCanvasVersion } from "@openbeam/db";
+import { submitCanvasInput } from "@openbeam/temporal";
 import {
   AgentCanvasEdgeSchema,
   AgentCanvasNodeSchema,
   CanvasStateSchema,
   type InputNodeConfigSchema,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { normalizeInputValues } from "../../utils/input-normalization";

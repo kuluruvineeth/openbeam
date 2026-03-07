@@ -2,13 +2,13 @@ import {
   S3StorageProvider,
   type StorageConfig,
   type StorageObject,
-} from "@openplane/storage";
+} from "@openbeam/storage";
 import { z } from "zod";
 
 const DATE_PARTITION_REGEX = /date=(\d{4}-\d{2}-\d{2})/;
 
 export const AnalyticsStorageConfigSchema = z.object({
-  bucket: z.string().default("openplane-analytics"),
+  bucket: z.string().default("openbeam-analytics"),
   region: z.string().default("us-east-1"),
   accessKeyId: z.string(),
   secretAccessKey: z.string(),

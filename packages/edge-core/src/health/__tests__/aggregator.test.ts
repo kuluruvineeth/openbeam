@@ -4,8 +4,8 @@ import type {
   SearchMetrics,
   ServiceCheck,
   SyncMetrics,
-} from "@openplane/types/edge/health";
-import { EdgeHealthReportSchema } from "@openplane/types/edge/health";
+} from "@openbeam/types/edge/health";
+import { EdgeHealthReportSchema } from "@openbeam/types/edge/health";
 import { HealthAggregator } from "../aggregator";
 
 function createHealthyCheck(name: string): ServiceCheck {

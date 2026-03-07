@@ -1,8 +1,8 @@
-import type { Database } from "@openplane/db";
+import type { Database } from "@openbeam/db";
 import {
   updateConnectorSyncError,
   updateConnectorSyncSuccess,
-} from "@openplane/db";
+} from "@openbeam/db";
 import { updateSyncCursor } from "./cursor";
 import { completeSyncHistoryRecord, markSyncHistoryFailed } from "./history";
 import type { HandleSyncErrorInput, UpdateSyncCompletionInput } from "./types";

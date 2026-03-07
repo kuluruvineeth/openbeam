@@ -15,7 +15,7 @@ import type {
   StoreParallelMapOutputInput,
   StoreParallelMapOutputOutput,
   UpdateCanvasExecutionInput,
-} from "@openplane/types/temporal";
+} from "@openbeam/types/temporal";
 import { ApplicationFailure } from "@temporalio/common";
 import { TestWorkflowEnvironment } from "@temporalio/testing";
 import { Worker } from "@temporalio/worker";

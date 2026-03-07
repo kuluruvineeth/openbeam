@@ -17,8 +17,8 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { ConditionBranch } from "@openplane/types/canvas";
-import { BRANCH_COLORS } from "@openplane/types/canvas";
+import type { ConditionBranch } from "@openbeam/types/canvas";
+import { BRANCH_COLORS } from "@openbeam/types/canvas";
 import { forwardRef, memo, useCallback } from "react";
 import { cn } from "../../../utils";
 import { Button } from "../../button";

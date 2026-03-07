@@ -1,6 +1,6 @@
 "use client";
 
-import type { TemporaryEdgeData } from "@openplane/types/canvas";
+import type { TemporaryEdgeData } from "@openbeam/types/canvas";
 import type { Edge, EdgeProps } from "@xyflow/react";
 import { BaseEdge, EdgeLabelRenderer, getBezierPath } from "@xyflow/react";
 import { memo } from "react";

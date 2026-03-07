@@ -6,7 +6,7 @@ import { useCallback, useState } from "react";
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 const DEPLOY_COMMAND =
-  "git clone https://github.com/openbeam/openbeam && cd openbeam && docker compose up -d";
+  "git clone https://github.com/kuluruvineeth/openbeam && cd openbeam && docker compose up -d";
 
 export function CTASection() {
   const [copied, setCopied] = useState(false);
@@ -90,7 +90,7 @@ export function CTASection() {
           </a>
           <a
             className="flex h-11 items-center justify-center gap-2 border border-border bg-background px-6 font-sans text-foreground text-sm transition-colors hover:bg-secondary"
-            href="https://github.com/openbeam/openbeam"
+            href="https://github.com/kuluruvineeth/openbeam"
             rel="noopener noreferrer"
             target="_blank"
           >

@@ -104,7 +104,7 @@ export function ConnectorsGrid({
               </p>
               <a
                 className="inline-flex items-center justify-center bg-foreground px-6 py-3 font-sans text-background text-sm transition-opacity hover:opacity-90"
-                href="https://github.com/openbeam/openbeam/issues/new?template=connector_request.md"
+                href="https://github.com/kuluruvineeth/openbeam/issues/new?template=connector_request.md"
                 rel="noopener noreferrer"
                 target="_blank"
               >

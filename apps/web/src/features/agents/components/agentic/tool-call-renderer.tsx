@@ -1,12 +1,12 @@
 "use client";
 
-import { Icons } from "@openplane/ui";
+import { Icons } from "@openbeam/ui";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@openplane/ui/components/collapsible";
-import { cn } from "@openplane/ui/utils";
+} from "@openbeam/ui/components/collapsible";
+import { cn } from "@openbeam/ui/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 
 const toolCallVariants = cva(

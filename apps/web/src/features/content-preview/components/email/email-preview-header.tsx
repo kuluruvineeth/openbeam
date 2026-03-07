@@ -6,7 +6,7 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@openplane/ui";
+} from "@openbeam/ui";
 import { Icons } from "@/components/icons";
 
 type EmailPreviewHeaderProps = {

@@ -3,7 +3,7 @@ import type {
   PersistentMemoryEntry,
   PersistentMemorySearchOptions,
   PersistentMemorySearchResult,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import type { EmbeddingProvider, VectorStore } from "./long-term";
 import { computeKeywordScore, extractQueryTerms } from "./search";
 

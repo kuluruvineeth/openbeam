@@ -2,7 +2,7 @@ import type {
   AIUsageLogForExport,
   BillingUsageSummary,
   TopCostDriversOptions,
-} from "@openplane/types/db";
+} from "@openbeam/types/db";
 import type { AIUsageGranularity } from "../../prisma/generated/enums";
 import type { Database } from "../index";
 

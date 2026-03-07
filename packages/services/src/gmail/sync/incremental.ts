@@ -7,8 +7,8 @@ import type {
   GmailSyncCursor,
   GmailSyncOptions,
   GmailTransformContext,
-} from "@openplane/types/services/connectors/gmail";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/gmail";
+import type { GenericDocument } from "@openbeam/vespa";
 import { createLabelLookup } from "../api/labels";
 import type { GmailClient } from "../client";
 import { GmailApiError, GmailErrorCodes } from "../types";

@@ -1,4 +1,4 @@
-import type { ExecutionPlanNode } from "@openplane/types/canvas";
+import type { ExecutionPlanNode } from "@openbeam/types/canvas";
 import {
   isParallelMapTargetType,
   isRetryTargetType,
@@ -35,7 +35,7 @@ export function validateRetryNode(params: {
   outbound: number;
   edgesBySource: Map<
     string,
-    import("@openplane/types/canvas").ExecutionPlan["edges"]
+    import("@openbeam/types/canvas").ExecutionPlan["edges"]
   >;
   nodesById: Map<string, ExecutionPlanNode>;
   adjacency: {
@@ -101,7 +101,7 @@ export function validateTryCatchNode(params: {
   outbound: number;
   edgesBySource: Map<
     string,
-    import("@openplane/types/canvas").ExecutionPlan["edges"]
+    import("@openbeam/types/canvas").ExecutionPlan["edges"]
   >;
   nodesById: Map<string, ExecutionPlanNode>;
   adjacency: {
@@ -134,10 +134,10 @@ export function validateTryCatchNode(params: {
   const outboundEdges = edgesBySource.get(node.id) ?? [];
   const handles = new Set<string>();
   let tryEdge:
-    | import("@openplane/types/canvas").ExecutionPlan["edges"][number]
+    | import("@openbeam/types/canvas").ExecutionPlan["edges"][number]
     | undefined;
   let catchEdge:
-    | import("@openplane/types/canvas").ExecutionPlan["edges"][number]
+    | import("@openbeam/types/canvas").ExecutionPlan["edges"][number]
     | undefined;
 
   for (const edge of outboundEdges) {
@@ -230,7 +230,7 @@ export function validateParallelMapNode(params: {
   outbound: number;
   edgesBySource: Map<
     string,
-    import("@openplane/types/canvas").ExecutionPlan["edges"]
+    import("@openbeam/types/canvas").ExecutionPlan["edges"]
   >;
   nodesById: Map<string, ExecutionPlanNode>;
   adjacency: {

@@ -23,6 +23,9 @@ export const API_SCOPES = {
   CANVAS_EXECUTE: "canvas:execute",
   RESEARCH_READ: "research:read",
   RESEARCH_WRITE: "research:write",
+  CONTROL_READ: "control:read",
+  CONTROL_WRITE: "control:write",
+  CONTROL_EXECUTE: "control:execute",
   ADMIN_ALL: "admin:*",
 } as const;
 
@@ -42,6 +45,11 @@ export type AuthContext =
       scopes: string[];
     }
   | {
+      type: "agent";
+      agentId: string;
+      teamId: string;
+    }
+  | {
       type: "none";
     };
 
@@ -51,6 +59,15 @@ export function hasRequiredScopes(
 ): boolean {
   if (context.type === "session") {
     return true;
+  }
+
+  if (context.type === "agent") {
+    return requiredScopes.every(
+      (s) =>
+        s.startsWith("control:") ||
+        s === API_SCOPES.CONNECTORS_READ ||
+        s === API_SCOPES.SEARCH_READ
+    );
   }
 
   if (context.type === "apiKey") {
@@ -70,7 +87,7 @@ export function getTeamId(context: AuthContext): string | null {
   if (context.type === "session") {
     return context.teamId;
   }
-  if (context.type === "apiKey") {
+  if (context.type === "apiKey" || context.type === "agent") {
     return context.teamId;
   }
   return null;
@@ -94,6 +111,11 @@ export function getAccessControlIds(context: AuthContext): string[] {
   }
 
   if (context.type === "apiKey") {
+    identifiers.add(`team:${context.teamId}`);
+  }
+
+  if (context.type === "agent") {
+    identifiers.add(`agent:${context.agentId}`);
     identifiers.add(`team:${context.teamId}`);
   }
 
@@ -124,6 +146,9 @@ export const SCOPE_METHOD_MAP: Record<string, string[]> = {
   [API_SCOPES.CANVAS_EXECUTE]: ["POST"],
   [API_SCOPES.RESEARCH_READ]: ["GET"],
   [API_SCOPES.RESEARCH_WRITE]: ["POST"],
+  [API_SCOPES.CONTROL_READ]: ["GET"],
+  [API_SCOPES.CONTROL_WRITE]: ["POST", "PUT", "PATCH", "DELETE"],
+  [API_SCOPES.CONTROL_EXECUTE]: ["POST"],
   [API_SCOPES.ADMIN_ALL]: ["GET", "POST", "PUT", "PATCH", "DELETE"],
 };
 
@@ -206,6 +231,21 @@ export function getScopesForRoute(
       return [API_SCOPES.RESEARCH_READ];
     }
     return [API_SCOPES.RESEARCH_WRITE];
+  }
+  if (path.startsWith("/api/v1/control")) {
+    if (path.includes("/execute") && method === "POST") {
+      return [API_SCOPES.CONTROL_EXECUTE];
+    }
+    if (method === "GET") {
+      return [API_SCOPES.CONTROL_READ];
+    }
+    return [API_SCOPES.CONTROL_WRITE];
+  }
+  if (path.startsWith("/api/v1/agent-control")) {
+    if (method === "GET") {
+      return [API_SCOPES.CONTROL_READ];
+    }
+    return [API_SCOPES.CONTROL_EXECUTE];
   }
 
   return null;

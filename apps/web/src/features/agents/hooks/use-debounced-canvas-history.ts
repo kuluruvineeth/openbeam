@@ -1,5 +1,5 @@
-import type { AgentCanvasEdge, AgentCanvasNode } from "@openplane/types/canvas";
-import { useCanvasHistory } from "@openplane/ui";
+import type { AgentCanvasEdge, AgentCanvasNode } from "@openbeam/types/canvas";
+import { useCanvasHistory } from "@openbeam/ui";
 import { useCallback, useEffect, useRef } from "react";
 import { DEBOUNCE_DELAYS } from "@/lib/constants/polling";
 

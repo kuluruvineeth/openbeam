@@ -2,11 +2,11 @@ import type {
   ExecutionPlanNode,
   ExecutionStatus,
   ExecutionTrace,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import type {
   AgentCanvasExecutionInput,
   AgentCanvasExecutionOutput,
-} from "@openplane/types/temporal/workflows";
+} from "@openbeam/types/temporal/workflows";
 import { sleep, startChild } from "@temporalio/workflow";
 import { TASK_QUEUES } from "../../../config/task-queues";
 import { generateWorkflowId } from "../../../utils/workflow-id";

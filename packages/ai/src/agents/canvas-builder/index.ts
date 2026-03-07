@@ -1,4 +1,4 @@
-import type { CanvasOperation } from "@openplane/types/canvas";
+import type { CanvasOperation } from "@openbeam/types/canvas";
 import type { AgentStreamChunk } from "../base";
 import type {
   AgentExecutionContext,

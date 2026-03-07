@@ -1,4 +1,4 @@
-import type { AppRouter } from "@openplane/api/routers/index";
+import type { AppRouter } from "@openbeam/api/routers/index";
 import { createTRPCClient, httpBatchLink, loggerLink } from "@trpc/client";
 import { createTRPCContext } from "@trpc/tanstack-react-query";
 import superjson from "superjson";

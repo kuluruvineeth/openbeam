@@ -2,7 +2,7 @@ import { describe, expect, it } from "bun:test";
 import type {
   WorkspaceFieldDefinition,
   WorkspaceObjectDefinition,
-} from "@openplane/types/services/workspace";
+} from "@openbeam/types/services/workspace";
 import {
   fieldTypeToDuckDB,
   generateDeleteObjectDDL,

@@ -1,8 +1,8 @@
-import { type RateLimitConfig, rateLimiter } from "@openplane/redis";
+import { type RateLimitConfig, rateLimiter } from "@openbeam/redis";
 import type {
   GoogleDriveClientConfig,
   GoogleDriveRateLimitState,
-} from "@openplane/types/services/connectors/google-drive";
+} from "@openbeam/types/services/connectors/google-drive";
 import { logger } from "../lib/logger";
 import { getValidAccessToken } from "../lib/token-refresh";
 import { GoogleDriveApiError, GoogleDriveErrorCodes } from "./types";

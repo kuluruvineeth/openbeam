@@ -16,7 +16,7 @@ export interface GDPRCompliantConfig extends Partial<AnalyticsConfig> {
   cookieDomain?: string;
 }
 
-const CONSENT_STORAGE_KEY = "openplane_consent";
+const CONSENT_STORAGE_KEY = "openbeam_consent";
 const CONSENT_VERSION = "1.0";
 
 export function updateConsentPreferences(

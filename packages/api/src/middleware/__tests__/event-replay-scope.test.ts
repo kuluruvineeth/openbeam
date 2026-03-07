@@ -40,7 +40,7 @@ mock.module("../session-auth", () => ({
   verifySessionOwnership: (args: unknown) => mockVerify(args),
 }));
 
-mock.module("@openplane/db", () => ({
+mock.module("@openbeam/db", () => ({
   listSessionEvents: (db: unknown, sessionId: string, opts?: unknown) =>
     mockListEvents(db, sessionId, opts),
   listSessionEventsAfterSequence: (

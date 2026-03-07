@@ -1,7 +1,7 @@
 "use client";
 
-import { appStore } from "@openplane/integrations";
-import { Button, Skeleton } from "@openplane/ui";
+import { appStore } from "@openbeam/integrations";
+import { Button, Skeleton } from "@openbeam/ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Icons } from "@/components/icons";

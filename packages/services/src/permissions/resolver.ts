@@ -1,5 +1,5 @@
-import { type Database, resolveUserPermissionData } from "@openplane/db";
-import { type CachedPermissionSet, getPermissionCache } from "@openplane/redis";
+import { type Database, resolveUserPermissionData } from "@openbeam/db";
+import { type CachedPermissionSet, getPermissionCache } from "@openbeam/redis";
 
 export interface PermissionContext {
   userId: string;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import type { RAGChunk } from "@openplane/types/ai";
+import type { RAGChunk } from "@openbeam/types/ai";
 import {
   checkForRefusal,
   createGroundedAnswer,

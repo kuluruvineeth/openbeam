@@ -8,8 +8,8 @@ import {
   listVoiceSessions,
   updateVoiceSession,
   type VoiceSession,
-} from "@openplane/db";
-import type { VoiceRoomType } from "@openplane/types/services/voice";
+} from "@openbeam/db";
+import type { VoiceRoomType } from "@openbeam/types/services/voice";
 
 export async function startSession(
   db: Database,

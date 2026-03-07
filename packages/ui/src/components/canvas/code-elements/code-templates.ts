@@ -1,4 +1,4 @@
-import type { CodeRuntime, CodeTemplate } from "@openplane/types/canvas";
+import type { CodeRuntime, CodeTemplate } from "@openbeam/types/canvas";
 import type { Icons } from "../../icons";
 
 export type { CodeTemplate };

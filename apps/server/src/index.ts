@@ -1,8 +1,8 @@
 import "./instrumentation";
 import "dotenv/config";
-import { createTRPCContext } from "@openplane/api/context";
-import { appRouter } from "@openplane/api/routers/index";
-import { initializeAI } from "@openplane/services";
+import { createTRPCContext } from "@openbeam/api/context";
+import { appRouter } from "@openbeam/api/routers/index";
+import { initializeAI } from "@openbeam/services";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { configureOpenAPI } from "@/lib/configure-open-api";
 import { createApp } from "@/lib/create-app";

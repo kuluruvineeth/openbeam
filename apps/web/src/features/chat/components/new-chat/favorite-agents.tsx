@@ -1,4 +1,4 @@
-import { Card } from "@openplane/ui";
+import { Card } from "@openbeam/ui";
 import { Icons } from "@/components/icons";
 
 type FavoriteAgent = {

@@ -1,12 +1,12 @@
 "use client";
 
-import { createEndNodeData, createStartNodeData } from "@openplane/ui";
-import { ColorPicker, EmojiPicker } from "@openplane/ui/components/forms";
-import { Input } from "@openplane/ui/components/input";
-import { Label } from "@openplane/ui/components/label";
-import { StepModal } from "@openplane/ui/components/modals";
-import { Skeleton } from "@openplane/ui/components/skeleton";
-import { Textarea } from "@openplane/ui/components/textarea";
+import { createEndNodeData, createStartNodeData } from "@openbeam/ui";
+import { ColorPicker, EmojiPicker } from "@openbeam/ui/components/forms";
+import { Input } from "@openbeam/ui/components/input";
+import { Label } from "@openbeam/ui/components/label";
+import { StepModal } from "@openbeam/ui/components/modals";
+import { Skeleton } from "@openbeam/ui/components/skeleton";
+import { Textarea } from "@openbeam/ui/components/textarea";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";

@@ -1,4 +1,4 @@
-import type { JsonObject, JsonValue } from "@openplane/vespa";
+import type { JsonObject, JsonValue } from "@openbeam/vespa";
 
 export function filterUndefined(obj: Record<string, unknown>): JsonObject {
   const result: JsonObject = {};

@@ -470,7 +470,7 @@ export async function deleteDocumentsByConnector(
   try {
     const result = await vespaClient.deleteByConnectorId(
       connectorId,
-      "openplane_document"
+      "openbeam_document"
     );
     return {
       success: true,

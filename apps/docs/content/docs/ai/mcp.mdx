@@ -1,21 +1,21 @@
 ---
 title: MCP Server
-description: Model Context Protocol server exposing OpenPlane tools, resources, and prompts to external AI clients.
+description: Model Context Protocol server exposing OpenBeam tools, resources, and prompts to external AI clients.
 ---
 
 # MCP Server
 
-OpenPlane implements a [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) server that exposes its tools, resources, and prompt templates to external AI clients. Any MCP-compatible application -- Claude Desktop, Cursor, Windsurf, or custom clients -- can search your organization's knowledge base, retrieve documents, and run analyses through OpenPlane.
+OpenBeam implements a [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) server that exposes its tools, resources, and prompt templates to external AI clients. Any MCP-compatible application -- Claude Desktop, Cursor, Windsurf, or custom clients -- can search your organization's knowledge base, retrieve documents, and run analyses through OpenBeam.
 
 ## Server Setup
 
 ```typescript
-import { createMCPServer, toolRegistry } from "@openplane/ai";
-import { registerDefaultPrompts } from "@openplane/ai/mcp/prompts";
-import { getDefaultResourceDefinitions, getDefaultResourceTemplates } from "@openplane/ai/mcp/resources";
+import { createMCPServer, toolRegistry } from "@openbeam/ai";
+import { registerDefaultPrompts } from "@openbeam/ai/mcp/prompts";
+import { getDefaultResourceDefinitions, getDefaultResourceTemplates } from "@openbeam/ai/mcp/resources";
 
 const server = createMCPServer(toolRegistry, {
-  name: "openplane",
+  name: "openbeam",
   version: "1.0.0",
   capabilities: {
     tools: true,
@@ -131,23 +131,23 @@ Tools with pricing metadata include cost information in their MCP listing:
 
 ## Resources
 
-MCP resources give AI clients read access to OpenPlane data without tool calls.
+MCP resources give AI clients read access to OpenBeam data without tool calls.
 
 ### Static Resources
 
 | URI | Name | Description |
 |-----|------|-------------|
-| `openplane://connectors` | Connected Sources | All active data source integrations |
-| `openplane://documents/recent` | Recent Documents | Documents indexed in the last 24 hours |
-| `openplane://team/profile` | Team Profile | Team settings and configuration |
-| `openplane://user/context` | User Context | Current user permissions and preferences |
+| `openbeam://connectors` | Connected Sources | All active data source integrations |
+| `openbeam://documents/recent` | Recent Documents | Documents indexed in the last 24 hours |
+| `openbeam://team/profile` | Team Profile | Team settings and configuration |
+| `openbeam://user/context` | User Context | Current user permissions and preferences |
 
 ### URI Templates
 
 | Template | Name | Description |
 |----------|------|-------------|
-| `openplane://documents/\{documentId\}` | Document | Full content of a document by ID |
-| `openplane://search/\{queryId\}` | Search Results | Cached search results for a query ID |
+| `openbeam://documents/\{documentId\}` | Document | Full content of a document by ID |
+| `openbeam://search/\{queryId\}` | Search Results | Cached search results for a query ID |
 
 ### Reading Resources
 
@@ -157,7 +157,7 @@ MCP resources give AI clients read access to OpenPlane data without tool calls.
   "jsonrpc": "2.0",
   "id": "2",
   "method": "resources/read",
-  "params": { "uri": "openplane://connectors" }
+  "params": { "uri": "openbeam://connectors" }
 }
 
 // Response contains the resource content
@@ -166,7 +166,7 @@ MCP resources give AI clients read access to OpenPlane data without tool calls.
   "id": "2",
   "result": {
     "contents": [{
-      "uri": "openplane://connectors",
+      "uri": "openbeam://connectors",
       "text": "[{\"id\": \"conn_1\", \"type\": \"slack\", \"status\": \"active\"}]",
       "mimeType": "application/json"
     }]
@@ -176,7 +176,7 @@ MCP resources give AI clients read access to OpenPlane data without tool calls.
 
 ## Prompts
 
-MCP prompts provide pre-built prompt templates that AI clients can use to structure interactions with OpenPlane.
+MCP prompts provide pre-built prompt templates that AI clients can use to structure interactions with OpenBeam.
 
 | Prompt | Arguments | Description |
 |--------|-----------|-------------|
@@ -222,17 +222,17 @@ MCP prompts provide pre-built prompt templates that AI clients can use to struct
 
 ## Claude Desktop Integration
 
-Add OpenPlane as an MCP server in Claude Desktop's configuration:
+Add OpenBeam as an MCP server in Claude Desktop's configuration:
 
 ```json
 {
   "mcpServers": {
-    "openplane": {
-      "command": "openplane",
+    "openbeam": {
+      "command": "openbeam",
       "args": ["mcp", "serve"],
       "env": {
-        "OPENPLANE_API_URL": "https://your-instance.openplane.dev",
-        "OPENPLANE_API_KEY": "op_key_..."
+        "OPENBEAM_API_URL": "https://your-instance.openbeam.dev",
+        "OPENBEAM_API_KEY": "op_key_..."
       }
     }
   }
@@ -249,14 +249,14 @@ Once configured, Claude Desktop can:
 
 ## Custom MCP Clients
 
-Any MCP-compatible client can connect to the OpenPlane server. The server handles:
+Any MCP-compatible client can connect to the OpenBeam server. The server handles:
 
 - **Capability negotiation** -- Clients declare which capabilities they support, and the server intersects with its own capabilities
 - **Request routing** -- Dispatches to the appropriate handler (tools, resources, or prompts)
 - **Error classification** -- Maps internal errors to MCP error codes
 
 ```typescript
-import { parseMessage, isValidRequest, isValidNotification } from "@openplane/ai/mcp";
+import { parseMessage, isValidRequest, isValidNotification } from "@openbeam/ai/mcp";
 
 const message = parseMessage(jsonString);
 
@@ -289,7 +289,7 @@ if (isValidNotification(message)) {
 ## Architecture
 
 ```text
-External AI Client               OpenPlane
+External AI Client               OpenBeam
 ┌─────────────────┐             ┌──────────────────────────────┐
 │ Claude Desktop  │             │  MCPServer                   │
 │ Cursor          │  JSON-RPC   │  ├── MCPToolBridge            │

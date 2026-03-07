@@ -1,7 +1,0 @@
-appId: com.openplane.dev
----
-- launchApp
-- tapOn: "Missions"
-- assertVisible:
-    text: ".*"
-    optional: true

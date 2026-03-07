@@ -1,6 +1,6 @@
 "use client";
 
-import type { GeneratedVideo } from "@openplane/types/canvas";
+import type { GeneratedVideo } from "@openbeam/types/canvas";
 import {
   forwardRef,
   memo,

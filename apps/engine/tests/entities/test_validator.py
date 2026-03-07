@@ -36,7 +36,7 @@ class TestValidEntities:
         assert validator.validate(_entity("New York", "location"))
 
     def test_normal_project(self, validator: EntityValidator) -> None:
-        assert validator.validate(_entity("OpenPlane", "project"))
+        assert validator.validate(_entity("OpenBeam", "project"))
 
 
 class TestLengthBounds:

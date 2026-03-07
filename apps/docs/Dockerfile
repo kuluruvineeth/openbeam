@@ -4,7 +4,7 @@ RUN bun add -g turbo@2.5.4
 COPY . .
 RUN turbo prune docs --docker
 
-FROM ghcr.io/kuluruvineeth/openplane-base:latest AS deps
+FROM ghcr.io/kuluruvineeth/openbeam-base:latest AS deps
 WORKDIR /app
 COPY --from=pruner /app/out/full/ .
 ARG HUGEICONS_PRO_AUTH_TOKEN

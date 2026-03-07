@@ -7,14 +7,14 @@ import {
   ListToolsRequestSchema,
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import prisma from "@openplane/db";
+import prisma from "@openbeam/db";
 import { getPrismaSchema } from "./resources/schema";
 import { connectorTools, handleConnectorTool } from "./tools/connectors";
 import { handleStatsTool, statsTools } from "./tools/stats";
 
 const server = new Server(
   {
-    name: "openplane-mcp",
+    name: "openbeam-mcp",
     version: "1.0.0",
   },
   {
@@ -51,9 +51,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 server.setRequestHandler(ListResourcesRequestSchema, async () => ({
   resources: [
     {
-      uri: "openplane://schema/prisma",
+      uri: "openbeam://schema/prisma",
       name: "Prisma Schema",
-      description: "OpenPlane database schema definition",
+      description: "OpenBeam database schema definition",
       mimeType: "text/plain",
     },
   ],
@@ -62,7 +62,7 @@ server.setRequestHandler(ListResourcesRequestSchema, async () => ({
 server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
   const { uri } = request.params;
 
-  if (uri === "openplane://schema/prisma") {
+  if (uri === "openbeam://schema/prisma") {
     const schema = await getPrismaSchema();
     return {
       contents: [

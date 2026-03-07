@@ -3,7 +3,7 @@ import {
   CheckRateLimitOutputSchema,
   DEFAULT_CANVAS_EXECUTION_RATE_LIMIT,
   WorkflowRateLimitConfigSchema,
-} from "@openplane/types/temporal";
+} from "@openbeam/types/temporal";
 import { describe, expect, it } from "vitest";
 
 describe("rate limit types", () => {

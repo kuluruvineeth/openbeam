@@ -1,6 +1,6 @@
 "use client";
 
-import { Icons } from "@openplane/ui";
+import { Icons } from "@openbeam/ui";
 import {
   CommandDialog,
   CommandEmpty,
@@ -9,7 +9,7 @@ import {
   CommandItem,
   CommandList,
   CommandShortcut,
-} from "@openplane/ui/components/command";
+} from "@openbeam/ui/components/command";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 

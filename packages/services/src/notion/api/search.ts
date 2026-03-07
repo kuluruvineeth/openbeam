@@ -2,7 +2,7 @@ import type {
   NotionDatabase,
   NotionPage,
   NotionSearchResponse,
-} from "@openplane/types/services/connectors/notion";
+} from "@openbeam/types/services/connectors/notion";
 import { logger } from "../../lib/logger";
 import type { NotionClient } from "../client";
 

@@ -1,8 +1,8 @@
 import type {
   SmartThingsSyncBatch,
   SmartThingsSyncCursor,
-} from "@openplane/types/services/connectors/smartthings";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/smartthings";
+import type { GenericDocument } from "@openbeam/vespa";
 
 export function createSyncBatch(
   items: GenericDocument[],

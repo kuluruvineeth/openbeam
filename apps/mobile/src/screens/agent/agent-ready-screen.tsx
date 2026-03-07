@@ -1244,10 +1244,7 @@ function AgentScreenContent({
                       <Pressable
                         onPress={() => {
                           // biome-ignore lint/complexity/noVoid: fire-and-forget async call
-                          void handleCopyMeta(
-                            "OpenPlane ID",
-                            effectiveAgent.id
-                          );
+                          void handleCopyMeta("OpenBeam ID", effectiveAgent.id);
                         }}
                         style={({ hovered, pressed }) => [
                           styles.menuMetaRow,
@@ -1255,7 +1252,7 @@ function AgentScreenContent({
                         ]}
                       >
                         <Text numberOfLines={1} style={styles.menuMetaLabel}>
-                          OpenPlane ID
+                          OpenBeam ID
                         </Text>
                         <Text
                           ellipsizeMode="middle"

@@ -95,7 +95,7 @@ resource "google_sql_database_instance" "postgres" {
   }
 }
 
-resource "google_sql_database" "openplane" {
+resource "google_sql_database" "openbeam" {
   name     = var.database_name
   instance = google_sql_database_instance.postgres.name
   project  = var.project_id
@@ -106,7 +106,7 @@ resource "random_password" "db_password" {
   special = true
 }
 
-resource "google_sql_user" "openplane" {
+resource "google_sql_user" "openbeam" {
   name     = var.database_user
   instance = google_sql_database_instance.postgres.name
   password = var.database_password != "" ? var.database_password : random_password.db_password.result
@@ -148,6 +148,6 @@ resource "google_secret_manager_secret" "db_connection_string" {
 
 resource "google_secret_manager_secret_version" "db_connection_string" {
   secret = google_secret_manager_secret.db_connection_string.id
-  secret_data = "postgresql://${google_sql_user.openplane.name}:${urlencode(var.database_password != "" ? var.database_password : random_password.db_password.result)}@${google_sql_database_instance.postgres.private_ip_address}:5432/${google_sql_database.openplane.name}?sslmode=require"
+  secret_data = "postgresql://${google_sql_user.openbeam.name}:${urlencode(var.database_password != "" ? var.database_password : random_password.db_password.result)}@${google_sql_database_instance.postgres.private_ip_address}:5432/${google_sql_database.openbeam.name}?sslmode=require"
 }
 

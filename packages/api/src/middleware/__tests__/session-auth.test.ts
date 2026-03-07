@@ -7,7 +7,7 @@ const mockFindSession = mock(
     Promise.resolve(null as Record<string, unknown> | null)
 );
 
-mock.module("@openplane/db", () => ({
+mock.module("@openbeam/db", () => ({
   findSessionById: (db: unknown, sessionId: string, teamId: string) =>
     mockFindSession(db, sessionId, teamId),
 }));

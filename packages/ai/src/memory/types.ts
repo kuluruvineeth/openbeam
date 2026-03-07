@@ -5,7 +5,7 @@ import type {
   MemoryQuery,
   MemoryRetrievalResult,
   MemoryStoreOptions,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 
 export interface MemoryStore {
   store(

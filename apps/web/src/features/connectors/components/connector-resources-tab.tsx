@@ -1,6 +1,6 @@
 "use client";
 
-import { Input, Skeleton } from "@openplane/ui";
+import { Input, Skeleton } from "@openbeam/ui";
 import { Icons } from "@/components/icons";
 import {
   useConnector,

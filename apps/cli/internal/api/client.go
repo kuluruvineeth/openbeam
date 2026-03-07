@@ -17,7 +17,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/openplane/openplane/apps/cli/internal/errs"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/errs"
 )
 
 const (
@@ -57,7 +57,7 @@ func NewClient(httpClient *http.Client, baseURL string, token string) *Client {
 		http:      httpClient,
 		baseURL:   strings.TrimRight(baseURL, "/"),
 		token:     token,
-		userAgent: "openplane-cli/0.1.0",
+		userAgent: "openbeam-cli/0.1.0",
 		trace:     false,
 		retry: retryConfig{
 			maxRetries:   defaultMaxRetries,
@@ -127,7 +127,7 @@ func (c *Client) requestJSON(ctx context.Context, method string, path string, qu
 		}
 		req.Header.Set("X-Request-ID", requestID)
 		if c.team != "" {
-			req.Header.Set("X-Openplane-Team", c.team)
+			req.Header.Set("X-Openbeam-Team", c.team)
 		}
 
 		started := time.Now()

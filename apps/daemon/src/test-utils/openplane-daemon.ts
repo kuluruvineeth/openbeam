@@ -6,37 +6,37 @@ import path from "node:path";
 import pino from "pino";
 import type { AgentClient, AgentProvider } from "../agent/agent-sdk-types";
 import {
-  createOpenPlaneDaemon,
-  type OpenPlaneDaemonConfig,
-  type OpenPlaneOpenAIConfig,
-  type OpenPlaneSpeechConfig,
+  createOpenBeamDaemon,
+  type OpenBeamDaemonConfig,
+  type OpenBeamOpenAIConfig,
+  type OpenBeamSpeechConfig,
 } from "../bootstrap";
 import { createTestAgentClients } from "./fake-agent-client";
 
-type TestOpenPlaneDaemonOptions = {
+type TestOpenBeamDaemonOptions = {
   downloadTokenTtlMs?: number;
   corsAllowedOrigins?: string[];
   listen?: string;
-  logger?: Parameters<typeof createOpenPlaneDaemon>[1];
+  logger?: Parameters<typeof createOpenBeamDaemon>[1];
   relayEnabled?: boolean;
   relayEndpoint?: string;
   agentClients?: Partial<Record<AgentProvider, AgentClient>>;
-  openplaneHomeRoot?: string;
+  openbeamHomeRoot?: string;
   staticDir?: string;
   cleanup?: boolean;
-  openai?: OpenPlaneOpenAIConfig;
-  speech?: OpenPlaneSpeechConfig;
-  voiceLlmProvider?: OpenPlaneDaemonConfig["voiceLlmProvider"];
+  openai?: OpenBeamOpenAIConfig;
+  speech?: OpenBeamSpeechConfig;
+  voiceLlmProvider?: OpenBeamDaemonConfig["voiceLlmProvider"];
   voiceLlmProviderExplicit?: boolean;
   voiceLlmModel?: string | null;
   dictationFinalTimeoutMs?: number;
 };
 
-export type TestOpenPlaneDaemon = {
-  config: OpenPlaneDaemonConfig;
-  daemon: Awaited<ReturnType<typeof createOpenPlaneDaemon>>;
+export type TestOpenBeamDaemon = {
+  config: OpenBeamDaemonConfig;
+  daemon: Awaited<ReturnType<typeof createOpenBeamDaemon>>;
   port: number;
-  openplaneHome: string;
+  openbeamHome: string;
   staticDir: string;
   close: () => Promise<void>;
 };
@@ -57,37 +57,37 @@ async function getAvailablePort(): Promise<number> {
   });
 }
 
-export async function createTestOpenPlaneDaemon(
-  options: TestOpenPlaneDaemonOptions = {}
-): Promise<TestOpenPlaneDaemon> {
+export async function createTestOpenBeamDaemon(
+  options: TestOpenBeamDaemonOptions = {}
+): Promise<TestOpenBeamDaemon> {
   const maxAttempts = 5;
   let lastError: unknown;
 
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-    const openplaneHomeRoot =
-      options.openplaneHomeRoot ??
-      (await mkdtemp(path.join(os.tmpdir(), "openplane-home-")));
-    const openplaneHome = path.join(openplaneHomeRoot, ".openplane");
-    await mkdir(openplaneHome, { recursive: true });
+    const openbeamHomeRoot =
+      options.openbeamHomeRoot ??
+      (await mkdtemp(path.join(os.tmpdir(), "openbeam-home-")));
+    const openbeamHome = path.join(openbeamHomeRoot, ".openbeam");
+    await mkdir(openbeamHome, { recursive: true });
     const staticDir =
       options.staticDir ??
-      (await mkdtemp(path.join(os.tmpdir(), "openplane-static-")));
+      (await mkdtemp(path.join(os.tmpdir(), "openbeam-static-")));
     const port = await getAvailablePort();
 
     const listenHost = options.listen ?? "127.0.0.1";
-    const config: OpenPlaneDaemonConfig = {
+    const config: OpenBeamDaemonConfig = {
       listen: `${listenHost}:${port}`,
-      openplaneHome,
+      openbeamHome,
       corsAllowedOrigins: options.corsAllowedOrigins ?? [],
       allowedHosts: true,
       mcpEnabled: true,
       staticDir,
       mcpDebug: false,
       agentClients: options.agentClients ?? createTestAgentClients(),
-      agentStoragePath: path.join(openplaneHome, "agents"),
+      agentStoragePath: path.join(openbeamHome, "agents"),
       relayEnabled: options.relayEnabled ?? false,
-      relayEndpoint: options.relayEndpoint ?? "relay.openplane.sh:443",
-      appBaseUrl: "https://app.openplane.sh",
+      relayEndpoint: options.relayEndpoint ?? "relay.openbeam.sh:443",
+      appBaseUrl: "https://app.openbeam.sh",
       openai: options.openai,
       speech: options.speech,
       voiceLlmProvider: options.voiceLlmProvider ?? null,
@@ -98,7 +98,7 @@ export async function createTestOpenPlaneDaemon(
     };
 
     const logger = options.logger ?? pino({ level: "silent" });
-    const daemon = await createOpenPlaneDaemon(config, logger);
+    const daemon = await createOpenBeamDaemon(config, logger);
     try {
       await daemon.start();
 
@@ -109,7 +109,7 @@ export async function createTestOpenPlaneDaemon(
         await daemon.agentManager.flush().catch(() => {});
         if (options.cleanup ?? true) {
           await new Promise((r) => setTimeout(r, 50));
-          await rm(openplaneHomeRoot, {
+          await rm(openbeamHomeRoot, {
             recursive: true,
             force: true,
             maxRetries: 3,
@@ -128,7 +128,7 @@ export async function createTestOpenPlaneDaemon(
         config,
         daemon,
         port,
-        openplaneHome,
+        openbeamHome,
         staticDir,
         close,
       };
@@ -136,7 +136,7 @@ export async function createTestOpenPlaneDaemon(
       lastError = error;
       // biome-ignore lint/suspicious/noEmptyBlockStatements: intentional no-op
       await daemon.stop().catch(() => {});
-      await rm(openplaneHomeRoot, {
+      await rm(openbeamHomeRoot, {
         recursive: true,
         force: true,
         maxRetries: 3,

@@ -3,7 +3,7 @@ import {
   AppTypeSchema,
   AuthTypeSchema,
   ConnectorTypeSchema,
-} from "@openplane/integrations";
+} from "@openbeam/integrations";
 
 export const connectorIdParamsSchema = z.object({
   id: z.string().openapi({

@@ -16,7 +16,7 @@ env:
   # Replace these with your actual values or secrets
   GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   GCP_REGION: us-central1
-  GAR_REPOSITORY: openplane-repo
+  GAR_REPOSITORY: openbeam-repo
   DOCKER_BUILDKIT: 1
   COMPOSE_DOCKER_CLI_BUILD: 1
 
@@ -190,7 +190,7 @@ jobs:
         id: check_base
         run: |
           # Check if base image exists and if Dockerfile.base changed
-          if gcloud artifacts docker images describe ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/openplane-base:latest 2>/dev/null; then
+          if gcloud artifacts docker images describe ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/openbeam-base:latest 2>/dev/null; then
             echo "Base image exists"
             if git diff --name-only HEAD~1 HEAD | grep -q "Dockerfile.base"; then
               echo "needs_build=true" >> $GITHUB_OUTPUT
@@ -211,7 +211,7 @@ jobs:
           context: .
           file: ./Dockerfile.base
           push: true
-          tags: ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/openplane-base:latest
+          tags: ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/openbeam-base:latest
           platforms: linux/amd64
           cache-from: type=gha,scope=base
           cache-to: type=gha,mode=max,scope=base
@@ -267,7 +267,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/openplane-${{ matrix.service }}
+          images: ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/openbeam-${{ matrix.service }}
           tags: |
             type=raw,value=latest
 
@@ -308,7 +308,7 @@ jobs:
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.28.0
         with:
-          image-ref: "${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/openplane-${{ matrix.service }}:latest"
+          image-ref: "${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/openbeam-${{ matrix.service }}:latest"
           format: "table"
           exit-code: "0"
           ignore-unfixed: true

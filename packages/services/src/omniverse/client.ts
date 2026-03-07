@@ -1,5 +1,5 @@
-import { type RateLimitConfig, rateLimiter } from "@openplane/redis";
-import type { OmniverseClientConfig } from "@openplane/types/services/connectors/omniverse";
+import { type RateLimitConfig, rateLimiter } from "@openbeam/redis";
+import type { OmniverseClientConfig } from "@openbeam/types/services/connectors/omniverse";
 import { logger } from "../lib/logger";
 import { OmniverseApiError } from "./types";
 

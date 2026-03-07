@@ -1,7 +1,7 @@
 import type {
   WorkspaceImportConfig,
   WorkspaceImportResult,
-} from "@openplane/types/services/workspace";
+} from "@openbeam/types/services/workspace";
 import type { WorkspaceDuckDB } from "./client";
 import { WorkspaceDuckDBError } from "./client";
 import { escapeSqlValue } from "./query";

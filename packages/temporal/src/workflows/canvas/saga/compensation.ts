@@ -1,4 +1,4 @@
-import type { ExecutionStatus } from "@openplane/types/canvas";
+import type { ExecutionStatus } from "@openbeam/types/canvas";
 import type {
   CanvasCompensationContext,
   CreateStepCompensation,

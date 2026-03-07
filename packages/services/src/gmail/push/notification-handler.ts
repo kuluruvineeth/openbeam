@@ -1,5 +1,5 @@
-import prisma, { findActiveGmailConnectorByEmail } from "@openplane/db";
-import { rateLimiter } from "@openplane/redis";
+import prisma, { findActiveGmailConnectorByEmail } from "@openbeam/db";
+import { rateLimiter } from "@openbeam/redis";
 import { logger } from "../../lib/logger";
 import { type PubSubNotification, parsePubSubNotification } from "../api/watch";
 import { verifyPubSubToken } from "./pubsub-auth";

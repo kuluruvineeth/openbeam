@@ -24,7 +24,7 @@ import type {
   UpdateCanvasExecutionInput,
   UpdateCanvasExecutionStepInput,
   UpdateCanvasExecutionStepOutput,
-} from "@openplane/types/temporal";
+} from "@openbeam/types/temporal";
 
 export interface CanvasExecutionActivities {
   executeCanvasNode(

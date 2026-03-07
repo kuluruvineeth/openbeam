@@ -1,6 +1,6 @@
 "use client";
 
-import type { HandleVariant } from "@openplane/types/canvas";
+import type { HandleVariant } from "@openbeam/types/canvas";
 import type { HandleProps } from "@xyflow/react";
 import { Handle, useNodeConnections } from "@xyflow/react";
 import { memo } from "react";

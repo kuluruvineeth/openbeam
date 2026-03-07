@@ -1,12 +1,12 @@
 import { DaemonClient } from "./daemon-client";
 import { createTestAgentClients } from "./fake-agent-client";
 import {
-  createTestOpenPlaneDaemon,
-  type TestOpenPlaneDaemon,
-} from "./openplane-daemon";
+  createTestOpenBeamDaemon,
+  type TestOpenBeamDaemon,
+} from "./openbeam-daemon";
 
 export interface DaemonTestContext {
-  daemon: TestOpenPlaneDaemon;
+  daemon: TestOpenBeamDaemon;
   client: DaemonClient;
   cleanup: () => Promise<void>;
 }
@@ -36,9 +36,9 @@ export interface DaemonTestContext {
  * ```
  */
 export async function createDaemonTestContext(
-  options?: Parameters<typeof createTestOpenPlaneDaemon>[0]
+  options?: Parameters<typeof createTestOpenBeamDaemon>[0]
 ): Promise<DaemonTestContext> {
-  const daemon = await createTestOpenPlaneDaemon({
+  const daemon = await createTestOpenBeamDaemon({
     agentClients: createTestAgentClients(),
     ...options,
   });

@@ -9,7 +9,7 @@ import {
   FormLabel,
   FormMessage,
   Input,
-} from "@openplane/ui";
+} from "@openbeam/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";

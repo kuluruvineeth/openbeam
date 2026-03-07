@@ -6,7 +6,7 @@ export type {
   TokenUsage,
   ToolCallInfo,
   ToolResult,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 export {
   createAgent,
   createTaskAgent,

@@ -1,7 +1,7 @@
 "use client";
 
-import type { UnifiedApp } from "@openplane/integrations";
-import { appLogos } from "@openplane/integrations/logos";
+import type { UnifiedApp } from "@openbeam/integrations";
+import { appLogos } from "@openbeam/integrations/logos";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 

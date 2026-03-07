@@ -1,6 +1,6 @@
 "use client";
 
-import { Tabs, TabsList, TabsTrigger } from "@openplane/ui";
+import { Tabs, TabsList, TabsTrigger } from "@openbeam/ui";
 import { Icons } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import type { ContentType } from "../types";

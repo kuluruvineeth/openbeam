@@ -5,7 +5,7 @@ import {
   GitHubPullRequestSchema,
   type GitHubReview,
   GitHubReviewSchema,
-} from "@openplane/types/services/connectors/github";
+} from "@openbeam/types/services/connectors/github";
 import type { GitHubClient } from "../client";
 
 export async function getRepoPullRequests(

@@ -1,6 +1,6 @@
 "use client";
 
-import { Input, Skeleton } from "@openplane/ui";
+import { Input, Skeleton } from "@openbeam/ui";
 import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import { Icons } from "@/components/icons";
 import type { TranscriptSegment } from "@/lib/audio-types";

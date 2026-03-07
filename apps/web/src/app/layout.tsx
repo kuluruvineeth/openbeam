@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "@openplane/ui/styles/globals.css";
+import "@openbeam/ui/styles/globals.css";
 import localFont from "next/font/local";
 import Providers from "@/components/providers";
 
@@ -29,8 +29,8 @@ const F37Stout = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "openplane",
-  description: "openplane",
+  title: "openbeam",
+  description: "openbeam",
 };
 
 export default function RootLayout({

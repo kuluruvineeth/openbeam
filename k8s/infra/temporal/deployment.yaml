@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: temporal
-  namespace: openplane
+  namespace: openbeam
   labels:
     app: temporal
 spec:

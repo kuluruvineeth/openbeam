@@ -1,4 +1,4 @@
-import { estimateTokens } from "@openplane/ai";
+import { estimateTokens } from "@openbeam/ai";
 import type {
   AssembledContext,
   ContextAssemblyConfig,

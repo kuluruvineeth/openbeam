@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import type { SmartThingsTransformContext } from "@openplane/types/services/connectors/smartthings";
+import type { SmartThingsTransformContext } from "@openbeam/types/services/connectors/smartthings";
 import type {
   SmartThingsDevice,
   SmartThingsLocation,

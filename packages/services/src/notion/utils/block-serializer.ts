@@ -1,4 +1,4 @@
-import type { NotionRichText } from "@openplane/types/services/connectors/notion";
+import type { NotionRichText } from "@openbeam/types/services/connectors/notion";
 import type { BlockWithDepth } from "../api/blocks";
 
 export interface SerializedBlock {

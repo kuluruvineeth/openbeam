@@ -77,7 +77,7 @@ export function buildConfigureChannelModal(
     type: "modal",
     callback_id: "configure_channel",
     private_metadata: JSON.stringify({ channelId, connectorId }),
-    title: { type: "plain_text", text: "Configure OpenPlane" },
+    title: { type: "plain_text", text: "Configure OpenBeam" },
     submit: { type: "plain_text", text: "Save" },
     close: { type: "plain_text", text: "Cancel" },
     blocks: [
@@ -85,7 +85,7 @@ export function buildConfigureChannelModal(
         type: "section",
         text: {
           type: "mrkdwn",
-          text: "*How should OpenPlane respond in this channel?*",
+          text: "*How should OpenBeam respond in this channel?*",
         },
       },
       {

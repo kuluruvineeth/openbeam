@@ -1,6 +1,6 @@
 "use client";
 
-import type { TemplateNodeConfig } from "@openplane/types/canvas";
+import type { TemplateNodeConfig } from "@openbeam/types/canvas";
 import { forwardRef, memo, useMemo } from "react";
 import {
   AdvancedSection,

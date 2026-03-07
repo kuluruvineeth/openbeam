@@ -9,7 +9,7 @@ module "vespa" {
   source = "../../modules/compute-engine"
 
   project_id    = var.project_id
-  project_name  = "openplane"
+  project_name  = "openbeam"
   environment   = "prod"
   region        = "us-central1"
   zone          = "us-central1-a"
@@ -58,7 +58,7 @@ data_disk_type = "pd-ssd"
 **SSH Access:**
 
 ```bash
-gcloud compute ssh openplane-vespa-prod --zone=us-central1-a --tunnel-through-iap
+gcloud compute ssh openbeam-vespa-prod --zone=us-central1-a --tunnel-through-iap
 ```
 
 **Deploy Schema:**

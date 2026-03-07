@@ -4,11 +4,11 @@ import {
   getEventResourceRequirements,
   getResourceLabel,
   getResourcePlaceholder,
-} from "@openplane/types/services/connectors/common/resources";
+} from "@openbeam/types/services/connectors/common/resources";
 import type {
   ConnectorType,
   EventCategory,
-} from "@openplane/types/services/connectors/events";
+} from "@openbeam/types/services/connectors/events";
 import {
   type ComponentType,
   forwardRef,

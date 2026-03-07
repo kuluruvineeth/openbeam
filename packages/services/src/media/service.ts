@@ -1,4 +1,4 @@
-import { type ImageSearchResult, TwelveLabsClient } from "@openplane/media";
+import { type ImageSearchResult, TwelveLabsClient } from "@openbeam/media";
 import type {
   ImageSearchOptions,
   MediaAnalysisOptions,

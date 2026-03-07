@@ -6,8 +6,8 @@ import {
   type GoogleDriveSyncBatch,
   type GoogleDriveSyncCursor,
   type GoogleDriveTransformContext,
-} from "@openplane/types/services/connectors/google-drive";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/google-drive";
+import type { GenericDocument } from "@openbeam/vespa";
 import { logger } from "../../lib/logger";
 import { fetchChanges, partitionChanges } from "../api/changes";
 import type { GoogleDriveClient } from "../client";

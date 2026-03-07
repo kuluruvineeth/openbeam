@@ -1,5 +1,5 @@
-import type { AzureIotTransformContext } from "@openplane/types/services/connectors/azure-iot";
-import type { GenericDocument } from "@openplane/vespa";
+import type { AzureIotTransformContext } from "@openbeam/types/services/connectors/azure-iot";
+import type { GenericDocument } from "@openbeam/vespa";
 import { calculateDocumentChecksum } from "../../lib/checksum";
 import type { AzureIotTwin } from "../client";
 

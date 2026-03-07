@@ -1,8 +1,8 @@
 import type {
   FhirSyncBatch,
   FhirSyncCursor,
-} from "@openplane/types/services/connectors/fhir";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/fhir";
+import type { GenericDocument } from "@openbeam/vespa";
 
 export function createSyncBatch(
   items: GenericDocument[],

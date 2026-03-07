@@ -2,7 +2,7 @@ import type {
   FieldType,
   WorkspaceFieldDefinition,
   WorkspaceObjectDefinition,
-} from "@openplane/types/services/workspace";
+} from "@openbeam/types/services/workspace";
 import type { WorkspaceDuckDB } from "./client";
 import { escapeSqlValue } from "./query";
 

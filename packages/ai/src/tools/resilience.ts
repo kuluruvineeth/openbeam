@@ -2,7 +2,7 @@ import type {
   CircuitBreakerConfig,
   RetryConfig,
   ToolExecutionResult,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import {
   CircuitBreaker,
   DEFAULT_CIRCUIT_BREAKER_CONFIG,

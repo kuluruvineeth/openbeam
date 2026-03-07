@@ -1,6 +1,6 @@
 "use client";
 
-import type { EndNodeConfig, NodeStatus, Port } from "@openplane/types/canvas";
+import type { EndNodeConfig, NodeStatus, Port } from "@openbeam/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
 import { forwardRef, memo } from "react";

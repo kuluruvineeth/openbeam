@@ -1,4 +1,4 @@
-import prisma, { countAllIndexedDocuments } from "@openplane/db";
+import prisma, { countAllIndexedDocuments } from "@openbeam/db";
 import client from "prom-client";
 import logger from "./utils/logger";
 

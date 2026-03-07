@@ -44,17 +44,17 @@ enum PaymentAttemptStatus {
 }
 
 model PaymentWallet {
-  id          String             @id @default(cuid()) @map("_id")
+  id          String            @id @default(cuid()) @map("_id")
   teamId      String
-  team        Team               @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  team        Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
   chain       String
   network     String
   address     String
   custodyMode WalletCustodyMode
-  status      WalletStatus       @default(ACTIVE)
-  isDefault   Boolean            @default(false)
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
+  status      WalletStatus      @default(ACTIVE)
+  isDefault   Boolean           @default(false)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 
   @@unique([teamId, chain, address])
   @@index([teamId])
@@ -82,23 +82,23 @@ model PaymentPricingPolicy {
 }
 
 model PaymentReceipt {
-  id                   String                    @id @default(cuid()) @map("_id")
-  teamId               String
-  team                 Team                      @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  requestId            String                    @unique
-  payer                String
-  payTo                String
-  network              String
-  asset                String
-  amount               Float
-  verificationResult   PaymentVerificationResult @default(PENDING)
-  settlementResult     PaymentSettlementResult   @default(PENDING)
-  txHash               String?
-  facilitatorResponse  Json?
-  correlationId        String?
-  toolName             String?
-  routePath            String?
-  createdAt            DateTime                  @default(now())
+  id                  String                    @id @default(cuid()) @map("_id")
+  teamId              String
+  team                Team                      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  requestId           String                    @unique
+  payer               String
+  payTo               String
+  network             String
+  asset               String
+  amount              Float
+  verificationResult  PaymentVerificationResult @default(PENDING)
+  settlementResult    PaymentSettlementResult   @default(PENDING)
+  txHash              String?
+  facilitatorResponse Json?
+  correlationId       String?
+  toolName            String?
+  routePath           String?
+  createdAt           DateTime                  @default(now())
 
   ledgerEntries PaymentLedgerEntry[]
   attempts      PaymentAttempt[]

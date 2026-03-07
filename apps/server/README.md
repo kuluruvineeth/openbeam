@@ -1,4 +1,4 @@
-# OpenPlane Server
+# OpenBeam Server
 
 Public API server with authentication, search, and connector management.
 

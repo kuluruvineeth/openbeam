@@ -92,7 +92,7 @@ status:
 	@echo "Grafana:     http://localhost:3002"
 
 logs:
-	@docker compose -f docker-compose.infra.yml logs -f openplane-$(s)
+	@docker compose -f docker-compose.infra.yml logs -f openbeam-$(s)
 
 web:
 	@bun run dev:web
@@ -119,8 +119,8 @@ db-generate:
 	@bun run db:generate
 
 db-reset:
-	@docker compose -f docker-compose.infra.yml exec postgres psql -U postgres -c "DROP DATABASE IF EXISTS openplane;"
-	@docker compose -f docker-compose.infra.yml exec postgres psql -U postgres -c "CREATE DATABASE openplane;"
+	@docker compose -f docker-compose.infra.yml exec postgres psql -U postgres -c "DROP DATABASE IF EXISTS openbeam;"
+	@docker compose -f docker-compose.infra.yml exec postgres psql -U postgres -c "CREATE DATABASE openbeam;"
 	@bun run db:push
 
 temporal:

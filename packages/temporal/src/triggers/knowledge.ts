@@ -1,4 +1,4 @@
-import { KnowledgeInferenceInputSchema } from "@openplane/types/temporal/workflows/knowledge-inference";
+import { KnowledgeInferenceInputSchema } from "@openbeam/types/temporal/workflows/knowledge-inference";
 import {
   ScheduleOverlapPolicy,
   WorkflowExecutionAlreadyStartedError,

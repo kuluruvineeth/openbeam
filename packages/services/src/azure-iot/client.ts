@@ -1,6 +1,6 @@
 import { createHmac } from "node:crypto";
-import { type RateLimitConfig, rateLimiter } from "@openplane/redis";
-import type { AzureIotClientConfig } from "@openplane/types/services/connectors/azure-iot";
+import { type RateLimitConfig, rateLimiter } from "@openbeam/redis";
+import type { AzureIotClientConfig } from "@openbeam/types/services/connectors/azure-iot";
 import { logger } from "../lib/logger";
 import { AzureIotApiError } from "./types";
 

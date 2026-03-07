@@ -5,8 +5,8 @@ import type {
   NotionSyncCursor,
   NotionSyncOptions,
   NotionTransformContext,
-} from "@openplane/types/services/connectors/notion";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/notion";
+import type { GenericDocument } from "@openbeam/vespa";
 import { logger } from "../../lib/logger";
 import { getAllBlockChildren } from "../api/blocks";
 import { getAllComments } from "../api/comments";

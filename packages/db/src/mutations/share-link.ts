@@ -1,7 +1,7 @@
 import type {
   CreateShareLinkInput,
   UpdateShareLinkInput,
-} from "@openplane/types";
+} from "@openbeam/types";
 import type { ShareLink } from "../../prisma/generated/client";
 import type { Database } from "../index";
 

@@ -4,8 +4,8 @@ import type {
   GitHubSyncCursor,
   GitHubSyncOptions,
   GitHubTransformContext,
-} from "@openplane/types/services/connectors/github";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/github";
+import type { GenericDocument } from "@openbeam/vespa";
 import { logger } from "../../lib/logger";
 import { getAllRepoCommits } from "../api/commits";
 import { getAllRepoDiscussions } from "../api/discussions";

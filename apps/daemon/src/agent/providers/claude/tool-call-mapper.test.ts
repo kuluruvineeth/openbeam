@@ -231,7 +231,7 @@ describe("claude tool-call mapper", () => {
     const item = expectMapped(
       mapClaudeCompletedToolCall({
         callId: "claude-speak-1",
-        name: "mcp__openplane__speak",
+        name: "mcp__openbeam__speak",
         input: { text: "Voice response from Claude." },
         output: { ok: true },
       })
@@ -249,7 +249,7 @@ describe("claude tool-call mapper", () => {
     const item = expectMapped(
       mapClaudeCompletedToolCall({
         callId: "claude-speak-2",
-        name: "mcp__openplane_voice__speak",
+        name: "mcp__openbeam_voice__speak",
         input: { text: "Hey! I can hear you." },
         output: { ok: true },
       })

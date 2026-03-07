@@ -63,7 +63,7 @@ export const useTranscriptionStore = create<TranscriptionStore>()(
       clearAll: () => set({ transcriptions: [] }),
     }),
     {
-      name: "openplane-transcriptions",
+      name: "openbeam-transcriptions",
       version: 1,
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({

@@ -61,19 +61,19 @@ describe("shared tool-call display mapping", () => {
 
   it("builds display model for worktree setup detail", () => {
     const display = buildToolCallDisplayModel({
-      name: "openplane_worktree_setup",
+      name: "openbeam_worktree_setup",
       status: "running",
       error: null,
       detail: {
         type: "worktree_setup",
-        worktreePath: "/tmp/repo/.openplane/worktrees/repo/branch",
+        worktreePath: "/tmp/repo/.openbeam/worktrees/repo/branch",
         branchName: "feature-branch",
         log: "==> [1/1] Running: npm install\n",
         commands: [
           {
             index: 1,
             command: "npm install",
-            cwd: "/tmp/repo/.openplane/worktrees/repo/branch",
+            cwd: "/tmp/repo/.openbeam/worktrees/repo/branch",
             status: "running",
             exitCode: null,
           },

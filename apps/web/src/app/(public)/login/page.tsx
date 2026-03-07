@@ -35,7 +35,7 @@ export default async function Page() {
             <div className="w-full max-w-md space-y-8">
               <div className="text-center">
                 <h1 className="mb-4 font-f37-stout text-lg">
-                  Welcome to OpenPlane
+                  Welcome to OpenBeam
                 </h1>
               </div>
               <div className="space-y-4">
@@ -49,14 +49,14 @@ export default async function Page() {
                   By signing in you agree to our{" "}
                   <Link
                     className="underline"
-                    href="https://openplane.tech/terms"
+                    href="https://openbeam.work/terms"
                   >
                     Terms of service
                   </Link>{" "}
                   &{" "}
                   <Link
                     className="underline"
-                    href="https://openplane.tech/policy"
+                    href="https://openbeam.work/policy"
                   >
                     Privacy policy
                   </Link>

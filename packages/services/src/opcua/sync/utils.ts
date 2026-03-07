@@ -1,8 +1,8 @@
 import type {
   OpcUaSyncBatch,
   OpcUaSyncCursor,
-} from "@openplane/types/services/connectors/opcua";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/opcua";
+import type { GenericDocument } from "@openbeam/vespa";
 
 export function createSyncBatch(
   items: GenericDocument[],

@@ -1,10 +1,10 @@
-import { getRedisClient } from "@openplane/redis";
+import { getRedisClient } from "@openbeam/redis";
 import {
   LinearConnectionSchema,
   type LinearUser,
   type LinearUserLookup,
   LinearUserSchema,
-} from "@openplane/types/services/connectors/linear";
+} from "@openbeam/types/services/connectors/linear";
 import type { LinearClient } from "../client";
 
 const USER_CACHE_PREFIX = "linear:users:";

@@ -2,7 +2,7 @@ import type {
   CompletionOptions as BaseCompletionOptions,
   CompletionResult,
   ProviderId,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import type { FinishReason as AISDKFinishReason, ToolSet } from "ai";
 
 export type { AISDKFinishReason };

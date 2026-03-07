@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Input, ScrollArea } from "@openplane/ui";
+import { Button, Input, ScrollArea } from "@openbeam/ui";
 import { useState } from "react";
 import { Icons } from "@/components/icons";
 import { extractTimestamps } from "@/lib/audio-utils";

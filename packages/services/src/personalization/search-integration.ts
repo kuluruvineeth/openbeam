@@ -1,4 +1,4 @@
-import type { Database } from "@openplane/db";
+import type { Database } from "@openbeam/db";
 import type { RankedDocument } from "../search/types";
 import { resolveUserProfile } from "./resolver";
 import { computePersonalizationScores } from "./scoring";

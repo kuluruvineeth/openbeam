@@ -5,7 +5,7 @@ import type {
   CreatePaymentWalletInput,
   UpdatePaymentReceiptInput,
   UpsertPaymentPricingPolicyInput,
-} from "@openplane/types/db";
+} from "@openbeam/types/db";
 import type {
   PaymentAttempt,
   PaymentLedgerEntry,

@@ -9,7 +9,7 @@ import {
   ParallelSplitNodeConfigSchema,
   SubWorkflowNodeConfigSchema,
   TryCatchNodeConfigSchema,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { resolveNodeConfig } from "../utils/type-guards";
 
 export function validateConditionConfig(

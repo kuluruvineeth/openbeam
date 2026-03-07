@@ -1,6 +1,6 @@
 "use client";
 
-import { cn, Icons } from "@openplane/ui";
+import { cn, Icons } from "@openbeam/ui";
 import { cva, type VariantProps } from "class-variance-authority";
 import { COMPACT_CHART_HEIGHT, DEFAULT_CHART_HEIGHT } from "../constants";
 

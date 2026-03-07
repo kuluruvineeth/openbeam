@@ -1,4 +1,4 @@
-import type { ExecutionDataRef } from "@openplane/types/canvas";
+import type { ExecutionDataRef } from "@openbeam/types/canvas";
 import { describe, expect, it } from "vitest";
 import {
   type ClaimCheckStore,

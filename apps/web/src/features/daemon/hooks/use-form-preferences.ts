@@ -1,10 +1,10 @@
 "use client";
 
-import type { AgentProvider } from "@openplane/types/services/daemon";
+import type { AgentProvider } from "@openbeam/types/services/daemon";
 import { useCallback, useSyncExternalStore } from "react";
 import { z } from "zod";
 
-const STORAGE_KEY = "openplane-daemon-create-agent-preferences";
+const STORAGE_KEY = "openbeam-daemon-create-agent-preferences";
 
 const providerPreferencesSchema = z.object({
   model: z.string().optional(),

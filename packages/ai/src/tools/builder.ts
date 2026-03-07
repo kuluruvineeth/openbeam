@@ -10,7 +10,7 @@ import type {
   ToolPricing,
   ToolResultMetadata,
   ToolRiskProfile,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import { tool } from "ai";
 import type { z } from "zod";
 import { toolRegistry } from "./registry";

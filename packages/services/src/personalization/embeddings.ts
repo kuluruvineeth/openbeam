@@ -6,7 +6,7 @@ import {
   type RecentQuery,
   updateDocEmbedding as updateDocEmbeddingDb,
   updateQueryEmbedding as updateQueryEmbeddingDb,
-} from "@openplane/db";
+} from "@openbeam/db";
 import { deserializeEmbedding, hashQuery, serializeEmbedding } from "./utils";
 
 interface EmbeddingUpdateContext {

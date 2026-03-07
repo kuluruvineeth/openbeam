@@ -2,7 +2,7 @@ import type {
   GetSyncHistoryResult,
   GetSyncStatusResult,
   ScheduledSyncJob,
-} from "@openplane/types/db";
+} from "@openbeam/types/db";
 import type { Database } from "../index";
 
 export const getSyncStatus = async (

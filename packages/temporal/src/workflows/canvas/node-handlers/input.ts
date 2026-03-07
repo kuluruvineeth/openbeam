@@ -1,6 +1,6 @@
-import type { ExecutionPlanNode } from "@openplane/types/canvas";
-import { InputNodeConfigSchema } from "@openplane/types/canvas";
-import type { CanvasInputSignalPayload } from "@openplane/types/temporal";
+import type { ExecutionPlanNode } from "@openbeam/types/canvas";
+import { InputNodeConfigSchema } from "@openbeam/types/canvas";
+import type { CanvasInputSignalPayload } from "@openbeam/types/temporal";
 import { condition } from "@temporalio/workflow";
 import { conditionWithTimeout, currentTimestamp } from "../../temporal-utils";
 import {

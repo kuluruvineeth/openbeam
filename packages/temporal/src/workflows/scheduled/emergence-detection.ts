@@ -1,7 +1,7 @@
 import {
   EmergenceDetectionInputSchema,
   type EmergenceDetectionOutput,
-} from "@openplane/types/temporal/workflows";
+} from "@openbeam/types/temporal/workflows";
 import { proxyActivities, setHandler } from "@temporalio/workflow";
 import type { EmergenceDetectionActivities } from "../../activities/emergence/types";
 import { currentTimestamp } from "../temporal-utils";

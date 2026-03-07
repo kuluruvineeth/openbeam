@@ -1,7 +1,7 @@
 import {
   type SlackMessage,
   SlackMessageSchema,
-} from "@openplane/types/services/connectors/slack";
+} from "@openbeam/types/services/connectors/slack";
 import type { SlackClient } from "../client";
 
 export interface FetchMessagesOptions {

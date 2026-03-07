@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/openplane/openplane/apps/cli/internal/api"
-	"github.com/openplane/openplane/apps/cli/internal/output"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/api"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/output"
 )
 
 func TestWriteEnvelopeRawString(t *testing.T) {

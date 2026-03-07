@@ -4,15 +4,15 @@ import type {
   ExecutionStatus,
   ExecutionTrace,
   StepExecution,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import type {
   ExecutionPanelTab,
   ExecutionReplayState,
-} from "@openplane/types/canvas/execution-ui";
+} from "@openbeam/types/canvas/execution-ui";
 import type {
   TimelineFilter,
   TimelineViewMode,
-} from "@openplane/types/canvas/timeline";
+} from "@openbeam/types/canvas/timeline";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 

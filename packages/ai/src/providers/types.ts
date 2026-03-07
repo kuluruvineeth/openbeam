@@ -2,7 +2,7 @@ import type {
   ChatModelDefinition,
   EmbeddingModelDefinition,
   ProviderId,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import type { EmbeddingModel, LanguageModel } from "ai";
 
 export interface AIProvider {

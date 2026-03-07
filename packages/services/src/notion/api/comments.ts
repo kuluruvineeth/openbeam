@@ -1,7 +1,7 @@
 import type {
   NotionComment,
   NotionCommentsResponse,
-} from "@openplane/types/services/connectors/notion";
+} from "@openbeam/types/services/connectors/notion";
 import type { NotionClient } from "../client";
 
 export interface GetCommentsOptions {

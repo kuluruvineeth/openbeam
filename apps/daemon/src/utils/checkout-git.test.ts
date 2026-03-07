@@ -25,7 +25,7 @@ import {
   pushCurrentBranch,
 } from "./checkout-git";
 import { createWorktree } from "./worktree";
-import { getOpenPlaneWorktreeMetadataPath } from "./worktree-metadata";
+import { getOpenBeamWorktreeMetadataPath } from "./worktree-metadata";
 
 function initRepo(): { tempDir: string; repoDir: string } {
   const tempDir = realpathSync(
@@ -45,13 +45,13 @@ function initRepo(): { tempDir: string; repoDir: string } {
 describe("checkout git utilities", () => {
   let tempDir: string;
   let repoDir: string;
-  let openplaneHome: string;
+  let openbeamHome: string;
 
   beforeEach(() => {
     const setup = initRepo();
     tempDir = setup.tempDir;
     repoDir = setup.repoDir;
-    openplaneHome = join(tempDir, "openplane-home");
+    openbeamHome = join(tempDir, "openbeam-home");
   });
 
   afterEach(() => {
@@ -94,7 +94,7 @@ describe("checkout git utilities", () => {
     const status = await getCheckoutStatusLite(repoDir);
     expect(status.isGit).toBe(true);
     expect(status.currentBranch).toBe("main");
-    expect(status.isOpenPlaneOwnedWorktree).toBe(false);
+    expect(status.isOpenBeamOwnedWorktree).toBe(false);
     expect(status.mainRepoRoot).toBeNull();
   });
 
@@ -271,30 +271,30 @@ describe("checkout git utilities", () => {
     );
   });
 
-  it("handles status/diff/commit in a .openplane worktree", async () => {
+  it("handles status/diff/commit in a .openbeam worktree", async () => {
     const result = await createWorktree({
       branchName: "main",
       cwd: repoDir,
       baseBranch: "main",
       worktreeSlug: "alpha",
-      openplaneHome,
+      openbeamHome,
     });
 
     writeFileSync(join(result.worktreePath, "file.txt"), "worktree change\n");
 
     const status = await getCheckoutStatus(result.worktreePath, {
-      openplaneHome,
+      openbeamHome,
     });
     expect(status.isGit).toBe(true);
     expect(status.repoRoot).toBe(result.worktreePath);
     expect(status.isDirty).toBe(true);
-    expect(status.isOpenPlaneOwnedWorktree).toBe(true);
+    expect(status.isOpenBeamOwnedWorktree).toBe(true);
     expect(status.mainRepoRoot).toBe(repoDir);
 
     const diff = await getCheckoutDiff(
       result.worktreePath,
       { mode: "uncommitted" },
-      { openplaneHome }
+      { openbeamHome }
     );
     expect(diff.diff).toContain("-hello");
     expect(diff.diff).toContain("+worktree change");
@@ -302,7 +302,7 @@ describe("checkout git utilities", () => {
     await commitAll(result.worktreePath, "worktree update");
 
     const cleanStatus = await getCheckoutStatus(result.worktreePath, {
-      openplaneHome,
+      openbeamHome,
     });
     expect(cleanStatus.isDirty).toBe(false);
     const message = execSync("git log -1 --pretty=%B", {
@@ -313,20 +313,20 @@ describe("checkout git utilities", () => {
     expect(message).toBe("worktree update");
   });
 
-  it("returns lightweight checkout status for .openplane worktrees", async () => {
+  it("returns lightweight checkout status for .openbeam worktrees", async () => {
     const result = await createWorktree({
       branchName: "main",
       cwd: repoDir,
       baseBranch: "main",
       worktreeSlug: "lite-alpha",
-      openplaneHome,
+      openbeamHome,
     });
 
     const status = await getCheckoutStatusLite(result.worktreePath, {
-      openplaneHome,
+      openbeamHome,
     });
     expect(status.isGit).toBe(true);
-    expect(status.isOpenPlaneOwnedWorktree).toBe(true);
+    expect(status.isOpenBeamOwnedWorktree).toBe(true);
     expect(status.mainRepoRoot).toBe(repoDir);
   });
 
@@ -344,14 +344,14 @@ describe("checkout git utilities", () => {
       cwd: mainCheckoutDir,
       baseBranch: "main",
       worktreeSlug: "feature-worktree",
-      openplaneHome,
+      openbeamHome,
     });
 
     const status = await getCheckoutStatus(worktree.worktreePath, {
-      openplaneHome,
+      openbeamHome,
     });
     expect(status.isGit).toBe(true);
-    expect(status.isOpenPlaneOwnedWorktree).toBe(true);
+    expect(status.isOpenBeamOwnedWorktree).toBe(true);
     expect(status.mainRepoRoot).toBe(mainCheckoutDir);
   });
 
@@ -361,7 +361,7 @@ describe("checkout git utilities", () => {
       cwd: repoDir,
       baseBranch: "main",
       worktreeSlug: "merge",
-      openplaneHome,
+      openbeamHome,
     });
 
     writeFileSync(join(worktree.worktreePath, "merge.txt"), "feature\n");
@@ -379,7 +379,7 @@ describe("checkout git utilities", () => {
     await mergeToBase(
       worktree.worktreePath,
       { baseRef: "main" },
-      { openplaneHome }
+      { openbeamHome }
     );
 
     const baseContainsFeature = execSync(
@@ -392,7 +392,7 @@ describe("checkout git utilities", () => {
     expect(baseContainsFeature).toBeDefined();
 
     const statusAfterMerge = await getCheckoutStatus(worktree.worktreePath, {
-      openplaneHome,
+      openbeamHome,
     });
     expect(statusAfterMerge.isGit).toBe(true);
     if (statusAfterMerge.isGit) {
@@ -576,7 +576,7 @@ describe("checkout git utilities", () => {
 
   it("disables GitHub features when gh is unavailable", async () => {
     execSync(
-      "git remote add origin https://github.com/getopenplane/openplane.git",
+      "git remote add origin https://github.com/getopenbeam/openbeam.git",
       { cwd: repoDir }
     );
 
@@ -605,7 +605,7 @@ describe("checkout git utilities", () => {
   it("returns merged PR status when no open PR exists for the current branch", async () => {
     execSync("git checkout -b feature", { cwd: repoDir });
     execSync(
-      "git remote add origin https://github.com/getopenplane/openplane.git",
+      "git remote add origin https://github.com/getopenbeam/openbeam.git",
       { cwd: repoDir }
     );
 
@@ -631,7 +631,7 @@ describe("checkout git utilities", () => {
         "  exit 0",
         "fi",
         'if [[ "$args" == *"state=closed"* ]]; then',
-        '  echo \'[{"html_url":"https://github.com/getopenplane/openplane/pull/123","title":"Ship feature","state":"closed","merged_at":"2026-02-18T00:00:00Z","base":{"ref":"main"},"head":{"ref":"feature"}}]\'',
+        '  echo \'[{"html_url":"https://github.com/getopenbeam/openbeam/pull/123","title":"Ship feature","state":"closed","merged_at":"2026-02-18T00:00:00Z","base":{"ref":"main"},"head":{"ref":"feature"}}]\'',
         "  exit 0",
         "fi",
         'echo "unexpected gh args: $args" >&2',
@@ -665,7 +665,7 @@ describe("checkout git utilities", () => {
   it("does not treat closed-unmerged PRs as shipped status", async () => {
     execSync("git checkout -b feature", { cwd: repoDir });
     execSync(
-      "git remote add origin https://github.com/getopenplane/openplane.git",
+      "git remote add origin https://github.com/getopenbeam/openbeam.git",
       { cwd: repoDir }
     );
 
@@ -691,7 +691,7 @@ describe("checkout git utilities", () => {
         "  exit 0",
         "fi",
         'if [[ "$args" == *"state=closed"* ]]; then',
-        '  echo \'[{"html_url":"https://github.com/getopenplane/openplane/pull/999","title":"Closed without merge","state":"closed","merged_at":null,"base":{"ref":"main"},"head":{"ref":"feature"}}]\'',
+        '  echo \'[{"html_url":"https://github.com/getopenbeam/openbeam/pull/999","title":"Closed without merge","state":"closed","merged_at":null,"base":{"ref":"main"},"head":{"ref":"feature"}}]\'',
         "  exit 0",
         "fi",
         'echo "unexpected gh args: $args" >&2',
@@ -746,7 +746,7 @@ describe("checkout git utilities", () => {
     ).rejects.toBeInstanceOf(MergeConflictError);
   });
 
-  it("uses stored baseRefName for OpenPlane worktrees (no heuristics)", async () => {
+  it("uses stored baseRefName for OpenBeam worktrees (no heuristics)", async () => {
     // Create a non-default base branch with a unique commit.
     execSync("git checkout -b develop", { cwd: repoDir });
     writeFileSync(join(repoDir, "file.txt"), "develop\n");
@@ -762,7 +762,7 @@ describe("checkout git utilities", () => {
       cwd: repoDir,
       baseBranch: "develop",
       worktreeSlug: "feature",
-      openplaneHome,
+      openbeamHome,
     });
 
     writeFileSync(join(worktree.worktreePath, "feature.txt"), "feature\n");
@@ -772,7 +772,7 @@ describe("checkout git utilities", () => {
     });
 
     const status = await getCheckoutStatus(worktree.worktreePath, {
-      openplaneHome,
+      openbeamHome,
     });
     expect(status.isGit).toBe(true);
     expect(status.baseRef).toBe("develop");
@@ -781,7 +781,7 @@ describe("checkout git utilities", () => {
     const baseDiff = await getCheckoutDiff(
       worktree.worktreePath,
       { mode: "base" },
-      { openplaneHome }
+      { openbeamHome }
     );
     expect(baseDiff.diff).toContain("feature.txt");
     expect(baseDiff.diff).not.toContain("file.txt");
@@ -797,13 +797,13 @@ describe("checkout git utilities", () => {
     });
     execSync("git checkout main", { cwd: repoDir });
 
-    // Create a OpenPlane worktree configured to use develop as base.
+    // Create a OpenBeam worktree configured to use develop as base.
     const worktree = await createWorktree({
       branchName: "feature",
       cwd: repoDir,
       baseBranch: "develop",
       worktreeSlug: "merge-to-develop",
-      openplaneHome,
+      openbeamHome,
     });
 
     writeFileSync(join(worktree.worktreePath, "feature.txt"), "feature\n");
@@ -818,7 +818,7 @@ describe("checkout git utilities", () => {
       .trim();
 
     // No baseRef passed: should merge into the configured base (develop), not default/main.
-    await mergeToBase(worktree.worktreePath, {}, { openplaneHome });
+    await mergeToBase(worktree.worktreePath, {}, { openbeamHome });
 
     execSync(`git merge-base --is-ancestor ${featureCommit} develop`, {
       cwd: repoDir,
@@ -832,34 +832,28 @@ describe("checkout git utilities", () => {
     ).toThrow();
   });
 
-  it("throws if OpenPlane worktree base metadata is missing", async () => {
+  it("throws if OpenBeam worktree base metadata is missing", async () => {
     const worktree = await createWorktree({
       branchName: "main",
       cwd: repoDir,
       baseBranch: "main",
       worktreeSlug: "missing-metadata",
-      openplaneHome,
+      openbeamHome,
     });
 
-    const metadataPath = getOpenPlaneWorktreeMetadataPath(
-      worktree.worktreePath
-    );
+    const metadataPath = getOpenBeamWorktreeMetadataPath(worktree.worktreePath);
     rmSync(metadataPath, { force: true });
 
     await expect(
-      getCheckoutStatus(worktree.worktreePath, { openplaneHome })
+      getCheckoutStatus(worktree.worktreePath, { openbeamHome })
       // biome-ignore lint/performance/useTopLevelRegex: scoped regex acceptable here
     ).rejects.toThrow(/base/i);
     await expect(
-      getCheckoutDiff(
-        worktree.worktreePath,
-        { mode: "base" },
-        { openplaneHome }
-      )
+      getCheckoutDiff(worktree.worktreePath, { mode: "base" }, { openbeamHome })
       // biome-ignore lint/performance/useTopLevelRegex: scoped regex acceptable here
     ).rejects.toThrow(/base/i);
     await expect(
-      mergeToBase(worktree.worktreePath, {}, { openplaneHome })
+      mergeToBase(worktree.worktreePath, {}, { openbeamHome })
       // biome-ignore lint/performance/useTopLevelRegex: scoped regex acceptable here
     ).rejects.toThrow(/base/i);
   });

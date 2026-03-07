@@ -51,7 +51,7 @@ jobs:
       - name: Resolve migration image
         id: resolve_image
         run: |
-          BASE_IMAGE="${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/openplane-repo/openplane-server"
+          BASE_IMAGE="${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/openbeam-repo/openbeam-server"
           IMAGE_TAG="${{ inputs.image_tag }}"
 
           if gcloud artifacts docker images describe ${BASE_IMAGE}:${IMAGE_TAG} --format=json 2>/dev/null; then
@@ -67,7 +67,7 @@ jobs:
 
       - name: Update migration job image
         run: |
-          gcloud run jobs update openplane-db-migrate-${{ inputs.environment }} \
+          gcloud run jobs update openbeam-db-migrate-${{ inputs.environment }} \
             --region=${{ env.GCP_REGION }} \
             --project=${{ env.GCP_PROJECT_ID }} \
             --image=${{ steps.resolve_image.outputs.MIGRATION_IMAGE }}
@@ -75,7 +75,7 @@ jobs:
       - name: Run database migrations
         timeout-minutes: 10
         run: |
-          gcloud run jobs execute openplane-db-migrate-${{ inputs.environment }} \
+          gcloud run jobs execute openbeam-db-migrate-${{ inputs.environment }} \
             --region=${{ env.GCP_REGION }} \
             --project=${{ env.GCP_PROJECT_ID }} \
             --wait

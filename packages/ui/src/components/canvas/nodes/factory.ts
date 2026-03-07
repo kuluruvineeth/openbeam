@@ -1,4 +1,4 @@
-import type { CanvasNodeType } from "@openplane/types/canvas";
+import type { CanvasNodeType } from "@openbeam/types/canvas";
 
 import {
   createAudioNodeData,

@@ -1,4 +1,4 @@
-import type { FieldType } from "@openplane/types/services/workspace";
+import type { FieldType } from "@openbeam/types/services/workspace";
 import {
   Calendar,
   Hash,

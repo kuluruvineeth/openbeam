@@ -1,4 +1,4 @@
-import type { ToolCategory, ToolExecutionResult } from "@openplane/types/ai";
+import type { ToolCategory, ToolExecutionResult } from "@openbeam/types/ai";
 import type { ErrorCode } from "./types";
 
 export interface ToolExecutionEvent {

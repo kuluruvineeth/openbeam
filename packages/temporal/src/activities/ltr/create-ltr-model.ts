@@ -1,4 +1,4 @@
-import db, { createLTRModel } from "@openplane/db";
+import db, { createLTRModel } from "@openbeam/db";
 import type { CreateLtrModelInput, CreateLtrModelOutput } from "./types";
 
 export async function createLtrModel(

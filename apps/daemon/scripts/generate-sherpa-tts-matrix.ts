@@ -2,7 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import { createRootLogger } from "../src/server/logger";
-import { resolveOpenPlaneHome } from "../src/server/openplane-home";
+import { resolveOpenBeamHome } from "../src/server/openbeam-home";
 import {
   float32ToPcm16le,
   parsePcmRateFromFormat,
@@ -20,7 +20,7 @@ import {
 import { loadSherpaOnnxNode } from "../src/server/speech/providers/local/sherpa/sherpa-onnx-node-loader";
 
 const DEFAULT_SAMPLE_TEXT =
-  "OpenPlane keeps your coding agents in your pocket, with fast local speech and reliable remote control.";
+  "OpenBeam keeps your coding agents in your pocket, with fast local speech and reliable remote control.";
 
 type ScriptOptions = {
   modelsDir: string;
@@ -64,12 +64,12 @@ function parsePositiveNumber(raw: string, flag: string): number {
 }
 
 function parseArgs(argv: string[]): ScriptOptions {
-  const openplaneHome = resolveOpenPlaneHome();
+  const openbeamHome = resolveOpenBeamHome();
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
 
   let modelsDir =
-    process.env.OPENPLANE_LOCAL_MODELS_DIR ??
-    `${openplaneHome}/models/local-speech`;
+    process.env.OPENBEAM_LOCAL_MODELS_DIR ??
+    `${openbeamHome}/models/local-speech`;
   let outputDir = path.resolve(
     process.cwd(),
     ".debug",
@@ -78,7 +78,7 @@ function parseArgs(argv: string[]): ScriptOptions {
   );
   let text = DEFAULT_SAMPLE_TEXT;
   let speed = parsePositiveNumber(
-    process.env.OPENPLANE_VOICE_LOCAL_TTS_SPEED ?? "1.0",
+    process.env.OPENBEAM_VOICE_LOCAL_TTS_SPEED ?? "1.0",
     "--speed"
   );
   const requestedModelIds: LocalTtsModelId[] = [];

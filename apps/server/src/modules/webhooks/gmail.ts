@@ -4,7 +4,7 @@ import {
   parsePubSubNotification,
   parseWebhookRequest,
   validateGmailWebhook,
-} from "@openplane/services";
+} from "@openbeam/services";
 import { Hono } from "hono";
 import logger from "../../utils/logger";
 

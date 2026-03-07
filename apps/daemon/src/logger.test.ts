@@ -7,8 +7,8 @@ describe("resolveLogConfig", () => {
 
   beforeEach(() => {
     process.env = { ...originalEnv };
-    process.env.OPENPLANE_LOG = undefined;
-    process.env.OPENPLANE_LOG_FORMAT = undefined;
+    process.env.OPENBEAM_LOG = undefined;
+    process.env.OPENBEAM_LOG_FORMAT = undefined;
   });
 
   afterEach(() => {
@@ -31,8 +31,8 @@ describe("resolveLogConfig", () => {
     expect(result).toEqual({ level: "debug", format: "json" });
   });
 
-  it("uses env OPENPLANE_LOG over config.json level", () => {
-    process.env.OPENPLANE_LOG = "warn";
+  it("uses env OPENBEAM_LOG over config.json level", () => {
+    process.env.OPENBEAM_LOG = "warn";
     const config: PersistedConfig = {
       log: {
         level: "debug",
@@ -43,8 +43,8 @@ describe("resolveLogConfig", () => {
     expect(result).toEqual({ level: "warn", format: "json" });
   });
 
-  it("uses env OPENPLANE_LOG_FORMAT over config.json format", () => {
-    process.env.OPENPLANE_LOG_FORMAT = "pretty";
+  it("uses env OPENBEAM_LOG_FORMAT over config.json format", () => {
+    process.env.OPENBEAM_LOG_FORMAT = "pretty";
     const config: PersistedConfig = {
       log: {
         level: "debug",
@@ -56,8 +56,8 @@ describe("resolveLogConfig", () => {
   });
 
   it("env vars override both config.json and defaults", () => {
-    process.env.OPENPLANE_LOG = "error";
-    process.env.OPENPLANE_LOG_FORMAT = "json";
+    process.env.OPENBEAM_LOG = "error";
+    process.env.OPENBEAM_LOG_FORMAT = "json";
     const config: PersistedConfig = {
       log: {
         level: "info",
@@ -102,7 +102,7 @@ describe("resolveLogConfig", () => {
     > = ["trace", "debug", "info", "warn", "error", "fatal"];
 
     for (const level of levels) {
-      process.env.OPENPLANE_LOG = level;
+      process.env.OPENBEAM_LOG = level;
       const result = resolveLogConfig(undefined);
       expect(result.level).toBe(level);
     }

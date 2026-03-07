@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/openplane/openplane/apps/cli/internal/api"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/api"
 )
 
 func (r *Runtime) Get(ctx context.Context, path string, query url.Values) (any, api.Metadata, error) {

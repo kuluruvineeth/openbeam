@@ -1,6 +1,6 @@
-import prisma from "@openplane/db";
-import { searchService } from "@openplane/services";
-import { askRAGForActor } from "@openplane/services/rag-api";
+import prisma from "@openbeam/db";
+import { searchService } from "@openbeam/services";
+import { askRAGForActor } from "@openbeam/services/rag-api";
 import type { Context } from "hono";
 import type { AuthEnv } from "@/middleware/auth";
 import { getTeamId } from "@/middleware/auth";

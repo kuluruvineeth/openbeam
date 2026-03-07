@@ -3,7 +3,7 @@ import type {
   AgentCanvasNode,
   CanvasNodeType,
   CanvasState,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { describe, expect, it } from "vitest";
 import {
   CanvasValidationError,

@@ -2,7 +2,7 @@ import type {
   ActivateConnectorInput,
   CreateConnectorInput,
   CreateConnectorWithOAuthInput,
-} from "@openplane/types";
+} from "@openbeam/types";
 import {
   type Connector,
   ConnectorStatus,

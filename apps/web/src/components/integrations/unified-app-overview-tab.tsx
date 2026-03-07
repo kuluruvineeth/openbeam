@@ -1,7 +1,7 @@
 "use client";
 
-import type { UnifiedApp } from "@openplane/integrations";
-import { TabsContent } from "@openplane/ui";
+import type { UnifiedApp } from "@openbeam/integrations";
+import { TabsContent } from "@openbeam/ui";
 import Image from "next/image";
 import { useState } from "react";
 import { Icons } from "@/components/icons";

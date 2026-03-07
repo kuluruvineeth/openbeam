@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: vespa-deploy
-  namespace: openplane
+  namespace: openbeam
   labels:
     app: vespa-deploy
 spec:
@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: deployer
-          image: openplane/vespa-deployer
+          image: openbeam/vespa-deployer
           command: ["sh", "-c"]
           args:
             - |

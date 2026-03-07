@@ -1,6 +1,6 @@
 import { Database } from "bun:sqlite";
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import type { OutboundEvent } from "@openplane/types/edge/queue";
+import type { OutboundEvent } from "@openbeam/types/edge/queue";
 import { StoreAndForwardQueue } from "../store-and-forward";
 
 function first<T>(arr: T[]): T {

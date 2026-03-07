@@ -1,5 +1,5 @@
 {
-  "name": "@openplane/edge-search",
+  "name": "@openbeam/edge-search",
   "version": "0.0.1",
   "type": "module",
   "exports": {
@@ -17,14 +17,14 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@openplane/types": "workspace:*",
-    "@openplane/edge-core": "workspace:*"
+    "@openbeam/types": "workspace:*",
+    "@openbeam/edge-core": "workspace:*"
   },
   "peerDependencies": {
     "zod": "^4.0.0"
   },
   "devDependencies": {
-    "@openplane/config": "workspace:*",
+    "@openbeam/config": "workspace:*",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "zod": "catalog:"

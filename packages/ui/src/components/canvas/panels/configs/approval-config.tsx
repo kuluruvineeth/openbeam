@@ -1,6 +1,6 @@
 "use client";
 
-import type { ApprovalNodeConfig } from "@openplane/types/canvas";
+import type { ApprovalNodeConfig } from "@openbeam/types/canvas";
 import { memo, useMemo } from "react";
 import { formatDuration } from "../../../../utils/format";
 import {

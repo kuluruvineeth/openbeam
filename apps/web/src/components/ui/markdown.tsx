@@ -1,4 +1,4 @@
 "use client";
 
-export type { MarkdownComponents, MarkdownProps } from "@openplane/ui";
-export { Markdown, markdownVariants } from "@openplane/ui";
+export type { MarkdownComponents, MarkdownProps } from "@openbeam/ui";
+export { Markdown, markdownVariants } from "@openbeam/ui";

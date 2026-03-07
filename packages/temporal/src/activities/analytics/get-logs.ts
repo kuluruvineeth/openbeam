@@ -1,4 +1,4 @@
-import db, { getAIUsageLogsForExport } from "@openplane/db";
+import db, { getAIUsageLogsForExport } from "@openbeam/db";
 import type { GetLogsForExportInput, GetLogsForExportOutput } from "./types";
 
 export async function getLogsForExport(

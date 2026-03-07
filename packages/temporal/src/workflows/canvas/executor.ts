@@ -3,13 +3,13 @@ import {
   type ExecutionPlanNode,
   type ExecutionTrace,
   LoopNodeConfigSchema,
-} from "@openplane/types/canvas";
-import type { ExecutionPolicy } from "@openplane/types/services/policy";
-import type { LoopIterationError, LoopState } from "@openplane/types/temporal";
+} from "@openbeam/types/canvas";
+import type { ExecutionPolicy } from "@openbeam/types/services/policy";
+import type { LoopIterationError, LoopState } from "@openbeam/types/temporal";
 import type {
   AgentCanvasExecutionInput,
   AgentCanvasExecutionOutput,
-} from "@openplane/types/temporal/workflows";
+} from "@openbeam/types/temporal/workflows";
 import {
   ApplicationFailure,
   condition,

@@ -1,4 +1,4 @@
-import type { EdgeSLM } from "@openplane/types/edge/ai";
+import type { EdgeSLM } from "@openbeam/types/edge/ai";
 import { EDGE_QUERY_REWRITE_PROMPT, formatPrompt } from "../prompts/templates";
 
 export class QueryRewriter {

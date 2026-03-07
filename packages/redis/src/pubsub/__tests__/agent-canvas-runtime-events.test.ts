@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
-import type { RuntimeEvent } from "@openplane/types/canvas/runtime-events";
-import { RuntimeEventSchema } from "@openplane/types/canvas/runtime-events";
+import type { RuntimeEvent } from "@openbeam/types/canvas/runtime-events";
+import { RuntimeEventSchema } from "@openbeam/types/canvas/runtime-events";
 import { cleanupSessionThrottleCache } from "../session-events";
 
 function createTestEvent(

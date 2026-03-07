@@ -1,5 +1,5 @@
 {
-  "name": "@openplane/relay",
+  "name": "@openbeam/relay",
   "version": "0.0.1",
   "description": "Relay for bridging daemon and client connections",
   "type": "module",

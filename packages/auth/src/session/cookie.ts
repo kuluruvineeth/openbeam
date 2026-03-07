@@ -119,6 +119,6 @@ export function parseCookies(
   );
 }
 
-export const SESSION_COOKIE_NAME = "openplane-session";
-export const STATE_COOKIE_NAME = "openplane-oauth-state";
+export const SESSION_COOKIE_NAME = "openbeam-session";
+export const STATE_COOKIE_NAME = "openbeam-oauth-state";
 export const SESSION_DURATION_SECONDS = 60 * 60 * 24 * 7;

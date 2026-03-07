@@ -1,6 +1,6 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { createGmailClient, downloadAttachment } from "@openplane/services";
+import { createGmailClient, downloadAttachment } from "@openbeam/services";
 import { ApplicationFailure } from "@temporalio/common";
 import type { DownloadFileInput, DownloadFileOutput } from "../types";
 

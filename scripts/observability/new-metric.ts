@@ -8,7 +8,7 @@ const usage = `Usage:
   bun run observability:new-metric -- --name <metric_name> --type <counter|gauge|histogram> --labels <a,b,c|none> --help <metric help text> [--out <file>] [--register <var>] [--variable <metricVar>]
 
 Example:
-  bun run observability:new-metric -- --name openplane_connector_sync_jobs_total --type counter --labels worker_type,status --help "Total connector sync jobs" --out apps/worker/src/metrics/openplane-connector-sync-jobs-total.ts
+  bun run observability:new-metric -- --name openbeam_connector_sync_jobs_total --type counter --labels worker_type,status --help "Total connector sync jobs" --out apps/worker/src/metrics/openbeam-connector-sync-jobs-total.ts
 `;
 
 const LABEL_NAME_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*$/;

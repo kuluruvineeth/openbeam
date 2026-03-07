@@ -4,7 +4,7 @@ const mockCreateStep = vi.fn();
 const mockUpdateStep = vi.fn();
 const mockEmitRuntimeEvent = vi.fn();
 
-vi.mock("@openplane/db", () => ({
+vi.mock("@openbeam/db", () => ({
   createAgentCanvasExecutionStep: (...args: unknown[]) =>
     mockCreateStep(...args),
   updateAgentCanvasExecutionStep: (...args: unknown[]) =>

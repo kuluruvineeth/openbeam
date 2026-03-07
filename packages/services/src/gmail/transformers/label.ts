@@ -1,7 +1,7 @@
 import type {
   GmailLabel,
   GmailTransformContext,
-} from "@openplane/types/services/connectors/gmail";
+} from "@openbeam/types/services/connectors/gmail";
 
 export interface GmailLabelEntity {
   id: string;

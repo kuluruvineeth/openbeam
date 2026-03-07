@@ -2,7 +2,7 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { CodeVariableType, InputVariable } from "@openplane/types/canvas";
+import type { CodeVariableType, InputVariable } from "@openbeam/types/canvas";
 import { memo, useCallback } from "react";
 import { cn } from "../../../utils";
 import { Button } from "../../button";

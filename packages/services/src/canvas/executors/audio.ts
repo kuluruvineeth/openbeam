@@ -1,16 +1,16 @@
 import { randomUUID } from "node:crypto";
-import { estimateTokens, getConfig } from "@openplane/ai";
+import { estimateTokens, getConfig } from "@openbeam/ai";
 import {
   getTTSModel,
   type ProviderId,
   ProviderIdSchema,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import {
   type AudioNodeConfig,
   AudioNodeConfigSchema,
   type GeneratedAudio,
   type TokenUsage,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { CanvasNodeExecutionError } from "../errors";
 import { resolveNodeConfig } from "../node-config";
 import type { CanvasNodeExecutor } from "../types";

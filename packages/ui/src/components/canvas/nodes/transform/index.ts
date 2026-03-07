@@ -6,7 +6,7 @@ export type {
   CodeNodeConfig,
   FilterNodeConfig,
   TemplateNodeConfig,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 export type { CodeNodeData } from "./code-node";
 export { CodeNode, createCodeNodeData } from "./code-node";
 export type { FilterNodeData } from "./filter-node";

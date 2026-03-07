@@ -115,7 +115,7 @@ const NATIVE_HELPER_SHORTCUT_ROWS: ReadonlyArray<{
   {
     kind: "newNote",
     title: "Open notes window",
-    detail: "Bring OpenPlane forward and open a fresh draft note.",
+    detail: "Bring OpenBeam forward and open a fresh draft note.",
   },
 ];
 
@@ -1119,7 +1119,7 @@ export default function SettingsScreen() {
   );
 
   const restartConfirmationMessage =
-    "This will immediately stop the OpenPlane daemon process. The app will disconnect until it restarts.";
+    "This will immediately stop the OpenBeam daemon process. The app will disconnect until it restarts.";
 
   if (isLoading) {
     return (
@@ -1676,7 +1676,7 @@ function HostDetailModal({
     if (!isHostConnected()) {
       Alert.alert(
         "Host offline",
-        "This host is offline. OpenPlane reconnects automatically—wait until it's back online before restarting."
+        "This host is offline. OpenBeam reconnects automatically—wait until it's back online before restarting."
       );
       return;
     }
@@ -1696,7 +1696,7 @@ function HostDetailModal({
         setIsRestarting(false);
         Alert.alert(
           "Error",
-          "Failed to send the restart request. OpenPlane reconnects automatically—try again once the host shows as online."
+          "Failed to send the restart request. OpenBeam reconnects automatically—try again once the host shows as online."
         );
       });
 

@@ -6,9 +6,9 @@ import { join } from "node:path";
 import type {
   AgentSnapshotPayload,
   SessionOutboundMessage,
-} from "@openplane/types/services/daemon/messages";
+} from "@openbeam/types/services/daemon/messages";
 import pino from "pino";
-import { createDaemon, type OpenPlaneDaemon } from "../src/bootstrap";
+import { createDaemon, type OpenBeamDaemon } from "../src/bootstrap";
 import { DaemonClient } from "../src/client/daemon-client";
 import type { DaemonConfig } from "../src/config";
 
@@ -31,7 +31,7 @@ async function getAvailablePort(): Promise<number> {
   });
 }
 
-function createTempDir(prefix = "openplane-e2e"): string {
+function createTempDir(prefix = "openbeam-e2e"): string {
   const dir = join(tmpdir(), `${prefix}-${randomBytes(8).toString("hex")}`);
   mkdirSync(dir, { recursive: true });
   return dir;
@@ -55,7 +55,7 @@ function createTestConfig(daemonHome: string, port: number): DaemonConfig {
 }
 
 export interface DaemonTestContext {
-  daemon: OpenPlaneDaemon & { port: number; daemonHome: string };
+  daemon: OpenBeamDaemon & { port: number; daemonHome: string };
   client: DaemonClient;
   cleanup: () => Promise<void>;
 }

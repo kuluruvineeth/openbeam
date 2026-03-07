@@ -1,5 +1,5 @@
-import type { Database } from "@openplane/db";
-import { updateConnectorSyncError } from "@openplane/db";
+import type { Database } from "@openbeam/db";
+import { updateConnectorSyncError } from "@openbeam/db";
 
 export interface SetConnectorErrorDeps {
   db: Database;

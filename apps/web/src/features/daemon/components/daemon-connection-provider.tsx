@@ -1,12 +1,12 @@
 "use client";
 
-import type { AgentLifecycleStatus } from "@openplane/types/services/daemon";
+import type { AgentLifecycleStatus } from "@openbeam/types/services/daemon";
 import type {
   AgentSnapshotPayload,
   ProjectPlacementPayload,
   ServerInfoStatusPayload,
   SessionOutboundMessage,
-} from "@openplane/types/services/daemon/messages";
+} from "@openbeam/types/services/daemon/messages";
 import {
   type ReactNode,
   useCallback,

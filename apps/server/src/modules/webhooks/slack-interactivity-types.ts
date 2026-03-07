@@ -9,7 +9,7 @@ import type {
   SlackClient,
   SlashCommandPayload,
   ViewSubmissionPayload,
-} from "@openplane/services";
+} from "@openbeam/services";
 
 export interface SlackConnectorConfig {
   teamId?: string;

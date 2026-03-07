@@ -4,7 +4,7 @@ import type {
   NodeRedNode,
   NodeRedNodeType,
   NodeRedTransformContext,
-} from "@openplane/types/services/connectors/nodered";
+} from "@openbeam/types/services/connectors/nodered";
 import type { NodeRedClient } from "../client";
 import { fullSync } from "../sync/full";
 

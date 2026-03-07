@@ -22,13 +22,13 @@ description: How Gmail data is synced
 
 ## History ID
 
-Gmail tracks changes via history IDs. OpenPlane stores the last ID and fetches only changes.
+Gmail tracks changes via history IDs. OpenBeam stores the last ID and fetches only changes.
 
-History expires after ~7 days. If expired, OpenPlane auto-triggers full sync.
+History expires after ~7 days. If expired, OpenBeam auto-triggers full sync.
 
 ## Watch Management
 
-Pub/Sub watches expire after 7 days. OpenPlane auto-renews 1 day before expiration.
+Pub/Sub watches expire after 7 days. OpenBeam auto-renews 1 day before expiration.
 
 ## Rate Limits
 
@@ -37,7 +37,7 @@ Pub/Sub watches expire after 7 days. OpenPlane auto-renews 1 day before expirati
 | Per 100 seconds per user | 250 requests |
 | Concurrent | 10 requests |
 
-OpenPlane handles limits with exponential backoff.
+OpenBeam handles limits with exponential backoff.
 
 ## Controls
 

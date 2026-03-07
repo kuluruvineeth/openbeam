@@ -1,4 +1,4 @@
-import type { VoiceRoomType } from "@openplane/types/services/voice";
+import type { VoiceRoomType } from "@openbeam/types/services/voice";
 
 export function generateRoomName(
   teamId: string,

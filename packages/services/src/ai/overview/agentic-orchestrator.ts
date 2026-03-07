@@ -2,8 +2,8 @@ import {
   buildThinkingProviderOptions,
   extractReasoningContent,
   registry,
-} from "@openplane/ai";
-import type { GenericDocument, MediaDocument } from "@openplane/vespa";
+} from "@openbeam/ai";
+import type { GenericDocument, MediaDocument } from "@openbeam/vespa";
 import { tool as aiTool, stepCountIs, streamText } from "ai";
 import { z } from "zod";
 import { logger } from "../../lib/logger";

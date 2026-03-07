@@ -265,7 +265,7 @@
   "refresh": "10s",
   "schemaVersion": 16,
   "style": "dark",
-  "tags": ["openplane", "api", "endpoints", "latency"],
+  "tags": ["openbeam", "api", "endpoints", "latency"],
   "templating": {
     "list": []
   },
@@ -275,7 +275,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "OpenPlane API Endpoints",
+  "title": "OpenBeam API Endpoints",
   "uid": "api-endpoints",
   "version": 1
 }

@@ -1,6 +1,6 @@
-import type { ExecutionPlanNode } from "@openplane/types/canvas";
-import { ApprovalNodeConfigSchema } from "@openplane/types/canvas";
-import type { CanvasApprovalSignalPayload } from "@openplane/types/temporal";
+import type { ExecutionPlanNode } from "@openbeam/types/canvas";
+import { ApprovalNodeConfigSchema } from "@openbeam/types/canvas";
+import type { CanvasApprovalSignalPayload } from "@openbeam/types/temporal";
 import { condition } from "@temporalio/workflow";
 import { conditionWithTimeout, currentTimestamp } from "../../temporal-utils";
 import {

@@ -1,4 +1,4 @@
-import { CompletionService } from "@openplane/ai";
+import { CompletionService } from "@openbeam/ai";
 
 export interface WorkspaceObjectSchema {
   name: string;

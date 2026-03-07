@@ -1,8 +1,8 @@
 import type {
   SamsaraSyncBatch,
   SamsaraSyncCursor,
-} from "@openplane/types/services/connectors/samsara";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/samsara";
+import type { GenericDocument } from "@openbeam/vespa";
 
 export function createSyncBatch(
   items: GenericDocument[],

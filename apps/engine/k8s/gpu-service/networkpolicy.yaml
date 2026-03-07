@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: engine-gpu
-  namespace: openplane-engine
+  namespace: openbeam-engine
   labels:
     app.kubernetes.io/name: engine-gpu
     app.kubernetes.io/component: gpu-service

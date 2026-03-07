@@ -30,6 +30,12 @@ export const DEFAULT_RATE_LIMITS: Record<string, RateLimitConfig> = {
   },
 };
 
+export const AGENT_RATE_LIMITS: RateLimitConfig = {
+  requestsPerMinute: 60,
+  requestsPerHour: 1000,
+  burstLimit: 15,
+};
+
 export class RateLimiter {
   async checkLimit(
     key: string,
@@ -218,6 +224,88 @@ export class RateLimiter {
     }
 
     return false;
+  }
+
+  async checkAgentRateLimit(
+    agentId: string,
+    customConfig?: RateLimitConfig
+  ): Promise<{ allowed: boolean; reason?: string }> {
+    const config = customConfig ?? AGENT_RATE_LIMITS;
+
+    if (config.burstLimit) {
+      const burstAllowed = await this.checkLimit(
+        `agent:${agentId}:burst`,
+        config.burstLimit,
+        10
+      );
+
+      if (!burstAllowed) {
+        return { allowed: false, reason: "Agent burst limit exceeded" };
+      }
+    }
+
+    if (config.requestsPerMinute) {
+      const minuteAllowed = await this.checkLimit(
+        `agent:${agentId}:minute`,
+        config.requestsPerMinute,
+        60
+      );
+
+      if (!minuteAllowed) {
+        return { allowed: false, reason: "Agent per-minute limit exceeded" };
+      }
+    }
+
+    if (config.requestsPerHour) {
+      const hourAllowed = await this.checkLimit(
+        `agent:${agentId}:hour`,
+        config.requestsPerHour,
+        3600
+      );
+
+      if (!hourAllowed) {
+        return { allowed: false, reason: "Agent per-hour limit exceeded" };
+      }
+    }
+
+    return { allowed: true };
+  }
+
+  async getAgentRemainingQuota(
+    agentId: string,
+    customConfig?: RateLimitConfig
+  ): Promise<{
+    burstRemaining?: number;
+    minuteRemaining?: number;
+    hourRemaining?: number;
+  }> {
+    const config = customConfig ?? AGENT_RATE_LIMITS;
+
+    const result: {
+      burstRemaining?: number;
+      minuteRemaining?: number;
+      hourRemaining?: number;
+    } = {};
+
+    if (config.burstLimit) {
+      const burstUsage = await this.getUsage(`agent:${agentId}:burst`, 10);
+      result.burstRemaining = Math.max(0, config.burstLimit - burstUsage);
+    }
+
+    if (config.requestsPerMinute) {
+      const minuteUsage = await this.getUsage(`agent:${agentId}:minute`, 60);
+      result.minuteRemaining = Math.max(
+        0,
+        config.requestsPerMinute - minuteUsage
+      );
+    }
+
+    if (config.requestsPerHour) {
+      const hourUsage = await this.getUsage(`agent:${agentId}:hour`, 3600);
+      result.hourRemaining = Math.max(0, config.requestsPerHour - hourUsage);
+    }
+
+    return result;
   }
 
   async checkGlobalRateLimit(limit = 1000): Promise<boolean> {

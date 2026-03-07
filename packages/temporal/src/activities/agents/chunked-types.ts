@@ -1,8 +1,8 @@
 import type {
   AgentHeartbeatPayload,
   ChunkCheckpoint,
-} from "@openplane/types/temporal/agent-heartbeat";
-import type { TimeoutTier } from "@openplane/types/temporal/agent-timeouts";
+} from "@openbeam/types/temporal/agent-heartbeat";
+import type { TimeoutTier } from "@openbeam/types/temporal/agent-timeouts";
 import type { AgentArtifact, AgentCheckpoint } from "../../workflows/types";
 
 export interface ChunkedAgentExecutor {

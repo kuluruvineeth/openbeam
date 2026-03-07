@@ -1,4 +1,4 @@
-import { CreateObjectInputSchema } from "@openplane/types/services/workspace";
+import { CreateObjectInputSchema } from "@openbeam/types/services/workspace";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter } from "../index";
@@ -6,7 +6,7 @@ import { withActiveTeam } from "./apps/middleware";
 
 async function getInitializedDb(teamId: string) {
   const { getTeamDuckDB, initializeEAVSchema } = await import(
-    "@openplane/services"
+    "@openbeam/services"
   );
   const db = await getTeamDuckDB(teamId);
   await initializeEAVSchema(db);
@@ -23,7 +23,7 @@ export const workspaceRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      const { executeQuery } = await import("@openplane/services");
+      const { executeQuery } = await import("@openbeam/services");
       const db = await getInitializedDb(ctx.teamId);
 
       return executeQuery(db, input.sql, {
@@ -34,7 +34,7 @@ export const workspaceRouter = createTRPCRouter({
     }),
 
   listObjects: withActiveTeam.query(async ({ ctx }) => {
-    const { listObjects } = await import("@openplane/services");
+    const { listObjects } = await import("@openbeam/services");
     const db = await getInitializedDb(ctx.teamId);
     return listObjects(db, ctx.teamId);
   }),
@@ -42,7 +42,7 @@ export const workspaceRouter = createTRPCRouter({
   getObject: withActiveTeam
     .input(z.object({ name: z.string().min(1) }))
     .query(async ({ ctx, input }) => {
-      const { getObject } = await import("@openplane/services");
+      const { getObject } = await import("@openbeam/services");
       const db = await getInitializedDb(ctx.teamId);
       const obj = await getObject(db, input.name);
 
@@ -59,7 +59,7 @@ export const workspaceRouter = createTRPCRouter({
   createObject: withActiveTeam
     .input(CreateObjectInputSchema)
     .mutation(async ({ ctx, input }) => {
-      const { createObject } = await import("@openplane/services");
+      const { createObject } = await import("@openbeam/services");
       const db = await getInitializedDb(ctx.teamId);
       return createObject(db, input, ctx.teamId);
     }),
@@ -75,7 +75,7 @@ export const workspaceRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      const { listEntries } = await import("@openplane/services");
+      const { listEntries } = await import("@openbeam/services");
       const db = await getInitializedDb(ctx.teamId);
 
       return listEntries(db, input.objectName, {
@@ -94,7 +94,7 @@ export const workspaceRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { createEntry } = await import("@openplane/services");
+      const { createEntry } = await import("@openbeam/services");
       const db = await getInitializedDb(ctx.teamId);
       return createEntry(db, {
         objectId: input.objectId,
@@ -111,7 +111,7 @@ export const workspaceRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { updateEntry } = await import("@openplane/services");
+      const { updateEntry } = await import("@openbeam/services");
       const db = await getInitializedDb(ctx.teamId);
       return updateEntry(db, input.objectName, input.entryId, {
         values: input.values,
@@ -142,11 +142,11 @@ export const workspaceRouter = createTRPCRouter({
       };
 
       if (input.format === "csv") {
-        const { importCSV } = await import("@openplane/services");
+        const { importCSV } = await import("@openbeam/services");
         return importCSV(db, input.data, config);
       }
 
-      const { importJSON } = await import("@openplane/services");
+      const { importJSON } = await import("@openbeam/services");
       const records: Record<string, unknown>[] = JSON.parse(input.data);
       return importJSON(db, records, config);
     }),
@@ -159,7 +159,7 @@ export const workspaceRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      const { listObjects, listEntries } = await import("@openplane/services");
+      const { listObjects, listEntries } = await import("@openbeam/services");
       const db = await getInitializedDb(ctx.teamId);
 
       const allObjects = await listObjects(db, ctx.teamId);
@@ -199,7 +199,7 @@ export const workspaceRouter = createTRPCRouter({
         })
       );
 
-      const { generateWorkspaceSql } = await import("@openplane/services");
+      const { generateWorkspaceSql } = await import("@openbeam/services");
       const result = await generateWorkspaceSql({
         teamId: ctx.teamId,
         question: input.question,

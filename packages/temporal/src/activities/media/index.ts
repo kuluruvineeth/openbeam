@@ -1,4 +1,4 @@
-import type { TwelveLabsClient } from "@openplane/media";
+import type { TwelveLabsClient } from "@openbeam/media";
 import { createExtractTranscriptActivity } from "./extract-transcript";
 import { createGenerateThumbnailsActivity } from "./generate-thumbnails";
 import { createProcessMediaActivity } from "./process-media";

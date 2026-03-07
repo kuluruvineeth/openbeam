@@ -5,7 +5,7 @@ description: One query, every data source. Permission-aware enterprise search ac
 
 # Search
 
-One query searches everything. Slack messages, Notion pages, GitHub PRs, Linear issues, Google Drive files, meeting recordings, spreadsheets -- OpenPlane unifies them all into a single search interface, ranked by relevance and filtered by access controls.
+One query searches everything. Slack messages, Notion pages, GitHub PRs, Linear issues, Google Drive files, meeting recordings, spreadsheets -- OpenBeam unifies them all into a single search interface, ranked by relevance and filtered by access controls.
 
 ## Three Search Modes
 
@@ -91,11 +91,11 @@ interface GenericDocument {
 
 Above shows the most commonly used fields. The complete schema includes additional ranking signals, engagement metrics, and ML features. See `packages/vespa/src/schemas.ts` for the full definition.
 
-OpenPlane indexes four document schemas in Vespa:
+OpenBeam indexes four document schemas in Vespa:
 
 | Schema | Content Type | Key Fields |
 |--------|-------------|------------|
-| `openplane_document` | Text (messages, pages, issues, files, emails) | `content`, `content_embedding`, `sparse_embedding`, `access_control` |
+| `openbeam_document` | Text (messages, pages, issues, files, emails) | `content`, `content_embedding`, `sparse_embedding`, `access_control` |
 | `media_document` | Video and audio (meetings, recordings) | `transcript`, `segment_embeddings`, `duration_seconds`, `segment_timestamps` |
 | `spreadsheet_document` | Tabular data (sheets, CSVs) | `column_names`, `column_types`, `row_count`, `is_queryable` |
 | `entity` | People, teams, projects | `entity_type`, `name`, `email` |
@@ -137,7 +137,7 @@ Vespa applies different ranking strategies depending on the query type.
 <Tabs items={["Agent Tool", "tRPC API", "CLI"]}>
   <Tab value="Agent Tool">
     ```typescript
-    import { toolRegistry } from "@openplane/ai";
+    import { toolRegistry } from "@openbeam/ai";
 
     const result = await toolRegistry.runWithContext(
       { teamId: "team_abc", userId: "user_123", services },
@@ -172,7 +172,7 @@ Vespa applies different ranking strategies depending on the query type.
   </Tab>
   <Tab value="CLI">
     ```bash
-    openplane search query --query "Q3 revenue report" --limit 10 --connector-type notion --connector-type google-drive
+    openbeam search query --query "Q3 revenue report" --limit 10 --connector-type notion --connector-type google-drive
     ```
   </Tab>
 </Tabs>
@@ -196,8 +196,8 @@ Ranking profiles for media: `meeting_search`, `screen_content`, `unified_text`, 
 For offline and air-gapped deployments, the edge runtime provides local search using SQLite FTS5 and in-process vector similarity. Same query interface, runs entirely on-device.
 
 ```typescript
-import { EdgeSearchEngine, SQLiteFTS5Provider, InMemoryVectorProvider, SQLiteDocumentStore } from "@openplane/edge-search";
-import { openEdgeDatabase } from "@openplane/edge-core";
+import { EdgeSearchEngine, SQLiteFTS5Provider, InMemoryVectorProvider, SQLiteDocumentStore } from "@openbeam/edge-search";
+import { openEdgeDatabase } from "@openbeam/edge-core";
 
 const db = openEdgeDatabase("./edge.db");
 const engine = new EdgeSearchEngine({

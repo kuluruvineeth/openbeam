@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Icons } from "@openplane/ui";
+import { Button, Icons } from "@openbeam/ui";
 import { useAgentCreationParams } from "../hooks/use-agent-creation-params";
 
 export function CreateAgentButton() {

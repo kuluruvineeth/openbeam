@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, spyOn } from "bun:test";
-import type { MCPServerContext } from "@openplane/types/ai";
+import type { MCPServerContext } from "@openbeam/types/ai";
 import { z } from "zod";
 import { defineTool, success } from "../../tools/builder";
 import { ToolRegistry } from "../../tools/registry";

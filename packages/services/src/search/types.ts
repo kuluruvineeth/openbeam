@@ -2,7 +2,7 @@ import type {
   GenericDocument,
   MediaDocument,
   MediaType,
-} from "@openplane/vespa";
+} from "@openbeam/vespa";
 
 export type {
   AuthorFacet,
@@ -27,14 +27,11 @@ export type {
   SimilarDocumentsParams,
   ThreadSearchParams,
   UnifiedSearchParams as BaseUnifiedSearchParams,
-} from "@openplane/types/search";
+} from "@openbeam/types/search";
 
-export { RRFConfigSchema, SearchModeSchema } from "@openplane/types/search";
+export { RRFConfigSchema, SearchModeSchema } from "@openbeam/types/search";
 
-import type {
-  MediaSearchRanking,
-  SearchRanking,
-} from "@openplane/types/search";
+import type { MediaSearchRanking, SearchRanking } from "@openbeam/types/search";
 
 export interface RankedDocument {
   document: GenericDocument;
@@ -53,8 +50,8 @@ export interface RankedDocument {
 export interface HybridSearchResponse {
   documents: RankedDocument[];
   total: number;
-  timing: import("@openplane/types/search").SearchTiming;
-  metadata: import("@openplane/types/search").SearchMetadata;
+  timing: import("@openbeam/types/search").SearchTiming;
+  metadata: import("@openbeam/types/search").SearchMetadata;
 }
 
 export interface DocumentSearchResult {
@@ -127,5 +124,5 @@ export interface UnifiedSearchResult {
   total: number;
   queryTime: number;
   embeddingTime?: number;
-  connectorFacets: import("@openplane/types/search").ConnectorFacet[];
+  connectorFacets: import("@openbeam/types/search").ConnectorFacet[];
 }

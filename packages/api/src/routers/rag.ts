@@ -6,13 +6,13 @@ import {
   findConversationWithMessages,
   listConversations,
   updateRAGInteractionFeedback,
-} from "@openplane/db";
+} from "@openbeam/db";
 import {
   type ConversationContext,
   getConversationManager,
   getRAGOrchestrator,
   type RAGRequest,
-} from "@openplane/services";
+} from "@openbeam/services";
 import { z } from "zod";
 import { createTRPCRouter } from "../index";
 import { withActiveTeam } from "./apps/middleware";

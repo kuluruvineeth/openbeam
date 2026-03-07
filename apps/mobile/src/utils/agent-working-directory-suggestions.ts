@@ -4,7 +4,7 @@ export interface AgentWorkingDirectorySource {
   lastActivityAt?: Date | null;
 }
 
-const OPENPLANE_WORKTREE_PATH_PATTERN = /(^|\/)\.openplane\/worktrees(\/|$)/;
+const OPENBEAM_WORKTREE_PATH_PATTERN = /(^|\/)\.openbeam\/worktrees(\/|$)/;
 
 export function collectAgentWorkingDirectorySuggestions(
   sources: Iterable<AgentWorkingDirectorySource>
@@ -16,7 +16,7 @@ export function collectAgentWorkingDirectorySuggestions(
     if (!cwd) {
       continue;
     }
-    if (isOpenPlaneOwnedWorktreePath(cwd)) {
+    if (isOpenBeamOwnedWorktreePath(cwd)) {
       continue;
     }
 
@@ -38,8 +38,8 @@ export function collectAgentWorkingDirectorySuggestions(
     .map(([cwd]) => cwd);
 }
 
-function isOpenPlaneOwnedWorktreePath(cwd: string): boolean {
-  return OPENPLANE_WORKTREE_PATH_PATTERN.test(cwd.replace(/\\/g, "/"));
+function isOpenBeamOwnedWorktreePath(cwd: string): boolean {
+  return OPENBEAM_WORKTREE_PATH_PATTERN.test(cwd.replace(/\\/g, "/"));
 }
 
 function toEpochMs(date: Date | null | undefined): number {

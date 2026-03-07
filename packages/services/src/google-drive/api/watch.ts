@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import {
   type DriveWatchChannel,
   DriveWatchChannelSchema,
-} from "@openplane/types/services/connectors/google-drive";
+} from "@openbeam/types/services/connectors/google-drive";
 import type { GoogleDriveClient } from "../client";
 
 export interface WatchChangesOptions {

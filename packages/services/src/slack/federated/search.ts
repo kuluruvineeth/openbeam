@@ -2,8 +2,8 @@ import type {
   FederatedSearchOptions,
   SlackSearchMatch,
   TransformContext,
-} from "@openplane/types/services/connectors/slack";
-import type { GenericDocument, JsonObject } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/slack";
+import type { GenericDocument, JsonObject } from "@openbeam/vespa";
 import {
   buildSearchQuery,
   type SearchQueryFilters,

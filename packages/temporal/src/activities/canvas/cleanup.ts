@@ -1,4 +1,4 @@
-import type { Database } from "@openplane/db";
+import type { Database } from "@openbeam/db";
 import { ApplicationFailure } from "@temporalio/common";
 
 export interface CleanupDependencies {

@@ -12,7 +12,7 @@ export async function handleSearchCommand(
   if (!query) {
     return {
       response_type: "ephemeral",
-      text: "Please provide a search query.\nUsage: `/openplane search <query>`",
+      text: "Please provide a search query.\nUsage: `/openbeam search <query>`",
     };
   }
 

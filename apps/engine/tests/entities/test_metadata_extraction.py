@@ -14,8 +14,8 @@ class TestUniversalExtractors:
         assert any(e.text == "engineering" and e.label == "channel" for e in result)
 
     def test_repository(self) -> None:
-        result = _extract_from_metadata({"repository": "openplane/core"})
-        assert any(e.text == "openplane/core" and e.label == "repository" for e in result)
+        result = _extract_from_metadata({"repository": "openbeam/core"})
+        assert any(e.text == "openbeam/core" and e.label == "repository" for e in result)
 
     def test_project_name(self) -> None:
         result = _extract_from_metadata({"project_name": "Search V2"})
@@ -40,10 +40,10 @@ class TestUniversalExtractors:
 class TestGitHubExtractors:
     def test_repo_full_name(self) -> None:
         result = _extract_from_metadata(
-            {"repoFullName": "openplane/engine"}, "github"
+            {"repoFullName": "openbeam/engine"}, "github"
         )
         assert any(
-            e.text == "openplane/engine" and e.label == "repository" for e in result
+            e.text == "openbeam/engine" and e.label == "repository" for e in result
         )
 
     def test_milestone_title(self) -> None:

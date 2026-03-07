@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { GitHubErrorCodes } from "@openplane/types/services/connectors/github";
+import { GitHubErrorCodes } from "@openbeam/types/services/connectors/github";
 import { GitHubApiError } from "../types";
 
 describe("GitHubApiError", () => {

@@ -1,4 +1,4 @@
-import type { ExecutionPlanNode } from "@openplane/types/canvas";
+import type { ExecutionPlanNode } from "@openbeam/types/canvas";
 import {
   buildCompletedStep,
   extractBranchId,

@@ -2,7 +2,7 @@ import {
   type Database,
   getConnectorForSync,
   getDecryptedOAuthCredentials,
-} from "@openplane/db";
+} from "@openbeam/db";
 import { ApplicationFailure } from "@temporalio/common";
 import type { BaseConnectorActivities, ConnectorRecord } from "./types";
 

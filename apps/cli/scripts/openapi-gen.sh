@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-HOST="${OPENPLANE_HOST:-http://localhost:3000}"
+HOST="${OPENBEAM_HOST:-http://localhost:3000}"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUTPUT_DIR="${ROOT_DIR}/internal/openapi"
-SPEC_FILE="${OUTPUT_DIR}/openplane.openapi.json"
+SPEC_FILE="${OUTPUT_DIR}/openbeam.openapi.json"
 
 mkdir -p "${OUTPUT_DIR}"
 

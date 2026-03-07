@@ -5,7 +5,7 @@ description: Session-based auth, API keys with Argon2 hashing, and OAuth2 flows 
 
 # Authentication
 
-OpenPlane supports three authentication methods: session-based auth for browser users, API keys for programmatic access, and OAuth2 for both user login and connector authorization.
+OpenBeam supports three authentication methods: session-based auth for browser users, API keys for programmatic access, and OAuth2 for both user login and connector authorization.
 
 ## Session-Based Auth
 
@@ -40,7 +40,7 @@ const token = randomBytes(32).toString("hex");
 
 | Property | Value | Purpose |
 |----------|-------|---------|
-| `name` | `openplane-session` | Session identifier |
+| `name` | `openbeam-session` | Session identifier |
 | `httpOnly` | `true` | Prevents JavaScript access (XSS mitigation) |
 | `secure` | `true` | Cookie only sent over HTTPS |
 | `sameSite` | `lax` | Protects against CSRF while allowing top-level navigations |
@@ -75,7 +75,7 @@ op_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 │  │    │
 │  │    └── 32 random bytes (hex-encoded)
 │  └─────── environment: "live" or "test"
-└────────── prefix: "op" (OpenPlane)
+└────────── prefix: "op" (OpenBeam)
 ```
 
 The full key is shown once at creation time and never stored in plaintext. Only the prefix (`op_live_`) and an Argon2 hash of the full key are persisted.
@@ -224,7 +224,7 @@ Every API request passes through authentication middleware that determines the a
 
 ```text
 1. Check for Authorization header (Bearer token → API key)
-2. Check for openplane-session cookie (→ session auth)
+2. Check for openbeam-session cookie (→ session auth)
 3. No credentials → 401 Unauthorized
 ```
 

@@ -1,6 +1,6 @@
 "use client";
 
-import type { SpatialAnnotation } from "@openplane/types/canvas";
+import type { SpatialAnnotation } from "@openbeam/types/canvas";
 import { create, type StateCreator } from "zustand";
 import { immer } from "zustand/middleware/immer";
 

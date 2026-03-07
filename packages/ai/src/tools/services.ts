@@ -706,6 +706,159 @@ export interface ToolServices {
     ) => Promise<GenerateWorkspaceSqlResult>;
   };
 
+  controlAgents?: {
+    list: (params: { teamId: string; limit?: number }) => Promise<unknown[]>;
+    get: (params: {
+      teamId: string;
+      agentId: string;
+    }) => Promise<unknown | null>;
+    wake: (params: {
+      teamId: string;
+      agentId: string;
+      reason: string;
+      payload?: Record<string, unknown>;
+    }) => Promise<{ requestId: string; accepted: boolean }>;
+  };
+
+  controlIssues?: {
+    list: (params: {
+      teamId: string;
+      limit?: number;
+      status?: string;
+    }) => Promise<unknown[]>;
+    create: (params: {
+      teamId: string;
+      title: string;
+      priority?: string;
+      [key: string]: unknown;
+    }) => Promise<{ id: string; title: string }>;
+    update: (params: {
+      teamId: string;
+      issueId: string;
+      [key: string]: unknown;
+    }) => Promise<unknown | null>;
+    comment: (params: {
+      teamId: string;
+      issueId: string;
+      body: string;
+    }) => Promise<{ id: string; body: string }>;
+    checkout: (params: {
+      teamId: string;
+      issueId: string;
+      agentId?: string;
+    }) => Promise<{ success: boolean }>;
+  };
+
+  controlApprovals?: {
+    list: (params: { teamId: string; status?: string }) => Promise<unknown[]>;
+    request: (params: {
+      teamId: string;
+      action: string;
+      reason: string;
+      metadata?: Record<string, unknown>;
+      expiresInMinutes?: number;
+    }) => Promise<{ id: string; status: string }>;
+    respond: (params: {
+      teamId: string;
+      approvalId: string;
+      approved: boolean;
+      reason?: string;
+    }) => Promise<{ id: string; status: string } | null>;
+  };
+
+  controlCosts?: {
+    record: (params: {
+      teamId: string;
+      agentId: string;
+      provider: string;
+      costCents: number;
+      [key: string]: unknown;
+    }) => Promise<{ id: string; costCents: number }>;
+    query: (params: {
+      teamId: string;
+      periodDays?: number;
+      agentId?: string;
+    }) => Promise<{ totalCents: number; entries: unknown[] }>;
+  };
+
+  controlGoals?: {
+    list: (params: { teamId: string }) => Promise<unknown[]>;
+    get: (params: {
+      teamId: string;
+      goalId: string;
+    }) => Promise<unknown | null>;
+  };
+
+  controlProjects?: {
+    list: (params: { teamId: string; limit?: number }) => Promise<unknown[]>;
+  };
+
+  controlMemory?: {
+    read: (params: {
+      teamId: string;
+      agentId?: string;
+      category: string;
+      name: string;
+    }) => Promise<string | null>;
+    write: (params: {
+      teamId: string;
+      agentId?: string;
+      category: string;
+      name: string;
+      content: string;
+      append?: boolean;
+    }) => Promise<void>;
+  };
+
+  controlKnowledge?: {
+    query: (params: {
+      teamId: string;
+      path?: string;
+    }) => Promise<{ content: string | null; files?: string[] }>;
+    store: (params: {
+      teamId: string;
+      path: string;
+      content: string;
+      append?: boolean;
+      authorAgentId?: string;
+    }) => Promise<void>;
+  };
+
+  controlArtifacts?: {
+    create: (params: {
+      teamId: string;
+      agentId?: string;
+      title: string;
+      contentType: string;
+      content: string;
+      issueId?: string;
+      projectId?: string;
+      metadata?: Record<string, unknown>;
+    }) => Promise<{ id: string; title: string; url: string }>;
+  };
+
+  controlProgress?: {
+    evaluate: (params: {
+      teamId: string;
+      agentId?: string;
+      issueId?: string;
+      completionPercent: number;
+      summary: string;
+      remainingWork?: string[];
+      blockers?: string[];
+      confidence?: string;
+    }) => Promise<unknown>;
+    replan: (params: {
+      teamId: string;
+      agentId?: string;
+      issueId?: string;
+      currentPlan: string;
+      reason: string;
+      proposedPlan: string;
+      estimatedImpact?: string;
+    }) => Promise<unknown>;
+  };
+
   voice?: {
     startDictation: (params: {
       userId: string;
@@ -831,5 +984,5 @@ export function createUnimplementedServices(): ToolServices {
       getSchema: notImplemented("workspace.getSchema"),
       generateSql: notImplemented("workspace.generateSql"),
     },
-  };
+  } satisfies ToolServices;
 }

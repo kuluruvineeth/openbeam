@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@openplane/ui";
+import { cn } from "@openbeam/ui";
 import { cva } from "class-variance-authority";
 import { useMemo } from "react";
 import type { DiffLine, DiffSegment } from "../types";

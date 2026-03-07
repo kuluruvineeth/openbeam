@@ -5,7 +5,7 @@ description: SQLite foundation, config management, task scheduling, Merkle tree 
 
 # Core Infrastructure
 
-`@openplane/edge-core` provides the foundational infrastructure every edge node needs. SQLite for storage, config management for tier-aware behavior, a task scheduler with cron and retry, Merkle tree sync for cloud reconciliation, and health aggregation for fleet monitoring.
+`@openbeam/edge-core` provides the foundational infrastructure every edge node needs. SQLite for storage, config management for tier-aware behavior, a task scheduler with cron and retry, Merkle tree sync for cloud reconciliation, and health aggregation for fleet monitoring.
 
 ```typescript
 import {
@@ -22,7 +22,7 @@ import {
   SQLiteKVStore,
   SQLitePubSub,
   SQLiteLock,
-} from "@openplane/edge-core";
+} from "@openbeam/edge-core";
 ```
 
 ## SQLite Foundation
@@ -30,7 +30,7 @@ import {
 All edge data lives in a single SQLite database running in WAL (Write-Ahead Logging) mode for concurrent read access.
 
 ```typescript
-import { openEdgeDatabase } from "@openplane/edge-core";
+import { openEdgeDatabase } from "@openbeam/edge-core";
 
 const db = openEdgeDatabase("./data/edge.db");
 ```
@@ -58,7 +58,7 @@ db.exec("PRAGMA journal_mode = WAL");
 `EdgeConfigManager` persists node configuration to SQLite and notifies listeners on changes.
 
 ```typescript
-import { EdgeConfigManager } from "@openplane/edge-core";
+import { EdgeConfigManager } from "@openbeam/edge-core";
 
 const config = new EdgeConfigManager(db);
 ```
@@ -122,7 +122,7 @@ const config = new EdgeConfigManager(db);
 
 ### EdgeConfig Schema
 
-The full config shape, defined in `@openplane/types/edge/config`:
+The full config shape, defined in `@openbeam/types/edge/config`:
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -141,7 +141,7 @@ The full config shape, defined in `@openplane/types/edge/config`:
 Feature flags are determined by tier. No runtime toggle -- the hardware tier dictates capabilities.
 
 ```typescript
-import { getFeatureFlags } from "@openplane/edge-core";
+import { getFeatureFlags } from "@openbeam/edge-core";
 
 const flags = getFeatureFlags("performance");
 
@@ -169,7 +169,7 @@ flags.fl;             // false (enterprise only)
 SQLite-backed task queue with priority ordering, cron scheduling, exponential backoff retry, and dead letter queue.
 
 ```typescript
-import { EdgeTaskScheduler } from "@openplane/edge-core";
+import { EdgeTaskScheduler } from "@openbeam/edge-core";
 
 const scheduler = new EdgeTaskScheduler(db);
 ```
@@ -254,7 +254,7 @@ scheduler.stop();
 BLAKE3-based Merkle tree for efficient sync reconciliation. Compare two trees to find exactly which documents differ.
 
 ```typescript
-import { MerkleTree } from "@openplane/edge-core";
+import { MerkleTree } from "@openbeam/edge-core";
 
 const local = new MerkleTree();
 local.insert("doc-1", "checksum-abc");
@@ -301,7 +301,7 @@ const restored = MerkleTree.deserialize(serialized);
 Track per-connector sync progress. Persisted to SQLite so sync resumes after restarts.
 
 ```typescript
-import { CursorManager } from "@openplane/edge-core";
+import { CursorManager } from "@openbeam/edge-core";
 
 const cursors = new CursorManager(db);
 
@@ -328,7 +328,7 @@ cursors.deleteCursor("slack-001");
 Priority queue for outbound events. Events queue locally when offline and drain when connectivity returns.
 
 ```typescript
-import { StoreAndForwardQueue } from "@openplane/edge-core";
+import { StoreAndForwardQueue } from "@openbeam/edge-core";
 
 const queue = new StoreAndForwardQueue(db, 100); // 100 MB max
 ```
@@ -384,7 +384,7 @@ const queue = new StoreAndForwardQueue(db, 100); // 100 MB max
 Automatically determine sync strategy based on measured network bandwidth.
 
 ```typescript
-import { detectBandwidthPolicy } from "@openplane/edge-core";
+import { detectBandwidthPolicy } from "@openbeam/edge-core";
 
 const policy = detectBandwidthPolicy(estimatedKbps);
 
@@ -407,7 +407,7 @@ console.log(policy.compressionEnabled); // whether to compress payloads
 LRU cache with TTL, max entries, and max size enforcement.
 
 ```typescript
-import { SQLiteCache } from "@openplane/edge-core";
+import { SQLiteCache } from "@openbeam/edge-core";
 
 const cache = new SQLiteCache(db, {
   tableName: "search_cache",
@@ -428,7 +428,7 @@ const stats = cache.stats(); // { entries: number, sizeMb: number }
 Key-value store with optional TTL per key.
 
 ```typescript
-import { SQLiteKVStore } from "@openplane/edge-core";
+import { SQLiteKVStore } from "@openbeam/edge-core";
 
 const kv = new SQLiteKVStore(db, "app_state");
 
@@ -449,7 +449,7 @@ kv.clear();
 In-process publish/subscribe for decoupled component communication.
 
 ```typescript
-import { SQLitePubSub } from "@openplane/edge-core";
+import { SQLitePubSub } from "@openbeam/edge-core";
 
 const pubsub = new SQLitePubSub();
 
@@ -470,7 +470,7 @@ pubsub.channels(); // list active channels
 SQLite-backed advisory locks with TTL. Prevents concurrent operations on the same resource.
 
 ```typescript
-import { SQLiteLock } from "@openplane/edge-core";
+import { SQLiteLock } from "@openbeam/edge-core";
 
 const locks = new SQLiteLock(db);
 

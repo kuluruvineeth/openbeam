@@ -1,6 +1,6 @@
 "use client";
 
-import type { CitationStyle } from "@openplane/types/canvas";
+import type { CitationStyle } from "@openbeam/types/canvas";
 import { memo, type ReactNode } from "react";
 import { Icons } from "../../icons";
 import { SelectionCard } from "../../selection-card";

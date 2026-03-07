@@ -1,6 +1,6 @@
 "use client";
 
-import type { StepDetail } from "@openplane/types/canvas/execution-ui";
+import type { StepDetail } from "@openbeam/types/canvas/execution-ui";
 import { forwardRef } from "react";
 import { cn } from "../../utils/cn";
 import { formatDurationPrecise } from "../../utils/format";

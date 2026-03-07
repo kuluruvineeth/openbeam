@@ -1,7 +1,7 @@
 services:
   server:
-    image: 'ghcr.io/kuluruvineeth/openplane-server:latest'
-    container_name: openplane-server
+    image: 'ghcr.io/kuluruvineeth/openbeam-server:latest'
+    container_name: openbeam-server
     environment:
       - NODE_ENV=production
       - PORT=3000
@@ -49,11 +49,11 @@ services:
           cpus: '1.0'
     networks:
       - default
-      - openplane
+      - openbeam
 
   web:
-    image: 'ghcr.io/kuluruvineeth/openplane-web:latest'
-    container_name: openplane-web
+    image: 'ghcr.io/kuluruvineeth/openbeam-web:latest'
+    container_name: openbeam-web
     environment:
       - NODE_ENV=production
       - PORT=3001
@@ -82,11 +82,11 @@ services:
           cpus: '1.0'
     networks:
       - default
-      - openplane
+      - openbeam
 
   website:
-    image: 'ghcr.io/kuluruvineeth/openplane-website:latest'
-    container_name: openplane-website
+    image: 'ghcr.io/kuluruvineeth/openbeam-website:latest'
+    container_name: openbeam-website
     environment:
       - NODE_ENV=production
       - PORT=3002
@@ -109,11 +109,11 @@ services:
           cpus: '0.5'
     networks:
       - default
-      - openplane
+      - openbeam
 
   worker:
-    image: 'ghcr.io/kuluruvineeth/openplane-worker:latest'
-    container_name: openplane-worker
+    image: 'ghcr.io/kuluruvineeth/openbeam-worker:latest'
+    container_name: openbeam-worker
     environment:
       - NODE_ENV=production
       - DATABASE_URL=${DATABASE_URL}
@@ -155,11 +155,11 @@ services:
           cpus: '2.0'
     networks:
       - default
-      - openplane
+      - openbeam
 
   engine-cpu:
-    image: 'ghcr.io/kuluruvineeth/openplane-engine:latest'
-    container_name: openplane-engine-cpu
+    image: 'ghcr.io/kuluruvineeth/openbeam-engine:latest'
+    container_name: openbeam-engine-cpu
     environment:
       - ENVIRONMENT=production
       - LOG_LEVEL=INFO
@@ -183,10 +183,10 @@ services:
           cpus: '2.0'
     networks:
       - default
-      - openplane
+      - openbeam
 
 networks:
   default:
-    name: openplane-apps
-  openplane:
+    name: openbeam-apps
+  openbeam:
     external: true

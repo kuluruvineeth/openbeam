@@ -1,4 +1,4 @@
-import type { ExecutionStatus } from "@openplane/types/canvas";
+import type { ExecutionStatus } from "@openbeam/types/canvas";
 
 export interface SagaStepDefinition<TInput = unknown, TOutput = unknown> {
   name: string;

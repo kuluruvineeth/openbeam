@@ -12,6 +12,6 @@ export {
   type DaemonTestContext,
 } from "./daemon-test-context";
 export {
-  createTestOpenPlaneDaemon,
-  type TestOpenPlaneDaemon,
-} from "./openplane-daemon";
+  createTestOpenBeamDaemon,
+  type TestOpenBeamDaemon,
+} from "./openbeam-daemon";

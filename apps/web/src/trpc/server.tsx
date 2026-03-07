@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { AppRouter } from "@openplane/api/routers/index";
+import type { AppRouter } from "@openbeam/api/routers/index";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { createTRPCClient, httpBatchLink, loggerLink } from "@trpc/client";
 import {

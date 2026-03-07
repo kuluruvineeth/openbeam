@@ -7,7 +7,7 @@ on:
       - "apps/sandbox-gateway/**"
       - "packages/sandbox/**"
       - "k8s/infra/daytona/**"
-      - "k8s/charts/openplane/**"
+      - "k8s/charts/openbeam/**"
       - "scripts/sandbox/**"
       - ".github/workflows/sandbox-k8s-smoke.yml"
   push:
@@ -16,7 +16,7 @@ on:
       - "apps/sandbox-gateway/**"
       - "packages/sandbox/**"
       - "k8s/infra/daytona/**"
-      - "k8s/charts/openplane/**"
+      - "k8s/charts/openbeam/**"
       - "scripts/sandbox/**"
 
 permissions:
@@ -60,11 +60,11 @@ jobs:
             --set-string services.runner.env.SERVER_URL=http://daytona-api.daytona.svc.cluster.local:3000/api \
             > /dev/null
 
-      - name: Validate OpenPlane umbrella chart
+      - name: Validate OpenBeam umbrella chart
         run: |
-          helm dependency build k8s/charts/openplane
-          helm lint k8s/charts/openplane
-          helm template openplane k8s/charts/openplane --namespace openplane > /dev/null
+          helm dependency build k8s/charts/openbeam
+          helm lint k8s/charts/openbeam
+          helm template openbeam k8s/charts/openbeam --namespace openbeam > /dev/null
 
       - name: Deploy sandbox gateway to kind
         env:

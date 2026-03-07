@@ -5,7 +5,7 @@ description: Container topology, network architecture, resource requirements, an
 
 # Deployment
 
-OpenPlane runs as Docker containers split into two compose files: infrastructure services and application services. This separation lets you scale and update apps independently from data stores.
+OpenBeam runs as Docker containers split into two compose files: infrastructure services and application services. This separation lets you scale and update apps independently from data stores.
 
 <ExcalidrawViewer
   src="/diagrams/excalidraw/deployment-topology.excalidraw"
@@ -19,10 +19,10 @@ OpenPlane runs as Docker containers split into two compose files: infrastructure
 
 | Container | Image | Port | Runtime | Health check |
 |-----------|-------|------|---------|-------------|
-| **server** | `openplane-server` | `:3000` | Hono on Bun | `GET /` |
-| **web** | `openplane-web` | `:3001` | Next.js 16 | `GET /` |
-| **worker** | `openplane-worker` | `:9092` (health), `:9091` (metrics) | Temporal Worker on Node.js | `GET /health` |
-| **engine-cpu** | `openplane-engine` | `:8000` | FastAPI on Python | `GET /v1/health` |
+| **server** | `openbeam-server` | `:3000` | Hono on Bun | `GET /` |
+| **web** | `openbeam-web` | `:3001` | Next.js 16 | `GET /` |
+| **worker** | `openbeam-worker` | `:9092` (health), `:9091` (metrics) | Temporal Worker on Node.js | `GET /health` |
+| **engine-cpu** | `openbeam-engine` | `:8000` | FastAPI on Python | `GET /v1/health` |
 
 ### Infrastructure containers
 
@@ -50,7 +50,7 @@ Two Docker networks separate infrastructure from application traffic:
 
 ```text
 ┌─────────────────────────────────────────────────────────┐
-│  openplane (infrastructure network)                     │
+│  openbeam (infrastructure network)                     │
 │                                                         │
 │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐  │
 │  │ postgres │ │  redis   │ │  vespa   │ │ temporal │  │
@@ -63,7 +63,7 @@ Two Docker networks separate infrastructure from application traffic:
 └──────────────────────┬──────────────────────────────────┘
                        │
 ┌──────────────────────┼──────────────────────────────────┐
-│  openplane-apps      │ (application network)            │
+│  openbeam-apps      │ (application network)            │
 │                      │                                  │
 │  ┌──────────┐ ┌──────┴───┐ ┌──────────┐ ┌──────────┐  │
 │  │   web    │ │  server  │ │  worker  │ │ engine   │  │
@@ -72,7 +72,7 @@ Two Docker networks separate infrastructure from application traffic:
 └─────────────────────────────────────────────────────────┘
 ```
 
-Application containers join both networks. They reach infrastructure services by container name on the `openplane` network (e.g., `redis:6379`, `temporal:7233`). Infrastructure ports are bound to `127.0.0.1` only, keeping them off the public interface.
+Application containers join both networks. They reach infrastructure services by container name on the `openbeam` network (e.g., `redis:6379`, `temporal:7233`). Infrastructure ports are bound to `127.0.0.1` only, keeping them off the public interface.
 
 ### Internal DNS resolution
 
@@ -220,7 +220,7 @@ Vespa scales by adding content nodes. Each node holds a partition of the documen
 
 ```bash
 # Check current document count
-curl http://localhost:8280/document/v1/openplane/generic_document/docid/?cluster=openplane_content&wantedDocumentCount=0
+curl http://localhost:8280/document/v1/openbeam/generic_document/docid/?cluster=openbeam_content&wantedDocumentCount=0
 ```
 
 Add content nodes when:

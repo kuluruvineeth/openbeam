@@ -2,7 +2,7 @@ import type {
   ExecutionPlan,
   ExecutionPlanNode,
   ExecutionTrace,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import type {
   CanvasApprovalSignalPayload,
   CanvasInputSignalPayload,
@@ -16,8 +16,8 @@ import type {
   UpdateCanvasExecutionInput,
   UpdateCanvasExecutionStepInput,
   UpdateCanvasExecutionStepOutput,
-} from "@openplane/types/temporal";
-import type { AgentCanvasExecutionInput } from "@openplane/types/temporal/workflows";
+} from "@openbeam/types/temporal";
+import type { AgentCanvasExecutionInput } from "@openbeam/types/temporal/workflows";
 import type { ExecutionContext } from "../utils/execution";
 
 export interface NodeActivities {

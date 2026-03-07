@@ -3,7 +3,7 @@
 import type {
   TimelineData,
   TimelineStep,
-} from "@openplane/types/canvas/timeline";
+} from "@openbeam/types/canvas/timeline";
 import { useCallback, useEffect, useRef } from "react";
 import {
   useExecutionReplayState,

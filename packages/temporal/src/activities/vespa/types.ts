@@ -1,4 +1,4 @@
-import type { GenericDocument } from "@openplane/vespa";
+import type { GenericDocument } from "@openbeam/vespa";
 
 export interface BulkIndexInput {
   documents: GenericDocument[];

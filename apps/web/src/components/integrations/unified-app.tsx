@@ -6,7 +6,7 @@ import {
   AuthType,
   type ConnectorType,
   type UnifiedApp,
-} from "@openplane/integrations";
+} from "@openbeam/integrations";
 import {
   Button,
   Card,
@@ -19,7 +19,7 @@ import {
   Tabs,
   TabsList,
   TabsTrigger,
-} from "@openplane/ui";
+} from "@openbeam/ui";
 import Link from "next/link";
 import { parseAsBoolean, parseAsString, useQueryStates } from "nuqs";
 import { useEffect, useMemo, useState } from "react";
@@ -357,12 +357,12 @@ export function UnifiedAppComponent({ app }: UnifiedAppProps) {
 
             <div className="mt-10 flex items-center justify-between border-t pt-5 pb-4">
               <p className="text-[10px] text-muted-foreground/60">
-                Secured by OpenPlane
+                Secured by OpenBeam
               </p>
               <div className="flex gap-4">
                 <Link
                   className="text-[10px] text-muted-foreground transition-colors hover:text-foreground"
-                  href="mailto:support@openplane.tech"
+                  href="mailto:support@openbeam.work"
                 >
                   Report issue
                 </Link>

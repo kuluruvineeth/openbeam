@@ -1,4 +1,4 @@
-import { type ContextOrchestrator, toolRegistry } from "@openplane/ai";
+import { type ContextOrchestrator, toolRegistry } from "@openbeam/ai";
 import { logger } from "../lib/logger";
 import { createToolServices, type ToolServicesOptions } from "./tool-binder";
 

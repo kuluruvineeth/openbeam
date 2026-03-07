@@ -16,7 +16,7 @@ import {
   Textarea,
   useFormContext,
   useWatch,
-} from "@openplane/ui";
+} from "@openbeam/ui";
 import type { HTMLAttributes } from "react";
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";

@@ -54,7 +54,7 @@ class TestConnectionStrings:
         assert "mongodb+srv" not in result.cleaned
 
     def test_postgresql_uri(self, preprocessor: TextPreprocessor) -> None:
-        text = "Database: postgresql://localhost:5432/openplane"
+        text = "Database: postgresql://localhost:5432/openbeam"
         result = preprocessor.clean(text)
         assert "postgresql://" not in result.cleaned
 

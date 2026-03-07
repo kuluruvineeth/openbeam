@@ -1,4 +1,4 @@
-import type { TemplateSyntax, TemplateVariable } from "@openplane/types/canvas";
+import type { TemplateSyntax, TemplateVariable } from "@openbeam/types/canvas";
 
 const PREFIX_PATTERN = /^[@#/^]/;
 const SPLIT_PATTERN = /[\s.]/;

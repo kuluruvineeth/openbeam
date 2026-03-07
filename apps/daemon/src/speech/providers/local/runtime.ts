@@ -1,6 +1,6 @@
 import type { Logger } from "pino";
 
-import type { OpenPlaneSpeechConfig } from "../../../bootstrap";
+import type { OpenBeamSpeechConfig } from "../../../bootstrap";
 import type {
   SpeechToTextProvider,
   TextToSpeechProvider,
@@ -55,11 +55,11 @@ export type InitializedLocalSpeech = {
 };
 
 function buildModelDownloadHint(modelId: LocalSpeechModelId): string {
-  return `Use 'openplane speech download --model ${modelId}' to download this model.`;
+  return `Use 'openbeam speech download --model ${modelId}' to download this model.`;
 }
 
 function resolveConfiguredLocalModels(
-  speechConfig: OpenPlaneSpeechConfig | null
+  speechConfig: OpenBeamSpeechConfig | null
 ): ResolvedLocalModels {
   return {
     dictationLocalSttModel: LocalSttModelIdSchema.parse(
@@ -75,7 +75,7 @@ function resolveConfiguredLocalModels(
 }
 
 export function getLocalSpeechAvailability(
-  speechConfig: OpenPlaneSpeechConfig | null
+  speechConfig: OpenBeamSpeechConfig | null
 ): LocalSpeechAvailability {
   const localConfig = speechConfig?.local ?? null;
   return {
@@ -189,7 +189,7 @@ async function createLocalSttEngine(params: {
 
 export async function initializeLocalSpeechServices(params: {
   providers: RequestedSpeechProviders;
-  speechConfig: OpenPlaneSpeechConfig | null;
+  speechConfig: OpenBeamSpeechConfig | null;
   logger: Logger;
 }): Promise<InitializedLocalSpeech> {
   const { providers, logger, speechConfig } = params;
@@ -227,8 +227,8 @@ export async function initializeLocalSpeechServices(params: {
           modelsDir: localConfig.modelsDir,
           modelIds: requiredLocalModelIds,
           hint:
-            "Use `openplane speech models` to inspect status and " +
-            "`openplane speech download --model <MODEL_ID>` to fetch missing models.",
+            "Use `openbeam speech models` to inspect status and " +
+            "`openbeam speech download --model <MODEL_ID>` to fetch missing models.",
         },
         "Local speech model bootstrap failed"
       );

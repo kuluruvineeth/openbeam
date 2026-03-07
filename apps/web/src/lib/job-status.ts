@@ -47,7 +47,7 @@ export type JobStatusConfig = {
 const STATUS_STYLES = {
   active: "bg-foreground/[0.04] text-foreground/70",
   success:
-    "bg-openplane-green/10 text-openplane-green dark:text-openplane-green/90",
+    "bg-openbeam-green/10 text-openbeam-green dark:text-openbeam-green/90",
   error: "bg-destructive/10 text-destructive/90",
   muted: "bg-foreground/[0.03] text-foreground/40",
 } as const;

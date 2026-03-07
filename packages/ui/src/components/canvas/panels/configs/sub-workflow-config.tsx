@@ -3,7 +3,7 @@
 import type {
   SubWorkflowInputMode,
   SubWorkflowNodeConfig,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { cva } from "class-variance-authority";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { cn } from "../../../../utils";

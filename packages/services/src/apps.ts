@@ -9,12 +9,12 @@ import {
   updateConnectorConfig,
   updateConnectorResourceSync,
   upsertConnector,
-} from "@openplane/db";
+} from "@openbeam/db";
 import {
   appStore,
   type SettingValue,
   type UnifiedApp,
-} from "@openplane/integrations";
+} from "@openbeam/integrations";
 import {
   type ApiAccessAuthContext,
   getConnectorResourceTeamId,

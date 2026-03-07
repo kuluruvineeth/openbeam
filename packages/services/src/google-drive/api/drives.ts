@@ -3,7 +3,7 @@ import {
   type SharedDriveListResponse,
   SharedDriveListResponseSchema,
   SharedDriveSchema,
-} from "@openplane/types/services/connectors/google-drive";
+} from "@openbeam/types/services/connectors/google-drive";
 import { logger } from "../../lib/logger";
 import type { GoogleDriveClient } from "../client";
 

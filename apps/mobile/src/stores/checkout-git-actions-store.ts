@@ -91,7 +91,7 @@ function invalidateWorktreeList() {
   void queryClient.invalidateQueries({
     predicate: (query) =>
       Array.isArray(query.queryKey) &&
-      query.queryKey[0] === "openplaneWorktreeList",
+      query.queryKey[0] === "openbeamWorktreeList",
   });
 }
 
@@ -282,7 +282,7 @@ export const useCheckoutGitActionsStore =
         actionId: "archive-worktree",
         run: async () => {
           const client = resolveClient(serverId);
-          const payload = await client.archiveOpenPlaneWorktree({
+          const payload = await client.archiveOpenBeamWorktree({
             worktreePath,
           });
           if (payload.error) {

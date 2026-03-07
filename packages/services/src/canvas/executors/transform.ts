@@ -1,4 +1,4 @@
-import { TransformNodeConfigSchema } from "@openplane/types/canvas";
+import { TransformNodeConfigSchema } from "@openbeam/types/canvas";
 import { CanvasNodeExecutionError } from "../errors";
 import { evaluateExpression } from "../expression";
 import { resolveNodeConfig } from "../node-config";

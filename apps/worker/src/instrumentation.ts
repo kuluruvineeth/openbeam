@@ -7,7 +7,7 @@ import { config } from "dotenv";
 
 config();
 
-import { startTracing, stopTracing } from "@openplane/observability";
+import { startTracing, stopTracing } from "@openbeam/observability";
 import logger from "./utils/logger";
 
 let initialized = false;
@@ -19,7 +19,7 @@ export function initializeInstrumentation(): boolean {
   }
 
   tracingEnabled = startTracing({
-    serviceName: "openplane-worker",
+    serviceName: "openbeam-worker",
     enabled: process.env.OTEL_ENABLED !== "false",
     otlpEndpoint: process.env.OTEL_EXPORTER_OTLP_ENDPOINT,
     ignoreIncomingPaths: ["/health", "/metrics"],

@@ -5,7 +5,7 @@ import {
   ExtensionChatSubmitResponseSchema,
   type ExtensionRpcErrorResponse,
   ExtensionRpcErrorResponseSchema,
-} from "@openplane/types/services/extension/rpc";
+} from "@openbeam/types/services/extension/rpc";
 
 export const EXTENSION_CHAT_SUBMIT_PATH = "/api/v1/extensions/chat/submit";
 

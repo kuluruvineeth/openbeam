@@ -1,4 +1,4 @@
-import type { ConnectorActionsRegistry } from "@openplane/types/canvas";
+import type { ConnectorActionsRegistry } from "@openbeam/types/canvas";
 import { githubActionsRegistry } from "./github";
 import { gmailActionsRegistry } from "./gmail";
 import { googleDriveActionsRegistry } from "./google-drive";

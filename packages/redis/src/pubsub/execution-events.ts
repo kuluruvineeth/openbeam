@@ -1,5 +1,5 @@
-import type { ExecutionEvent } from "@openplane/types/canvas/execution-events";
-import { ExecutionEventSchema } from "@openplane/types/canvas/execution-events";
+import type { ExecutionEvent } from "@openbeam/types/canvas/execution-events";
+import { ExecutionEventSchema } from "@openbeam/types/canvas/execution-events";
 import { LRUCache } from "lru-cache";
 import type { RedisClientType } from "redis";
 import { getRedisClient } from "../client";

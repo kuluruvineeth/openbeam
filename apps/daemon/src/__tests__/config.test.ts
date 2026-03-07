@@ -8,7 +8,7 @@ import { loadConfig } from "../config";
 function createTempDir(): string {
   const dir = join(
     tmpdir(),
-    `openplane-loadcfg-test-${randomBytes(8).toString("hex")}`
+    `openbeam-loadcfg-test-${randomBytes(8).toString("hex")}`
   );
   mkdirSync(dir, { recursive: true });
   return dir;
@@ -51,12 +51,12 @@ describe("loadConfig", () => {
     expect(config.listen).toBe("0.0.0.0:9999");
   });
 
-  it("respects OPENPLANE_LISTEN env var", () => {
+  it("respects OPENBEAM_LISTEN env var", () => {
     const dir = createTempDir();
     tempDirs.push(dir);
 
     const config = loadConfig(dir, {
-      env: { OPENPLANE_LISTEN: "0.0.0.0:7777" },
+      env: { OPENBEAM_LISTEN: "0.0.0.0:7777" },
     });
     expect(config.listen).toBe("0.0.0.0:7777");
   });
@@ -66,7 +66,7 @@ describe("loadConfig", () => {
     tempDirs.push(dir);
 
     const config = loadConfig(dir, {
-      env: { OPENPLANE_LISTEN: "0.0.0.0:7777" },
+      env: { OPENBEAM_LISTEN: "0.0.0.0:7777" },
       cli: { listen: "0.0.0.0:8888" },
     });
     expect(config.listen).toBe("0.0.0.0:8888");
@@ -91,7 +91,7 @@ describe("loadConfig", () => {
     });
 
     const config = loadConfig(dir, {
-      env: { OPENPLANE_CORS_ORIGINS: "https://b.com,https://c.com" },
+      env: { OPENBEAM_CORS_ORIGINS: "https://b.com,https://c.com" },
     });
 
     expect(config.corsAllowedOrigins).toContain("https://a.com");
@@ -109,7 +109,7 @@ describe("loadConfig", () => {
     });
 
     const config = loadConfig(dir, {
-      env: { OPENPLANE_CORS_ORIGINS: "https://a.com" },
+      env: { OPENBEAM_CORS_ORIGINS: "https://a.com" },
     });
 
     const count = config.corsAllowedOrigins.filter(
@@ -135,8 +135,8 @@ describe("loadConfig", () => {
 
     const config = loadConfig(dir, {
       env: {
-        OPENPLANE_RELAY_ENDPOINT: "relay.custom.com:443",
-        OPENPLANE_RELAY_PUBLIC_ENDPOINT: "public.custom.com:443",
+        OPENBEAM_RELAY_ENDPOINT: "relay.custom.com:443",
+        OPENBEAM_RELAY_PUBLIC_ENDPOINT: "public.custom.com:443",
       },
     });
 
@@ -149,7 +149,7 @@ describe("loadConfig", () => {
     tempDirs.push(dir);
 
     const config = loadConfig(dir, {
-      env: { OPENPLANE_APP_BASE_URL: "https://custom.app" },
+      env: { OPENBEAM_APP_BASE_URL: "https://custom.app" },
     });
     expect(config.appBaseUrl).toBe("https://custom.app");
   });

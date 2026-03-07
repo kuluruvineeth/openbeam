@@ -1,7 +1,7 @@
 import {
   DigestDeliveryInputSchema,
   type DigestDeliveryOutput,
-} from "@openplane/types/temporal/workflows";
+} from "@openbeam/types/temporal/workflows";
 import { proxyActivities } from "@temporalio/workflow";
 import type { DatabaseActivities } from "../../activities/database/types";
 import type { SlackDigestActivities } from "../../activities/slack/types";

@@ -1,4 +1,4 @@
-import db, { getEmergingPatterns } from "@openplane/db";
+import db, { getEmergingPatterns } from "@openbeam/db";
 import type {
   EmergencePattern,
   LoadExistingPatternsInput,

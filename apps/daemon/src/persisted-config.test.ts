@@ -62,7 +62,7 @@ describe("PersistedConfigSchema agent provider runtime settings", () => {
       daemon: {
         nativeHelper: {
           enabled: true,
-          command: "/tmp/openplane-native-helper",
+          command: "/tmp/openbeam-native-helper",
           args: ["--capture-shortcuts"],
           rpcTimeoutMs: 8000,
         },
@@ -71,7 +71,7 @@ describe("PersistedConfigSchema agent provider runtime settings", () => {
 
     expect(parsed.daemon?.nativeHelper?.enabled).toBe(true);
     expect(parsed.daemon?.nativeHelper?.command).toBe(
-      "/tmp/openplane-native-helper"
+      "/tmp/openbeam-native-helper"
     );
     expect(parsed.daemon?.nativeHelper?.args).toEqual(["--capture-shortcuts"]);
     expect(parsed.daemon?.nativeHelper?.rpcTimeoutMs).toBe(8000);

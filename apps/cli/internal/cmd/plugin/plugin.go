@@ -5,13 +5,13 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/openplane/openplane/apps/cli/internal/api"
-	"github.com/openplane/openplane/apps/cli/internal/cmd/shared"
-	"github.com/openplane/openplane/apps/cli/internal/errs"
-	pluginruntime "github.com/openplane/openplane/apps/cli/internal/plugin"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/api"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/shared"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/errs"
+	pluginruntime "github.com/kuluruvineeth/openbeam/apps/cli/internal/plugin"
 )
 
-const pluginPrefix = "openplane"
+const pluginPrefix = "openbeam"
 
 func NewCommand(provider shared.RuntimeProvider) *cobra.Command {
 	command := &cobra.Command{

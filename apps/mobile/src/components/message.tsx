@@ -106,15 +106,15 @@ function useDisableOuterSpacing(disableOuterSpacing: boolean | undefined) {
   return disableOuterSpacing ?? contextValue;
 }
 
-const WEB_TOOLCALL_SHIMMER_KEYFRAME_ID = "openplane-toolcall-shimmer-keyframes";
-const WEB_TOOLCALL_SHIMMER_ANIMATION_NAME = "openplane-toolcall-shimmer";
+const WEB_TOOLCALL_SHIMMER_KEYFRAME_ID = "openbeam-toolcall-shimmer-keyframes";
+const WEB_TOOLCALL_SHIMMER_ANIMATION_NAME = "openbeam-toolcall-shimmer";
 const WEB_TOOLCALL_SHIMMER_KEYFRAME_CSS = `
   @keyframes ${WEB_TOOLCALL_SHIMMER_ANIMATION_NAME} {
     0% {
-      background-position: var(--openplane-shimmer-start, -200px) 0;
+      background-position: var(--openbeam-shimmer-start, -200px) 0;
     }
     100% {
-      background-position: var(--openplane-shimmer-end, 200px) 0;
+      background-position: var(--openbeam-shimmer-end, 200px) 0;
     }
   }
 `;
@@ -1525,8 +1525,8 @@ const ExpandableBadge = memo(function ExpandableBadge({
         WebkitBackgroundClip: "text",
         WebkitTextFillColor: "transparent",
         animation: `${WEB_TOOLCALL_SHIMMER_ANIMATION_NAME} ${shimmerDuration}s linear infinite`,
-        "--openplane-shimmer-start": `${webShimmerTrackStart - labelOffsetX}px`,
-        "--openplane-shimmer-end": `${webShimmerTrackEnd - labelOffsetX}px`,
+        "--openbeam-shimmer-start": `${webShimmerTrackStart - labelOffsetX}px`,
+        "--openbeam-shimmer-end": `${webShimmerTrackEnd - labelOffsetX}px`,
       } as never)
     : null;
 
@@ -1541,8 +1541,8 @@ const ExpandableBadge = memo(function ExpandableBadge({
         WebkitBackgroundClip: "text",
         WebkitTextFillColor: "transparent",
         animation: `${WEB_TOOLCALL_SHIMMER_ANIMATION_NAME} ${shimmerDuration}s linear infinite`,
-        "--openplane-shimmer-start": `${webShimmerTrackStart - secondaryOffsetX}px`,
-        "--openplane-shimmer-end": `${webShimmerTrackEnd - secondaryOffsetX}px`,
+        "--openbeam-shimmer-start": `${webShimmerTrackStart - secondaryOffsetX}px`,
+        "--openbeam-shimmer-end": `${webShimmerTrackEnd - secondaryOffsetX}px`,
       } as never)
     : null;
 

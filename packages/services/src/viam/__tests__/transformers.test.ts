@@ -7,7 +7,7 @@ import type {
   ViamMachine,
   ViamMLModel,
   ViamTransformContext,
-} from "@openplane/types/services/connectors/viam";
+} from "@openbeam/types/services/connectors/viam";
 import { transformCapture, transformCaptures } from "../transformers/capture";
 import {
   type ComponentTransformParams,

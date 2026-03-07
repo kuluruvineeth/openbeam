@@ -22,7 +22,7 @@ This folder defines the operational contract for metrics, logs, dashboards, and 
 - `request_id`
 
 ### Metric naming and labels
-- Metric prefix: `openplane_` for new metrics.
+- Metric prefix: `openbeam_` for new metrics.
 - Use units in names where relevant (`_seconds`, `_bytes`, `_total`).
 - Allowed labels: `service`, `env`, `route`, `method`, `status_code`, `component`, `connector_type`, `worker_type`.
 - Never use high-cardinality IDs as metric labels (`request_id`, `trace_id`, `user_id`, `team_id`, document IDs).
@@ -38,7 +38,7 @@ bun run observability:smoke
 ```
 - Generate metric stub:
 ```bash
-bun run observability:new-metric -- --name openplane_example_total --type counter --labels service,env --help "Example metric"
+bun run observability:new-metric -- --name openbeam_example_total --type counter --labels service,env --help "Example metric"
 ```
 - Generate log-event helper:
 ```bash

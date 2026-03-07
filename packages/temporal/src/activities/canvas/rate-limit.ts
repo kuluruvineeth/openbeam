@@ -1,9 +1,9 @@
-import { rateLimiter } from "@openplane/redis";
+import { rateLimiter } from "@openbeam/redis";
 import {
   type CheckRateLimitInput,
   CheckRateLimitInputSchema,
   type CheckRateLimitOutput,
-} from "@openplane/types/temporal";
+} from "@openbeam/types/temporal";
 
 export interface RateLimitActivities {
   checkRateLimit(input: CheckRateLimitInput): Promise<CheckRateLimitOutput>;

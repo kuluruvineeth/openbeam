@@ -24,7 +24,7 @@ SENSITIVE_KEY_TOKENS = (
     "refreshtoken",
 )
 
-_service_ctx: ContextVar[str] = ContextVar("service_name", default="openplane-engine")
+_service_ctx: ContextVar[str] = ContextVar("service_name", default="openbeam-engine")
 _env_ctx: ContextVar[str] = ContextVar("service_env", default="development")
 _version_ctx: ContextVar[str] = ContextVar("service_version", default="0.2.0")
 _request_id_ctx: ContextVar[str | None] = ContextVar("request_id", default=None)
@@ -191,7 +191,7 @@ def _redact_processor(
 def configure_logging(
     settings: BaseServiceSettings,
     *,
-    service_name: str = "openplane-engine",
+    service_name: str = "openbeam-engine",
 ) -> None:
     _service_ctx.set(service_name)
     _env_ctx.set(settings.environment)

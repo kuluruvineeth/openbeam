@@ -1,7 +1,7 @@
 import {
   FileProcessingInputSchema,
   type FileProcessingOutput,
-} from "@openplane/types/temporal/workflows";
+} from "@openbeam/types/temporal/workflows";
 import {
   executeChild,
   proxyActivities,

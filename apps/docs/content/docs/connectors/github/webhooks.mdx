@@ -5,7 +5,7 @@ description: Real-time updates from GitHub via webhooks.
 
 # Webhooks
 
-GitHub webhooks push events to OpenPlane when issues, pull requests, discussions, or releases change. This supplements the periodic polling sync with near-instant updates.
+GitHub webhooks push events to OpenBeam when issues, pull requests, discussions, or releases change. This supplements the periodic polling sync with near-instant updates.
 
 <Callout type="info">
   Webhook-based push sync is infrastructure-ready. The notification handler, signature verification, and event routing are implemented. Incremental polling remains the primary sync mechanism. Webhooks provide supplemental real-time awareness for supported event types.
@@ -39,7 +39,7 @@ When a webhook fires:
 
 ### 1. Set a Webhook Secret
 
-In OpenPlane, go to **Settings** then **Connectors** then **GitHub** and set a **Webhook Secret**. This secret is used to verify that incoming requests originate from GitHub.
+In OpenBeam, go to **Settings** then **Connectors** then **GitHub** and set a **Webhook Secret**. This secret is used to verify that incoming requests originate from GitHub.
 
 ### 2. Create the Webhook in GitHub
 
@@ -52,7 +52,7 @@ In OpenPlane, go to **Settings** then **Connectors** then **GitHub** and set a *
     |-------|-------|
     | Payload URL | `https://your-server.com/api/v1/webhooks/github/{connectorId}` |
     | Content type | `application/json` |
-    | Secret | Same value set in OpenPlane |
+    | Secret | Same value set in OpenBeam |
     | Events | Select **Let me select individual events** |
 
     3. Check: **Issues**, **Pull requests**, **Discussions**, **Pushes**, **Releases**
@@ -74,7 +74,7 @@ In OpenPlane, go to **Settings** then **Connectors** then **GitHub** and set a *
 Every incoming webhook request is verified using HMAC-SHA256.
 
 1. GitHub computes `sha256=HMAC(webhook_secret, request_body)` and sends it in the `X-Hub-Signature-256` header
-2. OpenPlane recomputes the signature using the stored webhook secret
+2. OpenBeam recomputes the signature using the stored webhook secret
 3. The signatures are compared using constant-time comparison (`crypto.timingSafeEqual`)
 4. Requests with invalid or missing signatures are rejected with `401`
 
@@ -85,7 +85,7 @@ X-GitHub-Event: issues
 ```
 
 <Callout type="warn">
-  The webhook secret must match exactly between GitHub and OpenPlane. If you rotate the secret in one place, update it in the other immediately to avoid rejected deliveries.
+  The webhook secret must match exactly between GitHub and OpenBeam. If you rotate the secret in one place, update it in the other immediately to avoid rejected deliveries.
 </Callout>
 
 ## Delivery Headers
@@ -115,7 +115,7 @@ For production deployments, enable both. Webhooks handle real-time updates; poll
 
 | Issue | Fix |
 |-------|-----|
-| Webhook returns 401 | Verify webhook secret matches in both GitHub and OpenPlane |
+| Webhook returns 401 | Verify webhook secret matches in both GitHub and OpenBeam |
 | Events not arriving | Check **Recent Deliveries** tab in GitHub webhook settings |
 | Duplicate processing | Normal -- deduplication by entity ID prevents duplicate documents |
 | Webhook delivery failed | GitHub retries failed deliveries automatically; check endpoint accessibility |

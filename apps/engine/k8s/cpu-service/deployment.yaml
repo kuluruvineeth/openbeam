@@ -2,11 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: engine-cpu
-  namespace: openplane-engine
+  namespace: openbeam-engine
   labels:
     app.kubernetes.io/name: engine-cpu
     app.kubernetes.io/component: cpu-service
-    app.kubernetes.io/part-of: openplane
+    app.kubernetes.io/part-of: openbeam
   annotations:
     kubernetes.io/description: "CPU service for document parsing, chunking, and LTR scoring"
 spec:
@@ -42,7 +42,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: engine-cpu
-          image: openplane/engine-cpu:latest
+          image: openbeam/engine-cpu:latest
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -54,7 +54,7 @@ spec:
             - name: CPU_WORKERS
               value: "4"
             - name: CPU_GPU_SERVICE_URL
-              value: "http://engine-gpu.openplane-engine.svc.cluster.local:8001"
+              value: "http://engine-gpu.openbeam-engine.svc.cluster.local:8001"
             - name: ENVIRONMENT
               value: "production"
             - name: LOG_LEVEL

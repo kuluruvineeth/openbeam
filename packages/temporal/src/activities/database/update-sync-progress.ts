@@ -1,6 +1,6 @@
-import type { Database } from "@openplane/db";
-import { updateSyncProgress, upsertSyncCursor } from "@openplane/db";
-import { type JobStatus, publishJobProgress } from "@openplane/redis";
+import type { Database } from "@openbeam/db";
+import { updateSyncProgress, upsertSyncCursor } from "@openbeam/db";
+import { type JobStatus, publishJobProgress } from "@openbeam/redis";
 import type { SyncStage, UpdateSyncProgressInput } from "./types";
 
 export interface UpdateSyncProgressDeps {

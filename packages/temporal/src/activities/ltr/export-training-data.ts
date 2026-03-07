@@ -1,4 +1,4 @@
-import db, { getTrainingDataForExport } from "@openplane/db";
+import db, { getTrainingDataForExport } from "@openbeam/db";
 import type {
   ExportTrainingDataInput,
   ExportTrainingDataOutput,

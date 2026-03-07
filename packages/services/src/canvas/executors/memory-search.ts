@@ -1,8 +1,8 @@
-import { EmbeddingService } from "@openplane/ai";
+import { EmbeddingService } from "@openbeam/ai";
 import {
   type MemorySearchMode,
   MemorySearchNodeConfigSchema,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { rerankerService } from "../../search/reranking/service";
 import { CanvasNodeExecutionError } from "../errors";
 import { listMemoryEntries, type StoredMemoryEntry } from "../memory-store";

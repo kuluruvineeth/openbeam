@@ -1,6 +1,6 @@
 "use client";
 
-import { appStore } from "@openplane/integrations";
+import { appStore } from "@openbeam/integrations";
 import {
   ScrollArea,
   Sheet,
@@ -11,7 +11,7 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@openplane/ui";
+} from "@openbeam/ui";
 import { Icons } from "@/components/icons";
 import { AppLogo } from "@/components/integrations/app-logo";
 import {

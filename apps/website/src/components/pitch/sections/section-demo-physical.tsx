@@ -34,7 +34,7 @@ export function SectionDemoPhysical() {
             poster="/images/examples/a3.png"
           >
             <source
-              src="/images/examples/openplane_agents.mp4"
+              src="/images/examples/openbeam_agents.mp4"
               type="video/mp4"
             />
           </video>

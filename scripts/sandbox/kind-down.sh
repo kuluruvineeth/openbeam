@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CLUSTER_NAME="${KIND_CLUSTER_NAME:-openplane-sandbox}"
+CLUSTER_NAME="${KIND_CLUSTER_NAME:-openbeam-sandbox}"
 
 if ! command -v kind >/dev/null 2>&1; then
   echo "kind is required"

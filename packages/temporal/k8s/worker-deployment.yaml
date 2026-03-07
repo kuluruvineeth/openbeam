@@ -2,11 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: canvas-worker
-  namespace: openplane
+  namespace: openbeam
   labels:
     app.kubernetes.io/name: canvas-worker
     app.kubernetes.io/component: temporal-worker
-    app.kubernetes.io/part-of: openplane
+    app.kubernetes.io/part-of: openbeam
   annotations:
     kubernetes.io/description: "Temporal worker for canvas workflow execution"
 spec:
@@ -25,7 +25,7 @@ spec:
       labels:
         app.kubernetes.io/name: canvas-worker
         app.kubernetes.io/component: temporal-worker
-        app.kubernetes.io/part-of: openplane
+        app.kubernetes.io/part-of: openbeam
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "9464"
@@ -43,7 +43,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: worker
-          image: openplane/worker:latest
+          image: openbeam/worker:latest
           imagePullPolicy: IfNotPresent
           args:
             - "--worker-type=canvas"
@@ -174,11 +174,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: sync-worker
-  namespace: openplane
+  namespace: openbeam
   labels:
     app.kubernetes.io/name: sync-worker
     app.kubernetes.io/component: temporal-worker
-    app.kubernetes.io/part-of: openplane
+    app.kubernetes.io/part-of: openbeam
   annotations:
     kubernetes.io/description: "Temporal worker for connector sync workflow execution"
 spec:
@@ -197,7 +197,7 @@ spec:
       labels:
         app.kubernetes.io/name: sync-worker
         app.kubernetes.io/component: temporal-worker
-        app.kubernetes.io/part-of: openplane
+        app.kubernetes.io/part-of: openbeam
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "9464"
@@ -215,7 +215,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: worker
-          image: openplane/worker:latest
+          image: openbeam/worker:latest
           imagePullPolicy: IfNotPresent
           args:
             - "--worker-type=sync"
@@ -349,11 +349,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: agent-worker
-  namespace: openplane
+  namespace: openbeam
   labels:
     app.kubernetes.io/name: agent-worker
     app.kubernetes.io/component: temporal-worker
-    app.kubernetes.io/part-of: openplane
+    app.kubernetes.io/part-of: openbeam
   annotations:
     kubernetes.io/description: "Temporal worker for AI agent workflow execution"
 spec:
@@ -372,7 +372,7 @@ spec:
       labels:
         app.kubernetes.io/name: agent-worker
         app.kubernetes.io/component: temporal-worker
-        app.kubernetes.io/part-of: openplane
+        app.kubernetes.io/part-of: openbeam
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "9464"
@@ -390,7 +390,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: worker
-          image: openplane/worker:latest
+          image: openbeam/worker:latest
           imagePullPolicy: IfNotPresent
           args:
             - "--worker-type=agent"

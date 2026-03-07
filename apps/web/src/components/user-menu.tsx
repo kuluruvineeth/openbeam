@@ -6,7 +6,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@openplane/ui";
+} from "@openbeam/ui";
 import { useState } from "react";
 import { SignOut } from "@/components/sign-out";
 import { ThemeSwitch } from "@/components/theme-switch";

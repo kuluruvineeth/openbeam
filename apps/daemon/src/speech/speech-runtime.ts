@@ -2,10 +2,7 @@ import { stat } from "node:fs/promises";
 import { join } from "node:path";
 import type { Logger } from "pino";
 
-import type {
-  OpenPlaneOpenAIConfig,
-  OpenPlaneSpeechConfig,
-} from "../bootstrap";
+import type { OpenBeamOpenAIConfig, OpenBeamSpeechConfig } from "../bootstrap";
 import type { LocalSpeechModelId } from "./providers/local/config";
 import {
   ensureLocalSpeechModels,
@@ -58,7 +55,7 @@ export type SpeechReadinessSnapshot = {
 };
 
 function resolveRequestedSpeechProviders(
-  speechConfig: OpenPlaneSpeechConfig | null
+  speechConfig: OpenBeamSpeechConfig | null
 ): RequestedSpeechProviders {
   const fromConfig = speechConfig?.providers;
   if (fromConfig) {
@@ -329,8 +326,8 @@ export type InitializedSpeechRuntime = {
 
 export async function initializeSpeechRuntime(params: {
   logger: Logger;
-  openaiConfig?: OpenPlaneOpenAIConfig;
-  speechConfig?: OpenPlaneSpeechConfig;
+  openaiConfig?: OpenBeamOpenAIConfig;
+  speechConfig?: OpenBeamSpeechConfig;
 }): Promise<InitializedSpeechRuntime> {
   const logger = params.logger.child({ module: "speech-runtime" });
   const speechConfig = params.speechConfig ?? null;

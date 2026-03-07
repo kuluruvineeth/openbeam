@@ -68,7 +68,7 @@ export function AboutScreen() {
         <View style={styles.brandMark}>
           <Text style={styles.brandLetter}>O</Text>
         </View>
-        <Text style={styles.brandName}>OpenPlane</Text>
+        <Text style={styles.brandName}>OpenBeam</Text>
         <Text style={styles.brandVersion}>v{APP_VERSION}</Text>
       </View>
 
@@ -99,7 +99,7 @@ export function AboutScreen() {
           icon={<ExternalLink color="#6b7280" size={16} strokeWidth={2} />}
           label="Website"
           // biome-ignore lint/complexity/noVoid: fire-and-forget async call
-          onPress={() => void Linking.openURL("https://openplane.com")}
+          onPress={() => void Linking.openURL("https://openbeam.com")}
           type="action"
         />
         <SettingsDivider />
@@ -108,7 +108,7 @@ export function AboutScreen() {
           label="GitHub"
           onPress={() =>
             // biome-ignore lint/complexity/noVoid: fire-and-forget async call
-            void Linking.openURL("https://github.com/openplane/openplane")
+            void Linking.openURL("https://github.com/kuluruvineeth/openbeam")
           }
           type="action"
         />
@@ -119,7 +119,7 @@ export function AboutScreen() {
           onPress={() =>
             // biome-ignore lint/complexity/noVoid: fire-and-forget async call
             void Linking.openURL(
-              "https://github.com/openplane/openplane/blob/main/LICENSE"
+              "https://github.com/kuluruvineeth/openbeam/blob/main/LICENSE"
             )
           }
           type="action"
@@ -131,7 +131,7 @@ export function AboutScreen() {
           icon={<FileText color="#6b7280" size={16} strokeWidth={2} />}
           label="Privacy Policy"
           // biome-ignore lint/complexity/noVoid: fire-and-forget async call
-          onPress={() => void Linking.openURL("https://openplane.com/privacy")}
+          onPress={() => void Linking.openURL("https://openbeam.com/privacy")}
           type="action"
         />
         <SettingsDivider />
@@ -139,7 +139,7 @@ export function AboutScreen() {
           icon={<FileText color="#6b7280" size={16} strokeWidth={2} />}
           label="Terms of Service"
           // biome-ignore lint/complexity/noVoid: fire-and-forget async call
-          onPress={() => void Linking.openURL("https://openplane.com/terms")}
+          onPress={() => void Linking.openURL("https://openbeam.com/terms")}
           type="action"
         />
       </SettingsSection>

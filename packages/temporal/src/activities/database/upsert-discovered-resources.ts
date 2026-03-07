@@ -1,7 +1,7 @@
 import {
   type UpsertConnectorResourceInput,
   upsertManyConnectorResources,
-} from "@openplane/db";
+} from "@openbeam/db";
 import type { DatabaseActivityDependencies } from "./index";
 import type { UpsertDiscoveredResourcesInput } from "./types";
 

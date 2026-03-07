@@ -3,7 +3,7 @@ bind_addresses:
   - ""
 
 keys:
-  openplane_voice: ${LIVEKIT_API_SECRET}
+  openbeam_voice: ${LIVEKIT_API_SECRET}
 
 rtc:
   port_range_start: 50000
@@ -14,7 +14,7 @@ rtc:
 
 turn:
   enabled: true
-  domain: turn.openplane.dev
+  domain: turn.openbeam.dev
   tls_port: 5349
   udp_port: 3478
 
@@ -25,8 +25,8 @@ room:
 
 webhook:
   urls:
-    - https://api.openplane.dev/webhooks/livekit
-  api_key: openplane_voice
+    - https://api.openbeam.dev/webhooks/livekit
+  api_key: openbeam_voice
 
 logging:
   level: info

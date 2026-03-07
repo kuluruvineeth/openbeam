@@ -13,8 +13,8 @@ import {
 import type { OAuthProvider } from "../lib/auth-types";
 import { useAuthStore } from "../stores/auth-store";
 
-const ONBOARDING_COMPLETE_KEY = "@openplane:onboarding-complete";
-const SELECTED_TEAM_KEY = "@openplane:selected-team";
+const ONBOARDING_COMPLETE_KEY = "@openbeam:onboarding-complete";
+const SELECTED_TEAM_KEY = "@openbeam:selected-team";
 
 export function useAuth() {
   const authState = useAuthStore((s) => s.authState);

@@ -34,7 +34,7 @@ describe("Knowledge E2E integration", () => {
             items: [
               {
                 id: "vespa-doc-1",
-                title: "Alice joins OpenPlane",
+                title: "Alice joins OpenBeam",
                 content: "Alice and Bob collaborate on ranking systems.",
               },
             ],
@@ -165,7 +165,7 @@ describe("Knowledge E2E integration", () => {
               },
               {
                 entityId: "e2",
-                entityName: "OpenPlane",
+                entityName: "OpenBeam",
                 entityType: "PROJECT",
                 documentId: "vespa-doc-1",
                 confidence: 0.9,

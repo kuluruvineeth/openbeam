@@ -1,6 +1,6 @@
 "use client";
 
-import type { StartNodeConfig } from "@openplane/types/canvas";
+import type { StartNodeConfig } from "@openbeam/types/canvas";
 import { Icons } from "../icons";
 
 export type TriggerTypeId = NonNullable<StartNodeConfig["triggerType"]>;

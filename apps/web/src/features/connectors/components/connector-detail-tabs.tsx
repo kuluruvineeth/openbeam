@@ -1,6 +1,6 @@
 "use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@openplane/ui";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@openbeam/ui";
 import { parseAsString, useQueryStates } from "nuqs";
 import { useCallback } from "react";
 import { Icons } from "@/components/icons";

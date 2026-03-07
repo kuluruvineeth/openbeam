@@ -58,7 +58,7 @@ function main(): void {
     process.exit(1);
   }
 
-  const requestedConfig = process.env.OPENPLANE_NATIVE_HELPER_BUILD_CONFIG;
+  const requestedConfig = process.env.OPENBEAM_NATIVE_HELPER_BUILD_CONFIG;
   const configuration = requestedConfig === "release" ? "release" : "debug";
 
   if (!existsSync(path.join(HELPER_DIR, "Package.swift"))) {
@@ -76,7 +76,7 @@ function main(): void {
     process.exit(1);
   }
 
-  const installDir = path.join(os.homedir(), ".openplane", "bin");
+  const installDir = path.join(os.homedir(), ".openbeam", "bin");
   const installPath = path.join(installDir, "SwiftHelper");
   mkdirSync(installDir, { recursive: true });
   copyFileSync(builtBinary, installPath);

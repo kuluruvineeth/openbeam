@@ -1,6 +1,6 @@
 "use client";
 
-import { Spinner } from "@openplane/ui";
+import { Spinner } from "@openbeam/ui";
 import { Icons } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
@@ -46,7 +46,7 @@ export function OAuthLoading({
         {isLoading && <Spinner className="text-primary" size={24} />}
         {state === "success" && (
           <div className="flex size-6 items-center justify-center">
-            <Icons.CheckIcon className="text-openplane-green" size={20} />
+            <Icons.CheckIcon className="text-openbeam-green" size={20} />
           </div>
         )}
         {state === "error" && (
@@ -61,7 +61,7 @@ export function OAuthLoading({
           className={cn(
             "font-medium text-sm tracking-tight",
             state === "error" && "text-destructive",
-            state === "success" && "text-openplane-green",
+            state === "success" && "text-openbeam-green",
             isLoading && "text-foreground"
           )}
         >

@@ -1,5 +1,5 @@
-import type { TransformContext } from "@openplane/types/services/connectors/slack";
-import type { GenericDocument } from "@openplane/vespa";
+import type { TransformContext } from "@openbeam/types/services/connectors/slack";
+import type { GenericDocument } from "@openbeam/vespa";
 import { calculateDocumentChecksum } from "../../lib/checksum";
 import type { UserLookup } from "../api/users";
 import { filterUndefined } from "./utils";

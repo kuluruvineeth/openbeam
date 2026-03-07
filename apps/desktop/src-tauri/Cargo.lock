@@ -2495,7 +2495,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "openplane-desktop"
+name = "openbeam-desktop"
 version = "0.1.0"
 dependencies = [
  "log",

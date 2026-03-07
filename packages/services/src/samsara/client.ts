@@ -1,9 +1,9 @@
-import { type RateLimitConfig, rateLimiter } from "@openplane/redis";
+import { type RateLimitConfig, rateLimiter } from "@openbeam/redis";
 import {
   SAMSARA_API_BASE_EU,
   SAMSARA_API_BASE_US,
   type SamsaraClientConfig,
-} from "@openplane/types/services/connectors/samsara";
+} from "@openbeam/types/services/connectors/samsara";
 import { logger } from "../lib/logger";
 import { SamsaraApiError } from "./types";
 

@@ -4,7 +4,7 @@ import { javascript } from "@codemirror/lang-javascript";
 import { json } from "@codemirror/lang-json";
 import { python } from "@codemirror/lang-python";
 import { PostgreSQL, sql } from "@codemirror/lang-sql";
-import type { EditorLanguage } from "@openplane/types/canvas";
+import type { EditorLanguage } from "@openbeam/types/canvas";
 import CodeMirror, {
   EditorView,
   type ReactCodeMirrorProps,

@@ -61,7 +61,7 @@ export function encodeOfferToFragmentUrl(args: {
 }
 
 function getPrimaryLanIp(): string | null {
-  const override = process.env.OPENPLANE_PRIMARY_LAN_IP?.trim();
+  const override = process.env.OPENBEAM_PRIMARY_LAN_IP?.trim();
   if (override) {
     return override;
   }

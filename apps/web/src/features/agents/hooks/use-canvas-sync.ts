@@ -4,8 +4,8 @@ import type {
   AgentCanvasEdge,
   AgentCanvasNode,
   Viewport,
-} from "@openplane/types/canvas";
-import { useCanvasStore } from "@openplane/ui";
+} from "@openbeam/types/canvas";
+import { useCanvasStore } from "@openbeam/ui";
 import { useEffect, useRef } from "react";
 
 interface CanvasData {

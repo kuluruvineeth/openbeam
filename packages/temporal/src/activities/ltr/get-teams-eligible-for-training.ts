@@ -1,6 +1,4 @@
-import db, {
-  getTeamsEligibleForTraining as getTeamsQuery,
-} from "@openplane/db";
+import db, { getTeamsEligibleForTraining as getTeamsQuery } from "@openbeam/db";
 import type {
   GetTeamsEligibleForTrainingInput,
   GetTeamsEligibleForTrainingOutput,

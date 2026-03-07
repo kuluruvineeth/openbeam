@@ -1,6 +1,6 @@
 "use client";
 
-import type { RuntimeEvent } from "@openplane/types/canvas/runtime-events";
+import type { RuntimeEvent } from "@openbeam/types/canvas/runtime-events";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getVanillaTRPCClient } from "@/trpc/client";
 

@@ -1,7 +1,4 @@
-import {
-  createJobProgressSubscriber,
-  type JobProgress,
-} from "@openplane/redis";
+import { createJobProgressSubscriber, type JobProgress } from "@openbeam/redis";
 import { createTRPCRouter } from "../index";
 import { withActiveTeam } from "./apps/middleware";
 

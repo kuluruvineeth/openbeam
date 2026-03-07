@@ -2,8 +2,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
-const SESSION_TOKEN_KEY = "openplane-session-token";
-const BIOMETRIC_ENABLED_KEY = "openplane-biometric-enabled";
+const SESSION_TOKEN_KEY = "openbeam-session-token";
+const BIOMETRIC_ENABLED_KEY = "openbeam-biometric-enabled";
 
 const isSecureStoreAvailable = Platform.OS !== "web";
 

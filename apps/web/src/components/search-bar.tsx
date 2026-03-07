@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Input } from "@openplane/ui";
+import { Button, Input } from "@openbeam/ui";
 import { useEffect, useRef } from "react";
 import { Icons } from "@/components/icons";
 import { Autocomplete } from "@/components/search-bar/autocomplete";

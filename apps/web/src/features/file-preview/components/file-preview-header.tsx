@@ -6,7 +6,7 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@openplane/ui";
+} from "@openbeam/ui";
 import { Icons } from "@/components/icons";
 import { formatFileSize } from "@/lib/format";
 import { getFileTypeLabel } from "../lib/file-preview-config";

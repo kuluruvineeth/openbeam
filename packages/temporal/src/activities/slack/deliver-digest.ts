@@ -1,4 +1,4 @@
-import { buildDigestBlocks, createSlackClient } from "@openplane/services";
+import { buildDigestBlocks, createSlackClient } from "@openbeam/services";
 import type {
   DigestDeliveryActivityInput,
   DigestDeliveryActivityOutput,

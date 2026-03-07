@@ -2,8 +2,8 @@ import type {
   OpcUaSyncBatch,
   OpcUaSyncOptions,
   OpcUaTransformContext,
-} from "@openplane/types/services/connectors/opcua";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/opcua";
+import type { GenericDocument } from "@openbeam/vespa";
 import type { OpcUaClient } from "../client";
 import { transformNodes } from "../transformers/node";
 import { createSyncBatch } from "./utils";

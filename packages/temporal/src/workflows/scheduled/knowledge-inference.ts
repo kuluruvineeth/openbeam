@@ -1,7 +1,7 @@
 import {
   KnowledgeInferenceInputSchema,
   type KnowledgeInferenceOutput,
-} from "@openplane/types/temporal/workflows/knowledge-inference";
+} from "@openbeam/types/temporal/workflows/knowledge-inference";
 import {
   continueAsNew,
   proxyActivities,

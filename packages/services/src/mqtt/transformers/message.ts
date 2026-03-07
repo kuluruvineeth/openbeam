@@ -1,5 +1,5 @@
-import type { MqttTransformContext } from "@openplane/types/services/connectors/mqtt";
-import type { GenericDocument } from "@openplane/vespa";
+import type { MqttTransformContext } from "@openbeam/types/services/connectors/mqtt";
+import type { GenericDocument } from "@openbeam/vespa";
 import { calculateDocumentChecksum } from "../../lib/checksum";
 
 interface MqttMessageInput {

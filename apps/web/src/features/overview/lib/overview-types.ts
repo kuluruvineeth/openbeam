@@ -7,9 +7,9 @@ export type {
   OverviewToolCallData,
   OverviewToolResultData,
   OverviewUsage,
-} from "@openplane/types/overview";
+} from "@openbeam/types/overview";
 
-import type { OverviewCitation } from "@openplane/types/overview";
+import type { OverviewCitation } from "@openbeam/types/overview";
 import type { ThinkingState } from "@/lib/thinking-types";
 
 export type { ThinkingState } from "@/lib/thinking-types";

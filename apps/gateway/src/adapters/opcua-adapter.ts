@@ -1,8 +1,8 @@
 import type {
   AdapterMetrics,
   ConnectionState,
-} from "@openplane/types/services/connectors/common/industrial";
-import type { OpcUaConnectionConfig } from "@openplane/types/services/connectors/opcua";
+} from "@openbeam/types/services/connectors/common/industrial";
+import type { OpcUaConnectionConfig } from "@openbeam/types/services/connectors/opcua";
 import logger from "../logger";
 import {
   type AdapterConfig,
@@ -47,7 +47,7 @@ export function createOpcuaAdapter(config: AdapterConfig): ProtocolAdapter {
           "None";
 
         const client = OPCUAClient.create({
-          applicationName: "OpenPlane Gateway",
+          applicationName: "OpenBeam Gateway",
           connectionStrategy: {
             initialDelay: 1000,
             maxRetry: 5,

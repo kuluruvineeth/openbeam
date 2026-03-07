@@ -1,5 +1,5 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
-import { createRequestContextMiddleware } from "@openplane/observability";
+import { createRequestContextMiddleware } from "@openbeam/observability";
 import { cors } from "hono/cors";
 import { httpRequestDurationSeconds } from "@/metrics";
 import { apiKeyAuth } from "@/middleware/api-key";
@@ -48,7 +48,7 @@ export function createApp() {
         "Cookie",
         "X-Request-Id",
         "x-request-id",
-        "x-openplane-team",
+        "x-openbeam-team",
       ],
       credentials: true,
     })

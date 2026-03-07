@@ -20,7 +20,7 @@ function parseBooleanEnv(value: string | undefined): boolean | undefined {
 }
 
 function shouldPrintPairingQr(): boolean {
-  const env = parseBooleanEnv(process.env.OPENPLANE_PAIRING_QR);
+  const env = parseBooleanEnv(process.env.OPENBEAM_PAIRING_QR);
   if (env !== undefined) {
     return env;
   }

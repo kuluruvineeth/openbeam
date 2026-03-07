@@ -1,11 +1,11 @@
-import { type RateLimitConfig, rateLimiter } from "@openplane/redis";
+import { type RateLimitConfig, rateLimiter } from "@openbeam/redis";
 import type {
   NodeRedConnectionConfig,
   NodeRedFlow,
   NodeRedNode,
   NodeRedNodeType,
   NodeRedSettings,
-} from "@openplane/types/services/connectors/nodered";
+} from "@openbeam/types/services/connectors/nodered";
 import { logger } from "../lib/logger";
 import { NodeRedApiError } from "./types";
 

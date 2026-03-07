@@ -2,7 +2,7 @@ import {
   calculateModelCost,
   getModelPricing,
   type ProviderId,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 
 export type LLMProvider = ProviderId;
 

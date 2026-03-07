@@ -1,4 +1,4 @@
-import { type ProviderId, streamCompletion } from "@openplane/ai";
+import { type ProviderId, streamCompletion } from "@openbeam/ai";
 import { logger } from "../../lib/logger";
 
 const OVERVIEW_SYSTEM_PROMPT = `You are an AI assistant providing concise, accurate overviews based on search results.

@@ -1173,7 +1173,7 @@ export function GitOptionsSection({
           <Text style={styles.worktreeToggleDescription}>
             {isLoading
               ? "Inspecting repository…"
-              : "Pick an OpenPlane worktree by branch"}
+              : "Pick an OpenBeam worktree by branch"}
           </Text>
         </View>
       </Pressable>

@@ -409,7 +409,7 @@ describe("daemon E2E", () => {
   });
 
   describe("worktree setup", () => {
-    test("runs openplane.json setup asynchronously and reports status via timeline tool_call", async () => {
+    test("runs openbeam.json setup asynchronously and reports status via timeline tool_call", async () => {
       const repoRoot = tmpCwd();
 
       const { execSync } = await import("node:child_process");
@@ -429,13 +429,13 @@ describe("daemon E2E", () => {
       execSync("git branch -M main", { cwd: repoRoot, stdio: "pipe" });
 
       const setupCommand =
-        'while [ ! -f "$OPENPLANE_WORKTREE_PATH/allow-setup" ]; do sleep 0.05; done; echo "done" > "$OPENPLANE_WORKTREE_PATH/setup-done.txt"';
+        'while [ ! -f "$OPENBEAM_WORKTREE_PATH/allow-setup" ]; do sleep 0.05; done; echo "done" > "$OPENBEAM_WORKTREE_PATH/setup-done.txt"';
       writeFileSync(
-        path.join(repoRoot, "openplane.json"),
+        path.join(repoRoot, "openbeam.json"),
         JSON.stringify({ worktree: { setup: [setupCommand] } })
       );
-      execSync("git add openplane.json", { cwd: repoRoot, stdio: "pipe" });
-      execSync("git -c commit.gpgsign=false commit -m 'add openplane.json'", {
+      execSync("git add openbeam.json", { cwd: repoRoot, stdio: "pipe" });
+      execSync("git -c commit.gpgsign=false commit -m 'add openbeam.json'", {
         cwd: repoRoot,
         stdio: "pipe",
       });
@@ -459,7 +459,7 @@ describe("daemon E2E", () => {
         label: "createAgent should not block on setup",
       });
 
-      expect(agent.cwd).toContain(path.join(".openplane", "worktrees"));
+      expect(agent.cwd).toContain(path.join(".openbeam", "worktrees"));
       expect(existsSync(path.join(agent.cwd, "setup-done.txt"))).toBe(false);
 
       writeFileSync(path.join(agent.cwd, "allow-setup"), "ok\n");
@@ -468,7 +468,7 @@ describe("daemon E2E", () => {
         collector.messages,
         agent.id,
         (item) =>
-          item.name === "openplane_worktree_setup" &&
+          item.name === "openbeam_worktree_setup" &&
           item.status === "completed",
         20_000
       );
@@ -509,9 +509,9 @@ describe("daemon E2E", () => {
         execSync("git branch -M main", { cwd: repoRoot, stdio: "pipe" });
 
         const setupCommand =
-          'while [ ! -f "$OPENPLANE_WORKTREE_PATH/allow-setup" ]; do sleep 0.05; done; echo "done" > "$OPENPLANE_WORKTREE_PATH/setup-done.txt"; echo "$OPENPLANE_WORKTREE_PORT" > "$OPENPLANE_WORKTREE_PATH/setup-port.txt"';
+          'while [ ! -f "$OPENBEAM_WORKTREE_PATH/allow-setup" ]; do sleep 0.05; done; echo "done" > "$OPENBEAM_WORKTREE_PATH/setup-done.txt"; echo "$OPENBEAM_WORKTREE_PORT" > "$OPENBEAM_WORKTREE_PATH/setup-port.txt"';
         writeFileSync(
-          path.join(repoRoot, "openplane.json"),
+          path.join(repoRoot, "openbeam.json"),
           JSON.stringify({
             worktree: {
               setup: [setupCommand],
@@ -527,7 +527,7 @@ describe("daemon E2E", () => {
             },
           })
         );
-        execSync("git add openplane.json", { cwd: repoRoot, stdio: "pipe" });
+        execSync("git add openbeam.json", { cwd: repoRoot, stdio: "pipe" });
         execSync(
           "git -c commit.gpgsign=false commit -m 'add setup and terminals'",
           {
@@ -555,7 +555,7 @@ describe("daemon E2E", () => {
           label: "createAgent should not block on setup",
         });
 
-        expect(agent.cwd).toContain(path.join(".openplane", "worktrees"));
+        expect(agent.cwd).toContain(path.join(".openbeam", "worktrees"));
         expect(existsSync(path.join(agent.cwd, "setup-done.txt"))).toBe(false);
         expect(existsSync(path.join(agent.cwd, "dev-terminal.txt"))).toBe(
           false
@@ -570,7 +570,7 @@ describe("daemon E2E", () => {
           collector.messages,
           agent.id,
           (item) =>
-            item.name === "openplane_worktree_setup" &&
+            item.name === "openbeam_worktree_setup" &&
             item.status === "completed",
           20_000
         );
@@ -578,7 +578,7 @@ describe("daemon E2E", () => {
           collector.messages,
           agent.id,
           (item) =>
-            item.name === "openplane_worktree_terminals" &&
+            item.name === "openbeam_worktree_terminals" &&
             item.status === "completed",
           30_000
         );
@@ -624,7 +624,7 @@ describe("daemon E2E", () => {
         }
         ctx.client.sendTerminalInput(manualTerminalId, {
           type: "input",
-          data: 'echo "$OPENPLANE_WORKTREE_PORT" > "$OPENPLANE_WORKTREE_PATH/manual-terminal-port.txt"\r',
+          data: 'echo "$OPENBEAM_WORKTREE_PORT" > "$OPENBEAM_WORKTREE_PATH/manual-terminal-port.txt"\r',
         });
         await waitForPathExists({
           targetPath: path.join(agent.cwd, "manual-terminal-port.txt"),
@@ -662,9 +662,9 @@ describe("daemon E2E", () => {
       execSync("git branch -M main", { cwd: repoRoot, stdio: "pipe" });
 
       const setupCommand =
-        'echo "started" > "$OPENPLANE_WORKTREE_PATH/setup-start.txt"; sleep 0.1; echo "boom" 1>&2; exit 7';
+        'echo "started" > "$OPENBEAM_WORKTREE_PATH/setup-start.txt"; sleep 0.1; echo "boom" 1>&2; exit 7';
       writeFileSync(
-        path.join(repoRoot, "openplane.json"),
+        path.join(repoRoot, "openbeam.json"),
         JSON.stringify({
           worktree: {
             setup: [setupCommand],
@@ -678,7 +678,7 @@ describe("daemon E2E", () => {
           },
         })
       );
-      execSync("git add openplane.json", { cwd: repoRoot, stdio: "pipe" });
+      execSync("git add openbeam.json", { cwd: repoRoot, stdio: "pipe" });
       execSync("git -c commit.gpgsign=false commit -m 'add failing setup'", {
         cwd: repoRoot,
         stdio: "pipe",
@@ -703,14 +703,14 @@ describe("daemon E2E", () => {
         label: "createAgent should not block on failing setup",
       });
 
-      expect(agent.cwd).toContain(path.join(".openplane", "worktrees"));
+      expect(agent.cwd).toContain(path.join(".openbeam", "worktrees"));
       expect(existsSync(agent.cwd)).toBe(true);
 
       const started = await waitForTimelineToolCall(
         collector.messages,
         agent.id,
         (item) =>
-          item.name === "openplane_worktree_setup" && item.status === "running",
+          item.name === "openbeam_worktree_setup" && item.status === "running",
         10_000
       );
 
@@ -718,7 +718,7 @@ describe("daemon E2E", () => {
         collector.messages,
         agent.id,
         (item) =>
-          item.name === "openplane_worktree_setup" &&
+          item.name === "openbeam_worktree_setup" &&
           item.callId === started.callId &&
           item.status === "failed",
         20_000
@@ -742,7 +742,7 @@ describe("daemon E2E", () => {
   });
 
   describe("createAgent with worktree", () => {
-    test("creates agent in ~/.openplane/worktrees/{hash} when worktree is requested", async () => {
+    test("creates agent in ~/.openbeam/worktrees/{hash} when worktree is requested", async () => {
       const cwd = tmpCwd();
       const projectHash = await deriveWorktreeProjectHash(cwd);
 
@@ -779,7 +779,7 @@ describe("daemon E2E", () => {
       expect(realpathSync(agent.cwd)).toBe(
         realpathSync(
           path.join(
-            ctx.daemon.openplaneHome,
+            ctx.daemon.openbeamHome,
             "worktrees",
             projectHash,
             "worktree-test"
@@ -793,7 +793,7 @@ describe("daemon E2E", () => {
     }, 60_000);
   });
 
-  describe("archiveOpenPlaneWorktree", () => {
+  describe("archiveOpenBeamWorktree", () => {
     test("archives worktree by running destroy commands and shutting down worktree terminals", async () => {
       const repoRoot = tmpCwd();
 
@@ -815,7 +815,7 @@ describe("daemon E2E", () => {
 
       const destroyMarkerPath = path.join(repoRoot, "destroy-marker.txt");
       writeFileSync(
-        path.join(repoRoot, "openplane.json"),
+        path.join(repoRoot, "openbeam.json"),
         JSON.stringify({
           worktree: {
             terminals: [
@@ -826,12 +826,12 @@ describe("daemon E2E", () => {
               },
             ],
             destroy: [
-              `echo "$OPENPLANE_WORKTREE_PATH" > "${destroyMarkerPath}"`,
+              `echo "$OPENBEAM_WORKTREE_PATH" > "${destroyMarkerPath}"`,
             ],
           },
         })
       );
-      execSync("git add openplane.json", { cwd: repoRoot, stdio: "pipe" });
+      execSync("git add openbeam.json", { cwd: repoRoot, stdio: "pipe" });
       execSync(
         "git -c commit.gpgsign=false commit -m 'add worktree terminal + destroy'",
         {
@@ -869,7 +869,7 @@ describe("daemon E2E", () => {
         ctx.daemon.daemon.terminalManager.listDirectories();
       expect(beforeArchiveDirectories).toContain(agent.cwd);
 
-      const archive = await ctx.client.archiveOpenPlaneWorktree({
+      const archive = await ctx.client.archiveOpenBeamWorktree({
         worktreePath: agent.cwd,
       });
       expect(archive.error).toBeNull();

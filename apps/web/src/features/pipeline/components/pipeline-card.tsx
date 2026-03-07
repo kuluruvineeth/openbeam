@@ -1,7 +1,7 @@
 "use client";
 
 import { useDraggable } from "@dnd-kit/core";
-import { Badge, cn, Icons } from "@openplane/ui";
+import { Badge, cn, Icons } from "@openbeam/ui";
 import { cva, type VariantProps } from "class-variance-authority";
 import { MAX_CARD_FIELDS_DISPLAYED } from "../constants";
 import type { PipelineCard as PipelineCardType } from "../types";

@@ -5,8 +5,8 @@ import type {
   OmniverseSyncCursor,
   OmniverseTransformContext,
   UsdStageParseResult,
-} from "@openplane/types/services/connectors/omniverse";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/omniverse";
+import type { GenericDocument } from "@openbeam/vespa";
 import { logger } from "../../lib/logger";
 import type { OmniverseClient } from "../client";
 import { transformPrim } from "../transformers/prim";

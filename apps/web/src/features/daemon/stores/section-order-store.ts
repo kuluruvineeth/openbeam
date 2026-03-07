@@ -27,7 +27,7 @@ export const useSectionOrderStore = create<SectionOrderState>()(
         }),
     }),
     {
-      name: "openplane-daemon-section-order",
+      name: "openbeam-daemon-section-order",
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         projectOrder: state.projectOrder,

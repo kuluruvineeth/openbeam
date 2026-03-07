@@ -3,7 +3,7 @@ import type {
   CircuitBreakerState,
   CircuitState,
   ClassifiedError,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import { classifyError } from "./errors";
 import { DEFAULT_CIRCUIT_BREAKER_CONFIG } from "./types";
 

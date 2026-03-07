@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Sheet, SheetContent, Skeleton } from "@openplane/ui";
+import { Button, Sheet, SheetContent, Skeleton } from "@openbeam/ui";
 import { useQuery } from "@tanstack/react-query";
 import { Icons } from "@/components/icons";
 import { DocumentPreviewPanel } from "@/features/content-preview/components/document/document-preview-panel";

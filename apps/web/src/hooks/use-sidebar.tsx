@@ -11,7 +11,7 @@ import React, {
 } from "react";
 import { useLocalStorage } from "usehooks-ts";
 
-const STORAGE_KEY = "openplane-sidebar-pinned";
+const STORAGE_KEY = "openbeam-sidebar-pinned";
 
 type SidebarState = {
   isOpen: boolean;

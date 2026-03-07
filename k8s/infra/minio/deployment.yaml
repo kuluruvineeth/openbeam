@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: minio
-  namespace: openplane
+  namespace: openbeam
   labels:
     app: minio
 spec:
@@ -60,7 +60,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: minio-data
-  namespace: openplane
+  namespace: openbeam
 spec:
   accessModes:
     - ReadWriteOnce

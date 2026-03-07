@@ -152,12 +152,12 @@ export const STATUS_CONFIG: Record<
   StatusType,
   { label: string; color: string }
 > = {
-  open: { label: "Open", color: "bg-openplane-blue/15 text-openplane-blue" },
+  open: { label: "Open", color: "bg-openbeam-blue/15 text-openbeam-blue" },
   in_progress: {
     label: "In Progress",
-    color: "bg-openplane-orange/15 text-openplane-orange",
+    color: "bg-openbeam-orange/15 text-openbeam-orange",
   },
-  done: { label: "Done", color: "bg-openplane-green/15 text-openplane-green" },
+  done: { label: "Done", color: "bg-openbeam-green/15 text-openbeam-green" },
   closed: { label: "Closed", color: "bg-foreground/10 text-foreground/60" },
   archived: { label: "Archived", color: "bg-foreground/5 text-foreground/40" },
 };
@@ -182,11 +182,11 @@ export const PRIORITY_CONFIG: Record<
   },
   high: {
     label: "High",
-    color: "bg-openplane-orange/15 text-openplane-orange",
+    color: "bg-openbeam-orange/15 text-openbeam-orange",
   },
   medium: {
     label: "Medium",
-    color: "bg-openplane-blue/15 text-openplane-blue",
+    color: "bg-openbeam-blue/15 text-openbeam-blue",
   },
   low: { label: "Low", color: "bg-foreground/10 text-foreground/60" },
   none: { label: "None", color: "bg-foreground/5 text-foreground/40" },
@@ -210,27 +210,27 @@ export const MEDIA_TYPE_CONFIG: Record<
 > = {
   meeting: {
     label: "Meeting",
-    color: "bg-openplane-blue/10 text-openplane-blue",
+    color: "bg-openbeam-blue/10 text-openbeam-blue",
   },
   presentation: {
     label: "Presentation",
-    color: "bg-openplane-orange/10 text-openplane-orange",
+    color: "bg-openbeam-orange/10 text-openbeam-orange",
   },
   tutorial: {
     label: "Tutorial",
-    color: "bg-openplane-green/10 text-openplane-green",
+    color: "bg-openbeam-green/10 text-openbeam-green",
   },
   demo: {
     label: "Demo",
-    color: "bg-openplane-pink/10 text-openplane-pink",
+    color: "bg-openbeam-pink/10 text-openbeam-pink",
   },
   interview: {
     label: "Interview",
-    color: "bg-openplane-yellow/10 text-openplane-yellow",
+    color: "bg-openbeam-yellow/10 text-openbeam-yellow",
   },
   webinar: {
     label: "Webinar",
-    color: "bg-openplane-blue/10 text-openplane-blue",
+    color: "bg-openbeam-blue/10 text-openbeam-blue",
   },
   other: {
     label: "Other",

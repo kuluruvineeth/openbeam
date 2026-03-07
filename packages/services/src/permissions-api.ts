@@ -8,8 +8,8 @@ import {
   getTeamPermissionStats,
   getUserConnectorScopes,
   getUserGroupMemberships,
-} from "@openplane/db";
-import { getPermissionCache } from "@openplane/redis";
+} from "@openbeam/db";
+import { getPermissionCache } from "@openbeam/redis";
 import { type ApiAccessAuthContext, isSessionAdminForTeam } from "./api-access";
 import { createResolveTeamId } from "./lib/service-errors";
 import { resolvePermissions } from "./permissions";

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import crypto from "node:crypto";
-import type { GitHubWebhookPayload } from "@openplane/types/services/connectors/github";
+import type { GitHubWebhookPayload } from "@openbeam/types/services/connectors/github";
 import {
   type GitHubWebhookRequest,
   isGitHubTimestampValid,
@@ -33,7 +33,7 @@ function createSignedRequest(
 const MOCK_REPO = {
   id: 1,
   name: "test",
-  full_name: "openplane/test",
+  full_name: "openbeam/test",
   description: null,
   language: null,
   stargazers_count: 0,
@@ -41,16 +41,16 @@ const MOCK_REPO = {
   open_issues_count: 0,
   private: false,
   default_branch: "main",
-  html_url: "https://github.com/openplane/test",
+  html_url: "https://github.com/openbeam/test",
   created_at: "2024-01-01T00:00:00Z",
   updated_at: "2024-01-01T00:00:00Z",
   pushed_at: "2024-01-01T00:00:00Z",
   owner: {
     id: 1,
-    login: "openplane",
+    login: "openbeam",
     avatar_url: "https://avatars.githubusercontent.com/u/1",
     type: "Organization",
-    html_url: "https://github.com/openplane",
+    html_url: "https://github.com/openbeam",
   },
 };
 
@@ -119,7 +119,7 @@ describe("github webhook handler", () => {
 
       const payload = parseGitHubWebhookPayload(body);
       expect(payload.action).toBe("opened");
-      expect(payload.repository?.full_name).toBe("openplane/test");
+      expect(payload.repository?.full_name).toBe("openbeam/test");
     });
 
     it("parses payload without repository", () => {
@@ -160,7 +160,7 @@ describe("github webhook handler", () => {
       const payload = {
         action: "opened",
         issue: { id: 42 },
-        repository: { full_name: "openplane/test" },
+        repository: { full_name: "openbeam/test" },
       } as unknown as GitHubWebhookPayload;
       const result = resolveGitHubWebhookChanges("issues", payload);
 
@@ -171,7 +171,7 @@ describe("github webhook handler", () => {
         action: "upsert",
         entityType: "issue",
         entityId: 42,
-        repoFullName: "openplane/test",
+        repoFullName: "openbeam/test",
       });
     });
 
@@ -179,7 +179,7 @@ describe("github webhook handler", () => {
       const payload = {
         action: "closed",
         issue: { id: 42 },
-        repository: { full_name: "openplane/test" },
+        repository: { full_name: "openbeam/test" },
       } as unknown as GitHubWebhookPayload;
       const result = resolveGitHubWebhookChanges("issues", payload);
 
@@ -190,7 +190,7 @@ describe("github webhook handler", () => {
       const payload = {
         action: "opened",
         pull_request: { id: 100 },
-        repository: { full_name: "openplane/test" },
+        repository: { full_name: "openbeam/test" },
       } as unknown as GitHubWebhookPayload;
       const result = resolveGitHubWebhookChanges("pull_request", payload);
 
@@ -199,7 +199,7 @@ describe("github webhook handler", () => {
         action: "upsert",
         entityType: "pull_request",
         entityId: 100,
-        repoFullName: "openplane/test",
+        repoFullName: "openbeam/test",
       });
     });
 
@@ -207,7 +207,7 @@ describe("github webhook handler", () => {
       const payload = {
         action: "",
         head_commit: { id: "abc123" },
-        repository: { full_name: "openplane/test" },
+        repository: { full_name: "openbeam/test" },
       } as unknown as GitHubWebhookPayload;
       const result = resolveGitHubWebhookChanges("push", payload);
 
@@ -220,7 +220,7 @@ describe("github webhook handler", () => {
       const payload = {
         action: "created",
         discussion: { node_id: "D_kwDOABC" },
-        repository: { full_name: "openplane/test" },
+        repository: { full_name: "openbeam/test" },
       } as unknown as GitHubWebhookPayload;
       const result = resolveGitHubWebhookChanges("discussion", payload);
 
@@ -232,7 +232,7 @@ describe("github webhook handler", () => {
     it("returns empty changes for unhandled event types", () => {
       const payload = {
         action: "created",
-        repository: { full_name: "openplane/test" },
+        repository: { full_name: "openbeam/test" },
       } as unknown as GitHubWebhookPayload;
       const result = resolveGitHubWebhookChanges("star", payload);
 
@@ -242,7 +242,7 @@ describe("github webhook handler", () => {
     it("returns empty changes when entity ID is missing", () => {
       const payload = {
         action: "opened",
-        repository: { full_name: "openplane/test" },
+        repository: { full_name: "openbeam/test" },
       } as unknown as GitHubWebhookPayload;
       const result = resolveGitHubWebhookChanges("issues", payload);
 
@@ -253,7 +253,7 @@ describe("github webhook handler", () => {
       const payload = {
         action: "deleted",
         issue: { id: 42 },
-        repository: { full_name: "openplane/test" },
+        repository: { full_name: "openbeam/test" },
       } as unknown as GitHubWebhookPayload;
       const result = resolveGitHubWebhookChanges("issues", payload);
 

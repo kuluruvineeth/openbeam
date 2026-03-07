@@ -2,7 +2,7 @@ import {
   createBackgroundAgentCheckpoint,
   type Database,
   getBackgroundAgentCheckpoints,
-} from "@openplane/db";
+} from "@openbeam/db";
 import type { SaveAgentCheckpointInput } from "./types";
 
 export interface SaveAgentCheckpointDependencies {

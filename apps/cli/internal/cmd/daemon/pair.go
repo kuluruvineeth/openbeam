@@ -5,8 +5,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	daemonlib "github.com/openplane/openplane/apps/cli/internal/daemon"
-	"github.com/openplane/openplane/apps/cli/internal/errs"
+	daemonlib "github.com/kuluruvineeth/openbeam/apps/cli/internal/daemon"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/errs"
 )
 
 func newPairCommand() *cobra.Command {
@@ -24,7 +24,7 @@ func newPairCommand() *cobra.Command {
 			}
 
 			if !state.Running || !state.Healthy {
-				return errs.New(errs.KindUsage, "daemon is not running; start it with: openplane daemon start", nil)
+				return errs.New(errs.KindUsage, "daemon is not running; start it with: openbeam daemon start", nil)
 			}
 
 			health, err := daemonlib.CheckHealth(cmd.Context(), state.Listen)

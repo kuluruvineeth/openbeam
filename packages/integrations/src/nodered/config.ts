@@ -20,7 +20,7 @@ export const noderedApp: UnifiedApp = {
   installed: false,
   type: "official",
   connectorType: ConnectorType.SOURCE,
-  developerName: "OpenPlane",
+  developerName: "OpenBeam",
   website: "https://nodered.org",
 
   searchDisplay: {

@@ -9,8 +9,8 @@ import {
   listBackgroundAgents,
   pauseBackgroundAgent,
   resumeBackgroundAgent,
-} from "@openplane/db";
-import type { BackgroundAgentStatus } from "@openplane/types/db";
+} from "@openbeam/db";
+import type { BackgroundAgentStatus } from "@openbeam/types/db";
 import type { ApiAccessAuthContext } from "./api-access";
 import {
   createResolveTeamId,

@@ -1,12 +1,12 @@
 import type {
   DriveFile,
   GoogleDriveTransformContext,
-} from "@openplane/types/services/connectors/google-drive";
+} from "@openbeam/types/services/connectors/google-drive";
 import {
   isFolder,
   isShortcut,
-} from "@openplane/types/services/connectors/google-drive";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/google-drive";
+import type { GenericDocument } from "@openbeam/vespa";
 import { calculateDocumentChecksum } from "../../lib/checksum";
 import {
   buildDocumentUrl,

@@ -3,8 +3,8 @@
 import {
   appStore as appStoreApps,
   type SettingValue,
-} from "@openplane/integrations";
-import { Button } from "@openplane/ui";
+} from "@openbeam/integrations";
+import { Button } from "@openbeam/ui";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Icons } from "@/components/icons";
 import { UnifiedAppComponent } from "@/components/integrations/unified-app";

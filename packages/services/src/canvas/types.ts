@@ -1,7 +1,7 @@
 import type {
   ExecutionContext,
   ExecutionPlanNode,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 
 export type CanvasNodeExecutionInput = {
   node: ExecutionPlanNode;

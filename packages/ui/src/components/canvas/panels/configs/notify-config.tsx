@@ -1,6 +1,6 @@
 "use client";
 
-import type { NotifyChannel, NotifyNodeConfig } from "@openplane/types/canvas";
+import type { NotifyChannel, NotifyNodeConfig } from "@openbeam/types/canvas";
 import { memo, useMemo } from "react";
 import {
   ChannelSection,

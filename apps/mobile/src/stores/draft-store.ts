@@ -53,7 +53,7 @@ export const useDraftStore = create<DraftStore>()(
       },
     }),
     {
-      name: "openplane-drafts",
+      name: "openbeam-drafts",
       storage: createJSONStorage(() => AsyncStorage),
     }
   )

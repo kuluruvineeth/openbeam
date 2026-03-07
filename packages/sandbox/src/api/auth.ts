@@ -7,7 +7,7 @@ export interface SandboxAuthVariables {
 }
 
 const GLOBAL_TEAM_SCOPE = "*";
-const TEAM_SCOPE_HEADER = "x-openplane-team-id";
+const TEAM_SCOPE_HEADER = "x-openbeam-team-id";
 const TEAM_ID_SCHEMA = z
   .string()
   .trim()

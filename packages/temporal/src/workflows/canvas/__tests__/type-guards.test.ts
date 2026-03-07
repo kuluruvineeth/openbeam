@@ -1,4 +1,4 @@
-import type { ExecutionPlanNode } from "@openplane/types/canvas";
+import type { ExecutionPlanNode } from "@openbeam/types/canvas";
 import { describe, expect, it } from "vitest";
 import {
   isParallelMapTargetType,

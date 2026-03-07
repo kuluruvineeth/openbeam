@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mockUpdateExecution = vi.fn();
 const mockEmitRuntimeEvent = vi.fn();
 
-vi.mock("@openplane/db", () => ({
+vi.mock("@openbeam/db", () => ({
   updateAgentCanvasExecution: (...args: unknown[]) =>
     mockUpdateExecution(...args),
 }));
@@ -12,7 +12,7 @@ vi.mock("../runtime-event-emitter", () => ({
   emitRuntimeEvent: (...args: unknown[]) => mockEmitRuntimeEvent(...args),
 }));
 
-import type { UpdateCanvasExecutionInput } from "@openplane/types/temporal";
+import type { UpdateCanvasExecutionInput } from "@openbeam/types/temporal";
 import { createUpdateCanvasExecutionActivity } from "../update-execution";
 
 function createInput(

@@ -6,7 +6,7 @@ import { describe, expect, test } from "vitest";
 import { isCommandAvailable } from "../agent/provider-launch-config";
 import { ClaudeAgentClient } from "../agent/providers/claude-agent";
 import { DaemonClient } from "../test-utils/daemon-client";
-import { createTestOpenPlaneDaemon } from "../test-utils/openplane-daemon";
+import { createTestOpenBeamDaemon } from "../test-utils/openbeam-daemon";
 import { getFullAccessConfig } from "./agent-configs";
 
 function tmpCwd(): string {
@@ -22,7 +22,7 @@ describe("daemon E2E (real claude) - rewind user message dedupe", () => {
     async () => {
       const logger = pino({ level: "silent" });
       const cwd = tmpCwd();
-      const daemon = await createTestOpenPlaneDaemon({
+      const daemon = await createTestOpenBeamDaemon({
         agentClients: { claude: new ClaudeAgentClient({ logger }) },
         logger,
       });

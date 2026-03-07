@@ -14,7 +14,7 @@ import {
   type ProviderId,
   type TTSModel,
   type VideoModel,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import { cva } from "class-variance-authority";
 import { forwardRef, memo, useCallback, useMemo, useState } from "react";
 import { cn } from "../../../utils";
@@ -81,7 +81,7 @@ const PROVIDER_LABELS: Record<ProviderId, string> = {
   ollama: "Ollama",
   cohere: "Cohere",
   voyage: "Voyage",
-  openplane: "OpenPlane",
+  openbeam: "OpenBeam",
   twelvelabs: "TwelveLabs",
   elevenlabs: "ElevenLabs",
   cartesia: "Cartesia",

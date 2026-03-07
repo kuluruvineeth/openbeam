@@ -1,7 +1,7 @@
 "use client";
 
-import { getResourceLabel } from "@openplane/types/services/connectors/common/resources";
-import type { ConnectorType } from "@openplane/types/services/connectors/events";
+import { getResourceLabel } from "@openbeam/types/services/connectors/common/resources";
+import type { ConnectorType } from "@openbeam/types/services/connectors/events";
 import type { ComponentType } from "react";
 import { forwardRef, memo, useMemo } from "react";
 import { cn } from "../../../utils/cn";

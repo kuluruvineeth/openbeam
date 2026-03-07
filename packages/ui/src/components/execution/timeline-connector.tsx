@@ -1,6 +1,6 @@
 "use client";
 
-import type { TimelineStepStatus } from "@openplane/types/canvas/timeline";
+import type { TimelineStepStatus } from "@openbeam/types/canvas/timeline";
 import { cva, type VariantProps } from "class-variance-authority";
 import { forwardRef } from "react";
 import { cn } from "../../utils/cn";

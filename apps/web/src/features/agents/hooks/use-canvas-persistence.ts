@@ -1,6 +1,6 @@
 "use client";
 
-import { useCanvasStore, useDebounce } from "@openplane/ui";
+import { useCanvasStore, useDebounce } from "@openbeam/ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { useTRPC } from "@/trpc/client";

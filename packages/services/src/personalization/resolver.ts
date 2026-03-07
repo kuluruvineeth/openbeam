@@ -3,12 +3,12 @@ import {
   findUserSearchProfile,
   getTeamProfileStats,
   type ParsedUserSearchProfile,
-} from "@openplane/db";
+} from "@openbeam/db";
 import {
   type CachedUserEmbeddings,
   type CachedUserProfile,
   getUserProfileCache,
-} from "@openplane/redis";
+} from "@openbeam/redis";
 import type { PersonalizationContext, ResolvedUserProfile } from "./types";
 import { deserializeEmbedding, serializeEmbedding } from "./utils";
 

@@ -1,4 +1,4 @@
-import { getConfig } from "@openplane/ai";
+import { getConfig } from "@openbeam/ai";
 import type { ExtractEntitiesInput, ExtractEntitiesOutput } from "./types";
 
 const EXTRACTION_TIMEOUT_MS = 30_000;

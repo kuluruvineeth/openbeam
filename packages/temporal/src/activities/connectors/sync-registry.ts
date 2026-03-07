@@ -30,9 +30,9 @@ import {
   smartThingsIncrementalSync,
   verkadaFullSync,
   verkadaIncrementalSync,
-} from "@openplane/services";
-import { logger } from "@openplane/services/lib/logger";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/services";
+import { logger } from "@openbeam/services/lib/logger";
+import type { GenericDocument } from "@openbeam/vespa";
 import { ApplicationFailure } from "@temporalio/common";
 import type { SyncCursor } from "../../workflows/types";
 import type { DiscoveredResourceRecord } from "./types";

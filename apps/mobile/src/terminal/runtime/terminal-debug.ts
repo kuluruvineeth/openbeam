@@ -1,5 +1,5 @@
 type TerminalDebugGlobal = {
-  __OPENPLANE_TERMINAL_DEBUG?: boolean;
+  __OPENBEAM_TERMINAL_DEBUG?: boolean;
 };
 
 type TerminalDebugLogInput = {
@@ -13,7 +13,7 @@ function resolveGlobalDebugFlag(): boolean | null {
     return null;
   }
 
-  const value = (globalThis as TerminalDebugGlobal).__OPENPLANE_TERMINAL_DEBUG;
+  const value = (globalThis as TerminalDebugGlobal).__OPENBEAM_TERMINAL_DEBUG;
   if (typeof value === "boolean") {
     return value;
   }

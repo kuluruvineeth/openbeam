@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import type { AwsIotTransformContext } from "@openplane/types/services/connectors/aws-iot";
+import type { AwsIotTransformContext } from "@openbeam/types/services/connectors/aws-iot";
 import type {
   AwsIotShadow,
   AwsIotThingDetail,

@@ -29,7 +29,7 @@ describe("searchHomeDirectories", () => {
     mkdirSync(homeDir, { recursive: true });
     mkdirSync(outsideDir, { recursive: true });
 
-    mkdirSync(path.join(homeDir, "projects", "openplane"), { recursive: true });
+    mkdirSync(path.join(homeDir, "projects", "openbeam"), { recursive: true });
     mkdirSync(path.join(homeDir, "projects", "playground"), {
       recursive: true,
     });
@@ -69,7 +69,7 @@ describe("searchHomeDirectories", () => {
     });
 
     expect(results).toContain(path.join(homeDir, "projects"));
-    expect(results).toContain(path.join(homeDir, "projects", "openplane"));
+    expect(results).toContain(path.join(homeDir, "projects", "openbeam"));
     expect(results).not.toContain(path.join(homeDir, "projects", "README.md"));
   });
 
@@ -80,7 +80,7 @@ describe("searchHomeDirectories", () => {
       limit: 10,
     });
 
-    expect(results).toEqual([path.join(homeDir, "projects", "openplane")]);
+    expect(results).toEqual([path.join(homeDir, "projects", "openbeam")]);
   });
 
   it("prioritizes exact segment matches before segment-prefix matches", async () => {
@@ -193,7 +193,7 @@ describe("searchWorkspaceEntries", () => {
     mkdirSync(path.join(workspaceDir, "docs"), { recursive: true });
     mkdirSync(path.join(outsideDir, "escaped"), { recursive: true });
 
-    writeFileSync(path.join(workspaceDir, "README.md"), "# openplane\n");
+    writeFileSync(path.join(workspaceDir, "README.md"), "# openbeam\n");
     writeFileSync(
       path.join(workspaceDir, "src", "components", "chat-input.tsx"),
       "export const ChatInput = null;\n"

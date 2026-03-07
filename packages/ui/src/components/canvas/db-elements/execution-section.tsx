@@ -1,9 +1,6 @@
 "use client";
 
-import type {
-  QueryBatchMode,
-  QueryOutputFormat,
-} from "@openplane/types/canvas";
+import type { QueryBatchMode, QueryOutputFormat } from "@openbeam/types/canvas";
 import { forwardRef, memo, useCallback } from "react";
 import { Input } from "../../input";
 import { Label } from "../../label";

@@ -6,7 +6,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@openplane/ui";
+} from "@openbeam/ui";
 import { toast } from "sonner";
 import { Icons } from "@/components/icons";
 import {

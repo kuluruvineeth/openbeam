@@ -36,7 +36,7 @@ export interface CreateAgentWorktreeOptions {
   branchName: string;
   baseBranch: string;
   worktreeSlug: string;
-  openplaneHome?: string;
+  openbeamHome?: string;
 }
 
 const MAX_WORKTREE_SETUP_COMMAND_OUTPUT_BYTES = 64 * 1024;
@@ -167,7 +167,7 @@ export async function createAgentWorktree(
     baseBranch: options.baseBranch,
     worktreeSlug: options.worktreeSlug,
     runSetup: false,
-    openplaneHome: options.openplaneHome,
+    openbeamHome: options.openbeamHome,
   });
 }
 
@@ -259,7 +259,7 @@ function buildSetupTimelineItem(input: {
   if (input.status === "running") {
     return {
       type: "tool_call",
-      name: "openplane_worktree_setup",
+      name: "openbeam_worktree_setup",
       callId: input.callId,
       status: "running",
       detail,
@@ -270,7 +270,7 @@ function buildSetupTimelineItem(input: {
   if (input.status === "completed") {
     return {
       type: "tool_call",
-      name: "openplane_worktree_setup",
+      name: "openbeam_worktree_setup",
       callId: input.callId,
       status: "completed",
       detail,
@@ -280,7 +280,7 @@ function buildSetupTimelineItem(input: {
 
   return {
     type: "tool_call",
-    name: "openplane_worktree_setup",
+    name: "openbeam_worktree_setup",
     callId: input.callId,
     status: "failed",
     detail,
@@ -307,7 +307,7 @@ function buildTerminalTimelineItem(input: {
   if (input.status === "running") {
     return {
       type: "tool_call",
-      name: "openplane_worktree_terminals",
+      name: "openbeam_worktree_terminals",
       callId: input.callId,
       status: "running",
       detail: {
@@ -322,7 +322,7 @@ function buildTerminalTimelineItem(input: {
   if (input.status === "completed") {
     return {
       type: "tool_call",
-      name: "openplane_worktree_terminals",
+      name: "openbeam_worktree_terminals",
       callId: input.callId,
       status: "completed",
       detail: {
@@ -336,7 +336,7 @@ function buildTerminalTimelineItem(input: {
 
   return {
     type: "tool_call",
-    name: "openplane_worktree_terminals",
+    name: "openbeam_worktree_terminals",
     callId: input.callId,
     status: "failed",
     detail: {

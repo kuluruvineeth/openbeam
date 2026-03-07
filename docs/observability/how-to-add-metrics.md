@@ -8,7 +8,7 @@
 ## 2. Generate a typed metric stub
 
 ```bash
-bun run observability:new-metric -- --name openplane_connector_sync_jobs_total --type counter --labels worker_type,status --help "Total connector sync jobs" --out apps/worker/src/metrics/openplane-connector-sync-jobs-total.ts
+bun run observability:new-metric -- --name openbeam_connector_sync_jobs_total --type counter --labels worker_type,status --help "Total connector sync jobs" --out apps/worker/src/metrics/openbeam-connector-sync-jobs-total.ts
 ```
 
 The generated stub includes:
@@ -29,11 +29,11 @@ syncJobsTotal.inc({ worker_type: "github", task_queue: "sync", status: "success"
 ## 5. Verify end-to-end
 - Local scrape:
 ```bash
-curl -s http://localhost:3000/metrics | grep openplane_connector_sync_jobs_total
+curl -s http://localhost:3000/metrics | grep openbeam_connector_sync_jobs_total
 ```
 - Prometheus query check:
 ```bash
-curl -G -s http://localhost:9090/api/v1/query --data-urlencode 'query=openplane_connector_sync_jobs_total'
+curl -G -s http://localhost:9090/api/v1/query --data-urlencode 'query=openbeam_connector_sync_jobs_total'
 ```
 - Dashboard render check in Grafana.
 

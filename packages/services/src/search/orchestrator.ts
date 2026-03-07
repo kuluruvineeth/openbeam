@@ -1,6 +1,6 @@
-import { getBGEM3Provider } from "@openplane/ai";
-import prisma from "@openplane/db";
-import { type GenericDocument, vespaClient } from "@openplane/vespa";
+import { getBGEM3Provider } from "@openbeam/ai";
+import prisma from "@openbeam/db";
+import { type GenericDocument, vespaClient } from "@openbeam/vespa";
 import { logger } from "../lib/logger";
 import {
   applyPersonalization,

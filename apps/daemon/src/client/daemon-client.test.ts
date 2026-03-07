@@ -128,7 +128,7 @@ describe("DaemonClient", () => {
           error: null,
           requestId: request.message.requestId,
           isGit: false,
-          isOpenPlaneOwnedWorktree: false,
+          isOpenBeamOwnedWorktree: false,
           repoRoot: null,
           currentBranch: null,
           isDirty: null,
@@ -618,7 +618,7 @@ describe("DaemonClient", () => {
         message: {
           type: "directory_suggestions_response",
           payload: {
-            directories: ["/Users/test/projects/openplane"],
+            directories: ["/Users/test/projects/openbeam"],
             entries: [{ path: "README.md", kind: "file" }],
             error: null,
             requestId: "req-directories",
@@ -628,7 +628,7 @@ describe("DaemonClient", () => {
     );
 
     await expect(promise).resolves.toEqual({
-      directories: ["/Users/test/projects/openplane"],
+      directories: ["/Users/test/projects/openbeam"],
       entries: [{ path: "README.md", kind: "file" }],
       error: null,
       requestId: "req-directories",

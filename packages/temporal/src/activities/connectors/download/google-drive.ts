@@ -1,10 +1,10 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { createGoogleDriveClient } from "@openplane/services";
+import { createGoogleDriveClient } from "@openbeam/services";
 import {
   GOOGLE_WORKSPACE_MIME_TYPES,
   isGoogleWorkspaceType,
-} from "@openplane/types/services/connectors/google-drive";
+} from "@openbeam/types/services/connectors/google-drive";
 import { ApplicationFailure } from "@temporalio/common";
 import type { DownloadFileInput, DownloadFileOutput } from "../types";
 

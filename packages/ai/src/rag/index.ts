@@ -19,7 +19,7 @@ export type {
   RAGTokenUsage,
   RerankingOptions,
   TemporalContext,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 export {
   buildContext,
   computeTokenBudget,

@@ -1,4 +1,4 @@
-import { publishJobProgress } from "@openplane/redis";
+import { publishJobProgress } from "@openbeam/redis";
 import type { EmitSyncStartedInput } from "./types";
 
 export function createEmitSyncStartedActivity() {

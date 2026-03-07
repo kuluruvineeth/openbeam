@@ -1,5 +1,5 @@
-import type { Database } from "@openplane/db";
-import type { ExecutionStatus } from "@openplane/types/canvas";
+import type { Database } from "@openbeam/db";
+import type { ExecutionStatus } from "@openbeam/types/canvas";
 import { z } from "zod";
 
 export interface CompensationDependencies {

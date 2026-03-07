@@ -1,5 +1,5 @@
 import { describe, expect, it, mock } from "bun:test";
-import type { AgentCanvasExecution } from "@openplane/types/db/agent-canvas";
+import type { AgentCanvasExecution } from "@openbeam/types/db/agent-canvas";
 import { createExecutionAndStartCanvasWorkflow } from "../agent-canvas-execution";
 
 const baseParams = {

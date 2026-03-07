@@ -5,7 +5,7 @@ import {
   estimateTokens,
   type StreamChunk,
   streamCompletion,
-} from "@openplane/ai";
+} from "@openbeam/ai";
 import { searchService } from "../search/service";
 import type { ScoredMedia, SearchScoredDocument } from "../search/types";
 import type {

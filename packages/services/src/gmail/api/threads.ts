@@ -3,7 +3,7 @@ import {
   GmailListThreadsResponseSchema,
   type GmailThread,
   GmailThreadSchema,
-} from "@openplane/types/services/connectors/gmail";
+} from "@openbeam/types/services/connectors/gmail";
 import { logger } from "../../lib/logger";
 import type { GmailClient } from "../client";
 

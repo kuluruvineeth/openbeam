@@ -1,8 +1,8 @@
-import type { Database } from "@openplane/db";
+import type { Database } from "@openbeam/db";
 import {
   createAgentCanvasExecutionData,
   findAgentCanvasExecutionData,
-} from "@openplane/db";
+} from "@openbeam/db";
 import {
   type ClaimCheckMetadata,
   type ClaimCheckOptions,

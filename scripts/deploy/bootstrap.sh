@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# OpenPlane Server Bootstrap Script
+# OpenBeam Server Bootstrap Script
 # Run once on a fresh Hetzner server to prepare it for Coolify deployments.
 #
 # Usage:
@@ -16,9 +16,9 @@ set -euo pipefail
 #   - Hetzner Volume mounted (auto-detected)
 #   - Root access
 
-REPO_URL="${OPENPLANE_REPO:-https://github.com/kuluruvineeth/openplane.git}"
-REPO_BRANCH="${OPENPLANE_BRANCH:-dev}"
-DATA_DIR="/mnt/openplane-data"
+REPO_URL="${OPENBEAM_REPO:-https://github.com/kuluruvineeth/openbeam.git}"
+REPO_BRANCH="${OPENBEAM_BRANCH:-dev}"
+DATA_DIR="/mnt/openbeam-data"
 export GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o StrictHostKeyChecking=accept-new}"
 
 log() { printf '\033[1;32m[bootstrap]\033[0m %s\n' "$1"; }
@@ -86,7 +86,7 @@ mkdir -p "$DATA_DIR/configs/postgres"
 
 # ── Step 6: Clone repo and copy config files ──────────────────────────────────
 
-log "Cloning OpenPlane repository..."
+log "Cloning OpenBeam repository..."
 CLONE_DIR=$(mktemp -d)
 git clone --depth 1 --branch "$REPO_BRANCH" "$REPO_URL" "$CLONE_DIR" 2>&1 | tail -1
 

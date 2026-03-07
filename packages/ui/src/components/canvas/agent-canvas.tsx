@@ -1,7 +1,7 @@
 "use client";
 
-import type { NodeStatus } from "@openplane/types/canvas";
-import type { ConnectorType } from "@openplane/types/services/connectors/events";
+import type { NodeStatus } from "@openbeam/types/canvas";
+import type { ConnectorType } from "@openbeam/types/services/connectors/events";
 import type {
   Connection,
   Edge,

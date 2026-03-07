@@ -1,5 +1,5 @@
-import type { ExecutionEvent } from "@openplane/types/canvas/execution-events";
-import type { RuntimeEvent } from "@openplane/types/canvas/runtime-events";
+import type { ExecutionEvent } from "@openbeam/types/canvas/execution-events";
+import type { RuntimeEvent } from "@openbeam/types/canvas/runtime-events";
 
 export function runtimeEventToExecutionEvent(
   event: RuntimeEvent

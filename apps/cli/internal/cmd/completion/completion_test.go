@@ -8,7 +8,7 @@ import (
 )
 
 func TestNewCommandValidShells(t *testing.T) {
-	root := &cobra.Command{Use: "openplane"}
+	root := &cobra.Command{Use: "openbeam"}
 	cmd := NewCommand(root)
 
 	shells := []string{"bash", "zsh", "fish", "powershell"}
@@ -28,7 +28,7 @@ func TestNewCommandValidShells(t *testing.T) {
 }
 
 func TestNewCommandInvalidShell(t *testing.T) {
-	root := &cobra.Command{Use: "openplane"}
+	root := &cobra.Command{Use: "openbeam"}
 	cmd := NewCommand(root)
 	cmd.SetOut(&bytes.Buffer{})
 	cmd.SetArgs([]string{"invalid"})
@@ -38,7 +38,7 @@ func TestNewCommandInvalidShell(t *testing.T) {
 }
 
 func TestNewCommandRequiresArg(t *testing.T) {
-	root := &cobra.Command{Use: "openplane"}
+	root := &cobra.Command{Use: "openbeam"}
 	cmd := NewCommand(root)
 	cmd.SetOut(&bytes.Buffer{})
 	cmd.SetErr(&bytes.Buffer{})

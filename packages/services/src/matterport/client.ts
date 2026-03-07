@@ -1,5 +1,5 @@
-import { type RateLimitConfig, rateLimiter } from "@openplane/redis";
-import type { MatterportClientConfig } from "@openplane/types/services/connectors/matterport";
+import { type RateLimitConfig, rateLimiter } from "@openbeam/redis";
+import type { MatterportClientConfig } from "@openbeam/types/services/connectors/matterport";
 import { logger } from "../lib/logger";
 import { MatterportApiError } from "./types";
 

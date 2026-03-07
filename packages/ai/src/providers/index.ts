@@ -2,7 +2,7 @@ export type {
   ChatModelDefinition,
   EmbeddingModelDefinition,
   ProviderId,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 export { createAnthropicProvider } from "./anthropic";
 export { createAzureProvider } from "./azure";
 export { createGoogleProvider } from "./google";

@@ -1,6 +1,6 @@
 "use client";
 
-import { Progress } from "@openplane/ui";
+import { Progress } from "@openbeam/ui";
 import { Icons } from "@/components/icons";
 import { getUserFriendlyError } from "@/lib/error-messages";
 import {
@@ -94,7 +94,7 @@ export function JobProgressItem({ job }: JobProgressItemProps) {
       )}
 
       {job.status === "completed" && (
-        <p className="text-[10px] text-openplane-green">
+        <p className="text-[10px] text-openbeam-green">
           <span className="font-mono tabular-nums">
             {job.itemsProcessed.toLocaleString()}
           </span>{" "}

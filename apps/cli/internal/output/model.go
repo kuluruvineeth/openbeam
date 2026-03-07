@@ -1,6 +1,6 @@
 package output
 
-import "github.com/openplane/openplane/apps/cli/internal/api"
+import "github.com/kuluruvineeth/openbeam/apps/cli/internal/api"
 
 type Format string
 

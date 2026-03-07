@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@openplane/ui";
+import { Button } from "@openbeam/ui";
 import { Fragment, memo, useCallback, useMemo } from "react";
 import { Markdown } from "@/components/ui/markdown";
 import { cn } from "@/lib/utils";

@@ -11,11 +11,11 @@ module "server" {
   source = "../../modules/cloud-run"
 
   project_id   = var.project_id
-  project_name = "openplane"
+  project_name = "openbeam"
   service_name = "server"
   environment  = "prod"
   region       = "us-central1"
-  image        = "ghcr.io/kuluruvineeth/openplane-server:latest"
+  image        = "ghcr.io/kuluruvineeth/openbeam-server:latest"
 
   min_instances = 1
   max_instances = 10

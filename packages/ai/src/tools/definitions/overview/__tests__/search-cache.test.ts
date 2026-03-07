@@ -3,7 +3,7 @@ import type { ToolContext } from "../../../types";
 
 const setMock = mock(() => Promise.resolve());
 
-mock.module("@openplane/redis", () => ({
+mock.module("@openbeam/redis", () => ({
   getSearchCache: () => ({
     set: setMock,
   }),

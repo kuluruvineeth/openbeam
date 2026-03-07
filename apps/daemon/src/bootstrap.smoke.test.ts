@@ -4,13 +4,13 @@ import path from "node:path";
 import pino from "pino";
 import { describe, expect, test } from "vitest";
 
-import { createOpenPlaneDaemon, type OpenPlaneDaemonConfig } from "./bootstrap";
+import { createOpenBeamDaemon, type OpenBeamDaemonConfig } from "./bootstrap";
 import { createTestAgentClients } from "./test-utils/fake-agent-client";
-import { createTestOpenPlaneDaemon } from "./test-utils/openplane-daemon";
+import { createTestOpenBeamDaemon } from "./test-utils/openbeam-daemon";
 
-describe("openplane daemon bootstrap", () => {
+describe("openbeam daemon bootstrap", () => {
   test("starts and serves health endpoint", async () => {
-    const daemonHandle = await createTestOpenPlaneDaemon({
+    const daemonHandle = await createTestOpenBeamDaemon({
       openai: { apiKey: "test-openai-api-key" },
       speech: {
         providers: {
@@ -39,27 +39,25 @@ describe("openplane daemon bootstrap", () => {
   });
 
   test("fails fast when OpenAI speech provider is configured without credentials", async () => {
-    const openplaneHomeRoot = await mkdtemp(
-      path.join(os.tmpdir(), "openplane-openai-config-")
+    const openbeamHomeRoot = await mkdtemp(
+      path.join(os.tmpdir(), "openbeam-openai-config-")
     );
-    const openplaneHome = path.join(openplaneHomeRoot, ".openplane");
-    const staticDir = await mkdtemp(
-      path.join(os.tmpdir(), "openplane-static-")
-    );
-    await mkdir(openplaneHome, { recursive: true });
+    const openbeamHome = path.join(openbeamHomeRoot, ".openbeam");
+    const staticDir = await mkdtemp(path.join(os.tmpdir(), "openbeam-static-"));
+    await mkdir(openbeamHome, { recursive: true });
 
-    const config: OpenPlaneDaemonConfig = {
+    const config: OpenBeamDaemonConfig = {
       listen: "127.0.0.1:0",
-      openplaneHome,
+      openbeamHome,
       corsAllowedOrigins: [],
       allowedHosts: true,
       mcpEnabled: false,
       staticDir,
       mcpDebug: false,
       agentClients: createTestAgentClients(),
-      agentStoragePath: path.join(openplaneHome, "agents"),
+      agentStoragePath: path.join(openbeamHome, "agents"),
       relayEnabled: false,
-      appBaseUrl: "https://app.openplane.sh",
+      appBaseUrl: "https://app.openbeam.sh",
       openai: undefined,
       speech: {
         providers: {
@@ -72,10 +70,10 @@ describe("openplane daemon bootstrap", () => {
 
     try {
       await expect(
-        createOpenPlaneDaemon(config, pino({ level: "silent" }))
+        createOpenBeamDaemon(config, pino({ level: "silent" }))
       ).rejects.toThrow("Missing OpenAI credentials");
     } finally {
-      await rm(openplaneHomeRoot, { recursive: true, force: true });
+      await rm(openbeamHomeRoot, { recursive: true, force: true });
       await rm(staticDir, { recursive: true, force: true });
     }
   });

@@ -1,12 +1,12 @@
 import type { RouteHandler } from "@hono/zod-openapi";
-import prisma from "@openplane/db";
+import prisma from "@openbeam/db";
 import {
   createTeamApiKeyForActor,
   listTeamApiKeysForActor,
   revokeTeamApiKeyForActor,
   type TeamApiKeyActor,
   TeamApiKeyError,
-} from "@openplane/services/api-keys";
+} from "@openbeam/services/api-keys";
 import {
   createTeamForActor,
   getTeamRoleForActor,
@@ -14,7 +14,7 @@ import {
   switchTeamForActor,
   type TeamActor,
   TeamServiceError,
-} from "@openplane/services/teams";
+} from "@openbeam/services/teams";
 import type { AuthEnv } from "@/middleware/auth";
 import type {
   createTeamApiKeyRoute,

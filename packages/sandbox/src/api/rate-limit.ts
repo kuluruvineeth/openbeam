@@ -138,7 +138,7 @@ class InMemoryRateLimiter {
   }
 }
 
-const DEFAULT_RATE_LIMIT_KEY_PREFIX = "openplane:sandbox:ratelimit";
+const DEFAULT_RATE_LIMIT_KEY_PREFIX = "openbeam:sandbox:ratelimit";
 const REDIS_RATE_LIMIT_LUA = `
 local current = redis.call("INCR", KEYS[1])
 if current == 1 then

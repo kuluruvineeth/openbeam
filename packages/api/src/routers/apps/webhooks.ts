@@ -1,4 +1,4 @@
-import { findConnectorById } from "@openplane/db";
+import { findConnectorById } from "@openbeam/db";
 import { createTRPCRouter } from "../../index";
 import { verifyConnectorAccess, withActiveTeam } from "./middleware";
 import { getWebhookStatusSchema } from "./schemas";

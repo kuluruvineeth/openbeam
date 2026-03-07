@@ -1,8 +1,8 @@
 import type {
   MatterportFloor,
   MatterportTransformContext,
-} from "@openplane/types/services/connectors/matterport";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/matterport";
+import type { GenericDocument } from "@openbeam/vespa";
 import { calculateDocumentChecksum } from "../../lib/checksum";
 
 export interface FloorTransformParams {

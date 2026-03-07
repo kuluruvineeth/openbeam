@@ -1,5 +1,5 @@
-import type { GoogleDriveTransformContext } from "@openplane/types/services/connectors/google-drive";
-import type { GenericDocument } from "@openplane/vespa";
+import type { GoogleDriveTransformContext } from "@openbeam/types/services/connectors/google-drive";
+import type { GenericDocument } from "@openbeam/vespa";
 import { fetchFiles } from "../api/files";
 import type { GoogleDriveClient } from "../client";
 import { transformFile } from "../transformers/file";

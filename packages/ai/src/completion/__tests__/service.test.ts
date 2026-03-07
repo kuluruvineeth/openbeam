@@ -1,5 +1,5 @@
 import { beforeAll, beforeEach, describe, expect, it, mock } from "bun:test";
-import type { ChatMessage } from "@openplane/types/ai";
+import type { ChatMessage } from "@openbeam/types/ai";
 
 const mockGenerateTextResult = {
   text: "Generated response text",

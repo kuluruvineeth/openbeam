@@ -1,4 +1,4 @@
-import db, { updateDigestDelivery } from "@openplane/db";
+import db, { updateDigestDelivery } from "@openbeam/db";
 import type { UpdateDigestRecordInput } from "./types";
 
 export async function updateDigestRecord(

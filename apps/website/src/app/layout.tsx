@@ -64,7 +64,7 @@ const jsonLd = {
   url: "https://openbeam.work",
   logo: "https://openbeam.work/logo.png",
   sameAs: [
-    "https://github.com/openbeam/openbeam",
+    "https://github.com/kuluruvineeth/openbeam",
     "https://twitter.com/openbeam",
     "https://linkedin.com/company/openbeam",
   ],

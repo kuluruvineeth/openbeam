@@ -5,7 +5,7 @@ import {
   type CarouselApi,
   CarouselContent,
   CarouselItem,
-} from "@openplane/ui";
+} from "@openbeam/ui";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 

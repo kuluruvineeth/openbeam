@@ -1,7 +1,7 @@
 "use client";
 
-import { DEFAULT_IMAGE_MODEL_ID } from "@openplane/types/ai";
-import type { ImageNodeConfig } from "@openplane/types/canvas";
+import { DEFAULT_IMAGE_MODEL_ID } from "@openbeam/types/ai";
+import type { ImageNodeConfig } from "@openbeam/types/canvas";
 import { forwardRef, memo } from "react";
 import { Icons } from "../../../icons";
 import { Input } from "../../../input";

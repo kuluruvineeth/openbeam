@@ -5,7 +5,7 @@ import type {
   RAGCitation,
   RAGConfig,
   RerankingOptions,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import { estimateTokens } from "../embeddings/chunker";
 import type { ConversationContext, RAGContext } from "./types";
 

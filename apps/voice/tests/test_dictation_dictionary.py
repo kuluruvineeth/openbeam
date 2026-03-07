@@ -8,6 +8,6 @@ def test_keywords_are_tuples():
         assert boost > 0
 
 
-def test_openplane_has_highest_boost():
+def test_openbeam_has_highest_boost():
     boosts = {k: v for k, v in CUSTOM_KEYWORDS}
-    assert boosts["OpenPlane"] == 3.0
+    assert boosts["OpenBeam"] == 3.0

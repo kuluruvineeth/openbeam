@@ -1,6 +1,6 @@
 "use client";
 
-import type { NodeExecutionOverlay as NodeExecutionOverlayType } from "@openplane/types/canvas/execution-ui";
+import type { NodeExecutionOverlay as NodeExecutionOverlayType } from "@openbeam/types/canvas/execution-ui";
 import { cva, type VariantProps } from "class-variance-authority";
 import { forwardRef } from "react";
 import { cn } from "../../utils/cn";

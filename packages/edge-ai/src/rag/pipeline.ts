@@ -1,10 +1,10 @@
-import type { EdgeSearchEngine } from "@openplane/edge-search";
+import type { EdgeSearchEngine } from "@openbeam/edge-search";
 import type {
   EdgeEmbeddingModel,
   EdgeRAGResponse,
   EdgeSLM,
-} from "@openplane/types/edge/ai";
-import type { EdgeSearchQuery } from "@openplane/types/edge/search";
+} from "@openbeam/types/edge/ai";
+import type { EdgeSearchQuery } from "@openbeam/types/edge/search";
 import { EDGE_RAG_PROMPT, formatPrompt } from "../prompts/templates";
 
 type EdgeRAGPipelineConfig = {

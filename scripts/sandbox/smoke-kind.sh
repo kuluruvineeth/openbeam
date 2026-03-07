@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-NAMESPACE="${SANDBOX_NAMESPACE:-openplane-sandbox}"
+NAMESPACE="${SANDBOX_NAMESPACE:-openbeam-sandbox}"
 RELEASE_NAME="${SANDBOX_HELM_RELEASE:-sandbox-gateway}"
 SERVICE_NAME="${SANDBOX_SERVICE_NAME:-}"
 LOCAL_PORT="${SANDBOX_LOCAL_PORT:-3800}"
@@ -34,8 +34,8 @@ if [[ -z "${SERVICE_NAME}" ]]; then
   exit 1
 fi
 
-PORT_FORWARD_LOG="$(mktemp "${TMPDIR:-/tmp}/openplane-sandbox-portforward.XXXXXX")"
-AUTHZ_BODY_FILE="$(mktemp "${TMPDIR:-/tmp}/openplane-sandbox-authz.XXXXXX")"
+PORT_FORWARD_LOG="$(mktemp "${TMPDIR:-/tmp}/openbeam-sandbox-portforward.XXXXXX")"
+AUTHZ_BODY_FILE="$(mktemp "${TMPDIR:-/tmp}/openbeam-sandbox-authz.XXXXXX")"
 
 kubectl -n "${NAMESPACE}" port-forward "service/${SERVICE_NAME}" "${LOCAL_PORT}:80" >"${PORT_FORWARD_LOG}" 2>&1 &
 PORT_FORWARD_PID=$!
@@ -45,12 +45,12 @@ sleep 2
 API_BASE_URL="http://127.0.0.1:${LOCAL_PORT}"
 PRIMARY_AUTH_HEADERS=(
   -H "authorization: Bearer ${TOKEN}"
-  -H "x-openplane-team-id: ${PRIMARY_TEAM_ID}"
+  -H "x-openbeam-team-id: ${PRIMARY_TEAM_ID}"
   -H "content-type: application/json"
 )
 SECONDARY_AUTH_HEADERS=(
   -H "authorization: Bearer ${TOKEN}"
-  -H "x-openplane-team-id: ${SECONDARY_TEAM_ID}"
+  -H "x-openbeam-team-id: ${SECONDARY_TEAM_ID}"
   -H "content-type: application/json"
 )
 
@@ -69,9 +69,9 @@ fi
 
 RUN_RESPONSE="$(curl -sSf "${API_BASE_URL}/${SANDBOX_ID}/exec/run?provider=${PROVIDER}" \
   "${PRIMARY_AUTH_HEADERS[@]}" \
-  -d '{"command":"echo openplane-smoke"}' || true)"
+  -d '{"command":"echo openbeam-smoke"}' || true)"
 echo "${RUN_RESPONSE}" | jq -e '.exitCode == 0' >/dev/null
-echo "${RUN_RESPONSE}" | jq -e '.stdout | contains("openplane-smoke")' >/dev/null
+echo "${RUN_RESPONSE}" | jq -e '.stdout | contains("openbeam-smoke")' >/dev/null
 
 curl -sSf "${API_BASE_URL}/${SANDBOX_ID}/files/write?provider=${PROVIDER}" \
   "${PRIMARY_AUTH_HEADERS[@]}" \
@@ -103,7 +103,7 @@ echo "${READ_RESPONSE}" | jq -e '.content == "sandbox-ok"' >/dev/null
   SECONDARY_DELETE_STATUS="$(curl -sS -o "${AUTHZ_BODY_FILE}" -w '%{http_code}' -X DELETE \
     "${API_BASE_URL}/sandboxes/${SANDBOX_ID}?provider=${PROVIDER}" \
     -H "authorization: Bearer ${TOKEN}" \
-    -H "x-openplane-team-id: ${SECONDARY_TEAM_ID}")"
+    -H "x-openbeam-team-id: ${SECONDARY_TEAM_ID}")"
 
   if [[ "${SECONDARY_DELETE_STATUS}" != "404" ]]; then
     echo "Expected cross-tenant delete denial (404), got ${SECONDARY_DELETE_STATUS}"
@@ -116,6 +116,6 @@ fi
 
 curl -sSf -X DELETE "${API_BASE_URL}/sandboxes/${SANDBOX_ID}?provider=${PROVIDER}" \
   -H "authorization: Bearer ${TOKEN}" \
-  -H "x-openplane-team-id: ${PRIMARY_TEAM_ID}" >/dev/null
+  -H "x-openbeam-team-id: ${PRIMARY_TEAM_ID}" >/dev/null
 
 echo "Sandbox API smoke passed for sandbox ${SANDBOX_ID} (provider=${PROVIDER}, tenant-authz=${ASSERT_TENANT_AUTHZ})"

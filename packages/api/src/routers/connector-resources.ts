@@ -4,7 +4,7 @@ import {
   listConnectorResources,
   listConnectorResourcesByType,
   listEnabledConnectorResources,
-} from "@openplane/db";
+} from "@openbeam/db";
 import { z } from "zod";
 import { createTRPCRouter } from "../index";
 import { verifyConnectorAccess, withActiveTeam } from "./apps/middleware";

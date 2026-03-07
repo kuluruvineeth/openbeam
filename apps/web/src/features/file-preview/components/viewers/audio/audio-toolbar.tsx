@@ -9,7 +9,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@openplane/ui";
+} from "@openbeam/ui";
 import { Icons } from "@/components/icons";
 import type { AudioPlaybackState } from "@/lib/audio-types";
 import { formatTime } from "@/lib/format";

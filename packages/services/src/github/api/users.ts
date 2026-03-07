@@ -1,9 +1,9 @@
-import { getRedisClient } from "@openplane/redis";
+import { getRedisClient } from "@openbeam/redis";
 import {
   type GitHubUser,
   type GitHubUserLookup,
   GitHubUserSchema,
-} from "@openplane/types/services/connectors/github";
+} from "@openbeam/types/services/connectors/github";
 import type { GitHubClient } from "../client";
 
 const USER_CACHE_PREFIX = "github:users:";

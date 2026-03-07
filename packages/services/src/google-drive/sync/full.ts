@@ -6,8 +6,8 @@ import {
   type GoogleDriveSyncCursor,
   type GoogleDriveTransformContext,
   isUnexportableGoogleType,
-} from "@openplane/types/services/connectors/google-drive";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/google-drive";
+import type { GenericDocument } from "@openbeam/vespa";
 import type { ConnectorFileInfo } from "../../files/types";
 import { logger } from "../../lib/logger";
 import { getStartPageToken } from "../api/changes";

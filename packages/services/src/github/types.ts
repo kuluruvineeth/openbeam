@@ -1,7 +1,7 @@
 import {
   type GitHubApiErrorOptions,
   GitHubErrorCodes,
-} from "@openplane/types/services/connectors/github";
+} from "@openbeam/types/services/connectors/github";
 
 export { GitHubErrorCodes };
 

@@ -23,8 +23,8 @@ Clone the repo, start the infrastructure, and run your first search query.
 ## Step 1: Clone and install
 
 ```bash
-git clone https://github.com/kuluruvineeth/openplane.git
-cd openplane
+git clone https://github.com/kuluruvineeth/openbeam.git
+cd openbeam
 bun install
 ```
 
@@ -50,7 +50,7 @@ Create a `.env` file in the project root:
 
 ```bash title=".env"
 # Database
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/openplane
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/openbeam
 
 # Redis
 REDIS_URL=redis://localhost:6379
@@ -188,9 +188,9 @@ cd apps/engine && uv sync && uv run python -m src.engine.main
 
     # Storage (for file processing)
     GCS_ENDPOINT=http://localhost:9000
-    GCS_ACCESS_KEY_ID=openplane-minio
+    GCS_ACCESS_KEY_ID=openbeam-minio
     GCS_SECRET_ACCESS_KEY=minioadmin
-    GCS_BUCKET=openplane-files
+    GCS_BUCKET=openbeam-files
     GCS_REGION=us-east-1
     ```
   </Accordion>
@@ -217,7 +217,7 @@ cd apps/engine && uv sync && uv run python -m src.engine.main
     Vespa requires at least 4 GB of memory allocated to Docker. Check your Docker Desktop settings and increase memory if needed. On first start, Vespa can take up to 3 minutes. Check logs with:
 
     ```bash
-    docker logs openplane-vespa
+    docker logs openbeam-vespa
     ```
   </Accordion>
   <Accordion title="Database connection refused">
@@ -227,7 +227,7 @@ cd apps/engine && uv sync && uv run python -m src.engine.main
     docker compose -f scripts/deploy/infra-hetzner-compose.yaml ps postgres
     ```
 
-    The `DATABASE_URL` in your `.env` must match the credentials in the compose file. Default is `postgresql://postgres:postgres@localhost:5432/openplane`.
+    The `DATABASE_URL` in your `.env` must match the credentials in the compose file. Default is `postgresql://postgres:postgres@localhost:5432/openbeam`.
   </Accordion>
   <Accordion title="Temporal worker fails to connect">
     The Temporal server needs to be fully initialized before workers can connect. Check that the Temporal container is healthy:

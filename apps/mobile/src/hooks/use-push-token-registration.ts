@@ -5,7 +5,7 @@ import * as Notifications from "expo-notifications";
 import { useCallback, useEffect, useRef } from "react";
 import { Platform } from "react-native";
 
-const STORAGE_PREFIX = "@openplane:expo-push-token:";
+const STORAGE_PREFIX = "@openbeam:expo-push-token:";
 
 function getExpoProjectId(): string | null {
   // biome-ignore lint/suspicious/noExplicitAny: React Native type interop

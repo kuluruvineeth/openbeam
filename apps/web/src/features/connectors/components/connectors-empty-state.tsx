@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@openplane/ui";
+import { Button } from "@openbeam/ui";
 import Link from "next/link";
 import { Icons } from "@/components/icons";
 

@@ -1,5 +1,5 @@
 import * as fs from "node:fs/promises";
-import type { StorageProvider } from "@openplane/storage";
+import type { StorageProvider } from "@openbeam/storage";
 import type { UploadFileInput, UploadFileResult } from "./types";
 
 export interface UploadActivityDependencies {

@@ -1,4 +1,4 @@
-import type { ParallelMapNodeConfig } from "@openplane/types/canvas";
+import type { ParallelMapNodeConfig } from "@openbeam/types/canvas";
 import { isRecord } from "./type-guards";
 
 type ParallelMapItemResult =

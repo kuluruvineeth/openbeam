@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import type { InputNodeConfig } from "@openplane/types/canvas";
+import type { InputNodeConfig } from "@openbeam/types/canvas";
 import {
   normalizeInputValues,
   resolveNodeConfig,

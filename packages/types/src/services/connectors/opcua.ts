@@ -26,7 +26,7 @@ export const OpcUaConnectionConfigSchema = z.object({
   connectorId: z.string(),
   endpointUrl: z.string(),
   security: OpcUaSecurityConfigSchema.optional(),
-  applicationName: z.string().default("OpenPlane Gateway"),
+  applicationName: z.string().default("OpenBeam Gateway"),
   keepAliveInterval: z.number().default(10_000),
   connectionTimeout: z.number().default(30_000),
   requestTimeout: z.number().default(60_000),

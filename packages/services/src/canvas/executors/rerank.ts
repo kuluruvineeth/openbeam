@@ -1,4 +1,4 @@
-import { RerankNodeConfigSchema } from "@openplane/types/canvas";
+import { RerankNodeConfigSchema } from "@openbeam/types/canvas";
 import { rerankerService } from "../../search/reranking/service";
 import type {
   RerankDocument,

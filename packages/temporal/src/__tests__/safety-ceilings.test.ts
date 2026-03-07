@@ -1,4 +1,4 @@
-import type { LoopState } from "@openplane/types/temporal";
+import type { LoopState } from "@openbeam/types/temporal";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { SAFETY_CEILINGS } from "../config/constants";
 
@@ -24,7 +24,7 @@ vi.mock("@temporalio/activity", () => ({
 
 const mockDbActivities = createMockDbActivities();
 
-vi.mock("@openplane/db", () => mockDbActivities);
+vi.mock("@openbeam/db", () => mockDbActivities);
 
 let createExecuteLoopNodeActivity: typeof import("../activities/canvas/loop-node").createExecuteLoopNodeActivity;
 let createExecuteParallelSplitNodeActivity: typeof import("../activities/canvas/parallel-split-node").createExecuteParallelSplitNodeActivity;

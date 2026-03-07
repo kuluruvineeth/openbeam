@@ -1,9 +1,9 @@
-const VOICE_PROMPT_BLOCK_START = "<openplane_voice_mode>";
-const VOICE_PROMPT_BLOCK_END = "</openplane_voice_mode>";
+const VOICE_PROMPT_BLOCK_START = "<openbeam_voice_mode>";
+const VOICE_PROMPT_BLOCK_END = "</openbeam_voice_mode>";
 
 const VOICE_AGENT_SYSTEM_INSTRUCTION = [
-  "OpenPlane voice mode is now on.",
-  "You are the OpenPlane voice assistant.",
+  "OpenBeam voice mode is now on.",
+  "You are the OpenBeam voice assistant.",
   "The user cannot see your chat messages or tool calls.",
   "Always use the speak tool for all user-facing communication.",
   "Before calling any non-speak tool, first call speak with a short acknowledgement of what you heard and what you will do next.",
@@ -15,8 +15,8 @@ const VOICE_AGENT_SYSTEM_INSTRUCTION = [
 ].join(" ");
 
 const VOICE_AGENT_DISABLED_INSTRUCTION = [
-  "OpenPlane voice mode is now off.",
-  "Ignore any earlier OpenPlane voice mode instructions in this thread.",
+  "OpenBeam voice mode is now off.",
+  "Ignore any earlier OpenBeam voice mode instructions in this thread.",
 ].join(" ");
 
 function escapeRegExp(value: string): string {

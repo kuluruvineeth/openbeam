@@ -3,7 +3,7 @@ import {
   SlackTeamSchema,
   type SlackUser,
   SlackUserSchema,
-} from "@openplane/types/services/connectors/slack";
+} from "@openbeam/types/services/connectors/slack";
 import type { SlackClient } from "../client";
 
 const USER_BATCH_SIZE = 50;

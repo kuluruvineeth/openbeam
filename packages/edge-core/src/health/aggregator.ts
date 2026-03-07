@@ -5,8 +5,8 @@ import type {
   ServiceCheck,
   ServiceStatus,
   SyncMetrics,
-} from "@openplane/types/edge/health";
-import { EdgeHealthReportSchema } from "@openplane/types/edge/health";
+} from "@openbeam/types/edge/health";
+import { EdgeHealthReportSchema } from "@openbeam/types/edge/health";
 
 type CheckFn = () => Promise<ServiceCheck>;
 

@@ -6,11 +6,11 @@ import type {
   ConnectorActionStakes,
   ConnectorActionsRegistry,
   ConnectorNodeConfig,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import {
   CONNECTOR_TYPES,
   type ConnectorType,
-} from "@openplane/types/services/connectors/events";
+} from "@openbeam/types/services/connectors/events";
 import type { ComponentType } from "react";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "../../../../utils";

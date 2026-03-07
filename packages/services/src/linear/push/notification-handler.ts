@@ -4,8 +4,8 @@ import {
   type LinearTransformContext,
   type LinearWebhookPayload,
   LinearWebhookPayloadSchema,
-} from "@openplane/types/services/connectors/linear";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/linear";
+import type { GenericDocument } from "@openbeam/vespa";
 import { logger } from "../../lib/logger";
 import { getDocument } from "../api/documents";
 import { getIssue, getIssueComments } from "../api/issues";

@@ -13,7 +13,7 @@ description: Common NVIDIA Omniverse connector issues and fixes.
 
     **Fix:**
     1. In the Nucleus Admin Console, verify the API token exists
-    2. Generate a new token if needed and update the connector in OpenPlane
+    2. Generate a new token if needed and update the connector in OpenBeam
     3. Ensure the token has read access to the target USD stage paths
   </Accordion>
 </Accordions>
@@ -22,7 +22,7 @@ description: Common NVIDIA Omniverse connector issues and fixes.
 
 <Accordions>
   <Accordion title="Cannot connect to Nucleus server">
-    The Nucleus server is unreachable from the OpenPlane host.
+    The Nucleus server is unreachable from the OpenBeam host.
 
     **Fix:**
     1. Verify the Nucleus server URL is correct
@@ -73,7 +73,7 @@ description: Common NVIDIA Omniverse connector issues and fixes.
     **Fix:**
     1. Verify the USD Search API URL is correct
     2. Test the API endpoint directly with a curl request
-    3. The USD Search API is optional -- search still works through OpenPlane's standard search without it
+    3. The USD Search API is optional -- search still works through OpenBeam's standard search without it
   </Accordion>
 </Accordions>
 
@@ -87,7 +87,7 @@ curl https://nucleus-server:3009/health
 # Use Omniverse USD Composer or Navigator to browse the Nucleus file system
 ```
 
-Still stuck? [Open an issue](https://github.com/kuluruvineeth/openplane/issues) with the connector status, Nucleus version, and USD stage details.
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openbeam/issues) with the connector status, Nucleus version, and USD stage details.
 
 <Cards>
   <Card title="Setup" href="/docs/connectors/omniverse/setup" description="Reconnect or reconfigure the connector" />

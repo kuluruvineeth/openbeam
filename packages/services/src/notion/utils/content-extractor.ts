@@ -5,7 +5,7 @@ import type {
   NotionPage,
   NotionParent,
   NotionRichText,
-} from "@openplane/types/services/connectors/notion";
+} from "@openbeam/types/services/connectors/notion";
 import type { BlockWithDepth } from "../api/blocks";
 import { richTextToPlainText } from "./rich-text";
 

@@ -14,7 +14,7 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@openplane/ui";
+} from "@openbeam/ui";
 import { useMemo, useState } from "react";
 import { Icons } from "@/components/icons";
 import { cn } from "@/lib/utils";

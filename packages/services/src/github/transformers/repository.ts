@@ -1,8 +1,8 @@
 import type {
   GitHubRepository,
   GitHubTransformContext,
-} from "@openplane/types/services/connectors/github";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/github";
+import type { GenericDocument } from "@openbeam/vespa";
 import { calculateDocumentChecksum } from "../../lib/checksum";
 
 function buildRepoDocumentId(connectorId: string, repoId: number): string {

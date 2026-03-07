@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: minio-init
-  namespace: openplane
+  namespace: openbeam
   labels:
     app: minio-init
 spec:
@@ -22,6 +22,6 @@ spec:
                 echo "Waiting for MinIO..."
                 sleep 3
               done
-              mc mb --ignore-existing local/openplane-files
+              mc mb --ignore-existing local/openbeam-files
               echo "Bucket created successfully"
       restartPolicy: OnFailure

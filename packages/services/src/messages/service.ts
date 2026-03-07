@@ -1,4 +1,4 @@
-import { vespaClient } from "@openplane/vespa";
+import { vespaClient } from "@openbeam/vespa";
 import type {
   DocumentResult,
   EmailMessage,

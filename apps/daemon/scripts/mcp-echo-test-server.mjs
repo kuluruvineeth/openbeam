@@ -2,7 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
-const server = new McpServer({ name: "openplane-test-mcp", version: "1.0.0" });
+const server = new McpServer({ name: "openbeam-test-mcp", version: "1.0.0" });
 
 server.tool("echo", { text: z.string() }, async ({ text }) => ({
   content: [{ type: "text", text: `ECHO:${text}` }],

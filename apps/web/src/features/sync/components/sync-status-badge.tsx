@@ -1,6 +1,6 @@
 "use client";
 
-import { Badge, Card } from "@openplane/ui";
+import { Badge, Card } from "@openbeam/ui";
 import { formatDistanceToNow } from "date-fns";
 import { Icons } from "@/components/icons";
 import { cn } from "@/lib/utils";

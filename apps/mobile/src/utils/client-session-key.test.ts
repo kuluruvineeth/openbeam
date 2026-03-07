@@ -38,7 +38,7 @@ describe("client-session-key", () => {
 
     expect(key).toBe("clsk_123456781234123412341234567890ab");
     expect(asyncStorageMock.setItem).toHaveBeenCalledWith(
-      "@openplane:client-session-key-v1",
+      "@openbeam:client-session-key-v1",
       "clsk_123456781234123412341234567890ab"
     );
   });

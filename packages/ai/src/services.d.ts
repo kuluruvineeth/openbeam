@@ -1,4 +1,4 @@
-declare module "@openplane/services" {
+declare module "@openbeam/services" {
   function getTeamDuckDB(teamId: string): Promise<unknown>;
   function initializeEAVSchema(db: unknown): Promise<void>;
 

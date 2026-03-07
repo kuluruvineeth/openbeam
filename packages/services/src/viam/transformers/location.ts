@@ -1,8 +1,8 @@
 import type {
   ViamLocation,
   ViamTransformContext,
-} from "@openplane/types/services/connectors/viam";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/viam";
+import type { GenericDocument } from "@openbeam/vespa";
 import { calculateDocumentChecksum } from "../../lib/checksum";
 
 function buildLocationContent(location: ViamLocation): string {

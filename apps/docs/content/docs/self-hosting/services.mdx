@@ -5,7 +5,7 @@ description: Setup, tuning, health checks, and troubleshooting for PostgreSQL, R
 
 # Infrastructure Services
 
-All infrastructure services are defined in `scripts/deploy/infra-hetzner-compose.yaml`. They communicate over the `openplane` Docker network and bind ports to `127.0.0.1` only -- never exposed directly to the internet.
+All infrastructure services are defined in `scripts/deploy/infra-hetzner-compose.yaml`. They communicate over the `openbeam` Docker network and bind ports to `127.0.0.1` only -- never exposed directly to the internet.
 
 ---
 
@@ -21,7 +21,7 @@ Primary relational database. Stores users, teams, connectors, OAuth tokens, sync
 | Port | `5432` (localhost only) | |
 | Memory limit | 2 GB | |
 | CPU limit | 1.0 | |
-| Data volume | `/mnt/openplane-data/postgres` | |
+| Data volume | `/mnt/openbeam-data/postgres` | |
 
 ### Tuning Parameters
 
@@ -88,7 +88,7 @@ In-memory data store used for caching, rate limiting, job queues, and pub/sub me
 | Port | `6379` (localhost only) | |
 | Memory limit | 512 MB | |
 | CPU limit | 0.5 | |
-| Data volume | `/mnt/openplane-data/redis` | |
+| Data volume | `/mnt/openbeam-data/redis` | |
 | Persistence | AOF (`appendonly yes`) | |
 | Max memory | 512 MB | |
 | Eviction policy | `noeviction` | Errors on OOM instead of dropping keys |
@@ -103,7 +103,7 @@ Interval: 10s, timeout: 3s, retries: 5.
 
 ### Why noeviction
 
-The `noeviction` policy is intentional. OpenPlane uses Redis for rate limiting counters and job state that must not be silently dropped. If Redis runs out of memory, the application surfaces an error rather than silently losing data.
+The `noeviction` policy is intentional. OpenBeam uses Redis for rate limiting counters and job state that must not be silently dropped. If Redis runs out of memory, the application surfaces an error rather than silently losing data.
 
 ### Monitoring
 
@@ -118,10 +118,10 @@ A Redis exporter (`oliver006/redis_exporter:v1.58.0-alpine`) is included in the 
 
 <Accordions>
   <Accordion title="OOM errors">
-    If you see `OOM command not allowed`, Redis has hit the 512 MB limit. Check key counts with `docker exec openplane-redis redis-cli info keyspace`. Consider increasing `--maxmemory` or debugging key growth.
+    If you see `OOM command not allowed`, Redis has hit the 512 MB limit. Check key counts with `docker exec openbeam-redis redis-cli info keyspace`. Consider increasing `--maxmemory` or debugging key growth.
   </Accordion>
   <Accordion title="High latency">
-    Run `docker exec openplane-redis redis-cli --latency` to measure baseline latency. Check if AOF rewriting is causing I/O contention with `docker exec openplane-redis redis-cli info persistence`.
+    Run `docker exec openbeam-redis redis-cli --latency` to measure baseline latency. Check if AOF rewriting is causing I/O contention with `docker exec openbeam-redis redis-cli info persistence`.
   </Accordion>
 </Accordions>
 
@@ -140,7 +140,7 @@ Hybrid search engine combining BM25 text search with vector similarity search. V
 | Memory limit | 4 GB | |
 | Memory reservation | 4 GB | Guaranteed allocation |
 | CPU limit | 2.0 | |
-| Data volume | `/mnt/openplane-data/vespa` | |
+| Data volume | `/mnt/openbeam-data/vespa` | |
 
 ### Health Check
 
@@ -157,7 +157,7 @@ The 120-second start period accounts for Vespa's JVM initialization time. Vespa 
 The `vespa-deploy` init container automatically deploys the Vespa application package after the service is healthy:
 
 1. Waits for Vespa to be healthy
-2. Zips the application package from `/mnt/openplane-data/configs/vespa-application`
+2. Zips the application package from `/mnt/openbeam-data/configs/vespa-application`
 3. Deploys it to the config server at port 19071
 
 ### Monitoring
@@ -176,13 +176,13 @@ Vespa benefits more from memory and disk speed than CPU:
 
 <Accordions>
   <Accordion title="Vespa not starting">
-    Vespa requires 4 GB of memory. If the container is killed by the OOM killer, increase Docker's memory limit. Check with `docker inspect openplane-vespa | grep -i oom`.
+    Vespa requires 4 GB of memory. If the container is killed by the OOM killer, increase Docker's memory limit. Check with `docker inspect openbeam-vespa | grep -i oom`.
   </Accordion>
   <Accordion title="Slow search queries">
     Check Vespa metrics at `http://localhost:8280/state/v1/metrics`. High `content.proton.documentdb.matching.query_latency` indicates insufficient memory for query caching.
   </Accordion>
   <Accordion title="Deployment fails">
-    Check the deploy init container logs: `docker logs openplane-vespa-deploy`. Common issues include malformed schema files or version incompatibilities.
+    Check the deploy init container logs: `docker logs openbeam-vespa-deploy`. Common issues include malformed schema files or version incompatibilities.
   </Accordion>
   <Accordion title="Disk full">
     Vespa stops accepting writes at 90% disk usage (`VESPA_DISK_FULL_PERCENT`). Free disk space or expand the volume.
@@ -230,8 +230,8 @@ The Temporal UI (`temporalio/ui:2.44.1`) provides a web dashboard at `localhost:
 A Temporal admin tools container (`temporalio/admin-tools:1.29`) is available for debugging. Access it with:
 
 ```bash
-docker exec -it openplane-temporal-admin tctl namespace list
-docker exec -it openplane-temporal-admin tctl workflow list
+docker exec -it openbeam-temporal-admin tctl namespace list
+docker exec -it openbeam-temporal-admin tctl workflow list
 ```
 
 ### Troubleshooting
@@ -241,10 +241,10 @@ docker exec -it openplane-temporal-admin tctl workflow list
     Verify PostgreSQL is healthy and the `postgres-auth-fix` container completed successfully: `docker logs postgres-auth-fix`. Temporal requires MD5 password encryption, which the init container configures.
   </Accordion>
   <Accordion title="Workflows stuck in running state">
-    Check the Temporal UI at `http://localhost:8233`. A workflow stuck in running state usually means the worker process crashed. Check worker logs: `docker logs openplane-worker`.
+    Check the Temporal UI at `http://localhost:8233`. A workflow stuck in running state usually means the worker process crashed. Check worker logs: `docker logs openbeam-worker`.
   </Accordion>
   <Accordion title="Schema creation failed">
-    On first start, `auto-setup` creates Temporal tables in PostgreSQL. If this fails, check `docker logs openplane-temporal`. Common cause: PostgreSQL not ready yet. Restart the Temporal container.
+    On first start, `auto-setup` creates Temporal tables in PostgreSQL. If this fails, check `docker logs openbeam-temporal`. Common cause: PostgreSQL not ready yet. Restart the Temporal container.
   </Accordion>
 </Accordions>
 
@@ -262,14 +262,14 @@ S3-compatible object storage for file uploads, document attachments, and media f
 | Ports | `9000` (API), `9001` (console) | Localhost only |
 | Memory limit | 512 MB | |
 | CPU limit | 0.5 | |
-| Data volume | `/mnt/openplane-data/minio` | |
+| Data volume | `/mnt/openbeam-data/minio` | |
 
 ### Initialization
 
 The `minio-init` container runs on first start to:
 
 1. Set up the MinIO CLI alias
-2. Create the default bucket (`openplane-files`)
+2. Create the default bucket (`openbeam-files`)
 3. Configure CORS for browser-based uploads
 
 ### Health Check
@@ -301,7 +301,7 @@ To use AWS S3 or another S3-compatible service instead of MinIO:
     Check CORS configuration. The `minio-init` container sets `cors_allow_origin="*"`. If you restricted this, ensure your web frontend's origin is included. After changing CORS, restart the MinIO container.
   </Accordion>
   <Accordion title="Bucket not found">
-    The `minio-init` container creates the bucket on first start. If it failed, run it manually: `docker exec openplane-minio mc mb myminio/openplane-files --ignore-existing`.
+    The `minio-init` container creates the bucket on first start. If it failed, run it manually: `docker exec openbeam-minio mc mb myminio/openbeam-files --ignore-existing`.
   </Accordion>
 </Accordions>
 
@@ -321,7 +321,7 @@ Scrapes metrics from all services on a 15-30 second interval. Retains data for 3
 | Port | `9090` (localhost only) |
 | Memory limit | 512 MB |
 | Retention | 30 days |
-| Config | `/mnt/openplane-data/configs/prometheus/prometheus.yml` |
+| Config | `/mnt/openbeam-data/configs/prometheus/prometheus.yml` |
 
 Health check: `http://localhost:9090/-/healthy`
 
@@ -334,7 +334,7 @@ Dashboards and alerting. Pre-provisioned with data sources and dashboards.
 | Image | `grafana/grafana:latest` |
 | Port | `3002` (localhost only) |
 | Memory limit | 256 MB |
-| Data volume | `/mnt/openplane-data/grafana` |
+| Data volume | `/mnt/openbeam-data/grafana` |
 | Default credentials | `admin` / `admin` (change in `.env`) |
 
 Health check: `http://localhost:3000/api/health` (internal port 3000, mapped to 3002)
@@ -348,7 +348,7 @@ Log aggregation backend. Collects logs from all containers via Promtail.
 | Image | `grafana/loki:2.9.10` |
 | Port | `3100` (localhost only) |
 | Memory limit | 256 MB |
-| Data volume | `/mnt/openplane-data/loki` |
+| Data volume | `/mnt/openbeam-data/loki` |
 
 ### Promtail
 
@@ -375,9 +375,9 @@ Log shipping agent. Reads Docker container logs and forwards them to Loki.
               ┌─────────┐                  ┌─────────┐
               │   Web   │                  │ Server  │
               └────┬────┘                  └────┬────┘
-                   │      openplane-apps        │
+                   │      openbeam-apps        │
               ─────┼────────────────────────────┼─────
-                   │       openplane            │
+                   │       openbeam            │
           ┌────────┼────────────────────────────┼────────┐
           │        │                            │        │
      ┌────┴───┐ ┌──┴──┐ ┌──────┐ ┌────────┐ ┌──┴──┐    │

@@ -5,7 +5,7 @@ description: Full-text search, vector similarity, and hybrid ranking running ent
 
 # Search Engine
 
-`@openplane/edge-search` provides a complete search stack running on a single edge node. SQLite FTS5 for keyword matching, in-memory cosine similarity for vector search, and hybrid ranking that fuses both signals. No external search engine required.
+`@openbeam/edge-search` provides a complete search stack running on a single edge node. SQLite FTS5 for keyword matching, in-memory cosine similarity for vector search, and hybrid ranking that fuses both signals. No external search engine required.
 
 ```typescript
 import {
@@ -15,7 +15,7 @@ import {
   SQLiteDocumentStore,
   hybridRank,
   rrfRank,
-} from "@openplane/edge-search";
+} from "@openbeam/edge-search";
 ```
 
 ## EdgeSearchEngine
@@ -23,8 +23,8 @@ import {
 The main orchestrator. Wires together FTS, vector, and document store providers.
 
 ```typescript
-import { openEdgeDatabase } from "@openplane/edge-core";
-import { EdgeSearchEngine, SQLiteFTS5Provider, InMemoryVectorProvider, SQLiteDocumentStore } from "@openplane/edge-search";
+import { openEdgeDatabase } from "@openbeam/edge-core";
+import { EdgeSearchEngine, SQLiteFTS5Provider, InMemoryVectorProvider, SQLiteDocumentStore } from "@openbeam/edge-search";
 
 const db = openEdgeDatabase("./edge.db");
 
@@ -81,7 +81,7 @@ await engine.removeDocument("doc-001");
     Pass a query embedding to enable hybrid search. FTS and vector scores are normalized and fused using the `hybridAlpha` weight.
 
     ```typescript
-    import { MockEmbeddingModel } from "@openplane/edge-ai";
+    import { MockEmbeddingModel } from "@openbeam/edge-ai";
 
     const embedding = new MockEmbeddingModel();
     const queryVector = await embedding.embed("deployment health checks");
@@ -156,7 +156,7 @@ interface EdgeSearchResult {
 BM25-ranked full-text search using SQLite's FTS5 extension.
 
 ```typescript
-import { SQLiteFTS5Provider } from "@openplane/edge-search";
+import { SQLiteFTS5Provider } from "@openbeam/edge-search";
 
 const fts = new SQLiteFTS5Provider(db, "fts_documents");
 
@@ -192,7 +192,7 @@ Quotes in user queries are sanitized to prevent FTS5 syntax errors. Raw single a
 Cosine similarity search over L2-normalized vectors. All vectors are held in memory for sub-millisecond search at edge scale.
 
 ```typescript
-import { InMemoryVectorProvider } from "@openplane/edge-search";
+import { InMemoryVectorProvider } from "@openbeam/edge-search";
 
 const vector = new InMemoryVectorProvider();
 
@@ -227,7 +227,7 @@ Two ranking strategies for fusing FTS and vector results.
 Weighted linear combination with min-max normalization. The `alpha` parameter controls the balance.
 
 ```typescript
-import { hybridRank } from "@openplane/edge-search";
+import { hybridRank } from "@openbeam/edge-search";
 
 const ftsResults = [
   { documentId: "doc-1", score: 3.2 },
@@ -260,7 +260,7 @@ interface RankedResult {
 Reciprocal Rank Fusion. Position-based scoring that is robust to score scale differences. Use when combining more than two result sets.
 
 ```typescript
-import { rrfRank } from "@openplane/edge-search";
+import { rrfRank } from "@openbeam/edge-search";
 
 const fused = rrfRank([ftsResults, vectorResults, rerankerResults], 60);
 // k=60 (default): standard smoothing constant
@@ -272,7 +272,7 @@ const fused = rrfRank([ftsResults, vectorResults, rerankerResults], 60);
 CRUD storage for document records with metadata. Used by the search engine to hydrate results with titles, content, and metadata.
 
 ```typescript
-import { SQLiteDocumentStore } from "@openplane/edge-search";
+import { SQLiteDocumentStore } from "@openbeam/edge-search";
 
 const store = new SQLiteDocumentStore(db, "edge_documents");
 

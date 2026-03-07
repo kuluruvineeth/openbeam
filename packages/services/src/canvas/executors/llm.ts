@@ -5,7 +5,7 @@ import {
   registerAllTools,
   type ToolContext,
   toolRegistry,
-} from "@openplane/ai";
+} from "@openbeam/ai";
 import {
   type ChatMessage,
   getChatModel,
@@ -13,8 +13,8 @@ import {
   ProviderIdSchema,
   type ToolContextBase,
   ToolContextSchema,
-} from "@openplane/types/ai";
-import { LlmNodeConfigSchema } from "@openplane/types/canvas";
+} from "@openbeam/types/ai";
+import { LlmNodeConfigSchema } from "@openbeam/types/canvas";
 import Ajv, { type ValidateFunction } from "ajv";
 import { CanvasNodeExecutionError } from "../errors";
 import { resolveNodeConfig } from "../node-config";

@@ -9,7 +9,7 @@ import {
   importPublicKey,
 } from "../crypto";
 
-const RELAY_BASE_URL = "wss://relay.openplane.sh";
+const RELAY_BASE_URL = "wss://relay.openbeam.sh";
 
 async function withRetry<T>(
   fn: () => Promise<T>,
@@ -29,7 +29,7 @@ async function withRetry<T>(
   throw lastError instanceof Error ? lastError : new Error(String(lastError));
 }
 
-describe("Live relay (relay.openplane.sh) E2E", () => {
+describe("Live relay (relay.openbeam.sh) E2E", () => {
   const liveIt = process.env.RUN_LIVE_RELAY_E2E === "1" ? it : it.skip;
 
   liveIt(

@@ -2,7 +2,9 @@ export {
   type AgentActivities,
   type AgentActivityDependencies,
   type AgentExecutor,
+  type ControlPlaneActivityDependencies,
   createAgentActivities,
+  createControlPlaneActivities,
   LlmAgentExecutor,
 } from "./agents";
 export type {
@@ -14,6 +16,7 @@ export type {
   ExecuteParallelAgentStepsInput,
   ExecuteParallelAgentStepsOutput,
 } from "./agents/chunked-types";
+export type { ControlPlaneActivities } from "./agents/control-types";
 export type {
   ExecuteAgentStepInput,
   ExecuteAgentStepOutput,

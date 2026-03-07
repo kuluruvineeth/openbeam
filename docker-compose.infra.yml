@@ -1,9 +1,9 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: openplane-postgres
+    container_name: openbeam-postgres
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-openplane}
+      POSTGRES_DB: ${POSTGRES_DB:-openbeam}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
@@ -19,7 +19,7 @@ services:
 
   redis:
     image: redis:8.4.0-alpine
-    container_name: openplane-redis
+    container_name: openbeam-redis
     ports:
       - "${REDIS_PORT:-6379}:6379"
     volumes:
@@ -34,7 +34,7 @@ services:
 
   redis-exporter:
     image: oliver006/redis_exporter:v1.58.0-alpine
-    container_name: openplane-redis-exporter
+    container_name: openbeam-redis-exporter
     environment:
       REDIS_ADDR: redis:6379
       REDIS_EXPORTER_CHECK_KEYS: "ratelimit:*,jobSchedulerKeys:*"
@@ -47,7 +47,7 @@ services:
 
   vespa:
     image: vespaengine/vespa:8
-    container_name: openplane-vespa
+    container_name: openbeam-vespa
     hostname: vespa
     ports:
       - "${VESPA_PORT:-8080}:8080"
@@ -71,7 +71,7 @@ services:
 
   vespa-deploy:
     image: alpine:latest
-    container_name: openplane-vespa-deploy
+    container_name: openbeam-vespa-deploy
     volumes:
       - ./packages/vespa:/vespa:ro
     depends_on:
@@ -90,7 +90,7 @@ services:
 
   vespa-exporter:
     image: quay.io/prometheuscommunity/json-exporter:latest
-    container_name: openplane-vespa-exporter
+    container_name: openbeam-vespa-exporter
     command:
       - "--config.file=/etc/json-exporter/config.yml"
     ports:
@@ -116,7 +116,7 @@ services:
 
   prometheus:
     image: prom/prometheus:latest
-    container_name: openplane-prometheus
+    container_name: openbeam-prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
@@ -147,7 +147,7 @@ services:
 
   grafana:
     image: grafana/grafana:latest
-    container_name: openplane-grafana
+    container_name: openbeam-grafana
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
@@ -179,7 +179,7 @@ services:
 
   loki:
     image: grafana/loki:2.9.10
-    container_name: openplane-loki
+    container_name: openbeam-loki
     command:
       - "-config.file=/etc/loki/local-config.yaml"
     ports:
@@ -204,7 +204,7 @@ services:
 
   promtail:
     image: grafana/promtail:2.9.10
-    container_name: openplane-promtail
+    container_name: openbeam-promtail
     command:
       - "-config.file=/etc/promtail/config.yml"
     volumes:
@@ -217,7 +217,7 @@ services:
 
   minio:
     image: minio/minio:latest
-    container_name: openplane-minio
+    container_name: openbeam-minio
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
@@ -239,7 +239,7 @@ services:
 
   minio-init:
     image: minio/mc:latest
-    container_name: openplane-minio-init
+    container_name: openbeam-minio-init
     depends_on:
       minio:
         condition: service_healthy
@@ -248,7 +248,7 @@ services:
       - -c
       - |
         mc alias set myminio http://minio:9000 $${MINIO_ROOT_USER:-minioadmin} $${MINIO_ROOT_PASSWORD:-minioadmin}
-        mc mb --ignore-existing myminio/$${S3_BUCKET:-openplane-files}
+        mc mb --ignore-existing myminio/$${S3_BUCKET:-openbeam-files}
         echo 'Setting global CORS policy...'
         mc admin config set myminio api cors_allow_origin="*"
         echo 'Bucket initialized with CORS (restart minio container to apply)'
@@ -256,7 +256,7 @@ services:
 
   temporal:
     image: temporalio/auto-setup:1.29.2
-    container_name: openplane-temporal
+    container_name: openbeam-temporal
     environment:
       DB: postgres12
       DB_PORT: 5432
@@ -283,7 +283,7 @@ services:
 
   temporal-ui:
     image: temporalio/ui:2.44.1
-    container_name: openplane-temporal-ui
+    container_name: openbeam-temporal-ui
     environment:
       TEMPORAL_ADDRESS: temporal:7233
       TEMPORAL_CORS_ORIGINS: http://localhost:3000,http://localhost:3001
@@ -296,7 +296,7 @@ services:
 
   temporal-admin-tools:
     image: temporalio/admin-tools:1.29
-    container_name: openplane-temporal-admin
+    container_name: openbeam-temporal-admin
     environment:
       TEMPORAL_ADDRESS: temporal:7233
     depends_on:

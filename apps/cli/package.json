@@ -2,7 +2,7 @@
   "name": "cli",
   "private": true,
   "scripts": {
-    "build": "mkdir -p dist && go build -o dist/openplane ./cmd/openplane && go build ./...",
+    "build": "mkdir -p dist && go build -o dist/openbeam ./cmd/openbeam && go build ./...",
     "check-types": "go test -run '^$' ./...",
     "lint": "GOTOOLCHAIN=go1.24.2 go run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.8 run",
     "test": "go test ./...",

@@ -5,7 +5,7 @@ import {
   findSessionById,
   listSessionEvents,
   listSessions,
-} from "@openplane/db";
+} from "@openbeam/db";
 import { TRPCError } from "@trpc/server";
 import { verifySessionOwnership } from "../../middleware/session-auth";
 import { withActiveTeam } from "../apps/middleware";

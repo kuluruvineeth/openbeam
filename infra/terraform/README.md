@@ -1,6 +1,6 @@
-# OpenPlane Infrastructure (Terraform)
+# OpenBeam Infrastructure (Terraform)
 
-Production-ready Terraform configuration for OpenPlane on Google Cloud.
+Production-ready Terraform configuration for OpenBeam on Google Cloud.
 
 ## 🚀 Quick Start
 
@@ -14,14 +14,14 @@ Run the automated setup script:
 
 ```bash
 # Usage: ./scripts/setup-gcp.sh <project-id> <billing-account-id>
-./scripts/setup-gcp.sh openplane-prod 012345-6789AB-CDEF01
+./scripts/setup-gcp.sh openbeam-prod 012345-6789AB-CDEF01
 ```
 
 #### Option B: Manual Setup (UI/CLI)
 
 If you prefer manual control, perform these steps in the [Google Cloud Console](https://console.cloud.google.com/):
 
-1.  **Create Project:** Create a new project (e.g., `openplane-prod`) and link your billing account.
+1.  **Create Project:** Create a new project (e.g., `openbeam-prod`) and link your billing account.
 2.  **Enable APIs:** Go to "APIs & Services" > "Library" and enable:
     - Cloud Resource Manager API
     - Artifact Registry API
@@ -31,7 +31,7 @@ If you prefer manual control, perform these steps in the [Google Cloud Console](
     - Compute Engine API
     - Secret Manager API
     - Service Networking API
-3.  **Create State Bucket:** Go to "Cloud Storage" and create a bucket (e.g., `openplane-prod-terraform-state`). Enable **Object Versioning**.
+3.  **Create State Bucket:** Go to "Cloud Storage" and create a bucket (e.g., `openbeam-prod-terraform-state`). Enable **Object Versioning**.
 4.  **Create Service Account:** Go to "IAM & Admin" > "Service Accounts".
     - Create a new SA (e.g., `terraform-admin`).
     - Grant it the `Owner` role (or granular permissions like Editor, Storage Admin, etc.).
@@ -64,7 +64,7 @@ This repository includes pipelines for automated deployment.
 
 1.  **Add Secrets:** Go to GitHub Repo Settings > Secrets and add:
 
-    - `GCP_PROJECT_ID`: Your Project ID (e.g., `openplane-prod`).
+    - `GCP_PROJECT_ID`: Your Project ID (e.g., `openbeam-prod`).
     - `GCP_SA_KEY`: The JSON key content of the `terraform-admin` Service Account you created in Step 1.
 
 2.  **Infrastructure Pipeline:** Pushing to `infra/terraform/**` triggers `.github/workflows/deploy-infra.yml`.
@@ -85,7 +85,7 @@ The Vespa search engine runs on a VM and needs to be deployed with your applicat
 VESPA_IP=$(cd infra/terraform/environments/prod && terraform output -raw vespa_private_ip)
 
 # SSH into the VM (via IAP tunnel, no public IP needed)
-gcloud compute ssh openplane-vespa-prod \
+gcloud compute ssh openbeam-vespa-prod \
     --zone=us-central1-a \
     --tunnel-through-iap
 
@@ -107,9 +107,9 @@ The database schema must be created before the app can start. Run the Cloud Run 
 
 ```bash
 # Execute the migration job (created by Terraform)
-gcloud run jobs execute openplane-db-migrate-dev \
+gcloud run jobs execute openbeam-db-migrate-dev \
   --region=us-central1 \
-  --project=openplane-478413 \
+  --project=openbeam-478413 \
   --wait
 ```
 
@@ -121,7 +121,7 @@ gcloud run jobs execute openplane-db-migrate-dev \
 
 ```bash
 # Get database password
-DB_PASSWORD=$(gcloud secrets versions access latest --secret="openplane-db-password-dev" --project=openplane-478413)
+DB_PASSWORD=$(gcloud secrets versions access latest --secret="openbeam-db-password-dev" --project=openbeam-478413)
 
 # Get database public IP (from Terraform output or Cloud Console)
 DB_IP=$(cd infra/terraform/environments/dev && terraform output -raw cloud_sql_public_ip)
@@ -131,13 +131,13 @@ DB_IP=$(cd infra/terraform/environments/dev && terraform output -raw cloud_sql_p
 
 ```bash
 # Using psql
-PGPASSWORD="$DB_PASSWORD" psql -h $DB_IP -U openplane -d openplane
+PGPASSWORD="$DB_PASSWORD" psql -h $DB_IP -U openbeam -d openbeam
 
 # Using pgAdmin
 # Host: <DB_IP>
 # Port: 5432
-# Database: openplane
-# Username: openplane
+# Database: openbeam
+# Username: openbeam
 # Password: <DB_PASSWORD>
 ```
 
@@ -145,21 +145,21 @@ PGPASSWORD="$DB_PASSWORD" psql -h $DB_IP -U openplane -d openplane
 
 ```bash
 # Start proxy
-./cloud-sql-proxy openplane-478413:us-central1:openplane-db-dev-81049585 --port 5432
+./cloud-sql-proxy openbeam-478413:us-central1:openbeam-db-dev-81049585 --port 5432
 
 # In another terminal, connect
-PGPASSWORD="$DB_PASSWORD" psql -h 127.0.0.1 -U openplane -d openplane
+PGPASSWORD="$DB_PASSWORD" psql -h 127.0.0.1 -U openbeam -d openbeam
 ```
 
 **Reset database (dev only):**
 
 ```bash
 # Drop and recreate schema
-PGPASSWORD="$DB_PASSWORD" psql -h $DB_IP -U openplane -d openplane \
-  -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO openplane; GRANT ALL ON SCHEMA public TO public;"
+PGPASSWORD="$DB_PASSWORD" psql -h $DB_IP -U openbeam -d openbeam \
+  -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO openbeam; GRANT ALL ON SCHEMA public TO public;"
 
 # Then run migrations
-gcloud run jobs execute openplane-db-migrate-dev --region=us-central1 --project=openplane-478413 --wait
+gcloud run jobs execute openbeam-db-migrate-dev --region=us-central1 --project=openbeam-478413 --wait
 ```
 
 #### 3. Configure DNS
@@ -171,7 +171,7 @@ Point your custom domains to the Cloud Run service URLs.
     terraform output -json deployment_summary
     ```
 2.  In Google Cloud Console, go to **Cloud Run** > **Manage Custom Domains**.
-3.  Map your domains (e.g., `api.openplane.tech`, `app.openplane.tech`) to the respective services.
+3.  Map your domains (e.g., `api.openbeam.tech`, `app.openbeam.tech`) to the respective services.
 4.  Update your DNS provider (GoDaddy, Cloudflare, etc.) with the **A** or **CNAME** records provided by Google.
 
 ---
@@ -208,7 +208,7 @@ terraform destroy
    - Select region: `us-central1`
    - Delete any connectors listed
 2. Navigate to: [VPC Network → VPC Networks](https://console.cloud.google.com/networking/networks/list)
-   - Click on `openplane-vpc-dev` (or `openplane-vpc-prod`)
+   - Click on `openbeam-vpc-dev` (or `openbeam-vpc-prod`)
    - Go to **VPC Network Peering** tab
    - Delete the `servicenetworking-googleapis-com` peering
 3. Run `terraform destroy` again

@@ -1,4 +1,4 @@
-import type { ExecutionPlan, ExecutionPlanNode } from "@openplane/types/canvas";
+import type { ExecutionPlan, ExecutionPlanNode } from "@openbeam/types/canvas";
 
 const IGNORED_NODE_TYPES = new Set(["annotation"]);
 

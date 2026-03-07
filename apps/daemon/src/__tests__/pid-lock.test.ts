@@ -14,7 +14,7 @@ import {
 function createTempDir(): string {
   const dir = join(
     tmpdir(),
-    `openplane-pid-test-${randomBytes(8).toString("hex")}`
+    `openbeam-pid-test-${randomBytes(8).toString("hex")}`
   );
   mkdirSync(dir, { recursive: true });
   return dir;
@@ -62,7 +62,7 @@ describe("PID lock", () => {
   it("creates daemonHome directory if missing", async () => {
     const dir = join(
       tmpdir(),
-      `openplane-pid-test-${randomBytes(8).toString("hex")}`,
+      `openbeam-pid-test-${randomBytes(8).toString("hex")}`,
       "nested"
     );
     tempDirs.push(join(tmpdir(), dir.split("/").slice(0, -1).join("/")));

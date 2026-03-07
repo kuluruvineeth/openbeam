@@ -10,8 +10,8 @@ export type {
   StreamChunk,
   TokenUsage,
   ToolCall,
-} from "@openplane/types/ai";
-export { FinishReasonSchema } from "@openplane/types/ai";
+} from "@openbeam/types/ai";
+export { FinishReasonSchema } from "@openbeam/types/ai";
 export {
   CompletionService,
   complete,

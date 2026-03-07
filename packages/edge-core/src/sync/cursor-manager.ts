@@ -1,5 +1,5 @@
 import type { Database } from "bun:sqlite";
-import type { EdgeSyncCursor } from "@openplane/types/edge/sync";
+import type { EdgeSyncCursor } from "@openbeam/types/edge/sync";
 
 interface CursorRow {
   connector_id: string;

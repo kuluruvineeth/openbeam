@@ -1,6 +1,6 @@
 "use client";
 
-import type { HandleVariant, NodeStatus } from "@openplane/types/canvas";
+import type { HandleVariant, NodeStatus } from "@openbeam/types/canvas";
 import { Handle, Position } from "@xyflow/react";
 import type { ReactNode } from "react";
 import { forwardRef, memo, useMemo } from "react";

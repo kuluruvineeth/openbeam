@@ -1,6 +1,6 @@
 "use client";
 
-import type { ProviderId } from "@openplane/types/ai";
+import type { ProviderId } from "@openbeam/types/ai";
 import type { SVGProps } from "react";
 
 type IconProps = SVGProps<SVGSVGElement> & {
@@ -202,7 +202,7 @@ const PROVIDER_ICONS: Record<ProviderId, React.ComponentType<IconProps>> = {
   twelvelabs: DefaultProviderIcon,
   cohere: CohereIcon,
   voyage: DefaultProviderIcon,
-  openplane: DefaultProviderIcon,
+  openbeam: DefaultProviderIcon,
   elevenlabs: DefaultProviderIcon,
   cartesia: DefaultProviderIcon,
   playht: DefaultProviderIcon,

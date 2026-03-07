@@ -13,7 +13,7 @@ terraform {
   }
 
   backend "gcs" {
-    bucket = "openplane-dev-terraform-state"
+    bucket = "openbeam-dev-terraform-state"
     prefix = "terraform/state/dev"
   }
 }
@@ -31,7 +31,7 @@ provider "google" {
 
 locals {
   environment  = "dev"
-  project_name = "openplane"
+  project_name = "openbeam"
   
   server_sa = google_service_account.server.email
   worker_sa = google_service_account.worker.email
@@ -39,10 +39,10 @@ locals {
   vespa_sa  = google_service_account.vespa.email
   engine_sa = google_service_account.engine.email
 
-  server_image = "${module.artifact_registry.repository_url}/openplane-server:${var.redeploy_id}"
-  worker_image = "${module.artifact_registry.repository_url}/openplane-worker:${var.redeploy_id}"
-  web_image    = "${module.artifact_registry.repository_url}/openplane-web:${var.redeploy_id}"
-  engine_image = "${module.artifact_registry.repository_url}/openplane-engine:${var.redeploy_id}"
+  server_image = "${module.artifact_registry.repository_url}/openbeam-server:${var.redeploy_id}"
+  worker_image = "${module.artifact_registry.repository_url}/openbeam-worker:${var.redeploy_id}"
+  web_image    = "${module.artifact_registry.repository_url}/openbeam-web:${var.redeploy_id}"
+  engine_image = "${module.artifact_registry.repository_url}/openbeam-engine:${var.redeploy_id}"
 
   server_url = var.server_domain != "" ? "https://${var.server_domain}" : ""
   web_url    = var.web_domain != "" ? "https://${var.web_domain}" : ""
@@ -74,7 +74,7 @@ module "artifact_registry" {
   location      = var.region
   repository_id = "${local.project_name}-repo"
   format        = "DOCKER"
-  description   = "Docker repository for OpenPlane images"
+  description   = "Docker repository for OpenBeam images"
   
   labels = {
     environment = local.environment
@@ -83,31 +83,31 @@ module "artifact_registry" {
 
 resource "google_service_account" "server" {
   account_id   = "${local.project_name}-server-${local.environment}"
-  display_name = "OpenPlane Server (${local.environment})"
+  display_name = "OpenBeam Server (${local.environment})"
   project      = var.project_id
 }
 
 resource "google_service_account" "worker" {
   account_id   = "${local.project_name}-worker-${local.environment}"
-  display_name = "OpenPlane Worker (${local.environment})"
+  display_name = "OpenBeam Worker (${local.environment})"
   project      = var.project_id
 }
 
 resource "google_service_account" "web" {
   account_id   = "${local.project_name}-web-${local.environment}"
-  display_name = "OpenPlane Web (${local.environment})"
+  display_name = "OpenBeam Web (${local.environment})"
   project      = var.project_id
 }
 
 resource "google_service_account" "vespa" {
   account_id   = "${local.project_name}-vespa-${local.environment}"
-  display_name = "OpenPlane Vespa (${local.environment})"
+  display_name = "OpenBeam Vespa (${local.environment})"
   project      = var.project_id
 }
 
 resource "google_service_account" "engine" {
   account_id   = "${local.project_name}-engine-${local.environment}"
-  display_name = "OpenPlane Engine (${local.environment})"
+  display_name = "OpenBeam Engine (${local.environment})"
   project      = var.project_id
 }
 
@@ -303,8 +303,8 @@ module "cloud_sql" {
   disk_size             = 10
   disk_autoresize_limit = 50
 
-  database_name = "openplane"
-  database_user = "openplane"
+  database_name = "openbeam"
+  database_user = "openbeam"
 
   backup_retention_count = 3
   point_in_time_recovery = false

@@ -1,4 +1,4 @@
-import type { CanvasNodeType } from "@openplane/types/canvas";
+import type { CanvasNodeType } from "@openbeam/types/canvas";
 
 export class CanvasNodeExecutionError extends Error {
   readonly nodeType: CanvasNodeType;

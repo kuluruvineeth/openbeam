@@ -1,7 +1,7 @@
 "use client";
 
-import { appStore } from "@openplane/integrations";
-import { Button, Skeleton } from "@openplane/ui";
+import { appStore } from "@openbeam/integrations";
+import { Button, Skeleton } from "@openbeam/ui";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import { useRouter } from "next/navigation";

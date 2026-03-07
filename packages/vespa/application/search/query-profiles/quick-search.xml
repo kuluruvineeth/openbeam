@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<query-profile id="quick-search" type="openplane">
+<query-profile id="quick-search" type="openbeam">
   <field name="maxHits">5</field>
   <field name="timeout">0.3</field>
   <field name="ranking.profile">bm25</field>

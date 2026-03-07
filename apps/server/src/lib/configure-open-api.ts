@@ -8,8 +8,8 @@ export function configureOpenAPI(app: OpenAPIHono<AuthEnv>) {
     openapi: "3.0.0",
     info: {
       version: "1.0.0",
-      title: "OpenPlane API",
-      description: "Public API for OpenPlane integrations and connectors",
+      title: "OpenBeam API",
+      description: "Public API for OpenBeam integrations and connectors",
     },
     security: [
       {

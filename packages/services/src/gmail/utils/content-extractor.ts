@@ -4,7 +4,7 @@ import type {
   GmailPart,
   GmailPayload,
   ParsedEmailHeaders,
-} from "@openplane/types/services/connectors/gmail";
+} from "@openbeam/types/services/connectors/gmail";
 import { extractAttachments, extractMedia } from "../api/attachments";
 
 const WHITESPACE_REGEX = /\s+/;

@@ -1,15 +1,15 @@
-import { createLogger } from "@openplane/observability";
+import { createLogger } from "@openbeam/observability";
 import { SpanStatusCode, trace } from "@opentelemetry/api";
 
-const tracer = trace.getTracer("openplane-prisma");
+const tracer = trace.getTracer("openbeam-prisma");
 const logger = createLogger({
-  service: "openplane-db",
+  service: "openbeam-db",
   env: process.env.NODE_ENV || "development",
   level: process.env.LOG_LEVEL || "info",
   version: process.env.APP_VERSION || "0.1.0",
 });
 const DB_SYSTEM = "postgresql";
-const DB_NAME = process.env.DATABASE_NAME || "openplane";
+const DB_NAME = process.env.DATABASE_NAME || "openbeam";
 const EXCLUDED_PRISMA_METHODS = new Set([
   "$connect",
   "$disconnect",

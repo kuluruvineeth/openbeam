@@ -1,21 +1,21 @@
 "use client";
 
-import type { RouterOutputs } from "@openplane/api/routers/index";
+import type { RouterOutputs } from "@openbeam/api/routers/index";
 import {
   Alert,
   AlertDescription,
   AlertTitle,
-} from "@openplane/ui/components/alert";
-import type { BadgeProps } from "@openplane/ui/components/badge";
-import { Badge } from "@openplane/ui/components/badge";
+} from "@openbeam/ui/components/alert";
+import type { BadgeProps } from "@openbeam/ui/components/badge";
+import { Badge } from "@openbeam/ui/components/badge";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@openplane/ui/components/card";
-import { Skeleton } from "@openplane/ui/components/skeleton";
+} from "@openbeam/ui/components/card";
+import { Skeleton } from "@openbeam/ui/components/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
 import { ExecutionApprovalForm } from "./execution-approval-form";

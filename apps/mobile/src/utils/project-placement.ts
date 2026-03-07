@@ -20,7 +20,7 @@ export function deriveProjectPlacementFromCwd(
       isGit: false,
       currentBranch: null,
       remoteUrl: null,
-      isOpenPlaneOwnedWorktree: false,
+      isOpenBeamOwnedWorktree: false,
       mainRepoRoot: null,
     },
   };

@@ -18,7 +18,7 @@ type WebNotificationInstance = {
   close?: () => void;
 };
 
-export const WEB_NOTIFICATION_CLICK_EVENT = "openplane:web-notification-click";
+export const WEB_NOTIFICATION_CLICK_EVENT = "openbeam:web-notification-click";
 
 let permissionRequest: Promise<boolean> | null = null;
 

@@ -19,8 +19,8 @@ import {
 const openaiApiKey = process.env.OPENAI_API_KEY ?? null;
 
 const localModelsDir =
-  process.env.OPENPLANE_LOCAL_MODELS_DIR ??
-  path.join(homedir(), ".openplane", "models", "local-speech");
+  process.env.OPENBEAM_LOCAL_MODELS_DIR ??
+  path.join(homedir(), ".openbeam", "models", "local-speech");
 
 function hasSherpaZipformerModels(modelsDir: string): boolean {
   return (
@@ -118,13 +118,13 @@ describe("daemon client E2E", () => {
               modelsDir: localModelsDir,
               models: {
                 dictationStt:
-                  process.env.OPENPLANE_DICTATION_LOCAL_STT_MODEL ??
+                  process.env.OPENBEAM_DICTATION_LOCAL_STT_MODEL ??
                   "zipformer-bilingual-zh-en-2023-02-20",
                 voiceStt:
-                  process.env.OPENPLANE_VOICE_LOCAL_STT_MODEL ??
+                  process.env.OPENBEAM_VOICE_LOCAL_STT_MODEL ??
                   "zipformer-bilingual-zh-en-2023-02-20",
                 voiceTts:
-                  process.env.OPENPLANE_VOICE_LOCAL_TTS_MODEL ??
+                  process.env.OPENBEAM_VOICE_LOCAL_TTS_MODEL ??
                   "kitten-nano-en-v0_1-fp16",
               },
             },
@@ -267,10 +267,10 @@ describe("daemon client E2E", () => {
 
   test("returns home-scoped directory suggestions", async () => {
     const insideHomeDir = mkdtempSync(
-      path.join(homedir(), "openplane-dir-suggestion-")
+      path.join(homedir(), "openbeam-dir-suggestion-")
     );
     const outsideHomeDir = mkdtempSync(
-      path.join(tmpdir(), "openplane-dir-suggestion-outside-")
+      path.join(tmpdir(), "openbeam-dir-suggestion-outside-")
     );
 
     try {

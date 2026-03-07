@@ -7,7 +7,7 @@ import {
   ListSessionsInputSchema,
   OnSessionEventInputSchema,
   SessionStatusSchema,
-} from "@openplane/types/canvas/session";
+} from "@openbeam/types/canvas/session";
 import {
   appendSessionEvent,
   appendSessionEvents,

@@ -1,0 +1,900 @@
+// ---------------------------------------------------------------------------
+// Agent Control Plane — Paperclip Migration Phase 1
+// ---------------------------------------------------------------------------
+
+// ── Enums ──────────────────────────────────────────────────────────────────
+
+enum AgentStatus {
+  ACTIVE
+  IDLE
+  RUNNING
+  ERROR
+  PAUSED
+  PENDING_APPROVAL
+  TERMINATED
+}
+
+enum AgentAdapterType {
+  PROCESS
+  HTTP
+  CLAUDE_LOCAL
+  CODEX_LOCAL
+  OPENCLAW
+}
+
+enum ControlIssueStatus {
+  BACKLOG
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  DONE
+  BLOCKED
+  CANCELLED
+}
+
+enum ControlIssuePriority {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum GoalLevel {
+  COMPANY
+  TEAM
+  AGENT
+  TASK
+}
+
+enum GoalStatus {
+  PLANNED
+  ACTIVE
+  ACHIEVED
+  CANCELLED
+}
+
+enum ControlProjectStatus {
+  BACKLOG
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum ApprovalType {
+  HIRE_AGENT
+  APPROVE_CEO_STRATEGY
+}
+
+enum ApprovalStatus {
+  PENDING
+  REVISION_REQUESTED
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum WakeupSource {
+  TIMER
+  ASSIGNMENT
+  ON_DEMAND
+  AUTOMATION
+}
+
+enum WakeupStatus {
+  QUEUED
+  CLAIMED
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum HeartbeatRunStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum ControlMembershipRole {
+  OWNER
+  MEMBER
+  GUEST
+}
+
+enum ControlMembershipStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+}
+
+enum PrincipalType {
+  USER
+  AGENT
+}
+
+enum InviteType {
+  USER
+  AGENT
+}
+
+enum JoinRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum SecretProvider {
+  LOCAL_ENCRYPTED
+  AWS_SECRETS_MANAGER
+  GCP_SECRET_MANAGER
+  VAULT
+}
+
+// ── Agent ──────────────────────────────────────────────────────────────────
+
+model ControlAgent {
+  id                 String           @id @default(cuid()) @map("_id")
+  teamId             String
+  name               String
+  role               String           @default("general")
+  title              String?
+  icon               String?
+  status             AgentStatus      @default(IDLE)
+  reportsTo          String?
+  capabilities       String?
+  adapterType        AgentAdapterType @default(PROCESS)
+  adapterConfig      Json             @default("{}")
+  runtimeConfig      Json             @default("{}")
+  budgetMonthlyCents Int              @default(0)
+  spentMonthlyCents  Int              @default(0)
+  permissions        Json             @default("{}")
+  lastHeartbeatAt    DateTime?
+  metadata           Json?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  team    Team           @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  manager ControlAgent?  @relation("AgentHierarchy", fields: [reportsTo], references: [id], onDelete: SetNull)
+  reports ControlAgent[] @relation("AgentHierarchy")
+
+  apiKeys           ControlAgentApiKey[]
+  configRevisions   ControlAgentConfigRevision[] @relation("AgentConfigRevisions")
+  authoredRevisions ControlAgentConfigRevision[] @relation("RevisionAuthor")
+  runtimeState      ControlAgentRuntimeState?
+  taskSessions      ControlAgentTaskSession[]
+  wakeupRequests    ControlAgentWakeupRequest[]
+  heartbeatRuns     ControlHeartbeatRun[]
+  heartbeatEvents   ControlHeartbeatRunEvent[]
+  assignedIssues    ControlIssue[]               @relation("IssueAssigneeAgent")
+  createdIssues     ControlIssue[]               @relation("IssueCreatorAgent")
+  costEvents        ControlCostEvent[]
+  activityLogs      ControlActivityLog[]
+  issueComments     ControlIssueComment[]
+  assets            ControlAsset[]
+  projects          ControlProject[]
+  goals             ControlGoal[]
+  approvals         ControlApproval[]
+  approvalComments  ControlApprovalComment[]
+  secrets           ControlTeamSecret[]
+
+  @@index([teamId, status])
+  @@index([teamId, reportsTo])
+  @@map("control_agent")
+}
+
+// ── Agent API Key ──────────────────────────────────────────────────────────
+
+model ControlAgentApiKey {
+  id         String    @id @default(cuid()) @map("_id")
+  teamId     String
+  agentId    String
+  name       String
+  keyHash    String
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  team  Team         @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  agent ControlAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@index([keyHash])
+  @@index([teamId, agentId])
+  @@map("control_agent_api_key")
+}
+
+// ── Agent Config Revision ──────────────────────────────────────────────────
+
+model ControlAgentConfigRevision {
+  id                       String   @id @default(cuid()) @map("_id")
+  teamId                   String
+  agentId                  String
+  createdByAgentId         String?
+  createdByUserId          String?
+  source                   String   @default("patch")
+  rolledBackFromRevisionId String?
+  changedKeys              Json     @default("[]")
+  beforeConfig             Json
+  afterConfig              Json
+  createdAt                DateTime @default(now())
+
+  team   Team          @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  agent  ControlAgent  @relation("AgentConfigRevisions", fields: [agentId], references: [id], onDelete: Cascade)
+  author ControlAgent? @relation("RevisionAuthor", fields: [createdByAgentId], references: [id], onDelete: SetNull)
+
+  @@index([teamId, agentId, createdAt])
+  @@index([agentId, createdAt])
+  @@map("control_agent_config_revision")
+}
+
+// ── Agent Runtime State ────────────────────────────────────────────────────
+
+model ControlAgentRuntimeState {
+  agentId                String           @id @map("_id")
+  teamId                 String
+  adapterType            AgentAdapterType
+  sessionId              String?
+  stateJson              Json             @default("{}")
+  lastRunId              String?
+  lastRunStatus          String?
+  totalInputTokens       BigInt           @default(0)
+  totalOutputTokens      BigInt           @default(0)
+  totalCachedInputTokens BigInt           @default(0)
+  totalCostCents         BigInt           @default(0)
+  lastError              String?
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+
+  team  Team         @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  agent ControlAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@index([teamId, agentId])
+  @@index([teamId, updatedAt])
+  @@map("control_agent_runtime_state")
+}
+
+// ── Agent Task Session ─────────────────────────────────────────────────────
+
+model ControlAgentTaskSession {
+  id                String           @id @default(cuid()) @map("_id")
+  teamId            String
+  agentId           String
+  adapterType       AgentAdapterType
+  taskKey           String
+  sessionParamsJson Json?
+  sessionDisplayId  String?
+  lastRunId         String?
+  lastError         String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  team  Team         @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  agent ControlAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, agentId, adapterType, taskKey])
+  @@index([teamId, agentId, updatedAt])
+  @@index([teamId, taskKey, updatedAt])
+  @@map("control_agent_task_session")
+}
+
+// ── Agent Wakeup Request ───────────────────────────────────────────────────
+
+model ControlAgentWakeupRequest {
+  id                   String         @id @default(cuid()) @map("_id")
+  teamId               String
+  agentId              String
+  source               WakeupSource
+  triggerDetail        String?
+  reason               String?
+  payload              Json?
+  status               WakeupStatus   @default(QUEUED)
+  coalescedCount       Int            @default(0)
+  requestedByActorType PrincipalType?
+  requestedByActorId   String?
+  idempotencyKey       String?
+  runId                String?
+  requestedAt          DateTime       @default(now())
+  claimedAt            DateTime?
+  finishedAt           DateTime?
+  error                String?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+
+  team          Team                  @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  agent         ControlAgent          @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  heartbeatRuns ControlHeartbeatRun[]
+
+  @@index([teamId, agentId, status])
+  @@index([teamId, requestedAt])
+  @@index([agentId, requestedAt])
+  @@map("control_agent_wakeup_request")
+}
+
+// ── Heartbeat Run ──────────────────────────────────────────────────────────
+
+model ControlHeartbeatRun {
+  id               String             @id @default(cuid()) @map("_id")
+  teamId           String
+  agentId          String
+  invocationSource String             @default("on_demand")
+  triggerDetail    String?
+  status           HeartbeatRunStatus @default(QUEUED)
+  startedAt        DateTime?
+  finishedAt       DateTime?
+  error            String?
+  wakeupRequestId  String?
+  exitCode         Int?
+  signal           String?
+  usageJson        Json?
+  resultJson       Json?
+  sessionIdBefore  String?
+  sessionIdAfter   String?
+  logStore         String?            @db.Text
+  logRef           String?
+  logBytes         BigInt?
+  logSha256        String?
+  logCompressed    Boolean            @default(false)
+  stdoutExcerpt    String?
+  stderrExcerpt    String?
+  errorCode        String?
+  externalRunId    String?
+  contextSnapshot  Json?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  team            Team                       @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  agent           ControlAgent               @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  wakeupRequest   ControlAgentWakeupRequest? @relation(fields: [wakeupRequestId], references: [id], onDelete: SetNull)
+  events          ControlHeartbeatRunEvent[]
+  checkoutIssues  ControlIssue[]             @relation("IssueCheckoutRun")
+  executionIssues ControlIssue[]             @relation("IssueExecutionRun")
+  activityLogs    ControlActivityLog[]
+
+  @@index([teamId, agentId, startedAt])
+  @@map("control_heartbeat_run")
+}
+
+// ── Heartbeat Run Event ────────────────────────────────────────────────────
+
+model ControlHeartbeatRunEvent {
+  id        String   @id @default(cuid()) @map("_id")
+  teamId    String
+  runId     String
+  agentId   String
+  seq       Int
+  eventType String
+  stream    String?
+  level     String?
+  color     String?
+  message   String?
+  payload   Json?
+  createdAt DateTime @default(now())
+
+  team  Team                @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  run   ControlHeartbeatRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  agent ControlAgent        @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@index([runId, seq])
+  @@index([teamId, runId])
+  @@index([teamId, createdAt])
+  @@map("control_heartbeat_run_event")
+}
+
+// ── Asset ──────────────────────────────────────────────────────────────────
+
+model ControlAsset {
+  id               String   @id @default(cuid()) @map("_id")
+  teamId           String
+  provider         String
+  objectKey        String
+  contentType      String
+  byteSize         Int
+  sha256           String
+  originalFilename String?
+  createdByAgentId String?
+  createdByUserId  String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  team        Team                     @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  agent       ControlAgent?            @relation(fields: [createdByAgentId], references: [id], onDelete: SetNull)
+  attachments ControlIssueAttachment[]
+
+  @@unique([teamId, objectKey])
+  @@index([teamId, createdAt])
+  @@index([teamId, provider])
+  @@map("control_asset")
+}
+
+// ── Issue ──────────────────────────────────────────────────────────────────
+
+model ControlIssue {
+  id                       String               @id @default(cuid()) @map("_id")
+  teamId                   String
+  projectId                String?
+  goalId                   String?
+  parentId                 String?
+  title                    String
+  description              String?              @db.Text
+  status                   ControlIssueStatus   @default(BACKLOG)
+  priority                 ControlIssuePriority @default(MEDIUM)
+  assigneeAgentId          String?
+  assigneeUserId           String?
+  checkoutRunId            String?
+  executionRunId           String?
+  executionAgentNameKey    String?
+  executionLockedAt        DateTime?
+  createdByAgentId         String?
+  createdByUserId          String?
+  issueNumber              Int?
+  identifier               String?              @unique
+  requestDepth             Int                  @default(0)
+  billingCode              String?
+  assigneeAdapterOverrides Json?
+  startedAt                DateTime?
+  completedAt              DateTime?
+  cancelledAt              DateTime?
+  hiddenAt                 DateTime?
+  createdAt                DateTime             @default(now())
+  updatedAt                DateTime             @updatedAt
+
+  team             Team                          @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  project          ControlProject?               @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  goal             ControlGoal?                  @relation(fields: [goalId], references: [id], onDelete: SetNull)
+  parent           ControlIssue?                 @relation("IssueHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children         ControlIssue[]                @relation("IssueHierarchy")
+  assigneeAgent    ControlAgent?                 @relation("IssueAssigneeAgent", fields: [assigneeAgentId], references: [id], onDelete: SetNull)
+  creatorAgent     ControlAgent?                 @relation("IssueCreatorAgent", fields: [createdByAgentId], references: [id], onDelete: SetNull)
+  checkoutRun      ControlHeartbeatRun?          @relation("IssueCheckoutRun", fields: [checkoutRunId], references: [id], onDelete: SetNull)
+  executionRun     ControlHeartbeatRun?          @relation("IssueExecutionRun", fields: [executionRunId], references: [id], onDelete: SetNull)
+  comments         ControlIssueComment[]
+  attachments      ControlIssueAttachment[]
+  labelAssignments ControlIssueLabelAssignment[]
+  approvalLinks    ControlIssueApproval[]
+
+  @@index([teamId, status])
+  @@index([teamId, assigneeAgentId, status])
+  @@index([teamId, assigneeUserId, status])
+  @@index([teamId, parentId])
+  @@index([teamId, projectId])
+  @@map("control_issue")
+}
+
+// ── Issue Comment ──────────────────────────────────────────────────────────
+
+model ControlIssueComment {
+  id            String   @id @default(cuid()) @map("_id")
+  teamId        String
+  issueId       String
+  authorAgentId String?
+  authorUserId  String?
+  body          String   @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  team        Team                     @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  issue       ControlIssue             @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  authorAgent ControlAgent?            @relation(fields: [authorAgentId], references: [id], onDelete: SetNull)
+  attachments ControlIssueAttachment[]
+
+  @@index([issueId])
+  @@index([teamId])
+  @@map("control_issue_comment")
+}
+
+// ── Issue Attachment ───────────────────────────────────────────────────────
+
+model ControlIssueAttachment {
+  id             String   @id @default(cuid()) @map("_id")
+  teamId         String
+  issueId        String
+  issueCommentId String?
+  assetId        String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  team    Team                 @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  issue   ControlIssue         @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  comment ControlIssueComment? @relation(fields: [issueCommentId], references: [id], onDelete: SetNull)
+  asset   ControlAsset         @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@unique([assetId])
+  @@index([teamId, issueId])
+  @@index([issueCommentId])
+  @@map("control_issue_attachment")
+}
+
+// ── Issue Label ────────────────────────────────────────────────────────────
+
+model ControlIssueLabel {
+  id        String   @id @default(cuid()) @map("_id")
+  teamId    String
+  name      String
+  color     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  team        Team                          @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  assignments ControlIssueLabelAssignment[]
+
+  @@unique([teamId, name])
+  @@index([teamId])
+  @@map("control_issue_label")
+}
+
+// ── Issue Label Assignment ─────────────────────────────────────────────────
+
+model ControlIssueLabelAssignment {
+  id        String   @id @default(cuid()) @map("_id")
+  teamId    String
+  issueId   String
+  labelId   String
+  createdAt DateTime @default(now())
+
+  team  Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  issue ControlIssue      @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  label ControlIssueLabel @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@unique([issueId, labelId])
+  @@index([issueId])
+  @@index([labelId])
+  @@index([teamId])
+  @@map("control_issue_label_assignment")
+}
+
+// ── Project ────────────────────────────────────────────────────────────────
+
+model ControlProject {
+  id          String               @id @default(cuid()) @map("_id")
+  teamId      String
+  goalId      String?
+  name        String
+  description String?              @db.Text
+  status      ControlProjectStatus @default(BACKLOG)
+  leadAgentId String?
+  targetDate  DateTime?            @db.Date
+  color       String?
+  archivedAt  DateTime?
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  team       Team                      @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  goal       ControlGoal?              @relation("ProjectPrimaryGoal", fields: [goalId], references: [id], onDelete: SetNull)
+  leadAgent  ControlAgent?             @relation(fields: [leadAgentId], references: [id], onDelete: SetNull)
+  workspaces ControlProjectWorkspace[]
+  issues     ControlIssue[]
+  goalLinks  ControlProjectGoal[]
+
+  @@index([teamId])
+  @@map("control_project")
+}
+
+// ── Project Workspace ──────────────────────────────────────────────────────
+
+model ControlProjectWorkspace {
+  id        String   @id @default(cuid()) @map("_id")
+  teamId    String
+  projectId String
+  name      String
+  cwd       String?
+  repoUrl   String?
+  repoRef   String?
+  metadata  Json?
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  team    Team           @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  project ControlProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([teamId, projectId])
+  @@index([projectId, isPrimary])
+  @@map("control_project_workspace")
+}
+
+// ── Project Goal (many-to-many) ────────────────────────────────────────────
+
+model ControlProjectGoal {
+  id        String   @id @default(cuid()) @map("_id")
+  teamId    String
+  projectId String
+  goalId    String
+  createdAt DateTime @default(now())
+
+  team    Team           @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  project ControlProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  goal    ControlGoal    @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, goalId])
+  @@index([projectId])
+  @@index([goalId])
+  @@index([teamId])
+  @@map("control_project_goal")
+}
+
+// ── Goal ───────────────────────────────────────────────────────────────────
+
+model ControlGoal {
+  id           String     @id @default(cuid()) @map("_id")
+  teamId       String
+  title        String
+  description  String?    @db.Text
+  level        GoalLevel  @default(TASK)
+  status       GoalStatus @default(PLANNED)
+  parentId     String?
+  ownerAgentId String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  team       Team                 @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  parent     ControlGoal?         @relation("GoalHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children   ControlGoal[]        @relation("GoalHierarchy")
+  ownerAgent ControlAgent?        @relation(fields: [ownerAgentId], references: [id], onDelete: SetNull)
+  projects   ControlProject[]     @relation("ProjectPrimaryGoal")
+  goalLinks  ControlProjectGoal[]
+  issues     ControlIssue[]
+
+  @@index([teamId])
+  @@map("control_goal")
+}
+
+// ── Approval ───────────────────────────────────────────────────────────────
+
+model ControlApproval {
+  id                 String         @id @default(cuid()) @map("_id")
+  teamId             String
+  type               ApprovalType
+  requestedByAgentId String?
+  requestedByUserId  String?
+  status             ApprovalStatus @default(PENDING)
+  payload            Json
+  decisionNote       String?        @db.Text
+  decidedByUserId    String?
+  decidedAt          DateTime?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  team             Team                     @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  requestedByAgent ControlAgent?            @relation(fields: [requestedByAgentId], references: [id], onDelete: SetNull)
+  comments         ControlApprovalComment[]
+  issueLinks       ControlIssueApproval[]
+
+  @@index([teamId, status, type])
+  @@map("control_approval")
+}
+
+// ── Approval Comment ───────────────────────────────────────────────────────
+
+model ControlApprovalComment {
+  id            String   @id @default(cuid()) @map("_id")
+  teamId        String
+  approvalId    String
+  authorAgentId String?
+  authorUserId  String?
+  body          String   @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  team     Team            @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  approval ControlApproval @relation(fields: [approvalId], references: [id], onDelete: Cascade)
+  author   ControlAgent?   @relation(fields: [authorAgentId], references: [id], onDelete: SetNull)
+
+  @@index([teamId])
+  @@index([approvalId])
+  @@index([approvalId, createdAt])
+  @@map("control_approval_comment")
+}
+
+// ── Issue Approval (many-to-many) ──────────────────────────────────────────
+
+model ControlIssueApproval {
+  id         String   @id @default(cuid()) @map("_id")
+  teamId     String
+  issueId    String
+  approvalId String
+  createdAt  DateTime @default(now())
+
+  team     Team            @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  issue    ControlIssue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  approval ControlApproval @relation(fields: [approvalId], references: [id], onDelete: Cascade)
+
+  @@unique([issueId, approvalId])
+  @@index([issueId])
+  @@index([approvalId])
+  @@index([teamId])
+  @@map("control_issue_approval")
+}
+
+// ── Cost Event ─────────────────────────────────────────────────────────────
+
+model ControlCostEvent {
+  id           String   @id @default(cuid()) @map("_id")
+  teamId       String
+  agentId      String
+  issueId      String?
+  projectId    String?
+  goalId       String?
+  billingCode  String?
+  provider     String
+  model        String
+  inputTokens  Int      @default(0)
+  outputTokens Int      @default(0)
+  costCents    Int
+  occurredAt   DateTime
+  createdAt    DateTime @default(now())
+
+  team  Team         @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  agent ControlAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@index([teamId, occurredAt])
+  @@index([teamId, agentId, occurredAt])
+  @@map("control_cost_event")
+}
+
+// ── Activity Log ───────────────────────────────────────────────────────────
+
+model ControlActivityLog {
+  id         String   @id @default(cuid()) @map("_id")
+  teamId     String
+  actorType  String   @default("system")
+  actorId    String
+  action     String
+  entityType String
+  entityId   String
+  agentId    String?
+  runId      String?
+  details    Json?
+  createdAt  DateTime @default(now())
+
+  team  Team                 @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  agent ControlAgent?        @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  run   ControlHeartbeatRun? @relation(fields: [runId], references: [id], onDelete: SetNull)
+
+  @@index([teamId, createdAt])
+  @@index([runId])
+  @@index([entityType, entityId])
+  @@map("control_activity_log")
+}
+
+// ── Team Secret ────────────────────────────────────────────────────────────
+
+model ControlTeamSecret {
+  id               String         @id @default(cuid()) @map("_id")
+  teamId           String
+  name             String
+  provider         SecretProvider @default(LOCAL_ENCRYPTED)
+  externalRef      String?
+  latestVersion    Int            @default(1)
+  description      String?
+  createdByAgentId String?
+  createdByUserId  String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  team     Team                       @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  agent    ControlAgent?              @relation(fields: [createdByAgentId], references: [id], onDelete: SetNull)
+  versions ControlTeamSecretVersion[]
+
+  @@unique([teamId, name])
+  @@index([teamId])
+  @@index([teamId, provider])
+  @@map("control_team_secret")
+}
+
+// ── Team Secret Version ────────────────────────────────────────────────────
+
+model ControlTeamSecretVersion {
+  id               String    @id @default(cuid()) @map("_id")
+  secretId         String
+  version          Int
+  material         Json
+  valueSha256      String
+  createdByAgentId String?
+  createdByUserId  String?
+  revokedAt        DateTime?
+  createdAt        DateTime  @default(now())
+
+  secret ControlTeamSecret @relation(fields: [secretId], references: [id], onDelete: Cascade)
+
+  @@unique([secretId, version])
+  @@index([secretId, createdAt])
+  @@index([valueSha256])
+  @@map("control_team_secret_version")
+}
+
+// ── Company Membership ─────────────────────────────────────────────────────
+
+model ControlCompanyMembership {
+  id             String                  @id @default(cuid()) @map("_id")
+  teamId         String
+  principalType  PrincipalType
+  principalId    String
+  status         ControlMembershipStatus @default(ACTIVE)
+  membershipRole ControlMembershipRole?
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Restrict)
+
+  @@unique([teamId, principalType, principalId])
+  @@index([principalType, principalId, status])
+  @@index([teamId, status])
+  @@map("control_company_membership")
+}
+
+// ── Access Grant ───────────────────────────────────────────────────────────
+
+model ControlAccessGrant {
+  id              String        @id @default(cuid()) @map("_id")
+  teamId          String
+  principalType   PrincipalType
+  principalId     String
+  permissionKey   String
+  scope           Json?
+  grantedByUserId String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Restrict)
+
+  @@unique([teamId, principalType, principalId, permissionKey])
+  @@index([teamId, permissionKey])
+  @@map("control_access_grant")
+}
+
+// ── Invite ─────────────────────────────────────────────────────────────────
+
+model ControlInvite {
+  id               String     @id @default(cuid()) @map("_id")
+  teamId           String?
+  inviteType       InviteType @default(USER)
+  tokenHash        String     @unique
+  allowedJoinTypes String     @default("both")
+  defaultsPayload  Json?
+  expiresAt        DateTime
+  invitedByUserId  String?
+  revokedAt        DateTime?
+  acceptedAt       DateTime?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  team         Team?                @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  joinRequests ControlJoinRequest[]
+
+  @@index([teamId, inviteType, revokedAt, expiresAt])
+  @@map("control_invite")
+}
+
+// ── Join Request ───────────────────────────────────────────────────────────
+
+model ControlJoinRequest {
+  id                    String            @id @default(cuid()) @map("_id")
+  inviteId              String            @unique
+  teamId                String
+  requestType           String
+  status                JoinRequestStatus @default(PENDING)
+  requestIp             String
+  requestingUserId      String?
+  requestEmailSnapshot  String?
+  agentName             String?
+  adapterType           AgentAdapterType?
+  capabilities          String?
+  agentDefaultsPayload  Json?
+  claimSecretHash       String?
+  claimSecretExpiresAt  DateTime?
+  claimSecretConsumedAt DateTime?
+  createdAgentId        String?
+  approvedByUserId      String?
+  approvedAt            DateTime?
+  rejectedByUserId      String?
+  rejectedAt            DateTime?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  team   Team          @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  invite ControlInvite @relation(fields: [inviteId], references: [id], onDelete: Cascade)
+
+  @@index([teamId, status, requestType, createdAt])
+  @@map("control_join_request")
+}

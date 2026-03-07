@@ -1,5 +1,5 @@
-import type { Database } from "@openplane/db";
-import { expireApproval, updateApprovalEscalation } from "@openplane/db";
+import type { Database } from "@openbeam/db";
+import { expireApproval, updateApprovalEscalation } from "@openbeam/db";
 import { ApplicationFailure } from "@temporalio/common";
 
 export interface EscalationDependencies {

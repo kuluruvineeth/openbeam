@@ -1,6 +1,6 @@
 "use client";
 
-import type { HttpBodyType, KeyValuePair } from "@openplane/types/canvas";
+import type { HttpBodyType, KeyValuePair } from "@openbeam/types/canvas";
 import { forwardRef, memo, useCallback } from "react";
 import { Textarea } from "../../textarea";
 import { KeyValueEditor } from "./key-value-editor";

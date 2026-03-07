@@ -1,8 +1,8 @@
 import type {
   AdapterMetrics,
   ConnectionState,
-} from "@openplane/types/services/connectors/common/industrial";
-import type { MqttConnectionConfig } from "@openplane/types/services/connectors/mqtt";
+} from "@openbeam/types/services/connectors/common/industrial";
+import type { MqttConnectionConfig } from "@openbeam/types/services/connectors/mqtt";
 import logger from "../logger";
 import {
   type AdapterConfig,

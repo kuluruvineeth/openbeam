@@ -1,6 +1,6 @@
 "use client";
 
-import type { ParameterBindingMode } from "@openplane/types/canvas";
+import type { ParameterBindingMode } from "@openbeam/types/canvas";
 import { forwardRef, memo } from "react";
 import { Icons } from "../../icons";
 import { ToggleGroup, ToggleGroupItem } from "../../toggle-group";

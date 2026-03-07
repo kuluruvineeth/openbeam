@@ -7,7 +7,7 @@
  *   npx tsx packages/server/src/server/daemon-e2e/checkout-debug.ts [agentIdOrCwd1] [agentIdOrCwd2]
  *
  * To test against a different daemon:
- *   OPENPLANE_LISTEN=127.0.0.1:7777 npx tsx packages/server/src/server/daemon-e2e/checkout-debug.ts
+ *   OPENBEAM_LISTEN=127.0.0.1:7777 npx tsx packages/server/src/server/daemon-e2e/checkout-debug.ts
  */
 
 import os from "node:os";
@@ -35,10 +35,9 @@ class LoggingWebSocket extends OriginalWebSocket {
   }
 }
 
-const OPENPLANE_HOME =
-  process.env.OPENPLANE_HOME ?? `${os.homedir()}/.openplane`;
-const OPENPLANE_LISTEN = process.env.OPENPLANE_LISTEN ?? "127.0.0.1:6767";
-const DAEMON_URL = `ws://${OPENPLANE_LISTEN}/ws`;
+const OPENBEAM_HOME = process.env.OPENBEAM_HOME ?? `${os.homedir()}/.openbeam`;
+const OPENBEAM_LISTEN = process.env.OPENBEAM_LISTEN ?? "127.0.0.1:6767";
+const DAEMON_URL = `ws://${OPENBEAM_LISTEN}/ws`;
 const CLIENT_SESSION_KEY = "clsk_checkout_debug";
 
 async function testMultiAgentSequence() {
@@ -174,7 +173,7 @@ async function testMultiAgentSequence() {
 async function main() {
   console.log("Checkout Debug Script - Multi-Agent Sequence Test");
   console.log("==================================================");
-  console.log(`OPENPLANE_HOME: ${OPENPLANE_HOME}`);
+  console.log(`OPENBEAM_HOME: ${OPENBEAM_HOME}`);
 
   await testMultiAgentSequence();
 

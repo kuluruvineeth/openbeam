@@ -10,7 +10,7 @@ describe("relay websocket URL versioning", () => {
   test("defaults relay URLs to v2", () => {
     const url = new URL(
       buildRelayWebSocketUrl({
-        endpoint: "relay.openplane.sh:443",
+        endpoint: "relay.openbeam.sh:443",
         serverId: "srv_test",
         role: "client",
         clientSessionKey: "clsk_test",
@@ -24,7 +24,7 @@ describe("relay websocket URL versioning", () => {
   test("allows explicitly requesting v1 relay URLs", () => {
     const url = new URL(
       buildRelayWebSocketUrl({
-        endpoint: "relay.openplane.sh:443",
+        endpoint: "relay.openbeam.sh:443",
         serverId: "srv_test",
         role: "server",
         version: "1",

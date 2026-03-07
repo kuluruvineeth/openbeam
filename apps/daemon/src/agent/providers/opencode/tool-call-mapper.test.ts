@@ -237,7 +237,7 @@ describe("opencode tool-call mapper", () => {
   it("does not apply cross-provider speak normalization in opencode mapper", () => {
     const item = expectMapped(
       mapOpencodeToolCall({
-        toolName: "openplane_voice.speak",
+        toolName: "openbeam_voice.speak",
         callId: "opencode-call-voice-1",
         status: "completed",
         input: { text: "Voice response from OpenCode." },
@@ -245,7 +245,7 @@ describe("opencode tool-call mapper", () => {
       })
     );
 
-    expect(item.name).toBe("openplane_voice.speak");
+    expect(item.name).toBe("openbeam_voice.speak");
     expect(item.detail).toEqual({
       type: "unknown",
       input: { text: "Voice response from OpenCode." },

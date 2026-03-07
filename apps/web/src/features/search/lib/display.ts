@@ -1,4 +1,4 @@
-import { appStore, type UnifiedApp } from "@openplane/integrations";
+import { appStore, type UnifiedApp } from "@openbeam/integrations";
 import { Icons } from "@/components/icons";
 
 type IconComponent = (typeof Icons)[keyof typeof Icons];

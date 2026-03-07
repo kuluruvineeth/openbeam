@@ -2,8 +2,8 @@ import type {
   NotionComment,
   NotionPage,
   NotionTransformContext,
-} from "@openplane/types/services/connectors/notion";
-import type { GenericDocument, JsonArray } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/notion";
+import type { GenericDocument, JsonArray } from "@openbeam/vespa";
 import type { BlockWithDepth } from "../api/blocks";
 import { serializeBlocks } from "../utils/block-serializer";
 import { calculateDocumentChecksum } from "../utils/checksum";

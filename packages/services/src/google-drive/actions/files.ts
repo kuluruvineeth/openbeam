@@ -1,4 +1,4 @@
-import type { DriveFile } from "@openplane/types/services/connectors/google-drive";
+import type { DriveFile } from "@openbeam/types/services/connectors/google-drive";
 import type { GoogleDriveClient } from "../client";
 
 export interface FileActionResult {

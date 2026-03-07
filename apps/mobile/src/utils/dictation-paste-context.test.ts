@@ -46,20 +46,20 @@ describe("dictation-paste-context", () => {
     expect(shouldAutoPasteDictationToFocusedApp(buildContext())).toBe(true);
   });
 
-  it("does not arm external auto-paste when OpenPlane desktop is focused", () => {
-    const openplaneContext = buildContext({
-      application: { bundleIdentifier: "dev.openplane.desktop" },
+  it("does not arm external auto-paste when OpenBeam desktop is focused", () => {
+    const openbeamContext = buildContext({
+      application: { bundleIdentifier: "dev.openbeam.desktop" },
       windowInfo: { url: "tauri://localhost" },
     });
-    expect(shouldAutoPasteDictationToFocusedApp(openplaneContext)).toBe(false);
+    expect(shouldAutoPasteDictationToFocusedApp(openbeamContext)).toBe(false);
   });
 
-  it("does not arm external auto-paste for OpenPlane web urls", () => {
-    const openplaneWebContext = buildContext({
+  it("does not arm external auto-paste for OpenBeam web urls", () => {
+    const openbeamWebContext = buildContext({
       application: { bundleIdentifier: "com.google.Chrome" },
-      windowInfo: { url: "https://app.openplane.dev/srv_123/agent_123" },
+      windowInfo: { url: "https://app.openbeam.dev/srv_123/agent_123" },
     });
-    expect(shouldAutoPasteDictationToFocusedApp(openplaneWebContext)).toBe(
+    expect(shouldAutoPasteDictationToFocusedApp(openbeamWebContext)).toBe(
       false
     );
   });

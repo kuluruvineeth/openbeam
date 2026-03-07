@@ -4,7 +4,7 @@ import type {
   ExecutionStatus,
   ExecutionTrace,
   NodeStatus,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { useMemo } from "react";
 import { useExecutionStore } from "./execution-store";
 

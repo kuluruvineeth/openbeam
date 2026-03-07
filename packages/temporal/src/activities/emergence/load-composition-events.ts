@@ -1,4 +1,4 @@
-import db, { getCompositionEventsByTeam } from "@openplane/db";
+import db, { getCompositionEventsByTeam } from "@openbeam/db";
 import type {
   CompositionEvent,
   LoadCompositionEventsInput,

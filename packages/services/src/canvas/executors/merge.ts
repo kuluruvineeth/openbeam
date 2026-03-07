@@ -1,4 +1,4 @@
-import { MergeNodeConfigSchema } from "@openplane/types/canvas";
+import { MergeNodeConfigSchema } from "@openbeam/types/canvas";
 import { CanvasNodeExecutionError } from "../errors";
 import { resolveNodeConfig } from "../node-config";
 import type { CanvasNodeExecutor } from "../types";

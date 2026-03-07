@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@openplane/ui";
+import { Button } from "@openbeam/ui";
 import JSZip from "jszip";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";

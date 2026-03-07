@@ -4,7 +4,7 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@openplane/ui";
+} from "@openbeam/ui";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { Icons } from "@/components/icons";

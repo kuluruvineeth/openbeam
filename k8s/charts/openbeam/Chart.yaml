@@ -1,0 +1,17 @@
+apiVersion: v2
+name: openbeam
+description: OpenBeam platform chart with optional self-hosted Daytona runtime
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+
+dependencies:
+  - name: sandbox-gateway
+    alias: sandboxGateway
+    version: 0.1.0
+    repository: file://../../../packages/sandbox/helm/sandbox-gateway
+    condition: sandboxGateway.enabled
+  - name: daytona
+    version: 0.0.17
+    repository: https://charts.daytona.io
+    condition: daytona.enabled

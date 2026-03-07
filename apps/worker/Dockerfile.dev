@@ -38,7 +38,7 @@ RUN if [ -n "$HUGEICONS_PRO_AUTH_TOKEN" ]; then \
       printf "@hugeicons-pro:registry=https://npm.hugeicons.com/\n//npm.hugeicons.com/:_authToken=%s\n" "$HUGEICONS_PRO_AUTH_TOKEN" >> .npmrc; \
     fi
 RUN --mount=type=cache,target=/root/.bun/install/cache \
-    bun install --filter @openplane/worker && rm -f .npmrc
+    bun install --filter @openbeam/worker && rm -f .npmrc
 
 # Layer 3: Prisma generate (cached unless schema changes)
 COPY packages/db/prisma packages/db/prisma

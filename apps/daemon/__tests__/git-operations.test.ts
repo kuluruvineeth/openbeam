@@ -266,7 +266,7 @@ describe("daemon E2E - git operations", () => {
   });
 
   describe("worktree setup", () => {
-    test("runs openplane.json setup asynchronously and reports status via timeline tool_call", async () => {
+    test("runs openbeam.json setup asynchronously and reports status via timeline tool_call", async () => {
       const repoRoot = tmpCwd();
 
       try {
@@ -290,13 +290,13 @@ describe("daemon E2E - git operations", () => {
         execSync("git branch -M main", { cwd: repoRoot, stdio: "pipe" });
 
         const setupCommand =
-          'while [ ! -f "$OPENPLANE_WORKTREE_PATH/allow-setup" ]; do sleep 0.05; done; echo "done" > "$OPENPLANE_WORKTREE_PATH/setup-done.txt"';
+          'while [ ! -f "$OPENBEAM_WORKTREE_PATH/allow-setup" ]; do sleep 0.05; done; echo "done" > "$OPENBEAM_WORKTREE_PATH/setup-done.txt"';
         writeFileSync(
-          join(repoRoot, "openplane.json"),
+          join(repoRoot, "openbeam.json"),
           JSON.stringify({ worktree: { setup: [setupCommand] } })
         );
-        execSync("git add openplane.json", { cwd: repoRoot, stdio: "pipe" });
-        execSync("git -c commit.gpgsign=false commit -m 'add openplane.json'", {
+        execSync("git add openbeam.json", { cwd: repoRoot, stdio: "pipe" });
+        execSync("git -c commit.gpgsign=false commit -m 'add openbeam.json'", {
           cwd: repoRoot,
           stdio: "pipe",
         });
@@ -339,7 +339,7 @@ describe("daemon E2E - git operations", () => {
             const item = m.payload.event.item;
             return (
               item.type === "tool_call" &&
-              item.name === "openplane_worktree_setup" &&
+              item.name === "openbeam_worktree_setup" &&
               item.status === "completed"
             );
           });
@@ -378,9 +378,9 @@ describe("daemon E2E - git operations", () => {
         execSync("git branch -M main", { cwd: repoRoot, stdio: "pipe" });
 
         const setupCommand =
-          'echo "started" > "$OPENPLANE_WORKTREE_PATH/setup-start.txt"; sleep 0.1; echo "boom" 1>&2; exit 7';
+          'echo "started" > "$OPENBEAM_WORKTREE_PATH/setup-start.txt"; sleep 0.1; echo "boom" 1>&2; exit 7';
         writeFileSync(
-          join(repoRoot, "openplane.json"),
+          join(repoRoot, "openbeam.json"),
           JSON.stringify({
             worktree: {
               setup: [setupCommand],
@@ -394,7 +394,7 @@ describe("daemon E2E - git operations", () => {
             },
           })
         );
-        execSync("git add openplane.json", { cwd: repoRoot, stdio: "pipe" });
+        execSync("git add openbeam.json", { cwd: repoRoot, stdio: "pipe" });
         execSync("git -c commit.gpgsign=false commit -m 'add failing setup'", {
           cwd: repoRoot,
           stdio: "pipe",
@@ -436,7 +436,7 @@ describe("daemon E2E - git operations", () => {
             const item = m.payload.event.item;
             return (
               item.type === "tool_call" &&
-              item.name === "openplane_worktree_setup" &&
+              item.name === "openbeam_worktree_setup" &&
               item.status === "failed"
             );
           });

@@ -1,5 +1,5 @@
-import db from "@openplane/db";
-import { updateQueryEmbedding } from "@openplane/services/personalization/embeddings";
+import db from "@openbeam/db";
+import { updateQueryEmbedding } from "@openbeam/services/personalization/embeddings";
 import type { HandleSearchEventInput, HandleSearchEventOutput } from "./types";
 
 export async function handleSearchEvent(

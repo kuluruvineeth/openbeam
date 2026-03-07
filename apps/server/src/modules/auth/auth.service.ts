@@ -1,8 +1,5 @@
 import { createHash, timingSafeEqual } from "node:crypto";
-import prisma, {
-  findApiKeyByPrefix,
-  updateApiKeyLastUsed,
-} from "@openplane/db";
+import prisma, { findApiKeyByPrefix, updateApiKeyLastUsed } from "@openbeam/db";
 import argon2 from "argon2";
 import type { AuthContext } from "@/types/auth";
 import logger from "@/utils/logger";

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-const STORAGE_KEY = "openplane-daemon-recent-paths";
+const STORAGE_KEY = "openbeam-daemon-recent-paths";
 const MAX_RECENT_PATHS = 3;
 
 export interface UseRecentPathsReturn {

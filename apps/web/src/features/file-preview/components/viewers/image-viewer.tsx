@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Skeleton } from "@openplane/ui";
+import { Button, Skeleton } from "@openbeam/ui";
 import Image from "next/image";
 import { useCallback, useRef, useState } from "react";
 import { Icons } from "@/components/icons";

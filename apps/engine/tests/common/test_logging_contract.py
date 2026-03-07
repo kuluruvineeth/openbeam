@@ -29,7 +29,7 @@ class TestLoggingContract:
         monkeypatch.setattr("sys.stdout", stream)
 
         settings = CPUServiceSettings(environment="production", log_level="INFO")
-        configure_logging(settings, service_name="openplane-engine-cpu")
+        configure_logging(settings, service_name="openbeam-engine-cpu")
 
         bind_request_context(
             request_id="req-123",
@@ -46,7 +46,7 @@ class TestLoggingContract:
         payload = _last_json_log(stream.getvalue())
 
         assert payload["message"] == "request_processed"
-        assert payload["service"] == "openplane-engine-cpu"
+        assert payload["service"] == "openbeam-engine-cpu"
         assert payload["env"] == "production"
         assert payload["version"] == "1.2.3"
         assert payload["request_id"] == "req-123"

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { AgentDetailScreen } from "@/features/daemon/components/agent-detail-screen";
 
 export const metadata: Metadata = {
-  title: "Agent | OpenPlane",
+  title: "Agent | OpenBeam",
   description: "View and interact with an AI coding agent",
 };
 

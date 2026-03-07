@@ -1,6 +1,6 @@
 "use client";
 
-import { Alert, AlertDescription, AlertTitle } from "@openplane/ui";
+import { Alert, AlertDescription, AlertTitle } from "@openbeam/ui";
 import { toast } from "sonner";
 import { Icons } from "@/components/icons";
 import { SubmitButton } from "@/components/submit-button";

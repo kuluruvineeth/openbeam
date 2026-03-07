@@ -22,7 +22,7 @@ description: Common ThingsBoard connector issues and fixes.
 
     **Fix:**
     1. This typically indicates the password was changed or the account was deactivated
-    2. Update the connector credentials in OpenPlane
+    2. Update the connector credentials in OpenBeam
     3. Check ThingsBoard audit logs for account-related events
   </Accordion>
 </Accordions>
@@ -62,12 +62,12 @@ description: Common ThingsBoard connector issues and fixes.
 
 <Accordions>
   <Accordion title="Connection refused to ThingsBoard URL">
-    The ThingsBoard instance is unreachable from the OpenPlane host.
+    The ThingsBoard instance is unreachable from the OpenBeam host.
 
     **Fix:**
     1. Verify the URL is correct and includes the protocol (`https://` or `http://`)
     2. Test connectivity: `curl -I https://thingsboard.yourcompany.com`
-    3. Check firewall rules between OpenPlane and the ThingsBoard instance
+    3. Check firewall rules between OpenBeam and the ThingsBoard instance
     4. If using ThingsBoard Cloud, ensure no IP restrictions are in place
   </Accordion>
 
@@ -76,7 +76,7 @@ description: Common ThingsBoard connector issues and fixes.
 
     **Fix:**
     1. Install a valid TLS certificate on the ThingsBoard instance
-    2. If using a self-signed cert, add it to the OpenPlane host's trust store
+    2. If using a self-signed cert, add it to the OpenBeam host's trust store
   </Accordion>
 </Accordions>
 
@@ -106,7 +106,7 @@ curl -H "X-Authorization: Bearer YOUR_JWT_TOKEN" \
   "https://thingsboard.yourcompany.com/api/tenant/devices?pageSize=1&page=0"
 ```
 
-Still stuck? [Open an issue](https://github.com/kuluruvineeth/openplane/issues) with the connector status, ThingsBoard version, and error messages.
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openbeam/issues) with the connector status, ThingsBoard version, and error messages.
 
 <Cards>
   <Card title="Setup" href="/docs/connectors/thingsboard/setup" description="Reconnect or reconfigure the connector" />

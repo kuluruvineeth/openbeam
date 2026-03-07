@@ -1,6 +1,6 @@
-export type { SyncSummary } from "@openplane/types/sync";
+export type { SyncSummary } from "@openbeam/types/sync";
 
-import type { SyncSummary } from "@openplane/types/sync";
+import type { SyncSummary } from "@openbeam/types/sync";
 
 export type SyncJobInfo = {
   id: string;

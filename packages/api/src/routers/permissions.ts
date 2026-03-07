@@ -7,9 +7,9 @@ import {
   getTeamPermissionStats,
   getUserConnectorScopes,
   getUserGroupMemberships,
-} from "@openplane/db";
-import { getPermissionCache } from "@openplane/redis";
-import { resolvePermissions } from "@openplane/services";
+} from "@openbeam/db";
+import { getPermissionCache } from "@openbeam/redis";
+import { resolvePermissions } from "@openbeam/services";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter } from "../index";

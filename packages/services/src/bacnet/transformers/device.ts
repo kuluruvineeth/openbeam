@@ -1,8 +1,8 @@
 import type {
   BacnetDevice,
   BacnetTransformContext,
-} from "@openplane/types/services/connectors/bacnet";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/bacnet";
+import type { GenericDocument } from "@openbeam/vespa";
 import { calculateDocumentChecksum } from "../../lib/checksum";
 
 function buildDeviceContent(device: BacnetDevice): string {

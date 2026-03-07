@@ -1,7 +1,7 @@
 "use client";
 
-import type { AgentLifecycleStatus } from "@openplane/types/services/daemon";
-import { cn } from "@openplane/ui";
+import type { AgentLifecycleStatus } from "@openbeam/types/services/daemon";
+import { cn } from "@openbeam/ui";
 
 const STATUS_CLASSES: Record<string, string> = {
   running: "bg-blue-500",

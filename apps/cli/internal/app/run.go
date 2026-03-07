@@ -9,9 +9,9 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/openplane/openplane/apps/cli/internal/boot"
-	"github.com/openplane/openplane/apps/cli/internal/errs"
-	"github.com/openplane/openplane/apps/cli/internal/plugin"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/boot"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/errs"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/plugin"
 )
 
 func Run(args []string) int {
@@ -54,7 +54,7 @@ func dispatchPlugin(ctx context.Context, args []string) (int, bool, error) {
 		return 0, false, nil
 	}
 	name := args[commandIndex]
-	candidate, found, err := plugin.Lookup("openplane", name, nil)
+	candidate, found, err := plugin.Lookup("openbeam", name, nil)
 	if err != nil {
 		return 0, false, nil
 	}

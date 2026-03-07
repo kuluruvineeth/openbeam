@@ -46,7 +46,7 @@ type GlobalThisWithFetch = typeof globalThis & {
 const globalWithFetch = globalThis as GlobalThisWithFetch;
 const originalFetch = globalWithFetch.fetch;
 
-vi.mock("@openplane/sandbox", () => ({
+vi.mock("@openbeam/sandbox", () => ({
   getSandboxProvider: (input: { provider: "daytona" | "local" }) =>
     mockGetSandboxProvider(input),
 }));

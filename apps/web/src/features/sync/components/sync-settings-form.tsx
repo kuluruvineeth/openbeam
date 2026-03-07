@@ -13,7 +13,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@openplane/ui";
+} from "@openbeam/ui";
 import { formatDistanceToNow } from "date-fns";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -82,8 +82,8 @@ function WebhookStatusRow({
   if (enabled) {
     return (
       <div className="flex items-center gap-2 pt-2 text-[11px]">
-        <Icons.Webhook className="size-3 text-openplane-green" />
-        <span className="text-openplane-green">Real-time active</span>
+        <Icons.Webhook className="size-3 text-openbeam-green" />
+        <span className="text-openbeam-green">Real-time active</span>
         {lastReceivedAt && (
           <span className="text-foreground/35">
             ·{" "}

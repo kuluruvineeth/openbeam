@@ -15,7 +15,7 @@ GitHub is one of the most common connectors -- engineering teams use it to make 
 
 **Scopes:** `read:user`, `user:email`, `repo`, `read:org`
 
-Create an OAuth App at [github.com/settings/developers](https://github.com/settings/developers) and provide the Client ID and Client Secret in OpenPlane.
+Create an OAuth App at [github.com/settings/developers](https://github.com/settings/developers) and provide the Client ID and Client Secret in OpenBeam.
 
 ## Data Streams
 
@@ -31,9 +31,9 @@ All streams support full backfill.
 ## Setup
 
 1. Go to **GitHub Settings** > **Developer Settings** > **OAuth Apps** and create a new application
-2. Set the authorization callback URL to your OpenPlane instance's redirect path
+2. Set the authorization callback URL to your OpenBeam instance's redirect path
 3. Copy the **Client ID** and **Client Secret**
-4. In OpenPlane, add the GitHub connector and enter the credentials
+4. In OpenBeam, add the GitHub connector and enter the credentials
 5. Authorize the application to start the initial sync
 
 ## Configuration
@@ -53,7 +53,7 @@ All streams support full backfill.
 
 **Incremental sync** uses `updated_at` timestamps per repository to fetch only entities modified since the last sync run.
 
-**Webhooks** can be configured for instant updates when issues, PRs, or releases change. Set a webhook secret in both GitHub and OpenPlane to enable signature verification.
+**Webhooks** can be configured for instant updates when issues, PRs, or releases change. Set a webhook secret in both GitHub and OpenBeam to enable signature verification.
 
 ## Related Connectors
 

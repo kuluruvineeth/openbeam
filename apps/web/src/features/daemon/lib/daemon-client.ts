@@ -1,11 +1,11 @@
 "use client";
 
-import type { BinaryMuxFrame } from "@openplane/types/services/daemon";
+import type { BinaryMuxFrame } from "@openbeam/types/services/daemon";
 import type {
   SessionInboundMessage,
   SessionOutboundMessage,
   WSOutboundMessage,
-} from "@openplane/types/services/daemon/messages";
+} from "@openbeam/types/services/daemon/messages";
 import { DAEMON_DEFAULT_PORT } from "../constants";
 import { createBinaryDemuxer, type TerminalOutputHandler } from "./binary-mux";
 import {

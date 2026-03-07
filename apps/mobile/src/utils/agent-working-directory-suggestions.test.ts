@@ -24,10 +24,10 @@ describe("collectAgentWorkingDirectorySuggestions", () => {
     ]);
   });
 
-  it("excludes OpenPlane-owned worktree paths", () => {
+  it("excludes OpenBeam-owned worktree paths", () => {
     const results = collectAgentWorkingDirectorySuggestions([
       {
-        cwd: "/Users/me/repo/.openplane/worktrees/feature-a",
+        cwd: "/Users/me/repo/.openbeam/worktrees/feature-a",
         createdAt: new Date("2026-02-12T10:00:00.000Z"),
       },
       {
@@ -35,7 +35,7 @@ describe("collectAgentWorkingDirectorySuggestions", () => {
         createdAt: new Date("2026-02-10T10:00:00.000Z"),
       },
       {
-        cwd: "C:\\Users\\me\\repo\\.openplane\\worktrees\\feature-b",
+        cwd: "C:\\Users\\me\\repo\\.openbeam\\worktrees\\feature-b",
         createdAt: new Date("2026-02-11T10:00:00.000Z"),
       },
     ]);

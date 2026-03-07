@@ -17,19 +17,19 @@ import {
   SubWorkflowNodeConfigSchema,
   type TryCatchNodeConfig,
   TryCatchNodeConfigSchema,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import type {
   CanvasApprovalSignalPayload,
   CanvasInputSignalPayload,
   LoopIterationError,
   LoopState,
   ParallelJoinBranchResult,
-} from "@openplane/types/temporal";
+} from "@openbeam/types/temporal";
 import {
   type AgentCanvasExecutionInput,
   AgentCanvasExecutionInputSchema,
   type AgentCanvasExecutionOutput,
-} from "@openplane/types/temporal/workflows";
+} from "@openbeam/types/temporal/workflows";
 import {
   ApplicationFailure,
   condition,

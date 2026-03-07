@@ -275,9 +275,9 @@ export const DATA_TYPE_LABELS: Record<ConditionDataType, string> = {
 
 export const BRANCH_COLORS = [
   "var(--canvas-success)",
-  "var(--openplane-blue)",
-  "var(--openplane-yellow)",
-  "var(--openplane-pink)",
-  "var(--openplane-orange)",
+  "var(--openbeam-blue)",
+  "var(--openbeam-yellow)",
+  "var(--openbeam-pink)",
+  "var(--openbeam-orange)",
   "var(--node-condition)",
 ] as const;

@@ -12,8 +12,8 @@ import {
   type NativeHelperShortcutConfig,
 } from "@/utils/native-helper-shortcuts";
 
-const APP_SETTINGS_KEY = "@openplane:app-settings";
-const LEGACY_SETTINGS_KEY = "@openplane:settings";
+const APP_SETTINGS_KEY = "@openbeam:app-settings";
+const LEGACY_SETTINGS_KEY = "@openbeam:settings";
 const APP_SETTINGS_QUERY_KEY = ["app-settings"];
 
 export interface AppSettings {

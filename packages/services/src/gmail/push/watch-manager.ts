@@ -1,4 +1,4 @@
-import { getRedisClient } from "@openplane/redis";
+import { getRedisClient } from "@openbeam/redis";
 import { logger } from "../../lib/logger";
 import {
   getWatchRenewalTime,

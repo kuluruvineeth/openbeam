@@ -24,8 +24,8 @@ Query → Analyze → Rerank → Build Context → Generate → Ground → Respo
 ## Quick Start
 
 ```typescript
-import { answerWithRAG, streamRAGAnswer } from "@openplane/ai";
-import type { RAGChunk } from "@openplane/types/ai";
+import { answerWithRAG, streamRAGAnswer } from "@openbeam/ai";
+import type { RAGChunk } from "@openbeam/types/ai";
 
 // Chunks from search results
 const chunks: RAGChunk[] = [
@@ -69,7 +69,7 @@ for await (const event of streamRAGAnswer("What is our API rate limit?", chunks)
 ## RAGEngine Configuration
 
 ```typescript
-import { RAGEngine } from "@openplane/ai";
+import { RAGEngine } from "@openbeam/ai";
 
 const engine = new RAGEngine({
   providerId: "anthropic",
@@ -101,7 +101,7 @@ const fastEngine = engine.withConfig({ temperature: 0.1 });
 The query analyzer classifies intent, extracts entities, detects temporal context, and decomposes complex queries -- all without an LLM call. It runs in under 5ms using pattern matching and heuristics.
 
 ```typescript
-import { analyzeQuery } from "@openplane/ai";
+import { analyzeQuery } from "@openbeam/ai";
 
 const analysis = analyzeQuery("What did John work on last quarter?");
 ```
@@ -164,7 +164,7 @@ The analyzer extracts date ranges from natural language:
 For multi-turn conversations, the analyzer resolves pronouns and detects topic shifts:
 
 ```typescript
-import { buildConversationContext, enrichQueryWithContext } from "@openplane/ai";
+import { buildConversationContext, enrichQueryWithContext } from "@openbeam/ai";
 
 const conversationCtx = buildConversationContext("conv_123", turns);
 const analysis = analyzeQuery("Tell me more about it", conversationCtx);
@@ -177,7 +177,7 @@ const enrichedQuery = enrichQueryWithContext(analysis, conversationCtx);
 After the LLM generates an answer, the grounding system verifies every factual claim against the source chunks.
 
 ```typescript
-import { verifyGrounding } from "@openplane/ai";
+import { verifyGrounding } from "@openbeam/ai";
 
 const grounding = verifyGrounding(answer, chunks, threshold);
 ```
@@ -225,7 +225,7 @@ interface ClaimVerification {
 When grounding is too weak, the system can refuse to answer rather than hallucinate:
 
 ```typescript
-import { checkForRefusal } from "@openplane/ai";
+import { checkForRefusal } from "@openbeam/ai";
 
 const refusal = checkForRefusal(groundingResult, chunks);
 if (refusal) {

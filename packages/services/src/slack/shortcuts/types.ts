@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const ShortcutTypeSchema = z.enum([
-  "save_to_openplane",
+  "save_to_openbeam",
   "summarize_thread",
   "search_context",
   "share_answer",
@@ -46,21 +46,21 @@ export interface SavedMessageData {
 }
 
 export const SHORTCUT_CALLBACK_IDS = {
-  SAVE_TO_OPENPLANE: "save_message",
+  SAVE_TO_OPENBEAM: "save_message",
   SUMMARIZE_THREAD: "summarize_thread",
   SEARCH_CONTEXT: "search_context",
   SHARE_ANSWER: "share_answer",
 } as const;
 
 export const SHORTCUT_LABELS: Record<ShortcutType, string> = {
-  save_to_openplane: "Save to OpenPlane",
+  save_to_openbeam: "Save to OpenBeam",
   summarize_thread: "Summarize Thread",
   search_context: "Search with Context",
   share_answer: "Share Answer",
 };
 
 export const SHORTCUT_DESCRIPTIONS: Record<ShortcutType, string> = {
-  save_to_openplane: "Save this message for quick access later",
+  save_to_openbeam: "Save this message for quick access later",
   summarize_thread: "Get an AI summary of this thread",
   search_context: "Search using this message as context",
   share_answer: "Share the AI-generated answer to the channel",

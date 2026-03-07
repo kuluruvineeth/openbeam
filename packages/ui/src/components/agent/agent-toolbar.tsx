@@ -1,7 +1,7 @@
 "use client";
 
-import type { ChatModel } from "@openplane/types/ai";
-import { CHAT_MODELS } from "@openplane/types/ai";
+import type { ChatModel } from "@openbeam/types/ai";
+import { CHAT_MODELS } from "@openbeam/types/ai";
 import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
 import { forwardRef, useCallback, useMemo } from "react";

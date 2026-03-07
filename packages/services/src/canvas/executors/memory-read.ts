@@ -1,7 +1,7 @@
 import {
   type MemoryEncoding,
   MemoryReadNodeConfigSchema,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { CanvasNodeExecutionError } from "../errors";
 import { getMemoryEntry } from "../memory-store";
 import { resolveNodeConfig } from "../node-config";

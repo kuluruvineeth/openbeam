@@ -5,12 +5,12 @@ export default defineConfig({
   format: "esm",
   outDir: "./dist",
   clean: true,
-  noExternal: [/@openplane\/(services|auth|integrations|vespa|media|ai)/],
+  noExternal: [/@openbeam\/(services|auth|integrations|vespa|media|ai)/],
   external: [
-    "@openplane/db",
-    "@openplane/redis",
-    "@openplane/api",
-    "@openplane/storage",
+    "@openbeam/db",
+    "@openbeam/redis",
+    "@openbeam/api",
+    "@openbeam/storage",
     "@duckdb/node-bindings",
   ],
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { cn, Icons } from "@openplane/ui";
+import { cn, Icons } from "@openbeam/ui";
 import { useCallback, useMemo, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import type { DashboardLayout, DashboardPanel } from "../types";

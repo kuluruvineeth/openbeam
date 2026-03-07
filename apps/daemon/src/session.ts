@@ -9,7 +9,7 @@ import type { ToolSet } from "ai";
 import { experimental_createMCPClient } from "ai";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
-import { isOpenPlaneDictationDebugEnabled } from "./agent/recordings-debug";
+import { isOpenBeamDictationDebugEnabled } from "./agent/recordings-debug";
 import { STTManager } from "./agent/stt-manager";
 import { maybePersistTtsDebugAudio } from "./agent/tts-debug";
 import { TTSManager } from "./agent/tts-manager";
@@ -159,10 +159,10 @@ import {
 import { expandTilde } from "./utils/path";
 import { getProjectIcon } from "./utils/project-icon";
 import {
-  deleteOpenPlaneWorktree,
-  isOpenPlaneOwnedWorktreeCwd,
-  listOpenPlaneWorktrees,
-  resolveOpenPlaneWorktreeRootForCwd,
+  deleteOpenBeamWorktree,
+  isOpenBeamOwnedWorktreeCwd,
+  listOpenBeamWorktrees,
+  resolveOpenBeamWorktreeRootForCwd,
   slugify,
   validateBranchSlug,
   type WorktreeConfig,
@@ -253,7 +253,7 @@ function deriveProjectGroupingKey(options: {
     return remoteKey;
   }
 
-  const worktreeMarker = ".openplane/worktrees/";
+  const worktreeMarker = ".openbeam/worktrees/";
   const idx = options.cwd.indexOf(worktreeMarker);
   if (idx !== -1) {
     // biome-ignore lint/performance/useTopLevelRegex: scoped regex acceptable here
@@ -381,7 +381,7 @@ const VOICE_MODE_INACTIVITY_FLUSH_MS = 4500;
 const VOICE_INTERNAL_DICTATION_ID_PREFIX = "__voice_turn__:";
 const SAFE_GIT_REF_PATTERN = /^[A-Za-z0-9._/-]+$/;
 const AgentIdSchema = z.string().uuid();
-const VOICE_MCP_SERVER_NAME = "openplane_voice";
+const VOICE_MCP_SERVER_NAME = "openbeam_voice";
 
 type VoiceModeBaseConfig = {
   systemPrompt?: string;
@@ -414,7 +414,7 @@ export type SessionOptions = {
   logger: pino.Logger;
   downloadTokenStore: DownloadTokenStore;
   pushTokenStore: PushTokenStore;
-  openplaneHome: string;
+  openbeamHome: string;
   agentManager: AgentManager;
   agentStorage: AgentStorage;
   createAgentMcpTransport: AgentMcpTransportFactory;
@@ -562,7 +562,7 @@ export class Session {
   private readonly onMessage: (msg: SessionOutboundMessage) => void;
   private readonly onBinaryMessage: ((frame: BinaryMuxFrame) => void) | null;
   private readonly sessionLogger: pino.Logger;
-  private readonly openplaneHome: string;
+  private readonly openbeamHome: string;
 
   // State machine
   private abortController: AbortController;
@@ -688,7 +688,7 @@ export class Session {
       logger,
       downloadTokenStore,
       pushTokenStore,
-      openplaneHome,
+      openbeamHome,
       agentManager,
       agentStorage,
       createAgentMcpTransport,
@@ -707,7 +707,7 @@ export class Session {
     this.onBinaryMessage = onBinaryMessage ?? null;
     this.downloadTokenStore = downloadTokenStore;
     this.pushTokenStore = pushTokenStore;
-    this.openplaneHome = openplaneHome;
+    this.openbeamHome = openbeamHome;
     this.agentManager = agentManager;
     this.agentStorage = agentStorage;
     this.createAgentMcpTransport = createAgentMcpTransport;
@@ -723,7 +723,7 @@ export class Session {
     this.localSpeechModelsDir =
       configuredModelsDir && configuredModelsDir.length > 0
         ? configuredModelsDir
-        : join(this.openplaneHome, "models", "local-speech");
+        : join(this.openbeamHome, "models", "local-speech");
     this.defaultLocalSpeechModelIds =
       dictation?.localModels?.defaultModelIds &&
       dictation.localModels.defaultModelIds.length > 0
@@ -1364,7 +1364,7 @@ export class Session {
       isGit: false,
       currentBranch: null,
       remoteUrl: null,
-      isOpenPlaneOwnedWorktree: false,
+      isOpenBeamOwnedWorktree: false,
       mainRepoRoot: null,
     };
   }
@@ -1377,13 +1377,13 @@ export class Session {
       return this.buildFallbackProjectCheckout(cwd);
     }
 
-    if (status.isOpenPlaneOwnedWorktree) {
+    if (status.isOpenBeamOwnedWorktree) {
       return {
         cwd,
         isGit: true,
         currentBranch: status.currentBranch,
         remoteUrl: status.remoteUrl,
-        isOpenPlaneOwnedWorktree: true,
+        isOpenBeamOwnedWorktree: true,
         mainRepoRoot: status.mainRepoRoot,
       };
     }
@@ -1393,7 +1393,7 @@ export class Session {
       isGit: true,
       currentBranch: status.currentBranch,
       remoteUrl: status.remoteUrl,
-      isOpenPlaneOwnedWorktree: false,
+      isOpenBeamOwnedWorktree: false,
       mainRepoRoot: null,
     };
   }
@@ -1402,7 +1402,7 @@ export class Session {
     cwd: string
   ): Promise<ProjectPlacementPayload> {
     const checkout = await getCheckoutStatusLite(cwd, {
-      openplaneHome: this.openplaneHome,
+      openbeamHome: this.openbeamHome,
     })
       .then((status) => this.toProjectCheckoutLite(cwd, status))
       .catch(() => this.buildFallbackProjectCheckout(cwd));
@@ -1663,12 +1663,12 @@ export class Session {
           await this.handleCheckoutPrStatusRequest(msg);
           break;
 
-        case "openplane_worktree_list_request":
-          await this.handleOpenPlaneWorktreeListRequest(msg);
+        case "openbeam_worktree_list_request":
+          await this.handleOpenBeamWorktreeListRequest(msg);
           break;
 
-        case "openplane_worktree_archive_request":
-          await this.handleOpenPlaneWorktreeArchiveRequest(msg);
+        case "openbeam_worktree_archive_request":
+          await this.handleOpenBeamWorktreeArchiveRequest(msg);
           break;
 
         case "file_explorer_request":
@@ -1910,7 +1910,7 @@ export class Session {
 
     if (typeof process.send === "function") {
       process.send({
-        type: "openplane:restart",
+        type: "openbeam:restart",
         ...(reason ? { reason } : {}),
       });
       return;
@@ -2892,7 +2892,7 @@ export class Session {
           preferredModel: snapshot.config.model ?? undefined,
           initialPrompt: trimmedPrompt,
           explicitTitle: snapshot.config.title,
-          openplaneHome: this.openplaneHome,
+          openbeamHome: this.openbeamHome,
           logger: this.sessionLogger,
         });
 
@@ -3192,7 +3192,7 @@ export class Session {
         // biome-ignore lint/style/noNonNullAssertion: value guaranteed to be set
         baseBranch: normalized.baseBranch!,
         worktreeSlug: normalized.worktreeSlug ?? targetBranch,
-        openplaneHome: this.openplaneHome,
+        openbeamHome: this.openbeamHome,
       });
       cwd = createdWorktree.worktreePath;
       worktreeConfig = createdWorktree;
@@ -3535,7 +3535,7 @@ export class Session {
     const diff = await getCheckoutDiff(
       cwd,
       { mode: "uncommitted", includeStructured: true },
-      { openplaneHome: this.openplaneHome }
+      { openbeamHome: this.openbeamHome }
     );
     const schema = z.object({
       message: z
@@ -3612,7 +3612,7 @@ export class Session {
         baseRef,
         includeStructured: true,
       },
-      { openplaneHome: this.openplaneHome }
+      { openbeamHome: this.openbeamHome }
     );
     const schema = z.object({
       title: z.string().min(1).max(72),
@@ -3665,7 +3665,7 @@ export class Session {
       ) {
         return {
           title: "Update changes",
-          body: "Automated PR generated by OpenPlane.",
+          body: "Automated PR generated by OpenBeam.",
         };
       }
       throw error;
@@ -4094,7 +4094,7 @@ export class Session {
 
     try {
       const status = await getCheckoutStatus(resolvedCwd, {
-        openplaneHome: this.openplaneHome,
+        openbeamHome: this.openbeamHome,
       });
       if (!status.isGit) {
         this.emit({
@@ -4111,7 +4111,7 @@ export class Session {
             behindOfOrigin: null,
             hasRemote: false,
             remoteUrl: null,
-            isOpenPlaneOwnedWorktree: false,
+            isOpenBeamOwnedWorktree: false,
             error: null,
             requestId,
           },
@@ -4119,7 +4119,7 @@ export class Session {
         return;
       }
 
-      if (status.isOpenPlaneOwnedWorktree) {
+      if (status.isOpenBeamOwnedWorktree) {
         this.emit({
           type: "checkout_status_response",
           payload: {
@@ -4135,7 +4135,7 @@ export class Session {
             behindOfOrigin: status.behindOfOrigin ?? null,
             hasRemote: status.hasRemote,
             remoteUrl: status.remoteUrl,
-            isOpenPlaneOwnedWorktree: true,
+            isOpenBeamOwnedWorktree: true,
             error: null,
             requestId,
           },
@@ -4157,7 +4157,7 @@ export class Session {
           behindOfOrigin: status.behindOfOrigin ?? null,
           hasRemote: status.hasRemote,
           remoteUrl: status.remoteUrl,
-          isOpenPlaneOwnedWorktree: false,
+          isOpenBeamOwnedWorktree: false,
           error: null,
           requestId,
         },
@@ -4177,7 +4177,7 @@ export class Session {
           behindOfOrigin: null,
           hasRemote: false,
           remoteUrl: null,
-          isOpenPlaneOwnedWorktree: false,
+          isOpenBeamOwnedWorktree: false,
           error: this.toCheckoutError(error),
           requestId,
         },
@@ -4475,7 +4475,7 @@ export class Session {
           baseRef: compare.baseRef,
           includeStructured: true,
         },
-        { openplaneHome: this.openplaneHome }
+        { openbeamHome: this.openbeamHome }
       );
       const files = [...(diffResult.structured ?? [])];
       files.sort((a, b) => {
@@ -4741,7 +4741,7 @@ export class Session {
 
     try {
       const status = await getCheckoutStatus(cwd, {
-        openplaneHome: this.openplaneHome,
+        openbeamHome: this.openbeamHome,
       });
       if (!status.isGit) {
         try {
@@ -4787,7 +4787,7 @@ export class Session {
           baseRef,
           mode: msg.strategy === "squash" ? "squash" : "merge",
         },
-        { openplaneHome: this.openplaneHome }
+        { openbeamHome: this.openbeamHome }
       );
       this.scheduleCheckoutDiffRefreshForCwd(cwd);
 
@@ -4969,17 +4969,17 @@ export class Session {
     }
   }
 
-  private async handleOpenPlaneWorktreeListRequest(
+  private async handleOpenBeamWorktreeListRequest(
     msg: Extract<
       SessionInboundMessage,
-      { type: "openplane_worktree_list_request" }
+      { type: "openbeam_worktree_list_request" }
     >
   ): Promise<void> {
     const { requestId } = msg;
     const cwd = msg.repoRoot ?? msg.cwd;
     if (!cwd) {
       this.emit({
-        type: "openplane_worktree_list_response",
+        type: "openbeam_worktree_list_response",
         payload: {
           worktrees: [],
           error: { code: "UNKNOWN", message: "cwd or repoRoot is required" },
@@ -4990,12 +4990,12 @@ export class Session {
     }
 
     try {
-      const worktrees = await listOpenPlaneWorktrees({
+      const worktrees = await listOpenBeamWorktrees({
         cwd,
-        openplaneHome: this.openplaneHome,
+        openbeamHome: this.openbeamHome,
       });
       this.emit({
-        type: "openplane_worktree_list_response",
+        type: "openbeam_worktree_list_response",
         payload: {
           worktrees: worktrees.map((entry) => ({
             worktreePath: entry.path,
@@ -5008,7 +5008,7 @@ export class Session {
       });
     } catch (error) {
       this.emit({
-        type: "openplane_worktree_list_response",
+        type: "openbeam_worktree_list_response",
         payload: {
           worktrees: [],
           error: this.toCheckoutError(error),
@@ -5024,20 +5024,20 @@ export class Session {
     requestId: string;
   }): Promise<void> {
     try {
-      const ownership = await isOpenPlaneOwnedWorktreeCwd(
+      const ownership = await isOpenBeamOwnedWorktreeCwd(
         options.archivedAgentCwd,
         {
-          openplaneHome: this.openplaneHome,
+          openbeamHome: this.openbeamHome,
         }
       );
       if (!ownership.allowed) {
         return;
       }
 
-      const resolvedWorktree = await resolveOpenPlaneWorktreeRootForCwd(
+      const resolvedWorktree = await resolveOpenBeamWorktreeRootForCwd(
         options.archivedAgentCwd,
         {
-          openplaneHome: this.openplaneHome,
+          openbeamHome: this.openbeamHome,
         }
       );
       if (!resolvedWorktree) {
@@ -5081,7 +5081,7 @@ export class Session {
         return;
       }
 
-      await this.archiveOpenPlaneWorktree({
+      await this.archiveOpenBeamWorktree({
         targetPath,
         repoRoot,
         requestId: options.requestId,
@@ -5099,16 +5099,16 @@ export class Session {
     }
   }
 
-  private async archiveOpenPlaneWorktree(options: {
+  private async archiveOpenBeamWorktree(options: {
     targetPath: string;
     repoRoot: string;
     requestId: string;
   }): Promise<string[]> {
     let targetPath = options.targetPath;
-    const resolvedWorktree = await resolveOpenPlaneWorktreeRootForCwd(
+    const resolvedWorktree = await resolveOpenBeamWorktreeRootForCwd(
       targetPath,
       {
-        openplaneHome: this.openplaneHome,
+        openbeamHome: this.openbeamHome,
       }
     );
     if (resolvedWorktree) {
@@ -5147,10 +5147,10 @@ export class Session {
 
     await this.killTerminalsUnderPath(targetPath);
 
-    await deleteOpenPlaneWorktree({
+    await deleteOpenBeamWorktree({
       cwd: options.repoRoot,
       worktreePath: targetPath,
-      openplaneHome: this.openplaneHome,
+      openbeamHome: this.openbeamHome,
     });
 
     for (const agentId of removedAgents) {
@@ -5166,10 +5166,10 @@ export class Session {
     return Array.from(removedAgents);
   }
 
-  private async handleOpenPlaneWorktreeArchiveRequest(
+  private async handleOpenBeamWorktreeArchiveRequest(
     msg: Extract<
       SessionInboundMessage,
-      { type: "openplane_worktree_archive_request" }
+      { type: "openbeam_worktree_archive_request" }
     >
   ): Promise<void> {
     const { requestId } = msg;
@@ -5181,33 +5181,33 @@ export class Session {
         if (!(repoRoot && msg.branchName)) {
           throw new Error("worktreePath or repoRoot+branchName is required");
         }
-        const worktrees = await listOpenPlaneWorktrees({
+        const worktrees = await listOpenBeamWorktrees({
           cwd: repoRoot,
-          openplaneHome: this.openplaneHome,
+          openbeamHome: this.openbeamHome,
         });
         const match = worktrees.find(
           (entry) => entry.branchName === msg.branchName
         );
         if (!match) {
           throw new Error(
-            `OpenPlane worktree not found for branch ${msg.branchName}`
+            `OpenBeam worktree not found for branch ${msg.branchName}`
           );
         }
         targetPath = match.path;
       }
 
-      const ownership = await isOpenPlaneOwnedWorktreeCwd(targetPath, {
-        openplaneHome: this.openplaneHome,
+      const ownership = await isOpenBeamOwnedWorktreeCwd(targetPath, {
+        openbeamHome: this.openbeamHome,
       });
       if (!ownership.allowed) {
         this.emit({
-          type: "openplane_worktree_archive_response",
+          type: "openbeam_worktree_archive_response",
           payload: {
             success: false,
             removedAgents: [],
             error: {
               code: "NOT_ALLOWED",
-              message: "Worktree is not a OpenPlane-owned worktree",
+              message: "Worktree is not a OpenBeam-owned worktree",
             },
             requestId,
           },
@@ -5220,14 +5220,14 @@ export class Session {
         throw new Error("Unable to resolve repo root for worktree");
       }
 
-      const removedAgents = await this.archiveOpenPlaneWorktree({
+      const removedAgents = await this.archiveOpenBeamWorktree({
         targetPath,
         repoRoot,
         requestId,
       });
 
       this.emit({
-        type: "openplane_worktree_archive_response",
+        type: "openbeam_worktree_archive_response",
         payload: {
           success: true,
           removedAgents,
@@ -5237,7 +5237,7 @@ export class Session {
       });
     } catch (error) {
       this.emit({
-        type: "openplane_worktree_archive_response",
+        type: "openbeam_worktree_archive_response",
         payload: {
           success: false,
           removedAgents: [],
@@ -6951,7 +6951,7 @@ export class Session {
   private emit(msg: SessionOutboundMessage): void {
     if (
       msg.type === "audio_output" &&
-      (process.env.TTS_DEBUG_AUDIO_DIR || isOpenPlaneDictationDebugEnabled()) &&
+      (process.env.TTS_DEBUG_AUDIO_DIR || isOpenBeamDictationDebugEnabled()) &&
       msg.payload.groupId &&
       typeof msg.payload.audio === "string"
     ) {

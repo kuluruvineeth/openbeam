@@ -1,5 +1,5 @@
 {
-  "name": "@openplane/services",
+  "name": "@openbeam/services",
   "version": "0.0.1",
   "type": "module",
   "exports": {
@@ -27,16 +27,16 @@
   "dependencies": {
     "@ai-sdk/google": "^3.0.2",
     "@ai-sdk/openai": "^3.0.2",
-    "@openplane/ai": "workspace:*",
-    "@openplane/analytics": "workspace:*",
-    "@openplane/db": "workspace:*",
-    "@openplane/integrations": "workspace:*",
-    "@openplane/media": "workspace:*",
-    "@openplane/observability": "workspace:*",
-    "@openplane/redis": "workspace:*",
-    "@openplane/storage": "workspace:*",
-    "@openplane/types": "workspace:*",
-    "@openplane/vespa": "workspace:*",
+    "@openbeam/ai": "workspace:*",
+    "@openbeam/analytics": "workspace:*",
+    "@openbeam/db": "workspace:*",
+    "@openbeam/integrations": "workspace:*",
+    "@openbeam/media": "workspace:*",
+    "@openbeam/observability": "workspace:*",
+    "@openbeam/redis": "workspace:*",
+    "@openbeam/storage": "workspace:*",
+    "@openbeam/types": "workspace:*",
+    "@openbeam/vespa": "workspace:*",
     "@slack/web-api": "^7.8.0",
     "ai": "^6.0.26",
     "ajv": "^8.14.0",
@@ -59,7 +59,7 @@
     "@duckdb/node-api": "^1.4.3-r.2"
   },
   "devDependencies": {
-    "@openplane/config": "workspace:*",
+    "@openbeam/config": "workspace:*",
     "@types/ejs": "^3.1.5",
     "@types/jmespath": "^0.15.2",
     "@types/jsonwebtoken": "^9.0.10",

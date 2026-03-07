@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import type { FhirResource } from "@openplane/types/services/connectors/fhir";
+import type { FhirResource } from "@openbeam/types/services/connectors/fhir";
 import { deidentifyResource, isPhiField } from "../phi/safe-harbor";
 
 describe("deidentifyResource", () => {

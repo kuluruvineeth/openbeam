@@ -12,7 +12,7 @@ export type {
   ToolMask,
   ToolMetadata,
   ToolResultMetadata,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 export type { ToolDefinition } from "./builder";
 export {
   createErrorResult,

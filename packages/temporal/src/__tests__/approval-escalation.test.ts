@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mockUpdateApprovalEscalation = vi.fn();
 const mockExpireApproval = vi.fn();
 
-vi.mock("@openplane/db", () => ({
+vi.mock("@openbeam/db", () => ({
   updateApprovalEscalation: mockUpdateApprovalEscalation,
   expireApproval: mockExpireApproval,
 }));

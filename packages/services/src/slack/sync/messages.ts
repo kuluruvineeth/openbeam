@@ -4,8 +4,8 @@ import type {
   SlackSyncBatch as SyncBatch,
   SyncCursor,
   TransformContext,
-} from "@openplane/types/services/connectors/slack";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/slack";
+import type { GenericDocument } from "@openbeam/vespa";
 import { logger } from "../../lib/logger";
 import {
   type FetchMessagesOptions,

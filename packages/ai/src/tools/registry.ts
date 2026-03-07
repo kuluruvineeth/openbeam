@@ -4,7 +4,7 @@ import type {
   ToolExecutionResult,
   ToolMask,
   ToolMetadata,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import { tool as createAITool } from "ai";
 import { z } from "zod";
 import type { CompositionTracker } from "../observability/composition";

@@ -1,4 +1,4 @@
-import type { VespaClient } from "@openplane/vespa";
+import type { VespaClient } from "@openbeam/vespa";
 import { createBulkIndexActivity } from "./bulk-index";
 import { createDeduplicateActivity } from "./deduplicate";
 import { createDeleteByConnectorActivity } from "./delete-by-connector";

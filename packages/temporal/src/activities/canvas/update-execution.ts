@@ -1,6 +1,6 @@
-import type { Database } from "@openplane/db";
-import { updateAgentCanvasExecution } from "@openplane/db";
-import type { UpdateCanvasExecutionInput } from "@openplane/types/temporal";
+import type { Database } from "@openbeam/db";
+import { updateAgentCanvasExecution } from "@openbeam/db";
+import type { UpdateCanvasExecutionInput } from "@openbeam/types/temporal";
 import { emitRuntimeEvent } from "./runtime-event-emitter";
 
 export interface UpdateCanvasExecutionDependencies {

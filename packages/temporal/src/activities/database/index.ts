@@ -1,5 +1,5 @@
-import type { Database } from "@openplane/db";
-import { createSyncHistory, createSyncJobWithHistory } from "@openplane/db";
+import type { Database } from "@openbeam/db";
+import { createSyncHistory, createSyncJobWithHistory } from "@openbeam/db";
 import { createCleanupActivities } from "./cleanup";
 import { createCompleteSyncJobActivity } from "./complete-sync-job";
 import { createDeleteIndexedDocumentsActivity } from "./delete-indexed-documents";

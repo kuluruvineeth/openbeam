@@ -1,8 +1,8 @@
 import type {
   GoogleDriveTransformContext,
   SharedDrive,
-} from "@openplane/types/services/connectors/google-drive";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/google-drive";
+import type { GenericDocument } from "@openbeam/vespa";
 import { calculateDocumentChecksum } from "../../lib/checksum";
 import { buildSharedDriveUrl } from "../utils/content-extractor";
 

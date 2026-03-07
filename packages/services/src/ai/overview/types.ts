@@ -1,4 +1,4 @@
-import type { GenericDocument } from "@openplane/vespa";
+import type { GenericDocument } from "@openbeam/vespa";
 
 export type {
   OverviewCitation,
@@ -10,7 +10,7 @@ export type {
   OverviewToolCallData,
   OverviewToolResultData,
   OverviewUsage,
-} from "@openplane/types/overview";
+} from "@openbeam/types/overview";
 
 export interface FanoutQuery {
   query: string;

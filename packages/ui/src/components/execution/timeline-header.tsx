@@ -1,6 +1,6 @@
 "use client";
 
-import type { ExecutionStatus } from "@openplane/types/canvas/execution";
+import type { ExecutionStatus } from "@openbeam/types/canvas/execution";
 import { cva, type VariantProps } from "class-variance-authority";
 import { forwardRef } from "react";
 import { cn } from "../../utils/cn";

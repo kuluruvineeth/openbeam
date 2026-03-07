@@ -1,5 +1,5 @@
-import type { ConnectorStatus, Database } from "@openplane/db";
-import { updateConnector } from "@openplane/db";
+import type { ConnectorStatus, Database } from "@openbeam/db";
+import { updateConnector } from "@openbeam/db";
 
 export interface SetConnectorStatusDeps {
   db: Database;

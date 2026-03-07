@@ -1,4 +1,4 @@
-import type { ExecutionPlan, ExecutionStatus } from "@openplane/types/canvas";
+import type { ExecutionPlan, ExecutionStatus } from "@openbeam/types/canvas";
 import { workflowInfo } from "@temporalio/workflow";
 
 export type TaskResult<T> =

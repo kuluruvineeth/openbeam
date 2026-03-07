@@ -13,14 +13,14 @@ from engine.gpu_service.deployments.embedding import EmbeddingDeployment
 from engine.gpu_service.deployments.entity import EntityDeployment
 from engine.gpu_service.deployments.reranker import RerankerDeployment
 
-GPU_SERVICE_NAME = "openplane-engine-gpu"
+GPU_SERVICE_NAME = "openbeam-engine-gpu"
 
 logger = get_logger(__name__)
 
 
 def _create_metrics_app() -> FastAPI:
     app = FastAPI(
-        title="OpenPlane Engine GPU Metrics",
+        title="OpenBeam Engine GPU Metrics",
         docs_url=None,
         redoc_url=None,
         openapi_url=None,

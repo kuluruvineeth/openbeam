@@ -13,7 +13,7 @@ import {
   runAgent,
   type SequentialAgentConfig,
   toolRegistry,
-} from "@openplane/ai";
+} from "@openbeam/ai";
 import {
   analystAgentConfig,
   coderAgentConfig,
@@ -26,13 +26,13 @@ import {
   reviewerAgentConfig,
   slackAnalystConfig,
   writerAgentConfig,
-} from "@openplane/ai/agents";
-import { getChatModel, ProviderIdSchema } from "@openplane/types/ai";
+} from "@openbeam/ai/agents";
+import { getChatModel, ProviderIdSchema } from "@openbeam/types/ai";
 import {
   AgentCallNodeConfigSchema,
   type AgentExecutionMode,
   type AgentOutputFormat,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { CanvasNodeExecutionError } from "../errors";
 import { resolveNodeConfig } from "../node-config";
 import type { CanvasNodeExecutor } from "../types";

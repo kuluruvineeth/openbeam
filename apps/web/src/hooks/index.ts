@@ -1,4 +1,4 @@
-export { useDebounce } from "@openplane/ui";
+export { useDebounce } from "@openbeam/ui";
 export { useDocumentPreview } from "@/features/file-preview";
 export { useOverview } from "@/features/overview";
 export {

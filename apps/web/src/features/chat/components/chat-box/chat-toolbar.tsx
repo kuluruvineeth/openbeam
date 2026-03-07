@@ -1,6 +1,6 @@
 "use client";
 
-import { TooltipProvider } from "@openplane/ui";
+import { TooltipProvider } from "@openbeam/ui";
 import type { Capability, UserRole } from "@/features/chat/types";
 import { AgentModeToggle } from "./toolbar/agent-mode-toggle";
 import { AttachButton } from "./toolbar/attach-button";

@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CLUSTER_NAME="${KIND_CLUSTER_NAME:-openplane-sandbox}"
+CLUSTER_NAME="${KIND_CLUSTER_NAME:-openbeam-sandbox}"
 DAYTONA_NAMESPACE="${DAYTONA_NAMESPACE:-daytona}"
 DAYTONA_RELEASE="${DAYTONA_HELM_RELEASE:-daytona}"
 DAYTONA_CHART="${DAYTONA_HELM_CHART:-daytonaio/daytona}"
 DAYTONA_VALUES_FILE="${DAYTONA_VALUES_FILE:-k8s/infra/daytona/values.kind.yaml}"
 DAYTONA_HELM_TIMEOUT="${DAYTONA_HELM_TIMEOUT:-20m}"
 DAYTONA_ROLLOUT_TIMEOUT="${DAYTONA_ROLLOUT_TIMEOUT:-900s}"
-DAYTONA_BOOTSTRAP_KEY_NAME="${DAYTONA_BOOTSTRAP_KEY_NAME:-openplane-sandbox-gateway}"
-DAYTONA_CREDENTIAL_SECRET_NAME="${DAYTONA_CREDENTIAL_SECRET_NAME:-daytona-openplane}"
+DAYTONA_BOOTSTRAP_KEY_NAME="${DAYTONA_BOOTSTRAP_KEY_NAME:-openbeam-sandbox-gateway}"
+DAYTONA_CREDENTIAL_SECRET_NAME="${DAYTONA_CREDENTIAL_SECRET_NAME:-daytona-openbeam}"
 DAYTONA_CREDENTIAL_SECRET_KEY="${DAYTONA_CREDENTIAL_SECRET_KEY:-DAYTONA_API_KEY}"
 DAYTONA_ENV_FILE="${DAYTONA_ENV_FILE:-}"
 
@@ -74,8 +74,8 @@ kubectl taint nodes --all node-role.kubernetes.io/master- >/dev/null 2>&1 || tru
 
 while IFS= read -r node; do
   kubectl label node "$node" daytona-sandbox-c=true --overwrite >/dev/null
-  kubectl label node "$node" openplane.daytona=true --overwrite >/dev/null
-  kubectl annotate node "$node" openplane.daytona/bootstrap=enabled --overwrite >/dev/null
+  kubectl label node "$node" openbeam.daytona=true --overwrite >/dev/null
+  kubectl annotate node "$node" openbeam.daytona/bootstrap=enabled --overwrite >/dev/null
 done < <(kubectl get nodes -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}')
 
 ensure_helm_repo daytonaio https://charts.daytona.io

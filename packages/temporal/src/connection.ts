@@ -5,10 +5,10 @@ import { NativeConnection, type TLSConfig } from "@temporalio/worker";
 type EnvironmentName = "production" | "staging" | "development" | "test";
 
 const NAMESPACE_BY_ENVIRONMENT: Record<EnvironmentName, string> = {
-  production: "openplane-prod",
-  staging: "openplane-staging",
-  development: "openplane-dev",
-  test: "openplane-test",
+  production: "openbeam-prod",
+  staging: "openbeam-staging",
+  development: "openbeam-dev",
+  test: "openbeam-test",
 };
 
 function getEnvironment(): EnvironmentName {

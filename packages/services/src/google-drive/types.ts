@@ -132,7 +132,7 @@ export function isUnexportableGoogleType(mimeType: string): boolean {
 import type {
   GoogleDriveDomainSyncCursor,
   GoogleDriveSyncCursor,
-} from "@openplane/types/services/connectors/google-drive";
+} from "@openbeam/types/services/connectors/google-drive";
 
 export function isGoogleDriveSyncCursor(
   cursor: unknown

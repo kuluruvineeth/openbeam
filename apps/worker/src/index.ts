@@ -1,6 +1,6 @@
-import prisma from "@openplane/db";
-import { closeRedisClient } from "@openplane/redis";
-import { initializeAI } from "@openplane/services";
+import prisma from "@openbeam/db";
+import { closeRedisClient } from "@openbeam/redis";
+import { initializeAI } from "@openbeam/services";
 import {
   checkHealth,
   getTaskQueuesForWorkerType,
@@ -9,7 +9,7 @@ import {
   startWorker,
   type WorkerType,
   waitForHealthy,
-} from "@openplane/temporal";
+} from "@openbeam/temporal";
 import { SpanStatusCode, trace } from "@opentelemetry/api";
 import type { Worker } from "@temporalio/worker";
 import { startHealthServer, stopHealthServer } from "./health";
@@ -44,9 +44,9 @@ const WORKER_CONCURRENCY: Record<WorkerType, number> = {
   knowledge: 5,
 };
 
-const startupTracer = trace.getTracer("openplane-worker.startup");
+const startupTracer = trace.getTracer("openbeam-worker.startup");
 const serviceLogger = logger.child({
-  service: "openplane-worker",
+  service: "openbeam-worker",
   environment: process.env.NODE_ENV || "development",
   version: process.env.APP_VERSION || "0.1.0",
 });
@@ -89,7 +89,7 @@ class WorkerService {
   private isShuttingDown = false;
 
   constructor() {
-    serviceLogger.info("Initializing OpenPlane Worker...");
+    serviceLogger.info("Initializing OpenBeam Worker...");
     initializeAI({ enableMetrics: true });
   }
 
@@ -117,7 +117,7 @@ class WorkerService {
           await this.startServers();
         });
 
-        serviceLogger.info("OpenPlane Worker started successfully");
+        serviceLogger.info("OpenBeam Worker started successfully");
         serviceLogger.info(
           {
             components: {
@@ -217,7 +217,7 @@ class WorkerService {
   }
 
   async shutdown(): Promise<void> {
-    serviceLogger.info("Shutting down OpenPlane Worker...");
+    serviceLogger.info("Shutting down OpenBeam Worker...");
     this.isShuttingDown = true;
 
     serviceLogger.info("Stopping health and metrics servers...");
@@ -252,7 +252,7 @@ class WorkerService {
       }),
     ]);
 
-    serviceLogger.info("OpenPlane Worker shut down successfully");
+    serviceLogger.info("OpenBeam Worker shut down successfully");
     process.exit(0);
   }
 }

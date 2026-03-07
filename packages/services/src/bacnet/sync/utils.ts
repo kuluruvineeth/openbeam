@@ -1,8 +1,8 @@
 import type {
   BacnetSyncBatch,
   BacnetSyncCursor,
-} from "@openplane/types/services/connectors/bacnet";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/bacnet";
+import type { GenericDocument } from "@openbeam/vespa";
 
 export function createSyncBatch(
   items: GenericDocument[],

@@ -1,6 +1,6 @@
-import type { Database } from "@openplane/db";
-import type { StorageProvider } from "@openplane/storage";
-import type { VespaClient } from "@openplane/vespa";
+import type { Database } from "@openbeam/db";
+import type { StorageProvider } from "@openbeam/storage";
+import type { VespaClient } from "@openbeam/vespa";
 import type { Worker } from "@temporalio/worker";
 import {
   type ConnectorSyncActivities,

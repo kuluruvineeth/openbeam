@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@openplane/ui";
+import { cn } from "@openbeam/ui";
 import {
   Area,
   CartesianGrid,

@@ -1,6 +1,6 @@
 "use client";
 
-import type { ClassificationMode } from "@openplane/types/canvas";
+import type { ClassificationMode } from "@openbeam/types/canvas";
 import { memo, useCallback } from "react";
 import { cn } from "../../../utils";
 import { Icons } from "../../icons";

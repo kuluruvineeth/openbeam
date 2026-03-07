@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: vespa
-  namespace: openplane
+  namespace: openbeam
   labels:
     app: vespa
 spec:
@@ -21,7 +21,7 @@ spec:
           image: vespaengine/vespa:8
           env:
             - name: VESPA_CONFIGSERVERS
-              value: "vespa-0.vespa.openplane.svc.cluster.local"
+              value: "vespa-0.vespa.openbeam.svc.cluster.local"
             - name: VESPA_CONFIGSERVER_JVMARGS
               value: "-Xms256m -Xmx1g"
             - name: VESPA_IGNORE_NOT_ENOUGH_MEMORY

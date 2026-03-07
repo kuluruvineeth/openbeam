@@ -1,15 +1,15 @@
 ---
 title: Authentication
-description: Session-based, API key, and OAuth2 authentication methods for the OpenPlane API.
+description: Session-based, API key, and OAuth2 authentication methods for the OpenBeam API.
 ---
 
 # Authentication
 
-OpenPlane supports three authentication methods. Every API request must include valid credentials -- unauthenticated requests receive a `401 Unauthorized` response.
+OpenBeam supports three authentication methods. Every API request must include valid credentials -- unauthenticated requests receive a `401 Unauthorized` response.
 
 ## Session-based authentication
 
-The web application uses cookie-based sessions. After signing in through the UI, the browser stores an `openplane-session` cookie that is sent automatically with every request.
+The web application uses cookie-based sessions. After signing in through the UI, the browser stores an `openbeam-session` cookie that is sent automatically with every request.
 
 For server-side or headless clients, extract the session token and pass it as a Bearer token:
 
@@ -44,7 +44,7 @@ For server-side or headless clients, extract the session token and pass it as a 
 The server resolves sessions in this order:
 
 1. Check for an existing `authContext` (set by API key middleware)
-2. Extract token from `Authorization: Bearer <token>` header or `openplane-session` cookie
+2. Extract token from `Authorization: Bearer <token>` header or `openbeam-session` cookie
 3. Validate the session against the database
 4. Resolve the user's active team
 

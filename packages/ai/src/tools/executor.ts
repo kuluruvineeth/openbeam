@@ -1,4 +1,4 @@
-import type { ToolExecutionResult, ToolMetadata } from "@openplane/types/ai";
+import type { ToolExecutionResult, ToolMetadata } from "@openbeam/types/ai";
 import {
   createExecutionEvent,
   generateCorrelationId,

@@ -1,4 +1,4 @@
-import type { Entity, EntityRelation } from "@openplane/db";
+import type { Entity, EntityRelation } from "@openbeam/db";
 import {
   getEntityById,
   getEntityMentions,
@@ -7,7 +7,7 @@ import {
   getExpertsForTopic,
   listEntities,
   searchEntities,
-} from "@openplane/db";
+} from "@openbeam/db";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter } from "../index";

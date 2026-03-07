@@ -1,5 +1,5 @@
 {
-  "name": "@openplane/media",
+  "name": "@openbeam/media",
   "version": "0.0.1",
   "type": "module",
   "exports": {
@@ -17,12 +17,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@openplane/types": "workspace:*",
-    "@openplane/vespa": "workspace:*",
+    "@openbeam/types": "workspace:*",
+    "@openbeam/vespa": "workspace:*",
     "twelvelabs-js": "^1.1.0"
   },
   "devDependencies": {
-    "@openplane/config": "workspace:*",
+    "@openbeam/config": "workspace:*",
     "tsdown": "catalog:",
     "typescript": "catalog:"
   }

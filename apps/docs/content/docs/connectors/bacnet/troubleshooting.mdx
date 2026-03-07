@@ -12,9 +12,9 @@ description: Common BACnet connector issues and fixes.
     The Who-Is broadcast is not reaching BACnet devices, or devices are not responding.
 
     **Fix:**
-    1. Verify the OpenPlane host has network access to the BACnet/IP segment
+    1. Verify the OpenBeam host has network access to the BACnet/IP segment
     2. Check that UDP port **47808** is open in both directions
-    3. If OpenPlane is on a different subnet, BACnet broadcasts will not cross routers without a BBMD
+    3. If OpenBeam is on a different subnet, BACnet broadcasts will not cross routers without a BBMD
     4. Try specifying device IDs manually instead of relying on auto-discovery
   </Accordion>
 
@@ -33,7 +33,7 @@ description: Common BACnet connector issues and fixes.
 
     **Fix:**
     1. Test UDP connectivity: `nc -u -z DEVICE_IP 47808`
-    2. Check firewall rules on both the OpenPlane host and the BACnet network
+    2. Check firewall rules on both the OpenBeam host and the BACnet network
     3. Increase the connector's response timeout if devices are on a slow network
   </Accordion>
 </Accordions>
@@ -104,7 +104,7 @@ ip addr show | grep -E "inet.*eth"
 sudo iptables -L -n | grep 47808
 ```
 
-Still stuck? [Open an issue](https://github.com/kuluruvineeth/openplane/issues) with the connector status, network topology, and device vendor information.
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openbeam/issues) with the connector status, network topology, and device vendor information.
 
 <Cards>
   <Card title="Setup" href="/docs/connectors/bacnet/setup" description="Reconnect or reconfigure the connector" />

@@ -1,12 +1,12 @@
-import prisma, { getConnectorById } from "@openplane/db";
-import { getRedisClient, rateLimiter } from "@openplane/redis";
+import prisma, { getConnectorById } from "@openbeam/db";
+import { getRedisClient, rateLimiter } from "@openbeam/redis";
 import {
   parseGitHubWebhookPayload,
   resolveGitHubWebhookChanges,
   verifyGitHubWebhookSignature,
-} from "@openplane/services";
-import { startConnectorSync } from "@openplane/temporal";
-import type { GitHubConnectorConfig } from "@openplane/types/services/connectors/github";
+} from "@openbeam/services";
+import { startConnectorSync } from "@openbeam/temporal";
+import type { GitHubConnectorConfig } from "@openbeam/types/services/connectors/github";
 import { Hono } from "hono";
 import logger from "../../utils/logger";
 

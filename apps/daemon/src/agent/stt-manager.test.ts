@@ -146,8 +146,8 @@ describe("STTManager", () => {
   });
 
   it("uses streaming segmentation for batch transcription and concatenates segment finals", async () => {
-    const original = process.env.OPENPLANE_STT_BATCH_COMMIT_EVERY_SECONDS;
-    process.env.OPENPLANE_STT_BATCH_COMMIT_EVERY_SECONDS = "1";
+    const original = process.env.OPENBEAM_STT_BATCH_COMMIT_EVERY_SECONDS;
+    process.env.OPENBEAM_STT_BATCH_COMMIT_EVERY_SECONDS = "1";
 
     try {
       const manager = new STTManager(
@@ -167,9 +167,9 @@ describe("STTManager", () => {
       expect(result.byteLength).toBe(threeSecondsPcm.length);
     } finally {
       if (original === undefined) {
-        process.env.OPENPLANE_STT_BATCH_COMMIT_EVERY_SECONDS = undefined;
+        process.env.OPENBEAM_STT_BATCH_COMMIT_EVERY_SECONDS = undefined;
       } else {
-        process.env.OPENPLANE_STT_BATCH_COMMIT_EVERY_SECONDS = original;
+        process.env.OPENBEAM_STT_BATCH_COMMIT_EVERY_SECONDS = original;
       }
     }
   });

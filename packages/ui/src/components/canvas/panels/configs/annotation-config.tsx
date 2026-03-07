@@ -1,6 +1,6 @@
 "use client";
 
-import type { AnnotationNodeConfig } from "@openplane/types/canvas";
+import type { AnnotationNodeConfig } from "@openbeam/types/canvas";
 import { memo, useMemo } from "react";
 import {
   AppearanceSection,

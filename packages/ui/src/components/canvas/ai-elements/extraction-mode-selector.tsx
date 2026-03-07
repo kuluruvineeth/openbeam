@@ -1,6 +1,6 @@
 "use client";
 
-import type { ExtractionMode } from "@openplane/types/canvas";
+import type { ExtractionMode } from "@openbeam/types/canvas";
 import { memo, useCallback } from "react";
 import { cn } from "../../../utils";
 import { Icons } from "../../icons";

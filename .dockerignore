@@ -77,7 +77,7 @@ references/
 *.pyc
 
 # Go build artifacts
-apps/cli/openplane
+apps/cli/openbeam
 
 # Development tools
 .husky/

@@ -26,7 +26,7 @@ class TestConfigureTracing:
             configure_tracing(app, settings)
 
     def test_service_name_constant(self):
-        assert OTEL_SERVICE_NAME == "openplane-engine"
+        assert OTEL_SERVICE_NAME == "openbeam-engine"
 
 
 class TestTraceContextProcessor:

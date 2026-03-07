@@ -1,11 +1,11 @@
 ---
 title: Troubleshooting
-description: Diagnose and resolve common issues with self-hosted OpenPlane deployments, from startup failures to performance degradation.
+description: Diagnose and resolve common issues with self-hosted OpenBeam deployments, from startup failures to performance degradation.
 ---
 
 # Troubleshooting
 
-This guide covers the most common issues encountered when running OpenPlane on your own infrastructure, organized by symptom category. For monitoring-specific issues (Prometheus targets down, Grafana dashboards blank), see the [Monitoring & Observability](/docs/self-hosting/monitoring) page.
+This guide covers the most common issues encountered when running OpenBeam on your own infrastructure, organized by symptom category. For monitoring-specific issues (Prometheus targets down, Grafana dashboards blank), see the [Monitoring & Observability](/docs/self-hosting/monitoring) page.
 
 ---
 
@@ -27,7 +27,7 @@ This guide covers the most common issues encountered when running OpenPlane on y
     docker logs postgres-auth-fix
 
     # Verify PostgreSQL is healthy
-    docker exec openplane-postgres pg_isready -U postgres
+    docker exec openbeam-postgres pg_isready -U postgres
 
     # Restart Temporal after PostgreSQL is confirmed healthy
     docker compose -f scripts/deploy/infra-hetzner-compose.yaml restart temporal
@@ -36,7 +36,7 @@ This guide covers the most common issues encountered when running OpenPlane on y
     If the auth-fix container failed, PostgreSQL may need its `pg_hba.conf` manually updated to use `md5` instead of `scram-sha-256` for the Temporal connection.
   </Accordion>
   <Accordion title="Vespa OOM killed on startup">
-    **Symptom:** The Vespa container starts, then gets killed by the Linux OOM killer within 1-2 minutes. `docker inspect openplane-vespa | grep OOMKilled` shows `true`.
+    **Symptom:** The Vespa container starts, then gets killed by the Linux OOM killer within 1-2 minutes. `docker inspect openbeam-vespa | grep OOMKilled` shows `true`.
 
     **Cause:** Vespa requires a minimum of 4 GB of memory for its JVM and content node. Docker or the host system does not have enough available memory.
 
@@ -50,7 +50,7 @@ This guide covers the most common issues encountered when running OpenPlane on y
     docker info | grep "Total Memory"
 
     # Verify the container's memory limit
-    docker inspect openplane-vespa --format '{{.HostConfig.Memory}}'
+    docker inspect openbeam-vespa --format '{{.HostConfig.Memory}}'
     ```
 
     Ensure the host has at least 16 GB of total RAM for the full stack. If running on a smaller machine, consider stopping non-essential services (monitoring stack, Temporal UI) to free memory.
@@ -66,7 +66,7 @@ This guide covers the most common issues encountered when running OpenPlane on y
 
     ```bash
     # Watch Vespa logs for startup progress
-    docker logs -f openplane-vespa 2>&1 | grep -E "started|ready|error"
+    docker logs -f openbeam-vespa 2>&1 | grep -E "started|ready|error"
 
     # Check the config server directly
     curl -s http://localhost:19071/state/v1/health
@@ -83,13 +83,13 @@ This guide covers the most common issues encountered when running OpenPlane on y
 
     ```bash
     # Check Temporal logs for schema progress
-    docker logs openplane-temporal 2>&1 | tail -30
+    docker logs openbeam-temporal 2>&1 | tail -30
 
     # Verify PostgreSQL is accepting connections
-    docker exec openplane-postgres psql -U postgres -c "SELECT 1;"
+    docker exec openbeam-postgres psql -U postgres -c "SELECT 1;"
 
     # Check PostgreSQL load
-    docker exec openplane-postgres psql -U postgres -c "SELECT * FROM pg_stat_activity WHERE state = 'active';"
+    docker exec openbeam-postgres psql -U postgres -c "SELECT * FROM pg_stat_activity WHERE state = 'active';"
     ```
 
     If schema creation is truly stuck, restart the Temporal container. The auto-setup process is idempotent and will resume where it left off.
@@ -103,10 +103,10 @@ This guide covers the most common issues encountered when running OpenPlane on y
 
     ```bash
     # Verify Temporal is healthy
-    docker exec openplane-temporal-admin tctl cluster health
+    docker exec openbeam-temporal-admin tctl cluster health
 
     # Check the worker's Temporal address configuration
-    docker exec openplane-worker printenv TEMPORAL_ADDRESS
+    docker exec openbeam-worker printenv TEMPORAL_ADDRESS
     # Should be: temporal:7233
 
     # Restart the worker
@@ -128,10 +128,10 @@ This guide covers the most common issues encountered when running OpenPlane on y
     curl -s http://localhost:3000/
 
     # Check web container logs for errors
-    docker logs openplane-web 2>&1 | tail -20
+    docker logs openbeam-web 2>&1 | tail -20
 
     # Verify internal connectivity
-    docker exec openplane-web curl -s http://server:3000/
+    docker exec openbeam-web curl -s http://server:3000/
     ```
   </Accordion>
 </Accordions>
@@ -150,17 +150,17 @@ This guide covers the most common issues encountered when running OpenPlane on y
 
     ```bash
     # Check which networks a container belongs to
-    docker inspect openplane-worker --format '{{json .NetworkSettings.Networks}}' | jq 'keys'
+    docker inspect openbeam-worker --format '{{json .NetworkSettings.Networks}}' | jq 'keys'
 
-    # The worker should be on both "openplane" and "openplane-apps"
-    # Infrastructure services should be on "openplane"
+    # The worker should be on both "openbeam" and "openbeam-apps"
+    # Infrastructure services should be on "openbeam"
 
     # Test DNS resolution from inside the container
-    docker exec openplane-worker getent hosts redis
-    docker exec openplane-worker getent hosts vespa
+    docker exec openbeam-worker getent hosts redis
+    docker exec openbeam-worker getent hosts vespa
 
     # If DNS fails, verify the network exists
-    docker network ls | grep openplane
+    docker network ls | grep openbeam
     ```
 
     If the networks do not exist, recreate them by restarting the infrastructure stack:
@@ -202,7 +202,7 @@ This guide covers the most common issues encountered when running OpenPlane on y
     curl -s http://localhost:19071/application/v2/tenant/default/application/default
 
     # Wait for the content node to finish loading
-    docker logs openplane-vespa 2>&1 | grep "content"
+    docker logs openbeam-vespa 2>&1 | grep "content"
     ```
   </Accordion>
 </Accordions>
@@ -223,7 +223,7 @@ This guide covers the most common issues encountered when running OpenPlane on y
       'http://localhost:8280/search/?yql=select+*+from+sources+*+where+true&hits=10'
 
     # Check Vespa memory usage
-    docker stats openplane-vespa --no-stream
+    docker stats openbeam-vespa --no-stream
 
     # Check Vespa metrics for query performance
     curl -s http://localhost:19071/prometheus/v1/values | grep query_latency
@@ -252,7 +252,7 @@ This guide covers the most common issues encountered when running OpenPlane on y
     curl -s http://localhost:9091/metrics | grep rate_limit_usage_ratio
 
     # Check active Temporal workflows
-    docker exec openplane-temporal-admin tctl workflow list --status running
+    docker exec openbeam-temporal-admin tctl workflow list --status running
     ```
 
     **Fixes:**
@@ -265,10 +265,10 @@ This guide covers the most common issues encountered when running OpenPlane on y
 
     ```bash
     # Check for slow queries (logged at > 1s by default)
-    docker logs openplane-postgres 2>&1 | grep duration
+    docker logs openbeam-postgres 2>&1 | grep duration
 
     # Check active queries and locks
-    docker exec openplane-postgres psql -U postgres -d openplane -c "
+    docker exec openbeam-postgres psql -U postgres -d openbeam -c "
       SELECT pid, now() - query_start AS duration, query
       FROM pg_stat_activity
       WHERE state = 'active' AND query NOT LIKE '%pg_stat%'
@@ -277,7 +277,7 @@ This guide covers the most common issues encountered when running OpenPlane on y
     "
 
     # Check for lock contention
-    docker exec openplane-postgres psql -U postgres -d openplane -c "
+    docker exec openbeam-postgres psql -U postgres -d openbeam -c "
       SELECT blocked.pid, blocked.query, blocking.pid AS blocking_pid, blocking.query AS blocking_query
       FROM pg_stat_activity blocked
       JOIN pg_locks bl ON bl.pid = blocked.pid
@@ -287,7 +287,7 @@ This guide covers the most common issues encountered when running OpenPlane on y
     "
 
     # Run VACUUM ANALYZE to update statistics
-    docker exec openplane-postgres psql -U postgres -d openplane -c "VACUUM ANALYZE;"
+    docker exec openbeam-postgres psql -U postgres -d openbeam -c "VACUUM ANALYZE;"
     ```
 
     **Fixes:**
@@ -306,7 +306,7 @@ This guide covers the most common issues encountered when running OpenPlane on y
     curl -s http://localhost:8000/metrics | grep -E "request_duration|model_inference"
 
     # Check container resource usage
-    docker stats openplane-engine --no-stream
+    docker stats openbeam-engine --no-stream
     ```
 
     **Fixes:**
@@ -326,16 +326,16 @@ Disk usage grows over time from database WAL files, Vespa document storage, Loki
 
 ```bash
 # Overall disk usage for the data directory
-du -sh /mnt/openplane-data/*/
+du -sh /mnt/openbeam-data/*/
 
 # Expected output (typical production deployment):
-# 2.1G  /mnt/openplane-data/postgres
-# 156M  /mnt/openplane-data/redis
-# 8.4G  /mnt/openplane-data/vespa
-# 42M   /mnt/openplane-data/minio
-# 1.2G  /mnt/openplane-data/loki
-# 890M  /mnt/openplane-data/prometheus
-# 52M   /mnt/openplane-data/grafana
+# 2.1G  /mnt/openbeam-data/postgres
+# 156M  /mnt/openbeam-data/redis
+# 8.4G  /mnt/openbeam-data/vespa
+# 42M   /mnt/openbeam-data/minio
+# 1.2G  /mnt/openbeam-data/loki
+# 890M  /mnt/openbeam-data/prometheus
+# 52M   /mnt/openbeam-data/grafana
 ```
 
 ### Reclaiming Space
@@ -344,15 +344,15 @@ du -sh /mnt/openplane-data/*/
   <Tab value="PostgreSQL" label="PostgreSQL">
     ```bash
     # Reclaim space from deleted rows
-    docker exec openplane-postgres psql -U postgres -d openplane -c "VACUUM FULL;"
+    docker exec openbeam-postgres psql -U postgres -d openbeam -c "VACUUM FULL;"
 
     # Check database size
-    docker exec openplane-postgres psql -U postgres -d openplane -c "
-      SELECT pg_size_pretty(pg_database_size('openplane'));
+    docker exec openbeam-postgres psql -U postgres -d openbeam -c "
+      SELECT pg_size_pretty(pg_database_size('openbeam'));
     "
 
     # Find largest tables
-    docker exec openplane-postgres psql -U postgres -d openplane -c "
+    docker exec openbeam-postgres psql -U postgres -d openbeam -c "
       SELECT relname, pg_size_pretty(pg_total_relation_size(relid))
       FROM pg_catalog.pg_statio_user_tables
       ORDER BY pg_total_relation_size(relid) DESC
@@ -363,7 +363,7 @@ du -sh /mnt/openplane-data/*/
   <Tab value="Vespa" label="Vespa">
     ```bash
     # Check Vespa disk usage
-    docker exec openplane-vespa du -sh /opt/vespa/var/
+    docker exec openbeam-vespa du -sh /opt/vespa/var/
 
     # Vespa stops accepting writes at 90% disk usage (VESPA_DISK_FULL_PERCENT)
     # Free disk space or expand the volume before hitting this threshold
@@ -372,7 +372,7 @@ du -sh /mnt/openplane-data/*/
   <Tab value="Loki" label="Loki">
     ```bash
     # Check Loki storage
-    du -sh /mnt/openplane-data/loki/
+    du -sh /mnt/openbeam-data/loki/
 
     # Loki compactor enforces retention automatically (default: 14 days)
     # To force immediate compaction:
@@ -389,7 +389,7 @@ du -sh /mnt/openplane-data/*/
   <Tab value="Prometheus" label="Prometheus">
     ```bash
     # Check Prometheus TSDB size
-    docker exec openplane-prometheus du -sh /prometheus/
+    docker exec openbeam-prometheus du -sh /prometheus/
 
     # Reduce retention (default: 30 days)
     # Edit the compose file: --storage.tsdb.retention.time=15d
@@ -414,13 +414,13 @@ du -sh /mnt/openplane-data/*/
 
     ```bash
     # Check Redis memory usage
-    docker exec openplane-redis redis-cli info memory | grep -E "used_memory_human|maxmemory_human"
+    docker exec openbeam-redis redis-cli info memory | grep -E "used_memory_human|maxmemory_human"
 
     # Check key counts by pattern
-    docker exec openplane-redis redis-cli info keyspace
+    docker exec openbeam-redis redis-cli info keyspace
 
     # Find large keys
-    docker exec openplane-redis redis-cli --bigkeys
+    docker exec openbeam-redis redis-cli --bigkeys
     ```
 
     **Fixes:**
@@ -435,7 +435,7 @@ du -sh /mnt/openplane-data/*/
 
     ```bash
     # Check container memory usage
-    docker stats openplane-vespa --no-stream
+    docker stats openbeam-vespa --no-stream
 
     # Increase memory limit in the compose file
     # Change: mem_limit: 4g → mem_limit: 8g
@@ -454,7 +454,7 @@ du -sh /mnt/openplane-data/*/
 
     ```bash
     # Check worker memory usage
-    docker stats openplane-worker --no-stream
+    docker stats openbeam-worker --no-stream
 
     # Increase worker memory limit in the compose file
     # Change: mem_limit: 2g → mem_limit: 4g
@@ -493,7 +493,7 @@ Open **Explore** in Grafana, select the **Loki** data source, and set the time r
 {service=~".+"} | json | level="error"
 
 # Narrow to a specific service
-{container="openplane-server"} | json | level="error"
+{container="openbeam-server"} | json | level="error"
 
 # Search for a specific error message
 {service=~".+"} |= "ConnectorNotFoundError"
@@ -511,25 +511,25 @@ For sync or indexing issues:
 
 ```text
 # Sync failures
-{container="openplane-worker"} | json | level="error" |= "sync"
+{container="openbeam-worker"} | json | level="error" |= "sync"
 
 # Specific connector issues
-{container="openplane-worker"} |= "linear" | json | level=~"error|warn"
+{container="openbeam-worker"} |= "linear" | json | level=~"error|warn"
 
 # Rate limit events
-{container="openplane-worker"} |= "rate_limit"
+{container="openbeam-worker"} |= "rate_limit"
 ```
 
 ### Step 5: Check Temporal Workflows
 
 ```bash
 # List failed workflows in the last hour
-docker exec openplane-temporal-admin tctl workflow list \
+docker exec openbeam-temporal-admin tctl workflow list \
   --status failed \
   --earliest_time "$(date -d '1 hour ago' -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -v-1H -u +%Y-%m-%dT%H:%M:%SZ)"
 
 # Get details of a failed workflow
-docker exec openplane-temporal-admin tctl workflow show \
+docker exec openbeam-temporal-admin tctl workflow show \
   --workflow_id "sync:connector_id_here"
 ```
 
@@ -565,10 +565,10 @@ A complete reference of all health check endpoints across the deployment.
 ```bash
 #!/bin/bash
 echo "=== Infrastructure ==="
-echo -n "PostgreSQL: "; docker exec openplane-postgres pg_isready -U postgres 2>&1 | tail -1
-echo -n "Redis:      "; docker exec openplane-redis redis-cli ping
+echo -n "PostgreSQL: "; docker exec openbeam-postgres pg_isready -U postgres 2>&1 | tail -1
+echo -n "Redis:      "; docker exec openbeam-redis redis-cli ping
 echo -n "Vespa:      "; curl -sf http://localhost:19071/state/v1/health | jq -r '.status.code' 2>/dev/null || echo "UNHEALTHY"
-echo -n "Temporal:   "; docker exec openplane-temporal-admin tctl cluster health --address temporal:7233 2>&1 | tail -1
+echo -n "Temporal:   "; docker exec openbeam-temporal-admin tctl cluster health --address temporal:7233 2>&1 | tail -1
 echo -n "MinIO:      "; curl -sf http://localhost:9000/minio/health/live > /dev/null && echo "OK" || echo "UNHEALTHY"
 
 echo ""
@@ -636,7 +636,7 @@ docker compose -f scripts/deploy/apps-compose.yaml up -d worker
 ### Nuclear Option (Full Teardown and Rebuild)
 
 <Callout type="warn">
-  This stops all containers and removes networks. Data in `/mnt/openplane-data` is preserved because it uses bind mounts, not Docker volumes. Do not add the `-v` flag.
+  This stops all containers and removes networks. Data in `/mnt/openbeam-data` is preserved because it uses bind mounts, not Docker volumes. Do not add the `-v` flag.
 </Callout>
 
 ```bash
@@ -658,13 +658,13 @@ docker compose -f scripts/deploy/apps-compose.yaml up -d
 
 ```bash
 # Full SQL dump
-docker exec openplane-postgres pg_dump -U postgres openplane > backup_$(date +%Y%m%d_%H%M%S).sql
+docker exec openbeam-postgres pg_dump -U postgres openbeam > backup_$(date +%Y%m%d_%H%M%S).sql
 
 # Compressed backup
-docker exec openplane-postgres pg_dump -U postgres openplane | gzip > backup_$(date +%Y%m%d_%H%M%S).sql.gz
+docker exec openbeam-postgres pg_dump -U postgres openbeam | gzip > backup_$(date +%Y%m%d_%H%M%S).sql.gz
 
 # Custom format (supports parallel restore)
-docker exec openplane-postgres pg_dump -U postgres -Fc openplane > backup_$(date +%Y%m%d_%H%M%S).dump
+docker exec openbeam-postgres pg_dump -U postgres -Fc openbeam > backup_$(date +%Y%m%d_%H%M%S).dump
 ```
 
 **Restore from backup:**
@@ -674,10 +674,10 @@ docker exec openplane-postgres pg_dump -U postgres -Fc openplane > backup_$(date
 docker compose -f scripts/deploy/apps-compose.yaml down
 
 # Restore from SQL dump
-docker exec -i openplane-postgres psql -U postgres openplane < backup_20250305_120000.sql
+docker exec -i openbeam-postgres psql -U postgres openbeam < backup_20250305_120000.sql
 
 # Restore from custom format
-docker exec -i openplane-postgres pg_restore -U postgres -d openplane --clean backup_20250305_120000.dump
+docker exec -i openbeam-postgres pg_restore -U postgres -d openbeam --clean backup_20250305_120000.dump
 
 # Restart applications
 docker compose -f scripts/deploy/apps-compose.yaml up -d
@@ -694,7 +694,7 @@ If the Vespa index becomes corrupted or you need to rebuild it from scratch:
 docker compose -f scripts/deploy/apps-compose.yaml stop worker
 
 # 2. Delete all Vespa documents (nuclear option)
-curl -X DELETE 'http://localhost:8280/document/v1/?cluster=openplane&selection=true'
+curl -X DELETE 'http://localhost:8280/document/v1/?cluster=openbeam&selection=true'
 
 # 3. Restart the worker
 docker compose -f scripts/deploy/apps-compose.yaml start worker
@@ -715,7 +715,7 @@ Redis uses AOF (Append Only File) persistence. If Redis state becomes corrupted:
 docker compose -f scripts/deploy/infra-hetzner-compose.yaml stop redis
 
 # 2. Check the AOF file for corruption
-docker run --rm -v /mnt/openplane-data/redis:/data redis:8.4.0-alpine \
+docker run --rm -v /mnt/openbeam-data/redis:/data redis:8.4.0-alpine \
   redis-check-aof --fix /data/appendonlydir/appendonly.aof.1.incr.aof
 
 # 3. Start Redis
@@ -727,7 +727,7 @@ If Redis data is unrecoverable, you can safely delete it and restart. Rate limit
 ```bash
 # Nuclear option: delete Redis data
 docker compose -f scripts/deploy/infra-hetzner-compose.yaml stop redis
-rm -rf /mnt/openplane-data/redis/*
+rm -rf /mnt/openbeam-data/redis/*
 docker compose -f scripts/deploy/infra-hetzner-compose.yaml start redis
 ```
 
@@ -737,10 +737,10 @@ docker compose -f scripts/deploy/infra-hetzner-compose.yaml start redis
 
 If this guide does not resolve your issue:
 
-1. **Check container logs** for the service that is failing: `docker logs openplane-<service> --tail 100`
+1. **Check container logs** for the service that is failing: `docker logs openbeam-<service> --tail 100`
 2. **Search Loki** for correlated errors across services using trace IDs
 3. **Check the Temporal UI** at `http://localhost:8233` for stuck or failed workflows
-4. **Open a GitHub issue** at [github.com/kuluruvineeth/openplane/issues](https://github.com/kuluruvineeth/openplane/issues) with:
+4. **Open a GitHub issue** at [github.com/kuluruvineeth/openbeam/issues](https://github.com/kuluruvineeth/openbeam/issues) with:
    - The error message or symptom
    - Relevant container logs
    - Output of `docker compose ps` for both compose files

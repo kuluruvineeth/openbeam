@@ -12,21 +12,11 @@ const mockCreateKnowledgeInferenceActivities = vi.fn();
 const mockCreateKnowledgeCleanupActivities = vi.fn();
 const mockBindToolServices = vi.fn();
 const mockCreateToolServices = vi.fn(() => ({}));
-
-const mockMissionDelegateToMissionRegister = vi.fn();
-const mockMissionDiscoverMissionsRegister = vi.fn();
-const mockMissionEscalateRegister = vi.fn();
-const mockMissionEvaluateProgressRegister = vi.fn();
-const mockMissionGetInboxRegister = vi.fn();
-const mockMissionGetSpawnTreeRegister = vi.fn();
-const mockMissionListAgentsRegister = vi.fn();
-const mockMissionQueryCapabilitiesRegister = vi.fn();
-const mockMissionQueryTeamKnowledgeRegister = vi.fn();
-const mockMissionRequestReplanRegister = vi.fn();
-const mockMissionSendMessageRegister = vi.fn();
-const mockMissionSpawnAgentRegister = vi.fn();
-const mockMissionStoreTeamKnowledgeRegister = vi.fn();
-const mockMissionWaitForReplyRegister = vi.fn();
+const mockCreateAgentActivities = vi.fn(() => ({ executeAgentStep: vi.fn() }));
+const mockCreateControlPlaneActivities = vi.fn(() => ({
+  claimAndStartRun: vi.fn(),
+}));
+const mockRegisterAdapter = vi.fn();
 
 vi.mock("../connection", () => ({
   createWorkerConnection: mockCreateWorkerConnection,
@@ -41,45 +31,23 @@ vi.mock("@temporalio/worker", () => ({
   },
 }));
 
-vi.mock("@openplane/db", () => ({
+vi.mock("@openbeam/db", () => ({
   default: {},
 }));
 
-vi.mock("@openplane/storage", () => ({
+vi.mock("@openbeam/storage", () => ({
   S3StorageProvider: class {},
 }));
 
-vi.mock("@openplane/vespa", () => ({
+vi.mock("@openbeam/vespa", () => ({
   vespaClient: {},
 }));
 
-vi.mock("@openplane/services", () => ({
+vi.mock("@openbeam/services", () => ({
   createToolServices: mockCreateToolServices,
 }));
 
-vi.mock("@openplane/ai/tools", () => ({
-  missionDelegateToMission: { register: mockMissionDelegateToMissionRegister },
-  missionDiscoverMissions: { register: mockMissionDiscoverMissionsRegister },
-  missionEscalate: { register: mockMissionEscalateRegister },
-  missionEvaluateProgress: { register: mockMissionEvaluateProgressRegister },
-  missionGetInbox: { register: mockMissionGetInboxRegister },
-  missionGetSpawnTree: { register: mockMissionGetSpawnTreeRegister },
-  missionListAgents: { register: mockMissionListAgentsRegister },
-  missionQueryCapabilities: { register: mockMissionQueryCapabilitiesRegister },
-  missionQueryTeamKnowledge: {
-    register: mockMissionQueryTeamKnowledgeRegister,
-  },
-  missionRequestReplan: { register: mockMissionRequestReplanRegister },
-  missionSendMessage: { register: mockMissionSendMessageRegister },
-  missionSpawnAgent: { register: mockMissionSpawnAgentRegister },
-  missionStoreTeamKnowledge: {
-    register: mockMissionStoreTeamKnowledgeRegister,
-  },
-  missionWaitForReply: { register: mockMissionWaitForReplyRegister },
-  setMissionDelegationServices: vi.fn(),
-  setMissionMessagingServices: vi.fn(),
-  setMissionSpawnServices: vi.fn(),
-  setTeamKnowledgeServices: vi.fn(),
+vi.mock("@openbeam/ai/tools", () => ({
   toolRegistry: {
     bindServices: mockBindToolServices,
   },
@@ -119,6 +87,32 @@ vi.mock("../activities/canvas", () => ({
   createCanvasExecutionActivities: vi.fn(() => ({})),
   createCompensationActivities: vi.fn(() => ({})),
   createRateLimitActivities: vi.fn(() => ({})),
+}));
+
+vi.mock("../activities/agents", () => ({
+  createAgentActivities: mockCreateAgentActivities,
+  createControlPlaneActivities: mockCreateControlPlaneActivities,
+  LlmAgentExecutor: class {},
+}));
+
+vi.mock("@openbeam/services/control/adapters/registry", () => ({
+  registerAdapter: mockRegisterAdapter,
+}));
+
+vi.mock("@openbeam/services/control/adapters/http/index", () => ({
+  httpAdapter: { type: "HTTP" },
+}));
+
+vi.mock("@openbeam/services/control/adapters/process/index", () => ({
+  processAdapter: { type: "PROCESS" },
+}));
+
+vi.mock("@openbeam/services/control/adapters/claude-local/index", () => ({
+  claudeLocalAdapter: { type: "CLAUDE_LOCAL" },
+}));
+
+vi.mock("@openbeam/services/control/adapters/codex-local/index", () => ({
+  codexLocalAdapter: { type: "CODEX_LOCAL" },
 }));
 
 vi.mock("../activities/analytics", () => ({}));
@@ -175,5 +169,29 @@ describe("startWorker bootstrap", () => {
     );
     expect(mockCreateToolServices).toHaveBeenCalledOnce();
     expect(mockBindToolServices).toHaveBeenCalledOnce();
+  });
+
+  it("agent worker includes control activities and registers adapters", async () => {
+    const { startWorker } = await import("../scripts/start-worker");
+
+    await startWorker({
+      workerType: "agent",
+      temporalAddress: "temporal.internal:7233",
+      namespace: "team-dev",
+    });
+
+    expect(mockCreateAgentActivities).toHaveBeenCalledOnce();
+    expect(mockCreateControlPlaneActivities).toHaveBeenCalledOnce();
+    expect(mockRegisterAdapter).toHaveBeenCalledTimes(4);
+    expect(mockRegisterAdapter).toHaveBeenCalledWith({ type: "HTTP" });
+    expect(mockRegisterAdapter).toHaveBeenCalledWith({ type: "PROCESS" });
+    expect(mockRegisterAdapter).toHaveBeenCalledWith({ type: "CLAUDE_LOCAL" });
+    expect(mockRegisterAdapter).toHaveBeenCalledWith({ type: "CODEX_LOCAL" });
+
+    expect(mockWorkerCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        taskQueue: TASK_QUEUES.AGENTS,
+      })
+    );
   });
 });

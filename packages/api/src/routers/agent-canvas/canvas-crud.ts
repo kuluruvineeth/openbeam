@@ -7,7 +7,7 @@ import {
   listAgentCanvasTemplates,
   publishAgentCanvas,
   updateAgentCanvas,
-} from "@openplane/db";
+} from "@openbeam/db";
 import { TRPCError } from "@trpc/server";
 import { withActiveTeam, withAdminRole } from "../apps/middleware";
 import { verifyCanvasAccess } from "./helpers";

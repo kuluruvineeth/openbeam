@@ -15,7 +15,7 @@ import { useSessionStore } from "@/stores/session-store";
 import { resolveVoiceUnavailableMessage } from "@/utils/server-info-capabilities";
 import { REALTIME_VOICE_VAD_CONFIG } from "@/voice/realtime-voice-config";
 
-const KEEP_AWAKE_TAG = "openplane:voice";
+const KEEP_AWAKE_TAG = "openbeam:voice";
 interface VoiceContextValue {
   isVoiceMode: boolean;
   isVoiceSwitching: boolean;

@@ -5,7 +5,7 @@ import type {
   CodeRuntime,
   InputVariable,
   OutputField,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { forwardRef, memo, useCallback, useMemo } from "react";
 import { AnimatedSizeContainer } from "../../../animated-size-container";
 import { CodeEditor } from "../../../code-editor";

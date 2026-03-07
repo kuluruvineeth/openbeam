@@ -3,7 +3,7 @@ import path from "node:path";
 
 import { STTManager } from "../src/server/agent/stt-manager";
 import { createRootLogger } from "../src/server/logger";
-import { resolveOpenPlaneHome } from "../src/server/openplane-home";
+import { resolveOpenBeamHome } from "../src/server/openbeam-home";
 import {
   DEFAULT_LOCAL_STT_MODEL,
   DEFAULT_LOCAL_TTS_MODEL,
@@ -29,7 +29,7 @@ function usage(): string {
     "  npm run speech:transcribe:local -- ./sample.wav --out ./tmp/sample.transcript.txt",
     "",
     "Env fallbacks:",
-    "  OPENPLANE_LOCAL_MODELS_DIR, OPENPLANE_LOCAL_STT_MODEL",
+    "  OPENBEAM_LOCAL_MODELS_DIR, OPENBEAM_LOCAL_STT_MODEL",
   ].join("\n");
 }
 
@@ -43,15 +43,15 @@ function parseArgs(argv: string[]): CliOptions {
     throw new Error(`Missing <wavPath>\n\n${usage()}`);
   }
 
-  const openplaneHome = resolveOpenPlaneHome();
+  const openbeamHome = resolveOpenBeamHome();
   const defaultModelsDir =
-    process.env.OPENPLANE_LOCAL_MODELS_DIR ??
-    path.join(openplaneHome, "models", "local-speech");
+    process.env.OPENBEAM_LOCAL_MODELS_DIR ??
+    path.join(openbeamHome, "models", "local-speech");
 
   const positional: string[] = [];
   let outPath: string | undefined;
   let model = LocalSttModelIdSchema.parse(
-    process.env.OPENPLANE_LOCAL_STT_MODEL ?? DEFAULT_LOCAL_STT_MODEL
+    process.env.OPENBEAM_LOCAL_STT_MODEL ?? DEFAULT_LOCAL_STT_MODEL
   );
   let modelsDir = defaultModelsDir;
 

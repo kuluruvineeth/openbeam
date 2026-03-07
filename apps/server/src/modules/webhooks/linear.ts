@@ -1,10 +1,10 @@
-import prisma, { getConnectorById } from "@openplane/db";
-import { getRedisClient, rateLimiter } from "@openplane/redis";
+import prisma, { getConnectorById } from "@openbeam/db";
+import { getRedisClient, rateLimiter } from "@openbeam/redis";
 import {
   isLinearTimestampValid,
   parseLinearWebhookPayload,
   verifyLinearWebhookSignature,
-} from "@openplane/services";
+} from "@openbeam/services";
 import { Hono } from "hono";
 import logger from "../../utils/logger";
 

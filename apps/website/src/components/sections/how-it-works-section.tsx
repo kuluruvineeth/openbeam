@@ -19,7 +19,7 @@ const features = [
     mobileSubtitle: "Add a connector. Every document becomes searchable.",
     media: {
       type: "video" as const,
-      src: "/images/examples/openplane_mission.mp4",
+      src: "/images/examples/openbeam_mission.mp4",
       poster: "/images/examples/a16.png",
     },
   },
@@ -37,7 +37,7 @@ const features = [
     mobileSubtitle: "Agents do the work, not just find it.",
     media: {
       type: "video" as const,
-      src: "/images/examples/openplane_agents.mp4",
+      src: "/images/examples/openbeam_agents.mp4",
       poster: "/images/examples/a17.png",
     },
   },
@@ -62,7 +62,7 @@ interface TerminalLine {
 const DOCKER_LINES: TerminalLine[] = [
   {
     prompt: true,
-    text: "git clone https://github.com/openbeam/openbeam.git",
+    text: "git clone https://github.com/kuluruvineeth/openbeam.git",
   },
   { prompt: true, text: "cd openbeam" },
   { prompt: true, text: "docker compose up -d" },

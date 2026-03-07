@@ -3,7 +3,7 @@ import type {
   InitializeParams,
   MCPCapabilities,
   MCPServerContext,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import { ToolRegistry } from "../../tools/registry";
 import {
   createMCPServer,

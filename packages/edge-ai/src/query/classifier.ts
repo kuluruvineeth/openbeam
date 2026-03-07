@@ -1,4 +1,4 @@
-import type { EdgeSLM, QueryClassification } from "@openplane/types/edge/ai";
+import type { EdgeSLM, QueryClassification } from "@openbeam/types/edge/ai";
 import { EDGE_QUERY_CLASSIFY_PROMPT, formatPrompt } from "../prompts/templates";
 import { parseQueryClassification } from "../prompts/validators";
 

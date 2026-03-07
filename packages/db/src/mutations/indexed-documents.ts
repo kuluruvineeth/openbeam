@@ -1,4 +1,4 @@
-import type { UpsertIndexedDocumentInput } from "@openplane/types/db";
+import type { UpsertIndexedDocumentInput } from "@openbeam/types/db";
 import type { IndexedDocument, Prisma } from "../../prisma/generated/client";
 import type { Database } from "../index";
 

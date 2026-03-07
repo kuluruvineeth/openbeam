@@ -1,5 +1,5 @@
-import type { Database } from "@openplane/db";
-import { createDocumentChanges } from "@openplane/db";
+import type { Database } from "@openbeam/db";
+import { createDocumentChanges } from "@openbeam/db";
 import type { RecordSyncDocumentChangesInput } from "./types";
 
 export function createRecordSyncDocumentChangesActivity(deps: {

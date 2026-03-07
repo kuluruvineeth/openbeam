@@ -1,6 +1,6 @@
 "use client";
 
-import type { SummaryFocusArea } from "@openplane/types/canvas";
+import type { SummaryFocusArea } from "@openbeam/types/canvas";
 import { memo, useCallback } from "react";
 import { cn } from "../../../utils";
 import { Checkbox } from "../../checkbox";

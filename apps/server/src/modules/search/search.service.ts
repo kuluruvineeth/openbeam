@@ -12,5 +12,5 @@ export {
   type ThreadSearchParams,
   type UnifiedSearchParams,
   type UnifiedSearchResult,
-} from "@openplane/services";
-export type { MediaType } from "@openplane/vespa";
+} from "@openbeam/services";
+export type { MediaType } from "@openbeam/vespa";

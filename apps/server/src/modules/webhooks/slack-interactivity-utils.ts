@@ -1,10 +1,10 @@
-import prisma, { getDecryptedOAuthCredentials } from "@openplane/db";
-import { createStateStore } from "@openplane/redis";
+import prisma, { getDecryptedOAuthCredentials } from "@openbeam/db";
+import { createStateStore } from "@openbeam/redis";
 import {
   createSlackClient,
   handleSaveItem,
   verifySlackSignature,
-} from "@openplane/services";
+} from "@openbeam/services";
 import type { Context } from "hono";
 import logger from "../../utils/logger";
 import type {
@@ -190,7 +190,7 @@ export function buildAskModal() {
   return {
     type: "modal" as const,
     callback_id: "global_ask_submit",
-    title: { type: "plain_text" as const, text: "Ask OpenPlane" },
+    title: { type: "plain_text" as const, text: "Ask OpenBeam" },
     submit: { type: "plain_text" as const, text: "Ask" },
     close: { type: "plain_text" as const, text: "Cancel" },
     blocks: [

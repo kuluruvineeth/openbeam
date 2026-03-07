@@ -116,7 +116,7 @@ export function HeroSection() {
                 </a>
                 <a
                   className="flex h-12 items-center justify-center gap-2 border border-border bg-background px-6 font-sans text-foreground text-sm transition-colors hover:bg-secondary"
-                  href="https://github.com/openbeam/openbeam"
+                  href="https://github.com/kuluruvineeth/openbeam"
                   rel="noopener noreferrer"
                   target="_blank"
                 >

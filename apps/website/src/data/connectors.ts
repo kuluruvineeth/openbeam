@@ -1,4 +1,4 @@
-import { appStore, type UnifiedApp } from "@openplane/integrations";
+import { appStore, type UnifiedApp } from "@openbeam/integrations";
 
 export interface WebsiteConnector {
   id: string;

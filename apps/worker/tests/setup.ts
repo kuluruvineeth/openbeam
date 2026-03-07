@@ -3,8 +3,8 @@
  * Shared configuration and helpers for all tests
  */
 
-import prisma from "@openplane/db";
-import { fence, rateLimiter } from "@openplane/redis";
+import prisma from "@openbeam/db";
+import { fence, rateLimiter } from "@openbeam/redis";
 
 /**
  * Sleep utility for tests

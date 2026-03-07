@@ -1,5 +1,5 @@
-import type { GmailTransformContext } from "@openplane/types/services/connectors/gmail";
-import type { GenericDocument } from "@openplane/vespa";
+import type { GmailTransformContext } from "@openbeam/types/services/connectors/gmail";
+import type { GenericDocument } from "@openbeam/vespa";
 import { createLabelLookup } from "../api/labels";
 import { fetchMessagesWithContent } from "../api/messages";
 import { getThread } from "../api/threads";

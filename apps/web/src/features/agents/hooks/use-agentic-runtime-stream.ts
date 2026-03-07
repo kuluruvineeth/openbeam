@@ -1,6 +1,6 @@
 "use client";
 
-import type { RuntimeEvent } from "@openplane/types/canvas/runtime-events";
+import type { RuntimeEvent } from "@openbeam/types/canvas/runtime-events";
 import { useCallback, useEffect } from "react";
 import { useAgenticRuntimeStore } from "../stores/agentic-runtime-store";
 import { useSessionEventStream } from "./use-session-event-stream";

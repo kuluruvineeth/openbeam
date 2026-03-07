@@ -5,7 +5,7 @@ description: Team-based RBAC, mandatory team scoping, document permission sync, 
 
 # Authorization
 
-Authentication answers "who are you?" -- authorization answers "what can you access?" OpenPlane enforces authorization at two levels: team-level RBAC for platform operations and document-level permissions for search results.
+Authentication answers "who are you?" -- authorization answers "what can you access?" OpenBeam enforces authorization at two levels: team-level RBAC for platform operations and document-level permissions for search results.
 
 ## Team-Based RBAC
 
@@ -162,7 +162,7 @@ access_control: ["user:jane@co.com", "group:finance", "domain:co.com"]
 At query time, the user's access control IDs are injected as filter clauses:
 
 ```sql
-SELECT * FROM openplane_document
+SELECT * FROM openbeam_document
 WHERE team_id CONTAINS "team_abc"
   AND (title CONTAINS "revenue" OR content CONTAINS "revenue")
   AND (

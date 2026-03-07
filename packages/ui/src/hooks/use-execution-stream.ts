@@ -1,7 +1,7 @@
 "use client";
 
-import type { ExecutionEvent } from "@openplane/types/canvas/execution-events";
-import { ExecutionEventSchema } from "@openplane/types/canvas/execution-events";
+import type { ExecutionEvent } from "@openbeam/types/canvas/execution-events";
+import { ExecutionEventSchema } from "@openbeam/types/canvas/execution-events";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type ConnectionStatus = "disconnected" | "connecting" | "connected" | "error";

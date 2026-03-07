@@ -1,5 +1,5 @@
-import type { Database } from "@openplane/db";
-import type { VespaClient } from "@openplane/vespa";
+import type { Database } from "@openbeam/db";
+import type { VespaClient } from "@openbeam/vespa";
 import { createDeleteDocumentsActivity } from "./delete-documents";
 import { createLoadConnectorActivity } from "./load-connector";
 import { createProcessWebhookEventActivity } from "./process-event";

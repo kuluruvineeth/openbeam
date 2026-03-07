@@ -9,7 +9,7 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@openplane/ui";
+} from "@openbeam/ui";
 import { useState } from "react";
 import { Icons } from "@/components/icons";
 import { cn } from "@/lib/utils";

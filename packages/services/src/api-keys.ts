@@ -1,10 +1,10 @@
-import type { Database } from "@openplane/db";
+import type { Database } from "@openbeam/db";
 import {
   createApiKey,
   listApiKeys,
   revokeApiKey,
-} from "@openplane/db/mutations/api-keys";
-import { getTeamMembership } from "@openplane/db/queries/teams";
+} from "@openbeam/db/mutations/api-keys";
+import { getTeamMembership } from "@openbeam/db/queries/teams";
 
 export type TeamApiKeyActor =
   | {

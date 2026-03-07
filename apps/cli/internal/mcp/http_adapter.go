@@ -35,7 +35,7 @@ func (a *HTTPAdapter) Handle(ctx context.Context, request Request) Response {
 				"prompts":   map[string]any{},
 			},
 			"serverInfo": map[string]any{
-				"name":    "openplane-cli-mcp",
+				"name":    "openbeam-cli-mcp",
 				"version": "0.1.0",
 			},
 		}

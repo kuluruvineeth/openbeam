@@ -6,10 +6,7 @@ import { join } from "node:path";
 import { getOrCreateServerId } from "../server-id";
 
 function createTempDir(): string {
-  const dir = join(
-    tmpdir(),
-    `openplane-test-${randomBytes(8).toString("hex")}`
-  );
+  const dir = join(tmpdir(), `openbeam-test-${randomBytes(8).toString("hex")}`);
   mkdirSync(dir, { recursive: true });
   return dir;
 }
@@ -55,11 +52,11 @@ describe("getOrCreateServerId", () => {
     expect(id1).toBe(id2);
   });
 
-  it("uses OPENPLANE_SERVER_ID env override", () => {
+  it("uses OPENBEAM_SERVER_ID env override", () => {
     const dir = createTempDir();
     tempDirs.push(dir);
 
-    const env = { OPENPLANE_SERVER_ID: "custom_server_id" };
+    const env = { OPENBEAM_SERVER_ID: "custom_server_id" };
     const id = getOrCreateServerId(dir, { env });
     expect(id).toBe("custom_server_id");
   });
@@ -68,7 +65,7 @@ describe("getOrCreateServerId", () => {
     const dir = createTempDir();
     tempDirs.push(dir);
 
-    const env = { OPENPLANE_SERVER_ID: "env_id" };
+    const env = { OPENBEAM_SERVER_ID: "env_id" };
     getOrCreateServerId(dir, { env });
 
     const filePath = join(dir, "server-id");
@@ -76,21 +73,21 @@ describe("getOrCreateServerId", () => {
     expect(persisted).toBe("env_id");
   });
 
-  it("ignores empty OPENPLANE_SERVER_ID", () => {
+  it("ignores empty OPENBEAM_SERVER_ID", () => {
     const dir = createTempDir();
     tempDirs.push(dir);
 
-    const env = { OPENPLANE_SERVER_ID: "" };
+    const env = { OPENBEAM_SERVER_ID: "" };
     const id = getOrCreateServerId(dir, { env });
     // biome-ignore lint/performance/useTopLevelRegex: scoped regex acceptable here
     expect(id).toMatch(/^srv_/);
   });
 
-  it("ignores whitespace-only OPENPLANE_SERVER_ID", () => {
+  it("ignores whitespace-only OPENBEAM_SERVER_ID", () => {
     const dir = createTempDir();
     tempDirs.push(dir);
 
-    const env = { OPENPLANE_SERVER_ID: "   " };
+    const env = { OPENBEAM_SERVER_ID: "   " };
     const id = getOrCreateServerId(dir, { env });
     // biome-ignore lint/performance/useTopLevelRegex: scoped regex acceptable here
     expect(id).toMatch(/^srv_/);

@@ -20,7 +20,7 @@ export const matterportApp: UnifiedApp = {
   installed: false,
   type: "official",
   connectorType: ConnectorType.SOURCE,
-  developerName: "OpenPlane",
+  developerName: "OpenBeam",
   website: "https://matterport.com",
 
   searchDisplay: {

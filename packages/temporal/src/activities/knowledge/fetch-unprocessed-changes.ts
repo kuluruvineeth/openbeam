@@ -1,5 +1,5 @@
-import type { Database, DocumentChange } from "@openplane/db";
-import { fetchUnprocessedChanges as fetchChangesQuery } from "@openplane/db";
+import type { Database, DocumentChange } from "@openbeam/db";
+import { fetchUnprocessedChanges as fetchChangesQuery } from "@openbeam/db";
 import type { FetchUnprocessedChangesInput } from "./types";
 
 const DEFAULT_LIMIT = 1000;

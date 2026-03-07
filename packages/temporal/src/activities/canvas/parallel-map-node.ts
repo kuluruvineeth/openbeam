@@ -1,7 +1,7 @@
-import type { Database } from "@openplane/db";
-import { evaluateExpression } from "@openplane/services/canvas/expression";
-import { resolveNodeConfig } from "@openplane/services/canvas/node-config";
-import { ParallelMapNodeConfigSchema } from "@openplane/types/canvas";
+import type { Database } from "@openbeam/db";
+import { evaluateExpression } from "@openbeam/services/canvas/expression";
+import { resolveNodeConfig } from "@openbeam/services/canvas/node-config";
+import { ParallelMapNodeConfigSchema } from "@openbeam/types/canvas";
 import type {
   ExecuteParallelMapNodeInput,
   ExecuteParallelMapNodeOutput,
@@ -9,7 +9,7 @@ import type {
   ResolveParallelMapBatchOutput,
   StoreParallelMapOutputInput,
   StoreParallelMapOutputOutput,
-} from "@openplane/types/temporal";
+} from "@openbeam/types/temporal";
 import {
   createDbClaimCheckStore,
   isExecutionDataRef,

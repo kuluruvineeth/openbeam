@@ -3,11 +3,11 @@ import type {
   TaskDefinition,
   TaskHandler,
   TaskStatus,
-} from "@openplane/types/edge/scheduler";
+} from "@openbeam/types/edge/scheduler";
 import {
   calculateBackoffMs,
   RetryPolicySchema,
-} from "@openplane/types/edge/scheduler";
+} from "@openbeam/types/edge/scheduler";
 import { nextRun } from "./cron";
 import { EDGE_DEAD_LETTER_DDL, EDGE_TASKS_DDL } from "./schema";
 

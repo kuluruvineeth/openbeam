@@ -1,6 +1,6 @@
 "use client";
 
-import type { KeyValuePair } from "@openplane/types/canvas";
+import type { KeyValuePair } from "@openbeam/types/canvas";
 import { forwardRef, memo, useCallback } from "react";
 import { cn } from "../../../utils";
 import { Checkbox } from "../../checkbox";

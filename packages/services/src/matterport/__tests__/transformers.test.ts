@@ -6,7 +6,7 @@ import type {
   MatterportRoom,
   MatterportSweep,
   MatterportTransformContext,
-} from "@openplane/types/services/connectors/matterport";
+} from "@openbeam/types/services/connectors/matterport";
 import {
   type FloorTransformParams,
   transformFloor,

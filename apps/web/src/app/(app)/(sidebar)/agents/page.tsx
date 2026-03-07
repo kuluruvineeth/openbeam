@@ -6,7 +6,7 @@ import { AgentsListView, AgentsPageSkeleton } from "@/features/agents";
 import { batchPrefetch, HydrateClient, trpc } from "@/trpc/server";
 
 export const metadata: Metadata = {
-  title: "Agents | OpenPlane",
+  title: "Agents | OpenBeam",
   description: "Manage your AI agents and workflows",
 };
 

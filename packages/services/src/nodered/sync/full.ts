@@ -3,8 +3,8 @@ import type {
   NodeRedNode,
   NodeRedSyncBatch,
   NodeRedTransformContext,
-} from "@openplane/types/services/connectors/nodered";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/nodered";
+import type { GenericDocument } from "@openbeam/vespa";
 import type { NodeRedClient } from "../client";
 import { transformFlows } from "../transformers/flow";
 import { transformNodeTypes } from "../transformers/node-type";

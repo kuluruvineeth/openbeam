@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/openplane/openplane/apps/cli/internal/errs"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/errs"
 )
 
 type SSEEvent struct {
@@ -45,7 +45,7 @@ func (c *Client) StreamSSE(ctx context.Context, path string, query url.Values, b
 	requestID := nextRequestID()
 	req.Header.Set("X-Request-ID", requestID)
 	if c.team != "" {
-		req.Header.Set("X-Openplane-Team", c.team)
+		req.Header.Set("X-Openbeam-Team", c.team)
 	}
 	started := time.Now()
 	c.tracef("-> %s %s request_id=%s", http.MethodPost, requestURL, requestID)

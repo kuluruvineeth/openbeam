@@ -1,5 +1,5 @@
-import type { Database } from "@openplane/db";
-import { countUnprocessedChanges as countQuery } from "@openplane/db";
+import type { Database } from "@openbeam/db";
+import { countUnprocessedChanges as countQuery } from "@openbeam/db";
 import type { CountUnprocessedChangesInput } from "./types";
 
 export interface CountUnprocessedChangesDependencies {

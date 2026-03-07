@@ -1,4 +1,4 @@
-import type { RAGChunk } from "@openplane/types/ai";
+import type { RAGChunk } from "@openbeam/types/ai";
 import { z } from "zod";
 import { RAGEngine } from "../../../rag/engine";
 import { defineTool, failure, success } from "../../builder";

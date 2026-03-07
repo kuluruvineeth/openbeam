@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@openplane/ui/utils";
+import { cn } from "@openbeam/ui/utils";
 import { m } from "motion/react";
 import Image from "next/image";
 import { useMemo } from "react";
@@ -33,14 +33,14 @@ export function ChatGreeting({
       >
         <div className="relative mb-6 flex h-12 w-12 items-center justify-center">
           <Image
-            alt="OpenPlane"
+            alt="OpenBeam"
             className="h-10 w-10 dark:hidden"
             height={40}
             src="/assets/logo.png"
             width={40}
           />
           <Image
-            alt="OpenPlane"
+            alt="OpenBeam"
             className="hidden h-10 w-10 dark:block"
             height={40}
             src="/assets/logo_dark.png"

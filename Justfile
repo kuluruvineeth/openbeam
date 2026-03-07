@@ -1,4 +1,4 @@
-# OpenPlane — Polyglot Task Runner
+# OpenBeam — Polyglot Task Runner
 # Install: brew install just (macOS) | cargo install just (any)
 # Usage:  just <recipe>  or  just --list
 
@@ -35,7 +35,7 @@ dev-engine-browser:
 
 # Build CLI binary
 dev-cli:
-    cd apps/cli && go build -o dist/openplane ./cmd/openplane
+    cd apps/cli && go build -o dist/openbeam ./cmd/openbeam
 
 # ─── Build ───────────────────────────────────────────────────────
 
@@ -49,10 +49,10 @@ build-cli:
 
 # Build engine Docker images
 build-engine-cpu:
-    docker build -f apps/engine/Dockerfile.cpu -t openplane/engine-cpu apps/engine
+    docker build -f apps/engine/Dockerfile.cpu -t openbeam/engine-cpu apps/engine
 
 build-engine-gpu:
-    docker build -f apps/engine/Dockerfile.gpu -t openplane/engine-gpu apps/engine
+    docker build -f apps/engine/Dockerfile.gpu -t openbeam/engine-gpu apps/engine
 
 # ─── Quality ─────────────────────────────────────────────────────
 
@@ -122,7 +122,7 @@ observability-smoke:
 # Generate a typed Prometheus metric stub
 observability-new-metric:
     @echo "Example:"
-    @echo "bun run observability:new-metric -- --name openplane_example_total --type counter --labels service,env --help \"Example metric\" --out apps/server/src/metrics/openplane-example-total.ts"
+    @echo "bun run observability:new-metric -- --name openbeam_example_total --type counter --labels service,env --help \"Example metric\" --out apps/server/src/metrics/openbeam-example-total.ts"
 
 # Generate a typed structured log helper
 observability-new-log-event:
@@ -133,27 +133,27 @@ observability-new-log-event:
 
 # Push Prisma schema to database
 db-push:
-    turbo -F @openplane/db db:push
+    turbo -F @openbeam/db db:push
 
 # Open Prisma Studio
 db-studio:
-    turbo -F @openplane/db db:studio
+    turbo -F @openbeam/db db:studio
 
 # Generate Prisma client
 db-generate:
-    turbo -F @openplane/db db:generate
+    turbo -F @openbeam/db db:generate
 
 # Run database migrations
 db-migrate:
-    turbo -F @openplane/db db:migrate
+    turbo -F @openbeam/db db:migrate
 
 # Start database containers
 db-start:
-    turbo -F @openplane/db db:start
+    turbo -F @openbeam/db db:start
 
 # Stop database containers
 db-stop:
-    turbo -F @openplane/db db:stop
+    turbo -F @openbeam/db db:stop
 
 # ─── Dependencies ────────────────────────────────────────────────
 
@@ -185,13 +185,13 @@ openapi-cli:
 
 # Create local kind cluster
 k8s-up:
-    kind get clusters 2>/dev/null | grep -q openplane-dev || \
+    kind get clusters 2>/dev/null | grep -q openbeam-dev || \
         kind create cluster --config k8s/kind-config.yaml
-    kubectl cluster-info --context kind-openplane-dev
+    kubectl cluster-info --context kind-openbeam-dev
 
 # Delete local kind cluster
 k8s-down:
-    kind delete cluster --name openplane-dev
+    kind delete cluster --name openbeam-dev
 
 # Start local K8s dev environment
 k8s-dev: k8s-up
@@ -211,19 +211,19 @@ k8s-dev-all: k8s-up
 
 # Show pod status
 k8s-status:
-    kubectl get pods -n openplane -o wide
+    kubectl get pods -n openbeam -o wide
 
 # Tail logs for a service
 k8s-logs service:
-    kubectl logs -n openplane -l app={{service}} -f --tail=100
+    kubectl logs -n openbeam -l app={{service}} -f --tail=100
 
 # Open database shell
 k8s-db-shell:
-    kubectl exec -n openplane -it deploy/postgres -- psql -U postgres openplane
+    kubectl exec -n openbeam -it deploy/postgres -- psql -U postgres openbeam
 
 # Open redis shell
 k8s-redis-shell:
-    kubectl exec -n openplane -it deploy/redis -- redis-cli
+    kubectl exec -n openbeam -it deploy/redis -- redis-cli
 
 # ─── Cleanup ─────────────────────────────────────────────────────
 
@@ -245,7 +245,7 @@ docker-gc:
 
 # Prune unused images inside Kind node via crictl
 k8s-gc:
-    docker exec openplane-dev-control-plane crictl rmi --prune 2>/dev/null || echo "Kind node not running"
+    docker exec openbeam-dev-control-plane crictl rmi --prune 2>/dev/null || echo "Kind node not running"
 
 # Run all garbage collection (Docker + Kind)
 gc: docker-gc k8s-gc

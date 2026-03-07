@@ -1,4 +1,4 @@
-import type { ExecutionPlan } from "@openplane/types/canvas";
+import type { ExecutionPlan } from "@openbeam/types/canvas";
 import { ApplicationFailure } from "@temporalio/workflow";
 import {
   buildAdjacency,

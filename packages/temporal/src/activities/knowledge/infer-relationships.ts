@@ -1,8 +1,8 @@
-import type { Database, RelationType } from "@openplane/db";
+import type { Database, RelationType } from "@openbeam/db";
 import {
   InferRelationshipsInputSchema,
   type InferRelationshipsOutput,
-} from "@openplane/types/temporal/activities/knowledge";
+} from "@openbeam/types/temporal/activities/knowledge";
 import { Context } from "@temporalio/activity";
 
 const ENTITY_TYPE_RELATION_MAP: Record<string, RelationType> = {

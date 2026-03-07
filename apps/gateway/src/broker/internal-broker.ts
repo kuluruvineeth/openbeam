@@ -1,7 +1,7 @@
-import type { InternalMessage } from "@openplane/types/services/connectors/mqtt";
+import type { InternalMessage } from "@openbeam/types/services/connectors/mqtt";
 import logger from "../logger";
 
-const INTERNAL_PREFIX = "openplane";
+const INTERNAL_PREFIX = "openbeam";
 
 interface BrokerConfig {
   port: number;

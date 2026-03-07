@@ -1,17 +1,17 @@
-import type { Database } from "@openplane/db";
+import type { Database } from "@openbeam/db";
 import {
   createAgentCanvasExecutionStep,
   updateAgentCanvasExecutionStep,
-} from "@openplane/db";
+} from "@openbeam/db";
 import {
   CanvasNodeExecutionError,
   CanvasNodeExecutorNotFoundError,
   executeCanvasNode as executeCanvasNodeService,
-} from "@openplane/services/canvas";
+} from "@openbeam/services/canvas";
 import type {
   ExecuteCanvasNodeInput,
   ExecuteCanvasNodeOutput,
-} from "@openplane/types/temporal";
+} from "@openbeam/types/temporal";
 import { Context } from "@temporalio/activity";
 import { ApplicationFailure } from "@temporalio/workflow";
 import {

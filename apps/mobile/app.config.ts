@@ -4,17 +4,17 @@ const IS_DEV = process.env.APP_VARIANT === "development";
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: IS_DEV ? "OpenPlane Dev" : "OpenPlane",
-  slug: "openplane",
+  name: IS_DEV ? "OpenBeam Dev" : "OpenBeam",
+  slug: "openbeam",
   version: "0.1.0",
   orientation: "portrait",
   icon: "./assets/icon.png",
-  scheme: "openplane",
+  scheme: "openbeam",
   userInterfaceStyle: "automatic",
   newArchEnabled: true,
   ios: {
     supportsTablet: true,
-    bundleIdentifier: IS_DEV ? "com.openplane.dev" : "com.openplane.app",
+    bundleIdentifier: IS_DEV ? "com.openbeam.dev" : "com.openbeam.app",
     config: {
       usesNonExemptEncryption: false,
     },
@@ -24,7 +24,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       foregroundImage: "./assets/adaptive-icon.png",
       backgroundColor: "#0a0a0a",
     },
-    package: IS_DEV ? "com.openplane.dev" : "com.openplane.app",
+    package: IS_DEV ? "com.openbeam.dev" : "com.openbeam.app",
   },
   web: {
     bundler: "metro",

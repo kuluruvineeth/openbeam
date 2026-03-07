@@ -3,7 +3,7 @@ package agent
 import (
 	"encoding/json"
 
-	"github.com/openplane/openplane/apps/cli/internal/errs"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/errs"
 )
 
 func parseJSON(raw json.RawMessage, target any) error {

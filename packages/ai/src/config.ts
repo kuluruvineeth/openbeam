@@ -1,8 +1,8 @@
-import type { ProviderId } from "@openplane/types/ai";
+import type { ProviderId } from "@openbeam/types/ai";
 import {
   DEFAULT_CHAT_MODEL,
   DEFAULT_EMBEDDING_MODEL,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 
 export type {
   AgentRuntimeConfig,
@@ -12,9 +12,9 @@ export type {
   EngineConfig,
   ProviderConfig,
   ProviderId,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 
-type AIConfig = import("@openplane/types/ai").AIConfig;
+type AIConfig = import("@openbeam/types/ai").AIConfig;
 
 function loadConfig(): AIConfig {
   return {

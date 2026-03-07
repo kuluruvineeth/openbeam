@@ -107,7 +107,7 @@ export function getLogger(options?: CreateLoggerOptions): Logger {
 
   const config = loadObservabilityConfig();
   cachedLogger = createLogger({
-    service: process.env.OBS_SERVICE_NAME ?? "openplane",
+    service: process.env.OBS_SERVICE_NAME ?? "openbeam",
     env: config.nodeEnv,
     level: config.logLevel,
     version: config.appVersion,

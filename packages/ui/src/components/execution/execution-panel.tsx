@@ -1,11 +1,11 @@
 "use client";
 
-import type { ExecutionTrace, StepExecution } from "@openplane/types/canvas";
-import type { ExecutionPanelTab } from "@openplane/types/canvas/execution-ui";
+import type { ExecutionTrace, StepExecution } from "@openbeam/types/canvas";
+import type { ExecutionPanelTab } from "@openbeam/types/canvas/execution-ui";
 import type {
   TimelineData,
   TimelineStep,
-} from "@openplane/types/canvas/timeline";
+} from "@openbeam/types/canvas/timeline";
 import { forwardRef, useMemo } from "react";
 import {
   useCurrentExecution,

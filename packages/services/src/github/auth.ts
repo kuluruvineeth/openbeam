@@ -6,19 +6,19 @@ import prisma, {
   getConnectorWithCredentials,
   setConnectorError,
   upsertOAuthProvider,
-} from "@openplane/db";
+} from "@openbeam/db";
 import {
   AuthType,
   exchangeGitHubCode,
   generateGitHubAuthUrl,
   githubApp,
-} from "@openplane/integrations";
+} from "@openbeam/integrations";
 import type {
   AuthCompleteContext,
   AuthStartContext,
   ConnectorResult,
   IntegrationAuth,
-} from "@openplane/types/services";
+} from "@openbeam/types/services";
 import { z } from "zod";
 import { createOAuthState, verifyOAuthState } from "../lib/oauth-state";
 

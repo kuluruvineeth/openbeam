@@ -1,15 +1,15 @@
-import prisma, { decryptIfEncrypted, getConnectorForSync } from "@openplane/db";
+import prisma, { decryptIfEncrypted, getConnectorForSync } from "@openbeam/db";
 import {
   getGoogleDriveServiceAccountToken,
   parseServiceAccountCredentials,
-} from "@openplane/integrations";
+} from "@openbeam/integrations";
 import type {
   DriveMediaInfo,
   GoogleDriveDomainSyncCursor,
   GoogleDriveSyncBatch,
   GoogleDriveTransformContext,
-} from "@openplane/types/services/connectors/google-drive";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/google-drive";
+import type { GenericDocument } from "@openbeam/vespa";
 import { logger } from "../../lib/logger";
 import { listAllSharedDrives } from "../api/drives";
 import { createGoogleDriveClient, type GoogleDriveClient } from "../client";

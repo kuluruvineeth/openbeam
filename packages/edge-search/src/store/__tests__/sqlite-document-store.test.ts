@@ -1,6 +1,6 @@
 import { Database } from "bun:sqlite";
 import { beforeEach, describe, expect, it } from "bun:test";
-import type { EdgeDocumentRecord } from "@openplane/types/edge/search";
+import type { EdgeDocumentRecord } from "@openbeam/types/edge/search";
 import { SQLiteDocumentStore } from "../sqlite-document-store";
 
 function makeDoc(

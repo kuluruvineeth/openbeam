@@ -1,4 +1,4 @@
-import { appLogos } from "@openplane/integrations/logos";
+import { appLogos } from "@openbeam/integrations/logos";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
 
@@ -222,7 +222,7 @@ export function ConnectorsSection() {
           <span className="hidden h-4 w-px bg-border sm:block" />
           <a
             className="text-muted-foreground transition-colors hover:text-foreground"
-            href="https://github.com/openbeam/openbeam/issues/new?template=connector_request.md"
+            href="https://github.com/kuluruvineeth/openbeam/issues/new?template=connector_request.md"
           >
             Request a connector
           </a>

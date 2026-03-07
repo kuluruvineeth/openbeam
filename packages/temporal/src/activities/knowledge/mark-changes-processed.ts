@@ -1,5 +1,5 @@
-import type { Database } from "@openplane/db";
-import { markChangesProcessed as markProcessedMutation } from "@openplane/db";
+import type { Database } from "@openbeam/db";
+import { markChangesProcessed as markProcessedMutation } from "@openbeam/db";
 import type { MarkChangesProcessedInput } from "./types";
 
 export interface MarkChangesProcessedDependencies {

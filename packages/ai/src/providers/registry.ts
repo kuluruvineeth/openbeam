@@ -2,8 +2,8 @@ import type {
   ChatModelDefinition,
   EmbeddingModelDefinition,
   ProviderId,
-} from "@openplane/types/ai";
-import { getChatModel as lookupChatModelDef } from "@openplane/types/ai";
+} from "@openbeam/types/ai";
+import { getChatModel as lookupChatModelDef } from "@openbeam/types/ai";
 import type { EmbeddingModel, LanguageModel } from "ai";
 import { getConfig } from "../config";
 import { createAnthropicProvider } from "./anthropic";

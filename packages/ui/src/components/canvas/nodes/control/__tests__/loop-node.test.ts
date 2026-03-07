@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { LoopNodeConfigSchema } from "@openplane/types/canvas";
+import { LoopNodeConfigSchema } from "@openbeam/types/canvas";
 import { createLoopNodeData } from "../loop-node";
 
 describe("createLoopNodeData", () => {

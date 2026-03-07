@@ -2,11 +2,11 @@ apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
   name: canvas-worker-scaler
-  namespace: openplane
+  namespace: openbeam
   labels:
     app.kubernetes.io/name: canvas-worker
     app.kubernetes.io/component: temporal-worker
-    app.kubernetes.io/part-of: openplane
+    app.kubernetes.io/part-of: openbeam
   annotations:
     kubernetes.io/description: "KEDA ScaledObject for canvas workflow worker based on Temporal task queue depth"
 spec:
@@ -70,11 +70,11 @@ apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
   name: sync-worker-scaler
-  namespace: openplane
+  namespace: openbeam
   labels:
     app.kubernetes.io/name: sync-worker
     app.kubernetes.io/component: temporal-worker
-    app.kubernetes.io/part-of: openplane
+    app.kubernetes.io/part-of: openbeam
   annotations:
     kubernetes.io/description: "KEDA ScaledObject for sync workflow worker based on Temporal task queue depth"
 spec:
@@ -138,11 +138,11 @@ apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
   name: agent-worker-scaler
-  namespace: openplane
+  namespace: openbeam
   labels:
     app.kubernetes.io/name: agent-worker
     app.kubernetes.io/component: temporal-worker
-    app.kubernetes.io/part-of: openplane
+    app.kubernetes.io/part-of: openbeam
   annotations:
     kubernetes.io/description: "KEDA ScaledObject for agent workflow worker based on Temporal task queue depth"
 spec:

@@ -3,8 +3,8 @@ import type {
   SlackChannel,
   SlackMessage,
   TransformContext,
-} from "@openplane/types/services/connectors/slack";
-import type { Entity, GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/slack";
+import type { Entity, GenericDocument } from "@openbeam/vespa";
 import { getAllChannelMembers, getChannelInfo } from "../api/channels";
 import { getClipInfo } from "../api/clips";
 import { fetchSingleMessage } from "../api/messages";

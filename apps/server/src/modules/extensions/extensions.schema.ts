@@ -3,7 +3,7 @@ import {
   ExtensionChatSubmitRequestSchema,
   ExtensionChatSubmitResponseSchema,
   ExtensionRpcErrorResponseSchema,
-} from "@openplane/types/services/extension/rpc";
+} from "@openbeam/types/services/extension/rpc";
 
 export const extensionChatSubmitBodySchema = ExtensionChatSubmitRequestSchema;
 export const extensionChatSubmitResponseSchema =

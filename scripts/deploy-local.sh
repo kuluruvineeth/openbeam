@@ -4,7 +4,7 @@ set -e
 # Local deployment script using GHCR images
 # Tests the full production stack locally
 
-echo "🚀 OpenPlane Local Deployment"
+echo "🚀 OpenBeam Local Deployment"
 echo "=============================="
 echo ""
 
@@ -38,8 +38,8 @@ echo ""
 
 services=("server" "web" "docs" "worker")
 for service in "${services[@]}"; do
-    echo -n "Pulling openplane-$service:$TAG... "
-    if docker pull "$REGISTRY/$ORG/openplane-$service:$TAG" 2>&1 | grep -q "Downloaded newer image\|Image is up to date"; then
+    echo -n "Pulling openbeam-$service:$TAG... "
+    if docker pull "$REGISTRY/$ORG/openbeam-$service:$TAG" 2>&1 | grep -q "Downloaded newer image\|Image is up to date"; then
         echo -e "${GREEN}✓${NC}"
     else
         echo -e "${YELLOW}⚠ Image not found, will build locally${NC}"

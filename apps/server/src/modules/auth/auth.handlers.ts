@@ -10,8 +10,8 @@ import {
   oauthManager,
   upsertUserFromOAuth,
   validateSession,
-} from "@openplane/auth";
-import prisma from "@openplane/db";
+} from "@openbeam/auth";
+import prisma from "@openbeam/db";
 import type {
   callbackRoute,
   sessionRoute,

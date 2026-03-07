@@ -5,7 +5,7 @@ import {
   getRerankerModel,
   RERANKER_MODELS,
   type RerankerModel,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import { cva } from "class-variance-authority";
 import { forwardRef, memo, useCallback, useMemo, useState } from "react";
 import { cn } from "../../../utils";

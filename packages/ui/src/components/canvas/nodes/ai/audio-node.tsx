@@ -1,13 +1,13 @@
 "use client";
 
-import { getTTSModel } from "@openplane/types/ai";
+import { getTTSModel } from "@openbeam/types/ai";
 import type {
   AudioNodeConfig,
   GeneratedAudio,
   NodeStatus,
   Port,
   TokenUsage,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Position } from "@xyflow/react";
 import { forwardRef, memo, useCallback, useMemo } from "react";

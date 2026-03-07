@@ -1,4 +1,4 @@
-import type { ClassifiedError } from "@openplane/types/ai";
+import type { ClassifiedError } from "@openbeam/types/ai";
 import type { ErrorCode } from "./types";
 import { RETRYABLE_ERROR_CODES } from "./types";
 

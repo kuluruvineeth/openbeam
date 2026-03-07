@@ -2,7 +2,7 @@ import {
   type Database,
   findUserSearchProfilesByTeam,
   type ParsedUserSearchProfile,
-} from "@openplane/db";
+} from "@openbeam/db";
 import type { ResolvedUserProfile } from "./types";
 
 interface ColdStartContext {

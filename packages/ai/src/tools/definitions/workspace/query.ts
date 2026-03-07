@@ -64,7 +64,7 @@ SCHEMA HINT: Objects are stored as tables with a "v_" prefix (e.g., v_leads, v_c
     const startTime = performance.now();
 
     const { getTeamDuckDB, executeQuery, initializeEAVSchema } = await import(
-      "@openplane/services"
+      "@openbeam/services"
     );
 
     const db = await getTeamDuckDB(ctx.teamId);

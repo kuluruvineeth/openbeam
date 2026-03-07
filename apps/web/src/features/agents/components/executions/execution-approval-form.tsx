@@ -3,10 +3,10 @@
 import type {
   ApprovalNodeConfig,
   ApprovalSeverity,
-} from "@openplane/types/canvas";
-import { Label } from "@openplane/ui/components/label";
-import { Textarea } from "@openplane/ui/components/textarea";
-import { cn } from "@openplane/ui/utils";
+} from "@openbeam/types/canvas";
+import { Label } from "@openbeam/ui/components/label";
+import { Textarea } from "@openbeam/ui/components/textarea";
+import { cn } from "@openbeam/ui/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";

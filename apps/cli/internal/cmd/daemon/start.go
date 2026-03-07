@@ -6,8 +6,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	daemonlib "github.com/openplane/openplane/apps/cli/internal/daemon"
-	"github.com/openplane/openplane/apps/cli/internal/errs"
+	daemonlib "github.com/kuluruvineeth/openbeam/apps/cli/internal/daemon"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/errs"
 )
 
 func newStartCommand() *cobra.Command {
@@ -83,8 +83,8 @@ func runForeground(daemonHome string, listen string) error {
 
 	env := os.Environ()
 	env = append(env,
-		"OPENPLANE_DAEMON_HOME="+daemonHome,
-		"OPENPLANE_LISTEN="+listen,
+		"OPENBEAM_DAEMON_HOME="+daemonHome,
+		"OPENBEAM_LISTEN="+listen,
 	)
 
 	return syscallExec(bunPath, []string{bunPath, "run", "--hot", daemonEntry}, env)

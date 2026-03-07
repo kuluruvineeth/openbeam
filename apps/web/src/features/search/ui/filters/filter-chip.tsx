@@ -1,6 +1,6 @@
 "use client";
 
-import { Badge } from "@openplane/ui";
+import { Badge } from "@openbeam/ui";
 import { Icons } from "@/components/icons";
 
 type FilterChipProps = {

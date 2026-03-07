@@ -46,7 +46,7 @@ export interface AgentMcpServerOptions {
   agentManager: AgentManager;
   agentStorage: AgentStorage;
   terminalManager?: TerminalManager | null;
-  openplaneHome?: string;
+  openbeamHome?: string;
   /**
    * ID of the agent that is connecting to this MCP server.
    * Used for cwd/mode inheritance when agents spawn child agents.
@@ -528,7 +528,7 @@ export async function createAgentMcpServer(
             cwd: resolvedCwd,
             baseBranch,
             worktreeSlug: worktreeName,
-            openplaneHome: options.openplaneHome,
+            openbeamHome: options.openbeamHome,
           });
           resolvedCwd = worktree.worktreePath;
           worktreeConfig = worktree;
@@ -583,7 +583,7 @@ export async function createAgentMcpServer(
         cwd: snapshot.cwd,
         initialPrompt: trimmedPrompt,
         explicitTitle: snapshot.config.title,
-        openplaneHome: options.openplaneHome,
+        openbeamHome: options.openbeamHome,
         logger: childLogger,
       });
 

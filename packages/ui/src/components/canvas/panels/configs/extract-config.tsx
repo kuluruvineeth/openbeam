@@ -1,12 +1,12 @@
 "use client";
 
-import { DEFAULT_CHAT_MODEL } from "@openplane/types/ai";
+import { DEFAULT_CHAT_MODEL } from "@openbeam/types/ai";
 import type {
   ExtractionField,
   ExtractionMode,
   ExtractionTemplate,
   ExtractNodeConfig,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { forwardRef, memo, useCallback, useMemo } from "react";
 import { AnimatedSizeContainer } from "../../../animated-size-container";
 import { Icons } from "../../../icons";

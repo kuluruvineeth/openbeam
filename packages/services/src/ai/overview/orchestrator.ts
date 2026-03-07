@@ -1,6 +1,6 @@
-import { embedQueryWithCache, streamCompletion } from "@openplane/ai";
-import { getSearchCache, getSemanticCache } from "@openplane/redis";
-import type { GenericDocument, MediaDocument } from "@openplane/vespa";
+import { embedQueryWithCache, streamCompletion } from "@openbeam/ai";
+import { getSearchCache, getSemanticCache } from "@openbeam/redis";
+import type { GenericDocument, MediaDocument } from "@openbeam/vespa";
 import { logger } from "../../lib/logger";
 import { searchService } from "../../search/service";
 import {

@@ -1,6 +1,6 @@
 "use client";
 
-import type { TokenUsage } from "@openplane/types/canvas";
+import type { TokenUsage } from "@openbeam/types/canvas";
 import { cva } from "class-variance-authority";
 import { forwardRef, memo } from "react";
 import { cn } from "../../../utils";

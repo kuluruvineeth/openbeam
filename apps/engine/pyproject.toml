@@ -1,7 +1,7 @@
 [project]
 name = "engine"
 version = "0.2.0"
-description = "OpenPlane Engine - Modular document processing and ML compute service"
+description = "OpenBeam Engine - Modular document processing and ML compute service"
 readme = "README.md"
 requires-python = ">=3.12,<3.14"
 license = "MIT"

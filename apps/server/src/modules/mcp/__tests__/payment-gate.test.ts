@@ -10,7 +10,7 @@ const mockPaymentConfig = {
   resourceUrl: "http://localhost:3000",
 };
 
-mock.module("@openplane/ai", () => ({
+mock.module("@openbeam/ai", () => ({
   createMCPServer: () => ({
     isInitialized: () => true,
     handleRequest: async () => ({

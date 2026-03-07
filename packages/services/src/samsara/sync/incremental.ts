@@ -4,8 +4,8 @@ import type {
   SamsaraSyncCursor,
   SamsaraSyncOptions,
   SamsaraTransformContext,
-} from "@openplane/types/services/connectors/samsara";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/samsara";
+import type { GenericDocument } from "@openbeam/vespa";
 import { logger } from "../../lib/logger";
 import type { SamsaraClient } from "../client";
 import type { SamsaraVehicle } from "../transformers/vehicle";

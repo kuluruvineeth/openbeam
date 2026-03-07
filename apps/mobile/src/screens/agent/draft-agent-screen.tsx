@@ -589,13 +589,13 @@ function DraftAgentScreenContent({
 
   const worktreeListRoot = checkout?.isGit ? checkout.repoRoot : "";
   const worktreeListQuery = useQuery({
-    queryKey: ["openplaneWorktreeList", selectedServerId, worktreeListRoot],
+    queryKey: ["openbeamWorktreeList", selectedServerId, worktreeListRoot],
     queryFn: async () => {
       const client = sessionClient;
       if (!client) {
         throw new Error("Daemon client unavailable");
       }
-      const payload = await client.getOpenPlaneWorktreeList({
+      const payload = await client.getOpenBeamWorktreeList({
         repoRoot: worktreeListRoot || undefined,
         cwd: worktreeListRoot ? undefined : trimmedWorkingDir || undefined,
       });

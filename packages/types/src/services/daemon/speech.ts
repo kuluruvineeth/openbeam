@@ -62,8 +62,8 @@ export type LocalSpeechProviderConfig = {
   models: LocalSpeechModelConfig;
 };
 
-export const VOICE_PROMPT_BLOCK_START = "<openplane_voice_mode>";
-export const VOICE_PROMPT_BLOCK_END = "</openplane_voice_mode>";
+export const VOICE_PROMPT_BLOCK_START = "<openbeam_voice_mode>";
+export const VOICE_PROMPT_BLOCK_END = "</openbeam_voice_mode>";
 
 export type VoiceMcpServerConfig = {
   type: "stdio";

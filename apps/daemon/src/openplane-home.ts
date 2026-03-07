@@ -12,10 +12,10 @@ function expandHomeDir(input: string): string {
   return input;
 }
 
-export function resolveOpenPlaneHome(
+export function resolveOpenBeamHome(
   env: NodeJS.ProcessEnv = process.env
 ): string {
-  const raw = env.OPENPLANE_HOME ?? "~/.openplane";
+  const raw = env.OPENBEAM_HOME ?? "~/.openbeam";
   const resolved = path.resolve(expandHomeDir(raw));
   mkdirSync(resolved, { recursive: true });
   return resolved;

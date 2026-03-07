@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import prisma, { updateVoiceSession } from "@openplane/db";
+import prisma, { updateVoiceSession } from "@openbeam/db";
 import { Hono } from "hono";
 import logger from "../../utils/logger";
 

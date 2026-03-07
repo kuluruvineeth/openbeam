@@ -1,7 +1,7 @@
 "use client";
 
-import { cn, Icons } from "@openplane/ui";
-import { Button } from "@openplane/ui/components/button";
+import { cn, Icons } from "@openbeam/ui";
+import { Button } from "@openbeam/ui/components/button";
 import { cva } from "class-variance-authority";
 import { useCallback } from "react";
 import { useSessionStore } from "../stores/session-store";

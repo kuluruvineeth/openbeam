@@ -1,8 +1,8 @@
 model VoiceNote {
-  id       String @id @default(cuid()) @map("_id")
+  id       String  @id @default(cuid()) @map("_id")
   userId   String
   teamId   String
-  text     String @db.Text
+  text     String  @db.Text
   audioUrl String?
 
   duration Int?
@@ -33,8 +33,8 @@ model VoiceSettings {
   shortcuts  Json     @default("{}")
   vocabulary String[] @default([])
 
-  widgetPosition String @default("bottom-center")
-  widgetOpacity  Float  @default(0.7)
+  widgetPosition String  @default("bottom-center")
+  widgetOpacity  Float   @default(0.7)
   autoHide       Boolean @default(false)
 
   updatedAt DateTime @updatedAt
@@ -45,18 +45,18 @@ model VoiceSettings {
 }
 
 model VoiceSession {
-  id       String @id @default(cuid()) @map("_id")
+  id       String  @id @default(cuid()) @map("_id")
   userId   String
   teamId   String
   roomType String
   roomName String?
 
-  startedAt   DateTime @default(now())
+  startedAt   DateTime  @default(now())
   endedAt     DateTime?
   duration    Int?
-  wordsSpoken Int      @default(0)
-  toolCalls   Int      @default(0)
-  status      String   @default("active")
+  wordsSpoken Int       @default(0)
+  toolCalls   Int       @default(0)
+  status      String    @default("active")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)

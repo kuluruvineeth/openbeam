@@ -1,7 +1,7 @@
 import {
   AgentCanvasEdgeSchema,
   AgentCanvasNodeSchema,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import type {
   AgentCanvasApprovalStatus,
   AgentCanvasExecutionStatus,

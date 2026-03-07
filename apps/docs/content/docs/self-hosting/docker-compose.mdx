@@ -1,11 +1,11 @@
 ---
 title: Docker Compose Deployment
-description: Step-by-step guide to deploy OpenPlane on a single server using Docker Compose.
+description: Step-by-step guide to deploy OpenBeam on a single server using Docker Compose.
 ---
 
 # Docker Compose Deployment
 
-OpenPlane uses two compose files that form a complete deployment:
+OpenBeam uses two compose files that form a complete deployment:
 
 | File | Purpose | Services |
 |------|---------|----------|
@@ -22,13 +22,13 @@ Infrastructure starts first. Applications depend on infrastructure being healthy
 | Docker Compose | v2.20+ | `docker compose version` |
 | Server | 8+ cores, 32 GB RAM | See [hardware requirements](/docs/self-hosting#hardware-requirements) |
 | Domain | Required for HTTPS | Point DNS A record to your server IP |
-| Disk | 100+ GB SSD | Mounted at `/mnt/openplane-data` |
+| Disk | 100+ GB SSD | Mounted at `/mnt/openbeam-data` |
 
 ## Step 1: Clone and Configure
 
 ```bash
-git clone https://github.com/kuluruvineeth/openplane.git
-cd openplane
+git clone https://github.com/kuluruvineeth/openbeam.git
+cd openbeam
 ```
 
 Create your environment file:
@@ -50,16 +50,16 @@ SERVER_URL=https://api.example.com
 COOKIE_DOMAIN=.example.com
 
 # Database
-DATABASE_URL=postgresql://postgres:postgres@postgres:5432/openplane
+DATABASE_URL=postgresql://postgres:postgres@postgres:5432/openbeam
 
 # Auth provider (at least one required)
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 
 # Object storage
-GCS_ACCESS_KEY_ID=openplane-minio
+GCS_ACCESS_KEY_ID=openbeam-minio
 GCS_SECRET_ACCESS_KEY=minioadmin
-GCS_BUCKET=openplane-files
+GCS_BUCKET=openbeam-files
 GCS_REGION=us-east-1
 GCS_PUBLIC_ENDPOINT=https://storage.example.com
 
@@ -75,8 +75,8 @@ See the [Configuration Reference](/docs/self-hosting/configuration) for all avai
 Create the data directory and required config subdirectories:
 
 ```bash
-sudo mkdir -p /mnt/openplane-data/{postgres,redis,vespa,minio,grafana,prometheus,loki}
-sudo mkdir -p /mnt/openplane-data/configs/{temporal/dynamicconfig,prometheus,grafana/provisioning,grafana/dashboards,promtail,loki,vespa-application}
+sudo mkdir -p /mnt/openbeam-data/{postgres,redis,vespa,minio,grafana,prometheus,loki}
+sudo mkdir -p /mnt/openbeam-data/configs/{temporal/dynamicconfig,prometheus,grafana/provisioning,grafana/dashboards,promtail,loki,vespa-application}
 ```
 
 <Callout type="warn">
@@ -88,7 +88,7 @@ sudo mkdir -p /mnt/openplane-data/configs/{temporal/dynamicconfig,prometheus,gra
 Create a minimal dynamic config file:
 
 ```bash
-cat > /mnt/openplane-data/configs/temporal/dynamicconfig/development.yaml << 'EOF'
+cat > /mnt/openbeam-data/configs/temporal/dynamicconfig/development.yaml << 'EOF'
 {}
 EOF
 ```
@@ -96,7 +96,7 @@ EOF
 ### Loki Config
 
 ```bash
-cat > /mnt/openplane-data/configs/loki/loki-config.yml << 'EOF'
+cat > /mnt/openbeam-data/configs/loki/loki-config.yml << 'EOF'
 auth_enabled: false
 server:
   http_listen_port: 3100
@@ -150,7 +150,7 @@ Wait until all services show `healthy` status. The `postgres-auth-fix`, `minio-i
 docker compose -f scripts/deploy/apps-compose.yaml up -d
 ```
 
-Applications depend on infrastructure via the shared `openplane` Docker network. The server starts first, then web and worker launch after the server is healthy.
+Applications depend on infrastructure via the shared `openbeam` Docker network. The server starts first, then web and worker launch after the server is healthy.
 
 ```bash
 # Watch logs during first startup
@@ -272,20 +272,20 @@ For infrastructure updates (major version bumps), stop and restart the infrastru
 
 ```bash
 # Full dump
-docker exec postgres pg_dump -U postgres openplane > backup_$(date +%Y%m%d).sql
+docker exec postgres pg_dump -U postgres openbeam > backup_$(date +%Y%m%d).sql
 
 # Automated daily backups via cron
-0 3 * * * docker exec postgres pg_dump -U postgres openplane | gzip > /backups/openplane_$(date +\%Y\%m\%d).sql.gz
+0 3 * * * docker exec postgres pg_dump -U postgres openbeam | gzip > /backups/openbeam_$(date +\%Y\%m\%d).sql.gz
 ```
 
 ### Vespa
 
-Vespa stores data in `/mnt/openplane-data/vespa`. Back up this directory during a maintenance window.
+Vespa stores data in `/mnt/openbeam-data/vespa`. Back up this directory during a maintenance window.
 
 ```bash
 # Stop vespa, copy data, restart
 docker compose -f scripts/deploy/infra-hetzner-compose.yaml stop vespa
-rsync -av /mnt/openplane-data/vespa/ /backups/vespa_$(date +%Y%m%d)/
+rsync -av /mnt/openbeam-data/vespa/ /backups/vespa_$(date +%Y%m%d)/
 docker compose -f scripts/deploy/infra-hetzner-compose.yaml start vespa
 ```
 
@@ -293,12 +293,12 @@ docker compose -f scripts/deploy/infra-hetzner-compose.yaml start vespa
 
 ```bash
 # Use mc (MinIO Client) for bucket backups
-docker exec openplane-minio mc mirror myminio/openplane-files /backups/minio/
+docker exec openbeam-minio mc mirror myminio/openbeam-files /backups/minio/
 ```
 
 ### Redis
 
-Redis uses AOF persistence. The data directory at `/mnt/openplane-data/redis` can be backed up directly.
+Redis uses AOF persistence. The data directory at `/mnt/openbeam-data/redis` can be backed up directly.
 
 ## Stopping Everything
 
@@ -311,7 +311,7 @@ docker compose -f scripts/deploy/infra-hetzner-compose.yaml down
 ```
 
 <Callout type="warn">
-  Using `down -v` will delete Docker volumes. Data stored in `/mnt/openplane-data` is not affected since it uses bind mounts.
+  Using `down -v` will delete Docker volumes. Data stored in `/mnt/openbeam-data` is not affected since it uses bind mounts.
 </Callout>
 
 ## Post-Deployment Checklist

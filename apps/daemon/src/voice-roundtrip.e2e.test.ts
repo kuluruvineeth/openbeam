@@ -14,7 +14,7 @@ import {
 
 const openaiApiKey = process.env.OPENAI_API_KEY ?? null;
 const shouldRun =
-  process.env.OPENPLANE_VOICE_ROUNDTRIP_E2E === "1" && Boolean(openaiApiKey);
+  process.env.OPENBEAM_VOICE_ROUNDTRIP_E2E === "1" && Boolean(openaiApiKey);
 const speechTest = shouldRun ? test : test.skip;
 
 type VoiceRoundtripProvider = "claude" | "codex" | "opencode";

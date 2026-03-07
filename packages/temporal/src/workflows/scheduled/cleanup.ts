@@ -3,7 +3,7 @@ import {
   type CleanupOutput,
   ConnectorCleanupInputSchema,
   type ConnectorCleanupOutput,
-} from "@openplane/types/temporal/workflows";
+} from "@openbeam/types/temporal/workflows";
 import { proxyActivities, setHandler } from "@temporalio/workflow";
 import type { CleanupActivities } from "../../activities/database/types";
 import type { StorageActivities } from "../../activities/storage/types";

@@ -1,4 +1,4 @@
-import { ConnectorStatus, type Database, updateConnector } from "@openplane/db";
+import { ConnectorStatus, type Database, updateConnector } from "@openbeam/db";
 import type { RevokeConnectorInput } from "./types";
 
 export interface RevokeConnectorDependencies {

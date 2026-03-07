@@ -1,4 +1,4 @@
-import { getConfig } from "@openplane/ai";
+import { getConfig } from "@openbeam/ai";
 import type { TrainLtrModelInput, TrainLtrModelOutput } from "./types";
 
 interface TrainingApiResponse {

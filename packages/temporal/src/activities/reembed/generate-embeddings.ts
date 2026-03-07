@@ -1,5 +1,5 @@
-import type { BGEM3EmbeddingResult, BGEM3Provider } from "@openplane/ai";
-import { getBGEM3Provider } from "@openplane/ai";
+import type { BGEM3EmbeddingResult, BGEM3Provider } from "@openbeam/ai";
+import { getBGEM3Provider } from "@openbeam/ai";
 import type {
   DocumentEmbedding,
   GenerateEmbeddingsInput,

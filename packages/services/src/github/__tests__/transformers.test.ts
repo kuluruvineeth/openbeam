@@ -3,7 +3,7 @@ import type {
   GitHubIssue,
   GitHubRepository,
   GitHubTransformContext,
-} from "@openplane/types/services/connectors/github";
+} from "@openbeam/types/services/connectors/github";
 import { transformIssue } from "../transformers/issue";
 import { transformRepository } from "../transformers/repository";
 
@@ -12,7 +12,7 @@ const baseContext: GitHubTransformContext = {
   connectorType: "GITHUB",
   teamId: "team_456",
   workspaceId: "ws_789",
-  organizationName: "openplane",
+  organizationName: "openbeam",
 };
 
 function createMockRepo(
@@ -21,9 +21,9 @@ function createMockRepo(
   return {
     id: 100,
     name: "test-repo",
-    full_name: "openplane/test-repo",
+    full_name: "openbeam/test-repo",
     private: false,
-    html_url: "https://github.com/openplane/test-repo",
+    html_url: "https://github.com/openbeam/test-repo",
     description: "A test repository",
     created_at: "2024-01-01T00:00:00Z",
     updated_at: "2024-06-15T12:00:00Z",
@@ -36,11 +36,11 @@ function createMockRepo(
     topics: ["search", "enterprise"],
     visibility: "public",
     owner: {
-      login: "openplane",
+      login: "openbeam",
       id: 1,
       avatar_url: "https://avatars.githubusercontent.com/u/1",
       type: "Organization" as const,
-      html_url: "https://github.com/openplane",
+      html_url: "https://github.com/openbeam",
     },
     ...overrides,
   };
@@ -53,7 +53,7 @@ function createMockIssue(overrides?: Partial<GitHubIssue>): GitHubIssue {
     title: "Bug: Search returns stale results",
     body: "When searching for recent documents, old results appear.",
     state: "open",
-    html_url: "https://github.com/openplane/test-repo/issues/42",
+    html_url: "https://github.com/openbeam/test-repo/issues/42",
     created_at: "2024-03-01T10:00:00Z",
     updated_at: "2024-03-05T14:30:00Z",
     closed_at: null,
@@ -95,10 +95,10 @@ describe("github transformers", () => {
       expect(doc.team_id).toBe("team_456");
       expect(doc.document_type).toBe("repository");
       expect(doc.document_subtype).toBe("public");
-      expect(doc.title).toBe("openplane/test-repo");
-      expect(doc.url).toBe("https://github.com/openplane/test-repo");
+      expect(doc.title).toBe("openbeam/test-repo");
+      expect(doc.url).toBe("https://github.com/openbeam/test-repo");
       expect(doc.is_public).toBe(true);
-      expect(doc.author_name).toBe("openplane");
+      expect(doc.author_name).toBe("openbeam");
       expect(doc.labels).toEqual(["search", "enterprise"]);
     });
 
@@ -151,11 +151,11 @@ describe("github transformers", () => {
       const doc = await transformRepository(createMockRepo(), baseContext);
 
       expect(doc.metadata?.repoId).toBe(100);
-      expect(doc.metadata?.fullName).toBe("openplane/test-repo");
+      expect(doc.metadata?.fullName).toBe("openbeam/test-repo");
       expect(doc.metadata?.stargazersCount).toBe(42);
       expect(doc.metadata?.forksCount).toBe(5);
       expect(doc.metadata?.defaultBranch).toBe("main");
-      expect(doc.metadata?.ownerLogin).toBe("openplane");
+      expect(doc.metadata?.ownerLogin).toBe("openbeam");
     });
 
     it("handles repo without topics", async () => {
@@ -171,7 +171,7 @@ describe("github transformers", () => {
     it("transforms issue to GenericDocument", async () => {
       const issue = createMockIssue();
       const doc = await transformIssue(issue, baseContext, {
-        repoFullName: "openplane/test-repo",
+        repoFullName: "openbeam/test-repo",
         isRepoPrivate: false,
       });
 
@@ -179,13 +179,13 @@ describe("github transformers", () => {
       expect(doc.document_type).toBe("issue");
       expect(doc.document_subtype).toBe("open");
       expect(doc.title).toBe("#42: Bug: Search returns stale results");
-      expect(doc.url).toBe("https://github.com/openplane/test-repo/issues/42");
+      expect(doc.url).toBe("https://github.com/openbeam/test-repo/issues/42");
       expect(doc.is_public).toBe(true);
     });
 
     it("marks issues from private repos as not public", async () => {
       const doc = await transformIssue(createMockIssue(), baseContext, {
-        repoFullName: "openplane/test-repo",
+        repoFullName: "openbeam/test-repo",
         isRepoPrivate: true,
       });
 
@@ -195,7 +195,7 @@ describe("github transformers", () => {
     it("includes labels and assignees in content", async () => {
       const issue = createMockIssue();
       const doc = await transformIssue(issue, baseContext, {
-        repoFullName: "openplane/test-repo",
+        repoFullName: "openbeam/test-repo",
         isRepoPrivate: false,
       });
 
@@ -207,14 +207,14 @@ describe("github transformers", () => {
     it("includes comments in content when provided", async () => {
       const issue = createMockIssue();
       const doc = await transformIssue(issue, baseContext, {
-        repoFullName: "openplane/test-repo",
+        repoFullName: "openbeam/test-repo",
         isRepoPrivate: false,
         comments: [
           {
             id: 1,
             body: "I can reproduce this issue",
             html_url:
-              "https://github.com/openplane/test-repo/issues/42#issuecomment-1",
+              "https://github.com/openbeam/test-repo/issues/42#issuecomment-1",
             created_at: "2024-03-02T08:00:00Z",
             updated_at: "2024-03-02T08:00:00Z",
             user: {
@@ -246,13 +246,13 @@ describe("github transformers", () => {
       });
 
       const doc = await transformIssue(issue, baseContext, {
-        repoFullName: "openplane/test-repo",
+        repoFullName: "openbeam/test-repo",
         isRepoPrivate: false,
       });
 
       expect(doc.metadata?.number).toBe(42);
       expect(doc.metadata?.state).toBe("open");
-      expect(doc.metadata?.repoFullName).toBe("openplane/test-repo");
+      expect(doc.metadata?.repoFullName).toBe("openbeam/test-repo");
       expect(doc.metadata?.milestoneTitle).toBe("v2.0");
       expect(doc.metadata?.closedAt).toBe("2024-03-10T00:00:00Z");
     });
@@ -260,7 +260,7 @@ describe("github transformers", () => {
     it("maps label names to doc labels", async () => {
       const issue = createMockIssue();
       const doc = await transformIssue(issue, baseContext, {
-        repoFullName: "openplane/test-repo",
+        repoFullName: "openbeam/test-repo",
         isRepoPrivate: false,
       });
 
@@ -269,7 +269,7 @@ describe("github transformers", () => {
 
     it("maps assignee IDs correctly", async () => {
       const doc = await transformIssue(createMockIssue(), baseContext, {
-        repoFullName: "openplane/test-repo",
+        repoFullName: "openbeam/test-repo",
         isRepoPrivate: false,
       });
 
@@ -301,7 +301,7 @@ describe("github transformers", () => {
       };
 
       const doc = await transformIssue(createMockIssue(), contextWithLookup, {
-        repoFullName: "openplane/test-repo",
+        repoFullName: "openbeam/test-repo",
         isRepoPrivate: false,
       });
 
@@ -310,7 +310,7 @@ describe("github transformers", () => {
 
     it("falls back to login when user lookup has no match", async () => {
       const doc = await transformIssue(createMockIssue(), baseContext, {
-        repoFullName: "openplane/test-repo",
+        repoFullName: "openbeam/test-repo",
         isRepoPrivate: false,
       });
 

@@ -1,12 +1,12 @@
 import type { Tool } from "@modelcontextprotocol/sdk/types.js";
-import type { Database } from "@openplane/db";
+import type { Database } from "@openbeam/db";
 import {
   findConnectorById,
   getConnectorHealth,
   getConnectorSyncHistory,
   getConnectorsWithStats,
   listConnectorsByTeam,
-} from "@openplane/db";
+} from "@openbeam/db";
 
 export const connectorTools: Tool[] = [
   {

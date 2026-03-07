@@ -13,7 +13,7 @@ Use this runbook when any of these alerts fire:
 - Possible incident-level customer impact for critical severity.
 
 ## Fast Triage (first 10 minutes)
-1. Open Grafana dashboard `OpenPlane Command Center` and confirm 5xx/error-ratio trend.
+1. Open Grafana dashboard `OpenBeam Command Center` and confirm 5xx/error-ratio trend.
 2. Open `Logs Error Drilldown` and filter `level=error|warn` for affected service/env.
 3. Identify top failing route/status code/error signature.
 4. Check service health and deployment status:

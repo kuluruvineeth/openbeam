@@ -83,17 +83,17 @@ const tick = async (): Promise<void> => {
 
 describe("DictationStreamManager (finish buffer-too-small tolerance)", () => {
   const env = {
-    dictationDebug: process.env.OPENPLANE_DICTATION_DEBUG,
+    dictationDebug: process.env.OPENBEAM_DICTATION_DEBUG,
   };
 
   beforeEach(() => {
     vi.useFakeTimers();
-    process.env.OPENPLANE_DICTATION_DEBUG = "false";
+    process.env.OPENBEAM_DICTATION_DEBUG = "false";
   });
 
   afterEach(() => {
     vi.useRealTimers();
-    process.env.OPENPLANE_DICTATION_DEBUG = env.dictationDebug;
+    process.env.OPENBEAM_DICTATION_DEBUG = env.dictationDebug;
   });
 
   it("treats buffer-too-small as benign and finalizes with existing transcripts", async () => {
@@ -164,8 +164,8 @@ describe("DictationStreamManager (provider-agnostic provider)", () => {
   });
 
   it("auto-commits while streaming and assembles final transcript in segment order", async () => {
-    const originalDebug = process.env.OPENPLANE_DICTATION_DEBUG;
-    process.env.OPENPLANE_DICTATION_DEBUG = "false";
+    const originalDebug = process.env.OPENBEAM_DICTATION_DEBUG;
+    process.env.OPENBEAM_DICTATION_DEBUG = "false";
 
     try {
       const session = new FakeRealtimeSession();
@@ -211,9 +211,9 @@ describe("DictationStreamManager (provider-agnostic provider)", () => {
       expect(final?.payload.text).toBe("hello world");
     } finally {
       if (originalDebug === undefined) {
-        process.env.OPENPLANE_DICTATION_DEBUG = undefined;
+        process.env.OPENBEAM_DICTATION_DEBUG = undefined;
       } else {
-        process.env.OPENPLANE_DICTATION_DEBUG = originalDebug;
+        process.env.OPENBEAM_DICTATION_DEBUG = originalDebug;
       }
     }
   });

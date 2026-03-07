@@ -1,5 +1,5 @@
 groups:
-  - name: openplane_slo_alerts
+  - name: openbeam_slo_alerts
     interval: 30s
     rules:
       - alert: APIAvailabilityErrorBudgetBurnCritical
@@ -163,7 +163,7 @@ groups:
           runbook_url: "docs/observability/runbooks/worker-backlog.md"
           owner: "integrations-platform"
 
-  - name: openplane_silence_alerts
+  - name: openbeam_silence_alerts
     interval: 30s
     rules:
       - alert: ServerMetricsAbsent
@@ -214,7 +214,7 @@ groups:
           runbook_url: "docs/observability/runbooks/high-error-rate.md"
           owner: "platform-observability"
 
-  - name: openplane_loki_alerts
+  - name: openbeam_loki_alerts
     interval: 30s
     rules:
       - alert: LokiMetricsAbsent

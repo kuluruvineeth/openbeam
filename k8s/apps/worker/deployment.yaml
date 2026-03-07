@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: worker
-  namespace: openplane
+  namespace: openbeam
   labels:
     app: worker
 spec:
@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: worker
-          image: openplane/worker-dev:latest
+          image: openbeam/worker-dev:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 9091
@@ -26,7 +26,7 @@ spec:
               name: health
           envFrom:
             - configMapRef:
-                name: openplane-env
+                name: openbeam-env
           env:
             - name: SANDBOX_API_TOKEN
               valueFrom:

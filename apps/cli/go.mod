@@ -1,4 +1,4 @@
-module github.com/openplane/openplane/apps/cli
+module github.com/kuluruvineeth/openbeam/apps/cli
 
 go 1.24.0
 

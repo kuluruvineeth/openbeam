@@ -6,7 +6,7 @@ from engine.core.config import settings
 from engine.core.lifespan import lifespan
 
 app = FastAPI(
-    title="OpenPlane Engine",
+    title="OpenBeam Engine",
     version="0.1.0",
     lifespan=lifespan,
     docs_url="/docs" if settings.debug else None,

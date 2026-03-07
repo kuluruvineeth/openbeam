@@ -4,9 +4,9 @@ import {
   findPendingApproval,
   listPendingApprovals,
   respondToApproval,
-} from "@openplane/db";
-import { submitCanvasApproval } from "@openplane/temporal";
-import { InputNodeConfigSchema } from "@openplane/types/canvas";
+} from "@openbeam/db";
+import { submitCanvasApproval } from "@openbeam/temporal";
+import { InputNodeConfigSchema } from "@openbeam/types/canvas";
 import { TRPCError } from "@trpc/server";
 import { resolveNodeConfig } from "../../utils/input-normalization";
 import { appendAndPublishRuntimeEvent } from "../../utils/runtime-event-mapping";

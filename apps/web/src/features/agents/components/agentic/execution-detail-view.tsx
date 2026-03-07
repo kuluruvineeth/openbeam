@@ -1,22 +1,22 @@
 "use client";
 
-import type { StepDetail } from "@openplane/types/canvas/execution-ui";
+import type { StepDetail } from "@openbeam/types/canvas/execution-ui";
 import type {
   TimelineData,
   TimelineStep,
-} from "@openplane/types/canvas/timeline";
+} from "@openbeam/types/canvas/timeline";
 import {
   Icons,
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "@openplane/ui";
-import { ExecutionTimeline } from "@openplane/ui/components/execution/execution-timeline";
-import { StepDetailPanel } from "@openplane/ui/components/execution/step-detail-panel";
-import { TimelineHeader } from "@openplane/ui/components/execution/timeline-header";
-import { ScrollArea } from "@openplane/ui/components/scroll-area";
-import { Skeleton } from "@openplane/ui/components/skeleton";
-import { cn } from "@openplane/ui/utils";
+} from "@openbeam/ui";
+import { ExecutionTimeline } from "@openbeam/ui/components/execution/execution-timeline";
+import { StepDetailPanel } from "@openbeam/ui/components/execution/step-detail-panel";
+import { TimelineHeader } from "@openbeam/ui/components/execution/timeline-header";
+import { ScrollArea } from "@openbeam/ui/components/scroll-area";
+import { Skeleton } from "@openbeam/ui/components/skeleton";
+import { cn } from "@openbeam/ui/utils";
 import { AnimatePresence, motion } from "motion/react";
 import { forwardRef, useMemo, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";

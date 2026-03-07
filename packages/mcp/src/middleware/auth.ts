@@ -1,4 +1,4 @@
-import type { PermissionMode } from "@openplane/types/ai";
+import type { PermissionMode } from "@openbeam/types/ai";
 
 export interface McpAuthContext {
   teamId: string;

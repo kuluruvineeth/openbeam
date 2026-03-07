@@ -1,4 +1,4 @@
-import type { SlackFile } from "@openplane/types/services/connectors/slack";
+import type { SlackFile } from "@openbeam/types/services/connectors/slack";
 import type { SlackClient } from "../client";
 
 export interface SlackCanvas {

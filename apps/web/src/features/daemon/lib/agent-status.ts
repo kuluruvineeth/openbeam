@@ -1,4 +1,4 @@
-import type { AgentLifecycleStatus } from "@openplane/types/services/daemon";
+import type { AgentLifecycleStatus } from "@openbeam/types/services/daemon";
 
 const STATUS_COLOR_MAP: Record<AgentLifecycleStatus, string> = {
   initializing: "#f59e0b",

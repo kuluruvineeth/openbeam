@@ -1,6 +1,6 @@
 "use client";
 
-import type { CanvasNodeType, NodeStatus } from "@openplane/types/canvas";
+import type { CanvasNodeType, NodeStatus } from "@openbeam/types/canvas";
 import { cva, type VariantProps } from "class-variance-authority";
 import { forwardRef, memo, useCallback, useState } from "react";
 import { cn } from "../../../utils";

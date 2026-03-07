@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import type { SessionMessage } from "@openplane/types/ai";
+import type { SessionMessage } from "@openbeam/types/ai";
 import {
   progressiveSummarize,
   type SummarizerDeps,

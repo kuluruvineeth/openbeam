@@ -2,8 +2,8 @@ import type {
   GitHubComment,
   GitHubIssue,
   GitHubTransformContext,
-} from "@openplane/types/services/connectors/github";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/github";
+import type { GenericDocument } from "@openbeam/vespa";
 import { calculateDocumentChecksum } from "../../lib/checksum";
 
 export interface IssueTransformOptions {

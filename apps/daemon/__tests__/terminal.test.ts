@@ -5,7 +5,7 @@ import {
   decodeBinaryMuxFrame,
   encodeBinaryMuxFrame,
   TerminalBinaryMessageType,
-} from "@openplane/types/services/daemon/binary";
+} from "@openbeam/types/services/daemon/binary";
 import WebSocket from "ws";
 import {
   createDaemonTestContext,
@@ -538,7 +538,7 @@ const shouldRun = !process.env.CI;
       const samplesMs: number[] = [];
       const iterations = 8;
       for (let i = 0; i < iterations; i++) {
-        const marker = `OPENPLANE_LAT_${i}_${Date.now()}`;
+        const marker = `OPENBEAM_LAT_${i}_${Date.now()}`;
         const start = performance.now();
         ctx.client.sendTerminalStreamInput(streamId, `echo ${marker}\r`);
         await waitForCondition(() => output.includes(marker), 10_000);

@@ -4,7 +4,7 @@ import {
   GmailLabelSchema,
   type GmailListLabelsResponse,
   GmailListLabelsResponseSchema,
-} from "@openplane/types/services/connectors/gmail";
+} from "@openbeam/types/services/connectors/gmail";
 import type { GmailClient } from "../client";
 
 export async function listLabels(client: GmailClient): Promise<GmailLabel[]> {

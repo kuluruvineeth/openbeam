@@ -1,4 +1,4 @@
-import { getUserById } from "@openplane/db";
+import { getUserById } from "@openbeam/db";
 import { protectedProcedure } from "..";
 import { createTRPCRouter } from "../index";
 

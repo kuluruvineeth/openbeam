@@ -1,7 +1,7 @@
 import {
   ProcessKnowledgeChangesInputSchema,
   type ProcessKnowledgeChangesOutput,
-} from "@openplane/types/temporal/workflows/knowledge-changes";
+} from "@openbeam/types/temporal/workflows/knowledge-changes";
 import { continueAsNew, proxyActivities } from "@temporalio/workflow";
 import type { KnowledgeChangeActivities } from "../../activities/knowledge/types";
 

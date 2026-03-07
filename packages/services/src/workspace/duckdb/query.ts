@@ -1,4 +1,4 @@
-import type { WorkspaceQueryResult } from "@openplane/types/services/workspace";
+import type { WorkspaceQueryResult } from "@openbeam/types/services/workspace";
 import { type WorkspaceDuckDB, WorkspaceDuckDBError } from "./client";
 
 const READ_ONLY_SQL_PREFIXES = [

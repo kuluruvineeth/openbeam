@@ -10,7 +10,7 @@ import {
 describe("metrics helpers", () => {
   it("returns the same metric instance for duplicate counter definitions", () => {
     const registry = createRegistry();
-    const metricName = "openplane_test_counter_total";
+    const metricName = "openbeam_test_counter_total";
 
     const first = safeCounter(
       {
@@ -34,7 +34,7 @@ describe("metrics helpers", () => {
 
   it("throws clear errors for metric type conflicts", () => {
     const registry = createRegistry();
-    const metricName = "openplane_test_metric_conflict";
+    const metricName = "openbeam_test_metric_conflict";
 
     safeGauge(
       {
@@ -58,7 +58,7 @@ describe("metrics helpers", () => {
   it("collects process metrics only once per registry", async () => {
     const registry = createRegistry({
       defaultLabels: {
-        service: "openplane-observability-test",
+        service: "openbeam-observability-test",
       },
     });
 
@@ -68,7 +68,7 @@ describe("metrics helpers", () => {
     const metrics = await registry.metrics();
 
     expect(metrics).toContain("process_cpu_user_seconds_total");
-    expect(metrics).toContain('service="openplane-observability-test"');
+    expect(metrics).toContain('service="openbeam-observability-test"');
   });
 
   it("normalizes HTTP labels to telemetry contract keys", () => {
@@ -76,7 +76,7 @@ describe("metrics helpers", () => {
       method: "POST",
       route: "/api/v1/connectors/:id/sync",
       statusCode: 202,
-      service: "openplane-worker",
+      service: "openbeam-worker",
       env: "staging",
       connectorType: "github",
       workerType: "sync",

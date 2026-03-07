@@ -1,10 +1,10 @@
-import type { MemoryMetadata } from "@openplane/types/ai";
+import type { MemoryMetadata } from "@openbeam/types/ai";
 import type {
   ExecutionContext,
   MemoryEncoding,
   MemoryScope,
   MemoryType,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 
 export type StoredMemoryEntry = {
   key: string;

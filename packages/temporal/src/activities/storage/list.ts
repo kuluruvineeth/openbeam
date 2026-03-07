@@ -1,4 +1,4 @@
-import type { StorageObject, StorageProvider } from "@openplane/storage";
+import type { StorageObject, StorageProvider } from "@openbeam/storage";
 import type { ExistsInput, ListFilesInput, ListFilesResult } from "./types";
 
 export interface ListActivityDependencies {

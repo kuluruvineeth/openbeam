@@ -1209,7 +1209,7 @@ export class HostRuntimeStore {
 }
 
 let singletonHostRuntimeStore: HostRuntimeStore | null = null;
-const HOST_RUNTIME_STORE_GLOBAL_KEY = "__openplaneHostRuntimeStore";
+const HOST_RUNTIME_STORE_GLOBAL_KEY = "__openbeamHostRuntimeStore";
 
 type HostRuntimeGlobal = typeof globalThis & {
   [HOST_RUNTIME_STORE_GLOBAL_KEY]?: HostRuntimeStore;

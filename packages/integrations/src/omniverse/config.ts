@@ -20,7 +20,7 @@ export const omniverseApp: UnifiedApp = {
   installed: false,
   type: "official",
   connectorType: ConnectorType.SOURCE,
-  developerName: "OpenPlane",
+  developerName: "OpenBeam",
   website: "https://www.nvidia.com/en-us/omniverse/",
 
   searchDisplay: {

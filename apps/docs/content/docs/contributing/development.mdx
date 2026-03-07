@@ -1,17 +1,17 @@
 ---
 title: Development Guide
-description: Local setup, testing, linting, database, and build workflows for OpenPlane
+description: Local setup, testing, linting, database, and build workflows for OpenBeam
 ---
 
 # Development Guide
 
-Everything you need to work on the OpenPlane codebase locally.
+Everything you need to work on the OpenBeam codebase locally.
 
 ## Local Setup
 
 ### Install Bun
 
-OpenPlane uses **Bun** exclusively as its package manager and runtime. Do not use npm, pnpm, or yarn.
+OpenBeam uses **Bun** exclusively as its package manager and runtime. Do not use npm, pnpm, or yarn.
 
 ```bash
 curl -fsSL https://bun.sh/install | bash
@@ -26,8 +26,8 @@ bun --version  # Should be 1.3.2+
 ### Install Dependencies
 
 ```bash
-git clone https://github.com/kuluruvineeth/openplane.git
-cd openplane
+git clone https://github.com/kuluruvineeth/openbeam.git
+cd openbeam
 bun install
 ```
 
@@ -140,7 +140,7 @@ Unit tests mock activities. Integration tests spin up a real `TestWorkflowEnviro
 
 ## Linting and Formatting
 
-OpenPlane uses **Biome** via Ultracite for linting and formatting:
+OpenBeam uses **Biome** via Ultracite for linting and formatting:
 
 ```bash
 bun run check
@@ -179,14 +179,14 @@ This runs Biome across the entire monorepo. Fix all issues before committing.
 
 ### Database Access Pattern
 
-All database operations go through `@openplane/db` functions. Never use Prisma directly in services:
+All database operations go through `@openbeam/db` functions. Never use Prisma directly in services:
 
 ```typescript
 // Correct: use db package functions
-import { findConnectorById, updateConnector } from "@openplane/db";
+import { findConnectorById, updateConnector } from "@openbeam/db";
 
 // Wrong: direct Prisma access
-import prisma from "@openplane/db";
+import prisma from "@openbeam/db";
 await prisma.connector.update({ ... });
 ```
 
@@ -241,7 +241,7 @@ Rules:
 - `packages/types` has zero internal dependencies
 - `packages/db` never imports from `packages/services`
 - `packages/services` never imports from `apps/*`
-- Import shared types from `@openplane/types`, not from source packages
+- Import shared types from `@openbeam/types`, not from source packages
 
 ## CLI Development (Go)
 
@@ -249,7 +249,7 @@ The Go CLI lives in `apps/cli/` and uses Go 1.24 with Cobra:
 
 ```bash
 cd apps/cli
-go build -o openplane ./cmd/openplane   # Build
+go build -o openbeam ./cmd/openbeam   # Build
 go test ./...                            # Test
 golangci-lint run                        # Lint
 goreleaser build --snapshot --clean      # Release build
@@ -259,7 +259,7 @@ CLI structure:
 
 | Directory | Purpose |
 |-----------|---------|
-| `apps/cli/cmd/openplane/` | Entry point |
+| `apps/cli/cmd/openbeam/` | Entry point |
 | `apps/cli/internal/cmd/` | Command implementations |
 | `apps/cli/internal/auth/` | Auth store |
 | `apps/cli/internal/config/` | Config management |

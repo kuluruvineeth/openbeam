@@ -1,8 +1,8 @@
 import type {
   ViamSyncBatch,
   ViamSyncCursor,
-} from "@openplane/types/services/connectors/viam";
-import type { GenericDocument } from "@openplane/vespa";
+} from "@openbeam/types/services/connectors/viam";
+import type { GenericDocument } from "@openbeam/vespa";
 
 export function createSyncBatch(
   items: GenericDocument[],

@@ -3,12 +3,12 @@
 ## 1. Use structured logging
 Always log JSON objects with stable keys.
 
-TypeScript services should use `@openplane/observability` logger utilities so request context is attached automatically.
+TypeScript services should use `@openbeam/observability` logger utilities so request context is attached automatically.
 
 ```ts
-import { createLogger } from "@openplane/observability";
+import { createLogger } from "@openbeam/observability";
 
-const logger = createLogger({ service: "openplane-server" });
+const logger = createLogger({ service: "openbeam-server" });
 
 logger.info(
   {

@@ -1,6 +1,6 @@
 ---
 title: Setup
-description: Connect Node-RED to OpenPlane with an Admin API access token.
+description: Connect Node-RED to OpenBeam with an Admin API access token.
 ---
 
 # Node-RED Setup
@@ -9,7 +9,7 @@ description: Connect Node-RED to OpenPlane with an Admin API access token.
 
 - Node-RED instance with the Admin API enabled
 - Admin API access token or user credentials
-- OpenPlane instance running
+- OpenBeam instance running
 
 ## 1. Enable the Admin API
 
@@ -40,9 +40,9 @@ If your Node-RED instance uses token-based authentication:
 1. POST to `http://your-nodered:1880/auth/token` with credentials
 2. Copy the returned `access_token`
 
-If your instance uses no authentication (development setups), skip this step and leave the token field empty in OpenPlane.
+If your instance uses no authentication (development setups), skip this step and leave the token field empty in OpenBeam.
 
-## 3. Add the Connector in OpenPlane
+## 3. Add the Connector in OpenBeam
 
 1. Go to **Settings** > **Connectors** > **Add Connector**
 2. Select **Node-RED**

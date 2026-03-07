@@ -1,4 +1,4 @@
-import type { AgentEvent } from "@openplane/types/ai";
+import type { AgentEvent } from "@openbeam/types/ai";
 import type { AgentStreamChunk } from "../../agents/base";
 import { done, text, thinking, toolCall, toolResult } from "../events";
 import { getStatusForTool, getToolMetadata } from "../tool-metadata";

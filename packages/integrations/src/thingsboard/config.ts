@@ -20,7 +20,7 @@ export const thingsboardApp: UnifiedApp = {
   installed: false,
   type: "official",
   connectorType: ConnectorType.SOURCE,
-  developerName: "OpenPlane",
+  developerName: "OpenBeam",
   website: "https://thingsboard.io",
 
   searchDisplay: {

@@ -1,13 +1,13 @@
 "use client";
 
-import { DEFAULT_CHAT_MODEL } from "@openplane/types/ai";
+import { DEFAULT_CHAT_MODEL } from "@openbeam/types/ai";
 import type {
   SummarizationStrategy,
   SummarizeNodeConfig,
   SummaryFocusArea,
   SummaryLength,
   SummaryOutputFormat,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { memo, useCallback } from "react";
 import { AnimatedSizeContainer } from "../../../animated-size-container";
 import { Icons } from "../../../icons";

@@ -48,11 +48,11 @@
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
 
-  --color-openplane-pink: var(--openplane-pink);
-  --color-openplane-yellow: var(--openplane-yellow);
-  --color-openplane-blue: var(--openplane-blue);
-  --color-openplane-orange: var(--openplane-orange);
-  --color-openplane-green: var(--openplane-green);
+  --color-openbeam-pink: var(--openbeam-pink);
+  --color-openbeam-yellow: var(--openbeam-yellow);
+  --color-openbeam-blue: var(--openbeam-blue);
+  --color-openbeam-orange: var(--openbeam-orange);
+  --color-openbeam-green: var(--openbeam-green);
 
   --color-code: var(--code);
   --color-code-foreground: var(--code-foreground);
@@ -158,11 +158,11 @@
   --sidebar-border: hsl(220 13% 91%);
   --sidebar-ring: hsl(217.2 91.2% 59.8%);
 
-  --openplane-pink: oklch(75% 0.15 330);
-  --openplane-yellow: oklch(85% 0.14 85);
-  --openplane-blue: oklch(65% 0.18 250);
-  --openplane-orange: oklch(70% 0.16 45);
-  --openplane-green: oklch(72% 0.14 160);
+  --openbeam-pink: oklch(75% 0.15 330);
+  --openbeam-yellow: oklch(85% 0.14 85);
+  --openbeam-blue: oklch(65% 0.18 250);
+  --openbeam-orange: oklch(70% 0.16 45);
+  --openbeam-green: oklch(72% 0.14 160);
 
   --surface: var(--background);
   --surface-foreground: var(--foreground);
@@ -263,11 +263,11 @@
   --sidebar-border: hsl(240 3.7% 15.9%);
   --sidebar-ring: hsl(217.2 91.2% 59.8%);
 
-  --openplane-pink: oklch(80% 0.12 330);
-  --openplane-yellow: oklch(88% 0.12 85);
-  --openplane-blue: oklch(75% 0.14 250);
-  --openplane-orange: oklch(75% 0.14 45);
-  --openplane-green: oklch(78% 0.12 160);
+  --openbeam-pink: oklch(80% 0.12 330);
+  --openbeam-yellow: oklch(88% 0.12 85);
+  --openbeam-blue: oklch(75% 0.14 250);
+  --openbeam-orange: oklch(75% 0.14 45);
+  --openbeam-green: oklch(78% 0.12 160);
 
   --surface: oklch(0.2 0 0);
   --surface-foreground: oklch(0.708 0 0);

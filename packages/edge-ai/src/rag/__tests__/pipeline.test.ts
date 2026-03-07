@@ -2,7 +2,7 @@ import { describe, expect, it } from "bun:test";
 import type {
   EdgeSearchQuery,
   EdgeSearchResponse,
-} from "@openplane/types/edge/search";
+} from "@openbeam/types/edge/search";
 import { MockEmbeddingModel } from "../../mocks/mock-embedding";
 import { MockSLM } from "../../mocks/mock-slm";
 import { EdgeRAGPipeline } from "../pipeline";

@@ -1,7 +1,7 @@
 import {
   ConnectorSyncInputSchema,
   type ConnectorSyncOutput,
-} from "@openplane/types/temporal/workflows";
+} from "@openbeam/types/temporal/workflows";
 import {
   condition,
   continueAsNew,

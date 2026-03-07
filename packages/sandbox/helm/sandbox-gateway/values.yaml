@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: openplane/sandbox-gateway
+  repository: openbeam/sandbox-gateway
   tag: latest
   pullPolicy: IfNotPresent
 
@@ -56,7 +56,7 @@ gateway:
     url: ""
   ownership:
     store: memory
-    keyPrefix: openplane:sandbox:ownership
+    keyPrefix: openbeam:sandbox:ownership
     ttlMs: "604800000"
   rateLimit:
     enabled: true
@@ -65,7 +65,7 @@ gateway:
     maxExecRequests: 90
     maxMutationRequests: 120
     store: memory
-    keyPrefix: openplane:sandbox:ratelimit
+    keyPrefix: openbeam:sandbox:ratelimit
   daytona:
     apiKey: ""
     apiUrl: ""

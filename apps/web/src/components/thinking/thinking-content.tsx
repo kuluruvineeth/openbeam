@@ -1,6 +1,6 @@
 "use client";
 
-import { TextShimmer } from "@openplane/ui";
+import { TextShimmer } from "@openbeam/ui";
 import { memo, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 

@@ -20,11 +20,11 @@ describe("isVoicePermissionAllowed", () => {
     const result = isVoicePermissionAllowed(buildRequest({ name: "speak" }));
     expect(result).toBe(true);
     expect(
-      isVoicePermissionAllowed(buildRequest({ name: "openplane_voice.speak" }))
+      isVoicePermissionAllowed(buildRequest({ name: "openbeam_voice.speak" }))
     ).toBe(true);
     expect(
       isVoicePermissionAllowed(
-        buildRequest({ name: "mcp__openplane_voice__speak" })
+        buildRequest({ name: "mcp__openbeam_voice__speak" })
       )
     ).toBe(true);
   });
@@ -32,17 +32,17 @@ describe("isVoicePermissionAllowed", () => {
   test("denies non-speak tool names", () => {
     expect(
       isVoicePermissionAllowed(
-        buildRequest({ name: "mcp__openplane__create_agent" })
+        buildRequest({ name: "mcp__openbeam__create_agent" })
       )
     ).toBe(false);
     expect(
-      isVoicePermissionAllowed(buildRequest({ name: "openplane_create_agent" }))
+      isVoicePermissionAllowed(buildRequest({ name: "openbeam_create_agent" }))
     ).toBe(false);
   });
 
   test("denies non-tool permission kinds", () => {
     const result = isVoicePermissionAllowed(
-      buildRequest({ kind: "mode", name: "mcp__openplane__create_agent" })
+      buildRequest({ kind: "mode", name: "mcp__openbeam__create_agent" })
     );
     expect(result).toBe(false);
   });
@@ -55,7 +55,7 @@ describe("isVoicePermissionAllowed", () => {
           questions: [
             {
               question:
-                "Allow codextool to call openplane_voice.speak for user feedback?",
+                "Allow codextool to call openbeam_voice.speak for user feedback?",
             },
           ],
         },

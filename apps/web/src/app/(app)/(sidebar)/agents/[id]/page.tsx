@@ -14,7 +14,7 @@ export async function generateMetadata({
 }: AgentPageProps): Promise<Metadata> {
   const { id } = await params;
   return {
-    title: `Agent ${id} | OpenPlane`,
+    title: `Agent ${id} | OpenBeam`,
     description: "View and interact with your AI agent",
   };
 }

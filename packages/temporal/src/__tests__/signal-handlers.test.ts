@@ -1,8 +1,8 @@
-import type { ExecutionPlan, ExecutionTrace } from "@openplane/types/canvas";
+import type { ExecutionPlan, ExecutionTrace } from "@openbeam/types/canvas";
 import type {
   CanvasApprovalSignalPayload,
   CanvasInputSignalPayload,
-} from "@openplane/types/temporal";
+} from "@openbeam/types/temporal";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const handlers = new Map<unknown, (...args: unknown[]) => void>();

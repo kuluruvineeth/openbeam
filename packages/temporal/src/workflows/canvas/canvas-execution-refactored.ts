@@ -2,12 +2,12 @@ import type {
   CanvasState,
   ExecutionPlan,
   ExecutionTrace,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import {
   type AgentCanvasExecutionInput,
   AgentCanvasExecutionInputSchema,
   type AgentCanvasExecutionOutput,
-} from "@openplane/types/temporal/workflows";
+} from "@openbeam/types/temporal/workflows";
 import {
   ApplicationFailure,
   continueAsNew,
@@ -369,7 +369,7 @@ export async function agentCanvasExecutionWorkflow(
     agentCanvasExecutionWorkflow,
     shouldContinueAsNew,
     initialLoopStates: restoredLoopStates as
-      | Map<string, import("@openplane/types/temporal").LoopState>
+      | Map<string, import("@openbeam/types/temporal").LoopState>
       | undefined,
     initialLoopStack: restoredLoopStack,
     resumeFromNodeId: isResumingFromCheckpoint

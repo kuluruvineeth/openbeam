@@ -1,7 +1,7 @@
 "use client";
 
-import { DEFAULT_CHAT_MODEL } from "@openplane/types/ai";
-import type { LlmNodeConfig } from "@openplane/types/canvas";
+import { DEFAULT_CHAT_MODEL } from "@openbeam/types/ai";
+import type { LlmNodeConfig } from "@openbeam/types/canvas";
 import {
   forwardRef,
   memo,

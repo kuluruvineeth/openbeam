@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: web
-  namespace: openplane
+  namespace: openbeam
   labels:
     app: web
 spec:
@@ -17,14 +17,14 @@ spec:
     spec:
       containers:
         - name: web
-          image: openplane/web-dev:latest
+          image: openbeam/web-dev:latest
           imagePullPolicy: IfNotPresent
           command: ["sh", "-c", "bunx next dev --port=3001"]
           ports:
             - containerPort: 3001
           envFrom:
             - configMapRef:
-                name: openplane-env
+                name: openbeam-env
           env:
             - name: NEXT_PUBLIC_WEB_URL
               value: "http://localhost:3001"

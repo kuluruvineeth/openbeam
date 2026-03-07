@@ -2,7 +2,7 @@ import { describe, expect, it } from "bun:test";
 import type {
   OpcUaNode,
   OpcUaTransformContext,
-} from "@openplane/types/services/connectors/opcua";
+} from "@openbeam/types/services/connectors/opcua";
 import { transformNode, transformNodes } from "../transformers/node";
 
 const baseContext: OpcUaTransformContext = {

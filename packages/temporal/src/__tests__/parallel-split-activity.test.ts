@@ -1,4 +1,4 @@
-import type { ExecutionPlanNode } from "@openplane/types/canvas";
+import type { ExecutionPlanNode } from "@openbeam/types/canvas";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
 const executionDataStore = new Map<
@@ -8,7 +8,7 @@ const executionDataStore = new Map<
 let executionDataCounter = 0;
 let stepCounter = 0;
 
-vi.mock("@openplane/db", () => ({
+vi.mock("@openbeam/db", () => ({
   createAgentCanvasExecutionData: vi.fn(
     (
       _db: unknown,

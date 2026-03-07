@@ -170,7 +170,7 @@ function resolveOpenCodeBinary(): string {
     // fall through
   }
   throw new Error(
-    "OpenCode CLI not found. Please install opencode globally so OpenPlane can launch the provider."
+    "OpenCode CLI not found. Please install opencode globally so OpenBeam can launch the provider."
   );
 }
 

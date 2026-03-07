@@ -72,7 +72,7 @@ function createServer(agentManagerOverrides?: Record<string, unknown>) {
     agentManager as any,
     {} as any,
     {} as any,
-    "/tmp/openplane-test",
+    "/tmp/openbeam-test",
     async () => ({}) as any,
     { allowedOrigins: new Set() },
     undefined,

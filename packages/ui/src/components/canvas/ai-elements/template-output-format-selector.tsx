@@ -1,6 +1,6 @@
 "use client";
 
-import type { TemplateOutputFormat } from "@openplane/types/canvas";
+import type { TemplateOutputFormat } from "@openbeam/types/canvas";
 import { memo, useCallback } from "react";
 import { cn } from "../../../utils";
 import { Icons } from "../../icons";

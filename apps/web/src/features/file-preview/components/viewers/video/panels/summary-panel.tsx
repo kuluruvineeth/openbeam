@@ -1,6 +1,6 @@
 "use client";
 
-import { Skeleton } from "@openplane/ui";
+import { Skeleton } from "@openbeam/ui";
 import { Icons } from "@/components/icons";
 import type { MediaGist } from "@/lib/media-types";
 

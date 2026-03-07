@@ -1,13 +1,13 @@
 "use client";
 
-import { cn, Icons } from "@openplane/ui";
-import { Button } from "@openplane/ui/components/button";
+import { cn, Icons } from "@openbeam/ui";
+import { Button } from "@openbeam/ui/components/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@openplane/ui/components/dialog";
+} from "@openbeam/ui/components/dialog";
 import { useCallback, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import type { DaemonClient } from "../lib/daemon-client";

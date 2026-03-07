@@ -5,7 +5,7 @@ import {
   getTeamSummaryById,
   listUserTeams,
   updateActiveTeamForUser,
-} from "@openplane/db";
+} from "@openbeam/db";
 
 export type TeamRoleValue = "OWNER" | "ADMIN" | "MEMBER";
 

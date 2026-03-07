@@ -1,6 +1,6 @@
 "use client";
 
-import type { GeneratedAudio } from "@openplane/types/canvas";
+import type { GeneratedAudio } from "@openbeam/types/canvas";
 import {
   forwardRef,
   memo,

@@ -1,6 +1,6 @@
 "use client";
 
-import type { HttpMethod } from "@openplane/types/canvas";
+import type { HttpMethod } from "@openbeam/types/canvas";
 import { forwardRef, memo, useCallback } from "react";
 import { Input } from "../../input";
 import { MethodSelector } from "./method-selector";

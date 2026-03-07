@@ -4,7 +4,7 @@ import {
   createLocalStorageAdapter,
   createNoopStorageAdapter,
   type StorageAdapterSync,
-} from "@openplane/ui/stores";
+} from "@openbeam/ui/stores";
 import type {
   ColumnOrderState,
   ColumnSizingState,

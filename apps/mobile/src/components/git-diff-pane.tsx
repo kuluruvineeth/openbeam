@@ -645,7 +645,7 @@ export function GitDiffPane({ serverId, agentId, cwd }: GitDiffPaneProps) {
     if (!gitStatus?.repoRoot) {
       return null;
     }
-    return `@openplane:changes-ship-default:${gitStatus.repoRoot}`;
+    return `@openbeam:changes-ship-default:${gitStatus.repoRoot}`;
   }, [gitStatus?.repoRoot]);
 
   useEffect(() => {
@@ -1036,12 +1036,12 @@ export function GitDiffPane({ serverId, agentId, cwd }: GitDiffPaneProps) {
   }, [baseRefLabel, branchLabel]);
   const hasPullRequest = Boolean(prStatus?.url);
   const hasRemote = gitStatus?.hasRemote ?? false;
-  const isOpenPlaneOwnedWorktree = gitStatus?.isOpenPlaneOwnedWorktree ?? false;
+  const isOpenBeamOwnedWorktree = gitStatus?.isOpenBeamOwnedWorktree ?? false;
   const isMergedPullRequest = Boolean(prStatus?.isMerged);
   const currentBranch = gitStatus?.currentBranch;
   const isOnBaseBranch = currentBranch === baseRefLabel;
   const shouldPromoteArchive =
-    isOpenPlaneOwnedWorktree &&
+    isOpenBeamOwnedWorktree &&
     !hasUncommittedChanges &&
     (postShipArchiveSuggested || isMergedPullRequest);
 
@@ -1065,7 +1065,7 @@ export function GitDiffPane({ serverId, agentId, cwd }: GitDiffPaneProps) {
   const archiveDisabled =
     actionsDisabled ||
     archiveStatus === "pending" ||
-    !gitStatus?.isOpenPlaneOwnedWorktree;
+    !gitStatus?.isOpenBeamOwnedWorktree;
 
   let bodyContent: ReactElement;
 
@@ -1267,8 +1267,8 @@ export function GitDiffPane({ serverId, agentId, cwd }: GitDiffPaneProps) {
       });
     }
 
-    // Archive worktree - only for OpenPlane worktrees
-    if (isOpenPlaneOwnedWorktree) {
+    // Archive worktree - only for OpenBeam worktrees
+    if (isOpenBeamOwnedWorktree) {
       allActions.set("archive-worktree", {
         id: "archive-worktree",
         label: "Archive worktree",
@@ -1351,7 +1351,7 @@ export function GitDiffPane({ serverId, agentId, cwd }: GitDiffPaneProps) {
     hasPullRequest,
     prStatus?.url,
     aheadCount,
-    isOpenPlaneOwnedWorktree,
+    isOpenBeamOwnedWorktree,
     isOnBaseBranch,
     githubFeaturesEnabled,
     hasUncommittedChanges,

@@ -1,8 +1,8 @@
 {
-  "name": "@openplane/desktop",
+  "name": "@openbeam/desktop",
   "version": "0.1.0",
   "private": true,
-  "description": "OpenPlane desktop app (Tauri wrapper)",
+  "description": "OpenBeam desktop app (Tauri wrapper)",
   "scripts": {
     "dev": "node scripts/dev.mjs",
     "dev:tauri": "tauri dev",

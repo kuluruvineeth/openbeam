@@ -5,7 +5,7 @@ import type {
   AgentCanvasNode,
   BuilderStatus,
   CanvasOperation,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { create, type StateCreator } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { useCanvasStore } from "./canvas-store";

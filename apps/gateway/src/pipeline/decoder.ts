@@ -1,7 +1,7 @@
 import type {
   SparkplugMetric,
   SparkplugPayload,
-} from "@openplane/types/services/connectors/mqtt";
+} from "@openbeam/types/services/connectors/mqtt";
 import logger from "../logger";
 
 type PayloadFormat = "json" | "sparkplug_b" | "cbor" | "raw";

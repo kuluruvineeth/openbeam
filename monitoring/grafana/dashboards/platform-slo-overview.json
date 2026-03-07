@@ -27,8 +27,8 @@
     },
     {
       "targetBlank": false,
-      "title": "OpenPlane Command Center",
-      "url": "/d/openplane-command-center/openplane-command-center?var-service=$service&var-env=$env&var-connector_type=$connector_type&var-status_code=$status_code"
+      "title": "OpenBeam Command Center",
+      "url": "/d/openbeam-command-center/openbeam-command-center?var-service=$service&var-env=$env&var-connector_type=$connector_type&var-status_code=$status_code"
     }
   ],
   "liveNow": false,
@@ -471,7 +471,7 @@
   "refresh": "10s",
   "schemaVersion": 16,
   "style": "dark",
-  "tags": ["openplane", "slo", "platform"],
+  "tags": ["openbeam", "slo", "platform"],
   "templating": {
     "list": [
       {

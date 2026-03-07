@@ -1,6 +1,6 @@
 ---
 title: Setup
-description: Connect GitHub to OpenPlane in under 5 minutes.
+description: Connect GitHub to OpenBeam in under 5 minutes.
 ---
 
 # GitHub Quick Start
@@ -8,7 +8,7 @@ description: Connect GitHub to OpenPlane in under 5 minutes.
 ## Prerequisites
 
 - GitHub account with **admin access** to the target organization or repositories
-- OpenPlane instance running (local or deployed)
+- OpenBeam instance running (local or deployed)
 
 ## 1. Create a GitHub OAuth App
 
@@ -20,7 +20,7 @@ description: Connect GitHub to OpenPlane in under 5 minutes.
 
     | Field | Value |
     |-------|-------|
-    | Application name | `OpenPlane` |
+    | Application name | `OpenBeam` |
     | Homepage URL | `http://localhost:3001` (or your domain) |
     | Authorization callback URL | `http://localhost:3000/api/auth/callback/github` |
 
@@ -54,9 +54,9 @@ GITHUB_CLIENT_ID=your-client-id
 GITHUB_CLIENT_SECRET=your-client-secret
 ```
 
-Or add them directly in the OpenPlane UI.
+Or add them directly in the OpenBeam UI.
 
-## 4. Connect in OpenPlane
+## 4. Connect in OpenBeam
 
 1. Go to **Settings** then **Connectors** then **Add Connector**
 2. Select **GitHub**
@@ -77,7 +77,7 @@ Or add them directly in the OpenPlane UI.
 ## Common Pitfalls
 
 <Callout type="error">
-  **Callback URL mismatch** is the most common setup error. The authorization callback URL in GitHub must match your OpenPlane instance exactly, including protocol (`http` vs `https`) and port.
+  **Callback URL mismatch** is the most common setup error. The authorization callback URL in GitHub must match your OpenBeam instance exactly, including protocol (`http` vs `https`) and port.
 </Callout>
 
 <Callout type="info">

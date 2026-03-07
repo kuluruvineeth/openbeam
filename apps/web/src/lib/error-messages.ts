@@ -141,7 +141,7 @@ const CONNECTOR_ERROR_OVERRIDES: Record<
     PERMISSION_DENIED: {
       title: "Notion permissions changed",
       message:
-        "OpenPlane no longer has access to some pages. Grant permissions to continue.",
+        "OpenBeam no longer has access to some pages. Grant permissions to continue.",
       action: "Grant access",
       isRetryable: false,
     },

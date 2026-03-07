@@ -1,4 +1,4 @@
-import type { EdgeSLM, NEREntity } from "@openplane/types/edge/ai";
+import type { EdgeSLM, NEREntity } from "@openbeam/types/edge/ai";
 import { EDGE_NER_PROMPT, formatPrompt } from "../prompts/templates";
 import { parseNERResponse } from "../prompts/validators";
 

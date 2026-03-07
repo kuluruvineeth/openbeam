@@ -11,16 +11,16 @@ import net from "node:net";
 import { basename, dirname, join, resolve, sep } from "node:path";
 import { promisify } from "node:util";
 import { createNameId } from "mnemonic-id";
-import { resolveOpenPlaneHome } from "../openplane-home";
+import { resolveOpenBeamHome } from "../openbeam-home";
 import {
   normalizeBaseRefName,
-  readOpenPlaneWorktreeMetadata,
-  readOpenPlaneWorktreeRuntimePort,
-  writeOpenPlaneWorktreeMetadata,
-  writeOpenPlaneWorktreeRuntimeMetadata,
+  readOpenBeamWorktreeMetadata,
+  readOpenBeamWorktreeRuntimePort,
+  writeOpenBeamWorktreeMetadata,
+  writeOpenBeamWorktreeRuntimeMetadata,
 } from "./worktree-metadata";
 
-interface OpenPlaneConfig {
+interface OpenBeamConfig {
   worktree?: {
     setup?: string[];
     destroy?: string[];
@@ -40,11 +40,11 @@ export interface WorktreeConfig {
 }
 
 export type WorktreeRuntimeEnv = {
-  OPENPLANE_SOURCE_CHECKOUT_PATH: string;
-  OPENPLANE_ROOT_PATH: string;
-  OPENPLANE_WORKTREE_PATH: string;
-  OPENPLANE_BRANCH_NAME: string;
-  OPENPLANE_WORKTREE_PORT: string;
+  OPENBEAM_SOURCE_CHECKOUT_PATH: string;
+  OPENBEAM_ROOT_PATH: string;
+  OPENBEAM_WORKTREE_PATH: string;
+  OPENBEAM_BRANCH_NAME: string;
+  OPENBEAM_WORKTREE_PORT: string;
 };
 
 export type WorktreeSetupCommandResult = {
@@ -112,13 +112,13 @@ export class WorktreeDestroyError extends Error {
   }
 }
 
-export interface OpenPlaneWorktreeInfo {
+export interface OpenBeamWorktreeInfo {
   path: string;
   branchName?: string;
   head?: string;
 }
 
-export type OpenPlaneWorktreeOwnership = {
+export type OpenBeamWorktreeOwnership = {
   allowed: boolean;
   repoRoot?: string;
   worktreeRoot?: string;
@@ -131,23 +131,23 @@ interface CreateWorktreeOptions {
   baseBranch: string;
   worktreeSlug?: string;
   runSetup?: boolean;
-  openplaneHome?: string;
+  openbeamHome?: string;
 }
 
-function readOpenPlaneConfig(repoRoot: string): OpenPlaneConfig | null {
-  const openplaneConfigPath = join(repoRoot, "openplane.json");
-  if (!existsSync(openplaneConfigPath)) {
+function readOpenBeamConfig(repoRoot: string): OpenBeamConfig | null {
+  const openbeamConfigPath = join(repoRoot, "openbeam.json");
+  if (!existsSync(openbeamConfigPath)) {
     return null;
   }
   try {
-    return JSON.parse(readFileSync(openplaneConfigPath, "utf8"));
+    return JSON.parse(readFileSync(openbeamConfigPath, "utf8"));
   } catch {
-    throw new Error("Failed to parse openplane.json");
+    throw new Error("Failed to parse openbeam.json");
   }
 }
 
 export function getWorktreeSetupCommands(repoRoot: string): string[] {
-  const config = readOpenPlaneConfig(repoRoot);
+  const config = readOpenBeamConfig(repoRoot);
   const setupCommands = config?.worktree?.setup;
   if (!setupCommands || setupCommands.length === 0) {
     return [];
@@ -158,7 +158,7 @@ export function getWorktreeSetupCommands(repoRoot: string): string[] {
 }
 
 export function getWorktreeDestroyCommands(repoRoot: string): string[] {
-  const config = readOpenPlaneConfig(repoRoot);
+  const config = readOpenBeamConfig(repoRoot);
   const destroyCommands = config?.worktree?.destroy;
   if (!destroyCommands || destroyCommands.length === 0) {
     return [];
@@ -171,7 +171,7 @@ export function getWorktreeDestroyCommands(repoRoot: string): string[] {
 export function getWorktreeTerminalSpecs(
   repoRoot: string
 ): WorktreeTerminalConfig[] {
-  const config = readOpenPlaneConfig(repoRoot);
+  const config = readOpenBeamConfig(repoRoot);
   const terminals = config?.worktree?.terminals;
   if (!Array.isArray(terminals) || terminals.length === 0) {
     return [];
@@ -426,7 +426,7 @@ export async function runWorktreeSetupCommands(options: {
   runtimeEnv?: WorktreeRuntimeEnv;
   onEvent?: (event: WorktreeSetupCommandProgressEvent) => void;
 }): Promise<WorktreeSetupCommandResult[]> {
-  // Read openplane.json from the worktree (it will have the same content as the source repo)
+  // Read openbeam.json from the worktree (it will have the same content as the source repo)
   const setupCommands = getWorktreeSetupCommands(options.worktreePath);
   if (setupCommands.length === 0) {
     return [];
@@ -515,12 +515,12 @@ export async function resolveWorktreeRuntimeEnv(options: {
     options.branchName ??
     (await resolveBranchNameForWorktreePath(options.worktreePath));
 
-  let worktreePort = readOpenPlaneWorktreeRuntimePort(options.worktreePath);
+  let worktreePort = readOpenBeamWorktreeRuntimePort(options.worktreePath);
   if (worktreePort === null) {
     worktreePort = await getAvailablePort();
-    const metadata = readOpenPlaneWorktreeMetadata(options.worktreePath);
+    const metadata = readOpenBeamWorktreeMetadata(options.worktreePath);
     if (metadata) {
-      writeOpenPlaneWorktreeRuntimeMetadata(options.worktreePath, {
+      writeOpenBeamWorktreeRuntimeMetadata(options.worktreePath, {
         worktreePort,
       });
     }
@@ -532,12 +532,12 @@ export async function resolveWorktreeRuntimeEnv(options: {
     // Source checkout path is the original git repo root (shared across worktrees), not the
     // worktree itself. This allows setup scripts to copy local files (e.g. .env) from the
     // source checkout.
-    OPENPLANE_SOURCE_CHECKOUT_PATH: repoRootPath,
+    OPENBEAM_SOURCE_CHECKOUT_PATH: repoRootPath,
     // Backward-compatible alias.
-    OPENPLANE_ROOT_PATH: repoRootPath,
-    OPENPLANE_WORKTREE_PATH: options.worktreePath,
-    OPENPLANE_BRANCH_NAME: branchName,
-    OPENPLANE_WORKTREE_PORT: String(worktreePort),
+    OPENBEAM_ROOT_PATH: repoRootPath,
+    OPENBEAM_WORKTREE_PATH: options.worktreePath,
+    OPENBEAM_BRANCH_NAME: branchName,
+    OPENBEAM_WORKTREE_PORT: String(worktreePort),
   };
 }
 
@@ -546,7 +546,7 @@ export async function runWorktreeDestroyCommands(options: {
   branchName?: string;
   repoRootPath?: string;
 }): Promise<WorktreeDestroyCommandResult[]> {
-  // Read openplane.json from the worktree (it will have the same content as the source repo)
+  // Read openbeam.json from the worktree (it will have the same content as the source repo)
   const destroyCommands = getWorktreeDestroyCommands(options.worktreePath);
   if (destroyCommands.length === 0) {
     return [];
@@ -564,11 +564,11 @@ export async function runWorktreeDestroyCommands(options: {
     // Source checkout path is the original git repo root (shared across worktrees), not the
     // worktree itself. This allows destroy scripts to clean resources using paths from the
     // source checkout.
-    OPENPLANE_SOURCE_CHECKOUT_PATH: repoRootPath,
+    OPENBEAM_SOURCE_CHECKOUT_PATH: repoRootPath,
     // Backward-compatible alias.
-    OPENPLANE_ROOT_PATH: repoRootPath,
-    OPENPLANE_WORKTREE_PATH: options.worktreePath,
-    OPENPLANE_BRANCH_NAME: branchName,
+    OPENBEAM_ROOT_PATH: repoRootPath,
+    OPENBEAM_WORKTREE_PATH: options.worktreePath,
+    OPENBEAM_BRANCH_NAME: branchName,
   };
 
   const results: WorktreeDestroyCommandResult[] = [];
@@ -710,11 +710,11 @@ export async function deriveWorktreeProjectHash(cwd: string): Promise<string> {
   }
 }
 
-async function getOpenPlaneWorktreesRoot(
+async function getOpenBeamWorktreesRoot(
   cwd: string,
-  openplaneHome?: string
+  openbeamHome?: string
 ): Promise<string> {
-  const home = openplaneHome ? resolve(openplaneHome) : resolveOpenPlaneHome();
+  const home = openbeamHome ? resolve(openbeamHome) : resolveOpenBeamHome();
   const projectHash = await deriveWorktreeProjectHash(cwd);
   return join(home, "worktrees", projectHash);
 }
@@ -734,10 +734,10 @@ function resolveRepoRootFromGitCommonDir(commonDir: string): string {
     : normalizedCommonDir;
 }
 
-export async function isOpenPlaneOwnedWorktreeCwd(
+export async function isOpenBeamOwnedWorktreeCwd(
   cwd: string,
-  options?: { openplaneHome?: string }
-): Promise<OpenPlaneWorktreeOwnership> {
+  options?: { openbeamHome?: string }
+): Promise<OpenBeamWorktreeOwnership> {
   let gitCommonDir: string;
   try {
     gitCommonDir = await getGitCommonDir(cwd);
@@ -748,9 +748,9 @@ export async function isOpenPlaneOwnedWorktreeCwd(
     };
   }
   const repoRoot = resolveRepoRootFromGitCommonDir(gitCommonDir);
-  const worktreesRoot = await getOpenPlaneWorktreesRoot(
+  const worktreesRoot = await getOpenBeamWorktreesRoot(
     cwd,
-    options?.openplaneHome
+    options?.openbeamHome
   );
   const resolvedRoot = normalizePathForOwnership(worktreesRoot) + sep;
   const resolvedCwd = normalizePathForOwnership(cwd);
@@ -764,9 +764,9 @@ export async function isOpenPlaneOwnedWorktreeCwd(
     };
   }
 
-  const worktrees = await listOpenPlaneWorktrees({
+  const worktrees = await listOpenBeamWorktrees({
     cwd,
-    openplaneHome: options?.openplaneHome,
+    openbeamHome: options?.openbeamHome,
   });
   const allowed = worktrees.some((entry) => {
     const worktreePath = resolve(entry.path);
@@ -782,9 +782,9 @@ export async function isOpenPlaneOwnedWorktreeCwd(
   };
 }
 
-function parseWorktreeList(output: string): OpenPlaneWorktreeInfo[] {
-  const entries: OpenPlaneWorktreeInfo[] = [];
-  let current: OpenPlaneWorktreeInfo | null = null;
+function parseWorktreeList(output: string): OpenBeamWorktreeInfo[] {
+  const entries: OpenBeamWorktreeInfo[] = [];
+  let current: OpenBeamWorktreeInfo | null = null;
 
   for (const line of output.split("\n")) {
     if (line.startsWith("worktree ")) {
@@ -821,14 +821,14 @@ function parseWorktreeList(output: string): OpenPlaneWorktreeInfo[] {
   return entries;
 }
 
-export async function listOpenPlaneWorktrees({
+export async function listOpenBeamWorktrees({
   cwd,
-  openplaneHome,
+  openbeamHome,
 }: {
   cwd: string;
-  openplaneHome?: string;
-}): Promise<OpenPlaneWorktreeInfo[]> {
-  const worktreesRoot = await getOpenPlaneWorktreesRoot(cwd, openplaneHome);
+  openbeamHome?: string;
+}): Promise<OpenBeamWorktreeInfo[]> {
+  const worktreesRoot = await getOpenBeamWorktreesRoot(cwd, openbeamHome);
   const { stdout } = await execAsync("git worktree list --porcelain", {
     cwd,
     env: READ_ONLY_GIT_ENV,
@@ -840,9 +840,9 @@ export async function listOpenPlaneWorktrees({
     .filter((entry) => entry.path.startsWith(rootPrefix));
 }
 
-export async function resolveOpenPlaneWorktreeRootForCwd(
+export async function resolveOpenBeamWorktreeRootForCwd(
   cwd: string,
-  options?: { openplaneHome?: string }
+  options?: { openbeamHome?: string }
 ): Promise<{
   repoRoot: string;
   worktreeRoot: string;
@@ -855,9 +855,9 @@ export async function resolveOpenPlaneWorktreeRootForCwd(
     return null;
   }
 
-  const worktreesRoot = await getOpenPlaneWorktreesRoot(
+  const worktreesRoot = await getOpenBeamWorktreesRoot(
     cwd,
-    options?.openplaneHome
+    options?.openbeamHome
   );
   const resolvedRoot = normalizePathForOwnership(worktreesRoot) + sep;
 
@@ -882,9 +882,9 @@ export async function resolveOpenPlaneWorktreeRootForCwd(
     return null;
   }
 
-  const knownWorktrees = await listOpenPlaneWorktrees({
+  const knownWorktrees = await listOpenBeamWorktrees({
     cwd,
-    openplaneHome: options?.openplaneHome,
+    openbeamHome: options?.openbeamHome,
   });
   const match = knownWorktrees.find(
     (entry) => entry.path === resolvedWorktreeRoot
@@ -900,32 +900,32 @@ export async function resolveOpenPlaneWorktreeRootForCwd(
   };
 }
 
-export async function deleteOpenPlaneWorktree({
+export async function deleteOpenBeamWorktree({
   cwd,
   worktreePath,
   worktreeSlug,
-  openplaneHome,
+  openbeamHome,
 }: {
   cwd: string;
   worktreePath?: string;
   worktreeSlug?: string;
-  openplaneHome?: string;
+  openbeamHome?: string;
 }): Promise<void> {
   if (!(worktreePath || worktreeSlug)) {
     throw new Error("worktreePath or worktreeSlug is required");
   }
 
-  const worktreesRoot = await getOpenPlaneWorktreesRoot(cwd, openplaneHome);
+  const worktreesRoot = await getOpenBeamWorktreesRoot(cwd, openbeamHome);
   const resolvedRoot = normalizePathForOwnership(worktreesRoot) + sep;
   // biome-ignore lint/style/noNonNullAssertion: value guaranteed to be set
   const requestedPath = worktreePath ?? join(worktreesRoot, worktreeSlug!);
   const resolvedRequested = normalizePathForOwnership(requestedPath);
   const resolvedWorktree =
-    (await resolveOpenPlaneWorktreeRootForCwd(requestedPath, { openplaneHome }))
+    (await resolveOpenBeamWorktreeRootForCwd(requestedPath, { openbeamHome }))
       ?.worktreePath ?? resolvedRequested;
 
   if (!resolvedWorktree.startsWith(resolvedRoot)) {
-    throw new Error("Refusing to delete non-OpenPlane worktree");
+    throw new Error("Refusing to delete non-OpenBeam worktree");
   }
 
   await runWorktreeDestroyCommands({
@@ -950,7 +950,7 @@ export async function createWorktree({
   baseBranch,
   worktreeSlug,
   runSetup = true,
-  openplaneHome,
+  openbeamHome,
 }: CreateWorktreeOptions): Promise<WorktreeConfig> {
   // Validate branch name
   const validation = validateBranchSlug(branchName);
@@ -963,12 +963,12 @@ export async function createWorktree({
     : "";
   if (!normalizedBaseBranch) {
     throw new Error(
-      "Base branch is required when creating a OpenPlane worktree"
+      "Base branch is required when creating a OpenBeam worktree"
     );
   }
   if (normalizedBaseBranch === "HEAD") {
     throw new Error(
-      "Base branch cannot be HEAD when creating a OpenPlane worktree"
+      "Base branch cannot be HEAD when creating a OpenBeam worktree"
     );
   }
 
@@ -992,7 +992,7 @@ export async function createWorktree({
   const desiredSlug = worktreeSlug || generateWorktreeSlug();
 
   worktreePath = join(
-    await getOpenPlaneWorktreesRoot(cwd, openplaneHome),
+    await getOpenBeamWorktreesRoot(cwd, openbeamHome),
     desiredSlug
   );
   mkdirSync(dirname(worktreePath), { recursive: true });
@@ -1045,7 +1045,7 @@ export async function createWorktree({
   await execAsync(command, { cwd });
   worktreePath = normalizePathForOwnership(finalWorktreePath);
 
-  writeOpenPlaneWorktreeMetadata(worktreePath, {
+  writeOpenBeamWorktreeMetadata(worktreePath, {
     baseRefName: normalizedBaseBranch,
   });
 

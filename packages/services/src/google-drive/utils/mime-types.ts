@@ -1,4 +1,4 @@
-import { GOOGLE_WORKSPACE_MIME_TYPES } from "@openplane/types/services/connectors/google-drive";
+import { GOOGLE_WORKSPACE_MIME_TYPES } from "@openbeam/types/services/connectors/google-drive";
 
 const LEADING_DOT_REGEX = /^\./;
 

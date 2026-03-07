@@ -1,0 +1,85 @@
+{{- if .Values.services.worker.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "openbeam.workerName" . }}
+  labels:
+    {{- include "openbeam.labels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
+spec:
+  replicas: {{ .Values.services.worker.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "openbeam.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: worker
+  template:
+    metadata:
+      labels:
+        {{- include "openbeam.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: worker
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: worker
+          image: {{ printf "%s:%s" .Values.services.worker.image.repository .Values.services.worker.image.tag | quote }}
+          imagePullPolicy: {{ .Values.services.worker.image.pullPolicy }}
+          ports:
+            - name: metrics
+              containerPort: {{ .Values.services.worker.service.metricsPort }}
+            - name: health
+              containerPort: {{ .Values.services.worker.service.healthPort }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "openbeam.configMapName" . }}
+          env:
+            - name: SANDBOX_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "openbeam.sandboxSecretName" . }}
+                  key: SANDBOX_API_TOKEN
+            {{- with .Values.services.worker.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          startupProbe:
+            httpGet:
+              path: {{ .Values.services.worker.startupProbe.path }}
+              port: health
+            initialDelaySeconds: {{ .Values.services.worker.startupProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.services.worker.startupProbe.periodSeconds }}
+            failureThreshold: {{ .Values.services.worker.startupProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.services.worker.startupProbe.timeoutSeconds }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.services.worker.readinessProbe.path }}
+              port: health
+            periodSeconds: {{ .Values.services.worker.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.services.worker.readinessProbe.timeoutSeconds }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.services.worker.livenessProbe.path }}
+              port: health
+            periodSeconds: {{ .Values.services.worker.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.services.worker.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.services.worker.livenessProbe.failureThreshold }}
+          resources:
+            {{- toYaml .Values.services.worker.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

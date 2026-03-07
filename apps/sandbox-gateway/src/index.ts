@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { createSandboxApi } from "@openplane/sandbox";
+import { createSandboxApi } from "@openbeam/sandbox";
 
 const app = createSandboxApi();
 const port = Number.parseInt(process.env.PORT ?? "3800", 10);

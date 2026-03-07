@@ -1,7 +1,7 @@
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
-import type { StorageProvider } from "@openplane/storage";
+import type { StorageProvider } from "@openbeam/storage";
 import type {
   CleanupTempFileInput,
   DownloadFileInput,
@@ -49,7 +49,7 @@ export function createDownloadActivity(deps: DownloadActivityDependencies) {
   return async function downloadFile(
     input: DownloadFileInput
   ): Promise<DownloadFileResult> {
-    const fileDir = path.join(tempDir, "openplane", input.connectorId);
+    const fileDir = path.join(tempDir, "openbeam", input.connectorId);
     await ensureDir(fileDir);
 
     const ext = path.extname(new URL(input.url).pathname) || "";
@@ -83,7 +83,7 @@ export async function cleanupConnectorTempFiles(
   connectorId: string,
   tempDir = os.tmpdir()
 ): Promise<void> {
-  const connectorTempDir = path.join(tempDir, "openplane", connectorId);
+  const connectorTempDir = path.join(tempDir, "openbeam", connectorId);
 
   try {
     await fs.rm(connectorTempDir, { recursive: true, force: true });

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Collapsible, CollapsibleContent } from "@openplane/ui";
+import { Button, Collapsible, CollapsibleContent } from "@openbeam/ui";
 import { useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { RRF_DEFAULTS } from "../lib/config";

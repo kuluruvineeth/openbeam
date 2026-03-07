@@ -4,7 +4,7 @@ import type {
   ThingsboardDashboard,
   ThingsboardDevice,
   ThingsboardTransformContext,
-} from "@openplane/types/services/connectors/thingsboard";
+} from "@openbeam/types/services/connectors/thingsboard";
 import { transformAlarm, transformAlarms } from "../transformers/alarm";
 import {
   transformDashboard,

@@ -1,10 +1,10 @@
 import type { EmbeddingModel } from "./types";
 
-export const OPENPLANE_EMBEDDING_MODELS: EmbeddingModel[] = [
+export const OPENBEAM_EMBEDDING_MODELS: EmbeddingModel[] = [
   {
     id: "bge-m3",
     name: "BGE-M3",
-    provider: "openplane",
+    provider: "openbeam",
     dimensions: 1024,
     maxTokens: 8192,
     supportsSparse: true,
@@ -161,7 +161,7 @@ export const JINA_EMBEDDING_MODELS: EmbeddingModel[] = [
 ];
 
 export const EMBEDDING_MODELS: EmbeddingModel[] = [
-  ...OPENPLANE_EMBEDDING_MODELS,
+  ...OPENBEAM_EMBEDDING_MODELS,
   ...OPENAI_EMBEDDING_MODELS,
   ...GOOGLE_EMBEDDING_MODELS,
   ...COHERE_EMBEDDING_MODELS,

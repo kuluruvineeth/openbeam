@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "bun:test";
-import type { AgentCanvasEdge, AgentCanvasNode } from "@openplane/types/canvas";
+import type { AgentCanvasEdge, AgentCanvasNode } from "@openbeam/types/canvas";
 import {
   createCanvasStore,
   useCanvasEdges,

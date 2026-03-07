@@ -91,7 +91,7 @@ export const useNotesStore = create<NotesStore>()(
         }),
     }),
     {
-      name: "openplane-notes",
+      name: "openbeam-notes",
       version: 1,
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({

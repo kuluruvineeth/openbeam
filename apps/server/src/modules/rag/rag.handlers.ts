@@ -1,5 +1,5 @@
 import type { RouteHandler } from "@hono/zod-openapi";
-import prisma from "@openplane/db";
+import prisma from "@openbeam/db";
 import {
   askRAGForActor,
   createRAGConversationForActor,
@@ -8,7 +8,7 @@ import {
   listRAGConversationsForActor,
   RAGServiceError,
   streamRAGForActor,
-} from "@openplane/services/rag-api";
+} from "@openbeam/services/rag-api";
 import { streamSSE } from "hono/streaming";
 import type { AuthEnv } from "@/middleware/auth";
 import { getTeamId } from "@/middleware/auth";

@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { z } from "zod";
 
-const FORM_PREFERENCES_STORAGE_KEY = "@openplane:create-agent-preferences";
+const FORM_PREFERENCES_STORAGE_KEY = "@openbeam:create-agent-preferences";
 const FORM_PREFERENCES_QUERY_KEY = ["form-preferences"];
 
 const providerPreferencesSchema = z.object({

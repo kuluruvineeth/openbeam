@@ -1,7 +1,7 @@
 import type {
   CompiledAgentConfig as BaseCompiledAgentConfig,
   BaseNodeData,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import type { Edge, Node } from "@xyflow/react";
 import {
   type DetectedPattern,

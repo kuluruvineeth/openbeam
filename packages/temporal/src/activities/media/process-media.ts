@@ -1,4 +1,4 @@
-import type { TwelveLabsClient } from "@openplane/media";
+import type { TwelveLabsClient } from "@openbeam/media";
 import type {
   MediaSegment,
   ProcessMediaInput,

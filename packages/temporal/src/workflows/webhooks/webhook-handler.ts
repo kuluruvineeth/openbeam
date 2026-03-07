@@ -1,7 +1,7 @@
 import {
   WebhookInputSchema,
   type WebhookOutput,
-} from "@openplane/types/temporal/workflows";
+} from "@openbeam/types/temporal/workflows";
 import { executeChild, proxyActivities } from "@temporalio/workflow";
 import type { WebhookActivities } from "../../activities/webhooks/types";
 import { connectorSyncWorkflow } from "../sync/connector-sync";

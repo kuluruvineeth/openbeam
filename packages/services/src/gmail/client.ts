@@ -1,8 +1,8 @@
-import { type RateLimitConfig, rateLimiter } from "@openplane/redis";
+import { type RateLimitConfig, rateLimiter } from "@openbeam/redis";
 import type {
   GmailClientConfig,
   GmailRateLimitState,
-} from "@openplane/types/services/connectors/gmail";
+} from "@openbeam/types/services/connectors/gmail";
 import { logger } from "../lib/logger";
 import { getValidAccessToken } from "../lib/token-refresh";
 import { GmailApiError, GmailErrorCodes } from "./types";

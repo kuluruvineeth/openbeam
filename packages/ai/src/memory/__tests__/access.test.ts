@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
-import type { EpisodicEntry, SemanticEntry } from "@openplane/types/ai";
+import type { EpisodicEntry, SemanticEntry } from "@openbeam/types/ai";
 import {
   createEmptyMemoryAccess,
   createMemoryAccess,

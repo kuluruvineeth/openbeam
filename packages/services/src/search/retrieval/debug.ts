@@ -1,4 +1,4 @@
-import type { GenericDocument } from "@openplane/vespa";
+import type { GenericDocument } from "@openbeam/vespa";
 import type { SearchFilters } from "../types";
 import {
   buildAccessControlClause,
@@ -155,7 +155,7 @@ export async function retrieveWithDebug(
     buildAccessControlClause(accessControlIds),
   ].filter(Boolean);
 
-  const yql = `select id, matchfeatures from openplane_document where ${conditions.join(" and ")} limit ${limit}`;
+  const yql = `select id, matchfeatures from openbeam_document where ${conditions.join(" and ")} limit ${limit}`;
 
   const result = await queryWithDebug({
     yql,

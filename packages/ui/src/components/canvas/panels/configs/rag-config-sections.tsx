@@ -1,8 +1,8 @@
 "use client";
 
-import { DEFAULT_RERANKER_MODEL_ID } from "@openplane/types/ai";
-import type { RagNodeConfig } from "@openplane/types/canvas";
-import type { ConnectorType } from "@openplane/types/services/connectors/events";
+import { DEFAULT_RERANKER_MODEL_ID } from "@openbeam/types/ai";
+import type { RagNodeConfig } from "@openbeam/types/canvas";
+import type { ConnectorType } from "@openbeam/types/services/connectors/events";
 import type { ComponentType } from "react";
 import { memo, useCallback } from "react";
 import { AnimatedSizeContainer } from "../../../animated-size-container";

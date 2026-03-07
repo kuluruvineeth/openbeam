@@ -1,4 +1,4 @@
-const STORAGE_KEY = "@openplane:client-session-key-v1";
+const STORAGE_KEY = "@openbeam:client-session-key-v1";
 
 let cached: string | null = null;
 

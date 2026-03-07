@@ -20,7 +20,7 @@ export const mqttApp: UnifiedApp = {
   installed: false,
   type: "official",
   connectorType: ConnectorType.SOURCE,
-  developerName: "OpenPlane",
+  developerName: "OpenBeam",
   website: "https://mqtt.org",
 
   searchDisplay: {

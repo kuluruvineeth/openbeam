@@ -12,8 +12,8 @@ export interface ResolvedLogConfig {
 export function resolveLogConfig(
   persistedConfig: PersistedConfig | undefined
 ): ResolvedLogConfig {
-  const envLevel = process.env.OPENPLANE_LOG as LogLevel | undefined;
-  const envFormat = process.env.OPENPLANE_LOG_FORMAT as LogFormat | undefined;
+  const envLevel = process.env.OPENBEAM_LOG as LogLevel | undefined;
+  const envFormat = process.env.OPENBEAM_LOG_FORMAT as LogFormat | undefined;
 
   const level: LogLevel = envLevel ?? persistedConfig?.log?.level ?? "debug";
   const format: LogFormat =

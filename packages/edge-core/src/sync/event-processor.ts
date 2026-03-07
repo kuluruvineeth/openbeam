@@ -1,5 +1,5 @@
 import type { Database } from "bun:sqlite";
-import type { SyncEvent } from "@openplane/types/edge/sync";
+import type { SyncEvent } from "@openbeam/types/edge/sync";
 
 interface ProcessResult {
   processed: number;

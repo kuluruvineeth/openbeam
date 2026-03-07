@@ -4,7 +4,7 @@ import {
   AgentCanvasSettingsSchema,
   CanvasTriggerSettingsSchema,
   ViewportSchema,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import {
   ArchiveSessionInputSchema,
   BuildCanvasInputSchema,
@@ -13,7 +13,7 @@ import {
   GetSessionEventsInputSchema,
   ListSessionsInputSchema,
   OnSessionEventInputSchema,
-} from "@openplane/types/canvas/session";
+} from "@openbeam/types/canvas/session";
 import { z } from "zod";
 
 export const EXECUTIONS_PER_HOUR = 100;

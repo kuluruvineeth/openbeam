@@ -1,5 +1,5 @@
-import type { ExecutionPlanNode } from "@openplane/types/canvas";
-import type { LoopIterationError, LoopState } from "@openplane/types/temporal";
+import type { ExecutionPlanNode } from "@openbeam/types/canvas";
+import type { LoopIterationError, LoopState } from "@openbeam/types/temporal";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
 vi.mock("@temporalio/activity", () => ({
@@ -17,7 +17,7 @@ const executionDataStore = new Map<
 let executionDataCounter = 0;
 let stepCounter = 0;
 
-vi.mock("@openplane/db", () => ({
+vi.mock("@openbeam/db", () => ({
   createAgentCanvasExecutionData: vi.fn(
     (
       _db: unknown,

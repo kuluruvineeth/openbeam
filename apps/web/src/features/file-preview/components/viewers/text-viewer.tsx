@@ -1,6 +1,6 @@
 "use client";
 
-import { Skeleton } from "@openplane/ui";
+import { Skeleton } from "@openbeam/ui";
 import { useEffect, useState } from "react";
 import { Icons } from "@/components/icons";
 import { Markdown } from "@/components/ui/markdown";

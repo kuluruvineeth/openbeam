@@ -3,7 +3,7 @@ import type {
   DecryptedOAuthCredentials,
   LastSyncInfo,
   SyncHistoryEntry,
-} from "@openplane/types/db";
+} from "@openbeam/types/db";
 import type {
   AppType,
   Connector,

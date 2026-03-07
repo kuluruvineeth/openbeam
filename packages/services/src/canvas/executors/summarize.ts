@@ -1,10 +1,10 @@
-import { complete, estimateTokens } from "@openplane/ai";
+import { complete, estimateTokens } from "@openbeam/ai";
 import {
   type CompletionOptions,
   getChatModel,
   type ProviderId,
   ProviderIdSchema,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import {
   type ActionItem,
   ActionItemSchema,
@@ -19,7 +19,7 @@ import {
   type SummaryFocusArea,
   type SummaryLength,
   type SummaryOutputFormat,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { z } from "zod";
 import { CanvasNodeExecutionError } from "../errors";
 import { resolveNodeConfig } from "../node-config";

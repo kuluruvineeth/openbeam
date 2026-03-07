@@ -1,8 +1,8 @@
 import prisma, {
   findSlackConnectorByTeamId,
   getDecryptedOAuthCredentials,
-} from "@openplane/db";
-import { createStateStore, rateLimiter } from "@openplane/redis";
+} from "@openbeam/db";
+import { createStateStore, rateLimiter } from "@openbeam/redis";
 import {
   type AssistantThreadContextChangedEvent,
   type AssistantThreadStartedEvent,
@@ -13,7 +13,7 @@ import {
   handleAssistantThreadStarted,
   parseSlackEvent,
   verifySlackSignature,
-} from "@openplane/services";
+} from "@openbeam/services";
 import type { Context } from "hono";
 import { Hono } from "hono";
 import logger from "../../utils/logger";

@@ -4,7 +4,7 @@ import type {
   AdvancedConditionConfig,
   ConditionBranch,
   ConditionNodeConfig,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { forwardRef, memo, useCallback, useMemo } from "react";
 import { Button } from "../../../button";
 import { Icons } from "../../../icons";

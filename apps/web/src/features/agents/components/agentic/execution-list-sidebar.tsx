@@ -1,10 +1,10 @@
 "use client";
 
-import type { ExecutionListItem } from "@openplane/types/canvas/execution-ui";
-import { Icons } from "@openplane/ui";
-import { Button } from "@openplane/ui/components/button";
-import { ExecutionHistoryList } from "@openplane/ui/components/execution/execution-history-list";
-import { cn } from "@openplane/ui/utils";
+import type { ExecutionListItem } from "@openbeam/types/canvas/execution-ui";
+import { Icons } from "@openbeam/ui";
+import { Button } from "@openbeam/ui/components/button";
+import { ExecutionHistoryList } from "@openbeam/ui/components/execution/execution-history-list";
+import { cn } from "@openbeam/ui/utils";
 import { forwardRef } from "react";
 
 type ExecutionListSidebarProps = Omit<

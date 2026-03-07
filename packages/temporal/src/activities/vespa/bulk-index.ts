@@ -1,4 +1,4 @@
-import type { GenericDocument, VespaClient } from "@openplane/vespa";
+import type { GenericDocument, VespaClient } from "@openbeam/vespa";
 import type { BulkIndexInput, BulkIndexResult } from "./types";
 
 export function createBulkIndexActivity(vespa: VespaClient) {

@@ -1,6 +1,6 @@
 "use client";
 
-import type { CanvasNodeType } from "@openplane/types/canvas";
+import type { CanvasNodeType } from "@openbeam/types/canvas";
 
 export const NODE_COLORS: Record<CanvasNodeType | "default", string> = {
   start: "var(--node-start)",

@@ -1,4 +1,4 @@
-import type { EdgeTier } from "@openplane/types/edge/tiers";
+import type { EdgeTier } from "@openbeam/types/edge/tiers";
 
 export interface FeatureFlags {
   fts: boolean;

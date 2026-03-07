@@ -7,7 +7,7 @@ import {
   importPublicKey,
   importSecretKey,
   type KeyPair,
-} from "@openplane/relay/e2ee";
+} from "@openbeam/relay/e2ee";
 import type pino from "pino";
 import { z } from "zod";
 
@@ -28,11 +28,11 @@ export type DaemonKeyPairBundle = {
 
 // biome-ignore lint/suspicious/useAwait: async signature required by interface
 export async function loadOrCreateDaemonKeyPair(
-  openplaneHome: string,
+  openbeamHome: string,
   logger?: pino.Logger
 ): Promise<DaemonKeyPairBundle> {
   const log = logger?.child({ module: "daemon-keypair" });
-  const filePath = path.join(openplaneHome, KEYPAIR_FILENAME);
+  const filePath = path.join(openbeamHome, KEYPAIR_FILENAME);
 
   if (existsSync(filePath)) {
     try {

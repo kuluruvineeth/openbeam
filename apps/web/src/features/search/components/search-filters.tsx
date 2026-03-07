@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Separator } from "@openplane/ui";
+import { Button, Separator } from "@openbeam/ui";
 import { Icons } from "@/components/icons";
 import { DOCUMENT_TYPE_OPTIONS } from "../hooks/use-search";
 import { type DateRangeType, DOCUMENT_TYPE_CONFIG } from "../lib/config";

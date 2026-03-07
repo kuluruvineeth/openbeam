@@ -2,8 +2,8 @@ import type {
   GenericDocument,
   VespaClient,
   SearchResult as VespaSearchResult,
-} from "@openplane/vespa";
-import { escapeYqlString } from "@openplane/vespa";
+} from "@openbeam/vespa";
+import { escapeYqlString } from "@openbeam/vespa";
 import type { SearchInput, SearchResult } from "./types";
 
 export function createSearchActivity(vespa: VespaClient) {
@@ -16,7 +16,7 @@ export function createSearchActivity(vespa: VespaClient) {
         ? ` and connector_type in (${input.connectorTypes.map((t: string) => `"${escapeYqlString(t)}"`).join(", ")})`
         : "";
 
-    const yql = `select * from openplane_document where ${teamFilter}${connectorFilter} and userQuery() limit ${input.limit ?? 10} offset ${input.offset ?? 0}`;
+    const yql = `select * from openbeam_document where ${teamFilter}${connectorFilter} and userQuery() limit ${input.limit ?? 10} offset ${input.offset ?? 0}`;
 
     const result: VespaSearchResult<GenericDocument> = await vespa.query({
       yql,

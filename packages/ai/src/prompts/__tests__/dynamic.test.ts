@@ -99,14 +99,14 @@ describe("Dynamic Prompt Building", () => {
         startedAt: Date.now(),
         turnCount: 1,
         customData: {
-          project: "openplane",
+          project: "openbeam",
           role: "developer",
         },
       };
 
       const section = buildSessionContextSection(session);
 
-      expect(section.content).toContain("project: openplane");
+      expect(section.content).toContain("project: openbeam");
       expect(section.content).toContain("role: developer");
     });
   });

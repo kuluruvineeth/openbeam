@@ -1,5 +1,5 @@
-import { checkConnectorHealth, type HealthStatus } from "@openplane/services";
-import { logger } from "@openplane/services/lib/logger";
+import { checkConnectorHealth, type HealthStatus } from "@openbeam/services";
+import { logger } from "@openbeam/services/lib/logger";
 import type { DatabaseActivityDependencies } from "./index";
 import type {
   ValidateConnectionInput,

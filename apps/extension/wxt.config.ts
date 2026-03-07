@@ -7,12 +7,12 @@ export default defineConfig({
     },
   },
   manifest: {
-    name: "OpenPlane Assistant",
+    name: "OpenBeam Assistant",
     description:
-      "OpenPlane browser assistant with structured action approvals and auditability.",
+      "OpenBeam browser assistant with structured action approvals and auditability.",
     version: "0.1.0",
     action: {
-      default_title: "OpenPlane Assistant",
+      default_title: "OpenBeam Assistant",
     },
     permissions: ["storage", "scripting", "activeTab", "sidePanel"],
     host_permissions: ["http://localhost:3000/*", "http://127.0.0.1:3000/*"],

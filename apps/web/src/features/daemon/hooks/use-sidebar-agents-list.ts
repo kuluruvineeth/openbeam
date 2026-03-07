@@ -1,6 +1,6 @@
 "use client";
 
-import type { ProjectPlacementPayload } from "@openplane/types/services/daemon/messages";
+import type { ProjectPlacementPayload } from "@openbeam/types/services/daemon/messages";
 import { useCallback, useMemo } from "react";
 import { resolveProjectPlacement } from "../lib/project-placement";
 import {

@@ -1,5 +1,5 @@
 import { describe, expect, it, mock } from "bun:test";
-import type { ExecutionPlanNode } from "@openplane/types/canvas";
+import type { ExecutionPlanNode } from "@openbeam/types/canvas";
 import { executeCanvasNode } from "../canvas/execute";
 
 mock.module("../canvas/registry", () => ({

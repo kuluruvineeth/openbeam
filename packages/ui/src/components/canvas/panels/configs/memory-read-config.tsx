@@ -1,9 +1,6 @@
 "use client";
 
-import type {
-  MemoryReadNodeConfig,
-  MemoryScope,
-} from "@openplane/types/canvas";
+import type { MemoryReadNodeConfig, MemoryScope } from "@openbeam/types/canvas";
 import { cva } from "class-variance-authority";
 import { memo, useCallback, useMemo } from "react";
 import { Icons } from "../../../icons";

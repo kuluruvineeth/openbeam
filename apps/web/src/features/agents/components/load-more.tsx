@@ -1,6 +1,6 @@
 "use client";
 
-import { Spinner } from "@openplane/ui/components/spinner";
+import { Spinner } from "@openbeam/ui/components/spinner";
 import { forwardRef } from "react";
 
 type LoadMoreProps = {

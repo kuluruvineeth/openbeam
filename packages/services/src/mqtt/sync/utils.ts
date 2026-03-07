@@ -1,5 +1,5 @@
-import type { MqttSyncCursor } from "@openplane/types/services/connectors/mqtt";
-import type { GenericDocument } from "@openplane/vespa";
+import type { MqttSyncCursor } from "@openbeam/types/services/connectors/mqtt";
+import type { GenericDocument } from "@openbeam/vespa";
 
 export interface MqttSyncBatch {
   items: GenericDocument[];

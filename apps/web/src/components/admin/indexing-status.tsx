@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
   Icons,
-} from "@openplane/ui";
+} from "@openbeam/ui";
 import { useEffect, useState } from "react";
 import { POLLING_INTERVALS } from "@/lib/constants/polling";
 

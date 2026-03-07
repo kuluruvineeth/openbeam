@@ -3,7 +3,7 @@ import type {
   BacnetDevice,
   BacnetObject,
   BacnetTransformContext,
-} from "@openplane/types/services/connectors/bacnet";
+} from "@openbeam/types/services/connectors/bacnet";
 import type { BacnetClient } from "../client";
 import { fullSync } from "../sync/full";
 

@@ -1,10 +1,10 @@
-import type { ExecutionTrace } from "@openplane/types/canvas";
+import type { ExecutionTrace } from "@openbeam/types/canvas";
 import type {
   CanvasApprovalSignalPayload,
   CanvasInputSignalPayload,
   LoopState,
-} from "@openplane/types/temporal";
-import type { CanvasExecutionCheckpoint } from "@openplane/types/temporal/workflows";
+} from "@openbeam/types/temporal";
+import type { CanvasExecutionCheckpoint } from "@openbeam/types/temporal/workflows";
 
 export interface CanvasExecutionState {
   paused: boolean;

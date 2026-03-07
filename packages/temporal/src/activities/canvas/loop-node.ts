@@ -1,17 +1,17 @@
-import type { Database } from "@openplane/db";
+import type { Database } from "@openbeam/db";
 import {
   createAgentCanvasExecutionStep,
   updateAgentCanvasExecutionStep,
-} from "@openplane/db";
-import { evaluateExpression } from "@openplane/services/canvas/expression";
-import { resolveNodeConfig } from "@openplane/services/canvas/node-config";
-import { LoopNodeConfigSchema } from "@openplane/types/canvas";
+} from "@openbeam/db";
+import { evaluateExpression } from "@openbeam/services/canvas/expression";
+import { resolveNodeConfig } from "@openbeam/services/canvas/node-config";
+import { LoopNodeConfigSchema } from "@openbeam/types/canvas";
 import type {
   ExecuteLoopNodeInput,
   ExecuteLoopNodeOutput,
   LoopIterationError,
   LoopState,
-} from "@openplane/types/temporal";
+} from "@openbeam/types/temporal";
 import { Context } from "@temporalio/activity";
 import { SAFETY_CEILINGS } from "../../config/constants";
 import {

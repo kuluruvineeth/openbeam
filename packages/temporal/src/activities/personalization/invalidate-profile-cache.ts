@@ -1,4 +1,4 @@
-import { getUserProfileCache } from "@openplane/redis";
+import { getUserProfileCache } from "@openbeam/redis";
 import type {
   InvalidateProfileCacheInput,
   InvalidateProfileCacheOutput,

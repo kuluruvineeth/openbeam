@@ -1,18 +1,18 @@
 import { randomUUID } from "node:crypto";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createOpenAI } from "@ai-sdk/openai";
-import { complete, estimateTokens, getConfig } from "@openplane/ai";
+import { complete, estimateTokens, getConfig } from "@openbeam/ai";
 import {
   getImageModel,
   type ProviderId,
   ProviderIdSchema,
-} from "@openplane/types/ai";
+} from "@openbeam/types/ai";
 import {
   type GeneratedImage,
   type ImageNodeConfig,
   ImageNodeConfigSchema,
   type TokenUsage,
-} from "@openplane/types/canvas";
+} from "@openbeam/types/canvas";
 import { generateImage, type ImageModel } from "ai";
 import { CanvasNodeExecutionError } from "../errors";
 import { resolveNodeConfig } from "../node-config";

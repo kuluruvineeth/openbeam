@@ -3,9 +3,9 @@ package config
 import (
 	"testing"
 
-	"github.com/openplane/openplane/apps/cli/internal/cmd/shared"
-	"github.com/openplane/openplane/apps/cli/internal/output"
-	"github.com/openplane/openplane/apps/cli/internal/runtime"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/cmd/shared"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/output"
+	"github.com/kuluruvineeth/openbeam/apps/cli/internal/runtime"
 )
 
 func nopProvider() shared.RuntimeProvider {

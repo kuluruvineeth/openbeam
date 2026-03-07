@@ -11,13 +11,13 @@ import {
   listVoiceNotes,
   listVoiceSessions,
   upsertVoiceSettings,
-} from "@openplane/db";
+} from "@openbeam/db";
 import {
   CreateVoiceNoteInputSchema,
   ListVoiceNotesInputSchema,
   UpdateVoiceSettingsInputSchema,
   VoiceRoomType,
-} from "@openplane/types/services/voice";
+} from "@openbeam/types/services/voice";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter } from "../index";
