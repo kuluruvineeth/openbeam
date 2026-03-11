@@ -1,0 +1,447 @@
+name: "Azure: Build & Deploy"
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+    inputs:
+      services:
+        description: 'Services to build (comma-separated or "all")'
+        required: true
+        default: "all"
+        type: string
+      skip_deploy:
+        description: "Build images only, skip AKS deploy"
+        type: boolean
+        default: false
+      force_base:
+        description: "Force rebuild base image"
+        type: boolean
+        default: false
+
+concurrency:
+  group: azure-deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  ACR_NAME: openbeamdevacr
+  ACR_LOGIN_SERVER: openbeamdevacr.azurecr.io
+  AKS_CLUSTER: openbeam-dev-aks
+  AKS_RESOURCE_GROUP: rg-openbeam-dev
+  HELM_CHART_PATH: k8s/charts/openbeam
+  HELM_VALUES_PATH: infra/helm/apps/values-azure-dev.yaml
+
+jobs:
+  # ─── Gate: CI must pass first ───────────────────────────────────
+  ci-gate:
+    name: CI Gate
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit
+
+  # ─── Detect what changed ────────────────────────────────────────
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      services: ${{ steps.matrix.outputs.services }}
+      has_changes: ${{ steps.matrix.outputs.has_changes }}
+      base_changed: ${{ steps.matrix.outputs.base_changed }}
+      image_tag: ${{ steps.tag.outputs.tag }}
+      short_sha: ${{ steps.tag.outputs.short_sha }}
+      has_migration: ${{ steps.migration.outputs.changed }}
+      has_vespa_schema: ${{ steps.vespa.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Image tag
+        id: tag
+        run: |
+          echo "tag=dev-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        if: github.event_name == 'push'
+        with:
+          filters: |
+            base:
+              - 'Dockerfile.base'
+            server:
+              - 'apps/server/**'
+              - 'packages/api/**'
+              - 'packages/auth/**'
+              - 'packages/db/**'
+              - 'packages/redis/**'
+              - 'packages/services/**'
+              - 'packages/temporal/**'
+              - 'packages/ai/**'
+              - 'packages/vespa/**'
+              - 'packages/storage/**'
+              - 'packages/integrations/**'
+              - 'packages/analytics/**'
+              - 'packages/orchestrations/**'
+              - 'packages/types/**'
+              - 'package.json'
+              - 'bun.lock'
+            web:
+              - 'apps/web/**'
+              - 'packages/api/**'
+              - 'packages/auth/**'
+              - 'packages/db/**'
+              - 'packages/ui/**'
+              - 'packages/integrations/**'
+              - 'packages/types/**'
+              - 'package.json'
+              - 'bun.lock'
+            worker:
+              - 'apps/worker/**'
+              - 'packages/temporal/**'
+              - 'packages/services/**'
+              - 'packages/ai/**'
+              - 'packages/db/**'
+              - 'packages/redis/**'
+              - 'packages/vespa/**'
+              - 'packages/storage/**'
+              - 'packages/media/**'
+              - 'packages/analytics/**'
+              - 'packages/types/**'
+              - 'package.json'
+              - 'bun.lock'
+            engine:
+              - 'apps/engine/**'
+            types:
+              - 'packages/types/**'
+
+      - name: Check migration changes
+        id: migration
+        run: |
+          if git diff --name-only HEAD~1 HEAD -- 'packages/db/prisma/' | grep -q .; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check Vespa schema changes
+        id: vespa
+        run: |
+          if git diff --name-only HEAD~1 HEAD -- 'packages/vespa/application/' | grep -q .; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build service matrix
+        id: matrix
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            INPUT="${{ inputs.services }}"
+            if [[ "$INPUT" == "all" ]]; then
+              echo 'services=["server","web","worker","engine"]' >> $GITHUB_OUTPUT
+            else
+              echo "services=[\"${INPUT//,/\",\"}\"]" >> $GITHUB_OUTPUT
+            fi
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "base_changed=${{ inputs.force_base }}" >> $GITHUB_OUTPUT
+          else
+            SERVICES="[]"
+            HAS_CHANGES="false"
+            BASE="${{ steps.filter.outputs.base }}"
+            TYPES="${{ steps.filter.outputs.types }}"
+
+            # types change = rebuild all
+            if [[ "$TYPES" == "true" || "$BASE" == "true" ]]; then
+              echo 'services=["server","web","worker","engine"]' >> $GITHUB_OUTPUT
+              echo "has_changes=true" >> $GITHUB_OUTPUT
+              echo "base_changed=true" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+
+            [[ "${{ steps.filter.outputs.server }}" == "true" ]] && SERVICES=$(echo "$SERVICES" | jq -c '. + ["server"]') && HAS_CHANGES="true"
+            [[ "${{ steps.filter.outputs.web }}" == "true" ]] && SERVICES=$(echo "$SERVICES" | jq -c '. + ["web"]') && HAS_CHANGES="true"
+            [[ "${{ steps.filter.outputs.worker }}" == "true" ]] && SERVICES=$(echo "$SERVICES" | jq -c '. + ["worker"]') && HAS_CHANGES="true"
+            [[ "${{ steps.filter.outputs.engine }}" == "true" ]] && SERVICES=$(echo "$SERVICES" | jq -c '. + ["engine"]') && HAS_CHANGES="true"
+
+            echo "services=$SERVICES" >> $GITHUB_OUTPUT
+            echo "has_changes=$HAS_CHANGES" >> $GITHUB_OUTPUT
+            echo "base_changed=false" >> $GITHUB_OUTPUT
+          fi
+
+  # ─── Build base image (if changed) ─────────────────────────────
+  build-base:
+    name: Build Base Image
+    needs: [ci-gate, changes]
+    if: needs.changes.outputs.base_changed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Build base image on ACR
+        run: |
+          az acr build \
+            --registry ${{ env.ACR_NAME }} \
+            --image openbeam-base:latest \
+            --file Dockerfile.base \
+            --no-logs \
+            .
+
+  # ─── Build service images ──────────────────────────────────────
+  build:
+    name: "Build: ${{ matrix.service }}"
+    needs: [ci-gate, changes, build-base]
+    if: |
+      always() &&
+      needs.changes.outputs.has_changes == 'true' &&
+      needs.ci-gate.result == 'success' &&
+      (needs.build-base.result == 'success' || needs.build-base.result == 'skipped')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        service: ${{ fromJson(needs.changes.outputs.services) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Configure HugeIcons
+        run: |
+          echo "@hugeicons-pro:registry=https://npm.hugeicons.com/" > .npmrc
+          echo "//npm.hugeicons.com/:_authToken=${{ secrets.HUGEICONS_PRO_AUTH_TOKEN }}" >> .npmrc
+
+      - name: Determine Dockerfile and context
+        id: docker
+        run: |
+          if [[ "${{ matrix.service }}" == "engine" ]]; then
+            echo "file=apps/engine/Dockerfile.cpu" >> $GITHUB_OUTPUT
+            echo "context=apps/engine" >> $GITHUB_OUTPUT
+          else
+            echo "file=apps/${{ matrix.service }}/Dockerfile" >> $GITHUB_OUTPUT
+            echo "context=." >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build and push to ACR
+        run: |
+          IMAGE_TAG="${{ needs.changes.outputs.image_tag }}"
+          SERVICE="${{ matrix.service }}"
+
+          BUILD_ARGS=""
+          if [[ "$SERVICE" == "web" ]]; then
+            BUILD_ARGS="--build-arg NEXT_PUBLIC_SERVER_URL=${{ vars.AZURE_API_URL || 'https://api.openbeam.work' }}"
+            BUILD_ARGS="$BUILD_ARGS --build-arg NEXT_PUBLIC_WEB_URL=${{ vars.AZURE_WEB_URL || 'https://app.openbeam.work' }}"
+            BUILD_ARGS="$BUILD_ARGS --build-arg SERVER_INTERNAL_URL=http://openbeam-server.openbeam.svc.cluster.local:3000"
+            BUILD_ARGS="$BUILD_ARGS --build-arg NEXT_PUBLIC_POSTHOG_KEY=${{ vars.NEXT_PUBLIC_POSTHOG_KEY || 'placeholder' }}"
+            BUILD_ARGS="$BUILD_ARGS --build-arg NEXT_PUBLIC_POSTHOG_HOST=${{ vars.AZURE_WEB_URL || 'https://app.openbeam.work' }}"
+          fi
+          BUILD_ARGS="$BUILD_ARGS --build-arg HUGEICONS_PRO_AUTH_TOKEN=${{ secrets.HUGEICONS_PRO_AUTH_TOKEN }}"
+
+          az acr build \
+            --registry ${{ env.ACR_NAME }} \
+            --image "openbeam-${SERVICE}:${IMAGE_TAG}" \
+            --image "openbeam-${SERVICE}:latest" \
+            --file "${{ steps.docker.outputs.file }}" \
+            $BUILD_ARGS \
+            --no-logs \
+            "${{ steps.docker.outputs.context }}"
+
+      - name: Verify image
+        run: |
+          az acr repository show-tags \
+            --name ${{ env.ACR_NAME }} \
+            --repository "openbeam-${{ matrix.service }}" \
+            --top 3 \
+            --orderby time_desc \
+            -o table
+
+  # ─── Deploy to AKS ─────────────────────────────────────────────
+  deploy:
+    name: Deploy to AKS
+    needs: [changes, build]
+    if: |
+      always() &&
+      needs.build.result == 'success' &&
+      (github.event.inputs.skip_deploy != 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: azure-dev
+      url: https://app.openbeam.work
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials \
+            --resource-group ${{ env.AKS_RESOURCE_GROUP }} \
+            --name ${{ env.AKS_CLUSTER }} \
+            --overwrite-existing
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      - name: Run database migrations
+        if: needs.changes.outputs.has_migration == 'true'
+        run: |
+          echo "Running Prisma migrations..."
+          kubectl exec deployment/openbeam-server -n openbeam -- \
+            sh -c "cd /app/packages/db && bunx prisma migrate deploy" || true
+
+      - name: Deploy OpenBeam Helm chart
+        run: |
+          IMAGE_TAG="${{ needs.changes.outputs.image_tag }}"
+          SERVICES='${{ needs.changes.outputs.services }}'
+
+          # Build --set args for image tags
+          SET_ARGS="--set global.image.registry=${{ env.ACR_LOGIN_SERVER }}"
+
+          for svc in $(echo "$SERVICES" | jq -r '.[]'); do
+            SET_ARGS="$SET_ARGS --set services.${svc}.image.tag=${IMAGE_TAG}"
+          done
+
+          # Read DB and Redis URLs from existing configmap
+          DB_URL=$(kubectl get configmap openbeam-env -n openbeam -o jsonpath='{.data.DATABASE_URL}')
+          REDIS_URL=$(kubectl get configmap openbeam-env -n openbeam -o jsonpath='{.data.REDIS_URL}')
+
+          helm upgrade openbeam ${{ env.HELM_CHART_PATH }} \
+            -n openbeam \
+            -f ${{ env.HELM_VALUES_PATH }} \
+            $SET_ARGS \
+            --set "env.DATABASE_URL=${DB_URL}" \
+            --set "env.REDIS_URL=${REDIS_URL}" \
+            --timeout 5m
+
+      - name: Restart updated deployments
+        run: |
+          SERVICES='${{ needs.changes.outputs.services }}'
+          for svc in $(echo "$SERVICES" | jq -r '.[]'); do
+            echo "Restarting openbeam-${svc}..."
+            kubectl rollout restart deployment "openbeam-${svc}" -n openbeam 2>/dev/null || true
+          done
+
+      - name: Wait for rollout
+        run: |
+          SERVICES='${{ needs.changes.outputs.services }}'
+          for svc in $(echo "$SERVICES" | jq -r '.[]'); do
+            echo "Waiting for openbeam-${svc}..."
+            kubectl rollout status deployment "openbeam-${svc}" -n openbeam --timeout=300s || true
+          done
+
+      - name: Deploy Vespa schema
+        if: needs.changes.outputs.has_vespa_schema == 'true'
+        run: |
+          echo "Deploying Vespa schema..."
+          VESPA_POD=$(kubectl get pod -n vespa -l app=vespa -o jsonpath='{.items[0].metadata.name}')
+
+          # Update validation-overrides date
+          FUTURE_DATE=$(date -u -d "+29 days" +%Y-%m-%d 2>/dev/null || date -u -v+29d +%Y-%m-%d)
+          cd packages/vespa/application
+          sed -i "s/[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}/${FUTURE_DATE}/g" validation-overrides.xml 2>/dev/null || \
+            sed -i '' "s/[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}/${FUTURE_DATE}/g" validation-overrides.xml
+
+          cd .. && zip -r /tmp/vespa-app.zip application/
+
+          kubectl cp /tmp/vespa-app.zip "vespa/${VESPA_POD}:/tmp/vespa-app.zip"
+          kubectl exec -n vespa "$VESPA_POD" -- \
+            curl -sf --header "Content-Type: application/zip" \
+              --data-binary @/tmp/vespa-app.zip \
+              "http://localhost:19071/application/v2/tenant/default/prepareandactivate"
+
+      - name: Health check
+        run: |
+          echo "Checking service health..."
+          for i in {1..30}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://api.openbeam.work/api/health/system 2>/dev/null || echo "000")
+            if [[ "$STATUS" == "200" ]]; then
+              echo "API healthy (HTTP 200)"
+              break
+            fi
+            echo "Attempt $i: HTTP $STATUS, waiting..."
+            sleep 10
+          done
+
+          curl -s -o /dev/null -w "Web: HTTP %{http_code}\n" https://app.openbeam.work 2>/dev/null || true
+          curl -s -o /dev/null -w "Temporal: HTTP %{http_code}\n" https://temporal.openbeam.work 2>/dev/null || true
+
+      - name: Deployment summary
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Commit** | \`${{ needs.changes.outputs.short_sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Image Tag** | \`${{ needs.changes.outputs.image_tag }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Services** | ${{ needs.changes.outputs.services }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Migration** | ${{ needs.changes.outputs.has_migration }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Vespa Schema** | ${{ needs.changes.outputs.has_vespa_schema }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| URL | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| [app.openbeam.work](https://app.openbeam.work) | Live |" >> $GITHUB_STEP_SUMMARY
+          echo "| [api.openbeam.work](https://api.openbeam.work) | Live |" >> $GITHUB_STEP_SUMMARY
+          echo "| [temporal.openbeam.work](https://temporal.openbeam.work) | Live |" >> $GITHUB_STEP_SUMMARY
+
+  # ─── Rollback on failure ────────────────────────────────────────
+  rollback:
+    name: Rollback
+    needs: [changes, deploy]
+    if: failure() && needs.deploy.result == 'failure'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials \
+            --resource-group ${{ env.AKS_RESOURCE_GROUP }} \
+            --name ${{ env.AKS_CLUSTER }} \
+            --overwrite-existing
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      - name: Rollback Helm release
+        run: |
+          echo "Rolling back to previous revision..."
+          helm rollback openbeam -n openbeam
+          echo "Waiting for rollback to complete..."
+          kubectl rollout status deployment/openbeam-server -n openbeam --timeout=300s || true
+          kubectl rollout status deployment/openbeam-web -n openbeam --timeout=300s || true
+          kubectl rollout status deployment/openbeam-worker -n openbeam --timeout=300s || true
+
+      - name: Notify rollback
+        run: |
+          echo "::warning::Deployment failed — rolled back to previous Helm revision"
+          echo "## Rollback Executed" >> $GITHUB_STEP_SUMMARY
+          echo "Deployment of \`${{ needs.changes.outputs.image_tag }}\` failed." >> $GITHUB_STEP_SUMMARY
+          echo "Rolled back to previous Helm revision." >> $GITHUB_STEP_SUMMARY

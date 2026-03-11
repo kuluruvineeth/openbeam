@@ -1,20 +1,27 @@
-name: Build & Deploy to Coolify
+name: "Hetzner: Website & Docs"
 
 on:
   push:
     branches: [dev, main]
+    paths:
+      - "apps/website/**"
+      - "apps/docs/**"
+      - "packages/ui/**"
+      - "packages/integrations/**"
+      - "packages/types/**"
+      - "Dockerfile.base"
+      - ".github/workflows/deploy-coolify.yml"
   workflow_dispatch:
     inputs:
       services:
-        description: 'Services to build (comma-separated or "all")'
+        description: 'Services to deploy'
         required: true
         default: "all"
-        type: string
-      rebuild_base:
-        description: 'Force rebuild base image'
-        required: false
-        default: false
-        type: boolean
+        type: choice
+        options:
+          - all
+          - website
+          - docs
 
 concurrency:
   group: deploy-coolify-${{ github.ref }}
@@ -29,17 +36,16 @@ jobs:
     name: Detect Changes
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-      has_changes: ${{ steps.set-matrix.outputs.has_changes }}
-      base_changed: ${{ steps.set-matrix.outputs.base_changed }}
+      services: ${{ steps.matrix.outputs.services }}
+      has_changes: ${{ steps.matrix.outputs.has_changes }}
+      base_changed: ${{ steps.matrix.outputs.base_changed }}
       image_tag: ${{ steps.tag.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Set image tag
-        id: tag
+      - id: tag
         run: echo "tag=${{ github.sha }}" >> $GITHUB_OUTPUT
 
       - uses: dorny/paths-filter@v3
@@ -49,134 +55,85 @@ jobs:
           filters: |
             base:
               - 'Dockerfile.base'
-            server:
-              - 'apps/server/**'
-              - 'packages/api/**'
-              - 'packages/auth/**'
-              - 'packages/db/**'
-              - 'packages/redis/**'
-              - 'apps/server/Dockerfile'
-              - 'package.json'
-              - 'bun.lock'
-            web:
-              - 'apps/web/**'
-              - 'packages/api/**'
-              - 'packages/auth/**'
-              - 'packages/db/**'
-              - 'packages/integrations/**'
-              - 'apps/web/Dockerfile'
-              - 'package.json'
-              - 'bun.lock'
-            worker:
-              - 'apps/worker/**'
-              - 'packages/redis/**'
-              - 'packages/db/**'
-              - 'packages/vespa/**'
-              - 'packages/temporal/**'
-              - 'apps/worker/Dockerfile'
-              - 'package.json'
-              - 'bun.lock'
-            engine:
-              - 'apps/engine/**'
             website:
               - 'apps/website/**'
               - 'packages/ui/**'
               - 'packages/integrations/**'
-              - 'apps/website/Dockerfile'
+              - 'packages/types/**'
               - 'package.json'
               - 'bun.lock'
             docs:
               - 'apps/docs/**'
-              - 'apps/docs/Dockerfile'
               - 'package.json'
               - 'bun.lock'
-            configs:
-              - 'monitoring/**'
-              - 'temporal/dynamicconfig/**'
-              - 'packages/vespa/application/**'
 
       - name: Build matrix
-        id: set-matrix
+        id: matrix
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             INPUT="${{ inputs.services }}"
             if [[ "$INPUT" == "all" ]]; then
-              MATRIX='["server","web","worker","engine","website","docs"]'
+              echo 'services=["website","docs"]' >> $GITHUB_OUTPUT
             else
-              MATRIX=$(echo "[\"${INPUT//,/\",\"}\"]")
+              echo "services=[\"${INPUT}\"]" >> $GITHUB_OUTPUT
             fi
-            echo "matrix={\"service\":$MATRIX}" >> $GITHUB_OUTPUT
             echo "has_changes=true" >> $GITHUB_OUTPUT
-            echo "base_changed=${{ inputs.rebuild_base }}" >> $GITHUB_OUTPUT
+            echo "base_changed=false" >> $GITHUB_OUTPUT
           else
-            MATRIX="[]"
+            SERVICES="[]"
             HAS_CHANGES="false"
-            BASE_CHANGED="${{ steps.filter.outputs.base }}"
-            [[ "${{ steps.filter.outputs.server }}" == "true" || "$BASE_CHANGED" == "true" ]] && MATRIX=$(echo "$MATRIX" | jq '. + ["server"]') && HAS_CHANGES="true"
-            [[ "${{ steps.filter.outputs.web }}" == "true" || "$BASE_CHANGED" == "true" ]] && MATRIX=$(echo "$MATRIX" | jq '. + ["web"]') && HAS_CHANGES="true"
-            [[ "${{ steps.filter.outputs.worker }}" == "true" || "$BASE_CHANGED" == "true" ]] && MATRIX=$(echo "$MATRIX" | jq '. + ["worker"]') && HAS_CHANGES="true"
-            [[ "${{ steps.filter.outputs.engine }}" == "true" ]] && MATRIX=$(echo "$MATRIX" | jq '. + ["engine"]') && HAS_CHANGES="true"
-            [[ "${{ steps.filter.outputs.website }}" == "true" || "$BASE_CHANGED" == "true" ]] && MATRIX=$(echo "$MATRIX" | jq '. + ["website"]') && HAS_CHANGES="true"
-            [[ "${{ steps.filter.outputs.docs }}" == "true" || "$BASE_CHANGED" == "true" ]] && MATRIX=$(echo "$MATRIX" | jq '. + ["docs"]') && HAS_CHANGES="true"
-            echo "matrix={\"service\":$(echo "$MATRIX" | jq -c .)}" >> $GITHUB_OUTPUT
+            BASE="${{ steps.filter.outputs.base }}"
+            [[ "${{ steps.filter.outputs.website }}" == "true" || "$BASE" == "true" ]] && SERVICES=$(echo "$SERVICES" | jq -c '. + ["website"]') && HAS_CHANGES="true"
+            [[ "${{ steps.filter.outputs.docs }}" == "true" || "$BASE" == "true" ]] && SERVICES=$(echo "$SERVICES" | jq -c '. + ["docs"]') && HAS_CHANGES="true"
+            echo "services=$SERVICES" >> $GITHUB_OUTPUT
             echo "has_changes=$HAS_CHANGES" >> $GITHUB_OUTPUT
-            echo "base_changed=$BASE_CHANGED" >> $GITHUB_OUTPUT
+            echo "base_changed=$BASE" >> $GITHUB_OUTPUT
           fi
 
   build-base:
     name: Build Base Image
     needs: changes
-    if: needs.changes.outputs.base_changed == 'true' || (github.event_name == 'workflow_dispatch' && inputs.rebuild_base)
+    if: needs.changes.outputs.base_changed == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-
       - uses: docker/setup-buildx-action@v3
-
       - name: Login to GHCR
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_TOKEN }}
-
       - name: Build and push base image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile.base
           push: true
-          tags: |
-            ${{ env.IMAGE_PREFIX }}-base:latest
-            ${{ env.IMAGE_PREFIX }}-base:${{ needs.changes.outputs.image_tag }}
+          tags: ${{ env.IMAGE_PREFIX }}-base:latest
           platforms: linux/amd64
           cache-from: type=gha,scope=base
           cache-to: type=gha,mode=max,scope=base
           provenance: false
 
   build:
-    name: Build ${{ matrix.service }}
+    name: "Build: ${{ matrix.service }}"
     needs: [changes, build-base]
     if: |
       always() &&
       needs.changes.outputs.has_changes == 'true' &&
       (needs.build-base.result == 'success' || needs.build-base.result == 'skipped')
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.changes.outputs.matrix) }}
-
+      matrix:
+        service: ${{ fromJson(needs.changes.outputs.services) }}
     steps:
-      - name: Free disk space
-        run: |
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache
-          docker system prune -af --volumes || true
-
       - uses: actions/checkout@v4
 
-      - name: Configure npm registry for HugeIcons Pro
+      - name: Configure HugeIcons
         run: |
           echo "@hugeicons-pro:registry=https://npm.hugeicons.com/" > .npmrc
           echo "//npm.hugeicons.com/:_authToken=${{ secrets.HUGEICONS_PRO_AUTH_TOKEN }}" >> .npmrc
@@ -190,25 +147,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_TOKEN }}
 
-      - name: Determine Dockerfile
-        id: dockerfile
-        run: |
-          if [[ "${{ matrix.service }}" == "engine" ]]; then
-            echo "path=./apps/engine/Dockerfile.cpu" >> $GITHUB_OUTPUT
-            echo "context=./apps/engine" >> $GITHUB_OUTPUT
-          elif [[ -f "./apps/${{ matrix.service }}/Dockerfile" ]]; then
-            echo "path=./apps/${{ matrix.service }}/Dockerfile" >> $GITHUB_OUTPUT
-            echo "context=." >> $GITHUB_OUTPUT
-          else
-            echo "path=./Dockerfile.${{ matrix.service }}" >> $GITHUB_OUTPUT
-            echo "context=." >> $GITHUB_OUTPUT
-          fi
-
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: ${{ steps.dockerfile.outputs.context }}
-          file: ${{ steps.dockerfile.outputs.path }}
+          context: .
+          file: ./apps/${{ matrix.service }}/Dockerfile
           push: true
           tags: |
             ${{ env.IMAGE_PREFIX }}-${{ matrix.service }}:${{ needs.changes.outputs.image_tag }}
@@ -218,21 +161,15 @@ jobs:
           cache-to: type=gha,mode=max,scope=${{ matrix.service }}
           provenance: false
           build-args: |
-            NEXT_PUBLIC_SERVER_URL=${{ vars.NEXT_PUBLIC_SERVER_URL || 'https://api.openbeam.work' }}
-            NEXT_PUBLIC_WEB_URL=${{ vars.NEXT_PUBLIC_WEB_URL || 'https://app.openbeam.work' }}
-            SERVER_INTERNAL_URL=http://server:3000
             HUGEICONS_PRO_AUTH_TOKEN=${{ secrets.HUGEICONS_PRO_AUTH_TOKEN }}
-            NEXT_PUBLIC_POSTHOG_KEY=${{ vars.NEXT_PUBLIC_POSTHOG_KEY }}
-            NEXT_PUBLIC_POSTHOG_HOST=${{ vars.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com' }}
 
   deploy:
-    name: Deploy Apps Stack
+    name: Deploy to Hetzner
     needs: [changes, build]
     if: always() && needs.build.result == 'success'
     runs-on: ubuntu-latest
-
     steps:
-      - name: Pull latest images on server
+      - name: Pull and redeploy on Hetzner
         env:
           SSH_PRIVATE_KEY: ${{ secrets.HETZNER_SSH_KEY }}
           SERVER_IP: ${{ secrets.HETZNER_SERVER_IP }}
@@ -242,108 +179,34 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H "$SERVER_IP" >> ~/.ssh/known_hosts 2>/dev/null
 
-          SERVICES="${{ join(fromJson(needs.changes.outputs.matrix).service, ' ') }}"
-          echo "Pulling latest images for: $SERVICES"
-          for svc in $SERVICES; do
+          SERVICES='${{ needs.changes.outputs.services }}'
+          for svc in $(echo "$SERVICES" | jq -r '.[]'); do
             echo "Pulling ghcr.io/kuluruvineeth/openbeam-${svc}:latest..."
             ssh -o ServerAliveInterval=30 "root@$SERVER_IP" \
               "docker pull ghcr.io/kuluruvineeth/openbeam-${svc}:latest" || true
           done
 
-      - name: Trigger Coolify deploy
+      - name: Trigger Coolify redeploy
         run: |
-          echo "Triggering Coolify redeploy for apps compose stack..."
           HTTP_CODE=$(curl -s -o /tmp/response.txt -w '%{http_code}' \
             --request GET "${{ secrets.COOLIFY_WEBHOOK_APPS }}" \
             --header "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}")
 
-          cat /tmp/response.txt
-          echo ""
-
           if [[ "$HTTP_CODE" -ge 200 && "$HTTP_CODE" -lt 300 ]]; then
-            echo "Deploy triggered successfully (HTTP $HTTP_CODE)"
+            echo "Coolify deploy triggered (HTTP $HTTP_CODE)"
           else
-            echo "::error::Deploy failed with HTTP $HTTP_CODE"
-            exit 1
+            echo "::warning::Coolify webhook returned HTTP $HTTP_CODE"
+            cat /tmp/response.txt
           fi
 
-      - name: Redeploy standalone containers (website, docs)
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.HETZNER_SSH_KEY }}
-          SERVER_IP: ${{ secrets.HETZNER_SERVER_IP }}
+      - name: Verify deployment
         run: |
-          SERVICES="${{ join(fromJson(needs.changes.outputs.matrix).service, ' ') }}"
-          STANDALONE=""
-          [[ "$SERVICES" == *"website"* ]] && STANDALONE="$STANDALONE website"
-          [[ "$SERVICES" == *"docs"* ]] && STANDALONE="$STANDALONE docs"
+          sleep 15
+          WEBSITE=$(curl -s -o /dev/null -w "%{http_code}" https://openbeam.work 2>/dev/null || echo "000")
+          DOCS=$(curl -s -o /dev/null -w "%{http_code}" https://docs.openbeam.work 2>/dev/null || echo "000")
 
-          if [[ -z "$STANDALONE" ]]; then
-            echo "No standalone containers to redeploy"
-            exit 0
-          fi
-
-          mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H "$SERVER_IP" >> ~/.ssh/known_hosts 2>/dev/null
-
-          for svc in $STANDALONE; do
-            echo "Redeploying openbeam-${svc}..."
-            ssh -o ServerAliveInterval=30 "root@$SERVER_IP" bash -s <<DEPLOY_EOF
-              CONTAINER="openbeam-${svc}"
-              IMAGE="ghcr.io/kuluruvineeth/openbeam-${svc}:latest"
-
-              # Capture existing labels and network
-              LABELS=\$(docker inspect "\$CONTAINER" --format '{{range \$k, \$v := .Config.Labels}}--label {{printf "%s=%s" \$k \$v}} {{end}}' 2>/dev/null)
-              NETWORK=\$(docker inspect "\$CONTAINER" --format '{{range \$k, \$v := .NetworkSettings.Networks}}{{printf "%s" \$k}}{{end}}' 2>/dev/null || echo "openbeam-apps")
-
-              docker stop "\$CONTAINER" 2>/dev/null || true
-              docker rm "\$CONTAINER" 2>/dev/null || true
-              docker run -d --name "\$CONTAINER" --network "\$NETWORK" --restart unless-stopped \$LABELS "\$IMAGE"
-              echo "Redeployed \$CONTAINER"
-          DEPLOY_EOF
-          done
-
-  sync-configs:
-    name: Sync Config Files
-    needs: changes
-    if: >
-      github.event_name == 'push' &&
-      contains(needs.changes.outputs.matrix, 'configs') == false
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Check if configs changed
-        uses: dorny/paths-filter@v3
-        id: config-check
-        with:
-          filters: |
-            configs:
-              - 'monitoring/**'
-              - 'temporal/dynamicconfig/**'
-              - 'packages/vespa/application/**'
-
-      - name: Sync configs to server
-        if: steps.config-check.outputs.configs == 'true'
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.HETZNER_SSH_KEY }}
-          SERVER_IP: ${{ secrets.HETZNER_SERVER_IP }}
-        run: |
-          mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H "$SERVER_IP" >> ~/.ssh/known_hosts 2>/dev/null
-
-          DATA="/mnt/openbeam-data"
-
-          scp monitoring/prometheus/*.yml "root@$SERVER_IP:$DATA/configs/prometheus/"
-          scp monitoring/grafana/provisioning/datasources/datasource.yml "root@$SERVER_IP:$DATA/configs/grafana/provisioning/datasources/"
-          scp monitoring/grafana/provisioning/dashboards/dashboard.yml "root@$SERVER_IP:$DATA/configs/grafana/provisioning/dashboards/"
-          scp monitoring/grafana/dashboards/*.json "root@$SERVER_IP:$DATA/configs/grafana/dashboards/"
-          scp monitoring/loki/loki-config.yml "root@$SERVER_IP:$DATA/configs/loki/"
-          scp monitoring/promtail/promtail-config.yml "root@$SERVER_IP:$DATA/configs/promtail/"
-          scp temporal/dynamicconfig/development.yaml "root@$SERVER_IP:$DATA/configs/temporal/dynamicconfig/"
-
-          ssh "root@$SERVER_IP" 'docker restart openbeam-prometheus openbeam-grafana openbeam-loki openbeam-promtail 2>/dev/null || true'
-          echo "Config sync complete"
+          echo "## Hetzner Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "| Site | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| [openbeam.work](https://openbeam.work) | HTTP ${WEBSITE} |" >> $GITHUB_STEP_SUMMARY
+          echo "| [docs.openbeam.work](https://docs.openbeam.work) | HTTP ${DOCS} |" >> $GITHUB_STEP_SUMMARY

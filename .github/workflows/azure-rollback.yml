@@ -1,0 +1,107 @@
+name: "Azure: Emergency Rollback"
+
+on:
+  workflow_dispatch:
+    inputs:
+      revision:
+        description: "Helm revision to rollback to (leave empty for previous)"
+        required: false
+        type: string
+      service:
+        description: "Specific service to rollback (leave empty for all)"
+        required: false
+        type: choice
+        options:
+          - ""
+          - server
+          - web
+          - worker
+          - engine
+
+concurrency:
+  group: azure-deploy-refs/heads/dev
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AKS_CLUSTER: openbeam-dev-aks
+  AKS_RESOURCE_GROUP: rg-openbeam-dev
+
+jobs:
+  rollback:
+    name: Emergency Rollback
+    runs-on: ubuntu-latest
+    environment: azure-dev
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials \
+            --resource-group ${{ env.AKS_RESOURCE_GROUP }} \
+            --name ${{ env.AKS_CLUSTER }} \
+            --overwrite-existing
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      - name: Show current state
+        run: |
+          echo "Current Helm history:"
+          helm history openbeam -n openbeam --max 5
+
+          echo ""
+          echo "Current pods:"
+          kubectl get pods -n openbeam -o wide
+
+      - name: Rollback Helm
+        if: inputs.service == ''
+        run: |
+          if [[ -n "${{ inputs.revision }}" ]]; then
+            echo "Rolling back to revision ${{ inputs.revision }}..."
+            helm rollback openbeam ${{ inputs.revision }} -n openbeam
+          else
+            echo "Rolling back to previous revision..."
+            helm rollback openbeam -n openbeam
+          fi
+
+      - name: Rollback single service
+        if: inputs.service != ''
+        run: |
+          SERVICE="${{ inputs.service }}"
+          echo "Rolling back openbeam-${SERVICE}..."
+          kubectl rollout undo deployment "openbeam-${SERVICE}" -n openbeam
+
+      - name: Wait for rollback
+        run: |
+          for dep in server web worker engine; do
+            kubectl rollout status deployment "openbeam-${dep}" -n openbeam --timeout=300s 2>/dev/null || true
+          done
+
+      - name: Verify health
+        run: |
+          sleep 10
+          API_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://api.openbeam.work/api/health/system 2>/dev/null || echo "000")
+          WEB_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://app.openbeam.work 2>/dev/null || echo "000")
+
+          echo "API: HTTP ${API_STATUS}"
+          echo "Web: HTTP ${WEB_STATUS}"
+
+          echo "## Rollback Complete" >> $GITHUB_STEP_SUMMARY
+          echo "| Service | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| API | HTTP ${API_STATUS} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Web | HTTP ${WEB_STATUS} |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Show final state
+        run: |
+          helm history openbeam -n openbeam --max 5
+          kubectl get pods -n openbeam
