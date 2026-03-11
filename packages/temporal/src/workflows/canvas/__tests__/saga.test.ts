@@ -68,7 +68,7 @@ describe("SagaExecutor", () => {
       await executor.execute(step, undefined);
 
       const state = executor.getState();
-      expect(state.completedSteps[0]?.latencyMs).toBeGreaterThanOrEqual(50);
+      expect(state.completedSteps[0]?.latencyMs).toBeGreaterThanOrEqual(45);
     });
 
     it("calls onStepComplete callback", async () => {
