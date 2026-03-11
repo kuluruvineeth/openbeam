@@ -4,7 +4,7 @@ import type { MediaInputType, MediaMetadata, MediaSegment } from "./types";
 
 export class TwelveLabsClient {
   private client: TwelveLabs | null = null;
-  private readonly modelName: "marengo3.0" | "marengo2.7";
+  private readonly modelName: string;
 
   constructor(options: { modelName?: "marengo3.0" | "marengo2.7" } = {}) {
     this.modelName = options.modelName ?? "marengo3.0";

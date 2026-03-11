@@ -112,7 +112,7 @@ export class EnvdClient {
         const response = await fetch(`${this.baseUrl}/files/write-bytes`, {
           method: "POST",
           headers: { "Content-Type": "application/octet-stream" },
-          body: data,
+          body: data as BodyInit,
         });
         if (!response.ok) {
           throw new EnvdClientError(

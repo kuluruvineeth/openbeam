@@ -25,13 +25,13 @@ export function executeCodex(
   const prompt = asString(config.prompt) || buildPromptFromContext(opts);
 
   if (!prompt) {
-    return {
+    return Promise.resolve({
       exitCode: 1,
       signal: null,
       timedOut: false,
       errorMessage: "No prompt provided",
       errorCode: "missing_prompt",
-    };
+    });
   }
 
   const args = buildCodexArgs(config, opts);
