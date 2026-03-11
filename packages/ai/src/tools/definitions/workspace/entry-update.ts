@@ -40,9 +40,10 @@ RETURNS: The updated entry with all current field values.`,
 
     const startTime = performance.now();
 
-    const { getTeamDuckDB, initializeEAVSchema, updateEntry } = await import(
-      "@openbeam/services"
-    );
+    const { getTeamDuckDB, initializeEAVSchema, updateEntry } =
+      // biome-ignore lint/suspicious/noTsIgnore: cross-package type check cannot resolve workspace module
+      // @ts-ignore — resolved at runtime via workspace
+      await import("@openbeam/services");
 
     const db = await getTeamDuckDB(ctx.teamId);
     await initializeEAVSchema(db);

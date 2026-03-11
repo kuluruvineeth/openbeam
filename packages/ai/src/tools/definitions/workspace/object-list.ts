@@ -34,9 +34,10 @@ RETURNS: List of objects with their names, descriptions, field counts, and defau
 
     const startTime = performance.now();
 
-    const { getTeamDuckDB, initializeEAVSchema, listObjects } = await import(
-      "@openbeam/services"
-    );
+    const { getTeamDuckDB, initializeEAVSchema, listObjects } =
+      // biome-ignore lint/suspicious/noTsIgnore: cross-package type check cannot resolve workspace module
+      // @ts-ignore — resolved at runtime via workspace
+      await import("@openbeam/services");
 
     const db = await getTeamDuckDB(ctx.teamId);
     await initializeEAVSchema(db);

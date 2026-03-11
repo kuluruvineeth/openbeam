@@ -44,6 +44,8 @@ RETURNS: The created entry ID and values.`,
     const startTime = performance.now();
 
     const { getTeamDuckDB, initializeEAVSchema, getObject, createEntry } =
+      // biome-ignore lint/suspicious/noTsIgnore: cross-package type check cannot resolve workspace module
+      // @ts-ignore — resolved at runtime via workspace
       await import("@openbeam/services");
 
     const db = await getTeamDuckDB(ctx.teamId);

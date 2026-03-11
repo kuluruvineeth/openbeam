@@ -67,6 +67,8 @@ RETURNS: Import summary with total rows, imported count, skipped count, and any 
     const startTime = performance.now();
 
     const { getTeamDuckDB, initializeEAVSchema, importCSV, importJSON } =
+      // biome-ignore lint/suspicious/noTsIgnore: cross-package type check cannot resolve workspace module
+      // @ts-ignore — resolved at runtime via workspace
       await import("@openbeam/services");
 
     const db = await getTeamDuckDB(ctx.teamId);

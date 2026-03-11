@@ -58,9 +58,10 @@ RETURNS: Paginated list of entries with field values, total count, and paginatio
 
     const startTime = performance.now();
 
-    const { getTeamDuckDB, initializeEAVSchema, listEntries } = await import(
-      "@openbeam/services"
-    );
+    const { getTeamDuckDB, initializeEAVSchema, listEntries } =
+      // biome-ignore lint/suspicious/noTsIgnore: cross-package type check cannot resolve workspace module
+      // @ts-ignore — resolved at runtime via workspace
+      await import("@openbeam/services");
 
     const db = await getTeamDuckDB(ctx.teamId);
     await initializeEAVSchema(db);

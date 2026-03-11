@@ -64,6 +64,8 @@ EXAMPLE FLOW:
     }
 
     const { getTeamDuckDB, initializeEAVSchema, listObjects, listEntries } =
+      // biome-ignore lint/suspicious/noTsIgnore: cross-package type check cannot resolve workspace module
+      // @ts-ignore — resolved at runtime via workspace
       await import("@openbeam/services");
 
     const db = await getTeamDuckDB(ctx.teamId);

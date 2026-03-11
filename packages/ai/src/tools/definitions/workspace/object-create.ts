@@ -109,9 +109,10 @@ RETURNS: The created object definition with its fields, ID, and metadata.`,
 
     const startTime = performance.now();
 
-    const { getTeamDuckDB, initializeEAVSchema, createObject } = await import(
-      "@openbeam/services"
-    );
+    const { getTeamDuckDB, initializeEAVSchema, createObject } =
+      // biome-ignore lint/suspicious/noTsIgnore: cross-package type check cannot resolve workspace module
+      // @ts-ignore — resolved at runtime via workspace
+      await import("@openbeam/services");
 
     const db = await getTeamDuckDB(ctx.teamId);
     await initializeEAVSchema(db);
