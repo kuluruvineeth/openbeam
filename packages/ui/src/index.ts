@@ -518,6 +518,8 @@ export {
   toolSearchVariants,
   toolTodoVariants,
   transformNodeTypes,
+  type UseFormReturn,
+  useForm,
   useFormContext,
   useFormField,
   useKeyboardSelection,

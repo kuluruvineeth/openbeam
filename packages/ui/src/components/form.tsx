@@ -10,6 +10,8 @@ import {
   type FieldPath,
   type FieldValues,
   FormProvider,
+  type UseFormReturn,
+  useForm,
   useFormContext,
   useWatch,
 } from "react-hook-form";
@@ -148,6 +150,8 @@ function FormMessage({
 }
 
 export {
+  type UseFormReturn,
+  useForm,
   useFormField,
   useFormContext,
   useWatch,

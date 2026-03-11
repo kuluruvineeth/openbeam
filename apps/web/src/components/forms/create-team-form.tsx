@@ -9,10 +9,10 @@ import {
   FormLabel,
   FormMessage,
   Input,
+  useForm,
 } from "@openbeam/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
-import { useForm } from "react-hook-form";
 import { z } from "zod/v3";
 import { revalidateAfterTeamChange } from "@/actions/revalidate-action";
 import { SubmitButton } from "@/components/submit-button";
@@ -64,7 +64,7 @@ export function CreateTeamForm() {
   }
 
   return (
-    <Form {...(form as never)}>
+    <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <FormField
           control={form.control}

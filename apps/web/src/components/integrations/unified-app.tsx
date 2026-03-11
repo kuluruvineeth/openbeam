@@ -19,11 +19,11 @@ import {
   Tabs,
   TabsList,
   TabsTrigger,
+  useForm,
 } from "@openbeam/ui";
 import Link from "next/link";
 import { parseAsBoolean, parseAsString, useQueryStates } from "nuqs";
 import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { AppLogo } from "@/components/integrations/app-logo";
 import { OAuthLoading } from "@/components/integrations/oauth-loading";
