@@ -1,0 +1,11 @@
+[extend]
+useDefault = true
+
+[allowlist]
+paths = [
+  '''apps/docs/content/''',
+  '''apps/server/README\.md''',
+  '''apps/engine/tests/''',
+  '''monitoring/''',
+  '''packages/temporal/src/__tests__/''',
+]

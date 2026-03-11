@@ -128,7 +128,7 @@ function spawnCodex(params: SpawnCodexParams): Promise<AdapterExecutionResult> {
 
     const child: ChildProcess = spawn("codex", params.args, {
       cwd: params.cwd,
-      env: params.env,
+      env: params.env as NodeJS.ProcessEnv,
       stdio: ["pipe", "pipe", "pipe"],
     });
 

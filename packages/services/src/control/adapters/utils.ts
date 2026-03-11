@@ -45,7 +45,7 @@ export function runChildProcess(
 
     const child: ChildProcess = spawn(opts.command, opts.args, {
       cwd: opts.cwd,
-      env: opts.env,
+      env: opts.env as NodeJS.ProcessEnv,
       stdio: ["pipe", "pipe", "pipe"],
       shell: true,
     });

@@ -144,7 +144,7 @@ function spawnClaude(
 
     const child: ChildProcess = spawn("claude", params.args, {
       cwd: params.cwd,
-      env: params.env,
+      env: params.env as NodeJS.ProcessEnv,
       stdio: ["pipe", "pipe", "pipe"],
     });
 
