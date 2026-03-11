@@ -12,7 +12,7 @@ function createConfig(overrides?: Partial<AdapterConfig>): AdapterConfig {
       endpointUrl: "opc.tcp://localhost:4840",
     },
     subscriptions: [],
-    aggregation: { windowMs: 0, strategy: "last" },
+    aggregation: { defaultWindowSeconds: 0, eventPassthrough: false, maxWindowSize: 10_000 },
     onMessage() {
       /* noop */
     },
