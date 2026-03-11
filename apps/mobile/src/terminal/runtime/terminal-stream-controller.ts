@@ -87,6 +87,7 @@ export class TerminalStreamController {
   private readonly resumeOffsetByTerminalId = new Map<string, number>();
   private selectedTerminalId: string | null = null;
   private activeStream: TerminalStreamControllerActiveStream | null = null;
+  // biome-ignore lint/correctness/noUnusedPrivateClassMembers: written in updateStatus, read via options.onStatusChange
   private status: TerminalStreamControllerStatus | null = null;
   private attachGeneration = 0;
   private isDisposed = false;
