@@ -1,0 +1,19 @@
+location          = "eastus2"
+project_name      = "openbeam"
+environment       = "prod"
+db_admin_password = "CHANGE_ME_USE_STRONG_PASSWORD"
+tenant_id         = "00000000-0000-0000-0000-000000000000"
+domain_name       = "openbeam.io"
+
+acr_geo_replications = [
+  {
+    location                = "westus2"
+    zone_redundancy_enabled = true
+  }
+]
+
+tags = {
+  project     = "openbeam"
+  environment = "prod"
+  managed_by  = "terraform"
+}

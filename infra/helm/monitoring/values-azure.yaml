@@ -1,0 +1,78 @@
+grafana:
+  enabled: true
+  replicas: 1
+  persistence:
+    enabled: true
+    size: 5Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  envFromSecret: grafana-oauth-secrets
+  grafana.ini:
+    auth.generic_oauth:
+      enabled: true
+      name: Azure AD
+      client_id: REPLACE_WITH_CLIENT_ID
+      client_secret: "$__env{GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET}"
+      scopes: openid email profile
+      auth_url: https://login.microsoftonline.com/REPLACE_WITH_TENANT_ID/oauth2/v2.0/authorize
+      token_url: https://login.microsoftonline.com/REPLACE_WITH_TENANT_ID/oauth2/v2.0/token
+      api_url: https://graph.microsoft.com/oidc/userinfo
+      allow_sign_up: false
+
+prometheus:
+  enabled: true
+  prometheusSpec:
+    retention: 7d
+    retentionSize: 15GB
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: managed-csi
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 20Gi
+
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+
+nodeExporter:
+  enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
+
+kubeStateMetrics:
+  enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi

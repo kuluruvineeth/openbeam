@@ -1,0 +1,331 @@
+# Azure AKS dev environment values
+# Overrides k8s/charts/openbeam/values.yaml for Azure deployment
+#
+# Learnings codified from manual deployment:
+# - VESPA_URL must use "document-index-service" (Vespa chart names its service this)
+# - Server health endpoint is /api/health/system (not /api/health)
+# - Worker needs 4Gi memory limit for webpack compilation of 14 Temporal workflow bundles
+# - Redis URL must have special chars URL-encoded (password with +/= chars)
+# - Grafana needs grafana-oauth-secrets secret pre-created in monitoring namespace
+
+global:
+  image:
+    registry: ""  # Set via --set global.image.registry=$ACR_LOGIN_SERVER
+
+serviceAccount:
+  create: true
+  workloadIdentities:
+    app:
+      name: openbeam-app
+      annotations:
+        azure.workload.identity/client-id: ""  # Set via --set
+    worker:
+      name: openbeam-worker
+      annotations:
+        azure.workload.identity/client-id: ""  # Set via --set
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "120"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://app.openbeam.work"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+  hosts:
+    - host: app.openbeam.work
+      paths:
+        - path: /
+          pathType: Prefix
+          serviceName: openbeam-web
+          servicePort: 3001
+    - host: api.openbeam.work
+      paths:
+        - path: /
+          pathType: Prefix
+          serviceName: openbeam-server
+          servicePort: 3000
+
+env:
+  DATABASE_URL: ""
+  REDIS_URL: ""
+  VESPA_URL: "http://document-index-service.vespa.svc.cluster.local:8080"
+  TEMPORAL_ADDRESS: "temporal-frontend.temporal.svc.cluster.local:7233"
+  ENGINE_URL: "http://openbeam-engine.openbeam.svc.cluster.local:8000"
+  GCS_ENDPOINT: ""
+  GCS_BUCKET: "openbeam-files"
+  NODE_ENV: "production"
+  LOG_LEVEL: "info"
+  WEB_URL: "https://app.openbeam.work"
+  SERVER_URL: "https://api.openbeam.work"
+  CORS_ORIGIN: "https://app.openbeam.work"
+
+services:
+  server:
+    enabled: true
+    replicaCount: 1
+    image:
+      repository: openbeam-server
+      tag: latest
+      pullPolicy: Always
+    service:
+      enabled: true
+      type: ClusterIP
+      port: 3000
+      targetPort: 3000
+    initMigrations:
+      enabled: true
+      command:
+        - sh
+        - -c
+        - cd /app/packages/db && bunx prisma generate && bunx prisma migrate deploy
+    resources:
+      requests:
+        cpu: 250m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    startupProbe:
+      path: /api/health/system
+      initialDelaySeconds: 10
+      periodSeconds: 5
+      failureThreshold: 60
+      timeoutSeconds: 5
+    readinessProbe:
+      path: /api/health/system
+      periodSeconds: 10
+      timeoutSeconds: 5
+    livenessProbe:
+      path: /api/health/system
+      periodSeconds: 30
+      timeoutSeconds: 5
+      failureThreshold: 3
+    extraEnv:
+      - name: GOOGLE_CLIENT_ID
+        valueFrom:
+          secretKeyRef:
+            name: app-secrets
+            key: GOOGLE_CLIENT_ID
+      - name: GOOGLE_CLIENT_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: app-secrets
+            key: GOOGLE_CLIENT_SECRET
+      - name: ENCRYPTION_KEY
+        valueFrom:
+          secretKeyRef:
+            name: app-secrets
+            key: ENCRYPTION_KEY
+      - name: OPENAI_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: app-secrets
+            key: OPENAI_API_KEY
+      - name: OPENAI_BASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: app-secrets
+            key: OPENAI_BASE_URL
+      - name: OPENAI_ORGANIZATION
+        valueFrom:
+          secretKeyRef:
+            name: app-secrets
+            key: OPENAI_ORGANIZATION
+      - name: GOOGLE_AI_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: app-secrets
+            key: GOOGLE_AI_API_KEY
+      - name: ANTHROPIC_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: app-secrets
+            key: ANTHROPIC_API_KEY
+      - name: TWELVELABS_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: app-secrets
+            key: TWELVELABS_API_KEY
+      - name: COOKIE_DOMAIN
+        valueFrom:
+          secretKeyRef:
+            name: app-secrets
+            key: COOKIE_DOMAIN
+
+  web:
+    enabled: true
+    replicaCount: 1
+    image:
+      repository: openbeam-web
+      tag: latest
+      pullPolicy: Always
+    service:
+      enabled: true
+      type: ClusterIP
+      port: 3001
+      targetPort: 3001
+    env:
+      NEXT_PUBLIC_WEB_URL: "https://app.openbeam.work"
+      NEXT_PUBLIC_SERVER_URL: "https://api.openbeam.work"
+      SERVER_INTERNAL_URL: "http://openbeam-server.openbeam.svc.cluster.local:3000"
+    resources:
+      requests:
+        cpu: 250m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    startupProbe:
+      path: /
+      initialDelaySeconds: 15
+      periodSeconds: 5
+      failureThreshold: 60
+      timeoutSeconds: 5
+    readinessProbe:
+      path: /
+      periodSeconds: 10
+      timeoutSeconds: 5
+    livenessProbe:
+      path: /
+      periodSeconds: 30
+      timeoutSeconds: 5
+      failureThreshold: 3
+    extraEnv: []
+
+  worker:
+    enabled: true
+    replicaCount: 1
+    image:
+      repository: openbeam-worker
+      tag: latest
+      pullPolicy: Always
+    service:
+      enabled: true
+      type: ClusterIP
+      metricsPort: 9091
+      healthPort: 9092
+    resources:
+      requests:
+        cpu: 500m
+        memory: 2Gi
+      limits:
+        cpu: 1000m
+        memory: 4Gi
+    startupProbe:
+      path: /health/live
+      initialDelaySeconds: 10
+      periodSeconds: 5
+      failureThreshold: 60
+      timeoutSeconds: 5
+    readinessProbe:
+      path: /health/ready
+      periodSeconds: 10
+      timeoutSeconds: 5
+    livenessProbe:
+      path: /health/live
+      periodSeconds: 30
+      timeoutSeconds: 5
+      failureThreshold: 3
+    extraEnv:
+      - name: GOOGLE_CLIENT_ID
+        valueFrom:
+          secretKeyRef:
+            name: app-secrets
+            key: GOOGLE_CLIENT_ID
+      - name: GOOGLE_CLIENT_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: app-secrets
+            key: GOOGLE_CLIENT_SECRET
+      - name: ENCRYPTION_KEY
+        valueFrom:
+          secretKeyRef:
+            name: app-secrets
+            key: ENCRYPTION_KEY
+      - name: OPENAI_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: app-secrets
+            key: OPENAI_API_KEY
+      - name: OPENAI_BASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: app-secrets
+            key: OPENAI_BASE_URL
+      - name: OPENAI_ORGANIZATION
+        valueFrom:
+          secretKeyRef:
+            name: app-secrets
+            key: OPENAI_ORGANIZATION
+      - name: GOOGLE_AI_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: app-secrets
+            key: GOOGLE_AI_API_KEY
+      - name: ANTHROPIC_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: app-secrets
+            key: ANTHROPIC_API_KEY
+      - name: TWELVELABS_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: app-secrets
+            key: TWELVELABS_API_KEY
+
+  engine:
+    enabled: true
+    replicaCount: 1
+    image:
+      repository: openbeam-engine
+      tag: latest
+      pullPolicy: Always
+    service:
+      enabled: true
+      type: ClusterIP
+      port: 8000
+      targetPort: 8000
+    env:
+      CPU_PORT: "8000"
+      CPU_DEBUG: "false"
+      CPU_LOG_LEVEL: "INFO"
+      CPU_ENVIRONMENT: "production"
+      CPU_REDIS_URL: ""
+      SECURITY_REQUIRE_AUTH: "true"
+      CPU_WORKERS: "2"
+      SCARF_NO_ANALYTICS: "true"
+      DO_NOT_TRACK: "true"
+      MPLCONFIGDIR: "/tmp/matplotlib"
+    resources:
+      requests:
+        cpu: 1000m
+        memory: 1Gi
+      limits:
+        cpu: 2000m
+        memory: 2Gi
+    startupProbe:
+      path: /v1/health
+      initialDelaySeconds: 15
+      periodSeconds: 10
+      failureThreshold: 60
+      timeoutSeconds: 5
+    readinessProbe:
+      path: /v1/health
+      periodSeconds: 10
+      timeoutSeconds: 5
+    livenessProbe:
+      path: /v1/health
+      periodSeconds: 30
+      timeoutSeconds: 5
+      failureThreshold: 3
+    extraEnv: []
+
+sandboxGateway:
+  enabled: false
+
+daytona:
+  enabled: false

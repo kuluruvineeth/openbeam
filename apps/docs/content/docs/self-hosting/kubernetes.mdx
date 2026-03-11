@@ -1,0 +1,366 @@
+---
+title: Kubernetes (AKS / EKS / GKE)
+description: Deploy OpenBeam on managed Kubernetes with Terraform. Production-grade, multi-cloud, auto-scaling.
+---
+
+# Kubernetes Deployment
+
+For teams that need auto-scaling, high availability, and managed infrastructure. OpenBeam ships with Terraform modules and Helm values for Azure AKS, with AWS EKS and GCP GKE planned.
+
+## Cloud Support
+
+| Cloud | Status | Directory | Managed Services |
+|-------|--------|-----------|-----------------|
+| **Azure (AKS)** | Active | `infra/azure/` | PostgreSQL Flexible Server, Azure Cache for Redis, Blob Storage, ACR, Key Vault |
+| **AWS (EKS)** | Planned | `infra/aws/` | RDS, ElastiCache, S3, ECR, Secrets Manager |
+| **GCP (GKE)** | Planned | `infra/gcp/` | Cloud SQL, Memorystore, GCS, Artifact Registry, Secret Manager |
+
+## Architecture
+
+```text
+┌─── AKS Cluster ──────────────────────────────────────────────┐
+│                                                                │
+│  system pool    → ingress controller, coredns, metrics        │
+│  app pool       → web, server, worker, engine-cpu             │
+│  search pool    → vespa (memory-optimized, dedicated)         │
+│  gpu pool       → engine-gpu (spot, scale-to-zero)            │
+│                                                                │
+│  Helm Charts: temporal, vespa, nginx-ingress, prometheus      │
+└────────────────────────────────────────────────────────────────┘
+         │              │              │              │
+    ┌────┴────┐   ┌────┴────┐   ┌────┴────┐   ┌────┴────┐
+    │ Postgres │   │  Redis  │   │  Blob   │   │Key Vault│
+    │ Flexible │   │  Cache  │   │ Storage │   │ Secrets │
+    └─────────┘   └─────────┘   └─────────┘   └─────────┘
+       (PaaS)        (PaaS)        (PaaS)        (PaaS)
+```
+
+All PaaS services connect via private endpoints — no public internet exposure.
+
+## Prerequisites
+
+| Tool | Version | Install |
+|------|---------|---------|
+| Terraform | >= 1.9 | [terraform.io](https://developer.hashicorp.com/terraform/install) |
+| Azure CLI | >= 2.60 | `brew install azure-cli` |
+| kubectl | >= 1.28 | `brew install kubectl` |
+| Helm | >= 3.14 | `brew install helm` |
+| Docker | >= 24.0 | [docker.com](https://docs.docker.com/get-docker/) |
+
+## Automated Deployment
+
+A deploy script automates all post-Terraform steps. After `terraform apply` completes:
+
+```bash
+# Full deployment (creates namespaces, secrets, databases, images, helm charts)
+./infra/azure/scripts/deploy.sh dev
+
+# Preview what will happen
+./infra/azure/scripts/deploy.sh dev --dry-run
+
+# Skip image build (if images already pushed)
+./infra/azure/scripts/deploy.sh dev --skip-images
+
+# Skip Helm deployment (only create secrets/databases)
+./infra/azure/scripts/deploy.sh dev --skip-helm
+```
+
+## Step-by-Step Deployment (Manual)
+
+<Steps>
+
+### Authenticate with Azure
+
+```bash
+az login
+az account set --subscription "YOUR_SUBSCRIPTION_ID"
+az account show
+```
+
+### Bootstrap Terraform State Backend
+
+This creates the Azure Storage Account that holds Terraform state. Run once per Azure subscription.
+
+```bash
+cd infra/azure/shared
+terraform init
+terraform apply
+```
+
+This creates:
+- Resource group `rg-openbeam-tfstate`
+- Storage account `openbeamtfstate`
+- Blob container `tfstate` with state locking
+
+### Configure Dev Environment
+
+```bash
+cd infra/azure/envs/dev
+cp terraform.tfvars.example terraform.tfvars
+```
+
+Edit `terraform.tfvars`:
+
+```hcl
+project_name = "openbeam"
+environment  = "dev"
+location     = "eastus2"
+# domain_name = "dev.openbeam.work"  # Optional
+```
+
+### Deploy Infrastructure
+
+```bash
+terraform init
+terraform plan    # Review what will be created
+terraform apply   # Deploy (~15-20 minutes)
+```
+
+This creates 45 resources:
+- VNet with subnets and private DNS zones
+- AKS cluster with 4 node pools (system, app, search, gpu)
+- PostgreSQL Flexible Server (Burstable B2ms)
+- Azure Cache for Redis (Standard C1)
+- Container Registry (Basic)
+- Blob Storage account
+- Key Vault with workload identities
+- Log Analytics workspace
+
+### Connect to AKS
+
+```bash
+az aks get-credentials \
+  --resource-group $(terraform output -raw resource_group_name) \
+  --name $(terraform output -raw aks_cluster_name)
+
+kubectl get nodes
+```
+
+### Create Namespaces
+
+```bash
+kubectl create namespace openbeam
+kubectl create namespace temporal
+kubectl create namespace vespa
+kubectl create namespace ingress
+kubectl create namespace monitoring
+```
+
+### Create PostgreSQL Databases
+
+Temporal requires separate databases. Create them via a temporary pod:
+
+```bash
+DB_FQDN=$(terraform output -raw database_fqdn)
+DB_PASSWORD=$(az keyvault secret show \
+  --vault-name $(terraform output -raw key_vault_uri | sed 's|https://||;s|\.vault.*||') \
+  --name db-admin-password --query value -o tsv)
+
+for db in openbeam temporal temporal_visibility; do
+  kubectl run "pg-init-$db" -n openbeam --rm -it \
+    --image=postgres:16-alpine --restart=Never \
+    --env="PGPASSWORD=$DB_PASSWORD" \
+    --command -- psql "host=$DB_FQDN port=5432 user=pgadmin dbname=postgres sslmode=require" \
+    -c "CREATE DATABASE $db"
+done
+```
+
+### Create Kubernetes Secrets
+
+```bash
+DB_FQDN=$(terraform output -raw database_fqdn)
+REDIS_HOST=$(terraform output -raw redis_hostname)
+REDIS_KEY=$(az redis list-keys --resource-group $(terraform output -raw resource_group_name) \
+  --name $(echo $REDIS_HOST | cut -d. -f1) --query primaryKey -o tsv)
+
+# Application secrets
+kubectl create secret generic openbeam-secrets -n openbeam \
+  --from-literal=DATABASE_URL="postgresql://pgadmin:${DB_PASSWORD}@${DB_FQDN}:5432/openbeam?sslmode=require" \
+  --from-literal=REDIS_URL="rediss://:${REDIS_KEY}@${REDIS_HOST}:6380" \
+  --from-literal=ENCRYPTION_KEY="$(openssl rand -base64 32)" \
+  --from-literal=JWT_SECRET="$(openssl rand -base64 32)" \
+  --from-literal=KEY_VAULT_URI="$(terraform output -raw key_vault_uri)"
+
+# Temporal DB credentials
+kubectl create secret generic temporal-db-credentials -n temporal \
+  --from-literal=POSTGRES_USER=pgadmin \
+  --from-literal=POSTGRES_PASSWORD="$DB_PASSWORD" \
+  --from-literal=POSTGRES_HOST="$DB_FQDN" \
+  --from-literal=POSTGRES_PORT=5432 \
+  --from-literal=POSTGRES_DB=temporal \
+  --from-literal=VISIBILITY_POSTGRES_DB=temporal_visibility
+```
+
+### Build and Push Images
+
+```bash
+ACR_LOGIN_SERVER=$(terraform output -raw acr_login_server)
+ACR_NAME=$(echo $ACR_LOGIN_SERVER | cut -d'.' -f1)
+az acr login --name $ACR_NAME
+
+# Build and push each service
+for app in web server worker; do
+  docker build -t $ACR_LOGIN_SERVER/openbeam-$app:latest -f apps/$app/Dockerfile .
+  docker push $ACR_LOGIN_SERVER/openbeam-$app:latest
+done
+
+# Engine (Python)
+docker build -t $ACR_LOGIN_SERVER/openbeam-engine:latest -f apps/engine/Dockerfile.cpu .
+docker push $ACR_LOGIN_SERVER/openbeam-engine:latest
+```
+
+### Deploy Infrastructure Helm Charts
+
+```bash
+# Add Helm repos
+helm repo add temporal https://temporalio.github.io/helm-charts
+helm repo add vespa https://unoplat.github.io/vespa-helm-charts
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+
+# Temporal (workflow engine)
+helm install temporal temporal/temporal \
+  -n temporal --create-namespace \
+  -f infra/helm/temporal/values-azure.yaml \
+  --set server.config.persistence.default.sql.host=$(terraform output -raw database_fqdn) \
+  --set server.config.persistence.default.sql.password="$DB_PASSWORD" \
+  --set server.config.persistence.visibility.sql.host=$(terraform output -raw database_fqdn) \
+  --set server.config.persistence.visibility.sql.password="$DB_PASSWORD" \
+  --wait --timeout 10m
+
+# Vespa (search engine)
+helm install vespa vespa/vespa \
+  -n vespa --create-namespace \
+  -f infra/helm/vespa/values-azure.yaml \
+  --wait --timeout 10m
+
+# NGINX Ingress
+helm install ingress-nginx ingress-nginx/ingress-nginx \
+  -n ingress --create-namespace \
+  -f infra/helm/ingress/values-azure.yaml \
+  --wait --timeout 10m
+
+# Monitoring (optional)
+helm install monitoring prometheus-community/kube-prometheus-stack \
+  -n monitoring --create-namespace \
+  -f infra/helm/monitoring/values-azure.yaml \
+  --wait --timeout 10m
+```
+
+### Deploy OpenBeam Applications
+
+```bash
+# Get workload identity client IDs
+IDENTITY_IDS=$(terraform output -json identity_client_ids)
+APP_CLIENT_ID=$(echo $IDENTITY_IDS | python3 -c "import sys,json; print(json.load(sys.stdin)['app'])")
+WORKER_CLIENT_ID=$(echo $IDENTITY_IDS | python3 -c "import sys,json; print(json.load(sys.stdin)['worker'])")
+
+# Deploy with Azure values
+helm upgrade --install openbeam k8s/charts/openbeam \
+  -n openbeam --create-namespace \
+  -f infra/helm/apps/values-azure-dev.yaml \
+  --set global.image.registry=$ACR_LOGIN_SERVER \
+  --set serviceAccount.create=true \
+  --set "serviceAccount.workloadIdentities.app.annotations.azure\.workload\.identity/client-id=$APP_CLIENT_ID" \
+  --set "serviceAccount.workloadIdentities.worker.annotations.azure\.workload\.identity/client-id=$WORKER_CLIENT_ID" \
+  --wait --timeout 10m
+```
+
+The server deployment includes an init container that runs `prisma migrate deploy` automatically before the main container starts.
+
+### Verify Deployment
+
+```bash
+# Check all pods are running
+kubectl get pods -A
+
+# Check services
+kubectl get svc -n openbeam
+
+# Check ingress
+kubectl get ingress -n openbeam
+
+# Test health endpoints
+kubectl port-forward svc/openbeam-server 3000:3000 -n openbeam
+curl http://localhost:3000/api/health
+```
+
+</Steps>
+
+## Terraform Modules Reference
+
+| Module | Resources Created |
+|--------|-------------------|
+| `networking` | VNet, 3 subnets, NSG, 5 private DNS zones |
+| `aks` | AKS cluster, node pools, OIDC, workload identity |
+| `database` | PostgreSQL Flexible Server v16, database, extensions |
+| `cache` | Azure Cache for Redis, private endpoint |
+| `storage` | ACR, Storage Account, blob container, private endpoint |
+| `security` | Key Vault, managed identities, federated credentials, RBAC |
+| `monitoring` | Log Analytics workspace, Container Insights |
+| `dns` | Azure DNS zone, A/CNAME records |
+
+## Terraform Outputs
+
+After `terraform apply`, these outputs are available:
+
+| Output | Description |
+|--------|-------------|
+| `acr_login_server` | ACR FQDN (e.g., `openbeamdev.azurecr.io`) |
+| `aks_cluster_name` | AKS cluster name |
+| `database_fqdn` | PostgreSQL server FQDN |
+| `redis_hostname` | Redis cache hostname |
+| `key_vault_uri` | Key Vault URI |
+| `resource_group_name` | Resource group name |
+| `identity_client_ids` | Workload identity client IDs (app, worker, temporal) |
+| `kube_config` | AKS kubeconfig (sensitive) |
+
+## Node Pool Layout
+
+| Pool | VM Size | Priority | Purpose | Scaling |
+|------|---------|----------|---------|---------|
+| system | D2as_v5 | Regular | Ingress, CoreDNS, system pods | 2-3 nodes |
+| app | D4as_v5 | Spot (dev) / Regular (prod) | web, server, worker, engine-cpu | 1-10 nodes |
+| search | E4as_v5 | Regular | Vespa (memory-optimized) | 1-4 nodes |
+| gpu | NC4as_T4_v3 | Spot | engine-gpu (ML inference) | 0-4 nodes |
+
+The GPU pool scales to zero when idle — you only pay when ML inference is active.
+
+## Workload Identity
+
+OpenBeam uses Azure Workload Identity to securely access Key Vault from pods. Terraform creates:
+
+| Identity | K8s Namespace | ServiceAccount | Permissions |
+|----------|---------------|----------------|-------------|
+| `app` | `openbeam` | `openbeam-app` | Key Vault Secrets User |
+| `worker` | `openbeam` | `openbeam-worker` | Key Vault Secrets User |
+| `temporal` | `temporal` | `temporal-server` | Key Vault Secrets User |
+
+The Helm chart creates matching ServiceAccounts with `azure.workload.identity/client-id` annotations.
+
+## Cost Estimates
+
+| Environment | Monthly Estimate |
+|-------------|-----------------|
+| Dev (spot app pool, burstable DB, standard Redis) | ~$540 |
+| Prod (regular pools, HA DB, premium Redis, 3 AZs) | ~$1,800 |
+
+## Upgrading
+
+```bash
+cd infra/azure/envs/dev
+terraform plan    # See what changed
+terraform apply   # Apply changes
+```
+
+AKS node upgrades are handled automatically via the `stable` auto-upgrade channel.
+
+## Destroying
+
+```bash
+cd infra/azure/envs/dev
+terraform destroy
+```
+
+This removes all resources. The state backend in `shared/` is preserved separately.

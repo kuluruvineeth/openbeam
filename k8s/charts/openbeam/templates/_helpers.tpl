@@ -67,3 +67,11 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- define "openbeam.engineName" -}}
 {{- printf "%s-engine" (include "openbeam.fullname" .) -}}
 {{- end -}}
+
+{{- define "openbeam.image" -}}
+{{- if .global.registry -}}
+{{ .global.registry }}/{{ .image.repository }}:{{ .image.tag | default "latest" }}
+{{- else -}}
+{{ .image.repository }}:{{ .image.tag | default "latest" }}
+{{- end -}}
+{{- end -}}

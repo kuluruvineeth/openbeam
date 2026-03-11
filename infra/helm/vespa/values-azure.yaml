@@ -1,0 +1,50 @@
+replicaCount: 1
+
+persistence:
+  enabled: true
+  size: 20Gi
+  storageClass: managed-csi
+
+resources:
+  requests:
+    cpu: "500m"
+    memory: 1Gi
+  limits:
+    cpu: "1"
+    memory: 2Gi
+
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  runAsUser: 1000
+
+tolerations:
+  - key: "kubernetes.azure.com/scalesetpriority"
+    operator: "Equal"
+    value: "spot"
+    effect: "NoSchedule"
+
+service:
+  type: ClusterIP
+  ports:
+    - name: vespa-http
+      port: 8080
+      targetPort: 8080
+    - name: vespa-config
+      port: 19071
+      targetPort: 19071
+
+livenessProbe:
+  httpGet:
+    path: /state/v1/health
+    port: 8080
+  initialDelaySeconds: 120
+  periodSeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /state/v1/health
+    port: 8080
+  initialDelaySeconds: 90
+  periodSeconds: 5

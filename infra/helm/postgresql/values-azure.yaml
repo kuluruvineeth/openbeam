@@ -1,0 +1,38 @@
+# In-cluster PostgreSQL for dev/pilot
+# Used because Azure PostgreSQL Flexible Server is subscription-restricted
+# For production: request quota increase at https://aka.ms/postgres-request-quota-increase
+
+auth:
+  username: pgadmin
+  database: openbeam
+  existingSecret: postgresql-credentials
+  secretKeys:
+    adminPasswordKey: password
+    userPasswordKey: password
+
+primary:
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: managed-csi
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+  extendedConfiguration: |
+    max_connections = 100
+    shared_buffers = 128MB
+    work_mem = 4MB
+    maintenance_work_mem = 64MB
+    effective_cache_size = 256MB
+
+# Additional databases created via initdb scripts
+primary:
+  initdb:
+    scripts:
+      create-databases.sql: |
+        CREATE DATABASE temporal;
+        CREATE DATABASE temporal_visibility;

@@ -35,12 +35,23 @@ spec:
               value: "true"
             - name: BIND_ON_IP
               value: "0.0.0.0"
+          startupProbe:
+            tcpSocket:
+              port: 7233
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 18
           readinessProbe:
             tcpSocket:
               port: 7233
             initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: 7233
+            periodSeconds: 30
+            failureThreshold: 3
           resources:
             requests:
               cpu: 200m

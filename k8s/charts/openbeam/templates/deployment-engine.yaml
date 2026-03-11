@@ -26,9 +26,10 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      serviceAccountName: {{ .Values.serviceAccount.workloadIdentities.app.name | default "default" }}
       containers:
         - name: engine
-          image: {{ printf "%s:%s" .Values.services.engine.image.repository .Values.services.engine.image.tag | quote }}
+          image: {{ include "openbeam.image" (dict "global" .Values.global.image "image" .Values.services.engine.image) | quote }}
           imagePullPolicy: {{ .Values.services.engine.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.services.engine.service.targetPort }}

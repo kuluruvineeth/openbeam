@@ -58,7 +58,6 @@ test-results/
 !packages/*/README.md
 
 # Docker files
-Dockerfile*
 .dockerignore
 docker-compose*.yml
 
@@ -98,6 +97,19 @@ apps/engine/.pytest_cache/
 apps/engine/.ruff_cache/
 apps/engine/logs/
 apps/engine/k8s/
+
+# Apps not needed in server/web/worker builds
+apps/desktop/
+apps/mobile/
+apps/docs/
+apps/website/
+apps/cli/
+apps/voice/
+apps/sandbox-gateway/
+apps/gateway/
+apps/extension/
+apps/daemon/
+apps/engine/
 
 # Other large artifacts
 *.tar

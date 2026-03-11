@@ -26,9 +26,10 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      serviceAccountName: {{ .Values.serviceAccount.workloadIdentities.worker.name | default "default" }}
       containers:
         - name: worker
-          image: {{ printf "%s:%s" .Values.services.worker.image.repository .Values.services.worker.image.tag | quote }}
+          image: {{ include "openbeam.image" (dict "global" .Values.global.image "image" .Values.services.worker.image) | quote }}
           imagePullPolicy: {{ .Values.services.worker.image.pullPolicy }}
           ports:
             - name: metrics

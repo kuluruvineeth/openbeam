@@ -1,0 +1,14 @@
+# Project configuration
+project_name = "openbeam"
+environment  = "dev"
+location     = "eastus2"
+
+# Optional: set to enable DNS zone management
+# domain_name = "dev.openbeam.example.com"
+
+# Resource tags
+tags = {
+  project     = "openbeam"
+  environment = "dev"
+  managed_by  = "terraform"
+}

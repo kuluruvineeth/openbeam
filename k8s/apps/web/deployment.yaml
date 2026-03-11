@@ -29,25 +29,28 @@ spec:
             - name: NEXT_PUBLIC_WEB_URL
               value: "http://localhost:3001"
             - name: NEXT_PUBLIC_SERVER_URL
-              value: "http://server:3000"
+              value: "http://localhost:3000"
             - name: SERVER_INTERNAL_URL
               value: "http://server:3000"
             - name: NODE_OPTIONS
               value: "--max-old-space-size=4608"
           startupProbe:
-            tcpSocket:
+            httpGet:
+              path: /
               port: 3001
             initialDelaySeconds: 15
             periodSeconds: 5
             failureThreshold: 60
             timeoutSeconds: 5
           readinessProbe:
-            tcpSocket:
+            httpGet:
+              path: /
               port: 3001
             periodSeconds: 10
             timeoutSeconds: 5
           livenessProbe:
-            tcpSocket:
+            httpGet:
+              path: /
               port: 3001
             periodSeconds: 30
             timeoutSeconds: 5

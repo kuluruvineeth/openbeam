@@ -26,7 +26,7 @@ env:
   WEB_URL: "http://localhost:3101"
   SERVER_URL: "http://localhost:3000"
   CORS_ORIGIN: "http://localhost:3101"
-  SANDBOX_API_BASE_URL: "http://sandbox-gateway"
+  SANDBOX_API_BASE_URL: "http://sandbox-gateway:3800"
   SANDBOX_DEFAULT_PROVIDER: "daytona"
   SANDBOX_REQUIRE_TEAM_ID: "true"
   SANDBOX_RATE_LIMIT_ENABLED: "true"
@@ -201,7 +201,7 @@ services:
       CPU_LOG_LEVEL: "DEBUG"
       CPU_ENVIRONMENT: "development"
       CPU_REDIS_URL: "redis://redis:6379"
-      SECURITY_REQUIRE_AUTH: "false"
+      SECURITY_REQUIRE_AUTH: "true"
       CPU_WORKERS: "1"
       SCARF_NO_ANALYTICS: "true"
       DO_NOT_TRACK: "true"
@@ -282,3 +282,25 @@ daytona:
         tls: false
     sshGateway:
       enabled: false
+
+# --- Azure AKS Support ---
+global:
+  image:
+    registry: ""
+
+serviceAccount:
+  create: false
+  workloadIdentities:
+    app:
+      name: openbeam-app
+      annotations: {}
+    worker:
+      name: openbeam-worker
+      annotations: {}
+
+ingress:
+  enabled: false
+  className: nginx
+  annotations: {}
+  hosts: []
+  tls: []

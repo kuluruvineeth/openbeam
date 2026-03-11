@@ -4,15 +4,14 @@ RUN bun add -g turbo@2.5.4
 COPY . .
 RUN turbo prune web --docker
 
-FROM ghcr.io/kuluruvineeth/openbeam-base:latest AS deps
+FROM openbeamdevacr.azurecr.io/openbeam-base:latest AS deps
 WORKDIR /app
 COPY --from=pruner /app/out/full/ .
 ARG HUGEICONS_PRO_AUTH_TOKEN
 RUN if [ -n "$HUGEICONS_PRO_AUTH_TOKEN" ]; then \
       printf "@hugeicons-pro:registry=https://npm.hugeicons.com/\n//npm.hugeicons.com/:_authToken=%s\n" "$HUGEICONS_PRO_AUTH_TOKEN" > .npmrc; \
     fi
-RUN --mount=type=cache,target=/root/.bun/install/cache \
-    bun install --no-progress && rm -f .npmrc
+RUN bun install --no-progress && rm -f .npmrc
 
 FROM deps AS prisma
 WORKDIR /app
@@ -20,11 +19,11 @@ RUN cd packages/db && bun run db:generate
 
 FROM prisma AS builder
 WORKDIR /app
-ARG NEXT_PUBLIC_SERVER_URL
-ARG NEXT_PUBLIC_WEB_URL
-ARG SERVER_INTERNAL_URL
-ARG NEXT_PUBLIC_POSTHOG_KEY
-ARG NEXT_PUBLIC_POSTHOG_HOST
+ARG NEXT_PUBLIC_SERVER_URL=http://localhost:3000
+ARG NEXT_PUBLIC_WEB_URL=http://localhost:3001
+ARG SERVER_INTERNAL_URL=http://localhost:3000
+ARG NEXT_PUBLIC_POSTHOG_KEY=placeholder
+ARG NEXT_PUBLIC_POSTHOG_HOST=http://localhost:3001
 ENV NEXT_PUBLIC_SERVER_URL=${NEXT_PUBLIC_SERVER_URL} \
     NEXT_PUBLIC_WEB_URL=${NEXT_PUBLIC_WEB_URL} \
     SERVER_INTERNAL_URL=${SERVER_INTERNAL_URL} \

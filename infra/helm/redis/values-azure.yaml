@@ -1,0 +1,30 @@
+# In-cluster Redis for dev/pilot
+# Saves ~$25/mo vs Azure Redis PaaS
+
+architecture: standalone
+
+auth:
+  enabled: true
+  existingSecret: redis-credentials
+  existingSecretPasswordKey: password
+
+master:
+  persistence:
+    enabled: true
+    size: 2Gi
+    storageClass: managed-csi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  configuration: |
+    maxmemory 200mb
+    maxmemory-policy allkeys-lru
+    save 900 1
+    save 300 10
+
+replica:
+  replicaCount: 0

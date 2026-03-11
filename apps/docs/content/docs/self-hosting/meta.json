@@ -4,6 +4,7 @@
   "pages": [
     "index",
     "docker-compose",
+    "kubernetes",
     "configuration",
     "services",
     "monitoring",
