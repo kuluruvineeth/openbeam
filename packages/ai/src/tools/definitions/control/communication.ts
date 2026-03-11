@@ -36,7 +36,10 @@ RETURNS: Confirmation that the message was delivered.`,
     }
 
     if (params.issueId) {
-      const comment = await ctx.services.controlIssues?.comment({
+      if (!ctx.services.controlIssues) {
+        return failure("INVALID_STATE", "Control issues service not available");
+      }
+      const comment = await ctx.services.controlIssues.comment({
         teamId: ctx.teamId,
         issueId: params.issueId,
         body: params.message,
@@ -49,7 +52,10 @@ RETURNS: Confirmation that the message was delivered.`,
     }
 
     if (params.wakeTarget) {
-      const result = await ctx.services.controlAgents?.wake({
+      if (!ctx.services.controlAgents) {
+        return failure("INVALID_STATE", "Control agents service not available");
+      }
+      const result = await ctx.services.controlAgents.wake({
         teamId: ctx.teamId,
         agentId: params.targetAgentId,
         reason: "Message from agent",
@@ -66,7 +72,10 @@ RETURNS: Confirmation that the message was delivered.`,
       });
     }
 
-    const comment = await ctx.services.controlIssues?.comment({
+    if (!ctx.services.controlIssues) {
+      return failure("INVALID_STATE", "Control issues service not available");
+    }
+    const comment = await ctx.services.controlIssues.comment({
       teamId: ctx.teamId,
       issueId: params.targetAgentId,
       body: `@${params.targetAgentId} ${params.message}`,
@@ -115,7 +124,13 @@ RETURNS: Approval request ID for tracking the escalation.`,
     if (!ctx.teamId) {
       return failure("UNAUTHORIZED", "Team context required");
     }
-    const approval = await ctx.services.controlApprovals?.request({
+    if (!ctx.services.controlApprovals) {
+      return failure(
+        "INVALID_STATE",
+        "Control approvals service not available"
+      );
+    }
+    const approval = await ctx.services.controlApprovals.request({
       teamId: ctx.teamId,
       action: `Escalation: ${params.subject}`,
       reason: params.reason,

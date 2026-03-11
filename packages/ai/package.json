@@ -44,6 +44,7 @@
     "@ai-sdk/openai": "^3.0.2",
     "@openbeam/db": "workspace:*",
     "@openbeam/redis": "workspace:*",
+    "@openbeam/services": "workspace:*",
     "@openbeam/sandbox": "workspace:*",
     "@openbeam/types": "workspace:*",
     "ai": "^6.0.6",

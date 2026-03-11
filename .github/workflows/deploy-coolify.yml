@@ -169,7 +169,7 @@ jobs:
     if: always() && needs.build.result == 'success'
     runs-on: ubuntu-latest
     steps:
-      - name: Pull and redeploy on Hetzner
+      - name: Pull and restart on Hetzner
         env:
           SSH_PRIVATE_KEY: ${{ secrets.HETZNER_SSH_KEY }}
           SERVER_IP: ${{ secrets.HETZNER_SERVER_IP }}
@@ -179,25 +179,8 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H "$SERVER_IP" >> ~/.ssh/known_hosts 2>/dev/null
 
-          SERVICES='${{ needs.changes.outputs.services }}'
-          for svc in $(echo "$SERVICES" | jq -r '.[]'); do
-            echo "Pulling ghcr.io/kuluruvineeth/openbeam-${svc}:latest..."
-            ssh -o ServerAliveInterval=30 "root@$SERVER_IP" \
-              "docker pull ghcr.io/kuluruvineeth/openbeam-${svc}:latest" || true
-          done
-
-      - name: Trigger Coolify redeploy
-        run: |
-          HTTP_CODE=$(curl -s -o /tmp/response.txt -w '%{http_code}' \
-            --request GET "${{ secrets.COOLIFY_WEBHOOK_APPS }}" \
-            --header "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}")
-
-          if [[ "$HTTP_CODE" -ge 200 && "$HTTP_CODE" -lt 300 ]]; then
-            echo "Coolify deploy triggered (HTTP $HTTP_CODE)"
-          else
-            echo "::warning::Coolify webhook returned HTTP $HTTP_CODE"
-            cat /tmp/response.txt
-          fi
+          ssh -o ServerAliveInterval=30 "root@$SERVER_IP" \
+            "cd /data/openbeam && docker compose pull && docker compose up -d --force-recreate"
 
       - name: Verify deployment
         run: |

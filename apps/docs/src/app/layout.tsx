@@ -1,8 +1,8 @@
-import { DocsAnalyticsProvider } from "@/components/analytics-provider";
 import { RootProvider } from "fumadocs-ui/provider/next";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import localFont from "next/font/local";
+import { DocsAnalyticsProvider } from "@/components/analytics-provider";
 import "./global.css";
 
 const F37Stout = localFont({

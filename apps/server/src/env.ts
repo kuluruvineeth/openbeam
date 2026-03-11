@@ -21,10 +21,7 @@ export const env = createEnv({
     GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
 
     VESPA_URL: z.string().url().optional().default("http://localhost:8080"),
-    TEMPORAL_ADDRESS: z
-      .string()
-      .optional()
-      .default("http://localhost:7233"),
+    TEMPORAL_ADDRESS: z.string().optional().default("http://localhost:7233"),
     WORKER_METRICS_URL: z
       .string()
       .url()
@@ -45,10 +42,7 @@ export const env = createEnv({
       .transform((v) => v === "true"),
     OTEL_EXPORTER_OTLP_ENDPOINT: z.string().url().optional(),
 
-    DOCUMENTS_GAUGE_REFRESH_MS: z.coerce
-      .number()
-      .optional()
-      .default(60_000),
+    DOCUMENTS_GAUGE_REFRESH_MS: z.coerce.number().optional().default(60_000),
 
     X402_ENABLED: z
       .enum(["true", "false"])

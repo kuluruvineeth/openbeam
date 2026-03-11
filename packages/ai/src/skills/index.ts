@@ -42,7 +42,7 @@ export {
 
 function getBuiltinSkillsPath(): string {
   try {
-    const currentDir = fileURLToPath(new URL(".", import.meta.url));
+    const currentDir = fileURLToPath(new URL(".", import.meta.url).href);
     return join(currentDir, "definitions");
   } catch {
     return join(__dirname, "definitions");

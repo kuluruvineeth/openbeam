@@ -30,7 +30,13 @@ RETURNS: Knowledge file content, or a listing of available knowledge files.`,
     if (!ctx.teamId) {
       return failure("UNAUTHORIZED", "Team context required");
     }
-    const result = await ctx.services.controlKnowledge?.query({
+    if (!ctx.services.controlKnowledge) {
+      return failure(
+        "INVALID_STATE",
+        "Control knowledge service not available"
+      );
+    }
+    const result = await ctx.services.controlKnowledge.query({
       teamId: ctx.teamId,
       path: params.path,
     });

@@ -27,14 +27,23 @@ export function createAgentResourceServices(
         orderBy: { createdAt: "desc" },
       });
 
-      return connectors.map((c) => ({
-        id: c.id,
-        name: c.name ?? c.app,
-        type: c.app,
-        status: c.status.toLowerCase(),
-        documentCount: c._count.indexedDocuments,
-        lastSyncAt: c.lastSyncedAt,
-      }));
+      return connectors.map(
+        (c: {
+          id: string;
+          name: string | null;
+          app: string;
+          status: string;
+          lastSyncedAt: Date | null;
+          _count: { indexedDocuments: number };
+        }) => ({
+          id: c.id,
+          name: c.name ?? c.app,
+          type: c.app,
+          status: c.status.toLowerCase(),
+          documentCount: c._count.indexedDocuments,
+          lastSyncAt: c.lastSyncedAt,
+        })
+      );
     },
 
     async getRecentDocuments(teamId: string, hours: number) {
@@ -55,12 +64,19 @@ export function createAgentResourceServices(
         take: 100,
       });
 
-      return documents.map((d) => ({
-        id: d.id,
-        title: d.title ?? "Untitled",
-        sourceType: d.connector.app,
-        updatedAt: d.lastSyncedAt ?? new Date(),
-      }));
+      return documents.map(
+        (d: {
+          id: string;
+          title: string | null;
+          connector: { app: string };
+          lastSyncedAt: Date | null;
+        }) => ({
+          id: d.id,
+          title: d.title ?? "Untitled",
+          sourceType: d.connector.app,
+          updatedAt: d.lastSyncedAt ?? new Date(),
+        })
+      );
     },
 
     async getTeamProfile(teamId: string) {
@@ -156,12 +172,14 @@ export function createAgentResourceServices(
         }),
       ]);
 
+      type ConnectorStat = { status: string; _count: { id: number } };
       const connectorCount = connectorStats.reduce(
-        (sum, s) => sum + s._count.id,
+        (sum: number, s: ConnectorStat) => sum + s._count.id,
         0
       );
       const activeConnectors =
-        connectorStats.find((s) => s.status === "ACTIVE")?._count.id ?? 0;
+        connectorStats.find((s: ConnectorStat) => s.status === "ACTIVE")?._count
+          .id ?? 0;
 
       const lastSync = await db.connector.findFirst({
         where: { teamId, lastSyncedAt: { not: null } },
@@ -255,13 +273,15 @@ export function createAgentResourceServices(
         return null;
       }
 
-      const results = searchImpression.resultDocIds.map((docId, index) => ({
-        id: docId,
-        title: `Document ${index + 1}`,
-        snippet: "",
-        score: 1 - index * 0.1,
-        sourceType: "unknown",
-      }));
+      const results = searchImpression.resultDocIds.map(
+        (docId: string, index: number) => ({
+          id: docId,
+          title: `Document ${index + 1}`,
+          snippet: "",
+          score: 1 - index * 0.1,
+          sourceType: "unknown",
+        })
+      );
 
       return {
         query: searchImpression.query,
@@ -345,17 +365,30 @@ export function createAgentResourceServices(
         },
       });
 
-      return history.map((h) => ({
-        id: h.id,
-        status: h.status.toLowerCase(),
-        startedAt: h.startedAt,
-        completedAt: h.finishedAt,
-        documentsProcessed: h.dataAdded + h.dataUpdated + h.dataDeleted,
-        documentsAdded: h.dataAdded,
-        documentsUpdated: h.dataUpdated,
-        documentsDeleted: h.dataDeleted,
-        errorMessage: h.errorMessage,
-      }));
+      return history.map(
+        (h: {
+          id: string;
+          status: string;
+          startedAt: Date;
+          finishedAt: Date | null;
+          dataAdded: number;
+          dataUpdated: number;
+          dataDeleted: number;
+          dataSkipped: number;
+          dataFailed: number;
+          errorMessage: string | null;
+        }) => ({
+          id: h.id,
+          status: h.status.toLowerCase(),
+          startedAt: h.startedAt,
+          completedAt: h.finishedAt,
+          documentsProcessed: h.dataAdded + h.dataUpdated + h.dataDeleted,
+          documentsAdded: h.dataAdded,
+          documentsUpdated: h.dataUpdated,
+          documentsDeleted: h.dataDeleted,
+          errorMessage: h.errorMessage,
+        })
+      );
     },
   };
 }

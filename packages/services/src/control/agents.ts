@@ -441,7 +441,7 @@ export async function getControlAgentChainOfCommand(
   return chain;
 }
 
-interface OrgNode {
+export interface OrgNode {
   id: string;
   name: string;
   role: string;

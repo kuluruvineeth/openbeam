@@ -507,6 +507,7 @@
         "@openbeam/db": "workspace:*",
         "@openbeam/redis": "workspace:*",
         "@openbeam/sandbox": "workspace:*",
+        "@openbeam/services": "workspace:*",
         "@openbeam/types": "workspace:*",
         "ai": "^6.0.6",
         "exa-js": "^2.3.0",

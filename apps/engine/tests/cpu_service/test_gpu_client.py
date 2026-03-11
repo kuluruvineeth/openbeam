@@ -24,7 +24,7 @@ class TestGPUClientEncode:
             "usage": {"total_tokens": 5, "latency_ms": 50.0},
         }
 
-        respx.post("http://localhost:8001/embeddings").mock(
+        respx.post("http://localhost:8001/v1/embeddings").mock(
             return_value=Response(200, json=mock_response)
         )
 
@@ -44,7 +44,7 @@ class TestGPUClientEncode:
             "usage": {"total_tokens": 3, "latency_ms": 60.0},
         }
 
-        respx.post("http://localhost:8001/embeddings").mock(
+        respx.post("http://localhost:8001/v1/embeddings").mock(
             return_value=Response(200, json=mock_response)
         )
 
@@ -55,7 +55,7 @@ class TestGPUClientEncode:
     @respx.mock
     @pytest.mark.asyncio
     async def test_encode_server_error(self, gpu_client: GPUClient):
-        respx.post("http://localhost:8001/embeddings").mock(
+        respx.post("http://localhost:8001/v1/embeddings").mock(
             return_value=Response(500, text="Internal Server Error")
         )
 
@@ -79,7 +79,7 @@ class TestGPUClientRerank:
             "usage": {"latency_ms": 30.0},
         }
 
-        respx.post("http://localhost:8001/rerank").mock(
+        respx.post("http://localhost:8001/v1/rerank").mock(
             return_value=Response(200, json=mock_response)
         )
 
@@ -98,7 +98,7 @@ class TestGPUClientRerank:
             "usage": {"latency_ms": 25.0},
         }
 
-        respx.post("http://localhost:8001/rerank").mock(
+        respx.post("http://localhost:8001/v1/rerank").mock(
             return_value=Response(200, json=mock_response)
         )
 
@@ -126,7 +126,7 @@ class TestGPUClientEntities:
             "usage": {"latency_ms": 40.0},
         }
 
-        respx.post("http://localhost:8001/entities").mock(
+        respx.post("http://localhost:8001/v1/entities").mock(
             return_value=Response(200, json=mock_response)
         )
 
@@ -145,7 +145,7 @@ class TestGPUClientEntities:
             "usage": {"latency_ms": 35.0},
         }
 
-        respx.post("http://localhost:8001/entities").mock(
+        respx.post("http://localhost:8001/v1/entities").mock(
             return_value=Response(200, json=mock_response)
         )
 
@@ -164,7 +164,7 @@ class TestGPUClientHealth:
     async def test_health_check(self, gpu_client: GPUClient):
         mock_response = {"status": "healthy", "version": "0.2.0"}
 
-        respx.get("http://localhost:8001/health").mock(
+        respx.get("http://localhost:8001/v1/health").mock(
             return_value=Response(200, json=mock_response)
         )
 

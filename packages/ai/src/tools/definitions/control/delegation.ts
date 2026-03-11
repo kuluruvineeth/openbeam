@@ -42,7 +42,13 @@ RETURNS: Approval request ID. The agent is not created until the request is appr
     if (!ctx.teamId) {
       return failure("UNAUTHORIZED", "Team context required");
     }
-    const approval = await ctx.services.controlApprovals?.request({
+    if (!ctx.services.controlApprovals) {
+      return failure(
+        "INVALID_STATE",
+        "Control approvals service not available"
+      );
+    }
+    const approval = await ctx.services.controlApprovals.request({
       teamId: ctx.teamId,
       action: `Spawn agent: ${params.name} (${params.role})`,
       reason: params.reason,
@@ -100,7 +106,10 @@ RETURNS: Wakeup request confirmation with the delegated task details.`,
     if (!ctx.teamId) {
       return failure("UNAUTHORIZED", "Team context required");
     }
-    const result = await ctx.services.controlAgents?.wake({
+    if (!ctx.services.controlAgents) {
+      return failure("INVALID_STATE", "Control agents service not available");
+    }
+    const result = await ctx.services.controlAgents.wake({
       teamId: ctx.teamId,
       agentId: params.agentId,
       reason: `Delegated task: ${params.task}`,
