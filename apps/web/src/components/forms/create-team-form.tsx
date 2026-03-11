@@ -64,7 +64,7 @@ export function CreateTeamForm() {
   }
 
   return (
-    <Form {...form}>
+    <Form {...(form as never)}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <FormField
           control={form.control}
