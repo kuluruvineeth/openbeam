@@ -37,7 +37,7 @@
   },
   "scripts": {
     "build": "tsdown",
-    "check-types": "tsc -b",
+    "check-types": "tsc --noEmit",
     "test": "vitest run",
     "test:integration": "vitest run -c vitest.integration.config.ts"
   },

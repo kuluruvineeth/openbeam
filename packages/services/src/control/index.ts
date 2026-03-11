@@ -35,6 +35,7 @@ export {
   listControlAgentApiKeysForTeam,
   listControlAgentConfigRevisionsForTeam,
   listControlAgentsForTeam,
+  type OrgNode,
   pauseControlAgentForTeam,
   removeControlAgentForTeam,
   resumeControlAgentForTeam,

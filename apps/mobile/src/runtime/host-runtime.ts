@@ -448,6 +448,7 @@ export class HostRuntimeController {
   private switchCandidateConnectionId: string | null = null;
   private switchCandidateHitCount = 0;
   private clientSessionKeyPromise: Promise<string> | null = null;
+  private clientSessionKeyHash: string | null = null;
   private switchRequestVersion = 0;
   private probeRequestVersion = 0;
 

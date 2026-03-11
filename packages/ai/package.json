@@ -61,6 +61,7 @@
     "typescript": "^5.9.3"
   },
   "peerDependencies": {
+    "@openbeam/services": "workspace:*",
     "typescript": "^5"
   }
 }
