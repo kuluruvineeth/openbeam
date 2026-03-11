@@ -86,7 +86,7 @@ export async function callToolHandler(c: Context<AuthEnv>) {
     return c.json({ error: "team_id is required" }, 401);
   }
 
-  const name = c.req.param("name");
+  const name = c.req.param("name") ?? "";
   const body = await c.req.json<{ arguments?: Record<string, unknown> }>();
 
   if (paymentConfig.enabled) {
@@ -187,7 +187,7 @@ export async function readResourceHandler(c: Context<AuthEnv>) {
     return c.json({ error: "team_id is required" }, 401);
   }
 
-  const uri = c.req.param("uri");
+  const uri = c.req.param("uri") ?? "";
   const decodedUri = decodeURIComponent(uri);
   const context = buildMCPContext(c);
   await ensureInitialized(context);
