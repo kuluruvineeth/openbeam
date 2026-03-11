@@ -4,7 +4,7 @@ import type { MediaInputType, MediaMetadata, MediaSegment } from "./types";
 
 export class TwelveLabsClient {
   private client: TwelveLabs | null = null;
-  private readonly modelName: string;
+  private readonly modelName: "marengo3.0" | "marengo2.7";
 
   constructor(options: { modelName?: "marengo3.0" | "marengo2.7" } = {}) {
     this.modelName = options.modelName ?? "marengo3.0";
@@ -178,7 +178,7 @@ export class TwelveLabsClient {
       inputType === "audio"
         ? await client.embed.v2.create({
             inputType: "audio",
-            modelName: this.modelName,
+            modelName: this.modelName as "marengo3.0",
             audio: {
               mediaSource: { url: mediaUrl },
               segmentation,
@@ -190,7 +190,7 @@ export class TwelveLabsClient {
           })
         : await client.embed.v2.create({
             inputType: "video",
-            modelName: this.modelName,
+            modelName: this.modelName as "marengo3.0",
             video: {
               mediaSource: { url: mediaUrl },
               segmentation,
@@ -238,7 +238,7 @@ export class TwelveLabsClient {
     if (inputType === "audio") {
       return client.embed.v2.tasks.create({
         inputType: "audio",
-        modelName: this.modelName,
+        modelName: this.modelName as "marengo3.0",
         audio: {
           mediaSource: { url: mediaUrl },
           segmentation,
@@ -252,7 +252,7 @@ export class TwelveLabsClient {
 
     return client.embed.v2.tasks.create({
       inputType: "video",
-      modelName: this.modelName,
+      modelName: this.modelName as "marengo3.0",
       video: {
         mediaSource: { url: mediaUrl },
         segmentation,
@@ -350,7 +350,7 @@ export class TwelveLabsClient {
 
     const response = await client.embed.v2.create({
       inputType: "text",
-      modelName: this.modelName,
+      modelName: this.modelName as "marengo3.0",
       text: { inputText: query },
     });
 
