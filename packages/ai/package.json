@@ -57,6 +57,7 @@
   },
   "devDependencies": {
     "@openbeam/config": "workspace:*",
+    "@openbeam/services": "workspace:*",
     "tsdown": "^0.15.12",
     "typescript": "^5.9.3"
   },
