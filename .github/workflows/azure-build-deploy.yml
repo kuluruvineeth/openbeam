@@ -311,6 +311,9 @@ jobs:
       - name: Setup Helm
         uses: azure/setup-helm@v4
 
+      - name: Build Helm dependencies
+        run: helm dependency build ${{ env.HELM_CHART_PATH }}
+
       - name: Run database migrations
         if: needs.changes.outputs.has_migration == 'true'
         run: |
