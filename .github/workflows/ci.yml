@@ -185,7 +185,6 @@ jobs:
             packages/integrations \
             packages/media \
             packages/observability \
-            packages/orchestrations \
             packages/redis \
             packages/relay \
             packages/services \
@@ -196,9 +195,14 @@ jobs:
             packages/edge-core \
             packages/edge-search \
             packages/edge-ai \
-            apps/web \
             apps/server \
             apps/docs
+
+      - name: Run orchestrations tests (isolated from mock.module contamination)
+        run: bun test packages/orchestrations
+
+      - name: Run web tests (isolated from prosemirror-view DOM side effects)
+        run: bun test apps/web
 
       - name: Run AI package tests (isolated to avoid mock.module contamination)
         run: |
