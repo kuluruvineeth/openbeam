@@ -50,7 +50,7 @@ export function AgenticViewHeader({
           .queryKey,
       });
       queryClient.invalidateQueries({
-        queryKey: trpc.agentCanvas.list.infiniteQueryOptions({}).queryKey,
+        queryKey: trpc.agentCanvas.list.infiniteQueryOptions({}, {}).queryKey,
       });
     },
     onError: (error) => {
