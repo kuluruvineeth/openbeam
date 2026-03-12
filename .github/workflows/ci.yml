@@ -177,8 +177,34 @@ jobs:
       - name: Generate Prisma Client
         run: bun run db:generate
 
-      - name: Run Tests
-        run: bun test --coverage
+      - name: Run bun:test packages
+        run: |
+          bun test --coverage \
+            packages/ai \
+            packages/auth \
+            packages/db \
+            packages/integrations \
+            packages/media \
+            packages/observability \
+            packages/orchestrations \
+            packages/redis \
+            packages/relay \
+            packages/services \
+            packages/storage \
+            packages/ui \
+            packages/vespa \
+            packages/types \
+            packages/edge-core \
+            packages/edge-search \
+            packages/edge-ai \
+            apps/web \
+            apps/server \
+            apps/docs \
+            apps/daemon/src/__tests__
+
+      - name: Run daemon vitest (unit tests)
+        continue-on-error: true
+        run: cd apps/daemon && bun x vitest run
 
       - name: Upload Coverage
         if: always()

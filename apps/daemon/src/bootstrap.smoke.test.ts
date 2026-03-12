@@ -6,7 +6,7 @@ import { describe, expect, test } from "vitest";
 
 import { createOpenBeamDaemon, type OpenBeamDaemonConfig } from "./bootstrap";
 import { createTestAgentClients } from "./test-utils/fake-agent-client";
-import { createTestOpenBeamDaemon } from "./test-utils/openbeam-daemon";
+import { createTestOpenBeamDaemon } from "./test-utils/openplane-daemon";
 
 describe("openbeam daemon bootstrap", () => {
   test("starts and serves health endpoint", async () => {

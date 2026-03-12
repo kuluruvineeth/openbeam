@@ -1,5 +1,5 @@
+import { resolveOpenBeamHome } from "../src/openplane-home";
 import { createRootLogger } from "../src/server/logger";
-import { resolveOpenBeamHome } from "../src/server/openbeam-home";
 import {
   DEFAULT_LOCAL_STT_MODEL,
   DEFAULT_LOCAL_TTS_MODEL,

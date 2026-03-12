@@ -8,7 +8,7 @@ import pino from "pino";
 import { describe, expect, test } from "vitest";
 import WebSocket from "ws";
 import { buildRelayWebSocketUrl } from "../shared/daemon-endpoints";
-import { createTestOpenBeamDaemon } from "../test-utils/openbeam-daemon";
+import { createTestOpenBeamDaemon } from "../test-utils/openplane-daemon";
 
 const nodeMajor = Number((process.versions.node ?? "0").split(".")[0] ?? "0");
 const shouldRunRelayE2e = process.env.FORCE_RELAY_E2E === "1" || nodeMajor < 25;

@@ -9,7 +9,7 @@ import { ClaudeAgentClient } from "../agent/providers/claude-agent";
 import { CodexAppServerAgentClient } from "../agent/providers/codex-app-server-agent";
 import { OpenCodeAgentClient } from "../agent/providers/opencode-agent";
 import { DaemonClient } from "../test-utils/daemon-client";
-import { createTestOpenBeamDaemon } from "../test-utils/openbeam-daemon";
+import { createTestOpenBeamDaemon } from "../test-utils/openplane-daemon";
 import {
   type AgentProvider,
   allProviders,

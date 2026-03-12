@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import pino from "pino";
 import { afterEach, describe, expect, test } from "vitest";
 
-import { createTestOpenBeamDaemon } from "../test-utils/openbeam-daemon";
+import { createTestOpenBeamDaemon } from "../test-utils/openplane-daemon";
 
 function createCapturingLogger() {
   const lines: string[] = [];

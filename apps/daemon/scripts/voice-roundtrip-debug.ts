@@ -4,7 +4,7 @@ import path from "node:path";
 import pino from "pino";
 import { OpenAITTS } from "../src/server/speech/providers/openai/tts";
 import { DaemonClient } from "../src/server/test-utils/daemon-client";
-import { createTestOpenBeamDaemon } from "../src/server/test-utils/openbeam-daemon";
+import { createTestOpenBeamDaemon } from "../src/server/test-utils/openplane-daemon";
 
 async function streamToBuffer(stream: AsyncIterable<unknown>): Promise<Buffer> {
   const chunks: Buffer[] = [];

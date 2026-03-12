@@ -11,7 +11,7 @@ import net from "node:net";
 import { basename, dirname, join, resolve, sep } from "node:path";
 import { promisify } from "node:util";
 import { createNameId } from "mnemonic-id";
-import { resolveOpenBeamHome } from "../openbeam-home";
+import { resolveOpenBeamHome } from "../openplane-home";
 import {
   normalizeBaseRefName,
   readOpenBeamWorktreeMetadata,

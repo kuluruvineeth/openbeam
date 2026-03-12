@@ -6,7 +6,7 @@ import { describe, expect, test } from "vitest";
 import { isCommandAvailable } from "../agent/provider-launch-config";
 import { ClaudeAgentClient } from "../agent/providers/claude-agent";
 import { DaemonClient } from "../test-utils/daemon-client";
-import { createTestOpenBeamDaemon } from "../test-utils/openbeam-daemon";
+import { createTestOpenBeamDaemon } from "../test-utils/openplane-daemon";
 import { getFullAccessConfig } from "./agent-configs";
 import { applyAgentInputProcessingTransition } from "./send-while-running-stuck-test-utils";
 

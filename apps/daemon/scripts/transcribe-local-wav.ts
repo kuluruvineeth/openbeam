@@ -1,9 +1,8 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-
+import { resolveOpenBeamHome } from "../src/openplane-home";
 import { STTManager } from "../src/server/agent/stt-manager";
 import { createRootLogger } from "../src/server/logger";
-import { resolveOpenBeamHome } from "../src/server/openbeam-home";
 import {
   DEFAULT_LOCAL_STT_MODEL,
   DEFAULT_LOCAL_TTS_MODEL,

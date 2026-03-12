@@ -1,7 +1,7 @@
 import { createOpenBeamDaemon } from "./bootstrap";
 import { loadConfig } from "./config";
 import { createRootLogger } from "./logger";
-import { resolveOpenBeamHome } from "./openbeam-home";
+import { resolveOpenBeamHome } from "./openplane-home";
 import { loadPersistedConfig } from "./persisted-config";
 import { PidLockError } from "./pid-lock";
 

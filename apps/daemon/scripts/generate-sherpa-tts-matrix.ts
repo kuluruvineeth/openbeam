@@ -1,8 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-
+import { resolveOpenBeamHome } from "../src/openplane-home";
 import { createRootLogger } from "../src/server/logger";
-import { resolveOpenBeamHome } from "../src/server/openbeam-home";
 import {
   float32ToPcm16le,
   parsePcmRateFromFormat,

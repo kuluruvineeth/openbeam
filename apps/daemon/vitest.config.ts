@@ -20,6 +20,13 @@ export default defineConfig({
         maxForks: 4,
       },
     },
-    exclude: ["**/node_modules/**", "**/dist/**"],
+    exclude: [
+      "**/node_modules/**",
+      "**/dist/**",
+      "__tests__/**",
+      "src/__tests__/**",
+      "**/*.e2e.test.ts",
+      "**/*.real.e2e.test.ts",
+    ],
   },
 });

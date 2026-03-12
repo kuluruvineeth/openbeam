@@ -11,7 +11,7 @@ import {
 const createdDirs: string[] = [];
 
 function createTempDir(): string {
-  const dir = mkdtempSync(path.join(tmpdir(), "openbeam-daemon-version-"));
+  const dir = mkdtempSync(path.join(tmpdir(), "openplane-daemon-version-"));
   createdDirs.push(dir);
   return dir;
 }

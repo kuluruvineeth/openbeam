@@ -37,7 +37,7 @@ export {
 } from "./client/daemon-client";
 export { type CliConfigOverrides, loadConfig } from "./config";
 export { createRootLogger, type LogFormat, type LogLevel } from "./logger";
-export { resolveOpenBeamHome } from "./openbeam-home";
+export { resolveOpenBeamHome } from "./openplane-home";
 export {
   generateLocalPairingOffer,
   type LocalPairingOffer,

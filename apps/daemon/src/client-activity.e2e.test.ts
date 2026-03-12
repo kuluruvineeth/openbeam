@@ -4,7 +4,7 @@ import { DaemonClient } from "./test-utils/daemon-client";
 import {
   createTestOpenBeamDaemon,
   type TestOpenBeamDaemon,
-} from "./test-utils/openbeam-daemon";
+} from "./test-utils/openplane-daemon";
 
 /**
  * Tests for client activity tracking and smart notifications.

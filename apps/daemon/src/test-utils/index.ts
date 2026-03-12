@@ -14,4 +14,4 @@ export {
 export {
   createTestOpenBeamDaemon,
   type TestOpenBeamDaemon,
-} from "./openbeam-daemon";
+} from "./openplane-daemon";

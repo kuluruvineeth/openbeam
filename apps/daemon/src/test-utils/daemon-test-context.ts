@@ -3,7 +3,7 @@ import { createTestAgentClients } from "./fake-agent-client";
 import {
   createTestOpenBeamDaemon,
   type TestOpenBeamDaemon,
-} from "./openbeam-daemon";
+} from "./openplane-daemon";
 
 export interface DaemonTestContext {
   daemon: TestOpenBeamDaemon;
