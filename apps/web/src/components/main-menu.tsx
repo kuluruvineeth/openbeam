@@ -18,18 +18,15 @@ type MenuItem = {
 type MenuItems = readonly MenuItem[];
 
 const icons: Record<string, () => React.ReactElement> = {
-  "/": () => <Icons.Plus size={20} />,
   "/connectors": () => <Icons.ConnectorIcon size={20} />,
   "/search": () => <Icons.Search size={20} />,
-  "/agents": () => <Icons.Agents size={20} />,
-  "/control": () => <Icons.Settings2 size={20} />,
 } as const;
 
 const items: MenuItems = [
-  {
-    path: "/",
-    name: "New",
-  },
+  // {
+  //   path: "/",
+  //   name: "New",
+  // },
   {
     path: "/connectors",
     name: "Connectors",
@@ -38,25 +35,25 @@ const items: MenuItems = [
     path: "/search",
     name: "Search",
   },
-  {
-    path: "/agents",
-    name: "Agents",
-  },
-  {
-    path: "/control",
-    name: "Control",
-    children: [
-      { path: "/control", name: "Dashboard" },
-      { path: "/control/agents", name: "Agents" },
-      { path: "/control/issues", name: "Issues" },
-      { path: "/control/projects", name: "Projects" },
-      { path: "/control/goals", name: "Goals" },
-      { path: "/control/approvals", name: "Approvals" },
-      { path: "/control/costs", name: "Costs" },
-      { path: "/control/activity", name: "Activity" },
-      { path: "/control/settings", name: "Settings" },
-    ],
-  },
+  // {
+  //   path: "/agents",
+  //   name: "Agents",
+  // },
+  // {
+  //   path: "/control",
+  //   name: "Control",
+  //   children: [
+  //     { path: "/control", name: "Dashboard" },
+  //     { path: "/control/agents", name: "Agents" },
+  //     { path: "/control/issues", name: "Issues" },
+  //     { path: "/control/projects", name: "Projects" },
+  //     { path: "/control/goals", name: "Goals" },
+  //     { path: "/control/approvals", name: "Approvals" },
+  //     { path: "/control/costs", name: "Costs" },
+  //     { path: "/control/activity", name: "Activity" },
+  //     { path: "/control/settings", name: "Settings" },
+  //   ],
+  // },
 ] as const;
 
 type ItemProps = {
