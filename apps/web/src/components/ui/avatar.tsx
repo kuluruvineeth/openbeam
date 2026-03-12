@@ -1,15 +1,12 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@openbeam/ui";
-import Image from "next/image";
-import * as React from "react";
+import Image, { type ImageProps } from "next/image";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 
-export const AvatarImageNext = React.forwardRef<
-  React.ComponentRef<typeof Image>,
-  React.ComponentPropsWithoutRef<typeof Image>
->(({ className, onError, ...props }, ref) => {
-  const [hasError, setHasError] = React.useState(false);
+export function AvatarImageNext({ className, onError, ...props }: ImageProps) {
+  const [hasError, setHasError] = useState(false);
 
   if (hasError || !props.src) {
     return null;
@@ -22,12 +19,9 @@ export const AvatarImageNext = React.forwardRef<
         setHasError(true);
         onError?.(e);
       }}
-      ref={ref}
       {...props}
     />
   );
-});
-
-AvatarImageNext.displayName = "AvatarImageNext";
+}
 
 export { Avatar, AvatarFallback, AvatarImage };
