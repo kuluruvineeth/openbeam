@@ -38,7 +38,7 @@ export function AgentItemActions({ id, name }: AgentItemActionsProps) {
     onSuccess: () => {
       toast.success("Agent deleted");
       queryClient.invalidateQueries({
-        queryKey: trpc.agentCanvas.list.infiniteQueryOptions({}, {}).queryKey,
+        queryKey: trpc.agentCanvas.list.queryKey(),
       });
     },
     onError: (error) => {

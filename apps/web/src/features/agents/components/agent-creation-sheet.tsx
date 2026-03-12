@@ -204,7 +204,7 @@ export function AgentCreationSheet() {
     onSuccess: (data) => {
       toast.success("Agent created successfully");
       queryClient.invalidateQueries({
-        queryKey: trpc.agentCanvas.list.infiniteQueryOptions({}, {}).queryKey,
+        queryKey: trpc.agentCanvas.list.queryKey(),
       });
       handleClose();
       router.push(`/agents/${data.id}`);
@@ -219,7 +219,7 @@ export function AgentCreationSheet() {
     onSuccess: () => {
       toast.success("Agent updated successfully");
       queryClient.invalidateQueries({
-        queryKey: trpc.agentCanvas.list.infiniteQueryOptions({}, {}).queryKey,
+        queryKey: trpc.agentCanvas.list.queryKey(),
       });
       if (editingAgentId) {
         queryClient.invalidateQueries({
