@@ -55,11 +55,14 @@ describe("SQLiteCache", () => {
   });
 
   test("TTL expires entries", () => {
-    cache.set("temp", "data", 1);
+    const originalNow = Date.now;
+    let time = 1000;
+    Date.now = () => time;
+
+    cache.set("temp", "data", 50);
     expect(cache.get("temp")).toBe("data");
 
-    const originalNow = Date.now;
-    Date.now = () => originalNow() + 10;
+    time += 100;
     expect(cache.get("temp")).toBeUndefined();
     Date.now = originalNow;
   });
