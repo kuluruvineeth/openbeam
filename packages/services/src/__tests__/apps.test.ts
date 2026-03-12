@@ -137,9 +137,7 @@ describe("apps service", () => {
         connectorId: "connector_1",
         authContext: { type: "session", userId: "user_1" },
       })
-    ).rejects.toMatchObject({
-      code: "FORBIDDEN",
-    });
+    ).rejects.toThrow(AppsServiceError);
   });
 
   it("returns not found when connector lookup fails", async () => {

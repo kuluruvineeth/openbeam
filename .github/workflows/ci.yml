@@ -180,7 +180,6 @@ jobs:
       - name: Run bun:test packages
         run: |
           bun test --coverage \
-            packages/ai \
             packages/auth \
             packages/db \
             packages/integrations \
@@ -200,6 +199,12 @@ jobs:
             apps/web \
             apps/server \
             apps/docs
+
+      - name: Run AI package tests (isolated to avoid mock.module contamination)
+        run: |
+          for f in $(find packages/ai/src -name '*.test.ts' -not -path '*/node_modules/*'); do
+            bun test "$f" || exit 1
+          done
 
       - name: Run daemon vitest (unit tests)
         continue-on-error: true
