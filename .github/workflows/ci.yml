@@ -177,7 +177,7 @@ jobs:
       - name: Generate Prisma Client
         run: bun run db:generate
 
-      - name: Run bun:test packages
+      - name: Run clean packages (no mock.module contamination)
         run: |
           bun test --coverage \
             packages/auth \
@@ -185,30 +185,41 @@ jobs:
             packages/integrations \
             packages/media \
             packages/observability \
-            packages/redis \
             packages/relay \
-            packages/services \
             packages/storage \
-            packages/ui \
             packages/vespa \
             packages/types \
             packages/edge-core \
             packages/edge-search \
             packages/edge-ai \
-            apps/server \
             apps/docs
 
-      - name: Run orchestrations tests (isolated from mock.module contamination)
-        run: bun test packages/orchestrations
-
-      - name: Run web tests (isolated from prosemirror-view DOM side effects)
-        run: bun test apps/web
-
-      - name: Run AI package tests (isolated to avoid mock.module contamination)
+      - name: Run mock.module packages file-by-file (prevents bun singleton contamination)
+        shell: bash
         run: |
-          for f in $(find packages/ai/src -name '*.test.ts' -not -path '*/node_modules/*'); do
-            bun test "$f" || exit 1
+          set -uo pipefail
+          failed=0
+          for dir in packages/services packages/redis packages/api packages/ui packages/orchestrations apps/server apps/web; do
+            echo "::group::Testing $dir"
+            while IFS= read -r f; do
+              [ -z "$f" ] && continue
+              if ! bun test "$f"; then
+                echo "::error::FAIL: $f"
+                failed=1
+              fi
+            done < <(find "$dir" \( -name '*.test.ts' -o -name '*.test.tsx' \) -not -path '*/node_modules/*' -not -path '*/dist/*' | sort)
+            echo "::endgroup::"
           done
+          exit $failed
+
+      - name: Run AI package tests file-by-file (mock.module singleton)
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            bun test "$f"
+          done < <(find packages/ai/src -name '*.test.ts' -not -path '*/node_modules/*' | sort)
 
       - name: Run daemon vitest (unit tests)
         continue-on-error: true
