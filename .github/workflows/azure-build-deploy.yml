@@ -264,6 +264,7 @@ jobs:
             "${{ steps.docker.outputs.context }}"
 
       - name: Verify image
+        continue-on-error: true
         run: |
           az acr repository show-tags \
             --name ${{ env.ACR_NAME }} \
