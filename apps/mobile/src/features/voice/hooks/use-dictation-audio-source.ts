@@ -1,4 +1,4 @@
-import { AudioModule } from "expo-audio";
+import { AudioModule, type RecordingOptions } from "expo-audio";
 import * as FileSystem from "expo-file-system/legacy";
 import { useCallback, useRef, useState } from "react";
 import { Platform } from "react-native";
@@ -8,10 +8,6 @@ import type {
   DictationAudioSource,
   DictationAudioSourceConfig,
 } from "../types";
-
-type RecordingStatusLike = {
-  metering?: number | null;
-};
 
 export function useDictationAudioSource(
   config: DictationAudioSourceConfig
@@ -58,7 +54,7 @@ export function useDictationAudioSource(
         playsInSilentMode: true,
       });
 
-      const { recording } = await AudioModule.Recording.createAsync({
+      const recordingOptions = {
         sampleRate: SAMPLE_RATE,
         numberOfChannels: 1,
         bitRate: 128_000,
@@ -68,30 +64,39 @@ export function useDictationAudioSource(
         ...(Platform.OS === "android" && {
           audioSource: 7,
         }),
-      } as Parameters<typeof AudioModule.Recording.createAsync>[0]);
+      };
+
+      // eslint-disable-next-line import/namespace -- AudioRecorder is a runtime property of the native module not visible to static analysis
+      const recorder = new AudioModule.AudioRecorder(
+        recordingOptions as Partial<RecordingOptions>
+      );
+      await recorder.prepareToRecordAsync(
+        recordingOptions as Partial<RecordingOptions>
+      );
+      recorder.record();
 
       guardRef.current.assertCurrent(attemptId);
       isActiveRef.current = true;
 
       recordingRef.current = {
         stop: async () => {
-          await recording.stopAndUnloadAsync();
+          await recorder.stop();
         },
-        uri: recording.getURI(),
+        uri: recorder.uri,
       };
 
       intervalRef.current = setInterval(() => {
         if (!isActiveRef.current) {
           return;
         }
-        const status = recording.getStatusAsync();
-        // biome-ignore lint/complexity/noVoid: fire-and-forget async call
-        void status.then((s: RecordingStatusLike) => {
-          if (s.metering != null) {
-            const normalized = Math.max(0, Math.min(1, (s.metering + 60) / 60));
-            setVolume(normalized);
-          }
-        });
+        const status = recorder.getStatus();
+        if (status.metering != null) {
+          const normalized = Math.max(
+            0,
+            Math.min(1, (status.metering + 60) / 60)
+          );
+          setVolume(normalized);
+        }
       }, 100);
     } catch (err) {
       isActiveRef.current = false;

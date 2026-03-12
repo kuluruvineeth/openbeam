@@ -251,7 +251,7 @@ export function ShortcutSettings() {
         <View style={styles.conflictBanner}>
           <AlertTriangle color="#f59e0b" size={14} strokeWidth={2} />
           <Text style={styles.conflictText}>
-            Conflicts with "{conflictLabel}" — saving will overwrite
+            Conflicts with &quot;{conflictLabel}&quot; — saving will overwrite
           </Text>
         </View>
       )}

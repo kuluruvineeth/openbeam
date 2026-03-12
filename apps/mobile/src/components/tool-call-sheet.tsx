@@ -1,6 +1,5 @@
 import {
   BottomSheetBackdrop,
-  type BottomSheetBackgroundProps,
   BottomSheetModal,
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
@@ -15,8 +14,7 @@ import React, {
   useRef,
 } from "react";
 import { Pressable, Text, View } from "react-native";
-import Animated from "react-native-reanimated";
-import { StyleSheet, useUnistyles } from "react-native-unistyles";
+import { StyleSheet } from "react-native-unistyles";
 import { resolveToolCallIcon } from "@/utils/tool-call-icon";
 import { ToolCallDetailsContent } from "./tool-call-details";
 
@@ -49,17 +47,6 @@ export function useToolCallSheet(): ToolCallSheetContextValue {
     );
   }
   return context;
-}
-
-// ----- Custom Background Component -----
-
-function _CustomSheetBackground({ style }: BottomSheetBackgroundProps) {
-  const { theme } = useUnistyles();
-  const containerStyle = useMemo(
-    () => [style, { backgroundColor: theme.colors.surface2, borderRadius: 16 }],
-    [style, theme.colors.surface2]
-  );
-  return <Animated.View pointerEvents="none" style={containerStyle} />;
 }
 
 // ----- Provider Component -----

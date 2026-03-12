@@ -2,7 +2,7 @@ import { ScrollViewStyleReset } from "expo-router/html";
 import type { PropsWithChildren } from "react";
 
 // Ensure Unistyles runs before Expo Router statically renders each page.
-import "../styles/unistyles";
+import "@/styles/unistyles";
 
 const webEcosystemStyles = /* css */ `
   html {

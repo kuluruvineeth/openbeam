@@ -40,15 +40,10 @@ export function AgentStatusBar({ agentId, serverId }: AgentStatusBarProps) {
     (state) => state.sessions[serverId]?.client ?? null
   );
 
-  if (!agent) {
-    return null;
-  }
-
   const canFetchModels =
-    Boolean(client) && Boolean(agent.provider) && (IS_WEB || prefsOpen);
-  // biome-ignore lint/correctness/useHookAtTopLevel: conditional hook is intentional
+    Boolean(client) && Boolean(agent?.provider) && (IS_WEB || prefsOpen);
   const modelsQuery = useQuery({
-    queryKey: ["providerModels", serverId, agent.provider, agent.cwd],
+    queryKey: ["providerModels", serverId, agent?.provider, agent?.cwd],
     enabled: canFetchModels,
     staleTime: 5 * 60 * 1000,
     retry: false,
@@ -57,8 +52,8 @@ export function AgentStatusBar({ agentId, serverId }: AgentStatusBarProps) {
       if (!client) {
         throw new Error("Daemon client unavailable");
       }
-      const payload = await client.listProviderModels(agent.provider, {
-        cwd: agent.cwd,
+      const payload = await client.listProviderModels(agent?.provider, {
+        cwd: agent?.cwd,
       });
       if (payload.error) {
         throw new Error(payload.error);
@@ -67,6 +62,21 @@ export function AgentStatusBar({ agentId, serverId }: AgentStatusBarProps) {
     },
   });
   const models = modelsQuery.data ?? null;
+
+  const normalizedRuntimeModelId = normalizeModelId(agent?.runtimeInfo?.model);
+  const normalizedConfiguredModelId = normalizeModelId(agent?.model);
+  const preferredModelId =
+    normalizedRuntimeModelId ?? normalizedConfiguredModelId;
+  const selectedModel = useMemo(() => {
+    if (!(models && preferredModelId)) {
+      return null;
+    }
+    return models.find((m) => m.id === preferredModelId) ?? null;
+  }, [models, preferredModelId]);
+
+  if (!agent) {
+    return null;
+  }
 
   function handleModeChange(modeId: string) {
     if (!client) {
@@ -77,18 +87,6 @@ export function AgentStatusBar({ agentId, serverId }: AgentStatusBarProps) {
       console.warn("[AgentStatusBar] setAgentMode failed", error);
     });
   }
-
-  const normalizedRuntimeModelId = normalizeModelId(agent.runtimeInfo?.model);
-  const normalizedConfiguredModelId = normalizeModelId(agent.model);
-  const preferredModelId =
-    normalizedRuntimeModelId ?? normalizedConfiguredModelId;
-  // biome-ignore lint/correctness/useHookAtTopLevel: conditional hook is intentional
-  const selectedModel = useMemo(() => {
-    if (!(models && preferredModelId)) {
-      return null;
-    }
-    return models.find((m) => m.id === preferredModelId) ?? null;
-  }, [models, preferredModelId]);
 
   const activeModelId = selectedModel?.id ?? preferredModelId ?? null;
   const displayModel = selectedModel

@@ -84,6 +84,73 @@ function deriveDateSectionLabel(lastActivityAt: Date): string {
   return "Older";
 }
 
+interface AgentListRowInnerProps {
+  agent: AggregatedAgent;
+  isSelected: boolean;
+  showCheckoutInfo: boolean;
+  handleAgentLongPress: (agent: AggregatedAgent) => void;
+  handleAgentPress: (serverId: string, agentId: string) => void;
+}
+
+function AgentListRowInner({
+  agent,
+  isSelected,
+  showCheckoutInfo,
+  handleAgentLongPress,
+  handleAgentPress,
+}: AgentListRowInnerProps) {
+  const timeAgo = formatTimeAgo(agent.lastActivityAt);
+
+  const checkoutQuery = useCheckoutStatusCacheOnly({
+    serverId: agent.serverId,
+    cwd: agent.cwd,
+  });
+  const checkout = checkoutQuery.data ?? null;
+  const projectPath = showCheckoutInfo
+    ? deriveProjectPath(agent.cwd, checkout)
+    : agent.cwd;
+  const branchLabel = showCheckoutInfo ? deriveBranchLabel(checkout) : null;
+
+  return (
+    <Pressable
+      onLongPress={() => handleAgentLongPress(agent)}
+      onPress={() => handleAgentPress(agent.serverId, agent.id)}
+      style={({ pressed, hovered }) => [
+        styles.agentItem,
+        isSelected && styles.agentItemSelected,
+        hovered && styles.agentItemHovered,
+        pressed && styles.agentItemPressed,
+      ]}
+      testID={`agent-row-${agent.serverId}-${agent.id}`}
+    >
+      {({ hovered }) => (
+        <View style={styles.agentContent}>
+          <View style={styles.row}>
+            <AgentStatusDot
+              requiresAttention={agent.requiresAttention}
+              status={agent.status}
+            />
+            <Text
+              numberOfLines={1}
+              style={[
+                styles.agentTitle,
+                (isSelected || hovered) && styles.agentTitleHighlighted,
+              ]}
+            >
+              {agent.title || "New agent"}
+            </Text>
+          </View>
+
+          <Text numberOfLines={1} style={styles.secondaryRow}>
+            {shortenPath(projectPath)}
+            {branchLabel ? ` · ${branchLabel}` : ""} · {timeAgo}
+          </Text>
+        </View>
+      )}
+    </Pressable>
+  );
+}
+
 export function AgentList({
   agents,
   showCheckoutInfo = true,
@@ -202,61 +269,15 @@ export function AgentList({
   );
 
   const AgentListRow = useCallback(
-    ({ agent }: { agent: AggregatedAgent }) => {
-      const timeAgo = formatTimeAgo(agent.lastActivityAt);
-      const agentKey = `${agent.serverId}:${agent.id}`;
-      const isSelected = selectedAgentId === agentKey;
-
-      // biome-ignore lint/correctness/useHookAtTopLevel: conditional hook is intentional
-      const checkoutQuery = useCheckoutStatusCacheOnly({
-        serverId: agent.serverId,
-        cwd: agent.cwd,
-      });
-      const checkout = checkoutQuery.data ?? null;
-      const projectPath = showCheckoutInfo
-        ? deriveProjectPath(agent.cwd, checkout)
-        : agent.cwd;
-      const branchLabel = showCheckoutInfo ? deriveBranchLabel(checkout) : null;
-
-      return (
-        <Pressable
-          onLongPress={() => handleAgentLongPress(agent)}
-          onPress={() => handleAgentPress(agent.serverId, agent.id)}
-          style={({ pressed, hovered }) => [
-            styles.agentItem,
-            isSelected && styles.agentItemSelected,
-            hovered && styles.agentItemHovered,
-            pressed && styles.agentItemPressed,
-          ]}
-          testID={`agent-row-${agent.serverId}-${agent.id}`}
-        >
-          {({ hovered }) => (
-            <View style={styles.agentContent}>
-              <View style={styles.row}>
-                <AgentStatusDot
-                  requiresAttention={agent.requiresAttention}
-                  status={agent.status}
-                />
-                <Text
-                  numberOfLines={1}
-                  style={[
-                    styles.agentTitle,
-                    (isSelected || hovered) && styles.agentTitleHighlighted,
-                  ]}
-                >
-                  {agent.title || "New agent"}
-                </Text>
-              </View>
-
-              <Text numberOfLines={1} style={styles.secondaryRow}>
-                {shortenPath(projectPath)}
-                {branchLabel ? ` · ${branchLabel}` : ""} · {timeAgo}
-              </Text>
-            </View>
-          )}
-        </Pressable>
-      );
-    },
+    ({ agent }: { agent: AggregatedAgent }) => (
+      <AgentListRowInner
+        agent={agent}
+        handleAgentLongPress={handleAgentLongPress}
+        handleAgentPress={handleAgentPress}
+        isSelected={selectedAgentId === `${agent.serverId}:${agent.id}`}
+        showCheckoutInfo={showCheckoutInfo}
+      />
+    ),
     [handleAgentLongPress, handleAgentPress, selectedAgentId, showCheckoutInfo]
   );
 

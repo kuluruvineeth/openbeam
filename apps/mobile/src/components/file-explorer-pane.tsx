@@ -648,15 +648,6 @@ export function FileExplorerPane({ serverId, agentId }: FileExplorerPaneProps) {
     selectExplorerEntry,
   ]);
 
-  if (!agentExists) {
-    return (
-      <View style={styles.centerState}>
-        <Text style={styles.errorText}>Agent not found</Text>
-      </View>
-    );
-  }
-
-  // biome-ignore lint/correctness/useHookAtTopLevel: conditional hook is intentional
   const handleTreeListScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       if (showDesktopWebScrollbar) {
@@ -666,7 +657,6 @@ export function FileExplorerPane({ serverId, agentId }: FileExplorerPaneProps) {
     [showDesktopWebScrollbar, treeScrollbarMetrics]
   );
 
-  // biome-ignore lint/correctness/useHookAtTopLevel: conditional hook is intentional
   const handleTreeListLayout = useCallback(
     (event: LayoutChangeEvent) => {
       if (showDesktopWebScrollbar) {
@@ -675,6 +665,14 @@ export function FileExplorerPane({ serverId, agentId }: FileExplorerPaneProps) {
     },
     [showDesktopWebScrollbar, treeScrollbarMetrics]
   );
+
+  if (!agentExists) {
+    return (
+      <View style={styles.centerState}>
+        <Text style={styles.errorText}>Agent not found</Text>
+      </View>
+    );
+  }
 
   return (
     <View

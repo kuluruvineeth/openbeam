@@ -150,12 +150,9 @@ function SessionProviderWithClient({
   client,
 }: SessionProviderClientProps) {
   return (
-    <SessionProviderInternal
-      // biome-ignore lint/correctness/noChildrenProp: necessary for this context
-      children={children}
-      client={client}
-      serverId={serverId}
-    />
+    <SessionProviderInternal client={client} serverId={serverId}>
+      {children}
+    </SessionProviderInternal>
   );
 }
 

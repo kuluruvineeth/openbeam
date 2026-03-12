@@ -25,8 +25,8 @@ export function SearchEmptyState({ query }: SearchEmptyStateProps) {
       </Text>
 
       <Text muted style={styles.subtitle} variant="caption">
-        No documents match "{query}". Try a different search term or check your
-        filters.
+        No documents match &quot;{query}&quot;. Try a different search term or
+        check your filters.
       </Text>
     </View>
   );

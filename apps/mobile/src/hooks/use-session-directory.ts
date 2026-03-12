@@ -14,6 +14,8 @@ export function useSessionDirectory(): Map<string, SessionState> {
 type SessionSelector<T> = (session: SessionState | null) => T;
 type EqualityFn<T> = ((left: T, right: T) => boolean) | undefined;
 
+const identitySelector = (session: SessionState | null) => session;
+
 export function useSessionForServer(
   serverId: string | null
 ): SessionState | null;
@@ -27,23 +29,19 @@ export function useSessionForServer<T>(
   selector?: SessionSelector<T>,
   equalityFn?: EqualityFn<T>
 ): SessionState | null | T {
-  const baseSelector = useCallback(
-    (state: ReturnType<typeof useSessionStore.getState>) =>
-      serverId ? (state.sessions[serverId] ?? null) : null,
-    [serverId]
+  const resolvedSelector = selector ?? identitySelector;
+
+  const combinedSelector = useCallback(
+    (state: ReturnType<typeof useSessionStore.getState>) => {
+      const session = serverId ? (state.sessions[serverId] ?? null) : null;
+      return resolvedSelector(session);
+    },
+    [serverId, resolvedSelector]
   );
 
-  if (selector) {
-    // biome-ignore lint/correctness/useHookAtTopLevel: conditional hook is intentional
-    const derivedSelector = useCallback(
-      (state: ReturnType<typeof useSessionStore.getState>) =>
-        selector(baseSelector(state)),
-      [baseSelector, selector]
-    );
-    // biome-ignore lint/correctness/useHookAtTopLevel: conditional hook is intentional
-    return useStoreWithEqualityFn(useSessionStore, derivedSelector, equalityFn);
-  }
-
-  // biome-ignore lint/correctness/useHookAtTopLevel: conditional hook is intentional
-  return useSessionStore(baseSelector);
+  return useStoreWithEqualityFn(
+    useSessionStore,
+    combinedSelector,
+    equalityFn as EqualityFn<SessionState | null | T>
+  );
 }
