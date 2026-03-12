@@ -49,11 +49,11 @@ export function AgentStatusBar({ agentId, serverId }: AgentStatusBarProps) {
     retry: false,
     refetchOnWindowFocus: false,
     queryFn: async () => {
-      if (!client) {
+      if (!(client && agent)) {
         throw new Error("Daemon client unavailable");
       }
-      const payload = await client.listProviderModels(agent?.provider, {
-        cwd: agent?.cwd,
+      const payload = await client.listProviderModels(agent.provider, {
+        cwd: agent.cwd,
       });
       if (payload.error) {
         throw new Error(payload.error);
