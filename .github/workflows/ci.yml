@@ -148,9 +148,7 @@ jobs:
       - run: bun install --frozen-lockfile
 
       - name: Build All Packages
-        run: bun x turbo build --filter='!@openbeam/desktop'
-        env:
-          NODE_OPTIONS: "--max-old-space-size=8192"
+        run: bun x turbo build --filter='!@openbeam/desktop' --filter='!daemon'
 
   test-typescript:
     name: Test (TypeScript)
