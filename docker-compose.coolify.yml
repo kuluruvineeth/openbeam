@@ -1,0 +1,55 @@
+services:
+  website:
+    image: ghcr.io/kuluruvineeth/openbeam-website:latest
+    container_name: openbeam-website
+    restart: unless-stopped
+    networks:
+      - openbeam-apps
+    labels:
+      traefik.enable: "true"
+      traefik.http.middlewares.redirect-to-https.redirectscheme.scheme: https
+      traefik.http.middlewares.redirect-to-https.redirectscheme.permanent: "true"
+      traefik.http.middlewares.gzip.compress: "true"
+      traefik.http.routers.http-website.entryPoints: http
+      traefik.http.routers.http-website.middlewares: redirect-to-https
+      traefik.http.routers.http-website.rule: "Host(`openbeam.work`) && PathPrefix(`/`)"
+      traefik.http.routers.https-website.entryPoints: https
+      traefik.http.routers.https-website.middlewares: gzip
+      traefik.http.routers.https-website.rule: "Host(`openbeam.work`) && PathPrefix(`/`)"
+      traefik.http.routers.https-website.tls: "true"
+      traefik.http.routers.https-website.tls.certresolver: letsencrypt
+      traefik.http.services.https-website.loadbalancer.server.port: "3002"
+    healthcheck:
+      test: ["CMD", "bun", "run", "-e", "fetch('http://localhost:3002/').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
+
+  docs:
+    image: ghcr.io/kuluruvineeth/openbeam-docs:latest
+    container_name: openbeam-docs
+    restart: unless-stopped
+    networks:
+      - openbeam-apps
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.http-docs.entryPoints: http
+      traefik.http.routers.http-docs.middlewares: redirect-to-https
+      traefik.http.routers.http-docs.rule: "Host(`docs.openbeam.work`) && PathPrefix(`/`)"
+      traefik.http.routers.https-docs.entryPoints: https
+      traefik.http.routers.https-docs.middlewares: gzip
+      traefik.http.routers.https-docs.rule: "Host(`docs.openbeam.work`) && PathPrefix(`/`)"
+      traefik.http.routers.https-docs.tls: "true"
+      traefik.http.routers.https-docs.tls.certresolver: letsencrypt
+      traefik.http.services.https-docs.loadbalancer.server.port: "4000"
+    healthcheck:
+      test: ["CMD", "bun", "run", "-e", "fetch('http://localhost:4000/').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
+
+networks:
+  openbeam-apps:
+    external: true
