@@ -1,23 +1,30 @@
 import { describe, expect, it, mock } from "bun:test";
 
 const noopFn = mock(() => Promise.resolve(null));
-const dbProxy = new Proxy(
-  {},
-  {
-    get: (_target, prop) => {
-      if (prop === "__esModule") {
-        return true;
-      }
-      if (prop === "default") {
-        return {};
-      }
-      return noopFn;
-    },
-  }
-);
 
-mock.module("@openbeam/db", () => dbProxy);
-mock.module("@openbeam/services", () => dbProxy);
+mock.module("@openbeam/db", () => ({
+  __esModule: true,
+  default: {},
+  countVoiceNotes: noopFn,
+  createVoiceNote: noopFn,
+  createVoiceSession: noopFn,
+  deleteVoiceNote: noopFn,
+  endVoiceSession: noopFn,
+  findActiveVoiceSession: noopFn,
+  findVoiceNoteById: noopFn,
+  findVoiceSettings: noopFn,
+  getVoiceSessionStats: noopFn,
+  listVoiceNotes: noopFn,
+  listVoiceSessions: noopFn,
+  upsertVoiceSettings: noopFn,
+  getTeamMembership: noopFn,
+  getUserById: noopFn,
+  verifyConnectorOwnership: noopFn,
+}));
+mock.module("@openbeam/services", () => ({
+  __esModule: true,
+  default: {},
+}));
 mock.module("@openbeam/redis", () => ({
   default: {},
   rateLimiter: { checkConnectorRateLimit: noopFn },

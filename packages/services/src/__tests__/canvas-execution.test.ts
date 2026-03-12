@@ -446,6 +446,8 @@ mock.module("@openbeam/db", () => ({
       syncAccessToken: null,
       syncAccessTokenIv: null,
     }),
+  findLatestActiveConnectorByTeamAndApp: () =>
+    Promise.resolve({ id: "connector-1", config: {} }),
 }));
 
 mock.module("@openbeam/redis", () => {
