@@ -295,12 +295,18 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      - name: Install kubelogin
+        run: |
+          az aks install-cli 2>/dev/null || true
+          kubelogin --version
+
       - name: Get AKS credentials
         run: |
           az aks get-credentials \
             --resource-group ${{ env.AKS_RESOURCE_GROUP }} \
             --name ${{ env.AKS_CLUSTER }} \
             --overwrite-existing
+          kubelogin convert-kubeconfig -l azurecli
 
       - name: Setup Helm
         uses: azure/setup-helm@v4
@@ -420,12 +426,18 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      - name: Install kubelogin
+        run: |
+          az aks install-cli 2>/dev/null || true
+          kubelogin --version
+
       - name: Get AKS credentials
         run: |
           az aks get-credentials \
             --resource-group ${{ env.AKS_RESOURCE_GROUP }} \
             --name ${{ env.AKS_CLUSTER }} \
             --overwrite-existing
+          kubelogin convert-kubeconfig -l azurecli
 
       - name: Setup Helm
         uses: azure/setup-helm@v4
