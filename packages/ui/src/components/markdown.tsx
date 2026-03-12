@@ -255,7 +255,8 @@ const Markdown = forwardRef<HTMLElement, MarkdownProps>(
         {...props}
       >
         <Streamdown
-          components={mergedComponents as Record<string, unknown>}
+          // biome-ignore lint/suspicious/noExplicitAny: React type duplication across packages
+          components={mergedComponents as any}
           controls={showControls ? { code: true, table: true } : false}
           shikiTheme={shikiTheme}
         >
