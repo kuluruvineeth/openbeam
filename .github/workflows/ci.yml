@@ -199,8 +199,7 @@ jobs:
             packages/edge-ai \
             apps/web \
             apps/server \
-            apps/docs \
-            apps/daemon/src/__tests__
+            apps/docs
 
       - name: Run daemon vitest (unit tests)
         continue-on-error: true

@@ -80,7 +80,7 @@ async function withMockWebSocketPair(
 describe("RelayDurableObject versioning", () => {
   it("accepts legacy v1 client sockets without clientId", async () => {
     const { state } = createMockState();
-    await withMockWebSocketPair(async () => {
+    await withMockWebSocketPair(() => {
       const relay = new RelayDurableObject(state as any);
       const req = new Request(
         "https://relay.test/ws?role=client&serverId=srv_test&v=1",
@@ -90,7 +90,11 @@ describe("RelayDurableObject versioning", () => {
           },
         }
       );
-      await relay.fetch(req).catch(Function.prototype as () => void);
+      try {
+        relay.fetch(req);
+      } catch {
+        // WebSocketPair mock may throw in non-CF environments
+      }
       expect(state.acceptWebSocket).toHaveBeenCalled();
     });
   });
@@ -101,7 +105,7 @@ describe("RelayDurableObject versioning", () => {
     const req = new Request(
       "https://relay.test/ws?role=client&serverId=srv_test&v=2"
     );
-    const response = await relay.fetch(req);
+    const response = relay.fetch(req);
     expect(response.status).toBe(400);
     expect(await response.text()).toBe("Missing clientId parameter");
   });
@@ -193,7 +197,7 @@ describe("RelayDurableObject control nudge/reset behavior", () => {
     setTagSockets("client:clt_same_session", [existingClient]);
     setTagSockets("client", [existingClient]);
 
-    await withMockWebSocketPair(async () => {
+    await withMockWebSocketPair(() => {
       const relay = new RelayDurableObject(state as any);
       const req = new Request(
         "https://relay.test/ws?role=client&serverId=srv_test&clientId=clt_same_session&v=2",
@@ -204,7 +208,11 @@ describe("RelayDurableObject control nudge/reset behavior", () => {
         }
       );
 
-      await relay.fetch(req).catch(Function.prototype as () => void);
+      try {
+        relay.fetch(req);
+      } catch {
+        // WebSocketPair mock may throw in non-CF environments
+      }
       expect(existingClient.close).not.toHaveBeenCalled();
     });
   });

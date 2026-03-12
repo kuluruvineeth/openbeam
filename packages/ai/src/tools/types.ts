@@ -86,12 +86,13 @@ export const ERROR_CODES: Record<
     description: "Payment required to use this tool.",
     retryable: false,
     defaultSuggestion:
-      "Include a valid X-PAYMENT header with signed authorization.",
+      "Check billing status and use a valid X-PAYMENT header with signed authorization.",
   },
   BUDGET_EXCEEDED: {
     description: "Budget limit exceeded for this execution context.",
     retryable: false,
-    defaultSuggestion: "Reduce scope or request additional budget allocation.",
+    defaultSuggestion:
+      "Try reducing scope or request additional budget allocation.",
   },
 };
 
