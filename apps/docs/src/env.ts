@@ -11,6 +11,7 @@ export const env = createEnv({
       .optional()
       .default("https://us.i.posthog.com"),
   },
+  emptyStringAsUndefined: true,
   runtimeEnv: {
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
     NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
