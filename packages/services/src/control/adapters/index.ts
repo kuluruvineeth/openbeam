@@ -3,6 +3,7 @@ export { codexLocalAdapter } from "./codex-local";
 export { httpAdapter } from "./http";
 export { processAdapter } from "./process";
 export {
+  clearAdapters,
   getAdapter,
   getAdapterConfigurationDoc,
   getAdapterOrThrow,

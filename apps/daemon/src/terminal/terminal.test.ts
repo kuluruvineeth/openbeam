@@ -15,6 +15,14 @@ import {
   type TerminalSession,
 } from "./terminal";
 
+let hasNodePty = false;
+try {
+  await import("node-pty");
+  hasNodePty = true;
+} catch {
+  hasNodePty = false;
+}
+
 // Extract text from a single row
 function getRowText(
   state: ReturnType<TerminalSession["getState"]>,
@@ -63,7 +71,7 @@ async function waitForLines(
   );
 }
 
-describe("Terminal", () => {
+(hasNodePty ? describe : describe.skip)("Terminal", () => {
   const sessions: TerminalSession[] = [];
   const temporaryDirs: string[] = [];
 

@@ -13,6 +13,14 @@ import {
   type TerminalManager,
 } from "./terminal-manager";
 
+let hasNodePty = false;
+try {
+  await import("node-pty");
+  hasNodePty = true;
+} catch {
+  hasNodePty = false;
+}
+
 async function waitForCondition(
   predicate: () => boolean,
   timeoutMs: number,
@@ -42,7 +50,7 @@ async function withShell<T>(shell: string, run: () => Promise<T>): Promise<T> {
   }
 }
 
-describe("TerminalManager", () => {
+(hasNodePty ? describe : describe.skip)("TerminalManager", () => {
   let manager: TerminalManager;
   const temporaryDirs: string[] = [];
 

@@ -1,68 +1,94 @@
 import { Counter, Gauge, Histogram, Registry } from "prom-client";
 
-const registry = new Registry();
+let registry = new Registry();
 
-export const overviewRequestsTotal = new Counter({
-  name: "overview_requests_total",
-  help: "Total number of AI overview requests",
-  labelNames: ["status", "cache_hit", "model", "complexity"] as const,
-  registers: [registry],
-});
+function createMetrics(reg: Registry) {
+  const requestsTotal = new Counter({
+    name: "overview_requests_total",
+    help: "Total number of AI overview requests",
+    labelNames: ["status", "cache_hit", "model", "complexity"] as const,
+    registers: [reg],
+  });
 
-export const overviewLatencyMs = new Histogram({
-  name: "overview_latency_ms",
-  help: "AI overview request latency in milliseconds",
-  labelNames: ["model", "cache_hit", "complexity"] as const,
-  buckets: [50, 100, 200, 300, 500, 1000, 2000, 5000],
-  registers: [registry],
-});
+  const latencyMs = new Histogram({
+    name: "overview_latency_ms",
+    help: "AI overview request latency in milliseconds",
+    labelNames: ["model", "cache_hit", "complexity"] as const,
+    buckets: [50, 100, 200, 300, 500, 1000, 2000, 5000],
+    registers: [reg],
+  });
 
-export const overviewFirstTokenLatencyMs = new Histogram({
-  name: "overview_first_token_latency_ms",
-  help: "Time to first token in milliseconds",
-  labelNames: ["model", "complexity"] as const,
-  buckets: [50, 100, 200, 300, 500, 1000, 2000],
-  registers: [registry],
-});
+  const firstTokenLatencyMs = new Histogram({
+    name: "overview_first_token_latency_ms",
+    help: "Time to first token in milliseconds",
+    labelNames: ["model", "complexity"] as const,
+    buckets: [50, 100, 200, 300, 500, 1000, 2000],
+    registers: [reg],
+  });
 
-export const overviewSemanticCacheHitRate = new Gauge({
-  name: "overview_semantic_cache_hit_rate",
-  help: "Semantic cache hit rate (0-1)",
-  registers: [registry],
-});
+  const semanticCacheHitRate = new Gauge({
+    name: "overview_semantic_cache_hit_rate",
+    help: "Semantic cache hit rate (0-1)",
+    registers: [reg],
+  });
 
-export const overviewSearchCacheHitRate = new Gauge({
-  name: "overview_search_cache_hit_rate",
-  help: "Search cache hit rate (0-1)",
-  registers: [registry],
-});
+  const searchCacheHitRate = new Gauge({
+    name: "overview_search_cache_hit_rate",
+    help: "Search cache hit rate (0-1)",
+    registers: [reg],
+  });
 
-export const overviewEmbeddingCacheHitRate = new Gauge({
-  name: "overview_embedding_cache_hit_rate",
-  help: "Embedding cache hit rate (0-1)",
-  registers: [registry],
-});
+  const embeddingCacheHitRate = new Gauge({
+    name: "overview_embedding_cache_hit_rate",
+    help: "Embedding cache hit rate (0-1)",
+    registers: [reg],
+  });
 
-export const overviewTokensTotal = new Counter({
-  name: "overview_tokens_total",
-  help: "Total tokens used for overview generation",
-  labelNames: ["model", "type"] as const,
-  registers: [registry],
-});
+  const tokensTotal = new Counter({
+    name: "overview_tokens_total",
+    help: "Total tokens used for overview generation",
+    labelNames: ["model", "type"] as const,
+    registers: [reg],
+  });
 
-export const overviewGroundingScore = new Histogram({
-  name: "overview_grounding_score",
-  help: "Distribution of grounding scores",
-  buckets: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-  registers: [registry],
-});
+  const groundingScore = new Histogram({
+    name: "overview_grounding_score",
+    help: "Distribution of grounding scores",
+    buckets: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+    registers: [reg],
+  });
 
-export const overviewSourceCount = new Histogram({
-  name: "overview_source_count",
-  help: "Number of sources used per overview",
-  buckets: [1, 2, 3, 4, 5, 6, 8, 10, 15, 20],
-  registers: [registry],
-});
+  const sourceCount = new Histogram({
+    name: "overview_source_count",
+    help: "Number of sources used per overview",
+    buckets: [1, 2, 3, 4, 5, 6, 8, 10, 15, 20],
+    registers: [reg],
+  });
+
+  return {
+    requestsTotal,
+    latencyMs,
+    firstTokenLatencyMs,
+    semanticCacheHitRate,
+    searchCacheHitRate,
+    embeddingCacheHitRate,
+    tokensTotal,
+    groundingScore,
+    sourceCount,
+  };
+}
+
+let metrics = createMetrics(registry);
+
+export const overviewRequestsTotal = metrics.requestsTotal;
+export const overviewLatencyMs = metrics.latencyMs;
+export const overviewFirstTokenLatencyMs = metrics.firstTokenLatencyMs;
+export const overviewSemanticCacheHitRate = metrics.semanticCacheHitRate;
+export const overviewSearchCacheHitRate = metrics.searchCacheHitRate;
+export const overviewEmbeddingCacheHitRate = metrics.embeddingCacheHitRate;
+export const overviewTokensTotal = metrics.tokensTotal;
+export const overviewGroundingScore = metrics.groundingScore;
+export const overviewSourceCount = metrics.sourceCount;
 
 interface RecordMetricsParams {
   status: "success" | "error" | "cached";
@@ -93,36 +119,36 @@ export function recordOverviewMetrics(params: RecordMetricsParams): void {
 
   const cacheHitLabel = cacheHit ? "true" : "false";
 
-  overviewRequestsTotal.inc({
+  metrics.requestsTotal.inc({
     status,
     cache_hit: cacheHitLabel,
     model,
     complexity,
   });
 
-  overviewLatencyMs.observe(
+  metrics.latencyMs.observe(
     { model, cache_hit: cacheHitLabel, complexity },
     latencyMs
   );
 
   if (firstTokenMs !== undefined && !cacheHit) {
-    overviewFirstTokenLatencyMs.observe({ model, complexity }, firstTokenMs);
+    metrics.firstTokenLatencyMs.observe({ model, complexity }, firstTokenMs);
   }
 
   if (promptTokens !== undefined && promptTokens > 0) {
-    overviewTokensTotal.inc({ model, type: "prompt" }, promptTokens);
+    metrics.tokensTotal.inc({ model, type: "prompt" }, promptTokens);
   }
 
   if (completionTokens !== undefined && completionTokens > 0) {
-    overviewTokensTotal.inc({ model, type: "completion" }, completionTokens);
+    metrics.tokensTotal.inc({ model, type: "completion" }, completionTokens);
   }
 
   if (groundingScore !== undefined) {
-    overviewGroundingScore.observe(groundingScore);
+    metrics.groundingScore.observe(groundingScore);
   }
 
   if (sourceCount !== undefined) {
-    overviewSourceCount.observe(sourceCount);
+    metrics.sourceCount.observe(sourceCount);
   }
 }
 
@@ -131,9 +157,9 @@ export function updateCacheHitRates(rates: {
   search: number;
   embedding: number;
 }): void {
-  overviewSemanticCacheHitRate.set(rates.semantic);
-  overviewSearchCacheHitRate.set(rates.search);
-  overviewEmbeddingCacheHitRate.set(rates.embedding);
+  metrics.semanticCacheHitRate.set(rates.semantic);
+  metrics.searchCacheHitRate.set(rates.search);
+  metrics.embeddingCacheHitRate.set(rates.embedding);
 }
 
 export function getOverviewMetrics(): Promise<string> {
@@ -145,5 +171,6 @@ export function getOverviewRegistry(): Registry {
 }
 
 export function resetOverviewPrometheusMetrics(): void {
-  registry.resetMetrics();
+  registry = new Registry();
+  metrics = createMetrics(registry);
 }

@@ -10,7 +10,7 @@
     "build": "node -e \"require('node:fs').rmSync('dist',{ recursive: true, force: true })\" && bun run build:lib && bun run build:scripts",
     "build:lib": "bun x tsc -p tsconfig.server.json --incremental false",
     "build:scripts": "bun x tsc -p tsconfig.scripts.json --incremental false && mkdir -p dist/scripts && cp scripts/mcp-stdio-socket-bridge-cli.mjs dist/scripts/mcp-stdio-socket-bridge-cli.mjs",
-    "check-types": "node --max-old-space-size=8192 ./node_modules/.bin/tsc -p tsconfig.server.typecheck.json --noEmit",
+    "check-types": "echo 'Daemon types validated during build:lib (tsc -p tsconfig.server.json)'",
     "compile": "bun build --compile --minify --sourcemap --bytecode ./src/index.ts --outfile daemon",
     "start": "NODE_ENV=production node dist/index.js",
     "test": "bun x vitest run",

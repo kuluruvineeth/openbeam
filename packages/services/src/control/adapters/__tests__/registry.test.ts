@@ -1,4 +1,13 @@
 import { beforeEach, describe, expect, it } from "bun:test";
+import {
+  clearAdapters,
+  getAdapter,
+  getAdapterConfigurationDoc,
+  getAdapterOrThrow,
+  listAdapterModels,
+  listAdapterTypes,
+  registerAdapter,
+} from "../registry";
 import type { ServerAdapterModule } from "../types";
 
 function createMockAdapter(type: string): ServerAdapterModule {
@@ -8,21 +17,8 @@ function createMockAdapter(type: string): ServerAdapterModule {
   };
 }
 
-let registerAdapter: typeof import("../registry").registerAdapter;
-let getAdapter: typeof import("../registry").getAdapter;
-let getAdapterOrThrow: typeof import("../registry").getAdapterOrThrow;
-let listAdapterTypes: typeof import("../registry").listAdapterTypes;
-let listAdapterModels: typeof import("../registry").listAdapterModels;
-let getAdapterConfigurationDoc: typeof import("../registry").getAdapterConfigurationDoc;
-
-beforeEach(async () => {
-  const mod = await import("../registry");
-  registerAdapter = mod.registerAdapter;
-  getAdapter = mod.getAdapter;
-  getAdapterOrThrow = mod.getAdapterOrThrow;
-  listAdapterTypes = mod.listAdapterTypes;
-  listAdapterModels = mod.listAdapterModels;
-  getAdapterConfigurationDoc = mod.getAdapterConfigurationDoc;
+beforeEach(() => {
+  clearAdapters();
 });
 
 describe("registerAdapter / getAdapter", () => {

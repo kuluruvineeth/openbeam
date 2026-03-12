@@ -39,3 +39,7 @@ export function getAdapterConfigurationDoc(type: string): string | null {
   const adapter = adaptersByType.get(type);
   return adapter?.agentConfigurationDoc ?? null;
 }
+
+export function clearAdapters(): void {
+  adaptersByType.clear();
+}
