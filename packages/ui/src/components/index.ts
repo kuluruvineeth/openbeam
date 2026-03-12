@@ -516,6 +516,12 @@ export {
   FormItem,
   FormLabel,
   FormMessage,
+  type UseFormReturn,
+  useForm,
+  useFormContext,
+  useFormField,
+  useWatch,
+  zodResolver,
 } from "./form";
 export type {
   ColorOption,

@@ -1,6 +1,5 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
   FormControl,
@@ -9,10 +8,11 @@ import {
   FormLabel,
   FormMessage,
   Input,
+  useForm,
+  zodResolver,
 } from "@openbeam/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
-import { useForm } from "react-hook-form";
 import { z } from "zod/v3";
 import { revalidateAfterTeamChange } from "@/actions/revalidate-action";
 import { SubmitButton } from "@/components/submit-button";

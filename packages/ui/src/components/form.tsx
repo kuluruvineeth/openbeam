@@ -1,5 +1,6 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import type * as LabelPrimitive from "@radix-ui/react-label";
 import { Slot } from "@radix-ui/react-slot";
 import type { ComponentProps, ReactNode } from "react";
@@ -151,6 +152,7 @@ function FormMessage({
 
 export {
   type UseFormReturn,
+  zodResolver,
   useForm,
   useFormField,
   useFormContext,
