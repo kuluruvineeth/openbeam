@@ -149,6 +149,8 @@ jobs:
 
       - name: Build All Packages
         run: bun x turbo build --filter='!@openbeam/desktop'
+        env:
+          NODE_OPTIONS: "--max-old-space-size=8192"
 
   test-typescript:
     name: Test (TypeScript)
