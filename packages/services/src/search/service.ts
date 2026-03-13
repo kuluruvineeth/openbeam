@@ -49,6 +49,11 @@ function escapeYqlString(value: string): string {
   return value.replace(/(["\\])/g, "\\$1");
 }
 
+const V2_RANKING: Record<string, string> = {
+  hybrid: "hybrid_v2",
+  semantic: "semantic_v2",
+};
+
 export class SearchService {
   async search(params: SearchParams): Promise<DocumentSearchResult> {
     const startTime = Date.now();
@@ -58,7 +63,7 @@ export class SearchService {
       const ranking = params.ranking || "hybrid";
       const useSemanticSearch = ranking === "hybrid" || ranking === "semantic";
 
-      let queryEmbeddingFeatures: Pick<QueryParams, "query_embedding"> | null =
+      let queryEmbeddingFeatures: Pick<QueryParams, "embedding_v2"> | null =
         null;
       if (useSemanticSearch && params.query) {
         const embeddingStart = Date.now();
@@ -72,7 +77,9 @@ export class SearchService {
 
       const includeVectorSearch =
         useSemanticSearch && queryEmbeddingFeatures !== null;
-      const effectiveRanking = includeVectorSearch ? ranking : "bm25";
+      const effectiveRanking = includeVectorSearch
+        ? (V2_RANKING[ranking] ?? ranking)
+        : "bm25";
       const yql = this.buildSearchYQL(params, includeVectorSearch);
 
       const vespaResult = await vespaClient.query({
@@ -113,8 +120,7 @@ export class SearchService {
     const ranking = params.ranking || "hybrid";
     const useSemanticSearch = ranking === "hybrid" || ranking === "semantic";
 
-    let queryEmbeddingFeatures: Pick<QueryParams, "query_embedding"> | null =
-      null;
+    let queryEmbeddingFeatures: Pick<QueryParams, "embedding_v2"> | null = null;
     if (useSemanticSearch && params.query) {
       const embeddingStart = Date.now();
       const queryEmbedding = await this.getQueryEmbedding(params.query);
@@ -127,7 +133,9 @@ export class SearchService {
 
     const includeVectorSearch =
       useSemanticSearch && queryEmbeddingFeatures !== null;
-    const effectiveRanking = includeVectorSearch ? ranking : "bm25";
+    const effectiveRanking = includeVectorSearch
+      ? (V2_RANKING[ranking] ?? ranking)
+      : "bm25";
     const yql = this.buildSearchYQL(params, includeVectorSearch);
 
     const vespaResult = await vespaClient.query({
@@ -276,7 +284,7 @@ export class SearchService {
     const { documentId, teamId, limit = 10, accessControlIds } = params;
 
     const doc = await vespaClient.getDocument(documentId);
-    if (!doc?.content_embedding) {
+    if (!doc?.embedding) {
       throw new Error("Document not found or has no embedding");
     }
 
@@ -284,15 +292,15 @@ export class SearchService {
       throw new Error("Document not accessible");
     }
 
-    const yql = `select * from openbeam_document where ({targetHits:${limit * 2}}nearestNeighbor(content_embedding, query_embedding)) and team_id contains "${escapeYqlString(
+    const yql = `select * from openbeam_document where ({targetHits:${limit * 2}}nearestNeighbor(embedding, embedding_v2)) and team_id contains "${escapeYqlString(
       teamId
     )}" and ${this.buildAccessControlClause(accessControlIds)} and id != "${escapeYqlString(documentId)}"`;
 
-    const vectorFeatures = buildVectorQueryFeatures(doc.content_embedding);
+    const vectorFeatures = buildVectorQueryFeatures(doc.embedding);
 
     const result = await vespaClient.query({
       yql,
-      ranking: "semantic",
+      ranking: "semantic_v2",
       hits: limit,
       ...vectorFeatures,
     });
@@ -495,7 +503,7 @@ export class SearchService {
     pushContains("team_id", params.teamId);
 
     if (includeVectorSearch && params.query) {
-      const vectorClause = `({targetHits:${limit * 2}}nearestNeighbor(content_embedding, query_embedding))`;
+      const vectorClause = `({targetHits:${limit * 2}}nearestNeighbor(embedding, embedding_v2))`;
       const textClause = `default contains "${escapeYqlString(params.query)}"`;
       conditions.push(`(${vectorClause} or (${textClause}))`);
     } else if (params.query) {

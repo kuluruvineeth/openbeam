@@ -77,9 +77,7 @@ async function queryWithDebug(params: {
   binSizeDays?: number;
 }): Promise<DebugSearchResponse> {
   const baseUrl = process.env.VESPA_URL || "http://localhost:8080";
-  const embeddingKey = params.isV2
-    ? "input.query(embedding_v2)"
-    : "input.query(query_embedding)";
+  const embeddingKey = "input.query(embedding_v2)";
 
   const body: Record<string, unknown> = {
     yql: params.yql,
@@ -142,11 +140,9 @@ export async function retrieveWithDebug(
 
   const targetHits = Math.min(limit * 3, 300);
 
-  const isV2Profile =
-    rankProfile === "global_sorted_v2" || rankProfile === "enterprise_v2_debug";
-  const embeddingField = isV2Profile ? "embedding" : "content_embedding";
-  const embeddingQueryName = isV2Profile ? "embedding_v2" : "query_embedding";
-  const embeddingDims = isV2Profile ? 1024 : 1536;
+  const embeddingField = "embedding";
+  const embeddingQueryName = "embedding_v2";
+  const embeddingDims = 1024;
 
   const conditions = [
     `team_id contains "${escapeYql(teamId)}"`,
@@ -164,7 +160,7 @@ export async function retrieveWithDebug(
     timeout: "5s",
     embedding,
     embeddingDims,
-    isV2: isV2Profile,
+    isV2: true,
     sparseEmbedding,
     binSizeDays,
   });
@@ -218,7 +214,7 @@ export async function analyzeRanking(
     embedding,
     teamId,
     limit,
-    rankProfile: "global_sorted",
+    rankProfile: "global_sorted_v2",
     filters,
     accessControlIds,
   });
@@ -230,8 +226,7 @@ export async function analyzeRanking(
     breakdown: {
       bm25Title: r.matchFeatures["bm25(title)"] ?? 0,
       bm25Content: r.matchFeatures["bm25(content)"] ?? 0,
-      vectorSimilarity:
-        r.matchFeatures["closeness(field, content_embedding)"] ?? 0,
+      vectorSimilarity: r.matchFeatures["closeness(field, embedding)"] ?? 0,
       authorityScore: r.matchFeatures["attribute(authority_score)"] ?? 0,
       viewCount: r.matchFeatures["attribute(view_count)"] ?? 0,
       ageInDays: r.matchFeatures.document_age_days ?? 0,

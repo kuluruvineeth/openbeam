@@ -51,7 +51,7 @@ function loadConfig(): AIConfig {
 
     embedding: {
       dimensions: Number.parseInt(
-        process.env.AI_EMBEDDING_DIMENSIONS || "1536",
+        process.env.AI_EMBEDDING_DIMENSIONS || "1024",
         10
       ),
       maxTokens: Number.parseInt(

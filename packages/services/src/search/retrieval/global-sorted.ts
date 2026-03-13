@@ -39,9 +39,7 @@ async function queryGlobalSorted(params: {
   sparseEmbedding?: Record<string, number>;
 }): Promise<VespaSearchResponse> {
   const baseUrl = process.env.VESPA_URL || "http://localhost:8080";
-  const embeddingKey = params.isV2
-    ? "input.query(embedding_v2)"
-    : "input.query(query_embedding)";
+  const embeddingKey = "input.query(embedding_v2)";
 
   const body: Record<string, unknown> = {
     yql: params.yql,
@@ -98,7 +96,7 @@ export async function retrieveGlobalSorted(
 
   const conditions = [
     `team_id contains "${escapeYql(teamId)}"`,
-    `({targetHits:${targetHits}}nearestNeighbor(content_embedding, query_embedding)) or default contains "${escapeYql(query)}"`,
+    `({targetHits:${targetHits}}nearestNeighbor(embedding, embedding_v2)) or default contains "${escapeYql(query)}"`,
     buildFilterClause(filters),
     buildAccessControlClause(accessControlIds),
   ].filter(Boolean);
@@ -107,12 +105,12 @@ export async function retrieveGlobalSorted(
 
   const result = await queryGlobalSorted({
     yql,
-    ranking: "global_sorted",
+    ranking: "global_sorted_v2",
     hits: limit,
     timeout: "3s",
     embedding,
-    embeddingDims: 1536,
-    isV2: false,
+    embeddingDims: 1024,
+    isV2: true,
     binSizeDays,
   });
 

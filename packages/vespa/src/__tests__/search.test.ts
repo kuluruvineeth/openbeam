@@ -13,12 +13,12 @@ describe("selectRankingProfile", () => {
       expect(selectRankingProfile("keyword", true)).toBe("bm25");
     });
 
-    it("returns semantic for semantic strategy", () => {
-      expect(selectRankingProfile("semantic", true)).toBe("semantic");
+    it("returns semantic_v2 for semantic strategy", () => {
+      expect(selectRankingProfile("semantic", true)).toBe("semantic_v2");
     });
 
-    it("returns hybrid for hybrid strategy", () => {
-      expect(selectRankingProfile("hybrid", true)).toBe("hybrid");
+    it("returns hybrid_v2 for hybrid strategy", () => {
+      expect(selectRankingProfile("hybrid", true)).toBe("hybrid_v2");
     });
 
     it("returns hybrid_recency for recency strategy", () => {
@@ -55,15 +55,15 @@ describe("selectRankingProfile", () => {
       expect(selectRankingProfile("authority", false)).toBe("authority");
     });
 
-    it("falls back to hybrid for personalized strategy", () => {
-      expect(selectRankingProfile("personalized", false)).toBe("hybrid");
+    it("falls back to hybrid_v2 for personalized strategy", () => {
+      expect(selectRankingProfile("personalized", false)).toBe("hybrid_v2");
     });
   });
 
   describe("edge cases", () => {
-    it("returns hybrid for unknown strategy", () => {
+    it("returns hybrid_v2 for unknown strategy", () => {
       expect(selectRankingProfile("unknown" as RankingStrategy, true)).toBe(
-        "hybrid"
+        "hybrid_v2"
       );
     });
   });
@@ -303,8 +303,8 @@ describe("RankingStrategy", () => {
 
     const validProfiles = [
       "bm25",
-      "semantic",
-      "hybrid",
+      "semantic_v2",
+      "hybrid_v2",
       "hybrid_recency",
       "recency",
       "authority",
@@ -329,8 +329,8 @@ describe("RankingStrategy", () => {
 
     const validProfiles = [
       "bm25",
-      "semantic",
-      "hybrid",
+      "semantic_v2",
+      "hybrid_v2",
       "hybrid_recency",
       "recency",
       "authority",

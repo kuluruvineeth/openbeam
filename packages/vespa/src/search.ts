@@ -141,7 +141,7 @@ function buildEmbeddingInputs(
   embeddings: SearchEmbeddings | undefined
 ): Pick<
   QueryParams,
-  "query_embedding" | "title_embedding" | "topic_embedding" | "sparse_embedding"
+  "embedding_v2" | "title_embedding" | "topic_embedding" | "sparse_embedding"
 > {
   if (!embeddings) {
     return {};
@@ -149,14 +149,11 @@ function buildEmbeddingInputs(
 
   const result: Pick<
     QueryParams,
-    | "query_embedding"
-    | "title_embedding"
-    | "topic_embedding"
-    | "sparse_embedding"
+    "embedding_v2" | "title_embedding" | "topic_embedding" | "sparse_embedding"
   > = {};
 
   if (embeddings.query) {
-    result.query_embedding = createVectorTensor(embeddings.query);
+    result.embedding_v2 = createVectorTensor(embeddings.query);
   }
 
   if (embeddings.title) {
@@ -282,17 +279,17 @@ export function selectRankingProfile(
     case "keyword":
       return "bm25";
     case "semantic":
-      return hasEmbeddings ? "semantic" : "bm25";
+      return hasEmbeddings ? "semantic_v2" : "bm25";
     case "hybrid":
-      return hasEmbeddings ? "hybrid" : "bm25";
+      return hasEmbeddings ? "hybrid_v2" : "bm25";
     case "recency":
       return hasEmbeddings ? "hybrid_recency" : "recency";
     case "authority":
       return "authority";
     case "personalized":
-      return hasEmbeddings ? "personalized" : "hybrid";
+      return hasEmbeddings ? "personalized" : "hybrid_v2";
     default:
-      return "hybrid";
+      return "hybrid_v2";
   }
 }
 
@@ -317,11 +314,11 @@ export async function findSimilarDocuments(
 
   const queryParams: QueryParams = {
     yql,
-    ranking: "semantic",
+    ranking: "semantic_v2",
     hits: limit,
     offset: 0,
     timeout: "3s",
-    query_embedding: createVectorTensor(params.embedding),
+    embedding_v2: createVectorTensor(params.embedding),
   };
 
   const { result, metrics } =

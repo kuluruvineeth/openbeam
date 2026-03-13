@@ -5,14 +5,14 @@ export function escapeYqlString(query: string): string {
 }
 
 export function buildVectorQueryFeatures(embedding: number[]): {
-  query_embedding: VectorTensor;
+  embedding_v2: VectorTensor;
 } {
   if (embedding.length === 0) {
     throw new Error("Embedding is required for similarity search");
   }
 
   return {
-    query_embedding: {
+    embedding_v2: {
       type: `tensor<float>(x[${embedding.length}])`,
       values: embedding,
     },

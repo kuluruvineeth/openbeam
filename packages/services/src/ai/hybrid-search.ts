@@ -66,12 +66,12 @@ export async function hybridSearch(
   conditions.push(`team_id contains "${escapeYqlString(teamId)}"`);
 
   if (query.trim()) {
-    const vectorClause = `({targetHits:${limit * 2}}nearestNeighbor(content_embedding, query_embedding))`;
+    const vectorClause = `({targetHits:${limit * 2}}nearestNeighbor(embedding, embedding_v2))`;
     const textClause = `default contains "${escapeYqlString(query)}"`;
     conditions.push(`(${vectorClause} or (${textClause}))`);
   } else {
     conditions.push(
-      `({targetHits:${limit * 2}}nearestNeighbor(content_embedding, query_embedding))`
+      `({targetHits:${limit * 2}}nearestNeighbor(embedding, embedding_v2))`
     );
   }
 
@@ -104,7 +104,7 @@ export async function hybridSearch(
 
   const result = await vespaClient.query({
     yql,
-    ranking: "hybrid",
+    ranking: "hybrid_v2",
     hits: limit,
     offset,
     ...vectorFeatures,

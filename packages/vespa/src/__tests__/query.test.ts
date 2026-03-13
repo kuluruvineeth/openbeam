@@ -34,21 +34,11 @@ describe("escapeYqlString", () => {
 });
 
 describe("buildVectorQueryFeatures", () => {
-  it("creates correct tensor format for 1536-dimensional embedding", () => {
-    const embedding = Array.from({ length: 1536 }, (_, i) => i * 0.001);
-    const result = buildVectorQueryFeatures(embedding);
-
-    expect(result.query_embedding).toEqual({
-      type: "tensor<float>(x[1536])",
-      values: embedding,
-    });
-  });
-
   it("creates correct tensor format for 1024-dimensional embedding", () => {
     const embedding = Array.from({ length: 1024 }, (_, i) => i * 0.001);
     const result = buildVectorQueryFeatures(embedding);
 
-    expect(result.query_embedding).toEqual({
+    expect(result.embedding_v2).toEqual({
       type: "tensor<float>(x[1024])",
       values: embedding,
     });
@@ -64,8 +54,8 @@ describe("buildVectorQueryFeatures", () => {
     const embedding = [0.1, 0.2, 0.3, -0.5, 0.0];
     const result = buildVectorQueryFeatures(embedding);
 
-    expect(result.query_embedding.values).toEqual(embedding);
-    expect(result.query_embedding.type).toBe("tensor<float>(x[5])");
+    expect(result.embedding_v2.values).toEqual(embedding);
+    expect(result.embedding_v2.type).toBe("tensor<float>(x[5])");
   });
 });
 
