@@ -120,6 +120,21 @@ export interface RecordSyncDocumentChangesInput {
   syncHistoryId?: string;
 }
 
+export interface FileResourceRecord {
+  externalId: string;
+  resourceType: string;
+  name: string;
+  mimeType: string;
+  downloadUrl: string;
+  size?: number;
+  sourceChannelId?: string;
+}
+
+export interface GetFileResourcesInput {
+  connectorId: string;
+  resourceTypes?: string[];
+}
+
 export interface DatabaseActivities {
   loadConnector(connectorId: string): Promise<ConnectorRecord>;
   validateConnection(
@@ -155,6 +170,7 @@ export interface DatabaseActivities {
   recordSyncDocumentChanges(
     input: RecordSyncDocumentChangesInput
   ): Promise<{ recorded: number }>;
+  getFileResources(input: GetFileResourcesInput): Promise<FileResourceRecord[]>;
 }
 
 export interface FilterUnchangedInput {

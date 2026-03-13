@@ -18,6 +18,7 @@ const mockUpdateSyncProgress = vi.fn();
 const mockCompleteSyncJob = vi.fn();
 const mockUpsertDiscoveredResources = vi.fn();
 const mockSetConnectorError = vi.fn();
+const mockGetFileResources = vi.fn();
 
 vi.mock("@temporalio/workflow", () => {
   const activities = {
@@ -37,6 +38,7 @@ vi.mock("@temporalio/workflow", () => {
     completeSyncJob: mockCompleteSyncJob,
     upsertDiscoveredResources: mockUpsertDiscoveredResources,
     setConnectorError: mockSetConnectorError,
+    getFileResources: mockGetFileResources,
   };
 
   return {
@@ -530,6 +532,11 @@ describe("connectorSyncWorkflow knowledge child args", () => {
         success: true,
       })
       .mockResolvedValueOnce({
+        filesProcessed: 0,
+        mediaProcessed: 0,
+        errors: 0,
+      })
+      .mockResolvedValueOnce({
         processed: 1,
         entitiesUpdated: 1,
         edgesUpdated: 1,
@@ -547,8 +554,8 @@ describe("connectorSyncWorkflow knowledge child args", () => {
       trigger: "MANUAL",
     });
 
-    expect(mockExecuteChild).toHaveBeenCalledTimes(2);
-    const knowledgeChildCall = mockExecuteChild.mock.calls[1];
+    expect(mockExecuteChild).toHaveBeenCalledTimes(3);
+    const knowledgeChildCall = mockExecuteChild.mock.calls[2];
     const knowledgeChildOptions = knowledgeChildCall?.[1];
 
     expect(knowledgeChildOptions).toMatchObject({

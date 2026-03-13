@@ -19,6 +19,7 @@ import * as analyticsActivities from "../activities/analytics";
 import { createCanvasExecutionActivities } from "../activities/canvas";
 import {
   createBaseConnectorActivities,
+  createConnectorFileActivities,
   createUnifiedSyncActivities,
   registerAllSyncFactories,
 } from "../activities/connectors";
@@ -199,6 +200,8 @@ async function loadActivitiesForWorkerType(
     case "media":
       return {
         ...baseActivities,
+        ...createConnectorFileActivities({ tempDir: deps.tempDir }),
+        ...createVespaActivities({ vespa: deps.vespa }),
         ...engineActivities,
       };
 

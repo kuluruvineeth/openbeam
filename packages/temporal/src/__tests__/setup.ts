@@ -69,6 +69,7 @@ export function createMockDatabaseActivities() {
     }),
     recordSyncDocumentChanges: (input: { documentIds: unknown[] }) =>
       Promise.resolve({ recorded: input.documentIds.length }),
+    getFileResources: async () => [],
   };
 }
 

@@ -490,13 +490,26 @@ export function registerAllSyncFactories(): void {
         // biome-ignore lint/suspicious/useAwait: callback signature requires Promise<void>
         onFilesDiscovered: async (files) => {
           for (const file of files) {
+            const downloadUrl =
+              file.downloadStrategy.type === "url"
+                ? file.downloadStrategy.downloadUrl
+                : undefined;
+
+            const resourceType = file.mimeType.startsWith("video/")
+              ? "video"
+              : "file";
+            const finalResourceType = file.mimeType.startsWith("audio/")
+              ? "audio"
+              : resourceType;
+
             pendingResources.push({
               externalId: file.id,
-              resourceType: "file",
+              resourceType: finalResourceType,
               name: file.name,
               metadata: {
                 mimeType: file.mimeType,
                 size: file.size,
+                downloadUrl,
                 permalink: file.permalink,
                 createdAt: file.createdAt,
                 userId: file.userId,

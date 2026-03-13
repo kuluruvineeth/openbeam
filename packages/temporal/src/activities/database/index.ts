@@ -5,6 +5,7 @@ import { createCompleteSyncJobActivity } from "./complete-sync-job";
 import { createDeleteIndexedDocumentsActivity } from "./delete-indexed-documents";
 import { createEmitSyncStartedActivity } from "./emit-sync-started";
 import { createFilterUnchangedDocumentsActivity } from "./filter-unchanged-documents";
+import { createGetFileResourcesActivity } from "./get-file-resources";
 import { createLoadConnectorActivity } from "./load-connector";
 import { createRecordSyncDocumentChangesActivity } from "./record-sync-document-changes";
 import { createSetConnectorErrorActivity } from "./set-connector-error";
@@ -21,6 +22,8 @@ import type {
   DeleteIndexedDocumentsResult,
   DiscoveredResource,
   EmitSyncStartedInput,
+  FileResourceRecord,
+  GetFileResourcesInput,
   RecordSyncDocumentChangesInput,
   TrackIndexedDocumentsInput,
   TrackIndexedDocumentsResult,
@@ -54,6 +57,7 @@ export function createDatabaseActivities(
     createUpsertDiscoveredResourcesActivity(deps);
   const recordSyncDocumentChanges =
     createRecordSyncDocumentChangesActivity(deps);
+  const getFileResources = createGetFileResourcesActivity(deps);
 
   return {
     loadConnector,
@@ -75,6 +79,7 @@ export function createDatabaseActivities(
     filterUnchangedDocuments,
     upsertDiscoveredResources,
     recordSyncDocumentChanges,
+    getFileResources,
   };
 }
 
@@ -95,6 +100,8 @@ export type {
   DatabaseActivities,
   DiscoveredResource,
   EmitSyncStartedInput,
+  FileResourceRecord,
+  GetFileResourcesInput,
   RecordSyncDocumentChangesInput,
   TrackIndexedDocumentsInput,
   TrackIndexedDocumentsResult,

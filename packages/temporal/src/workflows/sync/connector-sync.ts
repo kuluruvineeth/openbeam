@@ -18,6 +18,7 @@ import type {
 import { TASK_QUEUES } from "../../config";
 import { generateWorkflowId } from "../../utils/workflow-id";
 import { indexDocumentsWorkflow } from "../processing/index-documents";
+import { processDiscoveredFilesWorkflow } from "../processing/process-discovered-files";
 import { processKnowledgeChangesWorkflow } from "../scheduled/knowledge-changes";
 import { currentTimestamp } from "../temporal-utils";
 import {
@@ -269,6 +270,16 @@ export async function connectorSyncWorkflow(
         });
       }
     }
+
+    state.stage = "PROCESSING_FILES";
+    state.progressMessage = "Processing discovered files and media";
+    await executeChild(processDiscoveredFilesWorkflow, {
+      args: [{ connectorId: input.connectorId }],
+      workflowId: generateWorkflowId({
+        type: "file",
+        documentId: `${input.connectorId}:discovered`,
+      }),
+    });
 
     const changeTypeMap = {
       FULL: "full_rebuild",
