@@ -1,5 +1,8 @@
 import { executeChild, proxyActivities } from "@temporalio/workflow";
-import type { DatabaseActivities } from "../../activities/database/types";
+import type {
+  DatabaseActivities,
+  FileResourceRecord,
+} from "../../activities/database/types";
 import { TASK_QUEUES } from "../../config";
 import { generateWorkflowId } from "../../utils/workflow-id";
 import { fileProcessingWorkflow } from "./file-processing";
@@ -24,8 +27,37 @@ interface ProcessDiscoveredFilesOutput {
   errors: number;
 }
 
-function isMediaResource(resourceType: string): boolean {
-  return MEDIA_RESOURCE_TYPES.has(resourceType);
+function canRouteToMediaWorkflow(resource: FileResourceRecord): boolean {
+  return (
+    MEDIA_RESOURCE_TYPES.has(resource.resourceType) && !!resource.downloadUrl
+  );
+}
+
+function buildFileMetadata(
+  resource: FileResourceRecord
+): Record<string, string> {
+  const result: Record<string, string> = {};
+
+  if (resource.downloadUrl) {
+    result.downloadUrl = resource.downloadUrl;
+  }
+  result.filename = resource.name;
+
+  const meta = resource.metadata;
+  if (typeof meta.messageId === "string") {
+    result.messageId = meta.messageId;
+  }
+  if (typeof meta.attachmentId === "string") {
+    result.attachmentId = meta.attachmentId;
+  }
+  if (typeof meta.threadId === "string") {
+    result.threadId = meta.threadId;
+  }
+  if (typeof meta.sourceChannelId === "string") {
+    result.sourceChannelId = meta.sourceChannelId;
+  }
+
+  return result;
 }
 
 export async function processDiscoveredFilesWorkflow(
@@ -48,7 +80,7 @@ export async function processDiscoveredFilesWorkflow(
 
     const results = await Promise.allSettled(
       batch.map((resource) => {
-        if (isMediaResource(resource.resourceType)) {
+        if (canRouteToMediaWorkflow(resource)) {
           return executeChild(mediaProcessingWorkflow, {
             taskQueue: TASK_QUEUES.MEDIA_PROCESSING,
             workflowId: generateWorkflowId({
@@ -77,10 +109,8 @@ export async function processDiscoveredFilesWorkflow(
               connectorId: input.connectorId,
               externalId: resource.externalId,
               mimeType: resource.mimeType,
-              metadata: {
-                downloadUrl: resource.downloadUrl,
-                filename: resource.name,
-              },
+              downloadUrl: resource.downloadUrl,
+              metadata: buildFileMetadata(resource),
             },
           ],
         });
@@ -91,7 +121,7 @@ export async function processDiscoveredFilesWorkflow(
       const resource = batch[idx];
       if (result.status === "rejected") {
         errors += 1;
-      } else if (resource && isMediaResource(resource.resourceType)) {
+      } else if (resource && canRouteToMediaWorkflow(resource)) {
         mediaProcessed += 1;
       } else {
         filesProcessed += 1;

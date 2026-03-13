@@ -236,6 +236,7 @@ export function registerAllSyncFactories(): void {
               name: attachment.filename,
               metadata: {
                 messageId: attachment.messageId,
+                attachmentId: attachment.attachmentId,
                 threadId: attachment.threadId,
                 mimeType: attachment.mimeType,
                 size: attachment.size,
@@ -254,6 +255,7 @@ export function registerAllSyncFactories(): void {
               name: item.filename,
               metadata: {
                 messageId: item.messageId,
+                attachmentId: item.attachmentId,
                 threadId: item.threadId,
                 mimeType: item.mimeType,
                 size: item.size,

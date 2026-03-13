@@ -125,9 +125,9 @@ export interface FileResourceRecord {
   resourceType: string;
   name: string;
   mimeType: string;
-  downloadUrl: string;
+  downloadUrl?: string;
   size?: number;
-  sourceChannelId?: string;
+  metadata: Record<string, unknown>;
 }
 
 export interface GetFileResourcesInput {

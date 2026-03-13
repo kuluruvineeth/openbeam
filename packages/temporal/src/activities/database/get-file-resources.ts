@@ -1,7 +1,7 @@
 import type { Database } from "@openbeam/db";
 import type { FileResourceRecord, GetFileResourcesInput } from "./types";
 
-const DEFAULT_RESOURCE_TYPES = ["file", "video", "audio"];
+const DEFAULT_RESOURCE_TYPES = ["file", "video", "audio", "attachment"];
 
 export function createGetFileResourcesActivity(deps: { db: Database }) {
   return async function getFileResources(
@@ -27,20 +27,18 @@ export function createGetFileResourcesActivity(deps: { db: Database }) {
     const results: FileResourceRecord[] = [];
 
     for (const r of resources) {
-      const meta = r.metadata as Record<string, unknown> | null;
-      const downloadUrl = (meta?.downloadUrl as string) ?? "";
-      if (!downloadUrl) {
-        continue;
-      }
+      const meta = (r.metadata as Record<string, unknown>) ?? {};
+      const mimeType = (meta.mimeType as string) ?? "application/octet-stream";
+      const downloadUrl = meta.downloadUrl as string | undefined;
 
       results.push({
         externalId: r.externalId,
         resourceType: r.resourceType,
         name: r.name ?? r.externalId,
-        mimeType: (meta?.mimeType as string) ?? "application/octet-stream",
-        downloadUrl,
-        size: meta?.size as number | undefined,
-        sourceChannelId: meta?.sourceChannelId as string | undefined,
+        mimeType,
+        downloadUrl: downloadUrl || undefined,
+        size: meta.size as number | undefined,
+        metadata: meta,
       });
     }
 
