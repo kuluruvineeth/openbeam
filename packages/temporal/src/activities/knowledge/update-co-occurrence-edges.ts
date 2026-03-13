@@ -237,14 +237,14 @@ async function getPairSupportCount(
     entityAId < entityBId ? [entityAId, entityBId] : [entityBId, entityAId];
 
   const result = await db.$queryRaw<Array<{ co_count: bigint }>>`
-    SELECT COUNT(DISTINCT m1.document_id) AS co_count
+    SELECT COUNT(DISTINCT m1."documentId") AS co_count
     FROM entity_mention m1
     JOIN entity_mention m2
-      ON m1.document_id = m2.document_id
-      AND m1.team_id = m2.team_id
-    WHERE m1.team_id = ${teamId}
-      AND m1.entity_id = ${firstEntityId}
-      AND m2.entity_id = ${secondEntityId}
+      ON m1."documentId" = m2."documentId"
+      AND m1."teamId" = m2."teamId"
+    WHERE m1."teamId" = ${teamId}
+      AND m1."entityId" = ${firstEntityId}
+      AND m2."entityId" = ${secondEntityId}
   `;
 
   return Number(result[0]?.co_count ?? 0);

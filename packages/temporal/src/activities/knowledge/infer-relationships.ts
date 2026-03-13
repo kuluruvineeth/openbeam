@@ -56,8 +56,8 @@ const ENTITY_TYPE_RELATION_MAP: Record<string, RelationType> = {
 const BATCH_SIZE = 500;
 
 interface CoOccurrence {
-  from_entity_id: string;
-  to_entity_id: string;
+  fromEntityId: string;
+  toEntityId: string;
   from_type: string;
   to_type: string;
   co_count: bigint;
@@ -81,21 +81,21 @@ export function createInferRelationshipsActivity(
 
     const coOccurrences = await deps.db.$queryRaw<CoOccurrence[]>`
       SELECT
-        m1.entity_id AS from_entity_id,
-        m2.entity_id AS to_entity_id,
+        m1."entityId" AS "fromEntityId",
+        m2."entityId" AS "toEntityId",
         e1.type AS from_type,
         e2.type AS to_type,
-        COUNT(DISTINCT m1.document_id) AS co_count
+        COUNT(DISTINCT m1."documentId") AS co_count
       FROM entity_mention m1
       JOIN entity_mention m2
-        ON m1.document_id = m2.document_id
-        AND m1.team_id = m2.team_id
-        AND m1.entity_id < m2.entity_id
-      JOIN entity e1 ON e1.id = m1.entity_id
-      JOIN entity e2 ON e2.id = m2.entity_id
-      WHERE m1.team_id = ${input.teamId}
-      GROUP BY m1.entity_id, m2.entity_id, e1.type, e2.type
-      HAVING COUNT(DISTINCT m1.document_id) >= ${input.coOccurrenceThreshold}
+        ON m1."documentId" = m2."documentId"
+        AND m1."teamId" = m2."teamId"
+        AND m1."entityId" < m2."entityId"
+      JOIN entity e1 ON e1."_id" = m1."entityId"
+      JOIN entity e2 ON e2."_id" = m2."entityId"
+      WHERE m1."teamId" = ${input.teamId}
+      GROUP BY m1."entityId", m2."entityId", e1.type, e2.type
+      HAVING COUNT(DISTINCT m1."documentId") >= ${input.coOccurrenceThreshold}
       ORDER BY co_count DESC
       LIMIT ${CO_OCCURRENCE_LIMIT}
     `;
@@ -127,8 +127,8 @@ export function createInferRelationshipsActivity(
         const result = await deps.db.entityRelation.upsert({
           where: {
             fromEntityId_toEntityId_relationType: {
-              fromEntityId: co.from_entity_id,
-              toEntityId: co.to_entity_id,
+              fromEntityId: co.fromEntityId,
+              toEntityId: co.toEntityId,
               relationType,
             },
           },
@@ -137,8 +137,8 @@ export function createInferRelationshipsActivity(
             confidence,
           },
           create: {
-            fromEntityId: co.from_entity_id,
-            toEntityId: co.to_entity_id,
+            fromEntityId: co.fromEntityId,
+            toEntityId: co.toEntityId,
             relationType,
             weight: Number(co.co_count),
             confidence,
@@ -169,10 +169,10 @@ export function createInferRelationshipsActivity(
 
 async function pruneStaleEdges(db: Database, teamId: string): Promise<number> {
   const staleEdges = await db.$queryRaw<Array<{ id: string }>>`
-    SELECT er.id
+    SELECT er."_id" AS id
     FROM entity_relation er
-    JOIN entity e ON e.id = er.from_entity_id
-    WHERE e.team_id = ${teamId}
+    JOIN entity e ON e."_id" = er."fromEntityId"
+    WHERE e."teamId" = ${teamId}
       AND er.confidence <= 0
   `;
 

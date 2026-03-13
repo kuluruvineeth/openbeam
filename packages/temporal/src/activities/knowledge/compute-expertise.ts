@@ -21,11 +21,11 @@ export function createComputeExpertiseActivity(
 
     const result = await deps.db.$executeRaw`
       UPDATE entity SET
-        expertise_score = subquery.new_score,
-        updated_at = NOW()
+        "expertiseScore" = subquery.new_score,
+        "updatedAt" = NOW()
       FROM (
         SELECT
-          e.id,
+          e."_id",
           COALESCE(SUM(
             CASE m.source
               WHEN 'AUTHORED' THEN 3.0
@@ -35,12 +35,12 @@ export function createComputeExpertiseActivity(
             END
           ), 0) AS new_score
         FROM entity e
-        LEFT JOIN entity_mention m ON m.entity_id = e.id
-        WHERE e.team_id = ${input.teamId}
-        GROUP BY e.id
+        LEFT JOIN entity_mention m ON m."entityId" = e."_id"
+        WHERE e."teamId" = ${input.teamId}
+        GROUP BY e."_id"
       ) subquery
-      WHERE entity.id = subquery.id
-        AND entity.team_id = ${input.teamId}
+      WHERE entity."_id" = subquery."_id"
+        AND entity."teamId" = ${input.teamId}
     `;
 
     Context.current().heartbeat({ stage: "fetching_top_experts" });
