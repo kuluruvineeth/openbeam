@@ -200,7 +200,6 @@ services:
       CPU_DEBUG: "true"
       CPU_LOG_LEVEL: "DEBUG"
       CPU_ENVIRONMENT: "development"
-      CPU_REDIS_URL: "redis://redis:6379"
       SECURITY_REQUIRE_AUTH: "true"
       CPU_WORKERS: "1"
       SCARF_NO_ANALYTICS: "true"
@@ -228,7 +227,9 @@ services:
       periodSeconds: 30
       timeoutSeconds: 5
       failureThreshold: 3
-    extraEnv: []
+    extraEnv:
+      - name: CPU_REDIS_URL
+        value: "redis://redis:6379"
 
 sandboxGateway:
   enabled: true
