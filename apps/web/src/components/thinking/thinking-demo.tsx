@@ -13,7 +13,7 @@ type ThinkingDemoProps = {
 };
 
 export function ThinkingDemo({ mode = "animated" }: ThinkingDemoProps) {
-  if (!ENABLE_THINKING_MOCK) {
+  if (process.env.NODE_ENV !== "development" || !ENABLE_THINKING_MOCK) {
     return null;
   }
 

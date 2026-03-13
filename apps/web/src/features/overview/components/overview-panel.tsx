@@ -5,7 +5,6 @@ import { AnimatePresence, motion } from "motion/react";
 import { memo, useCallback, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Icons } from "@/components/icons";
-import { ThinkingDemo } from "@/components/thinking";
 import type { PreviewType } from "@/features/file-preview";
 import { SearchPreviewSheet } from "@/features/search/components/search-preview-sheet";
 import { cn } from "@/lib/utils";
@@ -152,8 +151,6 @@ function OverviewPanelInner({
             </Button>
           </div>
         </header>
-
-        <ThinkingDemo mode="animated" />
 
         <AnimatePresence mode="wait">
           {isExpanded && (

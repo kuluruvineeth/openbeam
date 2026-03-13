@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ThinkingState, ThinkingStep } from "./thinking-types";
 
-export const ENABLE_THINKING_MOCK = true;
+export const ENABLE_THINKING_MOCK = process.env.NODE_ENV === "development";
 
 const MOCK_THINKING_CONTENT = `Let me analyze this query step by step.
 
