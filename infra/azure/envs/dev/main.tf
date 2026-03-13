@@ -101,18 +101,32 @@ module "aks" {
   default_node_pool = {
     vm_size   = "Standard_D2as_v5"
     min_count = 1
-    max_count = 3
+    max_count = 2
     zones     = []
   }
 
   additional_node_pools = {
-    app = {
-      vm_size    = "Standard_D2as_v5"
+    workload = {
+      vm_size    = "Standard_D4as_v5"
       min_count  = 1
-      max_count  = 3
+      max_count  = 2
+      node_count = 2
+      priority   = "Regular"
+      node_labels = {
+        "openbeam/pool" = "workload"
+      }
+      zones = []
+    }
+    app = {
+      vm_size    = "Standard_D4as_v5"
+      min_count  = 0
+      max_count  = 2
       node_count = 1
       priority   = "Spot"
-      zones      = []
+      node_labels = {
+        "openbeam/pool" = "spot"
+      }
+      zones = []
     }
   }
 

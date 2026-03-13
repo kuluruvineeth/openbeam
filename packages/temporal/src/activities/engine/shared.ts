@@ -4,7 +4,9 @@ export interface EngineActivityDependencies {
 }
 
 export const DEFAULT_CPU_URL =
-  process.env.ENGINE_CPU_URL ?? "http://localhost:8000";
+  process.env.ENGINE_CPU_URL ??
+  process.env.ENGINE_URL ??
+  "http://localhost:8000";
 export const DEFAULT_GPU_URL =
   process.env.ENGINE_GPU_URL ?? "http://localhost:8001";
 

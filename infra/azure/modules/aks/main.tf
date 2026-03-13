@@ -40,7 +40,6 @@ resource "azurerm_kubernetes_cluster" "main" {
     vnet_subnet_id       = var.vnet_subnet_id
     min_count            = var.default_node_pool.min_count
     max_count            = var.default_node_pool.max_count
-    node_count           = var.default_node_pool.node_count
     auto_scaling_enabled = true
     os_disk_size_gb      = var.default_node_pool.os_disk_size_gb
     zones                = var.default_node_pool.zones
@@ -73,7 +72,6 @@ resource "azurerm_kubernetes_cluster_node_pool" "additional" {
   vnet_subnet_id        = var.vnet_subnet_id
   min_count             = each.value.min_count
   max_count             = each.value.max_count
-  node_count            = each.value.node_count
   auto_scaling_enabled  = true
   priority              = each.value.priority
   eviction_policy       = each.value.priority == "Spot" ? each.value.eviction_policy : null

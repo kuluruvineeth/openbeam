@@ -208,13 +208,15 @@ services:
       type: ClusterIP
       metricsPort: 9091
       healthPort: 9092
+    nodeSelector:
+      openbeam/pool: workload
     resources:
       requests:
-        cpu: 500m
-        memory: 2Gi
-      limits:
         cpu: 1000m
         memory: 4Gi
+      limits:
+        cpu: 3000m
+        memory: 8Gi
     startupProbe:
       path: /health/live
       initialDelaySeconds: 10
@@ -294,24 +296,23 @@ services:
       CPU_DEBUG: "false"
       CPU_LOG_LEVEL: "INFO"
       CPU_ENVIRONMENT: "production"
-      CPU_REDIS_URL: ""
       SECURITY_REQUIRE_AUTH: "true"
+      CPU_ENABLE_ML: "true"
+      HF_HOME: "/tmp/hf_cache"
+      TRANSFORMERS_CACHE: "/tmp/hf_cache"
       CPU_WORKERS: "2"
       SCARF_NO_ANALYTICS: "true"
       DO_NOT_TRACK: "true"
       MPLCONFIGDIR: "/tmp/matplotlib"
-    tolerations:
-      - key: "kubernetes.azure.com/scalesetpriority"
-        operator: "Equal"
-        value: "spot"
-        effect: "NoSchedule"
+    nodeSelector:
+      openbeam/pool: workload
     resources:
       requests:
-        cpu: 250m
-        memory: 1Gi
+        cpu: 500m
+        memory: 2Gi
       limits:
         cpu: 2000m
-        memory: 2Gi
+        memory: 6Gi
     startupProbe:
       path: /v1/health
       initialDelaySeconds: 15
@@ -327,7 +328,12 @@ services:
       periodSeconds: 30
       timeoutSeconds: 5
       failureThreshold: 3
-    extraEnv: []
+    extraEnv:
+      - name: CPU_REDIS_URL
+        valueFrom:
+          configMapKeyRef:
+            name: openbeam-env
+            key: REDIS_URL
 
 sandboxGateway:
   enabled: false

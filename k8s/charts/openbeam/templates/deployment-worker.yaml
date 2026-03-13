@@ -71,7 +71,7 @@ spec:
             failureThreshold: {{ .Values.services.worker.livenessProbe.failureThreshold }}
           resources:
             {{- toYaml .Values.services.worker.resources | nindent 12 }}
-      {{- with .Values.nodeSelector }}
+      {{- with (.Values.services.worker.nodeSelector | default .Values.nodeSelector) }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -79,7 +79,7 @@ spec:
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.tolerations }}
+      {{- with (.Values.services.worker.tolerations | default .Values.tolerations) }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
