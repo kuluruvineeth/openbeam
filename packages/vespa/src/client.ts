@@ -6,7 +6,11 @@ import {
   createBatchResult,
   isRetryableError,
 } from "./batch-types";
-import { escapeYqlString } from "./query";
+import {
+  escapeYqlString,
+  serializeSparseTensor,
+  serializeVectorTensor,
+} from "./query";
 import type {
   DetailedHealthStatus,
   Entity,
@@ -251,19 +255,45 @@ export class VespaClient {
 
   private buildQueryBody(params: QueryParams): VespaQueryBody {
     const timeout = normalizeVespaTimeout(params.timeout);
-    return {
+    const body: VespaQueryBody = {
       yql: params.yql,
       hits: params.hits ?? 20,
       offset: params.offset ?? 0,
       "ranking.profile": params.ranking,
       timeout,
-      "input.query(query_embedding)": params.query_embedding,
-      "input.query(title_embedding)": params.title_embedding,
-      "input.query(topic_embedding)": params.topic_embedding,
-      "input.query(user_dept_embedding)": params.user_dept_embedding,
-      "input.query(embedding_v2)": params.embedding_v2,
-      "input.query(sparse_embedding)": params.sparse_embedding,
     };
+
+    if (params.query_embedding) {
+      body["ranking.features.query(query_embedding)"] = serializeVectorTensor(
+        params.query_embedding
+      );
+    }
+    if (params.title_embedding) {
+      body["ranking.features.query(title_embedding)"] = serializeVectorTensor(
+        params.title_embedding
+      );
+    }
+    if (params.topic_embedding) {
+      body["ranking.features.query(topic_embedding)"] = serializeVectorTensor(
+        params.topic_embedding
+      );
+    }
+    if (params.user_dept_embedding) {
+      body["ranking.features.query(user_dept_embedding)"] =
+        serializeVectorTensor(params.user_dept_embedding);
+    }
+    if (params.embedding_v2) {
+      body["ranking.features.query(embedding_v2)"] = serializeVectorTensor(
+        params.embedding_v2
+      );
+    }
+    if (params.sparse_embedding) {
+      body["ranking.features.query(sparse_embedding)"] = serializeSparseTensor(
+        params.sparse_embedding
+      );
+    }
+
+    return body;
   }
 
   private buildQueryUrl(params: QueryParams): string {
@@ -899,10 +929,22 @@ export class VespaClient {
       offset: params.offset ?? 0,
       "ranking.profile": params.ranking,
       timeout,
-      "input.query(media_embedding)": params.media_embedding,
-      "input.query(query_embedding)": params.query_embedding,
-      "input.query(topic_embedding)": params.topic_embedding,
     };
+    if (params.media_embedding) {
+      body["ranking.features.query(media_embedding)"] = serializeVectorTensor(
+        params.media_embedding
+      );
+    }
+    if (params.query_embedding) {
+      body["ranking.features.query(query_embedding)"] = serializeVectorTensor(
+        params.query_embedding
+      );
+    }
+    if (params.topic_embedding) {
+      body["ranking.features.query(topic_embedding)"] = serializeVectorTensor(
+        params.topic_embedding
+      );
+    }
 
     const response = await fetch(this.searchApiUrl, {
       method: "POST",
@@ -1049,14 +1091,18 @@ export class VespaClient {
     params: SpreadsheetQueryParams
   ): Promise<SearchResult<T>> {
     const timeout = normalizeVespaTimeout(params.timeout);
-    const body = {
+    const body: Record<string, unknown> = {
       yql: params.yql,
       hits: params.hits ?? 20,
       offset: params.offset ?? 0,
       "ranking.profile": params.ranking,
       timeout,
-      "input.query(query_embedding)": params.query_embedding,
     };
+    if (params.query_embedding) {
+      body["ranking.features.query(query_embedding)"] = serializeVectorTensor(
+        params.query_embedding
+      );
+    }
 
     const response = await fetch(this.searchApiUrl, {
       method: "POST",

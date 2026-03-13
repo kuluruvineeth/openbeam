@@ -1,4 +1,8 @@
-import type { GenericDocument } from "@openbeam/vespa";
+import {
+  type GenericDocument,
+  serializeIndexedTensor,
+  serializeSparseFromRecord,
+} from "@openbeam/vespa";
 import type { SearchFilters } from "../types";
 import {
   buildAccessControlClause,
@@ -71,23 +75,19 @@ async function queryWithDebug(params: {
   hits: number;
   timeout: string;
   embedding: number[];
-  embeddingDims: number;
-  isV2: boolean;
   sparseEmbedding?: Record<string, number>;
   binSizeDays?: number;
 }): Promise<DebugSearchResponse> {
   const baseUrl = process.env.VESPA_URL || "http://localhost:8080";
-  const embeddingKey = "input.query(embedding_v2)";
 
   const body: Record<string, unknown> = {
     yql: params.yql,
     hits: params.hits,
     "ranking.profile": params.ranking,
     timeout: params.timeout,
-    [embeddingKey]: {
-      type: `tensor<float>(x[${params.embeddingDims}])`,
-      values: params.embedding,
-    },
+    "ranking.features.query(embedding_v2)": serializeIndexedTensor(
+      params.embedding
+    ),
   };
 
   if (
@@ -101,12 +101,8 @@ async function queryWithDebug(params: {
     params.sparseEmbedding &&
     Object.keys(params.sparseEmbedding).length > 0
   ) {
-    body["input.query(sparse_embedding)"] = {
-      cells: Object.entries(params.sparseEmbedding).map(([token, value]) => ({
-        address: { token },
-        value,
-      })),
-    };
+    body["ranking.features.query(sparse_embedding)"] =
+      serializeSparseFromRecord(params.sparseEmbedding);
   }
 
   const response = await fetch(`${baseUrl}/search/`, {
@@ -140,13 +136,9 @@ export async function retrieveWithDebug(
 
   const targetHits = Math.min(limit * 3, 300);
 
-  const embeddingField = "embedding";
-  const embeddingQueryName = "embedding_v2";
-  const embeddingDims = 1024;
-
   const conditions = [
     `team_id contains "${escapeYql(teamId)}"`,
-    `({targetHits:${targetHits}}nearestNeighbor(${embeddingField}, ${embeddingQueryName})) or default contains "${escapeYql(query)}"`,
+    `({targetHits:${targetHits}}nearestNeighbor(embedding, embedding_v2)) or default contains "${escapeYql(query)}"`,
     buildFilterClause(filters),
     buildAccessControlClause(accessControlIds),
   ].filter(Boolean);
@@ -159,8 +151,6 @@ export async function retrieveWithDebug(
     hits: limit,
     timeout: "5s",
     embedding,
-    embeddingDims,
-    isV2: true,
     sparseEmbedding,
     binSizeDays,
   });

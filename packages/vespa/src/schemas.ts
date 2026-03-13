@@ -334,12 +334,12 @@ export interface VespaQueryBody {
   offset: number;
   "ranking.profile"?: DocumentRankingProfile;
   timeout?: string;
-  "input.query(query_embedding)"?: VectorTensor;
-  "input.query(title_embedding)"?: VectorTensor;
-  "input.query(topic_embedding)"?: VectorTensor;
-  "input.query(user_dept_embedding)"?: VectorTensor;
-  "input.query(embedding_v2)"?: VectorTensor;
-  "input.query(sparse_embedding)"?: SparseTensor;
+  "ranking.features.query(query_embedding)"?: string;
+  "ranking.features.query(title_embedding)"?: string;
+  "ranking.features.query(topic_embedding)"?: string;
+  "ranking.features.query(user_dept_embedding)"?: string;
+  "ranking.features.query(embedding_v2)"?: string;
+  "ranking.features.query(sparse_embedding)"?: string;
 }
 
 export interface VespaMediaQueryBody {
@@ -348,9 +348,9 @@ export interface VespaMediaQueryBody {
   offset: number;
   "ranking.profile"?: MediaRankingProfile;
   timeout?: string;
-  "input.query(media_embedding)"?: MediaVectorTensor;
-  "input.query(query_embedding)"?: VectorTensor;
-  "input.query(topic_embedding)"?: MediaVectorTensor;
+  "ranking.features.query(media_embedding)"?: string;
+  "ranking.features.query(query_embedding)"?: string;
+  "ranking.features.query(topic_embedding)"?: string;
 }
 
 export interface VespaEmbeddingCell {

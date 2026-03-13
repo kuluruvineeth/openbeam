@@ -32,6 +32,10 @@ export {
   buildMediaVectorQueryFeatures,
   buildVectorQueryFeatures,
   escapeYqlString,
+  serializeIndexedTensor,
+  serializeSparseFromRecord,
+  serializeSparseTensor,
+  serializeVectorTensor,
 } from "./query";
 export * from "./schemas";
 export {

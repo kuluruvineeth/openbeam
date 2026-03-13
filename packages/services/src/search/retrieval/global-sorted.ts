@@ -1,4 +1,8 @@
-import type { GenericDocument } from "@openbeam/vespa";
+import {
+  type GenericDocument,
+  serializeIndexedTensor,
+  serializeSparseFromRecord,
+} from "@openbeam/vespa";
 import type { RetrievalResult, SearchFilters } from "../types";
 import {
   buildAccessControlClause,
@@ -33,23 +37,19 @@ async function queryGlobalSorted(params: {
   hits: number;
   timeout: string;
   embedding: number[];
-  embeddingDims: number;
-  isV2: boolean;
   binSizeDays: number;
   sparseEmbedding?: Record<string, number>;
 }): Promise<VespaSearchResponse> {
   const baseUrl = process.env.VESPA_URL || "http://localhost:8080";
-  const embeddingKey = "input.query(embedding_v2)";
 
   const body: Record<string, unknown> = {
     yql: params.yql,
     hits: params.hits,
     "ranking.profile": params.ranking,
     timeout: params.timeout,
-    [embeddingKey]: {
-      type: `tensor<float>(x[${params.embeddingDims}])`,
-      values: params.embedding,
-    },
+    "ranking.features.query(embedding_v2)": serializeIndexedTensor(
+      params.embedding
+    ),
     "ranking.features.query(bin_size_days)": params.binSizeDays,
   };
 
@@ -57,12 +57,8 @@ async function queryGlobalSorted(params: {
     params.sparseEmbedding &&
     Object.keys(params.sparseEmbedding).length > 0
   ) {
-    body["input.query(sparse_embedding)"] = {
-      cells: Object.entries(params.sparseEmbedding).map(([token, value]) => ({
-        address: { token },
-        value,
-      })),
-    };
+    body["ranking.features.query(sparse_embedding)"] =
+      serializeSparseFromRecord(params.sparseEmbedding);
   }
 
   const response = await fetch(`${baseUrl}/search/`, {
@@ -109,8 +105,6 @@ export async function retrieveGlobalSorted(
     hits: limit,
     timeout: "3s",
     embedding,
-    embeddingDims: 1024,
-    isV2: true,
     binSizeDays,
   });
 
@@ -163,8 +157,6 @@ export async function retrieveGlobalSortedV2(
     hits: limit,
     timeout: "3s",
     embedding,
-    embeddingDims: 1024,
-    isV2: true,
     binSizeDays,
     sparseEmbedding,
   });
