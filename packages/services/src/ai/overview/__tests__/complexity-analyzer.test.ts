@@ -140,7 +140,7 @@ describe("selectModelForComplexity", () => {
 
   test("returns capable model for complex queries", () => {
     const config = selectModelForComplexity("complex");
-    expect(config.modelId).toBe("gemini-3-pro-preview");
+    expect(config.modelId).toBe("gemini-3.1-pro-preview");
     expect(config.providerId).toBe("google");
   });
 

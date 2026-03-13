@@ -16,8 +16,8 @@ export const GOOGLE_MODELS: ChatModel[] = [
     },
   },
   {
-    id: "gemini-3-pro-preview",
-    name: "Gemini 3 Pro",
+    id: "gemini-3.1-pro-preview",
+    name: "Gemini 3.1 Pro",
     provider: "google",
     contextWindow: 1_048_576,
     maxOutputTokens: 65_536,
@@ -27,6 +27,20 @@ export const GOOGLE_MODELS: ChatModel[] = [
     pricing: {
       inputPer1M: 2.0,
       outputPer1M: 12.0,
+    },
+  },
+  {
+    id: "gemini-3.1-flash-lite-preview",
+    name: "Gemini 3.1 Flash Lite",
+    provider: "google",
+    contextWindow: 1_048_576,
+    maxOutputTokens: 65_536,
+    supportsTools: true,
+    supportsVision: true,
+    supportsStreaming: true,
+    pricing: {
+      inputPer1M: 0.15,
+      outputPer1M: 0.6,
     },
   },
 ];

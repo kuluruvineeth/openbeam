@@ -104,7 +104,7 @@ interface ModelConfig {
 const MODEL_BY_COMPLEXITY: Record<QueryComplexity, ModelConfig> = {
   simple: { providerId: "google", modelId: "gemini-3-flash-preview" },
   moderate: { providerId: "google", modelId: "gemini-3-flash-preview" },
-  complex: { providerId: "google", modelId: "gemini-3-pro-preview" },
+  complex: { providerId: "google", modelId: "gemini-3.1-pro-preview" },
 };
 
 export function selectModelForComplexity(

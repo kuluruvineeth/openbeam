@@ -744,6 +744,12 @@ export class SearchService {
             fromDate: params.fromDate,
             toDate: params.toDate,
             ranking: params.mediaRanking,
+          }).catch((error) => {
+            logger.warn(
+              { error },
+              "Media search failed, returning empty results"
+            );
+            return null;
           })
         : Promise.resolve(null),
     ]);

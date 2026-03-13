@@ -227,13 +227,13 @@ function createAgentContext(request: OverviewRequest): AgentExecutionContext {
 }
 
 const DEFAULT_OVERVIEW_MODEL = {
-  providerId: "anthropic" as const,
-  modelId: "claude-sonnet-4-5",
+  providerId: "google" as const,
+  modelId: "gemini-3-flash-preview",
 };
 
 function createAgentConfig(request: OverviewRequest) {
   const baseModel = request.modelId
-    ? { providerId: "anthropic" as const, modelId: request.modelId }
+    ? { providerId: "google" as const, modelId: request.modelId }
     : DEFAULT_OVERVIEW_MODEL;
 
   return {
