@@ -1,4 +1,5 @@
 import type {
+  SlackBlock,
   SlackChannel,
   SlackMessage,
   TransformContext,
@@ -19,6 +20,8 @@ export interface MessageTransformOptions {
   includeAttachments?: boolean;
   includeReactions?: boolean;
 }
+
+const TITLE_MAX_LENGTH = 120;
 
 export async function transformMessage(
   message: SlackMessage,
@@ -66,8 +69,8 @@ export async function transformMessage(
     includeReactions,
   });
 
-  const title = buildTitle(channel, message, isReply);
-  const content = message.text ?? "";
+  const content = extractMessageContent(message);
+  const title = buildTitle(channel, message, isReply, content);
 
   const checksum = await calculateDocumentChecksum({
     title,
@@ -117,20 +120,187 @@ export function transformMessages(
   );
 }
 
+function extractMessageContent(message: SlackMessage): string {
+  if (message.text && message.text.trim().length > 0) {
+    return message.text;
+  }
+
+  if (message.blocks && message.blocks.length > 0) {
+    const blockText = extractTextFromBlocks(message.blocks);
+    if (blockText.length > 0) {
+      return blockText;
+    }
+  }
+
+  if (message.attachments && message.attachments.length > 0) {
+    const attachmentText = extractTextFromAttachments(message.attachments);
+    if (attachmentText.length > 0) {
+      return attachmentText;
+    }
+  }
+
+  if (message.files && message.files.length > 0) {
+    const fileNames = message.files
+      .map((f) => f.title ?? f.name)
+      .filter(Boolean);
+    if (fileNames.length > 0) {
+      return `Shared: ${fileNames.join(", ")}`;
+    }
+  }
+
+  return "";
+}
+
+function extractTextFromBlocks(blocks: SlackBlock[]): string {
+  const parts: string[] = [];
+
+  for (const block of blocks) {
+    const blockType = block.type;
+
+    if (blockType === "rich_text" && Array.isArray(block.elements)) {
+      parts.push(extractTextFromRichTextElements(block.elements));
+    } else if (
+      (blockType === "section" || blockType === "header") &&
+      block.text &&
+      typeof block.text === "object"
+    ) {
+      const textObj = block.text as Record<string, unknown>;
+      if (typeof textObj.text === "string") {
+        parts.push(textObj.text);
+      }
+    } else if (blockType === "context" && Array.isArray(block.elements)) {
+      for (const el of block.elements) {
+        if (el && typeof el === "object") {
+          const obj = el as Record<string, unknown>;
+          if (typeof obj.text === "string") {
+            parts.push(obj.text);
+          }
+        }
+      }
+    }
+  }
+
+  return parts.filter(Boolean).join("\n");
+}
+
+function extractTextFromRichTextElements(elements: unknown[]): string {
+  const parts: string[] = [];
+
+  for (const section of elements) {
+    if (!section || typeof section !== "object") {
+      continue;
+    }
+
+    const sectionObj = section as Record<string, unknown>;
+    const sectionType = sectionObj.type;
+
+    if (
+      (sectionType === "rich_text_section" ||
+        sectionType === "rich_text_quote" ||
+        sectionType === "rich_text_preformatted" ||
+        sectionType === "rich_text_list") &&
+      Array.isArray(sectionObj.elements)
+    ) {
+      for (const el of sectionObj.elements) {
+        if (!el || typeof el !== "object") {
+          continue;
+        }
+
+        const elObj = el as Record<string, unknown>;
+
+        if (elObj.type === "text" && typeof elObj.text === "string") {
+          parts.push(elObj.text);
+        } else if (elObj.type === "link" && typeof elObj.url === "string") {
+          const label = typeof elObj.text === "string" ? elObj.text : elObj.url;
+          parts.push(label);
+        } else if (elObj.type === "emoji" && typeof elObj.name === "string") {
+          parts.push(`:${elObj.name}:`);
+        } else if (
+          elObj.type === "channel" &&
+          typeof elObj.channel_id === "string"
+        ) {
+          parts.push(`#${elObj.channel_id}`);
+        } else if (elObj.type === "user" && typeof elObj.user_id === "string") {
+          parts.push(`@${elObj.user_id}`);
+        } else if (
+          sectionType === "rich_text_list" &&
+          Array.isArray(elObj.elements)
+        ) {
+          parts.push(extractTextFromRichTextElements([elObj]));
+        }
+      }
+    }
+  }
+
+  return parts.join("");
+}
+
+function extractTextFromAttachments(attachments: unknown[]): string {
+  const parts: string[] = [];
+
+  for (const attachment of attachments) {
+    if (!attachment || typeof attachment !== "object") {
+      continue;
+    }
+
+    const att = attachment as Record<string, unknown>;
+
+    if (typeof att.text === "string" && att.text.length > 0) {
+      parts.push(att.text);
+    } else if (typeof att.fallback === "string" && att.fallback.length > 0) {
+      parts.push(att.fallback);
+    } else if (typeof att.pretext === "string" && att.pretext.length > 0) {
+      parts.push(att.pretext);
+    }
+
+    if (typeof att.title === "string" && att.title.length > 0) {
+      parts.push(att.title);
+    }
+  }
+
+  return parts.join("\n");
+}
+
+function truncateToTitle(text: string, maxLength: number): string {
+  const firstLine = text.split("\n")[0] ?? text;
+  const cleaned = cleanMessageText(firstLine).trim();
+
+  if (cleaned.length <= maxLength) {
+    return cleaned;
+  }
+
+  return `${cleaned.slice(0, maxLength - 1)}…`;
+}
+
 function buildTitle(
   channel: SlackChannel,
   message: SlackMessage,
-  isReply: boolean
+  isReply: boolean,
+  content: string
 ): string {
-  if (isReply) {
-    return `Reply in #${channel.name}`;
+  let prefix = `#${channel.name}`;
+  if (!isReply && message.reply_count && message.reply_count > 0) {
+    prefix = `#${channel.name} thread`;
   }
 
-  if (message.reply_count && message.reply_count > 0) {
-    return `Thread in #${channel.name}`;
+  if (content.length > 0) {
+    const preview = truncateToTitle(
+      content,
+      TITLE_MAX_LENGTH - prefix.length - 3
+    );
+    if (preview.length > 0) {
+      return `${prefix}: ${preview}`;
+    }
   }
 
-  return `Message in #${channel.name}`;
+  if (message.files && message.files.length > 0) {
+    const fileName = message.files[0]?.title ?? message.files[0]?.name;
+    if (fileName) {
+      return `${prefix}: ${fileName}`;
+    }
+  }
+
+  return prefix;
 }
 
 function buildMessageUrl(
