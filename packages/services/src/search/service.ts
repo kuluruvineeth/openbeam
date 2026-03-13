@@ -2,6 +2,7 @@ import { getConfig as getAIConfig, getBGEM3Provider } from "@openbeam/ai";
 import {
   buildMediaVectorQueryFeatures,
   buildVectorQueryFeatures,
+  type DocumentRankingProfile,
   type GenericDocument,
   type JsonObject,
   type MediaDocument,
@@ -49,7 +50,7 @@ function escapeYqlString(value: string): string {
   return value.replace(/(["\\])/g, "\\$1");
 }
 
-const V2_RANKING: Record<string, string> = {
+const V2_RANKING: Record<string, DocumentRankingProfile> = {
   hybrid: "hybrid_v2",
   semantic: "semantic_v2",
 };
