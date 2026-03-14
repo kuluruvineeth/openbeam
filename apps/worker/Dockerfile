@@ -30,7 +30,6 @@ COPY --from=builder /app/package.json /app/turbo.json ./
 COPY --from=deps /app/bun.lock ./bun.lock
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/packages ./packages
-COPY --from=prisma /app/packages/db/prisma/generated ./packages/db/prisma/generated
 COPY --from=builder /app/apps/worker ./apps/worker
 RUN mkdir -p apps/worker/node_modules/@openbeam && \
     for pkg in packages/*/; do \
