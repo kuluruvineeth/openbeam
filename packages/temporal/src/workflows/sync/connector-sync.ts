@@ -275,13 +275,17 @@ export async function connectorSyncWorkflow(
 
     state.stage = "PROCESSING_FILES";
     state.progressMessage = "Processing discovered files and media";
-    await executeChild(processDiscoveredFilesWorkflow, {
-      args: [{ connectorId: input.connectorId }],
-      workflowId: generateWorkflowId({
-        type: "file",
-        documentId: `${input.connectorId}:discovered`,
-      }),
-    });
+    try {
+      await executeChild(processDiscoveredFilesWorkflow, {
+        args: [{ connectorId: input.connectorId }],
+        workflowId: generateWorkflowId({
+          type: "file",
+          documentId: `${input.connectorId}:discovered`,
+        }),
+      });
+    } catch {
+      state.errors += 1;
+    }
 
     const changeTypeMap = {
       FULL: "full_rebuild",
@@ -289,18 +293,22 @@ export async function connectorSyncWorkflow(
       PERMISSIONS: "incremental",
     } as const;
 
-    await executeChild(processKnowledgeChangesWorkflow, {
-      taskQueue: TASK_QUEUES.KNOWLEDGE,
-      workflowId: `kg-changes:${input.connectorId}:${syncHistoryId}`,
-      args: [
-        {
-          teamId: connector.teamId,
-          connectorId: input.connectorId,
-          syncHistoryId,
-          changeType: changeTypeMap[input.syncType],
-        },
-      ],
-    });
+    try {
+      await executeChild(processKnowledgeChangesWorkflow, {
+        taskQueue: TASK_QUEUES.KNOWLEDGE,
+        workflowId: `kg-changes:${input.connectorId}:${syncHistoryId}`,
+        args: [
+          {
+            teamId: connector.teamId,
+            connectorId: input.connectorId,
+            syncHistoryId,
+            changeType: changeTypeMap[input.syncType],
+          },
+        ],
+      });
+    } catch {
+      state.errors += 1;
+    }
 
     state.stage = "FINALIZING";
     const endTime = currentTimestamp();
