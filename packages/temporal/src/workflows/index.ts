@@ -42,6 +42,7 @@ export { entityExtractionWorkflow } from "./processing/entity-extraction";
 export { fileProcessingWorkflow } from "./processing/file-processing";
 export { indexDocumentsWorkflow } from "./processing/index-documents";
 export { mediaProcessingWorkflow } from "./processing/media-processing";
+export { processDiscoveredFilesWorkflow } from "./processing/process-discovered-files";
 export { profileUpdateWorkflow } from "./processing/profile-update";
 export { analyticsExportWorkflow } from "./scheduled/analytics-export";
 export { canvasCleanupWorkflow } from "./scheduled/canvas-cleanup";
