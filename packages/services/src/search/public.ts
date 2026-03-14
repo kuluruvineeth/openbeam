@@ -4,7 +4,6 @@ import {
   buildVectorQueryFeatures,
   type DocumentRankingProfile,
   type GenericDocument,
-  type QueryParams,
   vespaClient,
 } from "@openbeam/vespa";
 import { getOrGenerateEmbedding } from "../ai/embedding-cache";
@@ -124,7 +123,7 @@ export async function publicSearch(
   const bounded = { ...params, limit, offset };
 
   let rankingProfile: DocumentRankingProfile = "bm25";
-  let queryFeatures: QueryParams["queryFeatures"];
+  let vectorFeatures: ReturnType<typeof buildVectorQueryFeatures> | undefined;
   let hasEmbedding = false;
 
   const aiConfig = getAIConfig();
@@ -134,14 +133,18 @@ export async function publicSearch(
   if (useEmbeddings) {
     const provider = getBGEM3Provider();
     if (provider) {
-      const cached = await getOrGenerateEmbedding(params.query, provider);
-      if (cached) {
+      const embedding = await getOrGenerateEmbedding(
+        params.query,
+        aiConfig.defaultEmbeddingModel,
+        async () => {
+          const result = await provider.embedQuery(params.query);
+          return result.dense;
+        }
+      );
+      if (embedding) {
         hasEmbedding = true;
         rankingProfile = "hybrid_v2";
-        queryFeatures = buildVectorQueryFeatures({
-          denseEmbedding: cached.embedding,
-          sparseEmbedding: cached.sparseEmbedding,
-        });
+        vectorFeatures = buildVectorQueryFeatures(embedding);
       }
     }
   }
@@ -153,7 +156,7 @@ export async function publicSearch(
     hits: limit,
     offset,
     ranking: rankingProfile,
-    queryFeatures,
+    ...vectorFeatures,
   });
 
   const documents: PublicSearchDocument[] = (result.root?.children ?? []).map(
