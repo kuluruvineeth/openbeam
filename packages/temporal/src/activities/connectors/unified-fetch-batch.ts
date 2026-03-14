@@ -22,7 +22,7 @@ type SyncBatch = {
   discoveredResources?: DiscoveredResourceRecord[];
 };
 
-type SyncGenerator = AsyncGenerator<SyncBatch> | Generator<SyncBatch>;
+type SyncGenerator = AsyncGenerator<SyncBatch>;
 
 type ConnectorSyncFactory = (
   connectorId: string,

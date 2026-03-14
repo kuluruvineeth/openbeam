@@ -68,7 +68,8 @@ describe("unified-fetch-batch multi-stage generator", () => {
   it("completes all stages of a multi-stage generator without premature exit", async () => {
     registerSyncFactory(
       "TEST_MULTI_STAGE",
-      function* (_connectorId, _connector, _cursor) {
+      async function* (_connectorId, _connector, _cursor) {
+        await Promise.resolve();
         yield {
           items: [makeDoc("msg-1"), makeDoc("msg-2")],
           cursor: { lastSyncTime: 1 } as SyncCursor,
@@ -159,7 +160,8 @@ describe("unified-fetch-batch multi-stage generator", () => {
   });
 
   it("never returns hasMore=false for intermediate batches even if inner stage says so", async () => {
-    registerSyncFactory("TEST_MULTI_STAGE", function* () {
+    registerSyncFactory("TEST_MULTI_STAGE", async function* () {
+      await Promise.resolve();
       yield { items: [makeDoc("a")], hasMore: false };
       yield { items: [makeDoc("b")], hasMore: false };
       yield { items: [makeDoc("c")], hasMore: false };
@@ -191,7 +193,8 @@ describe("unified-fetch-batch multi-stage generator", () => {
   it("does not recreate generator between fetchBatch calls", async () => {
     let creationCount = 0;
 
-    registerSyncFactory("TEST_MULTI_STAGE", function* () {
+    registerSyncFactory("TEST_MULTI_STAGE", async function* () {
+      await Promise.resolve();
       creationCount += 1;
       yield { items: [makeDoc("1")], hasMore: true };
       yield { items: [makeDoc("2")], hasMore: false };
@@ -208,7 +211,8 @@ describe("unified-fetch-batch multi-stage generator", () => {
   });
 
   it("cleans up generator only after done", async () => {
-    registerSyncFactory("TEST_MULTI_STAGE", function* () {
+    registerSyncFactory("TEST_MULTI_STAGE", async function* () {
+      await Promise.resolve();
       yield { items: [makeDoc("1")], hasMore: true };
     });
 
@@ -223,7 +227,8 @@ describe("unified-fetch-batch multi-stage generator", () => {
     expect(batch2.items).toHaveLength(0);
     expect(batch2.hasMore).toBe(false);
 
-    registerSyncFactory("TEST_MULTI_STAGE", function* () {
+    registerSyncFactory("TEST_MULTI_STAGE", async function* () {
+      await Promise.resolve();
       yield { items: [makeDoc("new-1")], hasMore: true };
     });
 
@@ -243,7 +248,8 @@ describe("unified-fetch-batch multi-stage generator", () => {
       },
     ];
 
-    registerSyncFactory("TEST_MULTI_STAGE", function* () {
+    registerSyncFactory("TEST_MULTI_STAGE", async function* () {
+      await Promise.resolve();
       yield {
         items: Array.from({ length: 61 }, (_, i) => makeDoc(`ch1-msg-${i}`)),
         cursor: { channelCursors: { C1: "ts1" } } as unknown as SyncCursor,
@@ -331,7 +337,8 @@ describe("unified-fetch-batch multi-stage generator", () => {
   it("preserves generator after generator.next() throws (Temporal retry reuses same generator)", async () => {
     let callCount = 0;
 
-    registerSyncFactory("TEST_MULTI_STAGE", function* () {
+    registerSyncFactory("TEST_MULTI_STAGE", async function* () {
+      await Promise.resolve();
       callCount += 1;
       yield { items: [makeDoc("batch-1")], hasMore: true };
       throw new Error("Slack API rate limit");
@@ -354,7 +361,8 @@ describe("unified-fetch-batch multi-stage generator", () => {
   it("REGRESSION: generator not cleaned up on error, so retry after transient failure works", async () => {
     let yieldCount = 0;
 
-    registerSyncFactory("TEST_MULTI_STAGE", function* () {
+    registerSyncFactory("TEST_MULTI_STAGE", async function* () {
+      await Promise.resolve();
       yieldCount += 1;
       yield { items: [makeDoc("a")], hasMore: true };
       yieldCount += 1;
