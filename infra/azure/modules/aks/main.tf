@@ -66,19 +66,20 @@ resource "azurerm_kubernetes_cluster" "main" {
 resource "azurerm_kubernetes_cluster_node_pool" "additional" {
   for_each = var.additional_node_pools
 
-  name                  = each.key
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.main.id
-  vm_size               = each.value.vm_size
-  vnet_subnet_id        = var.vnet_subnet_id
-  min_count             = each.value.min_count
-  max_count             = each.value.max_count
-  auto_scaling_enabled  = true
-  priority              = each.value.priority
-  eviction_policy       = each.value.priority == "Spot" ? each.value.eviction_policy : null
-  node_labels           = each.value.node_labels
-  node_taints           = each.value.node_taints
-  os_disk_size_gb       = each.value.os_disk_size_gb
-  zones                 = each.value.zones
+  name                        = each.key
+  kubernetes_cluster_id       = azurerm_kubernetes_cluster.main.id
+  vm_size                     = each.value.vm_size
+  vnet_subnet_id              = var.vnet_subnet_id
+  min_count                   = each.value.min_count
+  max_count                   = each.value.max_count
+  auto_scaling_enabled        = true
+  priority                    = each.value.priority
+  eviction_policy             = each.value.priority == "Spot" ? each.value.eviction_policy : null
+  node_labels                 = each.value.node_labels
+  node_taints                 = each.value.node_taints
+  os_disk_size_gb             = each.value.os_disk_size_gb
+  zones                       = each.value.zones
+  temporary_name_for_rotation = "${each.key}tmp"
 
   tags = var.tags
 }

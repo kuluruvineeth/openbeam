@@ -107,10 +107,10 @@ module "aks" {
 
   additional_node_pools = {
     workload = {
-      vm_size    = "Standard_D4as_v5"
+      vm_size    = "Standard_D8as_v5"
       min_count  = 1
-      max_count  = 2
-      node_count = 2
+      max_count  = 1
+      node_count = 1
       priority   = "Regular"
       node_labels = {
         "openbeam/pool" = "workload"
