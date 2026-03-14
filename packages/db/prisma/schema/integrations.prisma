@@ -11,6 +11,7 @@ enum AuthType {
   SESSION
   SERVICE_ACCOUNT
   TOKEN
+  PUBLIC_DATASET
 }
 
 enum AppType {
@@ -126,6 +127,11 @@ enum AppType {
   MATTERPORT
   VIAM
   FHIR
+
+  NVD
+  CISA_KEV
+  MITRE_ATTACK
+  OWASP
 }
 
 enum ConnectorStatus {
