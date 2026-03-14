@@ -53,17 +53,26 @@ export async function checkConnectorHealth(
   }
 
   const checks: HealthCheck[] = [];
+  const isPublicDataset = connector.authType === "PUBLIC_DATASET";
 
-  const credentialCheck = await checkCredentialsPresent(ctx);
-  checks.push(credentialCheck);
+  if (isPublicDataset) {
+    checks.push({
+      name: "credentials",
+      status: "skip",
+      message: "Public dataset — no credentials required",
+    });
+  } else {
+    const credentialCheck = await checkCredentialsPresent(ctx);
+    checks.push(credentialCheck);
 
-  if (credentialCheck.status === "pass") {
-    const tokenCheck = await checkTokenValidity(ctx);
-    checks.push(tokenCheck);
+    if (credentialCheck.status === "pass") {
+      const tokenCheck = await checkTokenValidity(ctx);
+      checks.push(tokenCheck);
 
-    if (tokenCheck.status === "pass") {
-      const apiCheck = await checkApiConnectivity(ctx, connector.app);
-      checks.push(apiCheck);
+      if (tokenCheck.status === "pass") {
+        const apiCheck = await checkApiConnectivity(ctx, connector.app);
+        checks.push(apiCheck);
+      }
     }
   }
 
