@@ -22,7 +22,7 @@ type SyncBatch = {
   discoveredResources?: DiscoveredResourceRecord[];
 };
 
-type SyncGenerator = AsyncGenerator<SyncBatch>;
+type SyncGenerator = AsyncGenerator<SyncBatch> | Generator<SyncBatch>;
 
 type ConnectorSyncFactory = (
   connectorId: string,
@@ -111,7 +111,6 @@ async function fetchNextBatch(
     done = result.done;
   } catch (error) {
     periodicHeartbeat.stop();
-    cleanupGenerator(connector);
     throw error;
   } finally {
     periodicHeartbeat.stop();
@@ -128,7 +127,7 @@ async function fetchNextBatch(
     connectorId: connector.id,
   });
 
-  const hasMore = value.hasMore ?? true;
+  const hasMore = true;
 
   const progressMessage = createProgressMessage({
     connectorType: connector.type,

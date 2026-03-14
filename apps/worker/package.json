@@ -29,6 +29,7 @@
   "dependencies": {
     "dotenv": "catalog:",
     "@openbeam/analytics": "workspace:*",
+    "@openbeam/redis": "workspace:*",
     "@openbeam/observability": "workspace:*",
     "@openbeam/db": "workspace:*",
     "@openbeam/integrations": "workspace:*",

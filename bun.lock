@@ -479,6 +479,7 @@
         "@openbeam/integrations": "workspace:*",
         "@openbeam/media": "workspace:*",
         "@openbeam/observability": "workspace:*",
+        "@openbeam/redis": "workspace:*",
         "@openbeam/services": "workspace:*",
         "@openbeam/storage": "workspace:*",
         "@openbeam/temporal": "workspace:*",
