@@ -70,4 +70,4 @@ export const EXPLORE_CARDS = [
   },
 ] as const;
 
-export const PUBLIC_API_BASE = "/api/v1/public";
+export const PUBLIC_API_BASE = `${process.env.NEXT_PUBLIC_SERVER_URL ?? ""}/api/v1/public`;

@@ -82,17 +82,20 @@ export function PublicSearchSourcesPanel({
 
   const sources = SOURCE_TABS.filter(
     (t): t is typeof t & { dataset: string } => t.dataset !== undefined
-  ).map((tab) => ({
-    dataset: tab.dataset,
-    label: SOURCE_LABELS[tab.dataset] ?? tab.label,
-    count: facets?.datasets.find((f) => f.dataset === tab.dataset)?.count ?? 0,
-  }));
+  )
+    .map((tab) => ({
+      dataset: tab.dataset,
+      label: SOURCE_LABELS[tab.dataset] ?? tab.label,
+      count:
+        facets?.datasets.find((f) => f.dataset === tab.dataset)?.count ?? 0,
+    }))
+    .filter((s) => s.count > 0 || activeDataset === s.dataset);
 
   return (
     <aside className="flex h-full w-56 flex-col bg-background">
       <header className="flex shrink-0 items-center justify-between px-4 py-3">
         <h3 className="font-medium text-foreground/60 text-xs uppercase tracking-wide">
-          Datasets
+          Sources
         </h3>
         {hasSelection && (
           <Button
