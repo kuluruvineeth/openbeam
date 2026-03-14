@@ -219,8 +219,10 @@ export async function* fullSync(
   });
 
   if (shouldSyncFiles && onFilesDiscovered) {
+    const channelIds = channelsToSync.map((c) => c.id);
     yield* syncFilesWithCallback(client, context, {
       ...fileOptions,
+      channelIds,
       onFilesDiscovered,
     });
   }
@@ -299,8 +301,10 @@ export async function* deltaSync(
   });
 
   if (shouldSyncFiles && onFilesDiscovered) {
+    const channelIds = channelsToSync.map((c) => c.id);
     yield* syncFilesWithCallback(client, context, {
       ...fileOptions,
+      channelIds,
       lastSyncTimestamp: cursor.lastFileSyncTimestamp,
       onFilesDiscovered,
     });
