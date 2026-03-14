@@ -20,7 +20,6 @@ import {
   searchService,
 } from "./search.service";
 
-// @ts-expect-error — RouteHandler inference hits recursion limit on complex searchQuerySchema transforms
 export const mainSearchHandler: RouteHandler<
   typeof mainSearch,
   AuthEnv
