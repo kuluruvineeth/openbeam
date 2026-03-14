@@ -38,6 +38,16 @@ export function createApp() {
   );
 
   app.use(
+    "/api/v1/public/*",
+    cors({
+      origin: "*",
+      allowMethods: ["GET", "OPTIONS"],
+      allowHeaders: ["Content-Type", "X-Request-Id"],
+      credentials: false,
+    })
+  );
+
+  app.use(
     "/*",
     cors({
       origin: allowedOrigins,
