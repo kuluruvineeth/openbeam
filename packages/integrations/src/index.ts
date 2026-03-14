@@ -1,15 +1,19 @@
 import { bacnetApp } from "./bacnet/config";
+import { cisaKevApp } from "./cisa-kev/config";
 import { fhirApp } from "./fhir/config";
 import { githubApp } from "./github/config";
 import { gmailApp } from "./gmail/config";
 import { googleDriveApp } from "./google-drive/config";
 import { linearApp } from "./linear/config";
 import { matterportApp } from "./matterport/config";
+import { mitreAttackApp } from "./mitre-attack/config";
 import { mqttApp } from "./mqtt/config";
 import { noderedApp } from "./nodered/config";
 import { notionApp } from "./notion/config";
+import { nvdApp } from "./nvd/config";
 import { omniverseApp } from "./omniverse/config";
 import { opcuaApp } from "./opcua/config";
+import { owaspApp } from "./owasp/config";
 import { samsaraApp } from "./samsara/config";
 import { slackApp } from "./slack/config";
 import { thingsboardApp } from "./thingsboard/config";
@@ -18,17 +22,21 @@ import { viamApp } from "./viam/config";
 
 export {
   bacnetApp,
+  cisaKevApp,
   fhirApp,
   gmailApp,
   githubApp,
   googleDriveApp,
   linearApp,
   matterportApp,
+  mitreAttackApp,
   mqttApp,
   noderedApp,
   notionApp,
+  nvdApp,
   omniverseApp,
   opcuaApp,
+  owaspApp,
   samsaraApp,
   slackApp,
   thingsboardApp,
@@ -134,4 +142,8 @@ export const appStore: UnifiedApp[] = [
   matterportApp,
   viamApp,
   fhirApp,
+  nvdApp,
+  cisaKevApp,
+  mitreAttackApp,
+  owaspApp,
 ];

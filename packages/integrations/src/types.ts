@@ -40,6 +40,7 @@ export enum AuthType {
   API_KEY = "API_KEY",
   BASIC = "BASIC",
   SESSION = "SESSION",
+  PUBLIC_DATASET = "PUBLIC_DATASET",
 }
 
 export enum AppType {
@@ -63,6 +64,10 @@ export enum AppType {
   MATTERPORT = "MATTERPORT",
   VIAM = "VIAM",
   FHIR = "FHIR",
+  NVD = "NVD",
+  CISA_KEV = "CISA_KEV",
+  MITRE_ATTACK = "MITRE_ATTACK",
+  OWASP = "OWASP",
 }
 
 export enum SyncMode {
