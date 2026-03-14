@@ -3,6 +3,8 @@ import {
   awsIotIncrementalSync,
   azureIotFullSync,
   azureIotIncrementalSync,
+  cisaKevFullSync,
+  cisaKevIncrementalSync,
   createAwsIotClient,
   createAzureIotClient,
   createGitHubClient,
@@ -10,6 +12,8 @@ import {
   createGoogleDriveClient,
   createLinearClient,
   createNotionClient,
+  createNvdClient,
+  createOwaspClient,
   createSamsaraClient,
   createSlackClient,
   createSmartThingsClient,
@@ -21,8 +25,12 @@ import {
   googleDriveIncrementalSync,
   linearFullSync,
   linearIncrementalSync,
+  mitreAttackFullSync,
   notionFullSync,
   notionIncrementalSync,
+  nvdFullSync,
+  nvdIncrementalSync,
+  owaspFullSync,
   samsaraFullSync,
   samsaraIncrementalSync,
   incrementalSync as slackIncrementalSync,
@@ -1095,6 +1103,134 @@ export function registerAllSyncFactories(): void {
           cursor: batch.cursor,
           hasMore: batch.hasMore,
           discoveredResources: resourcesToYield,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory("NVD", async function* (connectorId, connector, cursor) {
+    const config = connector.config as Record<string, unknown> | null;
+    const apiKey = (config?.api_key as string) || undefined;
+
+    const client = createNvdClient({ connectorId, apiKey });
+
+    const context = {
+      connectorId: connector.id,
+      connectorType: connector.type,
+      teamId: connector.teamId,
+      workspaceId: connector.workspaceExternalId,
+    };
+
+    const lastSyncTime = parseNumericConfig(cursor?.lastSyncTime);
+    const forceFullSync = parseBooleanConfig(cursor?.forceFullSync) === true;
+
+    const syncGenerator =
+      !forceFullSync && typeof lastSyncTime === "number"
+        ? nvdIncrementalSync(client, context, { cursor, batchSize: 50 })
+        : nvdFullSync(client, context, { cursor, batchSize: 50 });
+
+    for await (const batch of syncGenerator) {
+      yield {
+        items: batch.items as GenericDocument[],
+        cursor: batch.cursor,
+        hasMore: batch.hasMore,
+      };
+    }
+  });
+
+  registerSyncFactory(
+    "CISA_KEV",
+    async function* (_connectorId, connector, cursor) {
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId,
+      };
+
+      const lastSyncTime = parseNumericConfig(cursor?.lastSyncTime);
+      const forceFullSync = parseBooleanConfig(cursor?.forceFullSync) === true;
+
+      const syncGenerator =
+        !forceFullSync && typeof lastSyncTime === "number"
+          ? cisaKevIncrementalSync(context, { cursor, batchSize: 50 })
+          : cisaKevFullSync(context, { batchSize: 50 });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "MITRE_ATTACK",
+    async function* (_connectorId, connector, cursor) {
+      const config = connector.config as Record<string, unknown> | null;
+      const domainsStr = (config?.domains as string) ?? "enterprise,mobile,ics";
+      const domains = domainsStr
+        .split(",")
+        .map((d) => d.trim())
+        .filter(Boolean) as Array<"enterprise" | "mobile" | "ics">;
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId,
+        domain: "",
+      };
+
+      const syncGenerator = mitreAttackFullSync(context, {
+        cursor,
+        batchSize: 50,
+        domains,
+      });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "OWASP",
+    async function* (connectorId, connector, cursor) {
+      const config = connector.config as Record<string, unknown> | null;
+      const projectsStr =
+        (config?.projects as string) ?? "top10,cheatSheets,asvs,wstg";
+      const projects = projectsStr
+        .split(",")
+        .map((p) => p.trim())
+        .filter(Boolean) as Array<"top10" | "cheatSheets" | "asvs" | "wstg">;
+
+      const client = createOwaspClient(connectorId);
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId,
+      };
+
+      const syncGenerator = owaspFullSync(client, context, {
+        cursor,
+        batchSize: 20,
+        projects,
+      });
+
+      for await (const batch of syncGenerator) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor,
+          hasMore: batch.hasMore,
         };
       }
     }
