@@ -127,12 +127,10 @@ export async function publicSearch(
   let hasEmbedding = false;
 
   const aiConfig = getAIConfig();
-  const useEmbeddings =
-    aiConfig.bgeM3.enabled && params.query.trim().length > 0;
 
-  if (useEmbeddings) {
-    const provider = getBGEM3Provider();
-    if (provider) {
+  if (params.query.trim().length > 0) {
+    try {
+      const provider = getBGEM3Provider();
       const embedding = await getOrGenerateEmbedding(
         params.query,
         aiConfig.defaultEmbeddingModel,
@@ -146,6 +144,8 @@ export async function publicSearch(
         rankingProfile = "hybrid_v2";
         vectorFeatures = buildVectorQueryFeatures(embedding);
       }
+    } catch {
+      logger.warn("BGE-M3 embedding unavailable, falling back to BM25");
     }
   }
 
