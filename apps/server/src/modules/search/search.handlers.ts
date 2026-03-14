@@ -20,6 +20,7 @@ import {
   searchService,
 } from "./search.service";
 
+// @ts-expect-error TS2589: RouteHandler instantiation is excessively deep on this generated route schema.
 export const mainSearchHandler: RouteHandler<
   typeof mainSearch,
   AuthEnv

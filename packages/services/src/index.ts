@@ -498,7 +498,11 @@ export type {
   PublicSearchParams as PublicSearchServiceParams,
   PublicSearchResult as PublicSearchServiceResult,
 } from "./search/public";
-export { publicSearch } from "./search/public";
+export {
+  publicGetDocument,
+  publicSearch,
+  publicStreamOverview,
+} from "./search/public";
 export { buildPermissionFilter } from "./search/retrieval/query-builder";
 export type {
   AppMentionEvent,

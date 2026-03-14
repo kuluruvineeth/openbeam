@@ -8,6 +8,7 @@ type Options = {
   selectedIndex: number;
   setSelectedIndex: React.Dispatch<React.SetStateAction<number>>;
   enabled?: boolean;
+  onSelect?: (hit: PublicSearchHit, index: number) => void;
 };
 
 export function usePublicSearchNav({
@@ -15,6 +16,7 @@ export function usePublicSearchNav({
   selectedIndex,
   setSelectedIndex,
   enabled = true,
+  onSelect,
 }: Options) {
   const hasHits = hits.length > 0;
 
@@ -41,8 +43,8 @@ export function usePublicSearchNav({
     (e) => {
       e.preventDefault();
       const hit = hits[selectedIndex];
-      if (hit?.url) {
-        window.open(hit.url, "_blank", "noopener,noreferrer");
+      if (hit) {
+        onSelect?.(hit, selectedIndex);
       }
     },
     {

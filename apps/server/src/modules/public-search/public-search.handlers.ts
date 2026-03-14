@@ -1,12 +1,19 @@
 import type { RouteHandler } from "@hono/zod-openapi";
-import { publicSearch } from "@openbeam/services";
+import {
+  publicGetDocument,
+  publicSearch,
+  publicStreamOverview,
+} from "@openbeam/services";
 import {
   DATASET_REGISTRY,
   getDatasetsByCategory,
 } from "@openbeam/types/public";
+import { streamSSE } from "hono/streaming";
 import type { AuthEnv } from "@/middleware/auth";
 import type {
   publicDatasetsRoute,
+  publicDocumentRoute,
+  publicOverviewRoute,
   publicSearchRoute,
 } from "./public-search.routes";
 
@@ -72,8 +79,8 @@ export const publicSearchHandler: RouteHandler<
       url: doc.url,
       dataset,
       category,
-      createdAt: doc.createdAt ?? Date.now(),
-      updatedAt: doc.updatedAt ?? Date.now(),
+      createdAt: doc.createdAt ?? 0,
+      updatedAt: doc.updatedAt ?? 0,
       relevance: doc.relevance,
       documentType: doc.documentType ?? "unknown",
     };
@@ -102,6 +109,58 @@ export const publicSearchHandler: RouteHandler<
         searchMs: result.timing,
         totalMs,
       },
+    },
+    200
+  );
+};
+
+export const publicOverviewHandler: RouteHandler<
+  typeof publicOverviewRoute,
+  AuthEnv
+> = (c) => {
+  const { q } = c.req.valid("query");
+
+  return streamSSE(c, async (sseStream) => {
+    try {
+      for await (const chunk of publicStreamOverview(q)) {
+        await sseStream.writeSSE({
+          data: JSON.stringify(chunk),
+        });
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Stream failed";
+      await sseStream.writeSSE({
+        event: "error",
+        data: JSON.stringify({ error: message }),
+      });
+    }
+  });
+};
+
+export const publicDocumentHandler: RouteHandler<
+  typeof publicDocumentRoute,
+  AuthEnv
+> = async (c) => {
+  const { id } = c.req.valid("param");
+
+  const doc = await publicGetDocument(id);
+  if (!doc) {
+    return c.json({ error: "Document not found" }, 404);
+  }
+
+  const category = connectorTypeToCategory(doc.connectorType ?? "unknown");
+
+  return c.json(
+    {
+      id: doc.id,
+      title: doc.title,
+      content: doc.content,
+      url: doc.url,
+      dataset: doc.connectorType ?? "unknown",
+      category,
+      documentType: doc.documentType ?? "unknown",
+      createdAt: doc.createdAt ?? 0,
+      updatedAt: doc.updatedAt ?? 0,
     },
     200
   );

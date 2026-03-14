@@ -1,4 +1,5 @@
 import { getConfig as getAIConfig, getBGEM3Provider } from "@openbeam/ai";
+import type { OverviewStreamChunk } from "@openbeam/types/overview";
 import { PUBLIC_TEAM_ID } from "@openbeam/types/public";
 import {
   buildVectorQueryFeatures,
@@ -7,6 +8,7 @@ import {
   vespaClient,
 } from "@openbeam/vespa";
 import { getOrGenerateEmbedding } from "../ai/embedding-cache";
+import { streamOverview } from "../ai/overview/orchestrator";
 import { logger } from "../lib/logger";
 
 function escapeYql(value: string): string {
@@ -172,4 +174,32 @@ export async function publicSearch(
   );
 
   return { documents, total, timing };
+}
+
+export function publicStreamOverview(
+  query: string
+): AsyncGenerator<OverviewStreamChunk> {
+  return streamOverview({
+    query,
+    teamId: PUBLIC_TEAM_ID,
+    userId: "public_anonymous",
+    accessControlIds: [`team:${PUBLIC_TEAM_ID}`],
+    maxSources: 8,
+    enableFanout: true,
+  });
+}
+
+export async function publicGetDocument(
+  id: string
+): Promise<PublicSearchDocument | null> {
+  const doc = await vespaClient.getDocument(id);
+  if (!doc) {
+    return null;
+  }
+
+  if (doc.team_id !== PUBLIC_TEAM_ID || !doc.is_public) {
+    return null;
+  }
+
+  return mapDocument(doc, 0);
 }

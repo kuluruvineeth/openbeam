@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Icons } from "@/components/icons";
+import { OverviewPanel } from "@/features/overview/components/overview-panel";
 import {
   SearchEmptyState,
   SearchInputBar,
@@ -14,11 +15,13 @@ import type {
   SearchResultDocument,
   UnifiedSearchItem,
 } from "@/features/search/types";
+import { usePublicOverview } from "../hooks/use-public-overview";
 import { usePublicSearch } from "../hooks/use-public-search";
 import { usePublicSearchNav } from "../hooks/use-public-search-nav";
 import { toSearchResultDocument } from "../lib/api";
 import { EXPLORE_CARDS } from "../lib/constants";
 import { ExploreBanner } from "./explore-banner";
+import { PublicDetailSheet } from "./public-detail-sheet";
 import { PublicSearchSourcesPanel } from "./public-search-sources-panel";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -207,6 +210,9 @@ export function PublicSearchPage() {
   } = usePublicSearch();
 
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [previewId, setPreviewId] = useState<string | null>(null);
+  const overview = usePublicOverview();
+  const prevQueryRef = useRef<string | null>(null);
 
   const unifiedItems: UnifiedSearchItem[] = useMemo(
     () =>
@@ -221,20 +227,45 @@ export function PublicSearchPage() {
   const hasResults = unifiedItems.length > 0;
   const isEmpty = hasQuery && !isLoading && !hasResults;
 
+  const handleNavSelect = useCallback(
+    (hit: (typeof hits)[number]) => setPreviewId(hit.id),
+    []
+  );
+
   usePublicSearchNav({
     hits,
     selectedIndex,
     setSelectedIndex,
-    enabled: hasResults,
+    enabled: hasResults && previewId === null,
+    onSelect: handleNavSelect,
   });
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: reset on query/dataset change
   useEffect(() => {
     setSelectedIndex(-1);
+    setPreviewId(null);
   }, [query, dataset]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: trigger overview on query change
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (trimmed.length >= 3 && trimmed !== prevQueryRef.current) {
+      prevQueryRef.current = trimmed;
+      overview.reset();
+      const timer = setTimeout(() => overview.generateOverview(trimmed), 500);
+      return () => clearTimeout(timer);
+    }
+    if (trimmed.length < 3 && prevQueryRef.current) {
+      prevQueryRef.current = null;
+      overview.reset();
+    }
+    return;
+  }, [query]);
+
   useHotkeys("escape", () => {
-    if (hasQuery) {
+    if (previewId) {
+      setPreviewId(null);
+    } else if (hasQuery) {
       setQuery("");
     }
   });
@@ -247,9 +278,39 @@ export function PublicSearchPage() {
   );
 
   const handleSelectDocument = useCallback(
-    (_: SearchResultDocument, index: number) => setSelectedIndex(index),
-    []
+    (_: SearchResultDocument, index: number) => {
+      setSelectedIndex(index);
+      const hit = hits[index];
+      if (hit) {
+        setPreviewId(hit.id);
+      }
+    },
+    [hits]
   );
+
+  const handleClosePreview = useCallback(() => setPreviewId(null), []);
+
+  const handlePrevPreview = useCallback(() => {
+    setSelectedIndex((prev) => {
+      const next = Math.max(prev - 1, 0);
+      const hit = hits[next];
+      if (hit) {
+        setPreviewId(hit.id);
+      }
+      return next;
+    });
+  }, [hits]);
+
+  const handleNextPreview = useCallback(() => {
+    setSelectedIndex((prev) => {
+      const next = Math.min(prev + 1, hits.length - 1);
+      const hit = hits[next];
+      if (hit) {
+        setPreviewId(hit.id);
+      }
+      return next;
+    });
+  }, [hits]);
 
   const noop = useCallback(Function.prototype as () => void, []);
 
@@ -286,6 +347,23 @@ export function PublicSearchPage() {
           </header>
 
           <section className="no-scrollbar min-h-0 flex-1 overflow-y-auto">
+            {(overview.isLoading ||
+              overview.isStreaming ||
+              overview.content) && (
+              <OverviewPanel
+                citations={overview.citations}
+                className="mx-3 mt-3"
+                content={overview.content}
+                error={overview.error}
+                groundingScore={overview.groundingScore}
+                isLoading={overview.isLoading}
+                isStreaming={overview.isStreaming}
+                statusMessage={overview.statusMessage}
+                steps={overview.steps}
+                thinking={overview.thinking}
+                thinkingMessage={overview.thinkingMessage}
+              />
+            )}
             {isLoading && !hasResults && <SearchResultsSkeleton />}
             {isEmpty && <SearchEmptyState query={query} />}
             {hasResults && (
@@ -295,7 +373,7 @@ export function PublicSearchPage() {
                 isFetchingNextPage={false}
                 items={unifiedItems}
                 onSelectDocument={handleSelectDocument}
-                previewId={null}
+                previewId={previewId}
                 selectedIndex={selectedIndex}
               />
             )}
@@ -311,6 +389,15 @@ export function PublicSearchPage() {
           onDatasetChange={setDataset}
         />
       )}
+
+      <PublicDetailSheet
+        documentId={previewId}
+        hasNext={selectedIndex < hits.length - 1}
+        hasPrev={selectedIndex > 0}
+        onClose={handleClosePreview}
+        onNext={handleNextPreview}
+        onPrev={handlePrevPreview}
+      />
     </div>
   );
 }

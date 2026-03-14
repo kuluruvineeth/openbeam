@@ -90,6 +90,35 @@ export const publicSearchErrorSchema = z.object({
   retryAfter: z.number().optional(),
 });
 
+export const publicOverviewQuerySchema = z.object({
+  q: z.string().min(3).max(500).openapi({
+    description: "Query for AI overview (min 3 chars)",
+    example: "log4shell impact",
+  }),
+});
+
+export const publicDocumentParamSchema = z.object({
+  id: z
+    .string()
+    .min(1)
+    .openapi({
+      description: "Document ID",
+      param: { in: "path" },
+    }),
+});
+
+export const publicDocumentResponseSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  content: z.string(),
+  url: z.string().optional(),
+  dataset: z.string(),
+  category: z.string(),
+  documentType: z.string(),
+  createdAt: z.number(),
+  updatedAt: z.number(),
+});
+
 export const publicDatasetsResponseSchema = z.object({
   datasets: z.array(
     z.object({

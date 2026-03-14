@@ -1,6 +1,9 @@
 import { createRoute } from "@hono/zod-openapi";
 import {
   publicDatasetsResponseSchema,
+  publicDocumentParamSchema,
+  publicDocumentResponseSchema,
+  publicOverviewQuerySchema,
   publicSearchErrorSchema,
   publicSearchQuerySchema,
   publicSearchResponseSchema,
@@ -26,6 +29,55 @@ export const publicSearchRoute = createRoute({
     400: {
       content: { "application/json": { schema: publicSearchErrorSchema } },
       description: "Invalid query",
+    },
+    429: {
+      content: { "application/json": { schema: publicSearchErrorSchema } },
+      description: "Rate limited",
+    },
+  },
+});
+
+export const publicOverviewRoute = createRoute({
+  tags,
+  method: "get",
+  path: "/overview",
+  summary: "AI overview for public search query",
+  description:
+    "Streams an AI-synthesized answer with citations via Server-Sent Events. Rate limited to 3 req/min per IP.",
+  request: {
+    query: publicOverviewQuerySchema,
+  },
+  responses: {
+    200: {
+      description: "SSE stream of overview chunks",
+    },
+    429: {
+      content: { "application/json": { schema: publicSearchErrorSchema } },
+      description: "Rate limited",
+    },
+  },
+});
+
+export const publicDocumentRoute = createRoute({
+  tags,
+  method: "get",
+  path: "/documents/{id}",
+  summary: "Get public document by ID",
+  description:
+    "Retrieve full content of a public document. Scoped to public team only.",
+  request: {
+    params: publicDocumentParamSchema,
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": { schema: publicDocumentResponseSchema },
+      },
+      description: "Document content",
+    },
+    404: {
+      content: { "application/json": { schema: publicSearchErrorSchema } },
+      description: "Document not found",
     },
     429: {
       content: { "application/json": { schema: publicSearchErrorSchema } },

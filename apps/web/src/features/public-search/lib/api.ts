@@ -63,6 +63,39 @@ export async function fetchPublicSearch(
   return response.json() as Promise<PublicSearchResponse>;
 }
 
+export type PublicDocument = {
+  id: string;
+  title: string;
+  content: string;
+  url?: string;
+  dataset: string;
+  category: string;
+  documentType: string;
+  createdAt: number;
+  updatedAt: number;
+};
+
+export async function fetchPublicDocument(
+  id: string
+): Promise<PublicDocument | null> {
+  const response = await fetch(
+    `${PUBLIC_API_BASE}/documents/${encodeURIComponent(id)}`
+  );
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) {
+    if (response.status === 429) {
+      throw new Error("Rate limited. Please wait a moment and try again.");
+    }
+    throw new Error(`Failed to load document: ${response.status}`);
+  }
+
+  return response.json() as Promise<PublicDocument>;
+}
+
 export function toSearchResultDocument(
   hit: PublicSearchHit
 ): SearchResultDocument {
