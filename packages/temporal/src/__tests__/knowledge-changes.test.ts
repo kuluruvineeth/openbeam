@@ -516,10 +516,15 @@ describe("connectorSyncWorkflow knowledge child args", () => {
     mockUpsertDiscoveredResources.mockResolvedValue({ upserted: 0 });
     mockSetConnectorError.mockResolvedValue(undefined);
 
-    mockFetchBatch.mockResolvedValue({
-      items: [{ id: "doc-1", title: "Doc 1", content: "content" }],
-      hasMore: false,
-    });
+    mockFetchBatch
+      .mockResolvedValueOnce({
+        items: [{ id: "doc-1", title: "Doc 1", content: "content" }],
+        hasMore: false,
+      })
+      .mockResolvedValue({
+        items: [],
+        hasMore: false,
+      });
 
     mockExecuteChild
       .mockResolvedValueOnce({

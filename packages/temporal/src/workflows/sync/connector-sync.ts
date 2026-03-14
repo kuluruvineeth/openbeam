@@ -256,10 +256,6 @@ export async function connectorSyncWorkflow(
         progressMessage: state.progressMessage,
       });
 
-      if (!batch.hasMore) {
-        break;
-      }
-
       if (workflowInfo().historyLength > 10_000) {
         return continueAsNew<typeof connectorSyncWorkflow>({
           ...input,

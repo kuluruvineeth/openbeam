@@ -128,17 +128,19 @@ async function fetchNextBatch(
     connectorId: connector.id,
   });
 
+  const hasMore = value.hasMore ?? true;
+
   const progressMessage = createProgressMessage({
     connectorType: connector.type,
     itemCount: value.items.length,
-    hasMore: true,
+    hasMore,
     cursor: value.cursor,
   });
 
   return {
     items: value.items,
     nextCursor: value.cursor,
-    hasMore: true,
+    hasMore,
     discoveredResources: value.discoveredResources,
     progressMessage,
   };
