@@ -21,6 +21,7 @@
     "db:watch": "docker compose up",
     "db:stop": "docker compose stop",
     "db:down": "docker compose down",
+    "db:seed": "bun run prisma/seed.ts",
     "check-types": "tsc -b"
   },
   "devDependencies": {
