@@ -30,6 +30,7 @@ COPY --from=builder /app/package.json /app/turbo.json ./
 COPY --from=deps /app/bun.lock ./bun.lock
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/packages ./packages
+COPY --from=prisma /app/packages/db/prisma/generated ./packages/db/prisma/generated
 COPY --from=builder /app/apps/server ./apps/server
 COPY scripts/migrate.sh ./scripts/migrate.sh
 RUN mkdir -p apps/server/node_modules/@openbeam && \
