@@ -49,17 +49,27 @@ export async function processKnowledgeChangesWorkflow(
   let edgesUpdated = 0;
 
   if (nonDeletedChanges.length > 0) {
-    const extractionResult = await changeActivities.extractEntitiesFromChanges({
-      teamId: input.teamId,
-      documentIds: nonDeletedChanges.map((c) => c.documentId),
-    });
+    const allDocumentIds = nonDeletedChanges.map((c) => c.documentId);
+    const EXTRACTION_BATCH_SIZE = 50;
+    const allMentions: Awaited<
+      ReturnType<typeof changeActivities.extractEntitiesFromChanges>
+    >["mentions"] = [];
 
-    entitiesUpdated = extractionResult.entitiesUpdated;
+    for (let i = 0; i < allDocumentIds.length; i += EXTRACTION_BATCH_SIZE) {
+      const batchIds = allDocumentIds.slice(i, i + EXTRACTION_BATCH_SIZE);
+      const extractionResult =
+        await changeActivities.extractEntitiesFromChanges({
+          teamId: input.teamId,
+          documentIds: batchIds,
+        });
+      entitiesUpdated += extractionResult.entitiesUpdated;
+      allMentions.push(...extractionResult.mentions);
+    }
 
-    if (extractionResult.mentions.length > 0) {
+    if (allMentions.length > 0) {
       const edgeResult = await changeActivities.updateCoOccurrenceEdges({
         teamId: input.teamId,
-        entityMentions: extractionResult.mentions,
+        entityMentions: allMentions,
       });
       edgesUpdated = edgeResult.edgesCreated + edgeResult.edgesUpdated;
 
