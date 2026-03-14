@@ -128,6 +128,13 @@ export {
   incrementalSync as azureIotIncrementalSync,
   transformDevice as transformAzureIotDevice,
 } from "./azure-iot";
+export {
+  CisaKevApiError,
+  fetchKevCatalog,
+  fullSync as cisaKevFullSync,
+  incrementalSync as cisaKevIncrementalSync,
+  transformKevVulnerability,
+} from "./cisa-kev";
 export * from "./control";
 export type {
   ChunkOptions,
@@ -349,6 +356,12 @@ export type {
   SlackThreadResult,
 } from "./messages";
 export { MessagesService, messagesService } from "./messages";
+export {
+  fetchStixBundle,
+  fullSync as mitreAttackFullSync,
+  getDomainUrl,
+  MitreAttackApiError,
+} from "./mitre-attack";
 export type {
   NotificationResult as NotionNotificationResult,
   NotionClient,
@@ -379,6 +392,19 @@ export {
   transformPage as transformNotionPage,
   verifyWebhookSignature as verifyNotionWebhookSignature,
 } from "./notion";
+export type { NvdClient } from "./nvd";
+export {
+  createNvdClient,
+  fullSync as nvdFullSync,
+  incrementalSync as nvdIncrementalSync,
+  NvdApiError,
+} from "./nvd";
+export type { OwaspClient } from "./owasp";
+export {
+  createOwaspClient,
+  fullSync as owaspFullSync,
+  OwaspApiError,
+} from "./owasp";
 export {
   activateWallet,
   failPayment,
@@ -467,6 +493,12 @@ export {
   SearchService,
   searchService,
 } from "./search";
+export type {
+  PublicSearchDocument,
+  PublicSearchParams as PublicSearchServiceParams,
+  PublicSearchResult as PublicSearchServiceResult,
+} from "./search/public";
+export { publicSearch } from "./search/public";
 export { buildPermissionFilter } from "./search/retrieval/query-builder";
 export type {
   AppMentionEvent,
