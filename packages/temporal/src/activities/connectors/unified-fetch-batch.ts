@@ -96,7 +96,7 @@ function createPeriodicHeartbeat(
 async function fetchNextBatch(
   generator: SyncGenerator,
   connector: ConnectorRecord,
-  batchSize: number
+  _batchSize: number
 ): Promise<FetchBatchOutput> {
   heartbeat({ stage: "fetching", connectorId: connector.id, tick: 0 });
 
@@ -128,23 +128,17 @@ async function fetchNextBatch(
     connectorId: connector.id,
   });
 
-  const hasMore = value.hasMore ?? value.items.length >= batchSize;
-
-  if (!hasMore) {
-    cleanupGenerator(connector);
-  }
-
   const progressMessage = createProgressMessage({
     connectorType: connector.type,
     itemCount: value.items.length,
-    hasMore,
+    hasMore: true,
     cursor: value.cursor,
   });
 
   return {
     items: value.items,
     nextCursor: value.cursor,
-    hasMore,
+    hasMore: true,
     discoveredResources: value.discoveredResources,
     progressMessage,
   };

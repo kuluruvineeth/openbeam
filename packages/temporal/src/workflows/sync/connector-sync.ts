@@ -180,8 +180,15 @@ export async function connectorSyncWorkflow(
         });
       }
 
+      if (batch.nextCursor) {
+        state.cursor = batch.nextCursor;
+      }
+
       if (batch.items.length === 0) {
-        break;
+        if (!batch.hasMore) {
+          break;
+        }
+        continue;
       }
 
       if (batch.hasMore) {
@@ -231,7 +238,6 @@ export async function connectorSyncWorkflow(
       state.dataAdded += indexResult.dataAdded ?? 0;
       state.dataUpdated += indexResult.dataUpdated ?? 0;
       state.dataDeleted += indexResult.dataDeleted ?? 0;
-      state.cursor = batch.nextCursor;
 
       state.stage = "INDEXING";
       state.progressMessage = `Batch ${state.batchNumber}: Indexed ${indexResult.indexed} items (${state.indexed}/${state.processed} total indexed, ${state.errors} errors)`;
