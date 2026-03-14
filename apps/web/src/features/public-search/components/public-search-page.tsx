@@ -18,7 +18,9 @@ import { usePublicSearch } from "../hooks/use-public-search";
 import { usePublicSearchNav } from "../hooks/use-public-search-nav";
 import { toSearchResultDocument } from "../lib/api";
 import { EXPLORE_CARDS } from "../lib/constants";
+import { ExploreBanner } from "./explore-banner";
 import { PublicSearchSourcesPanel } from "./public-search-sources-panel";
+import { ThemeToggle } from "./theme-toggle";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -112,10 +114,18 @@ function ExploreLanding({
   onSuggestionClick: (q: string) => void;
 }) {
   return (
-    <div className="relative flex h-full flex-col items-center overflow-hidden">
+    <div className="relative flex h-full flex-col overflow-hidden">
       <DotGrid />
 
-      <div className="relative flex w-full max-w-[680px] flex-1 flex-col justify-center px-6">
+      <div className="pointer-events-none absolute top-3 right-4 z-20">
+        <div className="pointer-events-auto">
+          <ThemeToggle />
+        </div>
+      </div>
+
+      <ExploreBanner />
+
+      <div className="relative flex w-full max-w-[680px] flex-1 flex-col justify-center self-center px-6">
         <motion.div
           animate={{ opacity: 1, scale: 1 }}
           className="flex justify-center"
@@ -131,7 +141,7 @@ function ExploreLanding({
           initial={{ opacity: 0, y: 16 }}
           transition={{ duration: 0.6, delay: 0.1, ease: EASE }}
         >
-          Explore
+          OpenBeam
         </motion.h1>
 
         <motion.p
@@ -152,6 +162,7 @@ function ExploreLanding({
           <SearchInputBar
             isSearching={isFetching}
             onChange={onQueryChange}
+            placeholder="log4shell, SQL injection, T1190..."
             value={query}
           />
         </motion.div>

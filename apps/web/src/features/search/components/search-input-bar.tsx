@@ -7,9 +7,15 @@ type Props = {
   value: string;
   onChange: (value: string) => void;
   isSearching: boolean;
+  placeholder?: string;
 };
 
-export function SearchInputBar({ value, onChange, isSearching }: Props) {
+export function SearchInputBar({
+  value,
+  onChange,
+  isSearching,
+  placeholder = "Search everything...",
+}: Props) {
   return (
     <div className="flex h-12 items-center gap-3 border border-border/50 bg-background px-4">
       <Icons.Search className="shrink-0 text-foreground/40" size={18} />
@@ -17,7 +23,7 @@ export function SearchInputBar({ value, onChange, isSearching }: Props) {
         autoFocus
         className="h-full flex-1 border-0 bg-transparent px-0 text-[15px] placeholder:text-foreground/40 focus-visible:ring-0 focus-visible:ring-offset-0"
         onChange={(e) => onChange(e.target.value)}
-        placeholder="Search everything..."
+        placeholder={placeholder}
         spellCheck={false}
         type="text"
         value={value}
