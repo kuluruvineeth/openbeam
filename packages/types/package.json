@@ -387,6 +387,10 @@
     "./control/validators/access": {
       "types": "./dist/control/validators/access.d.ts",
       "default": "./src/control/validators/access.ts"
+    },
+    "./public": {
+      "types": "./dist/public/index.d.ts",
+      "default": "./src/public/index.ts"
     }
   },
   "scripts": {

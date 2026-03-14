@@ -10,6 +10,7 @@ export const AuthTypeSchema = z.enum([
   "API_KEY",
   "BASIC",
   "SESSION",
+  "PUBLIC_DATASET",
 ]);
 
 export type AuthType = z.infer<typeof AuthTypeSchema>;
@@ -61,6 +62,10 @@ export const AppTypeSchema = z.enum([
   "MATTERPORT",
   "VIAM",
   "FHIR",
+  "NVD",
+  "CISA_KEV",
+  "MITRE_ATTACK",
+  "OWASP",
 ]);
 
 export type AppType = z.infer<typeof AppTypeSchema>;

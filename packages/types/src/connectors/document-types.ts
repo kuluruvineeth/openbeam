@@ -59,6 +59,14 @@ export const DocumentTypeCategorySchema = z.enum([
   "robot_action_log",
   "robot_ml_model",
   "robot_location",
+  "vulnerability",
+  "advisory",
+  "technique",
+  "tactic",
+  "threat_group",
+  "malware",
+  "mitigation",
+  "security_guide",
   "unknown",
 ]);
 
