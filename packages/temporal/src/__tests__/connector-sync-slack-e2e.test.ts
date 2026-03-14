@@ -230,11 +230,14 @@ describe("connectorSyncWorkflow Slack multi-stage simulation", () => {
     expect(upsertCalls.length).toBe(3);
 
     const allDiscoveredResources = upsertCalls.flatMap(
-      (call: Array<{ resources: Array<{ externalId: string }> }>) =>
-        call[0].resources
+      (
+        call: Array<{
+          resources: Array<{ externalId: string; resourceType: string }>;
+        }>
+      ) => call[0]?.resources ?? []
     );
     const fileResources = allDiscoveredResources.filter(
-      (r: { resourceType: string }) =>
+      (r) =>
         r.resourceType === "file" ||
         r.resourceType === "video" ||
         r.resourceType === "audio"
@@ -268,7 +271,10 @@ describe("connectorSyncWorkflow Slack multi-stage simulation", () => {
     );
     expect(knowledgeCall).toBeDefined();
 
-    const completeSyncCall = mockCompleteSyncJob.mock.calls[0][0];
+    const completeSyncCall = mockCompleteSyncJob.mock.calls[0]?.[0] as {
+      status: string;
+      stats: { processed: number };
+    };
     expect(completeSyncCall.status).toBe("COMPLETED");
     expect(completeSyncCall.stats.processed).toBe(125);
   });
@@ -414,11 +420,11 @@ describe("connectorSyncWorkflow Slack multi-stage simulation", () => {
 
     const allResources = mockUpsertDiscoveredResources.mock.calls.flatMap(
       (call: Array<{ resources: Array<{ externalId: string }> }>) =>
-        call[0].resources
+        call[0]?.resources ?? []
     );
     expect(allResources).toHaveLength(2);
-    expect(allResources[0].externalId).toBe("F1");
-    expect(allResources[1].externalId).toBe("F2");
+    expect(allResources[0]?.externalId).toBe("F1");
+    expect(allResources[1]?.externalId).toBe("F2");
 
     const fileProcessingCalled = mockExecuteChild.mock.calls.some(
       (call: Array<{ workflowId: string }>) =>
@@ -497,10 +503,13 @@ describe("connectorSyncWorkflow Slack multi-stage simulation", () => {
     expect(result.processed).toBe(90);
 
     expect(mockUpsertDiscoveredResources).toHaveBeenCalledTimes(1);
-    const discoveredFiles =
-      mockUpsertDiscoveredResources.mock.calls[0][0].resources;
+    const discoveredFiles = (
+      mockUpsertDiscoveredResources.mock.calls[0]?.[0] as {
+        resources: Array<{ externalId: string }>;
+      }
+    )?.resources;
     expect(discoveredFiles).toHaveLength(1);
-    expect(discoveredFiles[0].externalId).toBe("F1");
+    expect(discoveredFiles?.[0]?.externalId).toBe("F1");
 
     const fileProcessingCalled = mockExecuteChild.mock.calls.some(
       (call: Array<{ workflowId: string }>) =>

@@ -60,6 +60,14 @@ function makeDoc(id: string): GenericDocument {
   };
 }
 
+function at<T>(arr: T[], idx: number): T {
+  const val = arr[idx];
+  if (val === undefined) {
+    throw new Error(`Index ${idx} out of bounds`);
+  }
+  return val;
+}
+
 describe("unified-fetch-batch multi-stage generator", () => {
   beforeEach(() => {
     clearGeneratorCache();
@@ -135,28 +143,28 @@ describe("unified-fetch-batch multi-stage generator", () => {
 
     expect(batches).toHaveLength(6);
 
-    expect(batches[0].items).toHaveLength(2);
-    expect(batches[0].hasMore).toBe(true);
+    expect(at(batches, 0).items).toHaveLength(2);
+    expect(at(batches, 0).hasMore).toBe(true);
 
-    expect(batches[1].items).toHaveLength(1);
-    expect(batches[1].hasMore).toBe(true);
+    expect(at(batches, 1).items).toHaveLength(1);
+    expect(at(batches, 1).hasMore).toBe(true);
 
-    expect(batches[2].items).toHaveLength(0);
-    expect(batches[2].hasMore).toBe(true);
-    expect(batches[2].discoveredResources).toHaveLength(1);
-    expect(batches[2].discoveredResources?.[0].externalId).toBe("file-1");
+    expect(at(batches, 2).items).toHaveLength(0);
+    expect(at(batches, 2).hasMore).toBe(true);
+    expect(at(batches, 2).discoveredResources).toHaveLength(1);
+    expect(at(batches, 2).discoveredResources?.[0]?.externalId).toBe("file-1");
 
-    expect(batches[3].items).toHaveLength(0);
-    expect(batches[3].hasMore).toBe(true);
-    expect(batches[3].discoveredResources).toHaveLength(1);
-    expect(batches[3].discoveredResources?.[0].externalId).toBe("file-2");
+    expect(at(batches, 3).items).toHaveLength(0);
+    expect(at(batches, 3).hasMore).toBe(true);
+    expect(at(batches, 3).discoveredResources).toHaveLength(1);
+    expect(at(batches, 3).discoveredResources?.[0]?.externalId).toBe("file-2");
 
-    expect(batches[4].items).toHaveLength(1);
-    expect(batches[4].items[0].id).toBe("canvas-1");
-    expect(batches[4].hasMore).toBe(true);
+    expect(at(batches, 4).items).toHaveLength(1);
+    expect((at(batches, 4).items[0] as GenericDocument).id).toBe("canvas-1");
+    expect(at(batches, 4).hasMore).toBe(true);
 
-    expect(batches[5].items).toHaveLength(0);
-    expect(batches[5].hasMore).toBe(false);
+    expect(at(batches, 5).items).toHaveLength(0);
+    expect(at(batches, 5).hasMore).toBe(false);
   });
 
   it("never returns hasMore=false for intermediate batches even if inner stage says so", async () => {
@@ -180,14 +188,14 @@ describe("unified-fetch-batch multi-stage generator", () => {
     }
 
     expect(results).toHaveLength(4);
-    expect(results[0].hasMore).toBe(true);
-    expect(results[0].items[0].id).toBe("a");
-    expect(results[1].hasMore).toBe(true);
-    expect(results[1].items[0].id).toBe("b");
-    expect(results[2].hasMore).toBe(true);
-    expect(results[2].items[0].id).toBe("c");
-    expect(results[3].hasMore).toBe(false);
-    expect(results[3].items).toHaveLength(0);
+    expect(at(results, 0).hasMore).toBe(true);
+    expect((at(results, 0).items[0] as GenericDocument).id).toBe("a");
+    expect(at(results, 1).hasMore).toBe(true);
+    expect((at(results, 1).items[0] as GenericDocument).id).toBe("b");
+    expect(at(results, 2).hasMore).toBe(true);
+    expect((at(results, 2).items[0] as GenericDocument).id).toBe("c");
+    expect(at(results, 3).hasMore).toBe(false);
+    expect(at(results, 3).items).toHaveLength(0);
   });
 
   it("does not recreate generator between fetchBatch calls", async () => {
@@ -234,7 +242,7 @@ describe("unified-fetch-batch multi-stage generator", () => {
 
     const batch3 = await activity.fetchBatch({ connector, batchSize: 100 });
     expect(batch3.items).toHaveLength(1);
-    expect(batch3.items[0].id).toBe("new-1");
+    expect((batch3.items[0] as GenericDocument).id).toBe("new-1");
   });
 
   it("simulates exact Slack pattern: messages → files(empty) → canvases → done", async () => {
@@ -311,24 +319,24 @@ describe("unified-fetch-batch multi-stage generator", () => {
 
     expect(allBatches).toHaveLength(7);
 
-    expect(allBatches[0].items).toHaveLength(61);
-    expect(allBatches[1].items).toHaveLength(29);
-    expect(allBatches[2].items).toHaveLength(32);
+    expect(at(allBatches, 0).items).toHaveLength(61);
+    expect(at(allBatches, 1).items).toHaveLength(29);
+    expect(at(allBatches, 2).items).toHaveLength(32);
 
-    expect(allBatches[2].hasMore).toBe(true);
+    expect(at(allBatches, 2).hasMore).toBe(true);
 
-    expect(allBatches[3].items).toHaveLength(0);
-    expect(allBatches[3].discoveredResources).toHaveLength(2);
-    expect(allBatches[3].hasMore).toBe(true);
+    expect(at(allBatches, 3).items).toHaveLength(0);
+    expect(at(allBatches, 3).discoveredResources).toHaveLength(2);
+    expect(at(allBatches, 3).hasMore).toBe(true);
 
-    expect(allBatches[4].items).toHaveLength(0);
-    expect(allBatches[4].hasMore).toBe(true);
+    expect(at(allBatches, 4).items).toHaveLength(0);
+    expect(at(allBatches, 4).hasMore).toBe(true);
 
-    expect(allBatches[5].items).toHaveLength(2);
-    expect(allBatches[5].hasMore).toBe(true);
+    expect(at(allBatches, 5).items).toHaveLength(2);
+    expect(at(allBatches, 5).hasMore).toBe(true);
 
-    expect(allBatches[6].items).toHaveLength(0);
-    expect(allBatches[6].hasMore).toBe(false);
+    expect(at(allBatches, 6).items).toHaveLength(0);
+    expect(at(allBatches, 6).hasMore).toBe(false);
 
     expect(totalItems).toBe(61 + 29 + 32 + 2);
     expect(totalDiscoveredResources).toBe(2);
@@ -349,7 +357,7 @@ describe("unified-fetch-batch multi-stage generator", () => {
 
     const batch1 = await activity.fetchBatch({ connector, batchSize: 100 });
     expect(batch1.items).toHaveLength(1);
-    expect(batch1.items[0].id).toBe("batch-1");
+    expect((batch1.items[0] as GenericDocument).id).toBe("batch-1");
 
     await expect(
       activity.fetchBatch({ connector, batchSize: 100 })
@@ -375,15 +383,15 @@ describe("unified-fetch-batch multi-stage generator", () => {
     const connector = makeConnector();
 
     const r1 = await activity.fetchBatch({ connector, batchSize: 100 });
-    expect(r1.items[0].id).toBe("a");
+    expect((r1.items[0] as GenericDocument).id).toBe("a");
     expect(yieldCount).toBe(1);
 
     const r2 = await activity.fetchBatch({ connector, batchSize: 100 });
-    expect(r2.items[0].id).toBe("b");
+    expect((r2.items[0] as GenericDocument).id).toBe("b");
     expect(yieldCount).toBe(2);
 
     const r3 = await activity.fetchBatch({ connector, batchSize: 100 });
-    expect(r3.items[0].id).toBe("c");
+    expect((r3.items[0] as GenericDocument).id).toBe("c");
     expect(r3.hasMore).toBe(true);
     expect(yieldCount).toBe(3);
 
