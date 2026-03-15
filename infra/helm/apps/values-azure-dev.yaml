@@ -194,7 +194,9 @@ services:
       periodSeconds: 30
       timeoutSeconds: 5
       failureThreshold: 3
-    extraEnv: []
+    extraEnv:
+      - name: ALLOWED_EMAILS
+        value: "kuluruvineeth8623@gmail.com"
 
   worker:
     enabled: true

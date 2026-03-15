@@ -207,11 +207,11 @@ services:
       MPLCONFIGDIR: "/tmp/matplotlib"
     resources:
       requests:
-        cpu: 200m
-        memory: 512Mi
+        cpu: "1"
+        memory: 6Gi
       limits:
-        cpu: "2"
-        memory: 2Gi
+        cpu: "4"
+        memory: 16Gi
     startupProbe:
       path: /v1/health
       initialDelaySeconds: 15
@@ -224,9 +224,9 @@ services:
       timeoutSeconds: 5
     livenessProbe:
       path: /v1/health
-      periodSeconds: 30
-      timeoutSeconds: 5
-      failureThreshold: 3
+      periodSeconds: 60
+      timeoutSeconds: 15
+      failureThreshold: 5
     extraEnv:
       - name: CPU_REDIS_URL
         value: "redis://redis:6379"
