@@ -352,7 +352,8 @@ export function PublicSearchPage() {
           <section className="no-scrollbar min-h-0 flex-1 overflow-y-auto">
             {(overview.isLoading ||
               overview.isStreaming ||
-              overview.content) && (
+              overview.content ||
+              overview.citations.length > 0) && (
               <OverviewPanel
                 citations={overview.citations}
                 className="mx-3 mt-3"

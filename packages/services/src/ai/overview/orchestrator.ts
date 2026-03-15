@@ -367,7 +367,7 @@ async function storeInSemanticCache(
   const { request, queryEmbedding, content, citations, groundingScore } =
     params;
 
-  if (!queryEmbedding) {
+  if (!(queryEmbedding && content)) {
     return;
   }
 
@@ -827,7 +827,7 @@ export async function* streamOverview(
     cacheCheckStart
   );
 
-  if (cacheResult.hit) {
+  if (cacheResult.hit && cacheResult.entry.response.answer) {
     yield* yieldCacheHitResponse({
       entry: cacheResult.entry,
       similarity: cacheResult.similarity,
