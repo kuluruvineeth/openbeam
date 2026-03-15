@@ -28,8 +28,6 @@ export interface ThinkingProviderOptions {
 
 const DEFAULT_BUDGET_TOKENS = 10_240;
 
-const DEFAULT_GEMINI_THINKING_BUDGET = 8192;
-
 export function buildThinkingProviderOptions(
   config: ThinkingConfig = { enabled: true }
 ): Record<string, Record<string, unknown>> {
@@ -46,7 +44,7 @@ export function buildThinkingProviderOptions(
   } else if (config.thinkingLevel) {
     googleThinkingConfig.thinkingLevel = config.thinkingLevel;
   } else {
-    googleThinkingConfig.thinkingBudget = DEFAULT_GEMINI_THINKING_BUDGET;
+    googleThinkingConfig.thinkingLevel = "high";
   }
 
   return {

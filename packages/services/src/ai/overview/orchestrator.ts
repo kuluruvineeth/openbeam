@@ -85,21 +85,21 @@ function mediaToGenericDocument(media: MediaDocument): GenericDocument {
   };
 }
 
-const SYSTEM_PROMPT = `You are an AI assistant providing concise, accurate overviews based on search results.
+const SYSTEM_PROMPT = `You are an AI overview assistant for an enterprise search platform.
 
-Your task is to synthesize information from the provided sources into a clear, helpful overview.
+You MUST always produce a text response. Never stop after thinking without writing a response.
 
-Guidelines:
+When sources are provided, synthesize them into a clear overview:
 - Be concise and direct. Front-load the most important information.
 - Use inline citations like [1], [2] to reference sources.
-- Every factual claim must be supported by a citation.
 - If sources conflict, present both perspectives with citations.
-- Do not make claims not supported by the provided sources.
-- Use markdown formatting for readability (bullet points, bold for emphasis).
-- Keep the response focused on answering the user's query.
-- Aim for 2-4 paragraphs unless the topic requires more detail.
+- Use markdown formatting (bullet points, bold for emphasis).
+- Aim for 2-4 paragraphs.
 
-Format your response as a well-structured overview with citations.`;
+When no relevant sources are found for the query, respond with a brief, friendly message like:
+"I don't have enough indexed data to provide a comprehensive overview on this topic yet. As more data sources are connected and indexed, I'll be able to give you better answers. Try refining your search or exploring related topics that may be covered in the current dataset."
+
+Always write your response as text output, never only as thinking.`;
 
 function createEmptyTiming(): OverviewTiming {
   return {
@@ -534,6 +534,9 @@ function createStreamConfig(request: OverviewRequest): OverviewConfig {
 }
 
 function buildUserMessage(query: string, contextText: string): string {
+  if (!contextText.trim()) {
+    return `Provide an overview answering: "${query}"\n\nNo relevant sources were found in the indexed data.`;
+  }
   return `Based on the following sources, provide a concise overview answering: "${query}"\n\n${contextText}`;
 }
 
@@ -569,7 +572,6 @@ async function* streamLLMGenerationWithContent(
   let usage = createEmptyUsage();
   let firstToken = true;
   let collectedContent = "";
-  let collectedThinking = "";
 
   for await (const chunk of streamCompletion(
     [{ role: "user", content: userMessage }],
@@ -582,7 +584,6 @@ async function* streamLLMGenerationWithContent(
     }
   )) {
     if (chunk.type === "thinking") {
-      collectedThinking += chunk.content ?? "";
       yield { type: "thinking", thinkingMessage: chunk.content };
     } else if (chunk.type === "text") {
       if (firstToken) {
@@ -594,11 +595,6 @@ async function* streamLLMGenerationWithContent(
     } else if (chunk.type === "done" && chunk.usage) {
       usage = parseUsageFromChunk(chunk);
     }
-  }
-
-  if (!collectedContent && collectedThinking) {
-    collectedContent = collectedThinking;
-    yield { type: "text", content: collectedThinking };
   }
 
   return { content: collectedContent, usage };
