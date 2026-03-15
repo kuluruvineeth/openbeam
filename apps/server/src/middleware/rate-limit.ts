@@ -2,9 +2,9 @@ import { rateLimiter } from "@openbeam/redis";
 import { createMiddleware } from "hono/factory";
 import type { AuthEnv } from "./auth";
 
-const PUBLIC_BURST_LIMIT = 30;
+const PUBLIC_BURST_LIMIT = 100;
 const PUBLIC_BURST_WINDOW = 10;
-const PUBLIC_MINUTE_LIMIT = 200;
+const PUBLIC_MINUTE_LIMIT = 1000;
 const PUBLIC_MINUTE_WINDOW = 60;
 
 function extractClientIp(c: {

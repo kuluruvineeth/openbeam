@@ -569,6 +569,7 @@ async function* streamLLMGenerationWithContent(
   let usage = createEmptyUsage();
   let firstToken = true;
   let collectedContent = "";
+  let collectedThinking = "";
 
   for await (const chunk of streamCompletion(
     [{ role: "user", content: userMessage }],
@@ -581,6 +582,7 @@ async function* streamLLMGenerationWithContent(
     }
   )) {
     if (chunk.type === "thinking") {
+      collectedThinking += chunk.content ?? "";
       yield { type: "thinking", thinkingMessage: chunk.content };
     } else if (chunk.type === "text") {
       if (firstToken) {
@@ -592,6 +594,11 @@ async function* streamLLMGenerationWithContent(
     } else if (chunk.type === "done" && chunk.usage) {
       usage = parseUsageFromChunk(chunk);
     }
+  }
+
+  if (!collectedContent && collectedThinking) {
+    collectedContent = collectedThinking;
+    yield { type: "text", content: collectedThinking };
   }
 
   return { content: collectedContent, usage };

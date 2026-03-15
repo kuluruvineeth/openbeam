@@ -23,10 +23,10 @@ publicSearchApp.openapi(publicSearchRoute, publicSearchHandler);
 publicSearchApp.use(
   "/overview",
   ipRateLimit({
-    burstLimit: 10,
-    burstWindow: 30,
-    minuteLimit: 30,
-    minuteWindow: 300,
+    burstLimit: 50,
+    burstWindow: 10,
+    minuteLimit: 200,
+    minuteWindow: 60,
   })
 );
 publicSearchApp.openapi(publicOverviewRoute, publicOverviewHandler);
