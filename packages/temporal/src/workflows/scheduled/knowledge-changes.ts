@@ -50,7 +50,7 @@ export async function processKnowledgeChangesWorkflow(
 
   if (nonDeletedChanges.length > 0) {
     const allDocumentIds = nonDeletedChanges.map((c) => c.documentId);
-    const EXTRACTION_BATCH_SIZE = 50;
+    const EXTRACTION_BATCH_SIZE = 10;
     const allMentions: Awaited<
       ReturnType<typeof changeActivities.extractEntitiesFromChanges>
     >["mentions"] = [];
