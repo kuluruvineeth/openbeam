@@ -78,7 +78,7 @@ async function embedDocuments(
     return documents;
   }
 
-  const EMBEDDING_BATCH_SIZE = 10;
+  const EMBEDDING_BATCH_SIZE = 3;
   const MAX_TEXT_LENGTH = 8000;
   const embeddedDocs: GenericDocument[] = [];
 
