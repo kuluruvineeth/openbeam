@@ -40,7 +40,7 @@ export function SearchResults({
   onSelectMedia,
   onPreviewMedia,
 }: SearchResultsProps) {
-  const { ref, inView } = useInView();
+  const { ref, inView } = useInView({ rootMargin: "200px" });
   const rowRefs = useRef<Map<number, HTMLButtonElement>>(new Map());
 
   useEffect(() => {
@@ -108,16 +108,14 @@ export function SearchResults({
         })}
       </ol>
 
-      {(hasNextPage || isFetchingNextPage) && (
-        <div className="flex justify-center py-3" ref={ref}>
-          {isFetchingNextPage && (
-            <Icons.Loader2Icon
-              className="animate-spin text-foreground/30"
-              size={14}
-            />
-          )}
-        </div>
-      )}
+      <div className="flex justify-center py-4" ref={ref}>
+        {isFetchingNextPage && (
+          <Icons.Loader2Icon
+            className="animate-spin text-foreground/30"
+            size={14}
+          />
+        )}
+      </div>
     </div>
   );
 }

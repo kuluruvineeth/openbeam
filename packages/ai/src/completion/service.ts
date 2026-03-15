@@ -210,7 +210,11 @@ export class CompletionService {
           };
         }
       } else if (chunkType === "text-delta") {
-        const text = (chunkObj.textDelta as string) || "";
+        const text =
+          (chunkObj.delta as string) ||
+          (chunkObj.textDelta as string) ||
+          (chunkObj.text as string) ||
+          "";
         if (text) {
           options.onToken?.(text);
           yield { chunk: { type: "text", content: text }, text };
