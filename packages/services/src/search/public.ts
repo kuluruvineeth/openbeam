@@ -76,9 +76,11 @@ function buildPublicYql(
     "is_public = true",
   ];
   const limit = params.limit ?? 20;
+  const offset = params.offset ?? 0;
+  const targetHits = (offset + limit) * 2;
 
   if (useVector && params.query) {
-    const vectorClause = `({targetHits:${limit * 2}}nearestNeighbor(embedding, embedding_v2))`;
+    const vectorClause = `({targetHits:${targetHits}}nearestNeighbor(embedding, embedding_v2))`;
     const textClause = `default contains "${escapeYql(params.query)}"`;
     conditions.push(`(${vectorClause} or (${textClause}))`);
   } else if (params.query) {
@@ -95,8 +97,7 @@ function buildPublicYql(
     conditions.push(`created_at <= ${params.toDate}`);
   }
 
-  const offset = params.offset ?? 0;
-  return `select * from openbeam_document where ${conditions.join(" and ")} limit ${limit} offset ${offset}`;
+  return `select * from openbeam_document where ${conditions.join(" and ")}`;
 }
 
 function mapDocument(
