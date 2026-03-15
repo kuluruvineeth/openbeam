@@ -1,14 +1,13 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { parseAsInteger, parseAsString, useQueryStates } from "nuqs";
-import { useCallback, useDeferredValue } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { parseAsString, useQueryStates } from "nuqs";
+import { useCallback, useDeferredValue, useMemo } from "react";
 import { fetchPublicSearch } from "../lib/api";
 
 const searchParamsParsers = {
   q: parseAsString.withDefault(""),
   dataset: parseAsString,
-  page: parseAsInteger.withDefault(1),
 };
 
 const RESULTS_PER_PAGE = 20;
@@ -19,27 +18,38 @@ export function usePublicSearch() {
 
   const hasQuery = deferredQuery.trim().length > 0;
 
-  const { data, isLoading, isFetching, error } = useQuery({
-    queryKey: ["public-search", deferredQuery, params.dataset, params.page],
-    queryFn: () =>
+  const infiniteQuery = useInfiniteQuery({
+    queryKey: ["public-search", deferredQuery, params.dataset],
+    queryFn: ({ pageParam = 0 }) =>
       fetchPublicSearch({
         q: deferredQuery,
         dataset: params.dataset ?? undefined,
         limit: RESULTS_PER_PAGE,
-        offset: ((params.page ?? 1) - 1) * RESULTS_PER_PAGE,
+        offset: pageParam,
       }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => {
+      const nextOffset = lastPage.offset + lastPage.hits.length;
+      return nextOffset < lastPage.total ? nextOffset : undefined;
+    },
     enabled: hasQuery,
     staleTime: 30_000,
-    placeholderData: (prev) => prev,
   });
 
+  const hits = useMemo(
+    () => infiniteQuery.data?.pages.flatMap((page) => page.hits) ?? [],
+    [infiniteQuery.data?.pages]
+  );
+
+  const firstPage = infiniteQuery.data?.pages[0];
+
   const setQuery = useCallback(
-    (q: string) => setParams({ q: q || null, page: 1 }),
+    (q: string) => setParams({ q: q || null }),
     [setParams]
   );
 
   const setDataset = useCallback(
-    (dataset: string | null) => setParams({ dataset, page: 1 }),
+    (dataset: string | null) => setParams({ dataset }),
     [setParams]
   );
 
@@ -47,13 +57,16 @@ export function usePublicSearch() {
     query: params.q,
     dataset: params.dataset,
     hasQuery,
-    hits: data?.hits ?? [],
-    total: data?.total ?? 0,
-    facets: data?.facets,
-    timing: data?.timing,
-    isLoading: isLoading && hasQuery,
-    isFetching,
-    error: error?.message ?? null,
+    hits,
+    total: firstPage?.total ?? 0,
+    facets: firstPage?.facets,
+    timing: firstPage?.timing,
+    isLoading: infiniteQuery.isLoading && hasQuery,
+    isFetching: infiniteQuery.isFetching,
+    hasNextPage: infiniteQuery.hasNextPage,
+    fetchNextPage: infiniteQuery.fetchNextPage,
+    isFetchingNextPage: infiniteQuery.isFetchingNextPage,
+    error: infiniteQuery.error?.message ?? null,
     setQuery,
     setDataset,
   };

@@ -34,6 +34,7 @@ Instructions:
 
 const VALID_SDK_ROLES = ["system", "user", "assistant", "tool"] as const;
 const CITATION_SNIPPET_LENGTH = 200;
+const THINKING_MIN_OUTPUT_TOKENS = 65_536;
 
 function normalizeUsage(usage: {
   inputTokens?: number;
@@ -192,9 +193,13 @@ export class CompletionService {
   ): AsyncGenerator<{ chunk: StreamChunk; text: string }> {
     for await (const chunk of fullStream) {
       const chunkObj = chunk as Record<string, unknown>;
+      const chunkType = chunkObj.type as string;
+
       if (
-        chunkObj.type === "reasoning" ||
-        chunkObj.type === "reasoning-delta"
+        chunkType === "reasoning" ||
+        chunkType === "reasoning-delta" ||
+        chunkType === "reasoning-start" ||
+        chunkType === "reasoning-end"
       ) {
         const reasoningContent = extractReasoningContent(chunk);
         if (reasoningContent) {
@@ -204,7 +209,7 @@ export class CompletionService {
             text: "",
           };
         }
-      } else if (chunkObj.type === "text-delta") {
+      } else if (chunkType === "text-delta") {
         const text = (chunkObj.textDelta as string) || "";
         if (text) {
           options.onToken?.(text);
@@ -234,11 +239,16 @@ export class CompletionService {
     const allMessages = this.prepareMessages(messages, systemPrompt);
     const config = getConfig();
 
+    const baseMaxTokens = options.maxTokens ?? config.completion.maxTokens;
+    const maxOutputTokens = options.enableThinking
+      ? Math.max(baseMaxTokens, THINKING_MIN_OUTPUT_TOKENS)
+      : baseMaxTokens;
+
     const streamTextParams = {
       model: this.getModel(options.providerId, options.modelId),
       messages: this.toSDKMessages(allMessages),
       temperature: options.temperature ?? config.completion.temperature,
-      maxOutputTokens: options.maxTokens ?? config.completion.maxTokens,
+      maxOutputTokens,
       topP: options.topP ?? config.completion.topP,
       presencePenalty: options.presencePenalty,
       frequencyPenalty: options.frequencyPenalty,

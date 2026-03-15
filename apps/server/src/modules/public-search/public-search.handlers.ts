@@ -130,8 +130,7 @@ export const publicOverviewHandler: RouteHandler<
     } catch (error) {
       const message = error instanceof Error ? error.message : "Stream failed";
       await sseStream.writeSSE({
-        event: "error",
-        data: JSON.stringify({ error: message }),
+        data: JSON.stringify({ type: "error", error: message }),
       });
     }
   });

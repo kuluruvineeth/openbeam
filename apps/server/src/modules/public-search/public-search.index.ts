@@ -24,9 +24,9 @@ publicSearchApp.use(
   "/overview",
   ipRateLimit({
     burstLimit: 10,
-    burstWindow: 60,
-    minuteLimit: 60,
-    minuteWindow: 3600,
+    burstWindow: 30,
+    minuteLimit: 30,
+    minuteWindow: 300,
   })
 );
 publicSearchApp.openapi(publicOverviewRoute, publicOverviewHandler);

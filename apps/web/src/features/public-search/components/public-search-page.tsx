@@ -205,6 +205,9 @@ export function PublicSearchPage() {
     timing,
     isLoading,
     isFetching,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
     dataset,
     setDataset,
   } = usePublicSearch();
@@ -315,8 +318,6 @@ export function PublicSearchPage() {
     });
   }, [hits]);
 
-  const noop = useCallback(Function.prototype as () => void, []);
-
   if (!hasQuery) {
     return (
       <ExploreLanding
@@ -372,9 +373,9 @@ export function PublicSearchPage() {
             {isEmpty && <SearchEmptyState query={query} />}
             {hasResults && (
               <SearchResults
-                fetchNextPage={noop}
-                hasNextPage={false}
-                isFetchingNextPage={false}
+                fetchNextPage={fetchNextPage}
+                hasNextPage={hasNextPage ?? false}
+                isFetchingNextPage={isFetchingNextPage}
                 items={unifiedItems}
                 onSelectDocument={handleSelectDocument}
                 previewId={previewId}
