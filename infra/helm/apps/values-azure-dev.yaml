@@ -307,7 +307,7 @@ services:
       CPU_ENABLE_ML: "true"
       HF_HOME: "/tmp/hf_cache"
       TRANSFORMERS_CACHE: "/tmp/hf_cache"
-      CPU_WORKERS: "2"
+      CPU_WORKERS: "1"
       SCARF_NO_ANALYTICS: "true"
       DO_NOT_TRACK: "true"
       MPLCONFIGDIR: "/tmp/matplotlib"
