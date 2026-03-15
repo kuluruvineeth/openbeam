@@ -1,10 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import Image from "next/image";
-import { useState } from "react";
 import { analytics } from "@/lib/analytics";
-import { cn } from "@/lib/cn";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -134,41 +131,36 @@ export function HeroSection() {
           </div>
         </div>
 
-        <HeroScreenshot />
+        <HeroVideo />
       </div>
     </div>
   );
 }
 
-function HeroScreenshot() {
-  const [isLoaded, setIsLoaded] = useState(false);
-
+function HeroVideo() {
   return (
     <div className="mt-8 mb-8 overflow-visible md:mt-12 lg:mt-0 lg:mb-4 lg:w-full">
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 z-[2] flex items-center justify-center p-0 lg:p-4">
           <div
-            className={cn(
-              "relative w-full max-w-[85%] overflow-hidden border border-border/50 bg-background md:scale-[0.85] lg:scale-100 2xl:max-w-[75%]",
-              "transition-all duration-700 ease-out"
-            )}
+            className="relative w-full max-w-[85%] overflow-hidden rounded-sm border border-border/50 md:scale-[0.85] lg:scale-100 2xl:max-w-[75%]"
             style={{
-              filter: isLoaded
-                ? "blur(0px) drop-shadow(0 40px 80px rgba(0,0,0,0.35))"
-                : "blur(20px)",
-              transform: isLoaded ? undefined : "scale(1.02)",
+              filter: "drop-shadow(0 40px 80px rgba(0,0,0,0.35))",
             }}
           >
-            <Image
-              alt="OpenBeam — AI-powered enterprise search across Slack, Gmail, Notion, and GitHub"
-              className="h-auto w-full"
-              height={900}
-              onLoad={() => setIsLoaded(true)}
-              priority
-              quality={95}
-              src="/hero-screenshot.png"
-              width={1440}
-            />
+            <div
+              className="relative w-full"
+              style={{ paddingBottom: "56.25%" }}
+            >
+              <iframe
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="absolute inset-0 h-full w-full"
+                frameBorder="0"
+                src="https://www.youtube.com/embed/J-72LXIYXK4?autoplay=1&mute=1&loop=1&playlist=J-72LXIYXK4&controls=1&showinfo=0&rel=0&modestbranding=1&playsinline=1"
+                title="OpenBeam — Intelligence for the Physical World"
+              />
+            </div>
           </div>
         </div>
         <div className="h-[420px] sm:h-[520px] md:h-[600px] lg:h-[800px] xl:h-[900px]" />
