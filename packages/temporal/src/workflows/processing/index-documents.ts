@@ -26,9 +26,14 @@ const databaseActivities = proxyActivities<DatabaseActivities>({
 });
 
 const engineActivities = proxyActivities<EngineActivities>({
-  startToCloseTimeout: "2m",
-  scheduleToCloseTimeout: "6m",
-  retry: { maximumAttempts: 3, backoffCoefficient: 2 },
+  startToCloseTimeout: "5m",
+  scheduleToCloseTimeout: "15m",
+  retry: {
+    initialInterval: "5s",
+    backoffCoefficient: 2,
+    maximumInterval: "60s",
+    maximumAttempts: 10,
+  },
 });
 
 function chunk<T>(array: T[], size: number): T[][] {
