@@ -246,21 +246,24 @@ export function PublicSearchPage() {
     setPreviewId(null);
   }, [query, dataset]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: trigger overview on query change
+  const { generateOverview, reset: resetOverview } = overview;
+
   useEffect(() => {
     const trimmed = query.trim();
-    if (trimmed.length >= 3 && trimmed !== prevQueryRef.current) {
-      prevQueryRef.current = trimmed;
-      overview.reset();
-      const timer = setTimeout(() => overview.generateOverview(trimmed), 500);
-      return () => clearTimeout(timer);
+    if (trimmed.length < 3) {
+      if (prevQueryRef.current) {
+        prevQueryRef.current = null;
+        resetOverview();
+      }
+      return;
     }
-    if (trimmed.length < 3 && prevQueryRef.current) {
-      prevQueryRef.current = null;
-      overview.reset();
+    if (trimmed === prevQueryRef.current) {
+      return;
     }
-    return;
-  }, [query]);
+    prevQueryRef.current = trimmed;
+    const timer = setTimeout(() => generateOverview(trimmed), 600);
+    return () => clearTimeout(timer);
+  }, [query, generateOverview, resetOverview]);
 
   useHotkeys("escape", () => {
     if (previewId) {
