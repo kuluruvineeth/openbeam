@@ -10,11 +10,9 @@ const MAX_RETRY_DELAY = 30_000;
 const GITHUB_API_BASE = "https://api.github.com";
 const GITHUB_RAW_BASE = "https://raw.githubusercontent.com";
 
-const RATE_LIMITS: RateLimitConfig = {
-  requestsPerMinute: 10,
-  requestsPerHour: 55,
-  burstLimit: 5,
-};
+const RATE_LIMITS: RateLimitConfig = process.env.GITHUB_TOKEN
+  ? { requestsPerMinute: 60, requestsPerHour: 4000, burstLimit: 20 }
+  : { requestsPerMinute: 10, requestsPerHour: 55, burstLimit: 5 };
 
 export interface OwaspClient {
   readonly connectorId: string;
@@ -51,6 +49,7 @@ interface ClientState {
 
 export function createOwaspClient(connectorId: string): OwaspClient {
   const state: ClientState = { consecutiveErrors: 0 };
+  const githubToken = process.env.GITHUB_TOKEN;
 
   async function checkRateLimit(): Promise<void> {
     const { allowed } = await rateLimiter.checkConnectorRateLimit(
@@ -94,8 +93,15 @@ export function createOwaspClient(connectorId: string): OwaspClient {
     const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT);
 
     try {
+      const headers: Record<string, string> = {
+        Accept: "application/vnd.github.v3+json",
+      };
+      if (githubToken) {
+        headers.Authorization = `Bearer ${githubToken}`;
+      }
+
       const response = await fetch(url, {
-        headers: { Accept: "application/vnd.github.v3+json" },
+        headers,
         signal: controller.signal,
       });
       clearTimeout(timeoutId);

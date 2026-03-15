@@ -280,6 +280,11 @@ services:
           secretKeyRef:
             name: app-secrets
             key: TWELVELABS_API_KEY
+      - name: GITHUB_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: github-token
+            key: GITHUB_TOKEN
 
   engine:
     enabled: true
@@ -310,11 +315,11 @@ services:
       openbeam/pool: workload
     resources:
       requests:
-        cpu: 500m
-        memory: 2Gi
-      limits:
-        cpu: 2000m
+        cpu: "1"
         memory: 6Gi
+      limits:
+        cpu: "4"
+        memory: 16Gi
     startupProbe:
       path: /v1/health
       initialDelaySeconds: 15
@@ -327,9 +332,9 @@ services:
       timeoutSeconds: 5
     livenessProbe:
       path: /v1/health
-      periodSeconds: 30
-      timeoutSeconds: 5
-      failureThreshold: 3
+      periodSeconds: 60
+      timeoutSeconds: 15
+      failureThreshold: 5
     extraEnv:
       - name: CPU_REDIS_URL
         valueFrom:
