@@ -141,7 +141,7 @@ describe("processKnowledgeChangesWorkflow", () => {
       teamId: "team1",
       connectorId: "conn-1",
       syncHistoryId: "sync-123",
-      limit: 1000,
+      limit: 50,
     });
     expect(mockCountUnprocessedChanges).toHaveBeenCalledWith({
       teamId: "team1",
@@ -483,7 +483,9 @@ describe("processKnowledgeChangesWorkflow", () => {
       changeType: "incremental",
     });
 
-    expect(mockLinkPersonIdentities).not.toHaveBeenCalled();
+    expect(mockLinkPersonIdentities).toHaveBeenCalledWith({
+      teamId: "team1",
+    });
   });
 });
 
