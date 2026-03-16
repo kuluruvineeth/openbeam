@@ -6,7 +6,7 @@ import { continueAsNew, proxyActivities } from "@temporalio/workflow";
 import type { KnowledgeChangeActivities } from "../../activities/knowledge/types";
 
 const changeActivities = proxyActivities<KnowledgeChangeActivities>({
-  startToCloseTimeout: "10 minutes",
+  startToCloseTimeout: "15 minutes",
   heartbeatTimeout: "1 minute",
   retry: {
     initialInterval: "2s",
@@ -50,7 +50,7 @@ export async function processKnowledgeChangesWorkflow(
 
   if (nonDeletedChanges.length > 0) {
     const allDocumentIds = nonDeletedChanges.map((c) => c.documentId);
-    const EXTRACTION_BATCH_SIZE = 5;
+    const EXTRACTION_BATCH_SIZE = 3;
     const allMentions: Awaited<
       ReturnType<typeof changeActivities.extractEntitiesFromChanges>
     >["mentions"] = [];
