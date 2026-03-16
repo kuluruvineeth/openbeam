@@ -1110,7 +1110,8 @@ export function registerAllSyncFactories(): void {
 
   registerSyncFactory("NVD", async function* (connectorId, connector, cursor) {
     const config = connector.config as Record<string, unknown> | null;
-    const apiKey = (config?.api_key as string) || undefined;
+    const apiKey =
+      (config?.api_key as string) || process.env.NVD_API_KEY || undefined;
 
     const client = createNvdClient({ connectorId, apiKey });
 
