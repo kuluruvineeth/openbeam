@@ -2,7 +2,11 @@ import {
   ProcessKnowledgeChangesInputSchema,
   type ProcessKnowledgeChangesOutput,
 } from "@openbeam/types/temporal/workflows/knowledge-changes";
-import { continueAsNew, proxyActivities } from "@temporalio/workflow";
+import {
+  continueAsNew,
+  proxyActivities,
+  workflowInfo,
+} from "@temporalio/workflow";
 import type { KnowledgeChangeActivities } from "../../activities/knowledge/types";
 
 const changeActivities = proxyActivities<KnowledgeChangeActivities>({
@@ -17,7 +21,8 @@ const changeActivities = proxyActivities<KnowledgeChangeActivities>({
   },
 });
 
-const BATCH_LIMIT = 1000;
+const BATCH_LIMIT = 50;
+const HISTORY_LIMIT = 300;
 
 export async function processKnowledgeChangesWorkflow(
   rawInput: unknown
@@ -51,11 +56,18 @@ export async function processKnowledgeChangesWorkflow(
   if (nonDeletedChanges.length > 0) {
     const allDocumentIds = nonDeletedChanges.map((c) => c.documentId);
     const EXTRACTION_BATCH_SIZE = 3;
-    const allMentions: Awaited<
-      ReturnType<typeof changeActivities.extractEntitiesFromChanges>
-    >["mentions"] = [];
 
     for (let i = 0; i < allDocumentIds.length; i += EXTRACTION_BATCH_SIZE) {
+      if (workflowInfo().historyLength > HISTORY_LIMIT) {
+        await changeActivities.markChangesProcessed({
+          changeIds: changes.map((c) => c.id),
+        });
+        return continueAsNew<typeof processKnowledgeChangesWorkflow>({
+          ...input,
+          processedSoFar: (input.processedSoFar ?? 0) + changes.length,
+        });
+      }
+
       const batchIds = allDocumentIds.slice(i, i + EXTRACTION_BATCH_SIZE);
       const extractionResult =
         await changeActivities.extractEntitiesFromChanges({
@@ -63,20 +75,19 @@ export async function processKnowledgeChangesWorkflow(
           documentIds: batchIds,
         });
       entitiesUpdated += extractionResult.entitiesUpdated;
-      allMentions.push(...extractionResult.mentions);
+
+      if (extractionResult.mentions.length > 0) {
+        const edgeResult = await changeActivities.updateCoOccurrenceEdges({
+          teamId: input.teamId,
+          entityMentions: extractionResult.mentions,
+        });
+        edgesUpdated += edgeResult.edgesCreated + edgeResult.edgesUpdated;
+      }
     }
 
-    if (allMentions.length > 0) {
-      const edgeResult = await changeActivities.updateCoOccurrenceEdges({
-        teamId: input.teamId,
-        entityMentions: allMentions,
-      });
-      edgesUpdated = edgeResult.edgesCreated + edgeResult.edgesUpdated;
-
-      await changeActivities.linkPersonIdentities({
-        teamId: input.teamId,
-      });
-    }
+    await changeActivities.linkPersonIdentities({
+      teamId: input.teamId,
+    });
   }
 
   await changeActivities.markChangesProcessed({
