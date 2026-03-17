@@ -6,14 +6,14 @@ RUN turbo prune docs --docker
 
 FROM ghcr.io/kuluruvineeth/openbeam-base:latest AS deps
 WORKDIR /app
-COPY --from=pruner /app/out/bun.lock ./bun.lock
-COPY --from=pruner /app/out/full/ .
+COPY --from=pruner /app/out/json/ .
 ARG HUGEICONS_PRO_AUTH_TOKEN
 RUN if [ -n "$HUGEICONS_PRO_AUTH_TOKEN" ]; then \
       printf "@hugeicons-pro:registry=https://npm.hugeicons.com/\n//npm.hugeicons.com/:_authToken=%s\n" "$HUGEICONS_PRO_AUTH_TOKEN" > .npmrc; \
     fi
 RUN --mount=type=cache,target=/root/.bun/install/cache \
     bun install --no-progress && rm -f .npmrc
+COPY --from=pruner /app/out/full/ .
 
 FROM deps AS builder
 WORKDIR /app
