@@ -8,7 +8,8 @@
   ],
   "scripts": {
     "dev": "bunx remotionb studio src/index.ts --port 3100",
-    "build": "bunx remotionb render src/index.ts",
+    "build": "echo 'video: no build step'",
+    "render:video": "bunx remotionb render src/index.ts",
     "render": "bunx remotionb render src/index.ts",
     "render:still": "bunx remotionb still src/index.ts",
     "upgrade": "bunx remotion upgrade"
