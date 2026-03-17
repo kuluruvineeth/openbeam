@@ -91,7 +91,11 @@ export async function connectorSyncWorkflow(
       syncType: input.syncType,
     });
     if (checkpoint) {
-      state.cursor = checkpoint.cursor;
+      const cursor = { ...checkpoint.cursor };
+      if (input.syncType === "FULL") {
+        cursor.forceFullSync = true;
+      }
+      state.cursor = cursor;
       state.processed = checkpoint.processed;
       state.indexed = checkpoint.indexed;
       state.errors = checkpoint.errors;
