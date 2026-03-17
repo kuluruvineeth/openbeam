@@ -1,10 +1,10 @@
-FROM oven/bun:1.3.2 AS pruner
+FROM oven/bun:1.3.3 AS pruner
 WORKDIR /app
 RUN bun add -g turbo@2.5.4
 COPY . .
 RUN turbo prune sandbox-gateway --docker
 
-FROM oven/bun:1.3.2 AS deps
+FROM oven/bun:1.3.3 AS deps
 WORKDIR /app
 COPY --from=pruner /app/out/full/ .
 RUN --mount=type=cache,target=/root/.bun/install/cache bun install --no-progress
@@ -13,7 +13,7 @@ FROM deps AS builder
 WORKDIR /app
 RUN bun run --filter=sandbox-gateway build
 
-FROM oven/bun:1.3.2 AS runner
+FROM oven/bun:1.3.3 AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs && \

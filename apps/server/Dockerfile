@@ -1,4 +1,4 @@
-FROM oven/bun:1.3.2 AS pruner
+FROM oven/bun:1.3.3 AS pruner
 WORKDIR /app
 RUN bun add -g turbo@2.5.4
 COPY . .
@@ -6,12 +6,13 @@ RUN turbo prune server --docker
 
 FROM openbeamdevacr.azurecr.io/openbeam-base:latest AS deps
 WORKDIR /app
-COPY --from=pruner /app/out/full/ .
+COPY --from=pruner /app/out/json/ .
 ARG HUGEICONS_PRO_AUTH_TOKEN
 RUN if [ -n "$HUGEICONS_PRO_AUTH_TOKEN" ]; then \
       printf "@hugeicons-pro:registry=https://npm.hugeicons.com/\n//npm.hugeicons.com/:_authToken=%s\n" "$HUGEICONS_PRO_AUTH_TOKEN" > .npmrc; \
     fi
 RUN bun install --no-progress && rm -f .npmrc
+COPY --from=pruner /app/out/full/ .
 
 FROM deps AS prisma
 WORKDIR /app
@@ -21,7 +22,7 @@ FROM prisma AS builder
 WORKDIR /app
 RUN bun run --filter=server build
 
-FROM oven/bun:1.3.2 AS runner
+FROM oven/bun:1.3.3 AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs && \
