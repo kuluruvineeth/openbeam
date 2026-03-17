@@ -38,6 +38,7 @@
     "dev:native": "turbo -F native dev",
     "dev:web": "turbo -F web dev",
     "dev:server": "turbo -F server dev",
+    "dev:video": "turbo -F video dev",
     "dev:cli": "turbo -F cli build --continue",
     "db:push": "turbo -F @openbeam/db db:push",
     "db:studio": "turbo -F @openbeam/db db:studio",

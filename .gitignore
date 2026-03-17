@@ -58,6 +58,10 @@ temp
 
 .cursor
 .claude
+.agent
+.agents
+.trae
+skills-lock.json
 
 # Ralph TUI working files
 .ralph-tui/
@@ -101,8 +105,10 @@ specs/
 story/
 agents_engine_core/
 *.md
+!apps/video/README.md
 !docs/observability/
 !docs/observability/*.md
 !docs/observability/runbooks/
 !docs/observability/runbooks/*.md
 .docker-build/
+apps/video/out/
