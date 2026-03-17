@@ -6,9 +6,8 @@ RUN turbo prune sandbox-gateway --docker
 
 FROM oven/bun:1.3.2 AS deps
 WORKDIR /app
-COPY --from=pruner /app/out/json/ .
-RUN --mount=type=cache,target=/root/.bun/install/cache bun install --no-progress
 COPY --from=pruner /app/out/full/ .
+RUN --mount=type=cache,target=/root/.bun/install/cache bun install --no-progress
 
 FROM deps AS builder
 WORKDIR /app
