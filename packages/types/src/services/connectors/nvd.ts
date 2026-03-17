@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const NVD_API_BASE = "https://services.nvd.nist.gov/rest/json/cves/2.0";
-export const NVD_MAX_RESULTS_PER_PAGE = 2000;
+export const NVD_MAX_RESULTS_PER_PAGE = 500;
 export const NVD_MAX_DATE_RANGE_DAYS = 120;
 export const NVD_RATE_LIMIT_WINDOW_MS = 30_000;
 export const NVD_RATE_LIMIT_NO_KEY = 5;

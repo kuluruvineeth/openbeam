@@ -9,8 +9,8 @@ import {
 import { logger } from "../lib/logger";
 import { NvdApiError } from "./types";
 
-const DEFAULT_TIMEOUT = 30_000;
-const DEFAULT_RETRY_ATTEMPTS = 3;
+const DEFAULT_TIMEOUT = 120_000;
+const DEFAULT_RETRY_ATTEMPTS = 5;
 const BASE_RETRY_DELAY = 1000;
 const MAX_RETRY_DELAY = 30_000;
 
