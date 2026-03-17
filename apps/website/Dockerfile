@@ -6,6 +6,7 @@ RUN turbo prune @openbeam/website --docker
 
 FROM ghcr.io/kuluruvineeth/openbeam-base:latest AS deps
 WORKDIR /app
+COPY --from=pruner /app/out/bun.lock ./bun.lock
 COPY --from=pruner /app/out/full/ .
 ARG HUGEICONS_PRO_AUTH_TOKEN
 RUN if [ -n "$HUGEICONS_PRO_AUTH_TOKEN" ]; then \
