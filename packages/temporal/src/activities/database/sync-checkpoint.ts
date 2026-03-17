@@ -1,5 +1,9 @@
 import { type Database, Prisma } from "@openbeam/db";
-import type { SaveSyncCheckpointInput, SyncCheckpoint } from "./types";
+import type {
+  LoadSyncCheckpointInput,
+  SaveSyncCheckpointInput,
+  SyncCheckpoint,
+} from "./types";
 
 interface Dependencies {
   db: Database;
@@ -10,6 +14,7 @@ export function createSaveSyncCheckpointActivity(deps: Dependencies) {
     input: SaveSyncCheckpointInput
   ): Promise<void> {
     const checkpoint: Prisma.InputJsonValue = {
+      syncType: input.syncType,
       cursor: JSON.parse(input.cursor),
       processed: input.processed,
       indexed: input.indexed,
@@ -26,11 +31,11 @@ export function createSaveSyncCheckpointActivity(deps: Dependencies) {
 
 export function createLoadSyncCheckpointActivity(deps: Dependencies) {
   return async function loadSyncCheckpoint(
-    connectorId: string
+    input: LoadSyncCheckpointInput
   ): Promise<SyncCheckpoint | null> {
     const syncJob = await deps.db.syncJob.findFirst({
       where: {
-        connectorId,
+        connectorId: input.connectorId,
         checkpoint: { not: Prisma.DbNull },
       },
       select: { checkpoint: true },
@@ -42,7 +47,7 @@ export function createLoadSyncCheckpointActivity(deps: Dependencies) {
     }
 
     const raw = syncJob.checkpoint as Record<string, unknown>;
-    if (!raw.cursor) {
+    if (!raw.cursor || raw.syncType !== input.syncType) {
       return null;
     }
 

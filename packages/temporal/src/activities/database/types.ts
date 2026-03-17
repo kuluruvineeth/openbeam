@@ -137,10 +137,16 @@ export interface GetFileResourcesInput {
 
 export interface SaveSyncCheckpointInput {
   connectorId: string;
+  syncType: "FULL" | "INCREMENTAL" | "PERMISSIONS";
   cursor: string;
   processed: number;
   indexed: number;
   errors: number;
+}
+
+export interface LoadSyncCheckpointInput {
+  connectorId: string;
+  syncType: "FULL" | "INCREMENTAL" | "PERMISSIONS";
 }
 
 export interface SyncCheckpoint {
@@ -187,7 +193,9 @@ export interface DatabaseActivities {
   ): Promise<{ recorded: number }>;
   getFileResources(input: GetFileResourcesInput): Promise<FileResourceRecord[]>;
   saveSyncCheckpoint(input: SaveSyncCheckpointInput): Promise<void>;
-  loadSyncCheckpoint(connectorId: string): Promise<SyncCheckpoint | null>;
+  loadSyncCheckpoint(
+    input: LoadSyncCheckpointInput
+  ): Promise<SyncCheckpoint | null>;
   clearSyncCheckpoint(connectorId: string): Promise<void>;
 }
 

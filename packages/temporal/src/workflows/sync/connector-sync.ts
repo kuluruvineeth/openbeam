@@ -86,9 +86,10 @@ export async function connectorSyncWorkflow(
   const startTime = workflowInfo().startTime.getTime();
 
   if (!(input.cursor || input.accumulatedStats)) {
-    const checkpoint = await syncProgressActivities.loadSyncCheckpoint(
-      input.connectorId
-    );
+    const checkpoint = await syncProgressActivities.loadSyncCheckpoint({
+      connectorId: input.connectorId,
+      syncType: input.syncType,
+    });
     if (checkpoint) {
       state.cursor = checkpoint.cursor;
       state.processed = checkpoint.processed;
@@ -257,6 +258,7 @@ export async function connectorSyncWorkflow(
       if (state.cursor) {
         await syncProgressActivities.saveSyncCheckpoint({
           connectorId: input.connectorId,
+          syncType: input.syncType,
           cursor: JSON.stringify(state.cursor),
           processed: state.processed,
           indexed: state.indexed,
