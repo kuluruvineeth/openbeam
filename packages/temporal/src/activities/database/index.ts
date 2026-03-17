@@ -10,6 +10,11 @@ import { createLoadConnectorActivity } from "./load-connector";
 import { createRecordSyncDocumentChangesActivity } from "./record-sync-document-changes";
 import { createSetConnectorErrorActivity } from "./set-connector-error";
 import { createSetConnectorStatusActivity } from "./set-connector-status";
+import {
+  createClearSyncCheckpointActivity,
+  createLoadSyncCheckpointActivity,
+  createSaveSyncCheckpointActivity,
+} from "./sync-checkpoint";
 import { createTrackIndexedDocumentsActivity } from "./track-indexed-documents";
 import type {
   CleanupActivities,
@@ -25,6 +30,8 @@ import type {
   FileResourceRecord,
   GetFileResourcesInput,
   RecordSyncDocumentChangesInput,
+  SaveSyncCheckpointInput,
+  SyncCheckpoint,
   TrackIndexedDocumentsInput,
   TrackIndexedDocumentsResult,
   UpdateSyncProgressInput,
@@ -58,6 +65,9 @@ export function createDatabaseActivities(
   const recordSyncDocumentChanges =
     createRecordSyncDocumentChangesActivity(deps);
   const getFileResources = createGetFileResourcesActivity(deps);
+  const saveSyncCheckpoint = createSaveSyncCheckpointActivity(deps);
+  const loadSyncCheckpoint = createLoadSyncCheckpointActivity(deps);
+  const clearSyncCheckpoint = createClearSyncCheckpointActivity(deps);
 
   return {
     loadConnector,
@@ -80,6 +90,9 @@ export function createDatabaseActivities(
     upsertDiscoveredResources,
     recordSyncDocumentChanges,
     getFileResources,
+    saveSyncCheckpoint,
+    loadSyncCheckpoint,
+    clearSyncCheckpoint,
   };
 }
 
@@ -103,6 +116,8 @@ export type {
   FileResourceRecord,
   GetFileResourcesInput,
   RecordSyncDocumentChangesInput,
+  SaveSyncCheckpointInput,
+  SyncCheckpoint,
   TrackIndexedDocumentsInput,
   TrackIndexedDocumentsResult,
   UpdateSyncProgressInput,

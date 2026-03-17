@@ -135,6 +135,21 @@ export interface GetFileResourcesInput {
   resourceTypes?: string[];
 }
 
+export interface SaveSyncCheckpointInput {
+  connectorId: string;
+  cursor: string;
+  processed: number;
+  indexed: number;
+  errors: number;
+}
+
+export interface SyncCheckpoint {
+  cursor: Record<string, unknown>;
+  processed: number;
+  indexed: number;
+  errors: number;
+}
+
 export interface DatabaseActivities {
   loadConnector(connectorId: string): Promise<ConnectorRecord>;
   validateConnection(
@@ -171,6 +186,9 @@ export interface DatabaseActivities {
     input: RecordSyncDocumentChangesInput
   ): Promise<{ recorded: number }>;
   getFileResources(input: GetFileResourcesInput): Promise<FileResourceRecord[]>;
+  saveSyncCheckpoint(input: SaveSyncCheckpointInput): Promise<void>;
+  loadSyncCheckpoint(connectorId: string): Promise<SyncCheckpoint | null>;
+  clearSyncCheckpoint(connectorId: string): Promise<void>;
 }
 
 export interface FilterUnchangedInput {

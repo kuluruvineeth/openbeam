@@ -85,6 +85,18 @@ export async function connectorSyncWorkflow(
   );
   const startTime = workflowInfo().startTime.getTime();
 
+  if (!(input.cursor || input.accumulatedStats)) {
+    const checkpoint = await syncProgressActivities.loadSyncCheckpoint(
+      input.connectorId
+    );
+    if (checkpoint) {
+      state.cursor = checkpoint.cursor;
+      state.processed = checkpoint.processed;
+      state.indexed = checkpoint.indexed;
+      state.errors = checkpoint.errors;
+    }
+  }
+
   const connectionValidation = await syncProgressActivities.validateConnection({
     connectorId: input.connectorId,
     teamId: connector.teamId,
@@ -241,6 +253,17 @@ export async function connectorSyncWorkflow(
 
       state.stage = "INDEXING";
       state.progressMessage = `Batch ${state.batchNumber}: Indexed ${indexResult.indexed} items (${state.indexed}/${state.processed} total indexed, ${state.errors} errors)`;
+
+      if (state.cursor) {
+        await syncProgressActivities.saveSyncCheckpoint({
+          connectorId: input.connectorId,
+          cursor: JSON.stringify(state.cursor),
+          processed: state.processed,
+          indexed: state.indexed,
+          errors: state.errors,
+        });
+      }
+
       await syncProgressActivities.updateSyncProgress({
         workflowId,
         connectorId: input.connectorId,
@@ -311,6 +334,8 @@ export async function connectorSyncWorkflow(
     }
 
     state.stage = "FINALIZING";
+    await syncProgressActivities.clearSyncCheckpoint(input.connectorId);
+
     const endTime = currentTimestamp();
     await syncProgressActivities.completeSyncJob({
       workflowId,

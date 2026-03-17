@@ -39,6 +39,9 @@ vi.mock("@temporalio/workflow", () => {
     upsertDiscoveredResources: mockUpsertDiscoveredResources,
     setConnectorError: mockSetConnectorError,
     getFileResources: mockGetFileResources,
+    saveSyncCheckpoint: vi.fn().mockResolvedValue(undefined),
+    loadSyncCheckpoint: vi.fn().mockResolvedValue(null),
+    clearSyncCheckpoint: vi.fn().mockResolvedValue(undefined),
   };
 
   return {
