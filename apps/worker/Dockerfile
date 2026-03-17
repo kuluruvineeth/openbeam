@@ -11,7 +11,7 @@ ARG HUGEICONS_PRO_AUTH_TOKEN
 RUN if [ -n "$HUGEICONS_PRO_AUTH_TOKEN" ]; then \
       printf "@hugeicons-pro:registry=https://npm.hugeicons.com/\n//npm.hugeicons.com/:_authToken=%s\n" "$HUGEICONS_PRO_AUTH_TOKEN" > .npmrc; \
     fi
-RUN bun install --no-progress && rm -f .npmrc
+RUN bun install --no-progress --linker hoisted && rm -f .npmrc
 
 FROM deps AS prisma
 WORKDIR /app

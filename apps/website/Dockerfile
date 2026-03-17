@@ -12,7 +12,7 @@ RUN if [ -n "$HUGEICONS_PRO_AUTH_TOKEN" ]; then \
       printf "@hugeicons-pro:registry=https://npm.hugeicons.com/\n//npm.hugeicons.com/:_authToken=%s\n" "$HUGEICONS_PRO_AUTH_TOKEN" > .npmrc; \
     fi
 RUN --mount=type=cache,target=/root/.bun/install/cache \
-    bun install --no-progress && rm -f .npmrc
+    bun install --no-progress --linker hoisted && rm -f .npmrc
 
 FROM deps AS builder
 WORKDIR /app
