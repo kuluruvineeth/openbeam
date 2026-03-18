@@ -285,7 +285,10 @@ export async function connectorSyncWorkflow(
         progressMessage: state.progressMessage,
       });
 
-      if (workflowInfo().historyLength > 10_000) {
+      if (
+        workflowInfo().historyLength > 2000 ||
+        workflowInfo().historySize > 30_000_000
+      ) {
         return continueAsNew<typeof connectorSyncWorkflow>({
           ...input,
           syncHistoryId,
