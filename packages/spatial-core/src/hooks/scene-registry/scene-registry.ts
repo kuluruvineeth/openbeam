@@ -24,7 +24,7 @@ export const sceneRegistry = {
 export function useRegistry(
   id: string,
   type: keyof typeof sceneRegistry.byType,
-  ref: React.RefObject<THREE.Object3D>
+  ref: React.RefObject<THREE.Object3D | null>
 ) {
   useLayoutEffect(() => {
     const obj = ref.current;
