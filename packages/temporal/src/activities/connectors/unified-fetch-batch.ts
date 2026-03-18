@@ -49,6 +49,11 @@ function getOrCreateGenerator(
   cursor?: SyncCursor
 ): SyncGenerator {
   const key = buildGeneratorKey(connector);
+
+  if (cursor?.forceFullSync) {
+    activeGenerators.delete(key);
+  }
+
   const existing = activeGenerators.get(key);
 
   if (existing) {
