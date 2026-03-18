@@ -23,8 +23,9 @@ function getTranslate(
       return `translateX(${-offset}px)`;
     case "right":
       return `translateX(${offset}px)`;
+    default:
+      return "translateY(0px)";
   }
-  return "translateY(0px)";
 }
 
 export const Stagger: React.FC<StaggerProps> = ({

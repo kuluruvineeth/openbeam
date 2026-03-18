@@ -253,7 +253,6 @@ export function VoiceFeedbackDialog({ page }: VoiceFeedbackDialogProps) {
     feedback.discard();
   }, [feedback]);
 
-
   const showRecord = feedback.state === "idle" && !textMode;
   const showListening = feedback.state === "listening";
   const showReview =
