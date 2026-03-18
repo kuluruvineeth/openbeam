@@ -8,6 +8,14 @@ import {
   staticFile,
   useCurrentFrame,
 } from "remotion";
+import {
+  TOTAL_FRAMES as CHANGELOG_TOTAL,
+  ChangelogVideo,
+} from "./changelog/changelog-video";
+import { SceneFeedback } from "./changelog/scenes/scene-feedback";
+import { SceneGitHub } from "./changelog/scenes/scene-github";
+import { SceneLanding } from "./changelog/scenes/scene-landing";
+import { SceneResults } from "./changelog/scenes/scene-results";
 import { OpenBeamFeatures } from "./compositions/features";
 import { OpenBeamIntro } from "./compositions/intro";
 import { SlideBusiness } from "./compositions/slides/slide-business";
@@ -274,6 +282,21 @@ const PitchDeck: React.FC = () => (
 export const Root: React.FC = () => (
   <>
     <Composition
+      component={ChangelogVideo}
+      defaultProps={{
+        version: "v0.0.2",
+        tagline: "Your Feedback Builds the Product",
+        date: "March 2026",
+        music: "music/changelog-v2-5-0.mp3",
+      }}
+      durationInFrames={CHANGELOG_TOTAL}
+      fps={FPS}
+      height={HEIGHT}
+      id="Changelog-v2-5-0"
+      width={WIDTH}
+    />
+
+    <Composition
       component={PitchDeck}
       durationInFrames={TOTAL_DECK_FRAMES}
       fps={FPS}
@@ -308,6 +331,39 @@ export const Root: React.FC = () => (
       fps={FPS}
       height={HEIGHT}
       id="Features"
+      width={WIDTH}
+    />
+
+    <Composition
+      component={SceneLanding}
+      durationInFrames={240}
+      fps={FPS}
+      height={HEIGHT}
+      id="CL-v250-Scene1-Landing"
+      width={WIDTH}
+    />
+    <Composition
+      component={SceneResults}
+      durationInFrames={360}
+      fps={FPS}
+      height={HEIGHT}
+      id="CL-v250-Scene2-Results"
+      width={WIDTH}
+    />
+    <Composition
+      component={SceneFeedback}
+      durationInFrames={420}
+      fps={FPS}
+      height={HEIGHT}
+      id="CL-v250-Scene3-Feedback"
+      width={WIDTH}
+    />
+    <Composition
+      component={SceneGitHub}
+      durationInFrames={420}
+      fps={FPS}
+      height={HEIGHT}
+      id="CL-v250-Scene4-GitHub"
       width={WIDTH}
     />
   </>

@@ -287,7 +287,7 @@ export const SlideDemoPhysical: React.FC = () => {
     extrapolateRight: "clamp",
   });
 
-  const finalStepFrame = TIMELINE_STEPS.at(-1).frame;
+  const finalStepFrame = TIMELINE_STEPS.at(-1)?.frame ?? 0;
 
   return (
     <SlideLayout label="Agents — Autonomous Workflows">

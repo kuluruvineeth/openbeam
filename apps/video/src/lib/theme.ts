@@ -1,10 +1,20 @@
 export const BRAND = {
   bg: "#0d0d0d",
+  bgCard: "#121212",
   card: "#121212",
   fg: "#fafafa",
   fgMuted: "#616161",
   fgDim: "#616161aa",
   border: "#1c1c1c",
+  borderSubtle: "#1c1c1c80",
+
+  text: "#fafafa",
+  textMuted: "#616161",
+
+  font: {
+    display: "'Inter', system-ui, sans-serif",
+    sans: "'Inter', system-ui, sans-serif",
+  },
 
   pink: "#d946a8",
   yellow: "#e5c040",

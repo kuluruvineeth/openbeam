@@ -26,9 +26,8 @@ function positionStyles(
       return { bottom: 20, right: 20 };
     case "top-center":
       return { top: 20, left: "50%", transform: "translateX(-50%)" };
-    default:
-      break;
   }
+  return { top: 20, right: 20 };
 }
 
 export const NotificationToast: React.FC<ToastProps> = ({

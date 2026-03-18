@@ -15,19 +15,20 @@
     "upgrade": "bunx remotion upgrade"
   },
   "dependencies": {
-    "remotion": "4.0.435",
     "@remotion/cli": "4.0.435",
-    "@remotion/player": "4.0.435",
-    "@remotion/transitions": "4.0.435",
-    "@remotion/tailwind-v4": "4.0.435",
     "@remotion/google-fonts": "4.0.435",
     "@remotion/media-utils": "4.0.435",
     "@remotion/motion-blur": "4.0.435",
     "@remotion/noise": "4.0.435",
     "@remotion/paths": "4.0.435",
+    "@remotion/player": "4.0.435",
+    "@remotion/sfx": "4.0.435",
     "@remotion/shapes": "4.0.435",
+    "@remotion/tailwind-v4": "4.0.435",
+    "@remotion/transitions": "4.0.435",
     "react": "catalog:",
     "react-dom": "catalog:",
+    "remotion": "4.0.435",
     "tailwindcss": "catalog:"
   },
   "devDependencies": {

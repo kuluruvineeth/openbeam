@@ -35,7 +35,7 @@ export const Typewriter: React.FC<TypewriterProps> = ({
   const blinkVisible = Math.round(((frame - startFrame) % 16) / 16) === 0;
   const cursorOpacity = cursor && blinkVisible ? 1 : 0;
 
-  const showCursor = cursor && (isComplete ? cursorOpacity : 1);
+  const showCursor = cursor ? (isComplete ? cursorOpacity : 1) : 0;
 
   const opacity = interpolate(frame, [startFrame, startFrame + 4], [0, 1], {
     extrapolateLeft: "clamp",
