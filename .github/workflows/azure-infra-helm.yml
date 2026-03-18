@@ -146,10 +146,11 @@ jobs:
 
       - name: Upgrade Temporal
         if: needs.detect.outputs.temporal == 'true'
+        continue-on-error: true
+        id: temporal
         run: |
           echo "Upgrading Temporal..."
 
-          # Read DB credentials for Temporal
           PG_HOST="postgresql.openbeam.svc.cluster.local"
 
           helm upgrade temporal temporal/temporal \
@@ -195,6 +196,12 @@ jobs:
             -f infra/helm/monitoring/values-azure.yaml \
             --timeout 10m \
             --wait
+
+      - name: Fail if Temporal failed
+        if: steps.temporal.outcome == 'failure'
+        run: |
+          echo "::error::Temporal upgrade failed — check logs above"
+          exit 1
 
       - name: Health check
         run: |
