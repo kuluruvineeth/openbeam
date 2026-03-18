@@ -25,6 +25,9 @@ tolerations:
     value: "spot"
     effect: "NoSchedule"
 
+selectorLabels:
+  app: vespa
+
 service:
   type: ClusterIP
   ports:
