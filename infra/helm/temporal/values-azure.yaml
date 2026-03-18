@@ -93,6 +93,7 @@ postgresql:
 
 elasticsearch:
   enabled: false
+  external: false
 
 prometheus:
   enabled: false

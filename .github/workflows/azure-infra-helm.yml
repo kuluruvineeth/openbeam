@@ -158,8 +158,16 @@ jobs:
             -f infra/helm/temporal/values-azure.yaml \
             --set server.config.persistence.default.sql.host="${PG_HOST}" \
             --set server.config.persistence.visibility.sql.host="${PG_HOST}" \
-            --timeout 10m \
-            --wait
+            --timeout 5m
+
+          # Remove stale ES init containers left by Helm 3-way merge
+          for component in frontend history matching worker; do
+            if kubectl get deployment "temporal-${component}" -n temporal -o jsonpath='{.spec.template.spec.initContainers[*].name}' 2>/dev/null | grep -q elasticsearch; then
+              echo "Removing stale ES init container from temporal-${component}"
+              kubectl patch deployment "temporal-${component}" -n temporal --type json \
+                -p '[{"op": "remove", "path": "/spec/template/spec/initContainers"}]'
+            fi
+          done
 
           for component in frontend history matching worker; do
             kubectl rollout status deployment "temporal-${component}" -n temporal --timeout=300s 2>/dev/null || true
