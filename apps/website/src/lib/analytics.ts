@@ -60,6 +60,19 @@ export const analytics = {
   shareClicked: (content: string, method: string) =>
     capture("share_clicked", { content, method }),
 
+  changelogViewed: () => capture("changelog_viewed"),
+
+  changelogEntryViewed: (version: string, title: string) =>
+    capture("changelog_entry_viewed", { version, title }),
+
+  changelogVideoPlayed: (version: string) =>
+    capture("changelog_video_played", { version }),
+
+  changelogShareClicked: (version: string) =>
+    capture("changelog_share_clicked", { version }),
+
+  changelogRssSubscribed: () => capture("changelog_rss_subscribed"),
+
   captureUtm: (params: {
     utm_source?: string;
     utm_medium?: string;

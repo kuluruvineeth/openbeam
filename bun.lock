@@ -468,6 +468,7 @@
         "@openbeam/integrations": "workspace:*",
         "@openbeam/ui": "workspace:*",
         "@t3-oss/env-nextjs": "^0.13.10",
+        "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "embla-carousel-react": "^8.6.0",
         "geist": "^1.3.1",
