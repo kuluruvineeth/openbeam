@@ -155,6 +155,13 @@ services:
           secretKeyRef:
             name: app-secrets
             key: COOKIE_DOMAIN
+      - name: GITHUB_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: github-token
+            key: GITHUB_TOKEN
+      - name: GITHUB_FEEDBACK_REPO
+        value: "kuluruvineeth/openbeam"
 
   web:
     enabled: true
