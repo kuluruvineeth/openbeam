@@ -8,6 +8,85 @@ import type {
 import * as THREE from "three/webgpu";
 import useViewer from "../../store/use-viewer";
 
+interface LightConfig {
+  intensity: { dark: number; light: number };
+  color: { dark: string; light: string };
+  shadowIntensity?: { dark: number; light: number };
+}
+
+const LIGHT_CONFIGS = {
+  primary: {
+    intensity: { dark: 0.8, light: 4 },
+    color: { dark: "#e0e5ff", light: "#ffffff" },
+    shadowIntensity: { dark: 0.8, light: 0.4 },
+  },
+  secondary: {
+    intensity: { dark: 0.2, light: 0.75 },
+    color: { dark: "#8090ff", light: "#ffffff" },
+  },
+  tertiary: {
+    intensity: { dark: 0.3, light: 1 },
+    color: { dark: "#a0b0ff", light: "#ffffff" },
+  },
+  ambient: {
+    intensity: { dark: 0.15, light: 0.5 },
+    color: { dark: "#a0b0ff", light: "#ffffff" },
+  },
+};
+
+interface LightUpdateOptions {
+  light: DirectionalLight | AmbientLight;
+  config: LightConfig;
+  state: {
+    isDark: boolean;
+    targetColor: THREE.Color;
+    dt: number;
+    instant: boolean;
+  };
+}
+
+function applyLightValues({ light, config, state }: LightUpdateOptions) {
+  const { isDark, targetColor, dt, instant } = state;
+  const targetIntensity = isDark
+    ? config.intensity.dark
+    : config.intensity.light;
+  const colorHex = isDark ? config.color.dark : config.color.light;
+
+  if (instant) {
+    light.intensity = targetIntensity;
+    light.color.set(colorHex);
+  } else {
+    light.intensity = THREE.MathUtils.lerp(
+      light.intensity,
+      targetIntensity,
+      dt
+    );
+    targetColor.set(colorHex);
+    light.color.lerp(targetColor, dt);
+  }
+
+  if (
+    config.shadowIntensity &&
+    "shadow" in light &&
+    light.shadow &&
+    light.shadow.intensity !== undefined
+  ) {
+    const targetShadow = isDark
+      ? config.shadowIntensity.dark
+      : config.shadowIntensity.light;
+
+    if (instant) {
+      light.shadow.intensity = targetShadow;
+    } else {
+      light.shadow.intensity = THREE.MathUtils.lerp(
+        light.shadow.intensity,
+        targetShadow,
+        dt
+      );
+    }
+  }
+}
+
 export function Lights() {
   const theme = useViewer((state) => state.theme);
   const isDark = theme === "dark";
@@ -34,81 +113,39 @@ export function Lights() {
 
   useFrame((_, delta) => {
     const dt = Math.min(delta, 0.1) * 4;
-
-    if (!initialized.current) {
-      if (light1Ref.current) {
-        light1Ref.current.intensity = isDark ? 0.8 : 4;
-        light1Ref.current.color.set(isDark ? "#e0e5ff" : "#ffffff");
-
-        if (light1Ref.current.shadow) {
-          light1Ref.current.shadow.intensity = isDark ? 0.8 : 0.4;
-        }
-      }
-      if (light2Ref.current) {
-        light2Ref.current.intensity = isDark ? 0.2 : 0.75;
-        light2Ref.current.color.set(isDark ? "#8090ff" : "#ffffff");
-      }
-      if (light3Ref.current) {
-        light3Ref.current.intensity = isDark ? 0.3 : 1;
-        light3Ref.current.color.set(isDark ? "#a0b0ff" : "#ffffff");
-      }
-      if (ambientRef.current) {
-        ambientRef.current.intensity = isDark ? 0.15 : 0.5;
-        ambientRef.current.color.set(isDark ? "#a0b0ff" : "#ffffff");
-      }
-      initialized.current = true;
-      return;
-    }
+    const instant = !initialized.current;
 
     if (light1Ref.current) {
-      light1Ref.current.intensity = THREE.MathUtils.lerp(
-        light1Ref.current.intensity,
-        isDark ? 0.8 : 4,
-        dt
-      );
-      targets.l1Color.set(isDark ? "#e0e5ff" : "#ffffff");
-      light1Ref.current.color.lerp(targets.l1Color, dt);
-
-      if (
-        light1Ref.current.shadow &&
-        light1Ref.current.shadow.intensity !== undefined
-      ) {
-        light1Ref.current.shadow.intensity = THREE.MathUtils.lerp(
-          light1Ref.current.shadow.intensity,
-          isDark ? 0.8 : 0.4,
-          dt
-        );
-      }
+      applyLightValues({
+        light: light1Ref.current,
+        config: LIGHT_CONFIGS.primary,
+        state: { isDark, targetColor: targets.l1Color, dt, instant },
+      });
     }
-
     if (light2Ref.current) {
-      light2Ref.current.intensity = THREE.MathUtils.lerp(
-        light2Ref.current.intensity,
-        isDark ? 0.2 : 0.75,
-        dt
-      );
-      targets.l2Color.set(isDark ? "#8090ff" : "#ffffff");
-      light2Ref.current.color.lerp(targets.l2Color, dt);
+      applyLightValues({
+        light: light2Ref.current,
+        config: LIGHT_CONFIGS.secondary,
+        state: { isDark, targetColor: targets.l2Color, dt, instant },
+      });
     }
-
     if (light3Ref.current) {
-      light3Ref.current.intensity = THREE.MathUtils.lerp(
-        light3Ref.current.intensity,
-        isDark ? 0.3 : 1,
-        dt
-      );
-      targets.l3Color.set(isDark ? "#a0b0ff" : "#ffffff");
-      light3Ref.current.color.lerp(targets.l3Color, dt);
+      applyLightValues({
+        light: light3Ref.current,
+        config: LIGHT_CONFIGS.tertiary,
+        state: { isDark, targetColor: targets.l3Color, dt, instant },
+      });
+    }
+    if (ambientRef.current) {
+      applyLightValues({
+        light: ambientRef.current,
+        config: LIGHT_CONFIGS.ambient,
+        state: { isDark, targetColor: targets.ambColor, dt, instant },
+      });
     }
 
-    if (ambientRef.current) {
-      ambientRef.current.intensity = THREE.MathUtils.lerp(
-        ambientRef.current.intensity,
-        isDark ? 0.15 : 0.5,
-        dt
-      );
-      targets.ambColor.set(isDark ? "#a0b0ff" : "#ffffff");
-      ambientRef.current.color.lerp(targets.ambColor, dt);
+    if (!initialized.current) {
+      initialized.current = true;
     }
   });
 
