@@ -8,6 +8,7 @@ import backgroundAgents from "@/modules/background-agents/background-agents.inde
 import canvas from "@/modules/canvas/canvas.index";
 import connectors from "@/modules/connectors/connectors.index";
 import extensions from "@/modules/extensions/extensions.index";
+import feedback from "@/modules/feedback/feedback.index";
 import knowledge from "@/modules/knowledge/knowledge.index";
 import media from "@/modules/media/media.index";
 import permissions from "@/modules/permissions/permissions.index";
@@ -30,6 +31,7 @@ v1.route("/background-agents", backgroundAgents);
 v1.route("/canvas", canvas);
 v1.route("/connectors", connectors);
 v1.route("/extensions", extensions);
+v1.route("/public/feedback", feedback);
 v1.route("/knowledge", knowledge);
 v1.route("/media", media);
 v1.route("/permissions", permissions);
