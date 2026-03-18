@@ -13,21 +13,24 @@ auth:
 primary:
   persistence:
     enabled: true
-    size: 10Gi
+    size: 20Gi
     storageClass: managed-csi
   resources:
     requests:
-      cpu: 250m
-      memory: 256Mi
+      cpu: 500m
+      memory: 1Gi
     limits:
-      cpu: 1000m
-      memory: 512Mi
+      cpu: 2000m
+      memory: 2Gi
   extendedConfiguration: |
-    max_connections = 100
-    shared_buffers = 128MB
-    work_mem = 4MB
-    maintenance_work_mem = 64MB
-    effective_cache_size = 256MB
+    max_connections = 200
+    shared_buffers = 512MB
+    work_mem = 16MB
+    maintenance_work_mem = 256MB
+    effective_cache_size = 1536MB
+    wal_buffers = 16MB
+    checkpoint_completion_target = 0.9
+    random_page_cost = 1.1
 
 # Additional databases created via initdb scripts
 primary:

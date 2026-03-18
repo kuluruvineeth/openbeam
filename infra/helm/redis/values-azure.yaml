@@ -15,13 +15,13 @@ master:
     storageClass: managed-csi
   resources:
     requests:
-      cpu: 100m
-      memory: 128Mi
-    limits:
-      cpu: 500m
+      cpu: 250m
       memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 512Mi
   configuration: |
-    maxmemory 200mb
+    maxmemory 400mb
     maxmemory-policy allkeys-lru
     save 900 1
     save 300 10

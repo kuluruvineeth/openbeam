@@ -7,11 +7,11 @@ persistence:
 
 resources:
   requests:
-    cpu: "1"
-    memory: 4Gi
-  limits:
-    cpu: "3"
+    cpu: "2"
     memory: 8Gi
+  limits:
+    cpu: "4"
+    memory: 12Gi
 
 podSecurityContext:
   fsGroup: 1000

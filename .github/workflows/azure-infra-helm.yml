@@ -1,0 +1,234 @@
+name: "Azure: Infra Helm Upgrade"
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - "infra/helm/postgresql/**"
+      - "infra/helm/redis/**"
+      - "infra/helm/temporal/**"
+      - "infra/helm/vespa/**"
+      - "infra/helm/ingress/**"
+      - "infra/helm/monitoring/**"
+      - ".github/workflows/azure-infra-helm.yml"
+  workflow_dispatch:
+    inputs:
+      services:
+        description: 'Services to upgrade (comma-separated or "all")'
+        required: true
+        default: "all"
+        type: string
+
+concurrency:
+  group: azure-infra-helm-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AKS_CLUSTER: openbeam-dev-aks
+  AKS_RESOURCE_GROUP: rg-openbeam-dev
+
+jobs:
+  detect:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      postgresql: ${{ steps.changes.outputs.postgresql }}
+      redis: ${{ steps.changes.outputs.redis }}
+      temporal: ${{ steps.changes.outputs.temporal }}
+      vespa: ${{ steps.changes.outputs.vespa }}
+      ingress: ${{ steps.changes.outputs.ingress }}
+      monitoring: ${{ steps.changes.outputs.monitoring }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changes
+        id: changes
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            INPUT="${{ inputs.services }}"
+            if [[ "$INPUT" == "all" ]]; then
+              for svc in postgresql redis temporal vespa ingress monitoring; do
+                echo "${svc}=true" >> $GITHUB_OUTPUT
+              done
+            else
+              for svc in postgresql redis temporal vespa ingress monitoring; do
+                [[ "$INPUT" == *"$svc"* ]] && echo "${svc}=true" >> $GITHUB_OUTPUT || echo "${svc}=false" >> $GITHUB_OUTPUT
+              done
+            fi
+          else
+            CHANGED=$(git diff --name-only HEAD~1 HEAD)
+            for svc in postgresql redis temporal vespa ingress monitoring; do
+              if echo "$CHANGED" | grep -q "infra/helm/${svc}/"; then
+                echo "${svc}=true" >> $GITHUB_OUTPUT
+              else
+                echo "${svc}=false" >> $GITHUB_OUTPUT
+              fi
+            done
+          fi
+
+  upgrade:
+    name: Helm Upgrade
+    needs: detect
+    if: |
+      needs.detect.outputs.postgresql == 'true' ||
+      needs.detect.outputs.redis == 'true' ||
+      needs.detect.outputs.temporal == 'true' ||
+      needs.detect.outputs.vespa == 'true' ||
+      needs.detect.outputs.ingress == 'true' ||
+      needs.detect.outputs.monitoring == 'true'
+    runs-on: ubuntu-latest
+    environment: azure-dev
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Install kubelogin
+        run: |
+          az aks install-cli 2>/dev/null || true
+          kubelogin --version
+
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials \
+            --resource-group ${{ env.AKS_RESOURCE_GROUP }} \
+            --name ${{ env.AKS_CLUSTER }} \
+            --overwrite-existing
+          kubelogin convert-kubeconfig -l azurecli
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      - name: Add Helm repos
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo add temporal https://temporalio.github.io/helm-charts
+          helm repo add vespa https://unoplat.github.io/vespa-helm-charts
+          helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo update
+
+      - name: Upgrade PostgreSQL
+        if: needs.detect.outputs.postgresql == 'true'
+        run: |
+          echo "Upgrading PostgreSQL..."
+          helm upgrade postgresql bitnami/postgresql \
+            -n openbeam \
+            -f infra/helm/postgresql/values-azure.yaml \
+            --timeout 5m \
+            --wait
+
+          echo "Waiting for PostgreSQL to be ready..."
+          kubectl rollout status statefulset/postgresql -n openbeam --timeout=300s
+
+      - name: Upgrade Redis
+        if: needs.detect.outputs.redis == 'true'
+        run: |
+          echo "Upgrading Redis..."
+          helm upgrade redis bitnami/redis \
+            -n openbeam \
+            -f infra/helm/redis/values-azure.yaml \
+            --timeout 5m \
+            --wait
+
+          kubectl rollout status statefulset/redis-master -n openbeam --timeout=300s
+
+      - name: Upgrade Temporal
+        if: needs.detect.outputs.temporal == 'true'
+        run: |
+          echo "Upgrading Temporal..."
+
+          # Read DB credentials for Temporal
+          PG_HOST="postgresql.openbeam.svc.cluster.local"
+
+          helm upgrade temporal temporal/temporal \
+            -n temporal \
+            -f infra/helm/temporal/values-azure.yaml \
+            --set server.config.persistence.default.sql.host="${PG_HOST}" \
+            --set server.config.persistence.visibility.sql.host="${PG_HOST}" \
+            --timeout 10m \
+            --wait
+
+          for component in frontend history matching worker; do
+            kubectl rollout status deployment "temporal-${component}" -n temporal --timeout=300s 2>/dev/null || true
+          done
+
+      - name: Upgrade Vespa
+        if: needs.detect.outputs.vespa == 'true'
+        run: |
+          echo "Upgrading Vespa..."
+          helm upgrade vespa vespa/vespa \
+            -n vespa \
+            -f infra/helm/vespa/values-azure.yaml \
+            --timeout 10m \
+            --wait
+
+          kubectl rollout status statefulset/vespa -n vespa --timeout=600s
+
+      - name: Upgrade Ingress
+        if: needs.detect.outputs.ingress == 'true'
+        run: |
+          echo "Upgrading Ingress NGINX..."
+          helm upgrade ingress-nginx ingress-nginx/ingress-nginx \
+            -n ingress \
+            -f infra/helm/ingress/values-azure.yaml \
+            --timeout 5m \
+            --wait
+
+      - name: Upgrade Monitoring
+        if: needs.detect.outputs.monitoring == 'true'
+        run: |
+          echo "Upgrading Monitoring stack..."
+          helm upgrade monitoring prometheus-community/kube-prometheus-stack \
+            -n monitoring \
+            -f infra/helm/monitoring/values-azure.yaml \
+            --timeout 10m \
+            --wait
+
+      - name: Health check
+        run: |
+          echo "Verifying cluster health after upgrades..."
+          echo ""
+
+          echo "PostgreSQL:"
+          kubectl get pods -n openbeam -l app.kubernetes.io/name=postgresql -o wide
+          echo ""
+
+          echo "Redis:"
+          kubectl get pods -n openbeam -l app.kubernetes.io/name=redis -o wide
+          echo ""
+
+          echo "Temporal:"
+          kubectl get pods -n temporal -o wide
+          echo ""
+
+          echo "Vespa:"
+          kubectl get pods -n vespa -o wide
+          echo ""
+
+          echo "API health:"
+          curl -s -o /dev/null -w "HTTP %{http_code}" https://api.openbeam.work/api/health/system 2>/dev/null || echo "unreachable"
+
+      - name: Summary
+        run: |
+          echo "## Infra Helm Upgrade Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Service | Upgraded |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|----------|" >> $GITHUB_STEP_SUMMARY
+          echo "| PostgreSQL | ${{ needs.detect.outputs.postgresql }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Redis | ${{ needs.detect.outputs.redis }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Temporal | ${{ needs.detect.outputs.temporal }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Vespa | ${{ needs.detect.outputs.vespa }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Ingress | ${{ needs.detect.outputs.ingress }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Monitoring | ${{ needs.detect.outputs.monitoring }} |" >> $GITHUB_STEP_SUMMARY
