@@ -391,6 +391,30 @@
     "./public": {
       "types": "./dist/public/index.d.ts",
       "default": "./src/public/index.ts"
+    },
+    "./spatial": {
+      "types": "./dist/spatial/index.d.ts",
+      "default": "./src/spatial/index.ts"
+    },
+    "./spatial/nodes": {
+      "types": "./dist/spatial/nodes.d.ts",
+      "default": "./src/spatial/nodes.ts"
+    },
+    "./spatial/scene": {
+      "types": "./dist/spatial/scene.d.ts",
+      "default": "./src/spatial/scene.ts"
+    },
+    "./spatial/events": {
+      "types": "./dist/spatial/events.d.ts",
+      "default": "./src/spatial/events.ts"
+    },
+    "./spatial/interactive": {
+      "types": "./dist/spatial/interactive.d.ts",
+      "default": "./src/spatial/interactive.ts"
+    },
+    "./spatial/collections": {
+      "types": "./dist/spatial/collections.d.ts",
+      "default": "./src/spatial/collections.ts"
     }
   },
   "scripts": {
