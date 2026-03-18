@@ -13,8 +13,7 @@ auth:
 primary:
   persistence:
     enabled: true
-    size: 20Gi
-    storageClass: managed-csi
+    size: 8Gi
   resources:
     requests:
       cpu: 500m
@@ -31,9 +30,6 @@ primary:
     wal_buffers = 16MB
     checkpoint_completion_target = 0.9
     random_page_cost = 1.1
-
-# Additional databases created via initdb scripts
-primary:
   initdb:
     scripts:
       create-databases.sql: |
