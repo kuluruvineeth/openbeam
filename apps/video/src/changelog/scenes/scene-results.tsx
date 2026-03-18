@@ -168,7 +168,14 @@ function SourceDot({ bg }: { bg: string }) {
 
 function NvdLogo({ size = 16 }: { size?: number }) {
   return (
-    <svg fill="none" height={size} viewBox="0 0 48 48" width={size}>
+    <svg
+      aria-label="NVD"
+      fill="none"
+      height={size}
+      role="img"
+      viewBox="0 0 48 48"
+      width={size}
+    >
       <path d="M24 4L8 13v22l16 9 16-9V13L24 4Z" fill="#002868" />
       <circle cx="18" cy="20" fill="#FFF" r="2" />
       <circle cx="24" cy="20" fill="#FFF" r="2" />
@@ -183,7 +190,14 @@ function NvdLogo({ size = 16 }: { size?: number }) {
 
 function MitreLogo({ size = 16 }: { size?: number }) {
   return (
-    <svg fill="none" height={size} viewBox="0 0 48 48" width={size}>
+    <svg
+      aria-label="MITRE"
+      fill="none"
+      height={size}
+      role="img"
+      viewBox="0 0 48 48"
+      width={size}
+    >
       <rect fill="#C64227" height="10" rx="2" width="10" x="6" y="6" />
       <rect fill="#C64227" height="10" rx="2" width="10" x="19" y="6" />
       <rect fill="#C64227" height="10" rx="2" width="10" x="32" y="6" />
@@ -199,7 +213,14 @@ function MitreLogo({ size = 16 }: { size?: number }) {
 
 function CisaLogo({ size = 16 }: { size?: number }) {
   return (
-    <svg fill="none" height={size} viewBox="0 0 48 48" width={size}>
+    <svg
+      aria-label="CISA"
+      fill="none"
+      height={size}
+      role="img"
+      viewBox="0 0 48 48"
+      width={size}
+    >
       <path
         d="M24 4L8 12v12c0 10.667 6.667 20 16 24 9.333-4 16-13.333 16-24V12L24 4Z"
         fill="#BF0A30"
@@ -212,7 +233,14 @@ function CisaLogo({ size = 16 }: { size?: number }) {
 
 function OwaspLogo({ size = 16 }: { size?: number }) {
   return (
-    <svg fill="none" height={size} viewBox="0 0 48 48" width={size}>
+    <svg
+      aria-label="OWASP"
+      fill="none"
+      height={size}
+      role="img"
+      viewBox="0 0 48 48"
+      width={size}
+    >
       <circle cx="24" cy="24" r="19" stroke="#1D7AD7" strokeWidth="2.5" />
       <ellipse
         cx="24"
@@ -232,9 +260,15 @@ function OwaspLogo({ size = 16 }: { size?: number }) {
 }
 
 function SourceLogo({ source }: { source: string }) {
-  if (source === "CVE") return <NvdLogo />;
-  if (source === "ATT&CK") return <MitreLogo />;
-  if (source === "KEV") return <CisaLogo />;
+  if (source === "CVE") {
+    return <NvdLogo />;
+  }
+  if (source === "ATT&CK") {
+    return <MitreLogo />;
+  }
+  if (source === "KEV") {
+    return <CisaLogo />;
+  }
   return <OwaspLogo />;
 }
 

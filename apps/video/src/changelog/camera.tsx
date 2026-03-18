@@ -26,7 +26,8 @@ function lerpKeyframes(
     return { x: first.x, y: first.y, scale: first.scale };
   }
 
-  const last = keyframes[keyframes.length - 1];
+  const lastIdx = keyframes.length - 1;
+  const last = keyframes[lastIdx];
   if (frame >= last.frame) {
     return { x: last.x, y: last.y, scale: last.scale };
   }

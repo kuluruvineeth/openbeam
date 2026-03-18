@@ -12,8 +12,10 @@ export const SearchIcon: React.FC<IconProps> = ({
   style,
 }) => (
   <svg
+    aria-label="Search"
     fill="none"
     height={size}
+    role="img"
     stroke={color}
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -33,8 +35,10 @@ export const MicIcon: React.FC<IconProps> = ({
   style,
 }) => (
   <svg
+    aria-label="Microphone"
     fill="none"
     height={size}
+    role="img"
     stroke={color}
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -55,8 +59,10 @@ export const CheckCircleIcon: React.FC<IconProps> = ({
   style,
 }) => (
   <svg
+    aria-label="Check circle"
     fill="none"
     height={size}
+    role="img"
     stroke={color}
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -76,8 +82,10 @@ export const MessageSquareIcon: React.FC<IconProps> = ({
   style,
 }) => (
   <svg
+    aria-label="Message"
     fill="none"
     height={size}
+    role="img"
     stroke={color}
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -96,8 +104,10 @@ export const ArrowRightIcon: React.FC<IconProps> = ({
   style,
 }) => (
   <svg
+    aria-label="Arrow right"
     fill="none"
     height={size}
+    role="img"
     stroke={color}
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -117,8 +127,10 @@ export const CloseIcon: React.FC<IconProps> = ({
   style,
 }) => (
   <svg
+    aria-label="Close"
     fill="none"
     height={size}
+    role="img"
     stroke={color}
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -138,8 +150,10 @@ export const ExternalLinkIcon: React.FC<IconProps> = ({
   style,
 }) => (
   <svg
+    aria-label="External link"
     fill="none"
     height={size}
+    role="img"
     stroke={color}
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -160,8 +174,10 @@ export const SparklesIcon: React.FC<IconProps> = ({
   style,
 }) => (
   <svg
+    aria-label="Sparkles"
     fill="none"
     height={size}
+    role="img"
     stroke={color}
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -180,8 +196,10 @@ export const AudioWaveIcon: React.FC<IconProps> = ({
   style,
 }) => (
   <svg
+    aria-label="Audio wave"
     fill="none"
     height={size}
+    role="img"
     stroke={color}
     strokeLinecap="round"
     strokeWidth={2}
@@ -204,8 +222,10 @@ export const ChevronUpIcon: React.FC<IconProps> = ({
   style,
 }) => (
   <svg
+    aria-label="Chevron up"
     fill="none"
     height={size}
+    role="img"
     stroke={color}
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -229,7 +249,9 @@ export function ClickCursor({
   visible: boolean;
   clicking: boolean;
 }) {
-  if (!visible) return null;
+  if (!visible) {
+    return null;
+  }
   return (
     <div
       style={{
@@ -241,8 +263,10 @@ export function ClickCursor({
       }}
     >
       <svg
+        aria-label="Cursor"
         fill="#fff"
         height={24}
+        role="img"
         style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.5))" }}
         viewBox="0 0 24 24"
         width={24}
