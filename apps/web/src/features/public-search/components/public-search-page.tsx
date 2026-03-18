@@ -24,6 +24,8 @@ import { ExploreBanner } from "./explore-banner";
 import { PublicDetailSheet } from "./public-detail-sheet";
 import { PublicSearchSourcesPanel } from "./public-search-sources-panel";
 import { ThemeToggle } from "./theme-toggle";
+import { VoiceFeedbackDialog } from "./voice-feedback-dialog";
+import { VoiceSearchButton } from "./voice-search-button";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -166,6 +168,7 @@ function ExploreLanding({
             isSearching={isFetching}
             onChange={onQueryChange}
             placeholder="log4shell, SQL injection, T1190..."
+            trailing={<VoiceSearchButton onTranscript={onQueryChange} />}
             value={query}
           />
         </motion.div>
@@ -190,6 +193,8 @@ function ExploreLanding({
           NVD &middot; MITRE ATT&CK &middot; OWASP &middot; CISA KEV
         </motion.p>
       </div>
+
+      <VoiceFeedbackDialog page="/" />
     </div>
   );
 }
@@ -338,6 +343,7 @@ export function PublicSearchPage() {
               <SearchInputBar
                 isSearching={isFetching}
                 onChange={setQuery}
+                trailing={<VoiceSearchButton onTranscript={setQuery} />}
                 value={query}
               />
             </div>
@@ -403,6 +409,8 @@ export function PublicSearchPage() {
         onNext={handleNextPreview}
         onPrev={handlePrevPreview}
       />
+
+      <VoiceFeedbackDialog page="/search" />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { Input } from "@openbeam/ui";
+import type { ReactNode } from "react";
 import { Icons } from "@/components/icons";
 
 type Props = {
@@ -8,6 +9,7 @@ type Props = {
   onChange: (value: string) => void;
   isSearching: boolean;
   placeholder?: string;
+  trailing?: ReactNode;
 };
 
 export function SearchInputBar({
@@ -15,6 +17,7 @@ export function SearchInputBar({
   onChange,
   isSearching,
   placeholder = "Search everything...",
+  trailing,
 }: Props) {
   return (
     <div className="flex h-12 items-center gap-3 border border-border/50 bg-background px-4">
@@ -43,6 +46,7 @@ export function SearchInputBar({
           <Icons.Close size={16} />
         </button>
       )}
+      {trailing}
     </div>
   );
 }
