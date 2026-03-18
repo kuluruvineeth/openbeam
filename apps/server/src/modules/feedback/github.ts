@@ -1,3 +1,10 @@
+import { z } from "@hono/zod-openapi";
+
+const GithubIssueResponse = z.object({
+  number: z.number(),
+  html_url: z.string(),
+});
+
 const CATEGORY_PREFIX: Record<string, string> = {
   "data-request": "[Data]",
   bug: "[Bug]",
@@ -89,9 +96,6 @@ export async function createFeedbackIssue(params: {
     throw new Error(`GitHub API error: ${response.status} ${error}`);
   }
 
-  const issue = (await response.json()) as {
-    number: number;
-    html_url: string;
-  };
+  const issue = GithubIssueResponse.parse(await response.json());
   return { issueNumber: issue.number, url: issue.html_url };
 }
