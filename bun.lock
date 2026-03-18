@@ -370,6 +370,7 @@
         "@remotion/noise": "4.0.435",
         "@remotion/paths": "4.0.435",
         "@remotion/player": "4.0.435",
+        "@remotion/sfx": "4.0.435",
         "@remotion/shapes": "4.0.435",
         "@remotion/tailwind-v4": "4.0.435",
         "@remotion/transitions": "4.0.435",
@@ -2482,6 +2483,8 @@
     "@remotion/player": ["@remotion/player@4.0.435", "", { "dependencies": { "remotion": "4.0.435" }, "peerDependencies": { "react": ">=16.8.0", "react-dom": ">=16.8.0" } }, "sha512-PfQW9Slq2rXTkXL6M7apJUC+LQuWBMOrcFOBOgJPoV+WL7uu1Rom3BrCiNPQt5/7dx0TuqoiaV1Iv1Th16z2pQ=="],
 
     "@remotion/renderer": ["@remotion/renderer@4.0.435", "", { "dependencies": { "@remotion/licensing": "4.0.435", "@remotion/streaming": "4.0.435", "execa": "5.1.1", "extract-zip": "2.0.1", "remotion": "4.0.435", "source-map": "^0.8.0-beta.0", "ws": "8.17.1" }, "optionalDependencies": { "@remotion/compositor-darwin-arm64": "4.0.435", "@remotion/compositor-darwin-x64": "4.0.435", "@remotion/compositor-linux-arm64-gnu": "4.0.435", "@remotion/compositor-linux-arm64-musl": "4.0.435", "@remotion/compositor-linux-x64-gnu": "4.0.435", "@remotion/compositor-linux-x64-musl": "4.0.435", "@remotion/compositor-win32-x64-msvc": "4.0.435" }, "peerDependencies": { "react": ">=16.8.0", "react-dom": ">=16.8.0" } }, "sha512-Ytzn6h76p44R9w3UzzqgiAKTt+QoAvjfIM0x9KuODWdorGBCMKULGEkJoXQrNTCFQLj52M7U44v5Uq00tdAiQQ=="],
+
+    "@remotion/sfx": ["@remotion/sfx@4.0.435", "", {}, "sha512-LnAgQoVihAVyO9oFYIR8rcKUpUmZB6fR9FCKGTKMVsZC9oC+Xh7eM5/v+rfNNhPO3oaxV3iCN3i4cdkSS0LkeA=="],
 
     "@remotion/shapes": ["@remotion/shapes@4.0.435", "", { "dependencies": { "@remotion/paths": "4.0.435" }, "peerDependencies": { "react": ">=16.8.0", "react-dom": ">=16.8.0" } }, "sha512-fff+JNZbp6ZkPoBhYKJx3gTIXFN6s8To/C6qrCfLiMDCmOzVYiSk5kOQgKF28eIVmbbGpjfh/Ox76EY5WFRJxA=="],
 
