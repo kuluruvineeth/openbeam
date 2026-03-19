@@ -10,6 +10,12 @@ const serverHost = new URL(publicServerUrl).hostname;
 const needsProxy = webHost !== serverHost;
 
 const nextConfig: NextConfig = {
+  transpilePackages: [
+    "three",
+    "@openbeam/spatial-core",
+    "@openbeam/spatial-viewer",
+    "@openbeam/spatial-editor",
+  ],
   typescript: {
     ignoreBuildErrors: process.env.DOCKER_BUILD === "1",
   },
