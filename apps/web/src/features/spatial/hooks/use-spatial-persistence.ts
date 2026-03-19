@@ -1,6 +1,6 @@
 "use client";
 
-import type { SpatialSceneGraph } from "@openbeam/types/spatial";
+import type { SceneGraph } from "@openbeam/spatial-editor";
 import { useCallback, useState } from "react";
 import { loadGuestScene, saveGuestScene } from "../lib/spatial-helpers";
 
@@ -10,7 +10,7 @@ export function useSpatialPersistence(sceneId?: string) {
     "idle" | "saving" | "saved" | "error"
   >("idle");
 
-  const loadScene = useCallback((): Promise<SpatialSceneGraph | null> => {
+  const loadScene = useCallback((): Promise<SceneGraph | null> => {
     if (sceneId) {
       setIsLoading(true);
       try {
@@ -24,12 +24,12 @@ export function useSpatialPersistence(sceneId?: string) {
   }, [sceneId]);
 
   const handleSave = useCallback(
-    (sceneGraph: SpatialSceneGraph) => {
+    (sceneGraph: SceneGraph): Promise<void> => {
       setSaveStatus("saving");
       try {
         if (sceneId) {
           setSaveStatus("saved");
-          return;
+          return Promise.resolve();
         }
 
         saveGuestScene(sceneGraph);
@@ -37,6 +37,7 @@ export function useSpatialPersistence(sceneId?: string) {
       } catch {
         setSaveStatus("error");
       }
+      return Promise.resolve();
     },
     [sceneId]
   );

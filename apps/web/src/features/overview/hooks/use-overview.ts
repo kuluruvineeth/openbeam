@@ -22,6 +22,7 @@ const INITIAL_STATE: OverviewState = {
   thinkingMessage: null,
   statusMessage: null,
   thinking: EMPTY_THINKING_STATE,
+  followUpQuestions: [],
 };
 
 type StepUpdate = {

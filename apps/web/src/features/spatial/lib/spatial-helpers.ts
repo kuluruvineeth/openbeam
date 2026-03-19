@@ -1,9 +1,9 @@
-import type { SpatialSceneGraph } from "@openbeam/types/spatial";
+import type { SceneGraph } from "@openbeam/spatial-editor";
 
 const GUEST_SCENE_KEY = "openbeam-spatial-guest-scene";
 const GUEST_SESSION_KEY = "openbeam-spatial-guest-session";
 
-export function saveGuestScene(sceneGraph: SpatialSceneGraph): void {
+export function saveGuestScene(sceneGraph: SceneGraph): void {
   try {
     localStorage.setItem(GUEST_SCENE_KEY, JSON.stringify(sceneGraph));
   } catch {
@@ -11,10 +11,10 @@ export function saveGuestScene(sceneGraph: SpatialSceneGraph): void {
   }
 }
 
-export function loadGuestScene(): SpatialSceneGraph | null {
+export function loadGuestScene(): SceneGraph | null {
   try {
     const data = localStorage.getItem(GUEST_SCENE_KEY);
-    return data ? (JSON.parse(data) as SpatialSceneGraph) : null;
+    return data ? (JSON.parse(data) as SceneGraph) : null;
   } catch {
     return null;
   }
