@@ -1,0 +1,46 @@
+import {
+  type CeilingNode,
+  resolveLevelId,
+  useScene,
+} from "@openbeam/spatial-core";
+import { useViewer } from "@openbeam/spatial-viewer";
+import { useCallback } from "react";
+import { PolygonEditor } from "../shared/polygon-editor";
+
+interface CeilingBoundaryEditorProps {
+  ceilingId: CeilingNode["id"];
+}
+
+export const CeilingBoundaryEditor: React.FC<CeilingBoundaryEditorProps> = ({
+  ceilingId,
+}) => {
+  const ceilingNode = useScene((state) => state.nodes[ceilingId]);
+  const updateNode = useScene((state) => state.updateNode);
+  const setSelection = useViewer((state) => state.setSelection);
+
+  const ceiling =
+    ceilingNode?.type === "ceiling" ? (ceilingNode as CeilingNode) : null;
+
+  const handlePolygonChange = useCallback(
+    (newPolygon: [number, number][]) => {
+      updateNode(ceilingId, { polygon: newPolygon });
+      setSelection({ selectedIds: [ceilingId] });
+    },
+    [ceilingId, updateNode, setSelection]
+  );
+
+  if (!ceiling?.polygon || ceiling.polygon.length < 3) {
+    return null;
+  }
+
+  return (
+    <PolygonEditor
+      color="#d4d4d4"
+      levelId={resolveLevelId(ceiling, useScene.getState().nodes)}
+      minVertices={3}
+      onPolygonChange={handlePolygonChange}
+      polygon={ceiling.polygon}
+      surfaceHeight={ceiling.height ?? 2.5}
+    />
+  );
+};

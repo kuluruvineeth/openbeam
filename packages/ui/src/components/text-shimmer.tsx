@@ -21,25 +21,28 @@ const TextShimmer = forwardRef<HTMLElement, TextShimmerProps>(
       ...props
     },
     ref
-  ) => (
-    <Component
-      className={cn(
-        "relative inline-block bg-[length:250%_100%] bg-[linear-gradient(90deg,transparent,var(--foreground),transparent)] bg-clip-text text-transparent",
-        className
-      )}
-      ref={ref}
-      style={{
-        animationDuration: `${duration}s`,
-        animationIterationCount: "infinite",
-        animationName: "shimmer",
-        animationTimingFunction: "linear",
-        backgroundSize: `${spread * 100}% 100%`,
-      }}
-      {...props}
-    >
-      {children}
-    </Component>
-  )
+  ) => {
+    const Comp = Component as React.ElementType;
+    return (
+      <Comp
+        className={cn(
+          "relative inline-block bg-[length:250%_100%] bg-[linear-gradient(90deg,transparent,var(--foreground),transparent)] bg-clip-text text-transparent",
+          className
+        )}
+        ref={ref}
+        style={{
+          animationDuration: `${duration}s`,
+          animationIterationCount: "infinite",
+          animationName: "shimmer",
+          animationTimingFunction: "linear",
+          backgroundSize: `${spread * 100}% 100%`,
+        }}
+        {...props}
+      >
+        {children}
+      </Comp>
+    );
+  }
 );
 TextShimmer.displayName = "TextShimmer";
 
