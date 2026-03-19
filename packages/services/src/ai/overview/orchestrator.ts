@@ -37,6 +37,37 @@ import {
   type OverviewUsage,
 } from "./types";
 
+function generateFollowUpQuestions(query: string): string[] {
+  const q = query.toLowerCase().trim();
+  const suggestions: string[] = [];
+
+  if (q.includes("cve-") || q.includes("vulnerability")) {
+    suggestions.push(
+      `What are the mitigation steps for ${query}?`,
+      `Which systems are affected by ${query}?`,
+      `Are there related vulnerabilities to ${query}?`
+    );
+  } else if (
+    q.includes("t1") ||
+    q.includes("attack") ||
+    q.includes("technique")
+  ) {
+    suggestions.push(
+      `What are the detection methods for ${query}?`,
+      `Which threat groups use ${query}?`,
+      `What are the sub-techniques of ${query}?`
+    );
+  } else {
+    suggestions.push(
+      `What are the best practices for ${query}?`,
+      `How does ${query} impact enterprise security?`,
+      `What are common misconceptions about ${query}?`
+    );
+  }
+
+  return suggestions.slice(0, 3);
+}
+
 const OVERVIEW_PROVIDER_ID = "google";
 const DEFAULT_MODEL_ID = "gemini-3-flash-preview";
 
@@ -710,6 +741,7 @@ function* yieldCacheHitResponse(
     groundingScore: entry.response.groundingScore ?? undefined,
     fromCache: true,
     cacheSimilarity: similarity,
+    followUpQuestions: generateFollowUpQuestions(request.query),
   };
 }
 
@@ -810,6 +842,7 @@ async function* streamGenerationPhase(
     groundingScore,
     fromCache: false,
     modelUsed: modelId,
+    followUpQuestions: generateFollowUpQuestions(request.query),
   };
 }
 
@@ -868,6 +901,7 @@ export async function* streamOverview(
       type: "done",
       usage: createEmptyUsage(),
       timing: { ...timing, totalMs: performance.now() - startTime },
+      followUpQuestions: generateFollowUpQuestions(request.query),
     };
     return;
   }

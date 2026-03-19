@@ -1,6 +1,11 @@
 "use client";
 
-import { Button } from "@openbeam/ui";
+import {
+  Button,
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@openbeam/ui";
 import { Fragment, memo, useCallback, useMemo } from "react";
 import { Markdown } from "@/components/ui/markdown";
 import { cn } from "@/lib/utils";
@@ -56,14 +61,37 @@ function CitationButton({
   }
 
   return (
-    <Button
-      className="mx-0.5 h-auto px-1 py-0 font-medium text-primary text-xs hover:underline"
-      onClick={handleClick}
-      title={citation.title}
-      variant="ghost"
-    >
-      [{index}]
-    </Button>
+    <HoverCard closeDelay={100} openDelay={300}>
+      <HoverCardTrigger asChild>
+        <Button
+          className="mx-0.5 h-auto px-1 py-0 font-medium text-primary text-xs hover:underline"
+          onClick={handleClick}
+          title={citation.title}
+          variant="ghost"
+        >
+          [{index}]
+        </Button>
+      </HoverCardTrigger>
+      <HoverCardContent align="center" className="w-72 p-3" sideOffset={4}>
+        <div className="flex flex-col gap-2">
+          <p className="font-medium text-foreground text-sm leading-snug">
+            {citation.title}
+          </p>
+          {citation.connectorType && (
+            <span className="w-fit rounded-sm bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground uppercase">
+              {citation.connectorType}
+            </span>
+          )}
+          {citation.snippet && (
+            <p className="text-muted-foreground text-xs leading-relaxed">
+              {citation.snippet.length > 150
+                ? `${citation.snippet.slice(0, 150)}\u2026`
+                : citation.snippet}
+            </p>
+          )}
+        </div>
+      </HoverCardContent>
+    </HoverCard>
   );
 }
 

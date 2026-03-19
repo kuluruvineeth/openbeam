@@ -15,6 +15,7 @@ import type {
 } from "../lib/overview-types";
 import { OverviewCitations } from "./overview-citations";
 import { OverviewContent } from "./overview-content";
+import { OverviewFollowUps } from "./overview-follow-ups";
 import { OverviewSkeleton } from "./overview-skeleton";
 import { OverviewThinking } from "./overview-thinking";
 
@@ -48,6 +49,8 @@ type OverviewPanelProps = {
   thinkingMessage?: string | null;
   statusMessage?: string | null;
   thinking: ThinkingState;
+  followUpQuestions?: string[];
+  onFollowUpSelect?: (question: string) => void;
   className?: string;
 };
 
@@ -62,6 +65,8 @@ function OverviewPanelInner({
   thinkingMessage,
   statusMessage,
   thinking,
+  followUpQuestions,
+  onFollowUpSelect,
   className,
 }: OverviewPanelProps) {
   const [isExpanded, setIsExpanded] = useState(true);
@@ -189,6 +194,27 @@ function OverviewPanelInner({
                   onCitationClick={handlePreviewCitation}
                 />
               )}
+
+              {!isStreaming && content && steps.length > 0 && (
+                <OverviewThinking
+                  className="mb-3 px-4"
+                  showSummaryOnly
+                  steps={steps}
+                  thinking={thinking}
+                />
+              )}
+
+              {!isStreaming &&
+                content &&
+                followUpQuestions &&
+                followUpQuestions.length > 0 &&
+                onFollowUpSelect && (
+                  <OverviewFollowUps
+                    className="mb-4 px-4"
+                    onSelect={onFollowUpSelect}
+                    questions={followUpQuestions}
+                  />
+                )}
 
               {citations.length > 0 && (
                 <div className="border-border/50 border-t pt-3">

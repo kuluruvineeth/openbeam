@@ -366,9 +366,11 @@ export function PublicSearchPage() {
                 className="mx-3 mt-3"
                 content={overview.content}
                 error={overview.error}
+                followUpQuestions={overview.followUpQuestions}
                 groundingScore={overview.groundingScore}
                 isLoading={overview.isLoading}
                 isStreaming={overview.isStreaming}
+                onFollowUpSelect={handleSuggestionClick}
                 statusMessage={overview.statusMessage}
                 steps={overview.steps}
                 thinking={overview.thinking}

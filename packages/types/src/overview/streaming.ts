@@ -67,6 +67,7 @@ export const OverviewStreamChunkSchema = z.object({
   fromCache: z.boolean().optional(),
   cacheSimilarity: z.number().optional(),
   modelUsed: z.string().optional(),
+  followUpQuestions: z.array(z.string()).optional(),
 });
 
 export type OverviewStreamChunk = z.infer<typeof OverviewStreamChunkSchema>;

@@ -22,6 +22,7 @@ const INITIAL_STATE: OverviewState = {
   thinkingMessage: null,
   statusMessage: null,
   thinking: EMPTY_THINKING_STATE,
+  followUpQuestions: [],
 };
 
 type StepUpdate = {
@@ -321,6 +322,7 @@ function processChunk(chunk: OverviewStreamChunk, ctx: ChunkContext) {
         isLoading: false,
         isStreaming: false,
         groundingScore: chunk.groundingScore ?? null,
+        followUpQuestions: chunk.followUpQuestions ?? [],
         thinking: {
           ...prev.thinking,
           isActive: false,

@@ -38,6 +38,7 @@ export type OverviewState = {
   thinkingMessage: string | null;
   statusMessage: string | null;
   thinking: ThinkingState;
+  followUpQuestions: string[];
 };
 
 export const TOOL_DISPLAY_NAMES: Record<string, string> = {
