@@ -118,7 +118,7 @@ export function ItemCatalog({ category }: { category: CatalogCategory }) {
                         ? "bg-blue-500 text-white"
                         : // biome-ignore lint/style/noNestedTernary: acceptable
                           isEmpty
-                          ? "cursor-not-allowed bg-zinc-800 text-zinc-500"
+                          ? "cursor-not-allowed bg-[#2a2a27] text-[#55554f]"
                           : "bg-blue-950/50 text-blue-300 hover:bg-blue-900/60 hover:text-blue-200"
                     )}
                     disabled={isEmpty}
@@ -134,7 +134,7 @@ export function ItemCatalog({ category }: { category: CatalogCategory }) {
                           ? "text-blue-200"
                           : // biome-ignore lint/style/noNestedTernary: acceptable
                             isEmpty
-                            ? "text-zinc-600"
+                            ? "text-[#4a4a44]"
                             : "text-blue-500/70"
                       )}
                     >
@@ -161,8 +161,8 @@ export function ItemCatalog({ category }: { category: CatalogCategory }) {
                         ? "bg-violet-500 text-white"
                         : // biome-ignore lint/style/noNestedTernary: acceptable
                           isEmpty
-                          ? "cursor-not-allowed bg-zinc-800 text-zinc-500"
-                          : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                          ? "cursor-not-allowed bg-[#2a2a27] text-[#55554f]"
+                          : "bg-[#353530] text-[#76766e] hover:bg-[#42423d] hover:text-[#ccc9c0]"
                     )}
                     disabled={isEmpty}
                     key={tag}
@@ -179,8 +179,8 @@ export function ItemCatalog({ category }: { category: CatalogCategory }) {
                           ? "text-violet-200"
                           : // biome-ignore lint/style/noNestedTernary: acceptable
                             isEmpty
-                            ? "text-zinc-600"
-                            : "text-zinc-500/70"
+                            ? "text-[#4a4a44]"
+                            : "text-[#76766e]/70"
                       )}
                     >
                       {count}

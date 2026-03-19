@@ -7,7 +7,7 @@ import {
   useScene,
 } from "@openbeam/spatial-core";
 import { useViewer } from "@openbeam/spatial-viewer";
-import { Copy, Link, Link2Off, Move, Trash2 } from "lucide-react";
+import { Icons } from "@openbeam/ui";
 import { useCallback, useState } from "react";
 import { sfxEmitter } from "../../../lib/sfx-bus";
 import { cn } from "../../../lib/utils";
@@ -94,7 +94,7 @@ export function ItemPanel() {
 
   return (
     <PanelWrapper
-      icon={node.asset.thumbnail || "/icons/furniture.png"}
+      icon={<Icons.Package size={16} />}
       onClose={handleClose}
       title={node.name || node.asset.name}
       width={300}
@@ -204,21 +204,21 @@ export function ItemPanel() {
 
       <PanelSection title="Scale">
         <div className="flex items-center justify-between px-2 pb-2">
-          <span className="font-medium text-[10px] text-muted-foreground/80 uppercase tracking-wider">
+          <span className="font-medium text-[#76766e]/80 text-[10px] uppercase tracking-wider">
             Uniform Scale
           </span>
           <button
             className={cn(
-              "flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground",
+              "flex h-6 w-6 items-center justify-center rounded-md text-[#76766e] transition-colors hover:text-foreground",
               uniformScale ? "bg-[#3e3e3e]" : "bg-[#2C2C2E] hover:bg-[#3e3e3e]"
             )}
             onClick={() => setUniformScale((v) => !v)}
             type="button"
           >
             {uniformScale ? (
-              <Link className="h-3.5 w-3.5" />
+              <Icons.Link size={14} />
             ) : (
-              <Link2Off className="h-3.5 w-3.5" />
+              <Icons.Unlock size={14} />
             )}
           </button>
         </div>
@@ -298,12 +298,12 @@ export function ItemPanel() {
       </PanelSection>
 
       <PanelSection title="Info">
-        <div className="flex items-center justify-between px-2 py-1 text-muted-foreground text-sm">
+        <div className="flex items-center justify-between px-2 py-1 text-[#76766e] text-sm">
           <span>Dimensions</span>
           {(() => {
             const [w, h, d] = getScaledDimensions(node);
             return (
-              <span className="font-mono text-white">
+              <span className="font-mono text-[#ccc9c0]">
                 {Math.round(w * 100) / 100}×{Math.round(h * 100) / 100}×
                 {Math.round(d * 100) / 100}
               </span>
@@ -326,18 +326,18 @@ export function ItemPanel() {
       <PanelSection title="Actions">
         <ActionGroup>
           <ActionButton
-            icon={<Move className="h-3.5 w-3.5" />}
+            icon={<Icons.Move size={14} />}
             label="Move"
             onClick={handleMove}
           />
           <ActionButton
-            icon={<Copy className="h-3.5 w-3.5" />}
+            icon={<Icons.Copy size={14} />}
             label="Duplicate"
             onClick={handleDuplicate}
           />
           <ActionButton
             className="hover:bg-red-500/20"
-            icon={<Trash2 className="h-3.5 w-3.5 text-red-400" />}
+            icon={<Icons.Trash size={14} />}
             label="Delete"
             onClick={handleDelete}
           />

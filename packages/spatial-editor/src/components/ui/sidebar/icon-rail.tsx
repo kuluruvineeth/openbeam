@@ -1,8 +1,7 @@
 "use client";
 
 import { useViewer } from "@openbeam/spatial-viewer";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@openbeam/ui";
-import { Moon, Sun } from "lucide-react";
+import { Icons, Tooltip, TooltipContent, TooltipTrigger } from "@openbeam/ui";
 import { motion } from "motion/react";
 import { type ReactNode, useEffect, useState } from "react";
 import { cn } from "./../../../lib/utils";
@@ -16,9 +15,9 @@ interface IconRailProps {
   className?: string;
 }
 
-const panels: { id: PanelId; iconSrc: string; label: string }[] = [
-  { id: "site", iconSrc: "/icons/level.png", label: "Site" },
-  { id: "settings", iconSrc: "/icons/settings.png", label: "Settings" },
+const panels: { id: PanelId; icon: ReactNode; label: string }[] = [
+  { id: "site", icon: <Icons.Layers size={20} />, label: "Site" },
+  { id: "settings", icon: <Icons.Settings size={20} />, label: "Settings" },
 ];
 
 export function IconRail({
@@ -61,17 +60,14 @@ export function IconRail({
                 onClick={() => onPanelChange(panel.id)}
                 type="button"
               >
-                {/* biome-ignore lint/performance/noImgElement: intentional */}
-                <img
-                  alt={panel.label}
+                <span
                   className={cn(
-                    "h-6 w-6 object-contain transition-all",
+                    "transition-all",
                     !isActive && "opacity-50 saturate-0"
                   )}
-                  height={24}
-                  src={panel.iconSrc}
-                  width={24}
-                />
+                >
+                  {panel.icon}
+                </span>
               </button>
             </TooltipTrigger>
             <TooltipContent side="right">{panel.label}</TooltipContent>
@@ -98,9 +94,9 @@ export function IconRail({
                 transition={{ duration: 0.25, ease: "easeOut" }}
               >
                 {theme === "dark" ? (
-                  <Sun className="h-4 w-4" />
+                  <Icons.Sun className="h-4 w-4" />
                 ) : (
-                  <Moon className="h-4 w-4" />
+                  <Icons.Moon className="h-4 w-4" />
                 )}
               </motion.div>
             </button>

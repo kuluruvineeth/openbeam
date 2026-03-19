@@ -2,6 +2,7 @@
 
 import { type AnyNode, type RoofNode, useScene } from "@openbeam/spatial-core";
 import { useViewer } from "@openbeam/spatial-viewer";
+import { Icons } from "@openbeam/ui";
 import { useCallback } from "react";
 import { ActionButton } from "../controls/action-button";
 import { PanelSection } from "../controls/panel-section";
@@ -41,7 +42,7 @@ export function RoofPanel() {
 
   return (
     <PanelWrapper
-      icon="/icons/roof.png"
+      icon={<Icons.Home size={16} />}
       onClose={handleClose}
       title={node.name || "Roof"}
       width={300}
@@ -70,7 +71,7 @@ export function RoofPanel() {
       </PanelSection>
 
       <PanelSection title="Slope Widths">
-        <div className="flex items-center justify-between px-2 pb-2 font-medium text-[10px] text-muted-foreground/80 uppercase tracking-wider">
+        <div className="flex items-center justify-between px-2 pb-2 font-medium text-[#76766e]/80 text-[10px] uppercase tracking-wider">
           <span>Widths</span>
           <span>Total: {totalWidth.toFixed(1)}m</span>
         </div>

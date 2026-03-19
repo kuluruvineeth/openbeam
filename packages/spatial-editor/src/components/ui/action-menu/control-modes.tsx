@@ -1,15 +1,14 @@
 "use client";
 
-import { type LucideIcon, Pencil, Trash2 } from "lucide-react";
-import Image from "next/image";
+import { Icons } from "@openbeam/ui";
+import type React from "react";
 import { cn } from "./../../../lib/utils";
 import useEditor, { type Mode, type Phase } from "./../../../store/use-editor";
 import { ActionButton } from "./action-button";
 
 type ModeConfig = {
   id: Mode;
-  icon?: LucideIcon;
-  imageSrc?: string;
+  icon: React.ReactNode;
   label: string;
   shortcut: string;
   color: string;
@@ -19,7 +18,7 @@ type ModeConfig = {
 const allModes: ModeConfig[] = [
   {
     id: "select",
-    imageSrc: "/icons/select.png",
+    icon: <Icons.Pointer size={20} />,
     label: "Select",
     shortcut: "V",
     color: "hover:bg-blue-500/20 hover:text-blue-400",
@@ -27,7 +26,7 @@ const allModes: ModeConfig[] = [
   },
   {
     id: "edit",
-    icon: Pencil,
+    icon: <Icons.Pencil size={20} />,
     label: "Edit",
     shortcut: "E",
     color: "hover:bg-orange-500/20 hover:text-orange-400",
@@ -35,7 +34,7 @@ const allModes: ModeConfig[] = [
   },
   {
     id: "build",
-    imageSrc: "/icons/build.png",
+    icon: <Icons.Wrench size={20} />,
     label: "Build",
     shortcut: "B",
     color: "hover:bg-green-500/20 hover:text-green-400",
@@ -43,7 +42,7 @@ const allModes: ModeConfig[] = [
   },
   {
     id: "delete",
-    icon: Trash2,
+    icon: <Icons.Trash size={20} />,
     label: "Delete",
     shortcut: "D",
     color: "hover:bg-red-500/20 hover:text-red-400",
@@ -75,18 +74,15 @@ export function ControlModes() {
   return (
     <div className="flex items-center gap-1">
       {availableModes.map((m) => {
-        const Icon = m.icon;
         const isActive = mode === m.id;
-        const isImageMode = Boolean(m.imageSrc);
 
         return (
           <ActionButton
             className={cn(
-              "text-muted-foreground",
-              !(isImageMode || isActive) && m.color,
-              !isImageMode && isActive && m.activeColor,
-              isImageMode && isActive && "bg-white/10 hover:bg-white/10",
-              isImageMode && !isActive && "hover:bg-white/5"
+              "text-[#76766e]",
+              !isActive && m.color,
+              !isActive && "opacity-60",
+              isActive && m.activeColor
             )}
             key={m.id}
             label={m.label}
@@ -95,21 +91,7 @@ export function ControlModes() {
             size="icon"
             variant="ghost"
           >
-            {m.imageSrc ? (
-              <Image
-                alt={m.label}
-                className={cn(
-                  "h-[28px] w-[28px] object-contain transition-[opacity,filter] duration-200",
-                  !isActive && "opacity-60 grayscale",
-                  isActive && "opacity-100 grayscale-0"
-                )}
-                height={28}
-                src={m.imageSrc}
-                width={28}
-              />
-            ) : (
-              Icon && <Icon className="h-5 w-5" />
-            )}
+            {m.icon}
           </ActionButton>
         );
       })}

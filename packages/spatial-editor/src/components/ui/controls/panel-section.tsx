@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
+import { Icons } from "@openbeam/ui";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { cn } from "../../../lib/utils";
@@ -23,7 +23,7 @@ export function PanelSection({
   return (
     <motion.div
       className={cn(
-        "flex shrink-0 flex-col overflow-hidden border-border/50 border-b",
+        "flex shrink-0 flex-col overflow-hidden border-[#3b3b36] border-b",
         className
       )}
       layout
@@ -33,23 +33,25 @@ export function PanelSection({
         className={cn(
           "group/section flex h-10 shrink-0 items-center justify-between px-3 transition-all duration-200",
           isExpanded
-            ? "bg-accent/50 text-foreground"
-            : "text-muted-foreground hover:bg-accent/30 hover:text-foreground"
+            ? "bg-[#353530] text-[#ccc9c0]"
+            : "text-[#76766e] hover:bg-[#353530]/60 hover:text-[#c0bdb2]"
         )}
         layout="position"
         onClick={() => setIsExpanded(!isExpanded)}
         type="button"
       >
         <span className="truncate font-medium text-sm">{title}</span>
-        <ChevronDown
+        <span
           className={cn(
-            "h-4 w-4 transition-transform duration-200",
+            "transition-transform duration-200",
             isExpanded ? "rotate-180" : "rotate-0",
             isExpanded
-              ? "text-foreground"
+              ? "text-[#ccc9c0]"
               : "opacity-0 group-hover/section:opacity-100"
           )}
-        />
+        >
+          <Icons.ChevronDown size={16} />
+        </span>
       </motion.button>
 
       <AnimatePresence initial={false}>

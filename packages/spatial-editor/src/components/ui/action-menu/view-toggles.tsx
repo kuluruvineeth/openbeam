@@ -1,7 +1,7 @@
 "use client";
 
 import { useViewer } from "@openbeam/spatial-viewer";
-import { Camera, Diamond, Layers, Layers2 } from "lucide-react";
+import { Icons } from "@openbeam/ui";
 import { cn } from "../../../lib/utils";
 import { ActionButton } from "./action-button";
 
@@ -19,47 +19,20 @@ const levelModeOrder: ("stacked" | "exploded" | "solo")[] = [
 
 type WallMode = "up" | "cutaway" | "down";
 
-const wallModeConfig: Record<
+const wallModeIcons: Record<
   WallMode,
-  { icon: React.FC<React.ComponentProps<"img">>; label: string }
+  { icon: React.ReactNode; label: string }
 > = {
   up: {
-    icon: (props) => (
-      // biome-ignore lint/performance/noImgElement: intentional
-      <img
-        alt="Full Height"
-        height={20}
-        src="/icons/room.png"
-        width={20}
-        {...props}
-      />
-    ),
+    icon: <Icons.Home size={20} />,
     label: "Full Height",
   },
   cutaway: {
-    icon: (props) => (
-      // biome-ignore lint/performance/noImgElement: intentional
-      <img
-        alt="Cutaway"
-        height={20}
-        src="/icons/wallcut.png"
-        width={20}
-        {...props}
-      />
-    ),
+    icon: <Icons.Scissors size={20} />,
     label: "Cutaway",
   },
   down: {
-    icon: (props) => (
-      // biome-ignore lint/performance/noImgElement: intentional
-      <img
-        alt="Low"
-        height={20}
-        src="/icons/walllow.png"
-        width={20}
-        {...props}
-      />
-    ),
+    icon: <Icons.Minus size={20} />,
     label: "Low",
   },
 };
@@ -110,103 +83,78 @@ export function ViewToggles() {
 
   return (
     <div className="flex items-center gap-1">
-      {/* Camera Mode */}
       <ActionButton
         className={cn(
           cameraMode === "orthographic"
             ? "bg-violet-500/20 text-violet-400"
-            : "hover:text-violet-400"
+            : "text-[#76766e] opacity-60 hover:text-violet-400 hover:opacity-100"
         )}
         label={`Camera: ${cameraMode === "perspective" ? "Perspective" : "Orthographic"}`}
         onClick={toggleCameraMode}
         size="icon"
         variant="ghost"
       >
-        <Camera className="h-6 w-6" />
+        <Icons.Eye size={20} />
       </ActionButton>
 
-      {/* Level Mode */}
       <ActionButton
         className={cn(
           levelMode !== "stacked"
             ? "bg-amber-500/20 text-amber-400"
-            : "hover:text-amber-400"
+            : "text-[#76766e] opacity-60 hover:text-amber-400 hover:opacity-100"
         )}
         label={`Levels: ${levelMode === "manual" ? "Manual" : levelModeLabels[levelMode as keyof typeof levelModeLabels]}`}
         onClick={cycleLevelMode}
         size="icon"
         variant="ghost"
       >
-        {levelMode === "solo" && <Diamond className="h-6 w-6" />}
-        {levelMode === "exploded" && <Layers2 className="h-6 w-6" />}
+        {levelMode === "solo" && <Icons.CircleDot size={20} />}
+        {levelMode === "exploded" && <Icons.Layers size={20} />}
         {(levelMode === "stacked" || levelMode === "manual") && (
-          <Layers className="h-6 w-6" />
+          <Icons.Layers size={20} />
         )}
       </ActionButton>
 
-      {/* Wall Mode */}
       <ActionButton
         className={cn(
-          "p-0",
           wallMode !== "cutaway"
-            ? "bg-white/10"
-            : "opacity-60 grayscale hover:bg-white/5 hover:opacity-100 hover:grayscale-0"
+            ? "bg-[#353530] text-[#e0e0d8]"
+            : "text-[#76766e] opacity-60 hover:bg-[rgba(255,255,255,0.05)] hover:opacity-100"
         )}
-        label={`Walls: ${wallModeConfig[wallMode].label}`}
+        label={`Walls: ${wallModeIcons[wallMode].label}`}
         onClick={cycleWallMode}
         size="icon"
         variant="ghost"
       >
-        {(() => {
-          const Icon = wallModeConfig[wallMode].icon;
-          return <Icon className="h-[28px] w-[28px]" />;
-        })()}
+        {wallModeIcons[wallMode].icon}
       </ActionButton>
 
-      {/* Show Scans */}
       <ActionButton
         className={cn(
-          "p-0",
           showScans
-            ? "bg-white/10"
-            : "opacity-60 grayscale hover:bg-white/5 hover:opacity-100 hover:grayscale-0"
+            ? "bg-[#353530] text-[#e0e0d8]"
+            : "text-[#76766e] opacity-60 hover:bg-[rgba(255,255,255,0.05)] hover:opacity-100"
         )}
         label={`Scans: ${showScans ? "Visible" : "Hidden"}`}
         onClick={() => setShowScans(!showScans)}
         size="icon"
         variant="ghost"
       >
-        {/* biome-ignore lint/performance/noImgElement: intentional */}
-        <img
-          alt="Scans"
-          className="h-[28px] w-[28px] object-contain"
-          height={28}
-          src="/icons/mesh.png"
-          width={28}
-        />
+        <Icons.Grid3x3 size={20} />
       </ActionButton>
 
-      {/* Show Guides */}
       <ActionButton
         className={cn(
-          "p-0",
           showGuides
-            ? "bg-white/10"
-            : "opacity-60 grayscale hover:bg-white/5 hover:opacity-100 hover:grayscale-0"
+            ? "bg-[#353530] text-[#e0e0d8]"
+            : "text-[#76766e] opacity-60 hover:bg-[rgba(255,255,255,0.05)] hover:opacity-100"
         )}
         label={`Guides: ${showGuides ? "Visible" : "Hidden"}`}
         onClick={() => setShowGuides(!showGuides)}
         size="icon"
         variant="ghost"
       >
-        {/* biome-ignore lint/performance/noImgElement: intentional */}
-        <img
-          alt="Guides"
-          className="h-[28px] w-[28px] object-contain"
-          height={28}
-          src="/icons/floorplan.png"
-          width={28}
-        />
+        <Icons.LayoutGrid size={20} />
       </ActionButton>
     </div>
   );

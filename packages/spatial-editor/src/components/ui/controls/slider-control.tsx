@@ -278,7 +278,7 @@ export function SliderControl({
     >
       {isDragging && dragStartValue !== null && dragStartValue !== value && (
         <button
-          className="-top-10 pointer-events-auto absolute right-0 z-50 cursor-pointer rounded-md bg-[#2C2C2E] px-2 py-1 font-medium text-[10px] text-muted-foreground shadow-sm ring-1 ring-border/50 hover:bg-[#3e3e3e] hover:text-foreground"
+          className="-top-10 pointer-events-auto absolute right-0 z-50 cursor-pointer rounded-md bg-[#2C2C2E] px-2 py-1 font-medium text-[#76766e] text-[10px] shadow-sm ring-1 ring-border/50 hover:bg-[#3e3e3e] hover:text-[#ccc9c0]"
           onPointerDown={(e) => {
             e.stopPropagation();
             onChange(dragStartValue);
@@ -294,7 +294,7 @@ export function SliderControl({
         </button>
       )}
 
-      <div className="w-[80px] shrink-0 select-none truncate text-muted-foreground">
+      <div className="w-[80px] shrink-0 select-none truncate text-[#76766e]">
         {label}
       </div>
 
@@ -315,7 +315,7 @@ export function SliderControl({
 
         {isDragging && startPercent !== null && (
           <div
-            className="-translate-x-1/2 -translate-y-1/2 pointer-events-none absolute top-1/2 h-6 w-[3px] rounded-full bg-foreground/20 shadow-sm"
+            className="-translate-x-1/2 -translate-y-1/2 pointer-events-none absolute top-1/2 h-6 w-[3px] rounded-full bg-[#ccc9c0]/20 shadow-sm"
             style={{ left: `${startPercent}%` }}
           />
         )}
@@ -324,8 +324,8 @@ export function SliderControl({
           className={cn(
             "-translate-x-1/2 -translate-y-1/2 pointer-events-none absolute top-1/2 h-6 w-[3px] rounded-full shadow-sm transition",
             isDragging
-              ? "scale-y-110 bg-foreground"
-              : "bg-foreground/60 group-hover:bg-foreground/80"
+              ? "scale-y-110 bg-[#ccc9c0]"
+              : "bg-[#ccc9c0]/60 group-hover:bg-[#ccc9c0]/80"
           )}
           style={{ left: `${percent}%` }}
         />
@@ -336,21 +336,19 @@ export function SliderControl({
           <div className="flex items-center">
             <input
               autoFocus
-              className="w-full bg-transparent p-0 text-right font-mono text-foreground outline-none selection:bg-primary/30"
+              className="w-full bg-transparent p-0 text-right font-mono text-[#ccc9c0] outline-none selection:bg-[#d97757]/30"
               onBlur={handleInputBlur}
               onChange={handleInputChange}
               onKeyDown={handleInputKeyDown}
               type="text"
               value={inputValue}
             />
-            {unit && (
-              <span className="ml-[1px] text-muted-foreground">{unit}</span>
-            )}
+            {unit && <span className="ml-[1px] text-[#76766e]">{unit}</span>}
           </div>
         ) : (
           // biome-ignore lint/a11y/useSemanticElements: div with role is intentional
           <div
-            className="flex w-full cursor-text items-center justify-end text-foreground/60 transition-colors hover:text-foreground"
+            className="flex w-full cursor-text items-center justify-end text-[#ccc9c0]/60 transition-colors hover:text-[#ccc9c0]"
             onClick={handleValueClick}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
@@ -363,9 +361,7 @@ export function SliderControl({
             <span className="font-mono tabular-nums tracking-tight">
               {Number(value.toFixed(precision)).toFixed(precision)}
             </span>
-            {unit && (
-              <span className="ml-[1px] text-muted-foreground">{unit}</span>
-            )}
+            {unit && <span className="ml-[1px] text-[#76766e]">{unit}</span>}
           </div>
         )}
       </div>

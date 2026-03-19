@@ -30,11 +30,7 @@ import { ActionMenu } from "../ui/action-menu";
 import { HelperManager } from "../ui/helpers/helper-manager";
 import { PanelManager } from "../ui/panels/panel-manager";
 import { ErrorBoundary } from "../ui/primitives/error-boundary";
-import { SidebarProvider } from "../ui/primitives/sidebar";
 import { SceneLoader } from "../ui/scene-loader";
-import { AppSidebar } from "../ui/sidebar/app-sidebar";
-import type { SettingsPanelProps } from "../ui/sidebar/panels/settings-panel";
-import type { SitePanelProps } from "../ui/sidebar/panels/site-panel";
 import { CustomCameraControls } from "./custom-camera-controls";
 import { ExportManager } from "./export-manager";
 import { FloatingActionMenu } from "./floating-action-menu";
@@ -87,7 +83,6 @@ initSFXBus();
 
 export interface EditorProps {
   appMenuButton?: ReactNode;
-  sidebarTop?: ReactNode;
 
   onLoad?: () => Promise<SceneGraph | null>;
   onSave?: (scene: SceneGraph) => Promise<void>;
@@ -101,33 +96,30 @@ export interface EditorProps {
 
   onThumbnailCapture?: (blob: Blob) => void;
 
-  settingsPanelProps?: SettingsPanelProps;
-  sitePanelProps?: SitePanelProps;
-
   presetsAdapter?: PresetsAdapter;
 }
 
 function EditorSceneCrashFallback() {
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-background/95 p-4 text-foreground">
-      <div className="w-full max-w-md rounded-2xl border border-border/60 bg-background p-6 shadow-xl">
-        <h2 className="font-semibold text-lg">
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[#242422]/90 p-4 text-foreground">
+      <div className="w-full max-w-md rounded-[20px] border border-[#3b3b36] bg-[#242422] p-6 shadow-[0_8px_28px_rgba(0,0,0,0.35),0_1px_6px_rgba(0,0,0,0.25)]">
+        <h2 className="font-semibold text-[#ccc9c0] text-lg">
           The editor scene failed to render
         </h2>
-        <p className="mt-2 text-muted-foreground text-sm">
+        <p className="mt-2 text-[#76766e] text-sm">
           You can retry the scene or return home without reloading the whole app
           shell.
         </p>
         <div className="mt-4 flex items-center gap-2">
           <button
-            className="rounded-md border border-border bg-accent px-3 py-2 font-medium text-sm hover:bg-accent/80"
+            className="rounded-md border border-[#3b3b36] bg-[#353530] px-3 py-2 font-medium text-[#ccc9c0] text-sm hover:bg-[#42423d]"
             onClick={() => window.location.reload()}
             type="button"
           >
             Reload editor
           </button>
           <a
-            className="rounded-md border border-border bg-background px-3 py-2 font-medium text-sm hover:bg-accent/40"
+            className="rounded-md border border-[#3b3b36] bg-[#292927] px-3 py-2 font-medium text-[#76766e] text-sm hover:bg-[#353530] hover:text-[#ccc9c0]"
             href="/"
           >
             Back to home
@@ -140,7 +132,6 @@ function EditorSceneCrashFallback() {
 
 export default function Editor({
   appMenuButton,
-  sidebarTop,
   onLoad,
   onSave,
   onDirty,
@@ -149,8 +140,6 @@ export default function Editor({
   isVersionPreviewMode = false,
   isLoading = false,
   onThumbnailCapture,
-  settingsPanelProps,
-  sitePanelProps,
   presetsAdapter,
 }: EditorProps) {
   useKeyboard();
@@ -206,18 +195,11 @@ export default function Editor({
     }
   }, [isVersionPreviewMode, previewScene]);
 
-  useEffect(() => {
-    document.body.classList.add("dark");
-    return () => {
-      document.body.classList.remove("dark");
-    };
-  }, []);
-
   const showLoader = isLoading || isSceneLoading;
 
   return (
     <PresetsProvider adapter={presetsAdapter}>
-      <div className="dark h-full w-full text-foreground">
+      <div className="dark h-full w-full text-[#ccc9c0]">
         {showLoader && <SceneLoader />}
 
         {isPreviewMode ? (
@@ -230,14 +212,11 @@ export default function Editor({
             <PanelManager />
             <HelperManager />
 
-            <SidebarProvider className="fixed z-20">
-              <AppSidebar
-                appMenuButton={appMenuButton}
-                settingsPanelProps={settingsPanelProps}
-                sidebarTop={sidebarTop}
-                sitePanelProps={sitePanelProps}
-              />
-            </SidebarProvider>
+            <div className="pointer-events-none fixed inset-x-0 top-0 z-40 flex items-start justify-between p-4">
+              <div className="pointer-events-auto flex items-center gap-2">
+                {appMenuButton}
+              </div>
+            </div>
           </>
         )}
 

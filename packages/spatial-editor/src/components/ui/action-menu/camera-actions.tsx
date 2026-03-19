@@ -1,7 +1,7 @@
 "use client";
 
 import { emitter } from "@openbeam/spatial-core";
-import Image from "next/image";
+import { Icons } from "@openbeam/ui";
 import { ActionButton } from "./action-button";
 
 export function CameraActions() {
@@ -19,55 +19,34 @@ export function CameraActions() {
 
   return (
     <div className="flex items-center gap-1">
-      {/* Orbit CCW */}
       <ActionButton
-        className="group hover:bg-white/5"
+        className="group text-[#76766e] opacity-70 hover:bg-[rgba(255,255,255,0.05)] hover:opacity-100"
         label="Orbit Left"
         onClick={orbitCCW}
         size="icon"
         variant="ghost"
       >
-        <Image
-          alt="Orbit Left"
-          className="-scale-x-100 h-[28px] w-[28px] object-contain opacity-70 transition-opacity group-hover:opacity-100"
-          height={28}
-          src="/icons/rotate.png"
-          width={28}
-        />
+        <Icons.Undo size={20} />
       </ActionButton>
 
-      {/* Orbit CW */}
       <ActionButton
-        className="group hover:bg-white/5"
+        className="group text-[#76766e] opacity-70 hover:bg-[rgba(255,255,255,0.05)] hover:opacity-100"
         label="Orbit Right"
         onClick={orbitCW}
         size="icon"
         variant="ghost"
       >
-        <Image
-          alt="Orbit Right"
-          className="h-[28px] w-[28px] object-contain opacity-70 transition-opacity group-hover:opacity-100"
-          height={28}
-          src="/icons/rotate.png"
-          width={28}
-        />
+        <Icons.Redo size={20} />
       </ActionButton>
 
-      {/* Top View */}
       <ActionButton
-        className="group hover:bg-white/5"
+        className="group text-[#76766e] opacity-70 hover:bg-[rgba(255,255,255,0.05)] hover:opacity-100"
         label="Top View"
         onClick={goToTopView}
         size="icon"
         variant="ghost"
       >
-        <Image
-          alt="Top View"
-          className="h-[28px] w-[28px] object-contain opacity-70 transition-opacity group-hover:opacity-100"
-          height={28}
-          src="/icons/topview.png"
-          width={28}
-        />
+        <Icons.Crosshair size={20} />
       </ActionButton>
     </div>
   );

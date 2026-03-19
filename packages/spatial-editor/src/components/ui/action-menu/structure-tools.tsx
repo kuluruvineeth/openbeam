@@ -1,6 +1,7 @@
 "use client";
 
-import NextImage from "next/image";
+import { Icons } from "@openbeam/ui";
+import type { ReactNode } from "react";
 
 import { cn } from "../../../lib/utils";
 import useEditor, {
@@ -11,19 +12,19 @@ import { ActionButton } from "./action-button";
 
 export type ToolConfig = {
   id: StructureTool;
-  iconSrc: string;
+  icon: ReactNode;
   label: string;
   catalogCategory?: CatalogCategory;
 };
 
 export const tools: ToolConfig[] = [
-  { id: "wall", iconSrc: "/icons/wall.png", label: "Wall" },
-  { id: "slab", iconSrc: "/icons/floor.png", label: "Slab" },
-  { id: "ceiling", iconSrc: "/icons/ceiling.png", label: "Ceiling" },
-  { id: "roof", iconSrc: "/icons/roof.png", label: "Gable Roof" },
-  { id: "door", iconSrc: "/icons/door.png", label: "Door" },
-  { id: "window", iconSrc: "/icons/window.png", label: "Window" },
-  { id: "zone", iconSrc: "/icons/zone.png", label: "Zone" },
+  { id: "wall", icon: <Icons.SidebarRight size={24} />, label: "Wall" },
+  { id: "slab", icon: <Icons.Square size={24} />, label: "Slab" },
+  { id: "ceiling", icon: <Icons.ArrowUp size={24} />, label: "Ceiling" },
+  { id: "roof", icon: <Icons.Home size={24} />, label: "Gable Roof" },
+  { id: "door", icon: <Icons.Expand size={24} />, label: "Door" },
+  { id: "window", icon: <Icons.Grid3x3 size={24} />, label: "Window" },
+  { id: "zone", icon: <Icons.RectangleSelect size={24} />, label: "Zone" },
 ];
 
 export function StructureTools() {
@@ -52,8 +53,8 @@ export function StructureTools() {
             className={cn(
               "rounded-lg duration-300",
               isActive
-                ? "z-10 scale-110 bg-black/40 hover:bg-black/40"
-                : "scale-95 bg-transparent opacity-60 grayscale hover:bg-black/20 hover:opacity-100 hover:grayscale-0"
+                ? "z-10 scale-110 bg-[#353530] text-[#ccc9c0] hover:bg-[#353530]"
+                : "scale-95 bg-transparent text-[#76766e] hover:bg-[rgba(255,255,255,0.05)] hover:text-[#ccc9c0]"
             )}
             key={`${tool.id}-${tool.catalogCategory ?? index}`}
             label={tool.label}
@@ -70,13 +71,7 @@ export function StructureTools() {
             size="icon"
             variant="ghost"
           >
-            <NextImage
-              alt={tool.label}
-              className="size-full object-contain"
-              height={28}
-              src={tool.iconSrc}
-              width={28}
-            />
+            {tool.icon}
           </ActionButton>
         );
       })}

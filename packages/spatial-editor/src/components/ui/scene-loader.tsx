@@ -36,12 +36,12 @@ export function SceneLoader({
   return (
     <div
       className={cn(
-        "z-100 flex items-center justify-center bg-background/80 backdrop-blur-md transition-opacity duration-300",
+        "z-100 flex items-center justify-center bg-[#242422]/90 transition-opacity duration-300",
         fullScreen ? "fixed inset-0" : "absolute inset-0",
         className
       )}
     >
-      <div className={cn(loaderClass, "text-foreground opacity-80")} />
+      <div className={cn(loaderClass, "text-[#ccc9c0] opacity-80")} />
     </div>
   );
 }

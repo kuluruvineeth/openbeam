@@ -3,41 +3,8 @@
 import type { AnyNodeId } from "@openbeam/spatial-core";
 import { emitter, LevelNode, useScene } from "@openbeam/spatial-core";
 import { useViewer } from "@openbeam/spatial-viewer";
-import { Dialog, DialogContent } from "@openbeam/ui";
+import { Dialog, DialogContent, Icons } from "@openbeam/ui";
 import { Command } from "cmdk";
-import {
-  AppWindow,
-  ArrowRight,
-  Box,
-  Building2,
-  Camera,
-  ChevronRight,
-  Copy,
-  DoorOpen,
-  Eye,
-  EyeOff,
-  FileJson,
-  Grid3X3,
-  Hexagon,
-  Layers,
-  // biome-ignore lint/suspicious/noShadowRestrictedNames: acceptable
-  Map,
-  Maximize2,
-  Minimize2,
-  Moon,
-  MousePointer2,
-  Package,
-  PencilLine,
-  Plus,
-  Redo2,
-  Search,
-  Square,
-  SquareStack,
-  Sun,
-  Trash2,
-  Undo2,
-  Video,
-} from "lucide-react";
 import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { useShallow } from "zustand/shallow";
@@ -59,7 +26,7 @@ function Shortcut({ keys }: { keys: string[] }) {
     <span className="ml-auto flex shrink-0 items-center gap-0.5">
       {keys.map((k) => (
         <kbd
-          className="flex min-w-4.5 items-center justify-center rounded border border-border/60 bg-muted/60 px-1 py-0.5 text-[10px] text-muted-foreground leading-none"
+          className="flex min-w-4.5 items-center justify-center rounded border border-[#3b3b36] bg-[#353530] px-1 py-0.5 text-[#76766e] text-[10px] leading-none"
           key={k}
         >
           {k}
@@ -90,25 +57,23 @@ function Item({
 }) {
   return (
     <Command.Item
-      className="flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-foreground text-sm transition-colors data-[disabled=true]:cursor-not-allowed data-[selected=true]:bg-accent data-[disabled=true]:opacity-40"
+      className="flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-[#ccc9c0] text-sm transition-colors data-[disabled=true]:cursor-not-allowed data-[selected=true]:bg-[#353530] data-[disabled=true]:opacity-40"
       disabled={disabled}
       keywords={keywords}
       onSelect={onSelect}
       value={label}
     >
-      <span className="flex h-4 w-4 shrink-0 items-center justify-center text-muted-foreground">
+      <span className="flex h-4 w-4 shrink-0 items-center justify-center text-[#76766e]">
         {icon}
       </span>
       <span className="flex-1 truncate">{label}</span>
       {badge && (
-        <span className="rounded bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground">
+        <span className="rounded bg-[#353530] px-1.5 py-0.5 text-[#76766e] text-[11px]">
           {badge}
         </span>
       )}
       {shortcut && <Shortcut keys={shortcut} />}
-      {(badge || navigate) && (
-        <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" />
-      )}
+      {(badge || navigate) && <Icons.ChevronRight size={12} />}
     </Command.Item>
   );
 }
@@ -128,12 +93,12 @@ function OptionItem({
 }) {
   return (
     <Command.Item
-      className="flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-foreground text-sm transition-colors data-[disabled=true]:cursor-not-allowed data-[selected=true]:bg-accent data-[disabled=true]:opacity-40"
+      className="flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-[#ccc9c0] text-sm transition-colors data-[disabled=true]:cursor-not-allowed data-[selected=true]:bg-[#353530] data-[disabled=true]:opacity-40"
       disabled={disabled}
       onSelect={onSelect}
       value={label}
     >
-      <span className="flex h-4 w-4 shrink-0 items-center justify-center text-muted-foreground">
+      <span className="flex h-4 w-4 shrink-0 items-center justify-center text-[#76766e]">
         {isActive ? (
           <div className="h-1.5 w-1.5 rounded-full bg-primary" />
         ) : (
@@ -435,9 +400,12 @@ export function CommandPalette() {
 
   return (
     <Dialog onOpenChange={setOpen} open={open}>
-      <DialogContent className="max-w-lg gap-0 overflow-hidden p-0" hideClose>
+      <DialogContent
+        className="max-w-lg gap-0 overflow-hidden border-[#3b3b36] bg-[#292927] p-0 shadow-[0_4px_20px_rgba(0,0,0,0.3),0_1px_4px_rgba(0,0,0,0.2)]"
+        hideClose
+      >
         <Command
-          className="**:[[cmdk-group-heading]]:px-2.5 **:[[cmdk-group-heading]]:pt-3 **:[[cmdk-group-heading]]:pb-1 **:[[cmdk-group-heading]]:font-semibold **:[[cmdk-group-heading]]:text-[10px] **:[[cmdk-group-heading]]:text-muted-foreground **:[[cmdk-group-heading]]:uppercase **:[[cmdk-group-heading]]:tracking-wider"
+          className="**:[[cmdk-group-heading]]:px-2.5 **:[[cmdk-group-heading]]:pt-3 **:[[cmdk-group-heading]]:pb-1 **:[[cmdk-group-heading]]:font-semibold **:[[cmdk-group-heading]]:text-[#76766e] **:[[cmdk-group-heading]]:text-[10px] **:[[cmdk-group-heading]]:uppercase **:[[cmdk-group-heading]]:tracking-wider"
           onKeyDown={(e) => {
             if (e.key === "Backspace" && !inputValue && pages.length > 0) {
               e.preventDefault();
@@ -447,11 +415,13 @@ export function CommandPalette() {
           shouldFilter={page !== "rename-level"}
         >
           {/* Search bar */}
-          <div className="flex items-center border-border/50 border-b px-3">
-            <Search className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
+          <div className="flex items-center border-[#3b3b36] border-b px-3">
+            <span className="mr-2 shrink-0 text-[#76766e]">
+              <Icons.Search size={16} />
+            </span>
             {page && (
               <button
-                className="mr-2 shrink-0 rounded bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground transition-colors hover:bg-muted/70"
+                className="mr-2 shrink-0 rounded bg-[#353530] px-1.5 py-0.5 text-[#76766e] text-[11px] transition-colors hover:bg-[#42423d]"
                 onClick={goBack}
                 type="button"
               >
@@ -461,7 +431,7 @@ export function CommandPalette() {
               </button>
             )}
             <Command.Input
-              className="flex h-12 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+              className="flex h-12 w-full bg-transparent text-[#ccc9c0] text-sm outline-none placeholder:text-[#76766e]"
               onValueChange={setInputValue}
               placeholder={
                 page === "rename-level"
@@ -476,7 +446,7 @@ export function CommandPalette() {
           </div>
 
           <Command.List className="max-h-100 overflow-y-auto p-1.5">
-            <Command.Empty className="py-8 text-center text-muted-foreground text-sm">
+            <Command.Empty className="py-8 text-center text-[#76766e] text-sm">
               No commands found.
             </Command.Empty>
 
@@ -486,50 +456,50 @@ export function CommandPalette() {
                 {/* Scene / Tools */}
                 <Command.Group heading="Scene">
                   <Item
-                    icon={<Square className="h-4 w-4" />}
+                    icon={<Icons.Square size={16} />}
                     keywords={["draw", "build", "structure"]}
                     label="Wall Tool"
                     onSelect={() => activateTool("wall")}
                   />
                   <Item
-                    icon={<Layers className="h-4 w-4" />}
+                    icon={<Icons.Layers size={16} />}
                     keywords={["floor", "build"]}
                     label="Slab Tool"
                     onSelect={() => activateTool("slab")}
                   />
                   <Item
-                    icon={<Grid3X3 className="h-4 w-4" />}
+                    icon={<Icons.Grid3x3 size={16} />}
                     keywords={["top", "build"]}
                     label="Ceiling Tool"
                     onSelect={() => activateTool("ceiling")}
                   />
                   <Item
-                    icon={<DoorOpen className="h-4 w-4" />}
+                    icon={<Icons.Expand size={16} />}
                     keywords={["opening", "entrance"]}
                     label="Door Tool"
                     onSelect={() => activateTool("door")}
                   />
                   <Item
-                    icon={<AppWindow className="h-4 w-4" />}
+                    icon={<Icons.LayoutGrid size={16} />}
                     keywords={["opening", "glass"]}
                     label="Window Tool"
                     onSelect={() => activateTool("window")}
                   />
                   <Item
-                    icon={<Package className="h-4 w-4" />}
+                    icon={<Icons.Package size={16} />}
                     keywords={["furniture", "object", "asset", "furnish"]}
                     label="Item Tool"
                     onSelect={() => activateTool("item")}
                   />
                   <Item
-                    icon={<Hexagon className="h-4 w-4" />}
+                    icon={<Icons.Target size={16} />}
                     keywords={["area", "room", "space"]}
                     label="Zone Tool"
                     onSelect={() => activateTool("zone")}
                   />
                   <Item
                     disabled={!hasSelection}
-                    icon={<Trash2 className="h-4 w-4" />}
+                    icon={<Icons.Trash size={16} />}
                     keywords={["remove", "erase"]}
                     label="Delete Selection"
                     onSelect={deleteSelection}
@@ -541,7 +511,7 @@ export function CommandPalette() {
                 <Command.Group heading="Levels">
                   <Item
                     disabled={allLevels.length === 0}
-                    icon={<ArrowRight className="h-4 w-4" />}
+                    icon={<Icons.ArrowRight size={16} />}
                     keywords={[
                       "level",
                       "floor",
@@ -555,14 +525,14 @@ export function CommandPalette() {
                     onSelect={() => navigateTo("goto-level")}
                   />
                   <Item
-                    icon={<Plus className="h-4 w-4" />}
+                    icon={<Icons.Plus size={16} />}
                     keywords={["level", "floor", "add", "create", "new"]}
                     label="Add Level"
                     onSelect={addLevel}
                   />
                   <Item
                     disabled={!activeLevelId}
-                    icon={<PencilLine className="h-4 w-4" />}
+                    icon={<Icons.Pencil size={16} />}
                     keywords={["level", "floor", "rename", "name"]}
                     label="Rename Level"
                     navigate
@@ -570,7 +540,7 @@ export function CommandPalette() {
                   />
                   <Item
                     disabled={!activeLevelId || isLevelZero}
-                    icon={<Trash2 className="h-4 w-4" />}
+                    icon={<Icons.Trash size={16} />}
                     keywords={["level", "floor", "delete", "remove"]}
                     label="Delete Level"
                     onSelect={deleteActiveLevel}
@@ -581,20 +551,20 @@ export function CommandPalette() {
                 <Command.Group heading="Viewer Controls">
                   <Item
                     badge={wallModeLabel[wallMode]}
-                    icon={<Layers className="h-4 w-4" />}
+                    icon={<Icons.Layers size={16} />}
                     keywords={["wall", "cutaway", "up", "down", "view"]}
                     label="Wall Mode"
                     onSelect={() => navigateTo("wall-mode")}
                   />
                   <Item
                     badge={levelModeLabel[levelMode]}
-                    icon={<SquareStack className="h-4 w-4" />}
+                    icon={<Icons.Layers size={16} />}
                     keywords={["level", "floor", "exploded", "stacked", "solo"]}
                     label="Level Mode"
                     onSelect={() => navigateTo("level-mode")}
                   />
                   <Item
-                    icon={<Video className="h-4 w-4" />}
+                    icon={<Icons.Video size={16} />}
                     keywords={[
                       "camera",
                       "ortho",
@@ -617,9 +587,9 @@ export function CommandPalette() {
                   <Item
                     icon={
                       theme === "dark" ? (
-                        <Sun className="h-4 w-4" />
+                        <Icons.Sun size={16} />
                       ) : (
-                        <Moon className="h-4 w-4" />
+                        <Icons.Moon size={16} />
                       )
                     }
                     keywords={["theme", "dark", "light", "appearance", "color"]}
@@ -633,7 +603,7 @@ export function CommandPalette() {
                     }
                   />
                   <Item
-                    icon={<Camera className="h-4 w-4" />}
+                    icon={<Icons.Eye size={16} />}
                     keywords={[
                       "camera",
                       "snapshot",
@@ -653,9 +623,9 @@ export function CommandPalette() {
                   <Item
                     icon={
                       isPreviewMode ? (
-                        <EyeOff className="h-4 w-4" />
+                        <Icons.EyeOff size={16} />
                       ) : (
-                        <Eye className="h-4 w-4" />
+                        <Icons.Eye size={16} />
                       )
                     }
                     keywords={["preview", "view", "read-only", "present"]}
@@ -665,9 +635,9 @@ export function CommandPalette() {
                   <Item
                     icon={
                       isFullscreen ? (
-                        <Minimize2 className="h-4 w-4" />
+                        <Icons.ExitFullscreen size={16} />
                       ) : (
-                        <Maximize2 className="h-4 w-4" />
+                        <Icons.Fullscreen size={16} />
                       )
                     }
                     keywords={["fullscreen", "maximize", "expand", "window"]}
@@ -681,7 +651,7 @@ export function CommandPalette() {
                 {/* History */}
                 <Command.Group heading="History">
                   <Item
-                    icon={<Undo2 className="h-4 w-4" />}
+                    icon={<Icons.Undo size={16} />}
                     keywords={["undo", "revert", "back"]}
                     label="Undo"
                     onSelect={() =>
@@ -690,7 +660,7 @@ export function CommandPalette() {
                     shortcut={[meta, "Z"]}
                   />
                   <Item
-                    icon={<Redo2 className="h-4 w-4" />}
+                    icon={<Icons.Redo size={16} />}
                     keywords={["redo", "forward", "repeat"]}
                     label="Redo"
                     onSelect={() =>
@@ -703,14 +673,14 @@ export function CommandPalette() {
                 {/* Export / Share */}
                 <Command.Group heading="Export & Share">
                   <Item
-                    icon={<FileJson className="h-4 w-4" />}
+                    icon={<Icons.FileText size={16} />}
                     keywords={["export", "download", "json", "save", "data"]}
                     label="Export Scene (JSON)"
                     onSelect={exportJson}
                   />
                   {exportScene && (
                     <Item
-                      icon={<Box className="h-4 w-4" />}
+                      icon={<Icons.Package size={16} />}
                       keywords={[
                         "export",
                         "glb",
@@ -724,13 +694,13 @@ export function CommandPalette() {
                     />
                   )}
                   <Item
-                    icon={<Copy className="h-4 w-4" />}
+                    icon={<Icons.Copy size={16} />}
                     keywords={["share", "copy", "url", "link"]}
                     label="Copy Share Link"
                     onSelect={copyShareLink}
                   />
                   <Item
-                    icon={<Camera className="h-4 w-4" />}
+                    icon={<Icons.Eye size={16} />}
                     keywords={[
                       "screenshot",
                       "capture",
@@ -795,13 +765,13 @@ export function CommandPalette() {
             {page === "rename-level" && (
               <Command.Group heading="Rename Level">
                 <Command.Item
-                  className="flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-foreground text-sm transition-colors data-[disabled=true]:cursor-not-allowed data-[selected=true]:bg-accent data-[disabled=true]:opacity-40"
+                  className="flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-[#ccc9c0] text-sm transition-colors data-[disabled=true]:cursor-not-allowed data-[selected=true]:bg-[#353530] data-[disabled=true]:opacity-40"
                   disabled={!inputValue.trim()}
                   onSelect={confirmRename}
                   value="confirm-rename"
                 >
-                  <span className="flex h-4 w-4 shrink-0 items-center justify-center text-muted-foreground">
-                    <PencilLine className="h-4 w-4" />
+                  <span className="flex h-4 w-4 shrink-0 items-center justify-center text-[#76766e]">
+                    <Icons.Pencil size={16} />
                   </span>
                   <span className="flex-1 truncate">
                     {inputValue.trim() ? (
@@ -812,7 +782,7 @@ export function CommandPalette() {
                         </span>
                       </>
                     ) : (
-                      <span className="text-muted-foreground">
+                      <span className="text-[#76766e]">
                         Type a new name above…
                       </span>
                     )}
@@ -825,7 +795,7 @@ export function CommandPalette() {
             {page === "camera-view" && (
               <Command.Group heading="Camera Snapshot — Select Scope">
                 <OptionItem
-                  icon={<Map className="h-4 w-4" />}
+                  icon={<Icons.MapPin size={16} />}
                   label="Site"
                   onSelect={() => {
                     const { rootNodeIds } = useScene.getState();
@@ -836,7 +806,7 @@ export function CommandPalette() {
                   }}
                 />
                 <OptionItem
-                  icon={<Building2 className="h-4 w-4" />}
+                  icon={<Icons.Building size={16} />}
                   label="Building"
                   onSelect={() => {
                     const building = Object.values(
@@ -849,7 +819,7 @@ export function CommandPalette() {
                 />
                 <OptionItem
                   disabled={!activeLevelId}
-                  icon={<Layers className="h-4 w-4" />}
+                  icon={<Icons.Layers size={16} />}
                   label="Level"
                   onSelect={() => {
                     if (activeLevelId) {
@@ -859,7 +829,7 @@ export function CommandPalette() {
                 />
                 <OptionItem
                   disabled={!hasSelection}
-                  icon={<MousePointer2 className="h-4 w-4" />}
+                  icon={<Icons.Pointer size={16} />}
                   label="Selection"
                   onSelect={() => {
                     const firstId = selection.selectedIds[0];
@@ -875,20 +845,20 @@ export function CommandPalette() {
             {page === "camera-scope" && cameraScope && (
               <Command.Group heading={`${cameraScope.label} Snapshot`}>
                 <OptionItem
-                  icon={<Camera className="h-4 w-4" />}
+                  icon={<Icons.Eye size={16} />}
                   label={hasScopeSnapshot ? "Update Snapshot" : "Take Snapshot"}
                   onSelect={takeSnapshot}
                 />
                 {hasScopeSnapshot && (
                   <OptionItem
-                    icon={<Eye className="h-4 w-4" />}
+                    icon={<Icons.Eye size={16} />}
                     label="View Snapshot"
                     onSelect={viewSnapshot}
                   />
                 )}
                 {hasScopeSnapshot && (
                   <OptionItem
-                    icon={<Trash2 className="h-4 w-4" />}
+                    icon={<Icons.Trash size={16} />}
                     label="Clear Snapshot"
                     onSelect={clearSnapshot}
                   />
@@ -898,19 +868,19 @@ export function CommandPalette() {
           </Command.List>
 
           {/* Footer hint */}
-          <div className="flex items-center justify-between border-border/50 border-t px-3 py-2">
-            <span className="text-[11px] text-muted-foreground">
+          <div className="flex items-center justify-between border-[#3b3b36] border-t px-3 py-2">
+            <span className="text-[#76766e] text-[11px]">
               <Shortcut keys={["↑", "↓"]} /> navigate
             </span>
-            <span className="text-[11px] text-muted-foreground">
+            <span className="text-[#76766e] text-[11px]">
               <Shortcut keys={["↵"]} /> select
             </span>
             {page ? (
-              <span className="text-[11px] text-muted-foreground">
+              <span className="text-[#76766e] text-[11px]">
                 <Shortcut keys={["⌫"]} /> back
               </span>
             ) : (
-              <span className="text-[11px] text-muted-foreground">
+              <span className="text-[#76766e] text-[11px]">
                 <Shortcut keys={["Esc"]} /> close
               </span>
             )}

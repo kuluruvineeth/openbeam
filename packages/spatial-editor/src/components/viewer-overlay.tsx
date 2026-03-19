@@ -10,19 +10,8 @@ import {
   type ZoneNode,
 } from "@openbeam/spatial-core";
 import { useViewer } from "@openbeam/spatial-viewer";
-import { TooltipProvider } from "@openbeam/ui";
-import {
-  ArrowLeft,
-  Camera,
-  ChevronRight,
-  Diamond,
-  Layers,
-  Layers2,
-  Moon,
-  Sun,
-} from "lucide-react";
+import { Icons, TooltipProvider } from "@openbeam/ui";
 import { motion } from "motion/react";
-import Link from "next/link";
 import { cn } from "../lib/utils";
 import { ActionButton } from "./ui/action-menu/action-button";
 
@@ -41,42 +30,15 @@ const levelModeLabels: Record<"stacked" | "exploded" | "solo", string> = {
 
 const wallModeConfig = {
   up: {
-    icon: (props: React.ComponentProps<"img">) => (
-      // biome-ignore lint/performance/noImgElement: intentional
-      <img
-        alt="Full Height"
-        height={28}
-        src="/icons/room.png"
-        width={28}
-        {...props}
-      />
-    ),
+    icon: () => <Icons.Home size={20} />,
     label: "Full Height",
   },
   cutaway: {
-    icon: (props: React.ComponentProps<"img">) => (
-      // biome-ignore lint/performance/noImgElement: intentional
-      <img
-        alt="Cutaway"
-        height={28}
-        src="/icons/wallcut.png"
-        width={28}
-        {...props}
-      />
-    ),
+    icon: () => <Icons.Scissors size={20} />,
     label: "Cutaway",
   },
   down: {
-    icon: (props: React.ComponentProps<"img">) => (
-      // biome-ignore lint/performance/noImgElement: intentional
-      <img
-        alt="Low"
-        height={28}
-        src="/icons/walllow.png"
-        width={28}
-        {...props}
-      />
-    ),
+    icon: () => <Icons.Minus size={20} />,
     label: "Low",
   },
 };
@@ -172,47 +134,47 @@ export const ViewerOverlay = ({
   return (
     <>
       {/* Unified top-left card */}
-      <div className="dark absolute top-4 left-4 z-20 flex flex-col gap-3 text-foreground">
-        <div className="pointer-events-auto flex min-w-[200px] flex-col overflow-hidden rounded-2xl border border-border/40 bg-background/95 shadow-lg backdrop-blur-xl transition-colors duration-200 ease-out">
+      <div className="dark absolute top-4 left-4 z-20 flex flex-col gap-3 text-[#ccc9c0]">
+        <div className="pointer-events-auto flex min-w-[200px] flex-col overflow-hidden rounded-[20px] border border-[#3b3b36] bg-[#242422] shadow-[0_2px_8px_rgba(0,0,0,0.35)] transition-colors duration-200 ease-out">
           {/* Project info + back */}
           <div className="flex items-center gap-3 px-3 py-2.5">
             {onBack ? (
               <button
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors hover:bg-white/10"
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors hover:bg-[rgba(255,255,255,0.05)]"
                 onClick={onBack}
                 type="button"
               >
-                <ArrowLeft className="h-4 w-4 text-muted-foreground" />
+                <Icons.ArrowLeft className="text-[#76766e]" size={16} />
               </button>
             ) : (
-              <Link
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors hover:bg-white/10"
+              <a
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors hover:bg-[rgba(255,255,255,0.05)]"
                 href="/"
               >
-                <ArrowLeft className="h-4 w-4 text-muted-foreground" />
-              </Link>
+                <Icons.ArrowLeft className="text-[#76766e]" size={16} />
+              </a>
             )}
             <div className="min-w-0">
-              <div className="truncate font-medium text-foreground text-sm">
+              <div className="truncate font-medium text-[#ccc9c0] text-sm">
                 {projectName || "Untitled"}
               </div>
               {owner?.username && (
-                <Link
-                  className="text-muted-foreground text-xs transition-colors hover:text-foreground"
+                <a
+                  className="text-[#76766e] text-xs transition-colors hover:text-[#ccc9c0]"
                   href={`/u/${owner.username}`}
                 >
                   @{owner.username}
-                </Link>
+                </a>
               )}
             </div>
           </div>
 
           {/* Breadcrumb — only shown when navigated into a building */}
           {building && (
-            <div className="border-border/40 border-t px-3 py-2">
+            <div className="border-[#3b3b36] border-t px-3 py-2">
               <div className="flex items-center gap-1.5 text-xs">
                 <button
-                  className="text-muted-foreground transition-colors hover:text-foreground"
+                  className="text-[#76766e] transition-colors hover:text-[#ccc9c0]"
                   onClick={() => handleBreadcrumbClick("root")}
                   type="button"
                 >
@@ -221,9 +183,12 @@ export const ViewerOverlay = ({
 
                 {building && (
                   <>
-                    <ChevronRight className="h-3 w-3 text-muted-foreground/50" />
+                    <Icons.ChevronRight
+                      className="text-[#76766e]/50"
+                      size={12}
+                    />
                     <button
-                      className={`truncate transition-colors ${level ? "text-muted-foreground hover:text-foreground" : "font-medium text-foreground"}`}
+                      className={`truncate transition-colors ${level ? "text-[#76766e] hover:text-[#ccc9c0]" : "font-medium text-[#ccc9c0]"}`}
                       onClick={() => handleBreadcrumbClick("building")}
                       type="button"
                     >
@@ -234,9 +199,12 @@ export const ViewerOverlay = ({
 
                 {level && (
                   <>
-                    <ChevronRight className="h-3 w-3 text-muted-foreground/50" />
+                    <Icons.ChevronRight
+                      className="text-[#76766e]/50"
+                      size={12}
+                    />
                     <button
-                      className={`truncate transition-colors ${zone ? "text-muted-foreground hover:text-foreground" : "font-medium text-foreground"}`}
+                      className={`truncate transition-colors ${zone ? "text-[#76766e] hover:text-[#ccc9c0]" : "font-medium text-[#ccc9c0]"}`}
                       onClick={() => handleBreadcrumbClick("level")}
                       type="button"
                     >
@@ -247,9 +215,12 @@ export const ViewerOverlay = ({
 
                 {zone && (
                   <>
-                    <ChevronRight className="h-3 w-3 text-muted-foreground/50" />
+                    <Icons.ChevronRight
+                      className="text-[#76766e]/50"
+                      size={12}
+                    />
                     <span
-                      className={`truncate transition-colors ${selectedNode ? "text-muted-foreground" : "font-medium text-foreground"}`}
+                      className={`truncate transition-colors ${selectedNode ? "text-[#76766e]" : "font-medium text-[#ccc9c0]"}`}
                     >
                       {zone.name}
                     </span>
@@ -258,8 +229,11 @@ export const ViewerOverlay = ({
 
                 {selectedNode && zone && (
                   <>
-                    <ChevronRight className="h-3 w-3 text-muted-foreground/50" />
-                    <span className="truncate font-medium text-foreground">
+                    <Icons.ChevronRight
+                      className="text-[#76766e]/50"
+                      size={12}
+                    />
+                    <span className="truncate font-medium text-[#ccc9c0]">
                       {getNodeName(selectedNode)}
                     </span>
                   </>
@@ -271,8 +245,8 @@ export const ViewerOverlay = ({
 
         {/* Level List (only when building is selected) */}
         {building && levels.length > 0 && (
-          <div className="pointer-events-auto flex w-48 flex-col overflow-hidden rounded-2xl border border-border/40 bg-background/95 py-1 shadow-lg backdrop-blur-xl transition-colors duration-200 ease-out">
-            <span className="px-3 py-2 font-medium text-[10px] text-muted-foreground uppercase tracking-wider">
+          <div className="pointer-events-auto flex w-48 flex-col overflow-hidden rounded-[20px] border border-[#3b3b36] bg-[#242422] py-1 shadow-[0_2px_8px_rgba(0,0,0,0.35)] transition-colors duration-200 ease-out">
+            <span className="px-3 py-2 font-medium text-[#76766e] text-[10px] uppercase tracking-wider">
               Levels
             </span>
             <div className="flex flex-col">
@@ -281,10 +255,10 @@ export const ViewerOverlay = ({
                 return (
                   <button
                     className={cn(
-                      "group/row relative flex h-8 w-full cursor-pointer select-none items-center border-border/50 border-r border-r-transparent border-b px-3 text-sm transition-all duration-200",
+                      "group/row relative flex h-8 w-full cursor-pointer select-none items-center border-[#3b3b36] border-r border-r-transparent border-b px-3 text-sm transition-all duration-200",
                       isSelected
-                        ? "border-r-3 border-r-white bg-accent/50 text-foreground"
-                        : "text-muted-foreground hover:bg-accent/30 hover:text-foreground"
+                        ? "border-r-3 border-r-[#ccc9c0] bg-[#353530] text-[#ccc9c0]"
+                        : "text-[#76766e] hover:bg-[rgba(255,255,255,0.05)] hover:text-[#ccc9c0]"
                     )}
                     key={lvl.id}
                     onClick={() => handleLevelClick(lvl.id)}
@@ -297,7 +271,7 @@ export const ViewerOverlay = ({
                           !isSelected && "opacity-60 grayscale"
                         )}
                       >
-                        <Layers className="h-3.5 w-3.5" />
+                        <Icons.Layers size={14} />
                       </span>
                       <div className="min-w-0 flex-1 truncate text-left">
                         {lvl.name || `Level ${lvl.level}`}
@@ -312,13 +286,13 @@ export const ViewerOverlay = ({
       </div>
 
       {/* Controls Panel - Bottom Center */}
-      <div className="dark -translate-x-1/2 absolute bottom-6 left-1/2 z-20 text-foreground">
+      <div className="dark -translate-x-1/2 absolute bottom-6 left-1/2 z-20 text-[#ccc9c0]">
         <TooltipProvider delayDuration={0}>
-          <div className="pointer-events-auto flex h-14 flex-row items-center justify-center gap-1.5 rounded-2xl border border-border/40 bg-background/95 p-1.5 shadow-lg backdrop-blur-xl transition-colors duration-200 ease-out">
+          <div className="pointer-events-auto flex flex-row items-center justify-center gap-1.5 rounded-[20px] border border-[#3b3b36] bg-[#242422] px-3 py-2 shadow-[0_2px_8px_rgba(0,0,0,0.35)] transition-colors duration-200 ease-out">
             {/* Theme Toggle */}
             <button
               aria-label="Toggle theme"
-              className="flex h-[36px] shrink-0 cursor-pointer items-center rounded-full border border-border/50 bg-accent/50 p-1"
+              className="flex h-[36px] shrink-0 cursor-pointer items-center rounded-full border border-[#3b3b36] bg-[#353530] p-1"
               onClick={() =>
                 useViewer
                   .getState()
@@ -346,29 +320,25 @@ export const ViewerOverlay = ({
                 <div
                   className={cn(
                     "pointer-events-none relative z-10 flex h-7 w-9 items-center justify-center rounded-full transition-colors duration-200",
-                    theme === "dark"
-                      ? "text-foreground"
-                      : "text-muted-foreground"
+                    theme === "dark" ? "text-[#ccc9c0]" : "text-[#76766e]"
                   )}
                 >
-                  <Moon className="h-4 w-4" />
+                  <Icons.Moon className="h-4 w-4" />
                 </div>
 
                 {/* Light Mode Icon */}
                 <div
                   className={cn(
                     "pointer-events-none relative z-10 flex h-7 w-9 items-center justify-center rounded-full transition-colors duration-200",
-                    theme === "light"
-                      ? "text-foreground"
-                      : "text-muted-foreground"
+                    theme === "light" ? "text-[#ccc9c0]" : "text-[#76766e]"
                   )}
                 >
-                  <Sun className="h-4 w-4" />
+                  <Icons.Sun className="h-4 w-4" />
                 </div>
               </div>
             </button>
 
-            <div className="mx-1 h-5 w-px bg-border/40" />
+            <div className="mx-1 h-5 w-px bg-[#3b3b36]" />
 
             {/* Scans and Guides Visibility */}
             {canShowScans && (
@@ -384,14 +354,7 @@ export const ViewerOverlay = ({
                 tooltipSide="top"
                 variant="ghost"
               >
-                {/* biome-ignore lint/performance/noImgElement: intentional */}
-                <img
-                  alt="Scans"
-                  className="h-[28px] w-[28px] object-contain"
-                  height={28}
-                  src="/icons/mesh.png"
-                  width={28}
-                />
+                <Icons.Grid3x3 size={20} />
               </ActionButton>
             )}
 
@@ -408,19 +371,12 @@ export const ViewerOverlay = ({
                 tooltipSide="top"
                 variant="ghost"
               >
-                {/* biome-ignore lint/performance/noImgElement: intentional */}
-                <img
-                  alt="Guides"
-                  className="h-[28px] w-[28px] object-contain"
-                  height={28}
-                  src="/icons/floorplan.png"
-                  width={28}
-                />
+                <Icons.LayoutGrid size={20} />
               </ActionButton>
             )}
 
             {(canShowScans || canShowGuides) && (
-              <div className="mx-1 h-5 w-px bg-border/40" />
+              <div className="mx-1 h-5 w-px bg-[#3b3b36]" />
             )}
 
             {/* Camera Mode */}
@@ -444,7 +400,7 @@ export const ViewerOverlay = ({
               tooltipSide="top"
               variant="ghost"
             >
-              <Camera className="h-6 w-6" />
+              <Icons.Eye size={24} />
             </ActionButton>
 
             {/* Level Mode */}
@@ -475,10 +431,10 @@ export const ViewerOverlay = ({
               tooltipSide="top"
               variant="ghost"
             >
-              {levelMode === "solo" && <Diamond className="h-6 w-6" />}
-              {levelMode === "exploded" && <Layers2 className="h-6 w-6" />}
+              {levelMode === "solo" && <Icons.Square size={24} />}
+              {levelMode === "exploded" && <Icons.Layers size={24} />}
               {(levelMode === "stacked" || levelMode === "manual") && (
-                <Layers className="h-6 w-6" />
+                <Icons.Layers size={24} />
               )}
             </ActionButton>
 
@@ -505,14 +461,10 @@ export const ViewerOverlay = ({
               tooltipSide="top"
               variant="ghost"
             >
-              {(() => {
-                const Icon =
-                  wallModeConfig[wallMode as keyof typeof wallModeConfig].icon;
-                return <Icon className="h-[28px] w-[28px]" />;
-              })()}
+              {wallModeConfig[wallMode as keyof typeof wallModeConfig].icon()}
             </ActionButton>
 
-            <div className="mx-1 h-5 w-px bg-border/40" />
+            <div className="mx-1 h-5 w-px bg-[#3b3b36]" />
 
             {/* Camera Actions */}
             <ActionButton
@@ -523,13 +475,9 @@ export const ViewerOverlay = ({
               tooltipSide="top"
               variant="ghost"
             >
-              {/* biome-ignore lint/performance/noImgElement: intentional */}
-              <img
-                alt="Orbit Left"
-                className="-scale-x-100 h-[28px] w-[28px] object-contain opacity-70 transition-opacity group-hover:opacity-100"
-                height={28}
-                src="/icons/rotate.png"
-                width={28}
+              <Icons.Undo
+                className="opacity-70 transition-opacity group-hover:opacity-100"
+                size={20}
               />
             </ActionButton>
 
@@ -541,13 +489,9 @@ export const ViewerOverlay = ({
               tooltipSide="top"
               variant="ghost"
             >
-              {/* biome-ignore lint/performance/noImgElement: intentional */}
-              <img
-                alt="Orbit Right"
-                className="h-[28px] w-[28px] object-contain opacity-70 transition-opacity group-hover:opacity-100"
-                height={28}
-                src="/icons/rotate.png"
-                width={28}
+              <Icons.Redo
+                className="opacity-70 transition-opacity group-hover:opacity-100"
+                size={20}
               />
             </ActionButton>
 
@@ -559,13 +503,9 @@ export const ViewerOverlay = ({
               tooltipSide="top"
               variant="ghost"
             >
-              {/* biome-ignore lint/performance/noImgElement: intentional */}
-              <img
-                alt="Top View"
-                className="h-[28px] w-[28px] object-contain opacity-70 transition-opacity group-hover:opacity-100"
-                height={28}
-                src="/icons/topview.png"
-                width={28}
+              <Icons.Eye
+                className="opacity-70 transition-opacity group-hover:opacity-100"
+                size={20}
               />
             </ActionButton>
           </div>

@@ -10,9 +10,9 @@ import {
   WindowNode,
 } from "@openbeam/spatial-core";
 import { useViewer } from "@openbeam/spatial-viewer";
+import { Icons } from "@openbeam/ui";
 import { Html } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { Copy, Move, Trash2 } from "lucide-react";
 import { useCallback, useRef } from "react";
 import * as THREE from "three";
 import { sfxEmitter } from "../../lib/sfx-bus";
@@ -157,7 +157,7 @@ export function FloatingActionMenu() {
             title="Move"
             type="button"
           >
-            <Move className="h-4 w-4" />
+            <Icons.Move size={16} />
           </button>
           <button
             className="tooltip-trigger rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
@@ -165,7 +165,7 @@ export function FloatingActionMenu() {
             title="Duplicate"
             type="button"
           >
-            <Copy className="h-4 w-4" />
+            <Icons.Copy size={16} />
           </button>
           <button
             className="tooltip-trigger rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
@@ -173,7 +173,7 @@ export function FloatingActionMenu() {
             title="Delete"
             type="button"
           >
-            <Trash2 className="h-4 w-4" />
+            <Icons.Trash size={16} />
           </button>
         </div>
       </Html>

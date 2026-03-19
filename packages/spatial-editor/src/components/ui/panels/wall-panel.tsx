@@ -7,6 +7,7 @@ import {
   type WallNode,
 } from "@openbeam/spatial-core";
 import { useViewer } from "@openbeam/spatial-viewer";
+import { Icons } from "@openbeam/ui";
 import { useCallback } from "react";
 import { PanelSection } from "../controls/panel-section";
 import { SliderControl } from "../controls/slider-control";
@@ -51,7 +52,7 @@ export function WallPanel() {
 
   return (
     <PanelWrapper
-      icon="/icons/wall.png"
+      icon={<Icons.Square size={16} />}
       onClose={handleClose}
       title={node.name || "Wall"}
       width={280}
@@ -80,9 +81,11 @@ export function WallPanel() {
       </PanelSection>
 
       <PanelSection title="Info">
-        <div className="flex items-center justify-between px-2 py-1 text-muted-foreground text-sm">
+        <div className="flex items-center justify-between px-2 py-1 text-[#76766e] text-sm">
           <span>Length</span>
-          <span className="font-mono text-white">{length.toFixed(2)} m</span>
+          <span className="font-mono text-[#ccc9c0]">
+            {length.toFixed(2)} m
+          </span>
         </div>
       </PanelSection>
     </PanelWrapper>

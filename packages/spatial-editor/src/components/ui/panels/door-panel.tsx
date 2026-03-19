@@ -8,7 +8,7 @@ import {
   useScene,
 } from "@openbeam/spatial-core";
 import { useViewer } from "@openbeam/spatial-viewer";
-import { BookMarked, Copy, FlipHorizontal2, Move, Trash2 } from "lucide-react";
+import { Icons } from "@openbeam/ui";
 import { useCallback } from "react";
 import { usePresetsAdapter } from "../../../contexts/presets-context";
 import { sfxEmitter } from "../../../lib/sfx-bus";
@@ -237,7 +237,7 @@ export function DoorPanel() {
 
   return (
     <PanelWrapper
-      icon="/icons/door.png"
+      icon={<Icons.Expand size={16} />}
       onClose={handleClose}
       title={node.name || "Door"}
       width={320}
@@ -257,10 +257,10 @@ export function DoorPanel() {
           type="door"
         >
           <button
-            className="flex w-full items-center gap-2 rounded-lg border border-border/50 bg-[#2C2C2E] px-3 py-2 font-medium text-muted-foreground text-xs transition-colors hover:bg-[#3e3e3e] hover:text-foreground"
+            className="flex w-full items-center gap-2 rounded-lg border border-border/50 bg-[#2C2C2E] px-3 py-2 font-medium text-[#76766e] text-xs transition-colors hover:bg-[#3e3e3e] hover:text-foreground"
             type="button"
           >
-            <BookMarked className="h-3.5 w-3.5 shrink-0" />
+            <Icons.Bookmark size={14} />
             <span>Presets</span>
           </button>
         </PresetsPopover>
@@ -286,7 +286,7 @@ export function DoorPanel() {
         <div className="px-1 pt-2 pb-1">
           <ActionButton
             className="w-full"
-            icon={<FlipHorizontal2 className="h-4 w-4" />}
+            icon={<Icons.ArrowRight size={16} />}
             label="Flip Side"
             onClick={handleFlip}
           />
@@ -374,7 +374,7 @@ export function DoorPanel() {
       <PanelSection title="Swing">
         <div className="flex flex-col gap-2 px-1 pb-1">
           <div className="space-y-1">
-            <span className="font-medium text-[10px] text-muted-foreground/80 uppercase tracking-wider">
+            <span className="font-medium text-[#76766e]/80 text-[10px] uppercase tracking-wider">
               Hinges Side
             </span>
             <SegmentedControl
@@ -387,7 +387,7 @@ export function DoorPanel() {
             />
           </div>
           <div className="space-y-1">
-            <span className="font-medium text-[10px] text-muted-foreground/80 uppercase tracking-wider">
+            <span className="font-medium text-[#76766e]/80 text-[10px] uppercase tracking-wider">
               Direction
             </span>
             <SegmentedControl
@@ -443,7 +443,7 @@ export function DoorPanel() {
               value={Math.round(node.handleHeight * 100) / 100}
             />
             <div className="space-y-1">
-              <span className="font-medium text-[10px] text-muted-foreground/80 uppercase tracking-wider">
+              <span className="font-medium text-[#76766e]/80 text-[10px] uppercase tracking-wider">
                 Handle Side
               </span>
               <SegmentedControl
@@ -495,7 +495,7 @@ export function DoorPanel() {
             // biome-ignore lint/suspicious/noArrayIndexKey: static list
             <div className="mb-2 flex flex-col gap-1" key={i}>
               <div className="flex items-center justify-between pb-1">
-                <span className="font-medium text-white/80 text-xs">
+                <span className="font-medium text-[#ccc9c0]/80 text-xs">
                   Segment {i + 1}
                 </span>
               </div>
@@ -637,7 +637,7 @@ export function DoorPanel() {
           />
           {node.segments.length > 1 && (
             <ActionButton
-              className="text-white/60 hover:text-white"
+              className="text-[#ccc9c0]/60 hover:text-[#ccc9c0]"
               label="- Remove"
               onClick={() =>
                 handleUpdate({ segments: node.segments.slice(0, -1) })
@@ -650,18 +650,18 @@ export function DoorPanel() {
       <PanelSection title="Actions">
         <ActionGroup>
           <ActionButton
-            icon={<Move className="h-3.5 w-3.5" />}
+            icon={<Icons.Move size={14} />}
             label="Move"
             onClick={handleMove}
           />
           <ActionButton
-            icon={<Copy className="h-3.5 w-3.5" />}
+            icon={<Icons.Copy size={14} />}
             label="Duplicate"
             onClick={handleDuplicate}
           />
           <ActionButton
             className="hover:bg-red-500/20"
-            icon={<Trash2 className="h-3.5 w-3.5 text-red-400" />}
+            icon={<Icons.Trash size={14} />}
             label="Delete"
             onClick={handleDelete}
           />

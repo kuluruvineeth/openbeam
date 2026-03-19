@@ -1,13 +1,14 @@
 "use client";
 
-import NextImage from "next/image";
+import { Icons } from "@openbeam/ui";
+import type { ReactNode } from "react";
 import { cn } from "./../../../lib/utils";
 import useEditor, { type CatalogCategory } from "./../../../store/use-editor";
 import { ActionButton } from "./action-button";
 
 export type FurnishToolConfig = {
   id: "item";
-  iconSrc: string;
+  icon: ReactNode;
   label: string;
   catalogCategory: CatalogCategory;
 };
@@ -15,31 +16,31 @@ export type FurnishToolConfig = {
 export const furnishTools: FurnishToolConfig[] = [
   {
     id: "item",
-    iconSrc: "/icons/couch.png",
+    icon: <Icons.Package size={24} />,
     label: "Furniture",
     catalogCategory: "furniture",
   },
   {
     id: "item",
-    iconSrc: "/icons/appliance.png",
+    icon: <Icons.Zap size={24} />,
     label: "Appliance",
     catalogCategory: "appliance",
   },
   {
     id: "item",
-    iconSrc: "/icons/kitchen.png",
+    icon: <Icons.Wrench size={24} />,
     label: "Kitchen",
     catalogCategory: "kitchen",
   },
   {
     id: "item",
-    iconSrc: "/icons/bathroom.png",
+    icon: <Icons.Layers size={24} />,
     label: "Bathroom",
     catalogCategory: "bathroom",
   },
   {
     id: "item",
-    iconSrc: "/icons/tree.png",
+    icon: <Icons.MapPin size={24} />,
     label: "Outdoor",
     catalogCategory: "outdoor",
   },
@@ -66,8 +67,8 @@ export function FurnishTools() {
             className={cn(
               "rounded-lg duration-300",
               isActive
-                ? "z-10 scale-110 bg-black/40 hover:bg-black/40"
-                : "scale-95 bg-transparent opacity-60 grayscale hover:bg-black/20 hover:opacity-100 hover:grayscale-0"
+                ? "z-10 scale-110 bg-[#353530] text-[#ccc9c0] hover:bg-[#353530]"
+                : "scale-95 bg-transparent text-[#76766e] hover:bg-[rgba(255,255,255,0.05)] hover:text-[#ccc9c0]"
             )}
             key={`${tool.id}-${tool.catalogCategory ?? index}`}
             label={tool.label}
@@ -83,13 +84,7 @@ export function FurnishTools() {
             size="icon"
             variant="ghost"
           >
-            <NextImage
-              alt={tool.label}
-              className="size-full object-contain"
-              height={28}
-              src={tool.iconSrc}
-              width={28}
-            />
+            {tool.icon}
           </ActionButton>
         );
       })}

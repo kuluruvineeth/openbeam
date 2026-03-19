@@ -98,19 +98,19 @@ export const CursorSphere = forwardRef<Group, CursorSphereProps>(
               height: "36px",
             }}
           >
-            {/* biome-ignore lint/performance/noImgElement: intentional */}
-            <img
-              alt={activeToolConfig.label}
-              height={0}
-              src={activeToolConfig.iconSrc}
+            <span
               style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 width: "100%",
                 height: "100%",
-                objectFit: "contain",
+                color: "#ccc9c0",
                 filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.5))",
               }}
-              width={0}
-            />
+            >
+              {activeToolConfig.icon}
+            </span>
           </Html>
         )}
       </group>

@@ -2,7 +2,7 @@
 
 import { type AnyNode, type SlabNode, useScene } from "@openbeam/spatial-core";
 import { useViewer } from "@openbeam/spatial-viewer";
-import { Edit, Plus, Trash2 } from "lucide-react";
+import { Icons } from "@openbeam/ui";
 import { useCallback, useEffect } from "react";
 import useEditor from "../../../store/use-editor";
 import { ActionButton } from "../controls/action-button";
@@ -130,7 +130,7 @@ export function SlabPanel() {
 
   return (
     <PanelWrapper
-      icon="/icons/floor.png"
+      icon={<Icons.Layers size={16} />}
       onClose={handleClose}
       title={node.name || "Slab"}
       width={320}
@@ -168,9 +168,9 @@ export function SlabPanel() {
       </PanelSection>
 
       <PanelSection title="Info">
-        <div className="flex items-center justify-between px-2 py-1 text-muted-foreground text-sm">
+        <div className="flex items-center justify-between px-2 py-1 text-[#76766e] text-sm">
           <span>Area</span>
-          <span className="font-mono text-white">{area.toFixed(2)} m²</span>
+          <span className="font-mono text-[#ccc9c0]">{area.toFixed(2)} m²</span>
         </div>
       </PanelSection>
 
@@ -194,11 +194,11 @@ export function SlabPanel() {
                 >
                   <div className="min-w-0 flex-1">
                     <p
-                      className={`font-medium text-xs ${isEditing ? "text-primary" : "text-white"}`}
+                      className={`font-medium text-xs ${isEditing ? "text-primary" : "text-[#ccc9c0]"}`}
                     >
                       Hole {index + 1} {isEditing && "(Editing)"}
                     </p>
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-[#76766e] text-[10px]">
                       {holeArea.toFixed(2)} m² · {hole.length} pts
                     </p>
                   </div>
@@ -212,18 +212,18 @@ export function SlabPanel() {
                     ) : (
                       <>
                         <button
-                          className="flex h-7 w-7 items-center justify-center rounded-md bg-[#2C2C2E] text-muted-foreground hover:bg-[#3e3e3e] hover:text-foreground"
+                          className="flex h-7 w-7 items-center justify-center rounded-md bg-[#2C2C2E] text-[#76766e] hover:bg-[#3e3e3e] hover:text-foreground"
                           onClick={() => handleEditHole(index)}
                           type="button"
                         >
-                          <Edit className="h-3.5 w-3.5" />
+                          <Icons.Pencil size={14} />
                         </button>
                         <button
                           className="flex h-7 w-7 items-center justify-center rounded-md bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300"
                           onClick={() => handleDeleteHole(index)}
                           type="button"
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          <Icons.Trash size={14} />
                         </button>
                       </>
                     )}
@@ -233,7 +233,7 @@ export function SlabPanel() {
             })}
           </div>
         ) : (
-          <div className="px-2 py-3 text-center text-muted-foreground text-xs">
+          <div className="px-2 py-3 text-center text-[#76766e] text-xs">
             No holes
           </div>
         )}
@@ -242,7 +242,7 @@ export function SlabPanel() {
           <ActionButton
             className="w-full"
             disabled={editingHole?.nodeId === selectedId}
-            icon={<Plus className="h-3.5 w-3.5" />}
+            icon={<Icons.Plus size={14} />}
             label="Add Hole"
             onClick={handleAddHole}
           />

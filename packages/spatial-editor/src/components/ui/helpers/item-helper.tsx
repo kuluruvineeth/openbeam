@@ -4,27 +4,31 @@ interface ItemHelperProps {
 
 export function ItemHelper({ showEsc }: ItemHelperProps) {
   return (
-    <div className="-translate-y-1/2 pointer-events-none fixed top-1/2 right-4 z-40 flex flex-col gap-2 rounded-lg border border-border bg-background/95 px-4 py-3 shadow-lg backdrop-blur-md">
+    <div className="-translate-y-1/2 pointer-events-none fixed top-1/2 right-4 z-40 flex flex-col gap-2 rounded-[14px] border border-[#3b3b36] bg-[#242422] px-4 py-3 shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
       <div className="flex items-center gap-2 text-sm">
-        <kbd className="rounded bg-muted px-2 py-1 font-medium text-xs">R</kbd>
-        <span className="text-muted-foreground">Rotate counterclockwise</span>
+        <kbd className="rounded bg-[#353530] px-2 py-1 font-medium text-xs">
+          R
+        </kbd>
+        <span className="text-[#76766e]">Rotate counterclockwise</span>
       </div>
       <div className="flex items-center gap-2 text-sm">
-        <kbd className="rounded bg-muted px-2 py-1 font-medium text-xs">T</kbd>
-        <span className="text-muted-foreground">Rotate clockwise</span>
+        <kbd className="rounded bg-[#353530] px-2 py-1 font-medium text-xs">
+          T
+        </kbd>
+        <span className="text-[#76766e]">Rotate clockwise</span>
       </div>
       <div className="flex items-center gap-2 text-sm">
-        <kbd className="rounded bg-muted px-2 py-1 font-medium text-xs">
+        <kbd className="rounded bg-[#353530] px-2 py-1 font-medium text-xs">
           Shift
         </kbd>
-        <span className="text-muted-foreground">Free place</span>
+        <span className="text-[#76766e]">Free place</span>
       </div>
       {showEsc && (
         <div className="flex items-center gap-2 text-sm">
-          <kbd className="rounded bg-muted px-2 py-1 font-medium text-xs">
+          <kbd className="rounded bg-[#353530] px-2 py-1 font-medium text-xs">
             Esc
           </kbd>
-          <span className="text-muted-foreground">Cancel</span>
+          <span className="text-[#76766e]">Cancel</span>
         </div>
       )}
     </div>
