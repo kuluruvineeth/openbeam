@@ -967,6 +967,7 @@
         "@radix-ui/react-switch": "^1.2.6",
         "@radix-ui/react-tabs": "^1.1.13",
         "@radix-ui/react-tooltip": "^1.2.8",
+        "@visual-json/react": "latest",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "cmdk": "^1.1.1",
@@ -3437,6 +3438,10 @@
     "@use-gesture/react": ["@use-gesture/react@10.3.1", "", { "dependencies": { "@use-gesture/core": "10.3.1" }, "peerDependencies": { "react": ">= 16.8.0" } }, "sha512-Yy19y6O2GJq8f7CHf7L0nxL8bf4PZCPaVOCgJrusOeFHY1LvHgYXnmnXg6N5iwAnbgbZCDjo60SiM6IPJi9C5g=="],
 
     "@vercel/oidc": ["@vercel/oidc@3.1.0", "", {}, "sha512-Fw28YZpRnA3cAHHDlkt7xQHiJ0fcL+NRcIqsocZQUSmbzeIKRpwttJjik5ZGanXP+vlA4SbTg+AbA3bP363l+w=="],
+
+    "@visual-json/core": ["@visual-json/core@0.3.1", "", {}, "sha512-rjRbcCbKBixuQpXqVPgzKl3Nfk0QLD1NJhuHittM0ASYETozxTsou4fL6g/IWz/BaYiAAjKnrkb8aasbzJGcvg=="],
+
+    "@visual-json/react": ["@visual-json/react@0.3.1", "", { "dependencies": { "@visual-json/core": "0.3.1" }, "peerDependencies": { "react": "^18.0.0 || ^19.0.0" } }, "sha512-OoyKkhSs2MzS4embJZY3VPYUl8/gTn1BycWZskspHul/Sn4nfWjEUafWe6aWSeIKhuAw8HQwbw2krgTtuMM4Gg=="],
 
     "@vitest/expect": ["@vitest/expect@2.1.9", "", { "dependencies": { "@vitest/spy": "2.1.9", "@vitest/utils": "2.1.9", "chai": "^5.1.2", "tinyrainbow": "^1.2.0" } }, "sha512-UJCIkTBenHeKT1TTlKMJWy1laZewsRIzYighyYiJKZreqtdxSos/S1t+ktRMQWu2CKqaarrkeszJx1cgC5tGZw=="],
 
