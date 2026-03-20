@@ -6,6 +6,7 @@ import {
   azureIotIncrementalSync,
   cisaKevFullSync,
   cisaKevIncrementalSync,
+  confluenceFullSync,
   confluenceIncrementalSync,
   createAtlassianClient,
   createAwsIotClient,
@@ -28,6 +29,7 @@ import {
   githubIncrementalSync,
   gmailIncrementalSync,
   googleDriveIncrementalSync,
+  jiraFullSync,
   jiraIncrementalSync,
   linearFullSync,
   linearIncrementalSync,
@@ -38,6 +40,7 @@ import {
   nvdIncrementalSync,
   outlookIncrementalSync,
   owaspFullSync,
+  salesforceFullSync,
   salesforceIncrementalSync,
   samsaraFullSync,
   samsaraIncrementalSync,
@@ -1063,14 +1066,26 @@ export function registerAllSyncFactories(): void {
       cloudId,
     };
 
-    for await (const batch of jiraIncrementalSync(client, context, {
-      cursor,
-      batchSize: 50,
-      includeProjects,
-      excludeProjects,
-      syncComments,
-      lookbackDays,
-    })) {
+    const forceFullSync = parseBooleanConfig(cursor?.forceFullSync) === true;
+
+    const syncGenerator = forceFullSync
+      ? jiraFullSync(client, context, {
+          batchSize: 50,
+          includeProjects,
+          excludeProjects,
+          syncComments,
+          lookbackDays,
+        })
+      : jiraIncrementalSync(client, context, {
+          cursor,
+          batchSize: 50,
+          includeProjects,
+          excludeProjects,
+          syncComments,
+          lookbackDays,
+        });
+
+    for await (const batch of syncGenerator) {
       yield {
         items: batch.items as GenericDocument[],
         cursor: batch.cursor as SyncCursor,
@@ -1510,12 +1525,22 @@ export function registerAllSyncFactories(): void {
         cloudId,
       };
 
-      for await (const batch of confluenceIncrementalSync(client, context, {
-        cursor,
-        batchSize: 100,
-        includeSpaces,
-        excludeSpaces,
-      })) {
+      const forceFullSync = parseBooleanConfig(cursor?.forceFullSync) === true;
+
+      const syncGenerator = forceFullSync
+        ? confluenceFullSync(client, context, {
+            batchSize: 100,
+            includeSpaces,
+            excludeSpaces,
+          })
+        : confluenceIncrementalSync(client, context, {
+            cursor,
+            batchSize: 100,
+            includeSpaces,
+            excludeSpaces,
+          });
+
+      for await (const batch of syncGenerator) {
         yield {
           items: batch.items as GenericDocument[],
           cursor: batch.cursor as SyncCursor,
@@ -1562,12 +1587,22 @@ export function registerAllSyncFactories(): void {
         instanceUrl,
       };
 
-      for await (const batch of salesforceIncrementalSync(client, context, {
-        cursor,
-        batchSize: 200,
-        syncCases,
-        lookbackDays,
-      })) {
+      const forceFullSync = parseBooleanConfig(cursor?.forceFullSync) === true;
+
+      const syncGenerator = forceFullSync
+        ? salesforceFullSync(client, context, {
+            batchSize: 200,
+            syncCases,
+            lookbackDays,
+          })
+        : salesforceIncrementalSync(client, context, {
+            cursor,
+            batchSize: 200,
+            syncCases,
+            lookbackDays,
+          });
+
+      for await (const batch of syncGenerator) {
         yield {
           items: batch.items as GenericDocument[],
           cursor: batch.cursor as SyncCursor,

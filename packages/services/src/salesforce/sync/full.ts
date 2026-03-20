@@ -14,6 +14,10 @@ import {
   transformSalesforceAccount,
 } from "../transformers/account";
 import {
+  type SalesforceKnowledgeArticle,
+  transformSalesforceArticle,
+} from "../transformers/article";
+import {
   type SalesforceCase,
   transformSalesforceCase,
 } from "../transformers/case";
@@ -34,6 +38,8 @@ const OPPORTUNITY_FIELDS =
   "Id,Name,Description,StageName,Amount,Probability,CloseDate,Type,LeadSource,Account.Name,Account.Id,Owner.Name,Owner.Email,CreatedDate,LastModifiedDate,SystemModstamp,IsClosed,IsWon";
 const CASE_FIELDS =
   "Id,CaseNumber,Subject,Description,Status,Priority,Type,Reason,Origin,Contact.Name,Contact.Email,Account.Name,Owner.Name,Owner.Email,CreatedDate,LastModifiedDate,ClosedDate,SystemModstamp,IsClosed";
+const KNOWLEDGE_FIELDS =
+  "Id,Title,Summary,ArticleBody,UrlName,ArticleNumber,PublishStatus,VersionNumber,KnowledgeArticleId,CreatedDate,LastModifiedDate,SystemModstamp,CreatedBy.Name,CreatedBy.Email,LastModifiedBy.Name";
 
 export async function* salesforceFullSync(
   client: SalesforceClient,
@@ -77,6 +83,7 @@ export async function* salesforceFullSync(
         items: documents,
         stats: { processed, skipped, errors },
         hasMore: true,
+        latestModstamp,
       });
       documents = [];
     }
@@ -103,6 +110,7 @@ export async function* salesforceFullSync(
         items: documents,
         stats: { processed, skipped, errors },
         hasMore: true,
+        latestModstamp,
       });
       documents = [];
     }
@@ -129,6 +137,7 @@ export async function* salesforceFullSync(
         items: documents,
         stats: { processed, skipped, errors },
         hasMore: true,
+        latestModstamp,
       });
       documents = [];
     }
@@ -159,6 +168,43 @@ export async function* salesforceFullSync(
     }
   }
 
+  try {
+    for await (const articles of client.queryAll<SalesforceKnowledgeArticle>(
+      `SELECT ${KNOWLEDGE_FIELDS} FROM Knowledge__kav WHERE PublishStatus = 'Online'${dateFilter ? ` AND ${dateFilter.trim().replace("WHERE ", "")}` : ""} ORDER BY SystemModstamp ASC`
+    )) {
+      for (const article of articles) {
+        try {
+          documents.push(transformSalesforceArticle(article, context));
+          processed += 1;
+          latestModstamp = trackModstamp(
+            article.SystemModstamp,
+            latestModstamp
+          );
+        } catch (error) {
+          logger.error(
+            { error, articleId: article.Id },
+            "Error transforming Knowledge Article"
+          );
+          errors += 1;
+        }
+      }
+      if (documents.length >= batchSize) {
+        yield makeBatch({
+          items: documents,
+          stats: { processed, skipped, errors },
+          hasMore: true,
+          latestModstamp,
+        });
+        documents = [];
+      }
+    }
+  } catch (error) {
+    logger.warn(
+      { error },
+      "Knowledge Articles query failed — org may not have Knowledge enabled"
+    );
+  }
+
   const cursor: SalesforceSyncCursor = {
     lastSyncTime: latestModstamp,
     lastFullSync: Date.now(),
@@ -176,10 +222,11 @@ function makeBatch(params: {
   items: GenericDocument[];
   stats: { processed: number; skipped: number; errors: number };
   hasMore: boolean;
+  latestModstamp?: string;
 }): SalesforceSyncBatch<GenericDocument> {
   return {
     items: params.items,
-    cursor: { lastFullSync: Date.now() },
+    cursor: { lastSyncTime: params.latestModstamp, lastFullSync: Date.now() },
     hasMore: params.hasMore,
     stats: params.stats,
   };

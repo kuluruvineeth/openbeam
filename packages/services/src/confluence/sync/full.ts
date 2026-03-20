@@ -72,7 +72,10 @@ export async function* confluenceFullSync(
           if (documents.length >= batchSize) {
             yield {
               items: documents,
-              cursor: { lastFullSync: Date.now() },
+              cursor: {
+                lastSyncTime: latestModified,
+                lastFullSync: Date.now(),
+              },
               hasMore: true,
               stats: { processed, skipped, errors },
             };
@@ -120,7 +123,10 @@ export async function* confluenceFullSync(
           if (documents.length >= batchSize) {
             yield {
               items: documents,
-              cursor: { lastFullSync: Date.now() },
+              cursor: {
+                lastSyncTime: latestModified,
+                lastFullSync: Date.now(),
+              },
               hasMore: true,
               stats: { processed, skipped, errors },
             };

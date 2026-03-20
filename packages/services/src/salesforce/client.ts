@@ -24,12 +24,23 @@ type SoqlQueryResponse<T> = {
   records: T[];
 };
 
+type DeletedRecordsResponse = {
+  deletedRecords: Array<{ id: string; deletedDate: string }>;
+  earliestDateAvailable: string;
+  latestDateCovered: string;
+};
+
 export type SalesforceClient = {
   readonly connectorId: string;
   readonly instanceUrl: string;
   get<T>(path: string, params?: Record<string, string>): Promise<T>;
   query<T>(soql: string): Promise<SoqlQueryResponse<T>>;
   queryAll<T>(soql: string): AsyncGenerator<T[], void, undefined>;
+  getDeleted(
+    sobject: string,
+    start: string,
+    end: string
+  ): Promise<DeletedRecordsResponse>;
 };
 
 export function createSalesforceClient(
@@ -148,11 +159,22 @@ export function createSalesforceClient(
     }
   }
 
+  function getDeleted(
+    sobject: string,
+    start: string,
+    end: string
+  ): Promise<DeletedRecordsResponse> {
+    return request<DeletedRecordsResponse>(
+      buildUrl(`/sobjects/${sobject}/deleted`, { start, end })
+    );
+  }
+
   return {
     connectorId,
     instanceUrl,
     get,
     query,
     queryAll,
+    getDeleted,
   };
 }

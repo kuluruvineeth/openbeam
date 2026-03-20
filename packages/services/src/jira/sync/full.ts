@@ -124,7 +124,7 @@ export async function* jiraFullSync(
           if (documents.length >= batchSize) {
             yield {
               items: documents,
-              cursor: { lastFullSync: Date.now() },
+              cursor: { lastSyncTime: latestUpdated, lastFullSync: Date.now() },
               hasMore: true,
               stats: { processed, skipped, errors },
             };

@@ -14,6 +14,10 @@ import {
   transformSalesforceAccount,
 } from "../transformers/account";
 import {
+  type SalesforceKnowledgeArticle,
+  transformSalesforceArticle,
+} from "../transformers/article";
+import {
   type SalesforceCase,
   transformSalesforceCase,
 } from "../transformers/case";
@@ -103,6 +107,14 @@ export async function* salesforceIncrementalSync(
       transform: (r, ctx) => transformSalesforceCase(r as SalesforceCase, ctx),
       enabled: syncCases,
     },
+    {
+      sobject: "Knowledge__kav",
+      fields:
+        "Id,Title,Summary,ArticleBody,UrlName,ArticleNumber,PublishStatus,VersionNumber,KnowledgeArticleId,CreatedDate,LastModifiedDate,SystemModstamp,CreatedBy.Name,CreatedBy.Email,LastModifiedBy.Name",
+      transform: (r, ctx) =>
+        transformSalesforceArticle(r as SalesforceKnowledgeArticle, ctx),
+      enabled: true,
+    },
   ];
 
   try {
@@ -147,6 +159,17 @@ export async function* salesforceIncrementalSync(
       }
     }
 
+    const deletionMarkers = await fetchDeletionMarkers(
+      client,
+      context,
+      cursor.lastSyncTime,
+      objectConfigs.filter((c) => c.enabled).map((c) => c.sobject)
+    );
+    if (deletionMarkers.length > 0) {
+      documents.push(...deletionMarkers);
+      processed += deletionMarkers.length;
+    }
+
     yield {
       items: documents,
       cursor: {
@@ -171,4 +194,52 @@ export async function* salesforceIncrementalSync(
 
 function formatSoqlDatetime(iso: string): string {
   return iso.replace("Z", "+0000").replace(SOQL_MS_REGEX, "");
+}
+
+const SOBJECT_TYPE_MAP: Record<string, string> = {
+  Account: "account",
+  Contact: "contact",
+  Opportunity: "opportunity",
+  Case: "case",
+  Knowledge__kav: "article",
+};
+
+async function fetchDeletionMarkers(
+  client: SalesforceClient,
+  context: SalesforceTransformContext,
+  sinceTime: string,
+  sobjects: string[]
+): Promise<GenericDocument[]> {
+  const deletionMarkers: GenericDocument[] = [];
+  const now = new Date().toISOString();
+
+  for (const sobject of sobjects) {
+    try {
+      const result = await client.getDeleted(sobject, sinceTime, now);
+      const docType = SOBJECT_TYPE_MAP[sobject] ?? sobject.toLowerCase();
+
+      for (const deleted of result.deletedRecords) {
+        deletionMarkers.push({
+          id: `${context.connectorId}_${docType}_${deleted.id}`,
+          connector_id: context.connectorId,
+          connector_type: context.connectorType,
+          team_id: context.teamId,
+          workspace_id: context.workspaceId,
+          external_id: deleted.id,
+          document_type: docType,
+          title: "",
+          content: "",
+          url: "",
+          metadata: { deleted: true },
+        } as GenericDocument);
+      }
+    } catch (error) {
+      logger.warn(
+        { error, sobject },
+        "Failed to fetch deleted records for object"
+      );
+    }
+  }
+
+  return deletionMarkers;
 }

@@ -5,6 +5,8 @@ export { salesforceFullSync } from "./sync/full";
 export { salesforceIncrementalSync } from "./sync/incremental";
 export type { SalesforceAccount } from "./transformers/account";
 export { transformSalesforceAccount } from "./transformers/account";
+export type { SalesforceKnowledgeArticle } from "./transformers/article";
+export { transformSalesforceArticle } from "./transformers/article";
 export type { SalesforceCase } from "./transformers/case";
 export { transformSalesforceCase } from "./transformers/case";
 export type { SalesforceContact } from "./transformers/contact";
