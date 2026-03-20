@@ -71,6 +71,8 @@ export enum AppType {
   OUTLOOK = "OUTLOOK",
   SHAREPOINT = "SHAREPOINT",
   MICROSOFT_TEAMS = "MICROSOFT_TEAMS",
+  CONFLUENCE = "CONFLUENCE",
+  JIRA = "JIRA",
 }
 
 export enum SyncMode {
