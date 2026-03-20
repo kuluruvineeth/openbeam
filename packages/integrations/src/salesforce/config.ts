@@ -26,15 +26,15 @@ export const salesforceApp: UnifiedApp = {
   searchDisplay: {
     defaultIconKey: "Cloud",
     documentTypes: {
-      account: { label: "account", iconKey: "Building", category: "crm" },
-      contact: { label: "contact", iconKey: "UserCircle", category: "crm" },
+      account: { label: "account", iconKey: "Building", category: "account" },
+      contact: { label: "contact", iconKey: "UserCircle", category: "contact" },
       opportunity: {
         label: "opportunity",
         iconKey: "TrendingUp",
-        category: "crm",
+        category: "opportunity",
       },
-      case: { label: "case", iconKey: "Ticket", category: "support" },
-      article: { label: "article", iconKey: "FileText", category: "document" },
+      case: { label: "case", iconKey: "Ticket", category: "case" },
+      article: { label: "article", iconKey: "FileText", category: "article" },
     },
   },
 
