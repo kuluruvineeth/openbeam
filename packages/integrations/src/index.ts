@@ -183,7 +183,6 @@ export {
   generateSalesforceAuthUrl,
   refreshSalesforceToken,
   SalesforceOAuthError,
-  salesforceApp,
 } from "./salesforce";
 export {
   createSecretRef,
