@@ -12,6 +12,11 @@ export const startOAuthHandler: RouteHandler<
   AuthEnv
 > = async (c) => {
   const user = c.get("user");
+
+  if (user === null) {
+    return c.json({ success: false, message: "Unauthorized" }, 401);
+  }
+
   const { workspaceId, connectorId, redirectUrl } = c.req.valid("query");
   const teamId = getTeamId(c);
   const finalWorkspaceId = workspaceId || teamId;
