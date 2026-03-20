@@ -46,7 +46,13 @@ export const jiraApp: UnifiedApp = {
       authUrl: "https://auth.atlassian.com/authorize",
       tokenUrl: "https://auth.atlassian.com/oauth/token",
       redirectPath: "/connectors/setup/jira/oauth/callback",
-      scopes: ["read:jira-work", "read:jira-user", "offline_access", "read:me"],
+      scopes: [
+        "read:jira-work",
+        "read:jira-user",
+        "manage:jira-webhook",
+        "offline_access",
+        "read:me",
+      ],
     },
   },
 

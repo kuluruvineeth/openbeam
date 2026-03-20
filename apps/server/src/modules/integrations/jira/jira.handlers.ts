@@ -1,9 +1,20 @@
 import type { RouteHandler } from "@hono/zod-openapi";
-import { JiraAuth } from "@openbeam/services";
+import prisma, { findConnectorById } from "@openbeam/db";
+import {
+  handleJiraWebhookEvent,
+  JiraAuth,
+  parseJiraWebhookPayload,
+  verifyJiraWebhookToken,
+} from "@openbeam/services";
+import { deleteDocumentById } from "@openbeam/vespa";
 import type { AuthEnv } from "@/middleware/auth";
 import { getTeamId } from "@/middleware/auth";
 import logger from "@/utils/logger";
-import type { oauthCallbackRoute, startOAuthRoute } from "./jira.routes";
+import type {
+  oauthCallbackRoute,
+  startOAuthRoute,
+  webhookRoute,
+} from "./jira.routes";
 
 const jiraAuth = new JiraAuth();
 
@@ -68,5 +79,49 @@ export const oauthCallbackHandler: RouteHandler<
     const message = error instanceof Error ? error.message : "Unknown error";
 
     return c.json({ success: false, message }, 400);
+  }
+};
+export const webhookHandler: RouteHandler<
+  typeof webhookRoute,
+  AuthEnv
+> = async (c) => {
+  const { connectorId, token } = c.req.valid("param");
+
+  try {
+    const connector = await findConnectorById(prisma, connectorId);
+    if (!connector) {
+      return c.json({ success: false, message: "Connector not found" }, 401);
+    }
+
+    const config = connector.config as Record<string, unknown> | null;
+    const webhookSecret = config?.webhookSecret as string | undefined;
+
+    if (!(webhookSecret && verifyJiraWebhookToken(token, webhookSecret))) {
+      return c.json({ success: false, message: "Invalid token" }, 401);
+    }
+
+    const rawBody = await c.req.text();
+    const payload = parseJiraWebhookPayload(rawBody);
+    const result = handleJiraWebhookEvent(payload, connectorId);
+
+    if (result.processed) {
+      for (const change of result.changes) {
+        if (change.action === "delete") {
+          try {
+            await deleteDocumentById(change.documentId);
+          } catch (error) {
+            logger.warn(
+              { error, documentId: change.documentId },
+              "Failed to delete document from Vespa"
+            );
+          }
+        }
+      }
+    }
+
+    return c.json({ success: true });
+  } catch (error) {
+    logger.error({ error, connectorId }, "Jira webhook handler error");
+    return c.json({ success: true });
   }
 };

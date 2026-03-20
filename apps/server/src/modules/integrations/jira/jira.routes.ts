@@ -4,6 +4,8 @@ import {
   OAuthCallbackResponseSchema,
   OAuthStartQuerySchema,
   OAuthStartResponseSchema,
+  WebhookParamsSchema,
+  WebhookResponseSchema,
 } from "./jira.schema";
 
 export const startOAuthRoute = createRoute({
@@ -68,6 +70,32 @@ export const oauthCallbackRoute = createRoute({
       description: "Bad request",
       content: {
         "application/json": { schema: OAuthCallbackResponseSchema },
+      },
+    },
+  },
+});
+
+export const webhookRoute = createRoute({
+  method: "post",
+  path: "/webhook/:connectorId/:token",
+  tags: ["Jira Integration"],
+  summary: "Handle Jira webhook events",
+  description:
+    "Receives real-time Jira events (issue deletion) via registered webhooks",
+  request: {
+    params: WebhookParamsSchema,
+  },
+  responses: {
+    200: {
+      description: "Webhook processed",
+      content: {
+        "application/json": { schema: WebhookResponseSchema },
+      },
+    },
+    401: {
+      description: "Invalid token",
+      content: {
+        "application/json": { schema: WebhookResponseSchema },
       },
     },
   },

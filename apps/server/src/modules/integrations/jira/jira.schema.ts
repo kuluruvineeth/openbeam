@@ -39,3 +39,17 @@ export const OAuthCallbackResponseSchema = z.object({
   redirectUrl: z.url().optional(),
   message: z.string().optional(),
 });
+export const WebhookParamsSchema = z.object({
+  connectorId: z.string().openapi({
+    description: "Connector ID",
+    example: "conn_123",
+  }),
+  token: z.string().openapi({
+    description: "Webhook verification token",
+  }),
+});
+
+export const WebhookResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string().optional(),
+});

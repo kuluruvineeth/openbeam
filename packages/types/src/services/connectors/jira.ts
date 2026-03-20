@@ -33,3 +33,35 @@ export interface JiraSyncBatch<T> {
   hasMore: boolean;
   stats: { processed: number; skipped: number; errors: number };
 }
+
+export const JiraWebhookEventSchema = z.enum([
+  "jira:issue_deleted",
+  "jira:issue_created",
+  "jira:issue_updated",
+]);
+
+export type JiraWebhookEventType = z.infer<typeof JiraWebhookEventSchema>;
+
+export const JiraWebhookPayloadSchema = z.object({
+  webhookEvent: z.string(),
+  issue_event_type_name: z.string().optional(),
+  timestamp: z.number(),
+  issue: z.object({
+    id: z.string(),
+    key: z.string(),
+    self: z.string().optional(),
+  }),
+});
+
+export type JiraWebhookPayload = z.infer<typeof JiraWebhookPayloadSchema>;
+
+export const JiraWebhookRegistrationSchema = z.object({
+  id: z.number(),
+  url: z.string(),
+  events: z.array(z.string()),
+  expirationDate: z.number().optional(),
+});
+
+export type JiraWebhookRegistration = z.infer<
+  typeof JiraWebhookRegistrationSchema
+>;

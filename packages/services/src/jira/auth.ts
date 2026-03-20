@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import prisma, {
   AppType,
   activateConnector,
@@ -19,7 +20,10 @@ import type {
   ConnectorResult,
   IntegrationAuth,
 } from "@openbeam/types/services";
+import { createAtlassianClient } from "../atlassian/client";
+import { logger } from "../lib/logger";
 import { createOAuthState, verifyOAuthState } from "../lib/oauth-state";
+import { JiraWatchManager } from "./push/watch-manager";
 
 type JiraConfig = {
   client_id?: string;
@@ -120,6 +124,43 @@ export class JiraAuth implements IntegrationAuth {
         await createDefaultSyncJobs(tx, updated.id);
         return updated;
       });
+
+      try {
+        const webhookSecret = randomBytes(32).toString("hex");
+        const serverUrl = process.env.SERVER_URL || "http://localhost:3000";
+        const webhookUrl = `${serverUrl}/integrations/jira/webhook/${connector.id}/${webhookSecret}`;
+
+        const client = createAtlassianClient({
+          connectorId: connector.id,
+          accessToken: tokens.accessToken,
+          cloudId: tokens.cloudId,
+          product: "jira",
+        });
+
+        const watchManager = new JiraWatchManager({
+          client,
+          connectorId: connector.id,
+          webhookUrl,
+          verificationToken: webhookSecret,
+        });
+
+        await watchManager.setup();
+
+        await prisma.connector.update({
+          where: { id: connector.id },
+          data: {
+            config: {
+              ...(connector.config as object),
+              webhookSecret,
+            },
+          },
+        });
+      } catch (error) {
+        logger.warn(
+          { error, connectorId: connector.id },
+          "Jira webhook registration failed — will retry during sync"
+        );
+      }
 
       return { connector, redirectUrl };
     } catch (error) {

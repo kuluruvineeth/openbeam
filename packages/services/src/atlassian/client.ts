@@ -22,6 +22,7 @@ export type AtlassianClient = {
   readonly cloudId: string;
   get<T>(path: string, params?: Record<string, string>): Promise<T>;
   post<T>(path: string, body?: unknown): Promise<T>;
+  del(path: string): Promise<void>;
   paginate<T>(
     path: string,
     params?: Record<string, string>,
@@ -154,6 +155,10 @@ export function createAtlassianClient(
     });
   }
 
+  async function del(path: string): Promise<void> {
+    await request<unknown>(buildUrl(path), { method: "DELETE" });
+  }
+
   async function* paginate<T>(
     path: string,
     params?: Record<string, string>,
@@ -188,6 +193,7 @@ export function createAtlassianClient(
     cloudId,
     get,
     post,
+    del,
     paginate,
   };
 }

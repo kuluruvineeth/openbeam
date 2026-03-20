@@ -231,7 +231,7 @@ async function fetchDeletionMarkers(
           content: "",
           url: "",
           metadata: { deleted: true },
-        } as GenericDocument);
+        } as unknown as GenericDocument);
       }
     } catch (error) {
       logger.warn(

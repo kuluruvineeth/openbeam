@@ -294,13 +294,24 @@ export {
   isHealthy,
   needsAttention,
 } from "./health";
-export type { JiraComment, JiraIssue } from "./jira";
+export type {
+  JiraComment,
+  JiraDocumentChange,
+  JiraIssue,
+  JiraWatchManagerConfig,
+  JiraWebhookResult,
+} from "./jira";
 export {
+  getExpiringJiraWebhooks,
+  handleJiraWebhookEvent,
   JiraAuth,
+  JiraWatchManager,
   jiraFullSync,
   jiraIncrementalSync,
+  parseJiraWebhookPayload,
   transformJiraComment,
   transformJiraIssue,
+  verifyJiraWebhookToken,
 } from "./jira";
 export type {
   ExpertiseUpdate,
