@@ -1,3 +1,4 @@
+import type { SharePointFileInfo } from "@openbeam/services";
 import {
   awsIotFullSync,
   awsIotIncrementalSync,
@@ -11,6 +12,7 @@ import {
   createGmailClient,
   createGoogleDriveClient,
   createLinearClient,
+  createMicrosoftGraphClient,
   createNotionClient,
   createNvdClient,
   createOwaspClient,
@@ -30,12 +32,16 @@ import {
   notionIncrementalSync,
   nvdFullSync,
   nvdIncrementalSync,
+  outlookIncrementalSync,
   owaspFullSync,
   samsaraFullSync,
   samsaraIncrementalSync,
+  sharepointFullSync,
+  sharepointIncrementalSync,
   incrementalSync as slackIncrementalSync,
   smartThingsFullSync,
   smartThingsIncrementalSync,
+  teamsIncrementalSync,
   verkadaFullSync,
   verkadaIncrementalSync,
 } from "@openbeam/services";
@@ -1231,6 +1237,157 @@ export function registerAllSyncFactories(): void {
         yield {
           items: batch.items as GenericDocument[],
           cursor: batch.cursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "OUTLOOK",
+    async function* (connectorId, connector, cursor) {
+      const accessToken = await getValidAccessToken(connectorId);
+
+      const config = connector.config as Record<string, unknown> | null;
+      const userEmail = (config?.userEmail as string) ?? "";
+
+      logger.info({ connectorId, userEmail }, "Outlook sync config loaded");
+
+      const client = createMicrosoftGraphClient({
+        connectorId,
+        accessToken,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+        userEmail,
+      };
+
+      for await (const batch of outlookIncrementalSync(client, context, {
+        cursor,
+        batchSize: 100,
+      })) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "SHAREPOINT",
+    async function* (connectorId, connector, cursor) {
+      const accessToken = await getValidAccessToken(connectorId);
+
+      const config = connector.config as Record<string, unknown> | null;
+      const userEmail = (config?.userEmail as string) ?? "";
+
+      logger.info({ connectorId, userEmail }, "SharePoint sync config loaded");
+
+      const client = createMicrosoftGraphClient({
+        connectorId,
+        accessToken,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+        userEmail,
+      };
+
+      const pendingResources: DiscoveredResourceRecord[] = [];
+
+      const forceFullSync = parseBooleanConfig(cursor?.forceFullSync) === true;
+      const hasValidCursor =
+        cursor?.deltaLinks &&
+        Object.keys(cursor.deltaLinks as Record<string, string>).length > 0;
+
+      // biome-ignore lint/suspicious/useAwait: callback signature requires Promise<void>
+      const onFilesDiscovered = async (files: SharePointFileInfo[]) => {
+        for (const file of files) {
+          pendingResources.push({
+            externalId: `${file.driveId}_${file.itemId}`,
+            resourceType: "file",
+            name: file.name,
+            metadata: {
+              driveId: file.driveId,
+              itemId: file.itemId,
+              mimeType: file.mimeType,
+              size: file.size,
+            },
+          });
+        }
+      };
+
+      const syncGenerator =
+        !forceFullSync && hasValidCursor
+          ? sharepointIncrementalSync(client, context, {
+              cursor,
+              batchSize: 100,
+              onFilesDiscovered,
+            })
+          : sharepointFullSync(client, context, {
+              batchSize: 100,
+              onFilesDiscovered,
+            });
+
+      for await (const batch of syncGenerator) {
+        const resourcesToYield =
+          pendingResources.length > 0 ? [...pendingResources] : undefined;
+        if (resourcesToYield) {
+          pendingResources.length = 0;
+        }
+
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+          discoveredResources: resourcesToYield,
+        };
+      }
+    }
+  );
+
+  registerSyncFactory(
+    "MICROSOFT_TEAMS",
+    async function* (connectorId, connector, cursor) {
+      const accessToken = await getValidAccessToken(connectorId);
+
+      const config = connector.config as Record<string, unknown> | null;
+      const userEmail = (config?.userEmail as string) ?? "";
+
+      logger.info(
+        { connectorId, userEmail },
+        "Microsoft Teams sync config loaded"
+      );
+
+      const client = createMicrosoftGraphClient({
+        connectorId,
+        accessToken,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+        userEmail,
+      };
+
+      for await (const batch of teamsIncrementalSync(client, context, {
+        cursor,
+        batchSize: 100,
+      })) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
           hasMore: batch.hasMore,
         };
       }

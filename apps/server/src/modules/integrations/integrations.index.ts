@@ -7,9 +7,12 @@ import gmail from "./gmail/gmail.index";
 import googleDrive from "./google-drive/google-drive.index";
 import linear from "./linear/linear.index";
 import notion from "./notion/notion.index";
+import outlook from "./outlook/outlook.index";
 import samsara from "./samsara/samsara.index";
+import sharepoint from "./sharepoint/sharepoint.index";
 import slack from "./slack/slack.index";
 import smartthings from "./smartthings/smartthings.index";
+import teams from "./teams/teams.index";
 import verkada from "./verkada/verkada.index";
 
 const integrations = new OpenAPIHono<AuthEnv>();
@@ -25,6 +28,9 @@ integrations.route("/verkada", verkada);
 integrations.route("/aws-iot", awsIot);
 integrations.route("/azure-iot", azureIot);
 integrations.route("/smartthings", smartthings);
+integrations.route("/outlook", outlook);
+integrations.route("/sharepoint", sharepoint);
+integrations.route("/teams", teams);
 
 integrations.get("/health", (c) =>
   c.json({

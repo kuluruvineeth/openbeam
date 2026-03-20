@@ -13,9 +13,12 @@ import { notionApp } from "./notion/config";
 import { nvdApp } from "./nvd/config";
 import { omniverseApp } from "./omniverse/config";
 import { opcuaApp } from "./opcua/config";
+import { outlookApp } from "./outlook/config";
 import { owaspApp } from "./owasp/config";
 import { samsaraApp } from "./samsara/config";
+import { sharePointApp } from "./sharepoint/config";
 import { slackApp } from "./slack/config";
+import { teamsApp } from "./teams/config";
 import { thingsboardApp } from "./thingsboard/config";
 import type { UnifiedApp } from "./types";
 import { viamApp } from "./viam/config";
@@ -36,9 +39,12 @@ export {
   nvdApp,
   omniverseApp,
   opcuaApp,
+  outlookApp,
   owaspApp,
   samsaraApp,
+  sharePointApp,
   slackApp,
+  teamsApp,
   thingsboardApp,
   viamApp,
 };
@@ -115,14 +121,47 @@ export type {
 export { appLogos, connectorLogos } from "./logos";
 export { exchangeNotionCode, generateNotionAuthUrl } from "./notion/oauth";
 export type { NotionAuthResult, NotionOAuthResponse } from "./notion/types";
+export type {
+  ExchangeOutlookCodeParams,
+  GenerateOutlookAuthUrlParams,
+  OutlookOAuthResult,
+  RefreshOutlookTokenParams,
+} from "./outlook/oauth";
+export {
+  exchangeOutlookCode,
+  generateOutlookAuthUrl,
+  refreshOutlookToken,
+} from "./outlook/oauth";
 export {
   createSecretRef,
   isSecretRef,
   resolveSecret,
   SecretResolutionError,
 } from "./secrets";
+export type {
+  ExchangeSharePointCodeParams,
+  GenerateSharePointAuthUrlParams,
+  RefreshSharePointTokenParams,
+  SharePointOAuthResult,
+} from "./sharepoint/oauth";
+export {
+  exchangeSharePointCode,
+  generateSharePointAuthUrl,
+  refreshSharePointToken,
+} from "./sharepoint/oauth";
 export * from "./slack/oauth";
 export * from "./slack/types";
+export type {
+  ExchangeTeamsCodeParams,
+  GenerateTeamsAuthUrlParams,
+  RefreshTeamsTokenParams,
+  TeamsOAuthResult,
+} from "./teams/oauth";
+export {
+  exchangeTeamsCode,
+  generateTeamsAuthUrl,
+  refreshTeamsToken,
+} from "./teams/oauth";
 export * from "./types";
 
 export const appStore: UnifiedApp[] = [
@@ -146,4 +185,7 @@ export const appStore: UnifiedApp[] = [
   cisaKevApp,
   mitreAttackApp,
   owaspApp,
+  outlookApp,
+  sharePointApp,
+  teamsApp,
 ];

@@ -17,9 +17,12 @@ import { Logo as NotionLogo } from "./notion/assets/logo";
 import { Logo as NvdLogo } from "./nvd/assets/logo";
 import { Logo as OmniverseLogo } from "./omniverse/assets/logo";
 import { Logo as OPCUALogo } from "./opcua/assets/logo";
+import { Logo as OutlookLogo } from "./outlook/assets/logo";
 import { Logo as OwaspLogo } from "./owasp/assets/logo";
 import { Logo as SamsaraLogo } from "./samsara/assets/logo";
+import { Logo as SharePointLogo } from "./sharepoint/assets/logo";
 import { Logo as SlackLogo } from "./slack/assets/logo";
+import { Logo as TeamsLogo } from "./teams/assets/logo";
 import { Logo as ThingsBoardLogo } from "./thingsboard/assets/logo";
 import { AppType, type LogoComponent } from "./types";
 import { Logo as ViamLogo } from "./viam/assets/logo";
@@ -45,6 +48,9 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.CISA_KEV]: CisaKevLogo,
   [AppType.MITRE_ATTACK]: MitreAttackLogo,
   [AppType.OWASP]: OwaspLogo,
+  [AppType.OUTLOOK]: OutlookLogo,
+  [AppType.SHAREPOINT]: SharePointLogo,
+  [AppType.MICROSOFT_TEAMS]: TeamsLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =

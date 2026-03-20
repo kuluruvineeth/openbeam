@@ -356,6 +356,20 @@ export type {
   SlackThreadResult,
 } from "./messages";
 export { MessagesService, messagesService } from "./messages";
+export type {
+  MicrosoftGraphClient,
+  MicrosoftGraphClientConfig,
+} from "./microsoft";
+export {
+  createMicrosoftGraphClient,
+  MicrosoftGraphApiError,
+} from "./microsoft";
+export {
+  TeamsAuth,
+  teamsFullSync,
+  teamsIncrementalSync,
+  transformTeamsMessage,
+} from "./microsoft-teams";
 export {
   fetchStixBundle,
   fullSync as mitreAttackFullSync,
@@ -399,6 +413,13 @@ export {
   incrementalSync as nvdIncrementalSync,
   NvdApiError,
 } from "./nvd";
+export type { OutlookMessage } from "./outlook";
+export {
+  OutlookAuth,
+  outlookFullSync,
+  outlookIncrementalSync,
+  transformOutlookMessage,
+} from "./outlook";
 export type { OwaspClient } from "./owasp";
 export {
   createOwaspClient,
@@ -504,6 +525,13 @@ export {
   publicStreamOverview,
 } from "./search/public";
 export { buildPermissionFilter } from "./search/retrieval/query-builder";
+export type { SharePointFileInfo } from "./sharepoint";
+export {
+  SharePointAuth,
+  sharepointFullSync,
+  sharepointIncrementalSync,
+  transformDriveItem,
+} from "./sharepoint";
 export type {
   AppMentionEvent,
   BlockActionPayload,
