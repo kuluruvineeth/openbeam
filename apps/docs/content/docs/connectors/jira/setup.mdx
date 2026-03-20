@@ -1,0 +1,78 @@
+---
+title: Quick Start
+description: Connect Jira to OpenBeam
+---
+
+# Jira Quick Start
+
+## Prerequisites
+
+- Atlassian Cloud account with Jira access
+- Permission to create OAuth 2.0 apps in [Atlassian Developer Console](https://developer.atlassian.com/console/myapps/)
+- OpenBeam instance with HTTPS endpoint
+
+## 1. Create an Atlassian OAuth 2.0 App
+
+If you already have an Atlassian OAuth app for Confluence, skip to step 3 and add Jira scopes to your existing app.
+
+1. Go to [developer.atlassian.com/console/myapps](https://developer.atlassian.com/console/myapps/)
+2. Click **Create** and select **OAuth 2.0 integration**
+3. Fill in:
+   - **Name**: OpenBeam Jira Connector
+   - **Terms agreement**: Accept
+4. Click **Create**
+
+## 2. Configure Authorization
+
+1. In your app, go to **Authorization**
+2. Next to **OAuth 2.0 (3LO)**, click **Configure**
+3. Add callback URL:
+   ```text
+   https://your-domain.com/connectors/setup/jira/oauth/callback
+   ```
+4. Click **Save changes**
+
+## 3. Add API Scopes
+
+1. Go to **Permissions**
+2. Under **Jira API**, click **Add** and enable:
+   - `read:jira-work`
+   - `read:jira-user`
+   - `manage:jira-webhook`
+3. Under **User identity API**, enable:
+   - `read:me`
+
+<Callout type="info">
+The `manage:jira-webhook` scope is required for real-time deletion detection. Jira sends `jira:issue_deleted` events to OpenBeam so deleted issues are removed from search results immediately.
+</Callout>
+
+## 4. Get Credentials
+
+1. Go to **Settings** in your app
+2. Copy:
+   - **Client ID**
+   - **Secret** (click **Generate** if not yet created)
+
+## 5. Configure Environment
+
+```bash
+ATLASSIAN_CLIENT_ID=your-client-id
+ATLASSIAN_CLIENT_SECRET=your-client-secret
+WEB_URL=https://your-domain.com
+SERVER_URL=https://api.your-domain.com
+```
+
+## 6. Connect in OpenBeam
+
+1. Go to **Settings > Connectors > Add Connector > Jira**
+2. Enter **Client ID** and **Client Secret**
+3. Click **Connect** and authorize in Atlassian
+4. Select your Jira site when prompted
+5. Initial sync starts automatically
+
+Large Jira instances with tens of thousands of issues may take significant time for the initial sync. Configure project filters to focus on relevant projects.
+
+<Cards>
+  <Card title="Configuration" href="/docs/connectors/jira/configuration" description="Project filters, comment sync, and settings" />
+  <Card title="Confluence Setup" href="/docs/connectors/confluence/setup" description="Reuse the same Atlassian app for Confluence" />
+</Cards>

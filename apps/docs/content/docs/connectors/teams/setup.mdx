@@ -1,0 +1,86 @@
+---
+title: Quick Start
+description: Connect Microsoft Teams to OpenBeam
+---
+
+# Teams Quick Start
+
+## Prerequisites
+
+- Microsoft 365 account with Teams access
+- Azure AD tenant with permission to register applications
+- OpenBeam instance with HTTPS endpoint
+
+## 1. Register an Azure AD Application
+
+If you already have an Azure AD app for Outlook or SharePoint, skip to step 2 and add Teams permissions to your existing app.
+
+1. Go to the [Azure Portal - App registrations](https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade)
+2. Click **New registration**
+3. Fill in:
+   - **Name**: OpenBeam Microsoft Connector
+   - **Supported account types**: Accounts in this organizational directory only (single tenant)
+   - **Redirect URI**: Web platform
+4. Click **Register**
+
+## 2. Configure Redirect URI
+
+1. In your app registration, go to **Authentication**
+2. Under **Web**, add redirect URI:
+   ```text
+   https://your-domain.com/connectors/setup/teams/oauth/callback
+   ```
+3. Click **Save**
+
+## 3. Add API Permissions
+
+1. Go to **API permissions**
+2. Click **Add a permission** and select **Microsoft Graph**
+3. Choose **Delegated permissions** and add:
+   - `ChannelMessage.Read.All`
+   - `Team.ReadBasic.All`
+   - `User.Read`
+   - `offline_access`
+4. Click **Grant admin consent**
+
+<Callout type="warn">
+`ChannelMessage.Read.All` requires admin consent. An Azure AD administrator must approve this permission before users can connect.
+</Callout>
+
+## 4. Create Client Secret
+
+1. Go to **Certificates & secrets**
+2. Click **New client secret**
+3. Set a description and expiration period
+4. Copy the **Value** immediately
+
+## 5. Get Credentials
+
+Copy from your app registration:
+- **Application (client) ID**
+- **Directory (tenant) ID**
+- **Client Secret Value**
+
+## 6. Configure Environment
+
+```bash
+MICROSOFT_CLIENT_ID=your-client-id
+MICROSOFT_CLIENT_SECRET=your-client-secret
+MICROSOFT_TENANT_ID=your-tenant-id
+WEB_URL=https://your-domain.com
+SERVER_URL=https://api.your-domain.com
+```
+
+## 7. Connect in OpenBeam
+
+1. Go to **Settings > Connectors > Add Connector > Microsoft Teams**
+2. Enter **Client ID**, **Client Secret**, and **Tenant ID**
+3. Click **Connect** and authorize in the Microsoft login window
+4. Initial sync discovers all joined teams and begins indexing channel messages
+
+Organizations with many teams and active channels may take several minutes for the initial sync.
+
+<Cards>
+  <Card title="Configuration" href="/docs/connectors/teams/configuration" description="Team selection and sync settings" />
+  <Card title="Outlook Setup" href="/docs/connectors/outlook/setup" description="Reuse the same Azure AD app for Outlook" />
+</Cards>

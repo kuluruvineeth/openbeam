@@ -1,0 +1,60 @@
+---
+title: Features
+description: Confluence connector capabilities
+---
+
+# Confluence Features
+
+## Search
+
+- **Full-text**: Page content, titles, and excerpts
+- **Blog posts**: Blog content with author and date
+- **Spaces**: Space names and descriptions
+- **Metadata**: Labels, space, author, date filtering
+
+## Content Types
+
+| Type | Fields Indexed |
+|------|----------------|
+| Pages | Title, body (storage format converted to text), labels |
+| Blog posts | Title, body, author, publish date |
+| Comments | Comment text, author, parent page association |
+| Spaces | Space name, key, description, type |
+
+## Page Metadata
+
+| Field | Searchable | Filterable |
+|-------|------------|------------|
+| Title | Yes | Yes |
+| Space | Yes | Yes |
+| Author | Yes | Yes |
+| Labels | Yes | Yes |
+| Last Modified | Yes | Yes |
+| Content Type | Yes | Yes |
+| Version | No | Yes |
+| Ancestors (path) | Yes | No |
+
+## Sync Options
+
+| Mode | Trigger | Latency |
+|------|---------|---------|
+| Full | First sync, manual | Minutes to hours |
+| Incremental | CQL query (scheduled) | 15 min |
+
+## AI Capabilities
+
+- Semantic search across all Confluence content with space and label filtering
+- Question answering from documentation, runbooks, and knowledge base pages
+- Related page discovery by content similarity across spaces
+- Documentation gap analysis by identifying topics referenced but not documented
+- Page summarization for long-form content and meeting notes
+
+## Limitations
+
+| Limit | Value |
+|-------|-------|
+| Confluence Cloud API rate limit | 100 requests per 25 seconds |
+| Attachment content | Not extracted (attachment metadata only) |
+| Archived spaces | Excluded by default |
+| Page restrictions | Based on authorizing user access |
+| Macros | Expanded where possible, some rendered content excluded |

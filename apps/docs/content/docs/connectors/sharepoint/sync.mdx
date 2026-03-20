@@ -1,0 +1,59 @@
+---
+title: Sync Behavior
+description: How Microsoft SharePoint data is synced
+---
+
+# Sync Behavior
+
+## Sync Types
+
+| Type | Trigger | Duration |
+|------|---------|----------|
+| **Full** | First connection, manual resync | Minutes to hours |
+| **Incremental** | Delta API (scheduled) | Seconds to minutes |
+
+## Status Indicators
+
+| Status | Meaning |
+|--------|---------|
+| **Active** | Synced, watching for changes |
+| **Syncing** | Sync in progress |
+| **Error** | Check logs for details |
+
+## Sync Process
+
+1. **Site Discovery**: Enumerate all accessible SharePoint sites
+2. **Drive Discovery**: List all document libraries within each site
+3. **Full Sync**: Fetch all items from each drive using Microsoft Graph `/drive/root/children` with recursive traversal
+4. **Delta Sync**: Use Microsoft Graph delta API (`/drive/root/delta`) for each drive to fetch changes
+5. **Content Extraction**: Extract text from Office documents, PDFs, and supported formats
+6. **Transform**: Convert files to searchable documents with site and path metadata
+
+## Delta API
+
+Microsoft Graph drive delta queries track file and folder changes:
+
+- Returns created, modified, moved, and deleted items since the last sync
+- Provides a `deltaLink` for subsequent incremental queries
+- Delta tokens are valid for 30 days per drive
+- Folder moves trigger change notifications for all contained items
+
+```text
+GET https://graph.microsoft.com/v1.0/sites/{siteId}/drive/root/delta
+```
+
+## Rate Limits
+
+| Quota | Limit |
+|-------|-------|
+| Application throttling | 10,000 requests per 10 minutes per app |
+| Per-site throttling | Varies by SharePoint site configuration |
+| Request concurrency | 4 concurrent requests per connector |
+
+OpenBeam handles throttling with exponential backoff and respects `Retry-After` headers.
+
+## Controls
+
+- **Full Resync**: Settings > Connectors > SharePoint > Actions > Full Resync
+- **Pause/Resume**: Stop sync temporarily
+- **Sync Now**: Trigger immediate incremental sync

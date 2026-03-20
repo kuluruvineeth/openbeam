@@ -1,0 +1,12 @@
+{
+  "title": "Microsoft Teams",
+  "icon": "MessageSquare",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

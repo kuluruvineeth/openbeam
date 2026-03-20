@@ -1,0 +1,85 @@
+---
+title: Quick Start
+description: Connect Microsoft Outlook to OpenBeam
+---
+
+# Outlook Quick Start
+
+## Prerequisites
+
+- Microsoft 365 account with admin access (or admin consent for the app)
+- Azure AD tenant with permission to register applications
+- OpenBeam instance with HTTPS endpoint
+
+## 1. Register an Azure AD Application
+
+1. Go to the [Azure Portal - App registrations](https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade)
+2. Click **New registration**
+3. Fill in:
+   - **Name**: OpenBeam Outlook Connector
+   - **Supported account types**: Accounts in this organizational directory only (single tenant) or Accounts in any organizational directory (multi-tenant)
+   - **Redirect URI**: Web platform
+4. Click **Register**
+
+## 2. Configure Redirect URI
+
+1. In your app registration, go to **Authentication**
+2. Under **Web**, add redirect URI:
+   ```text
+   https://your-domain.com/connectors/setup/outlook/oauth/callback
+   ```
+3. Under **Implicit grant and hybrid flows**, leave both unchecked
+4. Click **Save**
+
+## 3. Add API Permissions
+
+1. Go to **API permissions**
+2. Click **Add a permission** and select **Microsoft Graph**
+3. Choose **Delegated permissions** and add:
+   - `Mail.Read`
+   - `User.Read`
+   - `offline_access`
+4. Click **Grant admin consent** if you have admin privileges
+
+<Callout type="info">
+If you cannot grant admin consent, users will be prompted to consent individually during the OAuth flow.
+</Callout>
+
+## 4. Create Client Secret
+
+1. Go to **Certificates & secrets**
+2. Click **New client secret**
+3. Set a description and expiration period
+4. Copy the **Value** immediately (it is only shown once)
+
+## 5. Get Credentials
+
+Copy from your app registration:
+- **Application (client) ID** from the Overview page
+- **Directory (tenant) ID** from the Overview page
+- **Client Secret Value** from step 4
+
+## 6. Configure Environment
+
+```bash
+MICROSOFT_CLIENT_ID=your-client-id
+MICROSOFT_CLIENT_SECRET=your-client-secret
+MICROSOFT_TENANT_ID=your-tenant-id
+WEB_URL=https://your-domain.com
+SERVER_URL=https://api.your-domain.com
+```
+
+## 7. Connect in OpenBeam
+
+1. Go to **Settings > Connectors > Add Connector > Microsoft Outlook**
+2. Enter **Client ID**, **Client Secret**, and **Tenant ID**
+3. Click **Connect** and authorize in the Microsoft login window
+4. Initial sync starts automatically
+
+Large mailboxes may take several minutes for full sync. Configure folder filters to speed up initial indexing.
+
+<Cards>
+  <Card title="Configuration" href="/docs/connectors/outlook/configuration" description="Folder filters, lookback days, and sync settings" />
+  <Card title="SharePoint Setup" href="/docs/connectors/sharepoint/setup" description="Reuse the same Azure AD app for SharePoint" />
+  <Card title="Teams Setup" href="/docs/connectors/teams/setup" description="Reuse the same Azure AD app for Teams" />
+</Cards>

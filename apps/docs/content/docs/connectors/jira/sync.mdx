@@ -1,0 +1,76 @@
+---
+title: Sync Behavior
+description: How Jira data is synced
+---
+
+# Sync Behavior
+
+## Sync Types
+
+| Type | Trigger | Duration |
+|------|---------|----------|
+| **Full** | First connection, manual resync | Minutes to hours |
+| **Incremental** | JQL query (scheduled) | Seconds to minutes |
+| **Real-time** | Webhook events | Near-instant |
+
+## Status Indicators
+
+| Status | Meaning |
+|--------|---------|
+| **Active** | Synced, watching for changes |
+| **Syncing** | Sync in progress |
+| **Error** | Check logs for details |
+
+## Sync Process
+
+1. **Project Discovery**: List all accessible projects (or filtered set)
+2. **Issue Sync**: Fetch all issues per project using Jira search API with JQL
+3. **Comment Sync**: Fetch comments for each issue (if enabled)
+4. **Transform**: Convert issues and comments to searchable documents with project and sprint metadata
+
+## JQL Incremental Sync
+
+Jira incremental sync uses JQL (Jira Query Language) to find recently modified issues:
+
+```text
+updated >= "2026-03-20 00:00" ORDER BY updated ASC
+```
+
+- Queries for issues modified since the last sync timestamp
+- Issues are fetched with all fields and changelog
+- Comments are re-fetched for modified issues
+- Project-level filters are applied to the JQL query
+
+## Webhook Deletion Detection
+
+When webhooks are enabled, Jira sends real-time events for:
+
+- `jira:issue_deleted` — issue permanently deleted
+- `jira:issue_updated` — issue fields changed
+
+Webhook endpoint:
+```text
+POST /webhooks/jira/events/{connectorId}
+```
+
+Deleted issues are immediately removed from the search index without waiting for the next incremental sync.
+
+<Callout type="info">
+The `manage:jira-webhook` scope is required for webhook registration. Without it, deletion detection falls back to the incremental sync cycle.
+</Callout>
+
+## Rate Limits
+
+| Quota | Limit |
+|-------|-------|
+| Jira Cloud REST API | Varies by endpoint (typically 100 requests/minute) |
+| JQL search results | 100 per page (paginated automatically) |
+| Request concurrency | 2 concurrent requests per connector |
+
+OpenBeam handles rate limiting with exponential backoff and respects `Retry-After` headers.
+
+## Controls
+
+- **Full Resync**: Settings > Connectors > Jira > Actions > Full Resync
+- **Pause/Resume**: Stop sync temporarily
+- **Sync Now**: Trigger immediate incremental sync

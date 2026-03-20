@@ -1,0 +1,78 @@
+---
+title: Sync Behavior
+description: How Salesforce data is synced
+---
+
+# Sync Behavior
+
+## Sync Types
+
+| Type | Trigger | Duration |
+|------|---------|----------|
+| **Full** | First connection, manual resync | Minutes to hours |
+| **Incremental** | SOQL query (scheduled) | Seconds to minutes |
+
+## Status Indicators
+
+| Status | Meaning |
+|--------|---------|
+| **Active** | Synced, watching for changes |
+| **Syncing** | Sync in progress |
+| **Error** | Check logs for details |
+
+## Sync Process
+
+1. **Object Selection**: Determine which Salesforce objects to sync based on configuration
+2. **Full Sync**: Query all records per object using SOQL with pagination
+3. **Incremental Sync**: Query records modified since last sync using `SystemModstamp`
+4. **Deletion Detection**: Call `getDeleted()` API per object to find deleted records
+5. **Transform**: Convert Salesforce records to searchable documents with object type metadata
+
+## SOQL Incremental Sync
+
+Salesforce incremental sync uses SOQL queries filtered by modification timestamp:
+
+```sql
+SELECT Id, Name, Description, SystemModstamp
+FROM Account
+WHERE SystemModstamp > 2026-03-20T00:00:00Z
+ORDER BY SystemModstamp ASC
+```
+
+- Each enabled object type gets its own SOQL query
+- Records are paginated using the `nextRecordsUrl` from query results
+- The `SystemModstamp` field tracks all modifications including workflow rule updates
+
+## Deleted Record Detection
+
+Salesforce provides a dedicated API for detecting deleted records:
+
+```text
+GET /services/data/v59.0/sobjects/{objectType}/deleted/?start={startDate}&end={endDate}
+```
+
+- Called for each synced object type during every incremental sync
+- Returns record IDs that were soft-deleted or hard-deleted
+- Deleted records are immediately removed from the OpenBeam search index
+- The time window covers from the last sync to the current time
+
+## Rate Limits
+
+| Quota | Limit |
+|-------|-------|
+| API daily limit | Based on org edition (15,000-100,000+ calls/day) |
+| Concurrent API limit | 25 concurrent long-running requests |
+| SOQL query row limit | 2,000 rows per query response |
+| Request concurrency | 2 concurrent requests per connector |
+
+OpenBeam monitors remaining API limits via response headers and pauses sync if approaching the daily cap.
+
+<Callout type="warn">
+Salesforce enforces daily API call limits that vary by org edition. Monitor your API usage in Setup > System Overview to avoid exhausting limits for other integrations.
+</Callout>
+
+## Controls
+
+- **Full Resync**: Settings > Connectors > Salesforce > Actions > Full Resync
+- **Pause/Resume**: Stop sync temporarily
+- **Sync Now**: Trigger immediate incremental sync

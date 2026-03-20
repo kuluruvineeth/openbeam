@@ -1,0 +1,64 @@
+---
+title: Configuration
+description: Salesforce connector settings
+---
+
+# Configuration
+
+## Content Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `sync_accounts` | `true` | Index Salesforce Accounts |
+| `sync_contacts` | `true` | Index Salesforce Contacts |
+| `sync_opportunities` | `true` | Index Salesforce Opportunities |
+| `sync_cases` | `false` | Index Salesforce Cases |
+| `sync_knowledge` | `false` | Index Knowledge Articles |
+
+## Sync Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `lookback_days` | Unlimited | Days of history to sync on first run |
+| `fullSyncInterval` | `24h` | Full resync frequency |
+| `incrementalInterval` | `15m` | SOQL incremental sync frequency |
+
+## Environment Variables
+
+```bash
+SALESFORCE_CLIENT_ID=your-consumer-key
+SALESFORCE_CLIENT_SECRET=your-consumer-secret
+SALESFORCE_LOGIN_URL=https://login.salesforce.com
+WEB_URL=https://your-domain.com
+SERVER_URL=https://api.your-domain.com
+```
+
+## Login URL
+
+| Environment | URL |
+|-------------|-----|
+| Production | `https://login.salesforce.com` |
+| Sandbox | `https://test.salesforce.com` |
+| Custom Domain | `https://your-domain.my.salesforce.com` |
+
+<Callout type="info">
+When connecting to a sandbox org, set the login URL to `https://test.salesforce.com`. Sandbox orgs use a separate authentication endpoint.
+</Callout>
+
+## Data Access
+
+Salesforce OAuth grants access to:
+- All records the authenticating user can view based on sharing rules
+- Organization-wide defaults and role hierarchy apply
+- Record-level security and field-level security are respected
+
+## Resync Required
+
+| Change | Resync Type |
+|--------|-------------|
+| Enable new object types | Full sync |
+| Change lookback days | Full sync |
+| Switch login URL | Full reconnection |
+| New records created | Incremental sync |
+
+Trigger via **Actions > Full Resync** in connector settings.

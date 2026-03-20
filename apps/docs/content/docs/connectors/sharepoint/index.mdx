@@ -1,0 +1,40 @@
+---
+title: Microsoft SharePoint
+description: Search documents, files, and site content from SharePoint Online via Microsoft Graph API
+---
+
+# Microsoft SharePoint
+
+Index documents, files, and site content from SharePoint Online. Supports OAuth 2.0 via Azure AD with shared authentication alongside Outlook and Teams. Full and incremental sync via Microsoft Graph delta API.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Documents** | Word, Excel, PowerPoint, PDF with full-text extraction |
+| **Files** | All file types stored in document libraries |
+| **Sites** | Site names, descriptions, and metadata |
+| **Drives** | Document libraries including shared drives |
+
+## Authentication
+
+**Method:** OAuth 2.0 via Azure AD (shared with Outlook and Teams)
+
+**Scopes:** `Sites.Read.All`, `Files.Read.All`, `User.Read`, `offline_access`
+
+Uses the same Azure AD app registration as other Microsoft connectors. Add SharePoint-specific permissions to your existing app.
+
+## Quick Start
+
+1. Register an application in Azure AD (or reuse your existing Microsoft app)
+2. Add `Sites.Read.All` and `Files.Read.All` permissions
+3. Add the SharePoint connector in OpenBeam with your Azure AD credentials
+4. Authorize and start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/sharepoint/setup" description="Azure AD permissions and SharePoint configuration" />
+  <Card title="Features" href="/docs/connectors/sharepoint/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/sharepoint/configuration" description="Site selection, drive filters, and settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/sharepoint/sync" description="Full sync, delta sync, and scheduling" />
+  <Card title="Troubleshooting" href="/docs/connectors/sharepoint/troubleshooting" description="Common issues and fixes" />
+</Cards>

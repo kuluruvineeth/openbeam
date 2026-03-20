@@ -1,0 +1,58 @@
+---
+title: Sync Behavior
+description: How Microsoft Outlook data is synced
+---
+
+# Sync Behavior
+
+## Sync Types
+
+| Type | Trigger | Duration |
+|------|---------|----------|
+| **Full** | First connection, manual resync | Minutes to hours |
+| **Incremental** | Delta API (scheduled) | Seconds to minutes |
+
+## Status Indicators
+
+| Status | Meaning |
+|--------|---------|
+| **Active** | Synced, watching for changes |
+| **Syncing** | Sync in progress |
+| **Error** | Check logs for details |
+
+## Sync Process
+
+1. **Folder Discovery**: Enumerate all mailbox folders (or filtered set)
+2. **Full Sync**: Fetch all messages within lookback window using Microsoft Graph `/messages` endpoint
+3. **Delta Sync**: Use Microsoft Graph delta API (`/messages/delta`) to fetch only new, modified, and deleted messages since last sync
+4. **Attachment Extraction**: Extract text content from supported attachment formats
+5. **Transform**: Convert emails to searchable documents with metadata
+
+## Delta API
+
+Microsoft Graph delta queries provide efficient incremental sync:
+
+- First call returns all matching resources and a `deltaLink`
+- Subsequent calls use the `deltaLink` to get only changes since the last query
+- Delta tokens are valid for 30 days
+- If a delta token expires, a full resync is triggered automatically
+
+```text
+GET https://graph.microsoft.com/v1.0/me/mailFolders/{folderId}/messages/delta
+```
+
+## Rate Limits
+
+| Quota | Limit |
+|-------|-------|
+| Application throttling | 10,000 requests per 10 minutes per app |
+| Per-mailbox throttling | 10,000 requests per 10 minutes per mailbox |
+| Request concurrency | 4 concurrent requests per connector |
+
+OpenBeam handles throttling with exponential backoff and respects `Retry-After` headers.
+
+## Controls
+
+- **Full Resync**: Settings > Connectors > Outlook > Actions > Full Resync
+- **Pause/Resume**: Stop sync temporarily
+- **Sync Now**: Trigger immediate incremental sync

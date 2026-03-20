@@ -1,0 +1,67 @@
+---
+title: Sync Behavior
+description: How Confluence data is synced
+---
+
+# Sync Behavior
+
+## Sync Types
+
+| Type | Trigger | Duration |
+|------|---------|----------|
+| **Full** | First connection, manual resync | Minutes to hours |
+| **Incremental** | CQL query (scheduled) | Seconds to minutes |
+
+## Status Indicators
+
+| Status | Meaning |
+|--------|---------|
+| **Active** | Synced, watching for changes |
+| **Syncing** | Sync in progress |
+| **Error** | Check logs for details |
+
+## Sync Process
+
+1. **Space Discovery**: List all accessible spaces (or filtered set)
+2. **Page Sync**: Fetch all pages per space with body content using the Confluence REST API
+3. **Blog Sync**: Fetch blog posts per space (if enabled)
+4. **Comment Sync**: Fetch comments for each page and blog post (if enabled)
+5. **Transform**: Convert pages and posts to searchable documents with space and label metadata
+
+## CQL Incremental Sync
+
+Confluence incremental sync uses CQL (Confluence Query Language) to find recently modified content:
+
+```text
+lastModified >= "2026-03-20 00:00" AND type IN (page, blogpost) ORDER BY lastModified ASC
+```
+
+- Queries for content modified since the last sync timestamp
+- Pages and blog posts are fetched with expanded body content
+- Deleted content is detected by comparing against the existing index
+- Space-level filters are applied to the CQL query
+
+## Rotating Refresh Tokens
+
+Atlassian 3LO uses rotating refresh tokens:
+
+- Each token refresh returns a new access token and a new refresh token
+- The previous refresh token is immediately invalidated
+- OpenBeam stores the latest refresh token after each rotation
+- If a refresh fails (e.g., due to token reuse), a full re-authorization is required
+
+## Rate Limits
+
+| Quota | Limit |
+|-------|-------|
+| Confluence Cloud API | 100 requests per 25 seconds |
+| Content expansion | Additional API calls for body content |
+| Request concurrency | 2 concurrent requests per connector |
+
+OpenBeam handles rate limiting with exponential backoff and respects `Retry-After` headers.
+
+## Controls
+
+- **Full Resync**: Settings > Connectors > Confluence > Actions > Full Resync
+- **Pause/Resume**: Stop sync temporarily
+- **Sync Now**: Trigger immediate incremental sync

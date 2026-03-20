@@ -1,0 +1,40 @@
+---
+title: Confluence
+description: Search pages, blog posts, and spaces from Atlassian Confluence with CQL incremental sync
+---
+
+# Confluence
+
+Index pages, blog posts, and space content from Atlassian Confluence Cloud. Supports OAuth 2.0 via Atlassian 3LO, full sync and CQL-based incremental sync with rotating refresh tokens.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Pages** | Title, body content, labels, version history |
+| **Blog posts** | Title, body, author, publish date |
+| **Spaces** | Space name, description, key |
+| **Comments** | Page and blog post comments with author |
+
+## Authentication
+
+**Method:** OAuth 2.0 (Atlassian 3LO with JSON body token exchange)
+
+**Scopes:** `read:confluence-content.all`, `read:confluence-space.summary`, `search:confluence`, `offline_access`, `read:me`
+
+Create an OAuth 2.0 app at [developer.atlassian.com](https://developer.atlassian.com/console/myapps/) and configure the authorization code grant.
+
+## Quick Start
+
+1. Create an OAuth 2.0 app at [developer.atlassian.com](https://developer.atlassian.com/console/myapps/)
+2. Add Confluence API scopes and configure the callback URL
+3. Add the Confluence connector in OpenBeam with your Client ID and Secret
+4. Authorize and start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/confluence/setup" description="Atlassian OAuth app creation and authorization" />
+  <Card title="Features" href="/docs/connectors/confluence/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/confluence/configuration" description="Space filters, sync intervals, and settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/confluence/sync" description="Full sync, CQL incremental sync, and scheduling" />
+  <Card title="Troubleshooting" href="/docs/connectors/confluence/troubleshooting" description="Common issues and fixes" />
+</Cards>

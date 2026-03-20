@@ -1,0 +1,40 @@
+---
+title: Microsoft Teams
+description: Search channel messages and replies from Microsoft Teams via Microsoft Graph API
+---
+
+# Microsoft Teams
+
+Index channel messages and replies from Microsoft Teams. Supports OAuth 2.0 via Azure AD with shared authentication alongside Outlook and SharePoint. Full and incremental sync via Microsoft Graph API.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Channel messages** | Message text, sender, timestamps, mentions |
+| **Replies** | Threaded replies within channel conversations |
+| **Teams** | Team names, descriptions, membership |
+| **Channels** | Channel names and descriptions |
+
+## Authentication
+
+**Method:** OAuth 2.0 via Azure AD (shared with Outlook and SharePoint)
+
+**Scopes:** `ChannelMessage.Read.All`, `Team.ReadBasic.All`, `User.Read`, `offline_access`
+
+Uses the same Azure AD app registration as other Microsoft connectors. Add Teams-specific permissions to your existing app.
+
+## Quick Start
+
+1. Register an application in Azure AD (or reuse your existing Microsoft app)
+2. Add `ChannelMessage.Read.All` and `Team.ReadBasic.All` permissions
+3. Add the Teams connector in OpenBeam with your Azure AD credentials
+4. Authorize and start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/teams/setup" description="Azure AD permissions and Teams configuration" />
+  <Card title="Features" href="/docs/connectors/teams/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/teams/configuration" description="Team selection and sync settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/teams/sync" description="Full sync, incremental sync, and scheduling" />
+  <Card title="Troubleshooting" href="/docs/connectors/teams/troubleshooting" description="Common issues and fixes" />
+</Cards>

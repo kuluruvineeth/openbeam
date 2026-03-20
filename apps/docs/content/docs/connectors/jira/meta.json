@@ -1,0 +1,12 @@
+{
+  "title": "Jira",
+  "icon": "CircleDot",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

@@ -1,0 +1,64 @@
+---
+title: Features
+description: Salesforce connector capabilities
+---
+
+# Salesforce Features
+
+## Search
+
+- **Full-text**: Account names, contact details, opportunity data, case subjects
+- **Knowledge**: Knowledge article content and titles
+- **CRM data**: Cross-object search across accounts, contacts, and opportunities
+- **Metadata**: Stage, status, owner, date range filtering
+
+## Content Types
+
+| Type | Fields Indexed |
+|------|----------------|
+| Accounts | Name, industry, type, description, website, billing address |
+| Contacts | Name, email, phone, title, department, account association |
+| Opportunities | Name, stage, amount, close date, owner, description |
+| Cases | Subject, description, status, priority, contact, account |
+| Knowledge Articles | Title, body, article type, publish status, categories |
+
+## CRM Metadata
+
+| Field | Searchable | Filterable |
+|-------|------------|------------|
+| Account Name | Yes | Yes |
+| Owner | Yes | Yes |
+| Stage | Yes | Yes |
+| Status | Yes | Yes |
+| Priority | Yes | Yes |
+| Industry | Yes | Yes |
+| Amount | No | Yes |
+| Close Date | Yes | Yes |
+| Record Type | Yes | Yes |
+| Created Date | Yes | Yes |
+
+## Sync Options
+
+| Mode | Trigger | Latency |
+|------|---------|---------|
+| Full | First sync, manual | Minutes to hours |
+| Incremental | SOQL query (scheduled) | 15 min |
+
+## AI Capabilities
+
+- Semantic search across all CRM data with account, stage, and owner filtering
+- Question answering about account history, deal status, and case resolutions
+- Related record discovery linking contacts to accounts to opportunities
+- Knowledge article search for support and self-service use cases
+- Deal pipeline analysis from opportunity stage and amount data
+
+## Limitations
+
+| Limit | Value |
+|-------|-------|
+| Salesforce API daily limit | Based on org edition (typically 15,000-100,000 calls/day) |
+| SOQL query row limit | 2,000 rows per query (paginated automatically) |
+| Bulk API | Not used (REST API for incremental sync) |
+| Custom objects | Not indexed by default (standard objects only) |
+| File attachments | Not extracted (record data only) |
+| Sandbox orgs | Supported with `test.salesforce.com` login URL |

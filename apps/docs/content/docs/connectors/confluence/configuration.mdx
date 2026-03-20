@@ -1,0 +1,54 @@
+---
+title: Configuration
+description: Confluence connector settings
+---
+
+# Configuration
+
+## Content Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `include_spaces` | All | Comma-separated space keys to sync (e.g., ENG, DOCS) |
+| `exclude_spaces` | None | Comma-separated space keys to skip |
+| `sync_blog_posts` | `true` | Include blog posts in addition to pages |
+| `sync_comments` | `true` | Include page and blog post comments |
+
+## Sync Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `lookback_days` | Unlimited | Days of history to sync on first run |
+| `fullSyncInterval` | `24h` | Full resync frequency |
+| `incrementalInterval` | `15m` | CQL incremental sync frequency |
+
+## Environment Variables
+
+```bash
+ATLASSIAN_CLIENT_ID=your-client-id
+ATLASSIAN_CLIENT_SECRET=your-client-secret
+WEB_URL=https://your-domain.com
+SERVER_URL=https://api.your-domain.com
+```
+
+## Space Access
+
+Confluence OAuth grants access to:
+- All spaces the authenticating user can view
+- Pages within those spaces respecting page-level restrictions
+- Blog posts and comments within accessible spaces
+
+<Callout type="info">
+Atlassian 3LO uses rotating refresh tokens. Each time the token is refreshed, a new refresh token is issued and the previous one is invalidated. OpenBeam handles this rotation automatically.
+</Callout>
+
+## Resync Required
+
+| Change | Resync Type |
+|--------|-------------|
+| Change space filters | Full sync |
+| Enable blog posts | Full sync |
+| Enable comments | Full sync |
+| New spaces created | Incremental sync |
+
+Trigger via **Actions > Full Resync** in connector settings.

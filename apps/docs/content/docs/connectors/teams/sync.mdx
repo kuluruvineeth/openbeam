@@ -1,0 +1,58 @@
+---
+title: Sync Behavior
+description: How Microsoft Teams data is synced
+---
+
+# Sync Behavior
+
+## Sync Types
+
+| Type | Trigger | Duration |
+|------|---------|----------|
+| **Full** | First connection, manual resync | Minutes to hours |
+| **Incremental** | Scheduled | Seconds to minutes |
+
+## Status Indicators
+
+| Status | Meaning |
+|--------|---------|
+| **Active** | Synced, watching for changes |
+| **Syncing** | Sync in progress |
+| **Error** | Check logs for details |
+
+## Sync Process
+
+1. **Team Discovery**: List all teams the user has joined
+2. **Channel Discovery**: Enumerate all standard channels per team
+3. **Message Sync**: Fetch channel messages using Microsoft Graph `/channels/{channelId}/messages`
+4. **Reply Sync**: Fetch threaded replies for each message (if enabled)
+5. **Transform**: Convert messages and replies to searchable documents
+
+## Incremental Sync
+
+Teams incremental sync uses timestamp-based filtering:
+
+- Messages are fetched ordered by `lastModifiedDateTime`
+- Only messages modified since the last sync cursor are retrieved
+- Deleted messages are detected and removed from the index
+- Reply threads are re-fetched if the parent message is modified
+
+```text
+GET https://graph.microsoft.com/v1.0/teams/{teamId}/channels/{channelId}/messages?$filter=lastModifiedDateTime gt {cursor}
+```
+
+## Rate Limits
+
+| Quota | Limit |
+|-------|-------|
+| Application throttling | 10,000 requests per 10 minutes per app |
+| Channel message listing | 60 requests per 60 seconds per app per team |
+| Request concurrency | 2 concurrent requests per connector |
+
+OpenBeam handles throttling with exponential backoff and respects `Retry-After` headers.
+
+## Controls
+
+- **Full Resync**: Settings > Connectors > Teams > Actions > Full Resync
+- **Pause/Resume**: Stop sync temporarily
+- **Sync Now**: Trigger immediate incremental sync

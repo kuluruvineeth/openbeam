@@ -1,0 +1,12 @@
+{
+  "title": "Confluence",
+  "icon": "BookOpen",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

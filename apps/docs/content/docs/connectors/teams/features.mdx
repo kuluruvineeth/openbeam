@@ -1,0 +1,59 @@
+---
+title: Features
+description: Microsoft Teams connector capabilities
+---
+
+# Teams Features
+
+## Search
+
+- **Full-text**: Channel message content, sender names
+- **Threads**: Replies grouped under parent messages
+- **Teams**: Team and channel names
+- **Metadata**: Author, channel, team, date filtering
+
+## Content Types
+
+| Type | Fields Indexed |
+|------|----------------|
+| Channel messages | Message body, sender, timestamp, mentions |
+| Replies | Reply text, author, parent message association |
+| Teams | Team name, description |
+| Channels | Channel name, description, team association |
+
+## Message Metadata
+
+| Field | Searchable | Filterable |
+|-------|------------|------------|
+| Sender | Yes | Yes |
+| Team | Yes | Yes |
+| Channel | Yes | Yes |
+| Date | Yes | Yes |
+| Mentions | Yes | Yes |
+| Has Attachments | No | Yes |
+| Message Type | No | Yes |
+
+## Sync Options
+
+| Mode | Trigger | Latency |
+|------|---------|---------|
+| Full | First sync, manual | Minutes to hours |
+| Incremental | Scheduled | 15 min |
+
+## AI Capabilities
+
+- Semantic search across Teams channel conversations with team and channel filtering
+- Question answering from discussion threads, summarizing decisions and outcomes
+- Related conversation discovery across teams by topic similarity
+- Team knowledge extraction from recurring discussion patterns
+- Thread summarization for long channel discussions
+
+## Limitations
+
+| Limit | Value |
+|-------|-------|
+| Microsoft Graph throttling | 10,000 requests per 10 minutes |
+| Private channels | Requires additional RSC permissions |
+| Chat messages (1:1, group) | Not indexed (channel messages only) |
+| Message attachments | URLs indexed, not file content |
+| Deleted messages | Removed from index on next sync |

@@ -1,0 +1,40 @@
+---
+title: Microsoft Outlook
+description: Search emails, threads, and attachments from Microsoft Outlook via Microsoft Graph API
+---
+
+# Microsoft Outlook
+
+Index emails, threads, and attachments from Microsoft 365 Outlook mailboxes. Supports OAuth 2.0 via Azure AD, full and incremental sync using the Microsoft Graph delta API.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Emails** | Subject, body (text and HTML), sender, recipients, date |
+| **Threads** | Grouped conversation view with all replies |
+| **Attachments** | Text extraction from PDF, DOCX, and images via OCR |
+| **Folders** | Inbox, Sent, custom folders with configurable include/exclude |
+
+## Authentication
+
+**Method:** OAuth 2.0 via Azure AD
+
+**Scopes:** `Mail.Read`, `User.Read`, `offline_access`
+
+Register an application in the [Azure Portal](https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade) and configure Microsoft Graph API permissions.
+
+## Quick Start
+
+1. Register an application in Azure AD with Microsoft Graph permissions
+2. Configure the redirect URI and copy your Client ID and Secret
+3. Add the Outlook connector in OpenBeam with your Azure AD credentials
+4. Authorize and start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/outlook/setup" description="Azure AD app registration and authorization" />
+  <Card title="Features" href="/docs/connectors/outlook/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/outlook/configuration" description="Folder filters, sync intervals, and settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/outlook/sync" description="Full sync, delta sync, and scheduling" />
+  <Card title="Troubleshooting" href="/docs/connectors/outlook/troubleshooting" description="Common issues and fixes" />
+</Cards>

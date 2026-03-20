@@ -1,0 +1,55 @@
+---
+title: Configuration
+description: Jira connector settings
+---
+
+# Configuration
+
+## Content Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `include_projects` | All | Comma-separated project keys to sync (e.g., ENG, OPS) |
+| `exclude_projects` | None | Comma-separated project keys to skip |
+| `sync_comments` | `true` | Include issue comments in search |
+
+## Sync Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `lookback_days` | Unlimited | Days of history to sync on first run |
+| `enable_webhooks` | `true` | Enable real-time deletion detection |
+| `fullSyncInterval` | `24h` | Full resync frequency |
+| `incrementalInterval` | `15m` | JQL incremental sync frequency |
+
+## Environment Variables
+
+```bash
+ATLASSIAN_CLIENT_ID=your-client-id
+ATLASSIAN_CLIENT_SECRET=your-client-secret
+WEB_URL=https://your-domain.com
+SERVER_URL=https://api.your-domain.com
+```
+
+## Project Access
+
+Jira OAuth grants access to:
+- All projects the authenticating user can browse
+- Issues within those projects based on issue-level security
+- Comments on accessible issues
+
+<Callout type="info">
+The `manage:jira-webhook` scope allows OpenBeam to register webhooks for real-time deletion detection. When issues are deleted in Jira, they are immediately removed from OpenBeam search results.
+</Callout>
+
+## Resync Required
+
+| Change | Resync Type |
+|--------|-------------|
+| Change project filters | Full sync |
+| Enable comments | Full sync |
+| Change lookback days | Full sync |
+| New projects created | Incremental sync |
+| Webhook reconnect | None |
+
+Trigger via **Actions > Full Resync** in connector settings.

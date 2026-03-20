@@ -1,0 +1,83 @@
+---
+title: Troubleshooting
+description: Common Confluence connector issues
+---
+
+# Troubleshooting
+
+## OAuth Errors
+
+| Error | Fix |
+|-------|-----|
+| `invalid_client` | Check Client ID and Secret match your Atlassian app |
+| `access_denied` | User denied authorization or insufficient scopes |
+| `invalid_grant` | Refresh token rotated and expired — reconnect OAuth flow |
+| `unauthorized_client` | App not configured for OAuth 2.0 (3LO) |
+
+## Access Issues
+
+| Issue | Fix |
+|-------|-----|
+| Spaces not found | User must have view access to spaces |
+| Pages missing | Check space filters and page-level restrictions |
+| Blog posts empty | Enable `sync_blog_posts` setting |
+| Comments missing | Enable `sync_comments` setting |
+
+## Sync Issues
+
+| Issue | Fix |
+|-------|-----|
+| Rate limit exceeded | Auto-backoff; 100 requests per 25 seconds |
+| Content not indexed | Check connector status and CQL query results |
+| Archived spaces appearing | Archived spaces are excluded by default |
+| Macro content missing | Some macros do not expand via the REST API |
+
+## Connection Issues
+
+| Issue | Fix |
+|-------|-----|
+| Cannot connect | Verify Atlassian OAuth credentials |
+| Token refresh failed | Rotating refresh token was reused — reconnect OAuth |
+| Site selection failed | Verify the user has access to the Confluence site |
+| API errors | Check [Atlassian Status](https://status.atlassian.com/) |
+
+<Callout type="warn">
+Atlassian uses rotating refresh tokens. If a token refresh fails due to token reuse (e.g., concurrent refresh attempts), the connector must be re-authorized through the OAuth flow.
+</Callout>
+
+## Debug Commands
+
+```bash
+curl https://api.your-domain.com/webhooks/confluence/health
+
+tail -f logs/worker.log | grep -i confluence
+```
+
+## Error Reference
+
+| Error | Code | Fix |
+|-------|------|-----|
+| `AUTHENTICATION_ERROR` | 401 | Reconnect OAuth |
+| `FORBIDDEN` | 403 | Check space permissions |
+| `NOT_FOUND` | 404 | Page or space deleted |
+| `RATE_LIMITED` | 429 | Wait for backoff period |
+| `SERVER_ERROR` | 500 | Atlassian service issue — retry later |
+
+## Common Patterns
+
+### Issue: "No pages appearing in search"
+
+1. Check connector status is Active
+2. Verify user has access to target spaces
+3. Check space filters match actual space keys
+4. Verify `lookback_days` covers the desired date range
+5. Try manual Full Resync
+
+### Issue: "Slow initial sync"
+
+Large Confluence instances take time. Progress shown in connector status.
+- 500 pages: ~5 minutes
+- 5,000 pages: ~30 minutes
+- 50,000+ pages: Several hours
+
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openbeam/issues) with error messages and logs.

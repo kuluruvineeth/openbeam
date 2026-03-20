@@ -1,0 +1,62 @@
+---
+title: Features
+description: Jira connector capabilities
+---
+
+# Jira Features
+
+## Search
+
+- **Full-text**: Issue summaries, descriptions, comments
+- **Projects**: Project names and metadata
+- **Metadata**: Status, priority, assignee, label, sprint filtering
+
+## Content Types
+
+| Type | Fields Indexed |
+|------|----------------|
+| Issues | Summary, description, key (e.g., PROJ-123), status, assignee |
+| Comments | Full comment text with author and timestamp |
+| Projects | Project name, key, lead, description |
+| Sprints | Sprint name, state, start/end dates |
+
+## Issue Metadata
+
+| Field | Searchable | Filterable |
+|-------|------------|------------|
+| Status | Yes | Yes |
+| Priority | Yes | Yes |
+| Assignee | Yes | Yes |
+| Reporter | Yes | Yes |
+| Labels | Yes | Yes |
+| Sprint | Yes | Yes |
+| Project | Yes | Yes |
+| Issue Type | Yes | Yes |
+| Resolution | Yes | Yes |
+| Fix Version | Yes | Yes |
+
+## Sync Options
+
+| Mode | Trigger | Latency |
+|------|---------|---------|
+| Full | First sync, manual | Minutes to hours |
+| Incremental | JQL query (scheduled) | 15 min |
+| Real-time | Webhooks | Seconds |
+
+## AI Capabilities
+
+- Semantic search across issues and comments with project, status, and assignee filtering
+- Question answering about project status, blockers, and historical decisions from issue threads
+- Related issue discovery across projects by semantic similarity
+- Sprint and velocity analysis from issue state transitions
+- Duplicate issue detection by comparing new issues against existing content
+
+## Limitations
+
+| Limit | Value |
+|-------|-------|
+| Jira Cloud API rate limit | Varies by endpoint (typically 100 requests per minute) |
+| JQL result limit | 100 results per page (paginated automatically) |
+| Attachment content | Not extracted (attachment metadata only) |
+| Archived projects | Excluded by default |
+| Custom fields | Indexed as key-value metadata |

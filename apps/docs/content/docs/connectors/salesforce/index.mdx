@@ -1,0 +1,41 @@
+---
+title: Salesforce
+description: Search accounts, contacts, opportunities, cases, and knowledge articles from Salesforce with SOQL incremental sync
+---
+
+# Salesforce
+
+Index CRM data from Salesforce including accounts, contacts, opportunities, cases, and knowledge articles. Supports OAuth 2.0 Web Server Flow, SOQL-based incremental sync, and deleted record detection via the getDeleted() API.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Accounts** | Name, industry, type, description, website |
+| **Contacts** | Name, email, phone, title, account association |
+| **Opportunities** | Name, stage, amount, close date, owner |
+| **Cases** | Subject, description, status, priority, contact |
+| **Knowledge Articles** | Title, body, article type, publish status |
+
+## Authentication
+
+**Method:** OAuth 2.0 (Web Server Flow)
+
+**Scopes:** `api`, `refresh_token`, `offline_access`
+
+Create a Connected App in [Salesforce Setup](https://login.salesforce.com) and configure the OAuth settings.
+
+## Quick Start
+
+1. Create a Connected App in Salesforce Setup
+2. Enable OAuth and configure the callback URL
+3. Add the Salesforce connector in OpenBeam with your Consumer Key and Secret
+4. Authorize and start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/salesforce/setup" description="Connected App creation and OAuth authorization" />
+  <Card title="Features" href="/docs/connectors/salesforce/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/salesforce/configuration" description="Object selection, environment, and settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/salesforce/sync" description="Full sync, SOQL incremental sync, and deletion detection" />
+  <Card title="Troubleshooting" href="/docs/connectors/salesforce/troubleshooting" description="Common issues and fixes" />
+</Cards>

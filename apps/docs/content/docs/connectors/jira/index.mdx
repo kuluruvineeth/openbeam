@@ -1,0 +1,40 @@
+---
+title: Jira
+description: Search issues, comments, and projects from Atlassian Jira with JQL incremental sync and webhook deletion detection
+---
+
+# Jira
+
+Index issues, comments, and project data from Atlassian Jira Cloud. Supports OAuth 2.0 via Atlassian 3LO (shared auth with Confluence), JQL-based incremental sync, and real-time webhook deletion detection.
+
+## What Gets Indexed
+
+| Content | Details |
+|---------|---------|
+| **Issues** | Summary, description, status, assignee, priority, labels |
+| **Comments** | Full comment text with author and timestamps |
+| **Projects** | Project name, key, lead, category |
+| **Sprints** | Sprint name, state, dates |
+
+## Authentication
+
+**Method:** OAuth 2.0 (Atlassian 3LO, shared with Confluence)
+
+**Scopes:** `read:jira-work`, `read:jira-user`, `manage:jira-webhook`, `offline_access`, `read:me`
+
+Uses the same Atlassian OAuth app as Confluence. Add Jira-specific scopes to your existing app at [developer.atlassian.com](https://developer.atlassian.com/console/myapps/).
+
+## Quick Start
+
+1. Create an OAuth 2.0 app at [developer.atlassian.com](https://developer.atlassian.com/console/myapps/) (or reuse your Confluence app)
+2. Add Jira API scopes and configure the callback URL
+3. Add the Jira connector in OpenBeam with your Client ID and Secret
+4. Authorize and start the initial sync
+
+<Cards>
+  <Card title="Setup" href="/docs/connectors/jira/setup" description="Atlassian OAuth app creation and Jira authorization" />
+  <Card title="Features" href="/docs/connectors/jira/features" description="Indexed content types and search capabilities" />
+  <Card title="Configuration" href="/docs/connectors/jira/configuration" description="Project filters, comment sync, and settings" />
+  <Card title="Sync Behavior" href="/docs/connectors/jira/sync" description="Full sync, JQL incremental sync, and webhooks" />
+  <Card title="Troubleshooting" href="/docs/connectors/jira/troubleshooting" description="Common issues and fixes" />
+</Cards>

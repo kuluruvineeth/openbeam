@@ -1,6 +1,6 @@
 ---
 title: Connectors
-description: 20 connectors for SaaS, IoT, industrial protocols, and physical AI platforms
+description: 26 connectors for SaaS, enterprise productivity, CRM, IoT, industrial protocols, and physical AI platforms
 ---
 
 # Connectors
@@ -18,6 +18,33 @@ Production-ready connectors for workplace SaaS tools.
   <Card title="Notion" href="/docs/connectors/notion" description="Pages, databases, blocks" />
   <Card title="Linear" href="/docs/connectors/linear" description="Issues, projects, documents, cycles" />
   <Card title="Slack" href="/docs/connectors/slack" description="Messages, channels, files, threads" />
+</Cards>
+
+## Microsoft 365
+
+Enterprise productivity connectors using Microsoft Graph API with shared Azure AD authentication.
+
+<Cards>
+  <Card title="Microsoft Outlook" href="/docs/connectors/outlook" description="Emails, threads, attachments via delta sync" />
+  <Card title="Microsoft SharePoint" href="/docs/connectors/sharepoint" description="Documents, files, sites, drives" />
+  <Card title="Microsoft Teams" href="/docs/connectors/teams" description="Channel messages, replies, team conversations" />
+</Cards>
+
+## Atlassian Suite
+
+Connectors for Atlassian Cloud products with shared OAuth 2.0 (3LO) authentication.
+
+<Cards>
+  <Card title="Confluence" href="/docs/connectors/confluence" description="Pages, blog posts, spaces, CQL sync" />
+  <Card title="Jira" href="/docs/connectors/jira" description="Issues, comments, JQL sync, webhook deletion" />
+</Cards>
+
+## CRM
+
+Customer relationship management connectors.
+
+<Cards>
+  <Card title="Salesforce" href="/docs/connectors/salesforce" description="Accounts, contacts, opportunities, cases, knowledge" />
 </Cards>
 
 ## IoT
@@ -65,6 +92,12 @@ Connectors for healthcare, 3D spatial data, digital twins, and robotics.
 | [Notion](/docs/connectors/notion) | SaaS | OAuth 2.0 | Full, Incremental | Active |
 | [Linear](/docs/connectors/linear) | SaaS | OAuth 2.0 | Full, Incremental, Webhooks | Active |
 | [Slack](/docs/connectors/slack) | SaaS | OAuth 2.0 | Full, Incremental, Events | Active |
+| [Microsoft Outlook](/docs/connectors/outlook) | Microsoft 365 | OAuth 2.0 (Azure AD) | Full, Delta Sync | Active |
+| [Microsoft SharePoint](/docs/connectors/sharepoint) | Microsoft 365 | OAuth 2.0 (Azure AD) | Full, Delta Sync | Active |
+| [Microsoft Teams](/docs/connectors/teams) | Microsoft 365 | OAuth 2.0 (Azure AD) | Full, Incremental | Active |
+| [Confluence](/docs/connectors/confluence) | Atlassian | OAuth 2.0 (3LO) | Full, CQL Incremental | Active |
+| [Jira](/docs/connectors/jira) | Atlassian | OAuth 2.0 (3LO) | Full, JQL Incremental, Webhooks | Active |
+| [Salesforce](/docs/connectors/salesforce) | CRM | OAuth 2.0 | Full, SOQL Incremental | Active |
 | [Samsara](/docs/connectors/samsara) | IoT | API Key | Full, Incremental, Webhooks | Active |
 | [AWS IoT Core](/docs/connectors/aws-iot) | IoT | IAM Keys | Full, Incremental | Active |
 | [Azure IoT Hub](/docs/connectors/azure-iot) | IoT | Connection String | Full, Incremental | Active |

@@ -1,0 +1,50 @@
+---
+title: Configuration
+description: Microsoft Outlook connector settings
+---
+
+# Configuration
+
+## Content Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `include_folders` | All | Comma-separated folder names to sync (e.g., Inbox, Sent Items) |
+| `exclude_folders` | None | Comma-separated folder names to skip (e.g., Junk Email, Deleted Items) |
+| `sync_attachments` | `true` | Extract text from email attachments |
+
+## Sync Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `lookback_days` | `90` | Days of email history to sync on first run |
+| `fullSyncInterval` | `24h` | Full resync frequency |
+| `incrementalInterval` | `15m` | Delta sync check frequency |
+
+## Environment Variables
+
+```bash
+MICROSOFT_CLIENT_ID=your-application-client-id
+MICROSOFT_CLIENT_SECRET=your-client-secret-value
+MICROSOFT_TENANT_ID=your-directory-tenant-id
+WEB_URL=https://your-domain.com
+SERVER_URL=https://api.your-domain.com
+```
+
+## Mailbox Access
+
+Outlook OAuth grants access to:
+- The authenticating user's mailbox only
+- All folders the user has access to
+- Shared mailboxes are not supported
+
+## Resync Required
+
+| Change | Resync Type |
+|--------|-------------|
+| Change folder filters | Full sync |
+| Increase lookback days | Full sync |
+| Enable attachment sync | Full sync |
+| New folders created | Incremental sync |
+
+Trigger via **Actions > Full Resync** in connector settings.

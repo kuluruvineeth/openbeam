@@ -1,0 +1,78 @@
+---
+title: Troubleshooting
+description: Common Microsoft Teams connector issues
+---
+
+# Troubleshooting
+
+## OAuth Errors
+
+| Error | Fix |
+|-------|-----|
+| `AADSTS50011` | Redirect URI mismatch — verify exact match in Azure AD app registration |
+| `AADSTS65001` | Admin consent required — `ChannelMessage.Read.All` needs admin approval |
+| `AADSTS700016` | Application not found — verify Client ID matches your app registration |
+| `invalid_grant` | Refresh token expired — reconnect the OAuth flow |
+| `unauthorized_client` | Check Client ID and Secret are correct |
+
+## Access Issues
+
+| Issue | Fix |
+|-------|-----|
+| No teams found | Verify `Team.ReadBasic.All` permission is granted |
+| Private channels missing | Private channels require RSC permissions — only standard channels are indexed |
+| Chat messages not indexed | 1:1 and group chats are not supported — only channel messages |
+
+## Sync Issues
+
+| Issue | Fix |
+|-------|-----|
+| Rate limit exceeded | Auto-backoff; wait for reset |
+| Messages missing | Check team filters and user membership |
+| Replies not appearing | Verify `sync_replies` is enabled |
+| Deleted messages in results | Removed on next incremental sync cycle |
+
+## Connection Issues
+
+| Issue | Fix |
+|-------|-----|
+| Cannot connect | Verify Azure AD credentials and tenant ID |
+| Token expired | OAuth auto-refreshes; reconnect if persistent |
+| API errors | Check [Microsoft 365 Service Health](https://status.office.com/) |
+
+## Debug Commands
+
+```bash
+curl https://api.your-domain.com/webhooks/teams/health
+
+tail -f logs/worker.log | grep -i teams
+```
+
+## Error Reference
+
+| Error | Code | Fix |
+|-------|------|-----|
+| `AuthenticationError` | 401 | Reconnect OAuth |
+| `Forbidden` | 403 | Check API permissions and admin consent |
+| `TeamNotFound` | 404 | Team deleted or user removed |
+| `TooManyRequests` | 429 | Wait for `Retry-After` header duration |
+| `ServiceUnavailable` | 503 | Microsoft Graph temporary outage — retry later |
+
+## Common Patterns
+
+### Issue: "No messages appearing in search"
+
+1. Check connector status is Active
+2. Verify `ChannelMessage.Read.All` has admin consent
+3. Check team filters are not excluding all teams
+4. Verify the user is a member of the target teams
+5. Try manual Full Resync
+
+### Issue: "Slow initial sync"
+
+Active organizations with many channels take time. Progress shown in connector status.
+- 10 channels: ~2 minutes
+- 100 channels: ~15 minutes
+- 500+ channels: Up to an hour
+
+Still stuck? [Open an issue](https://github.com/kuluruvineeth/openbeam/issues) with error messages and logs.

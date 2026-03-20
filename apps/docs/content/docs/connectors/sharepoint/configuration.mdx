@@ -1,0 +1,53 @@
+---
+title: Configuration
+description: Microsoft SharePoint connector settings
+---
+
+# Configuration
+
+## Content Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `include_sites` | All | Comma-separated site names or URLs to sync |
+| `exclude_sites` | None | Comma-separated site names or URLs to skip |
+| `include_shared_drives` | `true` | Include shared document libraries |
+
+## Sync Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `fullSyncInterval` | `24h` | Full resync frequency |
+| `incrementalInterval` | `15m` | Delta sync check frequency |
+
+## Environment Variables
+
+```bash
+MICROSOFT_CLIENT_ID=your-application-client-id
+MICROSOFT_CLIENT_SECRET=your-client-secret-value
+MICROSOFT_TENANT_ID=your-directory-tenant-id
+WEB_URL=https://your-domain.com
+SERVER_URL=https://api.your-domain.com
+```
+
+## Site Access
+
+SharePoint OAuth grants access to:
+- All sites the authenticating user has read access to
+- Document libraries within those sites
+- Shared drives if enabled
+
+<Callout type="info">
+The `Sites.Read.All` permission grants access to all SharePoint sites in the tenant. Use site filters to limit which sites are indexed.
+</Callout>
+
+## Resync Required
+
+| Change | Resync Type |
+|--------|-------------|
+| Change site filters | Full sync |
+| Toggle shared drives | Full sync |
+| New sites added | Incremental sync |
+| New documents uploaded | Incremental sync |
+
+Trigger via **Actions > Full Resync** in connector settings.

@@ -1,0 +1,76 @@
+---
+title: Quick Start
+description: Connect Confluence to OpenBeam
+---
+
+# Confluence Quick Start
+
+## Prerequisites
+
+- Atlassian Cloud account with Confluence access
+- Permission to create OAuth 2.0 apps in [Atlassian Developer Console](https://developer.atlassian.com/console/myapps/)
+- OpenBeam instance with HTTPS endpoint
+
+## 1. Create an Atlassian OAuth 2.0 App
+
+1. Go to [developer.atlassian.com/console/myapps](https://developer.atlassian.com/console/myapps/)
+2. Click **Create** and select **OAuth 2.0 integration**
+3. Fill in:
+   - **Name**: OpenBeam Confluence Connector
+   - **Terms agreement**: Accept
+4. Click **Create**
+
+## 2. Configure Authorization
+
+1. In your app, go to **Authorization**
+2. Next to **OAuth 2.0 (3LO)**, click **Configure**
+3. Add callback URL:
+   ```text
+   https://your-domain.com/connectors/setup/confluence/oauth/callback
+   ```
+4. Click **Save changes**
+
+## 3. Add API Scopes
+
+1. Go to **Permissions**
+2. Under **Confluence API**, click **Add** and enable:
+   - `read:confluence-content.all`
+   - `read:confluence-space.summary`
+   - `search:confluence`
+3. Under **User identity API**, enable:
+   - `read:me`
+
+<Callout type="info">
+Atlassian 3LO uses rotating refresh tokens. Each token refresh returns a new refresh token that invalidates the previous one. OpenBeam handles this automatically.
+</Callout>
+
+## 4. Get Credentials
+
+1. Go to **Settings** in your app
+2. Copy:
+   - **Client ID**
+   - **Secret** (click **Generate** if not yet created)
+
+## 5. Configure Environment
+
+```bash
+ATLASSIAN_CLIENT_ID=your-client-id
+ATLASSIAN_CLIENT_SECRET=your-client-secret
+WEB_URL=https://your-domain.com
+SERVER_URL=https://api.your-domain.com
+```
+
+## 6. Connect in OpenBeam
+
+1. Go to **Settings > Connectors > Add Connector > Confluence**
+2. Enter **Client ID** and **Client Secret**
+3. Click **Connect** and authorize in Atlassian
+4. Select your Confluence site when prompted
+5. Initial sync starts automatically
+
+Large Confluence instances with thousands of pages may take several minutes for the initial full sync.
+
+<Cards>
+  <Card title="Configuration" href="/docs/connectors/confluence/configuration" description="Space filters, lookback days, and sync settings" />
+  <Card title="Jira Setup" href="/docs/connectors/jira/setup" description="Reuse the same Atlassian app for Jira" />
+</Cards>

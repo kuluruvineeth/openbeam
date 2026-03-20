@@ -1,0 +1,53 @@
+---
+title: Configuration
+description: Microsoft Teams connector settings
+---
+
+# Configuration
+
+## Content Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `include_teams` | All | Comma-separated team names to sync |
+| `exclude_teams` | None | Comma-separated team names to skip |
+| `sync_replies` | `true` | Include threaded replies in channel messages |
+
+## Sync Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `fullSyncInterval` | `24h` | Full resync frequency |
+| `incrementalInterval` | `15m` | Change check frequency |
+
+## Environment Variables
+
+```bash
+MICROSOFT_CLIENT_ID=your-application-client-id
+MICROSOFT_CLIENT_SECRET=your-client-secret-value
+MICROSOFT_TENANT_ID=your-directory-tenant-id
+WEB_URL=https://your-domain.com
+SERVER_URL=https://api.your-domain.com
+```
+
+## Team Access
+
+Teams OAuth grants access to:
+- All teams the authenticating user is a member of
+- All standard channels within those teams
+- Private channels require additional Resource-Specific Consent (RSC)
+
+<Callout type="warn">
+Private and shared channels are not accessible with standard delegated permissions. Only standard (public) channels within joined teams are indexed.
+</Callout>
+
+## Resync Required
+
+| Change | Resync Type |
+|--------|-------------|
+| Change team filters | Full sync |
+| Toggle reply sync | Full sync |
+| New teams joined | Incremental sync |
+| New channels created | Incremental sync |
+
+Trigger via **Actions > Full Resync** in connector settings.

@@ -1,0 +1,82 @@
+---
+title: Quick Start
+description: Connect Salesforce to OpenBeam
+---
+
+# Salesforce Quick Start
+
+## Prerequisites
+
+- Salesforce org with System Administrator access (or permission to create Connected Apps)
+- OpenBeam instance with HTTPS endpoint
+
+## 1. Create a Connected App
+
+1. Log in to [Salesforce Setup](https://login.salesforce.com)
+2. Navigate to **Setup > App Manager** (search "App Manager" in Quick Find)
+3. Click **New Connected App**
+4. Fill in:
+   - **Connected App Name**: OpenBeam
+   - **API Name**: OpenBeam (auto-populated)
+   - **Contact Email**: your admin email
+
+## 2. Enable OAuth Settings
+
+1. Check **Enable OAuth Settings**
+2. Set **Callback URL**:
+   ```text
+   https://your-domain.com/connectors/setup/salesforce/oauth/callback
+   ```
+3. Under **Selected OAuth Scopes**, add:
+   - `Access and manage your data (api)`
+   - `Perform requests on your behalf at any time (refresh_token, offline_access)`
+4. Uncheck **Require Proof Key for Code Exchange (PKCE)**
+5. Click **Save**
+
+<Callout type="info">
+Salesforce may take 2-10 minutes to activate a newly created Connected App. Wait before attempting to connect.
+</Callout>
+
+## 3. Get Credentials
+
+1. After saving, click **Manage Consumer Details**
+2. Verify your identity (email verification code)
+3. Copy:
+   - **Consumer Key** (Client ID)
+   - **Consumer Secret** (Client Secret)
+
+## 4. Configure IP Relaxation
+
+1. Go to **Setup > App Manager**, find OpenBeam, click **Manage**
+2. Click **Edit Policies**
+3. Under **IP Relaxation**, select **Relax IP restrictions**
+4. Click **Save**
+
+## 5. Configure Environment
+
+```bash
+SALESFORCE_CLIENT_ID=your-consumer-key
+SALESFORCE_CLIENT_SECRET=your-consumer-secret
+SALESFORCE_LOGIN_URL=https://login.salesforce.com
+WEB_URL=https://your-domain.com
+SERVER_URL=https://api.your-domain.com
+```
+
+For sandbox environments, use:
+```bash
+SALESFORCE_LOGIN_URL=https://test.salesforce.com
+```
+
+## 6. Connect in OpenBeam
+
+1. Go to **Settings > Connectors > Add Connector > Salesforce**
+2. Enter **Consumer Key**, **Consumer Secret**, and **Login URL**
+3. Click **Connect** and authorize in Salesforce
+4. Initial sync starts automatically
+
+The initial sync indexes all accounts, contacts, opportunities, and optionally cases and knowledge articles. Large orgs with millions of records may take significant time.
+
+<Cards>
+  <Card title="Configuration" href="/docs/connectors/salesforce/configuration" description="Object selection, environment, and sync settings" />
+  <Card title="Features" href="/docs/connectors/salesforce/features" description="What gets indexed and search capabilities" />
+</Cards>

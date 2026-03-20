@@ -1,0 +1,12 @@
+{
+  "title": "Microsoft SharePoint",
+  "icon": "FileText",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

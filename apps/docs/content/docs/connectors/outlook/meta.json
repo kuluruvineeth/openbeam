@@ -1,0 +1,12 @@
+{
+  "title": "Microsoft Outlook",
+  "icon": "Mail",
+  "pages": [
+    "index",
+    "setup",
+    "features",
+    "configuration",
+    "sync",
+    "troubleshooting"
+  ]
+}

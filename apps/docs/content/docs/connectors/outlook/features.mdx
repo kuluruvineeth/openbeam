@@ -1,0 +1,60 @@
+---
+title: Features
+description: Microsoft Outlook connector capabilities
+---
+
+# Outlook Features
+
+## Search
+
+- **Full-text**: Email subjects, body content, sender names
+- **Threads**: Grouped conversation search across all replies
+- **Attachments**: Extracted text from PDF, DOCX, and images
+- **Metadata**: Folder, sender, recipients, date range filtering
+
+## Content Types
+
+| Type | Fields Indexed |
+|------|----------------|
+| Emails | Subject, body (plain text and HTML), sender, recipients |
+| Threads | Conversation ID grouping, all messages in thread |
+| Attachments | Extracted text content, filename, MIME type |
+| Folders | Folder name, path hierarchy |
+
+## Email Metadata
+
+| Field | Searchable | Filterable |
+|-------|------------|------------|
+| Sender | Yes | Yes |
+| Recipients (To/CC/BCC) | Yes | Yes |
+| Subject | Yes | Yes |
+| Folder | Yes | Yes |
+| Date | Yes | Yes |
+| Has Attachments | No | Yes |
+| Importance | Yes | Yes |
+| Read Status | No | Yes |
+
+## Sync Options
+
+| Mode | Trigger | Latency |
+|------|---------|---------|
+| Full | First sync, manual | Minutes to hours |
+| Incremental | Delta API (scheduled) | 15 min |
+
+## AI Capabilities
+
+- Semantic search across email content with sender, date, and folder filtering
+- Question answering from email threads, summarizing decisions and action items
+- Related email discovery by semantic similarity across mailboxes
+- Attachment content search with full-text extraction from common document formats
+- Thread summarization for long email conversations with key takeaways
+
+## Limitations
+
+| Limit | Value |
+|-------|-------|
+| Microsoft Graph throttling | 10,000 requests per 10 minutes |
+| Attachment size limit | 150 MB per attachment |
+| Delta sync token expiry | 30 days |
+| Shared mailboxes | Not supported (user mailbox only) |
+| Calendar events | Not indexed (email only) |
