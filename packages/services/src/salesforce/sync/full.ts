@@ -3,6 +3,9 @@ import type {
   SalesforceSyncCursor,
   SalesforceTransformContext,
 } from "@openbeam/types/services/connectors/salesforce";
+
+const SOQL_MS_REGEX = /\.\d{3}/;
+
 import type { GenericDocument } from "@openbeam/vespa";
 import { logger } from "../../lib/logger";
 import type { SalesforceClient } from "../client";
@@ -50,7 +53,7 @@ export async function* salesforceFullSync(
   let latestModstamp: string | undefined;
 
   const dateFilter = options.lookbackDays
-    ? ` WHERE SystemModstamp >= ${buildDateLiteral(options.lookbackDays)}`
+    ? ` WHERE SystemModstamp >= ${formatSoqlDatetime(buildDateLiteral(options.lookbackDays))}`
     : "";
 
   for await (const accounts of client.queryAll<SalesforceAccount>(
@@ -192,4 +195,8 @@ function trackModstamp(current: string, latest: string | undefined): string {
 function buildDateLiteral(lookbackDays: number): string {
   const date = new Date(Date.now() - lookbackDays * 86_400_000);
   return date.toISOString();
+}
+
+function formatSoqlDatetime(iso: string): string {
+  return iso.replace("Z", "+0000").replace(SOQL_MS_REGEX, "");
 }

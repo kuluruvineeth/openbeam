@@ -5,6 +5,8 @@ import {
   SalesforceUserInfoSchema,
 } from "./types";
 
+export const SALESFORCE_TOKEN_LIFETIME_SECONDS = 7200;
+
 export class SalesforceOAuthError extends Error {
   readonly operation: "exchange" | "refresh" | "userinfo";
   readonly statusCode: number;
@@ -141,7 +143,7 @@ export async function refreshSalesforceToken(
 
   return {
     accessToken: data.access_token,
-    expiresIn: 7200,
+    expiresIn: SALESFORCE_TOKEN_LIFETIME_SECONDS,
     instanceUrl: data.instance_url,
   };
 }

@@ -11,6 +11,7 @@ import {
   AuthType,
   exchangeSalesforceCode,
   generateSalesforceAuthUrl,
+  SALESFORCE_TOKEN_LIFETIME_SECONDS,
   salesforceApp,
 } from "@openbeam/integrations";
 import type {
@@ -58,30 +59,28 @@ export class SalesforceAuth implements IntegrationAuth {
     };
   }
 
+  private getOAuthConfig(loginUrl?: string) {
+    if (salesforceApp.auth.type !== AuthType.OAUTH2) {
+      throw new Error("Salesforce app is not configured for OAuth2");
+    }
+    const base = salesforceApp.auth.config;
+    if (!loginUrl) {
+      return base;
+    }
+    return {
+      ...base,
+      authUrl: `${loginUrl}/services/oauth2/authorize`,
+      tokenUrl: `${loginUrl}/services/oauth2/token`,
+    };
+  }
+
   async start(ctx: AuthStartContext): Promise<string> {
     if (!ctx.connectorId) {
       throw new Error("Connector ID required");
     }
 
     const { clientId, loginUrl } = await this.getCredentials(ctx.connectorId);
-
-    const authConfig =
-      salesforceApp.auth.type === AuthType.OAUTH2
-        ? salesforceApp.auth.config
-        : {
-            authUrl: "",
-            tokenUrl: "",
-            redirectPath: "",
-            scopes: [] as string[],
-          };
-
-    const effectiveConfig = loginUrl
-      ? {
-          ...authConfig,
-          authUrl: `${loginUrl}/services/oauth2/authorize`,
-          tokenUrl: `${loginUrl}/services/oauth2/token`,
-        }
-      : authConfig;
+    const effectiveConfig = this.getOAuthConfig(loginUrl);
 
     return generateSalesforceAuthUrl({
       config: effectiveConfig,
@@ -107,22 +106,8 @@ export class SalesforceAuth implements IntegrationAuth {
       const { clientId, clientSecret, loginUrl } =
         await this.getCredentials(connectorId);
 
-      const authConfig =
-        salesforceApp.auth.type === AuthType.OAUTH2
-          ? salesforceApp.auth.config
-          : {
-              authUrl: "",
-              tokenUrl: "",
-              redirectPath: "",
-              scopes: [] as string[],
-            };
-
-      const effectiveConfig = loginUrl
-        ? { ...authConfig, tokenUrl: `${loginUrl}/services/oauth2/token` }
-        : authConfig;
-
       const tokens = await exchangeSalesforceCode({
-        config: effectiveConfig,
+        config: this.getOAuthConfig(loginUrl),
         clientId,
         clientSecret,
         code: ctx.code,
@@ -150,7 +135,7 @@ export class SalesforceAuth implements IntegrationAuth {
           app: AppType.SALESFORCE,
           accessToken: tokens.accessToken,
           refreshToken: tokens.refreshToken,
-          expiresIn: 7200,
+          expiresIn: SALESFORCE_TOKEN_LIFETIME_SECONDS,
           scopes: ["api", "refresh_token"],
           clientId,
           clientSecret,

@@ -182,6 +182,7 @@ export {
   exchangeSalesforceCode,
   generateSalesforceAuthUrl,
   refreshSalesforceToken,
+  SALESFORCE_TOKEN_LIFETIME_SECONDS,
   SalesforceOAuthError,
 } from "./salesforce";
 export {

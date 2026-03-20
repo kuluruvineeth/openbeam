@@ -3,6 +3,9 @@ import type {
   SalesforceSyncCursor,
   SalesforceTransformContext,
 } from "@openbeam/types/services/connectors/salesforce";
+
+const SOQL_MS_REGEX = /\.\d{3}/;
+
 import type { GenericDocument } from "@openbeam/vespa";
 import { logger } from "../../lib/logger";
 import type { SalesforceClient } from "../client";
@@ -57,7 +60,7 @@ export async function* salesforceIncrementalSync(
   let errors = 0;
   let latestModstamp: string | undefined = cursor.lastSyncTime;
 
-  const sinceFilter = `WHERE SystemModstamp > ${cursor.lastSyncTime}`;
+  const sinceFilter = `WHERE SystemModstamp > ${formatSoqlDatetime(cursor.lastSyncTime)}`;
   const orderBy = "ORDER BY SystemModstamp ASC";
 
   const objectConfigs: Array<{
@@ -164,4 +167,8 @@ export async function* salesforceIncrementalSync(
       lookbackDays: options.lookbackDays,
     });
   }
+}
+
+function formatSoqlDatetime(iso: string): string {
+  return iso.replace("Z", "+0000").replace(SOQL_MS_REGEX, "");
 }
