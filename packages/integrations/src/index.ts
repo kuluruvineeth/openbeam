@@ -1,9 +1,11 @@
 import { bacnetApp } from "./bacnet/config";
 import { cisaKevApp } from "./cisa-kev/config";
+import { confluenceApp } from "./confluence/config";
 import { fhirApp } from "./fhir/config";
 import { githubApp } from "./github/config";
 import { gmailApp } from "./gmail/config";
 import { googleDriveApp } from "./google-drive/config";
+import { jiraApp } from "./jira/config";
 import { linearApp } from "./linear/config";
 import { matterportApp } from "./matterport/config";
 import { mitreAttackApp } from "./mitre-attack/config";
@@ -26,10 +28,12 @@ import { viamApp } from "./viam/config";
 export {
   bacnetApp,
   cisaKevApp,
+  confluenceApp,
   fhirApp,
   gmailApp,
   githubApp,
   googleDriveApp,
+  jiraApp,
   linearApp,
   matterportApp,
   mitreAttackApp,
@@ -49,6 +53,29 @@ export {
   viamApp,
 };
 
+export type {
+  AtlassianOAuthResult,
+  AtlassianSite,
+} from "./atlassian";
+export {
+  AtlassianOAuthError,
+  exchangeAtlassianCode,
+  fetchAccessibleResources,
+  fetchAtlassianUserInfo,
+  generateAtlassianAuthUrl,
+  refreshAtlassianToken,
+} from "./atlassian";
+export type {
+  ConfluenceOAuthResult,
+  ExchangeConfluenceCodeParams,
+  GenerateConfluenceAuthUrlParams,
+  RefreshConfluenceTokenParams,
+} from "./confluence/oauth";
+export {
+  exchangeConfluenceCode,
+  generateConfluenceAuthUrl,
+  refreshConfluenceToken,
+} from "./confluence/oauth";
 export {
   exchangeGitHubCode,
   generateGitHubAuthUrl,
@@ -91,7 +118,6 @@ export {
   generateGoogleAuthUrl,
   refreshGoogleToken,
 } from "./google";
-
 export {
   exchangeGoogleDriveCode,
   generateGoogleDriveAuthUrl,
@@ -107,6 +133,17 @@ export type {
   GoogleDriveFile,
   GoogleDriveFolder,
 } from "./google-drive/types";
+export type {
+  ExchangeJiraCodeParams,
+  GenerateJiraAuthUrlParams,
+  JiraOAuthResult,
+  RefreshJiraTokenParams,
+} from "./jira/oauth";
+export {
+  exchangeJiraCode,
+  generateJiraAuthUrl,
+  refreshJiraToken,
+} from "./jira/oauth";
 
 export {
   exchangeLinearCode,
@@ -188,4 +225,6 @@ export const appStore: UnifiedApp[] = [
   outlookApp,
   sharePointApp,
   teamsApp,
+  confluenceApp,
+  jiraApp,
 ];

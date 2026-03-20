@@ -4,10 +4,12 @@ import {
 } from "@openbeam/types/services/connectors/events";
 import { Logo as BACnetLogo } from "./bacnet/assets/logo";
 import { Logo as CisaKevLogo } from "./cisa-kev/assets/logo";
+import { Logo as ConfluenceLogo } from "./confluence/assets/logo";
 import { Logo as FHIRLogo } from "./fhir/assets/logo";
 import { Logo as GitHubLogo } from "./github/assets/logo";
 import { Logo as GmailLogo } from "./gmail/assets/logo";
 import { Logo as GoogleDriveLogo } from "./google-drive/assets/logo";
+import { Logo as JiraLogo } from "./jira/assets/logo";
 import { Logo as LinearLogo } from "./linear/assets/logo";
 import { Logo as MatterportLogo } from "./matterport/assets/logo";
 import { Logo as MitreAttackLogo } from "./mitre-attack/assets/logo";
@@ -51,6 +53,8 @@ export const appLogos: Record<string, LogoComponent> = {
   [AppType.OUTLOOK]: OutlookLogo,
   [AppType.SHAREPOINT]: SharePointLogo,
   [AppType.MICROSOFT_TEAMS]: TeamsLogo,
+  [AppType.CONFLUENCE]: ConfluenceLogo,
+  [AppType.JIRA]: JiraLogo,
 };
 
 export const connectorLogos: Partial<Record<ConnectorType, LogoComponent>> =

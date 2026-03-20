@@ -6,6 +6,8 @@ import {
   azureIotIncrementalSync,
   cisaKevFullSync,
   cisaKevIncrementalSync,
+  confluenceIncrementalSync,
+  createAtlassianClient,
   createAwsIotClient,
   createAzureIotClient,
   createGitHubClient,
@@ -25,6 +27,7 @@ import {
   githubIncrementalSync,
   gmailIncrementalSync,
   googleDriveIncrementalSync,
+  jiraIncrementalSync,
   linearFullSync,
   linearIncrementalSync,
   mitreAttackFullSync,
@@ -1010,7 +1013,69 @@ export function registerAllSyncFactories(): void {
     }
   );
 
-  registerSyncFactory("JIRA", createEmptySyncGenerator);
+  registerSyncFactory("JIRA", async function* (connectorId, connector, cursor) {
+    const accessToken = await getValidAccessToken(connectorId);
+
+    const config = connector.config as Record<string, unknown> | null;
+    const cloudId = (config?.cloudId as string) ?? "";
+    const siteUrl = (config?.siteUrl as string) ?? "";
+    const syncComments = config?.sync_comments !== false;
+    const lookbackDays = config?.lookback_days
+      ? Number(config.lookback_days)
+      : undefined;
+    const includeProjects = config?.include_projects
+      ? String(config.include_projects)
+          .split(",")
+          .map((p) => p.trim())
+          .filter(Boolean)
+      : undefined;
+    const excludeProjects = config?.exclude_projects
+      ? String(config.exclude_projects)
+          .split(",")
+          .map((p) => p.trim())
+          .filter(Boolean)
+      : undefined;
+
+    if (!cloudId) {
+      throw ApplicationFailure.nonRetryable(
+        "Jira cloudId not found in connector config",
+        "ConfigurationError"
+      );
+    }
+
+    logger.info({ connectorId, cloudId, siteUrl }, "Jira sync config loaded");
+
+    const client = createAtlassianClient({
+      connectorId,
+      accessToken,
+      cloudId,
+      product: "jira",
+    });
+
+    const context = {
+      connectorId: connector.id,
+      connectorType: connector.type,
+      teamId: connector.teamId,
+      workspaceId: connector.workspaceExternalId ?? "",
+      siteUrl,
+      cloudId,
+    };
+
+    for await (const batch of jiraIncrementalSync(client, context, {
+      cursor,
+      batchSize: 50,
+      includeProjects,
+      excludeProjects,
+      syncComments,
+      lookbackDays,
+    })) {
+      yield {
+        items: batch.items as GenericDocument[],
+        cursor: batch.cursor as SyncCursor,
+        hasMore: batch.hasMore,
+      };
+    }
+  });
 
   registerSyncFactory(
     "GITHUB",
@@ -1394,6 +1459,68 @@ export function registerAllSyncFactories(): void {
     }
   );
 
-  registerSyncFactory("CONFLUENCE", createEmptySyncGenerator);
+  registerSyncFactory(
+    "CONFLUENCE",
+    async function* (connectorId, connector, cursor) {
+      const accessToken = await getValidAccessToken(connectorId);
+
+      const config = connector.config as Record<string, unknown> | null;
+      const cloudId = (config?.cloudId as string) ?? "";
+      const siteUrl = (config?.siteUrl as string) ?? "";
+      const includeSpaces = config?.include_spaces
+        ? String(config.include_spaces)
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : undefined;
+      const excludeSpaces = config?.exclude_spaces
+        ? String(config.exclude_spaces)
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : undefined;
+
+      if (!cloudId) {
+        throw ApplicationFailure.nonRetryable(
+          "Confluence cloudId not found in connector config",
+          "ConfigurationError"
+        );
+      }
+
+      logger.info(
+        { connectorId, cloudId, siteUrl },
+        "Confluence sync config loaded"
+      );
+
+      const client = createAtlassianClient({
+        connectorId,
+        accessToken,
+        cloudId,
+        product: "confluence",
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+        siteUrl,
+        cloudId,
+      };
+
+      for await (const batch of confluenceIncrementalSync(client, context, {
+        cursor,
+        batchSize: 100,
+        includeSpaces,
+        excludeSpaces,
+      })) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
   registerSyncFactory("ZENDESK", createEmptySyncGenerator);
 }

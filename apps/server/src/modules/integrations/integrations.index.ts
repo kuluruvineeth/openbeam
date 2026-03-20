@@ -2,9 +2,11 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 import type { AuthEnv } from "@/middleware/auth";
 import awsIot from "./aws-iot/aws-iot.index";
 import azureIot from "./azure-iot/azure-iot.index";
+import confluence from "./confluence/confluence.index";
 import github from "./github/github.index";
 import gmail from "./gmail/gmail.index";
 import googleDrive from "./google-drive/google-drive.index";
+import jira from "./jira/jira.index";
 import linear from "./linear/linear.index";
 import notion from "./notion/notion.index";
 import outlook from "./outlook/outlook.index";
@@ -31,6 +33,8 @@ integrations.route("/smartthings", smartthings);
 integrations.route("/outlook", outlook);
 integrations.route("/sharepoint", sharepoint);
 integrations.route("/teams", teams);
+integrations.route("/confluence", confluence);
+integrations.route("/jira", jira);
 
 integrations.get("/health", (c) =>
   c.json({

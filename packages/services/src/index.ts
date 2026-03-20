@@ -111,6 +111,8 @@ export {
   warmKVCache,
   warmOverviewCache,
 } from "./ai/overview";
+export type { AtlassianClient, AtlassianClientConfig } from "./atlassian";
+export { AtlassianApiError, createAtlassianClient } from "./atlassian";
 export type { AwsIotClient } from "./aws-iot";
 export {
   AwsIotApiError,
@@ -135,6 +137,17 @@ export {
   incrementalSync as cisaKevIncrementalSync,
   transformKevVulnerability,
 } from "./cisa-kev";
+export type {
+  ConfluenceBlogpost,
+  ConfluencePage,
+  ConfluenceSpaceInfo,
+} from "./confluence";
+export {
+  ConfluenceAuth,
+  confluenceFullSync,
+  confluenceIncrementalSync,
+  transformConfluencePage,
+} from "./confluence";
 export * from "./control";
 export type {
   ChunkOptions,
@@ -281,6 +294,14 @@ export {
   isHealthy,
   needsAttention,
 } from "./health";
+export type { JiraComment, JiraIssue } from "./jira";
+export {
+  JiraAuth,
+  jiraFullSync,
+  jiraIncrementalSync,
+  transformJiraComment,
+  transformJiraIssue,
+} from "./jira";
 export type {
   ExpertiseUpdate,
   ResolutionContext,

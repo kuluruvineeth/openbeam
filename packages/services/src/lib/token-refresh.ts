@@ -10,10 +10,15 @@ import prisma, {
   updateOAuthTokens,
 } from "@openbeam/db";
 import {
+  refreshConfluenceToken,
   refreshGitHubToken,
   refreshGmailToken,
   refreshGoogleDriveToken,
+  refreshJiraToken,
   refreshLinearToken,
+  refreshOutlookToken,
+  refreshSharePointToken,
+  refreshTeamsToken,
 } from "@openbeam/integrations";
 
 export async function refreshConnectorToken(
@@ -114,6 +119,58 @@ export async function refreshConnectorToken(
           accessToken: githubResult.accessToken,
           expiresIn: githubResult.expiresIn,
           refreshToken: githubResult.refreshToken,
+        };
+        break;
+      }
+
+      case "OUTLOOK":
+        newToken = await refreshOutlookToken({
+          clientId,
+          clientSecret,
+          refreshToken,
+        });
+        break;
+
+      case "SHAREPOINT":
+        newToken = await refreshSharePointToken({
+          clientId,
+          clientSecret,
+          refreshToken,
+        });
+        break;
+
+      case "MICROSOFT_TEAMS":
+        newToken = await refreshTeamsToken({
+          clientId,
+          clientSecret,
+          refreshToken,
+        });
+        break;
+
+      case "CONFLUENCE": {
+        const confluenceResult = await refreshConfluenceToken({
+          clientId,
+          clientSecret,
+          refreshToken,
+        });
+        newToken = {
+          accessToken: confluenceResult.accessToken,
+          expiresIn: confluenceResult.expiresIn,
+          refreshToken: confluenceResult.refreshToken,
+        };
+        break;
+      }
+
+      case "JIRA": {
+        const jiraResult = await refreshJiraToken({
+          clientId,
+          clientSecret,
+          refreshToken,
+        });
+        newToken = {
+          accessToken: jiraResult.accessToken,
+          expiresIn: jiraResult.expiresIn,
+          refreshToken: jiraResult.refreshToken,
         };
         break;
       }
