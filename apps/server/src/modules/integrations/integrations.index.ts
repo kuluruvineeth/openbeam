@@ -10,6 +10,7 @@ import jira from "./jira/jira.index";
 import linear from "./linear/linear.index";
 import notion from "./notion/notion.index";
 import outlook from "./outlook/outlook.index";
+import salesforce from "./salesforce/salesforce.index";
 import samsara from "./samsara/samsara.index";
 import sharepoint from "./sharepoint/sharepoint.index";
 import slack from "./slack/slack.index";
@@ -35,6 +36,7 @@ integrations.route("/sharepoint", sharepoint);
 integrations.route("/teams", teams);
 integrations.route("/confluence", confluence);
 integrations.route("/jira", jira);
+integrations.route("/salesforce", salesforce);
 
 integrations.get("/health", (c) =>
   c.json({

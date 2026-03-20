@@ -18,6 +18,7 @@ import {
   createNotionClient,
   createNvdClient,
   createOwaspClient,
+  createSalesforceClient,
   createSamsaraClient,
   createSlackClient,
   createSmartThingsClient,
@@ -37,6 +38,7 @@ import {
   nvdIncrementalSync,
   outlookIncrementalSync,
   owaspFullSync,
+  salesforceIncrementalSync,
   samsaraFullSync,
   samsaraIncrementalSync,
   sharepointFullSync,
@@ -1522,5 +1524,58 @@ export function registerAllSyncFactories(): void {
       }
     }
   );
+  registerSyncFactory(
+    "SALESFORCE",
+    async function* (connectorId, connector, cursor) {
+      const accessToken = await getValidAccessToken(connectorId);
+
+      const config = connector.config as Record<string, unknown> | null;
+      const instanceUrl = (config?.instanceUrl as string) ?? "";
+      const syncCases = config?.sync_cases !== false;
+      const lookbackDays = config?.lookback_days
+        ? Number(config.lookback_days)
+        : undefined;
+
+      if (!instanceUrl) {
+        throw ApplicationFailure.nonRetryable(
+          "Salesforce instanceUrl not found in connector config",
+          "ConfigurationError"
+        );
+      }
+
+      logger.info(
+        { connectorId, instanceUrl },
+        "Salesforce sync config loaded"
+      );
+
+      const client = createSalesforceClient({
+        connectorId,
+        accessToken,
+        instanceUrl,
+      });
+
+      const context = {
+        connectorId: connector.id,
+        connectorType: connector.type,
+        teamId: connector.teamId,
+        workspaceId: connector.workspaceExternalId ?? "",
+        instanceUrl,
+      };
+
+      for await (const batch of salesforceIncrementalSync(client, context, {
+        cursor,
+        batchSize: 200,
+        syncCases,
+        lookbackDays,
+      })) {
+        yield {
+          items: batch.items as GenericDocument[],
+          cursor: batch.cursor as SyncCursor,
+          hasMore: batch.hasMore,
+        };
+      }
+    }
+  );
+
   registerSyncFactory("ZENDESK", createEmptySyncGenerator);
 }

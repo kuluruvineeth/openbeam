@@ -17,6 +17,7 @@ import { omniverseApp } from "./omniverse/config";
 import { opcuaApp } from "./opcua/config";
 import { outlookApp } from "./outlook/config";
 import { owaspApp } from "./owasp/config";
+import { salesforceApp } from "./salesforce/config";
 import { samsaraApp } from "./samsara/config";
 import { sharePointApp } from "./sharepoint/config";
 import { slackApp } from "./slack/config";
@@ -45,6 +46,7 @@ export {
   opcuaApp,
   outlookApp,
   owaspApp,
+  salesforceApp,
   samsaraApp,
   sharePointApp,
   slackApp,
@@ -169,6 +171,20 @@ export {
   generateOutlookAuthUrl,
   refreshOutlookToken,
 } from "./outlook/oauth";
+export type {
+  ExchangeSalesforceCodeParams,
+  GenerateSalesforceAuthUrlParams,
+  RefreshSalesforceTokenParams,
+  RefreshSalesforceTokenResult,
+  SalesforceOAuthResult,
+} from "./salesforce";
+export {
+  exchangeSalesforceCode,
+  generateSalesforceAuthUrl,
+  refreshSalesforceToken,
+  SalesforceOAuthError,
+  salesforceApp,
+} from "./salesforce";
 export {
   createSecretRef,
   isSecretRef,
@@ -227,4 +243,5 @@ export const appStore: UnifiedApp[] = [
   teamsApp,
   confluenceApp,
   jiraApp,
+  salesforceApp,
 ];

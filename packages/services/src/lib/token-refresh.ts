@@ -17,8 +17,10 @@ import {
   refreshJiraToken,
   refreshLinearToken,
   refreshOutlookToken,
+  refreshSalesforceToken,
   refreshSharePointToken,
   refreshTeamsToken,
+  salesforceApp,
 } from "@openbeam/integrations";
 
 export async function refreshConnectorToken(
@@ -171,6 +173,27 @@ export async function refreshConnectorToken(
           accessToken: jiraResult.accessToken,
           expiresIn: jiraResult.expiresIn,
           refreshToken: jiraResult.refreshToken,
+        };
+        break;
+      }
+
+      case "SALESFORCE": {
+        const sfConfig =
+          salesforceApp.auth.type === "OAUTH2"
+            ? salesforceApp.auth.config
+            : undefined;
+        if (!sfConfig) {
+          throw new Error("Salesforce OAuth config not found");
+        }
+        const sfResult = await refreshSalesforceToken({
+          config: sfConfig,
+          clientId,
+          clientSecret,
+          refreshToken,
+        });
+        newToken = {
+          accessToken: sfResult.accessToken,
+          expiresIn: sfResult.expiresIn,
         };
         break;
       }

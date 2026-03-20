@@ -73,6 +73,7 @@ export enum AppType {
   MICROSOFT_TEAMS = "MICROSOFT_TEAMS",
   CONFLUENCE = "CONFLUENCE",
   JIRA = "JIRA",
+  SALESFORCE = "SALESFORCE",
 }
 
 export enum SyncMode {

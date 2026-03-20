@@ -1,0 +1,14 @@
+export { SalesforceAuth } from "./auth";
+export type { SalesforceClient, SalesforceClientConfig } from "./client";
+export { createSalesforceClient } from "./client";
+export { salesforceFullSync } from "./sync/full";
+export { salesforceIncrementalSync } from "./sync/incremental";
+export type { SalesforceAccount } from "./transformers/account";
+export { transformSalesforceAccount } from "./transformers/account";
+export type { SalesforceCase } from "./transformers/case";
+export { transformSalesforceCase } from "./transformers/case";
+export type { SalesforceContact } from "./transformers/contact";
+export { transformSalesforceContact } from "./transformers/contact";
+export type { SalesforceOpportunity } from "./transformers/opportunity";
+export { transformSalesforceOpportunity } from "./transformers/opportunity";
+export { SalesforceApiError } from "./types";

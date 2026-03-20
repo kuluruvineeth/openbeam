@@ -482,6 +482,25 @@ export {
   updateQueryEmbedding,
   updateTopicAffinity,
 } from "./personalization";
+export type {
+  SalesforceAccount,
+  SalesforceCase,
+  SalesforceClient,
+  SalesforceClientConfig,
+  SalesforceContact,
+  SalesforceOpportunity,
+} from "./salesforce";
+export {
+  createSalesforceClient,
+  SalesforceApiError,
+  SalesforceAuth,
+  salesforceFullSync,
+  salesforceIncrementalSync,
+  transformSalesforceAccount,
+  transformSalesforceCase,
+  transformSalesforceContact,
+  transformSalesforceOpportunity,
+} from "./salesforce";
 export type { SamsaraClient } from "./samsara";
 export {
   createSamsaraClient,
