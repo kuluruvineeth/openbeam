@@ -68,6 +68,9 @@ export enum AppType {
   CISA_KEV = "CISA_KEV",
   MITRE_ATTACK = "MITRE_ATTACK",
   OWASP = "OWASP",
+  OUTLOOK = "OUTLOOK",
+  SHAREPOINT = "SHAREPOINT",
+  MICROSOFT_TEAMS = "MICROSOFT_TEAMS",
 }
 
 export enum SyncMode {
