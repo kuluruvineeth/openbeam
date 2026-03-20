@@ -1,0 +1,149 @@
+import {
+  AppType,
+  AuthType,
+  ConnectorType,
+  SyncMode,
+  type UnifiedApp,
+} from "../types";
+
+export const jiraApp: UnifiedApp = {
+  id: AppType.JIRA,
+  name: "Jira",
+  category: "Project Management",
+  active: true,
+  logo: AppType.JIRA,
+  short_description: "Search across issues, projects, and comments.",
+  description:
+    "Connect Atlassian Jira to search across issues, epics, stories, and bugs. Supports OAuth 2.0 (3LO) with incremental sync via JQL.",
+  images: [],
+  installed: false,
+  type: "official",
+  connectorType: ConnectorType.SOURCE,
+  developerName: "Atlassian",
+  website: "https://www.atlassian.com/software/jira",
+
+  searchDisplay: {
+    defaultIconKey: "CircleDot",
+    documentTypes: {
+      issue: { label: "issue", iconKey: "CircleDot", category: "issue" },
+      comment: {
+        label: "comment",
+        iconKey: "MessageCircle",
+        category: "comment",
+      },
+    },
+  },
+
+  features: [
+    "Semantic search across issues and comments",
+    "Incremental sync via JQL timestamp filtering",
+    "Project-level filtering and permissions",
+  ],
+
+  auth: {
+    type: AuthType.OAUTH2,
+    config: {
+      authUrl: "https://auth.atlassian.com/authorize",
+      tokenUrl: "https://auth.atlassian.com/oauth/token",
+      redirectPath: "/connectors/setup/jira/oauth/callback",
+      scopes: ["read:jira-work", "read:jira-user", "offline_access", "read:me"],
+    },
+  },
+
+  streams: [
+    {
+      name: "issues",
+      label: "Issues",
+      description: "Issues, bugs, stories, epics, and tasks",
+      entityType: "activity",
+      dataPoints: [
+        "Summary",
+        "Description",
+        "Status",
+        "Assignee",
+        "Priority",
+        "Labels",
+      ],
+      isPii: false,
+      syncMode: SyncMode.PERIODIC,
+      defaultInterval: 15,
+      supportsBackfill: true,
+    },
+    {
+      name: "projects",
+      label: "Projects",
+      description: "Jira projects",
+      entityType: "resource",
+      dataPoints: ["Name", "Key", "Lead", "Category"],
+      isPii: false,
+      syncMode: SyncMode.PERIODIC,
+      defaultInterval: 60,
+      supportsBackfill: true,
+    },
+  ],
+
+  settings: [
+    {
+      id: "oauth_input_method",
+      label: "Credentials",
+      description: "Enter Atlassian OAuth app credentials.",
+      type: "select",
+      required: true,
+      value: "manual",
+      options: [{ label: "Enter manually", value: "manual" }],
+    },
+    {
+      id: "client_id",
+      label: "Client ID",
+      description: "From Atlassian Developer Console",
+      type: "text",
+      required: true,
+      value: "",
+      placeholder: "your-client-id",
+    },
+    {
+      id: "client_secret",
+      label: "Client Secret",
+      description: "From Atlassian Developer Console",
+      type: "password",
+      required: true,
+      value: "",
+    },
+    {
+      id: "include_projects",
+      label: "Include Projects",
+      description: "Only sync these project keys. Leave empty for all.",
+      type: "text",
+      required: false,
+      value: "",
+      placeholder: "ENG, PLATFORM, OPS",
+    },
+    {
+      id: "exclude_projects",
+      label: "Exclude Projects",
+      description: "Skip these project keys.",
+      type: "text",
+      required: false,
+      value: "",
+    },
+    {
+      id: "sync_comments",
+      label: "Sync Comments",
+      description: "Index issue comments as separate documents.",
+      type: "switch",
+      required: false,
+      value: true,
+    },
+    {
+      id: "lookback_days",
+      label: "History (days)",
+      description: "How far back to sync. Leave empty for unlimited.",
+      type: "text",
+      required: false,
+      value: "",
+      placeholder: "Unlimited",
+    },
+  ],
+};
+
+export default jiraApp;
