@@ -44,7 +44,7 @@ export function transformSalesforceArticle(
     author_email: article.CreatedBy?.Email,
     created_at: createdAt,
     updated_at: updatedAt,
-    url: `${context.instanceUrl}/articles/${article.UrlName}`,
+    url: `${context.instanceUrl}/lightning/r/Knowledge__kav/${article.Id}/view`,
     is_public: false,
     access_control: [],
     metadata: {

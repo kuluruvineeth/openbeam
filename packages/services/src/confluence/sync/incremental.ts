@@ -66,7 +66,7 @@ export async function* confluenceIncrementalSync(
 
   let documents: GenericDocument[] = [];
   let processed = 0;
-  let skipped = 0;
+  const skipped = 0;
   let errors = 0;
   let latestModified: string | undefined = cursor.lastSyncTime;
 
@@ -92,7 +92,21 @@ export async function* confluenceIncrementalSync(
       for (const item of result.results) {
         const c = item.content;
         if (c.status === "trashed") {
-          skipped += 1;
+          const docType = c.type === "blogpost" ? "blogpost" : "page";
+          documents.push({
+            id: `${context.connectorId}_${docType}_${c.id}`,
+            connector_id: context.connectorId,
+            connector_type: context.connectorType,
+            team_id: context.teamId,
+            workspace_id: context.workspaceId,
+            external_id: c.id,
+            document_type: docType,
+            title: "",
+            content: "",
+            url: "",
+            metadata: { deleted: true },
+          } as unknown as GenericDocument);
+          processed += 1;
           continue;
         }
 
