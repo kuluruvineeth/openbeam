@@ -1,6 +1,6 @@
 {
   "title": "Jira",
-  "icon": "CircleDot",
+  "icon": "Jira",
   "pages": [
     "index",
     "setup",

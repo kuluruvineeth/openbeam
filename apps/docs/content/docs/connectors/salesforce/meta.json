@@ -1,6 +1,6 @@
 {
   "title": "Salesforce",
-  "icon": "Cloud",
+  "icon": "Salesforce",
   "pages": [
     "index",
     "setup",

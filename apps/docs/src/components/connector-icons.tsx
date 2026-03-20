@@ -529,3 +529,158 @@ export const VerkadaIcon = ({ size = 16 }: IconProps): ReactElement => (
     <rect fill="#FFFFFF" height="3" rx="1" width="8" x="20" y="31" />
   </svg>
 );
+
+export const OutlookIcon = ({ size = 16 }: IconProps): ReactElement => (
+  // biome-ignore lint/a11y/noSvgWithoutTitle: Icon
+  <svg
+    height={size}
+    viewBox="0 0 48 48"
+    width={size}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M44 10.4v27.2c0 1.32-1.08 2.4-2.4 2.4H20V8h21.6c1.32 0 2.4 1.08 2.4 2.4z"
+      fill="#1976D2"
+    />
+    <path d="M20 8h8v14h16V10.4C44 9.08 42.92 8 41.6 8H20z" fill="#2196F3" />
+    <path d="M28 22H20v18h21.6c1.32 0 2.4-1.08 2.4-2.4V22H28z" fill="#1565C0" />
+    <path
+      d="M26 14H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h22c1.1 0 2-.9 2-2V16c0-1.1-.9-2-2-2z"
+      fill="#0D47A1"
+    />
+    <path
+      d="M15 20c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 9.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"
+      fill="#fff"
+    />
+  </svg>
+);
+
+export const SharePointIcon = ({ size = 16 }: IconProps): ReactElement => (
+  // biome-ignore lint/a11y/noSvgWithoutTitle: Icon
+  <svg
+    height={size}
+    viewBox="0 0 48 48"
+    width={size}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <circle cx="28" cy="18" fill="#0F7B4F" r="14" />
+    <circle cx="32" cy="30" fill="#168F45" r="12" />
+    <path
+      d="M26 14H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h22c1.1 0 2-.9 2-2V16c0-1.1-.9-2-2-2z"
+      fill="#0D5C36"
+    />
+    <path
+      d="M10.5 28.5c0 .97.36 1.73 1.07 2.27.71.54 1.62.81 2.73.81 1.08 0 1.97-.23 2.67-.69.7-.46 1.05-1.14 1.05-2.03 0-.62-.22-1.15-.66-1.57s-1.19-.8-2.26-1.14c-.71-.22-1.19-.44-1.44-.66-.25-.22-.38-.48-.38-.78 0-.33.14-.6.42-.81.28-.21.64-.31 1.09-.31.93 0 1.65.38 2.16 1.14l1.5-1.62c-.87-1.11-2.07-1.67-3.58-1.67-1.08 0-1.97.27-2.67.81-.7.54-1.05 1.25-1.05 2.13 0 1.24.8 2.15 2.4 2.73.71.25 1.2.47 1.48.67.28.2.42.45.42.76 0 .34-.16.61-.47.82-.31.21-.72.31-1.21.31-1.08 0-1.9-.49-2.46-1.47l-1.31 1.8z"
+      fill="#fff"
+    />
+  </svg>
+);
+
+export const TeamsIcon = ({ size = 16 }: IconProps): ReactElement => (
+  // biome-ignore lint/a11y/noSvgWithoutTitle: Icon
+  <svg
+    height={size}
+    viewBox="0 0 48 48"
+    width={size}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <circle cx="34" cy="14" fill="#5059C9" r="6" />
+    <path
+      d="M40 22h6c1.1 0 2 .9 2 2v8c0 2.76-2.24 5-5 5h-1c-.55 0-1-.45-1-1v-13c0-.55.45-1 1-1z"
+      fill="#5059C9"
+    />
+    <circle cx="22" cy="14" fill="#7B83EB" r="8" />
+    <path
+      d="M32 22H12c-1.1 0-2 .9-2 2v10c0 4.42 3.58 8 8 8h8c4.42 0 8-3.58 8-8V24c0-1.1-.9-2-2-2z"
+      fill="#7B83EB"
+    />
+    <path
+      d="M26 14H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h22c1.1 0 2-.9 2-2V16c0-1.1-.9-2-2-2z"
+      fill="#4B53BC"
+    />
+    <path d="M19.5 22H18v8h-2v-8h-5v-2h8.5v2z" fill="#fff" />
+  </svg>
+);
+
+export const ConfluenceIcon = ({ size = 16 }: IconProps): ReactElement => (
+  // biome-ignore lint/a11y/noSvgWithoutTitle: Icon
+  <svg
+    height={size}
+    viewBox="0 0 256 246"
+    width={size}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <defs>
+      <linearGradient
+        id="cf-a"
+        x1="99.14%"
+        x2="33.86%"
+        y1="112.05%"
+        y2="69.22%"
+      >
+        <stop offset="0%" stopColor="#0052CC" />
+        <stop offset="92.3%" stopColor="#2684FF" />
+      </linearGradient>
+      <linearGradient id="cf-b" x1="0.86%" x2="66.14%" y1="-12.05%" y2="30.78%">
+        <stop offset="0%" stopColor="#0052CC" />
+        <stop offset="92.3%" stopColor="#2684FF" />
+      </linearGradient>
+    </defs>
+    <path
+      d="M9.26 187.36c-3.69 6.08-7.79 13.1-10.54 17.87a8.08 8.08 0 0 0 2.87 11.02l57.97 35.14a8.08 8.08 0 0 0 11.06-2.66c2.34-4.05 5.72-9.98 9.63-16.47 27.34-45.37 54.86-39.74 104.19-17.04l56.18 25.82a8.08 8.08 0 0 0 10.63-4.2l28.54-62.8a8.08 8.08 0 0 0-4.02-10.52c-14.35-6.64-42.87-19.74-63.48-29.22-76.87-35.33-142.87-32.93-203.03 52.96z"
+      fill="url(#cf-a)"
+    />
+    <path
+      d="M246.74 58.64c3.69-6.08 7.79-13.1 10.54-17.87a8.08 8.08 0 0 0-2.87-11.02L196.44-5.39a8.08 8.08 0 0 0-11.06 2.66c-2.34 4.05-5.72 9.98-9.63 16.47C148.41 59.11 120.89 53.48 71.56 30.78L15.38 4.96a8.08 8.08 0 0 0-10.63 4.2L-23.79 72a8.08 8.08 0 0 0 4.02 10.52c14.35 6.64 42.87 19.74 63.48 29.22 76.87 35.33 142.87 32.93 203.03-53.1z"
+      fill="url(#cf-b)"
+    />
+  </svg>
+);
+
+export const JiraIcon = ({ size = 16 }: IconProps): ReactElement => (
+  // biome-ignore lint/a11y/noSvgWithoutTitle: Icon
+  <svg
+    height={size}
+    viewBox="0 0 256 256"
+    width={size}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <defs>
+      <linearGradient id="ji-a" x1="98.03%" x2="58.89%" y1="0.22%" y2="40.77%">
+        <stop offset="18%" stopColor="#0052CC" />
+        <stop offset="100%" stopColor="#2684FF" />
+      </linearGradient>
+      <linearGradient id="ji-b" x1="100.17%" x2="55.35%" y1="0.05%" y2="44.72%">
+        <stop offset="18%" stopColor="#0052CC" />
+        <stop offset="100%" stopColor="#2684FF" />
+      </linearGradient>
+    </defs>
+    <path
+      d="M244.66 0H121.72a55.33 55.33 0 0 0 55.33 55.33h22.39v21.59a55.34 55.34 0 0 0 55.33 55.34V11.11A11.11 11.11 0 0 0 244.66 0z"
+      fill="#2684FF"
+    />
+    <path
+      d="M183.82 61.45H60.88a55.34 55.34 0 0 0 55.34 55.33h22.38v21.6a55.33 55.33 0 0 0 55.33 55.33V72.56a11.11 11.11 0 0 0-11.11-11.11z"
+      fill="url(#ji-a)"
+    />
+    <path
+      d="M122.98 122.9H.04a55.33 55.33 0 0 0 55.33 55.34h22.39v21.59A55.33 55.33 0 0 0 133.1 255.17V134.02a11.11 11.11 0 0 0-11.12-11.12z"
+      fill="url(#ji-b)"
+    />
+  </svg>
+);
+
+export const SalesforceIcon = ({ size = 16 }: IconProps): ReactElement => (
+  // biome-ignore lint/a11y/noSvgWithoutTitle: Icon
+  <svg
+    height={size}
+    viewBox="0 0 48 48"
+    width={size}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M20.1 8.5c1.6-1.7 3.8-2.7 6.3-2.7 3.3 0 6.1 1.8 7.7 4.5 1.3-.6 2.8-.9 4.3-.9 5.9 0 10.7 4.8 10.7 10.8 0 6-4.8 10.8-10.7 10.8-.7 0-1.4-.1-2.1-.2-1.3 2.4-3.9 4-6.8 4-1.2 0-2.4-.3-3.4-.8-1.4 3.2-4.5 5.4-8.2 5.4-3.8 0-7.1-2.4-8.4-5.8-.5.1-1.1.2-1.7.2-4.6 0-8.4-3.7-8.4-8.4 0-3.1 1.7-5.8 4.1-7.3-.5-1.2-.8-2.5-.8-3.8C2.7 10 7 5.6 12.3 5.6c3.1 0 5.9 1.5 7.7 3.8z"
+      fill="#00A1E0"
+    />
+  </svg>
+);

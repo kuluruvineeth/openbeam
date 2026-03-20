@@ -1,6 +1,6 @@
 {
   "title": "Microsoft SharePoint",
-  "icon": "FileText",
+  "icon": "SharePoint",
   "pages": [
     "index",
     "setup",

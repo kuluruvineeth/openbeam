@@ -1,4 +1,4 @@
-import { getRedis } from "@openbeam/redis";
+import { getRedisClient } from "@openbeam/redis";
 import type { AtlassianClient } from "../../atlassian/client";
 import { logger } from "../../lib/logger";
 
@@ -134,7 +134,7 @@ export class JiraWatchManager {
   }
 
   private async getState(): Promise<JiraWebhookState | null> {
-    const redis = getRedis();
+    const redis = await getRedisClient();
     const raw = await redis.get(`${REDIS_KEY_PREFIX}${this.connectorId}`);
     if (!raw) {
       return null;
@@ -143,7 +143,7 @@ export class JiraWatchManager {
   }
 
   private async saveState(state: JiraWebhookState): Promise<void> {
-    const redis = getRedis();
+    const redis = await getRedisClient();
     await redis.set(
       `${REDIS_KEY_PREFIX}${this.connectorId}`,
       JSON.stringify(state),
@@ -153,13 +153,13 @@ export class JiraWatchManager {
   }
 
   private async clearState(): Promise<void> {
-    const redis = getRedis();
+    const redis = await getRedisClient();
     await redis.del(`${REDIS_KEY_PREFIX}${this.connectorId}`);
   }
 }
 
 export async function getExpiringJiraWebhooks(): Promise<string[]> {
-  const redis = getRedis();
+  const redis = await getRedisClient();
   const keys = await redis.keys(`${REDIS_KEY_PREFIX}*`);
   const expiring: string[] = [];
   const bufferMs = RENEWAL_BUFFER_DAYS * 86_400_000;

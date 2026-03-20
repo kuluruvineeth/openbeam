@@ -1,6 +1,6 @@
 {
   "title": "Microsoft Teams",
-  "icon": "MessageSquare",
+  "icon": "Teams",
   "pages": [
     "index",
     "setup",

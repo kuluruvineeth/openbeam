@@ -1,6 +1,6 @@
 {
   "title": "Microsoft Outlook",
-  "icon": "Mail",
+  "icon": "Outlook",
   "pages": [
     "index",
     "setup",
