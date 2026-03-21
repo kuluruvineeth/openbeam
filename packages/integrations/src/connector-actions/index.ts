@@ -7,8 +7,11 @@ import { googleDriveActionsRegistry } from "./google-drive";
 import { jiraActionsRegistry } from "./jira";
 import { linearActionsRegistry } from "./linear";
 import { notionActionsRegistry } from "./notion";
+import { outlookActionsRegistry } from "./outlook";
 import { salesforceActionsRegistry } from "./salesforce";
+import { sharePointActionsRegistry } from "./sharepoint";
 import { slackActionsRegistry } from "./slack";
+import { teamsActionsRegistry } from "./teams";
 
 export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
   slackActionsRegistry,
@@ -21,4 +24,7 @@ export const ALL_CONNECTOR_ACTION_REGISTRIES: ConnectorActionsRegistry[] = [
   confluenceActionsRegistry,
   salesforceActionsRegistry,
   googleCalendarActionsRegistry,
+  outlookActionsRegistry,
+  sharePointActionsRegistry,
+  teamsActionsRegistry,
 ];
