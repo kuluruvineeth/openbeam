@@ -22,7 +22,7 @@ export async function* googleCalendarIncrementalSync(
 ): AsyncGenerator<GoogleCalendarSyncBatch<GenericDocument>, void, undefined> {
   const { cursor, batchSize = 100 } = options;
 
-  if (!(cursor?.syncToken && cursor?.lastFullSync)) {
+  if (!(cursor?.syncTokens && cursor.lastFullSync)) {
     yield* googleCalendarFullSync(client, context, {
       batchSize,
       includeCalendars: options.includeCalendars,
@@ -35,7 +35,8 @@ export async function* googleCalendarIncrementalSync(
   let processed = 0;
   const skipped = 0;
   let errors = 0;
-  let finalSyncToken: string | undefined = cursor.syncToken;
+  const newSyncTokens: Record<string, string> = { ...cursor.syncTokens };
+  let needsFullSync = false;
 
   const calendars: Array<{ id: string; name: string }> = [];
 
@@ -51,12 +52,22 @@ export async function* googleCalendarIncrementalSync(
     }
   }
 
-  try {
-    for (const calendar of calendars) {
+  for (const calendar of calendars) {
+    const calSyncToken = cursor.syncTokens[calendar.id];
+
+    if (!calSyncToken) {
+      logger.info(
+        { connectorId: client.connectorId, calendarId: calendar.id },
+        "No syncToken for calendar, triggering full sync"
+      );
+      needsFullSync = true;
+      break;
+    }
+
+    try {
       for await (const page of client.listEvents(calendar.id, {
-        syncToken: cursor.syncToken,
+        syncToken: calSyncToken,
         showDeleted: true,
-        singleEvents: true,
       })) {
         for (const event of page.events) {
           if (event.status === "cancelled") {
@@ -71,6 +82,9 @@ export async function* googleCalendarIncrementalSync(
               title: "",
               content: "",
               url: "",
+              created_at: 0,
+              updated_at: Date.now(),
+              is_public: false,
               metadata: { deleted: true },
             } as unknown as GenericDocument);
             processed += 1;
@@ -91,14 +105,14 @@ export async function* googleCalendarIncrementalSync(
         }
 
         if (page.nextSyncToken) {
-          finalSyncToken = page.nextSyncToken;
+          newSyncTokens[calendar.id] = page.nextSyncToken;
         }
 
         if (documents.length >= batchSize) {
           yield {
             items: documents,
             cursor: {
-              syncToken: finalSyncToken,
+              syncTokens: newSyncTokens,
               lastFullSync: cursor.lastFullSync,
             },
             hasMore: true,
@@ -107,33 +121,39 @@ export async function* googleCalendarIncrementalSync(
           documents = [];
         }
       }
-    }
+    } catch (error) {
+      const isSyncTokenExpired =
+        error instanceof GoogleCalendarApiError && error.statusCode === 410;
 
-    yield {
-      items: documents,
-      cursor: {
-        syncToken: finalSyncToken,
-        lastFullSync: cursor.lastFullSync,
-      },
-      hasMore: false,
-      stats: { processed, skipped, errors },
-    };
-  } catch (error) {
-    const isSyncTokenExpired =
-      error instanceof GoogleCalendarApiError && error.statusCode === 410;
+      if (isSyncTokenExpired) {
+        logger.warn(
+          { connectorId: client.connectorId, calendarId: calendar.id },
+          "SyncToken expired for calendar, triggering full sync"
+        );
+        needsFullSync = true;
+        break;
+      }
 
-    if (!isSyncTokenExpired) {
       throw error;
     }
+  }
 
-    logger.warn(
-      { connectorId: client.connectorId },
-      "Google Calendar syncToken expired, falling back to full sync"
-    );
+  if (needsFullSync) {
     yield* googleCalendarFullSync(client, context, {
       batchSize,
       includeCalendars: options.includeCalendars,
       lookbackDays: options.lookbackDays,
     });
+    return;
   }
+
+  yield {
+    items: documents,
+    cursor: {
+      syncTokens: newSyncTokens,
+      lastFullSync: cursor.lastFullSync,
+    },
+    hasMore: false,
+    stats: { processed, skipped, errors },
+  };
 }

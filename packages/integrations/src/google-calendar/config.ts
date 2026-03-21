@@ -64,7 +64,7 @@ export const googleCalendarApp: UnifiedApp = {
         "Attendees",
         "Organizer",
       ],
-      isPii: false,
+      isPii: true,
       syncMode: SyncMode.PERIODIC,
       defaultInterval: 15,
       supportsBackfill: true,

@@ -20,9 +20,9 @@ export async function* googleCalendarFullSync(
   const batchSize = options.batchSize ?? 100;
   let documents: GenericDocument[] = [];
   let processed = 0;
-  const skipped = 0;
+  let skipped = 0;
   let errors = 0;
-  let finalSyncToken: string | undefined;
+  const syncTokens: Record<string, string> = {};
 
   const timeMin = options.lookbackDays
     ? new Date(Date.now() - options.lookbackDays * 86_400_000).toISOString()
@@ -48,8 +48,6 @@ export async function* googleCalendarFullSync(
   );
 
   for (const calendar of calendars) {
-    let calendarSyncToken: string | undefined;
-
     for await (const page of client.listEvents(calendar.id, {
       timeMin,
       showDeleted: false,
@@ -57,6 +55,7 @@ export async function* googleCalendarFullSync(
     })) {
       for (const event of page.events) {
         if (event.status === "cancelled") {
+          skipped += 1;
           continue;
         }
 
@@ -74,27 +73,23 @@ export async function* googleCalendarFullSync(
       }
 
       if (page.nextSyncToken) {
-        calendarSyncToken = page.nextSyncToken;
+        syncTokens[calendar.id] = page.nextSyncToken;
       }
 
       if (documents.length >= batchSize) {
         yield {
           items: documents,
-          cursor: { lastFullSync: Date.now() },
+          cursor: { syncTokens, lastFullSync: Date.now() },
           hasMore: true,
           stats: { processed, skipped, errors },
         };
         documents = [];
       }
     }
-
-    if (calendarSyncToken) {
-      finalSyncToken = calendarSyncToken;
-    }
   }
 
   const cursor: GoogleCalendarSyncCursor = {
-    syncToken: finalSyncToken,
+    syncTokens,
     lastFullSync: Date.now(),
   };
 

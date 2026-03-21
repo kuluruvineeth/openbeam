@@ -1,8 +1,7 @@
 import { z } from "zod";
 
 export const GoogleCalendarSyncCursorSchema = z.object({
-  syncToken: z.string().optional(),
-  pageToken: z.string().optional(),
+  syncTokens: z.record(z.string(), z.string()).optional(),
   lastFullSync: z.number().optional(),
 });
 

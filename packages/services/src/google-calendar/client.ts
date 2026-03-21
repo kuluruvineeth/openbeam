@@ -217,20 +217,22 @@ export function createGoogleCalendarClient(
   > {
     const params: Record<string, string> = {
       maxResults: String(options?.maxResults ?? 250),
-      singleEvents: String(options?.singleEvents ?? true),
     };
 
     if (options?.syncToken) {
       params.syncToken = options.syncToken;
+      if (options.showDeleted) {
+        params.showDeleted = "true";
+      }
     } else {
+      params.singleEvents = String(options?.singleEvents ?? true);
       if (options?.timeMin) {
         params.timeMin = options.timeMin;
       }
+      if (options?.showDeleted) {
+        params.showDeleted = "true";
+      }
       params.orderBy = "startTime";
-    }
-
-    if (options?.showDeleted) {
-      params.showDeleted = "true";
     }
 
     let pageToken: string | undefined;
