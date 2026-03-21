@@ -130,6 +130,15 @@ export {
   incrementalSync as azureIotIncrementalSync,
   transformDevice as transformAzureIotDevice,
 } from "./azure-iot";
+export type { BacnetClient } from "./bacnet";
+export {
+  BacnetApiError,
+  createBacnetClient,
+  fullSync as bacnetFullSync,
+  incrementalSync as bacnetIncrementalSync,
+  transformDevice as transformBacnetDevice,
+  transformObject as transformBacnetObject,
+} from "./bacnet";
 export {
   CisaKevApiError,
   fetchKevCatalog,
@@ -197,6 +206,13 @@ export {
   isRetryableError,
   normalizeApiError,
 } from "./errors";
+export type { FhirClient } from "./fhir";
+export {
+  createFhirClient,
+  FhirApiError,
+  fullSync as fhirFullSync,
+  incrementalSync as fhirIncrementalSync,
+} from "./fhir";
 export type {
   ConnectorFileInfo,
   ConnectorMediaInfo,
@@ -370,6 +386,13 @@ export {
   transformProject as transformLinearProject,
   verifyWebhookSignature as verifyLinearWebhookSignature,
 } from "./linear";
+export type { MatterportClient } from "./matterport";
+export {
+  createMatterportClient,
+  fullSync as matterportFullSync,
+  incrementalSync as matterportIncrementalSync,
+  MatterportApiError,
+} from "./matterport";
 export type {
   CachedMediaContent,
   ContentType,
@@ -422,6 +445,20 @@ export {
   getDomainUrl,
   MitreAttackApiError,
 } from "./mitre-attack";
+export type { MqttConnectorClient } from "./mqtt";
+export {
+  createMqttConnectorClient,
+  fullSync as mqttFullSync,
+  incrementalSync as mqttIncrementalSync,
+  MqttConnectorError,
+} from "./mqtt";
+export type { NodeRedClient } from "./nodered";
+export {
+  createNodeRedClient,
+  fullSync as nodeRedFullSync,
+  incrementalSync as nodeRedIncrementalSync,
+  NodeRedApiError,
+} from "./nodered";
 export type {
   NotificationResult as NotionNotificationResult,
   NotionClient,
@@ -459,6 +496,20 @@ export {
   incrementalSync as nvdIncrementalSync,
   NvdApiError,
 } from "./nvd";
+export type { OmniverseClient } from "./omniverse";
+export {
+  createOmniverseClient,
+  fullSync as omniverseFullSync,
+  incrementalSync as omniverseIncrementalSync,
+  OmniverseApiError,
+} from "./omniverse";
+export type { OpcUaClient } from "./opcua";
+export {
+  createOpcUaClient,
+  fullSync as opcUaFullSync,
+  incrementalSync as opcUaIncrementalSync,
+  OpcUaApiError,
+} from "./opcua";
 export type { OutlookMessage } from "./outlook";
 export {
   OutlookAuth,
@@ -885,6 +936,13 @@ export {
   updateSyncCompletion,
   updateSyncCursor,
 } from "./sync";
+export type { ThingsboardClient } from "./thingsboard";
+export {
+  createThingsboardClient,
+  fullSync as thingsboardFullSync,
+  incrementalSync as thingsboardIncrementalSync,
+  ThingsboardApiError,
+} from "./thingsboard";
 export type {
   AuthCompleteContext,
   AuthStartContext,
@@ -904,6 +962,13 @@ export {
   VerkadaApiError,
   verifyVerkadaWebhook,
 } from "./verkada";
+export type { ViamClient } from "./viam";
+export {
+  createViamClient,
+  fullSync as viamFullSync,
+  incrementalSync as viamIncrementalSync,
+  ViamApiError,
+} from "./viam";
 export {
   completeSession,
   createNote,

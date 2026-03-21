@@ -2037,7 +2037,13 @@ export function registerAllSyncFactories(): void {
       const syncGenerator = runFull
         ? matterportFullSync(client, context, { batchSize: 50 })
         : matterportIncrementalSync(client, context, {
-            previousCursor: (cursor ?? {}) as Record<string, unknown>,
+            previousCursor: {
+              lastSyncTimestamp:
+                parseNumericConfig(cursor?.lastSyncTimestamp, 0) ?? 0,
+              lastModelModified:
+                (cursor?.lastModelModified as Record<string, string>) ?? {},
+              processedModelIds: (cursor?.processedModelIds as string[]) ?? [],
+            },
             batchSize: 50,
           });
 
@@ -2100,7 +2106,15 @@ export function registerAllSyncFactories(): void {
             stagePaths,
           })
         : omniverseIncrementalSync(client, context, {
-            previousCursor: (cursor ?? {}) as Record<string, unknown>,
+            previousCursor: {
+              lastSyncTimestamp:
+                parseNumericConfig(cursor?.lastSyncTimestamp, 0) ?? 0,
+              scannedStages: (cursor?.scannedStages as string[]) ?? [],
+              currentStageIndex:
+                parseNumericConfig(cursor?.currentStageIndex, 0) ?? 0,
+              lastModifiedVersion:
+                (cursor?.lastModifiedVersion as string) ?? undefined,
+            },
             batchSize: 100,
             stagePaths,
           });
@@ -2151,7 +2165,13 @@ export function registerAllSyncFactories(): void {
       const syncGenerator = runFull
         ? viamFullSync(client, context, { batchSize: 50 })
         : viamIncrementalSync(client, context, {
-            previousCursor: (cursor ?? {}) as Record<string, unknown>,
+            previousCursor: {
+              lastSyncTimestamp:
+                parseNumericConfig(cursor?.lastSyncTimestamp, 0) ?? 0,
+              lastMachineSync:
+                (cursor?.lastMachineSync as Record<string, number>) ?? {},
+              dataQueryCursor: (cursor?.dataQueryCursor as string) ?? undefined,
+            },
             batchSize: 50,
           });
 
@@ -2216,7 +2236,16 @@ export function registerAllSyncFactories(): void {
       const syncGenerator = runFull
         ? fhirFullSync(client, context, { batchSize: 50 })
         : fhirIncrementalSync(client, context, {
-            previousCursor: (cursor ?? {}) as Record<string, unknown>,
+            previousCursor: {
+              lastSyncTimestamp:
+                parseNumericConfig(cursor?.lastSyncTimestamp, 0) ?? 0,
+              subscriptionIds: (cursor?.subscriptionIds as string[]) ?? [],
+              resourceTypeProgress:
+                (cursor?.resourceTypeProgress as Record<string, string>) ?? {},
+              lastTransactionTime:
+                (cursor?.lastTransactionTime as string) ?? undefined,
+              bulkExportJobId: (cursor?.bulkExportJobId as string) ?? undefined,
+            },
             batchSize: 50,
           });
 
