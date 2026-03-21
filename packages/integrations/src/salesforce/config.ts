@@ -13,9 +13,9 @@ export const salesforceApp: UnifiedApp = {
   active: true,
   logo: AppType.SALESFORCE,
   short_description:
-    "Search across accounts, contacts, opportunities, and cases.",
+    "Search across accounts, contacts, opportunities, leads, campaigns, and cases.",
   description:
-    "Connect Salesforce to search across CRM data including accounts, contacts, opportunities, cases, and knowledge articles. Supports OAuth 2.0 with SOQL incremental sync.",
+    "Connect Salesforce to search across CRM data including accounts, contacts, opportunities, leads, campaigns, cases, and knowledge articles. Supports OAuth 2.0 with SOQL incremental sync.",
   images: [],
   installed: false,
   type: "official",
@@ -33,6 +33,12 @@ export const salesforceApp: UnifiedApp = {
         iconKey: "TrendingUp",
         category: "opportunity",
       },
+      lead: { label: "lead", iconKey: "UserCircle", category: "lead" },
+      campaign: {
+        label: "campaign",
+        iconKey: "TrendingUp",
+        category: "campaign",
+      },
       case: { label: "case", iconKey: "Ticket", category: "case" },
       article: { label: "article", iconKey: "FileText", category: "article" },
     },
@@ -41,7 +47,7 @@ export const salesforceApp: UnifiedApp = {
   features: [
     "Semantic search across CRM objects",
     "Incremental sync via SOQL timestamp filtering",
-    "Accounts, contacts, opportunities, cases, and knowledge articles",
+    "Accounts, contacts, opportunities, leads, campaigns, cases, and knowledge articles",
   ],
 
   auth: {
@@ -86,6 +92,28 @@ export const salesforceApp: UnifiedApp = {
       isPii: false,
       syncMode: SyncMode.PERIODIC,
       defaultInterval: 15,
+      supportsBackfill: true,
+    },
+    {
+      name: "leads",
+      label: "Leads",
+      description: "Sales leads and prospects",
+      entityType: "resource",
+      dataPoints: ["Name", "Email", "Company", "Status", "LeadSource"],
+      isPii: true,
+      syncMode: SyncMode.PERIODIC,
+      defaultInterval: 30,
+      supportsBackfill: true,
+    },
+    {
+      name: "campaigns",
+      label: "Campaigns",
+      description: "Marketing campaigns",
+      entityType: "activity",
+      dataPoints: ["Name", "Status", "Type", "StartDate", "EndDate"],
+      isPii: false,
+      syncMode: SyncMode.PERIODIC,
+      defaultInterval: 60,
       supportsBackfill: true,
     },
     {
@@ -139,12 +167,38 @@ export const salesforceApp: UnifiedApp = {
       placeholder: "https://login.salesforce.com",
     },
     {
+      id: "sync_leads",
+      label: "Sync Leads",
+      description: "Index leads and prospects as searchable documents.",
+      type: "switch",
+      required: false,
+      value: true,
+    },
+    {
+      id: "sync_campaigns",
+      label: "Sync Campaigns",
+      description: "Index marketing campaigns as searchable documents.",
+      type: "switch",
+      required: false,
+      value: false,
+    },
+    {
       id: "sync_cases",
       label: "Sync Cases",
       description: "Index support cases as searchable documents.",
       type: "switch",
       required: false,
       value: true,
+    },
+    {
+      id: "custom_objects",
+      label: "Custom Objects",
+      description:
+        "Comma-separated API names of custom objects to sync (e.g. Product__c, Invoice__c).",
+      type: "text",
+      required: false,
+      value: "",
+      placeholder: "Product__c, Invoice__c",
     },
     {
       id: "lookback_days",

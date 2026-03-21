@@ -18,6 +18,10 @@ import {
   transformSalesforceArticle,
 } from "../transformers/article";
 import {
+  type SalesforceCampaign,
+  transformSalesforceCampaign,
+} from "../transformers/campaign";
+import {
   type SalesforceCase,
   transformSalesforceCase,
 } from "../transformers/case";
@@ -25,6 +29,10 @@ import {
   type SalesforceContact,
   transformSalesforceContact,
 } from "../transformers/contact";
+import {
+  type SalesforceLead,
+  transformSalesforceLead,
+} from "../transformers/lead";
 import {
   type SalesforceOpportunity,
   transformSalesforceOpportunity,
@@ -44,15 +52,25 @@ export async function* salesforceIncrementalSync(
     cursor?: SalesforceSyncCursor;
     batchSize?: number;
     syncCases?: boolean;
+    syncLeads?: boolean;
+    syncCampaigns?: boolean;
     lookbackDays?: number;
   } = {}
 ): AsyncGenerator<SalesforceSyncBatch<GenericDocument>, void, undefined> {
-  const { cursor, batchSize = 200, syncCases = true } = options;
+  const {
+    cursor,
+    batchSize = 200,
+    syncCases = true,
+    syncLeads = true,
+    syncCampaigns = false,
+  } = options;
 
   if (!(cursor?.lastSyncTime && cursor?.lastFullSync)) {
     yield* salesforceFullSync(client, context, {
       batchSize,
       syncCases,
+      syncLeads,
+      syncCampaigns,
       lookbackDays: options.lookbackDays,
     });
     return;
@@ -99,6 +117,21 @@ export async function* salesforceIncrementalSync(
       transform: (r, ctx) =>
         transformSalesforceOpportunity(r as SalesforceOpportunity, ctx),
       enabled: true,
+    },
+    {
+      sobject: "Lead",
+      fields:
+        "Id,Name,FirstName,LastName,Email,Phone,Company,Title,Status,LeadSource,Industry,Description,Owner.Name,CreatedDate,LastModifiedDate,SystemModstamp",
+      transform: (r, ctx) => transformSalesforceLead(r as SalesforceLead, ctx),
+      enabled: syncLeads,
+    },
+    {
+      sobject: "Campaign",
+      fields:
+        "Id,Name,Description,Status,Type,StartDate,EndDate,NumberOfLeads,NumberOfContacts,ActualCost,BudgetedCost,Owner.Name,CreatedDate,LastModifiedDate,SystemModstamp",
+      transform: (r, ctx) =>
+        transformSalesforceCampaign(r as SalesforceCampaign, ctx),
+      enabled: syncCampaigns,
     },
     {
       sobject: "Case",
@@ -187,6 +220,8 @@ export async function* salesforceIncrementalSync(
     yield* salesforceFullSync(client, context, {
       batchSize,
       syncCases,
+      syncLeads,
+      syncCampaigns,
       lookbackDays: options.lookbackDays,
     });
   }
@@ -200,6 +235,8 @@ const SOBJECT_TYPE_MAP: Record<string, string> = {
   Account: "account",
   Contact: "contact",
   Opportunity: "opportunity",
+  Lead: "lead",
+  Campaign: "campaign",
   Case: "case",
   Knowledge__kav: "article",
 };

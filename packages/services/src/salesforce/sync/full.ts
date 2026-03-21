@@ -18,6 +18,10 @@ import {
   transformSalesforceArticle,
 } from "../transformers/article";
 import {
+  type SalesforceCampaign,
+  transformSalesforceCampaign,
+} from "../transformers/campaign";
+import {
   type SalesforceCase,
   transformSalesforceCase,
 } from "../transformers/case";
@@ -25,6 +29,10 @@ import {
   type SalesforceContact,
   transformSalesforceContact,
 } from "../transformers/contact";
+import {
+  type SalesforceLead,
+  transformSalesforceLead,
+} from "../transformers/lead";
 import {
   type SalesforceOpportunity,
   transformSalesforceOpportunity,
@@ -38,6 +46,10 @@ const OPPORTUNITY_FIELDS =
   "Id,Name,Description,StageName,Amount,Probability,CloseDate,Type,LeadSource,Account.Name,Account.Id,Owner.Name,Owner.Email,CreatedDate,LastModifiedDate,SystemModstamp,IsClosed,IsWon";
 const CASE_FIELDS =
   "Id,CaseNumber,Subject,Description,Status,Priority,Type,Reason,Origin,Contact.Name,Contact.Email,Account.Name,Owner.Name,Owner.Email,CreatedDate,LastModifiedDate,ClosedDate,SystemModstamp,IsClosed";
+const LEAD_FIELDS =
+  "Id,Name,FirstName,LastName,Email,Phone,Company,Title,Status,LeadSource,Industry,Description,Owner.Name,CreatedDate,LastModifiedDate,SystemModstamp";
+const CAMPAIGN_FIELDS =
+  "Id,Name,Description,Status,Type,StartDate,EndDate,NumberOfLeads,NumberOfContacts,ActualCost,BudgetedCost,Owner.Name,CreatedDate,LastModifiedDate,SystemModstamp";
 const KNOWLEDGE_FIELDS =
   "Id,Title,Summary,ArticleBody,UrlName,ArticleNumber,PublishStatus,VersionNumber,KnowledgeArticleId,CreatedDate,LastModifiedDate,SystemModstamp,CreatedBy.Name,CreatedBy.Email,LastModifiedBy.Name";
 
@@ -47,11 +59,15 @@ export async function* salesforceFullSync(
   options: {
     batchSize?: number;
     syncCases?: boolean;
+    syncLeads?: boolean;
+    syncCampaigns?: boolean;
     lookbackDays?: number;
   } = {}
 ): AsyncGenerator<SalesforceSyncBatch<GenericDocument>, void, undefined> {
   const batchSize = options.batchSize ?? 200;
   const syncCases = options.syncCases ?? true;
+  const syncLeads = options.syncLeads ?? true;
+  const syncCampaigns = options.syncCampaigns ?? false;
   let documents: GenericDocument[] = [];
   let processed = 0;
   const skipped = 0;
@@ -140,6 +156,64 @@ export async function* salesforceFullSync(
         latestModstamp,
       });
       documents = [];
+    }
+  }
+
+  if (syncLeads) {
+    for await (const leads of client.queryAll<SalesforceLead>(
+      `SELECT ${LEAD_FIELDS} FROM Lead${dateFilter} ORDER BY SystemModstamp ASC`
+    )) {
+      for (const lead of leads) {
+        try {
+          documents.push(transformSalesforceLead(lead, context));
+          processed += 1;
+          latestModstamp = trackModstamp(lead.SystemModstamp, latestModstamp);
+        } catch (error) {
+          logger.error({ error, leadId: lead.Id }, "Error transforming Lead");
+          errors += 1;
+        }
+      }
+      if (documents.length >= batchSize) {
+        yield makeBatch({
+          items: documents,
+          stats: { processed, skipped, errors },
+          hasMore: true,
+          latestModstamp,
+        });
+        documents = [];
+      }
+    }
+  }
+
+  if (syncCampaigns) {
+    for await (const campaigns of client.queryAll<SalesforceCampaign>(
+      `SELECT ${CAMPAIGN_FIELDS} FROM Campaign${dateFilter} ORDER BY SystemModstamp ASC`
+    )) {
+      for (const campaign of campaigns) {
+        try {
+          documents.push(transformSalesforceCampaign(campaign, context));
+          processed += 1;
+          latestModstamp = trackModstamp(
+            campaign.SystemModstamp,
+            latestModstamp
+          );
+        } catch (error) {
+          logger.error(
+            { error, campaignId: campaign.Id },
+            "Error transforming Campaign"
+          );
+          errors += 1;
+        }
+      }
+      if (documents.length >= batchSize) {
+        yield makeBatch({
+          items: documents,
+          stats: { processed, skipped, errors },
+          hasMore: true,
+          latestModstamp,
+        });
+        documents = [];
+      }
     }
   }
 

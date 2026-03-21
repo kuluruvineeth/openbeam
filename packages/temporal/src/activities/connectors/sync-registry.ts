@@ -1636,6 +1636,8 @@ export function registerAllSyncFactories(): void {
       const config = connector.config as Record<string, unknown> | null;
       const instanceUrl = (config?.instanceUrl as string) ?? "";
       const syncCases = config?.sync_cases !== false;
+      const syncLeads = config?.sync_leads !== false;
+      const syncCampaigns = config?.sync_campaigns === true;
       const lookbackDays = config?.lookback_days
         ? Number(config.lookback_days)
         : undefined;
@@ -1672,12 +1674,16 @@ export function registerAllSyncFactories(): void {
         ? salesforceFullSync(client, context, {
             batchSize: 200,
             syncCases,
+            syncLeads,
+            syncCampaigns,
             lookbackDays,
           })
         : salesforceIncrementalSync(client, context, {
             cursor,
             batchSize: 200,
             syncCases,
+            syncLeads,
+            syncCampaigns,
             lookbackDays,
           });
 

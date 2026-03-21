@@ -72,6 +72,7 @@ export const DocumentTypeCategorySchema = z.enum([
   "opportunity",
   "deal",
   "lead",
+  "campaign",
   "case",
   "crm",
   "support",
